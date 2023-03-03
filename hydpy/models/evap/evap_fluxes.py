@@ -7,6 +7,12 @@ from hydpy.core import sequencetools
 from hydpy.models.evap import evap_sequences
 
 
+class Precipitation(evap_sequences.FluxSequence1D):
+    """Precipitation [mm/T]."""
+
+    NUMERIC = False
+
+
 class NetShortwaveRadiation(sequencetools.FluxSequence):
     """Net shortwave radiation [W/m²]."""
 

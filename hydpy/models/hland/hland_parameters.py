@@ -232,21 +232,21 @@ class ParameterNoGlacier(ParameterBase):
     |ILAKE| zones.
 
     |ParameterNoGlacier| works similarly to |ParameterComplete|.  Some examples based
-    on the parameter |ECorr|:
+    on the parameter |TCorr|:
 
     >>> from hydpy.models.hland import *
     >>> parameterstep("1d")
     >>> nmbzones(5)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, FIELD)
-    >>> ecorr(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
-    >>> ecorr
-    ecorr(field=2.0, forest=1.0, ilake=3.0)
-    >>> ecorr(field=2.0, default=9.0)
-    >>> ecorr
-    ecorr(field=2.0, forest=9.0, ilake=9.0)
+    >>> tcorr(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
+    >>> tcorr
+    tcorr(field=2.0, forest=1.0, ilake=3.0)
+    >>> tcorr(field=2.0, default=9.0)
+    >>> tcorr
+    tcorr(field=2.0, forest=9.0, ilake=9.0)
     >>> zonearea.values = 1.0, 1.0, nan, 1.0, 1.0
     >>> from hydpy import round_
-    >>> round_(ecorr.average_values())
+    >>> round_(tcorr.average_values())
     5.5
     """
 

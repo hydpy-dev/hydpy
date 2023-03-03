@@ -1503,11 +1503,11 @@ class XMLSubseries(XMLSelector):
     def _iterate_model_sequences(self) -> Iterator[sequencetools.IOSequence]:
         m2s2s = self.model2subs2seqs
         for element in self.elements:
-            model = element.model
-            for subseqs_name, seq_names in m2s2s.get(model.name, {}).items():
-                subseqs = getattr(model.sequences, subseqs_name)
-                for seq_name in seq_names:
-                    yield getattr(subseqs, seq_name)
+            for model in element.model.find_submodels(include_mainmodel=True).values():
+                for subseqs_name, seq_names in m2s2s.get(model.name, {}).items():
+                    subseqs = getattr(model.sequences, subseqs_name)
+                    for seq_name in seq_names:
+                        yield getattr(subseqs, seq_name)
 
     def _iterate_node_sequences(self) -> Iterator[sequencetools.IOSequence]:
         s2s = self.subs2seqs
@@ -2541,9 +2541,8 @@ class XSDWriter:
                         <element
                             name="p"
                             minOccurs="0"/>
-        ...
                         <element
-                            name="epn"
+                            name="t"
                             minOccurs="0"/>
                     </sequence>
                 </complexType>

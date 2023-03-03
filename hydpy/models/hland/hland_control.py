@@ -309,33 +309,6 @@ class TCAlt(hland_parameters.ParameterComplete):
     INIT = 0.6
 
 
-class ECorr(hland_parameters.ParameterNoGlacier):
-    """General evaporation correction factor [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
-    INIT = 1.0
-
-
-class ECAlt(hland_parameters.ParameterNoGlacier):
-    """Elevation correction factor for evaporation [-1/100m]."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
-    INIT = 0.1
-
-
-class EPF(hland_parameters.ParameterNoGlacier):
-    """Decrease in potential evaporation due to precipitation [T/mm]."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, False, (0.0, None)
-
-
-class ETF(hland_parameters.ParameterNoGlacier):
-    """Temperature factor for evaporation [1/°C]."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
-    INIT = 0.1
-
-
 class ERed(hland_parameters.ParameterSoil):
     """Factor for restricting actual to potential evaporation [-]."""
 

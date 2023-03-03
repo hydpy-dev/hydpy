@@ -3,12 +3,20 @@
 .. _`solar time`: https://en.wikipedia.org/wiki/Solar_time
 """
 # imports...
+# ...from standard library
+import contextlib
+
 # ...from HydPy
+from hydpy.core import importtools
 from hydpy.core import modeltools
+from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
+from hydpy.interfaces import precipinterfaces
+from hydpy.models.meteo import meteo_parameters
 from hydpy.models.meteo import meteo_fixed
 from hydpy.models.meteo import meteo_control
 from hydpy.models.meteo import meteo_derived
+from hydpy.models.meteo import meteo_sequences
 from hydpy.models.meteo import meteo_inputs
 from hydpy.models.meteo import meteo_factors
 from hydpy.models.meteo import meteo_fluxes
@@ -2298,6 +2306,158 @@ class Calc_SunshineDuration_V2(modeltools.Method):
             fac.sunshineduration = min(d_nom / d_denom, fac.possiblesunshineduration)
 
 
+class Calc_Precipitation_V1(modeltools.Method):
+    r"""Take the input precipitation of each hydrological response unit.
+
+    Basic equation:
+      :math:`Precipitation_{fluxes} = Precipitation_{inputs}`
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> inputs.precipitation = 2.0
+        >>> model.calc_precipitation_v1()
+        >>> fluxes.precipitation
+        precipitation(2.0, 2.0)
+    """
+
+    CONTROLPARAMETERS = (meteo_control.NmbHRU,)
+    REQUIREDSEQUENCES = (meteo_inputs.Precipitation,)
+    RESULTSEQUENCES = (meteo_fluxes.Precipitation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            flu.precipitation[k] = inp.precipitation
+
+
+class Adjust_Precipitation_V1(modeltools.Method):
+    r"""Adjust the previously determined precipitation values.
+
+    Basic equation:
+      :math:`Precipitation_{new} = PrecipitationFactor \cdot Precipitation_{old}`
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> precipitationfactor(0.5, 2.0)
+        >>> fluxes.precipitation = 2.0
+        >>> model.adjust_precipitation_v1()
+        >>> fluxes.precipitation
+        precipitation(1.0, 4.0)
+    """
+
+    CONTROLPARAMETERS = (
+        meteo_control.NmbHRU,
+        meteo_control.PrecipitationFactor,
+    )
+    UPDATEDSEQUENCES = (meteo_fluxes.Precipitation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            flu.precipitation[k] *= con.precipitationfactor[k]
+
+
+class Calc_MeanPrecipitation_V1(modeltools.Method):
+    r"""Calculate the average precipitation.
+
+    Basic equation:
+      :math:`MeanPrecipitation =
+      \sum_{i=1}^{NmbHRU} HRUAreaFraction_i \cdot Precipitation_i`
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> derived.hruareafraction(0.8, 0.2)
+        >>> fluxes.precipitation = 1.0, 2.0
+        >>> model.calc_meanprecipitation_v1()
+        >>> fluxes.meanprecipitation
+        meanprecipitation(1.2)
+    """
+
+    CONTROLPARAMETERS = (meteo_control.NmbHRU,)
+    DERIVEDPARAMETERS = (meteo_derived.HRUAreaFraction,)
+    REQUIREDSEQUENCES = (meteo_fluxes.Precipitation,)
+    RESULTSEQUENCES = (meteo_fluxes.MeanPrecipitation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        flu.meanprecipitation = 0.0
+        for s in range(con.nmbhru):
+            flu.meanprecipitation += der.hruareafraction[s] * flu.precipitation[s]
+
+
+class Determine_Precipitation_V1(modeltools.Method):
+    r"""Interface method that applies the complete application model by executing all
+    "run methods"."""
+
+    @staticmethod
+    def __call__(model: modeltools.AdHocModel) -> None:
+        model.run()
+
+
+class Get_Precipitation_V1(modeltools.Method):
+    """Get the current precipitation from the selected hydrological response unit.
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> fluxes.precipitation = 2.0, 4.0
+        >>> model.get_precipitation_v1(0)
+        2.0
+        >>> model.get_precipitation_v1(1)
+        4.0
+    """
+
+    REQUIREDSEQUENCES = (meteo_fluxes.Precipitation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int) -> float:
+        flu = model.sequences.fluxes.fastaccess
+
+        return flu.precipitation[s]
+
+
+class Get_MeanPrecipitation_V1(modeltools.Method):
+    """Get the mean precipitation.
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> fluxes.meanprecipitation = 3.0
+        >>> model.get_meanprecipitation_v1()
+        3.0
+    """
+
+    REQUIREDSEQUENCES = (meteo_fluxes.MeanPrecipitation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> float:
+        flu = model.sequences.fluxes.fastaccess
+
+        return flu.meanprecipitation
+
+
 class Model(modeltools.AdHocModel):
     """The Meteo base model."""
 
@@ -2331,6 +2491,14 @@ class Model(modeltools.AdHocModel):
         Calc_DailyGlobalRadiation_V1,
         Calc_GlobalRadiation_V2,
         Calc_SunshineDuration_V2,
+        Calc_Precipitation_V1,
+        Adjust_Precipitation_V1,
+        Calc_MeanPrecipitation_V1,
+    )
+    INTERFACE_METHODS = (
+        Determine_Precipitation_V1,
+        Get_Precipitation_V1,
+        Get_MeanPrecipitation_V1,
     )
     ADD_METHODS = (
         Return_DailyGlobalRadiation_V1,
@@ -2340,3 +2508,82 @@ class Model(modeltools.AdHocModel):
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()
     SUBMODELS = ()
+
+
+class Sub_PrecipModel_V2(modeltools.AdHocModel, precipinterfaces.PrecipModel_V2):
+    """Base class for HydPy-Meteo models that comply with the |PrecipModel_V2| submodel
+    interface."""
+
+    @staticmethod
+    @contextlib.contextmanager
+    def share_configuration(
+        sharable_configuration: SharableConfiguration,
+    ) -> Generator[None, None, None]:
+        """Take the `landtype_constants` data to adjust all parameters inherited from
+        |meteo_parameters.ZipParameter1D| and the `refweights` parameter instance to
+        adjust the index references of all parameters inherited from
+        |meteo_parameters.ZipParameter1D| and all sequences inherited from
+        |meteo_sequences.FluxSequence1D|:
+
+        >>> from hydpy.core.parametertools import Constants, NameParameter, Parameter
+        >>> consts = Constants(GRASS=1, TREES=3, WATER=2)
+        >>> class LandType(NameParameter):
+        ...     __name__ = "temp.py"
+        ...     constants = consts
+        >>> class Subarea(Parameter):
+        ...     ...
+        >>> from hydpy.models.meteo.meteo_model import Sub_PrecipModel_V2
+        >>> with Sub_PrecipModel_V2.share_configuration(
+        ...         {"landtype_refindices": LandType,
+        ...          "refweights": Subarea}):
+        ...     from hydpy.models.meteo.meteo_parameters import ZipParameter1D
+        ...     ZipParameter1D.constants
+        ...     ZipParameter1D.refindices.__name__
+        ...     ZipParameter1D._refweights.__name__
+        ...     from hydpy.models.meteo.meteo_sequences import FluxSequence1D
+        ...     FluxSequence1D._refweights.__name__
+        {'GRASS': 1, 'TREES': 3, 'WATER': 2}
+        'LandType'
+        'Subarea'
+        'Subarea'
+        >>> ZipParameter1D.constants
+        {}
+        >>> ZipParameter1D.refindices
+        >>> ZipParameter1D._refweights
+        >>> FluxSequence1D._refweights
+        """
+        with meteo_parameters.ZipParameter1D.modify_refindices(
+            sharable_configuration["landtype_refindices"]
+        ), meteo_parameters.ZipParameter1D.modify_refweights(
+            sharable_configuration["refweights"]
+        ), meteo_parameters.ZipParameter1D.modify_refweights(
+            sharable_configuration["refweights"]
+        ), meteo_sequences.FluxSequence1D.modify_refweights(
+            sharable_configuration["refweights"]
+        ):
+            yield
+
+    @importtools.define_targetparameter(meteo_control.NmbHRU)
+    def prepare_nmbzones(self, nmbzones: int) -> None:
+        """Set the number of hydrological response units.
+
+        >>> from hydpy.models.meteo_precip_io import *
+        >>> parameterstep()
+        >>> model.prepare_nmbzones(2)
+        >>> nmbhru
+        nmbhru(2)
+        """
+        self.parameters.control.nmbhru(nmbzones)
+
+    @importtools.define_targetparameter(meteo_control.HRUArea)
+    def prepare_subareas(self, subareas: Sequence[float]) -> None:
+        """Set the area of all hydrological response units in km².
+
+        >>> from hydpy.models.meteo_precip_io import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> model.prepare_subareas([1.0, 3.0])
+        >>> hruarea
+        hruarea(1.0, 3.0)
+        """
+        self.parameters.control.hruarea(subareas)

@@ -2769,9 +2769,7 @@ class InputSequence(ModelIOSequence):
     >>> node_t = Node("node_t", variable=hland_T)
     >>> node_p = Node("node_p", variable=FusedVariable("Precip", hland_P))
     >>> node_q = Node("node_q")
-    >>> land_dill = Element("land_dill",
-    ...                     inputs=[node_t, node_p],
-    ...                     outlets=node_q)
+    >>> land_dill = Element("land_dill", inputs=[node_t, node_p], outlets=node_q)
 
     >>> from hydpy.examples import prepare_full_example_1
     >>> prepare_full_example_1()
@@ -2787,7 +2785,7 @@ class InputSequence(ModelIOSequence):
     True
     >>> model.sequences.inputs.p.inputflag
     True
-    >>> model.sequences.inputs.epn.inputflag
+    >>> model.petmodel.sequences.inputs.normalevapotranspiration.inputflag
     False
 
     >>> hp.update_devices(nodes=[node_t, node_p, node_q], elements=land_dill)
@@ -2813,9 +2811,9 @@ class InputSequence(ModelIOSequence):
     0.0, 4.0, 0.0, 8.0, 0.0
     >>> print_values(model.sequences.fluxes.pc.series[:, 0])
     0.0, 3.2514, 0.0, 6.5028, 0.0
-    >>> print_values(model.sequences.inputs.epn.series)
+    >>> print_values(model.petmodel.sequences.inputs.normalevapotranspiration.series)
     0.285483, 0.448182, 0.302786, 0.401946, 0.315023
-    >>> print_values(model.sequences.fluxes.epc.series[:, 0])
+    >>> print_values(model.sequences.fluxes.ep.series[:, 0])
     0.322562, 0.53804, 0.469133, 0.704755, 0.630047
 
     .. testsetup::

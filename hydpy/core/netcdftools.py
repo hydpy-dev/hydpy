@@ -1029,9 +1029,12 @@ named `lland_v1` nor does it define a member named `lland_v1`.
                 for sequence in device.sequences:
                     yield sequence
             else:
-                for subseqs in device.model.sequences.iosubsequences:
-                    for sequence_ in subseqs:
-                        yield sequence_
+                for model in device.model.find_submodels(
+                    include_mainmodel=True
+                ).values():
+                    for subseqs in model.sequences.iosubsequences:
+                        for sequence_ in subseqs:
+                            yield sequence_
 
     @contextlib.contextmanager
     def provide_jitaccess(

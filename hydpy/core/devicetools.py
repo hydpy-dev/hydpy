@@ -262,11 +262,12 @@ class FusedVariable:
 
     Using class |FusedVariable| is easiest to explain by a concrete example.  Assume we
     use |conv_v001| to interpolate the air temperature for a specific location.  We use
-    this temperature as input to the |evap_fao56| model, which requires this and other
-    meteorological data to calculate potential evapotranspiration.  Further, we pass
-    the estimated potential evapotranspiration as input to |lland_v1| for calculating
-    the actual evapotranspiration, which receives it through a submodel instance of
-    |evap_io|.  Hence, we need to connect the output sequence
+    this temperature as input to an |meteo_temp_io| model, which passes it to an
+    |evap_fao56| model, which requires this and other meteorological data to calculate
+    potential evapotranspiration.  Further, we pass the estimated potential
+    evapotranspiration as input to |lland_v1| for calculating the actual
+    evapotranspiration, which receives it through a submodel instance of |evap_io|.
+    Hence, we need to connect the output sequence
     |evap_fluxes.MeanReferenceEvapotranspiration| of |evap_fao56| with the input
     sequence |evap_inputs.ReferenceEvapotranspiration| of |evap_io|.
 
@@ -283,16 +284,16 @@ class FusedVariable:
     We need to create two |FusedVariable| objects, for our concrete example.  `E`
     combines |evap_fluxes.MeanReferenceEvapotranspiration| and
     |evap_inputs.ReferenceEvapotranspiration| and `T` combines
-    |evap_inputs.AirTemperature| and |lland_inputs.TemL| (for convenience, we import
+    |meteo_inputs.Temperature| and |lland_inputs.TemL| (for convenience, we import
     their globally available aliases):
 
     >>> from hydpy import FusedVariable
     >>> from hydpy.inputs import (
-    ...     evap_ReferenceEvapotranspiration, evap_AirTemperature, lland_TemL)
+    ...     evap_ReferenceEvapotranspiration, meteo_Temperature, lland_TemL)
     >>> from hydpy.outputs import evap_MeanReferenceEvapotranspiration
     >>> E = FusedVariable(
     ...     "E", evap_MeanReferenceEvapotranspiration, evap_ReferenceEvapotranspiration)
-    >>> T = FusedVariable("T", evap_AirTemperature, lland_TemL)
+    >>> T = FusedVariable("T", meteo_Temperature, lland_TemL)
 
     Now we can construct the network:
 
@@ -325,7 +326,9 @@ class FusedVariable:
     >>> model_conv.parameters.control.maxnmbinputs(1)
     >>> model_conv.parameters.update()
     >>> conv.model = model_conv
-    >>> evap.model = prepare_model("evap_fao56")
+    >>> model = prepare_model("evap_fao56")
+    >>> model.tempmodel = prepare_model("meteo_temp_io")
+    >>> evap.model = model
     >>> model = prepare_model("lland_v1")
     >>> model.petmodel = prepare_model("evap_io")
     >>> lland.model = model
@@ -342,13 +345,13 @@ class FusedVariable:
     sim(-273.15)
 
     Without further configuration, |evap_fao56| cannot perform any simulation steps.
-    Hence, we just call its |Model.load_data| method to show that its input sequence
-    |evap_inputs.AirTemperature| is well connected to the |Sim| sequence of node `t2`
-    and receives the correct data:
+    Hence, we just call its |Model.load_data| method to show that the input sequence
+    |meteo_inputs.Temperature| of its submodel is well connected to the |Sim| sequence
+    of node `t2` and receives the correct data:
 
     >>> evap.model.load_data(0)
-    >>> evap.model.sequences.inputs.airtemperature
-    airtemperature(-273.15)
+    >>> evap.model.tempmodel.sequences.inputs.temperature
+    temperature(-273.15)
 
     The output sequence |evap_fluxes.MeanReferenceEvapotranspiration| is also well
     connected.  A call to method |Model.update_outputs| passes its (manually set) value
@@ -375,7 +378,7 @@ class FusedVariable:
     once, even when defined in different selection files repeatedly.  Hence, when we
     repeat the definition from above, we get the same object:
 
-    >>> Test = FusedVariable("T", evap_AirTemperature, lland_TemL)
+    >>> Test = FusedVariable("T", meteo_Temperature, lland_TemL)
     >>> T is Test
     True
 
@@ -386,14 +389,14 @@ class FusedVariable:
     Traceback (most recent call last):
     ...
     ValueError: The sequences combined by a FusedVariable object cannot be changed.  \
-The already defined sequences of the fused variable `T` are `evap_AirTemperature and \
-lland_TemL` instead of `hland_T and lland_TemL`.  Keep in mind, that `name` is the \
-unique identifier for fused variable instances.
+The already defined sequences of the fused variable `T` are `lland_TemL and \
+meteo_Temperature` instead of `hland_T and lland_TemL`.  Keep in mind, that `name` is \
+the unique identifier for fused variable instances.
 
     Defining additional fused variables with the same member sequences is not advisable
     but is allowed:
 
-    >>> Temp = FusedVariable("Temp", evap_AirTemperature, lland_TemL)
+    >>> Temp = FusedVariable("Temp", meteo_Temperature, lland_TemL)
     >>> T is Temp
     False
 
@@ -411,7 +414,7 @@ unique identifier for fused variable instances.
     >>> FusedVariable.get_registry()
     ()
     >>> t2.variable
-    FusedVariable("T", evap_AirTemperature, lland_TemL)
+    FusedVariable("T", lland_TemL, meteo_Temperature)
 
     .. testsetup::
 

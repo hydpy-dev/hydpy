@@ -40,7 +40,7 @@ data of station Uccle (Brussels, Belgium), as reported in example 18 of
 >>> hruarea(1.0)
 >>> airtemperatureaddend(1.0)
 >>> evapotranspirationfactor(1.0)
->>> altitude(100.0)
+>>> hrualtitude(100.0)
 >>> inputs.airtemperature.series = 15.9
 >>> inputs.globalradiation.series = 255.367464
 

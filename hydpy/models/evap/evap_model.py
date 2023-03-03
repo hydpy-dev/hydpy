@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
-import contextlib
 
 # imports...
+# ...from standard library
+import contextlib
+
 # ...from HydPy
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
 from hydpy.interfaces import petinterfaces
+from hydpy.interfaces import precipinterfaces
 from hydpy.models.evap import evap_parameters
 from hydpy.models.evap import evap_control
 from hydpy.models.evap import evap_derived
@@ -361,10 +364,10 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
 
       :math:`\sigma = 5.6747685185185184 \cdot 10^{-8}`
 
-    Note that when clear sky radiation is zero during night periods, we use the global
-    radiation and clear sky radiation sums of the last 24 hours.  Averaging over three
-    hours before sunset, as :cite:t:`ref-Allen1998` suggests, could be more precise but
-    is a more complicated and error-prone approach.
+    Note that when clear sky radiation is zero at night, we use the global radiation
+    and clear sky radiation sums of the last 24 hours.  Averaging over three hours
+    before sunset, as :cite:t:`ref-Allen1998` suggests, could be more precise but is a
+    more complicated and error-prone approach.
 
     Example:
 
@@ -569,6 +572,104 @@ class Calc_PsychrometricConstant_V1(modeltools.Method):
         fac.psychrometricconstant = 6.65e-4 * inp.atmosphericpressure
 
 
+class Calc_Precipitation_PrecipModel_V1(modeltools.Method):
+    """Query precipitation from a main model that is referenced as a sub-submodel and
+    follows the |PrecipModel_V1| interface.
+
+    Example:
+
+        We use the combination of |hland_v1| and |evap_hbv96| as an example:
+
+        >>> from hydpy.models.hland_v1 import *
+        >>> parameterstep()
+        >>> area(10.0)
+        >>> nmbzones(3)
+        >>> zonearea(5.0, 3.0, 2.0)
+        >>> zonetype(FIELD)
+        >>> zonez(2.0)
+        >>> with model.add_petmodel_v1("evap_hbv96"):
+        ...     pass
+        >>> fluxes.pc(1.0, 3.0, 2.0)
+        >>> model.petmodel.calc_precipitation_v1()
+        >>> model.petmodel.sequences.fluxes.precipitation
+        precipitation(1.0, 3.0, 2.0)
+    """
+
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    RESULTSEQUENCES = (evap_fluxes.Precipitation,)
+
+    @staticmethod
+    def __call__(
+        model: modeltools.Model, submodel: precipinterfaces.PrecipModel_V1
+    ) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            flu.precipitation[k] = submodel.get_precipitation(k)
+
+
+class Calc_Precipitation_PrecipModel_V2(modeltools.Method):
+    """Let a submodel that complies with the |PrecipModel_V2| interface determine the
+    precipitation.
+
+    Example:
+
+        We use the combination of |evap_hbv96| and |meteo_precip_io| as an example:
+
+        >>> from hydpy.models.evap_hbv96 import *
+        >>> parameterstep()
+        >>> nmbhru(3)
+        >>> hruarea(0.5, 0.3, 0.2)
+        >>> with model.add_precipmodel_v2("meteo_precip_io"):
+        ...     precipitationfactor(0.5, 1.0, 2.0)
+        ...     inputs.precipitation = 2.0
+        >>> model.calc_precipitation_v1()
+        >>> fluxes.precipitation
+        precipitation(1.0, 2.0, 4.0)
+    """
+
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    RESULTSEQUENCES = (evap_fluxes.Precipitation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        submodel.determine_precipitation()
+        for k in range(con.nmbhru):
+            flu.precipitation[k] = submodel.get_precipitation(k)
+
+
+class Calc_Precipitation_V1(modeltools.Method):
+    """Let a submodel that complies with the |PrecipModel_V1| or |PrecipModel_V2|
+    interface determine precipitation."""
+
+    SUBMODELINTERFACES = (
+        precipinterfaces.PrecipModel_V1,
+        precipinterfaces.PrecipModel_V2,
+    )
+    SUBMETHODS = (
+        Calc_Precipitation_PrecipModel_V1,
+        Calc_Precipitation_PrecipModel_V2,
+    )
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    RESULTSEQUENCES = (evap_fluxes.Precipitation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        if model.precipmodel.typeid == 1:
+            model.calc_precipitation_precipmodel_v1(
+                cast(precipinterfaces.PrecipModel_V1, model.precipmodel)
+            )
+        elif model.precipmodel.typeid == 2:
+            model.calc_precipitation_precipmodel_v2(
+                cast(precipinterfaces.PrecipModel_V2, model.precipmodel)
+            )
+        # ToDo:
+        #     else:
+        #         assert_never(model.petmodel)
+
+
 class Calc_ReferenceEvapotranspiration_V1(modeltools.Method):
     r"""Calculate the reference evapotranspiration constant according to
     :cite:t:`ref-Allen1998`.
@@ -687,7 +788,7 @@ class Calc_ReferenceEvapotranspiration_V2(modeltools.Method):
         >>> parameterstep()
         >>> nmbhru(3)
         >>> coastfactor(0.6)
-        >>> altitude(200.0, 600.0, 1000.0)
+        >>> hrualtitude(200.0, 600.0, 1000.0)
         >>> inputs.globalradiation = 200.0
         >>> factors.adjustedairtemperature = 15.0
         >>> model.calc_referenceevapotranspiration_v2()
@@ -697,7 +798,7 @@ class Calc_ReferenceEvapotranspiration_V2(modeltools.Method):
 
     CONTROLPARAMETERS = (
         evap_control.NmbHRU,
-        evap_control.Altitude,
+        evap_control.HRUAltitude,
         evap_control.CoastFactor,
     )
     REQUIREDSEQUENCES = (
@@ -719,7 +820,7 @@ class Calc_ReferenceEvapotranspiration_V2(modeltools.Method):
             ) / (
                 165.0
                 * (fac.adjustedairtemperature[k] + 123.0)
-                * (1.0 + 0.00019 * min(con.altitude[k], 600.0))
+                * (1.0 + 0.00019 * min(con.hrualtitude[k], 600.0))
             )
 
 
@@ -767,9 +868,8 @@ class Calc_ReferenceEvapotranspiration_PETModel_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbhru(3)
         >>> hruarea(0.5, 0.3, 0.2)
-        >>> from hydpy import prepare_model
         >>> with model.add_retmodel_v1("evap_tw2002"):
-        ...     altitude(200.0, 600.0, 1000.0)
+        ...     hrualtitude(200.0, 600.0, 1000.0)
         ...     airtemperatureaddend(1.0)
         ...     coastfactor(0.6)
         ...     evapotranspirationfactor(1.1)
@@ -812,6 +912,79 @@ class Calc_ReferenceEvapotranspiration_V4(modeltools.Method):
         # ToDo:
         #     else:
         #         assert_never(model.petmodel)
+
+
+class Calc_ReferenceEvapotranspiration_V5(modeltools.Method):
+    r"""Adjust the normal evapotranspiration to the difference between actual air
+    temperature and normal air temperature :cite:p:`ref-Lindstrom1997HBV96`.
+
+    Basic equation:
+      :math:`ReferenceEvapotranspiration = NormalEvapotranspiration \cdot
+      (1 + AirTemperatureFactor \cdot (AirTemperature - NormalAirTemperature))`
+
+    Restriction:
+      :math:`0 \leq ReferenceEvapotranspiration \leq 2 \cdot NormalEvapotranspiration`
+
+    Examples:
+
+        We prepare four hydrological response units with different values for the
+        |AirTemperatureFactor| (the negative value of the first unit is not meaningful
+        but applied for illustration):
+
+        >>> from hydpy.models.evap import *
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
+        >>> nmbhru(4)
+        >>> airtemperaturefactor(-0.5, 0.0, 0.1, 0.5)
+        >>> inputs.normalairtemperature = 20.0
+        >>> inputs.normalevapotranspiration = 2.0
+
+        With actual temperature equal to normal temperature, actual (uncorrected)
+        evapotranspiration equals normal evapotranspiration:
+
+        >>> inputs.airtemperature = 20.0
+        >>> model.calc_referenceevapotranspiration_v5()
+        >>> fluxes.referenceevapotranspiration
+        referenceevapotranspiration(2.0, 2.0, 2.0, 2.0)
+
+        For an actual temperature of 5 °C higher than normal, reference
+        evapotranspiration is increased by 1 mm for the third unit.  For the first
+        unit, reference evapotranspiration is 0 mm (the smallest value allowed), and
+        for the fourth unit, it is the doubled normal value (the largest value
+        allowed):
+
+        >>> inputs.airtemperature  = 25.0
+        >>> model.calc_referenceevapotranspiration_v5()
+        >>> fluxes.referenceevapotranspiration
+        referenceevapotranspiration(0.0, 2.0, 3.0, 4.0)
+    """
+
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.AirTemperatureFactor,
+    )
+    REQUIREDSEQUENCES = (
+        evap_inputs.AirTemperature,
+        evap_inputs.NormalEvapotranspiration,
+        evap_inputs.NormalAirTemperature,
+    )
+    RESULTSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            flu.referenceevapotranspiration[k] = inp.normalevapotranspiration * (
+                1.0
+                + con.airtemperaturefactor[k]
+                * (inp.airtemperature - inp.normalairtemperature)
+            )
+            flu.referenceevapotranspiration[k] = min(
+                max(flu.referenceevapotranspiration[k], 0.0),
+                2.0 * inp.normalevapotranspiration,
+            )
 
 
 class Calc_PotentialEvapotranspiration_V1(modeltools.Method):
@@ -937,6 +1110,83 @@ class Calc_PotentialEvapotranspiration_V2(modeltools.Method):
             flu.potentialevapotranspiration[k] = (
                 factor * flu.referenceevapotranspiration[k]
             )
+
+
+class Calc_PotentialEvapotranspiration_V3(modeltools.Method):
+    r"""Apply the altitude- and precipitation-related adjustment factors on reference
+    evapotranspiration to determine potential evapotranspiration
+    :cite:p:`ref-Lindstrom1997HBV96`.
+
+    Basic equation:
+      :math:`PotentialEvapotranspiration = ReferenceEvapotranspiration \cdot
+      (1 + AltitudeFactor \cdot (HRUAltitude - Altitude)) \cdot
+      exp(-PrecipitationFactor \cdot Precipitation)`
+
+
+    Examples:
+
+        Three hydrological response units are at an altitude of 200 m.  A reference
+        evapotranspiration value of 2 mm and a precipitation value of 5 mm are
+        available at each unit:
+
+        >>> from hydpy.models.evap import *
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
+        >>> nmbhru(3)
+        >>> hrualtitude(3.0)
+        >>> fluxes.referenceevapotranspiration = 2.0
+        >>> fluxes.precipitation = 5.0
+        >>> derived.altitude(2.0)
+
+        The first two units illustrate the individual altitude-related
+        (|AltitudeFactor|, first unit) and the precipitation-related adjustments
+        (|PrecipitationFactor|, second unit).  The third zone illustrates the
+        interaction between both adjustments:
+
+        >>> import math
+        >>> altitudefactor(0.1, 0.0, 0.1)
+        >>> precipitationfactor(0.0, -math.log(0.7)/10.0, -math.log(0.7)/10.0)
+        >>> model.calc_potentialevapotranspiration_v3()
+        >>> fluxes.potentialevapotranspiration
+        potentialevapotranspiration(1.8, 1.4, 1.26)
+
+        Method |Calc_PotentialEvapotranspiration_V3| performs truncations required to
+        prevent negative potential evapotranspiration:
+
+        >>> altitudefactor(2.0)
+        >>> model.calc_potentialevapotranspiration_v3()
+        >>> fluxes.potentialevapotranspiration
+        potentialevapotranspiration(0.0, 0.0, 0.0)
+    """
+
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.AltitudeFactor,
+        evap_control.HRUAltitude,
+        evap_control.PrecipitationFactor,
+    )
+    DERIVEDPARAMETERS = (evap_derived.Altitude,)
+    REQUIREDSEQUENCES = (
+        evap_fluxes.ReferenceEvapotranspiration,
+        evap_fluxes.Precipitation,
+    )
+    RESULTSEQUENCES = (evap_fluxes.PotentialEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            flu.potentialevapotranspiration[k] = flu.referenceevapotranspiration[k] * (
+                1.0 - con.altitudefactor[k] * (con.hrualtitude[k] - der.altitude)
+            )
+            if flu.potentialevapotranspiration[k] <= 0.0:
+                flu.potentialevapotranspiration[k] = 0.0
+            else:
+                flu.potentialevapotranspiration[k] *= modelutils.exp(
+                    -con.precipitationfactor[k] * flu.precipitation[k]
+                )
 
 
 class Adjust_ReferenceEvapotranspiration_V1(modeltools.Method):
@@ -1171,9 +1421,11 @@ class Model(modeltools.AdHocModel):
         Calc_ReferenceEvapotranspiration_V2,
         Calc_ReferenceEvapotranspiration_V3,
         Calc_ReferenceEvapotranspiration_V4,
+        Calc_ReferenceEvapotranspiration_V5,
         Adjust_ReferenceEvapotranspiration_V1,
         Calc_PotentialEvapotranspiration_V1,
         Calc_PotentialEvapotranspiration_V2,
+        Calc_PotentialEvapotranspiration_V3,
         Calc_MeanReferenceEvapotranspiration_V1,
         Calc_MeanPotentialEvapotranspiration_V1,
     )
@@ -1184,13 +1436,15 @@ class Model(modeltools.AdHocModel):
         Get_MeanPotentialEvapotranspiration_V1,
         Get_MeanPotentialEvapotranspiration_V2,
     )
-    ADD_METHODS = (Calc_ReferenceEvapotranspiration_PETModel_V1,)
+    ADD_METHODS = (
+        Calc_ReferenceEvapotranspiration_PETModel_V1,
+        Calc_Precipitation_PrecipModel_V1,
+        Calc_Precipitation_PrecipModel_V2,
+    )
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
     SUBMODELS = ()
-
-    retmodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
 
 
 class Sub_PETModel_V1(modeltools.AdHocModel, petinterfaces.PETModel_V1):
@@ -1308,7 +1562,7 @@ FluxSequence1D
         """
         self.parameters.control.hruarea(subareas)
 
-    @importtools.define_targetparameter(evap_control.Altitude)
+    @importtools.define_targetparameter(evap_control.HRUAltitude)
     def prepare_elevations(self, elevations: Sequence[float]) -> None:
         """Set the altitude of all hydrological response units in m.
 
@@ -1316,10 +1570,10 @@ FluxSequence1D
         >>> parameterstep()
         >>> nmbhru(2)
         >>> model.prepare_elevations([1.0, 3.0])
-        >>> altitude
-        altitude(1.0, 3.0)
+        >>> hrualtitude
+        hrualtitude(1.0, 3.0)
         """
-        self.parameters.control.altitude(elevations)
+        self.parameters.control.hrualtitude(elevations)
 
 
 class Main_PETModel_V1(modeltools.AdHocModel):
@@ -1327,6 +1581,7 @@ class Main_PETModel_V1(modeltools.AdHocModel):
     |PETModel_V1| interface."""
 
     retmodel: modeltools.SubmodelProperty
+    retmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
 
     @importtools.prepare_submodel(
         petinterfaces.PETModel_V1,
@@ -1353,3 +1608,72 @@ class Main_PETModel_V1(modeltools.AdHocModel):
         control = self.parameters.control
         retmodel.prepare_nmbzones(control.nmbhru.value)
         retmodel.prepare_subareas(control.hruarea.values)
+
+
+class Main_PrecipModel_V1(modeltools.AdHocModel):
+    """Base class for HydPy-Evap models that can use main models as their submodels if
+    they comply with the |PrecipModel_V1| interface."""
+
+    precipmodel: modeltools.SubmodelProperty
+    precipmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+
+    def add_mainmodel_as_subsubmodel(self, mainmodel: modeltools.Model) -> bool:
+        """Add the given main model as a submodel if it complies with the
+        |PrecipModel_V1| interface.
+
+        >>> from hydpy import prepare_model
+        >>> evap = prepare_model("evap_hbv96")
+        >>> evap.add_mainmodel_as_subsubmodel(prepare_model("evap_io"))
+        False
+        >>> evap.precipmodel
+        >>> evap.precipmodel_is_mainmodel
+        False
+
+        >>> hland = prepare_model("hland_v1")
+        >>> evap.add_mainmodel_as_subsubmodel(hland)
+        True
+        >>> evap.precipmodel is hland
+        True
+        >>> evap.precipmodel_is_mainmodel
+        True
+        """
+        if isinstance(mainmodel, precipinterfaces.PrecipModel_V1):
+            self.precipmodel = mainmodel
+            self.precipmodel_is_mainmodel = True
+            return True
+        return False
+
+
+class Main_PrecipModel_V2(modeltools.AdHocModel):
+    """Base class for HydPy-Evap models that support submodels that comply with the
+    |PrecipModel_V2| interface."""
+
+    precipmodel: modeltools.SubmodelProperty
+    precipmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+
+    @importtools.prepare_submodel(
+        precipinterfaces.PrecipModel_V2,
+        precipinterfaces.PrecipModel_V2.prepare_nmbzones,
+        precipinterfaces.PrecipModel_V2.prepare_subareas,
+    )
+    def add_precipmodel_v2(self, precipmodel: precipinterfaces.PrecipModel_V2) -> None:
+        """Initialise the given precipitation model that follows the |PrecipModel_V2|
+        interface and set the number and the subareas of its zones.
+
+        >>> from hydpy.models.evap_hbv96 import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> hruarea(2.0, 8.0)
+        >>> with model.add_precipmodel_v2("meteo_precip_io"):
+        ...     nmbhru
+        ...     hruarea
+        ...     precipitationfactor(1.0, 2.0)
+        nmbhru(2)
+        hruarea(2.0, 8.0)
+        >>> model.precipmodel.parameters.control.precipitationfactor
+        precipitationfactor(1.0, 2.0)
+        """
+        self.precipmodel = precipmodel
+        control = self.parameters.control
+        precipmodel.prepare_nmbzones(control.nmbhru.value)
+        precipmodel.prepare_subareas(control.hruarea.value)

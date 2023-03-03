@@ -46,3 +46,22 @@ class ClearSkySolarRadiation(sequencetools.InputSequence):
     """Clear sky solar radiation [W/m²]."""
 
     NDIM, NUMERIC = 0, False
+
+
+class NormalAirTemperature(sequencetools.InputSequence):
+    """Normal air temperature [°C].
+
+
+    In the terminology of HBV96: TN.
+    """
+
+    NDIM, NUMERIC = 0, False
+
+
+class NormalEvapotranspiration(sequencetools.InputSequence):
+    """Normal evapotranspiration [mm/T].
+
+    In the terminology of HBV96: EPN.
+    """
+
+    NDIM, NUMERIC = 0, False

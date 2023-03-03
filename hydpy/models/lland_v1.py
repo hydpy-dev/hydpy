@@ -2124,11 +2124,16 @@ from hydpy.models.lland import lland_masks
 from hydpy.models.lland.lland_constants import *
 
 
-class Model(lland_model.Base_PETModel_V1, lland_model.Base_SoilModel_V1):
+class Model(
+    lland_model.Main_PETModel_V1,
+    lland_model.Main_SoilModel_V1,
+    lland_model.Sub_PrecipModel_V1,
+):
     """External PET/degree-day version of HydPy-L-Land."""
 
     INLET_METHODS = (lland_model.Pick_QZ_V1,)
     RECEIVER_METHODS = ()
+    INTERFACE_METHODS = (lland_model.Get_Precipitation_V1,)
     ADD_METHODS = (
         lland_model.Calc_EvPo_PETModel_V1,
         lland_model.Return_SG_V1,

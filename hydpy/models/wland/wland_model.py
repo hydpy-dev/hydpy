@@ -13,6 +13,7 @@ from hydpy.auxs import roottools
 from hydpy.cythons import modelutils
 from hydpy.cythons import smoothutils
 from hydpy.interfaces import petinterfaces
+from hydpy.interfaces import precipinterfaces
 
 # ...from wland
 from hydpy.models.wland import wland_control
@@ -2665,6 +2666,31 @@ class Pass_R_V1(modeltools.Method):
         out.q[0] += flu.r
 
 
+class Get_Precipitation_V1(modeltools.Method):
+    """Get the current precipitation subbasin-wide precipitation value (that applies to
+    all hydrological response units so that the given index does not matter).
+
+    Example:
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+        >>> nu(2)
+        >>> fluxes.pc = 2.0
+        >>> model.get_precipitation_v1(0)
+        2.0
+        >>> model.get_precipitation_v1(1)
+        2.0
+    """
+
+    REQUIREDSEQUENCES = (wland_fluxes.PC,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int) -> float:
+        flu = model.sequences.fluxes.fastaccess
+
+        return flu.pc
+
+
 class PegasusDGEq(roottools.Pegasus):
     """Pegasus iterator for finding the equilibrium groundwater depth."""
 
@@ -2702,6 +2728,7 @@ class Model(modeltools.ELSModel):
         Calc_PM_V1,
     )
     RECEIVER_METHODS = ()
+    INTERFACE_METHODS = (Get_Precipitation_V1,)
     ADD_METHODS = (
         Calc_PET_PETModel_V1,
         Calc_PE_PETModel_V1,
@@ -2758,16 +2785,15 @@ class Model(modeltools.ELSModel):
         QuadDVEq_V2,
     )
 
-    petmodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
-    pemodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
-
 
 class Main_PETModel_V1(modeltools.ELSModel):
     """Base class for HydPy-W models that use submodels that comply with the
     |PETModel_V1| interface."""
 
     petmodel: modeltools.SubmodelProperty
+    petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     pemodel: modeltools.SubmodelProperty
+    pemodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
 
     @importtools.prepare_submodel(
         petinterfaces.PETModel_V1,
@@ -2838,3 +2864,8 @@ class Main_PETModel_V1(modeltools.ELSModel):
         control = self.parameters.control
         pemodel.prepare_nmbzones(1)
         pemodel.prepare_subareas([control.as_.value])
+
+
+class Sub_PrecipModel_V1(modeltools.ELSModel, precipinterfaces.PrecipModel_V1):
+    """Base class for HydPy-W models that comply with the |PrecipModel_V1| submodel
+    interface."""

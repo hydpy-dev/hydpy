@@ -44,7 +44,7 @@ class HRUArea(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
-class Altitude(evap_parameters.ZipParameter1D):
+class HRUAltitude(evap_parameters.ZipParameter1D):
     """The altitude of each hydrological response unit [m]."""
 
     TYPE, TIME, SPAN = float, None, (None, None)
@@ -94,3 +94,33 @@ class LandMonthFactor(evap_parameters.LandMonthParameter):
     potential evaporation or evapotranspiration [-]."""
 
     NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
+
+
+class AltitudeFactor(evap_parameters.ZipParameter1D):
+    """Decrease of potential evapotranspiration with altitude [-1/100m].
+
+    In the terminology of HBV96: ECAlt."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    INIT = 0.1
+
+
+class PrecipitationFactor(evap_parameters.ZipParameter1D):
+    """Decrease in potential evapotranspiration due to precipitation [T/mm].
+
+    In the terminology of HBV96: EPF.
+    """
+
+    NDIM, TYPE, TIME, SPAN = 1, float, False, (0.0, None)
+    INIT = 0.0
+
+
+class AirTemperatureFactor(evap_parameters.ZipParameter1D):
+    """Temperature factor related to the difference of current reference
+    evapotranspiration and normal reference evapotranspiration [1/°C].
+
+    In the terminology of HBV96: ETF.
+    """
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    INIT = 0.1

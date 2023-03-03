@@ -1805,7 +1805,7 @@ from hydpy.models.lland import lland_masks
 from hydpy.models.lland.lland_constants import *
 
 
-class Model(lland_model.Base_SoilModel_V1):
+class Model(lland_model.Main_SoilModel_V1):
     """Penman-Monteith and Knauf with snow interception version of HydPy-L-Land
     (|lland_v4|)."""
 

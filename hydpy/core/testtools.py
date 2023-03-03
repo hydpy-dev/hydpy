@@ -592,10 +592,7 @@ class IntegrationTest(Test):
         self.inits = inits
         self.model = element.model
         self.hydpy = hydpytools.HydPy()
-        self.hydpy.update_devices(
-            nodes=self.nodes,
-            elements=self.elements,
-        )
+        self.hydpy.update_devices(nodes=self.nodes, elements=self.elements)
         self._src = None
 
     @overload
@@ -741,8 +738,8 @@ datetime of the Python standard library for for further information.
             sim.prepare_series(allocate_ram=True)
 
     def prepare_input_model_sequences(self) -> None:
-        """Configure the input sequences of the model in a manner that allows
-        for applying their time-series data in integration tests."""
+        """Configure the input sequences of the model in a manner that allows for
+        applying their time-series data in integration tests."""
         prepare_inputseries = self.element.prepare_inputseries
         prepare_inputseries(allocate_ram=False)
         prepare_inputseries(allocate_ram=True)
@@ -764,10 +761,11 @@ datetime of the Python standard library for for further information.
         update_parameters: bool,
         use_conditions: Optional[Dict[str, Dict[str, Union[float, NDArrayFloat]]]],
     ) -> None:
-        """Derive the secondary parameter values, prepare all required time
-        series and set the initial conditions."""
+        """Derive the secondary parameter values, prepare all required time series and
+        set the initial conditions."""
         if update_parameters:
-            self.model.parameters.update()
+            for model in self.model.find_submodels(include_mainmodel=True).values():
+                model.parameters.update()
         for flag in (False, True):
             self.element.prepare_factorseries(allocate_ram=flag)
             self.element.prepare_fluxseries(allocate_ram=flag)

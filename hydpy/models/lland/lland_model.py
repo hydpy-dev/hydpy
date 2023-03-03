@@ -9,6 +9,7 @@ from hydpy.core.typingtools import *
 from hydpy.auxs import roottools
 from hydpy.cythons import modelutils
 from hydpy.interfaces import petinterfaces
+from hydpy.interfaces import precipinterfaces
 from hydpy.interfaces import soilinterfaces
 
 # ...from lland
@@ -9683,6 +9684,30 @@ class Pass_QA_V1(modeltools.Method):
         out.q[0] += flu.qa
 
 
+class Get_Precipitation_V1(modeltools.Method):
+    """Get the current precipitation from the selected hydrological response unit.
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(2)
+        >>> fluxes.nkor = 2.0, 4.0
+        >>> model.get_precipitation_v1(0)
+        2.0
+        >>> model.get_precipitation_v1(1)
+        4.0
+    """
+
+    REQUIREDSEQUENCES = (lland_fluxes.NKor,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int) -> float:
+        flu = model.sequences.fluxes.fastaccess
+
+        return flu.nkor[s]
+
+
 class PegasusESnowInz(roottools.Pegasus):
     """Pegasus iterator for finding the correct energy content of the intercepted
     snow."""
@@ -9707,6 +9732,7 @@ class Model(modeltools.AdHocModel):
 
     INLET_METHODS = (Pick_QZ_V1,)
     RECEIVER_METHODS = ()
+    INTERFACE_METHODS = (Get_Precipitation_V1,)
     ADD_METHODS = (
         Calc_EvPo_PETModel_V1,
         Return_AdjustedWindSpeed_V1,
@@ -9866,15 +9892,14 @@ class Model(modeltools.AdHocModel):
     )
 
     idx_hru = modeltools.Idx_HRU()
-    petmodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
-    soilmodel = modeltools.SubmodelProperty(soilinterfaces.SoilModel_V1, optional=True)
 
 
-class Base_PETModel_V1(modeltools.AdHocModel):
+class Main_PETModel_V1(modeltools.AdHocModel):
     """Base class for HydPy-L models that support submodels that comply with the
     |PETModel_V1| interface."""
 
     petmodel: modeltools.SubmodelProperty
+    petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
 
     @importtools.prepare_submodel(
         petinterfaces.PETModel_V1,
@@ -9919,11 +9944,12 @@ class Base_PETModel_V1(modeltools.AdHocModel):
         petmodel.prepare_subareas(control.fhru.value * control.ft.value)
 
 
-class Base_SoilModel_V1(modeltools.AdHocModel):
+class Main_SoilModel_V1(modeltools.AdHocModel):
     """Base class for HydPy-L models that support submodels that comply with the
     |SoilModel_V1| interface."""
 
     soilmodel: modeltools.SubmodelProperty
+    soilmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
 
     @importtools.prepare_submodel(
         soilinterfaces.SoilModel_V1,
@@ -9946,3 +9972,8 @@ class Base_SoilModel_V1(modeltools.AdHocModel):
         self.soilmodel = soilmodel
         control = self.parameters.control
         soilmodel.prepare_nmbzones(control.nhru.value)
+
+
+class Sub_PrecipModel_V1(modeltools.AdHocModel, precipinterfaces.PrecipModel_V1):
+    """Base class for HydPy-L models that comply with the |PrecipModel_V1| submodel
+    interface."""

@@ -188,7 +188,7 @@ instance of any of the following types: `SoilModel_V1`.
         self.modeltype2instance[owner].append(self)
 
     @overload
-    def __get__(self, obj: None, objtype: Optional[Type[Model]]) -> SubmodelProperty:
+    def __get__(self, obj: None, objtype: Optional[Type[Model]]) -> Self:
         ...
 
     @overload
@@ -235,6 +235,57 @@ instance of any of the following types: `SoilModel_V1`.
         vars(obj)[self.name] = None
         if obj.cymodel is not None:
             getattr(obj.cymodel, f"set_{self.name}")(None)
+
+
+class SubmodelIsMainmodelProperty:
+    """Descriptor for boolean "submodel_is_mainmodel" attributes.
+
+    |SubmodelIsMainmodelProperty| instances work like simple boolean attributes but
+    silently synchronise the equally named boolean attributes of the corresponding
+    cython model, if available:
+
+    >>> from hydpy import prepare_model, pub
+    >>> with pub.options.usecython(True):
+    ...     model = prepare_model("hland_v1")
+    >>> model.petmodel_is_mainmodel
+    False
+    >>> model.cymodel.petmodel_is_mainmodel
+    0
+    >>> model.petmodel_is_mainmodel = True
+    >>> model.petmodel_is_mainmodel
+    True
+    >>> model.cymodel.petmodel_is_mainmodel
+    1
+    """
+
+    _owner2value: Dict[Model, bool]
+    _name: Final[str]  # type: ignore[misc]
+
+    def __init__(self) -> None:
+        self._owner2value = {}
+
+    def __set_name__(self, owner: Type[Model], name: str) -> None:
+        self._name = name  # type: ignore[misc]
+
+    @overload
+    def __get__(self, obj: None, objtype: Optional[Type[Model]]) -> Self:
+        ...
+
+    @overload
+    def __get__(self, obj: Model, objtype: Optional[Type[Model]]) -> bool:
+        ...
+
+    def __get__(
+        self, obj: Optional[Model], objtype: Optional[Type[Model]] = None
+    ) -> Union[Self, bool]:
+        if obj is None:
+            return self
+        return self._owner2value.get(obj, False)
+
+    def __set__(self, obj: Model, value: bool) -> None:
+        self._owner2value[obj] = value
+        if (cymodel := obj.cymodel) is not None:
+            setattr(cymodel, self._name, value)
 
 
 class IndexProperty:
@@ -1157,10 +1208,8 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         >>> for method in hland_v1.Model.get_methods():
         ...     print(method.__name__)   # doctest: +ELLIPSIS
         Calc_TC_V1
-        Calc_FracRain_V1
         ...
-        Calc_QT_V1
-        Pass_Q_v1
+        Pass_Q_V1
 
         >>> for method in ga_garto_submodel1.Model.get_methods():
         ...     print(method.__name__)   # doctest: +ELLIPSIS
@@ -1209,6 +1258,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         include_subsubmodels: bool = True,
         include_mainmodel: bool = False,
         include_optional: bool = False,
+        include_feedbacks: bool = False,
     ) -> Union[Dict[str, Model], Dict[str, Optional[Model]]]:
         """Find the (sub)submodel instances of the current main model instance.
 
@@ -1223,32 +1273,58 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         The `include_mainmodel` parameter allows the addition of the main model:
 
         >>> model.find_submodels(include_mainmodel=True)  # doctest: +ELLIPSIS
-        {'lland_v1': <hydpy.models.lland_v1.Model ...>}
+        {'model': <hydpy.models.lland_v1.Model ...>}
 
         The `include_optional` parameter allows considering prepared and unprepared
         submodels:
 
         >>> model.find_submodels(include_optional=True)
-        {'lland_v1.petmodel': None, 'lland_v1.soilmodel': None}
-        >>> model.petmodel = prepare_model("evap_fao56")
-        >>> model.find_submodels(include_optional=True)  # doctest: +ELLIPSIS
-        {'lland_v1.petmodel': <hydpy.models.evap_fao56.Model ...>, \
-'lland_v1.soilmodel': None}
+        {'model.petmodel': None, 'model.soilmodel': None}
+        >>> model.petmodel = prepare_model("evap_hbv96")
+        >>> from pprint import pprint
+        >>> pprint(model.find_submodels(include_optional=True))  # doctest: +ELLIPSIS
+        {'model.petmodel': <hydpy.models.evap_hbv96.Model object at ...>,
+         'model.petmodel.precipmodel': None,
+         'model.soilmodel': None}
+
+        By default, |Model.find_submodels| does not return an additional entry when a
+        main model serves as a sub-submodel:
+
+        >>> model.petmodel.precipmodel = model
+        >>> model.petmodel.precipmodel_is_mainmodel = True
+        >>> pprint(model.find_submodels(include_optional=True))  # doctest: +ELLIPSIS
+        {'model.petmodel': <hydpy.models.evap_hbv96.Model object at ...>,
+         'model.soilmodel': None}
+
+        Use the `include_feedbacks` parameter to make such feedback connections
+        transparent:
+
+        >>> pprint(model.find_submodels(include_mainmodel=True,
+        ...     include_optional=True, include_feedbacks=True))  # doctest: +ELLIPSIS
+        {'model': <hydpy.models.lland_v1.Model object at ...>,
+         'model.petmodel': <hydpy.models.evap_hbv96.Model object at ...>,
+         'model.petmodel.precipmodel': <hydpy.models.lland_v1.Model object at ...>,
+         'model.soilmodel': None}
         """
 
         def _find_submodels(name: str, model: Model) -> None:
             name2submodel_new = {}
             for submodelproperty in SubmodelProperty.modeltype2instance[type(model)]:
-                submodel = getattr(model, submodelproperty.name)
-                if include_optional or (submodel is not None):
-                    name2submodel_new[f"{name}.{submodelproperty.name}"] = submodel
+                if include_feedbacks or (
+                    not getattr(model, f"{submodelproperty.name}_is_mainmodel")
+                ):
+                    submodel = getattr(model, submodelproperty.name)
+                    if include_optional or (submodel is not None):
+                        name2submodel_new[f"{name}.{submodelproperty.name}"] = submodel
             name2submodel.update(name2submodel_new)
-            if include_subsubmodels:
+            if include_subsubmodels and (model not in seen):
                 for subname, submodel in name2submodel_new.items():
-                    _find_submodels(f"{name}.{subname}", submodel)
+                    seen.add(submodel)
+                    _find_submodels(subname, submodel)
 
-        name2submodel = {self.name: self} if include_mainmodel else {}
-        _find_submodels(self.name, self)
+        seen: Set[Model] = set()
+        name2submodel = {"model": self} if include_mainmodel else {}
+        _find_submodels("model", self)
         return dict(sorted(name2submodel.items()))
 
     # ToDo: Replace this hack with a Mypy plugin?
@@ -2677,6 +2753,20 @@ class SubmodelInterface(Model, abc.ABC):
         current main model during initialisation.
         """
         yield
+
+    def add_mainmodel_as_subsubmodel(  # pylint: disable=unused-argument
+        self, mainmodel: Model
+    ) -> bool:
+        """If appropriate, add the given main model as a sub-submodel of the current
+        submodel.
+
+        The default implementation of method
+        |SubmodelInterface.add_mainmodel_as_subsubmodel| just returns |False|.
+        Submodels can overwrite it to enable them to query data from their main models
+        actively.  If a submodel accepts a main model as a sub-submodel, it must return
+        |True|; otherwise, |False|.
+        """
+        return False
 
 
 class Submodel:

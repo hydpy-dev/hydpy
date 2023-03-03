@@ -42,5 +42,5 @@ class PETModel_V1(modeltools.SubmodelInterface):
 
     @modeltools.abstractmodelmethod
     def get_meanpotentialevapotranspiration(self) -> float:
-        """Get the previously calculated average calculated potential
-        evapotranspiration in mm/T."""
+        """Get the previously calculated average potential evapotranspiration in
+        mm/T."""

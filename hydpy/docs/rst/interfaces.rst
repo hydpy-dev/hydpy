@@ -13,4 +13,5 @@ more detail.
    :hidden:
 
    petinterfaces
+   precipinterfaces
    soilinterfaces

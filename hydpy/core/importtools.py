@@ -271,7 +271,9 @@ def prepare_model(
                     setattr(numpars_new, name_numpar, numpar)
                 setattr(cymodel, numpars_name.lower(), numpars_new)
         for name in dir(cymodel):
-            if (not name.startswith("_")) and hasattr(model, name):
+            if hasattr(model, name) and not (
+                name.startswith("_") or name.endswith("model_is_mainmodel")
+            ):
                 setattr(model, name, getattr(cymodel, name))
         dict_ = {"cythonmodule": cymodule, "cymodel": cymodel}
     else:
@@ -347,15 +349,16 @@ class SubmodelAdder(_DoctestAdder, Generic[TM, TI]):
     >>> ft(10.0)
     >>> fhru(0.2, 0.8)
     >>> lnk(ACKER, MISCHW)
-    >>> with model.add_petmodel_v1("evap_tw2002"):
+    >>> with model.add_petmodel_v1("evap_hbv96"):
     ...     nhru
     ...     nmbhru
     ...     hruarea
-    ...     altitude
+    ...     hrualtitude(mischw=100.0, acker=200.0)
     nhru(2)
     nmbhru(2)
     hruarea(2.0, 8.0)
-    altitude(?)
+    >>> model.petmodel.parameters.control.hrualtitude
+    hrualtitude(acker=200.0, mischw=100.0)
 
     After leaving the `with` block, the submodel's parameters are no longer available:
 
@@ -365,6 +368,14 @@ class SubmodelAdder(_DoctestAdder, Generic[TM, TI]):
     Traceback (most recent call last):
     ...
     NameError: name 'nmbhru' is not defined
+
+    By calling the submodel interface method
+    |SubmodelInterface.add_mainmodel_as_subsubmodel| when entering the `with` block,
+    |SubmodelAdder| enables each submodel to accept the nearest main model as a
+    sub-submodel:
+
+    >>> model.petmodel.precipmodel is model
+    True
 
     Additionally, |SubmodelAdder| checks if the selected application model follows the
     appropriate interface:
@@ -398,12 +409,15 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
     methods: Tuple[Callable[[NoReturn, NoReturn], None], ...]
     """The submodel interface methods the wrapped method uses."""
     landtype_refindices: Optional[Type[parametertools.NameParameter]]
+    """Reference to a land cover type-related index parameter."""
     soiltype_refindices: Optional[Type[parametertools.NameParameter]]
+    """Reference to a soil type-related index parameter."""
     refweights: Optional[Type[parametertools.Parameter]]
+    """Reference to a weighting parameter."""
 
     _sharable_configuration: SharableConfiguration
-
     _model: Optional[TM]
+    _mainmodelstack: ClassVar[List[modeltools.Model]] = []
 
     def __init__(
         self,
@@ -473,7 +487,12 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
                 old_locals = namespace.get(__HYDPY_MODEL_LOCALS__, {})
                 try:
                     _add_locals_to_namespace(submodel, namespace)
+                    self._mainmodelstack.append(model)
+                    for mainmodel in reversed(self._mainmodelstack):
+                        if submodel.add_mainmodel_as_subsubmodel(mainmodel):
+                            break
                     yield
+                    self._mainmodelstack.pop(-1)
                     if update:
                         submodel.parameters.update()
                 finally:

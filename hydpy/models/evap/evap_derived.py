@@ -41,6 +41,34 @@ class HRUAreaFraction(parametertools.Parameter):
         self.values = hruarea / numpy.sum(hruarea)
 
 
+class Altitude(parametertools.Parameter):
+    """Average (reference) subbasin altitude [100m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+
+    CONTROLPARAMETERS = (
+        evap_control.HRUArea,
+        evap_control.HRUAltitude,
+    )
+
+    def update(self) -> None:
+        """Average the individual hydrological response units' altitudes.
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(3)
+        >>> hruarea(5.0, 3.0, 2.0)
+        >>> hrualtitude(1.0, 3.0, 8.0)
+        >>> derived.altitude.update()
+        >>> derived.altitude
+        altitude(3.0)
+        """
+        control = self.subpars.pars.control
+        self.value = numpy.dot(
+            control.hruarea.values, control.hrualtitude.values
+        ) / numpy.sum(control.hruarea.values)
+
+
 class Hours(parametertools.HoursParameter):
     """The length of the actual simulation step size in hours [h]."""
 

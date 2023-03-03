@@ -136,9 +136,8 @@ integration test:
 ...     133.166127, 378.062452, 595.693165, 771.227092, 892.701885, 951.83924,
 ...     944.609042, 871.504018, 737.506154)
 
-To avoid calculating |numpy.nan| values during the night periods within
-the first 24 hours, we arbitrarily set the values of both log sequences
-to one:
+To avoid calculating |numpy.nan| values at night within the first 24 hours, we
+arbitrarily set the values of both log sequences to one:
 
 >>> logs.loggedclearskysolarradiation = 277.777778
 >>> logs.loggedglobalradiation = 277.777778

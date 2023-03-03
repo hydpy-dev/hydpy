@@ -4,11 +4,15 @@
 """
 # imports...
 # ...from HydPy
+from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
 from hydpy.core.typingtools import *
+from hydpy.interfaces import petinterfaces
+from hydpy.interfaces import precipinterfaces
 
 # ...from hland
+from hydpy.models.hland import hland_constants
 from hydpy.models.hland.hland_constants import FIELD, FOREST, GLACIER, ILAKE, SEALED
 from hydpy.models.hland import hland_control
 from hydpy.models.hland import hland_derived
@@ -154,7 +158,7 @@ class Calc_RFC_SFC_V1(modeltools.Method):
 
         With no rainfall and no snowfall correction (due to the respective factors
         being one), the corrected fraction related to rain is identical to the original
-        fraction, while the corrected fraction related to snow behaves opposite:
+        fraction, while the corrected fraction related to snow behaves the opposite:
 
         >>> rfcf(1.0)
         >>> sfcf(1.0)
@@ -270,141 +274,61 @@ class Calc_PC_V1(modeltools.Method):
                 flu.pc[k] *= con.pcorr[k] * (fac.rfc[k] + fac.sfc[k])
 
 
-class Calc_EP_V1(modeltools.Method):
-    r"""Adjust the potential norm evaporation to the actual temperature.
+class Calc_EP_PETModel_V1(modeltools.Method):
+    """Let a submodel that complies with the |PETModel_V1| interface calculate the
+    potential evapotranspiration.
 
-    Basic equation:
-      :math:`EP = EPN \cdot (1 + ETF \cdot (T - TN))`
+    Example:
 
-    Restriction:
-      :math:`0 \leq EP \leq 2 \cdot EPN`
+        We use |evap_tw2002| as an example:
 
-    Examples:
-
-        Assume four zones with different values of the temperature-related factor for
-        adjusting evaporation (the negative value of the first zone is not meaningful
-        but applied for illustration):
-
-        >>> from hydpy.models.hland import *
-        >>> simulationstep("12h")
-        >>> parameterstep("1d")
-        >>> nmbzones(4)
-        >>> etf(-0.5, 0.0, 0.1, 0.5)
-        >>> inputs.tn = 20.0
-        >>> inputs.epn = 2.0
-
-        With actual temperature equal to norm temperature, actual (uncorrected)
-        evaporation equals norm evaporation:
-
-        >>> inputs.t = 20.0
+        >>> from hydpy.models.hland_v1 import *
+        >>> parameterstep()
+        >>> nmbzones(3)
+        >>> area(1.0)
+        >>> zonearea(0.5, 0.3, 0.2)
+        >>> zonetype(FIELD)
+        >>> zonez(2.0, 6.0, 10.0)
+        >>> from hydpy import prepare_model
+        >>> with model.add_petmodel_v1("evap_tw2002"):
+        ...     airtemperatureaddend(1.0)
+        ...     coastfactor(0.6)
+        ...     evapotranspirationfactor(1.1)
+        ...     inputs.globalradiation = 200.0
+        ...     inputs.airtemperature = 14.0
         >>> model.calc_ep_v1()
         >>> fluxes.ep
-        ep(2.0, 2.0, 2.0, 2.0)
-
-        For an actual temperature 5°C higher than normal temperature, potential
-        evaporation is increased by 1 mm for the third zone.  For the first zone,
-        potential evaporation is 0 mm (the smallest value allowed), and for the fourth
-        zone, it is the double value of the norm evaporation (largest value allowed):
-
-        >>> inputs.t  = 25.0
-        >>> model.calc_ep_v1()
-        >>> fluxes.ep
-        ep(0.0, 2.0, 3.0, 4.0)
+        ep(3.07171, 2.86215, 2.86215)
     """
 
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.ETF,
-    )
-    REQUIREDSEQUENCES = (
-        hland_inputs.EPN,
-        hland_inputs.TN,
-    )
+    CONTROLPARAMETERS = (hland_control.NmbZones,)
+    RESULTSEQUENCES = (hland_fluxes.EP,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        submodel.determine_potentialevapotranspiration()
+        for k in range(con.nmbzones):
+            flu.ep[k] = submodel.get_potentialevapotranspiration(k)
+
+
+class Calc_EP_V1(modeltools.Method):
+    """Let a submodel that complies with the |PETModel_V1| interface calculate the
+    potential evapotranspiration."""
+
+    SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
+    SUBMETHODS = (Calc_EP_PETModel_V1,)
+    CONTROLPARAMETERS = (hland_control.NmbZones,)
     RESULTSEQUENCES = (hland_fluxes.EP,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        inp = model.sequences.inputs.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        for k in range(con.nmbzones):
-            flu.ep[k] = inp.epn * (1.0 + con.etf[k] * (inp.t - inp.tn))
-            flu.ep[k] = min(max(flu.ep[k], 0.0), 2.0 * inp.epn)
-
-
-class Calc_EPC_V1(modeltools.Method):
-    r"""Apply the evaporation correction factors and adjust evaporation
-    to the altitude of the individual zones.
-
-    Basic equation:
-      :math:`EPC =
-      EP \cdot ECorr \cdot (1 + ECAlt \cdot (ZoneZ - Z)) \cdot exp(-EPF \cdot PC)`
-
-
-    Examples:
-
-        Four zones are at an elevation of 200 m.  An (uncorrected) potential
-        evaporation value of 2 mm and a (corrected) precipitationvalue of 5 mm are
-        available at each zone:
-
-        >>> from hydpy.models.hland import *
-        >>> simulationstep("12h")
-        >>> parameterstep("1d")
-        >>> nmbzones(4)
-        >>> zonez(3.0)
-        >>> fluxes.ep = 2.0
-        >>> fluxes.pc = 5.0
-        >>> derived.z(2.0)
-
-        The first three zones illustrate the individual evaporation corrections due to
-        the general (|ECorr|, first zone), the altitude (|ECAlt|, second zone), and the
-        precipitation related adjustment (|EPF|, third zone).  The fourth zone
-        illustrates the interaction between all corrections:
-
-        >>> ecorr(1.3, 1.0, 1.0, 1.3)
-        >>> ecalt(0.0, 0.1, 0.0, 0.1)
-        >>> epf(0.0, 0.0, -numpy.log(0.7)/10.0, -numpy.log(0.7)/10.0)
-        >>> model.calc_epc_v1()
-        >>> fluxes.epc
-        epc(2.6, 1.8, 1.4, 1.638)
-
-        Method |Calc_EPC_V1| performs truncations required to prevent negative
-        evaporation values:
-
-        >>> ecalt(2.0)
-        >>> model.calc_epc_v1()
-        >>> fluxes.epc
-        epc(0.0, 0.0, 0.0, 0.0)
-
-    """
-
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.ECorr,
-        hland_control.ECAlt,
-        hland_control.ZoneZ,
-        hland_control.EPF,
-    )
-    DERIVEDPARAMETERS = (hland_derived.Z,)
-    REQUIREDSEQUENCES = (
-        hland_fluxes.EP,
-        hland_fluxes.PC,
-    )
-    RESULTSEQUENCES = (hland_fluxes.EPC,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        for k in range(con.nmbzones):
-            flu.epc[k] = (
-                flu.ep[k] * con.ecorr[k] * (1.0 - con.ecalt[k] * (con.zonez[k] - der.z))
-            )
-            if flu.epc[k] <= 0.0:
-                flu.epc[k] = 0.0
-            else:
-                flu.epc[k] *= modelutils.exp(-con.epf[k] * flu.pc[k])
+        if model.petmodel.typeid == 1:
+            model.calc_ep_petmodel_v1(cast(petinterfaces.PETModel_V1, model.petmodel))
+        # ToDo:
+        #     else:
+        #         assert_never(model.petmodel)
 
 
 class Calc_TF_Ic_V1(modeltools.Method):
@@ -499,7 +423,7 @@ class Calc_EI_Ic_V1(modeltools.Method):
       .. math::
         EI =
         \begin{cases}
-        EPC &|\ Ic > 0
+        EP &|\ Ic > 0
         \\
         0 &|\ Ic = 0
         \end{cases}
@@ -514,7 +438,7 @@ class Calc_EI_Ic_V1(modeltools.Method):
         >>> parameterstep("1d")
         >>> nmbzones(7)
         >>> zonetype(GLACIER, ILAKE, FIELD, FOREST, SEALED, SEALED, SEALED)
-        >>> fluxes.epc = 0.5
+        >>> fluxes.ep = 0.5
         >>> states.ic = 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0
         >>> model.calc_ei_ic_v1()
 
@@ -532,7 +456,7 @@ class Calc_EI_Ic_V1(modeltools.Method):
 
         A zero evaporation example:
 
-        >>> fluxes.epc = 0.0
+        >>> fluxes.ep = 0.0
         >>> states.ic = 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0
         >>> model.calc_ei_ic_v1()
         >>> states.ic
@@ -542,7 +466,7 @@ class Calc_EI_Ic_V1(modeltools.Method):
 
         A high evaporation example:
 
-        >>> fluxes.epc = 5.0
+        >>> fluxes.ep = 5.0
         >>> states.ic = 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0
         >>> model.calc_ei_ic_v1()
         >>> states.ic
@@ -555,7 +479,7 @@ class Calc_EI_Ic_V1(modeltools.Method):
         hland_control.NmbZones,
         hland_control.ZoneType,
     )
-    REQUIREDSEQUENCES = (hland_fluxes.EPC,)
+    REQUIREDSEQUENCES = (hland_fluxes.EP,)
     UPDATEDSEQUENCES = (hland_states.Ic,)
     RESULTSEQUENCES = (hland_fluxes.EI,)
 
@@ -566,7 +490,7 @@ class Calc_EI_Ic_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
             if con.zonetype[k] in (FIELD, FOREST, SEALED):
-                flu.ei[k] = min(flu.epc[k], sta.ic[k])
+                flu.ei[k] = min(flu.ep[k], sta.ic[k])
                 sta.ic[k] -= flu.ei[k]
             else:
                 flu.ei[k] = 0.0
@@ -2140,14 +2064,14 @@ class Calc_EA_SM_V1(modeltools.Method):
       :math:`\frac{dSM}{dt} = - EA`
 
       .. math::
-        EA_{temp} = EPC \cdot
+        EA_{temp} = EP \cdot
         \begin{cases}
         min \left( \frac{SM}{LP \cdot FC}, 1 \right) &|\ SP = 0
         \\
         0 &|\ SP > 0
         \end{cases}
 
-      :math:`EA = EA_{temp} - max(ERed \cdot (EA_{temp} + EI - EPC), 0)`
+      :math:`EA = EA_{temp} - max(ERed \cdot (EA_{temp} + EI - EP), 0)`
 
     Examples:
 
@@ -2164,7 +2088,7 @@ class Calc_EA_SM_V1(modeltools.Method):
         >>> fc(200.0)
         >>> lp(0.0, 0.0, 0.0, 0.5, 0.5, 0.0, 0.8, 1.0)
         >>> ered(0.0)
-        >>> fluxes.epc = 2.0
+        >>> fluxes.ep = 2.0
         >>> fluxes.ei = 1.0
         >>> states.sp = 0.0
 
@@ -2252,7 +2176,7 @@ class Calc_EA_SM_V1(modeltools.Method):
     )
     REQUIREDSEQUENCES = (
         hland_states.SP,
-        hland_fluxes.EPC,
+        hland_fluxes.EP,
         hland_fluxes.EI,
     )
     UPDATEDSEQUENCES = (hland_states.SM,)
@@ -2270,11 +2194,11 @@ class Calc_EA_SM_V1(modeltools.Method):
                     if sta.sp[c, k] <= 0.0:
                         snowfree += 1.0
                 if snowfree > 0.0:
-                    d_ea = flu.epc[k]
+                    d_ea = flu.ep[k]
                     d_thresh = con.lp[k] * con.fc[k]
                     if d_thresh > 0.0:
                         d_ea *= min(sta.sm[k] / d_thresh, 1.0)
-                    d_ea -= max(con.ered[k] * (d_ea + flu.ei[k] - flu.epc[k]), 0.0)
+                    d_ea -= max(con.ered[k] * (d_ea + flu.ei[k] - flu.ep[k]), 0.0)
                     flu.ea[k] = min(snowfree / con.sclass * d_ea, sta.sm[k])
                 else:
                     flu.ea[k] = 0.0
@@ -3681,7 +3605,7 @@ class Calc_EL_SG2_SG3_V1(modeltools.Method):
     Basic equations:
       .. math::
         EL =  \begin{cases}
-        EPC &|\ TC > TTIce
+        EP &|\ TC > TTIce
         \
         0 &|\ TC \leq TTIce
         \end{cases}
@@ -3705,7 +3629,7 @@ class Calc_EL_SG2_SG3_V1(modeltools.Method):
         >>> derived.relzoneareas(0.1, 0.1, 0.1, 0.3, 0.1, 0.1, 0.1, 0.1)
         >>> derived.rellowerzonearea(0.5)
         >>> factors.tc = 0.0, 1.0, 2.0, 2.0, nan, nan, nan, nan
-        >>> fluxes.epc = 1.0, 1.0, 0.9, 1.8, nan, nan, nan, nan
+        >>> fluxes.ep = 1.0, 1.0, 0.9, 1.8, nan, nan, nan, nan
         >>> states.sg2 = 1.0
         >>> states.sg3 = 1.0
         >>> model.calc_el_sg2_sg3_v1()
@@ -3733,7 +3657,7 @@ class Calc_EL_SG2_SG3_V1(modeltools.Method):
     FIXEDPARAMETERS = (hland_fixed.FSG,)
     REQUIREDSEQUENCES = (
         hland_factors.TC,
-        hland_fluxes.EPC,
+        hland_fluxes.EP,
     )
     UPDATEDSEQUENCES = (
         hland_states.SG2,
@@ -3751,7 +3675,7 @@ class Calc_EL_SG2_SG3_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
             if (con.zonetype[k] == ILAKE) and (fac.tc[k] > con.ttice[k]):
-                flu.el[k] = flu.epc[k]
+                flu.el[k] = flu.ep[k]
                 d_weight = der.relzoneareas[k] / der.rellowerzonearea
                 sta.sg2 -= fix.fsg * d_weight * flu.el[k]
                 sta.sg3 -= (1.0 - fix.fsg) * d_weight * flu.el[k]
@@ -3951,7 +3875,7 @@ class Calc_EL_LZ_V1(modeltools.Method):
       .. math::
         EL =
         \begin{cases}
-        EPC &|\ TC > TTIce
+        EP &|\ TC > TTIce
         \\
         0 &|\ TC \leq TTIce
         \end{cases}
@@ -3972,7 +3896,7 @@ class Calc_EL_LZ_V1(modeltools.Method):
         >>> ttice(-1.0)
         >>> derived.relzoneareas(1.0/7.0)
         >>> derived.rellowerzonearea(6.0/7.0)
-        >>> fluxes.epc = 0.6
+        >>> fluxes.ep = 0.6
         >>> factors.tc = 0.0, 0.0, 0.0, 0.0, 0.0, -1.0, -2.0
         >>> states.lz = 10.0
         >>> model.calc_el_lz_v1()
@@ -4003,7 +3927,7 @@ class Calc_EL_LZ_V1(modeltools.Method):
     )
     REQUIREDSEQUENCES = (
         hland_factors.TC,
-        hland_fluxes.EPC,
+        hland_fluxes.EP,
     )
     UPDATEDSEQUENCES = (hland_states.LZ,)
     RESULTSEQUENCES = (hland_fluxes.EL,)
@@ -4017,7 +3941,7 @@ class Calc_EL_LZ_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
             if (con.zonetype[k] == ILAKE) and (fac.tc[k] > con.ttice[k]):
-                flu.el[k] = flu.epc[k]
+                flu.el[k] = flu.ep[k]
                 sta.lz -= der.relzoneareas[k] / der.rellowerzonearea * flu.el[k]
             else:
                 flu.el[k] = 0.0
@@ -4597,7 +4521,7 @@ class Calc_QT_V1(modeltools.Method):
         flu.qt = der.qfactor * flu.rt
 
 
-class Pass_Q_v1(modeltools.Method):
+class Pass_Q_V1(modeltools.Method):
     r"""Update the outlet link sequence."""
 
     REQUIREDSEQUENCES = (hland_fluxes.QT,)
@@ -4608,6 +4532,30 @@ class Pass_Q_v1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
         out.q[0] += flu.qt
+
+
+class Get_Precipitation_V1(modeltools.Method):
+    """Get the current precipitation from the selected zone.
+
+    Example:
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep()
+        >>> nmbzones(2)
+        >>> fluxes.pc = 2.0, 4.0
+        >>> model.get_precipitation_v1(0)
+        2.0
+        >>> model.get_precipitation_v1(1)
+        4.0
+    """
+
+    REQUIREDSEQUENCES = (hland_fluxes.PC,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int) -> float:
+        flu = model.sequences.fluxes.fastaccess
+
+        return flu.pc[s]
 
 
 class Model(modeltools.AdHocModel):
@@ -4621,7 +4569,6 @@ class Model(modeltools.AdHocModel):
         Calc_RFC_SFC_V1,
         Calc_PC_V1,
         Calc_EP_V1,
-        Calc_EPC_V1,
         Calc_TF_Ic_V1,
         Calc_EI_Ic_V1,
         Calc_SP_WC_V1,
@@ -4665,8 +4612,72 @@ class Model(modeltools.AdHocModel):
         Calc_RT_V2,
         Calc_QT_V1,
     )
-    ADD_METHODS = (Calc_QAb_QVs_BW_V1,)
-    OUTLET_METHODS = (Pass_Q_v1,)
+    INTERFACE_METHODS = (Get_Precipitation_V1,)
+    ADD_METHODS = (
+        Calc_EP_PETModel_V1,
+        Calc_QAb_QVs_BW_V1,
+    )
+    OUTLET_METHODS = (Pass_Q_V1,)
     SENDER_METHODS = ()
-    SUBMODELINTERFACES = ()
+    SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
     SUBMODELS = ()
+
+
+class Main_PETModel_V1(modeltools.AdHocModel):
+    """Base class for HydPy-H models that use submodels that comply with the
+    |PETModel_V1| interface."""
+
+    petmodel: modeltools.SubmodelProperty
+    petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+
+    @importtools.prepare_submodel(
+        petinterfaces.PETModel_V1,
+        petinterfaces.PETModel_V1.prepare_nmbzones,
+        petinterfaces.PETModel_V1.prepare_subareas,
+        petinterfaces.PETModel_V1.prepare_zonetypes,
+        petinterfaces.PETModel_V1.prepare_elevations,
+        landtype_constants=hland_constants.CONSTANTS,
+        landtype_refindices=hland_control.ZoneType,
+        refweights=hland_control.ZoneArea,
+    )
+    def add_petmodel_v1(self, petmodel: petinterfaces.PETModel_V1) -> None:
+        """Initialise the given `petmodel` that follows the |PETModel_V1| interface and
+        is responsible for calculating the potential evapotranspiration.
+
+        >>> from hydpy.models.hland_v1 import *
+        >>> parameterstep()
+        >>> nmbzones(2)
+        >>> area(10.0)
+        >>> zonearea(0.2, 0.8)
+        >>> zonetype(FIELD, FOREST)
+        >>> zonez(2.0, 3.0)
+        >>> with model.add_petmodel_v1("evap_tw2002"):
+        ...     nmbhru
+        ...     hruarea
+        ...     evapotranspirationfactor(field=1.0, forest=2.0)
+        ...     hrualtitude
+        nmbhru(2)
+        hruarea(2.0, 8.0)
+        hrualtitude(field=200.0, forest=300.0)
+
+        >>> etf = model.petmodel.parameters.control.evapotranspirationfactor
+        >>> etf
+        evapotranspirationfactor(field=1.0, forest=2.0)
+        >>> zonetype(FOREST, FIELD)
+        >>> etf
+        evapotranspirationfactor(field=2.0, forest=1.0)
+        >>> from hydpy import round_
+        >>> round_(etf.average_values())
+        1.8
+        """
+        self.petmodel = petmodel
+        control = self.parameters.control
+        petmodel.prepare_nmbzones(control.nmbzones.value)
+        petmodel.prepare_zonetypes(control.zonetype.values)
+        petmodel.prepare_subareas(control.zonearea.values)
+        petmodel.prepare_elevations(100.0 * control.zonez.values)
+
+
+class Sub_PrecipModel_V1(modeltools.AdHocModel, precipinterfaces.PrecipModel_V1):
+    """Base class for HydPy-H models that comply with the |PrecipModel_V1| submodel
+    interface."""

@@ -1285,8 +1285,7 @@ class PyxWriter:
             lines.add(
                 0,
                 f"cdef class {submodel.__name__}("
-                f"{cls.__module__.split('.')[-1]}."
-                f"{cls.__name__}):",
+                f"{cls.__module__.split('.')[-1]}.{cls.__name__}):",
             )
             lines.add(1, "cdef public Model model")
             lines.add(1, "def __init__(self, Model model):")
@@ -1322,6 +1321,7 @@ class PyxWriter:
         lines.add(1, "cdef public Sequences sequences")
         for name in submodelnames_new:
             lines.add(1, f"cdef public interfaceutils.BaseInterface {name}")
+            lines.add(1, f"cdef public {TYPE2STR[bool]} {name}_is_mainmodel")
         for submodel in submodeltypes_old:
             lines.add(1, f"cdef public {submodel.__name__} {submodel.name}")
         if hasattr(self.model, "numconsts"):
@@ -1333,6 +1333,7 @@ class PyxWriter:
             lines.add(2, "super().__init__()")
             for name in submodelnames_new:
                 lines.add(2, f"self.{name} = None")
+                lines.add(2, f"self.{name}_is_mainmodel = False")
             for submodel in submodeltypes_old:
                 lines.add(2, f"self.{submodel.name} = {submodel.__name__}(self)")
         baseinterface = "Optional[interfaceutils.BaseInterface]"
@@ -1421,12 +1422,16 @@ class PyxWriter:
             cpdef void load_data(self, ...int... idx) nogil:
                 self.idx_sim = idx
                 self.sequences.inputs.load_data(idx)
+                if (self.petmodel is not None) and not self.petmodel_is_mainmodel:
+                    self.petmodel.load_data(idx)
             cpdef void save_data(self, ...int... idx) nogil:
                 self.idx_sim = idx
                 self.sequences.inputs.save_data(idx)
                 self.sequences.factors.save_data(idx)
                 self.sequences.fluxes.save_data(idx)
                 self.sequences.states.save_data(idx)
+                if (self.petmodel is not None) and not self.petmodel_is_mainmodel:
+                    self.petmodel.save_data(idx)
         <BLANKLINE>
 
         >>> pyxwriter.model.sequences.factors = None
@@ -1438,9 +1443,13 @@ class PyxWriter:
             cpdef void load_data(self, ...int... idx) nogil:
                 self.idx_sim = idx
                 self.sequences.inputs.load_data(idx)
+                if (self.petmodel is not None) and not self.petmodel_is_mainmodel:
+                    self.petmodel.load_data(idx)
             cpdef void save_data(self, ...int... idx) nogil:
                 self.idx_sim = idx
                 self.sequences.inputs.save_data(idx)
+                if (self.petmodel is not None) and not self.petmodel_is_mainmodel:
+                    self.petmodel.save_data(idx)
         <BLANKLINE>
 
         >>> pyxwriter.model.sequences.inputs = None
@@ -1473,7 +1482,9 @@ class PyxWriter:
             )
             for fullname in submodels:
                 name = fullname.rpartition(".")[2]
-                lines.add(2, f"if self.{name} is not None:")
+                lines.add(
+                    2, f"if (self.{name} is not None) and not self.{name}_is_mainmodel:"
+                )
                 lines.add(3, f"self.{name}.{func}(idx)")
         return lines
 

@@ -775,7 +775,7 @@ from hydpy.models.wland import wland_solver
 from hydpy.models.wland.wland_constants import *
 
 
-class Model(wland_model.Main_PETModel_V1):
+class Model(wland_model.Main_PETModel_V1, wland_model.Sub_PrecipModel_V1):
     """The *HydPy-W-Land* model."""
 
     SOLVERPARAMETERS = (
@@ -792,6 +792,7 @@ class Model(wland_model.Main_PETModel_V1):
         wland_model.Calc_PM_V1,
     )
     RECEIVER_METHODS = ()
+    INTERFACE_METHODS = (wland_model.Get_Precipitation_V1,)
     ADD_METHODS = (
         wland_model.Calc_PET_PETModel_V1,
         wland_model.Calc_PE_PETModel_V1,

@@ -278,7 +278,7 @@ class FusedVariable:
     Additionally, |lland_v1| requires temperature data itself for modelling snow
     processes, introducing the problem that we need to use the same data (the output of
     |conv_v001|) as the input of two differently named input sequences
-    (|evap_inputs.AirTemperature| and |lland_inputs.TemL| for |evap_fao56| and
+    (|meteo_inputs.Temperature| and |lland_inputs.TemL| for |meteo_temp_io| and
     |lland_v1|, respectively).
 
     We need to create two |FusedVariable| objects, for our concrete example.  `E`
@@ -3127,8 +3127,8 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
 
         Without any arguments, |Element.plot_inputseries| prints the time-series of all
         input sequences handled by its |Model| object directly to the screen (in our
-        example, |hland_inputs.P|, |hland_inputs.T|, |hland_inputs.TN|, and
-        |hland_inputs.EPN| of application model |hland_v1|):
+        example, |hland_inputs.P|, |hland_inputs.T|, |evap_inputs.NormalAirTemperature|,
+        and |evap_inputs.NormalEvapotranspiration| of application model |hland_v1|):
 
         >>> land = hp.elements.land_dill
         >>> figure = land.plot_inputseries()

@@ -8,9 +8,9 @@ of potential evapotranspiration.  Of course, you can connect it to |hland_v1| if
 long for a close HBV96 emulation, but it also works with other main models like
 |lland_v1| or |wland_v001|.
 
-|evap_hbv96| itself requires another model for determining precipitation.  By
-default, it queries the already available precipitation from its main model.
-Alternatively, it can handle its own submodel.  The following tests rely on the latter
+|evap_hbv96| itself requires other models for determining temperature and
+precipitation.  By default, it queries the already available data from its main model.
+Alternatively, it can handle its own submodels.  The following tests rely on the latter
 option.
 
 Integration tests
@@ -45,8 +45,11 @@ example of |hland_v1|:
 >>> altitudefactor(-0.1)
 >>> precipitationfactor(0.1)
 
-A |meteo_precip_io| submodel provides the required precipitation:
+A |meteo_temp_io| submodel provides the required temperature, and a |meteo_precip_io|
+submodel the required precipitation:
 
+>>> with model.add_tempmodel_v2("meteo_temp_io"):
+...     temperatureaddend(0.0)
 >>> with model.add_precipmodel_v2("meteo_precip_io"):
 ...     precipitationfactor(1.0)
 
@@ -58,9 +61,9 @@ Now we can initialise an |IntegrationTest| object:
 The following meteorological input also stems from the input data of the
 :ref:`hland_v1_field` example:
 
->>> inputs.airtemperature.series = 19.2
 >>> inputs.normalairtemperature.series = 18.2
 >>> inputs.normalevapotranspiration.series = 0.097474
+>>> model.tempmodel.sequences.inputs.temperature.series = 19.2
 
 The following precipitation value is from the results table of the
 :ref:`hland_v1_field` example:
@@ -75,19 +78,22 @@ estimate is the same in both tables:
 .. integration-test::
 
     >>> test()
-    |        date | airtemperature | normalairtemperature | normalevapotranspiration | precipitation | referenceevapotranspiration | potentialevapotranspiration | meanpotentialevapotranspiration |
-    ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    | 02/01 00:00 |           19.2 |                 18.2 |                 0.097474 |         0.847 |                    0.075055 |                     0.06896 |                         0.06896 |
+    |        date | normalairtemperature | normalevapotranspiration | meanairtemperature | precipitation | referenceevapotranspiration | potentialevapotranspiration | meanpotentialevapotranspiration |
+    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 02/01 00:00 |                 18.2 |                 0.097474 |               19.2 |         0.847 |                    0.075055 |                     0.06896 |                         0.06896 |
 """
 # import...
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import precipinterfaces
+from hydpy.interfaces import tempinterfaces
 from hydpy.models.evap import evap_model
 
 
 class Model(
+    evap_model.Main_TempModel_V1,
+    evap_model.Main_TempModel_V2,
     evap_model.Main_PrecipModel_V1,
     evap_model.Main_PrecipModel_V2,
     evap_model.Sub_PETModel_V1,
@@ -97,6 +103,7 @@ class Model(
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
+        evap_model.Calc_MeanAirTemperature_V1,
         evap_model.Calc_Precipitation_V1,
         evap_model.Calc_ReferenceEvapotranspiration_V5,
         evap_model.Adjust_ReferenceEvapotranspiration_V1,
@@ -109,17 +116,24 @@ class Model(
         evap_model.Get_MeanPotentialEvapotranspiration_V2,
     )
     ADD_METHODS = (
+        evap_model.Calc_MeanAirTemperature_TempModel_V1,
+        evap_model.Calc_MeanAirTemperature_TempModel_V2,
         evap_model.Calc_Precipitation_PrecipModel_V1,
         evap_model.Calc_Precipitation_PrecipModel_V2,
     )
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (
+        tempinterfaces.TempModel_V1,
+        tempinterfaces.TempModel_V2,
         precipinterfaces.PrecipModel_V1,
         precipinterfaces.PrecipModel_V2,
     )
     SUBMODELS = ()
 
+    tempmodel = modeltools.SubmodelProperty(
+        tempinterfaces.TempModel_V1, tempinterfaces.TempModel_V2
+    )
     precipmodel = modeltools.SubmodelProperty(
         precipinterfaces.PrecipModel_V1, precipinterfaces.PrecipModel_V2
     )

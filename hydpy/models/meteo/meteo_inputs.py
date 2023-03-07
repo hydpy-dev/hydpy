@@ -18,6 +18,12 @@ class GlobalRadiation(sequencetools.InputSequence):
     NDIM, NUMERIC = 0, False
 
 
+class Temperature(sequencetools.InputSequence):
+    """Temperature [°C]."""
+
+    NDIM, NUMERIC = 0, False
+
+
 class Precipitation(sequencetools.InputSequence):
     """Precipitation [mm/T]."""
 

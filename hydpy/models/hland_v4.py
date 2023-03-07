@@ -134,7 +134,6 @@ We assign identical values to all parameters, besides those that are specific to
 ...     18.1, 16.7, 15.2, 13.4, 12.4, 11.6, 11.0, 10.5, 11.7, 11.9, 11.2, 11.1, 11.9,
 ...     12.2, 11.8, 11.4, 11.6, 13.0, 17.1, 18.2, 22.4, 21.4, 21.8, 22.2, 20.1, 17.8,
 ...     15.2, 14.5, 12.4, 11.7, 11.9)
->>> model.petmodel.sequences.inputs.airtemperature.series = inputs.t.series
 >>> model.petmodel.sequences.inputs.normalairtemperature.series = inputs.t.series - 1.0
 >>> model.petmodel.sequences.inputs.normalevapotranspiration.series = (
 ...     0.100707, 0.097801, 0.096981, 0.09599, 0.096981, 0.102761, 0.291908, 1.932875,
@@ -418,7 +417,6 @@ ones of |hland_v1|.  Hence, all snow data in the following table agrees with the
     >>> tn_series = model.petmodel.sequences.inputs.normalairtemperature.series.copy()
     >>> inputs.t.series[:48] = -20.0
     >>> inputs.t.series[48:] = 20.0
-    >>> model.petmodel.sequences.inputs.airtemperature.series = inputs.t.series
     >>> model.petmodel.sequences.inputs.normalairtemperature.series = inputs.t.series
     >>> test("hland_v4_snow_classes")
     |        date |    p |     t |    tc | fracrain | rfc | sfc |    cfact |                    swe | gact |     pc |       ep |       ei |        tf | spl | wcl | spg | wcg | glmelt |               melt |      refr |       in_ |        r |  sr |       ea |     qvs1 |     qab1 |     qvs2 |     qab2 |  el |       q1 |     inuh |    outuh |       rt |       qt |       ic |                     sp |                   wc |         sm |       bw1 |       bw2 |        lz |                                               sc |   outlet |
@@ -677,7 +675,6 @@ the only fast runoff component |hland_fluxes.Q0| of |hland_v1|:
     >>> subcontrol.altitudefactor(-0.1)
     >>> subcontrol.precipitationfactor(0.1)
     >>> inputs.t.series = t_series
-    >>> model.petmodel.sequences.inputs.airtemperature.series = t_series
     >>> model.petmodel.sequences.inputs.normalairtemperature.series = tn_series
     >>> test("hland_v4_multiple_zones",
     ...      axis1=(inputs.p, fluxes.rt, fluxes.qt),
@@ -802,7 +799,6 @@ ones of |hland_v1|.  Hence, all snow data in the following table agrees with the
     >>> smax(200.0)
     >>> sred(n_zones=1)
     >>> inputs.t.series = -0.4
-    >>> model.petmodel.sequences.inputs.airtemperature.series = -0.4
     >>> pcorr *= 2.0
     >>> pcalt(0.05)
     >>> test("hland_v4_snow_redistribution",
@@ -925,7 +921,11 @@ from hydpy.models.hland import hland_masks
 from hydpy.models.hland.hland_constants import *
 
 
-class Model(hland_model.Main_PETModel_V1, hland_model.Sub_PrecipModel_V1):
+class Model(
+    hland_model.Main_PETModel_V1,
+    hland_model.Sub_TempModel_V1,
+    hland_model.Sub_PrecipModel_V1,
+):
     """HBV96-SC/COSERO version of HydPy-H-Land (|hland_v4|)."""
 
     INLET_METHODS = ()
@@ -961,7 +961,11 @@ class Model(hland_model.Main_PETModel_V1, hland_model.Sub_PrecipModel_V1):
         hland_model.Calc_RT_V2,
         hland_model.Calc_QT_V1,
     )
-    INTERFACE_METHODS = (hland_model.Get_Precipitation_V1,)
+    INTERFACE_METHODS = (
+        hland_model.Get_Temperature_V1,
+        hland_model.Get_MeanTemperature_V1,
+        hland_model.Get_Precipitation_V1,
+    )
     ADD_METHODS = (
         hland_model.Calc_EP_PETModel_V1,
         hland_model.Calc_QAb_QVs_BW_V1,

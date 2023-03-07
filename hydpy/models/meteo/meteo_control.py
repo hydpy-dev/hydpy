@@ -141,8 +141,15 @@ class AngstromAlternative(parametertools.MonthParameter):
     INIT = 0.15
 
 
+class TemperatureAddend(meteo_parameters.ZipParameter1D):
+    """Temperature shift constant [°C]."""
+
+    TYPE, TIME, SPAN = float, None, (None, None)
+    INIT = 0.0
+
+
 class PrecipitationFactor(meteo_parameters.ZipParameter1D):
-    """Adjustment factor for precipitation [-]."""
+    """Precipitation adjustment factor [-]."""
 
     TYPE, TIME, SPAN = float, None, (0.0, None)
     INIT = 1.0

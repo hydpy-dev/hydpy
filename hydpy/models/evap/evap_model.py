@@ -12,6 +12,7 @@ from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import precipinterfaces
+from hydpy.interfaces import tempinterfaces
 from hydpy.models.evap import evap_parameters
 from hydpy.models.evap import evap_control
 from hydpy.models.evap import evap_derived
@@ -22,41 +23,193 @@ from hydpy.models.evap import evap_fluxes
 from hydpy.models.evap import evap_logs
 
 
-class Calc_AdjustedAirTemperature_V1(modeltools.Method):
-    """Adjust the average air temperature to the (heights) of the individual
-    hydrological response units.
-
-    Basic equation:
-      :math:`AdjustedAirTemperature = AirTemperatureAddend + AirTemperature`
+class Calc_AirTemperature_TempModel_V1(modeltools.Method):
+    """Query hydrological response units' air temperature from a main model referenced
+    as a sub-submodel and follows the |TempModel_V1| interface.
 
     Example:
 
-        >>> from hydpy.models.evap import *
+        We use the combination of |hland_v1| and |evap_tw2002| as an example:
+
+        >>> from hydpy.models.hland_v1 import *
         >>> parameterstep()
-        >>> nmbhru(3)
-        >>> airtemperatureaddend(-2.0, 0.0, 2.0)
-        >>> inputs.airtemperature(1.0)
-        >>> model.calc_adjustedairtemperature_v1()
-        >>> factors.adjustedairtemperature
-        adjustedairtemperature(-1.0, 1.0, 3.0)
+        >>> area(10.0)
+        >>> nmbzones(3)
+        >>> zonearea(5.0, 3.0, 2.0)
+        >>> zonetype(FIELD)
+        >>> zonez(2.0)
+        >>> with model.add_petmodel_v1("evap_tw2002"):
+        ...     pass
+        >>> factors.tc = 2.0, 0.0, 5.0
+        >>> model.petmodel.calc_airtemperature_v1()
+        >>> model.petmodel.sequences.factors.airtemperature
+        airtemperature(2.0, 0.0, 5.0)
     """
 
-    CONTROLPARAMETERS = (
-        evap_control.NmbHRU,
-        evap_control.AirTemperatureAddend,
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    RESULTSEQUENCES = (evap_factors.AirTemperature,)
+
+    @staticmethod
+    def __call__(
+        model: modeltools.Model, submodel: tempinterfaces.TempModel_V1
+    ) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+        for k in range(con.nmbhru):
+            fac.airtemperature[k] = submodel.get_temperature(k)
+
+
+class Calc_AirTemperature_TempModel_V2(modeltools.Method):
+    """Let a submodel that complies with the |TempModel_V2| interface determine the air
+    temperature of the hydrological response units.
+
+    Example:
+
+        We use the combination of |evap_tw2002| and |meteo_temp_io| as an example:
+
+        >>> from hydpy.models.evap_tw2002 import *
+        >>> parameterstep()
+        >>> nmbhru(3)
+        >>> hruarea(0.5, 0.3, 0.2)
+        >>> with model.add_tempmodel_v2("meteo_temp_io"):
+        ...     temperatureaddend(1.0, 2.0, 4.0)
+        ...     inputs.temperature = 2.0
+        >>> model.calc_airtemperature_v1()
+        >>> factors.airtemperature
+        airtemperature(3.0, 4.0, 6.0)
+    """
+
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    RESULTSEQUENCES = (evap_factors.AirTemperature,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+        submodel.determine_temperature()
+        for k in range(con.nmbhru):
+            fac.airtemperature[k] = submodel.get_temperature(k)
+
+
+class Calc_AirTemperature_V1(modeltools.Method):
+    """Let a submodel that complies with the |TempModel_V1| or |TempModel_V2| interface
+    determine the air temperature of the individual hydrological response units."""
+
+    SUBMODELINTERFACES = (
+        tempinterfaces.TempModel_V1,
+        tempinterfaces.TempModel_V2,
     )
-    REQUIREDSEQUENCES = (evap_inputs.AirTemperature,)
-    RESULTSEQUENCES = (evap_factors.AdjustedAirTemperature,)
+    SUBMETHODS = (
+        Calc_AirTemperature_TempModel_V1,
+        Calc_AirTemperature_TempModel_V2,
+    )
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    RESULTSEQUENCES = (evap_factors.AirTemperature,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        inp = model.sequences.inputs.fastaccess
-        fac = model.sequences.factors.fastaccess
-        for k in range(con.nmbhru):
-            fac.adjustedairtemperature[k] = (
-                con.airtemperatureaddend[k] + inp.airtemperature
+        if model.tempmodel.typeid == 1:
+            model.calc_airtemperature_tempmodel_v1(
+                cast(tempinterfaces.TempModel_V1, model.tempmodel)
             )
+        elif model.tempmodel.typeid == 2:
+            model.calc_airtemperature_tempmodel_v2(
+                cast(tempinterfaces.TempModel_V2, model.tempmodel)
+            )
+        # ToDo:
+        #     else:
+        #         assert_never(model.petmodel)
+
+
+class Calc_MeanAirTemperature_TempModel_V1(modeltools.Method):
+    """Query mean air temperature from a main model referenced as a sub-submodel and
+    follows the |TempModel_V1| interface.
+
+    Example:
+
+        We use the combination of |hland_v1| and |evap_hbv96| as an example:
+
+        >>> from hydpy.models.hland_v1 import *
+        >>> parameterstep()
+        >>> area(10.0)
+        >>> nmbzones(3)
+        >>> zonearea(5.0, 3.0, 2.0)
+        >>> zonetype(FIELD)
+        >>> zonez(2.0)
+        >>> with model.add_petmodel_v1("evap_hbv96"):
+        ...     pass
+        >>> inputs.t = 2.0
+        >>> model.petmodel.calc_meanairtemperature_v1()
+        >>> model.petmodel.sequences.factors.meanairtemperature
+        meanairtemperature(2.0)
+    """
+
+    RESULTSEQUENCES = (evap_factors.MeanAirTemperature,)
+
+    @staticmethod
+    def __call__(
+        model: modeltools.Model, submodel: tempinterfaces.TempModel_V1
+    ) -> None:
+        fac = model.sequences.factors.fastaccess
+        fac.meanairtemperature = submodel.get_meantemperature()
+
+
+class Calc_MeanAirTemperature_TempModel_V2(modeltools.Method):
+    """Let a submodel that complies with the |TempModel_V2| interface determine the
+    mean air temperature.
+
+    Example:
+
+        We use the combination of |evap_hbv96| and |meteo_temp_io| as an example:
+
+        >>> from hydpy.models.evap_hbv96 import *
+        >>> parameterstep()
+        >>> nmbhru(3)
+        >>> hruarea(0.5, 0.3, 0.2)
+        >>> with model.add_tempmodel_v2("meteo_temp_io"):
+        ...     temperatureaddend(1.0, 2.0, 4.0)
+        ...     inputs.temperature = 2.0
+        >>> model.calc_meanairtemperature_v1()
+        >>> factors.meanairtemperature
+        meanairtemperature(3.9)
+    """
+
+    RESULTSEQUENCES = (evap_factors.MeanAirTemperature,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
+        fac = model.sequences.factors.fastaccess
+        submodel.determine_temperature()
+        fac.meanairtemperature = submodel.get_meantemperature()
+
+
+class Calc_MeanAirTemperature_V1(modeltools.Method):
+    """Let a submodel that complies with the |TempModel_V1| or |TempModel_V2| interface
+    determine the air temperature."""
+
+    SUBMODELINTERFACES = (
+        tempinterfaces.TempModel_V1,
+        tempinterfaces.TempModel_V2,
+    )
+    SUBMETHODS = (
+        Calc_MeanAirTemperature_TempModel_V1,
+        Calc_MeanAirTemperature_TempModel_V2,
+    )
+    RESULTSEQUENCES = (evap_factors.MeanAirTemperature,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        if model.tempmodel.typeid == 1:
+            model.calc_meanairtemperature_tempmodel_v1(
+                cast(tempinterfaces.TempModel_V1, model.tempmodel)
+            )
+        elif model.tempmodel.typeid == 2:
+            model.calc_meanairtemperature_tempmodel_v2(
+                cast(tempinterfaces.TempModel_V2, model.tempmodel)
+            )
+        # ToDo:
+        #     else:
+        #         assert_never(model.petmodel)
 
 
 class Calc_AdjustedWindSpeed_V1(modeltools.Method):
@@ -106,22 +259,22 @@ class Calc_SaturationVapourPressure_V1(modeltools.Method):
     r"""Calculate the saturation vapour pressure according to :cite:t:`ref-Allen1998`.
 
     Basic equation (:cite:t:`ref-Allen1998`, equation 11):
-      :math:`SaturationVapourPressure = 6.108 \cdot \exp \left(
-      \frac{17.27 \cdot AdjustedAirTemperature}{AdjustedAirTemperature + 237.3}\right)`
+      :math:`SaturationVapourPressure = 6.108 \cdot
+      \exp \left( \frac{17.27 \cdot AirTemperature}{AirTemperature + 237.3} \right)`
 
     Example:
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
         >>> nmbhru(1)
-        >>> factors.adjustedairtemperature = 10.0
+        >>> factors.airtemperature = 10.0
         >>> model.calc_saturationvapourpressure_v1()
         >>> factors.saturationvapourpressure
         saturationvapourpressure(12.279626)
     """
 
     CONTROLPARAMETERS = (evap_control.NmbHRU,)
-    REQUIREDSEQUENCES = (evap_factors.AdjustedAirTemperature,)
+    REQUIREDSEQUENCES = (evap_factors.AirTemperature,)
     RESULTSEQUENCES = (evap_factors.SaturationVapourPressure,)
 
     @staticmethod
@@ -130,9 +283,7 @@ class Calc_SaturationVapourPressure_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         for k in range(con.nmbhru):
             fac.saturationvapourpressure[k] = 6.108 * modelutils.exp(
-                17.27
-                * fac.adjustedairtemperature[k]
-                / (fac.adjustedairtemperature[k] + 237.3)
+                17.27 * fac.airtemperature[k] / (fac.airtemperature[k] + 237.3)
             )
 
 
@@ -142,14 +293,14 @@ class Calc_SaturationVapourPressureSlope_V1(modeltools.Method):
 
     Basic equation (:cite:t:`ref-Allen1998`, equation 13):
       :math:`SaturationVapourPressureSlope = 4098 \cdot
-      \frac{SaturationVapourPressure}{(AdjustedAirTemperature + 237.3)^2}`
+      \frac{SaturationVapourPressure}{(AirTemperature + 237.3)^2}`
 
     Example:
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
         >>> nmbhru(1)
-        >>> factors.adjustedairtemperature = 10.0
+        >>> factors.airtemperature = 10.0
         >>> factors.saturationvapourpressure = 12.279626
         >>> model.calc_saturationvapourpressureslope_v1()
         >>> factors.saturationvapourpressureslope
@@ -158,7 +309,7 @@ class Calc_SaturationVapourPressureSlope_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (evap_control.NmbHRU,)
     REQUIREDSEQUENCES = (
-        evap_factors.AdjustedAirTemperature,
+        evap_factors.AirTemperature,
         evap_factors.SaturationVapourPressure,
     )
     RESULTSEQUENCES = (evap_factors.SaturationVapourPressureSlope,)
@@ -171,7 +322,7 @@ class Calc_SaturationVapourPressureSlope_V1(modeltools.Method):
             fac.saturationvapourpressureslope[k] = (
                 4098.0
                 * fac.saturationvapourpressure[k]
-                / (fac.adjustedairtemperature[k] + 237.3) ** 2
+                / (fac.airtemperature[k] + 237.3) ** 2
             )
 
 
@@ -342,7 +493,7 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
 
     Basic equations (:cite:t:`ref-Allen1998`, equation 39, modified):
       :math:`NetLongwaveRadiation =
-      \sigma \cdot (AdjustedAirTemperature + 273.16)^4
+      \sigma \cdot (AirTemperature + 273.16)^4
       \cdot \left( 0.34 - 0.14 \sqrt{ActualVapourPressure / 10} \right) \cdot
       (1.35 \cdot GR / CSSR - 0.35)`
 
@@ -379,7 +530,7 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
         >>> derived.nmblogentries(1)
         >>> inputs.globalradiation = 167.824074
         >>> inputs.clearskysolarradiation = 217.592593
-        >>> factors.adjustedairtemperature = 22.1
+        >>> factors.airtemperature = 22.1
         >>> factors.actualvapourpressure = 21.0
         >>> model.calc_netlongwaveradiation_v1()
         >>> fluxes.netlongwaveradiation
@@ -400,7 +551,7 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
     REQUIREDSEQUENCES = (
         evap_inputs.ClearSkySolarRadiation,
         evap_inputs.GlobalRadiation,
-        evap_factors.AdjustedAirTemperature,
+        evap_factors.AirTemperature,
         evap_factors.ActualVapourPressure,
         evap_logs.LoggedGlobalRadiation,
         evap_logs.LoggedClearSkySolarRadiation,
@@ -427,7 +578,7 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
         for k in range(con.nmbhru):
             flu.netlongwaveradiation[k] = (
                 5.674768518518519e-08
-                * (fac.adjustedairtemperature[k] + 273.16) ** 4
+                * (fac.airtemperature[k] + 273.16) ** 4
                 * (0.34 - 0.14 * (fac.actualvapourpressure[k] / 10.0) ** 0.5)
                 * (1.35 * d_globalradiation / d_clearskysolarradiation - 0.35)
             )
@@ -702,7 +853,7 @@ class Calc_ReferenceEvapotranspiration_V1(modeltools.Method):
         >>> derived.days(1)
         >>> derived.hours(24)
         >>> factors.psychrometricconstant = 0.666
-        >>> factors.adjustedairtemperature = 16.9
+        >>> factors.airtemperature = 16.9
         >>> factors.adjustedwindspeed = 2.078
         >>> factors.actualvapourpressure = 14.09
         >>> factors.saturationvapourpressure = 19.97
@@ -721,7 +872,7 @@ class Calc_ReferenceEvapotranspiration_V1(modeltools.Method):
         >>> derived.days(1/24)
         >>> derived.hours(1)
         >>> factors.psychrometricconstant = 0.673
-        >>> factors.adjustedairtemperature = 38.0
+        >>> factors.airtemperature = 38.0
         >>> factors.adjustedwindspeed = 3.3
         >>> factors.actualvapourpressure = 34.45
         >>> factors.saturationvapourpressure = 66.25
@@ -741,7 +892,7 @@ class Calc_ReferenceEvapotranspiration_V1(modeltools.Method):
     REQUIREDSEQUENCES = (
         evap_factors.SaturationVapourPressureSlope,
         evap_factors.PsychrometricConstant,
-        evap_factors.AdjustedAirTemperature,
+        evap_factors.AirTemperature,
         evap_factors.AdjustedWindSpeed,
         evap_factors.SaturationVapourPressure,
         evap_factors.ActualVapourPressure,
@@ -763,7 +914,7 @@ class Calc_ReferenceEvapotranspiration_V1(modeltools.Method):
                 * fac.saturationvapourpressureslope[k]
                 * (flu.netradiation[k] - flu.soilheatflux[k])
                 + (fac.psychrometricconstant * 3.75 * der.hours)
-                / (fac.adjustedairtemperature[k] + 273.0)
+                / (fac.airtemperature[k] + 273.0)
                 * fac.adjustedwindspeed
                 * (fac.saturationvapourpressure[k] - fac.actualvapourpressure[k])
             ) / (
@@ -778,8 +929,8 @@ class Calc_ReferenceEvapotranspiration_V2(modeltools.Method):
     Basic equation:
       :math:`ReferenceEvapotranspiration =
       \frac{(8.64 \cdot GlobalRadiation + 93 \cdot CoastFactor) \cdot
-      (AdjustedAirTemperature + 22)}
-      {165 \cdot (AdjustedAirTemperature + 123) \cdot
+      (AirTemperature + 22)}
+      {165 \cdot (AirTemperature + 123) \cdot
       (1 + 0.00019 \cdot min(Altitude, 600))}`
 
     Example:
@@ -790,7 +941,7 @@ class Calc_ReferenceEvapotranspiration_V2(modeltools.Method):
         >>> coastfactor(0.6)
         >>> hrualtitude(200.0, 600.0, 1000.0)
         >>> inputs.globalradiation = 200.0
-        >>> factors.adjustedairtemperature = 15.0
+        >>> factors.airtemperature = 15.0
         >>> model.calc_referenceevapotranspiration_v2()
         >>> fluxes.referenceevapotranspiration
         referenceevapotranspiration(2.792463, 2.601954, 2.601954)
@@ -803,7 +954,7 @@ class Calc_ReferenceEvapotranspiration_V2(modeltools.Method):
     )
     REQUIREDSEQUENCES = (
         evap_inputs.GlobalRadiation,
-        evap_factors.AdjustedAirTemperature,
+        evap_factors.AirTemperature,
     )
     RESULTSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
 
@@ -816,10 +967,10 @@ class Calc_ReferenceEvapotranspiration_V2(modeltools.Method):
         for k in range(con.nmbhru):
             flu.referenceevapotranspiration[k] = (
                 (8.64 * inp.globalradiation + 93.0 * con.coastfactor[k])
-                * (fac.adjustedairtemperature[k] + 22.0)
+                * (fac.airtemperature[k] + 22.0)
             ) / (
                 165.0
-                * (fac.adjustedairtemperature[k] + 123.0)
+                * (fac.airtemperature[k] + 123.0)
                 * (1.0 + 0.00019 * min(con.hrualtitude[k], 600.0))
             )
 
@@ -870,11 +1021,12 @@ class Calc_ReferenceEvapotranspiration_PETModel_V1(modeltools.Method):
         >>> hruarea(0.5, 0.3, 0.2)
         >>> with model.add_retmodel_v1("evap_tw2002"):
         ...     hrualtitude(200.0, 600.0, 1000.0)
-        ...     airtemperatureaddend(1.0)
         ...     coastfactor(0.6)
         ...     evapotranspirationfactor(1.1)
         ...     inputs.globalradiation = 200.0
-        ...     inputs.airtemperature = 14.0
+        ...     with model.add_tempmodel_v2("meteo_temp_io"):
+        ...         temperatureaddend(1.0)
+        ...         inputs.temperature = 14.0
         >>> model.calc_referenceevapotranspiration_v4()
         >>> fluxes.referenceevapotranspiration
         referenceevapotranspiration(3.07171, 2.86215, 2.86215)
@@ -920,7 +1072,7 @@ class Calc_ReferenceEvapotranspiration_V5(modeltools.Method):
 
     Basic equation:
       :math:`ReferenceEvapotranspiration = NormalEvapotranspiration \cdot
-      (1 + AirTemperatureFactor \cdot (AirTemperature - NormalAirTemperature))`
+      (1 + AirTemperatureFactor \cdot (MeanAirTemperature - NormalAirTemperature))`
 
     Restriction:
       :math:`0 \leq ReferenceEvapotranspiration \leq 2 \cdot NormalEvapotranspiration`
@@ -942,7 +1094,7 @@ class Calc_ReferenceEvapotranspiration_V5(modeltools.Method):
         With actual temperature equal to normal temperature, actual (uncorrected)
         evapotranspiration equals normal evapotranspiration:
 
-        >>> inputs.airtemperature = 20.0
+        >>> factors.meanairtemperature = 20.0
         >>> model.calc_referenceevapotranspiration_v5()
         >>> fluxes.referenceevapotranspiration
         referenceevapotranspiration(2.0, 2.0, 2.0, 2.0)
@@ -953,7 +1105,7 @@ class Calc_ReferenceEvapotranspiration_V5(modeltools.Method):
         for the fourth unit, it is the doubled normal value (the largest value
         allowed):
 
-        >>> inputs.airtemperature  = 25.0
+        >>> factors.meanairtemperature  = 25.0
         >>> model.calc_referenceevapotranspiration_v5()
         >>> fluxes.referenceevapotranspiration
         referenceevapotranspiration(0.0, 2.0, 3.0, 4.0)
@@ -964,9 +1116,9 @@ class Calc_ReferenceEvapotranspiration_V5(modeltools.Method):
         evap_control.AirTemperatureFactor,
     )
     REQUIREDSEQUENCES = (
-        evap_inputs.AirTemperature,
         evap_inputs.NormalEvapotranspiration,
         evap_inputs.NormalAirTemperature,
+        evap_factors.MeanAirTemperature,
     )
     RESULTSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
 
@@ -974,12 +1126,13 @@ class Calc_ReferenceEvapotranspiration_V5(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
+        fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbhru):
             flu.referenceevapotranspiration[k] = inp.normalevapotranspiration * (
                 1.0
                 + con.airtemperaturefactor[k]
-                * (inp.airtemperature - inp.normalairtemperature)
+                * (fac.meanairtemperature - inp.normalairtemperature)
             )
             flu.referenceevapotranspiration[k] = min(
                 max(flu.referenceevapotranspiration[k], 0.0),
@@ -1405,7 +1558,7 @@ class Model(modeltools.AdHocModel):
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
-        Calc_AdjustedAirTemperature_V1,
+        Calc_AirTemperature_V1,
         Calc_AdjustedWindSpeed_V1,
         Calc_SaturationVapourPressure_V1,
         Calc_SaturationVapourPressureSlope_V1,
@@ -1438,12 +1591,20 @@ class Model(modeltools.AdHocModel):
     )
     ADD_METHODS = (
         Calc_ReferenceEvapotranspiration_PETModel_V1,
+        Calc_AirTemperature_TempModel_V1,
+        Calc_AirTemperature_TempModel_V2,
         Calc_Precipitation_PrecipModel_V1,
         Calc_Precipitation_PrecipModel_V2,
     )
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
-    SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
+    SUBMODELINTERFACES = (
+        petinterfaces.PETModel_V1,
+        tempinterfaces.TempModel_V1,
+        tempinterfaces.TempModel_V2,
+        precipinterfaces.PrecipModel_V1,
+        precipinterfaces.PrecipModel_V2,
+    )
     SUBMODELS = ()
 
 
@@ -1610,9 +1771,80 @@ class Main_PETModel_V1(modeltools.AdHocModel):
         retmodel.prepare_subareas(control.hruarea.values)
 
 
-class Main_PrecipModel_V1(modeltools.AdHocModel):
-    """Base class for HydPy-Evap models that can use main models as their submodels if
-    they comply with the |PrecipModel_V1| interface."""
+class Main_TempModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
+    """Base class for HydPy-Evap models that can use main models as their sub-submodels
+    if they comply with the |TempModel_V1| interface."""
+
+    tempmodel: modeltools.SubmodelProperty
+    tempmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+
+    def add_mainmodel_as_subsubmodel(self, mainmodel: modeltools.Model) -> bool:
+        """Add the given main model as a submodel if it complies with the
+        |TempModel_V1| interface.
+
+        >>> from hydpy import prepare_model
+        >>> evap = prepare_model("evap_hbv96")
+        >>> evap.add_mainmodel_as_subsubmodel(prepare_model("evap_io"))
+        False
+        >>> evap.tempmodel
+        >>> evap.tempmodel_is_mainmodel
+        False
+
+        >>> hland = prepare_model("hland_v1")
+        >>> evap.add_mainmodel_as_subsubmodel(hland)
+        True
+        >>> evap.tempmodel is hland
+        True
+        >>> evap.tempmodel_is_mainmodel
+        True
+        """
+        if isinstance(mainmodel, tempinterfaces.TempModel_V1):
+            self.tempmodel = mainmodel
+            self.tempmodel_is_mainmodel = True
+            super().add_mainmodel_as_subsubmodel(mainmodel)
+            return True
+        return super().add_mainmodel_as_subsubmodel(mainmodel)
+
+
+class Main_TempModel_V2(modeltools.AdHocModel):
+    """Base class for HydPy-Evap models that support submodels that comply with the
+    |TempModel_V2| interface."""
+
+    tempmodel: modeltools.SubmodelProperty
+    tempmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+
+    @importtools.prepare_submodel(
+        tempinterfaces.TempModel_V2,
+        tempinterfaces.TempModel_V2.prepare_nmbzones,
+        tempinterfaces.TempModel_V2.prepare_subareas,
+    )
+    def add_tempmodel_v2(self, tempmodel: tempinterfaces.TempModel_V2) -> None:
+        """Initialise the given precipitation model that follows the |TempModel_V2|
+        interface and set the number and the subareas of its zones.
+
+        >>> from hydpy.models.evap_hbv96 import *
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
+        >>> nmbhru(2)
+        >>> hruarea(2.0, 8.0)
+        >>> with model.add_tempmodel_v2("meteo_temp_io"):
+        ...     nmbhru
+        ...     hruarea
+        ...     temperatureaddend(1.0, 2.0)
+        nmbhru(2)
+        hruarea(2.0, 8.0)
+        >>> model.tempmodel.parameters.control.temperatureaddend
+        temperatureaddend(1.0, 2.0)
+        """
+        self.tempmodel = tempmodel
+        control = self.parameters.control
+        tempmodel.prepare_nmbzones(control.nmbhru.value)
+        tempmodel.prepare_subareas(control.hruarea.value)
+
+
+class Main_PrecipModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
+    """Base class for HydPy-Evap models that can use main models as their sub-submodels
+    if they comply with the |PrecipModel_V1| interface."""
 
     precipmodel: modeltools.SubmodelProperty
     precipmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -1640,8 +1872,9 @@ class Main_PrecipModel_V1(modeltools.AdHocModel):
         if isinstance(mainmodel, precipinterfaces.PrecipModel_V1):
             self.precipmodel = mainmodel
             self.precipmodel_is_mainmodel = True
+            super().add_mainmodel_as_subsubmodel(mainmodel)
             return True
-        return False
+        return super().add_mainmodel_as_subsubmodel(mainmodel)
 
 
 class Main_PrecipModel_V2(modeltools.AdHocModel):

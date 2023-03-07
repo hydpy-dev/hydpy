@@ -40,7 +40,7 @@ class NmbLogEntries(parametertools.Parameter):
         """Calculate the number of entries and adjust the shape of all relevant log
         sequences.
 
-        The aimed memory duration is one day.  Hence, the number of the required log
+        The aimed memory duration is one day.  Hence, the number of required log
         entries depends on the simulation step size:
 
         >>> from hydpy.models.lland import *

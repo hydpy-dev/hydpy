@@ -52,9 +52,9 @@ Integration tests
 
 The following integration tests rely on the meteorological input data used for testing
 the application model |lland_v1|. The values of the input sequences |P| (precipitation)
-and |T| (temperature) are copy-pasted.  The |EPN| (normed potential evaporation) values
-are the |lland_fluxes.EvPo| values calcuted by |evap_tw2002| but divided by 0.4 to
-account for the selected value of the evaporation adjustment factor
+and |T| (temperature) are copy-pasted.  The |evap_inputs.NormalEvapotranspiration|
+values are the |lland_fluxes.EvPo| values calcuted by |evap_tw2002| but divided by 0.4
+to account for the selected value of the evaporation adjustment factor
 |evap_control.EvapotranspirationFactor|.  Hopefully, this eases drawing comparisons
 between both models.
 
@@ -157,11 +157,10 @@ and all other storages are empty:
 ...               (logs.quh, 0.05))
 
 As mentioned above, the values of the input sequences |P| and |hland_inputs.T| of
-|hland_v1| and |evap_inputs.AirTemperature| of |evap_hbv96| stem from
-:ref:`here <lland_v1_acker_summer>`.  For educational purposes, we again use
-unrealistically high values of |evap_inputs.NormalEvapotranspiration|.  For the sake of
-simplicity, we define |evap_inputs.NormalAirTemperature| to be constantly 1 °C below
-|hland_inputs.T| (and |evap_inputs.AirTemperature|):
+|hland_v1| stem from :ref:`here <lland_v1_acker_summer>`.  For educational purposes, we
+again use unrealistically high values of |evap_inputs.NormalEvapotranspiration|.  For
+the sake of simplicity, we define |evap_inputs.NormalAirTemperature| to be constantly
+1 °C below |hland_inputs.T|:
 
 >>> inputs.p.series = (
 ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -180,7 +179,6 @@ simplicity, we define |evap_inputs.NormalAirTemperature| to be constantly 1 °C 
 ...     18.1, 16.7, 15.2, 13.4, 12.4, 11.6, 11.0, 10.5, 11.7, 11.9, 11.2, 11.1, 11.9,
 ...     12.2, 11.8, 11.4, 11.6, 13.0, 17.1, 18.2, 22.4, 21.4, 21.8, 22.2, 20.1, 17.8,
 ...     15.2, 14.5, 12.4, 11.7, 11.9)
->>> model.petmodel.sequences.inputs.airtemperature.series = inputs.t.series
 >>> model.petmodel.sequences.inputs.normalairtemperature.series = inputs.t.series - 1.0
 >>> model.petmodel.sequences.inputs.normalevapotranspiration.series = (
 ...     0.100707, 0.097801, 0.096981, 0.09599, 0.096981, 0.102761, 0.291908, 1.932875,
@@ -699,12 +697,12 @@ _____________
 In the following example, we demonstrate the functionality of zones of type |ILAKE|.
 For such "internal lakes", only the lower zone storage (|LZ|) is relevant (all other
 storage values are zero).  Precipitation (|PC|) adds directly to, and evaporation
-(|EPC|) subtracts directly from |LZ|.  The latter occurs even when |LZ| is empty,
+(|EP|) subtracts directly from |LZ|.  The latter occurs even when |LZ| is empty,
 possibly resulting in negative storage values in drought periods.  The only condition
 preventing lake evaporation (|EL|) is the occurrence of lake ice, which exists when the
 actual temperature ("TC") is below the threshold temperature (|TTIce|).  In our example,
 we set |TTIce| to the unrealistic value of 13°C, resulting in a deviation between the
-graphs of |EPC| and |EL| for the last day of the simulation period:
+graphs of |EP| and |EL| for the last day of the simulation period:
 
 .. integration-test::
 
@@ -838,7 +836,6 @@ temperature is -20°C, and in the second half, it is +20°C:
 >>> tn_series = model.petmodel.sequences.inputs.normalairtemperature.series.copy()
 >>> inputs.t.series[:48] = -20.0
 >>> inputs.t.series[48:] = 20.0
->>> model.petmodel.sequences.inputs.airtemperature.series = inputs.t.series
 >>> model.petmodel.sequences.inputs.normalairtemperature.series = inputs.t.series
 
 The second snow class receives more precipitation and thus builds a deeper snow layer.
@@ -1111,7 +1108,6 @@ types are as to be expected:
     >>> subcontrol.altitudefactor(-0.1)
     >>> subcontrol.precipitationfactor(0.1)
     >>> inputs.t.series = t_series
-    >>> model.petmodel.sequences.inputs.airtemperature.series = t_series
     >>> model.petmodel.sequences.inputs.normalairtemperature.series = tn_series
     >>> test("hland_v1_multiple_zones")
     |        date |    p |    t |                           tc |                     fracrain |                     rfc |                     sfc |                                       cfact |                     swe |                          gact | contriarea |                                     pc |                                               ep |                                     ei |                                              tf |                     spl |                     wcl |                     spg |                     wcg |                           glmelt |                     melt |                     refr |                                                in_ |                                                  r |                            sr |                                ea |                                cf |      inuz | perc |        q0 |                           el |       q1 |      inuh |     outuh |        rt |        qt |                                     ic |                      sp |                      wc |                                    sm |        uz |        lz |    outlet |
@@ -1248,7 +1244,6 @@ substantial difference in the individual zone temperatures due to the high eleva
 differences:
 
 >>> inputs.t.series = -0.4
->>> model.petmodel.sequences.inputs.airtemperature.series = -0.4
 
 We double the basin's average precipitation by two and halve the altitude-related
 precipitation adjustment.  However, there is still a marked difference for the
@@ -1524,7 +1519,11 @@ from hydpy.models.hland import hland_masks
 from hydpy.models.hland.hland_constants import *
 
 
-class Model(hland_model.Main_PETModel_V1, hland_model.Sub_PrecipModel_V1):
+class Model(
+    hland_model.Main_PETModel_V1,
+    hland_model.Sub_TempModel_V1,
+    hland_model.Sub_PrecipModel_V1,
+):
     """HBV96 version of HydPy-H-Land (|hland_v1|)."""
 
     INLET_METHODS = ()
@@ -1562,7 +1561,11 @@ class Model(hland_model.Main_PETModel_V1, hland_model.Sub_PrecipModel_V1):
         hland_model.Calc_RT_V1,
         hland_model.Calc_QT_V1,
     )
-    INTERFACE_METHODS = (hland_model.Get_Precipitation_V1,)
+    INTERFACE_METHODS = (
+        hland_model.Get_Temperature_V1,
+        hland_model.Get_MeanTemperature_V1,
+        hland_model.Get_Precipitation_V1,
+    )
     ADD_METHODS = (hland_model.Calc_EP_PETModel_V1,)
     OUTLET_METHODS = (hland_model.Pass_Q_V1,)
     SENDER_METHODS = ()

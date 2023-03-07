@@ -10,6 +10,7 @@ from hydpy.cythons import modelutils
 from hydpy.core.typingtools import *
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import precipinterfaces
+from hydpy.interfaces import tempinterfaces
 
 # ...from hland
 from hydpy.models.hland import hland_constants
@@ -291,11 +292,12 @@ class Calc_EP_PETModel_V1(modeltools.Method):
         >>> zonez(2.0, 6.0, 10.0)
         >>> from hydpy import prepare_model
         >>> with model.add_petmodel_v1("evap_tw2002"):
-        ...     airtemperatureaddend(1.0)
         ...     coastfactor(0.6)
         ...     evapotranspirationfactor(1.1)
         ...     inputs.globalradiation = 200.0
-        ...     inputs.airtemperature = 14.0
+        ...     with model.add_tempmodel_v2("meteo_temp_io"):
+        ...         temperatureaddend(1.0)
+        ...         inputs.temperature = 14.0
         >>> model.calc_ep_v1()
         >>> fluxes.ep
         ep(3.07171, 2.86215, 2.86215)
@@ -4534,6 +4536,52 @@ class Pass_Q_V1(modeltools.Method):
         out.q[0] += flu.qt
 
 
+class Get_Temperature_V1(modeltools.Method):
+    """Get the selected zone's current temperature.
+
+    Example:
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep()
+        >>> nmbzones(2)
+        >>> factors.tc = 2.0, 4.0
+        >>> model.get_temperature_v1(0)
+        2.0
+        >>> model.get_temperature_v1(1)
+        4.0
+    """
+
+    REQUIREDSEQUENCES = (hland_factors.TC,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int) -> float:
+        fac = model.sequences.factors.fastaccess
+
+        return fac.tc[s]
+
+
+class Get_MeanTemperature_V1(modeltools.Method):
+    """Get the basin's current mean temperature.
+
+    Example:
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep()
+        >>> inputs.t = 2.0
+        >>> from hydpy import round_
+        >>> round_(model.get_meantemperature_v1())
+        2.0
+    """
+
+    REQUIREDSEQUENCES = (hland_inputs.T,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> float:
+        inp = model.sequences.inputs.fastaccess
+
+        return inp.t
+
+
 class Get_Precipitation_V1(modeltools.Method):
     """Get the current precipitation from the selected zone.
 
@@ -4612,7 +4660,11 @@ class Model(modeltools.AdHocModel):
         Calc_RT_V2,
         Calc_QT_V1,
     )
-    INTERFACE_METHODS = (Get_Precipitation_V1,)
+    INTERFACE_METHODS = (
+        Get_Temperature_V1,
+        Get_MeanTemperature_V1,
+        Get_Precipitation_V1,
+    )
     ADD_METHODS = (
         Calc_EP_PETModel_V1,
         Calc_QAb_QVs_BW_V1,
@@ -4676,6 +4728,11 @@ class Main_PETModel_V1(modeltools.AdHocModel):
         petmodel.prepare_zonetypes(control.zonetype.values)
         petmodel.prepare_subareas(control.zonearea.values)
         petmodel.prepare_elevations(100.0 * control.zonez.values)
+
+
+class Sub_TempModel_V1(modeltools.AdHocModel, tempinterfaces.TempModel_V1):
+    """Base class for HydPy-H models that comply with the |TempModel_V1| submodel
+    interface."""
 
 
 class Sub_PrecipModel_V1(modeltools.AdHocModel, precipinterfaces.PrecipModel_V1):

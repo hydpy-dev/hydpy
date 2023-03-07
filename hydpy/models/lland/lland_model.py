@@ -11,6 +11,7 @@ from hydpy.cythons import modelutils
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import precipinterfaces
 from hydpy.interfaces import soilinterfaces
+from hydpy.interfaces import tempinterfaces
 
 # ...from lland
 from hydpy.models.lland import lland_control
@@ -829,12 +830,13 @@ class Calc_EvPo_PETModel_V1(modeltools.Method):
         >>> fhru(0.5, 0.3, 0.2)
         >>> lnk(ACKER, MISCHW, ACKER)
         >>> with model.add_petmodel_v1("evap_tw2002"):
-        ...     altitude(200.0, 600.0, 1000.0)
-        ...     airtemperatureaddend(1.0)
+        ...     hrualtitude(200.0, 600.0, 1000.0)
         ...     coastfactor(0.6)
         ...     evapotranspirationfactor(1.1)
         ...     inputs.globalradiation = 200.0
-        ...     inputs.airtemperature = 14.0
+        ...     with model.add_tempmodel_v2("meteo_temp_io"):
+        ...         temperatureaddend(1.0)
+        ...         inputs.temperature = 14.0
         >>> model.calc_evpo_v1()
         >>> fluxes.evpo
         evpo(3.07171, 2.86215, 2.86215)
@@ -9684,6 +9686,52 @@ class Pass_QA_V1(modeltools.Method):
         out.q[0] += flu.qa
 
 
+class Get_Temperature_V1(modeltools.Method):
+    """Get the selected zone's current temperature.
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(2)
+        >>> fluxes.tkor = 2.0, 4.0
+        >>> model.get_temperature_v1(0)
+        2.0
+        >>> model.get_temperature_v1(1)
+        4.0
+    """
+
+    REQUIREDSEQUENCES = (lland_fluxes.TKor,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int) -> float:
+        flu = model.sequences.fluxes.fastaccess
+
+        return flu.tkor[s]
+
+
+class Get_MeanTemperature_V1(modeltools.Method):
+    """Get the basin's current mean temperature.
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> inputs.teml = 2.0
+        >>> from hydpy import round_
+        >>> round_(model.get_meantemperature_v1())
+        2.0
+    """
+
+    REQUIREDSEQUENCES = (lland_inputs.TemL,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> float:
+        inp = model.sequences.inputs.fastaccess
+
+        return inp.teml
+
+
 class Get_Precipitation_V1(modeltools.Method):
     """Get the current precipitation from the selected hydrological response unit.
 
@@ -9732,7 +9780,11 @@ class Model(modeltools.AdHocModel):
 
     INLET_METHODS = (Pick_QZ_V1,)
     RECEIVER_METHODS = ()
-    INTERFACE_METHODS = (Get_Precipitation_V1,)
+    INTERFACE_METHODS = (
+        Get_Temperature_V1,
+        Get_MeanTemperature_V1,
+        Get_Precipitation_V1,
+    )
     ADD_METHODS = (
         Calc_EvPo_PETModel_V1,
         Return_AdjustedWindSpeed_V1,
@@ -9972,6 +10024,11 @@ class Main_SoilModel_V1(modeltools.AdHocModel):
         self.soilmodel = soilmodel
         control = self.parameters.control
         soilmodel.prepare_nmbzones(control.nhru.value)
+
+
+class Sub_TempModel_V1(modeltools.AdHocModel, tempinterfaces.TempModel_V1):
+    """Base class for HydPy-L models that comply with the |TempModel_V1| submodel
+    interface."""
 
 
 class Sub_PrecipModel_V1(modeltools.AdHocModel, precipinterfaces.PrecipModel_V1):

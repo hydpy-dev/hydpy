@@ -146,8 +146,7 @@ reference evapotranspiration to potential evapotranspiration:
 >>> with model.add_petmodel_v1("evap_mlc"):
 ...     landmonthfactor(0.5)
 ...     with model.add_retmodel_v1("evap_tw2002"):
-...         altitude(100.0)
-...         airtemperatureaddend.values = kt.values
+...         hrualtitude(100.0)
 ...         coastfactor(0.6)
 ...         evapotranspirationfactor(0.4)
 
@@ -203,7 +202,6 @@ inflow to zero:
 ...     215.4, 97.8, 13.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 17.0,
 ...     99.7, 239.4, 391.2, 525.6, 570.2, 559.1, 668.0, 593.4, 493.0, 391.2, 186.0,
 ...     82.4, 17.0, 0.0, 0.0, 0.0, 0.0)
->>> model.petmodel.retmodel.sequences.inputs.airtemperature.series = inputs.teml.series
 
 The following results show that all relevant model components, except the snow
 routines, are activated at least once within the simulation period.  Take your time to
@@ -2002,7 +2000,6 @@ exceeds its holding capacity:
 .. integration-test::
 
     >>> inputs.teml.series = numpy.linspace(-20.0, 20.0, 96)
-    >>> model.petmodel.retmodel.sequences.inputs.airtemperature.series = inputs.teml.series
     >>> test("lland_v1_acker_winter",
     ...      axis1=(inputs.nied, fluxes.wada), axis2=(states.waes, states.wats))
     |                date | nied |       teml |  qz | qzh |  nkor |       tkor |      nbes |      sbes |     evpo |      evi |      evb |        wgtf |      wnied |   schmpot |     schm |      wada |      qdb |     qib1 |     qib2 |      qbb | qkap |     qdgz |    qdgz1 |    qdgz2 |    qigz1 |    qigz2 |     qbgz |    qdga1 |    qdga2 |    qiga1 |    qiga2 |      qbga |       qah |        qa |     inzp |       wats |       waes |       bowa |     sdg1 |     sdg2 |     sig1 |     sig2 |       sbg | inlet |    outlet |
@@ -2127,13 +2124,18 @@ from hydpy.models.lland.lland_constants import *
 class Model(
     lland_model.Main_PETModel_V1,
     lland_model.Main_SoilModel_V1,
+    lland_model.Sub_TempModel_V1,
     lland_model.Sub_PrecipModel_V1,
 ):
     """External PET/degree-day version of HydPy-L-Land."""
 
     INLET_METHODS = (lland_model.Pick_QZ_V1,)
     RECEIVER_METHODS = ()
-    INTERFACE_METHODS = (lland_model.Get_Precipitation_V1,)
+    INTERFACE_METHODS = (
+        lland_model.Get_Temperature_V1,
+        lland_model.Get_MeanTemperature_V1,
+        lland_model.Get_Precipitation_V1,
+    )
     ADD_METHODS = (
         lland_model.Calc_EvPo_PETModel_V1,
         lland_model.Return_SG_V1,

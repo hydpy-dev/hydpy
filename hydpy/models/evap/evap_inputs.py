@@ -12,12 +12,6 @@ class ReferenceEvapotranspiration(sequencetools.InputSequence):
     NDIM, NUMERIC = 0, False
 
 
-class AirTemperature(sequencetools.InputSequence):
-    """Air temperature [°C]."""
-
-    NDIM, NUMERIC = 0, False
-
-
 class RelativeHumidity(sequencetools.InputSequence):
     """Relative humidity [%]."""
 

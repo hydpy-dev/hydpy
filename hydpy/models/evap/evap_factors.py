@@ -7,8 +7,14 @@ from hydpy.core import sequencetools
 from hydpy.models.evap import evap_sequences
 
 
-class AdjustedAirTemperature(evap_sequences.FactorSequence1D):
-    """Adjusted air temperature [°C]."""
+class MeanAirTemperature(sequencetools.FactorSequence):
+    """The basin's mean air temperature [°C]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class AirTemperature(evap_sequences.FactorSequence1D):
+    """Air temperature [°C]."""
 
     NUMERIC = False
 

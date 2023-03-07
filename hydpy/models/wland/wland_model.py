@@ -14,6 +14,7 @@ from hydpy.cythons import modelutils
 from hydpy.cythons import smoothutils
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import precipinterfaces
+from hydpy.interfaces import tempinterfaces
 
 # ...from wland
 from hydpy.models.wland import wland_control
@@ -178,12 +179,13 @@ class Calc_PET_PETModel_V1(modeltools.Method):
         >>> lt(FIELD)
         >>> from hydpy import prepare_model
         >>> with model.add_petmodel_v1("evap_tw2002"):
-        ...     altitude(200.0, 600.0, 1000.0)
-        ...     airtemperatureaddend(1.0)
+        ...     hrualtitude(200.0, 600.0, 1000.0)
         ...     coastfactor(0.6)
         ...     evapotranspirationfactor(1.1)
         ...     inputs.globalradiation = 200.0
-        ...     inputs.airtemperature = 14.0
+        ...     with model.add_tempmodel_v2("meteo_temp_io"):
+        ...         temperatureaddend(1.0)
+        ...         inputs.temperature = 14.0
         >>> model.calc_pet_v1()
         >>> fluxes.pet
         pet(3.07171, 2.86215, 2.86215)
@@ -2666,9 +2668,55 @@ class Pass_R_V1(modeltools.Method):
         out.q[0] += flu.r
 
 
+class Get_Temperature_V1(modeltools.Method):
+    """Get the current subbasin-wide air temperature value (that applies to all
+    hydrological response units so that the given index does not matter).
+
+    Example:
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+        >>> inputs.t = 2.0
+        >>> model.get_temperature_v1(0)
+        2.0
+        >>> model.get_temperature_v1(1)
+        2.0
+    """
+
+    REQUIREDSEQUENCES = (wland_inputs.T,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int) -> float:
+        inp = model.sequences.inputs.fastaccess
+
+        return inp.t
+
+
+class Get_MeanTemperature_V1(modeltools.Method):
+    """Get the current subbasin-wide air temperature value.
+
+    Example:
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+        >>> inputs.t = 2.0
+        >>> from hydpy import round_
+        >>> round_(model.get_meantemperature_v1())
+        2.0
+    """
+
+    REQUIREDSEQUENCES = (wland_inputs.T,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> float:
+        inp = model.sequences.inputs.fastaccess
+
+        return inp.t
+
+
 class Get_Precipitation_V1(modeltools.Method):
-    """Get the current precipitation subbasin-wide precipitation value (that applies to
-    all hydrological response units so that the given index does not matter).
+    """Get the current subbasin-wide precipitation value (that applies to all
+    hydrological response units so that the given index does not matter).
 
     Example:
 
@@ -2728,7 +2776,11 @@ class Model(modeltools.ELSModel):
         Calc_PM_V1,
     )
     RECEIVER_METHODS = ()
-    INTERFACE_METHODS = (Get_Precipitation_V1,)
+    INTERFACE_METHODS = (
+        Get_Temperature_V1,
+        Get_MeanTemperature_V1,
+        Get_Precipitation_V1,
+    )
     ADD_METHODS = (
         Calc_PET_PETModel_V1,
         Calc_PE_PETModel_V1,
@@ -2864,6 +2916,11 @@ class Main_PETModel_V1(modeltools.ELSModel):
         control = self.parameters.control
         pemodel.prepare_nmbzones(1)
         pemodel.prepare_subareas([control.as_.value])
+
+
+class Sub_TempModel_V1(modeltools.ELSModel, tempinterfaces.TempModel_V1):
+    """Base class for HydPy-W models that comply with the |TempModel_V1| submodel
+    interface."""
 
 
 class Sub_PrecipModel_V1(modeltools.ELSModel, precipinterfaces.PrecipModel_V1):

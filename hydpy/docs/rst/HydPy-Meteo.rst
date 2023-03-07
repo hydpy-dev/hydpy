@@ -26,4 +26,5 @@ Application models:
    meteo_v002 (sunshine duration, FAO) <meteo_v002>
    meteo_v003 (global radiation, LARSIM) <meteo_v003>
    meteo_v004 (sunshine duration, LARSIM) <meteo_v004>
+   Meteo-Temp-IO <meteo_temp_io>
    Meteo-Precip-IO <meteo_precip_io>

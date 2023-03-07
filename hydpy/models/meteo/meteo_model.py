@@ -11,7 +11,6 @@ from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
-from hydpy.interfaces import precipinterfaces
 from hydpy.models.meteo import meteo_parameters
 from hydpy.models.meteo import meteo_fixed
 from hydpy.models.meteo import meteo_control
@@ -2306,8 +2305,105 @@ class Calc_SunshineDuration_V2(modeltools.Method):
             fac.sunshineduration = min(d_nom / d_denom, fac.possiblesunshineduration)
 
 
+class Calc_Temperature_V1(modeltools.Method):
+    r"""Take the input temperature for each hydrological response unit.
+
+    Basic equation:
+      :math:`Temperature_{factors} = Temperature_{inputs}`
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> inputs.temperature = 2.0
+        >>> model.calc_temperature_v1()
+        >>> factors.temperature
+        temperature(2.0, 2.0)
+    """
+
+    CONTROLPARAMETERS = (meteo_control.NmbHRU,)
+    REQUIREDSEQUENCES = (meteo_inputs.Temperature,)
+    RESULTSEQUENCES = (meteo_factors.Temperature,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        fac = model.sequences.factors.fastaccess
+        for k in range(con.nmbhru):
+            fac.temperature[k] = inp.temperature
+
+
+class Adjust_Temperature_V1(modeltools.Method):
+    r"""Adjust the previously determined temperature values.
+
+    Basic equation:
+      :math:`Temperature_{new} = TemperatureAddend + Temperature_{old}`
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> temperatureaddend(-0.6, -1.2)
+        >>> factors.temperature = 2.0
+        >>> model.adjust_temperature_v1()
+        >>> factors.temperature
+        temperature(1.4, 0.8)
+    """
+
+    CONTROLPARAMETERS = (
+        meteo_control.NmbHRU,
+        meteo_control.TemperatureAddend,
+    )
+    UPDATEDSEQUENCES = (meteo_factors.Temperature,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+        for k in range(con.nmbhru):
+            fac.temperature[k] += con.temperatureaddend[k]
+
+
+class Calc_MeanTemperature_V1(modeltools.Method):
+    r"""Calculate the average temperature.
+
+    Basic equation:
+      :math:`MeanTemperature =
+      \sum_{i=1}^{NmbHRU} HRUAreaFraction_i \cdot Temperature_i`
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> derived.hruareafraction(0.8, 0.2)
+        >>> factors.temperature = 1.0, 2.0
+        >>> model.calc_meantemperature_v1()
+        >>> factors.meantemperature
+        meantemperature(1.2)
+    """
+
+    CONTROLPARAMETERS = (meteo_control.NmbHRU,)
+    DERIVEDPARAMETERS = (meteo_derived.HRUAreaFraction,)
+    REQUIREDSEQUENCES = (meteo_factors.Temperature,)
+    RESULTSEQUENCES = (meteo_factors.MeanTemperature,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+
+        fac.meantemperature = 0.0
+        for s in range(con.nmbhru):
+            fac.meantemperature += der.hruareafraction[s] * fac.temperature[s]
+
+
 class Calc_Precipitation_V1(modeltools.Method):
-    r"""Take the input precipitation of each hydrological response unit.
+    r"""Take the input precipitation for each hydrological response unit.
 
     Basic equation:
       :math:`Precipitation_{fluxes} = Precipitation_{inputs}`
@@ -2403,6 +2499,61 @@ class Calc_MeanPrecipitation_V1(modeltools.Method):
             flu.meanprecipitation += der.hruareafraction[s] * flu.precipitation[s]
 
 
+class Determine_Temperature_V1(modeltools.Method):
+    r"""Interface method that applies the complete application model by executing all
+    "run methods"."""
+
+    @staticmethod
+    def __call__(model: modeltools.AdHocModel) -> None:
+        model.run()
+
+
+class Get_Temperature_V1(modeltools.Method):
+    """Get the current temperature from the selected hydrological response unit.
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> factors.temperature = 2.0, 4.0
+        >>> model.get_temperature_v1(0)
+        2.0
+        >>> model.get_temperature_v1(1)
+        4.0
+    """
+
+    REQUIREDSEQUENCES = (meteo_factors.Temperature,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int) -> float:
+        fac = model.sequences.factors.fastaccess
+
+        return fac.temperature[s]
+
+
+class Get_MeanTemperature_V1(modeltools.Method):
+    """Get the mean temperature.
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> factors.meantemperature = 3.0
+        >>> model.get_meantemperature_v1()
+        3.0
+    """
+
+    REQUIREDSEQUENCES = (meteo_factors.MeanTemperature,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> float:
+        fac = model.sequences.factors.fastaccess
+
+        return fac.meantemperature
+
+
 class Determine_Precipitation_V1(modeltools.Method):
     r"""Interface method that applies the complete application model by executing all
     "run methods"."""
@@ -2491,11 +2642,17 @@ class Model(modeltools.AdHocModel):
         Calc_DailyGlobalRadiation_V1,
         Calc_GlobalRadiation_V2,
         Calc_SunshineDuration_V2,
+        Calc_Temperature_V1,
+        Adjust_Temperature_V1,
+        Calc_MeanTemperature_V1,
         Calc_Precipitation_V1,
         Adjust_Precipitation_V1,
         Calc_MeanPrecipitation_V1,
     )
     INTERFACE_METHODS = (
+        Determine_Temperature_V1,
+        Get_Temperature_V1,
+        Get_MeanTemperature_V1,
         Determine_Precipitation_V1,
         Get_Precipitation_V1,
         Get_MeanPrecipitation_V1,
@@ -2510,9 +2667,8 @@ class Model(modeltools.AdHocModel):
     SUBMODELS = ()
 
 
-class Sub_PrecipModel_V2(modeltools.AdHocModel, precipinterfaces.PrecipModel_V2):
-    """Base class for HydPy-Meteo models that comply with the |PrecipModel_V2| submodel
-    interface."""
+class Sub_BaseModel(modeltools.AdHocModel):
+    """Base class for HydPy-Meteo submodels."""
 
     @staticmethod
     @contextlib.contextmanager
@@ -2532,8 +2688,8 @@ class Sub_PrecipModel_V2(modeltools.AdHocModel, precipinterfaces.PrecipModel_V2)
         ...     constants = consts
         >>> class Subarea(Parameter):
         ...     ...
-        >>> from hydpy.models.meteo.meteo_model import Sub_PrecipModel_V2
-        >>> with Sub_PrecipModel_V2.share_configuration(
+        >>> from hydpy.models.meteo.meteo_model import Sub_BaseModel
+        >>> with Sub_BaseModel.share_configuration(
         ...         {"landtype_refindices": LandType,
         ...          "refweights": Subarea}):
         ...     from hydpy.models.meteo.meteo_parameters import ZipParameter1D

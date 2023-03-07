@@ -2030,15 +2030,14 @@ def aggregate_whmod_series(
                 xarr_series_time = xarr_series
 
             if isinstance(step, pandas.DatetimeIndex):
-                timeseries_index = step[:-1]
                 agg_ser_sum = aggregate_flexible_series(
                     series=xarr_series_time,
-                    aggregation_timegrid=timeseries_index,
+                    aggregation_timegrid=step,
                     aggregator="sum",
                 )
                 agg_ser_mean = aggregate_flexible_series(
                     series=xarr_series_time,
-                    aggregation_timegrid=timeseries_index,
+                    aggregation_timegrid=step,
                     aggregator="mean",
                 )
             else:

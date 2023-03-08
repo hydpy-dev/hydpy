@@ -1290,25 +1290,27 @@ under the id `0`.  There is nothing registered, so far.
     The same holds for time series to be written "just in time" during simulation runs.
     The `temperature` writer in `multiple_runs.xml` select the `jit` mode.  This
     setting triggered that the *HydPy* server wrote the time series of sequences
-    |hland_inputs.T| and |hland_inputs.TN| to the directory `temperature` during the
-    last simulation:
+    |hland_inputs.T| and |evap_inputs.NormalAirTemperature| to the directory
+    `temperature` during the last simulation:
 
     >>> filepath = "LahnH/series/temperature/hland_v1_input_t.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
     ...     print_values(ncfile["input_t"][:, 0])
     -0.298846, 0.0, 0.0, 0.0, 0.0
 
-    The input sequences |hland_inputs.P| and |hland_inputs.EPN| are instead reading
-    their time series "just in time" (reading and writing data for the same |IOSequence|
-    object is not supported).  We query the last read value of |hland_inputs.EPN| for
-    the Dill catchment:
+    The input sequences |hland_inputs.P| and |evap_inputs.NormalEvapotranspiration| are
+    instead reading their time series "just in time" (reading and writing data for the
+    same |IOSequence| object is not supported).  We query the last read value of
+    |evap_inputs.NormalEvapotranspiration| for the Dill catchment:
 
-    >>> epn = f"HydPyServer.state.hp.elements.land_dill.model.sequences.inputs.epn"
-    >>> test("evaluate", data=f"epn_dill = {epn}")  # doctest: +ELLIPSIS
-    epn_dill = epn(0.2854...)
+    >>> submodel = "HydPyServer.state.hp.elements.land_dill.model.petmodel"
+    >>> net = f"{submodel}.sequences.inputs.normalevapotranspiration"
+    >>> test("evaluate", data=f"net_dill = {net}")  # doctest: +ELLIPSIS
+    net_dill = normalevapotranspiration(0.2854...)
 
     We can change the series writer directory before starting another simulation run to
-    write the time series of |hland_inputs.T| and |hland_inputs.TN| to another
+    write the time series of |hland_inputs.T| and |evap_inputs.NormalAirTemperature| to
+    another
     directory:
 
     >>> test("register_serieswriterdir", id_="0", data="serieswriterdir = temp")
@@ -1320,11 +1322,12 @@ under the id `0`.  There is nothing registered, so far.
     ...     print_values(ncfile["input_t"][:, 0])
     -0.298846, 0.0, 0.0, 0.0, 0.0
 
-    The "just in time" reading of the series of "P" and "EPN" still worked, showing the
-    registered series directory "temp" only applied for writing data:
+    The "just in time" reading of the series of |hland_inputs.P| and
+    |evap_inputs.NormalEvapotranspiration| still worked, showing the registered series
+    directory "temp" only applied for writing data:
 
-    >>> test("evaluate", data=f"epn_dill = {epn}")  # doctest: +ELLIPSIS
-    epn_dill = epn(0.2854...)
+    >>> test("evaluate", data=f"net_dill = {net}")  # doctest: +ELLIPSIS
+    net_dill = normalevapotranspiration(0.2854...)
 
     Changing the series reader directory works as explained for the series writer
     directory.  After setting it to an empty folder, |HydPyServer.GET_load_allseries|
@@ -1384,6 +1387,7 @@ under the id `0`.  There is nothing registered, so far.
     # -*- coding: utf-8 -*-
     <BLANKLINE>
     from hydpy.models.hland_v1 import *
+    from hydpy.models import evap_hbv96
     <BLANKLINE>
     simulationstep("1d")
     parameterstep("1d")

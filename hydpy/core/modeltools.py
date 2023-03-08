@@ -523,16 +523,18 @@ has been requested but not been prepared so far.
 
     @element.setter
     def element(self, element: devicetools.Element) -> None:
-        self._element = element
+        for model in self.find_submodels(include_mainmodel=True).values():
+            model._element = element  # pylint: disable=protected-access
         if exceptiontools.getattr_(element, "model", None) is not self:
             element.model = self
 
     @element.deleter
     def element(self) -> None:
         if (element := self._element) is not None:
-            self._element = None
             if exceptiontools.getattr_(element, "model", None) is self:
                 del element.model
+        for model in self.find_submodels(include_mainmodel=True).values():
+            model._element = None  # pylint: disable=protected-access
 
     def connect(self) -> None:
         """Connect all |LinkSequence| objects and the selected |InputSequence| and

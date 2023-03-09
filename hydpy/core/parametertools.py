@@ -109,68 +109,6 @@ def _warn_trim_kwarg(
     )
 
 
-def get_controlfileheader(
-    model: Union[str, modeltools.Model],
-    parameterstep: Optional[timetools.PeriodConstrArg] = None,
-    simulationstep: Optional[timetools.PeriodConstrArg] = None,
-) -> str:
-    """Return the header of a regular or auxiliary parameter control file.
-
-    The header contains the default coding information, the import command for the
-    given model and the actual parameter and simulation step sizes.
-
-    If you pass the model argument as a string, you have to take care that this string
-    makes sense:
-
-    >>> from hydpy.core.parametertools import get_controlfileheader
-    >>> from hydpy import Period, prepare_model, pub, Timegrids, Timegrid
-    >>> print(get_controlfileheader(model="no model class",
-    ...                             parameterstep="-1h",
-    ...                             simulationstep=Period("1h")))
-    # -*- coding: utf-8 -*-
-    <BLANKLINE>
-    from hydpy.models.no model class import *
-    <BLANKLINE>
-    simulationstep("1h")
-    parameterstep("-1h")
-    <BLANKLINE>
-    <BLANKLINE>
-
-    The safer option is to pass the proper model object.  Besides that, the following
-    example also shows that function |get_controlfileheader| tries to gain the
-    parameter and simulation step sizes from the global |Timegrids| object contained
-    in the module |pub| when necessary:
-
-    >>> model = prepare_model("lland_v1")
-    >>> pub.timegrids = "2000.01.01", "2001.01.01", "1h"
-    >>> print(get_controlfileheader(model=model))
-    # -*- coding: utf-8 -*-
-    <BLANKLINE>
-    from hydpy.models.lland_v1 import *
-    <BLANKLINE>
-    simulationstep("1h")
-    parameterstep("1d")
-    <BLANKLINE>
-    <BLANKLINE>
-
-    .. testsetup::
-
-        >>> del pub.timegrids
-    """
-    options = hydpy.pub.options
-    with options.parameterstep(parameterstep):
-        if simulationstep is None:
-            simulationstep = hydpy.pub.options.simulationstep
-        else:
-            simulationstep = timetools.Period(simulationstep)
-        return (
-            f"# -*- coding: utf-8 -*-\n\n"
-            f"from hydpy.models.{model} import *\n\n"
-            f'simulationstep("{simulationstep}")\n'
-            f'parameterstep("{options.parameterstep}")\n\n'
-        )
-
-
 class IntConstant(int):
     """Class for |int| objects with individual docstrings."""
 
@@ -178,7 +116,7 @@ class IntConstant(int):
         const = int.__new__(cls, value)
         const.__doc__ = None
         frame = inspect.currentframe().f_back
-        const.__module__ = frame.f_locals["__name__"]
+        const.__module__ = frame.f_locals.get("__name__")
         return const
 
 
@@ -358,122 +296,6 @@ For variable `latitude`, no value has been defined so far.
                         f"While trying to update parameter "
                         f"{objecttools.elementphrase(par)}"
                     )
-
-    def save_controls(
-        self,
-        filepath: Optional[str] = None,
-        parameterstep: Optional[timetools.PeriodConstrArg] = None,
-        simulationstep: Optional[timetools.PeriodConstrArg] = None,
-        auxfiler: Optional["auxfiletools.Auxfiler"] = None,
-    ):
-        """Write the control parameters (and eventually some solver parameters) to a
-        control file
-
-        Usually, a control file consists of a header (see the documentation on the
-        method |get_controlfileheader|) and the string representations of the individual
-        |Parameter| objects handled by the `control` |SubParameters| object.
-
-        The main functionality of method |Parameters.save_controls| is demonstrated in
-        the documentation on method |HydPy.save_controls| of class |HydPy|, which one
-        would apply to write the parameter information of complete *HydPy* projects.
-        However, calling |Parameters.save_controls| on individual |Parameters| objects
-        offers the advantage of choosing an arbitrary file path, as shown in the
-        following example:
-
-        >>> from hydpy.models.test_v3 import *
-        >>> parameterstep("1d")
-        >>> simulationstep("1h")
-        >>> k(0.1)
-        >>> n(3)
-
-        >>> from hydpy import Open
-        >>> with Open():
-        ...     model.parameters.save_controls("otherdir/otherfile.py")
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        otherdir/otherfile.py
-        ----------------------------------
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
-        from hydpy.models.test_v3 import *
-        <BLANKLINE>
-        simulationstep("1h")
-        parameterstep("1d")
-        <BLANKLINE>
-        k(0.1)
-        n(3)
-        <BLANKLINE>
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        Method |Parameters.save_controls| also writes the string representations of
-        all |SolverParameter| objects with non-default values into the control file:
-
-        >>> solver.abserrormax(1e-6)
-        >>> with Open():
-        ...     model.parameters.save_controls("otherdir/otherfile.py")
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        otherdir/otherfile.py
-        ----------------------------------
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
-        from hydpy.models.test_v3 import *
-        <BLANKLINE>
-        simulationstep("1h")
-        parameterstep("1d")
-        <BLANKLINE>
-        k(0.1)
-        n(3)
-        <BLANKLINE>
-        solver.abserrormax(0.000001)
-        <BLANKLINE>
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        Without a given file path and a proper project configuration, method
-        |Parameters.save_controls| raises the following error:
-
-        >>> model.parameters.save_controls()
-        Traceback (most recent call last):
-        ...
-        RuntimeError: To save the control parameters of a model to a file, its \
-filename must be known.  This can be done, by passing a filename to function \
-`save_controls` directly.  But in complete HydPy applications, it is usally assumed \
-to be consistent with the name of the element handling the model.
-        """
-        if auxfiler is None:
-            parameter2auxfile = None
-        else:
-            parameter2auxfile = auxfiler.get(self.model)
-        lines = [get_controlfileheader(self.model, parameterstep, simulationstep)]
-        with hydpy.pub.options.parameterstep(parameterstep):
-            for par in self.control:
-                if parameter2auxfile is not None:
-                    auxfilename = parameter2auxfile.get_filename(par)
-                    if auxfilename:
-                        lines.append(f'{par.name}(auxfile="{auxfilename}")\n')
-                        continue
-                lines.append(f"{repr(par)}\n")
-            solver_lines = tuple(
-                f"solver.{repr(par)}\n"
-                for par in self.solver
-                if exceptiontools.attrready(par, "alternative_initvalue")
-            )
-            if solver_lines:
-                lines.append("\n")
-            lines.extend(solver_lines)
-        text = "".join(lines)
-        if filepath:
-            with open(filepath, mode="w", encoding="utf-8") as controlfile:
-                controlfile.write(text)
-        else:
-            filename = objecttools.devicename(self)
-            if filename == "?":
-                raise RuntimeError(
-                    "To save the control parameters of a model to a file, its "
-                    "filename must be known.  This can be done, by passing a filename "
-                    "to function `save_controls` directly.  But in complete HydPy "
-                    "applications, it is usally assumed to be consistent with the "
-                    "name of the element handling the model."
-                )
-            hydpy.pub.controlmanager.save_file(filename, text)
 
     def verify(self) -> None:
         """Call method |Variable.verify| of all |Parameter| objects handled by the

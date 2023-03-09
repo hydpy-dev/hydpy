@@ -1745,6 +1745,7 @@ class Main_PETModel_V1(modeltools.AdHocModel):
     retmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
 
     @importtools.prepare_submodel(
+        "retmodel",
         petinterfaces.PETModel_V1,
         petinterfaces.PETModel_V1.prepare_nmbzones,
         petinterfaces.PETModel_V1.prepare_subareas,
@@ -1765,7 +1766,6 @@ class Main_PETModel_V1(modeltools.AdHocModel):
         >>> model.retmodel.parameters.control.hruarea
         hruarea(2.0, 8.0)
         """
-        self.retmodel = retmodel
         control = self.parameters.control
         retmodel.prepare_nmbzones(control.nmbhru.value)
         retmodel.prepare_subareas(control.hruarea.values)
@@ -1814,6 +1814,7 @@ class Main_TempModel_V2(modeltools.AdHocModel):
     tempmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
 
     @importtools.prepare_submodel(
+        "tempmodel",
         tempinterfaces.TempModel_V2,
         tempinterfaces.TempModel_V2.prepare_nmbzones,
         tempinterfaces.TempModel_V2.prepare_subareas,
@@ -1836,7 +1837,6 @@ class Main_TempModel_V2(modeltools.AdHocModel):
         >>> model.tempmodel.parameters.control.temperatureaddend
         temperatureaddend(1.0, 2.0)
         """
-        self.tempmodel = tempmodel
         control = self.parameters.control
         tempmodel.prepare_nmbzones(control.nmbhru.value)
         tempmodel.prepare_subareas(control.hruarea.value)
@@ -1885,6 +1885,7 @@ class Main_PrecipModel_V2(modeltools.AdHocModel):
     precipmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
 
     @importtools.prepare_submodel(
+        "precipmodel",
         precipinterfaces.PrecipModel_V2,
         precipinterfaces.PrecipModel_V2.prepare_nmbzones,
         precipinterfaces.PrecipModel_V2.prepare_subareas,
@@ -1906,7 +1907,6 @@ class Main_PrecipModel_V2(modeltools.AdHocModel):
         >>> model.precipmodel.parameters.control.precipitationfactor
         precipitationfactor(1.0, 2.0)
         """
-        self.precipmodel = precipmodel
         control = self.parameters.control
         precipmodel.prepare_nmbzones(control.nmbhru.value)
         precipmodel.prepare_subareas(control.hruarea.value)

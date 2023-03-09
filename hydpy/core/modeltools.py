@@ -7,6 +7,7 @@ import abc
 import collections
 import contextlib
 import importlib
+import inspect
 import itertools
 import os
 import types
@@ -15,19 +16,23 @@ import types
 import numpy
 
 # ...from HydPy
+import hydpy
 from hydpy import conf
+from hydpy.core import auxfiletools
 from hydpy.core import devicetools
 from hydpy.core import exceptiontools
+from hydpy.core import importtools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
+from hydpy.core import timetools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
 
 if TYPE_CHECKING:
-    from hydpy.auxs import interptools
     from hydpy.core import masktools
+    from hydpy.auxs import interptools
 
 
 class _ModelModule(types.ModuleType):
@@ -1054,6 +1059,236 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         objects."""
         self.sequences.states.save_series()
 
+    def get_controlfileheader(
+        self,
+        import_submodels: bool = True,
+        parameterstep: Optional[timetools.PeriodConstrArg] = None,
+        simulationstep: Optional[timetools.PeriodConstrArg] = None,
+    ) -> str:
+        """Return the header of a parameter control file.
+
+        The header contains the default coding information, the model import commands
+        and the actual parameter and simulation step sizes:
+
+        >>> from hydpy import prepare_model, pub
+        >>> model = prepare_model("hland_v1")
+        >>> model.petmodel = prepare_model("evap_hbv96")
+        >>> pub.timegrids = "2000.01.01", "2001.01.01", "1h"
+        >>> print(model.get_controlfileheader())
+        # -*- coding: utf-8 -*-
+        <BLANKLINE>
+        from hydpy.models.hland_v1 import *
+        from hydpy.models import evap_hbv96
+        <BLANKLINE>
+        simulationstep("1h")
+        parameterstep("1d")
+        <BLANKLINE>
+        <BLANKLINE>
+
+        Optionally, you can omit the submodel import lines and define alternative
+        parameter step and simulation step sizes:
+
+        >>> print(model.get_controlfileheader(
+        ...     import_submodels=False, parameterstep="2d", simulationstep="3d"))
+        # -*- coding: utf-8 -*-
+        <BLANKLINE>
+        from hydpy.models.hland_v1 import *
+        <BLANKLINE>
+        simulationstep("3d")
+        parameterstep("2d")
+        <BLANKLINE>
+        <BLANKLINE>
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+        """
+        lines = ["# -*- coding: utf-8 -*-\n", f"from hydpy.models.{self} import *"]
+        if import_submodels:
+            for submodel in self.find_submodels(include_subsubmodels=True).values():
+                lines.append(f"from hydpy.models import {submodel}")
+        options = hydpy.pub.options
+        with options.parameterstep(parameterstep):
+            if simulationstep is None:
+                simulationstep = options.simulationstep
+            else:
+                simulationstep = timetools.Period(simulationstep)
+            lines.append(f'\nsimulationstep("{simulationstep}")')
+            lines.append(f'parameterstep("{options.parameterstep}")\n\n')
+        return "\n".join(lines)
+
+    def _get_controllines(
+        self,
+        parameterstep: Optional[timetools.PeriodConstrArg] = None,
+        simulationstep: Optional[timetools.PeriodConstrArg] = None,
+        auxfiler: Optional[auxfiletools.Auxfiler] = None,
+        sublevel: int = 0,
+        ignore: Optional[Tuple[Type[parametertools.Parameter], ...]] = None,
+    ) -> List[str]:
+        if auxfiler is None:
+            parameter2auxfile = None
+        else:
+            parameter2auxfile = auxfiler.get(self)
+        lines = []
+        opts = hydpy.pub.options
+        with opts.parameterstep(parameterstep), opts.simulationstep(simulationstep):
+            for par in self.parameters.control:
+                if (ignore is None) or not isinstance(par, ignore):
+                    if parameter2auxfile is not None:
+                        auxfilename = parameter2auxfile.get_filename(par)
+                        if auxfilename:
+                            lines.append(f'{par.name}(auxfile="{auxfilename}")')
+                            continue
+                    lines.extend(repr(par).split("\n"))
+            solver_lines = tuple(
+                f"solver.{repr(par)}"
+                for par in self.parameters.solver
+                if exceptiontools.attrready(par, "alternative_initvalue")
+            )
+            if solver_lines:
+                lines.append("")
+            lines.extend(solver_lines)
+        indent = sublevel * "    "
+        return [f"{indent}{line}\n" for line in lines]
+
+    def save_controls(
+        self,
+        parameterstep: Optional[timetools.PeriodConstrArg] = None,
+        simulationstep: Optional[timetools.PeriodConstrArg] = None,
+        auxfiler: Optional[auxfiletools.Auxfiler] = None,
+        filepath: Optional[str] = None,
+    ) -> None:
+        """Write the control parameters (and eventually some solver parameters) to a
+        control file.
+
+        Usually, a control file consists of a header (see the documentation on the
+        method |Model.get_controlfileheader|) and the string representations of the
+        individual |Parameter| objects handled by the `control` |SubParameters| object.
+
+        The main functionality of method |Model.save_controls| is demonstrated in the
+        documentation on method |HydPy.save_controls| of class |HydPy|, which one
+        should apply to write the parameter information of complete *HydPy* projects.
+        However, calling |Model.save_controls| on individual |Model| objects offers the
+        advantage of choosing an arbitrary file path, as shown in the following
+        example:
+
+        >>> from hydpy.models.test_v3 import *
+        >>> parameterstep("1d")
+        >>> simulationstep("1h")
+        >>> k(0.1)
+        >>> n(3)
+
+        >>> from hydpy import Open
+        >>> with Open():
+        ...     model.save_controls(filepath="otherdir/otherfile.py")
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        otherdir/otherfile.py
+        ----------------------------------
+        # -*- coding: utf-8 -*-
+        <BLANKLINE>
+        from hydpy.models.test_v3 import *
+        <BLANKLINE>
+        simulationstep("1h")
+        parameterstep("1d")
+        <BLANKLINE>
+        k(0.1)
+        n(3)
+        <BLANKLINE>
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        Method |Model.save_controls| also writes the string representations of all
+        |SolverParameter| objects with non-default values into the control file:
+
+        >>> solver.abserrormax(1e-6)
+        >>> with Open():
+        ...     model.save_controls(filepath="otherdir/otherfile.py")
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        otherdir/otherfile.py
+        ----------------------------------
+        # -*- coding: utf-8 -*-
+        <BLANKLINE>
+        from hydpy.models.test_v3 import *
+        <BLANKLINE>
+        simulationstep("1h")
+        parameterstep("1d")
+        <BLANKLINE>
+        k(0.1)
+        n(3)
+        <BLANKLINE>
+        solver.abserrormax(0.000001)
+        <BLANKLINE>
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        Without a given file path and a proper project configuration, method
+        |Model.save_controls| raises the following error:
+
+        >>> model.save_controls()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: To save the control parameters of a model to a file, its \
+filename must be known.  This can be done, by passing a filename to function \
+`save_controls` directly.  But in complete HydPy applications, it is usally assumed \
+to be consistent with the name of the element handling the model.
+        """
+
+        def _extend_lines_submodel(model: Model, sublevel: int) -> None:
+            sublevel += 1
+            for name, submodel in model.find_submodels(
+                include_subsubmodels=False
+            ).items():
+                t2n2a = importtools.SubmodelAdder.modeltype2submodelname2submodeladder
+                for modeltype in inspect.getmro(type(self)):
+                    if (name2adder := t2n2a.get(modeltype)) is not None:
+                        break
+                else:
+                    assert False
+                adder = name2adder[name.rpartition(".")[2]]
+                lines.append(f"with model.{adder.wrapped.__name__}({submodel}):\n")
+                targetparameters = []
+                for method in adder.methods:
+                    updater = getattr(submodel, method.__name__)
+                    assert isinstance(updater, importtools.TargetParameterUpdater)
+                    targetparameters.append(updater.targetparameter)
+                lines.extend(
+                    submodel._get_controllines(  # pylint: disable=protected-access
+                        parameterstep=parameterstep,
+                        simulationstep=simulationstep,
+                        auxfiler=auxfiler,
+                        sublevel=sublevel,
+                        ignore=tuple(targetparameters),
+                    )
+                )
+                _extend_lines_submodel(model=submodel, sublevel=sublevel)
+
+        header = self.get_controlfileheader(
+            parameterstep=parameterstep, simulationstep=simulationstep
+        )
+        lines = [header]
+        lines.extend(
+            self._get_controllines(
+                parameterstep=parameterstep,
+                simulationstep=simulationstep,
+                auxfiler=auxfiler,
+                sublevel=0,
+            )
+        )
+        _extend_lines_submodel(model=self, sublevel=0)
+        text = "".join(lines)
+        if filepath:
+            with open(filepath, mode="w", encoding="utf-8") as controlfile:
+                controlfile.write(text)
+        else:
+            filename = objecttools.devicename(self)
+            if filename == "?":
+                raise RuntimeError(
+                    "To save the control parameters of a model to a file, its "
+                    "filename must be known.  This can be done, by passing a filename "
+                    "to function `save_controls` directly.  But in complete HydPy "
+                    "applications, it is usally assumed to be consistent with the "
+                    "name of the element handling the model."
+                )
+            hydpy.pub.controlmanager.save_file(filename, text)
+
     @abc.abstractmethod
     def simulate(self, idx: int) -> None:
         """Perform a simulation run over a single simulation time step."""
@@ -1287,6 +1522,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         >>> pprint(model.find_submodels(include_optional=True))  # doctest: +ELLIPSIS
         {'model.petmodel': <hydpy.models.evap_hbv96.Model object at ...>,
          'model.petmodel.precipmodel': None,
+         'model.petmodel.tempmodel': None,
          'model.soilmodel': None}
 
         By default, |Model.find_submodels| does not return an additional entry when a
@@ -1296,6 +1532,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         >>> model.petmodel.precipmodel_is_mainmodel = True
         >>> pprint(model.find_submodels(include_optional=True))  # doctest: +ELLIPSIS
         {'model.petmodel': <hydpy.models.evap_hbv96.Model object at ...>,
+         'model.petmodel.tempmodel': None,
          'model.soilmodel': None}
 
         Use the `include_feedbacks` parameter to make such feedback connections
@@ -1306,6 +1543,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         {'model': <hydpy.models.lland_v1.Model object at ...>,
          'model.petmodel': <hydpy.models.evap_hbv96.Model object at ...>,
          'model.petmodel.precipmodel': <hydpy.models.lland_v1.Model object at ...>,
+         'model.petmodel.tempmodel': None,
          'model.soilmodel': None}
         """
 

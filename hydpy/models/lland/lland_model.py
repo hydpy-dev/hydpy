@@ -9954,6 +9954,7 @@ class Main_PETModel_V1(modeltools.AdHocModel):
     petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
 
     @importtools.prepare_submodel(
+        "petmodel",
         petinterfaces.PETModel_V1,
         petinterfaces.PETModel_V1.prepare_nmbzones,
         petinterfaces.PETModel_V1.prepare_zonetypes,
@@ -9989,7 +9990,6 @@ class Main_PETModel_V1(modeltools.AdHocModel):
         >>> round_(etf.average_values())
         1.8
         """
-        self.petmodel = petmodel
         control = self.parameters.control
         petmodel.prepare_nmbzones(control.nhru.value)
         petmodel.prepare_zonetypes(control.lnk.values)
@@ -10004,6 +10004,7 @@ class Main_SoilModel_V1(modeltools.AdHocModel):
     soilmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
 
     @importtools.prepare_submodel(
+        "soilmodel",
         soilinterfaces.SoilModel_V1,
         soilinterfaces.SoilModel_V1.prepare_nmbzones,
     )
@@ -10021,7 +10022,6 @@ class Main_SoilModel_V1(modeltools.AdHocModel):
         >>> model.soilmodel.parameters.control.nmbsoils
         nmbsoils(2)
         """
-        self.soilmodel = soilmodel
         control = self.parameters.control
         soilmodel.prepare_nmbzones(control.nhru.value)
 

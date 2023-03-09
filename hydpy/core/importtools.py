@@ -7,6 +7,8 @@ from model users and for allowing writing readable doctests.
 # import...
 # ...from standard library
 from __future__ import annotations
+
+import collections
 import contextlib
 import os
 import importlib
@@ -303,6 +305,7 @@ class _DoctestAdder:
 
 
 def prepare_submodel(
+    submodelname: str,
     submodelinterface: Type[TI],
     *methods: Callable[[NoReturn, NoReturn], None],
     landtype_constants: Optional[parametertools.Constants] = None,
@@ -317,6 +320,7 @@ def prepare_submodel(
     def _prepare_submodel(wrapped: Callable[[TM, TI], None]) -> SubmodelAdder[TM, TI]:
         return SubmodelAdder[TM, TI](
             wrapped=wrapped,
+            submodelname=submodelname,
             submodelinterface=submodelinterface,
             methods=methods,
             landtype_constants=landtype_constants,
@@ -404,6 +408,8 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
     wrapped: Callable[[TM, TI], None]
     """The wrapped, model-specific method for preparing some control parameters 
     automatically."""
+    submodelname: str
+    """The submodel's attribute name."""
     submodelinterface: Type[TI]
     """The relevant submodel interface."""
     methods: Tuple[Callable[[NoReturn, NoReturn], None], ...]
@@ -415,6 +421,10 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
     refweights: Optional[Type[parametertools.Parameter]]
     """Reference to a weighting parameter."""
 
+    modeltype2submodelname2submodeladder: DefaultDict[
+        Type[modeltools.Model], Dict[str, SubmodelAdder]
+    ] = collections.defaultdict(lambda: {})
+
     _sharable_configuration: SharableConfiguration
     _model: Optional[TM]
     _mainmodelstack: ClassVar[List[modeltools.Model]] = []
@@ -422,6 +432,7 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
     def __init__(
         self,
         wrapped: Callable[[TM, TI], None],
+        submodelname: str,
         submodelinterface: Type[TI],
         methods: Iterable[Callable[[NoReturn, NoReturn], None]],
         landtype_constants: Optional[parametertools.Constants],
@@ -431,6 +442,7 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
         refweights: Optional[Type[parametertools.Parameter]],
     ) -> None:
         self.wrapped = wrapped
+        self.submodelname = submodelname
         self.submodelinterface = submodelinterface
         self.methods = tuple(methods)
         self._sharable_configuration = {
@@ -452,6 +464,9 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
         if obj is not None:
             self._model = obj
         return self
+
+    def __set_name__(self, owner: Type[modeltools.Model], name: str) -> None:
+        self.modeltype2submodelname2submodeladder[owner][self.submodelname] = self
 
     @contextlib.contextmanager
     def __call__(
@@ -476,6 +491,7 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
                 shared["refweights"] = getattr(control, rw.name)
             with submodeltype.share_configuration(shared):
                 submodel = prepare_model(module)
+                setattr(model, self.submodelname, submodel)
                 assert isinstance(submodel, self.submodelinterface)
                 self.wrapped(model, submodel)
                 assert (
@@ -718,7 +734,7 @@ the following error occurred: ...
     ...         control.lai.acker_jul = 5.0
     ...         land_dill.model.parameters.update()
     ...         land_dill.model.sequences.states.inzp(1.0)
-    ...     land_dill.model.parameters.save_controls()
+    ...     land_dill.model.save_controls()
     ...     land_dill.model.sequences.save_conditions()
 
     Unfortunately, state |lland_states.Inzp| does not define a |trim| method taking the

@@ -2848,6 +2848,7 @@ class Main_PETModel_V1(modeltools.ELSModel):
     pemodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
 
     @importtools.prepare_submodel(
+        "petmodel",
         petinterfaces.PETModel_V1,
         petinterfaces.PETModel_V1.prepare_nmbzones,
         petinterfaces.PETModel_V1.prepare_subareas,
@@ -2884,13 +2885,13 @@ class Main_PETModel_V1(modeltools.ELSModel):
         >>> round_(etf.average_values())
         1.8
         """
-        self.petmodel = petmodel
         control = self.parameters.control
         petmodel.prepare_nmbzones(control.nu.value)
         petmodel.prepare_zonetypes(control.lt.values)
         petmodel.prepare_subareas(control.al.value * control.aur.values)
 
     @importtools.prepare_submodel(
+        "pemodel",
         petinterfaces.PETModel_V1,
         petinterfaces.PETModel_V1.prepare_nmbzones,
         petinterfaces.PETModel_V1.prepare_subareas,
@@ -2912,7 +2913,6 @@ class Main_PETModel_V1(modeltools.ELSModel):
         >>> model.pemodel.parameters.control.evapotranspirationfactor
         evapotranspirationfactor(2.0)
         """
-        self.pemodel = pemodel
         control = self.parameters.control
         pemodel.prepare_nmbzones(1)
         pemodel.prepare_subareas([control.as_.value])

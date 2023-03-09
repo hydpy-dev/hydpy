@@ -1398,7 +1398,7 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
         if auxfiler:
             auxfiler.write(parameterstep=parameterstep, simulationstep=simulationstep)
         for element in printtools.progressbar(self):
-            element.model.parameters.save_controls(
+            element.model.save_controls(
                 parameterstep=parameterstep,
                 simulationstep=simulationstep,
                 auxfiler=auxfiler,

@@ -1046,8 +1046,8 @@ deprecated.  Use method `prepare_models` instead.
         ...     sorted(os.listdir("LahnH/control"))
         ['default', 'newdir']
 
-        We focus our examples on the (shorter) control files of the application model
-        |musk_classic|.  These control files define the values of the parameters
+        First, we focus our examples on the (shorter) control files of the application
+        model |musk_classic|.  These control files define the values of the parameters
         |musk_control.NmbSegments| and |musk_control.Coefficients| via the keyword
         arguments `lag` and `damp`.  For the river channel connecting the outlets of
         subcatchment `lahn_1` and `lahn_2`, the `lag` value is 0.583 days, and the
@@ -1197,6 +1197,74 @@ deprecated.  Use method `prepare_models` instead.
         nmbsegments(lag=0.2085)
         coefficients(auxfile="stream")
         <BLANKLINE>
+
+        In the `LahnH` example project, all |hland_v1| instances use an |evap_hbv96|
+        submodel for calculating potential evapotranspiration.  The discussed writing
+        mechanisms include such submodels automatically.  The written files rely on the
+        preferred "with" block syntax for adding submodels and defining their parameter
+        values:
+
+        >>> with TestIO():
+        ...     with open(dir_ + "land_dill.py") as controlfile:
+        ...         print(controlfile.read())  # doctest: +ELLIPSIS
+        # -*- coding: utf-8 -*-
+        <BLANKLINE>
+        from hydpy.models.hland_v1 import *
+        from hydpy.models import evap_hbv96
+        <BLANKLINE>
+        simulationstep("1h")
+        parameterstep("2d")
+        <BLANKLINE>
+        area(692.3)
+        ...
+        maxbaz(0.18364)
+        with model.add_petmodel_v1(evap_hbv96):
+            evapotranspirationfactor(1.0)
+            altitudefactor(0.0)
+            precipitationfactor(0.01)
+            airtemperaturefactor(0.1)
+        <BLANKLINE>
+
+        When delegating parameter value definitions to auxiliary files, it makes no
+        difference if these parameters are members of a main model or a submodel:
+
+        >>> auxfiler = Auxfiler("evap_hbv96")
+        >>> for element in hp.elements.search_keywords("catchment"):
+        ...     atf = element.model.petmodel.parameters.control.airtemperaturefactor
+        ...     atf(field=0.2, forest=0.1)
+        >>> auxfiler.evap_hbv96.add_parameter(
+        ...     atf, filename="evap", keywordarguments=atf.keywordarguments)
+        >>> with TestIO():
+        ...     hp.save_controls(
+        ...         auxfiler=auxfiler, parameterstep="2d", simulationstep="1h")
+        ...     with open(dir_ + "evap.py") as controlfile:
+        ...         print(controlfile.read())  # doctest: +ELLIPSIS
+        # -*- coding: utf-8 -*-
+        <BLANKLINE>
+        from hydpy.models.evap_hbv96 import *
+        <BLANKLINE>
+        simulationstep("1h")
+        parameterstep("2d")
+        <BLANKLINE>
+        airtemperaturefactor(field=0.2, forest=0.1)
+        <BLANKLINE>
+        >>> with TestIO():
+        ...     with open(dir_ + "land_dill.py") as controlfile:
+        ...         print(controlfile.read())  # doctest: +ELLIPSIS
+        # -*- coding: utf-8 -*-
+        ...
+        maxbaz(0.18364)
+        with model.add_petmodel_v1(evap_hbv96):
+            evapotranspirationfactor(1.0)
+            altitudefactor(0.0)
+            precipitationfactor(0.01)
+            airtemperaturefactor(auxfile="evap")
+        <BLANKLINE>
+
+        >>> with TestIO():
+        ...     hp.prepare_models()
+        >>> hp.elements.land_dill.model.petmodel.parameters.control.airtemperaturefactor
+        airtemperaturefactor(field=0.2, forest=0.1)
         """
         self.elements.save_controls(
             parameterstep=parameterstep,
@@ -1488,8 +1556,8 @@ needed to be trimmed.  The old and the new value(s) are \
         True
 
         We selected the snow period as an example due to potential problems with the
-        limited water holding capacity of the snow layer, which depends on the ice
-        content of the snow layer (|hland_states.SP|) and the relative water holding
+        limited water-holding capacity of the snow layer, which depends on the ice
+        content of the snow layer (|hland_states.SP|) and the relative water-holding
         capacity (|hland_control.WHC|).  Due to this restriction, problems can occur.
         To give an example, we set |hland_control.WHC| to zero temporarily, apply the
         memorised conditions, and finally reset the original values of |
@@ -1503,7 +1571,7 @@ needed to be trimmed.  The old and the new value(s) are \
         >>> for element in hp.elements.catchment:
         ...     element.model.parameters.control.whc = element.whc
 
-        Without any water holding capacity of the snow layer, its water content is zero
+        Without any water-holding capacity of the snow layer, its water content is zero
         despite the actual memorised value of 1.1 mm:
 
         >>> print_values([lahn1_states.sp.average_values()])
@@ -1511,8 +1579,8 @@ needed to be trimmed.  The old and the new value(s) are \
         >>> print_values([lahn1_states.wc.average_values()])
         0.0
 
-        What is happening in such conflicts partly depends on the implementation of the
-        respective application model.  For safety, we suggest setting the option
+        What happens in such conflicts depends on the implementation of the respective
+        application model.  For safety, we suggest setting the option
         |Options.warntrim| to |True| before resetting conditions.
         """
         return self.elements.conditions

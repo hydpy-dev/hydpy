@@ -326,7 +326,7 @@ class Calc_EP_V1(modeltools.Method):
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        if model.petmodel.typeid == 1:
+        if model.petmodel_typeid == 1:
             model.calc_ep_petmodel_v1(cast(petinterfaces.PETModel_V1, model.petmodel))
         # ToDo:
         #     else:
@@ -4674,6 +4674,10 @@ class Model(modeltools.AdHocModel):
     SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
     SUBMODELS = ()
 
+    petmodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
+    petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    petmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
 
 class Main_PETModel_V1(modeltools.AdHocModel):
     """Base class for HydPy-H models that use submodels that comply with the
@@ -4681,6 +4685,7 @@ class Main_PETModel_V1(modeltools.AdHocModel):
 
     petmodel: modeltools.SubmodelProperty
     petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    petmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
     @importtools.prepare_submodel(
         "petmodel",

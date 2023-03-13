@@ -865,7 +865,7 @@ class Calc_EvPo_V1(modeltools.Method):
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        if model.petmodel.typeid == 1:
+        if model.petmodel_typeid == 1:
             model.calc_evpo_petmodel_v1(cast(petinterfaces.PETModel_V1, model.petmodel))
         # ToDo:
         #     else:
@@ -8243,7 +8243,7 @@ class Calc_BoWa_SoilModel_V1(modeltools.Method):
         We prepare a |lland| model instance consisting of four hydrological response
         units, which will serve as the main model:
 
-        >>> from hydpy.models.lland import *
+        >>> from hydpy.models.lland_v1 import *
         >>> simulationstep("1h")
         >>> parameterstep("1h")
         >>> nhru(4)
@@ -8256,20 +8256,18 @@ class Calc_BoWa_SoilModel_V1(modeltools.Method):
         soils") and the two last of 0.1 m ("flat soils"):
 
         >>> from hydpy import prepare_model, pub
-        >>> garto = prepare_model("ga_garto_submodel1")
-        >>> garto.parameters.control.nmbsoils(4)
-        >>> garto.parameters.control.nmbbins(3)
-        >>> with pub.options.parameterstep("1s"):
-        ...     garto.parameters.control.dt(1.0)
-        >>> garto.parameters.control.sealed(False)
-        >>> garto.parameters.control.soildepth(1000.0, 1000.0, 100.0, 100.0)
-        >>> garto.parameters.control.residualmoisture(0.027)
-        >>> garto.parameters.control.saturationmoisture(0.434)
-        >>> garto.parameters.control.saturatedconductivity(13.2)
-        >>> garto.parameters.control.poresizedistribution(0.252)
-        >>> garto.parameters.control.airentrypotential(111.5)
-        >>> garto.parameters.update()
-        >>> model.soilmodel = garto
+        >>> with model.add_soilmodel_v1("ga_garto_submodel1"):
+        ...     nmbsoils(4)
+        ...     nmbbins(3)
+        ...     with pub.options.parameterstep("1s"):
+        ...         dt(1.0)
+        ...     sealed(False)
+        ...     soildepth(1000.0, 1000.0, 100.0, 100.0)
+        ...     residualmoisture(0.027)
+        ...     saturationmoisture(0.434)
+        ...     saturatedconductivity(13.2)
+        ...     poresizedistribution(0.252)
+        ...     airentrypotential(111.5)
 
         For water areas and sealed surfaces, |lland| does not apply its submodel and
         just sets |BoWa| to zero:
@@ -8304,6 +8302,7 @@ class Calc_BoWa_SoilModel_V1(modeltools.Method):
         any) prints the updated soil moisture content and the eventually adjusted flux
         sequences's values:
 
+        >>> garto = model.soilmodel
         >>> from numpy import array, round_
         >>> from hydpy.core.objecttools import repr_values
         >>> def check(qib2=0, qib1=0, qbb=0, evb=0, qkap=0):
@@ -8531,7 +8530,7 @@ class Calc_BoWa_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         if model.soilmodel is None:
             model.calc_bowa_default_v1()
-        elif model.soilmodel.typeid == 1:
+        elif model.soilmodel_typeid == 1:
             model.calc_bowa_soilmodel_v1(
                 cast(soilinterfaces.SoilModel_V1, model.soilmodel)
             )
@@ -9945,6 +9944,14 @@ class Model(modeltools.AdHocModel):
 
     idx_hru = modeltools.Idx_HRU()
 
+    petmodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
+    petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    petmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    soilmodel = modeltools.SubmodelProperty(soilinterfaces.SoilModel_V1, optional=True)
+    soilmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    soilmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
 
 class Main_PETModel_V1(modeltools.AdHocModel):
     """Base class for HydPy-L models that support submodels that comply with the
@@ -9952,6 +9959,7 @@ class Main_PETModel_V1(modeltools.AdHocModel):
 
     petmodel: modeltools.SubmodelProperty
     petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    petmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
     @importtools.prepare_submodel(
         "petmodel",
@@ -10002,6 +10010,7 @@ class Main_SoilModel_V1(modeltools.AdHocModel):
 
     soilmodel: modeltools.SubmodelProperty
     soilmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    soilmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
     @importtools.prepare_submodel(
         "soilmodel",

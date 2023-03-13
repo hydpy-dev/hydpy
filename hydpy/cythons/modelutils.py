@@ -816,7 +816,7 @@ class PyxWriter:
     @property
     def cimports(self) -> List[str]:
         """Import command lines."""
-        lines = Lines(
+        return Lines(
             "from typing import Optional",
             "import numpy",
             "cimport numpy",
@@ -836,16 +836,8 @@ class PyxWriter:
             "from hydpy.cythons.autogen cimport quadutils",
             "from hydpy.cythons.autogen cimport rootutils",
             "from hydpy.cythons.autogen cimport smoothutils",
+            "from hydpy.cythons.autogen cimport masterinterface",
         )
-        interfaces = self.model.SUBMODELINTERFACES + tuple(
-            interface
-            for interface in inspect.getmro(type(self.model))
-            if interface.__module__.startswith("hydpy.interfaces")
-        )
-        for interface in set(interfaces):
-            modulename = interface.__module__.split(".")[-1]
-            lines.append(f"from hydpy.cythons.autogen cimport {modulename}")
-        return lines
 
     @property
     def constants(self) -> List[str]:
@@ -1304,24 +1296,28 @@ class PyxWriter:
         ]
         lines = Lines()
         lines.add(0, "@cython.final")
-        interfacebases = ", ".join(
-            f"{base.__module__.split('.')[-1]}.{base.__name__}"
+        follows_interface = any(
+            base
             for base in inspect.getmro(type(self.model))
             if issubclass(base, modeltools.SubmodelInterface)
             and base.__module__.startswith("hydpy.interfaces.")
         )
-        lines.add(0, f"cdef class Model({interfacebases}):")
+        if follows_interface:
+            lines.add(0, "cdef class Model(masterinterface.MasterInterface):")
+        else:
+            lines.add(0, "cdef class Model:")
         for cls in inspect.getmro(type(self.model)):
             for name, member in vars(cls).items():
                 if isinstance(member, modeltools.IndexProperty):
-                    if (name != "idx_sim") or not interfacebases:
+                    if (name != "idx_sim") or not follows_interface:
                         lines.add(1, f"cdef public {_int} {name}")
         if self.model.parameters:
             lines.add(1, "cdef public Parameters parameters")
         lines.add(1, "cdef public Sequences sequences")
         for name in submodelnames_new:
-            lines.add(1, f"cdef public interfaceutils.BaseInterface {name}")
+            lines.add(1, f"cdef public masterinterface.MasterInterface {name}")
             lines.add(1, f"cdef public {TYPE2STR[bool]} {name}_is_mainmodel")
+            lines.add(1, f"cdef public {TYPE2STR[int]} {name}_typeid")
         for submodel in submodeltypes_old:
             lines.add(1, f"cdef public {submodel.__name__} {submodel.name}")
         if hasattr(self.model, "numconsts"):
@@ -1336,7 +1332,7 @@ class PyxWriter:
                 lines.add(2, f"self.{name}_is_mainmodel = False")
             for submodel in submodeltypes_old:
                 lines.add(2, f"self.{submodel.name} = {submodel.__name__}(self)")
-        baseinterface = "Optional[interfaceutils.BaseInterface]"
+        baseinterface = "Optional[masterinterface.MasterInterface]"
         for name in submodelnames_new:
             lines.add(1, f"def get_{name}(self) -> {baseinterface}:")
             lines.add(2, f"return self.{name}")
@@ -2430,8 +2426,8 @@ nogil:
         ...         return cast(soilinterfaces.SoilModel_V1, model.soilmodel)
         >>> model.calc_test_v3 = MethodType(Calc_Test_V3.__call__, model)
         >>> FuncConverter(model, "calc_test_v3", model.calc_test_v3).pyxlines
-            cpdef inline soilinterfaces.SoilModel_V1 calc_test_v3(self) nogil:
-                return <soilinterfaces.SoilModel_V1>self.soilmodel
+            cpdef inline masterinterface.MasterInterface calc_test_v3(self) nogil:
+                return <masterinterface.MasterInterface>self.soilmodel
         <BLANKLINE>
         """
 
@@ -2439,6 +2435,8 @@ nogil:
             pytype = annotations_[name_]
             if pytype in TYPE2STR:
                 return TYPE2STR[pytype]
+            if pytype.__module__.startswith("hydpy.interfaces."):
+                return "masterinterface.MasterInterface"
             return f"{pytype.__module__.split('.')[-1]}.{pytype.__name__}"
 
         annotations_ = get_type_hints(self.func)
@@ -2460,10 +2458,9 @@ nogil:
             lines.insert(1, f"        cdef {cytype} {name}")
         for idx, line in enumerate(lines):
             if "cast(" in line:
-                part1, part2 = line.split("cast(")
-                part2 = part2.replace(", ", ">", 1).replace(")", "", 1)
-                line = "<".join([part1, part2])
-                lines[idx] = line
+                return_, _, part2 = line.partition("cast(")
+                submodel = part2.partition(", ")[2].replace(")", "", 1)
+                lines[idx] = f"{return_}<masterinterface.MasterInterface>{submodel}"
         return Lines(*lines)
 
 

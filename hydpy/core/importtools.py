@@ -475,10 +475,11 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
         try:
             if isinstance(module, str):
                 module = importlib.import_module(f"hydpy.models.{module}")
-            if not issubclass(submodeltype := module.Model, self.submodelinterface):
+            interface = self.submodelinterface
+            if not issubclass(submodeltype := module.Model, interface):
                 raise TypeError(
                     f"Submodel `{module.__name__.rpartition('.')[2]}` does not comply "
-                    f"with the `{self.submodelinterface.__name__}` interface."
+                    f"with the `{interface.__name__}` interface."
                 )
             shared = self._sharable_configuration
             assert (model := self._model) is not None
@@ -492,7 +493,8 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
             with submodeltype.share_configuration(shared):
                 submodel = prepare_model(module)
                 setattr(model, self.submodelname, submodel)
-                assert isinstance(submodel, self.submodelinterface)
+                setattr(model, f"{self.submodelname}_typeid", interface.typeid)
+                assert isinstance(submodel, interface)
                 self.wrapped(model, submodel)
                 assert (
                     ((frame1 := inspect.currentframe()) is not None)
@@ -606,16 +608,15 @@ def simulationstep(timestep: timetools.PeriodConstrArg) -> None:
         >>> from hydpy import pub
         >>> del pub.timegrids
 
+    >>> from hydpy.core.testtools import warn_later
     >>> from hydpy import pub
-    >>> with pub.options.warnsimulationstep(True):
+    >>> with warn_later(), pub.options.warnsimulationstep(True):
     ...     from hydpy.models.hland_v1 import *
     ...     simulationstep("1h")
     ...     parameterstep("1d")
-    Traceback (most recent call last):
-    ...
-    UserWarning: Note that the applied function `simulationstep` is intended \
-for testing purposes only.  When doing a HydPy simulation, parameter values \
-are initialised based on the actual simulation time step as defined under \
+    UserWarning: Note that the applied function `simulationstep` is intended for \
+testing purposes only.  When doing a HydPy simulation, parameter values are \
+initialised based on the actual simulation time step as defined under \
 `pub.timegrids.stepsize` and the value given to `simulationstep` is ignored.
 
     >>> pub.options.simulationstep
@@ -623,11 +624,11 @@ are initialised based on the actual simulation time step as defined under \
     """
     if hydpy.pub.options.warnsimulationstep:
         warnings.warn(
-            "Note that the applied function `simulationstep` is intended for "
-            "testing purposes only.  When doing a HydPy simulation, parameter "
-            "values are initialised based on the actual simulation time step "
-            "as defined under `pub.timegrids.stepsize` and the value given "
-            "to `simulationstep` is ignored."
+            "Note that the applied function `simulationstep` is intended for testing "
+            "purposes only.  When doing a HydPy simulation, parameter values are "
+            "initialised based on the actual simulation time step as defined under "
+            "`pub.timegrids.stepsize` and the value given to `simulationstep` is "
+            "ignored."
         )
     hydpy.pub.options.simulationstep = timestep
 

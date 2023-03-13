@@ -108,11 +108,11 @@ class Calc_AirTemperature_V1(modeltools.Method):
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        if model.tempmodel.typeid == 1:
+        if model.tempmodel_typeid == 1:
             model.calc_airtemperature_tempmodel_v1(
                 cast(tempinterfaces.TempModel_V1, model.tempmodel)
             )
-        elif model.tempmodel.typeid == 2:
+        elif model.tempmodel_typeid == 2:
             model.calc_airtemperature_tempmodel_v2(
                 cast(tempinterfaces.TempModel_V2, model.tempmodel)
             )
@@ -199,11 +199,11 @@ class Calc_MeanAirTemperature_V1(modeltools.Method):
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        if model.tempmodel.typeid == 1:
+        if model.tempmodel_typeid == 1:
             model.calc_meanairtemperature_tempmodel_v1(
                 cast(tempinterfaces.TempModel_V1, model.tempmodel)
             )
-        elif model.tempmodel.typeid == 2:
+        elif model.tempmodel_typeid == 2:
             model.calc_meanairtemperature_tempmodel_v2(
                 cast(tempinterfaces.TempModel_V2, model.tempmodel)
             )
@@ -808,11 +808,11 @@ class Calc_Precipitation_V1(modeltools.Method):
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        if model.precipmodel.typeid == 1:
+        if model.precipmodel_typeid == 1:
             model.calc_precipitation_precipmodel_v1(
                 cast(precipinterfaces.PrecipModel_V1, model.precipmodel)
             )
-        elif model.precipmodel.typeid == 2:
+        elif model.precipmodel_typeid == 2:
             model.calc_precipitation_precipmodel_v2(
                 cast(precipinterfaces.PrecipModel_V2, model.precipmodel)
             )
@@ -1057,7 +1057,7 @@ class Calc_ReferenceEvapotranspiration_V4(modeltools.Method):
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        if model.retmodel.typeid == 1:
+        if model.retmodel_typeid == 1:
             model.calc_referenceevapotranspiration_petmodel_v1(
                 cast(petinterfaces.PETModel_V1, model.retmodel)
             )
@@ -1607,6 +1607,22 @@ class Model(modeltools.AdHocModel):
     )
     SUBMODELS = ()
 
+    retmodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
+    retmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    retmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    tempmodel = modeltools.SubmodelProperty(
+        tempinterfaces.TempModel_V1, tempinterfaces.TempModel_V2
+    )
+    tempmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    tempmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    precipmodel = modeltools.SubmodelProperty(
+        precipinterfaces.PrecipModel_V1, precipinterfaces.PrecipModel_V2
+    )
+    precipmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    precipmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
 
 class Sub_PETModel_V1(modeltools.AdHocModel, petinterfaces.PETModel_V1):
     """Base class for HydPy-Evap models that comply with the |PETModel_V1| submodel
@@ -1743,6 +1759,7 @@ class Main_PETModel_V1(modeltools.AdHocModel):
 
     retmodel: modeltools.SubmodelProperty
     retmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    retmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
     @importtools.prepare_submodel(
         "retmodel",
@@ -1777,6 +1794,7 @@ class Main_TempModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
 
     tempmodel: modeltools.SubmodelProperty
     tempmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    tempmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
     def add_mainmodel_as_subsubmodel(self, mainmodel: modeltools.Model) -> bool:
         """Add the given main model as a submodel if it complies with the
@@ -1789,6 +1807,8 @@ class Main_TempModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
         >>> evap.tempmodel
         >>> evap.tempmodel_is_mainmodel
         False
+        >>> evap.tempmodel_typeid
+        0
 
         >>> hland = prepare_model("hland_v1")
         >>> evap.add_mainmodel_as_subsubmodel(hland)
@@ -1797,10 +1817,13 @@ class Main_TempModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
         True
         >>> evap.tempmodel_is_mainmodel
         True
+        >>> evap.tempmodel_typeid
+        1
         """
         if isinstance(mainmodel, tempinterfaces.TempModel_V1):
             self.tempmodel = mainmodel
             self.tempmodel_is_mainmodel = True
+            self.tempmodel_typeid = tempinterfaces.TempModel_V1.typeid
             super().add_mainmodel_as_subsubmodel(mainmodel)
             return True
         return super().add_mainmodel_as_subsubmodel(mainmodel)
@@ -1812,6 +1835,7 @@ class Main_TempModel_V2(modeltools.AdHocModel):
 
     tempmodel: modeltools.SubmodelProperty
     tempmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    tempmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
     @importtools.prepare_submodel(
         "tempmodel",
@@ -1848,6 +1872,7 @@ class Main_PrecipModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
 
     precipmodel: modeltools.SubmodelProperty
     precipmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    precipmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
     def add_mainmodel_as_subsubmodel(self, mainmodel: modeltools.Model) -> bool:
         """Add the given main model as a submodel if it complies with the
@@ -1860,6 +1885,8 @@ class Main_PrecipModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
         >>> evap.precipmodel
         >>> evap.precipmodel_is_mainmodel
         False
+        >>> evap.precipmodel_typeid
+        0
 
         >>> hland = prepare_model("hland_v1")
         >>> evap.add_mainmodel_as_subsubmodel(hland)
@@ -1868,10 +1895,13 @@ class Main_PrecipModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
         True
         >>> evap.precipmodel_is_mainmodel
         True
+        >>> evap.precipmodel_typeid
+        1
         """
         if isinstance(mainmodel, precipinterfaces.PrecipModel_V1):
             self.precipmodel = mainmodel
             self.precipmodel_is_mainmodel = True
+            self.precipmodel_typeid = precipinterfaces.PrecipModel_V1.typeid
             super().add_mainmodel_as_subsubmodel(mainmodel)
             return True
         return super().add_mainmodel_as_subsubmodel(mainmodel)
@@ -1883,6 +1913,7 @@ class Main_PrecipModel_V2(modeltools.AdHocModel):
 
     precipmodel: modeltools.SubmodelProperty
     precipmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    precipmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
     @importtools.prepare_submodel(
         "precipmodel",

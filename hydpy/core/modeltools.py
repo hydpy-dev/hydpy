@@ -252,6 +252,8 @@ class SubmodelIsMainmodelProperty:
     >>> from hydpy import prepare_model, pub
     >>> with pub.options.usecython(True):
     ...     model = prepare_model("hland_v1")
+    >>> type(model).petmodel_is_mainmodel._name
+    'petmodel_is_mainmodel'
     >>> model.petmodel_is_mainmodel
     False
     >>> model.cymodel.petmodel_is_mainmodel
@@ -266,8 +268,9 @@ class SubmodelIsMainmodelProperty:
     _owner2value: Dict[Model, bool]
     _name: Final[str]  # type: ignore[misc]
 
-    def __init__(self) -> None:
+    def __init__(self, doc: Optional[str] = None) -> None:
         self._owner2value = {}
+        self.__doc__ = doc
 
     def __set_name__(self, owner: Type[Model], name: str) -> None:
         self._name = name  # type: ignore[misc]
@@ -288,6 +291,60 @@ class SubmodelIsMainmodelProperty:
         return self._owner2value.get(obj, False)
 
     def __set__(self, obj: Model, value: bool) -> None:
+        self._owner2value[obj] = value
+        if (cymodel := obj.cymodel) is not None:
+            setattr(cymodel, self._name, value)
+
+
+class SubmodelTypeIDProperty:
+    """Descriptor for integer "submodel_typeid" attributes.
+
+    |SubmodelTypeIDProperty| instances work like simple integer attributes but silently
+    synchronise the equally named integer attributes of the corresponding cython model,
+    if available:
+
+    >>> from hydpy import prepare_model, pub
+    >>> with pub.options.usecython(True):
+    ...     model = prepare_model("hland_v1")
+    >>> type(model).petmodel_typeid._name
+    'petmodel_typeid'
+    >>> model.petmodel_typeid
+    0
+    >>> model.cymodel.petmodel_typeid
+    0
+    >>> model.petmodel_typeid = 1
+    >>> model.petmodel_typeid
+    1
+    >>> model.cymodel.petmodel_typeid
+    1
+    """
+
+    _owner2value: Dict[Model, int]
+    _name: Final[str]  # type: ignore[misc]
+
+    def __init__(self, doc: Optional[str] = None) -> None:
+        self._owner2value = {}
+        self.__doc__ = doc
+
+    def __set_name__(self, owner: Type[Model], name: str) -> None:
+        self._name = name  # type: ignore[misc]
+
+    @overload
+    def __get__(self, obj: None, objtype: Optional[Type[Model]]) -> Self:
+        ...
+
+    @overload
+    def __get__(self, obj: Model, objtype: Optional[Type[Model]]) -> int:
+        ...
+
+    def __get__(
+        self, obj: Optional[Model], objtype: Optional[Type[Model]] = None
+    ) -> Union[Self, int]:
+        if obj is None:
+            return self
+        return self._owner2value.get(obj, 0)
+
+    def __set__(self, obj: Model, value: int) -> None:
         self._owner2value[obj] = value
         if (cymodel := obj.cymodel) is not None:
             setattr(cymodel, self._name, value)

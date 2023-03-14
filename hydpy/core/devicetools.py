@@ -2903,20 +2903,16 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
     def prepare_allseries(self, allocate_ram: bool = True, jit: bool = False) -> None:
         """Call method |Model.prepare_allseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.prepare_allseries(allocate_ram=allocate_ram, jit=jit)
-        for submodel in self.model.find_submodels().values():
-            submodel.prepare_allseries(allocate_ram=allocate_ram, jit=jit)
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.prepare_allseries(allocate_ram=allocate_ram, jit=jit)
 
     def prepare_inputseries(
         self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
     ) -> None:
         """Call method |Model.prepare_inputseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.prepare_inputseries(
-            allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
-        )
-        for submodel in self.model.find_submodels().values():
-            submodel.prepare_inputseries(
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.prepare_inputseries(
                 allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
             )
 
@@ -2925,99 +2921,84 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
     ) -> None:
         """Call method |Model.prepare_factorseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.prepare_factorseries(allocate_ram=allocate_ram, write_jit=write_jit)
-        for submodel in self.model.find_submodels().values():
-            submodel.prepare_factorseries(
-                allocate_ram=allocate_ram, write_jit=write_jit
-            )
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.prepare_factorseries(allocate_ram=allocate_ram, write_jit=write_jit)
 
     def prepare_fluxseries(
         self, allocate_ram: bool = True, write_jit: bool = False
     ) -> None:
         """Call method |Model.prepare_fluxseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.prepare_fluxseries(allocate_ram=allocate_ram, write_jit=write_jit)
-        for submodel in self.model.find_submodels().values():
-            submodel.prepare_fluxseries(allocate_ram=allocate_ram, write_jit=write_jit)
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.prepare_fluxseries(allocate_ram=allocate_ram, write_jit=write_jit)
 
     def prepare_stateseries(
         self, allocate_ram: bool = True, write_jit: bool = False
     ) -> None:
         """Call method |Model.prepare_stateseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.prepare_stateseries(allocate_ram=allocate_ram, write_jit=write_jit)
-        for submodel in self.model.find_submodels().values():
-            submodel.prepare_stateseries(allocate_ram=allocate_ram, write_jit=write_jit)
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.prepare_stateseries(allocate_ram=allocate_ram, write_jit=write_jit)
 
     def load_allseries(self) -> None:
         """Call method |Model.load_allseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.load_allseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.load_allseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.load_allseries()
 
     def load_inputseries(self) -> None:
         """Call method |Model.load_inputseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.load_inputseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.load_inputseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.load_inputseries()
 
     def load_factorseries(self) -> None:
         """Call method |Model.load_factorseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.load_factorseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.load_factorseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.load_factorseries()
 
     def load_fluxseries(self) -> None:
         """Call method |Model.load_fluxseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.load_fluxseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.load_fluxseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.load_fluxseries()
 
     def load_stateseries(self) -> None:
         """Call method |Model.load_stateseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.load_stateseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.load_stateseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.load_stateseries()
 
     def save_allseries(self) -> None:
         """Call method |Model.save_allseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.save_allseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.save_allseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.save_allseries()
 
     def save_inputseries(self) -> None:
         """Call method |Model.save_inputseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.save_inputseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.save_inputseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.save_inputseries()
 
     def save_factorseries(self) -> None:
         """Call method |Model.save_factorseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.save_factorseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.save_factorseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.save_factorseries()
 
     def save_fluxseries(self) -> None:
         """Call method |Model.save_fluxseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.save_fluxseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.save_fluxseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.save_fluxseries()
 
     def save_stateseries(self) -> None:
         """Call method |Model.save_stateseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.save_stateseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.save_stateseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.save_stateseries()
 
     def _plot_series(
         self,

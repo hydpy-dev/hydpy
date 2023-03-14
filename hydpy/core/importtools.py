@@ -487,7 +487,7 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
             if (ltr := self._landtype_refindices) is not None:
                 shared["landtype_refindices"] = getattr(control, ltr.name)
             if (str_ := self._soiltype_refindices) is not None:
-                shared["landtype_refindices"] = getattr(control, str_.name)
+                shared["soiltype_refindices"] = getattr(control, str_.name)
             if (rw := self._refweights) is not None:
                 shared["refweights"] = getattr(control, rw.name)
             with submodeltype.share_configuration(shared):

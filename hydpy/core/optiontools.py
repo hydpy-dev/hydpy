@@ -903,7 +903,7 @@ class Options:
         only for good reasons.""",
     )
     usecython = OptionPropertyBool(
-        False,
+        True,
         """A True/False flag for applying cythonized models if possible, which are much 
         faster than pure Python models. """,
     )

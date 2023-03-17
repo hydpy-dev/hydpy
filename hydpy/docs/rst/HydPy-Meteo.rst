@@ -21,6 +21,7 @@ Base model:
 Application models:
 
 .. toctree::
+   :maxdepth: 1
 
    meteo_v001 (global radiation, FAO) <meteo_v001>
    meteo_v002 (sunshine duration, FAO) <meteo_v002>

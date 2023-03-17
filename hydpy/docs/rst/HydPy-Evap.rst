@@ -17,6 +17,7 @@ Base model:
 Application models:
 
 .. toctree::
+   :maxdepth: 1
 
    Evap-IO <evap_io>
    Evap-FAO-56 <evap_fao56>

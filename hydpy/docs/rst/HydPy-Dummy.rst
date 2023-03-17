@@ -27,5 +27,6 @@ Base model:
 Application model:
 
 .. toctree::
+   :maxdepth: 1
 
    dummy_v1

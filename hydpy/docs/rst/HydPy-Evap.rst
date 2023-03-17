@@ -24,5 +24,6 @@ Base model:
 Application model:
 
 .. toctree::
+   :maxdepth: 1
 
    evap_v001 (FAO) <evap_v001>

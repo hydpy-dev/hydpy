@@ -21,6 +21,7 @@ Base model:
 Application model:
 
 .. toctree::
+   :maxdepth: 1
 
    conv_v001
    conv_v002

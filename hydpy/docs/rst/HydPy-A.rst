@@ -31,5 +31,6 @@ Base model:
 Application model:
 
 .. toctree::
+   :maxdepth: 1
 
    arma_v1

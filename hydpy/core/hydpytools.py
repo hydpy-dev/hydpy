@@ -1198,11 +1198,11 @@ deprecated.  Use method `prepare_models` instead.
         coefficients(auxfile="stream")
         <BLANKLINE>
 
-        In the `LahnH` example project, all |hland_v1| instances use an |evap_hbv96|
-        submodel for calculating potential evapotranspiration.  The discussed writing
-        mechanisms include such submodels automatically.  The written files rely on the
-        preferred "with" block syntax for adding submodels and defining their parameter
-        values:
+        In the `LahnH` example project, all |hland_v1| instances use an
+        |evap_pet_hbv96| submodel for calculating potential evapotranspiration.  The
+        discussed writing mechanisms include such submodels automatically.  The written
+        files rely on the preferred "with" block syntax for adding submodels and
+        defining their parameter values:
 
         >>> with TestIO():
         ...     with open(dir_ + "land_dill.py") as controlfile:
@@ -1210,7 +1210,7 @@ deprecated.  Use method `prepare_models` instead.
         # -*- coding: utf-8 -*-
         <BLANKLINE>
         from hydpy.models.hland_v1 import *
-        from hydpy.models import evap_hbv96
+        from hydpy.models import evap_pet_hbv96
         <BLANKLINE>
         simulationstep("1h")
         parameterstep("2d")
@@ -1218,7 +1218,7 @@ deprecated.  Use method `prepare_models` instead.
         area(692.3)
         ...
         maxbaz(0.18364)
-        with model.add_petmodel_v1(evap_hbv96):
+        with model.add_petmodel_v1(evap_pet_hbv96):
             evapotranspirationfactor(1.0)
             altitudefactor(0.0)
             precipitationfactor(0.01)
@@ -1228,11 +1228,11 @@ deprecated.  Use method `prepare_models` instead.
         When delegating parameter value definitions to auxiliary files, it makes no
         difference if these parameters are members of a main model or a submodel:
 
-        >>> auxfiler = Auxfiler("evap_hbv96")
+        >>> auxfiler = Auxfiler("evap_pet_hbv96")
         >>> for element in hp.elements.search_keywords("catchment"):
         ...     atf = element.model.petmodel.parameters.control.airtemperaturefactor
         ...     atf(field=0.2, forest=0.1)
-        >>> auxfiler.evap_hbv96.add_parameter(
+        >>> auxfiler.evap_pet_hbv96.add_parameter(
         ...     atf, filename="evap", keywordarguments=atf.keywordarguments)
         >>> with TestIO():
         ...     hp.save_controls(
@@ -1241,7 +1241,7 @@ deprecated.  Use method `prepare_models` instead.
         ...         print(controlfile.read())  # doctest: +ELLIPSIS
         # -*- coding: utf-8 -*-
         <BLANKLINE>
-        from hydpy.models.evap_hbv96 import *
+        from hydpy.models.evap_pet_hbv96 import *
         <BLANKLINE>
         simulationstep("1h")
         parameterstep("2d")
@@ -1254,7 +1254,7 @@ deprecated.  Use method `prepare_models` instead.
         # -*- coding: utf-8 -*-
         ...
         maxbaz(0.18364)
-        with model.add_petmodel_v1(evap_hbv96):
+        with model.add_petmodel_v1(evap_pet_hbv96):
             evapotranspirationfactor(1.0)
             altitudefactor(0.0)
             precipitationfactor(0.01)

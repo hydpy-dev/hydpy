@@ -65,11 +65,11 @@
 
             <reader info="read during initialisation">
                 <sequences>
-                    <evap_hbv96>
+                    <evap_pet_hbv96>
                         <inputs>
                             <normalairtemperature/>
                         </inputs>
-                    </evap_hbv96>
+                    </evap_pet_hbv96>
                     <hland_v1>
                         <inputs>
                             <t/>
@@ -80,11 +80,11 @@
 
             <reader info="read during simulation">
                 <sequences>
-                    <evap_hbv96>
+                    <evap_pet_hbv96>
                         <inputs>
                             <normalevapotranspiration/>
                         </inputs>
-                    </evap_hbv96>
+                    </evap_pet_hbv96>
                     <hland_v1>
                         <inputs>
                             <p/>
@@ -114,11 +114,11 @@
             <writer info="temperature">
                 <directory>temperature</directory>
                 <sequences>
-                    <evap_hbv96>
+                    <evap_pet_hbv96>
                         <inputs>
                             <normalairtemperature/>
                         </inputs>
-                    </evap_hbv96>
+                    </evap_pet_hbv96>
                     <hland_v1>
                         <inputs>
                             <t/>

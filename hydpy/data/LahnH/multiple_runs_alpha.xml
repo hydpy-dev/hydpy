@@ -33,12 +33,12 @@
         <readers>
             <reader info="all input data">
                 <sequences>
-                    <evap_hbv96>
+                    <evap_pet_hbv96>
                         <inputs>
                             <normalairtemperature/>
                             <normalevapotranspiration/>
                         </inputs>
-                    </evap_hbv96>
+                    </evap_pet_hbv96>
                     <hland_v1>
                         <inputs>
                             <p/>

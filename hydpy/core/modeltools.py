@@ -1129,13 +1129,13 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
 
         >>> from hydpy import prepare_model, pub
         >>> model = prepare_model("hland_v1")
-        >>> model.petmodel = prepare_model("evap_hbv96")
+        >>> model.petmodel = prepare_model("evap_pet_hbv96")
         >>> pub.timegrids = "2000.01.01", "2001.01.01", "1h"
         >>> print(model.get_controlfileheader())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
         from hydpy.models.hland_v1 import *
-        from hydpy.models import evap_hbv96
+        from hydpy.models import evap_pet_hbv96
         <BLANKLINE>
         simulationstep("1h")
         parameterstep("1d")
@@ -1574,10 +1574,10 @@ to be consistent with the name of the element handling the model.
 
         >>> model.find_submodels(include_optional=True)
         {'model.petmodel': None, 'model.soilmodel': None}
-        >>> model.petmodel = prepare_model("evap_hbv96")
+        >>> model.petmodel = prepare_model("evap_pet_hbv96")
         >>> from pprint import pprint
         >>> pprint(model.find_submodels(include_optional=True))  # doctest: +ELLIPSIS
-        {'model.petmodel': <hydpy.models.evap_hbv96.Model object at ...>,
+        {'model.petmodel': <hydpy.models.evap_pet_hbv96.Model object at ...>,
          'model.petmodel.precipmodel': None,
          'model.petmodel.tempmodel': None,
          'model.soilmodel': None}
@@ -1588,7 +1588,7 @@ to be consistent with the name of the element handling the model.
         >>> model.petmodel.precipmodel = model
         >>> model.petmodel.precipmodel_is_mainmodel = True
         >>> pprint(model.find_submodels(include_optional=True))  # doctest: +ELLIPSIS
-        {'model.petmodel': <hydpy.models.evap_hbv96.Model object at ...>,
+        {'model.petmodel': <hydpy.models.evap_pet_hbv96.Model object at ...>,
          'model.petmodel.tempmodel': None,
          'model.soilmodel': None}
 
@@ -1598,7 +1598,7 @@ to be consistent with the name of the element handling the model.
         >>> pprint(model.find_submodels(include_mainmodel=True,
         ...     include_optional=True, include_feedbacks=True))  # doctest: +ELLIPSIS
         {'model': <hydpy.models.lland_v1.Model object at ...>,
-         'model.petmodel': <hydpy.models.evap_hbv96.Model object at ...>,
+         'model.petmodel': <hydpy.models.evap_pet_hbv96.Model object at ...>,
          'model.petmodel.precipmodel': <hydpy.models.lland_v1.Model object at ...>,
          'model.petmodel.tempmodel': None,
          'model.soilmodel': None}

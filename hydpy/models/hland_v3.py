@@ -94,7 +94,7 @@ We assign identical values to all parameters, besides those that are specific to
 >>> nmbstorages(5)
 >>> recstep(100)
 
->>> with model.add_petmodel_v1("evap_hbv96"):
+>>> with model.add_petmodel_v1("evap_pet_hbv96"):
 ...     evapotranspirationfactor(0.7)
 ...     airtemperaturefactor(0.1)
 ...     altitudefactor(-0.1)

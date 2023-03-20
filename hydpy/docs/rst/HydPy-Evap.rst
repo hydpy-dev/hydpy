@@ -22,6 +22,6 @@ Application models:
    Evap-IO <evap_io>
    Evap-FAO-56 <evap_fao56>
    Evap-TW-2002 <evap_tw2002>
-   Evap-HBV96 <evap_hbv96>
+   Evap-PET-HBV96 <evap_pet_hbv96>
    Evap-M <evap_m>
    Evap-MLC <evap_mlc>

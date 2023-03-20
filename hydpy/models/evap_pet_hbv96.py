@@ -3,12 +3,12 @@
 """Implementation of the potential evapotranspiration routines of HBV96
 :cite:p:`ref-Lindstrom1997HBV96`.
 
-The primary purpose of |evap_hbv96| is to serve as a submodel that provides estimates
-of potential evapotranspiration.  Of course, you can connect it to |hland_v1| if you
-long for a close HBV96 emulation, but it also works with other main models like
+The primary purpose of |evap_pet_hbv96| is to serve as a submodel that provides
+estimates of potential evapotranspiration.  Of course, you can connect it to |hland_v1|
+if you long for a close HBV96 emulation, but it also works with other main models like
 |lland_v1| or |wland_v001|.
 
-|evap_hbv96| itself requires other models for determining temperature and
+|evap_pet_hbv96| itself requires other models for determining temperature and
 precipitation.  By default, it queries the already available data from its main model.
 Alternatively, it can handle its own submodels.  The following tests rely on the latter
 option.
@@ -18,12 +18,12 @@ Integration tests
 
 .. how_to_understand_integration_tests::
 
-According to the intended usage as a submodel, |evap_hbv96| requires no connections to
-any nodes.  Hence, assigning a model instance to a blank |Element| instance is
+According to the intended usage as a submodel, |evap_pet_hbv96| requires no connections
+to any nodes.  Hence, assigning a model instance to a blank |Element| instance is
 sufficient:
 
 >>> from hydpy import Element
->>> from hydpy.models.evap_hbv96 import *
+>>> from hydpy.models.evap_pet_hbv96 import *
 >>> parameterstep("1h")
 >>> element = Element("element")
 >>> element.model = model

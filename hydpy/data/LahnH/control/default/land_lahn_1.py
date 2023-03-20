@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from hydpy.models.hland_v1 import *
-from hydpy.models import evap_hbv96
+from hydpy.models import evap_pet_hbv96
 
 simulationstep("1h")
 parameterstep("1d")
@@ -21,7 +21,7 @@ rfcf(0.885)
 sfcf(1.3203)
 tcorr(0.0)
 tcalt(0.6)
-with model.add_petmodel_v1(evap_hbv96):
+with model.add_petmodel_v1(evap_pet_hbv96):
     airtemperaturefactor(0.1)
     altitudefactor(0.0)
     precipitationfactor(0.02)

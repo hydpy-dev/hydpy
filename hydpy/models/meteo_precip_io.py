@@ -3,7 +3,7 @@
 """Submodel for reading precipitation data.
 
 Use |meteo_precip_io| as a submodel for supplying (relative) main models like
-|evap_hbv96| with externally available precipitation time series.
+|evap_pet_hbv96| with externally available precipitation time series.
 
 Integration tests
 =================

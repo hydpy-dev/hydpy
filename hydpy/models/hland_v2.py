@@ -84,7 +84,7 @@ with the fixed-shape triangular response function of |hland_v1|:
 >>> resparea(False)
 >>> recstep(100)
 
->>> with model.add_petmodel_v1("evap_hbv96"):
+>>> with model.add_petmodel_v1("evap_pet_hbv96"):
 ...     evapotranspirationfactor(0.7)
 ...     airtemperaturefactor(0.1)
 ...     altitudefactor(-0.1)

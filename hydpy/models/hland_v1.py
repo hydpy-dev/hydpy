@@ -13,7 +13,7 @@ The following list summarises the main components of |hland_v1|:
 
  * Apply different correction factors to the liquid and the frozen amount of
    precipitation.
- * Use a submodel like |evap_hbv96| for calculating potential evapotranspiration.
+ * Use a submodel like |evap_pet_hbv96| for calculating potential evapotranspiration.
  * Simulate interception via simple "bucket" storages.
  * Reflect local spatial heterogeneity of snow by defining snow classes.
  * Redistribute snow from higher to lower zones to prevent "snow towers" in high
@@ -127,10 +127,10 @@ methods on the shown results:
 >>> maxbaz(3.0)
 
 |hland_v1| requires a submodel for calculating potential evapotranspiration.
-Therefore, we select |evap_hbv96|, which also closely follows equations used by HBV96
-:cite:p:`ref-Lindstrom1997HBV96`:
+Therefore, we select |evap_pet_hbv96|, which also closely follows equations used by
+HBV96 :cite:p:`ref-Lindstrom1997HBV96`:
 
->>> with model.add_petmodel_v1("evap_hbv96"):
+>>> with model.add_petmodel_v1("evap_pet_hbv96"):
 ...     evapotranspirationfactor(0.7)
 ...     airtemperaturefactor(0.1)
 ...     altitudefactor(-0.1)

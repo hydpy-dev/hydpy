@@ -353,7 +353,7 @@ class SubmodelAdder(_DoctestAdder, Generic[TM, TI]):
     >>> ft(10.0)
     >>> fhru(0.2, 0.8)
     >>> lnk(ACKER, MISCHW)
-    >>> with model.add_petmodel_v1("evap_hbv96"):
+    >>> with model.add_petmodel_v1("evap_pet_hbv96"):
     ...     nhru
     ...     nmbhru
     ...     hruarea

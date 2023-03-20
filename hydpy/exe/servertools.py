@@ -1387,7 +1387,7 @@ under the id `0`.  There is nothing registered, so far.
     # -*- coding: utf-8 -*-
     <BLANKLINE>
     from hydpy.models.hland_v1 import *
-    from hydpy.models import evap_hbv96
+    from hydpy.models import evap_pet_hbv96
     <BLANKLINE>
     simulationstep("1d")
     parameterstep("1d")

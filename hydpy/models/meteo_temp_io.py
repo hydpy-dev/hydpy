@@ -3,7 +3,7 @@
 """Submodel for reading temperature data.
 
 Use |meteo_precip_io| as a submodel for supplying (relative) main models like
-|evap_hbv96| with externally available temperature time series.
+|evap_pet_hbv96| with externally available temperature time series.
 
 Integration tests
 =================

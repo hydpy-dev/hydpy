@@ -127,7 +127,7 @@ class Calc_MeanAirTemperature_TempModel_V1(modeltools.Method):
 
     Example:
 
-        We use the combination of |hland_v1| and |evap_hbv96| as an example:
+        We use the combination of |hland_v1| and |evap_pet_hbv96| as an example:
 
         >>> from hydpy.models.hland_v1 import *
         >>> parameterstep()
@@ -136,7 +136,7 @@ class Calc_MeanAirTemperature_TempModel_V1(modeltools.Method):
         >>> zonearea(5.0, 3.0, 2.0)
         >>> zonetype(FIELD)
         >>> zonez(2.0)
-        >>> with model.add_petmodel_v1("evap_hbv96"):
+        >>> with model.add_petmodel_v1("evap_pet_hbv96"):
         ...     pass
         >>> inputs.t = 2.0
         >>> model.petmodel.calc_meanairtemperature_v1()
@@ -160,9 +160,9 @@ class Calc_MeanAirTemperature_TempModel_V2(modeltools.Method):
 
     Example:
 
-        We use the combination of |evap_hbv96| and |meteo_temp_io| as an example:
+        We use the combination of |evap_pet_hbv96| and |meteo_temp_io| as an example:
 
-        >>> from hydpy.models.evap_hbv96 import *
+        >>> from hydpy.models.evap_pet_hbv96 import *
         >>> parameterstep()
         >>> nmbhru(3)
         >>> hruarea(0.5, 0.3, 0.2)
@@ -729,7 +729,7 @@ class Calc_Precipitation_PrecipModel_V1(modeltools.Method):
 
     Example:
 
-        We use the combination of |hland_v1| and |evap_hbv96| as an example:
+        We use the combination of |hland_v1| and |evap_pet_hbv96| as an example:
 
         >>> from hydpy.models.hland_v1 import *
         >>> parameterstep()
@@ -738,7 +738,7 @@ class Calc_Precipitation_PrecipModel_V1(modeltools.Method):
         >>> zonearea(5.0, 3.0, 2.0)
         >>> zonetype(FIELD)
         >>> zonez(2.0)
-        >>> with model.add_petmodel_v1("evap_hbv96"):
+        >>> with model.add_petmodel_v1("evap_pet_hbv96"):
         ...     pass
         >>> fluxes.pc(1.0, 3.0, 2.0)
         >>> model.petmodel.calc_precipitation_v1()
@@ -765,9 +765,9 @@ class Calc_Precipitation_PrecipModel_V2(modeltools.Method):
 
     Example:
 
-        We use the combination of |evap_hbv96| and |meteo_precip_io| as an example:
+        We use the combination of |evap_pet_hbv96| and |meteo_precip_io| as an example:
 
-        >>> from hydpy.models.evap_hbv96 import *
+        >>> from hydpy.models.evap_pet_hbv96 import *
         >>> parameterstep()
         >>> nmbhru(3)
         >>> hruarea(0.5, 0.3, 0.2)
@@ -1801,7 +1801,7 @@ class Main_TempModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
         |TempModel_V1| interface.
 
         >>> from hydpy import prepare_model
-        >>> evap = prepare_model("evap_hbv96")
+        >>> evap = prepare_model("evap_pet_hbv96")
         >>> evap.add_mainmodel_as_subsubmodel(prepare_model("evap_io"))
         False
         >>> evap.tempmodel
@@ -1847,7 +1847,7 @@ class Main_TempModel_V2(modeltools.AdHocModel):
         """Initialise the given precipitation model that follows the |TempModel_V2|
         interface and set the number and the subareas of its zones.
 
-        >>> from hydpy.models.evap_hbv96 import *
+        >>> from hydpy.models.evap_pet_hbv96 import *
         >>> simulationstep("1d")
         >>> parameterstep("1d")
         >>> nmbhru(2)
@@ -1879,7 +1879,7 @@ class Main_PrecipModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
         |PrecipModel_V1| interface.
 
         >>> from hydpy import prepare_model
-        >>> evap = prepare_model("evap_hbv96")
+        >>> evap = prepare_model("evap_pet_hbv96")
         >>> evap.add_mainmodel_as_subsubmodel(prepare_model("evap_io"))
         False
         >>> evap.precipmodel
@@ -1925,7 +1925,7 @@ class Main_PrecipModel_V2(modeltools.AdHocModel):
         """Initialise the given precipitation model that follows the |PrecipModel_V2|
         interface and set the number and the subareas of its zones.
 
-        >>> from hydpy.models.evap_hbv96 import *
+        >>> from hydpy.models.evap_pet_hbv96 import *
         >>> parameterstep()
         >>> nmbhru(2)
         >>> hruarea(2.0, 8.0)

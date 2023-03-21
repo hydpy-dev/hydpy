@@ -148,6 +148,19 @@ class UH2(parametertools.Parameter):
         >>> numpy.sum(derived.uh2)
         1.0
 
+        |X4| smaller or equal to 0.5
+        >>> x4(0.5)
+        >>> derived.uh2.update()
+        >>> logs.quh2.shape
+        (2,)
+        >>> derived.uh2
+        uh2(1.0, 0.0)
+
+        Check for sum equal to 1
+        >>> import numpy
+        >>> numpy.sum(derived.uh2)
+        1.0
+
         """
         x4 = self.subpars.pars.control.x4
         quh2 = self.subpars.pars.model.sequences.logs.quh2
@@ -260,6 +273,40 @@ class ZLayers(parametertools.Parameter):
         zlayers(749.4, 1022.6, 1166.8, 1277.0, 1350.2, 1424.0, 1498.0, 1573.0,
                 1636.0, 1705.0, 1759.0, 1813.0, 1867.0, 1919.0, 1976.0, 2047.0,
                 2146.0)
+
+        Number of snow layers = 100:
+
+        >>> nsnowlayers(100)
+
+        >>> derived.zlayers.update()
+        >>> derived.zlayers
+        zlayers(471.0, 656.2, 749.4, 808.0, 868.0, 908.0, 948.0, 991.2, 1022.6,
+                1052.0, 1075.0, 1101.0, 1120.4, 1147.6, 1166.8, 1185.0, 1210.0,
+                1229.0, 1242.0, 1259.0, 1277.0, 1291.0, 1305.4, 1318.0, 1328.0,
+                1340.0, 1350.2, 1366.4, 1377.0, 1389.0, 1402.0, 1413.0, 1424.0,
+                1435.0, 1448.8, 1460.0, 1474.2, 1487.4, 1498.0, 1511.0, 1523.0,
+                1538.0, 1551.4, 1564.0, 1573.0, 1584.0, 1593.0, 1603.4, 1614.0,
+                1626.0, 1636.0, 1648.0, 1661.4, 1672.0, 1682.0, 1693.0, 1705.0,
+                1715.0, 1724.0, 1733.0, 1742.0, 1751.0, 1759.0, 1768.0, 1777.0,
+                1787.0, 1795.0, 1802.0, 1813.0, 1822.0, 1832.0, 1840.0, 1849.0,
+                1857.6, 1867.0, 1874.0, 1882.2, 1891.0, 1899.0, 1908.8, 1919.0,
+                1931.0, 1941.0, 1948.0, 1957.8, 1965.0, 1976.0, 1987.0, 1999.0,
+                2013.0, 2027.0, 2047.0, 2058.0, 2078.0, 2097.0, 2117.0, 2146.0,
+                2177.0, 2220.6, 2263.6)
+
+        Number of snow layers = 50:
+
+        >>> nsnowlayers(50)
+
+        >>> derived.zlayers.update()
+        >>> derived.zlayers
+        zlayers(563.6, 778.7, 888.0, 969.6, 1037.3, 1088.0, 1134.0, 1175.9,
+                1219.5, 1250.5, 1284.0, 1311.7, 1334.0, 1358.3, 1383.0, 1407.5,
+                1429.5, 1454.4, 1480.8, 1504.5, 1530.5, 1557.7, 1578.5, 1598.2,
+                1620.0, 1642.0, 1666.7, 1687.5, 1710.0, 1728.5, 1746.5, 1763.5,
+                1782.0, 1798.5, 1817.5, 1836.0, 1853.3, 1870.5, 1886.6, 1903.9,
+                1925.0, 1944.5, 1961.4, 1981.5, 2006.0, 2037.0, 2068.0, 2107.0,
+                2161.5, 2242.1)
         """
         con = self.subpars.pars.control.fastaccess
         self.shape = con.nsnowlayers
@@ -270,7 +317,7 @@ class ZLayers(parametertools.Parameter):
         for ilayer in range(con.nsnowlayers):
             if nreste > 0:
                 nn = nmoy + 1
-                nreste = nreste - 1
+                nreste -= 1
             else:
                 nn = nmoy
             if nn == 1:
@@ -314,6 +361,5 @@ class GThresh(parametertools.Parameter):
         """
         con = self.subpars.pars.control.fastaccess
         self.shape = con.nsnowlayers
-        gthresh = self.values
         gthresh = numpy.array(con.meanansolidprecip) * con.cn4
         self(gthresh)

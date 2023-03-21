@@ -5,6 +5,7 @@
 # from site-packages
 
 # ...from HydPy
+from hydpy.core import exceptiontools
 from hydpy.core import parametertools
 
 # ...from grxjland
@@ -47,20 +48,21 @@ class NSnowLayers(parametertools.Parameter):
         snow parameter objects and sequence objects
         additionally.
         """
+        old_value = exceptiontools.getattr_(self, "value", None)
         super().__call__(*args, **kwargs)
-        self.subpars.pars.model.parameters.control.meanansolidprecip.shape = self.value
-        for der in self.subpars.pars.model.parameters.derived:
-            if (der.NDIM > 0) and (der.name not in ("uh1", "uh2")):
-                der.shape = self.value
-        for seq in self.subpars.pars.model.sequences.fluxes:
-            if seq.NDIM > 0:
-                seq.shape = self.value
-        for seq in self.subpars.pars.model.sequences.inputs:
-            if seq.NDIM > 0:
-                seq.shape = self.value
-        for seq in self.subpars.pars.model.sequences.states:
-            if seq.NDIM > 0:
-                seq.shape = self.value
+        new_value = self.value
+
+        if new_value != old_value:
+            self.subpars.pars.model.parameters.control.meanansolidprecip.shape = (
+                new_value
+            )
+            for der in self.subpars.pars.model.parameters.derived:
+                if (der.NDIM > 0) and (der.name not in ("uh1", "uh2")):
+                    der.shape = self.value
+            for subseqs in self.subpars.pars.model.sequences:
+                for seq in subseqs:
+                    if seq.NDIM > 0:
+                        seq.shape = self.value
 
 
 class HypsoData(parametertools.Parameter):

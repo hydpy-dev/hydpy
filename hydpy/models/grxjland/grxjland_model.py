@@ -35,7 +35,7 @@ class Calc_PSnowLayer_V1(modeltools.Method):
         >>> fluxes.player
         player(5.656033, 6.494091, 7.156799, 7.755659, 8.387418)
 
-        Elevation of ZLayers > 4000, precipitation doesn't changes with elevation any
+        Elevation of ZLayers >  4000, precipitation doesn't changes with elevation any
         more:
 
         >>> derived.zlayers(1052., 1389., 1626., 4500., 6300.)
@@ -43,6 +43,14 @@ class Calc_PSnowLayer_V1(modeltools.Method):
         >>> fluxes.player
         player(3.505863, 4.02533, 4.436105, 11.741351, 11.741351)
 
+        Elevation of ZLayers exactly 4000:
+
+        >>> derived.zlayers(3998., 3999., 4000., 4001., 4002.)
+        >>> model.calc_psnowlayer_v1()
+
+        # todo
+        >>> fluxes.player
+        player(8.090406, 8.093724, 3.071785, 8.097043, 8.097043)
     """
 
     CONTROLPARAMETERS = (
@@ -504,6 +512,26 @@ class Calc_FracSolidPrec_V2(modeltools.Method):
         >>> fluxes.prainlayer
         prainlayer(4.683964, 3.892389, 2.974618, 1.912278, 0.539762)
 
+        #todo: Macht doch gar keinen Sinn
+
+        >>> z(1499)
+        >>> model.calc_fracsolidprec_v2()
+        >>> fluxes.solidfraction
+        solidfraction(0.171864, 0.400626, 0.584365, 0.753434, 0.935646)
+        >>> fluxes.psnowlayer
+        psnowlayer(0.972069, 2.601702, 4.182181, 5.843381, 7.847656)
+        >>> fluxes.prainlayer
+        prainlayer(4.683964, 3.892389, 2.974618, 1.912278, 0.539762)
+
+        >>> z(1500)
+        >>> model.calc_fracsolidprec_v2()
+        >>> fluxes.solidfraction
+        solidfraction(0.518447, 0.884092, 1.0, 1.0, 1.0)
+        >>> fluxes.psnowlayer
+        psnowlayer(2.932356, 5.741377, 7.156799, 7.755659, 8.387418)
+        >>> fluxes.prainlayer
+        prainlayer(2.723677, 0.752714, 0.0, 0.0, 0.0)
+
     """
 
     CONTROLPARAMETERS = (
@@ -687,65 +715,65 @@ class Calc_SnowPack_V2(modeltools.Method):
         >>> ret = pub.options.reprdigits(6)
         >>> parameterstep('1d')
         >>> simulationstep('1d')
-        >>> nsnowlayers(5)
-        >>> meanansolidprecip(83., 83., 83., 83., 83.)
+        >>> nsnowlayers(6)
+        >>> meanansolidprecip(83., 83., 83., 83., 83., 0.)
         >>> cn1(0.962)
         >>> cn2(2.249)
         >>> cn3(100.)
         >>> cn4(0.4)
         >>> derived.gthresh.update()
-        >>> fluxes.tlayer =  -0.22318, -0.67402, -1.17348, -1.77018, -2.63208
+        >>> fluxes.tlayer =  -0.22318, -0.67402, -1.17348, -1.77018, -2.63208, -2.63208
         >>> fluxes.psnowlayer =  (0.07273111, 0.086444894,  0.09857770,  0.10418780,
-        ...                       0.11285966)
-        >>> states.g = 0., 0., 0., 0., 0.
-        >>> states.etg = 0., 0., 0., 0., 0.
-        >>> states.gratio = 0., 0., 0., 0., 0.
+        ...                       0.11285966, 0.11285966)
+        >>> states.g = 0., 0., 0., 0., 0., 0.
+        >>> states.etg = 0., 0., 0., 0., 0., 0.
+        >>> states.gratio = 0., 0., 0., 0., 0., 0.
         >>> states.glocalmax = derived.gthresh
         >>> model.calc_snowpack_v2()
         >>> states.g
-        g(0.072731, 0.086445, 0.098578, 0.104188, 0.11286)
+        g(0.072731, 0.086445, 0.098578, 0.104188, 0.11286, 0.11286)
         >>> states.etg
-        etg(-0.008481, -0.025613, -0.044592, -0.067267, -0.100019)
+        etg(-0.008481, -0.025613, -0.044592, -0.067267, -0.100019, -0.100019)
         >>> states.gratio
-        gratio(0.000727, 0.000864, 0.000986, 0.001042, 0.001129)
+        gratio(0.000727, 0.000864, 0.000986, 0.001042, 0.001129, 0.001129)
         >>> fluxes.potmelt
-        potmelt(0.0, 0.0, 0.0, 0.0, 0.0)
+        potmelt(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         >>> fluxes.melt
-        melt(0.0, 0.0, 0.0, 0.0, 0.0)
+        melt(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
-        New Input data
+        New Input data  # todo was zeigt neuer Input?
 
-        >>> fluxes.tlayer = 2.18124, 1.72836, 1.22664, 0.62724, -0.23856
+        >>> fluxes.tlayer = 2.18124, 1.72836, 1.22664, 0.62724, -0.23856, -0.23856
         >>> fluxes.psnowlayer = (0.03695066, 0.059840058, 0.08740688, 0.12360633,
-        ...                      0.18275139)
+        ...                      0.18275139, 0.18275139)
         >>> model.calc_snowpack_v2()
         >>> states.g
-        g(0.098387, 0.131076, 0.166448, 0.227794, 0.295611)
+        g(0.098387, 0.131076, 0.166448, 0.227794, 0.295611, 0.295611)
         >>> states.etg
-        etg(0.0, 0.0, 0.0, -0.040876, -0.105284)
+        etg(0.0, 0.0, 0.0, -0.040876, -0.105284, -0.105284)
         >>> states.gratio
-        gratio(0.00356, 0.004852, 0.006281, 0.002278, 0.002956)
+        gratio(0.00356, 0.004852, 0.006281, 0.002278, 0.002956, 0.002956)
         >>> fluxes.potmelt
-        potmelt(0.109682, 0.146285, 0.185985, 0.0, 0.0)
+        potmelt(0.109682, 0.146285, 0.185985, 0.0, 0.0, 0.0)
         >>> fluxes.melt
-        melt(0.011294, 0.015209, 0.019536, 0.0, 0.0)
+        melt(0.011294, 0.015209, 0.019536, 0.0, 0.0, 0.0)
 
-        New Input data
+        New Input data # todo was zeigt neuer Input?
 
-        >>> fluxes.tlayer = 3.58345, 3.12955, 2.62670, 2.02595, 1.15820
-        >>> fluxes.psnowlayer = 0., 0., 0.26679315, 0.73575994, 1.50702064
+        >>> fluxes.tlayer = 3.58345, 3.12955, 2.62670, 2.02595, 1.15820, 1.15820
+        >>> fluxes.psnowlayer = 0., 0., 0.26679315, 0.73575994, 1.50702064, 1.50702064
 
         >>> model.calc_snowpack_v2()
         >>> states.g
-        g(0.088286, 0.117503, 0.384829, 0.84203, 1.802632)
+        g(0.088286, 0.117503, 0.384829, 0.84203, 1.802632, 1.802632)
         >>> states.etg
-        etg(0.0, 0.0, 0.0, 0.0, -0.057271)
+        etg(0.0, 0.0, 0.0, 0.0, -0.057271, -0.057271)
         >>> states.gratio
-        gratio(0.002659, 0.003539, 0.015233, 0.035165, 0.018026)
+        gratio(0.002659, 0.003539, 0.015233, 0.035165, 0.018026, 0.018026)
         >>> fluxes.potmelt
-        potmelt(0.098387, 0.131076, 0.433242, 0.963554, 0.0)
+        potmelt(0.098387, 0.131076, 0.433242, 0.963554, 0.0, 0.0)
         >>> fluxes.melt
-        melt(0.010101, 0.013573, 0.048412, 0.121524, 0.0)
+        melt(0.010101, 0.013573, 0.048412, 0.121524, 0.0, 0.0)
     """
 
     CONTROLPARAMETERS = (
@@ -1798,6 +1826,16 @@ class Calc_ExponentialStore_V3(modeltools.Method):
         >>> fluxes.qr2
         qr2(0.420042)
 
+        Negative storage values possible
+
+        >>> states.r2 = -50.
+        >>> fluxes.q9 = 0.1
+        >>> model.calc_exponentialstore_v3()
+        >>> states.r2
+        r2(-50.460061)
+        >>> fluxes.qr2
+        qr2(0.000061)
+
     """
 
     REQUIREDSEQUENCES = (
@@ -1816,11 +1854,7 @@ class Calc_ExponentialStore_V3(modeltools.Method):
         sta = model.sequences.states.fastaccess
         con = model.parameters.control.fastaccess
         sta.r2 = sta.r2 + 0.4 * flu.q9 + flu.f
-        d_ar = sta.r2 / con.x6
-        if d_ar > 33.0:
-            d_ar = 33.0
-        elif d_ar < -33.0:
-            d_ar = -33.0
+        d_ar = max(-33.0, min(33.0, sta.r2 / con.x6))
 
         if d_ar > 7:
             flu.qr2 = sta.r2 + con.x6 / modelutils.exp(d_ar)

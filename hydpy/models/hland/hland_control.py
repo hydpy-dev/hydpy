@@ -309,18 +309,6 @@ class TCAlt(hland_parameters.ParameterComplete):
     INIT = 0.6
 
 
-class ERed(hland_parameters.ParameterSoil):
-    """Factor for restricting actual to potential evaporation [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
-
-
-class TTIce(hland_parameters.ParameterLake):
-    """Temperature threshold for lake evaporation [°C]."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
-
-
 class IcMax(hland_parameters.ParameterInterception):
     """Maximum interception storage [mm]."""
 
@@ -1133,13 +1121,6 @@ class FC(hland_parameters.ParameterSoil):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
     INIT = 200
-
-
-class LP(hland_parameters.ParameterSoil):
-    """Relative limit for potential evaporation [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
-    INIT = 0.9
 
 
 class Beta(hland_parameters.ParameterSoil):

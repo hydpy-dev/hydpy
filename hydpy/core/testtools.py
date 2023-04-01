@@ -764,8 +764,7 @@ datetime of the Python standard library for for further information.
         """Derive the secondary parameter values, prepare all required time series and
         set the initial conditions."""
         if update_parameters:
-            for model in self.model.find_submodels(include_mainmodel=True).values():
-                model.parameters.update()
+            self.model.update_parameters()
         for flag in (False, True):
             self.element.prepare_factorseries(allocate_ram=flag)
             self.element.prepare_fluxseries(allocate_ram=flag)
@@ -1334,7 +1333,7 @@ class TestIO:
             pass
 
 
-def make_abc_testable(abstract: Type) -> Type:
+def make_abc_testable(abstract: Type[T]) -> Type[T]:
     """Return a concrete version of the given abstract base class for testing purposes.
 
     Abstract base classes cannot be (and, at least in production code, should not be)

@@ -295,7 +295,7 @@ def prepare_model(
 
 
 class _DoctestAdder:
-    wrapped: object
+    wrapped: Callable[..., None]
 
     def __set_name__(self, objtype: Type[modeltools.Model], name: str) -> None:
         assert (module := inspect.getmodule(objtype)) is not None
@@ -388,7 +388,7 @@ class SubmodelAdder(_DoctestAdder, Generic[TM, TI]):
     ...     ...
     Traceback (most recent call last):
     ...
-    TypeError: While trying to add a submodule to the main model `lland_v1`, the \
+    TypeError: While trying to add a submodul to the main model `lland_v1`, the \
 following error occurred: Submodel `ga_garto_submodel1` does not comply with the \
 `PETModel_V1` interface.
 
@@ -403,6 +403,47 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
     'prepare_nmbzones'
     'prepare_zonetypes'
     'prepare_subareas'
+
+    |SubmodelAdder| supports arbitrarily deep submodel nesting.  It conveniently moves
+    some information from main models to sub-submodels or the other way round if the
+    intermediate submodel does not consume or provide the corresponding data.
+    The following example shows that the main model of type |hland_v1| shares some of
+    its class-level configurations with the sub-submodel of type |evap_pet_hbv96| and
+    that the sub-submodel knows about the zone altitudes of its main model (which the
+    submodel is not aware of) and uses it querying air temperature data:
+
+    >>> from hydpy import reverse_model_wildcard_import
+    >>> reverse_model_wildcard_import()  # ToDo: stick to lland_v1 asap
+    >>> from hydpy.models.hland_v1 import *
+    >>> parameterstep()
+    >>> nmbzones(2)
+    >>> area(10.0)
+    >>> zonearea(0.2, 0.8)
+    >>> zonetype(FIELD, ILAKE)
+    >>> zonez(2.0, 3.0)
+    >>> fc(200.0)
+    >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
+    ...     nmbhru
+    ...     hasattr(control, "hrualtitude")
+    ...     soil
+    ...     excessreduction(field=1.0)
+    ...     with model.add_petmodel_v1("evap_pet_hbv96"):
+    ...         nmbhru
+    ...         hrualtitude
+    ...         evapotranspirationfactor(field=1.2, default=1.0)
+    nmbhru(2)
+    False
+    soil(field=True, ilake=False)
+    nmbhru(2)
+    hrualtitude(field=200.0, ilake=300.0)
+    >>> model.aetmodel.parameters.control.excessreduction
+    excessreduction(1.0)
+    >>> model.aetmodel.petmodel.parameters.control.evapotranspirationfactor
+    evapotranspirationfactor(field=1.2, ilake=1.0)
+    >>> model is model.aetmodel.tempmodel
+    True
+    >>> model is model.aetmodel.petmodel.tempmodel
+    True
     """
 
     wrapped: Callable[[TM, TI], None]
@@ -495,7 +536,8 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
                 setattr(model, self.submodelname, submodel)
                 setattr(model, f"{self.submodelname}_typeid", interface.typeid)
                 assert isinstance(submodel, interface)
-                self.wrapped(model, submodel)
+                submodel._submodeladder = self
+                self.update(model, submodel)
                 assert (
                     ((frame1 := inspect.currentframe()) is not None)
                     and ((frame2 := frame1.f_back) is not None)
@@ -519,11 +561,29 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
                         namespace.pop(name, None)
                     namespace.update(old_locals)
                     namespace[__HYDPY_MODEL_LOCALS__] = old_locals
+                    if isinstance(model, modeltools.SubmodelInterface):
+                        # see https://github.com/python/mypy/issues/12732
+                        model.predefinedmethod2argument.clear()  # type: ignore[attr-defined]  # pylint: disable=line-too-long
         except BaseException:
             assert (model := self._model) is not None
             objecttools.augment_excmessage(
-                f"While trying to add a submodule to the main model `{model.name}`"
+                f"While trying to add a submodul to the main model `{model.name}`"
             )
+
+    def update(self, model: TM, submodel: TI) -> None:
+        """Update the connections between the given main model and its submodel, which
+        can become necessary after disruptive configuration changes.
+
+        For now, we recommend using |SubmodelAdder.update| only for testing, not
+        applications, because we cannot give clear recommendations for using it under
+        different settings yet.
+        """
+        self.wrapped(model, submodel)
+        if isinstance(model, modeltools.SubmodelInterface):
+            im2a = model.predefinedmethod2argument
+            for methodname in modeltools.SubmodelInterface.GENERAL_METHODS:
+                if (argument := im2a.get(methodname)) is not None:
+                    getattr(submodel, methodname)(argument)
 
 
 def define_targetparameter(
@@ -892,7 +952,7 @@ information (`stepsize` and eventually `firstdate`) as function arguments.
         finally:
             os.chdir(cwd)
         try:
-            model.parameters.update()
+            model.update_parameters()
         except exceptiontools.AttributeNotReady as exc:
             raise RuntimeError(
                 "To apply function `controlcheck` requires time information for some "

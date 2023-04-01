@@ -1,8 +1,5 @@
 """This module defines submodel interfaces for providing precipitation."""
 # import...
-# ...from standard library
-import abc
-
 # ...from hydpy
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
@@ -22,14 +19,6 @@ class PrecipModel_V2(modeltools.SubmodelInterface):
     """Simple interface for determining precipitation in one step."""
 
     typeid: ClassVar[Literal[2]] = 2
-
-    @abc.abstractmethod
-    def prepare_nmbzones(self, nmbzones: int) -> None:
-        """Set the number of zones in which the actual calculations take place."""
-
-    @abc.abstractmethod
-    def prepare_subareas(self, subareas: Sequence[float]) -> None:
-        """Set the areas of the individual zones in km²."""
 
     @modeltools.abstractmodelmethod
     def determine_precipitation(self) -> None:

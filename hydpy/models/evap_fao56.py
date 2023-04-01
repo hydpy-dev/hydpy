@@ -199,7 +199,7 @@ from hydpy.models.evap import evap_model
 
 class Model(
     evap_model.Main_TempModel_V1,
-    evap_model.Main_TempModel_V2,
+    evap_model.Main_TempModel_V2A,
     evap_model.Sub_PETModel_V1,
 ):
     """The FAO-56 version of the HydPy-Evap."""

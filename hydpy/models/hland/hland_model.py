@@ -3,14 +3,18 @@
 .. _`issue 68`: https://github.com/hydpy-dev/hydpy/issues/68
 """
 # imports...
+# ...from site-packages
+import numpy
+
 # ...from HydPy
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
 from hydpy.core.typingtools import *
-from hydpy.interfaces import petinterfaces
+from hydpy.interfaces import aetinterfaces
 from hydpy.interfaces import precipinterfaces
 from hydpy.interfaces import tempinterfaces
+from hydpy.interfaces import stateinterfaces
 
 # ...from hland
 from hydpy.models.hland import hland_constants
@@ -275,64 +279,6 @@ class Calc_PC_V1(modeltools.Method):
                 flu.pc[k] *= con.pcorr[k] * (fac.rfc[k] + fac.sfc[k])
 
 
-class Calc_EP_PETModel_V1(modeltools.Method):
-    """Let a submodel that complies with the |PETModel_V1| interface calculate the
-    potential evapotranspiration.
-
-    Example:
-
-        We use |evap_tw2002| as an example:
-
-        >>> from hydpy.models.hland_v1 import *
-        >>> parameterstep()
-        >>> nmbzones(3)
-        >>> area(1.0)
-        >>> zonearea(0.5, 0.3, 0.2)
-        >>> zonetype(FIELD)
-        >>> zonez(2.0, 6.0, 10.0)
-        >>> from hydpy import prepare_model
-        >>> with model.add_petmodel_v1("evap_tw2002"):
-        ...     coastfactor(0.6)
-        ...     evapotranspirationfactor(1.1)
-        ...     inputs.globalradiation = 200.0
-        ...     with model.add_tempmodel_v2("meteo_temp_io"):
-        ...         temperatureaddend(1.0)
-        ...         inputs.temperature = 14.0
-        >>> model.calc_ep_v1()
-        >>> fluxes.ep
-        ep(3.07171, 2.86215, 2.86215)
-    """
-
-    CONTROLPARAMETERS = (hland_control.NmbZones,)
-    RESULTSEQUENCES = (hland_fluxes.EP,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
-        con = model.parameters.control.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        submodel.determine_potentialevapotranspiration()
-        for k in range(con.nmbzones):
-            flu.ep[k] = submodel.get_potentialevapotranspiration(k)
-
-
-class Calc_EP_V1(modeltools.Method):
-    """Let a submodel that complies with the |PETModel_V1| interface calculate the
-    potential evapotranspiration."""
-
-    SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
-    SUBMETHODS = (Calc_EP_PETModel_V1,)
-    CONTROLPARAMETERS = (hland_control.NmbZones,)
-    RESULTSEQUENCES = (hland_fluxes.EP,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        if model.petmodel_typeid == 1:
-            model.calc_ep_petmodel_v1(cast(petinterfaces.PETModel_V1, model.petmodel))
-        # ToDo:
-        #     else:
-        #         assert_never(model.petmodel)
-
-
 class Calc_TF_Ic_V1(modeltools.Method):
     r"""Calculate throughfall and update the interception storage accordingly.
 
@@ -417,86 +363,127 @@ class Calc_TF_Ic_V1(modeltools.Method):
                 sta.ic[k] = 0.0
 
 
-class Calc_EI_Ic_V1(modeltools.Method):
-    r"""Calculate interception evaporation and update the interception storage
-    accordingly.
+class Calc_EI_Ic_AETModel_V1(modeltools.Method):
+    r"""Let a submodel that follows the |AETModel_V1| submodel interface calculate
+    interception evaporation and adjust the amount of intercepted water.
 
     Basic equation:
-      .. math::
-        EI =
-        \begin{cases}
-        EP &|\ Ic > 0
-        \\
-        0 &|\ Ic = 0
-        \end{cases}
+      :math:`\frac{dIc_i}{dt} = -EI_i`
 
     Examples:
 
-        Initialise six zones of different types.  For all zones, we define a
-        (corrected) potential evaporation of 0.5 mm:
+        We build an example based on |evap_aet_hbv96| for calculating interception
+        evaporation, which uses |evap_io| for querying potential evapotranspiration:
 
-        >>> from hydpy.models.hland import *
-        >>> simulationstep("12h")
-        >>> parameterstep("1d")
-        >>> nmbzones(7)
-        >>> zonetype(GLACIER, ILAKE, FIELD, FOREST, SEALED, SEALED, SEALED)
-        >>> fluxes.ep = 0.5
-        >>> states.ic = 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0
+        >>> from hydpy.models.hland_v1 import *
+        >>> parameterstep("1h")
+        >>> nmbzones(5)
+        >>> zonetype(GLACIER, SEALED, FIELD, FOREST, ILAKE)
+        >>> area(1.0)
+        >>> zonearea(0.05, 0.1, 0.2, 0.3, 0.35)
+        >>> zonez(5.0)
+        >>> icmax(3.0)
+        >>> fc(50.0)
+        >>> fluxes.tf = 0.5
+        >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
+        ...     with model.add_petmodel_v1("evap_io"):
+        ...         evapotranspirationfactor(0.6, 0.8, 1.0, 1.2, 1.4)
+        ...         inputs.referenceevapotranspiration = 1.0
+
+        |Calc_EI_Ic_AETModel_V1| uses the flux returned by the submodel to adjust |Ic|:
+
+        >>> states.ic = 2.0
         >>> model.calc_ei_ic_v1()
-
-        The interception routine does not apply to glaciers (first zone) and internal
-        lakes (second zone).  Hence, no interception evaporation can occurs.  For
-        fields, forests, and sealed surfaces, the interception routine works identical,
-        so the results of zone three to five are equal.  The last three zones
-        demonstrate that interception evaporation equals potential evaporation until the
-        interception storage is empty; afterwards, interception evaporation is zero:
-
-        >>> states.ic
-        ic(0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 1.5)
         >>> fluxes.ei
-        ei(0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5)
+        ei(0.0, 0.8, 1.0, 1.2, 0.0)
+        >>> states.ic
+        ic(0.0, 1.2, 1.0, 0.8, 0.0)
+        >>> fluxes.tf
+        tf(0.5, 0.5, 0.5, 0.5, 0.5)
 
-        A zero evaporation example:
+        |Calc_EI_Ic_AETModel_V1| eventually reduces |EI| so that |Ic| does not become
+        negative:
 
-        >>> fluxes.ep = 0.0
-        >>> states.ic = 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0
+        >>> model.aetmodel.petmodel.sequences.inputs.referenceevapotranspiration = 5.0
+        >>> states.ic = 2.0
         >>> model.calc_ei_ic_v1()
-        >>> states.ic
-        ic(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0)
         >>> fluxes.ei
-        ei(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        ei(0.0, 2.0, 2.0, 2.0, 0.0)
+        >>> states.ic
+        ic(0.0, 0.0, 0.0, 0.0, 0.0)
+        >>> fluxes.tf
+        tf(0.5, 0.5, 0.5, 0.5, 0.5)
 
-        A high evaporation example:
+        |Calc_EI_Ic_AETModel_V1| converts any amounts of condensation (negative |EI|)
+        that would cause intercepted water to exceed its storage capacity to
+        throughfall (|TF|):
 
-        >>> fluxes.ep = 5.0
-        >>> states.ic = 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0
+        >>> model.aetmodel.petmodel.sequences.inputs.referenceevapotranspiration = -3.0
+        >>> states.ic = 2.0
         >>> model.calc_ei_ic_v1()
-        >>> states.ic
-        ic(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         >>> fluxes.ei
-        ei(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0)
+        ei(0.0, -2.4, -3.0, -3.6, 0.0)
+        >>> states.ic
+        ic(0.0, 3.0, 3.0, 3.0, 0.0)
+        >>> fluxes.tf
+        tf(0.5, 1.9, 2.5, 3.1, 0.5)
     """
 
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.ZoneType,
+        hland_control.IcMax,
     )
-    REQUIREDSEQUENCES = (hland_fluxes.EP,)
-    UPDATEDSEQUENCES = (hland_states.Ic,)
+    UPDATEDSEQUENCES = (
+        hland_states.Ic,
+        hland_fluxes.TF,
+    )
+    RESULTSEQUENCES = (hland_fluxes.EI,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, submodel: aetinterfaces.AETModel_V1) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        submodel.determine_interceptionevaporation()
+        for k in range(con.nmbzones):
+            if con.zonetype[k] in (FIELD, FOREST, SEALED):
+                flu.ei[k] = min(submodel.get_interceptionevaporation(k), sta.ic[k])
+                sta.ic[k] -= flu.ei[k]
+                if sta.ic[k] > con.icmax[k]:
+                    flu.tf[k] += sta.ic[k] - con.icmax[k]
+                    sta.ic[k] = con.icmax[k]
+            else:
+                flu.ei[k] = 0.0
+                sta.ic[k] = 0.0
+
+
+class Calc_EI_Ic_V1(modeltools.Method):
+    """Let a submodel that follows the |AETModel_V1| submodel interface calculate
+    interception evaporation and adjust the amount of intercepted water."""
+
+    SUBMODELINTERFACES = (aetinterfaces.AETModel_V1,)
+    SUBMETHODS = (Calc_EI_Ic_AETModel_V1,)
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ZoneType,
+        hland_control.IcMax,
+    )
+    UPDATEDSEQUENCES = (
+        hland_states.Ic,
+        hland_fluxes.TF,
+    )
     RESULTSEQUENCES = (hland_fluxes.EI,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        sta = model.sequences.states.fastaccess
-        for k in range(con.nmbzones):
-            if con.zonetype[k] in (FIELD, FOREST, SEALED):
-                flu.ei[k] = min(flu.ep[k], sta.ic[k])
-                sta.ic[k] -= flu.ei[k]
-            else:
-                flu.ei[k] = 0.0
-                sta.ic[k] = 0.0
+        if model.aetmodel_typeid == 1:
+            model.calc_ei_ic_aetmodel_v1(
+                cast(aetinterfaces.AETModel_V1, model.aetmodel)
+            )
+        # ToDo:
+        #     else:
+        #         assert_never(model.petmodel)
 
 
 class Calc_SP_WC_V1(modeltools.Method):
@@ -2059,155 +2046,129 @@ class Calc_CF_SM_V1(modeltools.Method):
                 sta.sm[k] = 0.0
 
 
-class Calc_EA_SM_V1(modeltools.Method):
-    r"""Calculate soil evaporation and update the soil moisture.
+class Calc_EA_SM_AETModel_V1(modeltools.Method):
+    r"""Let a submodel that follows the |AETModel_V1| submodel interface calculate
+    soil evapotranspiration and adjust the soil water content.
 
-    Basic equations:
-      :math:`\frac{dSM}{dt} = - EA`
-
-      .. math::
-        EA_{temp} = EP \cdot
-        \begin{cases}
-        min \left( \frac{SM}{LP \cdot FC}, 1 \right) &|\ SP = 0
-        \\
-        0 &|\ SP > 0
-        \end{cases}
-
-      :math:`EA = EA_{temp} - max(ERed \cdot (EA_{temp} + EI - EP), 0)`
+    Basic equation:
+      :math:`\frac{dSM_i}{dt} = -EA_i`
 
     Examples:
 
-        We initialise eight zones of different types.  For all fields and forests, the
-        field capacity is 200 mm.  Potential evaporation and interception evaporation
-        are 2 mm and 1 mm, respectively:
+        We build an example based on |evap_aet_hbv96| for calculating soil
+        evapotranspiration:
 
-        >>> from hydpy.models.hland import *
-        >>> simulationstep("12h")
-        >>> parameterstep("1d")
-        >>> nmbzones(8)
-        >>> sclass(1)
-        >>> zonetype(ILAKE, GLACIER, SEALED, FIELD, FOREST, FIELD, FIELD, FIELD)
-        >>> fc(200.0)
-        >>> lp(0.0, 0.0, 0.0, 0.5, 0.5, 0.0, 0.8, 1.0)
-        >>> ered(0.0)
-        >>> fluxes.ep = 2.0
-        >>> fluxes.ei = 1.0
-        >>> states.sp = 0.0
+        >>> from hydpy.models.hland_v1 import *
+        >>> parameterstep("1h")
+        >>> nmbzones(5)
+        >>> zonetype(GLACIER, SEALED, FIELD, FOREST, ILAKE)
+        >>> area(1.0)
+        >>> zonearea(0.05, 0.1, 0.2, 0.3, 0.35)
+        >>> zonez(5.0)
+        >>> fc(50.0)
+        >>> fluxes.r = 0.5
+        >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
+        ...     soilmoisturelimit(0.0)
+        ...     excessreduction(field=0.5, forest=0.0)
 
-        Only fields and forests include soils.  Hence, there is no soil evaporation for
-        internal lakes, glaciers, and sealed areas.  In the following example, the
-        relative soil moisture is 50 % for all field and forest zones.  Differences in
-        soil evaporation are only related to the different soil evaporation parameter
-        values (the underlying equations are the same):
+        |Calc_EA_SM_AETModel_V1| uses the flux returned by the submodel to adjust |SM|:
 
-        >>> states.sm = 100.0
+        >>> model.aetmodel.sequences.fluxes.potentialevapotranspiration = 1.0
+        >>> model.aetmodel.sequences.fluxes.interceptionevaporation = 1.0
+        >>> states.sm = 3.0
         >>> model.calc_ea_sm_v1()
         >>> fluxes.ea
-        ea(0.0, 0.0, 0.0, 2.0, 2.0, 2.0, 1.25, 1.0)
+        ea(0.0, 0.0, 0.5, 1.0, 0.0)
         >>> states.sm
-        sm(0.0, 0.0, 0.0, 98.0, 98.0, 98.0, 98.75, 99.0)
+        sm(0.0, 0.0, 2.5, 2.0, 0.0)
+        >>> fluxes.r
+        r(0.5, 0.5, 0.5, 0.5, 0.5)
 
-        The above calculations result in evaporation values of 2 mm for some zones,
-        although interception evaporation is 1 mm and the (total) potential evaporation
-        is only 2 mm. Use parameter |ERed| to reduce or completely exclude such an
-        exceedance of the potential evaporation:
+        |Calc_EA_SM_AETModel_V1| eventually reduces |EA| so that |SM| does not become
+        negative:
 
-        >>> states.sm = 100.0
-        >>> ered(0.5)
+        >>> model.aetmodel.sequences.fluxes.potentialevapotranspiration = 5.0
+        >>> model.aetmodel.sequences.fluxes.interceptionevaporation = 5.0
+        >>> states.sm = 3.0
         >>> model.calc_ea_sm_v1()
         >>> fluxes.ea
-        ea(0.0, 0.0, 0.0, 1.5, 1.5, 1.5, 1.125, 1.0)
+        ea(0.0, 0.0, 2.5, 3.0, 0.0)
         >>> states.sm
-        sm(0.0, 0.0, 0.0, 98.5, 98.5, 98.5, 98.875, 99.0)
+        sm(0.0, 0.0, 0.5, 0.0, 0.0)
+        >>> fluxes.r
+        r(0.5, 0.5, 0.5, 0.5, 0.5)
 
-        >>> states.sm = 100.0
-        >>> ered(1.0)
+        |Calc_EA_SM_AETModel_V1| converts any amounts of condensation (negative |EA|)
+        that would cause soil water to exceed field capacity to the effective soil
+        response (|R|):
+
+        >>> model.aetmodel.sequences.fluxes.potentialevapotranspiration = -5.0
+        >>> model.aetmodel.sequences.fluxes.interceptionevaporation = -5.0
+        >>> states.sm = 47.0
         >>> model.calc_ea_sm_v1()
         >>> fluxes.ea
-        ea(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+        ea(0.0, 0.0, -2.5, -5.0, 0.0)
         >>> states.sm
-        sm(0.0, 0.0, 0.0, 99.0, 99.0, 99.0, 99.0, 99.0)
-
-        For soils with zero field capacity, soil evaporation is always zero:
-
-        >>> fc(0.0)
-        >>> states.sm = 0.0
-        >>> model.calc_ea_sm_v1()
-        >>> fluxes.ea
-        ea(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-        >>> states.sm
-        sm(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-
-        Any occurrence of snow suppresses soil evaporation completely:
-
-        >>> fc(200.0)
-        >>> states.sp = 0.01
-        >>> states.sm = 100.0
-        >>> model.calc_ea_sm_v1()
-        >>> fluxes.ea
-        ea(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-        >>> states.sm
-        sm(0.0, 0.0, 0.0, 100.0, 100.0, 100.0, 100.0, 100.0)
-
-        In the last example, we did not divide the zones into snow classes. If we do
-        so, method |Calc_EA_SM_V1| suppresses soil evaporation only for individual snow
-        classes.  Hence, the reduction of soil evaporation does not depend on the total
-        amount of snow within a zone but the fraction of its snow-covered surface:
-
-        >>> sclass(4)
-        >>> lp(1.0)
-        >>> states.sp = [[0.0, 0.0, 0.0, 0.0, 0.1, 0.1, 0.1, 0.1],
-        ...              [0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.1, 0.1],
-        ...              [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.1],
-        ...              [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1]]
-        >>> states.sm = 100.0
-        >>> model.calc_ea_sm_v1()
-        >>> fluxes.ea
-        ea(0.0, 0.0, 0.0, 1.0, 0.75, 0.5, 0.25, 0.0)
-        >>> states.sm
-        sm(0.0, 0.0, 0.0, 99.0, 99.25, 99.5, 99.75, 100.0)
+        sm(0.0, 0.0, 49.5, 50.0, 0.0)
+        >>> fluxes.r
+        r(0.5, 0.5, 0.5, 2.5, 0.5)
     """
 
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
-        hland_control.SClass,
         hland_control.ZoneType,
-        hland_control.LP,
         hland_control.FC,
-        hland_control.ERed,
     )
-    REQUIREDSEQUENCES = (
-        hland_states.SP,
-        hland_fluxes.EP,
-        hland_fluxes.EI,
+    UPDATEDSEQUENCES = (
+        hland_states.SM,
+        hland_fluxes.R,
     )
-    UPDATEDSEQUENCES = (hland_states.SM,)
+    RESULTSEQUENCES = (hland_fluxes.EA,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, submodel: aetinterfaces.AETModel_V1) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        submodel.determine_soilevapotranspiration()
+        for k in range(con.nmbzones):
+            if con.zonetype[k] in (FIELD, FOREST):
+                flu.ea[k] = min(submodel.get_soilevapotranspiration(k), sta.sm[k])
+                sta.sm[k] -= flu.ea[k]
+                if sta.sm[k] > con.fc[k]:
+                    flu.r[k] += sta.sm[k] - con.fc[k]
+                    sta.sm[k] = con.fc[k]
+            else:
+                flu.ea[k] = 0.0
+                sta.sm[k] = 0.0
+
+
+class Calc_EA_SM_V1(modeltools.Method):
+    """Let a submodel that follows the |AETModel_V1| submodel interface calculate soil
+    evapotranspiration and adjust the soil water content."""
+
+    SUBMODELINTERFACES = (aetinterfaces.AETModel_V1,)
+    SUBMETHODS = (Calc_EA_SM_AETModel_V1,)
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ZoneType,
+        hland_control.FC,
+    )
+    UPDATEDSEQUENCES = (
+        hland_states.SM,
+        hland_fluxes.R,
+    )
     RESULTSEQUENCES = (hland_fluxes.EA,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        sta = model.sequences.states.fastaccess
-        for k in range(con.nmbzones):
-            if con.zonetype[k] in (FIELD, FOREST):
-                snowfree: float = 0.0
-                for c in range(con.sclass):
-                    if sta.sp[c, k] <= 0.0:
-                        snowfree += 1.0
-                if snowfree > 0.0:
-                    d_ea = flu.ep[k]
-                    d_thresh = con.lp[k] * con.fc[k]
-                    if d_thresh > 0.0:
-                        d_ea *= min(sta.sm[k] / d_thresh, 1.0)
-                    d_ea -= max(con.ered[k] * (d_ea + flu.ei[k] - flu.ep[k]), 0.0)
-                    flu.ea[k] = min(snowfree / con.sclass * d_ea, sta.sm[k])
-                else:
-                    flu.ea[k] = 0.0
-                sta.sm[k] -= flu.ea[k]
-            else:
-                flu.ea[k] = 0.0
-                sta.sm[k] = 0.0
+        if model.aetmodel_typeid == 1:
+            model.calc_ea_sm_aetmodel_v1(
+                cast(aetinterfaces.AETModel_V1, model.aetmodel)
+            )
+        # ToDo:
+        #     else:
+        #         assert_never(model.petmodel)
 
 
 class Calc_InUZ_V1(modeltools.Method):
@@ -3600,67 +3561,118 @@ class Calc_GR2_GR3_V1(modeltools.Method):
             flu.gr3 += (1.0 - fix.fsg) * d_total
 
 
-class Calc_EL_SG2_SG3_V1(modeltools.Method):
-    r"""Determine the internal lake evaporation and remove it from the first-order and
-    the second-order slow response groundwater reservoir.
+class Calc_EL_SG2_SG3_AETModel_V1(modeltools.Method):
+    r"""Let a submodel that follows the |AETModel_V1| submodel interface calculate
+    lake evaporation and adjust the slow response groundwater reservoirs.
 
     Basic equations:
-      .. math::
-        EL =  \begin{cases}
-        EP &|\ TC > TTIce
-        \
-        0 &|\ TC \leq TTIce
-        \end{cases}
+      :math:`\frac{dSG2_i}{dt} =
+      -FSG \cdot \frac{RelZoneAreas_i}{RelLowerZoneArea} \cdot EL_i`
 
-      :math:`\frac{dSG2}{dt} = -FSG \cdot EL`
+      :math:`\frac{dSG3_i}{dt} =
+      -(1 - FSG) \cdot \frac{RelZoneAreas_i}{RelLowerZoneArea} \cdot EL_i`
 
-      :math:`\frac{dSG3}{dt} = -(1 - FSG) \cdot EL`
+    Examples:
 
-    Example:
+        We build an example based on |evap_aet_hbv96| for calculating lake evaporation:
 
-        Method |Calc_EL_SG2_SG3_V1| applies the given basic equations for hydrological
-        response units of type |ILAKE| only and sets |EL| to zero for all other
-        land-use types:
+        >>> from hydpy.models.hland_v3 import *
+        >>> parameterstep("1h")
+        >>> nmbzones(5)
+        >>> zonetype(GLACIER, SEALED, FIELD, FOREST, ILAKE)
+        >>> area(0.9)
+        >>> zonearea(0.2, 0.1, 0.1, 0.1, 0.4)
+        >>> psi(1.0)
+        >>> zonez(5.0)
+        >>> fc(50.0)
+        >>> derived.relzoneareas.update()
+        >>> derived.rellowerzonearea.update()
+        >>> factors.tc = 10.0
+        >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
+        ...     temperaturethresholdice(0.0)
 
-        >>> from hydpy.models.hland import *
-        >>> simulationstep("12h")
-        >>> parameterstep("1d")
-        >>> nmbzones(8)
-        >>> zonetype(ILAKE, ILAKE, ILAKE, ILAKE, FIELD, FOREST, GLACIER, SEALED)
-        >>> ttice(1.0)
-        >>> derived.relzoneareas(0.1, 0.1, 0.1, 0.3, 0.1, 0.1, 0.1, 0.1)
-        >>> derived.rellowerzonearea(0.5)
-        >>> factors.tc = 0.0, 1.0, 2.0, 2.0, nan, nan, nan, nan
-        >>> fluxes.ep = 1.0, 1.0, 0.9, 1.8, nan, nan, nan, nan
-        >>> states.sg2 = 1.0
-        >>> states.sg3 = 1.0
+        |Calc_EL_SG2_SG3_AETModel_V1| uses the flux returned by the submodel to adjust
+        |SG2| and |SG3|, considering the total extent of the groundwater-affected
+        subarea and the fraction between the spatial extents of the first-order and the
+        second-order slow response groundwater reservoir:
+
+        >>> model.aetmodel.sequences.fluxes.potentialevapotranspiration = 2.25
+        >>> states.sg2 = 3.0
+        >>> states.sg3 = 0.3
         >>> model.calc_el_sg2_sg3_v1()
         >>> fluxes.el
-        el(0.0, 0.0, 0.9, 1.8, 0.0, 0.0, 0.0, 0.0)
+        el(0.0, 0.0, 0.0, 0.0, 2.25)
         >>> states.sg2
-        sg2(-0.12)
+        sg2(2.0)
         >>> states.sg3
-        sg3(0.86)
+        sg3(0.175)
 
-        Due to the assumption that internal lakes have a fixed size, they never dry and
-        always evaporate water.  The above example shows that this might result in
-        negative |SG2| or |SG3| values.
+        Zones of type |ILAKE| are assumed to have an open water surface, so evaporation
+        is always possible.  Therefore, applying |Calc_EL_SG2_SG3_AETModel_V1| can
+        result in negative |SG2| and |SG3| values:
+
+        >>> model.aetmodel.sequences.fluxes.potentialevapotranspiration = 4.5
+        >>> states.sg2 = 1.0
+        >>> states.sg3 = 0.1
+        >>> model.calc_el_sg2_sg3_v1()
+        >>> fluxes.el
+        el(0.0, 0.0, 0.0, 0.0, 4.5)
+        >>> states.sg2
+        sg2(-1.0)
+        >>> states.sg3
+        sg3(-0.15)
     """
 
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.ZoneType,
-        hland_control.TTIce,
     )
     DERIVEDPARAMETERS = (
         hland_derived.RelZoneAreas,
         hland_derived.RelLowerZoneArea,
     )
     FIXEDPARAMETERS = (hland_fixed.FSG,)
-    REQUIREDSEQUENCES = (
-        hland_factors.TC,
-        hland_fluxes.EP,
+    UPDATEDSEQUENCES = (
+        hland_states.SG2,
+        hland_states.SG3,
     )
+    RESULTSEQUENCES = (hland_fluxes.EL,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, submodel: aetinterfaces.AETModel_V1) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fix = model.parameters.fixed.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        submodel.determine_waterevaporation()
+        for k in range(con.nmbzones):
+            if con.zonetype[k] == ILAKE:
+                flu.el[k] = submodel.get_waterevaporation(k)
+                weight: float = der.relzoneareas[k] / der.rellowerzonearea
+                sta.sg2 -= fix.fsg * weight * flu.el[k]
+                sta.sg3 -= (1.0 - fix.fsg) * weight * flu.el[k]
+            else:
+                flu.el[k] = 0.0
+
+
+class Calc_EL_SG2_SG3_V1(modeltools.Method):
+    """Let a submodel that follows the |AETModel_V1| submodel interface calculate
+    interception evaporation, soil evapotranspiration, and open water evaporation, and
+    adjust the related interception, soil water, and slow response groundwater storages
+    accordingly."""
+
+    SUBMODELINTERFACES = (aetinterfaces.AETModel_V1,)
+    SUBMETHODS = (Calc_EL_SG2_SG3_AETModel_V1,)
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ZoneType,
+    )
+    DERIVEDPARAMETERS = (
+        hland_derived.RelZoneAreas,
+        hland_derived.RelLowerZoneArea,
+    )
+    FIXEDPARAMETERS = (hland_fixed.FSG,)
     UPDATEDSEQUENCES = (
         hland_states.SG2,
         hland_states.SG3,
@@ -3669,20 +3681,13 @@ class Calc_EL_SG2_SG3_V1(modeltools.Method):
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
-        fix = model.parameters.fixed.fastaccess
-        fac = model.sequences.factors.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        sta = model.sequences.states.fastaccess
-        for k in range(con.nmbzones):
-            if (con.zonetype[k] == ILAKE) and (fac.tc[k] > con.ttice[k]):
-                flu.el[k] = flu.ep[k]
-                d_weight = der.relzoneareas[k] / der.rellowerzonearea
-                sta.sg2 -= fix.fsg * d_weight * flu.el[k]
-                sta.sg3 -= (1.0 - fix.fsg) * d_weight * flu.el[k]
-            else:
-                flu.el[k] = 0.0
+        if model.aetmodel_typeid == 1:
+            model.calc_el_sg2_sg3_aetmodel_v1(
+                cast(aetinterfaces.AETModel_V1, model.aetmodel)
+            )
+        # ToDo:
+        #     else:
+        #         assert_never(model.petmodel)
 
 
 class Calc_RG2_SG2_V1(modeltools.Method):
@@ -3868,85 +3873,108 @@ class Calc_RG3_SG3_V1(modeltools.Method):
             flu.rg3 = 0.0
 
 
-class Calc_EL_LZ_V1(modeltools.Method):
-    r"""Calculate lake evaporation.
+class Calc_EL_LZ_AETModel_V1(modeltools.Method):
+    r"""Let a submodel that follows the |AETModel_V1| submodel interface calculate
+    lake evaporation and adjust the lower zone's water content.
 
-    Basic equations:
-        :math:`\frac{dLZ}{dt} = -EL`
-
-      .. math::
-        EL =
-        \begin{cases}
-        EP &|\ TC > TTIce
-        \\
-        0 &|\ TC \leq TTIce
-        \end{cases}
+    Basic equation:
+      :math:`\frac{dLZ_i}{dt} = -\frac{RelZoneAreas_i}{RelLowerZoneArea} \cdot EL_i`
 
     Examples:
 
-        We initialise seven zones of the same size.  The first four zones are no
-        internal lakes, so they do not show any lake evaporation.  Of the last three
-        zones, which are internal lakes, only the last one evaporates water.  The fifth
-        and the sixth zone suppress evaporation due to the assumption that an ice layer
-        prevents any exchange between the water body and the atmosphere:
+        We build an example based on |evap_aet_hbv96| for calculating lake evaporation:
 
-        >>> from hydpy.models.hland import *
-        >>> simulationstep("12h")
-        >>> parameterstep("1d")
-        >>> nmbzones(7)
-        >>> zonetype(FIELD, FOREST, GLACIER, SEALED, ILAKE, ILAKE, ILAKE)
-        >>> ttice(-1.0)
-        >>> derived.relzoneareas(1.0/7.0)
-        >>> derived.rellowerzonearea(6.0/7.0)
-        >>> fluxes.ep = 0.6
-        >>> factors.tc = 0.0, 0.0, 0.0, 0.0, 0.0, -1.0, -2.0
-        >>> states.lz = 10.0
+        >>> from hydpy.models.hland_v1 import *
+        >>> parameterstep("1h")
+        >>> nmbzones(5)
+        >>> zonetype(GLACIER, SEALED, FIELD, FOREST, ILAKE)
+        >>> area(0.9)
+        >>> zonearea(0.2, 0.1, 0.1, 0.1, 0.4)
+        >>> psi(1.0)
+        >>> zonez(5.0)
+        >>> fc(50.0)
+        >>> derived.relzoneareas.update()
+        >>> derived.rellowerzonearea.update()
+        >>> factors.tc = 10.0
+        >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
+        ...     temperaturethresholdice(0.0)
+
+        |Calc_EL_LZ_AETModel_V1| uses the flux returned by the submodel to adjust |LZ|,
+        considering the extent of the groundwater-affected subarea:
+
+        >>> model.aetmodel.sequences.fluxes.potentialevapotranspiration = 2.0
+        >>> states.lz = 3.0
         >>> model.calc_el_lz_v1()
         >>> fluxes.el
-        el(0.0, 0.0, 0.0, 0.0, 0.6, 0.0, 0.0)
+        el(0.0, 0.0, 0.0, 0.0, 2.0)
         >>> states.lz
-        lz(9.9)
+        lz(2.0)
 
-        Note that internal lakes always contain water.  Hence, applying |Calc_EL_LZ_V1|
-        might result in negative values of the lower zone storage:
+        Zones of type |ILAKE| are assumed to have an open water surface, so evaporation
+        is always possible.  Therefore, applying |Calc_EL_LZ_AETModel_V1| can result in
+        negative |LZ| values:
 
-        >>> states.lz = 0.05
+        >>> model.aetmodel.sequences.fluxes.potentialevapotranspiration = 6.0
+        >>> states.lz = 1.0
         >>> model.calc_el_lz_v1()
         >>> fluxes.el
-        el(0.0, 0.0, 0.0, 0.0, 0.6, 0.0, 0.0)
+        el(0.0, 0.0, 0.0, 0.0, 6.0)
         >>> states.lz
-        lz(-0.05)
+        lz(-2.0)
     """
 
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.ZoneType,
-        hland_control.TTIce,
     )
     DERIVEDPARAMETERS = (
         hland_derived.RelZoneAreas,
         hland_derived.RelLowerZoneArea,
     )
-    REQUIREDSEQUENCES = (
-        hland_factors.TC,
-        hland_fluxes.EP,
+    UPDATEDSEQUENCES = (hland_states.LZ,)
+    RESULTSEQUENCES = (hland_fluxes.EL,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, submodel: aetinterfaces.AETModel_V1) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        submodel.determine_waterevaporation()
+        for k in range(con.nmbzones):
+            if con.zonetype[k] == ILAKE:
+                flu.el[k] = submodel.get_waterevaporation(k)
+                sta.lz -= der.relzoneareas[k] / der.rellowerzonearea * flu.el[k]
+            else:
+                flu.el[k] = 0.0
+
+
+class Calc_EL_LZ_V1(modeltools.Method):
+    """Let a submodel that follows the |AETModel_V1| submodel interface calculate lake
+    evaporation and adjust the lower zone's water content."""
+
+    SUBMODELINTERFACES = (aetinterfaces.AETModel_V1,)
+    SUBMETHODS = (Calc_EL_LZ_AETModel_V1,)
+    CONTROLPARAMETERS = (
+        hland_control.NmbZones,
+        hland_control.ZoneType,
+    )
+    DERIVEDPARAMETERS = (
+        hland_derived.RelZoneAreas,
+        hland_derived.RelLowerZoneArea,
     )
     UPDATEDSEQUENCES = (hland_states.LZ,)
     RESULTSEQUENCES = (hland_fluxes.EL,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
-        fac = model.sequences.factors.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        sta = model.sequences.states.fastaccess
-        for k in range(con.nmbzones):
-            if (con.zonetype[k] == ILAKE) and (fac.tc[k] > con.ttice[k]):
-                flu.el[k] = flu.ep[k]
-                sta.lz -= der.relzoneareas[k] / der.rellowerzonearea * flu.el[k]
-            else:
-                flu.el[k] = 0.0
+        if model.aetmodel_typeid == 1:
+            model.calc_el_lz_aetmodel_v1(
+                cast(aetinterfaces.AETModel_V1, model.aetmodel)
+            )
+        # ToDo:
+        #     else:
+        #         assert_never(model.petmodel)
 
 
 class Calc_Q1_LZ_V1(modeltools.Method):
@@ -4606,6 +4634,88 @@ class Get_Precipitation_V1(modeltools.Method):
         return flu.pc[s]
 
 
+class Get_InterceptedWater_V1(modeltools.Method):
+    """Get the selected zone's current amount of intercepted water.
+
+    Example:
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep()
+        >>> nmbzones(2)
+        >>> states.ic = 2.0, 4.0
+        >>> model.get_interceptedwater_v1(0)
+        2.0
+        >>> model.get_interceptedwater_v1(1)
+        4.0
+    """
+
+    REQUIREDSEQUENCES = (hland_states.Ic,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, k: int) -> float:
+        sta = model.sequences.states.fastaccess
+
+        return sta.ic[k]
+
+
+class Get_SoilWater_V1(modeltools.Method):
+    """Get the selected zone's current soil water content.
+
+    Example:
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep()
+        >>> nmbzones(2)
+        >>> states.sm = 2.0, 4.0
+        >>> model.get_soilwater_v1(0)
+        2.0
+        >>> model.get_soilwater_v1(1)
+        4.0
+    """
+
+    REQUIREDSEQUENCES = (hland_states.SM,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, k: int) -> float:
+        sta = model.sequences.states.fastaccess
+
+        return sta.sm[k]
+
+
+class Get_SnowCover_V1(modeltools.Method):
+    """Get the selected zone's current snow cover degree.
+
+    Example:
+
+        Each snow class with a non-zero amount of snow counts as completely covered:
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep()
+        >>> nmbzones(3)
+        >>> sclass(2)
+        >>> states.sp = [[0.0, 0.0, 1.0], [0.0, 1.0, 1.0]]
+        >>> model.get_snowcover_v1(0)
+        0.0
+        >>> model.get_snowcover_v1(1)
+        0.5
+        >>> model.get_snowcover_v1(2)
+        1.0
+    """
+
+    CONTROLPARAMETERS = (hland_control.SClass,)
+    REQUIREDSEQUENCES = (hland_states.SP,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, k: int) -> float:
+        con = model.parameters.control.fastaccess
+        sta = model.sequences.states.fastaccess
+
+        snowcovered: float = 0.0
+        for c in range(con.sclass):
+            snowcovered += sta.sp[c, k] > 0.0
+        return snowcovered / con.sclass
+
+
 class Model(modeltools.AdHocModel):
     r"""The HydPy-H-Land base model."""
 
@@ -4616,7 +4726,6 @@ class Model(modeltools.AdHocModel):
         Calc_FracRain_V1,
         Calc_RFC_SFC_V1,
         Calc_PC_V1,
-        Calc_EP_V1,
         Calc_TF_Ic_V1,
         Calc_EI_Ic_V1,
         Calc_SP_WC_V1,
@@ -4664,75 +4773,105 @@ class Model(modeltools.AdHocModel):
         Get_Temperature_V1,
         Get_MeanTemperature_V1,
         Get_Precipitation_V1,
+        Get_InterceptedWater_V1,
+        Get_SoilWater_V1,
+        Get_SnowCover_V1,
     )
     ADD_METHODS = (
-        Calc_EP_PETModel_V1,
+        Calc_EI_Ic_AETModel_V1,
+        Calc_EA_SM_AETModel_V1,
+        Calc_EL_LZ_AETModel_V1,
+        Calc_EL_SG2_SG3_AETModel_V1,
         Calc_QAb_QVs_BW_V1,
     )
     OUTLET_METHODS = (Pass_Q_V1,)
     SENDER_METHODS = ()
-    SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
+    SUBMODELINTERFACES = (aetinterfaces.AETModel_V1,)
     SUBMODELS = ()
 
-    petmodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
-    petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
-    petmodel_typeid = modeltools.SubmodelTypeIDProperty()
+    aetmodel = modeltools.SubmodelProperty(aetinterfaces.AETModel_V1)
+    aetmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    aetmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
 
-class Main_PETModel_V1(modeltools.AdHocModel):
+class Main_AETModel_V1(modeltools.AdHocModel):
     """Base class for HydPy-H models that use submodels that comply with the
-    |PETModel_V1| interface."""
+    |AETModel_V1| interface."""
 
-    petmodel: modeltools.SubmodelProperty
-    petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
-    petmodel_typeid = modeltools.SubmodelTypeIDProperty()
+    aetmodel: modeltools.SubmodelProperty
+    aetmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    aetmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
     @importtools.prepare_submodel(
-        "petmodel",
-        petinterfaces.PETModel_V1,
-        petinterfaces.PETModel_V1.prepare_nmbzones,
-        petinterfaces.PETModel_V1.prepare_subareas,
-        petinterfaces.PETModel_V1.prepare_zonetypes,
-        petinterfaces.PETModel_V1.prepare_elevations,
+        "aetmodel",
+        aetinterfaces.AETModel_V1,
+        aetinterfaces.AETModel_V1.prepare_nmbzones,
+        aetinterfaces.AETModel_V1.prepare_subareas,
+        aetinterfaces.AETModel_V1.prepare_elevations,
+        aetinterfaces.AETModel_V1.prepare_maxsoilwater,
+        aetinterfaces.AETModel_V1.prepare_water,
+        aetinterfaces.AETModel_V1.prepare_interception,
+        aetinterfaces.AETModel_V1.prepare_soil,
         landtype_constants=hland_constants.CONSTANTS,
         landtype_refindices=hland_control.ZoneType,
         refweights=hland_control.ZoneArea,
     )
-    def add_petmodel_v1(self, petmodel: petinterfaces.PETModel_V1) -> None:
-        """Initialise the given `petmodel` that follows the |PETModel_V1| interface and
-        is responsible for calculating the potential evapotranspiration.
+    def add_aetmodel_v1(self, aetmodel: aetinterfaces.AETModel_V1) -> None:
+        """Initialise the given `petmodel` that follows the |AETModel_V1| interface and
+        is responsible for calculating the different kinds of actual evapotranspiration.
 
         >>> from hydpy.models.hland_v1 import *
         >>> parameterstep()
-        >>> nmbzones(2)
+        >>> nmbzones(5)
         >>> area(10.0)
-        >>> zonearea(0.2, 0.8)
-        >>> zonetype(FIELD, FOREST)
-        >>> zonez(2.0, 3.0)
-        >>> with model.add_petmodel_v1("evap_tw2002"):
+        >>> zonetype(FIELD, FOREST, ILAKE, GLACIER, SEALED)
+        >>> zonearea(2.0)
+        >>> zonez(3.0)
+        >>> fc(200.0)
+        >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
         ...     nmbhru
-        ...     hruarea
-        ...     evapotranspirationfactor(field=1.0, forest=2.0)
-        ...     hrualtitude
-        nmbhru(2)
-        hruarea(2.0, 8.0)
-        hrualtitude(field=200.0, forest=300.0)
+        ...     water
+        ...     interception
+        ...     soil
+        ...     excessreduction(field=1.0, forest=0.5, default=nan)
+        nmbhru(5)
+        water(field=False, forest=False, glacier=False, ilake=True,
+              sealed=False)
+        interception(field=True, forest=True, glacier=False, ilake=False,
+                     sealed=True)
+        soil(field=True, forest=True, glacier=False, ilake=False, sealed=False)
 
-        >>> etf = model.petmodel.parameters.control.evapotranspirationfactor
-        >>> etf
-        evapotranspirationfactor(field=1.0, forest=2.0)
-        >>> zonetype(FOREST, FIELD)
-        >>> etf
-        evapotranspirationfactor(field=2.0, forest=1.0)
+        >>> ered = model.aetmodel.parameters.control.excessreduction
+        >>> ered
+        excessreduction(field=1.0, forest=0.5)
+        >>> zonetype(FOREST, FIELD, ILAKE, GLACIER, SEALED)
+        >>> ered
+        excessreduction(field=0.5, forest=1.0)
         >>> from hydpy import round_
-        >>> round_(etf.average_values())
-        1.8
+        >>> round_(ered.average_values())
+        0.75
         """
         control = self.parameters.control
-        petmodel.prepare_nmbzones(control.nmbzones.value)
-        petmodel.prepare_zonetypes(control.zonetype.values)
-        petmodel.prepare_subareas(control.zonearea.values)
-        petmodel.prepare_elevations(100.0 * control.zonez.values)
+        nmbzones = control.nmbzones.value
+        zonetype = control.zonetype.values
+
+        aetmodel.prepare_nmbzones(nmbzones)
+        aetmodel.prepare_zonetypes(zonetype)
+        aetmodel.prepare_subareas(control.zonearea.value)
+        aetmodel.prepare_elevations(100.0 * control.zonez.values)
+        aetmodel.prepare_maxsoilwater(control.fc.values)
+        water = numpy.full(nmbzones, False, dtype=bool)
+        water[zonetype == ILAKE] = True
+        aetmodel.prepare_water(water)
+        interception = numpy.full(nmbzones, True, dtype=bool)
+        interception[zonetype == ILAKE] = False
+        interception[zonetype == GLACIER] = False
+        aetmodel.prepare_interception(interception)
+        soil = numpy.full(nmbzones, True, dtype=bool)
+        soil[zonetype == ILAKE] = False
+        soil[zonetype == GLACIER] = False
+        soil[zonetype == SEALED] = False
+        aetmodel.prepare_soil(soil)
 
 
 class Sub_TempModel_V1(modeltools.AdHocModel, tempinterfaces.TempModel_V1):
@@ -4742,4 +4881,19 @@ class Sub_TempModel_V1(modeltools.AdHocModel, tempinterfaces.TempModel_V1):
 
 class Sub_PrecipModel_V1(modeltools.AdHocModel, precipinterfaces.PrecipModel_V1):
     """Base class for HydPy-H models that comply with the |PrecipModel_V1| submodel
+    interface."""
+
+
+class Sub_IntercModel_V1(modeltools.AdHocModel, stateinterfaces.IntercModel_V1):
+    """Base class for HydPy-H models that comply with the |IntercModel_V1| submodel
+    interface."""
+
+
+class Sub_SoilWaterModel_V1(modeltools.AdHocModel, stateinterfaces.SoilWaterModel_V1):
+    """Base class for HydPy-H models that comply with the |SoilWaterModel_V1| submodel
+    interface."""
+
+
+class Sub_SnowCoverModel_V1(modeltools.AdHocModel, stateinterfaces.SnowCoverModel_V1):
+    """Base class for HydPy-H models that comply with the |SnowCoverModel_V1| submodel
     interface."""

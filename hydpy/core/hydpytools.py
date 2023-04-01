@@ -1210,6 +1210,7 @@ deprecated.  Use method `prepare_models` instead.
         # -*- coding: utf-8 -*-
         <BLANKLINE>
         from hydpy.models.hland_v1 import *
+        from hydpy.models import evap_aet_hbv96
         from hydpy.models import evap_pet_hbv96
         <BLANKLINE>
         simulationstep("1h")
@@ -1218,11 +1219,15 @@ deprecated.  Use method `prepare_models` instead.
         area(692.3)
         ...
         maxbaz(0.18364)
-        with model.add_petmodel_v1(evap_pet_hbv96):
-            evapotranspirationfactor(1.0)
-            altitudefactor(0.0)
-            precipitationfactor(0.01)
-            airtemperaturefactor(0.1)
+        with model.add_aetmodel_v1(evap_aet_hbv96):
+            temperaturethresholdice(nan)
+            soilmoisturelimit(0.9)
+            excessreduction(0.0)
+            with model.add_petmodel_v1(evap_pet_hbv96):
+                evapotranspirationfactor(1.0)
+                altitudefactor(0.0)
+                precipitationfactor(0.01)
+                airtemperaturefactor(0.1)
         <BLANKLINE>
 
         When delegating parameter value definitions to auxiliary files, it makes no
@@ -1230,10 +1235,11 @@ deprecated.  Use method `prepare_models` instead.
 
         >>> auxfiler = Auxfiler("evap_pet_hbv96")
         >>> for element in hp.elements.search_keywords("catchment"):
-        ...     atf = element.model.petmodel.parameters.control.airtemperaturefactor
-        ...     atf(field=0.2, forest=0.1)
+        ...     control = element.model.aetmodel.petmodel.parameters.control
+        ...     control.airtemperaturefactor(field=0.2, forest=0.1)
         >>> auxfiler.evap_pet_hbv96.add_parameter(
-        ...     atf, filename="evap", keywordarguments=atf.keywordarguments)
+        ...     control.airtemperaturefactor, filename="evap",
+        ...     keywordarguments=control.airtemperaturefactor.keywordarguments)
         >>> with TestIO():
         ...     hp.save_controls(
         ...         auxfiler=auxfiler, parameterstep="2d", simulationstep="1h")
@@ -1254,16 +1260,21 @@ deprecated.  Use method `prepare_models` instead.
         # -*- coding: utf-8 -*-
         ...
         maxbaz(0.18364)
-        with model.add_petmodel_v1(evap_pet_hbv96):
-            evapotranspirationfactor(1.0)
-            altitudefactor(0.0)
-            precipitationfactor(0.01)
-            airtemperaturefactor(auxfile="evap")
+        with model.add_aetmodel_v1(evap_aet_hbv96):
+            temperaturethresholdice(nan)
+            soilmoisturelimit(0.9)
+            excessreduction(0.0)
+            with model.add_petmodel_v1(evap_pet_hbv96):
+                evapotranspirationfactor(1.0)
+                altitudefactor(0.0)
+                precipitationfactor(0.01)
+                airtemperaturefactor(auxfile="evap")
         <BLANKLINE>
 
         >>> with TestIO():
         ...     hp.prepare_models()
-        >>> hp.elements.land_dill.model.petmodel.parameters.control.airtemperaturefactor
+        >>> control = hp.elements.land_dill.model.aetmodel.petmodel.parameters.control
+        >>> control.airtemperaturefactor
         airtemperaturefactor(field=0.2, forest=0.1)
         """
         self.elements.save_controls(

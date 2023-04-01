@@ -1872,7 +1872,7 @@ object named `fc`.
 
     def _refresh_hp(self) -> None:
         for element in self._elements:
-            element.model.parameters.update()
+            element.model.update_parameters()
         self._hp.conditions = self.conditions
 
     @overload

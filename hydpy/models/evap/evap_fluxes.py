@@ -44,7 +44,7 @@ class ReferenceEvapotranspiration(evap_sequences.FluxSequence1D):
 
 
 class PotentialEvapotranspiration(evap_sequences.FluxSequence1D):
-    """Potential (land use-specific) evapotranspiration [mm/T]."""
+    """Potential (land type-specific) evapotranspiration [mm/T]."""
 
     NUMERIC = False
 
@@ -59,3 +59,21 @@ class MeanPotentialEvapotranspiration(sequencetools.FluxSequence):
     """Mean potential evapotranspiration [mm/T]."""
 
     NDIM, NUMERIC = 0, False
+
+
+class WaterEvaporation(evap_sequences.FluxSequence1D):
+    """Actual evaporation from open water areas [mm/T]."""
+
+    NUMERIC = False
+
+
+class InterceptionEvaporation(evap_sequences.FluxSequence1D):
+    """Actual interception evaporation [mm/T]."""
+
+    NUMERIC = False
+
+
+class SoilEvapotranspiration(evap_sequences.FluxSequence1D):
+    """Actual soil evapotranspiration [mm/T]."""
+
+    NUMERIC = False

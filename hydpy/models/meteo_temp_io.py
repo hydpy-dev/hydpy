@@ -2,7 +2,7 @@
 # pylint: disable=unused-wildcard-import
 """Submodel for reading temperature data.
 
-Use |meteo_precip_io| as a submodel for supplying (relative) main models like
+Use |meteo_temp_io| as a submodel for supplying (relative) main models like
 |evap_pet_hbv96| with externally available temperature time series.
 
 Integration tests
@@ -47,9 +47,7 @@ from hydpy.models.meteo import meteo_model
 from hydpy.interfaces import tempinterfaces
 
 
-class Model(  # type: ignore[misc]   # (https://github.com/python/mypy/issues/14852)
-    meteo_model.Sub_BaseModel, tempinterfaces.TempModel_V2
-):
+class Model(meteo_model.Sub_BaseModel, tempinterfaces.TempModel_V2):
     """Temperature reader version of HydPy-Meteo."""
 
     INLET_METHODS = ()

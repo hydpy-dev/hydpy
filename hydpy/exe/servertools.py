@@ -1303,7 +1303,7 @@ under the id `0`.  There is nothing registered, so far.
     same |IOSequence| object is not supported).  We query the last read value of
     |evap_inputs.NormalEvapotranspiration| for the Dill catchment:
 
-    >>> submodel = "HydPyServer.state.hp.elements.land_dill.model.petmodel"
+    >>> submodel = "HydPyServer.state.hp.elements.land_dill.model.aetmodel.petmodel"
     >>> net = f"{submodel}.sequences.inputs.normalevapotranspiration"
     >>> test("evaluate", data=f"net_dill = {net}")  # doctest: +ELLIPSIS
     net_dill = normalevapotranspiration(0.2854...)
@@ -1387,6 +1387,7 @@ under the id `0`.  There is nothing registered, so far.
     # -*- coding: utf-8 -*-
     <BLANKLINE>
     from hydpy.models.hland_v1 import *
+    from hydpy.models import evap_aet_hbv96
     from hydpy.models import evap_pet_hbv96
     <BLANKLINE>
     simulationstep("1d")

@@ -176,36 +176,11 @@ class ParameterUpperZone(ParameterBase):
     mask = hland_masks.UpperZone()
 
 
-class ParameterLake(ParameterBase):
-    """Base class for 1-dimensional parameters relevant for |ILAKE| zones.
-
-    |ParameterLake| works similarly to |ParameterComplete|.  Some examples based on the
-    parameter |TTIce|:
-
-    >>> from hydpy.models.hland import *
-    >>> parameterstep("1d")
-    >>> nmbzones(5)
-    >>> zonetype(ILAKE, FOREST, GLACIER, ILAKE, FIELD)
-    >>> ttice(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
-    >>> ttice
-    ttice(3.0)
-    >>> ttice(field=2.0, forest=9.0, default=9.0)
-    >>> ttice
-    ttice(9.0)
-    >>> zonearea.values = 1.0, nan, nan, 1.0, nan
-    >>> from hydpy import round_
-    >>> round_(ttice.average_values())
-    9.0
-    """
-
-    mask = hland_masks.ILake()
-
-
 class ParameterGlacier(ParameterBase):
     """Base class for 1-dimensional parameters relevant for |GLACIER| zones.
 
-    |ParameterLake| works similarly to |ParameterComplete|.  Some examples based on the
-    parameter |GMelt|:
+    |ParameterGlacier| works similarly to |ParameterComplete|.  Some examples based on
+    the parameter |GMelt|:
 
     >>> from hydpy.models.hland import *
     >>> parameterstep("1d")

@@ -47,9 +47,7 @@ from hydpy.models.meteo import meteo_model
 from hydpy.interfaces import precipinterfaces
 
 
-class Model(  # type: ignore[misc]  # (https://github.com/python/mypy/issues/14852)
-    meteo_model.Sub_BaseModel, precipinterfaces.PrecipModel_V2
-):
+class Model(meteo_model.Sub_BaseModel, precipinterfaces.PrecipModel_V2):
     """Precipitation reader version of HydPy-Meteo."""
 
     INLET_METHODS = ()

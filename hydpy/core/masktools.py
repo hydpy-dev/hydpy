@@ -238,7 +238,10 @@ as long as parameter `zonetype` is not prepared properly.
             relevant = variable.relevant  # ToDo: add an hland evap_hbv example
         else:
             relevant = cls.relevant
-        return cls.array2mask(numpy.in1d(indices.values, relevant), **kwargs)
+        mask = cls.array2mask(numpy.in1d(indices.values, relevant), **kwargs)
+        if (refinement := cls.get_refinement(variable)) is not None:
+            mask[~refinement.values] = False
+        return mask
 
     @classmethod
     def get_refindices(
@@ -273,11 +276,28 @@ overridden, which is not the case for class `IndexMask`.
         and which |False|."""
         return self.get_refindices(self.variable)
 
+    @staticmethod
+    def get_refinement(
+        variable: variabletools.Variable,  # pylint: disable=unused-argument
+    ) -> Optional[variabletools.Variable]:
+        """If available, return a boolean variable for selecting only the relevant
+        entries of the considered variable."""
+        return None
+
+    @property
+    def refinement(self) -> Optional[variabletools.Variable]:
+        """If available, a boolean variable for selecting only the relevant entries of
+        the considered variable."""
+        return self.get_refinement(self.variable)
+
     def narrow_relevant(self, relevant: Optional[Tuple[int, ...]] = None) -> Set[int]:
         """Return a |set| of all currently relevant constants."""
         if relevant is None:
             relevant = self.relevant
-        return set(self.refindices.values).intersection(relevant)
+        values = self.refindices.values
+        if (refinement := self.refinement) is not None:
+            values = values[refinement.values]
+        return set(values).intersection(relevant)
 
 
 class SubmodelIndexMask(IndexMask):

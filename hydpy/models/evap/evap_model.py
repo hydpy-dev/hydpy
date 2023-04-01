@@ -10,9 +10,11 @@ from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
+from hydpy.interfaces import aetinterfaces
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import precipinterfaces
 from hydpy.interfaces import tempinterfaces
+from hydpy.interfaces import stateinterfaces
 from hydpy.models.evap import evap_parameters
 from hydpy.models.evap import evap_control
 from hydpy.models.evap import evap_derived
@@ -38,11 +40,12 @@ class Calc_AirTemperature_TempModel_V1(modeltools.Method):
         >>> zonearea(5.0, 3.0, 2.0)
         >>> zonetype(FIELD)
         >>> zonez(2.0)
-        >>> with model.add_petmodel_v1("evap_tw2002"):
+        >>> fc(100.0)
+        >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
         ...     pass
         >>> factors.tc = 2.0, 0.0, 5.0
-        >>> model.petmodel.calc_airtemperature_v1()
-        >>> model.petmodel.sequences.factors.airtemperature
+        >>> model.aetmodel.calc_airtemperature_v1()
+        >>> model.aetmodel.sequences.factors.airtemperature
         airtemperature(2.0, 0.0, 5.0)
     """
 
@@ -136,11 +139,13 @@ class Calc_MeanAirTemperature_TempModel_V1(modeltools.Method):
         >>> zonearea(5.0, 3.0, 2.0)
         >>> zonetype(FIELD)
         >>> zonez(2.0)
-        >>> with model.add_petmodel_v1("evap_pet_hbv96"):
-        ...     pass
+        >>> fc(200.0)
+        >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
+        ...     with model.add_petmodel_v1("evap_pet_hbv96"):
+        ...         pass
         >>> inputs.t = 2.0
-        >>> model.petmodel.calc_meanairtemperature_v1()
-        >>> model.petmodel.sequences.factors.meanairtemperature
+        >>> model.aetmodel.petmodel.calc_meanairtemperature_v1()
+        >>> model.aetmodel.petmodel.sequences.factors.meanairtemperature
         meanairtemperature(2.0)
     """
 
@@ -738,11 +743,13 @@ class Calc_Precipitation_PrecipModel_V1(modeltools.Method):
         >>> zonearea(5.0, 3.0, 2.0)
         >>> zonetype(FIELD)
         >>> zonez(2.0)
-        >>> with model.add_petmodel_v1("evap_pet_hbv96"):
-        ...     pass
+        >>> fc(200.0)
+        >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
+        ...     with model.add_petmodel_v1("evap_pet_hbv96"):
+        ...         pass
         >>> fluxes.pc(1.0, 3.0, 2.0)
-        >>> model.petmodel.calc_precipitation_v1()
-        >>> model.petmodel.sequences.fluxes.precipitation
+        >>> model.aetmodel.petmodel.calc_precipitation_v1()
+        >>> model.aetmodel.petmodel.sequences.fluxes.precipitation
         precipitation(1.0, 3.0, 2.0)
     """
 
@@ -815,6 +822,178 @@ class Calc_Precipitation_V1(modeltools.Method):
         elif model.precipmodel_typeid == 2:
             model.calc_precipitation_precipmodel_v2(
                 cast(precipinterfaces.PrecipModel_V2, model.precipmodel)
+            )
+        # ToDo:
+        #     else:
+        #         assert_never(model.petmodel)
+
+
+class Calc_InterceptedWater_IntercModel_V1(modeltools.Method):
+    """Query the current amount of intercepted water from a main model referenced as a
+    sub-submodel and follows the |IntercModel_V1| interface.
+
+    Example:
+
+        We use the combination of |hland_v1| and |evap_aet_hbv96| as an example:
+
+        >>> from hydpy.models.hland_v1 import *
+        >>> parameterstep()
+        >>> area(10.0)
+        >>> nmbzones(3)
+        >>> zonearea(5.0, 3.0, 2.0)
+        >>> zonetype(FIELD)
+        >>> zonez(2.0)
+        >>> fc(100.0)
+        >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
+        ...     pass
+        >>> states.ic = 1.0, 3.0, 2.0
+        >>> model.aetmodel.calc_interceptedwater_v1()
+        >>> model.aetmodel.sequences.factors.interceptedwater
+        interceptedwater(1.0, 3.0, 2.0)
+    """
+
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    RESULTSEQUENCES = (evap_factors.InterceptedWater,)
+
+    @staticmethod
+    def __call__(
+        model: modeltools.Model, submodel: stateinterfaces.IntercModel_V1
+    ) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+        for k in range(con.nmbhru):
+            fac.interceptedwater[k] = submodel.get_interceptedwater(k)
+
+
+class Calc_InterceptedWater_V1(modeltools.Method):
+    """Let a submodel that complies with the |IntercModel_V1| interface determine the
+    current amount of intercepted water."""
+
+    SUBMODELINTERFACES = (stateinterfaces.IntercModel_V1,)
+    SUBMETHODS = (Calc_InterceptedWater_IntercModel_V1,)
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    RESULTSEQUENCES = (evap_factors.InterceptedWater,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        if model.intercmodel_typeid == 1:
+            model.calc_interceptedwater_intercmodel_v1(
+                cast(stateinterfaces.IntercModel_V1, model.intercmodel)
+            )
+        # ToDo:
+        #     else:
+        #         assert_never(model.petmodel)
+
+
+class Calc_SoilWater_SoilWaterModel_V1(modeltools.Method):
+    """Query the current soil water amount from a main model referenced as a
+    sub-submodel and follows the |SoilWaterModel_V1| interface.
+
+    Example:
+
+        We use the combination of |hland_v1| and |evap_aet_hbv96| as an example:
+
+        >>> from hydpy.models.hland_v1 import *
+        >>> parameterstep()
+        >>> area(10.0)
+        >>> nmbzones(3)
+        >>> zonearea(5.0, 3.0, 2.0)
+        >>> zonetype(FIELD)
+        >>> zonez(2.0)
+        >>> fc(100.0)
+        >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
+        ...     pass
+        >>> states.sm = 10.0, 30.0, 20.0
+        >>> model.aetmodel.calc_soilwater_v1()
+        >>> model.aetmodel.sequences.factors.soilwater
+        soilwater(10.0, 30.0, 20.0)
+    """
+
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    RESULTSEQUENCES = (evap_factors.SoilWater,)
+
+    @staticmethod
+    def __call__(
+        model: modeltools.Model, submodel: stateinterfaces.SoilWaterModel_V1
+    ) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+        for k in range(con.nmbhru):
+            fac.soilwater[k] = submodel.get_soilwater(k)
+
+
+class Calc_SoilWater_V1(modeltools.Method):
+    """Let a submodel that complies with the |SoilWaterModel_V1| interface determine
+    the current soil water amount."""
+
+    SUBMODELINTERFACES = (stateinterfaces.SoilWaterModel_V1,)
+    SUBMETHODS = (Calc_SoilWater_SoilWaterModel_V1,)
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    RESULTSEQUENCES = (evap_factors.SoilWater,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        if model.soilwatermodel_typeid == 1:
+            model.calc_soilwater_soilwatermodel_v1(
+                cast(stateinterfaces.SoilWaterModel_V1, model.soilwatermodel)
+            )
+        # ToDo:
+        #     else:
+        #         assert_never(model.petmodel)
+
+
+class Calc_SnowCover_SnowCoverModel_V1(modeltools.Method):
+    """Query the current snow cover degree from a main model referenced as a
+    sub-submodel and follows the |SnowCoverModel_V1| interface.
+
+    Example:
+
+        We use the combination of |hland_v1| and |evap_aet_hbv96| as an example:
+
+        >>> from hydpy.models.hland_v1 import *
+        >>> parameterstep()
+        >>> area(10.0)
+        >>> nmbzones(3)
+        >>> sclass(2)
+        >>> zonearea(5.0, 3.0, 2.0)
+        >>> zonetype(FIELD)
+        >>> zonez(2.0)
+        >>> fc(100.0)
+        >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
+        ...     pass
+        >>> states.sp = [[0.0, 0.0, 1.0], [0.0, 1.0, 1.0]]
+        >>> model.aetmodel.calc_snowcover_v1()
+        >>> model.aetmodel.sequences.factors.snowcover
+        snowcover(0.0, 0.5, 1.0)
+    """
+
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    RESULTSEQUENCES = (evap_factors.SnowCover,)
+
+    @staticmethod
+    def __call__(
+        model: modeltools.Model, submodel: stateinterfaces.SnowCoverModel_V1
+    ) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+        for k in range(con.nmbhru):
+            fac.snowcover[k] = submodel.get_snowcover(k)
+
+
+class Calc_SnowCover_V1(modeltools.Method):
+    """Let a submodel that complies with the |SnowCoverModel_V1| interface determine
+    the current snow cover degree."""
+
+    SUBMODELINTERFACES = (stateinterfaces.SnowCoverModel_V1,)
+    SUBMETHODS = (Calc_SnowCover_SnowCoverModel_V1,)
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    RESULTSEQUENCES = (evap_factors.SnowCover,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        if model.snowcovermodel_typeid == 1:
+            model.calc_snowcover_snowcovermodel_v1(
+                cast(stateinterfaces.SnowCoverModel_V1, model.snowcovermodel)
             )
         # ToDo:
         #     else:
@@ -1271,14 +1450,15 @@ class Calc_PotentialEvapotranspiration_V3(modeltools.Method):
     :cite:p:`ref-Lindstrom1997HBV96`.
 
     Basic equation:
-      :math:`PotentialEvapotranspiration = ReferenceEvapotranspiration \cdot
-      (1 + AltitudeFactor \cdot (HRUAltitude - Altitude)) \cdot
-      exp(-PrecipitationFactor \cdot Precipitation)`
-
+      .. math::
+        PotentialEvapotranspiration = ReferenceEvapotranspiration \cdot
+        \left(1 + AltitudeFactor \cdot \frac{HRUAltitude - Altitude}{100} \right) \cdot
+        exp(-PrecipitationFactor \cdot Precipitation)
 
     Examples:
 
-        Three hydrological response units are at an altitude of 200 m.  A reference
+        Three hydrological response units are at an altitude of 300 m (but the entire
+        basin's mean altitude is 200 m, for illustration purposes).  A reference
         evapotranspiration value of 2 mm and a precipitation value of 5 mm are
         available at each unit:
 
@@ -1286,10 +1466,10 @@ class Calc_PotentialEvapotranspiration_V3(modeltools.Method):
         >>> simulationstep("12h")
         >>> parameterstep("1d")
         >>> nmbhru(3)
-        >>> hrualtitude(3.0)
+        >>> hrualtitude(300.0)
         >>> fluxes.referenceevapotranspiration = 2.0
         >>> fluxes.precipitation = 5.0
-        >>> derived.altitude(2.0)
+        >>> derived.altitude(200.0)
 
         The first two units illustrate the individual altitude-related
         (|AltitudeFactor|, first unit) and the precipitation-related adjustments
@@ -1332,7 +1512,8 @@ class Calc_PotentialEvapotranspiration_V3(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbhru):
             flu.potentialevapotranspiration[k] = flu.referenceevapotranspiration[k] * (
-                1.0 - con.altitudefactor[k] * (con.hrualtitude[k] - der.altitude)
+                1.0
+                - con.altitudefactor[k] / 100.0 * (con.hrualtitude[k] - der.altitude)
             )
             if flu.potentialevapotranspiration[k] <= 0.0:
                 flu.potentialevapotranspiration[k] = 0.0
@@ -1340,6 +1521,65 @@ class Calc_PotentialEvapotranspiration_V3(modeltools.Method):
                 flu.potentialevapotranspiration[k] *= modelutils.exp(
                     -con.precipitationfactor[k] * flu.precipitation[k]
                 )
+
+
+class Calc_PotentialEvapotranspiration_PETModel_V1(modeltools.Method):
+    """Let a submodel that complies with the |PETModel_V1| interface calculate
+    potential evapotranspiration.
+
+    Example:
+
+        We use |evap_tw2002| as an example:
+
+        >>> from hydpy.models.evap_aet_hbv96 import *
+        >>> parameterstep()
+        >>> nmbhru(3)
+        >>> with model.add_petmodel_v1("evap_tw2002"):
+        ...     hruarea(5.0, 2.0, 3.0)
+        ...     hrualtitude(200.0, 600.0, 1000.0)
+        ...     coastfactor(0.6)
+        ...     evapotranspirationfactor(1.1)
+        ...     inputs.globalradiation = 200.0
+        ...     with model.add_tempmodel_v2("meteo_temp_io"):
+        ...         temperatureaddend(1.0)
+        ...         inputs.temperature = 14.0
+        >>> model.calc_potentialevapotranspiration_v4()
+        >>> fluxes.potentialevapotranspiration
+        potentialevapotranspiration(3.07171, 2.86215, 2.86215)
+    """
+
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    RESULTSEQUENCES = (evap_fluxes.PotentialEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        submodel.determine_potentialevapotranspiration()
+        for k in range(con.nmbhru):
+            flu.potentialevapotranspiration[
+                k
+            ] = submodel.get_potentialevapotranspiration(k)
+
+
+class Calc_PotentialEvapotranspiration_V4(modeltools.Method):
+    """Let a submodel that complies with the |PETModel_V1| interface calculate
+    potential evapotranspiration."""
+
+    SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
+    SUBMETHODS = (Calc_PotentialEvapotranspiration_PETModel_V1,)
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    RESULTSEQUENCES = (evap_fluxes.PotentialEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        if model.petmodel_typeid == 1:
+            model.calc_potentialevapotranspiration_petmodel_v1(
+                cast(petinterfaces.PETModel_V1, model.petmodel)
+            )
+        # ToDo:
+        #     else:
+        #         assert_never(model.petmodel)
 
 
 class Adjust_ReferenceEvapotranspiration_V1(modeltools.Method):
@@ -1449,8 +1689,380 @@ class Calc_MeanPotentialEvapotranspiration_V1(modeltools.Method):
             )
 
 
+class Calc_WaterEvaporation_V1(modeltools.Method):
+    r"""Calculate the actual evaporation from water areas according to
+    :cite:t:`ref-Lindstrom1997HBV96`.
+
+    Basic equation:
+      .. math::
+        WaterEvaporation =
+        \begin{cases}
+        PotentialEvapotranspiration &|\ AirTemperature > TemperatureThresholdIce
+        \\
+        0 &|\ AirTemperature \leq TemperatureThresholdIce
+        \end{cases}
+
+    Example:
+
+        The occurrence of an ice layer on the water's surface prohibits evaporation
+        completely:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(3)
+        >>> water(True)
+        >>> temperaturethresholdice(1.0)
+        >>> factors.airtemperature = 0.0, 1.0, 2.0
+        >>> fluxes.potentialevapotranspiration = 3.0
+        >>> model.calc_waterevaporation_v1()
+        >>> fluxes.waterevaporation
+        waterevaporation(0.0, 0.0, 3.0)
+
+        For non-water areas, water area evaporation is generally zero:
+
+        >>> water(False)
+        >>> model.calc_waterevaporation_v1()
+        >>> fluxes.waterevaporation
+        waterevaporation(0.0, 0.0, 0.0)
+    """
+
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.Water,
+        evap_control.TemperatureThresholdIce,
+    )
+    REQUIREDSEQUENCES = (
+        evap_factors.AirTemperature,
+        evap_fluxes.PotentialEvapotranspiration,
+    )
+    RESULTSEQUENCES = (evap_fluxes.WaterEvaporation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            if con.water[k] and fac.airtemperature[k] > con.temperaturethresholdice[k]:
+                flu.waterevaporation[k] = flu.potentialevapotranspiration[k]
+            else:
+                flu.waterevaporation[k] = 0.0
+
+
+class Calc_InterceptionEvaporation_V1(modeltools.Method):
+    r"""Calculate the actual interception evaporation.
+
+    Basic equation:
+      .. math::
+        InterceptionEvaporation =
+        \begin{cases}
+        PotentialEvapotranspiration &|\ InterceptedWater > 0
+        \\
+        0 &|\ InterceptedWater = 0
+        \end{cases}
+
+    Examples:
+
+        The availability of intercepted water may restrict the possible interception
+        evaporation:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(4)
+        >>> interception(True)
+        >>> fluxes.potentialevapotranspiration(1.0)
+        >>> factors.interceptedwater(1.5, 1.0, 0.5, 0.0)
+        >>> model.calc_interceptionevaporation_v1()
+        >>> fluxes.interceptionevaporation
+        interceptionevaporation(1.0, 1.0, 0.5, 0.0)
+
+        Interception evaporation is always zero for hydrological response units not
+        considering interception:
+
+        >>> interception(False)
+        >>> model.calc_interceptionevaporation_v1()
+        >>> fluxes.interceptionevaporation
+        interceptionevaporation(0.0, 0.0, 0.0, 0.0)
+    """
+
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.Interception,
+    )
+    REQUIREDSEQUENCES = (
+        evap_factors.InterceptedWater,
+        evap_fluxes.PotentialEvapotranspiration,
+    )
+    RESULTSEQUENCES = (evap_fluxes.InterceptionEvaporation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            if con.interception[k]:
+                flu.interceptionevaporation[k] = min(
+                    flu.potentialevapotranspiration[k], fac.interceptedwater[k]
+                )
+            else:
+                flu.interceptionevaporation[k] = 0.0
+
+
+class Calc_SoilEvapotranspiration_V1(modeltools.Method):
+    r"""Calculate the actual soil evapotranspiration according to
+    :cite:t:`ref-Lindstrom1997HBV96`.
+
+    Basic equation:
+      .. math::
+        SoilEvapotranspiration = PotentialEvapotranspiration \cdot
+        \frac{SoilWater}{SoilMoistureLimit \cdot MaxSoilWater}
+
+    Examples:
+
+        We initialise seven hydrological response units with different soil water
+        contents, including two that fall below and above the lowest and highest
+        possible soil moisture, respectively, to show that
+        |Calc_SoilEvapotranspiration_V1| works stably in case of eventual numerical
+        errors:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(7)
+        >>> soil(True)
+        >>> maxsoilwater(200.0)
+        >>> soilmoisturelimit(0.5)
+        >>> fluxes.potentialevapotranspiration = 2.0
+        >>> factors.soilwater = -1.0, 0.0, 50.0, 100.0, 150.0, 200.0, 201.0
+        >>> model.calc_soilevapotranspiration_v1()
+        >>> fluxes.soilevapotranspiration
+        soilevapotranspiration(0.0, 0.0, 1.0, 2.0, 2.0, 2.0, 2.0)
+
+        When setting |SoilMoistureLimit| to zero, |Calc_SoilEvapotranspiration_V1| sets
+        actual soil evapotranspiration equal to possible evapotranspiration, except for
+        negative soil moisture:
+
+        >>> soilmoisturelimit(0.0)
+        >>> model.calc_soilevapotranspiration_v1()
+        >>> fluxes.soilevapotranspiration
+        soilevapotranspiration(0.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0)
+
+        Setting |SoilMoistureLimit| to one does not result in any explanatory
+        behaviour:
+
+        >>> soilmoisturelimit(1.0)
+        >>> model.calc_soilevapotranspiration_v1()
+        >>> fluxes.soilevapotranspiration
+        soilevapotranspiration(0.0, 0.0, 0.5, 1.0, 1.5, 2.0, 2.0)
+
+        Condensation does not depend on actual soil moisture.  Hence,
+        |Calc_SoilEvapotranspiration_V1| generally sets actual soil evapotranspiration
+        equal to potential evapotranspiration if negative:
+
+        >>> soilmoisturelimit(0.5)
+        >>> fluxes.potentialevapotranspiration = -1.0
+        >>> model.calc_soilevapotranspiration_v1()
+        >>> fluxes.soilevapotranspiration
+        soilevapotranspiration(-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0)
+
+        For non-soil units, soil evapotranspiration is generally zero:
+
+        >>> soil(False)
+        >>> fluxes.potentialevapotranspiration = 2.0
+        >>> model.calc_soilevapotranspiration_v1()
+        >>> fluxes.soilevapotranspiration
+        soilevapotranspiration(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    """
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.Soil,
+        evap_control.MaxSoilWater,
+        evap_control.SoilMoistureLimit,
+    )
+    REQUIREDSEQUENCES = (
+        evap_factors.SoilWater,
+        evap_fluxes.PotentialEvapotranspiration,
+    )
+    RESULTSEQUENCES = (evap_fluxes.SoilEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            if con.soil[k]:
+                flu.soilevapotranspiration[k] = flu.potentialevapotranspiration[k]
+                if flu.soilevapotranspiration[k] > 0.0:
+                    if fac.soilwater[k] < 0.0:
+                        flu.soilevapotranspiration[k] = 0.0
+                    else:
+                        thresh: float = con.soilmoisturelimit[k] * con.maxsoilwater[k]
+                        if fac.soilwater[k] < thresh:
+                            flu.soilevapotranspiration[k] *= fac.soilwater[k] / thresh
+            else:
+                flu.soilevapotranspiration[k] = 0.0
+
+
+class Update_SoilEvapotranspiration_V1(modeltools.Method):
+    r"""Reduce actual soil evapotranspiration if the sum of interception evaporation
+    and soil evapotranspiration exceeds potential evapotranspiration, according to
+    :cite:t:`ref-Lindstrom1997HBV96`.
+
+    Basic equation:
+      .. math::
+        SoilEvapotranspiration_{new} = SoilEvapotranspiration_{old} - ExcessReduction
+        \cdot (SoilEvapotranspiration_{old} + InterceptionEvaporation -
+        PotentialEvapotranspiration)
+
+    Examples:
+
+        We initialise six hydrological response units with different unmodified soil
+        evapotranspiration values, including a negative one (condensation).  When
+        setting |ExcessReduction| to one, |Update_SoilEvapotranspiration_V1| does not
+        allow the sum of interception evaporation and soil evapotranspiration to exceed
+        potential evapotranspiration at all:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(6)
+        >>> soil(True)
+        >>> excessreduction(1.0)
+        >>> fluxes.potentialevapotranspiration = 2.0
+        >>> fluxes.interceptionevaporation = 1.0
+        >>> fluxes.soilevapotranspiration = -0.5, 0.0, 0.5, 1.0, 1.5, 2.0
+        >>> model.update_soilevapotranspiration_v1()
+        >>> fluxes.soilevapotranspiration
+        soilevapotranspiration(-0.5, 0.0, 0.5, 1.0, 1.0, 1.0)
+
+        When setting |ExcessReduction| to one, |Update_SoilEvapotranspiration_V1| does
+        not reduce any exceedances:
+
+        >>> excessreduction(0.0)
+        >>> fluxes.soilevapotranspiration = -0.5, 0.0, 0.5, 1.0, 1.5, 2.0
+        >>> model.update_soilevapotranspiration_v1()
+        >>> fluxes.soilevapotranspiration
+        soilevapotranspiration(-0.5, 0.0, 0.5, 1.0, 1.5, 2.0)
+
+        When setting |ExcessReduction| to 0.5, |Update_SoilEvapotranspiration_V1|
+        halves each exceedance:
+
+        >>> excessreduction(0.5)
+        >>> fluxes.soilevapotranspiration = -0.5, 0.0, 0.5, 1.0, 1.5, 2.0
+        >>> model.update_soilevapotranspiration_v1()
+        >>> fluxes.soilevapotranspiration
+        soilevapotranspiration(-0.5, 0.0, 0.5, 1.0, 1.25, 1.5)
+
+        In the unfortunate case of interception evaporation exceeding potential
+        evapotranspiration, previously positive soil evapotranspiration values can
+        become negative:
+
+        >>> fluxes.interceptionevaporation = 3.0
+        >>> fluxes.soilevapotranspiration = -0.5, 0.0, 0.5, 1.0, 1.5, 2.0
+        >>> model.update_soilevapotranspiration_v1()
+        >>> fluxes.soilevapotranspiration
+        soilevapotranspiration(-0.75, -0.5, -0.25, 0.0, 0.25, 0.5)
+
+        For negative potential evapotranspiration (condensation),
+        |Update_SoilEvapotranspiration_V1| reverses its behaviour to prevent the sum of
+        interception and soil condensation from exceeding potential condensation (too
+        much):
+
+        >>> fluxes.potentialevapotranspiration = -2.0
+        >>> fluxes.interceptionevaporation = -1.0
+        >>> fluxes.soilevapotranspiration = 0.5, -0.0, -0.5, -1.0, -1.5, -2.0
+        >>> model.update_soilevapotranspiration_v1()
+        >>> fluxes.soilevapotranspiration
+        soilevapotranspiration(0.5, 0.0, -0.5, -1.0, -1.25, -1.5)
+
+        For non-soil units, soil evapotranspiration is generally zero:
+
+        >>> soil(False)
+        >>> model.update_soilevapotranspiration_v1()
+        >>> fluxes.soilevapotranspiration
+        soilevapotranspiration(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    """
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.Soil,
+        evap_control.ExcessReduction,
+    )
+    REQUIREDSEQUENCES = (
+        evap_fluxes.PotentialEvapotranspiration,
+        evap_fluxes.InterceptionEvaporation,
+    )
+    UPDATEDSEQUENCES = (evap_fluxes.SoilEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            if con.soil[k]:
+                excess: float = (
+                    flu.soilevapotranspiration[k]
+                    + flu.interceptionevaporation[k]
+                    - flu.potentialevapotranspiration[k]
+                )
+                if (flu.potentialevapotranspiration[k] >= 0.0) and (excess > 0.0):
+                    flu.soilevapotranspiration[k] -= con.excessreduction[k] * excess
+                elif (flu.potentialevapotranspiration[k] < 0.0) and (excess < 0.0):
+                    flu.soilevapotranspiration[k] -= con.excessreduction[k] * excess
+            else:
+                flu.soilevapotranspiration[k] = 0.0
+
+
+class Update_SoilEvapotranspiration_V2(modeltools.Method):
+    r"""Reduce actual soil evapotranspiration due to snow covering.
+
+    Basic equations:
+      .. math::
+        SoilEvapotranspiration_{new} = (1 - SnowCover) \cdot
+        SoilEvapotranspiration_{old}
+
+    Examples:
+
+        We initialise five hydrological response units with different snow cover
+        degrees:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(5)
+        >>> soil(True)
+        >>> factors.snowcover = 0.0, 0.25, 0.5, 0.75, 1.0
+        >>> fluxes.soilevapotranspiration = 2.0
+        >>> model.update_soilevapotranspiration_v2()
+        >>> fluxes.soilevapotranspiration
+        soilevapotranspiration(2.0, 1.5, 1.0, 0.5, 0.0)
+
+        For non-soil units, soil evapotranspiration is generally zero:
+
+        >>> soil(False)
+        >>> model.update_soilevapotranspiration_v2()
+        >>> fluxes.soilevapotranspiration
+        soilevapotranspiration(0.0, 0.0, 0.0, 0.0, 0.0)
+    """
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.Soil,
+    )
+    REQUIREDSEQUENCES = (evap_factors.SnowCover,)
+    RESULTSEQUENCES = (evap_fluxes.SoilEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            if con.soil[k] and (fac.snowcover[k] < 1.0):
+                flu.soilevapotranspiration[k] *= 1.0 - fac.snowcover[k]
+            else:
+                flu.soilevapotranspiration[k] = 0.0
+
+
 class Determine_PotentialEvapotranspiration_V1(modeltools.Method):
-    r"""Interface method that applies the complete application model by executing all
+    """Interface method that applies the complete application model by executing all
     "run methods"."""
 
     @staticmethod
@@ -1477,10 +2089,10 @@ class Get_PotentialEvapotranspiration_V1(modeltools.Method):
     REQUIREDSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         flu = model.sequences.fluxes.fastaccess
 
-        return flu.referenceevapotranspiration[s]
+        return flu.referenceevapotranspiration[k]
 
 
 class Get_PotentialEvapotranspiration_V2(modeltools.Method):
@@ -1502,10 +2114,10 @@ class Get_PotentialEvapotranspiration_V2(modeltools.Method):
     REQUIREDSEQUENCES = (evap_fluxes.PotentialEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         flu = model.sequences.fluxes.fastaccess
 
-        return flu.potentialevapotranspiration[s]
+        return flu.potentialevapotranspiration[k]
 
 
 class Get_MeanPotentialEvapotranspiration_V1(modeltools.Method):
@@ -1552,6 +2164,169 @@ class Get_MeanPotentialEvapotranspiration_V2(modeltools.Method):
         return flu.meanpotentialevapotranspiration
 
 
+class Determine_InterceptionEvaporation_V1(modeltools.Method):
+    """Determine the actual interception evaporation according to
+    :cite:t:`ref-Lindstrom1997HBV96`."""
+
+    SUBMETHODS = (
+        Calc_PotentialEvapotranspiration_V4,
+        Calc_InterceptedWater_V1,
+        Calc_InterceptionEvaporation_V1,
+    )
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.Interception,
+    )
+    RESULTSEQUENCES = (
+        evap_factors.InterceptedWater,
+        evap_fluxes.PotentialEvapotranspiration,
+        evap_fluxes.InterceptionEvaporation,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        model.calc_potentialevapotranspiration_v4()
+        model.calc_interceptedwater_v1()
+        model.calc_interceptionevaporation_v1()
+
+
+class Determine_SoilEvapotranspiration_V1(modeltools.Method):
+    """Determine the actual evapotranspiration from the soil according to
+    :cite:t:`ref-Lindstrom1997HBV96`."""
+
+    SUBMETHODS = (
+        Calc_SoilWater_V1,
+        Calc_SnowCover_V1,
+        Calc_SoilEvapotranspiration_V1,
+        Update_SoilEvapotranspiration_V1,
+        Update_SoilEvapotranspiration_V2,
+    )
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.Soil,
+        evap_control.MaxSoilWater,
+        evap_control.SoilMoistureLimit,
+        evap_control.ExcessReduction,
+    )
+    REQUIREDSEQUENCES = (
+        evap_fluxes.PotentialEvapotranspiration,
+        evap_fluxes.InterceptionEvaporation,
+    )
+    RESULTSEQUENCES = (
+        evap_factors.SoilWater,
+        evap_factors.SnowCover,
+        evap_fluxes.SoilEvapotranspiration,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        model.calc_soilwater_v1()
+        model.calc_snowcover_v1()
+        model.calc_soilevapotranspiration_v1()
+        model.update_soilevapotranspiration_v1()
+        model.update_soilevapotranspiration_v2()
+
+
+class Determine_WaterEvaporation_V1(modeltools.Method):
+    """Determine the actual evapotranspiration from open water areas according to
+    :cite:t:`ref-Lindstrom1997HBV96`."""
+
+    SUBMETHODS = (
+        Calc_AirTemperature_V1,
+        Calc_WaterEvaporation_V1,
+    )
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.Water,
+        evap_control.TemperatureThresholdIce,
+    )
+    REQUIREDSEQUENCES = (evap_fluxes.PotentialEvapotranspiration,)
+    RESULTSEQUENCES = (
+        evap_factors.AirTemperature,
+        evap_fluxes.WaterEvaporation,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        model.calc_airtemperature_v1()
+        model.calc_waterevaporation_v1()
+
+
+class Get_WaterEvaporation_V1(modeltools.Method):
+    """Get the current water area evaporation from the selected hydrological response
+    unit.
+
+    Example:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> fluxes.waterevaporation = 2.0, 4.0
+        >>> model.get_waterevaporation_v1(0)
+        2.0
+        >>> model.get_waterevaporation_v1(1)
+        4.0
+    """
+
+    REQUIREDSEQUENCES = (evap_fluxes.WaterEvaporation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, k: int) -> float:
+        flu = model.sequences.fluxes.fastaccess
+
+        return flu.waterevaporation[k]
+
+
+class Get_InterceptionEvaporation_V1(modeltools.Method):
+    """Get the current actual interception evaporation from the selected hydrological
+    response unit.
+
+    Example:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> fluxes.interceptionevaporation = 2.0, 4.0
+        >>> model.get_interceptionevaporation_v1(0)
+        2.0
+        >>> model.get_interceptionevaporation_v1(1)
+        4.0
+    """
+
+    REQUIREDSEQUENCES = (evap_fluxes.InterceptionEvaporation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, k: int) -> float:
+        flu = model.sequences.fluxes.fastaccess
+
+        return flu.interceptionevaporation[k]
+
+
+class Get_SoilEvapotranspiration_V1(modeltools.Method):
+    """Get the current soil evapotranspiration from the selected hydrological response
+    unit.
+
+    Example:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> fluxes.soilevapotranspiration = 2.0, 4.0
+        >>> model.get_soilevapotranspiration_v1(0)
+        2.0
+        >>> model.get_soilevapotranspiration_v1(1)
+        4.0
+    """
+
+    REQUIREDSEQUENCES = (evap_fluxes.SoilEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, k: int) -> float:
+        flu = model.sequences.fluxes.fastaccess
+
+        return flu.soilevapotranspiration[k]
+
+
 class Model(modeltools.AdHocModel):
     """The HydPy-Evap base model."""
 
@@ -1579,8 +2354,17 @@ class Model(modeltools.AdHocModel):
         Calc_PotentialEvapotranspiration_V1,
         Calc_PotentialEvapotranspiration_V2,
         Calc_PotentialEvapotranspiration_V3,
+        Calc_PotentialEvapotranspiration_V4,
         Calc_MeanReferenceEvapotranspiration_V1,
         Calc_MeanPotentialEvapotranspiration_V1,
+        Calc_InterceptedWater_V1,
+        Calc_SoilWater_V1,
+        Calc_SnowCover_V1,
+        Calc_WaterEvaporation_V1,
+        Calc_InterceptionEvaporation_V1,
+        Calc_SoilEvapotranspiration_V1,
+        Update_SoilEvapotranspiration_V1,
+        Update_SoilEvapotranspiration_V2,
     )
     INTERFACE_METHODS = (
         Determine_PotentialEvapotranspiration_V1,
@@ -1588,6 +2372,12 @@ class Model(modeltools.AdHocModel):
         Get_PotentialEvapotranspiration_V2,
         Get_MeanPotentialEvapotranspiration_V1,
         Get_MeanPotentialEvapotranspiration_V2,
+        Determine_InterceptionEvaporation_V1,
+        Determine_SoilEvapotranspiration_V1,
+        Determine_WaterEvaporation_V1,
+        Get_WaterEvaporation_V1,
+        Get_InterceptionEvaporation_V1,
+        Get_SoilEvapotranspiration_V1,
     )
     ADD_METHODS = (
         Calc_ReferenceEvapotranspiration_PETModel_V1,
@@ -1595,6 +2385,10 @@ class Model(modeltools.AdHocModel):
         Calc_AirTemperature_TempModel_V2,
         Calc_Precipitation_PrecipModel_V1,
         Calc_Precipitation_PrecipModel_V2,
+        Calc_InterceptedWater_IntercModel_V1,
+        Calc_SoilWater_SoilWaterModel_V1,
+        Calc_SnowCover_SnowCoverModel_V1,
+        Calc_PotentialEvapotranspiration_PETModel_V1,
     )
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
@@ -1611,6 +2405,10 @@ class Model(modeltools.AdHocModel):
     retmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     retmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
+    petmodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
+    petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    petmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
     tempmodel = modeltools.SubmodelProperty(
         tempinterfaces.TempModel_V1, tempinterfaces.TempModel_V2
     )
@@ -1623,10 +2421,21 @@ class Model(modeltools.AdHocModel):
     precipmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     precipmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
+    intercmodel = modeltools.SubmodelProperty(stateinterfaces.IntercModel_V1)
+    intercmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    intercmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
-class Sub_PETModel_V1(modeltools.AdHocModel, petinterfaces.PETModel_V1):
-    """Base class for HydPy-Evap models that comply with the |PETModel_V1| submodel
-    interface."""
+    soilwatermodel = modeltools.SubmodelProperty(stateinterfaces.SoilWaterModel_V1)
+    soilwatermodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    soilwatermodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    snowcovermodel = modeltools.SubmodelProperty(stateinterfaces.SnowCoverModel_V1)
+    snowcovermodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    snowcovermodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+
+class Sub_ETModel_V1(modeltools.AdHocModel):
+    """Base class for |Sub_PETModel_V1| and |Sub_AETModel_V1|."""
 
     @staticmethod
     @contextlib.contextmanager
@@ -1707,9 +2516,14 @@ FluxSequence1D
         """
         self.parameters.control.nmbhru(nmbzones)
 
-    @importtools.define_targetparameter(evap_control.NmbHRU)
-    def prepare_zonetypes(self, zonetypes: Sequence[int]) -> None:
-        """Set the hydrological response unit types.
+
+class Sub_PETModel_V1(Sub_ETModel_V1, petinterfaces.PETModel_V1):
+    """Base class for HydPy-Evap models that comply with the |PETModel_V1| submodel
+    interface."""
+
+    @importtools.define_targetparameter(evap_control.HRUType)
+    def prepare_zonetypes(self, zonetypes: VectorInputInt) -> None:
+        """If such a parameter exists, set the hydrological response unit types.
 
         >>> GRASS, TREES, WATER = 1, 3, 2
         >>> from hydpy.core.parametertools import Constants
@@ -1722,12 +2536,21 @@ FluxSequence1D
         >>> model.prepare_zonetypes([TREES, WATER])
         >>> hrutype
         hrutype(TREES, WATER)
+
+        >>> from hydpy import prepare_model
+        >>> aetmodel = prepare_model("evap_aet_hbv96")
+        >>> aetmodel.parameters.control.nmbhru(2)
+        >>> aetmodel.prepare_elevations([TREES, WATER])
+        >>> aetmodel.predefinedmethod2argument
+        {'prepare_elevations': [3, 2]}
         """
-        if (hrutype := getattr(self.parameters.control, "hrutype", None)) is not None:
+        if (hrutype := getattr(self.parameters.control, "hrutype", None)) is None:
+            self.predefinedmethod2argument["prepare_zonetypes"] = zonetypes
+        else:
             hrutype(zonetypes)
 
     @importtools.define_targetparameter(evap_control.HRUArea)
-    def prepare_subareas(self, subareas: Sequence[float]) -> None:
+    def prepare_subareas(self, subareas: VectorInputFloat) -> None:
         """Set the area of all hydrological response units in km².
 
         >>> from hydpy.models.evap_tw2002 import *
@@ -1740,22 +2563,93 @@ FluxSequence1D
         self.parameters.control.hruarea(subareas)
 
     @importtools.define_targetparameter(evap_control.HRUAltitude)
-    def prepare_elevations(self, elevations: Sequence[float]) -> None:
-        """Set the altitude of all hydrological response units in m.
+    def prepare_elevations(self, elevations: VectorInputFloat) -> None:
+        """If such a parameter exists, set the altitude of all hydrological response
+        units in m.
 
-        >>> from hydpy.models.evap_tw2002 import *
+        >>> from hydpy import prepare_model
+        >>> petmodel = prepare_model("evap_pet_hbv96")
+        >>> petmodel.parameters.control.nmbhru(2)
+        >>> petmodel.prepare_elevations([1.0, 3.0])
+        >>> petmodel.parameters.control.hrualtitude
+        hrualtitude(1.0, 3.0)
+
+        >>> aetmodel = prepare_model("evap_aet_hbv96")
+        >>> aetmodel.parameters.control.nmbhru(2)
+        >>> aetmodel.prepare_elevations([1.0, 3.0])
+        >>> aetmodel.predefinedmethod2argument
+        {'prepare_elevations': [1.0, 3.0]}
+        """
+        hrualtitude = getattr(self.parameters.control, "hrualtitude", None)
+        if hrualtitude is None:
+            self.predefinedmethod2argument["prepare_elevations"] = elevations
+        else:
+            self.parameters.control.hrualtitude(elevations)
+
+
+class Sub_AETModel_V1(Sub_ETModel_V1, aetinterfaces.AETModel_V1):
+    """Base class for HydPy-Evap models that comply with the |AETModel_V1| submodel
+    interface."""
+
+    @importtools.define_targetparameter(evap_control.MaxSoilWater)
+    def prepare_maxsoilwater(self, maxsoilwater: VectorInputFloat) -> None:
+        """Set the maximum soil water content.
+
+        >>> from hydpy.models.evap_aet_hbv96 import *
         >>> parameterstep()
         >>> nmbhru(2)
-        >>> model.prepare_elevations([1.0, 3.0])
-        >>> hrualtitude
-        hrualtitude(1.0, 3.0)
+        >>> model.prepare_maxsoilwater([100.0, 200.0])
+        >>> maxsoilwater
+        maxsoilwater(100.0, 200.0)
         """
-        self.parameters.control.hrualtitude(elevations)
+        self.parameters.control.maxsoilwater(maxsoilwater)
+
+    @importtools.define_targetparameter(evap_control.Water)
+    def prepare_water(self, water: VectorInputBool) -> None:
+        """Set the flag indicating whether or not the respective hydrological response
+        units are water areas.
+
+        >>> from hydpy.models.evap_aet_hbv96 import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> model.prepare_water([True, False])
+        >>> water
+        water(True, False)
+        """
+        self.parameters.control.water(water)
+
+    @importtools.define_targetparameter(evap_control.Interception)
+    def prepare_interception(self, interception: VectorInputBool) -> None:
+        """Set the flag indicating whether or not the respective hydrological response
+        units consider interception evaporation.
+
+        >>> from hydpy.models.evap_aet_hbv96 import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> model.prepare_interception([True, False])
+        >>> interception
+        interception(True, False)
+        """
+        self.parameters.control.interception(interception)
+
+    @importtools.define_targetparameter(evap_control.Soil)
+    def prepare_soil(self, soil: VectorInputBool) -> None:
+        """Set the flag indicating whether or not the respective hydrological response
+        units consider evapotranspiration from the soil.
+
+        >>> from hydpy.models.evap_aet_hbv96 import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> model.prepare_soil([True, False])
+        >>> soil
+        soil(True, False)
+        """
+        self.parameters.control.soil(soil)
 
 
-class Main_PETModel_V1(modeltools.AdHocModel):
-    """Base class for HydPy-Evap models that use submodels that comply with the
-    |PETModel_V1| interface."""
+class Main_RET_PETModel_V1(modeltools.AdHocModel):
+    """Base class for HydPy-Evap models that use submodels named `retmodel` and comply
+    with the |PETModel_V1| interface."""
 
     retmodel: modeltools.SubmodelProperty
     retmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -1786,6 +2680,37 @@ class Main_PETModel_V1(modeltools.AdHocModel):
         control = self.parameters.control
         retmodel.prepare_nmbzones(control.nmbhru.value)
         retmodel.prepare_subareas(control.hruarea.values)
+
+
+class Main_PET_PETModel_V1(modeltools.AdHocModel):
+    """Base class for HydPy-Evap models that use submodels named `petmodel` and comply
+    with the |PETModel_V1| interface."""
+
+    petmodel: modeltools.SubmodelProperty
+    petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    petmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel(
+        "petmodel",
+        petinterfaces.PETModel_V1,
+        petinterfaces.PETModel_V1.prepare_nmbzones,
+    )
+    def add_petmodel_v1(self, petmodel: petinterfaces.PETModel_V1) -> None:
+        """Initialise the given `petmodel` that follows the |PETModel_V1| interface and
+        is responsible for calculating potential evapotranspiration.
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
+        >>> from hydpy.models.evap_aet_hbv96 import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> with model.add_petmodel_v1("evap_io"):
+        ...     hruarea(8.0, 2.0)
+        ...     nmbhru
+        nmbhru(2)
+        """
+        control = self.parameters.control
+        petmodel.prepare_nmbzones(control.nmbhru.value)
 
 
 class Main_TempModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
@@ -1829,9 +2754,9 @@ class Main_TempModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
         return super().add_mainmodel_as_subsubmodel(mainmodel)
 
 
-class Main_TempModel_V2(modeltools.AdHocModel):
+class Main_TempModel_V2A(modeltools.AdHocModel):
     """Base class for HydPy-Evap models that support submodels that comply with the
-    |TempModel_V2| interface."""
+    |TempModel_V2| interface and provide subarea size information."""
 
     tempmodel: modeltools.SubmodelProperty
     tempmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -1864,6 +2789,38 @@ class Main_TempModel_V2(modeltools.AdHocModel):
         control = self.parameters.control
         tempmodel.prepare_nmbzones(control.nmbhru.value)
         tempmodel.prepare_subareas(control.hruarea.value)
+
+
+class Main_TempModel_V2B(modeltools.AdHocModel):
+    """Base class for HydPy-Evap models that support submodels that comply with the
+    |TempModel_V2| interface and do not provide subarea size information."""
+
+    tempmodel: modeltools.SubmodelProperty
+    tempmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    tempmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel(
+        "tempmodel",
+        tempinterfaces.TempModel_V2,
+        tempinterfaces.TempModel_V2.prepare_nmbzones,
+    )
+    def add_tempmodel_v2(self, tempmodel: tempinterfaces.TempModel_V2) -> None:
+        """Initialise the given precipitation model that follows the |TempModel_V2|
+        interface and set the number of its zones.
+
+        >>> from hydpy.models.evap_aet_hbv96 import *
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
+        >>> nmbhru(2)
+        >>> with model.add_tempmodel_v2("meteo_temp_io"):
+        ...     nmbhru
+        ...     temperatureaddend(1.0, 2.0)
+        nmbhru(2)
+        >>> model.tempmodel.parameters.control.temperatureaddend
+        temperatureaddend(1.0, 2.0)
+        """
+        control = self.parameters.control
+        tempmodel.prepare_nmbzones(control.nmbhru.value)
 
 
 class Main_PrecipModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
@@ -1941,3 +2898,187 @@ class Main_PrecipModel_V2(modeltools.AdHocModel):
         control = self.parameters.control
         precipmodel.prepare_nmbzones(control.nmbhru.value)
         precipmodel.prepare_subareas(control.hruarea.value)
+
+
+class Main_IntercModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
+    """Base class for HydPy-Evap models that can use main models as their sub-submodels
+    if they comply with the |IntercModel_V1| interface."""
+
+    intercmodel: modeltools.SubmodelProperty
+    intercmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    intercmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    def add_mainmodel_as_subsubmodel(self, mainmodel: modeltools.Model) -> bool:
+        """Add the given main model as a submodel if it complies with the
+        |IntercModel_V1| interface.
+
+        >>> from hydpy import prepare_model
+        >>> evap = prepare_model("evap_aet_hbv96")
+        >>> evap.add_mainmodel_as_subsubmodel(prepare_model("evap_io"))
+        False
+        >>> evap.intercmodel
+        >>> evap.intercmodel_is_mainmodel
+        False
+        >>> evap.intercmodel_typeid
+        0
+
+        >>> hland = prepare_model("hland_v1")
+        >>> evap.add_mainmodel_as_subsubmodel(hland)
+        True
+        >>> evap.intercmodel is hland
+        True
+        >>> evap.intercmodel_is_mainmodel
+        True
+        >>> evap.intercmodel_typeid
+        1
+        """
+        if isinstance(mainmodel, stateinterfaces.IntercModel_V1):
+            self.intercmodel = mainmodel
+            self.intercmodel_is_mainmodel = True
+            self.intercmodel_typeid = stateinterfaces.IntercModel_V1.typeid
+            super().add_mainmodel_as_subsubmodel(mainmodel)
+            return True
+        return super().add_mainmodel_as_subsubmodel(mainmodel)
+
+    @importtools.prepare_submodel(
+        "intercmodel",
+        stateinterfaces.IntercModel_V1,
+        stateinterfaces.IntercModel_V1.prepare_nmbzones,
+    )
+    def add_intercmodel_v1(self, intercmodel: stateinterfaces.IntercModel_V1) -> None:
+        """Initialise the given interception model that follows the |IntercModel_V1|
+        interface and set the number of its zones.
+
+        >>> from hydpy.models.evap_aet_hbv96 import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> with model.add_intercmodel_v2("dummy_ic"):
+        ...     nmbhru
+        nmbhru(2)
+        """
+        control = self.parameters.control
+        intercmodel.prepare_nmbzones(control.nmbhru.value)
+
+
+class Main_SoilWaterModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
+    """Base class for HydPy-Evap models that can use main models as their sub-submodels
+    if they comply with the |SoilWaterModel_V1| interface."""
+
+    soilwatermodel: modeltools.SubmodelProperty
+    soilwatermodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    soilwatermodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    def add_mainmodel_as_subsubmodel(self, mainmodel: modeltools.Model) -> bool:
+        """Add the given main model as a submodel if it complies with the
+        |SoilWaterModel_V1| interface.
+
+        >>> from hydpy import prepare_model
+        >>> evap = prepare_model("evap_aet_hbv96")
+        >>> evap.add_mainmodel_as_subsubmodel(prepare_model("evap_io"))
+        False
+        >>> evap.soilwatermodel
+        >>> evap.soilwatermodel_is_mainmodel
+        False
+        >>> evap.soilwatermodel_typeid
+        0
+
+        >>> hland = prepare_model("hland_v1")
+        >>> evap.add_mainmodel_as_subsubmodel(hland)
+        True
+        >>> evap.soilwatermodel is hland
+        True
+        >>> evap.soilwatermodel_is_mainmodel
+        True
+        >>> evap.soilwatermodel_typeid
+        1
+        """
+        if isinstance(mainmodel, stateinterfaces.SoilWaterModel_V1):
+            self.soilwatermodel = mainmodel
+            self.soilwatermodel_is_mainmodel = True
+            self.soilwatermodel_typeid = stateinterfaces.SoilWaterModel_V1.typeid
+            super().add_mainmodel_as_subsubmodel(mainmodel)
+            return True
+        return super().add_mainmodel_as_subsubmodel(mainmodel)
+
+    @importtools.prepare_submodel(
+        "soilwatermodel",
+        stateinterfaces.SoilWaterModel_V1,
+        stateinterfaces.SoilWaterModel_V1.prepare_nmbzones,
+    )
+    def add_soilwatermodel_v1(
+        self, soilwatermodel: stateinterfaces.SoilWaterModel_V1
+    ) -> None:
+        """Initialise the given soil water model that follows the |SoilWaterModel_V1|
+        interface and set the number of its zones.
+
+        >>> from hydpy.models.evap_aet_hbv96 import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> with model.add_soilwatermodel_v1("dummy_sw"):
+        ...     nmbhru
+        nmbhru(2)
+        """
+        control = self.parameters.control
+        soilwatermodel.prepare_nmbzones(control.nmbhru.value)
+
+
+class Main_SnowCoverModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
+    """Base class for HydPy-Evap models that can use main models as their sub-submodels
+    if they comply with the |SnowCoverModel_V1| interface."""
+
+    snowcovermodel: modeltools.SubmodelProperty
+    snowcovermodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    snowcovermodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    def add_mainmodel_as_subsubmodel(self, mainmodel: modeltools.Model) -> bool:
+        """Add the given main model as a submodel if it complies with the
+        |SnowCoverModel_V1| interface.
+
+        >>> from hydpy import prepare_model
+        >>> evap = prepare_model("evap_aet_hbv96")
+        >>> evap.add_mainmodel_as_subsubmodel(prepare_model("evap_io"))
+        False
+        >>> evap.snowcovermodel
+        >>> evap.snowcovermodel_is_mainmodel
+        False
+        >>> evap.snowcovermodel_typeid
+        0
+
+        >>> hland = prepare_model("hland_v1")
+        >>> evap.add_mainmodel_as_subsubmodel(hland)
+        True
+        >>> evap.snowcovermodel is hland
+        True
+        >>> evap.snowcovermodel_is_mainmodel
+        True
+        >>> evap.snowcovermodel_typeid
+        1
+        """
+        if isinstance(mainmodel, stateinterfaces.SnowCoverModel_V1):
+            self.snowcovermodel = mainmodel
+            self.snowcovermodel_is_mainmodel = True
+            self.snowcovermodel_typeid = stateinterfaces.SnowCoverModel_V1.typeid
+            super().add_mainmodel_as_subsubmodel(mainmodel)
+            return True
+        return super().add_mainmodel_as_subsubmodel(mainmodel)
+
+    @importtools.prepare_submodel(
+        "snowcovermodel",
+        stateinterfaces.SnowCoverModel_V1,
+        stateinterfaces.SnowCoverModel_V1.prepare_nmbzones,
+    )
+    def add_snowcovermodel_v1(
+        self, snowcovermodel: stateinterfaces.SnowCoverModel_V1
+    ) -> None:
+        """Initialise the given snow cover model that follows the
+        |SnowCoverModel_V1| interface and set the number of its zones.
+
+        >>> from hydpy.models.evap_aet_hbv96 import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> with model.add_snowcovermodel_v2("dummy_sc"):
+        ...     nmbhru
+        nmbhru(2)
+        """
+        control = self.parameters.control
+        snowcovermodel.prepare_nmbzones(control.nmbhru.value)

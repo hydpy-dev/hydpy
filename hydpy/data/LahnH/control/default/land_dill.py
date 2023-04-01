@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from hydpy.models.hland_v1 import *
+from hydpy.models import evap_aet_hbv96
 from hydpy.models import evap_pet_hbv96
 
 simulationstep("1h")
@@ -21,13 +22,6 @@ rfcf(1.04283)
 sfcf(1.1)
 tcorr(0.0)
 tcalt(0.6)
-with model.add_petmodel_v1(evap_pet_hbv96):
-    airtemperaturefactor(0.1)
-    altitudefactor(0.0)
-    precipitationfactor(0.02)
-    evapotranspirationfactor(1.0)
-ered(0.0)
-ttice(nan)
 icmax(auxfile="land")
 sfdist(1.0)
 smax(inf)
@@ -42,7 +36,6 @@ gvar(0.0)
 cfr(0.05)
 whc(0.1)
 fc(278.0)
-lp(0.9)
 beta(2.54011)
 percmax(1.39636)
 cflux(0.0)
@@ -53,3 +46,12 @@ k(0.005617743528874685)
 k4(0.05646)
 gamma(0.0)
 maxbaz(0.36728)
+with model.add_aetmodel_v1(evap_aet_hbv96):
+    temperaturethresholdice(nan)
+    soilmoisturelimit(0.9)
+    excessreduction(0.0)
+    with model.add_petmodel_v1(evap_pet_hbv96):
+        airtemperaturefactor(0.1)
+        altitudefactor(0.0)
+        precipitationfactor(0.02)
+        evapotranspirationfactor(1.0)

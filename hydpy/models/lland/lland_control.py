@@ -1359,7 +1359,7 @@ class EQD2(parametertools.Parameter):
 
 
 class NegQ(parametertools.Parameter):
-    """Option: sind negative Abflüsse erlaubt (flag that indicated wether
+    """Option: sind negative Abflüsse erlaubt (flag that indicated whether
     negative discharge values are allowed or not) [-]."""
 
     NDIM, TYPE, TIME, SPAN = 0, bool, None, (0.0, None)

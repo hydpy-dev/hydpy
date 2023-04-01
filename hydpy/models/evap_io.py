@@ -5,8 +5,8 @@
 Use |evap_io| as a submodel for handing externally available time series of reference
 evapotranspiration to main models like |lland_v1|.
 
-Integration tests
-=================
+Integration test
+================
 
 .. how_to_understand_integration_tests::
 
@@ -26,7 +26,6 @@ it does not require additional explanations:
 >>> hruarea(0.2, 0.8)
 >>> evapotranspirationfactor(0.8, 1.2)
 
->>> parameters.update()
 >>> test = IntegrationTest(element)
 >>> test.dateformat = "%Y-%d-%m"
 

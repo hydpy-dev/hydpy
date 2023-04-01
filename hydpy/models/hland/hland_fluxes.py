@@ -16,12 +16,6 @@ class PC(hland_sequences.Flux1DSequence):
     mask = hland_masks.Complete()
 
 
-class EP(hland_sequences.Flux1DSequence):
-    """Potential evaporation [mm/T]."""
-
-    mask = hland_masks.NoGlacier()
-
-
 class EI(hland_sequences.Flux1DSequence):
     """Interception evaporation [mm/T]."""
 

@@ -252,16 +252,16 @@ class SubmodelIsMainmodelProperty:
     >>> from hydpy import prepare_model, pub
     >>> with pub.options.usecython(True):
     ...     model = prepare_model("hland_v1")
-    >>> type(model).petmodel_is_mainmodel._name
-    'petmodel_is_mainmodel'
-    >>> model.petmodel_is_mainmodel
+    >>> type(model).aetmodel_is_mainmodel._name
+    'aetmodel_is_mainmodel'
+    >>> model.aetmodel_is_mainmodel
     False
-    >>> model.cymodel.petmodel_is_mainmodel
+    >>> model.cymodel.aetmodel_is_mainmodel
     0
-    >>> model.petmodel_is_mainmodel = True
-    >>> model.petmodel_is_mainmodel
+    >>> model.aetmodel_is_mainmodel = True
+    >>> model.aetmodel_is_mainmodel
     True
-    >>> model.cymodel.petmodel_is_mainmodel
+    >>> model.cymodel.aetmodel_is_mainmodel
     1
     """
 
@@ -306,16 +306,16 @@ class SubmodelTypeIDProperty:
     >>> from hydpy import prepare_model, pub
     >>> with pub.options.usecython(True):
     ...     model = prepare_model("hland_v1")
-    >>> type(model).petmodel_typeid._name
-    'petmodel_typeid'
-    >>> model.petmodel_typeid
+    >>> type(model).aetmodel_typeid._name
+    'aetmodel_typeid'
+    >>> model.aetmodel_typeid
     0
-    >>> model.cymodel.petmodel_typeid
+    >>> model.cymodel.aetmodel_typeid
     0
-    >>> model.petmodel_typeid = 1
-    >>> model.petmodel_typeid
+    >>> model.aetmodel_typeid = 1
+    >>> model.aetmodel_typeid
     1
-    >>> model.cymodel.petmodel_typeid
+    >>> model.cymodel.aetmodel_typeid
     1
     """
 
@@ -1129,13 +1129,13 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
 
         >>> from hydpy import prepare_model, pub
         >>> model = prepare_model("hland_v1")
-        >>> model.petmodel = prepare_model("evap_pet_hbv96")
+        >>> model.aetmodel = prepare_model("evap_aet_hbv96")
         >>> pub.timegrids = "2000.01.01", "2001.01.01", "1h"
         >>> print(model.get_controlfileheader())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
         from hydpy.models.hland_v1 import *
-        from hydpy.models import evap_pet_hbv96
+        from hydpy.models import evap_aet_hbv96
         <BLANKLINE>
         simulationstep("1h")
         parameterstep("1d")
@@ -1288,24 +1288,36 @@ filename must be known.  This can be done, by passing a filename to function \
 to be consistent with the name of the element handling the model.
         """
 
-        def _extend_lines_submodel(model: Model, sublevel: int) -> None:
+        def _extend_lines_submodel(
+            model: Model, sublevel: int, general_methods: Set[str]
+        ) -> None:
             sublevel += 1
             for name, submodel in model.find_submodels(
                 include_subsubmodels=False
             ).items():
                 t2n2a = importtools.SubmodelAdder.modeltype2submodelname2submodeladder
-                for modeltype in inspect.getmro(type(self)):
+                subname = name.rpartition(".")[2]
+                for modeltype in inspect.getmro(type(model)):
                     if (name2adder := t2n2a.get(modeltype)) is not None:
-                        break
+                        if (adder := name2adder.get(subname)) is not None:
+                            break
                 else:
                     assert False
-                adder = name2adder[name.rpartition(".")[2]]
-                lines.append(f"with model.{adder.wrapped.__name__}({submodel}):\n")
-                targetparameters = []
+                lines.append(
+                    f"{(sublevel - 1) * '    '}with "
+                    f"model.{adder.wrapped.__name__}({submodel}):\n"
+                )
+                all_methods: Set[str] = general_methods.copy()
                 for method in adder.methods:
-                    updater = getattr(submodel, method.__name__)
-                    assert isinstance(updater, importtools.TargetParameterUpdater)
-                    targetparameters.append(updater.targetparameter)
+                    methodname = method.__name__
+                    all_methods.add(methodname)
+                    if methodname in SubmodelInterface.GENERAL_METHODS:
+                        general_methods.add(methodname)
+                targetparameters = set()
+                for methodname in all_methods:
+                    updater = getattr(submodel, methodname)
+                    if isinstance(updater, importtools.TargetParameterUpdater):
+                        targetparameters.add(updater.targetparameter)
                 lines.extend(
                     submodel._get_controllines(  # pylint: disable=protected-access
                         parameterstep=parameterstep,
@@ -1315,7 +1327,9 @@ to be consistent with the name of the element handling the model.
                         ignore=tuple(targetparameters),
                     )
                 )
-                _extend_lines_submodel(model=submodel, sublevel=sublevel)
+                _extend_lines_submodel(
+                    model=submodel, sublevel=sublevel, general_methods=general_methods
+                )
 
         header = self.get_controlfileheader(
             parameterstep=parameterstep, simulationstep=simulationstep
@@ -1329,7 +1343,7 @@ to be consistent with the name of the element handling the model.
                 sublevel=0,
             )
         )
-        _extend_lines_submodel(model=self, sublevel=0)
+        _extend_lines_submodel(model=self, sublevel=0, general_methods=set())
         text = "".join(lines)
         if filepath:
             with open(filepath, mode="w", encoding="utf-8") as controlfile:
@@ -1623,6 +1637,86 @@ to be consistent with the name of the element handling the model.
         name2submodel = {"model": self} if include_mainmodel else {}
         _find_submodels("model", self)
         return dict(sorted(name2submodel.items()))
+
+    def update_parameters(self) -> None:
+        """Use the control parameter values of the current model for updating its
+        derived parameters and the control and derived parameters of all its submodels.
+
+        We use the combination of |hland_v1|, |evap_aet_hbv96|, and |evap_pet_hbv96|
+        used by the `LahnH` project for modelling the Dill catchment as an example:
+
+        >>> from hydpy.examples import prepare_full_example_2
+        >>> hp = prepare_full_example_2()[0]
+        >>> model = hp.elements.land_dill.model
+
+        First, all zones of the Dill catchment are either of type
+        |hland_constants.FIELD| or |hland_constants.FOREST|:
+
+        >>> model.parameters.control.zonetype
+        zonetype(FIELD, FOREST, FIELD, FOREST, FIELD, FOREST, FIELD, FOREST,
+                 FIELD, FOREST, FIELD, FOREST)
+
+        Hence, the |evap_control.Soil| parameter of |evap_aet_hbv96| must be |True| for
+        the entire basin, as both zone types possess a soil module which
+        requires soil evapotranspiration estimates:
+
+        >>> model.aetmodel.parameters.control.soil
+        soil(True)
+
+        Second, |hland_v1| requires definitions for the zones' altitude
+        (|hland_control.ZoneZ|) and determines the average basin altitude
+        (|hland_derived.Z|) automatically:
+
+        >>> model.parameters.control.zonez
+        zonez(2.0, 2.0, 3.0, 3.0, 4.0, 4.0, 5.0, 5.0, 6.0, 6.0, 7.0, 7.0)
+        >>> model.parameters.derived.z
+        z(4.205345)
+
+        |evap_aet_hbv96| handles its altitude data similarly but relies on the unit 1 m
+        instead of 100 m:
+
+        >>> model.aetmodel.petmodel.parameters.control.hrualtitude
+        hrualtitude(200.0, 200.0, 300.0, 300.0, 400.0, 400.0, 500.0, 500.0,
+                    600.0, 600.0, 700.0, 700.0)
+        >>> model.aetmodel.petmodel.parameters.derived.altitude
+        altitude(420.53445)
+
+        We now set the first zone to type |hland_constants.ILAKE| and the altitude of
+        all zones to 400 m:
+
+        >>> from hydpy.models.hland_v1 import ILAKE
+        >>> model.parameters.control.zonetype[0] = ILAKE
+        >>> model.parameters.control.zonez(4.0)
+
+        |Model.update_parameters| uses the appropriate interface methods to transfer
+        the updated control parameter values from the main model to all its submodels.
+        So, parameter |evap_control.Soil| parameter of |evap_aet_hbv96| becomes aware
+        of the introduced internal lake zone, which does not include a soil module and
+        hence needs no soil evapotranspiration estimates:
+
+        >>> model.update_parameters()
+        >>> model.aetmodel.parameters.control.soil
+        soil(field=True, forest=True, ilake=False)
+
+        Additionally, |Model.update_parameters| uses method |Parameters.update| of
+        class |Parameters| for updating the derived parameters |hland_derived.Z| of the
+        |hland_v1| main model and |evap_derived.Altitude| of the |evap_pet_hbv96|
+        submodel:
+
+        >>> model.parameters.derived.z
+        z(4.0)
+        >>> model.aetmodel.petmodel.parameters.control.hrualtitude
+        hrualtitude(400.0)
+        >>> model.aetmodel.petmodel.parameters.derived.altitude
+        altitude(400.0)
+        """
+        self.parameters.update()
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            if isinstance(submodel, SubmodelInterface):
+                adder = submodel._submodeladder  # pylint: disable=protected-access
+                if adder is not None:
+                    adder.update(self, submodel)
+                    submodel.update_parameters()
 
     # ToDo: Replace this hack with a Mypy plugin?
     def __getattr__(self, item: str) -> Any:
@@ -3018,10 +3112,34 @@ class ELSModel(SolverModel):
                 self.numvars.extrapolated_relerror = modelutils.inf
 
 
+class PredefinedMethod2Argument(TypedDict, total=False):
+    """Dictionary for passing arguments from main models to sub-submodels if the
+    submodel does not override the related "general" interface methods for transfering
+    parameter values from main models to submodels."""
+
+    prepare_nmbzones: int
+    prepare_zonetypes: VectorInputInt
+    prepare_subareas: VectorInputFloat
+    prepare_elevations: VectorInputFloat
+
+
 class SubmodelInterface(Model, abc.ABC):
     """Base class for defining interfaces for submodels."""
 
     INTERFACE_METHODS: ClassVar[Tuple[Type[Method], ...]]
+    GENERAL_METHODS: Tuple[str, ...] = (
+        "prepare_nmbzones",
+        "prepare_zonetypes",
+        "prepare_subareas",
+        "prepare_elevations",
+    )
+    _submodeladder: Optional[importtools.SubmodelAdder]
+    predefinedmethod2argument: PredefinedMethod2Argument
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._submodeladder = None
+        self.predefinedmethod2argument = {}
 
     @property
     @abc.abstractmethod
@@ -3064,6 +3182,69 @@ class SubmodelInterface(Model, abc.ABC):
         |True|; otherwise, |False|.
         """
         return False
+
+    def prepare_nmbzones(self, nmbzones: int) -> None:
+        """Set the number of zones in which the actual calculations take place.
+
+        If a submodel does not work with a variable number of zones, it probably must
+        not override |SubmodelInterface.prepare_nmbzones|.  Then, the default behaviour
+        applies, where |SubmodelInterface.prepare_nmbzones| stores the given number of
+        zones in the |SubmodelInterface.predefinedmethod2argument| dictionary.  There,
+        it is available to eventual sub-submodels:
+
+        >>> from hydpy.core.modeltools import SubmodelInterface
+        >>> from hydpy.core.testtools import make_abc_testable
+        >>> si = make_abc_testable(SubmodelInterface)()
+        >>> si.prepare_nmbzones(3)
+        >>> si.predefinedmethod2argument
+        {'prepare_nmbzones': 3}
+        """
+        self.predefinedmethod2argument["prepare_nmbzones"] = nmbzones
+
+    def prepare_zonetypes(self, zonetypes: Sequence[int]) -> None:
+        """Set the types (usually land cover types) of the individual zones.
+
+        The explanation on method |SubmodelInterface.prepare_nmbzones| also holds for
+        the default behaviour of method |SubmodelInterface.prepare_zonetypes|:
+
+        >>> from hydpy.core.modeltools import SubmodelInterface
+        >>> from hydpy.core.testtools import make_abc_testable
+        >>> si = make_abc_testable(SubmodelInterface)()
+        >>> si.prepare_zonetypes([1, 2])
+        >>> si.predefinedmethod2argument
+        {'prepare_zonetypes': [1, 2]}
+        """
+        self.predefinedmethod2argument["prepare_zonetypes"] = zonetypes
+
+    def prepare_subareas(self, subareas: Sequence[float]) -> None:
+        """Set the areas of the individual zones in km².
+
+        The explanation on method |SubmodelInterface.prepare_nmbzones| also holds for
+        the default behaviour of method |SubmodelInterface.prepare_subareas|:
+
+        >>> from hydpy.core.modeltools import SubmodelInterface
+        >>> from hydpy.core.testtools import make_abc_testable
+        >>> si = make_abc_testable(SubmodelInterface)()
+        >>> si.prepare_subareas([1.0, 2.0])
+        >>> si.predefinedmethod2argument
+        {'prepare_subareas': [1.0, 2.0]}
+        """
+        self.predefinedmethod2argument["prepare_subareas"] = subareas
+
+    def prepare_elevations(self, elevations: Sequence[float]) -> None:
+        """Set the elevations of the individual zones in m.
+
+        The explanation on method |SubmodelInterface.prepare_nmbzones| also holds for
+        the default behaviour of method |SubmodelInterface.prepare_elevations|:
+
+        >>> from hydpy.core.modeltools import SubmodelInterface
+        >>> from hydpy.core.testtools import make_abc_testable
+        >>> si = make_abc_testable(SubmodelInterface)()
+        >>> si.prepare_elevations([1.0, 2.0])
+        >>> si.predefinedmethod2argument
+        {'prepare_elevations': [1.0, 2.0]}
+        """
+        self.predefinedmethod2argument["prepare_elevations"] = elevations
 
 
 class Submodel:

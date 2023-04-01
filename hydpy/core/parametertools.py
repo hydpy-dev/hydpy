@@ -2156,8 +2156,7 @@ convert string to float: 'test'
     @classmethod
     @contextlib.contextmanager
     def modify_refindices(
-        cls,
-        refindices: Optional[NameParameter],
+        cls, refindices: Optional[NameParameter]
     ) -> Generator[None, None, None]:
         """Eventually, set or modify the reference to the required index parameter.
 
@@ -2347,12 +2346,18 @@ index parameter.
         KeywordArguments()
         >>> treft.keywordarguments.valid
         True
+
+        ToDo: document "refinement" asa lland_v1 uses the AETModel_V1 interface
         """
         try:
             mask = self.mask
         except BaseException:
             return KeywordArguments(False)
-        refindices = mask.refindices.values
+        if (refinement := mask.refinement) is None:
+            refindices = mask.refindices.values
+        else:
+            refindices = mask.refindices.values.copy()
+            refindices[~refinement.values] = variabletools.INT_NAN
         name2unique = KeywordArguments[Union[float]]()
         if (relevant := self.relevant) is None:
             relevant = mask.relevant

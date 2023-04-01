@@ -47,3 +47,21 @@ class PsychrometricConstant(sequencetools.FactorSequence):
     """Psychrometric constant [hPa/K]."""
 
     NDIM, NUMERIC = 0, False
+
+
+class InterceptedWater(evap_sequences.FactorSequence1D):
+    """Intercepted water [mm]."""
+
+    NUMERIC = False
+
+
+class SoilWater(evap_sequences.FactorSequence1D):
+    """Soil water content [mm]."""
+
+    NUMERIC = False
+
+
+class SnowCover(evap_sequences.FactorSequence1D):
+    """Snow cover degree [-]."""
+
+    NUMERIC = False

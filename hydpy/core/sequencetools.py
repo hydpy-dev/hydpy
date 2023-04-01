@@ -2781,11 +2781,14 @@ class InputSequence(ModelIOSequence):
     ...     parameters.update()
     ...     land_dill.model = model
 
+    >>> aetmodel = model.aetmodel
+    >>> petmodel = model.aetmodel.petmodel
+
     >>> model.sequences.inputs.t.inputflag
     True
     >>> model.sequences.inputs.p.inputflag
     True
-    >>> model.petmodel.sequences.inputs.normalevapotranspiration.inputflag
+    >>> petmodel.sequences.inputs.normalevapotranspiration.inputflag
     False
 
     >>> hp.update_devices(nodes=[node_t, node_p, node_q], elements=land_dill)
@@ -2811,9 +2814,9 @@ class InputSequence(ModelIOSequence):
     0.0, 4.0, 0.0, 8.0, 0.0
     >>> print_values(model.sequences.fluxes.pc.series[:, 0])
     0.0, 3.2514, 0.0, 6.5028, 0.0
-    >>> print_values(model.petmodel.sequences.inputs.normalevapotranspiration.series)
+    >>> print_values(petmodel.sequences.inputs.normalevapotranspiration.series)
     0.285483, 0.448182, 0.302786, 0.401946, 0.315023
-    >>> print_values(model.sequences.fluxes.ep.series[:, 0])
+    >>> print_values(aetmodel.sequences.fluxes.potentialevapotranspiration.series[:, 0])
     0.322562, 0.53804, 0.469133, 0.704755, 0.630047
 
     .. testsetup::
@@ -2834,7 +2837,8 @@ class InputSequence(ModelIOSequence):
 
     def __hydpy__connect_variable2subgroup__(self) -> None:
         super().__hydpy__connect_variable2subgroup__()
-        self._set_fastaccessattribute("inputflag", False)
+        if self.NDIM == 0:
+            self._set_fastaccessattribute("inputflag", False)
 
     def set_pointer(self, double: pointerutils.Double) -> None:
         """Prepare a pointer referencing the given |Double| object.
@@ -2978,7 +2982,8 @@ class OutputSequence(ModelIOSequence):
 
     def __hydpy__connect_variable2subgroup__(self) -> None:
         super().__hydpy__connect_variable2subgroup__()
-        self._set_fastaccessattribute("outputflag", False)
+        if self.NDIM == 0:
+            self._set_fastaccessattribute("outputflag", False)
 
     def set_pointer(self, double: pointerutils.Double) -> None:
         """Prepare a pointer referencing the given |Double| object.

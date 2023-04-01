@@ -13,8 +13,8 @@ precipitation.  By default, it queries the already available data from its main 
 Alternatively, it can handle its own submodels.  The following tests rely on the latter
 option.
 
-Integration tests
-=================
+Integration test
+================
 
 .. how_to_understand_integration_tests::
 
@@ -93,7 +93,7 @@ from hydpy.models.evap import evap_model
 
 class Model(
     evap_model.Main_TempModel_V1,
-    evap_model.Main_TempModel_V2,
+    evap_model.Main_TempModel_V2A,
     evap_model.Main_PrecipModel_V1,
     evap_model.Main_PrecipModel_V2,
     evap_model.Sub_PETModel_V1,

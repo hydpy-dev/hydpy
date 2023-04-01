@@ -38,6 +38,26 @@ class HRUType(parametertools.NameParameter):
     constants = parametertools.Constants(ANY=1)
 
 
+class Water(evap_parameters.ZipParameter1D):
+    """A flag that indicates whether the individual zones are water areas or not."""
+
+    TYPE, TIME, SPAN = bool, None, (False, True)
+
+
+class Interception(evap_parameters.ZipParameter1D):
+    """A flag that indicates whether interception evaporation is relevant for the
+    individual zones."""
+
+    TYPE, TIME, SPAN = bool, None, (False, True)
+
+
+class Soil(evap_parameters.ZipParameter1D):
+    """A flag that indicates whether soil evapotranspiration is relevant for the
+    individual zones."""
+
+    TYPE, TIME, SPAN = bool, None, (False, True)
+
+
 class HRUArea(parametertools.Parameter):
     """The area of each hydrological response unit [km²]."""
 
@@ -124,3 +144,41 @@ class AirTemperatureFactor(evap_parameters.ZipParameter1D):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
     INIT = 0.1
+
+
+class TemperatureThresholdIce(evap_parameters.WaterParameter1D):
+    """Temperature threshold for evaporation from water areas [°C].
+
+    In the terminology of HBV96: TTIce.
+    """
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+
+
+class MaxSoilWater(evap_parameters.SoilParameter1D):
+    """Maximum soil water content [mm].
+
+    In the terminology of HBV96: FC.
+    """
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    INIT = 200.0
+
+
+class SoilMoistureLimit(evap_parameters.SoilParameter1D):
+    """Relative soil moisture limit for potential evapotranspiration [-].
+
+    In the terminology of HBV96: LP.
+    """
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    INIT = 0.9
+
+
+class ExcessReduction(evap_parameters.SoilParameter1D):
+    """A factor for restricting actual to potential evapotranspiration [-].
+
+    In the terminology of HBV96: ERED.
+    """
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)

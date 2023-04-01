@@ -11,7 +11,7 @@ from hydpy.models.evap import evap_parameters
 class NmbHRU(parametertools.Parameter):
     """The number of separately modelled hydrological response units [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
 
     def __call__(self, *args, **kwargs):
         nmbhru_old = exceptiontools.getattr_(self, "value", None)

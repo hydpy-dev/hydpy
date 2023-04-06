@@ -2476,7 +2476,7 @@ def log(double: float) -> float:
 
 
 def fabs(double: float) -> float:
-    """Cython wrapper for the |math.exp| function of module |math| applied on a single
+    """Cython wrapper for the |math.abs| function of module |math| applied on a single
     |float| object.
 
     >>> from hydpy.cythons.modelutils import fabs

@@ -32,8 +32,10 @@ from hydpy.core import selectiontools
 from hydpy.core import timetools
 from hydpy.core import variabletools
 from hydpy.auxs import iuhtools
-from hydpy.models.arma import arma_control
 from hydpy.core.typingtools import *
+
+if TYPE_CHECKING:
+    from hydpy.models.arma import arma_control
 
 TypeParameter = TypeVar("TypeParameter", bound=parametertools.Parameter)
 TypeRule1 = TypeVar(
@@ -2195,7 +2197,7 @@ parameterstep="1d"))
         return cast(List[str], super().__dir__()) + list(self._rules.keys())
 
 
-class RuleIUH(Rule[arma_control.Responses]):
+class RuleIUH(Rule["arma_control.Responses"]):
     """A |Rule|, class specialised for |IUH| parameters.
 
     |RuleIUH| serves as a base class only.  Please see the concrete implementation

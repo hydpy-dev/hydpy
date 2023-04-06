@@ -154,7 +154,6 @@ class GThresh(parametertools.Parameter):
         >>> derived.gthresh.update()
         >>> derived.gthresh
         gthresh(420.0, 450.0, 438.0, 378.0, 420.0)
-
         """
         con = self.subpars.pars.control.fastaccess
         self.shape = con.nsnowlayers

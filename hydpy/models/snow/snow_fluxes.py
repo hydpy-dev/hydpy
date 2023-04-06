@@ -60,3 +60,15 @@ class Melt(snow_sequences.Flux1DSequence):
     """Snow melt [mm]."""
 
     NDIM, NUMERIC = 1, False
+
+
+class PNetLayer(snow_sequences.Flux1DSequence):
+    """Net Precipitation of each snow layer [mm]."""
+
+    NDIM, NUMERIC = 1, False
+
+
+class PNet(snow_sequences.Flux1DSequence):
+    """Net Precipitation of catchment [mm]."""
+
+    NDIM, NUMERIC = 0, False

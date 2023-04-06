@@ -72,10 +72,18 @@ class HypsoData(parametertools.Parameter):
         super().__call__(*args, **kwargs)
 
 
+class GradP(parametertools.Parameter):
+    """Altitude gradient precipitation [1/m]"""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    INIT = 0.00041
+
+
 class GradTMean(parametertools.Parameter):
     """Array of length 366 : gradient of daily mean temperature for each day of year
     [°C/100m]."""
 
+    # todo Monatswerte oder toy ?
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
     def __call__(self, *args, **kwargs):

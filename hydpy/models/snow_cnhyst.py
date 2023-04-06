@@ -88,7 +88,12 @@ Integration tests:
     ...     786, 797, 808, 819, 829, 841, 852, 863, 875, 887, 901, 916, 934, 952, 972, 994, 1012, 1029, 1054, 1080,
     ...     1125, 1278)
 
-    Define temperature gradient for each day in year
+    Define precipitation gradient:
+
+    >>> gradp(0.00041)
+
+    Define temperature gradient for each day in year for France according to
+    :cite:t:`ref-Valery`.
 
     >>> gradtmean(0.434, 0.434, 0.435, 0.436, 0.437, 0.439, 0.44, 0.441, 0.442, 0.444, 0.445, 0.446, 0.448,
     ...     0.45, 0.451, 0.453, 0.455, 0.456, 0.458, 0.46, 0.462, 0.464, 0.466, 0.468, 0.47, 0.472,
@@ -560,10 +565,13 @@ class Model(modeltools.AdHocModel):
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
+    ADD_METHODS = (snow_model.Return_T_V1,)
     RUN_METHODS = (
         snow_model.Calc_PLayer_V1,
         snow_model.Calc_TLayer_V1,
-        snow_model.Calc_FracSolidPrec_V1,
+        snow_model.Calc_SolidFraction_V1,
+        snow_model.Calc_PSnowLayer_V1,
+        snow_model.Calc_PRainLayer_V1,
         snow_model.Calc_G_V1,
         snow_model.Calc_ETG_V1,
         snow_model.Calc_PotMelt_V1,
@@ -571,8 +579,9 @@ class Model(modeltools.AdHocModel):
         snow_model.Calc_Melt_V1,
         snow_model.Update_G_V1,
         snow_model.Update_GRatio_GLocalMax_V1,
+        snow_model.Calc_PNetLayer_V1,
+        snow_model.Calc_PNet_V1,
     )
-    ADD_METHODS = ()
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()

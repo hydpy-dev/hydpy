@@ -16,9 +16,13 @@ from hydpy.models.grxjland import grxjland_derived
 from hydpy.models.grxjland import grxjland_logs
 
 
-class Calc_PSnowLayer_V1(modeltools.Method):
-    """Calculate precipitation for each snow layer.
-        Basic equations:
+class Calc_PLayer_V1(modeltools.Method):
+    """Calculate the precipitation as a function of altitude for all snow layers.
+    Above 4000 m the precipitation does not change anymore.
+
+    Basic equations:
+
+    todo: Stimmen die Gleichungen jetzt so? Nichts zu Grenzwert 4000 gefunden
 
 
     Examples:
@@ -31,7 +35,7 @@ class Calc_PSnowLayer_V1(modeltools.Method):
         >>> z(1636)
         >>> derived.zlayers(1052., 1389., 1626., 1822., 2013.)
         >>> inputs.p = 7.09
-        >>> model.calc_psnowlayer_v1()
+        >>> model.calc_player_v1()
         >>> fluxes.player
         player(5.656033, 6.494091, 7.156799, 7.755659, 8.387418)
 
@@ -39,18 +43,30 @@ class Calc_PSnowLayer_V1(modeltools.Method):
         more:
 
         >>> derived.zlayers(1052., 1389., 1626., 4500., 6300.)
-        >>> model.calc_psnowlayer_v1()
+        >>> model.calc_player_v1()
         >>> fluxes.player
         player(3.505863, 4.02533, 4.436105, 11.741351, 11.741351)
 
-        Elevation of ZLayers exactly 4000:
+        Elevation of ZLayers with mean value lower than 4000.:
 
-        >>> derived.zlayers(3998., 3999., 4000., 4001., 4002.)
-        >>> model.calc_psnowlayer_v1()
+        >>> z(3999.)
+        >>> derived.zlayers(3997., 3998., 3999., 4000., 4001.)
+        >>> model.calc_player_v1()
 
-        # todo
         >>> fluxes.player
-        player(8.090406, 8.093724, 3.071785, 8.097043, 8.097043)
+        player(7.084769, 7.087674, 7.090581, 7.093488, 7.093488)
+
+        Elevation of ZLayers with mean value greater than 4000.:
+
+        >>> z(4001.)
+        >>> derived.zlayers(3999., 4000., 4001., 4002., 4003.)
+        >>> model.calc_player_v1()
+
+        >>> fluxes.player
+        player(7.085931, 7.088837, 7.091744, 7.091744, 7.091744)
+
+        >>> fluxes.player.average_values()
+        7.09
     """
 
     CONTROLPARAMETERS = (
@@ -74,12 +90,14 @@ class Calc_PSnowLayer_V1(modeltools.Method):
         # calculate mean precipitation to scale
         d_meanplayer = 0.0
         for k in range(con.nsnowlayers):
-            if der.zlayers[k] < d_zthreshold:
+            if der.zlayers[k] <= d_zthreshold:
                 flu.player[k] = inp.p * modelutils.exp(
                     d_gradp * (der.zlayers[k] - con.z)
                 )
-            elif der.zlayers[k] > d_zthreshold:
-                flu.player[k] = inp.p * modelutils.exp(d_gradp * (d_zthreshold - con.z))
+            elif con.z <= d_zthreshold:
+                flu.player[k] = inp.p * modelutils.exp(
+                    d_gradp * (d_zthreshold - con.z)
+                )
             else:
                 flu.player[k] = inp.p
             d_meanplayer = d_meanplayer + flu.player[k] / con.nsnowlayers
@@ -90,10 +108,12 @@ class Calc_PSnowLayer_V1(modeltools.Method):
                 flu.player[k] = flu.player[k] / d_meanplayer * inp.p
 
 
-class Calc_TSnowLayer_V1(modeltools.Method):
-    """Calculate daily mean temperature for each snow layer in dependence of elevation.
+class Calc_TLayer_V1(modeltools.Method):
+    """Calculate daily mean temperature for each snow layer in dependence of
+    elevation taking into account the temperature-altitude gradient.
 
-        Basic equation:
+    Basic equation:
+        :math:`TLayer = T + (Z - ZLayers) * GradTMean / 100`
 
 
     Examples:
@@ -108,6 +128,7 @@ class Calc_TSnowLayer_V1(modeltools.Method):
 
         Define temperature gradient for each day in year
 
+        # todo: woher? Zusammenhang?
         >>> gradtmean(0.434, 0.434, 0.435, 0.436, 0.437, 0.439, 0.44, 0.441, 0.442,
         ...     0.444, 0.445, 0.446, 0.448, 0.45, 0.451, 0.453, 0.455, 0.456, 0.458,
         ...     0.46, 0.462, 0.464, 0.466, 0.468, 0.47, 0.472, 0.474, 0.476, 0.478,
@@ -151,25 +172,27 @@ class Calc_TSnowLayer_V1(modeltools.Method):
         and third simulation time steps are first, second and third day of year,
         respectively:
 
+        # todo: hier pub.timegrids verwenden?
+
         >>> derived.doy.shape = 3
         >>> derived.doy = 0, 1, 2
         >>> model.idx_sim = 1
 
-        >>> model.calc_tsnowlayer_v1()
+        >>> model.calc_tlayer_v1()
         >>> fluxes.tlayer
         tlayer(0.92621, -0.53637, -1.56495, -2.41559, -3.24453)
 
         Second simulation step
 
         >>> inputs.t = -2.44165
-        >>> model.calc_tsnowlayer_v1()
+        >>> model.calc_tlayer_v1()
         >>> fluxes.tlayer
         tlayer(0.09291, -1.36967, -2.39825, -3.24889, -4.07783)
 
         Third simulation step
 
         >>> inputs.t = -10.41945
-        >>> model.calc_tsnowlayer_v1()
+        >>> model.calc_tlayer_v1()
         >>> fluxes.tlayer
         tlayer(-7.88489, -9.34747, -10.37605, -11.22669, -12.05563)
 
@@ -200,12 +223,15 @@ class Calc_TSnowLayer_V1(modeltools.Method):
             flu.tlayer[k] = (
                 inp.t
                 + (con.z - der.zlayers[k])
-                * modelutils.fabs(con.gradtmean[der.doy[model.idx_sim]])
+                * con.gradtmean[der.doy[model.idx_sim]]
                 / 100.0
             )
 
 
-class Calc_TSnowLayer_V2(modeltools.Method):
+class Calc_TLayer_V2(modeltools.Method):
+
+    # todo: Berechnet was anderes als calc_tlayerv1 sollte es dann nicht auch
+    #  anders heißen. Wird nirgendwo verwendet???? Formeln auseinander ziehen
     """Calculate daily mean, minimum, maximum air temperature for each snow layer in
     dependence of elevation.
 
@@ -347,7 +373,7 @@ class Calc_TSnowLayer_V2(modeltools.Method):
         >>> derived.doy = 0, 1, 2
         >>> model.idx_sim = 1
 
-        >>> model.calc_tsnowlayer_v2()
+        >>> model.calc_tlayer_v2()
         >>> fluxes.tlayer
         tlayer(0.92621, -0.53637, -1.56495, -2.41559, -3.24453)
         >>> fluxes.tminlayer
@@ -360,7 +386,7 @@ class Calc_TSnowLayer_V2(modeltools.Method):
         >>> inputs.t = -2.44165
         >>> inputs.tmin = -5.1
         >>> inputs.tmax = 0.3
-        >>> model.calc_tsnowlayer_v2()
+        >>> model.calc_tlayer_v2()
         >>> fluxes.tlayer
         tlayer(0.09291, -1.36967, -2.39825, -3.24889, -4.07783)
         >>> fluxes.tminlayer
@@ -373,7 +399,7 @@ class Calc_TSnowLayer_V2(modeltools.Method):
         >>> inputs.t = -10.41945
         >>> inputs.tmin = -16.3
         >>> inputs.tmax = -5.3
-        >>> model.calc_tsnowlayer_v2()
+        >>> model.calc_tlayer_v2()
         >>> fluxes.tlayer
         tlayer(-7.88489, -9.34747, -10.37605, -11.22669, -12.05563)
         >>> fluxes.tminlayer
@@ -414,6 +440,8 @@ class Calc_TSnowLayer_V2(modeltools.Method):
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
 
+        # todo: Warum hier fabs?
+
         for k in range(con.nsnowlayers):
             flu.tlayer[k] = (
                 inp.t
@@ -436,7 +464,9 @@ class Calc_TSnowLayer_V2(modeltools.Method):
 
 
 class Calc_FracSolidPrec_V1(modeltools.Method):
-    """Calculate solid precipitation fraction [/] for each snow layer.
+    """Calculate solid precipitation fraction [-] for each snow layer.
+    Above 3°C all precipiation is rain, below -1 °C all precipitation is snow,
+    in between it is linear decreasing
 
         Basic equation:
 
@@ -447,17 +477,17 @@ class Calc_FracSolidPrec_V1(modeltools.Method):
         >>> from hydpy import pub
         >>> ret = pub.options.reprdigits(6)
         >>> parameterstep('1d')
-        >>> nsnowlayers(5)
-        >>> fluxes.tlayer = 0.92621, -0.53637, -1.56495, -2.41559, -3.24453
-        >>> fluxes.player = 5.656033, 6.494091, 7.156799, 7.755659, 8.387418
+        >>> nsnowlayers(9)
+        >>> fluxes.tlayer = -3.0, -3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, 3.0
+        >>> fluxes.player = 0.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 0.0
 
         >>> model.calc_fracsolidprec_v1()
         >>> fluxes.solidfraction
-        solidfraction(0.518447, 0.884092, 1.0, 1.0, 1.0)
+        solidfraction(1.0, 1.0, 1.0, 1.0, 0.75, 0.5, 0.25, 0.0, 0.0)
         >>> fluxes.psnowlayer
-        psnowlayer(2.932356, 5.741377, 7.156799, 7.755659, 8.387418)
+        psnowlayer(0.0, 5.0, 5.0, 5.0, 3.75, 2.5, 1.25, 0.0, 0.0)
         >>> fluxes.prainlayer
-        prainlayer(2.723677, 0.752714, 0.0, 0.0, 0.0)
+        prainlayer(0.0, 0.0, 0.0, 0.0, 1.25, 2.5, 3.75, 5.0, 0.0)
 
     """
 
@@ -480,13 +510,15 @@ class Calc_FracSolidPrec_V1(modeltools.Method):
 
         for k in range(con.nsnowlayers):
             flu.solidfraction[k] = min(
-                1, max(0, 1.0 - (flu.tlayer[k] + 1.0) / (3.0 + 1.0))
+                1, max(0, (3.0 - flu.tlayer[k]) / 4.0)
             )
             flu.psnowlayer[k] = flu.solidfraction[k] * flu.player[k]
             flu.prainlayer[k] = (1.0 - flu.solidfraction[k]) * flu.player[k]
 
 
 class Calc_FracSolidPrec_V2(modeltools.Method):
+
+    # Todo: Wird nicht verwendet. Kann eigentlich mit Version1 zusammengefasst werden
     """Calculate solid precipitation fraction [/] for each snow layer.
 
         Basic equation:
@@ -573,7 +605,241 @@ class Calc_FracSolidPrec_V2(modeltools.Method):
             flu.prainlayer[k] = (1.0 - flu.solidfraction[k]) * flu.player[k]
 
 
-class Calc_SnowPack_V1(modeltools.Method):
+class Calc_G_V1(modeltools.Method):
+    """Calculate snow for each snow layer.
+
+        Basic equations:
+
+
+    Examples:
+
+        >>> from hydpy.models.grxjland import *
+        >>> from hydpy import pub
+        >>> parameterstep('1d')
+        >>> simulationstep('1d')
+        >>> nsnowlayers(5)
+        >>> fluxes.psnowlayer = (0.07273111, 0.086444894, 0.09857770, 0.10418780,
+        ...                      0.11285966)
+        >>> states.g = 1., 0., 0., 0., 0.
+        >>> model.calc_g_v1()
+        >>> states.g
+        g(1.072731, 0.086445, 0.098578, 0.104188, 0.11286)
+
+    """
+
+    CONTROLPARAMETERS = (
+        grxjland_control.NSnowLayers,
+    )
+
+    REQUIREDSEQUENCES = (
+        grxjland_fluxes.PSnowLayer,
+    )
+    UPDATEDSEQUENCES = (
+        grxjland_states.G,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+
+        for k in range(con.nsnowlayers):
+            sta.g[k] = sta.g[k] + flu.psnowlayer[k]
+
+
+class Calc_ETG_V1(modeltools.Method):
+    """Calculate thermal state for each snow layer.
+
+        Basic equations:
+
+
+    Examples:
+
+        >>> from hydpy.models.grxjland import *
+        >>> from hydpy import pub
+        >>> parameterstep('1d')
+        >>> simulationstep('1d')
+        >>> nsnowlayers(5)
+        >>> cn1(0.962)
+        >>> fluxes.tlayer =  -0.22318, -0.67402, -1.17348, -1.77018, -2.63208
+        >>> states.etg = 1., -1., 0., 0., 0.
+        >>> model.calc_etg_v1()
+        >>> states.etg
+        etg(0.0, -0.987613, -0.044592, -0.067267, -0.100019)
+   """
+
+    CONTROLPARAMETERS = (
+        grxjland_control.NSnowLayers,
+        grxjland_control.CN1,
+    )
+
+    REQUIREDSEQUENCES = (
+        grxjland_fluxes.TLayer,
+    )
+    UPDATEDSEQUENCES = (
+        grxjland_states.ETG,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+
+        for k in range(con.nsnowlayers):
+            sta.etg[k] = min(0, con.cn1 * sta.etg[k] + (1.0 - con.cn1) * flu.tlayer[k])
+
+
+class Calc_PotMelt_V1(modeltools.Method):
+    """Calculate potential melt for each snow layer.
+
+        Basic equations:
+
+
+    Examples:
+
+        >>> from hydpy.models.grxjland import *
+        >>> from hydpy import pub
+        >>> parameterstep('1d')
+        >>> simulationstep('1d')
+        >>> nsnowlayers(5)
+        >>> cn2(2.249)
+        >>> fluxes.tlayer = -1.0, 0.0, 0.5, 1.0, 1.5
+        >>> states.g = 0.0, 1.0, 1.0, 10.0, 10.0
+        >>> states.etg = 0.0, 1.0, 0.0, 0.0, 0.0
+        >>> model.calc_potmelt_v1()
+        >>> fluxes.potmelt
+        potmelt(0.0, 0.0, 1.0, 2.249, 3.3735)
+    """
+
+    CONTROLPARAMETERS = (
+        grxjland_control.NSnowLayers,
+        grxjland_control.CN2,
+    )
+
+    REQUIREDSEQUENCES = (
+        grxjland_fluxes.TLayer,
+        grxjland_states.ETG,
+        grxjland_states.G,
+    )
+    RESULTSEQUENCES = (
+        grxjland_fluxes.PotMelt,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+
+        for k in range(con.nsnowlayers):
+            if sta.etg[k] == 0 and flu.tlayer[k] > 0:
+                flu.potmelt[k] = min(sta.g[k], con.cn2 * flu.tlayer[k])
+            else:
+                flu.potmelt[k] = 0
+
+
+class Calc_GRatio_V1(modeltools.Method):
+    """Calculate snow covered area for each snow layer.
+
+        Basic equations:
+
+
+    Examples:
+
+        >>> from hydpy.models.grxjland import *
+        >>> from hydpy import pub
+        >>> parameterstep('1d')
+        >>> simulationstep('1d')
+        >>> nsnowlayers(5)
+        >>> meanansolidprecip(80., 80., 80., 80., 80.)
+        >>> states.g = 60., 70., 72., 80., 100.
+        >>> model.calc_gratio_v1()
+        >>> states.gratio
+        gratio(0.833333, 0.972222, 1.0, 1.0, 1.0)
+    """
+
+    CONTROLPARAMETERS = (
+        grxjland_control.NSnowLayers,
+        grxjland_control.MeanAnSolidPrecip,
+    )
+
+    REQUIREDSEQUENCES = (
+        grxjland_states.G,
+    )
+    UPDATEDSEQUENCES = (
+        grxjland_states.GRatio,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.control.fastaccess
+        sta = model.sequences.states.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        for k in range(con.nsnowlayers):
+            d_gthreshold = 0.9 * con.meanansolidprecip[k]
+            # todo: eigentlich derived gthresh mit cn4 = 0.9
+            sta.gratio[k] = min(sta.g[k] / d_gthreshold, 1.0)
+
+
+class Calc_GRatio_GLocalMax_V1(modeltools.Method):
+    """Calculate snow covered area for each snow layer.
+
+        Basic equations:
+
+
+    Examples:
+
+        >>> from hydpy.models.grxjland import *
+        >>> from hydpy import pub
+        >>> parameterstep('1d')
+        >>> simulationstep('1d')
+        >>> nsnowlayers(5)
+        >>> meanansolidprecip(80., 80., 80., 80., 80.)
+        >>> states.g = 60., 70., 72., 80., 100.
+        >>> model.calc_gratio_v1()
+        >>> states.gratio
+        gratio(0.833333, 0.972222, 1.0, 1.0, 1.0)
+    """
+
+    CONTROLPARAMETERS = (
+        grxjland_control.NSnowLayers,
+        grxjland_derived.GThresh,
+    )
+
+    REQUIREDSEQUENCES = (
+        grxjland_states.G,
+
+        grxjland_states.GLocalMax,
+        grxjland_fluxes.PotMelt,
+    )
+    UPDATEDSEQUENCES = (
+        grxjland_states.GRatio,
+        grxjland_states.GLocalMax,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.control.fastaccess
+        sta = model.sequences.states.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        for k in range(con.nsnowlayers):
+            if sta.glocalmax[k] == 0.0:
+                sta.glocalmax[k] = der.gthresh[k]
+            if flu.potmelt[k] > 0:
+                # sta.glocalmax letzte Schneemenge, bei gratio=1
+                # Setze neues glocalmax auf aktuelle Schneehöhe, falls alles Schnee
+                if sta.gratio[k] == 1.0:
+                    sta.glocalmax[k] = min(sta.g[k], sta.glocalmax[k])
+                sta.gratio[k] = min(sta.g[k] / sta.glocalmax[k], 1.0)
+
+
+class Calc_Melt_V1(modeltools.Method):
     """Calculate snow accumulation for each snow layer.
 
         Basic equations:
@@ -583,84 +849,26 @@ class Calc_SnowPack_V1(modeltools.Method):
 
         >>> from hydpy.models.grxjland import *
         >>> from hydpy import pub
-        >>> ret = pub.options.reprdigits(6)
         >>> parameterstep('1d')
         >>> simulationstep('1d')
         >>> nsnowlayers(5)
-        >>> meanansolidprecip(83., 83., 83., 83., 83.)
-        >>> cn1(0.962)
-        >>> cn2(2.249)
-        >>> fluxes.tlayer =  -0.22318, -0.67402, -1.17348, -1.77018, -2.63208
-        >>> fluxes.psnowlayer = (0.07273111, 0.086444894, 0.09857770, 0.10418780,
-        ...                      0.11285966)
-        >>> states.g = 0., 0., 0., 0., 0.
-        >>> states.etg = 0., 0., 0., 0., 0.
-        >>> states.gratio = 0., 0., 0., 0., 0.
-        >>> model.calc_snowpack_v1()
-        >>> states.g
-        g(0.072731, 0.086445, 0.098578, 0.104188, 0.11286)
-        >>> states.etg
-        etg(-0.008481, -0.025613, -0.044592, -0.067267, -0.100019)
-        >>> states.gratio
-        gratio(0.000974, 0.001157, 0.00132, 0.001395, 0.001511)
-        >>> fluxes.potmelt
-        potmelt(0.0, 0.0, 0.0, 0.0, 0.0)
+        >>> fluxes.potmelt = (2.0, 2.0, 2.0, 2.0, 2.0)
+        >>> states.gratio = 0.0, 0.25, 0.5, 0.75, 1.0
+        >>> model.calc_melt_v1()
         >>> fluxes.melt
-        melt(0.0, 0.0, 0.0, 0.0, 0.0)
-
-        New Input data
-
-        >>> fluxes.tlayer = 2.18124, 1.72836, 1.22664, 0.62724, -0.23856
-        >>> fluxes.psnowlayer = (0.03695066, 0.059840058, 0.08740688, 0.12360633,
-        ...                      0.18275139)
-        >>> model.calc_snowpack_v1()
-        >>> states.g
-        g(0.098569, 0.131399, 0.166969, 0.227794, 0.295611)
-        >>> states.etg
-        etg(0.0, 0.0, 0.0, -0.040876, -0.105284)
-        >>> states.gratio
-        gratio(0.00132, 0.001759, 0.002235, 0.003049, 0.003957)
-        >>> fluxes.potmelt
-        potmelt(0.109682, 0.146285, 0.185985, 0.0, 0.0)
-        >>> fluxes.melt
-        melt(0.011113, 0.014886, 0.019015, 0.0, 0.0)
-
-        New Input data
-
-        >>> fluxes.tlayer = 3.58345, 3.12955, 2.62670, 2.02595, 1.15820
-        >>> fluxes.psnowlayer = 0., 0., 0.26679315, 0.73575994, 1.50702064
-
-        >>> model.calc_snowpack_v1()
-        >>> states.g
-        g(0.088595, 0.118051, 0.388119, 0.856013, 1.802632)
-        >>> states.etg
-        etg(0.0, 0.0, 0.0, 0.0, -0.057271)
-        >>> states.gratio
-        gratio(0.001186, 0.00158, 0.005196, 0.011459, 0.024132)
-        >>> fluxes.potmelt
-        potmelt(0.098569, 0.131399, 0.433763, 0.963554, 0.0)
-        >>> fluxes.melt
-        melt(0.009974, 0.013348, 0.045643, 0.107541, 0.0)
+        melt(0.2, 0.65, 1.1, 1.55, 2.0)
     """
 
     CONTROLPARAMETERS = (
         grxjland_control.NSnowLayers,
-        grxjland_control.MeanAnSolidPrecip,
-        grxjland_control.CN1,
-        grxjland_control.CN2,
     )
 
     REQUIREDSEQUENCES = (
         grxjland_fluxes.TLayer,
-        grxjland_fluxes.PSnowLayer,
-    )
-    UPDATEDSEQUENCES = (
-        grxjland_states.G,
-        grxjland_states.ETG,
+        grxjland_fluxes.PotMelt,
         grxjland_states.GRatio,
     )
     RESULTSEQUENCES = (
-        grxjland_fluxes.PotMelt,
         grxjland_fluxes.Melt,
     )
 
@@ -670,40 +878,19 @@ class Calc_SnowPack_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
 
-        d_tmelt = 0.0
-        d_minspeed = 0.1
+        d_minmelt = 0.1
 
+        # todo: kann dazu führen, dass im Sommer (ganz wenig) Schnee liegt
+
+        # umso mehr Schnee liegt, umso schneller schmilzt der Schnee (bis threshold)
         for k in range(con.nsnowlayers):
-            d_gthreshold = 0.9 * con.meanansolidprecip[k]
-            # update snow pack
-            sta.g[k] = sta.g[k] + flu.psnowlayer[k]
-            # thermal state before melt
-            sta.etg[k] = min(0, con.cn1 * sta.etg[k] + (1.0 - con.cn1) * flu.tlayer[k])
-            # potential melt
-            if sta.etg[k] == 0 and flu.tlayer[k] > 0:
-                flu.potmelt[k] = min(sta.g[k], con.cn2 * (flu.tlayer[k] - d_tmelt))
-            else:
-                flu.potmelt[k] = 0
-            # snow covered area computation
-            if sta.g[k] < d_gthreshold:
-                sta.gratio[k] = sta.g[k] / d_gthreshold
-            else:
-                sta.gratio[k] = 1
-            # actual snowmelt computation
             flu.melt[k] = (
-                (1.0 - d_minspeed) * sta.gratio[k] + d_minspeed
+                (1.0 - d_minmelt) * sta.gratio[k] + d_minmelt
             ) * flu.potmelt[k]
-            # snow pack updating
-            sta.g[k] = sta.g[k] - flu.melt[k]
-            # snow covered area updating
-            if sta.g[k] < d_gthreshold:
-                sta.gratio[k] = sta.g[k] / d_gthreshold
-            else:
-                sta.gratio[k] = 1
 
 
-class Calc_SnowPack_V2(modeltools.Method):
-    """Calculate snow accumulation for each snow layer.
+class Update_G_V1(modeltools.Method):
+    """Update snow pack according to snow melt
 
         Basic equations:
 
@@ -712,94 +899,77 @@ class Calc_SnowPack_V2(modeltools.Method):
 
         >>> from hydpy.models.grxjland import *
         >>> from hydpy import pub
-        >>> ret = pub.options.reprdigits(6)
         >>> parameterstep('1d')
         >>> simulationstep('1d')
-        >>> nsnowlayers(6)
-        >>> meanansolidprecip(83., 83., 83., 83., 83., 0.)
-        >>> cn1(0.962)
-        >>> cn2(2.249)
-        >>> cn3(100.)
-        >>> cn4(0.4)
-        >>> derived.gthresh.update()
-        >>> fluxes.tlayer =  -0.22318, -0.67402, -1.17348, -1.77018, -2.63208, -2.63208
-        >>> fluxes.psnowlayer =  (0.07273111, 0.086444894,  0.09857770,  0.10418780,
-        ...                       0.11285966, 0.11285966)
-        >>> states.g = 0., 0., 0., 0., 0., 0.
-        >>> states.etg = 0., 0., 0., 0., 0., 0.
-        >>> states.gratio = 0., 0., 0., 0., 0., 0.
-        >>> states.glocalmax = derived.gthresh
-        >>> model.calc_snowpack_v2()
+        >>> nsnowlayers(5)
+        >>> fluxes.melt = (0.0, 0.2, 0.2, 0.2, 0.2)
+        >>> states.g = 0.0, 0.25, 0.5, 0.75, 1.0
+        >>> model.update_g_v1()
         >>> states.g
-        g(0.072731, 0.086445, 0.098578, 0.104188, 0.11286, 0.11286)
-        >>> states.etg
-        etg(-0.008481, -0.025613, -0.044592, -0.067267, -0.100019, -0.100019)
-        >>> states.gratio
-        gratio(0.000727, 0.000864, 0.000986, 0.001042, 0.001129, 0.001129)
-        >>> fluxes.potmelt
-        potmelt(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-        >>> fluxes.melt
-        melt(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-
-        New Input data  # todo was zeigt neuer Input?
-
-        >>> fluxes.tlayer = 2.18124, 1.72836, 1.22664, 0.62724, -0.23856, -0.23856
-        >>> fluxes.psnowlayer = (0.03695066, 0.059840058, 0.08740688, 0.12360633,
-        ...                      0.18275139, 0.18275139)
-        >>> model.calc_snowpack_v2()
-        >>> states.g
-        g(0.098387, 0.131076, 0.166448, 0.227794, 0.295611, 0.295611)
-        >>> states.etg
-        etg(0.0, 0.0, 0.0, -0.040876, -0.105284, -0.105284)
-        >>> states.gratio
-        gratio(0.00356, 0.004852, 0.006281, 0.002278, 0.002956, 0.002956)
-        >>> fluxes.potmelt
-        potmelt(0.109682, 0.146285, 0.185985, 0.0, 0.0, 0.0)
-        >>> fluxes.melt
-        melt(0.011294, 0.015209, 0.019536, 0.0, 0.0, 0.0)
-
-        New Input data # todo was zeigt neuer Input?
-
-        >>> fluxes.tlayer = 3.58345, 3.12955, 2.62670, 2.02595, 1.15820, 1.15820
-        >>> fluxes.psnowlayer = 0., 0., 0.26679315, 0.73575994, 1.50702064, 1.50702064
-
-        >>> model.calc_snowpack_v2()
-        >>> states.g
-        g(0.088286, 0.117503, 0.384829, 0.84203, 1.802632, 1.802632)
-        >>> states.etg
-        etg(0.0, 0.0, 0.0, 0.0, -0.057271, -0.057271)
-        >>> states.gratio
-        gratio(0.002659, 0.003539, 0.015233, 0.035165, 0.018026, 0.018026)
-        >>> fluxes.potmelt
-        potmelt(0.098387, 0.131076, 0.433242, 0.963554, 0.0, 0.0)
-        >>> fluxes.melt
-        melt(0.010101, 0.013573, 0.048412, 0.121524, 0.0, 0.0)
+        g(0.0, 0.05, 0.3, 0.55, 0.8)
     """
 
     CONTROLPARAMETERS = (
         grxjland_control.NSnowLayers,
-        grxjland_control.MeanAnSolidPrecip,
-        grxjland_control.CN1,
-        grxjland_control.CN2,
-        grxjland_control.CN3,
-        grxjland_control.CN4,
     )
 
-    DERIVEDPARAMETERS = (grxjland_derived.GThresh,)
+    DERIVEDPARAMETERS = (
+        grxjland_derived.GThresh,
+    )
 
     REQUIREDSEQUENCES = (
-        grxjland_fluxes.TLayer,
-        grxjland_fluxes.PSnowLayer,
+        grxjland_fluxes.Melt,
     )
     UPDATEDSEQUENCES = (
         grxjland_states.G,
-        grxjland_states.ETG,
-        grxjland_states.GLocalMax,
-        grxjland_states.GRatio,
     )
-    RESULTSEQUENCES = (
-        grxjland_fluxes.PotMelt,
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+
+        for k in range(con.nsnowlayers):
+            sta.g[k] = sta.g[k] - flu.melt[k]
+
+
+class Update_GRatio_GLocalMax_V1(modeltools.Method):
+    """Update GRatio
+
+        Basic equations:
+
+
+    Examples:
+
+        >>> from hydpy.models.grxjland import *
+        >>> from hydpy import pub
+        >>> parameterstep('1d')
+        >>> simulationstep('1d')
+        >>> nsnowlayers(5)
+        >>> fluxes.melt = (0.0, 0.2, 0.2, 0.2, 0.2)
+        >>> states.g = 0.0, 0.25, 0.5, 0.75, 1.0
+        >>> model.update_g_v1()
+        >>> states.g
+        g(0.0, 0.05, 0.3, 0.55, 0.8)
+    """
+
+    CONTROLPARAMETERS = (
+        grxjland_control.NSnowLayers,
+        grxjland_control.CN3,
+    )
+
+    DERIVEDPARAMETERS = (
+        grxjland_derived.GThresh,
+    )
+
+    REQUIREDSEQUENCES = (
         grxjland_fluxes.Melt,
+        grxjland_fluxes.PSnowLayer,
+        grxjland_states.GLocalMax,
+    )
+    UPDATEDSEQUENCES = (
+        grxjland_states.G,
     )
 
     @staticmethod
@@ -809,46 +979,23 @@ class Calc_SnowPack_V2(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
 
-        d_tmelt = 0.0
-        d_minspeed = 0.1
-
         for k in range(con.nsnowlayers):
-            if sta.glocalmax[k] == 0.0:
-                sta.glocalmax[k] = der.gthresh[k]
-            d_ginit = sta.g[k]
-            # update snow pack
-            sta.g[k] = sta.g[k] + flu.psnowlayer[k]
-            # thermal state before melt
-            sta.etg[k] = min(0, con.cn1 * sta.etg[k] + (1.0 - con.cn1) * flu.tlayer[k])
-            # potential melt
-            if sta.etg[k] == 0 and flu.tlayer[k] > 0:
-                flu.potmelt[k] = min(sta.g[k], con.cn2 * (flu.tlayer[k] - d_tmelt))
-            else:
-                flu.potmelt[k] = 0
-            # snow covered area computation
-            if flu.potmelt[k] > 0:
-                if sta.g[k] < sta.glocalmax[k] and sta.gratio[k] == 1.0:
-                    sta.glocalmax[k] = sta.g[k]
-                sta.gratio[k] = min(sta.g[k] / sta.glocalmax[k], 1.0)
-
-            # actual snowmelt computation
-            flu.melt[k] = (
-                (1.0 - d_minspeed) * sta.gratio[k] + d_minspeed
-            ) * flu.potmelt[k]
-            # snow pack updating
-            sta.g[k] = sta.g[k] - flu.melt[k]
-            d_dg = sta.g[k] - d_ginit
+            d_dg = flu.psnowlayer[k] - flu.melt[k]
             if d_dg > 0:
+                # Aufbau der Schneedecke
+                # Korrektur gratio durch Aufbau der Schneedecke
                 sta.gratio[k] = min(
-                    sta.gratio[k] + (flu.psnowlayer[k] - flu.melt[k]) / con.cn3, 1.0
+                    sta.gratio[k] + d_dg / con.cn3, 1.0
                 )
-                if sta.gratio[k] == 1:
+                # Wenn alles Schnee, dann Abnahme mit gthresh
+                if sta.gratio[k] == 1.0:
                     sta.glocalmax[k] = der.gthresh[k]
-            if d_dg < 0:
+            elif d_dg < 0:
+                # wenn kein Aufbau der Schneedecke und mehr Schmelze als Aufbau
                 sta.gratio[k] = min(sta.g[k] / sta.glocalmax[k], 1.0)
 
 
-class Calc_NetRainfall_V1(modeltools.Method):
+class Calc_Pn_En_AE_V1(modeltools.Method):
     """Calculate net rainfall and net evapotranspiration capacity.
 
     Basic equations:
@@ -889,9 +1036,8 @@ class Calc_NetRainfall_V1(modeltools.Method):
         ae(10.0)
 
     """
-    CONTROLPARAMETERS = (
-        grxjland_control.NSnowLayers,
-    )
+
+    CONTROLPARAMETERS = (grxjland_control.NSnowLayers,)
 
     REQUIREDSEQUENCES = (
         grxjland_inputs.P,
@@ -917,7 +1063,8 @@ class Calc_NetRainfall_V1(modeltools.Method):
         flu.ae = inp.e - flu.en
 
 
-class Calc_NetRainfall_V2(modeltools.Method):
+class Calc_Pn_En_AE_V2(modeltools.Method):
+    # todo gleiche Gleichungen wie Version 1 nur mit preprocessing von pp
     """Calculate net rainfall and net evapotranspiration capacity from liquid rainfall
     and snowmelt from CemaNeige SnowModule.
 
@@ -959,9 +1106,8 @@ class Calc_NetRainfall_V2(modeltools.Method):
         ae(10.0)
 
     """
-    REQUIREDCONTROLS = (
-        grxjland_control.NSnowLayers,
-    )
+
+    REQUIREDCONTROLS = (grxjland_control.NSnowLayers,)
 
     REQUIREDSEQUENCES = (
         grxjland_fluxes.PRainLayer,
@@ -995,7 +1141,7 @@ class Calc_NetRainfall_V2(modeltools.Method):
         flu.ae = inp.e - flu.en
 
 
-class Calc_InflowProductionStore_V1(modeltools.Method):
+class Calc_PS_V1(modeltools.Method):
     """Calculate part of net rainfall filling the production store.
 
     Basic equation:
@@ -1017,21 +1163,21 @@ class Calc_InflowProductionStore_V1(modeltools.Method):
         >>> x1(300)
         >>> states.s = 300
         >>> fluxes.pn = 50
-        >>> model.calc_inflowproductionstore_v1()
+        >>> model.calc_ps_v1()
         >>> fluxes.ps
         ps(0.0)
 
         Example routing store empty, nearly all net rainfall fills the production store:
 
         >>> states.s = 0
-        >>> model.calc_inflowproductionstore_v1()
+        >>> model.calc_ps_v1()
         >>> fluxes.ps
         ps(49.542124)
 
         Example no net rainfall:
 
         >>> fluxes.pn = 0
-        >>> model.calc_inflowproductionstore_v1()
+        >>> model.calc_ps_v1()
         >>> fluxes.ps
         ps(0.0)
     """
@@ -1208,7 +1354,7 @@ class Calc_ProductionStore_V1(modeltools.Method):
         # flu.perc = sta.s * (1. - (1. + (4. * sta.s / 9. / con.x1) ** 4.) ** (-0.25))
         # probably faster
         flu.perc = sta.s * (
-            1.0 - (1.0 + (sta.s / con.x1) ** 4.0 / 25.62890625) ** (-0.25)
+            1.0 - (1.0 + (4. / 9. * sta.s / con.x1) ** 4.0) ** (-0.25)
         )
         sta.s = sta.s - flu.perc
         flu.ae = flu.ae + flu.es
@@ -1598,7 +1744,7 @@ class Calc_RoutingStore_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         con = model.parameters.control.fastaccess
         flu.f = con.x2 * (sta.r / con.x3) ** 3.5
-        sta.r = max(0, sta.r + flu.q9 + flu.f)
+        sta.r = max(0.0, sta.r + flu.q9 + flu.f)
         flu.qr = sta.r * (1 - (1 + (sta.r / con.x3) ** 4) ** (-0.25))
         sta.r = sta.r - flu.qr
 
@@ -1701,6 +1847,7 @@ class Calc_RoutingStore_V3(modeltools.Method):
     and the outflow Qr of the reservoir.
 
     This is the GR6J version of the routing store. 60 % of Q9 enters the routing store.
+    # todo: wie Version 2 nur mit 60 % Gleichungen auseinander ziehen?
 
     Basic equations:
 
@@ -2018,16 +2165,22 @@ class Model(modeltools.AdHocModel):
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
-        Calc_PSnowLayer_V1,
-        Calc_TSnowLayer_V1,
-        Calc_TSnowLayer_V2,
+        Calc_PLayer_V1,
+        Calc_TLayer_V1,
+        Calc_TLayer_V2,
         Calc_FracSolidPrec_V1,
         Calc_FracSolidPrec_V2,
-        Calc_SnowPack_V1,
-        Calc_SnowPack_V2,
-        Calc_NetRainfall_V1,
-        Calc_NetRainfall_V2,
-        Calc_InflowProductionStore_V1,
+        Calc_G_V1,
+        Calc_ETG_V1,
+        Calc_PotMelt_V1,
+        Calc_GRatio_V1,
+        Calc_GRatio_GLocalMax_V1,
+        Calc_Melt_V1,
+        Update_G_V1,
+        Update_GRatio_GLocalMax_V1,
+        Calc_Pn_En_AE_V1,
+        Calc_Pn_En_AE_V2,
+        Calc_PS_V1,
         Calc_ProductionStore_V1,
         Calc_Pr_V1,
         Calc_UH1_V1,

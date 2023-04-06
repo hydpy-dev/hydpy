@@ -3,6 +3,9 @@
 
 from hydpy.core import sequencetools
 
+# ...from grxjland
+from hydpy.models.grxjland import grxjland_sequences
+
 
 class En(sequencetools.FluxSequence):
     """Net evapotranspiration capacity [mm]."""
@@ -10,55 +13,56 @@ class En(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, False
 
 
-class PLayer(sequencetools.FluxSequence):
+class PLayer(grxjland_sequences.Flux1DSequence):
     """Precipitation of each snow layer[mm]."""
 
     NDIM, NUMERIC = 1, False
 
 
-class PSnowLayer(sequencetools.FluxSequence):
+class PSnowLayer(grxjland_sequences.Flux1DSequence):
     """Snowfall of each snow layer[mm]."""
 
     NDIM, NUMERIC = 1, False
 
 
-class PRainLayer(sequencetools.FluxSequence):
+class PRainLayer(grxjland_sequences.Flux1DSequence):
     """Rainfall of each snow layer[mm]."""
 
     NDIM, NUMERIC = 1, False
 
 
-class TLayer(sequencetools.FluxSequence):
+class TLayer(grxjland_sequences.Flux1DSequence):
     """Daily mean air temperature of each snow layer [°C]."""
 
     NDIM, NUMERIC = 1, False
 
 
-class TMinLayer(sequencetools.FluxSequence):
+class TMinLayer(grxjland_sequences.Flux1DSequence):
     """Daily minimum air temperature of each snow layer [°C]."""
 
     NDIM, NUMERIC = 1, False
 
 
-class TMaxLayer(sequencetools.FluxSequence):
+class TMaxLayer(grxjland_sequences.Flux1DSequence):
     """Daily maximum air temperature of each snow layer [°C]."""
 
     NDIM, NUMERIC = 1, False
 
 
-class SolidFraction(sequencetools.FluxSequence):
+class SolidFraction(grxjland_sequences.Flux1DSequence):
+    # todo solidfractionprecipitation
     """Solid Fraction of precipitation [/]."""
 
     NDIM, NUMERIC, SPAN = 1, False, (0, 1)
 
 
-class PotMelt(sequencetools.FluxSequence):
+class PotMelt(grxjland_sequences.Flux1DSequence):
     """Potential snow melt [mm]."""
 
     NDIM, NUMERIC = 1, False
 
 
-class Melt(sequencetools.FluxSequence):
+class Melt(grxjland_sequences.Flux1DSequence):
     """Snow melt [mm]."""
 
     NDIM, NUMERIC = 1, False

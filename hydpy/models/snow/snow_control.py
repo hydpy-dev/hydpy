@@ -8,16 +8,12 @@
 from hydpy.core import exceptiontools
 from hydpy.core import parametertools
 
-# ...from grxjland
-
-class Area(parametertools.Parameter):
-    """Subbasin area [km²]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (1e-10, None)
+# ...from snow
 
 
 class Z(parametertools.Parameter):
     """Mean subbasin elevation [m]."""
+    # todo eigentlich Median der Hypso-Daten und somit überflüssig
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
@@ -34,7 +30,7 @@ class NSnowLayers(parametertools.Parameter):
 
     Examples:
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.snow import *
         >>> parameterstep('1d')
         >>> nsnowlayers(5)
     """
@@ -147,39 +143,3 @@ class CN4(parametertools.Parameter):
     [-]"""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0, 1)
-
-
-class X1(parametertools.Parameter):
-    """Maximum capacity of the production storage [mm]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
-
-
-class X2(parametertools.Parameter):
-    """groundwater exchange coefficient [mm]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
-
-
-class X3(parametertools.Parameter):
-    """One timestep ahead maximum capacity of the routing store [mm]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
-
-
-class X4(parametertools.Parameter):
-    """Time base of unit hydrographs UH1 (X4) and UH2 (2*X4) [d]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.5, None)
-
-
-class X5(parametertools.Parameter):
-    """Intercatchment exchange threshold [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
-
-
-class X6(parametertools.Parameter):
-    """coefficient for emptying exponential store [mm]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)

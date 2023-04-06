@@ -396,9 +396,8 @@ class Model(modeltools.AdHocModel):
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
-        grxjland_model.Calc_NetRainfall_V1,
-        grxjland_model.Calc_NetRainfall_V1,
-        grxjland_model.Calc_InflowProductionStore_V1,
+        grxjland_model.Calc_Pn_En_AE_V1,
+        grxjland_model.Calc_PS_V1,
         grxjland_model.Calc_ProductionStore_V1,
         grxjland_model.Calc_Pr_V1,
         grxjland_model.Calc_UH2_V2,

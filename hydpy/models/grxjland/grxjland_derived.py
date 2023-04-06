@@ -9,7 +9,7 @@ import numpy
 import hydpy
 from hydpy.core import parametertools
 
-# ...from grxjland
+# ...from snow
 from hydpy.models.grxjland import grxjland_control
 
 

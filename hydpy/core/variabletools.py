@@ -2248,6 +2248,18 @@ def sort_variables(
     NmbZones
     ZoneType
 
+    When defined in multiple modules, alphabetical sorting of the modules' filepaths
+    takes priority:
+
+    >>> from hydpy.models.evap.evap_control import NmbHRU, ExcessReduction
+    >>> for var in sort_variables([NmbZones, ZoneType, Area, NmbHRU, ExcessReduction]):
+    ...     print(classname(var))
+    NmbHRU
+    ExcessReduction
+    Area
+    NmbZones
+    ZoneType
+
     Function |sort_variables| also supports sorting tuples.  Each first entry must be
     a |Variable| subclass:
 
@@ -2273,13 +2285,13 @@ sort_variables([(Area, 3), (ZoneType, 2), (Area, 1), (Area, 3)]):
     Area 3
     ZoneType 2
     """
-    counter_value: Iterable[Tuple[int, Type[TypeVariable]]] = (
-        (value[0].__hydpy__subclasscounter__, value)  # type: ignore[misc]
-        if isinstance(value, tuple)
-        else (value.__hydpy__subclasscounter__, value)
-        for value in values
-    )
-    return tuple(value for _, value in sorted(counter_value))
+    modulepath_position_value = []
+    for value in values:
+        variable = value[0] if isinstance(value, tuple) else value
+        modulepath = variable.__module__
+        position = variable.__hydpy__subclasscounter__
+        modulepath_position_value.append((modulepath, position, value))
+    return tuple(value for _, _, value in sorted(modulepath_position_value))
 
 
 class SubVariables(Generic[TypeGroup_co, TypeVariable_co, TypeFastAccess_co]):

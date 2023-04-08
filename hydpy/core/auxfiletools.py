@@ -843,8 +843,8 @@ error occurred: 'NoneType' object has no attribute 'items'
     ) -> Tuple[Type[parametertools.Parameter], ...]:
         """Return a |tuple| of all or a selection of the handled parameter types.
 
-        The following (slightly modified) test-setting stems from the documentation
-        on method |SubAuxfiler.add_parameter|:
+        The following (slightly modified) test-setting stems from the documentation on
+        method |SubAuxfiler.add_parameter|:
 
         >>> from hydpy.models.lland_v1 import *
         >>> parameterstep()
@@ -864,8 +864,8 @@ error occurred: 'NoneType' object has no attribute 'items'
         >>> eqb *= 2.0
         >>> subauxfiler.add_parameters(eqb, eqd1, filename="file2")
 
-        Without an argument, method |SubAuxfiler.get_parametertypes| returns
-        all registered parameter types:
+        Without an argument, method |SubAuxfiler.get_parametertypes| returns all
+        registered parameter types:
 
         >>> for parametertype in subauxfiler.get_parametertypes():
         ...     print(parametertype.__name__)

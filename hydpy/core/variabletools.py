@@ -2221,6 +2221,18 @@ def sort_variables(
     NmbZones
     ZoneType
 
+    When defined in multiple modules, alphabetical sorting of the modules' filepaths
+    takes priority:
+
+    >>> from hydpy.models.lland.lland_control import NHRU, Albedo
+    >>> for var in sort_variables([NmbZones, ZoneType, Area, NHRU, Albedo]):
+    ...     print(classname(var))
+    Area
+    NmbZones
+    ZoneType
+    NHRU
+    Albedo
+
     Function |sort_variables| also supports sorting tuples.  Each first entry must be
     a |Variable| subclass:
 
@@ -2246,13 +2258,13 @@ sort_variables([(Area, 3), (ZoneType, 2), (Area, 1), (Area, 3)]):
     Area 3
     ZoneType 2
     """
-    counter_value = (
-        (value[0].__hydpy__subclasscounter__, value)
-        if isinstance(value, tuple)
-        else (value.__hydpy__subclasscounter__, value)
-        for value in values
-    )
-    return tuple(value for _, value in sorted(counter_value))
+    modulepath_position_value = []
+    for value in values:
+        variable = value[0] if isinstance(value, tuple) else value
+        modulepath = variable.__module__
+        position = variable.__hydpy__subclasscounter__
+        modulepath_position_value.append((modulepath, position, value))
+    return tuple(value for _, _, value in sorted(modulepath_position_value))
 
 
 class SubVariables(Generic[TypeGroup_co, TypeVariable_co, TypeFastAccess_co]):

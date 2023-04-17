@@ -2,15 +2,19 @@
 # pylint: disable=missing-module-docstring
 
 # imports...
+# ...from site-packages
+import numpy
+
 # ...from HydPy
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.auxs import roottools
 from hydpy.cythons import modelutils
-from hydpy.interfaces import petinterfaces
+from hydpy.interfaces import aetinterfaces
 from hydpy.interfaces import precipinterfaces
 from hydpy.interfaces import soilinterfaces
+from hydpy.interfaces import stateinterfaces
 from hydpy.interfaces import tempinterfaces
 
 # ...from lland
@@ -815,112 +819,55 @@ class Calc_DailyGlobalRadiation_V1(modeltools.Method):
         flu.dailyglobalradiation /= der.nmblogentries
 
 
-class Calc_EvPo_PETModel_V1(modeltools.Method):
-    """Let a submodel that complies with the |PETModel_V1| interface calculate
-    potential evapotranspiration.
-
-    Example:
-
-        We use |evap_tw2002| as an example:
-
-        >>> from hydpy.models.lland_v1 import *
-        >>> parameterstep()
-        >>> nhru(3)
-        >>> ft(1.0)
-        >>> fhru(0.5, 0.3, 0.2)
-        >>> lnk(ACKER, MISCHW, ACKER)
-        >>> with model.add_petmodel_v1("evap_tw2002"):
-        ...     hrualtitude(200.0, 600.0, 1000.0)
-        ...     coastfactor(0.6)
-        ...     evapotranspirationfactor(1.1)
-        ...     inputs.globalradiation = 200.0
-        ...     with model.add_tempmodel_v2("meteo_temp_io"):
-        ...         temperatureaddend(1.0)
-        ...         inputs.temperature = 14.0
-        >>> model.calc_evpo_v1()
-        >>> fluxes.evpo
-        evpo(3.07171, 2.86215, 2.86215)
-    """
-
-    CONTROLPARAMETERS = (lland_control.NHRU,)
-    RESULTSEQUENCES = (lland_fluxes.EvPo,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
-        con = model.parameters.control.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        submodel.determine_potentialevapotranspiration()
-        for k in range(con.nhru):
-            flu.evpo[k] = submodel.get_potentialevapotranspiration(k)
-
-
-class Calc_EvPo_V1(modeltools.Method):
-    """Let a submodel that complies with the |PETModel_V1| interface calculate
-    reference evapotranspiration."""
-
-    SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
-    SUBMETHODS = (Calc_EvPo_PETModel_V1,)
-    CONTROLPARAMETERS = (lland_control.NHRU,)
-    RESULTSEQUENCES = (lland_fluxes.EvPo,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        if model.petmodel_typeid == 1:
-            model.calc_evpo_petmodel_v1(cast(petinterfaces.PETModel_V1, model.petmodel))
-        # ToDo:
-        #     else:
-        #         assert_never(model.petmodel)
-
-
-class Update_EvPo_WEvPo_V1(modeltools.Method):
-    r"""Delay the given potential evapotranspiration and update the corresponding log
+class Update_EvI_WEvI_V1(modeltools.Method):
+    r"""Delay the given interception evaporation and update the corresponding log
     sequence.
 
     Basic equation:
-      :math:`EvPo_{new} = WfEvPo \cdot EvPo_{old} + (1 - WfEvPo) \cdot WEvPo`
+      :math:`EvI_{new} = WfEvI \cdot EvI_{old} + (1 - WfEvI) \cdot WEvI`
 
     Example:
 
         Prepare four hydrological response units with different combinations of delay
-        factors and "old" reference evapotranspiration values:
+        factors and "old" interception evaporation values:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep("1d")
         >>> simulationstep("12h")
         >>> nhru(4)
-        >>> wfevpo(2.0, 2.0, 0.2, 0.2)
-        >>> fluxes.evpo = 1.6, 2.4, 1.6, 2.4
+        >>> wfevi(2.0, 2.0, 0.2, 0.2)
+        >>> fluxes.evi = 1.6, 2.4, 1.6, 2.4
 
-        Note that the actual value of the time-dependent parameter |WfEvPo| is reduced
+        Note that the actual value of the time-dependent parameter |WfEvI| is reduced
         due to the difference between the given parameter and simulation time steps:
 
         >>> from hydpy import round_
-        >>> round_(wfevpo.values)
+        >>> round_(wfevi.values)
         1.0, 1.0, 0.1, 0.1
 
-        The evapotranspiration value of the last simulation step is 2.0 mm:
+        The evaporation value of the last simulation step is 2.0 mm:
 
-        >>> logs.wevpo = 2.0
+        >>> logs.wevi = 2.0
 
-        For the first two hydrological response units, the "old" |EvPo| value is
+        For the first two hydrological response units, the "old" |EvI| value is
         modified by -0.4 mm and +0.4 mm, respectively.  For the other two response
-        units, which weigh the "new" evapotranspiration value with 10 %, the new value
-        of |EvPo| deviates from |WEvPo| by -0.04 mm and +0.04 mm only:
+        units, which weigh the "new" evaporation value with 10 %, the new value of
+        |EvI| deviates from |WEvI| by -0.04 mm and +0.04 mm only:
 
-        >>> model.update_evpo_wevpo_v1()
-        >>> fluxes.evpo
-        evpo(1.6, 2.4, 1.96, 2.04)
-        >>> logs.wevpo
-        wevpo(1.6, 2.4, 1.96, 2.04)
+        >>> model.update_evi_wevi_v1()
+        >>> fluxes.evi
+        evi(1.6, 2.4, 1.96, 2.04)
+        >>> logs.wevi
+        wevi(1.6, 2.4, 1.96, 2.04)
     """
 
     CONTROLPARAMETERS = (
         lland_control.NHRU,
-        lland_control.WfEvPo,
+        lland_control.WfEvI,
     )
     UPDATEDSEQUENCES = (
-        lland_fluxes.EvPo,
-        lland_logs.WEvPo,
+        lland_fluxes.EvI,
+        lland_logs.WEvI,
     )
 
     @staticmethod
@@ -929,10 +876,10 @@ class Update_EvPo_WEvPo_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
         for k in range(con.nhru):
-            flu.evpo[k] = (
-                con.wfevpo[k] * flu.evpo[k] + (1.0 - con.wfevpo[k]) * log.wevpo[0, k]
+            flu.evi[k] = (
+                con.wfevi[k] * flu.evi[k] + (1.0 - con.wfevi[k]) * log.wevi[0, k]
             )
-            log.wevpo[0, k] = flu.evpo[k]
+            log.wevi[0, k] = flu.evi[k]
 
 
 class Calc_NBes_Inzp_V1(modeltools.Method):
@@ -6018,69 +5965,72 @@ class Calc_FVG_V1(modeltools.Method):
                 flu.fvg[k] = min(con.fvf * flu.sff[k] ** con.bsff, 1.0)
 
 
-class Calc_EvB_V1(modeltools.Method):
-    """Calculate the actual soil evapotranspiration.
-
-    Basic equations:
-      :math:`EvB = (EvPo - EvI) \\cdot
-      \\frac{1 - temp}{1 + temp -2 \\cdot exp(-GrasRef_R)}`
-
-      :math:`temp = exp\\left(-GrasRef_R \\cdot \\frac{BoWa}{WMax}\\right)`
+class Calc_EvB_AETModel_V1(modeltools.Method):
+    """Let a submodel that follows the |AETModel_V1| submodel interface calculate
+    soil evapotranspiration.
 
     Examples:
 
-        Soil evapotranspiration is calculated neither for water nor for
-        sealed areas (see the first three hydrological reponse units of
-        type |FLUSS|, |SEE|, and |VERS|).  All other land use classes are
-        handled in accordance with a recommendation of the set of codes
-        described in DVWK-M 504 :cite:p:`ref-DVWK`.  In case maximum soil water
-        storage (|WMax|) is zero, soil evaporation (|EvB|) is generally set to
-        zero (see the fourth hydrological response unit).  The last three
-        response units demonstrate the rise in soil evaporation with increasing
-        soil moisture, which is lessening in the high soil moisture range:
+        We build an example based on |evap_minhas|:
 
-        >>> from hydpy.models.lland import *
-        >>> parameterstep("1d")
-        >>> nhru(7)
-        >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER)
-        >>> grasref_r(5.0)
-        >>> wmax(100.0, 100.0, 100.0, 0.0, 100.0, 100.0, 100.0)
-        >>> fluxes.evpo = 5.0
-        >>> fluxes.evi = 3.0
-        >>> states.bowa = 50.0, 50.0, 50.0, 0.0, 0.0, 50.0, 100.0
+        >>> from hydpy.models.lland_v1 import *
+        >>> parameterstep("1h")
+        >>> nhru(5)
+        >>> lnk(VERS, ACKER, ACKER, MISCHW, WASSER)
+        >>> ft(1.0)
+        >>> fhru(0.05, 0.1, 0.2, 0.3, 0.35)
+        >>> wmax(100.0)
+        >>> with model.add_aetmodel_v1("evap_minhas"):
+        ...     dissefactor(5.0)
+
+        |Calc_EvB_AETModel_V1| stores the flux returned by the submodel without any
+        modifications:
+
+        >>> states.bowa = 0.0, 0.0, 50.0, 100.0, 0.0
+        >>> model.aetmodel.sequences.fluxes.potentialevapotranspiration = 5.0
+        >>> model.aetmodel.sequences.fluxes.interceptionevaporation = 3.0
         >>> model.calc_evb_v1()
         >>> fluxes.evb
-        evb(0.0, 0.0, 0.0, 0.0, 0.0, 1.717962, 2.0)
+        evb(0.0, 0.0, 1.717962, 2.0, 0.0)
     """
 
     CONTROLPARAMETERS = (
         lland_control.NHRU,
         lland_control.Lnk,
-        lland_control.WMax,
-        lland_control.GrasRef_R,
     )
-    REQUIREDSEQUENCES = (
-        lland_states.BoWa,
-        lland_fluxes.EvPo,
-        lland_fluxes.EvI,
+    RESULTSEQUENCES = (lland_fluxes.EvB,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, submodel: aetinterfaces.AETModel_V1) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        submodel.determine_soilevapotranspiration()
+        for k in range(con.nhru):
+            if con.lnk[k] in (VERS, WASSER, FLUSS, SEE):
+                flu.evb[k] = 0.0
+            else:
+                flu.evb[k] = submodel.get_soilevapotranspiration(k)
+
+
+class Calc_EvB_V1(modeltools.Method):
+    """Let a submodel that follows the |AETModel_V1| submodel interface calculate soil
+    evapotranspiration."""
+
+    SUBMODELINTERFACES = (aetinterfaces.AETModel_V1,)
+    SUBMETHODS = (Calc_EvB_AETModel_V1,)
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
     )
     RESULTSEQUENCES = (lland_fluxes.EvB,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        sta = model.sequences.states.fastaccess
-        for k in range(con.nhru):
-            if con.lnk[k] in (VERS, WASSER, FLUSS, SEE) or con.wmax[k] <= 0.0:
-                flu.evb[k] = 0.0
-            else:
-                d_temp = modelutils.exp(-con.grasref_r * sta.bowa[k] / con.wmax[k])
-                flu.evb[k] = (
-                    (flu.evpo[k] - flu.evi[k])
-                    * (1.0 - d_temp)
-                    / (1.0 + d_temp - 2.0 * modelutils.exp(-con.grasref_r))
-                )
+        if model.aetmodel_typeid == 1:
+            model.calc_evb_aetmodel_v1(cast(aetinterfaces.AETModel_V1, model.aetmodel))
+        # ToDo:
+        #     else:
+        #         assert_never(model.petmodel)
 
 
 class Calc_DryAirPressure_V1(modeltools.Method):
@@ -7215,76 +7165,138 @@ class Calc_EvS_WAeS_WATS_V1(modeltools.Method):
                 sta.wats[k] *= d_frac
 
 
-class Calc_EvI_Inzp_V1(modeltools.Method):
-    """Calculate interception evaporation and update the interception
-    storage accordingly.
+class Calc_EvI_Inzp_AETModel_V1(modeltools.Method):
+    r"""Let a submodel that follows the |AETModel_V1| submodel interface calculate
+    interception evaporation and adjust the amount of intercepted water.
 
     Basic equation:
-      :math:`\\frac{dInzp}{dt} = -EvI`
-
-      .. math::
-        EvI = \\begin{cases}
-        EvPo
-        &|\\
-        Inzp > 0
-        \\\\
-        0
-        &|\\
-        Inzp = 0
-        \\end{cases}
+      :math:`\frac{dInzp_i}{dt} = -EvI_i`
 
     Examples:
 
-        For all "land response units" like arable land (|ACKER|), interception
-        evaporation (|EvI|) is identical with potential evapotranspiration
-        (|EvPo|) as long as it is met by available intercepted water (|Inzp|):
+        We build an example based on |evap_minhas| for calculating interception
+        evaporation, which uses |evap_io| for querying potential evapotranspiration:
 
-        >>> from hydpy.models.lland import *
-        >>> parameterstep("1d")
-        >>> nhru(3)
-        >>> lnk(ACKER)
-        >>> states.inzp = 0.0, 2.0, 4.0
-        >>> fluxes.evpo = 3.0
-        >>> model.calc_evi_inzp_v1()
-        >>> states.inzp
-        inzp(0.0, 0.0, 1.0)
-        >>> fluxes.evi
-        evi(0.0, 2.0, 3.0)
+        >>> from hydpy.models.lland_v1 import *
+        >>> parameterstep("1h")
+        >>> nhru(5)
+        >>> lnk(VERS, ACKER, ACKER, MISCHW, WASSER)
+        >>> ft(1.0)
+        >>> fhru(0.05, 0.1, 0.2, 0.3, 0.35)
+        >>> derived.kinz.jun = 3.0
+        >>> wmax(50.0)
+        >>> derived.moy.shape = 1
+        >>> derived.moy(5)
+        >>> fluxes.nbes = 0.5
+        >>> with model.add_aetmodel_v1("evap_minhas"):
+        ...     with model.add_petmodel_v1("evap_io"):
+        ...         evapotranspirationfactor(0.6, 0.8, 1.0, 1.2, 1.4)
+        ...         inputs.referenceevapotranspiration = 1.0
 
-        For water areas (|WASSER|, |FLUSS| and |SEE|), |EvI| is generally
-        equal to |EvPo| (but this might be corrected by a method called
-        after |Calc_EvI_Inzp_V1| has been applied) and |Inzp| is set to zero:
+        For non-water areas, |Calc_EvI_Inzp_AETModel_V1| uses the flux returned by the
+        submodel to adjust |Inzp|:
 
-        >>> lnk(WASSER, FLUSS, SEE)
         >>> states.inzp = 2.0
-        >>> fluxes.evpo = 3.0
         >>> model.calc_evi_inzp_v1()
-        >>> states.inzp
-        inzp(0.0, 0.0, 0.0)
         >>> fluxes.evi
-        evi(3.0, 3.0, 3.0)
+        evi(0.6, 0.8, 1.0, 1.2, 1.4)
+        >>> states.inzp
+        inzp(1.4, 1.2, 1.0, 0.8, 0.0)
+        >>> fluxes.nbes
+        nbes(0.5, 0.5, 0.5, 0.5, 0.5)
+
+        |Calc_EvI_Inzp_AETModel_V1| eventually reduces |EvI| so that |Inzp| does not
+        become negative:
+
+        >>> model.aetmodel.petmodel.sequences.inputs.referenceevapotranspiration = 5.0
+        >>> states.inzp = 2.0
+        >>> model.calc_evi_inzp_v1()
+        >>> fluxes.evi
+        evi(2.0, 2.0, 2.0, 2.0, 7.0)
+        >>> states.inzp
+        inzp(0.0, 0.0, 0.0, 0.0, 0.0)
+        >>> fluxes.nbes
+        nbes(0.5, 0.5, 0.5, 0.5, 0.5)
+
+        |Calc_EvI_Inzp_AETModel_V1| converts any amounts of condensation (negative
+        |EvI|) that would cause intercepted water to exceed its storage capacity to
+        throughfall (|NBes|):
+
+        >>> model.aetmodel.petmodel.sequences.inputs.referenceevapotranspiration = -3.0
+        >>> states.inzp = 2.0
+        >>> model.calc_evi_inzp_v1()
+        >>> fluxes.evi
+        evi(-1.8, -2.4, -3.0, -3.6, -4.2)
+        >>> states.inzp
+        inzp(3.0, 3.0, 3.0, 3.0, 0.0)
+        >>> fluxes.nbes
+        nbes(1.3, 1.9, 2.5, 3.1, 0.5)
     """
 
     CONTROLPARAMETERS = (
         lland_control.NHRU,
         lland_control.Lnk,
     )
-    REQUIREDSEQUENCES = (lland_fluxes.EvPo,)
-    UPDATEDSEQUENCES = (lland_states.Inzp,)
+    DERIVEDPARAMETERS = (
+        lland_derived.MOY,
+        lland_derived.KInz,
+    )
+    UPDATEDSEQUENCES = (
+        lland_states.Inzp,
+        lland_fluxes.NBes,
+    )
+    RESULTSEQUENCES = (lland_fluxes.EvI,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, submodel: aetinterfaces.AETModel_V1) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        submodel.determine_interceptionevaporation()
+        submodel.determine_waterevaporation()
+        for k in range(con.nhru):
+            if con.lnk[k] in (WASSER, FLUSS, SEE):
+                flu.evi[k] = submodel.get_waterevaporation(k)
+                sta.inzp[k] = 0.0
+            else:
+                flu.evi[k] = min(submodel.get_interceptionevaporation(k), sta.inzp[k])
+                sta.inzp[k] -= flu.evi[k]
+                kinz: float = der.kinz[con.lnk[k] - 1, der.moy[model.idx_sim]]
+                if sta.inzp[k] > kinz:
+                    flu.nbes[k] += sta.inzp[k] - kinz
+                    sta.inzp[k] = kinz
+
+
+class Calc_EvI_Inzp_V1(modeltools.Method):
+    """Let a submodel that follows the |AETModel_V1| submodel interface calculate
+    interception evaporation and adjust the amount of intercepted water."""
+
+    SUBMODELINTERFACES = (aetinterfaces.AETModel_V1,)
+    SUBMETHODS = (Calc_EvI_Inzp_AETModel_V1,)
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+    )
+    DERIVEDPARAMETERS = (
+        lland_derived.MOY,
+        lland_derived.KInz,
+    )
+    UPDATEDSEQUENCES = (
+        lland_states.Inzp,
+        lland_fluxes.NBes,
+    )
     RESULTSEQUENCES = (lland_fluxes.EvI,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        sta = model.sequences.states.fastaccess
-        for k in range(con.nhru):
-            if con.lnk[k] in (WASSER, FLUSS, SEE):
-                flu.evi[k] = flu.evpo[k]
-                sta.inzp[k] = 0.0
-            else:
-                flu.evi[k] = min(flu.evpo[k], sta.inzp[k])
-                sta.inzp[k] -= flu.evi[k]
+        if model.aetmodel_typeid == 1:
+            model.calc_evi_inzp_aetmodel_v1(
+                cast(aetinterfaces.AETModel_V1, model.aetmodel)
+            )
+        # ToDo:
+        #     else:
+        #         assert_never(model.petmodel)
 
 
 class Calc_EvI_Inzp_V2(modeltools.Method):
@@ -7342,7 +7354,7 @@ class Calc_EvI_Inzp_V2(modeltools.Method):
         >>> lnk(WASSER, FLUSS, SEE)
         >>> states.inzp = 2.0
         >>> fluxes.evpo = 3.0
-        >>> model.calc_evi_inzp_v1()
+        >>> model.calc_evi_inzp_v2()
         >>> states.inzp
         inzp(0.0, 0.0, 0.0)
         >>> fluxes.evi
@@ -9755,6 +9767,82 @@ class Get_Precipitation_V1(modeltools.Method):
         return flu.nkor[s]
 
 
+class Get_InterceptedWater_V1(modeltools.Method):
+    """Get the selected response unit's current amount of intercepted water.
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(2)
+        >>> states.inzp = 2.0, 4.0
+        >>> model.get_interceptedwater_v1(0)
+        2.0
+        >>> model.get_interceptedwater_v1(1)
+        4.0
+    """
+
+    REQUIREDSEQUENCES = (lland_states.Inzp,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, k: int) -> float:
+        sta = model.sequences.states.fastaccess
+
+        return sta.inzp[k]
+
+
+class Get_SoilWater_V1(modeltools.Method):
+    """Get the selected response unit's current soil water content.
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(2)
+        >>> states.bowa = 2.0, 4.0
+        >>> model.get_soilwater_v1(0)
+        2.0
+        >>> model.get_soilwater_v1(1)
+        4.0
+    """
+
+    REQUIREDSEQUENCES = (lland_states.BoWa,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, k: int) -> float:
+        sta = model.sequences.states.fastaccess
+
+        return sta.bowa[k]
+
+
+class Get_SnowCover_V1(modeltools.Method):
+    """Get the selected response unit's current snow cover degree.
+
+    Example:
+
+        Each response unit with a non-zero amount of snow counts as completely covered:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(2)
+        >>> states.wats = 0.0, 2.0
+        >>> model.get_snowcover_v1(0)
+        0.0
+        >>> model.get_snowcover_v1(1)
+        1.0
+    """
+
+    REQUIREDSEQUENCES = (lland_states.WATS,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, k: int) -> float:
+        sta = model.sequences.states.fastaccess
+
+        if sta.wats[k] > 0.0:
+            return 1.0
+        return 0.0
+
+
 class PegasusESnowInz(roottools.Pegasus):
     """Pegasus iterator for finding the correct energy content of the intercepted
     snow."""
@@ -9783,9 +9871,13 @@ class Model(modeltools.AdHocModel):
         Get_Temperature_V1,
         Get_MeanTemperature_V1,
         Get_Precipitation_V1,
+        Get_InterceptedWater_V1,
+        Get_SoilWater_V1,
+        Get_SnowCover_V1,
     )
     ADD_METHODS = (
-        Calc_EvPo_PETModel_V1,
+        Calc_EvI_Inzp_AETModel_V1,
+        Calc_EvB_AETModel_V1,
         Return_AdjustedWindSpeed_V1,
         Return_ActualVapourPressure_V1,
         Calc_DailyNetLongwaveRadiation_V1,
@@ -9841,8 +9933,6 @@ class Model(modeltools.AdHocModel):
         Calc_DailySaturationVapourPressureSlope_V1,
         Calc_ActualVapourPressure_V1,
         Calc_DailyActualVapourPressure_V1,
-        Calc_EvPo_V1,
-        Update_EvPo_WEvPo_V1,
         Calc_NBes_Inzp_V1,
         Calc_SNRatio_V1,
         Calc_SBes_V1,
@@ -9898,6 +9988,7 @@ class Model(modeltools.AdHocModel):
         Calc_EvI_Inzp_V1,
         Calc_EvI_Inzp_V2,
         Calc_EvI_Inzp_V3,
+        Update_EvI_WEvI_V1,
         Calc_EvB_V1,
         Calc_SchmPot_V1,
         Calc_SchmPot_V2,
@@ -9933,7 +10024,7 @@ class Model(modeltools.AdHocModel):
     OUTLET_METHODS = (Pass_QA_V1,)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (
-        petinterfaces.PETModel_V1,
+        aetinterfaces.AETModel_V1,
         soilinterfaces.SoilModel_V1,
     )
     SUBMODELS = (
@@ -9944,64 +10035,95 @@ class Model(modeltools.AdHocModel):
 
     idx_hru = modeltools.Idx_HRU()
 
-    petmodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
-    petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
-    petmodel_typeid = modeltools.SubmodelTypeIDProperty()
+    aetmodel = modeltools.SubmodelProperty(aetinterfaces.AETModel_V1)
+    aetmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    aetmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
     soilmodel = modeltools.SubmodelProperty(soilinterfaces.SoilModel_V1, optional=True)
     soilmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     soilmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
 
-class Main_PETModel_V1(modeltools.AdHocModel):
+class Main_AETModel_V1(modeltools.AdHocModel):
     """Base class for HydPy-L models that support submodels that comply with the
-    |PETModel_V1| interface."""
+    |AETModel_V1| interface."""
 
-    petmodel: modeltools.SubmodelProperty
-    petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
-    petmodel_typeid = modeltools.SubmodelTypeIDProperty()
+    aetmodel: modeltools.SubmodelProperty
+    aetmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    aetmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
     @importtools.prepare_submodel(
-        "petmodel",
-        petinterfaces.PETModel_V1,
-        petinterfaces.PETModel_V1.prepare_nmbzones,
-        petinterfaces.PETModel_V1.prepare_zonetypes,
-        petinterfaces.PETModel_V1.prepare_subareas,
+        "aetmodel",
+        aetinterfaces.AETModel_V1,
+        aetinterfaces.AETModel_V1.prepare_nmbzones,
+        aetinterfaces.AETModel_V1.prepare_zonetypes,
+        aetinterfaces.AETModel_V1.prepare_subareas,
+        aetinterfaces.AETModel_V1.prepare_maxsoilwater,
+        aetinterfaces.AETModel_V1.prepare_water,
+        aetinterfaces.AETModel_V1.prepare_interception,
+        aetinterfaces.AETModel_V1.prepare_soil,
         landtype_constants=lland_constants.CONSTANTS,
         landtype_refindices=lland_control.Lnk,
         refweights=lland_control.FHRU,
     )
-    def add_petmodel_v1(self, petmodel: petinterfaces.PETModel_V1) -> None:
-        """Initialise the given evapotranspiration model that follows the |PETModel_V1|
-        interface and set the number and the subareas of its zones.
+    def add_aetmodel_v1(self, aetmodel: aetinterfaces.AETModel_V1) -> None:
+        """Initialise the given submodel that follows the |AETModel_V1| interface and
+        is responsible for calculating the different kinds of actual
+        evapotranspiration.
 
         >>> from hydpy.models.lland_v1 import *
         >>> parameterstep()
-        >>> nhru(2)
+        >>> nhru(6)
         >>> ft(10.0)
-        >>> fhru(0.2, 0.8)
-        >>> lnk(ACKER, MISCHW)
-        >>> with model.add_petmodel_v1("evap_tw2002"):
+        >>> fhru(0.1, 0.3, 0.1, 0.2, 0.1, 0.2)
+        >>> lnk(ACKER, MISCHW, VERS, WASSER, FLUSS, SEE)
+        >>> wmax(200.0)
+        >>> with model.add_aetmodel_v1("evap_minhas"):
         ...     nmbhru
-        ...     hruarea
-        ...     evapotranspirationfactor(acker=1.0, mischw=2.0)
-        nmbhru(2)
-        hruarea(2.0, 8.0)
+        ...     water
+        ...     interception
+        ...     soil
+        ...     maxsoilwater
+        ...     dissefactor(acker=1.0, mischw=2.0)
+        ...     for method, argument in model.predefinedmethod2argument.items():
+        ...         print(method, argument, sep=": ")
+        nmbhru(6)
+        water(acker=False, fluss=True, mischw=False, see=True, vers=False,
+              wasser=True)
+        interception(acker=True, fluss=False, mischw=True, see=False,
+                     vers=True, wasser=False)
+        soil(acker=True, fluss=False, mischw=True, see=False, vers=False,
+             wasser=False)
+        maxsoilwater(200.0)
+        prepare_zonetypes: [ 4 15  3 16 17 18]
+        prepare_subareas: [1. 3. 1. 2. 1. 2.]
 
-        >>> etf = model.petmodel.parameters.control.evapotranspirationfactor
-        >>> etf
-        evapotranspirationfactor(acker=1.0, mischw=2.0)
-        >>> lnk(MISCHW, ACKER)
-        >>> etf
-        evapotranspirationfactor(acker=2.0, mischw=1.0)
+        >>> df = model.aetmodel.parameters.control.dissefactor
+        >>> df
+        dissefactor(acker=1.0, mischw=2.0)
+        >>> lnk(MISCHW, ACKER, VERS, WASSER, FLUSS, SEE)
+        >>> df
+        dissefactor(acker=2.0, mischw=1.0)
         >>> from hydpy import round_
-        >>> round_(etf.average_values())
-        1.8
+        >>> round_(df.average_values())
+        1.75
         """
         control = self.parameters.control
-        petmodel.prepare_nmbzones(control.nhru.value)
-        petmodel.prepare_zonetypes(control.lnk.values)
-        petmodel.prepare_subareas(control.fhru.value * control.ft.value)
+        nhru = control.nhru.value
+        lnk = control.lnk.values
+
+        aetmodel.prepare_nmbzones(nhru)
+        aetmodel.prepare_zonetypes(lnk)
+        aetmodel.prepare_subareas(control.fhru.values * control.ft.value)
+        aetmodel.prepare_maxsoilwater(control.wmax.values)
+        sel = numpy.full(nhru, False, dtype=bool)
+        sel[lnk == WASSER] = True
+        sel[lnk == FLUSS] = True
+        sel[lnk == SEE] = True
+        aetmodel.prepare_water(sel)
+        aetmodel.prepare_interception(~sel)
+        sel[lnk == VERS] = True
+        aetmodel.prepare_soil(~sel)
 
 
 class Main_SoilModel_V1(modeltools.AdHocModel):
@@ -10042,4 +10164,19 @@ class Sub_TempModel_V1(modeltools.AdHocModel, tempinterfaces.TempModel_V1):
 
 class Sub_PrecipModel_V1(modeltools.AdHocModel, precipinterfaces.PrecipModel_V1):
     """Base class for HydPy-L models that comply with the |PrecipModel_V1| submodel
+    interface."""
+
+
+class Sub_IntercModel_V1(modeltools.AdHocModel, stateinterfaces.IntercModel_V1):
+    """Base class for HydPy-L models that comply with the |IntercModel_V1| submodel
+    interface."""
+
+
+class Sub_SoilWaterModel_V1(modeltools.AdHocModel, stateinterfaces.SoilWaterModel_V1):
+    """Base class for HydPy-L models that comply with the |SoilWaterModel_V1| submodel
+    interface."""
+
+
+class Sub_SnowCoverModel_V1(modeltools.AdHocModel, stateinterfaces.SnowCoverModel_V1):
+    """Base class for HydPy-L models that comply with the |SnowCoverModel_V1| submodel
     interface."""

@@ -1749,6 +1749,44 @@ class Calc_WaterEvaporation_V1(modeltools.Method):
                 flu.waterevaporation[k] = 0.0
 
 
+class Calc_WaterEvaporation_V2(modeltools.Method):
+    """Accept potential evapotranspiration as the actual evaporation from water areas.
+
+    Basic equation:
+      :math:`WaterEvaporation = PotentialEvapotranspiration`
+
+    Example:
+
+        For non-water areas, water area evaporation is generally zero:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> water(True, False)
+        >>> fluxes.potentialevapotranspiration = 3.0
+        >>> model.calc_waterevaporation_v2()
+        >>> fluxes.waterevaporation
+        waterevaporation(3.0, 0.0)
+    """
+
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.Water,
+    )
+    REQUIREDSEQUENCES = (evap_fluxes.PotentialEvapotranspiration,)
+    RESULTSEQUENCES = (evap_fluxes.WaterEvaporation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            if con.water[k]:
+                flu.waterevaporation[k] = flu.potentialevapotranspiration[k]
+            else:
+                flu.waterevaporation[k] = 0.0
+
+
 class Calc_InterceptionEvaporation_V1(modeltools.Method):
     r"""Calculate the actual interception evaporation.
 
@@ -1900,6 +1938,99 @@ class Calc_SoilEvapotranspiration_V1(modeltools.Method):
                         thresh: float = con.soilmoisturelimit[k] * con.maxsoilwater[k]
                         if fac.soilwater[k] < thresh:
                             flu.soilevapotranspiration[k] *= fac.soilwater[k] / thresh
+            else:
+                flu.soilevapotranspiration[k] = 0.0
+
+
+class Calc_SoilEvapotranspiration_V2(modeltools.Method):
+    r"""Calculate the actual soil evapotranspiration according to
+    :cite:t:`ref-Minhas1974`.
+
+    The applied equation deviates from the original by using the formulation of
+    :cite:t:`ref-Disse1995`, which is mathematically identical but simpler to
+    parameterise, and the approach of :cite:t:`ref-DVWK2002`, which reduces the delta
+    of potential evapotranspiration and (previously calculated) interception
+    evaporation.  Also, it does not explicitly account for the permanent wilting point.
+
+    Basic equation:
+      :math:`SoilEvapotranspiration =
+      (PotentialEvapotranspiration - InterceptionEvaporation) \cdot
+      \frac{1 - exp\left(-DisseFactor \cdot \frac{SoilWater}{MaxSoilWater} \right)}
+      {1 + exp\left(-DisseFactor \cdot \frac{SoilWater}{MaxSoilWater} \right) -
+      2 \cdot exp(-DisseFactor)}`
+
+    Examples:
+
+        We initialise five hydrological response units with different soil water
+        contents, including two that fall below and above the lowest and highest
+        possible soil moisture, respectively, to show that
+        |Calc_SoilEvapotranspiration_V2| works stably in case of eventual numerical
+        errors:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep("1d")
+        >>> nmbhru(5)
+        >>> soil(True)
+        >>> dissefactor(5.0)
+        >>> maxsoilwater(100.0)
+        >>> fluxes.potentialevapotranspiration = 5.0
+        >>> fluxes.interceptionevaporation = 3.0
+        >>> factors.soilwater = -1.0, 0.0, 50.0, 100.0, 101.0
+        >>> model.calc_soilevapotranspiration_v2()
+        >>> fluxes.soilevapotranspiration
+        soilevapotranspiration(0.0, 0.0, 1.717962, 2.0, 2.0)
+
+        Condensation does not depend on actual soil moisture.  Hence,
+        |Calc_SoilEvapotranspiration_V2| generally sets actual soil evapotranspiration
+        equal to the delta of potential evapotranspiration and interception evaporation
+        if this delta is negative:
+
+        >>> fluxes.potentialevapotranspiration = -5.0
+        >>> fluxes.interceptionevaporation = -3.0
+        >>> model.calc_soilevapotranspiration_v2()
+        >>> fluxes.soilevapotranspiration
+        soilevapotranspiration(-2.0, -2.0, -2.0, -2.0, -2.0)
+
+        For non-soil units, soil evapotranspiration is always zero:
+
+        >>> soil(False)
+        >>> model.calc_soilevapotranspiration_v2()
+        >>> fluxes.soilevapotranspiration
+        soilevapotranspiration(0.0, 0.0, 0.0, 0.0, 0.0)
+    """
+
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.Soil,
+        evap_control.MaxSoilWater,
+        evap_control.DisseFactor,
+    )
+    REQUIREDSEQUENCES = (
+        evap_factors.SoilWater,
+        evap_fluxes.PotentialEvapotranspiration,
+        evap_fluxes.InterceptionEvaporation,
+    )
+    RESULTSEQUENCES = (evap_fluxes.SoilEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            if con.soil[k]:
+                flu.soilevapotranspiration[k] = (
+                    flu.potentialevapotranspiration[k] - flu.interceptionevaporation[k]
+                )
+                if flu.soilevapotranspiration[k] > 0.0:
+                    moisture: float = fac.soilwater[k] / con.maxsoilwater[k]
+                    if moisture <= 0.0:
+                        flu.soilevapotranspiration[k] = 0.0
+                    elif moisture <= 1.0:
+                        temp: float = modelutils.exp(-con.dissefactor[k] * moisture)
+                        flu.soilevapotranspiration[k] *= (1.0 - temp) / (
+                            1.0 + temp - 2.0 * modelutils.exp(-con.dissefactor[k])
+                        )
             else:
                 flu.soilevapotranspiration[k] = 0.0
 
@@ -2227,6 +2358,35 @@ class Determine_SoilEvapotranspiration_V1(modeltools.Method):
         model.update_soilevapotranspiration_v2()
 
 
+class Determine_SoilEvapotranspiration_V2(modeltools.Method):
+    """Determine the actual evapotranspiration from the soil according to
+    :cite:t:`ref-Minhas1974`."""
+
+    SUBMETHODS = (
+        Calc_SoilWater_V1,
+        Calc_SoilEvapotranspiration_V2,
+    )
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.Soil,
+        evap_control.MaxSoilWater,
+        evap_control.DisseFactor,
+    )
+    REQUIREDSEQUENCES = (
+        evap_fluxes.PotentialEvapotranspiration,
+        evap_fluxes.InterceptionEvaporation,
+    )
+    RESULTSEQUENCES = (
+        evap_factors.SoilWater,
+        evap_fluxes.SoilEvapotranspiration,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        model.calc_soilwater_v1()
+        model.calc_soilevapotranspiration_v2()
+
+
 class Determine_WaterEvaporation_V1(modeltools.Method):
     """Determine the actual evapotranspiration from open water areas according to
     :cite:t:`ref-Lindstrom1997HBV96`."""
@@ -2250,6 +2410,23 @@ class Determine_WaterEvaporation_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         model.calc_airtemperature_v1()
         model.calc_waterevaporation_v1()
+
+
+class Determine_WaterEvaporation_V2(modeltools.Method):
+    """Accept potential evapotranspiration as the actual evaporation from water
+    areas."""
+
+    SUBMETHODS = (Calc_WaterEvaporation_V2,)
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.Water,
+    )
+    REQUIREDSEQUENCES = (evap_fluxes.PotentialEvapotranspiration,)
+    RESULTSEQUENCES = (evap_fluxes.WaterEvaporation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        model.calc_waterevaporation_v2()
 
 
 class Get_WaterEvaporation_V1(modeltools.Method):
@@ -2361,10 +2538,12 @@ class Model(modeltools.AdHocModel):
         Calc_SoilWater_V1,
         Calc_SnowCover_V1,
         Calc_WaterEvaporation_V1,
+        Calc_WaterEvaporation_V2,
         Calc_InterceptionEvaporation_V1,
         Calc_SoilEvapotranspiration_V1,
         Update_SoilEvapotranspiration_V1,
         Update_SoilEvapotranspiration_V2,
+        Calc_SoilEvapotranspiration_V2,
     )
     INTERFACE_METHODS = (
         Determine_PotentialEvapotranspiration_V1,
@@ -2374,7 +2553,9 @@ class Model(modeltools.AdHocModel):
         Get_MeanPotentialEvapotranspiration_V2,
         Determine_InterceptionEvaporation_V1,
         Determine_SoilEvapotranspiration_V1,
+        Determine_SoilEvapotranspiration_V2,
         Determine_WaterEvaporation_V1,
+        Determine_WaterEvaporation_V2,
         Get_WaterEvaporation_V1,
         Get_InterceptionEvaporation_V1,
         Get_SoilEvapotranspiration_V1,

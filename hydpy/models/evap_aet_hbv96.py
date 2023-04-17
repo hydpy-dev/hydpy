@@ -4,7 +4,7 @@
 :cite:p:`ref-Lindstrom1997HBV96`.
 
 |evap_aet_hbv96| serves as a submodel that supplies its main model with estimates of
-actual evapotranspiration from soils  and actual evaporation from interception storages
+actual evapotranspiration from soils and actual evaporation from interception storages
 and water areas.  Therefore, it requires potential evapotranspiration data calculated
 by a sub-submodel.  If you long to emulate HBV96 as close as possible, select
 |evap_pet_hbv96|.
@@ -150,7 +150,7 @@ evapotranspiration:
 sealed soil
 ___________
 
-The following "sealed soil" can evaporate water from its surface not from its body:
+The following "sealed soil" can evaporate water from its surface but not from its body:
 
 >>> interception(True)
 >>> soil(False)
@@ -208,7 +208,7 @@ class Model(
     evap_model.Main_SnowCoverModel_V1,
     evap_model.Sub_AETModel_V1,
 ):
-    """The HBV96 version of HydPy-Evap."""
+    """The HBV96 version of HydPy-Evap for calculating actual evapotranspiration."""
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

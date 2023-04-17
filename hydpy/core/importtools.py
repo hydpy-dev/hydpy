@@ -353,16 +353,17 @@ class SubmodelAdder(_DoctestAdder, Generic[TM, TI]):
     >>> ft(10.0)
     >>> fhru(0.2, 0.8)
     >>> lnk(ACKER, MISCHW)
-    >>> with model.add_petmodel_v1("evap_pet_hbv96"):
+    >>> wmax(acker=100.0, mischw=200.0)
+    >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
     ...     nhru
     ...     nmbhru
-    ...     hruarea
-    ...     hrualtitude(mischw=100.0, acker=200.0)
+    ...     maxsoilwater
+    ...     soilmoisturelimit(mischw=1.0, acker=0.5)
     nhru(2)
     nmbhru(2)
-    hruarea(2.0, 8.0)
-    >>> model.petmodel.parameters.control.hrualtitude
-    hrualtitude(acker=200.0, mischw=100.0)
+    maxsoilwater(acker=100.0, mischw=200.0)
+    >>> model.aetmodel.parameters.control.soilmoisturelimit
+    soilmoisturelimit(acker=0.5, mischw=1.0)
 
     After leaving the `with` block, the submodel's parameters are no longer available:
 
@@ -378,68 +379,64 @@ class SubmodelAdder(_DoctestAdder, Generic[TM, TI]):
     |SubmodelAdder| enables each submodel to accept the nearest main model as a
     sub-submodel:
 
-    >>> model.petmodel.precipmodel is model
+    >>> model.aetmodel.tempmodel is model
     True
 
     Additionally, |SubmodelAdder| checks if the selected application model follows the
     appropriate interface:
 
-    >>> with model.add_petmodel_v1("ga_garto_submodel1"):
+    >>> with model.add_aetmodel_v1("ga_garto_submodel1"):
     ...     ...
     Traceback (most recent call last):
     ...
     TypeError: While trying to add a submodul to the main model `lland_v1`, the \
 following error occurred: Submodel `ga_garto_submodel1` does not comply with the \
-`PETModel_V1` interface.
+`AETModel_V1` interface.
 
     Each |SubmodelAdder| instance provides access to the appropriate interface and the
     interface methods the wrapped method uses (this information helps framework
     developers figure out which parameters the submodel prepares on its own):
 
-    >>> model.add_petmodel_v1.submodelinterface.__name__
-    'PETModel_V1'
-    >>> for method in model.add_petmodel_v1.methods:
+    >>> model.add_aetmodel_v1.submodelinterface.__name__
+    'AETModel_V1'
+    >>> for method in model.add_aetmodel_v1.methods:
     ...     method.__name__
     'prepare_nmbzones'
     'prepare_zonetypes'
     'prepare_subareas'
+    'prepare_maxsoilwater'
+    'prepare_water'
+    'prepare_interception'
+    'prepare_soil'
 
     |SubmodelAdder| supports arbitrarily deep submodel nesting.  It conveniently moves
     some information from main models to sub-submodels or the other way round if the
     intermediate submodel does not consume or provide the corresponding data.
-    The following example shows that the main model of type |hland_v1| shares some of
+    The following example shows that the main model of type |lland_v1| shares some of
     its class-level configurations with the sub-submodel of type |evap_pet_hbv96| and
-    that the sub-submodel knows about the zone altitudes of its main model (which the
-    submodel is not aware of) and uses it querying air temperature data:
+    that the sub-submodel knows about the zone areas of its main model (which the
+    submodel is not aware of) and uses it for querying air temperature data:
 
-    >>> from hydpy import reverse_model_wildcard_import
-    >>> reverse_model_wildcard_import()  # ToDo: stick to lland_v1 asap
-    >>> from hydpy.models.hland_v1 import *
-    >>> parameterstep()
-    >>> nmbzones(2)
-    >>> area(10.0)
-    >>> zonearea(0.2, 0.8)
-    >>> zonetype(FIELD, ILAKE)
-    >>> zonez(2.0, 3.0)
-    >>> fc(200.0)
+    >>> lnk(ACKER, WASSER)
     >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
     ...     nmbhru
     ...     hasattr(control, "hrualtitude")
     ...     soil
-    ...     excessreduction(field=1.0)
+    ...     excessreduction(acker=1.0)
     ...     with model.add_petmodel_v1("evap_pet_hbv96"):
     ...         nmbhru
-    ...         hrualtitude
-    ...         evapotranspirationfactor(field=1.2, default=1.0)
+    ...         hruarea
+    ...         hrualtitude(2.0)
+    ...         evapotranspirationfactor(acker=1.2, default=1.0)
     nmbhru(2)
     False
-    soil(field=True, ilake=False)
+    soil(acker=True, wasser=False)
     nmbhru(2)
-    hrualtitude(field=200.0, ilake=300.0)
+    hruarea(2.0, 8.0)
     >>> model.aetmodel.parameters.control.excessreduction
     excessreduction(1.0)
     >>> model.aetmodel.petmodel.parameters.control.evapotranspirationfactor
-    evapotranspirationfactor(field=1.2, ilake=1.0)
+    evapotranspirationfactor(acker=1.2, wasser=1.0)
     >>> model is model.aetmodel.tempmodel
     True
     >>> model is model.aetmodel.petmodel.tempmodel

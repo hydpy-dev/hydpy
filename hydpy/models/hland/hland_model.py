@@ -4817,8 +4817,9 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         refweights=hland_control.ZoneArea,
     )
     def add_aetmodel_v1(self, aetmodel: aetinterfaces.AETModel_V1) -> None:
-        """Initialise the given `petmodel` that follows the |AETModel_V1| interface and
-        is responsible for calculating the different kinds of actual evapotranspiration.
+        """Initialise the given submodel that follows the |AETModel_V1| interface and
+        is responsible for calculating the different kinds of actual
+        evapotranspiration.
 
         >>> from hydpy.models.hland_v1 import *
         >>> parameterstep()

@@ -182,3 +182,17 @@ class ExcessReduction(evap_parameters.SoilParameter1D):
     """
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+
+
+class DisseFactor(evap_parameters.SoilParameter1D):
+    """Factor for calculating actual soil evapotranspiration based on potential
+    evapotranspiration estimates following the :cite:t:`ref-Disse1995` formulation of
+    the :cite:t:`ref-Minhas1974` equation.
+
+    In the terminology of :cite:t:`ref-Minhas1974` and :cite:t:`ref-Disse1995`: r.
+
+    In the terminology of LARSIM: GRASREF_R.
+    """
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    INIT = 5.0

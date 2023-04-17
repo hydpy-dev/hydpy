@@ -6,20 +6,20 @@
 from hydpy.core import sequencetools
 
 
-class WEvPo(sequencetools.LogSequence):
-    """Zeitlich gewichtete potenzielle Verdunstung (temporally weighted potential
-    evapotranspiration) [mm/T]."""
+class WEvI(sequencetools.LogSequence):
+    """Zeitlich gewichtete Interzeptionsverdunstung (temporally weighted interception
+    evaporation) [mm/T]."""
 
     NDIM, NUMERIC = 2, False
 
     def _get_shape(self):
-        """Log sequence |WEvPo| is generally initialized with a length of one on the
+        """Log sequence |WEvI| is generally initialised with a length of one on the
         first axis:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
-        >>> logs.wevpo.shape = 3
-        >>> logs.wevpo.shape
+        >>> logs.wevi.shape = 3
+        >>> logs.wevi.shape
         (1, 3)
         """
         return super()._get_shape()

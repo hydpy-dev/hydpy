@@ -27,3 +27,4 @@ Application models:
    Evap-M <evap_m>
    Evap-MLC <evap_mlc>
    Evap-AET-HBV96 <evap_aet_hbv96>
+   Evap-Minhas <evap_minhas>

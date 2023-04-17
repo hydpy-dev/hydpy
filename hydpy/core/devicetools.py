@@ -330,7 +330,8 @@ class FusedVariable:
     >>> model.tempmodel = prepare_model("meteo_temp_io")
     >>> evap.model = model
     >>> model = prepare_model("lland_v1")
-    >>> model.petmodel = prepare_model("evap_io")
+    >>> model.aetmodel = prepare_model("evap_minhas")
+    >>> model.aetmodel.petmodel = prepare_model("evap_io")
     >>> lland.model = model
 
     We assign a temperature value to node `t1`:
@@ -369,7 +370,7 @@ class FusedVariable:
     >>> lland.model.load_data(0)
     >>> lland.model.sequences.inputs.teml
     teml(-273.15)
-    >>> lland.model.petmodel.sequences.inputs.referenceevapotranspiration
+    >>> lland.model.aetmodel.petmodel.sequences.inputs.referenceevapotranspiration
     referenceevapotranspiration(999.9)
 
     When defining fused variables, class |FusedVariable| performs some registration

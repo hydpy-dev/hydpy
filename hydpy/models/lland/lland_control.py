@@ -38,7 +38,7 @@ class NHRU(parametertools.Parameter):
 
     Note that |NHRU| determines the length of most 1-dimensional HydPy-L-Land
     parameters and sequences as well the shape of 2-dimensional log sequences with a
-    predefined length of one axis (see |WEvPo|).  This requires that the value of the
+    predefined length of one axis (see |WEvI|).  This requires that the value of the
     respective |NHRU| instance is set before any of the values of these 1-dimensional
     parameters or sequences are set.  Changing the value of the |NHRU| instance
     necessitates setting their values again:
@@ -54,7 +54,7 @@ class NHRU(parametertools.Parameter):
         (5, 2)
         >>> fluxes.tkor.shape
         (5,)
-        >>> logs.wevpo.shape
+        >>> logs.wevi.shape
         (1, 5)
         >>> control.wg2z.shape
         (12,)
@@ -65,28 +65,22 @@ class NHRU(parametertools.Parameter):
     def __call__(self, *args, **kwargs):
         super().__call__(*args, **kwargs)
 
-        skip = (
-            parametertools.MonthParameter,
-            parametertools.MOYParameter,
-        )
+        skip = (parametertools.MonthParameter, parametertools.MOYParameter)
         for subpars in self.subpars.pars.model.parameters:
             for par in subpars:
                 if (par.NDIM == 1) and not isinstance(par, skip):
                     par.shape = self.value
         self.subpars.kapgrenz.shape = self.value, 2
 
-        skip = (
-            sequencetools.LogSequences,
-            sequencetools.LinkSequences,
-        )
+        skip = (sequencetools.LogSequences, sequencetools.LinkSequences)
         sequences = self.subpars.pars.model.sequences
         for subseqs in sequences:
             if not isinstance(subseqs, skip):
                 for seq in subseqs:
                     if seq.NDIM == 1:
                         seq.shape = self.value
-        if hasattr(sequences.logs, "wevpo"):
-            sequences.logs.wevpo.shape = self.value
+        if hasattr(sequences.logs, "wevi"):
+            sequences.logs.wevi.shape = self.value
 
 
 class Lnk(parametertools.NameParameter):
@@ -480,20 +474,12 @@ class WG2Z(parametertools.MonthParameter):
 # evapotranspiration
 
 
-class WfEvPo(lland_parameters.ParameterComplete):
-    """Zeitlicher Wichtungsfaktor der Grasreferenzverdunsung (temporal weighting factor
-    for reference evapotranspiration)."""
+class WfEvI(lland_parameters.ParameterComplete):
+    """Zeitlicher Wichtungsfaktor der Interzeptionsverdunstung (temporal weighting
+    factor for interception evaporation)."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, 1.0)
     INIT = 0.0
-
-
-class GrasRef_R(parametertools.Parameter):
-    """Bodenfeuchte-Verdunstung-Parameter (soil moisture-dependent
-    evaporation factor) [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-    INIT = 5.0
 
 
 class CropHeight(lland_parameters.LanduseMonthParameter):

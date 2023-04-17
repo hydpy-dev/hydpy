@@ -98,7 +98,7 @@ class Model(
     evap_model.Main_PrecipModel_V2,
     evap_model.Sub_PETModel_V1,
 ):
-    """The HBV96 version of HydPy-Evap."""
+    """The HBV96 version of HydPy-Evap for calculating potential evapotranspiration."""
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

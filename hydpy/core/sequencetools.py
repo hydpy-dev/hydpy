@@ -1183,20 +1183,20 @@ class Sequence_(variabletools.Variable):
     >>> model = prepare_model("lland_v1", "1d")
     >>> model.sequences.fluxes.qa.shape
     ()
-    >>> evpo = model.sequences.fluxes.evpo
-    >>> evpo.shape
+    >>> nkor = model.sequences.fluxes.nkor
+    >>> nkor.shape
     Traceback (most recent call last):
     ...
     hydpy.core.exceptiontools.AttributeNotReady: Shape information for variable \
-`evpo` can only be retrieved after it has been defined.
+`nkor` can only be retrieved after it has been defined.
 
     For consistency with the usage of |Parameter| subclasses, |Sequence_| objects are
     also "callable" for setting their values (but in a much less and flexible manner):
 
-    >>> evpo.shape = 3
-    >>> evpo(2.0)
-    >>> evpo
-    evpo(2.0, 2.0, 2.0)
+    >>> nkor.shape = 3
+    >>> nkor(2.0)
+    >>> nkor
+    nkor(2.0, 2.0, 2.0)
 
     Under the hood, class |Sequence_| also prepares some attributes of its |FastAccess|
     object, used for performing the actual simulation calculations.   Framework
@@ -1204,14 +1204,14 @@ class Sequence_(variabletools.Variable):
     name of the sequence and the name of the original attribute in lower case letters.
     We take `NDIM` as an example:
 
-    >>> evpo.fastaccess._evpo_ndim
+    >>> nkor.fastaccess._nkor_ndim
     1
 
     Some of these attributes require updating in some situations.  For example, other
     sequences than |AideSequence| objects require a "length" attribute, which needs
     updating each time the sequence's shape changes:
 
-    >>> evpo.fastaccess._evpo_length
+    >>> nkor.fastaccess._nkor_length
     3
     """
 
@@ -3108,7 +3108,7 @@ class ConditionSequence(ModelSequence):
 
         We use the |lland_v1| application model, which handles sequences derived from
         |StateSequence| (taking |lland_states.Inzp| as an example) and from
-        |LogSequence| (taking |lland_logs.WEvPo| as an example):
+        |LogSequence| (taking |lland_logs.WEvI| as an example):
 
         >>> from hydpy import prepare_model, pub
         >>> model = prepare_model("lland_v1")
@@ -3119,10 +3119,10 @@ class ConditionSequence(ModelSequence):
         >>> inzp.shape = (2,)
         >>> inzp
         inzp(nan, nan)
-        >>> wevpo = model.sequences.logs.wevpo
-        >>> wevpo.shape = 2
-        >>> wevpo
-        wevpo(nan, nan)
+        >>> wevi = model.sequences.logs.wevi
+        >>> wevi.shape = 2
+        >>> wevi
+        wevi(nan, nan)
 
         Before "calling" the sequences method |ConditionSequence.reset| does nothing:
 
@@ -3130,10 +3130,10 @@ class ConditionSequence(ModelSequence):
         >>> inzp.reset()
         >>> inzp
         inzp(0.0, 0.0)
-        >>> wevpo.values = 0.0
-        >>> wevpo.reset()
-        >>> wevpo
-        wevpo(0.0, 0.0)
+        >>> wevi.values = 0.0
+        >>> wevi.reset()
+        >>> wevi
+        wevi(0.0, 0.0)
 
         After "calling" the sequences method |ConditionSequence.reset| reuses the
         respective arguments:
@@ -3147,13 +3147,13 @@ class ConditionSequence(ModelSequence):
         ...     inzp.reset()
         >>> inzp
         inzp(0.0, 1.0)
-        >>> wevpo(1.0, 2.0)
-        >>> wevpo.values = 3.0
-        >>> wevpo
-        wevpo(3.0, 3.0)
-        >>> wevpo.reset()
-        >>> wevpo
-        wevpo(1.0, 2.0)
+        >>> wevi(1.0, 2.0)
+        >>> wevi.values = 3.0
+        >>> wevi
+        wevi(3.0, 3.0)
+        >>> wevi.reset()
+        >>> wevi
+        wevi(1.0, 2.0)
         """
         if self._oldargs:
             self(*self._oldargs)

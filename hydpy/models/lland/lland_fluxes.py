@@ -475,8 +475,8 @@ class EvPo(lland_sequences.Flux1DSequence):
 
 
 class EvI(lland_sequences.Flux1DSequence):
-    """Tatsächliche Interzeptionsverdunstung (actual evaporation of
-    intercepted water) [mm/T]."""
+    """Tatsächliche Verdunstung von Interzeptions- und permanenten Wasserflächen
+    (actual  evaporation from interception storages and water areas) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()

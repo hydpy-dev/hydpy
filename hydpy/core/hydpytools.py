@@ -962,7 +962,7 @@ at the moment.
         ...         text = infile.read().replace("alpha(1.0)", "")
         ...     with open(filepath, "w") as outfile:
         ...         outfile.write(text)
-        ...     hp.prepare_models()   # doctest: +ELLIPSIS
+        ...     hp.prepare_models()  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to initialise the model object of element \
@@ -1429,29 +1429,30 @@ deprecated.  Use method `prepare_models` instead.
         >>> with pub.options.warntrim(True):
         ...     hp.trim_conditions()
 
-        If you try, for example, to set interception capacities (|hland_states.Ic|)
-        that violate the maximum capacity (|hland_control.IcMax|), you get a direct
+        If you try, for example, to set the snow layer's liquid water content
+        (|hland_states.WC|) to a value larger than the allowed fraction of the snow
+        layer's frozen water content (|hland_states.SP|), you get a direct
         response based on function |trim|:
 
         >>> from hydpy.core.testtools import warn_later
-        >>> with pub.options.warntrim(True), warn_later():
-        ...     hp.elements.land_dill.model.sequences.states.ic(1.2)
-        UserWarning: For variable `ic` of element `land_dill` at least one value \
-needed to be trimmed.  The old and the new value(s) are \
-`1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2` and \
-`1.0, 1.2, 1.0, 1.2, 1.0, 1.2, 1.0, 1.2, 1.0, 1.2, 1.0, 1.2`, respectively.
+        >>> with pub.options.warntrim(True), warn_later():  # doctest: +ELLIPSIS
+        ...     hp.elements.land_dill.model.sequences.states.wc(1.0)
+        UserWarning: For variable `wc` of element `land_dill` at least one value \
+needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0, \
+..., 0.0`, respectively.
 
-        However, changing the boundaries themselves without adjusting the conditions
-        cannot be detected automatically.  Whenever in doubt, call method
-        |HydPy.trim_conditions| explicitly:
+        However, changing the allowed fraction (|hland_control.WHC|) without adjusting
+        the conditions cannot be detected automatically.  Whenever in doubt, call
+        method |HydPy.trim_conditions| explicitly:
 
-        >>> hp.elements.land_dill.model.parameters.control.icmax(1.1)
+        >>> hp.elements.land_dill.model.sequences.states.sp(10.0)
+        >>> hp.elements.land_dill.model.sequences.states.wc(1.0)
+        >>> hp.elements.land_dill.model.parameters.control.whc(0.0)
         >>> with pub.options.warntrim(True), warn_later():
-        ...     hp.trim_conditions()
-        UserWarning: For variable `ic` of element `land_dill` at least one value \
-needed to be trimmed.  The old and the new value(s) are \
-`1.0, 1.2, 1.0, 1.2, 1.0, 1.2, 1.0, 1.2, 1.0, 1.2, 1.0, 1.2` and \
-`1.0, 1.1, 1.0, 1.1, 1.0, 1.1, 1.0, 1.1, 1.0, 1.1, 1.0, 1.1`, respectively.
+        ...     hp.trim_conditions()  # doctest: +ELLIPSIS
+        UserWarning: For variable `wc` of element `land_dill` at least one value \
+needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0, \
+..., 0.0`, respectively.
         """
         self.elements.trim_conditions()
 

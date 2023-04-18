@@ -816,10 +816,8 @@ value `wrong` cannot be converted to type `float`.
         land_lahn_2 tt(field=1.0, forest=0.0)
         land_lahn_3 tt(field=1.0, forest=0.0)
 
-        In contrast, when working on the "device" level, each device receives one
-        specific value (note that the final values of element `land_lahn_2` are partly
-        affected and that those of element `land_lahn_3` are all affected by the
-        |hland_states.Ic.trim| method of sequence |hland_states.IC|):
+        In contrast, each device receives one specific value when working on the
+        "device" level:
 
         >>> item = SetItem("ic", "hland_v1", "states.ic", None, "device")
         >>> item.collect_variables(pub.selections)
@@ -829,8 +827,8 @@ value `wrong` cannot be converted to type `float`.
         ...     print(element, element.model.sequences.states.ic)
         land_dill ic(0.5, 0.5, ..., 0.5, 0.5)
         land_lahn_1 ic(1.0, 1.0, ... 1.0, 1.0)
-        land_lahn_2 ic(1.0, 1.5, ..., 1.0, 1.5)
-        land_lahn_3 ic(1.0, 1.5, ..., 1.5, 1.5)
+        land_lahn_2 ic(1.5, 1.5, ..., 1.5, 1.5)
+        land_lahn_3 ic(2.0, 2.0, ..., 2.0, 2.0)
 
         >>> item = SetItem("t", "hland_v1", "inputs.t.series", None, "device")
         >>> item.collect_variables(pub.selections)

@@ -49,9 +49,9 @@ example of |hland_v1|:
 >>> excessreduction(0.5)
 >>> temperaturethresholdice(0.0)
 
-We add submodels of type |evap_io|, |meteo_temp_io|, |dummy_ic|, |dummy_sw|, and
-|dummy_sc| for providing pre-defined values of potential evapotranspiration, air
-temperature, intercepted water, soil water, and snow cover:
+We add submodels of type |evap_io|, |meteo_temp_io|, |dummy_interceptedwater|,
+|dummy_soilwater|, and |dummy_snowcover| for providing pre-defined values of potential
+evapotranspiration, air temperature, intercepted water, soil water, and snow cover:
 
 >>> with model.add_petmodel_v1("evap_io"):
 ...     hruarea(1.0)
@@ -59,11 +59,11 @@ temperature, intercepted water, soil water, and snow cover:
 >>> with model.add_tempmodel_v2("meteo_temp_io"):
 ...     hruarea(1.0)
 ...     temperatureaddend(0.0)
->>> with model.add_intercmodel_v1("dummy_ic"):
+>>> with model.add_intercmodel_v1("dummy_interceptedwater"):
 ...     pass
->>> with model.add_soilwatermodel_v1("dummy_sw"):
+>>> with model.add_soilwatermodel_v1("dummy_soilwater"):
 ...     pass
->>> with model.add_snowcovermodel_v1("dummy_sc"):
+>>> with model.add_snowcovermodel_v1("dummy_snowcover"):
 ...     pass
 
 Now we can initialise an |IntegrationTest| object:

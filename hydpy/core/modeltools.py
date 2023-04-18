@@ -61,7 +61,18 @@ class Method:
     __name__: str
 
     def __init_subclass__(cls) -> None:
-        setattr(cls.__call__, "CYTHONIZE", True)
+        if isinstance(call := cls.__call__, types.FunctionType):
+            setattr(call, "__HYDPY_METHOD__", True)
+
+
+class AutoMethod(Method):
+    """Base class for defining methods that only call their submethods in the specified
+    order without passing any arguments or other customisations."""
+
+    @classmethod
+    def __call__(cls, model: Model) -> None:
+        for method in cls.SUBMETHODS:
+            method.__call__(model)
 
 
 abstractmodelmethods: Set[Callable[..., Any]] = set()
@@ -201,9 +212,7 @@ instance of any of the following types: `SoilModel_V1`.
         ...
 
     def __get__(
-        self,
-        obj: Optional[Model],
-        objtype: Optional[Type[Model]] = None,
+        self, obj: Optional[Model], objtype: Optional[Type[Model]] = None
     ) -> Union[SubmodelProperty, Optional[Model]]:
         if obj is None:
             return self
@@ -1504,7 +1513,7 @@ to be consistent with the name of the element handling the model.
         self.sequences.update_outputs()
 
     @classmethod
-    def get_methods(cls) -> Iterator[Method]:
+    def get_methods(cls) -> Iterator[Type[Method]]:
         """Convenience method for iterating through all methods selected by a |Model|
         subclass.
 

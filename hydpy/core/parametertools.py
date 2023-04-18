@@ -3934,28 +3934,28 @@ class FixedParameter(Parameter):
     def restore(self) -> None:
         """Restore the original parameter value.
 
-        Method |FixedParameter.restore| is relevant for testing mainly.
-        Note that it might be necessary to call it after changing the
-        simulation step size, as shown in the following example using
-        the parameter |lland_fixed.LW| of base model |lland|:
+        Method |FixedParameter.restore| is relevant for testing mainly.  Note that it
+        might be necessary to call it after changing the simulation step size, as shown
+        in the following example using the parameter |evap_fixed.HeatOfCondensation| of
+        base model |evap|:
 
-        >>> from hydpy.models.lland import *
+        >>> from hydpy.models.evap import *
         >>> simulationstep("1d")
         >>> parameterstep("1d")
         >>> from hydpy import round_
-        >>> fixed.lw
-        lw(28.5)
-        >>> round_(fixed.lw.value)
+        >>> fixed.heatofcondensation
+        heatofcondensation(28.5)
+        >>> round_(fixed.heatofcondensation.value)
         28.5
         >>> simulationstep("12h")
-        >>> fixed.lw
-        lw(14.25)
-        >>> round_(fixed.lw.value)
+        >>> fixed.heatofcondensation
+        heatofcondensation(14.25)
+        >>> round_(fixed.heatofcondensation.value)
         28.5
-        >>> fixed.lw.restore()
-        >>> fixed.lw
-        lw(28.5)
-        >>> round_(fixed.lw.value)
+        >>> fixed.heatofcondensation.restore()
+        >>> fixed.heatofcondensation
+        heatofcondensation(28.5)
+        >>> round_(fixed.heatofcondensation.value)
         57.0
         """
         with hydpy.pub.options.parameterstep("1d"):

@@ -408,6 +408,8 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
     'prepare_water'
     'prepare_interception'
     'prepare_soil'
+    'prepare_tree'
+    'prepare_conifer'
 
     |SubmodelAdder| supports arbitrarily deep submodel nesting.  It conveniently moves
     some information from main models to sub-submodels or the other way round if the

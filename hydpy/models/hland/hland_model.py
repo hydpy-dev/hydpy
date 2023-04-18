@@ -414,9 +414,8 @@ class Calc_EI_Ic_AETModel_V1(modeltools.Method):
         >>> fluxes.tf
         tf(0.5, 0.5, 0.5, 0.5, 0.5)
 
-        |Calc_EI_Ic_AETModel_V1| converts any amounts of condensation (negative |EI|)
-        that would cause intercepted water to exceed its storage capacity to
-        throughfall (|TF|):
+        In contrast, |Calc_EI_Ic_AETModel_V1| does not reduce negative |EI| values
+        (condensation) that cause an overshoot of the interception storage capacity:
 
         >>> model.aetmodel.petmodel.sequences.inputs.referenceevapotranspiration = -3.0
         >>> states.ic = 2.0
@@ -424,20 +423,16 @@ class Calc_EI_Ic_AETModel_V1(modeltools.Method):
         >>> fluxes.ei
         ei(0.0, -2.4, -3.0, -3.6, 0.0)
         >>> states.ic
-        ic(0.0, 3.0, 3.0, 3.0, 0.0)
+        ic(0.0, 4.4, 5.0, 5.6, 0.0)
         >>> fluxes.tf
-        tf(0.5, 1.9, 2.5, 3.1, 0.5)
+        tf(0.5, 0.5, 0.5, 0.5, 0.5)
     """
 
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.ZoneType,
-        hland_control.IcMax,
     )
-    UPDATEDSEQUENCES = (
-        hland_states.Ic,
-        hland_fluxes.TF,
-    )
+    UPDATEDSEQUENCES = (hland_states.Ic,)
     RESULTSEQUENCES = (hland_fluxes.EI,)
 
     @staticmethod
@@ -450,9 +445,6 @@ class Calc_EI_Ic_AETModel_V1(modeltools.Method):
             if con.zonetype[k] in (FIELD, FOREST, SEALED):
                 flu.ei[k] = min(submodel.get_interceptionevaporation(k), sta.ic[k])
                 sta.ic[k] -= flu.ei[k]
-                if sta.ic[k] > con.icmax[k]:
-                    flu.tf[k] += sta.ic[k] - con.icmax[k]
-                    sta.ic[k] = con.icmax[k]
             else:
                 flu.ei[k] = 0.0
                 sta.ic[k] = 0.0
@@ -467,12 +459,8 @@ class Calc_EI_Ic_V1(modeltools.Method):
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
         hland_control.ZoneType,
-        hland_control.IcMax,
     )
-    UPDATEDSEQUENCES = (
-        hland_states.Ic,
-        hland_fluxes.TF,
-    )
+    UPDATEDSEQUENCES = (hland_states.Ic,)
     RESULTSEQUENCES = (hland_fluxes.EI,)
 
     @staticmethod

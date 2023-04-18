@@ -897,7 +897,7 @@ under the id `0`.  There is nothing registered, so far.
     dill_nodes_sim_series = [nan]
 
     Besides the "official" way for retrieving information (which we sometimes call the
-    "getitem style), some sequences types (namely those derived from |FactorSequence|
+    "getitem style"), some sequences types (namely those derived from |FactorSequence|
     and |FluxSequence|) also allow retrieving information in the so-called "setitem
     style" via the methods |HydPyServer.GET_update_outputitemvalues| and
     |HydPyServer.GET_query_outputitemvalues|:
@@ -968,7 +968,7 @@ under the id `0`.  There is nothing registered, so far.
     land_dill_factors_contriarea = 0.758735
     land_dill_fluxes_qt = 5.515523
     ...
-    land_lahn_2_states_sm = [99.844003, ..., 99.844003]
+    land_lahn_2_states_sm = [100.33562, ..., 100.0]
     ...
     dill_nodes_sim_series = [5.515523]
     >>> test("update_outputitemvalues", id_="0")
@@ -989,7 +989,7 @@ under the id `0`.  There is nothing registered, so far.
     lastdate_sim = 1996-01-02T00:00:00+01:00
     >>> test("evaluate",
     ...      data=f"sm_lahn2 = {sequences}.states.sm")  # doctest: +ELLIPSIS
-    sm_lahn2 = sm(99.844003, ..., 99.844003)
+    sm_lahn2 = sm(100.33562, ..., 100.0)
     >>> test("save_internalconditions", id_="0")
     <BLANKLINE>
 
@@ -1017,7 +1017,7 @@ under the id `0`.  There is nothing registered, so far.
     <BLANKLINE>
     >>> test("evaluate",
     ...      data=f"sm_lahn2 = {sequences}.states.sm")  # doctest: +ELLIPSIS
-    sm_lahn2 = sm(99.844003, ..., 99.844003)
+    sm_lahn2 = sm(100.33562, ..., 100.0)
 
     Loading condition values for a specific time point requires saving them before:
 
@@ -1094,7 +1094,7 @@ calculated so far.
     <BLANKLINE>
     >>> test("evaluate",
     ...      data=f"ic_dill = {sequences}.states.ic")  # doctest: +ELLIPSIS
-    ic_dill = ic(0.5, 1.5, 0.685097,...
+    ic_dill = ic(0.5, 2.0, 0.685097,...
 
     Keeping the internal conditions for multiple time points can use plenty of RAM.
     Use the GET method |HydPyServer.GET_deregister_internalconditions| to remove all
@@ -1125,9 +1125,9 @@ conditions registered under the id `0` for `1996-01-02 00:00:00`.
     >>> test("query_conditionitemvalues", id_="0")  # doctest: +ELLIPSIS
     ic_lahn_2 = [0.94611...]
     ic_lahn_1 = [0.73074...]
-    sm_lahn_2 = [99.84400...]
+    sm_lahn_2 = [100.22389...]
     sm_lahn_1 = [49.92738...]
-    quh = [0.00038...]
+    quh = [0.00039...]
 
     The second option for handling multiple "simultaneous" initial conditions is
     telling the *HydPy* server to read them from and write them to disk, which is

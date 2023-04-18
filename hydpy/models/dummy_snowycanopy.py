@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
-"""Submodel for reading the current soil water content.
+"""Submodel for reading the current snow cover degree in the canopy of tree-like
+vegetation
 
-|dummy_sw| merely serves testing purposes.  We use it, for example, to perform the
-integration tests for submodels like |evap_aet_hbv96| without the need to couple them
-to complex main models like |hland_v1| for providing soil water data.
+|dummy_snowycanopy| merely serves testing purposes.  We use it, for example, to perform
+the integration tests for submodels like |evap_morsim| without the need to couple them
+to complex main models like |lland_v3| for providing snow interception data.
 
 Integration test
 ================
 
-The only functionality of |dummy_sw| is reading input time series.  Hence, configuring
-and testing it does not require additional explanations:
+The only functionality of |dummy_snowycanopy| is reading input time series.  Hence,
+configuring and testing it does not require additional explanations:
 
-
->>> from hydpy.models.dummy_sw import *
+>>> from hydpy.models.dummy_snowycanopy import *
 >>> parameterstep()
 >>> from hydpy import Element
 >>> element = Element("element")
@@ -26,17 +26,17 @@ and testing it does not require additional explanations:
 >>> test = IntegrationTest(element)
 >>> test.dateformat = "%Y-%d-%m"
 
->>> inputs.soilwater.series = [[1.0, 2.0], [3.0, 4.0]]
+>>> inputs.snowycanopy.series = [[1.0, 2.0], [3.0, 4.0]]
 
 .. integration-test::
 
     >>> test()
-    |       date |      soilwater |
-    -------------------------------
-    | 2000-01-01 | 1.0        2.0 |
-    | 2000-02-01 | 3.0        4.0 |
+    |       date |      snowycanopy |
+    ---------------------------------
+    | 2000-01-01 | 1.0          2.0 |
+    | 2000-02-01 | 3.0          4.0 |
 
->>> round_(model.get_soilwater_v1(1))
+>>> round_(model.get_snowycanopy_v1(1))
 4.0
 """
 # import...
@@ -51,13 +51,13 @@ from hydpy.interfaces import stateinterfaces
 ADDITIONAL_CONTROLPARAMETERS = (dummy_control.NmbZones,)
 
 
-class Model(modeltools.AdHocModel, stateinterfaces.SoilWaterModel_V1):
-    """Model for reading the soil water content from files."""
+class Model(modeltools.AdHocModel, stateinterfaces.SnowyCanopyModel_V1):
+    """Model for reading the snow cover degree from files."""
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = ()
-    INTERFACE_METHODS = (dummy_model.Get_SoilWater_V1,)
+    INTERFACE_METHODS = (dummy_model.Get_SnowyCanopy_V1,)
     ADD_METHODS = ()
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
@@ -68,7 +68,7 @@ class Model(modeltools.AdHocModel, stateinterfaces.SoilWaterModel_V1):
     def prepare_nmbzones(self, nmbzones: int) -> None:
         """Set the number of zones.
 
-        >>> from hydpy.models.dummy_sw import *
+        >>> from hydpy.models.dummy_snowcover import *
         >>> parameterstep()
         >>> model.prepare_nmbzones(2)
         >>> nmbzones

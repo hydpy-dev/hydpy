@@ -1646,30 +1646,64 @@ class PyxWriter:
         return self._call_methods("calculate_full_terms", model.FULL_ODE_METHODS)
 
     @property
-    def listofmodeluserfunctions(self) -> List[Tuple[str, Callable[..., Any]]]:
-        """User functions of the model class."""
-        lines = []
+    def name2function_method(self) -> Dict[str, Callable[..., Any]]:
+        """Functions defined by |Method| subclasses."""
+        name2function = {}
         for name, member in vars(self.model).items():
-            if getattr(getattr(member, "__func__", None), "CYTHONIZE", False):
-                lines.append((name, member))
-        return lines
+            if getattr(getattr(member, "__func__", None), "__HYDPY_METHOD__", False):
+                name2function[name] = member
+        return name2function
+
+    @property
+    def name2submethodnames_automethod(
+        self,
+    ) -> Dict[str, Tuple[Type[modeltools.Method], ...]]:
+        """Submethods selected by |AutoMethod| subclasses."""
+        name2submethods = {}
+        for name, member in vars(self.model).items():
+            if (
+                isinstance(member, types.MethodType)
+                and isinstance(call := member.__func__, types.MethodType)
+                and inspect.isclass(method := call.__self__)
+                and issubclass(automethod := method, modeltools.AutoMethod)
+            ):
+                name2submethods[name] = automethod.SUBMETHODS
+        return name2submethods
+
+    @property
+    def interfacemethods(self) -> Set[str]:
+        """The full and abbreviated names of the selected model's interface methods."""
+        if hasattr(self.model, "INTERFACE_METHODS"):
+            interfaces = set(m.__name__.lower() for m in self.model.INTERFACE_METHODS)
+            interfaces.update(set(i.rpartition("_")[0] for i in interfaces))
+            return interfaces
+        return set()
 
     @property
     def modeluserfunctions(self) -> List[str]:
         """Model-specific functions."""
-        if hasattr(self.model, "INTERFACE_METHODS"):
-            interfaces = set(m.__name__.lower() for m in self.model.INTERFACE_METHODS)
-            interfaces.update(set(i.rpartition("_")[0] for i in interfaces))
-        else:
-            interfaces = set()
         lines = Lines()
-        for name, func in self.listofmodeluserfunctions:
+        for name, func in self.name2function_method.items():
             print(f"            . {name}")
-            inline = name not in interfaces
+            inline = name not in self.interfacemethods
             funcconverter = FuncConverter(
                 model=self.model, funcname=name, func=func, inline=inline
             )
             lines.extend(funcconverter.pyxlines)
+        for name, submethods in self.name2submethodnames_automethod.items():
+            print(f"            . {name}")
+            lines.extend(self.automethod(name=name, submethods=submethods))
+        return lines
+
+    def automethod(
+        self, name: str, submethods: Tuple[Type[modeltools.Method], ...]
+    ) -> List[str]:
+        """Lines of a method defined by a |AutoMethod| subclass."""
+        lines = Lines()
+        inline = name not in self.interfacemethods
+        lines.add(1, get_methodheader(methodname=name, nogil=True, inline=inline))
+        for submethod in submethods:
+            lines.add(2, f"self.{submethod.__name__.lower()}()")
         return lines
 
     @property

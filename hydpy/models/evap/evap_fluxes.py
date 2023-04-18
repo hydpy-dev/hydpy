@@ -13,10 +13,22 @@ class Precipitation(evap_sequences.FluxSequence1D):
     NUMERIC = False
 
 
-class NetShortwaveRadiation(sequencetools.FluxSequence):
-    """Net shortwave radiation [W/m²]."""
+class DailyGlobalRadiation(sequencetools.FluxSequence):
+    """Average global radiation in the last 24 hours [W/m²]."""
 
     NDIM, NUMERIC = 0, False
+
+
+class NetShortwaveRadiation(evap_sequences.FluxSequence1D):
+    """Net shortwave radiation [W/m²]."""
+
+    NUMERIC = False
+
+
+class DailyNetShortwaveRadiation(evap_sequences.FluxSequence1D):
+    """Average net shortwave radiation in the last 24 hours [W/m²]."""
+
+    NUMERIC = False
 
 
 class NetLongwaveRadiation(evap_sequences.FluxSequence1D):
@@ -25,8 +37,20 @@ class NetLongwaveRadiation(evap_sequences.FluxSequence1D):
     NUMERIC = False
 
 
+class DailyNetLongwaveRadiation(evap_sequences.FluxSequence1D):
+    """Average net longwave radiation in the last 24 hours [W/m²]."""
+
+    NUMERIC = False
+
+
 class NetRadiation(evap_sequences.FluxSequence1D):
     """Total net radiation [W/m²]."""
+
+    NUMERIC = False
+
+
+class DailyNetRadiation(evap_sequences.FluxSequence1D):
+    """Average net radiation in the last 24 hours [W/m²]."""
 
     NUMERIC = False
 
@@ -39,6 +63,12 @@ class SoilHeatFlux(evap_sequences.FluxSequence1D):
 
 class ReferenceEvapotranspiration(evap_sequences.FluxSequence1D):
     """Reference (grass) evapotranspiration [mm/T]."""
+
+    NUMERIC = False
+
+
+class PotentialInterceptionEvaporation(evap_sequences.FluxSequence1D):
+    """Potential interception evaporation [mm/T]."""
 
     NUMERIC = False
 

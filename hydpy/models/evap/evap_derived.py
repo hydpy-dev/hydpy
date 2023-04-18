@@ -69,6 +69,10 @@ class Altitude(parametertools.Parameter):
         ) / numpy.sum(control.hruarea.values)
 
 
+class Seconds(parametertools.SecondsParameter):
+    """The length of the actual simulation step size in seconds [h]."""
+
+
 class Hours(parametertools.HoursParameter):
     """The length of the actual simulation step size in hours [h]."""
 
@@ -86,24 +90,27 @@ class NmbLogEntries(parametertools.Parameter):
         """Calculate the number of entries and adjust the shape of all relevant log
         sequences.
 
-        The aimed memory duration is one day.  Hence, the required log entries depend
-        on the simulation step size:
+        The aimed memory duration is one day.  Hence, the number of required log
+        entries depends on the simulation step size:
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
         >>> from hydpy import pub
-        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1h"
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "8h"
+        >>> nmbhru(2)
         >>> derived.nmblogentries.update()
         >>> derived.nmblogentries
-        nmblogentries(24)
-        >>> for seq in logs:
-        ...     print(seq)
-        loggedglobalradiation(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                              nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                              nan, nan, nan, nan)
-        loggedclearskysolarradiation(nan, nan, nan, nan, nan, nan, nan, nan,
-                                     nan, nan, nan, nan, nan, nan, nan, nan,
-                                     nan, nan, nan, nan, nan, nan, nan, nan)
+        nmblogentries(3)
+        >>> logs.loggedglobalradiation
+        loggedglobalradiation(nan, nan, nan)
+
+        For 1-dimensional logged properties, there is a second axis whose size depends
+        on the selected number of hydrological response units:
+
+        >>> logs.loggedairtemperature
+        loggedairtemperature([[nan, nan],
+                              [nan, nan],
+                              [nan, nan]])
 
         There is an explicit check for inappropriate simulation step sizes:
 
@@ -124,5 +131,9 @@ determined for a the current simulation step size.  The fraction of the memory p
                 f"({hydpy.pub.timegrids.stepsize}) leaves a remainder."
             )
         self(nmb)
-        for seq in self.subpars.pars.model.sequences.logs:
-            seq.shape = self
+        pars = self.subpars.pars
+        for seq in pars.model.sequences.logs:
+            if seq.NDIM == 1:
+                seq.shape = self.value
+            elif seq.NDIM == 2:
+                seq.shape = self.value, pars.control.nmbhru.value

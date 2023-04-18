@@ -2,9 +2,13 @@
 # pylint: disable=missing-module-docstring
 
 # import...
+# ...from standard library
+from __future__ import annotations
+
 # ...from HydPy
 from hydpy.core import exceptiontools
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 from hydpy.models.evap import evap_parameters
 
 
@@ -58,6 +62,20 @@ class Soil(evap_parameters.ZipParameter1D):
     TYPE, TIME, SPAN = bool, None, (False, True)
 
 
+class Tree(evap_parameters.ZipParameter1D):
+    """A flag that indicates whether the individual zones contain tree-like
+    vegetation."""
+
+    TYPE, TIME, SPAN = bool, None, (False, True)
+
+
+class Conifer(evap_parameters.ZipParameter1D):
+    """A flag that indicates whether the individual zones contain conifer-like
+    vegetation."""
+
+    TYPE, TIME, SPAN = bool, None, (False, True)
+
+
 class HRUArea(parametertools.Parameter):
     """The area of each hydrological response unit [km²]."""
 
@@ -91,6 +109,49 @@ class CoastFactor(evap_parameters.ZipParameter1D):
 
     TYPE, TIME, SPAN = float, None, (0.6, 1.0)
     INIT = 1.0
+
+
+class Albedo(evap_parameters.LandMonthParameter):
+    """Earth surface albedo [-]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, 1.0)
+    INIT = 0.5
+
+
+class LeafAreaIndex(evap_parameters.LandMonthParameter):
+    """Leaf area index [-]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+    INIT = 5.0
+
+
+class CropHeight(evap_parameters.LandMonthParameter):
+    """Crop height [m]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+    INIT = 1.0
+
+
+class Emissivity(parametertools.Parameter):
+    """The emissivity of the land surface [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    INIT = 0.95
+
+
+class AverageSoilHeatFlux(parametertools.MonthParameter):
+    """Monthly averages of the soil heat flux [W/m²]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    INIT = 0.0
+
+
+class SurfaceResistance(evap_parameters.LandMonthParameter):
+    """Surface resistance of water areas, sealed areas, and vegetation with sufficient
+    water supply [s/m]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+    INIT = 100.0
 
 
 class EvapotranspirationFactor(evap_parameters.ZipParameter1D):
@@ -163,6 +224,91 @@ class MaxSoilWater(evap_parameters.SoilParameter1D):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
     INIT = 200.0
+
+    def trim(self, lower=None, upper=None) -> None:
+        r"""Trim values in accordance with
+        :math:`WiltingPoint \leq FieldCapacity \leq MaxSoilWater`.
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(3)
+        >>> wiltingpoint(20.0)
+        >>> maxsoilwater(10.0, 50.0, 90.0)
+        >>> maxsoilwater
+        maxsoilwater(20.0, 50.0, 90.0)
+
+        >>> fieldcapacity.values = 60.0
+        >>> maxsoilwater.trim()
+        >>> maxsoilwater
+        maxsoilwater(60.0, 60.0, 90.0)
+        """
+        if lower is None:
+            p = self.subpars
+            if (fc := getattr(p, "fieldcapacity", None)) is not None:
+                lower = exceptiontools.getattr_(fc, "value", None)
+            if lower is None and (wp := getattr(p, "wiltingpoint", None)) is not None:
+                lower = exceptiontools.getattr_(wp, "value", None)
+        super().trim(lower, upper)
+
+
+class FieldCapacity(evap_parameters.SoilParameter1D):
+    """Field capacity [mm]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    INIT = 100.0
+
+    def trim(self, lower=None, upper=None) -> None:
+        r"""Trim values in accordance with
+        :math:`WiltingPoint \leq FieldCapacity \leq MaxSoilWater`.
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(3)
+        >>> wiltingpoint(20.0)
+        >>> maxsoilwater(80.0)
+        >>> fieldcapacity(10.0, 50.0, 90.0)
+        >>> fieldcapacity
+        fieldcapacity(20.0, 50.0, 80.0)
+        """
+        if lower is None:
+            if (wp := getattr(self.subpars, "wiltingpoint", None)) is not None:
+                lower = exceptiontools.getattr_(wp, "value", None)
+        if upper is None:
+            if (msw := getattr(self.subpars, "maxsoilwater", None)) is not None:
+                upper = exceptiontools.getattr_(msw, "value", None)
+        super().trim(lower, upper)
+
+
+class WiltingPoint(evap_parameters.SoilParameter1D):
+    """Permanent wilting point [mm]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    INIT = 50.0
+
+    def trim(self, lower=None, upper=None) -> None:
+        r"""Trim values in accordance with
+        :math:`WiltingPoint \leq FieldCapacity \leq MaxSoilWater`.
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(3)
+        >>> maxsoilwater(100.0)
+        >>> wiltingpoint(-10.0, 50.0, 110.0)
+        >>> wiltingpoint
+        wiltingpoint(0.0, 50.0, 100.0)
+
+        >>> fieldcapacity.values = 80.0
+        >>> wiltingpoint.trim()
+        >>> wiltingpoint
+        wiltingpoint(0.0, 50.0, 80.0)
+        """
+        if upper is None:
+            p = self.subpars
+            if (fc := getattr(p, "fieldcapacity", None)) is not None:
+                upper = exceptiontools.getattr_(fc, "value", None)
+            if upper is None and (msw := getattr(p, "maxsoilwater", None)) is not None:
+                upper = exceptiontools.getattr_(msw, "value", None)
+        super().trim(lower, upper)
 
 
 class SoilMoistureLimit(evap_parameters.SoilParameter1D):

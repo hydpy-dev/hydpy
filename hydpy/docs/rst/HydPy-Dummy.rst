@@ -20,6 +20,8 @@ Application model:
    :maxdepth: 1
 
    Dummy-V1 <dummy_v1>
-   Dummy-IC <dummy_ic>
-   Dummy-SW <dummy_sw>
-   Dummy-SC <dummy_sc>
+   Dummy-Intercepted Water <dummy_interceptedwater>
+   Dummy-Soil Water <dummy_soilwater>
+   Dummy-Snow Cover <dummy_snowcover>
+   Dummy-Snowy Canopy <dummy_snowycanopy>
+   Dummy-Snow Albedo <dummy_snowalbedo>

@@ -39,15 +39,16 @@ parameters |MaxSoilWater| and |DisseFactor|:
 >>> maxsoilwater(200.0)
 >>> dissefactor(5.0)
 
-We add submodels of type |evap_io|, |dummy_ic|, and |dummy_sw| for providing
-pre-defined values of potential evapotranspiration, intercepted water, and soil water:
+We add submodels of type |evap_io|, |dummy_interceptedwater|, and |dummy_soilwater| for
+providing pre-defined values of potential evapotranspiration, intercepted water, and
+soil water:
 
 >>> with model.add_petmodel_v1("evap_io"):
 ...     hruarea(1.0)
 ...     evapotranspirationfactor(1.0)
->>> with model.add_intercmodel_v1("dummy_ic"):
+>>> with model.add_intercmodel_v1("dummy_interceptedwater"):
 ...     pass
->>> with model.add_soilwatermodel_v1("dummy_sw"):
+>>> with model.add_soilwatermodel_v1("dummy_soilwater"):
 ...     pass
 
 Now we can initialise an |IntegrationTest| object:

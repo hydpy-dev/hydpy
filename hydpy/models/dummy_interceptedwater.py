@@ -2,18 +2,18 @@
 # pylint: disable=unused-wildcard-import
 """Submodel for reading the current amount of intercepted water.
 
-|dummy_ic| merely serves testing purposes.  We use it, for example, to perform the
-integration tests for submodels like |evap_aet_hbv96| without the need to couple them
-to complex main models like |hland_v1| for providing interception data.
+|dummy_interceptedwater| merely serves testing purposes.  We use it, for example, to
+perform the integration tests for submodels like |evap_aet_hbv96| without the need to
+couple them to complex main models like |hland_v1| for providing interception data.
 
 Integration test
 ================
 
-The only functionality of |dummy_ic| is reading input time series.  Hence, configuring
-and testing it does not require additional explanations:
+The only functionality of |dummy_interceptedwater| is reading input time series.
+Hence, configuring and testing it does not require additional explanations:
 
 
->>> from hydpy.models.dummy_ic import *
+>>> from hydpy.models.dummy_interceptedwater import *
 >>> parameterstep()
 >>> from hydpy import Element
 >>> element = Element("element")
@@ -68,7 +68,7 @@ class Model(modeltools.AdHocModel, stateinterfaces.IntercModel_V1):
     def prepare_nmbzones(self, nmbzones: int) -> None:
         """Set the number of zones.
 
-        >>> from hydpy.models.dummy_ic import *
+        >>> from hydpy.models.dummy_interceptedwater import *
         >>> parameterstep()
         >>> model.prepare_nmbzones(2)
         >>> nmbzones

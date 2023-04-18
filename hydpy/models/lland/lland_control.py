@@ -151,13 +151,6 @@ class P2Strahl(parametertools.Parameter):
     INIT = 1.0 / 35.0
 
 
-class Albedo(lland_parameters.LanduseMonthParameter):
-    """Albedo [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, 1.0)
-    INIT = 0.0
-
-
 class Albedo0Snow(parametertools.Parameter):
     """Albedo von Neuschnee (albedo of fresh snow) [-]."""
 
@@ -195,13 +188,6 @@ class Turb1(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
     INIT = 2.0
-
-
-class Emissivity(parametertools.Parameter):
-    """Emissivität der Oberfläche (emissivity) [-]"""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
-    INIT = 0.95
 
 
 # wind speed adjustment
@@ -482,20 +468,6 @@ class WfEvI(lland_parameters.ParameterComplete):
     INIT = 0.0
 
 
-class CropHeight(lland_parameters.LanduseMonthParameter):
-    """Crop height [m]."""
-
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
-    INIT = 0.0
-
-
-class SurfaceResistance(lland_parameters.LanduseMonthParameter):
-    """Surface Resistance [s/m]."""
-
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
-    INIT = 0.0
-
-
 # soil properties
 
 
@@ -607,37 +579,6 @@ class PWP(lland_parameters.ParameterSoilThreshold):
             upper = exceptiontools.getattr_(self.subpars.fk, "value", None)
             if upper is None:
                 upper = exceptiontools.getattr_(self.subpars.wmax, "value", None)
-        super().trim(lower, upper)
-
-
-class PY(lland_parameters.ParameterSoilThreshold):
-    """Permanenter Welkepunkt / Schwellenwert für den Anteil des für Pflanzen
-    gebundenen Bodenwassers (permanent wilting point) [mm].
-
-    Note that one can define the values of parameter |PY| via the
-    keyword argument `relative`, as explained in the documentation
-    on class |ParameterSoilThreshold|.
-    """
-
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
-    INIT = 0.0
-
-    CONTROLPARAMETERS = (WMax,)
-
-    def trim(self, lower=None, upper=None):
-        """Trim values in accordance with :math:`PY \\leq WMax`.
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> nhru(3)
-        >>> lnk(ACKER)
-        >>> wmax(100.0)
-        >>> py(-10.0, 50.0, 110.0)
-        >>> py
-        py(0.0, 50.0, 100.0)
-        """
-        if upper is None:
-            upper = exceptiontools.getattr_(self.subpars.wmax, "value", None)
         super().trim(lower, upper)
 
 
@@ -925,7 +866,7 @@ class KapGrenz(parametertools.Parameter):
               [0.0, 20.0]])
 
     The third possible string is `FK/2_FK` where the lower and the upper
-    threshold are 50 % and 100 % of the value of parameter |NFk|, which does
+    threshold are 50 % and 100 % of the value of parameter |FK|, which does
     not correspond to any available `LARSIM`_ option:
 
     >>> kapgrenz(option="FK/2_FK")

@@ -22,3 +22,16 @@ class SnowCover(sequencetools.InputSequence):
     """Snow cover degree [-]."""
 
     NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+
+
+class SnowyCanopy(sequencetools.InputSequence):
+    """Snow cover degree in the canopies of tree-like vegetation (is |numpy.nan| for
+    non-tree-like vegetation) [-]."""
+
+    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+
+
+class SnowAlbedo(sequencetools.InputSequence):
+    """Snow albedo [-]."""
+
+    NDIM, NUMERIC, SPAN = 1, False, (0.0, 1.0)

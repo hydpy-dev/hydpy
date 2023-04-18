@@ -47,9 +47,3 @@ class WindSpeed(sequencetools.InputSequence):
     """Windgeschwindigkeit (wind speed) [m/s]."""
 
     NDIM, NUMERIC = 0, False
-
-
-class AtmosphericPressure(sequencetools.InputSequence):
-    """Luftdruck (atmospheric pressure) [hPa]."""
-
-    NDIM, NUMERIC = 0, False

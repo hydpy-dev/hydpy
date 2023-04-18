@@ -53,10 +53,10 @@ Integration tests
 The following integration tests rely on the meteorological input data used for testing
 the application model |lland_v1|. The values of the input sequences |P| (precipitation)
 and |T| (temperature) are copy-pasted.  The |evap_inputs.NormalEvapotranspiration|
-values are the |lland_fluxes.EvPo| values calcuted by |evap_tw2002| but divided by 0.4
-to account for the selected value of the evaporation adjustment factor
-|evap_control.EvapotranspirationFactor|.  Hopefully, this eases drawing comparisons
-between both models.
+values are the |evap_fluxes.ReferenceEvapotranspiration| values calcuted by
+|evap_tw2002| but divided by 0.4 to account for the selected value of the evaporation
+adjustment factor |evap_control.EvapotranspirationFactor|.  Hopefully, this eases
+drawing comparisons between both models.
 
 We perform all integration tests over five days with a simulation step of one hour:
 
@@ -1545,7 +1545,6 @@ class Model(
         hland_model.Calc_RFC_SFC_V1,
         hland_model.Calc_PC_V1,
         hland_model.Calc_TF_Ic_V1,
-        hland_model.Calc_EI_Ic_V1,
         hland_model.Calc_SP_WC_V1,
         hland_model.Calc_SPL_WCL_SP_WC_V1,
         hland_model.Calc_SPG_WCG_SP_WC_V1,
@@ -1557,6 +1556,7 @@ class Model(
         hland_model.Calc_SR_V1,
         hland_model.Calc_GAct_V1,
         hland_model.Calc_GlMelt_In_V1,
+        hland_model.Calc_EI_Ic_V1,
         hland_model.Calc_R_SM_V1,
         hland_model.Calc_CF_SM_V1,
         hland_model.Calc_EA_SM_V1,

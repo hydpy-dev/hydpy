@@ -1587,23 +1587,31 @@ to be consistent with the name of the element handling the model.
         submodels:
 
         >>> model.find_submodels(include_optional=True)
-        {'model.petmodel': None, 'model.soilmodel': None}
-        >>> model.petmodel = prepare_model("evap_pet_hbv96")
+        {'model.aetmodel': None, 'model.soilmodel': None}
+        >>> model.aetmodel = prepare_model("evap_minhas")
+        >>> model.aetmodel.petmodel = prepare_model("evap_mlc")
+        >>> model.aetmodel.petmodel.retmodel = prepare_model("evap_tw2002")
         >>> from pprint import pprint
         >>> pprint(model.find_submodels(include_optional=True))  # doctest: +ELLIPSIS
-        {'model.petmodel': <hydpy.models.evap_pet_hbv96.Model object at ...>,
-         'model.petmodel.precipmodel': None,
-         'model.petmodel.tempmodel': None,
+        {'model.aetmodel': <hydpy.models.evap_minhas.Model ...>,
+         'model.aetmodel.intercmodel': None,
+         'model.aetmodel.petmodel': <hydpy.models.evap_mlc.Model ...>,
+         'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_tw2002.Model ...>,
+         'model.aetmodel.petmodel.retmodel.tempmodel': None,
+         'model.aetmodel.soilwatermodel': None,
          'model.soilmodel': None}
 
         By default, |Model.find_submodels| does not return an additional entry when a
         main model serves as a sub-submodel:
 
-        >>> model.petmodel.precipmodel = model
-        >>> model.petmodel.precipmodel_is_mainmodel = True
+        >>> model.aetmodel.soilwatermodel = model
+        >>> model.aetmodel.soilwatermodel_is_mainmodel = True
         >>> pprint(model.find_submodels(include_optional=True))  # doctest: +ELLIPSIS
-        {'model.petmodel': <hydpy.models.evap_pet_hbv96.Model object at ...>,
-         'model.petmodel.tempmodel': None,
+        {'model.aetmodel': <hydpy.models.evap_minhas.Model object ...>,
+         'model.aetmodel.intercmodel': None,
+         'model.aetmodel.petmodel': <hydpy.models.evap_mlc.Model ...>,
+         'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_tw2002.Model ...>,
+         'model.aetmodel.petmodel.retmodel.tempmodel': None,
          'model.soilmodel': None}
 
         Use the `include_feedbacks` parameter to make such feedback connections
@@ -1611,10 +1619,13 @@ to be consistent with the name of the element handling the model.
 
         >>> pprint(model.find_submodels(include_mainmodel=True,
         ...     include_optional=True, include_feedbacks=True))  # doctest: +ELLIPSIS
-        {'model': <hydpy.models.lland_v1.Model object at ...>,
-         'model.petmodel': <hydpy.models.evap_pet_hbv96.Model object at ...>,
-         'model.petmodel.precipmodel': <hydpy.models.lland_v1.Model object at ...>,
-         'model.petmodel.tempmodel': None,
+        {'model': <hydpy.models.lland_v1.Model ...>,
+         'model.aetmodel': <hydpy.models.evap_minhas.Model ...>,
+         'model.aetmodel.intercmodel': None,
+         'model.aetmodel.petmodel': <hydpy.models.evap_mlc.Model ...>,
+         'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_tw2002.Model ...>,
+         'model.aetmodel.petmodel.retmodel.tempmodel': None,
+         'model.aetmodel.soilwatermodel': <hydpy.models.lland_v1.Model object ...>,
          'model.soilmodel': None}
         """
 
@@ -1628,12 +1639,13 @@ to be consistent with the name of the element handling the model.
                     if include_optional or (submodel is not None):
                         name2submodel_new[f"{name}.{submodelproperty.name}"] = submodel
             name2submodel.update(name2submodel_new)
-            if include_subsubmodels and (model not in seen):
+            if include_subsubmodels:
                 for subname, submodel in name2submodel_new.items():
-                    seen.add(submodel)
-                    _find_submodels(subname, submodel)
+                    if submodel not in seen:
+                        seen.add(submodel)
+                        _find_submodels(subname, submodel)
 
-        seen: Set[Model] = set()
+        seen: Set[Model] = set([self])
         name2submodel = {"model": self} if include_mainmodel else {}
         _find_submodels("model", self)
         return dict(sorted(name2submodel.items()))

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
-from hydpy.core import sequencetools
-
 # ...from snow
 from hydpy.models.snow import snow_sequences
 

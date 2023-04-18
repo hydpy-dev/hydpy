@@ -18,6 +18,7 @@ class T(sequencetools.InputSequence):
 
 class TMin(sequencetools.InputSequence):
     """Daily minimum air temperature [°C]."""
+    # todo: check tmin < tmax?
 
     NDIM, NUMERIC = 0, False
 

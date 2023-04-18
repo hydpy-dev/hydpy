@@ -14,6 +14,8 @@ from hydpy.models.grxjland import grxjland_states
 from hydpy.models.grxjland import grxjland_outlets
 from hydpy.models.grxjland import grxjland_derived
 from hydpy.models.grxjland import grxjland_logs
+
+
 class Calc_Pn_En_AE_V1(modeltools.Method):
     """Calculate net rainfall and net evapotranspiration capacity.
 
@@ -34,7 +36,7 @@ class Calc_Pn_En_AE_V1(modeltools.Method):
         >>> parameterstep('1d')
         >>> inputs.p = 20.
         >>> inputs.e = 30.
-        >>> model.calc_netrainfall_v1()
+        >>> model.calc_pn_en_ae_v1()
         >>> fluxes.en
         en(10.0)
         >>> fluxes.pn
@@ -46,7 +48,7 @@ class Calc_Pn_En_AE_V1(modeltools.Method):
 
         >>> inputs.p = 50.
         >>> inputs.e = 10.
-        >>> model.calc_netrainfall_v1()
+        >>> model.calc_pn_en_ae_v1()
         >>> fluxes.en
         en(0.0)
         >>> fluxes.pn
@@ -55,8 +57,6 @@ class Calc_Pn_En_AE_V1(modeltools.Method):
         ae(10.0)
 
     """
-
-    CONTROLPARAMETERS = (grxjland_control.NSnowLayers,)
 
     REQUIREDSEQUENCES = (
         grxjland_inputs.P,
@@ -304,8 +304,6 @@ class Calc_ProductionStore_V1(modeltools.Method):
 class Calc_Pr_V1(modeltools.Method):
     """Total quantity Pr of water reaching the routing functions.
 
-
-
     Basic equation:
 
       :math:`Pr = Perc + (Pn - Ps)`
@@ -352,7 +350,6 @@ class Calc_UH1_V1(modeltools.Method):
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> simulationstep('1d')
-        >>> pub.options.reprdigits = 6
         >>> x4(3)
         >>> derived.uh1.update()
         >>> derived.uh1
@@ -446,7 +443,6 @@ class Calc_UH2_V1(modeltools.Method):
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> simulationstep('1d')
-        >>> pub.options.reprdigits = 6
         >>> x4(3)
         >>> derived.uh2.update()
         >>> derived.uh2
@@ -1107,7 +1103,6 @@ class Model(modeltools.AdHocModel):
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         Calc_Pn_En_AE_V1,
-        Calc_Pn_En_AE_V2,
         Calc_PS_V1,
         Calc_ProductionStore_V1,
         Calc_Pr_V1,

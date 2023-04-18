@@ -10,24 +10,6 @@ class P(sequencetools.InputSequence):
     NDIM, NUMERIC = 0, False
 
 
-class T(sequencetools.InputSequence):
-    """Daily mean air temperature [°C]."""
-
-    NDIM, NUMERIC = 0, False
-
-
-class TMin(sequencetools.InputSequence):
-    """Daily minimum air temperature [°C]."""
-
-    NDIM, NUMERIC = 0, False
-
-
-class TMax(sequencetools.InputSequence):
-    """Daily maximum air temperature [°C]."""
-
-    NDIM, NUMERIC = 0, False
-
-
 class E(sequencetools.InputSequence):
     """Potential Evapotranspiration (PE) [mm]."""
 

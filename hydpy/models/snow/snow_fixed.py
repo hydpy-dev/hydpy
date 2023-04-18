@@ -16,7 +16,7 @@ class ZThreshold(parametertools.FixedParameter):
 class MinMelt(parametertools.FixedParameter):
     """Minimum ratio of actual to potential [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
     INIT = 0.1
 
 

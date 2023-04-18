@@ -2,8 +2,6 @@
 # pylint: disable=missing-module-docstring
 
 # import...
-import warnings
-
 
 # ...from HydPy
 from hydpy.core import sequencetools

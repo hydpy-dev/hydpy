@@ -83,9 +83,11 @@ and will have to be discussed later.
    HydPy-D
    HydPy-Dummy
    HydPy-GA
+   HYdPy-Grxj
    HydPy-H
    HydPy-L
    HydPy-Meteo
    HydPy-Musk
+   HydPy-Snow
    HydPy-T
    HydPy-W

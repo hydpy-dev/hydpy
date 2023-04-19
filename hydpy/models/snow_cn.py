@@ -2,7 +2,7 @@
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 |snow_cn| is a simple daily snow model according to the Cema
-Neige model of :cite:p:`ref-Valery2010`. Using temperatrue and precipitation as
+Neige model of :cite:p:`ref-Valery`. Using temperatrue and precipitation as
 input, it calculates the accumulation and melting of the snow cover. It is
 implemented according to the airGR package for R :cite:p:`ref-airGR2017`.
 
@@ -84,6 +84,7 @@ zlayers(360.0, 463.0, 577.0, 714.0, 916.0)
 We also have to set the parameter `CN4`. Together with the mean annual fixed
 precipitation `GThresh` can be calculated. In the original model this value is not
 adjustable and set to a fix value of 0.9.
+
 >>> cn4(0.9)
 >>> meanansolidprecip(83., 83., 83., 83., 83.)
 >>> parameters.update()
@@ -149,7 +150,8 @@ The input time series for |P| and |T| were taken from the sample data set:
     >>> test.reset_inits()
     >>> conditions = sequences.conditions
 
-    >>> test('snow_cn_ex1', axis1=(fluxes.player, fluxes.pnet), axis2=states.g)
+    >>> test("snow_cn_ex1",
+    ...      axis1=(fluxes.player, fluxes.pnetlayer), axis2=states.g)
     |   date |    p |    t |                                                player |                                          psnowlayer |                                             prainlayer |                                       tlayer |                                      solidfraction |                                            potmelt |                                             melt |                                             pnetlayer |      pnet |                                                  g |                                 etg |                                           gratio |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.04. |  0.4 |  7.2 |  0.360463   0.376011   0.394003   0.416768   0.452754 |      0.0       0.0       0.0        0.0         0.0 |  0.360463   0.376011   0.394003   0.416768    0.452754 |  8.48247   7.87374   7.2   6.39033   5.19651 |      0.0       0.0    0.0       0.0            0.0 |      0.0       0.0       0.0        0.0        0.0 |      0.0       0.0       0.0       0.0       0.0 |  0.360463   0.376011   0.394003   0.416768   0.452754 |       0.4 |      0.0       0.0       0.0        0.0        0.0 | 0.0  0.0  0.0        0.0        0.0 |      0.0       0.0       0.0       0.0       0.0 |

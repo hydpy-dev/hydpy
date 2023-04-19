@@ -12,7 +12,7 @@ Base model:
 .. toctree::
    :maxdepth: 1
 
-   grxj
+   grxjland
 
 Application models:
 

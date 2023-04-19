@@ -7,6 +7,7 @@ from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import variabletools
+from hydpy.core.typingtools import *
 from hydpy.models.musk import musk_parameters
 
 
@@ -102,13 +103,14 @@ class NmbSegments(parametertools.Parameter):
         model = self.subpars.pars.model
         model.nmb_segments = shape
         pars, seqs = model.parameters, model.sequences
-        for subvars in (
+        all_subvars: Tuple[variabletools.SubVariables, ...] = (
             pars.control,
             pars.derived,
             seqs.factors,
             seqs.fluxes,
             seqs.states,
-        ):
+        )
+        for subvars in all_subvars:
             for variable in (var for var in subvars if var.NDIM == 1):
                 if variable.name == "coefficients":
                     continue

@@ -4,6 +4,13 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.models.evap import evap_sequences
+
+
+class Precipitation(evap_sequences.FluxSequence1D):
+    """Precipitation [mm/T]."""
+
+    NUMERIC = False
 
 
 class NetShortwaveRadiation(sequencetools.FluxSequence):
@@ -12,31 +19,61 @@ class NetShortwaveRadiation(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, False
 
 
-class NetLongwaveRadiation(sequencetools.FluxSequence):
+class NetLongwaveRadiation(evap_sequences.FluxSequence1D):
     """Net longwave radiation [W/m²]."""
 
-    NDIM, NUMERIC = 1, False
+    NUMERIC = False
 
 
-class NetRadiation(sequencetools.FluxSequence):
+class NetRadiation(evap_sequences.FluxSequence1D):
     """Total net radiation [W/m²]."""
 
-    NDIM, NUMERIC = 1, False
+    NUMERIC = False
 
 
-class SoilHeatFlux(sequencetools.FluxSequence):
+class SoilHeatFlux(evap_sequences.FluxSequence1D):
     """Soil heat flux [W/m²]."""
 
-    NDIM, NUMERIC = 1, False
+    NUMERIC = False
 
 
-class ReferenceEvapotranspiration(sequencetools.FluxSequence):
-    """Reference evapotranspiration [mm/T]."""
+class ReferenceEvapotranspiration(evap_sequences.FluxSequence1D):
+    """Reference (grass) evapotranspiration [mm/T]."""
 
-    NDIM, NUMERIC = 1, False
+    NUMERIC = False
+
+
+class PotentialEvapotranspiration(evap_sequences.FluxSequence1D):
+    """Potential (land type-specific) evapotranspiration [mm/T]."""
+
+    NUMERIC = False
 
 
 class MeanReferenceEvapotranspiration(sequencetools.FluxSequence):
     """Mean reference evapotranspiration [mm/T]."""
 
     NDIM, NUMERIC = 0, False
+
+
+class MeanPotentialEvapotranspiration(sequencetools.FluxSequence):
+    """Mean potential evapotranspiration [mm/T]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class WaterEvaporation(evap_sequences.FluxSequence1D):
+    """Actual evaporation from open water areas [mm/T]."""
+
+    NUMERIC = False
+
+
+class InterceptionEvaporation(evap_sequences.FluxSequence1D):
+    """Actual interception evaporation [mm/T]."""
+
+    NUMERIC = False
+
+
+class SoilEvapotranspiration(evap_sequences.FluxSequence1D):
+    """Actual soil evapotranspiration [mm/T]."""
+
+    NUMERIC = False

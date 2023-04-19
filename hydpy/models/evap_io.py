@@ -5,8 +5,8 @@
 Use |evap_io| as a submodel for handing externally available time series of reference
 evapotranspiration to main models like |lland_v1|.
 
-Integration tests
-=================
+Integration test
+================
 
 .. how_to_understand_integration_tests::
 
@@ -26,7 +26,6 @@ it does not require additional explanations:
 >>> hruarea(0.2, 0.8)
 >>> evapotranspirationfactor(0.8, 1.2)
 
->>> parameters.update()
 >>> test = IntegrationTest(element)
 >>> test.dateformat = "%Y-%d-%m"
 
@@ -43,12 +42,10 @@ it does not require additional explanations:
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *
-from hydpy.core import modeltools
 from hydpy.models.evap import evap_model
-from hydpy.interfaces import petinterfaces
 
 
-class Model(modeltools.AdHocModel, petinterfaces.PETModel_V1):
+class Model(evap_model.Sub_PETModel_V1):
     """The input reader version of HydPy-Evap."""
 
     INLET_METHODS = ()

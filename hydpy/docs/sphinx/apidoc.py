@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Generate and polish the HTML documentation."""
 import os
-from typing import *
+from typing import List
 
 os.system(r"make clean")
 os.system(r"make html")

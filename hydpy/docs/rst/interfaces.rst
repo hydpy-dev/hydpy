@@ -12,5 +12,9 @@ more detail.
 .. toctree::
    :hidden:
 
+   aetinterfaces
    petinterfaces
+   precipinterfaces
    soilinterfaces
+   stateinterfaces
+   tempinterfaces

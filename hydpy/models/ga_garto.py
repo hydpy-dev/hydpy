@@ -942,19 +942,15 @@ There is no indication of an error in the water balance:
 0.0
 """
 # import...
-# ...from standard library
-from typing import *
-
 # ...from HydPy
 from hydpy.exe.modelimports import *
-from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 
 # ...from ga
 from hydpy.models.ga import ga_model
 
 
-class Model(modeltools.AdHocModel, ga_model.MixinGARTO):
+class Model(ga_model.BaseModel):
     """The GARTO algorithm (assuming a hydrostatic groundwater table), implemented as
     a stand-alone model."""
 

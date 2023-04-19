@@ -2935,9 +2935,9 @@ class Model(modeltools.ELSModel):
     SUBMODELS = (PegasusH,)
 
 
-class ProfileMixin:
-    """Mixin class for L-Stream models performing discharge calculations
-    based on a triple trapezoid profile."""
+class BaseModelProfile(modeltools.ELSModel):
+    """Base class for L-Stream models performing discharge calculations based on a
+    triple trapezoid profile."""
 
     def plot_profile(self, labelformat: str = "%.1f"):
         """Plot the triple trapezoid profile and insert the discharge values at some
@@ -2966,9 +2966,9 @@ class ProfileMixin:
         >>> gts(1)
         >>> parameters.update()
 
-        Calling method |ProfileMixin.plot_profile| prepares the profile
-        plot and, depending on your `matplotlib` configuration, eventually
-        prints it directly on your screen:
+        Calling method |BaseModelProfile.plot_profile| prepares the profile plot and,
+        depending on your `matplotlib` configuration, eventually prints it directly on
+        your screen:
 
         >>> model.plot_profile()
         >>> from hydpy.core.testtools import save_autofig
@@ -2997,7 +2997,7 @@ class ProfileMixin:
 
         con = self.parameters.control
         der = self.parameters.derived
-        hmax = 1.3 * (con.hm + max(der.hv))
+        hmax = 1.3 * (con.hm + max(der.hv.value))
 
         xys = _XYs()
         xys += con.bm / 2.0, 0.0
@@ -3056,9 +3056,9 @@ class ProfileMixin:
     ) -> typing.Tuple[float, ...]:
         """Prepare a vector of the stage values.
 
-        The argument `nmb` defines the number of stage values, `exp` defines
-        their spacing (1.0 results in equidistant values), and `hmin` and
-        `hmax` the lowest and highest water stage, respectively:
+        The argument `nmb` defines the number of stage values, `exp` defines their
+        spacing (1.0 results in equidistant values), and `hmin` and `hmax` the lowest
+        and highest water stage, respectively:
 
         >>> from hydpy.models.lstream_v001 import *
         >>> parameterstep()
@@ -3068,17 +3068,16 @@ class ProfileMixin:
         -1.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0
 
         When not specified by the user, method
-        |lstream_model.ProfileMixin.prepare_hvector| determines `hmin`
-        and `hmax` based on the current value of |HM| (-10 % and 300 %,
-        respectively) and takes a higher sampling rate in the lower value
-        range (by setting `exp` to two):
+        |lstream_model.BaseModelProfile.prepare_hvector| determines `hmin` and `hmax`
+        based on the current value of |HM| (-10 % and 300 %, respectively) and takes a
+        higher sampling rate in the lower value range (by setting `exp` to two):
 
         >>> hm(6.0)
         >>> print_values(model.prepare_hvector(nmb=10))
         -0.6, -0.37037, 0.318519, 1.466667, 3.074074, 5.140741, 7.666667,
         10.651852, 14.096296, 18.0
         """
-        if hmax is None:
+        if hmin is None:
             hmin = -0.1 * self.parameters.control.hm
         if hmax is None:
             hmax = 3.0 * self.parameters.control.hm
@@ -3096,8 +3095,8 @@ class ProfileMixin:
 
         We reuse the second example given in the main documentation on module
         |lstream_v001| also show the results of the similar methods
-        |lstream_model.ProfileMixin.calculate_agvector| and
-        |lstream_model.ProfileMixin.calculate_vgvector|:
+        |lstream_model.BaseModelProfile.calculate_agvector| and
+        |lstream_model.BaseModelProfile.calculate_vgvector|:
 
         >>> from hydpy.models.lstream_v001 import *
         >>> parameterstep("1d")
@@ -3141,11 +3140,11 @@ class ProfileMixin:
     def calculate_agvector(
         self, hvector: typing.Iterable[float]
     ) -> typing.Tuple[float, ...]:
-        """Calculate the wetted cross-section areas (in m²) corresponding
-        to the given vector of stage values.
+        """Calculate the wetted cross-section areas (in m²) corresponding to the given
+        vector of stage values.
 
         See the documentation on method
-        |lstream_model.ProfileMixin.calculate_qgvector| for an example.
+        |lstream_model.BaseModelProfile.calculate_qgvector| for an example.
         """
         h_ = self.sequences.states.h.values.copy()
         ag = []
@@ -3164,11 +3163,11 @@ class ProfileMixin:
     def calculate_vgvector(
         self, hvector: typing.Iterable[float]
     ) -> typing.Tuple[float, ...]:
-        """Calculate the water volume stored within a channel subsection (in
-        Mio m³) corresponding to the given vector of stage values.
+        """Calculate the water volume stored within a channel subsection (in Mio m³)
+        corresponding to the given vector of stage values.
 
         See the documentation on method
-        |lstream_model.ProfileMixin.calculate_qgvector| for an example.
+        |lstream_model.BaseModelProfile.calculate_qgvector| for an example.
         """
         con = self.parameters.control
         ags = numpy.array(self.calculate_agvector(hvector))

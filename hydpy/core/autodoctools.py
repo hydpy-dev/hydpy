@@ -4,6 +4,7 @@ standardisation of the online documentation generated with Sphinx."""
 # import...
 # ...from standard library
 from __future__ import annotations
+import abc
 import builtins
 import collections
 import copy
@@ -24,13 +25,13 @@ import sys
 import time
 import types
 import typing
-from typing import *
 import unittest
 import warnings
 
 # ...from site-packages
 # import matplotlib    actual import below
 import numpy
+import typing_extensions
 
 # import pandas    actual import below
 # import scipy    actual import below
@@ -47,6 +48,8 @@ from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
 from hydpy.core import typingtools
+from hydpy.core.typingtools import *
+
 
 if TYPE_CHECKING:
     from hydpy.cythons import annutils
@@ -127,7 +130,7 @@ HYDPY = Priority.HYDPY
 ELSE = Priority.ELSE
 
 
-EXCLUDE_MEMBERS = (
+excluded_members = {
     "CLASSES",
     "RUN_METHODS",
     "INTERFACE_METHODS",
@@ -157,7 +160,9 @@ EXCLUDE_MEMBERS = (
     "subvars",
     "subpars",
     "subseqs",
-)
+}
+excluded_members.update(typing.__all__)
+excluded_members.update(typing_extensions.__all__)
 
 _PAR_SPEC2CAPT = collections.OrderedDict(
     (
@@ -214,7 +219,7 @@ def _add_lines(specification: str, module: types.ModuleType) -> List[str]:
     else:
         exists_collectionclass = False
     lines = []
-    exc_mem = ", ".join(EXCLUDE_MEMBERS)
+    exc_mem = ", ".join(excluded_members)
     if specification == "model":
         lines += [
             "",
@@ -280,14 +285,14 @@ def autodoc_basemodel(module: types.ModuleType) -> None:
         methods = list(model.get_methods())
     _extend_methoddocstrings(module)
     _gain_and_insert_additional_information_into_docstrings(module, methods)
-    for (title, spec2capt) in (
+    for title, spec2capt in (
         ("Parameter Features", _PAR_SPEC2CAPT),
         ("Sequence Features", _SEQ_SPEC2CAPT),
         ("Auxiliary Features", _AUX_SPEC2CAPT),
     ):
         found_module = False
         new_lines = _add_title(title, "-")
-        for (specification, caption) in spec2capt.items():
+        for specification, caption in spec2capt.items():
             modulename = f"{basemodulename}_{specification}"
             if modulename in modules:
                 module = modules[modulename]
@@ -318,13 +323,7 @@ def _insert_links_into_docstring(target: object, insertion: str) -> None:
             target.__doc__ = "\n\n".join([doc, insertion])
         else:
             position += 2
-            target.__doc__ = "".join(
-                [
-                    doc[:position],
-                    insertion,
-                    doc[position:],
-                ]
-            )
+            target.__doc__ = "".join([doc[:position], insertion, doc[position:]])
     return
 
 
@@ -846,7 +845,7 @@ class Substituter:
         short = f"|{name_module}|"
         long = f":mod:`~{module.__name__}`"
         self.short2long[short] = long
-        for (name_member, member) in vars(module).items():
+        for name_member, member in vars(module).items():
             if self.consider_member(name_member, member, module):
                 role = self.get_role(member, cython)
                 short = f"|{name_member}|"
@@ -1042,6 +1041,7 @@ def prepare_mainsubstituter() -> Substituter:
 
     substituter = Substituter()
     for module in (
+        abc,
         builtins,
         numpy,
         datetime,
@@ -1095,7 +1095,7 @@ def _number_of_line(member_tuple: Tuple[str, object]) -> int:
     module."""
 
     def _query_index_first_line(member_: object) -> int:
-        result = member_.__code__.co_firstlineno
+        result = member_.__code__.co_firstlineno  # type: ignore[attr-defined]
         assert isinstance(result, int)
         return result
 
@@ -1105,7 +1105,7 @@ def _number_of_line(member_tuple: Tuple[str, object]) -> int:
     except AttributeError:
         pass
     try:
-        return inspect.findsource(member)[1]
+        return inspect.findsource(member)[1]  # type: ignore[arg-type]
     except BaseException:
         pass
     for value in vars(member).values():
@@ -1117,7 +1117,7 @@ def _number_of_line(member_tuple: Tuple[str, object]) -> int:
 
 
 def autodoc_module(module: types.ModuleType) -> None:
-    """Add a short summary of all implemented members to a modules docstring."""
+    """Add a short summary of all implemented members to a module's docstring."""
     doc = getattr(module, "__doc__")
     members = []
     for name, member in inspect.getmembers(module):
@@ -1128,7 +1128,7 @@ def autodoc_module(module: types.ModuleType) -> None:
         lines = [
             f"\n\nModule :mod:`~{module.__name__}` implements the following members:\n"
         ]
-        for (name, member) in members:
+        for name, member in members:
             if inspect.isfunction(member):
                 type_ = "func"
             elif inspect.isclass(member):

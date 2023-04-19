@@ -4,6 +4,7 @@
 """
 # import...
 # ...from standard library
+from __future__ import annotations
 import warnings
 
 # ...from site-packages
@@ -16,9 +17,10 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
+from hydpy.core.typingtools import *
 
 # ...from lland
-from hydpy.models.lland import lland_constants
+from hydpy.models.lland.lland_constants import CONSTANTS as CONSTANTS_
 from hydpy.models.lland import lland_parameters
 
 
@@ -36,7 +38,7 @@ class NHRU(parametertools.Parameter):
 
     Note that |NHRU| determines the length of most 1-dimensional HydPy-L-Land
     parameters and sequences as well the shape of 2-dimensional log sequences with a
-    predefined length of one axis (see |WET0|).  This requires that the value of the
+    predefined length of one axis (see |WEvI|).  This requires that the value of the
     respective |NHRU| instance is set before any of the values of these 1-dimensional
     parameters or sequences are set.  Changing the value of the |NHRU| instance
     necessitates setting their values again:
@@ -52,7 +54,7 @@ class NHRU(parametertools.Parameter):
         (5, 2)
         >>> fluxes.tkor.shape
         (5,)
-        >>> logs.wet0.shape
+        >>> logs.wevi.shape
         (1, 5)
         >>> control.wg2z.shape
         (12,)
@@ -63,35 +65,29 @@ class NHRU(parametertools.Parameter):
     def __call__(self, *args, **kwargs):
         super().__call__(*args, **kwargs)
 
-        skip = (
-            parametertools.MonthParameter,
-            parametertools.MOYParameter,
-        )
+        skip = (parametertools.MonthParameter, parametertools.MOYParameter)
         for subpars in self.subpars.pars.model.parameters:
             for par in subpars:
                 if (par.NDIM == 1) and not isinstance(par, skip):
                     par.shape = self.value
         self.subpars.kapgrenz.shape = self.value, 2
 
-        skip = (
-            sequencetools.LogSequences,
-            sequencetools.LinkSequences,
-        )
+        skip = (sequencetools.LogSequences, sequencetools.LinkSequences)
         sequences = self.subpars.pars.model.sequences
         for subseqs in sequences:
             if not isinstance(subseqs, skip):
                 for seq in subseqs:
                     if seq.NDIM == 1:
                         seq.shape = self.value
-        if hasattr(sequences.logs, "wet0"):
-            sequences.logs.wet0.shape = self.value
+        if hasattr(sequences.logs, "wevi"):
+            sequences.logs.wevi.shape = self.value
 
 
 class Lnk(parametertools.NameParameter):
     """Landnutzungsklasse (land use class) [-].
 
-    For increasing legibility, the HydPy-L-Land constants are used for
-    string representions of |Lnk| objects:
+    For increasing legibility, the HydPy-L-Land constants are used for string
+    representions of |Lnk| objects:
 
     >>> from hydpy.models.lland import *
     >>> parameterstep("1d")
@@ -108,17 +104,11 @@ class Lnk(parametertools.NameParameter):
     lnk(ACKER)
     """
 
-    NDIM, TYPE, TIME = 1, int, None
-    SPAN = (
-        min(lland_constants.CONSTANTS.values()),
-        max(lland_constants.CONSTANTS.values()),
-    )
-    CONSTANTS = lland_constants.CONSTANTS
+    constants = CONSTANTS_
 
 
 class FHRU(lland_parameters.ParameterComplete):
-    """Flächenanteile der Hydrotope (area percentages of the respective
-    HRUs) [-]."""
+    """Flächenanteile der Hydrotope (area percentages of the respective HRUs) [-]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
 
@@ -484,28 +474,12 @@ class WG2Z(parametertools.MonthParameter):
 # evapotranspiration
 
 
-class WfET0(lland_parameters.ParameterComplete):
-    """Zeitlicher Wichtungsfaktor der Grasreferenzverdunsung (temporal
-    weighting factor for reference evapotranspiration)."""
+class WfEvI(lland_parameters.ParameterComplete):
+    """Zeitlicher Wichtungsfaktor der Interzeptionsverdunstung (temporal weighting
+    factor for interception evaporation)."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, 1.0)
     INIT = 0.0
-
-
-class FLn(lland_parameters.LanduseMonthParameter):
-    """Landnutzungsabhängiger Verdunstungsfaktor (factor for adjusting
-    reference evapotranspiration to different land use classes) [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
-    INIT = 1.0
-
-
-class GrasRef_R(parametertools.Parameter):
-    """Bodenfeuchte-Verdunstung-Parameter (soil moisture-dependent
-    evaporation factor) [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-    INIT = 5.0
 
 
 class CropHeight(lland_parameters.LanduseMonthParameter):
@@ -532,10 +506,7 @@ class WMax(lland_parameters.ParameterSoil):
     INIT = 100.0
 
     # defined at the bottom of the file:
-    # CONTROLPARAMETERS = (
-    #     PWP,
-    #     FK,
-    # )
+    CONTROLPARAMETERS: ClassVar[Tuple[Type[PWP], Type[FK]]]
 
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`PWP \\leq FK \\leq WMax`.
@@ -575,10 +546,7 @@ class FK(lland_parameters.ParameterSoilThreshold):
     INIT = 0.0
 
     # defined at the bottom of the file:
-    # CONTROLPARAMETERS = (
-    #     PWP,
-    #     WMax,
-    # )
+    CONTROLPARAMETERS: ClassVar[Tuple[Type[PWP], Type[WMax]]]
 
     def trim(self, lower=None, upper=None):
         """Trim upper values in accordance with :math:`PWP \\leq FK \\leq WMax`.
@@ -1377,7 +1345,7 @@ class EQD2(parametertools.Parameter):
 
 
 class NegQ(parametertools.Parameter):
-    """Option: sind negative Abflüsse erlaubt (flag that indicated wether
+    """Option: sind negative Abflüsse erlaubt (flag that indicated whether
     negative discharge values are allowed or not) [-]."""
 
     NDIM, TYPE, TIME, SPAN = 0, bool, None, (0.0, None)

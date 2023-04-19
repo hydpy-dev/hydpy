@@ -5,27 +5,41 @@
 from __future__ import annotations
 import abc
 import collections
+import contextlib
 import importlib
+import inspect
 import itertools
 import os
 import types
-from typing import *
 
 # ...from site-packages
 import numpy
 
 # ...from HydPy
+import hydpy
 from hydpy import conf
+from hydpy.core import auxfiletools
 from hydpy.core import devicetools
+from hydpy.core import exceptiontools
+from hydpy.core import importtools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
-from hydpy.core import typingtools
+from hydpy.core import timetools
 from hydpy.core import variabletools
+from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
 
 if TYPE_CHECKING:
     from hydpy.core import masktools
+    from hydpy.auxs import interptools
+
+
+class _ModelModule(types.ModuleType):
+    ControlParameters: Type[parametertools.SubParameters]
+    DerivedParameters: Type[parametertools.SubParameters]
+    FixedParameters: Type[parametertools.SubParameters]
+    SolverParameters: Type[parametertools.SubParameters]
 
 
 class Method:
@@ -33,56 +47,40 @@ class Method:
 
     SUBMODELINTERFACES: ClassVar[Tuple[Type[SubmodelInterface], ...]]
     SUBMETHODS: Tuple[Type[Method], ...] = ()
-    CONTROLPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
-    DERIVEDPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
-    FIXEDPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
-    SOLVERPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
-    REQUIREDSEQUENCES: Tuple[Type[typingtools.VariableProtocol], ...] = ()
-    UPDATEDSEQUENCES: Tuple[Type[typingtools.VariableProtocol], ...] = ()
-    RESULTSEQUENCES: Tuple[Type[typingtools.VariableProtocol], ...] = ()
+    CONTROLPARAMETERS: Tuple[
+        Type[Union[parametertools.Parameter, interptools.BaseInterpolator]], ...
+    ] = ()
+    DERIVEDPARAMETERS: Tuple[Type[parametertools.Parameter], ...] = ()
+    FIXEDPARAMETERS: Tuple[Type[parametertools.Parameter], ...] = ()
+    SOLVERPARAMETERS: Tuple[Type[parametertools.Parameter], ...] = ()
+    REQUIREDSEQUENCES: Tuple[Type[sequencetools.Sequence_], ...] = ()
+    UPDATEDSEQUENCES: Tuple[Type[sequencetools.Sequence_], ...] = ()
+    RESULTSEQUENCES: Tuple[Type[sequencetools.Sequence_], ...] = ()
 
     __call__: Callable
+    __name__: str
 
     def __init_subclass__(cls) -> None:
-        cls.__call__.CYTHONIZE = True
+        setattr(cls.__call__, "CYTHONIZE", True)
 
 
-class SubmodelInterface:
-    """Base class for defining interfaces for submodels.
+abstractmodelmethods: Set[Callable[..., Any]] = set()
 
-    Main models reference their submodels by their interface's class name in lowercase
-    letters without the version qualifier, as available via the (automatically created)
-    attribute |SubmodelInterface.name|:
 
-    >>> from hydpy.interfaces.soilinterfaces import SoilModel_V1
-    >>> SoilModel_V1.name
-    'soilmodel'
-    >>> SoilModel_V1().name
-    'soilmodel'
+def abstractmodelmethod(method: Callable[P, T]) -> Callable[P, T]:
+    """Alternative for Python's |abc.abstractmethod|.
+
+    We currently use it to mark abstract methods in submodel interfaces that are not
+    statically overridden by concrete implementations but dynamically added during
+    model initialisation (either in a pure Python or a Cython version).
+
+    So far, the only functionality of |abstractmodelmethod| is to collect all decorated
+    functions in the set `abstractmodelmethods` so that one can find out which methods
+    are "abstract model methods" and which are not. We might also use it later to
+    extend our model consistency checks.
     """
-
-    INTERFACE_METHODS: ClassVar[Tuple[Type[Method], ...]]
-
-    name: str
-    """The main model's attribute name for submodels following the respective
-    interface."""
-
-    @property
-    @abc.abstractmethod
-    def typeid(self) -> int:
-        """Type identifier that we use for differentiating submodels that target the
-        same process group (e.g. infiltration) but follow different interfaces.
-
-        For `Submodel_V1`, |SubmodelInterface.typeid| is 1, for `Submodel_V2` 2, and so
-        on.
-
-        We prefer using |SubmodelInterface.typeid| over the standard |isinstance|
-        checks in model equations as it allows releasing Python's Globel Interpreter
-        Lock in Cython.
-        """
-
-    def __init_subclass__(cls) -> None:
-        cls.name = cls.__name__.lower().rpartition("_")[0]
+    abstractmodelmethods.add(method)
+    return method
 
 
 class SubmodelProperty:
@@ -195,7 +193,7 @@ instance of any of the following types: `SoilModel_V1`.
         self.modeltype2instance[owner].append(self)
 
     @overload
-    def __get__(self, obj: None, objtype: Optional[Type[Model]]) -> SubmodelProperty:
+    def __get__(self, obj: None, objtype: Optional[Type[Model]]) -> Self:
         ...
 
     @overload
@@ -244,6 +242,114 @@ instance of any of the following types: `SoilModel_V1`.
             getattr(obj.cymodel, f"set_{self.name}")(None)
 
 
+class SubmodelIsMainmodelProperty:
+    """Descriptor for boolean "submodel_is_mainmodel" attributes.
+
+    |SubmodelIsMainmodelProperty| instances work like simple boolean attributes but
+    silently synchronise the equally named boolean attributes of the corresponding
+    cython model, if available:
+
+    >>> from hydpy import prepare_model, pub
+    >>> with pub.options.usecython(True):
+    ...     model = prepare_model("hland_v1")
+    >>> type(model).aetmodel_is_mainmodel._name
+    'aetmodel_is_mainmodel'
+    >>> model.aetmodel_is_mainmodel
+    False
+    >>> model.cymodel.aetmodel_is_mainmodel
+    0
+    >>> model.aetmodel_is_mainmodel = True
+    >>> model.aetmodel_is_mainmodel
+    True
+    >>> model.cymodel.aetmodel_is_mainmodel
+    1
+    """
+
+    _owner2value: Dict[Model, bool]
+    _name: Final[str]  # type: ignore[misc]
+
+    def __init__(self, doc: Optional[str] = None) -> None:
+        self._owner2value = {}
+        self.__doc__ = doc
+
+    def __set_name__(self, owner: Type[Model], name: str) -> None:
+        self._name = name  # type: ignore[misc]
+
+    @overload
+    def __get__(self, obj: None, objtype: Optional[Type[Model]]) -> Self:
+        ...
+
+    @overload
+    def __get__(self, obj: Model, objtype: Optional[Type[Model]]) -> bool:
+        ...
+
+    def __get__(
+        self, obj: Optional[Model], objtype: Optional[Type[Model]] = None
+    ) -> Union[Self, bool]:
+        if obj is None:
+            return self
+        return self._owner2value.get(obj, False)
+
+    def __set__(self, obj: Model, value: bool) -> None:
+        self._owner2value[obj] = value
+        if (cymodel := obj.cymodel) is not None:
+            setattr(cymodel, self._name, value)
+
+
+class SubmodelTypeIDProperty:
+    """Descriptor for integer "submodel_typeid" attributes.
+
+    |SubmodelTypeIDProperty| instances work like simple integer attributes but silently
+    synchronise the equally named integer attributes of the corresponding cython model,
+    if available:
+
+    >>> from hydpy import prepare_model, pub
+    >>> with pub.options.usecython(True):
+    ...     model = prepare_model("hland_v1")
+    >>> type(model).aetmodel_typeid._name
+    'aetmodel_typeid'
+    >>> model.aetmodel_typeid
+    0
+    >>> model.cymodel.aetmodel_typeid
+    0
+    >>> model.aetmodel_typeid = 1
+    >>> model.aetmodel_typeid
+    1
+    >>> model.cymodel.aetmodel_typeid
+    1
+    """
+
+    _owner2value: Dict[Model, int]
+    _name: Final[str]  # type: ignore[misc]
+
+    def __init__(self, doc: Optional[str] = None) -> None:
+        self._owner2value = {}
+        self.__doc__ = doc
+
+    def __set_name__(self, owner: Type[Model], name: str) -> None:
+        self._name = name  # type: ignore[misc]
+
+    @overload
+    def __get__(self, obj: None, objtype: Optional[Type[Model]]) -> Self:
+        ...
+
+    @overload
+    def __get__(self, obj: Model, objtype: Optional[Type[Model]]) -> int:
+        ...
+
+    def __get__(
+        self, obj: Optional[Model], objtype: Optional[Type[Model]] = None
+    ) -> Union[Self, int]:
+        if obj is None:
+            return self
+        return self._owner2value.get(obj, 0)
+
+    def __set__(self, obj: Model, value: int) -> None:
+        self._owner2value[obj] = value
+        if (cymodel := obj.cymodel) is not None:
+            setattr(cymodel, self._name, value)
+
+
 class IndexProperty:
     """Base class for index descriptors like |Idx_Sim|."""
 
@@ -252,7 +358,15 @@ class IndexProperty:
     def __set_name__(self, owner: Model, name: str) -> None:
         self.name = name.lower()
 
-    def __get__(self, obj: Model, objtype=None):
+    @overload
+    def __get__(self, obj: Model, objtype: Type[Model]) -> int:
+        ...
+
+    @overload
+    def __get__(self, obj: None, objtype: Type[Model]) -> Self:
+        ...
+
+    def __get__(self, obj: Optional[Model], objtype: Type[Model]) -> Union[Self, int]:
         if obj is None:
             return self
         if obj.cymodel:
@@ -373,14 +487,15 @@ class Model:
     3.0
     """
 
-    element: Optional[devicetools.Element]
-    cymodel: Optional[typingtools.CyModelProtocol]
+    cymodel: Optional[CyModelProtocol]
     parameters: parametertools.Parameters
     sequences: sequencetools.Sequences
     masks: masktools.Masks
     idx_sim = Idx_Sim()
 
-    _NAME: Final[str]
+    _element: Optional[devicetools.Element]
+    _NAME: ClassVar[str]
+
     INLET_METHODS: ClassVar[Tuple[Type[Method], ...]]
     OUTLET_METHODS: ClassVar[Tuple[Type[Method], ...]]
     RECEIVER_METHODS: ClassVar[Tuple[Type[Method], ...]]
@@ -390,11 +505,11 @@ class Model:
     SUBMODELINTERFACES: ClassVar[Tuple[Type[SubmodelInterface], ...]]
     SUBMODELS: ClassVar[Tuple[Type[Submodel], ...]]
 
-    SOLVERPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
+    SOLVERPARAMETERS: Tuple[Type[parametertools.Parameter], ...] = ()
 
     def __init__(self) -> None:
         self.cymodel = None
-        self.element = None
+        self._element = None
         self._init_methods()
 
     def _init_methods(self) -> None:
@@ -404,7 +519,7 @@ class Model:
         blacklist_shortnames: Set[str] = set()
         shortname2method: Dict[str, types.MethodType] = {}
         for cls_ in self.get_methods():
-            longname = cls_.__name__.lower()  # type: ignore[attr-defined]
+            longname = cls_.__name__.lower()
             if longname in blacklist_longnames:
                 continue
             blacklist_longnames.add(longname)
@@ -421,6 +536,68 @@ class Model:
         for shortname, method in shortname2method.items():
             setattr(self, shortname, method)
 
+    @property
+    def element(self) -> devicetools.Element:
+        """The model instance's master element.
+
+        Usually, one assigns a |Model| instance to an |Element| instance, but the other
+        way round works as well (for more information, see the documentation on
+        property |Element.model| of class |Element|):
+
+        >>> from hydpy import Element, prepare_model
+        >>> from hydpy.core.modeltools import Model
+        >>> model = prepare_model("musk_classic")
+        >>> model.element
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: Model `musk_classic` is not \
+connected to an `Element` so far.
+
+        >>> e = Element("e")
+        >>> model.element = e
+        Traceback (most recent call last):
+        ...
+        RuntimeError: While trying to build the node connection of the `outlet` \
+sequences of the model handled by element `e`, the following error occurred: Sequence \
+`q` of element `e` cannot be connected due to no available node handling variable `Q`.
+        >>> model.element
+        Element("e")
+        >>> e.model.name
+        'musk_classic'
+
+        >>> del model.element
+        >>> model.element
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: Model `musk_classic` is not \
+connected to an `Element` so far.
+        >>> e.model
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: The model object of element `e` \
+has been requested but not been prepared so far.
+        """
+        if (element := self._element) is None:
+            raise exceptiontools.AttributeNotReady(
+                f"Model `{self.name}` is not connected to an `Element` so far."
+            )
+        return element
+
+    @element.setter
+    def element(self, element: devicetools.Element) -> None:
+        for model in self.find_submodels(include_mainmodel=True).values():
+            model._element = element  # pylint: disable=protected-access
+        if exceptiontools.getattr_(element, "model", None) is not self:
+            element.model = self
+
+    @element.deleter
+    def element(self) -> None:
+        if (element := self._element) is not None:
+            if exceptiontools.getattr_(element, "model", None) is self:
+                del element.model
+        for model in self.find_submodels(include_mainmodel=True).values():
+            model._element = None  # pylint: disable=protected-access
+
     def connect(self) -> None:
         """Connect all |LinkSequence| objects and the selected |InputSequence| and
         |OutputSequence| objects of the actual model to the corresponding
@@ -433,9 +610,9 @@ class Model:
         >>> prepare_model("musk_classic").connect()
         Traceback (most recent call last):
         ...
-        AttributeError: While trying to build the node connection of the `input` \
-sequences of the model handled by element `?`, the following error occurred: \
-'NoneType' object has no attribute 'inputs'
+        hydpy.core.exceptiontools.AttributeNotReady: While trying to build the node \
+connection of the `input` sequences of the model handled by element `?`, the \
+following error occurred: Model `musk_classic` is not connected to an `Element` so far.
 
         The application model |musk_classic| can receive inflow from an arbitrary
         number of upstream nodes and passes its outflow to a single downstream node
@@ -565,10 +742,9 @@ The following nodes have not been connected to any sequences: in2.
         ...     "element8", outlets=out1, inputs=inp1, outputs=[outp1, outp2])
         >>> element8.model = prepare_model("hland_v1")
         >>> element8.prepare_inputseries()
-        >>> element8.model.idx_sim = 2
         >>> element8.model.sequences.inputs.t.series = 1.0, 2.0, 3.0, 4.0, 5.0
         >>> inp1.sequences.sim(9.0)
-        >>> element8.model.load_data()
+        >>> element8.model.load_data(2)
         >>> element8.model.sequences.inputs.t
         t(3.0)
         >>> element8.model.sequences.inputs.p
@@ -596,7 +772,7 @@ The following nodes have not been connected to any sequences: in2.
         >>> element9 = Element("element9", outlets=out1, inputs=inp2, outputs=outp3)
         >>> element9.model = prepare_model("hland_v1")
         >>> inp2.sequences.sim(9.0)
-        >>> element9.model.load_data()
+        >>> element9.model.load_data(0)
         >>> element9.model.sequences.inputs.p
         p(9.0)
         >>> element9.model.sequences.fluxes.q0 = 99.0
@@ -640,7 +816,7 @@ variable `Wrong` of node `outp4`.
 of the model handled by element `element12`, the following error occurred: No input \
 sequence of model `hland_v1` is named `q0`.
 
-        >>> inp5 = Node("inp5", variable=hland_P)
+        >>> inp5 = Node("inp5", variable="P")
         >>> element13 = Element("element13", outlets=out1, outputs=inp5)
         >>> element13.model = prepare_model("hland_v1")
         Traceback (most recent call last):
@@ -706,13 +882,13 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                         f"node `{node.name}`."
                     )
             else:
-                name = node.variable.__name__.lower()
-                sequence = getattr(self.sequences.inputs, name, None)
-                if sequence is None:
+                name = self._determine_name(node.variable)
+                sequence_ = getattr(self.sequences.inputs, name, None)
+                if sequence_ is None:
                     raise TypeError(
                         f"No input sequence of model `{self}` is named `{name}`."
                     )
-                sequence.set_pointer(node.get_double("inputs"))
+                sequence_.set_pointer(node.get_double("inputs"))
 
     def _connect_outputs(self) -> None:
         def _set_pointer(
@@ -746,18 +922,23 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                         f"node `{node.name}`."
                     )
             else:
-                name = node.variable.__name__.lower()
-                sequence = getattr(self.sequences.factors, name, None)
-                if sequence is None:
-                    sequence = getattr(self.sequences.fluxes, name, None)
-                if sequence is None:
-                    sequence = getattr(self.sequences.states, name, None)
-                if sequence is None:
+                name = self._determine_name(node.variable)
+                sequence_ = getattr(self.sequences.factors, name, None)
+                if sequence_ is None:
+                    sequence_ = getattr(self.sequences.fluxes, name, None)
+                if sequence_ is None:
+                    sequence_ = getattr(self.sequences.states, name, None)
+                if sequence_ is None:
                     raise TypeError(
                         f"No factor, flux, or state sequence of model `{self}` is "
                         f"named `{name}`."
                     )
-                _set_pointer(sequence, node)
+                _set_pointer(sequence_, node)
+
+    def _determine_name(self, var: Union[str, sequencetools.InOutSequenceTypes]) -> str:
+        if isinstance(var, str):
+            return var.lower()
+        return var.__name__.lower()
 
     def _connect_inlets(self) -> None:
         self._connect_subgroup("inlets")
@@ -935,21 +1116,266 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         objects."""
         self.sequences.states.save_series()
 
+    def get_controlfileheader(
+        self,
+        import_submodels: bool = True,
+        parameterstep: Optional[timetools.PeriodConstrArg] = None,
+        simulationstep: Optional[timetools.PeriodConstrArg] = None,
+    ) -> str:
+        """Return the header of a parameter control file.
+
+        The header contains the default coding information, the model import commands
+        and the actual parameter and simulation step sizes:
+
+        >>> from hydpy import prepare_model, pub
+        >>> model = prepare_model("hland_v1")
+        >>> model.aetmodel = prepare_model("evap_aet_hbv96")
+        >>> pub.timegrids = "2000.01.01", "2001.01.01", "1h"
+        >>> print(model.get_controlfileheader())
+        # -*- coding: utf-8 -*-
+        <BLANKLINE>
+        from hydpy.models.hland_v1 import *
+        from hydpy.models import evap_aet_hbv96
+        <BLANKLINE>
+        simulationstep("1h")
+        parameterstep("1d")
+        <BLANKLINE>
+        <BLANKLINE>
+
+        Optionally, you can omit the submodel import lines and define alternative
+        parameter step and simulation step sizes:
+
+        >>> print(model.get_controlfileheader(
+        ...     import_submodels=False, parameterstep="2d", simulationstep="3d"))
+        # -*- coding: utf-8 -*-
+        <BLANKLINE>
+        from hydpy.models.hland_v1 import *
+        <BLANKLINE>
+        simulationstep("3d")
+        parameterstep("2d")
+        <BLANKLINE>
+        <BLANKLINE>
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+        """
+        lines = ["# -*- coding: utf-8 -*-\n", f"from hydpy.models.{self} import *"]
+        if import_submodels:
+            for submodel in self.find_submodels(include_subsubmodels=True).values():
+                lines.append(f"from hydpy.models import {submodel}")
+        options = hydpy.pub.options
+        with options.parameterstep(parameterstep):
+            if simulationstep is None:
+                simulationstep = options.simulationstep
+            else:
+                simulationstep = timetools.Period(simulationstep)
+            lines.append(f'\nsimulationstep("{simulationstep}")')
+            lines.append(f'parameterstep("{options.parameterstep}")\n\n')
+        return "\n".join(lines)
+
+    def _get_controllines(
+        self,
+        parameterstep: Optional[timetools.PeriodConstrArg] = None,
+        simulationstep: Optional[timetools.PeriodConstrArg] = None,
+        auxfiler: Optional[auxfiletools.Auxfiler] = None,
+        sublevel: int = 0,
+        ignore: Optional[Tuple[Type[parametertools.Parameter], ...]] = None,
+    ) -> List[str]:
+        if auxfiler is None:
+            parameter2auxfile = None
+        else:
+            parameter2auxfile = auxfiler.get(self)
+        lines = []
+        opts = hydpy.pub.options
+        with opts.parameterstep(parameterstep), opts.simulationstep(simulationstep):
+            for par in self.parameters.control:
+                if (ignore is None) or not isinstance(par, ignore):
+                    if parameter2auxfile is not None:
+                        auxfilename = parameter2auxfile.get_filename(par)
+                        if auxfilename:
+                            lines.append(f'{par.name}(auxfile="{auxfilename}")')
+                            continue
+                    lines.extend(repr(par).split("\n"))
+            solver_lines = tuple(
+                f"solver.{repr(par)}"
+                for par in self.parameters.solver
+                if exceptiontools.attrready(par, "alternative_initvalue")
+            )
+            if solver_lines:
+                lines.append("")
+            lines.extend(solver_lines)
+        indent = sublevel * "    "
+        return [f"{indent}{line}\n" for line in lines]
+
+    def save_controls(
+        self,
+        parameterstep: Optional[timetools.PeriodConstrArg] = None,
+        simulationstep: Optional[timetools.PeriodConstrArg] = None,
+        auxfiler: Optional[auxfiletools.Auxfiler] = None,
+        filepath: Optional[str] = None,
+    ) -> None:
+        """Write the control parameters (and eventually some solver parameters) to a
+        control file.
+
+        Usually, a control file consists of a header (see the documentation on the
+        method |Model.get_controlfileheader|) and the string representations of the
+        individual |Parameter| objects handled by the `control` |SubParameters| object.
+
+        The main functionality of method |Model.save_controls| is demonstrated in the
+        documentation on method |HydPy.save_controls| of class |HydPy|, which one
+        should apply to write the parameter information of complete *HydPy* projects.
+        However, calling |Model.save_controls| on individual |Model| objects offers the
+        advantage of choosing an arbitrary file path, as shown in the following
+        example:
+
+        >>> from hydpy.models.test_v3 import *
+        >>> parameterstep("1d")
+        >>> simulationstep("1h")
+        >>> k(0.1)
+        >>> n(3)
+
+        >>> from hydpy import Open
+        >>> with Open():
+        ...     model.save_controls(filepath="otherdir/otherfile.py")
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        otherdir/otherfile.py
+        ----------------------------------
+        # -*- coding: utf-8 -*-
+        <BLANKLINE>
+        from hydpy.models.test_v3 import *
+        <BLANKLINE>
+        simulationstep("1h")
+        parameterstep("1d")
+        <BLANKLINE>
+        k(0.1)
+        n(3)
+        <BLANKLINE>
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        Method |Model.save_controls| also writes the string representations of all
+        |SolverParameter| objects with non-default values into the control file:
+
+        >>> solver.abserrormax(1e-6)
+        >>> with Open():
+        ...     model.save_controls(filepath="otherdir/otherfile.py")
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        otherdir/otherfile.py
+        ----------------------------------
+        # -*- coding: utf-8 -*-
+        <BLANKLINE>
+        from hydpy.models.test_v3 import *
+        <BLANKLINE>
+        simulationstep("1h")
+        parameterstep("1d")
+        <BLANKLINE>
+        k(0.1)
+        n(3)
+        <BLANKLINE>
+        solver.abserrormax(0.000001)
+        <BLANKLINE>
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        Without a given file path and a proper project configuration, method
+        |Model.save_controls| raises the following error:
+
+        >>> model.save_controls()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: To save the control parameters of a model to a file, its \
+filename must be known.  This can be done, by passing a filename to function \
+`save_controls` directly.  But in complete HydPy applications, it is usally assumed \
+to be consistent with the name of the element handling the model.
+        """
+
+        def _extend_lines_submodel(
+            model: Model, sublevel: int, general_methods: Set[str]
+        ) -> None:
+            sublevel += 1
+            for name, submodel in model.find_submodels(
+                include_subsubmodels=False
+            ).items():
+                t2n2a = importtools.SubmodelAdder.modeltype2submodelname2submodeladder
+                subname = name.rpartition(".")[2]
+                for modeltype in inspect.getmro(type(model)):
+                    if (name2adder := t2n2a.get(modeltype)) is not None:
+                        if (adder := name2adder.get(subname)) is not None:
+                            break
+                else:
+                    assert False
+                lines.append(
+                    f"{(sublevel - 1) * '    '}with "
+                    f"model.{adder.wrapped.__name__}({submodel}):\n"
+                )
+                all_methods: Set[str] = general_methods.copy()
+                for method in adder.methods:
+                    methodname = method.__name__
+                    all_methods.add(methodname)
+                    if methodname in SubmodelInterface.GENERAL_METHODS:
+                        general_methods.add(methodname)
+                targetparameters = set()
+                for methodname in all_methods:
+                    updater = getattr(submodel, methodname)
+                    if isinstance(updater, importtools.TargetParameterUpdater):
+                        targetparameters.add(updater.targetparameter)
+                lines.extend(
+                    submodel._get_controllines(  # pylint: disable=protected-access
+                        parameterstep=parameterstep,
+                        simulationstep=simulationstep,
+                        auxfiler=auxfiler,
+                        sublevel=sublevel,
+                        ignore=tuple(targetparameters),
+                    )
+                )
+                _extend_lines_submodel(
+                    model=submodel, sublevel=sublevel, general_methods=general_methods
+                )
+
+        header = self.get_controlfileheader(
+            parameterstep=parameterstep, simulationstep=simulationstep
+        )
+        lines = [header]
+        lines.extend(
+            self._get_controllines(
+                parameterstep=parameterstep,
+                simulationstep=simulationstep,
+                auxfiler=auxfiler,
+                sublevel=0,
+            )
+        )
+        _extend_lines_submodel(model=self, sublevel=0, general_methods=set())
+        text = "".join(lines)
+        if filepath:
+            with open(filepath, mode="w", encoding="utf-8") as controlfile:
+                controlfile.write(text)
+        else:
+            filename = objecttools.devicename(self)
+            if filename == "?":
+                raise RuntimeError(
+                    "To save the control parameters of a model to a file, its "
+                    "filename must be known.  This can be done, by passing a filename "
+                    "to function `save_controls` directly.  But in complete HydPy "
+                    "applications, it is usally assumed to be consistent with the "
+                    "name of the element handling the model."
+                )
+            hydpy.pub.controlmanager.save_file(filename, text)
+
     @abc.abstractmethod
     def simulate(self, idx: int) -> None:
         """Perform a simulation run over a single simulation time step."""
 
-    def load_data(self) -> None:
+    def load_data(self, idx: int) -> None:
         """Call method |Sequences.load_data| of the attribute `sequences` of the
         current model instance and its submodels.
 
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
+        self.idx_sim = idx
         if self.sequences:
-            self.sequences.load_data(self.idx_sim)
+            self.sequences.load_data(idx)
         for submodel in self.find_submodels(include_subsubmodels=False).values():
-            submodel.load_data()
+            submodel.load_data(idx)
 
     def save_data(self, idx: int) -> None:
         """Call method |Sequences.save_data| of the attribute `sequences` of the
@@ -1090,10 +1516,8 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         >>> for method in hland_v1.Model.get_methods():
         ...     print(method.__name__)   # doctest: +ELLIPSIS
         Calc_TC_V1
-        Calc_TMean_V1
         ...
-        Calc_QT_V1
-        Pass_Q_v1
+        Pass_Q_V1
 
         >>> for method in ga_garto_submodel1.Model.get_methods():
         ...     print(method.__name__)   # doctest: +ELLIPSIS
@@ -1119,27 +1543,31 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
     @overload
     def find_submodels(
         self,
+        *,
         include_subsubmodels: bool = True,
         include_mainmodel: bool = False,
-        include_optional: Literal[False] = False,
+        include_optional: Literal[False] = ...,
     ) -> Dict[str, Model]:
         ...
 
     @overload
     def find_submodels(
         self,
+        *,
         include_subsubmodels: bool = True,
         include_mainmodel: bool = False,
-        include_optional: Literal[True] = True,
+        include_optional: Literal[True],
     ) -> Dict[str, Optional[Model]]:
         ...
 
     def find_submodels(
         self,
+        *,
         include_subsubmodels: bool = True,
         include_mainmodel: bool = False,
         include_optional: bool = False,
-    ) -> Dict[str, Optional[Model]]:
+        include_feedbacks: bool = False,
+    ) -> Union[Dict[str, Model], Dict[str, Optional[Model]]]:
         """Find the (sub)submodel instances of the current main model instance.
 
         Method |Model.find_submodels| returns by default an empty dictionary if no
@@ -1153,49 +1581,182 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         The `include_mainmodel` parameter allows the addition of the main model:
 
         >>> model.find_submodels(include_mainmodel=True)  # doctest: +ELLIPSIS
-        {'lland_v1': <hydpy.models.lland_v1.Model ...>}
+        {'model': <hydpy.models.lland_v1.Model ...>}
 
         The `include_optional` parameter allows considering prepared and unprepared
         submodels:
 
         >>> model.find_submodels(include_optional=True)
-        {'lland_v1.petmodel': None, 'lland_v1.soilmodel': None}
-        >>> model.petmodel = prepare_model("evap_fao56")
-        >>> model.find_submodels(include_optional=True)  # doctest: +ELLIPSIS
-        {'lland_v1.petmodel': <hydpy.models.evap_fao56.Model ...>, \
-'lland_v1.soilmodel': None}
+        {'model.aetmodel': None, 'model.soilmodel': None}
+        >>> model.aetmodel = prepare_model("evap_minhas")
+        >>> model.aetmodel.petmodel = prepare_model("evap_mlc")
+        >>> model.aetmodel.petmodel.retmodel = prepare_model("evap_tw2002")
+        >>> from pprint import pprint
+        >>> pprint(model.find_submodels(include_optional=True))  # doctest: +ELLIPSIS
+        {'model.aetmodel': <hydpy.models.evap_minhas.Model ...>,
+         'model.aetmodel.intercmodel': None,
+         'model.aetmodel.petmodel': <hydpy.models.evap_mlc.Model ...>,
+         'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_tw2002.Model ...>,
+         'model.aetmodel.petmodel.retmodel.tempmodel': None,
+         'model.aetmodel.soilwatermodel': None,
+         'model.soilmodel': None}
+
+        By default, |Model.find_submodels| does not return an additional entry when a
+        main model serves as a sub-submodel:
+
+        >>> model.aetmodel.soilwatermodel = model
+        >>> model.aetmodel.soilwatermodel_is_mainmodel = True
+        >>> pprint(model.find_submodels(include_optional=True))  # doctest: +ELLIPSIS
+        {'model.aetmodel': <hydpy.models.evap_minhas.Model object ...>,
+         'model.aetmodel.intercmodel': None,
+         'model.aetmodel.petmodel': <hydpy.models.evap_mlc.Model ...>,
+         'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_tw2002.Model ...>,
+         'model.aetmodel.petmodel.retmodel.tempmodel': None,
+         'model.soilmodel': None}
+
+        Use the `include_feedbacks` parameter to make such feedback connections
+        transparent:
+
+        >>> pprint(model.find_submodels(include_mainmodel=True,
+        ...     include_optional=True, include_feedbacks=True))  # doctest: +ELLIPSIS
+        {'model': <hydpy.models.lland_v1.Model ...>,
+         'model.aetmodel': <hydpy.models.evap_minhas.Model ...>,
+         'model.aetmodel.intercmodel': None,
+         'model.aetmodel.petmodel': <hydpy.models.evap_mlc.Model ...>,
+         'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_tw2002.Model ...>,
+         'model.aetmodel.petmodel.retmodel.tempmodel': None,
+         'model.aetmodel.soilwatermodel': <hydpy.models.lland_v1.Model object ...>,
+         'model.soilmodel': None}
         """
 
         def _find_submodels(name: str, model: Model) -> None:
             name2submodel_new = {}
             for submodelproperty in SubmodelProperty.modeltype2instance[type(model)]:
-                submodel = getattr(model, submodelproperty.name)
-                if include_optional or (submodel is not None):
-                    name2submodel_new[f"{name}.{submodelproperty.name}"] = submodel
+                if include_feedbacks or (
+                    not getattr(model, f"{submodelproperty.name}_is_mainmodel")
+                ):
+                    submodel = getattr(model, submodelproperty.name)
+                    if include_optional or (submodel is not None):
+                        name2submodel_new[f"{name}.{submodelproperty.name}"] = submodel
             name2submodel.update(name2submodel_new)
             if include_subsubmodels:
                 for subname, submodel in name2submodel_new.items():
-                    _find_submodels(f"{name}.{subname}", submodel)
+                    if submodel not in seen:
+                        seen.add(submodel)
+                        _find_submodels(subname, submodel)
 
-        name2submodel = {self.name: self} if include_mainmodel else {}
-        _find_submodels(self.name, self)
+        seen: Set[Model] = set([self])
+        name2submodel = {"model": self} if include_mainmodel else {}
+        _find_submodels("model", self)
         return dict(sorted(name2submodel.items()))
+
+    def update_parameters(self) -> None:
+        """Use the control parameter values of the current model for updating its
+        derived parameters and the control and derived parameters of all its submodels.
+
+        We use the combination of |hland_v1|, |evap_aet_hbv96|, and |evap_pet_hbv96|
+        used by the `LahnH` project for modelling the Dill catchment as an example:
+
+        >>> from hydpy.examples import prepare_full_example_2
+        >>> hp = prepare_full_example_2()[0]
+        >>> model = hp.elements.land_dill.model
+
+        First, all zones of the Dill catchment are either of type
+        |hland_constants.FIELD| or |hland_constants.FOREST|:
+
+        >>> model.parameters.control.zonetype
+        zonetype(FIELD, FOREST, FIELD, FOREST, FIELD, FOREST, FIELD, FOREST,
+                 FIELD, FOREST, FIELD, FOREST)
+
+        Hence, the |evap_control.Soil| parameter of |evap_aet_hbv96| must be |True| for
+        the entire basin, as both zone types possess a soil module which
+        requires soil evapotranspiration estimates:
+
+        >>> model.aetmodel.parameters.control.soil
+        soil(True)
+
+        Second, |hland_v1| requires definitions for the zones' altitude
+        (|hland_control.ZoneZ|) and determines the average basin altitude
+        (|hland_derived.Z|) automatically:
+
+        >>> model.parameters.control.zonez
+        zonez(2.0, 2.0, 3.0, 3.0, 4.0, 4.0, 5.0, 5.0, 6.0, 6.0, 7.0, 7.0)
+        >>> model.parameters.derived.z
+        z(4.205345)
+
+        |evap_aet_hbv96| handles its altitude data similarly but relies on the unit 1 m
+        instead of 100 m:
+
+        >>> model.aetmodel.petmodel.parameters.control.hrualtitude
+        hrualtitude(200.0, 200.0, 300.0, 300.0, 400.0, 400.0, 500.0, 500.0,
+                    600.0, 600.0, 700.0, 700.0)
+        >>> model.aetmodel.petmodel.parameters.derived.altitude
+        altitude(420.53445)
+
+        We now set the first zone to type |hland_constants.ILAKE| and the altitude of
+        all zones to 400 m:
+
+        >>> from hydpy.models.hland_v1 import ILAKE
+        >>> model.parameters.control.zonetype[0] = ILAKE
+        >>> model.parameters.control.zonez(4.0)
+
+        |Model.update_parameters| uses the appropriate interface methods to transfer
+        the updated control parameter values from the main model to all its submodels.
+        So, parameter |evap_control.Soil| parameter of |evap_aet_hbv96| becomes aware
+        of the introduced internal lake zone, which does not include a soil module and
+        hence needs no soil evapotranspiration estimates:
+
+        >>> model.update_parameters()
+        >>> model.aetmodel.parameters.control.soil
+        soil(field=True, forest=True, ilake=False)
+
+        Additionally, |Model.update_parameters| uses method |Parameters.update| of
+        class |Parameters| for updating the derived parameters |hland_derived.Z| of the
+        |hland_v1| main model and |evap_derived.Altitude| of the |evap_pet_hbv96|
+        submodel:
+
+        >>> model.parameters.derived.z
+        z(4.0)
+        >>> model.aetmodel.petmodel.parameters.control.hrualtitude
+        hrualtitude(400.0)
+        >>> model.aetmodel.petmodel.parameters.derived.altitude
+        altitude(400.0)
+        """
+        self.parameters.update()
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            if isinstance(submodel, SubmodelInterface):
+                adder = submodel._submodeladder  # pylint: disable=protected-access
+                if adder is not None:
+                    adder.update(self, submodel)
+                    submodel.update_parameters()
+
+    # ToDo: Replace this hack with a Mypy plugin?
+    def __getattr__(self, item: str) -> Any:
+        assert False
+
+    del __getattr__
+
+    def __setattr__(self, key: str, value: Any) -> None:
+        assert False
+
+    del __setattr__
 
     def __str__(self) -> str:
         return self.name
 
     def __init_subclass__(cls) -> None:
-
         modulename = cls.__module__
+        if not modulename.startswith("hydpy.models."):
+            return
         if modulename.count(".") > 2:
             modulename = modulename.rpartition(".")[0]
-        module = importlib.import_module(modulename)
+        module = cast(_ModelModule, importlib.import_module(modulename))
         modelname = modulename.split(".")[-1]
         cls._NAME = modelname
 
         allsequences = set()
         st = sequencetools
-        infos = (
+        infos: Tuple[Tuple[Type[Any], Type[Any], Set[Any]], ...] = (
             (st.InletSequences, st.InletSequence, set()),
             (st.ReceiverSequences, st.ReceiverSequence, set()),
             (st.InputSequences, st.InputSequence, set()),
@@ -1225,8 +1786,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                     "__doc__": f"{classname[:-9]} sequences of model {modelname}.",
                     "__module__": modulename,
                 }
-                typesequence = type(classname, (typesequences,), members)
-                setattr(module, classname, typesequence)
+                setattr(module, classname, type(classname, (typesequences,), members))
 
         fixedparameters = set(getattr(module, "ADDITIONAL_FIXEDPARAMETERS", ()))
         controlparameters = set(getattr(module, "ADDITIONAL_CONTROLPARAMETERS", ()))
@@ -1298,6 +1858,10 @@ class RunModel(Model):
         "SENDER_METHODS",
     )
 
+    @abc.abstractmethod
+    def run(self) -> None:
+        """Call all methods defined as "run methods" in the defined order."""
+
     def simulate(self, idx: int) -> None:
         """Perform a simulation run over a single simulation time step.
 
@@ -1318,10 +1882,10 @@ class RunModel(Model):
         ...     model.simulate(idx)
         ...     print(hp.nodes.dill.sequences.sim)
         ...     hp.nodes.dill.sequences.sim = 0.0
-        sim(11.78038)
-        sim(8.901179)
-        sim(7.131072)
-        sim(6.017787)
+        sim(11.78144)
+        sim(8.902735)
+        sim(7.132279)
+        sim(6.018681)
         >>> hp.nodes.dill.sequences.sim.series
         InfoArray([nan, nan, nan, nan])
 
@@ -1335,7 +1899,7 @@ class RunModel(Model):
         >>> hp.reset_conditions()
         >>> hp.simulate()
         >>> round_(hp.nodes.dill.sequences.sim.series)
-        11.78038, 8.901179, 7.131072, 6.017787
+        11.78144, 8.902735, 7.132279, 6.018681
 
         When working in Cython mode, the standard model import overrides
         this generic Python version with a model-specific Cython version.
@@ -1346,10 +1910,7 @@ class RunModel(Model):
             >>> Node.clear_all()
             >>> Element.clear_all()
         """
-        self.idx_sim = idx
-        for submodel in self.find_submodels().values():
-            submodel.idx_sim = idx
-        self.load_data()
+        self.load_data(idx)
         self.update_inlets()
         self.run()
         self.new2old()
@@ -1407,6 +1968,7 @@ class SegmentModel(RunModel):
 
     idx_segment = Idx_Segment()
     idx_run = Idx_Run()
+    nmb_segments: int = 0
 
     def run(self) -> None:
         """Call all methods defined as "run methods" "segment-wise".
@@ -1422,7 +1984,7 @@ class SegmentModel(RunModel):
                 for method in self.RUN_METHODS:
                     method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
-    def run_segments(self, method: Method) -> Optional[Tuple[float, ...]]:
+    def run_segments(self, method: Method) -> None:
         """Run the given methods for all segments.
 
         Method |SegmentModel.run_segments| is mainly thought for testing purposes.
@@ -1569,9 +2131,9 @@ class ELSModel(SolverModel):
     simulation times.
     """
 
-    SOLVERSEQUENCES: ClassVar[Tuple[sequencetools.DependentSequence, ...]]
-    PART_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
-    FULL_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
+    SOLVERSEQUENCES: ClassVar[Tuple[Type[sequencetools.DependentSequence], ...]]
+    PART_ODE_METHODS: ClassVar[Tuple[Type[Method], ...]]
+    FULL_ODE_METHODS: ClassVar[Tuple[Type[Method], ...]]
     METHOD_GROUPS = (
         "RECEIVER_METHODS",
         "INLET_METHODS",
@@ -1596,10 +2158,7 @@ class ELSModel(SolverModel):
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
-        self.idx_sim = idx
-        for submodel in self.find_submodels().values():
-            submodel.idx_sim = idx
-        self.load_data()
+        self.load_data(idx)
         self.update_inlets()
         self.solve()
         self.update_outlets()
@@ -1962,7 +2521,7 @@ class ELSModel(SolverModel):
         Python version with a model-specific Cython version.
         """
         self.numvars.use_relerror = not modelutils.isnan(
-            self.parameters.solver.relerrormax
+            self.parameters.solver.relerrormax.value
         )
         self.numvars.t0, self.numvars.t1 = 0.0, 1.0
         self.numvars.dt_est = 1.0 * self.parameters.solver.reldtmax
@@ -1973,8 +2532,8 @@ class ELSModel(SolverModel):
             self.numvars.last_relerror = modelutils.inf
             self.numvars.dt = min(
                 self.numvars.t1 - self.numvars.t0,
-                1.0 * self.parameters.solver.reldtmax,
-                max(self.numvars.dt_est, self.parameters.solver.reldtmin),
+                1.0 * self.parameters.solver.reldtmax.value,
+                max(self.numvars.dt_est, self.parameters.solver.reldtmin.value),
             )
             if not self.numvars.f0_ready:
                 self.calculate_single_terms()
@@ -2565,6 +3124,141 @@ class ELSModel(SolverModel):
                 self.numvars.extrapolated_relerror = modelutils.inf
 
 
+class PredefinedMethod2Argument(TypedDict, total=False):
+    """Dictionary for passing arguments from main models to sub-submodels if the
+    submodel does not override the related "general" interface methods for transfering
+    parameter values from main models to submodels."""
+
+    prepare_nmbzones: int
+    prepare_zonetypes: VectorInputInt
+    prepare_subareas: VectorInputFloat
+    prepare_elevations: VectorInputFloat
+
+
+class SubmodelInterface(Model, abc.ABC):
+    """Base class for defining interfaces for submodels."""
+
+    INTERFACE_METHODS: ClassVar[Tuple[Type[Method], ...]]
+    GENERAL_METHODS: Tuple[str, ...] = (
+        "prepare_nmbzones",
+        "prepare_zonetypes",
+        "prepare_subareas",
+        "prepare_elevations",
+    )
+    _submodeladder: Optional[importtools.SubmodelAdder]
+    predefinedmethod2argument: PredefinedMethod2Argument
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._submodeladder = None
+        self.predefinedmethod2argument = {}
+
+    @property
+    @abc.abstractmethod
+    def typeid(self) -> int:
+        """Type identifier that we use for differentiating submodels that target the
+        same process group (e.g. infiltration) but follow different interfaces.
+
+        For `Submodel_V1`, |SubmodelInterface.typeid| is 1, for `Submodel_V2` 2, and so
+        on.
+
+        We prefer using |SubmodelInterface.typeid| over the standard |isinstance|
+        checks in model equations as it allows releasing Python's Globel Interpreter
+        Lock in Cython.
+        """
+
+    @staticmethod
+    @contextlib.contextmanager
+    def share_configuration(  # pylint: disable=unused-argument
+        sharable_configuration: SharableConfiguration,
+    ) -> Generator[None, None, None]:
+        """Share class-level configurations between a main model and a submodel
+        temporarily.
+
+        The default implementation of method |SubmodelInterface.share_configuration|
+        does nothing.  Submodels can overwrite it to adjust their classes to the
+        current main model during initialisation.
+        """
+        yield
+
+    def add_mainmodel_as_subsubmodel(  # pylint: disable=unused-argument
+        self, mainmodel: Model
+    ) -> bool:
+        """If appropriate, add the given main model as a sub-submodel of the current
+        submodel.
+
+        The default implementation of method
+        |SubmodelInterface.add_mainmodel_as_subsubmodel| just returns |False|.
+        Submodels can overwrite it to enable them to query data from their main models
+        actively.  If a submodel accepts a main model as a sub-submodel, it must return
+        |True|; otherwise, |False|.
+        """
+        return False
+
+    def prepare_nmbzones(self, nmbzones: int) -> None:
+        """Set the number of zones in which the actual calculations take place.
+
+        If a submodel does not work with a variable number of zones, it probably must
+        not override |SubmodelInterface.prepare_nmbzones|.  Then, the default behaviour
+        applies, where |SubmodelInterface.prepare_nmbzones| stores the given number of
+        zones in the |SubmodelInterface.predefinedmethod2argument| dictionary.  There,
+        it is available to eventual sub-submodels:
+
+        >>> from hydpy.core.modeltools import SubmodelInterface
+        >>> from hydpy.core.testtools import make_abc_testable
+        >>> si = make_abc_testable(SubmodelInterface)()
+        >>> si.prepare_nmbzones(3)
+        >>> si.predefinedmethod2argument
+        {'prepare_nmbzones': 3}
+        """
+        self.predefinedmethod2argument["prepare_nmbzones"] = nmbzones
+
+    def prepare_zonetypes(self, zonetypes: Sequence[int]) -> None:
+        """Set the types (usually land cover types) of the individual zones.
+
+        The explanation on method |SubmodelInterface.prepare_nmbzones| also holds for
+        the default behaviour of method |SubmodelInterface.prepare_zonetypes|:
+
+        >>> from hydpy.core.modeltools import SubmodelInterface
+        >>> from hydpy.core.testtools import make_abc_testable
+        >>> si = make_abc_testable(SubmodelInterface)()
+        >>> si.prepare_zonetypes([1, 2])
+        >>> si.predefinedmethod2argument
+        {'prepare_zonetypes': [1, 2]}
+        """
+        self.predefinedmethod2argument["prepare_zonetypes"] = zonetypes
+
+    def prepare_subareas(self, subareas: Sequence[float]) -> None:
+        """Set the areas of the individual zones in km².
+
+        The explanation on method |SubmodelInterface.prepare_nmbzones| also holds for
+        the default behaviour of method |SubmodelInterface.prepare_subareas|:
+
+        >>> from hydpy.core.modeltools import SubmodelInterface
+        >>> from hydpy.core.testtools import make_abc_testable
+        >>> si = make_abc_testable(SubmodelInterface)()
+        >>> si.prepare_subareas([1.0, 2.0])
+        >>> si.predefinedmethod2argument
+        {'prepare_subareas': [1.0, 2.0]}
+        """
+        self.predefinedmethod2argument["prepare_subareas"] = subareas
+
+    def prepare_elevations(self, elevations: Sequence[float]) -> None:
+        """Set the elevations of the individual zones in m.
+
+        The explanation on method |SubmodelInterface.prepare_nmbzones| also holds for
+        the default behaviour of method |SubmodelInterface.prepare_elevations|:
+
+        >>> from hydpy.core.modeltools import SubmodelInterface
+        >>> from hydpy.core.testtools import make_abc_testable
+        >>> si = make_abc_testable(SubmodelInterface)()
+        >>> si.prepare_elevations([1.0, 2.0])
+        >>> si.predefinedmethod2argument
+        {'prepare_elevations': [1.0, 2.0]}
+        """
+        self.predefinedmethod2argument["prepare_elevations"] = elevations
+
+
 class Submodel:
     """Base class for implementing "submodels" that serve to deal with (possibly
     complicated) general mathematical algorithms (e.g. root-finding algorithms) within
@@ -2580,7 +3274,8 @@ class Submodel:
     METHODS: ClassVar[Tuple[Type[Method], ...]]
     CYTHONBASECLASS: ClassVar[Type]
     PYTHONCLASS: ClassVar[Type]
-    _cysubmodel: Type
+    name: ClassVar[str]
+    _cysubmodel: object
 
     def __init_subclass__(cls) -> None:
         cls.name = cls.__name__.lower()

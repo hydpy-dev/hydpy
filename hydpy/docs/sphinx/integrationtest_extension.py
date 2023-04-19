@@ -1,7 +1,7 @@
 """Sphinx extension introducing `.. integration-test::` directives."""
 # import...
 # from standard library
-from typing import *
+from typing import Any, List
 
 # ...from site-packages
 from docutils import nodes
@@ -31,7 +31,7 @@ class IntegrationTestNode(nodes.General, nodes.FixedTextElement):
 class IntegrationTestBlock(code.CodeBlock):
     """A sphinx directive specialised for integration test code blocks."""
 
-    def run(self) -> List[IntegrationTestNode]:
+    def run(self) -> List[Any]:  # ToDo: should we subclass from Node?
         """Return only an `IntegrationTestNode` object."""
         content = "\n".join(self.content)
         integrationtestnode = IntegrationTestNode(content, content)
@@ -103,13 +103,7 @@ def depart_html(self, node):  # pylint: disable=unused-argument
 
 
 def setup(app):
-    """Add the defined node `IntegrationTestNode` and directive
-    `IntegrationTestBlock` to the sphinx application."""
-    app.add_directive(
-        "integration-test",
-        IntegrationTestBlock,
-    )
-    app.add_node(
-        IntegrationTestNode,
-        html=(visit_html, depart_html),
-    )
+    """Add the defined node `IntegrationTestNode` and directive `IntegrationTestBlock`
+    to the sphinx application."""
+    app.add_directive("integration-test", IntegrationTestBlock)
+    app.add_node(IntegrationTestNode, html=(visit_html, depart_html))

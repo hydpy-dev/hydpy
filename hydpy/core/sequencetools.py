@@ -11,7 +11,6 @@ import runpy
 import sys
 import types
 import warnings
-from typing import *
 
 # ...from site-packages
 import numpy
@@ -364,7 +363,7 @@ class InfoArray(NDArrayFloat):
         obj.aggregation = aggregation
         return obj
 
-    def __array_finalize__(self, obj: NDArrayFloat) -> None:
+    def __array_finalize__(self, obj: Optional[NDArray]) -> None:
         if isinstance(obj, InfoArray):
             self.aggregation = obj.aggregation
         else:
@@ -987,8 +986,8 @@ class ModelSequences(
             cls_fastaccess=cls_fastaccess,
         )
 
-    def __hydpy__initialise_fastaccess__(self) -> None:
-        super().__hydpy__initialise_fastaccess__()
+    def _init_fastaccess(self) -> None:
+        super()._init_fastaccess()
         if self._cls_fastaccess and self._cymodel:
             setattr(self._cymodel.sequences, self.name, self.fastaccess)
 
@@ -1105,8 +1104,8 @@ class StateSequences(OutputSequences["StateSequence"]):
     fastaccess_new: FastAccessOutputSequence
     fastaccess_old: variabletools.FastAccess
 
-    def __hydpy__initialise_fastaccess__(self) -> None:
-        super().__hydpy__initialise_fastaccess__()
+    def _init_fastaccess(self) -> None:
+        super()._init_fastaccess()
         self.fastaccess_new = self.fastaccess
         if (self._cls_fastaccess is None) or (self._cymodel is None):
             self.fastaccess_old = variabletools.FastAccess()
@@ -1184,20 +1183,20 @@ class Sequence_(variabletools.Variable):
     >>> model = prepare_model("lland_v1", "1d")
     >>> model.sequences.fluxes.qa.shape
     ()
-    >>> evpo = model.sequences.fluxes.evpo
-    >>> evpo.shape
+    >>> nkor = model.sequences.fluxes.nkor
+    >>> nkor.shape
     Traceback (most recent call last):
     ...
     hydpy.core.exceptiontools.AttributeNotReady: Shape information for variable \
-`evpo` can only be retrieved after it has been defined.
+`nkor` can only be retrieved after it has been defined.
 
     For consistency with the usage of |Parameter| subclasses, |Sequence_| objects are
     also "callable" for setting their values (but in a much less and flexible manner):
 
-    >>> evpo.shape = 3
-    >>> evpo(2.0)
-    >>> evpo
-    evpo(2.0, 2.0, 2.0)
+    >>> nkor.shape = 3
+    >>> nkor(2.0)
+    >>> nkor
+    nkor(2.0, 2.0, 2.0)
 
     Under the hood, class |Sequence_| also prepares some attributes of its |FastAccess|
     object, used for performing the actual simulation calculations.   Framework
@@ -1205,14 +1204,14 @@ class Sequence_(variabletools.Variable):
     name of the sequence and the name of the original attribute in lower case letters.
     We take `NDIM` as an example:
 
-    >>> evpo.fastaccess._evpo_ndim
+    >>> nkor.fastaccess._nkor_ndim
     1
 
     Some of these attributes require updating in some situations.  For example, other
     sequences than |AideSequence| objects require a "length" attribute, which needs
     updating each time the sequence's shape changes:
 
-    >>> evpo.fastaccess._evpo_length
+    >>> nkor.fastaccess._nkor_length
     3
     """
 
@@ -1376,13 +1375,13 @@ class IOSequence(Sequence_):
     RAM or to read or write it on the fly.  We now activate the reading functionality
     of input sequence |hland_inputs.T| (while still keeping its time-series in RAM,
     which we set to zero beforehand) and the writing feature of the factor sequences
-    |hland_factors.TMean| and |hland_factors.TC| (without handling their data in RAM)
-    and the writing feature of the state sequences |hland_states.SM| and
+    |hland_factors.ContriArea| and |hland_factors.TC| (without handling their data in
+    RAM) and the writing feature of the state sequences |hland_states.SM| and
     |hland_states.SP| (while handling their data in RAM simultaneously):
 
     >>> inputs.t.series = 0.0
     >>> inputs.t.prepare_series(allocate_ram=True, read_jit=True)
-    >>> factors.tmean.prepare_series(allocate_ram=False, write_jit=True)
+    >>> factors.contriarea.prepare_series(allocate_ram=False, write_jit=True)
     >>> factors.tc.prepare_series(allocate_ram=False, write_jit=True)
     >>> states.sm.prepare_series(allocate_ram=True, write_jit=True)
     >>> states.sp.prepare_series(allocate_ram=True, write_jit=True)
@@ -1402,18 +1401,18 @@ class IOSequence(Sequence_):
     >>> round_(inputs.t.series)
     0.0, 0.0, 0.0, 0.0
 
-    >>> factors.tmean.ramflag
+    >>> factors.contriarea.ramflag
     False
-    >>> factors.tmean.diskflag_reading
+    >>> factors.contriarea.diskflag_reading
     False
-    >>> factors.tmean.diskflag_writing
+    >>> factors.contriarea.diskflag_writing
     True
-    >>> factors.tmean.diskflag
+    >>> factors.contriarea.diskflag
     True
-    >>> factors.tmean.series
+    >>> factors.contriarea.series
     Traceback (most recent call last):
     ...
-    hydpy.core.exceptiontools.AttributeNotReady: Sequence `tmean` of element \
+    hydpy.core.exceptiontools.AttributeNotReady: Sequence `contriarea` of element \
 `land_lahn_1` is not requested to make any time-series data available.
 
     >>> states.sm.ramflag
@@ -1441,28 +1440,28 @@ class IOSequence(Sequence_):
     >>> round_(inputs.t.series)
     -0.705395, -1.505553, -4.221268, -7.446349
     >>> round_(states.sm.series[:, 0])
-    99.134954, 98.919762, 98.76352, 98.574428
+    99.130873, 98.90942, 98.748643, 98.554071
     >>> round_(states.sp.series[:, 0, 0])
     0.0, 0.0, 0.0, 0.0
 
-    To inspect the time series of |hland_factors.TMean| and |hland_factors.TC|, you
-    must first activate their |IOSequence.ramflag| and then load their data manually
-    with method |IOSequence.load_series|.  The latter requires some additional
+    To inspect the time series of |hland_factors.ContriArea| and |hland_factors.TC|,
+    you must first activate their |IOSequence.ramflag| and then load their data
+    manually with method |IOSequence.load_series|.  The latter requires some additional
     configuration effort (see the documentation on module |netcdftools| for further
     information):
 
-    >>> factors.tmean.prepare_series()
+    >>> factors.contriarea.prepare_series()
     >>> factors.tc.prepare_series()
     >>> pub.sequencemanager.filetype = "nc"
     >>> with TestIO():
     ...     pub.sequencemanager.open_netcdfreader()
-    ...     factors.tmean.load_series()
+    ...     factors.contriarea.load_series()
     ...     factors.tc.load_series()
     ...     pub.sequencemanager.close_netcdfreader()
-    >>> round_(factors.tmean.series)
-    -0.988481, -1.788639, -4.504354, -7.729436
+    >>> round_(factors.contriarea.series)
+    0.431273, 0.429876, 0.428864, 0.427639
     >>> round_(factors.tc.series[:, 0])
-    0.164605, -0.635553, -3.351268, -6.576349
+    0.447691, -0.352466, -3.068181, -6.293263
 
     We also load time series of |hland_states.SM| and |hland_states.SP| to demonstrate
     that the data written to the respective NetCDF files are identical with the data
@@ -1474,7 +1473,7 @@ class IOSequence(Sequence_):
     ...     states.sp.load_series()
     ...     pub.sequencemanager.close_netcdfreader()
     >>> round_(states.sm.series[:, 0])
-    99.134954, 98.919762, 98.76352, 98.574428
+    99.130873, 98.90942, 98.748643, 98.554071
     >>> round_(states.sp.series[:, 0, 0])
     0.0, 0.0, 0.0, 0.0
 
@@ -1511,7 +1510,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
     >>> inputs.p.series = 10.0
     >>> hp.simulate()
     >>> round_(fluxes.pc.series[:, 0])
-    10.22607, 11.288565, 11.288565, 11.288565
+    9.164043, 10.570894, 10.665633, 10.665633
 
     Another convenience property is |IOSequence.seriesshape|, which combines the length
     of the simulation period with the shape of the individual |IOSequence| object:
@@ -1530,7 +1529,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
     >>> factors.fastaccess._tc_length
     13
     >>> round_(factors.tc.series[:, 0], 1)
-    0.2, -0.6, -3.4, -6.6
+    0.4, -0.4, -3.1, -6.3
 
     >>> factors.tc.shape = 2,
     >>> factors.tc.seriesshape
@@ -1574,13 +1573,13 @@ during a simulation run is not supported but tried for sequence `t` of element \
     """
 
     subvars: Union[
-        SubSequences[Sequences, IOSequence, FastAccessIOSequence],
-        SubSequences[devicetools.Node, IOSequence, FastAccessIOSequence],
+        IOSequences[Sequences, IOSequence, FastAccessIOSequence],
+        IOSequences[devicetools.Node, IOSequence, FastAccessIOSequence],
     ]
     """The subgroup to which the IO sequence belongs."""
     subseqs: Union[
-        SubSequences[Sequences, IOSequence, FastAccessIOSequence],
-        SubSequences[devicetools.Node, IOSequence, FastAccessIOSequence],
+        IOSequences[Sequences, IOSequence, FastAccessIOSequence],
+        IOSequences[devicetools.Node, IOSequence, FastAccessIOSequence],
     ]
     """Alias for |IOSequence.subvars|."""
     fastaccess: FastAccessIOSequence
@@ -1636,7 +1635,7 @@ not know its file type.  Either set it manually or prepare `pub.sequencemanager`
 correctly.
         """
         try:
-            return hydpy.pub.sequencemanager.filetype
+            return cast(SeriesFileType, hydpy.pub.sequencemanager.filetype)
         except exceptiontools.AttributeNotReady:
             raise exceptiontools.AttributeNotReady(
                 f"Sequence {objecttools.devicephrase(self)} does not know its file "
@@ -1685,7 +1684,7 @@ know its aggregation mode.  Either set it manually or prepare `pub.sequencemanag
 correctly.
         """
         try:
-            return hydpy.pub.sequencemanager.aggregation
+            return cast(SeriesAggregationType, hydpy.pub.sequencemanager.aggregation)
         except exceptiontools.AttributeNotReady:
             raise exceptiontools.AttributeNotReady(
                 f"Sequence {objecttools.devicephrase(self)} does not know its "
@@ -1735,7 +1734,7 @@ know its overwrite flag.  Either set it manually or prepare `pub.sequencemanager
 correctly.
         """
         try:
-            return hydpy.pub.sequencemanager.overwrite
+            return bool(hydpy.pub.sequencemanager.overwrite)
         except exceptiontools.AttributeNotReady:
             raise exceptiontools.AttributeNotReady(
                 f"Sequence {objecttools.devicephrase(self)} does not know its "
@@ -1979,7 +1978,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
         values = numpy.array(values, dtype=float)
         self._set_fastaccessattribute("array", values)
 
-    def __hydpy__get_shape__(self) -> Tuple[int, ...]:
+    def _get_shape(self) -> Tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
         When setting a new |IOSequence.shape| of an |IOSequence| object, one
@@ -1988,16 +1987,16 @@ during a simulation run is not supported but tried for sequence `t` of element \
 
         See the main documentation on class |IOSequence| for further information.
         """
-        return super().__hydpy__get_shape__()
+        return super()._get_shape()
 
-    def __hydpy__set_shape__(self, shape: Union[int, Iterable[int]]):
-        super().__hydpy__set_shape__(shape)
+    def _set_shape(self, shape: Union[int, Tuple[int, ...]]):
+        super()._set_shape(shape)
         if self.ramflag:
             values = numpy.full(self.seriesshape, numpy.nan, dtype=float)
             self.__set_array(values)
         self.update_fastaccess()
 
-    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
+    shape = property(fget=_get_shape, fset=_set_shape)
 
     @property
     def seriesshape(self) -> Tuple[int, ...]:
@@ -2415,7 +2414,7 @@ sequencemanager of module `pub` is not defined at the moment.
         hydpy.pub.sequencemanager.save_file(self, array=array)
 
     @property
-    def seriesmatrix(self) -> Matrix[float]:
+    def seriesmatrix(self) -> MatrixFloat:
         """The actual |IOSequence| object's time series, arranged in a 2-dimensional
         matrix.
 
@@ -2675,10 +2674,10 @@ class ModelSequence(Sequence_):
         >>> model.sequences.fluxes.q.descr_device
         'test_element_1'
         """
-        element = self.subseqs.seqs.model.element
-        if element:
-            return element.name
-        return "?"
+        try:
+            return self.subseqs.seqs.model.element.name
+        except exceptiontools.AttributeNotReady:
+            return "?"
 
     @property
     def numericshape(self) -> Tuple[int, ...]:
@@ -2770,9 +2769,7 @@ class InputSequence(ModelIOSequence):
     >>> node_t = Node("node_t", variable=hland_T)
     >>> node_p = Node("node_p", variable=FusedVariable("Precip", hland_P))
     >>> node_q = Node("node_q")
-    >>> land_dill = Element("land_dill",
-    ...                     inputs=[node_t, node_p],
-    ...                     outlets=node_q)
+    >>> land_dill = Element("land_dill", inputs=[node_t, node_p], outlets=node_q)
 
     >>> from hydpy.examples import prepare_full_example_1
     >>> prepare_full_example_1()
@@ -2784,11 +2781,14 @@ class InputSequence(ModelIOSequence):
     ...     parameters.update()
     ...     land_dill.model = model
 
+    >>> aetmodel = model.aetmodel
+    >>> petmodel = model.aetmodel.petmodel
+
     >>> model.sequences.inputs.t.inputflag
     True
     >>> model.sequences.inputs.p.inputflag
     True
-    >>> model.sequences.inputs.epn.inputflag
+    >>> petmodel.sequences.inputs.normalevapotranspiration.inputflag
     False
 
     >>> hp.update_devices(nodes=[node_t, node_p, node_q], elements=land_dill)
@@ -2809,15 +2809,15 @@ class InputSequence(ModelIOSequence):
     >>> print_values(model.sequences.inputs.t.series)
     1.0, 2.0, 3.0, 4.0, 5.0
     >>> print_values(model.sequences.factors.tc.series[:, 0])
-    2.05, 3.05, 4.05, 5.05, 6.05
+    2.323207, 3.323207, 4.323207, 5.323207, 6.323207
     >>> print_values(model.sequences.inputs.p.series)
     0.0, 4.0, 0.0, 8.0, 0.0
     >>> print_values(model.sequences.fluxes.pc.series[:, 0])
-    0.0, 3.441339, 0.0, 6.882678, 0.0
-    >>> print_values(model.sequences.inputs.epn.series)
+    0.0, 3.2514, 0.0, 6.5028, 0.0
+    >>> print_values(petmodel.sequences.inputs.normalevapotranspiration.series)
     0.285483, 0.448182, 0.302786, 0.401946, 0.315023
-    >>> print_values(model.sequences.fluxes.epc.series[:, 0])
-    0.314763, 0.524569, 0.46086, 0.689852, 0.630047
+    >>> print_values(aetmodel.sequences.fluxes.potentialevapotranspiration.series[:, 0])
+    0.322562, 0.53804, 0.469133, 0.704755, 0.630047
 
     .. testsetup::
 
@@ -2837,7 +2837,8 @@ class InputSequence(ModelIOSequence):
 
     def __hydpy__connect_variable2subgroup__(self) -> None:
         super().__hydpy__connect_variable2subgroup__()
-        self._set_fastaccessattribute("inputflag", False)
+        if self.NDIM == 0:
+            self._set_fastaccessattribute("inputflag", False)
 
     def set_pointer(self, double: pointerutils.Double) -> None:
         """Prepare a pointer referencing the given |Double| object.
@@ -2944,23 +2945,23 @@ class OutputSequence(ModelIOSequence):
     2.0, 2.0, 2.0, 2.0, 2.0
 
     >>> print_values(model.sequences.fluxes.q1.series)
-    0.530696, 0.539661, 0.548003, 0.555721, 0.562883
+    0.530692, 0.53965, 0.547982, 0.555686, 0.562831
     >>> print_values(node_q1.sequences.sim.series)
-    0.530696, 0.539661, 0.548003, 0.555721, 0.562883
+    0.530692, 0.53965, 0.547982, 0.555686, 0.562831
     >>> print_values(node_q1.sequences.obs.series)
     3.0, 3.0, 3.0, 3.0, 3.0
 
     >>> print_values(model.sequences.fluxes.perc.series)
-    0.692545, 0.689484, 0.687425, 0.684699, 0.682571
+    0.69249, 0.689344, 0.687227, 0.684426, 0.682239
     >>> print_values(node_perc.sequences.sim.series)
-    0.692545, 0.689484, 0.687425, 0.684699, 0.682571
+    0.69249, 0.689344, 0.687227, 0.684426, 0.682239
     >>> print_values(node_perc.sequences.obs.series)
     4.0, 4.0, 4.0, 4.0, 4.0
 
     >>> print_values(model.sequences.states.uz.series)
-    5.620222, 4.359519, 3.33013, 2.450124, 1.66734
+    5.620142, 4.359374, 3.330011, 2.450131, 1.667571
     >>> print_values(node_uz.sequences.sim.series)
-    5.620222, 4.359519, 3.33013, 2.450124, 1.66734
+    5.620142, 4.359374, 3.330011, 2.450131, 1.667571
     >>> print_values(node_uz.sequences.obs.series)
     5.0, 5.0, 5.0, 5.0, 5.0
 
@@ -2981,7 +2982,8 @@ class OutputSequence(ModelIOSequence):
 
     def __hydpy__connect_variable2subgroup__(self) -> None:
         super().__hydpy__connect_variable2subgroup__()
-        self._set_fastaccessattribute("outputflag", False)
+        if self.NDIM == 0:
+            self._set_fastaccessattribute("outputflag", False)
 
     def set_pointer(self, double: pointerutils.Double) -> None:
         """Prepare a pointer referencing the given |Double| object.
@@ -3009,14 +3011,14 @@ class DependentSequence(OutputSequence):
     def _finalise_connections(self) -> None:
         super()._finalise_connections()
         if self.NUMERIC:
-            value = None if self.NDIM else numpy.zeros(self.numericshape)
-            self._set_fastaccessattribute("points", value)
-            self._set_fastaccessattribute("integrals", copy.copy(value))
-            self._set_fastaccessattribute("results", copy.copy(value))
+            values = None if self.NDIM else numpy.zeros(self.numericshape)
+            self._set_fastaccessattribute("points", values)
+            self._set_fastaccessattribute("integrals", copy.copy(values))
+            self._set_fastaccessattribute("results", copy.copy(values))
             value = None if self.NDIM else 0.0
             self._set_fastaccessattribute("sum", value)
 
-    def __hydpy__get_shape__(self) -> Tuple[int, ...]:
+    def _get_shape(self) -> Tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
         |FactorSequence| and |FluxSequence| objects come with some additional
@@ -3046,17 +3048,17 @@ class DependentSequence(OutputSequence):
         >>> ei.fastaccess._ei_results.shape
         (11, 2)
         """
-        return super().__hydpy__get_shape__()
+        return super()._get_shape()
 
-    def __hydpy__set_shape__(self, shape: Union[int, Iterable[int]]) -> None:
-        super().__hydpy__set_shape__(shape)
+    def _set_shape(self, shape: Union[int, Tuple[int, ...]]) -> None:
+        super()._set_shape(shape)
         if self.NDIM and self.NUMERIC:
             self._set_fastaccessattribute("points", numpy.zeros(self.numericshape))
             self._set_fastaccessattribute("integrals", numpy.zeros(self.numericshape))
             self._set_fastaccessattribute("results", numpy.zeros(self.numericshape))
             self._set_fastaccessattribute("sum", numpy.zeros(self.shape))
 
-    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
+    shape = property(fget=_get_shape, fset=_set_shape)
 
 
 class FactorSequence(DependentSequence):
@@ -3106,22 +3108,21 @@ class ConditionSequence(ModelSequence):
 
         We use the |lland_v1| application model, which handles sequences derived from
         |StateSequence| (taking |lland_states.Inzp| as an example) and from
-        |LogSequence| (taking |lland_logs.WET0| as an example):
+        |LogSequence| (taking |lland_logs.WEvI| as an example):
 
         >>> from hydpy import prepare_model, pub
         >>> model = prepare_model("lland_v1")
 
-        After defining their shapes, both sequences contain |numpy.nan|
-        values:
+        After defining their shapes, both sequences contain |numpy.nan| values:
 
         >>> inzp = model.sequences.states.inzp
         >>> inzp.shape = (2,)
         >>> inzp
         inzp(nan, nan)
-        >>> wet0 = model.sequences.logs.wet0
-        >>> wet0.shape = 2
-        >>> wet0
-        wet0(nan, nan)
+        >>> wevi = model.sequences.logs.wevi
+        >>> wevi.shape = 2
+        >>> wevi
+        wevi(nan, nan)
 
         Before "calling" the sequences method |ConditionSequence.reset| does nothing:
 
@@ -3129,10 +3130,10 @@ class ConditionSequence(ModelSequence):
         >>> inzp.reset()
         >>> inzp
         inzp(0.0, 0.0)
-        >>> wet0.values = 0.0
-        >>> wet0.reset()
-        >>> wet0
-        wet0(0.0, 0.0)
+        >>> wevi.values = 0.0
+        >>> wevi.reset()
+        >>> wevi
+        wevi(0.0, 0.0)
 
         After "calling" the sequences method |ConditionSequence.reset| reuses the
         respective arguments:
@@ -3146,13 +3147,13 @@ class ConditionSequence(ModelSequence):
         ...     inzp.reset()
         >>> inzp
         inzp(0.0, 1.0)
-        >>> wet0(1.0, 2.0)
-        >>> wet0.values = 3.0
-        >>> wet0
-        wet0(3.0, 3.0)
-        >>> wet0.reset()
-        >>> wet0
-        wet0(1.0, 2.0)
+        >>> wevi(1.0, 2.0)
+        >>> wevi.values = 3.0
+        >>> wevi
+        wevi(3.0, 3.0)
+        >>> wevi.reset()
+        >>> wevi
+        wevi(1.0, 2.0)
         """
         if self._oldargs:
             self(*self._oldargs)
@@ -3251,8 +3252,6 @@ not broadcast input array from shape (3,) into shape (2,)
     array([2., 3.])
     """
 
-    NOT_DEEPCOPYABLE_MEMBERS = "subseqs", "fastaccess_old", "fastaccess_new"
-
     subvars: StateSequences
     """The subgroup to which the state sequence belongs."""
     subseqs: StateSequences
@@ -3279,7 +3278,7 @@ not broadcast input array from shape (3,) into shape (2,)
         else:
             setattr(self.fastaccess_old, self.name, 0.0)
 
-    def __hydpy__get_shape__(self) -> Tuple[int, ...]:
+    def _get_shape(self) -> Tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
         |StateSequence| objects come with some additional `fastaccess` attributes,
@@ -3308,17 +3307,17 @@ not broadcast input array from shape (3,) into shape (2,)
         >>> ic.fastaccess._ic_results.shape
         (11, 2)
         """
-        return super().__hydpy__get_shape__()
+        return super()._get_shape()
 
-    def __hydpy__set_shape__(self, shape: Union[int, Iterable[int]]):
-        super().__hydpy__set_shape__(shape)
+    def _set_shape(self, shape: Union[int, Tuple[int, ...]]):
+        super()._set_shape(shape)
         if self.NDIM:
             setattr(self.fastaccess_old, self.name, self.new.copy())
             if self.NUMERIC:
                 self._set_fastaccessattribute("points", numpy.zeros(self.numericshape))
                 self._set_fastaccessattribute("results", numpy.zeros(self.numericshape))
 
-    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
+    shape = property(fget=_get_shape, fset=_set_shape)
 
     @property
     def new(self):
@@ -3330,11 +3329,11 @@ not broadcast input array from shape (3,) into shape (2,)
         step.  It supports testing and debugging of individual |Model| methods but is
         typically irrelevant when scripting *HydPy* workflows.
         """
-        return super().__hydpy__get_value__()
+        return super()._get_value()
 
     @new.setter
     def new(self, value):
-        super().__hydpy__set_value__(value)
+        super()._set_value(value)
 
     @property
     def old(self):
@@ -3411,7 +3410,7 @@ class LogSequenceFixed(LogSequence):
     def _finalise_connections(self):
         self.shape = (self.SHAPE,)
 
-    def __hydpy__get_shape__(self):
+    def _get_shape(self):
         """Sequences derived from |LogSequenceFixed| initialise themselves with a
         predefined shape.
 
@@ -3435,17 +3434,17 @@ changed, but this was attempted for element `?`.
         See the documentation on property |Variable.shape| of class |Variable| for
         further information.
         """
-        return super().__hydpy__get_shape__()
+        return super()._get_shape()
 
-    def __hydpy__set_shape__(self, shape):
+    def _set_shape(self, shape):
         if exceptiontools.attrready(self, "shape"):
             raise AttributeError(
                 f"The shape of sequence `{self.name}` cannot be changed, but this was "
                 f"attempted for element `{objecttools.devicename(self)}`."
             )
-        super().__hydpy__set_shape__(shape)
+        super()._set_shape(shape)
 
-    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
+    shape = property(fget=_get_shape, fset=_set_shape)
 
 
 class AideSequence(ModelSequence):
@@ -3524,7 +3523,7 @@ could result in segmentation faults when using it, so please be careful).
         except AttributeError:
             pass
 
-    def __hydpy__get_value__(self):
+    def _get_value(self):
         """The actual value(s) the |LinkSequence| object is pointing at.
 
         Changing a |LinkSequence.value| of a |LinkSequence| object seems very much like
@@ -3647,7 +3646,7 @@ convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and type 
                 f"{objecttools.elementphrase(self)}"
             )
 
-    def __hydpy__set_value__(self, value):
+    def _set_value(self, value):
         try:
             self.fastaccess.set_value(
                 self.name,
@@ -3659,9 +3658,9 @@ convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and type 
                 f"{objecttools.elementphrase(self)}"
             )
 
-    value = property(fget=__hydpy__get_value__, fset=__hydpy__set_value__)
+    value = property(fget=_get_value, fset=_set_value)
 
-    def __hydpy__get_shape__(self) -> Tuple[int, ...]:
+    def _get_shape(self) -> Tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
         Property |LinkSequence.shape| of class |LinkSequence| works similarly as the
@@ -3755,7 +3754,7 @@ attribute 'fastaccess'
                 f"{objecttools.elementphrase(self)}"
             )
 
-    def __hydpy__set_shape__(self, shape: Union[int, Iterable[int]]):
+    def _set_shape(self, shape: Union[int, Tuple[int, ...]]):
         try:
             if (self.NDIM == 0) and shape:
                 self._raise_wrongshape(shape)
@@ -3771,7 +3770,7 @@ attribute 'fastaccess'
                 f"{objecttools.elementphrase(self)}"
             )
 
-    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
+    shape = property(fget=_get_shape, fset=_set_shape)
 
     def __repr__(self):
         if self.__isready:
@@ -3881,7 +3880,7 @@ class NodeSequence(IOSequence):
         setattr(self.fastaccess, self.name, pointerutils.Double(0.0))
         setattr(self.fastaccess, "_reset_obsdata", False)
 
-    def __hydpy__get_value__(self):
+    def _get_value(self):
         """The actual sequence value.
 
         For framework users, the property |NodeSequence.value| of class |NodeSequence|
@@ -3940,7 +3939,7 @@ number, not 'tuple'
                 f"{objecttools.nodephrase(self)}"
             )
 
-    def __hydpy__set_value__(self, value):
+    def _set_value(self, value):
         try:
             getattr(self.fastaccess, self.name)[0] = float(value)
         except BaseException:
@@ -3949,7 +3948,7 @@ number, not 'tuple'
                 f"{objecttools.nodephrase(self)}"
             )
 
-    value = property(fget=__hydpy__get_value__, fset=__hydpy__set_value__)
+    value = property(fget=_get_value, fset=_set_value)
 
     @property
     def seriescomplete(self) -> bool:
@@ -4216,7 +4215,7 @@ class NodeSequences(
 
     CLASSES = (Sim, Obs)
 
-    node: "devicetools.Node"
+    node: devicetools.Node
     sim: Sim
     obs: Obs
     _cymodel: Optional[CyModelProtocol]
@@ -4233,7 +4232,7 @@ class NodeSequences(
         self._cymodel = cymodel
         super().__init__(master)
 
-    def __hydpy__initialise_fastaccess__(self) -> None:
+    def _init_fastaccess(self) -> None:
         if hydpy.pub.options.usecython:
             self.fastaccess = (
                 sequenceutils.FastAccessNodeSequence()  # pylint: disable=used-before-assignment

@@ -75,5 +75,27 @@ LANDUSE_CONSTANTS = parametertools.Constants(
 )
 """All landuse type constants of *HydPy-W-Land*."""
 
-# Make only the constants available on wildcard-imports.
-__all__ = list(CONSTANTS.keys())
+__all__ = [
+    "SAND",
+    "LOAMY_SAND",
+    "SANDY_LOAM",
+    "SILT_LOAM",
+    "LOAM",
+    "SANDY_CLAY_LOAM",
+    "SILT_CLAY_LOAM",
+    "CLAY_LOAM",
+    "SANDY_CLAY",
+    "SILTY_CLAY",
+    "CLAY",
+    "SEALED",
+    "FIELD",
+    "WINE",
+    "ORCHARD",
+    "SOIL",
+    "PASTURE",
+    "WETLAND",
+    "TREES",
+    "CONIFER",
+    "DECIDIOUS",
+    "MIXED",
+]

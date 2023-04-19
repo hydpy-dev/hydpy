@@ -8,17 +8,11 @@ from __future__ import annotations
 import abc
 import inspect
 import types
-from typing import *
 
 # ...from HydPy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core.typingtools import *
-
-TypeInput = TypeVar("TypeInput")
-TypeInput_contra = TypeVar("TypeInput_contra", contravariant=True)
-TypeOutput = TypeVar("TypeOutput")
-TypeOutput_co = TypeVar("TypeOutput_co", covariant=True)
 
 
 class BaseDescriptor:
@@ -54,17 +48,17 @@ class BaseDescriptor:
             self.set_doc(doc)
 
 
-class FGet(Protocol[TypeOutput_co]):
+class FGet(Protocol[T_co]):
     """Callback protocol for getter functions."""
 
-    def __call__(self, __obj: Any) -> TypeOutput_co:
+    def __call__(self, __obj: Any) -> T_co:
         ...
 
 
-class FSet(Protocol[TypeInput_contra]):
+class FSet(Protocol[T_contra]):
     """Callback protocol for setter functions."""
 
-    def __call__(self, __obj: Any, __value: TypeInput_contra) -> None:
+    def __call__(self, __obj: Any, __value: T_contra) -> None:
         ...
 
 
@@ -75,7 +69,7 @@ class FDel(Protocol):
         ...
 
 
-class BaseProperty(Generic[TypeInput, TypeOutput], BaseDescriptor):
+class BaseProperty(Generic[T_contra, T_co], BaseDescriptor):
     """Abstract base class for deriving classes similar to |property|.
 
     |BaseProperty| provides the abstract methods |BaseProperty.call_fget|,
@@ -106,16 +100,16 @@ class BaseProperty(Generic[TypeInput, TypeOutput], BaseDescriptor):
     RuntimeError
     """
 
-    fget: FGet[TypeOutput]
-    fset: FSet[TypeInput]
+    fget: FGet[T_co]
+    fset: FSet[T_contra]
     fdel: FDel
 
     @staticmethod
-    def _fgetdummy(__obj: Any) -> TypeOutput:
+    def _fgetdummy(__obj: Any) -> T_co:
         raise RuntimeError
 
     @staticmethod
-    def _fsetdummy(__obj: Any, __value: TypeInput) -> None:
+    def _fsetdummy(__obj: Any, __value: T_contra) -> None:
         raise RuntimeError
 
     @staticmethod
@@ -123,18 +117,14 @@ class BaseProperty(Generic[TypeInput, TypeOutput], BaseDescriptor):
         raise RuntimeError
 
     @overload
-    def __get__(
-        self, obj: None, objtype: Type[Any]
-    ) -> BaseProperty[TypeInput, TypeOutput]:
+    def __get__(self, obj: None, objtype: Type[Any]) -> Self:
         ...
 
     @overload
-    def __get__(self, obj: Any, objtype: Type[Any]) -> TypeOutput:
+    def __get__(self, obj: Any, objtype: Type[Any]) -> T_co:
         ...
 
-    def __get__(
-        self, obj: Optional[Any], objtype: Type[Any]
-    ) -> Union[BaseProperty[TypeInput, TypeOutput], TypeOutput]:
+    def __get__(self, obj: Optional[Any], objtype: Type[Any]) -> Union[Self, T_co]:
         if obj is None:
             return self
         if self.fget is self._fgetdummy:
@@ -144,7 +134,7 @@ class BaseProperty(Generic[TypeInput, TypeOutput], BaseDescriptor):
             )
         return self.call_fget(obj)
 
-    def __set__(self, obj: Any, value: TypeInput) -> None:
+    def __set__(self, obj: Any, value: T_contra) -> None:
         if self.fset is self._fsetdummy:
             raise AttributeError(
                 f"Attribute `{self.name}` of object "
@@ -161,11 +151,11 @@ class BaseProperty(Generic[TypeInput, TypeOutput], BaseDescriptor):
         self.call_fdel(obj)
 
     @abc.abstractmethod
-    def call_fget(self, obj: Any) -> TypeOutput:
+    def call_fget(self, obj: Any) -> T_co:
         """Method for implementing unique getter functionalities."""
 
     @abc.abstractmethod
-    def call_fset(self, obj: Any, value: TypeInput) -> None:
+    def call_fset(self, obj: Any, value: T_contra) -> None:
         """Method for implementing unique setter functionalities."""
 
     @abc.abstractmethod
@@ -173,7 +163,7 @@ class BaseProperty(Generic[TypeInput, TypeOutput], BaseDescriptor):
         """Method for implementing unique deleter functionalities."""
 
 
-class Property(BaseProperty[TypeInput, TypeOutput]):
+class Property(BaseProperty[T_contra, T_co]):
     """Class |Property| mimics the behaviour of the built-in function |property|.
 
     The only advantage of |Property| over |property| is that it allows defining
@@ -233,8 +223,8 @@ class Property(BaseProperty[TypeInput, TypeOutput]):
 
     def __init__(
         self,
-        fget: FGet[TypeOutput] = BaseProperty._fgetdummy,
-        fset: FSet[TypeInput] = BaseProperty._fsetdummy,
+        fget: FGet[T_co] = BaseProperty._fgetdummy,
+        fset: FSet[T_contra] = BaseProperty._fsetdummy,
         fdel: FDel = BaseProperty._fdeldummy,
     ) -> None:
         self.fget = fget
@@ -242,11 +232,11 @@ class Property(BaseProperty[TypeInput, TypeOutput]):
         self.fset = fset
         self.fdel = fdel
 
-    def call_fget(self, obj: Any) -> TypeOutput:
+    def call_fget(self, obj: Any) -> T_co:
         """Call `fget` without additional functionalities."""
         return self.fget(obj)
 
-    def call_fset(self, obj: Any, value: TypeInput) -> None:
+    def call_fset(self, obj: Any, value: T_contra) -> None:
         """Call `fset` without additional functionalities."""
         self.fset(obj, value)
 
@@ -254,25 +244,25 @@ class Property(BaseProperty[TypeInput, TypeOutput]):
         """Call `fdel` without additional functionalities."""
         self.fdel(obj)
 
-    def getter(self, fget: FGet[TypeOutput]) -> Property[TypeInput, TypeOutput]:
+    def getter(self, fget: FGet[T_co]) -> Property[T_contra, T_co]:
         """Add the given getter function and its docstring to the property and
         return it."""
         self.fget = fget
         self.set_doc(fget.__doc__)
         return self
 
-    def setter(self, fset: FSet[TypeInput]) -> Property[TypeInput, TypeOutput]:
+    def setter(self, fset: FSet[T_contra]) -> Property[T_contra, T_co]:
         """Add the given setter function to the property and return it."""
         self.fset = fset
         return self
 
-    def deleter(self, fdel: FDel) -> Property[TypeInput, TypeOutput]:
+    def deleter(self, fdel: FDel) -> Property[T_contra, T_co]:
         """Add the given deleter function to the property and return it."""
         setattr(self, "fdel", fdel)
         return self
 
 
-class ProtectedProperty(BaseProperty[TypeInput, TypeOutput]):
+class ProtectedProperty(BaseProperty[T_contra, T_co]):
     """A |property|-like class which prevents getting an attribute before setting it.
 
     Some attributes need preparations before being accessible.  Consider the case
@@ -331,8 +321,8 @@ has not been prepared so far.
 
     def __init__(
         self,
-        fget: FGet[TypeOutput] = BaseProperty._fgetdummy,
-        fset: FSet[TypeInput] = BaseProperty._fsetdummy,
+        fget: FGet[T_co] = BaseProperty._fgetdummy,
+        fset: FSet[T_contra] = BaseProperty._fsetdummy,
         fdel: FDel = BaseProperty._fdeldummy,
     ) -> None:
         self.fget = fget
@@ -340,7 +330,7 @@ has not been prepared so far.
         self.fset = fset
         self.fdel = fdel
 
-    def call_fget(self, obj: Any) -> TypeOutput:
+    def call_fget(self, obj: Any) -> T_co:
         """When ready, call `fget`; otherwise, raise an |AttributeNotReady|
         exception."""
         if self.isready(obj):
@@ -350,7 +340,7 @@ has not been prepared so far.
             f"has not been prepared so far."
         )
 
-    def call_fset(self, obj: Any, value: TypeInput) -> None:
+    def call_fset(self, obj: Any, value: T_contra) -> None:
         """Call `fset` and mark the attribute as ready."""
         self.fset(obj, value)
         vars(obj)[self.name] = True
@@ -366,21 +356,19 @@ has not been prepared so far.
         unknown, |ProtectedProperty.isready| returns |False|."""
         return vars(obj).get(self.name, False)
 
-    def getter(
-        self, fget: FGet[TypeOutput]
-    ) -> "ProtectedProperty[TypeInput, TypeOutput]":
+    def getter(self, fget: FGet[T_co]) -> ProtectedProperty[T_contra, T_co]:
         """Add the given getter function and its docstring to the property
         and return it."""
         self.fget = fget
         self.set_doc(fget.__doc__)
         return self
 
-    def setter(self, fset: FSet[TypeInput]) -> ProtectedProperty[TypeInput, TypeOutput]:
+    def setter(self, fset: FSet[T_contra]) -> ProtectedProperty[T_contra, T_co]:
         """Add the given setter function to the property and return it."""
         self.fset = fset
         return self
 
-    def deleter(self, fdel: FDel) -> ProtectedProperty[TypeInput, TypeOutput]:
+    def deleter(self, fdel: FDel) -> ProtectedProperty[T_contra, T_co]:
         """Add the given deleter function to the property and return it."""
         self.fdel = fdel
         return self
@@ -444,7 +432,7 @@ class ProtectedProperties:
         return self.__properties.__iter__()
 
 
-class DependentProperty(BaseProperty[TypeInput, TypeOutput]):
+class DependentProperty(BaseProperty[T_contra, T_co]):
     """|property|-like class which prevents accessing a dependent attribute
     before preparing certain other attributes.
 
@@ -516,8 +504,8 @@ is not usable so far.  At least, you have to prepare attribute `x` first.
     def __init__(
         self,
         protected: ProtectedProperties,
-        fget: FGet[TypeOutput] = BaseProperty._fgetdummy,
-        fset: FSet[TypeInput] = BaseProperty._fsetdummy,
+        fget: FGet[T_co] = BaseProperty._fgetdummy,
+        fset: FSet[T_contra] = BaseProperty._fsetdummy,
         fdel: FDel = BaseProperty._fdeldummy,
     ) -> None:
         self.protected = protected
@@ -536,13 +524,13 @@ is not usable so far.  At least, you have to prepare attribute `x` first.
                     f"`{req.name}` first."
                 )
 
-    def call_fget(self, obj: Any) -> TypeOutput:
+    def call_fget(self, obj: Any) -> T_co:
         """Call `fget` when all required attributes are ready; otherwise, raise
         an |AttributeNotReady| error."""
         self.__check(obj)
         return self.fget(obj)
 
-    def call_fset(self, obj: Any, value: TypeInput) -> None:
+    def call_fset(self, obj: Any, value: T_contra) -> None:
         """Call `fset` when all required attributes are ready; otherwise, raise
         an |AttributeNotReady| error."""
         self.__check(obj)
@@ -554,27 +542,25 @@ is not usable so far.  At least, you have to prepare attribute `x` first.
         self.__check(obj)
         self.fdel(obj)
 
-    def getter(
-        self, fget: FGet[TypeOutput]
-    ) -> DependentProperty[TypeInput, TypeOutput]:
+    def getter(self, fget: FGet[T_co]) -> DependentProperty[T_contra, T_co]:
         """Add the given getter function and its docstring to the property and
         return it."""
         self.fget = fget
         self.set_doc(fget.__doc__)
         return self
 
-    def setter(self, fset: FSet[TypeInput]) -> DependentProperty[TypeInput, TypeOutput]:
+    def setter(self, fset: FSet[T_contra]) -> DependentProperty[T_contra, T_co]:
         """Add the given setter function to the property and return it."""
         self.fset = fset
         return self
 
-    def deleter(self, fdel: FDel) -> DependentProperty[TypeInput, TypeOutput]:
+    def deleter(self, fdel: FDel) -> DependentProperty[T_contra, T_co]:
         """Add the given deleter function to the property and return it."""
         self.fdel = fdel
         return self
 
 
-class DefaultProperty(BaseProperty[TypeInput, TypeOutput]):
+class DefaultProperty(BaseProperty[T_contra, T_co]):
     """|property|-like class which uses the getter function to return a default
     value unless a custom value is available.
 
@@ -618,21 +604,21 @@ class DefaultProperty(BaseProperty[TypeInput, TypeOutput]):
     'Default property x.'
     """
 
-    def __init__(self, fget: FGet[TypeOutput] = BaseProperty._fgetdummy) -> None:
+    def __init__(self, fget: FGet[T_co] = BaseProperty._fgetdummy) -> None:
         self.fget = fget
         self.set_doc(fget.__doc__)
         self.fset = self._fsetowndummy
         self.fdel = self._fdelowndummy
 
-    def call_fget(self, obj: Any) -> TypeOutput:
+    def call_fget(self, obj: Any) -> T_co:
         """If available, return the predefined custom value; otherwise, return
         the value defined by the getter function."""
-        value = cast(Optional[TypeOutput], vars(obj).get(self.name))
+        value = cast(Optional[T_co], vars(obj).get(self.name))
         if value is None:
             return self.fget(obj)
         return value
 
-    def call_fset(self, obj: Any, value: TypeInput) -> None:
+    def call_fset(self, obj: Any, value: T_contra) -> None:
         """Store the given custom value."""
         vars(obj)[self.name] = value
 
@@ -644,7 +630,7 @@ class DefaultProperty(BaseProperty[TypeInput, TypeOutput]):
             pass
 
     @staticmethod
-    def _fsetowndummy(__obj: Any, __value: TypeInput) -> None:
+    def _fsetowndummy(__obj: Any, __value: T_contra) -> None:
         """Do nothing."""
 
     @staticmethod

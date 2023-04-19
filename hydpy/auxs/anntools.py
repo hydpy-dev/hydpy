@@ -8,8 +8,8 @@ which is why we implement these features in the Cython extension module |annutil
 
 # import...
 # ...from standard library
+from __future__ import annotations
 import weakref
-from typing import *
 
 # ...from site-packages
 import numpy
@@ -26,18 +26,12 @@ else:
     from hydpy.cythons.autogen import annutils
 
 
-class _ANNArrayProperty(
-    propertytools.DependentProperty[propertytools.TypeInput, propertytools.TypeOutput]
-):
+class _ANNArrayProperty(propertytools.DependentProperty[T_contra, T_co]):
+    _obj2cann: weakref.WeakKeyDictionary[
+        Any, annutils.ANN
+    ] = weakref.WeakKeyDictionary()
 
-    _obj2cann: Dict[Any, annutils.ANN]  # pylint: disable=used-before-assignment
-    _obj2cann = weakref.WeakKeyDictionary()
-
-    def __init__(
-        self,
-        protected: propertytools.ProtectedProperties,
-        doc: str,
-    ) -> None:
+    def __init__(self, protected: propertytools.ProtectedProperties, doc: str) -> None:
         super().__init__(
             protected=protected, fget=self._fget, fset=self._fset, fdel=self._fdel
         )
@@ -52,11 +46,11 @@ class _ANNArrayProperty(
     def _shape(self) -> str:
         return f"shape_{self.name}"
 
-    def _fget(self, obj: "ANN") -> propertytools.TypeOutput:
+    def _fget(self, obj: ANN) -> T_co:
         cann = self._obj2cann[obj]
-        return numpy.asarray(getattr(cann, self.name))
+        return numpy.asarray(getattr(cann, self.name))  # type: ignore[return-value]
 
-    def _fset(self, obj: "ANN", value: Optional[propertytools.TypeInput]) -> None:
+    def _fset(self, obj: ANN, value: Optional[T_contra]) -> None:
         if value is None:
             self.fdel(obj)
         else:
@@ -75,7 +69,7 @@ class _ANNArrayProperty(
                     f"network {objecttools.elementphrase(obj)}"
                 )
 
-    def _fdel(self, obj: "ANN") -> None:
+    def _fdel(self, obj: ANN) -> None:
         cann = self._obj2cann[obj]
         if self.name == "activation":
             array = numpy.ones(getattr(obj, self._shape), dtype=int)
@@ -491,13 +485,13 @@ is not usable so far.  At least, you have to prepare attribute `nmb_outputs` fir
         nmb_inputs: int = 1,
         nmb_neurons: Tuple[int, ...] = (1,),
         nmb_outputs: int = 1,
-        weights_input: Optional[MatrixInput[float]] = None,
-        weights_output: Optional[MatrixInput[float]] = None,
-        weights_hidden=None,
-        intercepts_hidden: Optional[MatrixInput[float]] = None,
-        intercepts_output: Optional[VectorInput[float]] = None,
-        activation: Optional[MatrixInput[int]] = None,
-    ):
+        weights_input: Optional[MatrixInputFloat] = None,
+        weights_output: Optional[MatrixInputFloat] = None,
+        weights_hidden: Optional[TensorInputFloat] = None,
+        intercepts_hidden: Optional[MatrixInputFloat] = None,
+        intercepts_output: Optional[VectorInputFloat] = None,
+        activation: Optional[MatrixInputInt] = None,
+    ) -> None:
         self._calgorithm = annutils.ANN()
         _ANNArrayProperty.add_cann(self, self._calgorithm)
         self(
@@ -518,15 +512,15 @@ is not usable so far.  At least, you have to prepare attribute `nmb_outputs` fir
         nmb_inputs: int = 1,
         nmb_neurons: Tuple[int, ...] = (1,),
         nmb_outputs: int = 1,
-        weights_input: Optional[MatrixInput[float]] = None,
-        weights_output: Optional[MatrixInput[float]] = None,
-        weights_hidden=None,
-        intercepts_hidden: Optional[MatrixInput[float]] = None,
-        intercepts_output: Optional[VectorInput[float]] = None,
-        activation: Optional[MatrixInput[int]] = None,
+        weights_input: Optional[MatrixInputFloat] = None,
+        weights_output: Optional[MatrixInputFloat] = None,
+        weights_hidden: Optional[TensorInputFloat] = None,
+        intercepts_hidden: Optional[MatrixInputFloat] = None,
+        intercepts_output: Optional[VectorInputFloat] = None,
+        activation: Optional[MatrixInputInt] = None,
     ) -> None:
-        self.nmb_inputs = nmb_inputs  # type: ignore[has-type]
-        self.nmb_outputs = nmb_outputs  # type: ignore[has-type]
+        self.nmb_inputs = nmb_inputs
+        self.nmb_outputs = nmb_outputs
         self.nmb_neurons = nmb_neurons
         self.weights_input = weights_input
         self.weights_hidden = weights_hidden
@@ -534,9 +528,9 @@ is not usable so far.  At least, you have to prepare attribute `nmb_outputs` fir
         self.intercepts_hidden = intercepts_hidden
         self.intercepts_output = intercepts_output
         self.activation = activation
-        del self.inputs  # type: ignore[has-type]
-        del self.outputs  # type: ignore[has-type]
-        del self.output_derivatives  # type: ignore[has-type]
+        del self.inputs
+        del self.outputs
+        del self.output_derivatives
         del self.neurons
         del self.neuron_derivatives
 
@@ -548,9 +542,9 @@ is not usable so far.  At least, you have to prepare attribute `nmb_outputs` fir
             del self.intercepts_hidden
             del self.intercepts_output
             del self.activation
-            del self.inputs  # type: ignore[has-type]
-            del self.outputs  # type: ignore[has-type]
-            del self.output_derivatives  # type: ignore[has-type]
+            del self.inputs
+            del self.outputs
+            del self.output_derivatives
             del self.neurons
             del self.neuron_derivatives
 
@@ -574,13 +568,9 @@ is not usable so far.  At least, you have to prepare attribute `nmb_outputs` fir
     def _del_nmb_inputs(self) -> None:
         pass
 
-    nmb_inputs = propertytools.ProtectedProperty[int, int](  # type: ignore[assignment]
-        fget=_get_nmb_inputs,
-        fset=_set_nmb_inputs,
-        fdel=_del_nmb_inputs,
+    nmb_inputs = propertytools.ProtectedProperty[int, int](
+        fget=_get_nmb_inputs, fset=_set_nmb_inputs, fdel=_del_nmb_inputs
     )
-    nmb_inputs: int  # type: ignore[no-redef]
-    # to improve PyCharm code completion; required until PyCharm is fixed
 
     def _get_nmb_outputs(self) -> int:
         """The number of output nodes.
@@ -608,13 +598,9 @@ object `ann` has not been prepared so far.
     def _del_nmb_outputs(self) -> None:
         pass
 
-    nmb_outputs = propertytools.ProtectedProperty[int, int](  # type: ignore[assignment]
-        fget=_get_nmb_outputs,
-        fset=_set_nmb_outputs,
-        fdel=_del_nmb_outputs,
+    nmb_outputs = propertytools.ProtectedProperty[int, int](
+        fget=_get_nmb_outputs, fset=_set_nmb_outputs, fdel=_del_nmb_outputs
     )
-    nmb_outputs: int  # type: ignore[no-redef]
-    # to improve PyCharm code completion; required until PyCharm is fixed
 
     def _get_nmb_neurons(self) -> Tuple[int, ...]:
         """The number of neurons of the hidden layers.
@@ -650,11 +636,8 @@ object `ann` has not been prepared so far.
         fdel=_del_nmb_neurons,
     )
 
-    nmb_neurons: Tuple[int, ...]  # type: ignore[no-redef]
-    # to improve PyCharm code completion; required until PyCharm is fixed
-
     __protectedproperties = propertytools.ProtectedProperties(
-        nmb_inputs, nmb_outputs, nmb_neurons  # type: ignore[has-type]
+        nmb_inputs, nmb_outputs, nmb_neurons
     )
 
     @property
@@ -666,7 +649,7 @@ object `ann` has not been prepared so far.
         >>> ann.nmb_weights_input
         6
         """
-        return self.nmb_neurons[0] * self.nmb_inputs  # type: ignore[has-type, no-any-return] # pylint: disable=line-too-long
+        return self.nmb_neurons[0] * self.nmb_inputs
 
     @property
     def shape_weights_input(self) -> Tuple[int, int]:
@@ -680,9 +663,9 @@ object `ann` has not been prepared so far.
         >>> ann.shape_weights_input
         (3, 2)
         """
-        return self.nmb_inputs, self.nmb_neurons[0]  # type: ignore[has-type]
+        return self.nmb_inputs, self.nmb_neurons[0]
 
-    weights_input = _ANNArrayProperty[Optional[MatrixInput[float]], Matrix[float]](
+    weights_input = _ANNArrayProperty[Optional[MatrixInputFloat], MatrixFloat](
         protected=__protectedproperties,
         doc="""The weights between all input nodes and neurons of the first hidden 
         layer.
@@ -763,7 +746,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         >>> ann.shape_weights_output
         (1, 3)
         """
-        return self.nmb_neurons[-1], self.nmb_outputs  # type: ignore[has-type]
+        return self.nmb_neurons[-1], self.nmb_outputs
 
     @property
     def nmb_weights_output(self) -> int:
@@ -774,9 +757,9 @@ broadcast input array from shape (3,3) into shape (2,3)
         >>> ann.nmb_weights_output
         12
         """
-        return self.nmb_neurons[-1] * self.nmb_outputs  # type: ignore[has-type, no-any-return] # pylint: disable=line-too-long
+        return self.nmb_neurons[-1] * self.nmb_outputs
 
-    weights_output = _ANNArrayProperty[Optional[MatrixInput[float]], Matrix[float]](
+    weights_output = _ANNArrayProperty[Optional[MatrixInputFloat], MatrixFloat](
         protected=__protectedproperties,
         doc="""The weights between all neurons of the last hidden layer and the output 
         nodes.
@@ -824,7 +807,7 @@ broadcast input array from shape (3,3) into shape (2,3)
             nmb += self.nmb_neurons[idx_layer] * self.nmb_neurons[idx_layer + 1]
         return nmb
 
-    weights_hidden = _ANNArrayProperty(
+    weights_hidden = _ANNArrayProperty[Optional[TensorInputFloat], TensorFloat](
         protected=__protectedproperties,
         doc="""The weights between the neurons of the different hidden layers.
 
@@ -853,7 +836,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """The number of input intercepts."""
         return sum(self.nmb_neurons)
 
-    intercepts_hidden = _ANNArrayProperty[Optional[MatrixInput[float]], Matrix[float]](
+    intercepts_hidden = _ANNArrayProperty[Optional[MatrixInputFloat], MatrixFloat](
         protected=__protectedproperties,
         doc="""The intercepts of all neurons of the hidden layers.
 
@@ -874,7 +857,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         >>> ann.shape_intercepts_output
         (3,)
         """
-        return (self.nmb_outputs,)  # type: ignore[has-type]
+        return (self.nmb_outputs,)
 
     @property
     def nmb_intercepts_output(self) -> int:
@@ -885,9 +868,9 @@ broadcast input array from shape (3,3) into shape (2,3)
         >>> ann.nmb_intercepts_output
         3
         """
-        return self.nmb_outputs  # type: ignore[has-type]
+        return self.nmb_outputs
 
-    intercepts_output = _ANNArrayProperty[Optional[VectorInput[float]], Vector[float]](
+    intercepts_output = _ANNArrayProperty[Optional[VectorInputFloat], VectorFloat](
         protected=__protectedproperties,
         doc="""The intercepts of all output nodes.
 
@@ -911,7 +894,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """
         return self.nmb_layers, self.__max_nmb_neurons
 
-    activation = _ANNArrayProperty[Optional[MatrixInput[int]], Matrix[int]](
+    activation = _ANNArrayProperty[Optional[MatrixInputInt], MatrixInt](
         protected=__protectedproperties,
         doc="""Indices for selecting suitable activation functions for the neurons of 
         the hidden layers.
@@ -1075,9 +1058,9 @@ broadcast input array from shape (3,3) into shape (2,3)
         >>> ann.shape_inputs
         (5,)
         """
-        return (self.nmb_inputs,)  # type: ignore[has-type]
+        return (self.nmb_inputs,)
 
-    inputs = _ANNArrayProperty[Optional[VectorInput[float]], Vector[float]](  # type: ignore[assignment] # pylint: disable=line-too-long
+    inputs = _ANNArrayProperty[Optional[VectorInputFloat], VectorFloat](
         protected=__protectedproperties,
         doc="""The values of the input nodes.
 
@@ -1097,9 +1080,9 @@ broadcast input array from shape (3,3) into shape (2,3)
         >>> ann.shape_outputs
         (6,)
         """
-        return (self.nmb_outputs,)  # type: ignore[has-type]
+        return (self.nmb_outputs,)
 
-    outputs = _ANNArrayProperty[Optional[VectorInput[float]], Vector[float]](  # type: ignore[assignment] # pylint: disable=line-too-long
+    outputs = _ANNArrayProperty[Optional[VectorInputFloat], VectorFloat](
         protected=__protectedproperties,
         doc="""The values of the output nodes.
 
@@ -1119,9 +1102,9 @@ broadcast input array from shape (3,3) into shape (2,3)
         >>> ann.shape_output_derivatives
         (6,)
         """
-        return (self.nmb_outputs,)  # type: ignore[has-type]
+        return (self.nmb_outputs,)
 
-    output_derivatives = _ANNArrayProperty[Optional[Vector[float]], Vector[float]](  # type: ignore[assignment] # pylint: disable=line-too-long
+    output_derivatives = _ANNArrayProperty[Optional[VectorInputFloat], VectorFloat](
         protected=__protectedproperties,
         doc="""The derivatives of the output nodes.
 
@@ -1164,7 +1147,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         fget=_get_shape_neurons,
     )
 
-    neurons = _ANNArrayProperty[Optional[MatrixInput[float]], Matrix[float]](
+    neurons = _ANNArrayProperty[Optional[MatrixInputFloat], MatrixFloat](
         protected=__protectedproperties,
         doc="""The activation of the neurons of the hidden layers.
 
@@ -1194,7 +1177,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         fget=_get_shape_neuron_derivatives,
     )
 
-    neuron_derivatives = _ANNArrayProperty[Optional[MatrixInput[float]], Matrix[float]](
+    neuron_derivatives = _ANNArrayProperty[Optional[MatrixInputFloat], MatrixFloat](
         protected=__protectedproperties,
         doc="""The derivatives of the activation of the neurons of the hidden layers.
 
@@ -1280,12 +1263,12 @@ of element `?` is not properly defined.
         l3 = objecttools.assignrepr_list3
         blanks = (indent + 4) * " "
         lines = [f"{prefix}{type(self).__name__}("]
-        if self.nmb_inputs != 1:  # type: ignore[has-type]
-            lines.append(f"{blanks}nmb_inputs={self.nmb_inputs},")  # type: ignore[has-type] # pylint: disable=line-too-long
+        if self.nmb_inputs != 1:
+            lines.append(f"{blanks}nmb_inputs={self.nmb_inputs},")
         if self.nmb_neurons != (1,):
             lines.append(f"{blanks}nmb_neurons={self.nmb_neurons},")
-        if self.nmb_outputs != 1:  # type: ignore[has-type]
-            lines.append(f"{blanks}nmb_outputs={self.nmb_outputs},")  # type: ignore[has-type] # pylint: disable=line-too-long
+        if self.nmb_outputs != 1:
+            lines.append(f"{blanks}nmb_outputs={self.nmb_outputs},")
         lines.append(l2(self.weights_input, f"{blanks}weights_input=") + ",")
         if self.nmb_layers > 1:
             lines.append(l3(self.weights_hidden, f"{blanks}weights_hidden=") + ",")
@@ -1305,8 +1288,8 @@ of element `?` is not properly defined.
 
     def __eq__(self, other: object) -> bool:
         def _equal_array(
-            x: Union[Vector[float], Matrix[int], Matrix[float]],
-            y: Union[Vector[float], Matrix[int], Matrix[float]],
+            x: Union[VectorFloat, MatrixInt, MatrixFloat],
+            y: Union[VectorFloat, MatrixInt, MatrixFloat],
         ) -> bool:
             idxs = ~(numpy.isnan(x) * numpy.isnan(y))
             return bool(numpy.all(x[idxs] == y[idxs]))

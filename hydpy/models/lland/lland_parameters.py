@@ -7,7 +7,7 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 
 # ...from lland
-from hydpy.models.lland import lland_constants
+from hydpy.models.lland.lland_constants import CONSTANTS
 from hydpy.models.lland import lland_masks
 
 
@@ -38,13 +38,13 @@ class ParameterComplete(parametertools.ZipParameter):
     2.0
     """
 
-    MODEL_CONSTANTS = lland_constants.CONSTANTS
+    constants = dict(CONSTANTS.items())
     mask = lland_masks.Complete()
 
     @property
     def refweights(self):
-        """Alias for the associated instance of |FHRU| for calculating
-        areal mean values."""
+        """Alias for the associated instance of |FHRU| for calculating areal mean
+        values."""
         return self.subpars.pars.derived.absfhru
 
 
@@ -175,7 +175,7 @@ class LanduseMonthParameter(parametertools.KeywordParameter2D):
     """Base class for parameters which values depend both an the actual
     land use class and the actual month."""
 
-    COLNAMES = (
+    columnnames = (
         "jan",
         "feb",
         "mar",
@@ -189,9 +189,7 @@ class LanduseMonthParameter(parametertools.KeywordParameter2D):
         "nov",
         "dec",
     )
-    ROWNAMES = tuple(
+    rownames = tuple(
         key.lower()
-        for (idx, key) in sorted(
-            (idx, key) for (key, idx) in lland_constants.CONSTANTS.items()
-        )
+        for (idx, key) in sorted((idx, key) for (key, idx) in CONSTANTS.items())
     )

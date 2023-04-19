@@ -40,7 +40,7 @@ class NmbLogEntries(parametertools.Parameter):
         """Calculate the number of entries and adjust the shape of all relevant log
         sequences.
 
-        The aimed memory duration is one day.  Hence, the number of the required log
+        The aimed memory duration is one day.  Hence, the number of required log
         entries depends on the simulation step size:
 
         >>> from hydpy.models.lland import *
@@ -51,7 +51,7 @@ class NmbLogEntries(parametertools.Parameter):
         >>> derived.nmblogentries
         nmblogentries(24)
         >>> logs
-        wet0(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
+        wevi(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
              nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan)
         loggedteml(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
                    nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan)
@@ -74,13 +74,13 @@ class NmbLogEntries(parametertools.Parameter):
         To prevent from loosing information, updating parameter |NmbLogEntries| resets
         the shape of the relevant log sequences only when necessary:
 
-        >>> logs.wet0 = 1.0
+        >>> logs.wevi = 1.0
         >>> logs.loggedteml = 2.0
         >>> logs.loggedrelativehumidity.shape = (6,)
         >>> logs.loggedrelativehumidity = 3.0
         >>> derived.nmblogentries.update()
         >>> logs   # doctest: +ELLIPSIS
-        wet0(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+        wevi(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
              1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
         loggedteml(2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
                    2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0)

@@ -4,9 +4,9 @@
 """
 # import...
 # from standard library
+from __future__ import annotations
 import functools
 import warnings
-from typing import *
 
 # from site-packages
 import numpy
@@ -194,12 +194,7 @@ class ZoneType(parametertools.NameParameter):
     zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, FIELD)
     """
 
-    NDIM, TYPE, TIME = 1, int, None
-    SPAN = (
-        min(hland_constants.CONSTANTS.values()),
-        max(hland_constants.CONSTANTS.values()),
-    )
-    CONSTANTS = hland_constants.CONSTANTS
+    constants = hland_constants.CONSTANTS
 
 
 class ZoneArea(hland_parameters.ParameterComplete):
@@ -272,24 +267,6 @@ class ZoneZ(hland_parameters.ParameterComplete):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 
-class ZRelP(parametertools.Parameter):
-    """Subbasin-wide reference elevation level for precipitation [100m]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
-
-
-class ZRelT(parametertools.Parameter):
-    """Subbasin-wide reference elevation level for temperature [100m]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
-
-
-class ZRelE(parametertools.Parameter):
-    """Subbasin-wide reference elevation level for evaporation [100m]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
-
-
 class PCorr(hland_parameters.ParameterComplete):
     """General precipitation correction factor [-]."""
 
@@ -318,50 +295,18 @@ class SfCF(hland_parameters.ParameterComplete):
     INIT = 1.0
 
 
+class TCorr(hland_parameters.ParameterNoGlacier):
+    """General temperature correction addend [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    INIT = 0.0
+
+
 class TCAlt(hland_parameters.ParameterComplete):
     """Elevation correction factor for temperature [-1°C/100m]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
     INIT = 0.6
-
-
-class ECorr(hland_parameters.ParameterNoGlacier):
-    """General evaporation correction factor [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
-    INIT = 1.0
-
-
-class ECAlt(hland_parameters.ParameterNoGlacier):
-    """Elevation correction factor for evaporation [-1/100m]."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
-    INIT = 0.1
-
-
-class EPF(hland_parameters.ParameterNoGlacier):
-    """Decrease in potential evaporation due to precipitation [T/mm]."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, False, (0.0, None)
-
-
-class ETF(hland_parameters.ParameterNoGlacier):
-    """Temperature factor for evaporation [1/°C]."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
-    INIT = 0.1
-
-
-class ERed(hland_parameters.ParameterSoil):
-    """Factor for restricting actual to potential evaporation [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
-
-
-class TTIce(hland_parameters.ParameterLake):
-    """Temperature threshold for lake evaporation [°C]."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 
 class IcMax(hland_parameters.ParameterInterception):
@@ -529,7 +474,7 @@ arguments are given, which is ambiguous.
 
     @staticmethod
     @functools.lru_cache()
-    def _lognormal(sclass, scale: float) -> Vector[float]:
+    def _lognormal(sclass, scale: float) -> VectorFloat:
         values = numpy.ones(sclass, dtype=float)
         if scale > 0.0:
             for idx in range(sclass):
@@ -917,23 +862,23 @@ arguments are given, which is ambiguous.
             self._keywordarguments.add(*tuple(kwargs.items())[0])
         try:
             if "n_zones" in kwargs:
-                args = [self._prepare_nzones(kwargs.pop("n_zones"))]
+                args = (self._prepare_nzones(kwargs.pop("n_zones")),)
             elif "d_height" in kwargs:
-                args = [self._prepare_dheight(kwargs.pop("d_height"))]
+                args = (self._prepare_dheight(kwargs.pop("d_height")),)
             super().__call__(*args, **kwargs)
         except BaseException as exc:
             self._keywordarguments.clear()
             raise exc
 
-    def _prepare_nzones(self, nzones: int) -> Matrix[float]:
+    def _prepare_nzones(self, nzones: int) -> MatrixFloat:
         return self._prepare(self.subpars.nmbzones.value * (nzones,))
 
-    def _prepare_dheight(self, dheight: float) -> Matrix[float]:
+    def _prepare_dheight(self, dheight: float) -> MatrixFloat:
         zonez = self.subpars.zonez.values
         nzones = (numpy.sum((z > zonez) * (zonez >= (z - dheight))) for z in zonez)
         return self._prepare(tuple(max(n, 1) for n in nzones))
 
-    def _prepare(self, nzones: Tuple[int, ...]) -> Matrix[float]:
+    def _prepare(self, nzones: Tuple[int, ...]) -> MatrixFloat:
         nmbzones = self.subpars.nmbzones.value
         zonearea = self.subpars.zonearea.value
         types_ = self.subpars.zonetype.value
@@ -1178,13 +1123,6 @@ class FC(hland_parameters.ParameterSoil):
     INIT = 200
 
 
-class LP(hland_parameters.ParameterSoil):
-    """Relative limit for potential evaporation [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
-    INIT = 0.9
-
-
 class Beta(hland_parameters.ParameterSoil):
     """Nonlinearity parameter of the soil routine [-]."""
 
@@ -1361,7 +1299,8 @@ class K0(hland_parameters.ParameterUpperZone):
 
     NDIM, TYPE, TIME, SPAN = 1, float, False, (None, None)
 
-    # CONTROLPARAMETERS = (K1,)   defined below
+    # defined at the bottom of the file:
+    CONTROLPARAMETERS: Tuple[Type[K1]]
 
     def trim(self, lower=None, upper=None):
         r"""Trim |K0| following :math:`K^* \leq K0 \leq K1` with
@@ -1414,7 +1353,8 @@ class K1(hland_parameters.ParameterUpperZone):
 
     NDIM, TYPE, TIME, SPAN = 1, float, False, (None, None)
 
-    # CONTROLPARAMETERS = (K0, K2,)   defined below
+    # defined at the bottom of the file:
+    CONTROLPARAMETERS: Tuple[Type[K0], Type[K2]]
     FIXEDPARAMETERS = (hland_fixed.K1L,)
 
     def trim(self, lower=None, upper=None):
@@ -1496,7 +1436,8 @@ class K2(hland_parameters.ParameterUpperZone):
 
     NDIM, TYPE, TIME, SPAN = 1, float, False, (None, None)
 
-    # CONTROLPARAMETERS = (K1, K3,)   defined below
+    # defined at the bottom of the file:
+    CONTROLPARAMETERS: Tuple[Type[K1], Type[K3]]
     FIXEDPARAMETERS = (hland_fixed.K1L,)
 
     def trim(self, lower=None, upper=None):

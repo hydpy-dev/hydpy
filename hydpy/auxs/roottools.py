@@ -7,11 +7,10 @@ of the mathematical algorithms.
 """
 
 # import...
-# ...from standard library
-from typing import *
 
 # ...from HydPy
 from hydpy.core import modeltools
+from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
     from hydpy.cythons import rootutils

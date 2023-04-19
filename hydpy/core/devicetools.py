@@ -78,7 +78,6 @@ import copy
 import itertools
 import operator
 import warnings
-from typing import *
 
 # ...from site-packages
 import numpy
@@ -89,6 +88,7 @@ from hydpy.core import exceptiontools
 from hydpy.core import masktools
 from hydpy.core import objecttools
 from hydpy.core import printtools
+from hydpy.core import propertytools
 from hydpy.core import sequencetools
 from hydpy.core import seriestools
 from hydpy.core import timetools
@@ -108,6 +108,8 @@ else:
 
 TypeDevice = TypeVar("TypeDevice", bound="Device")
 TypeDevices = TypeVar("TypeDevices", bound="Devices[Any]")
+NodeOrElement = Union["Node", "Element"]
+TypeNodeElement = TypeVar("TypeNodeElement", "Node", "Element", NodeOrElement)
 
 NodesConstrArg = MayNonerable2["Node", str]
 ElementsConstrArg = MayNonerable2["Element", str]
@@ -260,11 +262,12 @@ class FusedVariable:
 
     Using class |FusedVariable| is easiest to explain by a concrete example.  Assume we
     use |conv_v001| to interpolate the air temperature for a specific location.  We use
-    this temperature as input to the |evap_fao56| model, which requires this and other
-    meteorological data to calculate potential evapotranspiration.  Further, we pass
-    the estimated potential evapotranspiration as input to |lland_v1| for calculating
-    the actual evapotranspiration, which receives it through a submodel instance of
-    |evap_io|.  Hence, we need to connect the output sequence
+    this temperature as input to an |meteo_temp_io| model, which passes it to an
+    |evap_fao56| model, which requires this and other meteorological data to calculate
+    potential evapotranspiration.  Further, we pass the estimated potential
+    evapotranspiration as input to |lland_v1| for calculating the actual
+    evapotranspiration, which receives it through a submodel instance of |evap_io|.
+    Hence, we need to connect the output sequence
     |evap_fluxes.MeanReferenceEvapotranspiration| of |evap_fao56| with the input
     sequence |evap_inputs.ReferenceEvapotranspiration| of |evap_io|.
 
@@ -275,22 +278,22 @@ class FusedVariable:
     Additionally, |lland_v1| requires temperature data itself for modelling snow
     processes, introducing the problem that we need to use the same data (the output of
     |conv_v001|) as the input of two differently named input sequences
-    (|evap_inputs.AirTemperature| and |lland_inputs.TemL| for |evap_fao56| and
+    (|meteo_inputs.Temperature| and |lland_inputs.TemL| for |meteo_temp_io| and
     |lland_v1|, respectively).
 
     We need to create two |FusedVariable| objects, for our concrete example.  `E`
     combines |evap_fluxes.MeanReferenceEvapotranspiration| and
     |evap_inputs.ReferenceEvapotranspiration| and `T` combines
-    |evap_inputs.AirTemperature| and |lland_inputs.TemL| (for convenience, we import
+    |meteo_inputs.Temperature| and |lland_inputs.TemL| (for convenience, we import
     their globally available aliases):
 
     >>> from hydpy import FusedVariable
     >>> from hydpy.inputs import (
-    ...     evap_ReferenceEvapotranspiration, evap_AirTemperature, lland_TemL)
+    ...     evap_ReferenceEvapotranspiration, meteo_Temperature, lland_TemL)
     >>> from hydpy.outputs import evap_MeanReferenceEvapotranspiration
     >>> E = FusedVariable(
     ...     "E", evap_MeanReferenceEvapotranspiration, evap_ReferenceEvapotranspiration)
-    >>> T = FusedVariable("T", evap_AirTemperature, lland_TemL)
+    >>> T = FusedVariable("T", meteo_Temperature, lland_TemL)
 
     Now we can construct the network:
 
@@ -323,9 +326,12 @@ class FusedVariable:
     >>> model_conv.parameters.control.maxnmbinputs(1)
     >>> model_conv.parameters.update()
     >>> conv.model = model_conv
-    >>> evap.model = prepare_model("evap_fao56")
+    >>> model = prepare_model("evap_fao56")
+    >>> model.tempmodel = prepare_model("meteo_temp_io")
+    >>> evap.model = model
     >>> model = prepare_model("lland_v1")
-    >>> model.petmodel = prepare_model("evap_io")
+    >>> model.aetmodel = prepare_model("evap_minhas")
+    >>> model.aetmodel.petmodel = prepare_model("evap_io")
     >>> lland.model = model
 
     We assign a temperature value to node `t1`:
@@ -340,13 +346,13 @@ class FusedVariable:
     sim(-273.15)
 
     Without further configuration, |evap_fao56| cannot perform any simulation steps.
-    Hence, we just call its |Model.load_data| method to show that its input sequence
-    |evap_inputs.AirTemperature| is well connected to the |Sim| sequence of node `t2`
-    and receives the correct data:
+    Hence, we just call its |Model.load_data| method to show that the input sequence
+    |meteo_inputs.Temperature| of its submodel is well connected to the |Sim| sequence
+    of node `t2` and receives the correct data:
 
-    >>> evap.model.load_data()
-    >>> evap.model.sequences.inputs.airtemperature
-    airtemperature(-273.15)
+    >>> evap.model.load_data(0)
+    >>> evap.model.tempmodel.sequences.inputs.temperature
+    temperature(-273.15)
 
     The output sequence |evap_fluxes.MeanReferenceEvapotranspiration| is also well
     connected.  A call to method |Model.update_outputs| passes its (manually set) value
@@ -361,10 +367,10 @@ class FusedVariable:
     |evap_inputs.ReferenceEvapotranspiration| receive the current values of nodes `t2`
     and `e`:
 
-    >>> lland.model.load_data()
+    >>> lland.model.load_data(0)
     >>> lland.model.sequences.inputs.teml
     teml(-273.15)
-    >>> lland.model.petmodel.sequences.inputs.referenceevapotranspiration
+    >>> lland.model.aetmodel.petmodel.sequences.inputs.referenceevapotranspiration
     referenceevapotranspiration(999.9)
 
     When defining fused variables, class |FusedVariable| performs some registration
@@ -373,7 +379,7 @@ class FusedVariable:
     once, even when defined in different selection files repeatedly.  Hence, when we
     repeat the definition from above, we get the same object:
 
-    >>> Test = FusedVariable("T", evap_AirTemperature, lland_TemL)
+    >>> Test = FusedVariable("T", meteo_Temperature, lland_TemL)
     >>> T is Test
     True
 
@@ -384,14 +390,14 @@ class FusedVariable:
     Traceback (most recent call last):
     ...
     ValueError: The sequences combined by a FusedVariable object cannot be changed.  \
-The already defined sequences of the fused variable `T` are `evap_AirTemperature and \
-lland_TemL` instead of `hland_T and lland_TemL`.  Keep in mind, that `name` is the \
-unique identifier for fused variable instances.
+The already defined sequences of the fused variable `T` are `lland_TemL and \
+meteo_Temperature` instead of `hland_T and lland_TemL`.  Keep in mind, that `name` is \
+the unique identifier for fused variable instances.
 
     Defining additional fused variables with the same member sequences is not advisable
     but is allowed:
 
-    >>> Temp = FusedVariable("Temp", evap_AirTemperature, lland_TemL)
+    >>> Temp = FusedVariable("Temp", meteo_Temperature, lland_TemL)
     >>> T is Temp
     False
 
@@ -409,7 +415,7 @@ unique identifier for fused variable instances.
     >>> FusedVariable.get_registry()
     ()
     >>> t2.variable
-    FusedVariable("T", evap_AirTemperature, lland_TemL)
+    FusedVariable("T", lland_TemL, meteo_Temperature)
 
     .. testsetup::
 
@@ -1059,7 +1065,7 @@ conflict with using their names as identifiers.
             raise KeyError(f"No {device} named `{name}` available.") from None
 
     def __iter__(self) -> Iterator[TypeDevice]:
-        for (_, device) in sorted(self._name2device.items()):
+        for _, device in sorted(self._name2device.items()):
             yield device
 
     def __contains__(self, value: object) -> bool:
@@ -1103,7 +1109,7 @@ conflict with using their names as identifiers.
                 pass
         return self
 
-    def __compare(self, other: object, func: Callable[[object, object], bool]) -> bool:
+    def __compare(self, other: object, func: Callable[[Any, Any], bool]) -> bool:
         if isinstance(other, type(self)):
             return func(set(self), set(other))
         return NotImplemented
@@ -1393,7 +1399,7 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
         if auxfiler:
             auxfiler.write(parameterstep=parameterstep, simulationstep=simulationstep)
         for element in printtools.progressbar(self):
-            element.model.parameters.save_controls(
+            element.model.save_controls(
                 parameterstep=parameterstep,
                 simulationstep=simulationstep,
                 auxfiler=auxfiler,
@@ -1576,7 +1582,7 @@ class Device:
         """To be overridden."""
 
     @classmethod
-    def query_all(cls) -> Devices[Device]:
+    def query_all(cls) -> Devices[Self]:
         """Get all |Node| or |Element| objects initialised so far.
 
         See the main documentation on module |devicetools| for further information.
@@ -1584,7 +1590,7 @@ class Device:
         return cls.get_handlerclass()(*_registry[cls].values())
 
     @classmethod
-    def extract_new(cls) -> Devices[Device]:
+    def extract_new(cls) -> Devices[Self]:
         """Gather all "new" |Node| or |Element| objects.
 
         See the main documentation on module |devicetools| for further information.
@@ -1670,8 +1676,7 @@ a valid variable identifier.  ...
                 f"`{name}` of type `{type(name).__name__}`"
             )
 
-    @property
-    def keywords(self) -> Keywords:
+    def _get_keywords(self) -> Keywords:
         """Keywords describing the actual |Node| or |Element| object.
 
         The keywords are contained within a |Keywords| object:
@@ -1704,14 +1709,16 @@ a valid variable identifier.  ...
         """
         return self._keywords
 
-    @keywords.setter
-    def keywords(self, keywords: Mayberable1[str]) -> None:
+    def _set_keywords(self, keywords: MayNonerable1[str]) -> None:
         keywords = tuple(objecttools.extract(keywords, (str,), True))
         self._keywords.update(*keywords)
 
-    @keywords.deleter
-    def keywords(self) -> None:
+    def _del_keywords(self) -> None:
         self._keywords.clear()
+
+    keywords = propertytools.Property(
+        fget=_get_keywords, fset=_set_keywords, fdel=_del_keywords
+    )
 
     def __str__(self) -> str:
         return self.name
@@ -1790,9 +1797,7 @@ following error occurred: Adding devices to immutable Elements objects is not al
                 f"`name` is the unique identifier of node objects."
             )
         if keywords is not None:
-            self.keywords = keywords  # type: ignore
-            # due to internal type conversion
-            # see issue https://github.com/python/mypy/issues/3004
+            self.keywords = keywords
 
     @classmethod
     def get_handlerclass(cls) -> Type[Nodes]:
@@ -2239,8 +2244,8 @@ Attribute timegrids of module `pub` is not defined at the moment.
                     )
                     period = "15d" if stepsize.startswith("m") else "12h"
                     ps.index += timetools.Period(period).timedelta
-                    ps = ps.rename(columns=dict(series=label_))
-                kwargs = dict(label=label_, ax=pyplot.gca())
+                    ps = ps.rename(columns={"series": label_})
+                kwargs = {"label": label_, "ax": pyplot.gca()}
                 if color is not None:
                     kwargs["color"] = color
                 if linestyle is not None:
@@ -2566,19 +2571,19 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
             )
             self._model = None
             delattr(self, "new_instance")
-        self.keywords = keywords  # type: ignore
+        self.keywords = keywords
         if inlets is not None:
-            self.inlets = inlets  # type: ignore
+            self.inlets = inlets
         if outlets is not None:
-            self.outlets = outlets  # type: ignore
+            self.outlets = outlets
         if receivers is not None:
-            self.receivers = receivers  # type: ignore
+            self.receivers = receivers
         if senders is not None:
-            self.senders = senders  # type: ignore
+            self.senders = senders
         if inputs is not None:
-            self.inputs = inputs  # type: ignore
+            self.inputs = inputs
         if outputs is not None:
-            self.outputs = outputs  # type: ignore
+            self.outputs = outputs
         # due to internal type conversion
         # see issue https://github.com/python/mypy/issues/3004
 
@@ -2602,14 +2607,12 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
             nodegroup: Elements = getattr(node, targetelements)
             nodegroup.add_device(self, force=True)
 
-    @property
-    def inlets(self) -> Nodes:
+    def _get_inlets(self) -> Nodes:
         """Group of |Node| objects from which the handled |Model| object queries its
         "upstream" input values (e.g. inflow)."""
         return self._inlets
 
-    @inlets.setter
-    def inlets(self, values: NodesConstrArg) -> None:
+    def _set_inlets(self, values: NodesConstrArg) -> None:
         self.__update_group(
             values,
             targetnodes="_inlets",
@@ -2617,14 +2620,14 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
             incompatiblenodes=("_outlets", "_inputs", "_outputs"),
         )
 
-    @property
-    def outlets(self) -> Nodes:
+    inlets = propertytools.Property(fget=_get_inlets, fset=_set_inlets)
+
+    def _get_outlets(self) -> Nodes:
         """Group of |Node| objects to which the handled |Model| object passes its
         "downstream" output values (e.g. outflow)."""
         return self._outlets
 
-    @outlets.setter
-    def outlets(self, values: NodesConstrArg) -> None:
+    def _set_outlets(self, values: NodesConstrArg) -> None:
         self.__update_group(
             values,
             targetnodes="_outlets",
@@ -2632,14 +2635,14 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
             incompatiblenodes=("_inlets", "_inputs", "_outputs"),
         )
 
-    @property
-    def receivers(self) -> Nodes:
+    outlets = propertytools.Property(fget=_get_outlets, fset=_set_outlets)
+
+    def _get_receivers(self) -> Nodes:
         """Group of |Node| objects from which the handled |Model| object queries its
         "remote" information values (e.g. discharge at a remote downstream)."""
         return self._receivers
 
-    @receivers.setter
-    def receivers(self, values: NodesConstrArg) -> None:
+    def _set_receivers(self, values: NodesConstrArg) -> None:
         self.__update_group(
             values,
             targetnodes="_receivers",
@@ -2647,14 +2650,14 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
             incompatiblenodes=("_senders", "_inputs", "_outputs"),
         )
 
-    @property
-    def senders(self) -> Nodes:
+    receivers = propertytools.Property(fget=_get_receivers, fset=_set_receivers)
+
+    def _get_senders(self) -> Nodes:
         """Group of |Node| objects to which the handled |Model| object passes its
         "remote" information values (e.g. water level of a |dam| model)."""
         return self._senders
 
-    @senders.setter
-    def senders(self, values: NodesConstrArg) -> None:
+    def _set_senders(self, values: NodesConstrArg) -> None:
         self.__update_group(
             values,
             targetnodes="_senders",
@@ -2662,15 +2665,15 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
             incompatiblenodes=("_receivers", "_inputs", "_outputs"),
         )
 
-    @property
-    def inputs(self) -> Nodes:
+    senders = propertytools.Property(fget=_get_senders, fset=_set_senders)
+
+    def _get_inputs(self) -> Nodes:
         """Group of |Node| objects from which the handled |Model| object queries its
         "external" input values instead of reading them from files (e.g. interpolated
         precipitation)."""
         return self._inputs
 
-    @inputs.setter
-    def inputs(self, values: NodesConstrArg) -> None:
+    def _set_inputs(self, values: NodesConstrArg) -> None:
         self.__update_group(
             values,
             targetnodes="_inputs",
@@ -2684,15 +2687,15 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
             ),
         )
 
-    @property
-    def outputs(self) -> Nodes:
+    inputs = propertytools.Property(fget=_get_inputs, fset=_set_inputs)
+
+    def _get_outputs(self) -> Nodes:
         """Group of |Node| objects to which the handled |Model| object passes its
         "internal" output values, available via sequences of type |FluxSequence| or
         |StateSequence| (e.g. potential evaporation)."""
         return self._outputs
 
-    @outputs.setter
-    def outputs(self, values: NodesConstrArg) -> None:
+    def _set_outputs(self, values: NodesConstrArg) -> None:
         self.__update_group(
             values,
             targetnodes="_outputs",
@@ -2705,6 +2708,8 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
                 "_inputs",
             ),
         )
+
+    outputs = propertytools.Property(fget=_get_outputs, fset=_set_outputs)
 
     @classmethod
     def get_handlerclass(cls) -> Type[Elements]:
@@ -2788,19 +2793,23 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
         if model:
             return model
         raise exceptiontools.AttributeNotReady(
-            f"The model object of element `{self.name}` has "
-            f"been requested but not been prepared so far."
+            f"The model object of element `{self.name}` has been requested but not "
+            f"been prepared so far."
         )
 
     @model.setter
     def model(self, model: modeltools.Model) -> None:
         self._model = model
-        model.element = self
+        if exceptiontools.getattr_(model, "element", None) is not self:
+            model.element = self
         model.connect()
 
     @model.deleter
     def model(self) -> None:
-        self._model = None
+        if (model := self._model) is not None:
+            self._model = None
+            if exceptiontools.getattr_(model, "element", None) is self:
+                del model.element
 
     def prepare_model(self, clear_registry: bool = True) -> None:
         """Load the control file of the actual |Element| object, initialise its |Model|
@@ -2895,20 +2904,16 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
     def prepare_allseries(self, allocate_ram: bool = True, jit: bool = False) -> None:
         """Call method |Model.prepare_allseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.prepare_allseries(allocate_ram=allocate_ram, jit=jit)
-        for submodel in self.model.find_submodels().values():
-            submodel.prepare_allseries(allocate_ram=allocate_ram, jit=jit)
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.prepare_allseries(allocate_ram=allocate_ram, jit=jit)
 
     def prepare_inputseries(
         self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
     ) -> None:
         """Call method |Model.prepare_inputseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.prepare_inputseries(
-            allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
-        )
-        for submodel in self.model.find_submodels().values():
-            submodel.prepare_inputseries(
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.prepare_inputseries(
                 allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
             )
 
@@ -2917,99 +2922,84 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
     ) -> None:
         """Call method |Model.prepare_factorseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.prepare_factorseries(allocate_ram=allocate_ram, write_jit=write_jit)
-        for submodel in self.model.find_submodels().values():
-            submodel.prepare_factorseries(
-                allocate_ram=allocate_ram, write_jit=write_jit
-            )
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.prepare_factorseries(allocate_ram=allocate_ram, write_jit=write_jit)
 
     def prepare_fluxseries(
         self, allocate_ram: bool = True, write_jit: bool = False
     ) -> None:
         """Call method |Model.prepare_fluxseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.prepare_fluxseries(allocate_ram=allocate_ram, write_jit=write_jit)
-        for submodel in self.model.find_submodels().values():
-            submodel.prepare_fluxseries(allocate_ram=allocate_ram, write_jit=write_jit)
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.prepare_fluxseries(allocate_ram=allocate_ram, write_jit=write_jit)
 
     def prepare_stateseries(
         self, allocate_ram: bool = True, write_jit: bool = False
     ) -> None:
         """Call method |Model.prepare_stateseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.prepare_stateseries(allocate_ram=allocate_ram, write_jit=write_jit)
-        for submodel in self.model.find_submodels().values():
-            submodel.prepare_stateseries(allocate_ram=allocate_ram, write_jit=write_jit)
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.prepare_stateseries(allocate_ram=allocate_ram, write_jit=write_jit)
 
     def load_allseries(self) -> None:
         """Call method |Model.load_allseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.load_allseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.load_allseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.load_allseries()
 
     def load_inputseries(self) -> None:
         """Call method |Model.load_inputseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.load_inputseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.load_inputseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.load_inputseries()
 
     def load_factorseries(self) -> None:
         """Call method |Model.load_factorseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.load_factorseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.load_factorseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.load_factorseries()
 
     def load_fluxseries(self) -> None:
         """Call method |Model.load_fluxseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.load_fluxseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.load_fluxseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.load_fluxseries()
 
     def load_stateseries(self) -> None:
         """Call method |Model.load_stateseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.load_stateseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.load_stateseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.load_stateseries()
 
     def save_allseries(self) -> None:
         """Call method |Model.save_allseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.save_allseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.save_allseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.save_allseries()
 
     def save_inputseries(self) -> None:
         """Call method |Model.save_inputseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.save_inputseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.save_inputseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.save_inputseries()
 
     def save_factorseries(self) -> None:
         """Call method |Model.save_factorseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.save_factorseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.save_factorseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.save_factorseries()
 
     def save_fluxseries(self) -> None:
         """Call method |Model.save_fluxseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.save_fluxseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.save_fluxseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.save_fluxseries()
 
     def save_stateseries(self) -> None:
         """Call method |Model.save_stateseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.save_stateseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.save_stateseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.save_stateseries()
 
     def _plot_series(
         self,
@@ -3069,7 +3059,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
                 label_ = f"{label_}, averaged"
             else:
                 series = sequence.evalseries
-            kwargs = dict(label=label_, ax=pyplot.gca())
+            kwargs = {"label": label_, "ax": pyplot.gca()}
             if color is not None:
                 kwargs["color"] = color
             if linestyle is not None:
@@ -3119,8 +3109,8 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
 
         Without any arguments, |Element.plot_inputseries| prints the time-series of all
         input sequences handled by its |Model| object directly to the screen (in our
-        example, |hland_inputs.P|, |hland_inputs.T|, |hland_inputs.TN|, and
-        |hland_inputs.EPN| of application model |hland_v1|):
+        example, |hland_inputs.P|, |hland_inputs.T|, |evap_inputs.NormalAirTemperature|,
+        and |evap_inputs.NormalEvapotranspiration| of application model |hland_v1|):
 
         >>> land = hp.elements.land_dill
         >>> figure = land.plot_inputseries()
@@ -3285,10 +3275,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
                     group = getattr(self, groupname, None)
                     if group:
                         subprefix = f"{blanks}{groupname}="
-                        # pylint: disable=not-an-iterable
-                        # because pylint is wrong
                         nodes = [str(node) for node in group]
-                        # pylint: enable=not-an-iterable
                         line = objecttools.assignrepr_list(nodes, subprefix, width=70)
                         lines.append(line + ",")
                 if self.keywords:

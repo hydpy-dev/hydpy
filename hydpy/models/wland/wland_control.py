@@ -61,18 +61,18 @@ class NU(parametertools.Parameter):
     def __call__(self, *args, **kwargs):
         old = exceptiontools.getattr_(self, "value", None)
         super().__call__(*args, **kwargs)
-        new = self.__hydpy__get_value__()
+        new = self._get_value()
         if new != old:
             for subpars in self.subpars.pars.model.parameters:
                 for par in subpars:
                     if (par.NDIM == 1) and (
                         not isinstance(par, parametertools.MonthParameter)
                     ):
-                        par.__hydpy__set_shape__(new)
+                        par._set_shape(new)
             for subseqs in self.subpars.pars.model.sequences:
                 for seq in subseqs:
                     if seq.NDIM == 1:
-                        seq.__hydpy__set_shape__(new)
+                        seq._set_shape(new)
 
 
 class LT(parametertools.NameParameter):
@@ -92,12 +92,7 @@ class LT(parametertools.NameParameter):
        CONIFER, DECIDIOUS, MIXED)
     """
 
-    NDIM, TYPE, TIME = 1, int, None
-    SPAN = (
-        min(wland_constants.LANDUSE_CONSTANTS.values()),
-        max(wland_constants.LANDUSE_CONSTANTS.values()),
-    )
-    CONSTANTS = wland_constants.LANDUSE_CONSTANTS
+    constants = wland_constants.LANDUSE_CONSTANTS
 
 
 class AUR(parametertools.Parameter):
@@ -110,21 +105,6 @@ class CP(parametertools.Parameter):
     """Factor for correcting precipitation [-]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-
-
-class CPETL(wland_parameters.LanduseMonthParameter):
-    """Factor for converting general potential evapotranspiration (usually grass
-    reference evapotranspiration) to land-use-specific potential evapotranspiration
-    [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
-
-
-class CPES(parametertools.MonthParameter):
-    """Factor for converting general potential evapotranspiration (usually grass
-    reference evapotranspiration) to potential evaporation from water areas [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
 class LAI(wland_parameters.LanduseMonthParameter):

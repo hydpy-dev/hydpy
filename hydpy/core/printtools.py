@@ -3,11 +3,11 @@
 modifying how information is printed."""
 # import...
 # ...from standard library
+from __future__ import annotations
 import os
 import sys
 import tempfile
 import time
-from typing import *
 
 # ...from HydPy
 import hydpy

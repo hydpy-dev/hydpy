@@ -8,7 +8,6 @@ import inspect
 import os
 import pkgutil
 import types
-from typing import *
 
 # ...from site-packages
 import black
@@ -18,6 +17,7 @@ import hydpy
 from hydpy import config
 from hydpy import models
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class LazyInOutSequenceImport:
@@ -48,8 +48,8 @@ class LazyInOutSequenceImport:
     >>> type(hland_T)
     <class 'hydpy.core.aliastools.LazyInOutSequenceImport'>
 
-    After accessing an attribute, its type changed to |type|, which is the meta-class
-    of all input and output sequences:
+    After accessing an attribute, its type changed to |abc.ABCMeta|, which is the
+    meta-class of all input and output sequences:
 
     >>> hland_T.__name__
     'T'

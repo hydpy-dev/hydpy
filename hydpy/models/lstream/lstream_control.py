@@ -4,7 +4,6 @@
 # import...
 # ...from standard library
 import itertools
-from typing import *
 
 # ...from HydPy
 from hydpy.core import objecttools
@@ -164,8 +163,8 @@ class VG2FG(interptools.SimpleInterpolator):
     0.0  1.0  0.0
     1.0  1.0  0.0
 
-    Alternatively, the keyword `timedelay` allows defining the flow velocity via the
-    number of hours it takes for a flood wave to travel through the whole channel:
+    Alternatively, the keyword `timedelay` allows for defining the flow velocity via
+    the number of hours it takes for a flood wave to travel through the whole channel:
 
     >>> laen(100.0)
     >>> vg2fg(timedelay=27.77778)
@@ -179,8 +178,8 @@ class VG2FG(interptools.SimpleInterpolator):
     0.0  1.0  0.0
     1.0  1.0  0.0
 
-    For a ten times shorter channel, the same time delay implies a ten times slower
-    flow velocity:
+    The same time delay indicates a ten times slower flow velocity for a ten times
+    shorter channel:
 
     >>> laen(10.0)
     >>> vg2fg(timedelay=27.77778)
@@ -190,16 +189,24 @@ class VG2FG(interptools.SimpleInterpolator):
     x    y    dy/dx
     0.0  0.1  0.0
     1.0  0.1  0.0
+
+    You must supply precisely one argument:
+
+    >>> vg2fg()
+    Traceback (most recent call last):
+    ...
+    ValueError: parameter `vg2fg` of element `?` requires exactly one argument but \
+`0` are given.
     """
 
     XLABEL = "VG [million m³]"
     YLABEL = "FG [m/s]"
 
     _simple_ann = anntools.ANN(
-        weights_input=(0.0,),
-        weights_output=(0.0,),
-        intercepts_hidden=((0.0,),),
-        intercepts_output=(0.0,),
+        weights_input=[[0.0]],
+        weights_output=[[0.0]],
+        intercepts_hidden=[[0.0]],
+        intercepts_output=[0.0],
     )
     _keyword: Optional[Literal["velocity", "timedelay"]] = None
 
@@ -217,22 +224,29 @@ class VG2FG(interptools.SimpleInterpolator):
 
     def __call__(
         self,
-        algorithm: Optional[float] = None,
+        algorithm: Optional[interptools.InterpAlgorithm] = None,
         velocity: Optional[float] = None,
-        timedelay: Optional[interptools.InterpAlgorithm] = None,
+        timedelay: Optional[float] = None,
     ) -> None:
+        nmb = (algorithm is not None) + (velocity is not None) + (timedelay is not None)
+        if nmb != 1:
+            raise ValueError(
+                f"parameter {objecttools.elementphrase(self)} requires exactly one "
+                f"argument but `{nmb}` are given."
+            )
         self._keyword = None
-        if velocity is not None:
-            self._keyword = "velocity"
-        elif timedelay is not None:
-            self._keyword = "timedelay"
-            velocity = self._convert_velocity_timedelay(timedelay)
-        if velocity is not None:
+        if algorithm is None:
+            if velocity is None:
+                assert timedelay is not None
+                velocity = self._convert_velocity_timedelay(timedelay)
+                self._keyword = "timedelay"
+            else:
+                self._keyword = "velocity"
             algorithm = anntools.ANN(
-                weights_input=(0.0,),
-                weights_output=(0.0,),
-                intercepts_hidden=((0.0,),),
-                intercepts_output=(velocity,),
+                weights_input=[[0.0]],
+                weights_output=[[0.0]],
+                intercepts_hidden=[[0.0]],
+                intercepts_output=[velocity],
             )
         super().__call__(algorithm)
 

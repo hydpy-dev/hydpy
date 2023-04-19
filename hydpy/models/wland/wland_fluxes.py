@@ -24,18 +24,6 @@ class PE(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, False
 
 
-class PETL(sequencetools.FluxSequence):
-    """Adjusted potential evapotranspiration of the land areas [mm/T]."""
-
-    NDIM, NUMERIC, SPAN = 1, True, (0.0, None)
-
-
-class PES(sequencetools.FluxSequence):
-    """Adjusted potential evaporation of the surface water area [mm/T]."""
-
-    NDIM, NUMERIC, SPAN = 0, True, (0.0, None)
-
-
 class TF(sequencetools.FluxSequence):
     """Total amount of throughfall [mm/T]."""
 

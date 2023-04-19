@@ -6,7 +6,6 @@
 from __future__ import annotations
 import itertools
 import types
-from typing import *
 
 # ...from HydPy
 import hydpy

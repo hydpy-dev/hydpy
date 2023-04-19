@@ -9,11 +9,11 @@ Features more specific to either parameters or sequences are implemented in modu
 # ...from standard library
 from __future__ import annotations
 import abc
+import contextlib
 import copy
 import inspect
 import textwrap
 import warnings
-from typing import *
 
 # ...from site-packages
 import numpy
@@ -40,6 +40,7 @@ TypeGroup_co = TypeVar(
     "devicetools.Node",
     covariant=True,
 )
+TypeVariable = TypeVar("TypeVariable", bound="Variable")
 TypeVariable_co = TypeVar("TypeVariable_co", bound="Variable", covariant=True)
 TypeFastAccess_co = TypeVar("TypeFastAccess_co", bound="FastAccess", covariant=True)
 
@@ -75,14 +76,13 @@ def trim(self: Variable, lower=None, upper=None) -> None:
     ...     initinfo = 2.0, False
     ...     _CLS_FASTACCESS_PYTHON = FastAccess
 
-    First, we enable the printing of warning messages raised by function
-    |trim|:
+    First, we enable the printing of warning messages raised by function |trim|:
 
     >>> from hydpy import pub
     >>> pub.options.warntrim = True
 
-    When not passing boundary values, function |trim| extracts them from
-    class attribute `SPAN` of the given |Variable| instance, if available:
+    When not passing boundary values, function |trim| extracts them from class
+    attribute `SPAN` of the given |Variable| instance, if available:
 
     >>> var = Var(None)
     >>> var.value = 2.0
@@ -94,8 +94,8 @@ def trim(self: Variable, lower=None, upper=None) -> None:
     >>> var.trim()
     Traceback (most recent call last):
     ...
-    UserWarning: For variable `var` at least one value needed to be trimmed.  \
-The old and the new value(s) are `0.0` and `1.0`, respectively.
+    UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
+and the new value(s) are `0.0` and `1.0`, respectively.
     >>> var
     var(1.0)
 
@@ -103,16 +103,15 @@ The old and the new value(s) are `0.0` and `1.0`, respectively.
     >>> var.trim()
     Traceback (most recent call last):
     ...
-    UserWarning: For variable `var` at least one value needed to be trimmed.  \
-The old and the new value(s) are `4.0` and `3.0`, respectively.
+    UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
+and the new value(s) are `4.0` and `3.0`, respectively.
     >>> var
     var(3.0)
 
-    In the examples above, outlier values are set to the respective
-    boundary value, accompanied by suitable warning messages.  For
-    minimal deviations (defined by function |get_tolerance|), which
-    might be due to precision problems only, outliers are trimmed
-    but not reported:
+    In the examples above, outlier values are set to the respective boundary value,
+    accompanied by suitable warning messages.  For minimal deviations (defined by
+    function |get_tolerance|), which might be due to precision problems only, outliers
+    are trimmed but not reported:
 
     >>> var.value = 1.0 - 1e-15
     >>> var == 1.0
@@ -128,23 +127,23 @@ The old and the new value(s) are `4.0` and `3.0`, respectively.
     >>> var == 3.0
     True
 
-    Use arguments `lower` and `upper` to override the (eventually)
-    available `SPAN` entries:
+    Use arguments `lower` and `upper` to override the (eventually) available `SPAN`
+    entries:
 
     >>> var.trim(lower=4.0)
     Traceback (most recent call last):
     ...
-    UserWarning: For variable `var` at least one value needed to be trimmed.  \
-The old and the new value(s) are `3.0` and `4.0`, respectively.
+    UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
+and the new value(s) are `3.0` and `4.0`, respectively.
 
     >>> var.trim(upper=3.0)
     Traceback (most recent call last):
     ...
-    UserWarning: For variable `var` at least one value needed to be trimmed.  \
-The old and the new value(s) are `4.0` and `3.0`, respectively.
+    UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
+and the new value(s) are `4.0` and `3.0`, respectively.
 
-    Function |trim| interprets both |None| and |numpy.nan| values as if
-    no boundary value exists:
+    Function |trim| interprets both |None| and |numpy.nan| values as if no boundary
+    value exists:
 
     >>> import numpy
     >>> var.value = 0.0
@@ -168,8 +167,8 @@ The old and the new value(s) are `4.0` and `3.0`, respectively.
     >>> var
     var(3.0)
 
-    If a |Variable| subclass does not have (fixed) boundaries, give it
-    either no `SPAN` attribute or a |tuple| containing |None| values:
+    If a |Variable| subclass does not have (fixed) boundaries, give it either no `SPAN`
+    attribute or a |tuple| containing |None| values:
 
     >>> del Var.SPAN
     >>> var.value = 5.0
@@ -182,9 +181,8 @@ The old and the new value(s) are `4.0` and `3.0`, respectively.
     >>> var
     var(5.0)
 
-    The above examples deal with a 0-dimensional |Variable| subclass.
-    The following examples repeat the most relevant examples for a
-    2-dimensional subclass:
+    The above examples deal with a 0-dimensional |Variable| subclass.  The following
+    examples repeat the most relevant examples for a 2-dimensional subclass:
 
     >>> Var.SPAN = 1.0, 3.0
     >>> Var.NDIM = 2
@@ -196,9 +194,8 @@ The old and the new value(s) are `4.0` and `3.0`, respectively.
     >>> var.trim()
     Traceback (most recent call last):
     ...
-    UserWarning: For variable `var` at least one value needed to be trimmed.  \
-The old and the new value(s) are `0.0, 1.0, 2.0` and `1.0, 1.0, 2.0`, \
-respectively.
+    UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
+and the new value(s) are `0.0, 1.0, 2.0` and `1.0, 1.0, 2.0`, respectively.
     >>> var
     var(1.0, 1.0, 2.0)
 
@@ -206,9 +203,8 @@ respectively.
     >>> var.trim()
     Traceback (most recent call last):
     ...
-    UserWarning: For variable `var` at least one value needed to be trimmed.  \
-The old and the new value(s) are `2.0, 3.0, 4.0` and `2.0, 3.0, 3.0`, \
-respectively.
+    UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
+and the new value(s) are `2.0, 3.0, 4.0` and `2.0, 3.0, 3.0`, respectively.
     >>> var
     var(2.0, 3.0, 3.0)
 
@@ -227,25 +223,22 @@ respectively.
     >>> var.trim(lower=[numpy.nan, 3.0, 3.0])
     Traceback (most recent call last):
     ...
-    UserWarning: For variable `var` at least one value needed to be trimmed.  \
-The old and the new value(s) are `0.0, 2.0, 4.0` and `0.0, 3.0, 3.0`, \
-respectively.
+    UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
+and the new value(s) are `0.0, 2.0, 4.0` and `0.0, 3.0, 3.0`, respectively.
 
     >>> var.values = 0.0, 2.0, 4.0
     >>> var.trim(upper=[numpy.nan, 1.0, numpy.nan])
     Traceback (most recent call last):
     ...
-    UserWarning: For variable `var` at least one value needed to be trimmed.  \
-The old and the new value(s) are `0.0, 2.0, 4.0` and `1.0, 1.0, 4.0`, \
-respectively.
+    UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
+and the new value(s) are `0.0, 2.0, 4.0` and `1.0, 1.0, 4.0`, respectively.
 
-    For |Variable| subclasses handling |float| values, setting outliers
-    to the respective boundary value might often be an acceptable approach.
-    However, this is often not the case for subclasses handling |int|
-    values, which often serve as option flags (e.g. to enable/disable
-    a certain hydrological process for different land-use types). Hence,
-    function |trim| raises an exception instead of a warning and does
-    not modify the wrong |int| value:
+    For |Variable| subclasses handling |float| values, setting outliers to the
+    respective boundary value might often be an acceptable approach.  However, this is
+    often not the case for subclasses handling |int| values, which often serve as
+    option flags (e.g. to enable/disable a certain hydrological process for different
+    land-use types). Hence, function |trim| raises an exception instead of a warning
+    and does not modify the wrong |int| value:
 
     >>> Var.TYPE = int
     >>> Var.NDIM = 0
@@ -314,16 +307,14 @@ respectively.
     >>> var.trim()
     Traceback (most recent call last):
     ...
-    ValueError: At least one value of parameter `var` of element `?` \
-is not valid.
+    ValueError: At least one value of parameter `var` of element `?` is not valid.
     >>> var
     var(0, 1, 2)
     >>> var.values = 2, 3, 4
     >>> var.trim()
     Traceback (most recent call last):
      ...
-    ValueError: At least one value of parameter `var` of element `?` \
-is not valid.
+    ValueError: At least one value of parameter `var` of element `?` is not valid.
     >>> var
     var(2, 3, 4)
 
@@ -340,8 +331,8 @@ is not valid.
     >>> Var.TYPE = bool
     >>> var.trim()
 
-    If function |trim| encounters an unmanageable type, it raises an
-    exception like the following:
+    If function |trim| encounters an unmanageable type, it raises an exception like the
+    following:
 
     >>> Var.TYPE = str
     >>> var.trim()
@@ -453,12 +444,12 @@ def _trim_int_nd(self, lower, upper):
 
 
 def get_tolerance(values):
-    """Return some "numerical accuracy" to be expected for the
-    given floating-point value(s).
+    """Return some "numerical accuracy" to be expected for the given floating-point
+    value(s).
 
-    The documentation on function |trim| explains also function
-    |get_tolerance|.  However, note the special case of infinite
-    input values, for which function |get_tolerance| returns zero:
+    The documentation on function |trim| explains also function |get_tolerance|.
+    However, note the special case of infinite input values, for which function
+    |get_tolerance| returns zero:
 
     >>> from hydpy.core.variabletools import get_tolerance
     >>> import numpy
@@ -480,16 +471,16 @@ def get_tolerance(values):
 def _warn_trim(self, oldvalue, newvalue):
     if hydpy.pub.options.warntrim:
         warnings.warn(
-            f"For variable {objecttools.devicephrase(self)} at least one "
-            f"value needed to be trimmed.  The old and the new value(s) "
-            f"are `{objecttools.repr_numbers(oldvalue)}` and "
+            f"For variable {objecttools.devicephrase(self)} at least one value "
+            f"needed to be trimmed.  The old and the new value(s) are "
+            f"`{objecttools.repr_numbers(oldvalue)}` and "
             f"`{objecttools.repr_numbers(newvalue)}`, respectively."
         )
 
 
 class FastAccess:
-    """Used as a surrogate for typed Cython classes handling parameters or
-    sequences when working in pure Python mode."""
+    """Used as a surrogate for typed Cython classes handling parameters or sequences
+    when working in pure Python mode."""
 
     def _get_attribute(self, name, suffix, default=None):
         return getattr(self, f"_{name}_{suffix}", default)
@@ -502,6 +493,17 @@ class FastAccess:
         for key in vars(self).keys():
             if not key.startswith("_"):
                 yield key
+
+    # ToDo: Replace this hack with a Mypy plugin?
+    def __getattr__(self, item: str) -> Any:
+        assert False
+
+    del __getattr__
+
+    def __setattr__(self, key: str, value: Any) -> None:
+        assert False
+
+    del __setattr__
 
 
 class Variable:
@@ -992,11 +994,15 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     )
     INIT: Union[int, float, bool, None] = None
 
-    NOT_DEEPCOPYABLE_MEMBERS: Tuple[str, str, str, str] = (
-        "subvars",
-        "subpars",
-        "subseqs",
-        "fastaccess",
+    _NOT_DEEPCOPYABLE_MEMBERS: Final[FrozenSet[str]] = frozenset(
+        (
+            "subvars",
+            "subpars",
+            "subseqs",
+            "fastaccess",
+            "fastaccess_old",
+            "fastaccess_new",
+        )
     )
     _CLS_FASTACCESS_PYTHON: ClassVar[Type[FastAccess]]
 
@@ -1013,13 +1019,74 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     subvars: SubVariables
     """The subgroup to which the variable belongs."""
 
-    mask = masktools.DefaultMask()
+    _refweights: Optional[Union[parametertools.Parameter, VectorFloat]] = None
+
+    mask = masktools.DefaultMask(
+        doc="The standard mask used by all variables (if not overwritten)."
+    )
+
+    @classmethod
+    @contextlib.contextmanager
+    def modify_refweights(
+        cls, refweights: Optional[parametertools.Parameter]
+    ) -> Generator[None, None, None]:
+        """Eventually, set or modify the reference to a parameter defining the
+        weighting coefficients required for aggregating values.
+
+        The following example demonstrates that changes affect the relevant class only
+        temporarily, but its objects initialised within the "with" block persistently:
+
+        >>> from hydpy.core.variabletools import FastAccess, Variable
+        >>> class Var1(Variable):
+        ...     initinfo = 0.0, True
+        ...     _CLS_FASTACCESS_PYTHON = FastAccess
+        >>> class Var2(Variable):
+        ...     NDIM = 1
+        ...     TYPE = float
+        ...     initinfo = 0.0, True
+        ...     _CLS_FASTACCESS_PYTHON = FastAccess
+        >>> var2 = Var2(None)
+        >>> var2.shape = 3
+        >>> with Var1.modify_refweights(var2):
+        ...     Var1._refweights
+        ...     var1 = Var1(None)
+        ...     var1.refweights
+        var2(0.0, 0.0, 0.0)
+        var2(0.0, 0.0, 0.0)
+        >>> Var1._refweights
+        >>> var1.refweights
+        var2(0.0, 0.0, 0.0)
+
+        Passing |None| does not overwrite previously set references:
+
+        >>> Var1._refweights = var2
+        >>> with Var1.modify_refweights(None):
+        ...     Var1._refweights
+        ...     var1 = Var1(None)
+        ...     var1.refweights
+        var2(0.0, 0.0, 0.0)
+        var2(0.0, 0.0, 0.0)
+        >>> Var1._refweights
+        var2(0.0, 0.0, 0.0)
+        >>> var1.refweights
+        var2(0.0, 0.0, 0.0)
+        """
+        if refweights is None:
+            yield
+        else:
+            old = cls._refweights
+            try:
+                cls._refweights = refweights
+                yield
+            finally:
+                cls._refweights = old
 
     def __init__(self, subvars: SubVariables) -> None:
         self.subvars = subvars
         self.fastaccess = self._CLS_FASTACCESS_PYTHON()
         self.__valueready = False
         self.__shapeready = False
+        self._refweights = type(self)._refweights
 
     def __init_subclass__(cls) -> None:
         super().__init_subclass__()
@@ -1061,7 +1128,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
             args = args[0]
         self.values = args
 
-    def __hydpy__get_value__(self):
+    def _get_value(self):
         """The actual parameter or sequence value(s).
 
         First, we prepare a simple (not fully functional) |Variable| subclass:
@@ -1179,7 +1246,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
             )
         return value
 
-    def __hydpy__set_value__(self, value) -> None:
+    def _set_value(self, value) -> None:
         try:
             value = self._prepare_setvalue(value)
             setattr(self.fastaccess, self.name, value)
@@ -1226,18 +1293,18 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
                 ) from None
         return value
 
-    value = property(fget=__hydpy__get_value__, fset=__hydpy__set_value__)
+    value = property(fget=_get_value, fset=_set_value)
 
     @property
     def values(self):
         """Alias for |Variable.value|."""
-        return self.__hydpy__get_value__()
+        return self._get_value()
 
     @values.setter
     def values(self, values):
-        self.__hydpy__set_value__(values)
+        self._set_value(values)
 
-    def __hydpy__get_shape__(self) -> Tuple[int, ...]:
+    def _get_shape(self) -> Tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
         Note that setting a new |Variable.shape| results in a loss of
@@ -1382,13 +1449,13 @@ as `var` can only be `()`, but `(2,)` is given.
             )
         return ()
 
-    def __hydpy__set_shape__(self, shape: Union[int, Iterable[int]]):
+    def _set_shape(self, shape: Union[int, Tuple[int, ...]]) -> None:
         self.__valueready = False
         self.__shapeready = False
         initvalue, initflag = self.initinfo
         if self.NDIM:
             try:
-                array: numpy.ndarray = numpy.full(shape, initvalue, dtype=self.TYPE)
+                array = numpy.full(shape, initvalue, dtype=self.TYPE)
             except BaseException:
                 setattr(self.fastaccess, self.name, None)
                 objecttools.augment_excmessage(
@@ -1412,7 +1479,7 @@ as `var` can only be `()`, but `(2,)` is given.
         if initflag:
             self.__valueready = True
 
-    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
+    shape = property(fget=_get_shape, fset=_set_shape)
 
     def _raise_wrongshape(self, shape):
         raise ValueError(
@@ -1537,13 +1604,17 @@ its values to a 1-dimensional vector.
         )
 
     @property
-    def refweights(self) -> Union[parametertools.Parameter, Vector[float]]:
+    def refweights(self) -> Union[parametertools.Parameter, VectorFloat]:
         """Reference to a |Parameter| object or a simple vector that defines weighting
         coefficients (e.g. fractional areas) for applying function
-        |Variable.average_values|.  Must be overwritten by subclasses when required."""
+        |Variable.average_values|.
+
+        Must be overwritten by subclasses when required."""
+        if (refweights := self._refweights) is not None:
+            return refweights
         raise AttributeError(
-            f"Variable {objecttools.devicephrase(self)} does "
-            f"not define any weighting coefficients."
+            f"Variable {objecttools.devicephrase(self)} does not define any weighting "
+            f"coefficients."
         )
 
     def average_values(self, *args, **kwargs) -> float:
@@ -1743,12 +1814,14 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             return model.masks
         return self.subvars.vars.masks
 
-    def get_submask(self, *args, **kwargs) -> masktools.CustomMask:
-        """Get a sub-mask of the mask handled by the actual |Variable| object
-        based on the given arguments.
+    def get_submask(
+        self, *args, **kwargs
+    ) -> Union[masktools.CustomMask, masktools.DefaultMask]:
+        """Get a sub-mask of the mask handled by the actual |Variable| object based on
+        the given arguments.
 
-        See the documentation on method |Variable.average_values| for
-        further information.
+        See the documentation on method |Variable.average_values| for further
+        information.
         """
         if args or kwargs:
             masks = self.availablemasks
@@ -1759,13 +1832,12 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                 mask = mask + self._prepare_mask(key, masks, **value)
             if mask not in self.mask:
                 raise ValueError(
-                    f"Based on the arguments `{args}` and `{kwargs}` "
-                    f"the mask `{repr(mask)}` has been determined, "
-                    f"which is not a submask of `{repr(self.mask)}`."
+                    f"Based on the arguments `{args}` and `{kwargs}` the mask "
+                    f"`{repr(mask)}` has been determined, which is not a submask of "
+                    f"`{repr(self.mask)}`."
                 )
-        else:
-            mask = self.mask
-        return mask
+            return mask
+        return self.mask
 
     def _prepare_mask(self, mask, masks, **kwargs):
         mask = masks[mask]
@@ -1775,8 +1847,8 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
     def __deepcopy__(self, memo):
         new = type(self)(None)
-        for (key, value) in vars(self).items():
-            if key not in self.NOT_DEEPCOPYABLE_MEMBERS:
+        for key, value in vars(self).items():
+            if key not in self._NOT_DEEPCOPYABLE_MEMBERS:
                 setattr(new, key, copy.deepcopy(value, memo))
         if self.NDIM:
             new.shape = self.shape
@@ -1823,7 +1895,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
     def _do_math(self, other, methodname, description):
         try:
-            if hasattr(type(other), "__hydpy__get_value__"):
+            if hasattr(type(other), "_get_value"):
                 value = other.value
             else:
                 value = other
@@ -1942,15 +2014,15 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
     def _compare(
         self,
-        other,
+        other: object,
         comparefunc: Callable,
         callingfunc: Literal["lt", "le", "eq", "ne", "ge", "gt"],
     ) -> bool:
         try:
-            vs1 = self.__hydpy__get_value__()
-            try:
-                vs2 = other.__hydpy__get_value__()
-            except AttributeError:
+            vs1 = self._get_value()
+            if isinstance(other, Variable):
+                vs2 = other._get_value()  # pylint: disable=protected-access
+            else:
                 vs2 = numpy.asarray(other)
             if self.NDIM == 0:
                 if numpy.isnan(vs1) and bool(numpy.isnan(vs2)):
@@ -1977,60 +2049,72 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                 f"with object `{other}` of type `{type(other).__name__}`"
             )
 
-    def __lt__(self, other: Variable) -> bool:
-        return numpy.all(
-            self._compare(
-                other=other,
-                comparefunc=lambda vs1, vs2: vs1 < vs2,
-                callingfunc="lt",
-            ),
+    def __lt__(self, other: Union[Variable, float]) -> bool:
+        return bool(
+            numpy.all(
+                self._compare(
+                    other=other,
+                    comparefunc=lambda vs1, vs2: vs1 < vs2,
+                    callingfunc="lt",
+                ),
+            )
         )
 
-    def __le__(self, other: Variable) -> bool:
-        return numpy.all(
-            self._compare(
-                other=other,
-                comparefunc=lambda vs1, vs2: vs1 <= vs2,
-                callingfunc="le",
-            ),
+    def __le__(self, other: Union[Variable, float]) -> bool:
+        return bool(
+            numpy.all(
+                self._compare(
+                    other=other,
+                    comparefunc=lambda vs1, vs2: vs1 <= vs2,
+                    callingfunc="le",
+                ),
+            )
         )
 
-    def __eq__(self, other: Variable) -> bool:
+    def __eq__(self, other: object) -> bool:
         if self is other:
             return True
-        return numpy.all(
-            self._compare(
-                other=other,
-                comparefunc=lambda vs1, vs2: vs1 == vs2,
-                callingfunc="eq",
-            ),
+        return bool(
+            numpy.all(
+                self._compare(
+                    other=other,
+                    comparefunc=lambda vs1, vs2: vs1 == vs2,
+                    callingfunc="eq",
+                ),
+            )
         )
 
-    def __ne__(self, other: Variable) -> bool:
-        return numpy.any(
-            self._compare(
-                other=other,
-                comparefunc=lambda vs1, vs2: vs1 != vs2,
-                callingfunc="ne",
-            ),
+    def __ne__(self, other: object) -> bool:
+        return bool(
+            numpy.any(
+                self._compare(
+                    other=other,
+                    comparefunc=lambda vs1, vs2: vs1 != vs2,
+                    callingfunc="ne",
+                ),
+            )
         )
 
-    def __ge__(self, other: Variable) -> bool:
-        return numpy.all(
-            self._compare(
-                other=other,
-                comparefunc=lambda vs1, vs2: vs1 >= vs2,
-                callingfunc="ge",
-            ),
+    def __ge__(self, other: Union[Variable, float]) -> bool:
+        return bool(
+            numpy.all(
+                self._compare(
+                    other=other,
+                    comparefunc=lambda vs1, vs2: vs1 >= vs2,
+                    callingfunc="ge",
+                ),
+            )
         )
 
-    def __gt__(self, other: Variable) -> bool:
-        return numpy.all(
-            self._compare(
-                other=other,
-                comparefunc=lambda vs1, vs2: vs1 > vs2,
-                callingfunc="gt",
-            ),
+    def __gt__(self, other: Union[Variable, float]) -> bool:
+        return bool(
+            numpy.all(
+                self._compare(
+                    other=other,
+                    comparefunc=lambda vs1, vs2: vs1 > vs2,
+                    callingfunc="gt",
+                ),
+            )
         )
 
     def _typeconversion(self, type_):
@@ -2042,18 +2126,18 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             )
         return type_(self.value)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         if self.NDIM:
             return bool(len(self))
         return bool(self.value)
 
-    def __float__(self):
+    def __float__(self) -> float:
         return self._typeconversion(float)
 
-    def __int__(self):
+    def __int__(self) -> int:
         return self._typeconversion(int)
 
-    def __round__(self, ndigits=0):
+    def __round__(self, ndigits: int = 0):
         return numpy.round(self.value, ndigits)
 
     def __hash__(self) -> int:
@@ -2086,12 +2170,13 @@ class MixinFixedShape:
     """Mixin class for defining variables with a fixed shape."""
 
     SHAPE: Union[Tuple[int, ...]]
+    name: str
 
     def _finalise_connections(self) -> None:
-        super()._finalise_connections()
+        super()._finalise_connections()  # type: ignore[misc]
         self.shape = self.SHAPE
 
-    def __hydpy__get_shape__(self) -> Tuple[int, ...]:
+    def _get_shape(self) -> Tuple[int, ...]:
         """Variables that mix in |MixinFixedShape| are generally initialised with a
         fixed shape.
 
@@ -2117,19 +2202,19 @@ was attempted for element `?`.
         See the documentation on property |Variable.shape| of class |Variable| for
         further information.
         """
-        return super().__hydpy__get_shape__()
+        return super()._get_shape()  # type: ignore[misc]
 
-    def __hydpy__set_shape__(self, shape: Tuple[int, ...]) -> NoReturn:
+    def _set_shape(self, shape: Union[int, Tuple[int, ...]]) -> None:
         oldshape = exceptiontools.getattr_(self, "shape", None)
         if oldshape is None:
-            super().__hydpy__set_shape__(shape)
+            super()._set_shape(shape)  # type: ignore[misc]
         elif shape != oldshape:
             raise AttributeError(
                 f"The shape of variable `{self.name}` cannot be changed but this was "
                 f"attempted for element `{objecttools.devicename(self)}`."
             )
 
-    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
+    shape = property(fget=_get_shape, fset=_set_shape)
 
 
 @overload
@@ -2147,8 +2232,8 @@ def sort_variables(
 
 
 def sort_variables(
-    values: Iterable[Union[Type[TypeVariable_co], Tuple[Type[TypeVariable_co], T]]]
-) -> Tuple[Union[Type[TypeVariable_co], Tuple[Type[TypeVariable_co], T]], ...]:
+    values: Iterable[Union[Type[TypeVariable], Tuple[Type[TypeVariable], T]]]
+) -> Tuple[Union[Type[TypeVariable], Tuple[Type[TypeVariable], T]], ...]:
     """Sort the given |Variable| subclasses by their initialisation order.
 
     When defined in one module, the initialisation order corresponds to the order
@@ -2159,6 +2244,18 @@ def sort_variables(
     >>> from hydpy import classname
     >>> for var in sort_variables([NmbZones, ZoneType, Area]):
     ...     print(classname(var))
+    Area
+    NmbZones
+    ZoneType
+
+    When defined in multiple modules, alphabetical sorting of the modules' filepaths
+    takes priority:
+
+    >>> from hydpy.models.evap.evap_control import NmbHRU, ExcessReduction
+    >>> for var in sort_variables([NmbZones, ZoneType, Area, NmbHRU, ExcessReduction]):
+    ...     print(classname(var))
+    NmbHRU
+    ExcessReduction
     Area
     NmbZones
     ZoneType
@@ -2188,13 +2285,13 @@ sort_variables([(Area, 3), (ZoneType, 2), (Area, 1), (Area, 3)]):
     Area 3
     ZoneType 2
     """
-    counter_value = (
-        (value[0].__hydpy__subclasscounter__, value)
-        if isinstance(value, tuple)
-        else (value.__hydpy__subclasscounter__, value)
-        for value in values
-    )
-    return tuple(value for _, value in sorted(counter_value))
+    modulepath_position_value = []
+    for value in values:
+        variable = value[0] if isinstance(value, tuple) else value
+        modulepath = variable.__module__
+        position = variable.__hydpy__subclasscounter__
+        modulepath_position_value.append((modulepath, position, value))
+    return tuple(value for _, _, value in sorted(modulepath_position_value))
 
 
 class SubVariables(Generic[TypeGroup_co, TypeVariable_co, TypeFastAccess_co]):
@@ -2304,7 +2401,7 @@ named `wrong`.
     _name2variable: Dict[str, TypeVariable_co] = {}
     fastaccess: TypeFastAccess_co
     _cls_fastaccess: Optional[Type[TypeFastAccess_co]] = None
-    _CLS_FASTACCESS_PYTHON: ClassVar[Type[TypeFastAccess_co]]
+    _CLS_FASTACCESS_PYTHON: ClassVar[Type[TypeFastAccess_co]]  # type: ignore[misc]
 
     def __init__(
         self,
@@ -2314,7 +2411,7 @@ named `wrong`.
         self.vars = master
         if cls_fastaccess:
             self._cls_fastaccess = cls_fastaccess
-        self.__hydpy__initialise_fastaccess__()
+        self._init_fastaccess()
         self._name2variable = {}
         for cls in self.CLASSES:
             variable = cls(self)
@@ -2326,7 +2423,7 @@ named `wrong`.
     def name(self) -> str:
         """To be overridden."""
 
-    def __hydpy__initialise_fastaccess__(self) -> None:
+    def _init_fastaccess(self) -> None:
         """Create a `fastaccess` attribute and build the required connections
         to the related cythonized model eventually."""
         if (self._cls_fastaccess is None) or (self._cymodel is None):
@@ -2339,8 +2436,8 @@ named `wrong`.
             return self._name2variable[item]
         except KeyError:
             raise AttributeError(
-                f"Collection object {objecttools.devicephrase(self)} "
-                f"does not handle a variable named `{item}`."
+                f"Collection object {objecttools.devicephrase(self)} does not handle "
+                f"a variable named `{item}`."
             ) from None
 
     def __getattr__(self, name) -> TypeVariable_co:
@@ -2348,9 +2445,8 @@ named `wrong`.
             return self._name2variable[name]
         except KeyError:
             raise AttributeError(
-                f"Collection object {objecttools.devicephrase(self)} "
-                f"does neither handle a variable nor another attribute "
-                f"named {name}."
+                f"Collection object {objecttools.devicephrase(self)} does neither "
+                f"handle a variable nor another attribute named {name}."
             ) from None
 
     def __setattr__(self, name, value):
@@ -2358,7 +2454,7 @@ named `wrong`.
         if variable is None:
             super().__setattr__(name, value)
         else:
-            variable.__hydpy__set_value__(value)
+            variable._set_value(value)
 
     def __iter__(self) -> Iterator[TypeVariable_co]:
         for variable in self._name2variable.values():
@@ -2371,8 +2467,8 @@ named `wrong`.
         lines = []
         if hydpy.pub.options.reprcomments:
             lines.append(
-                f"# {type(self).__name__} object defined "
-                f"in module {objecttools.modulename(self)},\n"
+                f"# {type(self).__name__} object defined in module "
+                f"{objecttools.modulename(self)},\n"
                 f"# handling the following variables:"
             )
         for variable in self:

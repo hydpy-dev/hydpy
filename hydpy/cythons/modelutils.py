@@ -266,7 +266,6 @@ import platform
 import shutil
 import sys
 import types
-from typing import *
 
 # ...third party modules
 import numpy
@@ -285,7 +284,8 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core import testtools
-from hydpy.core import typingtools
+from hydpy.core.typingtools import *
+
 
 if TYPE_CHECKING:
     import Cython.Build as build
@@ -336,14 +336,14 @@ TYPE2STR: Dict[Union[Type[Any], str, None], str] = {  # pylint: disable=duplicat
     None: "void",
     "None": "void",
     type(None): "void",
-    typingtools.Vector: "double[:]",  # to be removed as soon as possible
-    "typingtools.Vector": "double[:]",
+    Vector: "double[:]",  # to be removed as soon as possible
     "Vector": "double[:]",
-    typingtools.Vector[float]: "double[:]",  # This works because the `__getitem__`
+    "Vector": "double[:]",
+    VectorFloat: "double[:]",  # This works because the `__getitem__`
     # of `_ProtocolMeta` is decorated by `_tp_cache`.  I don't know if this caching
     # is documented behaviour, so this might cause (little) trouble in the future.
-    "typingtools.Vector[float]": "double[:]",
-    "Vector[float]": "double[:]",
+    "VectorFloat": "double[:]",
+    "VectorFloat": "double[:]",
 }
 """Maps Python types to Cython compatible type declarations.
 
@@ -374,7 +374,7 @@ class Lines(List[str]):
     def __init__(self, *args: str) -> None:
         super().__init__(args)
 
-    def add(self, indent: int, line: typingtools.Mayberable1[str]) -> None:
+    def add(self, indent: int, line: Mayberable1[str]) -> None:
         """Append the given text line with prefixed spaces following the given number
         of indentation levels.
         """
@@ -450,7 +450,7 @@ class Cythonizer:
         frame = frame.f_back
         assert frame is not None
         self.pymodule = frame.f_globals["__name__"]
-        for (key, value) in frame.f_locals.items():
+        for key, value in frame.f_locals.items():
             setattr(self, key, value)
 
     def cythonize(self) -> None:
@@ -816,7 +816,7 @@ class PyxWriter:
     @property
     def cimports(self) -> List[str]:
         """Import command lines."""
-        lines = Lines(
+        return Lines(
             "from typing import Optional",
             "import numpy",
             "cimport numpy",
@@ -836,22 +836,14 @@ class PyxWriter:
             "from hydpy.cythons.autogen cimport quadutils",
             "from hydpy.cythons.autogen cimport rootutils",
             "from hydpy.cythons.autogen cimport smoothutils",
+            "from hydpy.cythons.autogen cimport masterinterface",
         )
-        interfaces = self.model.SUBMODELINTERFACES + tuple(
-            interface
-            for interface in type(self.model).__bases__
-            if interface.__module__.startswith("hydpy.interfaces")
-        )
-        for interface in set(interfaces):
-            modulename = interface.__module__.split(".")[-1]
-            lines.append(f"from hydpy.cythons.autogen cimport {modulename}")
-        return lines
 
     @property
     def constants(self) -> List[str]:
         """Constants declaration lines."""
         lines = Lines()
-        for (name, member) in vars(self.cythonizer).items():
+        for name, member in vars(self.cythonizer).items():
             if (
                 name.isupper()
                 and not inspect.isclass(member)
@@ -881,6 +873,14 @@ class PyxWriter:
                     except KeyError:
                         ctype = par.TYPE + NDIM2STR[par.NDIM]
                     lines.add(1, f"cdef public {ctype} {par.name}")
+                    if isinstance(par, parametertools.KeywordParameter1D):
+                        lines.add(
+                            1, f"cdef public {TYPE2STR[int]} _{par.name}_entrymin"
+                        )
+                    elif isinstance(par, parametertools.KeywordParameter2D):
+                        prefix = f"cdef public {TYPE2STR[int]} _{par.name}"
+                        for suffix in ("rowmin", "columnmin"):
+                            lines.add(1, f"{prefix}_{suffix}")
         return lines
 
     @property
@@ -935,10 +935,7 @@ class PyxWriter:
                 lines.extend(self.set_value(subseqs))
             if isinstance(
                 subseqs,
-                (
-                    sequencetools.InputSequences,
-                    sequencetools.OutputSequences,
-                ),
+                (sequencetools.InputSequences, sequencetools.OutputSequences),
             ):
                 lines.extend(self.set_pointer(subseqs))
             if isinstance(subseqs, sequencetools.OutputSequences):
@@ -955,10 +952,10 @@ class PyxWriter:
         lines.add(1, f"cdef public bint _{seq.name}_diskflag_reading")
         lines.add(1, f"cdef public bint _{seq.name}_diskflag_writing")
         lines.add(1, f"cdef public double[:] _{seq.name}_ncarray")
-        if isinstance(seq, sequencetools.InputSequence):
+        if isinstance(seq, sequencetools.InputSequence) and (seq.NDIM == 0):
             lines.add(1, f"cdef public bint _{seq.name}_inputflag")
             lines.add(1, f"cdef double *_{seq.name}_inputpointer")
-        elif isinstance(seq, sequencetools.OutputSequence):
+        elif isinstance(seq, sequencetools.OutputSequence) and (seq.NDIM == 0):
             lines.add(1, f"cdef public bint _{seq.name}_outputflag")
             lines.add(1, f"cdef double *_{seq.name}_outputpointer")
         return lines
@@ -985,7 +982,7 @@ class PyxWriter:
         cls._add_cdef_jdxs(lines, subseqs)
         lines.add(2, f"cdef {_int} k")
         for seq in subseqs:
-            if isinstance(seq, sequencetools.InputSequence):
+            if isinstance(seq, sequencetools.InputSequence) and (seq.NDIM == 0):
                 lines.add(2, f"if self._{seq.name}_inputflag:")
                 lines.add(3, f"self.{seq.name} = self._{seq.name}_inputpointer[0]")
                 if_or_elif = "elif"
@@ -1193,8 +1190,8 @@ class PyxWriter:
             lines.add(3, f"self._{seq.name}_ready[idx] = 1")
         return lines
 
-    @staticmethod
-    def set_pointerinput(subseqs: sequencetools.InputSequences) -> List[str]:
+    @classmethod
+    def set_pointerinput(cls, subseqs: sequencetools.InputSequences) -> List[str]:
         """Set pointer statements for input sequences."""
         print("            . set_pointerinput")
         lines = Lines()
@@ -1203,13 +1200,18 @@ class PyxWriter:
             "cpdef inline set_pointerinput"
             "(self, str name, pointerutils.PDouble value):",
         )
-        for seq in subseqs:
-            lines.add(2, f'if name == "{seq.name}":')
-            lines.add(3, f"self._{seq.name}_inputpointer = value.p_value")
+        subseqs_ = cls._filter_inputsequences(subseqs)
+        if subseqs_:
+            for seq in subseqs_:
+                lines.add(2, f'if name == "{seq.name}":')
+                lines.add(3, f"self._{seq.name}_inputpointer = value.p_value")
+        else:
+            lines.add(2, "pass")
         return lines
 
+    @classmethod
     def set_pointeroutput(
-        self, subseqs: sequencetools.OutputSequences[Any]
+        cls, subseqs: sequencetools.OutputSequences[Any]
     ) -> List[str]:
         """Set pointer statements for output sequences."""
         print("            . set_pointeroutput")
@@ -1219,7 +1221,7 @@ class PyxWriter:
             "cpdef inline set_pointeroutput"
             "(self, str name, pointerutils.PDouble value):",
         )
-        subseqs_ = self._filter_outputsequences(subseqs)
+        subseqs_ = cls._filter_outputsequences(subseqs)
         if subseqs_:
             for seq in subseqs_:
                 lines.add(2, f'if name == "{seq.name}":')
@@ -1227,6 +1229,12 @@ class PyxWriter:
         else:
             lines.add(2, "pass")
         return lines
+
+    @staticmethod
+    def _filter_inputsequences(
+        subseqs: sequencetools.InputSequences,
+    ) -> List[sequencetools.InputSequence]:
+        return [subseq for subseq in subseqs if not subseq.NDIM]
 
     @staticmethod
     def _filter_outputsequences(
@@ -1277,8 +1285,7 @@ class PyxWriter:
             lines.add(
                 0,
                 f"cdef class {submodel.__name__}("
-                f"{cls.__module__.split('.')[-1]}."
-                f"{cls.__name__}):",
+                f"{cls.__module__.split('.')[-1]}.{cls.__name__}):",
             )
             lines.add(1, "cdef public Model model")
             lines.add(1, "def __init__(self, Model model):")
@@ -1297,22 +1304,28 @@ class PyxWriter:
         ]
         lines = Lines()
         lines.add(0, "@cython.final")
-        interfacebases = ", ".join(
-            f"{base.__module__.split('.')[-1]}.{base.__name__}"
-            for base in type(self.model).__bases__
+        follows_interface = any(
+            base
+            for base in inspect.getmro(type(self.model))
             if issubclass(base, modeltools.SubmodelInterface)
+            and base.__module__.startswith("hydpy.interfaces.")
         )
-        lines.add(0, f"cdef class Model({interfacebases}):")
+        if follows_interface:
+            lines.add(0, "cdef class Model(masterinterface.MasterInterface):")
+        else:
+            lines.add(0, "cdef class Model:")
         for cls in inspect.getmro(type(self.model)):
             for name, member in vars(cls).items():
                 if isinstance(member, modeltools.IndexProperty):
-                    if (name != "idx_sim") or not interfacebases:
+                    if (name != "idx_sim") or not follows_interface:
                         lines.add(1, f"cdef public {_int} {name}")
         if self.model.parameters:
             lines.add(1, "cdef public Parameters parameters")
         lines.add(1, "cdef public Sequences sequences")
         for name in submodelnames_new:
-            lines.add(1, f"cdef public interfaceutils.BaseInterface {name}")
+            lines.add(1, f"cdef public masterinterface.MasterInterface {name}")
+            lines.add(1, f"cdef public {TYPE2STR[bool]} {name}_is_mainmodel")
+            lines.add(1, f"cdef public {TYPE2STR[int]} {name}_typeid")
         for submodel in submodeltypes_old:
             lines.add(1, f"cdef public {submodel.__name__} {submodel.name}")
         if hasattr(self.model, "numconsts"):
@@ -1321,11 +1334,13 @@ class PyxWriter:
             lines.add(1, "cdef public NumVars numvars")
         if submodeltypes_old or submodelnames_new:
             lines.add(1, "def __init__(self):")
+            lines.add(2, "super().__init__()")
             for name in submodelnames_new:
                 lines.add(2, f"self.{name} = None")
+                lines.add(2, f"self.{name}_is_mainmodel = False")
             for submodel in submodeltypes_old:
                 lines.add(2, f"self.{submodel.name} = {submodel.__name__}(self)")
-        baseinterface = "Optional[interfaceutils.BaseInterface]"
+        baseinterface = "Optional[masterinterface.MasterInterface]"
         for name in submodelnames_new:
             lines.add(1, f"def get_{name}(self) -> {baseinterface}:")
             lines.add(2, f"return self.{name}")
@@ -1377,16 +1392,9 @@ class PyxWriter:
         lines = Lines()
         lines.add(1, f"cpdef inline void simulate(self, {_int} idx) {_nogil}:")
         lines.add(2, "self.idx_sim = idx")
-        submodels = self.model.find_submodels(
-            include_subsubmodels=False, include_optional=True
-        )
-        for fullname in submodels:
-            name = fullname.rpartition(".")[2]
-            lines.add(2, f"if self.{name} is not None:")
-            lines.add(3, f"self.{name}.idx_sim = idx")
         seqs = self.model.sequences
-        if seqs.inputs:
-            lines.add(2, "self.load_data()")
+        if seqs.inputs or self.model.SUBMODELINTERFACES:
+            lines.add(2, "self.load_data(idx)")
         if self.model.INLET_METHODS:
             lines.add(2, "self.update_inlets()")
         if isinstance(self.model, modeltools.SolverModel):
@@ -1415,13 +1423,19 @@ class PyxWriter:
         >>> pyxwriter.iofunctions  # doctest: +ELLIPSIS
                     . load_data
                     . save_data
-            cpdef void load_data(self) nogil:
-                self.sequences.inputs.load_data(self.idx_sim)
+            cpdef void load_data(self, ...int... idx) nogil:
+                self.idx_sim = idx
+                self.sequences.inputs.load_data(idx)
+                if (self.aetmodel is not None) and not self.aetmodel_is_mainmodel:
+                    self.aetmodel.load_data(idx)
             cpdef void save_data(self, ...int... idx) nogil:
-                self.sequences.inputs.save_data(self.idx_sim)
-                self.sequences.factors.save_data(self.idx_sim)
-                self.sequences.fluxes.save_data(self.idx_sim)
-                self.sequences.states.save_data(self.idx_sim)
+                self.idx_sim = idx
+                self.sequences.inputs.save_data(idx)
+                self.sequences.factors.save_data(idx)
+                self.sequences.fluxes.save_data(idx)
+                self.sequences.states.save_data(idx)
+                if (self.aetmodel is not None) and not self.aetmodel_is_mainmodel:
+                    self.aetmodel.save_data(idx)
         <BLANKLINE>
 
         >>> pyxwriter.model.sequences.factors = None
@@ -1430,10 +1444,16 @@ class PyxWriter:
         >>> pyxwriter.iofunctions  # doctest: +ELLIPSIS
                     . load_data
                     . save_data
-            cpdef void load_data(self) nogil:
-                self.sequences.inputs.load_data(self.idx_sim)
+            cpdef void load_data(self, ...int... idx) nogil:
+                self.idx_sim = idx
+                self.sequences.inputs.load_data(idx)
+                if (self.aetmodel is not None) and not self.aetmodel_is_mainmodel:
+                    self.aetmodel.load_data(idx)
             cpdef void save_data(self, ...int... idx) nogil:
-                self.sequences.inputs.save_data(self.idx_sim)
+                self.idx_sim = idx
+                self.sequences.inputs.save_data(idx)
+                if (self.aetmodel is not None) and not self.aetmodel_is_mainmodel:
+                    self.aetmodel.save_data(idx)
         <BLANKLINE>
 
         >>> pyxwriter.model.sequences.inputs = None
@@ -1446,30 +1466,30 @@ class PyxWriter:
         if not (seqs.inputs or seqs.factors or seqs.fluxes or seqs.states):
             return lines
         for func in ("load_data", "save_data"):
-            if (func == "load_data") and not seqs.inputs:
+            if (func == "load_data") and not (
+                seqs.inputs or self.model.SUBMODELINTERFACES
+            ):
                 continue
             print(f"            . {func}")
             nogil = func in ("load_data", "save_data")
-            idx_as_arg = func == "save_data"
-            lines.add(
-                1, get_methodheader(func, nogil=nogil, idxarg=idx_as_arg, inline=False)
-            )
+            lines.add(1, get_methodheader(func, nogil=nogil, idxarg=True, inline=False))
+            lines.add(2, "self.idx_sim = idx")
             for subseqs in seqs:
                 if func == "load_data":
                     applyfuncs: Tuple[str, ...] = ("inputs",)
                 else:
                     applyfuncs = ("inputs", "factors", "fluxes", "states")
                 if subseqs.name in applyfuncs:
-                    lines.add(
-                        2, f"self.sequences.{subseqs.name}." f"{func}(self.idx_sim)"
-                    )
+                    lines.add(2, f"self.sequences.{subseqs.name}." f"{func}(idx)")
             submodels = self.model.find_submodels(
                 include_subsubmodels=False, include_optional=True
             )
             for fullname in submodels:
                 name = fullname.rpartition(".")[2]
-                lines.add(2, f"if self.{name} is not None:")
-                lines.add(3, f"self.{name}.{func}({'idx' if idx_as_arg else ''})")
+                lines.add(
+                    2, f"if (self.{name} is not None) and not self.{name}_is_mainmodel:"
+                )
+                lines.add(3, f"self.{name}.{func}(idx)")
         return lines
 
     @property
@@ -1629,7 +1649,7 @@ class PyxWriter:
     def listofmodeluserfunctions(self) -> List[Tuple[str, Callable[..., Any]]]:
         """User functions of the model class."""
         lines = []
-        for (name, member) in vars(self.model).items():
+        for name, member in vars(self.model).items():
             if getattr(getattr(member, "__func__", None), "CYTHONIZE", False):
                 lines.append((name, member))
         return lines
@@ -1901,7 +1921,7 @@ class PyxWriter:
         assert isinstance(self.model, modeltools.ELSModel)
         if self.model.SOLVERSEQUENCES:
             subseqs = [
-                seq for seq in subseqs if isinstance(seq, self.model.SOLVERSEQUENCES)  # type: ignore[arg-type]  # pylint: disable=line-too-long
+                seq for seq in subseqs if isinstance(seq, self.model.SOLVERSEQUENCES)
             ]
         yield from self._declare_idxs(subseqs)
         userel = "self.numvars.use_relerror:"
@@ -2121,7 +2141,7 @@ class FuncConverter:
     ) -> None:
         self.model = model
         self.funcname = funcname
-        self.func = func  # type: ignore[assignment]
+        self.func = func
         self.inline = inline
 
     @property
@@ -2146,7 +2166,7 @@ class FuncConverter:
         >>> with pub.options.usecython(False):
         ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).varnames
-        ('self', 'con', 'inp', 'fac', 'k')
+        ('self', 'con', 'der', 'inp', 'fac', 'k')
         """
         return tuple(
             vn if vn != "model" else "self" for vn in self.func.__code__.co_varnames
@@ -2161,7 +2181,7 @@ class FuncConverter:
         >>> with pub.options.usecython(False):
         ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).locnames
-        ['self', 'con', 'inp', 'fac', 'k']
+        ['self', 'con', 'der', 'inp', 'fac', 'k']
         """
         return [vn for vn in self.varnames if vn not in self.argnames]
 
@@ -2174,7 +2194,8 @@ class FuncConverter:
         >>> with pub.options.usecython(False):
         ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).subgroupnames
-        ['parameters.control', 'sequences.inputs', 'sequences.factors']
+        ['parameters.control', 'parameters.derived', 'sequences.inputs', \
+'sequences.factors']
         """
         names = []
         for groupname in ("parameters", "sequences"):
@@ -2196,7 +2217,7 @@ class FuncConverter:
         >>> with pub.options.usecython(False):
         ...     model = prepare_model("hland_v1")
         >>> FuncConverter(model, None, model.calc_tc_v1).subgroupshortcuts
-        ['con', 'inp', 'fac']
+        ['con', 'der', 'inp', 'fac']
         """
         return [name.split(".")[-1][:3] for name in self.subgroupnames]
 
@@ -2265,6 +2286,7 @@ class FuncConverter:
           * remove all lines containing the phrase `fastaccess`
           * replace all shortcuts with complete reference names
           * replace " model." with " self."
+          * remove ".values" and "value"
           * remove the ": float" annotation
         """
         code = inspect.getsource(self.func)
@@ -2273,8 +2295,10 @@ class FuncConverter:
         code = code.replace(" model.", " self.")
         code = code.replace("[model.", "[self.")
         code = code.replace("(model.", "(self.")
+        code = code.replace(".values", "")
+        code = code.replace(".value", "")
         code = code.replace(": float", "")
-        for (name, shortcut) in zip(self.subgroupnames, self.subgroupshortcuts):
+        for name, shortcut in zip(self.subgroupnames, self.subgroupshortcuts):
             code = code.replace(f"{shortcut}.", f"self.{name}.")
         code = self.remove_linebreaks_within_equations(code)
         lines = code.splitlines()
@@ -2410,8 +2434,8 @@ nogil:
         ...         return cast(soilinterfaces.SoilModel_V1, model.soilmodel)
         >>> model.calc_test_v3 = MethodType(Calc_Test_V3.__call__, model)
         >>> FuncConverter(model, "calc_test_v3", model.calc_test_v3).pyxlines
-            cpdef inline soilinterfaces.SoilModel_V1 calc_test_v3(self) nogil:
-                return <soilinterfaces.SoilModel_V1>self.soilmodel
+            cpdef inline masterinterface.MasterInterface calc_test_v3(self) nogil:
+                return <masterinterface.MasterInterface>self.soilmodel
         <BLANKLINE>
         """
 
@@ -2419,6 +2443,8 @@ nogil:
             pytype = annotations_[name_]
             if pytype in TYPE2STR:
                 return TYPE2STR[pytype]
+            if pytype.__module__.startswith("hydpy.interfaces."):
+                return "masterinterface.MasterInterface"
             return f"{pytype.__module__.split('.')[-1]}.{pytype.__name__}"
 
         annotations_ = get_type_hints(self.func)
@@ -2440,10 +2466,9 @@ nogil:
             lines.insert(1, f"        cdef {cytype} {name}")
         for idx, line in enumerate(lines):
             if "cast(" in line:
-                part1, part2 = line.split("cast(")
-                part2 = part2.replace(", ", ">", 1).replace(")", "", 1)
-                line = "<".join([part1, part2])
-                lines[idx] = line
+                return_, _, part2 = line.partition("cast(")
+                submodel = part2.partition(", ")[2].replace(")", "", 1)
+                lines[idx] = f"{return_}<masterinterface.MasterInterface>{submodel}"
         return Lines(*lines)
 
 

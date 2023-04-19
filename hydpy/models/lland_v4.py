@@ -356,24 +356,21 @@ acre (heavy rain)
 acre (GARTO)
 ------------
 
->>> from hydpy import prepare_model, pub
->>> soilmodel = prepare_model("ga_garto_submodel1")
->>> soilmodel.parameters.control.nmbsoils(1)
->>> soilmodel.parameters.control.nmbbins(4)
->>> with pub.options.parameterstep("1m"):
-...     soilmodel.parameters.control.dt(1.0)
->>> soilmodel.parameters.control.sealed(False)
->>> soilmodel.parameters.control.soildepth(309.0 / 0.434)
->>> soilmodel.parameters.control.residualmoisture(0.027)
->>> soilmodel.parameters.control.saturationmoisture(0.434)
->>> soilmodel.parameters.control.saturatedconductivity(13.2)
->>> soilmodel.parameters.control.poresizedistribution(0.252)
->>> soilmodel.parameters.control.airentrypotential(111.5)
->>> soilmodel.parameters.update()
->>> soilmodel.sequences.states.moisture = 72.0 / 309.0 * 0.434
->>> soilmodel.sequences.states.frontdepth = 0.0
->>> soilmodel.sequences.states.moisturechange = 0.0
->>> model.soilmodel = soilmodel
+>>> from hydpy import pub
+>>> with model.add_soilmodel_v1("ga_garto_submodel1"):
+...     nmbbins(4)
+...     with pub.options.parameterstep("1m"):
+...         dt(1.0)
+...     sealed(False)
+...     soildepth(309.0 / 0.434)
+...     residualmoisture(0.027)
+...     saturationmoisture(0.434)
+...     saturatedconductivity(13.2)
+...     poresizedistribution(0.252)
+...     airentrypotential(111.5)
+...     states.moisture = 72.0 / 309.0 * 0.434
+...     states.frontdepth = 0.0
+...     states.moisturechange = 0.0
 
 .. integration-test::
 
@@ -1792,9 +1789,6 @@ acre (snow surface temperature)
 0.0
 """
 # import...
-# from standard-library
-from typing import *
-
 # ...from site-packages
 import numpy
 
@@ -1811,7 +1805,7 @@ from hydpy.models.lland import lland_masks
 from hydpy.models.lland.lland_constants import *
 
 
-class Model(modeltools.AdHocModel):
+class Model(lland_model.Main_SoilModel_V1):
     """Penman-Monteith and Knauf with snow interception version of HydPy-L-Land
     (|lland_v4|)."""
 
@@ -2005,10 +1999,12 @@ class Model(modeltools.AdHocModel):
         fluxes = self.sequences.fluxes
         last = self.sequences.states
         first = initial_conditions["states"]
-        idxs_water = numpy.isin(control.lnk, [WASSER, FLUSS, SEE])
+        idxs_water = numpy.isin(control.lnk.values, [WASSER, FLUSS, SEE])
         idxs_land = numpy.invert(idxs_water)
-        idxs_soil = numpy.invert(numpy.isin(control.lnk, [VERS, WASSER, FLUSS, SEE]))
-        idxs_forest = numpy.isin(control.lnk, [LAUBW, MISCHW, NADELW])
+        idxs_soil = numpy.invert(
+            numpy.isin(control.lnk.values, [VERS, WASSER, FLUSS, SEE])
+        )
+        idxs_forest = numpy.isin(control.lnk.values, [LAUBW, MISCHW, NADELW])
         return (
             numpy.sum(fluxes.nkor.evalseries * control.fhru)
             + numpy.sum(fluxes.qzh.evalseries)

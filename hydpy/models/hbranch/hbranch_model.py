@@ -2,12 +2,10 @@
 # pylint: disable=missing-module-docstring
 
 # import...
-# ...from standard library
-from typing import *
-
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.core import objecttools
+from hydpy.core.typingtools import *
 from hydpy.models.hbranch import hbranch_control
 from hydpy.models.hbranch import hbranch_derived
 from hydpy.models.hbranch import hbranch_fluxes
@@ -273,38 +271,22 @@ class Model(modeltools.AdHocModel):
         ...
         RuntimeError: Model `hbranch` of element `branch` tried to connect to an \
 outlet node named `outflow1`, which is not an available outlet node of element `branch`.
-
-        A missing reference to the corresponding element results in the following error
-        message:
-
-        >>> model.element = None
-        >>> model.connect()
-        Traceback (most recent call last):
-        ...
-        RuntimeError: Model  hbranch does not know the element it shall connect with \
-so far.
         """
-        element = self.element
-        if element is None:
-            raise RuntimeError(
-                f"Model  {self.name} does not know the element it shall connect with "
-                f"so far."
-            )
-        nodes = element.inlets
+        nodes = self.element.inlets
         total = self.sequences.inlets.total
         if total.shape != (len(nodes),):
             total.shape = len(nodes)
         for idx, node in enumerate(nodes):
             double = node.get_double("inlets")
             total.set_pointer(double, idx)
-        for (idx, name) in enumerate(self.nodenames):
+        for idx, name in enumerate(self.nodenames):
             try:
-                outlet = getattr(element.outlets, name)
+                outlet = getattr(self.element.outlets, name)
             except AttributeError:
                 raise RuntimeError(
                     f"Model {objecttools.elementphrase(self)} tried to connect to an "
                     f"outlet node named `{name}`, which is not an available outlet "
-                    f"node of element `{element.name}`."
+                    f"node of element `{self.element.name}`."
                 ) from None
             double = outlet.get_double("outlets")
             self.sequences.outlets.branched.set_pointer(double, idx)

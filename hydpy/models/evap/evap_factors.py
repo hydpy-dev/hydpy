@@ -4,12 +4,19 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.models.evap import evap_sequences
 
 
-class AdjustedAirTemperature(sequencetools.FactorSequence):
-    """Adjusted air temperature [°C]."""
+class MeanAirTemperature(sequencetools.FactorSequence):
+    """The basin's mean air temperature [°C]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM, NUMERIC = 0, False
+
+
+class AirTemperature(evap_sequences.FactorSequence1D):
+    """Air temperature [°C]."""
+
+    NUMERIC = False
 
 
 class AdjustedWindSpeed(sequencetools.FactorSequence):
@@ -18,25 +25,43 @@ class AdjustedWindSpeed(sequencetools.FactorSequence):
     NDIM, NUMERIC = 0, False
 
 
-class SaturationVapourPressure(sequencetools.FactorSequence):
+class SaturationVapourPressure(evap_sequences.FactorSequence1D):
     """Saturation vapour pressure [hPa]."""
 
-    NDIM, NUMERIC = 1, False
+    NUMERIC = False
 
 
-class SaturationVapourPressureSlope(sequencetools.FactorSequence):
+class SaturationVapourPressureSlope(evap_sequences.FactorSequence1D):
     """The slope of the saturation vapour pressure curve [hPa/K]."""
 
-    NDIM, NUMERIC = 1, False
+    NUMERIC = False
 
 
-class ActualVapourPressure(sequencetools.FactorSequence):
+class ActualVapourPressure(evap_sequences.FactorSequence1D):
     """Actual vapour pressure [hPa]."""
 
-    NDIM, NUMERIC = 1, False
+    NUMERIC = False
 
 
 class PsychrometricConstant(sequencetools.FactorSequence):
     """Psychrometric constant [hPa/K]."""
 
     NDIM, NUMERIC = 0, False
+
+
+class InterceptedWater(evap_sequences.FactorSequence1D):
+    """Intercepted water [mm]."""
+
+    NUMERIC = False
+
+
+class SoilWater(evap_sequences.FactorSequence1D):
+    """Soil water content [mm]."""
+
+    NUMERIC = False
+
+
+class SnowCover(evap_sequences.FactorSequence1D):
+    """Snow cover degree [-]."""
+
+    NUMERIC = False

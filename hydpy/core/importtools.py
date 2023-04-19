@@ -7,43 +7,50 @@ from model users and for allowing writing readable doctests.
 # import...
 # ...from standard library
 from __future__ import annotations
+
+import collections
+import contextlib
 import os
 import importlib
 import inspect
 import types
 import warnings
-from typing import *
 
 # ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import filetools
 from hydpy.core import masktools
+from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
 from hydpy.core.typingtools import *
 
-if TYPE_CHECKING:
-    from hydpy.core import modeltools
+TM = TypeVar("TM", bound="modeltools.Model")
+TI = TypeVar("TI", bound="modeltools.SubmodelInterface")
+
+__HYDPY_MODEL_LOCALS__ = "__hydpy_model_locals__"
 
 
 def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
     """Define a parameter time step size within a parameter control file.
 
     Function |parameterstep| should usually be applied in a line immediately behind the
-    model import or behind calling function |simulationstep|.  Defining the step size
-    of time-dependent parameters is a prerequisite to access any model-specific
+    model import or behind calling |simulationstep|.  Defining the step size of
+    time-dependent parameters is a prerequisite to accessing any model-specific
     parameter.
 
     Note that |parameterstep| implements some namespace magic utilising the module
-    |inspect|, which makes things a little complicated for framework developers.  Still
-    it eases the definition of parameter control files for framework users.
+    |inspect|, which complicates things for framework developers.  Still, it eases the
+    definition of parameter control files for framework users.
     """
     if timestep is not None:
         hydpy.pub.options.parameterstep = timestep
-    namespace = inspect.currentframe().f_back.f_locals
+    frame = inspect.currentframe()
+    assert (frame is not None) and (frame.f_back is not None)
+    namespace = frame.f_back.f_locals
     model = namespace.get("model")
     if model is None:
         model = namespace["Model"]()
@@ -60,7 +67,7 @@ def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
                 if hasattr(cythonizer.cymodule, numpars_name):
                     numpars_new = getattr(cythonizer.cymodule, numpars_name)()
                     numpars_old = getattr(model, numpars_name.lower())
-                    for (name_numpar, numpar) in vars(numpars_old).items():
+                    for name_numpar, numpar in vars(numpars_old).items():
                         setattr(numpars_new, name_numpar, numpar)
                     setattr(model.cymodel, numpars_name.lower(), numpars_new)
             for name in dir(model.cymodel):
@@ -68,30 +75,39 @@ def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
                     setattr(model, name, getattr(model.cymodel, name))
         model.parameters = prepare_parameters(namespace)
         model.sequences = prepare_sequences(namespace)
-        namespace["parameters"] = model.parameters
-        for pars in model.parameters:
-            namespace[pars.name] = pars
-        namespace["sequences"] = model.sequences
-        for seqs in model.sequences:
-            namespace[seqs.name] = seqs
+        namespace.pop("cymodel", None)
+        namespace.pop("cythonmodule", None)
         if "Masks" in namespace:
             model.masks = namespace["Masks"]()
-            namespace["masks"] = model.masks
         else:
             model.masks = masktools.Masks()
         for submodelclass in namespace["Model"].SUBMODELS:
             submodel = submodelclass(model)
             setattr(model, submodel.name, submodel)
-    try:
-        namespace.update(namespace["CONSTANTS"])
-    except KeyError:
-        pass
+        del namespace["model"]
+    _add_locals_to_namespace(model=model, namespace=namespace)
+
+
+def _add_locals_to_namespace(
+    model: modeltools.Model, namespace: Dict[str, Any]
+) -> None:
+    new_locals: Dict[str, Any] = namespace.get("CONSTANTS", {}).copy()
+    new_locals["model"] = model
+    new_locals["parameters"] = model.parameters
+    for pars in model.parameters:
+        new_locals[pars.name] = pars
+    new_locals["sequences"] = model.sequences
+    for seqs in model.sequences:
+        new_locals[seqs.name] = seqs
+    new_locals["masks"] = model.masks
     focus = namespace.get("focus")
     for par in model.parameters.control:
         if (focus is None) or (par is focus):
-            namespace[par.name] = par
+            new_locals[par.name] = par
         else:
-            namespace[par.name] = lambda *args, **kwargs: None
+            new_locals[par.name] = lambda *args, **kwargs: None
+    namespace[__HYDPY_MODEL_LOCALS__] = new_locals
+    namespace.update(new_locals)
 
 
 def prepare_parameters(dict_: Dict[str, Any]) -> parametertools.Parameters:
@@ -125,11 +141,10 @@ def prepare_sequences(dict_: Dict[str, Any]) -> sequencetools.Sequences:
 def reverse_model_wildcard_import() -> None:
     """Clear the local namespace from a model wildcard import.
 
-    Calling this method should remove the critical imports into the local
-    namespace due to the last wildcard import of a particular application
-    model. In this manner, it secures the repeated preparation of different
-    types of models via wildcard imports.  See the following example, on
-    how it can be applied.
+    This method should remove the critical imports into the local namespace due to the
+    last wildcard import of a particular application model. In this manner, it secures
+    the repeated preparation of different types of models via wildcard imports.  See
+    the following example of to apply it.
 
     >>> from hydpy import reverse_model_wildcard_import
 
@@ -137,22 +152,21 @@ def reverse_model_wildcard_import() -> None:
 
     >>> from hydpy.models.lland_v1 import *
 
-    This import adds, for example, the collection class for handling control
-    parameters of `lland_v1` into the local namespace:
+    This import adds, for example, the collection class for handling control parameters
+    of `lland_v1` into the local namespace:
 
     >>> print(ControlParameters(None).name)
     control
 
-    Calling function |parameterstep| prepares, for example, the control
-    parameter object of class |lland_control.NHRU|:
+    Function |parameterstep| prepares, for example, the control parameter object of
+    class |lland_control.NHRU|:
 
     >>> parameterstep("1d")
     >>> nhru
     nhru(?)
 
-    Calling function |reverse_model_wildcard_import| tries to give its
-    best to clear the local namespace (even from unexpected classes as
-    the one we define now):
+    Function |reverse_model_wildcard_import| tries to clear the local namespace (even
+    from unexpected classes like the one we define now):
 
     >>> class Test:
     ...     __module__ = "hydpy.models.lland_v1"
@@ -180,7 +194,9 @@ def reverse_model_wildcard_import() -> None:
     ...
     NameError: name 'test' is not defined
     """
-    namespace = inspect.currentframe().f_back.f_locals
+    frame = inspect.currentframe()
+    assert (frame is not None) and (frame.f_back is not None)
+    namespace = frame.f_back.f_locals
     model = namespace.get("model")
     if model is not None:
         for subpars in model.parameters:
@@ -209,12 +225,13 @@ def reverse_model_wildcard_import() -> None:
             "cythonmodule",
         ):
             namespace.pop(name, None)
-        for key in list(namespace.keys()):
+        for key in tuple(namespace):
             try:
                 if namespace[key].__module__ == model.__module__:
                     del namespace[key]
             except AttributeError:
                 pass
+        namespace[__HYDPY_MODEL_LOCALS__] = {}
 
 
 def prepare_model(
@@ -223,26 +240,24 @@ def prepare_model(
 ) -> modeltools.Model:
     """Prepare and return the model of the given module.
 
-    In usual *HydPy* projects, each control file prepares an individual
-    model instance only, which allows for "polluting" the namespace with
-    different model attributes.   There is no danger of name conflicts,
-    as long as we do not perform other (wildcard) imports.
+    In usual *HydPy* projects, each control file only prepares an individual model
+    instance, which allows for "polluting" the namespace with different model
+    attributes.  There is no danger of name conflicts as long as we do not perform
+    other (wildcard) imports.
 
-    However, there are situations where we need to load different models
-    into the same namespace.  Then it is advisable to use function
-    |prepare_model|, which returns a reference to the model
-    and nothing else.
+    However, there are situations where we need to load different models into the same
+    namespace.  Then it is advisable to use function |prepare_model|, which returns a
+    reference to the model and nothing else.
 
-    See the documentation of |dam_v001| on how to apply function
-    |prepare_model| properly.
+    See the documentation of |dam_v001| on how to apply function |prepare_model|
+    properly.
     """
     if timestep is not None:
         hydpy.pub.options.parameterstep = timetools.Period(timestep)
-    try:
-        model = module.Model()
-    except AttributeError:
+    if isinstance(module, str):
         module = importlib.import_module(f"hydpy.models.{module}")
-        model = module.Model()
+    model = module.Model()
+    assert isinstance(model, modeltools.Model)
     if hydpy.pub.options.usecython and hasattr(module, "cythonizer"):
         cymodule = module.cythonizer.cymodule
         cymodel = cymodule.Model()
@@ -254,11 +269,13 @@ def prepare_model(
             if hasattr(cymodule, numpars_name):
                 numpars_new = getattr(cymodule, numpars_name)()
                 numpars_old = getattr(model, numpars_name.lower())
-                for (name_numpar, numpar) in vars(numpars_old).items():
+                for name_numpar, numpar in vars(numpars_old).items():
                     setattr(numpars_new, name_numpar, numpar)
                 setattr(cymodel, numpars_name.lower(), numpars_new)
         for name in dir(cymodel):
-            if (not name.startswith("_")) and hasattr(model, name):
+            if hasattr(model, name) and not (
+                name.startswith("_") or name.endswith("model_is_mainmodel")
+            ):
                 setattr(model, name, getattr(cymodel, name))
         dict_ = {"cythonmodule": cymodule, "cymodel": cymodel}
     else:
@@ -277,34 +294,386 @@ def prepare_model(
     return model
 
 
-def simulationstep(timestep) -> None:
-    """Define a simulation time step size for testing purposes within a
-    parameter control file.
+class _DoctestAdder:
+    wrapped: Callable[..., None]
 
-    Using |simulationstep| only affects the values of time-dependent
-    parameters, when `pub.timegrids.stepsize` is not defined.  It thus
-    does not influence usual *HydPy* simulations at all.  Use it to check
-    your parameter control files.  Write it in a line immediately behind
-    the model import.
+    def __set_name__(self, objtype: Type[modeltools.Model], name: str) -> None:
+        assert (module := inspect.getmodule(objtype)) is not None
+        test = getattr(module, "__test__", {})
+        test[f"{objtype.__name__}.{self.wrapped.__name__}"] = self.__doc__
+        module.__dict__["__test__"] = test
 
-    To clarify its purpose, function |simulationstep| raises a warning
-    when executed from within a control file:
+
+def prepare_submodel(
+    submodelname: str,
+    submodelinterface: Type[TI],
+    *methods: Callable[[NoReturn, NoReturn], None],
+    landtype_constants: Optional[parametertools.Constants] = None,
+    soiltype_constants: Optional[parametertools.Constants] = None,
+    landtype_refindices: Optional[Type[parametertools.NameParameter]] = None,
+    soiltype_refindices: Optional[Type[parametertools.NameParameter]] = None,
+    refweights: Optional[Type[parametertools.Parameter]] = None,
+) -> Callable[[Callable[[TM, TI], None]], SubmodelAdder[TM, TI]]:
+    """Wrap a model-specific method for preparing a submodel into a |SubmodelAdder|
+    instance."""
+
+    def _prepare_submodel(wrapped: Callable[[TM, TI], None]) -> SubmodelAdder[TM, TI]:
+        return SubmodelAdder[TM, TI](
+            wrapped=wrapped,
+            submodelname=submodelname,
+            submodelinterface=submodelinterface,
+            methods=methods,
+            landtype_constants=landtype_constants,
+            soiltype_constants=soiltype_constants,
+            landtype_refindices=landtype_refindices,
+            soiltype_refindices=soiltype_refindices,
+            refweights=refweights,
+        )
+
+    return _prepare_submodel
+
+
+class SubmodelAdder(_DoctestAdder, Generic[TM, TI]):
+    """Wrapper that extends the functionality of model-specific methods for preparing
+    submodels.
+
+    |SubmodelAdder| offers the user-relevant feature of preparing submodels with the
+    `with` statement.  When entering the `with` block, |SubmodelAdder| uses the given
+    string or module to initialise the desired application model and hands it as a
+    submodel to the model-specific method, which usually sets some control parameters
+    based on the main model's configuration.  Next, |SubmodelAdder| makes many
+    attributes of the submodel directly available, most importantly, the instances of
+    the remaining control parameter, so that users can set their values as conveniently
+    as the ones of the main model ones.  As long as no name conflicts occur, all main
+    model parameter instances are also accessible:
+
+    >>> from hydpy.models.lland_v1 import *
+    >>> parameterstep()
+    >>> nhru(2)
+    >>> ft(10.0)
+    >>> fhru(0.2, 0.8)
+    >>> lnk(ACKER, MISCHW)
+    >>> wmax(acker=100.0, mischw=200.0)
+    >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
+    ...     nhru
+    ...     nmbhru
+    ...     maxsoilwater
+    ...     soilmoisturelimit(mischw=1.0, acker=0.5)
+    nhru(2)
+    nmbhru(2)
+    maxsoilwater(acker=100.0, mischw=200.0)
+    >>> model.aetmodel.parameters.control.soilmoisturelimit
+    soilmoisturelimit(acker=0.5, mischw=1.0)
+
+    After leaving the `with` block, the submodel's parameters are no longer available:
+
+    >>> nhru
+    nhru(2)
+    >>> nmbhru
+    Traceback (most recent call last):
+    ...
+    NameError: name 'nmbhru' is not defined
+
+    By calling the submodel interface method
+    |SubmodelInterface.add_mainmodel_as_subsubmodel| when entering the `with` block,
+    |SubmodelAdder| enables each submodel to accept the nearest main model as a
+    sub-submodel:
+
+    >>> model.aetmodel.tempmodel is model
+    True
+
+    Additionally, |SubmodelAdder| checks if the selected application model follows the
+    appropriate interface:
+
+    >>> with model.add_aetmodel_v1("ga_garto_submodel1"):
+    ...     ...
+    Traceback (most recent call last):
+    ...
+    TypeError: While trying to add a submodul to the main model `lland_v1`, the \
+following error occurred: Submodel `ga_garto_submodel1` does not comply with the \
+`AETModel_V1` interface.
+
+    Each |SubmodelAdder| instance provides access to the appropriate interface and the
+    interface methods the wrapped method uses (this information helps framework
+    developers figure out which parameters the submodel prepares on its own):
+
+    >>> model.add_aetmodel_v1.submodelinterface.__name__
+    'AETModel_V1'
+    >>> for method in model.add_aetmodel_v1.methods:
+    ...     method.__name__
+    'prepare_nmbzones'
+    'prepare_zonetypes'
+    'prepare_subareas'
+    'prepare_maxsoilwater'
+    'prepare_water'
+    'prepare_interception'
+    'prepare_soil'
+
+    |SubmodelAdder| supports arbitrarily deep submodel nesting.  It conveniently moves
+    some information from main models to sub-submodels or the other way round if the
+    intermediate submodel does not consume or provide the corresponding data.
+    The following example shows that the main model of type |lland_v1| shares some of
+    its class-level configurations with the sub-submodel of type |evap_pet_hbv96| and
+    that the sub-submodel knows about the zone areas of its main model (which the
+    submodel is not aware of) and uses it for querying air temperature data:
+
+    >>> lnk(ACKER, WASSER)
+    >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
+    ...     nmbhru
+    ...     hasattr(control, "hrualtitude")
+    ...     soil
+    ...     excessreduction(acker=1.0)
+    ...     with model.add_petmodel_v1("evap_pet_hbv96"):
+    ...         nmbhru
+    ...         hruarea
+    ...         hrualtitude(2.0)
+    ...         evapotranspirationfactor(acker=1.2, default=1.0)
+    nmbhru(2)
+    False
+    soil(acker=True, wasser=False)
+    nmbhru(2)
+    hruarea(2.0, 8.0)
+    >>> model.aetmodel.parameters.control.excessreduction
+    excessreduction(1.0)
+    >>> model.aetmodel.petmodel.parameters.control.evapotranspirationfactor
+    evapotranspirationfactor(acker=1.2, wasser=1.0)
+    >>> model is model.aetmodel.tempmodel
+    True
+    >>> model is model.aetmodel.petmodel.tempmodel
+    True
+    """
+
+    wrapped: Callable[[TM, TI], None]
+    """The wrapped, model-specific method for preparing some control parameters 
+    automatically."""
+    submodelname: str
+    """The submodel's attribute name."""
+    submodelinterface: Type[TI]
+    """The relevant submodel interface."""
+    methods: Tuple[Callable[[NoReturn, NoReturn], None], ...]
+    """The submodel interface methods the wrapped method uses."""
+    landtype_refindices: Optional[Type[parametertools.NameParameter]]
+    """Reference to a land cover type-related index parameter."""
+    soiltype_refindices: Optional[Type[parametertools.NameParameter]]
+    """Reference to a soil type-related index parameter."""
+    refweights: Optional[Type[parametertools.Parameter]]
+    """Reference to a weighting parameter."""
+
+    modeltype2submodelname2submodeladder: DefaultDict[
+        Type[modeltools.Model], Dict[str, SubmodelAdder]
+    ] = collections.defaultdict(lambda: {})
+
+    _sharable_configuration: SharableConfiguration
+    _model: Optional[TM]
+    _mainmodelstack: ClassVar[List[modeltools.Model]] = []
+
+    def __init__(
+        self,
+        wrapped: Callable[[TM, TI], None],
+        submodelname: str,
+        submodelinterface: Type[TI],
+        methods: Iterable[Callable[[NoReturn, NoReturn], None]],
+        landtype_constants: Optional[parametertools.Constants],
+        soiltype_constants: Optional[parametertools.Constants],
+        landtype_refindices: Optional[Type[parametertools.NameParameter]],
+        soiltype_refindices: Optional[Type[parametertools.NameParameter]],
+        refweights: Optional[Type[parametertools.Parameter]],
+    ) -> None:
+        self.wrapped = wrapped
+        self.submodelname = submodelname
+        self.submodelinterface = submodelinterface
+        self.methods = tuple(methods)
+        self._sharable_configuration = {
+            "landtype_constants": landtype_constants,
+            "soiltype_constants": soiltype_constants,
+            "landtype_refindices": None,
+            "soiltype_refindices": None,
+            "refweights": None,
+        }
+        self._landtype_refindices = landtype_refindices
+        self._soiltype_refindices = soiltype_refindices
+        self._refweights = refweights
+        self._model = None
+        self.__doc__ = wrapped.__doc__
+
+    def __get__(
+        self, obj: Optional[TM], type_: Type[modeltools.Model]
+    ) -> SubmodelAdder[TM, TI]:
+        if obj is not None:
+            self._model = obj
+        return self
+
+    def __set_name__(self, owner: Type[modeltools.Model], name: str) -> None:
+        self.modeltype2submodelname2submodeladder[owner][self.submodelname] = self
+
+    @contextlib.contextmanager
+    def __call__(
+        self, module: Union[types.ModuleType, str], update: bool = True
+    ) -> Generator[None, None, None]:
+        try:
+            if isinstance(module, str):
+                module = importlib.import_module(f"hydpy.models.{module}")
+            interface = self.submodelinterface
+            if not issubclass(submodeltype := module.Model, interface):
+                raise TypeError(
+                    f"Submodel `{module.__name__.rpartition('.')[2]}` does not comply "
+                    f"with the `{interface.__name__}` interface."
+                )
+            shared = self._sharable_configuration
+            assert (model := self._model) is not None
+            control = model.parameters.control
+            if (ltr := self._landtype_refindices) is not None:
+                shared["landtype_refindices"] = getattr(control, ltr.name)
+            if (str_ := self._soiltype_refindices) is not None:
+                shared["soiltype_refindices"] = getattr(control, str_.name)
+            if (rw := self._refweights) is not None:
+                shared["refweights"] = getattr(control, rw.name)
+            with submodeltype.share_configuration(shared):
+                submodel = prepare_model(module)
+                setattr(model, self.submodelname, submodel)
+                setattr(model, f"{self.submodelname}_typeid", interface.typeid)
+                assert isinstance(submodel, interface)
+                submodel._submodeladder = self
+                self.update(model, submodel)
+                assert (
+                    ((frame1 := inspect.currentframe()) is not None)
+                    and ((frame2 := frame1.f_back) is not None)
+                    and ((frame3 := frame2.f_back) is not None)
+                )
+                namespace = frame3.f_locals
+                old_locals = namespace.get(__HYDPY_MODEL_LOCALS__, {})
+                try:
+                    _add_locals_to_namespace(submodel, namespace)
+                    self._mainmodelstack.append(model)
+                    for mainmodel in reversed(self._mainmodelstack):
+                        if submodel.add_mainmodel_as_subsubmodel(mainmodel):
+                            break
+                    yield
+                    self._mainmodelstack.pop(-1)
+                    if update:
+                        submodel.parameters.update()
+                finally:
+                    new_locals = namespace[__HYDPY_MODEL_LOCALS__]
+                    for name in new_locals:
+                        namespace.pop(name, None)
+                    namespace.update(old_locals)
+                    namespace[__HYDPY_MODEL_LOCALS__] = old_locals
+                    if isinstance(model, modeltools.SubmodelInterface):
+                        # see https://github.com/python/mypy/issues/12732
+                        model.predefinedmethod2argument.clear()  # type: ignore[attr-defined]  # pylint: disable=line-too-long
+        except BaseException:
+            assert (model := self._model) is not None
+            objecttools.augment_excmessage(
+                f"While trying to add a submodul to the main model `{model.name}`"
+            )
+
+    def update(self, model: TM, submodel: TI) -> None:
+        """Update the connections between the given main model and its submodel, which
+        can become necessary after disruptive configuration changes.
+
+        For now, we recommend using |SubmodelAdder.update| only for testing, not
+        applications, because we cannot give clear recommendations for using it under
+        different settings yet.
+        """
+        self.wrapped(model, submodel)
+        if isinstance(model, modeltools.SubmodelInterface):
+            im2a = model.predefinedmethod2argument
+            for methodname in modeltools.SubmodelInterface.GENERAL_METHODS:
+                if (argument := im2a.get(methodname)) is not None:
+                    getattr(submodel, methodname)(argument)
+
+
+def define_targetparameter(
+    parameter: Type[parametertools.Parameter],
+) -> Callable[[Callable[Concatenate[TM, P], None]], TargetParameterUpdater[TM, P]]:
+    """Wrap a submodel-specific method that allows the main model to set the value
+    of a single control parameter of the submodel into a |TargetParameterUpdater|
+    instance."""
+
+    def _select_parameter(
+        wrapped: Callable[Concatenate[TM, P], None]
+    ) -> TargetParameterUpdater[TM, P]:
+        return TargetParameterUpdater[TM, P](wrapped, parameter)
+
+    return _select_parameter
+
+
+class TargetParameterUpdater(_DoctestAdder, Generic[TM, P]):
+    """Wrapper that extends the functionality of a submodel-specific method that allows
+    the main model to set the value of a single control parameter of the submodel.
+
+    When calling a |TargetParameterUpdater| instance, it calls the wrapped method with
+    unmodified arguments, so that model users might not even realise the
+    |TargetParameterUpdater| instance exists:
+
+    >>> from hydpy import prepare_model
+    >>> model = prepare_model("evap_tw2002")
+    >>> model.prepare_nmbzones(3)
+    >>> model.parameters.control.nmbhru
+    nmbhru(3)
+
+    However, each |TargetParameterUpdater| instance provides other framework functions
+    access to the target control parameter type (the one the wrapped method prepares):
+
+    >>> model.prepare_nmbzones.targetparameter.__name__
+    'NmbHRU'
+    """
+
+    wrapped: Callable[Concatenate[TM, P], None]
+    """The wrapped, submodel-specific method for setting the value of a single control 
+    parameter."""
+    targetparameter: Type[parametertools.Parameter]
+    """The control parameter the wrapped method modifies."""
+
+    _model: Optional[TM]
+
+    def __init__(
+        self,
+        wrapped: Callable[Concatenate[TM, P], None],
+        targetparameter: Type[parametertools.Parameter],
+    ) -> None:
+        self.wrapped = wrapped
+        self.targetparameter = targetparameter
+        self.__doc__ = wrapped.__doc__
+
+    def __get__(
+        self, obj: Optional[TM], type_: Type[modeltools.Model]
+    ) -> TargetParameterUpdater[TM, P]:
+        if obj is not None:
+            self._model = obj
+        return self
+
+    def __call__(self, *args: P.args, **kwargs: P.kwargs) -> None:
+        assert (model := self._model) is not None
+        self.wrapped(model, *args, **kwargs)
+
+
+def simulationstep(timestep: timetools.PeriodConstrArg) -> None:
+    """Define a simulation time step size within a parameter control file for testing
+    purposes.
+
+    Using |simulationstep| only affects the values of time-dependent parameters when
+    `pub.timegrids.stepsize` is not defined.  It thus does not influence usual *HydPy*
+    simulations at all.  Use it to check your parameter control files.  Write it in a
+    line immediately behind the model import.
+
+    To clarify its purpose, function |simulationstep| raises a warning when executed
+    from within a control file:
 
     .. testsetup::
 
         >>> from hydpy import pub
         >>> del pub.timegrids
 
+    >>> from hydpy.core.testtools import warn_later
     >>> from hydpy import pub
-    >>> with pub.options.warnsimulationstep(True):
+    >>> with warn_later(), pub.options.warnsimulationstep(True):
     ...     from hydpy.models.hland_v1 import *
     ...     simulationstep("1h")
     ...     parameterstep("1d")
-    Traceback (most recent call last):
-    ...
-    UserWarning: Note that the applied function `simulationstep` is intended \
-for testing purposes only.  When doing a HydPy simulation, parameter values \
-are initialised based on the actual simulation time step as defined under \
+    UserWarning: Note that the applied function `simulationstep` is intended for \
+testing purposes only.  When doing a HydPy simulation, parameter values are \
+initialised based on the actual simulation time step as defined under \
 `pub.timegrids.stepsize` and the value given to `simulationstep` is ignored.
 
     >>> pub.options.simulationstep
@@ -312,11 +681,11 @@ are initialised based on the actual simulation time step as defined under \
     """
     if hydpy.pub.options.warnsimulationstep:
         warnings.warn(
-            "Note that the applied function `simulationstep` is intended for "
-            "testing purposes only.  When doing a HydPy simulation, parameter "
-            "values are initialised based on the actual simulation time step "
-            "as defined under `pub.timegrids.stepsize` and the value given "
-            "to `simulationstep` is ignored."
+            "Note that the applied function `simulationstep` is intended for testing "
+            "purposes only.  When doing a HydPy simulation, parameter values are "
+            "initialised based on the actual simulation time step as defined under "
+            "`pub.timegrids.stepsize` and the value given to `simulationstep` is "
+            "ignored."
         )
     hydpy.pub.options.simulationstep = timestep
 
@@ -331,14 +700,14 @@ def controlcheck(
     """Define the corresponding control file within a condition file.
 
     Function |controlcheck| serves similar purposes as function |parameterstep|.  It is
-    the reason why one can interactively access the state and the log sequences within
-    condition files as `land_dill.py` of the example project `LahnH`.  It is called
+    why one can interactively access the state and the log sequences within condition
+    files as `land_dill.py` of the example project `LahnH`.  It is called
     `controlcheck` due to its feature to check for possible inconsistencies between
-    control and condition files.  The following test, where we write a number of soil
+    control and condition files.  The following test, where we write several soil
     moisture values (|hland_states.SM|) into condition file `land_dill.py`, which does
     not agree with the number of hydrological response units (|hland_control.NmbZones|)
-    defined in control file `land_dill.py`, verifies that this, in fact, works within
-    a separate Python process:
+    defined in control file `land_dill.py`, verifies that this works within a separate
+    Python process:
 
     >>> from hydpy.examples import prepare_full_example_1
     >>> prepare_full_example_1()
@@ -357,10 +726,10 @@ def controlcheck(
     ...     result = run_subprocess("hyd.py exec_script land_dill.py")
     <BLANKLINE>
     ...
-    While trying to set the value(s) of variable `sm`, the following error \
-occurred: While trying to convert the value(s) `(185.13164, 181.18755)` to \
-a numpy ndarray with shape `(12,)` and type `float`, the following error \
-occurred: could not broadcast input array from shape (2...) into shape (12...)
+    While trying to set the value(s) of variable `sm`, the following error occurred: \
+While trying to convert the value(s) `(185.13164, 181.18755)` to a numpy ndarray with \
+shape `(12,)` and type `float`, the following error occurred: could not broadcast \
+input array from shape (2...) into shape (12...)
     ...
 
     With a little trick, we can fake to be "inside" condition file `land_dill.py`.
@@ -376,9 +745,9 @@ occurred: could not broadcast input array from shape (2...) into shape (12...)
     >>> ic.shape
     (12,)
 
-    In the above example, we use the default names for the project directory
-    (the one containing the executed condition file) and the control
-    directory (`default`).  The following example shows how to change them:
+    In the above example, we use the default names for the project directory (the one
+    containing the executed condition file) and the control directory (`default`).  The
+    following example shows how to change them:
 
     >>> del model
     >>> with TestIO():   # doctest: +ELLIPSIS
@@ -390,21 +759,20 @@ occurred: could not broadcast input array from shape (2...) into shape (12...)
 from directory `...hydpy/tests/iotesting/somewhere/control/nowhere`, \
 the following error occurred: ...
 
-    For some models, the suitable states may depend on the initialisation
-    date.  One example is the interception storage (|lland_states.Inzp|) of
-    application model |lland_v1|, which should not exceed the interception
-    capacity (|lland_derived.KInz|).  However, |lland_derived.KInz| itself
-    depends on the leaf area index parameter |lland_control.LAI|, which
-    offers varying values both for different land-use types and months.
-    Hence, one can assign higher values to state |lland_states.Inzp| during
-    periods with high leaf area indices than during periods with small
-    leaf area indices.
+    For some models, the appropriate states may depend on the initialisation date.  One
+    example is the interception storage (|lland_states.Inzp|) of application model
+    |lland_v1|, which should not exceed the interception capacity
+    (|lland_derived.KInz|).  However, |lland_derived.KInz| depends on the leaf
+    area index parameter |lland_control.LAI|, which offers different values depending
+    on land-use type and month.  Hence, one can assign higher values to state
+    |lland_states.Inzp| during periods with high leaf area indices than during periods
+    with small leaf area indices.
 
     To show the related functionalities, we first replace the |hland_v1| application
     model of element `land_dill` with a |lland_v1| model object, define some of its
     parameter values, and write its control and condition files.  Note that the
-    |lland_control.LAI| value of the only relevant land-use (|lland_constants.ACKER|)
-    is 0.5 during January and 5.0 during July:
+    |lland_control.LAI| value of the only relevant land use the
+    (|lland_constants.ACKER|) is 0.5 during January and 5.0 during July:
 
     >>> from hydpy import HydPy, prepare_model, pub
     >>> from hydpy.models.lland_v1 import ACKER
@@ -424,15 +792,14 @@ the following error occurred: ...
     ...         control.lai.acker_jul = 5.0
     ...         land_dill.model.parameters.update()
     ...         land_dill.model.sequences.states.inzp(1.0)
-    ...     land_dill.model.parameters.save_controls()
+    ...     land_dill.model.save_controls()
     ...     land_dill.model.sequences.save_conditions()
 
-    Unfortunately, state |lland_states.Inzp| does not define a |trim| method
-    taking the actual value of parameter |lland_derived.KInz| into account
-    (due to compatibility with the original LARSIM model).  As an auxiliary
-    solution, we define such a function within the `land_dill.py` condition
-    file (and additionally modify some warning settings in favour of the
-    next examples):
+    Unfortunately, state |lland_states.Inzp| does not define a |trim| method taking the
+    actual value of parameter |lland_derived.KInz| into account (due to compatibility
+    with the original LARSIM model).  As an auxiliary solution, we define such a
+    function within the `land_dill.py` condition file (and modify some warning settings
+    in favour of the next examples):
 
     >>> cwd = os.path.join("LahnH", "conditions", "init_2000_07_01_00_00_00")
     >>> with TestIO():
@@ -454,16 +821,16 @@ the following error occurred: ...
     ...             "type(inzp).trim = trim\\n"])
     ...         file_.writelines(lines[5:])
 
-    Now, executing the condition file (and thereby calling function
-    |controlcheck|) does not raise any warnings due to extracting the
-    initialisation date from the name of the condition directory:
+    Now, executing the condition file (and thereby calling function |controlcheck|)
+    does not raise any warnings due to extracting the initialisation date from the name
+    of the condition directory:
 
     >>> with TestIO():
     ...     os.chdir(cwd)
     ...     result = run_subprocess("hyd.py exec_script land_dill.py")
 
-    If the directory name does imply the initialisation date to be within
-    January 2000 instead of July 2000, we correctly get the following warning:
+    If the directory name does imply the initialisation date to be within January 2000
+    instead of July 2000, we correctly get the following warning:
 
     >>> cwd_old = cwd
     >>> cwd_new = os.path.join("LahnH", "conditions", "init_2000_01_01")
@@ -471,14 +838,13 @@ the following error occurred: ...
     ...     os.rename(cwd_old, cwd_new)
     ...     os.chdir(cwd_new)
     ...     result = run_subprocess("hyd.py exec_script land_dill.py")
-    Invoking hyd.py with arguments `exec_script, land_dill.py` resulted \
-in the following error:
-    For variable `inzp` at least one value needed to be trimmed.  \
-The old and the new value(s) are `1.0, 1.0` and `0.1, 0.1`, respectively.
+    Invoking hyd.py with arguments `exec_script, land_dill.py` resulted in the \
+following error:
+    For variable `inzp` at least one value needed to be trimmed.  The old and the new \
+value(s) are `1.0, 1.0` and `0.1, 0.1`, respectively.
     ...
 
-    One can define an alternative initialisation date via argument
-    `firstdate`:
+    One can define an alternative initialisation date via argument `firstdate`:
 
     >>> text_old = ('controlcheck(projectdir=r"LahnH", '
     ...             'controldir="default", stepsize="1d")')
@@ -493,9 +859,9 @@ The old and the new value(s) are `1.0, 1.0` and `0.1, 0.1`, respectively.
     ...         _ = file_.write(text)
     ...     result = run_subprocess("hyd.py exec_script land_dill.py")
 
-    Default condition directory names do not contain any information about
-    the simulation step size.  Hence, one needs to define it explicitly for
-    all application modelsrelying on the functionalities of class |Indexer|:
+    Default condition directory names do not contain information about the simulation
+    step size.  Hence, one needs to define it explicitly for all application models
+    relying on the functionalities of class |Indexer|:
 
     >>> with TestIO():   # doctest: +ELLIPSIS
     ...     os.chdir(cwd_new)
@@ -505,17 +871,16 @@ The old and the new value(s) are `1.0, 1.0` and `0.1, 0.1`, respectively.
     ...     with open("land_dill.py", "w") as file_:
     ...         _ = file_.write(text)
     ...     result = run_subprocess("hyd.py exec_script land_dill.py")
-    Invoking hyd.py with arguments `exec_script, land_dill.py` resulted \
-in the following error:
-    To apply function `controlcheck` requires time information for some \
-model types.  Please define the `Timegrids` object of module `pub` manually \
-or pass the required information (`stepsize` and eventually `firstdate`) \
-as function arguments.
+    Invoking hyd.py with arguments `exec_script, land_dill.py` resulted in the \
+following error:
+    To apply function `controlcheck` requires time information for some model types.  \
+Please define the `Timegrids` object of module `pub` manually or pass the required \
+information (`stepsize` and eventually `firstdate`) as function arguments.
     ...
 
-    The same error occurs we do not use the argument `firstdate` to define
-    the initialisation time point, and method |controlcheck| cannot
-    extract it from the directory name:
+    The same error occurs we do not use the argument `firstdate` to define the
+    initialisation time point, and method |controlcheck| cannot extract it from the
+    directory name:
 
     >>> cwd_old = cwd_new
     >>> cwd_new = os.path.join("LahnH", "conditions", "init")
@@ -528,20 +893,20 @@ as function arguments.
     ...     with open("land_dill.py", "w") as file_:
     ...         _ = file_.write(text)
     ...     result = run_subprocess("hyd.py exec_script land_dill.py")
-    Invoking hyd.py with arguments `exec_script, land_dill.py` resulted \
-in the following error:
-    To apply function `controlcheck` requires time information for some \
-model types.  Please define the `Timegrids` object of module `pub` manually \
-or pass the required information (`stepsize` and eventually `firstdate`) \
-as function arguments.
+    Invoking hyd.py with arguments `exec_script, land_dill.py` resulted in the \
+following error:
+    To apply function `controlcheck` requires time information for some model types.  \
+Please define the `Timegrids` object of module `pub` manually or pass the required \
+information (`stepsize` and eventually `firstdate`) as function arguments.
     ...
 
-    Note that the functionalities of function |controlcheck| do not come
-    into action if there is a `model` variable in the namespace, which is
-    the case when a condition file is executed within the context of a
-    complete *HydPy* project.
+    Note that the functionalities of function |controlcheck| do not come into action if
+    there is a `model` variable in the namespace, which is the case when a condition
+    file is executed within the context of a complete *HydPy* project.
     """
-    namespace = inspect.currentframe().f_back.f_locals
+    frame = inspect.currentframe()
+    assert (frame is not None) and (frame.f_back is not None)
+    namespace = frame.f_back.f_locals
     model = namespace.get("model")
     if model is None:
         if not controlfile:
@@ -568,7 +933,7 @@ as function arguments.
                 hydpy.pub.timegrids = (firstdate, firstdate + 1000 * stepsize, stepsize)
 
         class CM(filetools.ControlManager):
-            """Tempory |ControlManager| class."""
+            """Temporary |ControlManager| class."""
 
             currentpath = dirpath
 
@@ -578,20 +943,19 @@ as function arguments.
             model = CM().load_file(filename=controlfile)["model"]
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to load the control file `{controlfile}` "
-                f"from directory `{objecttools.repr_(dirpath)}`"
+                f"While trying to load the control file `{controlfile}` from "
+                f"directory `{objecttools.repr_(dirpath)}`"
             )
         finally:
             os.chdir(cwd)
         try:
-            model.parameters.update()
+            model.update_parameters()
         except exceptiontools.AttributeNotReady as exc:
             raise RuntimeError(
-                "To apply function `controlcheck` requires time "
-                "information for some model types.  Please define "
-                "the `Timegrids` object of module `pub` manually "
-                "or pass the required information (`stepsize` and "
-                "eventually `firstdate`) as function arguments."
+                "To apply function `controlcheck` requires time information for some "
+                "model types.  Please define the `Timegrids` object of module `pub` "
+                "manually or pass the required information (`stepsize` and eventually "
+                "`firstdate`) as function arguments."
             ) from exc
 
         namespace["model"] = model

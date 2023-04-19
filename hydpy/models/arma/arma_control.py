@@ -2,9 +2,6 @@
 # pylint: disable=missing-module-docstring
 
 # import...
-# ...from standard-library
-from typing import *
-
 # ...from site-packages
 import numpy
 
@@ -12,14 +9,15 @@ import numpy
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
+from hydpy.auxs import iuhtools
 
 
 class Responses(parametertools.Parameter):
     """Assigns different ARMA models to different discharge thresholds.
 
-    Parameter |Responses| is not involved in the actual calculations
-    during the simulation run.  Instead, it is thought for the intuitive
-    handling of different ARMA models.  It can be applied as follows.
+    Parameter |Responses| is not involved in the actual calculations during the
+    simulation run.  Instead, it is thought for the intuitive handling of different
+    ARMA models.  It can be applied as follows.
 
     Initially, each new `responses` object is emtpy:
 
@@ -32,9 +30,9 @@ class Responses(parametertools.Parameter):
 
     >>> responses.th_0_0 = ((1.0, 2.0), (3.0, 4.0, 6.0))
 
-    `th_0_0` stands for a threshold discharge value of 0.0 m³/s, which the
-    given ARMA model corresponds to.  For integer discharge values, one can
-    omit the decimal digit:
+    `th_0_0` stands for a threshold discharge value of 0.0 m³/s, which the given ARMA
+    model corresponds to.  For integer discharge values, one can omit the decimal
+    digit:
 
     >>> responses.th_1 = ((), (7.0,))
 
@@ -53,14 +51,14 @@ class Responses(parametertools.Parameter):
                       (9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0,
                        18.0, 19.0)))
 
-    All ARMA models are available via attribute access and their attribute
-    names are made available to function |dir|:
+    All ARMA models are available via attribute access and their attribute names are
+    made available to function |dir|:
 
     >>> "th_1_0" in dir(responses)
     True
 
-    Note that all iterables containing the AR and MA coefficients are
-    converted to tuples, to prevent them from being changed by accident:
+    Note that all iterables containing the AR and MA coefficients are converted to
+    tuples, to prevent them from being changed by accident:
 
     >>> responses.th_1[1][0]
     7.0
@@ -84,20 +82,18 @@ class Responses(parametertools.Parameter):
     >>> responses.test = ((), ())
     Traceback (most recent call last):
     ...
-    AttributeError: To define different response functions for parameter \
-`responses` of element `?`, one has to pass them as keyword arguments or \
-set them as additional attributes.  The used name must meet a specific \
-format (see the documentation for further information).  The given name \
-`test` does not meet this format.
+    AttributeError: To define different response functions for parameter `responses` \
+of element `?`, one has to pass them as keyword arguments or set them as additional \
+attributes.  The used name must meet a specific format (see the documentation for \
+further information).  The given name `test` does not meet this format.
 
     Suitable get-related attribute exceptions are also implemented:
 
     >>> responses.test
     Traceback (most recent call last):
     ...
-    AttributeError: Parameter `responses` of element `?` does not have \
-an attribute named `test` and the name `test` is also not a valid \
-threshold value identifier.
+    AttributeError: Parameter `responses` of element `?` does not have an attribute \
+named `test` and the name `test` is also not a valid threshold value identifier.
 
     >>> responses._0_1
     Traceback (most recent call last):
@@ -105,40 +101,37 @@ threshold value identifier.
     AttributeError: Parameter `responses` of element `?` does not have an attribute \
 named `_0_1` nor an arma model corresponding to a threshold value named `th_0_1`.
 
-    The above examples show that all AR and MA coefficients are converted to
-    floating point values.  It this is not possible or something else goes
-    totally wrong during the definition of a new ARMA model, errors like the
-    following are raised:
+    The above examples show that all AR and MA coefficients are converted to floating
+    point values.  It this is not possible or something else goes totally wrong during
+    the definition of a new ARMA model, errors like the following are raised:
 
     >>> responses.th_10 = ()
     Traceback (most recent call last):
     ...
-    IndexError: While trying to set a new threshold (th_10) coefficient \
-pair for parameter `responses` of element `?`, the following error \
-occurred: tuple index out of range
+    IndexError: While trying to set a new threshold (th_10) coefficient pair for \
+parameter `responses` of element `?`, the following error occurred: tuple index out \
+of range
 
-    Except for the mentioned conversion to floating point values, there are
-    no plausibility checks performed.  You have to use other tools to gain
-    plausible coefficients.  The HydPy framework offers the module
-    |iuhtools| for such purposes.
+    Except for the mentioned conversion to floating point values, there are no
+    plausibility checks performed.  You have to use other tools to gain plausible
+    coefficients.  The HydPy framework offers the module |iuhtools| for such purposes.
 
-    Prepare one instantaneous unit hydrograph (iuh) based on the
-    Translation Diffusion Equation and another one based on the Linear
-    Storage Cascade:
+    Prepare one instantaneous unit hydrograph (iuh) based on the Translation Diffusion
+    Equation and another one based on the Linear Storage Cascade:
 
     >>> from hydpy.auxs.iuhtools import TranslationDiffusionEquation
     >>> tde = TranslationDiffusionEquation(d=5.0, u=2.0, x=4.0)
     >>> from hydpy.auxs.iuhtools import LinearStorageCascade
     >>> lsc = LinearStorageCascade(n=2.5, k=1.0)
 
-    The following line deletes the coefficients defined above and assigns the
-    ARMA approximations of both iuh models:
+    The following line deletes the coefficients defined above and assigns the ARMA
+    approximations of both iuh models:
 
     >>> responses(lsc, _2=tde)
 
-    One can change the parameter values of the translation diffusion iuh and
-    assign it to the `responses` parameter, without affecting the ARMA
-    coefficients of the first tde parametrization:
+    One can change the parameter values of the translation diffusion iuh and assign it
+    to the `responses` parameter, without affecting the ARMA coefficients of the first
+    tde parametrization:
 
     >>> tde.u = 1.0
     >>> responses._5 = tde
@@ -153,29 +146,28 @@ occurred: tuple index out of range
                       (0.119252, -0.054959, -0.342744, 0.433585, -0.169102,
                        0.014189, 0.001967)))
 
-    One may have noted the Linear Storage Cascade model was passed as
-    a positional argument and was assigned to a treshold value of 0.0 m³/s
-    automatically, which is the default value.  As each treshold value has to
-    be unique, one can pass only one positional argument:
+    One may have noted the Linear Storage Cascade model was passed as a positional
+    argument and was assigned to a treshold value of 0.0 m³/s automatically, which is
+    the default value.  As each treshold value has to be unique, one can pass only one
+    positional argument:
 
     >>> responses(tde, lsc)
     Traceback (most recent call last):
     ...
-    ValueError: For parameter `responses` of element `?` at most one \
-positional argument is allowed, but `2` are given.
+    ValueError: For parameter `responses` of element `?` at most one positional \
+argument is allowed, but `2` are given.
 
-    Checks for the repeated definition of the same threshold values are also
-    performed:
+    Checks for the repeated definition of the same threshold values are also performed:
 
     >>> responses(tde, _0=lsc, _1=tde, _1_0=lsc)
     Traceback (most recent call last):
     ...
-    ValueError: For parameter `responses` of element `?` `4` arguments \
-have been given but only `2` response functions could be prepared.  \
-Most probably, you defined the same threshold value(s) twice.
+    ValueError: For parameter `responses` of element `?` `4` arguments have been \
+given but only `2` response functions could be prepared.  Most probably, you defined \
+the same threshold value(s) twice.
 
-    The number of response functions and the number of the respective AR and
-    MA coefficients of a given `responses` parameter can be easily queried:
+    The number of response functions and the number of the respective AR and MA
+    coefficients of a given `responses` parameter can be easily queried:
 
     >>> responses(_0=((1.0, 2.0),
     ...               (3.0, 4.0, 6.0)),
@@ -188,8 +180,8 @@ Most probably, you defined the same threshold value(s) twice.
     >>> responses.ma_orders
     (3, 1)
 
-    The threshold values and AR coefficients and the MA coefficients can all
-    be queried as numpy arrays:
+    The threshold values and AR coefficients and the MA coefficients can all be queried
+    as numpy arrays:
 
     >>> responses.thresholds
     array([0., 1.])
@@ -202,27 +194,26 @@ Most probably, you defined the same threshold value(s) twice.
 
     Technical notes:
 
-    The implementation of this class is much to tricky for subpackage `models`.
-    It should be generalized and moved to the framework core later.
+    The implementation of this class is much to tricky for subpackage `models`.  It
+    should be generalized and moved to the framework core later.
 
     Furthermore, it would be nice to avoid the `nan` values in the coefficent
     representations.  But this would possibly require to define a specialized
     `arrays in list` type in Cython.
     """
 
-    _coefs: Dict[str, Tuple[Vector[float], Vector[float]]]
+    _coefs: Dict[str, Tuple[Tuple[float, ...], Tuple[float, ...]]]
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
     def __init__(self, subvars: parametertools.SubParameters) -> None:
         with objecttools.ResetAttrFuncs(self):
             super().__init__(subvars)
-            self.fastaccess = None
             self._coefs = {}
 
     def __hydpy__connect_variable2subgroup__(self) -> None:
-        """Do nothing due to the reasons explained in the main
-        documentation on class |Responses|."""
+        """Do nothing due to the reasons explained in the main documentation on class
+        |Responses|."""
 
     def __call__(self, *args, **kwargs) -> None:
         self._coefs.clear()
@@ -231,21 +222,20 @@ Most probably, you defined the same threshold value(s) twice.
                 f"For parameter {objecttools.elementphrase(self)} at most one "
                 f"positional argument is allowed, but `{len(args)}` are given."
             )
-        for (key, value) in kwargs.items():
+        for key, value in kwargs.items():
             setattr(self, key, value)
         if len(args) == 1:
             setattr(self, "th_0_0", args[0])
         if len(args) + len(kwargs) != len(self):
             raise ValueError(
                 f"For parameter `{self.name}` of element "
-                f"`{objecttools.devicename(self.subpars)}` "
-                f"`{len(args)+len(kwargs)}` arguments have been given "
-                f"but only `{len(self)}` response functions could be "
-                f"prepared.  Most probably, you defined the same "
-                f"threshold value(s) twice."
+                f"`{objecttools.devicename(self.subpars)}` `{len(args)+len(kwargs)}` "
+                f"arguments have been given but only `{len(self)}` response functions "
+                f"could be prepared.  Most probably, you defined the same threshold "
+                f"value(s) twice."
             )
 
-    def __getattr__(self, key: str) -> Tuple[Vector[float], Vector[float]]:
+    def __getattr__(self, key: str) -> Tuple[Tuple[float, ...], Tuple[float, ...]]:
         try:
             std_key = self._standardize_key(key)
         except AttributeError as exc:
@@ -268,9 +258,13 @@ Most probably, you defined the same threshold value(s) twice.
         else:
             std_key = self._standardize_key(key)
             try:
-                try:
-                    self._coefs[std_key] = value.arma.coefs
-                except AttributeError:
+                if isinstance(value, iuhtools.IUH):
+                    self._coefs[std_key] = (
+                        tuple(value.arma.ar_coefs),
+                        tuple(value.arma.ma_coefs),
+                    )
+                else:
+                    value = cast(Tuple[Sequence[float], Sequence[float]], value)
                     self._coefs[std_key] = (
                         tuple(float(v) for v in value[0]),
                         tuple(float(v) for v in value[1]),
@@ -306,7 +300,7 @@ Most probably, you defined the same threshold value(s) twice.
             ) from exc
 
     @property
-    def thresholds(self) -> Vector[float]:
+    def thresholds(self) -> VectorFloat:
         """Threshold values of the response functions."""
         return numpy.array(
             sorted(self._key2float(key) for key in self._coefs), dtype=float
@@ -332,7 +326,7 @@ Most probably, you defined the same threshold value(s) twice.
         """Number of MA coefficients of the different response functions."""
         return self._get_orders(1)
 
-    def _get_coefs(self, index: int) -> Matrix[float]:
+    def _get_coefs(self, index: int) -> MatrixFloat:
         orders = self._get_orders(index)
         max_orders = max(orders) if orders else 0
         coefs = numpy.full((len(self), max_orders), numpy.nan)
@@ -341,7 +335,7 @@ Most probably, you defined the same threshold value(s) twice.
         return coefs
 
     @property
-    def ar_coefs(self) -> Matrix[float]:
+    def ar_coefs(self) -> MatrixFloat:
         """AR coefficients of the different response functions.
 
         The first row contains the AR coefficients related to the the smallest
@@ -351,7 +345,7 @@ Most probably, you defined the same threshold value(s) twice.
         return self._get_coefs(0)
 
     @property
-    def ma_coefs(self) -> Matrix[float]:
+    def ma_coefs(self) -> MatrixFloat:
         """AR coefficients of the different response functions.
 
         The first row contains the MA coefficients related to the the smallest
@@ -366,7 +360,9 @@ Most probably, you defined the same threshold value(s) twice.
     def __bool__(self) -> bool:
         return len(self._coefs) > 0
 
-    def __iter__(self) -> Iterator[Tuple[str, Tuple[Vector[float], Vector[float]]]]:
+    def __iter__(
+        self,
+    ) -> Iterator[Tuple[str, Tuple[Tuple[float, ...], Tuple[float, ...]]]]:
         for key in sorted(self._coefs.keys(), key=self._key2float):
             yield key, self._coefs[key]
 

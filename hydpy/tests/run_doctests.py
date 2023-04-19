@@ -10,7 +10,8 @@ import time
 import unittest
 import doctest
 import warnings
-from typing import *
+from typing import Dict
+from typing import Iterable, List, NamedTuple, Optional, NoReturn, Set, Sequence, Tuple
 
 import click
 

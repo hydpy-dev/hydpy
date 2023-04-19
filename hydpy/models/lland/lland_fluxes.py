@@ -467,23 +467,16 @@ class EvSInz(lland_sequences.Flux1DSequence):
     mask = lland_masks.Forest()
 
 
-class ET0(lland_sequences.Flux1DSequence):
-    """Grasreferenzverdunstung (reference evapotranspiration) [mm/T]."""
-
-    NDIM, NUMERIC = 1, False
-    mask = lland_masks.Complete()
-
-
 class EvPo(lland_sequences.Flux1DSequence):
-    """Evapotranspiration (evapotranspiration) [mm/T]."""
+    """Potenzielle Evapotranspiration (potential evapotranspiration) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()
 
 
 class EvI(lland_sequences.Flux1DSequence):
-    """Tatsächliche Interzeptionsverdunstung (actual evaporation of
-    intercepted water) [mm/T]."""
+    """Tatsächliche Verdunstung von Interzeptions- und permanenten Wasserflächen
+    (actual  evaporation from interception storages and water areas) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()

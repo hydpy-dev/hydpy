@@ -1,12 +1,9 @@
 """This module defines submodel interfaces for calculating potential
 evapotranspiration."""
 # import...
-# ...from standard library
-from abc import abstractmethod
-from typing import *
-
 # ...from hydpy
 from hydpy.core import modeltools
+from hydpy.core.typingtools import *
 
 
 class PETModel_V1(modeltools.SubmodelInterface):
@@ -15,16 +12,16 @@ class PETModel_V1(modeltools.SubmodelInterface):
 
     typeid: ClassVar[Literal[1]] = 1
 
-    @abstractmethod
+    @modeltools.abstractmodelmethod
     def determine_potentialevapotranspiration(self) -> None:
         """Calculate potential evapotranspiration."""
 
-    @abstractmethod
+    @modeltools.abstractmodelmethod
     def get_potentialevapotranspiration(self, k: int) -> float:
         """Get the previously calculated potential evapotranspiration of the selected
-        hydrological response unit in mm/T."""
+        zone in mm/T."""
 
-    @abstractmethod
+    @modeltools.abstractmodelmethod
     def get_meanpotentialevapotranspiration(self) -> float:
-        """Get the previously average calculated potential evapotranspiration in
+        """Get the previously calculated average potential evapotranspiration in
         mm/T."""

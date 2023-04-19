@@ -1031,11 +1031,9 @@ set the number of subchannels to zero:
     | 2000-01-04 23:30:00 |        0.0 |  - |        0.0 |  - | - |    0.0 |        0.0 |        0.0 |
 """
 # import...
-# ...from standard library
-from typing import *
-
 # ...from HydPy
 from hydpy.core import objecttools
+from hydpy.core.typingtools import *
 from hydpy.exe.modelimports import *
 
 # ...from lstream
@@ -1071,7 +1069,7 @@ class Characteristics(NamedTuple):
         return objecttools.flatten_repr(self)
 
 
-class Model(lstream_model.Model, lstream_model.ProfileMixin):
+class Model(lstream_model.BaseModelProfile):
     """Version 1 of HydPy-L-Stream."""
 
     SOLVERPARAMETERS = (

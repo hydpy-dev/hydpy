@@ -19,8 +19,10 @@ class MixinSequence1D:
 
     NDIM, NUMERIC = 1, False
 
+    subseqs: sequencetools.ModelIOSequences
+
     @property
-    def refweights(self) -> NDArrayFloat:
+    def refweights(self) -> VectorFloat:
         """The relative length of all channel segments.
 
         >>> from hydpy.models.musk import *
@@ -34,7 +36,7 @@ class MixinSequence1D:
         return length / numpy.sum(length)
 
 
-class StateSequence1D(MixinSequence1D, sequencetools.StateSequence):
+class StateSequence1D(MixinSequence1D, sequencetools.StateSequence):  # type: ignore[misc]  # pylint: disable=line-too-long
     """Base class for the 1-dimensional state sequences.
 
     For a wrong number of input values, subclasses like |Discharge| use their average
@@ -74,9 +76,9 @@ array from shape (2,) into shape (3,)
             )
 
 
-class FactorSequence1D(MixinSequence1D, sequencetools.FactorSequence):
+class FactorSequence1D(MixinSequence1D, sequencetools.FactorSequence):  # type: ignore[misc]  # pylint: disable=line-too-long
     """Base class for the 1-dimensional factor sequences."""
 
 
-class FluxSequence1D(MixinSequence1D, sequencetools.FluxSequence):
+class FluxSequence1D(MixinSequence1D, sequencetools.FluxSequence):  # type: ignore[misc]  # pylint: disable=line-too-long
     """Base class for the 1-dimensional flux sequences."""

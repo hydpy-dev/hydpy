@@ -8,7 +8,6 @@ import collections
 import copy
 import itertools
 import types
-from typing import *
 
 # ...from site-packages
 import networkx
@@ -21,7 +20,7 @@ from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
-from hydpy.core import typingtools
+from hydpy.core.typingtools import *
 
 ModelTypesArg = Union[modeltools.Model, types.ModuleType, str]
 
@@ -252,7 +251,7 @@ objects, but the type of the given argument is `str`.
             except KeyError:
                 pass
 
-    def find(self, device: devicetools.TypeDevice) -> Selections:
+    def find(self, device: devicetools.NodeOrElement) -> Selections:
         """Return all |Selection| objects containing the given |Node| or |Element|
         object.
 
@@ -444,9 +443,7 @@ objects, but the type of the given argument is `str`.
         return len(self.__selections)
 
     @staticmethod
-    def __getiterable(
-        value: typingtools.Mayberable1[Selection],
-    ) -> List[Selection]:
+    def __getiterable(value: Mayberable1[Selection]) -> List[Selection]:
         """Try to convert the given argument to a |list| of  |Selection| objects and
         return it."""
         try:
@@ -459,23 +456,20 @@ objects, but the type of the given argument is `str`.
                 f"is `{type(value).__name__}`."
             ) from None
 
-    def __add__(self, other: typingtools.Mayberable1[Selection]) -> Selections:
+    def __add__(self, other: Mayberable1[Selection]) -> Selections:
         selections = self.__getiterable(other)
         new = copy.copy(self)
         for selection in selections:
             new[selection.name] = selection
         return new
 
-    def __iadd__(
-        self,
-        other: typingtools.Mayberable1[Selection],
-    ) -> Selections:
+    def __iadd__(self, other: Mayberable1[Selection]) -> Selections:
         selections = self.__getiterable(other)
         for selection in selections:
             self[selection.name] = selection
         return self
 
-    def __sub__(self, other: typingtools.Mayberable1[Selection]) -> Selections:
+    def __sub__(self, other: Mayberable1[Selection]) -> Selections:
         selections = self.__getiterable(other)
         new = copy.copy(self)
         for selection in selections:
@@ -485,10 +479,7 @@ objects, but the type of the given argument is `str`.
                 pass
         return new
 
-    def __isub__(
-        self,
-        other: typingtools.Mayberable1[Selection],
-    ) -> Selections:
+    def __isub__(self, other: Mayberable1[Selection]) -> Selections:
         selections = self.__getiterable(other)
         for selection in selections:
             try:
@@ -662,23 +653,21 @@ type `str`, the following error occurred: 'str' object has no attribute 'nodes'
         self.elements = devicetools.Elements(elements).copy()
 
     def _check_device(
-        self, device: devicetools.TypeDevice, type_of_device: str
-    ) -> devicetools.TypeDevice:
+        self, device: devicetools.TypeNodeElement, type_of_device: str
+    ) -> devicetools.TypeNodeElement:
         if isinstance(device, devicetools.Node):
-            device = self.nodes[device.name]
-        elif isinstance(device, devicetools.Element):
-            device = self.elements[device.name]
-        else:
-            raise TypeError(
-                f"Either a `Node` or an `Element` object is required as the "
-                f'"{type_of_device} device", but the given `device` value is of type '
-                f"`{type(device).__name__}`."
-            )
-        return device
+            return self.nodes[device.name]
+        if isinstance(device, devicetools.Element):
+            return self.elements[device.name]
+        raise TypeError(
+            f"Either a `Node` or an `Element` object is required as the "
+            f'"{type_of_device} device", but the given `device` value is of type '
+            f"`{type(device).__name__}`."
+        )
 
     def search_upstream(
         self,
-        device: devicetools.TypeDevice,
+        device: devicetools.NodeOrElement,
         name: str = "upstream",
         inclusive: bool = True,
     ) -> Selection:
@@ -804,7 +793,7 @@ the "outlet device", but the given `device` value is of type `int`.
             )
 
     def select_upstream(
-        self, device: devicetools.TypeDevice, inclusive: bool = True
+        self, device: devicetools.NodeOrElement, inclusive: bool = True
     ) -> Selection:
         """Restrict the current selection to the network upstream of the given starting
         point, including the starting point itself.
@@ -818,7 +807,7 @@ the "outlet device", but the given `device` value is of type `int`.
         return self
 
     def deselect_upstream(
-        self, device: devicetools.TypeDevice, inclusive: bool = True
+        self, device: devicetools.NodeOrElement, inclusive: bool = True
     ) -> Selection:
         """Remove the network upstream of the given starting point from the current
         selection, including the starting point itself.
@@ -833,7 +822,7 @@ the "outlet device", but the given `device` value is of type `int`.
 
     def search_downstream(
         self,
-        device: devicetools.TypeDevice,
+        device: devicetools.NodeOrElement,
         name: str = "downstream",
         inclusive: bool = True,
     ) -> Selection:
@@ -953,7 +942,7 @@ required as the "inlet device", but the given `device` value is of type `int`.
             )
 
     def select_downstream(
-        self, device: devicetools.TypeDevice, inclusive: bool = True
+        self, device: devicetools.NodeOrElement, inclusive: bool = True
     ) -> Selection:
         """Restrict the current selection to the network downstream of the given
         starting point, including the starting point itself.
@@ -967,7 +956,7 @@ required as the "inlet device", but the given `device` value is of type `int`.
         return self
 
     def deselect_downstream(
-        self, device: devicetools.TypeDevice, inclusive: bool = True
+        self, device: devicetools.NodeOrElement, inclusive: bool = True
     ) -> Selection:
         """Remove the network downstream of the given starting point from the current
         selection, including the starting point itself.
@@ -1458,11 +1447,11 @@ following error occurred: 'in <string>' requires string as left operand, not lis
         return self
 
     @objecttools.excmessage_decorator(f"compare {_ERRORMESSAGE}")
-    def __lt__(self, other: Selection) -> bool:
+    def __lt__(self, other: Selection) -> bool:  # type: ignore[has-type]
         return (self.nodes < other.nodes) and (self.elements < other.elements)
 
     @objecttools.excmessage_decorator(f"compare {_ERRORMESSAGE}")
-    def __le__(self, other: Selection) -> bool:
+    def __le__(self, other: Selection) -> bool:  # type: ignore[has-type]
         return (self.nodes <= other.nodes) and (self.elements <= other.elements)
 
     def __eq__(self, other: object) -> bool:

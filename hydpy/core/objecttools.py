@@ -5,7 +5,6 @@ different objects defined by the HydPy framework."""
 # ...from standard library
 from __future__ import annotations
 import builtins
-import collections
 import contextlib
 import copy
 import inspect
@@ -14,8 +13,6 @@ import numbers
 import sys
 import textwrap
 import types
-from typing import *
-from typing import TextIO
 
 # ...from site-packages
 import black
@@ -25,12 +22,14 @@ import wrapt
 # ...from HydPy
 import hydpy
 from hydpy import config
+from hydpy.core import exceptiontools
 from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
     from hydpy.core import devicetools
     from hydpy.core import modeltools
-
+    from hydpy.core import parametertools
+    from hydpy.core import sequencetools
 
 _builtinnames = set(dir(builtins))
 
@@ -55,11 +54,11 @@ def classname(self: object) -> str:
 
 
 def value_of_type(value: object) -> str:
-    """Returns a string containing both the informal string and the type
-    of the given value.
+    """Returns a string containing both the informal string and the type of the given
+    value.
 
-    This function is intended to simplifying writing HydPy exceptions,
-    which frequently contain the following phrase:
+    This function is intended to simplifying writing HydPy exceptions, which frequently
+    contain the following phrase:
 
     >>> from hydpy.core.objecttools import value_of_type
     >>> value_of_type(999)
@@ -82,21 +81,25 @@ def modulename(self: object) -> str:
 def _search_device(
     self: object,
 ) -> Optional[Union[devicetools.Node, devicetools.Element]]:
-    from hydpy.core import devicetools  # pylint: disable=import-outside-toplevel
+    # pylint: disable=import-outside-toplevel
+    from hydpy.core import devicetools as dt
+    from hydpy.core import modeltools as mt
+    from hydpy.core import parametertools as pt
+    from hydpy.core import sequencetools as st
 
-    while True:
-        if self is None:
-            return None
-        device = vars(self).get("node", vars(self).get("element"))
-        if isinstance(device, (devicetools.Node, devicetools.Element)):
-            return device
-        for test in ("_model", "model", "seqs", "pars", "subvars"):
-            master = vars(self).get(test)
-            if master is not None:
-                self = master
-                break
-        else:
-            return None
+    if isinstance(self, (pt.Parameter, st.ModelSequence, st.NodeSequence)):
+        self = self.subvars
+    if isinstance(self, (pt.SubParameters, st.ModelSequences)):
+        self = self.vars
+    if isinstance(self, (pt.Parameters, st.Sequences)):
+        self = self.model
+    if isinstance(self, mt.Model):
+        return exceptiontools.getattr_(self, "element", None)
+    if isinstance(self, st.NodeSequences):
+        return self.node
+    if isinstance(self, (dt.Node, dt.Element)):
+        return self
+    return None
 
 
 def devicename(self: object) -> str:
@@ -139,14 +142,12 @@ def elementphrase(self: object) -> str:
     """Return the phrase used in exception messages to indicate
     which |Element| is affected.
 
-    >>> class Model:
-    ...     pass
-    >>> model = Model()
+    >>> from hydpy.core.modeltools import Model
+    >>> class Test(Model):
+    ...     def connect(self):
+    ...         pass
+    >>> model = Test()
     >>> from hydpy.core.objecttools import elementphrase
-    >>> elementphrase(model)
-    '`model` of element `?`'
-
-    >>> model.name = "test"
     >>> elementphrase(model)
     '`test` of element `?`'
 
@@ -159,8 +160,8 @@ def elementphrase(self: object) -> str:
 
 
 def nodephrase(self: object) -> str:
-    """Return the phrase used in exception messages to indicate
-    which |Node| is affected.
+    """Return the phrase used in exception messages to indicate which |Node| is
+    affected.
 
     >>> from hydpy.core.sequencetools import Sequences
     >>> sequences = Sequences(None)
@@ -181,13 +182,15 @@ def nodephrase(self: object) -> str:
 
 
 def devicephrase(self: object) -> str:
-    """Try to return the phrase used in exception messages to
-    indicate which |Element| or which |Node| is affected.
-    If not possible, return just the name of the given object.
+    """Try to return the phrase used in exception messages to indicate which |Element|
+    or which |Node| is affected.  If not possible, return just the name of the given
+    object.
 
-    >>> class Model:
-    ...     name = "test"
-    >>> model = Model()
+    >>> from hydpy.core.modeltools import Model
+    >>> class Test(Model):
+    ...     def connect(self):
+    ...         return None
+    >>> model = Test()
     >>> from hydpy.core.objecttools import devicephrase
     >>> devicephrase(model)
     '`test`'
@@ -215,13 +218,13 @@ def submodelphrase(model: modeltools.Model, include_subsubmodels: bool = True) -
     >>> submodelphrase(model)
     'model `lland_v1`'
 
-    >>> model.petmodel = prepare_model("evap_io")
+    >>> model.aetmodel = prepare_model("evap_minhas")
     >>> submodelphrase(model)
-    'model `lland_v1` and its submodel (`petmodel/evap_io`)'
+    'model `lland_v1` and its submodel (`aetmodel/evap_minhas`)'
 
     >>> model.soilmodel = prepare_model("ga_garto_submodel1")
     >>> submodelphrase(model)
-    'model `lland_v1` and its submodels (`petmodel/evap_io` and \
+    'model `lland_v1` and its submodels (`aetmodel/evap_minhas` and \
 `soilmodel/ga_garto_submodel1`)'
     """
     submodels = model.find_submodels(include_subsubmodels=include_subsubmodels)
@@ -249,10 +252,9 @@ def valid_variable_identifier(string: str) -> None:
     >>> valid_variable_identifier("test 1")
     Traceback (most recent call last):
     ...
-    ValueError: The given name string `test 1` does not define a valid \
-variable identifier.  Valid identifiers do not contain characters like \
-`-` or empty spaces, do not start with numbers, cannot be mistaken with \
-Python built-ins like `for`...)
+    ValueError: The given name string `test 1` does not define a valid variable \
+identifier.  Valid identifiers do not contain characters like `-` or empty spaces, do \
+not start with numbers, cannot be mistaken with Python built-ins like `for`...)
 
     Also, names of Python built ins are not allowed:
 
@@ -263,24 +265,22 @@ Python built-ins like `for`...)
     """
     if string in _builtinnames or not string.isidentifier():
         raise ValueError(
-            f"The given name string `{string}` does not define a valid "
-            f"variable identifier.  Valid identifiers do not contain "
-            f"characters like `-` or empty spaces, do not start with "
-            f"numbers, cannot be mistaken with Python built-ins like "
-            f"`for`...)"
+            f"The given name string `{string}` does not define a valid variable "
+            f"identifier.  Valid identifiers do not contain characters like `-` or "
+            f"empty spaces, do not start with numbers, cannot be mistaken with Python "
+            f"built-ins like `for`...)"
         )
 
 
 def augment_excmessage(
-    prefix: Optional[str] = None,
-    suffix: Optional[str] = None,
+    prefix: Optional[str] = None, suffix: Optional[str] = None
 ) -> NoReturn:
-    """Augment an exception message with additional information while keeping
-    the original traceback.
+    """Augment an exception message with additional information while keeping the
+    original traceback.
 
-    You can prefix and/or suffix text.  If you prefix something (which happens
-    much more often in the HydPy framework), the sub-clause ', the following
-    error occurred:' is automatically included:
+    You can prefix and/or suffix text.  If you prefix something (which happens much
+    more often in the HydPy framework), the sub-clause ", the following error
+    occurred:" is automatically included:
 
     >>> from hydpy.core import objecttools
     >>> import textwrap
@@ -292,14 +292,12 @@ def augment_excmessage(
     ...     objecttools.augment_excmessage(prefix, suffix)
     Traceback (most recent call last):
     ...
-    TypeError: While showing how prefixing works, the following error \
-occurred: unsupported operand type(s) for +: 'int' and 'str' \
-(This is a final remark.)
+    TypeError: While showing how prefixing works, the following error occurred: \
+unsupported operand type(s) for +: 'int' and 'str' (This is a final remark.)
 
-    Some exceptions derived by site-packages do not support exception
-    chaining due to requiring multiple initialisation arguments.
-    In such cases, |augment_excmessage| generates an exception with the
-    same name on the fly and raises it afterwards:
+    Some exceptions derived by site-packages do not support exception chaining due to
+    requiring multiple initialisation arguments.  In such cases, |augment_excmessage|
+    generates an exception with the same name on the fly and raises it afterwards:
 
     >>> class WrongError(BaseException):
     ...     def __init__(self, arg1, arg2):
@@ -310,22 +308,22 @@ occurred: unsupported operand type(s) for +: 'int' and 'str' \
     ...     objecttools.augment_excmessage("While showing how prefixing works")
     Traceback (most recent call last):
     ...
-    hydpy.core.objecttools.WrongError: While showing how prefixing works, \
-the following error occurred: ('info 1', 'info 2')
+    hydpy.core.objecttools.WrongError: While showing how prefixing works, the \
+following error occurred: ('info 1', 'info 2')
 
     Never use function |augment_excmessage| outside except clauses:
 
     >>> objecttools.augment_excmessage("While trying to do something")
     Traceback (most recent call last):
     ...
-    RuntimeError: No exception available.  (Call function `augment_excmessage` \
-only inside except clauses.)
+    RuntimeError: No exception available.  (Call function `augment_excmessage` only \
+inside except clauses.)
     """
     exc_old = sys.exc_info()[1]
     if exc_old is None:
         raise RuntimeError(
-            "No exception available.  (Call function `augment_excmessage` "
-            "only inside except clauses.)"
+            "No exception available.  (Call function `augment_excmessage` only inside "
+            "except clauses.)"
         )
     message = str(exc_old)
     if prefix is not None:
@@ -346,18 +344,19 @@ F = TypeVar("F", bound=Callable[..., Any])
 
 
 def decorator(wrapper: Callable[..., Any]) -> Callable[[F], F]:
-    """Function |decorator| adds type hints to function `decorator` of the
-    site-package `wrapt` without changing its functionality."""
-    return cast(Callable[[F], F], wrapt.decorator(wrapper))
+    """Function |decorator| adds type hints to function `decorator` of the site-package
+    `wrapt` without changing its functionality."""
+    return wrapt.decorator(wrapper)
 
 
-def excmessage_decorator(description_: str) -> Callable[[F], F]:
+def excmessage_decorator(
+    description_: str,
+) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """Wrap a function with |augment_excmessage|.
 
-    Function |excmessage_decorator| is a means to apply function
-    |augment_excmessage| more efficiently.  Suppose you would apply
-    function |augment_excmessage| in a function that adds and returns
-    to numbers:
+    Function |excmessage_decorator| is a means to apply function |augment_excmessage|
+    more efficiently.  Suppose you would apply function |augment_excmessage| in a
+    function that adds and returns to numbers:
 
     >>> from  hydpy.core import objecttools
     >>> def add(x, y):
@@ -373,8 +372,8 @@ def excmessage_decorator(description_: str) -> Callable[[F], F]:
     >>> add(1, [])
     Traceback (most recent call last):
     ...
-    TypeError: While trying to add `x` and `y`, the following error \
-occurred: unsupported operand type(s) for +: 'int' and 'list'
+    TypeError: While trying to add `x` and `y`, the following error occurred: \
+unsupported operand type(s) for +: 'int' and 'list'
 
     ...but can be achieved with much less code using |excmessage_decorator|:
 
@@ -388,22 +387,21 @@ occurred: unsupported operand type(s) for +: 'int' and 'list'
     >>> add(1, [])
     Traceback (most recent call last):
     ...
-    TypeError: While trying to add `x` and `y`, the following error \
-occurred: unsupported operand type(s) for +: 'int' and 'list'
+    TypeError: While trying to add `x` and `y`, the following error occurred: \
+unsupported operand type(s) for +: 'int' and 'list'
 
-    Additionally, exception messages related to wrong function calls
-    are now also augmented:
+    Additionally, exception messages related to wrong function calls are now also
+    augmented:
 
     >>> add(1)
     Traceback (most recent call last):
     ...
-    TypeError: While trying to add `x` and `y`, the following error \
-occurred: add() missing 1 required positional argument: 'y'
+    TypeError: While trying to add `x` and `y`, the following error occurred: add() \
+missing 1 required positional argument: 'y'
 
-    |excmessage_decorator| evaluates the given string like an f-string,
-    allowing to mention the argument values of the called function and
-    to make use of all string modification functions provided by modules
-    |objecttools|:
+    |excmessage_decorator| evaluates the given string like an f-string, allowing to
+    mention the argument values of the called function and to make use of all string
+    modification functions provided by modules |objecttools|:
 
     >>> @objecttools.excmessage_decorator(
     ...     "add `x` ({repr_(x, 2)}) and `y` ({repr_(y, 2)})")
@@ -413,18 +411,18 @@ occurred: add() missing 1 required positional argument: 'y'
     >>> add(1.1111, "wrong")
     Traceback (most recent call last):
     ...
-    TypeError: While trying to add `x` (1.11) and `y` (wrong), the following \
-error occurred: unsupported operand type(s) for +: 'float' and 'str'
+    TypeError: While trying to add `x` (1.11) and `y` (wrong), the following error \
+occurred: unsupported operand type(s) for +: 'float' and 'str'
     >>> add(1)
     Traceback (most recent call last):
     ...
-    TypeError: While trying to add `x` (1) and `y` (?), the following error \
-occurred: add() missing 1 required positional argument: 'y'
+    TypeError: While trying to add `x` (1) and `y` (?), the following error occurred: \
+add() missing 1 required positional argument: 'y'
     >>> add(y=1)
     Traceback (most recent call last):
     ...
-    TypeError: While trying to add `x` (?) and `y` (1), the following error \
-occurred: add() missing 1 required positional argument: 'x'
+    TypeError: While trying to add `x` (?) and `y` (1), the following error occurred: \
+add() missing 1 required positional argument: 'x'
 
     Apply |excmessage_decorator| on methods also works fine:
 
@@ -445,9 +443,9 @@ occurred: add() missing 1 required positional argument: 'x'
     >>> adder += "wrong"
     Traceback (most recent call last):
     ...
-    TypeError: While trying to add an instance of class `Adder` with value \
-`wrong` of type `str`, the following error occurred: unsupported operand \
-type(s) for +=: 'int' and 'str'
+    TypeError: While trying to add an instance of class `Adder` with value `wrong` of \
+type `str`, the following error occurred: unsupported operand type(s) for +=: 'int' \
+and 'str'
 
     It is made sure that no information of the decorated function is lost:
 
@@ -456,7 +454,7 @@ type(s) for +=: 'int' and 'str'
     """
 
     @wrapt.decorator
-    def wrapper(wrapped, instance, args, kwargs):  # type: ignore[no-untyped-def]
+    def wrapper(wrapped, instance, args, kwargs):
         """Apply |augment_excmessage| when the wrapped function fails."""
         try:
             return wrapped(*args, **kwargs)
@@ -480,22 +478,20 @@ type(s) for +=: 'int' and 'str'
 class ResetAttrFuncs:
     """Reset all attribute related methods of the given class temporarily.
 
-    The "related methods" are defined in class attribute
-    |ResetAttrFuncs.funcnames|.
+    The "related methods" are defined in class attribute |ResetAttrFuncs.funcnames|.
 
-    There are (at least) two use cases for  class |ResetAttrFuncs|,
-    initialization and copying, which are described below.
+    There are (at least) two use cases for  class |ResetAttrFuncs|, initialisation and
+    copying, which are described below.
 
-    In HydPy, some classes define a `__setattr__` method which raises
-    exceptions when one tries to set "improper" instance attributes.
-    The problem is, that such customized `setattr` methods often prevent
-    from defining instance attributes within `__init__` methods in the
-    usual manner.  Working on instance dictionaries instead can confuse
-    some automatic tools (e.g. pylint).  Class |ResetAttrFuncs|
-    implements a trick to circumvent this problem.
+    In HydPy, some classes define a `__setattr__` method which raises exceptions when
+    one tries to set "improper" instance attributes.  The problem is, that such
+    customized `setattr` methods often prevent from defining instance attributes within
+    `__init__` methods in the usual manner.  Working on instance dictionaries instead
+    can confuse some automatic tools (e.g. pylint).  Class |ResetAttrFuncs| implements
+    a trick to circumvent this problem.
 
-    To show how |ResetAttrFuncs| works, we first define a class
-    with a `__setattr__` method that does not allow to set any attribute:
+    To show how |ResetAttrFuncs| works, we first define a class with a `__setattr__`
+    method that does not allow to set any attribute:
 
     >>> class Test:
     ...     def __setattr__(self, name, value):
@@ -506,9 +502,8 @@ class ResetAttrFuncs:
     ...
     AttributeError
 
-    Assigning this class to |ResetAttrFuncs| allows for setting
-    attributes to all its instances inside a `with` block in the
-    usual manner:
+    Assigning this class to |ResetAttrFuncs| allows for setting attributes to all its
+    instances inside a `with` block in the usual manner:
 
     >>> from hydpy.core.objecttools import ResetAttrFuncs
     >>> with ResetAttrFuncs(test):
@@ -516,18 +511,17 @@ class ResetAttrFuncs:
     >>> test.var1
     1
 
-    After the end of the `with` block, the custom `__setattr__` method
-    of the test class works again and prevents from setting attributes:
+    After the end of the `with` block, the custom `__setattr__` method of the test
+    class works again and prevents from setting attributes:
 
     >>> test.var2 = 2
     Traceback (most recent call last):
     ...
     AttributeError
 
-    The second use case is related to method `__getattr__` and copying.
-    The following test class stores its attributes (for whatever reasons)
-    in a special dictionary called "dic" (note that how
-    |ResetAttrFuncs| is used in the `__init__` method):
+    The second use case is related to method `__getattr__` and copying.  The following
+    test class stores its attributes (for whatever reasons) in a special dictionary
+    called "dic" (note that how |ResetAttrFuncs| is used in the `__init__` method):
 
     >>> class Test:
     ...     def __init__(self):
@@ -541,8 +535,8 @@ class ResetAttrFuncs:
     ...         except KeyError:
     ...             raise AttributeError
 
-    Principally, this simple implementation does its job but its
-    instances are not easily copyable under all Python versions:
+    Principally, this simple implementation does its job but its instances are not
+    easily copyable under all Python versions:
 
     >>> test = Test()
     >>> test.var1 = 1
@@ -554,10 +548,9 @@ class ResetAttrFuncs:
     ...
     RecursionError: maximum recursion depth exceeded ...
 
-    |ResetAttrFuncs| can be used to implement specialized
-    `__copy__` and `__deepcopy__` methods, which rely on the temporary
-    disabling of `__getattr__`.  For simple cases, one can import the
-    predefined functions |copy_| and |deepcopy_|:
+    |ResetAttrFuncs| can be used to implement specialized `__copy__` and `__deepcopy__`
+    methods, which rely on the temporary disabling of `__getattr__`.  For simple cases,
+    one can import the predefined functions |copy_| and |deepcopy_|:
 
     >>> from hydpy.core.objecttools import copy_, deepcopy_
     >>> Test.__copy__ = copy_
@@ -569,9 +562,8 @@ class ResetAttrFuncs:
     >>> test3.var1
     1
 
-    Note that an infinite recursion is avoided by also disabling methods
-    `__copy__` and `__deepcopy__` themselves.
-
+    Note that an infinite recursion is avoided by also disabling methods `__copy__` and
+    `__deepcopy__` themselves.
     """
 
     __slots__ = ("cls", "name2func")
@@ -590,7 +582,7 @@ class ResetAttrFuncs:
             if hasattr(self.cls, name_):
                 self.name2func[name_] = self.cls.__dict__.get(name_)
 
-    def __enter__(self) -> "ResetAttrFuncs":
+    def __enter__(self) -> Self:
         for name_ in self.name2func:
             if name_ in ("__setattr__", "__delattr__"):
                 setattr(self.cls, name_, getattr(object, name_))
@@ -746,11 +738,7 @@ class _Repr:
     def __init__(self) -> None:
         self._preserve_strings = False
 
-    def __call__(
-        self,
-        value: object,
-        decimals: Optional[int] = None,
-    ) -> str:
+    def __call__(self, value: object, decimals: Optional[int] = None) -> str:
         if decimals is None:
             decimals = hydpy.pub.options.reprdigits
         if isinstance(value, str):
@@ -868,9 +856,9 @@ On all types not mentioned above, the usual |repr| function is applied, e.g.:
 """
 
 
-def repr_values(values: Iterable[object]) -> str:
-    """Return comma separated representations of the given values using
-    function |repr_|.
+def repr_values(values: VectorInputObject) -> str:
+    """Return comma separated representations of the given values using function
+    |repr_|.
 
     >>> from hydpy.core.objecttools import repr_values
     >>> repr_values([1.0/1.0, 1.0/2.0, 1.0/3.0])
@@ -882,11 +870,11 @@ def repr_values(values: Iterable[object]) -> str:
 
 
 def repr_numbers(values: ReprArg) -> str:
-    """Return comma separated representations of the given numbers using
-    function |repr_|.
+    """Return comma separated representations of the given numbers using function
+    |repr_|.
 
-    Currently, function |repr_numbers| can handle scalar values,
-    1-dimensional vectors, and 2-dimensional matrices:
+    Currently, function |repr_numbers| can handle scalar values, 1-dimensional vectors,
+    and 2-dimensional matrices:
 
     >>> from hydpy.core.objecttools import repr_numbers
     >>> repr_numbers(1.0/3.0)
@@ -913,7 +901,7 @@ def repr_numbers(values: ReprArg) -> str:
     return "; ".join(result)
 
 
-def print_values(values: Iterable[object], width: int = 70) -> None:
+def print_values(values: VectorInputObject, width: int = 70) -> None:
     """Print the given values in multiple lines with a certain maximum width.
 
     By default, each line contains at most 70 characters:
@@ -923,8 +911,8 @@ def print_values(values: Iterable[object], width: int = 70) -> None:
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
     20
 
-    You can change this default behaviour by passing an alternative
-    number of characters:
+    You can change this default behaviour by passing an alternative number of
+    characters:
 
     >>> print_values(range(21), width=30)
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
@@ -939,9 +927,8 @@ def print_values(values: Iterable[object], width: int = 70) -> None:
         print(line)
 
 
-def repr_tuple(values: Iterable[object]) -> str:
-    """Return a tuple representation of the given values using function
-    |repr|.
+def repr_tuple(values: VectorInputObject) -> str:
+    """Return a tuple representation of the given values using function |repr|.
 
     >>> from hydpy.core.objecttools import repr_tuple
     >>> repr_tuple([1./1., 1./2., 1./3.])
@@ -949,8 +936,8 @@ def repr_tuple(values: Iterable[object]) -> str:
 
     Note that the returned string is not wrapped.
 
-    In the special case of an iterable with only one entry, the returned
-    string is still a valid tuple:
+    In the special case of an iterable with only one entry, the returned string is
+    still a valid tuple:
 
     >>> repr_tuple([1.])
     '(1.0,)'
@@ -960,9 +947,8 @@ def repr_tuple(values: Iterable[object]) -> str:
     return f"({repr_values(values)})"
 
 
-def repr_list(values: Iterable[object]) -> str:
-    """Return a list representation of the given values using function
-    |repr|.
+def repr_list(values: VectorInputObject) -> str:
+    """Return a list representation of the given values using function |repr|.
 
     >>> from hydpy.core.objecttools import repr_list
     >>> repr_list([1./1., 1./2., 1./3.])
@@ -974,11 +960,11 @@ def repr_list(values: Iterable[object]) -> str:
 
 
 def assignrepr_value(value: object, prefix: str) -> str:
-    """Return a prefixed string representation of the given value using
-    function |repr|.
+    """Return a prefixed string representation of the given value using function
+    |repr|.
 
-    Note that the argument has no effect. It is thought for increasing
-    usage compatibility with functions like |assignrepr_list| only.
+    Note that the argument has no effect. It is thought for increasing usage
+    compatibility with functions like |assignrepr_list| only.
 
     >>> from hydpy.core.objecttools import assignrepr_value
     >>> print(assignrepr_value(1./3., "test = "))
@@ -988,13 +974,13 @@ def assignrepr_value(value: object, prefix: str) -> str:
 
 
 def assignrepr_values(
-    values: Sequence[object],
+    values: VectorInputObject,
     prefix: str,
     width: Optional[int] = None,
     _fakeend: int = 0,
 ) -> str:
-    """Return a prefixed, wrapped and properly aligned string representation
-    of the given values using function |repr|.
+    """Return a prefixed, wrapped and properly aligned string representation of the
+    given values using function |repr|.
 
     >>> from hydpy.core.objecttools import assignrepr_values
     >>> print(assignrepr_values(range(1, 13), "test(", 20) + ")")
@@ -1008,8 +994,8 @@ def assignrepr_values(
     test(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
 
 
-    To circumvent defining too long string representations, make use of the
-    ellipsis option:
+    To circumvent defining too long string representations, make use of the ellipsis
+    option:
 
     >>> from hydpy import pub
     >>> with pub.options.ellipsis(1):
@@ -1051,7 +1037,7 @@ def assignrepr_values(
     if not wrapped:
         wrapped = [""]
     lines = []
-    for (idx, line) in enumerate(wrapped):
+    for idx, line in enumerate(wrapped):
         if idx == 0:
             lines.append(f"{prefix}{line}")
         else:
@@ -1061,11 +1047,10 @@ def assignrepr_values(
 
 
 class _AssignReprBracketed:
-    """ "Double Singleton class", see the documentation on
-    |assignrepr_tuple| and |assignrepr_list|."""
+    """ "Double Singleton class", see the documentation on |assignrepr_tuple| and
+    |assignrepr_list|."""
 
     class _AlwaysBracketed:
-
         _new_value: bool
         _old_value: bool
 
@@ -1092,7 +1077,7 @@ class _AssignReprBracketed:
 
     def __call__(
         self,
-        values: Sequence[object],
+        values: VectorInputObject,
         prefix: str,
         width: Optional[int] = None,
     ) -> str:
@@ -1121,8 +1106,8 @@ class _AssignReprBracketed:
 
 
 assignrepr_tuple = _AssignReprBracketed("()")
-"""Return a prefixed, wrapped and properly aligned tuple string
-representation of the given values using function |repr|.
+"""Return a prefixed, wrapped and properly aligned tuple string representation of the 
+given values using function |repr|.
 
 >>> from hydpy.core.objecttools import assignrepr_tuple
 >>> print(assignrepr_tuple(range(10), "test = ", 22))
@@ -1134,8 +1119,8 @@ If no width is given, no wrapping is performed:
 >>> print(assignrepr_tuple(range(10), "test = "))
 test = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
-Functions |assignrepr_tuple| works also on empty iterables and
-those which possess only one entry:
+Functions |assignrepr_tuple| works also on empty iterables and those which possess only 
+one entry:
 
 >>> print(assignrepr_tuple([], "test = "))
 test = ()
@@ -1161,8 +1146,8 @@ test = (10,)
 
 
 assignrepr_list = _AssignReprBracketed("[]")
-"""Return a prefixed, wrapped and properly aligned list string
-representation of the given values using function |repr|.
+"""Return a prefixed, wrapped and properly aligned list string representation of the 
+given values using function |repr|.
 
 >>> from hydpy.core.objecttools import assignrepr_list
 >>> print(assignrepr_list(range(10), "test = ", 22))
@@ -1189,8 +1174,7 @@ test = []
 test = 10
 test = [10, 10]
 
-Behind the with block, |assignrepr_list| works as before
-(even in case of an error):
+Behind the with block, |assignrepr_list| works as before (even in case of an error):
 
 >>> print(assignrepr_list([10], "test = "))
 test = [10,]
@@ -1198,12 +1182,10 @@ test = [10,]
 
 
 def assignrepr_values2(
-    values: Iterable[Iterable[object]],
-    prefix: str,
-    width: Optional[int] = None,
+    values: MatrixInputObject, prefix: str, width: Optional[int] = None
 ) -> str:
-    """Return a prefixed and properly aligned string representation
-    of the given 2-dimensional value matrix using function |repr|.
+    """Return a prefixed and properly aligned string representation of the given
+    2-dimensional value matrix using function |repr|.
 
     >>> from hydpy.core.objecttools import assignrepr_values2
     >>> import numpy
@@ -1219,7 +1201,7 @@ def assignrepr_values2(
     """
     lines = []
     blanks = " " * len(prefix)
-    for (idx, subvalues) in enumerate(values):
+    for idx, subvalues in enumerate(values):
         if idx == 0:
             lines.append(f"{assignrepr_values(subvalues, prefix=prefix, width=width)},")
         else:
@@ -1230,18 +1212,17 @@ def assignrepr_values2(
 
 def _assignrepr_bracketed2(
     assignrepr_bracketed1: _AssignReprBracketed,
-    values: Sequence[Sequence[object]],
+    values: MatrixInputObject,
     prefix: str,
     width: Optional[int] = None,
 ) -> str:
-    """Return a prefixed, wrapped and properly aligned bracketed string
-    representation of the given 2-dimensional value matrix using function
-    |repr|."""
+    """Return a prefixed, wrapped and properly aligned bracketed string representation
+    of the given 2-dimensional value matrix using function |repr|."""
     brackets = getattr(assignrepr_bracketed1, "_brackets")
     prefix += brackets[0]
     lines = []
     blanks = " " * len(prefix)
-    for (idx, subvalues) in enumerate(values):
+    for idx, subvalues in enumerate(values):
         if idx == 0:
             lines.append(assignrepr_bracketed1(subvalues, prefix, width))
         else:
@@ -1254,13 +1235,10 @@ def _assignrepr_bracketed2(
 
 
 def assignrepr_tuple2(
-    values: Sequence[Sequence[object]],
-    prefix: str,
-    width: Optional[int] = None,
+    values: MatrixInputObject, prefix: str, width: Optional[int] = None
 ) -> str:
-    """Return a prefixed, wrapped and properly aligned tuple string
-    representation of the given 2-dimensional value matrix using function
-    |repr|.
+    """Return a prefixed, wrapped and properly aligned tuple string representation of
+    the given 2-dimensional value matrix using function |repr|.
 
     >>> from hydpy.core.objecttools import assignrepr_tuple2
     >>> import numpy
@@ -1279,8 +1257,8 @@ def assignrepr_tuple2(
             (0.0, 1.0, 0.0),
             (0.0, 0.0, 1.0))
 
-    Functions |assignrepr_tuple2| works also on empty iterables and
-    those which possess only one entry:
+    Functions |assignrepr_tuple2| works also on empty iterables and those which possess
+    only one entry:
 
     >>> print(assignrepr_tuple2([[]], "test = "))
     test = ((),)
@@ -1292,13 +1270,10 @@ def assignrepr_tuple2(
 
 
 def assignrepr_list2(
-    values: Sequence[Sequence[object]],
-    prefix: str,
-    width: Optional[int] = None,
+    values: MatrixInputObject, prefix: str, width: Optional[int] = None
 ) -> str:
-    """Return a prefixed, wrapped and properly aligned list string
-    representation of the given 2-dimensional value matrix using function
-    |repr|.
+    """Return a prefixed, wrapped and properly aligned list string representation of
+    the given 2-dimensional value matrix using function |repr|.
 
     >>> from hydpy.core.objecttools import assignrepr_list2
     >>> import numpy
@@ -1330,18 +1305,17 @@ def assignrepr_list2(
 
 def _assignrepr_bracketed3(
     assignrepr_bracketed1: _AssignReprBracketed,
-    values: Sequence[Sequence[Sequence[object]]],
+    values: TensorInputObject,
     prefix: str,
     width: Optional[int] = None,
 ) -> str:
-    """Return a prefixed, wrapped and properly aligned bracketed string
-    representation of the given 3-dimensional value matrix using function
-    |repr|."""
+    """Return a prefixed, wrapped and properly aligned bracketed string representation
+    of the given 3-dimensional value matrix using function |repr|."""
     brackets = getattr(assignrepr_bracketed1, "_brackets")
     prefix += brackets[0]
     lines = []
     blanks = " " * len(prefix)
-    for (idx, subvalues) in enumerate(values):
+    for idx, subvalues in enumerate(values):
         if idx == 0:
             lines.append(
                 _assignrepr_bracketed2(assignrepr_bracketed1, subvalues, prefix, width)
@@ -1358,13 +1332,10 @@ def _assignrepr_bracketed3(
 
 
 def assignrepr_tuple3(
-    values: Sequence[Sequence[Sequence[object]]],
-    prefix: str,
-    width: Optional[int] = None,
+    values: TensorInputObject, prefix: str, width: Optional[int] = None
 ) -> str:
-    """Return a prefixed, wrapped and properly aligned tuple string
-    representation of the given 3-dimensional value matrix using function
-    |repr|.
+    """Return a prefixed, wrapped and properly aligned tuple string representation of
+    the given 3-dimensional value matrix using function |repr|.
 
     >>> from hydpy.core.objecttools import assignrepr_tuple3
     >>> import numpy
@@ -1399,8 +1370,8 @@ def assignrepr_tuple3(
              (1.0, 1.0, 1.0),
              (1.0, 1.0, 1.0)))
 
-    Functions |assignrepr_tuple3| works also on empty iterables and
-    those which possess only one entry:
+    Functions |assignrepr_tuple3| works also on empty iterables and those which possess
+    only one entry:
 
     >>> print(assignrepr_tuple3([[[]]], "test = "))
     test = (((),),)
@@ -1412,13 +1383,10 @@ def assignrepr_tuple3(
 
 
 def assignrepr_list3(
-    values: Sequence[Sequence[Sequence[object]]],
-    prefix: str,
-    width: Optional[int] = None,
+    values: TensorInputObject, prefix: str, width: Optional[int] = None
 ) -> str:
-    """Return a prefixed, wrapped and properly aligned list string
-    representation of the given 3-dimensional value matrix using function
-    |repr|.
+    """Return a prefixed, wrapped and properly aligned list string representation of
+    the given 3-dimensional value matrix using function |repr|.
 
     >>> from hydpy.core.objecttools import assignrepr_list3
     >>> import numpy
@@ -1453,8 +1421,8 @@ def assignrepr_list3(
              [1.0, 1.0, 1.0],
              [1.0, 1.0, 1.0]]]
 
-    Functions |assignrepr_list3| works also on empty iterables and
-    those which possess only one entry:
+    Functions |assignrepr_list3| works also on empty iterables and those which possess
+    only one entry:
 
     >>> print(assignrepr_list3([[[]]], "test = "))
     test = [[[]]]
@@ -1466,8 +1434,8 @@ def assignrepr_list3(
 
 
 def flatten_repr(self: object) -> str:
-    """Remove the newline characters from the string representation of the
-    given object.
+    """Remove the newline characters from the string representation of the given
+    object.
 
     Complex string representations like the following one convenient when working
     interactively but cause line breaks when included in strings like in exception
@@ -1485,9 +1453,9 @@ def flatten_repr(self: object) -> str:
     >>> print(flatten_repr(node))
     Node("name", variable="Q", keywords="test")
 
-    When implementing a new class into the HydPy framework requiring a complex
-    "|repr| string", either customise a simpler "|str| string" manually (as
-    already done for the class |Node| or use function |flatten_repr|:
+    When implementing a new class into the HydPy framework requiring a complex "|repr|
+    string", either customise a simpler "|str| string" manually (as already done for
+    the class |Node| or use function |flatten_repr|:
 
     >>> print(f"We print {node}!")
     We print name!
@@ -1498,8 +1466,8 @@ def flatten_repr(self: object) -> str:
 
     >>> Node.__str__ = __str__
 
-    The named tuple subclass |lstream_v001.Characteristics| of application
-    model |lstream_v001| relies on function |flatten_repr|:
+    The named tuple subclass |lstream_v001.Characteristics| of application model
+    |lstream_v001| relies on function |flatten_repr|:
 
     >>> from hydpy.models.lstream_v001 import Characteristics
     >>> characteristics = Characteristics(
@@ -1522,12 +1490,12 @@ def flatten_repr(self: object) -> str:
     )
 
     >>> print(characteristics)
-    Characteristics(waterstage=1.0, discharge=5.0, derivative=0.1, \
-length_orig=3.0, nmb_subsections=4, length_adj=2.0)
+    Characteristics(waterstage=1.0, discharge=5.0, derivative=0.1, length_orig=3.0, \
+nmb_subsections=4, length_adj=2.0)
 
-    You can apply function |flatten_repr| on arbitrary objects on the fly, but
-    without any guarantee, the result always looks good.  For the following
-    simple examples on some built-in types, everything seems to work:
+    You can apply function |flatten_repr| on arbitrary objects on the fly, but without
+    any guarantee, the result always looks good.  For the following simple examples on
+    some built-in types, everything seems to work:
 
     >>> flatten_repr(1)
     '1'
@@ -1586,7 +1554,7 @@ def round_(
 
 
 def round_(
-    values: Union[object, Iterable[object]],
+    values: Union[object, VectorInputObject],
     decimals: Optional[int] = None,
     *,
     width: int = 0,
@@ -1632,8 +1600,8 @@ def round_(
     >>> round_(1.0, lfill="_", rfill="0")
     Traceback (most recent call last):
     ...
-    ValueError: For function `round_` values are passed for both \
-arguments `lfill` and `rfill`.  This is not allowed.
+    ValueError: For function `round_` values are passed for both arguments `lfill` \
+and `rfill`.  This is not allowed.
     """
     if decimals is None:
         decimals = hydpy.pub.options.reprdigits
@@ -1642,14 +1610,14 @@ arguments `lfill` and `rfill`.  This is not allowed.
             string = repr_(values.item())
         elif isinstance(values, str):
             string = repr_(values)
-        elif isinstance(values, collections.abc.Iterable):
+        elif isinstance(values, (numpy.ndarray, Sequence)):
             string = repr_values(values)
         else:
             string = repr_(values)
         if (lfill is not None) and (rfill is not None):
             raise ValueError(
-                "For function `round_` values are passed for both arguments "
-                "`lfill` and `rfill`.  This is not allowed."
+                "For function `round_` values are passed for both arguments `lfill` "
+                "and `rfill`.  This is not allowed."
             )
         width = max(width, len(string))
         if lfill is not None:
@@ -1697,12 +1665,12 @@ def extract(
 ) -> Iterator[Union[T1, T2, T3]]:
     """Return a generator that extracts certain objects from `values`.
 
-    This function is thought for supporting the definition of functions
-    with arguments, that can be objects of certain types or that can
-    be iterables containing these objects.
+    This function is thought for supporting the definition of functions with arguments,
+    that can be objects of certain types or that can be iterables containing these
+    objects.
 
-    The following examples show that function |extract|
-    basically implements a type specific flattening mechanism:
+    The following examples show that function |extract| basically implements a type
+    specific flattening mechanism:
 
     >>> from hydpy.core.objecttools import extract
     >>> tuple(extract("str1", (str, int)))
@@ -1712,20 +1680,20 @@ def extract(
     >>> tuple(extract((["str1", "str2"], [1,]), (str, int)))
     ('str1', 'str2', 1)
 
-    If an object is neither iterable nor of the required type, the
-    following exception is raised:
+    If an object is neither iterable nor of the required type, the following exception
+    is raised:
 
     >>> tuple(extract("str1", (int,)))
     Traceback (most recent call last):
     ...
-    TypeError: The given (sub)value `'str1'` is not an instance of \
-the following classes: int.
+    TypeError: The given (sub)value `'str1'` is not an instance of the following \
+classes: int.
 
     >>> tuple(extract((["str1", "str2"], [None, 1]), (str, int)))
     Traceback (most recent call last):
     ...
-    TypeError: The given (sub)value `None` is not an instance of \
-the following classes: str and int.
+    TypeError: The given (sub)value `None` is not an instance of the following \
+classes: str and int.
 
     Optionally, |None| values can be skipped:
 
@@ -1750,8 +1718,8 @@ the following classes: str and int.
                 raise exc
             enum = enumeration(types_, converter=lambda x: x.__name__)
             raise TypeError(
-                f"The given (sub)value `{repr(values)}` is not an "
-                f"instance of the following classes: {enum}."
+                f"The given (sub)value `{repr(values)}` is not an instance of the "
+                f"following classes: {enum}."
             ) from None
 
 
@@ -1890,19 +1858,15 @@ def get_printtarget(file_: Union[TextIO, str, None]) -> Generator[TextIO, None, 
 _black_filemode = black.FileMode()
 
 
-def apply_black(
-    name: str,
-    *args: object,
-    **kwargs: object,
-) -> str:
+def apply_black(name: str, *args: object, **kwargs: object) -> str:
     """Return a string representation of an instance of a class based on the given
-     name, positional arguments and keyword arguments.
+    name, positional arguments and keyword arguments.
 
     .. _`black`: https://black.readthedocs.io/en/stable/
     .. _`PEP 8`: https://www.python.org/dev/peps/pep-0008/
 
-    |apply_black| helps to define `__repr__` methods that agree with `PEP 8` by
-    using the code formatter `black`_:
+    |apply_black| helps to define `__repr__` methods that agree with `PEP 8` by using
+    the code formatter `black`_:
 
     >>> from hydpy.core.objecttools import apply_black
     >>> print(apply_black("Tester"))
@@ -1930,18 +1894,6 @@ string=f"a {10*'very '}long test"))
         f"{name}({arguments})",
         mode=_black_filemode,
     )[:-1]
-
-
-def assert_never(value: NoReturn) -> NoReturn:
-    """Function `assert_never` serves for exhaustiveness checking.
-
-    >>> from hydpy.core.objecttools import assert_never
-    >>> assert_never(1.0)
-    Traceback (most recent call last):
-    ...
-    AssertionError: Cannot handle value `1.0` of type `float`.
-    """
-    assert False, f"Cannot handle {value_of_type(value)}."
 
 
 def value2bool(argument: str, value: Union[str, int]) -> bool:

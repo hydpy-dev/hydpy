@@ -83,6 +83,7 @@ def _prepare_baseextensions(fast_cython: bool, profile_cython: bool) -> None:
 
 
 def _convert_interfaces(fast_cython: bool, profile_cython: bool) -> None:
+    from hydpy.core.modeltools import abstractmodelmethods
     from hydpy.cythons.modelutils import TYPE2STR
 
     def _write_twice(text: str) -> None:
@@ -94,27 +95,28 @@ def _convert_interfaces(fast_cython: bool, profile_cython: bool) -> None:
     cydirpath = os.path.join("hydpy", "cythons", "autogen")
     pyfilenames = (n for n in os.listdir(pydirpath) if n.endswith(".py"))
     modulenames = (n[:-3] for n in pyfilenames if n != "__init__.py")
-    for modulename in modulenames:
-        pymodule = importlib.import_module(f"hydpy.interfaces.{modulename}")
-        pxdmodulepath = os.path.join(cydirpath, f"{modulename}.pxd")
-        pyxmodulepath = os.path.join(cydirpath, f"{modulename}.pyx")
-        with open(pxdmodulepath, "w", encoding="utf-8") as pxdfile, open(
-            pyxmodulepath, "w", encoding="utf-8"
-        ) as pyxfile:
-            _write_twice("\n".join(opt) + "\n")
-            _write_twice("\ncimport numpy\n")
-            _write_twice("\nfrom hydpy.cythons.autogen cimport interfaceutils\n")
+    pxdpath = os.path.join(cydirpath, f"masterinterface.pxd")
+    pyxpath = os.path.join(cydirpath, f"masterinterface.pyx")
+    funcname2signature: Dict[str, str] = {}
+    with open(pxdpath, "w", encoding="utf-8") as pxdfile, open(
+        pyxpath, "w", encoding="utf-8"
+    ) as pyxfile:
+        _write_twice("\n".join(opt) + "\n")
+        _write_twice("\ncimport numpy\n")
+        _write_twice("\nfrom hydpy.cythons.autogen cimport interfaceutils\n")
+        _write_twice("\n\ncdef class MasterInterface(interfaceutils.BaseInterface):\n")
+        for modulename in modulenames:
+            pymodule = importlib.import_module(f"hydpy.interfaces.{modulename}")
             name2class = {
                 name: member
                 for name, member in inspect.getmembers(pymodule)
                 if (inspect.isclass(member) and (inspect.getmodule(member) is pymodule))
             }
             for classname, class_ in name2class.items():
-                _write_twice(
-                    f"\n\ncdef class {classname}(interfaceutils.BaseInterface):\n"
-                )
                 name2func = {
-                    n: m for n, m in inspect.getmembers(class_) if inspect.isfunction(m)
+                    n: m
+                    for n, m in inspect.getmembers(class_)
+                    if inspect.isfunction(m) and (m in abstractmodelmethods)
                 }
                 for funcname, func in name2func.items():
                     typehints = get_type_hints(func)
@@ -123,20 +125,23 @@ def _convert_interfaces(fast_cython: bool, profile_cython: bool) -> None:
                         f"{t} {n}" for n, t in name2type.items() if n != "return"
                     )
                     returntype = name2type["return"]
-                    line = f"\n    cdef {returntype} {funcname}(self, {args}) nogil"
-                    pxdfile.write(f"{line}\n")
-                    pyxfile.write(f"{line}:\n")
-                    if typehints["return"] is type(None):
-                        pyxfile.write("        pass\n")
-                    elif typehints["return"] is float:
-                        pyxfile.write("        return 0.0\n")
-                    elif typehints["return"] is int:
-                        pyxfile.write("        return 0\n")
+                    signature = (
+                        f"\n    cdef {returntype} {funcname}(self, {args}) nogil"
+                    )
+                    if funcname in funcname2signature:
+                        assert signature == funcname2signature[funcname]
                     else:
-                        assert False
-                typeid = int(classname.rpartition("_V")[-1])
-                pyxfile.write("\n    def __init__(self):\n")
-                pyxfile.write(f"        self.typeid = {typeid}\n")
+                        funcname2signature[funcname] = signature
+                        pxdfile.write(f"{signature}\n")
+                        pyxfile.write(f"{signature}:\n")
+                        if typehints["return"] is type(None):
+                            pyxfile.write("        pass\n")
+                        elif typehints["return"] is float:
+                            pyxfile.write("        return 0.0\n")
+                        elif typehints["return"] is int:
+                            pyxfile.write("        return 0\n")
+                        else:
+                            assert False
 
 
 def _compile_extensions(filetype: Literal["utils", "interfaces"]) -> None:
@@ -156,7 +161,6 @@ def _compile_extensions(filetype: Literal["utils", "interfaces"]) -> None:
 
 
 def _prepare_modelspecifics(fast_cython: bool, profile_cython: bool) -> None:
-
     from hydpy import config
     from hydpy import pub
     from hydpy import models
@@ -234,7 +238,7 @@ def main(
         _compile_extensions(filetype="utils")
     _convert_interfaces(fast_cython=fast_cython, profile_cython=profile_cython)
     if compile_interfaceextensions:
-        _compile_extensions(filetype="interfaces")
+        _compile_extensions(filetype="interface")
     _prepare_modelspecifics(fast_cython=fast_cython, profile_cython=profile_cython)
 
 

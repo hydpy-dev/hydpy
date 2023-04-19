@@ -9,7 +9,6 @@ implement the related methods in the Cython extension module |ppolyutils|.
 # import...
 # ...from standard library
 from __future__ import annotations
-from typing import *
 
 # ...from site-packages
 import numpy
@@ -255,8 +254,8 @@ polynomial function by passing at leas one `Poly` object.
     @classmethod
     def from_data(
         cls,
-        xs: Vector[float],
-        ys: Vector[float],
+        xs: VectorFloat,
+        ys: VectorFloat,
         method: Union[
             Literal["linear"],
             Type[interpolate.CubicHermiteSpline],
@@ -437,8 +436,7 @@ vectors `x` (2) and `y` (3) must be identical.
                 f"([{objecttools.enumeration(ys, objecttools.repr_)}])"
             )
 
-    @property
-    def nmb_inputs(self) -> Literal[1]:
+    def _get_nmb_inputs(self) -> Literal[1]:
         """The number of input values.
 
         |PPoly| is a univariate interpolator.  Hence, |PPoly.nmb_inputs| is always one:
@@ -449,8 +447,9 @@ vectors `x` (2) and `y` (3) must be identical.
         """
         return 1
 
-    @property
-    def inputs(self) -> Vector[float]:
+    nmb_inputs = propertytools.Property[Never, Literal[1]](fget=_get_nmb_inputs)
+
+    def _get_inputs(self) -> VectorFloat:
         """The current input value.
 
         |PPoly| is a univariate interpolator.  Hence, |PPoly.inputs| always returns a
@@ -462,8 +461,9 @@ vectors `x` (2) and `y` (3) must be identical.
         """
         return numpy.asarray(self._calgorithm.inputs)
 
-    @property
-    def nmb_outputs(self) -> Literal[1]:
+    inputs = propertytools.Property[Never, VectorFloat](fget=_get_inputs)
+
+    def _get_nmb_outputs(self) -> Literal[1]:
         """The number of output values.
 
         |PPoly| is a univariate interpolator.  Hence, |PPoly.nmb_outputs| is always
@@ -475,8 +475,9 @@ vectors `x` (2) and `y` (3) must be identical.
         """
         return 1
 
-    @property
-    def outputs(self) -> Vector[float]:
+    nmb_outputs = propertytools.Property[Never, Literal[1]](fget=_get_nmb_outputs)
+
+    def _get_outputs(self) -> VectorFloat:
         """The lastly calculated output value.
 
         |PPoly| is a univariate interpolator.  Hence, |PPoly.outputs| always returns a
@@ -488,8 +489,9 @@ vectors `x` (2) and `y` (3) must be identical.
         """
         return numpy.asarray(self._calgorithm.outputs)
 
-    @property
-    def output_derivatives(self) -> Vector[float]:
+    outputs = propertytools.Property[Never, VectorFloat](fget=_get_outputs)
+
+    def _get_output_derivatives(self) -> VectorFloat:
         """The lastly calculated first-order derivative.
 
         |PPoly| is a univariate interpolator.  Hence, |PPoly.output_derivatives|
@@ -500,6 +502,10 @@ vectors `x` (2) and `y` (3) must be identical.
         array([0.])
         """
         return numpy.asarray(self._calgorithm.output_derivatives)
+
+    output_derivatives = propertytools.Property[Never, VectorFloat](
+        fget=_get_output_derivatives
+    )
 
     def _get_nmb_ps(self) -> int:
         """The number of polynomials.
@@ -532,7 +538,7 @@ vectors `x` (2) and `y` (3) must be identical.
         fget=_get_nmb_ps, fset=_set_nmb_ps, fdel=_del_nmb_ps
     )
 
-    def _get_nmb_cs(self) -> Vector[int]:
+    def _get_nmb_cs(self) -> VectorInt:
         """The number of relevant coefficients for each polynomial.
 
         |PPoly.nmb_cs| is "protected" (implemented by |ProtectedProperty|) for the sake
@@ -553,17 +559,17 @@ vectors `x` (2) and `y` (3) must be identical.
         """
         return numpy.asarray(self._calgorithm.nmb_cs)
 
-    def _set_nmb_cs(self, value: VectorInput[int]) -> None:
+    def _set_nmb_cs(self, value: VectorInputInt) -> None:
         self._calgorithm.nmb_cs = numpy.asarray(value, dtype=int)
 
     def _del_nmb_cs(self) -> None:
         pass
 
-    nmb_cs = propertytools.ProtectedProperty[VectorInput[int], Vector[int]](
+    nmb_cs = propertytools.ProtectedProperty[VectorInputInt, VectorInt](
         fget=_get_nmb_cs, fset=_set_nmb_cs, fdel=_del_nmb_cs
     )
 
-    def _get_x0s(self) -> Vector[float]:
+    def _get_x0s(self) -> VectorFloat:
         """The power series constants of all polynomials.
 
         |PPoly.x0s| is "protected" (implemented by |ProtectedProperty|) for the sake of
@@ -584,17 +590,17 @@ vectors `x` (2) and `y` (3) must be identical.
         """
         return numpy.asarray(self._calgorithm.x0s)
 
-    def _set_x0s(self, value: VectorInput[float]) -> None:
+    def _set_x0s(self, value: VectorInputFloat) -> None:
         self._calgorithm.x0s = numpy.asarray(value, dtype=float)
 
     def _del_x0s(self) -> None:
         pass
 
-    x0s = propertytools.ProtectedProperty[VectorInput[float], Vector[float]](
+    x0s = propertytools.ProtectedProperty[VectorInputFloat, VectorFloat](
         fget=_get_x0s, fset=_set_x0s, fdel=_del_x0s
     )
 
-    def _get_cs(self) -> Matrix[float]:
+    def _get_cs(self) -> MatrixFloat:
         """The power series coefficients of all polynomials.
 
         |PPoly.cs| is "protected" (implemented by |ProtectedProperty|) for the sake of
@@ -616,13 +622,13 @@ has not been prepared so far.
         """
         return numpy.asarray(self._calgorithm.cs)
 
-    def _set_cs(self, value: MatrixInput[float]) -> None:
+    def _set_cs(self, value: MatrixInputFloat) -> None:
         self._calgorithm.cs = numpy.asarray(value, dtype=float)
 
     def _del_cs(self) -> None:
         pass
 
-    cs = propertytools.ProtectedProperty[MatrixInput[float], Matrix[float]](
+    cs = propertytools.ProtectedProperty[MatrixInputFloat, MatrixFloat](
         fget=_get_cs, fset=_set_cs, fdel=_del_cs
     )
 
@@ -691,7 +697,7 @@ has not been prepared so far.
         array([[1., 0.],
                [1., 1.]])
         """
-        idxs: Vector[int] = numpy.argsort(self.x0s)  # type: ignore[assignment, arg-type] # pylint: disable=line-too-long
+        idxs: VectorInt = numpy.argsort(self.x0s)
         self.x0s = self.x0s[idxs]
         self.nmb_cs = self.nmb_cs[idxs]
         self.cs = self.cs[idxs, :]

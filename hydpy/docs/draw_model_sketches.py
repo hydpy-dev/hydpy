@@ -13,7 +13,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import os
-from typing import *
+from typing import Literal
+from typing import Final, List, NamedTuple, Optional, Sequence, Tuple, Union
 
 from matplotlib import pyplot
 import numpy
@@ -623,7 +624,6 @@ class UZ_SG1_BW(Element):
 
 @dataclass
 class UZ(UZ_SG1_BW):
-
     version: Literal["v1_v2", "v3"] = "v1_v2"
 
     def __post_init__(self) -> None:
@@ -1279,7 +1279,6 @@ class Frame:
     yfactor: float = 0.5
 
     def plot(self, filename: Optional[str] = None) -> None:
-
         for e in self.elements:
             e.plot(frame=self)
         fig = pyplot.gcf()

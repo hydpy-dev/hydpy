@@ -136,15 +136,15 @@ class Distances(parametertools.Parameter):
                    [1.414214, 3.162278]])
         """
         control = self.subpars.pars.control
-        incoords = control.inputcoordinates.__hydpy__get_value__()
-        outcoords = control.outputcoordinates.__hydpy__get_value__()
+        incoords = control.inputcoordinates.values
+        outcoords = control.outputcoordinates.values
         distances = numpy.empty((len(outcoords), len(incoords)), dtype=float)
         for idx, outcoord in enumerate(outcoords):
             distances[idx, :] = numpy.sqrt(
                 numpy.sum((outcoord - incoords) ** 2, axis=1)
             )
-        self.__hydpy__set_shape__(distances.shape)
-        self.__hydpy__set_value__(distances)
+        self._set_shape(distances.shape)
+        self._set_value(distances)
 
 
 class ProximityOrder(parametertools.Parameter):
@@ -194,13 +194,13 @@ class ProximityOrder(parametertools.Parameter):
                         [0]])
         """
         control = self.subpars.pars.control
-        nmbinputs = control.maxnmbinputs.__hydpy__get_value__()
-        distances = self.subpars.distances.__hydpy__get_value__()
+        nmbinputs = control.maxnmbinputs.value
+        distances = self.subpars.distances.values
         idxs = numpy.empty((len(distances), nmbinputs), dtype=int)
         for idx, distances_ in enumerate(distances):
             idxs[idx, :] = numpy.argsort(distances_)[:nmbinputs]
-        self.__hydpy__set_shape__(idxs.shape)
-        self.__hydpy__set_value__(idxs)
+        self._set_shape(idxs.shape)
+        self._set_value(idxs)
 
 
 class Weights(parametertools.Parameter):
@@ -263,15 +263,15 @@ class Weights(parametertools.Parameter):
                  [0.5, 0.5, 0.1]])
         """
         control = self.subpars.pars.control
-        nmbinputs = control.maxnmbinputs.__hydpy__get_value__()
-        power = control.power.__hydpy__get_value__()
-        distances = self.subpars.distances.__hydpy__get_value__()
-        proximityorder = self.subpars.proximityorder.__hydpy__get_value__()
+        nmbinputs = control.maxnmbinputs.value
+        power = control.power.value
+        distances = self.subpars.distances.values
+        proximityorder = self.subpars.proximityorder.values
         weights = numpy.empty((len(distances), nmbinputs), dtype=float)
         for idx, distances_ in enumerate(distances):
             sorteddistances = distances_[proximityorder[idx, :]]
             jdxs = sorteddistances > 0.0
             weights[idx, jdxs] = 1.0 / sorteddistances[jdxs] ** power
             weights[idx, ~jdxs] = numpy.inf
-        self.__hydpy__set_shape__(weights.shape)
-        self.__hydpy__set_value__(weights)
+        self._set_shape(weights.shape)
+        self._set_value(weights)

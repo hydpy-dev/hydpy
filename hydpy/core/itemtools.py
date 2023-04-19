@@ -5,7 +5,6 @@
 # ...from standard library
 import itertools
 import warnings
-from typing import *
 
 # ...from site-packages
 import numpy
@@ -404,7 +403,7 @@ class ChangeItem(ExchangeItem):
                 else:
                     subnames.extend(subsubnames)
             return tuple(subnames)
-        objecttools.assert_never(self.level)
+        assert_never(self.level)
         return None
 
     @property
@@ -1241,7 +1240,7 @@ has/have not been prepared so far.
                 if series:
                     assert isinstance(variable, sequencetools.IOSequence)
                     try:
-                        targetvalues = variable.average_series()[jdx0:jdx1]
+                        itemvalues[idx] = variable.average_series()[jdx0:jdx1]
                     except exceptiontools.AttributeNotReady as exc:
                         self._value = None
                         warnings.warn(
@@ -1251,11 +1250,12 @@ has/have not been prepared so far.
                         )
                         return
                 elif self.targetspecs.keyword is None:
-                    targetvalues = variable.average_values()
+                    itemvalues[idx] = variable.average_values()
                 else:
                     assert isinstance(variable, parametertools.Parameter)
-                    targetvalues = variable.keywordarguments[self.targetspecs.keyword]
-                itemvalues[idx] = targetvalues
+                    itemvalues[idx] = variable.keywordarguments[
+                        self.targetspecs.keyword
+                    ]
         elif self.level == "subunit":
             idx0 = 0
             for variable in self.device2target.values():

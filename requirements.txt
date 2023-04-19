@@ -15,6 +15,7 @@ plotly
 pylint
 pynsist
 setuptools
+types-docutils
 typing_extensions
 scipy
 sphinx

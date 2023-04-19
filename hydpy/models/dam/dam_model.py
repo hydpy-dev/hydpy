@@ -5,7 +5,7 @@
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
-from hydpy.cythons.autogen import smoothutils
+from hydpy.cythons import smoothutils
 from hydpy.models.dam import dam_control
 from hydpy.models.dam import dam_derived
 from hydpy.models.dam import dam_solver
@@ -2846,10 +2846,8 @@ class Calc_ActualRelease_V3(modeltools.Method):
         # some general preparations:
         idx_toy = der.toy[model.idx_sim]
         d_target = con.targetvolume[idx_toy]
-        d_range = max(
-            max(con.targetrangeabsolute, con.targetrangerelative * d_target),
-            1e-6,
-        )
+        d_range = max(con.targetrangeabsolute, con.targetrangerelative * d_target)
+        d_range = max(d_range, 1e-6)
         d_qmin = con.neardischargeminimumthreshold[idx_toy]
         d_qmax = smoothutils.smooth_max1(
             d_qmin, aid.alloweddischarge, der.dischargesmoothpar

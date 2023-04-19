@@ -4,12 +4,9 @@
 
 """
 # import...
-# ...from standard library
-from abc import abstractmethod
-from typing import *
-
 # ...from hydpy
 from hydpy.core import modeltools
+from hydpy.core.typingtools import *
 
 
 class SoilModel_V1(modeltools.SubmodelInterface):
@@ -31,7 +28,7 @@ class SoilModel_V1(modeltools.SubmodelInterface):
 
     typeid: ClassVar[Literal[1]] = 1
 
-    @abstractmethod
+    @modeltools.abstractmodelmethod
     def set_initialsurfacewater(self, k: int, v: float) -> None:
         """Set the surface water depth initially ponded at the soil's surface.
 
@@ -40,7 +37,7 @@ class SoilModel_V1(modeltools.SubmodelInterface):
         (unreduced) water amount to |SoilModel_V1.set_initialsurfacewater|.
         """
 
-    @abstractmethod
+    @modeltools.abstractmodelmethod
     def set_actualsurfacewater(self, k: int, v: float) -> None:
         """Set the surface water depth that is actually available for infiltration.
 
@@ -49,46 +46,46 @@ class SoilModel_V1(modeltools.SubmodelInterface):
         (reduced) water amount to |SoilModel_V1.set_actualsurfacewater|.
         """
 
-    @abstractmethod
+    @modeltools.abstractmodelmethod
     def set_soilwatersupply(self, k: int, v: float) -> None:
         """Set the direct water supply to the soil's body (e.g. due to capillary
         rise)."""
 
-    @abstractmethod
+    @modeltools.abstractmodelmethod
     def set_soilwaterdemand(self, k: int, v: float) -> None:
         """Set the direct water demand from the soil's body (e.g. due to
         evapotranspiration)."""
 
-    @abstractmethod
+    @modeltools.abstractmodelmethod
     def execute_infiltration(self, k: int) -> None:
         """Execute the infiltration routine (that might also calculate percolation)
         based on the given surface water supply.
         """
 
-    @abstractmethod
+    @modeltools.abstractmodelmethod
     def add_soilwater(self, k: int) -> None:
         """Add the given (direct) soil water supply."""
 
-    @abstractmethod
+    @modeltools.abstractmodelmethod
     def remove_soilwater(self, k: int) -> None:
         """Remove the given (direct) soil water demand."""
 
-    @abstractmethod
+    @modeltools.abstractmodelmethod
     def get_infiltration(self, k: int) -> float:
         """Get the previously calculated infiltration rate."""
 
-    @abstractmethod
+    @modeltools.abstractmodelmethod
     def get_percolation(self, k: int) -> float:
         """Get the previously calculated percolation rate."""
 
-    @abstractmethod
+    @modeltools.abstractmodelmethod
     def get_soilwateraddition(self, k: int) -> float:
         """Get the previously calculated actual soil water addition."""
 
-    @abstractmethod
+    @modeltools.abstractmodelmethod
     def get_soilwaterremoval(self, k: int) -> float:
         """Get the previously calculated actual soil water removal."""
 
-    @abstractmethod
+    @modeltools.abstractmodelmethod
     def get_soilwatercontent(self, k: int) -> float:
         """Get the current soil water content."""

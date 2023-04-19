@@ -13,8 +13,6 @@ import itertools
 import time
 import types
 import warnings
-from typing import *
-from typing import TextIO
 
 # ...from site-packages
 import black
@@ -28,12 +26,15 @@ from hydpy.core import hydpytools
 from hydpy.core import masktools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core import propertytools
 from hydpy.core import selectiontools
 from hydpy.core import timetools
 from hydpy.core import variabletools
 from hydpy.auxs import iuhtools
-from hydpy.models.arma import arma_control
 from hydpy.core.typingtools import *
+
+if TYPE_CHECKING:
+    from hydpy.models.arma import arma_control
 
 TypeParameter = TypeVar("TypeParameter", bound=parametertools.Parameter)
 TypeRule1 = TypeVar(
@@ -541,7 +542,7 @@ handle any `musk_classic` model instances.
     _value: float
     _model: Optional[str]
     _parameterstep: Optional[timetools.Period]
-    _original_parameter_values: Tuple[Union[float, Vector[float], Matrix[float]], ...]
+    _original_parameter_values: Tuple[Any, ...]
 
     def __init__(
         self,
@@ -606,7 +607,7 @@ handle any `musk_classic` model instances.
             self.parametertype = type(  # type: ignore[assignment]
                 tuple(self.elements)[0].model.parameters.control[self.parametername]
             )
-            self.parameterstep = parameterstep  # type: ignore[assignment]
+            self.parameterstep = parameterstep
             self._original_parameter_values = self._get_original_parameter_values()
         except BaseException:
             objecttools.augment_excmessage(
@@ -614,9 +615,7 @@ handle any `musk_classic` model instances.
                 f"`{name}`"
             )
 
-    def _get_original_parameter_values(
-        self,
-    ) -> Tuple[Union[float, Vector[float], Matrix[float]], ...]:
+    def _get_original_parameter_values(self) -> Tuple[Any, ...]:
         with hydpy.pub.options.parameterstep(self.parameterstep):
             if self.keyword is None:
                 return tuple(par.revert_timefactor(par.value) for par in self)
@@ -682,7 +681,7 @@ value `200.0` instead.
     def _update_parameter(
         self,
         parameter: parametertools.Parameter,
-        value: Union[float, Vector[float], Matrix[float]],
+        value: Union[float, VectorFloat, MatrixFloat],
     ) -> None:
         if self.keyword is None:
             parameter(value)
@@ -716,8 +715,7 @@ value `200.0` instead.
             for parameter, orig in zip(self, self._original_parameter_values):
                 self._update_parameter(parameter, orig)
 
-    @property
-    def parameterstep(self) -> Optional[timetools.Period]:
+    def _get_parameterstep(self) -> Optional[timetools.Period]:
         """The parameter step size relevant to the related model parameter.
 
         For non-time-dependent parameters, property |Rule.parameterstep| is (usually)
@@ -725,8 +723,7 @@ value `200.0` instead.
         """
         return self._parameterstep
 
-    @parameterstep.setter
-    def parameterstep(self, value: Optional[timetools.PeriodConstrArg]) -> None:
+    def _set_parameterstep(self, value: Optional[timetools.PeriodConstrArg]) -> None:
         if self.keyword is None:
             time_ = self.parametertype.TIME
         else:
@@ -746,6 +743,10 @@ value `200.0` instead.
                         "it directly or define it via option `parameterstep`."
                     ) from None
             self._parameterstep = timetools.Period(value)
+
+    parameterstep = propertytools.Property(
+        fget=_get_parameterstep, fset=_set_parameterstep
+    )
 
     def assignrepr(self, prefix: str, indent: int = 0) -> str:
         """Return a string representation of the actual |Rule| object prefixed with the
@@ -782,7 +783,9 @@ value `200.0` instead.
 
     def __iter__(self) -> Iterator[TypeParameter]:
         for element in self.elements:
-            yield element.model.parameters.control[self.parametername]
+            parameter = element.model.parameters.control[self.parametername]
+            assert isinstance(parameter, self.parametertype)
+            yield parameter
 
 
 class Replace(Rule[parametertools.Parameter]):
@@ -1196,7 +1199,7 @@ attribute nor a rule object named `FC`.
     anymore:
 
     >>> round_(ci.result)
-    1.605136
+    1.603574
 
     Use method |CalibrationInterface.reset_parameters| to restore the initial states of
     all affected parameters:
@@ -1239,7 +1242,7 @@ attribute nor a rule object named `FC`.
     |CalibrationInterface.apply_values|:
 
     >>> round_(ci.perform_calibrationstep([100.0, 5.0, 0.3]))
-    1.605136
+    1.603574
 
     >>> stream.parameters.control
     nmbsegments(lag=0.583)
@@ -1269,9 +1272,9 @@ attribute nor a rule object named `FC`.
     ...         print(file_.read())
     # Just a doctest example.
     <BLANKLINE>
-    NSE           fc    percmax damp
-    parameterstep None	1d      None
-    1.605136      100.0 5.0     0.3
+    NSE	fc	percmax	damp
+    parameterstep	None	1d	None
+    1.603574	100.0	5.0	0.3
     <BLANKLINE>
 
     To prevent (automatic) calibration runs from crashing due to IO problems, method
@@ -1293,8 +1296,8 @@ following problem occured: [Errno 2] No such file or directory: 'dirname1/filena
     ...     ci.update_logfile()
     ...     with open("dirname1/filename.log") as file_:
     ...         print(file_.read())
-    1.605136 100.0 5.0 0.3
-    1.605136 100.0 5.0 0.3
+    1.603574	100.0	5.0	0.3
+    1.603574	100.0	5.0	0.3
     <BLANKLINE>
 
     Call method |CalibrationInterface.finalise_logfile| to ensure the
@@ -1331,7 +1334,7 @@ following problem occured: [Errno 2] No such file or directory: 'dirname2/filena
     ...     ci.finalise_logfile()
     ...     with open("dirname2/filename.log") as file_:
     ...         print(file_.read())
-    1.605136 100.0 5.0 0.3
+    1.603574	100.0	5.0	0.3
     <BLANKLINE>
 
     >>> ci._logfilepath = "example_calibration.log"
@@ -1369,12 +1372,12 @@ following problem occured: [Errno 2] No such file or directory: 'dirname2/filena
     ...         print(file_.read())
     # Just a doctest example.
     <BLANKLINE>
-    NSE           fc    percmax damp
-    parameterstep None  1d      None
-    1.605136      100.0 5.0     0.3
-    -0.710211     50.0  1.0     0.0
-    2.313934      200.0 10.0    0.5
-    1.605136      100.0 5.0     0.3
+    NSE	fc	percmax	damp
+    parameterstep	None	1d	None
+    1.603574	100.0	5.0	0.3
+    -0.709987	50.0	1.0	0.0
+    2.312553	200.0	10.0	0.5
+    1.603574	100.0	5.0	0.3
     <BLANKLINE>
 
     Class |CalibrationInterface| also provides method
@@ -1391,9 +1394,9 @@ following problem occured: [Errno 2] No such file or directory: 'dirname2/filena
     >>> ci.damp.value
     0.5
     >>> round_(ci.result)
-    2.313934
+    2.312553
     >>> round_(ci.apply_values())
-    2.313934
+    2.312553
 
     On the contrary, if we set argument `maximisation` to |False|, method
     |CalibrationInterface.read_logfile| returns the worst result in our example:
@@ -1407,9 +1410,9 @@ following problem occured: [Errno 2] No such file or directory: 'dirname2/filena
     >>> ci.damp.value
     0.0
     >>> round_(ci.result)
-    -0.710211
+    -0.709987
     >>> round_(ci.apply_values())
-    -0.710211
+    -0.709987
 
     To prevent errors due to different parameter step-sizes, method
     |CalibrationInterface.read_logfile| raises the following error whenever it detects
@@ -1871,7 +1874,7 @@ object named `fc`.
 
     def _refresh_hp(self) -> None:
         for element in self._elements:
-            element.model.parameters.update()
+            element.model.update_parameters()
         self._hp.conditions = self.conditions
 
     @overload
@@ -2195,7 +2198,7 @@ parameterstep="1d"))
         return cast(List[str], super().__dir__()) + list(self._rules.keys())
 
 
-class RuleIUH(Rule[arma_control.Responses]):
+class RuleIUH(Rule["arma_control.Responses"]):
     """A |Rule|, class specialised for |IUH| parameters.
 
     |RuleIUH| serves as a base class only.  Please see the concrete implementation
@@ -2239,9 +2242,7 @@ class RuleIUH(Rule[arma_control.Responses]):
         )
         self.target = target
 
-    def _get_original_parameter_values(
-        self,
-    ) -> Tuple[Tuple[Vector[float], Vector[float]], ...]:
+    def _get_original_parameter_values(self) -> Tuple[Any, ...]:
         return tuple(
             (par.ar_coefs[0, :].copy(), par.ma_coefs[0, :].copy()) for par in self
         )

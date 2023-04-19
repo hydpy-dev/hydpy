@@ -2,12 +2,10 @@
 # pylint: disable=missing-module-docstring
 
 # import...
-# ...from standard library
-from typing import *
-
 # ...from HydPy
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 from hydpy.models.wland import wland_constants
 from hydpy.models.wland import wland_masks
 
@@ -20,8 +18,7 @@ class SoilParameter(parametertools.Parameter):
 
     Some parameters of *HydPy-W-Land* are strongly related to the soil character
     and come with default values. To apply these default values, use the `soil`
-    keyword in combination with one of the available soil constants (see
-    |SOIL_CONSTANTS|).
+    keyword in combination with one of the available soil constants.
 
     We take parameter |B| and the soil character |SAND| as an example,
     which has the default value `4.05`:
@@ -82,7 +79,7 @@ element `?` could not be set based on the given keyword arguments.
     _SOIL2VALUE: Dict[int, float]
     _soil: Optional[int]
 
-    def __init__(self, subvars: "variabletools.SubgroupType"):
+    def __init__(self, subvars: parametertools.SubParameters):
         super().__init__(subvars)
         self._soil = None
 
@@ -186,7 +183,7 @@ class LanduseParameter(parametertools.ZipParameter):
         wine=2.0)
     """
 
-    MODEL_CONSTANTS = wland_constants.LANDUSE_CONSTANTS
+    constants = wland_constants.LANDUSE_CONSTANTS
     mask = wland_masks.Complete()
 
     @property
@@ -200,7 +197,7 @@ class LanduseMonthParameter(parametertools.KeywordParameter2D):
     """Base class for parameters which values depend both on the actual month and
     land-use type."""
 
-    COLNAMES = (
+    columnnames = (
         "jan",
         "feb",
         "mar",
@@ -214,7 +211,7 @@ class LanduseMonthParameter(parametertools.KeywordParameter2D):
         "nov",
         "dec",
     )
-    ROWNAMES = tuple(
+    rownames = tuple(
         key.lower()
         for value, key in sorted(wland_constants.LANDUSE_CONSTANTS.value2name.items())
     )

@@ -10,12 +10,6 @@ from hydpy.models.hland import hland_masks
 from hydpy.models.hland import hland_sequences
 
 
-class TMean(sequencetools.FactorSequence):
-    """Mean subbasin temperature [°C]."""
-
-    NDIM = 0
-
-
 class TC(hland_sequences.Factor1DSequence):
     """Corrected temperature [°C]."""
 

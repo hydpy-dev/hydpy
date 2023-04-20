@@ -2660,7 +2660,7 @@ FluxSequence1D
         'Subarea'
         'Subarea'
         >>> HRUType.constants
-        {'ANY': 1}
+        {'ANY': 0}
         >>> LandMonthFactor.rowmin, LandMonthFactor.rownames
         (0, ('ANY',))
         >>> ZipParameter1D.refindices

@@ -35,7 +35,7 @@ class HRUType(parametertools.NameParameter):
 
     NDIM, TYPE, TIME = 1, int, None
     SPAN = (None, None)
-    constants = parametertools.Constants(ANY=1)
+    constants = parametertools.Constants(ANY=0)
 
 
 class Water(evap_parameters.ZipParameter1D):

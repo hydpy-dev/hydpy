@@ -217,7 +217,7 @@ class QFactor(parametertools.Parameter):
         >>> derived.qfactor
         qfactor(0.578704)
 
-        change simulatio step to 1 h
+        change simulationstep to 1 h
 
         >>> simulationstep('1h')
         >>> derived.qfactor.update()

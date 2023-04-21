@@ -6,31 +6,6 @@ from hydpy.core import sequencetools
 from hydpy.models.grxjland import grxjland_control
 
 
-class G(sequencetools.StateSequence):
-    """Snow pack [mm]."""
-
-    NDIM, NUMERIC, SPAN = 1, False, (0, None)
-
-
-class ETG(sequencetools.StateSequence):
-    """Thermal state of Snow pack [°C]."""
-
-    NDIM, NUMERIC, SPAN = 1, False, (None, 0)
-
-
-class GRatio(sequencetools.StateSequence):
-    """Snow covered area [/]."""
-
-    NDIM, NUMERIC, SPAN = 1, False, (0, 1)
-    INIT = 0
-
-
-class GLocalMax(sequencetools.StateSequence):
-    """Local melt threshold [mm]."""
-
-    NDIM, NUMERIC, SPAN = 1, False, (0, None)
-
-
 class S(sequencetools.StateSequence):
     """Water content production store [mm]."""
 
@@ -57,7 +32,7 @@ class S(sequencetools.StateSequence):
 
 
 class R(sequencetools.StateSequence):
-    """Level of the routing storage [mm]."""
+    """Water content routing storage [mm]."""
 
     NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
 

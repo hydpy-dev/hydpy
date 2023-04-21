@@ -19,13 +19,13 @@ class Pn(sequencetools.FluxSequence):
 
 
 class Ps(sequencetools.FluxSequence):
-    """Part of Pn filling the production store [mm]."""
+    """Part of `Pn` filling the production store [mm]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class Es(sequencetools.FluxSequence):
-    """Actual evaporation rate from production storage [mm]."""
+    """Actual evaporation rate from production store [mm]."""
 
     NDIM, NUMERIC = 0, False
 
@@ -37,13 +37,31 @@ class AE(sequencetools.FluxSequence):
 
 
 class Pr(sequencetools.FluxSequence):
-    """Total quantity of water reaching routing functions [mm]."""
+    """Total quantity of water reaching unit hydrograph [mm]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class PrUH1(sequencetools.FluxSequence):
+    """Total quantity of water reaching unit hydrograph 1 [mm]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class PrUH2(sequencetools.FluxSequence):
+    """Total quantity of water reaching unit hydrograph 2 [mm]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class QOutUH2(sequencetools.FluxSequence):
+    """Outlet of unit hydrograph 2 [mm]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class Perc(sequencetools.FluxSequence):
-    """Percolation leakage [mm]."""
+    """Percolation [mm]."""
 
     NDIM, NUMERIC = 0, False
 

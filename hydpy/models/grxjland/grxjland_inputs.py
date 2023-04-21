@@ -11,6 +11,6 @@ class P(sequencetools.InputSequence):
 
 
 class E(sequencetools.InputSequence):
-    """Potential Evapotranspiration (PE) [mm]."""
+    """Potential Evapotranspiration [mm]."""
 
     NDIM, NUMERIC = 0, False

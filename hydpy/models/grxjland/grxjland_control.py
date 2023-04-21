@@ -23,7 +23,8 @@ class X1(parametertools.Parameter):
 
 
 class X2(parametertools.Parameter):
-    """groundwater exchange coefficient [mm]."""
+    """Groundwater exchange coefficient (positive for water imports, negative for
+    exports) [mm]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
@@ -35,7 +36,7 @@ class X3(parametertools.Parameter):
 
 
 class X4(parametertools.Parameter):
-    """Time base of unit hydrographs UH1 (X4) and UH2 (2*X4) [d]."""
+    """Time base of unit hydrographs UH1 (X4) and UH2 (2*X4) [T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.5, None)
 

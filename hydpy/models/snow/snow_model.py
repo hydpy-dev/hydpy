@@ -25,10 +25,10 @@ class Calc_PLayer_V1(modeltools.Method):
       .. math::
         PLayer = \begin{cases}
         P \cdot exp \left( \left( ZLayers - Z \right) \cdot GradP \right) &|\
-        ZLayers <=
+        ZLayers \leq
         ZThreshold
         \\
-        P \cdot exp \left( \left( ZThreshold - Z \right) \cdot GradP \right) &|\ Z <=
+        P \cdot exp \left( \left( ZThreshold - Z \right) \cdot GradP \right) &|\ Z \leq
         ZThreshold
         \\
         P

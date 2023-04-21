@@ -475,9 +475,7 @@ class Calc_Q9_V1(modeltools.Method):
     DERIVEDPARAMETERS = (grxjland_derived.UH1,)
     REQUIREDSEQUENCES = (grxjland_fluxes.PrUH1,)
     UPDATEDSEQUENCES = (grxjland_logs.QUH1,)
-    RESULTSEQUENCES = (
-        grxjland_fluxes.Q9,
-    )
+    RESULTSEQUENCES = (grxjland_fluxes.Q9,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:

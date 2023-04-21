@@ -1,10 +1,19 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
-GR4J Version of the GrXJ-Land model.
-The model can briefly be summarized as follows:
+The GR4J model (modèle du Génie Rural à 4 parametres Journalier) is a daily
+lumped four-parameter rainfall-runoff model and belongs to the family of soil moisture
+accounting models. It was published by :cite:t:`ref-Perrin2003` and is a modification
+of GR3J. Here it is implemented according to :cite:t:`ref-airGR2017`. The model
+contains two stores and has four parameters.
 
-TODO
+The following list summarises the main components of |grxjland_gr4j|:
+
+ * Calculation of net precipitation/net rainfall
+ * A production store influencing actual evaporation and percolation
+ * Linear routing with two parallel unit hydrographs
+ * Groundwater exchange
+ * Non-linear routing store
 
 The following figure shows the general structure of HydPy GrXJ-Land Version Gr4J:
 
@@ -17,8 +26,7 @@ Integration tests
 
 .. how_to_understand_integration_tests::
 
-As integration test we use the example of the R-package airGR gauging station
-Blue River at Nourlangie Rock with a catchment area 360 km².
+As integration test we use the example dataset L0123001 of the R-package airGR.
 
 The integration test is performed over a period of 50 days with
 a simulation step of one day:
@@ -59,30 +67,6 @@ and prints their results for the given sequences:
 Example 1
 _____________
 
-We compared the results of grxjland_gr4j with the results of
-the GR4J implementation of the airGR package:
-The following code was used to run the airGR Gr4J model to compare our results:
-
-.. code-block:: none
-
-    library(airGR)
-    ## loading catchment data
-    data(L0123001)
-    ## preparation of the InputsModel object
-    InputsModel <- CreateInputsModel(FUN_MOD = RunModel_GR4J, DatesR = BasinObs$DatesR,
-        Precip = BasinObs$P, PotEvap = BasinObs$E)
-    ## run period selection
-    Ind_Run <- seq(which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1990-01-01"),
-        which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1990-02-19"))
-    ## preparation of the RunOptions object
-    RunOptions <- CreateRunOptions(FUN_MOD = RunModel_GR4J,
-        InputsModel = InputsModel,
-        IndPeriod_WarmUp = 0L, IndPeriod_Run = Ind_Run)
-    ## simulation
-    Param <- c(X1 = 257.238, X2 = 1.012, X3 = 88.235, X4 = 2.208)
-    OutputsModel <- RunModel_GR4J(InputsModel = InputsModel,
-        RunOptions = RunOptions, Param = Param)
-
 Set control parameters:
 
 >>> x1(257.238)
@@ -119,7 +103,7 @@ Run Integration test
     >>> test.reset_inits()
     >>> conditions = sequences.conditions
 
-    >>> test('grxjland_gr4j_ex1')
+    >>> test("grxjland_gr4j_ex1")
     |   date |    p |   e |  en |   pn |        ps |       es |       ae |       pr |    pruh1 |    pruh2 |     perc |       q9 |       q1 |        f |       qr |       qd |       qt |          s |         r |    outlet |
     -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |  0.0 | 0.3 | 0.3 |  0.0 |       0.0 | 0.152875 | 0.152875 | 0.006036 | 0.005433 | 0.000604 | 0.006036 |  0.00075 | 0.000042 | 0.089449 | 0.670218 | 0.089491 | 0.759709 |  77.012489 | 43.537481 |  3.165453 |
@@ -179,35 +163,7 @@ Run Integration test
 Example 2
 _____________
 
-In the second example we start from empty storages, agaim we reproduce the results from the airGR package running
-the following code:
-
-.. code-block:: none
-
-    library(airGR)
-    ## loading catchment data
-    data(L0123001)
-    ## preparation of the InputsModel object
-    InputsModel <- CreateInputsModel(FUN_MOD = RunModel_GR4J, DatesR = BasinObs$DatesR,
-        Precip = BasinObs$P, PotEvap = BasinObs$E)
-    ## run period selection
-    Ind_Run <- seq(which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1990-01-01"),
-        which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1990-02-19"))
-    ### preparation of the IniStates object with low values of ProdStore and RoutStore
-    IniStates <- CreateIniStates(FUN_MOD = RunModel_GR4J, InputsModel = InputsModel,
-        ProdStore = 0, RoutStore = 0)
-    ## preparation of the RunOptions object
-    RunOptions <- CreateRunOptions(FUN_MOD = RunModel_GR4J,
-        InputsModel = InputsModel, IndPeriod_WarmUp = 0L,
-        IndPeriod_Run = Ind_Run, IniStates = IniStates)
-    ## simulation
-    Param <- c(X1 = 257.238, X2 = 1.012, X3 = 88.235, X4 = 2.208)
-    OutputsModel <- RunModel_GR4J(InputsModel = InputsModel,
-        RunOptions = RunOptions, Param = Param)
-
-
-Set initial storage levels: empty production store and routing store. log.sequences empty
-
+In the second example we start from empty storages:
 
 >>> test.inits = ((states.s, 0),
 ...               (states.r, 0),
@@ -216,7 +172,7 @@ Set initial storage levels: empty production store and routing store. log.sequen
 
 .. integration-test::
 
-    >>> test('grxjland_gr4j_ex2')
+    >>> test("grxjland_gr4j_ex2")
     |   date |    p |   e |  en |   pn |        ps |       es |       ae |       pr |    pruh1 |    pruh2 |     perc |       q9 |       q1 |        f |       qr |       qd |       qt |          s |         r |   outlet |
     ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |  0.0 | 0.3 | 0.3 |  0.0 |       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |        0.0 |       0.0 |      0.0 |
@@ -276,35 +232,8 @@ Set initial storage levels: empty production store and routing store. log.sequen
 Example 3
 _____________
 
-In the third we start from empty storages and use a negative groundwater exchange coefficient X2.
-Agaim we reproduce the results from the airGR package running
-the following code:
-
-.. code-block:: none
-
-    library(airGR)
-    ## loading catchment data
-    data(L0123001)
-    ## preparation of the InputsModel object
-    InputsModel <- CreateInputsModel(FUN_MOD = RunModel_GR4J, DatesR = BasinObs$DatesR,
-        Precip = BasinObs$P, PotEvap = BasinObs$E)
-    ## run period selection
-    Ind_Run <- seq(which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1990-01-01"),
-        which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1990-02-19"))
-    ### preparation of the IniStates object with low values of ProdStore and RoutStore
-    IniStates <- CreateIniStates(FUN_MOD = RunModel_GR4J, InputsModel = InputsModel,
-        ProdStore = 0, RoutStore = 0)
-    ## preparation of the RunOptions object
-    RunOptions <- CreateRunOptions(FUN_MOD = RunModel_GR4J,
-        InputsModel = InputsModel, IndPeriod_WarmUp = 0L,
-        IndPeriod_Run = Ind_Run, IniStates = IniStates)
-    ## simulation
-    Param <- c(X1 = 257.238, X2 = -1.012, X3 = 88.235, X4 = 2.208)
-    OutputsModel <- RunModel_GR4J(InputsModel = InputsModel,
-        RunOptions = RunOptions, Param = Param)
-
-
-Set negative control parameters X2:
+In the third we start from empty storages and use a negative groundwater exchange
+coefficient X2:
 
 >>> x2(-1.012)
 
@@ -312,7 +241,7 @@ Run Integration test
 
 .. integration-test::
 
-    >>> test('grxjland_gr4j_ex3')
+    >>> test("grxjland_gr4j_ex3")
     |   date |    p |   e |  en |   pn |        ps |       es |       ae |       pr |    pruh1 |    pruh2 |     perc |       q9 |       q1 |         f |       qr |       qd |       qt |          s |         r |   outlet |
     -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |  0.0 | 0.3 | 0.3 |  0.0 |       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |       0.0 |      0.0 |      0.0 |      0.0 |        0.0 |       0.0 |      0.0 |
@@ -365,16 +294,6 @@ Run Integration test
     | 17.02. |  7.2 | 0.9 | 0.0 |  6.3 |  3.953493 |      0.0 |      0.9 | 2.571769 | 2.314592 | 0.257177 | 0.225262 | 2.746401 | 0.287518 | -0.006403 | 0.029523 | 0.281115 | 0.310638 | 158.728855 |  23.47925 | 1.294326 |
     | 18.02. |  4.9 | 0.5 | 0.0 |  4.4 |  2.695976 |      0.0 |      0.5 | 1.947291 | 1.752562 | 0.194729 | 0.243267 | 2.318003 | 0.285379 | -0.009836 | 0.046821 | 0.275543 | 0.322364 | 161.181564 | 25.740595 | 1.343182 |
     | 19.02. |  1.8 | 0.9 | 0.0 |  0.9 |  0.545454 |      0.0 |      0.9 | 0.600092 | 0.540083 | 0.060009 | 0.245546 | 1.708351 | 0.230702 | -0.013571 | 0.063739 | 0.217131 |  0.28087 | 161.481472 | 27.371637 | 1.170292 |
-
-
-**References**
-
-Coron, L., G. Thirel, O. Delaigue, C. Perrin & V. Andréassian (2017): The suite of lumped GR hydrological models in an R package. Environmental Modelling & Software 94, 166-171
-
-Coron, L., O. Delaigue, G. Thirel, C. Perrin & C. Michel (2019): airGR: Suite of GR Hydrological Models for Precipitation-Runoff Modelling. R package version 1.3.2.42. URL: https://CRAN.R-project.org/package=airGR.
-
-Perrin, C., C. Michel & V. Andréassian (2003): Improvement of a parsimonious model for streamflow simulation. Journal of Hydrology 279(1), 275-289
-
 """
 
 # import...

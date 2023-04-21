@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
-GR6J Version of the GrXJ-Land model.
-The model can briefly be summarized as follows:
-
-TODO
+The GR6J model (modèle du Génie Rural à 4 parametres Journalier) is a daily
+lumped five-parameter rainfall-runoff model and belongs to the family of soil moisture
+accounting models. It was published by :cite:t:`ref-Pushpalatha2011` and is a
+modification of GR4J and GR5j (|grxjland_gr4j|, |grxjland_gr5j|). Here it is
+implemented according to :cite:t:`ref-airGR2017`. The model contains two stores and
+has five parameters.
+Compared to GR5J, the routing store is split into a linear and an exponential
+routing store, which introduces a new parameter.
 
 The following figure shows the general structure of HydPy GrXJ-Land Version GR6J:
 
@@ -17,8 +21,7 @@ Integration tests
 
 .. how_to_understand_integration_tests::
 
-As integration test we use the example of the R-package airGR gauging station
-Blue River at Nourlangie Rock with a catchment area 360 km².
+As integration test we use the example dataset L0123001 of the R-package airGR.
 
 The integration test is performed over a period of 50 days with
 a simulation step of one day:
@@ -54,7 +57,7 @@ and prints their results for the given sequences:
 >>> test = IntegrationTest(land)
 >>> test.dateformat = '%d.%m.'
 
-.. _grxjland_gr5j_ex1:
+.. _grxjland_gr6j_ex1:
 
 Example 1
 _____________
@@ -62,26 +65,6 @@ _____________
 We compared the results of grxjland_gr6j with the results of
 the GR6J implementation of the airGR package:
 The following code was used to run the airGR Gr6J model to compare our results:
-
-.. code-block:: none
-
-    library(airGR)
-    ## loading catchment data
-    data(L0123001)
-    # preparation of the InputsModel object
-    InputsModel <- CreateInputsModel(FUN_MOD = RunModel_GR6J, DatesR = BasinObs$DatesR,
-        Precip = BasinObs$P, PotEvap = BasinObs$E)
-    ## run period selection
-    Ind_Run <- seq(which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1990-01-01"),
-        which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1990-02-19"))
-    ## preparation of the RunOptions object
-    RunOptions <- CreateRunOptions(FUN_MOD = RunModel_GR6J,
-        InputsModel = InputsModel,
-        IndPeriod_WarmUp = 0L, IndPeriod_Run = Ind_Run)
-    ## simulation
-    Param <- c(X1 = 242.257, X2 = 0.637, X3 = 53.517, X4 = 2.218, X5 = 0.424, X6 = 4.759)
-    OutputsModel <- RunModel_GR6J(InputsModel = InputsModel,
-        RunOptions = RunOptions, Param = Param)
 
 Set control parameters:
 
@@ -120,7 +103,7 @@ Input sequences |P| and |E|:
     >>> test.reset_inits()
     >>> conditions = sequences.conditions
 
-    >>> test('grxjland_gr6j_ex1')
+    >>> test("grxjland_gr6j_ex1")
     |   date |    p |   e |  en |   pn |        ps |       es |       ae |       pr |    pruh1 |    pruh2 |     perc |       q9 |       q1 |        f |       qr |      qr2 |       qd |       qt |          s |         r |         r2 |    outlet |
     -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |  0.0 | 0.3 | 0.3 |  0.0 |       0.0 | 0.152867 | 0.152867 | 0.005681 | 0.005113 | 0.000568 | 0.005681 | 0.000698 | 0.000039 | 0.048412 | 0.406074 | 3.323095 | 0.048451 |  3.77762 |  72.518551 | 26.401257 |  -3.274404 | 15.740083 |
@@ -182,28 +165,6 @@ _____________
 In the second example we start from empty storages, again we reproduce the results from the airGR package running
 the following code:
 
-.. code-block:: none
-
-    library(airGR)
-    ## loading catchment data
-    data(L0123001)
-    # preparation of the InputsModel object
-    InputsModel <- CreateInputsModel(FUN_MOD = RunModel_GR6J, DatesR = BasinObs$DatesR,
-        Precip = BasinObs$P, PotEvap = BasinObs$E)
-    ## run period selection
-    Ind_Run <- seq(which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1990-01-01"),
-        which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1990-02-19"))
-    IniStates <- CreateIniStates(FUN_MOD = RunModel_GR6J, InputsModel = InputsModel,
-        ProdStore = 0, RoutStore = 0, ExpStore = 0)
-    ## preparation of the RunOptions object
-    RunOptions <- CreateRunOptions(FUN_MOD = RunModel_GR6J,
-        InputsModel = InputsModel,
-        IndPeriod_WarmUp = 0L, IndPeriod_Run = Ind_Run, IniStates = IniStates)
-    ## simulation
-    Param <- c(X1 = 242.257, X2 = 0.637, X3 = 53.517, X4 = 2.218, X5 = 0.424, X6 = 4.759)
-    OutputsModel <- RunModel_GR6J(InputsModel = InputsModel,
-        RunOptions = RunOptions, Param = Param)
-
 Set initial storage levels: empty production store and routing store. log.sequences empty
 
 
@@ -217,7 +178,7 @@ Run Integration test
 
 .. integration-test::
 
-    >>> test('grxjland_gr6j_ex2')
+    >>> test("grxjland_gr6j_ex2")
     |   date |    p |   e |  en |   pn |        ps |       es |       ae |       pr |    pruh1 |    pruh2 |     perc |       q9 |       q1 |         f |       qr |      qr2 |       qd |       qt |          s |         r |         r2 |   outlet |
     -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |  0.0 | 0.3 | 0.3 |  0.0 |       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.270088 |      0.0 | 3.165559 |      0.0 | 3.165559 |        0.0 |       0.0 |  -3.435647 | 13.18983 |
@@ -277,31 +238,8 @@ Example 3
 _____________
 
 In the third we start from empty storages and use a negative groundwater exchange coefficient X2.
-Agaim we reproduce the results from the airGR package running
+Again we reproduce the results from the airGR package running
 the following code:
-
-.. code-block:: none
-
-    library(airGR)
-    ## loading catchment data
-    data(L0123001)
-    # preparation of the InputsModel object
-    InputsModel <- CreateInputsModel(FUN_MOD = RunModel_GR6J, DatesR = BasinObs$DatesR,
-        Precip = BasinObs$P, PotEvap = BasinObs$E)
-    ## run period selection
-    Ind_Run <- seq(which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1990-01-01"),
-        which(format(BasinObs$DatesR, format = "%Y-%m-%d")=="1990-02-19"))
-    IniStates <- CreateIniStates(FUN_MOD = RunModel_GR6J, InputsModel = InputsModel,
-        ProdStore = 0, RoutStore = 0, ExpStore = 0)
-    ## preparation of the RunOptions object
-    RunOptions <- CreateRunOptions(FUN_MOD = RunModel_GR6J,
-        InputsModel = InputsModel,
-        IndPeriod_WarmUp = 0L, IndPeriod_Run = Ind_Run, IniStates = IniStates)
-    ## simulation
-    Param <- c(X1 = 242.257, X2 = -0.637, X3 = 53.517, X4 = 2.218, X5 = 0.424, X6 = 4.759)
-    OutputsModel <- RunModel_GR6J(InputsModel = InputsModel,
-        RunOptions = RunOptions, Param = Param)
-
 
 Set negative control parameters X2:
 
@@ -311,7 +249,7 @@ Run Integration test
 
 .. integration-test::
 
-    >>> test('grxjland_gr6j_ex3')
+    >>> test("grxjland_gr6j_ex3")
     |   date |    p |   e |  en |   pn |        ps |       es |       ae |       pr |    pruh1 |    pruh2 |     perc |       q9 |       q1 |         f |       qr |      qr2 |       qd |       qt |          s |         r |         r2 |    outlet |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |  0.0 | 0.3 | 0.3 |  0.0 |       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |  0.270088 |      0.0 | 3.435647 | 0.270088 | 3.705735 |        0.0 |  0.270088 |  -3.165559 | 15.440563 |
@@ -364,19 +302,6 @@ Run Integration test
     | 17.02. |  7.2 | 0.9 | 0.0 |  6.3 |  3.753261 |      0.0 |      0.9 | 2.806388 | 2.525749 | 0.280639 | 0.259648 | 3.007194 | 0.313723 |  0.012493 | 0.211643 | 0.635332 | 0.326216 | 1.173191 | 155.630346 | 23.246766 |  -9.897069 |  4.888297 |
     | 18.02. |  4.9 | 0.5 | 0.0 |  4.4 |  2.554033 |      0.0 |      0.5 | 2.125224 | 1.912701 | 0.212522 | 0.279256 | 2.534826 | 0.312047 | -0.006613 | 0.275818 | 0.683442 | 0.305434 | 1.264694 | 157.905122 | 24.485231 |  -9.573192 |  5.269557 |
     | 19.02. |  1.8 | 0.9 | 0.0 |  0.9 |  0.516379 |      0.0 |      0.9 |  0.66497 | 0.598473 | 0.066497 | 0.281348 |  1.87304 | 0.252546 | -0.021354 | 0.323787 | 0.689408 | 0.231192 | 1.244387 | 158.140153 | 25.263915 |  -9.534738 |  5.184944 |
-
-**References**
-
-Coron, L., G. Thirel, O. Delaigue, C. Perrin & V. Andréassian (2017): The suite of lumped GR hydrological models in an R package. Environmental Modelling & Software 94, 166-171
-
-Coron, L., O. Delaigue, G. Thirel, C. Perrin & C. Michel (2019): airGR: Suite of GR Hydrological Models for Precipitation-Runoff Modelling. R package version 1.3.2.42. URL: https://CRAN.R-project.org/package=airGR.
-
-Le Moine, N. (2008): Le bassin versant de surface vu par le souterrain : une voie d'amélioration des performances et du réalisme des modèles pluie-débit ? PhD thesis (french), UPMC, Paris, France.
-    
-Perrin, C., C. Michel & V. Andréassian (2003): Improvement of a parsimonious model for streamflow simulation. Journal of Hydrology 279(1), 275-289
-
-Pushpalatha, R., C. Perrin, N. Le Moine, T. Mathevet, and V. Andréassian (2011): A downward structural sensitivity analysis of hydrological models to improve low-flow simulation. Journal of Hydrology, 411(1-2), 66-76. doi: 10.1016/j.jhydrol.2011.09.034.
-
 """
 
 # import...

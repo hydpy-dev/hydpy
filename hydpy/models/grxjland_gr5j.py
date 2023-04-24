@@ -11,7 +11,8 @@ hydrograph, as is the case in Gr4j, in GR5J only one unit hydrograph is applied
 and the components are split afterwards. In addition, the groundwater exchange `F` is
 calculated differently using an additional parameter.
 
-The following figure shows the general structure of HydPy GrXJ-Land Version GR5J:
+The following figure cite:p:`ref-airGRManual` shows the general structure of HydPy
+GrXJ-Land Version GR5J:
 
 .. image:: HydPy-GrXJ-Land_Version-Gr5J.png
 

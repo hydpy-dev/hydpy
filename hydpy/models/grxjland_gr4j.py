@@ -15,7 +15,8 @@ The following list summarises the main components of |grxjland_gr4j|:
  * Groundwater exchange
  * Non-linear routing store
 
-The following figure shows the general structure of HydPy GrXJ-Land Version Gr4J:
+The following figure cite:p:`ref-airGRManual` shows the general structure of HydPy
+GrXJ-Land Version Gr4J:
 
 .. image:: HydPy-GrXJ-Land_Version-Gr4J.png
 

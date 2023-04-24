@@ -10,7 +10,8 @@ has five parameters.
 Compared to GR5J, the routing store is split into a linear and an exponential
 routing store, which introduces a new parameter.
 
-The following figure shows the general structure of HydPy GrXJ-Land Version GR6J:
+The following figure cite:p:`ref-airGRManual` shows the general structure of HydPy
+GrXJ-Land Version GR6J:
 
 .. image:: HydPy-GrXJ-Land_Version-Gr6J.png
 

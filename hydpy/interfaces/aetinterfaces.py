@@ -1,8 +1,5 @@
 """This module defines submodel interfaces for calculating actual evapotranspiration."""
 # import...
-# ...from standard library
-import abc
-
 # ...from hydpy
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
@@ -14,21 +11,17 @@ class AETModel_V1(modeltools.SubmodelInterface):
 
     typeid: ClassVar[Literal[1]] = 1
 
-    @abc.abstractmethod
     def prepare_water(self, water: VectorInputBool) -> None:
         """Set the flags for whether the individual zones are water areas or not."""
 
-    @abc.abstractmethod
     def prepare_interception(self, interception: VectorInputBool) -> None:
         """Set the flags for whether interception evaporation is relevant for the
         individual zones."""
 
-    @abc.abstractmethod
     def prepare_soil(self, soil: VectorInputBool) -> None:
         """Set the flags for whether soil evapotranspiration is relevant for the
         individual zones."""
 
-    @abc.abstractmethod
     def prepare_maxsoilwater(self, maxsoilwater: VectorInputFloat) -> None:
         """Set the maximum soil water content."""
 

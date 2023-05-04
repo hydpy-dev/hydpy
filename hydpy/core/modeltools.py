@@ -515,14 +515,10 @@ class Model:
     def _init_methods(self) -> None:
         """Convert all pure Python calculation functions of the model class to methods
         and assign them to the model instance."""
-        blacklist_longnames: Set[str] = set()
         blacklist_shortnames: Set[str] = set()
         shortname2method: Dict[str, types.MethodType] = {}
         for cls_ in self.get_methods():
             longname = cls_.__name__.lower()
-            if longname in blacklist_longnames:
-                continue
-            blacklist_longnames.add(longname)
             method = types.MethodType(cls_.__call__, self)
             setattr(self, longname, method)
             shortname = longname.rpartition("_")[0]
@@ -1532,13 +1528,18 @@ to be consistent with the name of the element handling the model.
         instead of the modified Python or Cython functions used for performing
         calculations.
         """
+        methods = set()
         if hasattr(cls, "METHOD_GROUPS"):
             for groupname in cls.METHOD_GROUPS:
                 if (groupname == "ADD_METHODS") and hasattr(cls, "INTERFACE_METHODS"):
                     for method in cls.INTERFACE_METHODS:
-                        yield method
+                        if method not in methods:
+                            methods.add(method)
+                            yield method
                 for method in getattr(cls, groupname, ()):
-                    yield method
+                    if method not in methods:
+                        methods.add(method)
+                        yield method
 
     @overload
     def find_submodels(

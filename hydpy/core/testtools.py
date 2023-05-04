@@ -555,14 +555,14 @@ class PlottingOptions:
 class IntegrationTest(Test):
     """Defines model integration doctests.
 
-    The functionality of |IntegrationTest| is easiest to understand by
-    inspecting doctests like the ones of modules |llake_v1| or |arma_v1|.
+    The functionality of |IntegrationTest| is easiest to understand by inspecting
+    doctests like the ones of modules |llake_v1| or |arma_v1|.
 
-    Note that all condition sequences (state and logging sequences) are
-    initialised in accordance with the values are given as `inits` values.
-    The values of the simulation sequences of outlet and sender nodes are
-    always set to zero before each test run.  All other parameter and
-    sequence values can be changed between different test runs.
+    Note that all condition sequences (state and logging sequences) are initialised in
+    accordance with the values are given as `inits` values.  The values of the
+    simulation sequences of outlet and sender nodes are always set to zero before each
+    test run.  All other parameter and sequence values can be changed between different
+    test runs.
     """
 
     HEADER_OF_FIRST_COL = "date"
@@ -765,15 +765,27 @@ datetime of the Python standard library for for further information.
         set the initial conditions."""
         if update_parameters:
             self.model.update_parameters()
-        for flag in (False, True):
-            self.element.prepare_factorseries(allocate_ram=flag)
-            self.element.prepare_fluxseries(allocate_ram=flag)
-            self.element.prepare_stateseries(allocate_ram=flag)
+        self.reset_values()
+        self.reset_series()
         self.reset_outputs()
         if use_conditions:
             with hydpy.pub.options.trimvariables(False):
                 self.element.model.sequences.conditions = use_conditions
         self.reset_inits()
+
+    def reset_values(self) -> None:
+        """Set the current values of all factor and flux sequences to |numpy.nan|."""
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            for seqs in (model.sequences.factors, model.sequences.fluxes):
+                for seq in seqs:
+                    seq.value = numpy.nan
+
+    def reset_series(self) -> None:
+        """Initialise all time series with |numpy.nan| values."""
+        for flag in (False, True):
+            self.element.prepare_factorseries(allocate_ram=flag)
+            self.element.prepare_fluxseries(allocate_ram=flag)
+            self.element.prepare_stateseries(allocate_ram=flag)
 
     def reset_outputs(self) -> None:
         """Set the values of the simulation sequences of all outlet nodes to zero."""

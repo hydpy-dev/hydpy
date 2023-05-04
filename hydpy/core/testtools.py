@@ -799,12 +799,17 @@ datetime of the Python standard library for for further information.
             inits = self.inits
             for subname in ("states", "logs"):
                 for element in self.elements:
-                    for seq in getattr(element.model.sequences, subname, ()):
-                        value = getattr(inits, seq.name, None)
-                        if value is None:
-                            value = getattr(inits, f"{element.name}_{seq.name}", None)
-                        if value is not None:
-                            seq(value)
+                    for model in element.model.find_submodels(
+                        include_mainmodel=True
+                    ).values():
+                        for seq in getattr(model.sequences, subname, ()):
+                            value = getattr(inits, seq.name, None)
+                            if value is None:
+                                value = getattr(
+                                    inits, f"{element.name}_{seq.name}", None
+                                )
+                            if value is not None:
+                                seq(value)
 
     def plot(
         self,

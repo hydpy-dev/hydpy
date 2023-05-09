@@ -1784,7 +1784,16 @@ implement method `update`.
         return "\n".join(lines)
 
 
-class NameParameter(Parameter):
+class _MixinModifiableParameter(Parameter):
+    @classmethod
+    def _reset_after_modification(cls, name: str, value: Optional[object]) -> None:
+        if value is None:
+            delattr(cls, name)
+        else:
+            setattr(cls, name, value)
+
+
+class NameParameter(_MixinModifiableParameter, Parameter):
     """Parameter displaying the names of constants instead of their values.
 
     For demonstration, we define the test class `LandType`, covering three different
@@ -1933,12 +1942,12 @@ class NameParameter(Parameter):
         if constants is None:
             yield
         else:
-            old = cls.constants
+            old = vars(cls).get("constants")
             try:
                 cls.constants = constants
                 yield
             finally:
-                cls.constants = old
+                cls._reset_after_modification("constants", old)
 
     def trim(self, lower=None, upper=None) -> None:
         """Check if all previously set values comply with the supported constants.
@@ -1981,7 +1990,7 @@ valid.
         return f"{string})"
 
 
-class ZipParameter(Parameter):
+class ZipParameter(_MixinModifiableParameter, Parameter):
     """Base class for 1-dimensional model parameters that offers an additional
     keyword-based zipping functionality.
 
@@ -2238,18 +2247,19 @@ index parameter.
         if refindices is None:
             yield
         else:
-            old_refindices = cls.refindices
-            old_constants = cls.constants
-            old_relevant = cls.relevant
+            get = vars(cls).get
+            old_refindices = get("refindices")
+            old_constants = get("constants")
+            old_relevant = get("relevant")
             try:
                 cls.refindices = refindices
                 cls.constants = refindices.constants
                 cls.relevant = tuple(refindices.constants.values())
                 yield
             finally:
-                cls.refindices = old_refindices
-                cls.constants = old_constants
-                cls.relevant = old_relevant
+                cls._reset_after_modification("refindices", old_refindices)
+                cls._reset_after_modification("constants", old_constants)
+                cls._reset_after_modification("relevant", old_relevant)
 
     def __init__(self, subvars: SubParameters) -> None:
         super().__init__(subvars)
@@ -3013,7 +3023,7 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
         return cast(List[str], super().__dir__()) + [str(toy) for (toy, dummy) in self]
 
 
-class KeywordParameter1D(Parameter):
+class KeywordParameter1D(_MixinModifiableParameter, Parameter):
     """Base class for 1-dimensional model parameters with values depending on one
     factor.
 
@@ -3183,15 +3193,16 @@ for axis 0 with size 1
         if constants is None:
             yield
         else:
-            old_names = cls.entrynames
-            old_min = cls.entrymin
+            get = vars(cls).get
+            old_names = get("entrynames")
+            old_min = get("entrymin")
             try:
                 cls.entrynames = constants.sortednames
                 cls.entrymin = min(constants.values())
                 yield
             finally:
-                cls.entrynames = old_names
-                cls.entrymin = old_min
+                cls._reset_after_modification("entrynames", old_names)
+                cls._reset_after_modification("entrymin", old_min)
 
     def __hydpy__connect_variable2subgroup__(self) -> None:
         super().__hydpy__connect_variable2subgroup__()
@@ -3328,7 +3339,7 @@ class MonthParameter(KeywordParameter1D):
     )
 
 
-class KeywordParameter2D(Parameter):
+class KeywordParameter2D(_MixinModifiableParameter, Parameter):
     """Base class for 2-dimensional model parameters with values depending on two
     factors.
 
@@ -3586,15 +3597,16 @@ attribute nor a row or column related attribute named `wrong`.
         if constants is None:
             yield
         else:
-            old_names = cls.rownames
-            old_min = cls.rowmin
+            get = vars(cls).get
+            old_names = get("rownames")
+            old_min = get("rowmin")
             try:
                 cls.rownames = constants.sortednames
                 cls.rowmin = min(constants.values())
                 yield
             finally:
-                cls.rownames = old_names
-                cls.rowmin = old_min
+                cls._reset_after_modification("rownames", old_names)
+                cls._reset_after_modification("rowmin", old_min)
 
     @classmethod
     @contextlib.contextmanager
@@ -3609,15 +3621,16 @@ attribute nor a row or column related attribute named `wrong`.
         if constants is None:
             yield
         else:
-            old_names = cls.columnnames
-            old_min = cls.columnmin
+            get = vars(cls).get
+            old_names = get("columnnames")
+            old_min = get("columnmin")
             try:
                 cls.columnnames = constants.sortednames
                 cls.columnmin = min(constants.values())
                 yield
             finally:
-                cls.columnnames = old_names
-                cls.columnmin = old_min
+                cls._reset_after_modification("columnnames", old_names)
+                cls._reset_after_modification("columnmin", old_min)
 
     @classmethod
     def _make_rowcolumnmappings(

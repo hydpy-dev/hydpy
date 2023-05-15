@@ -511,7 +511,7 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
     @contextlib.contextmanager
     def __call__(
         self, module: Union[types.ModuleType, str], update: bool = True
-    ) -> Generator[None, None, None]:
+    ) -> Generator[modeltools.Model, None, None]:
         try:
             if isinstance(module, str):
                 module = importlib.import_module(f"hydpy.models.{module}")
@@ -550,7 +550,7 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
                     for mainmodel in reversed(self._mainmodelstack):
                         if submodel.add_mainmodel_as_subsubmodel(mainmodel):
                             break
-                    yield
+                    yield submodel
                     self._mainmodelstack.pop(-1)
                     if update:
                         submodel.parameters.update()

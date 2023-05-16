@@ -10,6 +10,7 @@ import importlib
 import inspect
 import itertools
 import os
+import runpy
 import types
 
 # ...from site-packages
@@ -1364,6 +1365,285 @@ to be consistent with the name of the element handling the model.
                     "name of the element handling the model."
                 )
             hydpy.pub.controlmanager.save_file(filename, text)
+
+    @contextlib.contextmanager
+    def define_conditions(
+        self, module: Optional[Union[types.ModuleType, str]] = None
+    ) -> Generator[None, None, None]:
+        """Allow defining the values of condition sequences in condition files
+        conveniently.
+
+        |Model.define_conditions| works similar to the "add_submodel" methods wrapped
+        by instances of class |SubmodelAdder| but is much simpler.  In combination with
+        the `with` statement, it makes the all relevant state and log sequences
+        temporarily directly available:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2001-01-01", "6h"
+        >>> from hydpy.models.lland_v3 import *
+        >>> parameterstep()
+        >>> nhru(2)
+        >>> ft(10.0)
+        >>> fhru(0.2, 0.8)
+        >>> lnk(ACKER, MISCHW)
+        >>> wmax(acker=100.0, mischw=200.0)
+        >>> with model.add_aetmodel_v1("evap_morsim"):
+        ...     pass
+        >>> with model.aetmodel.define_conditions():
+        ...     loggedwindspeed2m(1.0, 3.0, 2.0, 4.0)
+        >>> loggedwindspeed2m
+        Traceback (most recent call last):
+        ...
+        NameError: name 'loggedwindspeed2m' is not defined
+        >>> model.aetmodel.sequences.logs.loggedwindspeed2m
+        loggedwindspeed2m(1.0, 3.0, 2.0, 4.0)
+
+        One can pass the submodel's module or name for documentation purposes:
+
+        >>> with model.aetmodel.define_conditions("evap_morsim"):
+        ...     loggedwindspeed2m(4.0, 2.0, 3.0, 1.0)
+        >>> loggedwindspeed2m
+        Traceback (most recent call last):
+        ...
+        NameError: name 'loggedwindspeed2m' is not defined
+        >>> model.aetmodel.sequences.logs.loggedwindspeed2m
+        loggedwindspeed2m(4.0, 2.0, 3.0, 1.0)
+
+        For misleading input, |Model.define_conditions| raises the following error:
+
+        >>> from hydpy.models import evap_aet_hbv96
+        >>> with model.aetmodel.define_conditions(evap_aet_hbv96):
+        ...     loggedwindspeed2m(1.0, 3.0, 2.0, 4.0)
+        Traceback (most recent call last):
+        ...
+        TypeError: While trying to define the conditions of (sub)model `evap_morsim`, \
+the following error occurred: (Sub)model `evap_morsim` is not of type `evap_aet_hbv96`.
+        >>> loggedwindspeed2m
+        Traceback (most recent call last):
+        ...
+        NameError: name 'loggedwindspeed2m' is not defined
+        >>> model.aetmodel.sequences.logs.loggedwindspeed2m
+        loggedwindspeed2m(4.0, 2.0, 3.0, 1.0)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+        """
+        try:
+            if module is not None:
+                if isinstance(module, str):
+                    module = importlib.import_module(f"hydpy.models.{module}")
+                if self.__module__ != module.__name__:
+                    raise TypeError(
+                        f"(Sub)model `{self.name}` is not of type "
+                        f"`{module.__name__.rpartition('.')[2]}`."
+                    )
+            assert (
+                ((frame1 := inspect.currentframe()) is not None)
+                and ((frame2 := frame1.f_back) is not None)
+                and ((frame3 := frame2.f_back) is not None)
+            )
+            namespace = frame3.f_locals
+            old_locals = namespace.get(importtools.__HYDPY_MODEL_LOCALS__, {})
+            new_locals = {}
+            for seq in self.sequences.conditionsequences:
+                new_locals[seq.name] = seq
+            try:
+                namespace[importtools.__HYDPY_MODEL_LOCALS__] = new_locals
+                namespace.update(new_locals)
+                yield
+            finally:
+                for name in new_locals:
+                    namespace.pop(name, None)
+                namespace.update(old_locals)
+                namespace[importtools.__HYDPY_MODEL_LOCALS__] = old_locals
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to define the conditions of (sub)model `{self.name}`"
+            )
+
+    def __prepare_conditionfilename(self, filename: Optional[str]) -> str:
+        if filename is None:
+            filename = objecttools.devicename(self)
+            if filename == "?":
+                raise RuntimeError(
+                    "To load or save the conditions of a model from or to a file, its "
+                    "filename must be known.  This can be done, by passing filename "
+                    "to method `load_conditions` or `save_conditions` directly.  But "
+                    "in complete HydPy applications, it is usally assumed to be "
+                    "consistent with the name of the element handling the model.  "
+                    "Actually, neither a filename is given nor does the model know "
+                    "its master element."
+                )
+        if not filename.endswith(".py"):
+            filename += ".py"
+        return filename
+
+    def load_conditions(self, filename: Optional[str] = None) -> None:
+        """Read the initial conditions from a file and assign them to the respective
+        |StateSequence| and |LogSequence| objects.
+
+        The documentation on method |HydPy.load_conditions| of class |HydPy| explains
+        how to read and write condition values for complete *HydPy* projects in the
+        most convenient manner.  However, using the underlying methods
+        |Model.load_conditions| and |Model.save_conditions| directly offers the
+        advantage of specifying alternative filenames.  We demonstrate this by using
+        the state sequence |hland_states.SM| if the `land_dill` |Element| object of the
+        `LahnH` example project:
+
+        >>> from hydpy.examples import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
+        >>> dill = hp.elements.land_dill.model
+        >>> dill.sequences.states.sm
+        sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
+           222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
+
+        We work in the freshly created condition directory `test`:
+
+        >>> with TestIO():
+        ...     pub.conditionmanager.currentdir = "test"
+
+        We set all soil moisture values to zero and write the updated values to file
+        `cold_start.py`:
+
+        >>> dill.sequences.states.sm(0.0)
+        >>> with TestIO():
+        ...     dill.save_conditions("cold_start.py")
+
+        Trying to reload from the written file (after changing the soil moisture values
+        again) without passing the file name fails due to the wrong assumption that the
+        element's name serves as the file name base:
+
+        >>> dill.sequences.states.sm(100.0)
+        >>> with TestIO():   # doctest: +ELLIPSIS
+        ...     dill.load_conditions()
+        Traceback (most recent call last):
+        ...
+        FileNotFoundError: While trying to load the initial conditions of element \
+`land_dill`, the following error occurred: [Errno 2] No such file or directory: \
+'...land_dill.py'
+
+        One does not need to explicitly state the file extensions (`.py`):
+
+        >>> with TestIO():
+        ...     dill.load_conditions("cold_start")
+        >>> dill.sequences.states.sm
+        sm(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+
+        Automatically determining the file name requires a proper reference to the
+        related |Element| object:
+
+        >>> del dill.element
+        >>> with TestIO():
+        ...     dill.save_conditions()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: While trying to save the actual conditions of element `?`, the \
+following error occurred: To load or save the conditions of a model from or to a file, \
+its filename must be known.  This can be done, by passing filename to method \
+`load_conditions` or `save_conditions` directly.  But in complete HydPy applications, \
+it is usally assumed to be consistent with the name of the element handling the \
+model.  Actually, neither a filename is given nor does the model know its master \
+element.
+
+        The submodels selected in the `LahnH` example project do not require any
+        condition sequences.  Hence, we replace the combination of |evap_aet_hbv96| and
+        |evap_pet_hbv96| with a plain |evap_morsim| instance, which relies on some log
+        sequences:
+
+        >>> with dill.add_aetmodel_v1("evap_morsim"):
+        ...     pass
+
+        The following code demonstrates that reading and writing of condition sequences
+        also works for submodels:
+
+        >>> logs = dill.aetmodel.sequences.logs
+        >>> logs.loggedairtemperature = 20.0
+        >>> logs.loggedwindspeed2m = 2.0
+        >>> with TestIO():   # doctest: +ELLIPSIS
+        ...     dill.save_conditions("submodel_conditions.py")
+        >>> logs.loggedairtemperature = 10.0
+        >>> logs.loggedwindspeed2m = 1.0
+        >>> with TestIO():   # doctest: +ELLIPSIS
+        ...     dill.load_conditions("submodel_conditions.py")
+        >>> logs.loggedairtemperature
+        loggedairtemperature(20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0,
+                             20.0, 20.0, 20.0, 20.0)
+        >>> logs.loggedwindspeed2m
+        loggedwindspeed2m(2.0)
+
+        .. testsetup::
+
+            >>> from hydpy import Element, Node, pub
+            >>> Element.clear_all()
+            >>> Node.clear_all()
+            >>> del pub.timegrids
+        """
+        hasconditions = any(
+            model.sequences.states or model.sequences.logs
+            for model in self.find_submodels(include_mainmodel=True).values()
+        )
+        if hasconditions:
+            try:
+                dict_ = locals()
+                for seq in self.sequences.conditionsequences:
+                    dict_[seq.name] = seq
+                dict_["model"] = self
+                filepath = os.path.join(
+                    hydpy.pub.conditionmanager.inputpath,
+                    self.__prepare_conditionfilename(filename),
+                )
+                runpy.run_path(filepath, init_globals=dict_)
+            except BaseException:
+                objecttools.augment_excmessage(
+                    f"While trying to load the initial conditions of element "
+                    f"`{objecttools.devicename(self)}`"
+                )
+
+    def save_conditions(self, filename: Optional[str] = None) -> None:
+        """Query the actual conditions of the |StateSequence| and |LogSequence| objects
+        and write them into an initial condition file.
+
+        See the documentation on method |Model.load_conditions| for further
+        information.
+        """
+        try:
+            model2hasconditions = {}
+            for model in self.find_submodels(include_mainmodel=True).values():
+                seqs = model.sequences
+                model2hasconditions[model] = seqs.states or seqs.logs
+            if any(model2hasconditions.values()):
+                con = hydpy.pub.controlmanager
+                lines = [
+                    "# -*- coding: utf-8 -*-\n\n",
+                    f"from hydpy.models.{self} import *\n",
+                ]
+                for model, hasconditions in model2hasconditions.items():
+                    if hasconditions and (model is not self):
+                        lines.append(f"from hydpy.models import {model}\n")
+                lines.append(
+                    f'\ncontrolcheck(projectdir=r"{con.projectdir}", '
+                    f'controldir="{con.currentdir}", '
+                    f'stepsize="{hydpy.pub.timegrids.stepsize}")\n\n',
+                )
+                for seq in self.sequences.conditionsequences:
+                    lines.append(f"{repr(seq)}\n")
+                for fullname, model in self.find_submodels().items():
+                    if model2hasconditions[model]:
+                        lines.append(f"with {fullname}.define_conditions({model}):\n")
+                        for seq in model.sequences.conditionsequences:
+                            lines.append(f"    {repr(seq)}\n")
+                filepath = os.path.join(
+                    hydpy.pub.conditionmanager.outputpath,
+                    self.__prepare_conditionfilename(filename),
+                )
+                with open(filepath, "w", encoding="utf-8") as file_:
+                    file_.writelines(lines)
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to save the actual conditions of element "
+                f"`{objecttools.devicename(self)}`"
+            )
 
     @abc.abstractmethod
     def simulate(self, idx: int) -> None:

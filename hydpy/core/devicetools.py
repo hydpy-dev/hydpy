@@ -1410,14 +1410,14 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
         """Save the initial conditions of the |Model| object handled by each |Element|
         object."""
         for element in printtools.progressbar(self):
-            element.model.sequences.load_conditions()
+            element.model.load_conditions()
 
     @printtools.print_progress
     def save_conditions(self) -> None:
         """Save the calculated conditions of the |Model| object handled by each
         |Element| object."""
         for element in printtools.progressbar(self):
-            element.model.sequences.save_conditions()
+            element.model.save_conditions()
 
     def trim_conditions(self) -> None:
         """Call method |Sequences.trim_conditions| of the |Sequences| object handled

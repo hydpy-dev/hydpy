@@ -795,7 +795,7 @@ the following error occurred: ...
     ...         land_dill.model.parameters.update()
     ...         land_dill.model.sequences.states.inzp(1.0)
     ...     land_dill.model.save_controls()
-    ...     land_dill.model.sequences.save_conditions()
+    ...     land_dill.model.save_conditions()
 
     Unfortunately, state |lland_states.Inzp| does not define a |trim| method taking the
     actual value of parameter |lland_derived.KInz| into account (due to compatibility

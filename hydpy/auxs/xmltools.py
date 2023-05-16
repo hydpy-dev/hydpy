@@ -1079,7 +1079,7 @@ class XMLConditions(XMLBase):
             currentdir = str(self.find("inputdir", optional=False).text)
         hydpy.pub.conditionmanager.currentdir = currentdir
         for element in self.master.elements:
-            element.model.sequences.load_conditions()
+            element.model.load_conditions()
 
     def save_conditions(self, currentdir: Optional[str] = None) -> None:
         """Save the condition files of the |Model| objects of all |Element| objects
@@ -1122,7 +1122,7 @@ class XMLConditions(XMLBase):
             currentdir = str(self.find("outputdir", optional=False).text)
         hydpy.pub.conditionmanager.currentdir = currentdir
         for element in self.master.elements:
-            element.model.sequences.save_conditions()
+            element.model.save_conditions()
         if self.find("zip", optional=False).text == "true":
             hydpy.pub.conditionmanager.zip_currentdir()
 

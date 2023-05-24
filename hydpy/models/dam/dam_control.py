@@ -3,6 +3,7 @@
 
 # import...
 # ...from HydPy
+from hydpy.core import exceptiontools
 from hydpy.core import parametertools
 from hydpy.auxs import interptools
 
@@ -22,9 +23,9 @@ class CatchmentArea(parametertools.Parameter):
 class NmbLogEntries(parametertools.Parameter):
     """Number of log entries for certain variables [-].
 
-    Note that setting a new value by calling the parameter object sets
-    the shapes of all associated log sequences automatically, except those
-    with a predefined default shape:
+    Note that setting a new value by calling the parameter object sets the shapes of
+    all associated log sequences automatically, except those with a predefined default
+    shape:
 
     >>> from hydpy.models.dam import *
     >>> parameterstep()
@@ -36,17 +37,28 @@ class NmbLogEntries(parametertools.Parameter):
     loggedadjustedevaporation(nan)
     loggedrequiredremoterelease(nan)
     loggedallowedremoterelief(nan)
+
+    To prevent losing information, updating parameter |NmbLogEntries| resets the shape
+    of the relevant log sequences only when necessary:
+
+    >>> logs.loggedtotalremotedischarge = 1.0
+    >>> nmblogentries(3)
+    >>> logs.loggedtotalremotedischarge
+    loggedtotalremotedischarge(1.0, 1.0, 1.0)
     """
 
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
     def __call__(self, *args, **kwargs):
         super().__call__(*args, **kwargs)
+        new_shape = (self.value,)
         for seq in self.subpars.pars.model.sequences.logs:
-            try:
-                seq.shape = self
-            except AttributeError:
-                pass
+            old_shape = exceptiontools.getattr_(seq, "shape", (None,))
+            if new_shape != old_shape:
+                try:
+                    seq.shape = new_shape
+                except AttributeError:
+                    pass
 
 
 class CorrectionPrecipitation(parametertools.Parameter):

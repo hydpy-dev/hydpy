@@ -91,7 +91,7 @@ values from example 19 of `FAO`:
 
 >>> measuringheightwindspeed(2.0)
 
-Example 19 of :t:ref-Allen1998` gives results for the intervals between 2 and 3
+Example 19 of :t:`ref-Allen1998` gives results for the intervals between 2 and 3
 o'clock and between 14 and 15 o'clock only.  We assume these clock times are referring
 to UTC-1:
 

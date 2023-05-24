@@ -5110,7 +5110,7 @@ class Determine_InterceptionEvaporation_V1(modeltools.AutoMethod):
 
 class Determine_InterceptionEvaporation_V2(modeltools.AutoMethod):
     """Determine the actual interception evaporation according to
-    :cite:t:`ref-Thompson1981` and :cite:p:`ref-LARSIM`."""
+    :cite:t:`ref-Thompson1981` and :cite:t:`ref-LARSIM`."""
 
     SUBMETHODS = (
         Calc_AirTemperature_V1,
@@ -5268,7 +5268,7 @@ class Determine_SoilEvapotranspiration_V2(modeltools.AutoMethod):
 
 class Determine_SoilEvapotranspiration_V3(modeltools.AutoMethod):
     """Determine the actual evapotranspiration from the soil according to
-    :cite:t:`ref-Thompson1981` and :cite:p:`ref-LARSIM`."""
+    :cite:t:`ref-Thompson1981` and :cite:t:`ref-LARSIM`."""
 
     SUBMETHODS = (
         Calc_SoilWater_V1,

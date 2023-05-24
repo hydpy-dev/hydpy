@@ -7,6 +7,7 @@ import numpy
 
 # ...from HydPy
 import hydpy
+from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 
@@ -112,6 +113,19 @@ class NmbLogEntries(parametertools.Parameter):
                               [nan, nan],
                               [nan, nan]])
 
+        To prevent losing information, updating parameter |NmbLogEntries| resets the
+        shape of the relevant log sequences only when necessary:
+
+        >>> logs.loggedglobalradiation = 1.0
+        >>> logs.loggedairtemperature = 2.0
+        >>> derived.nmblogentries.update()
+        >>> logs.loggedglobalradiation
+        loggedglobalradiation(1.0, 1.0, 1.0)
+        >>> logs.loggedairtemperature
+        loggedairtemperature([[2.0, 2.0],
+                              [2.0, 2.0],
+                              [2.0, 2.0]])
+
         There is an explicit check for inappropriate simulation step sizes:
 
         >>> pub.timegrids = "2000-01-01 00:00", "2000-01-01 10:00", "5h"
@@ -134,6 +148,9 @@ determined for a the current simulation step size.  The fraction of the memory p
         pars = self.subpars.pars
         for seq in pars.model.sequences.logs:
             if seq.NDIM == 1:
-                seq.shape = self.value
+                new_shape = (self.value,)
             elif seq.NDIM == 2:
-                seq.shape = self.value, pars.control.nmbhru.value
+                new_shape = self.value, pars.control.nmbhru.value
+            old_shape = exceptiontools.getattr_(seq, "shape", (None,))
+            if new_shape != old_shape:
+                seq.shape = new_shape

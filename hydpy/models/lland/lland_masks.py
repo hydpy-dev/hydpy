@@ -64,6 +64,12 @@ class Forest(Complete):
     RELEVANT_VALUES = (LAUBW, MISCHW, NADELW)
 
 
+class Water(Complete):
+    """Mask including the land uses |WASSER|, |SEE|, and |FLUSS|."""
+
+    relevant = (WASSER, SEE, FLUSS)
+
+
 class Sied_D(Complete):
     """Mask for land use |SIED_D|."""
 
@@ -180,6 +186,7 @@ class Masks(masktools.Masks):
         Land,
         Soil,
         Forest,
+        Water,
         Sied_D,
         Sied_L,
         Vers,

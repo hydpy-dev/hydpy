@@ -1622,6 +1622,15 @@ class Calc_DailyNetLongwaveRadiation_V1(modeltools.Method):
         >>> model.calc_dailynetlongwaveradiation_v1()
         >>> fluxes.dailynetlongwaveradiation
         dailynetlongwaveradiation(40.451915, 58.190798)
+
+        When necessary, |Calc_DailyNetLongwaveRadiation_V1| trims the fraction of
+        actual and possible sunshine duration to one to prevent calculating
+        unrealistically high net longwave radiations:
+
+        >>> factors.dailysunshineduration = 24.0
+        >>> model.calc_dailynetlongwaveradiation_v1()
+        >>> fluxes.dailynetlongwaveradiation
+        dailynetlongwaveradiation(45.671517, 65.699288)
     """
 
     CONTROLPARAMETERS = (
@@ -1646,11 +1655,13 @@ class Calc_DailyNetLongwaveRadiation_V1(modeltools.Method):
         fix = model.parameters.fixed.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        s: float = fac.dailysunshineduration / fac.dailypossiblesunshineduration
+        rel_sunshine: float = min(
+            fac.dailysunshineduration / fac.dailypossiblesunshineduration, 1.0
+        )
         for k in range(con.nmbhru):
             t: float = fac.dailyairtemperature[k] + 273.15
             flu.dailynetlongwaveradiation[k] = (
-                (0.2 + 0.8 * s)
+                (0.2 + 0.8 * rel_sunshine)
                 * (fix.stefanboltzmannconstant * t**4)
                 * (
                     con.emissivity

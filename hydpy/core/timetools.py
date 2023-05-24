@@ -486,25 +486,28 @@ base 10: '0X'
 
         We took the following example string from the `Time Coordinate`_ chapter of the
         NetCDF-CF conventions documentation (modified).  Note that method
-        |Date.from_cfunits| ignores the first entry (the unit):
+        |Date.from_cfunits| ignores the first entry (the unit) and assumes UTC+00 for
+        strings without time zone identifiers (as opposed to the usual `HydPy`
+        convention that dates without time zone identifiers correspond to the local
+        time defined by the option |Options.utcoffset|):
 
         >>> from hydpy import Date
         >>> Date.from_cfunits("seconds since 1992-10-8 15:15:42 -6:00")
         Date("1992-10-08 22:15:42")
         >>> Date.from_cfunits(" day since 1992-10-8 15:15:00")
-        Date("1992-10-08 15:15:00")
+        Date("1992-10-08 16:15:00")
         >>> Date.from_cfunits("seconds since 1992-10-8 -6:00")
         Date("1992-10-08 07:00:00")
         >>> Date.from_cfunits("m since 1992-10-8")
-        Date("1992-10-08 00:00:00")
+        Date("1992-10-08 01:00:00")
 
-        One can also pass the unmodified example string from `Time Coordinate`_, as
-        long as one omits any decimal fractions of a second different from zero:
+        One can also pass the unmodified example string from `Time Coordinate`_ as long
+        as one omits any decimal fractions of a second different from zero:
 
         >>> Date.from_cfunits("seconds since 1992-10-8 15:15:42.")
-        Date("1992-10-08 15:15:42")
+        Date("1992-10-08 16:15:42")
         >>> Date.from_cfunits("seconds since 1992-10-8 15:15:42.00")
-        Date("1992-10-08 15:15:42")
+        Date("1992-10-08 16:15:42")
         >>> Date.from_cfunits("seconds since 1992-10-8 15:15:42. -6:00")
         Date("1992-10-08 22:15:42")
         >>> Date.from_cfunits("seconds since 1992-10-8 15:15:42.0 -6:00")
@@ -534,6 +537,9 @@ decimal fraction of a second than "0" allowed.
                     else:
                         jdx += 1
                 string = f"{string[:idx]}{string[idx+jdx+1:]}"
+            substring, offset = cls._extract_offset(string)
+            if offset is None:
+                string = f"{string} +00:00"
             return cls.from_string(string)
         except BaseException:
             objecttools.augment_excmessage(
@@ -597,7 +603,7 @@ decimal fraction of a second than "0" allowed.
         >>> date.style
         'iso2'
 
-        To try to set a non-existing style results in the following error message:
+        Trying to set a non-existing style results in the following error message:
 
         >>> date.style = "iso"
         Traceback (most recent call last):

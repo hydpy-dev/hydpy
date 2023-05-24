@@ -1542,6 +1542,15 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
         >>> model.calc_netlongwaveradiation_v1()
         >>> fluxes.netlongwaveradiation
         netlongwaveradiation(45.832275)
+
+        When necessary, |Calc_NetLongwaveRadiation_V1| trims the fraction of global
+        radiation and clear sky solar radiation to one to prevent calculating
+        unrealistically high net longwave radiations:
+
+        >>> logs.loggedclearskysolarradiation = 1.0
+        >>> model.calc_netlongwaveradiation_v1()
+        >>> fluxes.netlongwaveradiation
+        netlongwaveradiation(59.13842)
     """
 
     CONTROLPARAMETERS = (evap_control.NmbHRU,)
@@ -1578,7 +1587,7 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
                 5.674768518518519e-08
                 * (fac.airtemperature[k] + 273.16) ** 4
                 * (0.34 - 0.14 * (fac.actualvapourpressure[k] / 10.0) ** 0.5)
-                * (1.35 * d_globalradiation / d_clearskysolarradiation - 0.35)
+                * (1.35 * min(d_globalradiation / d_clearskysolarradiation, 1.0) - 0.35)
             )
 
 

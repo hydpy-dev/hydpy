@@ -2432,7 +2432,7 @@ class XSDWriter:
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_insertion())  # doctest: +ELLIPSIS
-            <complexType name="dam_v001_readerType">
+            <complexType name="dam_pump_readerType">
                 <sequence>
                     <element name="inputs"
                              minOccurs="0">
@@ -2455,8 +2455,8 @@ class XSDWriter:
                     <element name="node"
                              type="hpcb:node_readerType"
                              minOccurs="0"/>
-                    <element name="dam_v001"
-                             type="hpcb:dam_v001_readerType"
+                    <element name="dam_pump"
+                             type="hpcb:dam_pump_readerType"
                              minOccurs="0"/>
         ...
                     <element name="wland_v002"
@@ -2680,8 +2680,8 @@ class XSDWriter:
                     <element name="node"
                              type="hpcb:node_readerType"
                              minOccurs="0"/>
-                    <element name="dam_v001"
-                             type="hpcb:dam_v001_readerType"
+                    <element name="dam_pump"
+                             type="hpcb:dam_pump_readerType"
                              minOccurs="0"/>
         ...
                     <element name="wland_v002"

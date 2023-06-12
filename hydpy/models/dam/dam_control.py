@@ -37,6 +37,8 @@ class NmbLogEntries(parametertools.Parameter):
     loggedadjustedevaporation(nan)
     loggedrequiredremoterelease(nan)
     loggedallowedremoterelief(nan)
+    loggedouterwaterlevel(nan)
+    loggedremotewaterlevel(nan)
 
     To prevent losing information, updating parameter |NmbLogEntries| resets the shape
     of the relevant log sequences only when necessary:
@@ -91,7 +93,7 @@ class RemoteDischargeMinimum(parametertools.SeasonalParameter):
 
 
 class RemoteDischargeSafety(parametertools.SeasonalParameter):
-    """Safety factor for reducing the risk to release not enough water [m³/s]."""
+    """Safety factor for reducing the risk of insufficient water release [m³/s]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
@@ -146,7 +148,31 @@ class WaterLevelMinimumThreshold(parametertools.Parameter):
 class WaterLevelMinimumTolerance(parametertools.Parameter):
     """A tolerance value for the minimum operating water level [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+
+class WaterLevelMaximumThreshold(parametertools.Parameter):
+    """The water level not to be exceeded [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+
+
+class WaterLevelMaximumTolerance(parametertools.Parameter):
+    """A tolerance value for the water level maximum [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+
+class RemoteWaterLevelMaximumThreshold(parametertools.Parameter):
+    """The remote water level not to be exceeded [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+
+
+class RemoteWaterLevelMaximumTolerance(parametertools.Parameter):
+    """Tolerance value for the remote water level maximum [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
 
 class ThresholdEvaporation(parametertools.Parameter):
@@ -243,6 +269,22 @@ class WaterLevel2FloodDischarge(interptools.SeasonalInterpolator):
     YLABEL = "flood discharge [m³/s]"
 
 
+class WaterLevelDifference2MaxForcedDischarge(interptools.SeasonalInterpolator):
+    """Artificial neural network describing the relationship between the highest
+    possible forced discharge and the water level difference [-]."""
+
+    XLABEL = "water level difference [m]"
+    YLABEL = "max. forced discharge [m³/s]"
+
+
+class WaterLevelDifference2MaxFreeDischarge(interptools.SeasonalInterpolator):
+    """Artificial neural network describing the relationship between the highest
+    possible free discharge and the water level difference [-]."""
+
+    XLABEL = "water level difference [m]"
+    YLABEL = "max. free discharge [m³/s]"
+
+
 class AllowedWaterLevelDrop(parametertools.Parameter):
     """The highest allowed water level decrease [m/T]."""
 
@@ -282,12 +324,24 @@ class TargetRangeRelative(parametertools.Parameter):
 
 
 class VolumeTolerance(parametertools.Parameter):
-    """Smoothing parameter for volume related smoothing operations [Mio. m³]."""
+    """Smoothing parameter for volume-related smoothing operations [Mio. m³]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
 
 class DischargeTolerance(parametertools.Parameter):
-    """Smoothing parameter for discharge related smoothing operations [m³/s]."""
+    """Smoothing parameter for discharge-related smoothing operations [m³/s]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+
+class CrestLevel(parametertools.Parameter):
+    """The crest level of a weir [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+
+
+class CrestLevelTolerance(parametertools.Parameter):
+    """A tolerance value for the crest level of a weir [m]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)

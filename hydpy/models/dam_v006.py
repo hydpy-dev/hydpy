@@ -25,7 +25,7 @@ and other model objects.  Please see the documentation on the exchange model
 |exch_v001|, where we demonstrate how to represent a system of two lakes connected by
 a short ditch.
 
-Like all models of the HydPy-D family, |dam_v006| solves its underlying continuous
+Like all models of the HydPy-Dam family, |dam_v006| solves its underlying continuous
 ordinary differential equations with an error-adaptive numerical integration method.
 Hence, simulation speed, robustness, and accuracy depend on the configuration of the
 parameters of the model equations and the underlying solver.  We discuss these topics

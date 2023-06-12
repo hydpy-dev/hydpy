@@ -280,6 +280,40 @@ class Pic_TotalRemoteDischarge_V1(modeltools.Method):
         flu.totalremotedischarge = rec.q[0]
 
 
+class Pick_LoggedOuterWaterLevel_V1(modeltools.Method):
+    """Update the receiver sequence |LoggedOuterWaterLevel|.
+
+    Basic equation:
+      :math:`LoggedOuterWaterLevel = OWL`
+    """
+
+    REQUIREDSEQUENCES = (dam_receivers.OWL,)
+    RESULTSEQUENCES = (dam_logs.LoggedOuterWaterLevel,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        log = model.sequences.logs.fastaccess
+        rec = model.sequences.receivers.fastaccess
+        log.loggedouterwaterlevel[0] = rec.owl[0]
+
+
+class Pick_LoggedRemoteWaterLevel_V1(modeltools.Method):
+    """Update the receiver sequence |LoggedRemoteWaterLevel|.
+
+    Basic equation:
+      :math:`LoggedRemoteWaterLevel = RWL`
+    """
+
+    REQUIREDSEQUENCES = (dam_receivers.RWL,)
+    RESULTSEQUENCES = (dam_logs.LoggedRemoteWaterLevel,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        log = model.sequences.logs.fastaccess
+        rec = model.sequences.receivers.fastaccess
+        log.loggedremotewaterlevel[0] = rec.rwl[0]
+
+
 class Pic_LoggedRequiredRemoteRelease_V1(modeltools.Method):
     """Update the receiver sequence |LoggedRequiredRemoteRelease|.
 
@@ -450,9 +484,235 @@ class Calc_WaterLevel_V1(modeltools.Method):
         fac.waterlevel = con.watervolume2waterlevel.outputs[0]
 
 
+class Calc_OuterWaterLevel_V1(modeltools.Method):
+    """Get the water level directly below the dam of the last simulation step.
+
+    Basic equation:
+      :math:`OuterWaterLevel = LoggedOuterWaterLevel`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> logs.loggedouterwaterlevel = 2.0
+        >>> model.calc_outerwaterlevel_v1()
+        >>> factors.outerwaterlevel
+        outerwaterlevel(2.0)
+    """
+
+    REQUIREDSEQUENCES = (dam_logs.LoggedOuterWaterLevel,)
+    RESULTSEQUENCES = (dam_factors.OuterWaterLevel,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        fac = model.sequences.factors.fastaccess
+        log = model.sequences.logs.fastaccess
+        fac.outerwaterlevel = log.loggedouterwaterlevel[0]
+
+
+class Calc_RemoteWaterLevel_V1(modeltools.Method):
+    """Get the water level at a remote location of the last simulation step.
+
+    Basic equation:
+      :math:`RemoteWaterLevel = LoggedRemoteWaterLevel`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> logs.loggedremotewaterlevel = 2.0
+        >>> model.calc_remotewaterlevel_v1()
+        >>> factors.remotewaterlevel
+        remotewaterlevel(2.0)
+    """
+
+    REQUIREDSEQUENCES = (dam_logs.LoggedRemoteWaterLevel,)
+    RESULTSEQUENCES = (dam_factors.RemoteWaterLevel,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        fac = model.sequences.factors.fastaccess
+        log = model.sequences.logs.fastaccess
+        fac.remotewaterlevel = log.loggedremotewaterlevel[0]
+
+
+class Calc_WaterLevelDifference_V1(modeltools.Method):
+    """Calculate the difference between the inner and the outer water level.
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> factors.waterlevel = 5.0
+        >>> factors.outerwaterlevel = 3.0
+        >>> model.calc_waterleveldifference_v1()
+        >>> factors.waterleveldifference
+        waterleveldifference(2.0)
+    """
+
+    REQUIREDSEQUENCES = (
+        dam_factors.WaterLevel,
+        dam_factors.OuterWaterLevel,
+    )
+    RESULTSEQUENCES = (dam_factors.WaterLevelDifference,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        fac = model.sequences.factors.fastaccess
+        fac.waterleveldifference = fac.waterlevel - fac.outerwaterlevel
+
+
+class Calc_EffectiveWaterLevelDifference_V1(modeltools.Method):
+    r"""Calculate the "effective" difference between the inner and the outer water level
+    above a threshold level.
+
+    Basic equation:
+      .. math::
+        EffectiveWaterLevelDifference = h_1 - h_2
+        \\ \\
+        h_1 = f_{smooth \, max1}(WaterLevel, \, CrestLevelThreshold, \,
+        CrestLevelSmoothPar)
+        \\ \\
+        h_2 = f_{smooth \, max2}(OuterWaterLevel, \, CrestLevelThreshold, \,
+        CrestLevelSmoothPar)
+
+    Used auxiliary method:
+      |smooth_max1|
+
+    Examples:
+
+        We prepare a |UnitTest| object to illustrate how the effective water level
+        difference depends on the inner and the outer water level:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(model, model.calc_effectivewaterleveldifference_v1,
+        ...                 last_example=21,
+        ...                 parseqs=(factors.waterlevel,
+        ...                          factors.outerwaterlevel,
+        ...                          factors.effectivewaterleveldifference))
+        >>> test.nexts.waterlevel = numpy.linspace(3.15, 3.35, 21)
+        >>> test.nexts.outerwaterlevel = numpy.linspace(3.05, 3.25, 21)
+
+        When setting |CrestLevelTolerance| to zero, |EffectiveWaterLevelDifference| is
+        identical to the water level difference above the weir's crest:
+
+        >>> crestlevel(3.2)
+        >>> crestleveltolerance(0.0)
+        >>> derived.crestlevelsmoothpar.update()
+        >>> test()
+        | ex. | waterlevel | outerwaterlevel | effectivewaterleveldifference |
+        ----------------------------------------------------------------------
+        |   1 |       3.15 |            3.05 |                           0.0 |
+        |   2 |       3.16 |            3.06 |                           0.0 |
+        |   3 |       3.17 |            3.07 |                           0.0 |
+        |   4 |       3.18 |            3.08 |                           0.0 |
+        |   5 |       3.19 |            3.09 |                           0.0 |
+        |   6 |        3.2 |             3.1 |                           0.0 |
+        |   7 |       3.21 |            3.11 |                          0.01 |
+        |   8 |       3.22 |            3.12 |                          0.02 |
+        |   9 |       3.23 |            3.13 |                          0.03 |
+        |  10 |       3.24 |            3.14 |                          0.04 |
+        |  11 |       3.25 |            3.15 |                          0.05 |
+        |  12 |       3.26 |            3.16 |                          0.06 |
+        |  13 |       3.27 |            3.17 |                          0.07 |
+        |  14 |       3.28 |            3.18 |                          0.08 |
+        |  15 |       3.29 |            3.19 |                          0.09 |
+        |  16 |        3.3 |             3.2 |                           0.1 |
+        |  17 |       3.31 |            3.21 |                           0.1 |
+        |  18 |       3.32 |            3.22 |                           0.1 |
+        |  19 |       3.33 |            3.23 |                           0.1 |
+        |  20 |       3.34 |            3.24 |                           0.1 |
+        |  21 |       3.35 |            3.25 |                           0.1 |
+
+        For more natural transitions (and also for computational efficiency), it is
+        preferable to define a tolerance value larger than zero.  We set
+        |CrestLevelTolerance| to 10 mm:
+
+        >>> crestleveltolerance(0.01)
+        >>> derived.crestlevelsmoothpar.update()
+        >>> test()
+        | ex. | waterlevel | outerwaterlevel | effectivewaterleveldifference |
+        ----------------------------------------------------------------------
+        |   1 |       3.15 |            3.05 |                      0.001779 |
+        |   2 |       3.16 |            3.06 |                      0.002805 |
+        |   3 |       3.17 |            3.07 |                      0.004364 |
+        |   4 |       3.18 |            3.08 |                      0.006658 |
+        |   5 |       3.19 |            3.09 |                      0.009896 |
+        |   6 |        3.2 |             3.1 |                      0.014236 |
+        |   7 |       3.21 |            3.11 |                      0.019728 |
+        |   8 |       3.22 |            3.12 |                      0.026285 |
+        |   9 |       3.23 |            3.13 |                      0.033701 |
+        |  10 |       3.24 |            3.14 |                      0.041703 |
+        |  11 |       3.25 |            3.15 |                          0.05 |
+        |  12 |       3.26 |            3.16 |                      0.058297 |
+        |  13 |       3.27 |            3.17 |                      0.066299 |
+        |  14 |       3.28 |            3.18 |                      0.073715 |
+        |  15 |       3.29 |            3.19 |                      0.080272 |
+        |  16 |        3.3 |             3.2 |                      0.085764 |
+        |  17 |       3.31 |            3.21 |                      0.090104 |
+        |  18 |       3.32 |            3.22 |                      0.093342 |
+        |  19 |       3.33 |            3.23 |                      0.095636 |
+        |  20 |       3.34 |            3.24 |                      0.097195 |
+        |  21 |       3.35 |            3.25 |                      0.098221 |
+
+        Swapping the inner and outer water levels changes only the calculated
+        difference's signs:
+
+        >>> test.nexts.waterlevel, test.nexts.outerwaterlevel = (
+        ...     test.nexts.outerwaterlevel, test.nexts.waterlevel)
+        >>> test()
+        | ex. | waterlevel | outerwaterlevel | effectivewaterleveldifference |
+        ----------------------------------------------------------------------
+        |   1 |       3.05 |            3.15 |                     -0.001779 |
+        |   2 |       3.06 |            3.16 |                     -0.002805 |
+        |   3 |       3.07 |            3.17 |                     -0.004364 |
+        |   4 |       3.08 |            3.18 |                     -0.006658 |
+        |   5 |       3.09 |            3.19 |                     -0.009896 |
+        |   6 |        3.1 |             3.2 |                     -0.014236 |
+        |   7 |       3.11 |            3.21 |                     -0.019728 |
+        |   8 |       3.12 |            3.22 |                     -0.026285 |
+        |   9 |       3.13 |            3.23 |                     -0.033701 |
+        |  10 |       3.14 |            3.24 |                     -0.041703 |
+        |  11 |       3.15 |            3.25 |                         -0.05 |
+        |  12 |       3.16 |            3.26 |                     -0.058297 |
+        |  13 |       3.17 |            3.27 |                     -0.066299 |
+        |  14 |       3.18 |            3.28 |                     -0.073715 |
+        |  15 |       3.19 |            3.29 |                     -0.080272 |
+        |  16 |        3.2 |             3.3 |                     -0.085764 |
+        |  17 |       3.21 |            3.31 |                     -0.090104 |
+        |  18 |       3.22 |            3.32 |                     -0.093342 |
+        |  19 |       3.23 |            3.33 |                     -0.095636 |
+        |  20 |       3.24 |            3.34 |                     -0.097195 |
+        |  21 |       3.25 |            3.35 |                     -0.098221 |
+    """
+
+    CONTROLPARAMETERS = (dam_control.CrestLevel,)
+    DERIVEDPARAMETERS = (dam_derived.CrestLevelSmoothPar,)
+    REQUIREDSEQUENCES = (
+        dam_factors.WaterLevel,
+        dam_factors.OuterWaterLevel,
+    )
+    RESULTSEQUENCES = (dam_factors.EffectiveWaterLevelDifference,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        hi: float = smoothutils.smooth_max1(
+            fac.waterlevel, con.crestlevel, der.crestlevelsmoothpar
+        )
+        ho: float = smoothutils.smooth_max1(
+            fac.outerwaterlevel, con.crestlevel, der.crestlevelsmoothpar
+        )
+        fac.effectivewaterleveldifference = hi - ho
+
+
 class Calc_SurfaceArea_V1(modeltools.Method):
     r"""Determine the surface area based on an interpolation approach approximating the
-    relationship between water level and the surface area.
+    relationship between the water level and the surface area.
 
     Basic equation:
       :math:`SurfaceArea = \frac{dWaterVolume}{WaterLevel}`
@@ -741,7 +1001,7 @@ class Calc_NaturalRemoteDischarge_V1(modeltools.Method):
 
         Usually, the mean total remote flow should be larger than the mean
         dam outflow.  Then, the estimated natural remote discharge is simply
-        the difference of both averages:
+        the difference between both averages:
 
         >>> from hydpy.models.dam import *
         >>> parameterstep()
@@ -2957,7 +3217,7 @@ class Calc_ActualRemoteRelease_V1(modeltools.Method):
     Examples:
 
         Note that method |Calc_ActualRemoteRelease_V1| is functionally
-        identical with method |Calc_ActualRelease_V1|.  This is why we
+        identical to method |Calc_ActualRelease_V1|.  This is why we
         omit to explain the following examples, as they are just repetitions
         of the ones of method |Calc_ActualRemoteRelease_V1| with partly
         different variable names.  Please follow the links to read the
@@ -3331,6 +3591,488 @@ class Calc_FloodDischarge_V1(modeltools.Method):
         flu.flooddischarge = con.waterlevel2flooddischarge.outputs[0]
 
 
+class Calc_MaxForcedDischarge_V1(modeltools.Method):
+    """Approximate the currently highest possible forced water release through
+    structures as pumps based on seasonally varying interpolation approaches that take
+    the water level difference as input.
+
+    Examples:
+
+        We consider a simulation period of five days:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2001-01-01", "2001-01-06", "1d"
+
+        For the second day, the maximum possible discharge of 2 m³/s does not depend on
+        the water level difference.  For the fourth day, it is -4 m³/s for negative and
+        4 m³/s for positive water level differences:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> waterleveldifference2maxforceddischarge(
+        ...     _01_02_12 = PPoly(Poly(x0=0.0, cs=[2.0])),
+        ...     _01_04_12 = PPoly(Poly(x0=-2.0, cs=[-4.0]), Poly(x0=0.0, cs=[4.0]))
+        ... )
+        >>> derived.toy.update()
+
+        All results are as expected:
+
+        >>> model.idx_sim = pub.timegrids.sim["2001-01-02"]
+        >>> factors.waterleveldifference = -1.0
+        >>> model.calc_maxforceddischarge_v1()
+        >>> fluxes.maxforceddischarge
+        maxforceddischarge(2.0)
+
+        >>> model.idx_sim = pub.timegrids.sim["2001-01-03"]
+        >>> model.calc_maxforceddischarge_v1()
+        >>> fluxes.maxforceddischarge
+        maxforceddischarge(-1.0)
+
+        >>> model.idx_sim = pub.timegrids.sim["2001-01-04"]
+        >>> factors.waterleveldifference = 1.0
+        >>> model.calc_maxforceddischarge_v1()
+        >>> fluxes.maxforceddischarge
+        maxforceddischarge(4.0)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+    """
+
+    CONTROLPARAMETERS = (dam_control.WaterLevelDifference2MaxForcedDischarge,)
+    DERIVEDPARAMETERS = (dam_derived.TOY,)
+    REQUIREDSEQUENCES = (dam_factors.WaterLevelDifference,)
+    RESULTSEQUENCES = (dam_fluxes.MaxForcedDischarge,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        con.waterleveldifference2maxforceddischarge.inputs[0] = fac.waterleveldifference
+        toy: int = der.toy[model.idx_sim]
+        con.waterleveldifference2maxforceddischarge.calculate_values(toy)
+        flu.maxforceddischarge = con.waterleveldifference2maxforceddischarge.outputs[0]
+
+
+class Calc_MaxFreeDischarge_V1(modeltools.Method):
+    """Approximate the currently highest possible free water release through structures
+    as sluices based on seasonally varying interpolation approaches that take the water
+    level difference as input.
+
+    Examples:
+
+        We consider a simulation period of five days:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2001-01-01", "2001-01-06", "1d"
+
+        For the second day, the maximum possible discharge is 2 m³/s does not depend on
+        the water level difference.  For the fourth day, it is -4 m³/s for negative and
+        4 m³/s for positive water level differences:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> waterleveldifference2maxfreedischarge(
+        ...     _01_02_12 = PPoly(Poly(x0=0.0, cs=[2.0])),
+        ...     _01_04_12 = PPoly(Poly(x0=-2.0, cs=[-4.0]), Poly(x0=0.0, cs=[4.0]))
+        ... )
+        >>> derived.toy.update()
+
+        All results are as expected:
+
+        >>> model.idx_sim = pub.timegrids.sim["2001-01-02"]
+        >>> factors.effectivewaterleveldifference = -1.0
+        >>> model.calc_maxfreedischarge_v1()
+        >>> fluxes.maxfreedischarge
+        maxfreedischarge(2.0)
+
+        >>> model.idx_sim = pub.timegrids.sim["2001-01-03"]
+        >>> model.calc_maxfreedischarge_v1()
+        >>> fluxes.maxfreedischarge
+        maxfreedischarge(-1.0)
+
+        >>> model.idx_sim = pub.timegrids.sim["2001-01-04"]
+        >>> factors.effectivewaterleveldifference = 1.0
+        >>> model.calc_maxfreedischarge_v1()
+        >>> fluxes.maxfreedischarge
+        maxfreedischarge(4.0)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+    """
+
+    CONTROLPARAMETERS = (dam_control.WaterLevelDifference2MaxFreeDischarge,)
+    DERIVEDPARAMETERS = (dam_derived.TOY,)
+    REQUIREDSEQUENCES = (dam_factors.EffectiveWaterLevelDifference,)
+    RESULTSEQUENCES = (dam_fluxes.MaxFreeDischarge,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        con.waterleveldifference2maxfreedischarge.inputs[
+            0
+        ] = fac.effectivewaterleveldifference
+        toy: int = der.toy[model.idx_sim]
+        con.waterleveldifference2maxfreedischarge.calculate_values(toy)
+        flu.maxfreedischarge = con.waterleveldifference2maxfreedischarge.outputs[0]
+
+
+class Calc_ForcedDischarge_V1(modeltools.Method):
+    r"""Calculate the actual forced water release through structures as pumps to
+    prevent a too-high inner water level if a maximum water level at a remote location
+    is not violated.
+
+    Basic equation:
+      .. math::
+        ForcedDischarge = MaxForcedDischarge \cdot r_1 \cdot (1 - r_2)
+        \\ \\
+        r_1 = f_{smooth \, logistic1}(WaterLevelMaximumThreshold -
+        WaterLevel, \, WaterLevelMaximumSmoothPar) \\
+        r_2 = f_{smooth \, logistic1}(RemoteWaterLevelMaximumThreshold -
+        RemoteWaterLevel, \, RemoteWaterLevelMaximumSmoothPar)
+
+    Used auxiliary method:
+      |smooth_logistic1|
+
+    Examples:
+
+        First, we prepare a |UnitTest| object to illustrate how the actual forced
+        discharge depends on the inner and the remote water level:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> fluxes.maxforceddischarge = 2.0
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(model, model.calc_forceddischarge_v1,
+        ...                 last_example=21,
+        ...                 parseqs=(factors.waterlevel,
+        ...                          factors.remotewaterlevel,
+        ...                          fluxes.forceddischarge))
+        >>> test.nexts.waterlevel = numpy.linspace(2.95, 3.15, 21)
+        >>> test.nexts.remotewaterlevel = numpy.linspace(4.85, 5.05, 21)
+
+        When setting |WaterLevelMaximumTolerance| and
+        |RemoteWaterLevelMaximumTolerance| to zero, there is a discontinuous increase
+        from zero to |MaxForcedDischarge| around  |WaterLevelMaximumThreshold| and a
+        discontinuous decrease back to zero around |RemoteWaterLevelMaximumThreshold|:
+
+        >>> waterlevelmaximumthreshold(3.0)
+        >>> waterlevelmaximumtolerance(0.0)
+        >>> derived.waterlevelmaximumsmoothpar.update()
+        >>> remotewaterlevelmaximumthreshold(5.0)
+        >>> remotewaterlevelmaximumtolerance(0.0)
+        >>> derived.remotewaterlevelmaximumsmoothpar.update()
+        >>> test()
+        | ex. | waterlevel | remotewaterlevel | forceddischarge |
+        ---------------------------------------------------------
+        |   1 |       2.95 |             4.85 |             0.0 |
+        |   2 |       2.96 |             4.86 |             0.0 |
+        |   3 |       2.97 |             4.87 |             0.0 |
+        |   4 |       2.98 |             4.88 |             0.0 |
+        |   5 |       2.99 |             4.89 |             0.0 |
+        |   6 |        3.0 |              4.9 |             1.0 |
+        |   7 |       3.01 |             4.91 |             2.0 |
+        |   8 |       3.02 |             4.92 |             2.0 |
+        |   9 |       3.03 |             4.93 |             2.0 |
+        |  10 |       3.04 |             4.94 |             2.0 |
+        |  11 |       3.05 |             4.95 |             2.0 |
+        |  12 |       3.06 |             4.96 |             2.0 |
+        |  13 |       3.07 |             4.97 |             2.0 |
+        |  14 |       3.08 |             4.98 |             2.0 |
+        |  15 |       3.09 |             4.99 |             2.0 |
+        |  16 |        3.1 |              5.0 |             1.0 |
+        |  17 |       3.11 |             5.01 |             0.0 |
+        |  18 |       3.12 |             5.02 |             0.0 |
+        |  19 |       3.13 |             5.03 |             0.0 |
+        |  20 |       3.14 |             5.04 |             0.0 |
+        |  21 |       3.15 |             5.05 |             0.0 |
+
+        For more natural transitions (and in the case of |WaterLevelMaximumTolerance|,
+        also for computational efficiency), it is preferable to define tolerance values
+        larger than zero.  We set |WaterLevelMaximumTolerance| to 15 mm and
+        |RemoteWaterLevelMaximumTolerance| to 10 mm:
+
+        >>> waterlevelmaximumtolerance(0.015)
+        >>> derived.waterlevelmaximumsmoothpar.update()
+        >>> remotewaterlevelmaximumtolerance(0.01)
+        >>> derived.remotewaterlevelmaximumsmoothpar.update()
+        >>> test()
+        | ex. | waterlevel | remotewaterlevel | forceddischarge |
+        ---------------------------------------------------------
+        |   1 |       2.95 |             4.85 |             0.0 |
+        |   2 |       2.96 |             4.86 |         0.00001 |
+        |   3 |       2.97 |             4.87 |        0.000204 |
+        |   4 |       2.98 |             4.88 |        0.004357 |
+        |   5 |       2.99 |             4.89 |        0.089284 |
+        |   6 |        3.0 |              4.9 |             1.0 |
+        |   7 |       3.01 |             4.91 |        1.910716 |
+        |   8 |       3.02 |             4.92 |        1.995643 |
+        |   9 |       3.03 |             4.93 |        1.999796 |
+        |  10 |       3.04 |             4.94 |         1.99999 |
+        |  11 |       3.05 |             4.95 |             2.0 |
+        |  12 |       3.06 |             4.96 |             2.0 |
+        |  13 |       3.07 |             4.97 |        1.999998 |
+        |  14 |       3.08 |             4.98 |        1.999796 |
+        |  15 |       3.09 |             4.99 |            1.98 |
+        |  16 |        3.1 |              5.0 |             1.0 |
+        |  17 |       3.11 |             5.01 |            0.02 |
+        |  18 |       3.12 |             5.02 |        0.000204 |
+        |  19 |       3.13 |             5.03 |        0.000002 |
+        |  20 |       3.14 |             5.04 |             0.0 |
+        |  21 |       3.15 |             5.05 |             0.0 |
+    """
+
+    CONTROLPARAMETERS = (
+        dam_control.WaterLevelMaximumThreshold,
+        dam_control.RemoteWaterLevelMaximumThreshold,
+    )
+    DERIVEDPARAMETERS = (
+        dam_derived.WaterLevelMaximumSmoothPar,
+        dam_derived.RemoteWaterLevelMaximumSmoothPar,
+    )
+    REQUIREDSEQUENCES = (
+        dam_factors.WaterLevel,
+        dam_factors.RemoteWaterLevel,
+        dam_fluxes.MaxForcedDischarge,
+    )
+    RESULTSEQUENCES = (dam_fluxes.ForcedDischarge,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        r1: float = smoothutils.smooth_logistic1(
+            fac.waterlevel - con.waterlevelmaximumthreshold,
+            der.waterlevelmaximumsmoothpar,
+        )
+        r2: float = smoothutils.smooth_logistic1(
+            fac.remotewaterlevel - con.remotewaterlevelmaximumthreshold,
+            der.remotewaterlevelmaximumsmoothpar,
+        )
+        flu.forceddischarge = flu.maxforceddischarge * r1 * (1.0 - r2)
+
+
+class Calc_FreeDischarge_V1(modeltools.Method):
+    r"""Calculate the actual water flow through a hydraulic structure like a (flap)
+    sluice that generally depends on the water level gradient but can be suppressed to
+    stop releasing water if a maximum water level at a remote location is violated.
+
+    Basic equation:
+      .. math::
+        FreeDischarge = \omega \cdot q_{trimmed} + (1 - \omega) \cdot MaxFreeDischarge
+        \\ \\
+        \omega = f_{smooth \, logistic1}(RemoteWaterLevelMaximumThreshold -
+        RemoteWaterLevel, \, RemoteWaterLevelMaximumSmoothPar)
+        \\ \\
+        q_{trimmed} = -f_{smooth \, logistic2}(MaxFreeDischarge, \, DischargeSmoothPar)
+
+
+    Used auxiliary methods:
+      |smooth_logistic1| |smooth_logistic2|
+
+    Examples:
+
+        First, we prepare a |UnitTest| object to illustrate how the actual free
+        discharge depends on the possible free discharge and the remote water level:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> fluxes.maxfreedischarge = 2.0
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(model, model.calc_freedischarge_v1,
+        ...                 last_example=21,
+        ...                 parseqs=(factors.remotewaterlevel,
+        ...                          fluxes.maxfreedischarge,
+        ...                          fluxes.freedischarge))
+
+        We constantly decrease |MaxFreeDischarge| and increase |RemoteWaterLevel|
+        between successive examples:
+
+        >>> test.nexts.maxfreedischarge = numpy.linspace(0.15, -0.05, 21)
+        >>> test.nexts.remotewaterlevel = numpy.linspace(4.95, 5.15, 21)
+
+        In the first two experiments, the remote water level overshoots its threshold
+        while the possible discharge is still positive:
+
+        >>> remotewaterlevelmaximumthreshold(5.0)
+
+        When setting |RemoteWaterLevelMaximumTolerance| and |DischargeTolerance| to
+        zero, the actual discharge drops suddenly to zero when the remote water level
+        reaches |RemoteWaterLevelMaximumThreshold| and stays there until the possible
+        discharge becomes negative:
+
+        >>> remotewaterlevelmaximumtolerance(0.0)
+        >>> derived.remotewaterlevelmaximumsmoothpar.update()
+        >>> dischargetolerance(0.0)
+        >>> derived.dischargesmoothpar.update()
+        >>> test()
+        | ex. | remotewaterlevel | maxfreedischarge | freedischarge |
+        -------------------------------------------------------------
+        |   1 |             4.95 |             0.15 |          0.15 |
+        |   2 |             4.96 |             0.14 |          0.14 |
+        |   3 |             4.97 |             0.13 |          0.13 |
+        |   4 |             4.98 |             0.12 |          0.12 |
+        |   5 |             4.99 |             0.11 |          0.11 |
+        |   6 |              5.0 |              0.1 |          0.05 |
+        |   7 |             5.01 |             0.09 |           0.0 |
+        |   8 |             5.02 |             0.08 |           0.0 |
+        |   9 |             5.03 |             0.07 |           0.0 |
+        |  10 |             5.04 |             0.06 |           0.0 |
+        |  11 |             5.05 |             0.05 |           0.0 |
+        |  12 |             5.06 |             0.04 |           0.0 |
+        |  13 |             5.07 |             0.03 |           0.0 |
+        |  14 |             5.08 |             0.02 |           0.0 |
+        |  15 |             5.09 |             0.01 |           0.0 |
+        |  16 |              5.1 |              0.0 |           0.0 |
+        |  17 |             5.11 |            -0.01 |         -0.01 |
+        |  18 |             5.12 |            -0.02 |         -0.02 |
+        |  19 |             5.13 |            -0.03 |         -0.03 |
+        |  20 |             5.14 |            -0.04 |         -0.04 |
+        |  21 |             5.15 |            -0.05 |         -0.05 |
+
+        For more natural transitions (and in the case of |DischargeTolerance|, also for
+        computational efficiency), defining tolerance values larger than zero is
+        preferable.  We set |RemoteWaterLevelMaximumTolerance| to 10 mm and
+        |DischargeTolerance| to 0.01 m³/s:
+
+        >>> remotewaterlevelmaximumtolerance(0.01)
+        >>> derived.remotewaterlevelmaximumsmoothpar.update()
+        >>> dischargetolerance(0.01)
+        >>> derived.dischargesmoothpar.update()
+        >>> test()
+        | ex. | remotewaterlevel | maxfreedischarge | freedischarge |
+        -------------------------------------------------------------
+        |   1 |             4.95 |             0.15 |          0.15 |
+        |   2 |             4.96 |             0.14 |          0.14 |
+        |   3 |             4.97 |             0.13 |          0.13 |
+        |   4 |             4.98 |             0.12 |      0.119988 |
+        |   5 |             4.99 |             0.11 |      0.108899 |
+        |   6 |              5.0 |              0.1 |      0.049916 |
+        |   7 |             5.01 |             0.09 |      0.000631 |
+        |   8 |             5.02 |             0.08 |     -0.000429 |
+        |   9 |             5.03 |             0.07 |     -0.000704 |
+        |  10 |             5.04 |             0.06 |     -0.001127 |
+        |  11 |             5.05 |             0.05 |     -0.001794 |
+        |  12 |             5.06 |             0.04 |      -0.00283 |
+        |  13 |             5.07 |             0.03 |     -0.004404 |
+        |  14 |             5.08 |             0.02 |     -0.006723 |
+        |  15 |             5.09 |             0.01 |         -0.01 |
+        |  16 |              5.1 |              0.0 |     -0.014404 |
+        |  17 |             5.11 |            -0.01 |         -0.02 |
+        |  18 |             5.12 |            -0.02 |     -0.026723 |
+        |  19 |             5.13 |            -0.03 |     -0.034404 |
+        |  20 |             5.14 |            -0.04 |      -0.04283 |
+        |  21 |             5.15 |            -0.05 |     -0.051794 |
+
+        In the following two experiments, we let |MaxFreeDischarge| reach 0 m³/s
+        earlier and increase |RemoteWaterLevelMaximumThreshold| so that its violation
+        occurs later:
+
+        >>> test.nexts.maxfreedischarge = numpy.linspace(0.05, -0.15, 21)
+        >>> remotewaterlevelmaximumthreshold(5.1)
+
+        Without smoothing, free discharge now strictly follows potential discharge:
+
+        >>> remotewaterlevelmaximumtolerance(0.0)
+        >>> derived.remotewaterlevelmaximumsmoothpar.update()
+        >>> dischargetolerance(0.0)
+        >>> derived.dischargesmoothpar.update()
+        >>> test()
+        | ex. | remotewaterlevel | maxfreedischarge | freedischarge |
+        -------------------------------------------------------------
+        |   1 |             4.95 |             0.05 |          0.05 |
+        |   2 |             4.96 |             0.04 |          0.04 |
+        |   3 |             4.97 |             0.03 |          0.03 |
+        |   4 |             4.98 |             0.02 |          0.02 |
+        |   5 |             4.99 |             0.01 |          0.01 |
+        |   6 |              5.0 |              0.0 |           0.0 |
+        |   7 |             5.01 |            -0.01 |         -0.01 |
+        |   8 |             5.02 |            -0.02 |         -0.02 |
+        |   9 |             5.03 |            -0.03 |         -0.03 |
+        |  10 |             5.04 |            -0.04 |         -0.04 |
+        |  11 |             5.05 |            -0.05 |         -0.05 |
+        |  12 |             5.06 |            -0.06 |         -0.06 |
+        |  13 |             5.07 |            -0.07 |         -0.07 |
+        |  14 |             5.08 |            -0.08 |         -0.08 |
+        |  15 |             5.09 |            -0.09 |         -0.09 |
+        |  16 |              5.1 |             -0.1 |          -0.1 |
+        |  17 |             5.11 |            -0.11 |         -0.11 |
+        |  18 |             5.12 |            -0.12 |         -0.12 |
+        |  19 |             5.13 |            -0.13 |         -0.13 |
+        |  20 |             5.14 |            -0.14 |         -0.14 |
+        |  21 |             5.15 |            -0.15 |         -0.15 |
+
+        With smoothing, there is a slight deviation between potential and actual
+        discharge:
+
+        ToDo: Is there a smoothing alternative that circumvents this deviation without
+              complicating the calculation too much?  (low priority).
+
+        >>> remotewaterlevelmaximumtolerance(0.01)
+        >>> derived.remotewaterlevelmaximumsmoothpar.update()
+        >>> dischargetolerance(0.01)
+        >>> derived.dischargesmoothpar.update()
+        >>> test()
+        | ex. | remotewaterlevel | maxfreedischarge | freedischarge |
+        -------------------------------------------------------------
+        |   1 |             4.95 |             0.05 |          0.05 |
+        |   2 |             4.96 |             0.04 |          0.04 |
+        |   3 |             4.97 |             0.03 |          0.03 |
+        |   4 |             4.98 |             0.02 |          0.02 |
+        |   5 |             4.99 |             0.01 |          0.01 |
+        |   6 |              5.0 |              0.0 |           0.0 |
+        |   7 |             5.01 |            -0.01 |         -0.01 |
+        |   8 |             5.02 |            -0.02 |         -0.02 |
+        |   9 |             5.03 |            -0.03 |         -0.03 |
+        |  10 |             5.04 |            -0.04 |         -0.04 |
+        |  11 |             5.05 |            -0.05 |         -0.05 |
+        |  12 |             5.06 |            -0.06 |         -0.06 |
+        |  13 |             5.07 |            -0.07 |         -0.07 |
+        |  14 |             5.08 |            -0.08 |         -0.08 |
+        |  15 |             5.09 |            -0.09 |     -0.090003 |
+        |  16 |              5.1 |             -0.1 |     -0.100084 |
+        |  17 |             5.11 |            -0.11 |     -0.110103 |
+        |  18 |             5.12 |            -0.12 |     -0.120064 |
+        |  19 |             5.13 |            -0.13 |      -0.13004 |
+        |  20 |             5.14 |            -0.14 |     -0.140025 |
+        |  21 |             5.15 |            -0.15 |     -0.150015 |
+    """
+
+    CONTROLPARAMETERS = (dam_control.RemoteWaterLevelMaximumThreshold,)
+    DERIVEDPARAMETERS = (
+        dam_derived.RemoteWaterLevelMaximumSmoothPar,
+        dam_derived.DischargeSmoothPar,
+    )
+    REQUIREDSEQUENCES = (
+        dam_factors.RemoteWaterLevel,
+        dam_fluxes.MaxFreeDischarge,
+    )
+    RESULTSEQUENCES = (dam_fluxes.FreeDischarge,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        w: float = smoothutils.smooth_logistic1(
+            fac.remotewaterlevel - con.remotewaterlevelmaximumthreshold,
+            der.remotewaterlevelmaximumsmoothpar,
+        )
+        q_trimmed: float = -smoothutils.smooth_logistic2(
+            -flu.maxfreedischarge, der.dischargesmoothpar
+        )
+        flu.freedischarge = w * q_trimmed + (1.0 - w) * flu.maxfreedischarge
+
+
 class Calc_Outflow_V1(modeltools.Method):
     """Calculate the total outflow of the dam.
 
@@ -3600,6 +4342,85 @@ class Calc_Outflow_V2(modeltools.Method):
         flu.outflow = model.fix_min1_v1(
             flu.flooddischarge, aid.alloweddischarge, der.dischargesmoothpar, False
         )
+
+
+class Calc_Outflow_V3(modeltools.Method):
+    """Take the forced discharge as the only outflow.
+
+    Basic equation:
+      :math:`Outflow = ForcedDischaerge`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> fluxes.forceddischarge = 2.0
+        >>> model.calc_outflow_v3()
+        >>> fluxes.outflow
+        outflow(2.0)
+    """
+
+    REQUIREDSEQUENCES = (dam_fluxes.ForcedDischarge,)
+    RESULTSEQUENCES = (dam_fluxes.Outflow,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        flu.outflow = flu.forceddischarge
+
+
+class Calc_Outflow_V4(modeltools.Method):
+    """Take the free discharge as the only outflow.
+
+    Basic equation:
+      :math:`Outflow = FreeDischaerge`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> fluxes.freedischarge = 2.0
+        >>> model.calc_outflow_v4()
+        >>> fluxes.outflow
+        outflow(2.0)
+    """
+
+    REQUIREDSEQUENCES = (dam_fluxes.FreeDischarge,)
+    RESULTSEQUENCES = (dam_fluxes.Outflow,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        flu.outflow = flu.freedischarge
+
+
+class Calc_Outflow_V5(modeltools.Method):
+    """Calculate the total outflow as the sum of free and forced discharge.
+
+    Basic equation:
+      :math:`Outflow = FreeDischarge + ForcedDischarge`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> fluxes.freedischarge = 2.0
+        >>> fluxes.forceddischarge = 3.0
+        >>> model.calc_outflow_v5()
+        >>> fluxes.outflow
+        outflow(5.0)
+    """
+
+    REQUIREDSEQUENCES = (
+        dam_fluxes.FreeDischarge,
+        dam_fluxes.ForcedDischarge,
+    )
+    RESULTSEQUENCES = (dam_fluxes.Outflow,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        flu.outflow = flu.freedischarge + flu.forceddischarge
 
 
 class Update_WaterVolume_V1(modeltools.Method):
@@ -3965,6 +4786,8 @@ class Model(modeltools.ELSModel):
     RECEIVER_METHODS = (
         Pic_TotalRemoteDischarge_V1,
         Update_LoggedTotalRemoteDischarge_V1,
+        Pick_LoggedOuterWaterLevel_V1,
+        Pick_LoggedRemoteWaterLevel_V1,
         Pic_LoggedRequiredRemoteRelease_V1,
         Pic_LoggedRequiredRemoteRelease_V2,
         Calc_RequiredRemoteRelease_V2,
@@ -3976,6 +4799,10 @@ class Model(modeltools.ELSModel):
         Pic_Inflow_V1,
         Pic_Inflow_V2,
         Calc_WaterLevel_V1,
+        Calc_OuterWaterLevel_V1,
+        Calc_RemoteWaterLevel_V1,
+        Calc_WaterLevelDifference_V1,
+        Calc_EffectiveWaterLevelDifference_V1,
         Calc_SurfaceArea_V1,
         Calc_AllowedDischarge_V1,
         Calc_AllowedDischarge_V2,
@@ -3988,8 +4815,15 @@ class Model(modeltools.ELSModel):
         Update_ActualRemoteRelief_V1,
         Update_ActualRemoteRelease_V1,
         Calc_FloodDischarge_V1,
+        Calc_MaxForcedDischarge_V1,
+        Calc_MaxFreeDischarge_V1,
+        Calc_ForcedDischarge_V1,
+        Calc_FreeDischarge_V1,
         Calc_Outflow_V1,
         Calc_Outflow_V2,
+        Calc_Outflow_V3,
+        Calc_Outflow_V4,
+        Calc_Outflow_V5,
     )
     FULL_ODE_METHODS = (
         Update_WaterVolume_V1,

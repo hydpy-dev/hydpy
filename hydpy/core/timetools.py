@@ -537,7 +537,7 @@ decimal fraction of a second than "0" allowed.
                     else:
                         jdx += 1
                 string = f"{string[:idx]}{string[idx+jdx+1:]}"
-            substring, offset = cls._extract_offset(string)
+            offset = cls._extract_offset(string)[1]
             if offset is None:
                 string = f"{string} +00:00"
             return cls.from_string(string)

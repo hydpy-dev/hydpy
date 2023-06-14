@@ -1877,6 +1877,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
                 str,
                 Type[sequencetools.InputSequence],
                 Type[sequencetools.OutputSequence],
+                Type[sequencetools.ReceiverSequence],
                 devicetools.FusedVariable,
             ],
             int,

@@ -1335,16 +1335,18 @@ following error occurred: 'in <string>' requires string as left operand, not lis
         variable `Q`:
 
         >>> from hydpy import FusedVariable, Node
-        >>> from hydpy.inputs import hland_P, hland_T, lland_Nied
-        >>> from hydpy.outputs import hland_Perc, hland_Q0, hland_Q1
+        >>> from hydpy.inputs import hland_P, hland_T, lland_Nied, dam_OWL
+        >>> from hydpy.outputs import hland_Perc, hland_Q0, hland_Q1, dam_WaterLevel
         >>> Precip = FusedVariable("Precip", hland_P, lland_Nied)
         >>> Runoff = FusedVariable("Runoff", hland_Q0, hland_Q1)
+        >>> Level = FusedVariable("Level", dam_OWL, dam_WaterLevel)
         >>> nodes = pub.selections.headwaters.nodes
         >>> nodes.add_device(Node("test1", variable="X"))
         >>> nodes.add_device(Node("test2", variable=hland_T))
         >>> nodes.add_device(Node("test3", variable=Precip))
         >>> nodes.add_device(Node("test4", variable=hland_Perc))
         >>> nodes.add_device(Node("test5", variable=Runoff))
+        >>> nodes.add_device(Node("test6", variable=Level))
         >>> with TestIO():
         ...     pub.selections.headwaters.save_networkfile(
         ...         "test.py", write_defaultnodes=False)
@@ -1353,9 +1355,10 @@ following error occurred: 'in <string>' requires string as left operand, not lis
         # -*- coding: utf-8 -*-
         <BLANKLINE>
         from hydpy import Element, FusedVariable, Node
-        from hydpy.inputs import hland_P, hland_T, lland_Nied
-        from hydpy.outputs import hland_Perc, hland_Q0, hland_Q1
+        from hydpy.inputs import dam_OWL, hland_P, hland_T, lland_Nied
+        from hydpy.outputs import dam_WaterLevel, hland_Perc, hland_Q0, hland_Q1
         <BLANKLINE>
+        Level = FusedVariable("Level", dam_OWL, dam_WaterLevel)
         Precip = FusedVariable("Precip", hland_P, lland_Nied)
         Runoff = FusedVariable("Runoff", hland_Q0, hland_Q1)
         <BLANKLINE>
@@ -1369,6 +1372,8 @@ following error occurred: 'in <string>' requires string as left operand, not lis
         Node("test4", variable=hland_Perc)
         <BLANKLINE>
         Node("test5", variable=Runoff)
+        <BLANKLINE>
+        Node("test6", variable=Level)
         <BLANKLINE>
         <BLANKLINE>
         Element("land_dill",
@@ -1388,16 +1393,16 @@ following error occurred: 'in <string>' requires string as left operand, not lis
                 continue
             if isinstance(variable, devicetools.FusedVariable):
                 fusedvariables.add(variable)
-            elif issubclass(variable, sequencetools.InputSequence):
-                inputaliases.add(hydpy.sequence2alias[variable])
-            else:
+            elif issubclass(variable, sequencetools.OutputSequence):
                 outputaliases.add(hydpy.sequence2alias[variable])
+            else:
+                inputaliases.add(hydpy.sequence2alias[variable])
         for fusedvariable in fusedvariables:
             for sequence in fusedvariable:
-                if issubclass(sequence, sequencetools.InputSequence):
-                    inputaliases.add(hydpy.sequence2alias[sequence])
-                else:
+                if issubclass(sequence, sequencetools.OutputSequence):
                     outputaliases.add(hydpy.sequence2alias[sequence])
+                else:
+                    inputaliases.add(hydpy.sequence2alias[sequence])
         if filepath is None:
             filepath = self.name + ".py"
         with open(filepath, "w", encoding="utf-8") as file_:

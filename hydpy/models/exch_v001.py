@@ -49,13 +49,13 @@ inlet sequence of |dam_v006| (|dam_inlets.E|) and the only outlet sequence of
 
 >>> overflow1, overflow2 = Nodes("overflow1", "overflow2", defaultvariable="E")
 
-The water level nodes require a little more effort in first defining a |FusedVariable|.
-This fused variable combines the string literal "L" (telling |exch_v001| to connect
-both nodes to the receiver sequence |exch_receivers.L|) and the alias of output
-sequence |dam_factors.WaterLevel| of |dam_v006|:
+The water level nodes require a little more effort.  We must define a |FusedVariable|
+that combines the aliases of the receiver sequence |exch_receivers.L| of |exch_v001|
+and the output sequence |dam_factors.WaterLevel| of |dam_v006|:
 
+>>> from hydpy.inputs import exch_L
 >>> from hydpy.outputs import dam_WaterLevel
->>> WaterLevel = FusedVariable("L", dam_WaterLevel)
+>>> WaterLevel = FusedVariable("L", exch_L, dam_WaterLevel)
 >>> waterlevel1, waterlevel2 = Nodes("waterlevel1", "waterlevel2", defaultvariable=WaterLevel)
 
 Now we prepare the two |Element| objects holding the |dam_v006| instances.  The
@@ -403,8 +403,9 @@ class Model(modeltools.AdHocModel):
     >>> from hydpy.models.exch_v001 import *
     >>> parameterstep()
     >>> from hydpy import Element, FusedVariable, Node, Nodes
+    >>> from hydpy.inputs import exch_L
     >>> from hydpy.outputs import dam_WaterLevel
-    >>> WaterLevel = FusedVariable("L", dam_WaterLevel)
+    >>> WaterLevel = FusedVariable("WaterLevel", exch_L, dam_WaterLevel)
 
     >>> Element.clear_all()
     >>> Node.clear_all()

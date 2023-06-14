@@ -76,8 +76,10 @@ ModelIOSequencesSubtypes = Union[
     "InputSequences", "FactorSequences", "FluxSequences", "StateSequences"
 ]
 
-InOutSequence = Union["InputSequence", "OutputSequence"]
-InOutSequenceTypes = Union[Type["InputSequence"], Type["OutputSequence"]]
+InOutSequence = Union["InputSequence", "ReceiverSequence", "OutputSequence"]
+InOutSequenceTypes = Union[
+    Type["InputSequence"], Type["ReceiverSequence"], Type["OutputSequence"]
+]
 
 Aggregation = Optional[Literal["unmodified", "mean"]]
 

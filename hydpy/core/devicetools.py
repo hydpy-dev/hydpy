@@ -250,8 +250,8 @@ _registry_fusedvariable: Dict[str, FusedVariable] = {}
 
 
 class FusedVariable:
-    """Combines |InputSequence| and |OutputSequence| subclasses of different models
-    dealing with the same property in a single variable.
+    """Combines |InputSequence|, |ReceiverSequence|, and |OutputSequence| subclasses of
+    different models dealing with the same property in a single variable.
 
     Class |FusedVariable| is one possible type of property |Node.variable| of class
     |Node|.  We need it in some *HydPy* projects where the involved models not only
@@ -472,9 +472,9 @@ the unique identifier for fused variable instances.
             yield variable
 
     def __contains__(self, item: object) -> bool:
+        sqt = sequencetools
         if isinstance(
-            item,
-            (sequencetools.InputSequence, sequencetools.OutputSequence),
+            item, (sqt.InputSequence, sqt.ReceiverSequence, sqt.OutputSequence)
         ):
             item = type(item)
         return item in self._variables

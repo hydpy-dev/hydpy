@@ -153,23 +153,25 @@ def write_sequencealiases() -> None:
     """
     sqt = sequencetools
     modelpath: str = models.__path__[0]
-    for groupnames, sequencetypes, filename in (
+    for groupnames, sequencetypes, filename, ndims in (
         (
-            ("inputs",),
-            (sqt.InputSequence,),
+            ("inputs", "receivers"),
+            (sqt.InputSequence, sqt.ReceiverSequence),
             "inputs.py",
+            ((0,), (0, 1)),
         ),
         (
             ("factors", "fluxes", "states"),
             (sqt.FactorSequence, sqt.FluxSequence, sqt.StateSequence),
             "outputs.py",
+            ((0,), (0,), (0,)),
         ),
     ):
         sequence2alias: Dict[sqt.InOutSequenceTypes, str] = {}
         for moduleinfo in pkgutil.iter_modules([modelpath]):
             if not moduleinfo.ispkg:
                 continue
-            for groupname in groupnames:
+            for groupname, ndim in zip(groupnames, ndims):
                 modelname = moduleinfo.name
                 modulepath = f"hydpy.models.{modelname}.{modelname}_{groupname}"
                 try:
@@ -180,7 +182,7 @@ def write_sequencealiases() -> None:
                     if (
                         (getattr(member, "__module__", None) == modulepath)
                         and issubclass(member, sequencetypes)
-                        and member.NDIM == 0
+                        and member.NDIM in ndim
                     ):
                         alias = f"{modelname}_{member.__name__}"
                         sequence2alias[member] = alias

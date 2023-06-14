@@ -605,9 +605,9 @@ has been requested but not been prepared so far.
             model._element = None  # pylint: disable=protected-access
 
     def connect(self) -> None:
-        """Connect all |LinkSequence| objects and the selected |InputSequence| and
-        |OutputSequence| objects of the actual model to the corresponding
-        |NodeSequence| objects.
+        """Connect all |LinkSequence| objects and the selected |InputSequence|,
+        |ReceiverSequence|, and |OutputSequence| objects of the actual model to the
+        corresponding |NodeSequence| objects.
 
         You cannot connect any sequences until the |Model| object itself is connected
         to an |Element| object referencing the required |Node| objects:
@@ -744,8 +744,8 @@ The following nodes have not been connected to any sequences: in2.
         >>> inp1 = Node("inp1", variable=hland_P)
         >>> outp1 = Node("outp1", variable=hland_Q0)
         >>> outp2 = Node("outp2", variable=hland_UZ)
-        >>> element8 = Element(
-        ...     "element8", outlets=out1, inputs=inp1, outputs=[outp1, outp2])
+        >>> element8 = Element("element8", outlets=out1, inputs=inp1,
+        ...                    outputs=[outp1, outp2])
         >>> element8.model = prepare_model("hland_v1")
         >>> element8.prepare_inputseries()
         >>> element8.model.sequences.inputs.t.series = 1.0, 2.0, 3.0, 4.0, 5.0
@@ -796,10 +796,9 @@ The following nodes have not been connected to any sequences: in2.
         >>> element10.model = prepare_model("hland_v1")
         Traceback (most recent call last):
         ...
-        TypeError: While trying to build the node connection of the `input` sequences \
-of the model handled by element `element10`, the following error occurred: None of \
-the input sequences of model `hland_v1` is among the sequences of the fused variable \
-`Wrong` of node `inp3`.
+        RuntimeError: While trying to build the node connection of the `input` \
+sequences of the model handled by element `element10`, the following error occurred: \
+The following nodes have not been connected to any sequences: inp3.
 
         >>> outp4 = Node("outp4", variable=Wrong)
         >>> element11 = Element("element11", outlets=out1, outputs=outp4)
@@ -811,16 +810,16 @@ sequences of the model handled by element `element11`, the following error occur
 None of the output sequences of model `hland_v1` is among the sequences of the fused \
 variable `Wrong` of node `outp4`.
 
-        Selecting wrong sequences results in the following error messages:
+        Selecting the wrong sequences results in the following error messages:
 
         >>> outp5 = Node("outp5", variable=hland_Q0)
         >>> element12 = Element("element12", outlets=out1, inputs=outp5)
         >>> element12.model = prepare_model("hland_v1")
         Traceback (most recent call last):
         ...
-        TypeError: While trying to build the node connection of the `input` sequences \
-of the model handled by element `element12`, the following error occurred: No input \
-sequence of model `hland_v1` is named `q0`.
+        RuntimeError: While trying to build the node connection of the `input` \
+sequences of the model handled by element `element12`, the following error occurred: \
+The following nodes have not been connected to any sequences: outp5.
 
         >>> inp5 = Node("inp5", variable="P")
         >>> element13 = Element("element13", outlets=out1, outputs=inp5)
@@ -843,6 +842,46 @@ flux, or state sequence of model `hland_v1` is named `p`.
 of the model handled by element `element14`, the following error occurred: Only \
 connections with 0-dimensional output sequences are supported, but sequence `pc` is \
 1-dimensional.
+
+        |FusedVariable| also supports |ReceiverSequence| for passing information from
+        output nodes to receiver sequences (instead of input sequences, which we
+        demonstrated in the above examples).  We take the receiver sequences
+        |dam_receivers.OWL| (outer water level) and |dam_receivers.RWL| (remote water
+        level) used by the application model |dam_pump| as an example:
+
+        >>> from hydpy.inputs import dam_OWL, dam_RWL
+
+        One |dam_pump| instance (handled by element `dam1`) shall receive the water
+        level (|dam_factors.WaterLevel|) of two independent |dam_pump| instances.
+        `dam1` interprets the water level of `dam2` as its outer water level and the
+        water level of `dam3` as its remote water level:
+
+        >>> from hydpy.outputs import dam_WaterLevel
+        >>> owl = FusedVariable("OWL", dam_OWL, dam_WaterLevel)
+        >>> rwl = FusedVariable("RWL", dam_RWL, dam_WaterLevel)
+        >>> n21, n31 = Node("n21", variable=owl), Node("n31", variable=rwl)
+        >>> x, y = Node("x", variable=owl), Node("y", variable=rwl)
+        >>> dam1 = Element("dam1", inlets="n01", outlets="n12",
+        ...                receivers=(n21, n31))
+        >>> dam2 = Element("dam2", inlets="n12", outlets="n23",
+        ...                receivers=(x,y), outputs=n21)
+        >>> dam3 = Element("dam3", inlets="n23", outlets="n34",
+        ...                receivers=(x, y), outputs=n31)
+        >>> dam1.model = prepare_model("dam_pump")
+        >>> dam2.model = prepare_model("dam_pump")
+        >>> dam3.model = prepare_model("dam_pump")
+
+        We confirm that all connections are correctly built by letting `dam2` and
+        `dam3` send different water levels:
+
+        >>> dam2.model.sequences.factors.waterlevel = 2.0
+        >>> dam2.model.update_outputs()
+        >>> dam3.model.sequences.factors.waterlevel = 3.0
+        >>> dam3.model.update_outputs()
+        >>> dam1.model.sequences.receivers.owl
+        owl(2.0)
+        >>> dam1.model.sequences.receivers.rwl
+        rwl(3.0)
 
         .. testsetup::
 
@@ -871,30 +910,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
             )
 
     def _connect_inputs(self) -> None:
-        for node in self.element.inputs:
-            if isinstance(node.variable, devicetools.FusedVariable):
-                connected = False
-                for submodel in self.find_submodels(include_mainmodel=True).values():
-                    for sequence in submodel.sequences.inputs:
-                        if sequence in node.variable:
-                            sequence.set_pointer(node.get_double("inputs"))
-                            connected = True
-                            break
-                if not connected:
-                    submodelphrase = objecttools.submodelphrase(self)
-                    raise TypeError(
-                        f"None of the input sequences of {submodelphrase} is among "
-                        f"the sequences of the fused variable `{node.variable}` of "
-                        f"node `{node.name}`."
-                    )
-            else:
-                name = self._determine_name(node.variable)
-                sequence_ = getattr(self.sequences.inputs, name, None)
-                if sequence_ is None:
-                    raise TypeError(
-                        f"No input sequence of model `{self}` is named `{name}`."
-                    )
-                sequence_.set_pointer(node.get_double("inputs"))
+        self._connect_subgroup("inputs")
 
     def _connect_outputs(self) -> None:
         def _set_pointer(
@@ -959,35 +975,47 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         self._connect_subgroup("senders")
 
     def _connect_subgroup(self, group: str) -> None:
+        st = sequencetools
         available_nodes = getattr(self.element, group)
-        links = getattr(self.sequences, group, ())
         applied_nodes = []
-        for seq in links:
-            selected_nodes = tuple(
-                node
-                for node in available_nodes
-                if str(node.variable).lower() == seq.name
-            )
-            if seq.NDIM == 0:
-                if not selected_nodes:
-                    raise RuntimeError(
-                        f"Sequence {objecttools.elementphrase(seq)} cannot be "
-                        f"connected due to no available node handling variable "
-                        f"`{seq.name.upper()}`."
+        for submodel in self.find_submodels(include_mainmodel=True).values():
+            sequences = submodel.sequences[group]
+            for sequence in sequences:
+                selected_nodes = []
+                for node in available_nodes:
+                    if isinstance(var := node.variable, devicetools.FusedVariable):
+                        if sequence in var:
+                            selected_nodes.append(node)
+                    else:
+                        name = var.lower() if isinstance(var, str) else var.name
+                        if name == sequence.name:
+                            selected_nodes.append(node)
+                if sequence.NDIM == 0:
+                    if not selected_nodes:
+                        if group == "inputs":
+                            continue
+                        raise RuntimeError(
+                            f"Sequence {objecttools.elementphrase(sequence)} cannot "
+                            f"be connected due to no available node handling variable "
+                            f"`{sequence.name.upper()}`."
+                        )
+                    if len(selected_nodes) > 1:
+                        raise RuntimeError(
+                            f"Sequence `{sequence.name}` cannot be connected as it is "
+                            f"0-dimensional but multiple nodes are available which "
+                            f"are handling variable `{type(sequence).__name__}`."
+                        )
+                    applied_nodes.append(selected_nodes[0])
+                    assert isinstance(
+                        sequence, (st.InputSequence, st.OutletSequence, st.LinkSequence)
                     )
-                if len(selected_nodes) > 1:
-                    raise RuntimeError(
-                        f"Sequence `{seq.name}` cannot be connected as it is "
-                        f"0-dimensional but multiple nodes are available which are "
-                        f"handling variable `{seq.name.upper()}`."
-                    )
-                applied_nodes.append(selected_nodes[0])
-                seq.set_pointer(selected_nodes[0].get_double(group))
-            elif seq.NDIM == 1:
-                seq.shape = len(selected_nodes)
-                for idx, node in enumerate(selected_nodes):
-                    applied_nodes.append(node)
-                    seq.set_pointer(node.get_double(group), idx)
+                    sequence.set_pointer(selected_nodes[0].get_double(group))
+                elif sequence.NDIM == 1:
+                    sequence.shape = len(selected_nodes)
+                    for idx, node in enumerate(selected_nodes):
+                        applied_nodes.append(node)
+                        assert isinstance(sequence, st.LinkSequence)
+                        sequence.set_pointer(node.get_double(group), idx)
         if len(applied_nodes) < len(available_nodes):
             remaining_nodes = [
                 node.name for node in available_nodes if node not in applied_nodes

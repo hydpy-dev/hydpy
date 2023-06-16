@@ -313,11 +313,10 @@ class Calc_WindSpeed2m_V1(modeltools.Method):
 
       .. math::
         WindSpeed2m = WindSpeed \cdot
-        \frac{ln((2 - d) / z_0)}{ln((MeasuringHeightWindSpeed - d) / z_0)}`
-
-      :math:`d = 2 / 3 \cdot 0.12`
-
-      :math:`z_0 = 0.123 \cdot 0.12`
+        \frac{ln((2 - d) / z_0)}{ln((MeasuringHeightWindSpeed - d) / z_0)}
+        \\ \\
+        d = 2 / 3 \cdot 0.12 \\
+        z_0 = 0.123 \cdot 0.12
 
     Example:
 

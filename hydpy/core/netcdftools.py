@@ -1381,7 +1381,8 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
                     )
                     idx0 = 0
                     for sequence in sequences:
-                        idx1 = idx0 + int(numpy.product(sequence.shape))
+                        product = numpy.product  # type: ignore[attr-defined]
+                        idx1 = idx0 + int(product(sequence.shape))
                         sequence.connect_netcdf(ncarray=data[idx0:idx1])
                         idx0 = idx1
                 yield JITAccessHandler(readers=tuple(readers), writers=tuple(writers))

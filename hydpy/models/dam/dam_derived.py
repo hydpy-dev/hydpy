@@ -419,10 +419,12 @@ class HighestRemoteSmoothPar(parametertools.Parameter):
         1.0
         """
         control = self.subpars.pars.control
-        if numpy.isinf(control.highestremotedischarge):
+        if numpy.isinf(control.highestremotedischarge.value):
             self(0.0)
         else:
-            smoothed = smoothtools.calc_smoothpar_min1(control.highestremotetolerance)
+            smoothed = smoothtools.calc_smoothpar_min1(
+                control.highestremotetolerance.value
+            )
             self(control.highestremotedischarge * smoothed)
 
 

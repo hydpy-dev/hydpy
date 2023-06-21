@@ -5882,7 +5882,7 @@ class Calc_BoWa_SoilModel_V1(modeltools.Method):
         sequences's values:
 
         >>> garto = model.soilmodel
-        >>> from numpy import array, round_
+        >>> from numpy import array, round
         >>> from hydpy.core.objecttools import repr_values
         >>> def check(qib2=0, qib1=0, qbb=0, evb=0, qkap=0):
         ...     fluxes.qdb = 40.0, 0.0, 40, 0.0
@@ -5899,7 +5899,7 @@ class Calc_BoWa_SoilModel_V1(modeltools.Method):
         ...     new_bowa = states.bowa.values.copy()
         ...     delta = (fluxes.wada + fluxes.qkap - fluxes.qdb - fluxes.qib2
         ...              - fluxes.qib1 - fluxes.qbb - fluxes.evb)
-        ...     assert all(round_(new_bowa, 11) == round_(old_bowa + delta, 11))
+        ...     assert all(round(new_bowa, 11) == round(old_bowa + delta, 11))
         ...     print("bowa:", repr_values(states.bowa))
         ...     print("qdb:", repr_values(fluxes.qdb))
         ...     print("qib2:", repr_values(fluxes.qib2))

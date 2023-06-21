@@ -883,7 +883,7 @@ var < [0.0, 1.0, 2.0]
     (True, False, False, False)
 
     Hence, when all entries of two compared objects are |numpy.nan|, we
-    consider these objects as equal:
+    consider these objects equal:
 
     >>> var.values = nan
     >>> var < [nan, nan, nan], var <= [nan, nan, nan], var == [nan, nan, nan], \
@@ -896,14 +896,20 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     >>> var < nan, var <= nan, var == nan, var != nan, var >= nan, var > nan
     (False, True, True, False, True, False)
 
-    The |len| operator always returns the total number of values handles
-    by the variable according to the current shape:
+    The |len| operator does not work for 0-dimensional variables:
 
     >>> Var.NDIM = 0
     >>> var = Var(None)
     >>> var.shape = ()
     >>> len(var)
-    1
+    Traceback (most recent call last):
+    ...
+    TypeError: The `len` operator was applied on `var`, but this variable is \
+0-dimensional and thus unsized.  Consider using the `numberofvalues` property instead.
+
+    For higher-dimensional variables, `len` always returns the length of the first
+    dimension:
+
     >>> Var.NDIM = 1
     >>> var = Var(None)
     >>> var.shape = (5,)
@@ -913,12 +919,12 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     >>> var = Var(None)
     >>> var.shape = (2, 1, 4)
     >>> len(var)
-    8
+    2
 
-    |Variable| objects are hashable based on their |id| value for
-    avoiding confusion when adding different but equal objects into
-    one |set| or |dict| object.  The following examples show this
-    behaviour by making deep copies of existing |Variable| objects:
+    |Variable| objects are hashable based on their |id| value to avoid avoiding
+    confusion when adding different but equal objects into one |set| or |dict| object.
+    The following examples show this behaviour by making deep copies of existing
+    |Variable| objects:
 
     >>> Var.NDIM = 0
     >>> var1 = Var(None)
@@ -1488,6 +1494,55 @@ as `var` can only be `()`, but `(2,)` is given.
             f"but `{shape}` is given."
         )
 
+    @property
+    def numberofvalues(self) -> int:
+        """The total number of values handles by the variable according to the current
+        shape.
+
+        We create an incomplete |Variable| subclass for testing:
+
+        >>> from hydpy.core.variabletools import FastAccess, Variable
+        >>> class Var(Variable):
+        ...     TYPE = float
+        ...     initinfo = 0.0, False
+        ...     _CLS_FASTACCESS_PYTHON = FastAccess
+        >>> var = Var(None)
+
+        0-dimensional variables always handle precisely one value:
+
+        >>> Var.NDIM = 0
+        >>> var = Var(None)
+        >>> var.shape = ()
+        >>> var.numberofvalues
+        1
+
+        For higher-dimensional variables, |Variable.numberofvalues| is the cumulative
+        product of the individual dimensons lengths:
+
+        >>> Var.NDIM = 1
+        >>> var = Var(None)
+        >>> var.shape = (5,)
+        >>> var.numberofvalues
+        5
+        >>> Var.NDIM = 3
+        >>> var = Var(None)
+        >>> var.shape = (2, 1, 4)
+        >>> var.numberofvalues
+        8
+
+        As long as the shape of a higher-dimensional variable is undefined,
+        |Variable.numberofvalues| is zero:
+
+        >>> var = Var(None)
+        >>> var.numberofvalues
+        0
+        """
+        if self.NDIM == 0:
+            return 1
+        if (shape := exceptiontools.getattr_(self, "shape", None)) is None:
+            return 0
+        return int(numpy.cumprod(shape)[-1])
+
     def verify(self) -> None:
         """Raise a |RuntimeError| if at least one of the required values of a |Variable|
         object is |None| or |numpy.nan|.
@@ -1888,10 +1943,13 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             )
 
     def __len__(self) -> int:
-        try:
-            return numpy.cumprod(self.shape)[-1]
-        except IndexError:
-            return 1
+        if self.NDIM == 0:
+            raise TypeError(
+                f"The `len` operator was applied on {objecttools.devicephrase(self)}, "
+                f"but this variable is 0-dimensional and thus unsized.  Consider "
+                f"using the `numberofvalues` property instead."
+            )
+        return self._get_shape()[0]
 
     def _do_math(self, other, methodname, description):
         try:
@@ -2127,9 +2185,9 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         return type_(self.value)
 
     def __bool__(self) -> bool:
-        if self.NDIM:
-            return bool(len(self))
-        return bool(self.value)
+        if self.NDIM == 0:
+            return bool(self.value)
+        return self.numberofvalues > 0
 
     def __float__(self) -> float:
         return self._typeconversion(float)

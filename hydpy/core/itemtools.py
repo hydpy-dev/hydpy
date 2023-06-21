@@ -611,7 +611,9 @@ keyword for an exchange item, its aggregation level cannot be `subunit`.
                     f"defining a keyword for an exchange item, its aggregation level "
                     f"cannot be `subunit`."
                 )
-            self._shape = (sum(len(target) for target in self.device2target.values()),)
+            self._shape = (
+                sum(target.numberofvalues for target in self.device2target.values()),
+            )
         else:
             objecttools.assert_never(self.level)
 
@@ -903,7 +905,7 @@ value `wrong` cannot be converted to type `float`.
         elif self.level == "subunit":
             idx0 = 0
             for variable in self.device2target.values():
-                idx1 = idx0 + len(variable)
+                idx1 = idx0 + variable.numberofvalues
                 subvalues = values[idx0:idx1]
                 if variable.NDIM > 1:
                     subvalues = subvalues.reshape(variable.shape)
@@ -1257,7 +1259,7 @@ has/have not been prepared so far.
         elif self.level == "subunit":
             idx0 = 0
             for variable in self.device2target.values():
-                idx1 = idx0 + len(variable)
+                idx1 = idx0 + variable.numberofvalues
                 if series:
                     assert isinstance(variable, sequencetools.IOSequence)
                     try:

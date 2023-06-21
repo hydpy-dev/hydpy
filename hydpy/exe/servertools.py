@@ -56,12 +56,12 @@ to get information on the types and initial values of the exchange items defined
 `HydPy-OpenDA-Black-Box-Model-Wrapper`_):
 
 >>> from urllib import request
->>> url = "http://localhost:8080/query_itemtypes"
+>>> url = "http://127.0.0.1:8080/query_itemtypes"
 >>> print(str(request.urlopen(url).read(), encoding="utf-8"))
 alpha = Double0D
 dill_nodes_sim_series = TimeSeries0D
 
->>> url = "http://localhost:8080/query_initialitemvalues"
+>>> url = "http://127.0.0.1:8080/query_initialitemvalues"
 >>> print(str(request.urlopen(url).read(), encoding="utf-8"))
 alpha = 2.0
 dill_nodes_sim_series = [nan, nan, nan, nan, nan]
@@ -90,7 +90,7 @@ value of parameter |hland_control.alpha| later:
 ...     methods = ",".join(("POST_register_simulationdates",
 ...                         "POST_register_parameteritemvalues",
 ...                         "POST_register_conditionitemvalues"))
-...     url = f"http://localhost:8080/execute?id={id_}&methods={methods}"
+...     url = f"http://127.0.0.1:8080/execute?id={id_}&methods={methods}"
 ...     request.urlopen(url, data=content)
 
 Function `simulate` wraps only GET methods and triggers the next simulation run.  As
@@ -106,7 +106,7 @@ for all GET and POST methods, one should pass the query parameter `id`, used by 
 ...                         "GET_save_internalconditions",
 ...                         "GET_update_conditionitemvalues",
 ...                         "GET_update_getitemvalues"))
-...     url = f"http://localhost:8080/execute?id={id_}&methods={methods}"
+...     url = f"http://127.0.0.1:8080/execute?id={id_}&methods={methods}"
 ...     request.urlopen(url)
 
 Function `print_itemvalues` also wraps only GET methods and prints the current value of
@@ -119,7 +119,7 @@ corresponding to the given `id` value:
 ...                         "GET_query_parameteritemvalues",
 ...                         "GET_query_conditionitemvalues",
 ...                         "GET_query_getitemvalues"))
-...     url = f"http://localhost:8080/execute?id={id_}&methods={methods}"
+...     url = f"http://127.0.0.1:8080/execute?id={id_}&methods={methods}"
 ...     data = str(request.urlopen(url).read(), encoding="utf-8")
 ...     for line in data.split("\\n"):
 ...         if line.startswith("alpha"):
@@ -214,7 +214,7 @@ also causes no problem:
 Finally, we close the server and kill its process (just closing your command-line tool
 works likewise):
 
->>> _ = request.urlopen("http://localhost:8080/close_server")
+>>> _ = request.urlopen("http://127.0.0.1:8080/close_server")
 >>> process.kill()
 >>> _ = process.communicate()
 
@@ -479,7 +479,7 @@ class HydPyServer(http.server.BaseHTTPRequestHandler):
 
     >>> from urllib import request
     >>> def test(name, id_=None, data=None, return_result=False):
-    ...     url = f"http://localhost:8080/{name}"
+    ...     url = f"http://127.0.0.1:8080/{name}"
     ...     if id_:
     ...         url = f"{url}?id={id_}"
     ...     if data:
@@ -1563,14 +1563,14 @@ under the id `0`.  There is nothing registered, so far.
         ...         blocking=False, verbose=False)
         ...     _ = run_subprocess("hyd.py await_server 8080 10", verbose=False)
         >>> from urllib import request
-        >>> request.urlopen("http://localhost:8080/evaluate", data=b"")
+        >>> request.urlopen("http://127.0.0.1:8080/evaluate", data=b"")
         Traceback (most recent call last):
         ...
         urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to execute \
 method `POST_evaluate`, the following error occurred: You can only use the POST \
 method `evaluate` if you have started the `HydPy Server` in debugging mode.
 
-        >>> _ = request.urlopen("http://localhost:8080/close_server")
+        >>> _ = request.urlopen("http://127.0.0.1:8080/close_server")
         >>> process.kill()
         >>> _ = process.communicate()
         """
@@ -2229,12 +2229,12 @@ def start_server(
 
     >>> from urllib import request
     >>> command = "maxrequests = self.server.request_queue_size"
-    >>> response = request.urlopen("http://localhost:8080/evaluate",
+    >>> response = request.urlopen("http://127.0.0.1:8080/evaluate",
     ...                            data=bytes(command, encoding="utf-8"))
     >>> print(str(response.read(), encoding="utf-8"))
     maxrequests = 100
 
-    >>> _ = request.urlopen("http://localhost:8080/close_server")
+    >>> _ = request.urlopen("http://127.0.0.1:8080/close_server")
     >>> process.kill()
     >>> _ = process.communicate()
 
@@ -2309,7 +2309,7 @@ following error:
     ...     result = run_subprocess("hyd.py await_server 8080 10", verbose=False)
 
     >>> from urllib import request
-    >>> _ = request.urlopen("http://localhost:8080/close_server")
+    >>> _ = request.urlopen("http://127.0.0.1:8080/close_server")
     >>> process.kill()
     >>> _ = process.communicate()
     """
@@ -2317,7 +2317,7 @@ following error:
     end = now + float(seconds)
     while now <= end:
         try:
-            with urllib.request.urlopen(f"http://localhost:{port}/status"):
+            with urllib.request.urlopen(f"http://127.0.0.1:{port}/status"):
                 break
         except urllib.error.URLError:
             time.sleep(0.1)

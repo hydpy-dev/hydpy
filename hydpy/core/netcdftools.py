@@ -2028,7 +2028,7 @@ NetCDF file `nied.nc` available.
         """
         return (
             len(hydpy.pub.timegrids.init),
-            sum(len(seq) for seq in self._descr2sequence.values()),
+            sum(seq.numberofvalues for seq in self._descr2sequence.values()),
         )
 
     @property

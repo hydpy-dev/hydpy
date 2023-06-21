@@ -416,7 +416,7 @@ class Test:
         """The number of columns in the table."""
         nmb = 1
         for parseq in self.parseqs:
-            nmb += max(len(parseq), 1)
+            nmb += max(parseq.numberofvalues, 1)
         return nmb
 
     @property
@@ -424,7 +424,7 @@ class Test:
         """All raw strings for the tables header."""
         strings = [self.HEADER_OF_FIRST_COL]
         for parseq in self.parseqs:
-            for dummy in range(len(parseq) - 1):
+            for dummy in range(parseq.numberofvalues - 1):
                 strings.append("")
             if (parseq.name == "sim") and isinstance(parseq, sequencetools.Sequence_):
                 strings.append(parseq.subseqs.node.name)
@@ -472,7 +472,7 @@ class Test:
         seps = ["| "]
         for parseq in self.parseqs:
             seps.append(" | ")
-            for dummy in range(len(parseq) - 1):
+            for dummy in range(parseq.numberofvalues - 1):
                 seps.append("  ")
         seps.append(" |")
         return seps

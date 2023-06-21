@@ -2617,7 +2617,7 @@ broadcast input array from shape (2,) into shape (366,3)
         When a |SeasonalParameter| object does not contain any toy-value pairs yet, the
         method |SeasonalParameter.refresh| sets all actual simulation values to zero:
 
-        >>> par.values = 1.
+        >>> par.values = 1.0
         >>> par.refresh()
         >>> par.values[0]
         0.0
@@ -2625,7 +2625,7 @@ broadcast input array from shape (2,) into shape (366,3)
         When there is only one toy-value pair, its values are relevant for all actual
         simulation values:
 
-        >>> par.toy_1 = 2. # calls refresh automatically
+        >>> par.toy_1 = 2.0  # calls refresh automatically
         >>> par.values[0]
         2.0
 
@@ -2633,7 +2633,7 @@ broadcast input array from shape (2,) into shape (366,3)
         central time points of each simulation time step.  Hence, in the following
         example, the original values of the toy-value pairs do not show up:
 
-        >>> par.toy_12_31 = 4.
+        >>> par.toy_12_31 = 4.0
         >>> from hydpy import round_
         >>> round_(par.values[0])
         2.00274
@@ -2648,7 +2648,7 @@ broadcast input array from shape (2,) into shape (366,3)
         >>> del par.toy_1
         >>> del par.toy_12_31
         >>> par.toy_1_1_12 = 2
-        >>> par.toy_12_31_12 = 4.
+        >>> par.toy_12_31_12 = 4.0
         >>> par.values[0]
         2.0
         >>> round_(par.values[1])
@@ -2679,8 +2679,8 @@ broadcast input array from shape (2,) into shape (366,3)
 
             >>> del pub.timegrids
         """
-        if not self:
-            self.values[:] = 0.0
+        if not self._toy2values:
+            self.__hydpy__set_value__(0.0)
         elif len(self) == 1:
             self.values[:] = self.apply_timefactor(self._toy2values[0][1])
         else:

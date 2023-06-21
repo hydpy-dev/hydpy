@@ -2982,13 +2982,13 @@ class ProfileMixin:
                 self._ys = [0.0]
 
             def __iadd__(self, dxdy):
-                self._xs.append(self._xs[-1] + float(dxdy[0]))
-                self._ys.append(self._ys[-1] + float(dxdy[1]))
+                self._xs.append(self._xs[-1] + dxdy[0])
+                self._ys.append(self._ys[-1] + dxdy[1])
                 return self
 
             def __isub__(self, dxdy):
-                self._xs.insert(0, self._xs[0] - float(dxdy[0]))
-                self._ys.insert(0, self._ys[0] + float(dxdy[1]))
+                self._xs.insert(0, self._xs[0] - dxdy[0])
+                self._ys.insert(0, self._ys[0] + dxdy[1])
                 return self
 
             def __call__(self):

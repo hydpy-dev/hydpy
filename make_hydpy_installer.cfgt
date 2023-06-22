@@ -27,6 +27,7 @@ pypi_wheels =
 	pyparsing==[auto]
 	python-dateutil==[auto]
 	netCDF4==[auto]
+	certifi==[auto]
 	cftime==[auto]
 	pandas==[auto]
 	pytz==[auto]

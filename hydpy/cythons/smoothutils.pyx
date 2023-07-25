@@ -656,26 +656,22 @@ cpdef inline double _min(double x_value, double y_value) nogil:
     """
     if x_value < y_value:
         return x_value
-    else:
-        return y_value
+    return y_value
 
 
 cpdef inline double smooth_logistic1(double value, double parameter) nogil:
     """Smoothing kernel based on the logistic function."""
     cdef double temp
-    if parameter <= 0.:
-        if value < 0.:
-            return 0.
-        elif value == 0.:
-            return .5
-        else:
-            return 1.
-    else:
-        temp = value/parameter
-        if temp < MAX_LOG_FLOAT:
-            return 1.-1./(1.+exp(temp))
-        else:
-            return 1.
+    if parameter <= 0.0:
+        if value < 0.0:
+            return 0.0
+        elif value == 0.0:
+            return 0.5
+        return 1.0
+    temp = value/parameter
+    if temp < MAX_LOG_FLOAT:
+        return 1.0 - 1.0 / (1.0 + exp(temp))
+    return 1.0
 
 
 cpdef inline double smooth_logistic1_derivative2(
@@ -683,50 +679,41 @@ cpdef inline double smooth_logistic1_derivative2(
     """Derivative of the function `smooth_logistic1` with respect to its
     input value."""
     cdef double temp
-    if parameter <= 0.:
-        if value == 0.:
+    if parameter <= 0.0:
+        if value == 0.0:
             return inf
-        else:
-            return 0.
-    else:
-        temp = value/parameter
-        if temp < MAX_LOG_FLOAT:
-            return exp(temp)/(parameter*(exp(temp)+1)**2)
-        else:
-            return 0.
+        return 0.0
+    temp = value / parameter
+    if temp < MAX_LOG_FLOAT:
+        return exp(temp) / (parameter * (exp(temp) + 1.0) ** 2)
+    return 0.0
 
 
 cpdef inline double smooth_logistic2(double value, double parameter) nogil:
     """Smoothing kernel based on the integral of the logistic function."""
     cdef double temp
-    if parameter <= 0.:
-        if value < 0.:
-            return 0.
-        else:
-            return value
-    else:
-        temp = value/parameter
-        if temp < MAX_LOG_FLOAT:
-            return parameter*log(1.+exp(temp))
-        else:
-            return value
+    if parameter <= 0.0:
+        if value < 0.0:
+            return 0.0
+        return value
+    temp = value / parameter
+    if temp < MAX_LOG_FLOAT:
+        return parameter * log(1.0 + exp(temp))
+    return value
 
 cpdef inline double smooth_logistic2_derivative2(
         double value, double parameter) nogil:
     """Derivative of the function `smooth_logistic2` with respect to its
     input value."""
     cdef double temp
-    if parameter <= 0.:
-        if value < 0.:
-            return 0.
-        else:
-            return 1.
-    else:
-        temp = value/parameter
-        if temp < MAX_LOG_FLOAT:
-            return exp(temp)/(exp(temp)+1.)
-        else:
-            return 1.
+    if parameter <= 0.0:
+        if value < 0.0:
+            return 0.0
+        return 1.0
+    temp = value / parameter
+    if temp < MAX_LOG_FLOAT:
+        return exp(temp) / (exp(temp) + 1.0)
+    return 1.0
 
 
 cpdef inline double smooth_logistic2_derivative1(
@@ -734,17 +721,14 @@ cpdef inline double smooth_logistic2_derivative1(
     """Derivative of the function `smooth_logistic2` with respect to its
     smoothing parameter."""
     cdef double temp
-    if parameter <= 0.:
-        if value == 0.:
-            return log(2.)
-        else:
-            return 0.
-    else:
-        temp = -value/parameter
-        if temp < MAX_LOG_FLOAT:
-            return value/(parameter*exp(-temp)+parameter)+log(exp(temp)+1.)
-        else:
-            return 0.
+    if parameter <= 0.0:
+        if value == 0.0:
+            return log(2.0)
+        return 0.0
+    temp = -value / parameter
+    if temp < MAX_LOG_FLOAT:
+        return value/(parameter * exp(-temp) + parameter) + log(exp(temp) + 1.0)
+    return 0.0
 
 
 cpdef inline double smooth_logistic3(double value, double parameter) nogil:
@@ -752,10 +736,10 @@ cpdef inline double smooth_logistic3(double value, double parameter) nogil:
     `smooth_logistic2` for the regularization of functions containing
     two second order discontinuities."""
     cdef double subtotal_1 = smooth_logistic2(value, parameter)
-    cdef double subtotal_2 = 1.-smooth_logistic2(1.-value, parameter)
-    cdef double meta_parameter = max(.025, .54*parameter**1.17)
-    cdef double weight = smooth_logistic1(value-.5, meta_parameter)
-    return  (1.-weight)*subtotal_1 + weight*subtotal_2
+    cdef double subtotal_2 = 1.0 - smooth_logistic2(1.0 - value, parameter)
+    cdef double meta_parameter = max(0.025, 0.54 * parameter**1.17)
+    cdef double weight = smooth_logistic1(value - 0.5, meta_parameter)
+    return  (1.0 - weight) * subtotal_1 + weight * subtotal_2
 
 
 cpdef inline double smooth_max1(
@@ -769,10 +753,9 @@ cpdef inline double smooth_max1(
     m_temp = _max1(x_value, y_value)
     if parameter <= 0.:
         return m_temp
-    else:
-        x_temp = exp((x_value-m_temp)/parameter)
-        y_temp = exp((y_value-m_temp)/parameter)
-        return m_temp + parameter * log(x_temp + y_temp)
+    x_temp = exp((x_value - m_temp) / parameter)
+    y_temp = exp((y_value - m_temp) / parameter)
+    return m_temp + parameter * log(x_temp + y_temp)
 
 
 cpdef inline double smooth_min1(
@@ -797,11 +780,10 @@ cpdef inline double smooth_max2(
     m_temp = _max2(x_value, y_value, z_value)
     if parameter <= 0.:
         return m_temp
-    else:
-        x_temp = exp((x_value-m_temp)/parameter)
-        y_temp = exp((y_value-m_temp)/parameter)
-        z_temp = exp((z_value-m_temp)/parameter)
-        return m_temp + parameter * log(x_temp + y_temp + z_temp)
+    x_temp = exp((x_value - m_temp) / parameter)
+    y_temp = exp((y_value - m_temp) / parameter)
+    z_temp = exp((z_value - m_temp) / parameter)
+    return m_temp + parameter * log(x_temp + y_temp + z_temp)
 
 
 cpdef inline double smooth_min2(

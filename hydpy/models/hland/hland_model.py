@@ -2596,29 +2596,29 @@ class Calc_Q0_Perc_UZ_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        d_uz_old = sta.uz
+        uz_old: float = sta.uz
         flu.perc = 0.0
         flu.q0 = 0.0
         for _ in range(con.recstep):
             sta.uz = max(sta.uz + der.dt * flu.inuz, 0.0)
-            d_perc = min(der.dt * con.percmax * fac.contriarea, sta.uz)
-            sta.uz -= d_perc
-            flu.perc += d_perc
+            perc: float = min(der.dt * con.percmax * fac.contriarea, sta.uz)
+            sta.uz -= perc
+            flu.perc += perc
             if sta.uz > 0.0:
                 if fac.contriarea > 0.0:
-                    d_q0 = min(
+                    q0: float = min(
                         der.dt * con.k * (sta.uz / fac.contriarea) ** (1.0 + con.alpha),
                         sta.uz,
                     )
                 else:
-                    d_q0 = sta.uz
-                sta.uz -= d_q0
-                flu.q0 += d_q0
-        d_error = sta.uz - (d_uz_old + flu.inuz - flu.perc - flu.q0)
-        if d_error > 0.0:
-            d_fac = 1.0 - d_error / (flu.perc + flu.q0)
-            flu.perc *= d_fac
-            flu.q0 *= d_fac
+                    q0 = sta.uz
+                sta.uz -= q0
+                flu.q0 += q0
+        error: float = sta.uz - (uz_old + flu.inuz - flu.perc - flu.q0)
+        if error > 0.0:
+            factor: float = 1.0 - error / (flu.perc + flu.q0)
+            flu.perc *= factor
+            flu.q0 *= factor
 
 
 class Calc_DP_SUZ_V1(modeltools.Method):

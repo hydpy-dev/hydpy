@@ -13,6 +13,7 @@ more detail.
    :hidden:
 
    aetinterfaces
+   channelinterfaces
    petinterfaces
    precipinterfaces
    soilinterfaces

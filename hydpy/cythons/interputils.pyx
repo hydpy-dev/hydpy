@@ -3,8 +3,8 @@ Python module |interptools|.
 """
 
 import numpy
+
 cimport cython
-from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 from libc.math cimport NAN as nan
 from libc.stdlib cimport malloc, free
 

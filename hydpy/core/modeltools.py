@@ -36,6 +36,9 @@ if TYPE_CHECKING:
     from hydpy.auxs import interptools
 
 
+TypeSubmodelInterface = TypeVar("TypeSubmodelInterface", bound="SubmodelInterface")
+
+
 class _ModelModule(types.ModuleType):
     ControlParameters: Type[parametertools.SubParameters]
     DerivedParameters: Type[parametertools.SubParameters]
@@ -95,7 +98,7 @@ def abstractmodelmethod(method: Callable[P, T]) -> Callable[P, T]:
     return method
 
 
-class SubmodelProperty:
+class SubmodelProperty(Generic[TypeSubmodelInterface]):
     """Descriptor for submodel attributes.
 
     |SubmodelProperty| instances link main models and their submodels.  They follow the
@@ -176,11 +179,11 @@ instance of any of the following types: `SoilModel_V1`.
     Optional submodel that complies with the following interface: SoilModel_V1.
     """
 
-    interfaces: Final[Tuple[Type[SubmodelInterface], ...]]
+    interfaces: Tuple[Type[TypeSubmodelInterface], ...]
     optional: Final[bool]
-    name: Final[str]  # type: ignore[misc]
+    name: str
     modeltype2instance: ClassVar[
-        DefaultDict[Type[Model], List[SubmodelProperty]]
+        DefaultDict[Type[Model], List[SubmodelProperty[Any]]]
     ] = collections.defaultdict(lambda: [])
 
     def __init__(
@@ -201,7 +204,7 @@ instance of any of the following types: `SoilModel_V1`.
         )
 
     def __set_name__(self, owner: Type[Model], name: str) -> None:
-        self.name = name  # type: ignore[misc]
+        self.name = name
         self.modeltype2instance[owner].append(self)
 
     @overload
@@ -214,7 +217,7 @@ instance of any of the following types: `SoilModel_V1`.
 
     def __get__(
         self, obj: Optional[Model], objtype: Optional[Type[Model]] = None
-    ) -> Union[SubmodelProperty, Optional[Model]]:
+    ) -> Union[Self, Optional[Model]]:
         if obj is None:
             return self
         return vars(obj).get(self.name, None)

@@ -181,16 +181,24 @@ instance of any of the following types: `SoilModel_V1`.
 
     interfaces: Tuple[Type[TypeSubmodelInterface], ...]
     optional: Final[bool]
+    sidemodel: Final[bool]
+    """Flag indicating whether the handled submodel is more a "side model" than a 
+    submodel.  Usually, two models consider each other as side models if they are 
+    "real" submodels of a third model but need direct references."""
     name: str
     modeltype2instance: ClassVar[
         DefaultDict[Type[Model], List[SubmodelProperty[Any]]]
     ] = collections.defaultdict(lambda: [])
 
     def __init__(
-        self, *interfaces: Type[SubmodelInterface], optional: bool = False
+        self,
+        *interfaces: Type[TypeSubmodelInterface],
+        optional: bool = False,
+        sidemodel: bool = False,
     ) -> None:
         self.interfaces = tuple(interfaces)
         self.optional = optional
+        self.sidemodel = sidemodel
         interfacenames = (i.__name__ for i in self.interfaces)
         prefix = "Optional submodel" if optional else "Required submodel"
         suffix = (

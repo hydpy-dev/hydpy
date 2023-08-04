@@ -1305,9 +1305,16 @@ class PyxWriter:
     @property
     def modeldeclarations(self) -> List[str]:
         """The attribute declarations of the model class."""
+        # pylint: disable=too-many-branches
         submodeltypes_old = getattr(self.model, "SUBMODELS", ())
         submodelnames_new = [
-            n.split(".")[-1] for n in self.model.find_submodels(include_optional=True)
+            n.split(".")[-1]
+            for n in self.model.find_submodels(
+                include_subsubmodels=False,
+                include_sidemodels=True,
+                include_optional=True,
+                aggregate_vectors=True,
+            )
         ]
         lines = Lines()
         lines.add(0, "@cython.final")
@@ -1330,9 +1337,13 @@ class PyxWriter:
             lines.add(1, "cdef public Parameters parameters")
         lines.add(1, "cdef public Sequences sequences")
         for name in submodelnames_new:
-            lines.add(1, f"cdef public masterinterface.MasterInterface {name}")
-            lines.add(1, f"cdef public {TYPE2STR[bool]} {name}_is_mainmodel")
-            lines.add(1, f"cdef public {TYPE2STR[int]} {name}_typeid")
+            if name.endswith("_*"):
+                name = name[:-2]
+                lines.add(1, f"cdef public interfaceutils.SubmodelsProperty {name}")
+            else:
+                lines.add(1, f"cdef public masterinterface.MasterInterface {name}")
+                lines.add(1, f"cdef public {TYPE2STR[bool]} {name}_is_mainmodel")
+                lines.add(1, f"cdef public {TYPE2STR[int]} {name}_typeid")
         for submodel in submodeltypes_old:
             lines.add(1, f"cdef public {submodel.__name__} {submodel.name}")
         if hasattr(self.model, "numconsts"):
@@ -1343,16 +1354,21 @@ class PyxWriter:
             lines.add(1, "def __init__(self):")
             lines.add(2, "super().__init__()")
             for name in submodelnames_new:
-                lines.add(2, f"self.{name} = None")
-                lines.add(2, f"self.{name}_is_mainmodel = False")
+                if name.endswith("_*"):
+                    name = name[:-2]
+                    lines.add(2, f"self.{name} = interfaceutils.SubmodelsProperty()")
+                else:
+                    lines.add(2, f"self.{name} = None")
+                    lines.add(2, f"self.{name}_is_mainmodel = False")
             for submodel in submodeltypes_old:
                 lines.add(2, f"self.{submodel.name} = {submodel.__name__}(self)")
         baseinterface = "Optional[masterinterface.MasterInterface]"
         for name in submodelnames_new:
-            lines.add(1, f"def get_{name}(self) -> {baseinterface}:")
-            lines.add(2, f"return self.{name}")
-            lines.add(1, f"def set_{name}(self, {name}: {baseinterface}) -> None:")
-            lines.add(2, f"self.{name} = {name}")
+            if not name.endswith("_*"):
+                lines.add(1, f"def get_{name}(self) -> {baseinterface}:")
+                lines.add(2, f"return self.{name}")
+                lines.add(1, f"def set_{name}(self, {name}: {baseinterface}) -> None:")
+                lines.add(2, f"self.{name} = {name}")
         return lines
 
     @property

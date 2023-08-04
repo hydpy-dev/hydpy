@@ -71,7 +71,14 @@ def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
                         setattr(numpars_new, name_numpar, numpar)
                     setattr(model.cymodel, numpars_name.lower(), numpars_new)
             for name in dir(model.cymodel):
-                if (not name.startswith("_")) and hasattr(model, name):
+                if hasattr(model, name) and not (
+                    name.startswith("_")
+                    or name.endswith("model_is_mainmodel")
+                    or isinstance(
+                        getattr(model, name),
+                        (modeltools.SubmodelProperty, modeltools.SubmodelsProperty),
+                    )
+                ):
                     setattr(model, name, getattr(model.cymodel, name))
         model.parameters = prepare_parameters(namespace)
         model.sequences = prepare_sequences(namespace)
@@ -274,7 +281,12 @@ def prepare_model(
                 setattr(cymodel, numpars_name.lower(), numpars_new)
         for name in dir(cymodel):
             if hasattr(model, name) and not (
-                name.startswith("_") or name.endswith("model_is_mainmodel")
+                name.startswith("_")
+                or name.endswith("model_is_mainmodel")
+                or isinstance(
+                    getattr(model, name),
+                    (modeltools.SubmodelProperty, modeltools.SubmodelsProperty),
+                )
             ):
                 setattr(model, name, getattr(cymodel, name))
         dict_ = {"cythonmodule": cymodule, "cymodel": cymodel}

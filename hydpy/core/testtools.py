@@ -353,32 +353,41 @@ hydpy.models.hland.hland_control.ZoneType
 class Array:
     """Assures that attributes are |numpy.ndarray| objects."""
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: NDArrayFloat) -> None:
         object.__setattr__(self, name, numpy.array(value))
 
 
 class ArrayDescriptor:
     """A descriptor for handling values of |Array| objects."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.values = Array()
 
-    def __set__(self, obj, values):
+    def __set__(
+        self,
+        obj: Test,
+        sequence2value: Optional[
+            Sequence[Tuple[sequencetools.ConditionSequence, ArrayFloat]]
+        ],
+    ) -> None:
         self.__delete__(obj)
-        if values is not None:
-            names = tuple(value[0].name for value in values)
-            duplicates = any(names.count(name) > 1 for name in names)
-            for key, value in values:
-                if duplicates:
-                    name = objecttools.devicename(key)
-                    setattr(self.values, f"{name}_{key.name}", value)
-                else:
-                    setattr(self.values, key.name, value)
+        if sequence2value is not None:
+            names = [value[0].name for value in sequence2value]
+            duplicates = tuple(name for name in set(names) if names.count(name) > 1)
+            for i, (name, (seq, _)) in enumerate(tuple(zip(names, sequence2value))):
+                if name in duplicates:
+                    names[i] = f"{name}_{objecttools.devicename(seq)}"
+            duplicates = tuple(name for name in set(names) if names.count(name) > 1)
+            for i, (name, (seq, _)) in enumerate(tuple(zip(names, sequence2value))):
+                if name in duplicates:
+                    names[i] = f"{name}_{id(seq)}"
+            for name, (_, value) in zip(names, sequence2value):
+                setattr(self.values, name, value)
 
-    def __get__(self, obj, type_=None):
+    def __get__(self, obj: Test, type_: Optional[Type[Test]] = None) -> Array:
         return self.values
 
-    def __delete__(self, obj):
+    def __delete__(self, obj: Test) -> None:
         for name in tuple(vars(self.values).keys()):
             delattr(self.values, name)
 

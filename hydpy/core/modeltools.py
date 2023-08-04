@@ -6,6 +6,7 @@ from __future__ import annotations
 import abc
 import collections
 import contextlib
+import copy
 import importlib
 import inspect
 import itertools
@@ -34,6 +35,7 @@ from hydpy.cythons import modelutils
 if TYPE_CHECKING:
     from hydpy.core import masktools
     from hydpy.auxs import interptools
+    from hydpy.cythons import interfaceutils
 
 
 TypeSubmodelInterface = TypeVar("TypeSubmodelInterface", bound="SubmodelInterface")
@@ -98,7 +100,39 @@ def abstractmodelmethod(method: Callable[P, T]) -> Callable[P, T]:
     return method
 
 
-class SubmodelProperty(Generic[TypeSubmodelInterface]):
+class _SubmodelPropertyBase(Generic[TypeSubmodelInterface]):
+    interfaces: Tuple[Type[TypeSubmodelInterface], ...]
+
+    _CYTHON_PYTHON_SUBMODEL_ERROR_MESSAGE: Final = (
+        "The main model is initialised in Cython mode, but the submodel is "
+        "initialised in pure Python mode so that the main model's cythonized methods "
+        "could apply the submodel's methods."
+    )
+
+    def _check_submodel_follows_interface(
+        self, submodel: TypeSubmodelInterface
+    ) -> None:
+        if not isinstance(submodel, self.interfaces):
+            interfacenames = (i.__name__ for i in self.interfaces)
+            raise ValueError(
+                f"The given submodel is not an instance of any of the following "
+                f"supported interfaces: {objecttools.enumeration(interfacenames)}."
+            )
+
+    def _find_first_suitable_interface(
+        self, submodel: TypeSubmodelInterface
+    ) -> Type[SubmodelInterface]:
+        for interface in self.interfaces:
+            if isinstance(submodel, interface):
+                return interface
+        interfacenames = (i.__name__ for i in self.interfaces)
+        raise ValueError(
+            f"The given submodel is not an instance of any of the following supported "
+            f"interfaces: {objecttools.enumeration(interfacenames)}."
+        )
+
+
+class SubmodelProperty(_SubmodelPropertyBase[TypeSubmodelInterface]):
     """Descriptor for submodel attributes.
 
     |SubmodelProperty| instances link main models and their submodels.  They follow the
@@ -107,8 +141,8 @@ class SubmodelProperty(Generic[TypeSubmodelInterface]):
     Cython level and perform some type-related tests (to avoid errors due to selecting
     submodels following the wrong interfaces).
 
-    We prepare the main model and its submodel in the Cython and pure Python mode to
-    test that |SubmodelProperty| works for all possible combinations:
+    We prepare the main model and its submodel in Cython and pure Python mode to test
+    that |SubmodelProperty| works for all possible combinations:
 
     >>> from hydpy import prepare_model, pub
     >>> with pub.options.usecython(False):
@@ -151,10 +185,10 @@ class SubmodelProperty(Generic[TypeSubmodelInterface]):
     >>> mainmodel_cython.soilmodel = submodel_python
     Traceback (most recent call last):
     ...
-    RuntimeError: While trying to assign value `ga_garto_submodel1` of type `Model` \
-to property `soilmodel`, the following error occurred: The main model `lland` is \
-initialised in Cython mode, but the submodel `ga_garto_submodel1` in pure Python \
-mode, so that the main model's cythonized methods cannot apply the submodel's methods.
+    RuntimeError: While trying to assign submodel `ga_garto_submodel1` to property \
+`soilmodel` of the main model `lland`, the following error occurred: The main model \
+is initialised in Cython mode, but the submodel is initialised in pure Python mode so \
+that the main model's cythonized methods could apply the submodel's methods.
 
     Disconnecting a submodel from its main model works by assigning |None| as well as
     using the `del` statement:
@@ -166,12 +200,14 @@ mode, so that the main model's cythonized methods cannot apply the submodel's me
     >>> mainmodel_cython.soilmodel
     >>> mainmodel_cython.cymodel.get_soilmodel()
 
+    Trying to assign an unsuitable submodel results in the following error:
+
     >>> mainmodel_python.soilmodel = mainmodel_python
     Traceback (most recent call last):
     ...
-    ValueError: While trying to assign value `lland` of type `Model` to property \
-`soilmodel`, the following error occurred: The given value is neither `None` nor an \
-instance of any of the following types: `SoilModel_V1`.
+    ValueError: While trying to assign submodel `lland` to property `soilmodel` of \
+the main model `lland`, the following error occurred: The given submodel is not an \
+instance of any of the following supported interfaces: SoilModel_V1.
 
     The automatically generated docstrings list the supported interfaces:
 
@@ -179,14 +215,18 @@ instance of any of the following types: `SoilModel_V1`.
     Optional submodel that complies with the following interface: SoilModel_V1.
     """
 
+    name: str
+    """The addressed submodels' group name."""
     interfaces: Tuple[Type[TypeSubmodelInterface], ...]
+    """The supported interfaces."""
     optional: Final[bool]
+    """Flag indicating whether a submodel is optional or strictly required."""
     sidemodel: Final[bool]
     """Flag indicating whether the handled submodel is more a "side model" than a 
     submodel.  Usually, two models consider each other as side models if they are 
     "real" submodels of a third model but need direct references."""
-    name: str
-    modeltype2instance: ClassVar[
+
+    __hydpy_modeltype2instance__: ClassVar[
         DefaultDict[Type[Model], List[SubmodelProperty[Any]]]
     ] = collections.defaultdict(lambda: [])
 
@@ -213,54 +253,535 @@ instance of any of the following types: `SoilModel_V1`.
 
     def __set_name__(self, owner: Type[Model], name: str) -> None:
         self.name = name
-        self.modeltype2instance[owner].append(self)
+        self.__hydpy_modeltype2instance__[owner].append(self)
 
     @overload
     def __get__(self, obj: None, objtype: Optional[Type[Model]]) -> Self:
         ...
 
     @overload
-    def __get__(self, obj: Model, objtype: Optional[Type[Model]]) -> Optional[Model]:
+    def __get__(
+        self, obj: Model, objtype: Optional[Type[Model]]
+    ) -> Optional[TypeSubmodelInterface]:
         ...
 
     def __get__(
         self, obj: Optional[Model], objtype: Optional[Type[Model]] = None
-    ) -> Union[Self, Optional[Model]]:
+    ) -> Union[Self, Optional[TypeSubmodelInterface]]:
         if obj is None:
             return self
         return vars(obj).get(self.name, None)
 
-    def __set__(self, obj: Model, value: Optional[Model]) -> None:
+    def __set__(self, obj: Model, value: Optional[TypeSubmodelInterface]) -> None:
         try:
             if value is None:
                 self.__delete__(obj)
-            elif isinstance(value, self.interfaces):
+            else:
+                self._check_submodel_follows_interface(value)
                 vars(obj)[self.name] = value
                 if obj.cymodel is not None:
                     if value.cymodel is None:
-                        raise RuntimeError(
-                            f"The main model `{obj.name}` is initialised in Cython "
-                            f"mode, but the submodel `{value.name}` in pure Python "
-                            f"mode, so that the main model's cythonized methods "
-                            f"cannot apply the submodel's methods."
-                        )
+                        raise RuntimeError(self._CYTHON_PYTHON_SUBMODEL_ERROR_MESSAGE)
                     getattr(obj.cymodel, f"set_{self.name}")(value.cymodel)
-            else:
-                interfacenames = (i.__name__ for i in self.interfaces)
-                raise ValueError(
-                    f"The given value is neither `None` nor an instance of any of the "
-                    f"following types: `{objecttools.enumeration(interfacenames)}`."
-                )
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to assign {objecttools.value_of_type(value)} to "
-                f"property `{self.name}`"
+                f"While trying to assign submodel `{value}` to property `{self.name}` "
+                f"of the main model `{obj.name}`"
             )
 
     def __delete__(self, obj: Model) -> None:
         vars(obj)[self.name] = None
         if obj.cymodel is not None:
             getattr(obj.cymodel, f"set_{self.name}")(None)
+
+
+class SubmodelsProperty(_SubmodelPropertyBase[TypeSubmodelInterface]):
+    """Descriptor for handling multiple submodels that follow defined interfaces.
+
+    |SubmodelsProperty| supports the `len` operator and is iterable and indexable:
+
+    >>> from hydpy import prepare_model
+    >>> main = prepare_model("sw1d_channel")
+    >>> sub1 = prepare_model("sw1d_q_in")
+    >>> sub2 = prepare_model("sw1d_lias")
+
+    >>> from hydpy.core.modeltools import SubmodelsProperty
+    >>> assert isinstance(type(main).routingmodels, SubmodelsProperty)
+
+    >>> main.routingmodels.append_submodel(submodel=sub1, typeid=1)
+    >>> main.routingmodels.append_submodel(submodel=sub2, typeid=1)
+    >>> len(main.routingmodels)
+    2
+    >>> for submodel in main.routingmodels:
+    ...     print(submodel.name)
+    sw1d_q_in
+    sw1d_lias
+    >>> main.routingmodels[0] is sub1
+    True
+    >>> main.routingmodels[1] is sub2
+    True
+    """
+
+    name: str
+    """The addressed submodels' group name."""
+    interfaces: Tuple[Type[TypeSubmodelInterface], ...]
+    """The supported interfaces."""
+    sidemodels: bool
+    """Flag indicating whether the handled submodel is more a "side model" than a 
+    submodel.  Usually, two models consider each other as side models if they are 
+    "real" submodels of a third model but need direct references."""
+
+    __hydpy_modeltype2instance__: ClassVar[
+        DefaultDict[Type[Model], List[SubmodelsProperty[Any]]]
+    ] = collections.defaultdict(lambda: [])
+    __hydpy_mainmodel2submodels__: DefaultDict[
+        Model, List[Optional[TypeSubmodelInterface]]
+    ]
+
+    _mainmodel: Optional[Model]
+    _mainmodel2numbersubmodels: DefaultDict[Model, int]
+    _mainmodel2submodeltypeids: DefaultDict[Model, List[int]]
+
+    def __set_name__(self, owner: Type[Model], name: str) -> None:
+        self.name = name
+        self.__hydpy_modeltype2instance__[owner].append(self)
+
+    def __init__(
+        self, *interfaces: Type[TypeSubmodelInterface], sidemodels: bool = False
+    ) -> None:
+        self.interfaces = tuple(interfaces)
+        self.sidemodels = sidemodels
+        self.__hydpy_mainmodel2submodels__ = collections.defaultdict(lambda: [])
+        self._mainmodel2numbersubmodels = collections.defaultdict(lambda: 0)
+        self._mainmodel2submodeltypeids = collections.defaultdict(lambda: [])
+        interfacenames = (i.__name__ for i in self.interfaces)
+        suffix = "s" if len(interfaces) > 1 else ""
+        self.__doc__ = (
+            f"Vector of submodels that comply with the following interface{suffix}: "
+            f"{objecttools.enumeration(interfacenames, conjunction='or')}."
+        )
+
+    def __get__(
+        self, obj: Optional[Model], objtype: Optional[Type[Model]] = None
+    ) -> Self:
+        if obj is None:
+            return self
+        try:
+            self._mainmodel = obj
+            return copy.copy(self)
+        finally:
+            self._mainmodel = None
+
+    @property
+    def number(self) -> int:
+        """The maximum number of handled submodels.
+
+        Initially, the maximum number of submodels is zero:
+
+        >>> from hydpy import prepare_model, pub
+        >>> with pub.options.usecython(False):
+        ...     model = prepare_model("sw1d_channel")
+        >>> model.storagemodels.number
+        0
+        >>> model.storagemodels.submodels
+        ()
+        >>> model.storagemodels.typeids
+        ()
+
+        Setting it to another value automatically prepares |SubmodelsProperty.typeids|
+        and |SubmodelsProperty.submodels|:
+
+        >>> model.storagemodels.number = 2
+        >>> model.storagemodels.number
+        2
+        >>> model.storagemodels.typeids
+        (0, 0)
+        >>> model.storagemodels.submodels
+        (None, None)
+
+        When working in Cython mode, property |SubmodelsProperty.number| also prepares
+        the analogue vectors of the cythonized model:
+
+        >>> with pub.options.usecython(True):
+        ...     model = prepare_model("sw1d_channel")
+        >>> model.storagemodels.number
+        0
+        >>> model.storagemodels.submodels
+        ()
+        >>> model.storagemodels.typeids
+        ()
+
+        >>> model.storagemodels.number = 2
+        >>> model.storagemodels.number
+        2
+        >>> model.storagemodels.submodels
+        (None, None)
+        >>> model.storagemodels.typeids
+        (0, 0)
+        >>> model.cymodel.storagemodels._get_number()
+        2
+        >>> model.cymodel.storagemodels._get_typeid(0)
+        0
+        >>> model.cymodel.storagemodels._get_submodel(0)
+        """
+        assert (model := self._mainmodel) is not None
+        return self._mainmodel2numbersubmodels[model]
+
+    @number.setter
+    def number(self, number: int) -> None:
+        if number != self.number:
+            assert (model := self._mainmodel) is not None
+            self._mainmodel2numbersubmodels[model] = number
+            self.__hydpy_mainmodel2submodels__[model] = [None for _ in range(number)]
+            self._mainmodel2submodeltypeids[model] = number * [0]
+            if (cymodel := model.cymodel) is not None:
+                cyprop: interfaceutils.SubmodelsProperty = getattr(cymodel, self.name)
+                cyprop.set_number(number)
+
+    def put_submodel(
+        self, submodel: TypeSubmodelInterface, typeid: int, position: int
+    ) -> None:
+        """Put a submodel and its relevant type ID to the given position.
+
+        We prepare the main model and its submodel in Cython and pure Python mode to
+        test that |SubmodelsProperty.put_submodel| works for all possible combinations:
+
+        >>> from hydpy import prepare_model, pub
+        >>> with pub.options.usecython(False):
+        ...     main_py = prepare_model("sw1d_channel")
+        ...     sub_py = prepare_model("sw1d_storage")
+        >>> with pub.options.usecython(True):
+        ...     main_cy = prepare_model("sw1d_channel")
+        ...     sub_cy = prepare_model("sw1d_storage")
+
+        For two pure Python models, there is no need to bother with synchronising
+        cythonized models:
+
+        >>> main_py.storagemodels.number = 2
+        >>> main_py.storagemodels.put_submodel(submodel=sub_py, typeid=1, position=0)
+        >>> assert main_py.storagemodels.typeids[0] == 1
+        >>> assert main_py.storagemodels.submodels[0] is sub_py
+        >>> assert main_py.storagemodels.typeids[1] == 0
+        >>> assert main_py.storagemodels.submodels[1] is None
+
+        If both models are initialised in Cython mode, |SubmodelsProperty.put_submodel|
+        updates |SubmodelsProperty.typeids| and |SubmodelsProperty.submodels| as well
+        as the corresponding vectors of the cythonized models:
+
+        >>> main_cy.storagemodels.number = 2
+        >>> main_cy.storagemodels.put_submodel(submodel=sub_cy, typeid=1, position=0)
+        >>> assert main_cy.storagemodels.typeids[0] == 1
+        >>> assert main_cy.cymodel.storagemodels._get_typeid(0) == 1
+        >>> assert main_cy.storagemodels.submodels[0] is sub_cy
+        >>> assert main_cy.cymodel.storagemodels._get_submodel(0) is sub_cy.cymodel
+        >>> assert main_cy.storagemodels.typeids[1] == 0
+        >>> assert main_cy.cymodel.storagemodels._get_typeid(1) == 0
+        >>> assert main_cy.storagemodels.submodels[1] is None
+        >>> assert main_cy.cymodel.storagemodels._get_submodel(1) is None
+
+        Connecting a pure Python mode main model with a Cython mode submodel causes no
+        harm:
+
+        >>> main_py.storagemodels.number = 0
+        >>> main_py.storagemodels.number = 2
+        >>> main_py.storagemodels.put_submodel(submodel=sub_cy, typeid=1, position=0)
+        >>> assert main_py.storagemodels.typeids[0] == 1
+        >>> assert main_py.storagemodels.submodels[0] is sub_cy
+        >>> assert main_py.storagemodels.typeids[1] == 0
+        >>> assert main_py.storagemodels.submodels[1] is None
+
+        However, connecting a Cython mode main model with a pure Python mode submodel
+        would result in erroneous calculations and thus raises the following error:
+
+        >>> main_cy.storagemodels.number = 0
+        >>> main_cy.storagemodels.number = 2
+        >>> main_cy.storagemodels.put_submodel(submodel=sub_py, typeid=1, position=0)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: While trying to put submodel `sw1d_storage` to position `0` of \
+property `storagemodels` of the main model `sw1d_channel`, the following error \
+occurred: The main model is initialised in Cython mode, but the submodel is \
+initialised in pure Python mode so that the main model's cythonized methods could \
+apply the submodel's methods.
+        >>> assert main_cy.storagemodels.typeids[0] == 0
+        >>> assert main_cy.cymodel.storagemodels._get_typeid(0) == 0
+        >>> assert main_cy.storagemodels.submodels[0] is None
+        >>> assert main_cy.cymodel.storagemodels._get_submodel(0) is None
+        >>> assert main_cy.storagemodels.typeids[1] == 0
+        >>> assert main_cy.cymodel.storagemodels._get_typeid(1) == 0
+        >>> assert main_cy.storagemodels.submodels[1] is None
+        >>> assert main_cy.cymodel.storagemodels._get_submodel(1) is None
+
+        Method |SubmodelsProperty.put_submodel| checks if the given submodel follows
+        at least one supported interface:
+
+        >>> sub_py = prepare_model("sw1d_lias")
+        >>> main_py.storagemodels.number = 0
+        >>> main_py.storagemodels.number = 2
+        >>> main_py.storagemodels.put_submodel(submodel=sub_py, typeid=1, position=0)
+        Traceback (most recent call last):
+        ...
+        ValueError: While trying to put submodel `sw1d_lias` to position `0` of \
+property `storagemodels` of the main model `sw1d_channel`, the following error \
+occurred: The given submodel is not an instance of any of the following supported \
+interfaces: StorageModel_V1.
+        >>> assert main_py.storagemodels.typeids[0] == 0
+        >>> assert main_py.storagemodels.submodels[0] is None
+        >>> assert main_py.storagemodels.typeids[1] == 0
+        >>> assert main_py.storagemodels.submodels[1] is None
+        """
+        assert (mainmodel := self._mainmodel) is not None
+        try:
+            self._check_submodel_follows_interface(submodel)
+            if (cymain := mainmodel.cymodel) is not None:
+                if (cysub := submodel.cymodel) is None:
+                    raise RuntimeError(self._CYTHON_PYTHON_SUBMODEL_ERROR_MESSAGE)
+                cyprop: interfaceutils.SubmodelsProperty = getattr(cymain, self.name)
+                cyprop.put_submodel(submodel=cysub, typeid=typeid, position=position)
+            self.__hydpy_mainmodel2submodels__[mainmodel][position] = submodel
+            self._mainmodel2submodeltypeids[mainmodel][position] = typeid
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to put submodel `{submodel}` to position `{position}` "
+                f"of property `{self.name}` of the main model `{mainmodel}`"
+            )
+
+    def delete_submodel(self, position: int) -> None:
+        """Delete the submodel at the given position.
+
+        We prepare the main model and its submodel in Cython and pure Python mode to
+        test that |SubmodelsProperty.delete_submodel| works both in Cython and pure
+        Python Cython mode:
+
+        >>> from hydpy import prepare_model, pub
+        >>> with pub.options.usecython(False):
+        ...     main_py = prepare_model("sw1d_channel")
+        ...     sub_py = prepare_model("sw1d_storage")
+        >>> with pub.options.usecython(True):
+        ...     main_cy = prepare_model("sw1d_channel")
+        ...     sub_cy = prepare_model("sw1d_storage")
+
+        In pure Python mode, |SubmodelsProperty.delete_submodel| resets the entry in
+        the submodel vector to |None| and the type ID to zero:
+
+        >>> main_py.storagemodels.number = 3
+        >>> main_py.storagemodels.put_submodel(submodel=sub_py, typeid=1, position=1)
+        >>> assert main_py.storagemodels.typeids[1] == 1
+        >>> assert main_py.storagemodels.submodels[1] is sub_py
+
+        >>> main_py.storagemodels.delete_submodel(position=1)
+        >>> assert main_py.storagemodels.typeids[1] == 0
+        >>> assert main_py.storagemodels.submodels[1] is None
+
+        In Cython mode, |SubmodelsProperty.delete_submodel| does the same for the
+        analogue C vectors:
+
+        >>> main_cy.storagemodels.number = 3
+        >>> main_cy.storagemodels.put_submodel(submodel=sub_cy, typeid=1, position=1)
+        >>> assert main_cy.storagemodels.typeids[1] == 1
+        >>> assert main_cy.cymodel.storagemodels._get_typeid(1) == 1
+        >>> assert main_cy.storagemodels.submodels[1] is sub_cy
+        >>> assert main_cy.cymodel.storagemodels._get_submodel(1) is sub_cy.cymodel
+
+        >>> main_cy.storagemodels.delete_submodel(position=1)
+        >>> assert main_cy.storagemodels.typeids[1] == 0
+        >>> assert main_cy.cymodel.storagemodels._get_typeid(1) == 0
+        >>> assert main_cy.storagemodels.submodels[1] is None
+        >>> assert main_cy.cymodel.storagemodels._get_submodel(1) is None
+
+        Calling |SubmodelsProperty.delete_submodel| for a position with an existing
+        submodel does not raise a warning or error:
+
+        >>> main_cy.storagemodels.delete_submodel(position=1)
+
+        Potential errors are reported like this:
+
+        >>> main_cy.storagemodels.delete_submodel(position=3)
+        Traceback (most recent call last):
+        ...
+        IndexError: While trying to delete a submodel at position `3` of property \
+`storagemodels` of the main model `sw1d_channel`, the following error occurred: list \
+assignment index out of range
+        """
+        assert (mainmodel := self._mainmodel) is not None
+        try:
+            self.__hydpy_mainmodel2submodels__[mainmodel][position] = None
+            self._mainmodel2submodeltypeids[mainmodel][position] = 0
+            if (cymain := mainmodel.cymodel) is not None:
+                cyprop: interfaceutils.SubmodelsProperty = getattr(cymain, self.name)
+                cyprop.put_submodel(submodel=None, typeid=0, position=position)
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to delete a submodel at position `{position}` of "
+                f"property `{self.name}` of the main model `{mainmodel}`"
+            )
+
+    def append_submodel(
+        self, submodel: TypeSubmodelInterface, typeid: Optional[int] = None
+    ) -> None:
+        """Append a submodel and its relevant type ID to the already available ones.
+
+        We prepare the main model and its submodel in Cython and pure Python mode to
+        test that |SubmodelsProperty.append_submodel| works for all possible
+        combinations:
+
+        >>> from hydpy import prepare_model, pub
+        >>> with pub.options.usecython(False):
+        ...     main_py = prepare_model("sw1d_channel")
+        ...     sub_py = prepare_model("sw1d_storage")
+        >>> with pub.options.usecython(True):
+        ...     main_cy = prepare_model("sw1d_channel")
+        ...     sub_cy = prepare_model("sw1d_storage")
+
+        For two pure Python models, there is no need to bother with synchronising
+        cythonized models:
+
+        >>> main_py.storagemodels.append_submodel(submodel=sub_py, typeid=1)
+        >>> assert main_py.storagemodels.number == 1
+        >>> assert main_py.storagemodels.typeids[0] == 1
+        >>> assert main_py.storagemodels.submodels[0] is sub_py
+
+        If both models are initialised in Cython mode,
+        |SubmodelsProperty.append_submodel| updates |SubmodelsProperty.typeids| and
+        |SubmodelsProperty.submodels| as well as the corresponding vectors of the
+        cythonized models:
+
+        >>> main_cy.storagemodels.append_submodel(submodel=sub_cy, typeid=1)
+        >>> assert main_cy.storagemodels.number == 1
+        >>> assert main_cy.storagemodels.typeids[0] == 1
+        >>> assert main_cy.cymodel.storagemodels._get_typeid(0) == 1
+        >>> assert main_cy.storagemodels.submodels[0] is sub_cy
+        >>> assert main_cy.cymodel.storagemodels._get_submodel(0) is sub_cy.cymodel
+
+        Connecting a pure Python mode main model with a Cython mode submodel causes no
+        harm:
+
+        >>> main_py.storagemodels.append_submodel(submodel=sub_cy, typeid=1)
+        >>> assert main_py.storagemodels.number == 2
+        >>> assert main_py.storagemodels.typeids[0] == 1
+        >>> assert main_py.storagemodels.submodels[0] is sub_py
+        >>> assert main_py.storagemodels.typeids[1] == 1
+        >>> assert main_py.storagemodels.submodels[1] is sub_cy
+
+        However, connecting a Cython mode main model with a pure Python mode submodel
+        would result in erroneous calculations and thus raises the following error:
+
+        >>> main_cy.storagemodels.append_submodel(submodel=sub_py, typeid=1)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: While trying to append submodel `sw1d_storage` to property \
+`storagemodels` of the main model `sw1d_channel`, the following error occurred: The \
+main model is initialised in Cython mode, but the submodel is initialised in pure \
+Python mode so that the main model's cythonized methods could apply the submodel's \
+methods.
+
+        >>> assert main_cy.storagemodels.number == 1
+        >>> assert main_cy.storagemodels.typeids[0] == 1
+        >>> assert main_cy.cymodel.storagemodels._get_typeid(0) == 1
+        >>> assert main_cy.storagemodels.submodels[0] is sub_cy
+        >>> assert main_cy.cymodel.storagemodels._get_submodel(0) is sub_cy.cymodel
+
+        Method |SubmodelsProperty.append_submodel| checks if the given submodel follows
+        at least one supported interface:
+
+        >>> sub_wrong = prepare_model("sw1d_lias")
+        >>> main_py.storagemodels.append_submodel(submodel=sub_wrong, typeid=1)
+        Traceback (most recent call last):
+        ...
+        ValueError: While trying to append submodel `sw1d_lias` to property \
+`storagemodels` of the main model `sw1d_channel`, the following error occurred: The \
+given submodel is not an instance of any of the following supported interfaces: \
+StorageModel_V1.
+
+        >>> assert main_py.storagemodels.number == 2
+        >>> assert main_py.storagemodels.typeids[0] == 1
+        >>> assert main_py.storagemodels.submodels[0] is sub_py
+        >>> assert main_py.storagemodels.typeids[1] == 1
+        >>> assert main_py.storagemodels.submodels[1] is sub_cy
+
+        For convenience, you can omit to pass the type ID.
+        |SubmodelsProperty.append_submodel| then detects the first suitable ID
+        automatically:
+
+        >>> main_py.routingmodels.append_submodel(prepare_model("sw1d_weir_out"))
+        >>> main_py.routingmodels.append_submodel(prepare_model("sw1d_q_in"))
+        >>> main_py.routingmodels.append_submodel(prepare_model("sw1d_lias"))
+        >>> assert main_py.routingmodels.number == 3
+        >>> assert main_py.routingmodels.typeids == (3, 1, 2)
+
+        Method |SubmodelsProperty.append_submodel| checks if the given submodel follows
+        at least one supported interface:
+
+        >>> main_py.routingmodels[0].routingmodelsupstream.append_submodel(
+        ...     prepare_model("sw1d_q_out"))
+        Traceback (most recent call last):
+        ...
+        ValueError: While trying to append submodel `sw1d_q_out` to property \
+`routingmodelsupstream` of the main model `sw1d_weir_out`, the following error \
+occurred: The given submodel is not an instance of any of the following supported \
+interfaces: RoutingModel_V1 and RoutingModel_V2.
+        """
+        assert (mainmodel := self._mainmodel) is not None
+        try:
+            if typeid is None:
+                typeid = self._find_first_suitable_interface(submodel).typeid
+            else:
+                self._check_submodel_follows_interface(submodel)
+            if (cymain := mainmodel.cymodel) is not None:
+                if (cysub := submodel.cymodel) is None:
+                    raise RuntimeError(self._CYTHON_PYTHON_SUBMODEL_ERROR_MESSAGE)
+                cyprop: interfaceutils.SubmodelsProperty = getattr(cymain, self.name)
+                cyprop.append_submodel(submodel=cysub, typeid=typeid)
+            self._mainmodel2numbersubmodels[mainmodel] += 1
+            self.__hydpy_mainmodel2submodels__[mainmodel].append(submodel)
+            self._mainmodel2submodeltypeids[mainmodel].append(typeid)
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to append submodel `{submodel}` to property "
+                f"`{self.name}` of the main model `{mainmodel}`"
+            )
+
+    @property
+    def submodels(self) -> Tuple[Optional[TypeSubmodelInterface], ...]:
+        """The currently handled submodels.
+
+        >>> from hydpy import prepare_model
+        >>> main = prepare_model("sw1d_channel")
+        >>> sub1 = prepare_model("sw1d_q_in")
+        >>> sub2 = prepare_model("sw1d_lias")
+        >>> main.routingmodels.append_submodel(submodel=sub1, typeid=1)
+        >>> main.routingmodels.append_submodel(submodel=sub2, typeid=1)
+        >>> assert main.routingmodels.submodels == (sub1, sub2)
+        """
+        assert (mainmodel := self._mainmodel) is not None
+        return tuple(self.__hydpy_mainmodel2submodels__[mainmodel])
+
+    @property
+    def typeids(self) -> Tuple[int, ...]:
+        """The interface-specific type IDs of the currently handled submodels.
+
+        >>> from hydpy import prepare_model
+        >>> main = prepare_model("sw1d_channel")
+        >>> sub1 = prepare_model("sw1d_q_in")
+        >>> sub2 = prepare_model("sw1d_lias")
+        >>> main.routingmodels.append_submodel(submodel=sub1, typeid=1)
+        >>> main.routingmodels.append_submodel(submodel=sub2, typeid=1)
+        >>> assert main.routingmodels.typeids == (1, 1)
+        """
+        assert (mainmodel := self._mainmodel) is not None
+        return tuple(self._mainmodel2submodeltypeids[mainmodel])
+
+    def __getitem__(self, value: int) -> Optional[TypeSubmodelInterface]:
+        assert (mainmodel := self._mainmodel) is not None
+        return self.__hydpy_mainmodel2submodels__[mainmodel][value]
+
+    def __iter__(self) -> Iterator[Optional[TypeSubmodelInterface]]:
+        assert (mainmodel := self._mainmodel) is not None
+        for submodel in self.__hydpy_mainmodel2submodels__[mainmodel]:
+            yield submodel
+
+    def __len__(self) -> int:
+        return self.number
 
 
 class SubmodelIsMainmodelProperty:
@@ -1960,7 +2481,8 @@ element.
 
         def _find_submodels(name: str, model: Model) -> None:
             name2submodel_new = {}
-            for submodelproperty in SubmodelProperty.modeltype2instance[type(model)]:
+            mt = type(model)
+            for submodelproperty in SubmodelProperty.__hydpy_modeltype2instance__[mt]:
                 if include_feedbacks or (
                     not getattr(model, f"{submodelproperty.name}_is_mainmodel")
                 ):

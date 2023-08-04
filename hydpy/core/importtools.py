@@ -28,6 +28,7 @@ from hydpy.core import sequencetools
 from hydpy.core import timetools
 from hydpy.core.typingtools import *
 
+TD = TypeVar("TD", Literal[0], Literal[1])
 TM = TypeVar("TM", bound="modeltools.Model")
 TI = TypeVar("TI", bound="modeltools.SubmodelInterface")
 
@@ -307,34 +308,71 @@ def prepare_model(
 
 
 class _DoctestAdder:
-    wrapped: Callable[..., None]
+    _wrapped: Callable[..., None]
 
     def __set_name__(self, objtype: Type[modeltools.Model], name: str) -> None:
         assert (module := inspect.getmodule(objtype)) is not None
         test = getattr(module, "__test__", {})
-        test[f"{objtype.__name__}.{self.wrapped.__name__}"] = self.__doc__
+        test[f"{objtype.__name__}.{self._wrapped.__name__}"] = self.__doc__
         module.__dict__["__test__"] = test
+
+
+@overload
+def prepare_submodel(
+    submodelname: str,
+    submodelinterface: Type[TI],
+    *methods: Callable[[NoReturn, NoReturn], None],
+    dimensionality: Literal[0] = ...,
+    landtype_constants: Optional[parametertools.Constants] = None,
+    soiltype_constants: Optional[parametertools.Constants] = None,
+    landtype_refindices: Optional[Type[parametertools.NameParameter]] = None,
+    soiltype_refindices: Optional[Type[parametertools.NameParameter]] = None,
+    refweights: Optional[Type[parametertools.Parameter]] = None,
+) -> Callable[[Callable[[TM, TI], None]], SubmodelAdder[Literal[0], TM, TI]]:
+    ...
+
+
+@overload
+def prepare_submodel(
+    submodelname: str,
+    submodelinterface: Type[TI],
+    *methods: Callable[[NoReturn, NoReturn], None],
+    dimensionality: Literal[1],
+    landtype_constants: Optional[parametertools.Constants] = None,
+    soiltype_constants: Optional[parametertools.Constants] = None,
+    landtype_refindices: Optional[Type[parametertools.NameParameter]] = None,
+    soiltype_refindices: Optional[Type[parametertools.NameParameter]] = None,
+    refweights: Optional[Type[parametertools.Parameter]] = None,
+) -> Callable[[Callable[[TM, TI, int], None]], SubmodelAdder[Literal[1], TM, TI]]:
+    ...
 
 
 def prepare_submodel(
     submodelname: str,
     submodelinterface: Type[TI],
     *methods: Callable[[NoReturn, NoReturn], None],
+    dimensionality: TD = 0,  # type: ignore[assignment]
     landtype_constants: Optional[parametertools.Constants] = None,
     soiltype_constants: Optional[parametertools.Constants] = None,
     landtype_refindices: Optional[Type[parametertools.NameParameter]] = None,
     soiltype_refindices: Optional[Type[parametertools.NameParameter]] = None,
     refweights: Optional[Type[parametertools.Parameter]] = None,
-) -> Callable[[Callable[[TM, TI], None]], SubmodelAdder[TM, TI]]:
+) -> Callable[
+    [Union[Callable[[TM, TI], None], Callable[[TM, TI, int], None]]],
+    SubmodelAdder[TD, TM, TI],
+]:
     """Wrap a model-specific method for preparing a submodel into a |SubmodelAdder|
     instance."""
 
-    def _prepare_submodel(wrapped: Callable[[TM, TI], None]) -> SubmodelAdder[TM, TI]:
-        return SubmodelAdder[TM, TI](
-            wrapped=wrapped,
+    def _prepare_submodel(
+        wrapped: Union[Callable[[TM, TI], None], Callable[[TM, TI, int], None]]
+    ) -> SubmodelAdder[TD, TM, TI]:
+        return SubmodelAdder[TD, TM, TI](
+            wrapped=cast(Any, wrapped),
             submodelname=submodelname,
             submodelinterface=submodelinterface,
             methods=methods,
+            dimensionality=dimensionality,
             landtype_constants=landtype_constants,
             soiltype_constants=soiltype_constants,
             landtype_refindices=landtype_refindices,
@@ -345,7 +383,7 @@ def prepare_submodel(
     return _prepare_submodel
 
 
-class SubmodelAdder(_DoctestAdder, Generic[TM, TI]):
+class SubmodelAdder(_DoctestAdder, Generic[TD, TM, TI]):
     """Wrapper that extends the functionality of model-specific methods for preparing
     submodels.
 
@@ -457,13 +495,12 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
     True
     """
 
-    wrapped: Callable[[TM, TI], None]
-    """The wrapped, model-specific method for preparing some control parameters 
-    automatically."""
     submodelname: str
     """The submodel's attribute name."""
     submodelinterface: Type[TI]
     """The relevant submodel interface."""
+    dimensionality: TD
+    """The dimensionality of the handled submodel reference(s) (either zero or one)."""
     methods: Tuple[Callable[[NoReturn, NoReturn], None], ...]
     """The submodel interface methods the wrapped method uses."""
     landtype_refindices: Optional[Type[parametertools.NameParameter]]
@@ -477,26 +514,61 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
         Type[modeltools.Model], Dict[str, SubmodelAdder]
     ] = collections.defaultdict(lambda: {})
 
+    _wrapped: Union[Callable[[TM, TI], None], Callable[[TM, TI, int], None]]
     _sharable_configuration: SharableConfiguration
     _model: Optional[TM]
     _mainmodelstack: ClassVar[List[modeltools.Model]] = []
 
+    @overload
     def __init__(
-        self,
+        self: SubmodelAdder[Literal[0], TM, TI],
         wrapped: Callable[[TM, TI], None],
         submodelname: str,
         submodelinterface: Type[TI],
         methods: Iterable[Callable[[NoReturn, NoReturn], None]],
+        dimensionality: TD,
         landtype_constants: Optional[parametertools.Constants],
         soiltype_constants: Optional[parametertools.Constants],
         landtype_refindices: Optional[Type[parametertools.NameParameter]],
         soiltype_refindices: Optional[Type[parametertools.NameParameter]],
         refweights: Optional[Type[parametertools.Parameter]],
     ) -> None:
-        self.wrapped = wrapped
+        ...
+
+    @overload
+    def __init__(
+        self: SubmodelAdder[Literal[1], TM, TI],
+        wrapped: Callable[[TM, TI, int], None],
+        submodelname: str,
+        submodelinterface: Type[TI],
+        methods: Iterable[Callable[[NoReturn, NoReturn], None]],
+        dimensionality: TD,
+        landtype_constants: Optional[parametertools.Constants],
+        soiltype_constants: Optional[parametertools.Constants],
+        landtype_refindices: Optional[Type[parametertools.NameParameter]],
+        soiltype_refindices: Optional[Type[parametertools.NameParameter]],
+        refweights: Optional[Type[parametertools.Parameter]],
+    ) -> None:
+        ...
+
+    def __init__(
+        self,
+        wrapped: Union[Callable[[TM, TI], None], Callable[[TM, TI, int], None]],
+        submodelname: str,
+        submodelinterface: Type[TI],
+        methods: Iterable[Callable[[NoReturn, NoReturn], None]],
+        dimensionality: TD,
+        landtype_constants: Optional[parametertools.Constants],
+        soiltype_constants: Optional[parametertools.Constants],
+        landtype_refindices: Optional[Type[parametertools.NameParameter]],
+        soiltype_refindices: Optional[Type[parametertools.NameParameter]],
+        refweights: Optional[Type[parametertools.Parameter]],
+    ) -> None:
+        self._wrapped = wrapped
         self.submodelname = submodelname
         self.submodelinterface = submodelinterface
         self.methods = tuple(methods)
+        self.dimensionality = dimensionality
         self._sharable_configuration = {
             "landtype_constants": landtype_constants,
             "soiltype_constants": soiltype_constants,
@@ -510,20 +582,63 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
         self._model = None
         self.__doc__ = wrapped.__doc__
 
+    @overload
+    def get_wrapped(
+        self: SubmodelAdder[Literal[0], TM, TI]
+    ) -> Callable[[TM, TI], None]:
+        ...
+
+    @overload
+    def get_wrapped(
+        self: SubmodelAdder[Literal[1], TM, TI]
+    ) -> Callable[[TM, TI, int], None]:
+        ...
+
+    def get_wrapped(
+        self: SubmodelAdder[TD, TM, TI]
+    ) -> Union[Callable[[TM, TI], None], Callable[[TM, TI, int], None]]:
+        """Return the wrapped, model-specific method for automatically preparing some
+        control parameters."""
+        return self._wrapped
+
     def __get__(
         self, obj: Optional[TM], type_: Type[modeltools.Model]
-    ) -> SubmodelAdder[TM, TI]:
+    ) -> SubmodelAdder[TD, TM, TI]:
         if obj is not None:
             self._model = obj
         return self
 
     def __set_name__(self, owner: Type[modeltools.Model], name: str) -> None:
+        super().__set_name__(owner, name)
         self.modeltype2submodelname2submodeladder[owner][self.submodelname] = self
+
+    @overload
+    def __call__(
+        self: SubmodelAdder[Literal[0], TM, TI],
+        module: Union[types.ModuleType, str],
+        *,
+        update: bool = True,
+    ) -> contextlib._GeneratorContextManager[modeltools.Model]:
+        ...
+
+    @overload
+    def __call__(
+        self: SubmodelAdder[Literal[1], TM, TI],
+        module: Union[types.ModuleType, str],
+        *,
+        position: int,
+        update: bool = True,
+    ) -> contextlib._GeneratorContextManager[modeltools.Model]:
+        ...
 
     @contextlib.contextmanager
     def __call__(
-        self, module: Union[types.ModuleType, str], update: bool = True
-    ) -> Generator[modeltools.Model, None, None]:
+        self,
+        module: Union[types.ModuleType, str],
+        *,
+        position: Optional[int] = None,
+        update: bool = True,
+    ) -> Iterator[modeltools.Model]:
         try:
             if isinstance(module, str):
                 module = importlib.import_module(f"hydpy.models.{module}")
@@ -544,11 +659,27 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
                 shared["refweights"] = getattr(control, rw.name)
             with submodeltype.share_configuration(shared):
                 submodel = prepare_model(module)
-                setattr(model, self.submodelname, submodel)
-                setattr(model, f"{self.submodelname}_typeid", interface.typeid)
+                assert isinstance(submodel, modeltools.SubmodelInterface)
+                if self.dimensionality == 0:
+                    setattr(model, self.submodelname, submodel)
+                    setattr(model, f"{self.submodelname}_typeid", interface.typeid)
+                elif self.dimensionality == 1:
+                    assert position is not None
+                    submodels = getattr(model, self.submodelname)
+                    assert isinstance(submodels, modeltools.SubmodelsProperty)
+                    submodels.put_submodel(
+                        submodel=submodel, typeid=interface.typeid, position=position
+                    )
+                else:
+                    assert_never(self.dimensionality)
                 assert isinstance(submodel, interface)
                 submodel._submodeladder = self
-                self.update(model, submodel)
+                if self.dimensionality == 0:
+                    self.update(model, submodel)
+                elif self.dimensionality == 1:
+                    self.update(model, submodel, position)
+                else:
+                    assert_never(self.dimensionality)
                 assert (
                     ((frame1 := inspect.currentframe()) is not None)
                     and ((frame2 := frame1.f_back) is not None)
@@ -581,7 +712,19 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
                 f"While trying to add a submodul to the main model `{model.name}`"
             )
 
-    def update(self, model: TM, submodel: TI) -> None:
+    @overload
+    def update(
+        self: SubmodelAdder[Literal[0], TM, TI], model: TM, submodel: TI
+    ) -> None:
+        ...
+
+    @overload
+    def update(
+        self: SubmodelAdder[Literal[1], TM, TI], model: TM, submodel: TI, position: int
+    ) -> None:
+        ...
+
+    def update(self, model: TM, submodel: TI, position: Optional[int] = None) -> None:
         """Update the connections between the given main model and its submodel, which
         can become necessary after disruptive configuration changes.
 
@@ -589,7 +732,11 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
         applications, because we cannot give clear recommendations for using it under
         different settings yet.
         """
-        self.wrapped(model, submodel)
+        if self.dimensionality == 0:
+            self.get_wrapped()(model, submodel)
+        else:
+            assert position is not None
+            self.get_wrapped()(model, submodel, position)
         if isinstance(model, modeltools.SubmodelInterface):
             im2a = model.predefinedmethod2argument
             for methodname in modeltools.SubmodelInterface.GENERAL_METHODS:
@@ -633,12 +780,12 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM, P]):
     'NmbHRU'
     """
 
-    wrapped: Callable[Concatenate[TM, P], None]
-    """The wrapped, submodel-specific method for setting the value of a single control 
-    parameter."""
     targetparameter: Type[parametertools.Parameter]
     """The control parameter the wrapped method modifies."""
 
+    _wrapped: Callable[Concatenate[TM, P], None]
+    """The wrapped, submodel-specific method for setting the value of a single control 
+    parameter."""
     _model: Optional[TM]
 
     def __init__(

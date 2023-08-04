@@ -2476,7 +2476,7 @@ nogil:
         >>> model.calc_test_v3 = MethodType(Calc_Test_V3.__call__, model)
         >>> FuncConverter(model, "calc_test_v3", model.calc_test_v3).pyxlines
             cpdef inline masterinterface.MasterInterface calc_test_v3(self) nogil:
-                return <masterinterface.MasterInterface>self.soilmodel
+                return (<masterinterface.MasterInterface>self.soilmodel)
         <BLANKLINE>
         """
 
@@ -2507,9 +2507,11 @@ nogil:
             lines.insert(1, f"        cdef {cytype} {name}")
         for idx, line in enumerate(lines):
             if "cast(" in line:
-                return_, _, part2 = line.partition("cast(")
-                submodel = part2.partition(", ")[2].replace(")", "", 1)
-                lines[idx] = f"{return_}<masterinterface.MasterInterface>{submodel}"
+                part1, _, part2 = line.partition("cast(")
+                part2 = part2.partition(", ")[2]
+                if ("," in part2) and (part2.index(",") < part2.index(")")):
+                    part2 = part2.replace(",", "", 1)
+                lines[idx] = f"{part1}(<masterinterface.MasterInterface>{part2}"
         return Lines(*lines)
 
 

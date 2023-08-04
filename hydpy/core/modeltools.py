@@ -1748,10 +1748,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         sublevel: int = 0,
         ignore: Optional[Tuple[Type[parametertools.Parameter], ...]] = None,
     ) -> List[str]:
-        if auxfiler is None:
-            parameter2auxfile = None
-        else:
-            parameter2auxfile = auxfiler.get(self)
+        parameter2auxfile = None if auxfiler is None else auxfiler.get(self)
         lines = []
         opts = hydpy.pub.options
         with opts.parameterstep(parameterstep), opts.simulationstep(simulationstep):
@@ -2396,7 +2393,11 @@ element.
         *,
         include_subsubmodels: bool = True,
         include_mainmodel: bool = False,
+        include_sidemodels: Literal[False] = ...,
         include_optional: Literal[False] = ...,
+        include_feedbacks: bool = False,
+        aggregate_vectors: Literal[False] = ...,
+        position: Optional[Literal[0, -1]] = None,
     ) -> Dict[str, Model]:
         ...
 
@@ -2406,7 +2407,91 @@ element.
         *,
         include_subsubmodels: bool = True,
         include_mainmodel: bool = False,
+        include_sidemodels: Literal[False] = ...,
         include_optional: Literal[True],
+        include_feedbacks: bool = False,
+        aggregate_vectors: Literal[False] = ...,
+        position: Optional[Literal[0, -1]] = None,
+    ) -> Dict[str, Optional[Model]]:
+        ...
+
+    @overload
+    def find_submodels(
+        self,
+        *,
+        include_subsubmodels: bool = True,
+        include_mainmodel: bool = False,
+        include_sidemodels: Literal[False] = ...,
+        include_optional: Literal[False] = ...,
+        include_feedbacks: bool = False,
+        aggregate_vectors: Literal[True],
+    ) -> Dict[str, Optional[Model]]:
+        ...
+
+    @overload
+    def find_submodels(
+        self,
+        *,
+        include_subsubmodels: bool = True,
+        include_mainmodel: bool = False,
+        include_sidemodels: Literal[False] = ...,
+        include_optional: Literal[True],
+        include_feedbacks: bool = False,
+        aggregate_vectors: Literal[True],
+    ) -> Dict[str, Optional[Model]]:
+        ...
+
+    @overload
+    def find_submodels(
+        self,
+        *,
+        include_subsubmodels: Literal[False],
+        include_mainmodel: bool = False,
+        include_sidemodels: Literal[True],
+        include_optional: Literal[False] = ...,
+        include_feedbacks: bool = False,
+        aggregate_vectors: Literal[False] = ...,
+        position: Optional[Literal[0, -1]] = None,
+    ) -> Dict[str, Model]:
+        ...
+
+    @overload
+    def find_submodels(
+        self,
+        *,
+        include_subsubmodels: Literal[False],
+        include_mainmodel: bool = False,
+        include_sidemodels: Literal[True],
+        include_optional: Literal[True],
+        include_feedbacks: bool = False,
+        aggregate_vectors: Literal[False] = ...,
+        position: Optional[Literal[0, -1]] = None,
+    ) -> Dict[str, Optional[Model]]:
+        ...
+
+    @overload
+    def find_submodels(
+        self,
+        *,
+        include_subsubmodels: Literal[False],
+        include_mainmodel: bool = False,
+        include_sidemodels: Literal[True],
+        include_optional: Literal[False] = ...,
+        include_feedbacks: bool = False,
+        aggregate_vectors: Literal[True],
+    ) -> Dict[str, Optional[Model]]:
+        ...
+
+    @overload
+    def find_submodels(
+        self,
+        *,
+        include_subsubmodels: Literal[False],
+        include_mainmodel: bool = False,
+        include_sidemodels: Literal[True],
+        include_optional: Literal[True],
+        include_feedbacks: bool = False,
+        aggregate_vectors: Literal[True],
     ) -> Dict[str, Optional[Model]]:
         ...
 
@@ -2415,8 +2500,11 @@ element.
         *,
         include_subsubmodels: bool = True,
         include_mainmodel: bool = False,
+        include_sidemodels: bool = False,
         include_optional: bool = False,
         include_feedbacks: bool = False,
+        aggregate_vectors: bool = False,
+        position: Optional[Literal[0, -1]] = None,
     ) -> Union[Dict[str, Model], Dict[str, Optional[Model]]]:
         """Find the (sub)submodel instances of the current main model instance.
 
@@ -2477,18 +2565,140 @@ element.
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
          'model.aetmodel.soilwatermodel': <hydpy.models.lland_v1.Model object ...>,
          'model.soilmodel': None}
+
+        All previous examples dealt with scalar submodel references handled by
+        |SubmodelProperty|.  Now we will focus on vectors of submodel references
+        handled by |SubmodelsProperty| and take |sw1d_channel| as an example:
+
+        >>> channel = prepare_model("sw1d_channel")
+        >>> channel.parameters.control.nmbsegments(2)
+
+        Again, method |Model.find_submodels| returns by default an empty dictionary if
+        no submodel is available:
+
+        >>> channel.find_submodels()
+        {}
+
+        The `include_optional` parameter works as shown for the scalar case.  But for
+        scalar cases, the names contain an additional suffix to indicate the position
+        of the respective submodel:
+
+        >>> pprint(channel.find_submodels(include_optional=True))
+        {'model.routingmodels_0': None,
+         'model.routingmodels_1': None,
+         'model.routingmodels_2': None,
+         'model.storagemodels_0': None,
+         'model.storagemodels_1': None}
+
+        We now add some possible submodels to the |sw1d_channel| main model:
+
+        >>> with channel.add_routingmodel_v1("sw1d_q_in", position=0, update=False):
+        ...     pass
+        >>> with channel.add_storagemodel_v1("sw1d_storage", position=0, update=False):
+        ...     pass
+        >>> with channel.add_routingmodel_v2("sw1d_lias", position=1, update=False):
+        ...     pass
+        >>> with channel.add_storagemodel_v1("sw1d_storage", position=1, update=False):
+        ...     pass
+        >>> with channel.add_routingmodel_v3("sw1d_weir_out", position=2, update=False):
+        ...     pass
+
+        Method |Model.find_submodels| associates them with the correct positions:
+
+        >>> pprint(channel.find_submodels())  # doctest: +ELLIPSIS
+        {'model.routingmodels_0': <hydpy.models.sw1d_q_in.Model object at ...>,
+         'model.routingmodels_1': <hydpy.models.sw1d_lias.Model object at ...>,
+         'model.routingmodels_2': <hydpy.models.sw1d_weir_out.Model object at ...>,
+         'model.storagemodels_0': <hydpy.models.sw1d_storage.Model object at ...>,
+         'model.storagemodels_1': <hydpy.models.sw1d_storage.Model object at ...>}
+
+        One can use the `aggregate_vectors` parameter to gain a better overview.
+        Then, |Model.find_submodels| reports only the names of the respective
+        |SubmodelsProperty| instances with a suffixed wildcard to distinguish them
+        from |SubmodelProperty| instances:
+
+        >>> channel.find_submodels(aggregate_vectors=True)  # doctest: +ELLIPSIS
+        {'model.routingmodels_*': None, 'model.storagemodels_*': None}
+
+        Another option is to include side models.  However, this does not work in
+        combination with including sub-submodels and thus cannot give further insight
+        into the configuration of a |sw1d_channel| model:
+
+        >>> pprint(channel.find_submodels(include_sidemodels=True))
+        Traceback (most recent call last):
+        ...
+        ValueError: Including sub-submodels and side-models leads to ambiguous results.
+
+        So, one needs to apply it to the respective submodels directly:
+
+        >>> pprint(channel.storagemodels[0].find_submodels(  # doctest: +ELLIPSIS
+        ...     include_subsubmodels=False, include_sidemodels=True))
+        {'model.routingmodelsdownstream_0': \
+<hydpy.models.sw1d_lias.Model object at ...>,
+         'model.routingmodelsupstream_0': <hydpy.models.sw1d_q_in.Model object at ...>}
+
+        >>> pprint(channel.routingmodels[1].find_submodels(  # doctest: +ELLIPSIS
+        ...     include_subsubmodels=False, include_sidemodels=True))
+        {'model.routingmodelsdownstream_0': <hydpy.models.sw1d_weir_out.Model object \
+at ...>,
+         'model.routingmodelsupstream_0': <hydpy.models.sw1d_q_in.Model object at ...>,
+         'model.storagemodeldownstream': <hydpy.models.sw1d_storage.Model object at \
+...>,
+         'model.storagemodelupstream': <hydpy.models.sw1d_storage.Model object at ...>}
+
+        When dealing with submodel arrays handled by |SubmodelsProperty| instances, one
+        might be interested in only querying the first or the last model, which is
+        supported by the `position` parameter:
+
+        >>> pprint(channel.find_submodels(position=0))  # doctest: +ELLIPSIS
+        {'model.routingmodels_0': <hydpy.models.sw1d_q_in.Model object at ...>,
+         'model.storagemodels_0': <hydpy.models.sw1d_storage.Model object at ...>}
+        >>> pprint(channel.find_submodels(position=-1))  # doctest: +ELLIPSIS
+        {'model.routingmodels_2': <hydpy.models.sw1d_weir_out.Model object at ...>,
+         'model.storagemodels_1': <hydpy.models.sw1d_storage.Model object at ...>}
+        >>> pprint(channel.find_submodels(position=1))  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        ValueError: The `position` argument requires the integer value `0´ or `-1`, \
+but the value `1` of type `int` is given.
         """
+
+        if include_subsubmodels and include_sidemodels:
+            raise ValueError(
+                "Including sub-submodels and side-models leads to ambiguous results."
+            )
+        if position not in (None, 0, -1):
+            raise ValueError(
+                "The `position` argument requires the integer value `0´ or `-1`, but "
+                f"the {objecttools.value_of_type(position)} is given."
+            )
 
         def _find_submodels(name: str, model: Model) -> None:
             name2submodel_new = {}
-            mt = type(model)
-            for submodelproperty in SubmodelProperty.__hydpy_modeltype2instance__[mt]:
-                if include_feedbacks or (
-                    not getattr(model, f"{submodelproperty.name}_is_mainmodel")
+
+            for subprop in SubmodelProperty.__hydpy_modeltype2instance__[type(model)]:
+                sub_is_main = getattr(model, f"{subprop.name}_is_mainmodel")
+                if (include_sidemodels or not subprop.sidemodel) and (
+                    include_feedbacks or not sub_is_main
                 ):
-                    submodel = getattr(model, submodelproperty.name)
+                    submodel = getattr(model, subprop.name)
                     if include_optional or (submodel is not None):
-                        name2submodel_new[f"{name}.{submodelproperty.name}"] = submodel
+                        name2submodel_new[f"{name}.{subprop.name}"] = submodel
+
+            for subsprop in SubmodelsProperty.__hydpy_modeltype2instance__[type(model)]:
+                if include_sidemodels or not subsprop.sidemodels:
+                    submodelsname = f"{name}.{subsprop.name}"
+                    if aggregate_vectors:
+                        name2submodel_new[f"{submodelsname}_*"] = None
+                    elif submodels := subsprop.__hydpy_mainmodel2submodels__[model]:
+                        if position is not None:
+                            i_last = len(submodels) - 1
+                            submodels = [submodels[position]]
+                        for i, submodel in enumerate(submodels):
+                            if include_optional or (submodel is not None):
+                                j = i_last if position == -1 else i
+                                name2submodel_new[f"{submodelsname}_{j}"] = submodel
+
             name2submodel.update(name2submodel_new)
             if include_subsubmodels:
                 for subname, submodel in name2submodel_new.items():

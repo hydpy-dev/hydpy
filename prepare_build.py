@@ -113,6 +113,10 @@ def _convert_interfaces(fast_cython: bool, profile_cython: bool) -> None:
         _write_twice("\ncimport numpy\n")
         _write_twice("\nfrom hydpy.cythons.autogen cimport interfaceutils\n")
         _write_twice("\n\ncdef class MasterInterface(interfaceutils.BaseInterface):\n")
+        signature = f"\n    cdef void new2old(self) nogil"
+        pxdfile.write(f"{signature}\n")
+        pyxfile.write(f"{signature}:\n")
+        pyxfile.write(f"        pass\n")
         for modulename in modulenames:
             pymodule = importlib.import_module(f"hydpy.interfaces.{modulename}")
             name2class = {

@@ -1333,6 +1333,8 @@ class PyxWriter:
                 if isinstance(member, modeltools.IndexProperty):
                     if (name != "idx_sim") or not follows_interface:
                         lines.add(1, f"cdef public {_int} {name}")
+        if isinstance(self.model, modeltools.SubstepModel):
+            lines.add(1, f"cdef public {TYPE2STR[float]} timeleft")
         if self.model.parameters:
             lines.add(1, "cdef public Parameters parameters")
         lines.add(1, "cdef public Sequences sequences")
@@ -1599,7 +1601,19 @@ class PyxWriter:
         """Return the lines of the model method with the same name."""
         if isinstance(model, modeltools.SegmentModel):
             return self._call_runmethods_segmentwise(model.RUN_METHODS)
-        return self._call_methods("run", model.RUN_METHODS)
+        lines = self._call_methods("run", model.RUN_METHODS)
+        if isinstance(model, modeltools.SubstepModel):
+            lines_ext = Lines()
+            lines_ext.add(0, lines[0])
+            lines_ext.add(2, "self.timeleft = self.parameters.derived.seconds")
+            lines_ext.add(2, "while True:")
+            for line in lines[1:]:
+                lines_ext.add(1, line)
+            lines_ext.add(3, "if self.timeleft <= 0.0:")
+            lines_ext.add(4, "break")
+            lines_ext.add(3, "self.new2old()")
+            return lines_ext
+        return lines
 
     @property
     def update_outlets(self) -> List[str]:

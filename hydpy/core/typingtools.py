@@ -161,7 +161,7 @@ StepSize = Literal["daily", "d", "monthly", "m"]
 class CyParametersProtocol(Protocol):
     """The protocol for the `parameters` attribute of Cython extension classes.
 
-    Class |Cythonizer| generates the actual, model specific implementations
+    Class |Cythonizer| generates the actual, model-specific implementations
     automatically.
     """
 
@@ -169,7 +169,7 @@ class CyParametersProtocol(Protocol):
 class CySequencesProtocol(Protocol):
     """The protocol for the `sequences` attribute of Cython extension classes.
 
-    Class |Cythonizer| generates the actual, model specific implementations
+    Class |Cythonizer| generates the actual, model-specific implementations
     automatically.
     """
 
@@ -178,13 +178,25 @@ class CyModelProtocol(Protocol):
     """The protocol of Cython extension classes for defining efficient model
     implementations.
 
-    Class |Cythonizer| generates the actual, model specific implementations
+    Class |Cythonizer| generates the actual, model-specific implementations
     automatically.
     """
 
     idx_sim: int
     parameters: CyParametersProtocol
     sequences: CySequencesProtocol
+
+
+class CySubstepModelProtocol(CyModelProtocol):
+    """The protocol of Cython extension classes for defining efficient model
+    implementations compatible with class |SubstepModel|.
+
+    Class |Cythonizer| generates the actual, model-specific implementations
+    automatically.
+    """
+
+    timeleft: float
+    """The time left within the current simulation step [s]."""
 
 
 SeriesFileType = Literal["npy", "asc", "nc"]
@@ -205,6 +217,7 @@ __all__ = [
     "Deque",
     "Dict",
     "CyModelProtocol",
+    "CySubstepModelProtocol",
     "Collection1",
     "Collection2",
     "Collection3",

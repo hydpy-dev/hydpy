@@ -3060,6 +3060,51 @@ class SegmentModel(RunModel):
             self.idx_segment = 0
 
 
+class SubstepModel(RunModel):
+    """Base class for (routing) models that solve the underlying differential equations
+    "substep-wise".
+
+    "substep-wise" means method |SubstepModel.run| repeatedly calls all "run methods"
+    in the usual order within each simulation step until the |SubstepModel.timeleft|
+    attribute is not larger than zero anymore.  The concrete model subclass is up to
+    reduce |SubstepModel.timeleft|.  This mechanism allows the concrete model to
+    adjust the internal calculation time step depending on its current accuracy and
+    stability requirements.
+    """
+
+    cymodel: Optional[CySubstepModelProtocol]
+
+    _timeleft: float = 0.0
+
+    @property
+    def timeleft(self) -> float:
+        """The time left within the current simulation step [s]."""
+        if (cymodel := self.cymodel) is None:
+            return self._timeleft
+        return cymodel.timeleft
+
+    @timeleft.setter
+    def timeleft(self, value: float) -> None:
+        if (cymodel := self.cymodel) is None:
+            self._timeleft = value
+        else:
+            cymodel.timeleft = value
+
+    def run(self) -> None:
+        """Call all methods defined as "run methods" repeatedly.
+
+        When working in Cython mode, the standard model import overrides this generic
+        Python version with a model-specific Cython version.
+        """
+        self.timeleft = self.parameters.derived.seconds.value
+        while True:
+            for method in self.RUN_METHODS:
+                method.__call__(self)  # pylint: disable=unnecessary-dunder-call
+            if self.timeleft <= 0.0:
+                break
+            self.new2old()
+
+
 class SolverModel(Model):
     """Base class for hydrological models, which solve ordinary differential equations
     with numerical integration algorithms."""

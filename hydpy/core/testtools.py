@@ -395,8 +395,8 @@ class Test:
     HEADER_OF_FIRST_COL: Any
 
     inits = ArrayDescriptor()
-    """Stores arrays for setting the same values of parameters and/or
-    sequences before each new experiment."""
+    """Stores arrays for setting the same values of parameters and/or sequences before 
+    each new experiment."""
 
     @property
     @abc.abstractmethod
@@ -498,11 +498,7 @@ class Test:
         lst.append(separators[-1])
         return "".join(lst)
 
-    def make_table(
-        self,
-        idx1: Optional[int] = None,
-        idx2: Optional[int] = None,
-    ) -> str:
+    def make_table(self, idx1: Optional[int] = None, idx2: Optional[int] = None) -> str:
         """Return the result table between the given indices."""
         lines = []
         col_widths = self.col_widths
@@ -526,9 +522,7 @@ class Test:
         return "\n".join(lines)
 
     def print_table(
-        self,
-        idx1: Optional[int] = None,
-        idx2: Optional[int] = None,
+        self, idx1: Optional[int] = None, idx2: Optional[int] = None
     ) -> None:
         """Print the result table between the given indices."""
         print(self.make_table(idx1=idx1, idx2=idx2))
@@ -675,8 +669,7 @@ class IntegrationTest(Test):
     def dateformat(self) -> str:
         """Format string for printing dates in the first column of the table.
 
-        See the documentation on module |datetime| for the format strings
-        allowed.
+        See the documentation on module |datetime| for the format strings allowed.
 
         You can query and change property |IntegrationTest.dateformat|:
 
@@ -694,9 +687,9 @@ class IntegrationTest(Test):
         >>> tester.dateformat = 999
         Traceback (most recent call last):
         ...
-        ValueError: The given date format `999` is not a valid format \
-string for `datetime` objects.  Please read the documentation on module \
-datetime of the Python standard library for for further information.
+        ValueError: The given date format `999` is not a valid format string for \
+`datetime` objects.  Please read the documentation on module datetime of the Python \
+standard library for for further information.
 
         >>> tester.dateformat = "%x"
         >>> tester.dateformat
@@ -713,10 +706,9 @@ datetime of the Python standard library for for further information.
             datetime.datetime(2000, 1, 1).strftime(dateformat)
         except BaseException as exc:
             raise ValueError(
-                f"The given date format `{dateformat}` is not a valid "
-                f"format string for `datetime` objects.  Please read "
-                f"the documentation on module datetime of the Python "
-                f"standard library for for further information."
+                f"The given date format `{dateformat}` is not a valid format string "
+                f"for `datetime` objects.  Please read the documentation on module "
+                f"datetime of the Python standard library for for further information."
             ) from exc
         vars(self)["dateformat"] = dateformat
 
@@ -727,9 +719,9 @@ datetime of the Python standard library for for further information.
     def prepare_node_sequences(self) -> None:
         """Prepare the simulations series of all nodes.
 
-        This preparation might not be suitable for all types of integration
-        tests.  Prepare those node sequences manually, for which this method
-        does not result in the desired outcome."""
+        This preparation might not be suitable for all types of integration tests.
+        Prepare those node sequences manually, for which this method does not result in
+        the desired outcome."""
         for node in self.nodes:
             if not node.entries:
                 node.deploymode = "oldsim"
@@ -820,11 +812,10 @@ datetime of the Python standard library for for further information.
         """Save a plotly HTML file plotting the current test results.
 
         (Optional) arguments:
-            * filename: Name of the file.  If necessary, the file ending
-              `html` is added automatically.  The file is stored in the
-              `html_` folder of subpackage `docs`.
-            * act_sequences: List of the sequences to be shown initially
-              (deprecated).
+            * filename: Name of the file.  If necessary, the file ending `html` is
+              added automatically.  The file is stored in the `html_` folder of
+              subpackage `docs`.
+            * act_sequences: List of the sequences to be shown initially (deprecated).
             * axis1: sequences to be shown initially on the first axis.
             * axis2: sequences to be shown initially on the second axis.
         """

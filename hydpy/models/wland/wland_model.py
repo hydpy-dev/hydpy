@@ -2868,7 +2868,13 @@ class Main_PETModel_V1(modeltools.ELSModel):
         landtype_refindices=wland_control.LT,
         refweights=wland_control.AUR,
     )
-    def add_petmodel_v1(self, petmodel: petinterfaces.PETModel_V1) -> None:
+    def add_petmodel_v1(
+        self,
+        petmodel: petinterfaces.PETModel_V1,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
         """Initialise the given `petmodel` that follows the |PETModel_V1| interface and
         is responsible for calculating the potential evapotranspiration of the
         (land-related) hydrological response units.
@@ -2907,7 +2913,13 @@ class Main_PETModel_V1(modeltools.ELSModel):
         petinterfaces.PETModel_V1.prepare_nmbzones,
         petinterfaces.PETModel_V1.prepare_subareas,
     )
-    def add_pemodel_v1(self, pemodel: petinterfaces.PETModel_V1) -> None:
+    def add_pemodel_v1(
+        self,
+        pemodel: petinterfaces.PETModel_V1,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
         """Initialise the given `pemodel` that follows the |PETModel_V1| interface and
         is responsible for calculating the potential evaporation of the surface water
         storage.

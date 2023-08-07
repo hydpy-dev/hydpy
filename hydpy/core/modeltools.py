@@ -2784,11 +2784,17 @@ but the value `1` of type `int` is given.
         altitude(400.0)
         """
         self.parameters.update()
-        for submodel in self.find_submodels(include_subsubmodels=False).values():
+        for name, submodel in self.find_submodels(include_subsubmodels=False).items():
             if isinstance(submodel, SubmodelInterface):
                 adder = submodel._submodeladder  # pylint: disable=protected-access
                 if adder is not None:
-                    adder.update(self, submodel)
+                    if adder.dimensionality == 0:
+                        adder.update(self, submodel, refresh=True)
+                    elif adder.dimensionality == 1:
+                        position = int(name.rpartition("_")[2])
+                        adder.update(self, submodel, position=position, refresh=True)
+                    else:
+                        assert_never(adder.dimensionality)
                     submodel.update_parameters()
 
     # ToDo: Replace this hack with a Mypy plugin?

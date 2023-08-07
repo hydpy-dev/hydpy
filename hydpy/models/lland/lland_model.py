@@ -7657,7 +7657,13 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         landtype_refindices=lland_control.Lnk,
         refweights=lland_control.FHRU,
     )
-    def add_aetmodel_v1(self, aetmodel: aetinterfaces.AETModel_V1) -> None:
+    def add_aetmodel_v1(
+        self,
+        aetmodel: aetinterfaces.AETModel_V1,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
         """Initialise the given submodel that follows the |AETModel_V1| interface and
         is responsible for calculating the different kinds of actual
         evapotranspiration.
@@ -7749,7 +7755,13 @@ class Main_SoilModel_V1(modeltools.AdHocModel):
         soilinterfaces.SoilModel_V1,
         soilinterfaces.SoilModel_V1.prepare_nmbzones,
     )
-    def add_soilmodel_v1(self, soilmodel: soilinterfaces.SoilModel_V1) -> None:
+    def add_soilmodel_v1(
+        self,
+        soilmodel: soilinterfaces.SoilModel_V1,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
         """Initialise the given soil model that follows the |SoilModel_V1| interface.
 
         >>> from hydpy.models.lland_v1 import *

@@ -991,8 +991,8 @@ exactly:
     >>> for name, value in name2value.items():
     ...     if name not in ("nmbzones", "sclass", "area", "zonearea", "zonetype", "sfdist"):
     ...         control[name].value = value
-    >>> model.add_aetmodel_v1.update(model, model.aetmodel)
-    >>> model.aetmodel.add_petmodel_v1.update(model.aetmodel, model.aetmodel.petmodel)
+    >>> model.add_aetmodel_v1.update(model, model.aetmodel, refresh=True)
+    >>> model.aetmodel.add_petmodel_v1.update(model.aetmodel, model.aetmodel.petmodel, refresh=True)
     >>> aetcontrol = model.aetmodel.parameters.control
     >>> aetcontrol.temperaturethresholdice(0.0)
     >>> aetcontrol.soilmoisturelimit(0.8)

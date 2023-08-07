@@ -29,8 +29,35 @@ from hydpy.core import timetools
 from hydpy.core.typingtools import *
 
 TD = TypeVar("TD", Literal[0], Literal[1])
-TM = TypeVar("TM", bound="modeltools.Model")
-TI = TypeVar("TI", bound="modeltools.SubmodelInterface")
+TM_contra = TypeVar("TM_contra", bound="modeltools.Model", contravariant=True)
+TI_contra = TypeVar(
+    "TI_contra", bound="modeltools.SubmodelInterface", contravariant=True
+)
+
+
+class PrepSub0D(Protocol[TM_contra, TI_contra]):
+    """Specification for defining custom "add_submodel" methods to be wrapped by
+    function |prepare_submodel| when dealing with scalar submodel references."""
+
+    __name__: str
+
+    def __call__(
+        self, model: TM_contra, submodel: TI_contra, /, *, refresh: bool
+    ) -> None:
+        ...
+
+
+class PrepSub1D(Protocol[TM_contra, TI_contra]):
+    """Specification for model-specific "add_submodel" methods to be wrapped by
+    function |prepare_submodel| when dealing with vectorial submodel references."""
+
+    __name__: str
+
+    def __call__(
+        self, model: TM_contra, submodel: TI_contra, /, *, position: int, refresh: bool
+    ) -> None:
+        ...
+
 
 __HYDPY_MODEL_LOCALS__ = "__hydpy_model_locals__"
 
@@ -320,7 +347,7 @@ class _DoctestAdder:
 @overload
 def prepare_submodel(
     submodelname: str,
-    submodelinterface: Type[TI],
+    submodelinterface: Type[TI_contra],
     *methods: Callable[[NoReturn, NoReturn], None],
     dimensionality: Literal[0] = ...,
     landtype_constants: Optional[parametertools.Constants] = None,
@@ -328,14 +355,16 @@ def prepare_submodel(
     landtype_refindices: Optional[Type[parametertools.NameParameter]] = None,
     soiltype_refindices: Optional[Type[parametertools.NameParameter]] = None,
     refweights: Optional[Type[parametertools.Parameter]] = None,
-) -> Callable[[Callable[[TM, TI], None]], SubmodelAdder[Literal[0], TM, TI]]:
+) -> Callable[
+    [PrepSub0D[TM_contra, TI_contra]], SubmodelAdder[Literal[0], TM_contra, TI_contra]
+]:
     ...
 
 
 @overload
 def prepare_submodel(
     submodelname: str,
-    submodelinterface: Type[TI],
+    submodelinterface: Type[TI_contra],
     *methods: Callable[[NoReturn, NoReturn], None],
     dimensionality: Literal[1],
     landtype_constants: Optional[parametertools.Constants] = None,
@@ -343,13 +372,15 @@ def prepare_submodel(
     landtype_refindices: Optional[Type[parametertools.NameParameter]] = None,
     soiltype_refindices: Optional[Type[parametertools.NameParameter]] = None,
     refweights: Optional[Type[parametertools.Parameter]] = None,
-) -> Callable[[Callable[[TM, TI, int], None]], SubmodelAdder[Literal[1], TM, TI]]:
+) -> Callable[
+    [PrepSub1D[TM_contra, TI_contra]], SubmodelAdder[Literal[1], TM_contra, TI_contra]
+]:
     ...
 
 
 def prepare_submodel(
     submodelname: str,
-    submodelinterface: Type[TI],
+    submodelinterface: Type[TI_contra],
     *methods: Callable[[NoReturn, NoReturn], None],
     dimensionality: TD = 0,  # type: ignore[assignment]
     landtype_constants: Optional[parametertools.Constants] = None,
@@ -358,16 +389,16 @@ def prepare_submodel(
     soiltype_refindices: Optional[Type[parametertools.NameParameter]] = None,
     refweights: Optional[Type[parametertools.Parameter]] = None,
 ) -> Callable[
-    [Union[Callable[[TM, TI], None], Callable[[TM, TI, int], None]]],
-    SubmodelAdder[TD, TM, TI],
+    [Union[PrepSub0D[TM_contra, TI_contra], PrepSub1D[TM_contra, TI_contra]]],
+    SubmodelAdder[TD, TM_contra, TI_contra],
 ]:
     """Wrap a model-specific method for preparing a submodel into a |SubmodelAdder|
     instance."""
 
     def _prepare_submodel(
-        wrapped: Union[Callable[[TM, TI], None], Callable[[TM, TI, int], None]]
-    ) -> SubmodelAdder[TD, TM, TI]:
-        return SubmodelAdder[TD, TM, TI](
+        wrapped: Union[PrepSub0D[TM_contra, TI_contra], PrepSub1D[TM_contra, TI_contra]]
+    ) -> SubmodelAdder[TD, TM_contra, TI_contra]:
+        return SubmodelAdder[TD, TM_contra, TI_contra](
             wrapped=cast(Any, wrapped),
             submodelname=submodelname,
             submodelinterface=submodelinterface,
@@ -383,7 +414,7 @@ def prepare_submodel(
     return _prepare_submodel
 
 
-class SubmodelAdder(_DoctestAdder, Generic[TD, TM, TI]):
+class SubmodelAdder(_DoctestAdder, Generic[TD, TM_contra, TI_contra]):
     """Wrapper that extends the functionality of model-specific methods for preparing
     submodels.
 
@@ -497,7 +528,7 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
 
     submodelname: str
     """The submodel's attribute name."""
-    submodelinterface: Type[TI]
+    submodelinterface: Type[TI_contra]
     """The relevant submodel interface."""
     dimensionality: TD
     """The dimensionality of the handled submodel reference(s) (either zero or one)."""
@@ -514,17 +545,17 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
         Type[modeltools.Model], Dict[str, SubmodelAdder]
     ] = collections.defaultdict(lambda: {})
 
-    _wrapped: Union[Callable[[TM, TI], None], Callable[[TM, TI, int], None]]
+    _wrapped: Union[PrepSub0D[TM_contra, TI_contra], PrepSub1D[TM_contra, TI_contra]]
     _sharable_configuration: SharableConfiguration
-    _model: Optional[TM]
+    _model: Optional[TM_contra]
     _mainmodelstack: ClassVar[List[modeltools.Model]] = []
 
     @overload
     def __init__(
-        self: SubmodelAdder[Literal[0], TM, TI],
-        wrapped: Callable[[TM, TI], None],
+        self: SubmodelAdder[Literal[0], TM_contra, TI_contra],
+        wrapped: PrepSub0D[TM_contra, TI_contra],
         submodelname: str,
-        submodelinterface: Type[TI],
+        submodelinterface: Type[TI_contra],
         methods: Iterable[Callable[[NoReturn, NoReturn], None]],
         dimensionality: TD,
         landtype_constants: Optional[parametertools.Constants],
@@ -537,10 +568,10 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
 
     @overload
     def __init__(
-        self: SubmodelAdder[Literal[1], TM, TI],
-        wrapped: Callable[[TM, TI, int], None],
+        self: SubmodelAdder[Literal[1], TM_contra, TI_contra],
+        wrapped: PrepSub1D[TM_contra, TI_contra],
         submodelname: str,
-        submodelinterface: Type[TI],
+        submodelinterface: Type[TI_contra],
         methods: Iterable[Callable[[NoReturn, NoReturn], None]],
         dimensionality: TD,
         landtype_constants: Optional[parametertools.Constants],
@@ -553,9 +584,11 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
 
     def __init__(
         self,
-        wrapped: Union[Callable[[TM, TI], None], Callable[[TM, TI, int], None]],
+        wrapped: Union[
+            PrepSub0D[TM_contra, TI_contra], PrepSub1D[TM_contra, TI_contra]
+        ],
         submodelname: str,
-        submodelinterface: Type[TI],
+        submodelinterface: Type[TI_contra],
         methods: Iterable[Callable[[NoReturn, NoReturn], None]],
         dimensionality: TD,
         landtype_constants: Optional[parametertools.Constants],
@@ -584,26 +617,26 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
 
     @overload
     def get_wrapped(
-        self: SubmodelAdder[Literal[0], TM, TI]
-    ) -> Callable[[TM, TI], None]:
+        self: SubmodelAdder[Literal[0], TM_contra, TI_contra]
+    ) -> PrepSub0D[TM_contra, TI_contra]:
         ...
 
     @overload
     def get_wrapped(
-        self: SubmodelAdder[Literal[1], TM, TI]
-    ) -> Callable[[TM, TI, int], None]:
+        self: SubmodelAdder[Literal[1], TM_contra, TI_contra]
+    ) -> PrepSub1D[TM_contra, TI_contra]:
         ...
 
     def get_wrapped(
-        self: SubmodelAdder[TD, TM, TI]
-    ) -> Union[Callable[[TM, TI], None], Callable[[TM, TI, int], None]]:
+        self: SubmodelAdder[TD, TM_contra, TI_contra]
+    ) -> Union[PrepSub0D[TM_contra, TI_contra], PrepSub1D[TM_contra, TI_contra]]:
         """Return the wrapped, model-specific method for automatically preparing some
         control parameters."""
         return self._wrapped
 
     def __get__(
-        self, obj: Optional[TM], type_: Type[modeltools.Model]
-    ) -> SubmodelAdder[TD, TM, TI]:
+        self, obj: Optional[TM_contra], type_: Type[modeltools.Model]
+    ) -> SubmodelAdder[TD, TM_contra, TI_contra]:
         if obj is not None:
             self._model = obj
         return self
@@ -614,7 +647,7 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
 
     @overload
     def __call__(
-        self: SubmodelAdder[Literal[0], TM, TI],
+        self: SubmodelAdder[Literal[0], TM_contra, TI_contra],
         module: Union[types.ModuleType, str],
         *,
         update: bool = True,
@@ -623,7 +656,7 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
 
     @overload
     def __call__(
-        self: SubmodelAdder[Literal[1], TM, TI],
+        self: SubmodelAdder[Literal[1], TM_contra, TI_contra],
         module: Union[types.ModuleType, str],
         *,
         position: int,
@@ -675,9 +708,9 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
                 assert isinstance(submodel, interface)
                 submodel._submodeladder = self
                 if self.dimensionality == 0:
-                    self.update(model, submodel)
+                    self.update(model, submodel, refresh=False)
                 elif self.dimensionality == 1:
-                    self.update(model, submodel, position)
+                    self.update(model, submodel, position=position, refresh=False)
                 else:
                     assert_never(self.dimensionality)
                 assert (
@@ -714,17 +747,36 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
 
     @overload
     def update(
-        self: SubmodelAdder[Literal[0], TM, TI], model: TM, submodel: TI
+        self: SubmodelAdder[Literal[0], TM_contra, TI_contra],
+        model: TM_contra,
+        submodel: TI_contra,
+        /,
+        *,
+        refresh: bool,
     ) -> None:
         ...
 
     @overload
     def update(
-        self: SubmodelAdder[Literal[1], TM, TI], model: TM, submodel: TI, position: int
+        self: SubmodelAdder[Literal[1], TM_contra, TI_contra],
+        model: TM_contra,
+        submodel: TI_contra,
+        /,
+        *,
+        position: int,
+        refresh: bool,
     ) -> None:
         ...
 
-    def update(self, model: TM, submodel: TI, position: Optional[int] = None) -> None:
+    def update(
+        self,
+        model: TM_contra,
+        submodel: TI_contra,
+        /,
+        *,
+        refresh: bool,
+        position: Optional[int] = None,
+    ) -> None:
         """Update the connections between the given main model and its submodel, which
         can become necessary after disruptive configuration changes.
 
@@ -733,10 +785,12 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
         different settings yet.
         """
         if self.dimensionality == 0:
-            self.get_wrapped()(model, submodel)
-        else:
+            self.get_wrapped()(model, submodel, refresh=refresh)
+        elif self.dimensionality == 1:
             assert position is not None
-            self.get_wrapped()(model, submodel, position)
+            self.get_wrapped()(model, submodel, position=position, refresh=refresh)
+        else:
+            assert_never(self.dimensionality)
         if isinstance(model, modeltools.SubmodelInterface):
             im2a = model.predefinedmethod2argument
             for methodname in modeltools.SubmodelInterface.GENERAL_METHODS:
@@ -746,20 +800,22 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
 
 def define_targetparameter(
     parameter: Type[parametertools.Parameter],
-) -> Callable[[Callable[Concatenate[TM, P], None]], TargetParameterUpdater[TM, P]]:
+) -> Callable[
+    [Callable[Concatenate[TM_contra, P], None]], TargetParameterUpdater[TM_contra, P]
+]:
     """Wrap a submodel-specific method that allows the main model to set the value
     of a single control parameter of the submodel into a |TargetParameterUpdater|
     instance."""
 
     def _select_parameter(
-        wrapped: Callable[Concatenate[TM, P], None]
-    ) -> TargetParameterUpdater[TM, P]:
-        return TargetParameterUpdater[TM, P](wrapped, parameter)
+        wrapped: Callable[Concatenate[TM_contra, P], None]
+    ) -> TargetParameterUpdater[TM_contra, P]:
+        return TargetParameterUpdater[TM_contra, P](wrapped, parameter)
 
     return _select_parameter
 
 
-class TargetParameterUpdater(_DoctestAdder, Generic[TM, P]):
+class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
     """Wrapper that extends the functionality of a submodel-specific method that allows
     the main model to set the value of a single control parameter of the submodel.
 
@@ -783,30 +839,30 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM, P]):
     targetparameter: Type[parametertools.Parameter]
     """The control parameter the wrapped method modifies."""
 
-    _wrapped: Callable[Concatenate[TM, P], None]
+    _wrapped: Callable[Concatenate[TM_contra, P], None]
     """The wrapped, submodel-specific method for setting the value of a single control 
     parameter."""
-    _model: Optional[TM]
+    _model: Optional[TM_contra]
 
     def __init__(
         self,
-        wrapped: Callable[Concatenate[TM, P], None],
+        wrapped: Callable[Concatenate[TM_contra, P], None],
         targetparameter: Type[parametertools.Parameter],
     ) -> None:
-        self.wrapped = wrapped
+        self._wrapped = wrapped
         self.targetparameter = targetparameter
         self.__doc__ = wrapped.__doc__
 
     def __get__(
-        self, obj: Optional[TM], type_: Type[modeltools.Model]
-    ) -> TargetParameterUpdater[TM, P]:
+        self, obj: Optional[TM_contra], type_: Type[modeltools.Model]
+    ) -> TargetParameterUpdater[TM_contra, P]:
         if obj is not None:
             self._model = obj
         return self
 
     def __call__(self, *args: P.args, **kwargs: P.kwargs) -> None:
         assert (model := self._model) is not None
-        self.wrapped(model, *args, **kwargs)
+        self._wrapped(model, *args, **kwargs)
 
 
 def simulationstep(timestep: timetools.PeriodConstrArg) -> None:

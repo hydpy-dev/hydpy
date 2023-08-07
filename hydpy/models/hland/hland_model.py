@@ -4804,7 +4804,13 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         landtype_refindices=hland_control.ZoneType,
         refweights=hland_control.ZoneArea,
     )
-    def add_aetmodel_v1(self, aetmodel: aetinterfaces.AETModel_V1) -> None:
+    def add_aetmodel_v1(
+        self,
+        aetmodel: aetinterfaces.AETModel_V1,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
         """Initialise the given submodel that follows the |AETModel_V1| interface and
         is responsible for calculating the different kinds of actual
         evapotranspiration.

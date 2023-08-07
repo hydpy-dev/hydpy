@@ -5932,7 +5932,13 @@ class Main_RET_PETModel_V1(modeltools.AdHocModel):
         petinterfaces.PETModel_V1.prepare_nmbzones,
         petinterfaces.PETModel_V1.prepare_subareas,
     )
-    def add_retmodel_v1(self, retmodel: petinterfaces.PETModel_V1) -> None:
+    def add_retmodel_v1(
+        self,
+        retmodel: petinterfaces.PETModel_V1,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
         """Initialise the given `retmodel` that follows the |PETModel_V1| interface and
         is responsible for calculating the reference evapotranspiration.
 
@@ -5966,7 +5972,13 @@ class Main_PET_PETModel_V1(modeltools.AdHocModel):
         petinterfaces.PETModel_V1,
         petinterfaces.PETModel_V1.prepare_nmbzones,
     )
-    def add_petmodel_v1(self, petmodel: petinterfaces.PETModel_V1) -> None:
+    def add_petmodel_v1(
+        self,
+        petmodel: petinterfaces.PETModel_V1,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
         """Initialise the given `petmodel` that follows the |PETModel_V1| interface and
         is responsible for calculating potential evapotranspiration.
 
@@ -6039,7 +6051,13 @@ class Main_TempModel_V2A(modeltools.AdHocModel):
         tempinterfaces.TempModel_V2.prepare_nmbzones,
         tempinterfaces.TempModel_V2.prepare_subareas,
     )
-    def add_tempmodel_v2(self, tempmodel: tempinterfaces.TempModel_V2) -> None:
+    def add_tempmodel_v2(
+        self,
+        tempmodel: tempinterfaces.TempModel_V2,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
         """Initialise the given precipitation model that follows the |TempModel_V2|
         interface and set the number and the subareas of its zones.
 
@@ -6075,7 +6093,13 @@ class Main_TempModel_V2B(modeltools.AdHocModel):
         tempinterfaces.TempModel_V2,
         tempinterfaces.TempModel_V2.prepare_nmbzones,
     )
-    def add_tempmodel_v2(self, tempmodel: tempinterfaces.TempModel_V2) -> None:
+    def add_tempmodel_v2(
+        self,
+        tempmodel: tempinterfaces.TempModel_V2,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
         """Initialise the given precipitation model that follows the |TempModel_V2|
         interface and set the number of its zones.
 
@@ -6149,7 +6173,13 @@ class Main_PrecipModel_V2(modeltools.AdHocModel):
         precipinterfaces.PrecipModel_V2.prepare_nmbzones,
         precipinterfaces.PrecipModel_V2.prepare_subareas,
     )
-    def add_precipmodel_v2(self, precipmodel: precipinterfaces.PrecipModel_V2) -> None:
+    def add_precipmodel_v2(
+        self,
+        precipmodel: precipinterfaces.PrecipModel_V2,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
         """Initialise the given precipitation model that follows the |PrecipModel_V2|
         interface and set the number and the subareas of its zones.
 
@@ -6216,7 +6246,13 @@ class Main_IntercModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
         stateinterfaces.IntercModel_V1,
         stateinterfaces.IntercModel_V1.prepare_nmbzones,
     )
-    def add_intercmodel_v1(self, intercmodel: stateinterfaces.IntercModel_V1) -> None:
+    def add_intercmodel_v1(
+        self,
+        intercmodel: stateinterfaces.IntercModel_V1,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
         """Initialise the given interception model that follows the |IntercModel_V1|
         interface and set the number of its zones.
 
@@ -6277,7 +6313,11 @@ class Main_SoilWaterModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface
         stateinterfaces.SoilWaterModel_V1.prepare_nmbzones,
     )
     def add_soilwatermodel_v1(
-        self, soilwatermodel: stateinterfaces.SoilWaterModel_V1
+        self,
+        soilwatermodel: stateinterfaces.SoilWaterModel_V1,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
     ) -> None:
         """Initialise the given soil water model that follows the |SoilWaterModel_V1|
         interface and set the number of its zones.
@@ -6339,7 +6379,11 @@ class Main_SnowCoverModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface
         stateinterfaces.SnowCoverModel_V1.prepare_nmbzones,
     )
     def add_snowcovermodel_v1(
-        self, snowcovermodel: stateinterfaces.SnowCoverModel_V1
+        self,
+        snowcovermodel: stateinterfaces.SnowCoverModel_V1,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
     ) -> None:
         """Initialise the given snow cover model that follows the
         |SnowCoverModel_V1| interface and set the number of its zones.
@@ -6401,7 +6445,11 @@ class Main_SnowyCanopyModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterfa
         stateinterfaces.SnowyCanopyModel_V1.prepare_nmbzones,
     )
     def add_snowycanopymodel_v1(
-        self, snowycanopymodel: stateinterfaces.SnowyCanopyModel_V1
+        self,
+        snowycanopymodel: stateinterfaces.SnowyCanopyModel_V1,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
     ) -> None:
         """Initialise the given snow cover model that follows the
         |SnowyCanopyModel_V1| interface and set the number of its zones.
@@ -6463,7 +6511,11 @@ class Main_SnowAlbedoModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterfac
         stateinterfaces.SnowAlbedoModel_V1.prepare_nmbzones,
     )
     def add_snowalbedomodel_v1(
-        self, snowalbedomodel: stateinterfaces.SnowAlbedoModel_V1
+        self,
+        snowalbedomodel: stateinterfaces.SnowAlbedoModel_V1,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
     ) -> None:
         """Initialise the given albedo model that follows the |SnowAlbedoModel_V1|
         interface and set the number of its zones.

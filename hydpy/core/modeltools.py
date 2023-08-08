@@ -1049,6 +1049,12 @@ class Model:
 
     SOLVERPARAMETERS: Tuple[Type[parametertools.Parameter], ...] = ()
 
+    COMPOSITE: bool = False
+    """Flag for informing whether the respective |Model| subclass is usually not 
+    directly applied by model users but behind the scenes for compositing all models 
+    owned by elements belonging to the same |Element.collective| (see method 
+    |Elements.unite_collectives|)."""
+
     def __init__(self) -> None:
         self.cymodel = None
         self._element = None
@@ -1123,8 +1129,10 @@ has been requested but not been prepared so far.
 
     @element.setter
     def element(self, element: devicetools.Element) -> None:
-        for model in self.find_submodels(include_mainmodel=True).values():
-            model._element = element  # pylint: disable=protected-access
+        self._element = element
+        if not self.COMPOSITE:
+            for model in self.find_submodels().values():
+                model._element = element  # pylint: disable=protected-access
         if exceptiontools.getattr_(element, "model", None) is not self:
             element.model = self
 

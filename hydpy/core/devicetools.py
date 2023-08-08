@@ -2171,7 +2171,7 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         for element in itertools.chain(self.entries, self.exits):
             model: Optional[modeltools.Model]
             model = exceptiontools.getattr_(element, "model", None)
-            if model:
+            if model and not model.COMPOSITE:
                 model.connect()
 
     def get_double(self, group: str) -> pointerutils.Double:
@@ -3074,7 +3074,8 @@ already a collective `NileRiver` member.
         self._model = model
         if exceptiontools.getattr_(model, "element", None) is not self:
             model.element = self
-        model.connect()
+        if not model.COMPOSITE:
+            model.connect()
 
     @model.deleter
     def model(self) -> None:

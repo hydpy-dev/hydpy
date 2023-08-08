@@ -7,6 +7,7 @@ import abc
 import collections
 import contextlib
 import copy
+import functools
 import importlib
 import inspect
 import itertools
@@ -34,10 +35,13 @@ from hydpy.cythons import modelutils
 
 if TYPE_CHECKING:
     from hydpy.core import masktools
+    from hydpy.core import selectiontools
     from hydpy.auxs import interptools
     from hydpy.cythons import interfaceutils
 
 
+TypeModel_co = TypeVar("TypeModel_co", bound="Model", covariant=True)
+TypeModel_contra = TypeVar("TypeModel_contra", bound="Model", contravariant=True)
 TypeSubmodelInterface = TypeVar("TypeSubmodelInterface", bound="SubmodelInterface")
 
 
@@ -4411,3 +4415,142 @@ class Submodel:
                     f"method{idx}",
                     getattr(model, methodtype.__name__.lower()),
                 )
+
+
+class CoupleModels(Protocol[TypeModel_co]):
+    """Specification for defining custom "couple_models" functions to be wrapped by
+    function |define_modelcoupler|."""
+
+    __name__: str
+
+    def __call__(
+        self, *, nodes: devicetools.Nodes, elements: devicetools.Elements
+    ) -> TypeModel_co:
+        ...
+
+
+def define_modelcoupler(
+    inputtypes: Tuple[Type[TypeModel_contra], ...], outputtype: Type[TypeModel_co]
+) -> Callable[
+    [CoupleModels[TypeModel_co]], ModelCoupler[TypeModel_co, TypeModel_contra]
+]:
+    """Wrap a model-specific function for creating a composite model based given on
+    |Node| and |Element| objects and their handled "normal" |Model| instances."""
+
+    def _define_modelcoupler(
+        wrapped: CoupleModels[TypeModel_co],
+    ) -> ModelCoupler[TypeModel_co, TypeModel_contra]:
+        return ModelCoupler(
+            inputtypes=inputtypes, outputtype=outputtype, wrapped=wrapped
+        )
+
+    return _define_modelcoupler
+
+
+class ModelCoupler(Generic[TypeModel_co, TypeModel_contra]):
+    """Wrapper that extends the functionality of model-specific functions for coupling
+    "normal" models to composite models.
+
+    One benefit of using |ModelCoupler| over raw "couple_models" is that it
+    alternatively accepts |Selection| objects instead of |Nodes| and |Elements|
+    objects:
+
+    >>> from hydpy import Element, Elements, Node, Nodes, prepare_model, Selection
+    >>> n12 = Node("n12", variable="LongQ")
+    >>> e1 = Element("e1", outlets=n12)
+    >>> channel1 = prepare_model("sw1d_channel")
+    >>> channel1.parameters.control.nmbsegments(1)
+    >>> with channel1.add_storagemodel_v1("sw1d_storage", position=0, update=False):
+    ...     pass
+    >>> with channel1.add_routingmodel_v2("sw1d_lias", position=1, update=False):
+    ...     pass
+    >>> e1.model = channel1
+    >>> e2 = Element("e2", inlets=n12)
+    >>> channel2 = prepare_model("sw1d_channel")
+    >>> channel2.parameters.control.nmbsegments(1)
+    >>> with channel2.add_storagemodel_v1("sw1d_storage", position=0, update=False):
+    ...     pass
+    >>> e2.model = channel2
+
+    >>> network1 = e1.model.couple_models(nodes=Nodes(n12), elements=Elements(e1, e2))
+    >>> assert network1.storagemodels[0] is channel1.storagemodels[0]
+    >>> assert network1.storagemodels[1] is channel2.storagemodels[0]
+    >>> assert network1.routingmodels[0] is channel1.routingmodels[1]
+    >>> assert network1.storagemodels[0].routingmodelsdownstream.number == 1
+    >>> assert network1.storagemodels[1].routingmodelsupstream.number == 1
+
+    >>> selection = Selection("test", nodes=n12, elements=[e1, e2])
+    >>> network2 = e1.model.couple_models(selection=selection)
+    >>> assert network2.storagemodels[0] is channel1.storagemodels[0]
+    >>> assert network2.storagemodels[1] is channel2.storagemodels[0]
+    >>> assert network2.routingmodels[0] is channel1.routingmodels[1]
+    >>> assert network2.storagemodels[0].routingmodelsdownstream.number == 1
+    >>> assert network2.storagemodels[1].routingmodelsupstream.number == 1
+
+    It additionally checks if the wrapped "couple_models" function supports the types
+    of all passed model instances:
+
+    >>> e3 = Element("e3", inlets="n3_in", outlets="n3_out")
+    >>> e3.model = prepare_model("musk_classic")
+    >>> e1.model.couple_models(nodes=Nodes(n12), elements=Elements(e1, e2, e3))
+    Traceback (most recent call last):
+    ...
+    TypeError: While trying to couple the given model instances to a composite model \
+of type `sw1d_network` based on function `combine_channels`, the following error \
+occurred: `musk_classic` of element `e3` is not among the supported model types: \
+sw1d_channel.
+    """
+
+    _inputtypes: Tuple[Type[TypeModel_contra], ...]
+    _outputtype: Type[TypeModel_co]
+    _wrapped: CoupleModels
+
+    def __init__(
+        self,
+        inputtypes: Tuple[Type[TypeModel_contra], ...],
+        outputtype: Type[TypeModel_co],
+        wrapped: CoupleModels[TypeModel_co],
+    ) -> None:
+        self._inputtypes = inputtypes
+        self._outputtype = outputtype
+        self._wrapped = wrapped
+        functools.update_wrapper(wrapper=self, wrapped=wrapped)
+
+    @overload
+    def __call__(self, *, selection: selectiontools.Selection) -> TypeModel_co:
+        ...
+
+    @overload
+    def __call__(
+        self, *, nodes: devicetools.Nodes, elements: devicetools.Elements
+    ) -> TypeModel_co:
+        ...
+
+    def __call__(
+        self,
+        *,
+        nodes: Optional[devicetools.Nodes] = None,
+        elements: Optional[devicetools.Elements] = None,
+        selection: Optional[selectiontools.Selection] = None,
+    ) -> TypeModel_co:
+        try:
+            if selection is None:
+                assert nodes is not None
+                assert elements is not None
+            else:
+                nodes = selection.nodes
+                elements = selection.elements
+            for element in elements:
+                if not isinstance(element.model, self._inputtypes):
+                    raise TypeError(
+                        f"{objecttools.elementphrase(element.model)} is not among the "
+                        f"supported model types: "
+                        f"{objecttools.enumeration(m._NAME for m in self._inputtypes)}."
+                    )
+            return self._wrapped(nodes=nodes, elements=elements)
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to couple the given model instances to a composite "
+                f"model of type `{self._outputtype._NAME}` based on function "
+                f"`{self._wrapped.__name__}`"
+            )

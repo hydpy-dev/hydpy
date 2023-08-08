@@ -73,6 +73,7 @@ False
 # ...from standard library
 from __future__ import annotations
 import abc
+import collections
 import contextlib
 import copy
 import itertools
@@ -1298,6 +1299,231 @@ class Elements(Devices["Element"]):
         """Return class |Element|."""
         return Element
 
+    @property
+    def collectives(self) -> Dict[Optional[str], Tuple[Element, ...]]:
+        """The names and members of all currently relevant collectives.
+
+        Note that all |Element| instances not belonging to any |Element.collective| are
+        returned as a separate group:
+
+        >>> from hydpy import Element, Elements
+        >>> Elements().collectives
+        {}
+        >>> for group, elements in Elements(
+        ...     Element("a"), Element("b1", collective="b"), Element("c"),
+        ...     Element("d1", collective="d"), Element("b2", collective="b")
+        ... ).collectives.items():
+        ...     print(group, [e.name for e in elements])
+        None ['a', 'c']
+        b ['b1', 'b2']
+        d ['d1']
+        """
+        collectives = collections.defaultdict(lambda: [])
+        for element in self:
+            collectives[element.collective].append(element)
+        return {c: tuple(e) for c, e in collectives.items()}
+
+    def unite_collectives(self) -> Elements:
+        """Create overarching elements for all original elements that belong to a
+        collective.
+
+        All elements of the same |Element.collective| must be handled as one entity
+        during simulation.  A typical use case is that individual elements describe
+        different channels of a large river network, and all of them must be handled
+        simultaneously by a single routing model instance to account for backwater
+        effects.  We create such an example by combining instances of |musk_classic|
+        (for "hydrological" routing neglecting backwater effects) and |sw1d_channel|
+        (for "hydrodynamic" routing considering backwater effects).
+
+        First, we create a |FusedVariable| object for connecting the inlets and outlets
+        of |musk_classic| and |sw1d_channel|:
+
+        >>> from hydpy import FusedVariable
+        >>> from hydpy.inputs import musk_inlet_Q, sw1d_inlet_LongQ
+        >>> from hydpy.outputs import musk_outlet_Q, sw1d_outlet_LongQ
+        >>> q = FusedVariable(
+        ...     "Q", musk_inlet_Q, sw1d_inlet_LongQ, musk_outlet_Q, sw1d_outlet_LongQ)
+
+        The spatial setting is more concise than realistic and consists of four
+        channels.  Channel `A` discharges into channel `B`, which discharges into
+        channel `C`, which discharges into channel `D`.  We neglect backwater effects
+        within channels `A` and `D`.  Hence we do not need to associate them with a
+        collective and |musk_classic| becomes an appropriate choice.  Channel `B` and
+        `C` are represented by separate collectives.  Hence, the setting could account
+        for backwater effects within both channels but not between them.  Channel `B`
+        consists only of a single subchannel (represented by element `b`), while
+        channel `C` consists of two subchannels (represented by elements `c1` and
+        `c2`):
+
+        >>> from hydpy import Element, Elements, Nodes
+        >>> q_a, q_a_b, q_b_c1, q_c1_c2, q_c2_d, q_d = Nodes(
+        ...     "q_a", "q_a_b", "q_b_c1", "q_c1_c2", "q_c2_d", "q_d",
+        ...     defaultvariable=q)
+        >>> e_a = Element("e_a", inlets=q_a, outlets=q_a_b)
+        >>> e_b = Element("e_b", collective="B", inlets=q_a_b, outlets=q_b_c1)
+        >>> e_c1 = Element("e_c1", collective="C", inlets=q_b_c1, outlets=q_c1_c2)
+        >>> e_c2 = Element("e_c2", collective="C", inlets=q_c1_c2, outlets=q_c2_d)
+        >>> e_d = Element("e_d", inlets=q_c2_d, outlets=q_d)
+        >>> elements = Elements(e_a, e_b, e_c1, e_c2, e_d)
+
+        Method |Elements.unite_collectives| expects only those elements belonging to a
+        collective to come with a ready |Model| instance.  So we only need to prepare
+        |sw1d_channel| instances for elements `b`, `c1`, and `c2`, including the
+        required submodels:
+
+        >>> from hydpy import prepare_model, pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
+        >>> for element in (e_b, e_c1, e_c2):
+        ...     channel = prepare_model("sw1d_channel")
+        ...     channel.parameters.control.nmbsegments(1)
+        ...     add_storage = channel.add_storagemodel_v1
+        ...     with add_storage("sw1d_storage", position=0, update=False):
+        ...         pass
+        ...     add_routing = channel.add_routingmodel_v1
+        ...     if element in (e_b, e_c1):
+        ...         with add_routing("sw1d_q_in", position=0, update=False):
+        ...             pass
+        ...     if element is e_c1:
+        ...         with add_routing("sw1d_lias", position=1, update=False):
+        ...             lengthupstream(1.0)
+        ...             lengthdownstream(1.0)
+        ...     if element in (e_b, e_c2):
+        ...         with add_routing("sw1d_weir_out", position=1, update=False):
+        ...             pass
+        ...     element.model = channel
+
+        Based on the defined five elements, method |Elements.unite_collectives| returns
+        four:
+
+        >>> elements.unite_collectives()
+        Elements("B", "C", "e_a", "e_d")
+
+        The returned elements `a` and `d` are the same as those defined initially, as
+        they do not belong to any collectives:
+
+        >>> collectives = elements.unite_collectives()
+        >>> collectives.e_a is e_a
+        True
+
+        However, the elements `B` and `C` are new.  `B` replaces element `b`, and `C`
+        replaces elements `c1` and `c2`.  Both handle instances of |sw1d_network|,
+        which is the suitable model for connecting and applying the submodels of
+        |sw1d_channel| (see |ModelCoupler|):
+
+        >>> e_b, e_c = collectives.B, collectives.C
+        >>> e_b.model.name
+        'sw1d_network'
+
+        The new element `B` has the same inlet and outlet nodes as `b`:
+
+        >>> e_b
+        Element("B",
+                inlets="q_a_b",
+                outlets="q_b_c1")
+
+        However, `C` adopts both outlet nodes of `c1` and `c2` but only the inlet node
+        of `c1`, which is relevant for clarifying the |HydPy.deviceorder| during
+        simulations:
+
+        >>> e_c
+        Element("C",
+                inlets="q_b_c1",
+                outlets=["q_c1_c2", "q_c2_d"])
+
+        The following technical checks ensure the underlying coupling mechanisms
+        actually worked:
+
+        >>> assert e_b.model.storagemodels.number == 1
+        >>> assert e_c.model.storagemodels.number == 2
+        >>> assert e_b.model.routingmodels.number == 2
+        >>> assert e_c.model.routingmodels.number == 3
+        >>> assert e_b.model.routingmodels[1].routingmodelsdownstream.number == 0
+        >>> assert e_c.model.routingmodels[1].routingmodelsdownstream[0] is \
+e_c.model.routingmodels[2]
+
+        |Elements.unite_collectives| raises the following error if an element belonging
+        to a collective does not handle a |Model| instance:
+
+        >>> e_d.collective = "D"
+        >>> elements.unite_collectives()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: While trying to unite the \
+elements belonging to collective `D`, the following error occurred: The model object \
+of element `e_d` has been requested but not been prepared so far.
+
+        |Elements.unite_collectives| raises the following error if an element belonging
+        to a collective does handle an unsuitable |Model| instance:
+
+        >>> e_d.model = prepare_model("musk_classic")
+        >>> elements.unite_collectives()
+        Traceback (most recent call last):
+        ...
+        TypeError: While trying to unite the elements belonging to collective `D`, \
+the following error occurred: Model `musk_classic` of element `e_d` does not provide \
+a function for coupling models that belong to the same collective.
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+            >>> FusedVariable.clear_registry()
+        """
+        elements: List[Element] = []
+        for collective, subelements in self.collectives.items():
+            if collective is None:
+                elements.extend(subelements)
+            else:
+                try:
+                    outlets = set(
+                        outlet
+                        for subelement in subelements
+                        for outlet in subelement.outlets
+                    )
+                    inlets = set(
+                        inlet
+                        for subelement in subelements
+                        for inlet in subelement.inlets
+                        if inlet not in outlets
+                    )
+                    outputs = set(
+                        output
+                        for subelement in subelements
+                        for output in subelement.outputs
+                    )
+                    inputs = set(
+                        input_
+                        for subelement in subelements
+                        for input_ in subelement.inputs
+                        if input_ not in outputs
+                    )
+                    _registry[Element].pop(collective, None)
+                    newelement = Element(
+                        collective,
+                        inlets=inlets,
+                        outlets=outlets,
+                        inputs=inputs,
+                        outputs=outputs,
+                    )
+                    del _selection[Element][collective]
+                    elements.append(newelement)
+                    if (couple_models := subelements[0].model.couple_models) is None:
+                        raise TypeError(
+                            f"Model {objecttools.elementphrase(subelements[0].model)} "
+                            f"does not provide a function for coupling models that "
+                            f"belong to the same collective."
+                        )
+                    nodes = outlets.union(inlets).union(inputs).union(outputs)
+                    newelement.model = couple_models(
+                        nodes=Nodes(nodes), elements=Elements(subelements)
+                    )
+                    newelement.model.update_parameters()
+                except BaseException:
+                    objecttools.augment_excmessage(
+                        f"While trying to unite the elements belonging to collective "
+                        f"`{collective}`"
+                    )
+        return Elements(elements)
+
     @printtools.print_progress
     def prepare_models(self) -> None:
         """Call method |Element.prepare_model| of all handle |Element| objects.
@@ -2018,8 +2244,8 @@ group name `test`.
                 return self.sequences.fastaccess.sim
             return self.__blackhole
         raise ValueError(
-            f"Function `get_double` of class `Node` does not "
-            f"support the given group name `{group}`."
+            f"Function `get_double` of class `Node` does not support the given group "
+            f"name `{group}`."
         )
 
     def reset(self, idx: int = 0) -> None:
@@ -2317,7 +2543,8 @@ class Element(Device):
        water level of a dam.
 
     You can select the relevant nodes either by passing them explicitly or passing
-    their name both as single objects or as objects contained within an iterable object:
+    their name both as single objects or as objects contained within an iterable
+    object:
 
     >>> from hydpy import Element, Node
     >>> Element("test",
@@ -2531,7 +2758,42 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
     Elements("test")
     >>> test.inlets.inl3.exits
     Elements()
+
+    Some elements might belong to a |Element.collective|, which is a group of elements
+    requiring simultaneous handling during simulation (see method
+    |Elements.unite_collectives|).  If needed, specify the collective's name by the
+    corresponding argument:
+
+    >>> Element("part_1", collective="NileRiver", inlets="inl1")
+    Element("part_1",
+            collective="NileRiver",
+            inlets="inl1")
+
+    The information persists when querying the same element from the internal registry,
+    whether one specifies the collective's name again or not:
+
+    >>> Element("part_1", collective="NileRiver")
+    Element("part_1",
+            collective="NileRiver",
+            inlets="inl1")
+
+    >>> Element("part_1")
+    Element("part_1",
+            collective="NileRiver",
+            inlets="inl1")
+
+    However, changing the collective via the constructor is forbidden as it might
+    result in hard-to-find configuration errors:
+
+    >>> Element("part_1", collective="AmazonRiver")
+    Traceback (most recent call last):
+    ...
+    RuntimeError: The collective name `AmazonRiver` is given, but element `part_1` is \
+already a collective `NileRiver` member.
     """
+
+    collective: Optional[str] = None
+    """The collective the actual |Element| instance belongs to."""
 
     _inlets: Nodes
     _outlets: Nodes
@@ -2544,14 +2806,24 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
     def __init__(
         self,
         value: ElementConstrArg,
+        *,
         inlets: NodesConstrArg = None,
         outlets: NodesConstrArg = None,
         receivers: NodesConstrArg = None,
         senders: NodesConstrArg = None,
         inputs: NodesConstrArg = None,
         outputs: NodesConstrArg = None,
+        collective: Optional[str] = None,
         keywords: MayNonerable1[str] = None,
     ) -> None:
+        if collective is not None:
+            if (col := self.collective) is None:
+                self.collective = collective
+            elif col != collective:
+                raise RuntimeError(
+                    f"The collective name `{collective}` is given, but element "
+                    f"`{self.name}` is already a collective `{col}` member."
+                )
         # pylint: disable=unused-argument
         # required for consistincy with Device.__new__
         if hasattr(self, "new_instance"):
@@ -3264,6 +3536,8 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
             with objecttools.assignrepr_tuple.always_bracketed(False):
                 blanks = " " * (len(prefix) + 8)
                 lines = [f'{prefix}Element("{self.name}",']
+                if (collective := self.collective) is not None:
+                    lines.append(f'{blanks}collective="{collective}",')
                 for groupname in (
                     "inlets",
                     "outlets",

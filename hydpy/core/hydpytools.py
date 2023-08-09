@@ -1276,6 +1276,130 @@ deprecated.  Use method `prepare_models` instead.
         >>> control = hp.elements.land_dill.model.aetmodel.petmodel.parameters.control
         >>> control.airtemperaturefactor
         airtemperaturefactor(field=0.2, forest=0.1)
+
+        The `LahnH` example project relies only upon "scalar" submodels (handled by
+        |SubmodelProperty| instances) and not on "vectorial" submodels (handled by
+        |SubmodelsProperty| instances).  Therefore, we now prepare an instance of model
+        |sw1d_channel| and add, for a start, two |sw1d_storage| models to it, assign it
+        to a new |Element| object, and show how method |HydPy.save_controls| writes the
+        further information into a control file:
+
+        >>> from hydpy import prepare_model
+        >>> channel = prepare_model("sw1d_channel")
+        >>> channel.parameters.control.nmbsegments(2)
+        >>> with channel.add_storagemodel_v1("sw1d_storage", position=0):
+        ...     length(1.0)
+        ...     bottomlevel(5.0)
+        ...     bottomwidth(10.0)
+        ...     sideslope(0.0)
+        >>> with channel.add_storagemodel_v1("sw1d_storage", position=1):
+        ...     length(2.0)
+        ...     bottomlevel(5.0)
+        ...     bottomwidth(10.0)
+        ...     sideslope(0.0)
+        >>> from hydpy import Element
+        >>> my_channel = Element("my_channel")
+        >>> my_channel.model = channel
+        >>> hp.update_devices(elements=my_channel)
+        >>> with TestIO():
+        ...     hp.save_controls()
+        ...     with open(dir_ + "my_channel.py") as controlfile:
+        ...         print(controlfile.read())  # doctest: +ELLIPSIS
+        # -*- coding: utf-8 -*-
+        <BLANKLINE>
+        from hydpy.models.sw1d_channel import *
+        from hydpy.models import sw1d_storage
+        <BLANKLINE>
+        simulationstep("1d")
+        parameterstep("1d")
+        <BLANKLINE>
+        nmbsegments(2)
+        with model.add_storagemodel_v1(sw1d_storage, position=0):
+            length(1.0)
+            ...
+        with model.add_storagemodel_v1(sw1d_storage, position=1):
+            length(2.0)
+            ...
+        <BLANKLINE>
+
+        We now add one of three possible routing models in the second position to
+        demonstrate the writing mechanism not only for completely missing (like in the
+        last example) but also for incomplete submodel vectors:
+
+        >>> with channel.add_routingmodel_v2("sw1d_lias", position=1):
+        ...     lengthupstream(1.0)
+        ...     lengthdownstream(2.0)
+        ...     bottomlevel(5.0)
+        ...     bottomwidth(10.0)
+        ...     sideslope(0.0)
+        ...     stricklercoefficient(30.0)
+        ...     timestepfactor(0.7)
+        ...     diffusionfactor(0.2)
+        >>> with TestIO():
+        ...     hp.save_controls()
+        ...     with open(dir_ + "my_channel.py") as controlfile:
+        ...         print(controlfile.read())  # doctest: +ELLIPSIS
+        # -*- coding: utf-8 -*-
+        <BLANKLINE>
+        from hydpy.models.sw1d_channel import *
+        from hydpy.models import sw1d_lias
+        from hydpy.models import sw1d_storage
+        <BLANKLINE>
+        simulationstep("1d")
+        parameterstep("1d")
+        <BLANKLINE>
+        nmbsegments(2)
+        with model.add_routingmodel_v2(sw1d_lias, position=1):
+            lengthupstream(1.0)
+            ...
+        with model.add_storagemodel_v1(sw1d_storage, position=0):
+            length(1.0)
+            ...
+        with model.add_storagemodel_v1(sw1d_storage, position=1):
+            length(2.0)
+            ...
+        <BLANKLINE>
+
+        Finally, we demonstrate the writing mechanism for the case of different
+        submodel types within the same submodel vector:
+
+        >>> with channel.add_routingmodel_v1("sw1d_q_in", position=0):
+        ...     lengthdownstream(1.0)
+        >>> with channel.add_routingmodel_v3("sw1d_weir_out", position=2):
+        ...     lengthupstream(2.0)
+        >>> with TestIO():
+        ...     hp.save_controls()
+        ...     with open(dir_ + "my_channel.py") as controlfile:
+        ...         print(controlfile.read())  # doctest: +ELLIPSIS
+        # -*- coding: utf-8 -*-
+        <BLANKLINE>
+        from hydpy.models.sw1d_channel import *
+        from hydpy.models import sw1d_lias
+        from hydpy.models import sw1d_q_in
+        from hydpy.models import sw1d_storage
+        from hydpy.models import sw1d_weir_out
+        <BLANKLINE>
+        simulationstep("1d")
+        parameterstep("1d")
+        <BLANKLINE>
+        nmbsegments(2)
+        with model.add_routingmodel_v1(sw1d_q_in, position=0):
+            lengthdownstream(1.0)
+            ...
+        with model.add_routingmodel_v2(sw1d_lias, position=1):
+            lengthupstream(1.0)
+            lengthdownstream(2.0)
+            ...
+        with model.add_routingmodel_v3(sw1d_weir_out, position=2):
+            lengthupstream(2.0)
+            ...
+        with model.add_storagemodel_v1(sw1d_storage, position=0):
+            length(1.0)
+            ...
+        with model.add_storagemodel_v1(sw1d_storage, position=1):
+            length(2.0)
+            ...
+        <BLANKLINE>
         """
         self.elements.save_controls(
             parameterstep=parameterstep,

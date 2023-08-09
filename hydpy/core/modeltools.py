@@ -1560,7 +1560,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                         applied_nodes.append(node)
                         assert isinstance(sequence, st.LinkSequence)
                         sequence.set_pointer(node.get_double(group), idx)
-        if len(applied_nodes) < len(available_nodes):
+        if report_noconnect and (len(applied_nodes) < len(available_nodes)):
             remaining_nodes = [
                 node.name for node in available_nodes if node not in applied_nodes
             ]
@@ -1740,8 +1740,12 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         """
         lines = ["# -*- coding: utf-8 -*-\n", f"from hydpy.models.{self} import *"]
         if import_submodels:
+            names = []
             for submodel in self.find_submodels(include_subsubmodels=True).values():
-                lines.append(f"from hydpy.models import {submodel}")
+                if (name := submodel.name) not in names:
+                    names.append(name)
+            for name in sorted(names):
+                lines.append(f"from hydpy.models import {name}")
         options = hydpy.pub.options
         with options.parameterstep(parameterstep):
             if simulationstep is None:
@@ -1872,15 +1876,19 @@ to be consistent with the name of the element handling the model.
             ).items():
                 t2n2a = importtools.SubmodelAdder.modeltype2submodelname2submodeladder
                 subname = name.rpartition(".")[2]
+                position = None
                 for modeltype in inspect.getmro(type(model)):
                     if (name2adder := t2n2a.get(modeltype)) is not None:
+                        if subname.rsplit("_")[-1].isnumeric():
+                            subname, position = subname.rsplit("_")
                         if (adder := name2adder.get(subname)) is not None:
                             break
                 else:
                     assert False
+                position = "" if position is None else f", position={position}"
                 lines.append(
                     f"{(sublevel - 1) * '    '}with "
-                    f"model.{adder.wrapped.__name__}({submodel}):\n"
+                    f"model.{adder.get_wrapped().__name__}({submodel}{position}):\n"
                 )
                 all_methods: Set[str] = general_methods.copy()
                 for method in adder.methods:
@@ -1893,7 +1901,7 @@ to be consistent with the name of the element handling the model.
                     updater = getattr(submodel, methodname)
                     if isinstance(updater, importtools.TargetParameterUpdater):
                         targetparameters.add(updater.targetparameter)
-                lines.extend(
+                submodellines = (
                     submodel._get_controllines(  # pylint: disable=protected-access
                         parameterstep=parameterstep,
                         simulationstep=simulationstep,
@@ -1902,6 +1910,10 @@ to be consistent with the name of the element handling the model.
                         ignore=tuple(targetparameters),
                     )
                 )
+                if submodellines:
+                    lines.extend(submodellines)
+                else:
+                    lines.append(f"{sublevel * '    '}pass\n")  # pragma: no cover
                 _extend_lines_submodel(
                     model=submodel, sublevel=sublevel, general_methods=general_methods
                 )

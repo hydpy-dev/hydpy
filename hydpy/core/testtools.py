@@ -579,23 +579,26 @@ class IntegrationTest(Test):
 
     def __init__(
         self,
-        element: devicetools.Element,
+        element: Optional[devicetools.Element] = None,
         seqs: Optional[Tuple[sequencetools.IOSequence, ...]] = None,
         inits=None,
     ) -> None:
-        """Prepare the element and its nodes, put them into a HydPy object,
-        and make their sequences ready for use for integration testing."""
+        """Prepare the element and its nodes, put them into a HydPy object, and make
+        their sequences ready for use for integration testing."""
         del self.inits
-        self.element = element
         self.elements = devicetools.Element.query_all()
         self.nodes = devicetools.Node.query_all()
+        self.hydpy = hydpytools.HydPy()
+        self.hydpy.update_devices(nodes=self.nodes, elements=self.elements)
+        if element is None:
+            self.element = self.hydpy.collectives[0]
+        else:
+            self.element = element
+        self.model = self.element.model
         self.prepare_node_sequences()
         self.prepare_input_model_sequences()
         self.parseqs = seqs if seqs else self.extract_print_sequences()
         self.inits = inits
-        self.model = element.model
-        self.hydpy = hydpytools.HydPy()
-        self.hydpy.update_devices(nodes=self.nodes, elements=self.elements)
         self._src = None
 
     @overload

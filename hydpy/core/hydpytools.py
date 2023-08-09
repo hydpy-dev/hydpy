@@ -686,10 +686,12 @@ is not requested to make any time-series data available.
 
     _nodes: Optional[devicetools.Nodes]
     _elements: Optional[devicetools.Elements]
+    _collectives: Optional[devicetools.Elements]
 
     def __init__(self, projectname: Optional[str] = None) -> None:
         self._nodes = None
         self._elements = None
+        self._collectives = None
         self.deviceorder = []
         if projectname is not None:
             hydpy.pub.projectname = projectname
@@ -788,6 +790,34 @@ at the moment.
     @elements.deleter
     def _del_elements(self) -> None:
         self._elements = None
+
+    @property
+    def collectives(self) -> devicetools.Elements:
+        """The elements relevant for simulation.
+
+        Usually, |HydPy.collectives| returns the "original" elements also available via
+        property |HydPy.elements|.  However, if some of these elements belong to a
+        |Element.collective|, |HydPy.collectives| does not return them but
+        overarching elements suitable for simulation.
+
+        |HydPy.collectives| raises the following error if the overarching elements are
+        unavailable:
+
+        >>> from hydpy import HydPy
+        >>> HydPy().collectives
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The currently available elements have not been analysed and \
+eventually combined regarding their collectives.  Please call method `update_devices` \
+first.
+        """
+        if (collectives := self._collectives) is None:
+            raise RuntimeError(
+                "The currently available elements have not been analysed and "
+                "eventually combined regarding their collectives.  Please call method "
+                "`update_devices` first."
+            )
+        return collectives
 
     def prepare_everything(self) -> None:
         """Convenience method to make the actual |HydPy| instance runnable.
@@ -2193,9 +2223,11 @@ time.
         if selection is not None:
             self.nodes = selection.nodes
             self.elements = selection.elements
-        devices = networkx.topological_sort(create_directedgraph(self))
+        self._collectives = self.elements.unite_collectives()
+        graph = create_directedgraph(self.nodes, self._collectives)
+        devices = tuple(networkx.topological_sort(graph))
         names = set(self.nodes.names)
-        names.update(self.elements.names)
+        names.update(self._collectives.names)
         self.deviceorder = [device for device in devices if device.name in names]
 
     @property
@@ -2220,13 +2252,14 @@ time.
                 funcs.append(device.model.simulate)
             elif device.deploymode in ("obs_newsim", "obs_oldsim"):
                 funcs.append(device.sequences.fastaccess.fill_obsdata)
-        for element in self.elements:
+        elements = self.collectives
+        for element in elements:
             if element.senders:
                 funcs.append(element.model.update_senders)
-        for element in self.elements:
+        for element in elements:
             if element.receivers:
                 funcs.append(element.model.update_receivers)
-        for element in self.elements:
+        for element in elements:
             funcs.append(element.model.save_data)
         for node in self.nodes:
             if node.deploymode in ("obs_newsim", "obs_oldsim"):
@@ -2622,13 +2655,13 @@ method `simulate` instead.
 
 
 def create_directedgraph(
-    devices: Union[HydPy, selectiontools.Selection],
+    nodes: devicetools.Nodes, elements: devicetools.Elements
 ) -> networkx.DiGraph:
     """Create a directed graph based on the given devices."""
     digraph = networkx.DiGraph()
-    digraph.add_nodes_from(devices.elements)
-    digraph.add_nodes_from(devices.nodes)
-    for element in devices.elements:
+    digraph.add_nodes_from(elements)
+    digraph.add_nodes_from(nodes)
+    for element in elements:
         for node in itertools.chain(element.inlets, element.inputs):
             digraph.add_edge(node, element)
         for node in itertools.chain(element.outlets, element.outputs):

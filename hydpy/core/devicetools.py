@@ -1379,16 +1379,15 @@ class Elements(Devices["Element"]):
         ...     add_storage = channel.add_storagemodel_v1
         ...     with add_storage("sw1d_storage", position=0, update=False):
         ...         pass
-        ...     add_routing = channel.add_routingmodel_v1
         ...     if element in (e_b, e_c1):
-        ...         with add_routing("sw1d_q_in", position=0, update=False):
+        ...         with channel.add_routingmodel_v1("sw1d_q_in", position=0):
         ...             pass
         ...     if element is e_c1:
-        ...         with add_routing("sw1d_lias", position=1, update=False):
+        ...         with channel.add_routingmodel_v2("sw1d_lias", position=1):
         ...             lengthupstream(1.0)
         ...             lengthdownstream(1.0)
         ...     if element in (e_b, e_c2):
-        ...         with add_routing("sw1d_weir_out", position=1, update=False):
+        ...         with channel.add_routingmodel_v3("sw1d_weir_out", position=1):
         ...             pass
         ...     element.model = channel
 
@@ -1437,7 +1436,6 @@ class Elements(Devices["Element"]):
         >>> assert e_c.model.storagemodels.number == 2
         >>> assert e_b.model.routingmodels.number == 2
         >>> assert e_c.model.routingmodels.number == 3
-        >>> assert e_b.model.routingmodels[1].routingmodelsdownstream.number == 0
         >>> assert e_c.model.routingmodels[1].routingmodelsdownstream[0] is \
 e_c.model.routingmodels[2]
 
@@ -2816,6 +2814,8 @@ already a collective `NileRiver` member.
         collective: Optional[str] = None,
         keywords: MayNonerable1[str] = None,
     ) -> None:
+        # pylint: disable=unused-argument
+        # required for consistincy with Device.__new__
         if collective is not None:
             if (col := self.collective) is None:
                 self.collective = collective
@@ -2824,8 +2824,6 @@ already a collective `NileRiver` member.
                     f"The collective name `{collective}` is given, but element "
                     f"`{self.name}` is already a collective `{col}` member."
                 )
-        # pylint: disable=unused-argument
-        # required for consistincy with Device.__new__
         if hasattr(self, "new_instance"):
             self._inlets = Nodes(mutable=False)
             self._outlets = Nodes(mutable=False)

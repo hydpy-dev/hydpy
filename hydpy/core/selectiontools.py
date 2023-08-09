@@ -765,9 +765,8 @@ the "outlet device", but the given `device` value is of type `int`.
         """
         try:
             device = self._check_device(device, "outlet")
-            devices = networkx.ancestors(
-                hydpytools.create_directedgraph(self), source=device
-            )
+            graph = hydpytools.create_directedgraph(self.nodes, self.elements)
+            devices = networkx.ancestors(graph, source=device)
             devices.add(device)
             selection = Selection(
                 name=name,
@@ -914,9 +913,8 @@ required as the "inlet device", but the given `device` value is of type `int`.
         """
         try:
             device = self._check_device(device, "inlet")
-            devices = networkx.descendants(
-                hydpytools.create_directedgraph(self), source=device
-            )
+            graph = hydpytools.create_directedgraph(self.nodes, self.elements)
+            devices = networkx.descendants(graph, source=device)
             devices.add(device)
             selection = Selection(
                 name=name,

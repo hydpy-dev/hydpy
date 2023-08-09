@@ -28,9 +28,11 @@ a certain water level should not be exceeded.  We connect these nodes via the re
 sequences |dam_receivers.OWL| (outer water level) and |dam_receivers.RWL| (remote water
 level):
 
->>> from hydpy.inputs import dam_OWL, dam_RWL
->>> inflow, outflow = Node("inflow"), Node("outflow")
->>> outer, remote = Node("outer", variable=dam_OWL), Node("remote", variable=dam_RWL)
+>>> from hydpy.aliases import dam_receivers_OWL, dam_receivers_RWL
+>>> inflow = Node("inflow")
+>>> outflow = Node("outflow")
+>>> outer = Node("outer", variable=dam_receivers_OWL)
+>>> remote = Node("remote", variable=dam_receivers_RWL)
 >>> dam = Element("dam", inlets=inflow, outlets=outflow, receivers=(outer, remote))
 
 Next, we prepare a |dam_pump| instance and connect it to the |Element| instance:

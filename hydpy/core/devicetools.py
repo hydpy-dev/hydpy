@@ -289,12 +289,12 @@ class FusedVariable:
     their globally available aliases):
 
     >>> from hydpy import FusedVariable
-    >>> from hydpy.inputs import (
-    ...     evap_ReferenceEvapotranspiration, meteo_Temperature, lland_TemL)
-    >>> from hydpy.outputs import evap_MeanReferenceEvapotranspiration
-    >>> E = FusedVariable(
-    ...     "E", evap_MeanReferenceEvapotranspiration, evap_ReferenceEvapotranspiration)
-    >>> T = FusedVariable("T", meteo_Temperature, lland_TemL)
+    >>> from hydpy.aliases import (
+    ...     evap_inputs_ReferenceEvapotranspiration, meteo_inputs_Temperature,
+    ...     lland_inputs_TemL, evap_fluxes_MeanReferenceEvapotranspiration)
+    >>> E = FusedVariable("E", evap_inputs_ReferenceEvapotranspiration,
+    ...                        evap_fluxes_MeanReferenceEvapotranspiration)
+    >>> T = FusedVariable("T", meteo_inputs_Temperature, lland_inputs_TemL)
 
     Now we can construct the network:
 
@@ -380,25 +380,25 @@ class FusedVariable:
     once, even when defined in different selection files repeatedly.  Hence, when we
     repeat the definition from above, we get the same object:
 
-    >>> Test = FusedVariable("T", meteo_Temperature, lland_TemL)
+    >>> Test = FusedVariable("T", meteo_inputs_Temperature, lland_inputs_TemL)
     >>> T is Test
     True
 
     Changing the member sequences of an existing fused variable is not allowed:
 
-    >>> from hydpy.inputs import hland_T
-    >>> FusedVariable("T", hland_T, lland_TemL)
+    >>> from hydpy.aliases import hland_inputs_T
+    >>> FusedVariable("T", hland_inputs_T, lland_inputs_TemL)
     Traceback (most recent call last):
     ...
     ValueError: The sequences combined by a FusedVariable object cannot be changed.  \
-The already defined sequences of the fused variable `T` are `lland_TemL and \
-meteo_Temperature` instead of `hland_T and lland_TemL`.  Keep in mind, that `name` is \
-the unique identifier for fused variable instances.
+The already defined sequences of the fused variable `T` are `lland_inputs_TemL and \
+meteo_inputs_Temperature` instead of `hland_inputs_T and lland_inputs_TemL`.  Keep in \
+mind, that `name` is the unique identifier for fused variable instances.
 
     Defining additional fused variables with the same member sequences is not advisable
     but is allowed:
 
-    >>> Temp = FusedVariable("Temp", meteo_Temperature, lland_TemL)
+    >>> Temp = FusedVariable("Temp", meteo_inputs_Temperature, lland_inputs_TemL)
     >>> T is Temp
     False
 
@@ -416,7 +416,7 @@ the unique identifier for fused variable instances.
     >>> FusedVariable.get_registry()
     ()
     >>> t2.variable
-    FusedVariable("T", lland_TemL, meteo_Temperature)
+    FusedVariable("T", lland_inputs_TemL, meteo_inputs_Temperature)
 
     .. testsetup::
 
@@ -474,9 +474,7 @@ the unique identifier for fused variable instances.
 
     def __contains__(self, item: object) -> bool:
         sqt = sequencetools
-        if isinstance(
-            item, (sqt.InputSequence, sqt.ReceiverSequence, sqt.OutputSequence)
-        ):
+        if isinstance(item, (sqt.LinkSequence, sqt.InputSequence, sqt.OutputSequence)):
             item = type(item)
         return item in self._variables
 
@@ -1339,10 +1337,10 @@ class Elements(Devices["Element"]):
         of |musk_classic| and |sw1d_channel|:
 
         >>> from hydpy import FusedVariable
-        >>> from hydpy.inputs import musk_inlet_Q, sw1d_inlet_LongQ
-        >>> from hydpy.outputs import musk_outlet_Q, sw1d_outlet_LongQ
-        >>> q = FusedVariable(
-        ...     "Q", musk_inlet_Q, sw1d_inlet_LongQ, musk_outlet_Q, sw1d_outlet_LongQ)
+        >>> from hydpy.aliases import (musk_inlets_Q, sw1d_inlets_LongQ,
+        ...                            musk_outlets_Q, sw1d_outlets_LongQ)
+        >>> q = FusedVariable("Q", musk_inlets_Q, sw1d_inlets_LongQ,
+        ...                   musk_outlets_Q, sw1d_outlets_LongQ)
 
         The spatial setting is more concise than realistic and consists of four
         channels.  Channel `A` discharges into channel `B`, which discharges into
@@ -2058,23 +2056,23 @@ following error occurred: Adding devices to immutable Elements objects is not al
         Node("test2", variable="H")
         >>> from hydpy.models.hland.hland_inputs import T
         >>> Node("test3", variable=T)
-        Node("test3", variable=hland_T)
+        Node("test3", variable=hland_inputs_T)
 
         The last example above shows that the string representations of nodes handling
         "class variables" use the aliases importable from the top level of the *HydPy*
         package:
 
-        >>> from hydpy.inputs import hland_P
-        >>> Node("test4", variable=hland_P)
-        Node("test4", variable=hland_P)
+        >>> from hydpy.aliases import hland_inputs_P
+        >>> Node("test4", variable=hland_inputs_P)
+        Node("test4", variable=hland_inputs_P)
 
         For some complex *HydPy* projects, one may need to fall back on |FusedVariable|
         objects.  The string representation then relies on the name of the fused
         variable:
 
         >>> from hydpy import FusedVariable
-        >>> from hydpy.inputs import lland_Nied
-        >>> Precipitation = FusedVariable("Precip", hland_P, lland_Nied)
+        >>> from hydpy.aliases import lland_inputs_Nied
+        >>> Precipitation = FusedVariable("Precip", hland_inputs_P, lland_inputs_Nied)
         >>> Node("test5", variable=Precipitation)
         Node("test5", variable=Precip)
 
@@ -2506,7 +2504,7 @@ Attribute timegrids of module `pub` is not defined at the moment.
         elif isinstance(variable, FusedVariable):
             variable = str(variable)
         else:
-            variable = f"{variable.__module__.split('.')[2]}_{variable.__name__}"
+            variable = f"{variable.__module__.split('.')[-1]}_{variable.__name__}"
         lines = [f'{prefix}Node("{self.name}", variable={variable},']
         if self.keywords:
             subprefix = f'{" "*(len(prefix)+5)}keywords='

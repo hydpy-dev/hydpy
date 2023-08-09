@@ -76,9 +76,21 @@ ModelIOSequencesSubtypes = Union[
     "InputSequences", "FactorSequences", "FluxSequences", "StateSequences"
 ]
 
-InOutSequence = Union["InputSequence", "ReceiverSequence", "OutputSequence"]
+InOutSequence = Union[
+    "InputSequence",
+    "InletSequence",
+    "ReceiverSequence",
+    "OutputSequence",
+    "OutletSequence",
+    "SenderSequence",
+]
 InOutSequenceTypes = Union[
-    Type["InputSequence"], Type["ReceiverSequence"], Type["OutputSequence"]
+    Type["InputSequence"],
+    Type["InletSequence"],
+    Type["ReceiverSequence"],
+    Type["OutputSequence"],
+    Type["OutletSequence"],
+    Type["SenderSequence"],
 ]
 
 Aggregation = Optional[Literal["unmodified", "mean"]]
@@ -2624,11 +2636,11 @@ class InputSequence(ModelIOSequence):
     options are supported:
 
     >>> from hydpy import Element, FusedVariable, HydPy, Node, print_values, pub, TestIO
-    >>> from hydpy.inputs import  hland_T, hland_P
+    >>> from hydpy.aliases import  hland_inputs_T, hland_inputs_P
     >>> hp = HydPy("LahnH")
     >>> pub.timegrids = "1996-01-01", "1996-01-06", "1d"
-    >>> node_t = Node("node_t", variable=hland_T)
-    >>> node_p = Node("node_p", variable=FusedVariable("Precip", hland_P))
+    >>> node_t = Node("node_t", variable=hland_inputs_T)
+    >>> node_p = Node("node_p", variable=FusedVariable("Precip", hland_inputs_P))
     >>> node_q = Node("node_q")
     >>> land_dill = Element("land_dill", inputs=[node_t, node_p], outlets=node_q)
 
@@ -2742,13 +2754,14 @@ class OutputSequence(ModelIOSequence):
     |Node.deploymode| options:
 
     >>> from hydpy import Element, HydPy, Node, print_values, pub, Selection, TestIO
-    >>> from hydpy.outputs import hland_Perc, hland_Q0, hland_Q1, hland_UZ
+    >>> from hydpy.aliases import (
+    ...     hland_fluxes_Perc, hland_fluxes_Q0, hland_fluxes_Q1, hland_states_UZ)
     >>> hp = HydPy("LahnH")
     >>> pub.timegrids = "1996-01-01", "1996-01-06", "1d"
-    >>> node_q0 = Node("node_q0", variable=hland_Q0)
-    >>> node_q1 = Node("node_q1", variable=hland_Q1)
-    >>> node_perc = Node("node_perc", variable=hland_Perc)
-    >>> node_uz = Node("node_uz", variable=hland_UZ)
+    >>> node_q0 = Node("node_q0", variable=hland_fluxes_Q0)
+    >>> node_q1 = Node("node_q1", variable=hland_fluxes_Q1)
+    >>> node_perc = Node("node_perc", variable=hland_fluxes_Perc)
+    >>> node_uz = Node("node_uz", variable=hland_states_UZ)
     >>> node_q = Node("node_q")
     >>> land_dill = Element("land_dill",
     ...                     outlets=node_q,
@@ -3712,8 +3725,8 @@ class NodeSequence(IOSequence):
         'sim_t'
 
         >>> from hydpy import FusedVariable
-        >>> from hydpy.inputs import hland_T, lland_TemL
-        >>> Temp = FusedVariable("Temp", hland_T, lland_TemL)
+        >>> from hydpy.aliases import hland_inputs_T, lland_inputs_TemL
+        >>> Temp = FusedVariable("Temp", hland_inputs_T, lland_inputs_TemL)
         >>> Node("test_node_2", Temp).sequences.sim.descr_sequence
         'sim_temp'
 

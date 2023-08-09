@@ -21,9 +21,11 @@ We take all of the following settings from the documentation on the application 
 >>> from hydpy import IntegrationTest, Element, Node, pub, round_
 >>> pub.timegrids = "2000-01-01", "2000-01-21", "1d"
 
->>> from hydpy.inputs import dam_OWL, dam_RWL
->>> inflow, outflow = Node("inflow"), Node("outflow")
->>> outer, remote = Node("outer", variable=dam_OWL), Node("remote", variable=dam_RWL)
+>>> from hydpy.aliases import dam_receivers_OWL, dam_receivers_RWL
+>>> inflow = Node("inflow")
+>>> outflow = Node("outflow")
+>>> outer = Node("outer", variable=dam_receivers_OWL)
+>>> remote = Node("remote", variable=dam_receivers_RWL)
 >>> dam = Element("dam", inlets=inflow, outlets=outflow, receivers=(outer, remote))
 
 >>> from hydpy.models.dam_sluice import *

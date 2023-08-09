@@ -1277,17 +1277,16 @@ The following nodes have not been connected to any sequences: in2.
         separate output nodes, whereas all other fluxes and states do not.  This
         functionality requires telling each node which sequence it should connect to,
         which we do by passing the sequence types (or the globally available aliases
-        `hland_P`, `hland_Q0`, and `hland_UZ`) to the `variable` keyword of different
-        node objects:
+        `hland_inputs_P`, `hland_fluxes_Q0`, and `hland_states_UZ`) to the `variable`
+        keyword of different node objects:
 
         >>> from hydpy import pub
-        >>> from hydpy.inputs import hland_P
-        >>> from hydpy.outputs import hland_Q0, hland_UZ
+        >>> from hydpy.aliases import hland_inputs_P, hland_fluxes_Q0, hland_states_UZ
         >>> pub.timegrids = "2000-01-01", "2000-01-06", "1d"
 
-        >>> inp1 = Node("inp1", variable=hland_P)
-        >>> outp1 = Node("outp1", variable=hland_Q0)
-        >>> outp2 = Node("outp2", variable=hland_UZ)
+        >>> inp1 = Node("inp1", variable=hland_inputs_P)
+        >>> outp1 = Node("outp1", variable=hland_fluxes_Q0)
+        >>> outp2 = Node("outp2", variable=hland_states_UZ)
         >>> element8 = Element("element8", outlets=out1, inputs=inp1,
         ...                    outputs=[outp1, outp2])
         >>> element8.model = prepare_model("hland_v1")
@@ -1313,11 +1312,10 @@ The following nodes have not been connected to any sequences: in2.
         realistic example):
 
         >>> from hydpy import FusedVariable
-        >>> from hydpy.inputs import lland_Nied
-        >>> from hydpy.outputs import lland_QDGZ
-        >>> Precip = FusedVariable("Precip", hland_P, lland_Nied)
+        >>> from hydpy.aliases import lland_inputs_Nied, lland_fluxes_QDGZ
+        >>> Precip = FusedVariable("Precip", hland_inputs_P, lland_inputs_Nied)
         >>> inp2 = Node("inp2", variable=Precip)
-        >>> FastRunoff = FusedVariable("FastRunoff", hland_Q0, lland_QDGZ)
+        >>> FastRunoff = FusedVariable("FastRunoff", hland_fluxes_Q0, lland_fluxes_QDGZ)
         >>> outp3 = Node("outp3", variable=FastRunoff)
         >>> element9 = Element("element9", outlets=out1, inputs=inp2, outputs=outp3)
         >>> element9.model = prepare_model("hland_v1")
@@ -1333,8 +1331,8 @@ The following nodes have not been connected to any sequences: in2.
         Method |Model.connect| reports if one of the given fused variables does not
         find a fitting sequence:
 
-        >>> from hydpy.inputs import lland_TemL
-        >>> Wrong = FusedVariable("Wrong", lland_Nied, lland_TemL)
+        >>> from hydpy.aliases import lland_inputs_TemL
+        >>> Wrong = FusedVariable("Wrong", lland_inputs_Nied, lland_inputs_TemL)
         >>> inp3 = Node("inp3", variable=Wrong)
         >>> element10 = Element("element10", outlets=out1, inputs=inp3)
         >>> element10.model = prepare_model("hland_v1")
@@ -1356,7 +1354,7 @@ variable `Wrong` of node `outp4`.
 
         Selecting the wrong sequences results in the following error messages:
 
-        >>> outp5 = Node("outp5", variable=hland_Q0)
+        >>> outp5 = Node("outp5", variable=hland_fluxes_Q0)
         >>> element12 = Element("element12", outlets=out1, inputs=outp5)
         >>> element12.model = prepare_model("hland_v1")
         Traceback (most recent call last):
@@ -1393,16 +1391,16 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         |dam_receivers.OWL| (outer water level) and |dam_receivers.RWL| (remote water
         level) used by the application model |dam_pump| as an example:
 
-        >>> from hydpy.inputs import dam_OWL, dam_RWL
+        >>> from hydpy.aliases import dam_receivers_OWL, dam_receivers_RWL
 
         One |dam_pump| instance (handled by element `dam1`) shall receive the water
         level (|dam_factors.WaterLevel|) of two independent |dam_pump| instances.
         `dam1` interprets the water level of `dam2` as its outer water level and the
         water level of `dam3` as its remote water level:
 
-        >>> from hydpy.outputs import dam_WaterLevel
-        >>> owl = FusedVariable("OWL", dam_OWL, dam_WaterLevel)
-        >>> rwl = FusedVariable("RWL", dam_RWL, dam_WaterLevel)
+        >>> from hydpy.aliases import dam_factors_WaterLevel
+        >>> owl = FusedVariable("OWL", dam_receivers_OWL, dam_factors_WaterLevel)
+        >>> rwl = FusedVariable("RWL", dam_receivers_RWL, dam_factors_WaterLevel)
         >>> n21, n31 = Node("n21", variable=owl), Node("n31", variable=rwl)
         >>> x, y = Node("x", variable=owl), Node("y", variable=rwl)
         >>> dam1 = Element("dam1", inlets="n01", outlets="n12",
@@ -1557,9 +1555,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                             f"are handling variable `{type(sequence).__name__}`."
                         )
                     applied_nodes.append(selected_nodes[0])
-                    assert isinstance(
-                        sequence, (st.InputSequence, st.OutletSequence, st.LinkSequence)
-                    )
+                    assert isinstance(sequence, (st.InputSequence, st.LinkSequence))
                     sequence.set_pointer(selected_nodes[0].get_double(group))
                 elif sequence.NDIM == 1:
                     sequence.shape = len(selected_nodes)

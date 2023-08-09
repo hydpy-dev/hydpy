@@ -2021,17 +2021,20 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         {'Q': 4}
 
         >>> from hydpy import FusedVariable, Node
-        >>> from hydpy.inputs import hland_T
-        >>> hp.nodes += Node("test", variable=FusedVariable("T", hland_T))
+        >>> from hydpy.aliases import hland_inputs_T
+        >>> hp.nodes += Node("test", variable=FusedVariable("T", hland_inputs_T))
         >>> hp.variables
-        {'Q': 4, FusedVariable("T", hland_T): 1}
+        {'Q': 4, FusedVariable("T", hland_inputs_T): 1}
         """
-        variables: Dict[
+        variables: DefaultDict[
             Union[
                 str,
                 Type[sequencetools.InputSequence],
-                Type[sequencetools.OutputSequence],
+                Type[sequencetools.InletSequence],
                 Type[sequencetools.ReceiverSequence],
+                Type[sequencetools.OutputSequence],
+                Type[sequencetools.OutletSequence],
+                Type[sequencetools.SenderSequence],
                 devicetools.FusedVariable,
             ],
             int,

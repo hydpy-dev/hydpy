@@ -566,7 +566,7 @@ overflow2, and waterlevel2.
     SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
-    def _connect_receivers(self) -> None:
+    def _connect_receivers(self, report_noconnect: bool = True) -> None:
         element = self.element
         assert element is not None
         receivers = element.receivers
@@ -576,9 +576,9 @@ overflow2, and waterlevel2.
                 f"`{len(receivers)}` receiver nodes are defined: "
                 f"{objecttools.enumeration(node.name for node in receivers)}."
             )
-        super()._connect_receivers()
+        super()._connect_receivers(report_noconnect)
 
-    def _connect_outlets(self) -> None:
+    def _connect_outlets(self, report_noconnect: bool = True) -> None:
         element = self.element
         assert element is not None
         outlets = element.outlets

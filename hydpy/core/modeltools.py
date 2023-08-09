@@ -1453,8 +1453,8 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                 f"`{objecttools.devicename(self)}`"
             )
 
-    def _connect_inputs(self) -> None:
-        self._connect_subgroup("inputs")
+    def _connect_inputs(self, report_noconnect: bool = True) -> None:
+        self._connect_subgroup("inputs", report_noconnect)
 
     def _connect_outputs(self) -> None:
         def _set_pointer(
@@ -1506,23 +1506,30 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
             return var.lower()
         return var.__name__.lower()
 
-    def _connect_inlets(self) -> None:
-        self._connect_subgroup("inlets")
+    def _connect_inlets(self, report_noconnect: bool = True) -> None:
+        self._connect_subgroup("inlets", report_noconnect, 0)
 
-    def _connect_receivers(self) -> None:
-        self._connect_subgroup("receivers")
+    def _connect_receivers(self, report_noconnect: bool = True) -> None:
+        self._connect_subgroup("receivers", report_noconnect, 0)
 
-    def _connect_outlets(self) -> None:
-        self._connect_subgroup("outlets")
+    def _connect_outlets(self, report_noconnect: bool = True) -> None:
+        self._connect_subgroup("outlets", report_noconnect, -1)
 
-    def _connect_senders(self) -> None:
-        self._connect_subgroup("senders")
+    def _connect_senders(self, report_noconnect: bool = True) -> None:
+        self._connect_subgroup("senders", report_noconnect, 0)
 
-    def _connect_subgroup(self, group: str) -> None:
+    def _connect_subgroup(
+        self,
+        group: str,
+        report_noconnect: bool,
+        position: Optional[Literal[0, -1]] = None,
+    ) -> None:
         st = sequencetools
         available_nodes = getattr(self.element, group)
         applied_nodes = []
-        for submodel in self.find_submodels(include_mainmodel=True).values():
+        for submodel in self.find_submodels(
+            include_mainmodel=True, position=position
+        ).values():
             sequences = submodel.sequences[group]
             for sequence in sequences:
                 selected_nodes = []
@@ -1536,7 +1543,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                             selected_nodes.append(node)
                 if sequence.NDIM == 0:
                     if not selected_nodes:
-                        if group == "inputs":
+                        if (group == "inputs") or not report_noconnect:
                             continue
                         raise RuntimeError(
                             f"Sequence {objecttools.elementphrase(sequence)} cannot "

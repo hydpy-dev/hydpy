@@ -3381,6 +3381,7 @@ could result in segmentation faults when using it, so please be careful).
         value = pointerutils.PPDouble() if self.NDIM else None
         try:
             setattr(self.fastaccess, self.name, value)
+            setattr(self.fastaccess, f"len_{self.name}", 0)
         except AttributeError:
             pass
 

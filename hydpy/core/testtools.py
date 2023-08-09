@@ -809,9 +809,11 @@ standard library for for further information.
                         for seq in getattr(model.sequences, subname, ()):
                             value = getattr(inits, seq.name, None)
                             if value is None:
-                                value = getattr(
-                                    inits, f"{element.name}_{seq.name}", None
-                                )
+                                name = f"{seq.name}_{element.name}"
+                                value = getattr(inits, name, None)
+                            if value is None:
+                                name = f"{seq.name}_{element.name}_{id(seq)}"
+                                value = getattr(inits, name, None)
                             if value is not None:
                                 seq(value)
 

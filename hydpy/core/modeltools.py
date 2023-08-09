@@ -2809,6 +2809,13 @@ but the value `1` of type `int` is given.
                         assert_never(adder.dimensionality)
                     submodel.update_parameters()
 
+    @property
+    def couple_models(self) -> Optional[ModelCoupler]:
+        """If available, return a function object for coupling models to a composite
+        model suitable at least for the actual model subclass (see method
+        |Elements.unite_collectives|)."""
+        return None
+
     # ToDo: Replace this hack with a Mypy plugin?
     def __getattr__(self, item: str) -> Any:
         assert False

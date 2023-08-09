@@ -4279,24 +4279,20 @@ class SubmodelInterface(Model, abc.ABC):
     _submodeladder: Optional[importtools.SubmodelAdder]
     predefinedmethod2argument: PredefinedMethod2Argument
 
+    typeid: ClassVar[int]
+    """Type identifier that we use for differentiating submodels that target the same 
+    process group (e.g. infiltration) but follow different interfaces.
+
+    For `Submodel_V1`, |SubmodelInterface.typeid| is 1, for `Submodel_V2` 2, and so on.
+
+    We prefer using |SubmodelInterface.typeid| over the standard |isinstance| checks in 
+    model equations as it allows releasing Python's Globel Interpreter Lock in Cython.
+    """
+
     def __init__(self) -> None:
         super().__init__()
         self._submodeladder = None
         self.predefinedmethod2argument = {}
-
-    @property
-    @abc.abstractmethod
-    def typeid(self) -> int:
-        """Type identifier that we use for differentiating submodels that target the
-        same process group (e.g. infiltration) but follow different interfaces.
-
-        For `Submodel_V1`, |SubmodelInterface.typeid| is 1, for `Submodel_V2` 2, and so
-        on.
-
-        We prefer using |SubmodelInterface.typeid| over the standard |isinstance|
-        checks in model equations as it allows releasing Python's Globel Interpreter
-        Lock in Cython.
-        """
 
     @staticmethod
     @contextlib.contextmanager

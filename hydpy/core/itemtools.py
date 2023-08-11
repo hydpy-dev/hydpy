@@ -381,7 +381,9 @@ class ChangeItem(ExchangeItem):
         return (len(hydpy.pub.timegrids.sim),)
 
     @property
-    def subnames(self) -> Optional[Union[Tuple[()], Tuple[str, ...]]]:
+    def subnames(  # pylint: disable=inconsistent-return-statements
+        self,
+    ) -> Optional[Union[Tuple[()], Tuple[str, ...]]]:
         """Artificial subnames of all values of all target variables.
 
         Property |ChangeItem.subnames| offers a way to identify specific entries of the
@@ -404,7 +406,6 @@ class ChangeItem(ExchangeItem):
                     subnames.extend(subsubnames)
             return tuple(subnames)
         assert_never(self.level)
-        return None
 
     @property
     def value(self) -> NDArrayFloat:

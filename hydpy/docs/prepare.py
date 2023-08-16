@@ -165,3 +165,11 @@ for subpackage in (autofigs, bib, figs, sphinx, rst):
                     file_.write(orig)
             elif filename != "build":
                 shutil.copy(path_in, path_out)
+
+# copy _themes path from sphinx subpackage into folder `auto`
+# _themes folder contains the modified sphinx html themes
+themespath = os.path.join(sphinx.__path__[0], "_themes")
+themespathdest = os.path.join(AUTOPATH, "_themes")
+if not os.path.isdir(themespath):
+    raise RuntimeError("Cannot find path `_themes` in sphinx subpackage")
+shutil.copytree(themespath, themespathdest)

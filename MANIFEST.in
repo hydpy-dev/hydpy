@@ -27,6 +27,15 @@ include hydpy/cythons/autogen/*.pxd
 include hydpy/docs/bib/*.bib
 include hydpy/docs/figs/*.png
 include hydpy/docs/rst/*.rst
+include hydpy/docs/sphinx/_themes/basic_hydpy/*.html
+include hydpy/docs/sphinx/_themes/basic_hydpy/*.html
+include hydpy/docs/sphinx/_themes/basic_hydpy/*.xml
+include hydpy/docs/sphinx/_themes/basic_hydpy/*.conf
+include hydpy/docs/sphinx/_themes/basic_hydpy/static/*
+include hydpy/docs/sphinx/_themes/basic_hydpy/changes/*.html
+include hydpy/docs/sphinx/_themes/classic_hydpy/*.html
+include hydpy/docs/sphinx/_themes/classic_hydpy/*.conf
+include hydpy/docs/sphinx/_themes/classic_hydpy/static/*
 include hydpy/tests/hydpydoctestcustomize.pth
 include hydpy/tests/.coveragerc
 graft hydpy/data*

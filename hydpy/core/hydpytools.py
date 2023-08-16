@@ -32,9 +32,6 @@ if TYPE_CHECKING:
     from hydpy.core import auxfiletools
 
 
-ConditionsType = Dict[str, Dict[str, Dict[str, Union[float, NDArrayFloat]]]]
-
-
 class HydPy:
     """The main class for managing *HydPy* projects.
 
@@ -1651,7 +1648,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         self.elements.reset_conditions()
 
     @property
-    def conditions(self) -> ConditionsType:
+    def conditions(self) -> Conditions:
         """A nested dictionary that contains the values of all condition sequences of
         all currently handled models.
 
@@ -1752,7 +1749,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         return self.elements.conditions
 
     @conditions.setter
-    def conditions(self, conditions: ConditionsType) -> None:
+    def conditions(self, conditions: Conditions) -> None:
         self.elements.conditions = conditions
 
     @property

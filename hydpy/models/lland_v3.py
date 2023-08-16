@@ -281,7 +281,7 @@ values", representing the averages or sums over the last 24 hours:
 
     >>> parameters.update()
     >>> test.reset_inits()
-    >>> conditions = sequences.conditions
+    >>> conditions = model.conditions
     >>> conditions_acker_summer = test(
     ...     "lland_v3_acker_summer_daily",
     ...     axis1=(inputs.nied, fluxes.qah), axis2=states.bowa,
@@ -952,7 +952,7 @@ you can disable it in |lland_v3| through setting |RefreezeFlag| to |False|):
 .. integration-test::
 
     >>> test.reset_inits()
-    >>> conditions = sequences.conditions
+    >>> conditions = model.conditions
     >>> conditions_acker_winter = test(
     ...     "lland_v3_acker_winter_daily",
     ...     axis1=(inputs.nied, fluxes.wada), axis2=(states.waes, states.wats),
@@ -1261,9 +1261,9 @@ Wh/m²).  We do so by trick to ensure we do not miss one of the relevant conditi
 dictionaries:
 
 >>> for key, value in locals().copy().items():
-...     if key.startswith("conditions_") and "states" in value:
-...         value["states"]["esnow"] *= 24
-...         value["states"]["ebdn"] *= 24
+...     if key.startswith("conditions_") and ("states" in value.get("model", {})):
+...         value["model"]["states"]["esnow"] *= 24
+...         value["model"]["states"]["ebdn"] *= 24
 
 This integration test deals with a dry situation.  Hence, the soil water content
 (|BoWa|) shows a pronounced decline.  This decline is sharpest around noon when
@@ -2078,9 +2078,7 @@ class Model(
     aetmodel = modeltools.SubmodelProperty(aetinterfaces.AETModel_V1)
     soilmodel = modeltools.SubmodelProperty(soilinterfaces.SoilModel_V1, optional=True)
 
-    def check_waterbalance(
-        self, initial_conditions: Dict[str, Dict[str, ArrayFloat]]
-    ) -> float:
+    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
         r"""Determine the water balance error of the previous simulation run in mm.
 
         Method |Model.check_waterbalance| calculates the balance error as follows:
@@ -2118,7 +2116,7 @@ class Model(
         control = self.parameters.control
         fluxes = self.sequences.fluxes
         last = self.sequences.states
-        first = initial_conditions["states"]
+        first = initial_conditions["model"]["states"]
         idxs_water = numpy.isin(control.lnk.values, [WASSER, FLUSS, SEE])
         idxs_land = numpy.invert(idxs_water)
         idxs_soil = numpy.invert(

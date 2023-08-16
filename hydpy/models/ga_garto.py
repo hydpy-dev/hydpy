@@ -125,7 +125,7 @@ The next commands store the current initial conditions, so we can use them later
 check that |ga_garto| is not violating the water balance:
 
 >>> test.reset_inits()
->>> conditions = sequences.conditions
+>>> conditions = model.conditions
 
 .. _ga_garto_5h_1000mm:
 
@@ -896,7 +896,7 @@ Due to changing the arrays' shapes, we need to update the memorised initial cond
 required for checking the water balance:
 
 >>> test.reset_inits()
->>> conditions = sequences.conditions
+>>> conditions = model.conditions
 
 Sand allows for much more infiltration than clay, of course.  So, the wetting front
 created during the first rainfall impulse reaches the sand soil's bottom (at a depth of

@@ -141,7 +141,7 @@ with the fixed-shape triangular response function of |hland_v1|:
 
 
 >>> test.reset_inits()
->>> conditions = sequences.conditions
+>>> conditions = model.conditions
 
 .. _hland_v2_field:
 
@@ -1310,10 +1310,7 @@ class Model(
 
     aetmodel = modeltools.SubmodelProperty(aetinterfaces.AETModel_V1)
 
-    def check_waterbalance(
-        self,
-        initial_conditions: Dict[str, Dict[str, ArrayFloat]],
-    ) -> float:
+    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
         r"""Determine the water balance error of the previous simulation run in mm.
 
         Method |Model.check_waterbalance| calculates the balance error as follows:
@@ -1341,7 +1338,7 @@ class Model(
         derived = self.parameters.derived
         fluxes = self.sequences.fluxes
         last = self.sequences.states
-        first = initial_conditions["states"]
+        first = initial_conditions["model"]["states"]
         areas = derived.relzoneareas.value
         idxs_lake = self.parameters.control.zonetype.values == ILAKE
         idxs_land = ~idxs_lake

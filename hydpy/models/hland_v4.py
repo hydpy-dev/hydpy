@@ -153,7 +153,7 @@ We assign identical values to all parameters, besides those that are specific to
 ...     6.298329, 2.948416, 1.309232, 0.32955, 0.089508, 0.085771, 0.0845, 0.084864)
 
 >>> test.reset_inits()
->>> conditions = sequences.conditions
+>>> conditions = model.conditions
 
 .. _hland_v4_field:
 
@@ -296,7 +296,7 @@ baseflow through the linear storage cascade:
     >>> model.aetmodel.parameters.control.temperaturethresholdice(13.0)
     >>> test.inits.sc = 0.0
     >>> test.reset_inits()
-    >>> conditions = sequences.conditions
+    >>> conditions = model.conditions
     >>> test("hland_v4_ilake")
     |        date |    p |    t |   tc | fracrain | rfc | sfc | cfact | swe | gact |     pc |  ei |     tf | spl | wcl | spg | wcg | glmelt | melt | refr |    in_ |      r |  sr |  ea | qvs1 | qab1 | qvs2 | qab2 |       el |       q1 | inuh | outuh |       rt |       qt |  ic |  sp |  wc |  sm | bw1 | bw2 |         lz |                      sc |   outlet |
     ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -540,7 +540,7 @@ ones of |hland_v1|.  Hence, all snow data in the following table agrees with the
     >>> zonetype(GLACIER)
     >>> test.inits.sc = 0.05
     >>> test.reset_inits()
-    >>> conditions = sequences.conditions
+    >>> conditions = model.conditions
     >>> test("hland_v4_glacier")
     |        date |    p |     t |    tc | fracrain | rfc | sfc |    cfact |                    swe |     gact |     pc |  ei |     tf | spl | wcl | spg | wcg |    glmelt |               melt |      refr |       in_ |         r |  sr |  ea |      qvs1 |     qab1 |     qvs2 |     qab2 |  el |       q1 |      inuh |     outuh |        rt |       qt |  ic |                     sp |                   wc |  sm |       bw1 |       bw2 |         lz |                                               sc |   outlet |
     -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -990,10 +990,7 @@ class Model(
 
     aetmodel = modeltools.SubmodelProperty(aetinterfaces.AETModel_V1)
 
-    def check_waterbalance(
-        self,
-        initial_conditions: Dict[str, Dict[str, ArrayFloat]],
-    ) -> float:
+    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
         r"""Determine the water balance error of the previous simulation run in mm.
 
         Method |Model.check_waterbalance| calculates the balance error as follows:
@@ -1021,7 +1018,7 @@ class Model(
         """
         fluxes = self.sequences.fluxes
         last = self.sequences.states
-        first = initial_conditions["states"]
+        first = initial_conditions["model"]["states"]
         derived = self.parameters.derived
         areas = derived.relzoneareas.values
         zonetypes = self.parameters.control.zonetype.values

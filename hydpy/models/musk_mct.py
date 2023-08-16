@@ -1134,10 +1134,7 @@ class Model(modeltools.SegmentModel):
             self.run()
             self.new2old()
 
-    def check_waterbalance(
-        self,
-        initial_conditions: Dict[str, Dict[str, ArrayFloat]],
-    ) -> float:
+    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
         r"""Determine the water balance error of the previous simulation run in %.
 
         Method |Model.check_waterbalance| calculates the balance error as follows:
@@ -1161,6 +1158,7 @@ class Model(modeltools.SegmentModel):
         via property |Sequences.conditions|.
         """
 
+        first = initial_conditions["model"]["states"]
         seconds = self.parameters.derived.seconds.value
         inflow = seconds * sum(self.sequences.fluxes.inflow.series)
         outflow = seconds * sum(self.sequences.fluxes.outflow.series)
@@ -1171,7 +1169,7 @@ class Model(modeltools.SegmentModel):
         self.run_segments(self.calc_referencewaterlevel_v1)
         self.run_segments(self.calc_wettedarea_v1)
         volume1 = numpy.dot(length, self.sequences.factors.wettedarea.values)
-        self.sequences.states.discharge = initial_conditions["states"]["discharge"]
+        self.sequences.states.discharge = first["discharge"]
         self.run_segments(self.calc_referencedischarge_v1)
         self.run_segments(self.calc_referencewaterlevel_v1)
         self.run_segments(self.calc_wettedarea_v1)

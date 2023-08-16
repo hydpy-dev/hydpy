@@ -39,8 +39,6 @@ from hydpy.core import variabletools
 from hydpy.core.typingtools import *
 from hydpy.tests import iotesting
 
-_Conditions = Dict[str, Union[float, NDArrayFloat]]
-
 if TYPE_CHECKING:
     import matplotlib
     from matplotlib import pyplot
@@ -409,7 +407,7 @@ class Test:
 
     @property
     @abc.abstractmethod
-    def raw_first_col_strings(self) -> List[str]:
+    def raw_first_col_strings(self) -> Tuple[str, ...]:
         """To be implemented by the subclasses of |Test|."""
 
     @abc.abstractmethod
@@ -610,7 +608,7 @@ class IntegrationTest(Test):
         axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         update_parameters: bool = True,
         get_conditions: Literal[None] = ...,
-        use_conditions: Optional[Dict[str, _Conditions]] = None,
+        use_conditions: Optional[ConditionsModel] = None,
     ) -> None:
         """do not return conditions"""
 
@@ -623,8 +621,8 @@ class IntegrationTest(Test):
         axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         update_parameters: bool = True,
         get_conditions: timetools.DateConstrArg,
-        use_conditions: Optional[Dict[str, _Conditions]],
-    ) -> Dict[sequencetools.IOSequence, _Conditions]:
+        use_conditions: Optional[ConditionsModel],
+    ) -> ConditionsModel:
         """do return conditions"""
 
     def __call__(
@@ -635,8 +633,8 @@ class IntegrationTest(Test):
         axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         update_parameters: bool = True,
         get_conditions: Optional[timetools.DateConstrArg] = None,
-        use_conditions: Optional[Dict[str, _Conditions]] = None,
-    ) -> Optional[Dict[sequencetools.IOSequence, _Conditions]]:
+        use_conditions: Optional[ConditionsModel] = None,
+    ) -> Optional[ConditionsModel]:
         """Prepare and perform an integration test and print and eventually plot its
         results.
 
@@ -652,14 +650,16 @@ class IntegrationTest(Test):
             self.plot(filename=filename, axis1=axis1, axis2=axis2)
         return seq2value
 
-    def _perform_simulation(self, get_conditions):
+    def _perform_simulation(
+        self, get_conditions: Optional[timetools.DateConstrArg]
+    ) -> Optional[ConditionsModel]:
         if get_conditions:
             sim = copy.deepcopy(hydpy.pub.timegrids.sim)
             date = timetools.Date(get_conditions)
             if date > hydpy.pub.timegrids.init.firstdate:
                 hydpy.pub.timegrids.sim.lastdate = date
                 self.hydpy.simulate()
-            conditions = self.element.model.sequences.conditions
+            conditions = self.element.model.conditions
             if date < hydpy.pub.timegrids.init.lastdate:
                 hydpy.pub.timegrids.sim.dates = date, sim.lastdate
                 self.hydpy.simulate()
@@ -669,11 +669,11 @@ class IntegrationTest(Test):
         return None
 
     @property
-    def _datetimes(self):
+    def _datetimes(self) -> Tuple[datetime.datetime, ...]:
         return tuple(date.datetime for date in hydpy.pub.timegrids.sim)
 
     @property
-    def raw_first_col_strings(self):
+    def raw_first_col_strings(self) -> Tuple[str, ...]:
         """The raw date strings of the first column, except the header."""
         return tuple(_.strftime(self.dateformat) for _ in self._datetimes)
 
@@ -761,9 +761,7 @@ standard library for for further information.
         return tuple(seqs)
 
     def prepare_model(
-        self,
-        update_parameters: bool,
-        use_conditions: Optional[Dict[str, Dict[str, Union[float, NDArrayFloat]]]],
+        self, update_parameters: bool, use_conditions: Optional[ConditionsModel]
     ) -> None:
         """Derive the secondary parameter values, prepare all required time series and
         set the initial conditions."""
@@ -774,7 +772,7 @@ standard library for for further information.
         self.reset_outputs()
         if use_conditions:
             with hydpy.pub.options.trimvariables(False):
-                self.element.model.sequences.conditions = use_conditions
+                self.element.model.conditions = use_conditions
         self.reset_inits()
 
     def reset_values(self) -> None:

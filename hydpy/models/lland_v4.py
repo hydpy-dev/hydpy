@@ -223,7 +223,7 @@ acre (summer)
 
     >>> parameters.update()
     >>> test.reset_inits()
-    >>> conditions = sequences.conditions
+    >>> conditions = model.conditions
     >>> conditions_acker_summer = test(
     ...     "lland_v4_acker_summer_daily",
     ...     axis1=(inputs.nied, fluxes.qah), axis2=states.bowa,
@@ -1065,9 +1065,9 @@ acre (summer)
 ...       2.5, 2.1, 2.2, 1.7, 1.7, 1.3, 1.3, 0.7, 0.8]))
 
 >>> for key, value in locals().copy().items():
-...     if key.startswith("conditions_") and "states" in value:
+...     if key.startswith("conditions_") and ("states" in value.get("model", {})):
 ...         for name in ("esnowinz", "esnow", "ebdn"):
-...             value["states"][name] *= 24
+...             value["model"]["states"][name] *= 24
 
 .. integration-test::
 
@@ -1852,9 +1852,7 @@ class Model(
     aetmodel = modeltools.SubmodelProperty(aetinterfaces.AETModel_V1)
     soilmodel = modeltools.SubmodelProperty(soilinterfaces.SoilModel_V1, optional=True)
 
-    def check_waterbalance(
-        self, initial_conditions: Dict[str, Dict[str, ArrayFloat]]
-    ) -> float:
+    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
         r"""Determine the water balance error of the previous simulation run in mm.
 
         Method |Model.check_waterbalance| calculates the balance error as follows:
@@ -1894,7 +1892,7 @@ class Model(
         control = self.parameters.control
         fluxes = self.sequences.fluxes
         last = self.sequences.states
-        first = initial_conditions["states"]
+        first = initial_conditions["model"]["states"]
         idxs_water = numpy.isin(control.lnk.values, [WASSER, FLUSS, SEE])
         idxs_land = numpy.invert(idxs_water)
         idxs_soil = numpy.invert(

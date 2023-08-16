@@ -1467,7 +1467,7 @@ does not agree with the one documentated in log file `example_calibration.log` (
 
     result: Optional[float]
     """The last result, as calculated by the target function."""
-    conditions: hydpytools.ConditionsType
+    conditions: Conditions
     """The |HydPy.conditions| of the given |HydPy| object.
 
     |CalibrationInterface| queries the conditions during its initialisation and uses 

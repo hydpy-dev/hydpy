@@ -350,7 +350,7 @@ class ServerState:
     conditionitems: List[itemtools.SetItem]
     outputitems: List[itemtools.SetItem]
     getitems: List[itemtools.GetItem]
-    conditions: Dict[ID, Dict[int, hydpytools.ConditionsType]]
+    conditions: Dict[ID, Dict[int, Conditions]]
     parameteritemvalues: Dict[ID, Dict[Name, Any]]
     inputitemvalues: Dict[ID, Dict[Name, Any]]
     conditionitemvalues: Dict[ID, Dict[Name, Any]]
@@ -361,7 +361,7 @@ class ServerState:
     initialconditionitemvalues: Dict[Name, Any]
     initialgetitemvalues: Dict[Name, Any]
     timegrids: Dict[ID, timetools.Timegrid]
-    init_conditions: hydpytools.ConditionsType
+    init_conditions: Conditions
     inputconditiondirs: Dict[ID, str]
     outputconditiondirs: Dict[ID, str]
     serieswriterdirs: Dict[ID, str]
@@ -1052,7 +1052,8 @@ calculated so far.
     <BLANKLINE>
     >>> conditions = test("query_internalconditions", id_="0",
     ...                   return_result=True)[13:]  # doctest: +ELLIPSIS
-    conditions = {'land_dill': {'states': {'ic': array([0.6839174, 1.1839174...
+    conditions = {'land_dill': {'model': {'states': {'ic': array([0.6839174, \
+1.1839174, 0.6850974...
 
     Due to the steps above, the returned dictionary agrees with the current state of
     the |HydPy| instance:
@@ -1073,7 +1074,7 @@ calculated so far.
     Next, we modify an arbitrary state and convert the dictionary back to a single-line
     string:
 
-    >>> conditions["land_dill"]["states"]["ic"][:2] = 0.5, 2.0
+    >>> conditions["land_dill"]["model"]["states"]["ic"][:2] = 0.5, 2.0
     >>> conditions = str(conditions).replace("\\n", " ")
 
     Now we can send the modified data back to the server by using the
@@ -1082,7 +1083,7 @@ calculated so far.
 
     >>> test("register_internalconditions", id_="0", data=f"conditions = {conditions}")
     <BLANKLINE>
-    >>> ic_dill = "self.state.conditions['0'][0]['land_dill']['states']['ic']"
+    >>> ic_dill = "self.state.conditions['0'][0]['land_dill']['model']['states']['ic']"
     >>> test("evaluate",
     ...      data=f"ic_dill = {ic_dill}")  # doctest: +ELLIPSIS
     ic_dill = array([0.5      , 2.       , 0.6850974,...
@@ -1101,7 +1102,7 @@ calculated so far.
     conditions data available under the given `id` to avoid that:
 
     >>> test("query_internalconditions", id_="0")  # doctest: +ELLIPSIS
-    conditions = {'land_dill': {'states': {'ic': array([0.6839...
+    conditions = {'land_dill': {'model': {'states': {'ic': array([0.6839...
     >>> test("deregister_internalconditions", id_="0")
     <BLANKLINE>
     >>> test("query_internalconditions", id_="0")

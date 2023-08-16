@@ -105,7 +105,7 @@ Integration tests
 >>> inputs.fxg.series = 0.0
 >>> inputs.fxs.series = 0.0
 >>> test.reset_inits()
->>> conditions = sequences.conditions
+>>> conditions = model.conditions
 
 .. _wland_v002_base_scenario:
 
@@ -503,7 +503,7 @@ ____________
 >>> al(0.0)
 >>> as_(10.0)
 >>> test.reset_inits()
->>> conditions = sequences.conditions
+>>> conditions = model.conditions
 
 .. integration-test::
 
@@ -664,10 +664,7 @@ class Model(
     petmodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
     pemodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
 
-    def check_waterbalance(
-        self,
-        initial_conditions: Dict[str, Dict[str, ArrayFloat]],
-    ) -> float:
+    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
         r"""Determine the water balance error of the previous simulation run in mm.
 
         Method |Model.check_waterbalance| calculates the balance error as follows:
@@ -691,7 +688,7 @@ class Model(
         inputs = self.sequences.inputs
         fluxes = self.sequences.fluxes
         last = self.sequences.states
-        first = initial_conditions["states"]
+        first = initial_conditions["model"]["states"]
         ddv = (last.dv - first["dv"]) * derived.alr * derived.agr
         if numpy.isnan(ddv):
             ddv = 0.0

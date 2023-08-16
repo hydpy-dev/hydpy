@@ -49,7 +49,7 @@ stage and volume:
 ...     (states.watervolume, 0.0),
 ...     (logs.loggedadjustedevaporation, 0.0)]
 >>> test.reset_inits()
->>> conditions = sequences.conditions
+>>> conditions = model.conditions
 >>> watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))
 >>> surfacearea(1.44)
 >>> catchmentarea(86.4)
@@ -499,10 +499,7 @@ class Model(modeltools.ELSModel):
     SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
-    def check_waterbalance(
-        self,
-        initial_conditions: Dict[str, Dict[str, ArrayFloat]],
-    ) -> float:
+    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
         r"""Determine the water balance error of the previous simulation run in million
         m³.
 
@@ -520,7 +517,7 @@ class Model(modeltools.ELSModel):
         model |dam_v008| for some examples.
         """
         fluxes = self.sequences.fluxes
-        first = initial_conditions["states"]
+        first = initial_conditions["model"]["states"]
         last = self.sequences.states
         return (hydpy.pub.timegrids.stepsize.seconds / 1e6) * (
             sum(fluxes.adjustedprecipitation.series)

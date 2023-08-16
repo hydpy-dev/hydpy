@@ -2832,6 +2832,23 @@ but the value `1` of type `int` is given.
                     submodel.update_parameters()
 
     @property
+    def conditions(self) -> ConditionsModel:
+        """A nested dictionary that contains the values of all condition sequences of
+        a model and its submodels.
+
+        See the documentation on property |HydPy.conditions| for further information.
+        """
+        conditions = {}
+        for name, model in self.find_submodels(include_mainmodel=True).items():
+            conditions[name] = model.sequences.conditions
+        return conditions
+
+    @conditions.setter
+    def conditions(self, conditions: ConditionsModel) -> None:
+        for name, model in self.find_submodels(include_mainmodel=True).items():
+            model.sequences.conditions = conditions[name]
+
+    @property
     def couple_models(self) -> Optional[ModelCoupler]:
         """If available, return a function object for coupling models to a composite
         model suitable at least for the actual model subclass (see method

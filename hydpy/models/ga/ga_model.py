@@ -2822,10 +2822,7 @@ class Model(modeltools.AdHocModel):
 class BaseModel(modeltools.AdHocModel):
     """General base class for GARTO-like Green-Ampt models."""
 
-    def check_waterbalance(
-        self,
-        initial_conditions: Dict[str, Dict[str, ArrayFloat]],
-    ) -> float:
+    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
         r"""Determine the water balance error of the previous simulation run in mm.
 
         Method |ga_model.BaseModel.check_waterbalance| calculates the balance error as
@@ -2844,9 +2841,10 @@ class BaseModel(modeltools.AdHocModel):
         """
         inputs = self.sequences.inputs
         fluxes = self.sequences.fluxes
+        first = initial_conditions["model"]["states"]
         old_watercontent = self._calc_watercontent(
-            frontdepth=initial_conditions["states"]["frontdepth"],  # type: ignore[arg-type]  # pylint: disable=line-too-long
-            moisture=initial_conditions["states"]["moisture"],  # type: ignore[arg-type]  # pylint: disable=line-too-long
+            frontdepth=first["frontdepth"],  # type: ignore[arg-type]
+            moisture=first["moisture"],  # type: ignore[arg-type]
         )
         return float(
             numpy.sum(inputs.rainfall.evalseries)

@@ -135,6 +135,10 @@ ArrayFloat = TypeVar(
     Union[float, VectorFloat],
 )
 
+ConditionsSubmodel = Dict[str, Dict[str, Union[float, NDArrayFloat]]]
+ConditionsModel = Dict[str, ConditionsSubmodel]
+Conditions = Dict[str, ConditionsModel]
+
 
 class SharableConfiguration(TypedDict):
     """Specification of the configuration data that main models can share with their
@@ -224,6 +228,9 @@ __all__ = [
     "Concatenate",
     "ClassVar",
     "Collection",
+    "Conditions",
+    "ConditionsModel",
+    "ConditionsSubmodel",
     "ContextManager",
     "DefaultDict",
     "Deque",

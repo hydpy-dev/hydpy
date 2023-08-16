@@ -1654,19 +1654,19 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
             element.model.sequences.reset()
 
     @property
-    def conditions(self) -> hydpytools.ConditionsType:
+    def conditions(self) -> Conditions:
         """A nested dictionary that contains the values of all |ConditionSequence|
         objects of all currently handled models.
 
         See the documentation on property |HydPy.conditions| for further information.
         """
-        return {element.name: element.model.sequences.conditions for element in self}
+        return {element.name: element.model.conditions for element in self}
 
     @conditions.setter
-    def conditions(self, conditions: hydpytools.ConditionsType) -> None:
+    def conditions(self, conditions: Conditions) -> None:
         for name, subconditions in conditions.items():
             element = getattr(self, name)
-            element.model.sequences.conditions = subconditions
+            element.model.conditions = subconditions
 
     @printtools.print_progress
     def prepare_allseries(self, allocate_ram: bool = True, jit: bool = False) -> None:

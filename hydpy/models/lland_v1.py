@@ -214,7 +214,7 @@ runoff concentration via linear storages (inspectable through clicking on |QDGZ1
 .. integration-test::
 
     >>> test.reset_inits()
-    >>> conditions = sequences.conditions
+    >>> conditions = model.conditions
     >>> test("lland_v1_acker_summer",
     ...      axis1=(inputs.nied, fluxes.qah), axis2=states.bowa)
     |                date | nied | teml |  qz | qzh |  nkor | tkor |      nbes | sbes |      evi |      evb |        wgtf |      wnied |   schmpot | schm |      wada |      qdb |     qib1 |     qib2 |      qbb |     qkap |     qdgz |    qdgz1 |    qdgz2 |    qigz1 |    qigz2 |     qbgz |    qdga1 |    qdga2 |    qiga1 |    qiga2 |     qbga |      qah |       qa |     inzp | wats | waes |       bowa |     sdg1 |     sdg2 |     sig1 |     sig2 |       sbg | inlet |   outlet |
@@ -2193,9 +2193,7 @@ class Model(
     aetmodel = modeltools.SubmodelProperty(aetinterfaces.AETModel_V1)
     soilmodel = modeltools.SubmodelProperty(soilinterfaces.SoilModel_V1, optional=True)
 
-    def check_waterbalance(
-        self, initial_conditions: Dict[str, Dict[str, ArrayFloat]]
-    ) -> float:
+    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
         r"""Determine the water balance error of the previous simulation run in mm.
 
         Method |Model.check_waterbalance| calculates the balance error as follows:
@@ -2233,7 +2231,7 @@ class Model(
         control = self.parameters.control
         fluxes = self.sequences.fluxes
         last = self.sequences.states
-        first = initial_conditions["states"]
+        first = initial_conditions["model"]["states"]
         idxs_water = numpy.isin(control.lnk.values, [WASSER, FLUSS, SEE])
         idxs_land = numpy.invert(idxs_water)
         idxs_soil = numpy.invert(

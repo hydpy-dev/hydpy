@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""This module implements tools for defining and handling different kinds of sequences
-(time-series) of hydrological models."""
+"""This module implements tools for defining and handling different kinds of
+hydrological model sequences (time series)."""
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -691,8 +691,9 @@ patch(template % "StateSequences") as states:
             yield log
 
     @property
-    def conditions(self) -> Dict[str, Dict[str, Union[float, NDArrayFloat]]]:
-        """A nested dictionary that contains the values of all condition sequences.
+    def conditions(self) -> ConditionsSubmodel:
+        """A nested dictionary that contains the values of all condition sequences of
+        a single model instance.
 
         See the documentation on property |HydPy.conditions| for further information.
         """
@@ -704,7 +705,7 @@ patch(template % "StateSequences") as states:
         return conditions
 
     @conditions.setter
-    def conditions(self, conditions):
+    def conditions(self, conditions: ConditionsSubmodel) -> None:
         with hydpy.pub.options.trimvariables(False):
             for subname, subconditions in conditions.items():
                 subseqs = getattr(self, subname)

@@ -205,7 +205,7 @@ the water balance in each example run, we need to store the defined (initial)
 conditions before performing the first simulation run:
 
 >>> test.reset_inits()
->>> conditions = sequences.conditions
+>>> conditions = model.conditions
 
 .. _wland_v001_base_scenario:
 
@@ -683,7 +683,7 @@ Assigning a new value to parameter |NU| changes the shape of the state sequences
 applying method |Model.check_waterbalance| after simulation:
 
 >>> test.reset_inits()
->>> conditions = sequences.conditions
+>>> conditions = model.conditions
 
 In contrast to the :ref:`wland_v001_no_vadose_zone` example, the generated runoff
 (|RH|) nearly vanishes due to the little rise in the water level, even for the two
@@ -847,9 +847,7 @@ class Model(
     petmodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
     pemodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
 
-    def check_waterbalance(
-        self, initial_conditions: Dict[str, Dict[str, ArrayFloat]]
-    ) -> float:
+    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
         r"""Determine the water balance error of the previous simulation run in mm.
 
         Method |Model.check_waterbalance| calculates the balance error as follows:
@@ -873,7 +871,7 @@ class Model(
         inputs = self.sequences.inputs
         fluxes = self.sequences.fluxes
         last = self.sequences.states
-        first = initial_conditions["states"]
+        first = initial_conditions["model"]["states"]
         ddv = (last.dv - first["dv"]) * derived.alr * derived.agr
         if numpy.isnan(ddv):
             ddv = 0.0

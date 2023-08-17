@@ -28,11 +28,17 @@ def _clear_autogendir() -> None:
 
 
 def _prepare_cythonoptions(fast_cython: bool, profile_cython: bool) -> List[str]:
+
+    # ToDo: do not share code with PyxWriter.cythondistutilsoptions
+
     cythonoptions = [
         "# -*- coding: utf-8 -*-",
         "# !python",
+        "# distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION",
         "# cython: language_level=3",
+        "# cython: cpow=True",
     ]
+
     if fast_cython:
         cythonoptions.extend(
             [
@@ -51,6 +57,7 @@ def _prepare_cythonoptions(fast_cython: bool, profile_cython: bool) -> List[str]
                 "# cython: cdivision=False",
             ]
         )
+
     if profile_cython:
         cythonoptions.extend(
             [
@@ -59,6 +66,7 @@ def _prepare_cythonoptions(fast_cython: bool, profile_cython: bool) -> List[str]
                 "# distutils: define_macros=CYTHON_TRACE_NOGIL=1",
             ]
         )
+
     return cythonoptions
 
 

@@ -2,7 +2,7 @@ language: python
 
 os: linux
 
-dist: focal
+dist: jammy
 
 matrix:
   include:

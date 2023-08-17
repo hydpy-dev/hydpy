@@ -341,28 +341,51 @@ cdef class DoubleBase:
     """Base class for |Double| and |PDouble| that implements operators
     which return builtin Python objects."""
 
-    def __add__(x, y):
-        return conv2double(x) + conv2double(y)
+    def __add__(self, other):
+        return conv2double(self) + conv2double(other)
 
-    def __sub__(x, y):
-        return conv2double(x) - conv2double(y)
+    def __radd__(self, other):
+        return conv2double(other) + conv2double(self)
 
-    def __mul__(x, y):
-        return conv2double(x) * conv2double(y)
+    def __sub__(self, other):
+        return conv2double(self) - conv2double(other)
 
-    def __floordiv__(x, y):
-        return conv2double(x) // conv2double(y)
+    def __rsub__(self, other):
+        return conv2double(other) - conv2double(self)
 
-    def __truediv__(x, y):
-        return conv2double(x) / conv2double(y)
+    def __mul__(self, other):
+        return conv2double(self) * conv2double(other)
 
-    def __mod__(x, y):
-        cdef double d_x = conv2double(x)
-        cdef double d_y = conv2double(y)
-        return d_x-(d_x // d_y)*d_y
+    def __rmul__(self, other):
+        return conv2double(other) * conv2double(self)
 
-    def __pow__(x, y, z):
-        return conv2double(x)**conv2double(y)
+    def __floordiv__(self, other):
+        return conv2double(self) // conv2double(other)
+
+    def __rfloordiv__(self, other):
+        return conv2double(other) // conv2double(self)
+
+    def __truediv__(self, other):
+        return conv2double(self) / conv2double(other)
+
+    def __rtruediv__(self, other):
+        return conv2double(other) / conv2double(self)
+
+    def __mod__(self, other):
+        cdef double x = conv2double(self)
+        cdef double y = conv2double(other)
+        return x - (x // y) * y
+
+    def __rmod__(self, other):
+        cdef double x = conv2double(other)
+        cdef double y = conv2double(self)
+        return x - (x // y) * y
+
+    def __pow__(self, other, z):
+        return conv2double(self) ** conv2double(other)
+
+    def __rpow__(self, other, z):
+        return conv2double(other) ** conv2double(self)
 
     def __neg__(self):
         return -conv2double(self)
@@ -388,21 +411,21 @@ cdef class DoubleBase:
     def __format__(self, digits):
         return format(float(self), digits)
 
-    def __richcmp__(x, y, int z):
-        cdef double _x = conv2double(x)
-        cdef double _y = conv2double(y)
+    def __richcmp__(self, other, int z):
+        cdef double x = conv2double(self)
+        cdef double y = conv2double(other)
         if z == 0:
-            return _x < _y
+            return x < y
         if z == 1:
-            return _x <= _y
+            return x <= y
         if z == 2:
-            return _x == _y
+            return x == y
         if z == 3:
-            return _x != _y
+            return x != y
         if z == 4:
-            return _x > _y
+            return x > y
         if z == 5:
-            return _x >= _y
+            return x >= y
 
     @property
     def shape(self):

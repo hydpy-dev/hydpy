@@ -762,7 +762,9 @@ class PyxWriter:
         >>> pyxwriter = PyxWriter(None, None, None)
         >>> pyxwriter.cythondistutilsoptions
         #!python
+        # distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
         # cython: language_level=3
+        # cython: cpow=True
         # cython: boundscheck=False
         # cython: wraparound=False
         # cython: initializedcheck=False
@@ -774,7 +776,9 @@ class PyxWriter:
         >>> config.PROFILECYTHON = True
         >>> pyxwriter.cythondistutilsoptions
         #!python
+        # distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
         # cython: language_level=3
+        # cython: cpow=True
         # cython: boundscheck=True
         # cython: wraparound=True
         # cython: initializedcheck=True
@@ -787,28 +791,31 @@ class PyxWriter:
         >>> config.FASTCYTHON = True
         >>> config.PROFILECYTHON = False
         """
+
+        # ToDo: do not share code with prepare.__prepare_cythonoptions
+
+        lines = Lines(
+            "#!python",
+            "# distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION",
+            "# cython: language_level=3",
+            "# cython: cpow=True",
+        )
         if config.FASTCYTHON:
-            lines = Lines(
-                "#!python",
-                "# cython: language_level=3",
-                "# cython: boundscheck=False",
-                "# cython: wraparound=False",
-                "# cython: initializedcheck=False",
-                "# cython: cdivision=True",
-            )
+            lines.add(0, "# cython: boundscheck=False")
+            lines.add(0, "# cython: wraparound=False")
+            lines.add(0, "# cython: initializedcheck=False")
+            lines.add(0, "# cython: cdivision=True")
         else:
-            lines = Lines(
-                "#!python",
-                "# cython: language_level=3",
-                "# cython: boundscheck=True",
-                "# cython: wraparound=True",
-                "# cython: initializedcheck=True",
-                "# cython: cdivision=False",
-            )
+            lines.add(0, "# cython: boundscheck=True")
+            lines.add(0, "# cython: wraparound=True")
+            lines.add(0, "# cython: initializedcheck=True")
+            lines.add(0, "# cython: cdivision=False")
+
         if config.PROFILECYTHON:
             lines.add(0, "# cython: linetrace=True")
             lines.add(0, "# distutils: define_macros=CYTHON_TRACE=1")
             lines.add(0, "# distutils: define_macros=CYTHON_TRACE_NOGIL=1")
+
         return lines
 
     @property

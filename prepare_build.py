@@ -38,7 +38,9 @@ def _prepare_baseextensions(fast_cython: bool, profile_cython: bool) -> None:
             cythonoptions = [
                 "# -*- coding: utf-8 -*-",
                 "# !python",
+                "# distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION",
                 "# cython: language_level=3",
+                "# cython: cpow=True",
             ]
             if fast_cython:
                 cythonoptions.extend(

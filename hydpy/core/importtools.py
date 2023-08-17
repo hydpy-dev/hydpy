@@ -526,7 +526,7 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
             control = model.parameters.control
             if (ltr := self._landtype_refindices) is not None:
                 shared["landtype_refindices"] = getattr(control, ltr.name)
-            if (str_ := self._soiltype_refindices) is not None:
+            if (str_ := self._soiltype_refindices) is not None:  # pragma: no cover
                 shared["soiltype_refindices"] = getattr(control, str_.name)
             if (rw := self._refweights) is not None:
                 shared["refweights"] = getattr(control, rw.name)

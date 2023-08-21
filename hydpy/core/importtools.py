@@ -541,9 +541,9 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
     refweights: Optional[Type[parametertools.Parameter]]
     """Reference to a weighting parameter."""
 
-    modeltype2submodelname2submodeladder: DefaultDict[
-        Type[modeltools.Model], Dict[str, SubmodelAdder]
-    ] = collections.defaultdict(lambda: {})
+    __hydpy_maintype2subname2adders__: DefaultDict[
+        Type[modeltools.Model], DefaultDict[str, List[SubmodelAdder]]
+    ] = collections.defaultdict(lambda: collections.defaultdict(lambda: []))
 
     _wrapped: Union[PrepSub0D[TM_contra, TI_contra], PrepSub1D[TM_contra, TI_contra]]
     _sharable_configuration: SharableConfiguration
@@ -643,7 +643,8 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
 
     def __set_name__(self, owner: Type[modeltools.Model], name: str) -> None:
         super().__set_name__(owner, name)
-        self.modeltype2submodelname2submodeladder[owner][self.submodelname] = self
+        mt2sn2as = self.__hydpy_maintype2subname2adders__
+        mt2sn2as[owner][self.submodelname].append(self)
 
     @overload
     def __call__(

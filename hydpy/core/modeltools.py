@@ -1873,21 +1873,25 @@ to be consistent with the name of the element handling the model.
         def _extend_lines_submodel(
             model: Model, sublevel: int, general_methods: Set[str]
         ) -> None:
+            def _find_adder_and_position() -> (
+                Tuple[importtools.SubmodelAdder, Optional[str]]
+            ):
+                mt2sn2as = importtools.SubmodelAdder.__hydpy_maintype2subname2adders__
+                subname, position = name.rpartition(".")[2], None
+                for modeltype in inspect.getmro(type(model)):
+                    if (name2adders := mt2sn2as.get(modeltype)) is not None:
+                        if subname.rsplit("_")[-1].isnumeric():
+                            subname, position = subname.rsplit("_")
+                        for adder in name2adders[subname]:
+                            if isinstance(submodel, adder.submodelinterface):
+                                return adder, position
+                assert False
+
             sublevel += 1
             for name, submodel in model.find_submodels(
                 include_subsubmodels=False
             ).items():
-                t2n2a = importtools.SubmodelAdder.modeltype2submodelname2submodeladder
-                subname = name.rpartition(".")[2]
-                position = None
-                for modeltype in inspect.getmro(type(model)):
-                    if (name2adder := t2n2a.get(modeltype)) is not None:
-                        if subname.rsplit("_")[-1].isnumeric():
-                            subname, position = subname.rsplit("_")
-                        if (adder := name2adder.get(subname)) is not None:
-                            break
-                else:
-                    assert False
+                adder, position = _find_adder_and_position()
                 position = "" if position is None else f", position={position}"
                 lines.append(
                     f"{(sublevel - 1) * '    '}with "

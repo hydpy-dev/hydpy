@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-""" This module provides utilities to build Cython models based on
-Python models automatically.
+""" This module provides utilities to build Cython models based on Python models
+automatically.
 
 .. _`issue`: https://github.com/hydpy-dev/hydpy/issues
 
@@ -2498,15 +2498,32 @@ nogil:
 
         Third, Python's standard cast function translates into Cython's cast syntax:
 
-        >>> from hydpy.interfaces import soilinterfaces
+        >>> from hydpy.interfaces import channelinterfaces
         >>> class Calc_Test_V3(Method):
         ...     @staticmethod
-        ...     def __call__(model: Model) -> soilinterfaces.SoilModel_V1:
-        ...         return cast(soilinterfaces.SoilModel_V1, model.soilmodel)
+        ...     def __call__(model: Model) -> channelinterfaces.StorageModel_V1:
+        ...         return cast(channelinterfaces.StorageModel_V1, model.soilmodel)
         >>> model.calc_test_v3 = MethodType(Calc_Test_V3.__call__, model)
         >>> FuncConverter(model, "calc_test_v3", model.calc_test_v3).pyxlines
             cpdef inline masterinterface.MasterInterface calc_test_v3(self) nogil:
                 return (<masterinterface.MasterInterface>self.soilmodel)
+        <BLANKLINE>
+
+        >>> class Calc_Test_V4(Method):
+        ...     @staticmethod
+        ...     def __call__(model: Model) -> None:
+        ...         cast(
+        ...             Union[
+        ...                 channelinterfaces.RoutingModel_V1,
+        ...                 channelinterfaces.RoutingModel_V2,
+        ...             ],
+        ...             model.routingmodels[0],
+        ...         ).get_partialdischargedownstream()
+        >>> model.calc_test_v4 = MethodType(Calc_Test_V4.__call__, model)
+        >>> FuncConverter(model, "calc_test_v4", model.calc_test_v4).pyxlines
+            cpdef inline void calc_test_v4(self) nogil:
+                (<masterinterface.MasterInterface>self.routingmodels[0]).\
+get_partialdischargedownstream()
         <BLANKLINE>
         """
 
@@ -2537,11 +2554,10 @@ nogil:
             lines.insert(1, f"        cdef {cytype} {name}")
         for idx, line in enumerate(lines):
             if "cast(" in line:
-                part1, _, part2 = line.partition("cast(")
-                part2 = part2.partition(", ")[2]
-                if ("," in part2) and (part2.index(",") < part2.index(")")):
-                    part2 = part2.replace(",", "", 1)
-                lines[idx] = f"{part1}(<masterinterface.MasterInterface>{part2}"
+                part1, _, part23 = line.partition("cast(")
+                part2, _, part3 = part23.partition(")")
+                part2 = part2.strip().strip(",").rpartition(",")[2].strip()
+                lines[idx] = f"{part1}(<masterinterface.MasterInterface>{part2}){part3}"
         return Lines(*lines)
 
 

@@ -2241,20 +2241,42 @@ time.
 
         Property |HydPy.methodorder| should be of interest to framework developers only.
         """
+        # due to https://github.com/python/mypy/issues/9718:
+        # pylint: disable=consider-using-in
+
         funcs: List[Callable[[int], None]] = []
         if exceptiontools.attrready(hydpy.pub, "sequencemanager"):
             funcs.append(hydpy.pub.sequencemanager.read_netcdfslices)
         for node in self.nodes:
-            if node.deploymode in ("oldsim", "obs_oldsim"):
+            if (
+                (dm := node.deploymode) == "oldsim"
+                or dm == "obs_oldsim"
+                or dm == "oldsim_bi"
+                or dm == "obs_oldsim_bi"
+            ):
                 funcs.append(node.sequences.fastaccess.load_simdata)
-            else:
+            elif dm == "newsim" or dm == "obs" or dm == "obs_newsim" or dm == "obs_bi":
                 funcs.append(node.sequences.fastaccess.reset)
+            else:
+                assert_never(dm)
             funcs.append(node.sequences.fastaccess.load_obsdata)
         for device in self.deviceorder:
             if isinstance(device, devicetools.Element):
                 funcs.append(device.model.simulate)
-            elif device.deploymode in ("obs_newsim", "obs_oldsim"):
+            elif (
+                (dm := device.deploymode) == "obs_newsim"
+                or dm == "obs_oldsim"
+                or dm == "obs_oldsim_bi"
+            ):
                 funcs.append(device.sequences.fastaccess.fill_obsdata)
+            elif not (
+                dm == "newsim"
+                or dm == "oldsim"
+                or dm == "obs"
+                or dm == "oldsim_bi"
+                or dm == "obs_bi"
+            ):
+                assert_never(dm)
         elements = self.collectives
         for element in elements:
             if element.senders:
@@ -2265,8 +2287,20 @@ time.
         for element in elements:
             funcs.append(element.model.save_data)
         for node in self.nodes:
-            if node.deploymode in ("obs_newsim", "obs_oldsim"):
+            if (
+                (dm := node.deploymode) == "obs_newsim"
+                or dm == "obs_oldsim"
+                or dm == "obs_oldsim_bi"
+            ):
                 funcs.append(node.sequences.fastaccess.reset_obsdata)
+            elif not (
+                dm == "newsim"
+                or dm == "oldsim"
+                or dm == "obs"
+                or dm == "oldsim_bi"
+                or dm == "obs_bi"
+            ):
+                assert_never(dm)
             funcs.append(node.sequences.fastaccess.save_simdata)
             funcs.append(node.sequences.fastaccess.save_obsdata)
         if exceptiontools.attrready(hydpy.pub, "sequencemanager"):

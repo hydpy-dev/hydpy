@@ -153,7 +153,16 @@ class SharableConfiguration(TypedDict):
     computational subunits like the area of hydrological response units)."""
 
 
-DeployMode = Literal["newsim", "oldsim", "obs", "obs_newsim", "obs_oldsim"]
+DeployMode = Literal[
+    "newsim",
+    "oldsim",
+    "obs",
+    "obs_newsim",
+    "obs_oldsim",
+    "oldsim_bi",
+    "obs_bi",
+    "obs_oldsim_bi",
+]
 LineStyle = Literal["-", "--", "-.", ":", "solid", "dashed", "dashdot", "dotted"]
 StepSize = Literal["daily", "d", "monthly", "m"]
 

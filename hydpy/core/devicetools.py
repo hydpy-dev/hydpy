@@ -2093,7 +2093,8 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
 
     @property
     def deploymode(self) -> DeployMode:
-        """Defines the kind of information a node offers its exit elements.
+        """Defines the kind of information a node offers its exit elements, eventually,
+        its entry elements.
 
         *HydPy* supports the following modes:
 
@@ -2115,6 +2116,13 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
           * obs_oldsim: Combination of mode `obs` and `oldsim`.  Mode `obs_oldsim`
             gives priority to the provision of observation values.  Old simulation
             values serve as a replacement for missing observed values.
+          * obs_bi: Similar to the `obs` mode but triggers "bidirectional" deployment.
+            All bidirectional modes only apply if the upstream element(s) do not
+            calculate data for but expect from their downstream nodes.  A typical
+            example is using discharge measurements as lower boundary conditions for a
+            hydrodynamical flood routing method.
+          * oldsim_bi: The bidirectional version of the `oldsim` mode.
+          * obs_oldsim_bi: The bidirectional version of the `obs_oldsim` mode.
 
         One relevant difference between modes `obs` and `oldsim` is that the external
         values are either handled by the `obs` or the `sim` sequence object.  Hence,
@@ -2141,6 +2149,15 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         >>> node.deploymode = "obs_oldsim"
         >>> node.deploymode
         'obs_oldsim'
+        >>> node.deploymode = "oldsim_bi"
+        >>> node.deploymode
+        'oldsim_bi'
+        >>> node.deploymode = "obs_bi"
+        >>> node.deploymode
+        'obs_bi'
+        >>> node.deploymode = "obs_oldsim_bi"
+        >>> node.deploymode
+        'obs_oldsim_bi'
         >>> node.deploymode = "newsim"
         >>> node.deploymode
         'newsim'
@@ -2149,20 +2166,36 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         ...
         ValueError: When trying to set the routing mode of node `test`, the value \
 `oldobs` was given, but only the following values are allowed: `newsim`, `oldsim`, \
-`obs`, `obs_newsim`, and `obs_oldsim`.
+`obs`, `obs_newsim`, `obs_oldsim`, `obs_bi.`, `oldsim_bi`, and `obs_oldsim_bi`.
         """
         return self._deploymode
 
     @deploymode.setter
     def deploymode(self, value: DeployMode) -> None:
-        if value in ("oldsim", "obs_oldsim"):
-            self.__blackhole = pointerutils.Double(0.0)
-        elif value not in ("newsim", "obs", "obs_newsim", "obs_oldsim"):
+        def _assert_never(v: Never) -> NoReturn:
             raise ValueError(
                 f"When trying to set the routing mode of node `{self.name}`, the "
                 f"value `{value}` was given, but only the following values are "
-                f"allowed: `newsim`, `oldsim`, `obs`, `obs_newsim`, and `obs_oldsim`."
+                f"allowed: `newsim`, `oldsim`, `obs`, `obs_newsim`, `obs_oldsim`, "
+                f"`obs_bi.`, `oldsim_bi`, and `obs_oldsim_bi`."
             )
+
+        # due to https://github.com/python/mypy/issues/9718:
+        # pylint: disable=consider-using-in,too-many-boolean-expressions
+
+        if (
+            value == "newsim"
+            or value == "obs"
+            or value == "obs_newsim"
+            or value == "obs_bi"
+            or value == "oldsim_bi"
+            or value == "obs_oldsim_bi"
+        ):
+            pass
+        elif value == "oldsim" or value == "obs_oldsim":
+            self.__blackhole = pointerutils.Double(0.0)
+        else:
+            _assert_never(value)
         self._deploymode = value
         for element in itertools.chain(self.entries, self.exits):
             model: Optional[modeltools.Model]
@@ -2170,7 +2203,12 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
             if model and not model.COMPOSITE:
                 model.connect()
 
-    def get_double(self, group: str) -> pointerutils.Double:
+    def get_double(
+        self,
+        group: Literal[
+            "inlets", "receivers", "inputs", "outlets", "senders", "outputs"
+        ],
+    ) -> pointerutils.Double:
         """Return the |Double| object appropriate for the given |Element| input or
         output group and the actual |Node.deploymode|.
 
@@ -2186,42 +2224,68 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
 
         The following `test` function shows for a given |Node.deploymode| if method
         |Node.get_double| either returns the |Double| object handling the simulated
-        value (1.0) or the |Double| object handling the observed value (2.0):
+        value (1.0) or the one handling the observed value (2.0):
 
         >>> def test(deploymode):
         ...     node.deploymode = deploymode
-        ...     for group in ("inlets", "receivers", "outlets", "senders"):
-        ...         print(group, node.get_double(group))
+        ...     for group in ( "inlets", "receivers", "inputs"):
+        ...         end = None if group == "inputs" else ", "
+        ...         print(group, node.get_double(group), sep=": ", end=end)
+        ...     for group in ("outlets", "senders", "outputs"):
+        ...         end = None if group == "outputs" else ", "
+        ...         print(group, node.get_double(group), sep=": ", end=end)
 
         In the default mode, nodes (passively) route simulated values by offering the
         |Double| object of sequence |Sim| to all |Element| input and output groups:
 
         >>> test("newsim")
-        inlets 1.0
-        receivers 1.0
-        outlets 1.0
-        senders 1.0
+        inlets: 1.0, receivers: 1.0, inputs: 1.0
+        outlets: 1.0, senders: 1.0, outputs: 1.0
 
         Setting |Node.deploymode| to `obs` means that a node receives simulated values
         (from group `outlets` or `senders`) but provides observed values (to group
         `inlets` or `receivers`):
 
         >>> test("obs")
-        inlets 2.0
-        receivers 2.0
-        outlets 1.0
-        senders 1.0
+        inlets: 2.0, receivers: 2.0, inputs: 2.0
+        outlets: 1.0, senders: 1.0, outputs: 1.0
 
         With |Node.deploymode| set to `oldsim`, the node provides (previously)
-        simulated values (to group `inlets` or `receivers`) but does not receive any
-        values.  Method |Node.get_double| just returns a dummy |Double| object
-        initialised to 0.0 in this case (for group `outlets` or `senders`):
+        simulated values (to group `inlets`, `receivers`, or `inputs`) but does not
+        receive any.  Method |Node.get_double| returns a dummy |Double| object
+        initialised to 0.0 in this case (for group `outlets`, `senders`, or `outputs`):
 
         >>> test("oldsim")
-        inlets 1.0
-        receivers 1.0
-        outlets 0.0
-        senders 0.0
+        inlets: 1.0, receivers: 1.0, inputs: 1.0
+        outlets: 0.0, senders: 0.0, outputs: 0.0
+
+        For `obs_newsim`, the result is like for `obs` because, for missing data,
+        *HydPy* temporarily copies newly calculated values into the observation
+        sequence during simulation:
+
+        >>> test("obs_newsim")
+        inlets: 2.0, receivers: 2.0, inputs: 2.0
+        outlets: 1.0, senders: 1.0, outputs: 1.0
+
+        Similar holds for the `obs_oldsim` mode, but here |Node.get_double| must ensure
+        newly calculated values do not overwrite the "old" ones:
+
+        >>> test("obs_oldsim")
+        inlets: 2.0, receivers: 2.0, inputs: 2.0
+        outlets: 0.0, senders: 0.0, outputs: 0.0
+
+        All "bidirectional" modes require symmetrical connections, as they long for
+        passing the same information in the downstream and the upstream direction:
+
+        >>> test("obs_bi")
+        inlets: 2.0, receivers: 2.0, inputs: 2.0
+        outlets: 2.0, senders: 2.0, outputs: 2.0
+        >>> test("oldsim_bi")
+        inlets: 1.0, receivers: 1.0, inputs: 1.0
+        outlets: 1.0, senders: 1.0, outputs: 1.0
+        >>> test("obs_oldsim_bi")
+        inlets: 2.0, receivers: 2.0, inputs: 2.0
+        outlets: 2.0, senders: 2.0, outputs: 2.0
 
         Other |Element| input or output groups are not supported:
 
@@ -2231,14 +2295,33 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         ValueError: Function `get_double` of class `Node` does not support the given \
 group name `test`.
         """
+        # due to https://github.com/python/mypy/issues/9718:
+        # pylint: disable=consider-using-in,too-many-boolean-expressions
+
+        dm = self.deploymode
+
         if group in ("inlets", "receivers", "inputs"):
-            if not self.deploymode.startswith("obs"):
+            if dm == "newsim" or dm == "oldsim" or dm == "oldsim_bi":
                 return self.sequences.fastaccess.sim
-            return self.sequences.fastaccess.obs
+            if (
+                dm == "obs"
+                or dm == "obs_newsim"
+                or dm == "obs_oldsim"
+                or dm == "obs_bi"
+                or dm == "obs_oldsim_bi"
+            ):
+                return self.sequences.fastaccess.obs
+            assert_never(dm)
+
         if group in ("outlets", "senders", "outputs"):
-            if self.deploymode not in ("oldsim", "obs_oldsim"):
+            if dm == "newsim" or dm == "obs" or dm == "obs_newsim" or dm == "oldsim_bi":
                 return self.sequences.fastaccess.sim
-            return self.__blackhole
+            if dm == "obs_bi" or dm == "obs_oldsim_bi":
+                return self.sequences.fastaccess.obs
+            if dm == "oldsim" or dm == "obs_oldsim":
+                return self.__blackhole
+            assert_never(dm)
+
         raise ValueError(
             f"Function `get_double` of class `Node` does not support the given group "
             f"name `{group}`."

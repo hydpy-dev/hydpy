@@ -2371,6 +2371,9 @@ element.
         """
         if self.sequences:
             self.sequences.states.new2old()
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            if submodel.sequences:
+                submodel.new2old()
 
     def update_outputs(self) -> None:
         """Call method |Sequences.update_outputs| of attribute |Model.sequences|.

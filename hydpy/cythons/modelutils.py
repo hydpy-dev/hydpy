@@ -1434,6 +1434,31 @@ class PyxWriter:
             lines.add(2, "self.update_outputs()")
         return lines
 
+    def _call_submodel_method(self, methodcall: str, lines: Lines) -> None:
+        name2submodel = self.model.find_submodels(
+            include_subsubmodels=False,
+            include_optional=True,
+            aggregate_vectors=True,
+        )
+        if any(name.endswith("_*") for name in name2submodel):
+            lines.add(2, f"cdef {_int} i_submodel")
+        for fullname in name2submodel:
+            name = fullname.rpartition(".")[2]
+            if name.endswith("_*"):
+                name = name[:-2]
+                lines.add(2, f"for i_submodel in range(self.{name}.number):")
+                lines.add(3, f"if self.{name}.typeids[i_submodel] > 0:")
+                lines.add(
+                    4,
+                    f"(<masterinterface.MasterInterface>"
+                    f"self.{name}.submodels[i_submodel]).{methodcall}",
+                )
+            else:
+                lines.add(
+                    2, f"if (self.{name} is not None) and not self.{name}_is_mainmodel:"
+                )
+                lines.add(3, f"self.{name}.{methodcall}")
+
     @property
     def iofunctions(self) -> List[str]:
         """Input/output functions of the model class.
@@ -1506,24 +1531,20 @@ class PyxWriter:
                     applyfuncs = ("inputs", "factors", "fluxes", "states")
                 if subseqs.name in applyfuncs:
                     lines.add(2, f"self.sequences.{subseqs.name}." f"{func}(idx)")
-            submodels = self.model.find_submodels(
-                include_subsubmodels=False, include_optional=True
-            )
-            for fullname in submodels:
-                name = fullname.rpartition(".")[2]
-                lines.add(
-                    2, f"if (self.{name} is not None) and not self.{name}_is_mainmodel:"
-                )
-                lines.add(3, f"self.{name}.{func}(idx)")
+            self._call_submodel_method(methodcall=f"{func}(idx)", lines=lines)
         return lines
 
     @property
     def new2old(self) -> List[str]:
         """Old states to new states statements."""
         lines = Lines()
-        if self.model.sequences.states:
+        name2submodel = self.model.find_submodels(
+            include_subsubmodels=False, include_optional=True, aggregate_vectors=True
+        )
+        if self.model.sequences.states or name2submodel:
             print("                . new2old")
-            lines.add(1, get_methodheader("new2old", nogil=True))
+            lines.add(1, get_methodheader("new2old", nogil=True, inline=False))
+        if self.model.sequences.states:
             self._add_cdef_jdxs(lines, self.model.sequences.states)
             for seq in self.model.sequences.states:
                 if seq.NDIM == 0:
@@ -1547,6 +1568,7 @@ class PyxWriter:
                         f"self.sequences.old_states.{seq.name}[{indexing}] = "
                         f"self.sequences.new_states.{seq.name}[{indexing}]",
                     )
+        self._call_submodel_method(methodcall="new2old()", lines=lines)
         return lines
 
     def _call_methods(

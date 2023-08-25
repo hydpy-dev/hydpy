@@ -470,7 +470,7 @@ class SubmodelAdder(_DoctestAdder, Generic[TD, TM_contra, TI_contra]):
     ...     ...
     Traceback (most recent call last):
     ...
-    TypeError: While trying to add a submodul to the main model `lland_v1`, the \
+    TypeError: While trying to add a submodel to the main model `lland_v1`, the \
 following error occurred: Submodel `ga_garto_submodel1` does not comply with the \
 `AETModel_V1` interface.
 
@@ -743,7 +743,7 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
         except BaseException:
             assert (model := self._model) is not None
             objecttools.augment_excmessage(
-                f"While trying to add a submodul to the main model `{model.name}`"
+                f"While trying to add a submodel to the main model `{model.name}`"
             )
 
     @overload

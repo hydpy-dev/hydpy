@@ -993,10 +993,9 @@ class Substituter:
         .. |OptionContextBase._old_value| replace:: \
 :attr:`~hydpy.core.optiontools.OptionContextBase._old_value`
         ...
-        .. |optiontools.TypeOptionPropertyBase| replace:: \
-:const:`~hydpy.core.optiontools.TypeOptionPropertyBase`
         .. |optiontools.TypeOption| replace:: \
 :const:`~hydpy.core.optiontools.TypeOption`
+        .. |optiontools.l1| replace:: :const:`~hydpy.core.optiontools.l1`
 
         Through passing a string (usually the source code of a file to be documented),
         only the replacement commands relevant for this string are translated:

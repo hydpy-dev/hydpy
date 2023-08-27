@@ -1258,7 +1258,7 @@ of element `?` is not properly defined.
     def assignrepr(self, prefix: str, indent: int = 0) -> str:
         """Return a string representation of the actual |ANN| object prefixed with the
         given string."""
-        l1 = objecttools.assignrepr_list
+        l = objecttools.assignrepr_list
         l2 = objecttools.assignrepr_list2
         l3 = objecttools.assignrepr_list3
         blanks = (indent + 4) * " "
@@ -1274,7 +1274,7 @@ of element `?` is not properly defined.
             lines.append(l3(self.weights_hidden, f"{blanks}weights_hidden=") + ",")
         lines.append(l2(self.weights_output, f"{blanks}weights_output=") + ",")
         lines.append(l2(self.intercepts_hidden, f"{blanks}intercepts_hidden=") + ",")
-        lines.append(l1(self.intercepts_output, f"{blanks}intercepts_output=") + ",")
+        lines.append(l(self.intercepts_output, f"{blanks}intercepts_output=") + ",")
         if numpy.any(self.activation != 1):
             lines.append(l2(self.activation, f"{blanks}activation=") + ",")
         lines.append(f'{indent*" "})')

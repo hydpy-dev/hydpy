@@ -3154,6 +3154,8 @@ already a collective `NileRiver` member.
         if exceptiontools.getattr_(model, "element", None) is not self:
             model.element = self
         if not model.COMPOSITE:
+            for submodel in model.find_submodels().values():
+                submodel.__hydpy_element__ = self
             model.connect()
 
     @model.deleter

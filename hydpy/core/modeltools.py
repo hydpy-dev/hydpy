@@ -1039,7 +1039,7 @@ class Model:
     masks: masktools.Masks
     idx_sim = Idx_Sim()
 
-    _element: Optional[devicetools.Element]
+    __hydpy_element__: Optional[devicetools.Element]
     _NAME: ClassVar[str]
 
     INLET_METHODS: ClassVar[Tuple[Type[Method], ...]]
@@ -1061,7 +1061,7 @@ class Model:
 
     def __init__(self) -> None:
         self.cymodel = None
-        self._element = None
+        self.__hydpy_element__ = None
         self._init_methods()
 
     def _init_methods(self) -> None:
@@ -1125,7 +1125,7 @@ connected to an `Element` so far.
         hydpy.core.exceptiontools.AttributeNotReady: The model object of element `e` \
 has been requested but not been prepared so far.
         """
-        if (element := self._element) is None:
+        if (element := self.__hydpy_element__) is None:
             raise exceptiontools.AttributeNotReady(
                 f"Model `{self.name}` is not connected to an `Element` so far."
             )
@@ -1133,20 +1133,20 @@ has been requested but not been prepared so far.
 
     @element.setter
     def element(self, element: devicetools.Element) -> None:
-        self._element = element
+        self.__hydpy_element__ = element
         if not self.COMPOSITE:
             for model in self.find_submodels().values():
-                model._element = element  # pylint: disable=protected-access
+                model.__hydpy_element__ = element
         if exceptiontools.getattr_(element, "model", None) is not self:
             element.model = self
 
     @element.deleter
     def element(self) -> None:
-        if (element := self._element) is not None:
+        if (element := self.__hydpy_element__) is not None:
             if exceptiontools.getattr_(element, "model", None) is self:
                 del element.model
         for model in self.find_submodels(include_mainmodel=True).values():
-            model._element = None  # pylint: disable=protected-access
+            model.__hydpy_element__ = None
 
     def connect(self) -> None:
         """Connect all |LinkSequence| objects and the selected |InputSequence|,

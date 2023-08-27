@@ -6109,8 +6109,11 @@ class Main_TempModel_V2B(modeltools.AdHocModel):
         >>> nmbhru(2)
         >>> with model.add_tempmodel_v2("meteo_temp_io"):
         ...     nmbhru
+        ...     hruarea(0.8, 0.2)
         ...     temperatureaddend(1.0, 2.0)
         nmbhru(2)
+        >>> model.tempmodel.parameters.control.hruarea
+        hruarea(0.8, 0.2)
         >>> model.tempmodel.parameters.control.temperatureaddend
         temperatureaddend(1.0, 2.0)
         """
@@ -6259,7 +6262,7 @@ class Main_IntercModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
         >>> from hydpy.models.evap_aet_hbv96 import *
         >>> parameterstep()
         >>> nmbhru(2)
-        >>> with model.add_intercmodel_v2("dummy_interceptedwater"):
+        >>> with model.add_intercmodel_v1("dummy_interceptedwater"):
         ...     nmbhru
         nmbhru(2)
         """
@@ -6391,7 +6394,7 @@ class Main_SnowCoverModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface
         >>> from hydpy.models.evap_aet_hbv96 import *
         >>> parameterstep()
         >>> nmbhru(2)
-        >>> with model.add_snowcovermodel_v2("dummy_snowcover"):
+        >>> with model.add_snowcovermodel_v1("dummy_snowcover"):
         ...     nmbhru
         nmbhru(2)
         """

@@ -7685,7 +7685,7 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         ...     soil
         ...     tree
         ...     conifer
-        ...     maxsoilwater
+        ...     fieldcapacity(200.0)
         ...     wiltingpoint(acker=50.0, laubw=150.0, nadelw=250.0)
         ...     leafareaindex.acker_aug = 3.5
         ...     for method, argument in model.predefinedmethod2argument.items():
@@ -7702,7 +7702,6 @@ class Main_AETModel_V1(modeltools.AdHocModel):
              vers=False, wasser=False)
         conifer(acker=False, fluss=False, laubw=False, nadelw=True, see=False,
                 vers=False, wasser=False)
-        maxsoilwater(200.0)
         prepare_subareas: [1. 2. 1. 2. 1. 2. 1.]
 
         >>> from hydpy import round_

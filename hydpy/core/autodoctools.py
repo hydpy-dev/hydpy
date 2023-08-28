@@ -432,8 +432,7 @@ def _gain_and_insert_additional_information_into_docstrings(
 
 
 def autodoc_applicationmodel(module: types.ModuleType) -> None:
-    """Improves the docstrings of application models when called at the bottom of the
-    respective module.
+    """Improves the docstrings of application models.
 
     |autodoc_applicationmodel| requires, similar to |autodoc_basemodel|, that both the
     application model and its base model are defined in the conventional way.

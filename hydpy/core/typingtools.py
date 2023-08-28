@@ -5,7 +5,6 @@ typing."""
 # ...from standard library
 from __future__ import annotations
 from typing import (
-    AbstractSet,
     Any,
     Callable,
     cast,
@@ -221,7 +220,6 @@ l1: Literal[1] = 1
 
 
 __all__ = [
-    "AbstractSet",
     "Any",
     "ArrayFloat",
     "assert_never",

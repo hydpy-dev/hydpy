@@ -1944,7 +1944,10 @@ PotentialEvapotranspiration
     # variables:
     source = inspect.getsource(method.__call__)
     varnames_source: Set[str] = set()
-    unbound_vars: AbstractSet[str] = inspect.getclosurevars(method.__call__).unbound
+    unbound_vars: Set[str] = set(inspect.getclosurevars(method.__call__).unbound)
+    for varname in tuple(unbound_vars):
+        if f"modelutils.{varname}" in source:
+            unbound_vars.remove(varname)
     for varname, prefix in itertools.product(unbound_vars, prefixes):
         if f"{prefix}.{varname}" in source:
             if varname.startswith("len_"):

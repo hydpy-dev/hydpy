@@ -263,6 +263,8 @@ mimetypes.inited = False
 
 
 ID = NewType("ID", str)
+ID.__doc__ = """Type for strings that identify "artificial" *HydPy* instances (from a 
+client's point of view)."""
 
 
 class ServerState:

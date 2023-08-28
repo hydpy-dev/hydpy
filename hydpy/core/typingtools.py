@@ -66,6 +66,8 @@ T3 = TypeVar("T3")
 P = ParamSpec("P")
 
 Name = NewType("Name", str)
+Name.__doc__ = """Type for strings that represent names."""
+
 
 Mayberable1 = Union[T, Iterable[T]]
 Mayberable2 = Union[T1, T2, Iterable[Union[T1, T2]]]

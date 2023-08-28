@@ -11,6 +11,7 @@ class PETModel_V1(modeltools.SubmodelInterface):
     step."""
 
     typeid: ClassVar[Literal[1]] = 1
+    """Type identifier for |PETModel_V1| submodels."""
 
     @modeltools.abstractmodelmethod
     def determine_potentialevapotranspiration(self) -> None:

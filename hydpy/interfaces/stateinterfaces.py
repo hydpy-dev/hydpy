@@ -10,6 +10,7 @@ class IntercModel_V1(modeltools.SubmodelInterface):
     models as submodels for querying the amount of intercepted water."""
 
     typeid: ClassVar[Literal[1]] = 1
+    """Type identifier for |IntercModel_V1| submodels."""
 
     @modeltools.abstractmodelmethod
     def get_interceptedwater(self, k: int) -> float:
@@ -21,6 +22,7 @@ class SoilWaterModel_V1(modeltools.SubmodelInterface):
     models as submodels for querying the soil water content."""
 
     typeid: ClassVar[Literal[1]] = 1
+    """Type identifier for |SoilWaterModel_V1| submodels."""
 
     @modeltools.abstractmodelmethod
     def get_soilwater(self, k: int) -> float:
@@ -32,6 +34,7 @@ class SnowCoverModel_V1(modeltools.SubmodelInterface):
     models as submodels for querying the snow cover degree."""
 
     typeid: ClassVar[Literal[1]] = 1
+    """Type identifier for |SnowCoverModel_V1| submodels."""
 
     @modeltools.abstractmodelmethod
     def get_snowcover(self, k: int) -> float:
@@ -44,6 +47,7 @@ class SnowyCanopyModel_V1(modeltools.SubmodelInterface):
     vegetation."""
 
     typeid: ClassVar[Literal[1]] = 1
+    """Type identifier for |SnowyCanopyModel_V1| submodels."""
 
     @modeltools.abstractmodelmethod
     def get_snowycanopy(self, k: int) -> float:
@@ -56,6 +60,7 @@ class SnowAlbedoModel_V1(modeltools.SubmodelInterface):
     models as submodels for querying the current snow albedo."""
 
     typeid: ClassVar[Literal[1]] = 1
+    """Type identifier for |SnowAlbedoModel_V1| submodels."""
 
     @modeltools.abstractmodelmethod
     def get_snowalbedo(self, k: int) -> float:

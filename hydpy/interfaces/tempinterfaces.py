@@ -9,6 +9,7 @@ class TempModel_V1(modeltools.SubmodelInterface):
     """Pure getter interface for using main models as sub-submodels."""
 
     typeid: ClassVar[Literal[1]] = 1
+    """Type identifier for |TempModel_V1| submodels."""
 
     @modeltools.abstractmodelmethod
     def get_temperature(self, k: int) -> float:
@@ -23,6 +24,7 @@ class TempModel_V2(modeltools.SubmodelInterface):
     """Simple interface for determining the temperature in one step."""
 
     typeid: ClassVar[Literal[2]] = 2
+    """Type identifier for |TempModel_V2| submodels."""
 
     @modeltools.abstractmodelmethod
     def determine_temperature(self) -> None:

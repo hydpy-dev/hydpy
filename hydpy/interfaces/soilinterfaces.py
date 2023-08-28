@@ -27,6 +27,7 @@ class SoilModel_V1(modeltools.SubmodelInterface):
     """
 
     typeid: ClassVar[Literal[1]] = 1
+    """Type identifier for |SoilModel_V1| submodels."""
 
     @modeltools.abstractmodelmethod
     def set_initialsurfacewater(self, k: int, v: float) -> None:

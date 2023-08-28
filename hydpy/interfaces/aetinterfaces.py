@@ -20,6 +20,7 @@ class AETModel_V1(modeltools.SubmodelInterface):
     """
 
     typeid: ClassVar[Literal[1]] = 1
+    """Type identifier for |AETModel_V1| submodels."""
 
     def prepare_water(self, water: VectorInputBool) -> None:
         """Set the flags for whether the individual zones are water areas or not."""

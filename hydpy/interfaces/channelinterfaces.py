@@ -26,6 +26,9 @@ class RoutingModelBase(modeltools.SubmodelInterface):
     the "old" discharge previously calculated or read from condition files.
     """
 
+    typeid: ClassVar[int]
+    """Type identifier for the respective routing submodels."""
+
     @modeltools.abstractmodelmethod
     def perform_preprocessing(self) -> None:
         """Preprocess all data that is invariant during each external simulation
@@ -71,6 +74,7 @@ class RoutingModel_V1(RoutingModelBase):
     """Interface for calculating the inflow into a channel."""
 
     typeid: ClassVar[Literal[1]] = 1
+    """Type identifier for |RoutingModel_V1| submodels."""
 
     routingmodelsdownstream: modeltools.SubmodelsProperty[
         Union[RoutingModel_V2, RoutingModel_V3]
@@ -97,6 +101,7 @@ class RoutingModel_V2(RoutingModelBase):
     """
 
     typeid: ClassVar[Literal[2]] = 2
+    """Type identifier for |RoutingModel_V2| submodels."""
 
     routingmodelsupstream: modeltools.SubmodelsProperty[
         Union[RoutingModel_V1, RoutingModel_V2]
@@ -138,6 +143,7 @@ class RoutingModel_V3(RoutingModelBase):
     """
 
     typeid: ClassVar[Literal[3]] = 3
+    """Type identifier for |RoutingModel_V3| submodels."""
 
     routingmodelsupstream: modeltools.SubmodelsProperty[
         Union[RoutingModel_V1, RoutingModel_V2]
@@ -160,6 +166,7 @@ class StorageModel_V1(modeltools.SubmodelInterface):
     """Interface for calculating the water amount stored in a single channel segment."""
 
     typeid: ClassVar[Literal[1]] = 1
+    """Type identifier for |StorageModel_V1| submodels."""
 
     routingmodelsupstream: modeltools.SubmodelsProperty[
         Union[RoutingModel_V1, RoutingModel_V2, RoutingModel_V3]
@@ -213,6 +220,7 @@ class ChannelModel_V1(modeltools.SubmodelInterface):
     """
 
     typeid: ClassVar[Literal[1]] = 1
+    """Type identifier for |ChannelModel_V1| submodels."""
 
     storagemodels: modeltools.SubmodelsProperty[StorageModel_V1]
     """References to the storage submodels.

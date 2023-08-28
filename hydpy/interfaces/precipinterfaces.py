@@ -9,6 +9,7 @@ class PrecipModel_V1(modeltools.SubmodelInterface):
     """Pure getter interface for using main models as sub-submodels."""
 
     typeid: ClassVar[Literal[1]] = 1
+    """Type identifier for |PrecipModel_V1| submodels."""
 
     @modeltools.abstractmodelmethod
     def get_precipitation(self, k: int) -> float:
@@ -19,6 +20,7 @@ class PrecipModel_V2(modeltools.SubmodelInterface):
     """Simple interface for determining precipitation in one step."""
 
     typeid: ClassVar[Literal[2]] = 2
+    """Type identifier for |PrecipModel_V2| submodels."""
 
     @modeltools.abstractmodelmethod
     def determine_precipitation(self) -> None:

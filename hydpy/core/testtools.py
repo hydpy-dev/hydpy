@@ -1703,9 +1703,6 @@ are not among the result sequences of any of its predecessors: TKor
     ...
     Method Update_ESnow_V1 requires the following sequences, which are not among the \
 result sequences of any of its predecessors: TKor and TZ
-    ...
-    Method Return_BackwardEulerError_V1 requires the following sequences, which are \
-not among the result sequences of any of its predecessors: TZ
 
     To tidy up, we need to revert the above changes:
 
@@ -1724,7 +1721,7 @@ not among the result sequences of any of its predecessors: TZ
         sequencetools.StateSequence,
         sequencetools.LogSequence,
     )
-    methods = tuple(model.get_methods())
+    methods = tuple(model.get_methods(skip=("ADD_METHODS", "INTERFACE_METHODS")))
     for idx, method1 in enumerate(methods):
         required = set(
             seq for seq in method1.REQUIREDSEQUENCES if not issubclass(seq, excluded)
@@ -2078,8 +2075,6 @@ result sequences of any of its predecessors: NKor
 result sequences of any of its predecessors: NKor
         Method Calc_QAH_V1 requires the following sequences, which are not among the \
 result sequences of any of its predecessors: NKor
-        Method Get_Precipitation_V1 requires the following sequences, which are not \
-among the result sequences of any of its predecessors: NKor
 
     To tidy up, we need to revert the above changes:
 

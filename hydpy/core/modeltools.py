@@ -2384,7 +2384,7 @@ element.
         self.sequences.update_outputs()
 
     @classmethod
-    def get_methods(cls) -> Iterator[Type[Method]]:
+    def get_methods(cls, skip: Tuple[MethodGroup, ...] = ()) -> Iterator[Type[Method]]:
         """Convenience method for iterating through all methods selected by a |Model|
         subclass.
 
@@ -2404,6 +2404,20 @@ element.
         ...
         Withdraw_AllBins_V1
 
+        One can skip all methods that belong to specific groups:
+
+        >>> for method in hland_v1.Model.get_methods(skip=("OUTLET_METHODS",)):
+        ...     print(method.__name__)   # doctest: +ELLIPSIS
+        Calc_TC_V1
+        ...
+        Calc_EL_LZ_AETModel_V1
+
+        >>> for method in hland_v1.Model.get_methods(("OUTLET_METHODS", "ADD_METHODS")):
+        ...     print(method.__name__)   # doctest: +ELLIPSIS
+        Calc_TC_V1
+        ...
+        Calc_QT_V1
+
         Note that function |Model.get_methods| returns the "raw" |Method| objects
         instead of the modified Python or Cython functions used for performing
         calculations.
@@ -2411,6 +2425,8 @@ element.
         methods = set()
         if hasattr(cls, "METHOD_GROUPS"):
             for groupname in cls.METHOD_GROUPS:
+                if groupname in skip:
+                    continue
                 if (groupname == "ADD_METHODS") and hasattr(cls, "INTERFACE_METHODS"):
                     for method in cls.INTERFACE_METHODS:
                         if method not in methods:

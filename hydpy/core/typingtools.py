@@ -218,6 +218,17 @@ SeriesAggregationType = Literal["none", "mean"]
 
 l1: Literal[1] = 1
 
+MethodGroup = Literal[
+    "RECEIVER_METHODS",
+    "INLET_METHODS",
+    "RUN_METHODS",
+    "PART_ODE_METHODS",
+    "FULL_ODE_METHODS",
+    "ADD_METHODS",
+    "INTERFACE_METHODS",
+    "OUTLET_METHODS",
+    "SENDER_METHODS",
+]
 
 __all__ = [
     "Any",
@@ -270,6 +281,7 @@ __all__ = [
     "MayNonerable1",
     "MayNonerable2",
     "MayNonerable3",
+    "MethodGroup",
     "Name",
     "NamedTuple",
     "NDArray",

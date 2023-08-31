@@ -1149,9 +1149,9 @@ has been requested but not been prepared so far.
             model.__hydpy_element__ = None
 
     def connect(self) -> None:
-        """Connect all |LinkSequence| objects and the selected |InputSequence|,
-        |ReceiverSequence|, and |OutputSequence| objects of the actual model to the
-        corresponding |NodeSequence| objects.
+        """Connect all |LinkSequence| objects and the selected |InputSequence| and
+        |OutputSequence| objects of the actual model to the corresponding
+        |NodeSequence| objects.
 
         You cannot connect any sequences until the |Model| object itself is connected
         to an |Element| object referencing the required |Node| objects:
@@ -1542,7 +1542,8 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                 if sequence.NDIM == 0:
                     if not selected_nodes:
                         if (group == "inputs") or not report_noconnect:
-                            continue
+                            # see https://github.com/nedbat/coveragepy/issues/198:
+                            continue  # pragma: no cover
                         raise RuntimeError(
                             f"Sequence {objecttools.elementphrase(sequence)} cannot "
                             f"be connected due to no available node handling variable "

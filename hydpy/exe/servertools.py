@@ -393,7 +393,7 @@ class ServerState:
         write("Create the custom selections (if defined)")
         self.interface.update_selections()
         write("Activate the selected network")
-        hp.update_devices(selection=self.interface.fullselection)
+        hp.update_devices(selection=self.interface.fullselection, silent=True)
         write("Read the required control files")
         self.interface.control_io.prepare_models()
         if load_conditions:

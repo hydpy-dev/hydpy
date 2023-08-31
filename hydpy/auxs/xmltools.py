@@ -324,7 +324,7 @@ def run_simulation(projectname: str, xmlfile: str) -> None:
     write("Create the custom selections (if defined)")
     interface.update_selections()
     write("Activate the selected network")
-    hp.update_devices(selection=interface.fullselection)
+    hp.update_devices(selection=interface.fullselection, silent=True)
     write("Read the required control files")
     interface.control_io.prepare_models()
     write("Read the required condition files")

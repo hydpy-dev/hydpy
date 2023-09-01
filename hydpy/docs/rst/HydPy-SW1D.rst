@@ -48,5 +48,6 @@ Application models:
    sw1d_storage
    sw1d_q_in
    sw1d_lias
+   sw1d_lias_sluice
    sw1d_q_out
    sw1d_weir_out

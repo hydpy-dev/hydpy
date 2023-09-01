@@ -1498,7 +1498,7 @@ class Update_Discharge_V1(modeltools.Method):
         >>> factors.watervolumeupstream = 0.1
         >>> factors.watervolumedownstream = 0.2
 
-        |Update_Discharge_V1| needs to consider the upstream segment's water volume for
+        |Update_Discharge_V1| must consider the upstream segment's water volume for
         positive discharge values:
 
         >>> states.discharge = 1.0
@@ -1540,6 +1540,141 @@ class Update_Discharge_V1(modeltools.Method):
         elif sta.discharge < 0.0:
             q_min: float = -1000.0 * max(fac.watervolumedownstream, 0.0) / fac.timestep
             sta.discharge = max(sta.discharge, q_min)
+
+
+class Update_Discharge_V2(modeltools.Method):
+    r"""Suppress upstream flow if the downstream water level exceeds the upstream one.
+
+    Basic equations:
+      .. math::
+        Q_{new} = \begin{cases}
+        Q_{old} &|\  0 \leq Q_{old} \ \lor  \ h_d \leq h_u  \ \lor \ h_u \leq t_1 \\
+        Q_{old} \cdot \left( 1 - \frac{h_u - t_1}{t_2 - t_1} \right)
+         &|\  Q_{old} < 0 \ \land  \ h_u < h_d \ \ \land \ t_1 < h_u < t_2 \\
+        0 &|\  Q_{old} < 0 \ \land  \ h_u < h_d \ \ \land \ t_2 \leq h_u
+        \end{cases} \\
+        \\
+        Q = Discharge \\
+        h_u = WaterLevelUpstream \\
+        h_d = WaterLevelDownstream \\
+        t_1 = TargetWaterLevel1 \\
+        t_2 = TargetWaterLevel2
+
+    Examples:
+
+        We use the same unmodified discharge of -1 m³/s in most examples:
+
+        >>> from hydpy.models.sw1d import *
+        >>> parameterstep()
+        >>> states.discharge = -1.0
+
+        At first, we set |TargetWaterLevel1| and |TargetWaterLevel2| to the same value
+        of 2 m:
+
+        >>> targetwaterlevel1(2.0)
+        >>> targetwaterlevel2(2.0)
+
+        We prepare a |UnitTest| object demonstrating |Update_Discharge_V2| for multiple
+        upstream and downstream water levels:
+
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(
+        ...     model, model.update_discharge_v2,
+        ...     last_example=7,
+        ...     parseqs=(factors.waterlevelupstream, factors.waterleveldownstream,
+        ...              states.discharge))
+
+        |Update_Discharge_V2| does never modify the original discharge value as long as
+        the downstream water level does not exceed the upstream one:
+
+        >>> test.nexts.waterlevelupstream = 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0
+        >>> test.nexts.waterleveldownstream = 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0
+        >>> test()
+        | ex. | waterlevelupstream | waterleveldownstream | discharge |
+        ---------------------------------------------------------------
+        |   1 |                1.0 |                  1.0 |      -1.0 |
+        |   2 |                2.0 |                  2.0 |      -1.0 |
+        |   3 |                3.0 |                  3.0 |      -1.0 |
+        |   4 |                4.0 |                  4.0 |      -1.0 |
+        |   5 |                5.0 |                  5.0 |      -1.0 |
+        |   6 |                6.0 |                  6.0 |      -1.0 |
+        |   7 |                7.0 |                  7.0 |      -1.0 |
+
+        After raising the downstream water level, |Update_Discharge_V2| sets the
+        upstream flow to zero as soon as the upper water level exceeds the given lower
+        and upper threshold values:
+
+        >>> test.nexts.waterleveldownstream = 7 * [8.0]
+        >>> test()
+        | ex. | waterlevelupstream | waterleveldownstream | discharge |
+        ---------------------------------------------------------------
+        |   1 |                1.0 |                  8.0 |      -1.0 |
+        |   2 |                2.0 |                  8.0 |      -1.0 |
+        |   3 |                3.0 |                  8.0 |       0.0 |
+        |   4 |                4.0 |                  8.0 |       0.0 |
+        |   5 |                5.0 |                  8.0 |       0.0 |
+        |   6 |                6.0 |                  8.0 |       0.0 |
+        |   7 |                7.0 |                  8.0 |       0.0 |
+
+        Setting |TargetWaterLevel1| and |TargetWaterLevel2| to the same value might
+        result in situations with frequent "on-off switching" with eventually adverse
+        effects on computational efficiency or simulation accuracy.  After setting
+        |TargetWaterLevel2| to 5 m, we see that |Update_Discharge_V2| reduces the
+        original upstream flow more smoothly via linear interpolation:
+
+        >>> targetwaterlevel2(6.0)
+        >>> test()
+        | ex. | waterlevelupstream | waterleveldownstream | discharge |
+        ---------------------------------------------------------------
+        |   1 |                1.0 |                  8.0 |      -1.0 |
+        |   2 |                2.0 |                  8.0 |      -1.0 |
+        |   3 |                3.0 |                  8.0 |     -0.75 |
+        |   4 |                4.0 |                  8.0 |      -0.5 |
+        |   5 |                5.0 |                  8.0 |     -0.25 |
+        |   6 |                6.0 |                  8.0 |       0.0 |
+        |   7 |                7.0 |                  8.0 |       0.0 |
+
+        The discussed reductions do not apply to downstream flows:
+
+        >>> test.inits.discharge = 1.0
+        >>> test()
+        | ex. | waterlevelupstream | waterleveldownstream | discharge |
+        ---------------------------------------------------------------
+        |   1 |                1.0 |                  8.0 |       1.0 |
+        |   2 |                2.0 |                  8.0 |       1.0 |
+        |   3 |                3.0 |                  8.0 |       1.0 |
+        |   4 |                4.0 |                  8.0 |       1.0 |
+        |   5 |                5.0 |                  8.0 |       1.0 |
+        |   6 |                6.0 |                  8.0 |       1.0 |
+        |   7 |                7.0 |                  8.0 |       1.0 |
+    """
+
+    CONTROLPARAMETERS = (
+        sw1d_control.TargetWaterLevel1,
+        sw1d_control.TargetWaterLevel2,
+    )
+    REQUIREDSEQUENCES = (
+        sw1d_factors.WaterLevelUpstream,
+        sw1d_factors.WaterLevelDownstream,
+    )
+    UPDATEDSEQUENCES = (sw1d_states.Discharge,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+        sta = model.sequences.states.fastaccess
+
+        if sta.discharge < 0.0:
+            hu: float = fac.waterlevelupstream
+            hd: float = fac.waterleveldownstream
+            t1: float = con.targetwaterlevel1
+            t2: float = con.targetwaterlevel2
+            if t1 < hu < hd:
+                if hu < t2:
+                    sta.discharge *= 1 - (hu - t1) / (t2 - t1)
+                else:
+                    sta.discharge = 0.0
 
 
 class Reset_DischargeVolume_V1(modeltools.Method):
@@ -2229,6 +2364,45 @@ class Determine_Discharge_V4(modeltools.Method):
         sta.discharge = flu.outflow
 
 
+class Determine_Discharge_V5(modeltools.AutoMethod):
+    """Interface method for determining the sluice-modified discharge at a central
+    location considering."""
+
+    SUBMETHODS = (
+        Calc_WaterVolumeUpstream_V1,
+        Calc_WaterVolumeDownstream_V1,
+        Calc_Discharge_V1,
+        Update_Discharge_V1,
+        Update_Discharge_V2,
+        Update_DischargeVolume_V1,
+    )
+    CONTROLPARAMETERS = (
+        sw1d_control.StricklerCoefficient,
+        sw1d_control.DiffusionFactor,
+        sw1d_control.TargetWaterLevel1,
+        sw1d_control.TargetWaterLevel2,
+    )
+    DERIVEDPARAMETERS = (sw1d_derived.LengthMean,)
+    FIXEDPARAMETERS = (sw1d_fixed.GravitationalAcceleration,)
+    REQUIREDSEQUENCES = (
+        sw1d_factors.WaterLevelUpstream,
+        sw1d_factors.WaterLevelDownstream,
+        sw1d_factors.WettedArea,
+        sw1d_factors.WettedPerimeter,
+        sw1d_fluxes.DischargeUpstream,
+        sw1d_fluxes.DischargeDownstream,
+        sw1d_factors.TimeStep,
+    )
+    RESULTSEQUENCES = (
+        sw1d_factors.WaterVolumeUpstream,
+        sw1d_factors.WaterVolumeDownstream,
+    )
+    UPDATEDSEQUENCES = (
+        sw1d_states.Discharge,
+        sw1d_fluxes.DischargeVolume,
+    )
+
+
 class Get_WaterVolume_V1(modeltools.Method):
     """Interface method for querying the water volume in 1000 m³."""
 
@@ -2548,6 +2722,7 @@ class Model(modeltools.SubstepModel):
         Determine_Discharge_V2,
         Determine_Discharge_V3,
         Determine_Discharge_V4,
+        Determine_Discharge_V5,
         Get_WaterVolume_V1,
         Get_WaterLevel_V1,
         Get_Discharge_V1,
@@ -2580,6 +2755,7 @@ class Model(modeltools.SubstepModel):
         Calc_Discharge_V1,
         Calc_Discharge_V2,
         Update_Discharge_V1,
+        Update_Discharge_V2,
         Reset_DischargeVolume_V1,
         Update_DischargeVolume_V1,
         Calc_DischargeVolume_V1,

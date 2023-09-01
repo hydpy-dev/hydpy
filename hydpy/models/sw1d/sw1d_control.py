@@ -3,6 +3,7 @@
 
 # import...
 # ...from HydPy
+from hydpy.core import exceptiontools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 
@@ -107,3 +108,49 @@ class FlowCoefficient(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
     INIT = 0.62
+
+
+class TargetWaterLevel1(parametertools.Parameter):
+    """The lower target water level [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+
+    def trim(self, lower=None, upper=None):
+        r"""Trim |TargetWaterLevel1| following
+        :math:`TargetWaterLevel1 \leq TargetWaterLevel2`.
+
+        >>> from hydpy.models.sw1d import *
+        >>> parameterstep()
+        >>> targetwaterlevel2(2.0)
+        >>> targetwaterlevel1(3.0)
+        >>> targetwaterlevel1
+        targetwaterlevel1(2.0)
+        """
+        if upper is None:
+            upper = exceptiontools.getattr_(
+                self.subpars.targetwaterlevel2, "value", None
+            )
+        super().trim(lower, upper)
+
+
+class TargetWaterLevel2(parametertools.Parameter):
+    """The upper target water level [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+
+    def trim(self, lower=None, upper=None):
+        r"""Trim |TargetWaterLevel2| following
+        :math:`TargetWaterLevel1 \leq TargetWaterLevel2`.
+
+        >>> from hydpy.models.sw1d import *
+        >>> parameterstep()
+        >>> targetwaterlevel1(2.0)
+        >>> targetwaterlevel2(1.0)
+        >>> targetwaterlevel2
+        targetwaterlevel2(2.0)
+        """
+        if lower is None:
+            lower = exceptiontools.getattr_(
+                self.subpars.targetwaterlevel1, "value", None
+            )
+        super().trim(lower, upper)

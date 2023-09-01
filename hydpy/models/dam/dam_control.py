@@ -99,7 +99,7 @@ class RemoteDischargeSafety(parametertools.SeasonalParameter):
 
 
 class WaterLevel2PossibleRemoteRelief(interptools.SimpleInterpolator):
-    """Artificial neural network describing the relationship between water level and
+    """An interpolation function describing the relationship between water level and
     the highest possible water release used to relieve the dam during high flow
     conditions [-]."""
 
@@ -254,23 +254,23 @@ class HighestRemoteTolerance(parametertools.Parameter):
 
 
 class WaterVolume2WaterLevel(interptools.SimpleInterpolator):
-    """Artificial neural network describing the relationship between water level and
-    water volume [-]."""
+    """An interpolation function that describes the relationship between water level
+    and water volume [-]."""
 
     XLABEL = "water volume [million m³]"
     YLABEL = "water level [m]"
 
 
 class WaterLevel2FloodDischarge(interptools.SeasonalInterpolator):
-    """Artificial neural network describing the relationship between flood discharge
-    and water volume [-]."""
+    """An interpolation function that describesg the relationship between flood
+    discharge and water volume [-]."""
 
     XLABEL = "water level [m]"
     YLABEL = "flood discharge [m³/s]"
 
 
 class WaterLevelDifference2MaxForcedDischarge(interptools.SeasonalInterpolator):
-    """Artificial neural network describing the relationship between the highest
+    """An interpolation function that describes the relationship between the highest
     possible forced discharge and the water level difference [-]."""
 
     XLABEL = "water level difference [m]"
@@ -278,7 +278,7 @@ class WaterLevelDifference2MaxForcedDischarge(interptools.SeasonalInterpolator):
 
 
 class WaterLevelDifference2MaxFreeDischarge(interptools.SeasonalInterpolator):
-    """Artificial neural network describing the relationship between the highest
+    """An interpolation function that describes the relationship between the highest
     possible free discharge and the water level difference [-]."""
 
     XLABEL = "water level difference [m]"

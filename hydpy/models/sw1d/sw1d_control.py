@@ -103,6 +103,23 @@ class CrestWidth(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
 
+class GateHeight(parametertools.CallbackParameter):
+    """The gate lower edge's height [m].
+
+    Parameter |GateHeight| offers the possibility of assigning a callback function for
+    calculating variable gate heights instead of setting a fixed one.  See the
+    |Calc_Discharge_V3| documentation for further information.
+    """
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+
+
+class GateWidth(parametertools.Parameter):
+    """The gate width [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+
 class FlowCoefficient(parametertools.Parameter):
     """The weir flow coefficient [-]."""
 

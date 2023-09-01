@@ -43,11 +43,12 @@ Application models:
 .. toctree::
    :maxdepth: 1
 
-   sw1d_network
-   sw1d_channel
-   sw1d_storage
-   sw1d_q_in
-   sw1d_lias
-   sw1d_lias_sluice
-   sw1d_q_out
-   sw1d_weir_out
+   sw1d_channel (HydPy-SW1D-Channel) <sw1d_channel>
+   sw1d_network (HydPy-SW1D-Network) <sw1d_network>
+   sw1d_storage (HydPy-SW1D-Storage) <sw1d_storage>
+   sw1d_q_in (HydPy-SW1D-Q-In) <sw1d_q_in>
+   sw1d_lias (HydPy-SW1D-LIAS) <sw1d_lias>
+   sw1d_lias_sluice (HydPy-SW1D-LIAS/Sluice) <sw1d_lias_sluice>
+   sw1d_q_out (HydPy-SW1D-Q-Out) <sw1d_q_out>
+   sw1d_weir_out (HydPy-SW1D-Weir-Out) <sw1d_weir_out>
+   sw1d_gate_out (HydPy-SW1D-Gate-Out) <sw1d_gate_out>

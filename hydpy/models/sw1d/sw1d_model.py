@@ -15,6 +15,7 @@ from hydpy.models.sw1d import sw1d_outlets
 from hydpy.models.sw1d import sw1d_factors
 from hydpy.models.sw1d import sw1d_fluxes
 from hydpy.models.sw1d import sw1d_states
+from hydpy.models.sw1d import sw1d_receivers
 from hydpy.models.sw1d import sw1d_senders
 
 
@@ -66,6 +67,19 @@ class Pick_LateralFlow_V1(modeltools.Method):
             flu.lateralflow += inl.latq[i][0]
 
 
+class Pick_WaterLevelDownstream_V1(modeltools.Method):
+    """Pick the water level downstream from a receiver sequence."""
+
+    REQUIREDSEQUENCES = (sw1d_receivers.WaterLevel,)
+    RESULTSEQUENCES = (sw1d_factors.WaterLevelDownstream,)
+
+    @staticmethod
+    def __call__(model: modeltools.SegmentModel) -> None:
+        fac = model.sequences.factors.fastaccess
+        rec = model.sequences.receivers.fastaccess
+        fac.waterleveldownstream = rec.waterlevel[0]
+
+
 class Pass_Discharge_V1(modeltools.Method):
     """Pass the calculated average discharge of the current simulation step to an
     arbitrary number of inlet or outlet sequences.
@@ -85,7 +99,7 @@ class Pass_Discharge_V1(modeltools.Method):
 
         >>> from hydpy import Element, Nodes, prepare_model
         >>> e1 = Element("e1")
-        >>> e1.model = prepare_model("sw1d")
+        >>> e1.model = prepare_model("sw1d_lias")
         >>> e1.model.pass_discharge_v1()
 
         If any connections exist, |Pass_Discharge_V1| updates all corresponding
@@ -96,7 +110,7 @@ class Pass_Discharge_V1(modeltools.Method):
         >>> no1.sequences.sim = 2.0
         >>> no2.sequences.sim = 3.0
         >>> e2 = Element("e2", inlets=ni, outlets=(no1, no2))
-        >>> e2.model = prepare_model("sw1d")
+        >>> e2.model = prepare_model("sw1d_lias")
         >>> e2.model.parameters.derived.seconds(60.0)
         >>> e2.model.sequences.fluxes.dischargevolume = 120.0
         >>> e2.model.pass_discharge_v1()
@@ -377,7 +391,7 @@ class Calc_MaxTimeStep_V3(modeltools.Method):
 
     Basic equation:
       .. math::
-        MaxTimeStep = f\cdot \frac{1000 \cdot l}{c\cdot \sqrt{2 \cdot g \cdot h}}
+        MaxTimeStep = f \cdot \frac{1000 \cdot l}{c\cdot \sqrt{2 \cdot g \cdot h}}
         \\ \\
         f = TimeStepFactor \\
         l = LengthDownstream \\
@@ -491,6 +505,117 @@ class Calc_MaxTimeStep_V4(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         if (flu.outflow != 0.0) and (fac.wettedarea > 0.0):
             cel: float = modelutils.fabs(5.0 / 3.0 * flu.outflow / fac.wettedarea)
+            fac.maxtimestep = con.timestepfactor * 1000.0 * con.lengthupstream / cel
+        else:
+            fac.maxtimestep = modelutils.inf
+
+
+class Calc_MaxTimeStep_V5(modeltools.Method):
+    r"""Estimate the highest possible computation time step for which we can expect
+    stability for a gate-like routing model.
+
+    Basic equation:
+      .. math::
+        MaxTimeStep = f \cdot \frac{1000 \cdot l}{c \cdot \big( min (h, \ l) - b \big)
+        \cdot \sqrt{2 \cdot g  \cdot (l_u - l_d)}}
+        \\ \\
+        f = TimeStepFactor \\
+        c = FlowCoefficient \\
+        h = GateHeight \\
+        l = WaterLevel \\
+        l_u = WaterLevelUpstream \\
+        l_d = WaterLevelDownstream\\
+        b = BottomLevel \\
+        g = GravitationalAcceleration
+
+    Examples:
+
+        The following examples all correspond to selected ones of |Calc_Discharge_V3|.
+
+        The case of a submerged gate and downstream flow:
+
+        >>> from hydpy.models.sw1d import *
+        >>> parameterstep()
+        >>> bottomlevel(4.0)
+        >>> gateheight(6.0)
+        >>> flowcoefficient(0.6)
+        >>> lengthupstream(4.0)
+        >>> timestepfactor(0.5)
+        >>> factors.waterlevel = 8.0
+        >>> factors.waterlevelupstream = 9.0
+        >>> factors.waterleveldownstream = 7.0
+        >>> model.calc_maxtimestep_v5()
+        >>> factors.maxtimestep
+        maxtimestep(266.062857)
+
+        The case of a non-submerged gate and upstream flow:
+
+        >>> gateheight(8.0)
+        >>> factors.waterlevelupstream = 7.0
+        >>> factors.waterleveldownstream = 9.0
+        >>> model.calc_maxtimestep_v5()
+        >>> factors.maxtimestep
+        maxtimestep(133.031429)
+
+        The case of a negative effective gate opening with zero discharge:
+
+        >>> gateheight(0.0)
+        >>> factors.waterlevelupstream = 7.0
+        >>> factors.waterleveldownstream = 9.0
+        >>> model.calc_maxtimestep_v5()
+        >>> factors.maxtimestep
+        maxtimestep(inf)
+
+        The case of a controlled gate opening:
+
+        >>> def sluice(model) -> None:
+        ...     con = model.parameters.control.fastaccess
+        ...     fac = model.sequences.factors.fastaccess
+        ...     if fac.waterlevelupstream < fac.waterleveldownstream:
+        ...         con.gateheight = 4.0
+        ...     else:
+        ...         con.gateheight = 10.0
+        >>> gateheight(callback=sluice)
+        >>> factors.waterlevelupstream = 9.0
+        >>> factors.waterleveldownstream = 7.0
+        >>> model.calc_maxtimestep_v5()
+        >>> factors.maxtimestep
+        maxtimestep(133.031429)
+        >>> factors.waterlevelupstream = 7.0
+        >>> factors.waterleveldownstream = 9.0
+        >>> model.calc_maxtimestep_v5()
+        >>> factors.maxtimestep
+        maxtimestep(inf)
+    """
+
+    CONTROLPARAMETERS = (
+        sw1d_control.LengthUpstream,
+        sw1d_control.BottomLevel,
+        sw1d_control.GateHeight,
+        sw1d_control.FlowCoefficient,
+        sw1d_control.TimeStepFactor,
+    )
+    FIXEDPARAMETERS = (sw1d_fixed.GravitationalAcceleration,)
+    REQUIREDSEQUENCES = (
+        sw1d_factors.WaterLevel,
+        sw1d_factors.WaterLevelUpstream,
+        sw1d_factors.WaterLevelDownstream,
+    )
+    RESULTSEQUENCES = (sw1d_factors.MaxTimeStep,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fix = model.parameters.fixed.fastaccess
+        fac = model.sequences.factors.fastaccess
+        con.gateheight_callback(model)
+        h: float = min(con.gateheight, fac.waterlevel) - con.bottomlevel
+        if h > 0.0:
+            c: float = con.flowcoefficient
+            g: float = fix.gravitationalacceleration
+            lu: float = fac.waterlevelupstream
+            ld: float = fac.waterleveldownstream
+            cel: float = c * h * (2.0 * g * modelutils.fabs(lu - ld)) ** 0.5
             fac.maxtimestep = con.timestepfactor * 1000.0 * con.lengthupstream / cel
         else:
             fac.maxtimestep = modelutils.inf
@@ -885,6 +1010,35 @@ class Calc_WaterLevel_V4(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         fac = model.sequences.factors.fastaccess
         fac.waterlevel = fac.waterlevelupstream
+
+
+class Calc_WaterLevel_V5(modeltools.Method):
+    """Average the upstream and the downstream water level.
+
+    Basic equation:
+      :math:`WaterLevel = (WaterLevelUpstream + WaterLevelUpstream) / 2`
+
+    Example:
+
+        >>> from hydpy.models.sw1d import *
+        >>> parameterstep()
+        >>> factors.waterlevelupstream = 3.0
+        >>> factors.waterleveldownstream = 1.0
+        >>> model.calc_waterlevel_v5()
+        >>> factors.waterlevel
+        waterlevel(2.0)
+    """
+
+    REQUIREDSEQUENCES = (
+        sw1d_factors.WaterLevelUpstream,
+        sw1d_factors.WaterLevelDownstream,
+    )
+    RESULTSEQUENCES = (sw1d_factors.WaterLevel,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        fac = model.sequences.factors.fastaccess
+        fac.waterlevel = (fac.waterlevelupstream + fac.waterleveldownstream) / 2.0
 
 
 class Calc_WaterDepth_V1(modeltools.Method):
@@ -1470,6 +1624,158 @@ class Calc_Discharge_V2(modeltools.Method):
             c: float = con.flowcoefficient
             g: float = fix.gravitationalacceleration
             sta.discharge = w * 2.0 / 3.0 * c * (2.0 * g) ** 0.5 * h ** (3.0 / 2.0)
+        else:
+            sta.discharge = 0.0
+
+
+class Calc_Discharge_V3(modeltools.Method):
+    r"""Calculate the flow under a gate.
+
+    Basic equation:
+      .. math::
+        Q = w \cdot c \cdot \big( min (h, \ l) - b \big)
+        \cdot \sqrt{2 \cdot g  \cdot (l_u - l_d)}
+        \\ \\
+        w = GateWidth \\
+        c = FlowCoefficient \\
+        h = GateHeight \\
+        l = WaterLevel \\
+        l_u = WaterLevelUpstream \\
+        l_d = WaterLevelDownstream\\
+        b = BottomLevel \\
+        g = GravitationalAcceleration
+
+    Examples:
+
+        The first two examples deal with flow under a submerged gate:
+
+        >>> from hydpy.models.sw1d import *
+        >>> parameterstep()
+        >>> bottomlevel(4.0)
+        >>> gateheight(6.0)
+        >>> gatewidth(3.0)
+        >>> flowcoefficient(0.6)
+        >>> factors.waterlevel = 8.0
+        >>> factors.waterlevelupstream = 9.0
+        >>> factors.waterleveldownstream = 7.0
+        >>> model.calc_discharge_v3()
+        >>> states.discharge
+        discharge(22.551062)
+        >>> factors.waterlevelupstream = 7.0
+        >>> factors.waterleveldownstream = 9.0
+        >>> model.calc_discharge_v3()
+        >>> states.discharge
+        discharge(-22.551062)
+
+        The next two examples deal with a gate submerge "on one side":
+
+        >>> gateheight(8.0)
+        >>> factors.waterlevelupstream = 9.0
+        >>> factors.waterleveldownstream = 7.0
+        >>> model.calc_discharge_v3()
+        >>> states.discharge
+        discharge(45.102124)
+        >>> factors.waterlevelupstream = 7.0
+        >>> factors.waterleveldownstream = 9.0
+        >>> model.calc_discharge_v3()
+        >>> states.discharge
+        discharge(-45.102124)
+
+        For non-submerged gates, the water level becomes the effective gate opening:
+
+        >>> gateheight(10.0)
+        >>> factors.waterlevelupstream = 9.0
+        >>> factors.waterleveldownstream = 7.0
+        >>> model.calc_discharge_v3()
+        >>> states.discharge
+        discharge(45.102124)
+        >>> factors.waterlevelupstream = 7.0
+        >>> factors.waterleveldownstream = 9.0
+        >>> model.calc_discharge_v3()
+        >>> states.discharge
+        discharge(-45.102124)
+
+        Negative effective gate openings result in zero discharge values:
+
+        >>> gateheight(0.0)
+        >>> factors.waterlevelupstream = 9.0
+        >>> factors.waterleveldownstream = 7.0
+        >>> model.calc_discharge_v3()
+        >>> states.discharge
+        discharge(0.0)
+        >>> factors.waterlevelupstream = 7.0
+        >>> factors.waterleveldownstream = 9.0
+        >>> model.calc_discharge_v3()
+        >>> states.discharge
+        discharge(0.0)
+
+        All of the above examples deal with fixed gate openings.  However, in reality,
+        gates are often controlled, so their opening degree depends on other
+        properties.  Therefore, parameter |GateHeight| alternatively accepts a callback
+        function for adjusting its values based on the current model state.  One can,
+        for example, define a "sluice" function that prevents any flow for reversed
+        water level gradients:
+
+        >>> def sluice(model) -> None:
+        ...     con = model.parameters.control.fastaccess
+        ...     fac = model.sequences.factors.fastaccess
+        ...     if fac.waterlevelupstream < fac.waterleveldownstream:
+        ...         con.gateheight = 4.0
+        ...     else:
+        ...         con.gateheight = 10.0
+        >>> ();gateheight(callback=sluice);()  # doctest: +ELLIPSIS
+        (...)
+
+        Method |Calc_Discharge_V3| applies this callback function before performing its
+        further calculations.  Hence, the following results agree with the
+        "non-submerged gates" example for a positive water level gradient and the
+        "negative effective gate opening" example for a negative one:
+
+        >>> factors.waterlevelupstream = 9.0
+        >>> factors.waterleveldownstream = 7.0
+        >>> model.calc_discharge_v3()
+        >>> states.discharge
+        discharge(45.102124)
+        >>> factors.waterlevelupstream = 7.0
+        >>> factors.waterleveldownstream = 9.0
+        >>> model.calc_discharge_v3()
+        >>> states.discharge
+        discharge(0.0)
+    """
+
+    CONTROLPARAMETERS = (
+        sw1d_control.BottomLevel,
+        sw1d_control.GateWidth,
+        sw1d_control.GateHeight,
+        sw1d_control.FlowCoefficient,
+    )
+    FIXEDPARAMETERS = (sw1d_fixed.GravitationalAcceleration,)
+    REQUIREDSEQUENCES = (
+        sw1d_factors.WaterLevel,
+        sw1d_factors.WaterLevelUpstream,
+        sw1d_factors.WaterLevelDownstream,
+    )
+    UPDATEDSEQUENCES = (sw1d_states.Discharge,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fix = model.parameters.fixed.fastaccess
+        fac = model.sequences.factors.fastaccess
+        sta = model.sequences.states.fastaccess
+
+        con.gateheight_callback(model)
+        h: float = min(con.gateheight, fac.waterlevel) - con.bottomlevel
+        if h > 0.0:
+            w: float = con.gatewidth
+            c: float = con.flowcoefficient
+            g: float = fix.gravitationalacceleration
+            lu: float = fac.waterlevelupstream
+            ld: float = fac.waterleveldownstream
+            if ld < lu:
+                sta.discharge = w * c * h * (2.0 * g * (lu - ld)) ** 0.5
+            else:
+                sta.discharge = -w * c * h * (2.0 * g * (ld - lu)) ** 0.5
         else:
             sta.discharge = 0.0
 
@@ -2119,6 +2425,21 @@ class Perform_Preprocessing_V4(modeltools.AutoMethod):
     RESULTSEQUENCES = (sw1d_fluxes.Outflow,)
 
 
+class Perform_Preprocessing_V5(modeltools.AutoMethod):
+    """Routing model interface method for preprocessing data that is invariant within
+    each external simulation step."""
+
+    SUBMETHODS = (
+        Pick_WaterLevelDownstream_V1,
+        Reset_DischargeVolume_V1,
+    )
+    REQUIREDSEQUENCES = (sw1d_receivers.WaterLevel,)
+    RESULTSEQUENCES = (
+        sw1d_factors.WaterLevelDownstream,
+        sw1d_fluxes.DischargeVolume,
+    )
+
+
 class Perform_Postprocessing_V1(modeltools.AutoMethod):
     """Routing model interface method for executing all tasks necessary at the end of
     each external simulation step."""
@@ -2231,7 +2552,7 @@ class Determine_MaxTimeStep_V2(modeltools.AutoMethod):
 
 class Determine_MaxTimeStep_V3(modeltools.AutoMethod):
     """Interface method for determining the highest possible computation time step at
-    an outflow location."""
+    an outflow weir."""
 
     SUBMETHODS = (
         Calc_WaterLevelUpstream_V1,
@@ -2276,6 +2597,31 @@ class Determine_MaxTimeStep_V4(modeltools.AutoMethod):
         sw1d_factors.WaterLevel,
         sw1d_factors.WaterDepth,
         sw1d_factors.WettedArea,
+        sw1d_factors.MaxTimeStep,
+    )
+
+
+class Determine_MaxTimeStep_V5(modeltools.AutoMethod):
+    """Interface method for determining the highest possible computation time step at
+    an outflow gate."""
+
+    SUBMETHODS = (
+        Calc_WaterLevelUpstream_V1,
+        Calc_WaterLevel_V5,
+        Calc_MaxTimeStep_V5,
+    )
+    CONTROLPARAMETERS = (
+        sw1d_control.BottomLevel,
+        sw1d_control.GateHeight,
+        sw1d_control.FlowCoefficient,
+        sw1d_control.LengthUpstream,
+        sw1d_control.TimeStepFactor,
+    )
+    FIXEDPARAMETERS = (sw1d_fixed.GravitationalAcceleration,)
+    REQUIREDSEQUENCES = (sw1d_factors.WaterLevelDownstream,)
+    RESULTSEQUENCES = (
+        sw1d_factors.WaterLevelUpstream,
+        sw1d_factors.WaterLevel,
         sw1d_factors.MaxTimeStep,
     )
 
@@ -2329,7 +2675,7 @@ class Determine_Discharge_V2(modeltools.Method):
 
 
 class Determine_Discharge_V3(modeltools.AutoMethod):
-    """Interface method for determining the discharge at an outflow location."""
+    """Interface method for determining the discharge at an outflow weir."""
 
     SUBMETHODS = (
         Calc_Discharge_V2,
@@ -2396,6 +2742,32 @@ class Determine_Discharge_V5(modeltools.AutoMethod):
     RESULTSEQUENCES = (
         sw1d_factors.WaterVolumeUpstream,
         sw1d_factors.WaterVolumeDownstream,
+    )
+    UPDATEDSEQUENCES = (
+        sw1d_states.Discharge,
+        sw1d_fluxes.DischargeVolume,
+    )
+
+
+class Determine_Discharge_V6(modeltools.AutoMethod):
+    """Interface method for determining the discharge at an outflow gate."""
+
+    SUBMETHODS = (
+        Calc_Discharge_V3,
+        Update_DischargeVolume_V1,
+    )
+    CONTROLPARAMETERS = (
+        sw1d_control.BottomLevel,
+        sw1d_control.GateHeight,
+        sw1d_control.GateWidth,
+        sw1d_control.FlowCoefficient,
+    )
+    FIXEDPARAMETERS = (sw1d_fixed.GravitationalAcceleration,)
+    REQUIREDSEQUENCES = (
+        sw1d_factors.WaterLevel,
+        sw1d_factors.WaterLevelUpstream,
+        sw1d_factors.WaterLevelDownstream,
+        sw1d_factors.TimeStep,
     )
     UPDATEDSEQUENCES = (
         sw1d_states.Discharge,
@@ -2694,6 +3066,7 @@ class Model(modeltools.SubstepModel):
         Pick_Inflow_V1,
         Pick_Outflow_V1,
         Pick_LateralFlow_V1,
+        Pick_WaterLevelDownstream_V1,
         Trigger_Preprocessing_V1,
     )
     RECEIVER_METHODS = ()
@@ -2710,6 +3083,7 @@ class Model(modeltools.SubstepModel):
         Perform_Preprocessing_V2,
         Perform_Preprocessing_V3,
         Perform_Preprocessing_V4,
+        Perform_Preprocessing_V5,
         Perform_Postprocessing_V1,
         Perform_Postprocessing_V2,
         Perform_Postprocessing_V3,
@@ -2718,11 +3092,13 @@ class Model(modeltools.SubstepModel):
         Determine_MaxTimeStep_V2,
         Determine_MaxTimeStep_V3,
         Determine_MaxTimeStep_V4,
+        Determine_MaxTimeStep_V5,
         Determine_Discharge_V1,
         Determine_Discharge_V2,
         Determine_Discharge_V3,
         Determine_Discharge_V4,
         Determine_Discharge_V5,
+        Determine_Discharge_V6,
         Get_WaterVolume_V1,
         Get_WaterLevel_V1,
         Get_Discharge_V1,
@@ -2738,6 +3114,7 @@ class Model(modeltools.SubstepModel):
         Calc_MaxTimeStep_V2,
         Calc_MaxTimeStep_V3,
         Calc_MaxTimeStep_V4,
+        Calc_MaxTimeStep_V5,
         Calc_WaterVolumeUpstream_V1,
         Calc_WaterVolumeDownstream_V1,
         Calc_WaterLevelUpstream_V1,
@@ -2746,6 +3123,7 @@ class Model(modeltools.SubstepModel):
         Calc_WaterLevel_V2,
         Calc_WaterLevel_V3,
         Calc_WaterLevel_V4,
+        Calc_WaterLevel_V5,
         Calc_WaterDepth_V1,
         Calc_WaterDepth_V2,
         Calc_WettedArea_V1,
@@ -2754,6 +3132,7 @@ class Model(modeltools.SubstepModel):
         Calc_DischargeDownstream_V1,
         Calc_Discharge_V1,
         Calc_Discharge_V2,
+        Calc_Discharge_V3,
         Update_Discharge_V1,
         Update_Discharge_V2,
         Reset_DischargeVolume_V1,

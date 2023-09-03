@@ -21,8 +21,11 @@ but these are untested in model applications:
 
 >>> from hydpy.models.test import cythonizer
 >>> pyxwriter = cythonizer.pyxwriter
->>> pyxwriter.get_point_states  # doctest: +ELLIPSIS
+>>> from hydpy.cythons.modelutils import PyxPxdLines
+>>> lines = PyxPxdLines()
+>>> pyxwriter.get_point_states(lines)
             . get_point_states
+>>> lines.pyx  # doctest: +ELLIPSIS
     cpdef inline void get_point_states(self) nogil:
         cdef ...int... idx0
         self.sequences.states.s = \
@@ -33,8 +36,10 @@ self.sequences.states._sv_points[self.numvars.idx_stage][idx0]
 <BLANKLINE>
 
 >>> pyxwriter.model.sequences.states.s.NDIM = 2
->>> pyxwriter.get_point_states  # doctest: +ELLIPSIS
+>>> lines.pyx.clear()
+>>> pyxwriter.get_point_states(lines)
             . get_point_states
+>>> lines.pyx  # doctest: +ELLIPSIS
     cpdef inline void get_point_states(self) nogil:
         cdef ...int... idx0, idx1
         for idx0 in range(self.sequences.states._s_length0):
@@ -47,17 +52,19 @@ self.sequences.states._sv_points[self.numvars.idx_stage][idx0]
 <BLANKLINE>
 
 >>> pyxwriter.model.sequences.states.s.NDIM = 3
->>> pyxwriter.get_point_states
+>>> pyxwriter.get_point_states(lines)
 Traceback (most recent call last):
 ...
 NotImplementedError: NDIM of sequence `s` is higher than expected.
 
-The following examples show the results for some methods which are also
-related to numerical integration but deal with |FluxSequence| objects.
-We start with the method |ELSModel.integrate_fluxes|:
+The following examples show the results for some methods which are also related to
+numerical integration but deal with |FluxSequence| objects.  We start with the method
+|ELSModel.integrate_fluxes|:
 
->>> pyxwriter.integrate_fluxes  # doctest: +ELLIPSIS
+>>> lines.pyx.clear()
+>>> pyxwriter.integrate_fluxes(lines)
             . integrate_fluxes
+>>> lines.pyx  # doctest: +ELLIPSIS
     cpdef inline void integrate_fluxes(self) nogil:
         cdef ...int... jdx, idx0
         self.sequences.fluxes.q = 0.
@@ -77,8 +84,10 @@ self.sequences.fluxes._qv_points[jdx, idx0]
 
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 2
->>> pyxwriter.integrate_fluxes  # doctest: +ELLIPSIS
+>>> lines.pyx.clear()
+>>> pyxwriter.integrate_fluxes(lines)
             . integrate_fluxes
+>>> lines.pyx  # doctest: +ELLIPSIS
     cpdef inline void integrate_fluxes(self) nogil:
         cdef ...int... jdx, idx0, idx1
         for idx0 in range(self.sequences.fluxes._q_length0):
@@ -99,7 +108,7 @@ self.numconsts.a_coefs[self.numvars.idx_method-1, self.numvars.idx_stage, jdx]\
 <BLANKLINE>
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 3
->>> pyxwriter.integrate_fluxes
+>>> pyxwriter.integrate_fluxes(lines)
 Traceback (most recent call last):
 ...
 NotImplementedError: NDIM of sequence `q` is higher than expected.
@@ -107,8 +116,10 @@ NotImplementedError: NDIM of sequence `q` is higher than expected.
 Method |ELSModel.reset_sum_fluxes|:
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 0
->>> pyxwriter.reset_sum_fluxes  # doctest: +ELLIPSIS
+>>> lines.pyx.clear()
+>>> pyxwriter.reset_sum_fluxes(lines)
             . reset_sum_fluxes
+>>> lines.pyx  # doctest: +ELLIPSIS
     cpdef inline void reset_sum_fluxes(self) nogil:
         cdef ...int... idx0
         self.sequences.fluxes._q_sum = 0.
@@ -117,8 +128,10 @@ Method |ELSModel.reset_sum_fluxes|:
 <BLANKLINE>
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 2
->>> pyxwriter.reset_sum_fluxes  # doctest: +ELLIPSIS
+>>> lines.pyx.clear()
+>>> pyxwriter.reset_sum_fluxes(lines)
             . reset_sum_fluxes
+>>> lines.pyx  # doctest: +ELLIPSIS
     cpdef inline void reset_sum_fluxes(self) nogil:
         cdef ...int... idx0, idx1
         for idx0 in range(self.sequences.fluxes._q_length0):
@@ -129,7 +142,7 @@ Method |ELSModel.reset_sum_fluxes|:
 <BLANKLINE>
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 3
->>> pyxwriter.reset_sum_fluxes
+>>> pyxwriter.reset_sum_fluxes(lines)
 Traceback (most recent call last):
 ...
 NotImplementedError: NDIM of sequence `q` is higher than expected.
@@ -137,8 +150,10 @@ NotImplementedError: NDIM of sequence `q` is higher than expected.
 Method |ELSModel.addup_fluxes|:
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 0
->>> pyxwriter.addup_fluxes  # doctest: +ELLIPSIS
+>>> lines.pyx.clear()
+>>> pyxwriter.addup_fluxes(lines)
             . addup_fluxes
+>>> lines.pyx  # doctest: +ELLIPSIS
     cpdef inline void addup_fluxes(self) nogil:
         cdef ...int... idx0
         self.sequences.fluxes._q_sum = \
@@ -149,8 +164,10 @@ self.sequences.fluxes._qv_sum[idx0] + self.sequences.fluxes.qv[idx0]
 <BLANKLINE>
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 2
->>> pyxwriter.addup_fluxes  # doctest: +ELLIPSIS
+>>> lines.pyx.clear()
+>>> pyxwriter.addup_fluxes(lines)
             . addup_fluxes
+>>> lines.pyx  # doctest: +ELLIPSIS
     cpdef inline void addup_fluxes(self) nogil:
         cdef ...int... idx0, idx1
         for idx0 in range(self.sequences.fluxes._q_length0):
@@ -163,7 +180,7 @@ self.sequences.fluxes._qv_sum[idx0] + self.sequences.fluxes.qv[idx0]
 <BLANKLINE>
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 3
->>> pyxwriter.addup_fluxes
+>>> pyxwriter.addup_fluxes(lines)
 Traceback (most recent call last):
 ...
 NotImplementedError: NDIM of sequence `q` is higher than expected.
@@ -171,8 +188,10 @@ NotImplementedError: NDIM of sequence `q` is higher than expected.
 Method |ELSModel.calculate_error|:
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 0
->>> pyxwriter.calculate_error  # doctest: +ELLIPSIS
+>>> lines.pyx.clear()
+>>> pyxwriter.calculate_error(lines)
             . calculate_error
+>>> lines.pyx  # doctest: +ELLIPSIS
     cpdef inline void calculate_error(self) nogil:
         cdef ...int... idx0
         cdef double abserror
@@ -206,8 +225,10 @@ fabs(abserror/self.sequences.fluxes._qv_results[self.numvars.idx_method, idx0]))
 <BLANKLINE>
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 2
->>> pyxwriter.calculate_error  # doctest: +ELLIPSIS
+>>> lines.pyx.clear()
+>>> pyxwriter.calculate_error(lines)
             . calculate_error
+>>> lines.pyx  # doctest: +ELLIPSIS
     cpdef inline void calculate_error(self) nogil:
         cdef ...int... idx0, idx1
         cdef double abserror
@@ -245,7 +266,7 @@ fabs(abserror/self.sequences.fluxes._qv_results[self.numvars.idx_method, idx0]))
 <BLANKLINE>
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 3
->>> pyxwriter.calculate_error
+>>> pyxwriter.calculate_error(lines)
 Traceback (most recent call last):
 ...
 NotImplementedError: NDIM of sequence `q` is higher than expected.
@@ -369,15 +390,14 @@ _nogil = " nogil" if config.FASTCYTHON else ""
 
 
 class Lines(List[str]):
-    """Handles code lines for `.pyx` file."""
+    """Handles the code lines for a `.pyx` or a `pxd` file."""
 
     def __init__(self, *args: str) -> None:
         super().__init__(args)
 
     def add(self, indent: int, line: Mayberable1[str]) -> None:
         """Append the given text line with prefixed spaces following the given number
-        of indentation levels.
-        """
+        of indentation levels."""
         if isinstance(line, str):
             self.append(indent * 4 * " " + line)
         else:
@@ -386,6 +406,25 @@ class Lines(List[str]):
 
     def __repr__(self) -> str:
         return "\n".join(self) + "\n"
+
+
+class PyxPxdLines:
+    """Handles the code lines for a `.pyx` and a `pxd` file."""
+
+    pyx: Lines
+    pxd: Lines
+
+    def __init__(self) -> None:
+        self.pyx = Lines()
+        self.pxd = Lines()
+
+    def add(self, indent: int, line: str) -> None:
+        """Pass the given data to method |Lines.add| of the `pyx` and `pxd` |Lines|
+        instances."""
+        self.pyx.add(indent, line)
+        if line.endswith(":") and (" class " not in line):
+            line = line[:-1]
+        self.pxd.add(indent, line)
 
 
 def get_methodheader(
@@ -413,24 +452,24 @@ def get_methodheader(
     return f"cpdef{inline_} void {methodname}(self{idxarg_}){nogil_}:"
 
 
-def decorate_method(wrapped: Callable[[PyxWriter], Iterator[str]]) -> property:
+def decorate_method(
+    wrapped: Callable[[PyxWriter], Iterator[str]]
+) -> Callable[[PyxWriter, PyxPxdLines], None]:
     """The decorated method returns a |Lines| object including a method header.
     However, the |Lines| object is empty if the respective model does not implement a
     method with the same name as the wrapped method.
     """
 
-    def wrapper(self: PyxWriter) -> Lines:
-        lines = Lines()
+    def wrapper(self: PyxWriter, lines: PyxPxdLines) -> None:
         if hasattr(self.model, wrapped.__name__):
             print(f"            . {wrapped.__name__}")
-            lines.add(1, get_methodheader(wrapped.__name__, nogil=True))
+            pyx, both = lines.pyx.add, lines.add
+            both(1, get_methodheader(wrapped.__name__, nogil=True))
             for line in wrapped(self):
-                lines.add(2, line)
-        return lines
+                pyx(2, line)
 
     functools.update_wrapper(wrapper, wrapped)
-    wrapper.__doc__ = f"Lines of model method {wrapped.__name__}."
-    return property(wrapper)
+    return wrapper
 
 
 class Cythonizer:
@@ -718,6 +757,7 @@ class PyxWriter:
     cythonizer: Cythonizer
     model: modeltools.Model
     pyxpath: str
+    pxdpath: str
 
     def __init__(
         self, cythonizer: Cythonizer, model: modeltools.Model, pyxpath: str
@@ -725,44 +765,55 @@ class PyxWriter:
         self.cythonizer = cythonizer
         self.model = model
         self.pyxpath = pyxpath
+        self.pxdpath = pyxpath.replace(".pyx", ".pxd")
 
     def write(self) -> None:
-        """Collect the source code and write it into a Cython extension file ("pyx")."""
-        with open(self.pyxpath, "w", encoding=config.ENCODING) as pxf:
-            print("    * cython options")
-            pxf.write(repr(self.cythondistutilsoptions))
-            print("    * C imports")
-            pxf.write(repr(self.cimports))
-            print("    * constants (if defined)")
-            pxf.write(repr(self.constants))
-            print("    * parameter classes")
-            pxf.write(repr(self.parameters))
-            print("    * sequence classes")
-            pxf.write(repr(self.sequences))
-            print("    * numerical parameters")
-            pxf.write(repr(self.numericalparameters))
-            print("    * submodel classes")
-            pxf.write(repr(self.submodels))
-            print("    * model class")
-            print("        - model attributes")
-            pxf.write(repr(self.modeldeclarations))
-            print("        - standard functions")
-            pxf.write(repr(self.modelstandardfunctions))
-            print("        - numeric functions")
-            pxf.write(repr(self.modelnumericfunctions))
-            print("        - additional functions")
-            pxf.write(repr(self.modeluserfunctions))
+        """Collect the source code and write it into a Cython extension file ("pyx")
+        and its definition file ("pxd")."""
 
-    @property
-    def cythondistutilsoptions(self) -> List[str]:
+        lines = PyxPxdLines()
+
+        print("    * cython options")
+        self.cythondistutilsoptions(lines)
+        print("    * C imports")
+        self.cimports(lines)
+        print("    * constants (if defined)")
+        self.constants(lines)
+        print("    * parameter classes")
+        self.parameters(lines)
+        print("    * sequence classes")
+        self.sequences(lines)
+        print("    * numerical parameters")
+        self.numericalparameters(lines)
+        print("    * submodel classes")
+        self.submodels(lines)
+        print("    * model class")
+        print("        - model attributes")
+        self.modeldeclarations(lines)
+        print("        - standard functions")
+        self.modelstandardfunctions(lines)
+        print("        - numeric functions")
+        self.modelnumericfunctions(lines)
+        print("        - additional functions")
+        self.modeluserfunctions(lines)
+
+        with open(self.pyxpath, "w", encoding=config.ENCODING) as pyxfile:
+            pyxfile.write(repr(lines.pyx))
+        with open(self.pxdpath, "w", encoding=config.ENCODING) as pxdfile:
+            pxdfile.write(repr(lines.pxd))
+
+    def cythondistutilsoptions(self, lines: PyxPxdLines) -> None:
         """Cython and Distutils option lines.
 
         Use the configuration options "FASTCYTHON" and "PROFILECYTHON" to configure the
         cythonization processes as follows:
 
         >>> from hydpy.cythons.modelutils import PyxWriter
-        >>> pyxwriter = PyxWriter(None, None, None)
-        >>> pyxwriter.cythondistutilsoptions
+        >>> pyxwriter = PyxWriter(None, None, "file.pyx")
+        >>> from hydpy.cythons.modelutils import PyxPxdLines
+        >>> lines = PyxPxdLines()
+        >>> pyxwriter.cythondistutilsoptions(lines)
+        >>> lines.pyx  # doctest: +ELLIPSIS
         #!python
         # distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
         # cython: language_level=3
@@ -776,7 +827,9 @@ class PyxWriter:
         >>> from hydpy import config
         >>> config.FASTCYTHON = False
         >>> config.PROFILECYTHON = True
-        >>> pyxwriter.cythondistutilsoptions
+        >>> lines.pyx.clear()
+        >>> pyxwriter.cythondistutilsoptions(lines)
+        >>> lines.pyx  # doctest: +ELLIPSIS
         #!python
         # distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
         # cython: language_level=3
@@ -796,60 +849,59 @@ class PyxWriter:
 
         # ToDo: do not share code with prepare.__prepare_cythonoptions
 
-        lines = Lines(
-            "#!python",
-            "# distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION",
-            "# cython: language_level=3",
-            "# cython: cpow=True",
-        )
+        both = lines.add
+
+        both(0, "#!python")
+        both(0, "# distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION")
+        both(0, "# cython: language_level=3")
+        both(0, "# cython: cpow=True")
+
         if config.FASTCYTHON:
-            lines.add(0, "# cython: boundscheck=False")
-            lines.add(0, "# cython: wraparound=False")
-            lines.add(0, "# cython: initializedcheck=False")
-            lines.add(0, "# cython: cdivision=True")
+            both(0, "# cython: boundscheck=False")
+            both(0, "# cython: wraparound=False")
+            both(0, "# cython: initializedcheck=False")
+            both(0, "# cython: cdivision=True")
         else:
-            lines.add(0, "# cython: boundscheck=True")
-            lines.add(0, "# cython: wraparound=True")
-            lines.add(0, "# cython: initializedcheck=True")
-            lines.add(0, "# cython: cdivision=False")
+            both(0, "# cython: boundscheck=True")
+            both(0, "# cython: wraparound=True")
+            both(0, "# cython: initializedcheck=True")
+            both(0, "# cython: cdivision=False")
 
         if config.PROFILECYTHON:
-            lines.add(0, "# cython: linetrace=True")
-            lines.add(0, "# distutils: define_macros=CYTHON_TRACE=1")
-            lines.add(0, "# distutils: define_macros=CYTHON_TRACE_NOGIL=1")
+            both(0, "# cython: linetrace=True")
+            both(0, "# distutils: define_macros=CYTHON_TRACE=1")
+            both(0, "# distutils: define_macros=CYTHON_TRACE_NOGIL=1")
 
-        return lines
-
-    @property
-    def cimports(self) -> List[str]:
+    def cimports(self, lines: PyxPxdLines) -> None:
         """Import command lines."""
-        return Lines(
-            "from typing import Optional",
-            "import numpy",
-            "cimport numpy",
-            "from libc.math cimport exp, fabs, log, "
-            "sin, cos, tan, asin, acos, atan, isnan, isinf",
-            "from libc.math cimport NAN as nan",
-            "from libc.math cimport INFINITY as inf",
-            "import cython",
-            "from cpython.mem cimport PyMem_Malloc",
-            "from cpython.mem cimport PyMem_Realloc",
-            "from cpython.mem cimport PyMem_Free",
-            "from hydpy.cythons.autogen cimport configutils",
-            "from hydpy.cythons.autogen cimport interfaceutils",
-            "from hydpy.cythons.autogen cimport interputils",
-            "from hydpy.cythons.autogen import pointerutils",
-            "from hydpy.cythons.autogen cimport pointerutils",
-            "from hydpy.cythons.autogen cimport quadutils",
-            "from hydpy.cythons.autogen cimport rootutils",
-            "from hydpy.cythons.autogen cimport smoothutils",
-            "from hydpy.cythons.autogen cimport masterinterface",
+        add = lines.add
+        add(0, "from typing import Optional")
+        add(0, "import numpy")
+        add(0, "cimport numpy")
+        add(
+            0,
+            "from libc.math cimport exp, fabs, log, sin, cos, tan, asin, acos, atan, "
+            "isnan, isinf",
         )
+        add(0, "from libc.math cimport NAN as nan")
+        add(0, "from libc.math cimport INFINITY as inf")
+        add(0, "import cython")
+        add(0, "from cpython.mem cimport PyMem_Malloc")
+        add(0, "from cpython.mem cimport PyMem_Realloc")
+        add(0, "from cpython.mem cimport PyMem_Free")
+        add(0, "from hydpy.cythons.autogen cimport configutils")
+        add(0, "from hydpy.cythons.autogen cimport interfaceutils")
+        add(0, "from hydpy.cythons.autogen cimport interputils")
+        add(0, "from hydpy.cythons.autogen import pointerutils")
+        add(0, "from hydpy.cythons.autogen cimport pointerutils")
+        add(0, "from hydpy.cythons.autogen cimport quadutils")
+        add(0, "from hydpy.cythons.autogen cimport rootutils")
+        add(0, "from hydpy.cythons.autogen cimport smoothutils")
+        add(0, "from hydpy.cythons.autogen cimport masterinterface")
 
-    @property
-    def constants(self) -> List[str]:
+    def constants(self, lines: PyxPxdLines) -> None:
         """Constants declaration lines."""
-        lines = Lines()
+        both = lines.add
         for name, member in vars(self.cythonizer).items():
             if (
                 name.isupper()
@@ -858,114 +910,107 @@ class PyxWriter:
             ):
                 ndim = numpy.array(member).ndim
                 ctype = TYPE2STR[type(member)] + NDIM2STR[ndim]
-                lines.add(0, f"cdef public {ctype} {name} = {member}")
-        return lines
+                both(0, f"cdef public {ctype} {name} = {member}")
 
-    @property
-    def parameters(self) -> List[str]:
+    def parameters(self, lines: PyxPxdLines) -> None:
         """Parameter declaration lines."""
-        lines = Lines()
         if self.model.parameters:
-            lines.add(0, "@cython.final")
-            lines.add(0, "cdef class Parameters:")
+            pyx, pxd, both = lines.pyx.add, lines.pxd.add, lines.add
+            both(0, "@cython.final")
+            both(0, "cdef class Parameters:")
+            pyx(1, "pass")
+            if not self.model.parameters:
+                pxd(1, "pass")
             for subpars in self.model.parameters:
-                lines.add(1, f"cdef public {type(subpars).__name__} {subpars.name}")
+                pxd(1, f"cdef public {type(subpars).__name__} {subpars.name}")
             for subpars in self.model.parameters:
                 print(f"        - {subpars.name}")
-                lines.add(0, "@cython.final")
-                lines.add(0, f"cdef class {type(subpars).__name__}:")
+                both(0, "@cython.final")
+                both(0, f"cdef class {type(subpars).__name__}:")
+                pyx(1, "pass")
                 for par in subpars:
                     try:
                         ctype = TYPE2STR[par.TYPE] + NDIM2STR[par.NDIM]
                     except KeyError:
                         ctype = par.TYPE + NDIM2STR[par.NDIM]
-                    lines.add(1, f"cdef public {ctype} {par.name}")
+                    pxd(1, f"cdef public {ctype} {par.name}")
                     if isinstance(par, parametertools.KeywordParameter1D):
-                        lines.add(
-                            1, f"cdef public {TYPE2STR[int]} _{par.name}_entrymin"
-                        )
+                        pxd(1, f"cdef public {TYPE2STR[int]} _{par.name}_entrymin")
                     elif isinstance(par, parametertools.KeywordParameter2D):
                         prefix = f"cdef public {TYPE2STR[int]} _{par.name}"
                         for suffix in ("rowmin", "columnmin"):
-                            lines.add(1, f"{prefix}_{suffix}")
-        return lines
+                            pxd(1, f"{prefix}_{suffix}")
 
-    @property
-    def sequences(self) -> List[str]:
+    def sequences(self, lines: PyxPxdLines) -> None:
         """Sequence declaration lines."""
-        lines = Lines()
-        lines.add(0, "@cython.final")
-        lines.add(0, "cdef class Sequences:")
+        sqt = sequencetools
+        pyx, pxd, both = lines.pyx.add, lines.pxd.add, lines.add
+        both(0, "@cython.final")
+        both(0, "cdef class Sequences:")
+        pyx(1, "pass")
         for subseqs in self.model.sequences:
-            lines.add(1, f"cdef public {type(subseqs).__name__} {subseqs.name}")
+            pxd(1, f"cdef public {type(subseqs).__name__} {subseqs.name}")
         if self.model.sequences.states:
-            lines.add(1, "cdef public StateSequences old_states")
-            lines.add(1, "cdef public StateSequences new_states")
+            pxd(1, "cdef public StateSequences old_states")
+            pxd(1, "cdef public StateSequences new_states")
         for subseqs in self.model.sequences:
             print(f"        - {subseqs.name}")
-            lines.add(0, "@cython.final")
-            lines.add(0, f"cdef class {type(subseqs).__name__}:")
+            both(0, "@cython.final")
+            both(0, f"cdef class {type(subseqs).__name__}:")
+            if isinstance(subseqs, (sqt.LogSequences, sqt.AideSequences)):
+                pyx(1, "pass")
             for seq in subseqs:
                 ctype = f"double{NDIM2STR[seq.NDIM]}"
-                if isinstance(subseqs, sequencetools.LinkSequences):
+                if isinstance(subseqs, sqt.LinkSequences):
                     if seq.NDIM == 0:
-                        lines.add(1, f"cdef double *{seq.name}")
+                        pxd(1, f"cdef double *{seq.name}")
                     elif seq.NDIM == 1:
-                        lines.add(1, f"cdef double **{seq.name}")
-                        lines.add(1, f"cdef public {_int} len_{seq.name}")
-                        lines.add(
-                            1, f"cdef public {TYPE2STR[int]}[:] _{seq.name}_ready"
-                        )
+                        pxd(1, f"cdef double **{seq.name}")
+                        pxd(1, f"cdef public {_int} len_{seq.name}")
+                        pxd(1, f"cdef public {TYPE2STR[int]}[:] _{seq.name}_ready")
                 else:
-                    lines.add(1, f"cdef public {ctype} {seq.name}")
-                lines.add(1, f"cdef public {_int} _{seq.name}_ndim")
-                lines.add(1, f"cdef public {_int} _{seq.name}_length")
+                    pxd(1, f"cdef public {ctype} {seq.name}")
+                pxd(1, f"cdef public {_int} _{seq.name}_ndim")
+                pxd(1, f"cdef public {_int} _{seq.name}_length")
                 for idx in range(seq.NDIM):
-                    lines.add(1, f"cdef public {_int} _{seq.name}_length_{idx}")
+                    pxd(1, f"cdef public {_int} _{seq.name}_length_{idx}")
                 if seq.NUMERIC:
                     ctype_numeric = "double" + NDIM2STR[seq.NDIM + 1]
-                    lines.add(1, f"cdef public {ctype_numeric} _{seq.name}_points")
-                    lines.add(1, f"cdef public {ctype_numeric} _{seq.name}_results")
-                    if isinstance(subseqs, sequencetools.FluxSequences):
-                        lines.add(
-                            1, f"cdef public {ctype_numeric} " f"_{seq.name}_integrals"
-                        )
-                        lines.add(1, f"cdef public {ctype} _{seq.name}_sum")
-                if isinstance(seq, sequencetools.IOSequence):
-                    lines.extend(self.iosequence(seq))
-            if isinstance(subseqs, sequencetools.IOSequences):
-                lines.extend(self.load_data(subseqs))
-                lines.extend(self.save_data(subseqs))
-            if isinstance(subseqs, sequencetools.LinkSequences):
-                lines.extend(self.set_pointer(subseqs))
-                lines.extend(self.get_value(subseqs))
-                lines.extend(self.set_value(subseqs))
-            if isinstance(
-                subseqs,
-                (sequencetools.InputSequences, sequencetools.OutputSequences),
-            ):
-                lines.extend(self.set_pointer(subseqs))
-            if isinstance(subseqs, sequencetools.OutputSequences):
-                lines.extend(self.update_outputs(subseqs))
-        return lines
+                    pxd(1, f"cdef public {ctype_numeric} _{seq.name}_points")
+                    pxd(1, f"cdef public {ctype_numeric} _{seq.name}_results")
+                    if isinstance(subseqs, sqt.FluxSequences):
+                        pxd(1, f"cdef public {ctype_numeric} " f"_{seq.name}_integrals")
+                        pxd(1, f"cdef public {ctype} _{seq.name}_sum")
+                if isinstance(seq, sqt.IOSequence):
+                    self.iosequence(lines, seq)
+            if isinstance(subseqs, sqt.IOSequences):
+                self.load_data(lines, subseqs)
+                self.save_data(lines, subseqs)
+            if isinstance(subseqs, sqt.LinkSequences):
+                self.set_pointer(lines, subseqs)
+                self.get_value(lines, subseqs)
+                self.set_value(lines, subseqs)
+            if isinstance(subseqs, (sqt.InputSequences, sqt.OutputSequences)):
+                self.set_pointer(lines, subseqs)
+            if isinstance(subseqs, sqt.OutputSequences):
+                self.update_outputs(lines, subseqs)
 
     @staticmethod
-    def iosequence(seq: sequencetools.IOSequence) -> List[str]:
+    def iosequence(lines: PyxPxdLines, seq: sequencetools.IOSequence) -> None:
         """Declaration lines for the given |IOSequence| object."""
         ctype = f"double{NDIM2STR[seq.NDIM+1]}"
-        lines = Lines()
-        lines.add(1, f"cdef public bint _{seq.name}_ramflag")
-        lines.add(1, f"cdef public {ctype} _{seq.name}_array")
-        lines.add(1, f"cdef public bint _{seq.name}_diskflag_reading")
-        lines.add(1, f"cdef public bint _{seq.name}_diskflag_writing")
-        lines.add(1, f"cdef public double[:] _{seq.name}_ncarray")
+        add = lines.pxd.add
+        add(1, f"cdef public bint _{seq.name}_ramflag")
+        add(1, f"cdef public {ctype} _{seq.name}_array")
+        add(1, f"cdef public bint _{seq.name}_diskflag_reading")
+        add(1, f"cdef public bint _{seq.name}_diskflag_writing")
+        add(1, f"cdef public double[:] _{seq.name}_ncarray")
         if isinstance(seq, sequencetools.InputSequence) and (seq.NDIM == 0):
-            lines.add(1, f"cdef public bint _{seq.name}_inputflag")
-            lines.add(1, f"cdef double *_{seq.name}_inputpointer")
+            add(1, f"cdef public bint _{seq.name}_inputflag")
+            add(1, f"cdef double *_{seq.name}_inputpointer")
         elif isinstance(seq, sequencetools.OutputSequence) and (seq.NDIM == 0):
-            lines.add(1, f"cdef public bint _{seq.name}_outputflag")
-            lines.add(1, f"cdef double *_{seq.name}_outputpointer")
-        return lines
+            add(1, f"cdef public bint _{seq.name}_outputflag")
+            add(1, f"cdef double *_{seq.name}_outputpointer")
 
     @staticmethod
     def _get_index(ndim: int) -> str:
@@ -973,236 +1018,242 @@ class PyxWriter:
 
     @staticmethod
     def _add_cdef_jdxs(
-        lines: Lines, subseqs: sequencetools.IOSequences[Any, Any, Any]
+        lines: PyxPxdLines, subseqs: sequencetools.IOSequences[Any, Any, Any]
     ) -> None:
         maxndim = max(seq.NDIM for seq in subseqs)
         if maxndim:
             jdxs = ", ".join(f"jdx{ndim}" for ndim in range(maxndim))
-            lines.add(2, f"cdef {_int} {jdxs}")
+            lines.pyx.add(2, f"cdef {_int} {jdxs}")
 
     @classmethod
-    def load_data(cls, subseqs: sequencetools.IOSequences[Any, Any, Any]) -> List[str]:
+    def load_data(
+        cls, lines: PyxPxdLines, subseqs: sequencetools.IOSequences[Any, Any, Any]
+    ) -> None:
         """Load data statements."""
         print("            . load_data")
-        lines = Lines()
-        lines.add(1, f"cpdef inline void load_data(self, {_int} idx) {_nogil}:")
+        pyx, both = lines.pyx.add, lines.add
+        both(1, f"cpdef inline void load_data(self, {_int} idx) {_nogil}:")
         cls._add_cdef_jdxs(lines, subseqs)
-        lines.add(2, f"cdef {_int} k")
+        pyx(2, f"cdef {_int} k")
         for seq in subseqs:
             if isinstance(seq, sequencetools.InputSequence) and (seq.NDIM == 0):
-                lines.add(2, f"if self._{seq.name}_inputflag:")
-                lines.add(3, f"self.{seq.name} = self._{seq.name}_inputpointer[0]")
+                pyx(2, f"if self._{seq.name}_inputflag:")
+                pyx(3, f"self.{seq.name} = self._{seq.name}_inputpointer[0]")
                 if_or_elif = "elif"
             else:
                 if_or_elif = "if"
-            lines.add(2, f"{if_or_elif} self._{seq.name}_diskflag_reading:")
+            pyx(2, f"{if_or_elif} self._{seq.name}_diskflag_reading:")
             if seq.NDIM == 0:
-                lines.add(3, f"self.{seq.name} = self._{seq.name}_ncarray[0]")
+                pyx(3, f"self.{seq.name} = self._{seq.name}_ncarray[0]")
             else:
-                lines.add(3, "k = 0")
+                pyx(3, "k = 0")
                 for idx in range(seq.NDIM):
-                    lines.add(
+                    pyx(
                         3 + idx,
                         f"for jdx{idx} in range(self._{seq.name}_length_{idx}):",
                     )
-                lines.add(
+                pyx(
                     3 + seq.NDIM,
                     f"self.{seq.name}[{cls._get_index(seq.NDIM)}] "
                     f"= self._{seq.name}_ncarray[k]",
                 )
-                lines.add(3 + seq.NDIM, "k += 1")
-            lines.add(2, f"elif self._{seq.name}_ramflag:")
+                pyx(3 + seq.NDIM, "k += 1")
+            pyx(2, f"elif self._{seq.name}_ramflag:")
             if seq.NDIM == 0:
-                lines.add(3, f"self.{seq.name} = self._{seq.name}_array[idx]")
+                pyx(3, f"self.{seq.name} = self._{seq.name}_array[idx]")
             else:
                 for idx in range(seq.NDIM):
-                    lines.add(
+                    pyx(
                         3 + idx,
                         f"for jdx{idx} in " f"range(self._{seq.name}_length_{idx}):",
                     )
                 index = cls._get_index(seq.NDIM)
-                lines.add(
+                pyx(
                     3 + seq.NDIM,
                     f"self.{seq.name}[{index}] = self._{seq.name}_array[idx, {index}]",
                 )
-        return lines
 
     @classmethod
-    def save_data(cls, subseqs: sequencetools.IOSequences[Any, Any, Any]) -> List[str]:
+    def save_data(
+        cls, lines: PyxPxdLines, subseqs: sequencetools.IOSequences[Any, Any, Any]
+    ) -> None:
         """Save data statements."""
         print("            . save_data")
-        lines = Lines()
-        lines.add(1, f"cpdef inline void save_data(self, {_int} idx) {_nogil}:")
+        pyx, both = lines.pyx.add, lines.add
+        both(1, f"cpdef inline void save_data(self, {_int} idx) {_nogil}:")
         cls._add_cdef_jdxs(lines, subseqs)
-        lines.add(2, f"cdef {_int} k")
+        pyx(2, f"cdef {_int} k")
         for seq in subseqs:
-            lines.add(2, f"if self._{seq.name}_diskflag_writing:")
+            pyx(2, f"if self._{seq.name}_diskflag_writing:")
             if seq.NDIM == 0:
-                lines.add(3, f"self._{seq.name}_ncarray[0] = self.{seq.name}")
+                pyx(3, f"self._{seq.name}_ncarray[0] = self.{seq.name}")
             else:
-                lines.add(3, "k = 0")
+                pyx(3, "k = 0")
                 for idx in range(seq.NDIM):
-                    lines.add(
+                    pyx(
                         3 + idx,
                         f"for jdx{idx} in " f"range(self._{seq.name}_length_{idx}):",
                     )
                 index = cls._get_index(seq.NDIM)
-                lines.add(
+                pyx(
                     3 + seq.NDIM,
                     f"self._{seq.name}_ncarray[k] = self.{seq.name}[{index}]",
                 )
-                lines.add(3 + seq.NDIM, "k += 1")
-            lines.add(2, f"if self._{seq.name}_ramflag:")
+                pyx(3 + seq.NDIM, "k += 1")
+            pyx(2, f"if self._{seq.name}_ramflag:")
             if seq.NDIM == 0:
-                lines.add(3, f"self._{seq.name}_array[idx] = self.{seq.name}")
+                pyx(3, f"self._{seq.name}_array[idx] = self.{seq.name}")
             else:
                 for idx in range(seq.NDIM):
-                    lines.add(
+                    pyx(
                         3 + idx,
                         f"for jdx{idx} in " f"range(self._{seq.name}_length_{idx}):",
                     )
                 index = cls._get_index(seq.NDIM)
-                lines.add(
+                pyx(
                     3 + seq.NDIM,
                     f"self._{seq.name}_array[idx, {index}] = self.{seq.name}[{index}]",
                 )
-        return lines
 
     def set_pointer(
         self,
+        lines: PyxPxdLines,
         subseqs: Union[
             sequencetools.InputSequences,
             sequencetools.OutputSequences[Any],
             sequencetools.LinkSequences[Any],
         ],
-    ) -> List[str]:
+    ) -> None:
         """Set pointer statements for all input, output, and link sequences."""
-        lines = Lines()
         if isinstance(subseqs, sequencetools.InputSequences):
-            lines.extend(self.set_pointerinput(subseqs))
+            self.set_pointerinput(lines, subseqs)
         elif isinstance(subseqs, sequencetools.OutputSequences):
-            lines.extend(self.set_pointeroutput(subseqs))
+            self.set_pointeroutput(lines, subseqs)
         else:
             if any(seq.NDIM == 0 for seq in subseqs):
-                lines.extend(self.set_pointer0d(subseqs))
+                self.set_pointer0d(lines, subseqs)
             if any(seq.NDIM == 1 for seq in subseqs):
-                lines.extend(self.alloc(subseqs))
-                lines.extend(self.dealloc(subseqs))
-                lines.extend(self.set_pointer1d(subseqs))
-        return lines
+                self.alloc(lines, subseqs)
+                self.dealloc(lines, subseqs)
+                self.set_pointer1d(lines, subseqs)
 
     @staticmethod
-    def set_pointer0d(subseqs: sequencetools.LinkSequences[Any]) -> List[str]:
+    def set_pointer0d(
+        lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]
+    ) -> None:
         """Set pointer statements for 0-dimensional link sequences."""
         print("            . set_pointer0d")
-        lines = Lines()
-        lines.add(
+        pyx, both = lines.pyx.add, lines.add
+        both(
             1,
             "cpdef inline set_pointer0d(self, str name, pointerutils.Double value):",
         )
-        lines.add(2, "cdef pointerutils.PDouble pointer = pointerutils.PDouble(value)")
+        pyx(2, "cdef pointerutils.PDouble pointer = pointerutils.PDouble(value)")
         for seq in (seq for seq in subseqs if seq.NDIM == 0):
-            lines.add(2, f'if name == "{seq.name}":')
-            lines.add(3, f"self.{seq.name} = pointer.p_value")
-        return lines
+            pyx(2, f'if name == "{seq.name}":')
+            pyx(3, f"self.{seq.name} = pointer.p_value")
 
     @staticmethod
-    def get_value(subseqs: sequencetools.LinkSequences[Any]) -> List[str]:
+    def get_value(
+        lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]
+    ) -> None:
         """Get value statements for link sequences."""
         print("            . get_value")
-        lines = Lines()
-        lines.add(1, "cpdef get_value(self, str name):")
-        lines.add(2, f"cdef {_int} idx")
+        pyx, both = lines.pyx.add, lines.add
+        both(1, "cpdef get_value(self, str name):")
+        pyx(2, f"cdef {_int} idx")
         for seq in subseqs:
-            lines.add(2, f'if name == "{seq.name}":')
+            pyx(2, f'if name == "{seq.name}":')
             if seq.NDIM == 0:
-                lines.add(3, f"return self.{seq.name}[0]")
+                pyx(3, f"return self.{seq.name}[0]")
             elif seq.NDIM == 1:
-                lines.add(3, f"values = numpy.empty(self.len_{seq.name})")
-                lines.add(3, f"for idx in range(self.len_{seq.name}):")
+                pyx(3, f"values = numpy.empty(self.len_{seq.name})")
+                pyx(3, f"for idx in range(self.len_{seq.name}):")
                 PyxWriter._check_pointer(lines, seq)
-                lines.add(4, f"values[idx] = self.{seq.name}[idx][0]")
-                lines.add(3, "return values")
-        return lines
+                pyx(4, f"values[idx] = self.{seq.name}[idx][0]")
+                pyx(3, "return values")
 
     @staticmethod
-    def set_value(subseqs: sequencetools.LinkSequences[Any]) -> List[str]:
+    def set_value(
+        lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]
+    ) -> None:
         """Set value statements for link sequences."""
         print("            . set_value")
-        lines = Lines()
-        lines.add(1, "cpdef set_value(self, str name, value):")
+        pyx, both = lines.pyx.add, lines.add
+        both(1, "cpdef set_value(self, str name, value):")
         for seq in subseqs:
-            lines.add(2, f'if name == "{seq.name}":')
+            pyx(2, f'if name == "{seq.name}":')
             if seq.NDIM == 0:
-                lines.add(3, f"self.{seq.name}[0] = value")
+                pyx(3, f"self.{seq.name}[0] = value")
             elif seq.NDIM == 1:
-                lines.add(3, f"for idx in range(self.len_{seq.name}):")
+                pyx(3, f"for idx in range(self.len_{seq.name}):")
                 PyxWriter._check_pointer(lines, seq)
-                lines.add(4, f"self.{seq.name}[idx][0] = value[idx]")
-        return lines
+                pyx(4, f"self.{seq.name}[idx][0] = value[idx]")
 
     @staticmethod
-    def _check_pointer(lines: Lines, seq: sequencetools.LinkSequence) -> None:
-        lines.add(4, f"pointerutils.check0(self._{seq.name}_length_0)")
-        lines.add(4, f"if self._{seq.name}_ready[idx] == 0:")
-        lines.add(5, f"pointerutils.check1(self._{seq.name}_length_0, idx)")
-        lines.add(5, f"pointerutils.check2(self._{seq.name}_ready, idx)")
+    def _check_pointer(lines: PyxPxdLines, seq: sequencetools.LinkSequence) -> None:
+        pyx = lines.pyx.add
+        pyx(4, f"pointerutils.check0(self._{seq.name}_length_0)")
+        pyx(4, f"if self._{seq.name}_ready[idx] == 0:")
+        pyx(5, f"pointerutils.check1(self._{seq.name}_length_0, idx)")
+        pyx(5, f"pointerutils.check2(self._{seq.name}_ready, idx)")
 
     @staticmethod
-    def alloc(subseqs: sequencetools.LinkSequences[Any]) -> List[str]:
+    def alloc(lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]) -> None:
         """Allocate memory statements for 1-dimensional link sequences."""
         print("            . setlength")
-        lines = Lines()
-        lines.add(1, f"cpdef inline alloc(self, name, {TYPE2STR[int]} length):")
+        pyx, both = lines.pyx.add, lines.add
+        both(1, f"cpdef inline alloc(self, name, {TYPE2STR[int]} length):")
         for seq in (seq for seq in subseqs if seq.NDIM == 1):
-            lines.add(2, f'if name == "{seq.name}":')
-            lines.add(3, f"self._{seq.name}_length_0 = length")
-            lines.add(
+            pyx(2, f'if name == "{seq.name}":')
+            pyx(3, f"self._{seq.name}_length_0 = length")
+            pyx(
                 3,
                 f"self._{seq.name}_ready = "
                 f"numpy.full(length, 0, dtype={ TYPE2STR[int].split('_')[0]})",
             )
-            lines.add(
+            pyx(
                 3,
                 f"self.{seq.name} = "
                 f"<double**> PyMem_Malloc(length * sizeof(double*))",
             )
-        return lines
 
     @staticmethod
-    def dealloc(subseqs: sequencetools.LinkSequences[Any]) -> List[str]:
+    def dealloc(lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]) -> None:
         """Deallocate memory statements for 1-dimensional link sequences."""
         print("            . dealloc")
-        lines = Lines()
-        lines.add(1, "cpdef inline dealloc(self, name):")
+        pyx, both = lines.pyx.add, lines.add
+        both(1, "cpdef inline dealloc(self, name):")
         for seq in (seq for seq in subseqs if seq.NDIM == 1):
-            lines.add(2, f'if name == "{seq.name}":')
-            lines.add(3, f"PyMem_Free(self.{seq.name})")
-        return lines
+            pyx(2, f'if name == "{seq.name}":')
+            pyx(3, f"PyMem_Free(self.{seq.name})")
 
     @staticmethod
-    def set_pointer1d(subseqs: sequencetools.LinkSequences[Any]) -> List[str]:
+    def set_pointer1d(
+        lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]
+    ) -> None:
         """Set_pointer statements for 1-dimensional link sequences."""
         print("            . set_pointer1d")
-        lines = Lines()
-        lines.add(
+        pyx, both = lines.pyx.add, lines.add
+        both(
             1,
             "cpdef inline set_pointer1d"
             f"(self, str name, pointerutils.Double value, {_int} idx):",
         )
-        lines.add(2, "cdef pointerutils.PDouble pointer = pointerutils.PDouble(value)")
+        pyx(2, "cdef pointerutils.PDouble pointer = pointerutils.PDouble(value)")
         for seq in (seq for seq in subseqs if seq.NDIM == 1):
-            lines.add(2, f'if name == "{seq.name}":')
-            lines.add(3, f"self.{seq.name}[idx] = pointer.p_value")
-            lines.add(3, f"self._{seq.name}_ready[idx] = 1")
-        return lines
+            pyx(2, f'if name == "{seq.name}":')
+            pyx(3, f"self.{seq.name}[idx] = pointer.p_value")
+            pyx(3, f"self._{seq.name}_ready[idx] = 1")
 
     @classmethod
-    def set_pointerinput(cls, subseqs: sequencetools.InputSequences) -> List[str]:
+    def set_pointerinput(
+        cls, lines: PyxPxdLines, subseqs: sequencetools.InputSequences
+    ) -> None:
         """Set pointer statements for input sequences."""
         print("            . set_pointerinput")
-        lines = Lines()
-        lines.add(
+        pyx, both = lines.pyx.add, lines.add
+        both(
             1,
             "cpdef inline set_pointerinput"
             "(self, str name, pointerutils.PDouble value):",
@@ -1210,20 +1261,19 @@ class PyxWriter:
         subseqs_ = cls._filter_inputsequences(subseqs)
         if subseqs_:
             for seq in subseqs_:
-                lines.add(2, f'if name == "{seq.name}":')
-                lines.add(3, f"self._{seq.name}_inputpointer = value.p_value")
+                pyx(2, f'if name == "{seq.name}":')
+                pyx(3, f"self._{seq.name}_inputpointer = value.p_value")
         else:
-            lines.add(2, "pass")
-        return lines
+            pyx(2, "pass")
 
     @classmethod
     def set_pointeroutput(
-        cls, subseqs: sequencetools.OutputSequences[Any]
-    ) -> List[str]:
+        cls, lines: PyxPxdLines, subseqs: sequencetools.OutputSequences[Any]
+    ) -> None:
         """Set pointer statements for output sequences."""
         print("            . set_pointeroutput")
-        lines = Lines()
-        lines.add(
+        pyx, both = lines.pyx.add, lines.add
+        both(
             1,
             "cpdef inline set_pointeroutput"
             "(self, str name, pointerutils.PDouble value):",
@@ -1231,11 +1281,10 @@ class PyxWriter:
         subseqs_ = cls._filter_outputsequences(subseqs)
         if subseqs_:
             for seq in subseqs_:
-                lines.add(2, f'if name == "{seq.name}":')
-                lines.add(3, f"self._{seq.name}_outputpointer = value.p_value")
+                pyx(2, f'if name == "{seq.name}":')
+                pyx(3, f"self._{seq.name}_outputpointer = value.p_value")
         else:
-            lines.add(2, "pass")
-        return lines
+            pyx(2, "pass")
 
     @staticmethod
     def _filter_inputsequences(
@@ -1249,23 +1298,26 @@ class PyxWriter:
     ) -> List[sequencetools.OutputSequence]:
         return [subseq for subseq in subseqs if not subseq.NDIM]
 
-    @property
-    def numericalparameters(self) -> List[str]:
+    def numericalparameters(self, lines: PyxPxdLines) -> None:
         """Numeric parameter declaration lines."""
-        lines = Lines()
         if isinstance(self.model, modeltools.SolverModel):
-            lines.add(0, "@cython.final")
-            lines.add(0, "cdef class NumConsts:")
+            pyx, pxd, both = lines.pyx.add, lines.pxd.add, lines.add
+            both(0, "@cython.final")
+            both(0, "cdef class NumConsts:")
+            pyx(1, "pass")
             for name in ("nmb_methods", "nmb_stages"):
-                lines.add(1, f"cdef public {TYPE2STR[int]} {name}")
+                pxd(1, f"cdef public {TYPE2STR[int]} {name}")
             for name in ("dt_increase", "dt_decrease"):
-                lines.add(1, f"cdef public {TYPE2STR[float]} {name}")
-            lines.add(1, "cdef public configutils.Config pub")
-            lines.add(1, "cdef public double[:, :, :] a_coefs")
-            lines.add(0, "cdef class NumVars:")
-            lines.add(1, "cdef public bint use_relerror")
+                pxd(1, f"cdef public {TYPE2STR[float]} {name}")
+            pxd(1, "cdef public configutils.Config pub")
+            pxd(1, "cdef public double[:, :, :] a_coefs")
+
+            both(0, "@cython.final")
+            both(0, "cdef class NumVars:")
+            pyx(1, "pass")
+            pxd(1, "cdef public bint use_relerror")
             for name in ("nmb_calls", "idx_method", "idx_stage"):
-                lines.add(1, f"cdef public {TYPE2STR[int]} {name}")
+                pxd(1, f"cdef public {TYPE2STR[int]} {name}")
             for name in (
                 "t0",
                 "t1",
@@ -1278,32 +1330,28 @@ class PyxWriter:
                 "extrapolated_abserror",
                 "extrapolated_relerror",
             ):
-                lines.add(1, f"cdef public {TYPE2STR[float]} {name}")
-            lines.add(1, f"cdef public {TYPE2STR[bool]} f0_ready")
-        return lines
+                pxd(1, f"cdef public {TYPE2STR[float]} {name}")
+            pxd(1, f"cdef public {TYPE2STR[bool]} f0_ready")
 
-    @property
-    def submodels(self) -> List[str]:
+    def submodels(self, lines: PyxPxdLines) -> None:
         """Submodel declaration lines."""
-        lines = Lines()
         for submodel in self.model.SUBMODELS:
-            lines.add(0, "@cython.final")
+            pyx, pxd, both = lines.pyx.add, lines.pxd.add, lines.add
+            both(0, "@cython.final")
             cls = submodel.CYTHONBASECLASS
-            lines.add(
+            both(
                 0,
                 f"cdef class {submodel.__name__}("
                 f"{cls.__module__.split('.')[-1]}.{cls.__name__}):",
             )
-            lines.add(1, "cdef public Model model")
-            lines.add(1, "def __init__(self, Model model):")
-            lines.add(2, "self.model = model")
+            pxd(1, "cdef public Model model")
+            pyx(1, "def __init__(self, Model model):")
+            pyx(2, "self.model = model")
             for idx, method in enumerate(submodel.METHODS):
-                lines.add(1, f"cpdef double apply_method{idx}(self, double x) nogil:")
-                lines.add(2, f"return self.model.{method.__name__.lower()}(x)")
-        return lines
+                both(1, f"cpdef double apply_method{idx}(self, double x) nogil:")
+                pyx(2, f"return self.model.{method.__name__.lower()}(x)")
 
-    @property
-    def modeldeclarations(self) -> List[str]:
+    def modeldeclarations(self, lines: PyxPxdLines) -> None:
         """The attribute declarations of the model class."""
         # pylint: disable=too-many-branches
         submodeltypes_old = getattr(self.model, "SUBMODELS", ())
@@ -1316,8 +1364,8 @@ class PyxWriter:
                 aggregate_vectors=True,
             )
         ]
-        lines = Lines()
-        lines.add(0, "@cython.final")
+        pyx, pxd, both = lines.pyx.add, lines.pxd.add, lines.add
+        both(0, "@cython.final")
         follows_interface = any(
             base
             for base in inspect.getmro(type(self.model))
@@ -1325,142 +1373,133 @@ class PyxWriter:
             and base.__module__.startswith("hydpy.interfaces.")
         )
         if follows_interface:
-            lines.add(0, "cdef class Model(masterinterface.MasterInterface):")
+            both(0, "cdef class Model(masterinterface.MasterInterface):")
         else:
-            lines.add(0, "cdef class Model:")
+            both(0, "cdef class Model:")
         for cls in inspect.getmro(type(self.model)):
             for name, member in vars(cls).items():
                 if isinstance(member, modeltools.IndexProperty):
                     if (name != "idx_sim") or not follows_interface:
-                        lines.add(1, f"cdef public {_int} {name}")
+                        pxd(1, f"cdef public {_int} {name}")
         if isinstance(self.model, modeltools.SubstepModel):
-            lines.add(1, f"cdef public {TYPE2STR[float]} timeleft")
+            pxd(1, f"cdef public {TYPE2STR[float]} timeleft")
         if self.model.parameters:
-            lines.add(1, "cdef public Parameters parameters")
-        lines.add(1, "cdef public Sequences sequences")
+            pxd(1, "cdef public Parameters parameters")
+        pxd(1, "cdef public Sequences sequences")
         for name in submodelnames_new:
             if name.endswith("_*"):
                 name = name[:-2]
-                lines.add(1, f"cdef public interfaceutils.SubmodelsProperty {name}")
+                pxd(1, f"cdef public interfaceutils.SubmodelsProperty {name}")
             else:
-                lines.add(1, f"cdef public masterinterface.MasterInterface {name}")
-                lines.add(1, f"cdef public {TYPE2STR[bool]} {name}_is_mainmodel")
-                lines.add(1, f"cdef public {TYPE2STR[int]} {name}_typeid")
+                pxd(1, f"cdef public masterinterface.MasterInterface {name}")
+                pxd(1, f"cdef public {TYPE2STR[bool]} {name}_is_mainmodel")
+                pxd(1, f"cdef public {TYPE2STR[int]} {name}_typeid")
         for submodel in submodeltypes_old:
-            lines.add(1, f"cdef public {submodel.__name__} {submodel.name}")
+            pxd(1, f"cdef public {submodel.__name__} {submodel.name}")
         if hasattr(self.model, "numconsts"):
-            lines.add(1, "cdef public NumConsts numconsts")
+            pxd(1, "cdef public NumConsts numconsts")
         if hasattr(self.model, "numvars"):
-            lines.add(1, "cdef public NumVars numvars")
+            pxd(1, "cdef public NumVars numvars")
         if submodeltypes_old or submodelnames_new:
-            lines.add(1, "def __init__(self):")
-            lines.add(2, "super().__init__()")
+            pyx(1, "def __init__(self):")
+            pyx(2, "super().__init__()")
             for name in submodelnames_new:
                 if name.endswith("_*"):
                     name = name[:-2]
-                    lines.add(2, f"self.{name} = interfaceutils.SubmodelsProperty()")
+                    pyx(2, f"self.{name} = interfaceutils.SubmodelsProperty()")
                 else:
-                    lines.add(2, f"self.{name} = None")
-                    lines.add(2, f"self.{name}_is_mainmodel = False")
+                    pyx(2, f"self.{name} = None")
+                    pyx(2, f"self.{name}_is_mainmodel = False")
             for submodel in submodeltypes_old:
-                lines.add(2, f"self.{submodel.name} = {submodel.__name__}(self)")
+                pyx(2, f"self.{submodel.name} = {submodel.__name__}(self)")
         baseinterface = "Optional[masterinterface.MasterInterface]"
         for name in submodelnames_new:
             if not name.endswith("_*"):
-                lines.add(1, f"def get_{name}(self) -> {baseinterface}:")
-                lines.add(2, f"return self.{name}")
-                lines.add(1, f"def set_{name}(self, {name}: {baseinterface}) -> None:")
-                lines.add(2, f"self.{name} = {name}")
-        return lines
+                pyx(1, f"def get_{name}(self) -> {baseinterface}:")
+                pyx(2, f"return self.{name}")
+                pyx(1, f"def set_{name}(self, {name}: {baseinterface}) -> None:")
+                pyx(2, f"self.{name} = {name}")
 
-    @property
-    def modelstandardfunctions(self) -> List[str]:
+    def modelstandardfunctions(self, lines: PyxPxdLines) -> None:
         """The standard functions of the model class."""
-        lines = Lines()
-        lines.extend(self.simulate)
-        lines.extend(self.iofunctions)
-        lines.extend(self.new2old)
+        self.simulate(lines)
+        self.iofunctions(lines)
+        self.new2old(lines)
         if isinstance(self.model, modeltools.RunModel):
-            lines.extend(self.run(self.model))
-        lines.extend(self.update_inlets)
-        lines.extend(self.update_outlets)
-        lines.extend(self.update_receivers)
-        lines.extend(self.update_senders)
-        lines.extend(self.update_outputs_model)
-        return lines
+            self.run(lines, self.model)
+        self.update_inlets(lines)
+        self.update_outlets(lines)
+        self.update_receivers(lines)
+        self.update_senders(lines)
+        self.update_outputs_model(lines)
 
-    @property
-    def modelnumericfunctions(self) -> List[str]:
+    def modelnumericfunctions(self, lines: PyxPxdLines) -> None:
         """Numerical integration functions of the model class."""
-        lines = Lines()
         if isinstance(self.model, modeltools.SolverModel):
-            lines.extend(self.solve)
-            lines.extend(self.calculate_single_terms(self.model))
-            lines.extend(self.calculate_full_terms(self.model))
-            lines.extend(self.get_point_states)
-            lines.extend(self.set_point_states)
-            lines.extend(self.set_result_states)
-            lines.extend(self.get_sum_fluxes)
-            lines.extend(self.set_point_fluxes)
-            lines.extend(self.set_result_fluxes)
-            lines.extend(self.integrate_fluxes)
-            lines.extend(self.reset_sum_fluxes)
-            lines.extend(self.addup_fluxes)
-            lines.extend(self.calculate_error)
-            lines.extend(self.extrapolate_error)
-        return lines
+            self.solve(lines)
+            self.calculate_single_terms(lines, self.model)
+            self.calculate_full_terms(lines, self.model)
+            self.get_point_states(lines)
+            self.set_point_states(lines)
+            self.set_result_states(lines)
+            self.get_sum_fluxes(lines)
+            self.set_point_fluxes(lines)
+            self.set_result_fluxes(lines)
+            self.integrate_fluxes(lines)
+            self.reset_sum_fluxes(lines)
+            self.addup_fluxes(lines)
+            self.calculate_error(lines)
+            self.extrapolate_error(lines)
 
-    @property
-    def simulate(self) -> List[str]:
+    def simulate(self, lines: PyxPxdLines) -> None:
         """Simulation statements."""
         print("                . simulate")
-        lines = Lines()
-        lines.add(1, f"cpdef inline void simulate(self, {_int} idx) {_nogil}:")
-        lines.add(2, "self.idx_sim = idx")
+        pyx, both = lines.pyx.add, lines.add
+        both(1, f"cpdef inline void simulate(self, {_int} idx) {_nogil}:")
+        pyx(2, "self.idx_sim = idx")
         seqs = self.model.sequences
         if seqs.inputs or self.model.SUBMODELINTERFACES:
-            lines.add(2, "self.load_data(idx)")
+            pyx(2, "self.load_data(idx)")
         if self.model.INLET_METHODS:
-            lines.add(2, "self.update_inlets()")
+            pyx(2, "self.update_inlets()")
         if isinstance(self.model, modeltools.SolverModel):
-            lines.add(2, "self.solve()")
+            pyx(2, "self.solve()")
         else:
-            lines.add(2, "self.run()")
+            pyx(2, "self.run()")
             if seqs.states:
-                lines.add(2, "self.new2old()")
+                pyx(2, "self.new2old()")
         if self.model.OUTLET_METHODS:
-            lines.add(2, "self.update_outlets()")
+            pyx(2, "self.update_outlets()")
         if seqs.factors or seqs.fluxes or seqs.states:
-            lines.add(2, "self.update_outputs()")
-        return lines
+            pyx(2, "self.update_outputs()")
 
-    def _call_submodel_method(self, methodcall: str, lines: Lines) -> None:
+    def _call_submodel_method(self, lines: PyxPxdLines, methodcall: str) -> None:
         name2submodel = self.model.find_submodels(
             include_subsubmodels=False,
             include_optional=True,
             aggregate_vectors=True,
         )
+        pyx = lines.pyx.add
         if any(name.endswith("_*") for name in name2submodel):
-            lines.add(2, f"cdef {_int} i_submodel")
+            pyx(2, f"cdef {_int} i_submodel")
         for fullname in name2submodel:
             name = fullname.rpartition(".")[2]
             if name.endswith("_*"):
                 name = name[:-2]
-                lines.add(2, f"for i_submodel in range(self.{name}.number):")
-                lines.add(3, f"if self.{name}.typeids[i_submodel] > 0:")
-                lines.add(
+                pyx(2, f"for i_submodel in range(self.{name}.number):")
+                pyx(3, f"if self.{name}.typeids[i_submodel] > 0:")
+                pyx(
                     4,
                     f"(<masterinterface.MasterInterface>"
                     f"self.{name}.submodels[i_submodel]).{methodcall}",
                 )
             else:
-                lines.add(
+                pyx(
                     2, f"if (self.{name} is not None) and not self.{name}_is_mainmodel:"
                 )
-                lines.add(3, f"self.{name}.{methodcall}")
+                pyx(3, f"self.{name}.{methodcall}")
 
-    @property
-    def iofunctions(self) -> List[str]:
+    def iofunctions(self, lines: PyxPxdLines) -> None:
         """Input/output functions of the model class.
 
         The result of property |PyxWriter.iofunctions| depends on the availability of
@@ -1470,9 +1509,12 @@ class PyxWriter:
 
         >>> from hydpy.models.hland_v1 import cythonizer
         >>> pyxwriter = cythonizer.pyxwriter
-        >>> pyxwriter.iofunctions  # doctest: +ELLIPSIS
+        >>> from hydpy.cythons.modelutils import PyxPxdLines
+        >>> lines = PyxPxdLines()
+        >>> pyxwriter.iofunctions(lines)
                     . load_data
                     . save_data
+        >>> lines.pyx  # doctest: +ELLIPSIS
             cpdef void load_data(self, ...int... idx) nogil:
                 self.idx_sim = idx
                 self.sequences.inputs.load_data(idx)
@@ -1491,9 +1533,11 @@ class PyxWriter:
         >>> pyxwriter.model.sequences.factors = None
         >>> pyxwriter.model.sequences.fluxes = None
         >>> pyxwriter.model.sequences.states = None
-        >>> pyxwriter.iofunctions  # doctest: +ELLIPSIS
+        >>> lines.pyx.clear()
+        >>> pyxwriter.iofunctions(lines)
                     . load_data
                     . save_data
+        >>> lines.pyx  # doctest: +ELLIPSIS
             cpdef void load_data(self, ...int... idx) nogil:
                 self.idx_sim = idx
                 self.sequences.inputs.load_data(idx)
@@ -1507,14 +1551,16 @@ class PyxWriter:
         <BLANKLINE>
 
         >>> pyxwriter.model.sequences.inputs = None
-        >>> pyxwriter.iofunctions
+        >>> lines.pyx.clear()
+        >>> pyxwriter.iofunctions(lines)
+        >>> lines.pyx  # doctest: +ELLIPSIS
         <BLANKLINE>
         <BLANKLINE>
         """
-        lines = Lines()
         seqs = self.model.sequences
         if not (seqs.inputs or seqs.factors or seqs.fluxes or seqs.states):
-            return lines
+            return
+        pyx, both = lines.pyx.add, lines.add
         for func in ("load_data", "save_data"):
             if (func == "load_data") and not (
                 seqs.inputs or self.model.SUBMODELINTERFACES
@@ -1522,33 +1568,31 @@ class PyxWriter:
                 continue
             print(f"            . {func}")
             nogil = func in ("load_data", "save_data")
-            lines.add(1, get_methodheader(func, nogil=nogil, idxarg=True, inline=False))
-            lines.add(2, "self.idx_sim = idx")
+            both(1, get_methodheader(func, nogil=nogil, idxarg=True, inline=False))
+            pyx(2, "self.idx_sim = idx")
             for subseqs in seqs:
                 if func == "load_data":
                     applyfuncs: Tuple[str, ...] = ("inputs",)
                 else:
                     applyfuncs = ("inputs", "factors", "fluxes", "states")
                 if subseqs.name in applyfuncs:
-                    lines.add(2, f"self.sequences.{subseqs.name}." f"{func}(idx)")
-            self._call_submodel_method(methodcall=f"{func}(idx)", lines=lines)
-        return lines
+                    pyx(2, f"self.sequences.{subseqs.name}." f"{func}(idx)")
+            self._call_submodel_method(lines, f"{func}(idx)")
 
-    @property
-    def new2old(self) -> List[str]:
+    def new2old(self, lines: PyxPxdLines) -> None:
         """Old states to new states statements."""
-        lines = Lines()
         name2submodel = self.model.find_submodels(
             include_subsubmodels=False, include_optional=True, aggregate_vectors=True
         )
+        pyx, both = lines.pyx.add, lines.add
         if self.model.sequences.states or name2submodel:
             print("                . new2old")
-            lines.add(1, get_methodheader("new2old", nogil=True, inline=False))
+            both(1, get_methodheader("new2old", nogil=True, inline=False))
         if self.model.sequences.states:
             self._add_cdef_jdxs(lines, self.model.sequences.states)
             for seq in self.model.sequences.states:
                 if seq.NDIM == 0:
-                    lines.add(
+                    pyx(
                         2,
                         f"self.sequences.old_states.{seq.name} = "
                         f"self.sequences.new_states.{seq.name}",
@@ -1556,153 +1600,136 @@ class PyxWriter:
                 else:
                     indexing = ""
                     for idx in range(seq.NDIM):
-                        lines.add(
+                        pyx(
                             2 + idx,
                             f"for jdx{idx} in range(self.sequences.states."
                             f"_{seq.name}_length_{idx}):",
                         )
                         indexing += f"jdx{idx},"
                     indexing = indexing[:-1]
-                    lines.add(
+                    pyx(
                         2 + seq.NDIM,
                         f"self.sequences.old_states.{seq.name}[{indexing}] = "
                         f"self.sequences.new_states.{seq.name}[{indexing}]",
                     )
-        self._call_submodel_method(methodcall="new2old()", lines=lines)
-        return lines
+        self._call_submodel_method(lines, "new2old()")
 
     def _call_methods(
         self,
+        lines: PyxPxdLines,
         name: str,
         methods: Tuple[Type[modeltools.Method], ...],
         idx_as_arg: bool = False,
-    ) -> Lines:
-        lines = Lines()
+    ) -> None:
         if hasattr(self.model, name):
-            lines.add(1, get_methodheader(name, nogil=True, idxarg=idx_as_arg))
+            pyx, both = lines.pyx.add, lines.add
+            both(1, get_methodheader(name, nogil=True, idxarg=idx_as_arg))
             if idx_as_arg:
-                lines.add(2, "self.idx_sim = idx")
+                pyx(2, "self.idx_sim = idx")
             anything = False
             for method in methods:
-                lines.add(2, f"self.{method.__name__.lower()}()")
+                pyx(2, f"self.{method.__name__.lower()}()")
                 anything = True
             if not anything:
-                lines.add(2, "pass")
-        return lines
+                pyx(2, "pass")
 
     def _call_runmethods_segmentwise(
-        self,
-        methods: Tuple[Type[modeltools.Method], ...],
-    ) -> Lines:
-        lines = Lines()
+        self, lines: PyxPxdLines, methods: Tuple[Type[modeltools.Method], ...]
+    ) -> None:
         if hasattr(self.model, "run"):
-            lines.add(1, get_methodheader("run", nogil=True, idxarg=False))
-            lines.add(2, f"cdef {TYPE2STR[int]} idx_segment, idx_run")
-            lines.add(
-                2,
-                "for idx_segment in range(self.parameters.control.nmbsegments):",
-            )
-            lines.add(3, "self.idx_segment = idx_segment")
-            lines.add(3, "for idx_run in range(self.parameters.solver.nmbruns):")
-            lines.add(4, "self.idx_run = idx_run")
+            pyx, both = lines.pyx.add, lines.add
+            both(1, get_methodheader("run", nogil=True, idxarg=False))
+            pyx(2, f"cdef {TYPE2STR[int]} idx_segment, idx_run")
+            pyx(2, "for idx_segment in range(self.parameters.control.nmbsegments):")
+            pyx(3, "self.idx_segment = idx_segment")
+            pyx(3, "for idx_run in range(self.parameters.solver.nmbruns):")
+            pyx(4, "self.idx_run = idx_run")
             for method in methods:
-                lines.add(4, f"self.{method.__name__.lower()}()")
-        return lines
+                pyx(4, f"self.{method.__name__.lower()}()")
 
-    @property
-    def update_receivers(self) -> List[str]:
+    def update_receivers(self, lines: PyxPxdLines) -> None:
         """Lines of the model method with the same name."""
-        return self._call_methods("update_receivers", self.model.RECEIVER_METHODS, True)
+        self._call_methods(lines, "update_receivers", self.model.RECEIVER_METHODS, True)
 
-    @property
-    def update_inlets(self) -> List[str]:
+    def update_inlets(self, lines: PyxPxdLines) -> None:
         """Lines of the model method with the same name."""
-        return self._call_methods("update_inlets", self.model.INLET_METHODS)
+        self._call_methods(lines, "update_inlets", self.model.INLET_METHODS)
 
-    def run(self, model: modeltools.RunModel) -> List[str]:
+    def run(self, lines: PyxPxdLines, model: modeltools.RunModel) -> None:
         """Return the lines of the model method with the same name."""
         if isinstance(model, modeltools.SegmentModel):
-            return self._call_runmethods_segmentwise(model.RUN_METHODS)
-        lines = self._call_methods("run", model.RUN_METHODS)
-        if isinstance(model, modeltools.SubstepModel):
-            lines_ext = Lines()
-            lines_ext.add(0, lines[0])
-            lines_ext.add(2, "self.timeleft = self.parameters.derived.seconds")
-            lines_ext.add(2, "while True:")
-            for line in lines[1:]:
-                lines_ext.add(1, line)
-            lines_ext.add(3, "if self.timeleft <= 0.0:")
-            lines_ext.add(4, "break")
-            lines_ext.add(3, "self.new2old()")
-            return lines_ext
-        return lines
+            self._call_runmethods_segmentwise(lines, model.RUN_METHODS)
+        else:
+            nmb = len(lines.pyx)
+            self._call_methods(lines, "run", model.RUN_METHODS)
+            if isinstance(model, modeltools.SubstepModel):
+                pyx = Lines()
+                pyx.extend(lines.pyx[: nmb + 1])
+                add = pyx.add
+                add(2, "self.timeleft = self.parameters.derived.seconds")
+                add(2, "while True:")
+                for line in lines.pyx[nmb + 1 :]:
+                    add(1, line)
+                add(3, "if self.timeleft <= 0.0:")
+                add(4, "break")
+                add(3, "self.new2old()")
+                lines.pyx = pyx
 
-    @property
-    def update_outlets(self) -> List[str]:
+    def update_outlets(self, lines: PyxPxdLines) -> None:
         """Lines of the model method with the same name."""
-        return self._call_methods("update_outlets", self.model.OUTLET_METHODS)
+        self._call_methods(lines, "update_outlets", self.model.OUTLET_METHODS)
 
-    @property
-    def update_senders(self) -> List[str]:
+    def update_senders(self, lines: PyxPxdLines) -> None:
         """Lines of the model method with the same name."""
-        return self._call_methods("update_senders", self.model.SENDER_METHODS, True)
+        self._call_methods(lines, "update_senders", self.model.SENDER_METHODS, True)
 
-    @property
-    def update_outputs_model(self) -> List[str]:
+    def update_outputs_model(self, lines: PyxPxdLines) -> None:
         """Lines of the model method with the same name (except the `_model` suffix)."""
-        lines = Lines()
-        add = lines.add
-        methodheader = get_methodheader(
-            "update_outputs",
-            nogil=True,
-            idxarg=False,
-        )
-        add(1, methodheader)
+        pyx, both = lines.pyx.add, lines.add
+        both(1, get_methodheader("update_outputs", nogil=True, idxarg=False))
         factors = self._filter_outputsequences(self.model.sequences.factors)
         fluxes = self._filter_outputsequences(self.model.sequences.fluxes)
         states = self._filter_outputsequences(self.model.sequences.states)
         if factors:
-            add(2, "self.sequences.factors.update_outputs()")
+            pyx(2, "self.sequences.factors.update_outputs()")
         if fluxes:
-            add(2, "self.sequences.fluxes.update_outputs()")
+            pyx(2, "self.sequences.fluxes.update_outputs()")
         if states:
-            add(2, "self.sequences.states.update_outputs()")
+            pyx(2, "self.sequences.states.update_outputs()")
         if not (factors or fluxes or states):
-            add(2, "pass")
-        return lines
+            pyx(2, "pass")
 
-    def update_outputs(self, subseqs: sequencetools.OutputSequences[Any]) -> List[str]:
+    def update_outputs(
+        self, lines: PyxPxdLines, subseqs: sequencetools.OutputSequences[Any]
+    ) -> None:
         """Lines of the subsequences method with the same name."""
-        lines = Lines()
-        add = lines.add
-        methodheader = get_methodheader(
-            "update_outputs",
-            nogil=True,
-            idxarg=False,
-        )
-        add(1, methodheader)
+        pyx, both = lines.pyx.add, lines.add
+        both(1, get_methodheader("update_outputs", nogil=True, idxarg=False))
         subseqs_ = self._filter_outputsequences(subseqs)
         if subseqs_:
             for seq in subseqs_:
                 name = seq.name
-                add(2, f"if self._{name}_outputflag:")
-                add(3, f"self._{name}_outputpointer[0] = self.{name}")
+                pyx(2, f"if self._{name}_outputflag:")
+                pyx(3, f"self._{name}_outputpointer[0] = self.{name}")
         else:
-            add(2, "pass")
-        return lines
+            pyx(2, "pass")
 
-    def calculate_single_terms(self, model: modeltools.SolverModel) -> List[str]:
+    def calculate_single_terms(
+        self, lines: PyxPxdLines, model: modeltools.SolverModel
+    ) -> None:
         """Return the lines of the model method with the same name."""
-        lines = self._call_methods("calculate_single_terms", model.PART_ODE_METHODS)
-        if lines:
-            lines.insert(
-                1, ("        self.numvars.nmb_calls = self.numvars.nmb_calls + 1")
+        nmb = len(lines.pyx)
+        self._call_methods(lines, "calculate_single_terms", model.PART_ODE_METHODS)
+        if len(lines.pyx) > nmb:
+            lines.pyx.insert(
+                nmb + 1, ("        self.numvars.nmb_calls = self.numvars.nmb_calls + 1")
             )
-        return lines
 
-    def calculate_full_terms(self, model: modeltools.SolverModel) -> List[str]:
+    def calculate_full_terms(
+        self, lines: PyxPxdLines, model: modeltools.SolverModel
+    ) -> None:
         """Return the lines of the model method with the same name."""
-        return self._call_methods("calculate_full_terms", model.FULL_ODE_METHODS)
+        self._call_methods(lines, "calculate_full_terms", model.FULL_ODE_METHODS)
 
     @property
     def name2function_method(self) -> Dict[str, Callable[..., Any]]:
@@ -1738,43 +1765,42 @@ class PyxWriter:
             return interfaces
         return set()
 
-    @property
-    def modeluserfunctions(self) -> List[str]:
+    def modeluserfunctions(self, lines: PyxPxdLines) -> None:
         """Model-specific functions."""
-        lines = Lines()
         for name, func in self.name2function_method.items():
             print(f"            . {name}")
             inline = name not in self.interfacemethods
             funcconverter = FuncConverter(
                 model=self.model, funcname=name, func=func, inline=inline
             )
-            lines.extend(funcconverter.pyxlines)
+            pyxlines = funcconverter.pyxlines
+            lines.pyx.extend(pyxlines)
+            lines.pxd.append(pyxlines[0][:-1])
         for name, submethods in self.name2submethodnames_automethod.items():
             print(f"            . {name}")
-            lines.extend(self.automethod(name=name, submethods=submethods))
-        return lines
+            self.automethod(lines, name=name, submethods=submethods)
 
     def automethod(
-        self, name: str, submethods: Tuple[Type[modeltools.Method], ...]
-    ) -> List[str]:
+        self,
+        lines: PyxPxdLines,
+        name: str,
+        submethods: Tuple[Type[modeltools.Method], ...],
+    ) -> None:
         """Lines of a method defined by a |AutoMethod| subclass."""
-        lines = Lines()
+        pyx, both = lines.pyx.add, lines.add
         inline = name not in self.interfacemethods
-        lines.add(1, get_methodheader(methodname=name, nogil=True, inline=inline))
+        both(1, get_methodheader(methodname=name, nogil=True, inline=inline))
         for submethod in submethods:
-            lines.add(2, f"self.{submethod.__name__.lower()}()")
-        return lines
+            pyx(2, f"self.{submethod.__name__.lower()}()")
 
-    @property
-    def solve(self) -> List[str]:
+    def solve(self, lines: PyxPxdLines) -> None:
         """Lines of the model method with the same name."""
-        lines = Lines()
-        solve = getattr(self.model, "solve", None)
-        if solve:
+        if solve := getattr(self.model, "solve", None):
             print("            . solve")
             funcconverter = FuncConverter(self.model, "solve", solve)
-            lines.extend(funcconverter.pyxlines)
-        return lines
+            pyxlines = funcconverter.pyxlines
+            lines.pyx.extend(pyxlines)
+            lines.pxd.append(pyxlines[0][:-1])
 
     @classmethod
     def _assign_seqvalues(
@@ -2085,18 +2111,17 @@ class PyxWriter:
                     f"NDIM of sequence `{seq.name}` is higher than expected."
                 )
 
-    @property
-    def extrapolate_error(self) -> List[str]:
+    def extrapolate_error(self, lines: PyxPxdLines) -> None:
         """Extrapolate error statements."""
-        lines = Lines()
         extrapolate_error = getattr(self.model, "extrapolate_error", None)
         if extrapolate_error:
             print("            . extrapolate_error")
             funcconverter = FuncConverter(
                 self.model, "extrapolate_error", extrapolate_error
             )
-            lines.extend(funcconverter.pyxlines)
-        return lines
+            pyxlines = funcconverter.pyxlines
+            lines.pyx.extend(pyxlines)
+            lines.pxd.append(pyxlines[0][:-1])
 
     def write_stubfile(self) -> None:
         """Write a stub file for the actual base or application model.
@@ -2457,7 +2482,7 @@ class FuncConverter:
                     lines[idx] = line
 
     @property
-    def pyxlines(self) -> List[str]:
+    def pyxlines(self) -> Lines:
         """Cython code lines of the current function.
 
         Assumptions:

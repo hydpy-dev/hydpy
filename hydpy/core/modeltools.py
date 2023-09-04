@@ -1508,7 +1508,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         self._connect_subgroup("inlets", report_noconnect, 0)
 
     def _connect_receivers(self, report_noconnect: bool = True) -> None:
-        self._connect_subgroup("receivers", report_noconnect, 0)
+        self._connect_subgroup("receivers", report_noconnect, -1)
 
     def _connect_outlets(self, report_noconnect: bool = True) -> None:
         self._connect_subgroup("outlets", report_noconnect, -1)

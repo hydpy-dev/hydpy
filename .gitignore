@@ -8,6 +8,7 @@ venv*
 *.pyc
 *.c
 *.h
+*.pysource
 temp
 hydpy/aliases.py
 hydpy/conf/mimetypes.txt

@@ -306,6 +306,7 @@ from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core import testtools
 from hydpy.core.typingtools import *
+from hydpy.cythons import autogenpath
 
 
 if TYPE_CHECKING:
@@ -2468,6 +2469,7 @@ class FuncConverter:
         code = code.replace(" model.", " self.")
         code = code.replace("[model.", "[self.")
         code = code.replace("(model.", "(self.")
+        code = code.replace("(model)", "(self)")
         code = code.replace(".values", "")
         code = code.replace(".value", "")
         code = code.replace(": float", "")
@@ -2661,6 +2663,77 @@ get_partialdischargedownstream()
                 part2 = part2.strip().strip(",").rpartition(",")[2].strip()
                 lines[idx] = f"{part1}(<masterinterface.MasterInterface>{part2}){part3}"
         return Lines(*lines)
+
+
+def get_callbackcymodule(
+    model: modeltools.Model,
+    parameter: parametertools.CallbackParameter,
+    callback: Callable[[modeltools.Model], None],
+) -> types.ModuleType:
+    """Return the cython module containing the required callback module after, if
+    necessary, creating or updating."""
+
+    basename = f"callback_{model}_{parameter.name}_{callback.__name__}"
+    pyfilepath = os.path.join(autogenpath, f"{basename}.pysource")
+    pycode = inspect.getsource(callback)
+
+    refresh = True
+    if os.path.exists(pyfilepath):
+        with open(pyfilepath, "r", encoding=config.ENCODING) as sf:
+            refresh = pycode != sf.read()
+
+    if refresh:
+        if (module := model.__module__).count(".") == 3:
+            module = module.rpartition(".")[0]
+        cythonizer = importlib.import_module(module).cythonizer
+        assert isinstance(cythonizer, Cythonizer)
+        preamble = PyxPxdLines()
+        cythonizer.pyxwriter.cythondistutilsoptions(preamble)
+        cythonizer.pyxwriter.cimports(preamble)
+
+        pyx = FuncConverter(
+            model=model,
+            funcname=callback.__name__,
+            func=callback,
+            inline=False,
+        ).pyxlines
+        pyx.insert(
+            0, f"from hydpy.cythons.autogen.c_{model} cimport Model, CallbackWrapper\n"
+        )
+        pyx[1] = pyx[1].strip()
+        pyx[1] = pyx[1].replace("cpdef ", "cdef ").replace("(self)", "(Model self)")
+        pyx.add(0, "")
+        pyx.add(0, "cdef class MyCallbackWrapper(CallbackWrapper):")
+        pyx.add(1, "def __call__(self, model):")
+        pyx.add(2, "self.callback(model.cymodel)")
+        pyx.add(1, "def get_name(self):")
+        pyx.add(2, f'return "{callback.__name__}"')
+        pyx.add(1, "def get_sourcecode(self):")
+        pyx.add(2, f"return {repr(pycode.strip())}")
+        pyx.add(0, "")
+        pyx.add(0, "cpdef get_wrapper():")
+        pyx.add(1, "cdef MyCallbackWrapper wrapper = MyCallbackWrapper()")
+        pyx.add(1, f"wrapper.callback = {callback.__name__}")
+        pyx.add(1, "return wrapper")
+
+        pyxfilepath = os.path.join(autogenpath, f"{basename}.pyx")
+        with open(pyxfilepath, "w", encoding=config.ENCODING) as file_:
+            file_.write("\n".join(preamble.pyx + pyx))
+        compile_(
+            cyname=basename,
+            pyxfilepath=pyxfilepath,
+            buildpath=os.path.join(autogenpath, "_build"),
+        )
+        move_dll(
+            pyname=model.name,
+            cyname=basename,
+            cydirpath=autogenpath,
+            buildpath=os.path.join(autogenpath, "_build"),
+        )
+        with open(pyfilepath, "w", encoding=config.ENCODING) as sf:
+            sf.write(pycode)
+
+    return importlib.import_module(f"hydpy.cythons.autogen.{basename}")
 
 
 def exp(double: float) -> float:

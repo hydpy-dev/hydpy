@@ -777,6 +777,8 @@ class PyxWriter:
         self.cythondistutilsoptions(lines)
         print("    * C imports")
         self.cimports(lines)
+        print("        - callback features")
+        self.callbackfeatures(lines)
         print("    * constants (if defined)")
         self.constants(lines)
         print("    * parameter classes")
@@ -1779,6 +1781,25 @@ class PyxWriter:
         for name, submethods in self.name2submethodnames_automethod.items():
             print(f"            . {name}")
             self.automethod(lines, name=name, submethods=submethods)
+
+    def callbackfeatures(self, lines: PyxPxdLines) -> None:
+        """Features to let users define callback functions."""
+
+        pyx, pxd = lines.pyx.add, lines.pxd.add
+
+        pxd(0, "ctypedef void (*CallbackType) (Model) nogil")
+        pyx(0, "")
+        pxd(0, "cdef class CallbackWrapper:")
+        pxd(1, "cdef CallbackType callback")
+        pyx(0, "")
+        pyx(0, "cdef void do_nothing(Model model) nogil:")
+        pyx(1, "pass")
+        pyx(0, "")
+        pyx(0, "cpdef get_wrapper():")
+        pyx(1, "cdef CallbackWrapper wrapper = CallbackWrapper()")
+        pyx(1, "wrapper.callback = do_nothing")
+        pyx(1, "return wrapper")
+        pyx(0, "")
 
     def automethod(
         self,

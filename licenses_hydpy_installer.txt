@@ -39,3 +39,4 @@ regex: https://bitbucket.org/mrabarnett/mrab-regex/src/hg/LICENSE.txt
 click: https://github.com/pallets/click/blob/main/LICENSE.rst
 colorama: https://github.com/tartley/colorama/blob/master/LICENSE.txt
 certifi: https://github.com/certifi/python-certifi
+Cython: https://github.com/cython/cython/blob/master/LICENSE.txt

@@ -472,6 +472,112 @@ def decorate_method(
     return wrapper
 
 
+def compile_(cyname: str, pyxfilepath: str, buildpath: str) -> None:
+    """Translate Cython code to C code and compile it."""
+    argv = copy.deepcopy(sys.argv)
+    try:
+        sys.argv = [
+            sys.argv[0],
+            "build_ext",
+            f"--build-lib={buildpath}",
+            f"--build-temp={buildpath}",
+        ]
+        print(sys.argv)
+        exc_modules = [
+            setuptools.Extension(
+                name=f"hydpy.cythons.autogen.{cyname}",
+                sources=[pyxfilepath],
+                extra_compile_args=["-O2"],
+            )
+        ]
+        setuptools.setup(
+            ext_modules=build.cythonize(exc_modules), include_dirs=[numpy.get_include()]
+        )
+    finally:
+        sys.argv = argv
+
+
+def move_dll(pyname: str, cyname: str, cydirpath: str, buildpath: str) -> None:
+    """Try to find the DLL file created by function |compile_| and try to move it to
+    the `autogen` folder of the `cythons` subpackage.
+
+    Usually, one does not need to apply |move_dll| directly.  However, if you are a
+    model developer, you might see one of the following error messages from time to
+    time:
+
+    >>> from hydpy.cythons.modelutils import move_dll
+    >>> from hydpy.models.hland_v1 import cythonizer as c
+    >>> move_dll(pyname=c.pyname, cyname=c.cyname,
+    ...          cydirpath=c.cydirpath, buildpath=c.buildpath)  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    OSError: After trying to cythonize `hland_v1`, the resulting file `c_hland_v1...` \
+could not be found in directory `.../hydpy/cythons/autogen/_build` nor any of its \
+subdirectories.  The distutil report should tell whether the file has been stored \
+somewhere else, is named somehow else, or could not be build at all.
+
+    >>> import os
+    >>> from unittest import mock
+    >>> from hydpy import TestIO
+    >>> with TestIO():   # doctest: +ELLIPSIS
+    ...     with mock.patch.object(
+    ...             type(c), "buildpath", new_callable=mock.PropertyMock
+    ...     ) as mocked_buildpath:
+    ...         mocked_buildpath.return_value = "_build"
+    ...         os.makedirs("_build/subdir", exist_ok=True)
+    ...         filepath = f"_build/subdir/c_hland_v1{get_dllextension()}"
+    ...         with open(filepath, "w"):
+    ...             pass
+    ...         with mock.patch(
+    ...                 "shutil.move",
+    ...                 side_effect=PermissionError("Denied!")):
+    ...             move_dll(pyname=c.pyname, cyname=c.cyname,
+    ...                      cydirpath=c.cydirpath, buildpath=c.buildpath)
+    Traceback (most recent call last):
+    ...
+    PermissionError: After trying to cythonize `hland_v1`, when trying to move the \
+final cython module `c_hland_v1...` from directory `_build` to directory \
+`.../hydpy/cythons/autogen`, the following error occurred: Denied! A likely error \
+cause is that the cython module `c_hland_v1...` does already exist in this directory \
+and is currently blocked by another Python process.  Maybe it helps to close all \
+Python processes and restart the cythonization afterwards.
+    """
+    dirinfos = os.walk(buildpath)
+    system_dependent_filename = None
+    for dirinfo in dirinfos:
+        for filename in dirinfo[2]:
+            if filename.startswith(cyname) and filename.endswith(_dllextension):
+                system_dependent_filename = filename
+                break
+        if system_dependent_filename:
+            try:
+                shutil.move(
+                    os.path.join(dirinfo[0], system_dependent_filename),
+                    os.path.join(cydirpath, cyname + _dllextension),
+                )
+                break
+            except BaseException:
+                objecttools.augment_excmessage(
+                    f"After trying to cythonize `{pyname}`, when trying to move the "
+                    f"final cython module `{system_dependent_filename}` from "
+                    f"directory `{buildpath}` to directory "
+                    f"`{objecttools.repr_(cydirpath)}`",
+                    f"A likely error cause is that the cython module "
+                    f"`{cyname}{_dllextension}` does already exist in this directory "
+                    f"and is currently blocked by another Python process.  Maybe it "
+                    f"helps to close all Python processes and restart the "
+                    f"cythonization afterwards.",
+                )
+    else:
+        raise IOError(
+            f"After trying to cythonize `{pyname}`, the resulting file "
+            f"`{cyname}{_dllextension}` could not be found in directory "
+            f"`{objecttools.repr_(buildpath)}` nor any of its subdirectories.  The "
+            f"distutil report should tell whether the file has been stored somewhere "
+            f"else, is named somehow else, or could not be build at all."
+        )
+
+
 class Cythonizer:
     """Handles the writing, compiling and initialisation of Cython models."""
 
@@ -499,8 +605,15 @@ class Cythonizer:
         print(f"Translate module/package {self.pyname}.")
         self.pyxwriter.write()
         print(f"Compile module {self.cyname}.")
-        self.compile_()
-        self.move_dll()
+        compile_(
+            cyname=self.cyname, pyxfilepath=self.pyxfilepath, buildpath=self.buildpath
+        )
+        move_dll(
+            pyname=self.pyname,
+            cyname=self.cyname,
+            cydirpath=self.cydirpath,
+            buildpath=self.buildpath,
+        )
 
     @property
     def pyname(self) -> str:
@@ -640,109 +753,6 @@ class Cythonizer:
         model.parameters = importtools.prepare_parameters(dict_)
         model.sequences = importtools.prepare_sequences(dict_)
         return PyxWriter(self, model, self.pyxfilepath)
-
-    def compile_(self) -> None:
-        """Translate Cython code to C code and compile it."""
-        argv = copy.deepcopy(sys.argv)
-        sys.argv = [
-            sys.argv[0],
-            "build_ext",
-            "--build-lib=" + self.buildpath,
-            "--build-temp=" + self.buildpath,
-        ]
-        exc_modules = [
-            setuptools.Extension(
-                "hydpy.cythons.autogen." + self.cyname,
-                [self.pyxfilepath],
-                extra_compile_args=["-O2"],
-            )
-        ]
-        setuptools.setup(
-            ext_modules=build.cythonize(exc_modules), include_dirs=[numpy.get_include()]
-        )
-        sys.argv = argv
-
-    def move_dll(self) -> None:
-        """Try to find the DLL file created my method |Cythonizer.compile_| and to move
-        it into the `autogen` folder of the `cythons` subpackage.
-
-        Usually, one does not need to apply the |Cythonizer.move_dll| method directly.
-        However, if you are a model developer, you might see one of the following error
-        messages from time to time:
-
-        >>> from hydpy.models.hland_v1 import cythonizer
-        >>> cythonizer.move_dll()   # doctest: +ELLIPSIS
-        Traceback (most recent call last):
-        ...
-        OSError: After trying to cythonize model `hland_v1`, the resulting file \
-`c_hland_v1...` could not be found in directory `.../hydpy/cythons/autogen/_build` \
-nor any of its subdirectories.  The distutil report should tell whether the file has \
-been stored somewhere else, is named somehow else, or could not be build at all.
-
-        >>> import os
-        >>> from unittest import mock
-        >>> from hydpy import TestIO
-        >>> with TestIO():   # doctest: +ELLIPSIS
-        ...     with mock.patch.object(
-        ...             type(cythonizer), "buildpath", new_callable=mock.PropertyMock
-        ...     ) as mocked_buildpath:
-        ...         mocked_buildpath.return_value = "_build"
-        ...         os.makedirs("_build/subdir", exist_ok=True)
-        ...         filepath = f"_build/subdir/c_hland_v1{get_dllextension()}"
-        ...         with open(filepath, "w"):
-        ...             pass
-        ...         with mock.patch(
-        ...                 "shutil.move",
-        ...                 side_effect=PermissionError("Denied!")):
-        ...             cythonizer.move_dll()
-        Traceback (most recent call last):
-        ...
-        PermissionError: After trying to cythonize module `hland_v1`, when trying to \
-move the final cython module `c_hland_v1...` from directory `_build` to directory \
-`.../hydpy/cythons/autogen`, the following error occurred: Denied! A likely error \
-cause is that the cython module `c_hland_v1...` does already exist in this directory \
-and is currently blocked by another Python process.  Maybe it helps to close all \
-Python processes and restart the cythonization afterwards.
-        """
-        dirinfos = os.walk(self.buildpath)
-        system_dependent_filename = None
-        for dirinfo in dirinfos:
-            for filename in dirinfo[2]:
-                if filename.startswith(self.cyname) and filename.endswith(
-                    _dllextension
-                ):
-                    system_dependent_filename = filename
-                    break
-            if system_dependent_filename:
-                try:
-                    shutil.move(
-                        os.path.join(dirinfo[0], system_dependent_filename),
-                        os.path.join(self.cydirpath, self.cyname + _dllextension),
-                    )
-                    break
-                except BaseException:
-                    objecttools.augment_excmessage(
-                        f"After trying to cythonize module `{self.pyname}`, "
-                        f"when trying to move the final cython module "
-                        f"`{system_dependent_filename}` from directory "
-                        f"`{self.buildpath}` to directory "
-                        f"`{objecttools.repr_(self.cydirpath)}`",
-                        f"A likely error cause is that the cython module "
-                        f"`{self.cyname}{_dllextension}` does already exist "
-                        f"in this directory and is currently blocked by "
-                        f"another Python process.  Maybe it helps to close "
-                        f"all Python processes and restart the cythonization "
-                        f"afterwards.",
-                    )
-        else:
-            raise IOError(
-                f"After trying to cythonize model `{self.pyname}`, the resulting file "
-                f"`{self.cyname}{_dllextension}` could not be found in directory "
-                f"`{objecttools.repr_(self.buildpath)}` nor any of its "
-                f"subdirectories.  The distutil report should tell whether the file "
-                f"has been stored somewhere else, is named somehow else, or could not "
-                f"be build at all."
-            )
 
 
 class PyxWriter:

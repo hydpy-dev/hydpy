@@ -27,6 +27,8 @@ from hydpy.core import timetools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
 
+# from hydpy.cythons import modelutils  # actual download below
+
 if TYPE_CHECKING:
     from hydpy.core import auxfiletools
     from hydpy.core import devicetools
@@ -4342,3 +4344,203 @@ class UTCLongitudeParameter(Parameter):
         utclongitudeparameter(0)
         """
         self(hydpy.pub.options.utclongitude)
+
+
+def do_nothing(model: modeltools.Model) -> None:  # pylint: disable=unused-argument
+    """The default Python version of the |CallbackParameter|
+    |CallbackParameter.callback| function, which does nothing."""
+
+
+class CallbackParameter(Parameter):
+    """Base class for parameters that support calculating their values via user-defined
+    callback functions alternatively of sticking to the same values during a simulation
+    run.
+
+    We use the callback parameter |sw1d_control.GateHeight| of application model
+    |sw1d_gate_out| for the following technical explanations (for a more
+    application-oriented example, see the |sw1d_model.Calc_Discharge_V3|
+    documentation):
+
+    >>> from hydpy.models.sw1d_gate_out import *
+    >>> parameterstep()
+
+    You can define a fixed gate height as usual:
+
+    >>> gateheight
+    gateheight(?)
+    >>> gateheight(3.0)
+    >>> gateheight
+    gateheight(3.0)
+
+    Alternatively, you can write an individual callback function.  Its only argument
+    accepts the model under consideration (here, |sw1d_gate_out|).  Principally, you
+    are free to modify the model in any way you like, but the expected behaviour is
+    to set the considered parameter's value only:
+
+    >>> def adjust_gateheight(model) -> None:
+    ...     con = model.parameters.control.fastaccess
+    ...     con.gateheight = 5.0
+
+    However, when working in Cython mode, *HydPy* converts the pure Python function to
+    a Cython function and compiles it to C in the background, similar to how it handles
+    "normal" model methods.  This background conversion is crucial for efficiency but
+    restricts the allowed syntax and functionality.  Generally, you should work with
+    the usual "fast access shortcuts", be explicit about the |None| return type, and
+    cannot import any Python library, but are free to use Cython-functionalities
+    implemented for and used by other model methods instead. A trivial example is using
+    |fabs| for calculating absolute values.
+
+    Next, we hand the callback function over to the parameter.  Here, we do this a
+    little strangely between the creation of two tuples for hiding potential
+    information printed by Cython or the used C compiler:
+
+    >>> ();gateheight(callback=adjust_gateheight);()  # doctest: +ELLIPSIS
+    (...)
+
+    The string representation now includes the callback's source code:
+
+    >>> gateheight
+    def adjust_gateheight(model) -> None:
+        con = model.parameters.control.fastaccess
+        con.gateheight = 5.0
+    gateheight(callback=adjust_gateheight)
+
+    When interested in the parameter's value, request it via the
+    |CallbackParameter.value| property.  Note that this property applies the callback
+    automatically before returning the (then updated) value:
+
+    >>> from hydpy import round_
+    >>> round_(gateheight.value)
+    5.0
+
+    You can return the parameter to "normal behaviour" by assigning a fixed value:
+
+    >>> gateheight(7.0)
+    >>> gateheight
+    gateheight(7.0)
+
+    Alternatively, one can assign a function via the |CallbackParameter.callback|
+    property.  We do not need to hide potential compiler output this time because the
+    Python function has already been converted to a reusable Cython function:
+
+    >>> gateheight.callback = adjust_gateheight
+    >>> gateheight
+    def adjust_gateheight(model) -> None:
+        con = model.parameters.control.fastaccess
+        con.gateheight = 5.0
+    gateheight(callback=adjust_gateheight)
+    >>> round_(gateheight.value)
+    5.0
+
+    Note that *HydPy* stores the Cython callbacks persistently on disk, using the
+    Python function name as a part of the Cython module name. Hence, you cannot use
+    two equally named callback functions for the same parameter of the same application
+    model within one project.
+
+    Use the `del` statement to remove the callback function:
+
+    >>> assert gateheight.callback is not None
+    >>> del gateheight.callback
+    >>> assert gateheight.callback is None
+    >>> gateheight
+    gateheight(5.0)
+    >>> round_(gateheight.value)
+    5.0
+
+    Failing attempts to pass a callback function might result in the following errors:
+
+    >>> gateheight(Callback=adjust_gateheight)
+    Traceback (most recent call last):
+    ...
+    ValueError: When trying to prepare parameter `gateheight` of element `?` via a \
+keyword argument, it must be `callback`, and you need to pass a callback function.
+
+    >>> gateheight(value=1.0, callback=adjust_gateheight)
+    Traceback (most recent call last):
+    ...
+    ValueError: Parameter `gateheight` of element `?` does not allow to combine the \
+`callback` argument with other arguments.
+    """
+
+    _has_callback: bool = False
+
+    def __call__(self, *args, **kwargs):
+        try:
+            super().__call__(*args, **kwargs)
+        except NotImplementedError as exc:
+            if (callback := kwargs.get("callback", None)) is None:
+                raise ValueError(
+                    f"When trying to prepare parameter "
+                    f"{objecttools.elementphrase(self)} via a keyword argument, it "
+                    f"must be `callback`, and you need to pass a callback function."
+                ) from exc
+            if (len(args) > 0) or (len(kwargs) > 1):
+                raise ValueError(
+                    f"Parameter {objecttools.elementphrase(self)} does not allow to "
+                    f"combine the `callback` argument with other arguments."
+                ) from exc
+            self.callback = callback
+
+    def _init_callback(self):
+        if init := getattr(self.fastaccess, f"init_{self.name}_callback", None):
+            init()
+        else:
+            setattr(self.fastaccess, f"{self.name}_callback", do_nothing)
+
+    def __hydpy__connect_variable2subgroup__(self) -> None:
+        super().__hydpy__connect_variable2subgroup__()
+        self._init_callback()
+
+    @property
+    def callback(self) -> Optional[Callable[[modeltools.Model], None]]:
+        """The currently handled callback function for updating the parameter value."""
+        if self._has_callback:
+            if get := getattr(self.fastaccess, f"get_{self.name}_callback", None):
+                return get()
+            return getattr(self.fastaccess, f"{self.name}_callback")
+        return None
+
+    @callback.setter
+    def callback(self, callback: Callable[[modeltools.Model], None]) -> None:
+        from hydpy.cythons import modelutils  # pylint: disable=import-outside-toplevel
+
+        if set_ := getattr(self.fastaccess, f"set_{self.name}_callback", None):
+            cymodule = modelutils.get_callbackcymodule(
+                model=self.subpars.pars.model, parameter=self, callback=callback
+            )
+            set_(cymodule.get_wrapper())
+        else:
+            setattr(self.fastaccess, f"{self.name}_callback", callback)
+        self._has_callback = True
+
+    @callback.deleter
+    def callback(self) -> None:
+        self._has_callback = False
+        self._init_callback()
+
+    def _get_value(self):
+        """The fixed value or the value last updated by the callback function."""
+        if self._has_callback:
+            self.callback(self.subpars.pars.model)
+            self._valueready = True
+        return super()._get_value()
+
+    def _set_value(self, value) -> None:
+        self._init_callback()
+        self._has_callback = False
+        super()._set_value(value)
+
+    value = property(fget=_get_value, fset=_set_value)
+
+    def __repr__(self) -> str:
+        if self._has_callback:
+            callback: Any = self.callback
+            if isinstance(callback, types.FunctionType):
+                pycode = inspect.getsource(callback).strip()
+                funcname = callback.__name__
+            else:
+                pycode = callback.get_sourcecode()
+                funcname = callback.get_name()
+            varrepr = f"{self.name}(callback={funcname})"
+            return "\n".join((pycode, varrepr))
+        return super().__repr__()

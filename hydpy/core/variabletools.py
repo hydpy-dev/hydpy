@@ -1090,7 +1090,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     def __init__(self, subvars: SubVariables) -> None:
         self.subvars = subvars
         self.fastaccess = self._CLS_FASTACCESS_PYTHON()
-        self.__valueready = False
+        self._valueready = False
         self.__shapeready = False
         self._refweights = type(self)._refweights
 
@@ -1241,7 +1241,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
         array([], shape=(0, 0), dtype=int...)
         """
         value = self._prepare_getvalue(
-            self.__valueready or not self.strict_valuehandling,
+            self._valueready or not self.strict_valuehandling,
             getattr(self.fastaccess, self.name, None),
         )
         if value is None:
@@ -1256,7 +1256,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
         try:
             value = self._prepare_setvalue(value)
             setattr(self.fastaccess, self.name, value)
-            self.__valueready = True
+            self._valueready = True
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to set the value(s) of variable "
@@ -1456,7 +1456,7 @@ as `var` can only be `()`, but `(2,)` is given.
         return ()
 
     def _set_shape(self, shape: Union[int, Tuple[int, ...]]) -> None:
-        self.__valueready = False
+        self._valueready = False
         self.__shapeready = False
         initvalue, initflag = self.initinfo
         if self.NDIM:
@@ -1483,7 +1483,7 @@ as `var` can only be `()`, but `(2,)` is given.
                 self._raise_wrongshape(shape)
             setattr(self.fastaccess, self.name, initvalue)
         if initflag:
-            self.__valueready = True
+            self._valueready = True
 
     shape = property(fget=_get_shape, fset=_set_shape)
 
@@ -1598,12 +1598,12 @@ var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
         >>> Var.mask[1, 1] = False
         >>> var.verify()
         """
-        valueready = self.__valueready
+        valueready = self._valueready
         try:
-            self.__valueready = True
+            self._valueready = True
             nmbnan: int = numpy.sum(numpy.isnan(numpy.array(self.value)[self.mask]))
         finally:
-            self.__valueready = valueready
+            self._valueready = valueready
         if nmbnan and ((self.INIT is None) or ~numpy.isnan(self.INIT)):
             text = "value has" if nmbnan == 1 else "values have"
             raise RuntimeError(

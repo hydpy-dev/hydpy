@@ -1953,6 +1953,7 @@ PotentialEvapotranspiration
                 for suffix in ("_rowmin", "_columnmin", "_entrymin"):
                     if varname.endswith(suffix):
                         varname = varname[1 : -len(suffix)]
+                varname = varname.replace("_callback", "")
             varnames_source.add(varname)
     varnames_selected: Set[str] = set()
     for group in groups:

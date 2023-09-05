@@ -926,32 +926,56 @@ class PyxWriter:
 
     def parameters(self, lines: PyxPxdLines) -> None:
         """Parameter declaration lines."""
-        if self.model.parameters:
+        if pars := self.model.parameters:
+            pt = parametertools
             pyx, pxd, both = lines.pyx.add, lines.pxd.add, lines.add
             both(0, "@cython.final")
             both(0, "cdef class Parameters:")
             pyx(1, "pass")
             if not self.model.parameters:
                 pxd(1, "pass")
-            for subpars in self.model.parameters:
+            for subpars in pars:
                 pxd(1, f"cdef public {type(subpars).__name__} {subpars.name}")
-            for subpars in self.model.parameters:
+            for subpars in pars:
                 print(f"        - {subpars.name}")
                 both(0, "@cython.final")
                 both(0, f"cdef class {type(subpars).__name__}:")
-                pyx(1, "pass")
                 for par in subpars:
                     try:
                         ctype = TYPE2STR[par.TYPE] + NDIM2STR[par.NDIM]
                     except KeyError:
                         ctype = par.TYPE + NDIM2STR[par.NDIM]
                     pxd(1, f"cdef public {ctype} {par.name}")
-                    if isinstance(par, parametertools.KeywordParameter1D):
+                    if isinstance(par, pt.KeywordParameter1D):
                         pxd(1, f"cdef public {TYPE2STR[int]} _{par.name}_entrymin")
-                    elif isinstance(par, parametertools.KeywordParameter2D):
+                    elif isinstance(par, pt.KeywordParameter2D):
                         prefix = f"cdef public {TYPE2STR[int]} _{par.name}"
                         for suffix in ("rowmin", "columnmin"):
                             pxd(1, f"{prefix}_{suffix}")
+                    elif isinstance(par, pt.CallbackParameter):
+                        pxd(1, f"cdef CallbackType {par.name}_callback")
+                        pxd(1, f"cdef CallbackWrapper _{par.name}_wrapper")
+                if callbackpars := tuple(
+                    p for p in subpars if isinstance(p, pt.CallbackParameter)
+                ):
+                    pyx(0, "")
+                    for par in callbackpars:
+                        cn = f"{par.name}_callback"
+                        both(1, f"cpdef void init_{cn}(self):")
+                        pyx(2, f"self.{cn} = do_nothing")
+                        pyx(2, "cdef CallbackWrapper wrapper = CallbackWrapper()")
+                        pyx(2, "wrapper.callback = do_nothing")
+                        pyx(2, f"self._{par.name}_wrapper = wrapper")
+                        pyx(0, "")
+                        both(1, f"cpdef CallbackWrapper get_{cn}(self):")
+                        pyx(2, f"return self._{par.name}_wrapper")
+                        pyx(0, "")
+                        both(1, f"cpdef void set_{cn}(self, CallbackWrapper wrapper):")
+                        pyx(2, f"self.{cn} = wrapper.callback")
+                        pyx(2, f"self._{par.name}_wrapper = wrapper")
+                        pyx(0, "")
+                else:
+                    pyx(1, "pass")
 
     def sequences(self, lines: PyxPxdLines) -> None:
         """Sequence declaration lines."""

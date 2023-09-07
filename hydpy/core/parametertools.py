@@ -1778,13 +1778,11 @@ implement method `update`.
                 (self.NDIM == 2) and (self.shape[0] != 1)
             )
             return variabletools.to_repr(self, values, brackets)
-        lines = self.commentrepr
         if exceptiontools.attrready(self, "value"):
             value = self.revert_timefactor(self.value)
         else:
             value = "?"
-        lines.append(f"{self.name}({objecttools.repr_(value)})")
-        return "\n".join(lines)
+        return f"{self.name}({objecttools.repr_(value)})"
 
 
 class _MixinModifiableParameter(Parameter):
@@ -3263,9 +3261,9 @@ for axis 0 with size 1
             super().__setattr__(key, values)
 
     def __repr__(self):
-        lines = self.commentrepr
         values = self.revert_timefactor(self.values)
         prefix = f"{self.name}("
+        lines = []
         if len(numpy.unique(values)) == 1:
             lines.append(f"{prefix}{objecttools.repr_(values[0])})")
         else:
@@ -3741,10 +3739,10 @@ attribute nor a row or column related attribute named `wrong`.
             super().__setattr__(key, values)
 
     def __repr__(self) -> str:
-        lines = self.commentrepr
         values = self.revert_timefactor(self.values)
         prefix = f"{self.name}("
         blanks = " " * len(prefix)
+        lines = []
         for idx, key in enumerate(self.rownames):
             subprefix = f"{prefix}{key}=" if idx == 0 else f"{blanks}{key}="
             lines.append(
@@ -3886,13 +3884,10 @@ parameter value must be given, but is not.
         self.values[1] = value
 
     def __repr__(self):
-        lines = self.commentrepr
         values = [objecttools.repr_(value) for value in self.values]
         if values[0] == values[1]:
-            lines.append(f"{self.name}({values[0]})")
-        else:
-            lines.append(f"{self.name}(left={values[0]}, right={values[1]})")
-        return "\n".join(lines)
+            return f"{self.name}({values[0]})"
+        return f"{self.name}(left={values[0]}, right={values[1]})"
 
 
 class FixedParameter(Parameter):

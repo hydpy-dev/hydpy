@@ -306,9 +306,7 @@ hydpy.models.hland.hland_control.ZoneType
             print(f"    * {name}:")
             with StdOutErr(indent=8), opt.ellipsis(0), opt.printprogress(
                 False
-            ), opt.reprcomments(False), opt.reprdigits(6), opt.usedefaultvalues(
-                False
-            ), opt.utclongitude(
+            ), opt.reprdigits(6), opt.usedefaultvalues(False), opt.utclongitude(
                 15
             ), opt.utcoffset(
                 60

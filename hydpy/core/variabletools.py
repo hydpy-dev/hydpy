@@ -12,7 +12,6 @@ import abc
 import contextlib
 import copy
 import inspect
-import textwrap
 import warnings
 
 # ...from site-packages
@@ -957,23 +956,6 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     True
     >>> var2 in varset
     False
-
-    Enabling option |Options.reprcomments| adds the respective docstring
-    header to the string representation of a variable:
-
-    >>> Var.NDIM = 0
-    >>> Var.__doc__ = "header.\\n\\nbody\\n"
-    >>> var = Var(None)
-    >>> var.value = 3.0
-    >>> from hydpy import pub
-    >>> pub.options.reprcomments = True
-    >>> var
-    # header.
-    var(3.0)
-
-    >>> pub.options.reprcomments = False
-    >>> var
-    var(3.0)
 
     During initialisation, each |Variable| subclass tries to extract its
     unit from its docstring:
@@ -2202,24 +2184,6 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
     def __hash__(self) -> int:
         return id(self)
 
-    @property
-    def commentrepr(self) -> List[str]:
-        """A list with comments for making string representations more informative.
-
-        With the |Options.reprcomments| option disabled, |Variable.commentrepr| is
-        empty.
-        """
-        if hydpy.pub.options.reprcomments:
-            return [
-                f"# {line}"
-                for line in textwrap.wrap(
-                    text=objecttools.description(self),
-                    width=72,
-                    break_long_words=False,
-                )
-            ]
-        return []
-
     def __repr__(self) -> str:
         brackets = (self.NDIM == 2) and (self.shape[0] != 1)
         return to_repr(self, self.value, brackets)
@@ -2322,23 +2286,22 @@ def sort_variables(
     Function |sort_variables| also supports sorting tuples.  Each first entry must be
     a |Variable| subclass:
 
-    >>> for var, idx in sort_variables([(NmbZones, 1), (ZoneType, 2), (Area, 3)]):
-    ...     print(classname(var), idx)
+    >>> for var, i in sort_variables([(NmbZones, 1), (ZoneType, 2), (Area, 3)]):
+    ...     print(classname(var), i)
     Area 3
     NmbZones 1
     ZoneType 2
 
-    >>> for var, idx in sort_variables([(NmbZones, 1), (ZoneType, 2), (Area, 3)]):
-    ...     print(classname(var), idx)
+    >>> for var, i in sort_variables([(NmbZones, 1), (ZoneType, 2), (Area, 3)]):
+    ...     print(classname(var), i)
     Area 3
     NmbZones 1
     ZoneType 2
 
     |sort_variables| does not remove duplicates:
 
-    >>> for var, idx in \
-sort_variables([(Area, 3), (ZoneType, 2), (Area, 1), (Area, 3)]):
-    ...     print(classname(var), idx)
+    >>> for var, i in sort_variables([(Area, 3), (ZoneType, 2), (Area, 1), (Area, 3)]):
+    ...     print(classname(var), i)
     Area 1
     Area 3
     Area 3
@@ -2381,28 +2344,19 @@ class SubVariables(Generic[TypeGroup_co, TypeVariable_co, TypeFastAccess_co]):
     ...     _CLS_FASTACCESS_PYTHON = FastAccess
 
 
-    After initialisation, |SubVariables| objects reference their master
-    object (either a |Parameters| or a |Sequences| object), passed to their
-    constructor. However, in our simple test example, we just passed
-    a string instead:
+    After initialisation, |SubVariables| objects reference their master object (either
+    a |Parameters| or a |Sequences| object), passed to their constructor. However, in
+    our simple test example, we just passed a string instead:
 
     >>> subvars = SubVars("test")
     >>> subvars.vars
     'test'
 
-    The string representation lists all available variables and,
-    with the option |Options.reprcomments| enabled, an additional
-    informative header:
+    The string representation lists all available variables and uses question marks to
+    indicate cases where their values are not readily available:
 
     >>> subvars
     testvar(?)
-    >>> from hydpy import pub
-    >>> pub.options.reprcomments = True
-    >>> subvars
-    # SubVars object defined in module variabletools,
-    # handling the following variables:
-    testvar(?)
-    >>> pub.options.reprcomments = False
 
     Class |SubVariables| provides attribute access to the handled |Variable| objects
     and protects |Variable| objects from accidental overwriting:
@@ -2411,8 +2365,8 @@ class SubVariables(Generic[TypeGroup_co, TypeVariable_co, TypeFastAccess_co]):
     >>> subvars.testvar
     testvar(3.0)
 
-    Trying to query not available |Variable| objects (or other attributes)
-    results in the following error message:
+    Trying to query not available |Variable| objects (or other attributes) results in
+    the following error message:
 
     >>> subvars.wrong
     Traceback (most recent call last):
@@ -2420,8 +2374,8 @@ class SubVariables(Generic[TypeGroup_co, TypeVariable_co, TypeFastAccess_co]):
     AttributeError: Collection object `subvars` does neither handle a \
 variable nor another attribute named wrong.
 
-    Class |SubVariables| protects only the handled |Variable| objects
-    from overwriting with unplausible data:
+    Class |SubVariables| protects only the handled |Variable| objects from overwriting
+    with unplausible data:
 
     >>> subvars.vars = "wrong"
     >>> subvars.vars
@@ -2430,9 +2384,8 @@ variable nor another attribute named wrong.
     >>> subvars.testvar = "wrong"
     Traceback (most recent call last):
     ...
-    ValueError: While trying to set the value(s) of variable `testvar`, \
-the following error occurred: 5 values are assigned to the scalar \
-variable `testvar`.
+    ValueError: While trying to set the value(s) of variable `testvar`, the following \
+error occurred: 5 values are assigned to the scalar variable `testvar`.
 
     Alternatively, you can item-access a variable:
 
@@ -2442,11 +2395,10 @@ variable `testvar`.
     >>> subvars["wrong"]
     Traceback (most recent call last):
     ...
-    AttributeError: Collection object `subvars` does not handle a variable \
-named `wrong`.
+    AttributeError: Collection object `subvars` does not handle a variable named \
+`wrong`.
 
-    Class |SubVariables| supporte iteration and the application of the
-    |len| operator:
+    Class |SubVariables| supporte iteration and the application of the |len| operator:
 
     >>> for variable in subvars:
     ...     print(variable.name)
@@ -2483,8 +2435,8 @@ named `wrong`.
         """To be overridden."""
 
     def _init_fastaccess(self) -> None:
-        """Create a `fastaccess` attribute and build the required connections
-        to the related cythonized model eventually."""
+        """Create a `fastaccess` attribute and build the required connections to the
+        related cythonized model eventually."""
         if (self._cls_fastaccess is None) or (self._cymodel is None):
             self.fastaccess = self._CLS_FASTACCESS_PYTHON()
         else:
@@ -2524,12 +2476,6 @@ named `wrong`.
 
     def __repr__(self) -> str:
         lines = []
-        if hydpy.pub.options.reprcomments:
-            lines.append(
-                f"# {type(self).__name__} object defined in module "
-                f"{objecttools.modulename(self)},\n"
-                f"# handling the following variables:"
-            )
         for variable in self:
             try:
                 lines.append(repr(variable))
@@ -2617,17 +2563,13 @@ def to_repr(self: Variable, values, brackets: bool = False) -> str:
     """
     prefix = f"{self.name}("
     if isinstance(values, str):
-        string = f"{self.name}({values})"
-    elif self.NDIM == 0:
-        string = f"{self.name}({objecttools.repr_(values)})"
-    elif self.NDIM == 1:
+        return f"{self.name}({values})"
+    if self.NDIM == 0:
+        return f"{self.name}({objecttools.repr_(values)})"
+    if self.NDIM == 1:
         if brackets:
-            string = objecttools.assignrepr_list(values, prefix, 72) + ")"
-        else:
-            string = objecttools.assignrepr_values(values, prefix, 72) + ")"
-    else:
-        if brackets:
-            string = objecttools.assignrepr_list2(values, prefix, 72) + ")"
-        else:
-            string = objecttools.assignrepr_values2(values, prefix, 72) + ")"
-    return "\n".join(self.commentrepr + [string])
+            return objecttools.assignrepr_list(values, prefix, 72) + ")"
+        return objecttools.assignrepr_values(values, prefix, 72) + ")"
+    if brackets:
+        return objecttools.assignrepr_list2(values, prefix, 72) + ")"
+    return objecttools.assignrepr_values2(values, prefix, 72) + ")"

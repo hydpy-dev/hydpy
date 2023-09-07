@@ -157,7 +157,6 @@ def main(  # pylint: disable=too-many-branches
                     opt.ellipsis = 0
                     del pub.options.parameterstep
                     opt.printprogress = False
-                    opt.reprcomments = False
                     opt.reprdigits = 6
                     del pub.options.simulationstep
                     opt.usedefaultvalues = False

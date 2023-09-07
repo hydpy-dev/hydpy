@@ -850,11 +850,6 @@ class Options:
         """A True/False flag for printing information about the progress of some 
         processes to the standard output.""",
     )
-    reprcomments = OptionPropertyBool(
-        False,
-        """A True/False flag for including comments into string representations.  So 
-        far, this option affects the behaviour of a few implemented classes, only.""",
-    )
     reprdigits = OptionPropertyInt(
         -1,
         """Required precision of string representations of floating point numbers, 

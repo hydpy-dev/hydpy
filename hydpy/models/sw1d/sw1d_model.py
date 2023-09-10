@@ -6,6 +6,7 @@
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
+from hydpy.cythons import smoothutils
 from hydpy.interfaces import channelinterfaces
 from hydpy.models.sw1d import sw1d_control
 from hydpy.models.sw1d import sw1d_derived
@@ -1633,9 +1634,10 @@ class Calc_Discharge_V3(modeltools.Method):
 
     Basic equation:
       .. math::
-        Q = w \cdot c \cdot \big( min (h, \ l) - b \big)
+        Q = d \cdot w \cdot c \cdot \big( min (h, \ l) - b \big)
         \cdot \sqrt{2 \cdot g  \cdot (l_u - l_d)}
         \\ \\
+        d = f_{filter\_norm}(l_u, \ l_d, \ DampingRadius) \\
         w = GateWidth \\
         c = FlowCoefficient \\
         h = GateHeight \\
@@ -1655,6 +1657,7 @@ class Calc_Discharge_V3(modeltools.Method):
         >>> gateheight(6.0)
         >>> gatewidth(3.0)
         >>> flowcoefficient(0.6)
+        >>> dampingradius(0.0)
         >>> factors.waterlevel = 8.0
         >>> factors.waterlevelupstream = 9.0
         >>> factors.waterleveldownstream = 7.0
@@ -1709,6 +1712,48 @@ class Calc_Discharge_V3(modeltools.Method):
         >>> states.discharge
         discharge(0.0)
 
+        According to the given base equation, the change in flow rate with respect to
+        changes in the water level gradient is highest for little water level
+        gradients.  For nearly zero gradients, these changes are so extreme that
+        numerically solving this ordinary differential equation in combination with the
+        ones of other routing models may introduce considerable artificial
+        oscillations.
+
+        In the following example, a water level gradient of 1 mm corresponds to a
+        discharge of only 0.3 m³/s, but also to a discharge increase of nearly
+        1600 m³/s per meter rise of the upstream water level:
+
+        >>> gateheight(10.0)
+        >>> factors.waterlevelupstream = 8.0001
+        >>> factors.waterleveldownstream = 8.0
+        >>> model.calc_discharge_v3()
+        >>> states.discharge
+        discharge(0.31892)
+        >>> from hydpy import NumericalDifferentiator, round_
+        >>> numdiff = NumericalDifferentiator(
+        ...     xsequence=factors.waterlevelupstream,
+        ...     ysequences=[states.discharge],
+        ...     methods=[model.calc_discharge_v3])
+        >>> numdiff()
+        d_discharge/d_waterlevelupstream: 1594.591021
+
+        Principally, one could reduce the resulting oscillations by decreasing the
+        internal calculation step size.  However, this alone sometimes results in
+        unacceptable increases in computation time.  Hence, we suggest using the
+        |DampingRadius| parameter to prevent such oscillations.  Setting it, for
+        example, to 1 mm reduces the change in discharge to 40 m³/s per meter:
+
+        >>> dampingradius(0.001)
+        >>> numdiff()
+        d_discharge/d_waterlevelupstream: 39.685825
+
+        Be careful not to set larger values than necessary, as this stabilisation trick
+        does not only reduce the discharge derivative but also the discharge itself:
+
+        >>> model.calc_discharge_v3()
+        >>> states.discharge
+        discharge(0.001591)
+
         All of the above examples deal with fixed gate openings.  However, in reality,
         gates are often controlled, so their opening degree depends on other
         properties.  Therefore, parameter |GateHeight| alternatively accepts a callback
@@ -1748,6 +1793,7 @@ class Calc_Discharge_V3(modeltools.Method):
         sw1d_control.GateWidth,
         sw1d_control.GateHeight,
         sw1d_control.FlowCoefficient,
+        sw1d_control.DampingRadius,
     )
     FIXEDPARAMETERS = (sw1d_fixed.GravitationalAcceleration,)
     REQUIREDSEQUENCES = (
@@ -1776,6 +1822,7 @@ class Calc_Discharge_V3(modeltools.Method):
                 sta.discharge = w * c * h * (2.0 * g * (lu - ld)) ** 0.5
             else:
                 sta.discharge = -w * c * h * (2.0 * g * (ld - lu)) ** 0.5
+            sta.discharge *= 1.0 - smoothutils.filter_norm(lu, ld, con.dampingradius)
         else:
             sta.discharge = 0.0
 
@@ -2761,6 +2808,7 @@ class Determine_Discharge_V6(modeltools.AutoMethod):
         sw1d_control.GateHeight,
         sw1d_control.GateWidth,
         sw1d_control.FlowCoefficient,
+        sw1d_control.DampingRadius,
     )
     FIXEDPARAMETERS = (sw1d_fixed.GravitationalAcceleration,)
     REQUIREDSEQUENCES = (

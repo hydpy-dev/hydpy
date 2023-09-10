@@ -91,6 +91,17 @@ class DiffusionFactor(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
 
 
+class DampingRadius(parametertools.Parameter):
+    """The radius of flow rate reductions around neuralgic water levels to prevent
+    oscillations due to numerical inaccuracies [m].
+
+    For a value of zero, the radius of action is zero, with no modification of the
+    target equation and, thus, no artificial damping.
+    """
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+
 class CrestHeight(parametertools.Parameter):
     """The weir crest height [m]."""
 

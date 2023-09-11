@@ -1745,7 +1745,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         lines = ["# -*- coding: utf-8 -*-\n", f"from hydpy.models.{self} import *"]
         if import_submodels:
             names = []
-            for submodel in self.find_submodels(include_subsubmodels=True).values():
+            for submodel in self.find_submodels().values():
                 if (name := submodel.name) not in names:
                     names.append(name)
             for name in sorted(names):
@@ -1927,7 +1927,9 @@ to be consistent with the name of the element handling the model.
                 )
 
         header = self.get_controlfileheader(
-            parameterstep=parameterstep, simulationstep=simulationstep
+            import_submodels=True,
+            parameterstep=parameterstep,
+            simulationstep=simulationstep,
         )
         lines = [header]
         lines.extend(
@@ -2207,9 +2209,12 @@ element.
                     "# -*- coding: utf-8 -*-\n\n",
                     f"from hydpy.models.{self} import *\n",
                 ]
+                submodelnames = set()
                 for model, hasconditions in model2hasconditions.items():
                     if hasconditions and (model is not self):
-                        lines.append(f"from hydpy.models import {model}\n")
+                        submodelnames.add(model.name)
+                for submodelname in sorted(submodelnames):
+                    lines.append(f"from hydpy.models import {submodelname}\n")
                 lines.append(
                     f'\ncontrolcheck(projectdir=r"{con.projectdir}", '
                     f'controldir="{con.currentdir}", '
@@ -2219,6 +2224,9 @@ element.
                     lines.append(f"{repr(seq)}\n")
                 for fullname, model in self.find_submodels().items():
                     if model2hasconditions[model]:
+                        if fullname.rsplit("_")[-1].isnumeric():
+                            prefix, _, position = fullname.rpartition("_")
+                            fullname = f"{prefix}[{position}]"
                         lines.append(f"with {fullname}.define_conditions({model}):\n")
                         for seq in model.sequences.conditionsequences:
                             lines.append(f"    {repr(seq)}\n")

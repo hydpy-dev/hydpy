@@ -1555,6 +1555,144 @@ deprecated.  Use method `prepare_models` instead.
         >>> sm
         sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
+
+        The `LahnH` example project relies only upon "scalar" submodels (handled by
+        |SubmodelProperty| instances) and not on "vectorial" submodels (handled by
+        |SubmodelsProperty| instances).  Therefore, we now prepare an instance of model
+        |sw1d_channel| and add, for a start, two |sw1d_storage| models to it, assign it
+        to a new |Element| object, and show how method |HydPy.save_conditions| writes
+        their states into a condition file:
+
+        >>> from hydpy import Element, prepare_model
+        >>> channel = prepare_model("sw1d_channel")
+        >>> channel.parameters.control.nmbsegments(2)
+        >>> with channel.add_storagemodel_v1("sw1d_storage", position=0):
+        ...     states.watervolume = 10.0
+        >>> with channel.add_storagemodel_v1("sw1d_storage", position=1):
+        ...     states.watervolume = 20.0
+        >>> my_channel = Element("my_channel")
+        >>> my_channel.model = channel
+        >>> hp.update_devices(elements=my_channel)
+        >>> pub.timegrids.sim.lastdate = "1996-01-03"
+        >>> path = "LahnH/conditions/init_1996_01_03_00_00_00/my_channel.py"
+        >>> with TestIO():
+        ...     hp.save_conditions()
+        ...     with open(path) as conditionfile:
+        ...         print(conditionfile.read())
+        # -*- coding: utf-8 -*-
+        <BLANKLINE>
+        from hydpy.models.sw1d_channel import *
+        from hydpy.models import sw1d_storage
+        <BLANKLINE>
+        controlcheck(projectdir=r"LahnH", controldir="default", stepsize="1d")
+        <BLANKLINE>
+        with model.storagemodels[0].define_conditions(sw1d_storage):
+            watervolume(10.0)
+        with model.storagemodels[1].define_conditions(sw1d_storage):
+            watervolume(20.0)
+        <BLANKLINE>
+
+        For testing, we set both submodels' water volume to zero:
+
+        >>> channel.storagemodels[0].sequences.states.watervolume = 0.0
+        >>> channel.storagemodels[1].sequences.states.watervolume = 0.0
+
+        Loading the previously written condition file restores the original values:
+
+        >>> pub.timegrids.sim.firstdate = "1996-01-03"
+        >>> with TestIO():
+        ...     hp.load_conditions()
+        >>> channel.storagemodels[0].sequences.states.watervolume
+        watervolume(10.0)
+        >>> channel.storagemodels[1].sequences.states.watervolume
+        watervolume(20.0)
+
+        We now add one of three possible routing models in the second position to
+        demonstrate the writing mechanism not only for completely missing (like in the
+        last example) but also for incomplete submodel vectors:
+
+        >>> with channel.add_routingmodel_v2("sw1d_lias", position=1, update=False):
+        ...     states.discharge(1.1)
+        >>> with TestIO():
+        ...     hp.save_conditions()
+        ...     with open(path) as conditionfile:
+        ...         print(conditionfile.read())
+        # -*- coding: utf-8 -*-
+        <BLANKLINE>
+        from hydpy.models.sw1d_channel import *
+        from hydpy.models import sw1d_lias
+        from hydpy.models import sw1d_storage
+        <BLANKLINE>
+        controlcheck(projectdir=r"LahnH", controldir="default", stepsize="1d")
+        <BLANKLINE>
+        with model.routingmodels[1].define_conditions(sw1d_lias):
+            discharge(1.1)
+        with model.storagemodels[0].define_conditions(sw1d_storage):
+            watervolume(10.0)
+        with model.storagemodels[1].define_conditions(sw1d_storage):
+            watervolume(20.0)
+        <BLANKLINE>
+        >>> channel.storagemodels[0].sequences.states.watervolume = 0.0
+        >>> channel.storagemodels[1].sequences.states.watervolume = 0.0
+        >>> channel.routingmodels[1].sequences.states.discharge = 0.0
+        >>> with TestIO():
+        ...     hp.load_conditions()
+        >>> channel.storagemodels[0].sequences.states.watervolume
+        watervolume(10.0)
+        >>> channel.storagemodels[1].sequences.states.watervolume
+        watervolume(20.0)
+        >>> channel.routingmodels[1].sequences.states.discharge
+        discharge(1.1)
+
+        Finally, we demonstrate the writing mechanism for the case of different
+        submodel types within the same submodel vector:
+
+        >>> with channel.add_routingmodel_v1("sw1d_q_in", position=0):
+        ...     states.discharge = 1.0
+        >>> with channel.add_routingmodel_v3("sw1d_weir_out", position=2):
+        ...     states.discharge = 1.2
+        >>> with TestIO():
+        ...     hp.save_conditions()
+        ...     with open(path) as conditionfile:
+        ...         print(conditionfile.read())
+        # -*- coding: utf-8 -*-
+        <BLANKLINE>
+        from hydpy.models.sw1d_channel import *
+        from hydpy.models import sw1d_lias
+        from hydpy.models import sw1d_q_in
+        from hydpy.models import sw1d_storage
+        from hydpy.models import sw1d_weir_out
+        <BLANKLINE>
+        controlcheck(projectdir=r"LahnH", controldir="default", stepsize="1d")
+        <BLANKLINE>
+        with model.routingmodels[0].define_conditions(sw1d_q_in):
+            discharge(1.0)
+        with model.routingmodels[1].define_conditions(sw1d_lias):
+            discharge(1.1)
+        with model.routingmodels[2].define_conditions(sw1d_weir_out):
+            discharge(1.2)
+        with model.storagemodels[0].define_conditions(sw1d_storage):
+            watervolume(10.0)
+        with model.storagemodels[1].define_conditions(sw1d_storage):
+            watervolume(20.0)
+        <BLANKLINE>
+        >>> channel.storagemodels[0].sequences.states.watervolume = 0.0
+        >>> channel.storagemodels[1].sequences.states.watervolume = 0.0
+        >>> channel.routingmodels[0].sequences.states.discharge = 0.0
+        >>> channel.routingmodels[1].sequences.states.discharge = 0.0
+        >>> channel.routingmodels[2].sequences.states.discharge = 0.0
+        >>> with TestIO():
+        ...     hp.load_conditions()
+        >>> channel.storagemodels[0].sequences.states.watervolume
+        watervolume(10.0)
+        >>> channel.storagemodels[1].sequences.states.watervolume
+        watervolume(20.0)
+        >>> channel.routingmodels[0].sequences.states.discharge
+        discharge(1.0)
+        >>> channel.routingmodels[1].sequences.states.discharge
+        discharge(1.1)
+        >>> channel.routingmodels[2].sequences.states.discharge
+        discharge(1.2)
         """
         self.elements.load_conditions()
 

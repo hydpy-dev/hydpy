@@ -2210,11 +2210,14 @@ class FuncConverter:
           * remove all lines containing the phrase `fastaccess`
           * replace all shortcuts with complete reference names
           * replace "model." with "self."
+          * remove ".values" and "value"
         """
         code = inspect.getsource(self.func)
         code = "\n".join(code.split('"""')[::2])
         code = code.replace("modelutils.", "")
         code = code.replace("model.", "self.")
+        code = code.replace(".values", "")
+        code = code.replace(".value", "")
         for name, shortcut in zip(self.subgroupnames, self.subgroupshortcuts):
             code = code.replace(f"{shortcut}.", f"self.{name}.")
         code = self.remove_linebreaks_within_equations(code)

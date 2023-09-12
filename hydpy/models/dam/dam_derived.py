@@ -169,7 +169,7 @@ class WaterLevelMinimumSmoothPar(parametertools.Parameter):
         0.99
         """
         metapar = self.subpars.pars.control.waterlevelminimumtolerance
-        self(smoothtools.calc_smoothpar_logistic1(metapar))
+        self(smoothtools.calc_smoothpar_logistic1(metapar.value))
 
 
 class SmoothParEvaporation(parametertools.Parameter):
@@ -200,7 +200,7 @@ class SmoothParEvaporation(parametertools.Parameter):
         0.99
         """
         metapar = self.subpars.pars.control.toleranceevaporation
-        self(smoothtools.calc_smoothpar_logistic1(metapar))
+        self(smoothtools.calc_smoothpar_logistic1(metapar.value))
 
 
 class WaterLevelMinimumRemoteSmoothPar(parametertools.Parameter):
@@ -231,7 +231,7 @@ class WaterLevelMinimumRemoteSmoothPar(parametertools.Parameter):
         0.99
         """
         metapar = self.subpars.pars.control.waterlevelminimumremotetolerance
-        self(smoothtools.calc_smoothpar_logistic1(metapar))
+        self(smoothtools.calc_smoothpar_logistic1(metapar.value))
 
 
 class WaterLevelReliefSmoothPar(parametertools.Parameter):
@@ -394,7 +394,7 @@ class VolumeSmoothParLog1(parametertools.Parameter):
         0.99
         """
         metapar = self.subpars.pars.control.volumetolerance
-        self(smoothtools.calc_smoothpar_logistic1(metapar))
+        self(smoothtools.calc_smoothpar_logistic1(metapar.value))
 
 
 class VolumeSmoothParLog2(parametertools.Parameter):
@@ -425,7 +425,7 @@ class VolumeSmoothParLog2(parametertools.Parameter):
         2.51
         """
         metapar = self.subpars.pars.control.volumetolerance
-        self(smoothtools.calc_smoothpar_logistic2(metapar))
+        self(smoothtools.calc_smoothpar_logistic2(metapar.value))
 
 
 class DischargeSmoothPar(parametertools.Parameter):
@@ -460,4 +460,4 @@ class DischargeSmoothPar(parametertools.Parameter):
         1.49
         """
         metapar = self.subpars.pars.control.dischargetolerance
-        self(smoothtools.calc_smoothpar_max1(metapar))
+        self(smoothtools.calc_smoothpar_max1(metapar.value))

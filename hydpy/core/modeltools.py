@@ -1556,7 +1556,7 @@ class ELSModel(SolverModel):
         Python version with a model-specific Cython version.
         """
         self.numvars.use_relerror = not modelutils.isnan(
-            self.parameters.solver.relerrormax
+            self.parameters.solver.relerrormax.value
         )
         self.numvars.t0, self.numvars.t1 = 0.0, 1.0
         self.numvars.dt_est = 1.0 * self.parameters.solver.reldtmax
@@ -1567,8 +1567,8 @@ class ELSModel(SolverModel):
             self.numvars.last_relerror = modelutils.inf
             self.numvars.dt = min(
                 self.numvars.t1 - self.numvars.t0,
-                1.0 * self.parameters.solver.reldtmax,
-                max(self.numvars.dt_est, self.parameters.solver.reldtmin),
+                1.0 * self.parameters.solver.reldtmax.value,
+                max(self.numvars.dt_est, self.parameters.solver.reldtmin.value),
             )
             if not self.numvars.f0_ready:
                 self.calculate_single_terms()

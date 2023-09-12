@@ -58,7 +58,7 @@ setuptools.setup(
         "black",
         "bokeh",
         "click",
-        "Cython",
+        "Cython < 3.0.0",
         "matplotlib",
         "netcdf4 < 1.6; python_version == '3.7'",
         "netcdf4; python_version > '3.7'",

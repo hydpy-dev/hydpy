@@ -198,7 +198,7 @@ from hydpy.exe.servertools import (
 )
 
 
-__version__ = "5.0.1"
+__version__ = "5.0.2"
 
 pub.options = optiontools.Options()
 pub.indexer = indextools.Indexer()

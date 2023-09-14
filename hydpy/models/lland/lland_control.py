@@ -62,20 +62,20 @@ class NHRU(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         super().__call__(*args, **kwargs)
 
-        skip = (parametertools.MonthParameter, parametertools.MOYParameter)
+        skippars = (parametertools.MonthParameter, parametertools.MOYParameter)
         for subpars in self.subpars.pars.model.parameters:
             for par in subpars:
-                if (par.NDIM == 1) and not isinstance(par, skip):
+                if (par.NDIM == 1) and not isinstance(par, skippars):
                     par.shape = self.value
         self.subpars.kapgrenz.shape = self.value, 2
 
-        skip = (sequencetools.LogSequences, sequencetools.LinkSequences)
+        skipseqs = (sequencetools.LogSequences, sequencetools.LinkSequences)
         sequences = self.subpars.pars.model.sequences
         for subseqs in sequences:
-            if not isinstance(subseqs, skip):
+            if not isinstance(subseqs, skipseqs):
                 for seq in subseqs:
                     if seq.NDIM == 1:
                         seq.shape = self.value
@@ -393,7 +393,7 @@ a positional nor a keyword argument is given.
     NDIM, TYPE, TIME, SPAN = 1, float, None, (1.0, None)
     INIT = 1.4278333871488538
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         """The prefered way to pass values to |PWMax| instances within parameter
         control files.
         """
@@ -653,17 +653,16 @@ Keyword `rdmin` is not among the available model constants.
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, None)
     INIT = 0.0
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         """The prefered way to pass values to |DMin| instances
         within parameter control files.
         """
         try:
             lland_parameters.ParameterSoil.__call__(self, *args, **kwargs)
         except TypeError:
-            args = kwargs.get("r_dmin")
-            if args is not None:
+            if (r := kwargs.get("r_dmin")) is not None:
                 hours = hydpy.pub.timegrids.init.stepsize.hours
-                self.value = 0.001008 * hours * numpy.array(args)
+                self.value = 0.001008 * hours * numpy.array(r)
                 self.trim()
             else:
                 objecttools.augment_excmessage()
@@ -729,17 +728,16 @@ Keyword `rdmax` is not among the available model constants.
     NDIM, TYPE, TIME, SPAN = 1, float, True, (None, None)
     INIT = 1.0
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         """The prefered way to pass values to |DMax| instances
         within parameter control files.
         """
         try:
             lland_parameters.ParameterSoil.__call__(self, *args, **kwargs)
         except TypeError:
-            args = kwargs.get("r_dmax")
-            if args is not None:
+            if (r := kwargs.get("r_dmax")) is not None:
                 self.value = (
-                    0.1008 * hydpy.pub.timegrids.init.stepsize.hours * numpy.array(args)
+                    0.1008 * hydpy.pub.timegrids.init.stepsize.hours * numpy.array(r)
                 )
                 self.trim()
             else:
@@ -905,7 +903,7 @@ is given.
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
     INIT = 0.0
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         try:
             super().__call__(*args, **kwargs)
         except NotImplementedError:
@@ -925,14 +923,14 @@ is given.
             con = self.subpars
             self.values = 0.0
             if kwargs["option"] == "FK/2_FK":
-                self.values[:, 0] = 0.5 * con.fk
-                self.values[:, 1] = con.fk
+                self.values[:, 0] = 0.5 * con.fk  # type: ignore[index]
+                self.values[:, 1] = con.fk  # type: ignore[index]
             elif kwargs["option"] == "0_WMax/10":
-                self.values[:, 0] = 0.0
-                self.values[:, 1] = 0.1 * con.wmax
+                self.values[:, 0] = 0.0  # type: ignore[index]
+                self.values[:, 1] = 0.1 * con.wmax  # type: ignore[index]
             elif kwargs["option"] == "FK":
-                self.values[:, 0] = con.fk
-                self.values[:, 1] = con.fk
+                self.values[:, 0] = con.fk  # type: ignore[index]
+                self.values[:, 1] = con.fk  # type: ignore[index]
             else:
                 raise ValueError(
                     f"Parameter {objecttools.elementphrase(self)} supports "
@@ -1125,7 +1123,7 @@ must be given.
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
     INIT = 1.0
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         try:
             super().__call__(*args, **kwargs)
         except NotImplementedError:

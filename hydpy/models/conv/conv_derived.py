@@ -25,11 +25,11 @@ class NmbInputs(parametertools.Parameter):
         conv_fluxes.InputResiduals,
     )
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         super().__call__(*args, **kwargs)
         for sequence in self.subpars.pars.model.sequences.fluxes:
             if isinstance(sequence, self._DEPENDENT_SEQUENCES):
-                sequence.shape = self
+                sequence.shape = self.value
 
     def update(self) -> None:
         """Determine the number of inlet nodes via inspecting control parameter
@@ -71,11 +71,11 @@ class NmbOutputs(parametertools.Parameter):
         conv_fluxes.OutputResiduals,
     )
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         super().__call__(*args, **kwargs)
         for sequence in self.subpars.pars.model.sequences.fluxes:
             if isinstance(sequence, self._DEPENDENT_SEQUENCES):
-                sequence.shape = self
+                sequence.shape = self.value
 
     def update(self) -> None:
         """Determine the number of inlet nodes via inspecting control parameter

@@ -245,7 +245,7 @@ class MaxNmbInputs(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         if not args and not kwargs:
             super().__call__(self.subpars.inputcoordinates.shape[0])
         else:

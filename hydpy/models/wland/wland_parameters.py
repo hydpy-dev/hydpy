@@ -83,7 +83,7 @@ element `?` could not be set based on the given keyword arguments.
         super().__init__(subvars)
         self._soil = None
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         self._soil = None
         try:
             super().__call__(*args, **kwargs)

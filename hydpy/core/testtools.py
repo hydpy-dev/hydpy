@@ -1025,7 +1025,7 @@ class UnitTest(Test):
         """The last index of the examples selected for printing."""
         return self.nmb_examples - (self.last_example_calc - self.last_example_plot)
 
-    def __call__(self, first_example=None, last_example=None):
+    def __call__(self, first_example=None, last_example=None) -> None:
         if first_example is None:
             self.first_example_plot = self.first_example_calc
         else:
@@ -1535,7 +1535,7 @@ class NumericalDifferentiator:
             for ysequence, yvalues in self._yvalues.items()
         }
 
-    def __call__(self):
+    def __call__(self) -> None:
         for ysequence, derivatives in self._derivatives.items():
             print(f"d_{ysequence.name}/d_{self._xsequence.name}", end=": ")
             objecttools.print_values(derivatives, width=1000)

@@ -92,7 +92,7 @@ can only be retrieved after it has been defined.
 
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         old_value = exceptiontools.getattr_(self, "value", None)
         super().__call__(*args, **kwargs)
         new_value = self.value
@@ -164,7 +164,7 @@ can only be retrieved after it has been defined.
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
     INIT = 1
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         old_value = exceptiontools.getattr_(self, "value", None)
         super().__call__(*args, **kwargs)
         new_value = self.value
@@ -1253,7 +1253,7 @@ must be defined beforehand.
     NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
     INIT = 0.009633
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         try:
             super().__call__(*args, **kwargs)
         except NotImplementedError as exc:
@@ -1542,9 +1542,9 @@ class NmbStorages(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         super().__call__(*args, **kwargs)
-        self.subpars.pars.model.sequences.states.sc.shape = self
+        self.subpars.pars.model.sequences.states.sc.shape = self.value
 
 
 K0.CONTROLPARAMETERS = (K1,)

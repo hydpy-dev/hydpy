@@ -44,7 +44,7 @@ class NmbHRU(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         old_shape = exceptiontools.getattr_(self, "value", None)
         super().__call__(*args, **kwargs)
         new_shape = self.value

@@ -51,7 +51,7 @@ class NmbLogEntries(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         super().__call__(*args, **kwargs)
         new_shape = (self.value,)
         for seq in self.subpars.pars.model.sequences.logs:
@@ -87,8 +87,8 @@ class RemoteDischargeMinimum(parametertools.SeasonalParameter):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
-    def __call__(self, *args, **kwargs):
-        self.shape = (None,)
+    def __call__(self, *args, **kwargs) -> None:
+        self.shape = (-1,)
         parametertools.SeasonalParameter.__call__(self, *args, **kwargs)
 
 

@@ -2,9 +2,6 @@
 # pylint: disable=missing-module-docstring
 
 # import...
-# ...from standard library
-import typing
-
 # ...from site-packages
 import numpy
 
@@ -13,6 +10,7 @@ from hydpy.auxs import roottools
 from hydpy.core import exceptiontools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
+from hydpy.core.typingtools import *
 from hydpy.cythons import smoothutils
 from hydpy.models.lstream import lstream_control
 from hydpy.models.lstream import lstream_derived
@@ -24,7 +22,7 @@ from hydpy.models.lstream import lstream_aides
 from hydpy.models.lstream import lstream_inlets
 from hydpy.models.lstream import lstream_outlets
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from matplotlib import pyplot
 else:
     pyplot = exceptiontools.OptionalImport("pyplot", ["matplotlib.pyplot"], locals())
@@ -2992,7 +2990,7 @@ class BaseModelProfile(modeltools.ELSModel):
                 self._ys.insert(0, self._ys[0] + dxdy[1])
                 return self
 
-            def __call__(self):
+            def __call__(self) -> Tuple[List[float], List[float]]:
                 return self._xs, self._ys
 
         con = self.parameters.control
@@ -3051,9 +3049,9 @@ class BaseModelProfile(modeltools.ELSModel):
         self,
         nmb: int = 1000,
         exp: float = 2.0,
-        hmin: typing.Optional[float] = None,
-        hmax: typing.Optional[float] = None,
-    ) -> typing.Tuple[float, ...]:
+        hmin: Optional[float] = None,
+        hmax: Optional[float] = None,
+    ) -> Tuple[float, ...]:
         """Prepare a vector of the stage values.
 
         The argument `nmb` defines the number of stage values, `exp` defines their
@@ -3087,9 +3085,7 @@ class BaseModelProfile(modeltools.ELSModel):
         hs += hmin
         return tuple(hs)
 
-    def calculate_qgvector(
-        self, hvector: typing.Iterable[float]
-    ) -> typing.Tuple[float, ...]:
+    def calculate_qgvector(self, hvector: Iterable[float]) -> Tuple[float, ...]:
         """Calculate the discharge values (in m³/s) corresponding to the
         given stage vector.
 
@@ -3137,9 +3133,7 @@ class BaseModelProfile(modeltools.ELSModel):
         finally:
             self.sequences.states.h(h_)
 
-    def calculate_agvector(
-        self, hvector: typing.Iterable[float]
-    ) -> typing.Tuple[float, ...]:
+    def calculate_agvector(self, hvector: Iterable[float]) -> Tuple[float, ...]:
         """Calculate the wetted cross-section areas (in m²) corresponding to the given
         vector of stage values.
 
@@ -3160,9 +3154,7 @@ class BaseModelProfile(modeltools.ELSModel):
         finally:
             self.sequences.states.h(h_)
 
-    def calculate_vgvector(
-        self, hvector: typing.Iterable[float]
-    ) -> typing.Tuple[float, ...]:
+    def calculate_vgvector(self, hvector: Iterable[float]) -> Tuple[float, ...]:
         """Calculate the water volume stored within a channel subsection (in Mio m³)
         corresponding to the given vector of stage values.
 

@@ -23,6 +23,7 @@ import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import masktools
 from hydpy.core import objecttools
+from hydpy.core import propertytools
 from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
@@ -1485,7 +1486,7 @@ as `var` can only be `()`, but `(2,)` is given.
         if initflag:
             self._valueready = True
 
-    shape = property(fget=_get_shape, fset=_set_shape)
+    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
     def _raise_wrongshape(self, shape):
         raise ValueError(
@@ -2272,7 +2273,7 @@ was attempted for element `?`.
                 f"attempted for element `{objecttools.devicename(self)}`."
             )
 
-    shape = property(fget=_get_shape, fset=_set_shape)
+    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
 
 @overload

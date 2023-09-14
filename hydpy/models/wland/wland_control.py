@@ -58,7 +58,7 @@ class NU(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         old = exceptiontools.getattr_(self, "value", None)
         super().__call__(*args, **kwargs)
         new = self._get_value()

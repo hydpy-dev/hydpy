@@ -152,7 +152,7 @@ element `?` based on keyword arguments `feld and acker`, the following error \
 occurred: Keyword `feld` is not among the available model constants.
     """
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         try:
             super().__call__(*args, **kwargs)
         except TypeError as exc:

@@ -23,6 +23,7 @@ from hydpy.core import exceptiontools
 from hydpy.core import filetools
 from hydpy.core import masktools
 from hydpy.core import objecttools
+from hydpy.core import propertytools
 from hydpy.core import timetools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
@@ -1241,7 +1242,7 @@ broadcast input array from shape (2,) into shape (2,3)
             f"be set based on the given keyword arguments."
         )
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         if args and kwargs:
             self._raise_args_and_kwargs_error()
         if not args and not kwargs:
@@ -2618,7 +2619,7 @@ broadcast input array from shape (2,) into shape (366,3)
 
     def __call__(self, *args, **kwargs) -> None:
         if self.NDIM == 1:
-            self.shape = (None,)
+            self.shape = (-1,)
         try:
             super().__call__(*args, **kwargs)
             self._toy2values = [(timetools.TOY(), self.values[0])]
@@ -2933,7 +2934,7 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
         shape_[0] = int(numpy.ceil(round(shape_[0], 10)))
         super()._set_shape(tuple(shape_))
 
-    shape = property(fget=_get_shape, fset=_set_shape)
+    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
     def __iter__(self) -> Iterator[Tuple[timetools.TOY, Any]]:
         return iter(self._toy2values)
@@ -4464,7 +4465,7 @@ keyword argument, it must be `callback`, and you need to pass a callback functio
 
     _has_callback: bool = False
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         try:
             super().__call__(*args, **kwargs)
         except NotImplementedError as exc:

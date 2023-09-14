@@ -1870,7 +1870,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
             self.__set_array(values)
         self.update_fastaccess()
 
-    shape = property(fget=_get_shape, fset=_set_shape)
+    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
     @property
     def seriesshape(self) -> Tuple[int, ...]:
@@ -2933,7 +2933,7 @@ class DependentSequence(OutputSequence):
             self._set_fastaccessattribute("results", numpy.zeros(self.numericshape))
             self._set_fastaccessattribute("sum", numpy.zeros(self.shape))
 
-    shape = property(fget=_get_shape, fset=_set_shape)
+    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
 
 class FactorSequence(DependentSequence):
@@ -3192,7 +3192,7 @@ not broadcast input array from shape (3,) into shape (2,)
                 self._set_fastaccessattribute("points", numpy.zeros(self.numericshape))
                 self._set_fastaccessattribute("results", numpy.zeros(self.numericshape))
 
-    shape = property(fget=_get_shape, fset=_set_shape)
+    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
     @property
     def new(self):
@@ -3319,7 +3319,7 @@ changed, but this was attempted for element `?`.
             )
         super()._set_shape(shape)
 
-    shape = property(fget=_get_shape, fset=_set_shape)
+    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
 
 class AideSequence(ModelSequence):
@@ -3646,7 +3646,7 @@ attribute 'fastaccess'
                 f"{objecttools.elementphrase(self)}"
             )
 
-    shape = property(fget=_get_shape, fset=_set_shape)
+    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
     def __repr__(self):
         if self.__isready:

@@ -3,6 +3,7 @@
 
 # import...
 # ...from HydPy
+from hydpy.core import propertytools
 from hydpy.core import sequencetools
 
 
@@ -27,7 +28,7 @@ class WEvI(sequencetools.LogSequence):
     def _set_shape(self, shape):
         super()._set_shape((1, shape))
 
-    shape = property(fget=_get_shape, fset=_set_shape)
+    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
 
 class LoggedSunshineDuration(sequencetools.LogSequence):

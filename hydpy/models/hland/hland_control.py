@@ -1570,7 +1570,7 @@ class NmbStorages(parametertools.Parameter):
 
     def __call__(self, *args, **kwargs):
         super().__call__(*args, **kwargs)
-        self.subpars.pars.model.sequences.states.sc.shape = self
+        self.subpars.pars.model.sequences.states.sc.shape = self.value
 
 
 K0.CONTROLPARAMETERS = (K1,)

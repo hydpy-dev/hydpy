@@ -348,10 +348,17 @@ class Calc_WindSpeed2m_V1(modeltools.Method):
 
 class Return_AdjustedWindSpeed_V1(modeltools.Method):
     r"""Adjust and return the measured wind speed to the defined height above the
-    ground following :cite:t:`ref-LARSIM`.
+    ground using the logarithmic wind profile.
 
     Basic equation:
-      :math:`f(h) = WindSpeed \cdot \frac{ln(h/Z0)}{ln(MeasuringHeightWindSpeed/Z0)}`
+      .. math::
+        v_1 = v_0 \cdot \frac{ln(h_1 / z_0)}{ln(h_0 / z_0)}
+        \\ \\
+        v_1 = wind \ speed \ at \ h_1 \\
+        h_1 = given \ height \\
+        z_0 = RoughnessLengthGrass \\
+        v_0 = WindSpeed \ (at \ h_0) \\
+        h_0 = MeasuringHeightWindSpeed
 
     Example:
 

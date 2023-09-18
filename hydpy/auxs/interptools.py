@@ -203,7 +203,7 @@ dy1/dx3   dy2/dx3
         idx_input: int = 0,
         idx_output: int = 0,
         points: int = 100,
-        **kwargs: Optional[Union[float, str]],
+        **kwargs: Any,
     ) -> pyplot.Figure:
         """Plot the relationship between particular input (`idx_input`) and output
         (`idx_output`) values defined by the actual |InterpAlgorithm| object.

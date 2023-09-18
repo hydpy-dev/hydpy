@@ -2199,8 +2199,7 @@ Attribute timegrids of module `pub` is not defined at the moment.
             if not focus:
                 pyplot.ylim((0.0, None))
             if pyplot.get_fignums():
-                variable = self.variable
-                if variable == "Q":
+                if (variable := str(self.variable)) == "Q":
                     variable = "Q [m³/s]"
                 pyplot.ylabel(variable)
             return pyplot.gcf()

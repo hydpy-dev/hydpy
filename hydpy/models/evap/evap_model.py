@@ -1788,7 +1788,7 @@ class Calc_SoilHeatFlux_V1(modeltools.Method):
     r"""Calculate the soil heat flux according to :cite:t:`ref-Allen1998`.
 
     Basic equation for daily timesteps (:cite:t:`ref-Allen1998`, equation 42):
-      :math:`SoilHeatFlux = 0` \n
+      :math:`SoilHeatFlux = 0`
 
     Basic equation for (sub)hourly timesteps (:cite:t:`ref-Allen1998`, eq. 45 and 46 ):
       :math:`SoilHeatFlux = \Bigl \lbrace

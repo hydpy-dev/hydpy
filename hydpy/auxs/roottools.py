@@ -90,7 +90,6 @@ class Pegasus(modeltools.Submodel):
         >>> turb0(2.0)
         >>> turb1(2.0)
         >>> ktschnee(5.0)
-        >>> derived.days.update()
         >>> inputs.relativehumidity = 60.0
         >>> states.waes.values = 1.0
         >>> fluxes.tkor = -3.0

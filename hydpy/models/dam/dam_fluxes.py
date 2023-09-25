@@ -136,6 +136,32 @@ class FloodDischarge(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, True
 
 
+class FreeDischarge(sequencetools.FluxSequence):
+    """Free water release through structures as flap sluice gates [m³/s]."""
+
+    NDIM, NUMERIC = 0, True
+
+
+class MaxForcedDischarge(sequencetools.FluxSequence):
+    """The currently highest possible forced water release through structures as pumps
+    [m³/s]."""
+
+    NDIM, NUMERIC = 0, True
+
+
+class MaxFreeDischarge(sequencetools.FluxSequence):
+    """The currently highest possible free water release through structures as pumps
+    [m³/s]."""
+
+    NDIM, NUMERIC = 0, True
+
+
+class ForcedDischarge(sequencetools.FluxSequence):
+    """Forced water release through structures as pumps [m³/s]."""
+
+    NDIM, NUMERIC = 0, True
+
+
 class Outflow(sequencetools.FluxSequence):
     """Total outflow [m³/s]."""
 

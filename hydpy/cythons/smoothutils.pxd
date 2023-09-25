@@ -20,3 +20,4 @@ cpdef double smooth_max2(
     double x_value, double y_value, double z_value, double parameter) nogil
 cpdef double smooth_min2(
     double x_value, double y_value, double z_value, double parameter) nogil
+cpdef double filter_norm(double value, double mean, double std) nogil

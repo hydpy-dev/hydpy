@@ -25,7 +25,7 @@ and other model objects.  Please see the documentation on the exchange model
 |exch_v001|, where we demonstrate how to represent a system of two lakes connected by
 a short ditch.
 
-Like all models of the HydPy-D family, |dam_v006| solves its underlying continuous
+Like all models of the HydPy-Dam family, |dam_v006| solves its underlying continuous
 ordinary differential equations with an error-adaptive numerical integration method.
 Hence, simulation speed, robustness, and accuracy depend on the configuration of the
 parameters of the model equations and the underlying solver.  We discuss these topics
@@ -81,7 +81,7 @@ balance in each example run requires storing the defined (initial) conditions be
 performing the first simulation run:
 
 >>> test.reset_inits()
->>> conditions = sequences.conditions
+>>> conditions = model.conditions
 
 |dam_v006| assumes the relationship between |WaterLevel| and |WaterVolume| to be
 constant over time.  For simplicity, we define a linear relationship by using |PPoly|:
@@ -447,10 +447,7 @@ class Model(modeltools.ELSModel):
     SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
-    def check_waterbalance(
-        self,
-        initial_conditions: Dict[str, Dict[str, ArrayFloat]],
-    ) -> float:
+    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
         r"""Determine the water balance error of the previous simulation run in million
         m³.
 
@@ -469,7 +466,7 @@ class Model(modeltools.ELSModel):
         model |dam_v006| for some examples.
         """
         fluxes = self.sequences.fluxes
-        first = initial_conditions["states"]
+        first = initial_conditions["model"]["states"]
         last = self.sequences.states
         return (hydpy.pub.timegrids.stepsize.seconds / 1e6) * (
             sum(fluxes.adjustedprecipitation.series)

@@ -432,8 +432,7 @@ def _gain_and_insert_additional_information_into_docstrings(
 
 
 def autodoc_applicationmodel(module: types.ModuleType) -> None:
-    """Improves the docstrings of application models when called at the bottom of the
-    respective module.
+    """Improves the docstrings of application models.
 
     |autodoc_applicationmodel| requires, similar to |autodoc_basemodel|, that both the
     application model and its base model are defined in the conventional way.
@@ -498,7 +497,7 @@ class Substituter:
 
         Members that are actually imported modules should not be added:
 
-        >>> Substituter.consider_member("warnings", numpy.random, numpy)
+        >>> Substituter.consider_member("random", numpy.random, numpy)
         False
 
         Members that are actually defined in other modules should not be added:
@@ -993,10 +992,9 @@ class Substituter:
         .. |OptionContextBase._old_value| replace:: \
 :attr:`~hydpy.core.optiontools.OptionContextBase._old_value`
         ...
-        .. |optiontools.TypeOptionPropertyBase| replace:: \
-:const:`~hydpy.core.optiontools.TypeOptionPropertyBase`
         .. |optiontools.TypeOption| replace:: \
 :const:`~hydpy.core.optiontools.TypeOption`
+        .. |optiontools.l1| replace:: :const:`~hydpy.core.optiontools.l1`
 
         Through passing a string (usually the source code of a file to be documented),
         only the replacement commands relevant for this string are translated:

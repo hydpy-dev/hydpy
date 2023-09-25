@@ -32,9 +32,9 @@ select |meteo_factors.SunshineDuration| and |meteo_factors.PossibleSunshineDurat
 output sequences:
 
 >>> from hydpy import Element, Node
->>> from hydpy.outputs import meteo_SunshineDuration, meteo_PossibleSunshineDuration
->>> node1 = Node("node1", variable=meteo_SunshineDuration)
->>> node2 = Node("node2", variable=meteo_PossibleSunshineDuration)
+>>> from hydpy.aliases import meteo_factors_SunshineDuration, meteo_factors_PossibleSunshineDuration
+>>> node1 = Node("node1", variable=meteo_factors_SunshineDuration)
+>>> node2 = Node("node2", variable=meteo_factors_PossibleSunshineDuration)
 
 >>> from hydpy.models.meteo_v004 import *
 >>> parameterstep()

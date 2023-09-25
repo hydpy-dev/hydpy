@@ -40,7 +40,7 @@ class NmbLogEntries(parametertools.Parameter):
         """Calculate the number of entries and adjust the shape of all relevant log
         sequences.
 
-        The aimed memory duration is one day.  Hence, the number of the required log
+        The aimed memory duration is one day.  Hence, the number of required log
         entries depends on the simulation step size:
 
         >>> from hydpy.models.lland import *
@@ -51,43 +51,32 @@ class NmbLogEntries(parametertools.Parameter):
         >>> derived.nmblogentries
         nmblogentries(24)
         >>> logs
-        wet0(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
+        wevi(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
              nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan)
-        loggedteml(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                   nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan)
-        loggedrelativehumidity(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                               nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                               nan, nan, nan, nan)
         loggedsunshineduration(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
                                nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
                                nan, nan, nan, nan)
         loggedpossiblesunshineduration(nan, nan, nan, nan, nan, nan, nan, nan,
                                        nan, nan, nan, nan, nan, nan, nan, nan,
                                        nan, nan, nan, nan, nan, nan, nan, nan)
-        loggedglobalradiation(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                              nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                              nan, nan, nan, nan)
-        loggedwindspeed2m(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                          nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                          nan, nan)
 
         To prevent from loosing information, updating parameter |NmbLogEntries| resets
         the shape of the relevant log sequences only when necessary:
 
-        >>> logs.wet0 = 1.0
-        >>> logs.loggedteml = 2.0
-        >>> logs.loggedrelativehumidity.shape = (6,)
-        >>> logs.loggedrelativehumidity = 3.0
+        >>> logs.wevi = 1.0
+        >>> logs.loggedsunshineduration = 2.0
+        >>> logs.loggedpossiblesunshineduration.shape = (6,)
+        >>> logs.loggedpossiblesunshineduration = 3.0
         >>> derived.nmblogentries.update()
         >>> logs   # doctest: +ELLIPSIS
-        wet0(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+        wevi(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
              1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
-        loggedteml(2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
-                   2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0)
-        loggedrelativehumidity(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                               nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                               nan, nan, nan, nan)
-        ...
+        loggedsunshineduration(2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+                               2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+                               2.0, 2.0, 2.0, 2.0)
+        loggedpossiblesunshineduration(nan, nan, nan, nan, nan, nan, nan, nan,
+                                       nan, nan, nan, nan, nan, nan, nan, nan,
+                                       nan, nan, nan, nan, nan, nan, nan, nan)
 
         There is an explicit check for inappropriate simulation step sizes:
 
@@ -262,33 +251,6 @@ class Fr(lland_parameters.LanduseMonthParameter):
                 values[idx, :] = con.p1strahl - con.p2strahl * lais
             else:
                 values[idx, :] = 1.0
-
-
-class NFk(lland_parameters.ParameterSoil):
-    """Nutzbare Feldkapazität (usable field capacity) [mm]."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
-
-    CONTROLPARAMETERS = (
-        lland_control.PWP,
-        lland_control.FK,
-    )
-
-    def update(self):
-        """Update |NFk| based on |PWP| and |FK|.
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep("1d")
-        >>> nhru(1)
-        >>> lnk(ACKER)
-        >>> fk(100.0)
-        >>> pwp(20.0)
-        >>> derived.nfk.update()
-        >>> derived.nfk
-        nfk(80.0)
-        """
-        con = self.subpars.pars.control
-        self.value = con.fk - con.pwp
 
 
 class KB(parametertools.Parameter):

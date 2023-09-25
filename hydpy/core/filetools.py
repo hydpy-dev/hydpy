@@ -32,10 +32,10 @@ from hydpy.core.typingtools import *
 class Folder2Path:
     """Map folder names to their pathnames.
 
-    You can both pass positional arguments and keyword arguments when initialising
-    |Folder2Path|.  For positional arguments, the folder and its path are assumed to be
-    identical.  For keyword arguments, the keyword corresponds to the folder name and
-    its value to the pathname:
+    You can pass positional or keyword arguments when initialising |Folder2Path|.  For
+    positional arguments, the folder and its path are assumed to be identical.  For
+    keyword arguments, the keyword corresponds to the folder name and its value to the
+    pathname:
 
     >>> from hydpy.core.filetools import Folder2Path
     >>> Folder2Path()
@@ -111,7 +111,7 @@ not start with numbers, cannot be mistaken with Python built-ins like `for`...)
             self.add(key, value)
 
     def add(self, directory: str, path: Optional[str] = None) -> None:
-        """Add a directory and optionally its path."""
+        """Add a directory and, optionally, its path."""
         objecttools.valid_variable_identifier(directory)
         if path is None:
             path = directory
@@ -300,7 +300,7 @@ class FileManager:
 been defined manually and cannot be determined automatically: \
 `.../projectname/basename` does not contain any available directories.
 
-        If only one directory exists, it is considered as the current working directory
+        If only one directory exists, it is considered the current working directory
         automatically:
 
         >>> with TestIO():
@@ -317,7 +317,7 @@ been defined manually and cannot be determined automatically: \
         'dir1'
 
         Set the value of |FileManager.currentdir| to |None| to let it forget the
-        memorised directory.  After that, to try to query the current working directory
+        memorised directory.  After that, trying to query the current working directory
         results in another error, as it is not clear which directory to select:
 
         >>> with TestIO():
@@ -742,7 +742,7 @@ error occurred: name 'y' is not defined
         """Read all network files of the current working directory, structure their
         contents in a |selectiontools.Selections| object, and return it.
 
-        See the main documentation on class |NetworkManager| for further information.
+        See the main documentation of class |NetworkManager| for further information.
         """
         devicetools.Node.clear_all()
         devicetools.Element.clear_all()
@@ -853,12 +853,12 @@ class ControlManager(FileManager):
         """Return the namespace of the given file (and eventually of its corresponding
         auxiliary subfiles).
 
-        By default, |ControlManager| clears the internal registry when after having
-        loaded a control file and all its corresponding auxiliary files.  You can
-        change this behaviour by passing `False` to the `clear_registry` argument,
-        which might decrease model initialisation times significantly.  However, then
-        it is your own responsibility to call the method |ControlManager.clear_registry|
-        when necessary (usually before reloading a changed control file).
+        By default, |ControlManager| clears the internal registry after loading a
+        control file and all its corresponding auxiliary files.  You can change this
+        behaviour by passing `False` to the `clear_registry` argument, which might
+        decrease model initialisation times significantly.  However, then it is your
+        own responsibility to call the method |ControlManager.clear_registry| when
+        necessary (usually before reloading a changed control file).
 
         One advantage of using method |ControlManager.load_file| directly is that it
         supports reading control files that are yet not correctly integrated into a
@@ -886,20 +886,12 @@ class ControlManager(FileManager):
                  56.94, 1.09, 3.61)
         psi(1.0)
         zonez(2.0, 2.0, 3.0, 3.0, 4.0, 4.0, 5.0, 5.0, 6.0, 6.0, 7.0, 7.0)
-        zrelp(3.75)
-        zrelt(3.75)
-        zrele(3.665)
         pcorr(1.0)
         pcalt(0.1)
         rfcf(1.04283)
         sfcf(1.1)
+        tcorr(0.0)
         tcalt(0.6)
-        ecorr(1.0)
-        ecalt(0.0)
-        epf(0.02)
-        etf(0.1)
-        ered(0.0)
-        ttice(nan)
         icmax(field=1.0, forest=1.5)
         sfdist(1.0)
         smax(inf)
@@ -914,7 +906,6 @@ class ControlManager(FileManager):
         cfr(0.05)
         whc(0.1)
         fc(278.0)
-        lp(0.9)
         beta(2.54011)
         percmax(1.39636)
         cflux(0.0)
@@ -1613,7 +1604,7 @@ currently handle no NetCDF writer object.
             self._jitaccesshandler = None
 
     def read_netcdfslices(self, idx: int) -> None:
-        """Read the time slice relevant for the current simulation step.
+        """Read the time slice relevant to the current simulation step.
 
         This method is only relevant for reading data from or writing data to NetCDF
         files "just in time" during simulation runs.  See the main documentation on
@@ -1624,7 +1615,7 @@ currently handle no NetCDF writer object.
             handler.read_slices(idx)
 
     def write_netcdfslices(self, idx: int) -> None:
-        """Write the time slice relevant for the current simulation step.
+        """Write the time slice relevant to the current simulation step.
 
         This method is only relevant for reading data from or writing data to NetCDF
         files "just in time" during simulation runs.  See the main documentation on

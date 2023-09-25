@@ -324,10 +324,7 @@ sequence2alias: Dict[sequencetools.InOutSequenceTypes, str] = {}
 
 if config.USEAUTODOC:
     with warnings.catch_warnings():
-        warnings.filterwarnings(
-            action="ignore",
-            category=FutureWarning,
-        )
+        warnings.filterwarnings(action="ignore", category=FutureWarning)
         from hydpy import auxs
         from hydpy import core
         from hydpy import cythons

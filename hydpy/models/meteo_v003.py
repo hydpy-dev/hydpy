@@ -38,9 +38,9 @@ select the corresponding sequences |meteo_fluxes.GlobalRadiation| and
 `node1` and `node2`:
 
 >>> from hydpy import Element, Node
->>> from hydpy.outputs import meteo_GlobalRadiation, meteo_PossibleSunshineDuration
->>> node1 = Node("node1", variable=meteo_GlobalRadiation)
->>> node2 = Node("node2", variable=meteo_PossibleSunshineDuration)
+>>> from hydpy.aliases import meteo_fluxes_GlobalRadiation, meteo_factors_PossibleSunshineDuration
+>>> node1 = Node("node1", variable=meteo_fluxes_GlobalRadiation)
+>>> node2 = Node("node2", variable=meteo_factors_PossibleSunshineDuration)
 
 We prepare a |meteo_v003| instance and assign it to an element connected to those
 nodes:

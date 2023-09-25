@@ -1,9 +1,6 @@
 """This module defines submodel interfaces for calculating potential
 evapotranspiration."""
 # import...
-# ...from standard library
-import abc
-
 # ...from hydpy
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
@@ -14,18 +11,7 @@ class PETModel_V1(modeltools.SubmodelInterface):
     step."""
 
     typeid: ClassVar[Literal[1]] = 1
-
-    @abc.abstractmethod
-    def prepare_nmbzones(self, nmbzones: int) -> None:
-        """Set the number of zones in which the actual calculations take place."""
-
-    @abc.abstractmethod
-    def prepare_subareas(self, subareas: Sequence[float]) -> None:
-        """Set the areas ofthe individual zones in km²."""
-
-    @abc.abstractmethod
-    def prepare_elevations(self, elevations: Sequence[float]) -> None:
-        """Set the elevations of the individual zones in m."""
+    """Type identifier for |PETModel_V1| submodels."""
 
     @modeltools.abstractmodelmethod
     def determine_potentialevapotranspiration(self) -> None:
@@ -38,5 +24,5 @@ class PETModel_V1(modeltools.SubmodelInterface):
 
     @modeltools.abstractmodelmethod
     def get_meanpotentialevapotranspiration(self) -> float:
-        """Get the previously calculated average calculated potential
-        evapotranspiration in mm/T."""
+        """Get the previously calculated average potential evapotranspiration in
+        mm/T."""

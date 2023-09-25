@@ -207,13 +207,13 @@ class BoWa(lland_sequences.State1DSequence):
 class SDG1(sequencetools.StateSequence):
     """Träger Direktabfluss-Gebietsspeicher (slow direct runoff storage) [mm]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
+    NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
 
 class SDG2(sequencetools.StateSequence):
     """Dynamischer Direktabfluss-Gebietsspeicher (fast direct runoff storage) [mm]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
+    NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
 
 class SIG1(sequencetools.StateSequence):
@@ -231,18 +231,15 @@ class SIG2(sequencetools.StateSequence):
 class SBG(sequencetools.StateSequence):
     """Basisabfluss-Gebietsspeicher (base flow storage) [mm]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
+    NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
     def trim(self, lower=None, upper=None):
-        r"""Trim in accordance with :math:`0 \leq SBG \leq GSBMax \cdot VolBMax`.
+        r"""Trim in accordance with :math:`SBG \leq GSBMax \cdot VolBMax`.
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> volbmax(10.0)
         >>> gsbmax(2.0)
-        >>> states.sbg(-1.0)
-        >>> states.sbg
-        sbg(0.0)
         >>> states.sbg(10.0)
         >>> states.sbg
         sbg(10.0)

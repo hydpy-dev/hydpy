@@ -13,7 +13,7 @@ class NmbSoils(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         nmbsoils_old = exceptiontools.getattr_(self, "value", None)
         super().__call__(*args, **kwargs)
         nmbsoils_new = self.value
@@ -48,7 +48,7 @@ class NmbBins(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, int, None, (2, None)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         nmbbins_old = exceptiontools.getattr_(self, "value", None)
         super().__call__(*args, **kwargs)
         nmbbins_new = self.value

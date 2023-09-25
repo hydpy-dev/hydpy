@@ -367,19 +367,16 @@ the same threshold value(s) twice.
             yield key, self._coefs[key]
 
     def __repr__(self) -> str:
-        strings = self.commentrepr
         prefix = f"{self.name}("
         blanks = " " * len(prefix)
         if self:
+            lines = []
             for idx, (th, coefs) in enumerate(self):
                 subprefix = f"{prefix}{th}=" if idx == 0 else f"{blanks}{th}="
-                strings.append(
-                    objecttools.assignrepr_tuple2(coefs, subprefix, 75) + ","
-                )
-            strings[-1] = strings[-1][:-1] + ")"
-        else:
-            strings.append(prefix + ")")
-        return "\n".join(strings)
+                lines.append(objecttools.assignrepr_tuple2(coefs, subprefix, 75) + ",")
+            lines[-1] = lines[-1][:-1] + ")"
+            return "\n".join(lines)
+        return f"{prefix})"
 
     def __dir__(self) -> List[str]:
         return cast(List[str], super().__dir__()) + list(self._coefs.keys())

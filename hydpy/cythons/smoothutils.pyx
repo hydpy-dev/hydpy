@@ -1,13 +1,13 @@
-"""This Cython module implements the performance-critical functions of the
-Python module `smoothtools`.
+r"""This Cython module implements the performance-critical functions of the Python
+module `smoothtools`.
 
 MAX_LOG_FLOAT = 700
 ___________________
 
 The natural logarithm of the highest possible float value.
 
-The exact value depends on the actual system.  So an automated estimation
-of this value would be advisable.
+The exact value depends on the actual system.  So, an automated estimation of this
+value would be advisable.
 
 
 smooth_logistic1
@@ -15,10 +15,10 @@ ________________
 
 Smoothing kernel based on the logistic function.
 
-:math:`f_{log1}(x, c) = 1-\\frac{1}{1+exp(x/c)}`
+:math:`f_{log1}(x, c) = 1 - \frac{1}{1 + exp(x / c)}`
 
-The following example shows the typical shape of the logistic function
-for four different smoothing parameters:
+The following example shows the typical shape of the logistic function for four
+different smoothing parameters:
 
 >>> from hydpy.cythons import smoothutils
 >>> from hydpy import round_
@@ -46,12 +46,12 @@ value, par=10.0,  par=1.0,  par=0.1,  par=0.0
     4, 0.598688, 0.982014, 1.000000, 1.000000
     5, 0.622459, 0.993307, 1.000000, 1.000000
 
-With the highest value of the smoothing parameter (10.0), the result
-approximates a straight line.  With the lowest smoothing parameter (0.0),
-the result is identical with a discontinuous first-order step function.
+With the highest value of the smoothing parameter (10.0), the result approximates a
+straight line.  With the lowest smoothing parameter (0.0), the result is identical with
+a discontinuous first-order step function.
 
-Function `smooth_logistic1` protects itself against numerical overflow.
-Hence even extremely high `value/parameter` ratios are allowed:
+Function `smooth_logistic1` protects itself against numerical overflow.  Hence, even
+extremely high `value/parameter` ratios are allowed:
 
 >>> round_(smoothutils.smooth_logistic1(1000., .1))
 1.0
@@ -60,13 +60,12 @@ Hence even extremely high `value/parameter` ratios are allowed:
 smooth_logistic1_derivative2
 ____________________________
 
-Calculate the derivative of the function `smooth_logistic1` with respect
-to the given value.
+Calculate the derivative of the function `smooth_logistic1` with respect to the given
+value.
 
-:math:`\\frac{d}{dx}f_{log1}(x, c) = \\frac{exp(x/c)}{(exp(x/c)+1)^2}`
+:math:`\frac{d}{dx}f_{log1}(x, c) = \frac{exp(x/c)}{(exp(x/c)+1)^2}`
 
-The following example shows the derivates for four different smoothing
-parameters:
+The following example shows the derivates for four different smoothing parameters:
 
 >>> import numpy
 >>> for value in range(-5, 6):
@@ -97,8 +96,8 @@ value,  par=3.0,  par=1.0,  par=0.1,  par=0.0
     5, 0.044543, 0.006648, 0.000000, 0.000000
 
 
-We validate the calculated derivatives by comparing them with sufficiently
-accurate numerical approximations:
+We validate the calculated derivatives by comparing them with sufficiently accurate
+numerical approximations:
 
 >>> dx = 1e-7
 >>> for value in range(-5, 6):
@@ -126,11 +125,8 @@ value,  par=3.0,  par=1.0,  par=0.1,  par=0.0
     4, 0.055030, 0.017663, 0.000000, 0.000000
     5, 0.044543, 0.006648, 0.000000, 0.000000
 
-
-
-Function `smooth_logistic2_derivative1` protects itself against numerical
-overflow. Hence even extremely high `value/parameter` ratios
-are allowed:
+Function `smooth_logistic2_derivative1` protects itself against numerical overflow.
+Hence, even extremely high `value/parameter` ratios are allowed:
 
 >>> round_(smoothutils.smooth_logistic1_derivative2(1000.0, 0.1))
 0.0
@@ -141,10 +137,10 @@ ________________
 
 Smoothing kernel based on the integral of the logistic function.
 
-:math:`f_{log2}(x, c) = c \\cdot ln(1+exp(x/c))`
+:math:`f_{log2}(x, c) = c \cdot ln(1+exp(x/c))`
 
-The following example shows the shape of the integral of the
-logistic function for four different smoothing parameters:
+The following example shows the shape of the integral of the logistic function for four
+different smoothing parameters:
 
 >>> for value in range(-5, 6):
 ...     if value == -5:
@@ -171,12 +167,12 @@ value, par=3.0,  par=1.0,  par=0.1,  par=0.0
     5, 5.519024, 5.006715, 5.000000, 5.000000
 
 
-With the highest value of the smoothing parameter (3.0), the resulting
-line is relatively straight.  With the lowest smoothing parameter (0.0),
-the result is identical with a second-order discontinuous step function.
+With the highest value of the smoothing parameter (3.0), the resulting line is
+relatively straight.  With the lowest smoothing parameter (0.0), the result is
+identical to a second-order discontinuous step function.
 
-Function `smooth_logistic2` protects itself against numerical overflow.
-Hence even extremely high `value/parameter` ratios are allowed:
+Function `smooth_logistic2` protects itself against numerical overflow.  Hence, even
+extremely high `value/parameter` ratios are allowed:
 
 >>> round_(smoothutils.smooth_logistic2(1000.0, 0.1))
 1000.0
@@ -184,14 +180,12 @@ Hence even extremely high `value/parameter` ratios are allowed:
 smooth_logistic2_derivative1
 ____________________________
 
-Calculate the derivative of the function `smooth_logistic2` with respect
-to its smoothing parameter.
+Calculate the derivative of the function `smooth_logistic2` with respect to its
+smoothing parameter.
 
-:math:`\\frac{d}{dc}f_{log2}(x, c) =
-\\frac{x}{c \\cdot exp(x/c)+c} \\cdot ln(exp(-x/c)+1)`
+:math:`\frac{d}{dc}f_{log2}(x, c) = \frac{x}{c \cdot exp(x/c)+c} \cdot ln(exp(-x/c)+1)`
 
-The following example shows the derivates for four different smoothing
-parameters:
+The following example shows the derivates for four different smoothing parameters:
 
 >>> for value in range(-5, 6):
 ...     if value == -5:
@@ -217,8 +211,8 @@ value,  par=3.0,  par=1.0,  par=0.1,  par=0.0
     4, 0.512107, 0.090095, 0.000000, 0.000000
     5, 0.437790, 0.040180, 0.000000, 0.000000
 
-We validate the calculated derivatives by comparing them with sufficiently
-accurate numerical approximations.
+We validate the calculated derivatives by comparing them with sufficiently accurate
+numerical approximations.
 
 >>> dc = 1e-6
 >>> for value in range(-5, 6):
@@ -246,9 +240,8 @@ value,  par=3.0,  par=1.0,  par=0.1,  par=0.0
     4, 0.512107, 0.090095, 0.000000, 0.000000
     5, 0.437790, 0.040180, 0.000000, 0.000000
 
-Function `smooth_logistic2_derivative1` protects itself against numerical
-overflow. Hence even extremely high negative `value/parameter` ratios
-are allowed:
+Function `smooth_logistic2_derivative1` protects itself against numerical overflow.
+Hence, even extremely high negative `value/parameter` ratios are allowed:
 
 >>> round_(smoothutils.smooth_logistic2_derivative1(-1000.0, 0.1))
 0.0
@@ -257,13 +250,12 @@ are allowed:
 smooth_logistic2_derivative2
 ____________________________
 
-Calculate the derivative of the function `smooth_logistic2` with respect
-to the given value.
+Calculate the derivative of the function `smooth_logistic2` with respect to the given
+value.
 
-:math:`\\frac{d}{dx}f_{log2}(x, c) = \\frac{exp(x/c)}{exp(x/c)+1}`
+:math:`\frac{d}{dx}f_{log2}(x, c) = \frac{exp(x/c)}{exp(x/c)+1}`
 
-The following example shows the derivates for four different smoothing
-parameters:
+The following example shows the derivates for four different smoothing parameters:
 
 >>> for value in range(-5, 6):
 ...     if value == -5:
@@ -289,9 +281,8 @@ value,  par=3.0,  par=1.0,  par=0.1,  par=0.0
     4, 0.791391, 0.982014, 1.000000, 1.000000
     5, 0.841131, 0.993307, 1.000000, 1.000000
 
-
-We validate the calculated derivatives by comparing them with sufficiently
-accurate numerical approximations.
+We validate the calculated derivatives by comparing them with sufficiently accurate
+numerical approximations.
 
 >>> dx = 1e-7
 >>> for value in range(-5, 6):
@@ -319,10 +310,8 @@ value,  par=3.0,  par=1.0,  par=0.1,  par=0.0
     4, 0.791391, 0.982014, 1.000000, 1.000000
     5, 0.841131, 0.993307, 1.000000, 1.000000
 
-
-Function `smooth_logistic2_derivative2` protects itself against numerical
-overflow. Hence even extremely high `value/parameter` ratios
-are allowed:
+Function `smooth_logistic2_derivative2` protects itself against numerical overflow.
+Hence, even extremely high `value/parameter` ratios are allowed:
 
 >>> round_(smoothutils.smooth_logistic2_derivative2(1000.0, 0.1))
 1.0
@@ -331,18 +320,18 @@ are allowed:
 smooth_logistic3
 ________________
 
-Smoothing kernel which combines `smooth_logistic1` and `smooth_logistic2` for
-the regularization of functions containing two second-order discontinuities.
+Smoothing kernel that combines `smooth_logistic1` and `smooth_logistic2` for the
+regularization of functions containing two second-order discontinuities.
 
 :math:`f_{log3}(x, c) =
-(1-w) \\cdot f_{log2}(x, c) + w \\cdot (1-f_{log2}(x, c))`
+(1-w) \cdot f_{log2}(x, c) + w \cdot (1-f_{log2}(x, c))`
 
 :math:`w = f_{log2}(x-1/2, d)`
 
-:math:`d = max(0.54 \\cdot c^{1.17}, 0.025)`
+:math:`d = max(0.54 \cdot c^{1.17}, 0.025)`
 
-The following example shows the shape of this combined smoothing
-function for four different smoothing parameters:
+The following example shows the shape of this combined smoothing function for four
+different smoothing parameters:
 
 >>> from numpy import arange
 >>> for value in arange(-5.5, 6):
@@ -370,21 +359,20 @@ value,  par=3.0,  par=1.0,  par=0.1,  par=0.0
   4.5, 0.748313, 0.972397, 1.000000, 1.000000
   5.5, 0.793729, 0.989382, 1.000000, 1.000000
 
-With the highest value of the smoothing parameter (3.0), the resulting
-line is relatively straight.  With the lowest smoothing parameter (0.0),
-the result is identical with a function with two second-order
-discontinuities.
+With the highest value of the smoothing parameter (3.0), the resulting line is
+relatively straight.  With the lowest smoothing parameter (0.0), the result is
+identical to a function with two second-order discontinuities.
 
 smooth_max1
 ___________
 
-Smoothing kernel for approximating the maximum function for two values
-based on the "LogSumExp" function.
+Smoothing kernel for approximating the maximum function for two values based on the
+"LogSumExp" function.
 
-:math:`f_{max}(x, y, c) = c \\cdot ln(exp(x/c)+exp(y/c))`
+:math:`f_{max}(x, y, c) = c \cdot ln(exp(x/c)+exp(y/c))`
 
-The following example shows the different degree of approximation of
-the maximum function for four different smoothing parameters:
+The following example shows the different degree of approximation of the maximum
+function for four different smoothing parameters:
 
 >>> for value in range(11):
 ...     if value == 0:
@@ -410,14 +398,13 @@ y_value, par=3.0,  par=1.0,  par=0.3,  par=0.0
       9, 9.701888, 9.018150, 9.000000, 9.000000
      10, 10.519024, 10.006715, 10.00000, 10.00000
 
-With the highest value of the smoothing parameter (3.0), the resulting
-line is relatively straight.  With the lowest smoothing parameter (0.0),
-the result is identical with the usual (discontinuous) maximum function.
+With the highest value of the smoothing parameter (3.0), the resulting line is
+relatively straight.  With the lowest smoothing parameter (0.0), the result is
+identical to the usual (discontinuous) maximum function.
 
-Function `smooth_max1` protects itself against numerical underflow and
-overflow.  In the following example, extreme values are added to both
-the `x` and the `y` value of 5 and 6, respectively.  The degree of
-smoothing is always identical:
+Function `smooth_max1` protects itself against numerical underflow and overflow.  In
+the following example, extreme values are added to both the `x` and the `y` value of 5
+and 6, respectively.  The degree of smoothing is always identical:
 
 >>> for test in ["-1e8", "0.0", "1e8"]:
 ...     round_(test, end=", ")
@@ -430,13 +417,13 @@ smoothing is always identical:
 smooth_min1
 ___________
 
-Smoothing kernel for approximating the minimum function for two
-values based on the LogSumExp function.
+Smoothing kernel for approximating the minimum function for two values based on the
+LogSumExp function.
 
-:math:`f_{max}(x, y, c) = -c \\cdot ln(exp(x/-c)+exp(y/-c))`
+:math:`f_{max}(x, y, c) = -c \cdot ln(exp(x/-c)+exp(y/-c))`
 
-The following example shows the different degree of approximation of
-the minimum function for four different smoothing parameters:
+The following example shows the different degree of approximation of the minimum
+function for four different smoothing parameters:
 
 >>> for value in range(11):
 ...     if value == 0:
@@ -462,14 +449,13 @@ y_value, par=3.0,  par=1.0,  par=0.3,  par=0.0
       9, 4.298112, 4.981850, 5.000000, 5.000000
      10, 4.480976, 4.993285, 5.000000, 5.000000
 
-With the highest value of the smoothing parameter (3.0), the resulting
-line is relatively straight.  With the lowest smoothing parameter (0.0),
-the result is identical with the usual (discontinuous) minimum function.
+With the highest value of the smoothing parameter (3.0), the resulting line is
+relatively straight.  With the lowest smoothing parameter (0.0), the result is
+identical to the usual (discontinuous) minimum function.
 
-Function `smooth_min1` protects itself against numerical underflow and
-overflow.  In the following example, extreme values are added to both
-the `x` and the `y` value of 5 and 6, respectively.  The degree of
-smoothing is always identical:
+Function `smooth_min1` protects itself against numerical underflow and overflow.  In
+the following example, extreme values are added to both the `x` and the `y` value of 5
+and 6, respectively.  The degree of smoothing is always identical:
 
 >>> for test in ["-1e8", " 0.0", " 1e8"]:
 ...     round_(test, end=", ")
@@ -482,13 +468,13 @@ smoothing is always identical:
 smooth_max2
 ___________
 
-Smoothing kernel for approximating the maximum function for three values
-based on the "LogSumExp" function.
+Smoothing kernel for approximating the maximum function for three values based on the
+"LogSumExp" function.
 
-:math:`f_{max}(x, y, z, c) = c \\cdot ln(exp(x/c)+exp(y/c)+exp(z/c))`
+:math:`f_{max}(x, y, z, c) = c \cdot ln(exp(x/c)+exp(y/c)+exp(z/c))`
 
-The following example shows the different degree of approximation of
-the maximum function for four different smoothing parameters:
+The following example shows the different degree of approximation of the maximum
+function for four different smoothing parameters:
 
 >>> for value in range(11):
 ...     if value == 0:
@@ -514,14 +500,13 @@ z_value, par=3.0,  par=1.0,  par=0.3,  par=0.0
       9, 9.701888, 9.018150, 9.000000, 9.000000
      10, 10.519024, 10.006715, 10.00000, 10.00000
 
-With the highest value of the smoothing parameter (3.0), the resulting
-line is relatively straight.  With the lowest smoothing parameter (0.0),
-the result is identical with the usual (discontinuous) maximum function.
+With the highest value of the smoothing parameter (3.0), the resulting line is
+relatively straight.  With the lowest smoothing parameter (0.0), the result is
+identical to the usual (discontinuous) maximum function.
 
-Function `smooth_max2` protects itself against numerical underflow and
-overflow.  In the following example, extreme values are added to the `x`,
-the `y`, and the `z` value of 5, 6, and 7, respectively.  The degree of
-smoothing is always identical:
+Function `smooth_max2` protects itself against numerical underflow and overflow.  In
+the following example, extreme values are added to the `x`, the `y`, and the `z` value
+of 5, 6, and 7, respectively.  The degree of smoothing is always identical:
 
 >>> for test in ["-1e8", "0.0", "1e8"]:
 ...     round_(test, end=", ")
@@ -534,13 +519,13 @@ smoothing is always identical:
 smooth_min2
 ___________
 
-Smoothing kernel for approximating the minimum function for two
-values based on the LogSumExp function.
+Smoothing kernel for approximating the minimum function for two values based on the
+LogSumExp function.
 
-:math:`f_{max}(x, y, z, c) = -c \\cdot ln(exp(x/-c)+exp(y/-c)+exp(z/-c))`
+:math:`f_{max}(x, y, z, c) = -c \cdot ln(exp(x/-c)+exp(y/-c)+exp(z/-c))`
 
-The following example shows the different degree of approximation of
-the minimum function for four different smoothing parameters:
+The following example shows the different degree of approximation of the minimum
+function for four different smoothing parameters:
 
 >>> for value in range(11):
 ...     if value == 0:
@@ -566,14 +551,13 @@ z_value, par=3.0,  par=1.0,  par=0.3,  par=0.0
       9, 4.298112, 4.981850, 5.000000, 5.000000
      10, 4.480976, 4.993285, 5.000000, 5.000000
 
-With the highest value of the smoothing parameter (3.0), the resulting
-line is relatively straight.  With the lowest smoothing parameter (0.0),
-the result is identical with the usual (discontinuous) minimum function.
+With the highest value of the smoothing parameter (3.0), the resulting line is
+relatively straight.  With the lowest smoothing parameter (0.0), the result is
+identical to the usual (discontinuous) minimum function.
 
-Function `smooth_min2` protects itself against numerical underflow and
-overflow.  In the following example, extreme values are added to the `x`,
-the `y`, and the `z` value of 5, 6, and 7, respectively.  The degree of
-smoothing is always identical:
+Function `smooth_min2` protects itself against numerical underflow and overflow.  In
+the following example, extreme values are added to the `x`, the `y`, and the `z` value
+of 5, 6, and 7, respectively.  The degree of smoothing is always identical:
 
 >>> for test in ["-1e8", " 0.0", " 1e8"]:
 ...     round_(test, end=", ")
@@ -582,6 +566,44 @@ smoothing is always identical:
 -1e8, 4.592394
  0.0, 4.592394
  1e8, 4.592394
+
+
+filter_norm
+___________
+
+Filter kernel based on the normal distribution for smoothly turning additional function
+terms around specific values on or off.
+
+:math:`f_{norm}(x) =
+exp \left( -\frac{1}{2} \cdot \left( \frac{x - \mu}{\sigma} \right)^2 \right)`
+
+The higher the given sigma value, the wider is `filter_norm`'s radius of action.  In
+contrast to the complete normal distribution, the highest value is always one (except
+for a sigma value of zero, for which `filter_norm` should never impact any results):
+
+>>> for value in range(11):
+...     if value == 0:
+...         print("      x,  sigma=2,  sigma=1,  sigma=0")
+...     round_(value, width=7, lfill=" ", end=", ")
+...     for i, sigma in enumerate([2.0, 1.0, 0.0]):
+...         result = smoothutils.filter_norm(value, 5.0, sigma)
+...         round_(result, width=8, rfill="0", end="")
+...         if i < 2:
+...             round_("", end=", ")
+...         else:
+...             round_("")
+      x,  sigma=2,  sigma=1,  sigma=0
+      0, 0.043937, 0.000004, 0.000000
+      1, 0.135335, 0.000335, 0.000000
+      2, 0.324652, 0.011109, 0.000000
+      3, 0.606531, 0.135335, 0.000000
+      4, 0.882497, 0.606531, 0.000000
+      5, 1.000000, 1.000000, 0.000000
+      6, 0.882497, 0.606531, 0.000000
+      7, 0.606531, 0.135335, 0.000000
+      8, 0.324652, 0.011109, 0.000000
+      9, 0.135335, 0.000335, 0.000000
+     10, 0.043937, 0.000004, 0.000000
 
 """
 
@@ -656,106 +678,87 @@ cpdef inline double _min(double x_value, double y_value) nogil:
     """
     if x_value < y_value:
         return x_value
-    else:
-        return y_value
+    return y_value
 
 
 cpdef inline double smooth_logistic1(double value, double parameter) nogil:
     """Smoothing kernel based on the logistic function."""
     cdef double temp
-    if parameter <= 0.:
-        if value < 0.:
-            return 0.
-        elif value == 0.:
-            return .5
-        else:
-            return 1.
-    else:
-        temp = value/parameter
-        if temp < MAX_LOG_FLOAT:
-            return 1.-1./(1.+exp(temp))
-        else:
-            return 1.
+    if parameter <= 0.0:
+        if value < 0.0:
+            return 0.0
+        elif value == 0.0:
+            return 0.5
+        return 1.0
+    temp = value/parameter
+    if temp < MAX_LOG_FLOAT:
+        return 1.0 - 1.0 / (1.0 + exp(temp))
+    return 1.0
 
 
 cpdef inline double smooth_logistic1_derivative2(
         double value, double parameter) nogil:
-    """Derivative of the function `smooth_logistic1` with respect to its
-    input value."""
+    """Derivative of the function `smooth_logistic1` with respect to its input value."""
     cdef double temp
-    if parameter <= 0.:
-        if value == 0.:
+    if parameter <= 0.0:
+        if value == 0.0:
             return inf
-        else:
-            return 0.
-    else:
-        temp = value/parameter
-        if temp < MAX_LOG_FLOAT:
-            return exp(temp)/(parameter*(exp(temp)+1)**2)
-        else:
-            return 0.
+        return 0.0
+    temp = value / parameter
+    if temp < MAX_LOG_FLOAT:
+        return exp(temp) / (parameter * (exp(temp) + 1.0) ** 2)
+    return 0.0
 
 
 cpdef inline double smooth_logistic2(double value, double parameter) nogil:
     """Smoothing kernel based on the integral of the logistic function."""
     cdef double temp
-    if parameter <= 0.:
-        if value < 0.:
-            return 0.
-        else:
-            return value
-    else:
-        temp = value/parameter
-        if temp < MAX_LOG_FLOAT:
-            return parameter*log(1.+exp(temp))
-        else:
-            return value
+    if parameter <= 0.0:
+        if value < 0.0:
+            return 0.0
+        return value
+    temp = value / parameter
+    if temp < MAX_LOG_FLOAT:
+        return parameter * log(1.0 + exp(temp))
+    return value
 
 cpdef inline double smooth_logistic2_derivative2(
         double value, double parameter) nogil:
-    """Derivative of the function `smooth_logistic2` with respect to its
-    input value."""
+    """Derivative of the function `smooth_logistic2` with respect to its input value."""
     cdef double temp
-    if parameter <= 0.:
-        if value < 0.:
-            return 0.
-        else:
-            return 1.
-    else:
-        temp = value/parameter
-        if temp < MAX_LOG_FLOAT:
-            return exp(temp)/(exp(temp)+1.)
-        else:
-            return 1.
+    if parameter <= 0.0:
+        if value < 0.0:
+            return 0.0
+        return 1.0
+    temp = value / parameter
+    if temp < MAX_LOG_FLOAT:
+        return exp(temp) / (exp(temp) + 1.0)
+    return 1.0
 
 
 cpdef inline double smooth_logistic2_derivative1(
         double value, double parameter) nogil:
-    """Derivative of the function `smooth_logistic2` with respect to its
-    smoothing parameter."""
+    """Derivative of the function `smooth_logistic2` with respect to its smoothing 
+    parameter."""
     cdef double temp
-    if parameter <= 0.:
-        if value == 0.:
-            return log(2.)
-        else:
-            return 0.
-    else:
-        temp = -value/parameter
-        if temp < MAX_LOG_FLOAT:
-            return value/(parameter*exp(-temp)+parameter)+log(exp(temp)+1.)
-        else:
-            return 0.
+    if parameter <= 0.0:
+        if value == 0.0:
+            return log(2.0)
+        return 0.0
+    temp = -value / parameter
+    if temp < MAX_LOG_FLOAT:
+        return value/(parameter * exp(-temp) + parameter) + log(exp(temp) + 1.0)
+    return 0.0
 
 
 cpdef inline double smooth_logistic3(double value, double parameter) nogil:
-    """Smoothing kernel which combines `smooth_logistic1` and
-    `smooth_logistic2` for the regularization of functions containing
-    two second order discontinuities."""
+    """Smoothing kernel which combines `smooth_logistic1` and `smooth_logistic2` for 
+    the regularization of functions containing two second order discontinuities."""
     cdef double subtotal_1 = smooth_logistic2(value, parameter)
-    cdef double subtotal_2 = 1.-smooth_logistic2(1.-value, parameter)
-    cdef double meta_parameter = max(.025, .54*parameter**1.17)
-    cdef double weight = smooth_logistic1(value-.5, meta_parameter)
-    return  (1.-weight)*subtotal_1 + weight*subtotal_2
+    cdef double subtotal_2 = 1.0 - smooth_logistic2(1.0 - value, parameter)
+    cdef double meta_parameter = max(0.025, 0.54 * parameter**1.17)
+    cdef double weight = smooth_logistic1(value - 0.5, meta_parameter)
+    return  (1.0 - weight) * subtotal_1 + weight * subtotal_2
 
 
 cpdef inline double smooth_max1(
@@ -763,16 +766,15 @@ cpdef inline double smooth_max1(
     double y_value,
     double parameter,
 ) nogil:
-    """Smoothing kernel for approximating the maximum function for two
-    values based on the LogSumExp function."""
+    """Smoothing kernel for approximating the maximum function for two values based on 
+    the LogSumExp function."""
     cdef double m_temp, x_temp, y_temp
     m_temp = _max1(x_value, y_value)
     if parameter <= 0.:
         return m_temp
-    else:
-        x_temp = exp((x_value-m_temp)/parameter)
-        y_temp = exp((y_value-m_temp)/parameter)
-        return m_temp + parameter * log(x_temp + y_temp)
+    x_temp = exp((x_value - m_temp) / parameter)
+    y_temp = exp((y_value - m_temp) / parameter)
+    return m_temp + parameter * log(x_temp + y_temp)
 
 
 cpdef inline double smooth_min1(
@@ -780,8 +782,8 @@ cpdef inline double smooth_min1(
     double y_value,
     double parameter,
 ) nogil:
-    """Smoothing kernel for approximating the minimum function for two
-    values based on the LogSumExp function."""
+    """Smoothing kernel for approximating the minimum function for two values based on 
+    the LogSumExp function."""
     return -smooth_max1(-x_value, -y_value, parameter)
 
 
@@ -791,17 +793,16 @@ cpdef inline double smooth_max2(
     double z_value,
     double parameter,
 ) nogil:
-    """Smoothing kernel for approximating the maximum function for three
-    values based on the LogSumExp function."""
+    """Smoothing kernel for approximating the maximum function for three values based 
+    on the LogSumExp function."""
     cdef double m_temp, x_temp, y_temp, z_temp
     m_temp = _max2(x_value, y_value, z_value)
     if parameter <= 0.:
         return m_temp
-    else:
-        x_temp = exp((x_value-m_temp)/parameter)
-        y_temp = exp((y_value-m_temp)/parameter)
-        z_temp = exp((z_value-m_temp)/parameter)
-        return m_temp + parameter * log(x_temp + y_temp + z_temp)
+    x_temp = exp((x_value - m_temp) / parameter)
+    y_temp = exp((y_value - m_temp) / parameter)
+    z_temp = exp((z_value - m_temp) / parameter)
+    return m_temp + parameter * log(x_temp + y_temp + z_temp)
 
 
 cpdef inline double smooth_min2(
@@ -810,6 +811,14 @@ cpdef inline double smooth_min2(
     double z_value,
     double parameter,
 ) nogil:
-    """Smoothing kernel for approximating the minimum function for three
-    values based on the LogSumExp function."""
+    """Smoothing kernel for approximating the minimum function for three values based 
+    on the LogSumExp function."""
     return -smooth_max2(-x_value, -y_value, -z_value, parameter)
+
+
+cpdef double filter_norm(double value, double mean, double std) nogil:
+    """Filter kernel based on the normal distribution for smoothly turning additional 
+    function terms around specific values on or off."""
+    if std > 0.0:
+        return exp(-0.5 * ((value - mean) / std) ** 2)
+    return 0.0

@@ -73,6 +73,7 @@ False
 # ...from standard library
 from __future__ import annotations
 import abc
+import collections
 import contextlib
 import copy
 import itertools
@@ -250,8 +251,8 @@ _registry_fusedvariable: Dict[str, FusedVariable] = {}
 
 
 class FusedVariable:
-    """Combines |InputSequence| and |OutputSequence| subclasses of different models
-    dealing with the same property in a single variable.
+    """Combines |InputSequence|, |ReceiverSequence|, and |OutputSequence| subclasses of
+    different models dealing with the same property in a single variable.
 
     Class |FusedVariable| is one possible type of property |Node.variable| of class
     |Node|.  We need it in some *HydPy* projects where the involved models not only
@@ -262,11 +263,12 @@ class FusedVariable:
 
     Using class |FusedVariable| is easiest to explain by a concrete example.  Assume we
     use |conv_v001| to interpolate the air temperature for a specific location.  We use
-    this temperature as input to the |evap_fao56| model, which requires this and other
-    meteorological data to calculate potential evapotranspiration.  Further, we pass
-    the estimated potential evapotranspiration as input to |lland_v1| for calculating
-    the actual evapotranspiration, which receives it through a submodel instance of
-    |evap_io|.  Hence, we need to connect the output sequence
+    this temperature as input to an |meteo_temp_io| model, which passes it to an
+    |evap_fao56| model, which requires this and other meteorological data to calculate
+    potential evapotranspiration.  Further, we pass the estimated potential
+    evapotranspiration as input to |lland_v1| for calculating the actual
+    evapotranspiration, which receives it through a submodel instance of |evap_io|.
+    Hence, we need to connect the output sequence
     |evap_fluxes.MeanReferenceEvapotranspiration| of |evap_fao56| with the input
     sequence |evap_inputs.ReferenceEvapotranspiration| of |evap_io|.
 
@@ -277,22 +279,22 @@ class FusedVariable:
     Additionally, |lland_v1| requires temperature data itself for modelling snow
     processes, introducing the problem that we need to use the same data (the output of
     |conv_v001|) as the input of two differently named input sequences
-    (|evap_inputs.AirTemperature| and |lland_inputs.TemL| for |evap_fao56| and
+    (|meteo_inputs.Temperature| and |lland_inputs.TemL| for |meteo_temp_io| and
     |lland_v1|, respectively).
 
     We need to create two |FusedVariable| objects, for our concrete example.  `E`
     combines |evap_fluxes.MeanReferenceEvapotranspiration| and
     |evap_inputs.ReferenceEvapotranspiration| and `T` combines
-    |evap_inputs.AirTemperature| and |lland_inputs.TemL| (for convenience, we import
+    |meteo_inputs.Temperature| and |lland_inputs.TemL| (for convenience, we import
     their globally available aliases):
 
     >>> from hydpy import FusedVariable
-    >>> from hydpy.inputs import (
-    ...     evap_ReferenceEvapotranspiration, evap_AirTemperature, lland_TemL)
-    >>> from hydpy.outputs import evap_MeanReferenceEvapotranspiration
-    >>> E = FusedVariable(
-    ...     "E", evap_MeanReferenceEvapotranspiration, evap_ReferenceEvapotranspiration)
-    >>> T = FusedVariable("T", evap_AirTemperature, lland_TemL)
+    >>> from hydpy.aliases import (
+    ...     evap_inputs_ReferenceEvapotranspiration, meteo_inputs_Temperature,
+    ...     lland_inputs_TemL, evap_fluxes_MeanReferenceEvapotranspiration)
+    >>> E = FusedVariable("E", evap_inputs_ReferenceEvapotranspiration,
+    ...                        evap_fluxes_MeanReferenceEvapotranspiration)
+    >>> T = FusedVariable("T", meteo_inputs_Temperature, lland_inputs_TemL)
 
     Now we can construct the network:
 
@@ -325,9 +327,12 @@ class FusedVariable:
     >>> model_conv.parameters.control.maxnmbinputs(1)
     >>> model_conv.parameters.update()
     >>> conv.model = model_conv
-    >>> evap.model = prepare_model("evap_fao56")
+    >>> model = prepare_model("evap_fao56")
+    >>> model.tempmodel = prepare_model("meteo_temp_io")
+    >>> evap.model = model
     >>> model = prepare_model("lland_v1")
-    >>> model.petmodel = prepare_model("evap_io")
+    >>> model.aetmodel = prepare_model("evap_minhas")
+    >>> model.aetmodel.petmodel = prepare_model("evap_io")
     >>> lland.model = model
 
     We assign a temperature value to node `t1`:
@@ -342,13 +347,13 @@ class FusedVariable:
     sim(-273.15)
 
     Without further configuration, |evap_fao56| cannot perform any simulation steps.
-    Hence, we just call its |Model.load_data| method to show that its input sequence
-    |evap_inputs.AirTemperature| is well connected to the |Sim| sequence of node `t2`
-    and receives the correct data:
+    Hence, we just call its |Model.load_data| method to show that the input sequence
+    |meteo_inputs.Temperature| of its submodel is well connected to the |Sim| sequence
+    of node `t2` and receives the correct data:
 
-    >>> evap.model.load_data()
-    >>> evap.model.sequences.inputs.airtemperature
-    airtemperature(-273.15)
+    >>> evap.model.load_data(0)
+    >>> evap.model.tempmodel.sequences.inputs.temperature
+    temperature(-273.15)
 
     The output sequence |evap_fluxes.MeanReferenceEvapotranspiration| is also well
     connected.  A call to method |Model.update_outputs| passes its (manually set) value
@@ -363,10 +368,10 @@ class FusedVariable:
     |evap_inputs.ReferenceEvapotranspiration| receive the current values of nodes `t2`
     and `e`:
 
-    >>> lland.model.load_data()
+    >>> lland.model.load_data(0)
     >>> lland.model.sequences.inputs.teml
     teml(-273.15)
-    >>> lland.model.petmodel.sequences.inputs.referenceevapotranspiration
+    >>> lland.model.aetmodel.petmodel.sequences.inputs.referenceevapotranspiration
     referenceevapotranspiration(999.9)
 
     When defining fused variables, class |FusedVariable| performs some registration
@@ -375,25 +380,25 @@ class FusedVariable:
     once, even when defined in different selection files repeatedly.  Hence, when we
     repeat the definition from above, we get the same object:
 
-    >>> Test = FusedVariable("T", evap_AirTemperature, lland_TemL)
+    >>> Test = FusedVariable("T", meteo_inputs_Temperature, lland_inputs_TemL)
     >>> T is Test
     True
 
     Changing the member sequences of an existing fused variable is not allowed:
 
-    >>> from hydpy.inputs import hland_T
-    >>> FusedVariable("T", hland_T, lland_TemL)
+    >>> from hydpy.aliases import hland_inputs_T
+    >>> FusedVariable("T", hland_inputs_T, lland_inputs_TemL)
     Traceback (most recent call last):
     ...
     ValueError: The sequences combined by a FusedVariable object cannot be changed.  \
-The already defined sequences of the fused variable `T` are `evap_AirTemperature and \
-lland_TemL` instead of `hland_T and lland_TemL`.  Keep in mind, that `name` is the \
-unique identifier for fused variable instances.
+The already defined sequences of the fused variable `T` are `lland_inputs_TemL and \
+meteo_inputs_Temperature` instead of `hland_inputs_T and lland_inputs_TemL`.  Keep in \
+mind, that `name` is the unique identifier for fused variable instances.
 
     Defining additional fused variables with the same member sequences is not advisable
     but is allowed:
 
-    >>> Temp = FusedVariable("Temp", evap_AirTemperature, lland_TemL)
+    >>> Temp = FusedVariable("Temp", meteo_inputs_Temperature, lland_inputs_TemL)
     >>> T is Temp
     False
 
@@ -411,7 +416,7 @@ unique identifier for fused variable instances.
     >>> FusedVariable.get_registry()
     ()
     >>> t2.variable
-    FusedVariable("T", evap_AirTemperature, lland_TemL)
+    FusedVariable("T", lland_inputs_TemL, meteo_inputs_Temperature)
 
     .. testsetup::
 
@@ -468,10 +473,8 @@ unique identifier for fused variable instances.
             yield variable
 
     def __contains__(self, item: object) -> bool:
-        if isinstance(
-            item,
-            (sequencetools.InputSequence, sequencetools.OutputSequence),
-        ):
+        sqt = sequencetools
+        if isinstance(item, (sqt.LinkSequence, sqt.InputSequence, sqt.OutputSequence)):
             item = type(item)
         return item in self._variables
 
@@ -1294,6 +1297,229 @@ class Elements(Devices["Element"]):
         """Return class |Element|."""
         return Element
 
+    @property
+    def collectives(self) -> Dict[Optional[str], Tuple[Element, ...]]:
+        """The names and members of all currently relevant collectives.
+
+        Note that all |Element| instances not belonging to any |Element.collective| are
+        returned as a separate group:
+
+        >>> from hydpy import Element, Elements
+        >>> Elements().collectives
+        {}
+        >>> for group, elements in Elements(
+        ...     Element("a"), Element("b1", collective="b"), Element("c"),
+        ...     Element("d1", collective="d"), Element("b2", collective="b")
+        ... ).collectives.items():
+        ...     print(group, [e.name for e in elements])
+        None ['a', 'c']
+        b ['b1', 'b2']
+        d ['d1']
+        """
+        collectives = collections.defaultdict(lambda: [])
+        for element in self:
+            collectives[element.collective].append(element)
+        return {c: tuple(e) for c, e in collectives.items()}
+
+    def unite_collectives(self) -> Elements:
+        """Create overarching elements for all original elements that belong to a
+        collective.
+
+        All elements of the same |Element.collective| must be handled as one entity
+        during simulation.  A typical use case is that individual elements describe
+        different channels of a large river network, and all of them must be handled
+        simultaneously by a single routing model instance to account for backwater
+        effects.  We create such an example by combining instances of |musk_classic|
+        (for "hydrological" routing neglecting backwater effects) and |sw1d_channel|
+        (for "hydrodynamic" routing considering backwater effects).
+
+        First, we create a |FusedVariable| object for connecting the inlets and outlets
+        of |musk_classic| and |sw1d_channel|:
+
+        >>> from hydpy import FusedVariable
+        >>> from hydpy.aliases import (musk_inlets_Q, sw1d_inlets_LongQ,
+        ...                            musk_outlets_Q, sw1d_outlets_LongQ)
+        >>> q = FusedVariable("Q", musk_inlets_Q, sw1d_inlets_LongQ,
+        ...                   musk_outlets_Q, sw1d_outlets_LongQ)
+
+        The spatial setting is more concise than realistic and consists of four
+        channels.  Channel `A` discharges into channel `B`, which discharges into
+        channel `C`, which discharges into channel `D`.  We neglect backwater effects
+        within channels `A` and `D`.  Hence we do not need to associate them with a
+        collective and |musk_classic| becomes an appropriate choice.  Channel `B` and
+        `C` are represented by separate collectives.  Hence, the setting could account
+        for backwater effects within both channels but not between them.  Channel `B`
+        consists only of a single subchannel (represented by element `b`), while
+        channel `C` consists of two subchannels (represented by elements `c1` and
+        `c2`):
+
+        >>> from hydpy import Element, Elements, Nodes
+        >>> q_a, q_a_b, q_b_c1, q_c1_c2, q_c2_d, q_d = Nodes(
+        ...     "q_a", "q_a_b", "q_b_c1", "q_c1_c2", "q_c2_d", "q_d",
+        ...     defaultvariable=q)
+        >>> e_a = Element("e_a", inlets=q_a, outlets=q_a_b)
+        >>> e_b = Element("e_b", collective="B", inlets=q_a_b, outlets=q_b_c1)
+        >>> e_c1 = Element("e_c1", collective="C", inlets=q_b_c1, outlets=q_c1_c2)
+        >>> e_c2 = Element("e_c2", collective="C", inlets=q_c1_c2, outlets=q_c2_d)
+        >>> e_d = Element("e_d", inlets=q_c2_d, outlets=q_d)
+        >>> elements = Elements(e_a, e_b, e_c1, e_c2, e_d)
+
+        Method |Elements.unite_collectives| expects only those elements belonging to a
+        collective to come with a ready |Model| instance.  So we only need to prepare
+        |sw1d_channel| instances for elements `b`, `c1`, and `c2`, including the
+        required submodels:
+
+        >>> from hydpy import prepare_model, pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
+        >>> for element in (e_b, e_c1, e_c2):
+        ...     channel = prepare_model("sw1d_channel")
+        ...     channel.parameters.control.nmbsegments(1)
+        ...     add_storage = channel.add_storagemodel_v1
+        ...     with add_storage("sw1d_storage", position=0, update=False):
+        ...         pass
+        ...     if element in (e_b, e_c1):
+        ...         with channel.add_routingmodel_v1("sw1d_q_in", position=0):
+        ...             pass
+        ...     if element is e_c1:
+        ...         with channel.add_routingmodel_v2("sw1d_lias", position=1):
+        ...             lengthupstream(1.0)
+        ...             lengthdownstream(1.0)
+        ...     if element in (e_b, e_c2):
+        ...         with channel.add_routingmodel_v3("sw1d_weir_out", position=1):
+        ...             pass
+        ...     element.model = channel
+
+        Based on the defined five elements, method |Elements.unite_collectives| returns
+        four:
+
+        >>> elements.unite_collectives()
+        Elements("B", "C", "e_a", "e_d")
+
+        The returned elements `a` and `d` are the same as those defined initially, as
+        they do not belong to any collectives:
+
+        >>> collectives = elements.unite_collectives()
+        >>> collectives.e_a is e_a
+        True
+
+        However, the elements `B` and `C` are new.  `B` replaces element `b`, and `C`
+        replaces elements `c1` and `c2`.  Both handle instances of |sw1d_network|,
+        which is the suitable model for connecting and applying the submodels of
+        |sw1d_channel| (see |ModelCoupler|):
+
+        >>> e_b, e_c = collectives.B, collectives.C
+        >>> e_b.model.name
+        'sw1d_network'
+
+        The new element `B` has the same inlet and outlet nodes as `b`:
+
+        >>> e_b
+        Element("B",
+                inlets="q_a_b",
+                outlets="q_b_c1")
+
+        However, `C` adopts both outlet nodes of `c1` and `c2` but only the inlet node
+        of `c1`, which is relevant for clarifying the |HydPy.deviceorder| during
+        simulations:
+
+        >>> e_c
+        Element("C",
+                inlets="q_b_c1",
+                outlets=["q_c1_c2", "q_c2_d"])
+
+        The following technical checks ensure the underlying coupling mechanisms
+        actually worked:
+
+        >>> assert e_b.model.storagemodels.number == 1
+        >>> assert e_c.model.storagemodels.number == 2
+        >>> assert e_b.model.routingmodels.number == 2
+        >>> assert e_c.model.routingmodels.number == 3
+        >>> assert e_c.model.routingmodels[1].routingmodelsdownstream[0] is \
+e_c.model.routingmodels[2]
+
+        |Elements.unite_collectives| raises the following error if an element belonging
+        to a collective does not handle a |Model| instance:
+
+        >>> e_d.collective = "D"
+        >>> elements.unite_collectives()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: While trying to unite the \
+elements belonging to collective `D`, the following error occurred: The model object \
+of element `e_d` has been requested but not been prepared so far.
+
+        |Elements.unite_collectives| raises the following error if an element belonging
+        to a collective does handle an unsuitable |Model| instance:
+
+        >>> e_d.model = prepare_model("musk_classic")
+        >>> elements.unite_collectives()
+        Traceback (most recent call last):
+        ...
+        TypeError: While trying to unite the elements belonging to collective `D`, \
+the following error occurred: Model `musk_classic` of element `e_d` does not provide \
+a function for coupling models that belong to the same collective.
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+            >>> FusedVariable.clear_registry()
+        """
+        elements: List[Element] = []
+        for collective, subelements in self.collectives.items():
+            if collective is None:
+                elements.extend(subelements)
+            else:
+                try:
+                    outlets = set(
+                        outlet
+                        for subelement in subelements
+                        for outlet in subelement.outlets
+                    )
+                    inlets = set(
+                        inlet
+                        for subelement in subelements
+                        for inlet in subelement.inlets
+                        if inlet not in outlets
+                    )
+                    outputs = set(
+                        output
+                        for subelement in subelements
+                        for output in subelement.outputs
+                    )
+                    inputs = set(
+                        input_
+                        for subelement in subelements
+                        for input_ in subelement.inputs
+                        if input_ not in outputs
+                    )
+                    _registry[Element].pop(collective, None)
+                    newelement = Element(
+                        collective,
+                        inlets=inlets,
+                        outlets=outlets,
+                        inputs=inputs,
+                        outputs=outputs,
+                    )
+                    del _selection[Element][collective]
+                    elements.append(newelement)
+                    if (couple_models := subelements[0].model.couple_models) is None:
+                        raise TypeError(
+                            f"Model {objecttools.elementphrase(subelements[0].model)} "
+                            f"does not provide a function for coupling models that "
+                            f"belong to the same collective."
+                        )
+                    nodes = outlets.union(inlets).union(inputs).union(outputs)
+                    newelement.model = couple_models(
+                        nodes=Nodes(nodes), elements=Elements(subelements)
+                    )
+                    newelement.model.update_parameters()
+                except BaseException:
+                    objecttools.augment_excmessage(
+                        f"While trying to unite the elements belonging to collective "
+                        f"`{collective}`"
+                    )
+        return Elements(elements)
+
     @printtools.print_progress
     def prepare_models(self) -> None:
         """Call method |Element.prepare_model| of all handle |Element| objects.
@@ -1395,7 +1621,7 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
         if auxfiler:
             auxfiler.write(parameterstep=parameterstep, simulationstep=simulationstep)
         for element in printtools.progressbar(self):
-            element.model.parameters.save_controls(
+            element.model.save_controls(
                 parameterstep=parameterstep,
                 simulationstep=simulationstep,
                 auxfiler=auxfiler,
@@ -1406,14 +1632,14 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
         """Save the initial conditions of the |Model| object handled by each |Element|
         object."""
         for element in printtools.progressbar(self):
-            element.model.sequences.load_conditions()
+            element.model.load_conditions()
 
     @printtools.print_progress
     def save_conditions(self) -> None:
         """Save the calculated conditions of the |Model| object handled by each
         |Element| object."""
         for element in printtools.progressbar(self):
-            element.model.sequences.save_conditions()
+            element.model.save_conditions()
 
     def trim_conditions(self) -> None:
         """Call method |Sequences.trim_conditions| of the |Sequences| object handled
@@ -1428,19 +1654,19 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
             element.model.sequences.reset()
 
     @property
-    def conditions(self) -> hydpytools.ConditionsType:
+    def conditions(self) -> Conditions:
         """A nested dictionary that contains the values of all |ConditionSequence|
         objects of all currently handled models.
 
         See the documentation on property |HydPy.conditions| for further information.
         """
-        return {element.name: element.model.sequences.conditions for element in self}
+        return {element.name: element.model.conditions for element in self}
 
     @conditions.setter
-    def conditions(self, conditions: hydpytools.ConditionsType) -> None:
+    def conditions(self, conditions: Conditions) -> None:
         for name, subconditions in conditions.items():
             element = getattr(self, name)
-            element.model.sequences.conditions = subconditions
+            element.model.conditions = subconditions
 
     @printtools.print_progress
     def prepare_allseries(self, allocate_ram: bool = True, jit: bool = False) -> None:
@@ -1830,23 +2056,23 @@ following error occurred: Adding devices to immutable Elements objects is not al
         Node("test2", variable="H")
         >>> from hydpy.models.hland.hland_inputs import T
         >>> Node("test3", variable=T)
-        Node("test3", variable=hland_T)
+        Node("test3", variable=hland_inputs_T)
 
         The last example above shows that the string representations of nodes handling
         "class variables" use the aliases importable from the top level of the *HydPy*
         package:
 
-        >>> from hydpy.inputs import hland_P
-        >>> Node("test4", variable=hland_P)
-        Node("test4", variable=hland_P)
+        >>> from hydpy.aliases import hland_inputs_P
+        >>> Node("test4", variable=hland_inputs_P)
+        Node("test4", variable=hland_inputs_P)
 
         For some complex *HydPy* projects, one may need to fall back on |FusedVariable|
         objects.  The string representation then relies on the name of the fused
         variable:
 
         >>> from hydpy import FusedVariable
-        >>> from hydpy.inputs import lland_Nied
-        >>> Precipitation = FusedVariable("Precip", hland_P, lland_Nied)
+        >>> from hydpy.aliases import lland_inputs_Nied
+        >>> Precipitation = FusedVariable("Precip", hland_inputs_P, lland_inputs_Nied)
         >>> Node("test5", variable=Precipitation)
         Node("test5", variable=Precip)
 
@@ -1867,7 +2093,8 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
 
     @property
     def deploymode(self) -> DeployMode:
-        """Defines the kind of information a node offers its exit elements.
+        """Defines the kind of information a node offers its exit elements, eventually,
+        its entry elements.
 
         *HydPy* supports the following modes:
 
@@ -1889,6 +2116,13 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
           * obs_oldsim: Combination of mode `obs` and `oldsim`.  Mode `obs_oldsim`
             gives priority to the provision of observation values.  Old simulation
             values serve as a replacement for missing observed values.
+          * obs_bi: Similar to the `obs` mode but triggers "bidirectional" deployment.
+            All bidirectional modes only apply if the upstream element(s) do not
+            calculate data for but expect from their downstream nodes.  A typical
+            example is using discharge measurements as lower boundary conditions for a
+            hydrodynamical flood routing method.
+          * oldsim_bi: The bidirectional version of the `oldsim` mode.
+          * obs_oldsim_bi: The bidirectional version of the `obs_oldsim` mode.
 
         One relevant difference between modes `obs` and `oldsim` is that the external
         values are either handled by the `obs` or the `sim` sequence object.  Hence,
@@ -1915,6 +2149,15 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         >>> node.deploymode = "obs_oldsim"
         >>> node.deploymode
         'obs_oldsim'
+        >>> node.deploymode = "oldsim_bi"
+        >>> node.deploymode
+        'oldsim_bi'
+        >>> node.deploymode = "obs_bi"
+        >>> node.deploymode
+        'obs_bi'
+        >>> node.deploymode = "obs_oldsim_bi"
+        >>> node.deploymode
+        'obs_oldsim_bi'
         >>> node.deploymode = "newsim"
         >>> node.deploymode
         'newsim'
@@ -1923,28 +2166,49 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         ...
         ValueError: When trying to set the routing mode of node `test`, the value \
 `oldobs` was given, but only the following values are allowed: `newsim`, `oldsim`, \
-`obs`, `obs_newsim`, and `obs_oldsim`.
+`obs`, `obs_newsim`, `obs_oldsim`, `obs_bi.`, `oldsim_bi`, and `obs_oldsim_bi`.
         """
         return self._deploymode
 
     @deploymode.setter
     def deploymode(self, value: DeployMode) -> None:
-        if value in ("oldsim", "obs_oldsim"):
-            self.__blackhole = pointerutils.Double(0.0)
-        elif value not in ("newsim", "obs", "obs_newsim", "obs_oldsim"):
+        def _assert_never(v: Never) -> NoReturn:
             raise ValueError(
                 f"When trying to set the routing mode of node `{self.name}`, the "
                 f"value `{value}` was given, but only the following values are "
-                f"allowed: `newsim`, `oldsim`, `obs`, `obs_newsim`, and `obs_oldsim`."
+                f"allowed: `newsim`, `oldsim`, `obs`, `obs_newsim`, `obs_oldsim`, "
+                f"`obs_bi.`, `oldsim_bi`, and `obs_oldsim_bi`."
             )
+
+        # due to https://github.com/python/mypy/issues/9718:
+        # pylint: disable=consider-using-in,too-many-boolean-expressions
+
+        if (
+            value == "newsim"
+            or value == "obs"
+            or value == "obs_newsim"
+            or value == "obs_bi"
+            or value == "oldsim_bi"
+            or value == "obs_oldsim_bi"
+        ):
+            pass
+        elif value == "oldsim" or value == "obs_oldsim":
+            self.__blackhole = pointerutils.Double(0.0)
+        else:
+            _assert_never(value)
         self._deploymode = value
         for element in itertools.chain(self.entries, self.exits):
             model: Optional[modeltools.Model]
             model = exceptiontools.getattr_(element, "model", None)
-            if model:
+            if model and not model.COMPOSITE:
                 model.connect()
 
-    def get_double(self, group: str) -> pointerutils.Double:
+    def get_double(
+        self,
+        group: Literal[
+            "inlets", "receivers", "inputs", "outlets", "senders", "outputs"
+        ],
+    ) -> pointerutils.Double:
         """Return the |Double| object appropriate for the given |Element| input or
         output group and the actual |Node.deploymode|.
 
@@ -1960,42 +2224,68 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
 
         The following `test` function shows for a given |Node.deploymode| if method
         |Node.get_double| either returns the |Double| object handling the simulated
-        value (1.0) or the |Double| object handling the observed value (2.0):
+        value (1.0) or the one handling the observed value (2.0):
 
         >>> def test(deploymode):
         ...     node.deploymode = deploymode
-        ...     for group in ("inlets", "receivers", "outlets", "senders"):
-        ...         print(group, node.get_double(group))
+        ...     for group in ( "inlets", "receivers", "inputs"):
+        ...         end = None if group == "inputs" else ", "
+        ...         print(group, node.get_double(group), sep=": ", end=end)
+        ...     for group in ("outlets", "senders", "outputs"):
+        ...         end = None if group == "outputs" else ", "
+        ...         print(group, node.get_double(group), sep=": ", end=end)
 
         In the default mode, nodes (passively) route simulated values by offering the
         |Double| object of sequence |Sim| to all |Element| input and output groups:
 
         >>> test("newsim")
-        inlets 1.0
-        receivers 1.0
-        outlets 1.0
-        senders 1.0
+        inlets: 1.0, receivers: 1.0, inputs: 1.0
+        outlets: 1.0, senders: 1.0, outputs: 1.0
 
         Setting |Node.deploymode| to `obs` means that a node receives simulated values
         (from group `outlets` or `senders`) but provides observed values (to group
         `inlets` or `receivers`):
 
         >>> test("obs")
-        inlets 2.0
-        receivers 2.0
-        outlets 1.0
-        senders 1.0
+        inlets: 2.0, receivers: 2.0, inputs: 2.0
+        outlets: 1.0, senders: 1.0, outputs: 1.0
 
         With |Node.deploymode| set to `oldsim`, the node provides (previously)
-        simulated values (to group `inlets` or `receivers`) but does not receive any
-        values.  Method |Node.get_double| just returns a dummy |Double| object
-        initialised to 0.0 in this case (for group `outlets` or `senders`):
+        simulated values (to group `inlets`, `receivers`, or `inputs`) but does not
+        receive any.  Method |Node.get_double| returns a dummy |Double| object
+        initialised to 0.0 in this case (for group `outlets`, `senders`, or `outputs`):
 
         >>> test("oldsim")
-        inlets 1.0
-        receivers 1.0
-        outlets 0.0
-        senders 0.0
+        inlets: 1.0, receivers: 1.0, inputs: 1.0
+        outlets: 0.0, senders: 0.0, outputs: 0.0
+
+        For `obs_newsim`, the result is like for `obs` because, for missing data,
+        *HydPy* temporarily copies newly calculated values into the observation
+        sequence during simulation:
+
+        >>> test("obs_newsim")
+        inlets: 2.0, receivers: 2.0, inputs: 2.0
+        outlets: 1.0, senders: 1.0, outputs: 1.0
+
+        Similar holds for the `obs_oldsim` mode, but here |Node.get_double| must ensure
+        newly calculated values do not overwrite the "old" ones:
+
+        >>> test("obs_oldsim")
+        inlets: 2.0, receivers: 2.0, inputs: 2.0
+        outlets: 0.0, senders: 0.0, outputs: 0.0
+
+        All "bidirectional" modes require symmetrical connections, as they long for
+        passing the same information in the downstream and the upstream direction:
+
+        >>> test("obs_bi")
+        inlets: 2.0, receivers: 2.0, inputs: 2.0
+        outlets: 2.0, senders: 2.0, outputs: 2.0
+        >>> test("oldsim_bi")
+        inlets: 1.0, receivers: 1.0, inputs: 1.0
+        outlets: 1.0, senders: 1.0, outputs: 1.0
+        >>> test("obs_oldsim_bi")
+        inlets: 2.0, receivers: 2.0, inputs: 2.0
+        outlets: 2.0, senders: 2.0, outputs: 2.0
 
         Other |Element| input or output groups are not supported:
 
@@ -2005,17 +2295,36 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         ValueError: Function `get_double` of class `Node` does not support the given \
 group name `test`.
         """
+        # due to https://github.com/python/mypy/issues/9718:
+        # pylint: disable=consider-using-in,too-many-boolean-expressions
+
+        dm = self.deploymode
+
         if group in ("inlets", "receivers", "inputs"):
-            if not self.deploymode.startswith("obs"):
+            if dm == "newsim" or dm == "oldsim" or dm == "oldsim_bi":
                 return self.sequences.fastaccess.sim
-            return self.sequences.fastaccess.obs
+            if (
+                dm == "obs"
+                or dm == "obs_newsim"
+                or dm == "obs_oldsim"
+                or dm == "obs_bi"
+                or dm == "obs_oldsim_bi"
+            ):
+                return self.sequences.fastaccess.obs
+            assert_never(dm)
+
         if group in ("outlets", "senders", "outputs"):
-            if self.deploymode not in ("oldsim", "obs_oldsim"):
+            if dm == "newsim" or dm == "obs" or dm == "obs_newsim" or dm == "oldsim_bi":
                 return self.sequences.fastaccess.sim
-            return self.__blackhole
+            if dm == "obs_bi" or dm == "obs_oldsim_bi":
+                return self.sequences.fastaccess.obs
+            if dm == "oldsim" or dm == "obs_oldsim":
+                return self.__blackhole
+            assert_never(dm)
+
         raise ValueError(
-            f"Function `get_double` of class `Node` does not "
-            f"support the given group name `{group}`."
+            f"Function `get_double` of class `Node` does not support the given group "
+            f"name `{group}`."
         )
 
     def reset(self, idx: int = 0) -> None:
@@ -2252,8 +2561,7 @@ Attribute timegrids of module `pub` is not defined at the moment.
             if not focus:
                 pyplot.ylim((0.0, None))
             if pyplot.get_fignums():
-                variable = self.variable
-                if variable == "Q":
+                if (variable := str(self.variable)) == "Q":
                     variable = "Q [m³/s]"
                 pyplot.ylabel(variable)
             return pyplot.gcf()
@@ -2277,7 +2585,7 @@ Attribute timegrids of module `pub` is not defined at the moment.
         elif isinstance(variable, FusedVariable):
             variable = str(variable)
         else:
-            variable = f"{variable.__module__.split('.')[2]}_{variable.__name__}"
+            variable = f"{variable.__module__.split('.')[-1]}_{variable.__name__}"
         lines = [f'{prefix}Node("{self.name}", variable={variable},']
         if self.keywords:
             subprefix = f'{" "*(len(prefix)+5)}keywords='
@@ -2312,7 +2620,8 @@ class Element(Device):
        water level of a dam.
 
     You can select the relevant nodes either by passing them explicitly or passing
-    their name both as single objects or as objects contained within an iterable object:
+    their name both as single objects or as objects contained within an iterable
+    object:
 
     >>> from hydpy import Element, Node
     >>> Element("test",
@@ -2526,7 +2835,42 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
     Elements("test")
     >>> test.inlets.inl3.exits
     Elements()
+
+    Some elements might belong to a |Element.collective|, which is a group of elements
+    requiring simultaneous handling during simulation (see method
+    |Elements.unite_collectives|).  If needed, specify the collective's name by the
+    corresponding argument:
+
+    >>> Element("part_1", collective="NileRiver", inlets="inl1")
+    Element("part_1",
+            collective="NileRiver",
+            inlets="inl1")
+
+    The information persists when querying the same element from the internal registry,
+    whether one specifies the collective's name again or not:
+
+    >>> Element("part_1", collective="NileRiver")
+    Element("part_1",
+            collective="NileRiver",
+            inlets="inl1")
+
+    >>> Element("part_1")
+    Element("part_1",
+            collective="NileRiver",
+            inlets="inl1")
+
+    However, changing the collective via the constructor is forbidden as it might
+    result in hard-to-find configuration errors:
+
+    >>> Element("part_1", collective="AmazonRiver")
+    Traceback (most recent call last):
+    ...
+    RuntimeError: The collective name `AmazonRiver` is given, but element `part_1` is \
+already a collective `NileRiver` member.
     """
+
+    collective: Optional[str] = None
+    """The collective the actual |Element| instance belongs to."""
 
     _inlets: Nodes
     _outlets: Nodes
@@ -2539,16 +2883,26 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
     def __init__(
         self,
         value: ElementConstrArg,
+        *,
         inlets: NodesConstrArg = None,
         outlets: NodesConstrArg = None,
         receivers: NodesConstrArg = None,
         senders: NodesConstrArg = None,
         inputs: NodesConstrArg = None,
         outputs: NodesConstrArg = None,
+        collective: Optional[str] = None,
         keywords: MayNonerable1[str] = None,
     ) -> None:
         # pylint: disable=unused-argument
         # required for consistincy with Device.__new__
+        if collective is not None:
+            if (col := self.collective) is None:
+                self.collective = collective
+            elif col != collective:
+                raise RuntimeError(
+                    f"The collective name `{collective}` is given, but element "
+                    f"`{self.name}` is already a collective `{col}` member."
+                )
         if hasattr(self, "new_instance"):
             self._inlets = Nodes(mutable=False)
             self._outlets = Nodes(mutable=False)
@@ -2797,7 +3151,10 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
         self._model = model
         if exceptiontools.getattr_(model, "element", None) is not self:
             model.element = self
-        model.connect()
+        if not model.COMPOSITE:
+            for submodel in model.find_submodels().values():
+                submodel.__hydpy_element__ = self
+            model.connect()
 
     @model.deleter
     def model(self) -> None:
@@ -2899,20 +3256,16 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
     def prepare_allseries(self, allocate_ram: bool = True, jit: bool = False) -> None:
         """Call method |Model.prepare_allseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.prepare_allseries(allocate_ram=allocate_ram, jit=jit)
-        for submodel in self.model.find_submodels().values():
-            submodel.prepare_allseries(allocate_ram=allocate_ram, jit=jit)
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.prepare_allseries(allocate_ram=allocate_ram, jit=jit)
 
     def prepare_inputseries(
         self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
     ) -> None:
         """Call method |Model.prepare_inputseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.prepare_inputseries(
-            allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
-        )
-        for submodel in self.model.find_submodels().values():
-            submodel.prepare_inputseries(
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.prepare_inputseries(
                 allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
             )
 
@@ -2921,99 +3274,84 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
     ) -> None:
         """Call method |Model.prepare_factorseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.prepare_factorseries(allocate_ram=allocate_ram, write_jit=write_jit)
-        for submodel in self.model.find_submodels().values():
-            submodel.prepare_factorseries(
-                allocate_ram=allocate_ram, write_jit=write_jit
-            )
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.prepare_factorseries(allocate_ram=allocate_ram, write_jit=write_jit)
 
     def prepare_fluxseries(
         self, allocate_ram: bool = True, write_jit: bool = False
     ) -> None:
         """Call method |Model.prepare_fluxseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.prepare_fluxseries(allocate_ram=allocate_ram, write_jit=write_jit)
-        for submodel in self.model.find_submodels().values():
-            submodel.prepare_fluxseries(allocate_ram=allocate_ram, write_jit=write_jit)
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.prepare_fluxseries(allocate_ram=allocate_ram, write_jit=write_jit)
 
     def prepare_stateseries(
         self, allocate_ram: bool = True, write_jit: bool = False
     ) -> None:
         """Call method |Model.prepare_stateseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.prepare_stateseries(allocate_ram=allocate_ram, write_jit=write_jit)
-        for submodel in self.model.find_submodels().values():
-            submodel.prepare_stateseries(allocate_ram=allocate_ram, write_jit=write_jit)
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.prepare_stateseries(allocate_ram=allocate_ram, write_jit=write_jit)
 
     def load_allseries(self) -> None:
         """Call method |Model.load_allseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.load_allseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.load_allseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.load_allseries()
 
     def load_inputseries(self) -> None:
         """Call method |Model.load_inputseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.load_inputseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.load_inputseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.load_inputseries()
 
     def load_factorseries(self) -> None:
         """Call method |Model.load_factorseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.load_factorseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.load_factorseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.load_factorseries()
 
     def load_fluxseries(self) -> None:
         """Call method |Model.load_fluxseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.load_fluxseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.load_fluxseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.load_fluxseries()
 
     def load_stateseries(self) -> None:
         """Call method |Model.load_stateseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.load_stateseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.load_stateseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.load_stateseries()
 
     def save_allseries(self) -> None:
         """Call method |Model.save_allseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.save_allseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.save_allseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.save_allseries()
 
     def save_inputseries(self) -> None:
         """Call method |Model.save_inputseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.save_inputseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.save_inputseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.save_inputseries()
 
     def save_factorseries(self) -> None:
         """Call method |Model.save_factorseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.save_factorseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.save_factorseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.save_factorseries()
 
     def save_fluxseries(self) -> None:
         """Call method |Model.save_fluxseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.save_fluxseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.save_fluxseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.save_fluxseries()
 
     def save_stateseries(self) -> None:
         """Call method |Model.save_stateseries| of the currently handled |Model|
         instance and its submodels."""
-        self.model.save_stateseries()
-        for submodel in self.model.find_submodels().values():
-            submodel.save_stateseries()
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.save_stateseries()
 
     def _plot_series(
         self,
@@ -3123,8 +3461,8 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
 
         Without any arguments, |Element.plot_inputseries| prints the time-series of all
         input sequences handled by its |Model| object directly to the screen (in our
-        example, |hland_inputs.P|, |hland_inputs.T|, |hland_inputs.TN|, and
-        |hland_inputs.EPN| of application model |hland_v1|):
+        example, |hland_inputs.P|, |hland_inputs.T|, |evap_inputs.NormalAirTemperature|,
+        and |evap_inputs.NormalEvapotranspiration| of application model |hland_v1|):
 
         >>> land = hp.elements.land_dill
         >>> figure = land.plot_inputseries()
@@ -3278,6 +3616,8 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
             with objecttools.assignrepr_tuple.always_bracketed(False):
                 blanks = " " * (len(prefix) + 8)
                 lines = [f'{prefix}Element("{self.name}",']
+                if (collective := self.collective) is not None:
+                    lines.append(f'{blanks}collective="{collective}",')
                 for groupname in (
                     "inlets",
                     "outlets",

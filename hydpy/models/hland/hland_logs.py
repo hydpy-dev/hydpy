@@ -46,7 +46,7 @@ type `float`, the following error occurred: could not broadcast input array from
 
     NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
 
-    def __call__(self, *args):
+    def __call__(self, *args) -> None:
         try:
             super().__call__(*args)
             self.values[-1] = 0.0

@@ -4,8 +4,8 @@ version: 6.0a0.{build}
 image: Visual Studio 2019
 
 environment:
-  PYPIPA:
-    secure: OYHmXK1t/zHOfA97P+RmCVDWG1ef8lyMQaNK/jmVAXk=
+  TokenPyPI:
+    secure: kkjz662y19aSdDHa+tqlBLsUfJ6VUSNlU4zKumcZYBwCV2RS3CTK9FtxQKGm/OveW0PCY4i80ctDmWH0mCr5TstHTyr0JRs2p61X0skiqRFYj6l0PoR8n2GaMKntWPwILRKUvueYCzDLTIDGGHa2GNWHTAznrYs+nNSu+95zsLmroY1RY4NnhTPrL9RgiPNPT2EbMVmb7dLYAaMgEHqXveU3yRcpNsguuESChBSJOQROQE77JktPpykzSLJGP23c
   matrix:
     - PYTHON: "C:\\Python38-x64"
       make_exe: false
@@ -51,8 +51,8 @@ test_script:
 
 after_test:
   - "echo [pypi] > %USERPROFILE%\\.pypirc"
-  - "echo username: tyralla >> %USERPROFILE%\\.pypirc"
-  - "echo password: %PYPIPA% >> %USERPROFILE%\\.pypirc"
+  - "echo username: __token__ >> %USERPROFILE%\\.pypirc"
+  - "echo password: %TokenPyPI% >> %USERPROFILE%\\.pypirc"
   - ps: if ($env:APPVEYOR_REPO_TAG -eq "true") { Invoke-Expression "twine upload --skip-existing dist/*"} else { write-output "No tag, no deploy"}
     
 artifacts:
@@ -67,7 +67,7 @@ deploy:
   description: 'This is a draft.'
   provider: GitHub
   auth_token:
-    secure: n6oPRXEu1EFeFsmJYY2qnyuEOsb6OuSXQ5kf6CacHvcFcKb6JWXqPYZBzk16ZCBn
+    secure: jj6p/HAFU0awcS+uR2555necfI0pwGewxp8CSm78s/Cg6/nzRNe1fsZKRRiE1lU+
   artifact: Packages,Installer,XSDs
   draft: true
   prerelease: false

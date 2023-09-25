@@ -57,6 +57,7 @@ setuptools.setup(
     install_requires=[
         "black",
         "click",
+        "cython",
         "matplotlib",
         "netcdf4",
         "networkx",

@@ -5,6 +5,7 @@ of hydrological models."""
 # ...from standard library
 from __future__ import annotations
 import builtins
+import contextlib
 import copy
 import inspect
 import itertools
@@ -22,9 +23,12 @@ from hydpy.core import exceptiontools
 from hydpy.core import filetools
 from hydpy.core import masktools
 from hydpy.core import objecttools
+from hydpy.core import propertytools
 from hydpy.core import timetools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
+
+# from hydpy.cythons import modelutils  # actual download below
 
 if TYPE_CHECKING:
     from hydpy.core import auxfiletools
@@ -42,7 +46,7 @@ def trim_kwarg(
     """Helper function for model developers for trimming scalar keyword arguments of
     type |float|.
 
-    Function |trim_kwarg| works similar to function |trim| but targets defining
+    Function |trim_kwarg| works similarly to function |trim| but targets defining
     parameter values via parameter-specific keyword arguments.  Due to the individual
     nature of calculating parameter values from keyword arguments, using |trim_kwarg|
     is less standardisable than using |trim|.  Hence, model developers must include it
@@ -108,68 +112,6 @@ def _warn_trim_kwarg(
     )
 
 
-def get_controlfileheader(
-    model: Union[str, modeltools.Model],
-    parameterstep: Optional[timetools.PeriodConstrArg] = None,
-    simulationstep: Optional[timetools.PeriodConstrArg] = None,
-) -> str:
-    """Return the header of a regular or auxiliary parameter control file.
-
-    The header contains the default coding information, the import command for the
-    given model and the actual parameter and simulation step sizes.
-
-    If you pass the model argument as a string, you have to take care that this string
-    makes sense:
-
-    >>> from hydpy.core.parametertools import get_controlfileheader
-    >>> from hydpy import Period, prepare_model, pub, Timegrids, Timegrid
-    >>> print(get_controlfileheader(model="no model class",
-    ...                             parameterstep="-1h",
-    ...                             simulationstep=Period("1h")))
-    # -*- coding: utf-8 -*-
-    <BLANKLINE>
-    from hydpy.models.no model class import *
-    <BLANKLINE>
-    simulationstep("1h")
-    parameterstep("-1h")
-    <BLANKLINE>
-    <BLANKLINE>
-
-    The safer option is to pass the proper model object.  Besides that, the following
-    example also shows that function |get_controlfileheader| tries to gain the
-    parameter and simulation step sizes from the global |Timegrids| object contained
-    in the module |pub| when necessary:
-
-    >>> model = prepare_model("lland_v1")
-    >>> pub.timegrids = "2000.01.01", "2001.01.01", "1h"
-    >>> print(get_controlfileheader(model=model))
-    # -*- coding: utf-8 -*-
-    <BLANKLINE>
-    from hydpy.models.lland_v1 import *
-    <BLANKLINE>
-    simulationstep("1h")
-    parameterstep("1d")
-    <BLANKLINE>
-    <BLANKLINE>
-
-    .. testsetup::
-
-        >>> del pub.timegrids
-    """
-    options = hydpy.pub.options
-    with options.parameterstep(parameterstep):
-        if simulationstep is None:
-            simulationstep = hydpy.pub.options.simulationstep
-        else:
-            simulationstep = timetools.Period(simulationstep)
-        return (
-            f"# -*- coding: utf-8 -*-\n\n"
-            f"from hydpy.models.{model} import *\n\n"
-            f'simulationstep("{simulationstep}")\n'
-            f'parameterstep("{options.parameterstep}")\n\n'
-        )
-
-
 class IntConstant(int):
     """Class for |int| objects with individual docstrings."""
 
@@ -177,7 +119,7 @@ class IntConstant(int):
         const = int.__new__(cls, value)
         const.__doc__ = None
         frame = inspect.currentframe().f_back
-        const.__module__ = frame.f_locals["__name__"]
+        const.__module__ = frame.f_locals.get("__name__")
         return const
 
 
@@ -188,12 +130,12 @@ class Constants(Dict[str, int]):
     """Mapping from the the values of the constants to their names."""
 
     def __init__(self, *args, **kwargs) -> None:
-        assert ((frame1 := inspect.currentframe()) is not None) and (
-            (frame := frame1.f_back) is not None
-        )
-        assert isinstance(modulename := frame.f_locals.get("__name__"), str)
-        self.__module__ = modulename
         if not (args or kwargs):
+            assert ((frame1 := inspect.currentframe()) is not None) and (
+                (frame := frame1.f_back) is not None
+            )
+            assert isinstance(modulename := frame.f_locals.get("__name__"), str)
+            self.__module__ = modulename
             for key, value in frame.f_locals.items():
                 if key.isupper() and isinstance(value, IntConstant):
                     kwargs[key] = value
@@ -216,6 +158,16 @@ class Constants(Dict[str, int]):
                 value = self.get(key)
                 if value:
                     value.__doc__ = doc
+
+    @property
+    def sortednames(self) -> Tuple[str, ...]:
+        """The lowercase constants' names, sorted by the constants' values.
+
+        >>> from hydpy.core.parametertools import Constants
+        >>> Constants(GRASS=2, TREES=0, WATER=1).sortednames
+        ('trees', 'water', 'grass')
+        """
+        return tuple(key.lower() for value, key in sorted(self.value2name.items()))
 
 
 class Parameters:
@@ -347,122 +299,6 @@ For variable `latitude`, no value has been defined so far.
                         f"While trying to update parameter "
                         f"{objecttools.elementphrase(par)}"
                     )
-
-    def save_controls(
-        self,
-        filepath: Optional[str] = None,
-        parameterstep: Optional[timetools.PeriodConstrArg] = None,
-        simulationstep: Optional[timetools.PeriodConstrArg] = None,
-        auxfiler: Optional["auxfiletools.Auxfiler"] = None,
-    ):
-        """Write the control parameters (and eventually some solver parameters) to a
-        control file
-
-        Usually, a control file consists of a header (see the documentation on the
-        method |get_controlfileheader|) and the string representations of the individual
-        |Parameter| objects handled by the `control` |SubParameters| object.
-
-        The main functionality of method |Parameters.save_controls| is demonstrated in
-        the documentation on method |HydPy.save_controls| of class |HydPy|, which one
-        would apply to write the parameter information of complete *HydPy* projects.
-        However, calling |Parameters.save_controls| on individual |Parameters| objects
-        offers the advantage of choosing an arbitrary file path, as shown in the
-        following example:
-
-        >>> from hydpy.models.test_v3 import *
-        >>> parameterstep("1d")
-        >>> simulationstep("1h")
-        >>> k(0.1)
-        >>> n(3)
-
-        >>> from hydpy import Open
-        >>> with Open():
-        ...     model.parameters.save_controls("otherdir/otherfile.py")
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        otherdir/otherfile.py
-        ----------------------------------
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
-        from hydpy.models.test_v3 import *
-        <BLANKLINE>
-        simulationstep("1h")
-        parameterstep("1d")
-        <BLANKLINE>
-        k(0.1)
-        n(3)
-        <BLANKLINE>
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        Method |Parameters.save_controls| also writes the string representations of
-        all |SolverParameter| objects with non-default values into the control file:
-
-        >>> solver.abserrormax(1e-6)
-        >>> with Open():
-        ...     model.parameters.save_controls("otherdir/otherfile.py")
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        otherdir/otherfile.py
-        ----------------------------------
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
-        from hydpy.models.test_v3 import *
-        <BLANKLINE>
-        simulationstep("1h")
-        parameterstep("1d")
-        <BLANKLINE>
-        k(0.1)
-        n(3)
-        <BLANKLINE>
-        solver.abserrormax(0.000001)
-        <BLANKLINE>
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        Without a given file path and a proper project configuration, method
-        |Parameters.save_controls| raises the following error:
-
-        >>> model.parameters.save_controls()
-        Traceback (most recent call last):
-        ...
-        RuntimeError: To save the control parameters of a model to a file, its \
-filename must be known.  This can be done, by passing a filename to function \
-`save_controls` directly.  But in complete HydPy applications, it is usally assumed \
-to be consistent with the name of the element handling the model.
-        """
-        if auxfiler is None:
-            parameter2auxfile = None
-        else:
-            parameter2auxfile = auxfiler.get(self.model)
-        lines = [get_controlfileheader(self.model, parameterstep, simulationstep)]
-        with hydpy.pub.options.parameterstep(parameterstep):
-            for par in self.control:
-                if parameter2auxfile is not None:
-                    auxfilename = parameter2auxfile.get_filename(par)
-                    if auxfilename:
-                        lines.append(f'{par.name}(auxfile="{auxfilename}")\n')
-                        continue
-                lines.append(f"{repr(par)}\n")
-            solver_lines = tuple(
-                f"solver.{repr(par)}\n"
-                for par in self.solver
-                if exceptiontools.attrready(par, "alternative_initvalue")
-            )
-            if solver_lines:
-                lines.append("\n")
-            lines.extend(solver_lines)
-        text = "".join(lines)
-        if filepath:
-            with open(filepath, mode="w", encoding="utf-8") as controlfile:
-                controlfile.write(text)
-        else:
-            filename = objecttools.devicename(self)
-            if filename == "?":
-                raise RuntimeError(
-                    "To save the control parameters of a model to a file, its "
-                    "filename must be known.  This can be done, by passing a filename "
-                    "to function `save_controls` directly.  But in complete HydPy "
-                    "applications, it is usally assumed to be consistent with the "
-                    "name of the element handling the model."
-                )
-            hydpy.pub.controlmanager.save_file(filename, text)
 
     def verify(self) -> None:
         """Call method |Variable.verify| of all |Parameter| objects handled by the
@@ -626,10 +462,7 @@ class SubParameters(
     ):
         self.pars = master
         self._cymodel = cymodel
-        super().__init__(
-            master=master,
-            cls_fastaccess=cls_fastaccess,
-        )
+        super().__init__(master=master, cls_fastaccess=cls_fastaccess)
 
     def _init_fastaccess(self) -> None:
         super()._init_fastaccess()
@@ -638,8 +471,8 @@ class SubParameters(
 
     @property
     def name(self) -> str:
-        """The class name in lower case letters omitting the last
-        ten characters ("parameters").
+        """The class name in lowercase letters omitting the last ten characters
+        ("parameters").
 
         >>> from hydpy.core.parametertools import SubParameters
         >>> class ControlParameters(SubParameters):
@@ -1409,7 +1242,7 @@ broadcast input array from shape (2,) into shape (2,3)
             f"be set based on the given keyword arguments."
         )
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         if args and kwargs:
             self._raise_args_and_kwargs_error()
         if not args and not kwargs:
@@ -1945,30 +1778,38 @@ implement method `update`.
                 (self.NDIM == 2) and (self.shape[0] != 1)
             )
             return variabletools.to_repr(self, values, brackets)
-        lines = self.commentrepr
         if exceptiontools.attrready(self, "value"):
             value = self.revert_timefactor(self.value)
         else:
             value = "?"
-        lines.append(f"{self.name}({objecttools.repr_(value)})")
-        return "\n".join(lines)
+        return f"{self.name}({objecttools.repr_(value)})"
 
 
-class NameParameter(Parameter):
+class _MixinModifiableParameter(Parameter):
+    @classmethod
+    def _reset_after_modification(cls, name: str, value: Optional[object]) -> None:
+        if value is None:
+            delattr(cls, name)
+        else:
+            setattr(cls, name, value)
+
+
+class NameParameter(_MixinModifiableParameter, Parameter):
     """Parameter displaying the names of constants instead of their values.
 
     For demonstration, we define the test class `LandType`, covering three different
     types of land covering.  For this purpose, we need to prepare a dictionary of type
-    |Constants| (class attribute `CONSTANTS`), mapping the land type names to identity
-    values.  The entries of the `SPAN` tuple should agree with the lowest and highest
-    identity values.  The class attributes `NDIM`, `TYPE`, and `TIME` are already set
-    to `1`, `float`, and `None` by base class |NameParameter|:
+    |Constants| (class attribute `constants`), mapping the land type names to identity
+    values.  The class attributes `NDIM`, `TYPE`, and `TIME` are already set to `1`,
+    `int`, and `None` via base class |NameParameter|.  Furthermore, both `SPAN` tuple
+    entries are `None` because |NameParameter| can perform checks against the available
+    constants, which is more precise than only checking against the lowest and highest
+    constant value:
 
     >>> from hydpy.core.parametertools import Constants, NameParameter
     >>> class LandType(NameParameter):
     ...     __name__ = "temp.py"
-    ...     SPAN = (1, 3)
-    ...     CONSTANTS = Constants(SOIL=1, WATER=2, GLACIER=3)
+    ...     constants = Constants(SOIL=1, WATER=2, GLACIER=3)
 
     Additionally, we make the constants available within the local namespace (which is
     usually done by importing the constants from the selected application model
@@ -1977,8 +1818,8 @@ class NameParameter(Parameter):
     >>> SOIL, WATER, GLACIER = 1, 2, 3
 
     For parameters of zero length, unprepared values, and identical required values,
-    the string representations of |NameParameter| subclasses equal the string
-    representations of other |Parameter| subclasses:
+    the string representations of |NameParameter| subclasses equal those of other
+    |Parameter| subclasses:
 
     >>> landtype = LandType(None)
     >>> landtype.shape = 0
@@ -2013,7 +1854,126 @@ class NameParameter(Parameter):
     NDIM = 1
     TYPE = int
     TIME = None
-    CONSTANTS: Constants
+    SPAN = (None, None)
+    constants: Constants
+    _possible_values: Set[int]
+
+    def __init__(self, subvars: SubParameters) -> None:
+        super().__init__(subvars)
+        self.constants = type(self).constants
+        self._possible_values = set(self.constants.values())
+        self._possible_values.add(variabletools.INT_NAN)
+
+    @classmethod
+    @contextlib.contextmanager
+    def modify_constants(
+        cls, constants: Optional[Constants]
+    ) -> Generator[None, None, None]:
+        """Modify the relevant constants temporarily.
+
+        The constants for defining land-use types are fixed for typical "main models"
+        like |hland|.  However, some submodels must take over the constants defined
+        by their current main model, which are only known at runtime.  For example,
+        consider the following simple `LandType` parameter that handles predefined
+        constants as a class attribute:
+
+        >>> from hydpy.core.parametertools import Constants, NameParameter
+        >>> class LandType(NameParameter):
+        ...     __name__ = "temp.py"
+        ...     constants = Constants(SOIL=1, WATER=2, GLACIER=3)
+        >>> SOIL, WATER, GLACIER = 1, 2, 3
+        >>> landtype1 = LandType(None)
+        >>> landtype1.shape = 3
+        >>> landtype1(SOIL, WATER, SOIL)
+        >>> landtype1
+        landtype(SOIL, WATER, SOIL)
+
+        We can use |NameParameter.modify_constants| to temporarily change these
+        constants:
+
+        >>> FIELD, FOREST = 1, 4
+        >>> with LandType.modify_constants(Constants(FIELD=1, FOREST=4)):
+        ...     landtype2 = LandType(None)
+        ...     landtype2.shape = 4
+        ...     landtype2(FOREST, FOREST, FIELD, FIELD)
+        ...     landtype2
+        landtype(FOREST, FOREST, FIELD, FIELD)
+
+        During initialisation, these constants become an instance attribute, so the
+        parameter instance does not forget them after leaving the `with` block (when
+        the class attribute is reset to its previous value):
+
+        >>> landtype1.constants
+        {'SOIL': 1, 'WATER': 2, 'GLACIER': 3}
+        >>> landtype2.constants
+        {'FIELD': 1, 'FOREST': 4}
+        >>> LandType.constants
+        {'SOIL': 1, 'WATER': 2, 'GLACIER': 3}
+
+        One can now use both parameter instances with their specific constants without
+        the risk of impacting the other:
+
+        >>> landtype1(SOIL, WATER, WATER)
+        >>> landtype1
+        landtype(SOIL, WATER, WATER)
+        >>> landtype2
+        landtype(FOREST, FOREST, FIELD, FIELD)
+
+        >>> landtype2(FIELD, FOREST, FOREST, FIELD)
+        >>> landtype2
+        landtype(FIELD, FOREST, FOREST, FIELD)
+        >>> landtype1
+        landtype(SOIL, WATER, WATER)
+
+        Passing |None| does not overwrite the default or the previously set references:
+
+        >>> with LandType.modify_constants(None):
+        ...     LandType.constants
+        ...     landtype3 = LandType(None)
+        ...     landtype3.shape = 4
+        ...     landtype3(GLACIER, SOIL, GLACIER, WATER)
+        ...     landtype3
+        {'SOIL': 1, 'WATER': 2, 'GLACIER': 3}
+        landtype(GLACIER, SOIL, GLACIER, WATER)
+        >>> LandType.constants
+        {'SOIL': 1, 'WATER': 2, 'GLACIER': 3}
+        >>> landtype3
+        landtype(GLACIER, SOIL, GLACIER, WATER)
+        """
+        if constants is None:
+            yield
+        else:
+            old = vars(cls).get("constants")
+            try:
+                cls.constants = constants
+                yield
+            finally:
+                cls._reset_after_modification("constants", old)
+
+    def trim(self, lower=None, upper=None) -> None:
+        """Check if all previously set values comply with the supported constants.
+
+        >>> from hydpy.core.parametertools import Constants, NameParameter
+        >>> class LandType(NameParameter):
+        ...     __name__ = "temp.py"
+        ...     constants = Constants(SOIL=1, WATER=2, GLACIER=4)
+        >>> SOIL, WATER, ROCK, GLACIER = 1, 2, 3, 4
+        >>> landtype = LandType(None)
+        >>> landtype.shape = 4
+        >>> landtype(SOIL, WATER, ROCK, GLACIER)
+        Traceback (most recent call last):
+        ..
+        ValueError: At least one value of parameter `landtype` of element `?` is not \
+valid.
+        >>> landtype
+        landtype(SOIL, WATER, 3, GLACIER)
+        """
+        if hydpy.pub.options.trimvariables:
+            if any(value not in self._possible_values for value in self._get_value()):
+                raise ValueError(
+                    f"At least one value of parameter "
+                    f"{objecttools.elementphrase(self)} is not valid."
+                )
 
     def __repr__(self) -> str:
         string = super().compress_repr()
@@ -2023,80 +1983,73 @@ class NameParameter(Parameter):
             values = self.values
         else:
             values = [int(string)]
-        get = self.CONSTANTS.value2name.get
+        get = self.constants.value2name.get
         names = tuple(get(value, repr(value)) for value in values)
         string = objecttools.assignrepr_values(
-            values=names,
-            prefix=f"{self.name}(",
-            width=70,
+            values=names, prefix=f"{self.name}(", width=70
         )
         return f"{string})"
 
 
-class ZipParameter(Parameter):
-    """Base class for 1-dimensional model parameters that offers an
-    additional keyword-based zipping functionality.
+class ZipParameter(_MixinModifiableParameter, Parameter):
+    """Base class for 1-dimensional model parameters that offers an additional
+    keyword-based zipping functionality.
 
-    Many models implemented in the *HydPy* framework realise the concept
-    of hydrological response units via 1-dimensional |Parameter| objects,
-    each entry corresponding with an individual unit.  To allow for a
-    maximum of flexibility, one can define their values independently,
-    which allows, for example, for applying arbitrary relationships between
-    the altitude of individual response units and a precipitation correction
-    factor to be parameterised.
+    Many models implemented in the *HydPy* framework realise the concept of hydrological
+    response units via 1-dimensional |Parameter| objects, each entry corresponding with
+    an individual unit.  To allow for a maximum of flexibility, one can define their
+    values independently, which allows, for example, for applying arbitrary
+    relationships between the altitude of individual response units and a precipitation
+    correction factor to be parameterised.
 
-    However, very often, hydrological modellers set identical values for
-    different hydrological response units of the same type. One could,
-    for example, set the same leaf area index for all units of the same
-    land-use type.  Class |ZipParameter| allows defining parameters,
-    which conveniently support this parameterisation strategy.
+    However, very often, hydrological modellers set identical values for different
+    hydrological response units of the same type. One could, for example, set the same
+    leaf area index for all units of the same land-use type.  Class |ZipParameter|
+    allows defining parameters, which conveniently support this parameterisation
+    strategy.
 
     .. testsetup::
 
         >>> from hydpy import pub
         >>> del pub.options.simulationstep
 
-    To see how base class |ZipParameter| works, we need to create some
-    additional subclasses.  First, we need a parameter defining the
-    type of the individual hydrological response units, which can be
-    done by subclassing from |NameParameter|.  We do so by taking
-    the example from the documentation of the |NameParameter| class:
+    To see how base class |ZipParameter| works, we need to create some additional
+    subclasses.  First, we need a parameter defining the type of the individual
+    hydrological response units, which can be done by subclassing from |NameParameter|.
+    We do so by taking the example from the documentation of the |NameParameter| class:
 
     >>> from hydpy.core.parametertools import NameParameter
     >>> SOIL, WATER, GLACIER = 1, 2, 3
     >>> class LandType(NameParameter):
     ...     SPAN = (1, 3)
-    ...     CONSTANTS = {"SOIL":  SOIL, "WATER": WATER, "GLACIER": GLACIER}
+    ...     constants = {"SOIL":  SOIL, "WATER": WATER, "GLACIER": GLACIER}
     >>> landtype = LandType(None)
 
-    Second, we need an |IndexMask| subclass.  Our subclass `Land` references
-    the respective `LandType` parameter object (we do this in a simplified
-    manner, see class |hland_parameters.ParameterComplete| for a "real
-    world" example) but is supposed to focus on the response units of
-    type `soil` or `glacier` only:
+    Second, we need an |IndexMask| subclass.  Our subclass `Land` references the
+    respective `LandType` parameter object (we do this in a simplified manner, see class
+    |hland_parameters.ParameterComplete| for a "real world" example) but is supposed to
+    focus on the response units of type `soil` or `glacier` only:
 
     >>> from hydpy.core.masktools import IndexMask
     >>> class Land(IndexMask):
-    ...     RELEVANT_VALUES = (SOIL, GLACIER)
+    ...     relevant = (SOIL, GLACIER)
     ...     @staticmethod
     ...     def get_refindices(variable):
     ...         return variable.landtype
 
-    Third, we prepare the actual |ZipParameter| subclass, holding
-    the same `constants` dictionary as the `LandType` parameter and
-    the `Land` mask as attributes.  We assume that the values of our
-    test class `Par` are time-dependent and set different parameter
-    and simulation step sizes, to show that the related value
-    adjustments work.  Also, we make the `LandType` object available
-    via attribute access, which is a hack to make the above
-    simplification work:
+    Third, we prepare the actual |ZipParameter| subclass, holding the same `constants`
+    dictionary as the `LandType` parameter and the `Land` mask as attributes.  We assume
+    that the values of our test class `Par` are time-dependent and set different
+    parameter and simulation step sizes, to show that the related value adjustments
+    work.  Also, we make the `LandType` object available via attribute access, which is
+    a hack to make the above simplification work:
 
     >>> from hydpy.core.parametertools import ZipParameter
     >>> class Par(ZipParameter):
     ...     TYPE = float
     ...     TIME = True
     ...     SPAN = (0.0, None)
-    ...     MODEL_CONSTANTS = LandType.CONSTANTS
+    ...     constants = LandType.constants
     ...     mask = Land()
     ...     landtype = landtype
     >>> par = Par(None)
@@ -2104,8 +2057,8 @@ class ZipParameter(Parameter):
     >>> pub.options.parameterstep = "1d"
     >>> pub.options.simulationstep = "12h"
 
-    For parameters with zero-length or with unprepared or identical
-    parameter values, the string representation looks as usual:
+    For parameters with zero-length or with unprepared or identical parameter values,
+    the string representation looks as usual:
 
     >>> landtype.shape = 0
     >>> par.shape = 0
@@ -2122,10 +2075,9 @@ class ZipParameter(Parameter):
     >>> par.values
     array([1., 1., 1., 1., 1.])
 
-    The extended feature of class |ZipParameter| is to allow passing
-    values via keywords, each keyword corresponding to one of the
-    relevant constants (in our example: `SOIL` and `GLACIER`) in
-    lower case letters:
+    The extended feature of class |ZipParameter| is to allow passing values via
+    keywords, each keyword corresponding to one of the relevant constants (in our
+    example: `SOIL` and `GLACIER`) in lower case letters:
 
     >>> par(soil=4.0, glacier=6.0)
     >>> par
@@ -2133,8 +2085,8 @@ class ZipParameter(Parameter):
     >>> par.values
     array([ 2., nan,  3., nan,  2.])
 
-    Use the `default` argument if you want to assign the same value
-    to entries with different constants:
+    Use the `default` argument if you want to assign the same value to entries with
+    different constants:
 
     >>> par(soil=2.0, default=8.0)
     >>> par
@@ -2142,8 +2094,8 @@ class ZipParameter(Parameter):
     >>> par.values
     array([ 1., nan,  4., nan,  1.])
 
-    Using a keyword argument corresponding to an existing, but not
-    relevant constant (in our example: `WATER`) is silently ignored:
+    Using a keyword argument corresponding to an existing, but not relevant constant (in
+    our example: `WATER`) is silently ignored:
 
     >>> par(soil=4.0, glacier=6.0, water=8.0)
     >>> par
@@ -2151,28 +2103,25 @@ class ZipParameter(Parameter):
     >>> par.values
     array([ 2., nan,  3., nan,  2.])
 
-    However, using a keyword not corresponding to any constant raises
-    an exception:
+    However, using a keyword not corresponding to any constant raises an exception:
 
     >>> par(soil=4.0, glacier=6.0, wrong=8.0)
     Traceback (most recent call last):
     ...
-    TypeError: While trying to set the values of parameter `par` of \
-element `?` based on keyword arguments `soil, glacier, and wrong`, \
-the following error occurred: \
-Keyword `wrong` is not among the available model constants.
+    TypeError: While trying to set the values of parameter `par` of element `?` based \
+on keyword arguments `soil, glacier, and wrong`, the following error occurred: Keyword \
+`wrong` is not among the available model constants.
 
     The same is true when passing incomplete information:
 
     >>> par(soil=4.0)
     Traceback (most recent call last):
     ...
-    TypeError: While trying to set the values of parameter `par` of element \
-`?` based on keyword arguments `soil`, the following error occurred: \
-The given keywords are incomplete and no default value is available.
+    TypeError: While trying to set the values of parameter `par` of element `?` based \
+on keyword arguments `soil`, the following error occurred: The given keywords are \
+incomplete and no default value is available.
 
-    Values exceeding the bounds defined by class attribute `SPAN`
-    are trimmed as usual:
+    Values exceeding the bounds defined by class attribute `SPAN` are trimmed as usual:
 
     >>> from hydpy import pub
     >>> with pub.options.warntrim(False):
@@ -2180,8 +2129,8 @@ The given keywords are incomplete and no default value is available.
     >>> par
     par(glacier=10.0, soil=0.0)
 
-    For convenience, you can get or set all values related to a specific
-    constant via attribute access:
+    For convenience, you can get or set all values related to a specific constant via
+    attribute access:
 
     >>> par.soil
     array([0., 0.])
@@ -2189,27 +2138,135 @@ The given keywords are incomplete and no default value is available.
     >>> par
     par(glacier=10.0, soil=5.0)
 
-    Improper use of these "special attributes" results in errors like
-    the following:
+    Improper use of these "special attributes" results in errors like the following:
 
     >>> par.Soil
     Traceback (most recent call last):
     ...
-    AttributeError: `Soil` is neither a normal attribute of parameter \
-`par` of element `?` nor among the following special attributes: \
-soil, water, and glacier.
+    AttributeError: `Soil` is neither a normal attribute of parameter `par` of element \
+`?` nor among the following special attributes: soil, water, and glacier.
 
     >>> par.soil = "test"
     Traceback (most recent call last):
     ...
-    ValueError: While trying the set the value(s) of parameter `par` \
-of element `?` related to the special attribute `soil`, the following \
-error occurred: could not convert string to float: 'test'
+    ValueError: While trying the set the value(s) of parameter `par` of element `?` \
+related to the special attribute `soil`, the following error occurred: could not \
+convert string to float: 'test'
     """
 
     NDIM = 1
-    MODEL_CONSTANTS: Dict[str, int]
+    constants: Dict[str, int]
+    """Mapping of the constants' names and values."""
+    refindices: Optional[NameParameter] = None
+    """Optional reference to the relevant index parameter."""
+    relevant: Optional[Tuple[int, ...]] = None
+    """The values of all (potentially) relevant constants."""
     mask: masktools.IndexMask
+
+    @classmethod
+    @contextlib.contextmanager
+    def modify_refindices(
+        cls, refindices: Optional[NameParameter]
+    ) -> Generator[None, None, None]:
+        """Eventually, set or modify the reference to the required index parameter.
+
+        The following example demonstrates that changes affect the relevant class only
+        temporarily, but its objects initialised within the "with" block persistently:
+
+
+        >>> from hydpy.core.variabletools import FastAccess, Variable
+        >>> GRASS, TREES, WATER = 0, 1, 2
+        >>> class RefPar(Variable):
+        ...     NDIM = 1
+        ...     TYPE = int
+        ...     TIME = None
+        ...     initinfo = 0, True
+        ...     _CLS_FASTACCESS_PYTHON = FastAccess
+        ...     constants = {"GRASS": GRASS, "TREES": TREES, "WATER": WATER}
+        ...     relevant = (0, 1, 2)
+        >>> from hydpy.core.parametertools import ZipParameter
+        >>> from hydpy.core.masktools import SubmodelIndexMask
+        >>> class ZipPar(ZipParameter):
+        ...     NDIM = 1
+        ...     TYPE = float
+        ...     TIME = None
+        ...     initinfo = 0.0, True
+        ...     _CLS_FASTACCESS_PYTHON = FastAccess
+        ...     constants = {"FIELD": 1, "FOREST": 3}
+        ...     relevant = (1, 3)
+        ...     mask = SubmodelIndexMask()
+        >>> refpar = RefPar(None)
+        >>> refpar.shape = 3
+        >>> refpar(1, 2, 1)
+        >>> with ZipPar.modify_refindices(refpar):
+        ...     ZipPar.refindices.name
+        ...     ZipPar.constants
+        ...     ZipPar.relevant
+        ...     zippar1 = ZipPar(None)
+        ...     zippar1.shape = 3
+        ...     zippar1(water=1.0, default=2.)
+        ...     zippar1
+        'refpar'
+        {'GRASS': 0, 'TREES': 1, 'WATER': 2}
+        (0, 1, 2)
+        zippar(trees=2.0, water=1.0)
+
+        >>> ZipPar.refindices
+        >>> ZipPar.constants
+        {'FIELD': 1, 'FOREST': 3}
+        >>> ZipPar.relevant
+        (1, 3)
+        >>> zippar1
+        zippar(trees=2.0, water=1.0)
+
+        Passing |None| does not overwrite previously set references:
+
+        >>> with ZipPar.modify_refindices(None):
+        ...     ZipPar.refindices
+        ...     ZipPar.constants
+        ...     ZipPar.relevant
+        {'FIELD': 1, 'FOREST': 3}
+        (1, 3)
+
+        >>> with ZipPar.modify_refindices(None):
+        ...     zippar2 = ZipPar(None)
+        ...     zippar2.shape = 3
+        ...     zippar2(water=1.0, default=2.)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: While trying to set the values of parameter `zippar` of element \
+`?` based on keyword arguments `water and default`, the following error occurred: \
+Variable `zippar` of element `?` does currently not reference an instance-specific \
+index parameter.
+
+        >>> ZipPar.refindices
+        >>> ZipPar.constants
+        {'FIELD': 1, 'FOREST': 3}
+        >>> ZipPar.relevant
+        (1, 3)
+        """
+        if refindices is None:
+            yield
+        else:
+            get = vars(cls).get
+            old_refindices = get("refindices")
+            old_constants = get("constants")
+            old_relevant = get("relevant")
+            try:
+                cls.refindices = refindices
+                cls.constants = refindices.constants
+                cls.relevant = tuple(refindices.constants.values())
+                yield
+            finally:
+                cls._reset_after_modification("refindices", old_refindices)
+                cls._reset_after_modification("constants", old_constants)
+                cls._reset_after_modification("relevant", old_relevant)
+
+    def __init__(self, subvars: SubParameters) -> None:
+        super().__init__(subvars)
+        self.refindices = type(self).refindices
+        self.constants = type(self).constants
+        self.relevant = type(self).relevant
 
     def __call__(self, *args, **kwargs) -> None:
         try:
@@ -2220,8 +2277,8 @@ error occurred: could not convert string to float: 'test'
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to set the values of parameter "
-                    f"{objecttools.elementphrase(self)} based on keyword "
-                    f"arguments `{objecttools.enumeration(kwargs)}`"
+                    f"{objecttools.elementphrase(self)} based on keyword arguments "
+                    f"`{objecttools.enumeration(kwargs)}`"
                 )
 
     def _own_call(self, kwargs: Dict[str, Any]) -> None:
@@ -2229,7 +2286,7 @@ error occurred: could not convert string to float: 'test'
         self._set_value(numpy.nan)
         values = self._get_value()
         allidxs = mask.refindices.values
-        relidxs = mask.relevantindices
+        relidxs = mask.narrow_relevant(relevant=self.relevant)
         counter = 0
         if "default" in kwargs:
             check = False
@@ -2238,7 +2295,7 @@ error occurred: could not convert string to float: 'test'
             check = True
         for key, value in kwargs.items():
             try:
-                selidx = self.MODEL_CONSTANTS[key.upper()]
+                selidx = self.constants[key.upper()]
                 if selidx in relidxs:
                     values[allidxs == selidx] = value
                     counter += 1
@@ -2248,8 +2305,7 @@ error occurred: could not convert string to float: 'test'
                 ) from None
         if check and (counter < len(relidxs)):
             raise TypeError(
-                "The given keywords are incomplete "
-                "and no default value is available."
+                "The given keywords are incomplete and no default value is available."
             )
         values[:] = self.apply_timefactor(values)
         self.trim()
@@ -2258,12 +2314,11 @@ error occurred: could not convert string to float: 'test'
     def keywordarguments(self) -> KeywordArguments[float]:
         """A |KeywordArguments| object providing the currently valid keyword arguments.
 
-        We take parameter |lland_control.TRefT| of application model |lland_v1|
-        as an example and set its shape (the number of hydrological response units
-        defined by parameter |lland_control.NHRU|) to four and prepare the
-        land-use types |lland_constants.ACKER| (acre), |lland_constants.LAUBW|
-        (deciduous forest), and |lland_constants.WASSER| (water) via parameter
-        |lland_control.Lnk|:
+        We take parameter |lland_control.TRefT| of application model |lland_v1| as an
+        example and set its shape (the number of hydrological response units defined by
+        parameter |lland_control.NHRU|) to four and prepare the land use types
+        |lland_constants.ACKER| (acre), |lland_constants.LAUBW| (deciduous forest), and
+        |lland_constants.WASSER| (water) via parameter |lland_control.Lnk|:
 
         >>> from hydpy.models.lland_v1 import *
         >>> parameterstep()
@@ -2281,10 +2336,10 @@ error occurred: could not convert string to float: 'test'
         >>> treft.keywordarguments.valid
         True
 
-        In the following example, both the first and the fourth response unit are
-        of type |lland_constants.ACKER| but have different |lland_control.TRefT|
-        values, which cannot be the result of defining values via keyword arguments.
-        Hence, the returned |KeywordArguments| object is invalid:
+        In the following example, both the first and the fourth response unit are of
+        type |lland_constants.ACKER| but have different |lland_control.TRefT| values,
+        which cannot be the result of defining values via keyword arguments.  Hence, the
+        returned |KeywordArguments| object is invalid:
 
         >>> treft(1.0, 2.0, 3.0, 4.0)
         >>> treft.keywordarguments
@@ -2294,20 +2349,31 @@ error occurred: could not convert string to float: 'test'
 
         This is different from the situation where all response units are of type
         |lland_constants.WASSER|, where one does not need to define any values for
-        parameter |lland_control.TRefT|.  Thus, the returned |KeywordArguments|
-        object is also empty but valid:
+        parameter |lland_control.TRefT|.  Thus, the returned |KeywordArguments| object
+        is also empty but valid:
 
         >>> lnk(WASSER)
         >>> treft.keywordarguments
         KeywordArguments()
         >>> treft.keywordarguments.valid
         True
+
+        ToDo: document "refinement" asa lland_v1 uses the AETModel_V1 interface
         """
-        mask = self.mask
-        refindices = mask.refindices.values
+        try:
+            mask = self.mask
+        except BaseException:
+            return KeywordArguments(False)
+        if (refinement := mask.refinement) is None:
+            refindices = mask.refindices.values
+        else:
+            refindices = mask.refindices.values.copy()
+            refindices[~refinement.values] = variabletools.INT_NAN
         name2unique = KeywordArguments[Union[float]]()
-        for key, value in self.MODEL_CONSTANTS.items():
-            if value in mask.RELEVANT_VALUES:
+        if (relevant := self.relevant) is None:
+            relevant = mask.relevant
+        for key, value in self.constants.items():
+            if value in relevant:
                 unique = numpy.unique(self.values[refindices == value])
                 unique = self.revert_timefactor(unique)
                 length = len(unique)
@@ -2319,31 +2385,31 @@ error occurred: could not convert string to float: 'test'
 
     def __getattr__(self, name: str):
         name_ = name.upper()
-        if (not name.islower()) or (name_ not in self.MODEL_CONSTANTS):
+        if (not name.islower()) or (name_ not in self.constants):
             names = objecttools.enumeration(
-                key.lower() for key in self.MODEL_CONSTANTS.keys()
+                key.lower() for key in self.constants.keys()
             )
             raise AttributeError(
                 f"`{name}` is neither a normal attribute of parameter "
-                f"{objecttools.elementphrase(self)} nor among the "
-                f"following special attributes: {names}."
+                f"{objecttools.elementphrase(self)} nor among the following special "
+                f"attributes: {names}."
             )
-        sel_constant = self.MODEL_CONSTANTS[name_]
+        sel_constant = self.constants[name_]
         used_constants = self.mask.refindices.values
         return self.values[used_constants == sel_constant]
 
     def __setattr__(self, name: str, value):
         name_ = name.upper()
-        if name.islower() and (name_ in self.MODEL_CONSTANTS):
+        if name.islower() and (name_ in (constants := self.constants)):
             try:
-                sel_constant = self.MODEL_CONSTANTS[name_]
+                sel_constant = constants[name_]
                 used_constants = self.mask.refindices.values
                 self.values[used_constants == sel_constant] = value
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying the set the value(s) of parameter "
-                    f"{objecttools.elementphrase(self)} related to the "
-                    f"special attribute `{name}`"
+                    f"{objecttools.elementphrase(self)} related to the special "
+                    f"attribute `{name}`"
                 )
         else:
             super().__setattr__(name, value)
@@ -2376,7 +2442,7 @@ error occurred: could not convert string to float: 'test'
         """
         names = itertools.chain(
             cast(List[str], super().__dir__()),
-            (key.lower() for key in self.MODEL_CONSTANTS.keys()),
+            (key.lower() for key in self.constants.keys()),
         )
         return list(names)
 
@@ -2519,7 +2585,7 @@ broadcast input array from shape (2,) into shape (3,)
     par([5.0, 5.0, 5.0])
 
     Note that class |SeasonalParameter| associates the given value(s) to the "first"
-    time of the year, internally:
+    time of the year internally:
 
     >>> par.toys
     (TOY("1_1_0_0_0"),)
@@ -2551,7 +2617,7 @@ broadcast input array from shape (2,) into shape (366,3)
 
     def __call__(self, *args, **kwargs) -> None:
         if self.NDIM == 1:
-            self.shape = (None,)
+            self.shape = (-1,)
         try:
             super().__call__(*args, **kwargs)
             self._toy2values = [(timetools.TOY(), self.values[0])]
@@ -2618,7 +2684,7 @@ broadcast input array from shape (2,) into shape (366,3)
         When a |SeasonalParameter| object does not contain any toy-value pairs yet, the
         method |SeasonalParameter.refresh| sets all actual simulation values to zero:
 
-        >>> par.values = 1.
+        >>> par.values = 1.0
         >>> par.refresh()
         >>> par.values[0]
         0.0
@@ -2626,7 +2692,7 @@ broadcast input array from shape (2,) into shape (366,3)
         When there is only one toy-value pair, its values are relevant for all actual
         simulation values:
 
-        >>> par.toy_1 = 2. # calls refresh automatically
+        >>> par.toy_1 = 2.0  # calls refresh automatically
         >>> par.values[0]
         2.0
 
@@ -2634,7 +2700,7 @@ broadcast input array from shape (2,) into shape (366,3)
         central time points of each simulation time step.  Hence, in the following
         example, the original values of the toy-value pairs do not show up:
 
-        >>> par.toy_12_31 = 4.
+        >>> par.toy_12_31 = 4.0
         >>> from hydpy import round_
         >>> round_(par.values[0])
         2.00274
@@ -2649,7 +2715,7 @@ broadcast input array from shape (2,) into shape (366,3)
         >>> del par.toy_1
         >>> del par.toy_12_31
         >>> par.toy_1_1_12 = 2
-        >>> par.toy_12_31_12 = 4.
+        >>> par.toy_12_31_12 = 4.0
         >>> par.values[0]
         2.0
         >>> round_(par.values[1])
@@ -2680,7 +2746,7 @@ broadcast input array from shape (2,) into shape (366,3)
 
             >>> del pub.timegrids
         """
-        if not self:
+        if not self._toy2values:
             self._set_value(0.0)
         elif len(self) == 1:
             self.values[:] = self.apply_timefactor(self._toy2values[0][1])
@@ -2866,7 +2932,7 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
         shape_[0] = int(numpy.ceil(round(shape_[0], 10)))
         super()._set_shape(tuple(shape_))
 
-    shape = property(fget=_get_shape, fset=_set_shape)
+    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
     def __iter__(self) -> Iterator[Tuple[timetools.TOY, Any]]:
         return iter(self._toy2values)
@@ -2958,22 +3024,22 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
         return cast(List[str], super().__dir__()) + [str(toy) for (toy, dummy) in self]
 
 
-class KeywordParameter1D(Parameter):
-    """Base class for 1-dimensional model parameters with values depending
-    on one factor.
+class KeywordParameter1D(_MixinModifiableParameter, Parameter):
+    """Base class for 1-dimensional model parameters with values depending on one
+    factor.
 
-    When subclassing from |KeywordParameter1D| one needs to define the
-    class attribute `ENTRYNAMES`.  A typical use case is that `ENTRYNAMES`
-    defines seasons like the months or, as in our example, half-years:
+    When subclassing from |KeywordParameter1D|, one needs to define the class attribute
+    `entrynames`.  A typical use case is that `entrynames` defines seasons like the
+    months or, as in our example, half-years:
 
     >>> from hydpy.core.parametertools import KeywordParameter1D
     >>> class IsHot(KeywordParameter1D):
     ...     TYPE = bool
     ...     TIME = None
-    ...     ENTRYNAMES = ("winter", "summer")
+    ...     entrynames = ("winter", "summer")
 
-    Usually, |KeywordParameter1D| objects prepare their shape automatically.
-    However, to simplify this test case, we define it manually:
+    Usually, |KeywordParameter1D| objects prepare their shape automatically.  However,
+    to simplify this test case, we define it manually:
 
     >>> ishot = IsHot(None)
     >>> ishot.shape = 2
@@ -2999,19 +3065,19 @@ class KeywordParameter1D(Parameter):
     >>> ishot(winter=True)
     Traceback (most recent call last):
     ...
-    ValueError: When setting parameter `ishot` of element `?` via keyword \
-arguments, each string defined in `ENTRYNAMES` must be used as a keyword, \
-but the following keywords are not: `summer`.
+    ValueError: When setting parameter `ishot` of element `?` via keyword arguments, \
+each string defined in `entrynames` must be used as a keyword, but the following \
+keywords are not: `summer`.
 
     >>> ishot(winter=True, summer=False, spring=True, autumn=False)
     Traceback (most recent call last):
     ...
-    ValueError: When setting parameter `ishot` of element `?` via keyword \
-arguments, each keyword must be defined in `ENTRYNAMES`, but the following \
-keywords are not: `spring and autumn`.
+    ValueError: When setting parameter `ishot` of element `?` via keyword arguments, \
+each keyword must be defined in `entrynames`, but the following keywords are not: \
+`spring and autumn`.
 
-    Class |KeywordParameter1D| implements attribute access, including
-    specialised error messages:
+    Class |KeywordParameter1D| implements attribute access, including specialised error
+    messages:
 
     >>> ishot.winter, ishot.summer = ishot.summer, ishot.winter
     >>> ishot
@@ -3020,80 +3086,172 @@ keywords are not: `spring and autumn`.
     >>> ishot.spring
     Traceback (most recent call last):
     ...
-    AttributeError: Parameter `ishot` of element `?` does not handle an \
-attribute named `spring`.
+    AttributeError: Parameter `ishot` of element `?` does not handle an attribute \
+named `spring`.
 
     >>> ishot.shape = 1
     >>> ishot.summer
     Traceback (most recent call last):
     ...
-    IndexError: While trying to retrieve a value from parameter `ishot` of \
-element `?` via the attribute `summer`, the following error occurred: \
-index 1 is out of bounds for axis 0 with size 1
+    IndexError: While trying to retrieve a value from parameter `ishot` of element \
+`?` via the attribute `summer`, the following error occurred: index 1 is out of \
+bounds for axis 0 with size 1
 
     >>> ishot.summer = True
     Traceback (most recent call last):
     ...
-    IndexError: While trying to assign a new value to parameter `ishot` of \
-element `?` via attribute `summer`, the following error occurred: \
-index 1 is out of bounds for axis 0 with size 1
+    IndexError: While trying to assign a new value to parameter `ishot` of element \
+`?` via attribute `summer`, the following error occurred: index 1 is out of bounds \
+for axis 0 with size 1
     """
 
     NDIM = 1
-    ENTRYNAMES: ClassVar[Tuple[str, ...]]
+    entrynames: Tuple[str, ...]
+    entrymin: int = 0
 
     strict_valuehandling: bool = False
 
+    def __init__(self, subvars: SubParameters) -> None:
+        super().__init__(subvars)
+        self.entrynames = type(self).entrynames
+        self.entrymin = type(self).entrymin
+
+    @classmethod
+    @contextlib.contextmanager
+    def modify_entries(
+        cls, constants: Optional[Constants]
+    ) -> Generator[None, None, None]:
+        """Modify the relevant entry names temporarily.
+
+        The entry names for defining properties like land-use types are fixed for
+        typical "main models" like |hland|.  However, some submodels must take over the
+        entry names defined by their current main model, which are only known at
+        runtime.  For example, consider the following simple `LAI` parameter that
+        handles predefined land use type names as a class attribute:
+
+        >>> from hydpy.core.parametertools import KeywordParameter1D
+        >>> class LAI(KeywordParameter1D):
+        ...     TYPE = float
+        ...     TIME = None
+        ...     entrynames = ("field", "forest")
+        >>> lai1 = LAI(None)
+        >>> lai1.shape = 2
+        >>> lai1(field=1.0, forest=2.0)
+        >>> lai1
+        lai(field=1.0, forest=2.0)
+
+        We can use |KeywordParameter1D.modify_entries| to temporarily change these
+        names:
+
+        >>> from hydpy.core.parametertools import Constants
+        >>> constants = Constants(GRASS=2, SOIL=1, TREES=3)
+        >>> with LAI.modify_entries(constants):
+        ...     lai2 = LAI(None)
+        ...     lai2.shape = 3
+        ...     lai2(soil=0.0, grass=1.0, trees=2.0)
+        ...     lai2
+        lai(soil=0.0, grass=1.0, trees=2.0)
+
+        During initialisation, the names and the lowest value of the given constants
+        become instance attributes, so the parameter instance does not forget them
+        after leaving the `with` block (when the class attribute is reset to its
+        previous value):
+
+        >>> lai1.entrynames
+        ('field', 'forest')
+        >>> lai2.entrynames
+        ('soil', 'grass', 'trees')
+        >>> LAI.entrynames
+        ('field', 'forest')
+
+        >>> lai1.entrymin
+        0
+        >>> lai2.entrymin
+        1
+        >>> LAI.entrymin
+        0
+
+        Passing |None| does not overwrite the default or the previously set references:
+
+        >>> LAI.entrymin = 3
+        >>> with LAI.modify_entries(None):
+        ...     LAI.entrynames
+        ...     LAI.entrymin
+        ...     lai3 = LAI(None)
+        ...     lai3.shape = 2
+        ...     lai3(field=2.0, forest=1.0)
+        ...     lai3
+        ('field', 'forest')
+        3
+        lai(field=2.0, forest=1.0)
+        >>> LAI.entrynames
+        ('field', 'forest')
+        >>> LAI.entrymin
+        3
+        >>> lai3
+        lai(field=2.0, forest=1.0)
+        """
+        if constants is None:
+            yield
+        else:
+            get = vars(cls).get
+            old_names = get("entrynames")
+            old_min = get("entrymin")
+            try:
+                cls.entrynames = constants.sortednames
+                cls.entrymin = min(constants.values())
+                yield
+            finally:
+                cls._reset_after_modification("entrynames", old_names)
+                cls._reset_after_modification("entrymin", old_min)
+
     def __hydpy__connect_variable2subgroup__(self) -> None:
         super().__hydpy__connect_variable2subgroup__()
-        self.shape = len(self.ENTRYNAMES)
+        self.shape = len(self.entrynames)
+        setattr(self.fastaccess, f"_{self.name}_entrymin", self.entrymin)
 
     def __call__(self, *args, **kwargs) -> None:
         try:
             super().__call__(*args, **kwargs)
         except NotImplementedError:
-            for idx, key in enumerate(self.ENTRYNAMES):
+            for idx, key in enumerate(self.entrynames):
                 try:
                     self.values[idx] = self.apply_timefactor(kwargs[key])
                 except KeyError:
-                    err = (key for key in self.ENTRYNAMES if key not in kwargs)
+                    err = (key for key in self.entrynames if key not in kwargs)
                     raise ValueError(
-                        f"When setting parameter "
-                        f"{objecttools.elementphrase(self)} via keyword "
-                        f"arguments, each string defined "
-                        f"in `ENTRYNAMES` must be used as a keyword, "
-                        f"but the following keywords are not: "
-                        f"`{objecttools.enumeration(err)}`."
+                        f"When setting parameter {objecttools.elementphrase(self)} "
+                        f"via keyword arguments, each string defined in `entrynames` "
+                        f"must be used as a keyword, but the following keywords are "
+                        f"not: `{objecttools.enumeration(err)}`."
                     ) from None
-            if len(kwargs) != len(self.ENTRYNAMES):
-                err = (key for key in kwargs if key not in self.ENTRYNAMES)
+            if len(kwargs) != len(self.entrynames):
+                err = (key for key in kwargs if key not in self.entrynames)
                 raise ValueError(
-                    f"When setting parameter "
-                    f"{objecttools.elementphrase(self)} via keyword "
-                    f"arguments, each keyword must be defined in "
-                    f"`ENTRYNAMES`, but the following keywords are not: "
+                    f"When setting parameter {objecttools.elementphrase(self)} via "
+                    f"keyword arguments, each keyword must be defined in "
+                    f"`entrynames`, but the following keywords are not: "
                     f"`{objecttools.enumeration(err)}`."
                 ) from None
 
     def __getattr__(self, key):
-        if key in self.ENTRYNAMES:
+        if key in self.entrynames:
             try:
-                return self.values[self.ENTRYNAMES.index(key)]
+                return self.values[self.entrynames.index(key)]
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to retrieve a value from parameter "
-                    f"{objecttools.elementphrase(self)} via the "
-                    f"attribute `{key}`"
+                    f"{objecttools.elementphrase(self)} via the attribute `{key}`"
                 )
         raise AttributeError(
-            f"Parameter {objecttools.elementphrase(self)} does "
-            f"not handle an attribute named `{key}`."
+            f"Parameter {objecttools.elementphrase(self)} does not handle an "
+            f"attribute named `{key}`."
         )
 
     def __setattr__(self, key, values):
-        if key in self.ENTRYNAMES:
+        if key in self.entrynames:
             try:
-                self.values[self.ENTRYNAMES.index(key)] = values
+                self.values[self.entrynames.index(key)] = values
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to assign a new value to parameter "
@@ -3103,22 +3261,20 @@ index 1 is out of bounds for axis 0 with size 1
             super().__setattr__(key, values)
 
     def __repr__(self):
-        lines = self.commentrepr
         values = self.revert_timefactor(self.values)
         prefix = f"{self.name}("
+        lines = []
         if len(numpy.unique(values)) == 1:
             lines.append(f"{prefix}{objecttools.repr_(values[0])})")
         else:
             blanks = " " * len(prefix)
             string = ", ".join(
                 f"{key}={objecttools.repr_(value)}"
-                for key, value in zip(self.ENTRYNAMES, values)
+                for key, value in zip(self.entrynames, values)
             )
             for idx, substring in enumerate(
                 textwrap.wrap(
-                    text=string,
-                    width=max(70 - len(prefix), 30),
-                    break_long_words=False,
+                    text=string, width=max(70 - len(prefix), 30), break_long_words=False
                 )
             ):
                 if idx:
@@ -3134,20 +3290,20 @@ index 1 is out of bounds for axis 0 with size 1
         >>> class Season(KeywordParameter1D):
         ...     TYPE = bool
         ...     TIME = None
-        ...     ENTRYNAMES = ("winter", "summer")
+        ...     entrynames = ("winter", "summer")
         >>> season = Season(None)
         >>> sorted(set(dir(season)) - set(object.__dir__(season)))
         ['summer', 'winter']
         """
-        return cast(List[str], super().__dir__()) + list(self.ENTRYNAMES)
+        return cast(List[str], super().__dir__()) + list(self.entrynames)
 
 
 class MonthParameter(KeywordParameter1D):
-    """Base class for parameters which values depend on the actual month.
+    """Base class for parameters whose values depend on the actual month.
 
-    Please see the documentation on class |KeywordParameter1D| on how to
-    use |MonthParameter| objects and class |lland_control.WG2Z| of base
-    model |lland| as an example implementation:
+    Please see the documentation on class |KeywordParameter1D| on how to use
+    |MonthParameter| objects and class |lland_control.WG2Z| of base model |lland| as an
+    example implementation:
 
     >>> from hydpy.models.lland import *
     >>> simulationstep("12h")
@@ -3157,8 +3313,8 @@ class MonthParameter(KeywordParameter1D):
     wg2z(jan=3.0, feb=2.0, mar=1.0, apr=0.0, may=-1.0, jun=-2.0, jul=-3.0,
          aug=-2.0, sep=-1.0, oct=0.0, nov=1.0, dec=2.0)
 
-    Note that attribute access provides access to the "real" values related
-    to the current simulation time step:
+    Note that attribute access provides access to the "real" values related to the
+    current simulation time step:
 
     >>> wg2z.feb
     2.0
@@ -3168,7 +3324,7 @@ class MonthParameter(KeywordParameter1D):
          aug=-2.0, sep=-1.0, oct=0.0, nov=1.0, dec=2.0)
     """
 
-    ENTRYNAMES = (
+    entrynames = (
         "jan",
         "feb",
         "mar",
@@ -3184,32 +3340,30 @@ class MonthParameter(KeywordParameter1D):
     )
 
 
-class KeywordParameter2D(Parameter):
-    """Base class for 2-dimensional model parameters with values depending
-    on two factors.
+class KeywordParameter2D(_MixinModifiableParameter, Parameter):
+    """Base class for 2-dimensional model parameters with values depending on two
+    factors.
 
-    When subclassing from |KeywordParameter2D| one needs to define the
-    class attributes `ROWNAMES` and `COLNAMES` (both of type |tuple|).
-    A typical use case is that `ROWNAMES` defines some land-use classes
-    and `COLNAMES` defines seasons, months, or the like.  Here, we
-    consider a simple corresponding example, where the values of the
-    boolean parameter  `IsWarm` both depend on the on the hemisphere
-    and the half-year period:
+    When subclassing from |KeywordParameter2D| one needs to define the attributes
+    `rownames` and `columnnames` (both of type |tuple|).  A typical use case is that
+    `rownames` defines some land-use classes, and `columnnames` defines seasons,
+    months, etc.  Here, we consider a simple corresponding example where the values of
+    the boolean parameter `IsWarm` depend on the on the hemisphere and the half-year
+    period:
 
     >>> from hydpy.core.parametertools import KeywordParameter2D
     >>> class IsWarm(KeywordParameter2D):
     ...     TYPE = bool
     ...     TIME = None
-    ...     ROWNAMES = ("north", "south")
-    ...     COLNAMES = ("apr2sep", "oct2mar")
+    ...     rownames = ("north", "south")
+    ...     columnnames = ("apr2sep", "oct2mar")
 
     Instantiate the defined parameter class and define its shape:
 
     >>> iswarm = IsWarm(None)
     >>> iswarm.shape = (2, 2)
 
-    |KeywordParameter2D| allows us to set the values of all rows via
-    keyword arguments:
+    |KeywordParameter2D| allows us to set the values of all rows via keyword arguments:
 
     >>> iswarm(north=[True, False],
     ...        south=[False, True])
@@ -3225,9 +3379,9 @@ class KeywordParameter2D(Parameter):
     >>> iswarm(north=[True, False])
     Traceback (most recent call last):
     ...
-    ValueError: While setting parameter `iswarm` of element `?` via row \
-related keyword arguments, each string defined in `ROWNAMES` must be used \
-as a keyword, but the following keywords are not: `south`.
+    ValueError: While setting parameter `iswarm` of element `?` via row related \
+keyword arguments, each string defined in `rownames` must be used as a keyword, but \
+the following keywords are not: `south`.
 
     One can modify single rows via attribute access:
 
@@ -3249,49 +3403,49 @@ as a keyword, but the following keywords are not: `south`.
     >>> iswarm.north_apr2sep
     False
 
-    All three forms of attribute access define augmented exception messages
-    in case anything goes wrong:
+    All three forms of attribute access define augmented exception messages in case
+    anything goes wrong:
 
     >>> iswarm.north = True, True, True
     Traceback (most recent call last):
     ...
-    ValueError: While trying to assign new values to parameter `iswarm` of \
-element `?` via the row related attribute `north`, the following error \
-occurred: could not broadcast input array from shape (3,) into shape (2,)
+    ValueError: While trying to assign new values to parameter `iswarm` of element \
+`?` via the row related attribute `north`, the following error occurred: could not \
+broadcast input array from shape (3,) into shape (2,)
     >>> iswarm.apr2sep = True, True, True
     Traceback (most recent call last):
     ...
-    ValueError: While trying to assign new values to parameter `iswarm` of \
-element `?` via the column related attribute `apr2sep`, the following error \
-occurred: could not broadcast input array from shape (3,) into shape (2,)
+    ValueError: While trying to assign new values to parameter `iswarm` of element \
+`?` via the column related attribute `apr2sep`, the following error occurred: could \
+not broadcast input array from shape (3,) into shape (2,)
 
     >>> iswarm.shape = (1, 1)
 
     >>> iswarm.south_apr2sep = False
     Traceback (most recent call last):
     ...
-    IndexError: While trying to assign new values to parameter `iswarm` of \
-element `?` via the row and column related attribute `south_apr2sep`, the \
-following error occurred: index 1 is out of bounds for axis 0 with size 1
+    IndexError: While trying to assign new values to parameter `iswarm` of element \
+`?` via the row and column related attribute `south_apr2sep`, the following error \
+occurred: index 1 is out of bounds for axis 0 with size 1
 
     >>> iswarm.south
     Traceback (most recent call last):
     ...
-    IndexError: While trying to retrieve values from parameter `iswarm` of \
-element `?` via the row related attribute `south`, the following error \
-occurred: index 1 is out of bounds for axis 0 with size 1
+    IndexError: While trying to retrieve values from parameter `iswarm` of element \
+`?` via the row related attribute `south`, the following error occurred: index 1 is \
+out of bounds for axis 0 with size 1
     >>> iswarm.oct2mar
     Traceback (most recent call last):
     ...
-    IndexError: While trying to retrieve values from parameter `iswarm` of \
-element `?` via the column related attribute `oct2mar`, the following error \
-occurred: index 1 is out of bounds for axis 1 with size 1
+    IndexError: While trying to retrieve values from parameter `iswarm` of element \
+`?` via the column related attribute `oct2mar`, the following error occurred: index 1 \
+is out of bounds for axis 1 with size 1
     >>> iswarm.south_oct2mar
     Traceback (most recent call last):
     ...
-    IndexError: While trying to retrieve values from parameter `iswarm` of \
-element `?` via the row and column related attribute `south_oct2mar`, the \
-following error occurred: index 1 is out of bounds for axis 0 with size 1
+    IndexError: While trying to retrieve values from parameter `iswarm` of element \
+`?` via the row and column related attribute `south_oct2mar`, the following error \
+occurred: index 1 is out of bounds for axis 0 with size 1
 
     >>> iswarm.shape = (2, 2)
 
@@ -3300,18 +3454,17 @@ following error occurred: index 1 is out of bounds for axis 0 with size 1
     >>> iswarm.wrong
     Traceback (most recent call last):
     ...
-    AttributeError: Parameter `iswarm` of element `?` does neither handle \
-a normal attribute nor a row or column related attribute named `wrong`.
+    AttributeError: Parameter `iswarm` of element `?` does neither handle a normal \
+attribute nor a row or column related attribute named `wrong`.
 
-    One still can define the parameter values  via positional arguments:
+    One can still define the parameter values  via positional arguments:
 
     >>> iswarm(True)
     >>> iswarm
     iswarm(north=[True, True],
            south=[True, True])
 
-    For parameters with many columns, string representations are adequately
-    wrapped:
+    For parameters with many columns, string representations are adequately wrapped:
 
     >>> iswarm.shape = (2, 10)
     >>> iswarm
@@ -3322,118 +3475,275 @@ a normal attribute nor a row or column related attribute named `wrong`.
     """
 
     NDIM = 2
-    ROWNAMES: ClassVar[Tuple[str, ...]]
-    COLNAMES: ClassVar[Tuple[str, ...]]
+    rownames: Tuple[str, ...]
+    columnnames: Tuple[str, ...]
+    rowmin: int = 0
+    columnmin: int = 0
 
     strict_valuehandling: bool = False
 
-    _ROWCOLMAPPINGS: ClassVar[Dict[str, Tuple[int, int]]]
+    _rowcolumnmappings: Dict[str, Tuple[int, int]]
+
+    def __init__(self, subvars: SubParameters) -> None:
+        super().__init__(subvars)
+        self.rownames = type(self).rownames
+        self.columnnames = type(self).columnnames
+        self._rowcolumnmappings = self._make_rowcolumnmappings(
+            rownames=self.rownames, columnnames=self.columnnames
+        )
+        self.rowmin = type(self).rowmin
+        self.columnmin = type(self).columnmin
+
+    @classmethod
+    @contextlib.contextmanager
+    def modify_rows(cls, constants: Optional[Constants]) -> Generator[None, None, None]:
+        """Modify the relevant row names temporarily.
+
+        Methods |KeywordParameter2D.modify_rows| and |KeywordParameter2D.modify_columns|
+        serve the same purpose and behave exactly on the respective axis
+        |KeywordParameter2D| instances as method |KeywordParameter1D.modify_entries| on
+        the single axis of |KeywordParameter1D| instances.  Hence, we only test their
+        implementation here.  Please read the documentation on method
+        |KeywordParameter1D.modify_entries| for more information:
+
+        >>> from hydpy.core.parametertools import KeywordParameter2D
+        >>> class IsWarm(KeywordParameter2D):
+        ...     TYPE = bool
+        ...     TIME = None
+        ...     rownames = ("north", "south")
+        ...     columnnames = ("apr2sep", "oct2mar")
+        >>> iswarm1 = IsWarm(None)
+        >>> iswarm1.shape = (2, 2)
+        >>> iswarm1(north=[True, False],
+        ...         south=[False, True])
+        >>> iswarm1.north
+        array([ True, False])
+        >>> iswarm1.apr2sep
+        array([ True, False])
+
+        >>> from hydpy.core.parametertools import Constants
+        >>> consts_row = Constants(N=1, S=2)
+        >>> consts_column = Constants(APR2JUN=2, JUN2SEP=3, OCT2DEC=4, JAN2MAR=5)
+        >>> with IsWarm.modify_rows(consts_row), IsWarm.modify_columns(consts_column):
+        ...     iswarm2 = IsWarm(None)
+        ...     iswarm2.shape = (2, 4)
+        ...     iswarm2(n=[True, True, False, False],
+        ...             s=[False, False, True, True])
+        ...     iswarm2.n
+        ...     iswarm2.apr2jun
+        array([ True,  True, False, False])
+        array([ True, False])
+
+        >>> iswarm1.rownames
+        ('north', 'south')
+        >>> iswarm1.columnnames
+        ('apr2sep', 'oct2mar')
+        >>> iswarm1.rowmin
+        0
+        >>> iswarm1.columnmin
+        0
+
+        >>> iswarm2.rownames
+        ('n', 's')
+        >>> iswarm2.columnnames
+        ('apr2jun', 'jun2sep', 'oct2dec', 'jan2mar')
+        >>> iswarm2.rowmin
+        1
+        >>> iswarm2.columnmin
+        2
+
+        >>> IsWarm.rownames
+        ('north', 'south')
+        >>> IsWarm.columnnames
+        ('apr2sep', 'oct2mar')
+        >>> IsWarm.rowmin
+        0
+        >>> IsWarm.columnmin
+        0
+
+        >>> IsWarm.rowmin = 2
+        >>> IsWarm.columnmin = 3
+        >>> with IsWarm.modify_rows(None), IsWarm.modify_columns(None):
+        ...     IsWarm.rownames
+        ...     IsWarm.rowmin
+        ...     IsWarm.columnnames
+        ...     IsWarm.columnmin
+        ...     iswarm3 = IsWarm(None)
+        ...     iswarm3.shape = (2, 2)
+        ...     iswarm3(north=[True, False],
+        ...             south=[False, True])
+        ...     iswarm3
+        ...     iswarm1.north
+        ('north', 'south')
+        2
+        ('apr2sep', 'oct2mar')
+        3
+        iswarm(north=[True, False],
+               south=[False, True])
+        array([ True, False])
+        >>> IsWarm.rownames
+        ('north', 'south')
+        >>> IsWarm.columnnames
+        ('apr2sep', 'oct2mar')
+        >>> IsWarm.rowmin
+        2
+        >>> IsWarm.columnmin
+        3
+        >>> iswarm3
+        iswarm(north=[True, False],
+               south=[False, True])
+        >>> iswarm1.north
+        array([ True, False])
+        """
+        if constants is None:
+            yield
+        else:
+            get = vars(cls).get
+            old_names = get("rownames")
+            old_min = get("rowmin")
+            try:
+                cls.rownames = constants.sortednames
+                cls.rowmin = min(constants.values())
+                yield
+            finally:
+                cls._reset_after_modification("rownames", old_names)
+                cls._reset_after_modification("rowmin", old_min)
+
+    @classmethod
+    @contextlib.contextmanager
+    def modify_columns(
+        cls, constants: Optional[Constants]
+    ) -> Generator[None, None, None]:
+        """Modify the relevant column names temporarily.
+
+        Please see the documentation on method |KeywordParameter2D.modify_rows| for
+        further information.
+        """
+        if constants is None:
+            yield
+        else:
+            get = vars(cls).get
+            old_names = get("columnnames")
+            old_min = get("columnmin")
+            try:
+                cls.columnnames = constants.sortednames
+                cls.columnmin = min(constants.values())
+                yield
+            finally:
+                cls._reset_after_modification("columnnames", old_names)
+                cls._reset_after_modification("columnmin", old_min)
+
+    @classmethod
+    def _make_rowcolumnmappings(
+        cls, rownames: Tuple[str, ...], columnnames: Tuple[str, ...]
+    ) -> Dict[str, Tuple[int, int]]:
+        rowcolmappings = {}
+        for idx, rowname in enumerate(rownames):
+            for jdx, colname in enumerate(columnnames):
+                rowcolmappings["_".join((rowname, colname))] = (idx, jdx)
+        return rowcolmappings
 
     def __init_subclass__(cls) -> None:
         super().__init_subclass__()
-        rownames = cls.ROWNAMES
-        colnames = cls.COLNAMES
-        rowcolmappings = {}
-        for idx, rowname in enumerate(rownames):
-            for jdx, colname in enumerate(colnames):
-                rowcolmappings["_".join((rowname, colname))] = (idx, jdx)
-        cls._ROWCOLMAPPINGS = rowcolmappings
+        cls._rowcolumnmappings = cls._make_rowcolumnmappings(
+            rownames=cls.rownames, columnnames=cls.columnnames
+        )
 
     def __hydpy__connect_variable2subgroup__(self) -> None:
         super().__hydpy__connect_variable2subgroup__()
-        self.shape = (len(self.ROWNAMES), len(self.COLNAMES))
+        self.shape = (len(self.rownames), len(self.columnnames))
+        setattr(self.fastaccess, f"_{self.name}_rowmin", self.rowmin)
+        setattr(self.fastaccess, f"_{self.name}_columnmin", self.columnmin)
 
     def __call__(self, *args, **kwargs) -> None:
         try:
             super().__call__(*args, **kwargs)
         except NotImplementedError:
-            for idx, key in enumerate(self.ROWNAMES):
+            for idx, key in enumerate(self.rownames):
                 try:
                     self.values[idx, :] = self.apply_timefactor(kwargs[key])
                 except KeyError:
-                    miss = [key for key in self.ROWNAMES if key not in kwargs]
+                    miss = [key for key in self.rownames if key not in kwargs]
                     raise ValueError(
                         f"While setting parameter "
-                        f"{objecttools.elementphrase(self)} via row "
-                        f"related keyword arguments, each string defined "
-                        f"in `ROWNAMES` must be used as a keyword, "
-                        f"but the following keywords are not: "
+                        f"{objecttools.elementphrase(self)} via row related keyword "
+                        f"arguments, each string defined in `rownames` must be used "
+                        f"as a keyword, but the following keywords are not: "
                         f"`{objecttools.enumeration(miss)}`."
                     ) from None
 
-    def __getattr__(self, key):
-        if key in self.ROWNAMES:
+    def __getattr__(self, key: str):
+        if key in self.rownames:
             try:
-                return self.values[self.ROWNAMES.index(key), :]
+                return self.values[self.rownames.index(key), :]
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to retrieve values from parameter "
-                    f"{objecttools.elementphrase(self)} via the row "
-                    f"related attribute `{key}`"
+                    f"{objecttools.elementphrase(self)} via the row related attribute "
+                    f"`{key}`"
                 )
-        if key in self.COLNAMES:
+        if key in self.columnnames:
             try:
-                return self.values[:, self.COLNAMES.index(key)]
+                return self.values[:, self.columnnames.index(key)]
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to retrieve values from parameter "
-                    f"{objecttools.elementphrase(self)} via the column "
-                    f"related attribute `{key}`"
+                    f"{objecttools.elementphrase(self)} via the column related "
+                    f"attribute `{key}`"
                 )
-        if key in self._ROWCOLMAPPINGS:
-            idx, jdx = self._ROWCOLMAPPINGS[key]
+        if key in self._rowcolumnmappings:
+            idx, jdx = self._rowcolumnmappings[key]
             try:
                 return self.values[idx, jdx]
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to retrieve values from parameter "
-                    f"{objecttools.elementphrase(self)} via the row "
-                    f"and column related attribute `{key}`"
+                    f"{objecttools.elementphrase(self)} via the row and column "
+                    f"related attribute `{key}`"
                 )
         raise AttributeError(
-            f"Parameter {objecttools.elementphrase(self)} does neither "
-            f"handle a normal attribute nor a row or column related "
-            f"attribute named `{key}`."
+            f"Parameter {objecttools.elementphrase(self)} does neither handle a "
+            f"normal attribute nor a row or column related attribute named `{key}`."
         )
 
-    def __setattr__(self, key, values):
-        if key in self.ROWNAMES:
+    def __setattr__(self, key: str, values) -> None:
+        if key in self.rownames:
             try:
-                self.values[self.ROWNAMES.index(key), :] = values
+                self.values[self.rownames.index(key), :] = values
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to assign new values to parameter "
-                    f"{objecttools.elementphrase(self)} via the row "
-                    f"related attribute `{key}`"
+                    f"{objecttools.elementphrase(self)} via the row related attribute "
+                    f"`{key}`"
                 )
-        elif key in self.COLNAMES:
+        elif key in self.columnnames:
             try:
-                self.values[:, self.COLNAMES.index(key)] = values
+                self.values[:, self.columnnames.index(key)] = values
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to assign new values to parameter "
-                    f"{objecttools.elementphrase(self)} via the column "
-                    f"related attribute `{key}`"
+                    f"{objecttools.elementphrase(self)} via the column related "
+                    f"attribute `{key}`"
                 )
-        elif key in self._ROWCOLMAPPINGS:
-            idx, jdx = self._ROWCOLMAPPINGS[key]
+        elif key in self._rowcolumnmappings:
+            idx, jdx = self._rowcolumnmappings[key]
             try:
                 self.values[idx, jdx] = values
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to assign new values to parameter "
-                    f"{objecttools.elementphrase(self)} via the row "
-                    f"and column related attribute `{key}`"
+                    f"{objecttools.elementphrase(self)} via the row and column "
+                    f"related attribute `{key}`"
                 )
         else:
             super().__setattr__(key, values)
 
     def __repr__(self) -> str:
-        lines = self.commentrepr
         values = self.revert_timefactor(self.values)
         prefix = f"{self.name}("
         blanks = " " * len(prefix)
-        for idx, key in enumerate(self.ROWNAMES):
+        lines = []
+        for idx, key in enumerate(self.rownames):
             subprefix = f"{prefix}{key}=" if idx == 0 else f"{blanks}{key}="
             lines.append(
                 objecttools.assignrepr_list(values[idx, :], subprefix, 75) + ","
@@ -3447,18 +3757,19 @@ a normal attribute nor a row or column related attribute named `wrong`.
         >>> class IsWarm(KeywordParameter2D):
         ...     TYPE = bool
         ...     TIME = None
-        ...     ROWNAMES = ("north", "south")
-        ...     COLNAMES = ("apr2sep", "oct2mar")
+        ...     rownames = ("north", "south")
+        ...     columnnames = ("apr2sep", "oct2mar")
         >>> iswarm = IsWarm(None)
         >>> sorted(set(dir(iswarm)) - set(object.__dir__(iswarm)))
         ['apr2sep', 'north', 'north_apr2sep', 'north_oct2mar', 'oct2mar', 'south', \
 'south_apr2sep', 'south_oct2mar']
         """
+        assert (rowcolmappings := self._rowcolumnmappings) is not None
         return (
             cast(List[str], super().__dir__())
-            + list(self.ROWNAMES)
-            + list(self.COLNAMES)
-            + list(self._ROWCOLMAPPINGS.keys())
+            + list(self.rownames)
+            + list(self.columnnames)
+            + list(rowcolmappings)
         )
 
 
@@ -3573,13 +3884,10 @@ parameter value must be given, but is not.
         self.values[1] = value
 
     def __repr__(self):
-        lines = self.commentrepr
         values = [objecttools.repr_(value) for value in self.values]
         if values[0] == values[1]:
-            lines.append(f"{self.name}({values[0]})")
-        else:
-            lines.append(f"{self.name}(left={values[0]}, right={values[1]})")
-        return "\n".join(lines)
+            return f"{self.name}({values[0]})"
+        return f"{self.name}(left={values[0]}, right={values[1]})"
 
 
 class FixedParameter(Parameter):
@@ -3624,28 +3932,28 @@ class FixedParameter(Parameter):
     def restore(self) -> None:
         """Restore the original parameter value.
 
-        Method |FixedParameter.restore| is relevant for testing mainly.
-        Note that it might be necessary to call it after changing the
-        simulation step size, as shown in the following example using
-        the parameter |lland_fixed.LW| of base model |lland|:
+        Method |FixedParameter.restore| is relevant for testing mainly.  Note that it
+        might be necessary to call it after changing the simulation step size, as shown
+        in the following example using the parameter |evap_fixed.HeatOfCondensation| of
+        base model |evap|:
 
-        >>> from hydpy.models.lland import *
+        >>> from hydpy.models.evap import *
         >>> simulationstep("1d")
         >>> parameterstep("1d")
         >>> from hydpy import round_
-        >>> fixed.lw
-        lw(28.5)
-        >>> round_(fixed.lw.value)
+        >>> fixed.heatofcondensation
+        heatofcondensation(28.5)
+        >>> round_(fixed.heatofcondensation.value)
         28.5
         >>> simulationstep("12h")
-        >>> fixed.lw
-        lw(14.25)
-        >>> round_(fixed.lw.value)
+        >>> fixed.heatofcondensation
+        heatofcondensation(14.25)
+        >>> round_(fixed.heatofcondensation.value)
         28.5
-        >>> fixed.lw.restore()
-        >>> fixed.lw
-        lw(28.5)
-        >>> round_(fixed.lw.value)
+        >>> fixed.heatofcondensation.restore()
+        >>> fixed.heatofcondensation
+        heatofcondensation(28.5)
+        >>> round_(fixed.heatofcondensation.value)
         57.0
         """
         with hydpy.pub.options.parameterstep("1d"):
@@ -4032,3 +4340,203 @@ class UTCLongitudeParameter(Parameter):
         utclongitudeparameter(0)
         """
         self(hydpy.pub.options.utclongitude)
+
+
+def do_nothing(model: modeltools.Model) -> None:  # pylint: disable=unused-argument
+    """The default Python version of the |CallbackParameter|
+    |CallbackParameter.callback| function, which does nothing."""
+
+
+class CallbackParameter(Parameter):
+    """Base class for parameters that support calculating their values via user-defined
+    callback functions alternatively of sticking to the same values during a simulation
+    run.
+
+    We use the callback parameter |sw1d_control.GateHeight| of application model
+    |sw1d_gate_out| for the following technical explanations (for a more
+    application-oriented example, see the |sw1d_model.Calc_Discharge_V3|
+    documentation):
+
+    >>> from hydpy.models.sw1d_gate_out import *
+    >>> parameterstep()
+
+    You can define a fixed gate height as usual:
+
+    >>> gateheight
+    gateheight(?)
+    >>> gateheight(3.0)
+    >>> gateheight
+    gateheight(3.0)
+
+    Alternatively, you can write an individual callback function.  Its only argument
+    accepts the model under consideration (here, |sw1d_gate_out|).  Principally, you
+    are free to modify the model in any way you like, but the expected behaviour is
+    to set the considered parameter's value only:
+
+    >>> def adjust_gateheight(model) -> None:
+    ...     con = model.parameters.control.fastaccess
+    ...     con.gateheight = 5.0
+
+    However, when working in Cython mode, *HydPy* converts the pure Python function to
+    a Cython function and compiles it to C in the background, similar to how it handles
+    "normal" model methods.  This background conversion is crucial for efficiency but
+    restricts the allowed syntax and functionality.  Generally, you should work with
+    the usual "fast access shortcuts", be explicit about the |None| return type, and
+    cannot import any Python library, but are free to use Cython-functionalities
+    implemented for and used by other model methods instead. A trivial example is using
+    |fabs| for calculating absolute values.
+
+    Next, we hand the callback function over to the parameter.  Here, we do this a
+    little strangely between the creation of two tuples for hiding potential
+    information printed by Cython or the used C compiler:
+
+    >>> ();gateheight(callback=adjust_gateheight);()  # doctest: +ELLIPSIS
+    (...)
+
+    The string representation now includes the callback's source code:
+
+    >>> gateheight
+    def adjust_gateheight(model) -> None:
+        con = model.parameters.control.fastaccess
+        con.gateheight = 5.0
+    gateheight(callback=adjust_gateheight)
+
+    When interested in the parameter's value, request it via the
+    |CallbackParameter.value| property.  Note that this property applies the callback
+    automatically before returning the (then updated) value:
+
+    >>> from hydpy import round_
+    >>> round_(gateheight.value)
+    5.0
+
+    You can return the parameter to "normal behaviour" by assigning a fixed value:
+
+    >>> gateheight(7.0)
+    >>> gateheight
+    gateheight(7.0)
+
+    Alternatively, one can assign a function via the |CallbackParameter.callback|
+    property.  We do not need to hide potential compiler output this time because the
+    Python function has already been converted to a reusable Cython function:
+
+    >>> gateheight.callback = adjust_gateheight
+    >>> gateheight
+    def adjust_gateheight(model) -> None:
+        con = model.parameters.control.fastaccess
+        con.gateheight = 5.0
+    gateheight(callback=adjust_gateheight)
+    >>> round_(gateheight.value)
+    5.0
+
+    Note that *HydPy* stores the Cython callbacks persistently on disk, using the
+    Python function name as a part of the Cython module name. Hence, you cannot use
+    two equally named callback functions for the same parameter of the same application
+    model within one project.
+
+    Use the `del` statement to remove the callback function:
+
+    >>> assert gateheight.callback is not None
+    >>> del gateheight.callback
+    >>> assert gateheight.callback is None
+    >>> gateheight
+    gateheight(5.0)
+    >>> round_(gateheight.value)
+    5.0
+
+    Failing attempts to pass a callback function might result in the following errors:
+
+    >>> gateheight(Callback=adjust_gateheight)
+    Traceback (most recent call last):
+    ...
+    ValueError: When trying to prepare parameter `gateheight` of element `?` via a \
+keyword argument, it must be `callback`, and you need to pass a callback function.
+
+    >>> gateheight(value=1.0, callback=adjust_gateheight)
+    Traceback (most recent call last):
+    ...
+    ValueError: Parameter `gateheight` of element `?` does not allow to combine the \
+`callback` argument with other arguments.
+    """
+
+    _has_callback: bool = False
+
+    def __call__(self, *args, **kwargs) -> None:
+        try:
+            super().__call__(*args, **kwargs)
+        except NotImplementedError as exc:
+            if (callback := kwargs.get("callback", None)) is None:
+                raise ValueError(
+                    f"When trying to prepare parameter "
+                    f"{objecttools.elementphrase(self)} via a keyword argument, it "
+                    f"must be `callback`, and you need to pass a callback function."
+                ) from exc
+            if (len(args) > 0) or (len(kwargs) > 1):
+                raise ValueError(
+                    f"Parameter {objecttools.elementphrase(self)} does not allow to "
+                    f"combine the `callback` argument with other arguments."
+                ) from exc
+            self.callback = callback
+
+    def _init_callback(self):
+        if init := getattr(self.fastaccess, f"init_{self.name}_callback", None):
+            init()
+        else:
+            setattr(self.fastaccess, f"{self.name}_callback", do_nothing)
+
+    def __hydpy__connect_variable2subgroup__(self) -> None:
+        super().__hydpy__connect_variable2subgroup__()
+        self._init_callback()
+
+    @property
+    def callback(self) -> Optional[Callable[[modeltools.Model], None]]:
+        """The currently handled callback function for updating the parameter value."""
+        if self._has_callback:
+            if get := getattr(self.fastaccess, f"get_{self.name}_callback", None):
+                return get()
+            return getattr(self.fastaccess, f"{self.name}_callback")
+        return None
+
+    @callback.setter
+    def callback(self, callback: Callable[[modeltools.Model], None]) -> None:
+        from hydpy.cythons import modelutils  # pylint: disable=import-outside-toplevel
+
+        if set_ := getattr(self.fastaccess, f"set_{self.name}_callback", None):
+            cymodule = modelutils.get_callbackcymodule(
+                model=self.subpars.pars.model, parameter=self, callback=callback
+            )
+            set_(cymodule.get_wrapper())
+        else:
+            setattr(self.fastaccess, f"{self.name}_callback", callback)
+        self._has_callback = True
+
+    @callback.deleter
+    def callback(self) -> None:
+        self._has_callback = False
+        self._init_callback()
+
+    def _get_value(self):
+        """The fixed value or the value last updated by the callback function."""
+        if self._has_callback:
+            self.callback(self.subpars.pars.model)
+            self._valueready = True
+        return super()._get_value()
+
+    def _set_value(self, value) -> None:
+        self._init_callback()
+        self._has_callback = False
+        super()._set_value(value)
+
+    value = property(fget=_get_value, fset=_set_value)
+
+    def __repr__(self) -> str:
+        if self._has_callback:
+            callback: Any = self.callback
+            if isinstance(callback, types.FunctionType):
+                pycode = inspect.getsource(callback).strip()
+                funcname = callback.__name__
+            else:
+                pycode = callback.get_sourcecode()
+                funcname = callback.get_name()
+            varrepr = f"{self.name}(callback={funcname})"
+            return "\n".join((pycode, varrepr))
+        return super().__repr__()

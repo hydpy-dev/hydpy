@@ -29,9 +29,9 @@ importing their globally available aliases, which we hand over to the |Node| ins
 `node1` and `node2`:
 
 >>> from hydpy import Element, Node
->>> from hydpy.outputs import meteo_GlobalRadiation, meteo_ClearSkySolarRadiation
->>> node1 = Node("node1", variable=meteo_GlobalRadiation)
->>> node2 = Node("node2", variable=meteo_ClearSkySolarRadiation)
+>>> from hydpy.aliases import meteo_fluxes_GlobalRadiation, meteo_fluxes_ClearSkySolarRadiation
+>>> node1 = Node("node1", variable=meteo_fluxes_GlobalRadiation)
+>>> node2 = Node("node2", variable=meteo_fluxes_ClearSkySolarRadiation)
 
 Now we can prepare an instance of |meteo_v001| and assign it to an element connected to 
 the prepared nodes:

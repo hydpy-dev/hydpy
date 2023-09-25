@@ -56,12 +56,12 @@ to get information on the types and initial values of the exchange items defined
 `HydPy-OpenDA-Black-Box-Model-Wrapper`_):
 
 >>> from urllib import request
->>> url = "http://localhost:8080/query_itemtypes"
+>>> url = "http://127.0.0.1:8080/query_itemtypes"
 >>> print(str(request.urlopen(url).read(), encoding="utf-8"))
 alpha = Double0D
 dill_nodes_sim_series = TimeSeries0D
 
->>> url = "http://localhost:8080/query_initialitemvalues"
+>>> url = "http://127.0.0.1:8080/query_initialitemvalues"
 >>> print(str(request.urlopen(url).read(), encoding="utf-8"))
 alpha = 2.0
 dill_nodes_sim_series = [nan, nan, nan, nan, nan]
@@ -90,7 +90,7 @@ value of parameter |hland_control.alpha| later:
 ...     methods = ",".join(("POST_register_simulationdates",
 ...                         "POST_register_parameteritemvalues",
 ...                         "POST_register_conditionitemvalues"))
-...     url = f"http://localhost:8080/execute?id={id_}&methods={methods}"
+...     url = f"http://127.0.0.1:8080/execute?id={id_}&methods={methods}"
 ...     request.urlopen(url, data=content)
 
 Function `simulate` wraps only GET methods and triggers the next simulation run.  As
@@ -106,7 +106,7 @@ for all GET and POST methods, one should pass the query parameter `id`, used by 
 ...                         "GET_save_internalconditions",
 ...                         "GET_update_conditionitemvalues",
 ...                         "GET_update_getitemvalues"))
-...     url = f"http://localhost:8080/execute?id={id_}&methods={methods}"
+...     url = f"http://127.0.0.1:8080/execute?id={id_}&methods={methods}"
 ...     request.urlopen(url)
 
 Function `print_itemvalues` also wraps only GET methods and prints the current value of
@@ -119,7 +119,7 @@ corresponding to the given `id` value:
 ...                         "GET_query_parameteritemvalues",
 ...                         "GET_query_conditionitemvalues",
 ...                         "GET_query_getitemvalues"))
-...     url = f"http://localhost:8080/execute?id={id_}&methods={methods}"
+...     url = f"http://127.0.0.1:8080/execute?id={id_}&methods={methods}"
 ...     data = str(request.urlopen(url).read(), encoding="utf-8")
 ...     for line in data.split("\\n"):
 ...         if line.startswith("alpha"):
@@ -141,29 +141,29 @@ In the simplest example, we perform a simulation throughout five days for an
 |hland_control.Alpha| value of 2:
 
 >>> do_everything("1a", "1996-01-01", "1996-01-06", 2.0)
-2.0: 35.537828, 7.741064, 5.018981, 4.501784, 4.238874
+2.0: 35.5403, 7.741818, 5.019103, 4.50156, 4.238698
 
 The following example shows interlocked simulation runs.  The first call only triggers
 a simulation run for the first initialised day:
 
 >>> do_everything("1b", "1996-01-01", "1996-01-02", 2.0)
-2.0: 35.537828
+2.0: 35.5403
 
 The second call repeats the first one with a different `id` value:
 
 >>> do_everything("2", "1996-01-01", "1996-01-02", 2.0)
-2.0: 35.537828
+2.0: 35.5403
 
 The third call covers the first three initialisation days:
 
 >>> do_everything("3", "1996-01-01", "1996-01-04", 2.0)
-2.0: 35.537828, 7.741064, 5.018981
+2.0: 35.5403, 7.741818, 5.019103
 
 The fourth call continues the simulation of the first call, covering the last four
 initialised days:
 
 >>> do_everything("1b", "1996-01-02", "1996-01-06", 2.0)
-2.0: 7.741064, 5.018981, 4.501784, 4.238874
+2.0: 7.741818, 5.019103, 4.50156, 4.238698
 
 The results of the very first call of function `do_everything` (with`id=1`) are
 identical with the pulled-together discharge values of the calls with `id=1b`, made
@@ -173,15 +173,15 @@ numbers, but any other strings are valid `id` values.
 This example extends the last one by applying different parameter values:
 
 >>> do_everything("4", "1996-01-01", "1996-01-04", 2.0)
-2.0: 35.537828, 7.741064, 5.018981
+2.0: 35.5403, 7.741818, 5.019103
 >>> do_everything("5", "1996-01-01", "1996-01-04", 1.0)
-1.0: 11.78038, 8.901179, 7.131072
+1.0: 11.78144, 8.902735, 7.132279
 >>> do_everything("4", "1996-01-04", "1996-01-06", 2.0)
-2.0: 4.501784, 4.238874
+2.0: 4.50156, 4.238698
 >>> do_everything("5", "1996-01-04", "1996-01-06", 1.0)
-1.0: 6.017787, 5.313211
+1.0: 6.018681, 5.313657
 >>> do_everything("5", "1996-01-01", "1996-01-06", 1.0)
-1.0: 11.78038, 8.901179, 7.131072, 6.017787, 5.313211
+1.0: 11.78144, 8.902735, 7.132279, 6.018681, 5.313657
 
 The order in which function `do_everything` calls its subfunctions seems quite natural,
 but some tools might require do deviate from it.  For example, `OpenDA`_ offers
@@ -194,9 +194,9 @@ methods support such an execution sequence:
 >>> set_itemvalues("7", "1996-01-01", "1996-01-03", 1.0)
 >>> simulate("7")
 >>> print_itemvalues("6")
-2.0: 35.537828, 7.741064
+2.0: 35.5403, 7.741818
 >>> print_itemvalues("7")
-1.0: 11.78038, 8.901179
+1.0: 11.78144, 8.902735
 
 When working in parallel mode, `OpenDA`_ might not always call the functions
 `set_itemvalues` and `simulate` for the same `id` directly one after another, which
@@ -207,14 +207,14 @@ also causes no problem:
 >>> simulate("6")
 >>> simulate("7")
 >>> print_itemvalues("6")
-2.0: 5.018981, 4.501784, 4.238874
+2.0: 5.019103, 4.50156, 4.238698
 >>> print_itemvalues("7")
-1.0: 7.131072, 6.017787, 5.313211
+1.0: 7.132279, 6.018681, 5.313657
 
 Finally, we close the server and kill its process (just closing your command-line tool
 works likewise):
 
->>> _ = request.urlopen("http://localhost:8080/close_server")
+>>> _ = request.urlopen("http://127.0.0.1:8080/close_server")
 >>> process.kill()
 >>> _ = process.communicate()
 
@@ -263,6 +263,8 @@ mimetypes.inited = False
 
 
 ID = NewType("ID", str)
+ID.__doc__ = """Type for strings that identify "artificial" *HydPy* instances (from a 
+client's point of view)."""
 
 
 class ServerState:
@@ -315,7 +317,7 @@ class ServerState:
     SetItem("quh", "hland_v1", "logs.quh", None, "device")
     >>> for item in state.getitems:
     ...     print(item)
-    GetItem("?", "hland_v1", "factors.tmean")
+    GetItem("?", "hland_v1", "factors.contriarea")
     GetItem("current_discharge", "hland_v1", "fluxes.qt")
     GetItem("entire_discharge_series", "hland_v1", "fluxes.qt.series")
     GetItem("?", "hland_v1", "states.sm")
@@ -350,7 +352,7 @@ class ServerState:
     conditionitems: List[itemtools.SetItem]
     outputitems: List[itemtools.SetItem]
     getitems: List[itemtools.GetItem]
-    conditions: Dict[ID, Dict[int, hydpytools.ConditionsType]]
+    conditions: Dict[ID, Dict[int, Conditions]]
     parameteritemvalues: Dict[ID, Dict[Name, Any]]
     inputitemvalues: Dict[ID, Dict[Name, Any]]
     conditionitemvalues: Dict[ID, Dict[Name, Any]]
@@ -361,7 +363,7 @@ class ServerState:
     initialconditionitemvalues: Dict[Name, Any]
     initialgetitemvalues: Dict[Name, Any]
     timegrids: Dict[ID, timetools.Timegrid]
-    init_conditions: hydpytools.ConditionsType
+    init_conditions: Conditions
     inputconditiondirs: Dict[ID, str]
     outputconditiondirs: Dict[ID, str]
     serieswriterdirs: Dict[ID, str]
@@ -391,7 +393,7 @@ class ServerState:
         write("Create the custom selections (if defined)")
         self.interface.update_selections()
         write("Activate the selected network")
-        hp.update_devices(selection=self.interface.fullselection)
+        hp.update_devices(selection=self.interface.fullselection, silent=True)
         write("Read the required control files")
         self.interface.control_io.prepare_models()
         if load_conditions:
@@ -477,7 +479,7 @@ class HydPyServer(http.server.BaseHTTPRequestHandler):
 
     >>> from urllib import request
     >>> def test(name, id_=None, data=None, return_result=False):
-    ...     url = f"http://localhost:8080/{name}"
+    ...     url = f"http://127.0.0.1:8080/{name}"
     ...     if id_:
     ...         url = f"{url}?id={id_}"
     ...     if data:
@@ -588,7 +590,7 @@ been extracted but cannot be further processed: `x == y`.
     >>> test("query_outputitemtypes")
     swe_headwaters = TimeSeries1D
     >>> test("query_getitemtypes")
-    land_dill_factors_tmean = Double0D
+    land_dill_factors_contriarea = Double0D
     land_dill_fluxes_qt = Double0D
     land_dill_fluxes_qt_series = TimeSeries0D
     land_dill_states_sm = Double1D
@@ -636,7 +638,7 @@ been extracted but cannot be further processed: `x == y`.
     >>> test("query_initialoutputitemvalues")
     swe_headwaters = [[nan, nan, nan, nan, nan], [nan, nan, nan, nan, nan]]
     >>> test("query_initialgetitemvalues")  # doctest: +ELLIPSIS
-    land_dill_factors_tmean = nan
+    land_dill_factors_contriarea = nan
     land_dill_fluxes_qt = nan
     land_dill_fluxes_qt_series = [nan, nan, nan, nan, nan]
     land_dill_states_sm = [185.13164...]
@@ -672,7 +674,7 @@ been extracted but cannot be further processed: `x == y`.
     sm_lahn_1 = [land_lahn_1_0, ..., land_lahn_1_12]
     quh = [land_lahn_2]
     swe_headwaters = [land_dill, land_lahn_1]
-    land_dill_factors_tmean = land_dill
+    land_dill_factors_contriarea = land_dill
     land_dill_fluxes_qt = land_dill
     land_dill_fluxes_qt_series = land_dill
     land_dill_states_sm = ('land_dill_0', ..., 'land_dill_11')
@@ -886,7 +888,7 @@ under the id `0`.  There is nothing registered, so far.
     >>> test("update_getitemvalues", id_="0")
     <BLANKLINE>
     >>> test("query_getitemvalues", id_="0")  # doctest: +ELLIPSIS
-    land_dill_factors_tmean = nan
+    land_dill_factors_contriarea = nan
     land_dill_fluxes_qt = nan
     land_dill_fluxes_qt_series = [nan]
     land_dill_states_sm = [185.13164, ...]
@@ -897,7 +899,7 @@ under the id `0`.  There is nothing registered, so far.
     dill_nodes_sim_series = [nan]
 
     Besides the "official" way for retrieving information (which we sometimes call the
-    "getitem style), some sequences types (namely those derived from |FactorSequence|
+    "getitem style"), some sequences types (namely those derived from |FactorSequence|
     and |FluxSequence|) also allow retrieving information in the so-called "setitem
     style" via the methods |HydPyServer.GET_update_outputitemvalues| and
     |HydPyServer.GET_query_outputitemvalues|:
@@ -965,12 +967,12 @@ under the id `0`.  There is nothing registered, so far.
     >>> test("update_getitemvalues", id_="0")
     <BLANKLINE>
     >>> test("query_getitemvalues", id_="0")  # doctest: +ELLIPSIS
-    land_dill_factors_tmean = -0.572053
-    land_dill_fluxes_qt = 5.515321
+    land_dill_factors_contriarea = 0.758735
+    land_dill_fluxes_qt = 5.515523
     ...
-    land_lahn_2_states_sm = [99.848023, ..., 99.848023]
+    land_lahn_2_states_sm = [100.33562, ..., 100.0]
     ...
-    dill_nodes_sim_series = [5.515321]
+    dill_nodes_sim_series = [5.515523]
     >>> test("update_outputitemvalues", id_="0")
     <BLANKLINE>
     >>> test("query_outputitemvalues", id_="0")
@@ -989,7 +991,7 @@ under the id `0`.  There is nothing registered, so far.
     lastdate_sim = 1996-01-02T00:00:00+01:00
     >>> test("evaluate",
     ...      data=f"sm_lahn2 = {sequences}.states.sm")  # doctest: +ELLIPSIS
-    sm_lahn2 = sm(99.848023, ..., 99.848023)
+    sm_lahn2 = sm(100.33562, ..., 100.0)
     >>> test("save_internalconditions", id_="0")
     <BLANKLINE>
 
@@ -1017,7 +1019,7 @@ under the id `0`.  There is nothing registered, so far.
     <BLANKLINE>
     >>> test("evaluate",
     ...      data=f"sm_lahn2 = {sequences}.states.sm")  # doctest: +ELLIPSIS
-    sm_lahn2 = sm(99.848023, ..., 99.848023)
+    sm_lahn2 = sm(100.33562, ..., 100.0)
 
     Loading condition values for a specific time point requires saving them before:
 
@@ -1052,7 +1054,8 @@ calculated so far.
     <BLANKLINE>
     >>> conditions = test("query_internalconditions", id_="0",
     ...                   return_result=True)[13:]  # doctest: +ELLIPSIS
-    conditions = {'land_dill': {'states': {'ic': array([0.69171697, 1.19171697...
+    conditions = {'land_dill': {'model': {'states': {'ic': array([0.6839174, \
+1.1839174, 0.6850974...
 
     Due to the steps above, the returned dictionary agrees with the current state of
     the |HydPy| instance:
@@ -1060,7 +1063,7 @@ calculated so far.
     >>> sequences = f"HydPyServer.state.hp.elements.land_dill.model.sequences"
     >>> test("evaluate",
     ...      data=f"ic_dill = {sequences}.states.ic")  # doctest: +ELLIPSIS
-    ic_dill = ic(0.691717, 1.191717, 0.692897,...
+    ic_dill = ic(0.683917, 1.183917, 0.685097,...
 
     To show that registering new internal conditions also works, we first convert the
     string representation of the data to actual Python objects by using Python's |eval|
@@ -1073,7 +1076,7 @@ calculated so far.
     Next, we modify an arbitrary state and convert the dictionary back to a single-line
     string:
 
-    >>> conditions["land_dill"]["states"]["ic"][:2] = 0.5, 2.0
+    >>> conditions["land_dill"]["model"]["states"]["ic"][:2] = 0.5, 2.0
     >>> conditions = str(conditions).replace("\\n", " ")
 
     Now we can send the modified data back to the server by using the
@@ -1082,10 +1085,10 @@ calculated so far.
 
     >>> test("register_internalconditions", id_="0", data=f"conditions = {conditions}")
     <BLANKLINE>
-    >>> ic_dill = "self.state.conditions['0'][0]['land_dill']['states']['ic']"
+    >>> ic_dill = "self.state.conditions['0'][0]['land_dill']['model']['states']['ic']"
     >>> test("evaluate",
     ...      data=f"ic_dill = {ic_dill}")  # doctest: +ELLIPSIS
-    ic_dill = array([0.5       , 2.        , 0.69289697,...
+    ic_dill = array([0.5      , 2.       , 0.6850974,...
 
     After calling method |HydPyServer.GET_load_internalconditions|, the freshly
     registered states are ready to be used by the next simulation run:
@@ -1094,14 +1097,14 @@ calculated so far.
     <BLANKLINE>
     >>> test("evaluate",
     ...      data=f"ic_dill = {sequences}.states.ic")  # doctest: +ELLIPSIS
-    ic_dill = ic(0.5, 1.5, 0.692897,...
+    ic_dill = ic(0.5, 2.0, 0.685097,...
 
     Keeping the internal conditions for multiple time points can use plenty of RAM.
     Use the GET method |HydPyServer.GET_deregister_internalconditions| to remove all
     conditions data available under the given `id` to avoid that:
 
     >>> test("query_internalconditions", id_="0")  # doctest: +ELLIPSIS
-    conditions = {'land_dill': {'states': {'ic': array([0.6917...
+    conditions = {'land_dill': {'model': {'states': {'ic': array([0.6839...
     >>> test("deregister_internalconditions", id_="0")
     <BLANKLINE>
     >>> test("query_internalconditions", id_="0")
@@ -1123,11 +1126,11 @@ conditions registered under the id `0` for `1996-01-02 00:00:00`.
     >>> test("update_conditionitemvalues", id_="0")
     <BLANKLINE>
     >>> test("query_conditionitemvalues", id_="0")  # doctest: +ELLIPSIS
-    ic_lahn_2 = [0.953246...]
-    ic_lahn_1 = [0.738365, ...]
-    sm_lahn_2 = [99.84802...]
-    sm_lahn_1 = [49.92944...]
-    quh = [0.00038...]
+    ic_lahn_2 = [0.94611...]
+    ic_lahn_1 = [0.73074...]
+    sm_lahn_2 = [100.22389...]
+    sm_lahn_1 = [49.92738...]
+    quh = [0.00039...]
 
     The second option for handling multiple "simultaneous" initial conditions is
     telling the *HydPy* server to read them from and write them to disk, which is
@@ -1158,7 +1161,7 @@ load the initial conditions of element `land_dill`, the following error occurred
 
     >>> lz_dill = "self.state.hp.elements.land_dill.model.sequences.states.lz"
     >>> test("evaluate", data=f"lz_dill = {lz_dill}")  # doctest: +ELLIPSIS
-    lz_dill = lz(9.4921...)
+    lz_dill = lz(9.492...)
 
     To prove reading and writing conditions works, we first set the current value of
     sequence |hland_states.LZ| of catchment "Dill" to zero:
@@ -1174,7 +1177,7 @@ load the initial conditions of element `land_dill`, the following error occurred
     >>> test("load_conditions", id_="0")
     <BLANKLINE>
     >>> test("evaluate", data=f"lz_dill = {lz_dill}")  # doctest: +ELLIPSIS
-    lz_dill = lz(9.4921...)
+    lz_dill = lz(9.492...)
 
     Use the GET methods |HydPyServer.GET_query_inputconditiondir| and
     |HydPyServer.GET_deregister_inputconditiondir| to query or remove the currently
@@ -1231,7 +1234,7 @@ registered under the id `0`.  There is nothing registered, so far.
 200.0, 210.0, 220.0, 230.0]
     quh = [10.0]
     swe_headwaters = [[nan, nan, nan, nan, nan], [nan, nan, nan, nan, nan]]
-    land_dill_factors_tmean = nan
+    land_dill_factors_contriarea = nan
     land_dill_fluxes_qt = nan
     land_dill_fluxes_qt_series = [nan, nan, nan, nan, nan]
     land_dill_states_sm = [185.13164...]
@@ -1257,7 +1260,7 @@ registered under the id `0`.  There is nothing registered, so far.
     >>> filepath = "LahnH/series/mean_sm/hland_v1_state_sm_mean.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
     ...     print_values(ncfile["state_sm"][:, 0])
-    211.238178, 0.0, 0.0, 0.0, 0.0
+    211.231585, 0.0, 0.0, 0.0, 0.0
 
     To save the results of subsequent simulations without overwriting the previous
     ones, change the current series writer directory by the GET method
@@ -1270,7 +1273,7 @@ registered under the id `0`.  There is nothing registered, so far.
     >>> filepath = "LahnH/series/sm_averaged/hland_v1_state_sm_mean.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
     ...     print_values(ncfile["state_sm"][:, 0])
-    211.238178, 0.0, 0.0, 0.0, 0.0
+    211.231585, 0.0, 0.0, 0.0, 0.0
 
     |HydPyServer.GET_deregister_serieswriterdir| removes the currently set directory
     from the registry so that the HydPy server falls back to the
@@ -1290,25 +1293,27 @@ under the id `0`.  There is nothing registered, so far.
     The same holds for time series to be written "just in time" during simulation runs.
     The `temperature` writer in `multiple_runs.xml` select the `jit` mode.  This
     setting triggered that the *HydPy* server wrote the time series of sequences
-    |hland_inputs.T| and |hland_inputs.TN| to the directory `temperature` during the
-    last simulation:
+    |hland_inputs.T| and |evap_inputs.NormalAirTemperature| to the directory
+    `temperature` during the last simulation:
 
     >>> filepath = "LahnH/series/temperature/hland_v1_input_t.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
     ...     print_values(ncfile["input_t"][:, 0])
     -0.298846, 0.0, 0.0, 0.0, 0.0
 
-    The input sequences |hland_inputs.P| and |hland_inputs.EPN| are instead reading
-    their time series "just in time" (reading and writing data for the same |IOSequence|
-    object is not supported).  We query the last read value of |hland_inputs.EPN| for
-    the Dill catchment:
+    The input sequences |hland_inputs.P| and |evap_inputs.NormalEvapotranspiration| are
+    instead reading their time series "just in time" (reading and writing data for the
+    same |IOSequence| object is not supported).  We query the last read value of
+    |evap_inputs.NormalEvapotranspiration| for the Dill catchment:
 
-    >>> epn = f"HydPyServer.state.hp.elements.land_dill.model.sequences.inputs.epn"
-    >>> test("evaluate", data=f"epn_dill = {epn}")  # doctest: +ELLIPSIS
-    epn_dill = epn(0.2854...)
+    >>> submodel = "HydPyServer.state.hp.elements.land_dill.model.aetmodel.petmodel"
+    >>> net = f"{submodel}.sequences.inputs.normalevapotranspiration"
+    >>> test("evaluate", data=f"net_dill = {net}")  # doctest: +ELLIPSIS
+    net_dill = normalevapotranspiration(0.2854...)
 
     We can change the series writer directory before starting another simulation run to
-    write the time series of |hland_inputs.T| and |hland_inputs.TN| to another
+    write the time series of |hland_inputs.T| and |evap_inputs.NormalAirTemperature| to
+    another
     directory:
 
     >>> test("register_serieswriterdir", id_="0", data="serieswriterdir = temp")
@@ -1320,11 +1325,12 @@ under the id `0`.  There is nothing registered, so far.
     ...     print_values(ncfile["input_t"][:, 0])
     -0.298846, 0.0, 0.0, 0.0, 0.0
 
-    The "just in time" reading of the series of "P" and "EPN" still worked, showing the
-    registered series directory "temp" only applied for writing data:
+    The "just in time" reading of the series of |hland_inputs.P| and
+    |evap_inputs.NormalEvapotranspiration| still worked, showing the registered series
+    directory "temp" only applied for writing data:
 
-    >>> test("evaluate", data=f"epn_dill = {epn}")  # doctest: +ELLIPSIS
-    epn_dill = epn(0.2854...)
+    >>> test("evaluate", data=f"net_dill = {net}")  # doctest: +ELLIPSIS
+    net_dill = normalevapotranspiration(0.2854...)
 
     Changing the series reader directory works as explained for the series writer
     directory.  After setting it to an empty folder, |HydPyServer.GET_load_allseries|
@@ -1384,6 +1390,8 @@ under the id `0`.  There is nothing registered, so far.
     # -*- coding: utf-8 -*-
     <BLANKLINE>
     from hydpy.models.hland_v1 import *
+    from hydpy.models import evap_aet_hbv96
+    from hydpy.models import evap_pet_hbv96
     <BLANKLINE>
     simulationstep("1d")
     parameterstep("1d")
@@ -1561,14 +1569,14 @@ under the id `0`.  There is nothing registered, so far.
         ...         blocking=False, verbose=False)
         ...     _ = run_subprocess("hyd.py await_server 8080 10", verbose=False)
         >>> from urllib import request
-        >>> request.urlopen("http://localhost:8080/evaluate", data=b"")
+        >>> request.urlopen("http://127.0.0.1:8080/evaluate", data=b"")
         Traceback (most recent call last):
         ...
         urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to execute \
 method `POST_evaluate`, the following error occurred: You can only use the POST \
 method `evaluate` if you have started the `HydPy Server` in debugging mode.
 
-        >>> _ = request.urlopen("http://localhost:8080/close_server")
+        >>> _ = request.urlopen("http://127.0.0.1:8080/close_server")
         >>> process.kill()
         >>> _ = process.communicate()
         """
@@ -2230,12 +2238,12 @@ def start_server(
 
     >>> from urllib import request
     >>> command = "maxrequests = self.server.request_queue_size"
-    >>> response = request.urlopen("http://localhost:8080/evaluate",
+    >>> response = request.urlopen("http://127.0.0.1:8080/evaluate",
     ...                            data=bytes(command, encoding="utf-8"))
     >>> print(str(response.read(), encoding="utf-8"))
     maxrequests = 100
 
-    >>> _ = request.urlopen("http://localhost:8080/close_server")
+    >>> _ = request.urlopen("http://127.0.0.1:8080/close_server")
     >>> process.kill()
     >>> _ = process.communicate()
 
@@ -2306,7 +2314,7 @@ following error:
     ...     result = run_subprocess("hyd.py await_server 8080 10", verbose=False)
 
     >>> from urllib import request
-    >>> _ = request.urlopen("http://localhost:8080/close_server")
+    >>> _ = request.urlopen("http://127.0.0.1:8080/close_server")
     >>> process.kill()
     >>> _ = process.communicate()
     """
@@ -2314,7 +2322,7 @@ following error:
     end = now + float(seconds)
     while now <= end:
         try:
-            with urllib.request.urlopen(f"http://localhost:{port}/status"):
+            with urllib.request.urlopen(f"http://127.0.0.1:{port}/status"):
                 break
         except urllib.error.URLError:
             time.sleep(0.1)

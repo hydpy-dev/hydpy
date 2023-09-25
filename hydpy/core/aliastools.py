@@ -41,53 +41,53 @@ class LazyInOutSequenceImport:
     ...     return LazyInOutSequenceImport(
     ...         modulename="hydpy.models.hland.hland_inputs",
     ...         classname="T",
-    ...         alias="hland_T",
+    ...         alias="hland_inputs_T",
     ...         namespace=locals(),
     ...     )
-    >>> hland_T = get_example_alias()
-    >>> type(hland_T)
+    >>> hland_inputs_T = get_example_alias()
+    >>> type(hland_inputs_T)
     <class 'hydpy.core.aliastools.LazyInOutSequenceImport'>
 
     After accessing an attribute, its type changed to |abc.ABCMeta|, which is the
     meta-class of all input and output sequences:
 
-    >>> hland_T.__name__
+    >>> hland_inputs_T.__name__
     'T'
-    >>> type(hland_T)
-    <class 'abc.ABCMeta'>
+    >>> type(hland_inputs_T)
+    <class 'type'>
 
     Due to Python's `special method lookup`_, we must explicitly define the relevant
     ones.  The following examples list all considered methods:
 
-    >>> hland_T = get_example_alias()
+    >>> hland_inputs_T = get_example_alias()
     >>> from hydpy.models.hland.hland_inputs import T, P
-    >>> hash(hland_T) == hash(T)
+    >>> hash(hland_inputs_T) == hash(T)
     True
 
-    >>> hland_T = get_example_alias()
-    >>> hland_T == T
+    >>> hland_inputs_T = get_example_alias()
+    >>> hland_inputs_T == T
     True
-    >>> hland_T = get_example_alias()
-    >>> T == hland_T
-    True
-
-    >>> hland_T = get_example_alias()
-    >>> hland_T != P
-    True
-    >>> hland_T = get_example_alias()
-    >>> P != hland_T
+    >>> hland_inputs_T = get_example_alias()
+    >>> T == hland_inputs_T
     True
 
-    >>> hland_T = get_example_alias()
-    >>> str(hland_T)
+    >>> hland_inputs_T = get_example_alias()
+    >>> hland_inputs_T != P
+    True
+    >>> hland_inputs_T = get_example_alias()
+    >>> P != hland_inputs_T
+    True
+
+    >>> hland_inputs_T = get_example_alias()
+    >>> str(hland_inputs_T)
     "<class 'hydpy.models.hland.hland_inputs.T'>"
 
-    >>> hland_T = get_example_alias()
-    >>> repr(hland_T)
+    >>> hland_inputs_T = get_example_alias()
+    >>> repr(hland_inputs_T)
     "<class 'hydpy.models.hland.hland_inputs.T'>"
 
-    >>> hland_T = get_example_alias()
-    >>> dir(hland_T)   # doctest: +ELLIPSIS
+    >>> hland_inputs_T = get_example_alias()
+    >>> dir(hland_inputs_T)   # doctest: +ELLIPSIS
     ['INIT', 'NDIM', ...]
     """
 
@@ -143,81 +143,76 @@ class LazyInOutSequenceImport:
 
 
 def write_sequencealiases() -> None:
-    """Write the alias modules `inputs` and `outputs`.
+    """Write the sequence alias module `aliases.py`.
 
-    After extending a model or adding a new one, you can update both modules by
-    calling |write_sequencealiases|:
+    After extending a model or adding a new one, you can update the module by calling
+    |write_sequencealiases|:
 
     >>> from hydpy.core.aliastools import write_sequencealiases
     >>> write_sequencealiases()
     """
-    sqt = sequencetools
+    groupname2sequencetype2ndims = (
+        ("inputs", sequencetools.InputSequence, (0,)),
+        ("inlets", sequencetools.InletSequence, (0, 1)),
+        ("receivers", sequencetools.ReceiverSequence, (0, 1)),
+        ("factors", sequencetools.FactorSequence, (0,)),
+        ("fluxes", sequencetools.FluxSequence, (0,)),
+        ("states", sequencetools.StateSequence, (0,)),
+        ("outlets", sequencetools.OutletSequence, (0, 1)),
+        ("senders", sequencetools.SenderSequence, (0, 1)),
+    )
     modelpath: str = models.__path__[0]
-    for groupnames, sequencetypes, filename in (
-        (
-            ("inputs",),
-            (sqt.InputSequence,),
-            "inputs.py",
-        ),
-        (
-            ("factors", "fluxes", "states"),
-            (sqt.FactorSequence, sqt.FluxSequence, sqt.StateSequence),
-            "outputs.py",
-        ),
-    ):
-        sequence2alias: Dict[sqt.InOutSequenceTypes, str] = {}
-        for moduleinfo in pkgutil.iter_modules([modelpath]):
-            if not moduleinfo.ispkg:
+    sequence2alias: Dict[sequencetools.InOutSequenceTypes, str] = {}
+    for moduleinfo in pkgutil.iter_modules([modelpath]):
+        if not moduleinfo.ispkg:
+            continue
+        for groupname, sequencetype, ndim in groupname2sequencetype2ndims:
+            modelname = moduleinfo.name
+            modulepath = f"hydpy.models.{modelname}.{modelname}_{groupname}"
+            try:
+                module = importlib.import_module(modulepath)
+            except ModuleNotFoundError:
                 continue
-            for groupname in groupnames:
-                modelname = moduleinfo.name
-                modulepath = f"hydpy.models.{modelname}.{modelname}_{groupname}"
-                try:
-                    module = importlib.import_module(modulepath)
-                except ModuleNotFoundError:
-                    continue
-                for member in vars(module).values():
-                    if (
-                        (getattr(member, "__module__", None) == modulepath)
-                        and issubclass(member, sequencetypes)
-                        and member.NDIM == 0
-                    ):
-                        alias = f"{modelname}_{member.__name__}"
-                        sequence2alias[member] = alias
-        hydpypath = hydpy.__path__[0]
+            for member in vars(module).values():
+                if (
+                    (getattr(member, "__module__", None) == modulepath)
+                    and issubclass(member, sequencetype)
+                    and member.NDIM in ndim
+                ):
+                    alias = f"{modelname}_{groupname}_{member.__name__}"
+                    sequence2alias[member] = alias
 
-        lines = [
-            f'"""This module provides the aliases of the {filename[:-4]} '
-            "variables of all available models.\n",
-            "This file was automatically created by function |write_sequencealiases|.",
-            '"""\n',
-            "# import...",
-        ]
-        lines.append("# ...from standard library")
-        lines.append("from typing import TYPE_CHECKING\n")
-        lines.append("# ...from HydPy")
-        blanks = "    "
-        lines.append("from hydpy.core.aliastools import LazyInOutSequenceImport\n")
-        lines.append("if TYPE_CHECKING:")
-        for sequence, alias in sequence2alias.items():
-            lines.append(
-                f"{blanks}from {sequence.__module__} "
-                f"import {sequence.__name__} as {alias}"
-            )
-        lines.append("else:")
-        for sequence, alias in sequence2alias.items():
-            lines.append(
-                f"    {alias} = LazyInOutSequenceImport("
-                f'        modulename="{sequence.__module__}",'
-                f'        classname="{sequence.__name__}",'
-                f'        alias="{alias}",'
-                f"        namespace=locals(),"
-                f"    )"
-            )
-        exports = (f'"{alias}"' for alias in sequence2alias.values())
-        lines.append(f'\n__all__ = [{", ".join(exports)}]')
-        text = "\n".join(lines)
-        text = black.format_str(text, mode=black.FileMode())
-        filepath = os.path.join(hydpypath, filename)
-        with open(filepath, "w", encoding=config.ENCODING) as file_:
-            file_.write(text)
+    lines = [
+        '"""This module provides the aliases of the sequences of all available models '
+        "one might \nwant to connect to node sequences.",
+        "",
+        "This file was automatically created by function |write_sequencealiases|.",
+        '"""',
+        "# import...",
+        "# ...from standard library",
+        "from typing import TYPE_CHECKING",
+        "# ...from HydPy",
+        "from hydpy.core.aliastools import LazyInOutSequenceImport",
+    ]
+    lines.append("if TYPE_CHECKING:")
+    for sequence, alias in sequence2alias.items():
+        lines.append(
+            f"    from {sequence.__module__} " f"import {sequence.__name__} as {alias}"
+        )
+    lines.append("else:")
+    for sequence, alias in sequence2alias.items():
+        lines.append(
+            f"    {alias} = LazyInOutSequenceImport("
+            f'        modulename="{sequence.__module__}",'
+            f'        classname="{sequence.__name__}",'
+            f'        alias="{alias}",'
+            f"        namespace=locals(),"
+            f"    )"
+        )
+    exports = (f'"{alias}"' for alias in sequence2alias.values())
+    lines.append(f'\n__all__ = [{", ".join(exports)}]')
+    text = "\n".join(lines)
+    text = black.format_str(text, mode=black.FileMode())
+    filepath = os.path.join(hydpy.__path__[0], "aliases.py")
+    with open(filepath, "w", encoding=config.ENCODING) as file_:
+        file_.write(text)

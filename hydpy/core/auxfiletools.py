@@ -24,6 +24,7 @@ implemented in module |selectiontools|).
 """
 # import...
 # ...from standard library
+from __future__ import annotations
 import copy
 import itertools
 import types
@@ -144,7 +145,7 @@ attribute nor does it handle a model named `lland_v1`.
     False
     """
 
-    _model2subauxfiler: Dict[str, "SubAuxfiler"]
+    _model2subauxfiler: Dict[str, SubAuxfiler]
 
     def __init__(self, *models: Union[str, types.ModuleType, modeltools.Model]) -> None:
         self._model2subauxfiler = {}
@@ -200,7 +201,7 @@ attribute nor does it handle a model named `lland_v1`.
             return value
         return importtools.prepare_model(value)
 
-    def get(self, model: Union[str, modeltools.Model]) -> Optional["SubAuxfiler"]:
+    def get(self, model: Union[str, modeltools.Model]) -> Optional[SubAuxfiler]:
         """Get the |SubAuxfiler| object related to the given |Model| type.
 
         In contrast to attribute and keyword access, method |Auxfiler.get| returns
@@ -214,13 +215,13 @@ attribute nor does it handle a model named `lland_v1`.
         """
         return self._model2subauxfiler.get(str(model))
 
-    def __getitem__(self, item: str) -> "SubAuxfiler":
+    def __getitem__(self, item: str) -> SubAuxfiler:
         try:
             return self._model2subauxfiler[item]
         except KeyError:
             raise KeyError(
-                f"The actual `{type(self).__name__}` object "
-                f"does not handle a model named `{item}`."
+                f"The actual `{type(self).__name__}` object does not handle a model "
+                f"named `{item}`."
             ) from None
 
     @property
@@ -235,8 +236,8 @@ attribute nor does it handle a model named `lland_v1`.
 
     def write(
         self,
-        parameterstep: Optional["timetools.PeriodConstrArg"] = None,
-        simulationstep: Optional["timetools.PeriodConstrArg"] = None,
+        parameterstep: Optional[timetools.PeriodConstrArg] = None,
+        simulationstep: Optional[timetools.PeriodConstrArg] = None,
     ) -> None:
         """Write all defined auxiliary control files.
 
@@ -316,8 +317,9 @@ attribute nor does it handle a model named `lland_v1`.
                 with options.parameterstep(parameterstep), options.simulationstep(
                     simulationstep
                 ):
-                    header = parametertools.get_controlfileheader(
-                        model=modelname,
+                    model = importtools.prepare_model(modelname)
+                    header = model.get_controlfileheader(
+                        import_submodels=False,
                         parameterstep=parameterstep,
                         simulationstep=simulationstep,
                     )
@@ -329,7 +331,7 @@ attribute nor does it handle a model named `lland_v1`.
                     text="".join((header, body, "\n")),
                 )
 
-    def __getattr__(self, name: str) -> "SubAuxfiler":
+    def __getattr__(self, name: str) -> SubAuxfiler:
         try:
             return self._model2subauxfiler[name]
         except KeyError:
@@ -356,7 +358,7 @@ attribute nor does it handle a model named `lland_v1`.
             )
         super().__delattr__(name)
 
-    def __iter__(self) -> Iterator[Tuple[str, "SubAuxfiler"]]:
+    def __iter__(self) -> Iterator[Tuple[str, SubAuxfiler]]:
         for item in sorted(self._model2subauxfiler.items()):
             yield item
 
@@ -820,8 +822,8 @@ error occurred: 'NoneType' object has no attribute 'items'
     ) -> Tuple[Type[parametertools.Parameter], ...]:
         """Return a |tuple| of all or a selection of the handled parameter types.
 
-        The following (slightly modified) test-setting stems from the documentation
-        on method |SubAuxfiler.add_parameter|:
+        The following (slightly modified) test-setting stems from the documentation on
+        method |SubAuxfiler.add_parameter|:
 
         >>> from hydpy.models.lland_v1 import *
         >>> parameterstep()
@@ -841,8 +843,8 @@ error occurred: 'NoneType' object has no attribute 'items'
         >>> eqb *= 2.0
         >>> subauxfiler.add_parameters(eqb, eqd1, filename="file2")
 
-        Without an argument, method |SubAuxfiler.get_parametertypes| returns
-        all registered parameter types:
+        Without an argument, method |SubAuxfiler.get_parametertypes| returns all
+        registered parameter types:
 
         >>> for parametertype in subauxfiler.get_parametertypes():
         ...     print(parametertype.__name__)

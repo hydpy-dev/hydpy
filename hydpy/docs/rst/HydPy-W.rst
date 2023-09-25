@@ -20,6 +20,7 @@ Base model:
 Application model:
 
 .. toctree::
+   :maxdepth: 1
 
    wland_v001 (semi-distributed WALRUS model) <wland_v001>
    wland_v002 (experimental) <wland_v002>

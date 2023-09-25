@@ -60,9 +60,9 @@ conditions and the written final conditions of sequence |hland_states.SM| for th
 sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
    222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 <BLANKLINE>
-sm(183.873078, 179.955801, 198.446011, 195.222634, 210.598689,
-   208.064445, 220.611126, 218.630245, 228.741883, 227.152989,
-   235.308805, 234.042313)
+sm(183.837826, 179.9213, 198.407964, 195.185205, 210.558313, 208.024555,
+   220.568831, 218.588329, 228.698029, 227.109439, 235.263691,
+   233.997443)
 <BLANKLINE>
 
 The intermediate soil moisture values have been stored in a NetCDF file called
@@ -76,7 +76,7 @@ The intermediate soil moisture values have been stored in a NetCDF file called
 ...     chars2str(query_variable(ncfile, "station_id")[:].data)[:3]
 ...     print_values(query_variable(ncfile, "state_sm")[:, 0])
 ['land_dill_0', 'land_dill_1', 'land_dill_2']
-184.926173, 184.603966, 184.386666, 184.098541, 183.873078
+184.920402, 184.589155, 184.365769, 184.069586, 183.837826
 >>> ncfile.close()
 
 Spatially averaged time series values have been stored in files ending with the suffix
@@ -87,7 +87,7 @@ Spatially averaged time series values have been stored in files ending with the 
 
 >>> with TestIO(clear_all=True):
 ...     print_values((numpy.load("LahnH/series/averages/lahn_1_sim_q_mean.npy")[13:]))
-9.647824, 8.517795, 7.781311, 7.344944, 7.153142
+9.648145, 8.518256, 7.78162, 7.345017, 7.152906
 """
 # import...
 # ...from standard library
@@ -324,7 +324,7 @@ def run_simulation(projectname: str, xmlfile: str) -> None:
     write("Create the custom selections (if defined)")
     interface.update_selections()
     write("Activate the selected network")
-    hp.update_devices(selection=interface.fullselection)
+    hp.update_devices(selection=interface.fullselection, silent=True)
     write("Read the required control files")
     interface.control_io.prepare_models()
     write("Read the required condition files")
@@ -589,7 +589,6 @@ correctly refer to one of the available XML schema files \
             ellipsis -> 0
             parameterstep -> Period("1d")
             printprogress -> 0
-            reprcomments -> 0
             reprdigits -> 6
             simulationstep -> Period()
             trimvariables -> 1
@@ -1079,7 +1078,7 @@ class XMLConditions(XMLBase):
             currentdir = str(self.find("inputdir", optional=False).text)
         hydpy.pub.conditionmanager.currentdir = currentdir
         for element in self.master.elements:
-            element.model.sequences.load_conditions()
+            element.model.load_conditions()
 
     def save_conditions(self, currentdir: Optional[str] = None) -> None:
         """Save the condition files of the |Model| objects of all |Element| objects
@@ -1122,7 +1121,7 @@ class XMLConditions(XMLBase):
             currentdir = str(self.find("outputdir", optional=False).text)
         hydpy.pub.conditionmanager.currentdir = currentdir
         for element in self.master.elements:
-            element.model.sequences.save_conditions()
+            element.model.save_conditions()
         if self.find("zip", optional=False).text == "true":
             hydpy.pub.conditionmanager.zip_currentdir()
 
@@ -1503,11 +1502,11 @@ class XMLSubseries(XMLSelector):
     def _iterate_model_sequences(self) -> Iterator[sequencetools.IOSequence]:
         m2s2s = self.model2subs2seqs
         for element in self.elements:
-            model = element.model
-            for subseqs_name, seq_names in m2s2s.get(model.name, {}).items():
-                subseqs = getattr(model.sequences, subseqs_name)
-                for seq_name in seq_names:
-                    yield getattr(subseqs, seq_name)
+            for model in element.model.find_submodels(include_mainmodel=True).values():
+                for subseqs_name, seq_names in m2s2s.get(model.name, {}).items():
+                    subseqs = getattr(model.sequences, subseqs_name)
+                    for seq_name in seq_names:
+                        yield getattr(subseqs, seq_name)
 
     def _iterate_node_sequences(self) -> Iterator[sequencetools.IOSequence]:
         s2s = self.subs2seqs
@@ -1938,7 +1937,7 @@ class XMLExchange(XMLBase):
         >>> interface.update_selections()
         >>> for item in interface.exchange.getitems:
         ...     print(item.target)
-        factors_tmean
+        factors_contriarea
         fluxes_qt
         fluxes_qt_series
         states_sm
@@ -2242,14 +2241,14 @@ class XMLVar(XMLSelector):
 123.0, 123.0]
         land_lahn_3_states_sm [101.3124...]
 
-        Another |GetItem| object queries the actual value of the |hland_factors.TMean|
-        factor sequence of element `land_dill`:
+        Another |GetItem| object queries the actual value of the
+        |hland_factors.ContriArea| factor sequence of element `land_dill`:
 
-        >>> hp.elements.land_dill.model.sequences.factors.tmean(1.0)
+        >>> hp.elements.land_dill.model.sequences.factors.contriarea(1.0)
         >>> for var in interface.exchange.itemgroups[5].models[0].subvars[0].vars:
         ...     for name, target in var.item.yield_name2value():
         ...         print(name, target)
-        land_dill_factors_tmean 1.0
+        land_dill_factors_contriarea 1.0
 
         Another |GetItem| object queries both the actual and the time series values of
         the |hland_fluxes.QT| flux sequence of element `land_dill`:
@@ -2432,7 +2431,7 @@ class XSDWriter:
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_insertion())  # doctest: +ELLIPSIS
-            <complexType name="dam_v001_readerType">
+            <complexType name="dam_pump_readerType">
                 <sequence>
                     <element name="inputs"
                              minOccurs="0">
@@ -2455,8 +2454,8 @@ class XSDWriter:
                     <element name="node"
                              type="hpcb:node_readerType"
                              minOccurs="0"/>
-                    <element name="dam_v001"
-                             type="hpcb:dam_v001_readerType"
+                    <element name="dam_pump"
+                             type="hpcb:dam_pump_readerType"
                              minOccurs="0"/>
         ...
                     <element name="wland_v002"
@@ -2541,9 +2540,8 @@ class XSDWriter:
                         <element
                             name="p"
                             minOccurs="0"/>
-        ...
                         <element
-                            name="epn"
+                            name="t"
                             minOccurs="0"/>
                     </sequence>
                 </complexType>
@@ -2616,10 +2614,10 @@ class XSDWriter:
                 <complexType>
                     <sequence>
                         <element
-                            name="tmean"
+                            name="tc"
                             minOccurs="0"/>
                         <element
-                            name="tc"
+                            name="fracrain"
                             minOccurs="0"/>
         ...
                         <element
@@ -2681,8 +2679,8 @@ class XSDWriter:
                     <element name="node"
                              type="hpcb:node_readerType"
                              minOccurs="0"/>
-                    <element name="dam_v001"
-                             type="hpcb:dam_v001_readerType"
+                    <element name="dam_pump"
+                             type="hpcb:dam_pump_readerType"
                              minOccurs="0"/>
         ...
                     <element name="wland_v002"
@@ -3169,15 +3167,15 @@ class XSDWriter:
         ...     "setitems", model, model.sequences.factors, 1))
             <element name="factors"
         ...
-                        <element name="tmean"
-                                 type="hpcb:setitemType"
-                                 minOccurs="0"
-                                 maxOccurs="unbounded"/>
-                        <element name="tmean.series"
-                                 type="hpcb:setitemType"
-                                 minOccurs="0"
-                                 maxOccurs="unbounded"/>
                         <element name="tc"
+                                 type="hpcb:setitemType"
+                                 minOccurs="0"
+                                 maxOccurs="unbounded"/>
+                        <element name="tc.series"
+                                 type="hpcb:setitemType"
+                                 minOccurs="0"
+                                 maxOccurs="unbounded"/>
+                        <element name="fracrain"
         ...
                     </sequence>
                 </complexType>

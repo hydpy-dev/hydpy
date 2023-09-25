@@ -58,7 +58,7 @@ class NU(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         old = exceptiontools.getattr_(self, "value", None)
         super().__call__(*args, **kwargs)
         new = self._get_value()
@@ -92,12 +92,7 @@ class LT(parametertools.NameParameter):
        CONIFER, DECIDIOUS, MIXED)
     """
 
-    NDIM, TYPE, TIME = 1, int, None
-    SPAN = (
-        min(wland_constants.LANDUSE_CONSTANTS.values()),
-        max(wland_constants.LANDUSE_CONSTANTS.values()),
-    )
-    CONSTANTS = wland_constants.LANDUSE_CONSTANTS
+    constants = wland_constants.LANDUSE_CONSTANTS
 
 
 class AUR(parametertools.Parameter):
@@ -110,21 +105,6 @@ class CP(parametertools.Parameter):
     """Factor for correcting precipitation [-]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-
-
-class CPETL(wland_parameters.LanduseMonthParameter):
-    """Factor for converting general potential evapotranspiration (usually grass
-    reference evapotranspiration) to land-use-specific potential evapotranspiration
-    [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
-
-
-class CPES(parametertools.MonthParameter):
-    """Factor for converting general potential evapotranspiration (usually grass
-    reference evapotranspiration) to potential evaporation from water areas [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
 class LAI(wland_parameters.LanduseMonthParameter):

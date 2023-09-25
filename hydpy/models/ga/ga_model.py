@@ -2819,16 +2819,14 @@ class Model(modeltools.AdHocModel):
     SUBMODELS = ()
 
 
-class MixinGARTO:
-    """Mixin class for GARTO-like Green-Ampt models."""
+class BaseModel(modeltools.AdHocModel):
+    """General base class for GARTO-like Green-Ampt models."""
 
-    def check_waterbalance(
-        self,
-        initial_conditions: Dict[str, Dict[str, ArrayFloat]],
-    ) -> float:
+    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
         r"""Determine the water balance error of the previous simulation run in mm.
 
-        Method |MixinGARTO.check_waterbalance| calculates the balance error as follows:
+        Method |ga_model.BaseModel.check_waterbalance| calculates the balance error as
+        follows:
 
         :math:`\sum_{t=t0}^{t1} \big(
         Rainfall_t - TotalPercolation_t  + TotalSoilWaterAddition_t - TotalWithdrawal_t
@@ -2843,9 +2841,10 @@ class MixinGARTO:
         """
         inputs = self.sequences.inputs
         fluxes = self.sequences.fluxes
+        first = initial_conditions["model"]["states"]
         old_watercontent = self._calc_watercontent(
-            frontdepth=initial_conditions["states"]["frontdepth"],  # type: ignore[arg-type]  # pylint: disable=line-too-long
-            moisture=initial_conditions["states"]["moisture"],  # type: ignore[arg-type]  # pylint: disable=line-too-long
+            frontdepth=first["frontdepth"],  # type: ignore[arg-type]
+            moisture=first["moisture"],  # type: ignore[arg-type]
         )
         return float(
             numpy.sum(inputs.rainfall.evalseries)
@@ -2860,8 +2859,8 @@ class MixinGARTO:
     def watercontents(self) -> NDArrayFloat:
         """The unique water content of each soil compartment in mm.
 
-        Property |MixinGARTO.watercontents| generally returns zero values for sealed
-        soil compartments:
+        Property |ga_model.BaseModel.watercontents| generally returns zero values for
+        sealed soil compartments:
 
         >>> from hydpy.models.ga_garto import *
         >>> parameterstep()
@@ -2894,8 +2893,8 @@ class MixinGARTO:
     def watercontent(self) -> float:
         """The average water content of all soil compartments in mm.
 
-        Property |MixinGARTO.watercontent| includes sealed soil compartments in the
-        average, which is why the presence of sealing reduces the returned value:
+        Property |ga_model.BaseModel.watercontent| includes sealed soil compartments in
+        the average, which is why the presence of sealing reduces the returned value:
 
         >>> from hydpy.models.ga_garto import *
         >>> parameterstep()
@@ -2950,7 +2949,7 @@ class MixinGARTO:
         return numpy.nansum(weights * watercontents)
 
 
-class Base_SoilModel_V1(modeltools.AdHocModel, soilinterfaces.SoilModel_V1):
+class Base_SoilModel_V1(BaseModel, soilinterfaces.SoilModel_V1):
     """Base class for HydPy-GA models that comply with the |SoilModel_V1| submodel
     interface."""
 

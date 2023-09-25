@@ -29,18 +29,6 @@ class QZH(sequencetools.FluxSequence):
 # meteorological input
 
 
-class TemLTag(sequencetools.FluxSequence):
-    """Tageswert der Lufttemperatur (daily air temperature) [°C]."""
-
-    NDIM, NUMERIC = 0, False
-
-
-class DailyRelativeHumidity(sequencetools.FluxSequence):
-    """Daily relative humidity [%]."""
-
-    NDIM, NUMERIC = 0, False
-
-
 class DailySunshineDuration(sequencetools.FluxSequence):
     """Daily sunshine duration [h]."""
 
@@ -49,12 +37,6 @@ class DailySunshineDuration(sequencetools.FluxSequence):
 
 class DailyPossibleSunshineDuration(sequencetools.FluxSequence):
     """Astronomically possible daily sunshine duration [h]."""
-
-    NDIM, NUMERIC = 0, False
-
-
-class DailyGlobalRadiation(sequencetools.FluxSequence):
-    """Daily global radiation [h]."""
 
     NDIM, NUMERIC = 0, False
 
@@ -73,22 +55,8 @@ class TKor(lland_sequences.Flux1DSequence):
     mask = lland_masks.Complete()
 
 
-class TKorTag(lland_sequences.Flux1DSequence):
-    """Tageswert der korrigierten Lufttemperatur (corrected daily air
-    temperature) [°C]."""
-
-    NDIM, NUMERIC = 1, False
-    mask = lland_masks.Complete()
-
-
 class WindSpeed2m(sequencetools.FluxSequence):
     """Wind speed at a height of 2 m above the ground for grass [m/s]."""
-
-    NDIM, NUMERIC = 0, False
-
-
-class DailyWindSpeed2m(sequencetools.FluxSequence):
-    """Daily wind speed 2 meters above ground  [m/s]."""
 
     NDIM, NUMERIC = 0, False
 
@@ -100,21 +68,8 @@ class ReducedWindSpeed2m(lland_sequences.Flux1DSequence):
     mask = lland_masks.Complete()
 
 
-class WindSpeed10m(sequencetools.FluxSequence):
-    """Wind speed at a height of 10 m above the ground for grass [m/s]."""
-
-    NDIM, NUMERIC = 0, False
-
-
 class SaturationVapourPressure(lland_sequences.Flux1DSequence):
     """Saturation vapour pressure [hPa]."""
-
-    NDIM, NUMERIC = 1, False
-    mask = lland_masks.Complete()
-
-
-class DailySaturationVapourPressure(lland_sequences.Flux1DSequence):
-    """Daily satuarion vapour pressure [hPa]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()
@@ -143,50 +98,11 @@ class SaturationVapourPressureSlope(lland_sequences.Flux1DSequence):
     mask = lland_masks.Complete()
 
 
-class DailySaturationVapourPressureSlope(lland_sequences.Flux1DSequence):
-    """Daily satuarion vapour pressure [hPa/K]."""
-
-    NDIM, NUMERIC = 1, False
-    mask = lland_masks.Complete()
-
-
 class ActualVapourPressure(lland_sequences.Flux1DSequence):
     """Actual vapour pressure [hPa]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()
-
-
-class DailyActualVapourPressure(lland_sequences.Flux1DSequence):
-    """Daily actual vapour pressure [hPa]."""
-
-    NDIM, NUMERIC = 1, False
-    mask = lland_masks.Complete()
-
-
-class DryAirPressure(lland_sequences.Flux1DSequence):
-    """Dry air pressure [hPa]."""
-
-    NDIM, NUMERIC = 1, False
-    mask = lland_masks.Complete()
-
-
-class DensityAir(lland_sequences.Flux1DSequence):
-    """Air density [kg/m³]"""
-
-    NDIM, NUMERIC = 1, False
-    mask = lland_masks.Complete()
-
-
-class G(lland_sequences.Flux1DSequence):
-    """ "MORECS" Bodenwärmestrom ("MORECS" soil heat flux) [W/m²].
-
-    With positive values, the soil looses heat to the atmosphere or the
-    snow-layer.
-    """
-
-    NDIM, NUMERIC = 1, False
-    mask = lland_masks.Land()
 
 
 class TZ(lland_sequences.Flux1DSequence):
@@ -205,16 +121,6 @@ class WG(lland_sequences.Flux1DSequence):
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Land()
-
-
-class NetShortwaveRadiation(lland_sequences.Flux1DSequence):
-    """Netto kurzwellige Strahlungsbilanz (net shortwave radiation) [W/m²].
-
-    With positive values, the soil gains heat from radiation.
-    """
-
-    NDIM, NUMERIC = 1, False
-    mask = lland_masks.Complete()
 
 
 class NetShortwaveRadiationInz(lland_sequences.Flux1DSequence):
@@ -240,26 +146,6 @@ class NetShortwaveRadiationSnow(lland_sequences.Flux1DSequence):
     mask = lland_masks.Land()
 
 
-class DailyNetShortwaveRadiation(lland_sequences.Flux1DSequence):
-    """Daily not shortwave radiation [W/m²].
-
-    With positive values, the soil gains heat from radiation.
-    """
-
-    NDIM, NUMERIC = 1, False
-    mask = lland_masks.Complete()
-
-
-class DailyNetLongwaveRadiation(lland_sequences.Flux1DSequence):
-    """Daily net longwave radiation [W/m²].
-
-    With positive values, the soil looses heat from radiation.
-    """
-
-    NDIM, NUMERIC = 1, False
-    mask = lland_masks.Complete()
-
-
 class NetLongwaveRadiationInz(lland_sequences.Flux1DSequence):
     """Langwellige Nettostrahlung des interzepierten Schnees (net longwave radiation
     of the intercepted snow [W/m²].
@@ -281,16 +167,6 @@ class NetLongwaveRadiationSnow(lland_sequences.Flux1DSequence):
     mask = lland_masks.Land()
 
 
-class NetRadiation(lland_sequences.Flux1DSequence):
-    """Total net radiation [W/m²].
-
-    With positive values, the soil gains heat from radiation.
-    """
-
-    NDIM, NUMERIC = 1, False
-    mask = lland_masks.Complete()
-
-
 class NetRadiationInz(lland_sequences.Flux1DSequence):
     """Nettostrahlung des interzepierten Schnees (total net radiation of the
     intercepted snow [W/m²].
@@ -309,44 +185,6 @@ class NetRadiationSnow(lland_sequences.Flux1DSequence):
     """
 
     NDIM, NUMERIC = 1, False
-    mask = lland_masks.Land()
-
-
-class DailyNetRadiation(lland_sequences.Flux1DSequence):
-    """Daily net radiation [W/m²].
-
-    With positive values, the soil gains heat from radiation.
-    """
-
-    NDIM, NUMERIC = 1, False
-    mask = lland_masks.Complete()
-
-
-class AerodynamicResistance(lland_sequences.Flux1DSequence):
-    """Aerodynamischer Widerstand (aerodynamic resistance) [s/m]."""
-
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
-    mask = lland_masks.Land()
-
-
-class SoilSurfaceResistance(lland_sequences.Flux1DSequence):
-    """Oberflächenwiderstand (surface resistance) [s/m]."""
-
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
-    mask = lland_masks.Land()
-
-
-class LanduseSurfaceResistance(lland_sequences.Flux1DSequence):
-    """Oberflächenwiderstand (surface resistance) [s/m]."""
-
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
-    mask = lland_masks.Land()
-
-
-class ActualSurfaceResistance(lland_sequences.Flux1DSequence):
-    """Oberflächenwiderstand (surface resistance) [s/m]."""
-
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
     mask = lland_masks.Land()
 
 
@@ -467,23 +305,9 @@ class EvSInz(lland_sequences.Flux1DSequence):
     mask = lland_masks.Forest()
 
 
-class ET0(lland_sequences.Flux1DSequence):
-    """Grasreferenzverdunstung (reference evapotranspiration) [mm/T]."""
-
-    NDIM, NUMERIC = 1, False
-    mask = lland_masks.Complete()
-
-
-class EvPo(lland_sequences.Flux1DSequence):
-    """Evapotranspiration (evapotranspiration) [mm/T]."""
-
-    NDIM, NUMERIC = 1, False
-    mask = lland_masks.Complete()
-
-
 class EvI(lland_sequences.Flux1DSequence):
-    """Tatsächliche Interzeptionsverdunstung (actual evaporation of
-    intercepted water) [mm/T]."""
+    """Tatsächliche Verdunstung von Interzeptions- und permanenten Wasserflächen
+    (actual  evaporation from interception storages and water areas) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()

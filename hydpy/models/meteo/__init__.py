@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """The HydPy-Meteo model family supplies methods for calculating different
-meteorological factors serving as input to other (hydrological) models.
+meteorological factors as input to other (hydrological) models.
 """
 # import...
 # ...from HydPy

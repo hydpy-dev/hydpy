@@ -38,13 +38,13 @@ class ParameterComplete(parametertools.ZipParameter):
     2.0
     """
 
-    MODEL_CONSTANTS = CONSTANTS
+    constants = dict(CONSTANTS.items())
     mask = lland_masks.Complete()
 
     @property
     def refweights(self):
-        """Alias for the associated instance of |FHRU| for calculating
-        areal mean values."""
+        """Alias for the associated instance of |FHRU| for calculating areal mean
+        values."""
         return self.subpars.pars.derived.absfhru
 
 
@@ -152,7 +152,7 @@ element `?` based on keyword arguments `feld and acker`, the following error \
 occurred: Keyword `feld` is not among the available model constants.
     """
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         try:
             super().__call__(*args, **kwargs)
         except TypeError as exc:
@@ -175,7 +175,7 @@ class LanduseMonthParameter(parametertools.KeywordParameter2D):
     """Base class for parameters which values depend both an the actual
     land use class and the actual month."""
 
-    COLNAMES = (
+    columnnames = (
         "jan",
         "feb",
         "mar",
@@ -189,7 +189,7 @@ class LanduseMonthParameter(parametertools.KeywordParameter2D):
         "nov",
         "dec",
     )
-    ROWNAMES = tuple(
+    rownames = tuple(
         key.lower()
         for (idx, key) in sorted((idx, key) for (key, idx) in CONSTANTS.items())
     )

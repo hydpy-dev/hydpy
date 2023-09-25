@@ -19,6 +19,8 @@ class MixinSequence1D:
 
     NDIM, NUMERIC = 1, False
 
+    subseqs: sequencetools.ModelIOSequences
+
     @property
     def refweights(self) -> VectorFloat:
         """The relative length of all channel segments.

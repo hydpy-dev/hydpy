@@ -4,39 +4,106 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.models.evap import evap_sequences
 
 
-class NetShortwaveRadiation(sequencetools.FluxSequence):
-    """Net shortwave radiation [W/m²]."""
+class Precipitation(evap_sequences.FluxSequence1D):
+    """Precipitation [mm/T]."""
+
+    NUMERIC = False
+
+
+class DailyGlobalRadiation(sequencetools.FluxSequence):
+    """Average global radiation in the last 24 hours [W/m²]."""
 
     NDIM, NUMERIC = 0, False
 
 
-class NetLongwaveRadiation(sequencetools.FluxSequence):
+class NetShortwaveRadiation(evap_sequences.FluxSequence1D):
+    """Net shortwave radiation [W/m²]."""
+
+    NUMERIC = False
+
+
+class DailyNetShortwaveRadiation(evap_sequences.FluxSequence1D):
+    """Average net shortwave radiation in the last 24 hours [W/m²]."""
+
+    NUMERIC = False
+
+
+class NetLongwaveRadiation(evap_sequences.FluxSequence1D):
     """Net longwave radiation [W/m²]."""
 
-    NDIM, NUMERIC = 1, False
+    NUMERIC = False
 
 
-class NetRadiation(sequencetools.FluxSequence):
+class DailyNetLongwaveRadiation(evap_sequences.FluxSequence1D):
+    """Average net longwave radiation in the last 24 hours [W/m²]."""
+
+    NUMERIC = False
+
+
+class NetRadiation(evap_sequences.FluxSequence1D):
     """Total net radiation [W/m²]."""
 
-    NDIM, NUMERIC = 1, False
+    NUMERIC = False
 
 
-class SoilHeatFlux(sequencetools.FluxSequence):
+class DailyNetRadiation(evap_sequences.FluxSequence1D):
+    """Average net radiation in the last 24 hours [W/m²]."""
+
+    NUMERIC = False
+
+
+class SoilHeatFlux(evap_sequences.FluxSequence1D):
     """Soil heat flux [W/m²]."""
 
-    NDIM, NUMERIC = 1, False
+    NUMERIC = False
 
 
-class ReferenceEvapotranspiration(sequencetools.FluxSequence):
-    """Reference evapotranspiration [mm/T]."""
+class ReferenceEvapotranspiration(evap_sequences.FluxSequence1D):
+    """Reference (grass) evapotranspiration [mm/T]."""
 
-    NDIM, NUMERIC = 1, False
+    NUMERIC = False
+
+
+class PotentialInterceptionEvaporation(evap_sequences.FluxSequence1D):
+    """Potential interception evaporation [mm/T]."""
+
+    NUMERIC = False
+
+
+class PotentialEvapotranspiration(evap_sequences.FluxSequence1D):
+    """Potential (land type-specific) evapotranspiration [mm/T]."""
+
+    NUMERIC = False
 
 
 class MeanReferenceEvapotranspiration(sequencetools.FluxSequence):
     """Mean reference evapotranspiration [mm/T]."""
 
     NDIM, NUMERIC = 0, False
+
+
+class MeanPotentialEvapotranspiration(sequencetools.FluxSequence):
+    """Mean potential evapotranspiration [mm/T]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class WaterEvaporation(evap_sequences.FluxSequence1D):
+    """Actual evaporation from open water areas [mm/T]."""
+
+    NUMERIC = False
+
+
+class InterceptionEvaporation(evap_sequences.FluxSequence1D):
+    """Actual interception evaporation [mm/T]."""
+
+    NUMERIC = False
+
+
+class SoilEvapotranspiration(evap_sequences.FluxSequence1D):
+    """Actual soil evapotranspiration [mm/T]."""
+
+    NUMERIC = False

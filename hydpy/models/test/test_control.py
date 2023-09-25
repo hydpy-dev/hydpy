@@ -22,8 +22,8 @@ class N(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         super().__call__(*args, **kwargs)
         seqs = self.subpars.pars.model.sequences
-        seqs.states.sv.shape = self
-        seqs.fluxes.qv.shape = self
+        seqs.states.sv.shape = self.value
+        seqs.fluxes.qv.shape = self.value

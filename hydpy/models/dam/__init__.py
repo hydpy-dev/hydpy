@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-The HydPy-D base model provides features to implement water barriers like
-dams, weirs, lakes, or polders.
+The HydPy-Dam base model provides features to implement water barriers like dams,
+weirs, lakes, or polders.
 """
 # import...
 # ...from HydPy

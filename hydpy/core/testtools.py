@@ -31,6 +31,7 @@ from hydpy.core import devicetools
 from hydpy.core import exceptiontools
 from hydpy.core import hydpytools
 from hydpy.core import importtools
+from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
@@ -39,15 +40,12 @@ from hydpy.core import variabletools
 from hydpy.core.typingtools import *
 from hydpy.tests import iotesting
 
-_Conditions = Dict[str, Union[float, NDArrayFloat]]
-
 if TYPE_CHECKING:
     import matplotlib
     from matplotlib import pyplot
     import pandas
     import plotly
     from plotly import subplots
-    from hydpy.core import modeltools
 else:
     matplotlib = exceptiontools.OptionalImport("matplotlib", ["matplotlib"], locals())
     pyplot = exceptiontools.OptionalImport("pyplot", ["matplotlib.pyplot"], locals())
@@ -309,9 +307,7 @@ hydpy.models.hland.hland_control.ZoneType
             print(f"    * {name}:")
             with StdOutErr(indent=8), opt.ellipsis(0), opt.printprogress(
                 False
-            ), opt.reprcomments(False), opt.reprdigits(6), opt.usedefaultvalues(
-                False
-            ), opt.utclongitude(
+            ), opt.reprdigits(6), opt.usedefaultvalues(False), opt.utclongitude(
                 15
             ), opt.utcoffset(
                 60
@@ -354,33 +350,42 @@ hydpy.models.hland.hland_control.ZoneType
 class Array:
     """Assures that attributes are |numpy.ndarray| objects."""
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: NDArrayFloat) -> None:
         object.__setattr__(self, name, numpy.array(value))
 
 
 class ArrayDescriptor:
     """A descriptor for handling values of |Array| objects."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.values = Array()
 
-    def __set__(self, obj, values):
+    def __set__(
+        self,
+        obj: Test,
+        sequence2value: Optional[
+            Sequence[Tuple[sequencetools.ConditionSequence, ArrayFloat]]
+        ],
+    ) -> None:
         self.__delete__(obj)
-        if values is not None:
-            names = tuple(value[0].name for value in values)
-            duplicates = any(names.count(name) > 1 for name in names)
-            for key, value in values:
-                if duplicates:
-                    name = objecttools.devicename(key)
-                    setattr(self.values, f"{name}_{key.name}", value)
-                else:
-                    setattr(self.values, key.name, value)
+        if sequence2value is not None:
+            names = [value[0].name for value in sequence2value]
+            duplicates = tuple(name for name in set(names) if names.count(name) > 1)
+            for i, (name, (seq, _)) in enumerate(tuple(zip(names, sequence2value))):
+                if name in duplicates:
+                    names[i] = f"{name}_{objecttools.devicename(seq)}"
+            duplicates = tuple(name for name in set(names) if names.count(name) > 1)
+            for i, (name, (seq, _)) in enumerate(tuple(zip(names, sequence2value))):
+                if name in duplicates:
+                    names[i] = f"{name}_{id(seq)}"
+            for name, (_, value) in zip(names, sequence2value):
+                setattr(self.values, name, value)
 
-    def __get__(self, obj, type_=None):
+    def __get__(self, obj: Test, type_: Optional[Type[Test]] = None) -> Array:
         return self.values
 
-    def __delete__(self, obj):
-        for name in list(vars(self.values).keys()):
+    def __delete__(self, obj: Test) -> None:
+        for name in tuple(vars(self.values).keys()):
             delattr(self.values, name)
 
 
@@ -396,12 +401,12 @@ class Test:
     HEADER_OF_FIRST_COL: Any
 
     inits = ArrayDescriptor()
-    """Stores arrays for setting the same values of parameters and/or
-    sequences before each new experiment."""
+    """Stores arrays for setting the same values of parameters and/or sequences before 
+    each new experiment."""
 
     @property
     @abc.abstractmethod
-    def raw_first_col_strings(self) -> List[str]:
+    def raw_first_col_strings(self) -> Tuple[str, ...]:
         """To be implemented by the subclasses of |Test|."""
 
     @abc.abstractmethod
@@ -418,7 +423,7 @@ class Test:
         """The number of columns in the table."""
         nmb = 1
         for parseq in self.parseqs:
-            nmb += max(len(parseq), 1)
+            nmb += max(parseq.numberofvalues, 1)
         return nmb
 
     @property
@@ -426,7 +431,7 @@ class Test:
         """All raw strings for the tables header."""
         strings = [self.HEADER_OF_FIRST_COL]
         for parseq in self.parseqs:
-            for dummy in range(len(parseq) - 1):
+            for dummy in range(parseq.numberofvalues - 1):
                 strings.append("")
             if (parseq.name == "sim") and isinstance(parseq, sequencetools.Sequence_):
                 strings.append(parseq.subseqs.node.name)
@@ -474,7 +479,7 @@ class Test:
         seps = ["| "]
         for parseq in self.parseqs:
             seps.append(" | ")
-            for dummy in range(len(parseq) - 1):
+            for dummy in range(parseq.numberofvalues - 1):
                 seps.append("  ")
         seps.append(" |")
         return seps
@@ -499,11 +504,7 @@ class Test:
         lst.append(separators[-1])
         return "".join(lst)
 
-    def make_table(
-        self,
-        idx1: Optional[int] = None,
-        idx2: Optional[int] = None,
-    ) -> str:
+    def make_table(self, idx1: Optional[int] = None, idx2: Optional[int] = None) -> str:
         """Return the result table between the given indices."""
         lines = []
         col_widths = self.col_widths
@@ -527,9 +528,7 @@ class Test:
         return "\n".join(lines)
 
     def print_table(
-        self,
-        idx1: Optional[int] = None,
-        idx2: Optional[int] = None,
+        self, idx1: Optional[int] = None, idx2: Optional[int] = None
     ) -> None:
         """Print the result table between the given indices."""
         print(self.make_table(idx1=idx1, idx2=idx2))
@@ -556,14 +555,14 @@ class PlottingOptions:
 class IntegrationTest(Test):
     """Defines model integration doctests.
 
-    The functionality of |IntegrationTest| is easiest to understand by
-    inspecting doctests like the ones of modules |llake_v1| or |arma_v1|.
+    The functionality of |IntegrationTest| is easiest to understand by inspecting
+    doctests like the ones of modules |llake_v1| or |arma_v1|.
 
-    Note that all condition sequences (state and logging sequences) are
-    initialised in accordance with the values are given as `inits` values.
-    The values of the simulation sequences of outlet and sender nodes are
-    always set to zero before each test run.  All other parameter and
-    sequence values can be changed between different test runs.
+    Note that all condition sequences (state and logging sequences) are initialised in
+    accordance with the values are given as `inits` values.  The values of the
+    simulation sequences of outlet and sender nodes are always set to zero before each
+    test run.  All other parameter and sequence values can be changed between different
+    test runs.
     """
 
     HEADER_OF_FIRST_COL = "date"
@@ -577,26 +576,26 @@ class IntegrationTest(Test):
 
     def __init__(
         self,
-        element: devicetools.Element,
+        element: Optional[devicetools.Element] = None,
         seqs: Optional[Tuple[sequencetools.IOSequence, ...]] = None,
         inits=None,
     ) -> None:
-        """Prepare the element and its nodes, put them into a HydPy object,
-        and make their sequences ready for use for integration testing."""
+        """Prepare the element and its nodes, put them into a HydPy object, and make
+        their sequences ready for use for integration testing."""
         del self.inits
-        self.element = element
         self.elements = devicetools.Element.query_all()
         self.nodes = devicetools.Node.query_all()
+        self.hydpy = hydpytools.HydPy()
+        self.hydpy.update_devices(nodes=self.nodes, elements=self.elements)
+        if element is None:
+            self.element = self.hydpy.collectives[0]
+        else:
+            self.element = element
+        self.model = self.element.model
         self.prepare_node_sequences()
         self.prepare_input_model_sequences()
         self.parseqs = seqs if seqs else self.extract_print_sequences()
         self.inits = inits
-        self.model = element.model
-        self.hydpy = hydpytools.HydPy()
-        self.hydpy.update_devices(
-            nodes=self.nodes,
-            elements=self.elements,
-        )
         self._src = None
 
     @overload
@@ -608,7 +607,7 @@ class IntegrationTest(Test):
         axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         update_parameters: bool = True,
         get_conditions: Literal[None] = ...,
-        use_conditions: Optional[Dict[str, _Conditions]] = None,
+        use_conditions: Optional[ConditionsModel] = None,
     ) -> None:
         """do not return conditions"""
 
@@ -621,8 +620,8 @@ class IntegrationTest(Test):
         axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         update_parameters: bool = True,
         get_conditions: timetools.DateConstrArg,
-        use_conditions: Optional[Dict[str, _Conditions]],
-    ) -> Dict[sequencetools.IOSequence, _Conditions]:
+        use_conditions: Optional[ConditionsModel],
+    ) -> ConditionsModel:
         """do return conditions"""
 
     def __call__(
@@ -633,8 +632,8 @@ class IntegrationTest(Test):
         axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         update_parameters: bool = True,
         get_conditions: Optional[timetools.DateConstrArg] = None,
-        use_conditions: Optional[Dict[str, _Conditions]] = None,
-    ) -> Optional[Dict[sequencetools.IOSequence, _Conditions]]:
+        use_conditions: Optional[ConditionsModel] = None,
+    ) -> Optional[ConditionsModel]:
         """Prepare and perform an integration test and print and eventually plot its
         results.
 
@@ -650,14 +649,16 @@ class IntegrationTest(Test):
             self.plot(filename=filename, axis1=axis1, axis2=axis2)
         return seq2value
 
-    def _perform_simulation(self, get_conditions):
+    def _perform_simulation(
+        self, get_conditions: Optional[timetools.DateConstrArg]
+    ) -> Optional[ConditionsModel]:
         if get_conditions:
             sim = copy.deepcopy(hydpy.pub.timegrids.sim)
             date = timetools.Date(get_conditions)
             if date > hydpy.pub.timegrids.init.firstdate:
                 hydpy.pub.timegrids.sim.lastdate = date
                 self.hydpy.simulate()
-            conditions = self.element.model.sequences.conditions
+            conditions = self.element.model.conditions
             if date < hydpy.pub.timegrids.init.lastdate:
                 hydpy.pub.timegrids.sim.dates = date, sim.lastdate
                 self.hydpy.simulate()
@@ -667,11 +668,11 @@ class IntegrationTest(Test):
         return None
 
     @property
-    def _datetimes(self):
+    def _datetimes(self) -> Tuple[datetime.datetime, ...]:
         return tuple(date.datetime for date in hydpy.pub.timegrids.sim)
 
     @property
-    def raw_first_col_strings(self):
+    def raw_first_col_strings(self) -> Tuple[str, ...]:
         """The raw date strings of the first column, except the header."""
         return tuple(_.strftime(self.dateformat) for _ in self._datetimes)
 
@@ -679,8 +680,7 @@ class IntegrationTest(Test):
     def dateformat(self) -> str:
         """Format string for printing dates in the first column of the table.
 
-        See the documentation on module |datetime| for the format strings
-        allowed.
+        See the documentation on module |datetime| for the format strings allowed.
 
         You can query and change property |IntegrationTest.dateformat|:
 
@@ -698,9 +698,9 @@ class IntegrationTest(Test):
         >>> tester.dateformat = 999
         Traceback (most recent call last):
         ...
-        ValueError: The given date format `999` is not a valid format \
-string for `datetime` objects.  Please read the documentation on module \
-datetime of the Python standard library for for further information.
+        ValueError: The given date format `999` is not a valid format string for \
+`datetime` objects.  Please read the documentation on module datetime of the Python \
+standard library for for further information.
 
         >>> tester.dateformat = "%x"
         >>> tester.dateformat
@@ -717,10 +717,9 @@ datetime of the Python standard library for for further information.
             datetime.datetime(2000, 1, 1).strftime(dateformat)
         except BaseException as exc:
             raise ValueError(
-                f"The given date format `{dateformat}` is not a valid "
-                f"format string for `datetime` objects.  Please read "
-                f"the documentation on module datetime of the Python "
-                f"standard library for for further information."
+                f"The given date format `{dateformat}` is not a valid format string "
+                f"for `datetime` objects.  Please read the documentation on module "
+                f"datetime of the Python standard library for for further information."
             ) from exc
         vars(self)["dateformat"] = dateformat
 
@@ -731,9 +730,9 @@ datetime of the Python standard library for for further information.
     def prepare_node_sequences(self) -> None:
         """Prepare the simulations series of all nodes.
 
-        This preparation might not be suitable for all types of integration
-        tests.  Prepare those node sequences manually, for which this method
-        does not result in the desired outcome."""
+        This preparation might not be suitable for all types of integration tests.
+        Prepare those node sequences manually, for which this method does not result in
+        the desired outcome."""
         for node in self.nodes:
             if not node.entries:
                 node.deploymode = "oldsim"
@@ -742,8 +741,8 @@ datetime of the Python standard library for for further information.
             sim.prepare_series(allocate_ram=True)
 
     def prepare_input_model_sequences(self) -> None:
-        """Configure the input sequences of the model in a manner that allows
-        for applying their time-series data in integration tests."""
+        """Configure the input sequences of the model in a manner that allows for
+        applying their time-series data in integration tests."""
         prepare_inputseries = self.element.prepare_inputseries
         prepare_inputseries(allocate_ram=False)
         prepare_inputseries(allocate_ram=True)
@@ -761,23 +760,33 @@ datetime of the Python standard library for for further information.
         return tuple(seqs)
 
     def prepare_model(
-        self,
-        update_parameters: bool,
-        use_conditions: Optional[Dict[str, Dict[str, Union[float, NDArrayFloat]]]],
+        self, update_parameters: bool, use_conditions: Optional[ConditionsModel]
     ) -> None:
-        """Derive the secondary parameter values, prepare all required time
-        series and set the initial conditions."""
+        """Derive the secondary parameter values, prepare all required time series and
+        set the initial conditions."""
         if update_parameters:
-            self.model.parameters.update()
+            self.model.update_parameters()
+        self.reset_values()
+        self.reset_series()
+        self.reset_outputs()
+        if use_conditions:
+            with hydpy.pub.options.trimvariables(False):
+                self.element.model.conditions = use_conditions
+        self.reset_inits()
+
+    def reset_values(self) -> None:
+        """Set the current values of all factor and flux sequences to |numpy.nan|."""
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            for seqs in (model.sequences.factors, model.sequences.fluxes):
+                for seq in seqs:
+                    seq.value = numpy.nan
+
+    def reset_series(self) -> None:
+        """Initialise all time series with |numpy.nan| values."""
         for flag in (False, True):
             self.element.prepare_factorseries(allocate_ram=flag)
             self.element.prepare_fluxseries(allocate_ram=flag)
             self.element.prepare_stateseries(allocate_ram=flag)
-        self.reset_outputs()
-        if use_conditions:
-            with hydpy.pub.options.trimvariables(False):
-                self.element.model.sequences.conditions = use_conditions
-        self.reset_inits()
 
     def reset_outputs(self) -> None:
         """Set the values of the simulation sequences of all outlet nodes to zero."""
@@ -791,12 +800,19 @@ datetime of the Python standard library for for further information.
             inits = self.inits
             for subname in ("states", "logs"):
                 for element in self.elements:
-                    for seq in getattr(element.model.sequences, subname, ()):
-                        value = getattr(inits, seq.name, None)
-                        if value is None:
-                            value = getattr(inits, f"{element.name}_{seq.name}", None)
-                        if value is not None:
-                            seq(value)
+                    for model in element.model.find_submodels(
+                        include_mainmodel=True
+                    ).values():
+                        for seq in getattr(model.sequences, subname, ()):
+                            value = getattr(inits, seq.name, None)
+                            if value is None:
+                                name = f"{seq.name}_{element.name}"
+                                value = getattr(inits, name, None)
+                            if value is None:
+                                name = f"{seq.name}_{element.name}_{id(seq)}"
+                                value = getattr(inits, name, None)
+                            if value is not None:
+                                seq(value)
 
     def plot(
         self,
@@ -807,11 +823,10 @@ datetime of the Python standard library for for further information.
         """Save a plotly HTML file plotting the current test results.
 
         (Optional) arguments:
-            * filename: Name of the file.  If necessary, the file ending
-              `html` is added automatically.  The file is stored in the
-              `html_` folder of subpackage `docs`.
-            * act_sequences: List of the sequences to be shown initially
-              (deprecated).
+            * filename: Name of the file.  If necessary, the file ending `html` is
+              added automatically.  The file is stored in the `html_` folder of
+              subpackage `docs`.
+            * act_sequences: List of the sequences to be shown initially (deprecated).
             * axis1: sequences to be shown initially on the first axis.
             * axis2: sequences to be shown initially on the second axis.
         """
@@ -835,8 +850,8 @@ datetime of the Python standard library for for further information.
                 axis1 = self.parseqs
             if axis2 is None:
                 axis2 = ()
-            axis1 = objecttools.extract(axis1, (sequencetools.IOSequence,))
-            axis2 = objecttools.extract(axis2, (sequencetools.IOSequence,))
+            axis1 = objecttools.extract(axis1, (sequencetools.IOSequence,))  # type: ignore[type-abstract]  # pylint: disable=line-too-long
+            axis2 = objecttools.extract(axis2, (sequencetools.IOSequence,))  # type: ignore[type-abstract]  # pylint: disable=line-too-long
         sel_sequences = self.plotting_options.selected
         if sel_sequences is None:
             sel_sequences = self.parseqs
@@ -1009,7 +1024,7 @@ class UnitTest(Test):
         """The last index of the examples selected for printing."""
         return self.nmb_examples - (self.last_example_calc - self.last_example_plot)
 
-    def __call__(self, first_example=None, last_example=None):
+    def __call__(self, first_example=None, last_example=None) -> None:
         if first_example is None:
             self.first_example_plot = self.first_example_calc
         else:
@@ -1350,7 +1365,7 @@ class TestIO:
         return dirpath_target
 
 
-def make_abc_testable(abstract: Type) -> Type:
+def make_abc_testable(abstract: Type[T]) -> Type[T]:
     """Return a concrete version of the given abstract base class for testing purposes.
 
     Abstract base classes cannot be (and, at least in production code, should not be)
@@ -1532,7 +1547,7 @@ class NumericalDifferentiator:
             for ysequence, yvalues in self._yvalues.items()
         }
 
-    def __call__(self):
+    def __call__(self) -> None:
         for ysequence, derivatives in self._derivatives.items():
             print(f"d_{ysequence.name}/d_{self._xsequence.name}", end=": ")
             objecttools.print_values(derivatives, width=1000)
@@ -1646,72 +1661,65 @@ def _enumerate(variables: Tuple[Type[variabletools.Variable], ...]) -> str:
 
 
 def check_methodorder(model: modeltools.Model, indent: int = 0) -> str:
-    """Check that *HydPy* calls the methods of the given application model
-    in the correct order for each simulation step.
+    """Check that *HydPy* calls the methods of the given application model in the
+    correct order for each simulation step.
 
-    The purpose of this function is to help model developers ensure
-    that each method uses only the values of those sequences that have
-    been calculated by other methods beforehand.  *HydPy's* test routines
-    apply |check_methodorder| automatically on each available application
-    model. Alternatively, you can also execute it at the end of the
-    docstring of an individual application model "manually", which
-    suppresses the automatic execution and allows to check and discuss
-    exceptional cases where |check_methodorder| generates false alarms.
+    The purpose of this function is to help model developers ensure that each method
+    uses only the values of those sequences that have been calculated by other methods
+    beforehand.  *HydPy's* test routines apply |check_methodorder| automatically on
+    each available application model. Alternatively, you can also execute it at the end
+    of the docstring of an individual application model "manually", which suppresses
+    the automatic execution and allows to check and discuss exceptional cases where
+    |check_methodorder| generates false alarms.
 
-    Function |check_methodorder| relies on the class constants
-    `REQUIREDSEQUENCES`, `UPDATEDSEQUENCES`, and `RESULTSEQUENCES` of
-    all relevant |Method| subclasses.  Hence, the correctness of its
-    results depends on the correctness of these tuples.  However, even
-    if those tuples are well-defined, one cannot expect |check_methodorder|
-    to catch all kinds of order-related errors.  For example, consider the
-    case where one method calculates only some values of a multi-dimensional
-    sequence and another method the  remaining ones.  |check_methodorder|
-    would not report anything when a third method, relying on the completeness
-    of the sequence's values, were called after the first but before
-    the second method.
+    Function |check_methodorder| relies on the class constants `REQUIREDSEQUENCES`,
+    `UPDATEDSEQUENCES`, and `RESULTSEQUENCES` of all relevant |Method| subclasses.
+    Hence, the correctness of its results depends on the correctness of these tuples.
+    However, even if those tuples are well-defined, one cannot expect
+    |check_methodorder| to catch all kinds of order-related errors.  For example,
+    consider the case where one method calculates only some values of a
+    multi-dimensional sequence and another method the  remaining ones.
+    |check_methodorder|  would not report anything when a third method, relying on the
+    completeness of the sequence's values, were called after the first but before the
+    second method.
 
-    We use the quite complex model |lland_v3| as an example.
-    |check_methodorder| does not report any problems:
+    We use the quite complex model |lland_v3| as an example.  |check_methodorder| does
+    not report any problems:
 
     >>> from hydpy.core.testtools import check_methodorder
     >>> from hydpy.models.lland_v3 import Model
     >>> print(check_methodorder(Model))
     <BLANKLINE>
 
-    To show how |check_methodorder| reports errors, we modify the
-    `RESULTSEQUENCES` tuples of methods |lland_model.Calc_TKor_V1|,
-    |lland_model.Calc_DryAirPressure_V1|, and |lland_model.Calc_QA_V1|:
+    To show how |check_methodorder| reports errors, we modify the `RESULTSEQUENCES`
+    tuples of methods |lland_model.Calc_TKor_V1|, |lland_model.Calc_TZ_V1|, and
+    |lland_model.Calc_QA_V1|:
 
     >>> from hydpy.models.lland.lland_model import (
-    ...     Calc_TKor_V1, Calc_DryAirPressure_V1, Calc_QA_V1)
+    ...     Calc_TKor_V1, Calc_TZ_V1, Calc_QA_V1)
     >>> results_tkor = Calc_TKor_V1.RESULTSEQUENCES
-    >>> results_dryairpressure = Calc_DryAirPressure_V1.RESULTSEQUENCES
+    >>> results_tz = Calc_TZ_V1.RESULTSEQUENCES
     >>> results_qa = Calc_QA_V1.RESULTSEQUENCES
     >>> Calc_TKor_V1.RESULTSEQUENCES = ()
-    >>> Calc_DryAirPressure_V1.RESULTSEQUENCES = ()
+    >>> Calc_TZ_V1.RESULTSEQUENCES = ()
     >>> Calc_QA_V1.RESULTSEQUENCES += results_tkor
 
     Now, none of the relevant models calculates the value of sequence
-    |lland_fluxes.DryAirPressure|.  For |lland_fluxes.TKor|, there is
-    still a method (|lland_model.Calc_QA_V1|) calculating its values,
-    but at a too-late stage of the simulation step:
+    |lland_fluxes.TZ|.  For |lland_fluxes.TKor|, there is still a method
+    (|lland_model.Calc_QA_V1|) calculating its values, but at a too-late stage of the
+    simulation step:
 
     >>> print(check_methodorder(Model))    # doctest: +ELLIPSIS
-    Method Calc_SaturationVapourPressure_V1 requires the following \
-sequences, which are not among the result sequences of any of its \
-predecessors: TKor
+    Method Calc_SaturationVapourPressure_V1 requires the following sequences, which \
+are not among the result sequences of any of its predecessors: TKor
     ...
-    Method Calc_DensityAir_V1 requires the following sequences, \
-which are not among the result sequences of any of its predecessors: \
-TKor and DryAirPressure
-    ...
-    Method Calc_EvB_V2 requires the following sequences, \
-which are not among the result sequences of any of its predecessors: TKor
+    Method Update_ESnow_V1 requires the following sequences, which are not among the \
+result sequences of any of its predecessors: TKor and TZ
 
     To tidy up, we need to revert the above changes:
 
     >>> Calc_TKor_V1.RESULTSEQUENCES = results_tkor
-    >>> Calc_DryAirPressure_V1.RESULTSEQUENCES = results_dryairpressure
+    >>> Calc_TZ_V1.RESULTSEQUENCES = results_tz
     >>> Calc_QA_V1.RESULTSEQUENCES = results_qa
     >>> print(check_methodorder(Model))
     <BLANKLINE>
@@ -1725,7 +1733,7 @@ which are not among the result sequences of any of its predecessors: TKor
         sequencetools.StateSequence,
         sequencetools.LogSequence,
     )
-    methods = tuple(model.get_methods())
+    methods = tuple(model.get_methods(skip=("ADD_METHODS", "INTERFACE_METHODS")))
     for idx, method1 in enumerate(methods):
         required = set(
             seq for seq in method1.REQUIREDSEQUENCES if not issubclass(seq, excluded)
@@ -1746,7 +1754,7 @@ which are not among the result sequences of any of its predecessors: TKor
     return "\n".join(results)
 
 
-def check_selectedvariables(method: modeltools.Method, indent: int = 0) -> str:
+def check_selectedvariables(method: Type[modeltools.Method], indent: int = 0) -> str:
     """Perform consistency checks regarding the |Parameter| and |Sequence_|
     subclasses selected by the given |Method| subclass.
 
@@ -1765,87 +1773,110 @@ def check_selectedvariables(method: modeltools.Method, indent: int = 0) -> str:
     |check_selectedvariables| is of great help to prevent the most common mistakes when
     defining the parameter and sequence classes relevant for a specific method.
 
-    As an example, we select method |lland_model.Calc_WindSpeed2m_V1| of base model
-    |lland|.  |check_selectedvariables| does not reportany problems:
+    As an example, we select method |evap_model.Calc_WindSpeed2m_V1| of base model
+    |evap|.  |check_selectedvariables| does not reportany problems:
 
     >>> from hydpy.core.testtools import check_selectedvariables
-    >>> from hydpy.models.lland.lland_model import (
-    ...     Calc_WindSpeed2m_V1, Return_AdjustedWindSpeed_V1)
-    >>> print(check_selectedvariables(Calc_WindSpeed2m_V1))
+    >>> from hydpy.models.evap.evap_model import Calc_WindSpeed10m_V1
+    >>> print(check_selectedvariables(Calc_WindSpeed10m_V1))
     <BLANKLINE>
 
     To show how |check_selectedvariables| reports errors, we clear the
-    `RESULTSEQUENCES` tuple of method |lland_model.Calc_WindSpeed2m_V1|.  Now
-    |check_selectedvariables| realises the usage of the flux sequence object
-    `windspeed2m` within the source code of method |lland_model.Calc_WindSpeed2m_V1|,
+    `RESULTSEQUENCES` tuple of method |evap_model.Calc_WindSpeed10m_V1|.  Now
+    |check_selectedvariables| realises the usage of the factor sequence object
+    `windspeed10m` within the source code of method |evap_model.Calc_WindSpeed10m_V1|,
     which is neither available within the `REQUIREDSEQUENCES`, the `UPDATEDSEQUENCES`,
     nor the`RESULTSEQUENCES` tuple:
 
-    >>> resultseqs = Calc_WindSpeed2m_V1.RESULTSEQUENCES
-    >>> Calc_WindSpeed2m_V1.RESULTSEQUENCES = ()
-    >>> print(check_selectedvariables(Calc_WindSpeed2m_V1))
-    Definitely missing: windspeed2m
+    >>> resultseqs = Calc_WindSpeed10m_V1.RESULTSEQUENCES
+    >>> Calc_WindSpeed10m_V1.RESULTSEQUENCES = ()
+    >>> print(check_selectedvariables(Calc_WindSpeed10m_V1))
+    Definitely missing: windspeed10m
 
-    After putting the wrong flux sequence class |lland_fluxes.WindSpeed10m| into the
+    After putting the wrong flux sequence class |evap_factors.WindSpeed2m| into the
     tuple, we get an additional warning pointing to our mistake:
 
-    >>> from hydpy.models.lland.lland_fluxes import WindSpeed10m
-    >>> Calc_WindSpeed2m_V1.RESULTSEQUENCES = WindSpeed10m,
-    >>> print(check_selectedvariables(Calc_WindSpeed2m_V1))
-    Definitely missing: windspeed2m
-    Possibly erroneously selected (RESULTSEQUENCES): WindSpeed10m
+    >>> from hydpy.models.evap.evap_factors import WindSpeed2m
+    >>> Calc_WindSpeed10m_V1.RESULTSEQUENCES = WindSpeed2m,
+    >>> print(check_selectedvariables(Calc_WindSpeed10m_V1))
+    Definitely missing: windspeed10m
+    Possibly erroneously selected (RESULTSEQUENCES): WindSpeed2m
 
-    Method |lland_model.Calc_WindSpeed2m_V1| uses
-    |lland_model.Return_AdjustedWindSpeed_V1| as a submethod.  Hence,
-    |lland_model.Calc_WindSpeed2m_V1| most likely needs to select each variable
-    selected by |lland_model.Return_AdjustedWindSpeed_V1|.  After adding additional
+    Method |evap_model.Calc_WindSpeed10m_V1| uses
+    |evap_model.Return_AdjustedWindSpeed_V1| as a submethod.  Hence,
+    |evap_model.Calc_WindSpeed10m_V1| most likely needs to select each variable
+    selected by |evap_model.Return_AdjustedWindSpeed_V1|.  After adding additional
     variables to the `DERIVEDPARAMETERS` tuple of
-    |lland_model.Return_AdjustedWindSpeed_V1|, we get another warning message:
+    |evap_model.Return_AdjustedWindSpeed_V1|, we get another warning message:
 
-    >>> from hydpy.models.lland.lland_derived import (
-    ...     Days, Hours, Seconds)
+    >>> from hydpy.models.evap.evap_model import Return_AdjustedWindSpeed_V1
+    >>> from hydpy.models.evap.evap_derived import Days, Hours, Seconds
     >>> derivedpars = Return_AdjustedWindSpeed_V1.DERIVEDPARAMETERS
     >>> Return_AdjustedWindSpeed_V1.DERIVEDPARAMETERS = Days, Hours, Seconds
-    >>> print(check_selectedvariables(Calc_WindSpeed2m_V1))
-    Definitely missing: windspeed2m
+    >>> print(check_selectedvariables(Calc_WindSpeed10m_V1))
+    Definitely missing: windspeed10m
     Possibly missing (DERIVEDPARAMETERS):
         Return_AdjustedWindSpeed_V1: Seconds, Hours, and Days
-    Possibly erroneously selected (RESULTSEQUENCES): WindSpeed10m
+    Possibly erroneously selected (RESULTSEQUENCES): WindSpeed2m
 
     Finally, |check_selectedvariables| checks for duplicates both within and between
     the different tuples:
 
-    >>> from hydpy.models.lland.lland_inputs import WindSpeed, TemL
-    >>> requiredseqs = Calc_WindSpeed2m_V1.REQUIREDSEQUENCES
-    >>> Calc_WindSpeed2m_V1.REQUIREDSEQUENCES = WindSpeed, WindSpeed, TemL
-    >>> Calc_WindSpeed2m_V1.UPDATEDSEQUENCES = TemL,
-    >>> print(check_selectedvariables(Calc_WindSpeed2m_V1))
-    Definitely missing: windspeed2m
+    >>> from hydpy.models.evap.evap_inputs import WindSpeed, RelativeHumidity
+    >>> requiredseqs = Calc_WindSpeed10m_V1.REQUIREDSEQUENCES
+    >>> Calc_WindSpeed10m_V1.REQUIREDSEQUENCES = WindSpeed, WindSpeed, RelativeHumidity
+    >>> Calc_WindSpeed10m_V1.UPDATEDSEQUENCES = RelativeHumidity,
+    >>> print(check_selectedvariables(Calc_WindSpeed10m_V1))
+    Definitely missing: windspeed10m
     Possibly missing (DERIVEDPARAMETERS):
         Return_AdjustedWindSpeed_V1: Seconds, Hours, and Days
-    Possibly erroneously selected (REQUIREDSEQUENCES): TemL
-    Possibly erroneously selected (UPDATEDSEQUENCES): TemL
-    Possibly erroneously selected (RESULTSEQUENCES): WindSpeed10m
-    Duplicates: TemL and WindSpeed
+    Possibly erroneously selected (REQUIREDSEQUENCES): RelativeHumidity
+    Possibly erroneously selected (UPDATEDSEQUENCES): RelativeHumidity
+    Possibly erroneously selected (RESULTSEQUENCES): WindSpeed2m
+    Duplicates: RelativeHumidity and WindSpeed
 
     To tidy up, we need to revert the above changes:
 
-    >>> Calc_WindSpeed2m_V1.RESULTSEQUENCES = resultseqs
+    >>> Calc_WindSpeed10m_V1.RESULTSEQUENCES = resultseqs
     >>> Return_AdjustedWindSpeed_V1.DERIVEDPARAMETERS = derivedpars
-    >>> Calc_WindSpeed2m_V1.REQUIREDSEQUENCES = requiredseqs
-    >>> Calc_WindSpeed2m_V1.UPDATEDSEQUENCES = ()
-    >>> print(check_selectedvariables(Calc_WindSpeed2m_V1))
+    >>> Calc_WindSpeed10m_V1.REQUIREDSEQUENCES = requiredseqs
+    >>> Calc_WindSpeed10m_V1.UPDATEDSEQUENCES = ()
+    >>> print(check_selectedvariables(Calc_WindSpeed10m_V1))
     <BLANKLINE>
 
-    Some methods such as |arma_model.Pick_Q_V1| of base model |arma| rely on the `len`
-    attribute of 1-dimensional sequences.  Function |check_selectedvariables| does not
-    report false alarms in such cases:
+    Some methods, such as |arma_model.Pick_Q_V1|, of base model |arma| rely on the
+    `len` attribute of 1-dimensional sequences.  Function |check_selectedvariables|
+    does not report false alarms in such cases:
 
     >>> from hydpy.models.arma.arma_model import Pick_Q_V1
     >>> print(check_selectedvariables(Pick_Q_V1))
     <BLANKLINE>
 
-    Some methods such as |lland_model.Update_ESnow_V1| of base model |lland| update a
+    Some methods such as |evap_model.Calc_PotentialEvapotranspiration_V1| of base model
+    |evap| rely on the |KeywordParameter1D.entrymin| attribute of |KeywordParameter1D|
+    instances.  Function |check_selectedvariables| does not report false alarms in such
+    cases:
+
+    >>> from hydpy.models.evap.evap_model import Calc_PotentialEvapotranspiration_V1
+    >>> from hydpy.models.evap.evap_control import MonthFactor
+    >>> MonthFactor in Calc_PotentialEvapotranspiration_V1.CONTROLPARAMETERS
+    True
+    >>> print(check_selectedvariables(Calc_PotentialEvapotranspiration_V1))
+    <BLANKLINE>
+
+    Some methods, such as |evap_model.Calc_PotentialEvapotranspiration_V2| of base
+    model |evap|, rely on the |KeywordParameter2D.rowmin| or the
+    |KeywordParameter2D.columnmin| attribute of |KeywordParameter2D| instances.
+    Function |check_selectedvariables| does not report false alarms in such cases:
+
+    >>> from hydpy.models.evap.evap_model import Calc_PotentialEvapotranspiration_V2
+    >>> from hydpy.models.evap.evap_control import LandMonthFactor
+    >>> LandMonthFactor in Calc_PotentialEvapotranspiration_V2.CONTROLPARAMETERS
+    True
+    >>> print(check_selectedvariables(Calc_PotentialEvapotranspiration_V2))
+    <BLANKLINE>
+
+    Some methods, such as |lland_model.Update_ESnow_V1| of base model |lland|, update a
     sequence (meaning, they require its old value and calculate a new one), but their
     submethods (in this case |lland_model.Return_BackwardEulerError_V1|) just require
     them as input.  Function |check_selectedvariables| does not report false alarms in
@@ -1861,6 +1892,31 @@ def check_selectedvariables(method: modeltools.Method, indent: int = 0) -> str:
     >>> from hydpy.models.ga.ga_model import Perform_GARTO_V1
     >>> print(check_selectedvariables(Perform_GARTO_V1))
     <BLANKLINE>
+
+    If a |AutoMethod| subclass selects multiple submethods and one requires sequence
+    values that are calculated by another one, |check_selectedvariables| does not
+    report this as a problem if they are listed in the correct order, as is the case
+    for method |evap_model.Determine_InterceptionEvaporation_V1|:
+
+    >>> from hydpy.models.evap.evap_model import Determine_InterceptionEvaporation_V1
+    >>> print(check_selectedvariables(Determine_InterceptionEvaporation_V1))
+    <BLANKLINE>
+
+    However, when reversing the submethod order, |check_selectedvariables| complains
+    that |evap_model.Determine_InterceptionEvaporation_V1| does not specify all
+    requirements of the first submethod |evap_model.Calc_InterceptionEvaporation_V1|,
+    which would be calculated too late by the second
+    (|evap_model.Calc_InterceptedWater_V1|) and the third
+    (|evap_model.Calc_PotentialEvapotranspiration_V4|) submethod:
+
+    >>> submethods = Determine_InterceptionEvaporation_V1.SUBMETHODS
+    >>> Determine_InterceptionEvaporation_V1.SUBMETHODS = tuple(reversed(submethods))
+    >>> print(check_selectedvariables(Determine_InterceptionEvaporation_V1))
+    Possibly missing (REQUIREDSEQUENCES):
+        Calc_InterceptionEvaporation_V1: InterceptedWater and \
+PotentialEvapotranspiration
+
+    >>> Determine_InterceptionEvaporation_V1.SUBMETHODS = submethods
     """
     # pylint: disable=too-many-branches
     # ToDo: needs refactoring
@@ -1897,11 +1953,19 @@ def check_selectedvariables(method: modeltools.Method, indent: int = 0) -> str:
     # variables:
     source = inspect.getsource(method.__call__)
     varnames_source: Set[str] = set()
-    unbound_vars: AbstractSet[str] = inspect.getclosurevars(method.__call__).unbound
+    unbound_vars: Set[str] = set(inspect.getclosurevars(method.__call__).unbound)
+    for varname in tuple(unbound_vars):
+        if f"modelutils.{varname}" in source:
+            unbound_vars.remove(varname)
     for varname, prefix in itertools.product(unbound_vars, prefixes):
         if f"{prefix}.{varname}" in source:
             if varname.startswith("len_"):
                 varname = varname[4:]
+            else:
+                for suffix in ("_rowmin", "_columnmin", "_entrymin"):
+                    if varname.endswith(suffix):
+                        varname = varname[1 : -len(suffix)]
+                varname = varname.replace("_callback", "")
             varnames_source.add(varname)
     varnames_selected: Set[str] = set()
     for group in groups:
@@ -1919,7 +1983,7 @@ def check_selectedvariables(method: modeltools.Method, indent: int = 0) -> str:
     for group in groups:
         vars_method = set(getattr(method, group))
         found_problem = False
-        for submethod in method.SUBMETHODS:
+        for idx_submethod, submethod in enumerate(method.SUBMETHODS):
             vars_submethods = set(getattr(submethod, group))
             if group == "REQUIREDSEQUENCES":
                 vars_method.update(
@@ -1927,6 +1991,9 @@ def check_selectedvariables(method: modeltools.Method, indent: int = 0) -> str:
                         submethod.REQUIREDSEQUENCES
                     )
                 )
+                if issubclass(method, modeltools.AutoMethod):
+                    for previous in method.SUBMETHODS[:idx_submethod]:
+                        vars_submethods.difference_update(previous.RESULTSEQUENCES)
             diff = vars_submethods - vars_method
             if diff and (group == "UPDATEDSEQUENCES"):
                 diff.difference_update(set(method.RESULTSEQUENCES))
@@ -1988,38 +2055,43 @@ def perform_consistencychecks(
     At the moment, function |perform_consistencychecks| calls function
     |check_selectedvariables| for each relevant model method and function
     |check_methodorder| for the application model itself.  Note that
-    |perform_consistencychecks| executes only those checks not already
-    executed in the doctest of the respective method or model.  This
-    alternative allows model developers to perform the tests themselves
-    whenever exceptional cases result in misleading error reports and
-    discuss any related potential pitfalls in the official documentation.
+    |perform_consistencychecks| executes only those checks not already executed in the
+    doctest of the respective method or model.  This alternative allows model
+    developers to perform the tests themselves whenever exceptional cases result in
+    misleading error reports and discuss any related potential pitfalls in the official
+    documentation.
 
-    As an example, we apply |perform_consistencychecks| on the application
-    model |lland_v3|.  It does not report any potential problems (not
-    already discussed in the documentation on the individual model methods):
+    As an example, we apply |perform_consistencychecks| on the application model
+    |lland_v3|.  It does not report any potential problems (not already discussed in
+    the documentation on the individual model methods):
 
     >>> from hydpy.core.testtools import perform_consistencychecks
     >>> print(perform_consistencychecks("lland_v3"))
     <BLANKLINE>
 
     To show how |perform_consistencychecks| reports errors, we modify the
-    `RESULTSEQUENCES` tuple of method |lland_model.Calc_DryAirPressure_V1|:
+    `RESULTSEQUENCES` tuple of method |lland_model.Calc_NKor_V1|:
 
-    >>> from hydpy.models.lland.lland_model import (
-    ...     Calc_DryAirPressure_V1)
-    >>> results_dryairpressure = Calc_DryAirPressure_V1.RESULTSEQUENCES
-    >>> Calc_DryAirPressure_V1.RESULTSEQUENCES = ()
+    >>> from hydpy.models.lland.lland_model import Calc_NKor_V1
+    >>> resultsequences = Calc_NKor_V1.RESULTSEQUENCES
+    >>> Calc_NKor_V1.RESULTSEQUENCES = ()
     >>> print(perform_consistencychecks("lland_v3"))
     Potential consistency problems for individual methods:
-       Method Calc_DryAirPressure_V1:
-            Definitely missing: dryairpressure
+       Method Calc_NKor_V1:
+            Definitely missing: nkor
     Potential consistency problems between methods:
-        Method Calc_DensityAir_V1 requires the following sequences, which are \
-not among the result sequences of any of its predecessors: DryAirPressure
+        Method Calc_NBes_Inzp_V1 requires the following sequences, which are not among \
+the result sequences of any of its predecessors: NKor
+        Method Calc_QBGZ_V1 requires the following sequences, which are not among the \
+result sequences of any of its predecessors: NKor
+        Method Calc_QDGZ_V1 requires the following sequences, which are not among the \
+result sequences of any of its predecessors: NKor
+        Method Calc_QAH_V1 requires the following sequences, which are not among the \
+result sequences of any of its predecessors: NKor
 
     To tidy up, we need to revert the above changes:
 
-    >>> Calc_DryAirPressure_V1.RESULTSEQUENCES = results_dryairpressure
+    >>> Calc_NKor_V1.RESULTSEQUENCES = resultsequences
     >>> print(perform_consistencychecks("lland_v3"))
     <BLANKLINE>
     """
@@ -2049,10 +2121,7 @@ not among the result sequences of any of its predecessors: DryAirPressure
     return "\n".join(results)
 
 
-def save_autofig(
-    filename: str,
-    figure: Optional["pyplot.Figure"] = None,
-) -> None:
+def save_autofig(filename: str, figure: Optional[pyplot.Figure] = None) -> None:
     """Save a figure automatically generated during testing in the special `autofig`
     sub-package so that Sphinx can include it into the documentation later.
 

@@ -6,7 +6,63 @@
 import numpy
 
 # ...from HydPy
+from hydpy.core import exceptiontools
 from hydpy.core import parametertools
+from hydpy.models.meteo import meteo_parameters
+
+
+class NmbHRU(parametertools.Parameter):
+    """The number of hydrological response units [-].
+
+    |NmbHRU| determines the length of the 1-dimensional parameters and sequences:
+
+    >>> from hydpy.models.meteo import *
+    >>> parameterstep()
+    >>> nmbhru(5)
+    >>> precipitationfactor.shape
+    (5,)
+    >>> fluxes.precipitation.shape
+    (5,)
+
+    Changing the value of |NmbHRU| later reshapes the affected parameters and sequences
+    and makes resetting their values necessary:
+
+    >>> precipitationfactor(2.0)
+    >>> precipitationfactor
+    precipitationfactor(2.0)
+    >>> nmbhru(3)
+    >>> precipitationfactor
+    precipitationfactor(?)
+
+    Re-defining the same value does not delete the already available data:
+
+    >>> precipitationfactor(2.0)
+    >>> nmbhru(3)
+    >>> precipitationfactor
+    precipitationfactor(2.0)
+    """
+
+    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+
+    def __call__(self, *args, **kwargs) -> None:
+        old_shape = exceptiontools.getattr_(self, "value", None)
+        super().__call__(*args, **kwargs)
+        new_shape = self.value
+        if new_shape != old_shape:
+            for subpars in self.subpars.pars:
+                for par in subpars:
+                    if par.NDIM == 1:
+                        par.shape = new_shape
+            for subseqs in self.subpars.pars.model.sequences:
+                for seq in subseqs:
+                    if seq.NDIM == 1:
+                        seq.shape = new_shape
+
+
+class HRUArea(parametertools.Parameter):
+    """The area of each hydrological response unit [km²]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
 class Latitude(parametertools.Parameter):
@@ -83,3 +139,17 @@ class AngstromAlternative(parametertools.MonthParameter):
 
     TYPE, TIME, SPAN = float, None, (0.0, 1.0)
     INIT = 0.15
+
+
+class TemperatureAddend(meteo_parameters.ZipParameter1D):
+    """Temperature shift constant [°C]."""
+
+    TYPE, TIME, SPAN = float, None, (None, None)
+    INIT = 0.0
+
+
+class PrecipitationFactor(meteo_parameters.ZipParameter1D):
+    """Precipitation adjustment factor [-]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+    INIT = 1.0

@@ -17,3 +17,6 @@ requires = [
     "xarray",
     "xmlschema",
 ]
+
+[tool.black]
+exclude = "hydpy/data/|hydpy/tests/iotesting"

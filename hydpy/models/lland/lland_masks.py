@@ -2,10 +2,15 @@
 # pylint: disable=missing-module-docstring
 
 # import...
+# ...from standard library
+from __future__ import annotations
+
 # ...from HydPy
 from hydpy.core import masktools
+from hydpy.core import variabletools
 
 # ...from lland
+from hydpy.models.lland import lland_control
 from hydpy.models.lland import lland_constants
 from hydpy.models.lland.lland_constants import (
     SIED_D,
@@ -38,10 +43,10 @@ def _exclude(*args):
 class Complete(masktools.IndexMask):
     """Mask including all land uses."""
 
-    RELEVANT_VALUES = _exclude()
+    relevant = _exclude()
 
     @staticmethod
-    def get_refindices(variable):
+    def get_refindices(variable: variabletools.Variable) -> lland_control.Lnk:
         """Reference to the associated instance of |Lnk|."""
         return variable.subvars.vars.model.parameters.control.lnk
 
@@ -49,127 +54,133 @@ class Complete(masktools.IndexMask):
 class Land(Complete):
     """Mask excluding the land uses |WASSER|, |SEE| and |FLUSS|."""
 
-    RELEVANT_VALUES = _exclude(WASSER, SEE, FLUSS)
+    relevant = _exclude(WASSER, SEE, FLUSS)
 
 
 class Soil(Complete):
     """Mask excluding the land uses |WASSER|, |SEE|, |FLUSS|, and |VERS|."""
 
-    RELEVANT_VALUES = _exclude(WASSER, SEE, FLUSS, VERS)
+    relevant = _exclude(WASSER, SEE, FLUSS, VERS)
 
 
 class Forest(Complete):
     """Mask including the land uses |LAUBW|, |MISCHW|, and |NADELW|."""
 
-    RELEVANT_VALUES = (LAUBW, MISCHW, NADELW)
+    relevant = (LAUBW, MISCHW, NADELW)
+
+
+class Water(Complete):
+    """Mask including the land uses |WASSER|, |SEE|, and |FLUSS|."""
+
+    relevant = (WASSER, SEE, FLUSS)
 
 
 class Sied_D(Complete):
     """Mask for land use |SIED_D|."""
 
-    RELEVANT_VALUES = (SIED_D,)
+    relevant = (SIED_D,)
 
 
 class Sied_L(Complete):
     """Mask for land use |SIED_L|."""
 
-    RELEVANT_VALUES = (SIED_L,)
+    relevant = (SIED_L,)
 
 
 class Vers(Complete):
     """Mask for land use |VERS|."""
 
-    RELEVANT_VALUES = (VERS,)
+    relevant = (VERS,)
 
 
 class Acker(Complete):
     """Mask for land use |ACKER|."""
 
-    RELEVANT_VALUES = (ACKER,)
+    relevant = (ACKER,)
 
 
 class Weinb(Complete):
     """Mask for land use |WEINB|."""
 
-    RELEVANT_VALUES = (WEINB,)
+    relevant = (WEINB,)
 
 
 class Obstb(Complete):
     """Mask for land use |OBSTB|."""
 
-    RELEVANT_VALUES = (OBSTB,)
+    relevant = (OBSTB,)
 
 
 class Boden(Complete):
     """Mask for land use |BODEN|."""
 
-    RELEVANT_VALUES = (BODEN,)
+    relevant = (BODEN,)
 
 
 class Glets(Complete):
     """Mask for land use |GLETS|."""
 
-    RELEVANT_VALUES = (GLETS,)
+    relevant = (GLETS,)
 
 
 class Grue_I(Complete):
     """Mask for land use |GRUE_I|."""
 
-    RELEVANT_VALUES = (GRUE_I,)
+    relevant = (GRUE_I,)
 
 
 class Feucht(Complete):
     """Mask for land use |FEUCHT|."""
 
-    RELEVANT_VALUES = (FEUCHT,)
+    relevant = (FEUCHT,)
 
 
 class Grue_E(Complete):
     """Mask for land use |GRUE_E|."""
 
-    RELEVANT_VALUES = (GRUE_E,)
+    relevant = (GRUE_E,)
 
 
 class Baumb(Complete):
     """Mask for land use |BAUMB|."""
 
-    RELEVANT_VALUES = (BAUMB,)
+    relevant = (BAUMB,)
 
 
 class Nadelw(Complete):
     """Mask for land use |NADELW|."""
 
-    RELEVANT_VALUES = (NADELW,)
+    relevant = (NADELW,)
 
 
 class Laubw(Complete):
     """Mask for land use |LAUBW|."""
 
-    RELEVANT_VALUES = (LAUBW,)
+    relevant = (LAUBW,)
 
 
 class Mischw(Complete):
     """Mask for land use |MISCHW|."""
 
-    RELEVANT_VALUES = (MISCHW,)
+    relevant = (MISCHW,)
 
 
 class Wasser(Complete):
     """Mask for land use |WASSER|."""
 
-    RELEVANT_VALUES = (WASSER,)
+    relevant = (WASSER,)
 
 
 class Fluss(Complete):
     """Mask for land use |FLUSS|."""
 
-    RELEVANT_VALUES = (FLUSS,)
+    relevant = (FLUSS,)
 
 
 class See(Complete):
     """Mask for land use |SEE|."""
 
-    RELEVANT_VALUES = (SEE,)
+    relevant = (SEE,)
 
 
 class Masks(masktools.Masks):
@@ -180,6 +191,7 @@ class Masks(masktools.Masks):
         Land,
         Soil,
         Forest,
+        Water,
         Sied_D,
         Sied_L,
         Vers,

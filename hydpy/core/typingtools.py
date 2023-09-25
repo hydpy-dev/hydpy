@@ -5,7 +5,6 @@ typing."""
 # ...from standard library
 from __future__ import annotations
 from typing import (
-    AbstractSet,
     Any,
     Callable,
     cast,
@@ -38,6 +37,7 @@ from typing import (
     Tuple,
     TextIO,
     Type,
+    TypedDict,
     TypeVar,
     TYPE_CHECKING,
     Union,
@@ -52,6 +52,7 @@ from numpy.typing import NDArray
 if TYPE_CHECKING:
     from hydpy.core import devicetools
     from hydpy.core import hydpytools
+    from hydpy.core import parametertools
     from hydpy.cythons import pointerutils
 
 T = TypeVar("T")
@@ -64,6 +65,8 @@ T3 = TypeVar("T3")
 P = ParamSpec("P")
 
 Name = NewType("Name", str)
+Name.__doc__ = """Type for strings that represent names."""
+
 
 Mayberable1 = Union[T, Iterable[T]]
 Mayberable2 = Union[T1, T2, Iterable[Union[T1, T2]]]
@@ -84,7 +87,10 @@ Float_co = TypeVar("Float_co", covariant=True)
 Float1 = TypeVar("Float1", bound=float)
 Float2 = TypeVar("Float2", bound=float)
 
+NDArrayObject = NDArray[numpy.generic]
 NDArrayFloat = NDArray[numpy.float_]
+NDArrayInt = NDArray[numpy.int_]
+NDArrayBool = NDArray[numpy.bool_]
 
 Vector = NDArray[T]
 VectorObject = NDArray[numpy.generic]
@@ -130,8 +136,38 @@ ArrayFloat = TypeVar(
     Union[float, VectorFloat],
 )
 
+ConditionsSubmodel = Dict[str, Dict[str, Union[float, NDArrayFloat]]]
+ConditionsModel = Dict[str, ConditionsSubmodel]
+Conditions = Dict[str, ConditionsModel]
 
-DeployMode = Literal["newsim", "oldsim", "obs", "obs_newsim", "obs_oldsim"]
+
+class SharableConfiguration(TypedDict):
+    """Specification of the configuration data that main models can share with their
+    submodels."""
+
+    landtype_constants: Optional[parametertools.Constants]
+    """Land cover type-related constants."""
+    soiltype_constants: Optional[parametertools.Constants]
+    """Soil type-related constants."""
+    landtype_refindices: Optional[parametertools.NameParameter]
+    """Reference to a land cover type-related index parameter."""
+    soiltype_refindices: Optional[parametertools.NameParameter]
+    """Reference to a soil type-related index parameter."""
+    refweights: Optional[parametertools.Parameter]
+    """Reference to a weighting parameter (probably handling the size of some 
+    computational subunits like the area of hydrological response units)."""
+
+
+DeployMode = Literal[
+    "newsim",
+    "oldsim",
+    "obs",
+    "obs_newsim",
+    "obs_oldsim",
+    "oldsim_bi",
+    "obs_bi",
+    "obs_oldsim_bi",
+]
 LineStyle = Literal["-", "--", "-.", ":", "solid", "dashed", "dashdot", "dotted"]
 StepSize = Literal["daily", "d", "monthly", "m", "yearly", "y"]
 
@@ -139,7 +175,7 @@ StepSize = Literal["daily", "d", "monthly", "m", "yearly", "y"]
 class CyParametersProtocol(Protocol):
     """The protocol for the `parameters` attribute of Cython extension classes.
 
-    Class |Cythonizer| generates the actual, model specific implementations
+    Class |Cythonizer| generates the actual, model-specific implementations
     automatically.
     """
 
@@ -147,7 +183,7 @@ class CyParametersProtocol(Protocol):
 class CySequencesProtocol(Protocol):
     """The protocol for the `sequences` attribute of Cython extension classes.
 
-    Class |Cythonizer| generates the actual, model specific implementations
+    Class |Cythonizer| generates the actual, model-specific implementations
     automatically.
     """
 
@@ -156,7 +192,7 @@ class CyModelProtocol(Protocol):
     """The protocol of Cython extension classes for defining efficient model
     implementations.
 
-    Class |Cythonizer| generates the actual, model specific implementations
+    Class |Cythonizer| generates the actual, model-specific implementations
     automatically.
     """
 
@@ -165,11 +201,36 @@ class CyModelProtocol(Protocol):
     sequences: CySequencesProtocol
 
 
+class CySubstepModelProtocol(CyModelProtocol):
+    """The protocol of Cython extension classes for defining efficient model
+    implementations compatible with class |SubstepModel|.
+
+    Class |Cythonizer| generates the actual, model-specific implementations
+    automatically.
+    """
+
+    timeleft: float
+    """The time left within the current simulation step [s]."""
+
+
 SeriesFileType = Literal["npy", "asc", "nc"]
 SeriesAggregationType = Literal["none", "mean"]
 
+l1: Literal[1] = 1
+
+MethodGroup = Literal[
+    "RECEIVER_METHODS",
+    "INLET_METHODS",
+    "RUN_METHODS",
+    "PART_ODE_METHODS",
+    "FULL_ODE_METHODS",
+    "ADD_METHODS",
+    "INTERFACE_METHODS",
+    "OUTLET_METHODS",
+    "SENDER_METHODS",
+]
+
 __all__ = [
-    "AbstractSet",
     "Any",
     "ArrayFloat",
     "assert_never",
@@ -178,11 +239,15 @@ __all__ = [
     "Concatenate",
     "ClassVar",
     "Collection",
+    "Conditions",
+    "ConditionsModel",
+    "ConditionsSubmodel",
     "ContextManager",
     "DefaultDict",
     "Deque",
     "Dict",
     "CyModelProtocol",
+    "CySubstepModelProtocol",
     "Collection1",
     "Collection2",
     "Collection3",
@@ -198,6 +263,7 @@ __all__ = [
     "LineStyle",
     "List",
     "Literal",
+    "l1",
     "Mapping",
     "Matrix",
     "MatrixBool",
@@ -215,10 +281,14 @@ __all__ = [
     "MayNonerable1",
     "MayNonerable2",
     "MayNonerable3",
+    "MethodGroup",
     "Name",
     "NamedTuple",
     "NDArray",
+    "NDArrayBool",
     "NDArrayFloat",
+    "NDArrayInt",
+    "NDArrayObject",
     "Never",
     "NewType",
     "NoReturn",
@@ -235,6 +305,7 @@ __all__ = [
     "Sequence1",
     "Sequence2",
     "Sequence3",
+    "SharableConfiguration",
     "Sized",
     "StepSize",
     "T",
@@ -256,6 +327,7 @@ __all__ = [
     "Tuple",
     "Type",
     "TypeVar",
+    "TypedDict",
     "TYPE_CHECKING",
     "Union",
     "Vector",

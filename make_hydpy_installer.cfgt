@@ -28,6 +28,7 @@ pypi_wheels =
 	pyparsing==[auto]
 	python-dateutil==[auto]
 	netCDF4==[auto]
+	certifi==[auto]
 	cftime==[auto]
 	pandas==[auto]
 	pytz==[auto]
@@ -45,6 +46,7 @@ pypi_wheels =
 	colorama==[auto]
 	black==[auto]
 	xarray==[auto]
+	cython==[auto]
 
 local_wheels = dist/*.whl
 
@@ -55,6 +57,9 @@ packages =
 	tkinter
 	_tkinter
 
-files = lib
-	tcl86t.dll > $INSTDIR\pkgs
-	tk86t.dll > $INSTDIR\pkgs
+files = extra_python_sources\lib > $INSTDIR
+    extra_python_sources\libs > $INSTDIR\Python
+    extra_python_sources\include > $INSTDIR\Python
+	extra_python_sources\tcl86t.dll > $INSTDIR\pkgs
+	extra_python_sources\tk86t.dll > $INSTDIR\pkgs
+

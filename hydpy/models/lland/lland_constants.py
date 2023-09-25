@@ -1,22 +1,20 @@
 # -*- coding: utf-8 -*-
-"""The HydPy-L-Land model (|lland|) allows for the subdivision of subbasins
-into hydrological response units (hru).  Some processes, e.g. interception,
-are calculated separately for each zone.  This is why some parameters (e.g.
-the usable field capacity |NFk|) and some sequences (e.g. the actual soil
-water storage |BoWa|) are 1-dimensional.  Each entry represents the value
-of a different hru.
+"""The HydPy-L-Land model (|lland|) allows for the subdivision of subbasins into
+hydrological response units.  Some processes, e.g. interception, are calculated
+separately for each response unit.  This is why some parameters (e.g. the field
+capacity |FK|) and some sequences (e.g. the actual soil water storage |BoWa|) are
+1-dimensional.  Each entry represents the value of a different hru.
 
-In contrasts to the original LARSIM model, the HydPy-L-Land model allows for
-arbitrary definitions of units.  Nevertheless, the original distinction
-in accordance with sixteen different landuse types is still supported.  The
-parameter |Lnk| defines which entry of e.g. parameter |NFk| is related to
-which land use type via integer values.  Note that for the units of the most
-land use types, the same equations are applied. Only units of type |VERS|,
-|WASSER|, |FLUSS|, and |SEE| are partly connected to different process
-equations.
+In contrasts to the original LARSIM model, HydPy-L-Land allows for arbitrary response
+unit definitions.  Nevertheless, the original distinction in accordance with sixteen
+different landuse types is still supported.  The parameter |Lnk| defines which entry of
+e.g. parameter |FK| is related to which land use type via integer values.  Note that
+for the response units of the most land types, the same equations are applied. Only
+units of type |VERS|, |WASSER|, |FLUSS|, |SEE|, and |NADELW| are partly connected to
+different process equations.
 
-For comprehensibility, this module introduces the relevant integer constants.
-Through performing a wildcard import
+For comprehensibility, this module introduces the relevant integer constants.  After
+performing a wildcard import
 
 >>> from hydpy.models.lland import *
 

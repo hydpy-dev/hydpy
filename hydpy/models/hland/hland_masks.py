@@ -21,73 +21,73 @@ class HLandBaseMask(masktools.IndexMask):
 class Complete(HLandBaseMask):
     """Mask including all types of zones."""
 
-    RELEVANT_VALUES = (FIELD, FOREST, ILAKE, GLACIER, SEALED)
+    relevant = (FIELD, FOREST, ILAKE, GLACIER, SEALED)
 
 
 class Land(HLandBaseMask):
     """Mask including zones of type |FIELD|, |FOREST|, |GLACIER|, and |SEALED|."""
 
-    RELEVANT_VALUES = (FIELD, FOREST, GLACIER, SEALED)
+    relevant = (FIELD, FOREST, GLACIER, SEALED)
 
 
 class Interception(HLandBaseMask):
     """Mask including zones of type |FIELD|, |FOREST|, and |SEALED|."""
 
-    RELEVANT_VALUES = (FIELD, FOREST, SEALED)
+    relevant = (FIELD, FOREST, SEALED)
 
 
 class Snow(HLandBaseMask):
     """Mask including zones of type |FIELD|, |FOREST|, |GLACIER|, and |SEALED|."""
 
-    RELEVANT_VALUES = (FIELD, FOREST, GLACIER, SEALED)
+    relevant = (FIELD, FOREST, GLACIER, SEALED)
 
 
 class Soil(HLandBaseMask):
     """Mask including zones of type |FIELD| and |FOREST|."""
 
-    RELEVANT_VALUES = (FIELD, FOREST)
+    relevant = (FIELD, FOREST)
 
 
 class UpperZone(HLandBaseMask):
     """Mask including zones of type |FIELD|, |FOREST|, and |GLACIER|."""
 
-    RELEVANT_VALUES = (FIELD, FOREST, GLACIER)
+    relevant = (FIELD, FOREST, GLACIER)
 
 
 class Field(HLandBaseMask):
     """Mask for zone type |FIELD|."""
 
-    RELEVANT_VALUES = (FIELD,)
+    relevant = (FIELD,)
 
 
 class Forest(HLandBaseMask):
     """Mask for zone type |FOREST|."""
 
-    RELEVANT_VALUES = (FOREST,)
+    relevant = (FOREST,)
 
 
 class ILake(HLandBaseMask):
     """Mask for zone type |ILAKE|."""
 
-    RELEVANT_VALUES = (ILAKE,)
+    relevant = (ILAKE,)
 
 
 class Glacier(HLandBaseMask):
     """Mask for zone type |GLACIER|."""
 
-    RELEVANT_VALUES = (GLACIER,)
+    relevant = (GLACIER,)
 
 
 class Sealed(HLandBaseMask):
     """Mask for zone type |SEALED|."""
 
-    RELEVANT_VALUES = (SEALED,)
+    relevant = (SEALED,)
 
 
 class NoGlacier(HLandBaseMask):
     """Mask including zones of type |FIELD|, |FOREST|, and |ILAKE|."""
 
-    RELEVANT_VALUES = (FIELD, FOREST, ILAKE, SEALED)
+    relevant = (FIELD, FOREST, ILAKE, SEALED)
 
 
 class Masks(masktools.Masks):

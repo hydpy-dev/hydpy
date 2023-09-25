@@ -10,6 +10,7 @@ import itertools
 import types
 
 # ...from site-packages
+import black
 import networkx
 
 # ...from HydPy
@@ -19,7 +20,6 @@ from hydpy.core import hydpytools
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
-from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
 
 ModelTypesArg = Union[modeltools.Model, types.ModuleType, str]
@@ -765,9 +765,8 @@ the "outlet device", but the given `device` value is of type `int`.
         """
         try:
             device = self._check_device(device, "outlet")
-            devices = networkx.ancestors(
-                hydpytools.create_directedgraph(self), source=device
-            )
+            graph = hydpytools.create_directedgraph(self.nodes, self.elements)
+            devices = networkx.ancestors(graph, source=device)
             devices.add(device)
             selection = Selection(
                 name=name,
@@ -914,9 +913,8 @@ required as the "inlet device", but the given `device` value is of type `int`.
         """
         try:
             device = self._check_device(device, "inlet")
-            devices = networkx.descendants(
-                hydpytools.create_directedgraph(self), source=device
-            )
+            graph = hydpytools.create_directedgraph(self.nodes, self.elements)
+            devices = networkx.descendants(graph, source=device)
             devices.add(device)
             selection = Selection(
                 name=name,
@@ -1335,16 +1333,20 @@ following error occurred: 'in <string>' requires string as left operand, not lis
         variable `Q`:
 
         >>> from hydpy import FusedVariable, Node
-        >>> from hydpy.inputs import hland_P, hland_T, lland_Nied
-        >>> from hydpy.outputs import hland_Perc, hland_Q0, hland_Q1
-        >>> Precip = FusedVariable("Precip", hland_P, lland_Nied)
-        >>> Runoff = FusedVariable("Runoff", hland_Q0, hland_Q1)
+        >>> from hydpy.aliases import (
+        ...     hland_inputs_P, hland_inputs_T, lland_inputs_Nied, dam_receivers_OWL,
+        ...     hland_fluxes_Perc, hland_fluxes_Q0, hland_fluxes_Q1,
+        ...     dam_factors_WaterLevel)
+        >>> Precip = FusedVariable("Precip", hland_inputs_P, lland_inputs_Nied)
+        >>> Runoff = FusedVariable("Runoff", hland_fluxes_Q0, hland_fluxes_Q1)
+        >>> Level = FusedVariable("Level", dam_receivers_OWL, dam_factors_WaterLevel)
         >>> nodes = pub.selections.headwaters.nodes
         >>> nodes.add_device(Node("test1", variable="X"))
-        >>> nodes.add_device(Node("test2", variable=hland_T))
+        >>> nodes.add_device(Node("test2", variable=hland_inputs_T))
         >>> nodes.add_device(Node("test3", variable=Precip))
-        >>> nodes.add_device(Node("test4", variable=hland_Perc))
+        >>> nodes.add_device(Node("test4", variable=hland_fluxes_Perc))
         >>> nodes.add_device(Node("test5", variable=Runoff))
+        >>> nodes.add_device(Node("test6", variable=Level))
         >>> with TestIO():
         ...     pub.selections.headwaters.save_networkfile(
         ...         "test.py", write_defaultnodes=False)
@@ -1353,22 +1355,34 @@ following error occurred: 'in <string>' requires string as left operand, not lis
         # -*- coding: utf-8 -*-
         <BLANKLINE>
         from hydpy import Element, FusedVariable, Node
-        from hydpy.inputs import hland_P, hland_T, lland_Nied
-        from hydpy.outputs import hland_Perc, hland_Q0, hland_Q1
+        from hydpy.aliases import (
+            dam_factors_WaterLevel,
+            dam_receivers_OWL,
+            hland_fluxes_Perc,
+            hland_fluxes_Q0,
+            hland_fluxes_Q1,
+            hland_inputs_P,
+            hland_inputs_T,
+            lland_inputs_Nied,
+        )
         <BLANKLINE>
-        Precip = FusedVariable("Precip", hland_P, lland_Nied)
-        Runoff = FusedVariable("Runoff", hland_Q0, hland_Q1)
+        <BLANKLINE>
+        Level = FusedVariable("Level", dam_factors_WaterLevel, dam_receivers_OWL)
+        Precip = FusedVariable("Precip", hland_inputs_P, lland_inputs_Nied)
+        Runoff = FusedVariable("Runoff", hland_fluxes_Q0, hland_fluxes_Q1)
         <BLANKLINE>
         <BLANKLINE>
         Node("test1", variable="X")
         <BLANKLINE>
-        Node("test2", variable=hland_T)
+        Node("test2", variable=hland_inputs_T)
         <BLANKLINE>
         Node("test3", variable=Precip)
         <BLANKLINE>
-        Node("test4", variable=hland_Perc)
+        Node("test4", variable=hland_fluxes_Perc)
         <BLANKLINE>
         Node("test5", variable=Runoff)
+        <BLANKLINE>
+        Node("test6", variable=Level)
         <BLANKLINE>
         <BLANKLINE>
         Element("land_dill",
@@ -1380,24 +1394,18 @@ following error occurred: 'in <string>' requires string as left operand, not lis
                 keywords="catchment")
         <BLANKLINE>
         """
-        inputaliases: Set[str] = set()
-        outputaliases: Set[str] = set()
+        aliases: Set[str] = set()
         fusedvariables: Set[devicetools.FusedVariable] = set()
         for variable in self.nodes.variables:
             if isinstance(variable, str):
                 continue
             if isinstance(variable, devicetools.FusedVariable):
                 fusedvariables.add(variable)
-            elif issubclass(variable, sequencetools.InputSequence):
-                inputaliases.add(hydpy.sequence2alias[variable])
             else:
-                outputaliases.add(hydpy.sequence2alias[variable])
+                aliases.add(hydpy.sequence2alias[variable])
         for fusedvariable in fusedvariables:
             for sequence in fusedvariable:
-                if issubclass(sequence, sequencetools.InputSequence):
-                    inputaliases.add(hydpy.sequence2alias[sequence])
-                else:
-                    outputaliases.add(hydpy.sequence2alias[sequence])
+                aliases.add(hydpy.sequence2alias[sequence])
         if filepath is None:
             filepath = self.name + ".py"
         with open(filepath, "w", encoding="utf-8") as file_:
@@ -1406,12 +1414,11 @@ following error occurred: 'in <string>' requires string as left operand, not lis
                 file_.write("\nfrom hydpy import Element, FusedVariable, Node")
             else:
                 file_.write("\nfrom hydpy import Element, Node")
-            if inputaliases:
-                aliases = ", ".join(sorted(inputaliases))
-                file_.write(f"\nfrom hydpy.inputs import {aliases}")
-            if outputaliases:
-                aliases = ", ".join(sorted(outputaliases))
-                file_.write(f"\nfrom hydpy.outputs import {aliases}")
+            if aliases:
+                import_aliases = ", ".join(sorted(aliases))
+                import_aliases = f"from hydpy.aliases import {import_aliases}"
+                import_aliases = black.format_str(import_aliases, mode=black.FileMode())
+                file_.write(f"\n{import_aliases}")
             file_.write("\n\n")
             for fusedvariable in sorted(fusedvariables, key=str):
                 file_.write(f"{fusedvariable} = {repr(fusedvariable)}\n")

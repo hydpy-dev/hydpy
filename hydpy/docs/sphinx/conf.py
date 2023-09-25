@@ -88,7 +88,7 @@ intersphinx_mapping = {
 mathjax_path = (
     "https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
 )
-mathjax3_config = {"displayAlign": "left"}
+mathjax3_config = {"chtml": {"displayAlign": "left"}}
 
 
 # Configure sphinxcontrib-bibtex *******************************************************
@@ -189,7 +189,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "HydPy"
-copyright = "2022, HydPy Developers"
+copyright = "2023, HydPy Developers"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -239,19 +239,19 @@ pygments_style = "sphinx"
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = "default"
+html_theme = "classic_hydpy"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
     "stickysidebar": True,
-    "sidebarwidth": 300,
+    "sidebarwidth": 0,
     "body_max_width": "100%",
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
-# html_theme_path = []
+html_theme_path = ["_themes"]
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".

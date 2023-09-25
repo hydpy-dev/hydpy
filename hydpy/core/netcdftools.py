@@ -1029,9 +1029,12 @@ named `lland_v1` nor does it define a member named `lland_v1`.
                 for sequence in device.sequences:
                     yield sequence
             else:
-                for subseqs in device.model.sequences.iosubsequences:
-                    for sequence_ in subseqs:
-                        yield sequence_
+                for model in device.model.find_submodels(
+                    include_mainmodel=True
+                ).values():
+                    for subseqs in model.sequences.iosubsequences:
+                        for sequence_ in subseqs:
+                            yield sequence_
 
     @contextlib.contextmanager
     def provide_jitaccess(
@@ -1112,26 +1115,27 @@ cover the current simulation period \
         ...     pub.timegrids.sim.firstdate = "1996-01-03"
         ...     pub.timegrids.sim.lastdate = "1996-01-05"
         ...     hp.simulate()
-        >>> print_values(hp.elements["land_dill"].model.sequences.factors.tmean.series)
-        -0.572053, -1.084746, -2.767055, -6.242055
+        >>> print_values(
+        ...     hp.elements["land_dill"].model.sequences.factors.contriarea.series)
+        0.495925, 0.493672, 0.492156, 0.49015
         >>> from hydpy.core.netcdftools import netcdf4
-        >>> filepath = "LahnH/series/default/hland_v1_factor_tmean.nc"
+        >>> filepath = "LahnH/series/default/hland_v1_factor_contriarea.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath, "r") as ncfile:
-        ...     print_values(ncfile["factor_tmean"][:, 0])
-        -0.572053, -1.084746, -2.767055, -6.242055
+        ...     print_values(ncfile["factor_contriarea"][:, 0])
+        0.495925, 0.493672, 0.492156, 0.49015
 
         Under particular circumstances, the data variable of a NetCDF file can be
         3-dimensional.  The documentation on function |query_array| explains this in
         detail.  The following example demonstrates that reading and writing such
         3-dimensional variables "just in time" works correctly.  Therefore, we add a
         `realization` dimension to the input file `hland_v1_input_t.nc` (part of the
-        example project data) and the output file `hland_v1_factor_tmean.nc` (written
-        in the previous example) and use them for redefining their data variables with
-        this additional dimension.  As expected, the results are the same as in the
-        previous example:
+        example project data) and the output file `hland_v1_factor_contriarea.nc`
+        (written in the previous example) and use them for redefining their data
+        variables with this additional dimension.  As expected, the results are the
+        same as in the previous example:
 
         >>> with TestIO():
-        ...     for name in ("input_t", "factor_tmean"):
+        ...     for name in ("input_t", "factor_contriarea"):
         ...         filepath = f"LahnH/series/default/hland_v1_{name}.nc"
         ...         with netcdf4.Dataset(filepath, "r+") as ncfile:
         ...             ncfile.renameVariable(name, "old")
@@ -1142,8 +1146,8 @@ cover the current simulation period \
         ...     pub.timegrids = "1996-01-01", "1996-01-05", "1d"
         ...     hp.simulate()
         >>> with TestIO(), netcdf4.Dataset(filepath, "r") as ncfile:
-        ...     print_values(ncfile["factor_tmean"][:, 0, 0])
-        -0.572053, -1.084746, -2.767055, -6.242055
+        ...     print_values(ncfile["factor_contriarea"][:, 0, 0])
+        0.488731, 0.48651, 0.485016, 0.483039
 
         If we try to write the output of a simulation run beyond the original
         initial initialisation period into the same files,
@@ -1158,9 +1162,8 @@ cover the current simulation period \
         ...
         RuntimeError: While trying to prepare NetCDF files for reading or writing \
 data "just in time" during the current simulation run, the following error occurred: \
-The data of the NetCDF `...hland_v1_factor_tmean.nc` \
-(Timegrid("1996-01-01 00:00:00", "1996-01-05 00:00:00", "1d")) does not correctly \
-cover the current simulation period \
+The data of the NetCDF `...hland_v1_factor_tc.nc` (Timegrid("1996-01-01 00:00:00", \
+"1996-01-05 00:00:00", "1d")) does not correctly cover the current simulation period \
 (Timegrid("1996-01-05 00:00:00", "1996-01-10 00:00:00", "1d")).
 
         >>> hp.prepare_factorseries(allocate_ram=False, write_jit=False)
@@ -1198,16 +1201,16 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
         ...     hp.simulate()
         >>> for element in hp.elements.search_keywords("catchment"):
         ...     print_values(element.model.sequences.fluxes.qt.series)
-        11.78038, 8.901179, 7.131072, 6.017787
-        9.647824, 8.517795, 7.781311, 7.344944
-        20.58932, 8.66144, 7.281198, 6.402232
-        11.674045, 10.110371, 8.991987, 8.212314
+        11.78144, 8.902735, 7.132279, 6.018681
+        9.648145, 8.518256, 7.78162, 7.345017
+        20.590398, 8.663089, 7.282551, 6.403193
+        11.67459, 10.111301, 8.992786, 8.212961
         >>> filepath_qt = "LahnH/series/default/hland_v1_flux_qt.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath_qt, "r") as ncfile:
         ...     for jdx in range(4):
         ...         print_values(ncfile["flux_qt"][:, jdx])
-        11.78038, 8.901179, 7.131072, 6.017787
-        9.647824, 8.517795, 7.781311, 7.344944
+        11.78144, 8.902735, 7.132279, 6.018681
+        9.648145, 8.518256, 7.78162, 7.345017
         0.0, 0.0, 0.0, 0.0
         0.0, 0.0, 0.0, 0.0
         >>> with TestIO():
@@ -1218,10 +1221,10 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
         >>> with TestIO(), netcdf4.Dataset(filepath_qt, "r") as ncfile:  #
         ...         for jdx in range(4):
         ...             print_values(ncfile["flux_qt"][:, jdx])
-        11.78038, 8.901179, 7.131072, 6.017787
-        9.647824, 8.517795, 7.781311, 7.344944
-        20.58932, 8.66144, 7.281198, 6.402232
-        11.674045, 10.110371, 8.991987, 8.212314
+        11.78144, 8.902735, 7.132279, 6.018681
+        9.648145, 8.518256, 7.78162, 7.345017
+        20.590398, 8.663089, 7.282551, 6.403193
+        11.67459, 10.111301, 8.992786, 8.212961
 
         >>> hp.prepare_fluxseries(allocate_ram=False, write_jit=False)
 
@@ -1242,32 +1245,32 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
         ...     hp.simulate()
         >>> for node in hp.nodes:
         ...     print_values(node.sequences.sim.series)
-        11.78038, 8.901179, 7.131072, 6.017787
-        9.647824, 8.517795, 7.781311, 7.344944
-        42.3697, 27.210443, 22.930066, 20.20133
-        54.043745, 37.320814, 31.922053, 28.413644
+        11.78144, 8.902735, 7.132279, 6.018681
+        9.648145, 8.518256, 7.78162, 7.345017
+        42.371838, 27.213969, 22.933086, 20.203494
+        54.046428, 37.32527, 31.925872, 28.416456
         >>> for node in hp.nodes:
         ...     print_values(node.sequences.obs.series)
-        11.78038, 8.901179, 7.131072, 6.017787
-        9.647824, 8.517795, 7.781311, 7.344944
-        42.3697, 27.210443, 22.930066, 20.20133
-        54.043745, 37.320814, 31.922053, 28.413644
+        11.78144, 8.902735, 7.132279, 6.018681
+        9.648145, 8.518256, 7.78162, 7.345017
+        42.371838, 27.213969, 22.933086, 20.203494
+        54.046428, 37.32527, 31.925872, 28.416456
         >>> filepath_sim = "LahnH/series/default/node_sim_q.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath_sim, "r") as ncfile:
         ...     for jdx in range(4):
         ...         print_values(ncfile["sim_q"][:, jdx])
-        11.78038, 8.901179, 7.131072, 6.017787
-        9.647824, 8.517795, 7.781311, 7.344944
-        42.3697, 27.210443, 22.930066, 20.20133
-        54.043745, 37.320814, 31.922053, 28.413644
+        11.78144, 8.902735, 7.132279, 6.018681
+        9.648145, 8.518256, 7.78162, 7.345017
+        42.371838, 27.213969, 22.933086, 20.203494
+        54.046428, 37.32527, 31.925872, 28.416456
         >>> filepath_obs = "LahnH/series/default/node_obs_q.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath_obs, "r") as ncfile:
         ...     for jdx in range(4):
         ...         print_values(ncfile["obs_q"][:, jdx])
-        11.78038, 8.901179, 7.131072, 6.017787
-        9.647824, 8.517795, 7.781311, 7.344944
-        42.3697, 27.210443, 22.930066, 20.20133
-        54.043745, 37.320814, 31.922053, 28.413644
+        11.78144, 8.902735, 7.132279, 6.018681
+        9.648145, 8.518256, 7.78162, 7.345017
+        42.371838, 27.213969, 22.933086, 20.203494
+        54.046428, 37.32527, 31.925872, 28.416456
 
         Now we stop all sequences from writing to NetCDF files, remove the two
         headwater elements from the currently active selection, and start another
@@ -1285,8 +1288,8 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
         ...     print_values(node.sequences.sim.series)
         0.0, 0.0, 0.0, 0.0
         0.0, 0.0, 0.0, 0.0
-        30.58932, 8.66144, 7.281198, 6.402232
-        42.263365, 18.771811, 16.273185, 14.614546
+        30.590398, 8.663089, 7.282551, 6.403193
+        42.264987, 18.774389, 16.275337, 14.616154
 
         Finally, we set the |Node.deploymode| of the headwater nodes `dill` and
         `lahn_1` to `oldsim` and `obs`, respectively, and read their previously written
@@ -1302,10 +1305,10 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
         ...     hp.simulate()
         >>> for node in hp.nodes:
         ...     print_values(node.sequences.sim.series)
-        11.78038, 8.901179, 7.131072, 6.017787
+        11.78144, 8.902735, 7.132279, 6.018681
         0.0, 0.0, 0.0, 0.0
-        42.3697, 27.210443, 22.930066, 20.20133
-        54.043745, 37.320814, 31.922053, 28.413644
+        42.371838, 27.213969, 22.933086, 20.203494
+        54.046428, 37.32527, 31.925872, 28.416456
         """
 
         readers: List[JITAccessInfo] = []
@@ -1378,7 +1381,8 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
                     )
                     idx0 = 0
                     for sequence in sequences:
-                        idx1 = idx0 + int(numpy.product(sequence.shape))
+                        product = numpy.product  # type: ignore[attr-defined]
+                        idx1 = idx0 + int(product(sequence.shape))
                         sequence.connect_netcdf(ncarray=data[idx0:idx1])
                         idx0 = idx1
                 yield JITAccessHandler(readers=tuple(readers), writers=tuple(writers))
@@ -2040,7 +2044,7 @@ NetCDF file `nied.nc` available.
         """
         return (
             len(hydpy.pub.timegrids.init),
-            sum(len(seq) for seq in self._descr2sequence.values()),
+            sum(seq.numberofvalues for seq in self._descr2sequence.values()),
         )
 
     @property

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from hydpy.models.hland_v1 import *
+from hydpy.models import evap_aet_hbv96
+from hydpy.models import evap_pet_hbv96
 
 simulationstep("1h")
 parameterstep("1d")
@@ -13,20 +15,12 @@ zonetype(FIELD, FOREST, FIELD, FOREST, FIELD, FOREST, FIELD, FOREST, FIELD,
 zonearea(188.3, 29.92, 396.94, 297.94, 82.69, 180.62, 3.91, 28.8, 0.61, 2.77)
 zonez(2.0, 2.0, 3.0, 3.0, 4.0, 4.0, 5.0, 5.0, 6.0, 6.0)
 psi(1.0)
-zrelp(2.67)
-zrelt(2.67)
-zrele(1.86)
 pcorr(auxfile="land")
 pcalt(0.1)
 rfcf(1.21132)
 sfcf(1.1)
+tcorr(0.0)
 tcalt(0.6)
-ecorr(1.0)
-ecalt(0.0)
-epf(0.02)
-etf(0.1)
-ered(0.0)
-ttice(nan)
 icmax(auxfile="land")
 sfdist(1.0)
 smax(inf)
@@ -41,7 +35,6 @@ gvar(0.0)
 cfr(0.05)
 whc(0.1)
 fc(197.0)
-lp(0.9)
 beta(2.5118)
 percmax(1.17386)
 cflux(0.0)
@@ -52,3 +45,12 @@ k(0.0059480964539007095)
 k4(0.03402)
 gamma(0.0)
 maxbaz(1.02427)
+with model.add_aetmodel_v1(evap_aet_hbv96):
+    temperaturethresholdice(nan)
+    soilmoisturelimit(0.9)
+    excessreduction(0.0)
+    with model.add_petmodel_v1(evap_pet_hbv96):
+        airtemperaturefactor(0.1)
+        altitudefactor(0.0)
+        precipitationfactor(0.02)
+        evapotranspirationfactor(1.0)

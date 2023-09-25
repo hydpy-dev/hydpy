@@ -18,8 +18,7 @@ class SoilParameter(parametertools.Parameter):
 
     Some parameters of *HydPy-W-Land* are strongly related to the soil character
     and come with default values. To apply these default values, use the `soil`
-    keyword in combination with one of the available soil constants (see
-    |SOIL_CONSTANTS|).
+    keyword in combination with one of the available soil constants.
 
     We take parameter |B| and the soil character |SAND| as an example,
     which has the default value `4.05`:
@@ -84,7 +83,7 @@ element `?` could not be set based on the given keyword arguments.
         super().__init__(subvars)
         self._soil = None
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         self._soil = None
         try:
             super().__call__(*args, **kwargs)
@@ -184,7 +183,7 @@ class LanduseParameter(parametertools.ZipParameter):
         wine=2.0)
     """
 
-    MODEL_CONSTANTS = wland_constants.LANDUSE_CONSTANTS
+    constants = wland_constants.LANDUSE_CONSTANTS
     mask = wland_masks.Complete()
 
     @property
@@ -198,7 +197,7 @@ class LanduseMonthParameter(parametertools.KeywordParameter2D):
     """Base class for parameters which values depend both on the actual month and
     land-use type."""
 
-    COLNAMES = (
+    columnnames = (
         "jan",
         "feb",
         "mar",
@@ -212,7 +211,7 @@ class LanduseMonthParameter(parametertools.KeywordParameter2D):
         "nov",
         "dec",
     )
-    ROWNAMES = tuple(
+    rownames = tuple(
         key.lower()
         for value, key in sorted(wland_constants.LANDUSE_CONSTANTS.value2name.items())
     )

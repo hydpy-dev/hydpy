@@ -5,23 +5,19 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.models.whmod import whmod_sequences
 
 
-class Interzeptionsspeicher(sequencetools.StateSequence):
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+class Interzeptionsspeicher(whmod_sequences.State1DSequence):
     """[mm]"""
 
 
-class Schneespeicher(sequencetools.StateSequence):
+class Schneespeicher(whmod_sequences.State1DSequence):
     """[mm]"""
 
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
 
-
-class AktBodenwassergehalt(sequencetools.StateSequence):
+class AktBodenwassergehalt(whmod_sequences.State1DSequence):
     """[mm]"""
-
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
 
 
 class Zwischenspeicher(sequencetools.StateSequence):

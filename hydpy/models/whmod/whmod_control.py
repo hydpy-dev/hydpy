@@ -70,23 +70,13 @@ class MitFunktion_KapillarerAufstieg(parametertools.Parameter):
 class Nutz_Nr(parametertools.NameParameter):
     """[-]"""
 
-    NDIM, TYPE, TIME = 1, int, None
-    CONSTANTS = whmod_constants.LANDUSE_CONSTANTS
-    SPAN = min(CONSTANTS.values()), max(CONSTANTS.values())
-
-
-whmod_parameters.NutzCompleteParameter.CONTROLPARAMETERS = (
-    Nutz_Nr,
-    Nmb_Cells,
-)
+    constants = whmod_constants.LANDUSE_CONSTANTS
 
 
 class BodenTyp(parametertools.NameParameter):
     """[-]"""
 
-    NDIM, TYPE, TIME = 1, int, None
-    CONSTANTS = whmod_constants.SOIL_CONSTANTS
-    SPAN = min(CONSTANTS.values()), max(CONSTANTS.values())
+    constants = whmod_constants.SOIL_CONSTANTS
 
 
 whmod_parameters.BodenCompleteParameter.CONTROLPARAMETERS = (
@@ -140,7 +130,16 @@ class Flurab(whmod_parameters.NutzBodenParameter):
 
 
 class MaxWurzeltiefe(whmod_parameters.NutzBodenParameter):
-    """[m]"""
+    """Maximale Wurzeltiefe [m]
+
+    >>> from hydpy.models.whmod import *
+    >>> parameterstep("1d")
+    >>> nmb_cells(1)
+    >>> nutz_nr(1)
+    >>> maxwurzeltiefe(gras=5.)
+    >>> maxwurzeltiefe
+    maxwurzeltiefe(5.0)
+    """
 
     SPAN = (0.0, None)
 

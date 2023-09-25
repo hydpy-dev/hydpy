@@ -38,4 +38,20 @@ SOIL_CONSTANTS = parametertools.Constants(
 )
 
 # Make only the constants available on wildcard-imports.
-__all__ = list(CONSTANTS.keys())
+__all__ = [
+    "GRAS",
+    "LAUBWALD",
+    "MAIS",
+    "NADELWALD",
+    "SOMMERWEIZEN",
+    "WINTERWEIZEN",
+    "ZUCKERRUEBEN",
+    "VERSIEGELT",
+    "WASSER",
+    "SAND",
+    "SAND_BINDIG",
+    "LEHM",
+    "TON",
+    "SCHLUFF",
+    "TORF",
+]

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+# pylint: disable=line-too-long, unused-wildcard-import
 """
 External (FAO) reference evaporation version of WHMod.
 
@@ -464,13 +464,11 @@ import numpy
 
 # ...from HydPy
 from hydpy.exe.modelimports import *
-from hydpy.core import masktools
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 
 # ...from arma
 from hydpy.models.whmod import whmod_model
-from hydpy.models.whmod import whmod_masks
 from hydpy.models.whmod.whmod_constants import *
 
 
@@ -506,10 +504,7 @@ class Model(modeltools.AdHocModel):
     SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
-    def check_waterbalance(
-        self,
-        initial_conditions: Dict[str, Dict[str, ArrayFloat]],
-    ) -> float:
+    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
         r"""Determine the water balance error of the previous simulation run in mm.
 
         Method |Model.check_waterbalance| calculates the balance error as follows:
@@ -523,12 +518,10 @@ class Model(modeltools.AdHocModel):
         via property |Sequences.conditions|.  See the integration tests of the
         application model |whmod_pet| for some examples.
         """
-        control = self.parameters.control
         derived = self.parameters.derived
-        inputs = self.sequences.inputs
         fluxes = self.sequences.fluxes
         last = self.sequences.states
-        first = initial_conditions["states"]
+        first = initial_conditions["model"]["states"]
         ra = derived.relarea
         return (
             sum(fluxes.niederschlagrichter.series)

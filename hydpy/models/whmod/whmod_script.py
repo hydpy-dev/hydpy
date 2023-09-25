@@ -279,30 +279,30 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     # monthly WHMod-AktGrundwasserneubildung in mm
     # monthly values from 1990-01-01T00 to 1991-12-01T00
     ##########################################################
-    1990-01-01 0.702846826057726
-    1990-02-01 13.957352151783377
-    1990-03-01 1.654816419935198
-    1990-04-01 2.4814399139885266
-    1990-05-01 -1.6526463459254366
-    1990-06-01 -0.25836914857765425
-    1990-07-01 -1.118567167264917
-    1990-08-01 -2.6569240977220203
-    1990-09-01 1.876965168033221
-    1990-10-01 2.6141436697361717
-    1990-11-01 19.135025434012906
-    1990-12-01 19.958451408125498
-    1991-01-01 14.871649398138919
-    1991-02-01 7.710292359068266
-    1991-03-01 5.466120238002319
-    1991-04-01 0.6705637155040316
-    1991-05-01 -0.3610326938663822
-    1991-06-01 1.4035591659458566
-    1991-07-01 -1.4542309536208702
-    1991-08-01 -2.721118706231787
-    1991-09-01 -1.8467052941604518
-    1991-10-01 1.5482997317564953
-    1991-11-01 9.942938127201602
-    1991-12-01 14.254365609725651
+    1990-01-01 0.702846...
+    1990-02-01 13.957352...
+    1990-03-01 1.654816...
+    1990-04-01 2.481439...
+    1990-05-01 -1.652646...
+    1990-06-01 -0.258369...
+    1990-07-01 -1.118567...
+    1990-08-01 -2.656924...
+    1990-09-01 1.876965...
+    1990-10-01 2.614143...
+    1990-11-01 19.135025...
+    1990-12-01 19.958451...
+    1991-01-01 14.871649...
+    1991-02-01 7.710292...
+    1991-03-01 5.466120...
+    1991-04-01 0.670563...
+    1991-05-01 -0.361032...
+    1991-06-01 1.403559...
+    1991-07-01 -1.454230...
+    1991-08-01 -2.721118...
+    1991-09-01 -1.846705...
+    1991-10-01 1.548299...
+    1991-11-01 9.942938...
+    1991-12-01 14.254365...
 
     >>> with open(os.path.join(projectpath, "Results",
     ... "monthly_timeseries_VerzGrundwasserneubildung.txt"), 'r') as file:
@@ -311,30 +311,30 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     # monthly WHMod-VerzGrundwasserneubildung in mm
     # monthly values from 1990-01-01T00 to 1991-12-01T00
     ##########################################################
-    1990-01-01 0.7354062546860495
-    1990-02-01 6.536275191558224
-    1990-03-01 7.993232702855193
-    1990-04-01 2.574912856501958
-    1990-05-01 -0.05378060083815181
-    1990-06-01 -0.8283455412539511
-    1990-07-01 -0.14353056202313316
-    1990-08-01 -2.623703568086776
-    1990-09-01 0.5429576845670753
-    1990-10-01 1.6256135201489645
-    1990-11-01 13.209136181677982
-    1990-12-01 15.67001748267058
-    1991-01-01 20.55325110347258
-    1991-02-01 6.6361514400509956
-    1991-03-01 8.277536155298465
-    1991-04-01 2.2865153995500176
-    1991-05-01 1.2180076470827808
-    1991-06-01 0.6962919625205976
-    1991-07-01 0.16151761044625212
-    1991-08-01 -1.862696289893761
-    1991-09-01 -2.4253200704543443
-    1991-10-01 1.3074654837535575
-    1991-11-01 7.6825418226847235
-    1991-12-01 10.76846234523937
+    1990-01-01 0.735406...
+    1990-02-01 6.536275...
+    1990-03-01 7.993232...
+    1990-04-01 2.574912...
+    1990-05-01 -0.053780...
+    1990-06-01 -0.828345...
+    1990-07-01 -0.143530...
+    1990-08-01 -2.623703...
+    1990-09-01 0.542957...
+    1990-10-01 1.625613...
+    1990-11-01 13.209136...
+    1990-12-01 15.670017...
+    1991-01-01 20.553251...
+    1991-02-01 6.636151...
+    1991-03-01 8.277536...
+    1991-04-01 2.286515...
+    1991-05-01 1.218007...
+    1991-06-01 0.696291...
+    1991-07-01 0.161517...
+    1991-08-01 -1.862696...
+    1991-09-01 -2.425320...
+    1991-10-01 1.307465...
+    1991-11-01 7.682541...
+    1991-12-01 10.768462...
 
     It is also possible to define an evaluation start and an evalutation end date
 
@@ -345,51 +345,51 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     # daily WHMod-VerzGrundwasserneubildung in mm
     # daily values from 1990-01-01T00 to 1990-01-31T00
     ##########################################################
-    1990-01-01 0.057432706633540366
-    1990-01-02 0.0445680744144358
-    1990-01-03 0.03312866979778284
-    1990-01-04 0.022948138320557403
-    1990-01-05 0.013897136569804477
-    1990-01-06 0.005871754981081667
-    1990-01-07 -0.0012463655901188374
-    1990-01-08 -0.0038549920189616
-    1990-01-09 -0.009355796977588685
-    1990-01-10 -0.014261151118132484
-    1990-01-11 -0.01885867327207481
-    1990-01-12 -0.022879017364119278
-    1990-01-13 -0.026419795996210655
-    1990-01-14 -0.027386574497205825
-    1990-01-15 -0.026537552680073847
-    1990-01-16 -0.028532992807347304
-    1990-01-17 -0.014594579760814066
-    1990-01-18 -0.018094970911201397
-    1990-01-19 -0.004853063157746973
-    1990-01-20 -0.003985100002494159
-    1990-01-21 -0.007752247432126186
-    1990-01-22 -0.010400839802814204
-    1990-01-23 0.05435456048631496
-    1990-01-24 0.06111886828409394
-    1990-01-25 0.12602168140160666
-    1990-01-26 0.11764426726590521
-    1990-01-27 0.10722910329281171
-    1990-01-28 0.09724544372031685
-    1990-01-29 0.08678705648001571
-    1990-01-30 0.0773786399550521
-    1990-01-31 0.06879386647176004
+    1990-01-01 0.057432...
+    1990-01-02 0.044568...
+    1990-01-03 0.033128...
+    1990-01-04 0.022948...
+    1990-01-05 0.013897...
+    1990-01-06 0.005871...
+    1990-01-07 -0.001246...
+    1990-01-08 -0.003854...
+    1990-01-09 -0.009355...
+    1990-01-10 -0.014261...
+    1990-01-11 -0.018858...
+    1990-01-12 -0.022879...
+    1990-01-13 -0.026419...
+    1990-01-14 -0.027386...
+    1990-01-15 -0.026537...
+    1990-01-16 -0.028532...
+    1990-01-17 -0.014594...
+    1990-01-18 -0.018094...
+    1990-01-19 -0.004853...
+    1990-01-20 -0.003985...
+    1990-01-21 -0.007752...
+    1990-01-22 -0.010400...
+    1990-01-23 0.054354...
+    1990-01-24 0.061118...
+    1990-01-25 0.126021...
+    1990-01-26 0.117644...
+    1990-01-27 0.107229...
+    1990-01-28 0.097245...
+    1990-01-29 0.086787...
+    1990-01-30 0.077378...
+    1990-01-31 0.068793...
 
     >>> with open(os.path.join(projectpath, "Results",
     ... "monthly_mean_AktGrundwasserneubildung.txt"), 'r') as file:
-    ...     print(file.read())  # doctest: +NORMALIZE_WHITESPACE
+    ...     print(file.read())  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     ncols         3
     nrows         4
     xllcorner     3455473.97
     yllcorner     5567457.03
     cellsize      100.0
     nodata_value  -9999.0
-    1.214336347305395997e-01 2.756969582493974946e-01 1.019920974452210999e-01
-    1.754506887801938475e-01 1.719871678151611294e-01 -2.087205207016107344e-01
-    1.113233524497969640e-01 7.928489491133496048e-02 2.312553542372872972e-01
-    2.938661638367368045e-01 2.508163646897212384e-01 1.635861366663207972e-01
+    1.214336...e-01 2.756969...e-01 1.019920...e-01
+    1.754506...e-01 1.719871...e-01 -2.08720...e-01
+    1.113233...e-01 7.928489...e-02 2.312553...e-01
+    2.938661...e-01 2.508163...e-01 1.635861...e-01
     >>> with open(os.path.join(projectpath, "Results",
     ... "monthly_rch_AktGrundwasserneubildung.rch"), 'r') as file:
     ...     print(file.read())  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
@@ -563,10 +563,10 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
         ***********************
         seconds elapsed: ...
     Write Output in ...Results (...).
-    Mean AktGrundwasserneubildung [mm/a]: 48.04494178550079
-    Mean VerzGrundwasserneubildung [mm/a]: 45.51430122069659
-    Mean NiederschlagRichter [mm/a]: 637.5548951407835
-    Mean InterzeptionsVerdunstung [mm/a]: 105.30922238660555
+    Mean AktGrundwasserneubildung [mm/a]: 48.044942
+    Mean VerzGrundwasserneubildung [mm/a]: 45.514301
+    Mean NiederschlagRichter [mm/a]: 637.554895
+    Mean InterzeptionsVerdunstung [mm/a]: 105.309222
 
     ...testsetup::
 
@@ -716,7 +716,7 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     for element in whm_elements:
         for logger in loggers:
             for seq in logger["sequence"]:
-                sequence = element.model.sequences.fluxes[seq.lower()]
+                sequence = _get_sequencetype(model=element.model, sequencestring=seq)
                 if not sequence.diskflag_writing:
                     sequence.prepare_series(allocate_ram=False, write_jit=True)
 
@@ -1230,7 +1230,7 @@ def _initialize_whmod_models(
     rise (with_capillary_rise) and the degree day factor (day_degree_factor) have to be
     provided.
     """
-    from hydpy import inputs  # pylint: disable=import-outside-toplevel
+    from hydpy import aliases  # pylint: disable=import-outside-toplevel
 
     # Initialize WHMod-Models
     if write_output:
@@ -1245,15 +1245,15 @@ def _initialize_whmod_models(
         name = f"{str(row).zfill(3)}_{str(col).zfill(3)}"
 
         # Initialize Precipitation Nodes
-        precnode = hydpy.Node(f"P_{name}", variable=inputs.whmod_Niederschlag)
+        precnode = hydpy.Node(f"P_{name}", variable=aliases.whmod_inputs_Niederschlag)
         prec_selection_raster.nodes.add_device(precnode)
 
         # Initialize Temperature Nodes
-        tempnode = hydpy.Node(f"T_{name}", variable=inputs.whmod_Temp_TM)
+        tempnode = hydpy.Node(f"T_{name}", variable=aliases.whmod_inputs_Temp_TM)
         temp_selection_raster.nodes.add_device(tempnode)
 
         # Initialize Evap Nodes
-        evapnode = hydpy.Node(f"E_{name}", variable=inputs.whmod_ET0)
+        evapnode = hydpy.Node(f"E_{name}", variable=aliases.whmod_inputs_ET0)
         evap_selection_raster.nodes.add_device(evapnode)
 
         # Initialize WHMod-Elements
@@ -1408,15 +1408,17 @@ def _initialize_weather_stations(
     Furthermore, the locations of the basedircetory (basedir) and the folder with the
     timeseries (filename_timeseries) are required.
     """
-    from hydpy import inputs, outputs  # pylint: disable=import-outside-toplevel
+    from hydpy import aliases  # pylint: disable=import-outside-toplevel
 
     # Initialization Meteo-Elements, Evap-Elements, Temp-Nodes
     # Fused Variables
     cssr = devicetools.FusedVariable(
-        "CSSR", outputs.meteo_ClearSkySolarRadiation, inputs.evap_ClearSkySolarRadiation
+        "CSSR",
+        aliases.meteo_fluxes_ClearSkySolarRadiation,
+        aliases.evap_inputs_ClearSkySolarRadiation,
     )
     gsr = devicetools.FusedVariable(
-        "GSR", outputs.meteo_GlobalRadiation, inputs.evap_GlobalRadiation
+        "GSR", aliases.meteo_fluxes_GlobalRadiation, aliases.evap_inputs_GlobalRadiation
     )
 
     timeseries_path = os.path.join(
@@ -1475,7 +1477,7 @@ def _initialize_weather_stations(
         gsr_selection_stat.nodes.add_device(gsr_node)
 
         evap_node = hydpy.Node(
-            f"E_{stat}", variable=outputs.evap_MeanReferenceEvapotranspiration
+            f"E_{stat}", variable=aliases.evap_fluxes_MeanReferenceEvapotranspiration
         )
         node2xy[evap_node] = xy
 
@@ -1505,8 +1507,9 @@ def _initialize_weather_stations(
         con_evap.nmbhru(1)
         con_evap.hruarea(1.0)  # tatsächliche Fläche hier irrelevant
         con_evap.measuringheightwindspeed(10.0)
-        con_evap.airtemperatureaddend(0.0)
         con_evap.evapotranspirationfactor(1.0)
+        with evap.add_tempmodel_v2("meteo_temp_io") as tempmodel:
+            tempmodel.parameters.control.temperatureaddend(0.0)
         evap.parameters.update()
 
         evap_element.model.sequences.logs.loggedglobalradiation(0.0)
@@ -1514,9 +1517,11 @@ def _initialize_weather_stations(
 
         inp_meteo = meteo.sequences.inputs
         inp_evap = evap.sequences.inputs
+        inp_tem = evap.tempmodel.sequences.inputs
 
         inp_meteo.prepare_series()
         inp_evap.prepare_series()
+        inp_tem.prepare_series()
 
         inp_meteo.sunshineduration.filepath = os.path.join(
             timeseries_path,
@@ -1525,10 +1530,8 @@ def _initialize_weather_stations(
         inp_meteo.sunshineduration.load_series()
         del inp_meteo.sunshineduration.filepath
 
-        inp_evap.airtemperature.filepath = os.path.join(
-            timeseries_path, seq_airtemperature
-        )
-        inp_evap.airtemperature.load_series()
+        inp_tem.temperature.filepath = os.path.join(timeseries_path, seq_airtemperature)
+        inp_tem.temperature.load_series()
 
         inp_evap.relativehumidity.filepath = os.path.join(
             timeseries_path,
@@ -1552,7 +1555,7 @@ def _initialize_weather_stations(
         t_node = hydpy.Node(f"T_{stat}", variable="T")
         t_node.deploymode = "obs"
         t_node.prepare_obsseries()
-        t_node.sequences.obs.series = inp_evap.airtemperature.series
+        t_node.sequences.obs.series = inp_tem.temperature.series
         node2xy[t_node] = xy
 
         # add meteo-elements, evap-elements, evap-nodes to selections

@@ -7,12 +7,21 @@
 from hydpy.core import masktools
 
 # ...from hland
-from hydpy.models.whmod import whmod_constants
 from hydpy.models.whmod.whmod_constants import *
 
 
-class NutzComplete(masktools.IndexMask):
-    RELEVANT_VALUES = (
+class NutzBase(masktools.IndexMask):
+    """Nutzungsbasisklasse"""
+
+    @staticmethod
+    def get_refindices(variable):
+        return variable.subvars.vars.model.parameters.control.nutz_nr
+
+
+class NutzComplete(NutzBase):
+    """Alle Nutzungsklassen"""
+
+    relevant = (
         GRAS,
         LAUBWALD,
         MAIS,
@@ -24,13 +33,11 @@ class NutzComplete(masktools.IndexMask):
         WASSER,
     )
 
-    @staticmethod
-    def get_refindices(variable):
-        return variable.subvars.vars.model.parameters.control.nutz_nr
 
+class NutzLand(NutzBase):
+    """Land Nutzungsklassen"""
 
-class NutzLand(NutzComplete):
-    RELEVANT_VALUES = (
+    relevant = (
         GRAS,
         LAUBWALD,
         MAIS,
@@ -42,8 +49,10 @@ class NutzLand(NutzComplete):
     )
 
 
-class NutzBoden(NutzComplete):
-    RELEVANT_VALUES = (
+class NutzBoden(NutzBase):
+    """Boden Nutzungsklassen"""
+
+    relevant = (
         GRAS,
         LAUBWALD,
         MAIS,
@@ -54,44 +63,64 @@ class NutzBoden(NutzComplete):
     )
 
 
-class NutzGras(NutzComplete):
-    RELEVANT_VALUES = (GRAS,)
+class NutzGras(NutzBase):
+    """Gras Nutzungsklasse"""
+
+    relevant = (GRAS,)
 
 
-class NutzLaubwald(NutzComplete):
-    RELEVANT_VALUES = (LAUBWALD,)
+class NutzLaubwald(NutzBase):
+    """Laubwald Nutzungsklasse"""
+
+    relevant = (LAUBWALD,)
 
 
-class NutzMais(NutzComplete):
-    RELEVANT_VALUES = (MAIS,)
+class NutzMais(NutzBase):
+    """Mais Nutzungsklasse"""
+
+    relevant = (MAIS,)
 
 
-class NutzNadelwald(NutzComplete):
-    RELEVANT_VALUES = (NADELWALD,)
+class NutzNadelwald(NutzBase):
+    """Nadelwald Nutzungsklasse"""
+
+    relevant = (NADELWALD,)
 
 
-class NutzSommerweizen(NutzComplete):
-    RELEVANT_VALUES = (SOMMERWEIZEN,)
+class NutzSommerweizen(NutzBase):
+    """Sommerweizen Nutzungsklasse"""
+
+    relevant = (SOMMERWEIZEN,)
 
 
-class NutzWinterweizen(NutzComplete):
-    RELEVANT_VALUES = (WINTERWEIZEN,)
+class NutzWinterweizen(NutzBase):
+    """Winterweizen Nutzungsklasse"""
+
+    relevant = (WINTERWEIZEN,)
 
 
-class NutzZuckerrueben(NutzComplete):
-    RELEVANT_VALUES = (ZUCKERRUEBEN,)
+class NutzZuckerrueben(NutzBase):
+    """Zuckerrüben Nutzungsklasse"""
+
+    relevant = (ZUCKERRUEBEN,)
 
 
-class NutzVersiegelt(NutzComplete):
-    RELEVANT_VALUES = (VERSIEGELT,)
+class NutzVersiegelt(NutzBase):
+    """Versiegelt Nutzungsklasse"""
+
+    relevant = (VERSIEGELT,)
 
 
-class NutzWasser(NutzComplete):
-    RELEVANT_VALUES = (WASSER,)
+class NutzWasser(NutzBase):
+    """Wasser Nutzungsklasse"""
+
+    relevant = (WASSER,)
 
 
 class BodenComplete(masktools.IndexMask):
-    RELEVANT_VALUES = (SAND, SAND_BINDIG, LEHM, TON, SCHLUFF, TORF)
+    """Bodenklassen"""
+
+    relevant = (SAND, SAND_BINDIG, LEHM, TON, SCHLUFF, TORF)
 
     @staticmethod
     def get_refindices(variable):

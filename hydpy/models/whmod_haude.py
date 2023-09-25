@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+# pylint: disable=unused-wildcard-import
 """Haude-Dommermuth-Trumpf version of WHMod.
 
 Unterschiede zum Original-WHMod:
@@ -14,10 +14,8 @@ Unterschiede zum Original-WHMod:
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *
-from hydpy.core import masktools
 from hydpy.core import modeltools
 from hydpy.models.whmod import whmod_model
-from hydpy.models.whmod import whmod_masks
 from hydpy.models.whmod.whmod_constants import *
 
 

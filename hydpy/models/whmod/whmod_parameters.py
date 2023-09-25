@@ -3,9 +3,12 @@
 # pylint: enable=missing-docstring
 
 # import...
+from __future__ import annotations
 # ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 from hydpy.models.whmod import whmod_constants
+from hydpy.models.whmod import whmod_control
 from hydpy.models.whmod import whmod_masks
 
 
@@ -23,11 +26,11 @@ class NutzBaseParameter(parametertools.ZipParameter):
 
 class NutzCompleteParameter(NutzBaseParameter):
 
-    MODEL_CONSTANTS = parametertools.Constants(
+    constants = parametertools.Constants(
         **{
             key: value
             for key, value in whmod_constants.LANDUSE_CONSTANTS.items()
-            if value in whmod_masks.NutzComplete.RELEVANT_VALUES
+            if value in whmod_masks.NutzComplete.relevant
         }
     )
     mask = whmod_masks.NutzComplete()
@@ -35,11 +38,11 @@ class NutzCompleteParameter(NutzBaseParameter):
 
 class NutzLandParameter(NutzBaseParameter):
 
-    MODEL_CONSTANTS = parametertools.Constants(
+    constants = parametertools.Constants(
         **{
             key: value
             for key, value in whmod_constants.LANDUSE_CONSTANTS.items()
-            if value in whmod_masks.NutzLand.RELEVANT_VALUES
+            if value in whmod_masks.NutzLand.relevant
         }
     )
     mask = whmod_masks.NutzLand()
@@ -47,11 +50,11 @@ class NutzLandParameter(NutzBaseParameter):
 
 class NutzBodenParameter(NutzBaseParameter):
 
-    MODEL_CONSTANTS = parametertools.Constants(
+    constants = parametertools.Constants(
         **{
             key: value
             for key, value in whmod_constants.LANDUSE_CONSTANTS.items()
-            if value in whmod_masks.NutzBoden.RELEVANT_VALUES
+            if value in whmod_masks.NutzBoden.relevant
         }
     )
     mask = whmod_masks.NutzBoden()
@@ -60,7 +63,12 @@ class NutzBodenParameter(NutzBaseParameter):
 class BodenCompleteParameter(parametertools.ZipParameter):
     NDIM, TYPE, TIME = 1, float, None
 
-    MODEL_CONSTANTS = whmod_constants.SOIL_CONSTANTS
+    # defined at the bottom of the file:
+    CONTROLPARAMETERS: ClassVar[
+        Tuple[Type[whmod_control.BodenTyp], Type[whmod_control.Nmb_Cells]]
+    ]
+
+    constants = whmod_constants.SOIL_CONSTANTS
     mask = whmod_masks.BodenComplete()
 
     @property
@@ -74,7 +82,7 @@ class BodenCompleteParameter(parametertools.ZipParameter):
 
 class ForestMonthParameter(parametertools.KeywordParameter2D):
     TYPE, TIME, SPAN = float, None, (0.0, None)
-    COLNAMES = (
+    columnnames = (
         "jan",
         "feb",
         "mar",
@@ -88,12 +96,12 @@ class ForestMonthParameter(parametertools.KeywordParameter2D):
         "nov",
         "dec",
     )
-    ROWNAMES = ("laubwald", "nadelwald")
+    rownames = ("laubwald", "nadelwald")
 
 
 class LanduseMonthParameter(parametertools.KeywordParameter2D):
     TYPE, TIME, SPAN = float, None, (0.0, None)
-    COLNAMES = (
+    columnnames = (
         "jan",
         "feb",
         "mar",
@@ -107,7 +115,7 @@ class LanduseMonthParameter(parametertools.KeywordParameter2D):
         "nov",
         "dec",
     )
-    ROWNAMES = (
+    rownames = (
         "gras",
         "laubwald",
         "mais",

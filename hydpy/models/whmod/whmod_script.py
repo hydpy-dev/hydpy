@@ -54,7 +54,8 @@ import pandas  # type: ignore[import]
 import xarray
 
 import hydpy
-from hydpy.core import devicetools, objecttools
+from hydpy.core import devicetools
+from hydpy.core import objecttools
 from hydpy.exe import commandtools
 from hydpy.models import whmod_pet
 from hydpy.models.whmod import whmod_constants
@@ -92,27 +93,27 @@ class Positionbounds(NamedTuple):
 
     @classmethod
     def from_elementnames(cls, elements: hydpy.Elements) -> "Positionbounds":
-        """
-        Extract the grid cell position from the names of the |Element|
+        """Extract the grid cell position from the names of the |Element|
         objects handling the given sequences.
 
-        >>> from hydpy import Node, Nodes
-        >>> elements = hydpy.Nodes(Node("whm_1_1"), Node("whm_1_2"), Node("whm_2_1"),
-        ...                        Node("whm_2_2"))
+        >>> from hydpy import Nodes
+        >>> from hydpy.models.whmod.whmod_script import Positionbounds
+        >>> elements = Nodes("whm_1_1", "whm_1_2", "whm_2_1", "whm_2_2")
         >>> Positionbounds.from_elementnames(elements)
         Positionbounds(rowmin=1, rowmax=2, colmin=1, colmax=2)
         """
-        row, col = Position.from_elementname(list(elements)[0].name)
+        elements_ = tuple(elements)
+        row, col = Position.from_elementname(elements_[0].name)
         rowmin = row
         rowmax = row
         colmin = col
         colmax = col
-        for element in list(elements)[1:]:
-            row, col = Position.from_elementname(element.name)
-            rowmin = min(rowmin, row)
-            rowmax = max(rowmax, row)
-            colmin = min(colmin, col)
-            colmax = max(colmax, col)
+        for element in elements_[1:]:
+            pos = Position.from_elementname(element.name)
+            rowmin = min(rowmin, pos.row)
+            rowmax = max(rowmax, pos.row)
+            colmin = min(colmin, pos.col)
+            colmax = max(colmax, pos.col)
         return Positionbounds(
             rowmin=rowmin,
             rowmax=rowmax,
@@ -177,14 +178,15 @@ id 4 angesetzt wird ist nicht definiert"
             n_hrus += 1
 
     def convert_datatype_verzoegerung(x: str):
-        """Konvertiere verzögreung in float, wenn es eine Zahl ist."""
+        """Konvertiere Verzögerung in float, wenn es eine Zahl ist."""
         if x != "flurab_probst":
             return float(x)
         return x
 
     try:
         extended_hrus["verzoegerung"] = extended_hrus["verzoegerung"].apply(
-            convert_datatype_verzoegerung)
+            lambda x: x if x == "flurab_probst" else float(x)
+        )
     except ValueError:
         raise ValueError(
             "'verzoegerung' muss den Datentyp float enthalten "
@@ -241,10 +243,10 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     >>> TestIO.clear()
     >>> projectpath = TestIO.copy_dir_from_data_to_iotesting("WHMod")
     >>> run_whmod(basedir=projectpath, write_output=False)
-    Mean AktGrundwasserneubildung [mm/a]: 53.12452570644383
-    Mean VerzGrundwasserneubildung [mm/a]: 50.30201166760205
-    Mean NiederschlagRichter [mm/a]: 687.0070022207744
-    Mean InterzeptionsVerdunstung [mm/a]: 127.66404393492368
+    Mean AktGrundwasserneubildung [mm/a]: 53.124526
+    Mean VerzGrundwasserneubildung [mm/a]: 50.302012
+    Mean NiederschlagRichter [mm/a]: 687.007002
+    Mean InterzeptionsVerdunstung [mm/a]: 127.664044
 
     >>> run_whmod(basedir=projectpath, write_output=True) # doctest: +ELLIPSIS
     Start WHMOD calculations (...).
@@ -256,19 +258,19 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
         ***********************
         seconds elapsed: ...
     Write Output in ...Results (...).
-    Mean AktGrundwasserneubildung [mm/a]: 53.12452570644383
-    Mean VerzGrundwasserneubildung [mm/a]: 50.30201166760205
-    Mean NiederschlagRichter [mm/a]: 687.0070022207744
-    Mean InterzeptionsVerdunstung [mm/a]: 127.66404393492368
+    Mean AktGrundwasserneubildung [mm/a]: 53.124526
+    Mean VerzGrundwasserneubildung [mm/a]: 50.302012
+    Mean NiederschlagRichter [mm/a]: 687.007002
+    Mean InterzeptionsVerdunstung [mm/a]: 127.664044
 
 
     You can also run the script from the command prompt with hyd.py:
 
     >>> _ = run_subprocess(f"hyd.py run_whmod {projectpath} False")
-    Mean AktGrundwasserneubildung [mm/a]: 53.12452570644383
-    Mean VerzGrundwasserneubildung [mm/a]: 50.30201166760205
-    Mean NiederschlagRichter [mm/a]: 687.0070022207744
-    Mean InterzeptionsVerdunstung [mm/a]: 127.66404393492368
+    Mean AktGrundwasserneubildung [mm/a]: 53.124526
+    Mean VerzGrundwasserneubildung [mm/a]: 50.302012
+    Mean NiederschlagRichter [mm/a]: 687.007002
+    Mean InterzeptionsVerdunstung [mm/a]: 127.664044
 
     >>> with open(os.path.join(projectpath, "Results",
     ... "monthly_timeseries_AktGrundwasserneubildung.txt"), 'r') as file:
@@ -335,6 +337,7 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     1991-12-01 10.76846234523937
 
     It is also possible to define an evaluation start and an evalutation end date
+
     >>> with open(os.path.join(projectpath, "Results",
     ... "daily_timeseries_VerzGrundwasserneubildung.txt"), 'r') as file:
     ...     print(file.read())  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
@@ -541,7 +544,8 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
      6.7004e-009 6.4698e-009 5.2662e-009
     <BLANKLINE>
 
-    If we interpolate with NN instead of IDW:
+    In the next example we repeat the interpolation with NN instead of IDW:
+
     >>> whmod_main = os.path.join(projectpath, "WHMod_Main.txt")
     >>> inplace_change(filename=whmod_main, old_string="IDW", new_string="NN")
     >>> run_whmod(basedir=projectpath, write_output=True) # doctest: +ELLIPSIS
@@ -578,8 +582,11 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
 
     check_hydpy_version(hydpy_version=whmod_main["HYDPY_VERSION"])
 
-    hydpy.pub.timegrids = whmod_main["SIMULATION_START"], whmod_main[
-        "SIMULATION_END"], whmod_main["FREQUENCE"]
+    hydpy.pub.timegrids = (
+        whmod_main["SIMULATION_START"],
+        whmod_main["SIMULATION_END"],
+        whmod_main["FREQUENCE"],
+    )
     hydpy.pub.options.parameterstep = whmod_main["FREQUENCE"]
     hydpy.pub.options.checkseries = False
 
@@ -602,7 +609,7 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
 
     df_stammdaten = read_stationdata(
         os.path.join(basedir, whmod_main["FILENAME_STATION_DATA"]),
-        richter=whmod_main["PRECIP_RICHTER_CORRECTION"]
+        richter=whmod_main["PRECIP_RICHTER_CORRECTION"],
     )
     root_depth_dict = read_root_depth(
         root_depth_option=whmod_main["ROOT_DEPTH_OPTION"], basedir=basedir
@@ -925,6 +932,7 @@ def read_nodeproperties(basedir: str, filename_node_data: str) -> pandas.DataFra
 def read_whmod_main(basedir: str) -> Dict[str, Any]:
     """
     Read the whmod main file.
+
     >>> from hydpy import TestIO
     >>> TestIO.clear()
     >>> basedir = TestIO.copy_dir_from_data_to_iotesting("WHMod")
@@ -1122,6 +1130,7 @@ def read_outputconfig(
 ) -> Dict[str, List[Union[str, pandas.DatetimeIndex]]]:
     """
     Read text files which define the stepsize of the outputfiles.
+
     >>> from hydpy import TestIO
     >>> TestIO.clear()
     >>> basedir = TestIO.copy_dir_from_data_to_iotesting("WHMod")
@@ -1229,12 +1238,9 @@ def _initialize_whmod_models(
 
     for idx in sorted(df_knoteneigenschaften["id"].unique()):
 
-        row = df_knoteneigenschaften[df_knoteneigenschaften["id"] == idx]["row"].values[
-            0
-        ]
-        col = df_knoteneigenschaften[df_knoteneigenschaften["id"] == idx]["col"].values[
-            0
-        ]
+        selected = df_knoteneigenschaften[df_knoteneigenschaften["id"] == idx].iloc[0]
+        row = selected["row"]
+        col = selected["col"]
 
         name = f"{str(row).zfill(3)}_{str(col).zfill(3)}"
 
@@ -1597,6 +1603,7 @@ def apply_richter(
 ) -> None:
     """
     Führe die Richterkorrektur durch
+
     >>> hydpy.pub.timegrids = "2000-09-25", "2000-10-05", "1d"
     >>> p = hydpy.Node("p")
     >>> p.prepare_obsseries()
@@ -1645,6 +1652,7 @@ def get_ns_art(temperature_node: hydpy.Node) -> numpy.typing.NDArray[numpy.chara
     Bestimme ob Niederschlag als Sommerregen, Winterregen, Mischniederschlag oder
     Schnee fällt. Sommer ist laut Definition in DWA-M 504 voon April bis September
     und Winter von Oktober bis März.
+
     >>> hydpy.pub.timegrids = "2000-09-25", "2000-10-05", "1d"
     >>> t = hydpy.Node("t")
     >>> t.prepare_simseries()
@@ -1690,7 +1698,7 @@ def _initialize_conv_models(
     elif interpolation_method == "NN":
         conv_pet = hydpy.prepare_model("conv_v001")
     else:
-        hydpy.core.objecttools.assert_never(interpolation_method)
+        assert_never(interpolation_method)
     conv_pet.parameters.control.inputcoordinates(
         **_get_coordinatedict(evap_selection_stat.nodes)
     )
@@ -1708,11 +1716,12 @@ def _initialize_conv_models(
 
     # Conv-Modell Temperature
     if interpolation_method == "IDW":
-        conv_temp = hydpy.prepare_model("conv_v002")
+        conv_modelname = "conv_v002"
     elif interpolation_method == "NN":
-        conv_temp = hydpy.prepare_model("conv_v001")
+        conv_modelname = "conv_v001"
     else:
-        hydpy.core.objecttools.assert_never(interpolation_method)
+        assert_never(interpolation_method)
+    conv_temp = hydpy.prepare_model(conv_modelname)
     conv_temp.parameters.control.inputcoordinates(
         **_get_coordinatedict(temp_selection_stat.nodes)
     )
@@ -1737,7 +1746,7 @@ def _initialize_conv_models(
     elif interpolation_method == "NN":
         conv_prec = hydpy.prepare_model("conv_v001")
     else:
-        hydpy.core.objecttools.assert_never(interpolation_method)
+        assert_never(interpolation_method)
     conv_prec.parameters.control.inputcoordinates(
         **_get_coordinatedict(prec_selection_stat.nodes)
     )
@@ -1790,9 +1799,8 @@ def write_rch_file(
             f"{str(balancefile).rjust(10)}"
             f"         1         1\n"
         )
-        array = data.transpose("time", "row", "col").values
 
-        for timestep in array:
+        for timestep in data.transpose("time", "row", "col").values:
             rchfile.write(
                 f"         1         1         0         0\n"
                 f"        18     1.000{formatstring}        -1     RECHARGE\n"
@@ -1939,7 +1947,6 @@ def save_results(
                     )
 
 
-
 def prepare_rch(
     grid: Dict[Union[Literal["mean"], Literal["sum"]], xarray.DataArray], seq: str
 ) -> xarray.DataArray:
@@ -2055,7 +2062,7 @@ def aggregate_whmod_series(
                 print(
                     f"Mean {seq} [{unit}/a]: "
                     f""
-                    f"{float(xarr_series.mean().values) * 365.24}"
+                    f"{objecttools.repr_(float(xarr_series.mean().values) * 365.24)}"
                 )
                 all_series.append(seq)
 
@@ -2100,6 +2107,7 @@ def aggregate_equaldist_series(
 
     |aggregate_equaldist_series| need as input index-sorted |xarray.DataArray| objects
     (note that the index addresses the left boundary of each time step:
+
     >>> ser1 = numpy.arange(1, len(xarr_index)+1)
     >>> ser2 = 2 * ser1
     >>> xarr_series = xarray.DataArray(
@@ -2299,6 +2307,7 @@ are supported: `monthly` (default), `daily` and `yearly`.
 
     If the frequency of the input array is equal to the aggregation period the array
     will be returned without aggregation
+
     >>> from pandas.tseries.offsets import DateOffset
     >>> xarr_index = pandas.date_range(start="2000-01-01", end="2005-01-01",
     ...                                freq=DateOffset(years=1))
@@ -2424,6 +2433,7 @@ def aggregate_flexible_series(
 ) -> xarray.DataArray:
     """
     Aggregiere Zeitreihen auf vordefineirtes Grid:
+
     >>> from hydpy import pub, Node
     >>> import pandas
     >>> import xarray
@@ -2446,6 +2456,7 @@ def aggregate_flexible_series(
     Coordinates:
       * time     (time) datetime64[ns] 2011-01-01 2011-01-02 2011-01-08
     Dimensions without coordinates: row, col
+
     >>> aggregate_flexible_series(series=xarr_series, aggregation_timegrid=agg_timegrid,
     ...     aggregator="sum")
     <xarray.DataArray 'test' (row: 1, col: 2, time: 3)>
@@ -2590,6 +2601,7 @@ def calc_richter(
 def get_pandasindex() -> pandas.Index:
     """
     Get pandasindex from timegrid (timestamp left)
+
     >>> from hydpy import pub
     >>> pub.timegrids = "2004.01.01", "2005.01.01", "1d"
     >>> from hydpy.core.devicetools import _get_pandasindex
@@ -2615,6 +2627,7 @@ def check_raster(
 ) -> float:
     """
     Überprüfe, ob die eingegebenen Knoteneigenschaften den Ansprüchen entsprechen
+
     >>> from hydpy import TestIO
     >>> TestIO.clear()
     >>> basedir = TestIO.copy_dir_from_data_to_iotesting("WHMod")
@@ -2752,6 +2765,7 @@ def _conv_models_temperature(
 ) -> hydpy.Nodes:
     """
     Interpolate temperature data for Richter-correction.
+
     >>> from hydpy import TestIO
     >>> TestIO.clear()
     >>> basedir = TestIO.copy_dir_from_data_to_iotesting("WHMod")
@@ -2834,7 +2848,7 @@ def _conv_models_temperature(
     elif interpolation_method == "NN":
         model_t = hydpy.prepare_model("conv_v001")
     else:
-        hydpy.core.objecttools.assert_never(interpolation_method)
+        assert_never(interpolation_method)
     model_t.parameters.control.inputcoordinates(**in_coords_dict)
     model_t.parameters.control.outputcoordinates(**out_coords_dict)
     model_t.parameters.control.maxnmbinputs()

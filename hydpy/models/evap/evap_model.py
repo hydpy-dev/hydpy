@@ -338,11 +338,11 @@ class Calc_WindSpeed2m_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
         fac = model.sequences.factors.fastaccess
-        d_d = 2.0 / 3.0 * 0.12
-        d_z0 = 0.123 * 0.12
+        d: float = 2.0 / 3.0 * 0.12
+        z0: float = 0.123 * 0.12
         fac.windspeed2m = inp.windspeed * (
-            modelutils.log((2.0 - d_d) / d_z0)
-            / modelutils.log((con.measuringheightwindspeed - d_d) / d_z0)
+            modelutils.log((2.0 - d) / z0)
+            / modelutils.log((con.measuringheightwindspeed - d) / z0)
         )
 
 
@@ -1580,20 +1580,20 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
         if inp.clearskysolarradiation > 0.0:
-            d_globalradiation = inp.globalradiation
-            d_clearskysolarradiation = inp.clearskysolarradiation
+            globalradiation: float = inp.globalradiation
+            clearskysolarradiation: float = inp.clearskysolarradiation
         else:
-            d_globalradiation = 0.0
-            d_clearskysolarradiation = 0.0
+            globalradiation = 0.0
+            clearskysolarradiation = 0.0
             for idx in range(der.nmblogentries):
-                d_clearskysolarradiation += log.loggedclearskysolarradiation[idx]
-                d_globalradiation += log.loggedglobalradiation[idx]
+                clearskysolarradiation += log.loggedclearskysolarradiation[idx]
+                globalradiation += log.loggedglobalradiation[idx]
         for k in range(con.nmbhru):
             flu.netlongwaveradiation[k] = (
                 5.674768518518519e-08
                 * (fac.airtemperature[k] + 273.16) ** 4
                 * (0.34 - 0.14 * (fac.actualvapourpressure[k] / 10.0) ** 0.5)
-                * (1.35 * min(d_globalradiation / d_clearskysolarradiation, 1.0) - 0.35)
+                * (1.35 * min(globalradiation / clearskysolarradiation, 1.0) - 0.35)
             )
 
 

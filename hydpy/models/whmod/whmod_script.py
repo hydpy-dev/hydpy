@@ -70,6 +70,7 @@ InterpolationModes = Literal["IDW", "NN"]
 
 class RasterId(NDArrayInt):
     """Creates Raster with Element-Ids"""
+
     def __new__(cls, input_array: NDArrayInt) -> Self:
         return numpy.asarray(input_array, dtype=int).view(cls)
 
@@ -92,6 +93,7 @@ class RasterId(NDArrayInt):
 
 class RasterArea(NDArrayInt):
     """Creates Raster with Element-Areas"""
+
     def __new__(cls, input_array: NDArrayFloat) -> Self:
         return numpy.asarray(input_array, dtype=float).view(cls)
 
@@ -102,7 +104,7 @@ class RasterArea(NDArrayInt):
         area_grid = numpy.full(
             (pb.rowmax - pb.rowmin + 1, pb.colmax - pb.colmin + 1), numpy.nan
         )
-        area_sum = 0.
+        area_sum = 0.0
         for element in elements:
             area_sum += element.model.parameters.control.area
         for element in elements:
@@ -110,7 +112,6 @@ class RasterArea(NDArrayInt):
             pos = Position.from_elementname(elementname=element.name)
             area_grid[pos.row - pb.rowmin, pos.col - pb.colmin] = area / area_sum
         return cls(area_grid)
-
 
 
 class Position(NamedTuple):
@@ -658,7 +659,6 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
         whmod_main["FREQUENCE"],
     )
     hydpy.pub.options.parameterstep = whmod_main["FREQUENCE"]
-    hydpy.pub.options.checkseries = False
 
     df_knoteneigenschaften = read_nodeproperties(
         basedir=basedir, filename_node_data=whmod_main["FILENAME_NODE_DATA"]
@@ -1604,35 +1604,40 @@ def _initialize_weather_stations(
             timeseries_path,
             seq_sunshineduration,
         )
-        inp_meteo.sunshineduration.load_series()
-        del inp_meteo.sunshineduration.filepath
+        with hydpy.pub.options.checkseries(False):
+            inp_meteo.sunshineduration.load_series()
+            del inp_meteo.sunshineduration.filepath
 
-        inp_tem.temperature.filepath = os.path.join(timeseries_path, seq_airtemperature)
-        inp_tem.temperature.load_series()
+            inp_tem.temperature.filepath = os.path.join(
+                timeseries_path, seq_airtemperature
+            )
+            inp_tem.temperature.load_series()
 
-        inp_evap.relativehumidity.filepath = os.path.join(
-            timeseries_path,
-            seq_relativehumidity,
-        )
-        inp_evap.relativehumidity.load_series()
-        del inp_evap.relativehumidity.filepath
+            inp_evap.relativehumidity.filepath = os.path.join(
+                timeseries_path,
+                seq_relativehumidity,
+            )
 
-        inp_evap.windspeed.filepath = os.path.join(timeseries_path, seq_windspeed)
-        inp_evap.windspeed.load_series()
-        del inp_evap.windspeed.filepath
+            inp_evap.relativehumidity.load_series()
+            del inp_evap.relativehumidity.filepath
 
-        inp_evap.atmosphericpressure.filepath = os.path.join(
-            timeseries_path,
-            seq_atmosphericpressure,
-        )
-        inp_evap.atmosphericpressure.load_series()
-        del inp_evap.atmosphericpressure.filepath
+            inp_evap.windspeed.filepath = os.path.join(timeseries_path, seq_windspeed)
+            inp_evap.windspeed.load_series()
+            del inp_evap.windspeed.filepath
+
+            inp_evap.atmosphericpressure.filepath = os.path.join(
+                timeseries_path,
+                seq_atmosphericpressure,
+            )
+            inp_evap.atmosphericpressure.load_series()
+            del inp_evap.atmosphericpressure.filepath
 
         # Initialization of Temperature-Nodes
         t_node = hydpy.Node(f"T_{stat}", variable="T")
         t_node.deploymode = "obs"
         t_node.prepare_obsseries()
-        t_node.sequences.obs.series = inp_tem.temperature.series
+        with hydpy.pub.options.checkseries(False):
+            t_node.sequences.obs.series = inp_tem.temperature.series
         node2xy[t_node] = xy
 
         # add meteo-elements, evap-elements, evap-nodes to selections
@@ -1720,11 +1725,12 @@ def apply_richter(
     precipitation_node.prepare_simseries()
     precipitation_node.deploymode = "oldsim"
     ns_art = get_ns_art(temperature_node=temperature_node)
-    precipitation_node.sequences.sim.series = calc_richter(
-        ns_art=ns_art,
-        precipitation=precipitation_node.sequences.obs.series,
-        richterklasse=richterklasse,
-    )
+    with hydpy.pub.options.checkseries(False):
+        precipitation_node.sequences.sim.series = calc_richter(
+            ns_art=ns_art,
+            precipitation=precipitation_node.sequences.obs.series,
+            richterklasse=richterklasse,
+        )
 
 
 def get_ns_art(temperature_node: hydpy.Node) -> numpy.typing.NDArray[numpy.character]:

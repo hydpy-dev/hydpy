@@ -456,8 +456,6 @@ ____
 """
 
 # import...
-# ...from standard library
-from typing import *
 
 # ...from site-packages
 import numpy

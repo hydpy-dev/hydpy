@@ -713,6 +713,7 @@ class Calc_Saettigungsdampfdruckdefizit_V1(modeltools.Method):
 
 
 class Calc_MaxVerdunstung_V1(modeltools.Method):
+    # pylint: disable=line-too-long
     """Berechnung maximale/potenzielle Verdunstung.
 
     Haude-Ansatz (mit "Dommermuth-Trumpf"-Koeffizienten).
@@ -1046,6 +1047,7 @@ class Calc_AktVerdunstung_V1(modeltools.Method):
 
 
 class Calc_PotKapilAufstieg_V1(modeltools.Method):
+    # pylint: disable=line-too-long
     """
 
     >>> from hydpy.models.whmod import *

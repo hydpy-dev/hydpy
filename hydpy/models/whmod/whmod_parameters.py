@@ -4,6 +4,7 @@
 
 # import...
 from __future__ import annotations
+
 # ...from HydPy
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *

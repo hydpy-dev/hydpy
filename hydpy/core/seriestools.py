@@ -36,7 +36,7 @@ def aggregate_series(
 def aggregate_series(
     *,
     series: NDArrayFloat,
-    stepsize: Literal["monthly", "m"],
+    stepsize: Literal["monthly", "m", "yearly", "y"],
     aggregator: Union[str, Callable[[NDArrayFloat], float]] = "mean",
     subperiod: bool = True,
 ) -> pandas.DataFrame:

@@ -1,11 +1,14 @@
 # Das ist ein Kommentar
-sequence:           AktGrundwasserneubildung
-                    VerzGrundwasserneubildung
-                    NiederschlagRichter
-                    InterzeptionsVerdunstung
-steps:              daily
-eval_start:         1990-01-01
-eval_end:           1990-02-01
-name_rch_file:      daily_rch
-name_mean_file:     daily_mean
-name_time_series:   daily_timeseries
+sequence:                       AktGrundwasserneubildung
+                                VerzGrundwasserneubildung
+                                NiederschlagRichter
+                                InterzeptionsVerdunstung
+                                RelBodenfeuchte
+                                Interzeptionsspeicher
+steps:                          daily
+eval_start:                     1990-01-01
+eval_end:                       1990-02-01
+rch_files:                      daily_rch
+grid_files:                     daily_mean
+mean_timeseries_files:          daily_timeseries
+cell_series_files cells=[3, 4]: daily_timeseries_ID-*

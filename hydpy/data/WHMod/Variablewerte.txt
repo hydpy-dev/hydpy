@@ -1,10 +1,10 @@
 # Das ist ein Kommentar
-sequence:           AktGrundwasserneubildung
-                    VerzGrundwasserneubildung
-                    NiederschlagRichter
-steps:              1990-01-01
-                    1990-02-01
-                    1991-01-01
-                    1992-01-01
-name_rch_file:      user_rch
-name_time_series:   user_timeseries
+sequence:               AktGrundwasserneubildung
+                        VerzGrundwasserneubildung
+                        NiederschlagRichter
+steps:                  1990-01-01
+                        1990-02-01
+                        1991-01-01
+                        1992-01-01
+rch_files:              user_rch
+mean_timeseries_files:  user_timeseries

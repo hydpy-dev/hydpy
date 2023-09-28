@@ -1667,7 +1667,8 @@ def _initialize_weather_stations(
         )
         p_node.prepare_obsseries()
         p_node.sequences.obs.filepath = os.path.join(timeseries_path, seq_precipitation)
-        p_node.sequences.obs.load_series()
+        with hydpy.pub.options.checkseries(False):
+            p_node.sequences.obs.load_series()
         if richter:
             temperature_node = niederschlag_temperature_nodes[f"Tinterp_{stat}"]
             apply_richter(
@@ -2170,7 +2171,8 @@ def aggregate_whmod_series(
             for element in whm_elements:
                 sequence = _get_sequence(model=element.model, sequencestring=seq)
                 sequence.prepare_series(allocate_ram=True)
-                sequence.load_series()
+                with hydpy.pub.options.checkseries(False):
+                    sequence.load_series()
 
         for element in whm_elements:
             sequence = _get_sequence(model=element.model, sequencestring=seq)

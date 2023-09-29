@@ -891,6 +891,18 @@ class Options:
         Period()
         """,
     )
+    timestampleft = OptionPropertyBool(
+        True,
+        """A True/False flag telling if assigning interval data (like hourly 
+        precipitation) to single time points relies on the start (True, default) or the 
+        end (False) of the respective interval.  
+
+        *HydPy*-internally, we usually prevent such potentially problematic assignments 
+        by using |Timegrid| objects that define grids of intervals instead of time 
+        points.  However, some exceptions cannot be avoided, for example, when reading 
+        or writing NetCDF files.
+        """,
+    )
     trimvariables = OptionPropertyBool(
         True,
         """A True/False flag for enabling/disabling function |trim|.  Set it to |False| 
@@ -915,18 +927,6 @@ class Options:
         60,
         """Local time offset from UTC in minutes (see option |Options.utclongitude|.  
         Defaults to 60, which corresponds to  UTC+01:00.""",
-    )
-    timestampleft = OptionPropertyBool(
-        True,
-        """A True/False flag telling if assigning interval data (like hourly 
-        precipitation) to single time points relies on the start (True, default) or the 
-        end (False) of the respective interval.  
-        
-        *HydPy*-internally, we usually prevent such potentially problematic assignments 
-        by using |Timegrid| objects that define grids of intervals instead of time 
-        points.  However, some exceptions cannot be avoided, for example, when reading 
-        or writing NetCDF files.
-        """,
     )
     warnmissingcontrolfile = OptionPropertyBool(
         False,

@@ -87,7 +87,9 @@ class Calc_AirTemperature_TempModel_V2(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.AirTemperature,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
+    def __call__(
+        model: modeltools.Model, submodel: tempinterfaces.TempModel_V2
+    ) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         submodel.determine_temperature()
@@ -269,7 +271,9 @@ class Calc_MeanAirTemperature_TempModel_V2(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.MeanAirTemperature,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
+    def __call__(
+        model: modeltools.Model, submodel: tempinterfaces.TempModel_V2
+    ) -> None:
         fac = model.sequences.factors.fastaccess
         submodel.determine_temperature()
         fac.meanairtemperature = submodel.get_meantemperature()
@@ -2804,7 +2808,9 @@ class Calc_Precipitation_PrecipModel_V2(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.Precipitation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
+    def __call__(
+        model: modeltools.Model, submodel: precipinterfaces.PrecipModel_V2
+    ) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         submodel.determine_precipitation()

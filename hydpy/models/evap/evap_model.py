@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-module-docstring
-
+"""
+.. _`issue 118`: https://github.com/hydpy-dev/hydpy/issues/118
+"""
 # imports...
 # ...from standard library
 import contextlib
@@ -10,7 +11,6 @@ from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
-from hydpy.interfaces import aetinterfaces
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import precipinterfaces
 from hydpy.interfaces import tempinterfaces
@@ -24,6 +24,7 @@ from hydpy.models.evap import evap_inputs
 from hydpy.models.evap import evap_factors
 from hydpy.models.evap import evap_fluxes
 from hydpy.models.evap import evap_logs
+from hydpy.models.evap import evap_states
 
 
 class Calc_AirTemperature_TempModel_V1(modeltools.Method):
@@ -526,6 +527,49 @@ class Calc_WindSpeed10m_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         fac = model.sequences.factors.fastaccess
         fac.windspeed10m = model.return_adjustedwindspeed_v1(10.0)
+
+
+class Calc_AdjustedWindSpeed10m_V1(modeltools.Method):
+    r"""Calculate the land cover-specific wind speed 10 meters above the ground (or 10
+    meters above zero plane displacement) following :cite:t:`ref-Löpmeier2014`.
+
+    Method |Calc_AdjustedWindSpeed10m_V1| combines the result of method
+    |Return_AdjustedWindSpeed_V1| with a correction factor of 0.6 for tree-like
+    vegetation, as suggested by :cite:t:`ref-Oliver1974`.
+
+    Example:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> tree(False, True)
+        >>> measuringheightwindspeed(3.0)
+        >>> inputs.windspeed = 5.0
+        >>> model.calc_adjustedwindspeed10m_v1()
+        >>> factors.adjustedwindspeed10m
+        adjustedwindspeed10m(5.871465, 3.522879)
+    """
+
+    SUBMETHODS = (Return_AdjustedWindSpeed_V1,)
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.Tree,
+        evap_control.MeasuringHeightWindSpeed,
+    )
+    FIXEDPARAMETERS = (evap_fixed.RoughnessLengthGrass,)
+    REQUIREDSEQUENCES = (evap_inputs.WindSpeed,)
+    RESULTSEQUENCES = (evap_factors.AdjustedWindSpeed10m,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+        v_10m: float = model.return_adjustedwindspeed_v1(10.0)
+        for k in range(con.nmbhru):
+            if con.tree[k]:
+                fac.adjustedwindspeed10m[k] = 0.6 * v_10m
+            else:
+                fac.adjustedwindspeed10m[k] = v_10m
 
 
 class Update_LoggedRelativeHumidity_V1(modeltools.Method):
@@ -1393,6 +1437,152 @@ class Calc_CurrentAlbedo_V1(modeltools.Method):
                     ]
 
 
+class Calc_CurrentAlbedo_V2(modeltools.Method):
+    r"""Calculate the earth's surface albedo based on the current leaf area index and
+    snow conditions following :cite:t:`ref-Löpmeier2014`.
+
+    Basic equations:
+      .. math::
+        CurrentAlbedo = \alpha_g + (\alpha_l - \alpha_g) \cdot min(lai/4, \ 1)
+        \\ \\
+        \alpha_g = \omega \cdot GroundAlbedoSnow + (1 - \omega) \cdot \alpha_g^* \\
+        \alpha_g^*  = GroundAlbedo \cdot \begin{cases}
+        1 &|\ \overline{Soil} \ \lor \ p / e < \tau \\
+        0.5 &|\ Soil \ \land \ p / e \geq \tau \end{cases} \\
+        \tau = WetnessThreshold \\
+        p = DailyPrecipitation \\
+        e = DailyPotentialSoilEvapotranspiration \\
+        \alpha_l = \omega \cdot LeafAlbedoSnow + (1 - \omega) \cdot LeafAlbedo \\
+        \omega = SnowCover \\
+        lai = LeafAreaIndex
+
+    Examples:
+
+        We use |lland_v1| and |evap_minhas| as main models to prepare an applicable
+        |evap| instance (more precisely, an |evap_pet_ambav1| instance):
+
+        >>> from hydpy.models.lland_v1 import *
+        >>> parameterstep()
+        >>> nhru(5)
+        >>> lnk(WASSER, BODEN, ACKER, BAUMB, LAUBW)
+        >>> ft(10.0)
+        >>> fhru(0.2)
+        >>> wmax(200.0)
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-05-30", "2000-06-03", "1d"
+        >>> with model.add_aetmodel_v1("evap_minhas"):
+        ...     with model.add_petmodel_v2("evap_pet_ambav1") as ambav:
+        ...         groundalbedo(wasser=0.1, boden=0.2, acker=0.2, baumb=0.2, laubw=0.2)
+        ...         groundalbedosnow(0.8)
+        ...         leafalbedo(acker=0.3, baumb=0.3, laubw=0.3)
+        ...         leafalbedosnow(0.6)
+        ...         wetnessthreshold(0.5)
+        ...         leafareaindex.acker = 2.0
+        ...         leafareaindex.baumb = 3.0
+        ...         leafareaindex.may_laubw = 4.0
+        ...         leafareaindex.jun_laubw = 5.0
+        ...         factors.snowcover = 0.0
+        ...         fluxes.dailyprecipitation = 1.0
+        ...         fluxes.dailypotentialsoilevapotranspiration = 4.0
+        >>> factors = ambav.sequences.factors
+        >>> fluxes = ambav.sequences.fluxes
+
+        The first example focuses on the general weighting of the ground's and the
+        leaves' albedo based on the current leaf area index.  For vegetation-free
+        hydrological response units, |Calc_CurrentAlbedo_V2| only considers the
+        ground's albedo:
+
+        >>> ambav.idx_sim = pub.timegrids.init["2000-05-31"]
+        >>> ambav.calc_currentalbedo_v2()
+        >>> factors.currentalbedo
+        currentalbedo(0.1, 0.2, 0.25, 0.275, 0.3)
+
+        For a leaf area index of four, |Calc_CurrentAlbedo_V2| only considers the
+        leaves' albedo.  Hence, setting higher indexes than four does not change the
+        results:
+
+        >>> ambav.idx_sim = pub.timegrids.init["2000-06-01"]
+        >>> ambav.calc_currentalbedo_v2()
+        >>> factors.currentalbedo
+        currentalbedo(0.1, 0.2, 0.25, 0.275, 0.3)
+
+        For wet conditions, where the ratio of precipitation and potential soil
+        evapotranspiration exceeds the defined wetness threshold,
+        |Calc_CurrentAlbedo_V2| halves the ground's albedo of all response units with
+        non-sealed soils:
+
+        >>> fluxes.dailyprecipitation = 2.0
+        >>> ambav.calc_currentalbedo_v2()
+        >>> factors.currentalbedo
+        currentalbedo(0.1, 0.1, 0.2, 0.25, 0.3)
+
+        For complete snow covers, |Calc_CurrentAlbedo_V2| relies on |GroundAlbedoSnow|
+        and |LeafAlbedoSnow| instead of |GroundAlbedo| and |LeafAlbedo|:
+
+        >>> fluxes.dailyprecipitation = 1.0
+        >>> factors.snowcover = 1.0
+        >>> ambav.calc_currentalbedo_v2()
+        >>> factors.currentalbedo
+        currentalbedo(0.8, 0.8, 0.7, 0.65, 0.6)
+
+        For incomplete snow covers, |Calc_CurrentAlbedo_V2| weights the respective
+        parameter pairs accordingly:
+
+        >>> factors.snowcover = 0.5
+        >>> ambav.calc_currentalbedo_v2()
+        >>> factors.currentalbedo
+        currentalbedo(0.45, 0.5, 0.475, 0.4625, 0.45)
+    """
+
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.HRUType,
+        evap_control.Soil,
+        evap_control.Plant,
+        evap_control.GroundAlbedo,
+        evap_control.GroundAlbedoSnow,
+        evap_control.LeafAlbedo,
+        evap_control.LeafAlbedoSnow,
+        evap_control.LeafAreaIndex,
+        evap_control.WetnessThreshold,
+    )
+    DERIVEDPARAMETERS = (evap_derived.MOY,)
+    REQUIREDSEQUENCES = (
+        evap_factors.SnowCover,
+        evap_fluxes.DailyPrecipitation,
+        evap_fluxes.DailyPotentialSoilEvapotranspiration,
+    )
+    RESULTSEQUENCES = (evap_factors.CurrentAlbedo,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        for k in range(con.nmbhru):
+            w: float = fac.snowcover[k]
+            a_s: float = con.groundalbedo[k]
+            if con.soil[k]:
+                wetness: float = flu.dailyprecipitation[k] / con.wetnessthreshold[k]
+                if wetness >= flu.dailypotentialsoilevapotranspiration[k]:
+                    a_s /= 2.0
+            a_g: float = w * con.groundalbedosnow[k] + (1.0 - w) * a_s
+            a_l: float = w * con.leafalbedosnow[k] + (1.0 - w) * con.leafalbedo[k]
+            if con.plant[k]:
+                lai: float = con.leafareaindex[
+                    con.hrutype[k] - con._leafareaindex_rowmin,
+                    der.moy[model.idx_sim] - con._leafareaindex_columnmin,
+                ]
+                if lai < 4.0:
+                    fac.currentalbedo[k] = a_g + 0.25 * (a_l - a_g) * lai
+                else:
+                    fac.currentalbedo[k] = a_l
+            else:
+                fac.currentalbedo[k] = a_g
+
+
 class Calc_NetShortwaveRadiation_V1(modeltools.Method):
     r"""Calculate the net shortwave radiation for the hypothetical grass reference
     crop according to :cite:t:`ref-Allen1998`.
@@ -1496,6 +1686,144 @@ class Calc_DailyNetShortwaveRadiation_V1(modeltools.Method):
             flu.dailynetshortwaveradiation[k] = (
                 1.0 - fac.currentalbedo[k]
             ) * flu.dailyglobalradiation
+
+
+class Update_CloudCoverage_V1(modeltools.Method):
+    r"""Update the degree of cloud coverage.
+
+    Basic equation:
+      .. math::
+        c_{new} =
+        \begin{cases}
+        s / s_0 &|\ s_0 = h \\
+        c_{old} &|\ s_0 < h \\
+        \end{cases}
+        \\ \\
+        c = CloudCoverage \\
+        s = SunshineDuration \\
+        s_0 = PossibleSunshineDuration \\
+        h = Hours
+
+    Examples:
+
+        For a daily simulation step size, |Update_CloudCoverage_V1| always uses the
+        ratio of the actual and the astronomically possible sunshine duration to
+        estimate the cloud coverage degree:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> derived.days(1.0)
+        >>> inputs.sunshineduration = 8.0
+        >>> inputs.possiblesunshineduration = 10.0
+        >>> model.update_cloudcoverage_v1()
+        >>> states.cloudcoverage
+        cloudcoverage(0.8)
+
+        The finally calculated cloud coverage degree never exceeds one:
+
+        >>> inputs.sunshineduration = 11.0
+        >>> model.update_cloudcoverage_v1()
+        >>> states.cloudcoverage
+        cloudcoverage(1.0)
+
+        Now, we switch to an hourly simulation step size:
+
+        >>> derived.days(1.0 / 24.0)
+        >>> derived.hours(1.0)
+
+        During the daytime, |Update_CloudCoverage_V1| always updates the cloud coverage
+        degree as described above:
+
+        >>> inputs.sunshineduration = 0.4
+        >>> inputs.possiblesunshineduration = 1.0
+        >>> model.update_cloudcoverage_v1()
+        >>> states.cloudcoverage
+        cloudcoverage(0.4)
+
+        From dusk until dawn, when the astronomically possible sunshine duration is
+        shorter than the simulation step size, |Update_CloudCoverage_V1| leaves the
+        previously calculated value untouched:
+
+        >>> inputs.possiblesunshineduration = 0.8
+        >>> model.update_cloudcoverage_v1()
+        >>> states.cloudcoverage
+        cloudcoverage(0.4)
+        """
+
+    DERIVEDPARAMETERS = (
+        evap_derived.Hours,
+        evap_derived.Days,
+    )
+    REQUIREDSEQUENCES = (
+        evap_inputs.SunshineDuration,
+        evap_inputs.PossibleSunshineDuration,
+    )
+    UPDATEDSEQUENCES = (evap_states.CloudCoverage,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        sta = model.sequences.states.fastaccess
+
+        p0: float = inp.possiblesunshineduration
+        if (der.days >= 1.0) or (p0 >= der.hours):
+            sta.cloudcoverage = min(inp.sunshineduration / p0, 1.0)
+
+
+class Calc_AdjustedCloudCoverage_V1(modeltools.Method):
+    r"""Calculate the adjusted cloud coverage degree.
+
+    Basic equation:
+      .. math::
+        AdjustedCloudCoverage = \omega \cdot c + (1 - \omega) \cdot n \cdot c
+        \\ \\
+        \omega = PossibleSunshineDuration / Hours \\
+        c = CloudCoverage\\
+        n = NightCloudFactor
+
+    Examples:
+
+        The above equation generally holds for night cloud factors not exceeding one:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nightcloudfactor(0.5)
+        >>> derived.hours(24.0)
+        >>> inputs.possiblesunshineduration = 18.0
+        >>> states.cloudcoverage = 0.8
+        >>> model.calc_adjustedcloudcoverage_v1()
+        >>> factors.adjustedcloudcoverage
+        adjustedcloudcoverage(0.7)
+
+        For night cloud factors above one, |Calc_AdjustedCloudCoverage_V1| ensures the
+        estimated nighttime cloud cover degree never exceeds one:
+
+        >>> nightcloudfactor(2.0)
+        >>> model.calc_adjustedcloudcoverage_v1()
+        >>> factors.adjustedcloudcoverage
+        adjustedcloudcoverage(0.85)
+        """
+
+    CONTROLPARAMETERS = (evap_control.NightCloudFactor,)
+    DERIVEDPARAMETERS = (evap_derived.Hours,)
+    REQUIREDSEQUENCES = (
+        evap_inputs.PossibleSunshineDuration,
+        evap_states.CloudCoverage,
+    )
+    RESULTSEQUENCES = (evap_factors.AdjustedCloudCoverage,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        fac = model.sequences.factors.fastaccess
+        sta = model.sequences.states.fastaccess
+        w: float = inp.possiblesunshineduration / der.hours
+        c: float = sta.cloudcoverage
+        n: float = con.nightcloudfactor
+        fac.adjustedcloudcoverage = w * c + (1.0 - w) * min(n * c, 1.0)
 
 
 class Calc_NetLongwaveRadiation_V1(modeltools.Method):
@@ -1603,6 +1931,81 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
             )
 
 
+class Calc_NetLongwaveRadiation_V2(modeltools.Method):
+    r"""Calculate the net longwave radiation according to :cite:t:`ref-Löpmeier2014`,
+    based on :cite:t:`ref-Holtslag1981`, :cite:t:`ref-Idso1969`, and
+    :cite:t:`ref-Sellers1960`.
+
+    Basic equations:
+      .. math::
+        NetLongwaveRadiation = RL_s - RL_a
+        \\ \\
+        RL_{s} = 0.97 \cdot \sigma \cdot (T + 273.1)^4 + 0.07 \cdot (1 - \alpha) \cdot G
+        \\ \\
+        RL_{a} = \left( 1 + C \cdot N^2 \right) \cdot \left(
+        1 - 0.261 \cdot e^{-0.000777 \cdot T^2} \right) \cdot \sigma \cdot (T + 273.1)^4
+        \\ \\
+        \sigma = StefanBoltzmannConstant \\
+        T = AirTemperature \\
+        \alpha = CurrentAlbedo \\
+        G = GlobalRadiation \\
+        C = CloudTypeFactor \\
+        N = AdjustedCloudCoverage
+
+    Example:
+
+        The following example is roughly comparable to the first example of
+        |Calc_NetLongwaveRadiation_V1| taken from :cite:t:`ref-Allen1998` but results
+        in a more than thrice as large net longwave radiation estimate:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(1)
+        >>> cloudtypefactor(0.2)
+        >>> derived.nmblogentries(1)
+        >>> inputs.globalradiation = 167.824074
+        >>> factors.adjustedcloudcoverage = 167.824074 / 217.592593
+        >>> factors.airtemperature = 22.1
+        >>> factors.currentalbedo = 0.23
+        >>> model.calc_netlongwaveradiation_v2()
+        >>> fluxes.netlongwaveradiation
+        netlongwaveradiation(30.940701)
+    """
+
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.CloudTypeFactor,
+    )
+    FIXEDPARAMETERS = (evap_fixed.StefanBoltzmannConstant,)
+    REQUIREDSEQUENCES = (
+        evap_inputs.GlobalRadiation,
+        evap_factors.CurrentAlbedo,
+        evap_factors.AdjustedCloudCoverage,
+        evap_factors.AirTemperature,
+    )
+    RESULTSEQUENCES = (evap_fluxes.NetLongwaveRadiation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fix = model.parameters.fixed.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        s: float = fix.stefanboltzmannconstant
+        g: float = inp.globalradiation
+        f: float = 1.0 + con.cloudtypefactor * fac.adjustedcloudcoverage**2.0
+        for k in range(con.nmbhru):
+            t: float = fac.airtemperature[k]
+            a: float = fac.currentalbedo[k]
+            rs: float = 0.97 * s * (t + 273.1) ** 4.0 + 0.07 * (1.0 - a) * g
+            ra: float = f * (
+                (1.0 - 0.261 * modelutils.exp(-0.000777 * t**2.0))
+                * (s * (t + 273.1) ** 4.0)
+            )
+            flu.netlongwaveradiation[k] = rs - ra
+
+
 class Calc_DailyNetLongwaveRadiation_V1(modeltools.Method):
     r"""Calculate the average net longwave radiation of the last 24 hours according to
     :cite:t:`ref-LARSIM`.
@@ -1684,9 +2087,10 @@ class Calc_DailyNetLongwaveRadiation_V1(modeltools.Method):
 
 
 class Calc_NetRadiation_V1(modeltools.Method):
-    """Calculate the total net radiation according to :cite:t:`ref-Allen1998`.
+    """Calculate the total net radiation according to :cite:t:`ref-Allen1998` and
+    according to :cite:t:`ref-Löpmeier2014`.
 
-    Basic equation (:cite:t:`ref-Allen1998`, equation 40):
+    Basic equation:
       :math:`NetRadiation = NetShortwaveRadiation - NetLongwaveRadiation`
 
     Example:
@@ -1865,8 +2269,8 @@ class Calc_SoilHeatFlux_V1(modeltools.Method):
 
 
 class Calc_SoilHeatFlux_V2(modeltools.Method):
-    r"""Calculate and return the "MORECS" soil heat flux roughly based on
-    :cite:t:`ref-LARSIM` and :cite:t:`ref-Thompson1981`.
+    r"""Calculate the MORECS-like soil heat flux roughly based on :cite:t:`ref-LARSIM`
+    and :cite:t:`ref-Thompson1981`.
 
     Basic equations:
       :math:`SoilHeatFlux = \frac{PossibleSunshineDuration}
@@ -2123,6 +2527,146 @@ class Calc_SoilHeatFlux_V3(modeltools.Method):
                 flu.soilheatflux[k] = con.averagesoilheatflux[der.moy[model.idx_sim]]
 
 
+class Calc_SoilHeatFlux_V4(modeltools.Method):
+    r"""Calculate the AMBAV-like soil heat flux based on :cite:t:`ref-Löpmeier2014`.
+
+    Basic equations:
+      .. math::
+        G = max(a - b \cdot LAI, \ 0) \cdot R_n \\
+        a = \omega \cdot 0.2 + (1 - \omega) \cdot 0.5 \\
+        b = a \cdot 0.03 / 0.2
+        \\ \\
+        G = SoilHeatFlux \\
+        LAI = LeafAreaIndex \\
+        R_n = NetRadiation \\
+        \omega = PossibleSunshineDuration / Hours
+
+    Examples:
+
+        Base model |evap| does not define any land cover types by itself but takes the
+        ones of the respective main model.  Here, we manually introduce the land cover
+        types `wood`, `trees`, `bush`, and `acre` to apply |evap| as a stand-alone
+        model consisting of four hydrological response units:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-05-30", "2000-06-03", "1d"
+        >>> from hydpy.core.parametertools import Constants
+        >>> WOOD, TREES, BUSH, ACRE, WATER = 1, 2, 3, 4, 5
+        >>> constants = Constants(WOOD=WOOD, TREES=TREES, BUSH=BUSH, ACRE=ACRE)
+        >>> from hydpy.models.evap.evap_control import HRUType, LeafAreaIndex
+        >>> with HRUType.modify_constants(constants), \
+        ...         LeafAreaIndex.modify_rows(constants):
+        ...     from hydpy.models.evap import *
+        ...     parameterstep()
+        >>> nmbhru(4)
+
+        For water areas, the soil heat flux is generally zero:
+
+        >>> water(True)
+        >>> model.calc_soilheatflux_v4()
+        >>> fluxes.soilheatflux
+        soilheatflux(0.0, 0.0, 0.0, 0.0)
+
+        We focus on non-water areas using all the different defined land cover types in
+        the following examples:
+
+        >>> hrutype(ACRE, BUSH, TREES, WOOD)
+        >>> water(False)
+
+        The next calculation addressed the complete 31st of May, for which we set land
+        cover-specific leaf area indices:
+
+        >>> model.idx_sim = pub.timegrids.init["2000-05-31"]
+        >>> derived.hours.update()
+        >>> derived.moy.update()
+        >>> leafareaindex.acre_may = 0.0
+        >>> leafareaindex.bush_may = 2.0
+        >>> leafareaindex.trees_may = 5.0
+        >>> leafareaindex.wood_may = 10.0
+
+        We say the astronomically possible sunshine duration and the net radiation of
+        that day to be 18 h and 200 W/m²:
+
+        >>> inputs.possiblesunshineduration = 18.0
+        >>> fluxes.netradiation = 200.0
+
+        The larger the leaf area index, the smaller the soil heat flux.  The dense
+        canopies of trees can suppress them entirely:
+
+        >>> model.calc_soilheatflux_v4()
+        >>> fluxes.soilheatflux
+        soilheatflux(55.0, 38.5, 13.75, 0.0)
+
+        Now, we switch to an hourly step size and to the time of sunrise on the 1st of
+        June:
+
+        >>> pub.timegrids = "2000-06-01 04:00", "2000-06-01 08:00", "1h"
+        >>> model.idx_sim = pub.timegrids.init["2000-06-01 05:00"]
+        >>> derived.hours.update()
+        >>> derived.moy.update()
+
+        We set slightly larger leaf area indices:
+
+        >>> leafareaindex.acre_jun = 0.0
+        >>> leafareaindex.bush_jun = 3.0
+        >>> leafareaindex.trees_jun = 6.0
+        >>> leafareaindex.wood_jun = 12.0
+
+        We assume sunrise at 5:15 and a negative net radiation value:
+
+        >>> inputs.possiblesunshineduration = 0.25
+        >>> fluxes.netradiation = -20.0
+
+        Again, dense vegetation reduces the soil heat flux without changing its sign,
+        and very dense vegetation suppresses it completely:
+
+        >>> model.calc_soilheatflux_v4()
+        >>> model.calc_soilheatflux_v4()
+        >>> fluxes.soilheatflux
+        soilheatflux(-8.5, -4.675, -0.85, 0.0)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+    """
+
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.HRUType,
+        evap_control.Water,
+        evap_control.LeafAreaIndex,
+    )
+    DERIVEDPARAMETERS = (
+        evap_derived.Hours,
+        evap_derived.MOY,
+    )
+    REQUIREDSEQUENCES = (
+        evap_inputs.PossibleSunshineDuration,
+        evap_fluxes.NetRadiation,
+    )
+    RESULTSEQUENCES = (evap_fluxes.SoilHeatFlux,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        w: float = inp.possiblesunshineduration / der.hours
+        a: float = w * 0.2 + (1.0 - w) * 0.5
+        b: float = a * 0.03 / 0.2
+        for k in range(con.nmbhru):
+            if con.water[k]:
+                flu.soilheatflux[k] = 0.0
+            else:
+                lai: float = con.leafareaindex[
+                    con.hrutype[k] - con._leafareaindex_rowmin,
+                    der.moy[model.idx_sim] - con._leafareaindex_columnmin,
+                ]
+                flu.soilheatflux[k] = max(a - b * lai, 0.0) * flu.netradiation[k]
+
+
 class Calc_PsychrometricConstant_V1(modeltools.Method):
     r"""Calculate the psychrometric constant according to :cite:t:`ref-Allen1998`.
 
@@ -2225,8 +2769,8 @@ class Calc_AerodynamicResistance_V1(modeltools.Method):
         aerodynamicresistance(8.510706, 7.561677, 31.333333, 31.333333,
                               31.333333)
 
-        To remove this discontinuity, one could use a threshold crop height of 1.14 m
-        instead of 10 m:
+        One could use a threshold crop height of 1.14 m instead of 10 m to remove this
+        discontinuity:
 
         :math:`1.1404411695422059 = \frac{\frac{10}{\exp\sqrt{94/6.25}}-0.021}{0.163}`
 
@@ -2281,6 +2825,108 @@ class Calc_AerodynamicResistance_V1(modeltools.Method):
                 fac.aerodynamicresistance[k] = modelutils.inf
 
 
+class Calc_AerodynamicResistance_V2(modeltools.Method):
+    r"""Calculate the aerodynamic resistance according to :cite:t:`ref-Löpmeier2014`.
+
+    Basic equation:
+      .. math::
+        AerodynamicResistance = AerodynamicResistanceFactor / AdjustedWindSpeed10m
+
+    Examples:
+
+        We reuse the same example setting of method |Calc_AerodynamicResistance_V1| to
+        allow for comparisons:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-30", "2000-02-03", "1d"
+        >>> from hydpy.core.parametertools import Constants
+        >>> WOOD, TREES, BUSH, ACRE, WATER = 1, 2, 3, 4, 5
+        >>> constants = Constants(
+        ...     WOOD=WOOD, TREES=TREES, BUSH=BUSH, ACRE=ACRE, WATER=WATER)
+        >>> from hydpy.models.evap.evap_control import HRUType, CropHeight
+        >>> from hydpy.models.evap.evap_derived import AerodynamicResistanceFactor, RoughnessLength  # pylint: disable=line-too-long
+        >>> with HRUType.modify_constants(constants), CropHeight.modify_rows(constants), AerodynamicResistanceFactor.modify_rows(constants), RoughnessLength.modify_rows(constants) :  # pylint: disable=line-too-long
+        ...     from hydpy.models.evap import *
+        ...     parameterstep()
+        >>> nmbhru(5)
+        >>> hrutype(WATER, ACRE, BUSH, TREES, WOOD)
+        >>> derived.moy.update()
+
+        |Calc_AerodynamicResistance_V2| calculates larger resistances for crops smaller
+        than 10 meters and smaller resistances for crops larger than 10 meters:
+
+        >>> cropheight.water_jan = 0.0
+        >>> cropheight.acre_jan = 1.0
+        >>> cropheight.bush_jan = 5.0
+        >>> cropheight.trees_jan = 10.0
+        >>> cropheight.wood_jan = 30.0
+        >>> derived.roughnesslength.update()
+        >>> derived.aerodynamicresistancefactor.update()
+        >>> factors.adjustedwindspeed10m = 3.0
+        >>> model.idx_sim = 1
+        >>> model.calc_aerodynamicresistance_v2()
+        >>> factors.aerodynamicresistance
+        aerodynamicresistance(250.991726, 37.398301, 14.815191, 8.254018,
+                              1.758133)
+
+        The latter difference becomes smaller when assuming reduced wind speeds above
+        trees (as done by method |Calc_AdjustedWindSpeed10m_V1|):
+
+        >>> cropheight.water_feb = 8.0
+        >>> cropheight.acre_feb = 9.0
+        >>> cropheight.bush_feb = 10.0
+        >>> cropheight.trees_feb = 11.0
+        >>> cropheight.wood_feb = 12.0
+        >>> derived.roughnesslength.update()
+        >>> derived.aerodynamicresistancefactor.update()
+        >>> factors.adjustedwindspeed10m = 1.8
+        >>> model.idx_sim = 2
+        >>> model.calc_aerodynamicresistance_v2()
+        >>> factors.aerodynamicresistance
+        aerodynamicresistance(16.930459, 15.214222, 13.756696, 12.501413,
+                              11.407858)
+
+        For zero wind speed, resistance becomes infinite:
+
+        >>> from hydpy import print_values
+        >>> factors.adjustedwindspeed10m = 0.0
+        >>> model.calc_aerodynamicresistance_v2()
+        >>> factors.aerodynamicresistance
+        aerodynamicresistance(inf, inf, inf, inf, inf)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+    """
+
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.HRUType,
+    )
+    DERIVEDPARAMETERS = (
+        evap_derived.MOY,
+        evap_derived.AerodynamicResistanceFactor,
+    )
+    REQUIREDSEQUENCES = (evap_factors.AdjustedWindSpeed10m,)
+    RESULTSEQUENCES = (evap_factors.AerodynamicResistance,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+
+        for k in range(con.nmbhru):
+            if fac.adjustedwindspeed10m[k] > 0.0:
+                f: float = der.aerodynamicresistancefactor[
+                    con.hrutype[k] - der._aerodynamicresistancefactor_rowmin,
+                    der.moy[model.idx_sim] - der._aerodynamicresistancefactor_columnmin,
+                ]
+                fac.aerodynamicresistance[k] = f / fac.adjustedwindspeed10m[k]
+            else:
+                fac.aerodynamicresistance[k] = modelutils.inf
+
+
 class Calc_SoilSurfaceResistance_V1(modeltools.Method):
     r"""Calculate the resistance of the bare soil surface according to
     :cite:t:`ref-LARSIM` and based on :cite:t:`ref-Thompson1981`.
@@ -2322,7 +2968,7 @@ class Calc_SoilSurfaceResistance_V1(modeltools.Method):
         >>> factors.soilsurfaceresistance
         soilsurfaceresistance(100.0, 100.0, 100.0, 100.0)
 
-        For soils with smaller available field capacities, resistance is 10'000 s/m as
+        For soils with smaller available field capacities, resistance is 10,000 s/m as
         long as the soil water content does not exceed the permanent wilting point:
 
         >>> wiltingpoint(0.1, 20.0, 20.0, 30.0)
@@ -2382,6 +3028,254 @@ class Calc_SoilSurfaceResistance_V1(modeltools.Method):
                 fac.soilsurfaceresistance[k] = 100.0 * afc / (free + 0.01 * afc)
             else:
                 fac.soilsurfaceresistance[k] = modelutils.inf
+
+
+class Update_LoggedPrecipitation_V1(modeltools.Method):
+    """Log the precipitation values of the last 24 hours.
+
+    Example:
+
+        The following example shows that each new method call successively moves the
+        six memorised values to the right and stores the respective two new values on
+        the most left position:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> derived.nmblogentries(3)
+        >>> logs.loggedprecipitation.shape = 3, 2
+        >>> logs.loggedprecipitation = 0.0, 0.0
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(model,
+        ...                 model.update_loggedprecipitation_v1,
+        ...                 last_example=4,
+        ...                 parseqs=(fluxes.precipitation,
+        ...                          logs.loggedprecipitation))
+        >>> test.nexts.precipitation = [1.0, 2.0], [3.0, 6.0], [2.0, 4.0], [4.0, 8.0]
+        >>> del test.inits.loggedprecipitation
+        >>> test()
+        | ex. |      precipitation |                          loggedprecipitation |
+        ---------------------------------------------------------------------------
+        |   1 | 1.0            2.0 | 1.0  2.0  0.0  0.0  0.0                  0.0 |
+        |   2 | 3.0            6.0 | 3.0  6.0  1.0  2.0  0.0                  0.0 |
+        |   3 | 2.0            4.0 | 2.0  4.0  3.0  6.0  1.0                  2.0 |
+        |   4 | 4.0            8.0 | 4.0  8.0  2.0  4.0  3.0                  6.0 |
+    """
+
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    DERIVEDPARAMETERS = (evap_derived.NmbLogEntries,)
+    REQUIREDSEQUENCES = (evap_fluxes.Precipitation,)
+    UPDATEDSEQUENCES = (evap_logs.LoggedPrecipitation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        log = model.sequences.logs.fastaccess
+        for idx in range(der.nmblogentries - 1, 0, -1):
+            for k in range(con.nmbhru):
+                log.loggedprecipitation[idx, k] = log.loggedprecipitation[idx - 1, k]
+        for k in range(con.nmbhru):
+            log.loggedprecipitation[0, k] = flu.precipitation[k]
+
+
+class Calc_DailyPrecipitation_V1(modeltools.Method):
+    """Calculate the precipitation sum of the last 24 hours.
+
+    Example:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> derived.nmblogentries(3)
+        >>> logs.loggedprecipitation.shape = 3, 2
+        >>> logs.loggedprecipitation = [1.0, 2.0], [5.0, 6.0], [3.0, 4.0]
+        >>> model.calc_dailyprecipitation_v1()
+        >>> fluxes.dailyprecipitation
+        dailyprecipitation(9.0, 12.0)
+    """
+
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    DERIVEDPARAMETERS = (evap_derived.NmbLogEntries,)
+    REQUIREDSEQUENCES = (evap_logs.LoggedPrecipitation,)
+    RESULTSEQUENCES = (evap_fluxes.DailyPrecipitation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        log = model.sequences.logs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            flu.dailyprecipitation[k] = 0.0
+        for idx in range(der.nmblogentries):
+            for k in range(con.nmbhru):
+                flu.dailyprecipitation[k] += log.loggedprecipitation[idx, k]
+
+
+class Update_LoggedPotentialSoilEvapotranspiration_V1(modeltools.Method):
+    # pylint: disable=line-too-long
+    """Log the potential soil evapotranspiration values of the last 24 hours.
+
+    Example:
+
+        The following example shows that each new method call successively moves the
+        six memorised values to the right and stores the respective two new values on
+        the most left position:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> derived.nmblogentries(3)
+        >>> logs.loggedpotentialsoilevapotranspiration.shape = 3, 2
+        >>> logs.loggedpotentialsoilevapotranspiration = 0.0, 0.0
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(model,
+        ...                 model.update_loggedpotentialsoilevapotranspiration_v1,
+        ...                 last_example=4,
+        ...                 parseqs=(fluxes.potentialsoilevapotranspiration,
+        ...                          logs.loggedpotentialsoilevapotranspiration))
+        >>> test.nexts.potentialsoilevapotranspiration = [1.0, 2.0], [3.0, 6.0], [2.0, 4.0], [4.0, 8.0]
+        >>> del test.inits.loggedpotentialsoilevapotranspiration
+        >>> test()
+        | ex. |      potentialsoilevapotranspiration |                          loggedpotentialsoilevapotranspiration |
+        ---------------------------------------------------------------------------------------------------------------
+        |   1 | 1.0                              2.0 | 1.0  2.0  0.0  0.0  0.0                                    0.0 |
+        |   2 | 3.0                              6.0 | 3.0  6.0  1.0  2.0  0.0                                    0.0 |
+        |   3 | 2.0                              4.0 | 2.0  4.0  3.0  6.0  1.0                                    2.0 |
+        |   4 | 4.0                              8.0 | 4.0  8.0  2.0  4.0  3.0                                    6.0 |
+    """
+
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    DERIVEDPARAMETERS = (evap_derived.NmbLogEntries,)
+    REQUIREDSEQUENCES = (evap_fluxes.PotentialSoilEvapotranspiration,)
+    UPDATEDSEQUENCES = (evap_logs.LoggedPotentialSoilEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        log = model.sequences.logs.fastaccess
+        for idx in range(der.nmblogentries - 1, 0, -1):
+            for k in range(con.nmbhru):
+                log.loggedpotentialsoilevapotranspiration[
+                    idx, k
+                ] = log.loggedpotentialsoilevapotranspiration[idx - 1, k]
+        for k in range(con.nmbhru):
+            log.loggedpotentialsoilevapotranspiration[
+                0, k
+            ] = flu.potentialsoilevapotranspiration[k]
+
+
+class Calc_DailyPotentialSoilEvapotranspiration_V1(modeltools.Method):
+    """Calculate the potential soil evapotranspiration sum of the last 24 hours.
+
+    Example:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> derived.nmblogentries(3)
+        >>> logs.loggedpotentialsoilevapotranspiration.shape = 3, 2
+        >>> logs.loggedpotentialsoilevapotranspiration = (
+        ...     [1.0, 2.0], [5.0, 6.0], [3.0, 4.0])
+        >>> model.calc_dailypotentialsoilevapotranspiration_v1()
+        >>> fluxes.dailypotentialsoilevapotranspiration
+        dailypotentialsoilevapotranspiration(9.0, 12.0)
+    """
+
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    DERIVEDPARAMETERS = (evap_derived.NmbLogEntries,)
+    REQUIREDSEQUENCES = (evap_logs.LoggedPotentialSoilEvapotranspiration,)
+    RESULTSEQUENCES = (evap_fluxes.DailyPotentialSoilEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        log = model.sequences.logs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            flu.dailypotentialsoilevapotranspiration[k] = 0.0
+        for idx in range(der.nmblogentries):
+            for k in range(con.nmbhru):
+                flu.dailypotentialsoilevapotranspiration[
+                    k
+                ] += log.loggedpotentialsoilevapotranspiration[idx, k]
+
+
+class Update_SoilResistance_V1(modeltools.Method):
+    r"""Update the soil surface resistance following :cite:t:`ref-Löpmeier2014`.
+
+    Basic equations:
+      .. math::
+        r_{new} = \begin{cases}
+        r_{old} + \Delta &|\ p / e < \tau \\
+        w &|\ p / e \geq \tau
+        \end{cases} \\
+        \\ \\
+        r = SoilResistance \\
+        w = WetSoilResistance \\
+        \Delta = SoilResistanceIncrease \\
+        \tau = WetnessThreshold \\
+        p = DailyPrecipitation \\
+        e = DailyPotentialSoilEvapotranspiration
+
+    Example:
+
+        |Update_SoilResistance_V1| generally sets the soil surface resistance to |nan|
+        for all areas without relevant soils (see the first hydrological response
+        unit).  For all other areas, it increases the resistance constantly as long as
+        the precipitation sum over the last 24 hours is less than the potential
+        evapotranspiration sum over the last 24 hours (second response unit) or
+        otherwise sets it to the "initial value" for wet soil surfaces (third and
+        fourth response unit):
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep("1d")
+        >>> simulationstep("1h")
+        >>> nmbhru(4)
+        >>> soil(False, True, True, True)
+        >>> wetsoilresistance(50.0)
+        >>> wetnessthreshold(0.5)
+        >>> soilresistanceincrease(24.0)
+        >>> states.soilresistance = 60.0
+        >>> fluxes.dailyprecipitation = 3.0, 4.0, 5.0, 6.0
+        >>> fluxes.dailypotentialsoilevapotranspiration = 10.0
+        >>> model.update_soilresistance_v1()
+        >>> states.soilresistance
+        soilresistance(nan, 61.0, 50.0, 50.0)
+    """
+
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.Soil,
+        evap_control.WetSoilResistance,
+        evap_control.SoilResistanceIncrease,
+        evap_control.WetnessThreshold,
+    )
+    REQUIREDSEQUENCES = (
+        evap_fluxes.DailyPrecipitation,
+        evap_fluxes.DailyPotentialSoilEvapotranspiration,
+    )
+    UPDATEDSEQUENCES = (evap_states.SoilResistance,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nmbhru):
+            if con.soil[k]:
+                wetness: float = flu.dailyprecipitation[k] / con.wetnessthreshold[k]
+                if wetness < flu.dailypotentialsoilevapotranspiration[k]:
+                    sta.soilresistance[k] += con.soilresistanceincrease[k]
+                else:
+                    sta.soilresistance[k] = con.wetsoilresistance[k]
+            else:
+                sta.soilresistance[k] = modelutils.nan
 
 
 class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
@@ -2748,6 +3642,211 @@ class Calc_ActualSurfaceResistance_V1(modeltools.Method):
                 fac.actualsurfaceresistance[k] = fac.landusesurfaceresistance[k]
 
 
+class Calc_ActualSurfaceResistance_V2(modeltools.Method):
+    r"""Calculate the actual surface resistance according to :cite:t:`ref-Löpmeier2014`
+    and based on :cite:t:`ref-Thompson1981`.
+
+    Basic equations:
+      .. math::
+        ActualSurfaceResistance = \left(\frac{\omega_{day}}{r_{day}} +
+        \frac{1 - \omega_{day}}{r_{night}}\right)^{-1} \\
+        \\ \\
+        r_{day} = \left(\frac{1 - \omega_{soil}}{r_l} +
+        \frac{\omega_{soil}}{r_s}\right)^{-1} \\ \\
+        r_{night} = \left(\frac{lai}{2800} + \frac{1}{r_s}\right)^{-1} \\
+        \\ \\
+        \omega_{day} = PossibleSunshineDuration / Hours \\
+        \omega_{soil} = \begin{cases} 0.8^{lai} &|\ lai < 1 \\
+        0.7^{lai} &|\ lai \geq 1 \end{cases} \\
+        \\ \\
+        lai = LeafAreaIndex \\
+        r_s = SoilSurfaceResistance \\
+        r_l = LeafResistance
+
+    Examples:
+
+        |Calc_ActualSurfaceResistance_V2| works similarly to method
+        |Calc_ActualSurfaceResistance_V1|.  We build up a comparable setting but use
+        |lland_v1| and |evap_minhas| as main models to prepare an applicable |evap|
+        instance (more precisely, an |evap_pet_ambav1| instance) more easily:
+
+        >>> from hydpy.models.lland_v1 import *
+        >>> parameterstep()
+        >>> nhru(5)
+        >>> lnk(WASSER, FLUSS, SEE, SEE, SEE)
+        >>> ft(10.0)
+        >>> fhru(0.2)
+        >>> wmax(200.0)
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-05-30", "2000-06-03", "1d"
+        >>> with model.add_aetmodel_v1("evap_minhas"):
+        ...     with model.add_petmodel_v2("evap_pet_ambav1") as ambav:
+        ...         pass
+        >>> control = ambav.parameters.control
+        >>> derived = ambav.parameters.derived
+        >>> inputs = ambav.sequences.inputs
+        >>> factors = ambav.sequences.factors
+        >>> states = ambav.sequences.states
+
+        For response units without relevant soils (like those with sealed surfaces or
+        bare soils), method |Calc_ActualSurfaceResistance_V2| generally sets the
+        effective surface resistance to zero:
+
+        >>> control.hrutype
+        hrutype(WASSER, FLUSS, SEE, SEE, SEE)
+        >>> control.soil
+        soil(False)
+        >>> ambav.calc_actualsurfaceresistance_v2()
+        >>> factors.actualsurfaceresistance
+        actualsurfaceresistance(0.0, 0.0, 0.0, 0.0, 0.0)
+
+        For all "soil areas", the final soil resistance is a combination of
+        |LeafResistance| and |SoilResistance| that depends on the leaf area index,
+        which is generally zero for non-vegetated land cover types:
+
+        >>> lnk(BODEN, ACKER, GRUE_E, GRUE_I, NADELW)
+        >>> model.update_parameters(ignore_errors=True)
+        >>> control.hrutype
+        hrutype(BODEN, ACKER, GRUE_E, GRUE_I, NADELW)
+        >>> control.soil
+        soil(True)
+        >>> control.plant
+        plant(acker=True, boden=False, grue_e=True, grue_i=True, nadelw=True)
+        >>> control.leafareaindex.acker_may = 0.0
+        >>> control.leafareaindex.grue_e_may = 0.9999
+        >>> control.leafareaindex.grue_i_may = 1.0
+        >>> control.leafareaindex.baumb_may = 5.0
+        >>> control.leafareaindex.nadelw_may = 10.0
+        >>> model.idx_sim = 1
+        >>> derived.moy.update()
+        >>> derived.hours.update()
+
+        All five hydrological response units have identical soil and leaf resistance
+        values:
+
+        >>> control.leafresistance(100.0)
+        >>> states.soilresistance = 200.0
+
+        For a polar day, the results are identical to those of method
+        |Calc_ActualSurfaceResistance_V1|, except that
+        |Calc_ActualSurfaceResistance_V2| calculates larger values for leaf area
+        indices smaller than one (which goes along with a sudden resistance decrease
+        when reaching a leaf area index of one):
+
+        >>> inputs.possiblesunshineduration = 24.0
+        >>> ambav.calc_actualsurfaceresistance_v2()
+        >>> factors.actualsurfaceresistance
+        actualsurfaceresistance(200.0, 200.0, 166.669146, 153.846154, 101.43261)
+
+        For a polar night, |Calc_ActualSurfaceResistance_V2| calculates slightly higher
+        values due to assuming a surface resistance of 2,800 s/m instead of 2,500 s/m
+        for leaves with completely closed stomata:
+
+        >>> inputs.possiblesunshineduration = 0.0
+        >>> ambav.calc_actualsurfaceresistance_v2()
+        >>> factors.actualsurfaceresistance
+        actualsurfaceresistance(200.0, 200.0, 186.667911, 186.666667, 116.666667)
+
+        Accordingly, |Calc_ActualSurfaceResistance_V2| always determines slightly
+        higher surface resistances in mixed cases:
+
+        >>> inputs.possiblesunshineduration = 12.0
+        >>> ambav.calc_actualsurfaceresistance_v2()
+        >>> factors.actualsurfaceresistance
+        actualsurfaceresistance(200.0, 200.0, 176.102567, 168.674699, 108.517595)
+
+        The following examples demonstrate that method
+        |Calc_ActualSurfaceResistance_V2| works the same way when applied on an hourly
+        time basis during the daytime period (first example), during the nighttime
+        (second example), and during dawn or dusk (third example):
+
+        >>> pub.timegrids = "2019-05-31 22:00", "2019-06-01 03:00", "1h"
+        >>> nhru(1)
+        >>> lnk(NADELW)
+        >>> fhru(1.0)
+        >>> wmax(200.0)
+        >>> model.update_parameters(ignore_errors=True)
+        >>> control.hrutype
+        hrutype(NADELW)
+        >>> control.soil
+        soil(True)
+        >>> control.plant
+        plant(True)
+        >>> control.leafresistance(100.0)
+        >>> states.soilresistance = 200.0
+        >>> control.leafareaindex.nadelw_jun = 5.0
+        >>> derived.moy.update()
+        >>> derived.hours.update()
+        >>> inputs.possiblesunshineduration = 1.0
+        >>> ambav.idx_sim = 2
+        >>> ambav.calc_actualsurfaceresistance_v2()
+        >>> factors.actualsurfaceresistance
+        actualsurfaceresistance(109.174477)
+
+        >>> inputs.possiblesunshineduration = 0.0
+        >>> ambav.calc_actualsurfaceresistance_v2()
+        >>> factors.actualsurfaceresistance
+        actualsurfaceresistance(147.368421)
+
+        >>> inputs.possiblesunshineduration = 0.5
+        >>> ambav.calc_actualsurfaceresistance_v2()
+        >>> factors.actualsurfaceresistance
+        actualsurfaceresistance(125.428304)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+    """
+
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.HRUType,
+        evap_control.Soil,
+        evap_control.Plant,
+        evap_control.LeafAreaIndex,
+        evap_control.LeafResistance,
+    )
+    DERIVEDPARAMETERS = (
+        evap_derived.MOY,
+        evap_derived.Hours,
+    )
+    REQUIREDSEQUENCES = (
+        evap_inputs.PossibleSunshineDuration,
+        evap_states.SoilResistance,
+    )
+
+    RESULTSEQUENCES = (evap_factors.ActualSurfaceResistance,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        fac = model.sequences.factors.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nmbhru):
+            if con.soil[k]:
+                if con.plant[k]:
+                    lai: float = con.leafareaindex[
+                        con.hrutype[k] - con._leafareaindex_rowmin,
+                        der.moy[model.idx_sim] - con._leafareaindex_columnmin,
+                    ]
+                else:
+                    lai = 0.0
+                w_soil: float = (0.8 if lai < 1.0 else 0.7) ** lai
+                r_soil: float = sta.soilresistance[k]
+                r_leaf_day: float = con.leafresistance[k]
+                r_day_inv: float = w_soil / r_soil + (1.0 - w_soil) / r_leaf_day
+                r_leaf_night: float = 2800.0
+                r_night_inv: float = 1.0 / r_soil + lai / r_leaf_night
+                w_day: float = inp.possiblesunshineduration / der.hours
+                fac.actualsurfaceresistance[k] = 1.0 / (
+                    (w_day * r_day_inv + (1.0 - w_day) * r_night_inv)
+                )
+            else:
+                fac.actualsurfaceresistance[k] = 0.0
+
+
 class Calc_Precipitation_PrecipModel_V1(modeltools.Method):
     """Query precipitation from a main model that is referenced as a sub-submodel and
     follows the |PrecipModel_V1| interface.
@@ -3097,6 +4196,392 @@ class Calc_SnowCover_V1(modeltools.Method):
         # ToDo:
         #     else:
         #         assert_never(model.petmodel)
+
+
+class Return_Evaporation_PenmanMonteith_V1(modeltools.Method):
+    r"""Calculate the actual evapotranspiration with the Penman-Monteith equation
+    according to :cite:t:`ref-LARSIM`, based on :cite:t:`ref-Thompson1981`.
+
+    Basic equations:
+
+    .. math::
+      f_{PM}(r_s) =
+      \frac{P'_s \cdot (R_n - G) + C \cdot \rho \cdot c_p \cdot (P_s - P_a) / r_a}
+      {H \cdot (P'_s + \gamma \cdot C \cdot (1 + r_s / r_a))} \\
+      \\
+      C = 1 + \frac{b' \cdot r_a}{\rho \cdot c_p} \\
+      \\
+      b' = 4 \cdot \varepsilon \cdot \sigma \cdot (273.15 + T)^3 \\
+      \\
+      r_s = actualsurfaceresistance \\
+      P'_s = SaturationVapourPressureSlope  \\
+      R_n = NetRadiation \\
+      G = SoilHeatFlux \\
+      \rho = AirDensitiy  \\
+      c_p = HeatCapacityAir \\
+      P_s = SaturationVapourPressure \\
+      P_a = ActualVapourPressure \\
+      r_a = AerodynamicResistance \\
+      H = HeatOfCondensation \\
+      \gamma = PsychrometricConstant \\
+      \varepsilon = Emissivity \\
+      T = AirTemperature \\
+      \sigma = StefanBoltzmannConstant
+
+    Hint: Correction factor `C` takes the difference between measured air temperature
+    and actual surface temperature into account.
+
+    Example:
+
+        We build the following example on the first example of the documentation on
+        method |Calc_WaterEvaporation_V3|, which relies on the Penman equation.  The
+        total available energy (|NetRadiation| minus |SoilHeatFlux|) and the vapour
+        saturation pressure deficit (|SaturationVapourPressure| minus
+        |ActualVapourPressure| are identical.  To make the results roughly comparable,
+        we use resistances suitable for water surfaces by setting
+        |ActualSurfaceResistance| to zero and |AerodynamicResistance| to a reasonable
+        precalculated value of 106 s/m:
+
+        >>> from hydpy.models.evap import *
+        >>> simulationstep("1d")
+        >>> parameterstep()
+        >>> nmbhru(7)
+        >>> emissivity(0.96)
+        >>> fluxes.netradiation = 10.0, 50.0, 100.0, 10.0, 10.0, 10.0, 100.0
+        >>> fluxes.soilheatflux = 10.0
+        >>> factors.saturationvapourpressure = 12.0
+        >>> factors.saturationvapourpressureslope = 0.8
+        >>> factors.actualvapourpressure = 12.0, 12.0, 12.0, 12.0, 6.0, 0.0, 0.0
+        >>> factors.airdensity = 1.24
+        >>> factors.actualsurfaceresistance = 0.0
+        >>> factors.aerodynamicresistance = 106.0
+        >>> factors.airtemperature = 10.0
+
+        For the first three hydrological response units with energy forcing only, there
+        is a relatively small deviation to the results of method
+        |Calc_WaterEvaporation_V3| due to the correction factor `C`, which is only
+        implemented by method |Return_Evaporation_PenmanMonteith_V1|.  For response
+        units four to six with dynamic forcing only, the results of method
+        |Return_Evaporation_PenmanMonteith_V1| are more than twice as large as those
+        of method |Calc_WaterEvaporation_V3|:
+
+        >>> from hydpy import print_values
+        >>> for hru in range(7):
+        ...     deficit = (factors.saturationvapourpressure[hru] -
+        ...                factors.actualvapourpressure[hru])
+        ...     evap = model.return_evaporation_penmanmonteith_v1(
+        ...         hru, factors.actualsurfaceresistance[hru])
+        ...     energygain = fluxes.netradiation[hru] - fluxes.soilheatflux[hru]
+        ...     print_values([energygain, deficit, evap])
+        0.0, 0.0, 0.0
+        40.0, 0.0, 0.648881
+        90.0, 0.0, 1.459982
+        0.0, 0.0, 0.0
+        0.0, 6.0, 2.031724
+        0.0, 12.0, 4.063447
+        90.0, 12.0, 5.523429
+
+        Next, we repeat the above calculations using resistances suitable for vegetated
+        surfaces (note that this also changes the results of the first three response
+        units due to correction factor `C` depending on |AerodynamicResistance|):
+
+        >>> factors.actualsurfaceresistance = 80.0
+        >>> factors.aerodynamicresistance = 40.0
+        >>> for hru in range(7):
+        ...     deficit = (factors.saturationvapourpressure[hru] -
+        ...                factors.actualvapourpressure[hru])
+        ...     evap = model.return_evaporation_penmanmonteith_v1(
+        ...         hru, factors.actualsurfaceresistance[hru])
+        ...     energygain = fluxes.netradiation[hru] - fluxes.soilheatflux[hru]
+        ...     print_values([energygain, deficit, evap])
+        0.0, 0.0, 0.0
+        40.0, 0.0, 0.364933
+        90.0, 0.0, 0.8211
+        0.0, 0.0, 0.0
+        0.0, 6.0, 2.469986
+        0.0, 12.0, 4.939972
+        90.0, 12.0, 5.761072
+
+        The above results are sensitive to the ratio between |ActualSurfaceResistance|
+        and |AerodynamicResistance|.  The following example demonstrates this
+        sensitivity through varying |ActualSurfaceResistance| over a wide range:
+
+        >>> fluxes.netradiation = 100.0
+        >>> factors.actualvapourpressure = 0.0
+        >>> factors.actualsurfaceresistance = (
+        ...     0.0, 20.0, 50.0, 100.0, 200.0, 500.0, 1000.0)
+        >>> for hru in range(7):
+        ...     print_values([factors.actualsurfaceresistance[hru],
+        ...                   model.return_evaporation_penmanmonteith_v1(
+        ...                       hru, factors.actualsurfaceresistance[hru])])
+        0.0, 11.370311
+        20.0, 9.144449
+        50.0, 7.068767
+        100.0, 5.128562
+        200.0, 3.31099
+        500.0, 1.604779
+        1000.0, 0.863312
+
+        One potential pitfall of the given Penman-Monteith equation is that
+        |AerodynamicResistance| becomes infinite for zero wind speed.  We protect
+        method |Return_Evaporation_PenmanMonteith_V1| against this problem (and the
+        less likely problem of zero aerodynamic resistance) by limiting the value of
+        |AerodynamicResistance| to the interval :math:`[10^{-6}, 10^6]`:
+
+        >>> factors.actualvapourpressure = 6.0
+        >>> factors.actualsurfaceresistance = 80.0
+        >>> factors.aerodynamicresistance = (0.0, 1e-6, 1e-3, 1.0, 1e3, 1e6, inf)
+        >>> for hru in range(7):
+        ...     print_values([factors.aerodynamicresistance[hru],
+        ...                   model.return_evaporation_penmanmonteith_v1(
+        ...                       hru, factors.actualsurfaceresistance[hru])])
+        0.0, 5.00683
+        0.000001, 5.00683
+        0.001, 5.006739
+        1.0, 4.918573
+        1000.0, 0.887816
+        1000000.0, 0.001372
+        inf, 0.001372
+
+        Now, we change the simulation time step from one day to one hour to demonstrate
+        that we can reproduce the first example's results:
+
+        >>> simulationstep("1h")
+        >>> fixed.heatofcondensation.restore()
+        >>> fluxes.netradiation = 10.0, 50.0, 100.0, 10.0, 10.0, 10.0, 100.0
+        >>> factors.actualvapourpressure = 12.0, 12.0, 12.0, 12.0, 6.0, 0.0, 0.0
+        >>> factors.actualsurfaceresistance = 0.0
+        >>> factors.aerodynamicresistance = 106.0
+        >>> for hru in range(7):
+        ...     deficit = (factors.saturationvapourpressure[hru] -
+        ...                factors.actualvapourpressure[hru])
+        ...     evap = 24.0 * model.return_evaporation_penmanmonteith_v1(
+        ...         hru, factors.actualsurfaceresistance[hru])
+        ...     energygain = fluxes.netradiation[hru] - fluxes.soilheatflux[hru]
+        ...     print_values([energygain, deficit, evap])
+        0.0, 0.0, 0.0
+        40.0, 0.0, 0.648881
+        90.0, 0.0, 1.459982
+        0.0, 0.0, 0.0
+        0.0, 6.0, 2.031724
+        0.0, 12.0, 4.063447
+        90.0, 12.0, 5.523429
+    """
+
+    CONTROLPARAMETERS = (evap_control.Emissivity,)
+    FIXEDPARAMETERS = (
+        evap_fixed.StefanBoltzmannConstant,
+        evap_fixed.HeatOfCondensation,
+        evap_fixed.HeatCapacityAir,
+        evap_fixed.PsychrometricConstant,
+    )
+    REQUIREDSEQUENCES = (
+        evap_factors.AirTemperature,
+        evap_factors.SaturationVapourPressureSlope,
+        evap_factors.SaturationVapourPressure,
+        evap_factors.ActualVapourPressure,
+        evap_factors.AirDensity,
+        evap_factors.AerodynamicResistance,
+        evap_fluxes.NetRadiation,
+        evap_fluxes.SoilHeatFlux,
+    )
+
+    @staticmethod
+    def __call__(
+        model: modeltools.Model,
+        k: int,
+        actualsurfaceresistance: float,
+    ) -> float:
+        con = model.parameters.control.fastaccess
+        fix = model.parameters.fixed.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        ar: float = min(max(fac.aerodynamicresistance[k], 1e-6), 1e6)
+        t: float = 273.15 + fac.airtemperature[k]
+        b: float = (4.0 * con.emissivity * fix.stefanboltzmannconstant) * t**3
+        c: float = 1.0 + b * ar / fac.airdensity[k] / fix.heatcapacityair
+        return (
+            (
+                fac.saturationvapourpressureslope[k]
+                * (flu.netradiation[k] - flu.soilheatflux[k])
+                + (c * fac.airdensity[k] * fix.heatcapacityair)
+                * (fac.saturationvapourpressure[k] - fac.actualvapourpressure[k])
+                / ar
+            )
+            / (
+                fac.saturationvapourpressureslope[k]
+                + fix.psychrometricconstant * c * (1.0 + actualsurfaceresistance / ar)
+            )
+            / fix.heatofcondensation
+        )
+
+
+class Return_Evaporation_PenmanMonteith_V2(modeltools.Method):
+    r"""Calculate the actual evapotranspiration with the Penman-Monteith equation
+    according to :cite:t:`ref-Löpmeier2014`.
+
+    Basic equation:
+
+    .. math::
+      f_{PM}(r_s) =
+      \frac{P'_s \cdot (R_n - G) + \rho \cdot c_p \cdot (P_s - P_a) / r_a}
+      {H \cdot (P'_s + \gamma \cdot (1 + r_s / r_a))} \\
+      \\
+      r_s = actualsurfaceresistance \\
+      P'_s = SaturationVapourPressureSlope  \\
+      R_n = NetRadiation \\
+      G = SoilHeatFlux \\
+      \rho = AirDensitiy  \\
+      c_p = HeatCapacityAir \\
+      P_s = SaturationVapourPressure \\
+      P_a = ActualVapourPressure \\
+      r_a = AerodynamicResistance \\
+      H = HeatOfCondensation \\
+      \gamma = PsychrometricConstant
+
+    Example:
+
+        Method |Return_Evaporation_PenmanMonteith_V2| equals method
+        |Return_Evaporation_PenmanMonteith_V1| except in neglecting the correction
+        term `C`.  We repeat the examples of |Return_Evaporation_PenmanMonteith_V1| to
+        demonstrate the effects of this difference:
+
+        >>> from hydpy.models.evap import *
+        >>> simulationstep("1d")
+        >>> parameterstep()
+        >>> nmbhru(7)
+        >>> fluxes.netradiation = 10.0, 50.0, 100.0, 10.0, 10.0, 10.0, 100.0
+        >>> fluxes.soilheatflux = 10.0
+        >>> factors.saturationvapourpressure = 12.0
+        >>> factors.saturationvapourpressureslope = 0.8
+        >>> factors.actualvapourpressure = 12.0, 12.0, 12.0, 12.0, 6.0, 0.0, 0.0
+        >>> factors.airdensity = 1.24
+        >>> factors.actualsurfaceresistance = 0.0
+        >>> factors.aerodynamicresistance = 106.0
+
+        The estimated evapotranspiration values of method
+        |Return_Evaporation_PenmanMonteith_V2| are slightly larger for the first three
+        hydrological response units with pure energy forcing and smaller for response
+        units four to six with pure dynamic forcing:
+
+        >>> from hydpy import print_values
+        >>> for hru in range(7):
+        ...     energygain = fluxes.netradiation[hru] - fluxes.soilheatflux[hru]
+        ...     vapourdeficit = (factors.saturationvapourpressure[hru] -
+        ...                      factors.actualvapourpressure[hru])
+        ...     evap = model.return_evaporation_penmanmonteith_v2(
+        ...         hru, factors.actualsurfaceresistance[hru])
+        ...     print_values([energygain, vapourdeficit, evap])
+        0.0, 0.0, 0.0
+        40.0, 0.0, 0.771689
+        90.0, 0.0, 1.7363
+        0.0, 0.0, 0.0
+        0.0, 6.0, 1.701082
+        0.0, 12.0, 3.402164
+        90.0, 12.0, 5.138464
+
+        This pattern stays the same using resistances suitable for vegetated surfaces:
+
+        >>> factors.actualsurfaceresistance = 80.0
+        >>> factors.aerodynamicresistance = 40.0
+        >>> for hru in range(7):
+        ...     energygain = fluxes.netradiation[hru] - fluxes.soilheatflux[hru]
+        ...     vapourdeficit = (factors.saturationvapourpressure[hru] -
+        ...                      factors.actualvapourpressure[hru])
+        ...     evap = model.return_evaporation_penmanmonteith_v2(
+        ...         hru, factors.actualsurfaceresistance[hru])
+        ...     print_values([energygain, vapourdeficit, evap])
+        0.0, 0.0, 0.0
+        40.0, 0.0, 0.406078
+        90.0, 0.0, 0.913677
+        0.0, 0.0, 0.0
+        0.0, 6.0, 2.372133
+        0.0, 12.0, 4.744266
+        90.0, 12.0, 5.657942
+
+        The following example shows that |Return_Evaporation_PenmanMonteith_V2| also
+        restricts the aerodynamic resistance to the interval :math:`[10^{-6}, 10^6]` and
+        that the missing `C` term prevents the estimated evapotranspiration from
+        converging to zero with rising aerodynamic resistance:
+
+        >>> fluxes.netradiation = 100.0
+        >>> factors.actualvapourpressure = 6.0
+        >>> factors.actualsurfaceresistance = 80.0
+        >>> factors.aerodynamicresistance = (0.0, 1e-6, 1e-3, 1.0, 1e3, 1e6, inf)
+        >>> for hru in range(7):
+        ...     print_values([factors.aerodynamicresistance[hru],
+        ...                   model.return_evaporation_penmanmonteith_v2(
+        ...                       hru, factors.actualsurfaceresistance[hru])])
+        0.0, 5.00683
+        0.000001, 5.00683
+        0.001, 5.006739
+        1.0, 4.91847
+        1000.0, 1.849989
+        1000000.0, 1.736417
+        inf, 1.736417
+
+        Now, we change the simulation time step from one day to one hour to demonstrate
+        that we can reproduce the first example's results:
+
+        >>> simulationstep("1h")
+        >>> fixed.heatofcondensation.restore()
+        >>> fluxes.netradiation = 10.0, 50.0, 100.0, 10.0, 10.0, 10.0, 100.0
+        >>> factors.actualvapourpressure = 12.0, 12.0, 12.0, 12.0, 6.0, 0.0, 0.0
+        >>> factors.actualsurfaceresistance = 0.0
+        >>> factors.aerodynamicresistance = 106.0
+        >>> for hru in range(7):
+        ...     energygain = fluxes.netradiation[hru] - fluxes.soilheatflux[hru]
+        ...     vapourdeficit = (factors.saturationvapourpressure[hru] -
+        ...                      factors.actualvapourpressure[hru])
+        ...     evap = 24.0 * model.return_evaporation_penmanmonteith_v2(
+        ...         hru, factors.actualsurfaceresistance[hru])
+        ...     print_values([energygain, vapourdeficit, evap])
+        0.0, 0.0, 0.0
+        40.0, 0.0, 0.771689
+        90.0, 0.0, 1.7363
+        0.0, 0.0, 0.0
+        0.0, 6.0, 1.701082
+        0.0, 12.0, 3.402164
+        90.0, 12.0, 5.138464
+    """
+
+    FIXEDPARAMETERS = (
+        evap_fixed.HeatOfCondensation,
+        evap_fixed.HeatCapacityAir,
+        evap_fixed.PsychrometricConstant,
+    )
+    REQUIREDSEQUENCES = (
+        evap_factors.SaturationVapourPressureSlope,
+        evap_factors.SaturationVapourPressure,
+        evap_factors.ActualVapourPressure,
+        evap_factors.AirDensity,
+        evap_factors.AerodynamicResistance,
+        evap_fluxes.NetRadiation,
+        evap_fluxes.SoilHeatFlux,
+    )
+
+    @staticmethod
+    def __call__(
+        model: modeltools.Model, k: int, actualsurfaceresistance: float
+    ) -> float:
+        fix = model.parameters.fixed.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        ar: float = min(max(fac.aerodynamicresistance[k], 1e-6), 1e6)
+        return (
+            (
+                fac.saturationvapourpressureslope[k]
+                * (flu.netradiation[k] - flu.soilheatflux[k])
+                + (fac.airdensity[k] * fix.heatcapacityair)
+                * (fac.saturationvapourpressure[k] - fac.actualvapourpressure[k])
+                / ar
+            )
+            / (
+                fac.saturationvapourpressureslope[k]
+                + fix.psychrometricconstant * (1.0 + actualsurfaceresistance / ar)
+            )
+        ) / fix.heatofcondensation
 
 
 class Calc_ReferenceEvapotranspiration_V1(modeltools.Method):
@@ -3622,65 +5107,6 @@ class Calc_PotentialEvapotranspiration_V3(modeltools.Method):
                 )
 
 
-class Calc_PotentialEvapotranspiration_PETModel_V1(modeltools.Method):
-    """Let a submodel that complies with the |PETModel_V1| interface calculate
-    potential evapotranspiration.
-
-    Example:
-
-        We use |evap_tw2002| as an example:
-
-        >>> from hydpy.models.evap_aet_hbv96 import *
-        >>> parameterstep()
-        >>> nmbhru(3)
-        >>> with model.add_petmodel_v1("evap_tw2002"):
-        ...     hruarea(5.0, 2.0, 3.0)
-        ...     hrualtitude(200.0, 600.0, 1000.0)
-        ...     coastfactor(0.6)
-        ...     evapotranspirationfactor(1.1)
-        ...     inputs.globalradiation = 200.0
-        ...     with model.add_tempmodel_v2("meteo_temp_io"):
-        ...         temperatureaddend(1.0)
-        ...         inputs.temperature = 14.0
-        >>> model.calc_potentialevapotranspiration_v4()
-        >>> fluxes.potentialevapotranspiration
-        potentialevapotranspiration(3.07171, 2.86215, 2.86215)
-    """
-
-    CONTROLPARAMETERS = (evap_control.NmbHRU,)
-    RESULTSEQUENCES = (evap_fluxes.PotentialEvapotranspiration,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
-        con = model.parameters.control.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        submodel.determine_potentialevapotranspiration()
-        for k in range(con.nmbhru):
-            flu.potentialevapotranspiration[
-                k
-            ] = submodel.get_potentialevapotranspiration(k)
-
-
-class Calc_PotentialEvapotranspiration_V4(modeltools.Method):
-    """Let a submodel that complies with the |PETModel_V1| interface calculate
-    potential evapotranspiration."""
-
-    SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
-    SUBMETHODS = (Calc_PotentialEvapotranspiration_PETModel_V1,)
-    CONTROLPARAMETERS = (evap_control.NmbHRU,)
-    RESULTSEQUENCES = (evap_fluxes.PotentialEvapotranspiration,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        if model.petmodel_typeid == 1:
-            model.calc_potentialevapotranspiration_petmodel_v1(
-                cast(petinterfaces.PETModel_V1, model.petmodel)
-            )
-        # ToDo:
-        #     else:
-        #         assert_never(model.petmodel)
-
-
 class Adjust_ReferenceEvapotranspiration_V1(modeltools.Method):
     r"""Adjust the previously calculated reference evapotranspiration.
 
@@ -3788,6 +5214,129 @@ class Calc_MeanPotentialEvapotranspiration_V1(modeltools.Method):
             )
 
 
+class Calc_PotentialWaterEvaporation_PETModel_V1(modeltools.Method):
+    """Query the already calculated potential evapotranspiration from a submodel that
+    complies with the |PETModel_V1| interface and assume it as water evaporation.
+
+    Example:
+
+        We use |evap_minhas| and |evap_io| as an example:
+
+        >>> from hydpy.models.evap_minhas import *
+        >>> parameterstep()
+        >>> nmbhru(3)
+        >>> with model.add_petmodel_v1("evap_io"):
+        ...     hruarea(1.0, 3.0, 2.0)
+        ...     fluxes.referenceevapotranspiration = 1.0, 2.0, 4.0
+        >>> model.calc_potentialwaterevaporation_v1()
+        >>> fluxes.potentialwaterevaporation
+        potentialwaterevaporation(1.0, 2.0, 4.0)
+    """
+
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    RESULTSEQUENCES = (evap_fluxes.PotentialWaterEvaporation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            flu.potentialwaterevaporation[k] = submodel.get_potentialevapotranspiration(
+                k
+            )
+
+
+class Calc_PotentialWaterEvaporation_PETModel_V2(modeltools.Method):
+    """Let a submodel that complies with the |PETModel_V2| interface calculate
+    potential water evaporation and query it.
+
+    Example:
+
+        We use |evap_minhas| and |evap_pet_ambav1| as an example:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
+        >>> from hydpy.models.evap_minhas import *
+        >>> parameterstep()
+        >>> nmbhru(3)
+        >>> interception(False, False, True)
+        >>> soil(False, False, True)
+        >>> water(True, True, False)
+        >>> with model.add_petmodel_v2("evap_pet_ambav1"):
+        ...     hrutype(0)
+        ...     plant(False)
+        ...     tree(False)
+        ...     measuringheightwindspeed(10.0)
+        ...     groundalbedo(0.2)
+        ...     groundalbedosnow(0.8)
+        ...     leafalbedo(0.2)
+        ...     leafalbedosnow(0.8)
+        ...     leafareaindex(5.0)
+        ...     cropheight(0.0)
+        ...     cloudtypefactor(0.2)
+        ...     nightcloudfactor(1.0)
+        ...     inputs.relativehumidity = 80.0
+        ...     inputs.windspeed = 2.0
+        ...     inputs.atmosphericpressure = 1000.0
+        ...     inputs.sunshineduration = 6.0
+        ...     inputs.possiblesunshineduration = 16.0
+        ...     inputs.globalradiation = 190.0
+        ...     with model.add_tempmodel_v2("meteo_temp_io"):
+        ...         hruarea(1.0)
+        ...         temperatureaddend(0.0, 15.0, 0.0)
+        ...         inputs.temperature = 15.0
+        ...     with model.add_precipmodel_v2("meteo_precip_io"):
+        ...         hruarea(1.0)
+        ...         precipitationfactor(1.0)
+        ...         inputs.precipitation = 0.0
+        ...     with model.add_snowcovermodel_v1("dummy_snowcover"):
+        ...         inputs.snowcover = 0.0
+
+        >>> model.petmodel.determine_potentialinterceptionevaporation()
+        >>> model.calc_potentialwaterevaporation_v1()
+        >>> fluxes.potentialwaterevaporation
+        potentialwaterevaporation(1.890672, 3.204855, 0.0)
+    """
+
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    RESULTSEQUENCES = (evap_fluxes.PotentialWaterEvaporation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V2) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        submodel.determine_potentialwaterevaporation()
+        for k in range(con.nmbhru):
+            flu.potentialwaterevaporation[k] = submodel.get_potentialwaterevaporation(k)
+
+
+class Calc_PotentialWaterEvaporation_V1(modeltools.Method):
+    """Use a submodel that complies with the |PETModel_V1| or |PETModel_V2| interface
+    to determine potential soil evapotranspiration."""
+
+    SUBMODELINTERFACES = (
+        petinterfaces.PETModel_V1,
+        petinterfaces.PETModel_V2,
+    )
+    SUBMETHODS = (
+        Calc_PotentialWaterEvaporation_PETModel_V1,
+        Calc_PotentialWaterEvaporation_PETModel_V2,
+    )
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    RESULTSEQUENCES = (evap_fluxes.PotentialWaterEvaporation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        if model.petmodel_typeid == 1:
+            model.calc_potentialwaterevaporation_petmodel_v1(
+                cast(petinterfaces.PETModel_V1, model.petmodel)
+            )
+        elif model.petmodel_typeid == 2:
+            model.calc_potentialwaterevaporation_petmodel_v2(
+                cast(petinterfaces.PETModel_V1, model.petmodel)
+            )
+
+
 class Calc_WaterEvaporation_V1(modeltools.Method):
     r"""Calculate the actual evaporation from water areas according to
     :cite:t:`ref-Lindstrom1997HBV96`.
@@ -3796,7 +5345,7 @@ class Calc_WaterEvaporation_V1(modeltools.Method):
       .. math::
         WaterEvaporation =
         \begin{cases}
-        PotentialEvapotranspiration &|\ AirTemperature > TemperatureThresholdIce
+        PotentialWaterEvaporation &|\ AirTemperature > TemperatureThresholdIce
         \\
         0 &|\ AirTemperature \leq TemperatureThresholdIce
         \end{cases}
@@ -3812,7 +5361,7 @@ class Calc_WaterEvaporation_V1(modeltools.Method):
         >>> water(True)
         >>> temperaturethresholdice(1.0)
         >>> factors.airtemperature = 0.0, 1.0, 2.0
-        >>> fluxes.potentialevapotranspiration = 3.0
+        >>> fluxes.potentialwaterevaporation = 3.0
         >>> model.calc_waterevaporation_v1()
         >>> fluxes.waterevaporation
         waterevaporation(0.0, 0.0, 3.0)
@@ -3832,7 +5381,7 @@ class Calc_WaterEvaporation_V1(modeltools.Method):
     )
     REQUIREDSEQUENCES = (
         evap_factors.AirTemperature,
-        evap_fluxes.PotentialEvapotranspiration,
+        evap_fluxes.PotentialWaterEvaporation,
     )
     RESULTSEQUENCES = (evap_fluxes.WaterEvaporation,)
 
@@ -3843,16 +5392,16 @@ class Calc_WaterEvaporation_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbhru):
             if con.water[k] and fac.airtemperature[k] > con.temperaturethresholdice[k]:
-                flu.waterevaporation[k] = flu.potentialevapotranspiration[k]
+                flu.waterevaporation[k] = flu.potentialwaterevaporation[k]
             else:
                 flu.waterevaporation[k] = 0.0
 
 
 class Calc_WaterEvaporation_V2(modeltools.Method):
-    """Accept potential evapotranspiration as the actual evaporation from water areas.
+    """Accept potential evaporation from water areas as the actual one.
 
     Basic equation:
-      :math:`WaterEvaporation = PotentialEvapotranspiration`
+      :math:`WaterEvaporation = PotentialWaterEvaporation`
 
     Example:
 
@@ -3862,7 +5411,7 @@ class Calc_WaterEvaporation_V2(modeltools.Method):
         >>> parameterstep()
         >>> nmbhru(2)
         >>> water(True, False)
-        >>> fluxes.potentialevapotranspiration = 3.0
+        >>> fluxes.potentialwaterevaporation = 3.0
         >>> model.calc_waterevaporation_v2()
         >>> fluxes.waterevaporation
         waterevaporation(3.0, 0.0)
@@ -3872,7 +5421,7 @@ class Calc_WaterEvaporation_V2(modeltools.Method):
         evap_control.NmbHRU,
         evap_control.Water,
     )
-    REQUIREDSEQUENCES = (evap_fluxes.PotentialEvapotranspiration,)
+    REQUIREDSEQUENCES = (evap_fluxes.PotentialWaterEvaporation,)
     RESULTSEQUENCES = (evap_fluxes.WaterEvaporation,)
 
     @staticmethod
@@ -3881,7 +5430,7 @@ class Calc_WaterEvaporation_V2(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbhru):
             if con.water[k]:
-                flu.waterevaporation[k] = flu.potentialevapotranspiration[k]
+                flu.waterevaporation[k] = flu.potentialwaterevaporation[k]
             else:
                 flu.waterevaporation[k] = 0.0
 
@@ -3987,6 +5536,175 @@ class Calc_WaterEvaporation_V3(modeltools.Method):
                 flu.waterevaporation[k] = 0.0
 
 
+class Calc_WaterEvaporation_V4(modeltools.Method):
+    r"""Calculate the evaporation from water areas by applying the Penman-Monteith
+    equation with zero surface resistance.
+
+    Basic equation:
+      .. math::
+        WaterEvaporation = \begin{cases}
+        f_{PM}(0.0)  &|\ Water
+        \\
+        0 &|\ \overline{Water}
+        \end{cases}
+
+    Examples:
+
+        Usually, one would not consider soil heat fluxes when calculating evaporation
+        from water areas.  However, |Calc_WaterEvaporation_V4| takes |SoilHeatFlux|
+        into account, so it should usually be set to zero beforehand. Due to
+        considering it, the following results agree with the first example on method
+        |Calc_PotentialInterceptionEvaporation_V2|:
+
+        >>> from hydpy.models.evap import *
+        >>> simulationstep("1d")
+        >>> parameterstep()
+        >>> nmbhru(7)
+        >>> water(True)
+        >>> factors.saturationvapourpressure = 12.0
+        >>> factors.saturationvapourpressureslope = 0.8
+        >>> factors.actualvapourpressure = 12.0, 12.0, 12.0, 12.0, 6.0, 0.0, 0.0
+        >>> factors.airdensity = 1.24
+        >>> factors.aerodynamicresistance = 106.0
+        >>> fluxes.netradiation = 10.0, 50.0, 100.0, 10.0, 10.0, 10.0, 100.0
+        >>> fluxes.soilheatflux = 10.0
+        >>> model.calc_waterevaporation_v4()
+        >>> fluxes.waterevaporation
+        waterevaporation(0.0, 0.771689, 1.7363, 0.0, 1.701082, 3.402164,
+                         5.138464)
+
+        Water evaporation is always zero for hydrological response units dealing with
+        non-water areas:
+
+        >>> water(False)
+        >>> model.calc_waterevaporation_v4()
+        >>> fluxes.waterevaporation
+        waterevaporation(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    """
+
+    SUBMETHODS = (Return_Evaporation_PenmanMonteith_V2,)
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.Water,
+    )
+    FIXEDPARAMETERS = (
+        evap_fixed.HeatOfCondensation,
+        evap_fixed.HeatCapacityAir,
+        evap_fixed.PsychrometricConstant,
+    )
+    REQUIREDSEQUENCES = (
+        evap_factors.SaturationVapourPressureSlope,
+        evap_factors.SaturationVapourPressure,
+        evap_factors.ActualVapourPressure,
+        evap_factors.AirDensity,
+        evap_factors.AerodynamicResistance,
+        evap_fluxes.NetRadiation,
+        evap_fluxes.SoilHeatFlux,
+    )
+    RESULTSEQUENCES = (evap_fluxes.WaterEvaporation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        for k in range(con.nmbhru):
+            if con.water[k]:
+                evap: float = model.return_evaporation_penmanmonteith_v2(k, 0.0)
+                flu.waterevaporation[k] = evap
+            else:
+                flu.waterevaporation[k] = 0.0
+
+
+class Update_LoggedWaterEvaporation_V1(modeltools.Method):
+    # pylint: disable=line-too-long
+    """Log the water evaporation values of the last 24 hours.
+
+    Example:
+
+        The following example shows that each new method call successively moves the
+        six memorised values to the right and stores the respective two new values on
+        the most left position:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> derived.nmblogentries(3)
+        >>> logs.loggedwaterevaporation.shape = 3, 2
+        >>> logs.loggedwaterevaporation = 0.0, 0.0
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(model,
+        ...                 model.update_loggedwaterevaporation_v1,
+        ...                 last_example=4,
+        ...                 parseqs=(fluxes.waterevaporation,
+        ...                          logs.loggedwaterevaporation))
+        >>> test.nexts.waterevaporation = [1.0, 2.0], [3.0, 6.0], [2.0, 4.0], [4.0, 8.0]
+        >>> del test.inits.loggedwaterevaporation
+        >>> test()
+        | ex. |      waterevaporation |                          loggedwaterevaporation |
+        ---------------------------------------------------------------------------------
+        |   1 | 1.0               2.0 | 1.0  2.0  0.0  0.0  0.0                     0.0 |
+        |   2 | 3.0               6.0 | 3.0  6.0  1.0  2.0  0.0                     0.0 |
+        |   3 | 2.0               4.0 | 2.0  4.0  3.0  6.0  1.0                     2.0 |
+        |   4 | 4.0               8.0 | 4.0  8.0  2.0  4.0  3.0                     6.0 |
+    """
+
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    DERIVEDPARAMETERS = (evap_derived.NmbLogEntries,)
+    REQUIREDSEQUENCES = (evap_fluxes.WaterEvaporation,)
+    UPDATEDSEQUENCES = (evap_logs.LoggedWaterEvaporation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        log = model.sequences.logs.fastaccess
+        for idx in range(der.nmblogentries - 1, 0, -1):
+            for k in range(con.nmbhru):
+                log.loggedwaterevaporation[idx, k] = log.loggedwaterevaporation[
+                    idx - 1, k
+                ]
+        for k in range(con.nmbhru):
+            log.loggedwaterevaporation[0, k] = flu.waterevaporation[k]
+
+
+class Calc_DailyWaterEvaporation_V1(modeltools.Method):
+    """Calculate the water evaporation sum of the last 24 hours.
+
+    Example:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> derived.nmblogentries(3)
+        >>> logs.loggedwaterevaporation.shape = 3, 2
+        >>> logs.loggedwaterevaporation = [[1.0, 2.0], [5.0, 6.0], [3.0, 4.0]]
+        >>> model.calc_dailywaterevaporation_v1()
+        >>> fluxes.dailywaterevaporation
+        dailywaterevaporation(3.0, 4.0)
+    """
+
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    DERIVEDPARAMETERS = (evap_derived.NmbLogEntries,)
+    REQUIREDSEQUENCES = (evap_logs.LoggedWaterEvaporation,)
+    RESULTSEQUENCES = (evap_fluxes.DailyWaterEvaporation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        log = model.sequences.logs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            flu.dailywaterevaporation[k] = 0.0
+        for idx in range(der.nmblogentries):
+            for k in range(con.nmbhru):
+                flu.dailywaterevaporation[k] += log.loggedwaterevaporation[idx, k]
+        for k in range(con.nmbhru):
+            flu.dailywaterevaporation[k] /= der.nmblogentries
+
+
 class Calc_InterceptionEvaporation_V1(modeltools.Method):
     r"""Calculate the actual interception evaporation by setting it equal to potential
     evapotranspiration.
@@ -3995,7 +5713,7 @@ class Calc_InterceptionEvaporation_V1(modeltools.Method):
       .. math::
         InterceptionEvaporation =
         \begin{cases}
-        PotentialEvapotranspiration &|\ InterceptedWater > 0
+        PotentialInterceptionEvaporation &|\ InterceptedWater > 0
         \\
         0 &|\ InterceptedWater = 0
         \end{cases}
@@ -4009,7 +5727,7 @@ class Calc_InterceptionEvaporation_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbhru(4)
         >>> interception(True)
-        >>> fluxes.potentialevapotranspiration(1.0)
+        >>> fluxes.potentialinterceptionevaporation(1.0)
         >>> factors.interceptedwater(1.5, 1.0, 0.5, 0.0)
         >>> model.calc_interceptionevaporation_v1()
         >>> fluxes.interceptionevaporation
@@ -4030,7 +5748,7 @@ class Calc_InterceptionEvaporation_V1(modeltools.Method):
     )
     REQUIREDSEQUENCES = (
         evap_factors.InterceptedWater,
-        evap_fluxes.PotentialEvapotranspiration,
+        evap_fluxes.PotentialInterceptionEvaporation,
     )
     RESULTSEQUENCES = (evap_fluxes.InterceptionEvaporation,)
 
@@ -4042,233 +5760,14 @@ class Calc_InterceptionEvaporation_V1(modeltools.Method):
         for k in range(con.nmbhru):
             if con.interception[k]:
                 flu.interceptionevaporation[k] = min(
-                    flu.potentialevapotranspiration[k], fac.interceptedwater[k]
+                    flu.potentialinterceptionevaporation[k], fac.interceptedwater[k]
                 )
             else:
                 flu.interceptionevaporation[k] = 0.0
 
 
-class Return_Evaporation_PenmanMonteith_V1(modeltools.Method):
-    r"""Calculate the actual evapotranspiration with the Penman-Monteith equation
-    according to :cite:t:`ref-LARSIM`, based on :cite:t:`ref-Thompson1981`.
-
-    Basic equations:
-
-    .. math::
-      f_{PM}(r_s) =
-      \frac{P'_s \cdot (R_n - G) + C \cdot \rho \cdot c_p \cdot (P_s - P_a) / r_a}
-      {H \cdot (P'_s + \gamma \cdot C \cdot (1 + r_s / r_a))} \\
-      \\
-      C = 1 + \frac{b' \cdot r_a}{\rho \cdot c_p} \\
-      \\
-      b' = 4 \cdot \varepsilon \cdot \sigma \cdot (273.15 + T)^3 \\
-      \\
-      r_s = actualsurfaceresistance \\
-      P'_s = SaturationVapourPressureSlope  \\
-      R_n = NetRadiation \\
-      G = SoilHeatFlux \\
-      \rho = AirDensitiy  \\
-      c_p = HeatCapacityAir \\
-      P_s = SaturationVapourPressure \\
-      P_a = ActualVapourPressure \\
-      r_a = AerodynamicResistance \\
-      H = HeatOfCondensation \\
-      \gamma = PsychrometricConstant \\
-      \varepsilon = Emissivity \\
-      T = AirTemperature \\
-      \sigma = StefanBoltzmannConstant
-
-    Hint: Correction factor `C` takes the difference between measured air temperature
-    and actual surface temperature into account.
-
-    Example:
-
-        We build the following example on the first example of the documentation on
-        method |Calc_WaterEvaporation_V3|, which relies on the Penman equation.  The
-        total available energy (|NetRadiation| minus |SoilHeatFlux|) and the vapour
-        saturation pressure deficit (|SaturationVapourPressure| minus
-        |ActualVapourPressure| are identical.  To make the results roughly comparable,
-        we use resistances suitable for water surfaces by setting
-        |ActualSurfaceResistance| to zero and |AerodynamicResistance| to a reasonable
-        precalculated value of 106 s/m:
-
-        >>> from hydpy.models.evap import *
-        >>> simulationstep("1d")
-        >>> parameterstep()
-        >>> nmbhru(7)
-        >>> emissivity(0.96)
-        >>> fluxes.netradiation = 10.0, 50.0, 100.0, 10.0, 10.0, 10.0, 100.0
-        >>> fluxes.soilheatflux = 10.0
-        >>> factors.saturationvapourpressure = 12.0
-        >>> factors.saturationvapourpressureslope = 0.8
-        >>> factors.actualvapourpressure = 12.0, 12.0, 12.0, 12.0, 6.0, 0.0, 0.0
-        >>> factors.airdensity = 1.24
-        >>> factors.actualsurfaceresistance = 0.0
-        >>> factors.aerodynamicresistance = 106.0
-        >>> factors.airtemperature = 10.0
-
-        For the first three hydrological response units with energy forcing only, there
-        is a relatively small deviation to the results of method
-        |Calc_WaterEvaporation_V3| due to the correction factor `C`, which is only
-        implemented by method |Return_Evaporation_PenmanMonteith_V1|.  For response
-        units four to six with dynamic forcing only, the results of method
-        |Return_Evaporation_PenmanMonteith_V1| are more than twice as large as those
-        of method |Calc_WaterEvaporation_V3|:
-
-        >>> from hydpy import print_values
-        >>> for hru in range(7):
-        ...     deficit = (factors.saturationvapourpressure[hru] -
-        ...                factors.actualvapourpressure[hru])
-        ...     evap = model.return_evaporation_penmanmonteith_v1(
-        ...         hru, factors.actualsurfaceresistance[hru])
-        ...     energygain = fluxes.netradiation[hru] - fluxes.soilheatflux[hru]
-        ...     print_values([energygain, deficit, evap])
-        0.0, 0.0, 0.0
-        40.0, 0.0, 0.648881
-        90.0, 0.0, 1.459982
-        0.0, 0.0, 0.0
-        0.0, 6.0, 2.031724
-        0.0, 12.0, 4.063447
-        90.0, 12.0, 5.523429
-
-        Next, we repeat the above calculations using resistances suitable for vegetated
-        surfaces (note that this also changes the results of the first three response
-        units due to correction factor `C` depending on |AerodynamicResistance|):
-
-        >>> factors.actualsurfaceresistance = 80.0
-        >>> factors.aerodynamicresistance = 40.0
-        >>> for hru in range(7):
-        ...     deficit = (factors.saturationvapourpressure[hru] -
-        ...                factors.actualvapourpressure[hru])
-        ...     evap = model.return_evaporation_penmanmonteith_v1(
-        ...         hru, factors.actualsurfaceresistance[hru])
-        ...     energygain = fluxes.netradiation[hru] - fluxes.soilheatflux[hru]
-        ...     print_values([energygain, deficit, evap])
-        0.0, 0.0, 0.0
-        40.0, 0.0, 0.364933
-        90.0, 0.0, 0.8211
-        0.0, 0.0, 0.0
-        0.0, 6.0, 2.469986
-        0.0, 12.0, 4.939972
-        90.0, 12.0, 5.761072
-
-        The above results are sensitive to the ratio between |ActualSurfaceResistance|
-        and |AerodynamicResistance|.  The following example demonstrates this
-        sensitivity through varying |ActualSurfaceResistance| over a wide range:
-
-        >>> fluxes.netradiation = 100.0
-        >>> factors.actualvapourpressure = 0.0
-        >>> factors.actualsurfaceresistance = (
-        ...     0.0, 20.0, 50.0, 100.0, 200.0, 500.0, 1000.0)
-        >>> for hru in range(7):
-        ...     print_values([factors.actualsurfaceresistance[hru],
-        ...                   model.return_evaporation_penmanmonteith_v1(
-        ...                       hru, factors.actualsurfaceresistance[hru])])
-        0.0, 11.370311
-        20.0, 9.144449
-        50.0, 7.068767
-        100.0, 5.128562
-        200.0, 3.31099
-        500.0, 1.604779
-        1000.0, 0.863312
-
-        One potential pitfall of the given Penman-Monteith equation is that
-        |AerodynamicResistance| becomes infinite for zero wind speed.  We protect
-        method |Return_Evaporation_PenmanMonteith_V1| against this problem (and the
-        less likely problem of zero aerodynamic resistance) by limiting the value of
-        |AerodynamicResistance| to the interval :math:`[10^{-6}, 10^6]`:
-
-        >>> factors.actualvapourpressure = 6.0
-        >>> factors.actualsurfaceresistance = 80.0
-        >>> factors.aerodynamicresistance = (0.0, 1e-6, 1e-3, 1.0, 1e3, 1e6, inf)
-        >>> for hru in range(7):
-        ...     print_values([factors.aerodynamicresistance[hru],
-        ...                   model.return_evaporation_penmanmonteith_v1(
-        ...                       hru, factors.actualsurfaceresistance[hru])])
-        0.0, 5.00683
-        0.000001, 5.00683
-        0.001, 5.006739
-        1.0, 4.918573
-        1000.0, 0.887816
-        1000000.0, 0.001372
-        inf, 0.001372
-
-        Now we change the simulation time step from one day to one hour to demonstrate
-        that we can reproduce the first example's results, which requires adjusting
-        |NetRadiation| and |SoilHeatFlux|:
-
-        >>> simulationstep("1h")
-        >>> fixed.heatofcondensation.restore()
-        >>> fluxes.netradiation = 10.0, 50.0, 100.0, 10.0, 10.0, 10.0, 100.0
-        >>> factors.actualvapourpressure = 12.0, 12.0, 12.0, 12.0, 6.0, 0.0, 0.0
-        >>> factors.actualsurfaceresistance = 0.0
-        >>> factors.aerodynamicresistance = 106.0
-        >>> for hru in range(7):
-        ...     deficit = (factors.saturationvapourpressure[hru] -
-        ...                factors.actualvapourpressure[hru])
-        ...     evap = 24.0 * model.return_evaporation_penmanmonteith_v1(
-        ...         hru, factors.actualsurfaceresistance[hru])
-        ...     energygain = fluxes.netradiation[hru] - fluxes.soilheatflux[hru]
-        ...     print_values([energygain, deficit, evap])
-        0.0, 0.0, 0.0
-        40.0, 0.0, 0.648881
-        90.0, 0.0, 1.459982
-        0.0, 0.0, 0.0
-        0.0, 6.0, 2.031724
-        0.0, 12.0, 4.063447
-        90.0, 12.0, 5.523429
-    """
-
-    CONTROLPARAMETERS = (evap_control.Emissivity,)
-    FIXEDPARAMETERS = (
-        evap_fixed.StefanBoltzmannConstant,
-        evap_fixed.HeatOfCondensation,
-        evap_fixed.HeatCapacityAir,
-        evap_fixed.PsychrometricConstant,
-    )
-    REQUIREDSEQUENCES = (
-        evap_factors.AirTemperature,
-        evap_factors.SaturationVapourPressureSlope,
-        evap_factors.SaturationVapourPressure,
-        evap_factors.ActualVapourPressure,
-        evap_factors.AirDensity,
-        evap_factors.AerodynamicResistance,
-        evap_fluxes.NetRadiation,
-        evap_fluxes.SoilHeatFlux,
-    )
-
-    @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        k: int,
-        actualsurfaceresistance: float,
-    ) -> float:
-        con = model.parameters.control.fastaccess
-        fix = model.parameters.fixed.fastaccess
-        fac = model.sequences.factors.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        ar: float = min(max(fac.aerodynamicresistance[k], 1e-6), 1e6)
-        t: float = 273.15 + fac.airtemperature[k]
-        b: float = (4.0 * con.emissivity * fix.stefanboltzmannconstant) * t**3
-        c: float = 1.0 + b * ar / fac.airdensity[k] / fix.heatcapacityair
-        return (
-            (
-                fac.saturationvapourpressureslope[k]
-                * (flu.netradiation[k] - flu.soilheatflux[k])
-                + (c * fac.airdensity[k] * fix.heatcapacityair)
-                * (fac.saturationvapourpressure[k] - fac.actualvapourpressure[k])
-                / ar
-            )
-            / (
-                fac.saturationvapourpressureslope[k]
-                + fix.psychrometricconstant * c * (1.0 + actualsurfaceresistance / ar)
-            )
-            / fix.heatofcondensation
-        )
-
-
 class Calc_PotentialInterceptionEvaporation_V1(modeltools.Method):
-    r"""Calculate the potential interception evaporation by applying the
+    r"""Calculate the potential interception evaporation using an extended
     Penman-Monteith equation with zero surface resistance.
 
     Basic equation:
@@ -4318,7 +5817,6 @@ class Calc_PotentialInterceptionEvaporation_V1(modeltools.Method):
         evap_control.Interception,
         evap_control.Emissivity,
     )
-    DERIVEDPARAMETERS = (evap_derived.Seconds,)
     FIXEDPARAMETERS = (
         evap_fixed.StefanBoltzmannConstant,
         evap_fixed.HeatOfCondensation,
@@ -4350,6 +5848,207 @@ class Calc_PotentialInterceptionEvaporation_V1(modeltools.Method):
                 flu.potentialinterceptionevaporation[k] = 0.0
 
 
+class Calc_PotentialInterceptionEvaporation_V2(modeltools.Method):
+    r"""Calculate the potential interception evaporation by applying the Penman-Monteith
+    equation with zero surface resistance.
+
+    Basic equation:
+      .. math::
+        PotentialInterceptionEvaporation = \begin{cases}
+        f_{PM}(0.0)  &|\ Interception
+        \\
+        0 &|\ \overline{Interception}
+        \end{cases}
+
+    Examples:
+
+        The following settings agree with the first example on method
+        |Return_Evaporation_PenmanMonteith_V2|:
+
+        >>> from hydpy.models.evap import *
+        >>> simulationstep("1d")
+        >>> parameterstep()
+        >>> nmbhru(7)
+        >>> interception(True)
+        >>> factors.saturationvapourpressure = 12.0
+        >>> factors.saturationvapourpressureslope = 0.8
+        >>> factors.actualvapourpressure = 12.0, 12.0, 12.0, 12.0, 6.0, 0.0, 0.0
+        >>> factors.airdensity = 1.24
+        >>> factors.aerodynamicresistance = 106.0
+        >>> fluxes.netradiation = 10.0, 50.0, 100.0, 10.0, 10.0, 10.0, 100.0
+        >>> fluxes.soilheatflux = 10.0
+        >>> model.calc_potentialinterceptionevaporation_v2()
+        >>> fluxes.potentialinterceptionevaporation
+        potentialinterceptionevaporation(0.0, 0.771689, 1.7363, 0.0, 1.701082,
+                                         3.402164, 5.138464)
+
+        Interception evaporation is always zero for hydrological response units not
+        considering interception:
+
+        >>> interception(False)
+        >>> model.calc_potentialinterceptionevaporation_v1()
+        >>> fluxes.potentialinterceptionevaporation
+        potentialinterceptionevaporation(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    """
+
+    SUBMETHODS = (Return_Evaporation_PenmanMonteith_V2,)
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.Interception,
+    )
+    FIXEDPARAMETERS = (
+        evap_fixed.HeatOfCondensation,
+        evap_fixed.HeatCapacityAir,
+        evap_fixed.PsychrometricConstant,
+    )
+    REQUIREDSEQUENCES = (
+        evap_factors.SaturationVapourPressureSlope,
+        evap_factors.SaturationVapourPressure,
+        evap_factors.ActualVapourPressure,
+        evap_factors.AirDensity,
+        evap_factors.AerodynamicResistance,
+        evap_fluxes.NetRadiation,
+        evap_fluxes.SoilHeatFlux,
+    )
+    RESULTSEQUENCES = (evap_fluxes.PotentialInterceptionEvaporation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            if con.interception[k]:
+                evap: float = model.return_evaporation_penmanmonteith_v2(k, 0.0)
+                flu.potentialinterceptionevaporation[k] = evap
+            else:
+                flu.potentialinterceptionevaporation[k] = 0.0
+
+
+class Calc_PotentialInterceptionEvaporation_PETModel_V1(modeltools.Method):
+    """Let a submodel that complies with the |PETModel_V1| interface calculate
+    potential evapotranspiration and assume it as potential interception evaporation.
+
+    Example:
+
+        We use |evap_minhas| and |evap_io| as an example:
+
+        >>> from hydpy.models.evap_minhas import *
+        >>> parameterstep()
+        >>> nmbhru(3)
+        >>> with model.add_petmodel_v1("evap_io"):
+        ...     hruarea(1.0, 3.0, 2.0)
+        ...     evapotranspirationfactor(0.5, 1.0, 2.0)
+        ...     inputs.referenceevapotranspiration = 2.0
+        >>> model.calc_potentialinterceptionevaporation_v3()
+        >>> fluxes.potentialinterceptionevaporation
+        potentialinterceptionevaporation(1.0, 2.0, 4.0)
+    """
+
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    RESULTSEQUENCES = (evap_fluxes.PotentialInterceptionEvaporation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        submodel.determine_potentialevapotranspiration()
+        for k in range(con.nmbhru):
+            flu.potentialinterceptionevaporation[
+                k
+            ] = submodel.get_potentialevapotranspiration(k)
+
+
+class Calc_PotentialInterceptionEvaporation_PETModel_V2(modeltools.Method):
+    """Let a submodel that complies with the |PETModel_V2| interface calculate
+    potential interception evaporation and query it.
+
+    Example:
+
+        We use |evap_minhas| and |evap_pet_ambav1| as an example:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
+        >>> from hydpy.models.evap_minhas import *
+        >>> parameterstep()
+        >>> nmbhru(3)
+        >>> interception(False, True, True)
+        >>> soil(False, True, True)
+        >>> water(True, False, False)
+        >>> with model.add_petmodel_v2("evap_pet_ambav1"):
+        ...     hrutype(0)
+        ...     plant(True)
+        ...     tree(False)
+        ...     measuringheightwindspeed(10.0)
+        ...     groundalbedo(0.2)
+        ...     groundalbedosnow(0.8)
+        ...     leafalbedo(0.2)
+        ...     leafalbedosnow(0.8)
+        ...     leafareaindex(5.0)
+        ...     cropheight(10.0)
+        ...     cloudtypefactor(0.2)
+        ...     nightcloudfactor(1.0)
+        ...     inputs.relativehumidity = 80.0
+        ...     inputs.windspeed = 2.0
+        ...     inputs.atmosphericpressure = 1000.0
+        ...     inputs.sunshineduration = 6.0
+        ...     inputs.possiblesunshineduration = 16.0
+        ...     inputs.globalradiation = 190.0
+        ...     with model.add_tempmodel_v2("meteo_temp_io"):
+        ...         hruarea(1.0)
+        ...         temperatureaddend(0.0)
+        ...         inputs.temperature = 15.0
+        ...     with model.add_precipmodel_v2("meteo_precip_io"):
+        ...         hruarea(1.0)
+        ...         precipitationfactor(1.0)
+        ...         inputs.precipitation = 0.0
+        ...     with model.add_snowcovermodel_v1("dummy_snowcover"):
+        ...         inputs.snowcover = 0.0, 0.0, 1.0
+        >>> model.calc_potentialinterceptionevaporation_v3()
+        >>> fluxes.potentialinterceptionevaporation
+        potentialinterceptionevaporation(0.0, 8.211488, 6.056298)
+    """
+
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    RESULTSEQUENCES = (evap_fluxes.PotentialInterceptionEvaporation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V2) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        submodel.determine_potentialinterceptionevaporation()
+        for k in range(con.nmbhru):
+            flu.potentialinterceptionevaporation[
+                k
+            ] = submodel.get_potentialinterceptionevaporation(k)
+
+
+class Calc_PotentialInterceptionEvaporation_V3(modeltools.Method):
+    """Use a submodel that complies with the |PETModel_V1| or |PETModel_V2| interface
+    to determine evaporation from water areas."""
+
+    SUBMODELINTERFACES = (
+        petinterfaces.PETModel_V1,
+        petinterfaces.PETModel_V2,
+    )
+    SUBMETHODS = (
+        Calc_PotentialInterceptionEvaporation_PETModel_V1,
+        Calc_PotentialInterceptionEvaporation_PETModel_V2,
+    )
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    RESULTSEQUENCES = (evap_fluxes.PotentialInterceptionEvaporation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        if model.petmodel_typeid == 1:
+            model.calc_potentialinterceptionevaporation_petmodel_v1(
+                cast(petinterfaces.PETModel_V1, model.petmodel)
+            )
+        elif model.petmodel_typeid == 2:
+            model.calc_potentialinterceptionevaporation_petmodel_v2(
+                cast(petinterfaces.PETModel_V1, model.petmodel)
+            )
+
+
 class Calc_InterceptionEvaporation_V2(modeltools.Method):
     r"""Calculate the actual interception evaporation by setting it equal to potential
     interception evaporation.
@@ -4359,7 +6058,7 @@ class Calc_InterceptionEvaporation_V2(modeltools.Method):
         InterceptionEvaporation =
         \begin{cases}
         min(PotentialInterceptionEvaporation, \ InterceptedWater) &|\
-        Interception \land ( Tree \lor SnowCover= 0 )
+        Interception \land ( Tree \lor SnowCover = 0 )
         \\
         0 &|\ \overline{Interception} \lor ( \overline{Tree} \land SnowCover > 0 )
         \end{cases}
@@ -4453,14 +6152,227 @@ class Calc_InterceptionEvaporation_V2(modeltools.Method):
                 flu.interceptionevaporation[k] = 0.0
 
 
+class Calc_PotentialSoilEvapotranspiration_V1(modeltools.Method):
+    r"""Calculate the potential evapotranspiration from the soil by applying the
+    Penman-Monteith equation with an actual surface resistance that does not consider
+    the current soil moisture.
+
+    Basic equation:
+      .. math::
+        PotentialSoilEvapotranspiration = \begin{cases}
+        f_{PM}(ActualSurfaceResistance)  &|\ Soil
+        \\
+        0 &|\ \overline{Soil}
+        \end{cases}
+
+    Examples:
+
+        We prepare two hydrological response units, of which only the first one's soil
+        is accessible for evapotranspiration losses.  The other settings agree with the
+        last response unit in the second example on method
+        |Return_Evaporation_PenmanMonteith_V2|:
+
+        >>> from hydpy.models.evap import *
+        >>> simulationstep("1d")
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> soil(True, False)
+        >>> factors.saturationvapourpressure = 12.0
+        >>> factors.saturationvapourpressureslope = 0.8
+        >>> factors.actualvapourpressure = 0.0
+        >>> factors.airdensity = 1.24
+        >>> factors.aerodynamicresistance = 40.0
+        >>> factors.actualsurfaceresistance = 80.0
+        >>> fluxes.netradiation = 100.0
+        >>> fluxes.soilheatflux = 10.0
+
+        The determined potential evapotranspiration value for the first response unit
+        agrees with the corresponding |Return_Evaporation_PenmanMonteith_V2| example.
+        For the soil-free unit, it is zero:
+
+        >>> model.calc_potentialsoilevapotranspiration_v1()
+        >>> fluxes.potentialsoilevapotranspiration
+        potentialsoilevapotranspiration(5.657942, 0.0)
+    """
+
+    SUBMETHODS = (Return_Evaporation_PenmanMonteith_V2,)
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.Soil,
+    )
+    FIXEDPARAMETERS = (
+        evap_fixed.HeatOfCondensation,
+        evap_fixed.HeatCapacityAir,
+        evap_fixed.PsychrometricConstant,
+    )
+    REQUIREDSEQUENCES = (
+        evap_factors.SaturationVapourPressureSlope,
+        evap_factors.SaturationVapourPressure,
+        evap_factors.ActualVapourPressure,
+        evap_factors.AirDensity,
+        evap_factors.AerodynamicResistance,
+        evap_factors.ActualSurfaceResistance,
+        evap_fluxes.NetRadiation,
+        evap_fluxes.SoilHeatFlux,
+    )
+    RESULTSEQUENCES = (evap_fluxes.PotentialSoilEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            if con.soil[k]:
+                r: float = fac.actualsurfaceresistance[k]
+                pet: float = model.return_evaporation_penmanmonteith_v2(k, r)
+                flu.potentialsoilevapotranspiration[k] = pet
+            else:
+                flu.potentialsoilevapotranspiration[k] = 0.0
+
+
+class Calc_PotentialSoilEvapotranspiration_PETModel_V1(modeltools.Method):
+    """Query the already calculated potential evapotranspiration from a submodel that
+    complies with the |PETModel_V1| interface and assume it as potential soil
+    evapotranspiration.
+
+    Example:
+
+        We use |evap_minhas| and |evap_io| as an example:
+
+        >>> from hydpy.models.evap_minhas import *
+        >>> parameterstep()
+        >>> nmbhru(3)
+        >>> with model.add_petmodel_v1("evap_io"):
+        ...     hruarea(1.0, 3.0, 2.0)
+        ...     fluxes.referenceevapotranspiration = 1.0, 2.0, 4.0
+        >>> model.calc_potentialsoilevapotranspiration_v2()
+        >>> fluxes.potentialsoilevapotranspiration
+        potentialsoilevapotranspiration(1.0, 2.0, 4.0)
+    """
+
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    RESULTSEQUENCES = (evap_fluxes.PotentialSoilEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            flu.potentialsoilevapotranspiration[
+                k
+            ] = submodel.get_potentialevapotranspiration(k)
+
+
+class Calc_PotentialSoilEvapotranspiration_PETModel_V2(modeltools.Method):
+    """Let a submodel that complies with the |PETModel_V2| interface calculate
+    potential soil evapotranspiration and query it.
+
+    Example:
+
+        We use |evap_minhas| and |evap_pet_ambav1| as an example:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
+        >>> from hydpy.models.evap_minhas import *
+        >>> parameterstep()
+        >>> nmbhru(3)
+        >>> interception(False, True, True)
+        >>> soil(False, True, True)
+        >>> water(True, False, False)
+        >>> with model.add_petmodel_v2("evap_pet_ambav1"):
+        ...     hrutype(0)
+        ...     plant(True)
+        ...     tree(False)
+        ...     measuringheightwindspeed(10.0)
+        ...     leafalbedo(0.2)
+        ...     leafalbedosnow(0.8)
+        ...     groundalbedo(0.2)
+        ...     groundalbedosnow(0.8)
+        ...     leafareaindex(5.0)
+        ...     cropheight(10.0)
+        ...     leafresistance(40.0)
+        ...     wetsoilresistance(100.0)
+        ...     soilresistanceincrease(1.0)
+        ...     wetnessthreshold(0.5)
+        ...     cloudtypefactor(0.2)
+        ...     nightcloudfactor(1.0)
+        ...     inputs.relativehumidity = 80.0
+        ...     inputs.windspeed = 2.0
+        ...     inputs.atmosphericpressure = 1000.0
+        ...     inputs.sunshineduration = 6.0
+        ...     inputs.possiblesunshineduration = 16.0
+        ...     inputs.globalradiation = 190.0
+        ...     with model.add_tempmodel_v2("meteo_temp_io"):
+        ...         hruarea(1.0)
+        ...         temperatureaddend(0.0)
+        ...         inputs.temperature = 15.0
+        ...     with model.add_precipmodel_v2("meteo_precip_io"):
+        ...         hruarea(1.0)
+        ...         precipitationfactor(1.0)
+        ...         inputs.precipitation = 0.0
+        ...     with model.add_snowcovermodel_v1("dummy_snowcover"):
+        ...         inputs.snowcover = 0.0, 0.0, 1.0
+        >>> model.petmodel.determine_potentialinterceptionevaporation()
+        >>> model.calc_potentialsoilevapotranspiration_v2()
+        >>> fluxes.potentialsoilevapotranspiration
+        potentialsoilevapotranspiration(0.0, 3.163548, 2.333242)
+    """
+
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    RESULTSEQUENCES = (evap_fluxes.PotentialSoilEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V2) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        submodel.determine_potentialsoilevapotranspiration()
+        for k in range(con.nmbhru):
+            flu.potentialsoilevapotranspiration[
+                k
+            ] = submodel.get_potentialsoilevapotranspiration(k)
+
+
+class Calc_PotentialSoilEvapotranspiration_V2(modeltools.Method):
+    """Use a submodel that complies with the |PETModel_V1| or |PETModel_V2| interface
+    to determine potential soil evapotranspiration."""
+
+    SUBMODELINTERFACES = (
+        petinterfaces.PETModel_V1,
+        petinterfaces.PETModel_V2,
+    )
+    SUBMETHODS = (
+        Calc_PotentialSoilEvapotranspiration_PETModel_V1,
+        Calc_PotentialSoilEvapotranspiration_PETModel_V2,
+    )
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    RESULTSEQUENCES = (evap_fluxes.PotentialSoilEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        if model.petmodel_typeid == 1:
+            model.calc_potentialsoilevapotranspiration_petmodel_v1(
+                cast(petinterfaces.PETModel_V1, model.petmodel)
+            )
+        elif model.petmodel_typeid == 2:
+            model.calc_potentialsoilevapotranspiration_petmodel_v2(
+                cast(petinterfaces.PETModel_V1, model.petmodel)
+            )
+
+
 class Calc_SoilEvapotranspiration_V1(modeltools.Method):
     r"""Calculate the actual soil evapotranspiration according to
     :cite:t:`ref-Lindstrom1997HBV96`.
 
     Basic equation:
       .. math::
-        SoilEvapotranspiration = PotentialEvapotranspiration \cdot
-        \frac{SoilWater}{SoilMoistureLimit \cdot MaxSoilWater}
+        et_s = pet_s \cdot \frac{s}{l \cdot m}
+        \\ \\
+        et_s = SoilEvapotranspiration \\
+        pet_s = PotentialSoilEvapotranspiration \\
+        s = SoilWater \\
+        l = SoilMoistureLimit \\
+        m = MaxSoilWater
 
     Examples:
 
@@ -4476,15 +6388,15 @@ class Calc_SoilEvapotranspiration_V1(modeltools.Method):
         >>> soil(True)
         >>> maxsoilwater(200.0)
         >>> soilmoisturelimit(0.5)
-        >>> fluxes.potentialevapotranspiration = 2.0
+        >>> fluxes.potentialsoilevapotranspiration = 2.0
         >>> factors.soilwater = -1.0, 0.0, 50.0, 100.0, 150.0, 200.0, 201.0
         >>> model.calc_soilevapotranspiration_v1()
         >>> fluxes.soilevapotranspiration
         soilevapotranspiration(0.0, 0.0, 1.0, 2.0, 2.0, 2.0, 2.0)
 
         When setting |SoilMoistureLimit| to zero, |Calc_SoilEvapotranspiration_V1| sets
-        actual soil evapotranspiration equal to possible evapotranspiration, except for
-        negative soil moisture:
+        actual soil evapotranspiration equal to possible soil evapotranspiration,
+        except for negative soil moisture:
 
         >>> soilmoisturelimit(0.0)
         >>> model.calc_soilevapotranspiration_v1()
@@ -4501,10 +6413,10 @@ class Calc_SoilEvapotranspiration_V1(modeltools.Method):
 
         Condensation does not depend on actual soil moisture.  Hence,
         |Calc_SoilEvapotranspiration_V1| generally sets actual soil evapotranspiration
-        equal to potential evapotranspiration if negative:
+        equal to potential soil evapotranspiration if negative:
 
         >>> soilmoisturelimit(0.5)
-        >>> fluxes.potentialevapotranspiration = -1.0
+        >>> fluxes.potentialsoilevapotranspiration = -1.0
         >>> model.calc_soilevapotranspiration_v1()
         >>> fluxes.soilevapotranspiration
         soilevapotranspiration(-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0)
@@ -4525,7 +6437,7 @@ class Calc_SoilEvapotranspiration_V1(modeltools.Method):
     )
     REQUIREDSEQUENCES = (
         evap_factors.SoilWater,
-        evap_fluxes.PotentialEvapotranspiration,
+        evap_fluxes.PotentialSoilEvapotranspiration,
     )
     RESULTSEQUENCES = (evap_fluxes.SoilEvapotranspiration,)
 
@@ -4536,7 +6448,7 @@ class Calc_SoilEvapotranspiration_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbhru):
             if con.soil[k]:
-                flu.soilevapotranspiration[k] = flu.potentialevapotranspiration[k]
+                flu.soilevapotranspiration[k] = flu.potentialsoilevapotranspiration[k]
                 if flu.soilevapotranspiration[k] > 0.0:
                     if fac.soilwater[k] < 0.0:
                         flu.soilevapotranspiration[k] = 0.0
@@ -4554,16 +6466,19 @@ class Calc_SoilEvapotranspiration_V2(modeltools.Method):
 
     The applied equation deviates from the original by using the formulation of
     :cite:t:`ref-Disse1995`, which is mathematically identical but simpler to
-    parameterise, and the approach of :cite:t:`ref-DVWK2002`, which reduces the delta
-    of potential evapotranspiration and (previously calculated) interception
-    evaporation.  Also, it does not explicitly account for the permanent wilting point.
+    parameterise and does not explicitly account for the permanent wilting point.
 
     Basic equation:
-      :math:`SoilEvapotranspiration =
-      (PotentialEvapotranspiration - InterceptionEvaporation) \cdot
-      \frac{1 - exp\left(-DisseFactor \cdot \frac{SoilWater}{MaxSoilWater} \right)}
-      {1 + exp\left(-DisseFactor \cdot \frac{SoilWater}{MaxSoilWater} \right) -
-      2 \cdot exp(-DisseFactor)}`
+      .. math::
+       et_s = pet_s \cdot \frac
+       {1 - exp\left(-f\cdot \frac{w}{m } \right)}
+       {1 + exp\left(-f\cdot \frac{w}{m } \right) - 2 \cdot exp(-f)}
+        \\ \\
+        et_s = SoilEvapotranspiration \\
+        pet_s = PotentialSoilEvapotranspiration \\
+        f = DisseFactor \\
+        w = SoilWater \\
+        m = MaxSoilWater
 
     Examples:
 
@@ -4579,8 +6494,7 @@ class Calc_SoilEvapotranspiration_V2(modeltools.Method):
         >>> soil(True)
         >>> dissefactor(5.0)
         >>> maxsoilwater(100.0)
-        >>> fluxes.potentialevapotranspiration = 5.0
-        >>> fluxes.interceptionevaporation = 3.0
+        >>> fluxes.potentialsoilevapotranspiration = 2.0
         >>> factors.soilwater = -1.0, 0.0, 50.0, 100.0, 101.0
         >>> model.calc_soilevapotranspiration_v2()
         >>> fluxes.soilevapotranspiration
@@ -4588,11 +6502,9 @@ class Calc_SoilEvapotranspiration_V2(modeltools.Method):
 
         Condensation does not depend on actual soil moisture.  Hence,
         |Calc_SoilEvapotranspiration_V2| generally sets actual soil evapotranspiration
-        equal to the delta of potential evapotranspiration and interception evaporation
-        if this delta is negative:
+        equal to potential soil evapotranspiration if negative:
 
-        >>> fluxes.potentialevapotranspiration = -5.0
-        >>> fluxes.interceptionevaporation = -3.0
+        >>> fluxes.potentialsoilevapotranspiration = -2.0
         >>> model.calc_soilevapotranspiration_v2()
         >>> fluxes.soilevapotranspiration
         soilevapotranspiration(-2.0, -2.0, -2.0, -2.0, -2.0)
@@ -4613,8 +6525,7 @@ class Calc_SoilEvapotranspiration_V2(modeltools.Method):
     )
     REQUIREDSEQUENCES = (
         evap_factors.SoilWater,
-        evap_fluxes.PotentialEvapotranspiration,
-        evap_fluxes.InterceptionEvaporation,
+        evap_fluxes.PotentialSoilEvapotranspiration,
     )
     RESULTSEQUENCES = (evap_fluxes.SoilEvapotranspiration,)
 
@@ -4625,9 +6536,7 @@ class Calc_SoilEvapotranspiration_V2(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbhru):
             if con.soil[k]:
-                flu.soilevapotranspiration[k] = (
-                    flu.potentialevapotranspiration[k] - flu.interceptionevaporation[k]
-                )
+                flu.soilevapotranspiration[k] = flu.potentialsoilevapotranspiration[k]
                 if flu.soilevapotranspiration[k] > 0.0:
                     moisture: float = fac.soilwater[k] / con.maxsoilwater[k]
                     if moisture <= 0.0:
@@ -4643,7 +6552,7 @@ class Calc_SoilEvapotranspiration_V2(modeltools.Method):
 
 class Calc_SoilEvapotranspiration_V3(modeltools.Method):
     r"""Calculate the evapotranspiration from the soil by applying the Penman-Monteith
-    equation with the actual surface resistance.
+    equation with an actual surface resistance considering the current soil moisture.
 
     Basic equation:
       .. math::
@@ -4750,11 +6659,21 @@ class Update_SoilEvapotranspiration_V1(modeltools.Method):
     and soil evapotranspiration exceeds potential evapotranspiration, according to
     :cite:t:`ref-Lindstrom1997HBV96`.
 
+    :cite:t:`ref-Lindstrom1997HBV96` does not distinguish between potential
+    interception evaporation and potential soil evapotranspiration.  Hence, the
+    following equation is generalised to deal with situations where both terms are
+    unequal.  See `issue 118`_ for further information.
+
     Basic equation:
       .. math::
-        SoilEvapotranspiration_{new} = SoilEvapotranspiration_{old} - ExcessReduction
-        \cdot (SoilEvapotranspiration_{old} + InterceptionEvaporation -
-        PotentialEvapotranspiration)
+        et_s^{new} = et_s^{old} - r \cdot \Big(
+        et_s^{old} + e_i - \big(r \cdot pe_i + (1 - r) \cdot (pet_s + pe_i) / 2 \big)
+        \Big)
+        \\ \\
+        et_s = SoilEvapotranspiration \\
+        r = ExcessReduction \\
+        e_i = InterceptionEvaporation \\
+        pet = PotentialEvapotranspiration
 
     Examples:
 
@@ -4762,14 +6681,15 @@ class Update_SoilEvapotranspiration_V1(modeltools.Method):
         evapotranspiration values, including a negative one (condensation).  When
         setting |ExcessReduction| to one, |Update_SoilEvapotranspiration_V1| does not
         allow the sum of interception evaporation and soil evapotranspiration to exceed
-        potential evapotranspiration at all:
+        potential interception evaporation:
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
         >>> nmbhru(6)
         >>> soil(True)
         >>> excessreduction(1.0)
-        >>> fluxes.potentialevapotranspiration = 2.0
+        >>> fluxes.potentialinterceptionevaporation = 2.0
+        >>> fluxes.potentialsoilevapotranspiration = 1.5
         >>> fluxes.interceptionevaporation = 1.0
         >>> fluxes.soilevapotranspiration = -0.5, 0.0, 0.5, 1.0, 1.5, 2.0
         >>> model.update_soilevapotranspiration_v1()
@@ -4785,9 +6705,13 @@ class Update_SoilEvapotranspiration_V1(modeltools.Method):
         >>> fluxes.soilevapotranspiration
         soilevapotranspiration(-0.5, 0.0, 0.5, 1.0, 1.5, 2.0)
 
-        When setting |ExcessReduction| to 0.5, |Update_SoilEvapotranspiration_V1|
-        halves each exceedance:
+        When setting |ExcessReduction| to 0.5, |Update_SoilEvapotranspiration_V1| takes
+        the average of potential interception evaporation and the average of potential
+        interception evaporation and soil evapotranspiration as the threshold and
+        halves each exceedance above this threshold:
 
+        >>> fluxes.potentialinterceptionevaporation = 2.5
+        >>> fluxes.potentialsoilevapotranspiration = 0.5
         >>> excessreduction(0.5)
         >>> fluxes.soilevapotranspiration = -0.5, 0.0, 0.5, 1.0, 1.5, 2.0
         >>> model.update_soilevapotranspiration_v1()
@@ -4809,7 +6733,8 @@ class Update_SoilEvapotranspiration_V1(modeltools.Method):
         interception and soil condensation from exceeding potential condensation (too
         much):
 
-        >>> fluxes.potentialevapotranspiration = -2.0
+        >>> fluxes.potentialinterceptionevaporation = -2.5
+        >>> fluxes.potentialsoilevapotranspiration = -0.5
         >>> fluxes.interceptionevaporation = -1.0
         >>> fluxes.soilevapotranspiration = 0.5, -0.0, -0.5, -1.0, -1.5, -2.0
         >>> model.update_soilevapotranspiration_v1()
@@ -4823,13 +6748,15 @@ class Update_SoilEvapotranspiration_V1(modeltools.Method):
         >>> fluxes.soilevapotranspiration
         soilevapotranspiration(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     """
+
     CONTROLPARAMETERS = (
         evap_control.NmbHRU,
         evap_control.Soil,
         evap_control.ExcessReduction,
     )
     REQUIREDSEQUENCES = (
-        evap_fluxes.PotentialEvapotranspiration,
+        evap_fluxes.PotentialInterceptionEvaporation,
+        evap_fluxes.PotentialSoilEvapotranspiration,
         evap_fluxes.InterceptionEvaporation,
     )
     UPDATEDSEQUENCES = (evap_fluxes.SoilEvapotranspiration,)
@@ -4840,15 +6767,17 @@ class Update_SoilEvapotranspiration_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbhru):
             if con.soil[k]:
-                excess: float = (
-                    flu.soilevapotranspiration[k]
-                    + flu.interceptionevaporation[k]
-                    - flu.potentialevapotranspiration[k]
-                )
-                if (flu.potentialevapotranspiration[k] >= 0.0) and (excess > 0.0):
-                    flu.soilevapotranspiration[k] -= con.excessreduction[k] * excess
-                elif (flu.potentialevapotranspiration[k] < 0.0) and (excess < 0.0):
-                    flu.soilevapotranspiration[k] -= con.excessreduction[k] * excess
+                r: float = con.excessreduction[k]
+                pei: float = flu.potentialinterceptionevaporation[k]
+                pets: float = flu.potentialsoilevapotranspiration[k]
+                pet: float = r * pei + (1.0 - r) * (pei + pets) / 2.0
+                ets: float = flu.soilevapotranspiration[k]
+                ei: float = flu.interceptionevaporation[k]
+                excess: float = ets + ei - pet
+                if (pet >= 0.0) and (excess > 0.0):
+                    flu.soilevapotranspiration[k] -= r * excess
+                elif (pet < 0.0) and (excess < 0.0):
+                    flu.soilevapotranspiration[k] -= r * excess
             else:
                 flu.soilevapotranspiration[k] = 0.0
 
@@ -4858,8 +6787,10 @@ class Update_SoilEvapotranspiration_V2(modeltools.Method):
 
     Basic equations:
       .. math::
-        SoilEvapotranspiration_{new} = (1 - SnowCover) \cdot
-        SoilEvapotranspiration_{old}
+        et_s^{new} = (1 - c) \cdot et_s^{old}
+        \\ \\
+        et_s = SoilEvapotranspiration \\
+        c = SnowCover
 
     Examples:
 
@@ -4904,7 +6835,7 @@ class Update_SoilEvapotranspiration_V2(modeltools.Method):
 
 class Update_SoilEvapotranspiration_V3(modeltools.Method):
     r"""Reduce actual soil evapotranspiration if interception evaporation occurs
-    simultaneously according to :cite:t:`ref-Wigmosta1994`.
+    simultaneously following :cite:t:`ref-Wigmosta1994`.
 
     Basic equation:
       :math:`SoilEvapotranspiration_{new} =
@@ -5108,12 +7039,104 @@ class Get_MeanPotentialEvapotranspiration_V2(modeltools.Method):
         return flu.meanpotentialevapotranspiration
 
 
+class Determine_PotentialInterceptionEvaporation_V1(modeltools.AutoMethod):
+    """Determine the potential interception evaporation according to AMBAV 1.0
+    :cite:p:`ref-Löpmeier2014`."""
+
+    SUBMETHODS = (
+        Calc_AirTemperature_V1,
+        Calc_AdjustedWindSpeed10m_V1,
+        Calc_SaturationVapourPressure_V1,
+        Calc_SaturationVapourPressureSlope_V1,
+        Calc_ActualVapourPressure_V1,
+        Calc_DryAirPressure_V1,
+        Calc_AirDensity_V1,
+        Calc_AerodynamicResistance_V2,
+        Calc_SnowCover_V1,
+        Calc_DailyPrecipitation_V1,
+        Calc_DailyPotentialSoilEvapotranspiration_V1,
+        Calc_CurrentAlbedo_V2,
+        Calc_NetShortwaveRadiation_V2,
+        Update_CloudCoverage_V1,
+        Calc_AdjustedCloudCoverage_V1,
+        Calc_NetLongwaveRadiation_V2,
+        Calc_NetRadiation_V1,
+        Calc_SoilHeatFlux_V4,
+        Calc_PotentialInterceptionEvaporation_V2,
+    )
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.HRUType,
+        evap_control.Interception,
+        evap_control.Soil,
+        evap_control.Plant,
+        evap_control.Tree,
+        evap_control.Water,
+        evap_control.MeasuringHeightWindSpeed,
+        evap_control.GroundAlbedo,
+        evap_control.GroundAlbedoSnow,
+        evap_control.LeafAlbedo,
+        evap_control.LeafAlbedoSnow,
+        evap_control.LeafAreaIndex,
+        evap_control.WetnessThreshold,
+        evap_control.CloudTypeFactor,
+        evap_control.NightCloudFactor,
+    )
+    DERIVEDPARAMETERS = (
+        evap_derived.Hours,
+        evap_derived.Days,
+        evap_derived.MOY,
+        evap_derived.NmbLogEntries,
+        evap_derived.AerodynamicResistanceFactor,
+    )
+    FIXEDPARAMETERS = (
+        evap_fixed.StefanBoltzmannConstant,
+        evap_fixed.GasConstantDryAir,
+        evap_fixed.GasConstantWaterVapour,
+        evap_fixed.HeatOfCondensation,
+        evap_fixed.HeatCapacityAir,
+        evap_fixed.RoughnessLengthGrass,
+        evap_fixed.PsychrometricConstant,
+    )
+    REQUIREDSEQUENCES = (
+        evap_inputs.WindSpeed,
+        evap_inputs.AtmosphericPressure,
+        evap_inputs.RelativeHumidity,
+        evap_inputs.SunshineDuration,
+        evap_inputs.PossibleSunshineDuration,
+        evap_inputs.GlobalRadiation,
+        evap_logs.LoggedPrecipitation,
+        evap_logs.LoggedPotentialSoilEvapotranspiration,
+    )
+    UPDATEDSEQUENCES = (evap_states.CloudCoverage,)
+    RESULTSEQUENCES = (
+        evap_factors.AirTemperature,
+        evap_factors.AdjustedWindSpeed10m,
+        evap_factors.SaturationVapourPressure,
+        evap_factors.SaturationVapourPressureSlope,
+        evap_factors.ActualVapourPressure,
+        evap_factors.DryAirPressure,
+        evap_factors.AirDensity,
+        evap_factors.AerodynamicResistance,
+        evap_factors.SnowCover,
+        evap_factors.CurrentAlbedo,
+        evap_factors.AdjustedCloudCoverage,
+        evap_fluxes.DailyPrecipitation,
+        evap_fluxes.DailyPotentialSoilEvapotranspiration,
+        evap_fluxes.NetShortwaveRadiation,
+        evap_fluxes.NetLongwaveRadiation,
+        evap_fluxes.NetRadiation,
+        evap_fluxes.SoilHeatFlux,
+        evap_fluxes.PotentialInterceptionEvaporation,
+    )
+
+
 class Determine_InterceptionEvaporation_V1(modeltools.AutoMethod):
     """Determine the actual interception evaporation according to
     :cite:t:`ref-Lindstrom1997HBV96`."""
 
     SUBMETHODS = (
-        Calc_PotentialEvapotranspiration_V4,
+        Calc_PotentialInterceptionEvaporation_V3,
         Calc_InterceptedWater_V1,
         Calc_InterceptionEvaporation_V1,
     )
@@ -5123,7 +7146,7 @@ class Determine_InterceptionEvaporation_V1(modeltools.AutoMethod):
     )
     RESULTSEQUENCES = (
         evap_factors.InterceptedWater,
-        evap_fluxes.PotentialEvapotranspiration,
+        evap_fluxes.PotentialInterceptionEvaporation,
         evap_fluxes.InterceptionEvaporation,
     )
 
@@ -5176,7 +7199,6 @@ class Determine_InterceptionEvaporation_V2(modeltools.AutoMethod):
         evap_control.AverageSoilHeatFlux,
     )
     DERIVEDPARAMETERS = (
-        evap_derived.Seconds,
         evap_derived.MOY,
         evap_derived.NmbLogEntries,
     )
@@ -5233,6 +7255,63 @@ class Determine_InterceptionEvaporation_V2(modeltools.AutoMethod):
     )
 
 
+class Determine_PotentialSoilEvapotranspiration_V1(modeltools.AutoMethod):
+    """Determine the actual evapotranspiration from the soil according to AMBAV 1.0
+    :cite:p:`ref-Löpmeier2014`."""
+
+    SUBMETHODS = (
+        Update_SoilResistance_V1,
+        Calc_ActualSurfaceResistance_V2,
+        Calc_PotentialSoilEvapotranspiration_V1,
+        Update_LoggedPotentialSoilEvapotranspiration_V1,
+        Calc_Precipitation_V1,
+        Update_LoggedPrecipitation_V1,
+    )
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.HRUType,
+        evap_control.Soil,
+        evap_control.Plant,
+        evap_control.LeafAreaIndex,
+        evap_control.WetSoilResistance,
+        evap_control.SoilResistanceIncrease,
+        evap_control.WetnessThreshold,
+        evap_control.LeafResistance,
+    )
+    DERIVEDPARAMETERS = (
+        evap_derived.NmbLogEntries,
+        evap_derived.Hours,
+        evap_derived.MOY,
+    )
+    FIXEDPARAMETERS = (
+        evap_fixed.HeatOfCondensation,
+        evap_fixed.HeatCapacityAir,
+        evap_fixed.PsychrometricConstant,
+    )
+    REQUIREDSEQUENCES = (
+        evap_inputs.PossibleSunshineDuration,
+        evap_factors.SaturationVapourPressureSlope,
+        evap_factors.SaturationVapourPressure,
+        evap_factors.ActualVapourPressure,
+        evap_factors.AirDensity,
+        evap_factors.AerodynamicResistance,
+        evap_fluxes.DailyPrecipitation,
+        evap_fluxes.DailyPotentialSoilEvapotranspiration,
+        evap_fluxes.NetRadiation,
+        evap_fluxes.SoilHeatFlux,
+    )
+    UPDATEDSEQUENCES = (
+        evap_states.SoilResistance,
+        evap_logs.LoggedPrecipitation,
+        evap_logs.LoggedPotentialSoilEvapotranspiration,
+    )
+    RESULTSEQUENCES = (
+        evap_factors.ActualSurfaceResistance,
+        evap_fluxes.PotentialSoilEvapotranspiration,
+        evap_fluxes.Precipitation,
+    )
+
+
 class Determine_SoilEvapotranspiration_V1(modeltools.AutoMethod):
     """Determine the actual evapotranspiration from the soil according to
     :cite:t:`ref-Lindstrom1997HBV96`."""
@@ -5240,6 +7319,7 @@ class Determine_SoilEvapotranspiration_V1(modeltools.AutoMethod):
     SUBMETHODS = (
         Calc_SoilWater_V1,
         Calc_SnowCover_V1,
+        Calc_PotentialSoilEvapotranspiration_V2,
         Calc_SoilEvapotranspiration_V1,
         Update_SoilEvapotranspiration_V1,
         Update_SoilEvapotranspiration_V2,
@@ -5252,12 +7332,13 @@ class Determine_SoilEvapotranspiration_V1(modeltools.AutoMethod):
         evap_control.ExcessReduction,
     )
     REQUIREDSEQUENCES = (
-        evap_fluxes.PotentialEvapotranspiration,
+        evap_fluxes.PotentialInterceptionEvaporation,
         evap_fluxes.InterceptionEvaporation,
     )
     RESULTSEQUENCES = (
         evap_factors.SoilWater,
         evap_factors.SnowCover,
+        evap_fluxes.PotentialSoilEvapotranspiration,
         evap_fluxes.SoilEvapotranspiration,
     )
 
@@ -5268,20 +7349,24 @@ class Determine_SoilEvapotranspiration_V2(modeltools.AutoMethod):
 
     SUBMETHODS = (
         Calc_SoilWater_V1,
+        Calc_PotentialSoilEvapotranspiration_V2,
         Calc_SoilEvapotranspiration_V2,
+        Update_SoilEvapotranspiration_V3,
     )
     CONTROLPARAMETERS = (
         evap_control.NmbHRU,
+        evap_control.Interception,
         evap_control.Soil,
         evap_control.MaxSoilWater,
         evap_control.DisseFactor,
     )
     REQUIREDSEQUENCES = (
-        evap_fluxes.PotentialEvapotranspiration,
+        evap_fluxes.PotentialInterceptionEvaporation,
         evap_fluxes.InterceptionEvaporation,
     )
     RESULTSEQUENCES = (
         evap_factors.SoilWater,
+        evap_fluxes.PotentialSoilEvapotranspiration,
         evap_fluxes.SoilEvapotranspiration,
     )
 
@@ -5313,7 +7398,6 @@ class Determine_SoilEvapotranspiration_V3(modeltools.AutoMethod):
         evap_control.WiltingPoint,
     )
     DERIVEDPARAMETERS = (
-        evap_derived.Seconds,
         evap_derived.Hours,
         evap_derived.MOY,
     )
@@ -5346,12 +7430,48 @@ class Determine_SoilEvapotranspiration_V3(modeltools.AutoMethod):
     )
 
 
+class Determine_PotentialWaterEvaporation_V1(modeltools.AutoMethod):
+    """Determine the potential evaporation from open water areas according to AMBAV 1.0
+    :cite:p:`ref-Löpmeier2014`."""
+
+    SUBMETHODS = (
+        Calc_WaterEvaporation_V4,
+        Update_LoggedWaterEvaporation_V1,
+        Calc_DailyWaterEvaporation_V1,
+    )
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.Water,
+    )
+    DERIVEDPARAMETERS = (evap_derived.NmbLogEntries,)
+    FIXEDPARAMETERS = (
+        evap_fixed.HeatOfCondensation,
+        evap_fixed.HeatCapacityAir,
+        evap_fixed.PsychrometricConstant,
+    )
+    REQUIREDSEQUENCES = (
+        evap_factors.SaturationVapourPressureSlope,
+        evap_factors.SaturationVapourPressure,
+        evap_factors.ActualVapourPressure,
+        evap_factors.AirDensity,
+        evap_factors.AerodynamicResistance,
+        evap_fluxes.NetRadiation,
+        evap_fluxes.SoilHeatFlux,
+    )
+    UPDATEDSEQUENCES = (evap_logs.LoggedWaterEvaporation,)
+    RESULTSEQUENCES = (
+        evap_fluxes.WaterEvaporation,
+        evap_fluxes.DailyWaterEvaporation,
+    )
+
+
 class Determine_WaterEvaporation_V1(modeltools.AutoMethod):
     """Determine the actual evapotranspiration from open water areas according to
     :cite:t:`ref-Lindstrom1997HBV96`."""
 
     SUBMETHODS = (
         Calc_AirTemperature_V1,
+        Calc_PotentialWaterEvaporation_V1,
         Calc_WaterEvaporation_V1,
     )
     CONTROLPARAMETERS = (
@@ -5359,9 +7479,9 @@ class Determine_WaterEvaporation_V1(modeltools.AutoMethod):
         evap_control.Water,
         evap_control.TemperatureThresholdIce,
     )
-    REQUIREDSEQUENCES = (evap_fluxes.PotentialEvapotranspiration,)
     RESULTSEQUENCES = (
         evap_factors.AirTemperature,
+        evap_fluxes.PotentialWaterEvaporation,
         evap_fluxes.WaterEvaporation,
     )
 
@@ -5370,13 +7490,18 @@ class Determine_WaterEvaporation_V2(modeltools.AutoMethod):
     """Accept potential evapotranspiration as the actual evaporation from water
     areas."""
 
-    SUBMETHODS = (Calc_WaterEvaporation_V2,)
+    SUBMETHODS = (
+        Calc_PotentialWaterEvaporation_V1,
+        Calc_WaterEvaporation_V2,
+    )
     CONTROLPARAMETERS = (
         evap_control.NmbHRU,
         evap_control.Water,
     )
-    REQUIREDSEQUENCES = (evap_fluxes.PotentialEvapotranspiration,)
-    RESULTSEQUENCES = (evap_fluxes.WaterEvaporation,)
+    RESULTSEQUENCES = (
+        evap_fluxes.PotentialWaterEvaporation,
+        evap_fluxes.WaterEvaporation,
+    )
 
 
 class Determine_WaterEvaporation_V3(modeltools.AutoMethod):
@@ -5455,6 +7580,60 @@ class Get_WaterEvaporation_V1(modeltools.Method):
         return flu.waterevaporation[k]
 
 
+class Get_PotentialWaterEvaporation_V1(modeltools.Method):
+    """Get the water area evaporation sum of the last 24 hours from the selected
+    hydrological response unit.
+
+    Example:
+
+        >>> from hydpy.models.evap import *
+        >>> simulationstep("12h")
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> derived.days.update()
+        >>> fluxes.dailywaterevaporation = 2.0, 4.0
+        >>> model.get_potentialwaterevaporation_v1(0)
+        1.0
+        >>> model.get_potentialwaterevaporation_v1(1)
+        2.0
+    """
+
+    DERIVEDPARAMETERS = (evap_derived.Days,)
+    REQUIREDSEQUENCES = (evap_fluxes.DailyWaterEvaporation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, k: int) -> float:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        return der.days * flu.dailywaterevaporation[k]
+
+
+class Get_PotentialInterceptionEvaporation_V1(modeltools.Method):
+    """Get the current potential interception evaporation from the selected hydrological
+    response unit.
+
+    Example:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> fluxes.potentialinterceptionevaporation = 2.0, 4.0
+        >>> model.get_potentialinterceptionevaporation_v1(0)
+        2.0
+        >>> model.get_potentialinterceptionevaporation_v1(1)
+        4.0
+    """
+
+    REQUIREDSEQUENCES = (evap_fluxes.PotentialInterceptionEvaporation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, k: int) -> float:
+        flu = model.sequences.fluxes.fastaccess
+
+        return flu.potentialinterceptionevaporation[k]
+
+
 class Get_InterceptionEvaporation_V1(modeltools.Method):
     """Get the current actual interception evaporation from the selected hydrological
     response unit.
@@ -5478,6 +7657,31 @@ class Get_InterceptionEvaporation_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
 
         return flu.interceptionevaporation[k]
+
+
+class Get_PotentialSoilEvapotranspiration_V1(modeltools.Method):
+    """Get the current potential soil evapotranspiration from the selected hydrological
+    response unit.
+
+    Example:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> fluxes.potentialsoilevapotranspiration = 2.0, 4.0
+        >>> model.get_potentialsoilevapotranspiration_v1(0)
+        2.0
+        >>> model.get_potentialsoilevapotranspiration_v1(1)
+        4.0
+    """
+
+    REQUIREDSEQUENCES = (evap_fluxes.PotentialSoilEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, k: int) -> float:
+        flu = model.sequences.fluxes.fastaccess
+
+        return flu.potentialsoilevapotranspiration[k]
 
 
 class Get_SoilEvapotranspiration_V1(modeltools.Method):
@@ -5516,6 +7720,7 @@ class Model(modeltools.AdHocModel):
         Calc_DailyAirTemperature_V1,
         Calc_WindSpeed2m_V1,
         Calc_WindSpeed2m_V2,
+        Calc_AdjustedWindSpeed10m_V1,
         Update_LoggedWindSpeed2m_V1,
         Calc_DailyWindSpeed2m_V1,
         Calc_WindSpeed10m_V1,
@@ -5538,11 +7743,15 @@ class Model(modeltools.AdHocModel):
         Update_LoggedClearSkySolarRadiation_V1,
         Update_LoggedGlobalRadiation_V1,
         Calc_CurrentAlbedo_V1,
+        Calc_CurrentAlbedo_V2,
         Calc_DailyGlobalRadiation_V1,
         Calc_NetShortwaveRadiation_V1,
         Calc_NetShortwaveRadiation_V2,
         Calc_DailyNetShortwaveRadiation_V1,
+        Update_CloudCoverage_V1,
+        Calc_AdjustedCloudCoverage_V1,
         Calc_NetLongwaveRadiation_V1,
+        Calc_NetLongwaveRadiation_V2,
         Calc_DailyNetLongwaveRadiation_V1,
         Calc_NetRadiation_V1,
         Calc_NetRadiation_V2,
@@ -5550,11 +7759,17 @@ class Model(modeltools.AdHocModel):
         Calc_SoilHeatFlux_V1,
         Calc_SoilHeatFlux_V2,
         Calc_SoilHeatFlux_V3,
+        Calc_SoilHeatFlux_V4,
         Calc_PsychrometricConstant_V1,
         Calc_AerodynamicResistance_V1,
+        Calc_AerodynamicResistance_V2,
         Calc_SoilSurfaceResistance_V1,
+        Calc_DailyPrecipitation_V1,
+        Calc_DailyPotentialSoilEvapotranspiration_V1,
+        Update_SoilResistance_V1,
         Calc_LanduseSurfaceResistance_V1,
         Calc_ActualSurfaceResistance_V1,
+        Calc_ActualSurfaceResistance_V2,
         Calc_ReferenceEvapotranspiration_V1,
         Calc_ReferenceEvapotranspiration_V2,
         Calc_ReferenceEvapotranspiration_V3,
@@ -5564,25 +7779,34 @@ class Model(modeltools.AdHocModel):
         Calc_PotentialEvapotranspiration_V1,
         Calc_PotentialEvapotranspiration_V2,
         Calc_PotentialEvapotranspiration_V3,
-        Calc_PotentialEvapotranspiration_V4,
         Calc_MeanReferenceEvapotranspiration_V1,
         Calc_MeanPotentialEvapotranspiration_V1,
         Calc_InterceptedWater_V1,
         Calc_SoilWater_V1,
         Calc_SnowCover_V1,
         Calc_SnowyCanopy_V1,
+        Calc_PotentialWaterEvaporation_V1,
         Calc_WaterEvaporation_V1,
         Calc_WaterEvaporation_V2,
         Calc_WaterEvaporation_V3,
+        Calc_WaterEvaporation_V4,
+        Update_LoggedWaterEvaporation_V1,
+        Calc_DailyWaterEvaporation_V1,
         Calc_InterceptionEvaporation_V1,
         Calc_PotentialInterceptionEvaporation_V1,
+        Calc_PotentialInterceptionEvaporation_V2,
+        Calc_PotentialInterceptionEvaporation_V3,
         Calc_InterceptionEvaporation_V2,
+        Calc_PotentialSoilEvapotranspiration_V1,
+        Calc_PotentialSoilEvapotranspiration_V2,
         Calc_SoilEvapotranspiration_V1,
         Calc_SoilEvapotranspiration_V2,
         Calc_SoilEvapotranspiration_V3,
         Update_SoilEvapotranspiration_V1,
         Update_SoilEvapotranspiration_V2,
         Update_SoilEvapotranspiration_V3,
+        Update_LoggedPrecipitation_V1,
+        Update_LoggedPotentialSoilEvapotranspiration_V1,
     )
     INTERFACE_METHODS = (
         Determine_PotentialEvapotranspiration_V1,
@@ -5592,6 +7816,7 @@ class Model(modeltools.AdHocModel):
         Get_MeanPotentialEvapotranspiration_V2,
         Determine_InterceptionEvaporation_V1,
         Determine_InterceptionEvaporation_V2,
+        Determine_PotentialInterceptionEvaporation_V1,
         Determine_SoilEvapotranspiration_V1,
         Determine_SoilEvapotranspiration_V2,
         Determine_SoilEvapotranspiration_V3,
@@ -5599,7 +7824,10 @@ class Model(modeltools.AdHocModel):
         Determine_WaterEvaporation_V2,
         Determine_WaterEvaporation_V3,
         Get_WaterEvaporation_V1,
+        Get_PotentialWaterEvaporation_V1,
+        Get_PotentialInterceptionEvaporation_V1,
         Get_InterceptionEvaporation_V1,
+        Get_PotentialSoilEvapotranspiration_V1,
         Get_SoilEvapotranspiration_V1,
     )
     ADD_METHODS = (
@@ -5607,6 +7835,7 @@ class Model(modeltools.AdHocModel):
         Return_SaturationVapourPressure_V1,
         Return_SaturationVapourPressureSlope_V1,
         Return_Evaporation_PenmanMonteith_V1,
+        Return_Evaporation_PenmanMonteith_V2,
         Calc_ReferenceEvapotranspiration_PETModel_V1,
         Calc_AirTemperature_TempModel_V1,
         Calc_AirTemperature_TempModel_V2,
@@ -5616,8 +7845,13 @@ class Model(modeltools.AdHocModel):
         Calc_SoilWater_SoilWaterModel_V1,
         Calc_SnowCover_SnowCoverModel_V1,
         Calc_SnowyCanopy_SnowyCanopyModel_V1,
+        Calc_PotentialInterceptionEvaporation_PETModel_V1,
+        Calc_PotentialInterceptionEvaporation_PETModel_V2,
+        Calc_PotentialSoilEvapotranspiration_PETModel_V1,
+        Calc_PotentialSoilEvapotranspiration_PETModel_V2,
+        Calc_PotentialWaterEvaporation_PETModel_V1,
+        Calc_PotentialWaterEvaporation_PETModel_V2,
         Calc_CurrentAlbedo_SnowAlbedoModel_V1,
-        Calc_PotentialEvapotranspiration_PETModel_V1,
     )
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
@@ -5985,6 +8219,57 @@ class Main_PET_PETModel_V1(modeltools.AdHocModel):
         petmodel.prepare_nmbzones(control.nmbhru.value)
 
 
+class Main_PET_PETModel_V2(modeltools.AdHocModel):
+    """Base class for HydPy-Evap models that use submodels named `petmodel` and comply
+    with the |PETModel_V2| interface."""
+
+    petmodel: modeltools.SubmodelProperty
+    petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    petmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel(
+        "petmodel",
+        petinterfaces.PETModel_V2,
+        petinterfaces.PETModel_V2.prepare_nmbzones,
+        petinterfaces.PETModel_V2.prepare_interception,
+        petinterfaces.PETModel_V2.prepare_soil,
+        petinterfaces.PETModel_V2.prepare_water,
+    )
+    def add_petmodel_v2(
+        self,
+        petmodel: petinterfaces.PETModel_V2,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
+        """Initialise the given `petmodel` that follows the |PETModel_V2| interface and
+        is responsible for calculating potential evapotranspiration.
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
+        >>> from hydpy.models.evap_aet_hbv96 import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> interception(True)
+        >>> soil(True)
+        >>> water(False)
+        >>> with model.add_petmodel_v2("evap_pet_ambav1"):
+        ...     nmbhru
+        ...     interception
+        ...     soil
+        ...     water
+        nmbhru(2)
+        interception(True)
+        soil(True)
+        water(False)
+        """
+        control = self.parameters.control
+        petmodel.prepare_nmbzones(control.nmbhru.value)
+        petmodel.prepare_interception(control.interception.value)
+        petmodel.prepare_soil(control.soil.value)
+        petmodel.prepare_water(control.water.value)
+
+
 class Main_TempModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
     """Base class for HydPy-Evap models that can use main models as their sub-submodels
     if they comply with the |TempModel_V1| interface."""
@@ -6151,7 +8436,7 @@ class Main_PrecipModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
         return super().add_mainmodel_as_subsubmodel(mainmodel)
 
 
-class Main_PrecipModel_V2(modeltools.AdHocModel):
+class Main_PrecipModel_V2A(modeltools.AdHocModel):
     """Base class for HydPy-Evap models that support submodels that comply with the
     |PrecipModel_V2| interface."""
 
@@ -6191,6 +8476,46 @@ class Main_PrecipModel_V2(modeltools.AdHocModel):
         control = self.parameters.control
         precipmodel.prepare_nmbzones(control.nmbhru.value)
         precipmodel.prepare_subareas(control.hruarea.value)
+
+
+class Main_PrecipModel_V2B(modeltools.AdHocModel):
+    """Base class for HydPy-Evap models that support submodels that comply with the
+    |PrecipModel_V2| interface."""
+
+    precipmodel: modeltools.SubmodelProperty
+    precipmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    precipmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel(
+        "precipmodel",
+        precipinterfaces.PrecipModel_V2,
+        precipinterfaces.PrecipModel_V2.prepare_nmbzones,
+    )
+    def add_precipmodel_v2(
+        self,
+        precipmodel: precipinterfaces.PrecipModel_V2,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
+        """Initialise the given precipitation model that follows the |PrecipModel_V2|
+        interface and set the number of its zones.
+
+        >>> from hydpy.models.evap_pet_ambav1 import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> with model.add_precipmodel_v2("meteo_precip_io"):
+        ...     nmbhru
+        ...     hruarea(0.8, 0.2)
+        ...     precipitationfactor(1.0, 2.0)
+        nmbhru(2)
+        >>> model.precipmodel.parameters.control.hruarea
+        hruarea(0.8, 0.2)
+        >>> model.precipmodel.parameters.control.precipitationfactor
+        precipitationfactor(1.0, 2.0)
+        """
+        control = self.parameters.control
+        precipmodel.prepare_nmbzones(control.nmbhru.value)
 
 
 class Main_IntercModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):

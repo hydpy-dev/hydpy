@@ -24,6 +24,15 @@ class Soil(masktools.SubmodelIndexMask):
         return variable.subvars.vars.model.parameters.control.soil
 
 
+class Plant(masktools.SubmodelIndexMask):
+    """Mask including hydrological response units containing any vegetation."""
+
+    @staticmethod
+    def get_refinement(variable: variabletools.Variable) -> evap_control.Plant:
+        """Return a reference to the associated |evap_control.Plant| instance."""
+        return variable.subvars.vars.model.parameters.control.plant
+
+
 class Water(masktools.SubmodelIndexMask):
     """Mask including hydrological response units where evaporation from open water
     areas."""
@@ -39,5 +48,6 @@ class Masks(masktools.Masks):
 
     CLASSES = (
         Soil,
+        Plant,
         Water,
     )

@@ -43,6 +43,13 @@ class WindSpeed10m(sequencetools.FactorSequence):
     NDIM, NUMERIC = 0, False
 
 
+class AdjustedWindSpeed10m(sequencetools.FactorSequence):
+    """Land cover-specific wind speed at 10 m above ground (or zero plane displacement)
+    [m/s]."""
+
+    NDIM, NUMERIC = 1, False
+
+
 class DailyRelativeHumidity(sequencetools.FactorSequence):
     """Average relative humidity in the last 24 hours [%]."""
 
@@ -119,6 +126,12 @@ class CurrentAlbedo(evap_sequences.FactorSequence1D):
     """The current albedo of the relevant surface [-]."""
 
     NUMERIC = False
+
+
+class AdjustedCloudCoverage(sequencetools.FactorSequence):
+    """Adjusted degree of cloud coverage [-]."""
+
+    NDIM, NUMERIC, SPAN = 0, False, (0.0, 1.0)
 
 
 class AerodynamicResistance(evap_sequences.FactorSequence1D):

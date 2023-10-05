@@ -12,6 +12,12 @@ class LoggedAirTemperature(sequencetools.LogSequence):
     NDIM, NUMERIC = 2, False
 
 
+class LoggedPrecipitation(sequencetools.LogSequence):
+    """Logged precipitation [mm/T]."""
+
+    NDIM, NUMERIC = 2, False
+
+
 class LoggedWindSpeed2m(sequencetools.LogSequence):
     """Logged wind speed at 2 m above grass-like vegetation [m/s]."""
 
@@ -46,3 +52,15 @@ class LoggedClearSkySolarRadiation(sequencetools.LogSequence):
     """Logged clear sky radiation [W/m²]."""
 
     NDIM, NUMERIC = 1, False
+
+
+class LoggedWaterEvaporation(sequencetools.LogSequence):
+    """Logged evaporation from water areas [mm/T]."""
+
+    NDIM, NUMERIC = 2, False
+
+
+class LoggedPotentialSoilEvapotranspiration(sequencetools.LogSequence):
+    """Logged potential soil evapotranspiration [mm/T]."""
+
+    NDIM, NUMERIC = 2, False

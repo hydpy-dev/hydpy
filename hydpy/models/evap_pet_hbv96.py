@@ -96,7 +96,7 @@ class Model(
     evap_model.Main_TempModel_V1,
     evap_model.Main_TempModel_V2A,
     evap_model.Main_PrecipModel_V1,
-    evap_model.Main_PrecipModel_V2,
+    evap_model.Main_PrecipModel_V2A,
     evap_model.Sub_ETModel,
     petinterfaces.PETModel_V1,
 ):

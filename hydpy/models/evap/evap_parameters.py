@@ -98,6 +98,36 @@ class SoilParameter1D(ZipParameter1D):
     mask = evap_masks.Soil()
 
 
+class PlantParameter1D(ZipParameter1D):
+    """Base class for plant-related 1-dimensional parameters.
+
+    >>> from hydpy.models.lland_v1 import *
+    >>> parameterstep()
+    >>> nhru(6)
+    >>> lnk(WASSER, GLETS, BODEN, ACKER, BAUMB, MISCHW)
+    >>> ft(10.0)
+    >>> fhru(0.1, 0.1, 0.2, 0.1, 0.3, 0.2)
+    >>> wmax(200.0)
+    >>> from hydpy import pub
+    >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
+    >>> with model.add_aetmodel_v1("evap_minhas"):
+    ...     with model.add_petmodel_v2("evap_pet_ambav1"):
+    ...         leafresistance(acker=30.0, baumb=40.0, mischw=50.0)
+    >>> r = model.aetmodel.petmodel.parameters.control.leafresistance
+    >>> r
+    leafresistance(acker=30.0, baumb=40.0, mischw=50.0)
+    >>> from hydpy import round_
+    >>> round_(r.average_values())
+    41.666667
+
+    .. testsetup::
+
+        >>> del pub.timegrids
+    """
+
+    mask = evap_masks.Plant()
+
+
 class WaterParameter1D(ZipParameter1D):
     """Base class for water area-related 1-dimensional parameters.
 

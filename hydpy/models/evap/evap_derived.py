@@ -12,6 +12,7 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 
 # ...from evap
+from hydpy.models.evap import evap_parameters
 from hydpy.models.evap import evap_control
 
 
@@ -154,3 +155,65 @@ determined for a the current simulation step size.  The fraction of the memory p
             old_shape = exceptiontools.getattr_(seq, "shape", (None,))
             if new_shape != old_shape:
                 seq.shape = new_shape
+
+
+class RoughnessLength(
+    evap_parameters.LandMonthParameter
+):  # ToDo: not directy required, remove?
+    """Roughness length [m]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (evap_control.CropHeight,)
+
+    def update(self):
+        r"""Calculate the roughness length based on
+        :math:`max(0.13 \cdot CropHeight, \ 0.00013)`.
+
+        The original equation seems to go back to Montheith.  We added the minimum
+        value of 0.13 mm to cope with water areas and bare soils (to avoid zero
+        roughness lengths):
+
+        ToDo: Add a reference.
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(3)
+        >>> cropheight(
+        ...     ANY=[0.0, 0.001, 0.01, 0.1, 1.0, 2.0, 3.0, 4.0, 5.0, 10.0, 15.0, 20.0])
+        >>> derived.roughnesslength.update()
+        >>> derived.roughnesslength
+        roughnesslength(ANY=[0.00013, 0.00013, 0.0013, 0.013, 0.13, 0.26, 0.39,
+                             0.52, 0.65, 1.3, 1.95, 2.6])
+        """
+        cropheight = self.subpars.pars.control.cropheight.values
+        self.values = numpy.clip(0.13 * cropheight, 0.00013, None)
+
+
+class AerodynamicResistanceFactor(evap_parameters.LandMonthParameter):
+    """Factor for calculating aerodynamic resistance [-]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (evap_control.CropHeight,)
+    DERIVEDPARAMETERS = (RoughnessLength,)
+
+    def update(self):
+        r"""Calculate the factor for calculating aerodynamic resistance based on the
+        :math:`ln(2 / z_0) \cdot ln(10 / z_0) / 0.41^2` with :math:`z_0` being the
+        |RoughnessLength| :cite:p:`ref-Löpmeier2014`.
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> derived.roughnesslength(
+        ...     ANY=[0.00013, 0.00013, 0.0013, 0.013, 0.13, 0.26, 0.39, 0.52, 0.65,
+        ...          1.3, 1.95, 2.6])
+        >>> derived.aerodynamicresistancefactor.update()
+        >>> derived.aerodynamicresistancefactor
+        aerodynamicresistancefactor(ANY=[752.975177, 752.975177, 476.301466,
+                                         262.708041, 112.194903, 79.238602,
+                                         62.610305, 51.998576, 44.445572,
+                                         24.762053, 15.897836, 10.794809])
+        """
+        z0 = self.subpars.pars.derived.roughnesslength.values
+        self.values = numpy.log(10.0 / z0) * numpy.log(10.0 / z0) / 0.41**2

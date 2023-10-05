@@ -62,6 +62,12 @@ class Soil(evap_parameters.ZipParameter1D):
     TYPE, TIME, SPAN = bool, None, (False, True)
 
 
+class Plant(evap_parameters.ZipParameter1D):
+    """A flag that indicates whether the individual zones contain any vegetation."""
+
+    TYPE, TIME, SPAN = bool, None, (False, True)
+
+
 class Tree(evap_parameters.ZipParameter1D):
     """A flag that indicates whether the individual zones contain tree-like
     vegetation."""
@@ -118,6 +124,36 @@ class Albedo(evap_parameters.LandMonthParameter):
     INIT = 0.5
 
 
+class GroundAlbedo(evap_parameters.ZipParameter1D):
+    """The albedo of the snow-free ground (including soils, sealed surfaces, and water
+    areas) [-]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, 1.0)
+    INIT = 0.2
+
+
+class GroundAlbedoSnow(evap_parameters.ZipParameter1D):
+    """The albedo of the snow-covered ground (including soils and sealed surfaces)
+    [-]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, 1.0)
+    INIT = 0.8
+
+
+class LeafAlbedo(evap_parameters.PlantParameter1D):
+    """The albedo of the snow-free leaves [-]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, 1.0)
+    INIT = 0.2
+
+
+class LeafAlbedoSnow(evap_parameters.PlantParameter1D):
+    """The albedo of the snow-covered leaves [-]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, 1.0)
+    INIT = 0.8
+
+
 class LeafAreaIndex(evap_parameters.LandMonthParameter):
     """Leaf area index [-]."""
 
@@ -129,6 +165,22 @@ class CropHeight(evap_parameters.LandMonthParameter):
     """Crop height [m]."""
 
     TYPE, TIME, SPAN = float, None, (0.0, None)
+    INIT = 1.0
+
+
+class CloudTypeFactor(parametertools.Parameter):
+    """Cloud type-specific factor for calculating atmospheric longwave counter radiation
+    [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    INIT = 0.2
+
+
+class NightCloudFactor(parametertools.Parameter):
+    """Factor for adjusting daytime estimates of the cloud coverage degree to nighttime
+    [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
     INIT = 1.0
 
 
@@ -149,6 +201,36 @@ class AverageSoilHeatFlux(parametertools.MonthParameter):
 class SurfaceResistance(evap_parameters.LandMonthParameter):
     """Surface resistance of water areas, sealed areas, and vegetation with sufficient
     water supply [s/m]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+    INIT = 100.0
+
+
+class WetSoilResistance(evap_parameters.SoilParameter1D):
+    """Surface resistance of wet soils [s/m]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+    INIT = 100.0
+
+
+class SoilResistanceIncrease(evap_parameters.SoilParameter1D):
+    """Increase in soil surface resistance if evaporation dominates precipitation
+    [s/m/T]."""
+
+    TYPE, TIME, SPAN = float, True, (0.0, None)
+    INIT = 0.0
+
+
+class WetnessThreshold(evap_parameters.SoilParameter1D):
+    """The ratio between precipitation and potential evapotranspiration above which the
+    topmost soil layer becomes wet [-]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+    INIT = 1.0
+
+
+class LeafResistance(evap_parameters.PlantParameter1D):
+    """Surface resistance of plant leaves [s/m]."""
 
     TYPE, TIME, SPAN = float, None, (0.0, None)
     INIT = 100.0

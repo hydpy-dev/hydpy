@@ -2061,7 +2061,8 @@ class Calc_EA_SM_AETModel_V1(modeltools.Method):
 
         |Calc_EA_SM_AETModel_V1| uses the flux returned by the submodel to adjust |SM|:
 
-        >>> model.aetmodel.sequences.fluxes.potentialevapotranspiration = 1.0
+        >>> model.aetmodel.sequences.fluxes.potentialinterceptionevaporation = 1.0
+        >>> model.aetmodel.sequences.fluxes.potentialsoilevapotranspiration = 1.0
         >>> model.aetmodel.sequences.fluxes.interceptionevaporation = 1.0
         >>> states.sm = 3.0
         >>> model.calc_ea_sm_v1()
@@ -2075,7 +2076,8 @@ class Calc_EA_SM_AETModel_V1(modeltools.Method):
         |Calc_EA_SM_AETModel_V1| eventually reduces |EA| so that |SM| does not become
         negative:
 
-        >>> model.aetmodel.sequences.fluxes.potentialevapotranspiration = 5.0
+        >>> model.aetmodel.sequences.fluxes.potentialinterceptionevaporation = 5.0
+        >>> model.aetmodel.sequences.fluxes.potentialsoilevapotranspiration = 5.0
         >>> model.aetmodel.sequences.fluxes.interceptionevaporation = 5.0
         >>> states.sm = 3.0
         >>> model.calc_ea_sm_v1()
@@ -2090,7 +2092,8 @@ class Calc_EA_SM_AETModel_V1(modeltools.Method):
         that would cause soil water to exceed field capacity to the effective soil
         response (|R|):
 
-        >>> model.aetmodel.sequences.fluxes.potentialevapotranspiration = -5.0
+        >>> model.aetmodel.sequences.fluxes.potentialinterceptionevaporation = -5.0
+        >>> model.aetmodel.sequences.fluxes.potentialsoilevapotranspiration = -5.0
         >>> model.aetmodel.sequences.fluxes.interceptionevaporation = -5.0
         >>> states.sm = 47.0
         >>> model.calc_ea_sm_v1()
@@ -3584,7 +3587,7 @@ class Calc_EL_SG2_SG3_AETModel_V1(modeltools.Method):
         subarea and the fraction between the spatial extents of the first-order and the
         second-order slow response groundwater reservoir:
 
-        >>> model.aetmodel.sequences.fluxes.potentialevapotranspiration = 2.25
+        >>> model.aetmodel.sequences.fluxes.potentialwaterevaporation = 2.25
         >>> states.sg2 = 3.0
         >>> states.sg3 = 0.3
         >>> model.calc_el_sg2_sg3_v1()
@@ -3599,7 +3602,7 @@ class Calc_EL_SG2_SG3_AETModel_V1(modeltools.Method):
         is always possible.  Therefore, applying |Calc_EL_SG2_SG3_AETModel_V1| can
         result in negative |SG2| and |SG3| values:
 
-        >>> model.aetmodel.sequences.fluxes.potentialevapotranspiration = 4.5
+        >>> model.aetmodel.sequences.fluxes.potentialwaterevaporation = 4.5
         >>> states.sg2 = 1.0
         >>> states.sg3 = 0.1
         >>> model.calc_el_sg2_sg3_v1()
@@ -3890,7 +3893,7 @@ class Calc_EL_LZ_AETModel_V1(modeltools.Method):
         |Calc_EL_LZ_AETModel_V1| uses the flux returned by the submodel to adjust |LZ|,
         considering the extent of the groundwater-affected subarea:
 
-        >>> model.aetmodel.sequences.fluxes.potentialevapotranspiration = 2.0
+        >>> model.aetmodel.sequences.fluxes.potentialwaterevaporation = 2.0
         >>> states.lz = 3.0
         >>> model.calc_el_lz_v1()
         >>> fluxes.el
@@ -3902,7 +3905,7 @@ class Calc_EL_LZ_AETModel_V1(modeltools.Method):
         is always possible.  Therefore, applying |Calc_EL_LZ_AETModel_V1| can result in
         negative |LZ| values:
 
-        >>> model.aetmodel.sequences.fluxes.potentialevapotranspiration = 6.0
+        >>> model.aetmodel.sequences.fluxes.potentialwaterevaporation = 6.0
         >>> states.lz = 1.0
         >>> model.calc_el_lz_v1()
         >>> fluxes.el

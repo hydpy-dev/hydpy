@@ -2690,7 +2690,8 @@ class InputSequence(ModelIOSequence):
     0.0, 3.2514, 0.0, 6.5028, 0.0
     >>> print_values(petmodel.sequences.inputs.normalevapotranspiration.series)
     0.285483, 0.448182, 0.302786, 0.401946, 0.315023
-    >>> print_values(aetmodel.sequences.fluxes.potentialevapotranspiration.series[:, 0])
+    >>> print_values(
+    ...     aetmodel.sequences.fluxes.potentialsoilevapotranspiration.series[:, 0])
     0.322562, 0.53804, 0.469133, 0.704755, 0.630047
 
     .. testsetup::

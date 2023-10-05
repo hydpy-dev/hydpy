@@ -4915,7 +4915,8 @@ class Calc_EvB_AETModel_V1(modeltools.Method):
         modifications:
 
         >>> states.bowa = 0.0, 0.0, 50.0, 100.0, 0.0
-        >>> model.aetmodel.sequences.fluxes.potentialevapotranspiration = 5.0
+        >>> model.aetmodel.sequences.fluxes.potentialinterceptionevaporation = 5.0
+        >>> model.aetmodel.sequences.fluxes.potentialsoilevapotranspiration = 5.0
         >>> model.aetmodel.sequences.fluxes.interceptionevaporation = 3.0
         >>> model.calc_evb_v1()
         >>> fluxes.evb

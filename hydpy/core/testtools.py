@@ -1893,14 +1893,14 @@ def check_selectedvariables(method: Type[modeltools.Method], indent: int = 0) ->
     requirements of the first submethod |evap_model.Calc_InterceptionEvaporation_V1|,
     which would be calculated too late by the second
     (|evap_model.Calc_InterceptedWater_V1|) and the third
-    (|evap_model.Calc_PotentialEvapotranspiration_V4|) submethod:
+    (|evap_model.Calc_PotentialInterceptionEvaporation_V3|) submethod:
 
     >>> submethods = Determine_InterceptionEvaporation_V1.SUBMETHODS
     >>> Determine_InterceptionEvaporation_V1.SUBMETHODS = tuple(reversed(submethods))
     >>> print(check_selectedvariables(Determine_InterceptionEvaporation_V1))
     Possibly missing (REQUIREDSEQUENCES):
         Calc_InterceptionEvaporation_V1: InterceptedWater and \
-PotentialEvapotranspiration
+PotentialInterceptionEvaporation
 
     >>> Determine_InterceptionEvaporation_V1.SUBMETHODS = submethods
     """

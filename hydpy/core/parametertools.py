@@ -232,7 +232,7 @@ class Parameters:
             kwargs.get("cymodel"),
         )
 
-    def update(self) -> None:
+    def update(self, ignore_errors: bool = False) -> None:
         """Call method |Parameter.update| of all "secondary" parameters.
 
         Directly after initialisation, neither the primary (`control`) parameters nor
@@ -295,10 +295,11 @@ For variable `latitude`, no value has been defined so far.
                 try:
                     par.update()
                 except BaseException:
-                    objecttools.augment_excmessage(
-                        f"While trying to update parameter "
-                        f"{objecttools.elementphrase(par)}"
-                    )
+                    if not ignore_errors:
+                        objecttools.augment_excmessage(
+                            f"While trying to update parameter "
+                            f"{objecttools.elementphrase(par)}"
+                        )
 
     def verify(self) -> None:
         """Call method |Variable.verify| of all |Parameter| objects handled by the

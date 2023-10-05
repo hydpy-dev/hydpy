@@ -2770,7 +2770,7 @@ but the value `1` of type `int` is given.
         _find_submodels("model", self)
         return dict(sorted(name2submodel.items()))
 
-    def update_parameters(self) -> None:
+    def update_parameters(self, ignore_errors: bool = False) -> None:
         """Use the control parameter values of the current model for updating its
         derived parameters and the control and derived parameters of all its submodels.
 
@@ -2842,7 +2842,7 @@ but the value `1` of type `int` is given.
         >>> model.aetmodel.petmodel.parameters.derived.altitude
         altitude(400.0)
         """
-        self.parameters.update()
+        self.parameters.update(ignore_errors=ignore_errors)
         for name, submodel in self.find_submodels(include_subsubmodels=False).items():
             if isinstance(submodel, SubmodelInterface):
                 adder = submodel._submodeladder  # pylint: disable=protected-access
@@ -2854,7 +2854,7 @@ but the value `1` of type `int` is given.
                         adder.update(self, submodel, position=position, refresh=True)
                     else:
                         assert_never(adder.dimensionality)
-                    submodel.update_parameters()
+                    submodel.update_parameters(ignore_errors=ignore_errors)
 
     @property
     def conditions(self) -> ConditionsModel:

@@ -193,6 +193,7 @@ evaporation:
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
+from hydpy.interfaces import aetinterfaces
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import tempinterfaces
 from hydpy.interfaces import stateinterfaces
@@ -206,7 +207,8 @@ class Model(
     evap_model.Main_IntercModel_V1,
     evap_model.Main_SoilWaterModel_V1,
     evap_model.Main_SnowCoverModel_V1,
-    evap_model.Sub_AETModel_V1,
+    evap_model.Sub_ETModel,
+    aetinterfaces.AETModel_V1,
 ):
     """The HBV96 version of HydPy-Evap for calculating actual evapotranspiration."""
 

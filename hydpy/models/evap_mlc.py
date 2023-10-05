@@ -70,7 +70,9 @@ from hydpy.interfaces import petinterfaces
 from hydpy.models.evap import evap_model
 
 
-class Model(evap_model.Main_RET_PETModel_V1, evap_model.Sub_PETModel_V1):
+class Model(
+    evap_model.Main_RET_PETModel_V1, evap_model.Sub_ETModel, petinterfaces.PETModel_V1
+):
     """HydPy-Evap-MLC (month-based land cover adjustment of reference
     evapotranspiration)."""
 

@@ -157,11 +157,11 @@ There is never any difference between potential and actual evaporation for water
     | 02/01 |              1.0 |     100.0 |                         2.0 |              2.0 |                     0.0 |                    0.0 |
     | 03/01 |              2.0 |     100.0 |                         2.0 |              2.0 |                     0.0 |                    0.0 |
 """
-
 # import...
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
+from hydpy.interfaces import aetinterfaces
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import stateinterfaces
 from hydpy.models.evap import evap_model
@@ -171,7 +171,8 @@ class Model(
     evap_model.Main_PET_PETModel_V1,
     evap_model.Main_IntercModel_V1,
     evap_model.Main_SoilWaterModel_V1,
-    evap_model.Sub_AETModel_V1,
+    evap_model.Sub_ETModel,
+    aetinterfaces.AETModel_V1,
 ):
     """The Minhas version of HydPy-Evap for calculating actual evapotranspiration."""
 

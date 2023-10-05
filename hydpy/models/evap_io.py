@@ -42,10 +42,11 @@ it does not require additional explanations:
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *
+from hydpy.interfaces import petinterfaces
 from hydpy.models.evap import evap_model
 
 
-class Model(evap_model.Sub_PETModel_V1):
+class Model(evap_model.Sub_ETModel, petinterfaces.PETModel_V1):
     """The input reader version of HydPy-Evap."""
 
     INLET_METHODS = ()

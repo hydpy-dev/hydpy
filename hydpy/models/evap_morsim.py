@@ -441,6 +441,7 @@ its evaporation estimates show a more pronounced delay and no diurnal pattern:
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
+from hydpy.interfaces import aetinterfaces
 from hydpy.interfaces import tempinterfaces
 from hydpy.interfaces import stateinterfaces
 from hydpy.models.evap import evap_model
@@ -454,7 +455,8 @@ class Model(
     evap_model.Main_SnowCoverModel_V1,
     evap_model.Main_SnowyCanopyModel_V1,
     evap_model.Main_SnowAlbedoModel_V1,
-    evap_model.Sub_AETModel_V1,
+    evap_model.Sub_ETModel,
+    aetinterfaces.AETModel_V1,
 ):
     """A MORECS version of HydPy-Evap with some modifications according to LARSIM."""
 

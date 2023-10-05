@@ -193,6 +193,7 @@ calculation of the saturation vapour pressure:
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
+from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import tempinterfaces
 from hydpy.models.evap import evap_model
 
@@ -200,7 +201,8 @@ from hydpy.models.evap import evap_model
 class Model(
     evap_model.Main_TempModel_V1,
     evap_model.Main_TempModel_V2A,
-    evap_model.Sub_PETModel_V1,
+    evap_model.Sub_ETModel,
+    petinterfaces.PETModel_V1,
 ):
     """The FAO-56 version of the HydPy-Evap."""
 

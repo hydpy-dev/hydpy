@@ -5673,8 +5673,9 @@ class Model(modeltools.AdHocModel):
     snowalbedomodel_typeid = modeltools.SubmodelTypeIDProperty()
 
 
-class Sub_ETModel_V1(modeltools.AdHocModel):
-    """Base class for |Sub_PETModel_V1| and |Sub_AETModel_V1|."""
+class Sub_ETModel(modeltools.AdHocModel):
+    """Base class for submodels that comply with the submodel interfaces defined in
+    modules |petinterfaces| and |aetinterfaces|."""
 
     @staticmethod
     @contextlib.contextmanager
@@ -5696,8 +5697,8 @@ class Sub_ETModel_V1(modeltools.AdHocModel):
         ...     constants = consts
         >>> class Subarea(Parameter):
         ...     ...
-        >>> from hydpy.models.evap.evap_model import Sub_PETModel_V1
-        >>> with Sub_PETModel_V1.share_configuration(
+        >>> from hydpy.models.evap.evap_model import Sub_ETModel
+        >>> with Sub_ETModel.share_configuration(
         ...         {"landtype_constants": consts,
         ...          "landtype_refindices": LandType,
         ...          "refweights": Subarea}):
@@ -5755,39 +5756,6 @@ FluxSequence1D
         """
         self.parameters.control.nmbhru(nmbzones)
 
-    @importtools.define_targetparameter(evap_control.HRUType)
-    def prepare_zonetypes(self, zonetypes: VectorInputInt) -> None:
-        """If such a parameter exists, set the hydrological response unit types.
-
-        >>> GRASS, TREES, WATER = 1, 3, 2
-        >>> from hydpy.core.parametertools import Constants
-        >>> constants = Constants(GRASS=GRASS, TREES=TREES, WATER=WATER)
-        >>> from hydpy.models.evap.evap_control import HRUType
-        >>> with HRUType.modify_constants(constants):
-        ...     from hydpy.models.evap_mlc import *
-        ...     parameterstep()
-        >>> nmbhru(2)
-        >>> model.prepare_zonetypes([TREES, WATER])
-        >>> hrutype
-        hrutype(TREES, WATER)
-
-        >>> from hydpy import prepare_model
-        >>> aetmodel = prepare_model("evap_aet_hbv96")
-        >>> aetmodel.parameters.control.nmbhru(2)
-        >>> aetmodel.prepare_elevations([TREES, WATER])
-        >>> aetmodel.predefinedmethod2argument
-        {'prepare_elevations': [3, 2]}
-        """
-        if (hrutype := getattr(self.parameters.control, "hrutype", None)) is None:
-            self.predefinedmethod2argument["prepare_zonetypes"] = zonetypes
-        else:
-            hrutype(zonetypes)
-
-
-class Sub_PETModel_V1(Sub_ETModel_V1, petinterfaces.PETModel_V1):
-    """Base class for HydPy-Evap models that comply with the |PETModel_V1| submodel
-    interface."""
-
     @importtools.define_targetparameter(evap_control.HRUArea)
     def prepare_subareas(self, subareas: VectorInputFloat) -> None:
         """Set the area of all hydrological response units in km².
@@ -5799,7 +5767,8 @@ class Sub_PETModel_V1(Sub_ETModel_V1, petinterfaces.PETModel_V1):
         >>> hruarea
         hruarea(1.0, 3.0)
         """
-        self.parameters.control.hruarea(subareas)
+        if (par := getattr(self.parameters.control, "hruarea", None)) is not None:
+            par(subareas)
 
     @importtools.define_targetparameter(evap_control.HRUAltitude)
     def prepare_elevations(self, elevations: VectorInputFloat) -> None:
@@ -5826,23 +5795,30 @@ class Sub_PETModel_V1(Sub_ETModel_V1, petinterfaces.PETModel_V1):
             self.parameters.control.hrualtitude(elevations)
 
 
-class Sub_AETModel_V1(Sub_ETModel_V1, aetinterfaces.AETModel_V1):
-    """Base class for HydPy-Evap models that comply with the |AETModel_V1| submodel
-    interface."""
+    @importtools.define_targetparameter(evap_control.HRUType)
+    def prepare_zonetypes(self, zonetypes: VectorInputInt) -> None:
+        """If such a parameter exists, set the hydrological response unit types.
 
-    @importtools.define_targetparameter(evap_control.MaxSoilWater)
-    def prepare_maxsoilwater(self, maxsoilwater: VectorInputFloat) -> None:
-        """Set the maximum soil water content.
-
-        >>> from hydpy.models.evap_aet_hbv96 import *
-        >>> parameterstep()
+        >>> GRASS, TREES, WATER = 1, 3, 2
+        >>> from hydpy.core.parametertools import Constants
+        >>> constants = Constants(GRASS=GRASS, TREES=TREES, WATER=WATER)
+        >>> from hydpy.models.evap.evap_control import HRUType
+        >>> with HRUType.modify_constants(constants):
+        ...     from hydpy.models.evap_mlc import *
+        ...     parameterstep()
         >>> nmbhru(2)
-        >>> model.prepare_maxsoilwater([100.0, 200.0])
-        >>> maxsoilwater
-        maxsoilwater(100.0, 200.0)
+        >>> model.prepare_zonetypes([TREES, WATER])
+        >>> hrutype
+        hrutype(TREES, WATER)
+
+        >>> from hydpy import prepare_model
+        >>> aetmodel = prepare_model("evap_aet_hbv96")
+        >>> aetmodel.parameters.control.nmbhru(2)
+        >>> aetmodel.prepare_elevations([TREES, WATER])
+        >>> aetmodel.predefinedmethod2argument
+        {'prepare_elevations': [3, 2]}
         """
-        if (par := getattr(self.parameters.control, "maxsoilwater", None)) is not None:
-            par(maxsoilwater)
+        self.parameters.control.hrutype(zonetypes)
 
     @importtools.define_targetparameter(evap_control.Water)
     def prepare_water(self, water: VectorInputBool) -> None:
@@ -5898,8 +5874,7 @@ class Sub_AETModel_V1(Sub_ETModel_V1, aetinterfaces.AETModel_V1):
         >>> tree
         tree(True, False)
         """
-        if (par := getattr(self.parameters.control, "tree", None)) is not None:
-            par(tree)
+        self.parameters.control.tree(tree)
 
     @importtools.define_targetparameter(evap_control.Conifer)
     def prepare_conifer(self, conifer: VectorInputBool) -> None:
@@ -5913,8 +5888,21 @@ class Sub_AETModel_V1(Sub_ETModel_V1, aetinterfaces.AETModel_V1):
         >>> conifer
         conifer(True, False)
         """
-        if (par := getattr(self.parameters.control, "conifer", None)) is not None:
-            par(conifer)
+        self.parameters.control.conifer(conifer)
+
+    @importtools.define_targetparameter(evap_control.MaxSoilWater)
+    def prepare_maxsoilwater(self, maxsoilwater: VectorInputFloat) -> None:
+        """Set the maximum soil water content.
+
+        >>> from hydpy.models.evap_aet_hbv96 import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> model.prepare_maxsoilwater([100.0, 200.0])
+        >>> maxsoilwater
+        maxsoilwater(100.0, 200.0)
+        """
+        if (par := getattr(self.parameters.control, "maxsoilwater", None)) is not None:
+            par(maxsoilwater)
 
 
 class Main_RET_PETModel_V1(modeltools.AdHocModel):

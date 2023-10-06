@@ -387,6 +387,8 @@ class Return_AdjustedWindSpeed_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         inp = model.sequences.inputs.fastaccess
+        if h == con.measuringheightwindspeed:
+            return inp.windspeed
         return inp.windspeed * (
             modelutils.log(h / fix.roughnesslengthgrass)
             / modelutils.log(con.measuringheightwindspeed / fix.roughnesslengthgrass)

@@ -127,7 +127,7 @@ def getattr_(obj: Any, name: str, default: T1, type_: Type[T2]) -> Union[T1, T2]
     ...
 
 
-def getattr_(  # type: ignore[misc]
+def getattr_(
     obj: Any,
     name: str,
     default: Union[T, _Enum] = _Enum.GETATTR_NO_DEFAULT,

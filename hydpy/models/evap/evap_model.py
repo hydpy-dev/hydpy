@@ -4053,14 +4053,13 @@ class Return_Evaporation_PenmanMonteith_V1(modeltools.Method):
     Basic equations:
 
     .. math::
-      f_{PM}(r_s) = \frac{P'_s \cdot (R_n - G) +
-      Seconds \cdot C \cdot \rho \cdot c_p \cdot (P_s - P_a) / r_a}
-      {H \cdot (P'_s + \gamma \cdot
-      C \cdot (1 + r_s / r_a))} \\
+      f_{PM}(r_s) =
+      \frac{P'_s \cdot (R_n - G) + C \cdot \rho \cdot c_p \cdot (P_s - P_a) / r_a}
+      {H \cdot (P'_s + \gamma \cdot C \cdot (1 + r_s / r_a))} \\
       \\
       C = 1 + \frac{b' \cdot r_a}{\rho \cdot c_p} \\
       \\
-      b' = 4 \cdot \varepsilon \cdot \sigma / Seconds \cdot (273.15 + T)^3 \\
+      b' = 4 \cdot \varepsilon \cdot \sigma \cdot (273.15 + T)^3 \\
       \\
       r_s = actualsurfaceresistance \\
       P'_s = SaturationVapourPressureSlope  \\
@@ -4096,7 +4095,6 @@ class Return_Evaporation_PenmanMonteith_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbhru(7)
         >>> emissivity(0.96)
-        >>> derived.seconds.update()
         >>> fluxes.netradiation = 10.0, 50.0, 100.0, 10.0, 10.0, 10.0, 100.0
         >>> fluxes.soilheatflux = 10.0
         >>> factors.saturationvapourpressure = 12.0
@@ -4198,9 +4196,7 @@ class Return_Evaporation_PenmanMonteith_V1(modeltools.Method):
         |NetRadiation| and |SoilHeatFlux|:
 
         >>> simulationstep("1h")
-        >>> derived.seconds.update()
         >>> fixed.heatofcondensation.restore()
-        >>> fixed.heatcapacityair.restore()
         >>> fluxes.netradiation = 10.0, 50.0, 100.0, 10.0, 10.0, 10.0, 100.0
         >>> factors.actualvapourpressure = 12.0, 12.0, 12.0, 12.0, 6.0, 0.0, 0.0
         >>> factors.actualsurfaceresistance = 0.0
@@ -4222,7 +4218,6 @@ class Return_Evaporation_PenmanMonteith_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (evap_control.Emissivity,)
-    DERIVEDPARAMETERS = (evap_derived.Seconds,)
     FIXEDPARAMETERS = (
         evap_fixed.StefanBoltzmannConstant,
         evap_fixed.HeatOfCondensation,
@@ -4247,24 +4242,18 @@ class Return_Evaporation_PenmanMonteith_V1(modeltools.Method):
         actualsurfaceresistance: float,
     ) -> float:
         con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         ar: float = min(max(fac.aerodynamicresistance[k], 1e-6), 1e6)
         t: float = 273.15 + fac.airtemperature[k]
-        b: float = (
-            4.0 * con.emissivity * fix.stefanboltzmannconstant / der.seconds
-        ) * t**3
+        b: float = (4.0 * con.emissivity * fix.stefanboltzmannconstant) * t**3
         c: float = 1.0 + b * ar / fac.airdensity[k] / fix.heatcapacityair
         return (
             (
                 fac.saturationvapourpressureslope[k]
                 * (flu.netradiation[k] - flu.soilheatflux[k])
-                + der.seconds
-                * c
-                * fac.airdensity[k]
-                * fix.heatcapacityair
+                + (c * fac.airdensity[k] * fix.heatcapacityair)
                 * (fac.saturationvapourpressure[k] - fac.actualvapourpressure[k])
                 / ar
             )
@@ -4299,7 +4288,6 @@ class Calc_PotentialInterceptionEvaporation_V1(modeltools.Method):
         >>> nmbhru(7)
         >>> interception(True)
         >>> emissivity(0.96)
-        >>> derived.seconds.update()
         >>> factors.saturationvapourpressure = 12.0
         >>> factors.saturationvapourpressureslope = 0.8
         >>> factors.actualvapourpressure = 12.0, 12.0, 12.0, 12.0, 6.0, 0.0, 0.0
@@ -4676,7 +4664,6 @@ class Calc_SoilEvapotranspiration_V3(modeltools.Method):
         >>> soil(True)
         >>> tree(True, False)
         >>> emissivity(0.96)
-        >>> derived.seconds.update()
         >>> factors.saturationvapourpressure = 12.0
         >>> factors.saturationvapourpressureslope = 0.8
         >>> factors.actualvapourpressure = 0.0
@@ -4719,7 +4706,6 @@ class Calc_SoilEvapotranspiration_V3(modeltools.Method):
         evap_control.Tree,
         evap_control.Emissivity,
     )
-    DERIVEDPARAMETERS = (evap_derived.Seconds,)
     FIXEDPARAMETERS = (
         evap_fixed.StefanBoltzmannConstant,
         evap_fixed.HeatOfCondensation,

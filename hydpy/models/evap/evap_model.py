@@ -4063,13 +4063,13 @@ class Return_Evaporation_PenmanMonteith_V1(modeltools.Method):
       b' = 4 \cdot \varepsilon \cdot \sigma / Seconds \cdot (273.15 + T)^3 \\
       \\
       r_s = actualsurfaceresistance \\
-      P'_s = DailySaturationVapourPressureSlope  \\
-      R_n = DailyNetRadiation \\
+      P'_s = SaturationVapourPressureSlope  \\
+      R_n = NetRadiation \\
       G = SoilHeatFlux \\
       \rho = AirDensitiy  \\
-      c_p = CPLuft \\
-      P_s = DailySaturationVapourPressure \\
-      P_a = DailyActualVapourPressure \\
+      c_p = HeatCapacityAir \\
+      P_s = SaturationVapourPressure \\
+      P_a = ActualVapourPressure \\
       r_a = AerodynamicResistance \\
       H = HeatOfCondensation \\
       \gamma = PsychrometricConstant \\

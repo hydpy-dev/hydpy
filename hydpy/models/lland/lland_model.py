@@ -2485,6 +2485,12 @@ class Update_WaDa_V1(modeltools.Method):
         wada(0.9,0.9,0.9)
     """
 
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.KW,
+    )
+    UPDATEDSEQUENCES = (lland_fluxes.WaDa,)
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess

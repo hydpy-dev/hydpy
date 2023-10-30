@@ -155,6 +155,13 @@ class KE(lland_parameters.ParameterComplete):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
     INIT = 1.0
 
+class KW(lland_parameters.ParameterComplete):
+    """Wasserdargebotskorrekturfaktor (adjustment factor for
+    water supply) [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    INIT = 1.0
+
 
 # energy adjustment
 

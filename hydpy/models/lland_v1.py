@@ -2019,6 +2019,7 @@ class Model(modeltools.AdHocModel):
         lland_model.Calc_SchmPot_V1,
         lland_model.Calc_Schm_WATS_V1,
         lland_model.Calc_WaDa_WAeS_V1,
+        lland_model.Update_WaDa_V1,
         lland_model.Calc_EvB_V1,
         lland_model.Calc_QKap_V1,
         lland_model.Calc_QBB_V1,

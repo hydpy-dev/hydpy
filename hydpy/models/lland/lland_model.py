@@ -2466,6 +2466,31 @@ class Calc_WaDa_WAeS_V2(modeltools.Method):
                 flu.wada[k] = max(sta.waes[k] - con.pwmax[k] * sta.wats[k], 0.0)
                 sta.waes[k] -= flu.wada[k]
 
+class Update_WaDa_V1(modeltools.Method):
+    r"""Update Wasserdargebot (Water reaching the soil).
+
+    Basic equation:
+      :math:`WaDa_{new} = KW \cdot WaDa_{old}`
+
+    Examples:
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
+        >>> nhru(3)
+        >>> kw(0.9,0.9,0.9)
+        >>> fluxes.wada = 1.0, 1.0, 1.0
+        >>> model.update_wada_v1()
+        >>> fluxes.wada
+        wada(0.9,0.9,0.9)
+    """
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            flu.wada[k] = con.kw[k] * flu.wada[k]
 
 class Calc_WGTF_V1(modeltools.Method):
     """Calculate the heat flux according to the degree-day method according to

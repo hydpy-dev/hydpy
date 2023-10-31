@@ -34,6 +34,8 @@ from hydpy.models.lland.lland_constants import (
     FLUSS,
     SEE,
     VERS,
+    BODEN,
+    GLETS,
     LAUBW,
     MISCHW,
     NADELW,
@@ -7652,6 +7654,7 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         aetinterfaces.AETModel_V1.prepare_water,
         aetinterfaces.AETModel_V1.prepare_interception,
         aetinterfaces.AETModel_V1.prepare_soil,
+        aetinterfaces.AETModel_V1.prepare_plant,
         aetinterfaces.AETModel_V1.prepare_tree,
         aetinterfaces.AETModel_V1.prepare_conifer,
         landtype_constants=lland_constants.CONSTANTS,
@@ -7734,6 +7737,9 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         aetmodel.prepare_interception(~sel)
         sel[lnk == VERS] = True
         aetmodel.prepare_soil(~sel)
+        sel[lnk == BODEN] = True
+        sel[lnk == GLETS] = True
+        aetmodel.prepare_plant(~sel)
         sel = numpy.full(nhru, False, dtype=bool)
         sel[lnk == NADELW] = True
         aetmodel.prepare_conifer(sel)

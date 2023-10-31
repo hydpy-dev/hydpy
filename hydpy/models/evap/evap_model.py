@@ -8098,6 +8098,20 @@ FluxSequence1D
         """
         self.parameters.control.soil(soil)
 
+    @importtools.define_targetparameter(evap_control.Plant)
+    def prepare_plant(self, plant: VectorInputBool) -> None:
+        """Set the flag indicating whether or not the respective hydrological response
+        units contain vegetation.
+
+        >>> from hydpy import prepare_model
+        >>> ambav = prepare_model("evap_pet_ambav1")
+        >>> ambav.parameters.control.nmbhru(2)
+        >>> ambav.prepare_plant([True, False])
+        >>> ambav.parameters.control.plant
+        plant(True, False)
+        """
+        self.parameters.control.plant(plant)
+
     @importtools.define_targetparameter(evap_control.Tree)
     def prepare_tree(self, tree: VectorInputBool) -> None:
         """Set the flag indicating whether or not the respective hydrological response

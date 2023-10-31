@@ -4803,6 +4803,7 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         aetinterfaces.AETModel_V1.prepare_water,
         aetinterfaces.AETModel_V1.prepare_interception,
         aetinterfaces.AETModel_V1.prepare_soil,
+        aetinterfaces.AETModel_V1.prepare_plant,
         landtype_constants=hland_constants.CONSTANTS,
         landtype_refindices=hland_control.ZoneType,
         refweights=hland_control.ZoneArea,
@@ -4858,18 +4859,15 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         aetmodel.prepare_subareas(control.zonearea.value)
         aetmodel.prepare_elevations(100.0 * control.zonez.values)
         aetmodel.prepare_maxsoilwater(control.fc.values)
-        water = numpy.full(nmbzones, False, dtype=bool)
-        water[zonetype == ILAKE] = True
-        aetmodel.prepare_water(water)
-        interception = numpy.full(nmbzones, True, dtype=bool)
-        interception[zonetype == ILAKE] = False
-        interception[zonetype == GLACIER] = False
-        aetmodel.prepare_interception(interception)
-        soil = numpy.full(nmbzones, True, dtype=bool)
-        soil[zonetype == ILAKE] = False
-        soil[zonetype == GLACIER] = False
-        soil[zonetype == SEALED] = False
-        aetmodel.prepare_soil(soil)
+        sel = numpy.full(nmbzones, False, dtype=bool)
+        sel[zonetype == ILAKE] = True
+        aetmodel.prepare_water(sel)
+        sel = ~sel
+        sel[zonetype == GLACIER] = False
+        aetmodel.prepare_interception(sel)
+        aetmodel.prepare_plant(sel)
+        sel[zonetype == SEALED] = False
+        aetmodel.prepare_soil(sel)
 
 
 class Sub_TempModel_V1(modeltools.AdHocModel, tempinterfaces.TempModel_V1):

@@ -489,6 +489,7 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
     'prepare_water'
     'prepare_interception'
     'prepare_soil'
+    'prepare_plant'
     'prepare_tree'
     'prepare_conifer'
 

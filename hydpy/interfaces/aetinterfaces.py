@@ -33,6 +33,9 @@ class AETModel_V1(modeltools.SubmodelInterface):
         """Set the flags for whether soil evapotranspiration is relevant for the
         individual zones."""
 
+    def prepare_plant(self, tree: VectorInputBool) -> None:
+        """Set the flags for whether the individual zones contain any vegetation."""
+
     def prepare_tree(self, tree: VectorInputBool) -> None:
         """Set the flags for whether the individual zones contain tree-like
         vegetation."""

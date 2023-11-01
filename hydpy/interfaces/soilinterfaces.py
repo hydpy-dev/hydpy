@@ -29,6 +29,9 @@ class SoilModel_V1(modeltools.SubmodelInterface):
     typeid: ClassVar[Literal[1]] = 1
     """Type identifier for |SoilModel_V1| submodels."""
 
+    def prepare_nmbzones(self, nmbzones: int) -> None:
+        """Set the number of zones in which the actual calculations take place."""
+
     @modeltools.abstractmodelmethod
     def set_initialsurfacewater(self, k: int, v: float) -> None:
         """Set the surface water depth initially ponded at the soil's surface.

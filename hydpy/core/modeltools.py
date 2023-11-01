@@ -1872,7 +1872,7 @@ to be consistent with the name of the element handling the model.
         """
 
         def _extend_lines_submodel(
-            model: Model, sublevel: int, general_methods: Set[str]
+            model: Model, sublevel: int, preparemethods: Set[str]
         ) -> None:
             def _find_adder_and_position() -> (
                 Tuple[importtools.SubmodelAdder, Optional[str]]
@@ -1898,14 +1898,11 @@ to be consistent with the name of the element handling the model.
                     f"{(sublevel - 1) * '    '}with "
                     f"model.{adder.get_wrapped().__name__}({submodel}{position}):\n"
                 )
-                all_methods: Set[str] = general_methods.copy()
+                preparemethods = preparemethods.copy()
                 for method in adder.methods:
-                    methodname = method.__name__
-                    all_methods.add(methodname)
-                    if methodname in SubmodelInterface.GENERAL_METHODS:
-                        general_methods.add(methodname)
+                    preparemethods.add(method.__name__)
                 targetparameters = set()
-                for methodname in all_methods:
+                for methodname in preparemethods:
                     updater = getattr(submodel, methodname)
                     if isinstance(updater, importtools.TargetParameterUpdater):
                         targetparameters.add(updater.targetparameter)
@@ -1923,7 +1920,7 @@ to be consistent with the name of the element handling the model.
                 else:
                     lines.append(f"{sublevel * '    '}pass\n")  # pragma: no cover
                 _extend_lines_submodel(
-                    model=submodel, sublevel=sublevel, general_methods=general_methods
+                    model=submodel, sublevel=sublevel, preparemethods=preparemethods
                 )
 
         header = self.get_controlfileheader(
@@ -1940,7 +1937,7 @@ to be consistent with the name of the element handling the model.
                 sublevel=0,
             )
         )
-        _extend_lines_submodel(model=self, sublevel=0, general_methods=set())
+        _extend_lines_submodel(model=self, sublevel=0, preparemethods=set())
         text = "".join(lines)
         if filepath:
             with open(filepath, mode="w", encoding="utf-8") as controlfile:
@@ -4319,29 +4316,12 @@ class ELSModel(SolverModel):
                 self.numvars.extrapolated_relerror = modelutils.inf
 
 
-class PredefinedMethod2Argument(TypedDict, total=False):
-    """Dictionary for passing arguments from main models to sub-submodels if the
-    submodel does not override the related "general" interface methods for transfering
-    parameter values from main models to submodels."""
-
-    prepare_nmbzones: int
-    prepare_zonetypes: VectorInputInt
-    prepare_subareas: VectorInputFloat
-    prepare_elevations: VectorInputFloat
-
-
 class SubmodelInterface(Model, abc.ABC):
     """Base class for defining interfaces for submodels."""
 
     INTERFACE_METHODS: ClassVar[Tuple[Type[Method], ...]]
-    GENERAL_METHODS: Tuple[str, ...] = (
-        "prepare_nmbzones",
-        "prepare_zonetypes",
-        "prepare_subareas",
-        "prepare_elevations",
-    )
     _submodeladder: Optional[importtools.SubmodelAdder]
-    predefinedmethod2argument: PredefinedMethod2Argument
+    preparemethod2arguments: Dict[str, Tuple[Tuple[Any, ...], Dict[str, Any]]]
 
     typeid: ClassVar[int]
     """Type identifier that we use for differentiating submodels that target the same 
@@ -4356,7 +4336,7 @@ class SubmodelInterface(Model, abc.ABC):
     def __init__(self) -> None:
         super().__init__()
         self._submodeladder = None
-        self.predefinedmethod2argument = {}
+        self.preparemethod2arguments = {}
 
     @staticmethod
     @contextlib.contextmanager
@@ -4385,69 +4365,6 @@ class SubmodelInterface(Model, abc.ABC):
         |True|; otherwise, |False|.
         """
         return False
-
-    def prepare_nmbzones(self, nmbzones: int) -> None:
-        """Set the number of zones in which the actual calculations take place.
-
-        If a submodel does not work with a variable number of zones, it probably must
-        not override |SubmodelInterface.prepare_nmbzones|.  Then, the default behaviour
-        applies, where |SubmodelInterface.prepare_nmbzones| stores the given number of
-        zones in the |SubmodelInterface.predefinedmethod2argument| dictionary.  There,
-        it is available to eventual sub-submodels:
-
-        >>> from hydpy.core.modeltools import SubmodelInterface
-        >>> from hydpy.core.testtools import make_abc_testable
-        >>> si = make_abc_testable(SubmodelInterface)()
-        >>> si.prepare_nmbzones(3)
-        >>> si.predefinedmethod2argument
-        {'prepare_nmbzones': 3}
-        """
-        self.predefinedmethod2argument["prepare_nmbzones"] = nmbzones
-
-    def prepare_zonetypes(self, zonetypes: Sequence[int]) -> None:
-        """Set the types (usually land cover types) of the individual zones.
-
-        The explanation on method |SubmodelInterface.prepare_nmbzones| also holds for
-        the default behaviour of method |SubmodelInterface.prepare_zonetypes|:
-
-        >>> from hydpy.core.modeltools import SubmodelInterface
-        >>> from hydpy.core.testtools import make_abc_testable
-        >>> si = make_abc_testable(SubmodelInterface)()
-        >>> si.prepare_zonetypes([1, 2])
-        >>> si.predefinedmethod2argument
-        {'prepare_zonetypes': [1, 2]}
-        """
-        self.predefinedmethod2argument["prepare_zonetypes"] = zonetypes
-
-    def prepare_subareas(self, subareas: Sequence[float]) -> None:
-        """Set the areas of the individual zones in km².
-
-        The explanation on method |SubmodelInterface.prepare_nmbzones| also holds for
-        the default behaviour of method |SubmodelInterface.prepare_subareas|:
-
-        >>> from hydpy.core.modeltools import SubmodelInterface
-        >>> from hydpy.core.testtools import make_abc_testable
-        >>> si = make_abc_testable(SubmodelInterface)()
-        >>> si.prepare_subareas([1.0, 2.0])
-        >>> si.predefinedmethod2argument
-        {'prepare_subareas': [1.0, 2.0]}
-        """
-        self.predefinedmethod2argument["prepare_subareas"] = subareas
-
-    def prepare_elevations(self, elevations: Sequence[float]) -> None:
-        """Set the elevations of the individual zones in m.
-
-        The explanation on method |SubmodelInterface.prepare_nmbzones| also holds for
-        the default behaviour of method |SubmodelInterface.prepare_elevations|:
-
-        >>> from hydpy.core.modeltools import SubmodelInterface
-        >>> from hydpy.core.testtools import make_abc_testable
-        >>> si = make_abc_testable(SubmodelInterface)()
-        >>> si.prepare_elevations([1.0, 2.0])
-        >>> si.predefinedmethod2argument
-        {'prepare_elevations': [1.0, 2.0]}
-        """
-        self.predefinedmethod2argument["prepare_elevations"] = elevations
 
 
 class Submodel:

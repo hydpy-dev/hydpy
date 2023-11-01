@@ -4833,12 +4833,23 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         ...     interception
         ...     soil
         ...     excessreduction(field=1.0, forest=0.5, default=nan)
+        ...     for method, arguments in model.preparemethod2arguments.items():
+        ...         print(method, arguments[0][0], sep=": ")
         nmbhru(5)
         water(field=False, forest=False, glacier=False, ilake=True,
               sealed=False)
         interception(field=True, forest=True, glacier=False, ilake=False,
                      sealed=True)
         soil(field=True, forest=True, glacier=False, ilake=False, sealed=False)
+        prepare_nmbzones: 5
+        prepare_zonetypes: [1 2 4 3 5]
+        prepare_subareas: [2. 2. 2. 2. 2.]
+        prepare_elevations: [300. 300. 300. 300. 300.]
+        prepare_maxsoilwater: [200. 200. 200. 200. 200.]
+        prepare_water: [False False  True False False]
+        prepare_interception: [ True  True False False False]
+        prepare_plant: [ True  True False False False]
+        prepare_soil: [ True  True False False False]
 
         >>> ered = model.aetmodel.parameters.control.excessreduction
         >>> ered

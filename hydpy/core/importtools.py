@@ -546,6 +546,7 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
         Type[modeltools.Model], DefaultDict[str, List[SubmodelAdder]]
     ] = collections.defaultdict(lambda: collections.defaultdict(lambda: []))
 
+    _methodnames: FrozenSet[str]
     _wrapped: Union[PrepSub0D[TM_contra, TI_contra], PrepSub1D[TM_contra, TI_contra]]
     _sharable_configuration: SharableConfiguration
     _model: Optional[TM_contra]
@@ -602,6 +603,7 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
         self.submodelname = submodelname
         self.submodelinterface = submodelinterface
         self.methods = tuple(methods)
+        self._methodnames = frozenset(method.__name__ for method in methods)
         self.dimensionality = dimensionality
         self._sharable_configuration = {
             "landtype_constants": landtype_constants,
@@ -739,8 +741,7 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
                     namespace.update(old_locals)
                     namespace[__HYDPY_MODEL_LOCALS__] = old_locals
                     if isinstance(model, modeltools.SubmodelInterface):
-                        # see https://github.com/python/mypy/issues/12732
-                        model.predefinedmethod2argument.clear()  # type: ignore[attr-defined]  # pylint: disable=line-too-long
+                        model.preparemethod2arguments.clear()
         except BaseException:
             assert (model := self._model) is not None
             objecttools.augment_excmessage(
@@ -794,10 +795,10 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
         else:
             assert_never(self.dimensionality)
         if isinstance(model, modeltools.SubmodelInterface):
-            im2a = model.predefinedmethod2argument
-            for methodname in modeltools.SubmodelInterface.GENERAL_METHODS:
-                if (argument := im2a.get(methodname)) is not None:
-                    getattr(submodel, methodname)(argument)
+            for methodname, arguments in model.preparemethod2arguments.items():
+                if methodname not in self._methodnames:
+                    if (method := getattr(submodel, methodname, None)) is not None:
+                        method(*arguments[0], **arguments[1])
 
 
 def define_targetparameter(
@@ -864,7 +865,9 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
 
     def __call__(self, *args: P.args, **kwargs: P.kwargs) -> None:
         assert (model := self._model) is not None
-        self._wrapped(model, *args, **kwargs)
+        model.preparemethod2arguments[self._wrapped.__name__] = args, kwargs
+        if self.targetparameter.name in model.parameters.control.names:
+            self._wrapped(model, *args, **kwargs)
 
 
 def simulationstep(timestep: timetools.PeriodConstrArg) -> None:

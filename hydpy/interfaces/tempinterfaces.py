@@ -26,6 +26,12 @@ class TempModel_V2(modeltools.SubmodelInterface):
     typeid: ClassVar[Literal[2]] = 2
     """Type identifier for |TempModel_V2| submodels."""
 
+    def prepare_nmbzones(self, nmbzones: int) -> None:
+        """Set the number of zones in which the actual calculations take place."""
+
+    def prepare_subareas(self, subareas: Sequence[float]) -> None:
+        """Set the areas of the individual zones in km²."""
+
     @modeltools.abstractmodelmethod
     def determine_temperature(self) -> None:
         """Determine temperature."""

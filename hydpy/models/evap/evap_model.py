@@ -8003,8 +8003,7 @@ FluxSequence1D
         >>> hruarea
         hruarea(1.0, 3.0)
         """
-        if (par := getattr(self.parameters.control, "hruarea", None)) is not None:
-            par(subareas)
+        self.parameters.control.hruarea(subareas)
 
     @importtools.define_targetparameter(evap_control.HRUAltitude)
     def prepare_elevations(self, elevations: VectorInputFloat) -> None:
@@ -8017,19 +8016,8 @@ FluxSequence1D
         >>> petmodel.prepare_elevations([1.0, 3.0])
         >>> petmodel.parameters.control.hrualtitude
         hrualtitude(1.0, 3.0)
-
-        >>> aetmodel = prepare_model("evap_aet_hbv96")
-        >>> aetmodel.parameters.control.nmbhru(2)
-        >>> aetmodel.prepare_elevations([1.0, 3.0])
-        >>> aetmodel.predefinedmethod2argument
-        {'prepare_elevations': [1.0, 3.0]}
         """
-        hrualtitude = getattr(self.parameters.control, "hrualtitude", None)
-        if hrualtitude is None:
-            self.predefinedmethod2argument["prepare_elevations"] = elevations
-        else:
-            self.parameters.control.hrualtitude(elevations)
-
+        self.parameters.control.hrualtitude(elevations)
 
     @importtools.define_targetparameter(evap_control.HRUType)
     def prepare_zonetypes(self, zonetypes: VectorInputInt) -> None:
@@ -8046,13 +8034,6 @@ FluxSequence1D
         >>> model.prepare_zonetypes([TREES, WATER])
         >>> hrutype
         hrutype(TREES, WATER)
-
-        >>> from hydpy import prepare_model
-        >>> aetmodel = prepare_model("evap_aet_hbv96")
-        >>> aetmodel.parameters.control.nmbhru(2)
-        >>> aetmodel.prepare_elevations([TREES, WATER])
-        >>> aetmodel.predefinedmethod2argument
-        {'prepare_elevations': [3, 2]}
         """
         self.parameters.control.hrutype(zonetypes)
 
@@ -8151,8 +8132,7 @@ FluxSequence1D
         >>> maxsoilwater
         maxsoilwater(100.0, 200.0)
         """
-        if (par := getattr(self.parameters.control, "maxsoilwater", None)) is not None:
-            par(maxsoilwater)
+        self.parameters.control.maxsoilwater(maxsoilwater)
 
 
 class Main_RET_PETModel_V1(modeltools.AdHocModel):

@@ -11,6 +11,7 @@ from __future__ import annotations
 import abc
 import contextlib
 import copy
+import functools
 import inspect
 import warnings
 
@@ -2433,6 +2434,11 @@ error occurred: 5 values are assigned to the scalar variable `testvar`.
     @abc.abstractmethod
     def name(self) -> str:
         """To be overridden."""
+
+    @functools.cached_property
+    def names(self) -> FrozenSet:
+        """The names of all handled variables."""
+        return frozenset(self._name2variable)
 
     def _init_fastaccess(self) -> None:
         """Create a `fastaccess` attribute and build the required connections to the

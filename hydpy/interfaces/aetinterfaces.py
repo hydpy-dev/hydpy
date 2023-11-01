@@ -22,6 +22,18 @@ class AETModel_V1(modeltools.SubmodelInterface):
     typeid: ClassVar[Literal[1]] = 1
     """Type identifier for |AETModel_V1| submodels."""
 
+    def prepare_nmbzones(self, nmbzones: int) -> None:
+        """Set the number of zones in which the actual calculations take place."""
+
+    def prepare_subareas(self, subareas: Sequence[float]) -> None:
+        """Set the areas of the individual zones in km²."""
+
+    def prepare_elevations(self, elevations: Sequence[float]) -> None:
+        """Set the elevations of the individual zones in m."""
+
+    def prepare_zonetypes(self, zonetypes: Sequence[int]) -> None:
+        """Set the types (usually land cover types) of the individual zones."""
+
     def prepare_water(self, water: VectorInputBool) -> None:
         """Set the flags for whether the individual zones are water areas or not."""
 

@@ -7676,11 +7676,11 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
         >>> from hydpy.models.lland_v3 import *
         >>> parameterstep()
-        >>> nhru(7)
+        >>> nhru(9)
         >>> ft(10.0)
-        >>> fhru(0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1)
-        >>> lnk(ACKER, LAUBW, NADELW, VERS, WASSER, FLUSS, SEE)
-        >>> wmax(200.0)
+        >>> fhru(0.07, 0.08, 0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.16)
+        >>> lnk(ACKER, LAUBW, NADELW, VERS, WASSER, FLUSS, SEE, BODEN, GLETS)
+        >>> wmax(50.0)
         >>> with model.add_aetmodel_v1("evap_morsim"):
         ...     nmbhru
         ...     hrutype
@@ -7689,24 +7689,34 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         ...     soil
         ...     tree
         ...     conifer
-        ...     fieldcapacity(200.0)
-        ...     wiltingpoint(acker=50.0, laubw=150.0, nadelw=250.0)
+        ...     fieldcapacity(40.0)
+        ...     wiltingpoint(acker=5.0, laubw=15.0, nadelw=25.0, boden=35.0, glets=45.0)
         ...     leafareaindex.acker_aug = 3.5
-        ...     for method, argument in model.predefinedmethod2argument.items():
-        ...         print(method, argument, sep=": ")
-        nmbhru(7)
-        hrutype(ACKER, LAUBW, NADELW, VERS, WASSER, FLUSS, SEE)
-        water(acker=False, fluss=True, laubw=False, nadelw=False, see=True,
-              vers=False, wasser=True)
-        interception(acker=True, fluss=False, laubw=True, nadelw=True,
-                     see=False, vers=True, wasser=False)
-        soil(acker=True, fluss=False, laubw=True, nadelw=True, see=False,
-             vers=False, wasser=False)
-        tree(acker=False, fluss=False, laubw=True, nadelw=True, see=False,
-             vers=False, wasser=False)
-        conifer(acker=False, fluss=False, laubw=False, nadelw=True, see=False,
-                vers=False, wasser=False)
-        prepare_subareas: [1. 2. 1. 2. 1. 2. 1.]
+        ...     for method, arguments in model.preparemethod2arguments.items():
+        ...         print(method, arguments[0][0], sep=": ")
+        nmbhru(9)
+        hrutype(ACKER, LAUBW, NADELW, VERS, WASSER, FLUSS, SEE, BODEN, GLETS)
+        water(acker=False, boden=False, fluss=True, glets=False, laubw=False,
+              nadelw=False, see=True, vers=False, wasser=True)
+        interception(acker=True, boden=True, fluss=False, glets=True,
+                     laubw=True, nadelw=True, see=False, vers=True,
+                     wasser=False)
+        soil(acker=True, boden=True, fluss=False, glets=True, laubw=True,
+             nadelw=True, see=False, vers=False, wasser=False)
+        tree(acker=False, boden=False, fluss=False, glets=False, laubw=True,
+             nadelw=True, see=False, vers=False, wasser=False)
+        conifer(acker=False, boden=False, fluss=False, glets=False,
+                laubw=False, nadelw=True, see=False, vers=False, wasser=False)
+        prepare_nmbzones: 9
+        prepare_zonetypes: [ 4 14 13  3 16 17 18  7  8]
+        prepare_subareas: [0.7 0.8 0.9 1.  1.1 1.2 1.3 1.4 1.6]
+        prepare_maxsoilwater: [50. 50. 50. 50. 50. 50. 50. 50. 50.]
+        prepare_water: [False False False  True  True  True  True  True  True]
+        prepare_interception: [ True  True  True  True False False False  True  True]
+        prepare_soil: [ True  True  True False False False False  True  True]
+        prepare_plant: [ True  True  True False False False False False False]
+        prepare_conifer: [False  True  True False False False False False False]
+        prepare_tree: [False  True  True False False False False False False]
 
         >>> from hydpy import round_
         >>> round_(model.aetmodel.parameters.control.leafareaindex.acker_aug)
@@ -7714,12 +7724,14 @@ class Main_AETModel_V1(modeltools.AdHocModel):
 
         >>> wp = model.aetmodel.parameters.control.wiltingpoint
         >>> wp
-        wiltingpoint(acker=50.0, laubw=150.0, nadelw=200.0)
-        >>> lnk(NADELW, LAUBW, ACKER, VERS, WASSER, FLUSS, SEE)
+        wiltingpoint(acker=5.0, boden=35.0, glets=40.0, laubw=15.0,
+                     nadelw=25.0)
+        >>> lnk(NADELW, LAUBW, ACKER, VERS, WASSER, FLUSS, SEE, BODEN, GLETS)
         >>> wp
-        wiltingpoint(acker=200.0, laubw=150.0, nadelw=50.0)
+        wiltingpoint(acker=25.0, boden=35.0, glets=40.0, laubw=15.0,
+                     nadelw=5.0)
         >>> round_(wp.average_values())
-        137.5
+        27.962963
         """
         control = self.parameters.control
         nhru = control.nhru.value

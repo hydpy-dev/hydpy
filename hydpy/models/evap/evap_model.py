@@ -3673,7 +3673,7 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
         >>> from hydpy.models.lland_v1 import *
         >>> parameterstep()
         >>> nhru(5)
-        >>> lnk(WASSER, FLUSS, SEE, SEE, SEE)
+        >>> lnk(WASSER, FLUSS, SEE, BODEN, BODEN)
         >>> ft(10.0)
         >>> fhru(0.2)
         >>> wmax(200.0)
@@ -3688,17 +3688,19 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
         >>> factors = ambav.sequences.factors
         >>> states = ambav.sequences.states
 
-        For response units without relevant soils (like those with sealed surfaces or
-        bare soils), method |Calc_ActualSurfaceResistance_V2| generally sets the
-        effective surface resistance to zero:
+        For response units without relevant soils (like those with sealed surfaces) or
+        with unvegetated soils, method |Calc_ActualSurfaceResistance_V2| generally
+        performs no calculation but sets the effective surface resistance to zero or
+        takes the defined soil resistance value:
 
         >>> control.hrutype
-        hrutype(WASSER, FLUSS, SEE, SEE, SEE)
+        hrutype(WASSER, FLUSS, SEE, BODEN, BODEN)
         >>> control.soil
-        soil(False)
+        soil(boden=True, fluss=False, see=False, wasser=False)
+        >>> states.soilresistance = 300.0
         >>> ambav.calc_actualsurfaceresistance_v2()
         >>> factors.actualsurfaceresistance
-        actualsurfaceresistance(0.0, 0.0, 0.0, 0.0, 0.0)
+        actualsurfaceresistance(0.0, 0.0, 0.0, 300.0, 300.0)
 
         For all "soil areas", the final soil resistance is a combination of
         |LeafResistance| and |SoilResistance| that depends on the leaf area index,
@@ -3825,14 +3827,11 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbhru):
-            if con.soil[k]:
-                if con.plant[k]:
-                    lai: float = con.leafareaindex[
-                        con.hrutype[k] - con._leafareaindex_rowmin,
-                        der.moy[model.idx_sim] - con._leafareaindex_columnmin,
-                    ]
-                else:
-                    lai = 0.0
+            if con.plant[k]:
+                lai: float = con.leafareaindex[
+                    con.hrutype[k] - con._leafareaindex_rowmin,
+                    der.moy[model.idx_sim] - con._leafareaindex_columnmin,
+                ]
                 w_soil: float = (0.8 if lai < 1.0 else 0.7) ** lai
                 r_soil: float = sta.soilresistance[k]
                 r_leaf_day: float = con.leafresistance[k]
@@ -3843,6 +3842,8 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
                 fac.actualsurfaceresistance[k] = 1.0 / (
                     (w_day * r_day_inv + (1.0 - w_day) * r_night_inv)
                 )
+            elif con.soil[k]:
+                fac.actualsurfaceresistance[k] = sta.soilresistance[k]
             else:
                 fac.actualsurfaceresistance[k] = 0.0
 

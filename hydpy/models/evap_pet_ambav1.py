@@ -57,8 +57,6 @@ The following parameter settings are comparable to the ones selected for |evap_m
 >>> leafalbedosnow(0.8)
 >>> groundalbedo(0.2)
 >>> groundalbedosnow(0.8)
->>> leafalbedo(0.2)
->>> leafalbedosnow(0.8)
 >>> leafareaindex(5.0)
 >>> cropheight(10.0)
 >>> leafresistance(40.0)

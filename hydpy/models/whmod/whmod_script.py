@@ -101,8 +101,8 @@ class RasterArea(NDArrayInt):
     def from_elements(cls, elements: hydpy.Elements) -> Self:
         """Erstelle RasterArea aus Elementflächen"""
         pb = Positionbounds.from_elementnames(elements=elements)
-        area_grid = numpy.full(
-            (pb.rowmax - pb.rowmin + 1, pb.colmax - pb.colmin + 1), numpy.nan
+        area_grid = numpy.zeros(
+            (pb.rowmax - pb.rowmin + 1, pb.colmax - pb.colmin + 1)
         )
         area_sum = 0.0
         for element in elements:

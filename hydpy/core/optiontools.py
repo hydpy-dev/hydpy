@@ -846,12 +846,12 @@ class Options:
         """,
     )
     printprogress = OptionPropertyBool(
-        False,
+        True,
         """A True/False flag for printing information about the progress of some 
         processes to the standard output.""",
     )
     reprdigits = OptionPropertyInt(
-        6,
+        -1,
         """Required precision of string representations of floating point numbers, 
         defined as the minimum number of digits to be reproduced by the string 
         representation (see function |repr_|).""",
@@ -897,7 +897,7 @@ class Options:
         only for good reasons.""",
     )
     usecython = OptionPropertyBool(
-        False,
+        True,
         """A True/False flag for applying cythonized models if possible, which are much 
         faster than pure Python models. """,
     )

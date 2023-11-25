@@ -966,9 +966,7 @@ name or the responsible Element object.
                 if path not in cls._registry:
                     with open(path, encoding=config.ENCODING) as file_:
                         cls._registry[path] = compile(
-                            source=file_.read(),
-                            filename=filename,
-                            mode="exec",
+                            source=file_.read(), filename=filename, mode="exec"
                         )
                 exec(cls._registry[path], {}, info)
             except BaseException:

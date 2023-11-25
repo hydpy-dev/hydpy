@@ -631,9 +631,7 @@ object `ann` has not been prepared so far.
         pass
 
     nmb_neurons = propertytools.ProtectedProperty[Tuple[int, ...], Tuple[int, ...]](
-        fget=_get_nmb_neurons,
-        fset=_set_nmb_neurons,
-        fdel=_del_nmb_neurons,
+        fget=_get_nmb_neurons, fset=_set_nmb_neurons, fdel=_del_nmb_neurons
     )
 
     __protectedproperties = propertytools.ProtectedProperties(
@@ -1124,8 +1122,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         return self._calgorithm.nmb_layers
 
     nmb_layers = propertytools.DependentProperty[int, int](
-        protected=__protectedproperties,
-        fget=_get_nmb_layers,
+        protected=__protectedproperties, fget=_get_nmb_layers
     )
 
     def _get_shape_neurons(self) -> Tuple[int, int]:
@@ -1143,8 +1140,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         return self.nmb_layers, self.__max_nmb_neurons
 
     shape_neurons = propertytools.DependentProperty[Tuple[int, int], Tuple[int, int]](
-        protected=__protectedproperties,
-        fget=_get_shape_neurons,
+        protected=__protectedproperties, fget=_get_shape_neurons
     )
 
     neurons = _ANNArrayProperty[Optional[MatrixInputFloat], MatrixFloat](
@@ -1172,10 +1168,7 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     shape_neuron_derivatives = propertytools.DependentProperty[
         Tuple[int, int], Tuple[int, int]
-    ](
-        protected=__protectedproperties,
-        fget=_get_shape_neuron_derivatives,
-    )
+    ](protected=__protectedproperties, fget=_get_shape_neuron_derivatives)
 
     neuron_derivatives = _ANNArrayProperty[Optional[MatrixInputFloat], MatrixFloat](
         protected=__protectedproperties,

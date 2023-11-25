@@ -674,9 +674,7 @@ class OptionContextBool(int, OptionContextBase[bool]):
     """Context manager required by |OptionPropertyBool|."""
 
     def __new__(  # pylint: disable=unused-argument
-        cls,
-        value: bool,
-        set_value: Optional[Callable[[bool], None]] = None,
+        cls, value: bool, set_value: Optional[Callable[[bool], None]] = None
     ) -> OptionContextBool:
         return super().__new__(cls, value)
 
@@ -685,9 +683,7 @@ class OptionContextInt(int, OptionContextBase[int]):
     """Context manager required by |OptionPropertyInt|."""
 
     def __new__(  # pylint: disable=unused-argument
-        cls,
-        value: int,
-        set_value: Optional[Callable[[int], None]] = None,
+        cls, value: int, set_value: Optional[Callable[[int], None]] = None
     ) -> OptionContextInt:
         return super().__new__(cls, value)
 
@@ -717,9 +713,7 @@ class OptionContextStr(str, OptionContextBase[str]):
     """Context manager required by |OptionPropertyStr|."""
 
     def __new__(  # pylint: disable=unused-argument
-        cls,
-        value: str,
-        set_value: Optional[Callable[[str], None]] = None,
+        cls, value: str, set_value: Optional[Callable[[str], None]] = None
     ) -> OptionContextStr:
         return super().__new__(cls, value)
 
@@ -914,8 +908,7 @@ class Options:
         faster than pure Python models. """,
     )
     usedefaultvalues = OptionPropertyBool(
-        False,
-        """A True/False flag for initialising parameters with standard values.""",
+        False, """A True/False flag for initialising parameters with standard values."""
     )
     utclongitude = OptionPropertyInt(
         15,

@@ -711,9 +711,7 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
         ...
 
     def __call__(
-        self,
-        *algorithm: InterpAlgorithm,
-        **algorithms: InterpAlgorithm,
+        self, *algorithm: InterpAlgorithm, **algorithms: InterpAlgorithm
     ) -> None:
         self._toy2algorithm = []
         self._do_refresh = False

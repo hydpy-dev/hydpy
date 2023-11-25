@@ -1609,16 +1609,12 @@ moment.
         self.timedelta += type(self)(other).timedelta
         return self
 
-    def __sub__(
-        self: TypePeriod,
-        other: PeriodConstrArg,
-    ) -> TypePeriod:
+    def __sub__(self: TypePeriod, other: PeriodConstrArg) -> TypePeriod:
         return type(self).from_timedelta(self.timedelta - type(self)(other).timedelta)
 
     @overload
     def __rsub__(  # type: ignore
-        self: TypePeriod,
-        other: Union[Date, datetime_.datetime],
+        self: TypePeriod, other: Union[Date, datetime_.datetime]
     ) -> TypePeriod:
         # without more flexible ways to relate types to string patterns, there is
         # nothing we can do about it (except providing a less flexible interface, of
@@ -1627,8 +1623,7 @@ moment.
 
     @overload
     def __rsub__(  # type: ignore
-        self,
-        other: Union[Period, datetime_.timedelta],
+        self, other: Union[Period, datetime_.timedelta]
     ) -> Date:
         # without more flexible ways to relate types to string patterns, there is
         # nothing we can do about it (except providing a less flexible interface, of
@@ -2439,11 +2434,7 @@ the step size `4d`.
         lastdate_copy = self.lastdate
         stepsize_copy = self.stepsize
         try:
-            self.modify(
-                firstdate=firstdate,
-                lastdate=lastdate,
-                stepsize=stepsize,
-            )
+            self.modify(firstdate=firstdate, lastdate=lastdate, stepsize=stepsize)
             yield self
         finally:
             self.firstdate = firstdate_copy
@@ -2982,10 +2973,7 @@ size `3d`.
             objecttools.augment_excmessage(
                 f"While trying to verify the evaluation time grid `{self.eval_}`"
             )
-        for tg, descr in (
-            (self.sim, "simulation"),
-            (self.eval_, "evaluation"),
-        ):
+        for tg, descr in ((self.sim, "simulation"), (self.eval_, "evaluation")):
             if self.init.firstdate > tg.firstdate:
                 raise ValueError(
                     f"The first date of the initialisation period "

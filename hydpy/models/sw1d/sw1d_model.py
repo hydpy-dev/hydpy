@@ -131,10 +131,7 @@ class Pass_Discharge_V1(modeltools.Method):
 
     DERIVEDPARAMETERS = (sw1d_derived.Seconds,)
     REQUIREDSEQUENCES = (sw1d_fluxes.DischargeVolume,)
-    RESULTSEQUENCES = (
-        sw1d_inlets.LongQ,
-        sw1d_outlets.LongQ,
-    )
+    RESULTSEQUENCES = (sw1d_inlets.LongQ, sw1d_outlets.LongQ)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -364,14 +361,8 @@ class Calc_MaxTimeStep_V2(modeltools.Method):
         maxtimestep(inf)
     """
 
-    CONTROLPARAMETERS = (
-        sw1d_control.LengthDownstream,
-        sw1d_control.TimeStepFactor,
-    )
-    REQUIREDSEQUENCES = (
-        sw1d_fluxes.Inflow,
-        sw1d_factors.WettedArea,
-    )
+    CONTROLPARAMETERS = (sw1d_control.LengthDownstream, sw1d_control.TimeStepFactor)
+    REQUIREDSEQUENCES = (sw1d_fluxes.Inflow, sw1d_factors.WettedArea)
     RESULTSEQUENCES = (sw1d_factors.MaxTimeStep,)
 
     @staticmethod
@@ -489,14 +480,8 @@ class Calc_MaxTimeStep_V4(modeltools.Method):
         maxtimestep(inf)
     """
 
-    CONTROLPARAMETERS = (
-        sw1d_control.LengthUpstream,
-        sw1d_control.TimeStepFactor,
-    )
-    REQUIREDSEQUENCES = (
-        sw1d_fluxes.Outflow,
-        sw1d_factors.WettedArea,
-    )
+    CONTROLPARAMETERS = (sw1d_control.LengthUpstream, sw1d_control.TimeStepFactor)
+    REQUIREDSEQUENCES = (sw1d_fluxes.Outflow, sw1d_factors.WettedArea)
     RESULTSEQUENCES = (sw1d_factors.MaxTimeStep,)
 
     @staticmethod
@@ -1206,10 +1191,7 @@ class Calc_WettedArea_V1(modeltools.Method):
         wettedarea(24.0)
     """
 
-    CONTROLPARAMETERS = (
-        sw1d_control.BottomWidth,
-        sw1d_control.SideSlope,
-    )
+    CONTROLPARAMETERS = (sw1d_control.BottomWidth, sw1d_control.SideSlope)
     REQUIREDSEQUENCES = (sw1d_factors.WaterDepth,)
     RESULTSEQUENCES = (sw1d_factors.WettedArea,)
 
@@ -1260,10 +1242,7 @@ class Calc_WettedPerimeter_V1(modeltools.Method):
         wettedperimeter(15.416408)
     """
 
-    CONTROLPARAMETERS = (
-        sw1d_control.BottomWidth,
-        sw1d_control.SideSlope,
-    )
+    CONTROLPARAMETERS = (sw1d_control.BottomWidth, sw1d_control.SideSlope)
     REQUIREDSEQUENCES = (sw1d_factors.WaterDepth,)
     RESULTSEQUENCES = (sw1d_factors.WettedPerimeter,)
 
@@ -2002,10 +1981,7 @@ class Update_Discharge_V2(modeltools.Method):
         |   7 |                7.0 |                  8.0 |       1.0 |
     """
 
-    CONTROLPARAMETERS = (
-        sw1d_control.TargetWaterLevel1,
-        sw1d_control.TargetWaterLevel2,
-    )
+    CONTROLPARAMETERS = (sw1d_control.TargetWaterLevel1, sw1d_control.TargetWaterLevel2)
     REQUIREDSEQUENCES = (
         sw1d_factors.WaterLevelUpstream,
         sw1d_factors.WaterLevelDownstream,
@@ -2070,10 +2046,7 @@ class Update_DischargeVolume_V1(modeltools.Method):
         dischargevolume(18.0)
     """
 
-    REQUIREDSEQUENCES = (
-        sw1d_factors.TimeStep,
-        sw1d_states.Discharge,
-    )
+    REQUIREDSEQUENCES = (sw1d_factors.TimeStep, sw1d_states.Discharge)
     UPDATEDSEQUENCES = (sw1d_fluxes.DischargeVolume,)
 
     @staticmethod
@@ -2292,10 +2265,7 @@ class Calc_NetInflow_V1(modeltools.Method):
         channelinterfaces.RoutingModel_V2,
         channelinterfaces.StorageModel_V1,
     )
-    REQUIREDSEQUENCES = (
-        sw1d_factors.TimeStep,
-        sw1d_fluxes.LateralFlow,
-    )
+    REQUIREDSEQUENCES = (sw1d_factors.TimeStep, sw1d_fluxes.LateralFlow)
     RESULTSEQUENCES = (sw1d_fluxes.NetInflow,)
 
     @staticmethod
@@ -2441,21 +2411,14 @@ class Perform_Preprocessing_V3(modeltools.AutoMethod):
     """Storage model interface method for preprocessing data that is invariant within
     each external simulation step."""
 
-    SUBMETHODS = (
-        Pick_LateralFlow_V1,
-        Calc_WaterDepth_V1,
-        Calc_WaterLevel_V1,
-    )
+    SUBMETHODS = (Pick_LateralFlow_V1, Calc_WaterDepth_V1, Calc_WaterLevel_V1)
     CONTROLPARAMETERS = (
         sw1d_control.Length,
         sw1d_control.BottomLevel,
         sw1d_control.BottomWidth,
         sw1d_control.SideSlope,
     )
-    REQUIREDSEQUENCES = (
-        sw1d_inlets.LatQ,
-        sw1d_states.WaterVolume,
-    )
+    REQUIREDSEQUENCES = (sw1d_inlets.LatQ, sw1d_states.WaterVolume)
     RESULTSEQUENCES = (
         sw1d_factors.WaterDepth,
         sw1d_factors.WaterLevel,
@@ -2476,15 +2439,9 @@ class Perform_Preprocessing_V5(modeltools.AutoMethod):
     """Routing model interface method for preprocessing data that is invariant within
     each external simulation step."""
 
-    SUBMETHODS = (
-        Pick_WaterLevelDownstream_V1,
-        Reset_DischargeVolume_V1,
-    )
+    SUBMETHODS = (Pick_WaterLevelDownstream_V1, Reset_DischargeVolume_V1)
     REQUIREDSEQUENCES = (sw1d_receivers.WaterLevel,)
-    RESULTSEQUENCES = (
-        sw1d_factors.WaterLevelDownstream,
-        sw1d_fluxes.DischargeVolume,
-    )
+    RESULTSEQUENCES = (sw1d_factors.WaterLevelDownstream, sw1d_fluxes.DischargeVolume)
 
 
 class Perform_Postprocessing_V1(modeltools.AutoMethod):
@@ -2504,10 +2461,7 @@ class Perform_Postprocessing_V2(modeltools.AutoMethod):
     SUBMETHODS = (Pass_Discharge_V1,)
     DERIVEDPARAMETERS = (sw1d_derived.Seconds,)
     REQUIREDSEQUENCES = (sw1d_fluxes.DischargeVolume,)
-    RESULTSEQUENCES = (
-        sw1d_inlets.LongQ,
-        sw1d_outlets.LongQ,
-    )
+    RESULTSEQUENCES = (sw1d_inlets.LongQ, sw1d_outlets.LongQ)
 
 
 class Perform_Postprocessing_V3(modeltools.AutoMethod):
@@ -2550,10 +2504,7 @@ class Determine_MaxTimeStep_V1(modeltools.AutoMethod):
         sw1d_control.SideSlope,
         sw1d_control.TimeStepFactor,
     )
-    DERIVEDPARAMETERS = (
-        sw1d_derived.WeightUpstream,
-        sw1d_derived.LengthMin,
-    )
+    DERIVEDPARAMETERS = (sw1d_derived.WeightUpstream, sw1d_derived.LengthMin)
     FIXEDPARAMETERS = (sw1d_fixed.GravitationalAcceleration,)
     REQUIREDSEQUENCES = (sw1d_states.Discharge,)
     RESULTSEQUENCES = (
@@ -2601,11 +2552,7 @@ class Determine_MaxTimeStep_V3(modeltools.AutoMethod):
     """Interface method for determining the highest possible computation time step at
     an outflow weir."""
 
-    SUBMETHODS = (
-        Calc_WaterLevelUpstream_V1,
-        Calc_WaterLevel_V4,
-        Calc_MaxTimeStep_V3,
-    )
+    SUBMETHODS = (Calc_WaterLevelUpstream_V1, Calc_WaterLevel_V4, Calc_MaxTimeStep_V3)
     CONTROLPARAMETERS = (
         sw1d_control.CrestHeight,
         sw1d_control.FlowCoefficient,
@@ -2652,11 +2599,7 @@ class Determine_MaxTimeStep_V5(modeltools.AutoMethod):
     """Interface method for determining the highest possible computation time step at
     an outflow gate."""
 
-    SUBMETHODS = (
-        Calc_WaterLevelUpstream_V1,
-        Calc_WaterLevel_V5,
-        Calc_MaxTimeStep_V5,
-    )
+    SUBMETHODS = (Calc_WaterLevelUpstream_V1, Calc_WaterLevel_V5, Calc_MaxTimeStep_V5)
     CONTROLPARAMETERS = (
         sw1d_control.BottomLevel,
         sw1d_control.GateHeight,
@@ -2702,10 +2645,7 @@ class Determine_Discharge_V1(modeltools.AutoMethod):
         sw1d_factors.WaterVolumeUpstream,
         sw1d_factors.WaterVolumeDownstream,
     )
-    UPDATEDSEQUENCES = (
-        sw1d_states.Discharge,
-        sw1d_fluxes.DischargeVolume,
-    )
+    UPDATEDSEQUENCES = (sw1d_states.Discharge, sw1d_fluxes.DischargeVolume)
 
 
 class Determine_Discharge_V2(modeltools.Method):
@@ -2724,24 +2664,15 @@ class Determine_Discharge_V2(modeltools.Method):
 class Determine_Discharge_V3(modeltools.AutoMethod):
     """Interface method for determining the discharge at an outflow weir."""
 
-    SUBMETHODS = (
-        Calc_Discharge_V2,
-        Update_DischargeVolume_V1,
-    )
+    SUBMETHODS = (Calc_Discharge_V2, Update_DischargeVolume_V1)
     CONTROLPARAMETERS = (
         sw1d_control.CrestHeight,
         sw1d_control.CrestWidth,
         sw1d_control.FlowCoefficient,
     )
     FIXEDPARAMETERS = (sw1d_fixed.GravitationalAcceleration,)
-    REQUIREDSEQUENCES = (
-        sw1d_factors.WaterLevel,
-        sw1d_factors.TimeStep,
-    )
-    UPDATEDSEQUENCES = (
-        sw1d_states.Discharge,
-        sw1d_fluxes.DischargeVolume,
-    )
+    REQUIREDSEQUENCES = (sw1d_factors.WaterLevel, sw1d_factors.TimeStep)
+    UPDATEDSEQUENCES = (sw1d_states.Discharge, sw1d_fluxes.DischargeVolume)
 
 
 class Determine_Discharge_V4(modeltools.Method):
@@ -2790,19 +2721,13 @@ class Determine_Discharge_V5(modeltools.AutoMethod):
         sw1d_factors.WaterVolumeUpstream,
         sw1d_factors.WaterVolumeDownstream,
     )
-    UPDATEDSEQUENCES = (
-        sw1d_states.Discharge,
-        sw1d_fluxes.DischargeVolume,
-    )
+    UPDATEDSEQUENCES = (sw1d_states.Discharge, sw1d_fluxes.DischargeVolume)
 
 
 class Determine_Discharge_V6(modeltools.AutoMethod):
     """Interface method for determining the discharge at an outflow gate."""
 
-    SUBMETHODS = (
-        Calc_Discharge_V3,
-        Update_DischargeVolume_V1,
-    )
+    SUBMETHODS = (Calc_Discharge_V3, Update_DischargeVolume_V1)
     CONTROLPARAMETERS = (
         sw1d_control.BottomLevel,
         sw1d_control.GateHeight,
@@ -2817,10 +2742,7 @@ class Determine_Discharge_V6(modeltools.AutoMethod):
         sw1d_factors.WaterLevelDownstream,
         sw1d_factors.TimeStep,
     )
-    UPDATEDSEQUENCES = (
-        sw1d_states.Discharge,
-        sw1d_fluxes.DischargeVolume,
-    )
+    UPDATEDSEQUENCES = (sw1d_states.Discharge, sw1d_fluxes.DischargeVolume)
 
 
 class Get_WaterVolume_V1(modeltools.Method):
@@ -3095,10 +3017,7 @@ class Update_Storage_V1(modeltools.AutoMethod):
         sw1d_control.BottomWidth,
         sw1d_control.SideSlope,
     )
-    REQUIREDSEQUENCES = (
-        sw1d_factors.TimeStep,
-        sw1d_fluxes.LateralFlow,
-    )
+    REQUIREDSEQUENCES = (sw1d_factors.TimeStep, sw1d_fluxes.LateralFlow)
     RESULTSEQUENCES = (
         sw1d_fluxes.NetInflow,
         sw1d_factors.WaterDepth,

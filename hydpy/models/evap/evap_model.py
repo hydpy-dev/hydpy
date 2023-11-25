@@ -102,14 +102,8 @@ class Calc_AirTemperature_V1(modeltools.Method):
     """Let a submodel that complies with the |TempModel_V1| or |TempModel_V2| interface
     determine the air temperature of the individual hydrological response units."""
 
-    SUBMODELINTERFACES = (
-        tempinterfaces.TempModel_V1,
-        tempinterfaces.TempModel_V2,
-    )
-    SUBMETHODS = (
-        Calc_AirTemperature_TempModel_V1,
-        Calc_AirTemperature_TempModel_V2,
-    )
+    SUBMODELINTERFACES = (tempinterfaces.TempModel_V1, tempinterfaces.TempModel_V2)
+    SUBMETHODS = (Calc_AirTemperature_TempModel_V1, Calc_AirTemperature_TempModel_V2)
     CONTROLPARAMETERS = (evap_control.NmbHRU,)
     RESULTSEQUENCES = (evap_factors.AirTemperature,)
 
@@ -284,10 +278,7 @@ class Calc_MeanAirTemperature_V1(modeltools.Method):
     """Let a submodel that complies with the |TempModel_V1| or |TempModel_V2| interface
     determine the air temperature."""
 
-    SUBMODELINTERFACES = (
-        tempinterfaces.TempModel_V1,
-        tempinterfaces.TempModel_V2,
-    )
+    SUBMODELINTERFACES = (tempinterfaces.TempModel_V1, tempinterfaces.TempModel_V2)
     SUBMETHODS = (
         Calc_MeanAirTemperature_TempModel_V1,
         Calc_MeanAirTemperature_TempModel_V2,
@@ -1037,10 +1028,7 @@ class Calc_AirDensity_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (evap_control.NmbHRU,)
-    FIXEDPARAMETERS = (
-        evap_fixed.GasConstantDryAir,
-        evap_fixed.GasConstantWaterVapour,
-    )
+    FIXEDPARAMETERS = (evap_fixed.GasConstantDryAir, evap_fixed.GasConstantWaterVapour)
     REQUIREDSEQUENCES = (
         evap_factors.ActualVapourPressure,
         evap_factors.DryAirPressure,
@@ -1406,11 +1394,7 @@ class Calc_CurrentAlbedo_V1(modeltools.Method):
 
     SUBMODELINTERFACES = (stateinterfaces.SnowAlbedoModel_V1,)
     SUBMETHODS = (Calc_CurrentAlbedo_SnowAlbedoModel_V1,)
-    CONTROLPARAMETERS = (
-        evap_control.NmbHRU,
-        evap_control.HRUType,
-        evap_control.Albedo,
-    )
+    CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.HRUType, evap_control.Albedo)
     DERIVEDPARAMETERS = (evap_derived.MOY,)
     RESULTSEQUENCES = (evap_factors.CurrentAlbedo,)
 
@@ -1634,10 +1618,7 @@ class Calc_NetShortwaveRadiation_V2(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (evap_control.NmbHRU,)
-    REQUIREDSEQUENCES = (
-        evap_inputs.GlobalRadiation,
-        evap_factors.CurrentAlbedo,
-    )
+    REQUIREDSEQUENCES = (evap_inputs.GlobalRadiation, evap_factors.CurrentAlbedo)
     RESULTSEQUENCES = (evap_fluxes.NetShortwaveRadiation,)
 
     @staticmethod
@@ -1671,10 +1652,7 @@ class Calc_DailyNetShortwaveRadiation_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (evap_control.NmbHRU,)
-    REQUIREDSEQUENCES = (
-        evap_fluxes.DailyGlobalRadiation,
-        evap_factors.CurrentAlbedo,
-    )
+    REQUIREDSEQUENCES = (evap_fluxes.DailyGlobalRadiation, evap_factors.CurrentAlbedo)
     RESULTSEQUENCES = (evap_fluxes.DailyNetShortwaveRadiation,)
 
     @staticmethod
@@ -1750,10 +1728,7 @@ class Update_CloudCoverage_V1(modeltools.Method):
         cloudcoverage(0.4)
         """
 
-    DERIVEDPARAMETERS = (
-        evap_derived.Hours,
-        evap_derived.Days,
-    )
+    DERIVEDPARAMETERS = (evap_derived.Hours, evap_derived.Days)
     REQUIREDSEQUENCES = (
         evap_inputs.SunshineDuration,
         evap_inputs.PossibleSunshineDuration,
@@ -1972,10 +1947,7 @@ class Calc_NetLongwaveRadiation_V2(modeltools.Method):
         netlongwaveradiation(30.940701)
     """
 
-    CONTROLPARAMETERS = (
-        evap_control.NmbHRU,
-        evap_control.CloudTypeFactor,
-    )
+    CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.CloudTypeFactor)
     FIXEDPARAMETERS = (evap_fixed.StefanBoltzmannConstant,)
     REQUIREDSEQUENCES = (
         evap_inputs.GlobalRadiation,
@@ -2048,10 +2020,7 @@ class Calc_DailyNetLongwaveRadiation_V1(modeltools.Method):
         dailynetlongwaveradiation(45.671517, 65.699288)
     """
 
-    CONTROLPARAMETERS = (
-        evap_control.NmbHRU,
-        evap_control.Emissivity,
-    )
+    CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.Emissivity)
     FIXEDPARAMETERS = (
         evap_fixed.StefanBoltzmannConstant,
         evap_fixed.FactorCounterRadiation,
@@ -2433,10 +2402,7 @@ class Calc_SoilHeatFlux_V2(modeltools.Method):
         evap_control.LeafAreaIndex,
         evap_control.AverageSoilHeatFlux,
     )
-    DERIVEDPARAMETERS = (
-        evap_derived.MOY,
-        evap_derived.Hours,
-    )
+    DERIVEDPARAMETERS = (evap_derived.MOY, evap_derived.Hours)
     REQUIREDSEQUENCES = (
         evap_inputs.PossibleSunshineDuration,
         evap_factors.DailyPossibleSunshineDuration,
@@ -2636,14 +2602,8 @@ class Calc_SoilHeatFlux_V4(modeltools.Method):
         evap_control.Water,
         evap_control.LeafAreaIndex,
     )
-    DERIVEDPARAMETERS = (
-        evap_derived.Hours,
-        evap_derived.MOY,
-    )
-    REQUIREDSEQUENCES = (
-        evap_inputs.PossibleSunshineDuration,
-        evap_fluxes.NetRadiation,
-    )
+    DERIVEDPARAMETERS = (evap_derived.Hours, evap_derived.MOY)
+    REQUIREDSEQUENCES = (evap_inputs.PossibleSunshineDuration, evap_fluxes.NetRadiation)
     RESULTSEQUENCES = (evap_fluxes.SoilHeatFlux,)
 
     @staticmethod
@@ -2899,14 +2859,8 @@ class Calc_AerodynamicResistance_V2(modeltools.Method):
             >>> del pub.timegrids
     """
 
-    CONTROLPARAMETERS = (
-        evap_control.NmbHRU,
-        evap_control.HRUType,
-    )
-    DERIVEDPARAMETERS = (
-        evap_derived.MOY,
-        evap_derived.AerodynamicResistanceFactor,
-    )
+    CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.HRUType)
+    DERIVEDPARAMETERS = (evap_derived.MOY, evap_derived.AerodynamicResistanceFactor)
     REQUIREDSEQUENCES = (evap_factors.AdjustedWindSpeed10m,)
     RESULTSEQUENCES = (evap_factors.AerodynamicResistance,)
 
@@ -3606,10 +3560,7 @@ class Calc_ActualSurfaceResistance_V1(modeltools.Method):
         evap_control.Soil,
         evap_control.LeafAreaIndex,
     )
-    DERIVEDPARAMETERS = (
-        evap_derived.MOY,
-        evap_derived.Hours,
-    )
+    DERIVEDPARAMETERS = (evap_derived.MOY, evap_derived.Hours)
     REQUIREDSEQUENCES = (
         evap_inputs.PossibleSunshineDuration,
         evap_factors.SoilSurfaceResistance,
@@ -3808,10 +3759,7 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
         evap_control.LeafAreaIndex,
         evap_control.LeafResistance,
     )
-    DERIVEDPARAMETERS = (
-        evap_derived.MOY,
-        evap_derived.Hours,
-    )
+    DERIVEDPARAMETERS = (evap_derived.MOY, evap_derived.Hours)
     REQUIREDSEQUENCES = (
         evap_inputs.PossibleSunshineDuration,
         evap_states.SoilResistance,
@@ -3928,10 +3876,7 @@ class Calc_Precipitation_V1(modeltools.Method):
         precipinterfaces.PrecipModel_V1,
         precipinterfaces.PrecipModel_V2,
     )
-    SUBMETHODS = (
-        Calc_Precipitation_PrecipModel_V1,
-        Calc_Precipitation_PrecipModel_V2,
-    )
+    SUBMETHODS = (Calc_Precipitation_PrecipModel_V1, Calc_Precipitation_PrecipModel_V2)
     CONTROLPARAMETERS = (evap_control.NmbHRU,)
     RESULTSEQUENCES = (evap_fluxes.Precipitation,)
 
@@ -4389,9 +4334,7 @@ class Return_Evaporation_PenmanMonteith_V1(modeltools.Method):
 
     @staticmethod
     def __call__(
-        model: modeltools.Model,
-        k: int,
-        actualsurfaceresistance: float,
+        model: modeltools.Model, k: int, actualsurfaceresistance: float
     ) -> float:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
@@ -4649,10 +4592,7 @@ class Calc_ReferenceEvapotranspiration_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (evap_control.NmbHRU,)
-    DERIVEDPARAMETERS = (
-        evap_derived.Days,
-        evap_derived.Hours,
-    )
+    DERIVEDPARAMETERS = (evap_derived.Days, evap_derived.Hours)
     REQUIREDSEQUENCES = (
         evap_factors.SaturationVapourPressureSlope,
         evap_factors.PsychrometricConstant,
@@ -4716,10 +4656,7 @@ class Calc_ReferenceEvapotranspiration_V2(modeltools.Method):
         evap_control.HRUAltitude,
         evap_control.CoastFactor,
     )
-    REQUIREDSEQUENCES = (
-        evap_inputs.GlobalRadiation,
-        evap_factors.AirTemperature,
-    )
+    REQUIREDSEQUENCES = (evap_inputs.GlobalRadiation, evap_factors.AirTemperature)
     RESULTSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
 
     @staticmethod
@@ -4875,10 +4812,7 @@ class Calc_ReferenceEvapotranspiration_V5(modeltools.Method):
         referenceevapotranspiration(0.0, 2.0, 3.0, 4.0)
     """
 
-    CONTROLPARAMETERS = (
-        evap_control.NmbHRU,
-        evap_control.AirTemperatureFactor,
-    )
+    CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.AirTemperatureFactor)
     REQUIREDSEQUENCES = (
         evap_inputs.NormalEvapotranspiration,
         evap_inputs.NormalAirTemperature,
@@ -4937,10 +4871,7 @@ class Calc_PotentialEvapotranspiration_V1(modeltools.Method):
             >>> del pub.timegrids
     """
 
-    CONTROLPARAMETERS = (
-        evap_control.NmbHRU,
-        evap_control.MonthFactor,
-    )
+    CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.MonthFactor)
     DERIVEDPARAMETERS = (evap_derived.MOY,)
     REQUIREDSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
     RESULTSEQUENCES = (evap_fluxes.PotentialEvapotranspiration,)
@@ -5127,10 +5058,7 @@ class Adjust_ReferenceEvapotranspiration_V1(modeltools.Method):
         referenceevapotranspiration(1.0, 4.0)
     """
 
-    CONTROLPARAMETERS = (
-        evap_control.NmbHRU,
-        evap_control.EvapotranspirationFactor,
-    )
+    CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.EvapotranspirationFactor)
     UPDATEDSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
 
     @staticmethod
@@ -5315,10 +5243,7 @@ class Calc_PotentialWaterEvaporation_V1(modeltools.Method):
     """Use a submodel that complies with the |PETModel_V1| or |PETModel_V2| interface
     to determine potential soil evapotranspiration."""
 
-    SUBMODELINTERFACES = (
-        petinterfaces.PETModel_V1,
-        petinterfaces.PETModel_V2,
-    )
+    SUBMODELINTERFACES = (petinterfaces.PETModel_V1, petinterfaces.PETModel_V2)
     SUBMETHODS = (
         Calc_PotentialWaterEvaporation_PETModel_V1,
         Calc_PotentialWaterEvaporation_PETModel_V2,
@@ -5418,10 +5343,7 @@ class Calc_WaterEvaporation_V2(modeltools.Method):
         waterevaporation(3.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        evap_control.NmbHRU,
-        evap_control.Water,
-    )
+    CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.Water)
     REQUIREDSEQUENCES = (evap_fluxes.PotentialWaterEvaporation,)
     RESULTSEQUENCES = (evap_fluxes.WaterEvaporation,)
 
@@ -5491,15 +5413,9 @@ class Calc_WaterEvaporation_V3(modeltools.Method):
                          3.647077)
     """
 
-    CONTROLPARAMETERS = (
-        evap_control.NmbHRU,
-        evap_control.Water,
-    )
+    CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.Water)
     DERIVEDPARAMETERS = (evap_derived.Days,)
-    FIXEDPARAMETERS = (
-        evap_fixed.HeatOfCondensation,
-        evap_fixed.PsychrometricConstant,
-    )
+    FIXEDPARAMETERS = (evap_fixed.HeatOfCondensation, evap_fixed.PsychrometricConstant)
     REQUIREDSEQUENCES = (
         evap_factors.DailySaturationVapourPressure,
         evap_factors.DailySaturationVapourPressureSlope,
@@ -5584,10 +5500,7 @@ class Calc_WaterEvaporation_V4(modeltools.Method):
     """
 
     SUBMETHODS = (Return_Evaporation_PenmanMonteith_V2,)
-    CONTROLPARAMETERS = (
-        evap_control.NmbHRU,
-        evap_control.Water,
-    )
+    CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.Water)
     FIXEDPARAMETERS = (
         evap_fixed.HeatOfCondensation,
         evap_fixed.HeatCapacityAir,
@@ -5743,10 +5656,7 @@ class Calc_InterceptionEvaporation_V1(modeltools.Method):
         interceptionevaporation(0.0, 0.0, 0.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        evap_control.NmbHRU,
-        evap_control.Interception,
-    )
+    CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.Interception)
     REQUIREDSEQUENCES = (
         evap_factors.InterceptedWater,
         evap_fluxes.PotentialInterceptionEvaporation,
@@ -5893,10 +5803,7 @@ class Calc_PotentialInterceptionEvaporation_V2(modeltools.Method):
     """
 
     SUBMETHODS = (Return_Evaporation_PenmanMonteith_V2,)
-    CONTROLPARAMETERS = (
-        evap_control.NmbHRU,
-        evap_control.Interception,
-    )
+    CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.Interception)
     FIXEDPARAMETERS = (
         evap_fixed.HeatOfCondensation,
         evap_fixed.HeatCapacityAir,
@@ -6027,10 +5934,7 @@ class Calc_PotentialInterceptionEvaporation_V3(modeltools.Method):
     """Use a submodel that complies with the |PETModel_V1| or |PETModel_V2| interface
     to determine evaporation from water areas."""
 
-    SUBMODELINTERFACES = (
-        petinterfaces.PETModel_V1,
-        petinterfaces.PETModel_V2,
-    )
+    SUBMODELINTERFACES = (petinterfaces.PETModel_V1, petinterfaces.PETModel_V2)
     SUBMETHODS = (
         Calc_PotentialInterceptionEvaporation_PETModel_V1,
         Calc_PotentialInterceptionEvaporation_PETModel_V2,
@@ -6197,10 +6101,7 @@ class Calc_PotentialSoilEvapotranspiration_V1(modeltools.Method):
     """
 
     SUBMETHODS = (Return_Evaporation_PenmanMonteith_V2,)
-    CONTROLPARAMETERS = (
-        evap_control.NmbHRU,
-        evap_control.Soil,
-    )
+    CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.Soil)
     FIXEDPARAMETERS = (
         evap_fixed.HeatOfCondensation,
         evap_fixed.HeatCapacityAir,
@@ -6338,10 +6239,7 @@ class Calc_PotentialSoilEvapotranspiration_V2(modeltools.Method):
     """Use a submodel that complies with the |PETModel_V1| or |PETModel_V2| interface
     to determine potential soil evapotranspiration."""
 
-    SUBMODELINTERFACES = (
-        petinterfaces.PETModel_V1,
-        petinterfaces.PETModel_V2,
-    )
+    SUBMODELINTERFACES = (petinterfaces.PETModel_V1, petinterfaces.PETModel_V2)
     SUBMETHODS = (
         Calc_PotentialSoilEvapotranspiration_PETModel_V1,
         Calc_PotentialSoilEvapotranspiration_PETModel_V2,
@@ -6815,10 +6713,7 @@ class Update_SoilEvapotranspiration_V2(modeltools.Method):
         >>> fluxes.soilevapotranspiration
         soilevapotranspiration(0.0, 0.0, 0.0, 0.0, 0.0)
     """
-    CONTROLPARAMETERS = (
-        evap_control.NmbHRU,
-        evap_control.Soil,
-    )
+    CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.Soil)
     REQUIREDSEQUENCES = (evap_factors.SnowCover,)
     RESULTSEQUENCES = (evap_fluxes.SoilEvapotranspiration,)
 
@@ -7141,10 +7036,7 @@ class Determine_InterceptionEvaporation_V1(modeltools.AutoMethod):
         Calc_InterceptedWater_V1,
         Calc_InterceptionEvaporation_V1,
     )
-    CONTROLPARAMETERS = (
-        evap_control.NmbHRU,
-        evap_control.Interception,
-    )
+    CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.Interception)
     RESULTSEQUENCES = (
         evap_factors.InterceptedWater,
         evap_fluxes.PotentialInterceptionEvaporation,
@@ -7199,10 +7091,7 @@ class Determine_InterceptionEvaporation_V2(modeltools.AutoMethod):
         evap_control.Emissivity,
         evap_control.AverageSoilHeatFlux,
     )
-    DERIVEDPARAMETERS = (
-        evap_derived.MOY,
-        evap_derived.NmbLogEntries,
-    )
+    DERIVEDPARAMETERS = (evap_derived.MOY, evap_derived.NmbLogEntries)
     FIXEDPARAMETERS = (
         evap_fixed.StefanBoltzmannConstant,
         evap_fixed.FactorCounterRadiation,
@@ -7398,10 +7287,7 @@ class Determine_SoilEvapotranspiration_V3(modeltools.AutoMethod):
         evap_control.FieldCapacity,
         evap_control.WiltingPoint,
     )
-    DERIVEDPARAMETERS = (
-        evap_derived.Hours,
-        evap_derived.MOY,
-    )
+    DERIVEDPARAMETERS = (evap_derived.Hours, evap_derived.MOY)
     FIXEDPARAMETERS = (
         evap_fixed.StefanBoltzmannConstant,
         evap_fixed.HeatOfCondensation,
@@ -7440,10 +7326,7 @@ class Determine_PotentialWaterEvaporation_V1(modeltools.AutoMethod):
         Update_LoggedWaterEvaporation_V1,
         Calc_DailyWaterEvaporation_V1,
     )
-    CONTROLPARAMETERS = (
-        evap_control.NmbHRU,
-        evap_control.Water,
-    )
+    CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.Water)
     DERIVEDPARAMETERS = (evap_derived.NmbLogEntries,)
     FIXEDPARAMETERS = (
         evap_fixed.HeatOfCondensation,
@@ -7460,10 +7343,7 @@ class Determine_PotentialWaterEvaporation_V1(modeltools.AutoMethod):
         evap_fluxes.SoilHeatFlux,
     )
     UPDATEDSEQUENCES = (evap_logs.LoggedWaterEvaporation,)
-    RESULTSEQUENCES = (
-        evap_fluxes.WaterEvaporation,
-        evap_fluxes.DailyWaterEvaporation,
-    )
+    RESULTSEQUENCES = (evap_fluxes.WaterEvaporation, evap_fluxes.DailyWaterEvaporation)
 
 
 class Determine_WaterEvaporation_V1(modeltools.AutoMethod):
@@ -7491,14 +7371,8 @@ class Determine_WaterEvaporation_V2(modeltools.AutoMethod):
     """Accept potential evapotranspiration as the actual evaporation from water
     areas."""
 
-    SUBMETHODS = (
-        Calc_PotentialWaterEvaporation_V1,
-        Calc_WaterEvaporation_V2,
-    )
-    CONTROLPARAMETERS = (
-        evap_control.NmbHRU,
-        evap_control.Water,
-    )
+    SUBMETHODS = (Calc_PotentialWaterEvaporation_V1, Calc_WaterEvaporation_V2)
+    CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.Water)
     RESULTSEQUENCES = (
         evap_fluxes.PotentialWaterEvaporation,
         evap_fluxes.WaterEvaporation,
@@ -7524,19 +7398,13 @@ class Determine_WaterEvaporation_V3(modeltools.AutoMethod):
         evap_control.Water,
         evap_control.MeasuringHeightWindSpeed,
     )
-    DERIVEDPARAMETERS = (
-        evap_derived.Days,
-        evap_derived.NmbLogEntries,
-    )
+    DERIVEDPARAMETERS = (evap_derived.Days, evap_derived.NmbLogEntries)
     FIXEDPARAMETERS = (
         evap_fixed.HeatOfCondensation,
         evap_fixed.PsychrometricConstant,
         evap_fixed.RoughnessLengthGrass,
     )
-    UPDATEDSEQUENCES = (
-        evap_logs.LoggedWindSpeed2m,
-        evap_logs.LoggedGlobalRadiation,
-    )
+    UPDATEDSEQUENCES = (evap_logs.LoggedWindSpeed2m, evap_logs.LoggedGlobalRadiation)
     REQUIREDSEQUENCES = (
         evap_inputs.WindSpeed,
         evap_inputs.GlobalRadiation,

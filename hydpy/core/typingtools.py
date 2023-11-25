@@ -129,11 +129,7 @@ TensorInputBool = Union[Sequence[MatrixInputBool], TensorBool]
 
 
 ArrayFloat = TypeVar(
-    "ArrayFloat",
-    float,
-    VectorFloat,
-    MatrixFloat,
-    Union[float, VectorFloat],
+    "ArrayFloat", float, VectorFloat, MatrixFloat, Union[float, VectorFloat]
 )
 
 ConditionsSubmodel = Dict[str, Dict[str, Union[float, NDArrayFloat]]]

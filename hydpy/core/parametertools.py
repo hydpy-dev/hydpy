@@ -395,7 +395,7 @@ class FastAccessParameter(variabletools.FastAccess):
 
 
 class SubParameters(
-    variabletools.SubVariables[Parameters, "Parameter", FastAccessParameter],
+    variabletools.SubVariables[Parameters, "Parameter", FastAccessParameter]
 ):
     '''Base class for handling subgroups of model parameters.
 
@@ -1460,10 +1460,8 @@ parameter and a simulation time step size first.
             date2 = date1 + options.simulationstep
             parfactor = timetools.Timegrids(
                 timetools.Timegrid(
-                    firstdate=date1,
-                    lastdate=date2,
-                    stepsize=options.simulationstep,
-                ),
+                    firstdate=date1, lastdate=date2, stepsize=options.simulationstep
+                )
             ).parfactor
         return parfactor(parameterstep)
 
@@ -1523,10 +1521,7 @@ parameter and a simulation time step size first.
         return values
 
     @classmethod
-    def revert_timefactor(
-        cls,
-        values: ArrayFloat,
-    ) -> ArrayFloat:
+    def revert_timefactor(cls, values: ArrayFloat) -> ArrayFloat:
         """The inverse version of method |Parameter.apply_timefactor|.
 
         See the explanations on method Parameter.apply_timefactor| to
@@ -2426,9 +2421,7 @@ index parameter.
             f"{name}={objecttools.repr_(value)}" for name, value in keywordarguments
         ]
         string = objecttools.assignrepr_values(
-            values=sorted(results),
-            prefix=f"{self.name}(",
-            width=70,
+            values=sorted(results), prefix=f"{self.name}(", width=70
         )
         return f"{string})"
 

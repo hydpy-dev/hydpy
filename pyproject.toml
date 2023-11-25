@@ -18,4 +18,5 @@ requires = [
 ]
 
 [tool.black]
+skip-magic-trailing-comma = true
 exclude = "hydpy/data/|hydpy/tests/iotesting"

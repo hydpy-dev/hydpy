@@ -17,8 +17,7 @@ for path in (os.path.join(folder, fn) for fn in filenames):
                 line = line.split(">")[1]
                 line = line.split("<")[0]
                 lines[-1] = lines[-1].replace(
-                    "TYPE</code>",
-                    f'TYPE</code><em class="property"> = {line}</em>',
+                    "TYPE</code>", f'TYPE</code><em class="property"> = {line}</em>'
                 )
             else:
                 lines.append(line)

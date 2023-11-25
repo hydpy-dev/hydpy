@@ -1182,8 +1182,7 @@ class PyxWriter:
         print("            . set_pointer0d")
         pyx, both = lines.pyx.add, lines.add
         both(
-            1,
-            "cpdef inline set_pointer0d(self, str name, pointerutils.Double value):",
+            1, "cpdef inline set_pointer0d(self, str name, pointerutils.Double value):"
         )
         pyx(2, "cdef pointerutils.PDouble pointer = pointerutils.PDouble(value)")
         for seq in (seq for seq in subseqs if seq.NDIM == 0):
@@ -1512,9 +1511,7 @@ class PyxWriter:
 
     def _call_submodel_method(self, lines: PyxPxdLines, methodcall: str) -> None:
         name2submodel = self.model.find_submodels(
-            include_subsubmodels=False,
-            include_optional=True,
-            aggregate_vectors=True,
+            include_subsubmodels=False, include_optional=True, aggregate_vectors=True
         )
         pyx = lines.pyx.add
         if any(name.endswith("_*") for name in name2submodel):
@@ -2692,10 +2689,7 @@ def get_callbackcymodule(
         cythonizer.pyxwriter.cimports(preamble)
 
         pyx = FuncConverter(
-            model=model,
-            funcname=callback.__name__,
-            func=callback,
-            inline=False,
+            model=model, funcname=callback.__name__, func=callback, inline=False
         ).pyxlines
         pyx.insert(
             0, f"from hydpy.cythons.autogen.c_{model} cimport Model, CallbackWrapper\n"

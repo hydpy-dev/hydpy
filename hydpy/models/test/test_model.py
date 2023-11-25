@@ -104,10 +104,7 @@ class Calc_QV_V1(modeltools.Method):
        qv(1.0, 1.5)
     """
 
-    CONTROLPARAMETERS = (
-        test_control.N,
-        test_control.K,
-    )
+    CONTROLPARAMETERS = (test_control.N, test_control.K)
     REQUIREDSEQUENCES = (test_states.SV,)
     RESULTSEQUENCES = (test_fluxes.QV,)
 
@@ -195,15 +192,8 @@ class Model(modeltools.ELSModel):
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     ADD_METHODS = ()
-    PART_ODE_METHODS = (
-        Calc_Q_V1,
-        Calc_Q_V2,
-        Calc_QV_V1,
-    )
-    FULL_ODE_METHODS = (
-        Calc_S_V1,
-        Calc_SV_V1,
-    )
+    PART_ODE_METHODS = (Calc_Q_V1, Calc_Q_V2, Calc_QV_V1)
+    FULL_ODE_METHODS = (Calc_S_V1, Calc_SV_V1)
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()

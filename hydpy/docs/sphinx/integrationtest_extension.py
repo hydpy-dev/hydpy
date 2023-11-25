@@ -69,10 +69,7 @@ def visit_html(self, node):
 
     idx0 = code_complete.find('<span class="gp">')
     code_table = f"{code_complete[:idx0]}{code_complete[idx1:]}"
-    code_table = code_table.replace(
-        "</pre></div>\n</div>\n",
-        "</pre></div></div>",
-    )
+    code_table = code_table.replace("</pre></div>\n</div>\n", "</pre></div></div>")
 
     try:
         idx0 = code_complete.find('class="s2"')

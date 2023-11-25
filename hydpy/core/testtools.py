@@ -490,9 +490,7 @@ class Test:
 
     @staticmethod
     def _interleave(
-        separators: Sequence[str],
-        strings: Iterable[str],
-        widths: Iterable[int],
+        separators: Sequence[str], strings: Iterable[str], widths: Iterable[int]
     ) -> str:
         """Generate a table line from the given arguments."""
         lst = [
@@ -509,21 +507,11 @@ class Test:
         col_widths = self.col_widths
         col_separators = self.col_separators
         lines.append(
-            self._interleave(
-                self.col_separators,
-                self.raw_header_strings,
-                col_widths,
-            )
+            self._interleave(self.col_separators, self.raw_header_strings, col_widths)
         )
         lines.append("-" * self.row_nmb_characters)
         for strings_in_line in self.raw_body_strings[idx1:idx2]:
-            lines.append(
-                self._interleave(
-                    col_separators,
-                    strings_in_line,
-                    col_widths,
-                )
-            )
+            lines.append(self._interleave(col_separators, strings_in_line, col_widths))
         return "\n".join(lines)
 
     def print_table(
@@ -908,7 +896,7 @@ standard library for for further information.
                     visible=name in act_names1,
                     legendgroup="axis 1",
                     line={"color": matplotlib.colors.rgb2hex(cmap(2 * idx))},
-                ),
+                )
             )
             fig.add_trace(
                 plotly.graph_objects.Scattergl(
@@ -1302,11 +1290,7 @@ class TestIO:
     _path: Optional[str]
     _olds: Optional[List[str]]
 
-    def __init__(
-        self,
-        clear_own: bool = False,
-        clear_all: bool = False,
-    ) -> None:
+    def __init__(self, clear_own: bool = False, clear_all: bool = False) -> None:
         self._clear_own = clear_own
         self._clear_all = clear_all
         self._path = None
@@ -1622,10 +1606,7 @@ def update_integrationtests(
             got = False
             if oldlines or newlines:
                 nmb_replacements += 1
-                docstring = docstring.replace(
-                    "\n".join(oldlines),
-                    "\n".join(newlines),
-                )
+                docstring = docstring.replace("\n".join(oldlines), "\n".join(newlines))
                 docstring = docstring.replace(
                     "\n".join(f"    {line}" for line in oldlines),
                     "\n".join(f"    {line}" for line in newlines),
@@ -1726,8 +1707,7 @@ result sequences of any of its predecessors: TKor and TZ
         )
         for method0 in methods[:idx]:
             for seq in itertools.chain(
-                method0.RESULTSEQUENCES,
-                method0.UPDATEDSEQUENCES,
+                method0.RESULTSEQUENCES, method0.UPDATEDSEQUENCES
             ):
                 if seq in required:
                     required.remove(seq)

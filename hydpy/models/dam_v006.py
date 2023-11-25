@@ -439,10 +439,7 @@ class Model(modeltools.ELSModel):
         dam_model.Calc_Outflow_V2,
     )
     FULL_ODE_METHODS = (dam_model.Update_WaterVolume_V4,)
-    OUTLET_METHODS = (
-        dam_model.Calc_WaterLevel_V1,
-        dam_model.Pass_Outflow_V1,
-    )
+    OUTLET_METHODS = (dam_model.Calc_WaterLevel_V1, dam_model.Pass_Outflow_V1)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()
     SUBMODELS = ()

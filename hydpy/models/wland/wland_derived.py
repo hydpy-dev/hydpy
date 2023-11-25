@@ -47,10 +47,7 @@ class AT(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (
-        wland_control.AL,
-        wland_control.AS_,
-    )
+    CONTROLPARAMETERS = (wland_control.AL, wland_control.AS_)
 
     def update(self):
         r"""Update |AT| based on :math:`AT = AL + AS`.

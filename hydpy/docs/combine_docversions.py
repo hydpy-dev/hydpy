@@ -127,14 +127,7 @@ for version1, htmls1 in version2htmls.items():
         below = f"{above[jdx:]}{below}"
         above = above[:jdx]
         text = "\n".join(
-            (
-                above,
-                "<h3>Versions</h3>",
-                "<ul>",
-                "\n".join(links),
-                "</ul>",
-                below,
-            )
+            (above, "<h3>Versions</h3>", "<ul>", "\n".join(links), "</ul>", below)
         )
         with open(filepath1, "w", encoding="utf-8-sig") as file_:
             file_.write(text)

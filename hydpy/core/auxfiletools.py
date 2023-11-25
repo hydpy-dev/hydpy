@@ -162,8 +162,7 @@ attribute nor does it handle a model named `lland_v1`.
             for model in models:
                 model_ = self._get_model(model)
                 self._model2subauxfiler[str(model_)] = SubAuxfiler(
-                    master=self,
-                    model=self._get_model(model_),
+                    master=self, model=self._get_model(model_)
                 )
         except BaseException:
             objecttools.augment_excmessage(
@@ -327,8 +326,7 @@ attribute nor does it handle a model named `lland_v1`.
                         subauxfiler.get_parameterstrings(filename=filename)
                     )
                 hydpy.pub.controlmanager.save_file(
-                    filename=filename,
-                    text="".join((header, body, "\n")),
+                    filename=filename, text="".join((header, body, "\n"))
                 )
 
     def __getattr__(self, name: str) -> SubAuxfiler:
@@ -364,8 +362,7 @@ attribute nor does it handle a model named `lland_v1`.
 
     def __repr__(self) -> str:
         return objecttools.apply_black(
-            type(self).__name__,
-            *sorted(f"{name}" for name in self.modelnames),
+            type(self).__name__, *sorted(f"{name}" for name in self.modelnames)
         )
 
     def __dir__(self) -> List[str]:
@@ -632,10 +629,7 @@ parameter handled by the actual `SubAuxfiler` object.
         keyword arguments.
         """
         for parameter in parameters:
-            self.add_parameter(
-                filename=filename,
-                parameter=parameter,
-            )
+            self.add_parameter(filename=filename, parameter=parameter)
 
     def remove_parameters(
         self,
@@ -1152,9 +1146,7 @@ file1 and file2
 
     def __repr__(self) -> str:
         repr_ = objecttools.assignrepr_values(
-            values=self.get_filenames(),
-            prefix=f"{type(self).__name__}(",
-            width=70,
+            values=self.get_filenames(), prefix=f"{type(self).__name__}(", width=70
         )
         return f"{repr_})"
 

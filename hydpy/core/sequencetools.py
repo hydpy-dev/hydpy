@@ -780,7 +780,7 @@ patch(template % "StateSequences") as states:
 class SubSequences(
     variabletools.SubVariables[
         TypeSequences, TypeSequence_co, variabletools.TypeFastAccess_co
-    ],
+    ]
 ):
     """Base class for handling subgroups of sequences.
 
@@ -840,7 +840,7 @@ class SubSequences(
 
 
 class ModelSequences(
-    SubSequences[Sequences, TypeModelSequence_co, variabletools.TypeFastAccess_co],
+    SubSequences[Sequences, TypeModelSequence_co, variabletools.TypeFastAccess_co]
 ):
     """Base class for handling model-related subgroups of sequences."""
 
@@ -855,10 +855,7 @@ class ModelSequences(
     ) -> None:
         self.seqs = master
         self._cymodel = cymodel
-        super().__init__(
-            master=master,
-            cls_fastaccess=cls_fastaccess,
-        )
+        super().__init__(master=master, cls_fastaccess=cls_fastaccess)
 
     def _init_fastaccess(self) -> None:
         super()._init_fastaccess()
@@ -867,7 +864,7 @@ class ModelSequences(
 
 
 class IOSequences(
-    SubSequences[TypeSequences, TypeIOSequence_co, TypeFastAccessIOSequence_co],
+    SubSequences[TypeSequences, TypeIOSequence_co, TypeFastAccessIOSequence_co]
 ):
     """Subclass of |SubSequences|, specialised for handling |IOSequence| objects."""
 
@@ -913,9 +910,7 @@ class ModelIOSequences(
         self.fastaccess.save_data(idx)
 
 
-class InputSequences(
-    ModelIOSequences["InputSequence", FastAccessInputSequence],
-):
+class InputSequences(ModelIOSequences["InputSequence", FastAccessInputSequence]):
     """Base class for handling |InputSequence| objects."""
 
     _CLS_FASTACCESS_PYTHON = FastAccessInputSequence
@@ -3525,10 +3520,7 @@ convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and type 
 
     def _set_value(self, value):
         try:
-            self.fastaccess.set_value(
-                self.name,
-                self._prepare_setvalue(value),
-            )
+            self.fastaccess.set_value(self.name, self._prepare_setvalue(value))
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to assign the value(s) {value} to link sequence "

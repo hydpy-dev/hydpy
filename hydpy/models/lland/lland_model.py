@@ -259,10 +259,7 @@ class Calc_NKor_V1(modeltools.Method):
         nkor(8.0, 10.0, 12.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.KG,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.KG)
     REQUIREDSEQUENCES = (lland_inputs.Nied,)
     RESULTSEQUENCES = (lland_fluxes.NKor,)
 
@@ -293,10 +290,7 @@ class Calc_TKor_V1(modeltools.Method):
         tkor(-1.0, 1.0, 3.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.KT,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.KT)
     REQUIREDSEQUENCES = (lland_inputs.TemL,)
     RESULTSEQUENCES = (lland_fluxes.TKor,)
 
@@ -463,14 +457,8 @@ class Update_EvI_WEvI_V1(modeltools.Method):
         wevi(1.6, 2.4, 1.96, 2.04)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.WfEvI,
-    )
-    UPDATEDSEQUENCES = (
-        lland_fluxes.EvI,
-        lland_logs.WEvI,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.WfEvI)
+    UPDATEDSEQUENCES = (lland_fluxes.EvI, lland_logs.WEvI)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -575,14 +563,8 @@ class Calc_NBes_Inzp_V1(modeltools.Method):
         nbes(0.4, 0.0, 0.0, 0.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
-    DERIVEDPARAMETERS = (
-        lland_derived.MOY,
-        lland_derived.KInz,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
+    DERIVEDPARAMETERS = (lland_derived.MOY, lland_derived.KInz)
     REQUIREDSEQUENCES = (lland_fluxes.NKor,)
     UPDATEDSEQUENCES = (lland_states.Inzp,)
     RESULTSEQUENCES = (lland_fluxes.NBes,)
@@ -646,11 +628,7 @@ class Calc_SNRatio_V1(modeltools.Method):
         snratio(1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.TGr,
-        lland_control.TSp,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.TGr, lland_control.TSp)
     REQUIREDSEQUENCES = (lland_fluxes.TKor,)
     RESULTSEQUENCES = (lland_aides.SNRatio,)
 
@@ -689,10 +667,7 @@ class Calc_SBes_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (lland_control.NHRU,)
-    REQUIREDSEQUENCES = (
-        lland_aides.SNRatio,
-        lland_fluxes.NBes,
-    )
+    REQUIREDSEQUENCES = (lland_aides.SNRatio, lland_fluxes.NBes)
     RESULTSEQUENCES = (lland_fluxes.SBes,)
 
     @staticmethod
@@ -875,10 +850,7 @@ class Calc_NBesInz_V1(modeltools.Method):
         nbesinz(0.0, 10.0, 10.0, 5.0, 0.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     REQUIREDSEQUENCES = (
         lland_fluxes.NBes,
         lland_fluxes.SnowIntMax,
@@ -922,14 +894,8 @@ class Calc_SBesInz_V1(modeltools.Method):
         sbesinz(0.0, 8.0, 4.0, 2.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
-    REQUIREDSEQUENCES = (
-        lland_fluxes.NBesInz,
-        lland_aides.SNRatio,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
+    REQUIREDSEQUENCES = (lland_fluxes.NBesInz, lland_aides.SNRatio)
     RESULTSEQUENCES = (lland_fluxes.SBesInz,)
 
     @staticmethod
@@ -964,10 +930,7 @@ class Calc_STInz_V1(modeltools.Method):
         stinz(0.0, 2.0, 3.0, 4.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     REQUIREDSEQUENCES = (lland_fluxes.SBesInz,)
     UPDATEDSEQUENCES = (lland_states.STInz,)
 
@@ -1009,15 +972,8 @@ class Calc_WaDaInz_SInz_V1(modeltools.Method):
         wadainz(0.0, 1.0, 0.0, 0.5, 1.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.PWMax,
-    )
-    REQUIREDSEQUENCES = (
-        lland_fluxes.NBesInz,
-        lland_states.STInz,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.PWMax)
+    REQUIREDSEQUENCES = (lland_fluxes.NBesInz, lland_states.STInz)
     UPDATEDSEQUENCES = (lland_states.SInz,)
     RESULTSEQUENCES = (lland_fluxes.WaDaInz,)
 
@@ -1066,15 +1022,8 @@ class Calc_WNiedInz_ESnowInz_V1(modeltools.Method):
         esnowinz(3.4075, -0.469167, -0.226481, 0.016204, 0.258102, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.TRefN,
-    )
-    FIXEDPARAMETERS = (
-        lland_fixed.CPWasser,
-        lland_fixed.CPEis,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.TRefN)
+    FIXEDPARAMETERS = (lland_fixed.CPWasser, lland_fixed.CPEis)
     REQUIREDSEQUENCES = (
         lland_fluxes.TKor,
         lland_fluxes.NBesInz,
@@ -1132,21 +1081,11 @@ class Return_TempSInz_V1(modeltools.Method):
         -273.0
     """
 
-    FIXEDPARAMETERS = (
-        lland_fixed.CPWasser,
-        lland_fixed.CPEis,
-    )
-    REQUIREDSEQUENCES = (
-        lland_states.STInz,
-        lland_states.SInz,
-        lland_states.ESnowInz,
-    )
+    FIXEDPARAMETERS = (lland_fixed.CPWasser, lland_fixed.CPEis)
+    REQUIREDSEQUENCES = (lland_states.STInz, lland_states.SInz, lland_states.ESnowInz)
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        k: int,
-    ) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         fix = model.parameters.fixed.fastaccess
         sta = model.sequences.states.fastaccess
         if sta.sinz[k] > 0.0:
@@ -1178,15 +1117,8 @@ class Calc_TempSInz_V1(modeltools.Method):
 
     SUBMETHODS = (Return_TempSInz_V1,)
     CONTROLPARAMETERS = (lland_control.NHRU,)
-    FIXEDPARAMETERS = (
-        lland_fixed.CPWasser,
-        lland_fixed.CPEis,
-    )
-    REQUIREDSEQUENCES = (
-        lland_states.STInz,
-        lland_states.SInz,
-        lland_states.ESnowInz,
-    )
+    FIXEDPARAMETERS = (lland_fixed.CPWasser, lland_fixed.CPEis)
+    REQUIREDSEQUENCES = (lland_states.STInz, lland_states.SInz, lland_states.ESnowInz)
     RESULTSEQUENCES = (lland_aides.TempSInz,)
 
     @staticmethod
@@ -1229,11 +1161,7 @@ class Update_ASInz_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (lland_control.NHRU,)
     DERIVEDPARAMETERS = (lland_derived.Seconds,)
-    REQUIREDSEQUENCES = (
-        lland_fluxes.SBesInz,
-        lland_states.SInz,
-        lland_aides.TempSInz,
-    )
+    REQUIREDSEQUENCES = (lland_fluxes.SBesInz, lland_states.SInz, lland_aides.TempSInz)
     RESULTSEQUENCES = (lland_states.ASInz,)
 
     @staticmethod
@@ -1283,10 +1211,7 @@ class Calc_ActualAlbedoInz_V1(modeltools.Method):
         lland_control.SnowAgingFactor,
         lland_control.Albedo0Snow,
     )
-    REQUIREDSEQUENCES = (
-        lland_states.ASInz,
-        lland_states.SInz,
-    )
+    REQUIREDSEQUENCES = (lland_states.ASInz, lland_states.SInz)
     RESULTSEQUENCES = (lland_fluxes.ActualAlbedoInz,)
 
     @staticmethod
@@ -1341,18 +1266,9 @@ class Calc_NetShortwaveRadiationInz_V1(modeltools.Method):
             >>> del pub.timegrids
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
-    DERIVEDPARAMETERS = (
-        lland_derived.Fr,
-        lland_derived.MOY,
-    )
-    REQUIREDSEQUENCES = (
-        lland_inputs.GlobalRadiation,
-        lland_fluxes.ActualAlbedoInz,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
+    DERIVEDPARAMETERS = (lland_derived.Fr, lland_derived.MOY)
+    REQUIREDSEQUENCES = (lland_inputs.GlobalRadiation, lland_fluxes.ActualAlbedoInz)
     RESULTSEQUENCES = (lland_fluxes.NetShortwaveRadiationInz,)
 
     @staticmethod
@@ -1394,10 +1310,7 @@ class Calc_SchmPotInz_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (lland_control.NHRU,)
     FIXEDPARAMETERS = (lland_fixed.RSchmelz,)
-    REQUIREDSEQUENCES = (
-        lland_states.ESnowInz,
-        lland_states.SInz,
-    )
+    REQUIREDSEQUENCES = (lland_states.ESnowInz, lland_states.SInz)
     RESULTSEQUENCES = (lland_fluxes.SchmPotInz,)
 
     @staticmethod
@@ -1443,10 +1356,7 @@ class Calc_SchmInz_STInz_V1(modeltools.Method):
         schminz(0.0, 0.0, 0.0, 1.0, 2.0, 2.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     REQUIREDSEQUENCES = (lland_fluxes.SchmPotInz,)
     RESULTSEQUENCES = (lland_fluxes.SchmInz,)
     UPDATEDSEQUENCES = (lland_states.STInz,)
@@ -1486,10 +1396,7 @@ class Calc_GefrPotInz_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (lland_control.NHRU,)
     FIXEDPARAMETERS = (lland_fixed.RSchmelz,)
-    REQUIREDSEQUENCES = (
-        lland_states.ESnowInz,
-        lland_states.SInz,
-    )
+    REQUIREDSEQUENCES = (lland_states.ESnowInz, lland_states.SInz)
     RESULTSEQUENCES = (lland_fluxes.GefrPotInz,)
 
     @staticmethod
@@ -1548,10 +1455,7 @@ class Calc_GefrInz_STInz_V1(modeltools.Method):
         lland_control.Lnk,
         lland_control.RefreezeFlag,
     )
-    REQUIREDSEQUENCES = (
-        lland_fluxes.GefrPotInz,
-        lland_states.SInz,
-    )
+    REQUIREDSEQUENCES = (lland_fluxes.GefrPotInz, lland_states.SInz)
     RESULTSEQUENCES = (lland_fluxes.GefrInz,)
     UPDATEDSEQUENCES = (lland_states.STInz,)
 
@@ -1600,17 +1504,11 @@ class Calc_EvSInz_SInz_STInz_V1(modeltools.Method):
         stinz(1.161952, 1.0, 0.595119, 0.190238, 0.0, 0.0, 0.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     FIXEDPARAMETERS = (lland_fixed.LWE,)
     REQUIREDSEQUENCES = (lland_fluxes.WLatInz,)
     RESULTSEQUENCES = (lland_fluxes.EvSInz,)
-    UPDATEDSEQUENCES = (
-        lland_states.SInz,
-        lland_states.STInz,
-    )
+    UPDATEDSEQUENCES = (lland_states.SInz, lland_states.STInz)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1658,16 +1556,9 @@ class Update_WaDaInz_SInz_V1(modeltools.Method):
         wadainz(1.0, 1.0, 1.0, 1.0, 2.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.PWMax,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.PWMax)
     REQUIREDSEQUENCES = (lland_states.STInz,)
-    UPDATEDSEQUENCES = (
-        lland_states.SInz,
-        lland_fluxes.WaDaInz,
-    )
+    UPDATEDSEQUENCES = (lland_states.SInz, lland_fluxes.WaDaInz)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1704,16 +1595,9 @@ class Update_ESnowInz_V2(modeltools.Method):
         esnowinz(0.0, 0.0, -9.074074, 0.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     FIXEDPARAMETERS = (lland_fixed.RSchmelz,)
-    REQUIREDSEQUENCES = (
-        lland_fluxes.GefrInz,
-        lland_fluxes.SchmInz,
-        lland_states.SInz,
-    )
+    REQUIREDSEQUENCES = (lland_fluxes.GefrInz, lland_fluxes.SchmInz, lland_states.SInz)
     UPDATEDSEQUENCES = (lland_states.ESnowInz,)
 
     @staticmethod
@@ -1750,10 +1634,7 @@ class Calc_WATS_V1(modeltools.Method):
         wats(0.0, 0.0, 0.0, 7.5)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     REQUIREDSEQUENCES = (lland_fluxes.SBes,)
     UPDATEDSEQUENCES = (lland_states.WATS,)
 
@@ -1790,14 +1671,8 @@ class Calc_WATS_V2(modeltools.Method):
         wats(0.0, 3.0, 3.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
-    REQUIREDSEQUENCES = (
-        lland_fluxes.SBes,
-        lland_fluxes.SBesInz,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
+    REQUIREDSEQUENCES = (lland_fluxes.SBes, lland_fluxes.SBesInz)
     UPDATEDSEQUENCES = (lland_states.WATS,)
 
     @staticmethod
@@ -1852,15 +1727,8 @@ class Calc_WaDa_WAeS_V1(modeltools.Method):
         actual snow holding capacity to |WaDa|.
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.PWMax,
-    )
-    REQUIREDSEQUENCES = (
-        lland_fluxes.NBes,
-        lland_states.WATS,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.PWMax)
+    REQUIREDSEQUENCES = (lland_fluxes.NBes, lland_states.WATS)
     UPDATEDSEQUENCES = (lland_states.WAeS,)
     RESULTSEQUENCES = (lland_fluxes.WaDa,)
 
@@ -1907,11 +1775,7 @@ class Calc_WaDa_WAeS_V2(modeltools.Method):
         wada(1.5, 1.5, 1.5, 0.5, 1.0, 1.5, 1.0, 0.0, 0.5, 1.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.PWMax,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.PWMax)
     REQUIREDSEQUENCES = (
         lland_fluxes.NBes,
         lland_fluxes.NBesInz,
@@ -2034,20 +1898,9 @@ class Calc_WNied_V1(modeltools.Method):
         wnied(2.9075, -0.969167, -0.726481, -0.483796, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.TRefN,
-    )
-    FIXEDPARAMETERS = (
-        lland_fixed.CPWasser,
-        lland_fixed.CPEis,
-    )
-    REQUIREDSEQUENCES = (
-        lland_fluxes.TKor,
-        lland_fluxes.NBes,
-        lland_fluxes.SBes,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.TRefN)
+    FIXEDPARAMETERS = (lland_fixed.CPWasser, lland_fixed.CPEis)
+    REQUIREDSEQUENCES = (lland_fluxes.TKor, lland_fluxes.NBes, lland_fluxes.SBes)
     RESULTSEQUENCES = (lland_fluxes.WNied,)
 
     @staticmethod
@@ -2099,15 +1952,8 @@ class Calc_WNied_ESnow_V1(modeltools.Method):
         esnow(3.4075, -0.469167, -0.226481, 0.016204, 0.258102, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.TRefN,
-    )
-    FIXEDPARAMETERS = (
-        lland_fixed.CPWasser,
-        lland_fixed.CPEis,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.TRefN)
+    FIXEDPARAMETERS = (lland_fixed.CPWasser, lland_fixed.CPEis)
     REQUIREDSEQUENCES = (
         lland_fluxes.TKor,
         lland_fluxes.NBes,
@@ -2153,10 +1999,7 @@ class Return_SaturationVapourPressure_V1(modeltools.Method):
     """
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        temperature: float,
-    ) -> float:
+    def __call__(model: modeltools.Model, temperature: float) -> float:
         return 6.1078 * 2.71828 ** (17.08085 * temperature / (temperature + 234.175))
 
 
@@ -2260,10 +2103,7 @@ class Calc_RLAtm_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (lland_control.NHRU,)
-    FIXEDPARAMETERS = (
-        lland_fixed.Sigma,
-        lland_fixed.FrAtm,
-    )
+    FIXEDPARAMETERS = (lland_fixed.Sigma, lland_fixed.FrAtm)
     REQUIREDSEQUENCES = (
         lland_fluxes.TKor,
         lland_fluxes.ActualVapourPressure,
@@ -2336,15 +2176,9 @@ class Return_NetLongwaveRadiationInz_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (lland_control.Lnk,)
-    DERIVEDPARAMETERS = (
-        lland_derived.MOY,
-        lland_derived.Fr,
-    )
+    DERIVEDPARAMETERS = (lland_derived.MOY, lland_derived.Fr)
     FIXEDPARAMETERS = (lland_fixed.Sigma,)
-    REQUIREDSEQUENCES = (
-        lland_aides.TempSInz,
-        lland_aides.RLAtm,
-    )
+    REQUIREDSEQUENCES = (lland_aides.TempSInz, lland_aides.RLAtm)
 
     @staticmethod
     def __call__(model: modeltools.Model, k: int) -> float:
@@ -2402,10 +2236,7 @@ class Return_NetLongwaveRadiationSnow_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (lland_control.Lnk,)
-    DERIVEDPARAMETERS = (
-        lland_derived.MOY,
-        lland_derived.Fr,
-    )
+    DERIVEDPARAMETERS = (lland_derived.MOY, lland_derived.Fr)
     FIXEDPARAMETERS = (lland_fixed.Sigma,)
     REQUIREDSEQUENCES = (
         lland_fluxes.TempSSurface,
@@ -2414,10 +2245,7 @@ class Return_NetLongwaveRadiationSnow_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        k: int,
-    ) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
@@ -2473,11 +2301,7 @@ class Update_TauS_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (lland_control.NHRU,)
     DERIVEDPARAMETERS = (lland_derived.Seconds,)
-    REQUIREDSEQUENCES = (
-        lland_fluxes.SBes,
-        lland_states.WAeS,
-        lland_aides.TempS,
-    )
+    REQUIREDSEQUENCES = (lland_fluxes.SBes, lland_states.WAeS, lland_aides.TempS)
     RESULTSEQUENCES = (lland_states.TauS,)
 
     @staticmethod
@@ -2532,10 +2356,7 @@ class Calc_ActualAlbedo_V1(modeltools.Method):
         lland_control.SnowAgingFactor,
         lland_control.Albedo0Snow,
     )
-    REQUIREDSEQUENCES = (
-        lland_states.TauS,
-        lland_states.WAeS,
-    )
+    REQUIREDSEQUENCES = (lland_states.TauS, lland_states.WAeS)
     RESULTSEQUENCES = (lland_fluxes.ActualAlbedo,)
 
     @staticmethod
@@ -2595,18 +2416,9 @@ class Calc_NetShortwaveRadiationSnow_V1(modeltools.Method):
             >>> del pub.timegrids
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
-    DERIVEDPARAMETERS = (
-        lland_derived.MOY,
-        lland_derived.Fr,
-    )
-    REQUIREDSEQUENCES = (
-        lland_inputs.GlobalRadiation,
-        lland_fluxes.ActualAlbedo,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
+    DERIVEDPARAMETERS = (lland_derived.MOY, lland_derived.Fr)
+    REQUIREDSEQUENCES = (lland_inputs.GlobalRadiation, lland_fluxes.ActualAlbedo)
     RESULTSEQUENCES = (lland_fluxes.NetShortwaveRadiationSnow,)
 
     @staticmethod
@@ -2662,21 +2474,11 @@ class Return_TempS_V1(modeltools.Method):
         -273.0
     """
 
-    FIXEDPARAMETERS = (
-        lland_fixed.CPWasser,
-        lland_fixed.CPEis,
-    )
-    REQUIREDSEQUENCES = (
-        lland_states.WATS,
-        lland_states.WAeS,
-        lland_states.ESnow,
-    )
+    FIXEDPARAMETERS = (lland_fixed.CPWasser, lland_fixed.CPEis)
+    REQUIREDSEQUENCES = (lland_states.WATS, lland_states.WAeS, lland_states.ESnow)
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        k: int,
-    ) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         fix = model.parameters.fixed.fastaccess
         sta = model.sequences.states.fastaccess
         if sta.waes[k] > 0.0:
@@ -2711,21 +2513,11 @@ class Return_ESnowInz_V1(modeltools.Method):
         -2.0
     """
 
-    FIXEDPARAMETERS = (
-        lland_fixed.CPWasser,
-        lland_fixed.CPEis,
-    )
-    REQUIREDSEQUENCES = (
-        lland_states.STInz,
-        lland_states.SInz,
-    )
+    FIXEDPARAMETERS = (lland_fixed.CPWasser, lland_fixed.CPEis)
+    REQUIREDSEQUENCES = (lland_states.STInz, lland_states.SInz)
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        k: int,
-        temps: float,
-    ) -> float:
+    def __call__(model: modeltools.Model, k: int, temps: float) -> float:
         fix = model.parameters.fixed.fastaccess
         sta = model.sequences.states.fastaccess
         d_ice = fix.cpeis * sta.stinz[k]
@@ -2758,21 +2550,11 @@ class Return_ESnow_V1(modeltools.Method):
         -2.0
     """
 
-    FIXEDPARAMETERS = (
-        lland_fixed.CPWasser,
-        lland_fixed.CPEis,
-    )
-    REQUIREDSEQUENCES = (
-        lland_states.WATS,
-        lland_states.WAeS,
-    )
+    FIXEDPARAMETERS = (lland_fixed.CPWasser, lland_fixed.CPEis)
+    REQUIREDSEQUENCES = (lland_states.WATS, lland_states.WAeS)
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        k: int,
-        temps: float,
-    ) -> float:
+    def __call__(model: modeltools.Model, k: int, temps: float) -> float:
         fix = model.parameters.fixed.fastaccess
         sta = model.sequences.states.fastaccess
         d_ice = fix.cpeis * sta.wats[k]
@@ -2804,15 +2586,8 @@ class Calc_TempS_V1(modeltools.Method):
 
     SUBMETHODS = (Return_TempS_V1,)
     CONTROLPARAMETERS = (lland_control.NHRU,)
-    FIXEDPARAMETERS = (
-        lland_fixed.CPWasser,
-        lland_fixed.CPEis,
-    )
-    REQUIREDSEQUENCES = (
-        lland_states.WATS,
-        lland_states.WAeS,
-        lland_states.ESnow,
-    )
+    FIXEDPARAMETERS = (lland_fixed.CPWasser, lland_fixed.CPEis)
+    REQUIREDSEQUENCES = (lland_states.WATS, lland_states.WAeS, lland_states.ESnow)
     RESULTSEQUENCES = (lland_aides.TempS,)
 
     @staticmethod
@@ -2866,15 +2641,9 @@ class Calc_TZ_V1(modeltools.Method):
         tz(-2.88, -1.44, 0.0, 0.0, 0.0, 1.44, 2.88)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     DERIVEDPARAMETERS = (lland_derived.HeatOfFusion,)
-    FIXEDPARAMETERS = (
-        lland_fixed.Z,
-        lland_fixed.CG,
-    )
+    FIXEDPARAMETERS = (lland_fixed.Z, lland_fixed.CG)
     REQUIREDSEQUENCES = (lland_states.EBdn,)
     RESULTSEQUENCES = (lland_fluxes.TZ,)
 
@@ -2935,10 +2704,7 @@ class Return_WG_V1(modeltools.Method):
         18.0
     """
 
-    FIXEDPARAMETERS = (
-        lland_fixed.Z,
-        lland_fixed.LambdaG,
-    )
+    FIXEDPARAMETERS = (lland_fixed.Z, lland_fixed.LambdaG)
     REQUIREDSEQUENCES = (
         lland_fluxes.TZ,
         lland_fluxes.TKor,
@@ -2947,10 +2713,7 @@ class Return_WG_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        k: int,
-    ) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -2987,14 +2750,8 @@ class Calc_WG_V1(modeltools.Method):
     """
 
     SUBMETHODS = (Return_WG_V1,)
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
-    FIXEDPARAMETERS = (
-        lland_fixed.Z,
-        lland_fixed.LambdaG,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
+    FIXEDPARAMETERS = (lland_fixed.Z, lland_fixed.LambdaG)
     REQUIREDSEQUENCES = (
         lland_fluxes.TZ,
         lland_fluxes.TKor,
@@ -3051,11 +2808,7 @@ class Update_EBdn_V1(modeltools.Method):
             >>> del pub.timegrids
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.WG2Z,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.WG2Z)
     DERIVEDPARAMETERS = (lland_derived.MOY,)
     REQUIREDSEQUENCES = (lland_fluxes.WG,)
     UPDATEDSEQUENCES = (lland_states.EBdn,)
@@ -3097,10 +2850,7 @@ class Return_WSensInz_V1(modeltools.Method):
         8.0
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.Turb0,
-        lland_control.Turb1,
-    )
+    CONTROLPARAMETERS = (lland_control.Turb0, lland_control.Turb1)
     REQUIREDSEQUENCES = (
         lland_fluxes.TKor,
         lland_fluxes.ReducedWindSpeed2m,
@@ -3108,10 +2858,7 @@ class Return_WSensInz_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        k: int,
-    ) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -3144,10 +2891,7 @@ class Return_WSensSnow_V1(modeltools.Method):
         8.0
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.Turb0,
-        lland_control.Turb1,
-    )
+    CONTROLPARAMETERS = (lland_control.Turb0, lland_control.Turb1)
     REQUIREDSEQUENCES = (
         lland_fluxes.TKor,
         lland_fluxes.TempSSurface,
@@ -3155,10 +2899,7 @@ class Return_WSensSnow_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        k: int,
-    ) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         return (con.turb0 + con.turb1 * flu.reducedwindspeed2m[k]) * (
@@ -3200,10 +2941,7 @@ class Return_WLatInz_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        k: int,
-    ) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -3248,10 +2986,7 @@ class Return_WLatSnow_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        k: int,
-    ) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -3291,16 +3026,10 @@ class Return_WSurf_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (lland_control.KTSchnee,)
-    REQUIREDSEQUENCES = (
-        lland_aides.TempS,
-        lland_fluxes.TempSSurface,
-    )
+    REQUIREDSEQUENCES = (lland_aides.TempS, lland_fluxes.TempSSurface)
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        k: int,
-    ) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -3429,14 +3158,8 @@ class Return_EnergyGainSnowSurface_V1(modeltools.Method):
         lland_control.Turb0,
         lland_control.Turb1,
     )
-    DERIVEDPARAMETERS = (
-        lland_derived.MOY,
-        lland_derived.Fr,
-    )
-    FIXEDPARAMETERS = (
-        lland_fixed.PsyInv,
-        lland_fixed.Sigma,
-    )
+    DERIVEDPARAMETERS = (lland_derived.MOY, lland_derived.Fr)
+    FIXEDPARAMETERS = (lland_fixed.PsyInv, lland_fixed.Sigma)
     REQUIREDSEQUENCES = (
         lland_fluxes.NetShortwaveRadiationSnow,
         lland_fluxes.TKor,
@@ -3456,10 +3179,7 @@ class Return_EnergyGainSnowSurface_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        tempssurface: float,
-    ) -> float:
+    def __call__(model: modeltools.Model, tempssurface: float) -> float:
         flu = model.sequences.fluxes.fastaccess
 
         k = model.idx_hru
@@ -3473,8 +3193,7 @@ class Return_EnergyGainSnowSurface_V1(modeltools.Method):
         flu.wsenssnow[k] = model.return_wsenssnow_v1(k)
         flu.netlongwaveradiationsnow[k] = model.return_netlongwaveradiationsnow_v1(k)
         flu.netradiationsnow[k] = model.return_netradiation_v1(
-            flu.netshortwaveradiationsnow[k],
-            flu.netlongwaveradiationsnow[k],
+            flu.netshortwaveradiationsnow[k], flu.netlongwaveradiationsnow[k]
         )
         flu.wsurf[k] = model.return_wsurf_v1(k)
 
@@ -3593,14 +3312,8 @@ class Return_TempSSurface_V1(modeltools.Method):
         lland_control.Turb1,
         lland_control.KTSchnee,
     )
-    DERIVEDPARAMETERS = (
-        lland_derived.MOY,
-        lland_derived.Fr,
-    )
-    FIXEDPARAMETERS = (
-        lland_fixed.Sigma,
-        lland_fixed.PsyInv,
-    )
+    DERIVEDPARAMETERS = (lland_derived.MOY, lland_derived.Fr)
+    FIXEDPARAMETERS = (lland_fixed.Sigma, lland_fixed.PsyInv)
     REQUIREDSEQUENCES = (
         lland_fluxes.NetShortwaveRadiationSnow,
         lland_fluxes.TKor,
@@ -3621,10 +3334,7 @@ class Return_TempSSurface_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        k: int,
-    ) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -3729,19 +3439,9 @@ class Return_WSurfInz_V1(modeltools.Method):
         Return_NetLongwaveRadiationInz_V1,
         Return_NetRadiation_V1,
     )
-    CONTROLPARAMETERS = (
-        lland_control.Turb0,
-        lland_control.Turb1,
-        lland_control.Lnk,
-    )
-    DERIVEDPARAMETERS = (
-        lland_derived.MOY,
-        lland_derived.Fr,
-    )
-    FIXEDPARAMETERS = (
-        lland_fixed.Sigma,
-        lland_fixed.PsyInv,
-    )
+    CONTROLPARAMETERS = (lland_control.Turb0, lland_control.Turb1, lland_control.Lnk)
+    DERIVEDPARAMETERS = (lland_derived.MOY, lland_derived.Fr)
+    FIXEDPARAMETERS = (lland_fixed.Sigma, lland_fixed.PsyInv)
     REQUIREDSEQUENCES = (
         lland_fluxes.NetShortwaveRadiationInz,
         lland_fluxes.TKor,
@@ -3760,10 +3460,7 @@ class Return_WSurfInz_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        k: int,
-    ) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
         flu.saturationvapourpressureinz[k] = model.return_saturationvapourpressure_v1(
@@ -3866,15 +3563,8 @@ class Return_BackwardEulerErrorInz_V1(modeltools.Method):
         Return_NetRadiation_V1,
         Return_WSurfInz_V1,
     )
-    CONTROLPARAMETERS = (
-        lland_control.Turb0,
-        lland_control.Turb1,
-        lland_control.Lnk,
-    )
-    DERIVEDPARAMETERS = (
-        lland_derived.MOY,
-        lland_derived.Fr,
-    )
+    CONTROLPARAMETERS = (lland_control.Turb0, lland_control.Turb1, lland_control.Lnk)
+    DERIVEDPARAMETERS = (lland_derived.MOY, lland_derived.Fr)
     FIXEDPARAMETERS = (
         lland_fixed.CPWasser,
         lland_fixed.CPEis,
@@ -3902,10 +3592,7 @@ class Return_BackwardEulerErrorInz_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        esnowinz: float,
-    ) -> float:
+    def __call__(model: modeltools.Model, esnowinz: float) -> float:
         sta = model.sequences.states.fastaccess
         aid = model.sequences.aides.fastaccess
         k = model.idx_hru
@@ -4039,21 +3726,14 @@ class Return_BackwardEulerError_V1(modeltools.Method):
         wsurf(10.311874)
     """
 
-    SUBMETHODS = (
-        Return_TempS_V1,
-        Return_WG_V1,
-        Return_TempSSurface_V1,
-    )
+    SUBMETHODS = (Return_TempS_V1, Return_WG_V1, Return_TempSSurface_V1)
     CONTROLPARAMETERS = (
         lland_control.Turb0,
         lland_control.Turb1,
         lland_control.Lnk,
         lland_control.KTSchnee,
     )
-    DERIVEDPARAMETERS = (
-        lland_derived.MOY,
-        lland_derived.Fr,
-    )
+    DERIVEDPARAMETERS = (lland_derived.MOY, lland_derived.Fr)
     FIXEDPARAMETERS = (
         lland_fixed.CPWasser,
         lland_fixed.CPEis,
@@ -4086,10 +3766,7 @@ class Return_BackwardEulerError_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        esnow: float,
-    ) -> float:
+    def __call__(model: modeltools.Model, esnow: float) -> float:
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -4179,10 +3856,7 @@ class Update_ESnowInz_V1(modeltools.Method):
         lland_control.Turb0,
         lland_control.Turb1,
     )
-    DERIVEDPARAMETERS = (
-        lland_derived.MOY,
-        lland_derived.Fr,
-    )
+    DERIVEDPARAMETERS = (lland_derived.MOY, lland_derived.Fr)
     FIXEDPARAMETERS = (
         lland_fixed.CPWasser,
         lland_fixed.CPEis,
@@ -4361,10 +4035,7 @@ class Update_ESnow_V1(modeltools.Method):
         lland_control.Turb1,
         lland_control.KTSchnee,
     )
-    DERIVEDPARAMETERS = (
-        lland_derived.MOY,
-        lland_derived.Fr,
-    )
+    DERIVEDPARAMETERS = (lland_derived.MOY, lland_derived.Fr)
     FIXEDPARAMETERS = (
         lland_fixed.CPWasser,
         lland_fixed.CPEis,
@@ -4453,10 +4124,7 @@ class Calc_SchmPot_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (lland_control.NHRU,)
     FIXEDPARAMETERS = (lland_fixed.RSchmelz,)
-    REQUIREDSEQUENCES = (
-        lland_fluxes.WGTF,
-        lland_fluxes.WNied,
-    )
+    REQUIREDSEQUENCES = (lland_fluxes.WGTF, lland_fluxes.WNied)
     RESULTSEQUENCES = (lland_fluxes.SchmPot,)
 
     @staticmethod
@@ -4490,10 +4158,7 @@ class Calc_SchmPot_V2(modeltools.Method):
 
     CONTROLPARAMETERS = (lland_control.NHRU,)
     FIXEDPARAMETERS = (lland_fixed.RSchmelz,)
-    REQUIREDSEQUENCES = (
-        lland_states.ESnow,
-        lland_states.WAeS,
-    )
+    REQUIREDSEQUENCES = (lland_states.ESnow, lland_states.WAeS)
     RESULTSEQUENCES = (lland_fluxes.SchmPot,)
 
     @staticmethod
@@ -4531,10 +4196,7 @@ class Calc_GefrPot_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (lland_control.NHRU,)
     FIXEDPARAMETERS = (lland_fixed.RSchmelz,)
-    REQUIREDSEQUENCES = (
-        lland_states.ESnow,
-        lland_states.WAeS,
-    )
+    REQUIREDSEQUENCES = (lland_states.ESnow, lland_states.WAeS)
     RESULTSEQUENCES = (lland_fluxes.GefrPot,)
 
     @staticmethod
@@ -4593,10 +4255,7 @@ class Calc_Schm_WATS_V1(modeltools.Method):
         of stand precipitation.
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     REQUIREDSEQUENCES = (lland_fluxes.SchmPot,)
     RESULTSEQUENCES = (lland_fluxes.Schm,)
     UPDATEDSEQUENCES = (lland_states.WATS,)
@@ -4671,10 +4330,7 @@ class Calc_Gefr_WATS_V1(modeltools.Method):
         lland_control.Lnk,
         lland_control.RefreezeFlag,
     )
-    REQUIREDSEQUENCES = (
-        lland_fluxes.GefrPot,
-        lland_states.WAeS,
-    )
+    REQUIREDSEQUENCES = (lland_fluxes.GefrPot, lland_states.WAeS)
     RESULTSEQUENCES = (lland_fluxes.Gefr,)
     UPDATEDSEQUENCES = (lland_states.WATS,)
 
@@ -4729,16 +4385,9 @@ class Update_WaDa_WAeS_V1(modeltools.Method):
         wada(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.PWMax,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.PWMax)
     REQUIREDSEQUENCES = (lland_states.WATS,)
-    UPDATEDSEQUENCES = (
-        lland_states.WAeS,
-        lland_fluxes.WaDa,
-    )
+    UPDATEDSEQUENCES = (lland_states.WAeS, lland_fluxes.WaDa)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -4775,16 +4424,9 @@ class Update_ESnow_V2(modeltools.Method):
         esnow(0.0, 0.0, 0.0, 0.0, -9.074074, 0.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     FIXEDPARAMETERS = (lland_fixed.RSchmelz,)
-    REQUIREDSEQUENCES = (
-        lland_fluxes.Gefr,
-        lland_fluxes.Schm,
-        lland_states.WAeS,
-    )
+    REQUIREDSEQUENCES = (lland_fluxes.Gefr, lland_fluxes.Schm, lland_states.WAeS)
     UPDATEDSEQUENCES = (lland_states.ESnow,)
 
     @staticmethod
@@ -4821,14 +4463,8 @@ class Calc_SFF_V1(modeltools.Method):
         sff(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
-    FIXEDPARAMETERS = (
-        lland_fixed.BoWa2Z,
-        lland_fixed.RSchmelz,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
+    FIXEDPARAMETERS = (lland_fixed.BoWa2Z, lland_fixed.RSchmelz)
     REQUIREDSEQUENCES = (lland_states.EBdn,)
     RESULTSEQUENCES = (lland_fluxes.SFF,)
 
@@ -4925,10 +4561,7 @@ class Calc_EvB_AETModel_V1(modeltools.Method):
         evb(0.0, 0.0, 1.717962, 2.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     RESULTSEQUENCES = (lland_fluxes.EvB,)
 
     @staticmethod
@@ -4949,10 +4582,7 @@ class Calc_EvB_V1(modeltools.Method):
 
     SUBMODELINTERFACES = (aetinterfaces.AETModel_V1,)
     SUBMETHODS = (Calc_EvB_AETModel_V1,)
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     RESULTSEQUENCES = (lland_fluxes.EvB,)
 
     @staticmethod
@@ -5009,17 +4639,11 @@ class Calc_EvS_WAeS_WATS_V1(modeltools.Method):
         wats(1.202441, 1.0, 0.595119, 0.271214, 0.0, 0.0, 0.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     FIXEDPARAMETERS = (lland_fixed.LWE,)
     REQUIREDSEQUENCES = (lland_fluxes.WLatSnow,)
     RESULTSEQUENCES = (lland_fluxes.EvS,)
-    UPDATEDSEQUENCES = (
-        lland_states.WAeS,
-        lland_states.WATS,
-    )
+    UPDATEDSEQUENCES = (lland_states.WAeS, lland_states.WATS)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -5106,10 +4730,7 @@ class Calc_EvI_Inzp_AETModel_V1(modeltools.Method):
         nbes(0.5, 0.5, 0.5, 0.5, 0.5)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     UPDATEDSEQUENCES = (lland_states.Inzp,)
     RESULTSEQUENCES = (lland_fluxes.EvI,)
 
@@ -5135,10 +4756,7 @@ class Calc_EvI_Inzp_V1(modeltools.Method):
 
     SUBMODELINTERFACES = (aetinterfaces.AETModel_V1,)
     SUBMETHODS = (Calc_EvI_Inzp_AETModel_V1,)
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     UPDATEDSEQUENCES = (lland_states.Inzp,)
     RESULTSEQUENCES = (lland_fluxes.EvI,)
 
@@ -5585,10 +5203,7 @@ class Calc_QDB_V1(modeltools.Method):
         lland_control.WMax,
         lland_control.BSf,
     )
-    REQUIREDSEQUENCES = (
-        lland_fluxes.WaDa,
-        lland_states.BoWa,
-    )
+    REQUIREDSEQUENCES = (lland_fluxes.WaDa, lland_states.BoWa)
     RESULTSEQUENCES = (lland_fluxes.QDB,)
 
     @staticmethod
@@ -5635,10 +5250,7 @@ class Update_QDB_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (lland_control.NHRU,)
-    REQUIREDSEQUENCES = (
-        lland_fluxes.WaDa,
-        lland_fluxes.FVG,
-    )
+    REQUIREDSEQUENCES = (lland_fluxes.WaDa, lland_fluxes.FVG)
     UPDATEDSEQUENCES = (lland_fluxes.QDB,)
 
     @staticmethod
@@ -5764,11 +5376,7 @@ class Calc_BoWa_Default_V1(modeltools.Method):
         qdb(5.0, 5.0, 3.75, 2.5)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.WMax,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.WMax)
     REQUIREDSEQUENCES = (lland_fluxes.WaDa,)
     UPDATEDSEQUENCES = (
         lland_states.BoWa,
@@ -6009,10 +5617,7 @@ class Calc_BoWa_SoilModel_V1(modeltools.Method):
         evb: -1.0, -1.0, -1.0, 0.0
         qkap: 1.0, 1.0, 1.0, 0.0
     """
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     REQUIREDSEQUENCES = (lland_fluxes.WaDa,)
     UPDATEDSEQUENCES = (
         lland_states.BoWa,
@@ -6088,15 +5693,8 @@ class Calc_BoWa_V1(modeltools.Method):
     """
 
     SUBMODELINTERFACES = (soilinterfaces.SoilModel_V1,)
-    SUBMETHODS = (
-        Calc_BoWa_Default_V1,
-        Calc_BoWa_SoilModel_V1,
-    )
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.WMax,
-    )
+    SUBMETHODS = (Calc_BoWa_Default_V1, Calc_BoWa_SoilModel_V1)
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.WMax)
     REQUIREDSEQUENCES = (lland_fluxes.WaDa,)
     UPDATEDSEQUENCES = (
         lland_states.BoWa,
@@ -6163,11 +5761,7 @@ class Calc_QBGZ_V1(modeltools.Method):
         qbgz(-3.5)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.FHRU,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.FHRU)
     REQUIREDSEQUENCES = (
         lland_fluxes.NKor,
         lland_fluxes.EvI,
@@ -6206,10 +5800,7 @@ class Calc_QIGZ1_V1(modeltools.Method):
         qigz1(2.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.FHRU,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.FHRU)
     REQUIREDSEQUENCES = (lland_fluxes.QIB1,)
     RESULTSEQUENCES = (lland_fluxes.QIGZ1,)
 
@@ -6240,10 +5831,7 @@ class Calc_QIGZ2_V1(modeltools.Method):
         qigz2(2.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.FHRU,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.FHRU)
     REQUIREDSEQUENCES = (lland_fluxes.QIB2,)
     RESULTSEQUENCES = (lland_fluxes.QIGZ2,)
 
@@ -6291,16 +5879,8 @@ class Calc_QDGZ_V1(modeltools.Method):
         qdgz(-3.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.FHRU,
-    )
-    REQUIREDSEQUENCES = (
-        lland_fluxes.NKor,
-        lland_fluxes.EvI,
-        lland_fluxes.QDB,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.FHRU)
+    REQUIREDSEQUENCES = (lland_fluxes.NKor, lland_fluxes.EvI, lland_fluxes.QDB)
     RESULTSEQUENCES = (lland_fluxes.QDGZ,)
 
     @staticmethod
@@ -6402,15 +5982,9 @@ class Calc_QDGZ1_QDGZ2_V1(modeltools.Method):
         generation per simulation step
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.A2,
-        lland_control.A1,
-    )
+    CONTROLPARAMETERS = (lland_control.A2, lland_control.A1)
     REQUIREDSEQUENCES = (lland_fluxes.QDGZ,)
-    RESULTSEQUENCES = (
-        lland_fluxes.QDGZ2,
-        lland_fluxes.QDGZ1,
-    )
+    RESULTSEQUENCES = (lland_fluxes.QDGZ2, lland_fluxes.QDGZ1)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -6798,11 +6372,7 @@ class Calc_QBGA_SBG_QBGZ_QDGZ_V1(modeltools.Method):
         lland_control.GSBGrad2,
     )
     DERIVEDPARAMETERS = (lland_derived.KB,)
-    UPDATEDSEQUENCES = (
-        lland_states.SBG,
-        lland_fluxes.QDGZ,
-        lland_fluxes.QBGZ,
-    )
+    UPDATEDSEQUENCES = (lland_states.SBG, lland_fluxes.QDGZ, lland_fluxes.QBGZ)
     RESULTSEQUENCES = (lland_fluxes.QBGA,)
     SUBMETHODS = (Calc_QBGA_SBG_V1,)
 
@@ -7615,15 +7185,8 @@ class Model(modeltools.AdHocModel):
     )
     OUTLET_METHODS = (Pass_QA_V1,)
     SENDER_METHODS = ()
-    SUBMODELINTERFACES = (
-        aetinterfaces.AETModel_V1,
-        soilinterfaces.SoilModel_V1,
-    )
-    SUBMODELS = (
-        PegasusESnowInz,
-        PegasusESnow,
-        PegasusTempSSurface,
-    )
+    SUBMODELINTERFACES = (aetinterfaces.AETModel_V1, soilinterfaces.SoilModel_V1)
+    SUBMODELS = (PegasusESnowInz, PegasusESnow, PegasusTempSSurface)
 
     idx_hru = modeltools.Idx_HRU()
 

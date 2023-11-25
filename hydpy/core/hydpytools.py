@@ -1892,8 +1892,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
     def networkproperties(
         self,
     ) -> Dict[
-        str,
-        Union[int, Union[Dict[str, int], Dict[devicetools.NodeVariableType, int]]],
+        str, Union[int, Union[Dict[str, int], Dict[devicetools.NodeVariableType, int]]]
     ]:
         """Some properties of the network defined by the currently relevant |Node| and
         |Element| objects.
@@ -1937,9 +1936,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         Applied model types: hland_v1 (4) and musk_classic (3)
         """
         value: Union[
-            str,
-            int,
-            Union[Dict[str, int], Dict[devicetools.NodeVariableType, int]],
+            str, int, Union[Dict[str, int], Dict[devicetools.NodeVariableType, int]]
         ]
         for key, value in self.networkproperties.items():
             if isinstance(value, dict):
@@ -2214,10 +2211,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
 
     @overload
     def update_devices(
-        self,
-        *,
-        selection: selectiontools.Selection,
-        silent: bool = False,
+        self, *, selection: selectiontools.Selection, silent: bool = False
     ) -> None:
         ...
 

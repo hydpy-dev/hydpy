@@ -46,8 +46,4 @@ class Water(masktools.SubmodelIndexMask):
 class Masks(masktools.Masks):
     """Masks of base model |evap|."""
 
-    CLASSES = (
-        Soil,
-        Plant,
-        Water,
-    )
+    CLASSES = (Soil, Plant, Water)

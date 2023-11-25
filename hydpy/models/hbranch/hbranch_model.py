@@ -77,10 +77,7 @@ class Calc_AdjustedInput_V1(modeltools.Method):
         adjustedinput(1.5)
     """
 
-    CONTROLPARAMETERS = (
-        hbranch_control.Delta,
-        hbranch_control.Minimum,
-    )
+    CONTROLPARAMETERS = (hbranch_control.Delta, hbranch_control.Minimum)
     DERIVEDPARAMETERS = (hbranch_derived.MOY,)
     REQUIREDSEQUENCES = (hbranch_fluxes.OriginalInput,)
     RESULTSEQUENCES = (hbranch_fluxes.AdjustedInput,)
@@ -152,14 +149,8 @@ class Calc_Outputs_V1(modeltools.Method):
                 branch2=5.0)
     """
 
-    CONTROLPARAMETERS = (
-        hbranch_control.XPoints,
-        hbranch_control.YPoints,
-    )
-    DERIVEDPARAMETERS = (
-        hbranch_derived.NmbPoints,
-        hbranch_derived.NmbBranches,
-    )
+    CONTROLPARAMETERS = (hbranch_control.XPoints, hbranch_control.YPoints)
+    DERIVEDPARAMETERS = (hbranch_derived.NmbPoints, hbranch_derived.NmbBranches)
     REQUIREDSEQUENCES = (hbranch_fluxes.AdjustedInput,)
     RESULTSEQUENCES = (hbranch_fluxes.Outputs,)
 
@@ -207,10 +198,7 @@ class Model(modeltools.AdHocModel):
 
     INLET_METHODS = (Pick_OriginalInput_V1,)
     RECEIVER_METHODS = ()
-    RUN_METHODS = (
-        Calc_AdjustedInput_V1,
-        Calc_Outputs_V1,
-    )
+    RUN_METHODS = (Calc_AdjustedInput_V1, Calc_Outputs_V1)
     ADD_METHODS = ()
     OUTLET_METHODS = (Pass_Outputs_V1,)
     SENDER_METHODS = ()

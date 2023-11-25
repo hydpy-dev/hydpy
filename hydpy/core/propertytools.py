@@ -32,11 +32,7 @@ class BaseDescriptor:
                 ref = f"{self.objtype.__name__}.{self.name}"
                 self.module.__dict__["__test__"][ref] = doc
 
-    def __set_name__(
-        self,
-        objtype: Type[Any],
-        name: str,
-    ) -> None:
+    def __set_name__(self, objtype: Type[Any], name: str) -> None:
         self.objtype = objtype
         self.module = inspect.getmodule(objtype)
         if self.module is not None:

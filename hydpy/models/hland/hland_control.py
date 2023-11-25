@@ -1388,9 +1388,7 @@ class K1(hland_parameters.ParameterUpperZone):
                 lower = k1l
             else:
                 lower = numpy.clip(
-                    lower,
-                    -1.0 / numpy.log(1.0 - numpy.exp(-1.0 / lower)),
-                    numpy.inf,
+                    lower, -1.0 / numpy.log(1.0 - numpy.exp(-1.0 / lower)), numpy.inf
                 )
                 lower = numpy.clip(lower, k1l, numpy.inf)
                 lower[numpy.isnan(lower)] = k1l
@@ -1548,11 +1546,5 @@ class NmbStorages(parametertools.Parameter):
 
 
 K0.CONTROLPARAMETERS = (K1,)
-K1.CONTROLPARAMETERS = (
-    K0,
-    K2,
-)
-K2.CONTROLPARAMETERS = (
-    K1,
-    K3,
-)
+K1.CONTROLPARAMETERS = (K0, K2)
+K2.CONTROLPARAMETERS = (K1, K3)

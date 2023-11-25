@@ -92,11 +92,7 @@ class LazyInOutSequenceImport:
     """
 
     def __init__(
-        self,
-        modulename: str,
-        classname: str,
-        alias: str,
-        namespace: Dict[str, Any],
+        self, modulename: str, classname: str, alias: str, namespace: Dict[str, Any]
     ) -> None:
         self._modulename = modulename
         self._classname = classname

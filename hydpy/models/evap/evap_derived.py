@@ -48,10 +48,7 @@ class Altitude(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
-    CONTROLPARAMETERS = (
-        evap_control.HRUArea,
-        evap_control.HRUAltitude,
-    )
+    CONTROLPARAMETERS = (evap_control.HRUArea, evap_control.HRUAltitude)
 
     def update(self) -> None:
         """Average the individual hydrological response units' altitudes.

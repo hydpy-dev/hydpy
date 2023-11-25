@@ -801,10 +801,7 @@ class Model(
         wland_model.Get_MeanTemperature_V1,
         wland_model.Get_Precipitation_V1,
     )
-    ADD_METHODS = (
-        wland_model.Calc_PET_PETModel_V1,
-        wland_model.Calc_PE_PETModel_V1,
-    )
+    ADD_METHODS = (wland_model.Calc_PET_PETModel_V1, wland_model.Calc_PE_PETModel_V1)
     PART_ODE_METHODS = (
         wland_model.Calc_FXS_V1,
         wland_model.Calc_FXG_V1,

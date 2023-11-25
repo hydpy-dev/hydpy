@@ -38,12 +38,10 @@ if TYPE_CHECKING:
 
 TypeParameter = TypeVar("TypeParameter", bound=parametertools.Parameter)
 TypeRule1 = TypeVar(
-    "TypeRule1",
-    bound=Union["Replace", "Add", "Multiply", "ReplaceIUH", "MultiplyIUH"],
+    "TypeRule1", bound=Union["Replace", "Add", "Multiply", "ReplaceIUH", "MultiplyIUH"]
 )
 TypeRule2 = TypeVar(
-    "TypeRule2",
-    bound=Union["Replace", "Add", "Multiply", "ReplaceIUH", "MultiplyIUH"],
+    "TypeRule2", bound=Union["Replace", "Add", "Multiply", "ReplaceIUH", "MultiplyIUH"]
 )
 TypeRule = TypeVar("TypeRule", "Replace", "Add", "Multiply")
 Target = Optional[str]
@@ -758,8 +756,7 @@ value `200.0` instead.
         blanks = (indent + 4) * " "
         selprefix = f"{blanks}selections="
         selline = objecttools.assignrepr_tuple(
-            values=tuple(f'"{sel}"' for sel in self.selections),
-            prefix=selprefix,
+            values=tuple(f'"{sel}"' for sel in self.selections), prefix=selprefix
         )
         return (
             f"{prefix}{type(self).__name__}(\n"
@@ -1744,7 +1741,7 @@ object named `fc`.
         idx2name, idx2rule = {}, {}
         parameterstep: Optional[Union[str, timetools.Period]]
         for idx, (name, parameterstep) in enumerate(
-            zip(lines[0].split()[1:], lines[1].split()[1:]),
+            zip(lines[0].split()[1:], lines[1].split()[1:])
         ):
             if name in self._rules:
                 rule = self._rules[name]
@@ -1923,10 +1920,7 @@ object named `fc`.
         return self.result
 
     def perform_calibrationstep(
-        self,
-        values: Iterable[float],
-        *args: Any,
-        **kwargs: Any,
+        self, values: Iterable[float], *args: Any, **kwargs: Any
     ) -> float:
         # pylint: disable=unused-argument
         # for optimisers that pass additional informative data
@@ -2641,8 +2635,7 @@ parameterstep="1d"
         if self.parameterstep is not None:
             arguments.append(f'parameterstep="{self.parameterstep}"')
         return black.format_str(
-            f"{type(self).__name__}({', '.join(arguments)})",
-            mode=black.FileMode(),
+            f"{type(self).__name__}({', '.join(arguments)})", mode=black.FileMode()
         )[:-1]
 
 
@@ -2896,15 +2889,13 @@ parameterstep="1d"),
     def __str__(self) -> str:
         arguments = (f'"{name}"' for name in self._name2parspec.keys())
         return black.format_str(
-            f"{type(self).__name__}({', '.join(arguments)})",
-            mode=black.FileMode(),
+            f"{type(self).__name__}({', '.join(arguments)})", mode=black.FileMode()
         )[:-1]
 
     def __repr__(self) -> str:
         arguments = (repr(value) for value in self._name2parspec.values())
         return black.format_str(
-            f"{type(self).__name__}({', '.join(arguments)})",
-            mode=black.FileMode(),
+            f"{type(self).__name__}({', '.join(arguments)})", mode=black.FileMode()
         )[:-1]
 
     def __dir__(self) -> List[str]:

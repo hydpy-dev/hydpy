@@ -448,10 +448,7 @@ class TTM(hland_parameters.ParameterLand):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
-    CONTROLPARAMETERS = (
-        hland_control.TT,
-        hland_control.DTTM,
-    )
+    CONTROLPARAMETERS = (hland_control.TT, hland_control.DTTM)
 
     def update(self):
         """Update |TTM| based on :math:`TTM = TT + DTTM`.
@@ -785,10 +782,7 @@ class KSC(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
 
-    CONTROLPARAMETERS = (
-        hland_control.MaxBaz,
-        hland_control.NmbStorages,
-    )
+    CONTROLPARAMETERS = (hland_control.MaxBaz, hland_control.NmbStorages)
 
     def update(self):
         """Update |KSC| based on :math:`KSC = \\frac{2 \\cdot NmbStorages}{MaxBaz}`.

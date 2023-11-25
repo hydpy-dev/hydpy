@@ -2215,7 +2215,7 @@ element.
                 lines.append(
                     f'\ncontrolcheck(projectdir=r"{con.projectdir}", '
                     f'controldir="{con.currentdir}", '
-                    f'stepsize="{hydpy.pub.timegrids.stepsize}")\n\n',
+                    f'stepsize="{hydpy.pub.timegrids.stepsize}")\n\n'
                 )
                 for seq in self.sequences.conditionsequences:
                     lines.append(f"{repr(seq)}\n")

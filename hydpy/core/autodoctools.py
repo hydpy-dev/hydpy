@@ -624,11 +624,7 @@ class Substituter:
         return "const"
 
     def add_substitution(
-        self,
-        short: str,
-        medium: str,
-        long: str,
-        module: types.ModuleType,
+        self, short: str, medium: str, long: str, module: types.ModuleType
     ) -> None:
         """Add the given substitutions both as a `short2long` and a `medium2long`
         mapping.

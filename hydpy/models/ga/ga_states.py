@@ -19,10 +19,7 @@ class Moisture(sequencetools.StateSequence):
 
     NDIM, NUMERIC, SPAN = 2, False, (0.0, 1.0)
 
-    CONTROLPARAMETERS = (
-        ga_control.ResidualMoisture,
-        ga_control.SaturationMoisture,
-    )
+    CONTROLPARAMETERS = (ga_control.ResidualMoisture, ga_control.SaturationMoisture)
 
     def trim(self, lower=None, upper=None):
         r"""Trim the relative moisture following

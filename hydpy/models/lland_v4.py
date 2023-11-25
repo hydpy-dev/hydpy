@@ -1838,10 +1838,7 @@ class Model(
     )
     OUTLET_METHODS = (lland_model.Pass_QA_V1,)
     SENDER_METHODS = ()
-    SUBMODELINTERFACES = (
-        aetinterfaces.AETModel_V1,
-        soilinterfaces.SoilModel_V1,
-    )
+    SUBMODELINTERFACES = (aetinterfaces.AETModel_V1, soilinterfaces.SoilModel_V1)
     SUBMODELS = (
         lland_model.PegasusESnowInz,
         lland_model.PegasusESnow,

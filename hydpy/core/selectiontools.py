@@ -305,8 +305,7 @@ objects, but the type of the given argument is `str`.
         """
         if selection2element:
             intersections: Dict[
-                Selection,
-                Dict[Selection, devicetools.Elements],
+                Selection, Dict[Selection, devicetools.Elements]
             ] = collections.defaultdict(dict)
             for selection1, selection2 in itertools.combinations(self, 2):
                 intersection = selection1.elements.intersection(*selection2.elements)
@@ -1222,10 +1221,7 @@ following error occurred: 'in <string>' requires string as left operand, not lis
         self.elements = self.search_elementnames(*substrings).elements
         return self
 
-    def deselect_elementnames(
-        self,
-        *substrings: str,
-    ) -> Selection:
+    def deselect_elementnames(self, *substrings: str) -> Selection:
         """Restrict the current selection to all elements with a name not containing at
         least one of the given substrings.   (does not affect any nodes).
 

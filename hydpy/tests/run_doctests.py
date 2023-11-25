@@ -178,10 +178,7 @@ def main(  # pylint: disable=too-many-branches
                     with warnings.catch_warnings(), open(
                         os.devnull, "w", encoding=config.ENCODING
                     ) as file_, devicetools.clear_registries_temporarily():
-                        warnings.filterwarnings(
-                            action="error",
-                            module="hydpy",
-                        )
+                        warnings.filterwarnings(action="error", module="hydpy")
                         warnings.filterwarnings(
                             action="ignore",
                             category=DeprecationWarning,

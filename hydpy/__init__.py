@@ -19,88 +19,30 @@ import numpy
 from numpy import nan
 
 # ...from HydPy
-from hydpy.core import (
-    pubtools,
-)
+from hydpy.core import pubtools
 
 pub = pubtools.Pub("pub")
 
-from hydpy import (
-    config,
-)
-from hydpy import (
-    models,
-)
-from hydpy.core import (
-    indextools,
-    objecttools,
-    optiontools,
-    sequencetools,
-)
+from hydpy import config
+from hydpy import models
+from hydpy.core import indextools, objecttools, optiontools, sequencetools
 
 if TYPE_CHECKING:
-    from hydpy.cythons import (
-        configutils,
-    )
+    from hydpy.cythons import configutils
 else:
-    from hydpy.cythons.autogen import (
-        configutils,
-    )
-from hydpy.core.auxfiletools import (
-    Auxfiler,
-)
-from hydpy.core.devicetools import (
-    Element,
-    Elements,
-    FusedVariable,
-    Node,
-    Nodes,
-)
-from hydpy.core.exceptiontools import (
-    AttributeNotReady,
-    attrready,
-    getattr_,
-    hasattr_,
-)
-from hydpy.core.exceptiontools import (
-    HydPyDeprecationWarning,
-)
-from hydpy.core.hydpytools import (
-    HydPy,
-)
-from hydpy.core.importtools import (
-    prepare_model,
-    reverse_model_wildcard_import,
-)
-from hydpy.core.itemtools import (
-    AddItem,
-    GetItem,
-    MultiplyItem,
-    SetItem,
-)
-from hydpy.core.objecttools import (
-    classname,
-    print_values,
-    round_,
-    repr_,
-)
-from hydpy.core.parametertools import (
-    KeywordArguments,
-)
-from hydpy.core.selectiontools import (
-    Selection,
-    Selections,
-)
-from hydpy.core.seriestools import (
-    aggregate_series,
-)
-from hydpy.core.timetools import (
-    Date,
-    Period,
-    Timegrid,
-    Timegrids,
-    TOY,
-)
+    from hydpy.cythons.autogen import configutils
+from hydpy.core.auxfiletools import Auxfiler
+from hydpy.core.devicetools import Element, Elements, FusedVariable, Node, Nodes
+from hydpy.core.exceptiontools import AttributeNotReady, attrready, getattr_, hasattr_
+from hydpy.core.exceptiontools import HydPyDeprecationWarning
+from hydpy.core.hydpytools import HydPy
+from hydpy.core.importtools import prepare_model, reverse_model_wildcard_import
+from hydpy.core.itemtools import AddItem, GetItem, MultiplyItem, SetItem
+from hydpy.core.objecttools import classname, print_values, round_, repr_
+from hydpy.core.parametertools import KeywordArguments
+from hydpy.core.selectiontools import Selection, Selections
+from hydpy.core.seriestools import aggregate_series
+from hydpy.core.timetools import Date, Period, Timegrid, Timegrids, TOY
 from hydpy.core.testtools import (
     make_abc_testable,
     NumericalDifferentiator,
@@ -110,17 +52,9 @@ from hydpy.core.testtools import (
     UnitTest,
     update_integrationtests,
 )
-from hydpy.core.variabletools import (
-    INT_NAN,
-    sort_variables,
-)
-from hydpy.auxs.armatools import (
-    ARMA,
-    MA,
-)
-from hydpy.auxs.anntools import (
-    ANN,
-)
+from hydpy.core.variabletools import INT_NAN, sort_variables
+from hydpy.auxs.armatools import ARMA, MA
+from hydpy.auxs.anntools import ANN
 from hydpy.auxs.calibtools import (
     Add,
     Adaptor,
@@ -137,22 +71,14 @@ from hydpy.auxs.calibtools import (
     SumAdaptor,
     TargetFunction,
 )
-from hydpy.auxs.interptools import (
-    SeasonalInterpolator,
-)
-from hydpy.auxs.iuhtools import (
-    LinearStorageCascade,
-    TranslationDiffusionEquation,
-)
+from hydpy.auxs.interptools import SeasonalInterpolator
+from hydpy.auxs.iuhtools import LinearStorageCascade, TranslationDiffusionEquation
 from hydpy.auxs.networktools import (
     RiverBasinNumber,
     RiverBasinNumbers,
     RiverBasinNumbers2Selection,
 )
-from hydpy.auxs.ppolytools import (
-    Poly,
-    PPoly,
-)
+from hydpy.auxs.ppolytools import Poly, PPoly
 from hydpy.auxs.statstools import (
     bias_abs,
     bias_rel,
@@ -176,10 +102,7 @@ from hydpy.auxs.statstools import (
     SummaryRowWeighted,
     var_ratio,
 )
-from hydpy.auxs.xmltools import (
-    XMLInterface,
-    run_simulation,
-)
+from hydpy.auxs.xmltools import XMLInterface, run_simulation
 from hydpy.exe.commandtools import (
     exec_commands,
     exec_script,
@@ -189,13 +112,8 @@ from hydpy.exe.commandtools import (
     start_shell,
     print_latest_logfile,
 )
-from hydpy.exe.replacetools import (
-    xml_replace,
-)
-from hydpy.exe.servertools import (
-    await_server,
-    start_server,
-)
+from hydpy.exe.replacetools import xml_replace
+from hydpy.exe.servertools import await_server, start_server
 
 
 __version__ = "6.0a0"

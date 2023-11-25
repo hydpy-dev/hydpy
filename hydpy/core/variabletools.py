@@ -1108,9 +1108,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
 
     @property
     @abc.abstractmethod
-    def initinfo(
-        self,
-    ) -> Tuple[Union[float, int, bool, pointerutils.Double,], bool,]:
+    def initinfo(self) -> Tuple[Union[float, int, bool, pointerutils.Double], bool]:
         """To be overridden."""
 
     def __call__(self, *args) -> None:
@@ -2098,7 +2096,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                     other=other,
                     comparefunc=lambda vs1, vs2: vs1 < vs2,
                     callingfunc="lt",
-                ),
+                )
             )
         )
 
@@ -2109,7 +2107,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                     other=other,
                     comparefunc=lambda vs1, vs2: vs1 <= vs2,
                     callingfunc="le",
-                ),
+                )
             )
         )
 
@@ -2122,7 +2120,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                     other=other,
                     comparefunc=lambda vs1, vs2: vs1 == vs2,
                     callingfunc="eq",
-                ),
+                )
             )
         )
 
@@ -2133,7 +2131,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                     other=other,
                     comparefunc=lambda vs1, vs2: vs1 != vs2,
                     callingfunc="ne",
-                ),
+                )
             )
         )
 
@@ -2144,7 +2142,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                     other=other,
                     comparefunc=lambda vs1, vs2: vs1 >= vs2,
                     callingfunc="ge",
-                ),
+                )
             )
         )
 
@@ -2155,7 +2153,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                     other=other,
                     comparefunc=lambda vs1, vs2: vs1 > vs2,
                     callingfunc="gt",
-                ),
+                )
             )
         )
 
@@ -2250,7 +2248,7 @@ def sort_variables(
 
 @overload
 def sort_variables(
-    values: Iterable[Tuple[Type[TypeVariable_co], T]],
+    values: Iterable[Tuple[Type[TypeVariable_co], T]]
 ) -> Tuple[Tuple[Type[TypeVariable_co], T], ...]:
     ...
 

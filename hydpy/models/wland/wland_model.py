@@ -112,10 +112,7 @@ class Calc_FXG_V1(modeltools.Method):
         fxg(0.0)
     """
 
-    DERIVEDPARAMETERS = (
-        wland_derived.ALR,
-        wland_derived.AGR,
-    )
+    DERIVEDPARAMETERS = (wland_derived.ALR, wland_derived.AGR)
     REQUIREDSEQUENCES = (wland_inputs.FXG,)
     RESULTSEQUENCES = (wland_fluxes.FXG,)
 
@@ -340,14 +337,8 @@ class Calc_TF_V1(modeltools.Method):
         wland_control.LAI,
         wland_control.IH,
     )
-    DERIVEDPARAMETERS = (
-        wland_derived.MOY,
-        wland_derived.RH1,
-    )
-    REQUIREDSEQUENCES = (
-        wland_fluxes.PC,
-        wland_states.IC,
-    )
+    DERIVEDPARAMETERS = (wland_derived.MOY, wland_derived.RH1)
+    REQUIREDSEQUENCES = (wland_fluxes.PC, wland_states.IC)
     RESULTSEQUENCES = (wland_fluxes.TF,)
 
     @staticmethod
@@ -426,10 +417,7 @@ class Calc_EI_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (wland_control.NU,)
     DERIVEDPARAMETERS = (wland_derived.RH1,)
-    REQUIREDSEQUENCES = (
-        wland_fluxes.PET,
-        wland_states.IC,
-    )
+    REQUIREDSEQUENCES = (wland_fluxes.PET, wland_states.IC)
     RESULTSEQUENCES = (wland_fluxes.EI,)
 
     @staticmethod
@@ -479,10 +467,7 @@ class Calc_FR_V1(modeltools.Method):
         |   9 |  5.0 |  1.0 |
     """
 
-    CONTROLPARAMETERS = (
-        wland_control.TT,
-        wland_control.TI,
-    )
+    CONTROLPARAMETERS = (wland_control.TT, wland_control.TI)
     REQUIREDSEQUENCES = (wland_inputs.T,)
     RESULTSEQUENCES = (wland_aides.FR,)
 
@@ -518,10 +503,7 @@ class Calc_RF_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (wland_control.NU,)
-    REQUIREDSEQUENCES = (
-        wland_fluxes.TF,
-        wland_aides.FR,
-    )
+    REQUIREDSEQUENCES = (wland_fluxes.TF, wland_aides.FR)
     RESULTSEQUENCES = (wland_fluxes.RF,)
 
     @staticmethod
@@ -552,10 +534,7 @@ class Calc_SF_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (wland_control.NU,)
-    REQUIREDSEQUENCES = (
-        wland_fluxes.TF,
-        wland_aides.FR,
-    )
+    REQUIREDSEQUENCES = (wland_fluxes.TF, wland_aides.FR)
     RESULTSEQUENCES = (wland_fluxes.SF,)
 
     @staticmethod
@@ -629,11 +608,7 @@ class Calc_PM_V1(modeltools.Method):
         |  11 |  6.0 |     10.0 |
     """
 
-    CONTROLPARAMETERS = (
-        wland_control.NU,
-        wland_control.DDF,
-        wland_control.DDT,
-    )
+    CONTROLPARAMETERS = (wland_control.NU, wland_control.DDF, wland_control.DDT)
     DERIVEDPARAMETERS = (wland_derived.RT2,)
     REQUIREDSEQUENCES = (wland_inputs.T,)
     RESULTSEQUENCES = (wland_fluxes.PM,)
@@ -713,10 +688,7 @@ class Calc_AM_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (wland_control.NU,)
     DERIVEDPARAMETERS = (wland_derived.RH1,)
-    REQUIREDSEQUENCES = (
-        wland_fluxes.PM,
-        wland_states.SP,
-    )
+    REQUIREDSEQUENCES = (wland_fluxes.PM, wland_states.SP)
     RESULTSEQUENCES = (wland_fluxes.AM,)
 
     @staticmethod
@@ -834,17 +806,9 @@ class Calc_PV_V1(modeltools.Method):
         pv(1.0)
     """
 
-    CONTROLPARAMETERS = (
-        wland_control.NU,
-        wland_control.LT,
-        wland_control.AUR,
-    )
+    CONTROLPARAMETERS = (wland_control.NU, wland_control.LT, wland_control.AUR)
     DERIVEDPARAMETERS = (wland_derived.AGR,)
-    REQUIREDSEQUENCES = (
-        wland_fluxes.RF,
-        wland_fluxes.AM,
-        wland_aides.W,
-    )
+    REQUIREDSEQUENCES = (wland_fluxes.RF, wland_fluxes.AM, wland_aides.W)
     RESULTSEQUENCES = (wland_fluxes.PV,)
 
     @staticmethod
@@ -885,16 +849,8 @@ class Calc_PQ_V1(modeltools.Method):
         pq(3.0)
     """
 
-    CONTROLPARAMETERS = (
-        wland_control.NU,
-        wland_control.LT,
-        wland_control.AUR,
-    )
-    REQUIREDSEQUENCES = (
-        wland_fluxes.RF,
-        wland_fluxes.AM,
-        wland_aides.W,
-    )
+    CONTROLPARAMETERS = (wland_control.NU, wland_control.LT, wland_control.AUR)
+    REQUIREDSEQUENCES = (wland_fluxes.RF, wland_fluxes.AM, wland_aides.W)
     RESULTSEQUENCES = (wland_fluxes.PQ,)
 
     @staticmethod
@@ -952,10 +908,7 @@ class Calc_Beta_V1(modeltools.Method):
         |  12 | 100000.0 |      0.0 |
     """
 
-    CONTROLPARAMETERS = (
-        wland_control.Zeta1,
-        wland_control.Zeta2,
-    )
+    CONTROLPARAMETERS = (wland_control.Zeta1, wland_control.Zeta2)
     REQUIREDSEQUENCES = (wland_states.DV,)
     RESULTSEQUENCES = (wland_aides.Beta,)
 
@@ -999,17 +952,9 @@ class Calc_ETV_V1(modeltools.Method):
         etv(2.25)
     """
 
-    CONTROLPARAMETERS = (
-        wland_control.NU,
-        wland_control.LT,
-        wland_control.AUR,
-    )
+    CONTROLPARAMETERS = (wland_control.NU, wland_control.LT, wland_control.AUR)
     DERIVEDPARAMETERS = (wland_derived.AGR,)
-    REQUIREDSEQUENCES = (
-        wland_fluxes.PET,
-        wland_fluxes.EI,
-        wland_aides.Beta,
-    )
+    REQUIREDSEQUENCES = (wland_fluxes.PET, wland_fluxes.EI, wland_aides.Beta)
     RESULTSEQUENCES = (wland_fluxes.ETV,)
 
     @staticmethod
@@ -1084,10 +1029,7 @@ class Calc_ES_V1(modeltools.Method):
         |   9 |  4.0 |      5.0 |
     """
     DERIVEDPARAMETERS = (wland_derived.RH1,)
-    REQUIREDSEQUENCES = (
-        wland_fluxes.PE,
-        wland_states.HS,
-    )
+    REQUIREDSEQUENCES = (wland_fluxes.PE, wland_states.HS)
     RESULTSEQUENCES = (wland_fluxes.ES,)
 
     @staticmethod
@@ -1122,20 +1064,9 @@ class Calc_ET_V1(modeltools.Method):
         et(2.2)
     """
 
-    CONTROLPARAMETERS = (
-        wland_control.NU,
-        wland_control.AUR,
-    )
-    DERIVEDPARAMETERS = (
-        wland_derived.ALR,
-        wland_derived.ASR,
-        wland_derived.AGR,
-    )
-    REQUIREDSEQUENCES = (
-        wland_fluxes.EI,
-        wland_fluxes.ETV,
-        wland_fluxes.ES,
-    )
+    CONTROLPARAMETERS = (wland_control.NU, wland_control.AUR)
+    DERIVEDPARAMETERS = (wland_derived.ALR, wland_derived.ASR, wland_derived.AGR)
+    REQUIREDSEQUENCES = (wland_fluxes.EI, wland_fluxes.ETV, wland_fluxes.ES)
     RESULTSEQUENCES = (wland_fluxes.ET,)
 
     @staticmethod
@@ -1190,11 +1121,7 @@ class Calc_DVEq_V1(modeltools.Method):
         |   6 | 3200.0 | 313.415248 |
     """
 
-    CONTROLPARAMETERS = (
-        wland_control.ThetaS,
-        wland_control.PsiAE,
-        wland_control.B,
-    )
+    CONTROLPARAMETERS = (wland_control.ThetaS, wland_control.PsiAE, wland_control.B)
     DERIVEDPARAMETERS = (wland_derived.NUG,)
     REQUIREDSEQUENCES = (wland_states.DG,)
     RESULTSEQUENCES = (wland_aides.DVEq,)
@@ -1275,11 +1202,7 @@ class Return_DVH_V1(modeltools.Method):
         600.0 0.05178
     """
 
-    CONTROLPARAMETERS = (
-        wland_control.ThetaS,
-        wland_control.PsiAE,
-        wland_control.B,
-    )
+    CONTROLPARAMETERS = (wland_control.ThetaS, wland_control.PsiAE, wland_control.B)
     DERIVEDPARAMETERS = (wland_derived.RH1,)
 
     @staticmethod
@@ -1367,10 +1290,7 @@ class Calc_DVEq_V2(modeltools.Method):
         wland_control.B,
         wland_control.SH,
     )
-    DERIVEDPARAMETERS = (
-        wland_derived.NUG,
-        wland_derived.RH1,
-    )
+    DERIVEDPARAMETERS = (wland_derived.NUG, wland_derived.RH1)
     REQUIREDSEQUENCES = (wland_states.DG,)
     RESULTSEQUENCES = (wland_aides.DVEq,)
     SUBMETHODS = (Return_DVH_V1,)
@@ -1622,10 +1542,7 @@ class Calc_DVEq_V4(modeltools.Method):
         wland_control.B,
         wland_control.SH,
     )
-    DERIVEDPARAMETERS = (
-        wland_derived.NUG,
-        wland_derived.RH1,
-    )
+    DERIVEDPARAMETERS = (wland_derived.NUG, wland_derived.RH1)
     REQUIREDSEQUENCES = (wland_states.DG,)
     RESULTSEQUENCES = (wland_aides.DVEq,)
     SUBMETHODS = (Return_DVH_V2,)
@@ -1782,23 +1699,11 @@ class Calc_DGEq_V1(modeltools.Method):
             d_error = model.return_errordv_v1(con.psiae)
             if d_error <= 0.0:
                 aid.dgeq = model.pegasusdgeq.find_x(
-                    con.psiae,
-                    10000.0,
-                    con.psiae,
-                    1000000.0,
-                    0.0,
-                    1e-8,
-                    20,
+                    con.psiae, 10000.0, con.psiae, 1000000.0, 0.0, 1e-8, 20
                 )
             else:
                 aid.dgeq = model.pegasusdgeq.find_x(
-                    0.0,
-                    con.psiae,
-                    0.0,
-                    con.psiae,
-                    0.0,
-                    1e-8,
-                    20,
+                    0.0, con.psiae, 0.0, con.psiae, 0.0, 1e-8, 20
                 )
         else:
             aid.dgeq = 0.0
@@ -1917,10 +1822,7 @@ class Calc_GF_V1(modeltools.Method):
         wland_control.B,
     )
     DERIVEDPARAMETERS = (wland_derived.RH1,)
-    REQUIREDSEQUENCES = (
-        wland_states.DG,
-        wland_aides.DGEq,
-    )
+    REQUIREDSEQUENCES = (wland_states.DG, wland_aides.DGEq)
     RESULTSEQUENCES = (wland_aides.GF,)
     SUBMETHODS = (Return_DVH_V2,)
 
@@ -2001,15 +1903,8 @@ class Calc_CDG_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (wland_control.CV,)
-    DERIVEDPARAMETERS = (
-        wland_derived.NUG,
-        wland_derived.RH1,
-    )
-    REQUIREDSEQUENCES = (
-        wland_states.DG,
-        wland_states.DV,
-        wland_aides.DVEq,
-    )
+    DERIVEDPARAMETERS = (wland_derived.NUG, wland_derived.RH1)
+    REQUIREDSEQUENCES = (wland_states.DG, wland_states.DV, wland_aides.DVEq)
     RESULTSEQUENCES = (wland_fluxes.CDG,)
 
     @staticmethod
@@ -2097,10 +1992,7 @@ class Calc_CDG_V2(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (wland_control.CV,)
-    DERIVEDPARAMETERS = (
-        wland_derived.NUG,
-        wland_derived.RH1,
-    )
+    DERIVEDPARAMETERS = (wland_derived.NUG, wland_derived.RH1)
     REQUIREDSEQUENCES = (
         wland_fluxes.PV,
         wland_fluxes.FGS,
@@ -2239,19 +2131,9 @@ class Calc_FGS_V1(modeltools.Method):
         |  15 |  700.0 | 300.0 |     -6.0 |
     """
 
-    CONTROLPARAMETERS = (
-        wland_control.CD,
-        wland_control.CG,
-        wland_control.CGF,
-    )
-    DERIVEDPARAMETERS = (
-        wland_derived.NUG,
-        wland_derived.RH2,
-    )
-    REQUIREDSEQUENCES = (
-        wland_states.DG,
-        wland_states.HS,
-    )
+    CONTROLPARAMETERS = (wland_control.CD, wland_control.CG, wland_control.CGF)
+    DERIVEDPARAMETERS = (wland_derived.NUG, wland_derived.RH2)
+    REQUIREDSEQUENCES = (wland_states.DG, wland_states.HS)
     RESULTSEQUENCES = (wland_fluxes.FGS,)
 
     @staticmethod
@@ -2288,10 +2170,7 @@ class Calc_FQS_V1(modeltools.Method):
         fqs(5.0)
     """
 
-    CONTROLPARAMETERS = (
-        wland_control.NU,
-        wland_control.CQ,
-    )
+    CONTROLPARAMETERS = (wland_control.NU, wland_control.CQ)
     REQUIREDSEQUENCES = (wland_states.HQ,)
     RESULTSEQUENCES = (wland_fluxes.FQS,)
 
@@ -2410,11 +2289,7 @@ class Update_IC_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (wland_control.NU,)
-    REQUIREDSEQUENCES = (
-        wland_fluxes.PC,
-        wland_fluxes.TF,
-        wland_fluxes.EI,
-    )
+    REQUIREDSEQUENCES = (wland_fluxes.PC, wland_fluxes.TF, wland_fluxes.EI)
     UPDATEDSEQUENCES = (wland_states.IC,)
 
     @staticmethod
@@ -2447,10 +2322,7 @@ class Update_SP_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (wland_control.NU,)
-    REQUIREDSEQUENCES = (
-        wland_fluxes.SF,
-        wland_fluxes.AM,
-    )
+    REQUIREDSEQUENCES = (wland_fluxes.SF, wland_fluxes.AM)
     UPDATEDSEQUENCES = (wland_states.SP,)
 
     @staticmethod
@@ -2553,10 +2425,7 @@ class Update_HQ_V1(modeltools.Method):
         hq(1.0)
     """
 
-    REQUIREDSEQUENCES = (
-        wland_fluxes.PQ,
-        wland_fluxes.FQS,
-    )
+    REQUIREDSEQUENCES = (wland_fluxes.PQ, wland_fluxes.FQS)
     UPDATEDSEQUENCES = (wland_states.HQ,)
 
     @staticmethod
@@ -2593,11 +2462,7 @@ class Update_HS_V1(modeltools.Method):
         hs(16.0)
     """
 
-    DERIVEDPARAMETERS = (
-        wland_derived.ALR,
-        wland_derived.ASR,
-        wland_derived.AGR,
-    )
+    DERIVEDPARAMETERS = (wland_derived.ALR, wland_derived.ASR, wland_derived.AGR)
     REQUIREDSEQUENCES = (
         wland_fluxes.FXS,
         wland_fluxes.PS,
@@ -2769,12 +2634,7 @@ class Model(modeltools.ELSModel):
         wland_solver.RelDTMax,
     )
     SOLVERSEQUENCES = ()
-    INLET_METHODS = (
-        Calc_PET_V1,
-        Calc_PE_V1,
-        Calc_FR_V1,
-        Calc_PM_V1,
-    )
+    INLET_METHODS = (Calc_PET_V1, Calc_PE_V1, Calc_FR_V1, Calc_PM_V1)
     RECEIVER_METHODS = ()
     INTERFACE_METHODS = (
         Get_Temperature_V1,
@@ -2824,18 +2684,10 @@ class Model(modeltools.ELSModel):
         Update_HQ_V1,
         Update_HS_V1,
     )
-    OUTLET_METHODS = (
-        Calc_ET_V1,
-        Calc_R_V1,
-        Pass_R_V1,
-    )
+    OUTLET_METHODS = (Calc_ET_V1, Calc_R_V1, Pass_R_V1)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
-    SUBMODELS = (
-        PegasusDGEq,
-        QuadDVEq_V1,
-        QuadDVEq_V2,
-    )
+    SUBMODELS = (PegasusDGEq, QuadDVEq_V1, QuadDVEq_V2)
 
     petmodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
     petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()

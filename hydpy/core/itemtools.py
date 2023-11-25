@@ -146,8 +146,7 @@ class ExchangeItem:
         raise NotImplementedError()
 
     def _iter_relevantelements(
-        self,
-        selection: selectiontools.Selection,
+        self, selection: selectiontools.Selection
     ) -> Iterator[devicetools.Element]:
         for element in selection.elements:
             name1 = element.model.name
@@ -1340,12 +1339,7 @@ class MathItem(ChangeItem):
     """All target variable objects and their related base variable objects."""
 
     def __init__(
-        self,
-        name: str,
-        master: str,
-        target: str,
-        base: str,
-        level: LevelType,
+        self, name: str, master: str, target: str, base: str, level: LevelType
     ) -> None:
         self.name = Name(name)
         self.targetspecs = ExchangeSpecification(master, target, None)
@@ -1357,10 +1351,7 @@ class MathItem(ChangeItem):
         self.selection2targets = {}
         self.target2base = {}
 
-    def collect_variables(
-        self,
-        selections: selectiontools.Selections,
-    ) -> None:
+    def collect_variables(self, selections: selectiontools.Selections) -> None:
         """Apply method |ChangeItem.collect_variables| of the base class |ChangeItem|
         and also prepare the dictionary |MathItem.target2base|, which maps each target
         variable object to its base variable object.

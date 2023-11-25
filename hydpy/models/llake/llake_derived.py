@@ -80,14 +80,8 @@ class VQ(parametertools.SeasonalParameter):
 
     NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (
-        llake_control.Q,
-        llake_control.V,
-    )
-    DERIVEDPARAMETERS = (
-        Seconds,
-        NmbSubsteps,
-    )
+    CONTROLPARAMETERS = (llake_control.Q, llake_control.V)
+    DERIVEDPARAMETERS = (Seconds, NmbSubsteps)
 
     def update(self):
         """Calulate the auxilary term.

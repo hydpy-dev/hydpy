@@ -396,16 +396,10 @@ class Calc_TimeOfSunrise_TimeOfSunset_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (meteo_control.Longitude,)
-    DERIVEDPARAMETERS = (
-        meteo_derived.LatitudeRad,
-        meteo_derived.UTCLongitude,
-    )
+    DERIVEDPARAMETERS = (meteo_derived.LatitudeRad, meteo_derived.UTCLongitude)
     FIXEDPARAMETERS = (meteo_fixed.Pi,)
     REQUIREDSEQUENCES = (meteo_factors.SolarDeclination,)
-    RESULTSEQUENCES = (
-        meteo_factors.TimeOfSunrise,
-        meteo_factors.TimeOfSunset,
-    )
+    RESULTSEQUENCES = (meteo_factors.TimeOfSunrise, meteo_factors.TimeOfSunset)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -558,14 +552,8 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
         1440: -356.953632
     """
 
-    FIXEDPARAMETERS = (
-        meteo_fixed.Pi,
-        meteo_fixed.SolarConstant,
-    )
-    DERIVEDPARAMETERS = (
-        meteo_derived.Days,
-        meteo_derived.LatitudeRad,
-    )
+    FIXEDPARAMETERS = (meteo_fixed.Pi, meteo_fixed.SolarConstant)
+    DERIVEDPARAMETERS = (meteo_derived.Days, meteo_derived.LatitudeRad)
     REQUIREDSEQUENCES = (
         meteo_factors.SolarTimeAngle,
         meteo_factors.EarthSunDistance,
@@ -661,10 +649,7 @@ class Calc_ExtraterrestrialRadiation_V2(modeltools.Method):
     """
 
     DERIVEDPARAMETERS = (meteo_derived.LatitudeRad,)
-    FIXEDPARAMETERS = (
-        meteo_fixed.Pi,
-        meteo_fixed.SolarConstant,
-    )
+    FIXEDPARAMETERS = (meteo_fixed.Pi, meteo_fixed.SolarConstant)
     REQUIREDSEQUENCES = (
         meteo_factors.SolarDeclination,
         meteo_factors.EarthSunDistance,
@@ -759,14 +744,8 @@ class Calc_PossibleSunshineDuration_V1(modeltools.Method):
     """
 
     FIXEDPARAMETERS = (meteo_fixed.Pi,)
-    DERIVEDPARAMETERS = (
-        meteo_derived.Days,
-        meteo_derived.Hours,
-    )
-    REQUIREDSEQUENCES = (
-        meteo_factors.SolarTimeAngle,
-        meteo_factors.SunsetHourAngle,
-    )
+    DERIVEDPARAMETERS = (meteo_derived.Days, meteo_derived.Hours)
+    REQUIREDSEQUENCES = (meteo_factors.SolarTimeAngle, meteo_factors.SunsetHourAngle)
     RESULTSEQUENCES = (meteo_factors.PossibleSunshineDuration,)
 
     @staticmethod
@@ -850,14 +829,8 @@ class Calc_PossibleSunshineDuration_V2(modeltools.Method):
             >>> del pub.timegrids
     """
 
-    DERIVEDPARAMETERS = (
-        meteo_derived.SCT,
-        meteo_derived.Hours,
-    )
-    REQUIREDSEQUENCES = (
-        meteo_factors.TimeOfSunrise,
-        meteo_factors.TimeOfSunset,
-    )
+    DERIVEDPARAMETERS = (meteo_derived.SCT, meteo_derived.Hours)
+    REQUIREDSEQUENCES = (meteo_factors.TimeOfSunrise, meteo_factors.TimeOfSunset)
     RESULTSEQUENCES = (meteo_factors.PossibleSunshineDuration,)
 
     @staticmethod
@@ -887,10 +860,7 @@ class Calc_DailyPossibleSunshineDuration_V1(modeltools.Method):
         dailypossiblesunshineduration(7.2)
     """
 
-    REQUIREDSEQUENCES = (
-        meteo_factors.TimeOfSunrise,
-        meteo_factors.TimeOfSunset,
-    )
+    REQUIREDSEQUENCES = (meteo_factors.TimeOfSunrise, meteo_factors.TimeOfSunset)
     RESULTSEQUENCES = (meteo_factors.DailyPossibleSunshineDuration,)
 
     @staticmethod
@@ -1195,15 +1165,9 @@ class Calc_PortionDailyRadiation_V1(modeltools.Method):
             >>> del pub.timegrids
         """
 
-    DERIVEDPARAMETERS = (
-        meteo_derived.SCT,
-        meteo_derived.Hours,
-    )
+    DERIVEDPARAMETERS = (meteo_derived.SCT, meteo_derived.Hours)
     FIXEDPARAMETERS = (meteo_fixed.Pi,)
-    REQUIREDSEQUENCES = (
-        meteo_factors.TimeOfSunrise,
-        meteo_factors.TimeOfSunset,
-    )
+    REQUIREDSEQUENCES = (meteo_factors.TimeOfSunrise, meteo_factors.TimeOfSunset)
     RESULTSEQUENCES = (meteo_factors.PortionDailyRadiation,)
 
     @staticmethod
@@ -1322,10 +1286,7 @@ class Return_DailyGlobalRadiation_V1(modeltools.Method):
         meteo_control.AngstromFactor,
         meteo_control.AngstromAlternative,
     )
-    DERIVEDPARAMETERS = (
-        meteo_derived.MOY,
-        meteo_derived.Days,
-    )
+    DERIVEDPARAMETERS = (meteo_derived.MOY, meteo_derived.Days)
     REQUIREDSEQUENCES = (meteo_fluxes.ExtraterrestrialRadiation,)
 
     @staticmethod
@@ -1385,10 +1346,7 @@ class Calc_ClearSkySolarRadiation_V1(modeltools.Method):
             >>> del pub.timegrids
     """
 
-    CONTROLPARAMETERS = (
-        meteo_control.AngstromConstant,
-        meteo_control.AngstromFactor,
-    )
+    CONTROLPARAMETERS = (meteo_control.AngstromConstant, meteo_control.AngstromFactor)
     DERIVEDPARAMETERS = (meteo_derived.MOY,)
     REQUIREDSEQUENCES = (meteo_fluxes.ExtraterrestrialRadiation,)
     RESULTSEQUENCES = (meteo_fluxes.ClearSkySolarRadiation,)
@@ -1451,10 +1409,7 @@ class Calc_GlobalRadiation_V1(modeltools.Method):
             >>> del pub.timegrids
     """
 
-    CONTROLPARAMETERS = (
-        meteo_control.AngstromConstant,
-        meteo_control.AngstromFactor,
-    )
+    CONTROLPARAMETERS = (meteo_control.AngstromConstant, meteo_control.AngstromFactor)
     DERIVEDPARAMETERS = (meteo_derived.MOY,)
     REQUIREDSEQUENCES = (
         meteo_inputs.SunshineDuration,
@@ -1703,10 +1658,7 @@ class Calc_DailyGlobalRadiation_V1(modeltools.Method):
         meteo_control.AngstromFactor,
         meteo_control.AngstromAlternative,
     )
-    DERIVEDPARAMETERS = (
-        meteo_derived.MOY,
-        meteo_derived.Days,
-    )
+    DERIVEDPARAMETERS = (meteo_derived.MOY, meteo_derived.Days)
     REQUIREDSEQUENCES = (
         meteo_factors.DailySunshineDuration,
         meteo_factors.DailyPossibleSunshineDuration,
@@ -1804,10 +1756,7 @@ class Return_SunshineDuration_V1(modeltools.Method):
     """
 
     SUBMETHODS = ()
-    CONTROLPARAMETERS = (
-        meteo_control.AngstromConstant,
-        meteo_control.AngstromFactor,
-    )
+    CONTROLPARAMETERS = (meteo_control.AngstromConstant, meteo_control.AngstromFactor)
     DERIVEDPARAMETERS = (meteo_derived.MOY,)
 
     @staticmethod
@@ -1872,14 +1821,8 @@ class Calc_UnadjustedSunshineDuration_V1(modeltools.Method):
     """
 
     SUBMETHODS = (Return_SunshineDuration_V1,)
-    CONTROLPARAMETERS = (
-        meteo_control.AngstromConstant,
-        meteo_control.AngstromFactor,
-    )
-    DERIVEDPARAMETERS = (
-        meteo_derived.MOY,
-        meteo_derived.NmbLogEntries,
-    )
+    CONTROLPARAMETERS = (meteo_control.AngstromConstant, meteo_control.AngstromFactor)
+    DERIVEDPARAMETERS = (meteo_derived.MOY, meteo_derived.NmbLogEntries)
     REQUIREDSEQUENCES = (
         meteo_inputs.GlobalRadiation,
         meteo_factors.PossibleSunshineDuration,
@@ -2079,10 +2022,7 @@ class Calc_SunshineDuration_V1(modeltools.Method):
             >>> del pub.timegrids
     """
 
-    CONTROLPARAMETERS = (
-        meteo_control.AngstromConstant,
-        meteo_control.AngstromFactor,
-    )
+    CONTROLPARAMETERS = (meteo_control.AngstromConstant, meteo_control.AngstromFactor)
     DERIVEDPARAMETERS = (meteo_derived.MOY,)
     REQUIREDSEQUENCES = (
         meteo_inputs.GlobalRadiation,
@@ -2197,10 +2137,7 @@ class Calc_DailySunshineDuration_V2(modeltools.Method):
     """
 
     SUBMETHODS = (Return_SunshineDuration_V1,)
-    CONTROLPARAMETERS = (
-        meteo_control.AngstromConstant,
-        meteo_control.AngstromFactor,
-    )
+    CONTROLPARAMETERS = (meteo_control.AngstromConstant, meteo_control.AngstromFactor)
     DERIVEDPARAMETERS = (meteo_derived.MOY,)
     REQUIREDSEQUENCES = (
         meteo_factors.DailyPossibleSunshineDuration,
@@ -2353,10 +2290,7 @@ class Adjust_Temperature_V1(modeltools.Method):
         temperature(1.4, 0.8)
     """
 
-    CONTROLPARAMETERS = (
-        meteo_control.NmbHRU,
-        meteo_control.TemperatureAddend,
-    )
+    CONTROLPARAMETERS = (meteo_control.NmbHRU, meteo_control.TemperatureAddend)
     UPDATEDSEQUENCES = (meteo_factors.Temperature,)
 
     @staticmethod
@@ -2450,10 +2384,7 @@ class Adjust_Precipitation_V1(modeltools.Method):
         precipitation(1.0, 4.0)
     """
 
-    CONTROLPARAMETERS = (
-        meteo_control.NmbHRU,
-        meteo_control.PrecipitationFactor,
-    )
+    CONTROLPARAMETERS = (meteo_control.NmbHRU, meteo_control.PrecipitationFactor)
     UPDATEDSEQUENCES = (meteo_fluxes.Precipitation,)
 
     @staticmethod
@@ -2657,10 +2588,7 @@ class Model(modeltools.AdHocModel):
         Get_Precipitation_V1,
         Get_MeanPrecipitation_V1,
     )
-    ADD_METHODS = (
-        Return_DailyGlobalRadiation_V1,
-        Return_SunshineDuration_V1,
-    )
+    ADD_METHODS = (Return_DailyGlobalRadiation_V1, Return_SunshineDuration_V1)
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()

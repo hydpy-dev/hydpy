@@ -25,7 +25,7 @@ class _PubProperty(propertytools.DefaultProperty[T_contra, T_co]):
 
     def _fget(self, obj: Any) -> NoReturn:
         raise exceptiontools.AttributeNotReady(
-            f"Attribute {self.name} of module `pub` is not defined at the moment.",
+            f"Attribute {self.name} of module `pub` is not defined at the moment."
         )
 
 

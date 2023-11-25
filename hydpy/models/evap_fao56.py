@@ -236,10 +236,7 @@ class Model(
     )
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
-    SUBMODELINTERFACES = (
-        tempinterfaces.TempModel_V1,
-        tempinterfaces.TempModel_V2,
-    )
+    SUBMODELINTERFACES = (tempinterfaces.TempModel_V1, tempinterfaces.TempModel_V2)
     SUBMODELS = ()
 
     tempmodel = modeltools.SubmodelProperty(

@@ -18,10 +18,7 @@ applicationmodels = sorted(
 )
 results: List[str] = []
 for applicationmodel in applicationmodels:
-    subresult = perform_consistencychecks(
-        applicationmodel=applicationmodel,
-        indent=4,
-    )
+    subresult = perform_consistencychecks(applicationmodel=applicationmodel, indent=4)
     if subresult:
         results.append(
             f"Potential consistency problems for "

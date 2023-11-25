@@ -1051,10 +1051,7 @@ class Model(modeltools.SegmentModel):
         musk_solver.ToleranceWaterLevel,
         musk_solver.ToleranceDischarge,
     )
-    INLET_METHODS = (
-        musk_model.Pick_Inflow_V1,
-        musk_model.Update_Discharge_V1,
-    )
+    INLET_METHODS = (musk_model.Pick_Inflow_V1, musk_model.Update_Discharge_V1)
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         musk_model.Calc_ReferenceDischarge_V1,
@@ -1077,10 +1074,7 @@ class Model(modeltools.SegmentModel):
         musk_model.Return_ReferenceDischargeError_V1,
         musk_model.Return_Celerity_V1,
     )
-    OUTLET_METHODS = (
-        musk_model.Calc_Outflow_V1,
-        musk_model.Pass_Outflow_V1,
-    )
+    OUTLET_METHODS = (musk_model.Calc_Outflow_V1, musk_model.Pass_Outflow_V1)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()
     SUBMODELS = (musk_model.PegasusReferenceWaterLevel,)

@@ -233,10 +233,7 @@ class Return_WettedArea_V1(modeltools.Method):
         >>> round_(model.return_wettedarea_v1(3.0))
         24.0
     """
-    CONTROLPARAMETERS = (
-        musk_control.BottomWidth,
-        musk_control.SideSlope,
-    )
+    CONTROLPARAMETERS = (musk_control.BottomWidth, musk_control.SideSlope)
 
     @staticmethod
     def __call__(model: modeltools.SegmentModel, waterlevel: float) -> float:
@@ -265,10 +262,7 @@ class Calc_WettedArea_V1(modeltools.Method):
         wettedarea(6.0, 18.0, 24.0)
     """
     SUBMETHODS = (Return_WettedArea_V1,)
-    CONTROLPARAMETERS = (
-        musk_control.BottomWidth,
-        musk_control.SideSlope,
-    )
+    CONTROLPARAMETERS = (musk_control.BottomWidth, musk_control.SideSlope)
     REQUIREDSEQUENCES = (musk_factors.ReferenceWaterLevel,)
     RESULTSEQUENCES = (musk_factors.WettedArea,)
 
@@ -315,10 +309,7 @@ class Return_WettedPerimeter_V1(modeltools.Method):
         >>> round_(model.return_wettedperimeter_v1(3.0))
         15.416408
     """
-    CONTROLPARAMETERS = (
-        musk_control.BottomWidth,
-        musk_control.SideSlope,
-    )
+    CONTROLPARAMETERS = (musk_control.BottomWidth, musk_control.SideSlope)
 
     @staticmethod
     def __call__(model: modeltools.SegmentModel, waterlevel: float) -> float:
@@ -349,10 +340,7 @@ class Calc_WettedPerimeter_V1(modeltools.Method):
         wettedperimeter(8.0, 13.416408, 15.416408)
     """
     SUBMETHODS = (Return_WettedPerimeter_V1,)
-    CONTROLPARAMETERS = (
-        musk_control.BottomWidth,
-        musk_control.SideSlope,
-    )
+    CONTROLPARAMETERS = (musk_control.BottomWidth, musk_control.SideSlope)
     REQUIREDSEQUENCES = (musk_factors.ReferenceWaterLevel,)
     RESULTSEQUENCES = (musk_factors.WettedPerimeter,)
 
@@ -401,10 +389,7 @@ class Return_SurfaceWidth_V1(modeltools.Method):
         >>> round_(model.return_surfacewidth_v1(3.0))
         14.0
     """
-    CONTROLPARAMETERS = (
-        musk_control.BottomWidth,
-        musk_control.SideSlope,
-    )
+    CONTROLPARAMETERS = (musk_control.BottomWidth, musk_control.SideSlope)
 
     @staticmethod
     def __call__(model: modeltools.SegmentModel, waterlevel: float) -> float:
@@ -433,10 +418,7 @@ class Calc_SurfaceWidth_V1(modeltools.Method):
         surfacewidth(2.0, 12.0, 14.0)
     """
     SUBMETHODS = (Return_SurfaceWidth_V1,)
-    CONTROLPARAMETERS = (
-        musk_control.BottomWidth,
-        musk_control.SideSlope,
-    )
+    CONTROLPARAMETERS = (musk_control.BottomWidth, musk_control.SideSlope)
     REQUIREDSEQUENCES = (musk_factors.ReferenceWaterLevel,)
     RESULTSEQUENCES = (musk_factors.SurfaceWidth,)
 
@@ -500,10 +482,7 @@ class Return_Discharge_V1(modeltools.Method):
         >>> round_(model.return_discharge_v1(3.0))
         64.475285
     """
-    SUBMETHODS = (
-        Return_WettedArea_V1,
-        Return_WettedPerimeter_V1,
-    )
+    SUBMETHODS = (Return_WettedArea_V1, Return_WettedPerimeter_V1)
     CONTROLPARAMETERS = (
         musk_control.StricklerCoefficient,
         musk_control.BottomWidth,
@@ -549,11 +528,7 @@ class Return_ReferenceDischargeError_V1(modeltools.Method):
         >>> round_(model.return_referencedischargeerror_v1(3.0))
         14.475285
     """
-    SUBMETHODS = (
-        Return_Discharge_V1,
-        Return_WettedArea_V1,
-        Return_WettedPerimeter_V1,
-    )
+    SUBMETHODS = (Return_Discharge_V1, Return_WettedArea_V1, Return_WettedPerimeter_V1)
     CONTROLPARAMETERS = (
         musk_control.BottomWidth,
         musk_control.SideSlope,
@@ -631,10 +606,7 @@ class Calc_ReferenceWaterLevel_V1(modeltools.Method):
         musk_control.BottomSlope,
         musk_control.StricklerCoefficient,
     )
-    SOLVERPARAMETERS = (
-        musk_solver.ToleranceWaterLevel,
-        musk_solver.ToleranceDischarge,
-    )
+    SOLVERPARAMETERS = (musk_solver.ToleranceWaterLevel, musk_solver.ToleranceDischarge)
     REQUIREDSEQUENCES = (musk_fluxes.ReferenceDischarge,)
     RESULTSEQUENCES = (musk_factors.ReferenceWaterLevel,)
 
@@ -892,10 +864,7 @@ class Calc_CourantNumber_V1(modeltools.Method):
     """
     CONTROLPARAMETERS = (musk_control.Length,)
     DERIVEDPARAMETERS = (musk_derived.Seconds,)
-    REQUIREDSEQUENCES = (
-        musk_factors.Celerity,
-        musk_factors.CorrectingFactor,
-    )
+    REQUIREDSEQUENCES = (musk_factors.Celerity, musk_factors.CorrectingFactor)
     RESULTSEQUENCES = (musk_states.CourantNumber,)
 
     @staticmethod
@@ -938,10 +907,7 @@ class Calc_ReynoldsNumber_V1(modeltools.Method):
         >>> states.reynoldsnumber
         reynoldsnumber(0.0, 0.05, 0.025, 0.0125, 0.0)
     """
-    CONTROLPARAMETERS = (
-        musk_control.Length,
-        musk_control.BottomSlope,
-    )
+    CONTROLPARAMETERS = (musk_control.Length, musk_control.BottomSlope)
     REQUIREDSEQUENCES = (
         musk_fluxes.ReferenceDischarge,
         musk_factors.CorrectingFactor,
@@ -1037,10 +1003,7 @@ class Calc_Coefficient1_Coefficient2_Coefficient3_V1(modeltools.Method):
         assumes the ratio between the new and the old Courant number to be one in such
         cases.
     """
-    REQUIREDSEQUENCES = (
-        musk_states.CourantNumber,
-        musk_states.ReynoldsNumber,
-    )
+    REQUIREDSEQUENCES = (musk_states.CourantNumber, musk_states.ReynoldsNumber)
     UPDATEDSEQUENCES = (
         musk_factors.Coefficient1,
         musk_factors.Coefficient2,
@@ -1216,10 +1179,7 @@ class Model(modeltools.SegmentModel):
         musk_solver.ToleranceWaterLevel,
         musk_solver.ToleranceDischarge,
     )
-    INLET_METHODS = (
-        Pick_Inflow_V1,
-        Update_Discharge_V1,
-    )
+    INLET_METHODS = (Pick_Inflow_V1, Update_Discharge_V1)
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         Calc_Discharge_V1,
@@ -1243,10 +1203,7 @@ class Model(modeltools.SegmentModel):
         Return_ReferenceDischargeError_V1,
         Return_Celerity_V1,
     )
-    OUTLET_METHODS = (
-        Calc_Outflow_V1,
-        Pass_Outflow_V1,
-    )
+    OUTLET_METHODS = (Calc_Outflow_V1, Pass_Outflow_V1)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()
     SUBMODELS = (PegasusReferenceWaterLevel,)

@@ -204,10 +204,7 @@ class Calc_ActualEvaporation_V1(modeltools.Method):
     """
     CONTROLPARAMETERS = (dam_control.ThresholdEvaporation,)
     DERIVEDPARAMETERS = (dam_derived.SmoothParEvaporation,)
-    REQUIREDSEQUENCES = (
-        dam_fluxes.AdjustedEvaporation,
-        dam_factors.WaterLevel,
-    )
+    REQUIREDSEQUENCES = (dam_fluxes.AdjustedEvaporation, dam_factors.WaterLevel)
     RESULTSEQUENCES = (dam_fluxes.ActualEvaporation,)
 
     @staticmethod
@@ -247,11 +244,7 @@ class Pic_Inflow_V2(modeltools.Method):
       :math:`Inflow = S + R + \\sum Q`
     """
 
-    REQUIREDSEQUENCES = (
-        dam_inlets.Q,
-        dam_inlets.S,
-        dam_inlets.R,
-    )
+    REQUIREDSEQUENCES = (dam_inlets.Q, dam_inlets.S, dam_inlets.R)
     RESULTSEQUENCES = (dam_fluxes.Inflow,)
 
     @staticmethod
@@ -550,10 +543,7 @@ class Calc_WaterLevelDifference_V1(modeltools.Method):
         waterleveldifference(2.0)
     """
 
-    REQUIREDSEQUENCES = (
-        dam_factors.WaterLevel,
-        dam_factors.OuterWaterLevel,
-    )
+    REQUIREDSEQUENCES = (dam_factors.WaterLevel, dam_factors.OuterWaterLevel)
     RESULTSEQUENCES = (dam_factors.WaterLevelDifference,)
 
     @staticmethod
@@ -690,10 +680,7 @@ class Calc_EffectiveWaterLevelDifference_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (dam_control.CrestLevel,)
     DERIVEDPARAMETERS = (dam_derived.CrestLevelSmoothPar,)
-    REQUIREDSEQUENCES = (
-        dam_factors.WaterLevel,
-        dam_factors.OuterWaterLevel,
-    )
+    REQUIREDSEQUENCES = (dam_factors.WaterLevel, dam_factors.OuterWaterLevel)
     RESULTSEQUENCES = (dam_factors.EffectiveWaterLevelDifference,)
 
     @staticmethod
@@ -875,10 +862,7 @@ class Calc_AllowedRemoteRelief_V2(modeltools.Method):
         dam_control.HighestRemoteRelief,
         dam_control.WaterLevelReliefThreshold,
     )
-    DERIVEDPARAMETERS = (
-        dam_derived.TOY,
-        dam_derived.WaterLevelReliefSmoothPar,
-    )
+    DERIVEDPARAMETERS = (dam_derived.TOY, dam_derived.WaterLevelReliefSmoothPar)
     REQUIREDSEQUENCES = (dam_factors.WaterLevel,)
     RESULTSEQUENCES = (dam_fluxes.AllowedRemoteRelief,)
 
@@ -966,10 +950,7 @@ class Calc_RequiredRemoteSupply_V1(modeltools.Method):
         dam_control.HighestRemoteSupply,
         dam_control.WaterLevelSupplyThreshold,
     )
-    DERIVEDPARAMETERS = (
-        dam_derived.TOY,
-        dam_derived.WaterLevelSupplySmoothPar,
-    )
+    DERIVEDPARAMETERS = (dam_derived.TOY, dam_derived.WaterLevelSupplySmoothPar)
     REQUIREDSEQUENCES = (dam_factors.WaterLevel,)
     RESULTSEQUENCES = (dam_fluxes.RequiredRemoteSupply,)
 
@@ -1024,10 +1005,7 @@ class Calc_NaturalRemoteDischarge_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (dam_control.NmbLogEntries,)
-    REQUIREDSEQUENCES = (
-        dam_logs.LoggedTotalRemoteDischarge,
-        dam_logs.LoggedOutflow,
-    )
+    REQUIREDSEQUENCES = (dam_logs.LoggedTotalRemoteDischarge, dam_logs.LoggedOutflow)
     RESULTSEQUENCES = (dam_fluxes.NaturalRemoteDischarge,)
 
     @staticmethod
@@ -1183,10 +1161,7 @@ class Calc_RemoteFailure_V1(modeltools.Method):
             >>> del pub.timegrids
     """
 
-    CONTROLPARAMETERS = (
-        dam_control.NmbLogEntries,
-        dam_control.RemoteDischargeMinimum,
-    )
+    CONTROLPARAMETERS = (dam_control.NmbLogEntries, dam_control.RemoteDischargeMinimum)
     DERIVEDPARAMETERS = (dam_derived.TOY,)
     REQUIREDSEQUENCES = (dam_logs.LoggedTotalRemoteDischarge,)
     RESULTSEQUENCES = (dam_fluxes.RemoteFailure,)
@@ -1295,14 +1270,8 @@ class Calc_RequiredRemoteRelease_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (dam_control.RemoteDischargeSafety,)
-    DERIVEDPARAMETERS = (
-        dam_derived.TOY,
-        dam_derived.RemoteDischargeSmoothPar,
-    )
-    REQUIREDSEQUENCES = (
-        dam_fluxes.RemoteDemand,
-        dam_fluxes.RemoteFailure,
-    )
+    DERIVEDPARAMETERS = (dam_derived.TOY, dam_derived.RemoteDischargeSmoothPar)
+    REQUIREDSEQUENCES = (dam_fluxes.RemoteDemand, dam_fluxes.RemoteFailure)
     RESULTSEQUENCES = (dam_fluxes.RequiredRemoteRelease,)
 
     @staticmethod
@@ -1312,8 +1281,7 @@ class Calc_RequiredRemoteRelease_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         flu.requiredremoterelease = flu.remotedemand + (
             smoothutils.smooth_logistic1(
-                flu.remotefailure,
-                der.remotedischargesmoothpar[der.toy[model.idx_sim]],
+                flu.remotefailure, der.remotedischargesmoothpar[der.toy[model.idx_sim]]
             )
             * con.remotedischargesafety[der.toy[model.idx_sim]]
         )
@@ -1467,10 +1435,7 @@ class Calc_RequiredRelease_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (dam_control.NearDischargeMinimumThreshold,)
-    DERIVEDPARAMETERS = (
-        dam_derived.TOY,
-        dam_derived.NearDischargeMinimumSmoothPar2,
-    )
+    DERIVEDPARAMETERS = (dam_derived.TOY, dam_derived.NearDischargeMinimumSmoothPar2)
     REQUIREDSEQUENCES = (dam_fluxes.RequiredRemoteRelease,)
     RESULTSEQUENCES = (dam_fluxes.RequiredRelease,)
 
@@ -2101,14 +2066,8 @@ class Calc_TargetedRelease_V1(modeltools.Method):
         dam_control.RestrictTargetedRelease,
         dam_control.NearDischargeMinimumThreshold,
     )
-    DERIVEDPARAMETERS = (
-        dam_derived.NearDischargeMinimumSmoothPar1,
-        dam_derived.TOY,
-    )
-    REQUIREDSEQUENCES = (
-        dam_fluxes.Inflow,
-        dam_fluxes.RequiredRelease,
-    )
+    DERIVEDPARAMETERS = (dam_derived.NearDischargeMinimumSmoothPar1, dam_derived.TOY)
+    REQUIREDSEQUENCES = (dam_fluxes.Inflow, dam_fluxes.RequiredRelease)
     RESULTSEQUENCES = (dam_fluxes.TargetedRelease,)
 
     @staticmethod
@@ -2254,10 +2213,7 @@ class Calc_ActualRelease_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (dam_control.WaterLevelMinimumThreshold,)
     DERIVEDPARAMETERS = (dam_derived.WaterLevelMinimumSmoothPar,)
-    REQUIREDSEQUENCES = (
-        dam_fluxes.TargetedRelease,
-        dam_factors.WaterLevel,
-    )
+    REQUIREDSEQUENCES = (dam_fluxes.TargetedRelease, dam_factors.WaterLevel)
     RESULTSEQUENCES = (dam_fluxes.ActualRelease,)
 
     @staticmethod
@@ -2362,10 +2318,7 @@ class Calc_ActualRelease_V2(modeltools.Method):
         dam_control.AllowedRelease,
         dam_control.WaterLevelMinimumThreshold,
     )
-    DERIVEDPARAMETERS = (
-        dam_derived.TOY,
-        dam_derived.WaterLevelMinimumSmoothPar,
-    )
+    DERIVEDPARAMETERS = (dam_derived.TOY, dam_derived.WaterLevelMinimumSmoothPar)
     REQUIREDSEQUENCES = (dam_factors.WaterLevel,)
     RESULTSEQUENCES = (dam_fluxes.ActualRelease,)
 
@@ -3114,27 +3067,21 @@ class Calc_ActualRelease_V3(modeltools.Method):
         )
         # calculate the release for too-high water volumes:
         d_factor = smoothutils.smooth_logistic3(
-            (new.watervolume - d_target + d_range) / d_range,
-            der.volumesmoothparlog2,
+            (new.watervolume - d_target + d_range) / d_range, der.volumesmoothparlog2
         )
         d_upperbound = smoothutils.smooth_min1(
             d_qmax, flu.inflow, der.dischargesmoothpar
         )
         d_release1 = (1.0 - d_factor) * d_qmin + d_factor * smoothutils.smooth_max1(
-            d_qmin,
-            d_upperbound,
-            der.dischargesmoothpar,
+            d_qmin, d_upperbound, der.dischargesmoothpar
         )
         # calculate the release for too-low water volumes:
         d_factor = smoothutils.smooth_logistic3(
-            (d_target + d_range - new.watervolume) / d_range,
-            der.volumesmoothparlog2,
+            (d_target + d_range - new.watervolume) / d_range, der.volumesmoothparlog2
         )
         d_neutral = smoothutils.smooth_max1(d_qmin, flu.inflow, der.dischargesmoothpar)
         d_release2 = (1.0 - d_factor) * d_qmax + d_factor * smoothutils.smooth_min1(
-            d_qmax,
-            d_neutral,
-            der.dischargesmoothpar,
+            d_qmax, d_neutral, der.dischargesmoothpar
         )
         # combine both releases smoothly:
         d_weight = smoothutils.smooth_logistic1(
@@ -3188,10 +3135,7 @@ class Calc_MissingRemoteRelease_V1(modeltools.Method):
         missingremoterelease(0.0)
     """
 
-    REQUIREDSEQUENCES = (
-        dam_fluxes.ActualRelease,
-        dam_fluxes.RequiredRemoteRelease,
-    )
+    REQUIREDSEQUENCES = (dam_fluxes.ActualRelease, dam_fluxes.RequiredRemoteRelease)
     RESULTSEQUENCES = (dam_fluxes.MissingRemoteRelease,)
 
     @staticmethod
@@ -3285,10 +3229,7 @@ class Calc_ActualRemoteRelease_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (dam_control.WaterLevelMinimumRemoteThreshold,)
     DERIVEDPARAMETERS = (dam_derived.WaterLevelMinimumRemoteSmoothPar,)
-    REQUIREDSEQUENCES = (
-        dam_fluxes.RequiredRemoteRelease,
-        dam_factors.WaterLevel,
-    )
+    REQUIREDSEQUENCES = (dam_fluxes.RequiredRemoteRelease, dam_factors.WaterLevel)
     RESULTSEQUENCES = (dam_fluxes.ActualRemoteRelease,)
 
     @staticmethod
@@ -4051,10 +3992,7 @@ class Calc_FreeDischarge_V1(modeltools.Method):
         dam_derived.RemoteWaterLevelMaximumSmoothPar,
         dam_derived.DischargeSmoothPar,
     )
-    REQUIREDSEQUENCES = (
-        dam_factors.RemoteWaterLevel,
-        dam_fluxes.MaxFreeDischarge,
-    )
+    REQUIREDSEQUENCES = (dam_factors.RemoteWaterLevel, dam_fluxes.MaxFreeDischarge)
     RESULTSEQUENCES = (dam_fluxes.FreeDischarge,)
 
     @staticmethod
@@ -4098,10 +4036,7 @@ class Calc_Outflow_V1(modeltools.Method):
         outflow(0.0)
     """
 
-    REQUIREDSEQUENCES = (
-        dam_fluxes.ActualRelease,
-        dam_fluxes.FloodDischarge,
-    )
+    REQUIREDSEQUENCES = (dam_fluxes.ActualRelease, dam_fluxes.FloodDischarge)
     RESULTSEQUENCES = (dam_fluxes.Outflow,)
 
     @staticmethod
@@ -4231,19 +4166,13 @@ class Calc_AllowedDischarge_V2(modeltools.Method):
             >>> del pub.timegrids
     """
 
-    CONTROLPARAMETERS = (
-        dam_control.AllowedRelease,
-        dam_control.AllowedWaterLevelDrop,
-    )
+    CONTROLPARAMETERS = (dam_control.AllowedRelease, dam_control.AllowedWaterLevelDrop)
     DERIVEDPARAMETERS = (
         dam_derived.TOY,
         dam_derived.Seconds,
         dam_derived.DischargeSmoothPar,
     )
-    REQUIREDSEQUENCES = (
-        dam_fluxes.Inflow,
-        dam_aides.SurfaceArea,
-    )
+    REQUIREDSEQUENCES = (dam_fluxes.Inflow, dam_aides.SurfaceArea)
     RESULTSEQUENCES = (dam_aides.AllowedDischarge,)
 
     @staticmethod
@@ -4328,10 +4257,7 @@ class Calc_Outflow_V2(modeltools.Method):
     """
 
     DERIVEDPARAMETERS = (dam_derived.DischargeSmoothPar,)
-    REQUIREDSEQUENCES = (
-        dam_fluxes.FloodDischarge,
-        dam_aides.AllowedDischarge,
-    )
+    REQUIREDSEQUENCES = (dam_fluxes.FloodDischarge, dam_aides.AllowedDischarge)
     RESULTSEQUENCES = (dam_fluxes.Outflow,)
 
     @staticmethod
@@ -4411,10 +4337,7 @@ class Calc_Outflow_V5(modeltools.Method):
         outflow(5.0)
     """
 
-    REQUIREDSEQUENCES = (
-        dam_fluxes.FreeDischarge,
-        dam_fluxes.ForcedDischarge,
-    )
+    REQUIREDSEQUENCES = (dam_fluxes.FreeDischarge, dam_fluxes.ForcedDischarge)
     RESULTSEQUENCES = (dam_fluxes.Outflow,)
 
     @staticmethod

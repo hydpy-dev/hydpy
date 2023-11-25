@@ -334,7 +334,7 @@ latex_elements: Dict[str, str] = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-    ("index", "HydPy.tex", "HydPy Documentation", "HydPy Developers", "manual"),
+    ("index", "HydPy.tex", "HydPy Documentation", "HydPy Developers", "manual")
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -382,7 +382,7 @@ texinfo_documents = [
         "HydPy",
         "One line description of project.",
         "Miscellaneous",
-    ),
+    )
 ]
 
 # Documents to append as an appendix to all manuals.

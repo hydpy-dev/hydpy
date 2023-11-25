@@ -553,10 +553,7 @@ class PWP(lland_parameters.ParameterSoilThreshold):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
     INIT = 0.0
 
-    CONTROLPARAMETERS = (
-        WMax,
-        FK,
-    )
+    CONTROLPARAMETERS = (WMax, FK)
 
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`PWP \\leq FK \\leq WMax`.
@@ -896,10 +893,7 @@ is given.
 `FK`, `0_WMax/10`, and `FK/2_FK`, but `NFk` is given.
     """
 
-    CONTROLPARAMETERS = (
-        WMax,
-        FK,
-    )
+    CONTROLPARAMETERS = (WMax, FK)
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
     INIT = 0.0
 
@@ -1291,11 +1285,5 @@ class NegQ(parametertools.Parameter):
     INIT = False
 
 
-WMax.CONTROLPARAMETERS = (
-    PWP,
-    FK,
-)
-FK.CONTROLPARAMETERS = (
-    PWP,
-    WMax,
-)
+WMax.CONTROLPARAMETERS = (PWP, FK)
+FK.CONTROLPARAMETERS = (PWP, WMax)

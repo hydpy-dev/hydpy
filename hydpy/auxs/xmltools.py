@@ -135,10 +135,7 @@ _TypeSetOrAddOrMultiplyItem = TypeVar(
     itemtools.MultiplyItem,
 )
 _TypeGetOrChangeItem = TypeVar(
-    "_TypeGetOrChangeItem",
-    itemtools.GetItem,
-    itemtools.ChangeItem,
-    itemtools.SetItem,
+    "_TypeGetOrChangeItem", itemtools.GetItem, itemtools.ChangeItem, itemtools.SetItem
 )
 
 namespace = (

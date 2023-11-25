@@ -50,10 +50,7 @@ def filter_series(
 
 @overload
 def filter_series(
-    *,
-    sim: VectorInputFloat,
-    obs: VectorInputFloat,
-    months: Iterable[int],
+    *, sim: VectorInputFloat, obs: VectorInputFloat, months: Iterable[int]
 ) -> SimObs:
     """sim and obs and month as arguments"""
 
@@ -68,11 +65,7 @@ def filter_series(
 
 
 @overload
-def filter_series(
-    *,
-    node: devicetools.Node,
-    months: Iterable[int],
-) -> SimObs:
+def filter_series(*, node: devicetools.Node, months: Iterable[int]) -> SimObs:
     """node and month as arguments"""
 
 
@@ -250,11 +243,7 @@ given.
     """
     dataframe = pandas.DataFrame()
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=False,
-        subperiod=False,
+        sim=sim, obs=obs, node=node, skip_nan=False, subperiod=False
     )
     del sim, obs
     dataframe["sim"] = sim_
@@ -304,10 +293,7 @@ given.
             "both of them are given."
         )
     dataframe_selected = dataframe_selected.sort_index()
-    return SimObs(
-        sim=dataframe_selected["sim"],
-        obs=dataframe_selected["obs"],
-    )
+    return SimObs(sim=dataframe_selected["sim"], obs=dataframe_selected["obs"])
 
 
 def prepare_arrays(
@@ -476,10 +462,7 @@ allowed.
         idxs = ~numpy.isnan(sim_) * ~numpy.isnan(obs_)
         sim_ = sim_[idxs]
         obs_ = obs_[idxs]
-    return SimObs(
-        sim=sim_,
-        obs=obs_,
-    )
+    return SimObs(sim=sim_, obs=obs_)
 
 
 class Criterion(Protocol):
@@ -498,11 +481,7 @@ class Criterion(Protocol):
 
     @overload
     def __call__(
-        self,
-        *,
-        node: devicetools.Node,
-        skip_nan: bool = False,
-        subperiod: bool = True,
+        self, *, node: devicetools.Node, skip_nan: bool = False, subperiod: bool = True
     ) -> float:
         ...
 
@@ -520,10 +499,7 @@ def rmse(
 
 @overload
 def rmse(
-    *,
-    node: devicetools.Node,
-    skip_nan: bool = False,
-    subperiod: bool = True,
+    *, node: devicetools.Node, skip_nan: bool = False, subperiod: bool = True
 ) -> float:
     """sim and obs as arguments"""
 
@@ -549,11 +525,7 @@ def rmse(
     for using |rmse|.
     """
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=skip_nan,
-        subperiod=subperiod,
+        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
     )
     del sim, obs
     return cast(float, numpy.sqrt(numpy.mean((sim_ - obs_) ** 2)))
@@ -572,10 +544,7 @@ def nse(
 
 @overload
 def nse(
-    *,
-    node: devicetools.Node,
-    skip_nan: bool = False,
-    subperiod: bool = True,
+    *, node: devicetools.Node, skip_nan: bool = False, subperiod: bool = True
 ) -> float:
     """sim and obs as arguments"""
 
@@ -616,11 +585,7 @@ def nse(
     for using |nse|.
     """
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=skip_nan,
-        subperiod=subperiod,
+        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
     )
     del sim, obs
     return cast(
@@ -642,10 +607,7 @@ def nse_log(
 
 @overload
 def nse_log(
-    *,
-    node: devicetools.Node,
-    skip_nan: bool = False,
-    subperiod: bool = True,
+    *, node: devicetools.Node, skip_nan: bool = False, subperiod: bool = True
 ) -> float:
     """sim and obs as arguments"""
 
@@ -684,11 +646,7 @@ def nse_log(
     for using |nse_log|.
     """
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=skip_nan,
-        subperiod=subperiod,
+        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
     )
     del sim, obs
     return cast(
@@ -712,10 +670,7 @@ def corr2(
 
 @overload
 def corr2(
-    *,
-    node: devicetools.Node,
-    skip_nan: bool = False,
-    subperiod: bool = True,
+    *, node: devicetools.Node, skip_nan: bool = False, subperiod: bool = True
 ) -> float:
     """sim and obs as arguments"""
 
@@ -760,11 +715,7 @@ def corr2(
     for using |corr2|.
     """
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=skip_nan,
-        subperiod=subperiod,
+        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
     )
     del sim, obs
     if (numpy.std(sim_) == 0.0) or (numpy.std(obs_) == 0.0):
@@ -785,10 +736,7 @@ def kge(
 
 @overload
 def kge(
-    *,
-    node: devicetools.Node,
-    skip_nan: bool = False,
-    subperiod: bool = True,
+    *, node: devicetools.Node, skip_nan: bool = False, subperiod: bool = True
 ) -> float:
     """sim and obs as arguments"""
 
@@ -829,11 +777,7 @@ def kge(
     for using |kge|.
     """
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=skip_nan,
-        subperiod=subperiod,
+        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
     )
     del sim, obs
     r = numpy.corrcoef(sim_, obs_)[0, 1]
@@ -857,10 +801,7 @@ def bias_abs(
 
 @overload
 def bias_abs(
-    *,
-    node: devicetools.Node,
-    skip_nan: bool = False,
-    subperiod: bool = True,
+    *, node: devicetools.Node, skip_nan: bool = False, subperiod: bool = True
 ) -> float:
     """sim and obs as arguments"""
 
@@ -889,11 +830,7 @@ def bias_abs(
     for using |bias_abs|.
     """
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=skip_nan,
-        subperiod=subperiod,
+        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
     )
     del sim, obs
     return cast(float, numpy.mean(sim_ - obs_))
@@ -912,10 +849,7 @@ def bias_rel(
 
 @overload
 def bias_rel(
-    *,
-    node: devicetools.Node,
-    skip_nan: bool = False,
-    subperiod: bool = True,
+    *, node: devicetools.Node, skip_nan: bool = False, subperiod: bool = True
 ) -> float:
     """sim and obs as arguments"""
 
@@ -944,11 +878,7 @@ def bias_rel(
     for using |bias_rel|.
     """
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=skip_nan,
-        subperiod=subperiod,
+        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
     )
     del sim, obs
     return cast(float, numpy.mean(sim_) / numpy.mean(obs_) - 1.0)
@@ -967,10 +897,7 @@ def std_ratio(
 
 @overload
 def std_ratio(
-    *,
-    node: devicetools.Node,
-    skip_nan: bool = False,
-    subperiod: bool = True,
+    *, node: devicetools.Node, skip_nan: bool = False, subperiod: bool = True
 ) -> float:
     """sim and obs as arguments"""
 
@@ -999,11 +926,7 @@ def std_ratio(
     for using |std_ratio|.
     """
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=skip_nan,
-        subperiod=subperiod,
+        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
     )
     del sim, obs
     return cast(float, numpy.std(sim_) / numpy.std(obs_) - 1.0)
@@ -1022,10 +945,7 @@ def var_ratio(
 
 @overload
 def var_ratio(
-    *,
-    node: devicetools.Node,
-    skip_nan: bool = False,
-    subperiod: bool = True,
+    *, node: devicetools.Node, skip_nan: bool = False, subperiod: bool = True
 ) -> float:
     """sim and obs as arguments"""
 
@@ -1054,11 +974,7 @@ def var_ratio(
     for using |var_ratio|.
     """
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=skip_nan,
-        subperiod=subperiod,
+        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
     )
     del sim, obs
     var_sim = numpy.std(sim_) / numpy.mean(sim_)
@@ -1079,10 +995,7 @@ def corr(
 
 @overload
 def corr(
-    *,
-    node: devicetools.Node,
-    skip_nan: bool = False,
-    subperiod: bool = True,
+    *, node: devicetools.Node, skip_nan: bool = False, subperiod: bool = True
 ) -> float:
     """sim and obs as arguments"""
 
@@ -1116,11 +1029,7 @@ def corr(
     for use of function |corr|.
     """
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=skip_nan,
-        subperiod=subperiod,
+        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
     )
     del sim, obs
     if (numpy.std(sim_) == 0.0) or (numpy.std(obs_) == 0.0):
@@ -1287,11 +1196,7 @@ def hsepd_pdf(
     for using |hsepd_pdf|.
     """
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=skip_nan,
-        subperiod=subperiod,
+        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
     )
     del sim, obs
     sigmas = _pars_h(sigma1, sigma2, sim_)
@@ -1405,11 +1310,7 @@ def hsepd_manual(
     for using |hsepd_manual|.
     """
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=skip_nan,
-        subperiod=subperiod,
+        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
     )
     del sim, obs
     return _hsepd_manual(
@@ -1579,11 +1480,7 @@ def hsepd(
         )
 
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=skip_nan,
-        subperiod=subperiod,
+        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
     )
     if inits is None:
         inits = [0.1, 0.2, 3.0, 1.0]
@@ -1592,11 +1489,7 @@ def hsepd(
     )
     constrained_values = constrain(*original_values)
     result = _hsepd_manual(
-        *constrained_values,
-        sim=sim_,
-        obs=obs_,
-        skip_nan=False,
-        subperiod=False,
+        *constrained_values, sim=sim_, obs=obs_, skip_nan=False, subperiod=False
     )
     if return_pars:
         return result, constrained_values
@@ -1635,10 +1528,7 @@ occurred: For the following objects, at least one value is negative: weights.
     weights = numpy.asarray(weights)
     validtools.test_equal_shape(timepoints=timepoints, weights=weights)
     validtools.test_non_negative(weights=weights)
-    return cast(
-        float,
-        numpy.dot(timepoints, weights) / numpy.sum(weights),
-    )
+    return cast(float, numpy.dot(timepoints, weights) / numpy.sum(weights))
 
 
 @objecttools.excmessage_decorator(

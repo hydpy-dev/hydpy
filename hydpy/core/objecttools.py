@@ -920,9 +920,7 @@ def print_values(values: VectorInputObject, width: int = 70) -> None:
     17, 18, 19, 20
     """
     for line in textwrap.wrap(
-        text=repr_values(values),
-        width=width,
-        break_long_words=False,
+        text=repr_values(values), width=width, break_long_words=False
     ):
         print(line)
 
@@ -1030,9 +1028,7 @@ def assignrepr_values(
     else:
         width -= len(prefix)
         wrapped = textwrap.wrap(
-            text=string + "_" * _fakeend,
-            width=width,
-            break_long_words=False,
+            text=string + "_" * _fakeend, width=width, break_long_words=False
         )
     if not wrapped:
         wrapped = [""]
@@ -1076,10 +1072,7 @@ class _AssignReprBracketed:
         self._brackets = brackets
 
     def __call__(
-        self,
-        values: VectorInputObject,
-        prefix: str,
-        width: Optional[int] = None,
+        self, values: VectorInputObject, prefix: str, width: Optional[int] = None
     ) -> str:
         nmb_values = len(values)
         if (nmb_values == 1) and not self._always_bracketed:
@@ -1629,9 +1622,7 @@ and `rfill`.  This is not allowed.
 
 @overload
 def extract(
-    values: Union[Iterable[object], object],
-    types_: Tuple[Type[T1]],
-    skip: bool = False,
+    values: Union[Iterable[object], object], types_: Tuple[Type[T1]], skip: bool = False
 ) -> Iterator[T1]:
     """Extract all objects of one defined type."""
 
@@ -1657,9 +1648,7 @@ def extract(
 def extract(
     values: Union[Iterable[object], object],
     types_: Union[
-        Tuple[Type[T1]],
-        Tuple[Type[T1], Type[T2]],
-        Tuple[Type[T1], Type[T2], Type[T3]],
+        Tuple[Type[T1]], Tuple[Type[T1], Type[T2]], Tuple[Type[T1], Type[T2], Type[T3]]
     ],
     skip: bool = False,
 ) -> Iterator[Union[T1, T2, T3]]:
@@ -1890,10 +1879,7 @@ string=f"a {10*'very '}long test"))
             (f"{name}={repr(value)}" for name, value in kwargs.items()),
         )
     )
-    return black.format_str(
-        f"{name}({arguments})",
-        mode=_black_filemode,
-    )[:-1]
+    return black.format_str(f"{name}({arguments})", mode=_black_filemode)[:-1]
 
 
 def value2bool(argument: str, value: Union[str, int]) -> bool:

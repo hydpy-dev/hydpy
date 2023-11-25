@@ -7,19 +7,19 @@ environment:
   TokenPyPI:
     secure: kkjz662y19aSdDHa+tqlBLsUfJ6VUSNlU4zKumcZYBwCV2RS3CTK9FtxQKGm/OveW0PCY4i80ctDmWH0mCr5TstHTyr0JRs2p61X0skiqRFYj6l0PoR8n2GaMKntWPwILRKUvueYCzDLTIDGGHa2GNWHTAznrYs+nNSu+95zsLmroY1RY4NnhTPrL9RgiPNPT2EbMVmb7dLYAaMgEHqXveU3yRcpNsguuESChBSJOQROQE77JktPpykzSLJGP23c
   matrix:
-    - PYTHON: "C:\\Python38-x64"
+    - PYTHON: "C:\\Python39-x64"
       make_exe: false
       python_mode: false
       cython_mode: true
-    - PYTHON: "C:\\Python39-x64"
+    - PYTHON: "C:\\Python310-x64"
       make_exe: false
       python_mode: true
       cython_mode: false
-    - PYTHON: "C:\\Python310-x64"
+    - PYTHON: "C:\\Python311-x64"
       make_exe: false
       python_mode: false
       cython_mode: true
-    - PYTHON: "C:\\Python311-x64"
+    - PYTHON: "C:\\Python312-x64"
       make_exe: true
       python_mode: false
       cython_mode: false

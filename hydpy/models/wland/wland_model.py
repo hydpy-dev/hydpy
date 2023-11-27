@@ -2049,8 +2049,8 @@ class Calc_FGS_V1(modeltools.Method):
         >>> from hydpy.models.wland import *
         >>> simulationstep('12h')
         >>> parameterstep('1d')
-        >>> cd(600.0)
         >>> cg(10000.0)
+        >>> derived.cd(600.0)
         >>> states.hs = 300.0
         >>> from hydpy import UnitTest
         >>> test = UnitTest(model=model,
@@ -2131,8 +2131,8 @@ class Calc_FGS_V1(modeltools.Method):
         |  15 |  700.0 | 300.0 |     -6.0 |
     """
 
-    CONTROLPARAMETERS = (wland_control.CD, wland_control.CG, wland_control.CGF)
-    DERIVEDPARAMETERS = (wland_derived.NUG, wland_derived.RH2)
+    CONTROLPARAMETERS = (wland_control.CG, wland_control.CGF)
+    DERIVEDPARAMETERS = (wland_derived.CD, wland_derived.NUG, wland_derived.RH2)
     REQUIREDSEQUENCES = (wland_states.DG, wland_states.HS)
     RESULTSEQUENCES = (wland_fluxes.FGS,)
 
@@ -2143,9 +2143,9 @@ class Calc_FGS_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         if der.nug:
-            d_gradient = con.cd - sta.dg - sta.hs
-            d_contactsurface = smoothutils.smooth_max1(con.cd - sta.dg, sta.hs, der.rh2)
-            d_excess = smoothutils.smooth_max2(-sta.dg, sta.hs - con.cd, 0.0, der.rh2)
+            d_gradient = der.cd - sta.dg - sta.hs
+            d_contactsurface = smoothutils.smooth_max1(der.cd - sta.dg, sta.hs, der.rh2)
+            d_excess = smoothutils.smooth_max2(-sta.dg, sta.hs - der.cd, 0.0, der.rh2)
             d_conductivity = (1.0 + con.cgf * d_excess) / con.cg
             flu.fgs = d_gradient * d_contactsurface * d_conductivity
         else:
@@ -2197,9 +2197,9 @@ class Calc_RH_V1(modeltools.Method):
         >>> simulationstep('12h')
         >>> parameterstep('1d')
         >>> cs(2.0)
-        >>> cd(5.0)
         >>> hsmin(2.0)
         >>> xs(2.0)
+        >>> derived.cd(5.0)
         >>> from hydpy import UnitTest
         >>> test = UnitTest(
         ...     model=model,
@@ -2248,13 +2248,8 @@ class Calc_RH_V1(modeltools.Method):
         |  11 | 8.0 |      4.0 |
     """
 
-    CONTROLPARAMETERS = (
-        wland_control.CS,
-        wland_control.CD,
-        wland_control.HSMin,
-        wland_control.XS,
-    )
-    DERIVEDPARAMETERS = (wland_derived.RH2,)
+    CONTROLPARAMETERS = (wland_control.CS, wland_control.HSMin, wland_control.XS)
+    DERIVEDPARAMETERS = (wland_derived.CD, wland_derived.RH2)
     REQUIREDSEQUENCES = (wland_states.HS,)
     RESULTSEQUENCES = (wland_fluxes.RH,)
 
@@ -2265,7 +2260,7 @@ class Calc_RH_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         d_hs = smoothutils.smooth_logistic2(sta.hs - con.hsmin, der.rh2)
-        flu.rh = con.cs * (d_hs / (con.cd - con.hsmin)) ** con.xs
+        flu.rh = con.cs * (d_hs / (der.cd - con.hsmin)) ** con.xs
 
 
 class Update_IC_V1(modeltools.Method):

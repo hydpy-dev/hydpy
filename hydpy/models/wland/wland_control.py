@@ -101,6 +101,59 @@ class AUR(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
 
 
+class GL(parametertools.Parameter):
+    """Ground level [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+
+    def trim(self, lower=None, upper=None):
+        r"""Ensure |GL| is above |BL|.
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+
+        >>> gl(2.0)
+        >>> gl
+        gl(2.0)
+
+        >>> bl.value = 4.0
+        >>> gl(3.0)
+        >>> gl
+        gl(4.0)
+        """
+        if lower is None:
+            lower = exceptiontools.getattr_(self.subpars.bl, "value", None)
+        super().trim(lower, upper)
+
+
+class BL(parametertools.Parameter):
+    """Channel bottom level [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+
+    def trim(self, lower=None, upper=None):
+        r"""Ensure |BL| is below |GL|.
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+
+        >>> bl(4.0)
+        >>> bl
+        bl(4.0)
+
+        >>> gl.value = 2.0
+        >>> bl(3.0)
+        >>> bl
+        bl(2.0)
+        """
+        if upper is None:
+            upper = exceptiontools.getattr_(self.subpars.gl, "value", None)
+        super().trim(lower, upper)
+
+
 class CP(parametertools.Parameter):
     """Factor for correcting precipitation [-]."""
 
@@ -171,12 +224,6 @@ class CQ(parametertools.Parameter):
     """Quickflow reservoir relaxation time [T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
-
-
-class CD(parametertools.Parameter):
-    """Channel depth [mm]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
 
 class CS(parametertools.Parameter):

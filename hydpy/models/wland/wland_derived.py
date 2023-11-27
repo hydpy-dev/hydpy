@@ -156,6 +156,28 @@ class QF(parametertools.Parameter):
         self.value = der.at * 1000.0 / hydpy.pub.options.simulationstep.seconds
 
 
+class CD(parametertools.Parameter):
+    """Channel depth [mm]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (wland_control.GL, wland_control.BL)
+
+    def update(self):
+        r"""Update |CD| based on :math:`CD = GL - BL`.
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+        >>> gl(5.0)
+        >>> bl(3.0)
+        >>> derived.cd.update()
+        >>> derived.cd
+        cd(2000.0)
+        """
+        con = self.subpars.pars.control
+        self.value = 1000.0 * (con.gl - con.bl)
+
+
 class RH1(parametertools.Parameter):
     """Regularisation parameter related to the height of water columns used when
     applying regularisation function |smooth_logistic1| [mm]."""

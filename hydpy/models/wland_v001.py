@@ -96,6 +96,12 @@ With the following setting, the total area of the vadose zone is
 
 >>> aur(0.6, 0.3, 0.1)
 
+The ground surface level is 1 m above, and the channel bottom level is 0.5 m below sea
+level, making a channel depth of 1.5 m:
+
+>>> gl(1.0)
+>>> bl(-0.5)
+
 The following parameter values lead to good results in a small catchment near the Kiel
 Canal (northern part of Germany).  For the parameter |LAI|, which provides land
 use-specific values, we define only those values relevant for |FIELD|, |CONIFER|, and
@@ -116,7 +122,6 @@ use-specific values, we define only those values relevant for |FIELD|, |CONIFER|
 >>> cg(200000.0)
 >>> cgf(1.0)
 >>> cq(0.5)
->>> cd(1500.0)
 >>> cs(8.0)
 >>> hsmin(0.0)
 >>> xs(1.5)

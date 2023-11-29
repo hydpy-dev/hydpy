@@ -124,9 +124,9 @@ class Calc_FXG_V1(modeltools.Method):
         if inp.fxg == 0.0:
             flu.fxg = 0.0
         else:
-            d_ra = der.alr * der.agr
-            if d_ra > 0.0:
-                flu.fxg = inp.fxg / d_ra
+            ra: float = der.alr * der.agr
+            if ra > 0.0:
+                flu.fxg = inp.fxg / ra
             else:
                 flu.fxg = modelutils.inf
 
@@ -348,9 +348,9 @@ class Calc_TF_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nu):
-            d_lai = con.lai[con.lt[k] - SEALED, der.moy[model.idx_sim]]
+            lai: float = con.lai[con.lt[k] - SEALED, der.moy[model.idx_sim]]
             flu.tf[k] = flu.pc * smoothutils.smooth_logistic1(
-                sta.ic[k] - con.ih * d_lai, der.rh1
+                sta.ic[k] - con.ih * lai, der.rh1
             )
 
 
@@ -860,10 +860,10 @@ class Calc_PQ_V1(modeltools.Method):
         aid = model.sequences.aides.fastaccess
         flu.pq = 0.0
         for k in range(con.nu):
-            d_pq = con.aur[k] * (flu.rf[k] + flu.am[k])
+            pq: float = con.aur[k] * (flu.rf[k] + flu.am[k])
             if con.lt[k] != SEALED:
-                d_pq *= aid.w
-            flu.pq += d_pq
+                pq *= aid.w
+            flu.pq += pq
 
 
 class Calc_Beta_V1(modeltools.Method):
@@ -917,12 +917,12 @@ class Calc_Beta_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         sta = model.sequences.states.fastaccess
         aid = model.sequences.aides.fastaccess
-        d_temp = con.zeta1 * (sta.dv - con.zeta2)
-        if d_temp > 700.0:
+        temp: float = con.zeta1 * (sta.dv - con.zeta2)
+        if temp > 700.0:
             aid.beta = 0.0
         else:
-            d_temp = modelutils.exp(d_temp)
-            aid.beta = 0.5 + 0.5 * (1.0 - d_temp) / (1.0 + d_temp)
+            temp = modelutils.exp(temp)
+            aid.beta = 0.5 + 0.5 * (1.0 - temp) / (1.0 + temp)
 
 
 class Calc_ETV_V1(modeltools.Method):
@@ -1074,10 +1074,10 @@ class Calc_ET_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        d_ei = 0.0
+        ei: float = 0.0
         for k in range(con.nu):
-            d_ei += con.aur[k] * flu.ei[k]
-        flu.et = der.alr * (d_ei + der.agr * flu.etv) + der.asr * flu.es
+            ei += con.aur[k] * flu.ei[k]
+        flu.et = der.alr * (ei + der.agr * flu.etv) + der.asr * flu.es
 
 
 class Calc_DVEq_V1(modeltools.Method):
@@ -1209,8 +1209,8 @@ class Return_DVH_V1(modeltools.Method):
     def __call__(model: modeltools.Model, h: float) -> float:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
-        d_h = smoothutils.smooth_max1(h, con.psiae, der.rh1)
-        return con.thetas * (1.0 - (d_h / con.psiae) ** (-1.0 / con.b))
+        h = smoothutils.smooth_max1(h, con.psiae, der.rh1)
+        return con.thetas * (1.0 - (h / con.psiae) ** (-1.0 / con.b))
 
 
 class Calc_DVEq_V2(modeltools.Method):
@@ -1302,13 +1302,13 @@ class Calc_DVEq_V2(modeltools.Method):
         sta = model.sequences.states.fastaccess
         aid = model.sequences.aides.fastaccess
         if der.nug:
-            d_x0 = -10.0 * con.sh
+            x0: float = -10.0 * con.sh
             if sta.dg > con.psiae:
-                d_below = model.quaddveq_v1.integrate(d_x0, con.psiae, 2, 20, 1e-8)
-                d_above = model.quaddveq_v1.integrate(con.psiae, sta.dg, 2, 20, 1e-8)
-                aid.dveq = d_below + d_above
+                t1: float = model.quaddveq_v1.integrate(x0, con.psiae, 2, 20, 1e-8)
+                t2: float = model.quaddveq_v1.integrate(con.psiae, sta.dg, 2, 20, 1e-8)
+                aid.dveq = t1 + t2
             else:
-                aid.dveq = model.quaddveq_v1.integrate(d_x0, sta.dg, 2, 20, 1e-8)
+                aid.dveq = model.quaddveq_v1.integrate(x0, sta.dg, 2, 20, 1e-8)
         else:
             aid.dveq = modelutils.nan
 
@@ -1463,9 +1463,9 @@ class Return_DVH_V2(modeltools.Method):
     def __call__(model: modeltools.Model, h: float) -> float:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
-        d_h = smoothutils.smooth_max1(h, con.psiae, der.rh1)
+        h = smoothutils.smooth_max1(h, con.psiae, der.rh1)
         return con.thetar + (
-            (con.thetas - con.thetar) * (1.0 - (d_h / con.psiae) ** (-1.0 / con.b))
+            (con.thetas - con.thetar) * (1.0 - (h / con.psiae) ** (-1.0 / con.b))
         )
 
 
@@ -1554,13 +1554,13 @@ class Calc_DVEq_V4(modeltools.Method):
         sta = model.sequences.states.fastaccess
         aid = model.sequences.aides.fastaccess
         if der.nug:
-            d_x0 = -10.0 * con.sh
+            x0: float = -10.0 * con.sh
             if sta.dg > con.psiae:
-                d_below = model.quaddveq_v2.integrate(d_x0, con.psiae, 2, 20, 1e-8)
-                d_above = model.quaddveq_v2.integrate(con.psiae, sta.dg, 2, 20, 1e-8)
-                aid.dveq = d_below + d_above
+                t1: float = model.quaddveq_v2.integrate(x0, con.psiae, 2, 20, 1e-8)
+                t2: float = model.quaddveq_v2.integrate(con.psiae, sta.dg, 2, 20, 1e-8)
+                aid.dveq = t1 + t2
             else:
-                aid.dveq = model.quaddveq_v2.integrate(d_x0, sta.dg, 2, 20, 1e-8)
+                aid.dveq = model.quaddveq_v2.integrate(x0, sta.dg, 2, 20, 1e-8)
         else:
             aid.dveq = modelutils.nan
 
@@ -1627,11 +1627,13 @@ class Return_ErrorDV_V1(modeltools.Method):
     def __call__(model: modeltools.Model, dg: float) -> float:
         sta = model.sequences.states.fastaccess
         aid = model.sequences.aides.fastaccess
-        d_dveq, d_dg = aid.dveq, sta.dg
+        dveq_old: float = aid.dveq
+        dg_old: float = sta.dg
         sta.dg = dg
         model.calc_dveq_v3()
-        d_delta = aid.dveq - sta.dv
-        aid.dveq, sta.dg = d_dveq, d_dg
+        d_delta: float = aid.dveq - sta.dv
+        aid.dveq = dveq_old
+        sta.dg = dg_old
         return d_delta
 
 
@@ -1696,8 +1698,8 @@ class Calc_DGEq_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         aid = model.sequences.aides.fastaccess
         if sta.dv > 0.0:
-            d_error = model.return_errordv_v1(con.psiae)
-            if d_error <= 0.0:
+            error: float = model.return_errordv_v1(con.psiae)
+            if error <= 0.0:
                 aid.dgeq = model.pegasusdgeq.find_x(
                     con.psiae, 10000.0, con.psiae, 1000000.0, 0.0, 1e-8, 20
                 )
@@ -1915,8 +1917,8 @@ class Calc_CDG_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         aid = model.sequences.aides.fastaccess
         if der.nug:
-            d_target = smoothutils.smooth_min1(aid.dveq, sta.dg, der.rh1)
-            flu.cdg = (sta.dv - d_target) / con.cv
+            target: float = smoothutils.smooth_min1(aid.dveq, sta.dg, der.rh1)
+            flu.cdg = (sta.dv - target) / con.cv
         else:
             flu.cdg = 0.0
 
@@ -2012,10 +2014,10 @@ class Calc_CDG_V2(modeltools.Method):
         sta = model.sequences.states.fastaccess
         aid = model.sequences.aides.fastaccess
         if der.nug:
-            d_target = smoothutils.smooth_min1(aid.dveq, sta.dg, der.rh1)
-            d_cdg_slow = (sta.dv - d_target) / con.cv
-            d_cdg_fast = aid.gf * (flu.fgs - flu.pv - flu.fxg)
-            flu.cdg = d_cdg_slow + d_cdg_fast
+            target: float = smoothutils.smooth_min1(aid.dveq, sta.dg, der.rh1)
+            cdg_slow: float = (sta.dv - target) / con.cv
+            cdg_fast: float = aid.gf * (flu.fgs - flu.pv - flu.fxg)
+            flu.cdg = cdg_slow + cdg_fast
         else:
             flu.cdg = 0.0
 
@@ -2143,11 +2145,13 @@ class Calc_FGS_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         if der.nug:
-            d_gradient = der.cd - sta.dg - sta.hs
-            d_contactsurface = smoothutils.smooth_max1(der.cd - sta.dg, sta.hs, der.rh2)
-            d_excess = smoothutils.smooth_max2(-sta.dg, sta.hs - der.cd, 0.0, der.rh2)
-            d_conductivity = (1.0 + con.cgf * d_excess) / con.cg
-            flu.fgs = d_gradient * d_contactsurface * d_conductivity
+            gradient: float = der.cd - sta.dg - sta.hs
+            contactsurface: float = der.cd - sta.dg
+            contactsurface = smoothutils.smooth_max1(contactsurface, sta.hs, der.rh2)
+            excess: float = sta.hs - der.cd
+            excess = smoothutils.smooth_max2(-sta.dg, excess, 0.0, der.rh2)
+            conductivity: float = (1.0 + con.cgf * excess) / con.cg
+            flu.fgs = gradient * contactsurface * conductivity
         else:
             flu.fgs = 0.0
 
@@ -2259,8 +2263,8 @@ class Calc_RH_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        d_hs = smoothutils.smooth_logistic2(sta.hs - con.hsmin, der.rh2)
-        flu.rh = con.cs * (d_hs / (der.cd - con.hsmin)) ** con.xs
+        hs: float = smoothutils.smooth_logistic2(sta.hs - con.hsmin, der.rh2)
+        flu.rh = con.cs * (hs / (der.cd - con.hsmin)) ** con.xs
 
 
 class Update_IC_V1(modeltools.Method):

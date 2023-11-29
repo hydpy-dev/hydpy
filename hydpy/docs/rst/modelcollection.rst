@@ -90,3 +90,4 @@ and will have to be discussed later.
    HydPy-SW1D
    HydPy-T
    HydPy-W
+   HydPy-Q

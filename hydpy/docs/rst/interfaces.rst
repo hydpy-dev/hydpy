@@ -14,6 +14,7 @@ more detail.
 
    aetinterfaces
    channelinterfaces
+   dischargeinterfaces
    petinterfaces
    precipinterfaces
    soilinterfaces

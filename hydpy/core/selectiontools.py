@@ -39,11 +39,11 @@ class Selections:
 
     Also, you can query, add, and remove |Selection| objects via attribute access:
 
-    >>> selections.sel3
+    >>> selections.sel3  # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
     AttributeError: The actual Selections object handles neither a normal attribute \
-nor a Selection object called `sel3` that could be returned.
+nor a Selection object called `sel3`...
     >>> sel3 = Selection("sel3", ["node1", "node4"], ["element3"])
     >>> selections.sel3 = sel3
     >>> selections.sel3
@@ -77,7 +77,7 @@ identical.  However,  for selection `sel3` the given attribute name is `sel4`.
     Traceback (most recent call last):
     ...
     KeyError: 'The actual Selections object does not handle a Selection object called \
-`sel4` that could be returned.'
+`sel4`.'
     >>> selections["sel4"] = Selection("sel4")
     >>> selections["sel4"]
     Selection("sel4",
@@ -384,7 +384,7 @@ objects, but the type of the given argument is `str`.
         except KeyError:
             raise AttributeError(
                 f"The actual Selections object handles neither a normal attribute nor "
-                f"a Selection object called `{key}` that could be returned."
+                f"a Selection object called `{key}`."
             ) from None
 
     def __setattr__(self, name: str, value: object) -> None:
@@ -408,7 +408,7 @@ objects, but the type of the given argument is `str`.
         except KeyError:
             raise KeyError(
                 f"The actual Selections object does not handle a Selection object "
-                f"called `{key}` that could be returned."
+                f"called `{key}`."
             ) from None
 
     def __setitem__(self, key: str, value: Selection) -> None:

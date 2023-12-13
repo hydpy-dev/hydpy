@@ -124,11 +124,11 @@ via attribute access.  Use method `remove_models` to remove registered models.
 `Auxfiler` object, the following error occurred: Model `lland_v1` is currently not \
 registered.
 
-    >>> auxfiler.lland_v1
+    >>> auxfiler.lland_v1  # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    AttributeError: The actual `Auxfiler` object does neither have a normal \
-attribute nor does it handle a model named `lland_v1`.
+    AttributeError: The actual `Auxfiler` object does neither have a normal attribute \
+nor does it handle a model named `lland_v1`...
 
     >>> auxfiler["lland_v1"]
     Traceback (most recent call last):

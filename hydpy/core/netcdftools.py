@@ -306,7 +306,7 @@ def create_dimension(ncfile: netcdf4.Dataset, name: str, length: int) -> None:
     >>> try:
     ...     create_dimension(ncfile, "dim1", 5)
     ... except BaseException as exc:
-    ...     print(exc)    # doctest: +ELLIPSIS
+    ...     print(exc)  # doctest: +ELLIPSIS
     While trying to add dimension `dim1` with length `5` to the NetCDF file `test.nc`, \
 the following error occurred: ...
 
@@ -338,7 +338,7 @@ def create_variable(
     >>> try:
     ...     create_variable(ncfile, "var1", "f8", ("dim1",))
     ... except BaseException as exc:
-    ...     print(str(exc).strip('"'))    # doctest: +ELLIPSIS
+    ...     print(str(exc).strip('"'))  # doctest: +ELLIPSIS
     While trying to add variable `var1` with datatype `f8` and dimensions `('dim1',)` \
 to the NetCDF file `test.nc`, the following error occurred: ...
 
@@ -899,7 +899,7 @@ class NetCDFInterface:
     >>> interface.lland_v1_flux_nkor
     Traceback (most recent call last):
     ...
-    AttributeError: The current NetCDFInterface object handles multiple NetCDF files \
+    RuntimeError: The current NetCDFInterface object handles multiple NetCDF files \
 named `lland_v1_flux_nkor`.  Please be more specific.
     >>> hasattr(interface, "default_lland_v1_flux_nkor")
     True
@@ -1433,7 +1433,7 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
             assert memory is not None
             return memory
         if counter > 1:
-            raise AttributeError(
+            raise RuntimeError(
                 f"The current NetCDFInterface object handles multiple NetCDF files "
                 f"named `{name}`.  Please be more specific."
             )
@@ -1541,12 +1541,12 @@ class NetCDFVariableBase(abc.ABC):
         True
         >>> "element2" in dir(ncvar)
         False
-        >>> ncvar.element2
+        >>> ncvar.element2  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         AttributeError: The NetCDFVariable object `flux_nkor` does neither handle \
 time series data under the (sub)device name `element2` nor does it define a member \
-named `element2`.
+named `element2`...
         """
         descr_device = sequence.descr_device
         self._descr2sequence[descr_device] = sequence

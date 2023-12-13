@@ -2136,11 +2136,11 @@ incomplete and no default value is available.
 
     Improper use of these "special attributes" results in errors like the following:
 
-    >>> par.Soil
+    >>> par.Soil  # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
     AttributeError: `Soil` is neither a normal attribute of parameter `par` of element \
-`?` nor among the following special attributes: soil, water, and glacier.
+`?` nor among the following special attributes: soil, water, and glacier...
 
     >>> par.soil = "test"
     Traceback (most recent call last):

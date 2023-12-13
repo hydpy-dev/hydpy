@@ -2050,7 +2050,7 @@ sequencemanager of module `pub` is not defined at the moment.
 
         >>> with TestIO(), pub.options.checkseries(True):
         ...     obs.adjust_series(Timegrid("1996-01-02", "1996-01-04", "1d"),
-        ...                       numpy.zeros((3,)))   # doctest: +ELLIPSIS
+        ...                       numpy.zeros((3,)))  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         RuntimeError: For sequence `obs` of node `dill` the initialisation time grid \
@@ -2068,7 +2068,7 @@ subset of the time grid of the data file `...dill_obs_q.asc` \
 
         >>> with TestIO():
         ...     obs.adjust_series(Timegrid("1996-01-01", "1996-01-05", "1d"),
-        ...                       numpy.zeros((5, 2)))   # doctest: +ELLIPSIS
+        ...                       numpy.zeros((5, 2)))  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         RuntimeError: The shape of sequence `obs` of node `dill` is `()` but \
@@ -2076,7 +2076,7 @@ according to the data file `...dill_obs_q.asc` it should be `(2,)`.
 
         >>> with TestIO():
         ...     obs.adjust_series(Timegrid("1996-01-01", "1996-01-05", "1h"),
-        ...                       numpy.zeros((24*5,)))   # doctest: +ELLIPSIS
+        ...                       numpy.zeros((24*5,)))  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         RuntimeError: According to data file `...dill_obs_q.asc`, the date time step \
@@ -3356,9 +3356,10 @@ class LinkSequence(ModelSequence):
     >>> seq.value
     Traceback (most recent call last):
     ...
-    AttributeError: While trying to query the value(s) of link sequence `linksequence` \
-of element `?`, the following error occurred: Proper connections are missing (which \
-could result in segmentation faults when using it, so please be careful).
+    hydpy.core.exceptiontools.AttributeNotReady: While trying to query the value(s) \
+of link sequence `linksequence` of element `?`, the following error occurred: Proper \
+connections are missing (which could result in segmentation faults when using it, so \
+please be careful).
     """
 
     subvars: LinkSequences[LinkSequence]
@@ -3507,7 +3508,7 @@ convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and type 
         """
         try:
             if not self.__isready:
-                raise AttributeError(
+                raise exceptiontools.AttributeNotReady(
                     "Proper connections are missing (which could result in "
                     "segmentation faults when using it, so please be careful)."
                 )
@@ -3780,21 +3781,21 @@ class NodeSequence(IOSequence):
         sim(2.0)
 
         Node sequences return errors like the following if they receive misspecified
-        values or ill-configured:
+        values or are ill-configured:
 
-        >>> sim.value = 1.0, 2.0   # doctest: +ELLIPSIS
+        >>> sim.value = 1.0, 2.0  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         TypeError: While trying to assign the value `(1.0, 2.0)` to sequence `sim` of \
 node `node`, the following error occurred: float() argument must be a string or a... \
 number, not 'tuple'
 
-        >>> del sim.fastaccess
-        >>> sim.value
+        >>> sim.name = None
+        >>> sim.value  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        AttributeError: While trying to query the value of sequence `sim` of node \
-`node`, the following error occurred: 'Sim' object has no attribute 'fastaccess'
+        TypeError: While trying to query the value of sequence `None` of node `node`, \
+the following error occurred: ...attribute name must be string...
 
         .. testsetup::
 
@@ -3894,7 +3895,7 @@ class Sim(NodeSequence):
         ...     hp.prepare_simseries()
         >>> sim = hp.nodes.dill.sequences.sim
         >>> with TestIO():
-        ...     sim.load_series()    # doctest: +ELLIPSIS
+        ...     sim.load_series()  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         UserWarning: While trying to load the time-series data of sequence `sim` of \

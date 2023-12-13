@@ -65,13 +65,14 @@ class HydPy:
     >>> hp.nodes
     Traceback (most recent call last):
     ...
-    AttributeError: The actual HydPy instance does not handle any nodes at the moment.
+    hydpy.core.exceptiontools.AttributeNotReady: The actual HydPy instance does not \
+handle any nodes at the moment.
 
     >>> hp.elements
     Traceback (most recent call last):
     ...
-    AttributeError: The actual HydPy instance does not handle any elements at the \
-moment.
+    hydpy.core.exceptiontools.AttributeNotReady: The actual HydPy instance does not \
+handle any elements at the moment.
 
     One could continue rather quickly by calling the method |HydPy.prepare_everything|,
     which would make our |HydPy| instance ready for its first simulation run in one go.
@@ -714,8 +715,8 @@ is not requested to make any time-series data available.
         >>> hp.nodes
         Traceback (most recent call last):
         ...
-        AttributeError: The actual HydPy instance does not handle any nodes at the \
-moment.
+        hydpy.core.exceptiontools.AttributeNotReady: The actual HydPy instance does \
+not handle any nodes at the moment.
 
         >>> hp.nodes = "dill", "lahn_1"
         >>> hp.nodes
@@ -727,7 +728,7 @@ moment.
         """
         nodes = self._nodes
         if nodes is None:
-            raise AttributeError(
+            raise exceptiontools.AttributeNotReady(
                 "The actual HydPy instance does not handle any nodes at the moment."
             )
         return nodes
@@ -761,8 +762,8 @@ moment.
         >>> hp.elements
         Traceback (most recent call last):
         ...
-        AttributeError: The actual HydPy instance does not handle any elements \
-at the moment.
+        hydpy.core.exceptiontools.AttributeNotReady: The actual HydPy instance does \
+not handle any elements at the moment.
 
         >>> hp.elements = "land_dill", "land_lahn_1"
         >>> hp.elements
@@ -775,7 +776,7 @@ at the moment.
         """
         elements = self._elements
         if elements is None:
-            raise AttributeError(
+            raise exceptiontools.AttributeNotReady(
                 "The actual HydPy instance does not handle any elements at the moment."
             )
         return elements
@@ -2432,9 +2433,9 @@ prepared so far.
         >>> HydPy().deviceorder
         Traceback (most recent call last):
         ...
-        AttributeError: While trying to access the simulation order of the currently \
-relevant devices, the following error occurred: The actual HydPy instance does not \
-handle any elements at the moment.
+        hydpy.core.exceptiontools.AttributeNotReady: While trying to access the \
+simulation order of the currently relevant devices, the following error occurred: The \
+actual HydPy instance does not handle any elements at the moment.
 
         Usually, |HydPy.deviceorder| is ready after calling |HydPy.prepare_network|.
         |HydPy.update_devices| updates the given devices' order, too.

@@ -207,7 +207,7 @@ class Tester:
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
 
         >>> from hydpy.models import hland, hland_v1
-        >>> hland.tester.perform_tests()   # doctest: +ELLIPSIS
+        >>> hland.tester.perform_tests()  # doctest: +ELLIPSIS
         Test package hydpy.models.hland in ...ython mode.
             * hland_aides:
                 no failures occurred
@@ -240,7 +240,7 @@ class Tester:
             * hland_states:
                 no failures occurred
 
-        >>> hland_v1.tester.perform_tests()   # doctest: +ELLIPSIS
+        >>> hland_v1.tester.perform_tests()  # doctest: +ELLIPSIS
         Test module hland_v1 in ...ython mode.
             * hland_v1:
                 no failures occurred
@@ -260,7 +260,7 @@ class Tester:
         >>> with mock.patch(
         ...     "hydpy.models.hland.hland_control.ZoneType.__repr__",
         ...     return_value="damaged"):
-        ...     hland.tester.perform_tests()   # doctest: +ELLIPSIS
+        ...     hland.tester.perform_tests()  # doctest: +ELLIPSIS
         Test package hydpy.models.hland in ...ython mode.
             * hland_aides:
                 no failures occurred
@@ -1342,11 +1342,10 @@ def make_abc_testable(abstract: Type[T]) -> Type[T]:
     instantiated:
 
     >>> from hydpy.core.netcdftools import NetCDFVariableBase
-    >>> ncvar = NetCDFVariableBase()
+    >>> ncvar = NetCDFVariableBase()  # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    TypeError: Can't instantiate abstract class NetCDFVariableBase with abstract \
-methods array, read, subdevicenames
+    TypeError: Can't instantiate abstract class NetCDFVariableBase with...
 
     However, it is convenient to do so for testing (partly) abstract base classes in
     doctests.  The derived class returned by function |make_abc_testable| is identical
@@ -1555,7 +1554,7 @@ def update_integrationtests(
     >>> with TestIO(), pub.options.usecython(False), mock.patch(pass_output):
     ...     update_integrationtests("conv_v001", "temp.txt")
     ...     with open("temp.txt") as resultfile:
-    ...         print(resultfile.read())   # doctest: +ELLIPSIS
+    ...         print(resultfile.read())  # doctest: +ELLIPSIS
     Number of replacements: 2
     <BLANKLINE>
     Nearest-neighbour interpolation.
@@ -1676,7 +1675,7 @@ def check_methodorder(model: modeltools.Model, indent: int = 0) -> str:
     (|lland_model.Calc_QA_V1|) calculating its values, but at a too-late stage of the
     simulation step:
 
-    >>> print(check_methodorder(Model))    # doctest: +ELLIPSIS
+    >>> print(check_methodorder(Model))  # doctest: +ELLIPSIS
     Method Calc_SaturationVapourPressure_V1 requires the following sequences, which \
 are not among the result sequences of any of its predecessors: TKor
     ...

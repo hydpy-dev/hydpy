@@ -343,7 +343,7 @@ _dllextension = get_dllextension()
 
 _int = "numpy." + str(numpy.array([1]).dtype) + "_t"
 
-TYPE2STR: Dict[Union[Type[Any], str, None], str] = {  # pylint: disable=duplicate-key
+TYPE2STR: dict[Union[type[Any], str, None], str] = {  # pylint: disable=duplicate-key
     bool: "numpy.npy_bool",
     "bool": "numpy.npy_bool",
     int: _int,
@@ -373,7 +373,7 @@ The Cython type belonging to Python's |int| is selected to agree with numpy's de
 integer type on the current platform/system.
 """
 
-_checkable_types: List[Type[Any]] = []
+_checkable_types: list[type[Any]] = []
 for maybe_a_type in TYPE2STR:
     try:
         isinstance(1, maybe_a_type)  # type: ignore[arg-type]
@@ -381,7 +381,7 @@ for maybe_a_type in TYPE2STR:
         continue
     assert isinstance(maybe_a_type, type)
     _checkable_types.append(maybe_a_type)
-CHECKABLE_TYPES: Tuple[Type[Any], ...] = tuple(_checkable_types)
+CHECKABLE_TYPES: tuple[type[Any], ...] = tuple(_checkable_types)
 """"Real types" of |TYPE2STR| allowed as second arguments of function |isinstance|."""
 del _checkable_types
 
@@ -390,7 +390,7 @@ NDIM2STR = {0: "", 1: "[:]", 2: "[:,:]", 3: "[:,:,:]"}
 _nogil = " nogil" if config.FASTCYTHON else ""
 
 
-class Lines(List[str]):
+class Lines(list[str]):
     """Handles the code lines for a `.pyx` or a `pxd` file."""
 
     def __init__(self, *args: str) -> None:
@@ -582,9 +582,9 @@ Python processes and restart the cythonization afterwards.
 class Cythonizer:
     """Handles the writing, compiling and initialisation of Cython models."""
 
-    Model: Type[modeltools.Model]
-    Parameters: Type[parametertools.Parameters]
-    Sequences: Type[sequencetools.Sequences]
+    Model: type[modeltools.Model]
+    Parameters: type[parametertools.Parameters]
+    Sequences: type[sequencetools.Sequences]
     tester: testtools.Tester
     pymodule: str
     _cymodule: Optional[types.ModuleType]
@@ -945,7 +945,7 @@ class PyxWriter:
                     try:
                         ctype = TYPE2STR[par.TYPE] + NDIM2STR[par.NDIM]
                     except KeyError:
-                        ctype = par.TYPE + NDIM2STR[par.NDIM]
+                        ctype = par.TYPE + NDIM2STR[par.NDIM]  # type: ignore[operator]
                     pxd(1, f"cdef public {ctype} {par.name}")
                     if isinstance(par, pt.KeywordParameter1D):
                         pxd(1, f"cdef public {TYPE2STR[int]} _{par.name}_entrymin")
@@ -1325,13 +1325,13 @@ class PyxWriter:
     @staticmethod
     def _filter_inputsequences(
         subseqs: sequencetools.InputSequences,
-    ) -> List[sequencetools.InputSequence]:
+    ) -> list[sequencetools.InputSequence]:
         return [subseq for subseq in subseqs if not subseq.NDIM]
 
     @staticmethod
     def _filter_outputsequences(
         subseqs: sequencetools.OutputSequences[Any],
-    ) -> List[sequencetools.OutputSequence]:
+    ) -> list[sequencetools.OutputSequence]:
         return [subseq for subseq in subseqs if not subseq.NDIM]
 
     def numericalparameters(self, lines: PyxPxdLines) -> None:
@@ -1606,7 +1606,7 @@ class PyxWriter:
             pyx(2, "self.idx_sim = idx")
             for subseqs in seqs:
                 if func == "load_data":
-                    applyfuncs: Tuple[str, ...] = ("inputs",)
+                    applyfuncs: tuple[str, ...] = ("inputs",)
                 else:
                     applyfuncs = ("inputs", "factors", "fluxes", "states")
                 if subseqs.name in applyfuncs:
@@ -1652,7 +1652,7 @@ class PyxWriter:
         self,
         lines: PyxPxdLines,
         name: str,
-        methods: Tuple[Type[modeltools.Method], ...],
+        methods: tuple[type[modeltools.Method], ...],
         idx_as_arg: bool = False,
     ) -> None:
         if hasattr(self.model, name):
@@ -1668,7 +1668,7 @@ class PyxWriter:
                 pyx(2, "pass")
 
     def _call_runmethods_segmentwise(
-        self, lines: PyxPxdLines, methods: Tuple[Type[modeltools.Method], ...]
+        self, lines: PyxPxdLines, methods: tuple[type[modeltools.Method], ...]
     ) -> None:
         if hasattr(self.model, "run"):
             pyx, both = lines.pyx.add, lines.add
@@ -1766,7 +1766,7 @@ class PyxWriter:
         self._call_methods(lines, "calculate_full_terms", model.FULL_ODE_METHODS)
 
     @property
-    def name2function_method(self) -> Dict[str, Callable[..., Any]]:
+    def name2function_method(self) -> dict[str, Callable[..., Any]]:
         """Functions defined by |Method| subclasses."""
         name2function = {}
         for name, member in vars(self.model).items():
@@ -1777,7 +1777,7 @@ class PyxWriter:
     @property
     def name2submethodnames_automethod(
         self,
-    ) -> Dict[str, Tuple[Type[modeltools.Method], ...]]:
+    ) -> dict[str, tuple[type[modeltools.Method], ...]]:
         """Submethods selected by |AutoMethod| subclasses."""
         name2submethods = {}
         for name, member in vars(self.model).items():
@@ -1791,7 +1791,7 @@ class PyxWriter:
         return name2submethods
 
     @property
-    def interfacemethods(self) -> Set[str]:
+    def interfacemethods(self) -> set[str]:
         """The full and abbreviated names of the selected model's interface methods."""
         if hasattr(self.model, "INTERFACE_METHODS"):
             interfaces = set(m.__name__.lower() for m in self.model.INTERFACE_METHODS)
@@ -1837,7 +1837,7 @@ class PyxWriter:
         self,
         lines: PyxPxdLines,
         name: str,
-        submethods: Tuple[Type[modeltools.Method], ...],
+        submethods: tuple[type[modeltools.Method], ...],
     ) -> None:
         """Lines of a method defined by a |AutoMethod| subclass."""
         pyx, both = lines.pyx.add, lines.add
@@ -2316,7 +2316,7 @@ class FuncConverter:
         self.inline = inline
 
     @property
-    def argnames(self) -> List[str]:
+    def argnames(self) -> list[str]:
         """The argument names of the current function.
 
         >>> from hydpy.cythons.modelutils import FuncConverter
@@ -2329,7 +2329,7 @@ class FuncConverter:
         return inspect.getargs(self.func.__code__)[0]
 
     @property
-    def varnames(self) -> Tuple[str, ...]:
+    def varnames(self) -> tuple[str, ...]:
         """The variable names of the current function.
 
         >>> from hydpy.cythons.modelutils import FuncConverter
@@ -2344,7 +2344,7 @@ class FuncConverter:
         )
 
     @property
-    def locnames(self) -> List[str]:
+    def locnames(self) -> list[str]:
         """The variable names of the handled function except for the argument names.
 
         >>> from hydpy.cythons.modelutils import FuncConverter
@@ -2357,7 +2357,7 @@ class FuncConverter:
         return [vn for vn in self.varnames if vn not in self.argnames]
 
     @property
-    def subgroupnames(self) -> List[str]:
+    def subgroupnames(self) -> list[str]:
         """The complete names of the subgroups relevant for the current function.
 
         >>> from hydpy.cythons.modelutils import FuncConverter
@@ -2380,7 +2380,7 @@ class FuncConverter:
         return names
 
     @property
-    def subgroupshortcuts(self) -> List[str]:
+    def subgroupshortcuts(self) -> list[str]:
         """The abbreviated names of the subgroups relevant for the current function.
 
         >>> from hydpy.cythons.modelutils import FuncConverter
@@ -2393,7 +2393,7 @@ class FuncConverter:
         return [name.split(".")[-1][:3] for name in self.subgroupnames]
 
     @property
-    def untypedvarnames(self) -> List[str]:
+    def untypedvarnames(self) -> list[str]:
         """The names of the untyped variables used in the current function.
 
         >>> from hydpy.cythons.modelutils import FuncConverter
@@ -2410,7 +2410,7 @@ class FuncConverter:
         ]
 
     @property
-    def untypedarguments(self) -> List[str]:
+    def untypedarguments(self) -> list[str]:
         """The names of the untyped arguments used by the current function.
 
         >>> from hydpy.cythons.modelutils import FuncConverter
@@ -2428,7 +2428,7 @@ class FuncConverter:
         ]
 
     @property
-    def untypedinternalvarnames(self) -> List[str]:
+    def untypedinternalvarnames(self) -> list[str]:
         """The names of the untyped variables used in the current function except for
         those of the arguments.
 
@@ -2444,7 +2444,7 @@ class FuncConverter:
         ]
 
     @property
-    def cleanlines(self) -> List[str]:
+    def cleanlines(self) -> list[str]:
         """The leaned code lines of the current function.
 
         The implemented cleanups:
@@ -2510,7 +2510,7 @@ class FuncConverter:
         return "".join(chars)
 
     @staticmethod
-    def remove_imath_operators(lines: List[str]) -> None:
+    def remove_imath_operators(lines: list[str]) -> None:
         """Remove mathematical expressions that require Pythons global interpreter
         locking mechanism.
 

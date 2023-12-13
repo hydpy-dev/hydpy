@@ -92,7 +92,7 @@ class LazyInOutSequenceImport:
     """
 
     def __init__(
-        self, modulename: str, classname: str, alias: str, namespace: Dict[str, Any]
+        self, modulename: str, classname: str, alias: str, namespace: dict[str, Any]
     ) -> None:
         self._modulename = modulename
         self._classname = classname
@@ -134,7 +134,7 @@ class LazyInOutSequenceImport:
     def __repr__(self) -> str:
         return repr(self._get_sequencetype())
 
-    def __dir__(self) -> List[str]:
+    def __dir__(self) -> list[str]:
         return dir(self._get_sequencetype())
 
 
@@ -158,7 +158,7 @@ def write_sequencealiases() -> None:
         ("senders", sequencetools.SenderSequence, (0, 1)),
     )
     modelpath: str = models.__path__[0]
-    sequence2alias: Dict[sequencetools.InOutSequenceTypes, str] = {}
+    sequence2alias: dict[sequencetools.InOutSequenceTypes, str] = {}
     for moduleinfo in pkgutil.iter_modules([modelpath]):
         if not moduleinfo.ispkg:
             continue

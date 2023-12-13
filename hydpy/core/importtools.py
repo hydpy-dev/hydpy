@@ -124,9 +124,9 @@ def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
 
 
 def _add_locals_to_namespace(
-    model: modeltools.Model, namespace: Dict[str, Any]
+    model: modeltools.Model, namespace: dict[str, Any]
 ) -> None:
-    new_locals: Dict[str, Any] = namespace.get("CONSTANTS", {}).copy()
+    new_locals: dict[str, Any] = namespace.get("CONSTANTS", {}).copy()
     new_locals["model"] = model
     new_locals["parameters"] = model.parameters
     for pars in model.parameters:
@@ -145,14 +145,14 @@ def _add_locals_to_namespace(
     namespace.update(new_locals)
 
 
-def prepare_parameters(dict_: Dict[str, Any]) -> parametertools.Parameters:
+def prepare_parameters(dict_: dict[str, Any]) -> parametertools.Parameters:
     """Prepare a |Parameters| object based on the given dictionary
     information and return it."""
     cls_parameters = dict_.get("Parameters", parametertools.Parameters)
     return cls_parameters(dict_)
 
 
-def prepare_sequences(dict_: Dict[str, Any]) -> sequencetools.Sequences:
+def prepare_sequences(dict_: dict[str, Any]) -> sequencetools.Sequences:
     """Prepare a |Sequences| object based on the given dictionary
     information and return it."""
     cls_sequences = dict_.get("Sequences", sequencetools.Sequences)
@@ -337,7 +337,7 @@ def prepare_model(
 class _DoctestAdder:
     _wrapped: Callable[..., None]
 
-    def __set_name__(self, objtype: Type[modeltools.Model], name: str) -> None:
+    def __set_name__(self, objtype: type[modeltools.Model], name: str) -> None:
         assert (module := inspect.getmodule(objtype)) is not None
         test = getattr(module, "__test__", {})
         test[f"{objtype.__name__}.{self._wrapped.__name__}"] = self.__doc__
@@ -347,14 +347,14 @@ class _DoctestAdder:
 @overload
 def prepare_submodel(
     submodelname: str,
-    submodelinterface: Type[TI_contra],
+    submodelinterface: type[TI_contra],
     *methods: Callable[[NoReturn, NoReturn], None],
     dimensionality: Literal[0] = ...,
     landtype_constants: Optional[parametertools.Constants] = None,
     soiltype_constants: Optional[parametertools.Constants] = None,
-    landtype_refindices: Optional[Type[parametertools.NameParameter]] = None,
-    soiltype_refindices: Optional[Type[parametertools.NameParameter]] = None,
-    refweights: Optional[Type[parametertools.Parameter]] = None,
+    landtype_refindices: Optional[type[parametertools.NameParameter]] = None,
+    soiltype_refindices: Optional[type[parametertools.NameParameter]] = None,
+    refweights: Optional[type[parametertools.Parameter]] = None,
 ) -> Callable[
     [PrepSub0D[TM_contra, TI_contra]], SubmodelAdder[Literal[0], TM_contra, TI_contra]
 ]:
@@ -364,14 +364,14 @@ def prepare_submodel(
 @overload
 def prepare_submodel(
     submodelname: str,
-    submodelinterface: Type[TI_contra],
+    submodelinterface: type[TI_contra],
     *methods: Callable[[NoReturn, NoReturn], None],
     dimensionality: Literal[1],
     landtype_constants: Optional[parametertools.Constants] = None,
     soiltype_constants: Optional[parametertools.Constants] = None,
-    landtype_refindices: Optional[Type[parametertools.NameParameter]] = None,
-    soiltype_refindices: Optional[Type[parametertools.NameParameter]] = None,
-    refweights: Optional[Type[parametertools.Parameter]] = None,
+    landtype_refindices: Optional[type[parametertools.NameParameter]] = None,
+    soiltype_refindices: Optional[type[parametertools.NameParameter]] = None,
+    refweights: Optional[type[parametertools.Parameter]] = None,
 ) -> Callable[
     [PrepSub1D[TM_contra, TI_contra]], SubmodelAdder[Literal[1], TM_contra, TI_contra]
 ]:
@@ -380,14 +380,14 @@ def prepare_submodel(
 
 def prepare_submodel(
     submodelname: str,
-    submodelinterface: Type[TI_contra],
+    submodelinterface: type[TI_contra],
     *methods: Callable[[NoReturn, NoReturn], None],
     dimensionality: TD = 0,  # type: ignore[assignment]
     landtype_constants: Optional[parametertools.Constants] = None,
     soiltype_constants: Optional[parametertools.Constants] = None,
-    landtype_refindices: Optional[Type[parametertools.NameParameter]] = None,
-    soiltype_refindices: Optional[Type[parametertools.NameParameter]] = None,
-    refweights: Optional[Type[parametertools.Parameter]] = None,
+    landtype_refindices: Optional[type[parametertools.NameParameter]] = None,
+    soiltype_refindices: Optional[type[parametertools.NameParameter]] = None,
+    refweights: Optional[type[parametertools.Parameter]] = None,
 ) -> Callable[
     [Union[PrepSub0D[TM_contra, TI_contra], PrepSub1D[TM_contra, TI_contra]]],
     SubmodelAdder[TD, TM_contra, TI_contra],
@@ -529,42 +529,42 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
 
     submodelname: str
     """The submodel's attribute name."""
-    submodelinterface: Type[TI_contra]
+    submodelinterface: type[TI_contra]
     """The relevant submodel interface."""
     dimensionality: TD
     """The dimensionality of the handled submodel reference(s) (either zero or one)."""
-    methods: Tuple[Callable[[NoReturn, NoReturn], None], ...]
+    methods: tuple[Callable[[NoReturn, NoReturn], None], ...]
     """The submodel interface methods the wrapped method uses."""
-    landtype_refindices: Optional[Type[parametertools.NameParameter]]
+    landtype_refindices: Optional[type[parametertools.NameParameter]]
     """Reference to a land cover type-related index parameter."""
-    soiltype_refindices: Optional[Type[parametertools.NameParameter]]
+    soiltype_refindices: Optional[type[parametertools.NameParameter]]
     """Reference to a soil type-related index parameter."""
-    refweights: Optional[Type[parametertools.Parameter]]
+    refweights: Optional[type[parametertools.Parameter]]
     """Reference to a weighting parameter."""
 
-    __hydpy_maintype2subname2adders__: DefaultDict[
-        Type[modeltools.Model], DefaultDict[str, List[SubmodelAdder]]
+    __hydpy_maintype2subname2adders__: collections.defaultdict[
+        type[modeltools.Model], collections.defaultdict[str, list[SubmodelAdder]]
     ] = collections.defaultdict(lambda: collections.defaultdict(lambda: []))
 
-    _methodnames: FrozenSet[str]
+    _methodnames: frozenset[str]
     _wrapped: Union[PrepSub0D[TM_contra, TI_contra], PrepSub1D[TM_contra, TI_contra]]
     _sharable_configuration: SharableConfiguration
     _model: Optional[TM_contra]
-    _mainmodelstack: ClassVar[List[modeltools.Model]] = []
+    _mainmodelstack: ClassVar[list[modeltools.Model]] = []
 
     @overload
     def __init__(
         self: SubmodelAdder[Literal[0], TM_contra, TI_contra],
         wrapped: PrepSub0D[TM_contra, TI_contra],
         submodelname: str,
-        submodelinterface: Type[TI_contra],
+        submodelinterface: type[TI_contra],
         methods: Iterable[Callable[[NoReturn, NoReturn], None]],
         dimensionality: TD,
         landtype_constants: Optional[parametertools.Constants],
         soiltype_constants: Optional[parametertools.Constants],
-        landtype_refindices: Optional[Type[parametertools.NameParameter]],
-        soiltype_refindices: Optional[Type[parametertools.NameParameter]],
-        refweights: Optional[Type[parametertools.Parameter]],
+        landtype_refindices: Optional[type[parametertools.NameParameter]],
+        soiltype_refindices: Optional[type[parametertools.NameParameter]],
+        refweights: Optional[type[parametertools.Parameter]],
     ) -> None:
         ...
 
@@ -573,14 +573,14 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
         self: SubmodelAdder[Literal[1], TM_contra, TI_contra],
         wrapped: PrepSub1D[TM_contra, TI_contra],
         submodelname: str,
-        submodelinterface: Type[TI_contra],
+        submodelinterface: type[TI_contra],
         methods: Iterable[Callable[[NoReturn, NoReturn], None]],
         dimensionality: TD,
         landtype_constants: Optional[parametertools.Constants],
         soiltype_constants: Optional[parametertools.Constants],
-        landtype_refindices: Optional[Type[parametertools.NameParameter]],
-        soiltype_refindices: Optional[Type[parametertools.NameParameter]],
-        refweights: Optional[Type[parametertools.Parameter]],
+        landtype_refindices: Optional[type[parametertools.NameParameter]],
+        soiltype_refindices: Optional[type[parametertools.NameParameter]],
+        refweights: Optional[type[parametertools.Parameter]],
     ) -> None:
         ...
 
@@ -590,14 +590,14 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
             PrepSub0D[TM_contra, TI_contra], PrepSub1D[TM_contra, TI_contra]
         ],
         submodelname: str,
-        submodelinterface: Type[TI_contra],
+        submodelinterface: type[TI_contra],
         methods: Iterable[Callable[[NoReturn, NoReturn], None]],
         dimensionality: TD,
         landtype_constants: Optional[parametertools.Constants],
         soiltype_constants: Optional[parametertools.Constants],
-        landtype_refindices: Optional[Type[parametertools.NameParameter]],
-        soiltype_refindices: Optional[Type[parametertools.NameParameter]],
-        refweights: Optional[Type[parametertools.Parameter]],
+        landtype_refindices: Optional[type[parametertools.NameParameter]],
+        soiltype_refindices: Optional[type[parametertools.NameParameter]],
+        refweights: Optional[type[parametertools.Parameter]],
     ) -> None:
         self._wrapped = wrapped
         self.submodelname = submodelname
@@ -638,13 +638,13 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
         return self._wrapped
 
     def __get__(
-        self, obj: Optional[TM_contra], type_: Type[modeltools.Model]
+        self, obj: Optional[TM_contra], type_: type[modeltools.Model]
     ) -> SubmodelAdder[TD, TM_contra, TI_contra]:
         if obj is not None:
             self._model = obj
         return self
 
-    def __set_name__(self, owner: Type[modeltools.Model], name: str) -> None:
+    def __set_name__(self, owner: type[modeltools.Model], name: str) -> None:
         super().__set_name__(owner, name)
         mt2sn2as = self.__hydpy_maintype2subname2adders__
         mt2sn2as[owner][self.submodelname].append(self)
@@ -802,7 +802,7 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
 
 
 def define_targetparameter(
-    parameter: Type[parametertools.Parameter],
+    parameter: type[parametertools.Parameter],
 ) -> Callable[
     [Callable[Concatenate[TM_contra, P], None]], TargetParameterUpdater[TM_contra, P]
 ]:
@@ -839,7 +839,7 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
     'NmbHRU'
     """
 
-    targetparameter: Type[parametertools.Parameter]
+    targetparameter: type[parametertools.Parameter]
     """The control parameter the wrapped method modifies."""
 
     _wrapped: Callable[Concatenate[TM_contra, P], None]
@@ -850,14 +850,14 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
     def __init__(
         self,
         wrapped: Callable[Concatenate[TM_contra, P], None],
-        targetparameter: Type[parametertools.Parameter],
+        targetparameter: type[parametertools.Parameter],
     ) -> None:
         self._wrapped = wrapped
         self.targetparameter = targetparameter
         self.__doc__ = wrapped.__doc__
 
     def __get__(
-        self, obj: Optional[TM_contra], type_: Type[modeltools.Model]
+        self, obj: Optional[TM_contra], type_: type[modeltools.Model]
     ) -> TargetParameterUpdater[TM_contra, P]:
         if obj is not None:
             self._model = obj

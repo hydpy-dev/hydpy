@@ -2864,7 +2864,7 @@ class BaseModelProfile(modeltools.ELSModel):
                 self._ys.insert(0, self._ys[0] + dxdy[1])
                 return self
 
-            def __call__(self) -> Tuple[List[float], List[float]]:
+            def __call__(self) -> tuple[list[float], list[float]]:
                 return self._xs, self._ys
 
         con = self.parameters.control
@@ -2925,7 +2925,7 @@ class BaseModelProfile(modeltools.ELSModel):
         exp: float = 2.0,
         hmin: Optional[float] = None,
         hmax: Optional[float] = None,
-    ) -> Tuple[float, ...]:
+    ) -> tuple[float, ...]:
         """Prepare a vector of the stage values.
 
         The argument `nmb` defines the number of stage values, `exp` defines their
@@ -2959,7 +2959,7 @@ class BaseModelProfile(modeltools.ELSModel):
         hs += hmin
         return tuple(hs)
 
-    def calculate_qgvector(self, hvector: Iterable[float]) -> Tuple[float, ...]:
+    def calculate_qgvector(self, hvector: Iterable[float]) -> tuple[float, ...]:
         """Calculate the discharge values (in m³/s) corresponding to the
         given stage vector.
 
@@ -3007,7 +3007,7 @@ class BaseModelProfile(modeltools.ELSModel):
         finally:
             self.sequences.states.h(h_)
 
-    def calculate_agvector(self, hvector: Iterable[float]) -> Tuple[float, ...]:
+    def calculate_agvector(self, hvector: Iterable[float]) -> tuple[float, ...]:
         """Calculate the wetted cross-section areas (in m²) corresponding to the given
         vector of stage values.
 
@@ -3028,7 +3028,7 @@ class BaseModelProfile(modeltools.ELSModel):
         finally:
             self.sequences.states.h(h_)
 
-    def calculate_vgvector(self, hvector: Iterable[float]) -> Tuple[float, ...]:
+    def calculate_vgvector(self, hvector: Iterable[float]) -> tuple[float, ...]:
         """Calculate the water volume stored within a channel subsection (in Mio m³)
         corresponding to the given vector of stage values.
 

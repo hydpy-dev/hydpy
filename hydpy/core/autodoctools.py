@@ -198,12 +198,12 @@ _all_spec2capt.update(_SEQ_SPEC2CAPT)
 _all_spec2capt.update(_AUX_SPEC2CAPT)
 
 
-def _add_title(title: str, marker: str) -> List[str]:
+def _add_title(title: str, marker: str) -> list[str]:
     """Return a title for a basemodels docstring."""
     return ["", title, marker * len(title)]
 
 
-def _add_lines(specification: str, module: types.ModuleType) -> List[str]:
+def _add_lines(specification: str, module: types.ModuleType) -> list[str]:
     """Return autodoc commands for a basemodels docstring.
 
     Note that `collection classes` (e.g. `Model`, `ControlParameters`, `InputSequences`
@@ -340,7 +340,7 @@ def _get_ending(container: Sized) -> str:
     return "s" if len(container) > 1 else ""
 
 
-def _get_methoddocstringinsertions(method: modeltools.Method) -> List[str]:
+def _get_methoddocstringinsertions(method: modeltools.Method) -> list[str]:
     insertions = []
     submethods = getattr(method, "SUBMETHODS", ())
     if submethods:
@@ -451,10 +451,10 @@ class Substituter:
     """Implements a HydPy specific docstring substitution mechanism."""
 
     master: Optional[Substituter]
-    slaves: List[Substituter]
-    short2long: Dict[str, str]
-    short2priority: Dict[str, Priority]
-    medium2long: Dict[str, str]
+    slaves: list[Substituter]
+    short2long: dict[str, str]
+    short2priority: dict[str, Priority]
+    medium2long: dict[str, str]
 
     def __init__(self, master: Optional[Substituter] = None) -> None:
         self.master = master
@@ -474,8 +474,8 @@ class Substituter:
         name_member: str,
         member: Any,
         module: types.ModuleType,
-        class_: Optional[Type[object]] = None,
-        ignore: Optional[Dict[str, object]] = None,
+        class_: Optional[type[object]] = None,
+        ignore: Optional[dict[str, object]] = None,
     ) -> bool:
         """Return |True| if the given member should be added to the substitutions.  If
         not, return |False|.
@@ -1016,7 +1016,7 @@ class Substituter:
             if (text in key) or (text in value):
                 print(key, value)
 
-    def __iter__(self) -> Iterator[Tuple[str, str]]:
+    def __iter__(self) -> Iterator[tuple[str, str]]:
         for item in sorted(self.short2long.items()):
             yield item
         for item in sorted(self.medium2long.items()):
@@ -1084,7 +1084,7 @@ def prepare_mainsubstituter() -> Substituter:
     return substituter
 
 
-def _number_of_line(member_tuple: Tuple[str, object]) -> int:
+def _number_of_line(member_tuple: tuple[str, object]) -> int:
     """Try to return the number of the first line of the definition of a member of a
     module."""
 
@@ -1185,7 +1185,7 @@ _name2descr = {
     ),
 }
 
-_loggedtuples: Set[str] = set()
+_loggedtuples: set[str] = set()
 
 
 def autodoc_tuple2doc(module: types.ModuleType) -> None:

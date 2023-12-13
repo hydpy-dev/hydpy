@@ -4,6 +4,7 @@ modelling."""
 # import...
 # ...from standard library
 import abc
+import collections
 import copy
 import warnings
 
@@ -43,7 +44,7 @@ def filter_series(
     *,
     sim: VectorInputFloat,
     obs: VectorInputFloat,
-    date_ranges: Iterable[Tuple[timetools.DateConstrArg, timetools.DateConstrArg]],
+    date_ranges: Iterable[tuple[timetools.DateConstrArg, timetools.DateConstrArg]],
 ) -> SimObs:
     """sim and obs and date_ranges as arguments"""
 
@@ -59,7 +60,7 @@ def filter_series(
 def filter_series(
     *,
     node: devicetools.Node,
-    date_ranges: Iterable[Tuple[timetools.DateConstrArg, timetools.DateConstrArg]],
+    date_ranges: Iterable[tuple[timetools.DateConstrArg, timetools.DateConstrArg]],
 ) -> SimObs:
     """node and date_ranges as arguments"""
 
@@ -76,7 +77,7 @@ def filter_series(
     obs: Optional[VectorInputFloat] = None,
     node: Optional[devicetools.Node] = None,
     date_ranges: Optional[
-        Iterable[Tuple[timetools.DateConstrArg, timetools.DateConstrArg]]
+        Iterable[tuple[timetools.DateConstrArg, timetools.DateConstrArg]]
     ] = None,
     months: Optional[Iterable[int]] = None,
 ) -> SimObs:
@@ -1037,7 +1038,7 @@ def corr(
     return cast(float, numpy.corrcoef(sim_, obs_)[0, 1])
 
 
-def _pars_sepd(xi: float, beta: float) -> Tuple[float, float, float, float]:
+def _pars_sepd(xi: float, beta: float) -> tuple[float, float, float, float]:
     gamma1 = special.gamma(3.0 * (1.0 + beta) / 2.0)
     gamma2 = special.gamma((1.0 + beta) / 2.0)
     w_beta = gamma1**0.5 / (1.0 + beta) / gamma2**1.5
@@ -1349,7 +1350,7 @@ def hsepd(
     inits: Optional[Iterable[float]] = None,
     return_pars: Literal[True],
     silent: bool = True,
-) -> Tuple[float, Tuple[float, float, float, float]]:
+) -> tuple[float, tuple[float, float, float, float]]:
     """sim and obs as arguments, do return parameters"""
 
 
@@ -1375,7 +1376,7 @@ def hsepd(
     inits: Optional[Iterable[float]] = None,
     return_pars: Literal[True],
     silent: bool = True,
-) -> Tuple[float, Tuple[float, float, float, float]]:
+) -> tuple[float, tuple[float, float, float, float]]:
     """node as an argument, do return parameters"""
 
 
@@ -1392,7 +1393,7 @@ def hsepd(
     inits: Optional[Iterable[float]] = None,
     return_pars: bool = False,
     silent: bool = True,
-) -> Union[float, Tuple[float, Tuple[float, float, float, float]]]:
+) -> Union[float, tuple[float, tuple[float, float, float, float]]]:
     """Calculate the mean of the logarithmic probability densities of the
     heteroskedastic skewed exponential power distribution.
 
@@ -1453,7 +1454,7 @@ def hsepd(
     for using |hsepd|.
     """
 
-    def transform(pars: Tuple[float, float, float, float]) -> float:
+    def transform(pars: tuple[float, float, float, float]) -> float:
         """Transform the actual optimisation problem into a function to be minimised
         and apply parameter constraints."""
         sigma1, sigma2, xi, beta = constrain(*pars)
@@ -1470,7 +1471,7 @@ def hsepd(
 
     def constrain(
         sigma1: float, sigma2: float, xi: float, beta: float
-    ) -> Tuple[float, float, float, float]:
+    ) -> tuple[float, float, float, float]:
         """Apply constraints on the given parameter values."""
         return (
             max(sigma1, 0.0),
@@ -1587,7 +1588,7 @@ negative: weights.
     )
 
 
-def calc_weights(nodes: Collection[devicetools.Node]) -> Dict[devicetools.Node, float]:
+def calc_weights(nodes: Collection[devicetools.Node]) -> dict[devicetools.Node, float]:
     """Calculate "statistical" weights for all given nodes based on the number of
     observations within the evaluation period.
 
@@ -1681,7 +1682,7 @@ class SummaryRow(abc.ABC):
     """
 
     name: str
-    _nodes: Tuple[devicetools.Node, ...]
+    _nodes: tuple[devicetools.Node, ...]
 
     def __init__(self, name: str, nodes: Collection[devicetools.Node]) -> None:
         self.name = name
@@ -1689,7 +1690,7 @@ class SummaryRow(abc.ABC):
 
     def summarise_criteria(
         self, nmb_criteria: int, node2values: Mapping[devicetools.Node, Sequence[float]]
-    ) -> Tuple[float, ...]:
+    ) -> tuple[float, ...]:
         """Summarise the results of all criteria."""
         if len(self._nodes) == 0:
             return tuple(nmb_criteria * [numpy.nan])
@@ -1785,7 +1786,7 @@ class SummaryRowWeighted(SummaryRow):
     -1.0, 2.0
     """
 
-    _node2weight: Dict[devicetools.Node, float]
+    _node2weight: dict[devicetools.Node, float]
     _predefined: bool
     _evaltimegrid: timetools.Timegrid
 
@@ -2068,7 +2069,8 @@ number of given alternative names being 1.
     if isinstance(critdigits, int):
         critdigits = len(criteria) * (critdigits,)
     formats = tuple(f"%.{d}f" for d in critdigits)
-    node2values: DefaultDict[devicetools.Node, List[float]] = DefaultDict(lambda: [])
+    node2values: collections.defaultdict[devicetools.Node, list[float]]
+    node2values = collections.defaultdict(lambda: [])
     data = numpy.empty((len(nodes), len(criteria)), dtype=float)
     for idx, node in enumerate(nodes):
         if stepsize is not None:

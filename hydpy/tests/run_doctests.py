@@ -3,15 +3,15 @@
 # due to importing hydpy after eventually changing its source path
 """Evaluate all doctests defined in the different modules and documentation files."""
 from __future__ import annotations
+from collections.abc import Iterable, Sequence
 import os
 import sys
 import importlib
 import time
+from typing import NamedTuple, Optional, NoReturn
 import unittest
 import doctest
 import warnings
-from typing import Dict
-from typing import Iterable, List, NamedTuple, Optional, NoReturn, Set, Sequence, Tuple
 
 import click
 
@@ -23,18 +23,18 @@ def print_(*args: str) -> None:
 
 
 class _FilterFilenames:
-    file_doctests: Set[str]
+    file_doctests: set[str]
 
     def __init__(self, file_doctests: Iterable[str]) -> None:
         self.file_doctests = set(file_doctests)
 
-    def __call__(self, filenames: Sequence[str]) -> Tuple[str, ...]:
+    def __call__(self, filenames: Sequence[str]) -> tuple[str, ...]:
         if self.file_doctests:
             return tuple(fn for fn in filenames if fn in self.file_doctests)
         return tuple(filenames)
 
 
-DocTest = Dict[str, Tuple[unittest.TestResult, int]]
+DocTest = dict[str, tuple[unittest.TestResult, int]]
 
 
 class DocTests(NamedTuple):
@@ -78,13 +78,13 @@ class DocTests(NamedTuple):
 )
 def main(  # pylint: disable=too-many-branches
     hydpy_path: Optional[str],
-    file_doctests: List[str],
+    file_doctests: list[str],
     python_mode: bool,
     cython_mode: bool,
 ) -> NoReturn:
     """Perform all tests (first in Python mode, then in Cython mode)."""
 
-    alldoctests: Dict[str, DocTests] = {}
+    alldoctests: dict[str, DocTests] = {}
     if python_mode:
         alldoctests["Python"] = DocTests(successfull={}, failing={})
     if cython_mode:

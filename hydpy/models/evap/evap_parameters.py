@@ -47,7 +47,7 @@ class LandMonthParameter(parametertools.KeywordParameter2D):
         "nov",
         "dec",
     )
-    rownames: Tuple[str, ...] = ("ANY",)
+    rownames: tuple[str, ...] = ("ANY",)
 
 
 class ZipParameter1D(parametertools.ZipParameter):

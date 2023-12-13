@@ -205,7 +205,7 @@ class Model(modeltools.AdHocModel):
     SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
-    nodenames: List[str]
+    nodenames: list[str]
     """Names of the output nodes."""
 
     def __init__(self) -> None:

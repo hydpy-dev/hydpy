@@ -13,10 +13,11 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+from collections.abc import Callable
 import dataclasses
 import os
 import sys
-from typing import Any, Callable, Dict
+from typing import Any
 
 import pybtex.plugin
 from pybtex.database import Person
@@ -322,7 +323,7 @@ htmlhelp_basename = "HydPydoc"
 
 # -- Options for LaTeX output --------------------------------------------------
 
-latex_elements: Dict[str, str] = {
+latex_elements: dict[str, str] = {
     # The paper size ('letterpaper' or 'a4paper').
     #'papersize': 'letterpaper',
     # The font size ('10pt', '11pt' or '12pt').

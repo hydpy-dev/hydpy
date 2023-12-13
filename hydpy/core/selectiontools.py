@@ -163,11 +163,11 @@ objects, but the type of the given argument is `str`.
     """
 
     def __init__(self, *selections: Selection) -> None:
-        self.__selections: Dict[str, Selection] = {}
+        self.__selections: dict[str, Selection] = {}
         self.add_selections(*selections)
 
     @property
-    def names(self) -> Tuple[str, ...]:
+    def names(self) -> tuple[str, ...]:
         """The names of the actual |Selection| objects.
 
         >>> from hydpy import Selection, Selections
@@ -281,20 +281,20 @@ objects, but the type of the given argument is `str`.
     @overload
     def query_intersections(
         self, selection2element: Literal[True] = ...
-    ) -> Dict[Selection, Dict[Selection, devicetools.Elements]]:
+    ) -> dict[Selection, dict[Selection, devicetools.Elements]]:
         ...
 
     @overload
     def query_intersections(
         self, selection2element: Literal[False]
-    ) -> Dict[devicetools.Element, Selections]:
+    ) -> dict[devicetools.Element, Selections]:
         ...
 
     def query_intersections(
         self, selection2element: bool = True
     ) -> Union[
-        Dict[Selection, Dict[Selection, devicetools.Elements]],
-        Dict[devicetools.Element, Selections],
+        dict[Selection, dict[Selection, devicetools.Elements]],
+        dict[devicetools.Element, Selections],
     ]:
         """A dictionary covering all cases where one |Element| object is a member of
         multiple |Selection| objects.
@@ -304,8 +304,8 @@ objects, but the type of the given argument is `str`.
         example.
         """
         if selection2element:
-            intersections: Dict[
-                Selection, Dict[Selection, devicetools.Elements]
+            intersections: dict[
+                Selection, dict[Selection, devicetools.Elements]
             ] = collections.defaultdict(dict)
             for selection1, selection2 in itertools.combinations(self, 2):
                 intersection = selection1.elements.intersection(*selection2.elements)
@@ -313,7 +313,7 @@ objects, but the type of the given argument is `str`.
                     intersections[selection1][selection2] = intersection
                     intersections[selection2][selection1] = intersection
             return dict(intersections)
-        intersections_: Dict[devicetools.Element, Selections] = {}
+        intersections_: dict[devicetools.Element, Selections] = {}
         for element in self.elements:
             selections = self.find(element)
             if len(selections) > 1:
@@ -442,7 +442,7 @@ objects, but the type of the given argument is `str`.
         return len(self.__selections)
 
     @staticmethod
-    def __getiterable(value: Mayberable1[Selection]) -> List[Selection]:
+    def __getiterable(value: Mayberable1[Selection]) -> list[Selection]:
         """Try to convert the given argument to a |list| of  |Selection| objects and
         return it."""
         try:
@@ -508,8 +508,8 @@ objects, but the type of the given argument is `str`.
                     f"{objecttools.assignrepr_values(sorted(self.names), prefix, 70)})"
                 )
 
-    def __dir__(self) -> List[str]:
-        return cast(List[str], super().__dir__()) + list(self.names)
+    def __dir__(self) -> list[str]:
+        return cast(list[str], super().__dir__()) + list(self.names)
 
 
 class Selection:
@@ -1390,8 +1390,8 @@ following error occurred: 'in <string>' requires string as left operand, not lis
                 keywords="catchment")
         <BLANKLINE>
         """
-        aliases: Set[str] = set()
-        fusedvariables: Set[devicetools.FusedVariable] = set()
+        aliases: set[str] = set()
+        fusedvariables: set[devicetools.FusedVariable] = set()
         for variable in self.nodes.variables:
             if isinstance(variable, str):
                 continue

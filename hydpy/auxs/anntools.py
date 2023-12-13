@@ -483,7 +483,7 @@ is not usable so far.  At least, you have to prepare attribute `nmb_outputs` fir
         self,
         *,
         nmb_inputs: int = 1,
-        nmb_neurons: Tuple[int, ...] = (1,),
+        nmb_neurons: tuple[int, ...] = (1,),
         nmb_outputs: int = 1,
         weights_input: Optional[MatrixInputFloat] = None,
         weights_output: Optional[MatrixInputFloat] = None,
@@ -510,7 +510,7 @@ is not usable so far.  At least, you have to prepare attribute `nmb_outputs` fir
         self,
         *,
         nmb_inputs: int = 1,
-        nmb_neurons: Tuple[int, ...] = (1,),
+        nmb_neurons: tuple[int, ...] = (1,),
         nmb_outputs: int = 1,
         weights_input: Optional[MatrixInputFloat] = None,
         weights_output: Optional[MatrixInputFloat] = None,
@@ -602,7 +602,7 @@ object `ann` has not been prepared so far.
         fget=_get_nmb_outputs, fset=_set_nmb_outputs, fdel=_del_nmb_outputs
     )
 
-    def _get_nmb_neurons(self) -> Tuple[int, ...]:
+    def _get_nmb_neurons(self) -> tuple[int, ...]:
         """The number of neurons of the hidden layers.
 
         >>> from hydpy import ANN
@@ -621,7 +621,7 @@ object `ann` has not been prepared so far.
         """
         return tuple(numpy.asarray(self._calgorithm.nmb_neurons))
 
-    def _set_nmb_neurons(self, value: Tuple[int, ...]) -> None:
+    def _set_nmb_neurons(self, value: tuple[int, ...]) -> None:
         self._calgorithm.nmb_neurons = numpy.array(value, dtype=int, ndmin=1)
         self._calgorithm.nmb_layers = len(value)
         self.__max_nmb_neurons = max(value)
@@ -630,7 +630,7 @@ object `ann` has not been prepared so far.
     def _del_nmb_neurons(self) -> None:
         pass
 
-    nmb_neurons = propertytools.ProtectedProperty[Tuple[int, ...], Tuple[int, ...]](
+    nmb_neurons = propertytools.ProtectedProperty[tuple[int, ...], tuple[int, ...]](
         fget=_get_nmb_neurons, fset=_set_nmb_neurons, fdel=_del_nmb_neurons
     )
 
@@ -650,7 +650,7 @@ object `ann` has not been prepared so far.
         return self.nmb_neurons[0] * self.nmb_inputs
 
     @property
-    def shape_weights_input(self) -> Tuple[int, int]:
+    def shape_weights_input(self) -> tuple[int, int]:
         """The shape of the array containing the input weights.
 
         The first integer value is the number of input nodes; the second integer value
@@ -733,7 +733,7 @@ broadcast input array from shape (3,3) into shape (2,3)
     )
 
     @property
-    def shape_weights_output(self) -> Tuple[int, int]:
+    def shape_weights_output(self) -> tuple[int, int]:
         """The shape of the array containing the output weights.
 
         The first integer value is the number of neurons of the first hidden layer; the
@@ -768,7 +768,7 @@ broadcast input array from shape (3,3) into shape (2,3)
     )
 
     @property
-    def shape_weights_hidden(self) -> Tuple[int, int, int]:
+    def shape_weights_hidden(self) -> tuple[int, int, int]:
         """The shape of the array containing the activation of the hidden neurons.
 
         The first integer value is the number of connections between the hidden layers.
@@ -815,7 +815,7 @@ broadcast input array from shape (3,3) into shape (2,3)
     )
 
     @property
-    def shape_intercepts_hidden(self) -> Tuple[int, int]:
+    def shape_intercepts_hidden(self) -> tuple[int, int]:
         """The shape of the array containing the intercepts of neurons of the hidden
         layers.
 
@@ -844,7 +844,7 @@ broadcast input array from shape (3,3) into shape (2,3)
     )
 
     @property
-    def shape_intercepts_output(self) -> Tuple[int]:
+    def shape_intercepts_output(self) -> tuple[int]:
         """The shape of the array containing the intercepts of neurons of the hidden
         layers.
 
@@ -878,7 +878,7 @@ broadcast input array from shape (3,3) into shape (2,3)
     )
 
     @property
-    def shape_activation(self) -> Tuple[int, int]:
+    def shape_activation(self) -> tuple[int, int]:
         """The shape of the array defining the activation function for each neuron of
         the hidden layers.
 
@@ -1046,7 +1046,7 @@ broadcast input array from shape (3,3) into shape (2,3)
     )
 
     @property
-    def shape_inputs(self) -> Tuple[int]:
+    def shape_inputs(self) -> tuple[int]:
         """The shape of the array containing the input values.
 
         The only integer value is the number of input nodes:
@@ -1068,7 +1068,7 @@ broadcast input array from shape (3,3) into shape (2,3)
     )
 
     @property
-    def shape_outputs(self) -> Tuple[int]:
+    def shape_outputs(self) -> tuple[int]:
         """The shape of the array containing the output values.
 
         The only integer value is the number of output nodes:
@@ -1090,7 +1090,7 @@ broadcast input array from shape (3,3) into shape (2,3)
     )
 
     @property
-    def shape_output_derivatives(self) -> Tuple[int]:
+    def shape_output_derivatives(self) -> tuple[int]:
         """The shape of the array containing the output derivatives.
 
         The only integer value is the number of output nodes:
@@ -1125,7 +1125,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         protected=__protectedproperties, fget=_get_nmb_layers
     )
 
-    def _get_shape_neurons(self) -> Tuple[int, int]:
+    def _get_shape_neurons(self) -> tuple[int, int]:
         """The shape of the array containing the activations of the neurons of the
         hidden layers.
 
@@ -1139,7 +1139,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """
         return self.nmb_layers, self.__max_nmb_neurons
 
-    shape_neurons = propertytools.DependentProperty[Tuple[int, int], Tuple[int, int]](
+    shape_neurons = propertytools.DependentProperty[tuple[int, int], tuple[int, int]](
         protected=__protectedproperties, fget=_get_shape_neurons
     )
 
@@ -1152,7 +1152,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """,
     )
 
-    def _get_shape_neuron_derivatives(self) -> Tuple[int, int]:
+    def _get_shape_neuron_derivatives(self) -> tuple[int, int]:
         """The shape of the array containing the derivatives of the activities of the
         neurons of the hidden layers.
 
@@ -1167,7 +1167,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         return self.nmb_layers, self.__max_nmb_neurons
 
     shape_neuron_derivatives = propertytools.DependentProperty[
-        Tuple[int, int], Tuple[int, int]
+        tuple[int, int], tuple[int, int]
     ](protected=__protectedproperties, fget=_get_shape_neuron_derivatives)
 
     neuron_derivatives = _ANNArrayProperty[Optional[MatrixInputFloat], MatrixFloat](

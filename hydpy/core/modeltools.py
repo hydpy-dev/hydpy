@@ -46,26 +46,26 @@ TypeSubmodelInterface = TypeVar("TypeSubmodelInterface", bound="SubmodelInterfac
 
 
 class _ModelModule(types.ModuleType):
-    ControlParameters: Type[parametertools.SubParameters]
-    DerivedParameters: Type[parametertools.SubParameters]
-    FixedParameters: Type[parametertools.SubParameters]
-    SolverParameters: Type[parametertools.SubParameters]
+    ControlParameters: type[parametertools.SubParameters]
+    DerivedParameters: type[parametertools.SubParameters]
+    FixedParameters: type[parametertools.SubParameters]
+    SolverParameters: type[parametertools.SubParameters]
 
 
 class Method:
     """Base class for defining (hydrological) calculation methods."""
 
-    SUBMODELINTERFACES: ClassVar[Tuple[Type[SubmodelInterface], ...]]
-    SUBMETHODS: Tuple[Type[Method], ...] = ()
-    CONTROLPARAMETERS: Tuple[
-        Type[Union[parametertools.Parameter, interptools.BaseInterpolator]], ...
+    SUBMODELINTERFACES: ClassVar[tuple[type[SubmodelInterface], ...]]
+    SUBMETHODS: tuple[type[Method], ...] = ()
+    CONTROLPARAMETERS: tuple[
+        type[Union[parametertools.Parameter, interptools.BaseInterpolator]], ...
     ] = ()
-    DERIVEDPARAMETERS: Tuple[Type[parametertools.Parameter], ...] = ()
-    FIXEDPARAMETERS: Tuple[Type[parametertools.Parameter], ...] = ()
-    SOLVERPARAMETERS: Tuple[Type[parametertools.Parameter], ...] = ()
-    REQUIREDSEQUENCES: Tuple[Type[sequencetools.Sequence_], ...] = ()
-    UPDATEDSEQUENCES: Tuple[Type[sequencetools.Sequence_], ...] = ()
-    RESULTSEQUENCES: Tuple[Type[sequencetools.Sequence_], ...] = ()
+    DERIVEDPARAMETERS: tuple[type[parametertools.Parameter], ...] = ()
+    FIXEDPARAMETERS: tuple[type[parametertools.Parameter], ...] = ()
+    SOLVERPARAMETERS: tuple[type[parametertools.Parameter], ...] = ()
+    REQUIREDSEQUENCES: tuple[type[sequencetools.Sequence_], ...] = ()
+    UPDATEDSEQUENCES: tuple[type[sequencetools.Sequence_], ...] = ()
+    RESULTSEQUENCES: tuple[type[sequencetools.Sequence_], ...] = ()
 
     __call__: Callable
     __name__: str
@@ -85,7 +85,7 @@ class AutoMethod(Method):
             method.__call__(model)
 
 
-abstractmodelmethods: Set[Callable[..., Any]] = set()
+abstractmodelmethods: set[Callable[..., Any]] = set()
 
 
 def abstractmodelmethod(method: Callable[P, T]) -> Callable[P, T]:
@@ -105,7 +105,7 @@ def abstractmodelmethod(method: Callable[P, T]) -> Callable[P, T]:
 
 
 class _SubmodelPropertyBase(Generic[TypeSubmodelInterface]):
-    interfaces: Tuple[Type[TypeSubmodelInterface], ...]
+    interfaces: tuple[type[TypeSubmodelInterface], ...]
 
     _CYTHON_PYTHON_SUBMODEL_ERROR_MESSAGE: Final = (
         "The main model is initialised in Cython mode, but the submodel is "
@@ -125,7 +125,7 @@ class _SubmodelPropertyBase(Generic[TypeSubmodelInterface]):
 
     def _find_first_suitable_interface(
         self, submodel: TypeSubmodelInterface
-    ) -> Type[SubmodelInterface]:
+    ) -> type[SubmodelInterface]:
         for interface in self.interfaces:
             if isinstance(submodel, interface):
                 return interface
@@ -221,7 +221,7 @@ instance of any of the following supported interfaces: SoilModel_V1.
 
     name: str
     """The addressed submodels' group name."""
-    interfaces: Tuple[Type[TypeSubmodelInterface], ...]
+    interfaces: tuple[type[TypeSubmodelInterface], ...]
     """The supported interfaces."""
     optional: Final[bool]
     """Flag indicating whether a submodel is optional or strictly required."""
@@ -231,12 +231,12 @@ instance of any of the following supported interfaces: SoilModel_V1.
     "real" submodels of a third model but need direct references."""
 
     __hydpy_modeltype2instance__: ClassVar[
-        DefaultDict[Type[Model], List[SubmodelProperty[Any]]]
+        collections.defaultdict[type[Model], list[SubmodelProperty[Any]]]
     ] = collections.defaultdict(lambda: [])
 
     def __init__(
         self,
-        *interfaces: Type[TypeSubmodelInterface],
+        *interfaces: type[TypeSubmodelInterface],
         optional: bool = False,
         sidemodel: bool = False,
     ) -> None:
@@ -255,22 +255,22 @@ instance of any of the following supported interfaces: SoilModel_V1.
             f"{objecttools.enumeration(interfacenames, conjunction='or')}."
         )
 
-    def __set_name__(self, owner: Type[Model], name: str) -> None:
+    def __set_name__(self, owner: type[Model], name: str) -> None:
         self.name = name
         self.__hydpy_modeltype2instance__[owner].append(self)
 
     @overload
-    def __get__(self, obj: None, objtype: Optional[Type[Model]]) -> Self:
+    def __get__(self, obj: None, objtype: Optional[type[Model]]) -> Self:
         ...
 
     @overload
     def __get__(
-        self, obj: Model, objtype: Optional[Type[Model]]
+        self, obj: Model, objtype: Optional[type[Model]]
     ) -> Optional[TypeSubmodelInterface]:
         ...
 
     def __get__(
-        self, obj: Optional[Model], objtype: Optional[Type[Model]] = None
+        self, obj: Optional[Model], objtype: Optional[type[Model]] = None
     ) -> Union[Self, Optional[TypeSubmodelInterface]]:
         if obj is None:
             return self
@@ -328,7 +328,7 @@ class SubmodelsProperty(_SubmodelPropertyBase[TypeSubmodelInterface]):
 
     name: str
     """The addressed submodels' group name."""
-    interfaces: Tuple[Type[TypeSubmodelInterface], ...]
+    interfaces: tuple[type[TypeSubmodelInterface], ...]
     """The supported interfaces."""
     sidemodels: bool
     """Flag indicating whether the handled submodel is more a "side model" than a 
@@ -336,22 +336,22 @@ class SubmodelsProperty(_SubmodelPropertyBase[TypeSubmodelInterface]):
     "real" submodels of a third model but need direct references."""
 
     __hydpy_modeltype2instance__: ClassVar[
-        DefaultDict[Type[Model], List[SubmodelsProperty[Any]]]
+        collections.defaultdict[type[Model], list[SubmodelsProperty[Any]]]
     ] = collections.defaultdict(lambda: [])
-    __hydpy_mainmodel2submodels__: DefaultDict[
-        Model, List[Optional[TypeSubmodelInterface]]
+    __hydpy_mainmodel2submodels__: collections.defaultdict[
+        Model, list[Optional[TypeSubmodelInterface]]
     ]
 
     _mainmodel: Optional[Model]
-    _mainmodel2numbersubmodels: DefaultDict[Model, int]
-    _mainmodel2submodeltypeids: DefaultDict[Model, List[int]]
+    _mainmodel2numbersubmodels: collections.defaultdict[Model, int]
+    _mainmodel2submodeltypeids: collections.defaultdict[Model, list[int]]
 
-    def __set_name__(self, owner: Type[Model], name: str) -> None:
+    def __set_name__(self, owner: type[Model], name: str) -> None:
         self.name = name
         self.__hydpy_modeltype2instance__[owner].append(self)
 
     def __init__(
-        self, *interfaces: Type[TypeSubmodelInterface], sidemodels: bool = False
+        self, *interfaces: type[TypeSubmodelInterface], sidemodels: bool = False
     ) -> None:
         self.interfaces = tuple(interfaces)
         self.sidemodels = sidemodels
@@ -366,7 +366,7 @@ class SubmodelsProperty(_SubmodelPropertyBase[TypeSubmodelInterface]):
         )
 
     def __get__(
-        self, obj: Optional[Model], objtype: Optional[Type[Model]] = None
+        self, obj: Optional[Model], objtype: Optional[type[Model]] = None
     ) -> Self:
         if obj is None:
             return self
@@ -746,7 +746,7 @@ interfaces: RoutingModel_V1 and RoutingModel_V2.
             )
 
     @property
-    def submodels(self) -> Tuple[Optional[TypeSubmodelInterface], ...]:
+    def submodels(self) -> tuple[Optional[TypeSubmodelInterface], ...]:
         """The currently handled submodels.
 
         >>> from hydpy import prepare_model
@@ -761,7 +761,7 @@ interfaces: RoutingModel_V1 and RoutingModel_V2.
         return tuple(self.__hydpy_mainmodel2submodels__[mainmodel])
 
     @property
-    def typeids(self) -> Tuple[int, ...]:
+    def typeids(self) -> tuple[int, ...]:
         """The interface-specific type IDs of the currently handled submodels.
 
         >>> from hydpy import prepare_model
@@ -811,26 +811,26 @@ class SubmodelIsMainmodelProperty:
     1
     """
 
-    _owner2value: Dict[Model, bool]
+    _owner2value: dict[Model, bool]
     _name: Final[str]  # type: ignore[misc]
 
     def __init__(self, doc: Optional[str] = None) -> None:
         self._owner2value = {}
         self.__doc__ = doc
 
-    def __set_name__(self, owner: Type[Model], name: str) -> None:
+    def __set_name__(self, owner: type[Model], name: str) -> None:
         self._name = name  # type: ignore[misc]
 
     @overload
-    def __get__(self, obj: None, objtype: Optional[Type[Model]]) -> Self:
+    def __get__(self, obj: None, objtype: Optional[type[Model]]) -> Self:
         ...
 
     @overload
-    def __get__(self, obj: Model, objtype: Optional[Type[Model]]) -> bool:
+    def __get__(self, obj: Model, objtype: Optional[type[Model]]) -> bool:
         ...
 
     def __get__(
-        self, obj: Optional[Model], objtype: Optional[Type[Model]] = None
+        self, obj: Optional[Model], objtype: Optional[type[Model]] = None
     ) -> Union[Self, bool]:
         if obj is None:
             return self
@@ -865,26 +865,26 @@ class SubmodelTypeIDProperty:
     1
     """
 
-    _owner2value: Dict[Model, int]
+    _owner2value: dict[Model, int]
     _name: Final[str]  # type: ignore[misc]
 
     def __init__(self, doc: Optional[str] = None) -> None:
         self._owner2value = {}
         self.__doc__ = doc
 
-    def __set_name__(self, owner: Type[Model], name: str) -> None:
+    def __set_name__(self, owner: type[Model], name: str) -> None:
         self._name = name  # type: ignore[misc]
 
     @overload
-    def __get__(self, obj: None, objtype: Optional[Type[Model]]) -> Self:
+    def __get__(self, obj: None, objtype: Optional[type[Model]]) -> Self:
         ...
 
     @overload
-    def __get__(self, obj: Model, objtype: Optional[Type[Model]]) -> int:
+    def __get__(self, obj: Model, objtype: Optional[type[Model]]) -> int:
         ...
 
     def __get__(
-        self, obj: Optional[Model], objtype: Optional[Type[Model]] = None
+        self, obj: Optional[Model], objtype: Optional[type[Model]] = None
     ) -> Union[Self, int]:
         if obj is None:
             return self
@@ -905,14 +905,14 @@ class IndexProperty:
         self.name = name.lower()
 
     @overload
-    def __get__(self, obj: Model, objtype: Type[Model]) -> int:
+    def __get__(self, obj: Model, objtype: type[Model]) -> int:
         ...
 
     @overload
-    def __get__(self, obj: None, objtype: Type[Model]) -> Self:
+    def __get__(self, obj: None, objtype: type[Model]) -> Self:
         ...
 
-    def __get__(self, obj: Optional[Model], objtype: Type[Model]) -> Union[Self, int]:
+    def __get__(self, obj: Optional[Model], objtype: type[Model]) -> Union[Self, int]:
         if obj is None:
             return self
         if obj.cymodel:
@@ -1042,16 +1042,16 @@ class Model:
     __hydpy_element__: Optional[devicetools.Element]
     _NAME: ClassVar[str]
 
-    INLET_METHODS: ClassVar[Tuple[Type[Method], ...]]
-    OUTLET_METHODS: ClassVar[Tuple[Type[Method], ...]]
-    RECEIVER_METHODS: ClassVar[Tuple[Type[Method], ...]]
-    SENDER_METHODS: ClassVar[Tuple[Type[Method], ...]]
-    ADD_METHODS: ClassVar[Tuple[Callable, ...]]
-    METHOD_GROUPS: ClassVar[Tuple[str, ...]]
-    SUBMODELINTERFACES: ClassVar[Tuple[Type[SubmodelInterface], ...]]
-    SUBMODELS: ClassVar[Tuple[Type[Submodel], ...]]
+    INLET_METHODS: ClassVar[tuple[type[Method], ...]]
+    OUTLET_METHODS: ClassVar[tuple[type[Method], ...]]
+    RECEIVER_METHODS: ClassVar[tuple[type[Method], ...]]
+    SENDER_METHODS: ClassVar[tuple[type[Method], ...]]
+    ADD_METHODS: ClassVar[tuple[Callable, ...]]
+    METHOD_GROUPS: ClassVar[tuple[str, ...]]
+    SUBMODELINTERFACES: ClassVar[tuple[type[SubmodelInterface], ...]]
+    SUBMODELS: ClassVar[tuple[type[Submodel], ...]]
 
-    SOLVERPARAMETERS: Tuple[Type[parametertools.Parameter], ...] = ()
+    SOLVERPARAMETERS: tuple[type[parametertools.Parameter], ...] = ()
 
     COMPOSITE: bool = False
     """Flag for informing whether the respective |Model| subclass is usually not 
@@ -1067,8 +1067,8 @@ class Model:
     def _init_methods(self) -> None:
         """Convert all pure Python calculation functions of the model class to methods
         and assign them to the model instance."""
-        blacklist_shortnames: Set[str] = set()
-        shortname2method: Dict[str, types.MethodType] = {}
+        blacklist_shortnames: set[str] = set()
+        shortname2method: dict[str, types.MethodType] = {}
         for cls_ in self.get_methods():
             longname = cls_.__name__.lower()
             method = types.MethodType(cls_.__call__, self)
@@ -1766,8 +1766,8 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         simulationstep: Optional[timetools.PeriodConstrArg] = None,
         auxfiler: Optional[auxfiletools.Auxfiler] = None,
         sublevel: int = 0,
-        ignore: Optional[Tuple[Type[parametertools.Parameter], ...]] = None,
-    ) -> List[str]:
+        ignore: Optional[tuple[type[parametertools.Parameter], ...]] = None,
+    ) -> list[str]:
         parameter2auxfile = None if auxfiler is None else auxfiler.get(self)
         lines = []
         opts = hydpy.pub.options
@@ -1872,10 +1872,10 @@ to be consistent with the name of the element handling the model.
         """
 
         def _extend_lines_submodel(
-            model: Model, sublevel: int, preparemethods: Set[str]
+            model: Model, sublevel: int, preparemethods: set[str]
         ) -> None:
             def _find_adder_and_position() -> (
-                Tuple[importtools.SubmodelAdder, Optional[str]]
+                tuple[importtools.SubmodelAdder, Optional[str]]
             ):
                 mt2sn2as = importtools.SubmodelAdder.__hydpy_maintype2subname2adders__
                 subname, position = name.rpartition(".")[2], None
@@ -2390,7 +2390,7 @@ element.
         self.sequences.update_outputs()
 
     @classmethod
-    def get_methods(cls, skip: Tuple[MethodGroup, ...] = ()) -> Iterator[Type[Method]]:
+    def get_methods(cls, skip: tuple[MethodGroup, ...] = ()) -> Iterator[type[Method]]:
         """Convenience method for iterating through all methods selected by a |Model|
         subclass.
 
@@ -2454,7 +2454,7 @@ element.
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
         position: Optional[Literal[0, -1]] = None,
-    ) -> Dict[str, Model]:
+    ) -> dict[str, Model]:
         ...
 
     @overload
@@ -2468,7 +2468,7 @@ element.
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
         position: Optional[Literal[0, -1]] = None,
-    ) -> Dict[str, Optional[Model]]:
+    ) -> dict[str, Optional[Model]]:
         ...
 
     @overload
@@ -2481,7 +2481,7 @@ element.
         include_optional: Literal[False] = ...,
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[True],
-    ) -> Dict[str, Optional[Model]]:
+    ) -> dict[str, Optional[Model]]:
         ...
 
     @overload
@@ -2494,7 +2494,7 @@ element.
         include_optional: Literal[True],
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[True],
-    ) -> Dict[str, Optional[Model]]:
+    ) -> dict[str, Optional[Model]]:
         ...
 
     @overload
@@ -2508,7 +2508,7 @@ element.
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
         position: Optional[Literal[0, -1]] = None,
-    ) -> Dict[str, Model]:
+    ) -> dict[str, Model]:
         ...
 
     @overload
@@ -2522,7 +2522,7 @@ element.
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
         position: Optional[Literal[0, -1]] = None,
-    ) -> Dict[str, Optional[Model]]:
+    ) -> dict[str, Optional[Model]]:
         ...
 
     @overload
@@ -2535,7 +2535,7 @@ element.
         include_optional: Literal[False] = ...,
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[True],
-    ) -> Dict[str, Optional[Model]]:
+    ) -> dict[str, Optional[Model]]:
         ...
 
     @overload
@@ -2548,7 +2548,7 @@ element.
         include_optional: Literal[True],
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[True],
-    ) -> Dict[str, Optional[Model]]:
+    ) -> dict[str, Optional[Model]]:
         ...
 
     def find_submodels(
@@ -2561,7 +2561,7 @@ element.
         include_feedbacks: bool = False,
         aggregate_vectors: bool = False,
         position: Optional[Literal[0, -1]] = None,
-    ) -> Union[Dict[str, Model], Dict[str, Optional[Model]]]:
+    ) -> Union[dict[str, Model], dict[str, Optional[Model]]]:
         """Find the (sub)submodel instances of the current main model instance.
 
         Method |Model.find_submodels| returns by default an empty dictionary if no
@@ -2762,7 +2762,7 @@ but the value `1` of type `int` is given.
                         seen.add(submodel)
                         _find_submodels(subname, submodel)
 
-        seen: Set[Model] = set([self])
+        seen: set[Model] = set([self])
         name2submodel = {"model": self} if include_mainmodel else {}
         _find_submodels("model", self)
         return dict(sorted(name2submodel.items()))
@@ -2903,7 +2903,7 @@ but the value `1` of type `int` is given.
 
         allsequences = set()
         st = sequencetools
-        infos: Tuple[Tuple[Type[Any], Type[Any], Set[Any]], ...] = (
+        infos: tuple[tuple[type[Any], type[Any], set[Any]], ...] = (
             (st.InletSequences, st.InletSequence, set()),
             (st.ReceiverSequences, st.ReceiverSequence, set()),
             (st.InputSequences, st.InputSequence, set()),
@@ -2995,7 +2995,7 @@ class RunModel(Model):
     methods", which need to be executed in the order of their positions in the
     |RunModel.RUN_METHODS| tuple."""
 
-    RUN_METHODS: ClassVar[Tuple[Type[Method], ...]]
+    RUN_METHODS: ClassVar[tuple[type[Method], ...]]
     METHOD_GROUPS = (
         "RECEIVER_METHODS",
         "INLET_METHODS",
@@ -3195,8 +3195,8 @@ class SolverModel(Model):
     """Base class for hydrological models, which solve ordinary differential equations
     with numerical integration algorithms."""
 
-    PART_ODE_METHODS: ClassVar[Tuple[Type[Method], ...]]
-    FULL_ODE_METHODS: ClassVar[Tuple[Type[Method], ...]]
+    PART_ODE_METHODS: ClassVar[tuple[type[Method], ...]]
+    FULL_ODE_METHODS: ClassVar[tuple[type[Method], ...]]
 
     @abc.abstractmethod
     def solve(self) -> None:
@@ -3323,9 +3323,9 @@ class ELSModel(SolverModel):
     simulation times.
     """
 
-    SOLVERSEQUENCES: ClassVar[Tuple[Type[sequencetools.DependentSequence], ...]]
-    PART_ODE_METHODS: ClassVar[Tuple[Type[Method], ...]]
-    FULL_ODE_METHODS: ClassVar[Tuple[Type[Method], ...]]
+    SOLVERSEQUENCES: ClassVar[tuple[type[sequencetools.DependentSequence], ...]]
+    PART_ODE_METHODS: ClassVar[tuple[type[Method], ...]]
+    FULL_ODE_METHODS: ClassVar[tuple[type[Method], ...]]
     METHOD_GROUPS = (
         "RECEIVER_METHODS",
         "INLET_METHODS",
@@ -4319,9 +4319,9 @@ class ELSModel(SolverModel):
 class SubmodelInterface(Model, abc.ABC):
     """Base class for defining interfaces for submodels."""
 
-    INTERFACE_METHODS: ClassVar[Tuple[Type[Method], ...]]
+    INTERFACE_METHODS: ClassVar[tuple[type[Method], ...]]
     _submodeladder: Optional[importtools.SubmodelAdder]
-    preparemethod2arguments: Dict[str, Tuple[Tuple[Any, ...], Dict[str, Any]]]
+    preparemethod2arguments: dict[str, tuple[tuple[Any, ...], dict[str, Any]]]
 
     typeid: ClassVar[int]
     """Type identifier that we use for differentiating submodels that target the same 
@@ -4379,9 +4379,9 @@ class Submodel:
     interfaces and Cython implementations of a root-finding algorithms, respectively.
     """
 
-    METHODS: ClassVar[Tuple[Type[Method], ...]]
-    CYTHONBASECLASS: ClassVar[Type]
-    PYTHONCLASS: ClassVar[Type]
+    METHODS: ClassVar[tuple[type[Method], ...]]
+    CYTHONBASECLASS: ClassVar[type[object]]
+    PYTHONCLASS: ClassVar[type[object]]
     name: ClassVar[str]
     _cysubmodel: object
 
@@ -4414,7 +4414,7 @@ class CoupleModels(Protocol[TypeModel_co]):
 
 
 def define_modelcoupler(
-    inputtypes: Tuple[Type[TypeModel_contra], ...], outputtype: Type[TypeModel_co]
+    inputtypes: tuple[type[TypeModel_contra], ...], outputtype: type[TypeModel_co]
 ) -> Callable[
     [CoupleModels[TypeModel_co]], ModelCoupler[TypeModel_co, TypeModel_contra]
 ]:
@@ -4485,14 +4485,14 @@ occurred: `musk_classic` of element `e3` is not among the supported model types:
 sw1d_channel.
     """
 
-    _inputtypes: Tuple[Type[TypeModel_contra], ...]
-    _outputtype: Type[TypeModel_co]
+    _inputtypes: tuple[type[TypeModel_contra], ...]
+    _outputtype: type[TypeModel_co]
     _wrapped: CoupleModels
 
     def __init__(
         self,
-        inputtypes: Tuple[Type[TypeModel_contra], ...],
-        outputtype: Type[TypeModel_co],
+        inputtypes: tuple[type[TypeModel_contra], ...],
+        outputtype: type[TypeModel_co],
         wrapped: CoupleModels[TypeModel_co],
     ) -> None:
         self._inputtypes = inputtypes

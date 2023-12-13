@@ -594,7 +594,7 @@ class ResetAttrFuncs:
 
     def __exit__(
         self,
-        exception_type: Type[BaseException],
+        exception_type: type[BaseException],
         exception_value: BaseException,
         traceback_: types.TracebackType,
     ) -> None:
@@ -614,7 +614,7 @@ def copy_(self: T) -> T:
         return copy.copy(self)
 
 
-def deepcopy_(self: T, memo: Optional[Dict[int, object]]) -> T:
+def deepcopy_(self: T, memo: Optional[dict[int, object]]) -> T:
     """Deepcopy function for classes with modified attribute functions.
 
     See the documentation on class |ResetAttrFuncs| for further information.
@@ -724,7 +724,7 @@ class _PreserveStrings:
 
     def __exit__(
         self,
-        exception_type: Type[BaseException],
+        exception_type: type[BaseException],
         exception_value: BaseException,
         traceback: types.TracebackType,
     ) -> None:
@@ -1059,7 +1059,7 @@ class _AssignReprBracketed:
 
         def __exit__(
             self,
-            exception_type: Type[BaseException],
+            exception_type: type[BaseException],
             exception_value: BaseException,
             traceback: types.TracebackType,
         ) -> None:
@@ -1622,7 +1622,7 @@ and `rfill`.  This is not allowed.
 
 @overload
 def extract(
-    values: Union[Iterable[object], object], types_: Tuple[Type[T1]], skip: bool = False
+    values: Union[Iterable[object], object], types_: tuple[type[T1]], skip: bool = False
 ) -> Iterator[T1]:
     """Extract all objects of one defined type."""
 
@@ -1630,7 +1630,7 @@ def extract(
 @overload
 def extract(
     values: Union[Iterable[object], object],
-    types_: Tuple[Type[T1], Type[T2]],
+    types_: tuple[type[T1], type[T2]],
     skip: bool = False,
 ) -> Iterator[Union[T1, T2]]:
     """Extract all objects of two defined types."""
@@ -1639,7 +1639,7 @@ def extract(
 @overload
 def extract(
     values: Union[Iterable[object], object],
-    types_: Tuple[Type[T1], Type[T2], Type[T3]],
+    types_: tuple[type[T1], type[T2], type[T3]],
     skip: bool = False,
 ) -> Iterator[Union[T1, T2, T3]]:
     """Extract all objects of three defined types."""
@@ -1648,7 +1648,7 @@ def extract(
 def extract(
     values: Union[Iterable[object], object],
     types_: Union[
-        Tuple[Type[T1]], Tuple[Type[T1], Type[T2]], Tuple[Type[T1], Type[T2], Type[T3]]
+        tuple[type[T1]], tuple[type[T1], type[T2]], tuple[type[T1], type[T2], type[T3]]
     ],
     skip: bool = False,
 ) -> Iterator[Union[T1, T2, T3]]:

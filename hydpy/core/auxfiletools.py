@@ -145,7 +145,7 @@ nor does it handle a model named `lland_v1`...
     False
     """
 
-    _model2subauxfiler: Dict[str, SubAuxfiler]
+    _model2subauxfiler: dict[str, SubAuxfiler]
 
     def __init__(self, *models: Union[str, types.ModuleType, modeltools.Model]) -> None:
         self._model2subauxfiler = {}
@@ -224,7 +224,7 @@ nor does it handle a model named `lland_v1`...
             ) from None
 
     @property
-    def modelnames(self) -> Tuple[str, ...]:
+    def modelnames(self) -> tuple[str, ...]:
         """A sorted |tuple| of all names of the handled models.
 
         >>> from hydpy import Auxfiler
@@ -356,7 +356,7 @@ nor does it handle a model named `lland_v1`...
             )
         super().__delattr__(name)
 
-    def __iter__(self) -> Iterator[Tuple[str, SubAuxfiler]]:
+    def __iter__(self) -> Iterator[tuple[str, SubAuxfiler]]:
         for item in sorted(self._model2subauxfiler.items()):
             yield item
 
@@ -365,14 +365,14 @@ nor does it handle a model named `lland_v1`...
             type(self).__name__, *sorted(f"{name}" for name in self.modelnames)
         )
 
-    def __dir__(self) -> List[str]:
+    def __dir__(self) -> list[str]:
         """
         >>> aux = Auxfiler()
         >>> aux.add_models("llake_v1", "lland_v1", "lstream_v001")
         >>> sorted(set(dir(aux)) - set(object.__dir__(aux)))
         ['llake_v1', 'lland_v1', 'lstream_v001']
         """
-        return cast(List[str], super().__dir__()) + list(self.modelnames)
+        return cast(list[str], super().__dir__()) + list(self.modelnames)
 
 
 class SubAuxfiler:
@@ -386,7 +386,7 @@ class SubAuxfiler:
 
     _master: Optional[Auxfiler]
     _model: Optional[modeltools.Model]
-    _type2filename2reference: Dict[Type[parametertools.Parameter], Dict[str, Reference]]
+    _type2filename2reference: dict[type[parametertools.Parameter], dict[str, Reference]]
 
     def __init__(
         self,
@@ -595,7 +595,7 @@ handled by the actual `SubAuxfiler` object.
 
     @staticmethod
     def _check_duplicate(
-        filename2reference: Dict[str, Reference],
+        filename2reference: dict[str, Reference],
         parameter: parametertools.Parameter,
         filename: str,
         keywordarguments: Optional[parametertools.KeywordArguments[T]],
@@ -633,7 +633,7 @@ handled by the actual `SubAuxfiler` object.
 
     def remove_parameters(
         self,
-        parametertype: Optional[Type[parametertools.Parameter]] = None,
+        parametertype: Optional[type[parametertools.Parameter]] = None,
         filename: Optional[str] = None,
     ) -> None:
         """Remove the registered |Parameter| objects of the given type related to the
@@ -767,8 +767,8 @@ error occurred: 'NoneType' object has no attribute 'items'
             )
 
     def get_filenames(
-        self, parametertype: Optional[Type[parametertools.Parameter]] = None
-    ) -> Tuple[str, ...]:
+        self, parametertype: Optional[type[parametertools.Parameter]] = None
+    ) -> tuple[str, ...]:
         """Return a |tuple| of all or a selection of the handled auxiliary file names.
 
         The following (slightly modified) test-setting stems from the documentation on
@@ -804,7 +804,7 @@ error occurred: 'NoneType' object has no attribute 'items'
         >>> subauxfiler.get_filenames(parametertype=type(eqi1))
         ('file1',)
         """
-        filenames: Set[str] = set()
+        filenames: set[str] = set()
         for type_, filename2reference in self._type2filename2reference.items():
             if (parametertype is None) or issubclass(parametertype, type_):
                 filenames.update(filename2reference)
@@ -812,7 +812,7 @@ error occurred: 'NoneType' object has no attribute 'items'
 
     def get_parametertypes(
         self, filename: Optional[str] = None
-    ) -> Tuple[Type[parametertools.Parameter], ...]:
+    ) -> tuple[type[parametertools.Parameter], ...]:
         """Return a |tuple| of all or a selection of the handled parameter types.
 
         The following (slightly modified) test-setting stems from the documentation on
@@ -864,8 +864,8 @@ error occurred: 'NoneType' object has no attribute 'items'
     def get_parameterstrings(
         self,
         filename: Optional[str] = None,
-        parametertype: Optional[Type[parametertools.Parameter]] = None,
-    ) -> Tuple[str, ...]:
+        parametertype: Optional[type[parametertools.Parameter]] = None,
+    ) -> tuple[str, ...]:
         """Return a |tuple| of string representations of all or a selection of the
         handled parameter objects.
 
@@ -927,7 +927,7 @@ error occurred: 'NoneType' object has no attribute 'items'
         >>> subauxfiler.get_parameterstrings(filename="file1", parametertype=type(eqb))
         ('eqb(5000.0)',)
         """
-        strings: List[str] = []
+        strings: list[str] = []
         for type_, fn2ref in variabletools.sort_variables(
             self._type2filename2reference.items()
         ):
@@ -944,8 +944,8 @@ error occurred: 'NoneType' object has no attribute 'items'
     def get_references(
         self,
         filename: Optional[str] = None,
-        parametertype: Optional[Type[parametertools.Parameter]] = None,
-    ) -> Tuple[Reference, ...]:
+        parametertype: Optional[type[parametertools.Parameter]] = None,
+    ) -> tuple[Reference, ...]:
         """Return a |tuple| of all or a selection of the reference parameter objects
         or their related reference keyword arguments.
 
@@ -996,7 +996,7 @@ error occurred: 'NoneType' object has no attribute 'items'
         >>> subauxfiler.get_references(filename="file1", parametertype=type(eqb))
         (eqb(5000.0),)
         """
-        references: List[Reference] = []
+        references: list[Reference] = []
         for type_, fn2ref in variabletools.sort_variables(
             self._type2filename2reference.items()
         ):
@@ -1127,7 +1127,7 @@ file2
             )
         return filenames[0]
 
-    def __getattr__(self, name: str) -> Tuple[Reference, ...]:
+    def __getattr__(self, name: str) -> tuple[Reference, ...]:
         type2ref = {}
         for type_, fn2ref in self._type2filename2reference.items():
             if name == type_.name:
@@ -1149,7 +1149,7 @@ file2
         )
         return f"{repr_})"
 
-    def __dir__(self) -> List[str]:
+    def __dir__(self) -> list[str]:
         """
         >>> from hydpy.models.lland_v1 import *
         >>> parameterstep()
@@ -1173,7 +1173,7 @@ file2
         ['eqb', 'eqd1', 'eqi1', 'file1', 'file2', 'tgr']
         """
         names = itertools.chain(
-            cast(List[str], super().__dir__()),
+            cast(list[str], super().__dir__()),
             self.get_filenames(),
             (type_.__name__.lower() for type_ in self.get_parametertypes()),
         )

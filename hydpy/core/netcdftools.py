@@ -253,7 +253,7 @@ def str2chars(strings: Sequence[str]) -> MatrixBytes:
     return chars
 
 
-def chars2str(chars: MatrixBytes) -> List[str]:
+def chars2str(chars: MatrixBytes) -> list[str]:
     r"""Inversion function of |str2chars|.
 
     >>> from hydpy.core.netcdftools import chars2str
@@ -761,7 +761,7 @@ class JITAccessInfo(NamedTuple):
     timedelta: int
     """Difference between the relevant row of the NetCDF file and the current 
     simulation index (as defined by |Idx_Sim|)."""
-    columns: Tuple[int, ...]
+    columns: tuple[int, ...]
     """Indices of the relevant columns of the NetCDF file correctly ordered with 
     respect to |JITAccessInfo.data|."""
     data: NDArrayFloat
@@ -774,10 +774,10 @@ class JITAccessHandler(NamedTuple):
     reading data from and/or writing data to NetCDF files at each step of a simulation
     run."""
 
-    readers: Tuple[JITAccessInfo, ...]
+    readers: tuple[JITAccessInfo, ...]
     """All |JITAccessInfo| objects responsible for reading data during the simulation 
     run."""
-    writers: Tuple[JITAccessInfo, ...]
+    writers: tuple[JITAccessInfo, ...]
     """All |JITAccessInfo| objects responsible for writing data during the simulation 
     run."""
 
@@ -953,7 +953,7 @@ named `lland_v1` nor does it define a member named `lland_v1`.
                 [83., 84., 85.]]])
     """
 
-    _dir2file2var: Dict[str, Dict[str, NetCDFVariable]]
+    _dir2file2var: dict[str, dict[str, NetCDFVariable]]
 
     def __init__(self) -> None:
         self._dir2file2var = {}
@@ -977,7 +977,7 @@ named `lland_v1` nor does it define a member named `lland_v1`.
             variable = file2var[filename]
         except KeyError:
             aggregation = self._query_aggregation(infoarray)
-            cls: Type[NetCDFVariable]
+            cls: type[NetCDFVariable]
             cls = NetCDFVariableFlat if (aggregation is None) else NetCDFVariableAgg
             filepath = f"{os.path.join(dirpath, filename)}.nc"
             variable = cls(name=sequence.descr_sequence, filepath=filepath)
@@ -1311,13 +1311,13 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
         54.046428, 37.32527, 31.925872, 28.416456
         """
 
-        readers: List[JITAccessInfo] = []
-        writers: List[JITAccessInfo] = []
-        variable2readmode: Dict[NetCDFVariableFlat, bool] = {}
-        variable2ncfile: Dict[NetCDFVariableFlat, netcdf4.Dataset] = {}
-        variable2infos: Dict[NetCDFVariableFlat, List[JITAccessInfo]] = {}
-        variable2sequences: DefaultDict[
-            NetCDFVariableFlat, List[sequencetools.IOSequence]
+        readers: list[JITAccessInfo] = []
+        writers: list[JITAccessInfo] = []
+        variable2readmode: dict[NetCDFVariableFlat, bool] = {}
+        variable2ncfile: dict[NetCDFVariableFlat, netcdf4.Dataset] = {}
+        variable2infos: dict[NetCDFVariableFlat, list[JITAccessInfo]] = {}
+        variable2sequences: collections.defaultdict[
+            NetCDFVariableFlat, list[sequencetools.IOSequence]
         ] = collections.defaultdict(lambda: [])
 
         try:  # pylint: disable=too-many-nested-blocks
@@ -1340,7 +1340,7 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
 
             if variable2sequences:
                 # prepare NetCDF files:
-                variable2timedelta: Dict[NetCDFVariable, int] = {}
+                variable2timedelta: dict[NetCDFVariable, int] = {}
                 tg_init = hydpy.pub.timegrids.init
                 tg_sim = hydpy.pub.timegrids.sim
                 for variable, readmode in variable2readmode.items():
@@ -1402,18 +1402,18 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
                 ncfile.close()
 
     @property
-    def foldernames(self) -> Tuple[str, ...]:
+    def foldernames(self) -> tuple[str, ...]:
         """The names of all folders the sequences shall be read from or written to."""
         return tuple(os.path.split(d)[-1] for d in self._dir2file2var)
 
     @property
-    def filenames(self) -> Tuple[str, ...]:
+    def filenames(self) -> tuple[str, ...]:
         """The names of all relevant |NetCDFVariableBase| objects."""
         filenames = (file2var.keys() for file2var in self._dir2file2var.values())
         return tuple(sorted(set(itertools.chain(*filenames))))
 
     @property
-    def variablenames(self) -> Tuple[str, ...]:
+    def variablenames(self) -> tuple[str, ...]:
         """The names of all handled |NetCDFVariableBase| objects."""
         variables = (file2var.values() for file2var in self._dir2file2var.values())
         return tuple(sorted(set(v.name for v in itertools.chain(*variables))))
@@ -1453,16 +1453,16 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
             for var in file2var.values():
                 yield var
 
-    def __dir__(self) -> List[str]:
+    def __dir__(self) -> list[str]:
         adds_long = []
-        counter: DefaultDict[str, int] = collections.defaultdict(lambda: 0)
+        counter: collections.defaultdict[str, int] = collections.defaultdict(lambda: 0)
         for dirpath, file2var in self._dir2file2var.items():
             dirname = os.path.split(dirpath)[-1]
             for filename in file2var.keys():
                 adds_long.append(f"{dirname}_{filename}")
                 counter[filename] += 1
         adds_short = [name for name, nmb in counter.items() if nmb == 1]
-        return cast(List[str], super().__dir__()) + adds_long + adds_short
+        return cast(list[str], super().__dir__()) + adds_long + adds_short
 
 
 _NetCDFVariableInfo = collections.namedtuple(
@@ -1473,12 +1473,12 @@ _NetCDFVariableInfo = collections.namedtuple(
 class Subdevice2Index:
     """Return type of method |NetCDFVariableBase.query_subdevice2index|."""
 
-    dict_: Dict[str, int]
+    dict_: dict[str, int]
     name_sequence: str
     name_ncfile: str
 
     def __init__(
-        self, dict_: Dict[str, int], name_sequence: str, name_ncfile: str
+        self, dict_: dict[str, int], name_sequence: str, name_ncfile: str
     ) -> None:
         self.dict_ = dict_
         self.name_sequence = name_sequence
@@ -1502,8 +1502,8 @@ class NetCDFVariableBase(abc.ABC):
     """Name of the NetCDF variable within the NetCDF file."""
     filepath: str
     """Path to the relevant NetCDF file."""
-    _descr2sequence: Dict[str, sequencetools.IOSequence]
-    _descr2array: Dict[str, Optional[sequencetools.InfoArray]]
+    _descr2sequence: dict[str, sequencetools.IOSequence]
+    _descr2array: dict[str, Optional[sequencetools.InfoArray]]
 
     def __init__(self, name: str, filepath: str) -> None:
         self.name = name
@@ -1554,7 +1554,7 @@ named `element2`...
 
     @property
     @abc.abstractmethod
-    def subdevicenames(self) -> Tuple[str, ...]:
+    def subdevicenames(self) -> tuple[str, ...]:
         """The names of all relevant (sub)devices."""
 
     @property
@@ -1599,7 +1599,7 @@ named `element2`...
         create_variable(ncfile, subdevices, "S1", (nmb_subdevices, nmb_characters))
         ncfile[subdevices][:, :] = statchars
 
-    def query_subdevices(self, ncfile: netcdf4.Dataset) -> List[str]:
+    def query_subdevices(self, ncfile: netcdf4.Dataset) -> list[str]:
         """Query the names of the (sub)devices of the logged sequences from the given
         NetCDF file.
 
@@ -1766,8 +1766,8 @@ names for variable `flux_prec` (the first found duplicate is `element1`).
                 f"a member named `{name}`."
             ) from None
 
-    def __dir__(self) -> List[str]:
-        return cast(List[str], super().__dir__()) + list(self._descr2sequence.keys())
+    def __dir__(self) -> list[str]:
+        return cast(list[str], super().__dir__()) + list(self._descr2sequence.keys())
 
 
 class NetCDFVariableAgg(NetCDFVariableBase):
@@ -1826,7 +1826,7 @@ class NetCDFVariableAgg(NetCDFVariableBase):
     """
 
     @property
-    def shape(self) -> Tuple[int, int]:
+    def shape(self) -> tuple[int, int]:
         """Required shape of |NetCDFVariableAgg.array|.
 
         The first axis corresponds to the number of timesteps and the second axis to
@@ -1895,7 +1895,7 @@ class NetCDFVariableAgg(NetCDFVariableBase):
         return array
 
     @property
-    def subdevicenames(self) -> Tuple[str, ...]:
+    def subdevicenames(self) -> tuple[str, ...]:
         """The names of all relevant devices."""
         return tuple(self._descr2sequence.keys())
 
@@ -2003,7 +2003,7 @@ NetCDF file `nied.nc` available.
     """
 
     @property
-    def shape(self) -> Tuple[int, int]:
+    def shape(self) -> tuple[int, int]:
         """Required shape of |NetCDFVariableFlat.array|.
 
         For 0-dimensional sequences like |lland_inputs.Nied|, the first axis
@@ -2101,7 +2101,7 @@ NetCDF file `nied.nc` available.
         """
         array = numpy.full(self.shape, fillvalue, dtype=float)
         idx0 = 0
-        idxs: List[Any] = [slice(None)]
+        idxs: list[Any] = [slice(None)]
         for seq, subarray in zip(
             self._descr2sequence.values(), self._descr2array.values()
         ):
@@ -2113,7 +2113,7 @@ NetCDF file `nied.nc` available.
         return array
 
     @property
-    def subdevicenames(self) -> Tuple[str, ...]:
+    def subdevicenames(self) -> tuple[str, ...]:
         """The names of the (sub)devices.
 
         Property |NetCDFVariableFlat.subdevicenames| clarifies which column of
@@ -2155,7 +2155,7 @@ NetCDF file `nied.nc` available.
         ('element4_0_0', 'element4_0_1', 'element4_0_2', 'element4_1_0', \
 'element4_1_1', 'element4_1_2')
         """
-        stats: Deque[str] = collections.deque()
+        stats: collections.deque[str] = collections.deque()
         for devicename, seq in self._descr2sequence.items():
             if seq.NDIM:
                 temp = devicename + "_"
@@ -2166,7 +2166,7 @@ NetCDF file `nied.nc` available.
         return tuple(stats)
 
     @staticmethod
-    def _product(shape: Sequence[int]) -> Iterator[Tuple[int, ...]]:
+    def _product(shape: Sequence[int]) -> Iterator[tuple[int, ...]]:
         """Should return all "subdevice index combinations" for sequences with
         arbitrary dimensions.
 
@@ -2193,7 +2193,7 @@ NetCDF file `nied.nc` available.
                 sequence = next(iter(self._descr2sequence.values()))
                 timegrid = query_timegrid(ncfile, sequence)
                 array = query_array(ncfile, self.name)
-                idxs: Tuple[Any] = (slice(None),)
+                idxs: tuple[Any] = (slice(None),)
                 subdev2index = self.query_subdevice2index(ncfile)
                 for devicename, seq in self._descr2sequence.items():
                     if seq.NDIM:

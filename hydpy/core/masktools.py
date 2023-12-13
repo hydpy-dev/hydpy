@@ -155,7 +155,7 @@ class DefaultMask(BaseMask):
     def __get__(
         self,
         obj: Optional[variabletools.Variable],
-        type_: Optional[Type[variabletools.Variable]],
+        type_: Optional[type[variabletools.Variable]],
     ) -> Self:
         if (obj is None) or (self.variable is not None):
             return self
@@ -185,7 +185,7 @@ class IndexMask(DefaultMask):
     |CustomMask| for the basic usage of class |DefaultMask|.
     """
 
-    relevant: Tuple[int, ...]
+    relevant: tuple[int, ...]
     """The integer values that are relevant to the referenced index parameter."""
     variable: variabletools.Variable
     """The variable for which |IndexMask| determines the relevant entries."""
@@ -289,7 +289,7 @@ overridden, which is not the case for class `IndexMask`.
         the considered variable."""
         return self.get_refinement(self.variable)
 
-    def narrow_relevant(self, relevant: Optional[Tuple[int, ...]] = None) -> Set[int]:
+    def narrow_relevant(self, relevant: Optional[tuple[int, ...]] = None) -> set[int]:
         """Return a |set| of all currently relevant constants."""
         if relevant is None:
             relevant = self.relevant
@@ -381,7 +381,7 @@ error occurred: The key does not define an available mask.
 occurred: The given key is neither a `string` a `mask` type.
     """
 
-    CLASSES: Tuple[Type[BaseMask], ...] = ()
+    CLASSES: tuple[type[BaseMask], ...] = ()
 
     def __init__(self) -> None:
         for cls in self.CLASSES:
@@ -397,11 +397,11 @@ occurred: The given key is neither a `string` a `mask` type.
         """
         return "masks"
 
-    def __iter__(self) -> Iterator[Type[BaseMask]]:
+    def __iter__(self) -> Iterator[type[BaseMask]]:
         for cls in self.CLASSES:
             yield getattr(self, cls.__name__.lower())
 
-    def __contains__(self, mask: Union[BaseMask, Type[BaseMask]]) -> bool:
+    def __contains__(self, mask: Union[BaseMask, type[BaseMask]]) -> bool:
         if isinstance(mask, BaseMask):
             mask = type(mask)
         if mask in self.CLASSES:
@@ -416,7 +416,7 @@ occurred: The given key is neither a `string` a `mask` type.
             f"a Mask instance."
         )
 
-    def __getitem__(self, key: Union[str, BaseMask, Type[BaseMask]]) -> BaseMask:
+    def __getitem__(self, key: Union[str, BaseMask, type[BaseMask]]) -> BaseMask:
         _key = key
         try:
             if inspect.isclass(key):

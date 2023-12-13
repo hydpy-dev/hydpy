@@ -3,7 +3,6 @@
 # ...from standard library
 import os
 import sys
-from typing import List
 
 # ...from HydPy
 from hydpy import models
@@ -16,7 +15,7 @@ applicationmodels = sorted(
     for fn in os.listdir(dirpath)
     if (fn != "__init__.py") and os.path.isfile(os.path.join(dirpath, fn))
 )
-results: List[str] = []
+results: list[str] = []
 for applicationmodel in applicationmodels:
     subresult = perform_consistencychecks(applicationmodel=applicationmodel, indent=4)
     if subresult:

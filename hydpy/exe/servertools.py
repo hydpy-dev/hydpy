@@ -347,28 +347,28 @@ class ServerState:
 
     interface: xmltools.XMLInterface
     hp: hydpytools.HydPy
-    parameteritems: List[itemtools.ChangeItem]
-    inputitems: List[itemtools.SetItem]
-    conditionitems: List[itemtools.SetItem]
-    outputitems: List[itemtools.SetItem]
-    getitems: List[itemtools.GetItem]
-    conditions: Dict[ID, Dict[int, Conditions]]
-    parameteritemvalues: Dict[ID, Dict[Name, Any]]
-    inputitemvalues: Dict[ID, Dict[Name, Any]]
-    conditionitemvalues: Dict[ID, Dict[Name, Any]]
-    outputitemvalues: Dict[ID, Dict[Name, Any]]
-    getitemvalues: Dict[ID, Dict[Name, str]]
-    initialparameteritemvalues: Dict[Name, Any]
-    initialinputitemvalues: Dict[Name, Any]
-    initialconditionitemvalues: Dict[Name, Any]
-    initialgetitemvalues: Dict[Name, Any]
-    timegrids: Dict[ID, timetools.Timegrid]
+    parameteritems: list[itemtools.ChangeItem]
+    inputitems: list[itemtools.SetItem]
+    conditionitems: list[itemtools.SetItem]
+    outputitems: list[itemtools.SetItem]
+    getitems: list[itemtools.GetItem]
+    conditions: dict[ID, dict[int, Conditions]]
+    parameteritemvalues: dict[ID, dict[Name, Any]]
+    inputitemvalues: dict[ID, dict[Name, Any]]
+    conditionitemvalues: dict[ID, dict[Name, Any]]
+    outputitemvalues: dict[ID, dict[Name, Any]]
+    getitemvalues: dict[ID, dict[Name, str]]
+    initialparameteritemvalues: dict[Name, Any]
+    initialinputitemvalues: dict[Name, Any]
+    initialconditionitemvalues: dict[Name, Any]
+    initialgetitemvalues: dict[Name, Any]
+    timegrids: dict[ID, timetools.Timegrid]
     init_conditions: Conditions
-    inputconditiondirs: Dict[ID, str]
-    outputconditiondirs: Dict[ID, str]
-    serieswriterdirs: Dict[ID, str]
-    seriesreaderdirs: Dict[ID, str]
-    outputcontroldirs: Dict[ID, str]
+    inputconditiondirs: dict[ID, str]
+    outputconditiondirs: dict[ID, str]
+    serieswriterdirs: dict[ID, str]
+    seriesreaderdirs: dict[ID, str]
+    outputcontroldirs: dict[ID, str]
     idx1: int
     idx2: int
 
@@ -1431,11 +1431,11 @@ under the id `0`.  There is nothing registered, so far.
 
     server: _HTTPServerBase
     state: ClassVar[ServerState]
-    extensions_map: ClassVar[Dict[str, str]]
+    extensions_map: ClassVar[dict[str, str]]
     _requesttype: Literal["GET", "POST"]
     _statuscode: Literal[200, 400, 500]
-    _inputs: Dict[str, str]
-    _outputs: Dict[str, object]
+    _inputs: dict[str, str]
+    _outputs: dict[str, object]
 
     def do_GET(self) -> None:
         """Select and apply the currently requested GET method."""
@@ -1854,7 +1854,7 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
         self._outputs["lastdate_init"] = tg.lastdate.to_string("iso1", utc)
         self._outputs["stepsize"] = tg.stepsize
 
-    def _get_registered_content(self, dict_: Dict[ID, T]) -> T:
+    def _get_registered_content(self, dict_: dict[ID, T]) -> T:
         try:
             return dict_[self._id]
         except KeyError:
@@ -1919,9 +1919,9 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
         self,
         typename: str,
         items: Iterable[itemtools.ChangeItem],
-        itemvalues: Dict[ID, Dict[Name, Any]],
+        itemvalues: dict[ID, dict[Name, Any]],
     ) -> None:
-        item2value: Dict[Name, Any] = {}
+        item2value: dict[Name, Any] = {}
         for item in items:
             try:
                 value = self._inputs[item.name]
@@ -2263,7 +2263,7 @@ def start_server(
     filepath = os.path.join(confpath, "mimetypes.txt")
     try:
         with open(filepath, encoding=config.ENCODING) as file_:
-            types_map: Dict[str, str] = eval(str(file_.read()))
+            types_map: dict[str, str] = eval(str(file_.read()))
     except BaseException:
         mimetypes.init()
         types_map = mimetypes.types_map.copy()

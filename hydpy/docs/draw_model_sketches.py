@@ -11,10 +11,10 @@ the script and exchange the resulting png files manually each time something cha
 # pylint: disable=missing-function-docstring
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 import os
-from typing import Literal
-from typing import Final, List, NamedTuple, Optional, Sequence, Tuple, Union
+from typing import Final, Literal, NamedTuple, Optional, Union
 
 from matplotlib import pyplot
 import numpy
@@ -53,8 +53,8 @@ class Index:
 class Grid:
     nrows: int
     ncols: int
-    xs: Tuple[float, ...] = field(init=False)
-    ys: Tuple[float, ...] = field(init=False)
+    xs: tuple[float, ...] = field(init=False)
+    ys: tuple[float, ...] = field(init=False)
     dx: float = field(init=False)
     dy: float = field(init=False)
 
@@ -92,7 +92,7 @@ class Point(NamedTuple):
         return type(self)(x=self.x * (x1m - x0m) + x0m, y=self.y * (y1m - y0m) + y0m)
 
 
-class Points(List[Point]):
+class Points(list[Point]):
     def __init__(self, *args: Point) -> None:
         super().__init__(args)
 
@@ -562,7 +562,7 @@ class UZ_SG1_BW(Element):
         raise NotImplementedError
 
     @property
-    def arrayinfo(self) -> Tuple[ArrowProperties, float]:
+    def arrayinfo(self) -> tuple[ArrowProperties, float]:
         if self.arrows:
             return ArrowProperties(), -1.31
         return (ArrowProperties(color="grey", headwidth=0.0), -1.0)

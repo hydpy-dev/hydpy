@@ -12,7 +12,7 @@ from __future__ import annotations
 import importlib
 import os
 import warnings
-from typing import Dict, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 # ...from site-packages
 import numpy
@@ -235,7 +235,7 @@ __all__ = [
     "start_server",
 ]
 
-sequence2alias: Dict[sequencetools.InOutSequenceTypes, str] = {}
+sequence2alias: dict[sequencetools.InOutSequenceTypes, str] = {}
 
 if config.USEAUTODOC:
     with warnings.catch_warnings():

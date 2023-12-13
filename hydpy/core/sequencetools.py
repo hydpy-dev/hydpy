@@ -85,12 +85,12 @@ InOutSequence = Union[
     "SenderSequence",
 ]
 InOutSequenceTypes = Union[
-    Type["InputSequence"],
-    Type["InletSequence"],
-    Type["ReceiverSequence"],
-    Type["OutputSequence"],
-    Type["OutletSequence"],
-    Type["SenderSequence"],
+    type["InputSequence"],
+    type["InletSequence"],
+    type["ReceiverSequence"],
+    type["OutputSequence"],
+    type["OutletSequence"],
+    type["SenderSequence"],
 ]
 
 Aggregation = Optional[Literal["unmodified", "mean"]]
@@ -534,16 +534,16 @@ patch(template % "StateSequences") as states:
     def __init__(
         self,
         model: modeltools.Model,
-        cls_inlets: Optional[Type[InletSequences]] = None,
-        cls_receivers: Optional[Type[ReceiverSequences]] = None,
-        cls_inputs: Optional[Type[InputSequences]] = None,
-        cls_factors: Optional[Type[FactorSequences]] = None,
-        cls_fluxes: Optional[Type[FluxSequences]] = None,
-        cls_states: Optional[Type[StateSequences]] = None,
-        cls_logs: Optional[Type[LogSequences]] = None,
-        cls_aides: Optional[Type[AideSequences]] = None,
-        cls_outlets: Optional[Type[OutletSequences]] = None,
-        cls_senders: Optional[Type[SenderSequences]] = None,
+        cls_inlets: Optional[type[InletSequences]] = None,
+        cls_receivers: Optional[type[ReceiverSequences]] = None,
+        cls_inputs: Optional[type[InputSequences]] = None,
+        cls_factors: Optional[type[FactorSequences]] = None,
+        cls_fluxes: Optional[type[FluxSequences]] = None,
+        cls_states: Optional[type[StateSequences]] = None,
+        cls_logs: Optional[type[LogSequences]] = None,
+        cls_aides: Optional[type[AideSequences]] = None,
+        cls_outlets: Optional[type[OutletSequences]] = None,
+        cls_senders: Optional[type[SenderSequences]] = None,
         cymodel: Optional[CyModelProtocol] = None,
         cythonmodule: Optional[types.ModuleType] = None,
     ) -> None:
@@ -581,8 +581,8 @@ patch(template % "StateSequences") as states:
 
     def __prepare_subseqs(
         self,
-        default: Type[TypeModelSequences],
-        class_: Optional[Type[TypeModelSequences]],
+        default: type[TypeModelSequences],
+        class_: Optional[type[TypeModelSequences]],
         cymodel,
         cythonmodule,
     ) -> TypeModelSequences:
@@ -697,7 +697,7 @@ patch(template % "StateSequences") as states:
 
         See the documentation on property |HydPy.conditions| for further information.
         """
-        conditions: Dict[str, Dict[str, Union[float, NDArrayFloat]]] = {}
+        conditions: dict[str, dict[str, Union[float, NDArrayFloat]]] = {}
         for seq in self.conditionsequences:
             subconditions = conditions.get(seq.subseqs.name, {})
             subconditions[seq.name] = copy.deepcopy(seq.values)
@@ -850,7 +850,7 @@ class ModelSequences(
     def __init__(
         self,
         master: Sequences,
-        cls_fastaccess: Optional[Type[variabletools.TypeFastAccess_co]] = None,
+        cls_fastaccess: Optional[type[variabletools.TypeFastAccess_co]] = None,
         cymodel: Optional[CyModelProtocol] = None,
     ) -> None:
         self.seqs = master
@@ -1084,7 +1084,7 @@ class Sequence_(variabletools.Variable):
     3
     """
 
-    TYPE: Type[float] = float
+    TYPE: type[float] = float
     INIT: float = 0.0
     NUMERIC: bool
 
@@ -1121,7 +1121,7 @@ class Sequence_(variabletools.Variable):
             self.shape = ()
 
     @property
-    def initinfo(self) -> Tuple[Union[float, pointerutils.Double], bool]:
+    def initinfo(self) -> tuple[Union[float, pointerutils.Double], bool]:
         """A |tuple| containing the initial value and |True| or a missing value and
         |False|, depending on the actual |Sequence_| subclass and the actual value of
         option |Options.usedefaultvalues|.
@@ -1847,7 +1847,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
         values = numpy.array(values, dtype=float)
         self._set_fastaccessattribute("array", values)
 
-    def _get_shape(self) -> Tuple[int, ...]:
+    def _get_shape(self) -> tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
         When setting a new |IOSequence.shape| of an |IOSequence| object, one
@@ -1858,7 +1858,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
         """
         return super()._get_shape()
 
-    def _set_shape(self, shape: Union[int, Tuple[int, ...]]):
+    def _set_shape(self, shape: Union[int, tuple[int, ...]]):
         super()._set_shape(shape)
         if self.ramflag:
             values = numpy.full(self.seriesshape, numpy.nan, dtype=float)
@@ -1868,7 +1868,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
     shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
     @property
-    def seriesshape(self) -> Tuple[int, ...]:
+    def seriesshape(self) -> tuple[int, ...]:
         """The shape of the whole time-series (time being the first dimension)."""
         seriesshape = [len(hydpy.pub.timegrids.init)]
         seriesshape.extend(self.shape)
@@ -2549,7 +2549,7 @@ class ModelSequence(Sequence_):
             return "?"
 
     @property
-    def numericshape(self) -> Tuple[int, ...]:
+    def numericshape(self) -> tuple[int, ...]:
         """The shape of the array of temporary values required for the relevant
         numerical solver.
 
@@ -2889,7 +2889,7 @@ class DependentSequence(OutputSequence):
             value = None if self.NDIM else 0.0
             self._set_fastaccessattribute("sum", value)
 
-    def _get_shape(self) -> Tuple[int, ...]:
+    def _get_shape(self) -> tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
         |FactorSequence| and |FluxSequence| objects come with some additional
@@ -2921,7 +2921,7 @@ class DependentSequence(OutputSequence):
         """
         return super()._get_shape()
 
-    def _set_shape(self, shape: Union[int, Tuple[int, ...]]) -> None:
+    def _set_shape(self, shape: Union[int, tuple[int, ...]]) -> None:
         super()._set_shape(shape)
         if self.NDIM and self.NUMERIC:
             self._set_fastaccessattribute("points", numpy.zeros(self.numericshape))
@@ -2960,7 +2960,7 @@ class ConditionSequence(ModelSequence):
     Inherit from |StateSequence| or |LogSequence| instead.
     """
 
-    _oldargs: Optional[Tuple[Any, ...]] = None
+    _oldargs: Optional[tuple[Any, ...]] = None
 
     def __call__(self, *args) -> None:
         """The prefered way to pass values to |Sequence_| instances within initial
@@ -3149,7 +3149,7 @@ not broadcast input array from shape (3,) into shape (2,)
         else:
             setattr(self.fastaccess_old, self.name, 0.0)
 
-    def _get_shape(self) -> Tuple[int, ...]:
+    def _get_shape(self) -> tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
         |StateSequence| objects come with some additional `fastaccess` attributes,
@@ -3180,7 +3180,7 @@ not broadcast input array from shape (3,) into shape (2,)
         """
         return super()._get_shape()
 
-    def _set_shape(self, shape: Union[int, Tuple[int, ...]]):
+    def _set_shape(self, shape: Union[int, tuple[int, ...]]):
         super()._set_shape(shape)
         if self.NDIM:
             setattr(self.fastaccess_old, self.name, self.new.copy())
@@ -3530,7 +3530,7 @@ convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and type 
 
     value = property(fget=_get_value, fset=_set_value)
 
-    def _get_shape(self) -> Tuple[int, ...]:
+    def _get_shape(self) -> tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
         Property |LinkSequence.shape| of class |LinkSequence| works similarly as the
@@ -3624,7 +3624,7 @@ attribute 'fastaccess'
                 f"{objecttools.elementphrase(self)}"
             )
 
-    def _set_shape(self, shape: Union[int, Tuple[int, ...]]):
+    def _set_shape(self, shape: Union[int, tuple[int, ...]]):
         try:
             if (self.NDIM == 0) and shape:
                 self._raise_wrongshape(shape)
@@ -3704,7 +3704,7 @@ class NodeSequence(IOSequence):
         self.subseqs = subvars
 
     @property
-    def initinfo(self) -> Tuple[pointerutils.Double, bool]:
+    def initinfo(self) -> tuple[pointerutils.Double, bool]:
         """Return a |Double| instead of a |float| object as the first tuple entry."""
         if hydpy.pub.options.usedefaultvalues:
             return pointerutils.Double(0.0), True
@@ -4094,7 +4094,7 @@ class NodeSequences(
     def __init__(
         self,
         master: devicetools.Node,
-        cls_fastaccess: Optional[Type[FastAccessNodeSequence]] = None,
+        cls_fastaccess: Optional[type[FastAccessNodeSequence]] = None,
         cymodel: Optional[CyModelProtocol] = None,
     ) -> None:
         self.node = master

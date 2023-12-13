@@ -118,16 +118,16 @@ not start with numbers, cannot be mistaken with Python built-ins like `for`...)
         setattr(self, directory, path)
 
     @property
-    def folders(self) -> List[str]:
+    def folders(self) -> list[str]:
         """The currently handled folder names."""
         return [folder for folder, path in self]
 
     @property
-    def paths(self) -> List[str]:
+    def paths(self) -> list[str]:
         """The currently handled path names."""
         return [path for folder, path in self]
 
-    def __iter__(self) -> Iterator[Tuple[str, str]]:
+    def __iter__(self) -> Iterator[tuple[str, str]]:
         for key, value in sorted(vars(self).items()):
             yield key, value
 
@@ -493,7 +493,7 @@ occurred: ...
         return os.path.join(self.basepath, self.currentdir)
 
     @property
-    def filenames(self) -> List[str]:
+    def filenames(self) -> list[str]:
         """The names of the files placed in the current working directory, except those
         starting with an underscore.
 
@@ -515,7 +515,7 @@ occurred: ...
         )
 
     @property
-    def filepaths(self) -> List[str]:
+    def filepaths(self) -> list[str]:
         """The absolute path names of the files returned by property
         |FileManager.filenames|.
 
@@ -839,7 +839,7 @@ class ControlManager(FileManager):
 
     # The following file path to content mapping is used to circumvent reading
     # the same auxiliary control parameter file from disk multiple times.
-    _registry: Dict[str, types.CodeType] = {}
+    _registry: dict[str, types.CodeType] = {}
     _workingpath: str = "."
     BASEDIR = "control"
     DEFAULTDIR = "default"
@@ -849,7 +849,7 @@ class ControlManager(FileManager):
         element: Optional[devicetools.Element] = None,
         filename: Optional[str] = None,
         clear_registry: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Return the namespace of the given file (and eventually of its corresponding
         auxiliary subfiles).
 
@@ -949,7 +949,7 @@ name or the responsible Element object.
         return info
 
     @classmethod
-    def read2dict(cls, filename: str, info: Dict[str, Any]) -> None:
+    def read2dict(cls, filename: str, info: dict[str, Any]) -> None:
         """Read the control parameters from the given path (and its auxiliary paths,
         where appropriate) and store them in the given |dict| object `info`.
 
@@ -1402,7 +1402,7 @@ not allowed to overwrite the existing file `...`.
     @staticmethod
     def _load_npy(
         sequence: sequencetools.IOSequence,
-    ) -> Tuple[timetools.Timegrid, NDArrayFloat]:
+    ) -> tuple[timetools.Timegrid, NDArrayFloat]:
         data = numpy.load(sequence.filepath)
         timegrid_data = timetools.Timegrid.from_array(data)
         return timegrid_data, data[13:]
@@ -1410,7 +1410,7 @@ not allowed to overwrite the existing file `...`.
     @staticmethod
     def _load_asc(
         sequence: sequencetools.IOSequence,
-    ) -> Tuple[timetools.Timegrid, NDArrayFloat]:
+    ) -> tuple[timetools.Timegrid, NDArrayFloat]:
         filepath = sequence.filepath
         with open(filepath, encoding=config.ENCODING) as file_:
             header = "\n".join([file_.readline() for _ in range(3)])

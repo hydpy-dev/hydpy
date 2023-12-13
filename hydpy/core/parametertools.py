@@ -123,10 +123,10 @@ class IntConstant(int):
         return const
 
 
-class Constants(Dict[str, int]):
+class Constants(dict[str, int]):
     """Base class for defining integer constants for a specific model."""
 
-    value2name: Dict[int, str]
+    value2name: dict[int, str]
     """Mapping from the the values of the constants to their names."""
 
     def __init__(self, *args, **kwargs) -> None:
@@ -160,7 +160,7 @@ class Constants(Dict[str, int]):
                     value.__doc__ = doc
 
     @property
-    def sortednames(self) -> Tuple[str, ...]:
+    def sortednames(self) -> tuple[str, ...]:
         """The lowercase constants' names, sorted by the constants' values.
 
         >>> from hydpy.core.parametertools import Constants
@@ -458,7 +458,7 @@ class SubParameters(
     def __init__(
         self,
         master: Parameters,
-        cls_fastaccess: Optional[Type[FastAccessParameter]] = None,
+        cls_fastaccess: Optional[type[FastAccessParameter]] = None,
         cymodel: Optional[CyModelProtocol] = None,
     ):
         self.pars = master
@@ -490,14 +490,14 @@ class Keyword(NamedTuple):
 
     name: str
     """The keyword argument's name."""
-    type_: Type[Union[float, int]] = float
+    type_: type[Union[float, int]] = float
     """The keyword argument's type (equivalent to the |Variable.TYPE| attribute of 
     class |Variable|)."""
     time: Optional[bool] = None
     """Type of the keyword argument's time dependency (equivalent to the 
     |Parameter.TIME| attribute of class |Parameter|).
     """
-    span: Tuple[Optional[float], Optional[float]] = (None, None)
+    span: tuple[Optional[float], Optional[float]] = (None, None)
     """The keyword argument's lower and upper boundary (equivalent to the 
     |Variable.SPAN| attribute of class |Variable|).
     """
@@ -644,7 +644,7 @@ under the keyword `laubw`.'
 
     valid: bool
     """Flag indicating whether the actual |KeywordArguments| object is valid or not."""
-    _name2value: Dict[str, T]
+    _name2value: dict[str, T]
 
     def __init__(self, __valid: bool = True, **keywordarguments: T) -> None:
         self.valid = __valid
@@ -737,7 +737,7 @@ the unequal argument `1` under the keyword `one`.
 
     def extend(
         self,
-        parametertype: Type[Parameter],
+        parametertype: type[Parameter],
         elements: Iterable[devicetools.Element],
         raise_exception: bool = True,
     ) -> None:
@@ -914,7 +914,7 @@ raise_exception=False)
                 f"argument under the keyword `{key}`."
             ) from None
 
-    def __contains__(self, item: Tuple[str, T]) -> bool:
+    def __contains__(self, item: tuple[str, T]) -> bool:
         if not self.valid:
             raise KeywordArgumentsError(
                 f"Cannot check if an item is defined by an invalid "
@@ -927,7 +927,7 @@ raise_exception=False)
     def __len__(self) -> int:
         return len(self._name2value)
 
-    def __iter__(self) -> Iterator[Tuple[str, T]]:
+    def __iter__(self) -> Iterator[tuple[str, T]]:
         if not self.valid:
             raise KeywordArgumentsError(
                 f"Cannot iterate an invalid `{type(self).__name__}` object."
@@ -1304,8 +1304,8 @@ broadcast input array from shape (2,) into shape (2,3)
     def _find_kwargscombination(
         self,
         given_args: Sequence[Any],
-        given_kwargs: Dict[str, Any],
-        allowed_combinations: Tuple[Set[str], ...],
+        given_kwargs: dict[str, Any],
+        allowed_combinations: tuple[set[str], ...],
     ) -> Optional[int]:
         if given_kwargs and ("auxfile" not in given_kwargs):
             if given_args:
@@ -1331,7 +1331,7 @@ broadcast input array from shape (2,) into shape (2,3)
         return
 
     @property
-    def initinfo(self) -> Tuple[Union[float, int, bool], bool]:
+    def initinfo(self) -> tuple[Union[float, int, bool], bool]:
         """A |tuple| containing the initial value and |True| or a missing
         value and |False|, depending on the actual |Parameter| subclass and
         the actual value of option |Options.usedefaultvalues|.
@@ -1852,7 +1852,7 @@ class NameParameter(_MixinModifiableParameter, Parameter):
     TIME = None
     SPAN = (None, None)
     constants: Constants
-    _possible_values: Set[int]
+    _possible_values: set[int]
 
     def __init__(self, subvars: SubParameters) -> None:
         super().__init__(subvars)
@@ -2151,11 +2151,11 @@ convert string to float: 'test'
     """
 
     NDIM = 1
-    constants: Dict[str, int]
+    constants: dict[str, int]
     """Mapping of the constants' names and values."""
     refindices: Optional[NameParameter] = None
     """Optional reference to the relevant index parameter."""
-    relevant: Optional[Tuple[int, ...]] = None
+    relevant: Optional[tuple[int, ...]] = None
     """The values of all (potentially) relevant constants."""
     mask: masktools.IndexMask
 
@@ -2277,7 +2277,7 @@ index parameter.
                     f"`{objecttools.enumeration(kwargs)}`"
                 )
 
-    def _own_call(self, kwargs: Dict[str, Any]) -> None:
+    def _own_call(self, kwargs: dict[str, Any]) -> None:
         mask = self.mask
         self._set_value(numpy.nan)
         values = self._get_value()
@@ -2425,7 +2425,7 @@ index parameter.
         )
         return f"{string})"
 
-    def __dir__(self) -> List[str]:
+    def __dir__(self) -> list[str]:
         """
         >>> from hydpy.models.lland_v1 import *
         >>> parameterstep()
@@ -2435,7 +2435,7 @@ index parameter.
 'weinb']
         """
         names = itertools.chain(
-            cast(List[str], super().__dir__()),
+            cast(list[str], super().__dir__()),
             (key.lower() for key in self.constants.keys()),
         )
         return list(names)
@@ -2603,7 +2603,7 @@ broadcast input array from shape (2,) into shape (366,3)
 
     strict_valuehandling: bool = False
 
-    _toy2values: List[Tuple[timetools.TOY, Union[float, NDArrayFloat]]]
+    _toy2values: list[tuple[timetools.TOY, Union[float, NDArrayFloat]]]
 
     def __init__(self, subvars) -> None:
         super().__init__(subvars)
@@ -2842,11 +2842,11 @@ broadcast input array from shape (2,) into shape (366,3)
         return y0 + (y1 - y0) / (x1 - x0) * (xnew - x0)
 
     @property
-    def toys(self) -> Tuple[timetools.TOY, ...]:
+    def toys(self) -> tuple[timetools.TOY, ...]:
         """A sorted |tuple| of all contained |TOY| objects."""
         return tuple(toy for toy, _ in self._toy2values)
 
-    def _get_shape(self) -> Tuple[int, ...]:
+    def _get_shape(self) -> tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
         .. testsetup::
@@ -2908,7 +2908,7 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
         """
         return super()._get_shape()
 
-    def _set_shape(self, shape: Union[int, Tuple[int, ...]]) -> None:
+    def _set_shape(self, shape: Union[int, tuple[int, ...]]) -> None:
         if isinstance(shape, tuple):
             shape_ = list(shape)
         else:
@@ -2928,7 +2928,7 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
 
     shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
-    def __iter__(self) -> Iterator[Tuple[timetools.TOY, Any]]:
+    def __iter__(self) -> Iterator[tuple[timetools.TOY, Any]]:
         return iter(self._toy2values)
 
     def __getattr__(self, name: str) -> Union[float, NDArrayFloat]:
@@ -2995,7 +2995,7 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
     def __len__(self) -> int:
         return len(self._toy2values)
 
-    def __dir__(self) -> List[str]:
+    def __dir__(self) -> list[str]:
         """
 
         >>> from hydpy import pub
@@ -3015,7 +3015,7 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
 
             >>> del pub.timegrids
         """
-        return cast(List[str], super().__dir__()) + [str(toy) for (toy, dummy) in self]
+        return cast(list[str], super().__dir__()) + [str(toy) for (toy, dummy) in self]
 
 
 class KeywordParameter1D(_MixinModifiableParameter, Parameter):
@@ -3100,7 +3100,7 @@ for axis 0 with size 1
     """
 
     NDIM = 1
-    entrynames: Tuple[str, ...]
+    entrynames: tuple[str, ...]
     entrymin: int = 0
 
     strict_valuehandling: bool = False
@@ -3278,7 +3278,7 @@ for axis 0 with size 1
             lines[-1] += ")"
         return "\n".join(lines)
 
-    def __dir__(self) -> List[str]:
+    def __dir__(self) -> list[str]:
         """
         >>> from hydpy.core.parametertools import KeywordParameter1D
         >>> class Season(KeywordParameter1D):
@@ -3289,7 +3289,7 @@ for axis 0 with size 1
         >>> sorted(set(dir(season)) - set(object.__dir__(season)))
         ['summer', 'winter']
         """
-        return cast(List[str], super().__dir__()) + list(self.entrynames)
+        return cast(list[str], super().__dir__()) + list(self.entrynames)
 
 
 class MonthParameter(KeywordParameter1D):
@@ -3469,14 +3469,14 @@ attribute nor a row or column related attribute named `wrong`.
     """
 
     NDIM = 2
-    rownames: Tuple[str, ...]
-    columnnames: Tuple[str, ...]
+    rownames: tuple[str, ...]
+    columnnames: tuple[str, ...]
     rowmin: int = 0
     columnmin: int = 0
 
     strict_valuehandling: bool = False
 
-    _rowcolumnmappings: Dict[str, Tuple[int, int]]
+    _rowcolumnmappings: dict[str, tuple[int, int]]
 
     def __init__(self, subvars: SubParameters) -> None:
         super().__init__(subvars)
@@ -3629,8 +3629,8 @@ attribute nor a row or column related attribute named `wrong`.
 
     @classmethod
     def _make_rowcolumnmappings(
-        cls, rownames: Tuple[str, ...], columnnames: Tuple[str, ...]
-    ) -> Dict[str, Tuple[int, int]]:
+        cls, rownames: tuple[str, ...], columnnames: tuple[str, ...]
+    ) -> dict[str, tuple[int, int]]:
         rowcolmappings = {}
         for idx, rowname in enumerate(rownames):
             for jdx, colname in enumerate(columnnames):
@@ -3745,7 +3745,7 @@ attribute nor a row or column related attribute named `wrong`.
         lines[-1] = lines[-1][:-1] + ")"
         return "\n".join(lines)
 
-    def __dir__(self) -> List[str]:
+    def __dir__(self) -> list[str]:
         """
         >>> from hydpy.core.parametertools import KeywordParameter2D
         >>> class IsWarm(KeywordParameter2D):
@@ -3760,7 +3760,7 @@ attribute nor a row or column related attribute named `wrong`.
         """
         assert (rowcolmappings := self._rowcolumnmappings) is not None
         return (
-            cast(List[str], super().__dir__())
+            cast(list[str], super().__dir__())
             + list(self.rownames)
             + list(self.columnnames)
             + list(rowcolmappings)
@@ -3895,7 +3895,7 @@ class FixedParameter(Parameter):
     INIT: Union[int, float, bool]
 
     @property
-    def initinfo(self) -> Tuple[Union[float, int, bool], bool]:
+    def initinfo(self) -> tuple[Union[float, int, bool], bool]:
         """A |tuple| always containing the fixed value and |True|, except
         for time-dependent parameters and incomplete time-information.
 

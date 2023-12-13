@@ -76,7 +76,7 @@ element `?`, the following error occurred: The value(s) of parameter `b` of \
 element `?` could not be set based on the given keyword arguments.
     """
 
-    _SOIL2VALUE: Dict[int, float]
+    _SOIL2VALUE: dict[int, float]
     _soil: Optional[int]
 
     def __init__(self, subvars: parametertools.SubParameters):

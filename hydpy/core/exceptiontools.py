@@ -108,17 +108,17 @@ def getattr_(obj: Any, name: str, default: T) -> T:
 
 
 @overload
-def getattr_(obj: Any, name: str, *, type_: Type[T]) -> T:
+def getattr_(obj: Any, name: str, *, type_: type[T]) -> T:
     ...
 
 
 @overload
-def getattr_(obj: Any, name: str, default: None, type_: Type[T]) -> Optional[T]:
+def getattr_(obj: Any, name: str, default: None, type_: type[T]) -> Optional[T]:
     ...
 
 
 @overload
-def getattr_(obj: Any, name: str, default: T1, type_: Type[T2]) -> Union[T1, T2]:
+def getattr_(obj: Any, name: str, default: T1, type_: type[T2]) -> Union[T1, T2]:
     ...
 
 
@@ -126,7 +126,7 @@ def getattr_(
     obj: Any,
     name: str,
     default: Union[T, _Enum] = _Enum.GETATTR_NO_DEFAULT,
-    type_: Optional[Type[T]] = None,
+    type_: Optional[type[T]] = None,
 ) -> Any:
     """Return the attribute with the given name or, if it does not exist,
     the default value, if available.
@@ -249,7 +249,7 @@ specific functionalities.
     """
 
     def __init__(
-        self, name: str, modules: List[str], namespace: Dict[str, Any]
+        self, name: str, modules: list[str], namespace: dict[str, Any]
     ) -> None:
         self._name = name
         self._modules = modules

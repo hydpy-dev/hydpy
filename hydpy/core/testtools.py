@@ -58,7 +58,7 @@ class StdOutErr:
     method |Tester.perform_tests| of class |Tester|."""
 
     indent: int
-    texts: List[str]
+    texts: list[str]
 
     def __init__(self, indent: int = 0):
         self.indent = indent
@@ -75,7 +75,7 @@ class StdOutErr:
 
     def __exit__(
         self,
-        exception_type: Type[BaseException],
+        exception_type: type[BaseException],
         exception_value: BaseException,
         traceback: types.TracebackType,
     ) -> None:
@@ -128,7 +128,7 @@ class Tester:
         self.ispackage = os.path.split(self.filepath)[-1] == "__init__.py"
 
     @property
-    def filenames(self) -> List[str]:
+    def filenames(self) -> list[str]:
         """The filenames which define the considered base or application model.
 
         >>> from hydpy.models import hland, hland_v1
@@ -159,7 +159,7 @@ class Tester:
         return [os.path.split(self.filepath)[1]]
 
     @property
-    def modulenames(self) -> List[str]:
+    def modulenames(self) -> list[str]:
         """The module names to be taken into account for testing.
 
         >>> from hydpy.models import hland, hland_v1
@@ -363,7 +363,7 @@ class ArrayDescriptor:
         self,
         obj: Test,
         sequence2value: Optional[
-            Sequence[Tuple[sequencetools.ConditionSequence, ArrayFloat]]
+            Sequence[tuple[sequencetools.ConditionSequence, ArrayFloat]]
         ],
     ) -> None:
         self.__delete__(obj)
@@ -380,7 +380,7 @@ class ArrayDescriptor:
             for name, (_, value) in zip(names, sequence2value):
                 setattr(self.values, name, value)
 
-    def __get__(self, obj: Test, type_: Optional[Type[Test]] = None) -> Array:
+    def __get__(self, obj: Test, type_: Optional[type[Test]] = None) -> Array:
         return self.values
 
     def __delete__(self, obj: Test) -> None:
@@ -405,7 +405,7 @@ class Test:
 
     @property
     @abc.abstractmethod
-    def raw_first_col_strings(self) -> Tuple[str, ...]:
+    def raw_first_col_strings(self) -> tuple[str, ...]:
         """To be implemented by the subclasses of |Test|."""
 
     @abc.abstractmethod
@@ -426,7 +426,7 @@ class Test:
         return nmb
 
     @property
-    def raw_header_strings(self) -> List[str]:
+    def raw_header_strings(self) -> list[str]:
         """All raw strings for the tables header."""
         strings = [self.HEADER_OF_FIRST_COL]
         for parseq in self.parseqs:
@@ -439,7 +439,7 @@ class Test:
         return strings
 
     @property
-    def raw_body_strings(self) -> List[List[str]]:
+    def raw_body_strings(self) -> list[list[str]]:
         """All raw strings for the body of the table."""
         strings = []
         for idx, first_string in enumerate(self.raw_first_col_strings):
@@ -457,15 +457,15 @@ class Test:
         return strings
 
     @property
-    def raw_strings(self) -> List[List[str]]:
+    def raw_strings(self) -> list[list[str]]:
         """All raw strings for the complete table."""
         return [self.raw_header_strings] + self.raw_body_strings
 
     @property
-    def col_widths(self) -> List[int]:
+    def col_widths(self) -> list[int]:
         """The widths of all columns of the table."""
         strings = self.raw_strings
-        widths: List[int] = []
+        widths: list[int] = []
         for jdx in range(self.nmb_cols):
             widths.append(0)
             for idx in range(self.nmb_rows):
@@ -473,7 +473,7 @@ class Test:
         return widths
 
     @property
-    def col_separators(self) -> List[str]:
+    def col_separators(self) -> list[str]:
         """The separators for adjacent columns."""
         seps = ["| "]
         for parseq in self.parseqs:
@@ -528,7 +528,7 @@ class PlottingOptions:
     height: int
     axis1: typingtools.MayNonerable1[sequencetools.IOSequence]
     axis2: typingtools.MayNonerable1[sequencetools.IOSequence]
-    activated: Optional[Tuple[sequencetools.IOSequence, ...]]
+    activated: Optional[tuple[sequencetools.IOSequence, ...]]
 
     def __init__(self) -> None:
         self.width = 600
@@ -559,12 +559,12 @@ class IntegrationTest(Test):
     element: devicetools.Element
     elements: devicetools.Devices[devicetools.Element]
     nodes: devicetools.Devices[devicetools.Node]
-    parseqs: Tuple[sequencetools.IOSequence, ...]
+    parseqs: tuple[sequencetools.IOSequence, ...]
 
     def __init__(
         self,
         element: Optional[devicetools.Element] = None,
-        seqs: Optional[Tuple[sequencetools.IOSequence, ...]] = None,
+        seqs: Optional[tuple[sequencetools.IOSequence, ...]] = None,
         inits=None,
     ) -> None:
         """Prepare the element and its nodes, put them into a HydPy object, and make
@@ -655,11 +655,11 @@ class IntegrationTest(Test):
         return None
 
     @property
-    def _datetimes(self) -> Tuple[datetime.datetime, ...]:
+    def _datetimes(self) -> tuple[datetime.datetime, ...]:
         return tuple(date.datetime for date in hydpy.pub.timegrids.sim)
 
     @property
-    def raw_first_col_strings(self) -> Tuple[str, ...]:
+    def raw_first_col_strings(self) -> tuple[str, ...]:
         """The raw date strings of the first column, except the header."""
         return tuple(_.strftime(self.dateformat) for _ in self._datetimes)
 
@@ -734,7 +734,7 @@ standard library for for further information.
         prepare_inputseries(allocate_ram=False)
         prepare_inputseries(allocate_ram=True)
 
-    def extract_print_sequences(self) -> Tuple[sequencetools.IOSequence, ...]:
+    def extract_print_sequences(self) -> tuple[sequencetools.IOSequence, ...]:
         """Return a list of all input, factor, flux, and state sequences of the model
         and the simulation sequences of all nodes."""
         seqs = []
@@ -846,8 +846,8 @@ standard library for for further information.
         act_types1 = tuple(type(seq_) for seq_ in axis1)
         act_types2 = tuple(type(seq_) for seq_ in axis2)
         sel_names, sel_series, sel_units = [], [], []
-        act_names1: List[str] = []
-        act_names2: List[str] = []
+        act_names1: list[str] = []
+        act_names2: list[str] = []
         for sequence in sel_sequences:
             name = type(sequence).__name__
             if sequence.NDIM == 0:
@@ -1288,7 +1288,7 @@ class TestIO:
     _clear_own: bool
     _clear_all: bool
     _path: Optional[str]
-    _olds: Optional[List[str]]
+    _olds: Optional[list[str]]
 
     def __init__(self, clear_own: bool = False, clear_all: bool = False) -> None:
         self._clear_own = clear_own
@@ -1307,7 +1307,7 @@ class TestIO:
 
     def __exit__(
         self,
-        exception_type: Type[BaseException],
+        exception_type: type[BaseException],
         exception_value: BaseException,
         traceback_: types.TracebackType,
     ) -> None:
@@ -1335,7 +1335,7 @@ class TestIO:
             pass
 
 
-def make_abc_testable(abstract: Type[T]) -> Type[T]:
+def make_abc_testable(abstract: type[T]) -> type[T]:
     """Return a concrete version of the given abstract base class for testing purposes.
 
     Abstract base classes cannot be (and, at least in production code, should not be)
@@ -1488,7 +1488,7 @@ class NumericalDifferentiator:
         return self.__XSHIFTS[self._method] * self._span
 
     @property
-    def _yvalues(self) -> Dict[sequencetools.ModelSequence, NDArrayFloat]:
+    def _yvalues(self) -> dict[sequencetools.ModelSequence, NDArrayFloat]:
         xvalues = copy.deepcopy(self._xsequence.values)
         if not self._xsequence.NDIM:
             nmb = 1
@@ -1510,7 +1510,7 @@ class NumericalDifferentiator:
             self._xsequence.values = xvalues
 
     @property
-    def _derivatives(self) -> Dict[sequencetools.ModelSequence, NDArrayFloat]:
+    def _derivatives(self) -> dict[sequencetools.ModelSequence, NDArrayFloat]:
         return {
             ysequence: numpy.dot(self._ycoeffs, yvalues.T)
             for ysequence, yvalues in self._yvalues.items()
@@ -1589,8 +1589,8 @@ def update_integrationtests(
     with stringio() as file_, contextlib.redirect_stdout(file_):
         module.tester.perform_tests()
         result = file_.getvalue()
-    oldlines: List[str] = []
-    newlines: List[str] = []
+    oldlines: list[str] = []
+    newlines: list[str] = []
     expected, got = False, False
     nmb_replacements = 0
     for line in result.split("\n"):
@@ -1620,7 +1620,7 @@ def update_integrationtests(
         resultfile.write(docstring)
 
 
-def _enumerate(variables: Tuple[Type[variabletools.Variable], ...]) -> str:
+def _enumerate(variables: tuple[type[variabletools.Variable], ...]) -> str:
     return objecttools.enumeration(
         v.__name__ for v in variabletools.sort_variables(variables)
     )
@@ -1691,7 +1691,7 @@ result sequences of any of its predecessors: TKor and TZ
     <BLANKLINE>
     """
     blanks = " " * indent
-    results: List[str] = []
+    results: list[str] = []
     excluded = (
         sequencetools.InputSequence,
         sequencetools.InletSequence,
@@ -1719,7 +1719,7 @@ result sequences of any of its predecessors: TKor and TZ
     return "\n".join(results)
 
 
-def check_selectedvariables(method: Type[modeltools.Method], indent: int = 0) -> str:
+def check_selectedvariables(method: type[modeltools.Method], indent: int = 0) -> str:
     """Perform consistency checks regarding the |Parameter| and |Sequence_|
     subclasses selected by the given |Method| subclass.
 
@@ -1913,12 +1913,12 @@ PotentialInterceptionEvaporation
         "RESULTSEQUENCES",
     )
     blanks = " " * indent
-    results: List[str] = []
+    results: list[str] = []
     # search for variables that are used in the source code but not among the selected
     # variables:
     source = inspect.getsource(method.__call__)
-    varnames_source: Set[str] = set()
-    unbound_vars: Set[str] = set(inspect.getclosurevars(method.__call__).unbound)
+    varnames_source: set[str] = set()
+    unbound_vars: set[str] = set(inspect.getclosurevars(method.__call__).unbound)
     for varname in tuple(unbound_vars):
         if f"modelutils.{varname}" in source:
             unbound_vars.remove(varname)
@@ -1932,10 +1932,10 @@ PotentialInterceptionEvaporation
                         varname = varname[1 : -len(suffix)]
                 varname = varname.replace("_callback", "")
             varnames_source.add(varname)
-    varnames_selected: Set[str] = set()
+    varnames_selected: set[str] = set()
     for group in groups:
         varnames_selected.update(g.__name__.lower() for g in getattr(method, group))
-    varnames_diff: List[str] = sorted(varnames_source - varnames_selected)
+    varnames_diff: list[str] = sorted(varnames_source - varnames_selected)
     if varnames_diff:
         results.append(
             f"{blanks}Definitely missing: {objecttools.enumeration(varnames_diff)}"
@@ -1943,8 +1943,8 @@ PotentialInterceptionEvaporation
 
     # search for variables selected by at least one submethod but not by the method
     # calling these submethods:
-    vars_method: Set[Type[variabletools.Variable]]
-    vars_submethods: Set[Type[variabletools.Variable]]
+    vars_method: set[type[variabletools.Variable]]
+    vars_submethods: set[type[variabletools.Variable]]
     for group in groups:
         vars_method = set(getattr(method, group))
         found_problem = False
@@ -1972,10 +1972,10 @@ PotentialInterceptionEvaporation
 
     # search for selected variables that are neither used within the source code nor
     # selected by any submethod:
-    group2vars_method: Dict[str, Set[Type[variabletools.Variable]]] = {
+    group2vars_method: dict[str, set[type[variabletools.Variable]]] = {
         g: set(getattr(method, g)) for g in groups
     }
-    group2vars_submethods: Dict[str, Set[Type[variabletools.Variable]]] = {
+    group2vars_submethods: dict[str, set[type[variabletools.Variable]]] = {
         g: set() for g in groups
     }
     for submethod in method.SUBMETHODS:
@@ -1995,9 +1995,9 @@ PotentialInterceptionEvaporation
             )
 
     # search for variables that are selected multiple times:
-    vars1: Tuple[Type[variabletools.Variable], ...]
-    vars2: Tuple[Type[variabletools.Variable], ...]
-    dupl: Set[Type[variabletools.Variable]] = set()
+    vars1: tuple[type[variabletools.Variable], ...]
+    vars2: tuple[type[variabletools.Variable], ...]
+    dupl: set[type[variabletools.Variable]] = set()
     for group1 in groups:
         vars1 = getattr(method, group1)
         for var in vars1:
@@ -2062,8 +2062,8 @@ result sequences of any of its predecessors: NKor
     """
     blanks = " " * indent
     model = importtools.prepare_model(applicationmodel)
-    results: List[str] = []
-    method2errors: Dict[str, str] = {}
+    results: list[str] = []
+    method2errors: dict[str, str] = {}
     for method in model.get_methods():
         assert (methoddoc := method.__doc__) is not None
         if "check_selectedvariables(" not in methoddoc:

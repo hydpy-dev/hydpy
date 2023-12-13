@@ -122,7 +122,7 @@ NodeVariableType = Union[str, sequencetools.InOutSequenceTypes, "FusedVariable"]
 _default_variable: NodeVariableType = "Q"
 
 
-class Keywords(Set[str]):
+class Keywords(set[str]):
     """Set of keyword arguments used to describe and search for |Element| and |Node|
     objects."""
 
@@ -133,7 +133,7 @@ class Keywords(Set[str]):
         self._check_keywords(names)
         super().__init__(names)
 
-    def startswith(self, name: str) -> List[str]:
+    def startswith(self, name: str) -> list[str]:
         """Return a list of all keywords, starting with the given string.
 
         >>> from hydpy.core.devicetools import Keywords
@@ -145,7 +145,7 @@ class Keywords(Set[str]):
         """
         return sorted(keyword for keyword in self if keyword.startswith(name))
 
-    def endswith(self, name: str) -> List[str]:
+    def endswith(self, name: str) -> list[str]:
         """Return a list of all keywords ending with the given string.
 
         >>> from hydpy.core.devicetools import Keywords
@@ -157,7 +157,7 @@ class Keywords(Set[str]):
         """
         return sorted(keyword for keyword in self if keyword.endswith(name))
 
-    def contains(self, name: str) -> List[str]:
+    def contains(self, name: str) -> list[str]:
         """Return a list of all keywords containing the given string.
 
         >>> from hydpy.core.devicetools import Keywords
@@ -247,7 +247,7 @@ variable identifier.  ...
             )
 
 
-_registry_fusedvariable: Dict[str, FusedVariable] = {}
+_registry_fusedvariable: dict[str, FusedVariable] = {}
 
 
 class FusedVariable:
@@ -425,9 +425,9 @@ mind, that `name` is the unique identifier for fused variable instances.
     """
 
     _name: str
-    _aliases: Tuple[str, ...]
-    _variables: Tuple[sequencetools.InOutSequenceTypes, ...]
-    _alias2variable: Dict[str, sequencetools.InOutSequenceTypes]
+    _aliases: tuple[str, ...]
+    _variables: tuple[sequencetools.InOutSequenceTypes, ...]
+    _alias2variable: dict[str, sequencetools.InOutSequenceTypes]
 
     def __new__(
         cls, name: str, *sequences: sequencetools.InOutSequenceTypes
@@ -456,7 +456,7 @@ mind, that `name` is the unique identifier for fused variable instances.
         return self
 
     @classmethod
-    def get_registry(cls) -> Tuple[FusedVariable, ...]:
+    def get_registry(cls) -> tuple[FusedVariable, ...]:
         """Get all |FusedVariable| objects initialised so far."""
         return tuple(_registry_fusedvariable.values())
 
@@ -666,8 +666,8 @@ classes: Node and str.
     """
 
     _mutable: bool
-    _name2device: Dict[str, TypeDevice]
-    _shadowed_keywords: Set[str]
+    _name2device: dict[str, TypeDevice]
+    _shadowed_keywords: set[str]
 
     def __new__(
         cls, *values: MayNonerable2[TypeDevice, str], mutable: bool = True
@@ -693,7 +693,7 @@ classes: Node and str.
 
     @staticmethod
     @abc.abstractmethod
-    def get_contentclass() -> Type[TypeDevice]:
+    def get_contentclass() -> type[TypeDevice]:
         """To be overridden."""
 
     def add_device(self, device: Union[TypeDevice, str], force: bool = False) -> None:
@@ -809,7 +809,7 @@ allowed.
             )
 
     @property
-    def names(self) -> Tuple[str, ...]:
+    def names(self) -> tuple[str, ...]:
         """A sorted tuple of the names of the handled devices.
 
         >>> from hydpy import Nodes
@@ -819,7 +819,7 @@ allowed.
         return tuple(device.name for device in self)
 
     @property
-    def devices(self) -> Tuple[TypeDevice, ...]:
+    def devices(self) -> tuple[TypeDevice, ...]:
         """A tuple of the handled devices sorted by the device names.
 
         >>> from hydpy import Nodes
@@ -832,7 +832,7 @@ allowed.
         return tuple(device for device in self)
 
     @property
-    def keywords(self) -> Set[str]:
+    def keywords(self) -> set[str]:
         """A set of all keywords of all handled devices.
 
         In addition to attribute access via device names, |Nodes| and |Elements|
@@ -1143,7 +1143,7 @@ conflict with using their names as identifiers.
                 repr_ = objecttools.assignrepr_values(self.names, prefix, width=70)
                 return repr_ + ")"
 
-    def __dir__(self) -> List[str]:
+    def __dir__(self) -> list[str]:
         """
         >>> from hydpy import Node, Nodes
         >>> nodes = Nodes(Node("name1", keywords="keyword1"),
@@ -1152,7 +1152,7 @@ conflict with using their names as identifiers.
         ['keyword1', 'keyword2a', 'name1', 'name2']
         """
         return (
-            cast(List[str], super().__dir__()) + list(self.names) + list(self.keywords)
+            cast(list[str], super().__dir__()) + list(self.names) + list(self.keywords)
         )
 
 
@@ -1195,7 +1195,7 @@ class Nodes(Devices["Node"]):
             _default_variable = _default_variable_copy
 
     @staticmethod
-    def get_contentclass() -> Type[Node]:
+    def get_contentclass() -> type[Node]:
         """Return class |Node|."""
         return Node
 
@@ -1272,7 +1272,7 @@ class Nodes(Devices["Node"]):
                 seq.save_series()
 
     @property
-    def variables(self) -> Set[NodeVariableType]:
+    def variables(self) -> set[NodeVariableType]:
         """Return a set of the variables of all handled |Node| objects.
 
         >>> from hydpy import Node, Nodes
@@ -1293,12 +1293,12 @@ class Elements(Devices["Element"]):
     """
 
     @staticmethod
-    def get_contentclass() -> Type[Element]:
+    def get_contentclass() -> type[Element]:
         """Return class |Element|."""
         return Element
 
     @property
-    def collectives(self) -> Dict[Optional[str], Tuple[Element, ...]]:
+    def collectives(self) -> dict[Optional[str], tuple[Element, ...]]:
         """The names and members of all currently relevant collectives.
 
         Note that all |Element| instances not belonging to any |Element.collective| are
@@ -1464,7 +1464,7 @@ a function for coupling models that belong to the same collective.
             >>> del pub.timegrids
             >>> FusedVariable.clear_registry()
         """
-        elements: List[Element] = []
+        elements: list[Element] = []
         for collective, subelements in self.collectives.items():
             if collective is None:
                 elements.extend(subelements)
@@ -1800,7 +1800,7 @@ class Device:
 
     @classmethod
     @abc.abstractmethod
-    def get_handlerclass(cls) -> Type[Devices[Any]]:
+    def get_handlerclass(cls) -> type[Devices[Any]]:
         """To be overridden."""
 
     @classmethod
@@ -2022,7 +2022,7 @@ following error occurred: Adding devices to immutable Elements objects is not al
             self.keywords = keywords
 
     @classmethod
-    def get_handlerclass(cls) -> Type[Nodes]:
+    def get_handlerclass(cls) -> type[Nodes]:
         """Return class |Nodes|."""
         return Nodes
 
@@ -2364,10 +2364,10 @@ group name `test`.
     def plot_allseries(
         self,
         *,
-        labels: Optional[Tuple[str, str]] = None,
-        colors: Optional[Union[str, Tuple[str, str]]] = None,
-        linestyles: Optional[Union[LineStyle, Tuple[LineStyle, LineStyle]]] = None,
-        linewidths: Optional[Union[int, Tuple[int, int]]] = None,
+        labels: Optional[tuple[str, str]] = None,
+        colors: Optional[Union[str, tuple[str, str]]] = None,
+        linestyles: Optional[Union[LineStyle, tuple[LineStyle, LineStyle]]] = None,
+        linewidths: Optional[Union[int, tuple[int, int]]] = None,
         focus: bool = False,
         stepsize: Optional[StepSize] = None,
     ) -> pyplot.Figure:
@@ -2462,8 +2462,8 @@ Attribute timegrids of module `pub` is not defined at the moment.
         t = TypeVar("t", str, int)
 
         def _make_tuple(
-            x: Union[Optional[t], Tuple[Optional[t], Optional[t]]]
-        ) -> Tuple[Optional[t], Optional[t]]:
+            x: Union[Optional[t], tuple[Optional[t], Optional[t]]]
+        ) -> tuple[Optional[t], Optional[t]]:
             return (x, x) if ((x is None) or isinstance(x, (str, int))) else x
 
         return self._plot_series(
@@ -2942,7 +2942,7 @@ already a collective `NileRiver` member.
         values: NodesConstrArg,
         targetnodes: str,
         targetelements: str,
-        incompatiblenodes: Tuple[str, ...],
+        incompatiblenodes: tuple[str, ...],
     ) -> None:
         elementgroup: Nodes = getattr(self, targetnodes)
         for node in Nodes(values):
@@ -3062,7 +3062,7 @@ already a collective `NileRiver` member.
     outputs = propertytools.Property(fget=_get_outputs, fset=_set_outputs)
 
     @classmethod
-    def get_handlerclass(cls) -> Type[Elements]:
+    def get_handlerclass(cls) -> type[Elements]:
         """Return class |Elements|."""
         return Elements
 
@@ -3229,7 +3229,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         )
 
     @property
-    def variables(self) -> Set[NodeVariableType]:
+    def variables(self) -> set[NodeVariableType]:
         """A set of all different |Node.variable| values of the |Node| objects directly
         connected to the actual |Element| object.
 
@@ -3364,20 +3364,20 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         ],
         names: Optional[Sequence[str]],
         average: bool,
-        labels: Optional[Tuple[str, ...]],
-        colors: Optional[Union[str, Tuple[str, ...]]],
-        linestyles: Optional[Union[LineStyle, Tuple[LineStyle, ...]]],
-        linewidths: Optional[Union[int, Tuple[int, ...]]],
+        labels: Optional[tuple[str, ...]],
+        colors: Optional[Union[str, tuple[str, ...]]],
+        linestyles: Optional[Union[LineStyle, tuple[LineStyle, ...]]],
+        linewidths: Optional[Union[int, tuple[int, ...]]],
         focus: bool,
     ) -> pyplot.Figure:
         def _prepare_tuple(
-            input_: Optional[Union[T, Tuple[T, ...]]], nmb_entries: int
-        ) -> Tuple[Optional[T], ...]:
+            input_: Optional[Union[T, tuple[T, ...]]], nmb_entries: int
+        ) -> tuple[Optional[T], ...]:
             if isinstance(input_, tuple):
                 return input_
             return nmb_entries * (input_,)
 
-        def _make_vectors(array: NDArrayFloat) -> List[NDArrayFloat]:
+        def _make_vectors(array: NDArrayFloat) -> list[NDArrayFloat]:
             vectors = []
             for idxs in itertools.product(*(range(shp) for shp in array.shape[1:])):
                 vector = array
@@ -3394,7 +3394,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         else:
             selseqs = subseqs
         nmb_sequences = len(subseqs)
-        labels_: Tuple[Optional[str], ...]
+        labels_: tuple[Optional[str], ...]
         if isinstance(labels, tuple):
             labels_ = labels
         else:
@@ -3446,10 +3446,10 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         names: Optional[Sequence[str]] = None,
         *,
         average: bool = False,
-        labels: Optional[Tuple[str, ...]] = None,
-        colors: Optional[Union[str, Tuple[str, ...]]] = None,
-        linestyles: Optional[Union[LineStyle, Tuple[LineStyle, ...]]] = None,
-        linewidths: Optional[Union[int, Tuple[int, ...]]] = None,
+        labels: Optional[tuple[str, ...]] = None,
+        colors: Optional[Union[str, tuple[str, ...]]] = None,
+        linestyles: Optional[Union[LineStyle, tuple[LineStyle, ...]]] = None,
+        linewidths: Optional[Union[int, tuple[int, ...]]] = None,
         focus: bool = True,
     ) -> pyplot.Figure:
         """Plot (the selected) |InputSequence| |IOSequence.series| values.
@@ -3535,10 +3535,10 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         names: Optional[Sequence[str]] = None,
         *,
         average: bool = False,
-        labels: Optional[Tuple[str, ...]] = None,
-        colors: Optional[Union[str, Tuple[str, ...]]] = None,
-        linestyles: Optional[Union[LineStyle, Tuple[LineStyle, ...]]] = None,
-        linewidths: Optional[Union[int, Tuple[int, ...]]] = None,
+        labels: Optional[tuple[str, ...]] = None,
+        colors: Optional[Union[str, tuple[str, ...]]] = None,
+        linestyles: Optional[Union[LineStyle, tuple[LineStyle, ...]]] = None,
+        linewidths: Optional[Union[int, tuple[int, ...]]] = None,
         focus: bool = True,
     ) -> pyplot.Figure:
         """Plot the `factor` series of the handled model.
@@ -3562,10 +3562,10 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         names: Optional[Sequence[str]] = None,
         *,
         average: bool = False,
-        labels: Optional[Tuple[str, ...]] = None,
-        colors: Optional[Union[str, Tuple[str, ...]]] = None,
-        linestyles: Optional[Union[LineStyle, Tuple[LineStyle, ...]]] = None,
-        linewidths: Optional[Union[int, Tuple[int, ...]]] = None,
+        labels: Optional[tuple[str, ...]] = None,
+        colors: Optional[Union[str, tuple[str, ...]]] = None,
+        linestyles: Optional[Union[LineStyle, tuple[LineStyle, ...]]] = None,
+        linewidths: Optional[Union[int, tuple[int, ...]]] = None,
         focus: bool = True,
     ) -> pyplot.Figure:
         """Plot the `flux` series of the handled model.
@@ -3589,10 +3589,10 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         names: Optional[Sequence[str]] = None,
         *,
         average: bool = False,
-        labels: Optional[Tuple[str, ...]] = None,
-        colors: Optional[Union[str, Tuple[str, ...]]] = None,
-        linestyles: Optional[Union[LineStyle, Tuple[LineStyle, ...]]] = None,
-        linewidths: Optional[Union[int, Tuple[int, ...]]] = None,
+        labels: Optional[tuple[str, ...]] = None,
+        colors: Optional[Union[str, tuple[str, ...]]] = None,
+        linestyles: Optional[Union[LineStyle, tuple[LineStyle, ...]]] = None,
+        linewidths: Optional[Union[int, tuple[int, ...]]] = None,
         focus: bool = True,
     ) -> pyplot.Figure:
         """Plot the `state` series of the handled model.
@@ -3646,9 +3646,9 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         return self.assignrepr("")
 
 
-_id2devices: Dict[Device, Dict[int, Devices[Device]]] = {}
-_registry: Mapping[Type[Device], Dict[str, Device]] = {Node: {}, Element: {}}
-_selection: Mapping[Type[Device], Dict[str, Device]] = {Node: {}, Element: {}}
+_id2devices: dict[Device, dict[int, Devices[Device]]] = {}
+_registry: Mapping[type[Device], dict[str, Device]] = {Node: {}, Element: {}}
+_selection: Mapping[type[Device], dict[str, Device]] = {Node: {}, Element: {}}
 
 
 @contextlib.contextmanager
@@ -3700,7 +3700,7 @@ def clear_registries_temporarily() -> Generator[None, None, None]:
     {4: 5}
     {5: 6}
     """
-    registries: Tuple[Dict[Any, Any], ...] = (
+    registries: tuple[dict[Any, Any], ...] = (
         _id2devices,
         _registry[Node],
         _registry[Element],

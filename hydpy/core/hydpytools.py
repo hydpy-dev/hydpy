@@ -680,7 +680,7 @@ is not requested to make any time-series data available.
     11.78144, 8.902735, 7.132279, 6.018681
     """
 
-    _deviceorder: Optional[Tuple[Union[devicetools.Node, devicetools.Element], ...]]
+    _deviceorder: Optional[tuple[Union[devicetools.Node, devicetools.Element], ...]]
 
     _nodes: Optional[devicetools.Nodes]
     _elements: Optional[devicetools.Elements]
@@ -1892,8 +1892,8 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
     @property
     def networkproperties(
         self,
-    ) -> Dict[
-        str, Union[int, Union[Dict[str, int], Dict[devicetools.NodeVariableType, int]]]
+    ) -> dict[
+        str, Union[int, Union[dict[str, int], dict[devicetools.NodeVariableType, int]]]
     ]:
         """Some properties of the network defined by the currently relevant |Node| and
         |Element| objects.
@@ -1937,7 +1937,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         Applied model types: hland_v1 (4) and musk_classic (3)
         """
         value: Union[
-            str, int, Union[Dict[str, int], Dict[devicetools.NodeVariableType, int]]
+            str, int, Union[dict[str, int], dict[devicetools.NodeVariableType, int]]
         ]
         for key, value in self.networkproperties.items():
             if isinstance(value, dict):
@@ -2138,7 +2138,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         return sels1
 
     @property
-    def variables(self) -> Dict[devicetools.NodeVariableType, int]:
+    def variables(self) -> dict[devicetools.NodeVariableType, int]:
         """Summary of all |Node.variable| properties of the currently relevant |Node|
         objects.
 
@@ -2157,15 +2157,15 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         >>> hp.variables
         {'Q': 4, FusedVariable("T", hland_inputs_T): 1}
         """
-        variables: DefaultDict[
+        variables: collections.defaultdict[
             Union[
                 str,
-                Type[sequencetools.InputSequence],
-                Type[sequencetools.InletSequence],
-                Type[sequencetools.ReceiverSequence],
-                Type[sequencetools.OutputSequence],
-                Type[sequencetools.OutletSequence],
-                Type[sequencetools.SenderSequence],
+                type[sequencetools.InputSequence],
+                type[sequencetools.InletSequence],
+                type[sequencetools.ReceiverSequence],
+                type[sequencetools.OutputSequence],
+                type[sequencetools.OutletSequence],
+                type[sequencetools.SenderSequence],
                 devicetools.FusedVariable,
             ],
             int,
@@ -2180,7 +2180,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         )
 
     @property
-    def modeltypes(self) -> Dict[str, int]:
+    def modeltypes(self) -> dict[str, int]:
         """Summary of all |Model| subclasses of the currently relevant |Element|
         objects.
 
@@ -2199,7 +2199,8 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         >>> hp.modeltypes
         {'hland_v1': 4, 'musk_classic': 3}
         """
-        modeltypes: Dict[str, int] = collections.defaultdict(lambda: 0)
+        modeltypes: collections.defaultdict[str, int]
+        modeltypes = collections.defaultdict(lambda: 0)
         for element in self.elements:
             model = exceptiontools.getattr_(
                 element,
@@ -2424,7 +2425,7 @@ prepared so far.
             self._deviceorder = tuple(d for d in devices if d.name in names)
 
     @property
-    def deviceorder(self) -> Tuple[Union[devicetools.Node, devicetools.Element], ...]:
+    def deviceorder(self) -> tuple[Union[devicetools.Node, devicetools.Element], ...]:
         """The simulation order of the currently selected devices.
 
         |HydPy| needs to know the devices before determining their order:
@@ -2452,7 +2453,7 @@ actual HydPy instance does not handle any elements at the moment.
             )
 
     @property
-    def methodorder(self) -> List[Callable[[int], None]]:
+    def methodorder(self) -> list[Callable[[int], None]]:
         """All methods of the currently relevant |Node| and |Element| objects, which
         are to be processed by method |HydPy.simulate| during a simulation time step,
         in a working execution order.
@@ -2462,7 +2463,7 @@ actual HydPy instance does not handle any elements at the moment.
         # due to https://github.com/python/mypy/issues/9718:
         # pylint: disable=consider-using-in
 
-        funcs: List[Callable[[int], None]] = []
+        funcs: list[Callable[[int], None]] = []
         if exceptiontools.attrready(hydpy.pub, "sequencemanager"):
             funcs.append(hydpy.pub.sequencemanager.read_netcdfslices)
         for node in self.nodes:
@@ -2702,7 +2703,7 @@ actual HydPy instance does not handle any elements at the moment.
         """
         idx_start, idx_end = hydpy.pub.timegrids.simindices
         methodorder = self.methodorder
-        cm: ContextManager[None] = contextlib.nullcontext()
+        cm: AbstractContextManager[None] = contextlib.nullcontext()
         if exceptiontools.attrready(hydpy.pub, "sequencemanager"):
             cm = hydpy.pub.sequencemanager.provide_netcdfjitaccess(self.deviceorder)
         with cm:

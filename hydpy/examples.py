@@ -38,7 +38,7 @@ if TYPE_CHECKING:
         descr_sequence = "just_for_testing"
 
 
-def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
+def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     """Prepare an IO example configuration for testing purposes.
 
     Function |prepare_io_example_1| is thought for testing the functioning of *HydPy*
@@ -257,7 +257,7 @@ def prepare_full_example_1(dirpath: Optional[str] = None) -> None:
 
 def prepare_full_example_2(
     lastdate: timetools.DateConstrArg = "1996-01-05",
-) -> Tuple[hydpytools.HydPy, pubtools.Pub, Type[testtools.TestIO]]:
+) -> tuple[hydpytools.HydPy, pubtools.Pub, type[testtools.TestIO]]:
     """Prepare the `LahnH` project on disk and in RAM.
 
     Function |prepare_full_example_2| is an extensions of function

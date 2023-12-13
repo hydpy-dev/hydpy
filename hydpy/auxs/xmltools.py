@@ -708,7 +708,7 @@ of the available devices has this keyword.
 devices has this name.
         """
 
-        def _get_texts(root: ElementTree.Element, name: str) -> List[str]:
+        def _get_texts(root: ElementTree.Element, name: str) -> list[str]:
             xmlelement = find(root=root, name=name, optional=True)
             if xmlelement is None or xmlelement.text is None:
                 return []
@@ -817,7 +817,7 @@ text `head_waters`, but the actual project does not handle such a `Selection` ob
         stream_lahn_2_lahn_3
         """
         selections = copy.copy(self.selections)
-        elements: Set[devicetools.Element] = set()
+        elements: set[devicetools.Element] = set()
         for selection in selections:
             for element in selection.elements:
                 if element not in elements:
@@ -1132,7 +1132,7 @@ class XMLSeries(XMLBase):
         self.root: ElementTree.Element = root
 
     @property
-    def readers(self) -> List[XMLSubseries]:
+    def readers(self) -> list[XMLSubseries]:
         """The reader XML elements defined in the actual XML file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
@@ -1145,7 +1145,7 @@ class XMLSeries(XMLBase):
         return [XMLSubseries(self, _) for _ in self.find("readers", optional=False)]
 
     @property
-    def writers(self) -> List[XMLSubseries]:
+    def writers(self) -> list[XMLSubseries]:
         """The writer XML elements defined in the actual XML file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
@@ -1440,7 +1440,9 @@ class XMLSubseries(XMLSelector):
         return mode.text == "ram"
 
     @property
-    def model2subs2seqs(self) -> DefaultDict[str, DefaultDict[str, List[str]]]:
+    def model2subs2seqs(
+        self,
+    ) -> collections.defaultdict[str, collections.defaultdict[str, list[str]]]:
         """A nested |collections.defaultdict| containing the model-specific information
         provided by the XML `sequences` element.
 
@@ -1457,8 +1459,9 @@ class XMLSubseries(XMLSelector):
         hland_v1 states ['sm']
         musk_classic states ['discharge']
         """
-        model2subs2seqs: DefaultDict[str, DefaultDict[str, List[str]]]
-        model2subs2seqs = collections.defaultdict(lambda: collections.defaultdict(list))
+        model2subs2seqs: collections.defaultdict[
+            str, collections.defaultdict[str, list[str]]
+        ] = collections.defaultdict(lambda: collections.defaultdict(list))
         for model in self.find("sequences", optional=False):
             model_name = strip(model.tag)
             if model_name == "node":
@@ -1471,7 +1474,7 @@ class XMLSubseries(XMLSelector):
         return model2subs2seqs
 
     @property
-    def subs2seqs(self) -> Dict[str, List[str]]:
+    def subs2seqs(self) -> dict[str, list[str]]:
         """A |collections.defaultdict| containing the node-specific information
         provided by XML `sequences` element.
 
@@ -1484,7 +1487,8 @@ class XMLSubseries(XMLSelector):
         ...     print(subs, seq)
         node ['sim', 'obs']
         """
-        subs2seqs: DefaultDict[str, List[str]] = collections.defaultdict(list)
+        subs2seqs: collections.defaultdict[str, list[str]]
+        subs2seqs = collections.defaultdict(list)
         nodes = find(self.find("sequences", optional=False), "node")
         if nodes is not None:
             for seq in nodes:
@@ -1788,10 +1792,10 @@ class XMLExchange(XMLBase):
         self.root: ElementTree.Element = root
 
     def _get_items_of_certain_item_types(
-        self, itemgroups: Iterable[str], itemtype: Type[_TypeGetOrChangeItem]
-    ) -> List[_TypeGetOrChangeItem]:
+        self, itemgroups: Iterable[str], itemtype: type[_TypeGetOrChangeItem]
+    ) -> list[_TypeGetOrChangeItem]:
         """Return either all |GetItem| or all |ChangeItem| objects."""
-        items: List[_TypeGetOrChangeItem] = []
+        items: list[_TypeGetOrChangeItem] = []
         for itemgroup in self.itemgroups:
             if (
                 issubclass(itemtype, itemtools.GetItem)
@@ -1818,7 +1822,7 @@ class XMLExchange(XMLBase):
         return items
 
     @property
-    def parameteritems(self) -> List[itemtools.ChangeItem]:
+    def parameteritems(self) -> list[itemtools.ChangeItem]:
         """Create and return all items for changing control parameter values.
 
         >>> from hydpy.examples import prepare_full_example_1
@@ -1847,7 +1851,7 @@ class XMLExchange(XMLBase):
         )
 
     @property
-    def inputitems(self) -> List[itemtools.SetItem]:
+    def inputitems(self) -> list[itemtools.SetItem]:
         """Return all items for changing input sequence values.
 
         >>> from hydpy.examples import prepare_full_example_1
@@ -1869,7 +1873,7 @@ class XMLExchange(XMLBase):
         )
 
     @property
-    def conditionitems(self) -> List[itemtools.SetItem]:
+    def conditionitems(self) -> list[itemtools.SetItem]:
         """Return all items for changing condition sequence values.
 
         >>> from hydpy.examples import prepare_full_example_1
@@ -1895,7 +1899,7 @@ class XMLExchange(XMLBase):
         )
 
     @property
-    def outputitems(self) -> List[itemtools.SetItem]:
+    def outputitems(self) -> list[itemtools.SetItem]:
         """Return all items for querying the current values or the complete time
         series of sequences in the "setitem" style.
 
@@ -1918,7 +1922,7 @@ class XMLExchange(XMLBase):
         )
 
     @property
-    def getitems(self) -> List[itemtools.GetItem]:
+    def getitems(self) -> list[itemtools.GetItem]:
         """Return all items for querying the current values or the complete time
         series of sequences in the "getitem style".
 
@@ -1976,7 +1980,7 @@ class XMLExchange(XMLBase):
                     #         base.prepare_series()   ToDo
 
     @property
-    def itemgroups(self) -> List[XMLItemgroup]:
+    def itemgroups(self) -> list[XMLItemgroup]:
         """The relevant |XMLItemgroup| objects."""
         return [XMLItemgroup(self, element) for element in self]
 
@@ -1991,14 +1995,14 @@ class XMLItemgroup(XMLBase):
         self.root: ElementTree.Element = root
 
     @property
-    def models(self) -> List[XMLModel]:
+    def models(self) -> list[XMLModel]:
         """The required |XMLModel| objects."""
         return [
             XMLModel(self, element) for element in self if strip(element.tag) != "nodes"
         ]
 
     @property
-    def nodes(self) -> List[XMLNode]:
+    def nodes(self) -> list[XMLNode]:
         """The required |XMLNode| objects."""
         return [
             XMLNode(self, element) for element in self if strip(element.tag) == "nodes"
@@ -2014,7 +2018,7 @@ class XMLModel(XMLBase):
         self.root: ElementTree.Element = root
 
     @property
-    def subvars(self) -> List[XMLSubvars]:
+    def subvars(self) -> list[XMLSubvars]:
         """The required |XMLSubVars| objects."""
         return [XMLSubvars(self, element) for element in self]
 
@@ -2028,7 +2032,7 @@ class XMLSubvars(XMLBase):
         self.root: ElementTree.Element = root
 
     @property
-    def vars(self) -> List[XMLVar]:
+    def vars(self) -> list[XMLVar]:
         """The required |XMLVar| objects."""
         return [XMLVar(self, element) for element in self]
 
@@ -2042,7 +2046,7 @@ class XMLNode(XMLBase):
         self.root: ElementTree.Element = root
 
     @property
-    def vars(self) -> List[XMLVar]:
+    def vars(self) -> list[XMLVar]:
         """The required |XMLVar| objects."""
         return [XMLVar(self, element) for element in self]
 
@@ -2284,7 +2288,7 @@ class XMLVar(XMLSelector):
         return self._get_changeitem(target, master, itemtype)
 
     def _get_getitem(
-        self, target: str, master: str, itemtype: Type[itemtools.GetItem]
+        self, target: str, master: str, itemtype: type[itemtools.GetItem]
     ) -> itemtools.GetItem:
         xmlelement = self.find("name", optional=True)
         if xmlelement is None or xmlelement.text is None:
@@ -2296,7 +2300,7 @@ class XMLVar(XMLSelector):
         return item
 
     def _get_changeitem(
-        self, target: str, master: str, itemtype: Type[_TypeSetOrAddOrMultiplyItem]
+        self, target: str, master: str, itemtype: type[_TypeSetOrAddOrMultiplyItem]
     ) -> _TypeSetOrAddOrMultiplyItem:
         name = cast(Name, self.find("name", optional=False).text)
         assert name is not None
@@ -2391,7 +2395,7 @@ class XSDWriter:
             file_.write(template)
 
     @staticmethod
-    def get_basemodelnames() -> List[str]:
+    def get_basemodelnames() -> list[str]:
         """Return a sorted |list| containing all base model names.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
@@ -2407,7 +2411,7 @@ class XSDWriter:
         return sorted(dn for dn in os.listdir(modelspath) if _is_basemodel(dn))
 
     @staticmethod
-    def get_applicationmodelnames() -> List[str]:
+    def get_applicationmodelnames() -> list[str]:
         """Return a sorted |list| containing all application model names.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
@@ -2498,7 +2502,7 @@ class XSDWriter:
         indent = 1
         blanks = " " * (indent * 4)
         subs = []
-        types_: Tuple[Literal["reader", "writer"], ...] = ("reader", "writer")
+        types_: tuple[Literal["reader", "writer"], ...] = ("reader", "writer")
         for type_ in types_:
             for name in cls.get_applicationmodelnames():
                 model = importtools.prepare_model(name)
@@ -2583,7 +2587,7 @@ class XSDWriter:
                 </complexType>
             </element>
         """
-        names: Tuple[str, ...] = ("inputs",)
+        names: tuple[str, ...] = ("inputs",)
         if type_ == "writer":
             names += "factors", "fluxes", "states"
         texts = []

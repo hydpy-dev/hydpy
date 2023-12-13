@@ -976,15 +976,15 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
 
     # Subclasses need to define...
     NDIM: int
-    TYPE: Type
+    TYPE: type[Union[float, int, bool]]  # ToDo: is still `str` in some cases
     # ...and optionally...
-    SPAN: Tuple[Union[int, float, bool, None], Union[int, float, bool, None]] = (
+    SPAN: tuple[Union[int, float, bool, None], Union[int, float, bool, None]] = (
         None,
         None,
     )
     INIT: Union[int, float, bool, None] = None
 
-    _NOT_DEEPCOPYABLE_MEMBERS: Final[FrozenSet[str]] = frozenset(
+    _NOT_DEEPCOPYABLE_MEMBERS: Final[frozenset[str]] = frozenset(
         (
             "subvars",
             "subpars",
@@ -994,7 +994,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
             "fastaccess_new",
         )
     )
-    _CLS_FASTACCESS_PYTHON: ClassVar[Type[FastAccess]]
+    _CLS_FASTACCESS_PYTHON: ClassVar[type[FastAccess]]
 
     strict_valuehandling: bool = True
 
@@ -1108,7 +1108,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
 
     @property
     @abc.abstractmethod
-    def initinfo(self) -> Tuple[Union[float, int, bool, pointerutils.Double], bool]:
+    def initinfo(self) -> tuple[Union[float, int, bool, pointerutils.Double], bool]:
         """To be overridden."""
 
     def __call__(self, *args) -> None:
@@ -1292,7 +1292,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
     def values(self, values):
         self._set_value(values)
 
-    def _get_shape(self) -> Tuple[int, ...]:
+    def _get_shape(self) -> tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
         Note that setting a new |Variable.shape| results in a loss of
@@ -1437,7 +1437,7 @@ as `var` can only be `()`, but `(2,)` is given.
             )
         return ()
 
-    def _set_shape(self, shape: Union[int, Tuple[int, ...]]) -> None:
+    def _set_shape(self, shape: Union[int, tuple[int, ...]]) -> None:
         self._valueready = False
         self.__shapeready = False
         initvalue, initflag = self.initinfo
@@ -2191,14 +2191,14 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 class MixinFixedShape:
     """Mixin class for defining variables with a fixed shape."""
 
-    SHAPE: Union[Tuple[int, ...]]
+    SHAPE: Union[tuple[int, ...]]
     name: str
 
     def _finalise_connections(self) -> None:
         super()._finalise_connections()  # type: ignore[misc]
         self.shape = self.SHAPE
 
-    def _get_shape(self) -> Tuple[int, ...]:
+    def _get_shape(self) -> tuple[int, ...]:
         """Variables that mix in |MixinFixedShape| are generally initialised with a
         fixed shape.
 
@@ -2226,7 +2226,7 @@ was attempted for element `?`.
         """
         return super()._get_shape()  # type: ignore[misc]
 
-    def _set_shape(self, shape: Union[int, Tuple[int, ...]]) -> None:
+    def _set_shape(self, shape: Union[int, tuple[int, ...]]) -> None:
         oldshape = exceptiontools.getattr_(self, "shape", None)
         if oldshape is None:
             super()._set_shape(shape)  # type: ignore[misc]
@@ -2241,21 +2241,21 @@ was attempted for element `?`.
 
 @overload
 def sort_variables(
-    values: Iterable[Type[TypeVariable_co]],
-) -> Tuple[Type[TypeVariable_co], ...]:
+    values: Iterable[type[TypeVariable_co]],
+) -> tuple[type[TypeVariable_co], ...]:
     ...
 
 
 @overload
 def sort_variables(
-    values: Iterable[Tuple[Type[TypeVariable_co], T]]
-) -> Tuple[Tuple[Type[TypeVariable_co], T], ...]:
+    values: Iterable[tuple[type[TypeVariable_co], T]]
+) -> tuple[tuple[type[TypeVariable_co], T], ...]:
     ...
 
 
 def sort_variables(
-    values: Iterable[Union[Type[TypeVariable], Tuple[Type[TypeVariable], T]]]
-) -> Tuple[Union[Type[TypeVariable], Tuple[Type[TypeVariable], T]], ...]:
+    values: Iterable[Union[type[TypeVariable], tuple[type[TypeVariable], T]]]
+) -> tuple[Union[type[TypeVariable], tuple[type[TypeVariable], T]], ...]:
     """Sort the given |Variable| subclasses by their initialisation order.
 
     When defined in one module, the initialisation order corresponds to the order
@@ -2406,17 +2406,17 @@ error occurred: 5 values are assigned to the scalar variable `testvar`.
     1
     """
 
-    CLASSES: Tuple[Type[TypeVariable_co], ...]
+    CLASSES: tuple[type[TypeVariable_co], ...]
     vars: TypeGroup_co
-    _name2variable: Dict[str, TypeVariable_co] = {}
+    _name2variable: dict[str, TypeVariable_co] = {}
     fastaccess: TypeFastAccess_co
-    _cls_fastaccess: Optional[Type[TypeFastAccess_co]] = None
-    _CLS_FASTACCESS_PYTHON: ClassVar[Type[TypeFastAccess_co]]  # type: ignore[misc]
+    _cls_fastaccess: Optional[type[TypeFastAccess_co]] = None
+    _CLS_FASTACCESS_PYTHON: ClassVar[type[TypeFastAccess_co]]  # type: ignore[misc]
 
     def __init__(
         self,
         master: TypeGroup_co,
-        cls_fastaccess: Optional[Type[TypeFastAccess_co]] = None,
+        cls_fastaccess: Optional[type[TypeFastAccess_co]] = None,
     ):
         self.vars = master
         if cls_fastaccess:
@@ -2434,7 +2434,7 @@ error occurred: 5 values are assigned to the scalar variable `testvar`.
         """To be overridden."""
 
     @functools.cached_property
-    def names(self) -> FrozenSet:
+    def names(self) -> frozenset:
         """The names of all handled variables."""
         return frozenset(self._name2variable)
 
@@ -2487,7 +2487,7 @@ error occurred: 5 values are assigned to the scalar variable `testvar`.
                 lines.append(f"{variable.name}(?)")
         return "\n".join(lines)
 
-    def __dir__(self) -> List[str]:
+    def __dir__(self) -> list[str]:
         """
         >>> from hydpy.core.variabletools import SubVariables, Variable
         >>> class TestVar(Variable):
@@ -2503,7 +2503,7 @@ error occurred: 5 values are assigned to the scalar variable `testvar`.
         >>> sorted(set(dir(testsubvars)) - set(object.__dir__(testsubvars)))
         ['testvar']
         """
-        return cast(List[str], super().__dir__()) + list(self._name2variable.keys())
+        return cast(list[str], super().__dir__()) + list(self._name2variable.keys())
 
 
 def to_repr(self: Variable, values, brackets: bool = False) -> str:

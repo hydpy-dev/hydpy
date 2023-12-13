@@ -138,7 +138,7 @@ class SumAdaptor(Adaptor):
     k(0.6)
     """
 
-    _rules: Tuple[Rule[parametertools.Parameter], ...]
+    _rules: tuple[Rule[parametertools.Parameter], ...]
 
     def __init__(self, *rules: Rule[parametertools.Parameter]):
         self._rules = tuple(rules)
@@ -271,7 +271,7 @@ class FactorAdaptor(Adaptor):
     def __init__(
         self,
         rule: Rule[parametertools.Parameter],
-        reference: Union[Type[parametertools.Parameter], parametertools.Parameter, str],
+        reference: Union[type[parametertools.Parameter], parametertools.Parameter, str],
         mask: Optional[Union[masktools.BaseMask, str]] = None,
     ):
         self._rule = rule
@@ -524,7 +524,7 @@ handle any `musk_classic` model instances.
     parametername: str
     """The name of the addressed |Parameter| objects."""
 
-    parametertype: Type[TypeParameter]
+    parametertype: type[TypeParameter]
     """The type of the addressed |Parameter| objects."""
 
     keyword: Optional[str]
@@ -534,19 +534,19 @@ handle any `musk_classic` model instances.
     elements: devicetools.Elements
     """The |Element| objects, which handle the relevant target |Parameter| instances."""
 
-    selections: Tuple[str, ...]
+    selections: tuple[str, ...]
     """The names of all relevant |Selection| objects."""
 
     _value: float
     _model: Optional[str]
     _parameterstep: Optional[timetools.Period]
-    _original_parameter_values: Tuple[Any, ...]
+    _original_parameter_values: tuple[Any, ...]
 
     def __init__(
         self,
         *,
         name: str,
-        parameter: Union[Type[TypeParameter], TypeParameter, str],
+        parameter: Union[type[TypeParameter], TypeParameter, str],
         value: float,
         lower: float = -numpy.inf,
         upper: float = numpy.inf,
@@ -613,7 +613,7 @@ handle any `musk_classic` model instances.
                 f"`{name}`"
             )
 
-    def _get_original_parameter_values(self) -> Tuple[Any, ...]:
+    def _get_original_parameter_values(self) -> tuple[Any, ...]:
         with hydpy.pub.options.parameterstep(self.parameterstep):
             if self.keyword is None:
                 return tuple(par.revert_timefactor(par.value) for par in self)
@@ -1471,10 +1471,10 @@ does not agree with the one documentated in log file `example_calibration.log` (
     them later to reset all relevant conditions before each new simulation run.
     """
     _logfilepath: Optional[str]
-    _logfilelines: Deque[str]
+    _logfilelines: collections.deque[str]
     _hp: hydpytools.HydPy
     _targetfunction: TargetFunction
-    _rules: Dict[str, TypeRule1]
+    _rules: dict[str, TypeRule1]
     _elements: devicetools.Elements
 
     def __init__(self, hp: hydpytools.HydPy, targetfunction: TargetFunction) -> None:
@@ -1527,11 +1527,11 @@ does not agree with the one documentated in log file `example_calibration.log` (
         ...
 
     @overload
-    def get_rule(self, name: str, type_: Type[TypeRule2]) -> TypeRule2:
+    def get_rule(self, name: str, type_: type[TypeRule2]) -> TypeRule2:
         ...
 
     def get_rule(
-        self, name: str, type_: Optional[Type[TypeRule2]] = None
+        self, name: str, type_: Optional[type[TypeRule2]] = None
     ) -> Union[TypeRule1, TypeRule2]:
         """Return a |Rule| object (of a specific type).
 
@@ -1793,7 +1793,7 @@ object named `fc`.
             self._elements += rule.elements
 
     @property
-    def names(self) -> Tuple[str, ...]:
+    def names(self) -> tuple[str, ...]:
         """The names of all handled |Rule| objects.
 
         See the main documentation on class |CalibrationInterface| for further
@@ -1802,7 +1802,7 @@ object named `fc`.
         return tuple(rule.name for rule in self)
 
     @property
-    def values(self) -> Tuple[float, ...]:
+    def values(self) -> tuple[float, ...]:
         """The values of all handled |Rule| objects.
 
         See the main documentation on class |CalibrationInterface| for further
@@ -1811,7 +1811,7 @@ object named `fc`.
         return tuple(rule.value for rule in self)
 
     @property
-    def keywords(self) -> Tuple[Optional[str], ...]:
+    def keywords(self) -> tuple[Optional[str], ...]:
         """The (optional) target keywords of all handled |Rule| objects.
 
         See the main documentation on class |CalibrationInterface| for further
@@ -1820,7 +1820,7 @@ object named `fc`.
         return tuple(rule.keyword for rule in self)
 
     @property
-    def lowers(self) -> Tuple[float, ...]:
+    def lowers(self) -> tuple[float, ...]:
         """The lower boundaries of all handled |Rule| objects.
 
         See the main documentation on class |CalibrationInterface| for further
@@ -1829,7 +1829,7 @@ object named `fc`.
         return tuple(rule.lower for rule in self)
 
     @property
-    def uppers(self) -> Tuple[float, ...]:
+    def uppers(self) -> tuple[float, ...]:
         """The upper boundaries of all handled |Rule| objects.
 
         See the main documentation on class |CalibrationInterface| for further
@@ -1838,7 +1838,7 @@ object named `fc`.
         return tuple(rule.upper for rule in self)
 
     @property
-    def selections(self) -> Tuple[str, ...]:
+    def selections(self) -> tuple[str, ...]:
         """The names of all |Selection| objects addressed at least one of the handled
         |Rule| objects.
 
@@ -1851,13 +1851,13 @@ object named `fc`.
     @property
     def parametertypes(
         self,
-    ) -> Tuple[Tuple[Type[parametertools.Parameter], Target], ...]:
+    ) -> tuple[tuple[type[parametertools.Parameter], Target], ...]:
         """The types of all |Parameter| objects addressed by at least one of the
         handled |Rule| objects.
 
         See the documentation on function |make_rules| for further information.
         """
-        parametertypes: List[Tuple[Type[parametertools.Parameter], Target]] = []
+        parametertypes: list[tuple[type[parametertools.Parameter], Target]] = []
         for rule in self:
             if isinstance(rule, RuleIUH):
                 parametertypes.append((rule.parametertype, rule.target))
@@ -1941,13 +1941,13 @@ object named `fc`.
         parametertypes: Optional[
             Sequence[
                 Union[
-                    Type[parametertools.Parameter],
-                    Tuple[Type[parametertools.Parameter], Target],
+                    type[parametertools.Parameter],
+                    tuple[type[parametertools.Parameter], Target],
                 ]
             ]
         ] = None,
         selections: Optional[Sequence[str]] = None,
-        bounds: Optional[Tuple[str, str]] = ("lower", "upper"),
+        bounds: Optional[tuple[str, str]] = ("lower", "upper"),
         fillvalue: str = "/",
         sep: str = "\t",
         file_: Optional[TextIO] = None,
@@ -2171,7 +2171,7 @@ parameterstep="1d"))
     def __str__(self) -> str:
         return type(self).__name__
 
-    def __dir__(self) -> List[str]:
+    def __dir__(self) -> list[str]:
         """
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -2189,7 +2189,7 @@ parameterstep="1d"))
         >>> sorted(set(dir(ci)) - set(object.__dir__(ci)))
         ['fc', 'percmax']
         """
-        return cast(List[str], super().__dir__()) + list(self._rules.keys())
+        return cast(list[str], super().__dir__()) + list(self._rules.keys())
 
 
 class RuleIUH(Rule["arma_control.Responses"]):
@@ -2209,14 +2209,14 @@ class RuleIUH(Rule["arma_control.Responses"]):
     Set this flag to |False| for the first |ReplaceIUH| object when another handles the 
     same elements and is applied afterwards.
     """
-    _element2iuh: Optional[Dict[str, iuhtools.IUH]] = None
+    _element2iuh: Optional[dict[str, iuhtools.IUH]] = None
 
     def __init__(
         self,
         *,
         name: str,
         target: str,
-        parameter: Union[Type[arma_control.Responses], arma_control.Responses, str],
+        parameter: Union[type[arma_control.Responses], arma_control.Responses, str],
         value: float,
         lower: float = -numpy.inf,
         upper: float = numpy.inf,
@@ -2236,7 +2236,7 @@ class RuleIUH(Rule["arma_control.Responses"]):
         )
         self.target = target
 
-    def _get_original_parameter_values(self) -> Tuple[Any, ...]:
+    def _get_original_parameter_values(self) -> tuple[Any, ...]:
         return tuple(
             (par.ar_coefs[0, :].copy(), par.ma_coefs[0, :].copy()) for par in self
         )
@@ -2510,7 +2510,7 @@ class MultiplyIUH(RuleIUH):
                       (0.699212, -0.663835, 0.093935, 0.046177, -0.00854)))
     """
 
-    _original_iuh_values: List[float]
+    _original_iuh_values: list[float]
 
     def add_iuhs(self, **iuhs: iuhtools.IUH) -> None:
         """Add one |IUH| object for each relevant |Element| object.
@@ -2519,7 +2519,7 @@ class MultiplyIUH(RuleIUH):
         """
         super().add_iuhs(**iuhs)
         target = self.target
-        original_iuh_values: List[float] = []
+        original_iuh_values: list[float] = []
         assert self._element2iuh is not None  # ensured by `RuleIUH.add_iuhs`
         for iuh in self._element2iuh.values():
             original_iuh_values.append(getattr(iuh, target))
@@ -2715,7 +2715,7 @@ object named `second`.
     third
     """
 
-    _name2parspec: Dict[str, CalibSpec]
+    _name2parspec: dict[str, CalibSpec]
 
     def __init__(self, *parspecs: CalibSpec) -> None:
         self._name2parspec = {parspec.name: parspec for parspec in parspecs}
@@ -2789,7 +2789,7 @@ parameterstep="1d"),
             self._name2parspec[calibspec.name] = calibspec
 
     @property
-    def names(self) -> Tuple[str, ...]:
+    def names(self) -> tuple[str, ...]:
         """The names of all |CalibSpec| objects in the order of attachment.
 
         >>> from hydpy import CalibSpec, CalibSpecs
@@ -2804,7 +2804,7 @@ parameterstep="1d"),
         return tuple(parspec.name for parspec in self._name2parspec.values())
 
     @property
-    def defaults(self) -> Tuple[float, ...]:
+    def defaults(self) -> tuple[float, ...]:
         """The default values of all |CalibSpec| objects in the order of attachment.
 
         >>> from hydpy import CalibSpec, CalibSpecs
@@ -2820,7 +2820,7 @@ parameterstep="1d"),
         return tuple(parspec.default for parspec in self._name2parspec.values())
 
     @property
-    def keywords(self) -> Tuple[Optional[str], ...]:
+    def keywords(self) -> tuple[Optional[str], ...]:
         """The (optional) target keywords of all |CalibSpec| objects in the order of
         attachment.
 
@@ -2837,7 +2837,7 @@ parameterstep="1d"),
         return tuple(parspec.keyword for parspec in self._name2parspec.values())
 
     @property
-    def lowers(self) -> Tuple[float, ...]:
+    def lowers(self) -> tuple[float, ...]:
         """The lower boundary values of all |CalibSpec| objects in the order of
         attachment.
 
@@ -2854,7 +2854,7 @@ parameterstep="1d"),
         return tuple(parspec.lower for parspec in self._name2parspec.values())
 
     @property
-    def uppers(self) -> Tuple[float, ...]:
+    def uppers(self) -> tuple[float, ...]:
         """The upper boundary values of all |CalibSpec| objects in the order of
         attachment.
 
@@ -2871,7 +2871,7 @@ parameterstep="1d"),
         return tuple(parspec.upper for parspec in self._name2parspec.values())
 
     @property
-    def parametersteps(self) -> Tuple[Optional[timetools.Period], ...]:
+    def parametersteps(self) -> tuple[Optional[timetools.Period], ...]:
         """The parameter steps of all |CalibSpec| objects in the order of attachment.
 
         >>> from hydpy import CalibSpec, CalibSpecs
@@ -2898,7 +2898,7 @@ parameterstep="1d"),
             f"{type(self).__name__}({', '.join(arguments)})", mode=black.FileMode()
         )[:-1]
 
-    def __dir__(self) -> List[str]:
+    def __dir__(self) -> list[str]:
         """
         >>> from hydpy import CalibSpec, CalibSpecs, print_values
         >>> calibspecs = CalibSpecs(CalibSpec(name="first", default=1.0),
@@ -2912,7 +2912,7 @@ parameterstep="1d"),
 @overload
 def make_rules(
     *,
-    rule: Type[TypeRule],
+    rule: type[TypeRule],
     names: Sequence[str],
     parameters: Sequence[Union[parametertools.Parameter, str]],
     values: Sequence[float],
@@ -2921,14 +2921,14 @@ def make_rules(
     parametersteps: Sequence1[Optional[timetools.PeriodConstrArg]] = None,
     model: Optional[Union[types.ModuleType, str]] = None,
     selections: Literal[None] = None,
-) -> List[TypeRule]:
+) -> list[TypeRule]:
     ...
 
 
 @overload
 def make_rules(
     *,
-    rule: Type[TypeRule],
+    rule: type[TypeRule],
     names: Sequence[str],
     parameters: Sequence[Union[parametertools.Parameter, str]],
     values: Sequence[float],
@@ -2939,14 +2939,14 @@ def make_rules(
     model: Optional[Union[types.ModuleType, str]] = None,
     selections: Iterable[Union[selectiontools.Selection, str]],
     product: bool = False,
-) -> List[TypeRule]:
+) -> list[TypeRule]:
     ...
 
 
 @overload
 def make_rules(
     *,
-    rule: Type[TypeRule],
+    rule: type[TypeRule],
     calibspecs: CalibSpecs,
     names: Optional[Sequence[str]] = None,
     parameters: Optional[Sequence[Union[parametertools.Parameter, str]]] = None,
@@ -2956,14 +2956,14 @@ def make_rules(
     uppers: Optional[Sequence[float]] = None,
     model: Optional[Union[types.ModuleType, str]] = None,
     selections: Literal[None] = None,
-) -> List[TypeRule]:
+) -> list[TypeRule]:
     ...
 
 
 @overload
 def make_rules(
     *,
-    rule: Type[TypeRule],
+    rule: type[TypeRule],
     calibspecs: CalibSpecs,
     names: Optional[Sequence[str]] = None,
     parameters: Optional[Sequence[Union[parametertools.Parameter, str]]] = None,
@@ -2974,13 +2974,13 @@ def make_rules(
     model: Optional[Union[types.ModuleType, str]] = None,
     selections: Iterable[Union[selectiontools.Selection, str]],
     product: bool = False,
-) -> List[TypeRule]:
+) -> list[TypeRule]:
     ...
 
 
 def make_rules(
     *,
-    rule: Type[TypeRule],
+    rule: type[TypeRule],
     calibspecs: Optional[CalibSpecs] = None,
     names: Optional[Sequence[str]] = None,
     parameters: Optional[Sequence[Union[parametertools.Parameter, str]]] = None,
@@ -2992,7 +2992,7 @@ def make_rules(
     model: Optional[Union[types.ModuleType, str]] = None,
     selections: Optional[Iterable[Union[selectiontools.Selection, str]]] = None,
     product: bool = False,
-) -> List[TypeRule]:
+) -> list[TypeRule]:
     """Conveniently create multiple |Rule| objects at once.
 
     Please see the main documentation on class |CalibrationInterface| first, from

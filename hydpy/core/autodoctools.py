@@ -1102,11 +1102,12 @@ def _number_of_line(member_tuple: tuple[str, object]) -> int:
         return inspect.findsource(member)[1]  # type: ignore[arg-type]
     except BaseException:
         pass
-    for value in vars(member).values():
-        try:
-            return _query_index_first_line(value)
-        except AttributeError:
-            pass
+    if (submembers := getattr(member, "__dict__", None)) is not None:
+        for value in submembers.values():
+            try:
+                return _query_index_first_line(value)
+            except AttributeError:
+                pass
     return 0
 
 

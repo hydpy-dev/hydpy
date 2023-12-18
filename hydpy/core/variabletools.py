@@ -2203,23 +2203,23 @@ class MixinFixedShape:
         fixed shape.
 
         We take parameter |lstream_control.BV| of base model |lstream| and sequence
-        |exch_factors.WaterLevel| of base model |exch| as examples:
+        |exch_factors.WaterLevels| of base model |exch| as examples:
 
         >>> from hydpy import prepare_model
         >>> prepare_model("lstream").parameters.control.bv.shape
         (2,)
-        >>> waterlevel = prepare_model("exch").sequences.factors.waterlevel
-        >>> waterlevel.shape
+        >>> waterlevels = prepare_model("exch").sequences.factors.waterlevels
+        >>> waterlevels.shape
         (2,)
 
         If we try to set a new shape, |MixinFixedShape| responds with the following
         exceptions:
 
-        >>> waterlevel.shape = 2
+        >>> waterlevels.shape = 2
         Traceback (most recent call last):
         ...
-        AttributeError: The shape of variable `waterlevel` cannot be changed but this \
-was attempted for element `?`.
+        AttributeError: The shape of variable `waterlevels` cannot be changed but \
+this was attempted for element `?`.
 
         See the documentation on property |Variable.shape| of class |Variable| for
         further information.

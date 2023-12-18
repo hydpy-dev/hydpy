@@ -6,7 +6,7 @@
 from hydpy.core import sequencetools
 
 
-class L(sequencetools.ReceiverSequence):
-    """Water level [m]."""
+class WaterLevels(sequencetools.ReceiverSequence):
+    """The water level at multiple remote locations [m]."""
 
     NDIM, NUMERIC = 1, False

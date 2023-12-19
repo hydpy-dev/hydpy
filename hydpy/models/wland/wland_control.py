@@ -226,25 +226,6 @@ class CQ(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
 
-class CS(parametertools.Parameter):
-    """Surface water parameter for bankfull discharge [mm/T]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
-
-
-class HSMin(parametertools.Parameter):
-    """Surface water level where and below which discharge is zero [mm]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-
-
-class XS(parametertools.Parameter):
-    """Stage-discharge relation exponent [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-    INIT = 1.5
-
-
 class B(wland_parameters.SoilParameter):
     """Pore size distribution parameter [-].
 

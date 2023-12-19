@@ -12,6 +12,7 @@ from hydpy.auxs import quadtools
 from hydpy.auxs import roottools
 from hydpy.cythons import modelutils
 from hydpy.cythons import smoothutils
+from hydpy.interfaces import dischargeinterfaces
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import precipinterfaces
 from hydpy.interfaces import tempinterfaces
@@ -2190,81 +2191,67 @@ class Calc_FQS_V1(modeltools.Method):
 
 
 class Calc_RH_V1(modeltools.Method):
-    r"""Calculate the runoff height.
+    r"""Let a submodel that complies with the |DischargeModel_V2| interface calculate
+    the runoff height or, if no such submodel is available, equate it with all other
+    flows in and out of the surface water storage.
 
-    Basic equation (discontinuous):
-      :math:`RH = CS \cdot \left( \frac{max(HS-HSMin, 0)}{CD-HSMin} \right) ^ {XS}`
+    Basic equation (without submodel):
+      :math:`RH = ASR \cdot (PS - ES + FXS) + ALR \cdot (AGR \cdot FGS + FQS)`
 
     Examples:
 
-        >>> from hydpy.models.wland import *
+        >>> from hydpy.models.wland_v001 import *
         >>> simulationstep('12h')
         >>> parameterstep('1d')
-        >>> cs(2.0)
-        >>> hsmin(2.0)
-        >>> xs(2.0)
-        >>> derived.cd(5.0)
-        >>> from hydpy import UnitTest
-        >>> test = UnitTest(
-        ...     model=model,
-        ...     method=model.calc_rh_v1,
-        ...     last_example=11,
-        ...     parseqs=(states.hs, fluxes.rh)
-        ... )
-        >>> test.nexts.hs = 0.0, 1.0, 1.9, 2.0, 2.1, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0
 
-        Without smoothing:
+        Without an available submodel, |Calc_RH_V1| applies the given basic equation:
 
-        >>> sh(0.0)
-        >>> derived.rh2.update()
-        >>> test()
-        | ex. |  hs |       rh |
-        ------------------------
-        |   1 | 0.0 |      0.0 |
-        |   2 | 1.0 |      0.0 |
-        |   3 | 1.9 |      0.0 |
-        |   4 | 2.0 |      0.0 |
-        |   5 | 2.1 | 0.001111 |
-        |   6 | 3.0 | 0.111111 |
-        |   7 | 4.0 | 0.444444 |
-        |   8 | 5.0 |      1.0 |
-        |   9 | 6.0 | 1.777778 |
-        |  10 | 7.0 | 2.777778 |
-        |  11 | 8.0 |      4.0 |
+        >>> derived.asr(0.2)
+        >>> derived.alr(0.8)
+        >>> derived.agr(0.6)
+        >>> fluxes.ps = 3.0
+        >>> fluxes.fxs = 1.0
+        >>> fluxes.es = 2.0
+        >>> fluxes.fqs(0.5)
+        >>> fluxes.fgs(0.2)
+        >>> model.calc_rh_v1()
+        >>> fluxes.rh
+        rh(0.896)
 
-        With smoothing:
+        We use |q_walrus|, which implements WALRUS' standard approach for calculating
+        |RH|, to demonstrate that |Calc_RH_V1| correctly uses submodels that follow the
+        |DischargeModel_V2| interface:
 
         >>> sh(0.1)
-        >>> derived.rh2.update()
-        >>> test()
-        | ex. |  hs |       rh |
-        ------------------------
-        |   1 | 0.0 |      0.0 |
-        |   2 | 1.0 |      0.0 |
-        |   3 | 1.9 | 0.000011 |
-        |   4 | 2.0 | 0.000187 |
-        |   5 | 2.1 | 0.001344 |
-        |   6 | 3.0 | 0.111111 |
-        |   7 | 4.0 | 0.444444 |
-        |   8 | 5.0 |      1.0 |
-        |   9 | 6.0 | 1.777778 |
-        |  10 | 7.0 | 2.777778 |
-        |  11 | 8.0 |      4.0 |
+        >>> states.hs(3000.0)
+        >>> derived.cd(5000.0)
+        >>> with model.add_dischargemodel_v2("q_walrus"):
+        ...     crestheight(2.0)
+        ...     bankfulldischarge(2.0)
+        ...     dischargeexponent(2.0)
+        >>> model.calc_rh_v1()
+        >>> fluxes.rh
+        rh(0.111111)
     """
 
-    CONTROLPARAMETERS = (wland_control.CS, wland_control.HSMin, wland_control.XS)
-    DERIVEDPARAMETERS = (wland_derived.CD, wland_derived.RH2)
     REQUIREDSEQUENCES = (wland_states.HS,)
     RESULTSEQUENCES = (wland_fluxes.RH,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        hs: float = smoothutils.smooth_logistic2(sta.hs - con.hsmin, der.rh2)
-        flu.rh = con.cs * (hs / (der.cd - con.hsmin)) ** con.xs
+        if model.dischargemodel is None:
+            flu.rh = (
+                der.asr * (flu.fxs + flu.ps - flu.es)
+                + der.alr * flu.fqs
+                + (der.alr * der.agr) * flu.fgs
+            )
+        elif model.dischargemodel_typeid == 2:
+            flu.rh = cast(
+                dischargeinterfaces.DischargeModel_V2, model.dischargemodel
+            ).calculate_discharge(sta.hs / 1000.0)
 
 
 class Update_IC_V1(modeltools.Method):
@@ -2439,7 +2426,7 @@ class Update_HS_V1(modeltools.Method):
     r"""Update the surface water level.
 
     Basic equation:
-      :math:`\frac{dHS}{dt} = PS - ETS + FXS
+      :math:`\frac{dHS}{dt} = PS - ES + FXS
       + \frac{ALR \cdot \left(AGR \cdot FGS + FQS \right) - RH}{ASR}`
 
     Example:
@@ -2696,6 +2683,10 @@ class Model(modeltools.ELSModel):
     pemodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     pemodel_typeid = modeltools.SubmodelTypeIDProperty()
 
+    dischargemodel = modeltools.SubmodelProperty(dischargeinterfaces.DischargeModel_V2)
+    dischargemodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    dischargemodel_typeid = modeltools.SubmodelTypeIDProperty()
+
 
 class Main_PETModel_V1(modeltools.ELSModel):
     """Base class for HydPy-W models that use submodels that comply with the
@@ -2790,6 +2781,49 @@ class Main_PETModel_V1(modeltools.ELSModel):
         control = self.parameters.control
         pemodel.prepare_nmbzones(1)
         pemodel.prepare_subareas([control.as_.value])
+
+
+class Main_DischargeModel_V2(modeltools.ELSModel):
+    """Base class for HydPy-W models that use submodels that comply with the
+    |DischargeModel_V2| interface."""
+
+    dischargemodel: modeltools.SubmodelProperty
+    dischargemodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    dischargemodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel(
+        "dischargemodel",
+        dischargeinterfaces.DischargeModel_V2,
+        dischargeinterfaces.DischargeModel_V2.prepare_channeldepth,
+        dischargeinterfaces.DischargeModel_V2.prepare_tolerance,
+    )
+    def add_dischargemodel_v2(
+        self,
+        dischargemodel: dischargeinterfaces.DischargeModel_V2,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
+        """Initialise the given `dischargemodel` that follows the |DischargeModel_V2|
+        interface.
+
+        >>> from hydpy.models.wland_v001 import *
+        >>> parameterstep()
+        >>> sh(10.0)
+        >>> derived.cd(2000.0)
+        >>> with model.add_dischargemodel_v2("q_walrus", update=False):
+        ...     channeldepth
+        ...     crestheighttolerance
+        channeldepth(2.0)
+        crestheighttolerance(0.01)
+
+        >>> model.dischargemodel.parameters.control.channeldepth
+        channeldepth(2.0)
+        >>> model.dischargemodel.parameters.control.crestheighttolerance
+        crestheighttolerance(0.01)
+        """
+        dischargemodel.prepare_channeldepth(self.parameters.derived.cd.value / 1000.0)
+        dischargemodel.prepare_tolerance(self.parameters.control.sh.value / 1000.0)
 
 
 class Sub_TempModel_V1(modeltools.ELSModel, tempinterfaces.TempModel_V1):

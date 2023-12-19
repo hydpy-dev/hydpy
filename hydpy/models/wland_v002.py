@@ -57,9 +57,6 @@ Integration tests
 >>> cg(200000.0)
 >>> cgf(1.0)
 >>> cq(0.5)
->>> cs(8.0)
->>> hsmin(0.0)
->>> xs(1.5)
 >>> b(soil=SANDY_LOAM)
 >>> psiae(soil=SANDY_LOAM)
 >>> thetas(soil=SANDY_LOAM)
@@ -79,6 +76,11 @@ Integration tests
 ...                 jul=1.28, aug=1.28, sep=1.27, oct=1.23, nov=1.17, dec=1.14)
 ...     with model.add_retmodel_v1("evap_io"):
 ...         evapotranspirationfactor(0.9)
+>>> model.update_parameters()
+>>> with model.add_dischargemodel_v2("q_walrus"):
+...     crestheight(0.0)
+...     bankfulldischarge(8.0)
+...     dischargeexponent(1.5)
 >>> test = IntegrationTest(land)
 >>> test.inits = ((states.ic, -3.0),
 ...               (states.sp, -3.0),
@@ -581,6 +583,7 @@ ____________
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
+from hydpy.interfaces import dischargeinterfaces
 from hydpy.interfaces import petinterfaces
 
 # ...from lland
@@ -591,6 +594,7 @@ from hydpy.models.wland.wland_constants import *
 
 class Model(
     wland_model.Main_PETModel_V1,
+    wland_model.Main_DischargeModel_V2,
     wland_model.Sub_TempModel_V1,
     wland_model.Sub_PrecipModel_V1,
 ):
@@ -664,6 +668,7 @@ class Model(
 
     petmodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
     pemodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
+    dischargemodel = modeltools.SubmodelProperty(dischargeinterfaces.DischargeModel_V2)
 
     def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
         r"""Determine the water balance error of the previous simulation run in mm.

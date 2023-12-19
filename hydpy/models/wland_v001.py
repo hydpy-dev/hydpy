@@ -27,8 +27,8 @@ reaches the vadose zone:
   3. We support the specification of hydrological response units for these processes,
      making |wland_v001| a semi-distributed model (but we model the vadose zone in
      agreement with `WALRUS`_  still in a lumped manner).
-  4. We define the land-use type |SEALED|, which has no vadose zone and routes all
-     water reaching the soil surface directly into the quickflow reservoir.
+  4. We define the land-use type |SEALED|, which has no vadose zone and directly routes
+     all water reaching the soil surface into the quickflow reservoir.
   5. We allow specifying subbasins consisting of surface water areas or combinations
      of surface water and sealed areas only, not possessing any to "vadose zone area"
      (however, we do not allow specifying subbasins without any surface water area).
@@ -122,9 +122,6 @@ use-specific values, we define only those values relevant for |FIELD|, |CONIFER|
 >>> cg(200000.0)
 >>> cgf(1.0)
 >>> cq(0.5)
->>> cs(8.0)
->>> hsmin(0.0)
->>> xs(1.5)
 >>> b(soil=SANDY_LOAM)
 >>> psiae(soil=SANDY_LOAM)
 >>> thetas(soil=SANDY_LOAM)
@@ -157,6 +154,17 @@ evaporation values of the surface water storage:
 ...                 jul=1.28, aug=1.28, sep=1.27, oct=1.23, nov=1.17, dec=1.14)
 ...     with model.add_retmodel_v1("evap_io"):
 ...         evapotranspirationfactor(0.9)
+
+Additionally, |wland_v001| requires a submodel for calculating the discharge out of
+the surface water storage (the same as the discharge at a catchment's outlet.  Here, we
+use |q_walrus|, which implements the default approach of the original WALRUS model:
+
+>>> model.update_parameters()
+>>> with model.add_dischargemodel_v2("q_walrus"):
+...     crestheight(0.0)
+...     bankfulldischarge(8.0)
+...     dischargeexponent(1.5)
+
 
 Next, we initialise a test function object that prepares and runs the following tests
 and prints and plots their results:
@@ -506,9 +514,7 @@ such a small amount, |SP| does not decrease in a relevant manner anymore:
 
 .. integration-test::
 
-    >>> test("wland_v001_snowfall",
-    ...      axis1=(fluxes.pc, states.sp,),
-    ...      axis2=(inputs.t,))
+    >>> test("wland_v001_snowfall", axis1=(fluxes.pc, states.sp), axis2=(inputs.t,))
     |                date |     t |    p | fxg | fxs |    pc |                  pet |     pe |                              tf |                           ei |                           rf |                              sf |                              pm |                              am |    ps |       pv |        pq |      etv |       es |       et | fxs | fxg |        cdg |       fgs |       fqs |       rh |        r |                              ic |                              sp |         dv |          dg |        hq |          hs |   outlet |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2017-02-10 00:00:00 | -10.8 |  0.0 | 0.0 | 0.0 |   0.0 | 0.3942  0.702  0.378 | 0.6588 |       0.0        0.0        0.0 |      0.0  0.000001       0.0 |      0.0       0.0       0.0 |       0.0        0.0        0.0 |       0.0        0.0        0.0 |       0.0        0.0        0.0 |   0.0 |      0.0 |       0.0 |  0.49406 | 0.000075 | 0.435763 | 0.0 | 0.0 |    7.69202 |   0.00101 |       0.0 |      0.0 |      0.0 |      -3.0  -3.000001       -3.0 |      -3.0       -3.0       -3.0 |  140.49507 |  1607.69202 |       0.0 |   -1.955539 |      0.0 |
@@ -578,22 +584,21 @@ There is no violation of the water balance:
 
 .. _wland_v001_no_vadose_zone:
 
-No vadose zone
+no vadose zone
 ______________
 
-This example demonstrates that |wland_v001| works well with completely sealed
-land surfaces.  We enforce this by assigning the land-use type |SEALED| to all
-three hydrological response units:
+This example demonstrates that |wland_v001| works well with completely sealed land
+surfaces.  We enforce this by assigning the land-use type |SEALED| to all three
+hydrological response units:
 
 >>> lt(SEALED)
 >>> assert lt.value[0] != model.petmodel.parameters.control.hrutype.values[0]  # ToDo
 >>> model.petmodel.prepare_zonetypes(lt.values)
 
-The results show the expected sharp runoff response of the catchment.  Note that
-for a missing vadose zone, neither its water deficit (|DV|) nor its groundwater
-depth (|DG|) is definable.  We set their values to |numpy.nan|.  In contrast,
-we set the related flux |FGS| and the change in the groundwater level (|CDG|)
-to zero:
+The results show the expected sharp runoff response of the catchment.  Note that for a
+missing vadose zone, neither its water deficit (|DV|) nor its groundwater depth (|DG|)
+is definable.  We set their values to |numpy.nan|.  In contrast, we set the related
+flux |FGS| and the change in the groundwater level (|CDG|) to zero:
 
 .. integration-test::
 
@@ -669,7 +674,7 @@ There is no violation of the water balance:
 
 .. _wland_v001_no_land_area:
 
-No land area
+no land area
 ____________
 
 |wland_v001| also works for "catchments" consisting of surface water areas only.
@@ -772,7 +777,9 @@ There is no violation of the water balance:
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
+from hydpy.interfaces import dischargeinterfaces
 from hydpy.interfaces import petinterfaces
+from hydpy.interfaces import stateinterfaces
 
 # ...from wland
 from hydpy.models.wland import wland_model
@@ -782,6 +789,7 @@ from hydpy.models.wland.wland_constants import *
 
 class Model(
     wland_model.Main_PETModel_V1,
+    wland_model.Main_DischargeModel_V2,
     wland_model.Sub_TempModel_V1,
     wland_model.Sub_PrecipModel_V1,
 ):
@@ -848,6 +856,7 @@ class Model(
 
     petmodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
     pemodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
+    dischargemodel = modeltools.SubmodelProperty(dischargeinterfaces.DischargeModel_V2)
 
     def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
         r"""Determine the water balance error of the previous simulation run in mm.

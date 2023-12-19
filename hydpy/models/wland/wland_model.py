@@ -4,6 +4,9 @@
 """
 
 # import...
+# ...from site-packages
+import numpy
+
 # ...from HydPy
 from hydpy.core import importtools
 from hydpy.core import modeltools
@@ -15,6 +18,7 @@ from hydpy.cythons import smoothutils
 from hydpy.interfaces import dischargeinterfaces
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import precipinterfaces
+from hydpy.interfaces import stateinterfaces
 from hydpy.interfaces import tempinterfaces
 
 # ...from wland
@@ -23,12 +27,71 @@ from hydpy.models.wland import wland_derived
 from hydpy.models.wland import wland_fixed
 from hydpy.models.wland import wland_solver
 from hydpy.models.wland import wland_inputs
+from hydpy.models.wland import wland_factors
 from hydpy.models.wland import wland_fluxes
 from hydpy.models.wland import wland_states
 from hydpy.models.wland import wland_aides
 from hydpy.models.wland import wland_outlets
 from hydpy.models.wland import wland_constants
 from hydpy.models.wland.wland_constants import SEALED
+
+
+class Pick_HS_V1(modeltools.Method):
+    """Take the surface water level from a submodel that complies with the
+    |WaterLevelModel_V1| interface, if available.
+
+    Examples:
+
+        >>> from hydpy.models.wland_v001 import *
+        >>> parameterstep()
+
+        Without an available submodel, |Pick_HS_V1| does not change the current value
+        of sequence |HS| and sets |DHS| (the change of |HS|) accordingly to zero:
+
+        >>> states.hs(3000.0)
+        >>> model.pick_hs_v1()
+        >>> states.hs
+        hs(3000.0)
+        >>> factors.dhs
+        dhs(0.0)
+
+        We take |exch_waterlevel| as an example to demonstrate that |Pick_HS_V1|
+        correctly uses submodels that follow the |WaterLevelModel_V1| interface for
+        updating |HS| and logs such changes via sequence |DHS|:
+
+        >>> with model.add_waterlevelmodel_v1("exch_waterlevel"):
+        ...     pass
+        >>> from hydpy import Element, Node
+        >>> wl = Node("wl", variable="WaterLevel")
+        >>> wl.sequences.sim = 2.0
+        >>> e = Element("e", receivers=wl, outlets="q")
+        >>> e.model = model
+        >>> model.pick_hs_v1()
+        >>> states.hs
+        hs(2000.0)
+
+        >>> factors.dhs
+        dhs(-1000.0)
+    """
+
+    UPDATEDSEQUENCES = (wland_states.HS,)
+    RESULTSEQUENCES = (wland_factors.DHS,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        fac = model.sequences.factors.fastaccess
+        old = model.sequences.states.fastaccess_old
+        new = model.sequences.states.fastaccess_new
+        if model.waterlevelmodel is None:
+            fac.dhs = 0.0
+        elif model.waterlevelmodel_typeid == 1:
+            hs: float = 1000.0 * (
+                cast(
+                    stateinterfaces.WaterLevelModel_V1, model.waterlevelmodel
+                ).get_waterlevel()
+            )
+            fac.dhs = hs - new.hs
+            old.hs = new.hs = hs
 
 
 class Calc_FXS_V1(modeltools.Method):
@@ -2234,7 +2297,15 @@ class Calc_RH_V1(modeltools.Method):
         rh(0.111111)
     """
 
-    REQUIREDSEQUENCES = (wland_states.HS,)
+    DERIVEDPARAMETERS = (wland_derived.ASR, wland_derived.ALR, wland_derived.AGR)
+    REQUIREDSEQUENCES = (
+        wland_fluxes.PS,
+        wland_fluxes.ES,
+        wland_fluxes.FXS,
+        wland_fluxes.FQS,
+        wland_fluxes.FGS,
+        wland_states.HS,
+    )
     RESULTSEQUENCES = (wland_fluxes.RH,)
 
     @staticmethod
@@ -2621,7 +2692,7 @@ class Model(modeltools.ELSModel):
     )
     SOLVERSEQUENCES = ()
     INLET_METHODS = (Calc_PET_V1, Calc_PE_V1, Calc_FR_V1, Calc_PM_V1)
-    RECEIVER_METHODS = ()
+    RECEIVER_METHODS = (Pick_HS_V1,)
     INTERFACE_METHODS = (
         Get_Temperature_V1,
         Get_MeanTemperature_V1,
@@ -2686,6 +2757,65 @@ class Model(modeltools.ELSModel):
     dischargemodel = modeltools.SubmodelProperty(dischargeinterfaces.DischargeModel_V2)
     dischargemodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     dischargemodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    waterlevelmodel = modeltools.SubmodelProperty(stateinterfaces.WaterLevelModel_V1)
+    waterlevelmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    waterlevelmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+
+class BaseModel(modeltools.ELSModel):
+    """Base model for |wland_v001| and |wland_v002|."""
+
+    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
+        r"""Determine the water balance error of the previous simulation run in mm.
+
+        Method |BaseModel.check_waterbalance| calculates the balance error as follows:
+
+          .. math::
+            Error = \Sigma In - \Sigma Out + \Sigma \Delta H -
+            \Delta Vol_{basin} - \Delta Vol_{hru} \\
+            \\
+            \Sigma In = \sum_{t=t_0}^{t_1} PC_t + FXG_t + FXS_t \\
+            \Sigma Out = \sum_{t=t_0}^{t_1} ET_t + RH_t \\
+            \Sigma \Delta H= ASR \cdot \sum_{t=t_0}^{t_1} DHS_t \\
+            \Delta Vol_{basin} =
+            ASR \cdot \big( HS_{t1} - HS_{t0}\big) + ALR \cdot \Big(
+            \big( HQ_{t1} - HQ_{t0} \big) + AGR \cdot \big( DV_{t1} - DV_{t0} \big)
+            \Big) \\
+            \Delta Vol_{hru} = ALR \cdot \sum_{k=1}^{NU} AUR^k \cdot \Big(
+            \big( IC_{t1}^k - IC_{t0}^k \big) + \big( SP_{t1}^k - SP_{t0}^k \big)
+            \Big)
+
+        The returned error should always be in scale with numerical precision so that
+        it does not affect the simulation results in any relevant manner.
+
+        Pick the required initial conditions before starting the simulation via
+        property |Sequences.conditions|.  See the integration tests of the application
+        model |wland_v001| for some examples.
+        """
+        control = self.parameters.control
+        derived = self.parameters.derived
+        inputs = self.sequences.inputs
+        factors = self.sequences.factors
+        fluxes = self.sequences.fluxes
+        last = self.sequences.states
+        first = initial_conditions["model"]["states"]
+        ddv = (last.dv - first["dv"]) * derived.alr * derived.agr
+        if numpy.isnan(ddv):
+            ddv = 0.0
+        return (
+            sum(fluxes.pc.series)
+            + sum(inputs.fxg.series)
+            + sum(inputs.fxs.series)
+            - sum(fluxes.et.series)
+            - sum(fluxes.rh.series)
+            + sum(factors.dhs.series) * derived.asr
+            - sum((last.ic - first["ic"]) * control.aur) * derived.alr
+            - sum((last.sp - first["sp"]) * control.aur) * derived.alr
+            - (last.hq - first["hq"]) * derived.alr
+            - (last.hs - first["hs"]) * derived.asr
+            + ddv
+        )
 
 
 class Main_PETModel_V1(modeltools.ELSModel):
@@ -2824,6 +2954,34 @@ class Main_DischargeModel_V2(modeltools.ELSModel):
         """
         dischargemodel.prepare_channeldepth(self.parameters.derived.cd.value / 1000.0)
         dischargemodel.prepare_tolerance(self.parameters.control.sh.value / 1000.0)
+
+
+class Main_WaterLevelModel_V1(modeltools.ELSModel):
+    """Base class for HydPy-W models that use submodels that comply with the
+    |WaterLevelModel_V1| interface."""
+
+    waterlevelmodel: modeltools.SubmodelProperty
+    waterlevelmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    waterlevelmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel("waterlevelmodel", stateinterfaces.WaterLevelModel_V1)
+    def add_waterlevelmodel_v1(
+        self,
+        waterlevelmodel: stateinterfaces.WaterLevelModel_V1,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
+        """Initialise the given `waterlevelmodel` that follows the |WaterLevelModel_V1|
+        interface.
+
+        >>> from hydpy.models.wland_v001 import *
+        >>> parameterstep()
+        >>> from hydpy.models import exch_waterlevel
+        >>> with model.add_waterlevelmodel_v1(exch_waterlevel):
+        ...     pass
+        >>> assert isinstance(model.waterlevelmodel, exch_waterlevel.Model)
+        """
 
 
 class Sub_TempModel_V1(modeltools.ELSModel, tempinterfaces.TempModel_V1):

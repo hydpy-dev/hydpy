@@ -179,10 +179,9 @@ class Parameters:
 
     >>> from hydpy.models.meteo_v001 import *
     >>> parameterstep("1d")
-    >>> bool(model.parameters.control)
-    True
-    >>> bool(model.parameters.solver)
-    False
+    >>> assert model.parameters
+    >>> assert model.parameters.control
+    >>> assert not model.parameters.solver
 
     Iterations makes only the non-empty subgroups available, which are actually
     handling |Parameter| objects:
@@ -368,7 +367,7 @@ yet: longitude(?).
         for subpars in (self.derived, self.solver):
             yield subpars
 
-    def __getitem__(self, item: str) -> "SubParameters":
+    def __getitem__(self, item: str) -> SubParameters:
         try:
             subpars = getattr(self, item)
         except AttributeError:
@@ -387,6 +386,9 @@ yet: longitude(?).
 
     def __len__(self):
         return sum(1 for _ in self)
+
+    def __bool__(self) -> bool:
+        return any(pars for pars in self)
 
 
 class FastAccessParameter(variabletools.FastAccess):

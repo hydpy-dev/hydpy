@@ -776,6 +776,9 @@ patch(template % "StateSequences") as states:
     def __len__(self) -> int:
         return sum(1 for _ in self)
 
+    def __bool__(self) -> bool:
+        return any(seqs for seqs in self)
+
 
 class SubSequences(
     variabletools.SubVariables[

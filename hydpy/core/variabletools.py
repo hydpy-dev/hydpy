@@ -2478,6 +2478,9 @@ error occurred: 5 values are assigned to the scalar variable `testvar`.
     def __len__(self) -> int:
         return len(self.CLASSES)
 
+    def __bool__(self) -> bool:
+        return bool(self.CLASSES)
+
     def __repr__(self) -> str:
         lines = []
         for variable in self:

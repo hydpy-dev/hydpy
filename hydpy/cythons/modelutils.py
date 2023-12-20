@@ -985,6 +985,8 @@ class PyxWriter:
         both(0, "@cython.final")
         both(0, "cdef class Sequences:")
         pyx(1, "pass")
+        if not self.model.sequences:
+            pxd(1, "pass")
         for subseqs in self.model.sequences:
             pxd(1, f"cdef public {type(subseqs).__name__} {subseqs.name}")
         if self.model.sequences.states:

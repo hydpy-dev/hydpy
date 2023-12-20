@@ -42,7 +42,7 @@ def run_subprocess(
     """Execute the given command in a new process.
 
     Only when both `verbose` and `blocking` are |True|, |run_subprocess| prints all
-    responses to the current value of |sys.stdout|:
+    responses to the current value of `sys.stdout`:
 
     >>> from hydpy import run_subprocess
     >>> import platform

@@ -1803,7 +1803,7 @@ def get_printtarget(file_: Union[TextIO, str, None]) -> Generator[TextIO, None, 
     argument of the standard |print| function.
 
     Function |get_printtarget| supports three types of arguments.  For |None|,
-    it returns |sys.stdout|:
+    it returns `sys.stdout`:
 
     >>> from hydpy.core.objecttools import get_printtarget
     >>> import sys

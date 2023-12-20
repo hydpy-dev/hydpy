@@ -2716,7 +2716,10 @@ class XSDWriter:
             f'{blanks}                 minOccurs="0"/>',
         ]
         for name in cls.get_applicationmodelnames():
-            if (type_ == "writer") or importtools.prepare_model(name).sequences.inputs:
+            seqs = importtools.prepare_model(name).sequences
+            if seqs.inputs or (
+                ((type_ == "writer") and (seqs.factors or seqs.fluxes or seqs.states))
+            ):
                 subs.extend(
                     [
                         f'{blanks}        <element name="{name}"',

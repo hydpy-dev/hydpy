@@ -84,3 +84,14 @@ class SnowAlbedoModel_V1(modeltools.SubmodelInterface):
         For snow-free zones, |SnowAlbedoModel_V1.get_snowalbedo| should return
         |numpy.nan|.
         """
+
+
+class WaterLevelModel_V1(modeltools.SubmodelInterface):
+    """Pure getter interface for querying the current water level."""
+
+    typeid: ClassVar[Literal[1]] = 1
+    """Type identifier for |WaterLevelModel_V1| submodels."""
+
+    @modeltools.abstractmodelmethod
+    def get_waterlevel(self) -> float:
+        """Determine the water level and return it in m."""

@@ -2498,11 +2498,9 @@ actual HydPy instance does not handle any elements at the moment.
                 assert_never(dm)
         elements = self.collectives
         for element in elements:
-            if element.senders:
-                funcs.append(element.model.update_senders)
+            funcs.append(element.model.update_senders)
         for element in elements:
-            if element.receivers:
-                funcs.append(element.model.update_receivers)
+            funcs.append(element.model.update_receivers)
         for element in elements:
             funcs.append(element.model.save_data)
         for node in self.nodes:

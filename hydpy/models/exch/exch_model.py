@@ -232,7 +232,18 @@ class Pass_ActualExchange_V1(modeltools.Method):
         out.exchange[1][0] += flu.actualexchange
 
 
-class Model(modeltools.AdHocModel):
+class Get_WaterLevel_V1(modeltools.Method):
+    """Pick the water level from a receiver node and return it in m."""
+
+    REQUIREDSEQUENCES = (exch_receivers.WaterLevel,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> float:
+        rec = model.sequences.receivers.fastaccess
+        return rec.waterlevel[0]
+
+
+class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
     """HydPy-Exch base model."""
 
     INLET_METHODS = ()
@@ -243,6 +254,7 @@ class Model(modeltools.AdHocModel):
         Calc_PotentialExchange_V1,
         Calc_ActualExchange_V1,
     )
+    INTERFACE_METHODS = (Get_WaterLevel_V1,)
     ADD_METHODS = ()
     OUTLET_METHODS = (Pass_ActualExchange_V1,)
     SENDER_METHODS = ()

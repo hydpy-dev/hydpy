@@ -137,8 +137,8 @@ not be set based on the given keyword arguments.
         return f"{self.name}({objecttools.repr_(value)})"
 
 
-class LanduseParameter(parametertools.ZipParameter):
-    """Base class for 1-dimensional parameters relevant for all types of land-use.
+class LanduseParameterLand(parametertools.ZipParameter):
+    """Base class for 1-dimensional parameters relevant for all land-related units.
 
     We take the parameter |DDT| as an example.  You can define its values by using the
     names of all land use-related constants in lower-case as keywords:
@@ -146,9 +146,9 @@ class LanduseParameter(parametertools.ZipParameter):
     >>> from hydpy.models.wland import *
     >>> simulationstep("1d")
     >>> parameterstep("1d")
-    >>> nu(12)
+    >>> nu(13)
     >>> lt(SEALED, FIELD, WINE, ORCHARD, SOIL, PASTURE, WETLAND,
-    ...    TREES, CONIFER, DECIDIOUS, MIXED, SEALED)
+    ...    TREES, CONIFER, DECIDIOUS, MIXED, SEALED, WATER)
     >>> ddf(sealed=0.0, field=1.0, wine=2.0, orchard=3.0, soil=4.0, pasture=5.0,
     ...     wetland=6.0, trees=7.0, conifer=8.0, decidious=9.0, mixed=10.0)
     >>> ddf
@@ -156,15 +156,15 @@ class LanduseParameter(parametertools.ZipParameter):
         pasture=5.0, sealed=0.0, soil=4.0, trees=7.0, wetland=6.0,
         wine=2.0)
     >>> ddf.values
-    array([ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9., 10.,  0.])
+    array([ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9., 10.,  0., nan])
 
     You can average the current values with regard to the hydrological response area
     fractions, defined via parameter |AUR|:
 
-    >>> aur(0.01, 0.02, 0.04, 0.05, 0.06, 0.08, 0.09, 0.1, 0.12, 0.13, 0.14, 0.16)
+    >>> aur(0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.11, 0.12, 0.22)
     >>> from hydpy import round_
     >>> round_(ddf.average_values())
-    5.66
+    5.641026
 
     You can query or change the values related to specific land use types via attribute
     access:
@@ -173,7 +173,7 @@ class LanduseParameter(parametertools.ZipParameter):
     array([0., 0.])
     >>> ddf.sealed = 11.0, 12.0
     >>> ddf
-    ddf(11.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 12.0)
+    ddf(11.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 12.0, nan)
     >>> ddf.sealed = 12.0
     >>> ddf
     ddf(conifer=8.0, decidious=9.0, field=1.0, mixed=10.0, orchard=3.0,
@@ -182,7 +182,7 @@ class LanduseParameter(parametertools.ZipParameter):
     """
 
     constants = wland_constants.LANDUSE_CONSTANTS
-    mask = wland_masks.Complete()
+    mask = wland_masks.Land()
 
     @property
     def refweights(self):

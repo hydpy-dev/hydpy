@@ -3,20 +3,15 @@
 # import...
 # ...from HydPy
 from hydpy.core import exceptiontools
+from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.models.wland import wland_parameters
 from hydpy.models.wland import wland_constants
 from hydpy.models.wland.wland_constants import *
 
 
-class AL(parametertools.Parameter):
-    """Land area [km²]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-
-
-class AS_(parametertools.Parameter):
-    """Surface water area [km²]."""
+class AT(parametertools.Parameter):
+    """Total area [km²]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
@@ -56,7 +51,7 @@ class NU(parametertools.Parameter):
     ic(1.0, 1.0)
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
     def __call__(self, *args, **kwargs) -> None:
         old = exceptiontools.getattr_(self, "value", None)
@@ -84,15 +79,57 @@ class LT(parametertools.NameParameter):
 
     >>> from hydpy.models.wland import *
     >>> parameterstep()
-    >>> nu(11)
-    >>> lt(SEALED, FIELD, WINE, ORCHARD, SOIL, PASTURE, WETLAND,
-    ...    TREES, CONIFER, DECIDIOUS, MIXED)
+    >>> nu(12)
+    >>> lt(SEALED, FIELD, WINE, ORCHARD, SOIL, PASTURE,
+    ...    WETLAND, TREES, CONIFER, DECIDIOUS, MIXED, WATER)
     >>> lt
     lt(SEALED, FIELD, WINE, ORCHARD, SOIL, PASTURE, WETLAND, TREES,
-       CONIFER, DECIDIOUS, MIXED)
+       CONIFER, DECIDIOUS, MIXED, WATER)
+
+    Note that |wland| generally requires a single surface water storage unit, which
+    must be placed at the last position.  Trying to set another land type causes the
+    following error:
+
+    >>> lt(SEALED, FIELD, WINE, ORCHARD, SOIL, PASTURE,
+    ...    WETLAND, TREES, CONIFER, DECIDIOUS, MIXED, MIXED)
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to set the land use types via parameter `lt` of element \
+`?`, the following error occurred: The last land use type must be `WATER`, but \
+`MIXED` is given.
+
+    Trying to define multiple such units results in the following error:
+
+    >>> lt(SEALED, FIELD, WINE, ORCHARD, SOIL, PASTURE,
+    ...    WETLAND, TREES, CONIFER, DECIDIOUS, WATER, WATER)
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to set the land use types via parameter `lt` of element \
+`?`, the following error occurred: W-Land requires a single surface water storage \
+unit, but 2 units are defined as such.
     """
 
     constants = wland_constants.LANDUSE_CONSTANTS
+
+    def __call__(self, *args, **kwargs) -> None:
+        super().__call__(*args, **kwargs)
+        try:
+            is_water = self.values == WATER
+            if not is_water[-1]:
+                lt = wland_constants.LANDUSE_CONSTANTS.value2name[self.values[-1]]
+                raise ValueError(
+                    f"The last land use type must be `WATER`, but `{lt}` is given."
+                )
+            if sum(is_water) > 1:
+                raise ValueError(
+                    f"W-Land requires a single surface water storage unit, but "
+                    f"{sum(is_water)} units are defined as such."
+                )
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to set the land use types via parameter "
+                f"{objecttools.elementphrase(self)}"
+            )
 
 
 class AUR(parametertools.Parameter):
@@ -184,7 +221,7 @@ class TI(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
 
-class DDF(wland_parameters.LanduseParameter):
+class DDF(wland_parameters.LanduseParameterLand):
     """Day degree factor [mm/°C/T]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, None)

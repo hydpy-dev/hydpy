@@ -104,20 +104,22 @@ class Calc_FXS_V1(modeltools.Method):
         FXS_{fluxes} = \begin{cases}
         0 &|\ FXS_{inputs} = 0
         \\
-        \frac{FXS_{inputs}}{ASR} &|\ FXS_{inputs} \neq 0 \land ASR > 0
+        \frac{FXS_{inputs}}{ASR} &|\ FXS_{inputs} \neq 0 \land NU > 1
         \\
-        inf &|\ FXS_{inputs} \neq 0 \land ASR = 0
+        inf &|\ FXS_{inputs} \neq 0 \land NU = 1
         \end{cases}
 
     Examples:
 
         >>> from hydpy.models.wland import *
         >>> parameterstep()
+        >>> nu(2)
         >>> derived.asr(0.5)
         >>> inputs.fxs = 2.0
         >>> model.calc_fxs_v1()
         >>> fluxes.fxs
         fxs(4.0)
+        >>> nu(1)
         >>> derived.asr(0.0)
         >>> model.calc_fxs_v1()
         >>> fluxes.fxs
@@ -128,21 +130,23 @@ class Calc_FXS_V1(modeltools.Method):
         fxs(0.0)
     """
 
+    CONTROLPARAMETERS = (wland_control.NU,)
     DERIVEDPARAMETERS = (wland_derived.ASR,)
     REQUIREDSEQUENCES = (wland_inputs.FXS,)
     RESULTSEQUENCES = (wland_fluxes.FXS,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         if inp.fxs == 0.0:
             flu.fxs = 0.0
-        elif der.asr > 0.0:
-            flu.fxs = inp.fxs / der.asr
-        else:
+        elif con.nu == 1:
             flu.fxs = modelutils.inf
+        else:
+            flu.fxs = inp.fxs / der.asr
 
 
 class Calc_FXG_V1(modeltools.Method):
@@ -162,8 +166,7 @@ class Calc_FXG_V1(modeltools.Method):
 
         >>> from hydpy.models.wland import *
         >>> parameterstep()
-        >>> derived.alr(0.5)
-        >>> derived.agr(0.8)
+        >>> derived.agr(0.4)
         >>> inputs.fxg = 2.0
         >>> model.calc_fxg_v1()
         >>> fluxes.fxg
@@ -178,7 +181,7 @@ class Calc_FXG_V1(modeltools.Method):
         fxg(0.0)
     """
 
-    DERIVEDPARAMETERS = (wland_derived.ALR, wland_derived.AGR)
+    DERIVEDPARAMETERS = (wland_derived.AGR,)
     REQUIREDSEQUENCES = (wland_inputs.FXG,)
     RESULTSEQUENCES = (wland_fluxes.FXG,)
 
@@ -190,7 +193,7 @@ class Calc_FXG_V1(modeltools.Method):
         if inp.fxg == 0.0:
             flu.fxg = 0.0
         else:
-            ra: float = der.alr * der.agr
+            ra: float = der.agr
             if ra > 0.0:
                 flu.fxg = inp.fxg / ra
             else:
@@ -228,7 +231,8 @@ class Calc_PC_V1(modeltools.Method):
 
 class Calc_PET_PETModel_V1(modeltools.Method):
     """Let a submodel that complies with the |PETModel_V1| interface calculate the
-    potential evapotranspiration of the land areas.
+    potential evapotranspiration of the land areas and the potential evaporation of the
+    surface water storage.
 
     Example:
 
@@ -236,13 +240,13 @@ class Calc_PET_PETModel_V1(modeltools.Method):
 
         >>> from hydpy.models.wland_v001 import *
         >>> parameterstep()
-        >>> nu(3)
-        >>> al(1.0)
-        >>> aur(0.5, 0.3, 0.2)
-        >>> lt(FIELD)
+        >>> nu(4)
+        >>> at(1.0)
+        >>> aur(0.25, 0.15, 0.1, 0.5)
+        >>> lt(FIELD, FIELD, FIELD, WATER)
         >>> from hydpy import prepare_model
         >>> with model.add_petmodel_v1("evap_tw2002"):
-        ...     hrualtitude(200.0, 600.0, 1000.0)
+        ...     hrualtitude(200.0, 600.0, 1000.0, 100.0)
         ...     coastfactor(0.6)
         ...     evapotranspirationfactor(1.1)
         ...     inputs.globalradiation = 200.0
@@ -251,7 +255,7 @@ class Calc_PET_PETModel_V1(modeltools.Method):
         ...         inputs.temperature = 14.0
         >>> model.calc_pet_v1()
         >>> fluxes.pet
-        pet(3.07171, 2.86215, 2.86215)
+        pet(3.07171, 2.86215, 2.86215, 3.128984)
     """
 
     CONTROLPARAMETERS = (wland_control.NU,)
@@ -268,7 +272,8 @@ class Calc_PET_PETModel_V1(modeltools.Method):
 
 class Calc_PET_V1(modeltools.Method):
     """Let a submodel that complies with the |PETModel_V1| interface calculate the
-    potential evapotranspiration of the land areas."""
+    potential evapotranspiration of the land areas and the potential evaporation of the
+    surface water storage."""
 
     SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
     SUBMETHODS = (Calc_PET_PETModel_V1,)
@@ -284,54 +289,8 @@ class Calc_PET_V1(modeltools.Method):
         #         assert_never(model.petmodel)
 
 
-class Calc_PE_PETModel_V1(modeltools.Method):
-    """Let a submodel that complies with the |PETModel_V1| interface calculate the
-    potential evaporation of the surface water storage.
-
-    Example:
-
-        We use |evap_io| as an example:
-
-        >>> from hydpy.models.wland_v001 import *
-        >>> parameterstep()
-        >>> nu(2)
-        >>> as_(1.0)
-        >>> with model.add_pemodel_v1("evap_io"):
-        ...     evapotranspirationfactor(1.3)
-        ...     inputs.referenceevapotranspiration(2.0)
-        >>> model.calc_pe_v1()
-        >>> fluxes.pe
-        pe(2.6)
-    """
-
-    RESULTSEQUENCES = (wland_fluxes.PE,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
-        flu = model.sequences.fluxes.fastaccess
-        submodel.determine_potentialevapotranspiration()
-        flu.pe = submodel.get_meanpotentialevapotranspiration()
-
-
-class Calc_PE_V1(modeltools.Method):
-    """Let a submodel that complies with the |PETModel_V1| interface calculate the
-    potential evaporation of the surface water storage."""
-
-    SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
-    SUBMETHODS = (Calc_PE_PETModel_V1,)
-    RESULTSEQUENCES = (wland_fluxes.PE,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        if model.pemodel_typeid == 1:
-            model.calc_pe_petmodel_v1(cast(petinterfaces.PETModel_V1, model.pemodel))
-        # ToDo:
-        #     else:
-        #         assert_never(model.petmodel)
-
-
 class Calc_TF_V1(modeltools.Method):
-    r"""Calculate the total amount of throughfall.
+    r"""Calculate the total amount of throughfall of the land areas.
 
     Basic equation (discontinuous):
       .. math::
@@ -347,12 +306,13 @@ class Calc_TF_V1(modeltools.Method):
         >>> pub.timegrids = '2000-03-30', '2000-04-03', '1d'
         >>> from hydpy.models.wland import *
         >>> parameterstep()
-        >>> nu(1)
-        >>> lt(FIELD)
+        >>> nu(2)
+        >>> lt(FIELD, WATER)
         >>> ih(0.2)
         >>> lai.field_mar = 5.0
         >>> lai.field_apr = 10.0
         >>> derived.moy.update()
+        >>> derived.nul.update()
         >>> fluxes.pc = 5.0
         >>> test = UnitTest(
         ...     model=model,
@@ -368,14 +328,14 @@ class Calc_TF_V1(modeltools.Method):
         >>> derived.rh1.update()
         >>> model.idx_sim = pub.timegrids.init['2000-03-31']
         >>> test()
-        | ex. |   ic |  tf |
-        --------------------
-        |   1 | -4.0 | 0.0 |
-        |   2 |  0.0 | 0.0 |
-        |   3 |  1.0 | 2.5 |
-        |   4 |  2.0 | 5.0 |
-        |   5 |  3.0 | 5.0 |
-        |   6 |  7.0 | 5.0 |
+        | ex. |         ic |       tf |
+        -------------------------------
+        |   1 | -4.0  -4.0 | 0.0  0.0 |
+        |   2 |  0.0   0.0 | 0.0  0.0 |
+        |   3 |  1.0   1.0 | 2.5  0.0 |
+        |   4 |  2.0   2.0 | 5.0  0.0 |
+        |   5 |  3.0   3.0 | 5.0  0.0 |
+        |   6 |  7.0   7.0 | 5.0  0.0 |
 
         With smoothing:
 
@@ -383,27 +343,22 @@ class Calc_TF_V1(modeltools.Method):
         >>> derived.rh1.update()
         >>> model.idx_sim = pub.timegrids.init['2000-04-01']
         >>> test()
-        | ex. |   ic |      tf |
-        ------------------------
-        |   1 | -4.0 |     0.0 |
-        |   2 |  0.0 | 0.00051 |
-        |   3 |  1.0 |    0.05 |
-        |   4 |  2.0 |     2.5 |
-        |   5 |  3.0 |    4.95 |
-        |   6 |  7.0 |     5.0 |
+        | ex. |         ic |           tf |
+        -----------------------------------
+        |   1 | -4.0  -4.0 |     0.0  0.0 |
+        |   2 |  0.0   0.0 | 0.00051  0.0 |
+        |   3 |  1.0   1.0 |    0.05  0.0 |
+        |   4 |  2.0   2.0 |     2.5  0.0 |
+        |   5 |  3.0   3.0 |    4.95  0.0 |
+        |   6 |  7.0   7.0 |     5.0  0.0 |
 
         .. testsetup::
 
             >>> del pub.timegrids
     """
 
-    CONTROLPARAMETERS = (
-        wland_control.NU,
-        wland_control.LT,
-        wland_control.LAI,
-        wland_control.IH,
-    )
-    DERIVEDPARAMETERS = (wland_derived.MOY, wland_derived.RH1)
+    CONTROLPARAMETERS = (wland_control.LT, wland_control.LAI, wland_control.IH)
+    DERIVEDPARAMETERS = (wland_derived.MOY, wland_derived.NUL, wland_derived.RH1)
     REQUIREDSEQUENCES = (wland_fluxes.PC, wland_states.IC)
     RESULTSEQUENCES = (wland_fluxes.TF,)
 
@@ -413,15 +368,16 @@ class Calc_TF_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        for k in range(con.nu):
+        for k in range(der.nul):
             lai: float = con.lai[con.lt[k] - SEALED, der.moy[model.idx_sim]]
             flu.tf[k] = flu.pc * smoothutils.smooth_logistic1(
                 sta.ic[k] - con.ih * lai, der.rh1
             )
+        flu.tf[der.nul] = 0.0
 
 
 class Calc_EI_V1(modeltools.Method):
-    r"""Calculate the interception evaporation.
+    r"""Calculate the interception evaporation of the land areas.
 
     Basic equation (discontinuous):
       .. math::
@@ -435,7 +391,8 @@ class Calc_EI_V1(modeltools.Method):
 
         >>> from hydpy.models.wland import *
         >>> parameterstep()
-        >>> nu(1)
+        >>> nu(2)
+        >>> derived.nul.update()
         >>> fluxes.pet = 5.0
         >>> from hydpy import UnitTest
         >>> test = UnitTest(
@@ -451,49 +408,50 @@ class Calc_EI_V1(modeltools.Method):
         >>> sh(0.0)
         >>> derived.rh1.update()
         >>> test()
-        | ex. |   ic |  ei |
-        --------------------
-        |   1 | -4.0 | 0.0 |
-        |   2 | -3.0 | 0.0 |
-        |   3 | -2.0 | 0.0 |
-        |   4 | -1.0 | 0.0 |
-        |   5 |  0.0 | 2.5 |
-        |   6 |  1.0 | 5.0 |
-        |   7 |  2.0 | 5.0 |
-        |   8 |  3.0 | 5.0 |
-        |   9 |  4.0 | 5.0 |
+        | ex. |         ic |       ei |
+        -------------------------------
+        |   1 | -4.0  -4.0 | 0.0  0.0 |
+        |   2 | -3.0  -3.0 | 0.0  0.0 |
+        |   3 | -2.0  -2.0 | 0.0  0.0 |
+        |   4 | -1.0  -1.0 | 0.0  0.0 |
+        |   5 |  0.0   0.0 | 2.5  0.0 |
+        |   6 |  1.0   1.0 | 5.0  0.0 |
+        |   7 |  2.0   2.0 | 5.0  0.0 |
+        |   8 |  3.0   3.0 | 5.0  0.0 |
+        |   9 |  4.0   4.0 | 5.0  0.0 |
+
 
         With smoothing:
 
         >>> sh(1.0)
         >>> derived.rh1.update()
         >>> test()
-        | ex. |   ic |       ei |
-        -------------------------
-        |   1 | -4.0 |      0.0 |
-        |   2 | -3.0 | 0.000005 |
-        |   3 | -2.0 |  0.00051 |
-        |   4 | -1.0 |     0.05 |
-        |   5 |  0.0 |      2.5 |
-        |   6 |  1.0 |     4.95 |
-        |   7 |  2.0 |  4.99949 |
-        |   8 |  3.0 | 4.999995 |
-        |   9 |  4.0 |      5.0 |
+        | ex. |         ic |            ei |
+        ------------------------------------
+        |   1 | -4.0  -4.0 |      0.0  0.0 |
+        |   2 | -3.0  -3.0 | 0.000005  0.0 |
+        |   3 | -2.0  -2.0 |  0.00051  0.0 |
+        |   4 | -1.0  -1.0 |     0.05  0.0 |
+        |   5 |  0.0   0.0 |      2.5  0.0 |
+        |   6 |  1.0   1.0 |     4.95  0.0 |
+        |   7 |  2.0   2.0 |  4.99949  0.0 |
+        |   8 |  3.0   3.0 | 4.999995  0.0 |
+        |   9 |  4.0   4.0 |      5.0  0.0 |
+
     """
 
-    CONTROLPARAMETERS = (wland_control.NU,)
-    DERIVEDPARAMETERS = (wland_derived.RH1,)
+    DERIVEDPARAMETERS = (wland_derived.NUL, wland_derived.RH1)
     REQUIREDSEQUENCES = (wland_fluxes.PET, wland_states.IC)
     RESULTSEQUENCES = (wland_fluxes.EI,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        for k in range(con.nu):
+        for k in range(der.nul):
             flu.ei[k] = flu.pet[k] * (smoothutils.smooth_logistic1(sta.ic[k], der.rh1))
+        flu.ei[der.nul] = 0.0
 
 
 class Calc_FR_V1(modeltools.Method):
@@ -551,7 +509,7 @@ class Calc_FR_V1(modeltools.Method):
 
 
 class Calc_RF_V1(modeltools.Method):
-    r"""Calculate the liquid amount of throughfall (rainfall).
+    r"""Calculate the liquid amount of throughfall (rainfall) of the land areas.
 
     Basic equation:
       :math:`RF = FR \cdot TF`
@@ -560,29 +518,31 @@ class Calc_RF_V1(modeltools.Method):
 
         >>> from hydpy.models.wland import *
         >>> parameterstep()
-        >>> nu(1)
+        >>> nu(2)
+        >>> derived.nul.update()
         >>> fluxes.tf = 2.0
         >>> aides.fr = 0.8
         >>> model.calc_rf_v1()
         >>> fluxes.rf
-        rf(1.6)
+        rf(1.6, 0.0)
     """
 
-    CONTROLPARAMETERS = (wland_control.NU,)
+    DERIVEDPARAMETERS = (wland_derived.NUL,)
     REQUIREDSEQUENCES = (wland_fluxes.TF, wland_aides.FR)
     RESULTSEQUENCES = (wland_fluxes.RF,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
-        for k in range(con.nu):
+        for k in range(der.nul):
             flu.rf[k] = aid.fr * flu.tf[k]
+        flu.rf[der.nul] = 0.0
 
 
 class Calc_SF_V1(modeltools.Method):
-    r"""Calculate the frozen amount of throughfall (snowfall).
+    r"""Calculate the frozen amount of throughfall (snowfall) of the land areas.
 
     Basic equation:
       :math:`SF = (1-FR) \cdot TF`
@@ -591,29 +551,31 @@ class Calc_SF_V1(modeltools.Method):
 
         >>> from hydpy.models.wland import *
         >>> parameterstep()
-        >>> nu(1)
+        >>> nu(2)
+        >>> derived.nul.update()
         >>> fluxes.tf = 2.0
         >>> aides.fr = 0.8
         >>> model.calc_sf_v1()
         >>> fluxes.sf
-        sf(0.4)
+        sf(0.4, 0.0)
     """
 
-    CONTROLPARAMETERS = (wland_control.NU,)
+    DERIVEDPARAMETERS = (wland_derived.NUL,)
     REQUIREDSEQUENCES = (wland_fluxes.TF, wland_aides.FR)
     RESULTSEQUENCES = (wland_fluxes.SF,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
-        for k in range(con.nu):
+        for k in range(der.nul):
             flu.sf[k] = (1.0 - aid.fr) * flu.tf[k]
+        flu.sf[der.nul] = 0.0
 
 
 class Calc_PM_V1(modeltools.Method):
-    r"""Calculate the potential snowmelt.
+    r"""Calculate the potential snowmelt of the land areas.
 
     Basic equation (discontinous):
       :math:`PM = max \left( DDF \cdot (T - DDT), 0 \right)`
@@ -621,9 +583,10 @@ class Calc_PM_V1(modeltools.Method):
     Examples:
 
         >>> from hydpy.models.wland import *
-        >>> simulationstep('12h')
-        >>> parameterstep('1d')
-        >>> nu(1)
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
+        >>> nu(2)
+        >>> derived.nul.update()
         >>> ddf(4.0)
         >>> ddt(1.0)
         >>> from hydpy import UnitTest
@@ -640,42 +603,42 @@ class Calc_PM_V1(modeltools.Method):
         >>> st(0.0)
         >>> derived.rt2.update()
         >>> test()
-        | ex. |    t |   pm |
-        ---------------------
-        |   1 | -4.0 |  0.0 |
-        |   2 | -3.0 |  0.0 |
-        |   3 | -2.0 |  0.0 |
-        |   4 | -1.0 |  0.0 |
-        |   5 |  0.0 |  0.0 |
-        |   6 |  1.0 |  0.0 |
-        |   7 |  2.0 |  2.0 |
-        |   8 |  3.0 |  4.0 |
-        |   9 |  4.0 |  6.0 |
-        |  10 |  5.0 |  8.0 |
-        |  11 |  6.0 | 10.0 |
+        | ex. |    t |        pm |
+        --------------------------
+        |   1 | -4.0 |  0.0  0.0 |
+        |   2 | -3.0 |  0.0  0.0 |
+        |   3 | -2.0 |  0.0  0.0 |
+        |   4 | -1.0 |  0.0  0.0 |
+        |   5 |  0.0 |  0.0  0.0 |
+        |   6 |  1.0 |  0.0  0.0 |
+        |   7 |  2.0 |  2.0  0.0 |
+        |   8 |  3.0 |  4.0  0.0 |
+        |   9 |  4.0 |  6.0  0.0 |
+        |  10 |  5.0 |  8.0  0.0 |
+        |  11 |  6.0 | 10.0  0.0 |
 
         With smoothing:
 
         >>> st(1.0)
         >>> derived.rt2.update()
         >>> test()
-        | ex. |    t |       pm |
-        -------------------------
-        |   1 | -4.0 |      0.0 |
-        |   2 | -3.0 | 0.000001 |
-        |   3 | -2.0 | 0.000024 |
-        |   4 | -1.0 | 0.000697 |
-        |   5 |  0.0 |     0.02 |
-        |   6 |  1.0 | 0.411048 |
-        |   7 |  2.0 |     2.02 |
-        |   8 |  3.0 | 4.000697 |
-        |   9 |  4.0 | 6.000024 |
-        |  10 |  5.0 | 8.000001 |
-        |  11 |  6.0 |     10.0 |
+        | ex. |    t |            pm |
+        ------------------------------
+        |   1 | -4.0 |      0.0  0.0 |
+        |   2 | -3.0 | 0.000001  0.0 |
+        |   3 | -2.0 | 0.000024  0.0 |
+        |   4 | -1.0 | 0.000697  0.0 |
+        |   5 |  0.0 |     0.02  0.0 |
+        |   6 |  1.0 | 0.411048  0.0 |
+        |   7 |  2.0 |     2.02  0.0 |
+        |   8 |  3.0 | 4.000697  0.0 |
+        |   9 |  4.0 | 6.000024  0.0 |
+        |  10 |  5.0 | 8.000001  0.0 |
+        |  11 |  6.0 |     10.0  0.0 |
     """
 
-    CONTROLPARAMETERS = (wland_control.NU, wland_control.DDF, wland_control.DDT)
-    DERIVEDPARAMETERS = (wland_derived.RT2,)
+    CONTROLPARAMETERS = (wland_control.DDF, wland_control.DDT)
+    DERIVEDPARAMETERS = (wland_derived.NUL, wland_derived.RT2)
     REQUIREDSEQUENCES = (wland_inputs.T,)
     RESULTSEQUENCES = (wland_fluxes.PM,)
 
@@ -685,14 +648,15 @@ class Calc_PM_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        for k in range(con.nu):
+        for k in range(der.nul):
             flu.pm[k] = con.ddf[k] * smoothutils.smooth_logistic2(
                 inp.t - con.ddt, der.rt2
             )
+        flu.pm[der.nul] = 0.0
 
 
 class Calc_AM_V1(modeltools.Method):
-    r"""Calculate the actual snowmelt.
+    r"""Calculate the actual snowmelt of the land areas.
 
     Basic equation (discontinous):
       .. math::
@@ -706,7 +670,8 @@ class Calc_AM_V1(modeltools.Method):
 
         >>> from hydpy.models.wland import *
         >>> parameterstep()
-        >>> nu(1)
+        >>> nu(2)
+        >>> derived.nul.update()
         >>> fluxes.pm = 2.0
         >>> from hydpy import UnitTest
         >>> test = UnitTest(
@@ -722,49 +687,49 @@ class Calc_AM_V1(modeltools.Method):
         >>> sh(0.0)
         >>> derived.rh1.update()
         >>> test()
-        | ex. |   sp |  am |
-        --------------------
-        |   1 | -4.0 | 0.0 |
-        |   2 | -3.0 | 0.0 |
-        |   3 | -2.0 | 0.0 |
-        |   4 | -1.0 | 0.0 |
-        |   5 |  0.0 | 1.0 |
-        |   6 |  1.0 | 2.0 |
-        |   7 |  2.0 | 2.0 |
-        |   8 |  3.0 | 2.0 |
-        |   9 |  4.0 | 2.0 |
+        | ex. |         sp |       am |
+        -------------------------------
+        |   1 | -4.0  -4.0 | 0.0  0.0 |
+        |   2 | -3.0  -3.0 | 0.0  0.0 |
+        |   3 | -2.0  -2.0 | 0.0  0.0 |
+        |   4 | -1.0  -1.0 | 0.0  0.0 |
+        |   5 |  0.0   0.0 | 1.0  0.0 |
+        |   6 |  1.0   1.0 | 2.0  0.0 |
+        |   7 |  2.0   2.0 | 2.0  0.0 |
+        |   8 |  3.0   3.0 | 2.0  0.0 |
+        |   9 |  4.0   4.0 | 2.0  0.0 |
 
         With smoothing:
 
         >>> sh(1.0)
         >>> derived.rh1.update()
         >>> test()
-        | ex. |   sp |       am |
-        -------------------------
-        |   1 | -4.0 |      0.0 |
-        |   2 | -3.0 | 0.000002 |
-        |   3 | -2.0 | 0.000204 |
-        |   4 | -1.0 |     0.02 |
-        |   5 |  0.0 |      1.0 |
-        |   6 |  1.0 |     1.98 |
-        |   7 |  2.0 | 1.999796 |
-        |   8 |  3.0 | 1.999998 |
-        |   9 |  4.0 |      2.0 |
+        | ex. |         sp |            am |
+        ------------------------------------
+        |   1 | -4.0  -4.0 |      0.0  0.0 |
+        |   2 | -3.0  -3.0 | 0.000002  0.0 |
+        |   3 | -2.0  -2.0 | 0.000204  0.0 |
+        |   4 | -1.0  -1.0 |     0.02  0.0 |
+        |   5 |  0.0   0.0 |      1.0  0.0 |
+        |   6 |  1.0   1.0 |     1.98  0.0 |
+        |   7 |  2.0   2.0 | 1.999796  0.0 |
+        |   8 |  3.0   3.0 | 1.999998  0.0 |
+        |   9 |  4.0   4.0 |      2.0  0.0 |
+
     """
 
-    CONTROLPARAMETERS = (wland_control.NU,)
-    DERIVEDPARAMETERS = (wland_derived.RH1,)
+    DERIVEDPARAMETERS = (wland_derived.NUL, wland_derived.RH1)
     REQUIREDSEQUENCES = (wland_fluxes.PM, wland_states.SP)
     RESULTSEQUENCES = (wland_fluxes.AM,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        for k in range(con.nu):
+        for k in range(der.nul):
             flu.am[k] = flu.pm[k] * smoothutils.smooth_logistic1(sta.sp[k], der.rh1)
+        flu.am[der.nul] = 0.0
 
 
 class Calc_PS_V1(modeltools.Method):
@@ -850,30 +815,32 @@ class Calc_PV_V1(modeltools.Method):
 
     Basic equation:
       .. math::
-        PV = \Sigma \left ( \frac{AUR}{AGR} \cdot (RF + AM) \cdot \begin{cases}
-        0 &|\ LT = SEALED
+        PV = \sum_{i=1}^{NUL} \left ( \frac{AUR_i}{AGR} \cdot (RF_i + AM_i) \cdot
+        \begin{cases}
+        0 &|\ LT_i = SEALED
         \\
-        1-W &|\ LT \neq SEALED
+        1-W &|\ LT_i \neq SEALED
         \end{cases}  \right )
 
     Example:
 
         >>> from hydpy.models.wland import *
         >>> parameterstep()
-        >>> nu(3)
-        >>> lt(FIELD, SOIL, SEALED)
-        >>> aur(0.7, 0.2, 0.1)
+        >>> nu(4)
+        >>> derived.nul.update()
+        >>> lt(FIELD, SOIL, SEALED, WATER)
+        >>> aur(0.35, 0.1, 0.05, 0.5)
         >>> derived.agr.update()
-        >>> fluxes.rf = 3.0, 2.0, 1.0
-        >>> fluxes.am = 1.0, 2.0, 3.0
+        >>> fluxes.rf = 3.0, 2.0, 1.0, 0.0
+        >>> fluxes.am = 1.0, 2.0, 3.0, 0.0
         >>> aides.w = 0.75
         >>> model.calc_pv_v1()
         >>> fluxes.pv
         pv(1.0)
     """
 
-    CONTROLPARAMETERS = (wland_control.NU, wland_control.LT, wland_control.AUR)
-    DERIVEDPARAMETERS = (wland_derived.AGR,)
+    CONTROLPARAMETERS = (wland_control.LT, wland_control.AUR)
+    DERIVEDPARAMETERS = (wland_derived.NUL, wland_derived.AGR)
     REQUIREDSEQUENCES = (wland_fluxes.RF, wland_fluxes.AM, wland_aides.W)
     RESULTSEQUENCES = (wland_fluxes.PV,)
 
@@ -884,7 +851,7 @@ class Calc_PV_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
         flu.pv = 0.0
-        for k in range(con.nu):
+        for k in range(der.nul):
             if con.lt[k] != SEALED:
                 flu.pv += (1.0 - aid.w) * con.aur[k] / der.agr * (flu.rf[k] + flu.am[k])
 
@@ -894,39 +861,44 @@ class Calc_PQ_V1(modeltools.Method):
 
     Basic equation:
       .. math::
-        PQ = \Sigma \left( AUR \cdot (RF + AM) \cdot \begin{cases}
-        1 &|\ LT = SEALED
+        PQ = \sum_{i=1}^{NUL}\left( \frac{AUR_i}{ALR} \cdot (RF_i + AM_i) \cdot
+        \begin{cases}
+        1 &|\ LT_i = SEALED
         \\
-        W &|\ LT \neq SEALED
+        W &|\ LT_i \neq SEALED
         \end{cases} \right)
 
     Example:
 
         >>> from hydpy.models.wland import *
         >>> parameterstep()
-        >>> nu(3)
-        >>> lt(FIELD, SOIL, SEALED)
-        >>> aur(0.6, 0.3, 0.1)
-        >>> fluxes.rf = 3.0, 2.0, 1.0
-        >>> fluxes.am = 1.0, 2.0, 2.0
+        >>> nu(4)
+        >>> lt(FIELD, SOIL, SEALED, WATER)
+        >>> aur(0.3, 0.15, 0.05, 0.5)
+        >>> derived.nul.update()
+        >>> derived.alr.update()
+        >>> fluxes.rf = 3.0, 2.0, 1.0, 0.0
+        >>> fluxes.am = 1.0, 2.0, 2.0, 0.0
         >>> aides.w = 0.75
         >>> model.calc_pq_v1()
         >>> fluxes.pq
         pq(3.0)
     """
 
-    CONTROLPARAMETERS = (wland_control.NU, wland_control.LT, wland_control.AUR)
+    CONTROLPARAMETERS = (wland_control.LT, wland_control.AUR)
+    DERIVEDPARAMETERS = (wland_derived.NUL, wland_derived.ALR)
     REQUIREDSEQUENCES = (wland_fluxes.RF, wland_fluxes.AM, wland_aides.W)
     RESULTSEQUENCES = (wland_fluxes.PQ,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
         flu.pq = 0.0
-        for k in range(con.nu):
-            pq: float = con.aur[k] * (flu.rf[k] + flu.am[k])
+        for k in range(der.nul):
+            pq: float = con.aur[k] / der.alr * (flu.rf[k] + flu.am[k])
             if con.lt[k] != SEALED:
                 pq *= aid.w
             flu.pq += pq
@@ -996,30 +968,32 @@ class Calc_ETV_V1(modeltools.Method):
 
     Basic equation:
       .. math::
-        ETV = \Sigma \left( \frac{AUR}{AGR} \cdot (PET -  EI) \cdot \begin{cases}
-        0 &|\ LT = SEALED
+        ETV = \sum_{i=1}^{NUL} \left( \frac{AUR_i}{AGR} \cdot (PET_i -  EI_i) \cdot
+        \begin{cases}
+        0 &|\ LT_i = SEALED
         \\
-        Beta  &|\ LT \neq SEALED
+        Beta  &|\ LT_i \neq SEALED
         \end{cases}  \right)
 
     Example:
 
         >>> from hydpy.models.wland import *
         >>> parameterstep()
-        >>> nu(3)
-        >>> lt(FIELD, SOIL, SEALED)
-        >>> aur(0.4, 0.4, 0.2)
+        >>> nu(4)
+        >>> lt(FIELD, SOIL, SEALED, WATER)
+        >>> aur(0.2, 0.2, 0.1, 0.5)
+        >>> derived.nul.update()
         >>> derived.agr.update()
         >>> fluxes.pet = 5.0
-        >>> fluxes.ei = 1.0, 3.0, 2.0
+        >>> fluxes.ei = 1.0, 3.0, 2.0, 0.0
         >>> aides.beta = 0.75
         >>> model.calc_etv_v1()
         >>> fluxes.etv
         etv(2.25)
     """
 
-    CONTROLPARAMETERS = (wland_control.NU, wland_control.LT, wland_control.AUR)
-    DERIVEDPARAMETERS = (wland_derived.AGR,)
+    CONTROLPARAMETERS = (wland_control.LT, wland_control.AUR)
+    DERIVEDPARAMETERS = (wland_derived.NUL, wland_derived.AGR)
     REQUIREDSEQUENCES = (wland_fluxes.PET, wland_fluxes.EI, wland_aides.Beta)
     RESULTSEQUENCES = (wland_fluxes.ETV,)
 
@@ -1030,7 +1004,7 @@ class Calc_ETV_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
         flu.etv = 0.0
-        for k in range(con.nu):
+        for k in range(der.nul):
             if con.lt[k] != SEALED:
                 flu.etv += aid.beta * con.aur[k] / der.agr * (flu.pet[k] - flu.ei[k])
 
@@ -1050,7 +1024,9 @@ class Calc_ES_V1(modeltools.Method):
 
         >>> from hydpy.models.wland import *
         >>> parameterstep()
-        >>> fluxes.pe = 5.0
+        >>> nu(2)
+        >>> derived.nul.update()
+        >>> fluxes.pet = 3.0, 5.0
         >>> from hydpy import UnitTest
         >>> test = UnitTest(
         ...     model=model,
@@ -1094,8 +1070,8 @@ class Calc_ES_V1(modeltools.Method):
         |   8 |  3.0 | 4.999995 |
         |   9 |  4.0 |      5.0 |
     """
-    DERIVEDPARAMETERS = (wland_derived.RH1,)
-    REQUIREDSEQUENCES = (wland_fluxes.PE, wland_states.HS)
+    DERIVEDPARAMETERS = (wland_derived.NUL, wland_derived.RH1)
+    REQUIREDSEQUENCES = (wland_fluxes.PET, wland_states.HS)
     RESULTSEQUENCES = (wland_fluxes.ES,)
 
     @staticmethod
@@ -1103,35 +1079,35 @@ class Calc_ES_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        flu.es = flu.pe * smoothutils.smooth_logistic1(sta.hs, der.rh1)
+        flu.es = flu.pet[der.nul] * smoothutils.smooth_logistic1(sta.hs, der.rh1)
 
 
 class Calc_ET_V1(modeltools.Method):
     r"""Calculate the total actual evapotranspiration.
 
     Basic equation:
-      :math:`ET = ALR \cdot \bigl( \Sigma (AUR \cdot EI) + AGR \cdot ETV \bigl ) +
-      ASR \cdot ES`
+      :math:`ET =  ASR \cdot ES + AGR \cdot ETV + \sum_{i=1}^{NUL} AUR_i \cdot EI_i`
 
     Example:
 
         >>> from hydpy.models.wland import *
         >>> parameterstep()
-        >>> nu(2)
-        >>> aur(0.8, 0.2)
-        >>> derived.alr(0.8)
-        >>> derived.asr(0.2)
-        >>> derived.agr(0.5)
-        >>> fluxes.ei = 0.5, 3.0
-        >>> fluxes.etv = 2.0
-        >>> fluxes.es = 3.0
+        >>> nu(3)
+        >>> lt(FIELD, SEALED, WATER)
+        >>> aur(0.5, 0.3, 0.2)
+        >>> derived.nul.update()
+        >>> derived.asr.update()
+        >>> derived.agr.update()
+        >>> fluxes.ei = 1.0, 2.0, 0.0
+        >>> fluxes.etv = 3.0
+        >>> fluxes.es = 4.0
         >>> model.calc_et_v1()
         >>> fluxes.et
-        et(2.2)
+        et(3.4)
     """
 
-    CONTROLPARAMETERS = (wland_control.NU, wland_control.AUR)
-    DERIVEDPARAMETERS = (wland_derived.ALR, wland_derived.ASR, wland_derived.AGR)
+    CONTROLPARAMETERS = (wland_control.AUR,)
+    DERIVEDPARAMETERS = (wland_derived.NUL, wland_derived.ASR, wland_derived.AGR)
     REQUIREDSEQUENCES = (wland_fluxes.EI, wland_fluxes.ETV, wland_fluxes.ES)
     RESULTSEQUENCES = (wland_fluxes.ET,)
 
@@ -1141,9 +1117,9 @@ class Calc_ET_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         ei: float = 0.0
-        for k in range(con.nu):
+        for k in range(der.nul):
             ei += con.aur[k] * flu.ei[k]
-        flu.et = der.alr * (ei + der.agr * flu.etv) + der.asr * flu.es
+        flu.et = ei + der.agr * flu.etv + der.asr * flu.es
 
 
 class Calc_DVEq_V1(modeltools.Method):
@@ -1920,8 +1896,8 @@ class Calc_CDG_V1(modeltools.Method):
     Examples:
 
         >>> from hydpy.models.wland import *
-        >>> simulationstep('12h')
-        >>> parameterstep('1d')
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
         >>> cv(10.0)
         >>> sh(0.0)
         >>> derived.rh1.update()
@@ -2007,8 +1983,8 @@ class Calc_CDG_V2(modeltools.Method):
         Without large-scale ponding:
 
         >>> from hydpy.models.wland import *
-        >>> simulationstep('12h')
-        >>> parameterstep('1d')
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
         >>> cv(10.0)
         >>> sh(0.0)
         >>> derived.rh1.update()
@@ -2115,8 +2091,8 @@ class Calc_FGS_V1(modeltools.Method):
     Examples:
 
         >>> from hydpy.models.wland import *
-        >>> simulationstep('12h')
-        >>> parameterstep('1d')
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
         >>> cg(10000.0)
         >>> derived.cd(600.0)
         >>> states.hs = 300.0
@@ -2228,16 +2204,24 @@ class Calc_FQS_V1(modeltools.Method):
     Basic equation:
       :math:`FQS = \frac{HQ}{CQ}`
 
-    Example:
+    Examples:
 
         >>> from hydpy.models.wland import *
-        >>> simulationstep('12h')
-        >>> parameterstep('1d')
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
+        >>> nu(2)
         >>> cq(10.0)
         >>> states.hq = 100.0
         >>> model.calc_fqs_v1()
         >>> fluxes.fqs
         fqs(5.0)
+
+        Without land areas, quickflow is zero:
+
+        >>> nu(1)
+        >>> model.calc_fqs_v1()
+        >>> fluxes.fqs
+        fqs(0.0)
     """
 
     CONTROLPARAMETERS = (wland_control.NU, wland_control.CQ)
@@ -2249,7 +2233,7 @@ class Calc_FQS_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        if con.nu:
+        if con.nu > 1:
             flu.fqs = sta.hq / con.cq
         else:
             flu.fqs = 0.0
@@ -2261,13 +2245,13 @@ class Calc_RH_V1(modeltools.Method):
     flows in and out of the surface water storage.
 
     Basic equation (without submodel):
-      :math:`RH = ASR \cdot (PS - ES + FXS) + ALR \cdot (AGR \cdot FGS + FQS)`
+      :math:`RH = ASR \cdot (PS - ES + FXS) + ALR \cdot FQS + AGR \cdot FGS`
 
     Examples:
 
         >>> from hydpy.models.wland_v001 import *
-        >>> simulationstep('12h')
-        >>> parameterstep('1d')
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
 
         Without an available submodel, |Calc_RH_V1| applies the given basic equation:
 
@@ -2281,7 +2265,7 @@ class Calc_RH_V1(modeltools.Method):
         >>> fluxes.fgs(0.2)
         >>> model.calc_rh_v1()
         >>> fluxes.rh
-        rh(0.896)
+        rh(0.92)
 
         We use |q_walrus|, which implements WALRUS' standard approach for calculating
         |RH|, to demonstrate that |Calc_RH_V1| correctly uses submodels that follow the
@@ -2319,7 +2303,7 @@ class Calc_RH_V1(modeltools.Method):
             flu.rh = (
                 der.asr * (flu.fxs + flu.ps - flu.es)
                 + der.alr * flu.fqs
-                + (der.alr * der.agr) * flu.fgs
+                + der.agr * flu.fgs
             )
         elif model.dischargemodel_typeid == 2:
             flu.rh = cast(
@@ -2337,28 +2321,30 @@ class Update_IC_V1(modeltools.Method):
 
         >>> from hydpy.models.wland import *
         >>> parameterstep()
-        >>> nu(1)
+        >>> nu(2)
+        >>> derived.nul.update()
         >>> fluxes.pc = 2.0
         >>> fluxes.tf = 1.0
         >>> fluxes.ei = 3.0
         >>> states.ic.old = 4.0
         >>> model.update_ic_v1()
         >>> states.ic
-        ic(2.0)
+        ic(2.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (wland_control.NU,)
+    DERIVEDPARAMETERS = (wland_derived.NUL,)
     REQUIREDSEQUENCES = (wland_fluxes.PC, wland_fluxes.TF, wland_fluxes.EI)
     UPDATEDSEQUENCES = (wland_states.IC,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         old = model.sequences.states.fastaccess_old
         new = model.sequences.states.fastaccess_new
-        for k in range(con.nu):
+        for k in range(der.nul):
             new.ic[k] = old.ic[k] + (flu.pc - flu.tf[k] - flu.ei[k])
+        new.ic[der.nul] = 0
 
 
 class Update_SP_V1(modeltools.Method):
@@ -2371,27 +2357,29 @@ class Update_SP_V1(modeltools.Method):
 
         >>> from hydpy.models.wland import *
         >>> parameterstep()
-        >>> nu(1)
+        >>> nu(2)
+        >>> derived.nul.update()
         >>> fluxes.sf = 1.0
         >>> fluxes.am = 2.0
         >>> states.sp.old = 3.0
         >>> model.update_sp_v1()
         >>> states.sp
-        sp(2.0)
+        sp(2.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (wland_control.NU,)
+    DERIVEDPARAMETERS = (wland_derived.NUL,)
     REQUIREDSEQUENCES = (wland_fluxes.SF, wland_fluxes.AM)
     UPDATEDSEQUENCES = (wland_states.SP,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         old = model.sequences.states.fastaccess_old
         new = model.sequences.states.fastaccess_new
-        for k in range(con.nu):
+        for k in range(der.nul):
             new.sp[k] = old.sp[k] + (flu.sf[k] - flu.am[k])
+        new.sp[der.nul] = 0
 
 
 class Update_DV_V1(modeltools.Method):
@@ -2499,8 +2487,8 @@ class Update_HS_V1(modeltools.Method):
     r"""Update the surface water level.
 
     Basic equation:
-      :math:`\frac{dHS}{dt} = PS - ES + FXS
-      + \frac{ALR \cdot \left(AGR \cdot FGS + FQS \right) - RH}{ASR}`
+      :math:`\frac{dHS}{dt} =
+      PS - ES + FXS + \frac{ALR \cdot FQS + AGR \cdot FGS - RH}{ASR}`
 
     Example:
 
@@ -2508,7 +2496,7 @@ class Update_HS_V1(modeltools.Method):
         >>> parameterstep()
         >>> derived.alr(0.8)
         >>> derived.asr(0.2)
-        >>> derived.agr(1.0)
+        >>> derived.agr(0.8)
         >>> states.hs.old = 2.0
         >>> fluxes.fxs = 3.0
         >>> fluxes.ps = 4.0
@@ -2541,9 +2529,7 @@ class Update_HS_V1(modeltools.Method):
         new.hs = (
             old.hs
             + (flu.fxs + flu.ps - flu.es)
-            - flu.rh / der.asr
-            + der.alr / der.asr * flu.fqs
-            + (der.alr * der.agr) / der.asr * flu.fgs
+            + (der.alr * flu.fqs + der.agr * flu.fgs - flu.rh) / der.asr
         )
 
 
@@ -2693,7 +2679,7 @@ class Model(modeltools.ELSModel):
         wland_solver.RelDTMax,
     )
     SOLVERSEQUENCES = ()
-    INLET_METHODS = (Calc_PET_V1, Calc_PE_V1, Calc_FR_V1, Calc_PM_V1)
+    INLET_METHODS = (Calc_PET_V1, Calc_FR_V1, Calc_PM_V1)
     RECEIVER_METHODS = (Pick_HS_V1,)
     INTERFACE_METHODS = (
         Get_Temperature_V1,
@@ -2702,7 +2688,6 @@ class Model(modeltools.ELSModel):
     )
     ADD_METHODS = (
         Calc_PET_PETModel_V1,
-        Calc_PE_PETModel_V1,
         Return_ErrorDV_V1,
         Return_DVH_V1,
         Return_DVH_V2,
@@ -2775,16 +2760,20 @@ class BaseModel(modeltools.ELSModel):
 
           .. math::
             Error = \Sigma In - \Sigma Out + \Sigma \Delta H -
-            \Delta Vol_{basin} - \Delta Vol_{hru} \\
+            \Delta Vol_{basin} - \Delta Vol_{hru}
+            \\ \\
+            \Sigma In = \sum_{t=t_0}^{t_1} PC_t + FXG_t + FXS_t
             \\
-            \Sigma In = \sum_{t=t_0}^{t_1} PC_t + FXG_t + FXS_t \\
-            \Sigma Out = \sum_{t=t_0}^{t_1} ET_t + RH_t \\
-            \Sigma \Delta H= ASR \cdot \sum_{t=t_0}^{t_1} DHS_t \\
+            \Sigma Out = \sum_{t=t_0}^{t_1} ET_t + RH_t
+            \\
+            \Sigma \Delta H= ASR \cdot \sum_{t=t_0}^{t_1} DHS_t
+            \\
             \Delta Vol_{basin} =
-            ASR \cdot \big( HS_{t1} - HS_{t0}\big) + ALR \cdot \Big(
-            \big( HQ_{t1} - HQ_{t0} \big) + AGR \cdot \big( DV_{t1} - DV_{t0} \big)
-            \Big) \\
-            \Delta Vol_{hru} = ALR \cdot \sum_{k=1}^{NU} AUR^k \cdot \Big(
+            ALR \cdot \big( HQ_{t1} - HQ_{t0} \big) +
+            AGR \cdot \big( DV_{t1} - DV_{t0} \big) +
+            ASR \cdot \big( HS_{t1} - HS_{t0} \big)
+            \\
+            \Delta Vol_{hru} = \sum_{k=1}^{NUL} AUR^k \cdot \Big(
             \big( IC_{t1}^k - IC_{t0}^k \big) + \big( SP_{t1}^k - SP_{t0}^k \big)
             \Big)
 
@@ -2802,7 +2791,7 @@ class BaseModel(modeltools.ELSModel):
         fluxes = self.sequences.fluxes
         last = self.sequences.states
         first = initial_conditions["model"]["states"]
-        ddv = (last.dv - first["dv"]) * derived.alr * derived.agr
+        ddv = (last.dv - first["dv"]) * derived.agr
         if numpy.isnan(ddv):
             ddv = 0.0
         return (
@@ -2812,8 +2801,8 @@ class BaseModel(modeltools.ELSModel):
             - sum(fluxes.et.series)
             - sum(fluxes.rh.series)
             + sum(factors.dhs.series) * derived.asr
-            - sum((last.ic - first["ic"]) * control.aur) * derived.alr
-            - sum((last.sp - first["sp"]) * control.aur) * derived.alr
+            - sum((last.ic - first["ic"])[:-1] * control.aur[:-1])
+            - sum((last.sp - first["sp"])[:-1] * control.aur[:-1])
             - (last.hq - first["hq"]) * derived.alr
             - (last.hs - first["hs"]) * derived.asr
             + ddv
@@ -2827,10 +2816,6 @@ class Main_PETModel_V1(modeltools.ELSModel):
     petmodel: modeltools.SubmodelProperty
     petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     petmodel_typeid = modeltools.SubmodelTypeIDProperty()
-
-    pemodel: modeltools.SubmodelProperty
-    pemodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
-    pemodel_typeid = modeltools.SubmodelTypeIDProperty()
 
     @importtools.prepare_submodel(
         "petmodel",
@@ -2855,64 +2840,31 @@ class Main_PETModel_V1(modeltools.ELSModel):
 
         >>> from hydpy.models.wland_v001 import *
         >>> parameterstep()
-        >>> nu(2)
-        >>> al(10.0)
-        >>> aur(0.2, 0.8)
-        >>> lt(FIELD, TREES)
+        >>> nu(3)
+        >>> at(10.0)
+        >>> aur(0.5, 0.3, 0.2)
+        >>> lt(FIELD, TREES, WATER)
         >>> with model.add_petmodel_v1("evap_tw2002"):
         ...     nmbhru
         ...     hruarea
-        ...     evapotranspirationfactor(field=1.0, trees=2.0)
-        nmbhru(2)
-        hruarea(2.0, 8.0)
+        ...     evapotranspirationfactor(field=1.0, trees=2.0, water=1.5)
+        nmbhru(3)
+        hruarea(5.0, 3.0, 2.0)
 
         >>> etf = model.petmodel.parameters.control.evapotranspirationfactor
         >>> etf
-        evapotranspirationfactor(field=1.0, trees=2.0)
-        >>> lt(TREES, FIELD)
+        evapotranspirationfactor(field=1.0, trees=2.0, water=1.5)
+        >>> lt(TREES, FIELD, WATER)
         >>> etf
-        evapotranspirationfactor(field=2.0, trees=1.0)
+        evapotranspirationfactor(field=2.0, trees=1.0, water=1.5)
         >>> from hydpy import round_
         >>> round_(etf.average_values())
-        1.8
+        1.4
         """
         control = self.parameters.control
         petmodel.prepare_nmbzones(control.nu.value)
         petmodel.prepare_zonetypes(control.lt.values)
-        petmodel.prepare_subareas(control.al.value * control.aur.values)
-
-    @importtools.prepare_submodel(
-        "pemodel",
-        petinterfaces.PETModel_V1,
-        petinterfaces.PETModel_V1.prepare_nmbzones,
-        petinterfaces.PETModel_V1.prepare_subareas,
-    )
-    def add_pemodel_v1(
-        self,
-        pemodel: petinterfaces.PETModel_V1,
-        /,
-        *,
-        refresh: bool,  # pylint: disable=unused-argument
-    ) -> None:
-        """Initialise the given `pemodel` that follows the |PETModel_V1| interface and
-        is responsible for calculating the potential evaporation of the surface water
-        storage.
-
-        >>> from hydpy.models.wland_v001 import *
-        >>> parameterstep()
-        >>> as_(5.0)
-        >>> with model.add_pemodel_v1("evap_tw2002"):
-        ...     nmbhru
-        ...     hruarea
-        ...     evapotranspirationfactor(2.0)
-        nmbhru(1)
-        hruarea(5.0)
-        >>> model.pemodel.parameters.control.evapotranspirationfactor
-        evapotranspirationfactor(2.0)
-        """
-        control = self.parameters.control
-        pemodel.prepare_nmbzones(1)
-        pemodel.prepare_subareas([control.as_.value])
+        petmodel.prepare_subareas(control.at.value * control.aur.values)
 
 
 class Main_DischargeModel_V2(modeltools.ELSModel):

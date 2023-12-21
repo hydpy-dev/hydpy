@@ -21,15 +21,15 @@ class LandMonthParameter(parametertools.KeywordParameter2D):
     >>> from hydpy.models.wland_v001 import *
     >>> parameterstep()
     >>> nu(2)
-    >>> al(10.0)
+    >>> at(10.0)
     >>> aur(0.2, 0.8)
-    >>> lt(FIELD, TREES)
+    >>> lt(FIELD, WATER)
     >>> with model.add_petmodel_v1("evap_mlc"):
     ...     pass
     >>> model.petmodel.parameters.control.landmonthfactor  # doctest: +ELLIPSIS
     landmonthfactor(sealed=[nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
                     ...
-                    mixed=[nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
+                    water=[nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
                            nan, nan])
     """
 

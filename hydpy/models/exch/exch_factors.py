@@ -9,8 +9,8 @@ from hydpy.core import variabletools
 class WaterLevels(variabletools.MixinFixedShape, sequencetools.FactorSequence):  # type: ignore[misc]  # pylint: disable=line-too-long
     """The water level at two locations [m].
 
-    After each simulation step, the value of |WaterLevels| corresponds to the value
-    of the |LoggedWaterLevels| of the previous simulation step.
+    After each simulation step, the value of |exch_factors.WaterLevels| corresponds to
+    the value of the |LoggedWaterLevels| of the previous simulation step.
     """
 
     NDIM = 1

@@ -168,12 +168,10 @@ Additionally, |wland_v001| requires a submodel for calculating the discharge out
 the surface water storage (the same as the discharge at a catchment's outlet.  Here, we
 use |q_walrus|, which implements the default approach of the original WALRUS model:
 
->>> model.update_parameters()
 >>> with model.add_dischargemodel_v2("q_walrus"):
 ...     crestheight(0.0)
 ...     bankfulldischarge(8.0)
 ...     dischargeexponent(1.5)
-
 
 Next, we initialise a test function object that prepares and runs the following tests
 and prints and plots their results:

@@ -9,7 +9,9 @@ import numpy
 
 # ...from HydPy
 from hydpy.core import importtools
+from hydpy.core import exceptiontools
 from hydpy.core import modeltools
+from hydpy.core import objecttools
 from hydpy.core.typingtools import *
 from hydpy.auxs import quadtools
 from hydpy.auxs import roottools
@@ -2937,9 +2939,24 @@ class Main_DischargeModel_V2(modeltools.ELSModel):
         """Initialise the given `dischargemodel` that follows the |DischargeModel_V2|
         interface.
 
+        Note the dependency on the derived parameter |CD|:
+
         >>> from hydpy.models.wland_v001 import *
         >>> parameterstep()
         >>> sh(10.0)
+        >>> with model.add_dischargemodel_v2("q_walrus", update=False):
+        ...     pass
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: While trying to add a submodel \
+to the main model `wland_v001`, the following error occurred: While trying to \
+determine the missing value of the derived parameter `cd` of element `?`, the \
+following error occurred: While trying to subtract variable `gl` and `BL` instance \
+`bl(?)`, the following error occurred: For variable `bl`, no value has been defined \
+so far.
+
+        You can define its value manually for testing:
+
         >>> derived.cd(2000.0)
         >>> with model.add_dischargemodel_v2("q_walrus", update=False):
         ...     channeldepth
@@ -2951,8 +2968,36 @@ class Main_DischargeModel_V2(modeltools.ELSModel):
         channeldepth(2.0)
         >>> model.dischargemodel.parameters.control.crestheighttolerance
         crestheighttolerance(0.01)
+
+        However, |Main_DischargeModel_V2.add_dischargemodel_v2| updates the channel
+        depth whenever possible to make the added submodel consistent with the main
+        model's current control parameter values:
+
+        >>> gl(4.0)
+        >>> bl(3.0)
+        >>> with model.add_dischargemodel_v2("q_walrus", update=False):
+        ...     channeldepth
+        ...     crestheighttolerance
+        channeldepth(1.0)
+        crestheighttolerance(0.01)
+
+        >>> derived.cd
+        cd(1000.0)
+        >>> model.dischargemodel.parameters.control.channeldepth
+        channeldepth(1.0)
+        >>> model.dischargemodel.parameters.control.crestheighttolerance
+        crestheighttolerance(0.01)
         """
-        dischargemodel.prepare_channeldepth(self.parameters.derived.cd.value / 1000.0)
+        cd = self.parameters.derived.cd
+        try:
+            cd.update()
+        except exceptiontools.AttributeNotReady:
+            if not exceptiontools.attrready(cd, "value"):
+                objecttools.augment_excmessage(
+                    f"While trying to determine the missing value of the derived "
+                    f"parameter {objecttools.elementphrase(cd)}"
+                )
+        dischargemodel.prepare_channeldepth(cd.value / 1000.0)
         dischargemodel.prepare_tolerance(self.parameters.control.sh.value / 1000.0)
 
 

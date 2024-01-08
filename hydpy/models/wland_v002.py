@@ -76,7 +76,6 @@ Integration tests
 ...                 jul=1.28, aug=1.28, sep=1.27, oct=1.23, nov=1.17, dec=1.14)
 ...     with model.add_retmodel_v1("evap_io"):
 ...         evapotranspirationfactor(0.9)
->>> model.update_parameters()
 >>> with model.add_dischargemodel_v2("q_walrus"):
 ...     crestheight(0.0)
 ...     bankfulldischarge(8.0)

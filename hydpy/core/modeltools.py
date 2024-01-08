@@ -1898,11 +1898,11 @@ to be consistent with the name of the element handling the model.
                     f"{(sublevel - 1) * '    '}with "
                     f"model.{adder.get_wrapped().__name__}({submodel}{position}):\n"
                 )
-                preparemethods = preparemethods.copy()
+                preparemethods_ = preparemethods.copy()
                 for method in adder.methods:
-                    preparemethods.add(method.__name__)
+                    preparemethods_.add(method.__name__)
                 targetparameters = set()
-                for methodname in preparemethods:
+                for methodname in preparemethods_:
                     updater = getattr(submodel, methodname)
                     if isinstance(updater, importtools.TargetParameterUpdater):
                         targetparameters.add(updater.targetparameter)
@@ -1920,7 +1920,7 @@ to be consistent with the name of the element handling the model.
                 else:
                     lines.append(f"{sublevel * '    '}pass\n")  # pragma: no cover
                 _extend_lines_submodel(
-                    model=submodel, sublevel=sublevel, preparemethods=preparemethods
+                    model=submodel, sublevel=sublevel, preparemethods=preparemethods_
                 )
 
         header = self.get_controlfileheader(

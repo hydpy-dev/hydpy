@@ -1781,15 +1781,16 @@ class PyxWriter:
         self,
     ) -> dict[str, tuple[type[modeltools.Method], ...]]:
         """Submethods selected by |AutoMethod| subclasses."""
-        name2submethods = {}
+        # see https://github.com/python/typeshed/issues/11200
+        name2submethods: dict[str, tuple[type[modeltools.Method], ...]] = {}
         for name, member in vars(self.model).items():
             if (
-                isinstance(member, types.MethodType)
-                and isinstance(call := member.__func__, types.MethodType)
+                isinstance(member, types.MethodType)  # type: ignore[unreachable]
+                and isinstance(call := member.__func__, types.MethodType)  # type: ignore[unreachable]  # pylint: disable=line-too-long
                 and inspect.isclass(method := call.__self__)
                 and issubclass(automethod := method, modeltools.AutoMethod)
             ):
-                name2submethods[name] = automethod.SUBMETHODS
+                name2submethods[name] = automethod.SUBMETHODS  # type: ignore[unreachable]  # pylint: disable=line-too-long
         return name2submethods
 
     @property

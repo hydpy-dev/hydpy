@@ -33,9 +33,9 @@ class FluxSequence1DComplete(BaseFluxSequence1D):
     >>> nu(4)
     >>> lt(FIELD, CONIFER, SEALED, WATER)
     >>> aur(0.1, 0.2, 0.3, 0.4)
-    >>> fluxes.pet = 5.0, 2.0, 4.0, 1.0
+    >>> fluxes.pe = 5.0, 2.0, 4.0, 1.0
     >>> from hydpy import round_
-    >>> round_(fluxes.pet.average_values())
+    >>> round_(fluxes.pe.average_values())
     2.5
     """
 
@@ -60,6 +60,26 @@ class FluxSequence1DLand(BaseFluxSequence1D):
     """
 
     mask = wland_masks.Land()
+
+
+class FluxSequence1DSoil(BaseFluxSequence1D):
+    """Base class for 1-dimensional flux sequences that contain values for the
+    soil-related hydrological response units.
+
+    The following example shows how subclass |PET| works:
+
+    >>> from hydpy.models.wland import *
+    >>> parameterstep()
+    >>> nu(5)
+    >>> lt(FIELD, CONIFER, SEALED, FIELD, WATER)
+    >>> aur(0.1, 0.2, 0.12, 0.3, 0.2)
+    >>> fluxes.pet = 5.0, 2.0, 4.0, 1.0, nan
+    >>> from hydpy import round_
+    >>> round_(fluxes.pet.average_values())
+    2.0
+    """
+
+    mask = wland_masks.Soil()
 
 
 class StateSequence1DLand(sequencetools.StateSequence):

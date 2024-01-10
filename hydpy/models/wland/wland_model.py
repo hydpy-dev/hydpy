@@ -35,7 +35,7 @@ from hydpy.models.wland import wland_states
 from hydpy.models.wland import wland_aides
 from hydpy.models.wland import wland_outlets
 from hydpy.models.wland import wland_constants
-from hydpy.models.wland.wland_constants import SEALED
+from hydpy.models.wland.wland_constants import CONIFER, DECIDIOUS, SEALED, SOIL, MIXED
 
 
 class Pick_HS_V1(modeltools.Method):
@@ -229,7 +229,7 @@ class Calc_PC_V1(modeltools.Method):
         flu.pc = con.cp * inp.p
 
 
-class Calc_PET_PETModel_V1(modeltools.Method):
+class Calc_PE_PET_PETModel_V1(modeltools.Method):
     """Let a submodel that complies with the |PETModel_V1| interface calculate the
     potential evapotranspiration of the land areas and the potential evaporation of the
     surface water storage.
@@ -244,6 +244,7 @@ class Calc_PET_PETModel_V1(modeltools.Method):
         >>> at(1.0)
         >>> aur(0.25, 0.15, 0.1, 0.5)
         >>> lt(FIELD, FIELD, FIELD, WATER)
+        >>> derived.nul.update()
         >>> from hydpy import prepare_model
         >>> with model.add_petmodel_v1("evap_tw2002"):
         ...     hrualtitude(200.0, 600.0, 1000.0, 100.0)
@@ -253,37 +254,143 @@ class Calc_PET_PETModel_V1(modeltools.Method):
         ...     with model.add_tempmodel_v2("meteo_temp_io"):
         ...         temperatureaddend(1.0)
         ...         inputs.temperature = 14.0
-        >>> model.calc_pet_v1()
+        >>> model.calc_pe_pet_v1()
+        >>> fluxes.pe
+        pe(3.07171, 2.86215, 2.86215, 3.128984)
         >>> fluxes.pet
-        pet(3.07171, 2.86215, 2.86215, 3.128984)
+        pet(3.07171, 2.86215, 2.86215, 0.0)
     """
 
-    CONTROLPARAMETERS = (wland_control.NU,)
-    RESULTSEQUENCES = (wland_fluxes.PET,)
+    DERIVEDPARAMETERS = (wland_derived.NUL,)
+    RESULTSEQUENCES = (wland_fluxes.PE, wland_fluxes.PET)
 
     @staticmethod
     def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
-        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         submodel.determine_potentialevapotranspiration()
-        for k in range(con.nu):
-            flu.pet[k] = submodel.get_potentialevapotranspiration(k)
+        for k in range(der.nul):
+            flu.pe[k] = flu.pet[k] = submodel.get_potentialevapotranspiration(k)
+        flu.pe[der.nul] = submodel.get_potentialevapotranspiration(der.nul)
+        flu.pet[der.nul] = 0.0
 
 
-class Calc_PET_V1(modeltools.Method):
-    """Let a submodel that complies with the |PETModel_V1| interface calculate the
-    potential evapotranspiration of the land areas and the potential evaporation of the
-    surface water storage."""
+class Calc_PE_PET_PETModel_V2(modeltools.Method):
+    """Let a submodel that complies with the |PETModel_V2| interface calculate the
+    potential interception evaporation and potential vadose zone evapotranspiration of
+    the land areas and the potential evaporation of the surface water storage.
 
-    SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
-    SUBMETHODS = (Calc_PET_PETModel_V1,)
-    CONTROLPARAMETERS = (wland_control.NU,)
-    RESULTSEQUENCES = (wland_fluxes.PET,)
+    Examples:
+
+        We use |evap_pet_ambav1| as an example.  All data stems from the integration
+        tests :ref:`evap_pet_ambav1_non_tree_vegetation_daily`,
+        :ref:`evap_pet_ambav1_tree_like_vegetation_daily`,
+        :ref:`evap_pet_ambav1_snow_daily`, and :ref:`evap_pet_ambav1_water_area_daily`:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-08-01", "2000-08-02", "1d"
+        >>> from hydpy.models.wland_v001 import *
+        >>> parameterstep("1h")
+        >>> nu(4)
+        >>> at(1.0)
+        >>> aur(0.25, 0.15, 0.1, 0.5)
+        >>> lt(FIELD, DECIDIOUS, DECIDIOUS, WATER)
+        >>> derived.nul.update()
+        >>> inputs.t = 15.0
+        >>> inputs.p = 0.0
+        >>> states.sp = 0.0, 0.0, 1.0, 0.0
+        >>> from hydpy import prepare_model
+        >>> with model.add_petmodel_v2("evap_pet_ambav1") as ambav:
+        ...     measuringheightwindspeed(10.0)
+        ...     leafalbedo(0.2)
+        ...     leafalbedosnow(0.8)
+        ...     groundalbedo(0.2)
+        ...     groundalbedosnow(0.8)
+        ...     leafareaindex(5.0)
+        ...     cropheight.field = 10.0
+        ...     cropheight.decidious = 10.0
+        ...     cropheight.water = 0.0
+        ...     leafresistance(40.0)
+        ...     wetsoilresistance(100.0)
+        ...     soilresistanceincrease(1.0)
+        ...     wetnessthreshold(0.5)
+        ...     cloudtypefactor(0.2)
+        ...     nightcloudfactor(1.0)
+        ...     inputs.windspeed = 2.0
+        ...     inputs.relativehumidity = 80.0
+        ...     inputs.atmosphericpressure = 1000.0
+        ...     inputs.sunshineduration = 6.0
+        ...     inputs.possiblesunshineduration = 16.0
+        ...     inputs.globalradiation = 190.0
+        ...     states.soilresistance = 100.0
+
+        The first example reproduces the results for the first simulated day of the
+        integration tests :ref:`evap_pet_ambav1_non_tree_vegetation_daily` (first
+        response unit), :ref:`evap_pet_ambav1_tree_like_vegetation_daily` (second
+        response unit), and :ref:`evap_pet_ambav1_water_area_daily` (fourth response
+        unit):
+
+        >>> ambav.sequences.logs.loggedprecipitation = [0.0]
+        >>> ambav.sequences.logs.loggedpotentialsoilevapotranspiration = [1.0]
+        >>> model.calc_pe_pet_v1()
+        >>> fluxes.pe
+        pe(8.211488, 5.545339, 3.390149, 1.890672)
+        >>> fluxes.pet
+        pet(3.073332, 2.768363, 1.692442, 0.0)
+
+        The second example reproduces the results for the third simulated day of the
+        :ref:`evap_pet_ambav1_snow_daily` integration test (third response unit):
+
+        >>> ambav.sequences.logs.loggedprecipitation = [10.0]
+        >>> ambav.sequences.logs.loggedpotentialsoilevapotranspiration = [2.282495]
+        >>> model.calc_pe_pet_v1()
+        >>> fluxes.pe
+        pe(8.211488, 5.545339, 3.390149, 1.890672)
+        >>> fluxes.pet
+        pet(3.163548, 2.83302, 1.73197, 0.0)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+    """
+
+    DERIVEDPARAMETERS = (wland_derived.NUL,)
+    RESULTSEQUENCES = (wland_fluxes.PE, wland_fluxes.PET)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V2) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        submodel.determine_potentialinterceptionevaporation()
+        submodel.determine_potentialsoilevapotranspiration()
+        submodel.determine_potentialwaterevaporation()
+        for k in range(der.nul):
+            flu.pe[k] = submodel.get_potentialinterceptionevaporation(k)
+            flu.pet[k] = submodel.get_potentialsoilevapotranspiration(k)
+        flu.pe[der.nul] = submodel.get_potentialwaterevaporation(der.nul)
+        flu.pet[der.nul] = 0.0
+
+
+class Calc_PE_PET_V1(modeltools.Method):
+    """Let a submodel that complies with the |PETModel_V1| or |PETModel_V2| interface
+    calculate the potential evapotranspiration of the land areas and the potential
+    evaporation of the surface water storage."""
+
+    SUBMODELINTERFACES = (petinterfaces.PETModel_V1, petinterfaces.PETModel_V2)
+    SUBMETHODS = (Calc_PE_PET_PETModel_V1, Calc_PE_PET_PETModel_V2)
+    DERIVEDPARAMETERS = (wland_derived.NUL,)
+    RESULTSEQUENCES = (wland_fluxes.PE, wland_fluxes.PET)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         if model.petmodel_typeid == 1:
-            model.calc_pet_petmodel_v1(cast(petinterfaces.PETModel_V1, model.petmodel))
+            model.calc_pe_pet_petmodel_v1(
+                cast(petinterfaces.PETModel_V1, model.petmodel)
+            )
+        elif model.petmodel_typeid == 2:
+            model.calc_pe_pet_petmodel_v2(
+                cast(petinterfaces.PETModel_V2, model.petmodel)
+            )
         # ToDo:
         #     else:
         #         assert_never(model.petmodel)
@@ -382,7 +489,7 @@ class Calc_EI_V1(modeltools.Method):
     Basic equation (discontinuous):
       .. math::
         EI = \begin{cases}
-        PET &|\ IC > 0
+        PE &|\ IC > 0
         \\
         0 &|\ IC < 0
         \end{cases}
@@ -393,7 +500,7 @@ class Calc_EI_V1(modeltools.Method):
         >>> parameterstep()
         >>> nu(2)
         >>> derived.nul.update()
-        >>> fluxes.pet = 5.0
+        >>> fluxes.pe = 5.0
         >>> from hydpy import UnitTest
         >>> test = UnitTest(
         ...     model=model,
@@ -441,7 +548,7 @@ class Calc_EI_V1(modeltools.Method):
     """
 
     DERIVEDPARAMETERS = (wland_derived.NUL, wland_derived.RH1)
-    REQUIREDSEQUENCES = (wland_fluxes.PET, wland_states.IC)
+    REQUIREDSEQUENCES = (wland_fluxes.PE, wland_states.IC)
     RESULTSEQUENCES = (wland_fluxes.EI,)
 
     @staticmethod
@@ -450,7 +557,7 @@ class Calc_EI_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(der.nul):
-            flu.ei[k] = flu.pet[k] * (smoothutils.smooth_logistic1(sta.ic[k], der.rh1))
+            flu.ei[k] = flu.pe[k] * (smoothutils.smooth_logistic1(sta.ic[k], der.rh1))
         flu.ei[der.nul] = 0.0
 
 
@@ -966,9 +1073,15 @@ class Calc_Beta_V1(modeltools.Method):
 class Calc_ETV_V1(modeltools.Method):
     r"""Calculate the actual evapotranspiration from the vadose zone.
 
+    The following equation uses the :cite:t:`ref-Wigmosta1994` approach to extend the
+    original WALRUS equation to cope with different potential values for |PE| and |PET|.
+    (See the documentation on method |evap_model.Update_SoilEvapotranspiration_V3|,
+    which covers the corner cases of this approach in more detail.)
+
     Basic equation:
       .. math::
-        ETV = \sum_{i=1}^{NUL} \left( \frac{AUR_i}{AGR} \cdot (PET_i -  EI_i) \cdot
+        ETV = \sum_{i=1}^{NUL} \left( \frac{AUR_i}{AGR} \cdot
+        \frac{PE_i - EI_i}{PE_i} \cdot PET_i \cdot
         \begin{cases}
         0 &|\ LT_i = SEALED
         \\
@@ -984,17 +1097,23 @@ class Calc_ETV_V1(modeltools.Method):
         >>> aur(0.2, 0.2, 0.1, 0.5)
         >>> derived.nul.update()
         >>> derived.agr.update()
-        >>> fluxes.pet = 5.0
+        >>> fluxes.pe = 5.0
+        >>> fluxes.pet = 4.0
         >>> fluxes.ei = 1.0, 3.0, 2.0, 0.0
         >>> aides.beta = 0.75
         >>> model.calc_etv_v1()
         >>> fluxes.etv
-        etv(2.25)
+        etv(1.8)
     """
 
     CONTROLPARAMETERS = (wland_control.LT, wland_control.AUR)
     DERIVEDPARAMETERS = (wland_derived.NUL, wland_derived.AGR)
-    REQUIREDSEQUENCES = (wland_fluxes.PET, wland_fluxes.EI, wland_aides.Beta)
+    REQUIREDSEQUENCES = (
+        wland_fluxes.PE,
+        wland_fluxes.PET,
+        wland_fluxes.EI,
+        wland_aides.Beta,
+    )
     RESULTSEQUENCES = (wland_fluxes.ETV,)
 
     @staticmethod
@@ -1006,7 +1125,9 @@ class Calc_ETV_V1(modeltools.Method):
         flu.etv = 0.0
         for k in range(der.nul):
             if con.lt[k] != SEALED:
-                flu.etv += aid.beta * con.aur[k] / der.agr * (flu.pet[k] - flu.ei[k])
+                if flu.pe[k] > 0.0:
+                    pet: float = (flu.pe[k] - flu.ei[k]) / flu.pe[k] * flu.pet[k]
+                    flu.etv += con.aur[k] / der.agr * pet * aid.beta
 
 
 class Calc_ES_V1(modeltools.Method):
@@ -1026,7 +1147,7 @@ class Calc_ES_V1(modeltools.Method):
         >>> parameterstep()
         >>> nu(2)
         >>> derived.nul.update()
-        >>> fluxes.pet = 3.0, 5.0
+        >>> fluxes.pe = 3.0, 5.0
         >>> from hydpy import UnitTest
         >>> test = UnitTest(
         ...     model=model,
@@ -1071,7 +1192,7 @@ class Calc_ES_V1(modeltools.Method):
         |   9 |  4.0 |      5.0 |
     """
     DERIVEDPARAMETERS = (wland_derived.NUL, wland_derived.RH1)
-    REQUIREDSEQUENCES = (wland_fluxes.PET, wland_states.HS)
+    REQUIREDSEQUENCES = (wland_fluxes.PE, wland_states.HS)
     RESULTSEQUENCES = (wland_fluxes.ES,)
 
     @staticmethod
@@ -1079,7 +1200,7 @@ class Calc_ES_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        flu.es = flu.pet[der.nul] * smoothutils.smooth_logistic1(sta.hs, der.rh1)
+        flu.es = flu.pe[der.nul] * smoothutils.smooth_logistic1(sta.hs, der.rh1)
 
 
 class Calc_ET_V1(modeltools.Method):
@@ -2649,6 +2770,34 @@ class Get_Precipitation_V1(modeltools.Method):
         return flu.pc
 
 
+class Get_SnowCover_V1(modeltools.Method):
+    """Get the selected response unit's current snow cover degree.
+
+    Example:
+
+        Each response unit with a non-zero amount of snow counts as completely covered:
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+        >>> nu(2)
+        >>> states.sp = 0.0, 2.0
+        >>> model.get_snowcover_v1(0)
+        0.0
+        >>> model.get_snowcover_v1(1)
+        1.0
+    """
+
+    REQUIREDSEQUENCES = (wland_states.SP,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, k: int) -> float:
+        sta = model.sequences.states.fastaccess
+
+        if sta.sp[k] > 0.0:
+            return 1.0
+        return 0.0
+
+
 class PegasusDGEq(roottools.Pegasus):
     """Pegasus iterator for finding the equilibrium groundwater depth."""
 
@@ -2679,15 +2828,17 @@ class Model(modeltools.ELSModel):
         wland_solver.RelDTMax,
     )
     SOLVERSEQUENCES = ()
-    INLET_METHODS = (Calc_PET_V1, Calc_FR_V1, Calc_PM_V1)
+    INLET_METHODS = (Calc_PE_PET_V1, Calc_FR_V1, Calc_PM_V1)
     RECEIVER_METHODS = (Pick_HS_V1,)
     INTERFACE_METHODS = (
         Get_Temperature_V1,
         Get_MeanTemperature_V1,
         Get_Precipitation_V1,
+        Get_SnowCover_V1,
     )
     ADD_METHODS = (
-        Calc_PET_PETModel_V1,
+        Calc_PE_PET_PETModel_V1,
+        Calc_PE_PET_PETModel_V2,
         Return_ErrorDV_V1,
         Return_DVH_V1,
         Return_DVH_V2,
@@ -2834,9 +2985,7 @@ class Main_PETModel_V1(modeltools.ELSModel):
         *,
         refresh: bool,  # pylint: disable=unused-argument
     ) -> None:
-        """Initialise the given `petmodel` that follows the |PETModel_V1| interface and
-        is responsible for calculating the potential evapotranspiration of the
-        (land-related) hydrological response units.
+        """Initialise the given `petmodel` that follows the |PETModel_V1| interface.
 
         >>> from hydpy.models.wland_v001 import *
         >>> parameterstep()
@@ -2865,6 +3014,125 @@ class Main_PETModel_V1(modeltools.ELSModel):
         petmodel.prepare_nmbzones(control.nu.value)
         petmodel.prepare_zonetypes(control.lt.values)
         petmodel.prepare_subareas(control.at.value * control.aur.values)
+
+
+class Main_PETModel_V2(modeltools.ELSModel):
+    """Base class for HydPy-W models that use submodels that comply with the
+    |PETModel_V2| interface."""
+
+    petmodel: modeltools.SubmodelProperty
+    petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    petmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel(
+        "petmodel",
+        petinterfaces.PETModel_V2,
+        petinterfaces.PETModel_V2.prepare_nmbzones,
+        petinterfaces.PETModel_V2.prepare_subareas,
+        petinterfaces.PETModel_V2.prepare_zonetypes,
+        petinterfaces.PETModel_V2.prepare_water,
+        petinterfaces.PETModel_V2.prepare_interception,
+        petinterfaces.PETModel_V2.prepare_soil,
+        petinterfaces.PETModel_V2.prepare_plant,
+        petinterfaces.PETModel_V2.prepare_tree,
+        landtype_constants=wland_constants.LANDUSE_CONSTANTS,
+        landtype_refindices=wland_control.LT,
+        refweights=wland_control.AUR,
+    )
+    def add_petmodel_v2(
+        self,
+        petmodel: petinterfaces.PETModel_V2,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
+        """Initialise the given `petmodel` that follows the |PETModel_V2| interface.
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
+        >>> from hydpy.models.wland_v001 import *
+        >>> parameterstep()
+        >>> nu(12)
+        >>> at(10.0)
+        >>> aur(0.006, 0.02, 0.034, 0.048, 0.062, 0.076,
+        ...     0.09, 0.104, 0.118, 0.132, 0.146, 0.164)
+        >>> lt(SEALED, FIELD, WINE, ORCHARD, SOIL, PASTURE,
+        ...    WETLAND, TREES, CONIFER, DECIDIOUS, MIXED, WATER)
+        >>> with model.add_petmodel_v2("evap_pet_ambav1") as petmodel:
+        ...     nmbhru
+        ...     hrutype
+        ...     water
+        ...     interception
+        ...     soil
+        ...     plant
+        ...     tree
+        ...     petmodel.preparemethod2arguments["prepare_nmbzones"]
+        ...     petmodel.preparemethod2arguments["prepare_subareas"]
+        ...     groundalbedo(conifer=0.05, decidious=0.1, field=0.15, mixed=0.2,
+        ...                  orchard=0.25, pasture=0.3, sealed=0.35, soil=0.4,
+        ...                  trees=0.45, water=0.5, wetland=0.55, wine=0.6)
+        nmbhru(12)
+        hrutype(SEALED, FIELD, WINE, ORCHARD, SOIL, PASTURE, WETLAND, TREES,
+                CONIFER, DECIDIOUS, MIXED, WATER)
+        water(conifer=False, decidious=False, field=False, mixed=False,
+              orchard=False, pasture=False, sealed=False, soil=False,
+              trees=False, water=True, wetland=False, wine=False)
+        interception(conifer=True, decidious=True, field=True, mixed=True,
+                     orchard=True, pasture=True, sealed=True, soil=True,
+                     trees=True, water=False, wetland=True, wine=True)
+        soil(conifer=True, decidious=True, field=True, mixed=True,
+             orchard=True, pasture=True, sealed=False, soil=True, trees=True,
+             water=False, wetland=True, wine=True)
+        plant(conifer=True, decidious=True, field=True, mixed=True,
+              orchard=True, pasture=True, sealed=False, soil=False,
+              trees=True, water=False, wetland=True, wine=True)
+        tree(conifer=True, decidious=True, field=False, mixed=True,
+             orchard=False, pasture=False, sealed=False, soil=False,
+             trees=False, water=False, wetland=False, wine=False)
+        ((12,), {})
+        ((array([0.06, 0.2 , 0.34, 0.48, 0.62, 0.76, 0.9 , 1.04, 1.18, 1.32, 1.46,
+               1.64]),), {})
+
+        >>> assert model is model.petmodel.tempmodel
+        >>> assert model is model.petmodel.precipmodel
+        >>> assert model is model.petmodel.snowcovermodel
+
+        >>> ga = model.petmodel.parameters.control.groundalbedo
+        >>> ga
+        groundalbedo(conifer=0.05, decidious=0.1, field=0.15, mixed=0.2,
+                     orchard=0.25, pasture=0.3, sealed=0.35, soil=0.4,
+                     trees=0.45, water=0.5, wetland=0.55, wine=0.6)
+        >>> lt(FIELD, SEALED, WINE, ORCHARD, SOIL, PASTURE,
+        ...    WETLAND, TREES, CONIFER, DECIDIOUS, MIXED, WATER)
+        >>> ga
+        groundalbedo(conifer=0.05, decidious=0.1, field=0.35, mixed=0.2,
+                     orchard=0.25, pasture=0.3, sealed=0.15, soil=0.4,
+                     trees=0.45, water=0.5, wetland=0.55, wine=0.6)
+        >>> from hydpy import round_
+        >>> round_(ga.average_values())
+        0.3117
+        """
+        control = self.parameters.control
+        nu = control.nu.value
+        lt = control.lt.values
+
+        petmodel.prepare_nmbzones(nu)
+        petmodel.prepare_zonetypes(lt)
+        petmodel.prepare_subareas(control.at.value * control.aur.values)
+        sel = numpy.full(nu, False, dtype=bool)
+        sel[-1] = True
+        petmodel.prepare_water(sel)
+        sel = ~sel
+        petmodel.prepare_interception(sel)
+        sel[lt == SEALED] = False
+        petmodel.prepare_soil(sel)
+        sel[lt == SOIL] = False
+        petmodel.prepare_plant(sel)
+        sel = numpy.full(nu, False, dtype=bool)
+        sel[lt == CONIFER] = True
+        sel[lt == DECIDIOUS] = True
+        sel[lt == MIXED] = True
+        petmodel.prepare_tree(sel)
 
 
 class Main_DischargeModel_V2(modeltools.ELSModel):
@@ -2988,4 +3256,9 @@ class Sub_TempModel_V1(modeltools.ELSModel, tempinterfaces.TempModel_V1):
 
 class Sub_PrecipModel_V1(modeltools.ELSModel, precipinterfaces.PrecipModel_V1):
     """Base class for HydPy-W models that comply with the |PrecipModel_V1| submodel
+    interface."""
+
+
+class Sub_SnowCoverModel_V1(modeltools.ELSModel, stateinterfaces.SnowCoverModel_V1):
+    """Base class for HydPy-W models that comply with the |SnowCoverModel_V1| submodel
     interface."""

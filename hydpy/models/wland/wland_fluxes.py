@@ -15,8 +15,15 @@ class PC(sequencetools.FluxSequence):
     NDIM, NUMERIC, SPAN = 0, True, (0.0, None)
 
 
-class PET(wland_sequences.FluxSequence1DComplete):
-    """Potential evapotranspiration [mm/T]."""
+class PE(wland_sequences.FluxSequence1DComplete):
+    """Potential evaporation from the interception and the surface water storage
+    [mm/T]."""
+
+    NDIM, NUMERIC = 1, False
+
+
+class PET(wland_sequences.FluxSequence1DSoil):
+    """Potential evapotranspiration from the vadose zone [mm/T]."""
 
     NDIM, NUMERIC = 1, False
 

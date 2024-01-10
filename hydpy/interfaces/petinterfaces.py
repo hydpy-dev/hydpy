@@ -75,6 +75,10 @@ class PETModel_V2(modeltools.SubmodelInterface):
     def prepare_plant(self, tree: VectorInputBool) -> None:
         """Set the flags for whether the individual zones contain any vegetation."""
 
+    def prepare_tree(self, tree: VectorInputBool) -> None:
+        """Set the flags for whether the individual zones contain tree-like
+        vegetation."""
+
     @modeltools.abstractmodelmethod
     def determine_potentialinterceptionevaporation(self) -> None:
         """Calculate potential interception evaporation."""

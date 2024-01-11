@@ -18,25 +18,6 @@ class TemL(sequencetools.InputSequence):
     NDIM, NUMERIC = 0, False
 
 
-class SunshineDuration(sequencetools.InputSequence):
-    """Sonnenscheindauer (sunshine duration) [h]."""
-
-    NDIM, NUMERIC = 0, False
-
-
-class PossibleSunshineDuration(sequencetools.InputSequence):
-    """Astronomisch mögliche Sonnenscheindauer (astronomically possible sunshine
-    duration) [h]."""
-
-    NDIM, NUMERIC = 0, False
-
-
-class GlobalRadiation(sequencetools.InputSequence):
-    """Globalstrahlung (global radiation) [W/m²]."""
-
-    NDIM, NUMERIC = 0, False
-
-
 class RelativeHumidity(sequencetools.InputSequence):
     """Relative humidity [%]."""
 

@@ -56,6 +56,18 @@ class DailyRelativeHumidity(sequencetools.FactorSequence):
     NDIM, NUMERIC = 0, False
 
 
+class SunshineDuration(sequencetools.FactorSequence):
+    """Sunshine duration [h]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class PossibleSunshineDuration(sequencetools.FactorSequence):
+    """Astronomically possible sunshine duration [h]."""
+
+    NDIM, NUMERIC = 0, False
+
+
 class DailySunshineDuration(sequencetools.FactorSequence):
     """The actual sunshine duration in the last 24 hours [h]."""
 

@@ -19,6 +19,18 @@ class DailyPrecipitation(evap_sequences.FluxSequence1D):
     NUMERIC = False
 
 
+class GlobalRadiation(sequencetools.FluxSequence):
+    """Global radiation [W/m²]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class ClearSkySolarRadiation(sequencetools.FluxSequence):
+    """Clear sky solar radiation [W/m²]."""
+
+    NDIM, NUMERIC = 0, False
+
+
 class DailyGlobalRadiation(sequencetools.FluxSequence):
     """Average global radiation in the last 24 hours [W/m²]."""
 

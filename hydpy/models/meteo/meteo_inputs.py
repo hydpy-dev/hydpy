@@ -6,8 +6,20 @@
 from hydpy.core import sequencetools
 
 
+class PossibleSunshineDuration(sequencetools.InputSequence):
+    """Possible sunshine duration [h]."""
+
+    NDIM, NUMERIC = 0, False
+
+
 class SunshineDuration(sequencetools.InputSequence):
     """Sunshine duration [h]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class ClearSkySolarRadiation(sequencetools.InputSequence):
+    """Clear sky solar radiation [W/m²]."""
 
     NDIM, NUMERIC = 0, False
 

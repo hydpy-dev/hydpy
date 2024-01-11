@@ -17,6 +17,7 @@ more detail.
    dischargeinterfaces
    petinterfaces
    precipinterfaces
+   radiationinterfaces
    soilinterfaces
    stateinterfaces
    tempinterfaces

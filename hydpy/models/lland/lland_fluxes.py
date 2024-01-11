@@ -41,6 +41,12 @@ class DailyPossibleSunshineDuration(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, False
 
 
+class GlobalRadiation(sequencetools.FluxSequence):
+    """Globalstrahlung (global radiation) [W/m²]."""
+
+    NDIM, NUMERIC = 0, False
+
+
 class NKor(lland_sequences.Flux1DSequence):
     """Korrigierter Niederschlag (corrected precipitation) [mm/T]."""
 

@@ -11,6 +11,9 @@ cimport cython
 
 cdef class BaseInterface:
 
+    cdef void reset_reuseflags(self) nogil:
+        pass
+
     cdef void load_data(self, int idx) nogil:
         pass
 

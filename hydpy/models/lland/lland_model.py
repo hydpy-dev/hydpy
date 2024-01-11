@@ -13,6 +13,7 @@ from hydpy.auxs import roottools
 from hydpy.cythons import modelutils
 from hydpy.interfaces import aetinterfaces
 from hydpy.interfaces import precipinterfaces
+from hydpy.interfaces import radiationinterfaces
 from hydpy.interfaces import soilinterfaces
 from hydpy.interfaces import stateinterfaces
 from hydpy.interfaces import tempinterfaces
@@ -23,6 +24,7 @@ from hydpy.models.lland import lland_derived
 from hydpy.models.lland import lland_fixed
 from hydpy.models.lland import lland_inlets
 from hydpy.models.lland import lland_inputs
+from hydpy.models.lland import lland_factors
 from hydpy.models.lland import lland_fluxes
 from hydpy.models.lland import lland_states
 from hydpy.models.lland import lland_logs
@@ -89,6 +91,198 @@ class Calc_QZH_V1(modeltools.Method):
         flu.qzh = flu.qz / der.qfactor
 
 
+class Process_RadiationModel_V1(modeltools.Method):
+    """Let a submodel that complies with the |RadiationModel_V1| interface preprocess
+    all eventually required data.
+
+    Example:
+
+        We use the combination of |lland_v1| and |meteo_v003| as an example:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "1997-08-01", "1997-08-02", "1d"
+        >>> from hydpy.models.lland_v3 import *
+        >>> parameterstep()
+        >>> with model.add_radiationmodel_v1("meteo_v003"):
+        ...     latitude(54.1)
+        ...     longitude(9.7)
+        ...     angstromconstant(0.25)
+        ...     angstromfactor(0.5)
+        ...     angstromalternative(0.15)
+        ...     inputs.sunshineduration = 6.3
+        >>> model.process_radiationmodel_v1()
+        >>> model.radiationmodel.sequences.fluxes.globalradiation
+        globalradiation(190.25149)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+    """
+
+    SUBMODELINTERFACES = (radiationinterfaces.RadiationModel_V1,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        if model.radiationmodel_typeid == 1:
+            cast(
+                radiationinterfaces.RadiationModel_V1, model.radiationmodel
+            ).process_radiation()
+        # ToDo:
+        #     elif ...
+        #     else:
+        #         assert_never(model.radiationmodel)
+
+
+class Calc_PossibleSunshineDuration_V1(modeltools.Method):
+    """Query the possible sunshine duration from a submodel that complies with the
+    |RadiationModel_V1| or |RadiationModel_V4| interface.
+
+    Examples:
+
+        We combine |lland_v3| with submodels that comply with different interfaces.
+        First, with |meteo_v003|, which complies with |RadiationModel_V1|:
+
+        >>> from hydpy.models.lland_v3 import *
+        >>> parameterstep()
+        >>> with model.add_radiationmodel_v1("meteo_v003", update=False):
+        ...     factors.possiblesunshineduration = 10.0
+        >>> model.calc_possiblesunshineduration()
+        >>> factors.possiblesunshineduration
+        possiblesunshineduration(10.0)
+
+        Second, with |meteo_psun_sun_glob_io|, which complies with |RadiationModel_V4|:
+
+        >>> with model.add_radiationmodel_v4("meteo_psun_sun_glob_io", update=False):
+        ...     inputs.possiblesunshineduration = 14.0
+        >>> model.calc_possiblesunshineduration()
+        >>> factors.possiblesunshineduration
+        possiblesunshineduration(14.0)
+    """
+
+    SUBMODELINTERFACES = (
+        radiationinterfaces.RadiationModel_V1,
+        radiationinterfaces.RadiationModel_V4,
+    )
+    RESULTSEQUENCES = (lland_factors.PossibleSunshineDuration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        fac = model.sequences.factors.fastaccess
+
+        if model.radiationmodel_typeid == 1:
+            fac.possiblesunshineduration = cast(
+                radiationinterfaces.RadiationModel_V3, model.radiationmodel
+            ).get_possiblesunshineduration()
+        elif model.radiationmodel_typeid == 4:
+            fac.possiblesunshineduration = cast(
+                radiationinterfaces.RadiationModel_V4, model.radiationmodel
+            ).get_possiblesunshineduration()
+        # ToDo:
+        #     elif ...
+        #     else:
+        #         assert_never(model.radiationmodel)
+
+
+class Calc_SunshineDuration_V1(modeltools.Method):
+    """Query the actual sunshine duration from a submodel that complies with the
+    |RadiationModel_V1| or |RadiationModel_V4| interface.
+
+        We combine |lland_v3| with submodels that comply with different interfaces.
+        First, with |meteo_v001|, which complies with |RadiationModel_V1|:
+
+        >>> from hydpy.models.lland_v3 import *
+        >>> parameterstep()
+        >>> with model.add_radiationmodel_v1("meteo_v003", update=False):
+        ...     inputs.sunshineduration = 10.0
+        >>> model.calc_sunshineduration()
+        >>> factors.sunshineduration
+        sunshineduration(10.0)
+
+        Second, with |meteo_psun_sun_glob_io|, which complies with |RadiationModel_V4|:
+
+        >>> with model.add_radiationmodel_v4("meteo_psun_sun_glob_io", update=False):
+        ...     inputs.sunshineduration = 14.0
+        >>> model.calc_sunshineduration()
+        >>> factors.sunshineduration
+        sunshineduration(14.0)
+    """
+
+    SUBMODELINTERFACES = (
+        radiationinterfaces.RadiationModel_V1,
+        radiationinterfaces.RadiationModel_V4,
+    )
+    RESULTSEQUENCES = (lland_factors.SunshineDuration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        fac = model.sequences.factors.fastaccess
+
+        if model.radiationmodel_typeid == 1:
+            fac.sunshineduration = cast(
+                radiationinterfaces.RadiationModel_V3, model.radiationmodel
+            ).get_sunshineduration()
+        elif model.radiationmodel_typeid == 4:
+            fac.sunshineduration = cast(
+                radiationinterfaces.RadiationModel_V4, model.radiationmodel
+            ).get_sunshineduration()
+        # ToDo:
+        #     elif ...
+        #     else:
+        #         assert_never(model.radiationmodel)
+
+
+class Calc_GlobalRadiation_V1(modeltools.Method):
+    """Query the global radiation from a submodel that complies with the
+    |RadiationModel_V1| or |RadiationModel_V4| interface.
+
+    Examples:
+
+        We combine |lland_v3| with submodels that comply with different interfaces.
+        First, with |meteo_v003|, which complies with |RadiationModel_V1|:
+
+        >>> from hydpy.models.lland_v3 import *
+        >>> parameterstep()
+        >>> with model.add_radiationmodel_v1("meteo_v003", update=False):
+        ...     fluxes.globalradiation = 100.0
+        >>> model.calc_globalradiation()
+        >>> fluxes.globalradiation
+        globalradiation(100.0)
+
+        Second, with |meteo_psun_sun_glob_io|, which complies with
+        |RadiationModel_V4|:
+
+        >>> with model.add_radiationmodel_v4("meteo_psun_sun_glob_io", update=False):
+        ...     inputs.globalradiation = 400.0
+        >>> model.calc_globalradiation()
+        >>> fluxes.globalradiation
+        globalradiation(400.0)
+    """
+
+    SUBMODELINTERFACES = (
+        radiationinterfaces.RadiationModel_V1,
+        radiationinterfaces.RadiationModel_V2,
+        radiationinterfaces.RadiationModel_V3,
+        radiationinterfaces.RadiationModel_V4,
+    )
+    RESULTSEQUENCES = (lland_fluxes.GlobalRadiation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+
+        if model.radiationmodel_typeid == 1:
+            flu.globalradiation = cast(
+                radiationinterfaces.RadiationModel_V1, model.radiationmodel
+            ).get_globalradiation()
+        elif model.radiationmodel_typeid == 4:
+            flu.globalradiation = cast(
+                radiationinterfaces.RadiationModel_V4, model.radiationmodel
+            ).get_globalradiation()
+        # ToDo:
+        #     else:
+        #         assert_never(model.radiationmodel)
+
+
 class Update_LoggedSunshineDuration_V1(modeltools.Method):
     """Log the sunshine duration values of the last 24 hours.
 
@@ -107,7 +301,7 @@ class Update_LoggedSunshineDuration_V1(modeltools.Method):
         >>> test = UnitTest(model,
         ...                 model.update_loggedsunshineduration_v1,
         ...                 last_example=4,
-        ...                 parseqs=(inputs.sunshineduration,
+        ...                 parseqs=(factors.sunshineduration,
         ...                          logs.loggedsunshineduration))
         >>> test.nexts.sunshineduration = 1.0, 3.0, 2.0, 4.0
         >>> del test.inits.loggedsunshineduration
@@ -122,17 +316,17 @@ class Update_LoggedSunshineDuration_V1(modeltools.Method):
     """
 
     DERIVEDPARAMETERS = (lland_derived.NmbLogEntries,)
-    REQUIREDSEQUENCES = (lland_inputs.SunshineDuration,)
+    REQUIREDSEQUENCES = (lland_factors.SunshineDuration,)
     UPDATEDSEQUENCES = (lland_logs.LoggedSunshineDuration,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
-        inp = model.sequences.inputs.fastaccess
+        fac = model.sequences.factors.fastaccess
         log = model.sequences.logs.fastaccess
         for idx in range(der.nmblogentries - 1, 0, -1):
             log.loggedsunshineduration[idx] = log.loggedsunshineduration[idx - 1]
-        log.loggedsunshineduration[0] = inp.sunshineduration
+        log.loggedsunshineduration[0] = fac.sunshineduration
 
 
 class Calc_DailySunshineDuration_V1(modeltools.Method):
@@ -182,7 +376,7 @@ class Update_LoggedPossibleSunshineDuration_V1(modeltools.Method):
         >>> test = UnitTest(model,
         ...                 model.update_loggedpossiblesunshineduration_v1,
         ...                 last_example=4,
-        ...                 parseqs=(inputs.possiblesunshineduration,
+        ...                 parseqs=(factors.possiblesunshineduration,
         ...                          logs.loggedpossiblesunshineduration))
         >>> test.nexts.possiblesunshineduration = 1.0, 3.0, 2.0, 4.0
         >>> del test.inits.loggedpossiblesunshineduration
@@ -197,19 +391,19 @@ class Update_LoggedPossibleSunshineDuration_V1(modeltools.Method):
     """
 
     DERIVEDPARAMETERS = (lland_derived.NmbLogEntries,)
-    REQUIREDSEQUENCES = (lland_inputs.PossibleSunshineDuration,)
+    REQUIREDSEQUENCES = (lland_factors.PossibleSunshineDuration,)
     UPDATEDSEQUENCES = (lland_logs.LoggedPossibleSunshineDuration,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
-        inp = model.sequences.inputs.fastaccess
+        fac = model.sequences.factors.fastaccess
         log = model.sequences.logs.fastaccess
         for idx in range(der.nmblogentries - 1, 0, -1):
             log.loggedpossiblesunshineduration[
                 idx
             ] = log.loggedpossiblesunshineduration[idx - 1]
-        log.loggedpossiblesunshineduration[0] = inp.possiblesunshineduration
+        log.loggedpossiblesunshineduration[0] = fac.possiblesunshineduration
 
 
 class Calc_DailyPossibleSunshineDuration_V1(modeltools.Method):
@@ -1248,7 +1442,7 @@ class Calc_NetShortwaveRadiationInz_V1(modeltools.Method):
         >>> derived.fr.laubw_jan = 0.5
         >>> derived.fr.laubw_feb = 0.1
         >>> derived.moy.update()
-        >>> inputs.globalradiation = 40.0
+        >>> fluxes.globalradiation = 40.0
         >>> fluxes.actualalbedoinz = 0.5
 
         >>> model.idx_sim = pub.timegrids.init["2000-01-31"]
@@ -1268,21 +1462,20 @@ class Calc_NetShortwaveRadiationInz_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     DERIVEDPARAMETERS = (lland_derived.Fr, lland_derived.MOY)
-    REQUIREDSEQUENCES = (lland_inputs.GlobalRadiation, lland_fluxes.ActualAlbedoInz)
+    REQUIREDSEQUENCES = (lland_fluxes.GlobalRadiation, lland_fluxes.ActualAlbedoInz)
     RESULTSEQUENCES = (lland_fluxes.NetShortwaveRadiationInz,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
-        inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
             if con.lnk[k] in (LAUBW, MISCHW, NADELW):
                 flu.netshortwaveradiationinz[k] = (
                     (1.0 - der.fr[con.lnk[k] - 1, der.moy[model.idx_sim]])
                     * (1.0 - flu.actualalbedoinz[k])
-                    * inp.globalradiation
+                    * flu.globalradiation
                 )
             else:
                 flu.netshortwaveradiationinz[k] = 0.0
@@ -2393,7 +2586,7 @@ class Calc_NetShortwaveRadiationSnow_V1(modeltools.Method):
         >>> derived.fr.laubw_jan = 0.5
         >>> derived.fr.laubw_feb = 0.1
         >>> derived.moy.update()
-        >>> inputs.globalradiation = 40.0
+        >>> fluxes.globalradiation = 40.0
         >>> fluxes.actualalbedo = 0.5
 
         >>> model.idx_sim = pub.timegrids.init["2000-01-31"]
@@ -2418,14 +2611,13 @@ class Calc_NetShortwaveRadiationSnow_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     DERIVEDPARAMETERS = (lland_derived.MOY, lland_derived.Fr)
-    REQUIREDSEQUENCES = (lland_inputs.GlobalRadiation, lland_fluxes.ActualAlbedo)
+    REQUIREDSEQUENCES = (lland_fluxes.GlobalRadiation, lland_fluxes.ActualAlbedo)
     RESULTSEQUENCES = (lland_fluxes.NetShortwaveRadiationSnow,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
-        inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
             if modelutils.isnan(flu.actualalbedo[k]):
@@ -2434,7 +2626,7 @@ class Calc_NetShortwaveRadiationSnow_V1(modeltools.Method):
                 flu.netshortwaveradiationsnow[k] = (
                     der.fr[con.lnk[k] - 1, der.moy[model.idx_sim]]
                     * (1.0 - flu.actualalbedo[k])
-                    * inp.globalradiation
+                    * flu.globalradiation
                 )
 
 
@@ -7101,6 +7293,10 @@ class Model(modeltools.AdHocModel):
     )
     RUN_METHODS = (
         Calc_QZH_V1,
+        Process_RadiationModel_V1,
+        Calc_PossibleSunshineDuration_V1,
+        Calc_SunshineDuration_V1,
+        Calc_GlobalRadiation_V1,
         Update_LoggedSunshineDuration_V1,
         Calc_DailySunshineDuration_V1,
         Update_LoggedPossibleSunshineDuration_V1,
@@ -7190,6 +7386,12 @@ class Model(modeltools.AdHocModel):
 
     idx_hru = modeltools.Idx_HRU()
 
+    radiationmodel = modeltools.SubmodelProperty(
+        radiationinterfaces.RadiationModel_V1, radiationinterfaces.RadiationModel_V4
+    )
+    radiationmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    radiationmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
     aetmodel = modeltools.SubmodelProperty(aetinterfaces.AETModel_V1)
     aetmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     aetmodel_typeid = modeltools.SubmodelTypeIDProperty()
@@ -7197,6 +7399,70 @@ class Model(modeltools.AdHocModel):
     soilmodel = modeltools.SubmodelProperty(soilinterfaces.SoilModel_V1, optional=True)
     soilmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     soilmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+
+class Main_RadiationModel_V1(modeltools.AdHocModel):
+    """Base class for HydPy-L models that support submodels that comply with the
+    |RadiationModel_V1| interface."""
+
+    radiationmodel: modeltools.SubmodelProperty
+    radiationmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    radiationmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel(
+        "radiationmodel", radiationinterfaces.RadiationModel_V1
+    )
+    def add_radiationmodel_v1(
+        self,
+        radiationmodel: radiationinterfaces.RadiationModel_V1,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
+        """Add the given radiation model that follows the |RadiationModel_V1|
+        interface.
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
+        >>> from hydpy.models.lland_v3 import *
+        >>> parameterstep()
+        >>> with model.add_radiationmodel_v1("meteo_v004"):
+        ...     latitude(50.0)
+        >>> model.radiationmodel.parameters.control.latitude
+        latitude(50.0)
+        """
+
+
+class Main_RadiationModel_V4(modeltools.AdHocModel):
+    """Base class for HydPy-Evap models that support submodels that comply with the
+    |RadiationModel_V4| interface."""
+
+    radiationmodel: modeltools.SubmodelProperty
+    radiationmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    radiationmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel(
+        "radiationmodel", radiationinterfaces.RadiationModel_V4
+    )
+    def add_radiationmodel_v4(
+        self,
+        radiationmodel: radiationinterfaces.RadiationModel_V4,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
+        """Add the given radiation model that follows the |RadiationModel_V4|
+        interface.
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
+        >>> from hydpy.models.lland_v3 import *
+        >>> parameterstep()
+        >>> with model.add_radiationmodel_v4("meteo_psun_sun_glob_io"):
+        ...     inputs.globalradiation = 100.0
+        >>> model.radiationmodel.sequences.inputs.globalradiation
+        globalradiation(100.0)
+        """
 
 
 class Main_AETModel_V1(modeltools.AdHocModel):

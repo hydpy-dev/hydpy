@@ -250,7 +250,8 @@ class Calc_PE_PET_PETModel_V1(modeltools.Method):
         ...     hrualtitude(200.0, 600.0, 1000.0, 100.0)
         ...     coastfactor(0.6)
         ...     evapotranspirationfactor(1.1)
-        ...     inputs.globalradiation = 200.0
+        ...     with model.add_radiationmodel_v2("meteo_glob_io"):
+        ...         inputs.globalradiation = 200.0
         ...     with model.add_tempmodel_v2("meteo_temp_io"):
         ...         temperatureaddend(1.0)
         ...         inputs.temperature = 14.0
@@ -319,10 +320,11 @@ class Calc_PE_PET_PETModel_V2(modeltools.Method):
         ...     inputs.windspeed = 2.0
         ...     inputs.relativehumidity = 80.0
         ...     inputs.atmosphericpressure = 1000.0
-        ...     inputs.sunshineduration = 6.0
-        ...     inputs.possiblesunshineduration = 16.0
-        ...     inputs.globalradiation = 190.0
         ...     states.soilresistance = 100.0
+        ...     with model.add_radiationmodel_v4("meteo_psun_sun_glob_io"):
+        ...         inputs.sunshineduration = 6.0
+        ...         inputs.possiblesunshineduration = 16.0
+        ...         inputs.globalradiation = 190.0
 
         The first example reproduces the results for the first simulated day of the
         integration tests :ref:`evap_pet_ambav1_non_tree_vegetation_daily` (first

@@ -13,6 +13,7 @@ from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import precipinterfaces
+from hydpy.interfaces import radiationinterfaces
 from hydpy.interfaces import tempinterfaces
 from hydpy.interfaces import stateinterfaces
 from hydpy.models.evap import evap_parameters
@@ -1048,6 +1049,286 @@ class Calc_AirDensity_V1(modeltools.Method):
             )
 
 
+class Process_RadiationModel_V1(modeltools.Method):
+    """Let a submodel that complies with the |RadiationModel_V1| interface preprocess
+    all eventually required data.
+
+    Example:
+
+        We use the combination of |evap_fao56| and |meteo_v001| as an example:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-07-06", "2000-07-07", "1d"
+        >>> from hydpy.models.evap_fao56 import *
+        >>> parameterstep()
+        >>> with model.add_radiationmodel_v1("meteo_v001"):
+        ...     latitude(50.8)
+        ...     angstromconstant(0.25)
+        ...     angstromfactor(0.5)
+        ...     inputs.sunshineduration = 9.25
+        >>> model.process_radiationmodel_v1()
+        >>> model.radiationmodel.sequences.fluxes.globalradiation
+        globalradiation(255.367464)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+    """
+
+    SUBMODELINTERFACES = (radiationinterfaces.RadiationModel_V1,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        if model.radiationmodel_typeid == 1:
+            cast(
+                radiationinterfaces.RadiationModel_V1, model.radiationmodel
+            ).process_radiation()
+        # ToDo:
+        #     elif ...
+        #     else:
+        #         assert_never(model.radiationmodel)
+
+
+class Calc_PossibleSunshineDuration_V1(modeltools.Method):
+    """Query the possible sunshine duration from a submodel that complies with the
+    |RadiationModel_V1| or |RadiationModel_V4| interface.
+
+    Examples:
+
+        We combine |evap_pet_ambav1| with submodels that comply with different
+        interfaces.  First, with |meteo_v001|, which complies with |RadiationModel_V1|:
+
+        >>> from hydpy.models.evap_pet_ambav1 import *
+        >>> parameterstep()
+        >>> with model.add_radiationmodel_v1("meteo_v001", update=False):
+        ...     factors.possiblesunshineduration = 10.0
+        >>> model.calc_possiblesunshineduration()
+        >>> factors.possiblesunshineduration
+        possiblesunshineduration(10.0)
+
+        Second, with |meteo_psun_sun_glob_io|, which complies with |RadiationModel_V4|:
+
+        >>> with model.add_radiationmodel_v4("meteo_psun_sun_glob_io", update=False):
+        ...     inputs.possiblesunshineduration = 14.0
+        >>> model.calc_possiblesunshineduration()
+        >>> factors.possiblesunshineduration
+        possiblesunshineduration(14.0)
+    """
+
+    SUBMODELINTERFACES = (
+        radiationinterfaces.RadiationModel_V1,
+        radiationinterfaces.RadiationModel_V4,
+    )
+    RESULTSEQUENCES = (evap_factors.PossibleSunshineDuration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        fac = model.sequences.factors.fastaccess
+
+        if model.radiationmodel_typeid == 1:
+            fac.possiblesunshineduration = cast(
+                radiationinterfaces.RadiationModel_V3, model.radiationmodel
+            ).get_possiblesunshineduration()
+        elif model.radiationmodel_typeid == 4:
+            fac.possiblesunshineduration = cast(
+                radiationinterfaces.RadiationModel_V4, model.radiationmodel
+            ).get_possiblesunshineduration()
+        # ToDo:
+        #     elif ...
+        #     else:
+        #         assert_never(model.radiationmodel)
+
+
+class Calc_SunshineDuration_V1(modeltools.Method):
+    """Query the actual sunshine duration from a submodel that complies with the
+    |RadiationModel_V1| or |RadiationModel_V4| interface.
+
+    Examples:
+
+        We combine |evap_pet_ambav1| with submodels that comply with different
+        interfaces.  First, with |meteo_v001|, which complies with |RadiationModel_V1|:
+
+        >>> from hydpy.models.evap_pet_ambav1 import *
+        >>> parameterstep()
+        >>> with model.add_radiationmodel_v1("meteo_v001", update=False):
+        ...     inputs.sunshineduration = 10.0
+        >>> model.calc_sunshineduration()
+        >>> factors.sunshineduration
+        sunshineduration(10.0)
+
+        Second, with |meteo_psun_sun_glob_io|, which complies with |RadiationModel_V4|:
+
+        >>> with model.add_radiationmodel_v4("meteo_psun_sun_glob_io", update=False):
+        ...     inputs.sunshineduration = 14.0
+        >>> model.calc_sunshineduration()
+        >>> factors.sunshineduration
+        sunshineduration(14.0)
+    """
+
+    SUBMODELINTERFACES = (
+        radiationinterfaces.RadiationModel_V1,
+        radiationinterfaces.RadiationModel_V4,
+    )
+    RESULTSEQUENCES = (evap_factors.SunshineDuration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        fac = model.sequences.factors.fastaccess
+
+        if model.radiationmodel_typeid == 1:
+            fac.sunshineduration = cast(
+                radiationinterfaces.RadiationModel_V3, model.radiationmodel
+            ).get_sunshineduration()
+        elif model.radiationmodel_typeid == 4:
+            fac.sunshineduration = cast(
+                radiationinterfaces.RadiationModel_V4, model.radiationmodel
+            ).get_sunshineduration()
+        # ToDo:
+        #     elif ...
+        #     else:
+        #         assert_never(model.radiationmodel)
+
+
+class Calc_ClearSkySolarRadiation_V1(modeltools.Method):
+    """Query the global radiation from a submodel that complies with the
+    |RadiationModel_V1| or |RadiationModel_V3| interface.
+
+    Examples:
+
+        We combine |evap_fao56| with submodels that comply with different
+        interfaces.  First, with |meteo_v001|, which complies with |RadiationModel_V1|:
+
+        >>> from hydpy.models.evap_fao56 import *
+        >>> parameterstep()
+        >>> with model.add_radiationmodel_v1("meteo_v001", update=False):
+        ...     fluxes.clearskysolarradiation = 100.0
+        >>> model.calc_clearskysolarradiation()
+        >>> fluxes.clearskysolarradiation
+        clearskysolarradiation(100.0)
+
+        Second, with |meteo_clear_glob_io|, which complies with |RadiationModel_V3|:
+
+        >>> with model.add_radiationmodel_v3("meteo_clear_glob_io", update=False):
+        ...     inputs.clearskysolarradiation = 300.0
+        >>> model.calc_clearskysolarradiation()
+        >>> fluxes.clearskysolarradiation
+        clearskysolarradiation(300.0)
+    """
+
+    SUBMODELINTERFACES = (
+        radiationinterfaces.RadiationModel_V1,
+        radiationinterfaces.RadiationModel_V3,
+    )
+    RESULTSEQUENCES = (evap_fluxes.ClearSkySolarRadiation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+
+        if model.radiationmodel_typeid == 1:
+            flu.clearskysolarradiation = cast(
+                radiationinterfaces.RadiationModel_V1, model.radiationmodel
+            ).get_clearskysolarradiation()
+        elif model.radiationmodel_typeid == 3:
+            flu.clearskysolarradiation = cast(
+                radiationinterfaces.RadiationModel_V3, model.radiationmodel
+            ).get_clearskysolarradiation()
+        # ToDo:
+        #     elif ...
+        #     else:
+        #         assert_never(model.radiationmodel)
+
+
+class Calc_GlobalRadiation_V1(modeltools.Method):
+    """Query the global radiation from a submodel that complies with the
+    |RadiationModel_V1|, |RadiationModel_V2|, |RadiationModel_V3|, or
+    |RadiationModel_V4| interface.
+
+    Examples:
+
+        We combine three main models with submodels that comply with the four
+        radiation-related interfaces.  First, |evap_fao56| with |meteo_v001|, which
+        complies with |RadiationModel_V1|:
+
+        >>> from hydpy.models.evap_fao56 import *
+        >>> parameterstep()
+        >>> with model.add_radiationmodel_v1("meteo_v001", update=False):
+        ...     fluxes.globalradiation = 100.0
+        >>> model.calc_globalradiation()
+        >>> fluxes.globalradiation
+        globalradiation(100.0)
+
+        Second, |evap_tw2002| with |meteo_glob_io|, which complies with
+        |RadiationModel_V2|:
+
+        >>> from hydpy.core.importtools import reverse_model_wildcard_import
+        >>> reverse_model_wildcard_import()
+        >>> from hydpy.models.evap_tw2002 import *
+        >>> parameterstep()
+        >>> with model.add_radiationmodel_v2("meteo_glob_io", update=False):
+        ...     inputs.globalradiation = 200.0
+        >>> model.calc_globalradiation()
+        >>> fluxes.globalradiation
+        globalradiation(200.0)
+
+        Third, |evap_fao56| with |meteo_clear_glob_io|, which complies with
+        |RadiationModel_V3|:
+
+        >>> reverse_model_wildcard_import()
+        >>> from hydpy.models.evap_fao56 import *
+        >>> parameterstep()
+        >>> with model.add_radiationmodel_v3("meteo_clear_glob_io", update=False):
+        ...     inputs.globalradiation = 300.0
+        >>> model.calc_globalradiation()
+        >>> fluxes.globalradiation
+        globalradiation(300.0)
+
+        Fourth, |evap_pet_ambav1| with |meteo_psun_sun_glob_io|, which complies with
+        |RadiationModel_V4|:
+
+        >>> reverse_model_wildcard_import()
+        >>> from hydpy.models.evap_pet_ambav1 import *
+        >>> parameterstep()
+        >>> with model.add_radiationmodel_v4("meteo_psun_sun_glob_io", update=False):
+        ...     inputs.globalradiation = 400.0
+        >>> model.calc_globalradiation()
+        >>> fluxes.globalradiation
+        globalradiation(400.0)
+    """
+
+    SUBMODELINTERFACES = (
+        radiationinterfaces.RadiationModel_V1,
+        radiationinterfaces.RadiationModel_V2,
+        radiationinterfaces.RadiationModel_V3,
+        radiationinterfaces.RadiationModel_V4,
+    )
+    RESULTSEQUENCES = (evap_fluxes.GlobalRadiation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+
+        if model.radiationmodel_typeid == 1:
+            flu.globalradiation = cast(
+                radiationinterfaces.RadiationModel_V1, model.radiationmodel
+            ).get_globalradiation()
+        elif model.radiationmodel_typeid == 2:
+            flu.globalradiation = cast(
+                radiationinterfaces.RadiationModel_V2, model.radiationmodel
+            ).get_globalradiation()
+        elif model.radiationmodel_typeid == 3:
+            flu.globalradiation = cast(
+                radiationinterfaces.RadiationModel_V3, model.radiationmodel
+            ).get_globalradiation()
+        elif model.radiationmodel_typeid == 4:
+            flu.globalradiation = cast(
+                radiationinterfaces.RadiationModel_V4, model.radiationmodel
+            ).get_globalradiation()
+        # ToDo:
+        #     else:
+        #         assert_never(model.radiationmodel)
+
+
 class Update_LoggedSunshineDuration_V1(modeltools.Method):
     """Log the sunshine duration values of the last 24 hours.
 
@@ -1066,7 +1347,7 @@ class Update_LoggedSunshineDuration_V1(modeltools.Method):
         >>> test = UnitTest(model,
         ...                 model.update_loggedsunshineduration_v1,
         ...                 last_example=4,
-        ...                 parseqs=(inputs.sunshineduration,
+        ...                 parseqs=(factors.sunshineduration,
         ...                          logs.loggedsunshineduration))
         >>> test.nexts.sunshineduration = 1.0, 3.0, 2.0, 4.0
         >>> del test.inits.loggedsunshineduration
@@ -1080,17 +1361,17 @@ class Update_LoggedSunshineDuration_V1(modeltools.Method):
     """
 
     DERIVEDPARAMETERS = (evap_derived.NmbLogEntries,)
-    REQUIREDSEQUENCES = (evap_inputs.SunshineDuration,)
+    REQUIREDSEQUENCES = (evap_factors.SunshineDuration,)
     UPDATEDSEQUENCES = (evap_logs.LoggedSunshineDuration,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
-        inp = model.sequences.inputs.fastaccess
+        fac = model.sequences.factors.fastaccess
         log = model.sequences.logs.fastaccess
         for idx in range(der.nmblogentries - 1, 0, -1):
             log.loggedsunshineduration[idx] = log.loggedsunshineduration[idx - 1]
-        log.loggedsunshineduration[0] = inp.sunshineduration
+        log.loggedsunshineduration[0] = fac.sunshineduration
 
 
 class Calc_DailySunshineDuration_V1(modeltools.Method):
@@ -1140,7 +1421,7 @@ class Update_LoggedPossibleSunshineDuration_V1(modeltools.Method):
         >>> test = UnitTest(model,
         ...                 model.update_loggedpossiblesunshineduration_v1,
         ...                 last_example=4,
-        ...                 parseqs=(inputs.possiblesunshineduration,
+        ...                 parseqs=(factors.possiblesunshineduration,
         ...                          logs.loggedpossiblesunshineduration))
         >>> test.nexts.possiblesunshineduration = 1.0, 3.0, 2.0, 4.0
         >>> del test.inits.loggedpossiblesunshineduration
@@ -1154,19 +1435,19 @@ class Update_LoggedPossibleSunshineDuration_V1(modeltools.Method):
     """
 
     DERIVEDPARAMETERS = (evap_derived.NmbLogEntries,)
-    REQUIREDSEQUENCES = (evap_inputs.PossibleSunshineDuration,)
+    REQUIREDSEQUENCES = (evap_factors.PossibleSunshineDuration,)
     UPDATEDSEQUENCES = (evap_logs.LoggedPossibleSunshineDuration,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
-        inp = model.sequences.inputs.fastaccess
+        fac = model.sequences.factors.fastaccess
         log = model.sequences.logs.fastaccess
         for idx in range(der.nmblogentries - 1, 0, -1):
             log.loggedpossiblesunshineduration[
                 idx
             ] = log.loggedpossiblesunshineduration[idx - 1]
-        log.loggedpossiblesunshineduration[0] = inp.possiblesunshineduration
+        log.loggedpossiblesunshineduration[0] = fac.possiblesunshineduration
 
 
 class Calc_DailyPossibleSunshineDuration_V1(modeltools.Method):
@@ -1216,7 +1497,7 @@ class Update_LoggedClearSkySolarRadiation_V1(modeltools.Method):
         >>> test = UnitTest(model,
         ...                 model.update_loggedclearskysolarradiation_v1,
         ...                 last_example=4,
-        ...                 parseqs=(inputs.clearskysolarradiation,
+        ...                 parseqs=(fluxes.clearskysolarradiation,
         ...                          logs.loggedclearskysolarradiation))
         >>> test.nexts.clearskysolarradiation = 1.0, 3.0, 2.0, 4.0
         >>> del test.inits.loggedclearskysolarradiation
@@ -1236,19 +1517,19 @@ class Update_LoggedClearSkySolarRadiation_V1(modeltools.Method):
     """
 
     DERIVEDPARAMETERS = (evap_derived.NmbLogEntries,)
-    REQUIREDSEQUENCES = (evap_inputs.ClearSkySolarRadiation,)
+    REQUIREDSEQUENCES = (evap_fluxes.ClearSkySolarRadiation,)
     UPDATEDSEQUENCES = (evap_logs.LoggedClearSkySolarRadiation,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
-        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
         for idx in range(der.nmblogentries - 1, 0, -1):
             log.loggedclearskysolarradiation[idx] = log.loggedclearskysolarradiation[
                 idx - 1
             ]
-        log.loggedclearskysolarradiation[0] = inp.clearskysolarradiation
+        log.loggedclearskysolarradiation[0] = flu.clearskysolarradiation
 
 
 class Update_LoggedGlobalRadiation_V1(modeltools.Method):
@@ -1269,7 +1550,7 @@ class Update_LoggedGlobalRadiation_V1(modeltools.Method):
         >>> test = UnitTest(model,
         ...                 model.update_loggedglobalradiation_v1,
         ...                 last_example=4,
-        ...                 parseqs=(inputs.globalradiation,
+        ...                 parseqs=(fluxes.globalradiation,
         ...                          logs.loggedglobalradiation))
         >>> test.nexts.globalradiation = 1.0, 3.0, 2.0, 4.0
         >>> del test.inits.loggedglobalradiation
@@ -1283,17 +1564,17 @@ class Update_LoggedGlobalRadiation_V1(modeltools.Method):
     """
 
     DERIVEDPARAMETERS = (evap_derived.NmbLogEntries,)
-    REQUIREDSEQUENCES = (evap_inputs.GlobalRadiation,)
+    REQUIREDSEQUENCES = (evap_fluxes.GlobalRadiation,)
     UPDATEDSEQUENCES = (evap_logs.LoggedGlobalRadiation,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
-        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
         for idx in range(der.nmblogentries - 1, 0, -1):
             log.loggedglobalradiation[idx] = log.loggedglobalradiation[idx - 1]
-        log.loggedglobalradiation[0] = inp.globalradiation
+        log.loggedglobalradiation[0] = flu.globalradiation
 
 
 class Calc_DailyGlobalRadiation_V1(modeltools.Method):
@@ -1327,7 +1608,7 @@ class Calc_DailyGlobalRadiation_V1(modeltools.Method):
 
 
 class Calc_CurrentAlbedo_SnowAlbedoModel_V1(modeltools.Method):
-    """Query the current earth surface albedo from a main model referenced as a
+    """Query the current Earth surface albedo from a main model referenced as a
     sub-submodel and follows the |SnowAlbedoModel_V1| interface."""
 
     CONTROLPARAMETERS = (evap_control.NmbHRU,)
@@ -1579,22 +1860,21 @@ class Calc_NetShortwaveRadiation_V1(modeltools.Method):
         >>> from hydpy.models.evap import *
         >>> parameterstep()
         >>> nmbhru(1)
-        >>> inputs.globalradiation = 200.0
+        >>> fluxes.globalradiation = 200.0
         >>> model.calc_netshortwaveradiation_v1()
         >>> fluxes.netshortwaveradiation
         netshortwaveradiation(154.0)
     """
 
     CONTROLPARAMETERS = (evap_control.NmbHRU,)
-    REQUIREDSEQUENCES = (evap_inputs.GlobalRadiation,)
+    REQUIREDSEQUENCES = (evap_fluxes.GlobalRadiation,)
     RESULTSEQUENCES = (evap_fluxes.NetShortwaveRadiation,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
-        inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        netshortwaveradiation: float = (1.0 - 0.23) * inp.globalradiation
+        netshortwaveradiation: float = (1.0 - 0.23) * flu.globalradiation
         for k in range(con.nmbhru):
             flu.netshortwaveradiation[k] = netshortwaveradiation
 
@@ -1610,7 +1890,7 @@ class Calc_NetShortwaveRadiation_V2(modeltools.Method):
         >>> from hydpy.models.evap import *
         >>> parameterstep()
         >>> nmbhru(1)
-        >>> inputs.globalradiation = 100.0
+        >>> fluxes.globalradiation = 100.0
         >>> factors.currentalbedo = 0.25
         >>> model.calc_netshortwaveradiation_v2()
         >>> fluxes.netshortwaveradiation
@@ -1618,17 +1898,16 @@ class Calc_NetShortwaveRadiation_V2(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (evap_control.NmbHRU,)
-    REQUIREDSEQUENCES = (evap_inputs.GlobalRadiation, evap_factors.CurrentAlbedo)
+    REQUIREDSEQUENCES = (evap_factors.CurrentAlbedo, evap_fluxes.GlobalRadiation)
     RESULTSEQUENCES = (evap_fluxes.NetShortwaveRadiation,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
-        inp = model.sequences.inputs.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbhru):
-            flu.netshortwaveradiation[k] = inp.globalradiation * (
+            flu.netshortwaveradiation[k] = flu.globalradiation * (
                 1.0 - fac.currentalbedo[k]
             )
 
@@ -1691,15 +1970,15 @@ class Update_CloudCoverage_V1(modeltools.Method):
         >>> from hydpy.models.evap import *
         >>> parameterstep()
         >>> derived.days(1.0)
-        >>> inputs.sunshineduration = 8.0
-        >>> inputs.possiblesunshineduration = 10.0
+        >>> factors.sunshineduration = 8.0
+        >>> factors.possiblesunshineduration = 10.0
         >>> model.update_cloudcoverage_v1()
         >>> states.cloudcoverage
         cloudcoverage(0.8)
 
         The finally calculated cloud coverage degree never exceeds one:
 
-        >>> inputs.sunshineduration = 11.0
+        >>> factors.sunshineduration = 11.0
         >>> model.update_cloudcoverage_v1()
         >>> states.cloudcoverage
         cloudcoverage(1.0)
@@ -1712,8 +1991,8 @@ class Update_CloudCoverage_V1(modeltools.Method):
         During the daytime, |Update_CloudCoverage_V1| always updates the cloud coverage
         degree as described above:
 
-        >>> inputs.sunshineduration = 0.4
-        >>> inputs.possiblesunshineduration = 1.0
+        >>> factors.sunshineduration = 0.4
+        >>> factors.possiblesunshineduration = 1.0
         >>> model.update_cloudcoverage_v1()
         >>> states.cloudcoverage
         cloudcoverage(0.4)
@@ -1722,7 +2001,7 @@ class Update_CloudCoverage_V1(modeltools.Method):
         shorter than the simulation step size, |Update_CloudCoverage_V1| leaves the
         previously calculated value untouched:
 
-        >>> inputs.possiblesunshineduration = 0.8
+        >>> factors.possiblesunshineduration = 0.8
         >>> model.update_cloudcoverage_v1()
         >>> states.cloudcoverage
         cloudcoverage(0.4)
@@ -1730,20 +2009,20 @@ class Update_CloudCoverage_V1(modeltools.Method):
 
     DERIVEDPARAMETERS = (evap_derived.Hours, evap_derived.Days)
     REQUIREDSEQUENCES = (
-        evap_inputs.SunshineDuration,
-        evap_inputs.PossibleSunshineDuration,
+        evap_factors.SunshineDuration,
+        evap_factors.PossibleSunshineDuration,
     )
     UPDATEDSEQUENCES = (evap_states.CloudCoverage,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
-        inp = model.sequences.inputs.fastaccess
+        fac = model.sequences.factors.fastaccess
         sta = model.sequences.states.fastaccess
 
-        p0: float = inp.possiblesunshineduration
+        p0: float = fac.possiblesunshineduration
         if (der.days >= 1.0) or (p0 >= der.hours):
-            sta.cloudcoverage = min(inp.sunshineduration / p0, 1.0)
+            sta.cloudcoverage = min(fac.sunshineduration / p0, 1.0)
 
 
 class Calc_AdjustedCloudCoverage_V1(modeltools.Method):
@@ -1765,7 +2044,7 @@ class Calc_AdjustedCloudCoverage_V1(modeltools.Method):
         >>> parameterstep()
         >>> nightcloudfactor(0.5)
         >>> derived.hours(24.0)
-        >>> inputs.possiblesunshineduration = 18.0
+        >>> factors.possiblesunshineduration = 18.0
         >>> states.cloudcoverage = 0.8
         >>> model.calc_adjustedcloudcoverage_v1()
         >>> factors.adjustedcloudcoverage
@@ -1783,7 +2062,7 @@ class Calc_AdjustedCloudCoverage_V1(modeltools.Method):
     CONTROLPARAMETERS = (evap_control.NightCloudFactor,)
     DERIVEDPARAMETERS = (evap_derived.Hours,)
     REQUIREDSEQUENCES = (
-        evap_inputs.PossibleSunshineDuration,
+        evap_factors.PossibleSunshineDuration,
         evap_states.CloudCoverage,
     )
     RESULTSEQUENCES = (evap_factors.AdjustedCloudCoverage,)
@@ -1792,10 +2071,9 @@ class Calc_AdjustedCloudCoverage_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
-        inp = model.sequences.inputs.fastaccess
         fac = model.sequences.factors.fastaccess
         sta = model.sequences.states.fastaccess
-        w: float = inp.possiblesunshineduration / der.hours
+        w: float = fac.possiblesunshineduration / der.hours
         c: float = sta.cloudcoverage
         n: float = con.nightcloudfactor
         fac.adjustedcloudcoverage = w * c + (1.0 - w) * min(n * c, 1.0)
@@ -1841,15 +2119,15 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbhru(1)
         >>> derived.nmblogentries(1)
-        >>> inputs.globalradiation = 167.824074
-        >>> inputs.clearskysolarradiation = 217.592593
+        >>> fluxes.globalradiation = 167.824074
+        >>> fluxes.clearskysolarradiation = 217.592593
         >>> factors.airtemperature = 22.1
         >>> factors.actualvapourpressure = 21.0
         >>> model.calc_netlongwaveradiation_v1()
         >>> fluxes.netlongwaveradiation
         netlongwaveradiation(40.87786)
 
-        >>> inputs.clearskysolarradiation = 0.0
+        >>> fluxes.clearskysolarradiation = 0.0
         >>> logs.loggedclearskysolarradiation.shape = 1
         >>> logs.loggedclearskysolarradiation = 138.888889
         >>> logs.loggedglobalradiation.shape = 1
@@ -1871,10 +2149,10 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
     CONTROLPARAMETERS = (evap_control.NmbHRU,)
     DERIVEDPARAMETERS = (evap_derived.NmbLogEntries,)
     REQUIREDSEQUENCES = (
-        evap_inputs.ClearSkySolarRadiation,
-        evap_inputs.GlobalRadiation,
         evap_factors.AirTemperature,
         evap_factors.ActualVapourPressure,
+        evap_fluxes.ClearSkySolarRadiation,
+        evap_fluxes.GlobalRadiation,
         evap_logs.LoggedGlobalRadiation,
         evap_logs.LoggedClearSkySolarRadiation,
     )
@@ -1884,13 +2162,12 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
-        inp = model.sequences.inputs.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
-        if inp.clearskysolarradiation > 0.0:
-            globalradiation: float = inp.globalradiation
-            clearskysolarradiation: float = inp.clearskysolarradiation
+        if flu.clearskysolarradiation > 0.0:
+            globalradiation: float = flu.globalradiation
+            clearskysolarradiation: float = flu.clearskysolarradiation
         else:
             globalradiation = 0.0
             clearskysolarradiation = 0.0
@@ -1938,7 +2215,7 @@ class Calc_NetLongwaveRadiation_V2(modeltools.Method):
         >>> nmbhru(1)
         >>> cloudtypefactor(0.2)
         >>> derived.nmblogentries(1)
-        >>> inputs.globalradiation = 167.824074
+        >>> fluxes.globalradiation = 167.824074
         >>> factors.adjustedcloudcoverage = 167.824074 / 217.592593
         >>> factors.airtemperature = 22.1
         >>> factors.currentalbedo = 0.23
@@ -1950,10 +2227,10 @@ class Calc_NetLongwaveRadiation_V2(modeltools.Method):
     CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.CloudTypeFactor)
     FIXEDPARAMETERS = (evap_fixed.StefanBoltzmannConstant,)
     REQUIREDSEQUENCES = (
-        evap_inputs.GlobalRadiation,
         evap_factors.CurrentAlbedo,
         evap_factors.AdjustedCloudCoverage,
         evap_factors.AirTemperature,
+        evap_fluxes.GlobalRadiation,
     )
     RESULTSEQUENCES = (evap_fluxes.NetLongwaveRadiation,)
 
@@ -1961,11 +2238,10 @@ class Calc_NetLongwaveRadiation_V2(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
-        inp = model.sequences.inputs.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         s: float = fix.stefanboltzmannconstant
-        g: float = inp.globalradiation
+        g: float = flu.globalradiation
         f: float = 1.0 + con.cloudtypefactor * fac.adjustedcloudcoverage**2.0
         for k in range(con.nmbhru):
             t: float = fac.airtemperature[k]
@@ -2332,7 +2608,7 @@ class Calc_SoilHeatFlux_V2(modeltools.Method):
         the current simulation step) and |DailyPossibleSunshineDuration| must be
         identical:
 
-        >>> inputs.possiblesunshineduration = 14.0
+        >>> factors.possiblesunshineduration = 14.0
         >>> factors.dailypossiblesunshineduration = 14.0
 
         We set |DailyNetRadiation| to 100 W/m² for most response units, except for the
@@ -2367,7 +2643,7 @@ class Calc_SoilHeatFlux_V2(modeltools.Method):
         radiation (response unit three) and leaf area indices above ten (response unit
         five) result in negative soil surface fluxes:
 
-        >>> inputs.possiblesunshineduration = 1.0
+        >>> factors.possiblesunshineduration = 1.0
         >>> model.calc_soilheatflux_v2()
         >>> fluxes.soilheatflux
         soilheatflux(-2.142857, -1.071429, 1.071429, 0.0, 1.071429, 0.0)
@@ -2376,7 +2652,7 @@ class Calc_SoilHeatFlux_V2(modeltools.Method):
         The nighttime soil surface fluxes (which we calculate by setting
         |PossibleSunshineDuration| to zero) somehow compensate for the daytime ones:
 
-        >>> inputs.possiblesunshineduration = 0.0
+        >>> factors.possiblesunshineduration = 0.0
         >>> model.calc_soilheatflux_v2()
         >>> fluxes.soilheatflux
         soilheatflux(2.0, 0.5, -2.5, -1.0, -2.5, 0.0)
@@ -2404,7 +2680,7 @@ class Calc_SoilHeatFlux_V2(modeltools.Method):
     )
     DERIVEDPARAMETERS = (evap_derived.MOY, evap_derived.Hours)
     REQUIREDSEQUENCES = (
-        evap_inputs.PossibleSunshineDuration,
+        evap_factors.PossibleSunshineDuration,
         evap_factors.DailyPossibleSunshineDuration,
         evap_fluxes.DailyNetRadiation,
     )
@@ -2414,7 +2690,6 @@ class Calc_SoilHeatFlux_V2(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
-        inp = model.sequences.inputs.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbhru):
@@ -2430,10 +2705,8 @@ class Calc_SoilHeatFlux_V2(modeltools.Method):
                 gn: float = con.averagesoilheatflux[der.moy[model.idx_sim]] - gd
                 gd_h: float = gd / fac.dailypossiblesunshineduration
                 gn_h: float = gn / (24.0 - fac.dailypossiblesunshineduration)
-                flu.soilheatflux[k] = (
-                    inp.possiblesunshineduration * gd_h
-                    + (der.hours - inp.possiblesunshineduration) * gn_h
-                )
+                ps: float = fac.possiblesunshineduration
+                flu.soilheatflux[k] = ps * gd_h + (der.hours - ps) * gn_h
 
 
 class Calc_SoilHeatFlux_V3(modeltools.Method):
@@ -2553,7 +2826,7 @@ class Calc_SoilHeatFlux_V4(modeltools.Method):
         We say the astronomically possible sunshine duration and the net radiation of
         that day to be 18 h and 200 W/m²:
 
-        >>> inputs.possiblesunshineduration = 18.0
+        >>> factors.possiblesunshineduration = 18.0
         >>> fluxes.netradiation = 200.0
 
         The larger the leaf area index, the smaller the soil heat flux.  The dense
@@ -2580,7 +2853,7 @@ class Calc_SoilHeatFlux_V4(modeltools.Method):
 
         We assume sunrise at 5:15 and a negative net radiation value:
 
-        >>> inputs.possiblesunshineduration = 0.25
+        >>> factors.possiblesunshineduration = 0.25
         >>> fluxes.netradiation = -20.0
 
         Again, dense vegetation reduces the soil heat flux without changing its sign,
@@ -2603,17 +2876,20 @@ class Calc_SoilHeatFlux_V4(modeltools.Method):
         evap_control.LeafAreaIndex,
     )
     DERIVEDPARAMETERS = (evap_derived.Hours, evap_derived.MOY)
-    REQUIREDSEQUENCES = (evap_inputs.PossibleSunshineDuration, evap_fluxes.NetRadiation)
+    REQUIREDSEQUENCES = (
+        evap_factors.PossibleSunshineDuration,
+        evap_fluxes.NetRadiation,
+    )
     RESULTSEQUENCES = (evap_fluxes.SoilHeatFlux,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
-        inp = model.sequences.inputs.fastaccess
+        fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
 
-        w: float = inp.possiblesunshineduration / der.hours
+        w: float = fac.possiblesunshineduration / der.hours
         a: float = w * 0.2 + (1.0 - w) * 0.5
         b: float = a * 0.03 / 0.2
         for k in range(con.nmbhru):
@@ -3496,7 +3772,7 @@ class Calc_ActualSurfaceResistance_V1(modeltools.Method):
         zero leaf area indices (see the first response unit).  With an increasing leaf
         area index, actual resistance tends towards land-use-related resistance:
 
-        >>> inputs.possiblesunshineduration = 24.0
+        >>> factors.possiblesunshineduration = 24.0
         >>> model.calc_actualsurfaceresistance_v1()
         >>> factors.actualsurfaceresistance
         actualsurfaceresistance(200.0, 132.450331, 109.174477, 101.43261)
@@ -3505,7 +3781,7 @@ class Calc_ActualSurfaceResistance_V1(modeltools.Method):
         index-dependent interpolation between soil surface resistance and a fixed
         resistance value:
 
-        >>> inputs.possiblesunshineduration = 0.0
+        >>> factors.possiblesunshineduration = 0.0
         >>> model.calc_actualsurfaceresistance_v1()
         >>> factors.actualsurfaceresistance
         actualsurfaceresistance(200.0, 172.413793, 142.857143, 111.111111)
@@ -3514,7 +3790,7 @@ class Calc_ActualSurfaceResistance_V1(modeltools.Method):
         two examples above are weighted based on the possible sunshine duration of that
         day:
 
-        >>> inputs.possiblesunshineduration = 12.0
+        >>> factors.possiblesunshineduration = 12.0
         >>> model.calc_actualsurfaceresistance_v1()
         >>> factors.actualsurfaceresistance
         actualsurfaceresistance(200.0, 149.812734, 123.765057, 106.051498)
@@ -3534,17 +3810,17 @@ class Calc_ActualSurfaceResistance_V1(modeltools.Method):
         >>> derived.hours.update()
         >>> leafareaindex.wood_jun = 5.0
         >>> model.idx_sim = 2
-        >>> inputs.possiblesunshineduration = 1.0
+        >>> factors.possiblesunshineduration = 1.0
         >>> model.calc_actualsurfaceresistance_v1()
         >>> factors.actualsurfaceresistance
         actualsurfaceresistance(109.174477)
 
-        >>> inputs.possiblesunshineduration = 0.0
+        >>> factors.possiblesunshineduration = 0.0
         >>> model.calc_actualsurfaceresistance_v1()
         >>> factors.actualsurfaceresistance
         actualsurfaceresistance(142.857143)
 
-        >>> inputs.possiblesunshineduration = 0.5
+        >>> factors.possiblesunshineduration = 0.5
         >>> model.calc_actualsurfaceresistance_v1()
         >>> factors.actualsurfaceresistance
         actualsurfaceresistance(123.765057)
@@ -3562,7 +3838,7 @@ class Calc_ActualSurfaceResistance_V1(modeltools.Method):
     )
     DERIVEDPARAMETERS = (evap_derived.MOY, evap_derived.Hours)
     REQUIREDSEQUENCES = (
-        evap_inputs.PossibleSunshineDuration,
+        evap_factors.PossibleSunshineDuration,
         evap_factors.SoilSurfaceResistance,
         evap_factors.LanduseSurfaceResistance,
     )
@@ -3573,7 +3849,6 @@ class Calc_ActualSurfaceResistance_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
-        inp = model.sequences.inputs.fastaccess
         fac = model.sequences.factors.fastaccess
         for k in range(con.nmbhru):
             if con.soil[k]:
@@ -3585,7 +3860,7 @@ class Calc_ActualSurfaceResistance_V1(modeltools.Method):
                     (1.0 - 0.7**lai) / fac.landusesurfaceresistance[k]
                 ) + 0.7**lai / fac.soilsurfaceresistance[k]
                 invsrnight: float = lai / 2500.0 + 1.0 / fac.soilsurfaceresistance[k]
-                w: float = inp.possiblesunshineduration / der.hours
+                w: float = fac.possiblesunshineduration / der.hours
                 fac.actualsurfaceresistance[k] = 1.0 / (
                     (w * invsrday + (1.0 - w) * invsrnight)
                 )
@@ -3686,7 +3961,7 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
         indices smaller than one (which goes along with a sudden resistance decrease
         when reaching a leaf area index of one):
 
-        >>> inputs.possiblesunshineduration = 24.0
+        >>> factors.possiblesunshineduration = 24.0
         >>> ambav.calc_actualsurfaceresistance_v2()
         >>> factors.actualsurfaceresistance
         actualsurfaceresistance(200.0, 200.0, 166.669146, 153.846154, 101.43261)
@@ -3695,7 +3970,7 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
         values due to assuming a surface resistance of 2,800 s/m instead of 2,500 s/m
         for leaves with completely closed stomata:
 
-        >>> inputs.possiblesunshineduration = 0.0
+        >>> factors.possiblesunshineduration = 0.0
         >>> ambav.calc_actualsurfaceresistance_v2()
         >>> factors.actualsurfaceresistance
         actualsurfaceresistance(200.0, 200.0, 186.667911, 186.666667, 116.666667)
@@ -3703,7 +3978,7 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
         Accordingly, |Calc_ActualSurfaceResistance_V2| always determines slightly
         higher surface resistances in mixed cases:
 
-        >>> inputs.possiblesunshineduration = 12.0
+        >>> factors.possiblesunshineduration = 12.0
         >>> ambav.calc_actualsurfaceresistance_v2()
         >>> factors.actualsurfaceresistance
         actualsurfaceresistance(200.0, 200.0, 176.102567, 168.674699, 108.517595)
@@ -3730,18 +4005,18 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
         >>> control.leafareaindex.nadelw_jun = 5.0
         >>> derived.moy.update()
         >>> derived.hours.update()
-        >>> inputs.possiblesunshineduration = 1.0
+        >>> factors.possiblesunshineduration = 1.0
         >>> ambav.idx_sim = 2
         >>> ambav.calc_actualsurfaceresistance_v2()
         >>> factors.actualsurfaceresistance
         actualsurfaceresistance(109.174477)
 
-        >>> inputs.possiblesunshineduration = 0.0
+        >>> factors.possiblesunshineduration = 0.0
         >>> ambav.calc_actualsurfaceresistance_v2()
         >>> factors.actualsurfaceresistance
         actualsurfaceresistance(147.368421)
 
-        >>> inputs.possiblesunshineduration = 0.5
+        >>> factors.possiblesunshineduration = 0.5
         >>> ambav.calc_actualsurfaceresistance_v2()
         >>> factors.actualsurfaceresistance
         actualsurfaceresistance(125.428304)
@@ -3761,7 +4036,7 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
     )
     DERIVEDPARAMETERS = (evap_derived.MOY, evap_derived.Hours)
     REQUIREDSEQUENCES = (
-        evap_inputs.PossibleSunshineDuration,
+        evap_factors.PossibleSunshineDuration,
         evap_states.SoilResistance,
     )
 
@@ -3771,7 +4046,6 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
-        inp = model.sequences.inputs.fastaccess
         fac = model.sequences.factors.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbhru):
@@ -3786,7 +4060,7 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
                 r_day_inv: float = w_soil / r_soil + (1.0 - w_soil) / r_leaf_day
                 r_leaf_night: float = 2800.0
                 r_night_inv: float = 1.0 / r_soil + lai / r_leaf_night
-                w_day: float = inp.possiblesunshineduration / der.hours
+                w_day: float = fac.possiblesunshineduration / der.hours
                 fac.actualsurfaceresistance[k] = 1.0 / (
                     (w_day * r_day_inv + (1.0 - w_day) * r_night_inv)
                 )
@@ -4644,8 +4918,8 @@ class Calc_ReferenceEvapotranspiration_V2(modeltools.Method):
         >>> nmbhru(3)
         >>> coastfactor(0.6)
         >>> hrualtitude(200.0, 600.0, 1000.0)
-        >>> inputs.globalradiation = 200.0
         >>> factors.airtemperature = 15.0
+        >>> fluxes.globalradiation = 200.0
         >>> model.calc_referenceevapotranspiration_v2()
         >>> fluxes.referenceevapotranspiration
         referenceevapotranspiration(2.792463, 2.601954, 2.601954)
@@ -4656,18 +4930,17 @@ class Calc_ReferenceEvapotranspiration_V2(modeltools.Method):
         evap_control.HRUAltitude,
         evap_control.CoastFactor,
     )
-    REQUIREDSEQUENCES = (evap_inputs.GlobalRadiation, evap_factors.AirTemperature)
+    REQUIREDSEQUENCES = (evap_factors.AirTemperature, evap_fluxes.GlobalRadiation)
     RESULTSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
-        inp = model.sequences.inputs.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbhru):
             flu.referenceevapotranspiration[k] = (
-                (8.64 * inp.globalradiation + 93.0 * con.coastfactor[k])
+                (8.64 * flu.globalradiation + 93.0 * con.coastfactor[k])
                 * (fac.airtemperature[k] + 22.0)
             ) / (
                 165.0
@@ -4724,7 +4997,7 @@ class Calc_ReferenceEvapotranspiration_PETModel_V1(modeltools.Method):
         ...     hrualtitude(200.0, 600.0, 1000.0)
         ...     coastfactor(0.6)
         ...     evapotranspirationfactor(1.1)
-        ...     inputs.globalradiation = 200.0
+        ...     fluxes.globalradiation = 200.0
         ...     with model.add_tempmodel_v2("meteo_temp_io"):
         ...         temperatureaddend(1.0)
         ...         inputs.temperature = 14.0
@@ -5207,9 +5480,9 @@ class Calc_PotentialWaterEvaporation_PETModel_V2(modeltools.Method):
         ...     inputs.relativehumidity = 80.0
         ...     inputs.windspeed = 2.0
         ...     inputs.atmosphericpressure = 1000.0
-        ...     inputs.sunshineduration = 6.0
-        ...     inputs.possiblesunshineduration = 16.0
-        ...     inputs.globalradiation = 190.0
+        ...     factors.sunshineduration = 6.0
+        ...     factors.possiblesunshineduration = 16.0
+        ...     fluxes.globalradiation = 190.0
         ...     with model.add_tempmodel_v2("meteo_temp_io"):
         ...         hruarea(1.0)
         ...         temperatureaddend(0.0, 15.0, 0.0)
@@ -5898,9 +6171,9 @@ class Calc_PotentialInterceptionEvaporation_PETModel_V2(modeltools.Method):
         ...     inputs.relativehumidity = 80.0
         ...     inputs.windspeed = 2.0
         ...     inputs.atmosphericpressure = 1000.0
-        ...     inputs.sunshineduration = 6.0
-        ...     inputs.possiblesunshineduration = 16.0
-        ...     inputs.globalradiation = 190.0
+        ...     factors.sunshineduration = 6.0
+        ...     factors.possiblesunshineduration = 16.0
+        ...     fluxes.globalradiation = 190.0
         ...     with model.add_tempmodel_v2("meteo_temp_io"):
         ...         hruarea(1.0)
         ...         temperatureaddend(0.0)
@@ -6202,9 +6475,9 @@ class Calc_PotentialSoilEvapotranspiration_PETModel_V2(modeltools.Method):
         ...     inputs.relativehumidity = 80.0
         ...     inputs.windspeed = 2.0
         ...     inputs.atmosphericpressure = 1000.0
-        ...     inputs.sunshineduration = 6.0
-        ...     inputs.possiblesunshineduration = 16.0
-        ...     inputs.globalradiation = 190.0
+        ...     factors.sunshineduration = 6.0
+        ...     factors.possiblesunshineduration = 16.0
+        ...     fluxes.globalradiation = 190.0
         ...     with model.add_tempmodel_v2("meteo_temp_io"):
         ...         hruarea(1.0)
         ...         temperatureaddend(0.0)
@@ -6940,6 +7213,10 @@ class Determine_PotentialInterceptionEvaporation_V1(modeltools.AutoMethod):
     :cite:p:`ref-Löpmeier2014`."""
 
     SUBMETHODS = (
+        Process_RadiationModel_V1,
+        Calc_PossibleSunshineDuration_V1,
+        Calc_SunshineDuration_V1,
+        Calc_GlobalRadiation_V1,
         Calc_AirTemperature_V1,
         Calc_AdjustedWindSpeed10m_V1,
         Calc_SaturationVapourPressure_V1,
@@ -6998,14 +7275,14 @@ class Determine_PotentialInterceptionEvaporation_V1(modeltools.AutoMethod):
         evap_inputs.WindSpeed,
         evap_inputs.AtmosphericPressure,
         evap_inputs.RelativeHumidity,
-        evap_inputs.SunshineDuration,
-        evap_inputs.PossibleSunshineDuration,
-        evap_inputs.GlobalRadiation,
         evap_logs.LoggedPrecipitation,
         evap_logs.LoggedPotentialSoilEvapotranspiration,
     )
     UPDATEDSEQUENCES = (evap_states.CloudCoverage,)
     RESULTSEQUENCES = (
+        evap_factors.SunshineDuration,
+        evap_factors.PossibleSunshineDuration,
+        evap_fluxes.GlobalRadiation,
         evap_factors.AirTemperature,
         evap_factors.AdjustedWindSpeed10m,
         evap_factors.SaturationVapourPressure,
@@ -7049,6 +7326,10 @@ class Determine_InterceptionEvaporation_V2(modeltools.AutoMethod):
     :cite:t:`ref-Thompson1981` and :cite:t:`ref-LARSIM`."""
 
     SUBMETHODS = (
+        Process_RadiationModel_V1,
+        Calc_PossibleSunshineDuration_V1,
+        Calc_SunshineDuration_V1,
+        Calc_GlobalRadiation_V1,
         Calc_AirTemperature_V1,
         Update_LoggedAirTemperature_V1,
         Calc_DailyAirTemperature_V1,
@@ -7106,9 +7387,6 @@ class Determine_InterceptionEvaporation_V2(modeltools.AutoMethod):
         evap_inputs.WindSpeed,
         evap_inputs.AtmosphericPressure,
         evap_inputs.RelativeHumidity,
-        evap_inputs.SunshineDuration,
-        evap_inputs.PossibleSunshineDuration,
-        evap_inputs.GlobalRadiation,
     )
     UPDATEDSEQUENCES = (
         evap_logs.LoggedAirTemperature,
@@ -7117,6 +7395,9 @@ class Determine_InterceptionEvaporation_V2(modeltools.AutoMethod):
         evap_logs.LoggedPossibleSunshineDuration,
     )
     RESULTSEQUENCES = (
+        evap_factors.PossibleSunshineDuration,
+        evap_factors.SunshineDuration,
+        evap_fluxes.GlobalRadiation,
         evap_factors.AirTemperature,
         evap_factors.DailyAirTemperature,
         evap_factors.WindSpeed10m,
@@ -7179,7 +7460,7 @@ class Determine_PotentialSoilEvapotranspiration_V1(modeltools.AutoMethod):
         evap_fixed.PsychrometricConstant,
     )
     REQUIREDSEQUENCES = (
-        evap_inputs.PossibleSunshineDuration,
+        evap_factors.PossibleSunshineDuration,
         evap_factors.SaturationVapourPressureSlope,
         evap_factors.SaturationVapourPressure,
         evap_factors.ActualVapourPressure,
@@ -7295,7 +7576,7 @@ class Determine_SoilEvapotranspiration_V3(modeltools.AutoMethod):
         evap_fixed.PsychrometricConstant,
     )
     REQUIREDSEQUENCES = (
-        evap_inputs.PossibleSunshineDuration,
+        evap_factors.PossibleSunshineDuration,
         evap_factors.AirTemperature,
         evap_factors.SaturationVapourPressureSlope,
         evap_factors.SaturationVapourPressure,
@@ -7407,11 +7688,11 @@ class Determine_WaterEvaporation_V3(modeltools.AutoMethod):
     UPDATEDSEQUENCES = (evap_logs.LoggedWindSpeed2m, evap_logs.LoggedGlobalRadiation)
     REQUIREDSEQUENCES = (
         evap_inputs.WindSpeed,
-        evap_inputs.GlobalRadiation,
         evap_factors.CurrentAlbedo,
         evap_factors.DailySaturationVapourPressure,
         evap_factors.DailySaturationVapourPressureSlope,
         evap_factors.DailyActualVapourPressure,
+        evap_fluxes.GlobalRadiation,
         evap_fluxes.DailyNetLongwaveRadiation,
     )
     RESULTSEQUENCES = (
@@ -7605,6 +7886,11 @@ class Model(modeltools.AdHocModel):
         Calc_DailyActualVapourPressure_V1,
         Calc_DryAirPressure_V1,
         Calc_AirDensity_V1,
+        Process_RadiationModel_V1,
+        Calc_PossibleSunshineDuration_V1,
+        Calc_SunshineDuration_V1,
+        Calc_ClearSkySolarRadiation_V1,
+        Calc_GlobalRadiation_V1,
         Update_LoggedSunshineDuration_V1,
         Calc_DailySunshineDuration_V1,
         Update_LoggedPossibleSunshineDuration_V1,
@@ -7752,6 +8038,15 @@ class Model(modeltools.AdHocModel):
     )
     precipmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     precipmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    radiationmodel = modeltools.SubmodelProperty(
+        radiationinterfaces.RadiationModel_V1,
+        radiationinterfaces.RadiationModel_V2,
+        radiationinterfaces.RadiationModel_V3,
+        radiationinterfaces.RadiationModel_V4,
+    )
+    radiationmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    radiationmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
     intercmodel = modeltools.SubmodelProperty(stateinterfaces.IntercModel_V1)
     intercmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -8379,6 +8674,144 @@ class Main_PrecipModel_V2B(modeltools.AdHocModel):
         """
         control = self.parameters.control
         precipmodel.prepare_nmbzones(control.nmbhru.value)
+
+
+class Main_RadiationModel_V1(modeltools.AdHocModel):
+    """Base class for HydPy-Evap models that support submodels that comply with the
+    |RadiationModel_V1| interface."""
+
+    radiationmodel: modeltools.SubmodelProperty
+    radiationmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    radiationmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel(
+        "radiationmodel", radiationinterfaces.RadiationModel_V1
+    )
+    def add_radiationmodel_v1(
+        self,
+        radiationmodel: radiationinterfaces.RadiationModel_V1,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
+        """Initialise the given radiation model that follows the |RadiationModel_V1|
+        interface.
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
+        >>> from hydpy.models.evap_tw2002 import *
+        >>> parameterstep()
+        >>> with model.add_radiationmodel_v1("meteo_v001"):
+        ...     latitude(50.0)
+        ...     longitude(5.0)
+        >>> model.radiationmodel.parameters.control.latitude
+        latitude(50.0)
+        """
+
+
+class Main_RadiationModel_V2(modeltools.AdHocModel):
+    """Base class for HydPy-Evap models that support submodels that comply with the
+    |RadiationModel_V2| interface."""
+
+    radiationmodel: modeltools.SubmodelProperty
+    radiationmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    radiationmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel(
+        "radiationmodel", radiationinterfaces.RadiationModel_V2
+    )
+    def add_radiationmodel_v2(
+        self,
+        radiationmodel: radiationinterfaces.RadiationModel_V2,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
+        """Initialise the given radiation model that follows the |RadiationModel_V2|
+        interface.
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
+        >>> from hydpy.models.evap_tw2002 import *
+        >>> parameterstep()
+        >>> with model.add_radiationmodel_v2("meteo_glob_io"):
+        ...     inputs.globalradiation = 100.0
+        >>> model.radiationmodel.sequences.inputs.globalradiation
+        globalradiation(100.0)
+        """
+
+
+class Main_RadiationModel_V3(modeltools.AdHocModel):
+    """Base class for HydPy-Evap models that support submodels that comply with the
+    |RadiationModel_V3| interface."""
+
+    radiationmodel: modeltools.SubmodelProperty
+    radiationmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    radiationmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel(
+        "radiationmodel", radiationinterfaces.RadiationModel_V3
+    )
+    def add_radiationmodel_v3(
+        self,
+        radiationmodel: radiationinterfaces.RadiationModel_V3,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
+        """Initialise the given radiation model that follows the |RadiationModel_V3|
+        interface.
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
+        >>> from hydpy.models.evap_fao56 import *
+        >>> parameterstep()
+        >>> with model.add_radiationmodel_v3("meteo_clear_glob_io"):
+        ...     inputs.clearskysolarradiation = 200.0
+        ...     inputs.globalradiation = 100.0
+        >>> model.radiationmodel.sequences.inputs.clearskysolarradiation
+        clearskysolarradiation(200.0)
+        >>> model.radiationmodel.sequences.inputs.globalradiation
+        globalradiation(100.0)
+        """
+
+
+class Main_RadiationModel_V4(modeltools.AdHocModel):
+    """Base class for HydPy-Evap models that support submodels that comply with the
+    |RadiationModel_V4| interface."""
+
+    radiationmodel: modeltools.SubmodelProperty
+    radiationmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    radiationmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel(
+        "radiationmodel", radiationinterfaces.RadiationModel_V4
+    )
+    def add_radiationmodel_v4(
+        self,
+        radiationmodel: radiationinterfaces.RadiationModel_V4,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
+        """Initialise the given radiation model that follows the |RadiationModel_V4|
+        interface.
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
+        >>> from hydpy.models.evap_pet_ambav1 import *
+        >>> parameterstep()
+        >>> with model.add_radiationmodel_v4("meteo_psun_sun_glob_io"):
+        ...     inputs.possiblesunshineduration = 12.0
+        ...     inputs.sunshineduration = 6.0
+        ...     inputs.globalradiation = 100.0
+        >>> model.radiationmodel.sequences.inputs.possiblesunshineduration
+        possiblesunshineduration(12.0)
+        >>> model.radiationmodel.sequences.inputs.sunshineduration
+        sunshineduration(6.0)
+        >>> model.radiationmodel.sequences.inputs.globalradiation
+        globalradiation(100.0)
+        """
 
 
 class Main_IntercModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):

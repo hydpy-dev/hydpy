@@ -85,6 +85,34 @@ class AutoMethod(Method):
             method.__call__(model)
 
 
+class ReusableMethod(Method):
+    """Base class for defining methods that need not or must not be called multiple
+    times for the same simulation step.
+
+    |ReusableMethod| helps to implement "sharable" submodels, of which single instances
+    can be used by multiple main model instances.  See |SharableSubmodelInterface| for
+    further information.
+    """
+
+    REUSEMARKER: str
+    """Name of an additional model attribute for marking if the respective method has 
+    already been called and should not be called again for the same simulation step and 
+    its results can be reused."""
+
+    def __init_subclass__(cls) -> None:
+        super().__init_subclass__()
+        cls.REUSEMARKER = f"__hydpy_reuse_{cls.__name__.lower()}__"
+
+    @classmethod
+    def call_reusablemethod(cls, model: Model, *args, **kwargs) -> None:
+        """Execute the "normal" model-specific `__call__` method only when indicated by
+        the |ReusableMethod.REUSEMARKER| attribute and update this attribute when
+        necessary."""
+        if not getattr(model, cls.REUSEMARKER):
+            cls.__call__(model, *args, **kwargs)
+            setattr(model, cls.REUSEMARKER, True)
+
+
 abstractmodelmethods: set[Callable[..., Any]] = set()
 
 
@@ -1053,6 +1081,8 @@ class Model:
 
     SOLVERPARAMETERS: tuple[type[parametertools.Parameter], ...] = ()
 
+    REUSABLE_METHODS: ClassVar[tuple[type[ReusableMethod], ...]]
+
     COMPOSITE: bool = False
     """Flag for informing whether the respective |Model| subclass is usually not 
     directly applied by model users but behind the scenes for compositing all models 
@@ -1071,7 +1101,11 @@ class Model:
         shortname2method: dict[str, types.MethodType] = {}
         for cls_ in self.get_methods():
             longname = cls_.__name__.lower()
-            method = types.MethodType(cls_.__call__, self)
+            if issubclass(cls_, ReusableMethod):
+                setattr(self, cls_.REUSEMARKER, False)
+                method = types.MethodType(cls_.call_reusablemethod, self)
+            else:
+                method = types.MethodType(cls_.__call__, self)
             setattr(self, longname, method)
             shortname = longname.rpartition("_")[0]
             if shortname in blacklist_shortnames:
@@ -1869,6 +1903,59 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
 filename must be known.  This can be done, by passing a filename to function \
 `save_controls` directly.  But in complete HydPy applications, it is usally assumed \
 to be consistent with the name of the element handling the model.
+
+        Submodels like |meteo_v001| allow using their instances by multiple main
+        models.  We prepare such a case by selecting such an instance as the submodel
+        of the absolute main model |lland_v3| and the the relative submodel
+        |evap_morsim|:
+
+        >>> from hydpy.core.importtools import reverse_model_wildcard_import
+        >>> reverse_model_wildcard_import()
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2001-01-02", "1d"
+        >>> from hydpy.models.lland_v3 import *
+        >>> parameterstep()
+        >>> nhru(1)
+        >>> ft(1.0)
+        >>> fhru(1.0)
+        >>> lnk(ACKER)
+        >>> wmax(300.0)
+        >>> with model.add_radiationmodel_v1("meteo_v001") as meteo_v001:
+        ...     latitude(50.0)
+        >>> with model.add_aetmodel_v1("evap_morsim"):
+        ...     measuringheightwindspeed(10.0)
+        ...     model.add_radiationmodel_v1(meteo_v001)
+
+        To avoid name collisions, |Model.save_controls| prefixes the string `submodel_`
+        to the submodel name (which is identical to the submodel module's name) to
+        create the name of the variable that references the shared model's instance:
+
+        >>> with Open():  # doctest: +ELLIPSIS
+        ...     model.save_controls(filepath="otherdir/otherfile.py")
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        otherdir/otherfile.py
+        --------------------------------------------------------------------------------
+        # -*- coding: utf-8 -*-
+        ...
+        from hydpy.models.lland_v3 import *
+        from hydpy.models import evap_morsim
+        from hydpy.models import meteo_v001
+        ...
+        simulationstep("1d")
+        parameterstep("1d")
+        ...
+        ft(1.0)
+        ...
+        with model.add_aetmodel_v1(evap_morsim):
+            measuringheightwindspeed(10.0)
+            ...
+            with model.add_radiationmodel_v1(meteo_v001) as submodel_meteo_v001:
+                latitude(50.0)
+                ...
+        model.add_radiationmodel_v1(submodel_meteo_v001)
+        ...
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         """
 
         def _extend_lines_submodel(
@@ -1894,34 +1981,47 @@ to be consistent with the name of the element handling the model.
             ).items():
                 adder, position = _find_adder_and_position()
                 position = "" if position is None else f", position={position}"
-                lines.append(
-                    f"{(sublevel - 1) * '    '}with "
-                    f"model.{adder.get_wrapped().__name__}({submodel}{position}):\n"
-                )
-                preparemethods_ = preparemethods.copy()
-                for method in adder.methods:
-                    preparemethods_.add(method.__name__)
-                targetparameters = set()
-                for methodname in preparemethods_:
-                    updater = getattr(submodel, methodname)
-                    if isinstance(updater, importtools.TargetParameterUpdater):
-                        targetparameters.add(updater.targetparameter)
-                submodellines = (
-                    submodel._get_controllines(  # pylint: disable=protected-access
-                        parameterstep=parameterstep,
-                        simulationstep=simulationstep,
-                        auxfiler=auxfiler,
-                        sublevel=sublevel,
-                        ignore=tuple(targetparameters),
+                addername = adder.get_wrapped().__name__
+                indent = (sublevel - 1) * "    "
+                if submodel in visited_shared_submodels:
+                    lines.append(
+                        f"{indent}model.{addername}(submodel_{submodel}{position})\n"
                     )
-                )
-                if submodellines:
-                    lines.extend(submodellines)
                 else:
-                    lines.append(f"{sublevel * '    '}pass\n")  # pragma: no cover
-                _extend_lines_submodel(
-                    model=submodel, sublevel=sublevel, preparemethods=preparemethods_
-                )
+                    line = f"{indent}with model.{addername}({submodel}{position})"
+                    if submodel in shared_submodels:
+                        assert isinstance(submodel, SharableSubmodelInterface)
+                        visited_shared_submodels.add(submodel)
+                        line = f"{line} as submodel_{submodel}:\n"
+                    else:
+                        line = f"{line}:\n"
+                    lines.append(line)
+                    preparemethods_ = preparemethods.copy()
+                    for method in adder.methods:
+                        preparemethods_.add(method.__name__)
+                    targetparameters = set()
+                    for methodname in preparemethods_:
+                        updater = getattr(submodel, methodname, None)
+                        if isinstance(updater, importtools.TargetParameterUpdater):
+                            targetparameters.add(updater.targetparameter)
+                    submodellines = (
+                        submodel._get_controllines(  # pylint: disable=protected-access
+                            parameterstep=parameterstep,
+                            simulationstep=simulationstep,
+                            auxfiler=auxfiler,
+                            sublevel=sublevel,
+                            ignore=tuple(targetparameters),
+                        )
+                    )
+                    if submodellines:
+                        lines.extend(submodellines)
+                    else:
+                        lines.append(f"{sublevel * '    '}pass\n")  # pragma: no cover
+                    _extend_lines_submodel(
+                        model=submodel,
+                        sublevel=sublevel,
+                        preparemethods=preparemethods_,
+                    )
 
         header = self.get_controlfileheader(
             import_submodels=True,
@@ -1937,8 +2037,17 @@ to be consistent with the name of the element handling the model.
                 sublevel=0,
             )
         )
+
+        submodels = tuple(self.find_submodels().values())
+        sharable_submodels = set(
+            m for m in submodels if isinstance(m, SharableSubmodelInterface)
+        )
+        shared_submodels = set(m for m in sharable_submodels if submodels.count(m) > 1)
+        visited_shared_submodels: set[SharableSubmodelInterface] = set()
+
         _extend_lines_submodel(model=self, sublevel=0, preparemethods=set())
         text = "".join(lines)
+
         if filepath:
             with open(filepath, mode="w", encoding="utf-8") as controlfile:
                 controlfile.write(text)
@@ -2242,6 +2351,18 @@ element.
     @abc.abstractmethod
     def simulate(self, idx: int) -> None:
         """Perform a simulation run over a single simulation time step."""
+
+    def reset_reuseflags(self) -> None:
+        """Reset all |ReusableMethod.REUSEMARKER| attributes of the current model
+        instance and its submodels (usually at the beginning of a simulation step).
+
+        When working in Cython mode, the standard model import overrides this generic
+        Python version with a model-specific Cython version.
+        """
+        for method in self.REUSABLE_METHODS:
+            setattr(self, method.REUSEMARKER, False)
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            submodel.reset_reuseflags()
 
     def load_data(self, idx: int) -> None:
         """Call method |Sequences.load_data| of the attribute `sequences` of the
@@ -2591,6 +2712,7 @@ element.
          'model.aetmodel.intercmodel': None,
          'model.aetmodel.petmodel': <hydpy.models.evap_mlc.Model ...>,
          'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_tw2002.Model ...>,
+         'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
          'model.aetmodel.soilwatermodel': None,
          'model.soilmodel': None}
@@ -2605,6 +2727,7 @@ element.
          'model.aetmodel.intercmodel': None,
          'model.aetmodel.petmodel': <hydpy.models.evap_mlc.Model ...>,
          'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_tw2002.Model ...>,
+         'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
          'model.soilmodel': None}
 
@@ -2618,6 +2741,7 @@ element.
          'model.aetmodel.intercmodel': None,
          'model.aetmodel.petmodel': <hydpy.models.evap_mlc.Model ...>,
          'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_tw2002.Model ...>,
+         'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
          'model.aetmodel.soilwatermodel': <hydpy.models.lland_v1.Model object ...>,
          'model.soilmodel': None}
@@ -2989,6 +3113,10 @@ but the value `1` of type `int` is given.
                 },
             )
 
+        cls.REUSABLE_METHODS = tuple(
+            method for method in cls.get_methods() if issubclass(method, ReusableMethod)
+        )
+
 
 class RunModel(Model):
     """Base class for |AdHocModel| and |SegmentModel| that introduces so-called "run
@@ -3057,6 +3185,7 @@ class RunModel(Model):
             >>> Node.clear_all()
             >>> Element.clear_all()
         """
+        self.reset_reuseflags()
         self.load_data(idx)
         self.update_inlets()
         self.run()
@@ -3350,6 +3479,7 @@ class ELSModel(SolverModel):
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
+        self.reset_reuseflags()
         self.load_data(idx)
         self.update_inlets()
         self.solve()
@@ -4365,6 +4495,17 @@ class SubmodelInterface(Model, abc.ABC):
         |True|; otherwise, |False|.
         """
         return False
+
+
+class SharableSubmodelInterface(SubmodelInterface, abc.ABC):
+    """Base class for defining interfaces for submodels designed as "sharable".
+
+    Currently, |SharableSubmodelInterface|  implements no functionality.  Its sole
+    purpose is to allow model developers to mark a submodel as sharable, meaning
+    multiple main model instances can share the same submodel instance.  It is more of
+    a safety mechanism to prevent reusing submodels that are not designed for this
+    purpose.
+    """
 
 
 class Submodel:

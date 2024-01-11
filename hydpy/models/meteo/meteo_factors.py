@@ -8,7 +8,7 @@ from hydpy.models.meteo import meteo_sequences
 
 
 class EarthSunDistance(sequencetools.FactorSequence):
-    """The relative inverse distance between the earth and the sun [-]."""
+    """The relative inverse distance between the Earth and the sun [-]."""
 
     NDIM, NUMERIC = 0, False
 

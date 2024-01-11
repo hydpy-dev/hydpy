@@ -761,7 +761,7 @@ class PyxWriter:
 
     Method |PyxWriter| serves as a master method, which triggers the complete writing
     process.  The other properties and methods supply the required code lines.  Their
-    names are selected to match the names of the original Python models as close as
+    names are selected to match the names of the original Python models as closely as
     possible.
     """
 
@@ -1063,6 +1063,20 @@ class PyxWriter:
         if maxndim:
             jdxs = ", ".join(f"jdx{ndim}" for ndim in range(maxndim))
             lines.pyx.add(2, f"cdef {_int} {jdxs}")
+
+    def reset_reuseflags(self, lines: PyxPxdLines) -> None:
+        """Reset reuse flag statements."""
+        print("            . reset_reuseflags")
+        pyx, both = lines.pyx.add, lines.add
+        both(1, f"cpdef void reset_reuseflags(self){_nogil}:")
+        if (methods := self.model.REUSABLE_METHODS) or self.model.find_submodels(
+            include_subsubmodels=False, include_optional=True
+        ):
+            for method in methods:
+                pyx(2, f"self.{method.REUSEMARKER} = False")
+            self._call_submodel_method(lines, "reset_reuseflags()")
+        else:
+            pyx(2, "pass")
 
     @classmethod
     def load_data(
@@ -1457,10 +1471,13 @@ class PyxWriter:
                 pyx(2, f"return self.{name}")
                 pyx(1, f"def set_{name}(self, {name}: {baseinterface}) -> None:")
                 pyx(2, f"self.{name} = {name}")
+        for method in self.model.REUSABLE_METHODS:
+            pxd(1, f"cdef bint {method.REUSEMARKER}")
 
     def modelstandardfunctions(self, lines: PyxPxdLines) -> None:
         """The standard functions of the model class."""
         self.simulate(lines)
+        self.reset_reuseflags(lines)
         self.iofunctions(lines)
         self.new2old(lines)
         if isinstance(self.model, modeltools.RunModel):
@@ -1495,6 +1512,10 @@ class PyxWriter:
         pyx, both = lines.pyx.add, lines.add
         both(1, f"cpdef inline void simulate(self, {_int} idx) {_nogil}:")
         pyx(2, "self.idx_sim = idx")
+        if self.model.REUSABLE_METHODS or self.model.find_submodels(
+            include_optional=True, include_subsubmodels=False
+        ):
+            pyx(2, "self.reset_reuseflags()")
         seqs = self.model.sequences
         if seqs.inputs or self.model.SUBMODELINTERFACES:
             pyx(2, "self.load_data(idx)")
@@ -1768,11 +1789,13 @@ class PyxWriter:
         self._call_methods(lines, "calculate_full_terms", model.FULL_ODE_METHODS)
 
     @property
-    def name2function_method(self) -> dict[str, Callable[..., Any]]:
+    def name2function_method(self) -> dict[str, types.MethodType]:
         """Functions defined by |Method| subclasses."""
         name2function = {}
         for name, member in vars(self.model).items():
-            if getattr(getattr(member, "__func__", None), "__HYDPY_METHOD__", False):
+            if (getattr(member, "__name__", None) == "call_reusablemethod") or getattr(
+                getattr(member, "__func__", None), "__HYDPY_METHOD__", False
+            ):
                 name2function[name] = member
         return name2function
 
@@ -2303,20 +2326,27 @@ class FuncConverter:
 
     model: modeltools.Model
     funcname: str
-    func: Callable[..., Any]
+    func: Union[types.MethodType, Callable[[modeltools.Model], None]]
     inline: bool
 
     def __init__(
         self,
         model: modeltools.Model,
         funcname: str,
-        func: Callable[..., Any],
+        func: Union[types.MethodType, Callable[[modeltools.Model], None]],
         inline: bool = True,
     ) -> None:
         self.model = model
         self.funcname = funcname
         self.func = func
         self.inline = inline
+
+    @property
+    def realfunc(self) -> Callable:
+        """The "real" function, as as defined by the model developer or user."""
+        if (reusablemethod := self.reusablemethod) is not None:
+            return reusablemethod.__call__
+        return self.func
 
     @property
     def argnames(self) -> list[str]:
@@ -2329,7 +2359,7 @@ class FuncConverter:
         >>> FuncConverter(model, None, model.calc_tc_v1).argnames
         ['model']
         """
-        return inspect.getargs(self.func.__code__)[0]
+        return inspect.getargs(self.realfunc.__code__)[0]
 
     @property
     def varnames(self) -> tuple[str, ...]:
@@ -2343,7 +2373,7 @@ class FuncConverter:
         ('self', 'con', 'der', 'inp', 'fac', 'k')
         """
         return tuple(
-            vn if vn != "model" else "self" for vn in self.func.__code__.co_varnames
+            vn if vn != "model" else "self" for vn in self.realfunc.__code__.co_varnames
         )
 
     @property
@@ -2447,6 +2477,18 @@ class FuncConverter:
         ]
 
     @property
+    def reusablemethod(self) -> Optional[modeltools.ReusableMethod]:
+        """If the currently handled function object is a reusable method, return the
+        corresponding subclass of |ReusableMethod|."""
+        if isinstance(method_of_model := self.func, types.MethodType):
+            method_of_reusablemethod = method_of_model.__func__
+            if isinstance(method_of_reusablemethod, types.MethodType):  # type: ignore[unreachable]  # pylint: disable=line-too-long
+                reusablemethod = method_of_reusablemethod.__self__  # type: ignore[unreachable]  # pylint: disable=line-too-long
+                if issubclass(reusablemethod, modeltools.ReusableMethod):
+                    return reusablemethod
+        return None
+
+    @property
     def cleanlines(self) -> list[str]:
         """The leaned code lines of the current function.
 
@@ -2463,7 +2505,7 @@ class FuncConverter:
           * remove ".values" and "value"
           * remove the ": float" annotation
         """
-        code = inspect.getsource(self.func)
+        code = inspect.getsource(self.realfunc)
         code = "\n".join(code.split('"""')[::2])
         code = code.replace("modelutils.", "")
         code = code.replace(" model.", " self.")
@@ -2639,17 +2681,23 @@ get_partialdischargedownstream()
                 return "masterinterface.MasterInterface"
             return f"{pytype.__module__.split('.')[-1]}.{pytype.__name__}"
 
-        annotations_ = get_type_hints(self.func)
+        annotations_ = get_type_hints(self.realfunc)
         lines = ["    " + line for line in self.cleanlines]
         lines[0] = lines[0].lower()
         inline = " inline" if self.inline else ""
         lines[0] = lines[0].replace("def ", f"cpdef{inline} {_get_cytype('return')} ")
         lines[0] = lines[0].replace("):", f"){_nogil}:")
+        if (reusablemethod := self.reusablemethod) is not None:
+            lines[0] = lines[0].replace("(self, model", "(self")
+            for i in range(1, len(lines)):
+                lines[i] = f"    {lines[i]}"
+            lines.insert(1, f"        if not self.{reusablemethod.REUSEMARKER}:")
+            lines.append(f"            self.{reusablemethod.REUSEMARKER} = True")
         for name in self.untypedarguments:
             cytype = _get_cytype(name)
             lines[0] = lines[0].replace(f", {name},", f", {cytype} {name},")
             lines[0] = lines[0].replace(f", {name})", f", {cytype} {name})")
-        code = inspect.getsource(self.func)
+        code = inspect.getsource(self.realfunc)
         for name in self.untypedinternalvarnames:
             if (f" {name}: float" in code) or name.startswith("d_"):
                 cytype = "double"

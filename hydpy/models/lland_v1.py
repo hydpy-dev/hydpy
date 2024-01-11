@@ -148,6 +148,8 @@ Minhas equation to reduce potential evapotranspiration to actual evapotranspirat
 ...             hrualtitude(100.0)
 ...             coastfactor(0.6)
 ...             evapotranspirationfactor(0.4)
+...             with model.add_radiationmodel_v2("meteo_glob_io"):
+...                 pass
 
 We initialise a test function object that prepares and runs the tests and prints and
 plots their results:
@@ -192,7 +194,7 @@ inflow to zero:
 ...     15.2, 14.5, 12.4, 11.7, 11.9)
 >>> inlet.sequences.sim.series = 0.0
 
->>> model.aetmodel.petmodel.retmodel.sequences.inputs.globalradiation.series = (
+>>> model.aetmodel.petmodel.retmodel.radiationmodel.sequences.inputs.globalradiation.series = (
 ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 11.2, 105.5, 248.3, 401.3, 449.7, 493.4, 261.5,
 ...     363.6, 446.2, 137.6, 103.0, 63.7, 41.4, 7.9, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 ...     0.0, 0.0, 0.0, 6.1, 77.9, 196.7, 121.9, 156.6, 404.7, 217.9, 582.0, 263.9,

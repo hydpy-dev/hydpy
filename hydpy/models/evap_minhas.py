@@ -192,6 +192,8 @@ demonstrate this functionality:
 ...     with model.add_precipmodel_v2("meteo_precip_io"):
 ...         hruarea(1.0)
 ...         precipitationfactor(1.0)
+...     with model.add_radiationmodel_v4("meteo_psun_sun_glob_io"):
+...         pass
 ...     with model.add_snowcovermodel_v1("dummy_snowcover"):
 ...         pass
 
@@ -204,11 +206,11 @@ initial conditions required by |evap_pet_ambav1|:
 >>> model.petmodel.sequences.inputs.windspeed.series = 2.0
 >>> model.petmodel.sequences.inputs.relativehumidity.series = 80.0
 >>> model.petmodel.sequences.inputs.atmosphericpressure.series = 1000.0
->>> model.petmodel.sequences.inputs.sunshineduration.series = 6.0
->>> model.petmodel.sequences.inputs.possiblesunshineduration.series = 16.0
->>> model.petmodel.sequences.inputs.globalradiation.series = 190.0
 >>> model.petmodel.tempmodel.sequences.inputs.temperature.series = 15.0
 >>> model.petmodel.precipmodel.sequences.inputs.precipitation.series = 0.0
+>>> model.petmodel.radiationmodel.sequences.inputs.sunshineduration.series = 6.0
+>>> model.petmodel.radiationmodel.sequences.inputs.possiblesunshineduration.series = 16.0
+>>> model.petmodel.radiationmodel.sequences.inputs.globalradiation.series = 190.0
 >>> model.petmodel.snowcovermodel.sequences.inputs.snowcover.series = 0.0
 
 >>> test.inits = (

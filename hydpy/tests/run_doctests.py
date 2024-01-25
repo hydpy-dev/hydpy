@@ -184,6 +184,11 @@ def main(  # pylint: disable=too-many-branches
                             category=DeprecationWarning,
                             message="`np.bool`",
                         )
+                        warnings.filterwarnings(
+                            action="ignore",
+                            category=DeprecationWarning,
+                            message="datetime.datetime.utcfromtimestamp",
+                        )
                         runner = unittest.TextTestRunner(stream=file_)
                         testresult = runner.run(suite)
                         nmbproblems = len(testresult.errors) + len(testresult.failures)

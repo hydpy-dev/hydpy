@@ -4371,7 +4371,8 @@ class CallbackParameter(Parameter):
 
     >>> def adjust_gateheight(model) -> None:
     ...     con = model.parameters.control.fastaccess
-    ...     con.gateheight = 5.0
+    ...     my_gateheight: float = 2.0 + 3.0
+    ...     con.gateheight = my_gateheight
 
     However, when working in Cython mode, *HydPy* converts the pure Python function to
     a Cython function and compiles it to C in the background, similar to how it handles
@@ -4394,7 +4395,8 @@ class CallbackParameter(Parameter):
     >>> gateheight
     def adjust_gateheight(model) -> None:
         con = model.parameters.control.fastaccess
-        con.gateheight = 5.0
+        my_gateheight: float = 2.0 + 3.0
+        con.gateheight = my_gateheight
     gateheight(callback=adjust_gateheight)
 
     When interested in the parameter's value, request it via the
@@ -4419,7 +4421,8 @@ class CallbackParameter(Parameter):
     >>> gateheight
     def adjust_gateheight(model) -> None:
         con = model.parameters.control.fastaccess
-        con.gateheight = 5.0
+        my_gateheight: float = 2.0 + 3.0
+        con.gateheight = my_gateheight
     gateheight(callback=adjust_gateheight)
     >>> round_(gateheight.value)
     5.0
@@ -4452,6 +4455,27 @@ keyword argument, it must be `callback`, and you need to pass a callback functio
     ...
     ValueError: Parameter `gateheight` of element `?` does not allow to combine the \
 `callback` argument with other arguments.
+
+    The conversion from Python to Cython also works when defining the original function
+    in an indentated block:
+
+    >>> try:
+    ...     def adjust_gateheight_indented(model) -> None:
+    ...         con = model.parameters.control.fastaccess
+    ...         my_gateheight: float = 2.0 * 3.0
+    ...         con.gateheight = my_gateheight
+    ... finally:
+    ...     ();gateheight(callback=adjust_gateheight_indented);()  # doctest: +ELLIPSIS
+    (...)
+    >>> gateheight.callback = adjust_gateheight_indented
+    >>> gateheight
+    def adjust_gateheight_indented(model) -> None:
+        con = model.parameters.control.fastaccess
+        my_gateheight: float = 2.0 * 3.0
+        con.gateheight = my_gateheight
+    gateheight(callback=adjust_gateheight_indented)
+    >>> round_(gateheight.value)
+    6.0
     """
 
     _has_callback: bool = False
@@ -4528,7 +4552,9 @@ keyword argument, it must be `callback`, and you need to pass a callback functio
         if self._has_callback:
             callback: Any = self.callback
             if isinstance(callback, types.FunctionType):
-                pycode = inspect.getsource(callback).strip()
+                lines = inspect.getsource(callback).split("\n")
+                indent = len(lines[0]) - len(lines[0].lstrip())
+                pycode = "\n".join(line[indent:] for line in lines).rstrip()
                 funcname = callback.__name__
             else:
                 pycode = callback.get_sourcecode()

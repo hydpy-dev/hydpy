@@ -1833,7 +1833,7 @@ class PyxWriter:
             funcconverter = FuncConverter(
                 model=self.model, funcname=name, func=func, inline=inline
             )
-            pyxlines = funcconverter.pyxlines
+            pyxlines = tuple(f"    {line}" for line in funcconverter.pyxlines)
             lines.pyx.extend(pyxlines)
             lines.pxd.append(pyxlines[0][:-1])
         for name, submethods in self.name2submethodnames_automethod.items():
@@ -1877,7 +1877,7 @@ class PyxWriter:
         if solve := getattr(self.model, "solve", None):
             print("            . solve")
             funcconverter = FuncConverter(self.model, "solve", solve)
-            pyxlines = funcconverter.pyxlines
+            pyxlines = tuple(f"    {line}" for line in funcconverter.pyxlines)
             lines.pyx.extend(pyxlines)
             lines.pxd.append(pyxlines[0][:-1])
 
@@ -2198,7 +2198,7 @@ class PyxWriter:
             funcconverter = FuncConverter(
                 self.model, "extrapolate_error", extrapolate_error
             )
-            pyxlines = funcconverter.pyxlines
+            pyxlines = tuple(f"    {line}" for line in funcconverter.pyxlines)
             lines.pyx.extend(pyxlines)
             lines.pxd.append(pyxlines[0][:-1])
 
@@ -2520,8 +2520,10 @@ class FuncConverter:
         code = self.remove_linebreaks_within_equations(code)
         lines = code.splitlines()
         self.remove_imath_operators(lines)
-        del lines[0]  # remove @staticmethod
-        lines = [line[4:] for line in lines]  # unindent
+        if lines[0].lstrip().startswith("@"):
+            del lines[0]  # remove @staticmethod
+        indent = len(lines[0]) - len(lines[0].lstrip())
+        lines = [line[indent:] for line in lines]  # normalise indentation
         argnames = self.argnames
         argnames[0] = "self"
         lines[0] = f"def {self.funcname}({', '.join(argnames)}):"
@@ -2619,12 +2621,12 @@ class FuncConverter:
         >>> model.calc_test_v1 = MethodType(Calc_Test_V1.__call__, model)
         >>> lines = FuncConverter(model, "calc_test_v1", model.calc_test_v1).pyxlines
         >>> lines  # doctest: +ELLIPSIS
-            cpdef inline void calc_test_v1(self) nogil:
-                cdef double d_pc
-                cdef ...int... k
-                for k in range(self.parameters.control.nmbzones):
-                    d_pc = self.parameters.control.kg[k]*self.sequences.inputs.p[k]
-                    self.sequences.fluxes.pc[k] = d_pc
+        cpdef inline void calc_test_v1(self) nogil:
+            cdef double d_pc
+            cdef ...int... k
+            for k in range(self.parameters.control.nmbzones):
+                d_pc = self.parameters.control.kg[k]*self.sequences.inputs.p[k]
+                self.sequences.fluxes.pc[k] = d_pc
         <BLANKLINE>
 
         The second example shows that `float` and `Vector` annotations translate into
@@ -2637,9 +2639,8 @@ class FuncConverter:
         ...         return con.kg[0]*value*values[1]
         >>> model.calc_test_v2 = MethodType(Calc_Test_V2.__call__, model)
         >>> FuncConverter(model, "calc_test_v2", model.calc_test_v2).pyxlines
-            cpdef inline double calc_test_v2(self, double value, double[:] values) \
-nogil:
-                return self.parameters.control.kg[0]*value*values[1]
+        cpdef inline double calc_test_v2(self, double value, double[:] values) nogil:
+            return self.parameters.control.kg[0]*value*values[1]
         <BLANKLINE>
 
         Third, Python's standard cast function translates into Cython's cast syntax:
@@ -2651,8 +2652,8 @@ nogil:
         ...         return cast(channelinterfaces.StorageModel_V1, model.soilmodel)
         >>> model.calc_test_v3 = MethodType(Calc_Test_V3.__call__, model)
         >>> FuncConverter(model, "calc_test_v3", model.calc_test_v3).pyxlines
-            cpdef inline masterinterface.MasterInterface calc_test_v3(self) nogil:
-                return (<masterinterface.MasterInterface>self.soilmodel)
+        cpdef inline masterinterface.MasterInterface calc_test_v3(self) nogil:
+            return (<masterinterface.MasterInterface>self.soilmodel)
         <BLANKLINE>
 
         >>> class Calc_Test_V4(Method):
@@ -2667,8 +2668,8 @@ nogil:
         ...         ).get_partialdischargedownstream()
         >>> model.calc_test_v4 = MethodType(Calc_Test_V4.__call__, model)
         >>> FuncConverter(model, "calc_test_v4", model.calc_test_v4).pyxlines
-            cpdef inline void calc_test_v4(self) nogil:
-                (<masterinterface.MasterInterface>self.routingmodels[0]).\
+        cpdef inline void calc_test_v4(self) nogil:
+            (<masterinterface.MasterInterface>self.routingmodels[0]).\
 get_partialdischargedownstream()
         <BLANKLINE>
         """
@@ -2682,7 +2683,7 @@ get_partialdischargedownstream()
             return f"{pytype.__module__.split('.')[-1]}.{pytype.__name__}"
 
         annotations_ = get_type_hints(self.realfunc)
-        lines = ["    " + line for line in self.cleanlines]
+        lines = self.cleanlines
         lines[0] = lines[0].lower()
         inline = " inline" if self.inline else ""
         lines[0] = lines[0].replace("def ", f"cpdef{inline} {_get_cytype('return')} ")
@@ -2691,8 +2692,8 @@ get_partialdischargedownstream()
             lines[0] = lines[0].replace("(self, model", "(self")
             for i in range(1, len(lines)):
                 lines[i] = f"    {lines[i]}"
-            lines.insert(1, f"        if not self.{reusablemethod.REUSEMARKER}:")
-            lines.append(f"            self.{reusablemethod.REUSEMARKER} = True")
+            lines.insert(1, f"    if not self.{reusablemethod.REUSEMARKER}:")
+            lines.append(f"        self.{reusablemethod.REUSEMARKER} = True")
         for name in self.untypedarguments:
             cytype = _get_cytype(name)
             lines[0] = lines[0].replace(f", {name},", f", {cytype} {name},")
@@ -2703,7 +2704,7 @@ get_partialdischargedownstream()
                 cytype = "double"
             else:
                 cytype = "int"
-            lines.insert(1, f"        cdef {cytype} {name}")
+            lines.insert(1, f"    cdef {cytype} {name}")
         for idx, line in enumerate(lines):
             if "cast(" in line:
                 part1, _, part23 = line.partition("cast(")
@@ -2725,6 +2726,10 @@ def get_callbackcymodule(
     pyfilepath = os.path.join(autogenpath, f"{basename}.pysource")
     pycode = inspect.getsource(callback)
 
+    lines = pycode.split("\n")
+    indent = len(lines[0]) - len(lines[0].lstrip())
+    pycode = "\n".join(line[indent:] for line in lines)
+
     refresh = True
     if os.path.exists(pyfilepath):
         with open(pyfilepath, "r", encoding=config.ENCODING) as sf:
@@ -2745,7 +2750,6 @@ def get_callbackcymodule(
         pyx.insert(
             0, f"from hydpy.cythons.autogen.c_{model} cimport Model, CallbackWrapper\n"
         )
-        pyx[1] = pyx[1].strip()
         pyx[1] = pyx[1].replace("cpdef ", "cdef ").replace("(self)", "(Model self)")
         pyx.add(0, "")
         pyx.add(0, "cdef class MyCallbackWrapper(CallbackWrapper):")

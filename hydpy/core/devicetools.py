@@ -3734,6 +3734,6 @@ def _get_pandasindex() -> pandas.Index:
     index = pandas.date_range(
         (tg.firstdate + shift).datetime,
         (tg.lastdate - shift).datetime,
-        (tg.lastdate - tg.firstdate - tg.stepsize) / tg.stepsize + 1,
+        int((tg.lastdate - tg.firstdate - tg.stepsize) / tg.stepsize) + 1,
     )
     return index

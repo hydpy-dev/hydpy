@@ -400,9 +400,9 @@ class Update_LoggedPossibleSunshineDuration_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         log = model.sequences.logs.fastaccess
         for idx in range(der.nmblogentries - 1, 0, -1):
-            log.loggedpossiblesunshineduration[
-                idx
-            ] = log.loggedpossiblesunshineduration[idx - 1]
+            log.loggedpossiblesunshineduration[idx] = (
+                log.loggedpossiblesunshineduration[idx - 1]
+            )
         log.loggedpossiblesunshineduration[0] = fac.possiblesunshineduration
 
 
@@ -5809,6 +5809,7 @@ class Calc_BoWa_SoilModel_V1(modeltools.Method):
         evb: -1.0, -1.0, -1.0, 0.0
         qkap: 1.0, 1.0, 1.0, 0.0
     """
+
     CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     REQUIREDSEQUENCES = (lland_fluxes.WaDa,)
     UPDATEDSEQUENCES = (
@@ -6557,6 +6558,7 @@ class Calc_QBGA_SBG_QBGZ_QDGZ_V1(modeltools.Method):
             >>> check(sm=6.2, g1=1.4, g2=1.4)
             sbg(6.2), qbga(0.568565), qbgz(1.768565), qdgz(1.231435)
     """
+
     CONTROLPARAMETERS = (
         lland_control.VolBMax,
         lland_control.GSBMax,

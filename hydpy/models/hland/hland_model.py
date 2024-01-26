@@ -4271,6 +4271,7 @@ class Calc_RT_V1(modeltools.Method):
         >>> fluxes.rt
         rt(3.0)
     """
+
     REQUIREDSEQUENCES = (hland_fluxes.OutUH,)
     RESULTSEQUENCES = (hland_fluxes.RT,)
 

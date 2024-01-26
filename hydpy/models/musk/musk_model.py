@@ -44,6 +44,7 @@ class Update_Discharge_V1(modeltools.Method):
         >>> states.discharge
         discharge(2.0, nan, nan, nan)
     """
+
     REQUIREDSEQUENCES = (musk_fluxes.Inflow,)
     UPDATEDSEQUENCES = (musk_states.Discharge,)
 
@@ -126,6 +127,7 @@ class Calc_Discharge_V1(modeltools.Method):
         >>> states.discharge
         discharge(6.0, 5.875, 5.0625, 4.1875, 3.46875)
     """
+
     CONTROLPARAMETERS = (musk_control.Coefficients,)
     UPDATEDSEQUENCES = (musk_states.Discharge,)
 
@@ -181,6 +183,7 @@ class Calc_ReferenceDischarge_V1(modeltools.Method):
         >>> fluxes.referencedischarge
         referencedischarge(4.5)
     """
+
     REQUIREDSEQUENCES = (musk_states.Discharge,)
     RESULTSEQUENCES = (musk_fluxes.ReferenceDischarge,)
 
@@ -233,6 +236,7 @@ class Return_WettedArea_V1(modeltools.Method):
         >>> round_(model.return_wettedarea_v1(3.0))
         24.0
     """
+
     CONTROLPARAMETERS = (musk_control.BottomWidth, musk_control.SideSlope)
 
     @staticmethod
@@ -261,6 +265,7 @@ class Calc_WettedArea_V1(modeltools.Method):
         >>> factors.wettedarea
         wettedarea(6.0, 18.0, 24.0)
     """
+
     SUBMETHODS = (Return_WettedArea_V1,)
     CONTROLPARAMETERS = (musk_control.BottomWidth, musk_control.SideSlope)
     REQUIREDSEQUENCES = (musk_factors.ReferenceWaterLevel,)
@@ -309,6 +314,7 @@ class Return_WettedPerimeter_V1(modeltools.Method):
         >>> round_(model.return_wettedperimeter_v1(3.0))
         15.416408
     """
+
     CONTROLPARAMETERS = (musk_control.BottomWidth, musk_control.SideSlope)
 
     @staticmethod
@@ -339,6 +345,7 @@ class Calc_WettedPerimeter_V1(modeltools.Method):
         >>> factors.wettedperimeter
         wettedperimeter(8.0, 13.416408, 15.416408)
     """
+
     SUBMETHODS = (Return_WettedPerimeter_V1,)
     CONTROLPARAMETERS = (musk_control.BottomWidth, musk_control.SideSlope)
     REQUIREDSEQUENCES = (musk_factors.ReferenceWaterLevel,)
@@ -389,6 +396,7 @@ class Return_SurfaceWidth_V1(modeltools.Method):
         >>> round_(model.return_surfacewidth_v1(3.0))
         14.0
     """
+
     CONTROLPARAMETERS = (musk_control.BottomWidth, musk_control.SideSlope)
 
     @staticmethod
@@ -417,6 +425,7 @@ class Calc_SurfaceWidth_V1(modeltools.Method):
         >>> factors.surfacewidth
         surfacewidth(2.0, 12.0, 14.0)
     """
+
     SUBMETHODS = (Return_SurfaceWidth_V1,)
     CONTROLPARAMETERS = (musk_control.BottomWidth, musk_control.SideSlope)
     REQUIREDSEQUENCES = (musk_factors.ReferenceWaterLevel,)
@@ -482,6 +491,7 @@ class Return_Discharge_V1(modeltools.Method):
         >>> round_(model.return_discharge_v1(3.0))
         64.475285
     """
+
     SUBMETHODS = (Return_WettedArea_V1, Return_WettedPerimeter_V1)
     CONTROLPARAMETERS = (
         musk_control.StricklerCoefficient,
@@ -528,6 +538,7 @@ class Return_ReferenceDischargeError_V1(modeltools.Method):
         >>> round_(model.return_referencedischargeerror_v1(3.0))
         14.475285
     """
+
     SUBMETHODS = (Return_Discharge_V1, Return_WettedArea_V1, Return_WettedPerimeter_V1)
     CONTROLPARAMETERS = (
         musk_control.BottomWidth,
@@ -599,6 +610,7 @@ class Calc_ReferenceWaterLevel_V1(modeltools.Method):
         >>> factors.referencewaterlevel
         referencewaterlevel(0.0, 0.0, 3.000295, 9.196508, 1000.0)
     """
+
     SUBMETHODS = (Return_ReferenceDischargeError_V1,)
     CONTROLPARAMETERS = (
         musk_control.BottomWidth,
@@ -716,6 +728,7 @@ class Return_Celerity_V1(modeltools.Method):
         >>> check_celerity()
         3.586803
     """
+
     SUBMETHODS = (
         Return_WettedArea_V1,
         Return_WettedPerimeter_V1,
@@ -776,6 +789,7 @@ class Calc_Celerity_V1(modeltools.Method):
         >>> factors.celerity
         celerity(1.926124, 3.243841, 3.586803)
     """
+
     SUBMETHODS = (Return_Celerity_V1,)
     CONTROLPARAMETERS = (
         musk_control.BottomWidth,
@@ -819,6 +833,7 @@ class Calc_CorrectingFactor_V1(modeltools.Method):
         >>> factors.correctingfactor
         correctingfactor(0.5, 1.0, 1.0)
     """
+
     REQUIREDSEQUENCES = (
         musk_factors.Celerity,
         musk_factors.WettedArea,
@@ -862,6 +877,7 @@ class Calc_CourantNumber_V1(modeltools.Method):
         >>> states.courantnumber
         courantnumber(0.0, 1.0, 0.5, 0.25, 0.0)
     """
+
     CONTROLPARAMETERS = (musk_control.Length,)
     DERIVEDPARAMETERS = (musk_derived.Seconds,)
     REQUIREDSEQUENCES = (musk_factors.Celerity, musk_factors.CorrectingFactor)
@@ -907,6 +923,7 @@ class Calc_ReynoldsNumber_V1(modeltools.Method):
         >>> states.reynoldsnumber
         reynoldsnumber(0.0, 0.05, 0.025, 0.0125, 0.0)
     """
+
     CONTROLPARAMETERS = (musk_control.Length, musk_control.BottomSlope)
     REQUIREDSEQUENCES = (
         musk_fluxes.ReferenceDischarge,
@@ -1003,6 +1020,7 @@ class Calc_Coefficient1_Coefficient2_Coefficient3_V1(modeltools.Method):
         assumes the ratio between the new and the old Courant number to be one in such
         cases.
     """
+
     REQUIREDSEQUENCES = (musk_states.CourantNumber, musk_states.ReynoldsNumber)
     UPDATEDSEQUENCES = (
         musk_factors.Coefficient1,
@@ -1100,6 +1118,7 @@ class Calc_Discharge_V2(modeltools.Method):
         >>> states.discharge
         discharge(6.0, 5.875, 5.0625, 4.1875, 3.46875)
     """
+
     REQUIREDSEQUENCES = (
         musk_factors.Coefficient1,
         musk_factors.Coefficient2,
@@ -1140,6 +1159,7 @@ class Calc_Outflow_V1(modeltools.Method):
         >>> fluxes.outflow
         outflow(3.0)
     """
+
     CONTROLPARAMETERS = (musk_control.NmbSegments,)
     REQUIREDSEQUENCES = (musk_states.Discharge,)
     RESULTSEQUENCES = (musk_fluxes.Outflow,)

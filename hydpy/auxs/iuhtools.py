@@ -58,12 +58,10 @@ class ParameterIUH:
         )
 
     @overload
-    def __get__(self, obj: None, type_: Optional[type[IUH]] = None) -> Self:
-        ...
+    def __get__(self, obj: None, type_: Optional[type[IUH]] = None) -> Self: ...
 
     @overload
-    def __get__(self, obj: IUH, type_: Optional[type[IUH]] = None) -> float:
-        ...
+    def __get__(self, obj: IUH, type_: Optional[type[IUH]] = None) -> float: ...
 
     def __get__(
         self, obj: Optional[IUH], type_: Optional[type[IUH]] = None
@@ -431,12 +429,10 @@ keywords were given: d and u.
         self.b = self.u / (2.0 * self.d**0.5)
 
     @overload
-    def __call__(self, t: float) -> float:
-        ...
+    def __call__(self, t: float) -> float: ...
 
     @overload
-    def __call__(self, t: VectorFloat) -> VectorFloat:
-        ...
+    def __call__(self, t: VectorFloat) -> VectorFloat: ...
 
     def __call__(self, t: Union[float, VectorFloat]) -> Union[float, VectorFloat]:
         # float-handling optimised for fast numerical integration
@@ -517,12 +513,10 @@ class LinearStorageCascade(IUH):
         self.log_k = numpy.log(self.k)
 
     @overload
-    def __call__(self, t: float) -> float:
-        ...
+    def __call__(self, t: float) -> float: ...
 
     @overload
-    def __call__(self, t: VectorFloat) -> VectorFloat:
-        ...
+    def __call__(self, t: VectorFloat) -> VectorFloat: ...
 
     def __call__(self, t: Union[float, VectorFloat]) -> Union[float, VectorFloat]:
         # float-handling optimised for fast numerical integration

@@ -43,8 +43,7 @@ class PrepSub0D(Protocol[TM_contra, TI_contra]):
 
     def __call__(
         self, model: TM_contra, submodel: TI_contra, /, *, refresh: bool
-    ) -> None:
-        ...
+    ) -> None: ...
 
 
 class PrepSub1D(Protocol[TM_contra, TI_contra]):
@@ -55,8 +54,7 @@ class PrepSub1D(Protocol[TM_contra, TI_contra]):
 
     def __call__(
         self, model: TM_contra, submodel: TI_contra, /, *, position: int, refresh: bool
-    ) -> None:
-        ...
+    ) -> None: ...
 
 
 __HYDPY_MODEL_LOCALS__ = "__hydpy_model_locals__"
@@ -357,8 +355,7 @@ def prepare_submodel(
     refweights: Optional[type[parametertools.Parameter]] = None,
 ) -> Callable[
     [PrepSub0D[TM_contra, TI_contra]], SubmodelAdder[Literal[0], TM_contra, TI_contra]
-]:
-    ...
+]: ...
 
 
 @overload
@@ -374,8 +371,7 @@ def prepare_submodel(
     refweights: Optional[type[parametertools.Parameter]] = None,
 ) -> Callable[
     [PrepSub1D[TM_contra, TI_contra]], SubmodelAdder[Literal[1], TM_contra, TI_contra]
-]:
-    ...
+]: ...
 
 
 def prepare_submodel(
@@ -618,8 +614,7 @@ following error occurred: The given `lland_v3` instance is not considered sharab
         landtype_refindices: Optional[type[parametertools.NameParameter]],
         soiltype_refindices: Optional[type[parametertools.NameParameter]],
         refweights: Optional[type[parametertools.Parameter]],
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @overload
     def __init__(
@@ -634,8 +629,7 @@ following error occurred: The given `lland_v3` instance is not considered sharab
         landtype_refindices: Optional[type[parametertools.NameParameter]],
         soiltype_refindices: Optional[type[parametertools.NameParameter]],
         refweights: Optional[type[parametertools.Parameter]],
-    ) -> None:
-        ...
+    ) -> None: ...
 
     def __init__(
         self,
@@ -673,14 +667,12 @@ following error occurred: The given `lland_v3` instance is not considered sharab
     @overload
     def get_wrapped(
         self: SubmodelAdder[Literal[0], TM_contra, TI_contra]
-    ) -> PrepSub0D[TM_contra, TI_contra]:
-        ...
+    ) -> PrepSub0D[TM_contra, TI_contra]: ...
 
     @overload
     def get_wrapped(
         self: SubmodelAdder[Literal[1], TM_contra, TI_contra]
-    ) -> PrepSub1D[TM_contra, TI_contra]:
-        ...
+    ) -> PrepSub1D[TM_contra, TI_contra]: ...
 
     def get_wrapped(
         self: SubmodelAdder[TD, TM_contra, TI_contra]
@@ -707,8 +699,7 @@ following error occurred: The given `lland_v3` instance is not considered sharab
         submodel: Union[types.ModuleType, str],
         *,
         update: bool = True,
-    ) -> SubmodelAdder[Literal[0], TM_contra, TI_contra]:
-        ...
+    ) -> SubmodelAdder[Literal[0], TM_contra, TI_contra]: ...
 
     @overload
     def __call__(
@@ -717,8 +708,7 @@ following error occurred: The given `lland_v3` instance is not considered sharab
         *,
         position: int,
         update: bool = True,
-    ) -> SubmodelAdder[Literal[1], TM_contra, TI_contra]:
-        ...
+    ) -> SubmodelAdder[Literal[1], TM_contra, TI_contra]: ...
 
     @overload
     def __call__(
@@ -726,8 +716,7 @@ following error occurred: The given `lland_v3` instance is not considered sharab
         submodel: modeltools.SharableSubmodelInterface,
         *,
         update: bool = True,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @overload
     def __call__(
@@ -736,8 +725,7 @@ following error occurred: The given `lland_v3` instance is not considered sharab
         *,
         position: int,
         update: bool = True,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     def __call__(
         self,
@@ -882,8 +870,7 @@ following error occurred: The given `lland_v3` instance is not considered sharab
         /,
         *,
         refresh: bool,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @overload
     def update(
@@ -894,8 +881,7 @@ following error occurred: The given `lland_v3` instance is not considered sharab
         *,
         position: int,
         refresh: bool,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     def update(
         self,

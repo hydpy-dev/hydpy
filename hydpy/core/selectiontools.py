@@ -281,14 +281,12 @@ objects, but the type of the given argument is `str`.
     @overload
     def query_intersections(
         self, selection2element: Literal[True] = ...
-    ) -> dict[Selection, dict[Selection, devicetools.Elements]]:
-        ...
+    ) -> dict[Selection, dict[Selection, devicetools.Elements]]: ...
 
     @overload
     def query_intersections(
         self, selection2element: Literal[False]
-    ) -> dict[devicetools.Element, Selections]:
-        ...
+    ) -> dict[devicetools.Element, Selections]: ...
 
     def query_intersections(
         self, selection2element: bool = True
@@ -304,9 +302,9 @@ objects, but the type of the given argument is `str`.
         example.
         """
         if selection2element:
-            intersections: dict[
-                Selection, dict[Selection, devicetools.Elements]
-            ] = collections.defaultdict(dict)
+            intersections: dict[Selection, dict[Selection, devicetools.Elements]] = (
+                collections.defaultdict(dict)
+            )
             for selection1, selection2 in itertools.combinations(self, 2):
                 intersection = selection1.elements.intersection(*selection2.elements)
                 if intersection:

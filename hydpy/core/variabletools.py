@@ -2242,15 +2242,13 @@ this was attempted for element `?`.
 @overload
 def sort_variables(
     values: Iterable[type[TypeVariable_co]],
-) -> tuple[type[TypeVariable_co], ...]:
-    ...
+) -> tuple[type[TypeVariable_co], ...]: ...
 
 
 @overload
 def sort_variables(
     values: Iterable[tuple[type[TypeVariable_co], T]]
-) -> tuple[tuple[type[TypeVariable_co], T], ...]:
-    ...
+) -> tuple[tuple[type[TypeVariable_co], T], ...]: ...
 
 
 def sort_variables(

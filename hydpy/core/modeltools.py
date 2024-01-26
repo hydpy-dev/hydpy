@@ -288,14 +288,12 @@ instance of any of the following supported interfaces: SoilModel_V1.
         self.__hydpy_modeltype2instance__[owner].append(self)
 
     @overload
-    def __get__(self, obj: None, objtype: Optional[type[Model]]) -> Self:
-        ...
+    def __get__(self, obj: None, objtype: Optional[type[Model]]) -> Self: ...
 
     @overload
     def __get__(
         self, obj: Model, objtype: Optional[type[Model]]
-    ) -> Optional[TypeSubmodelInterface]:
-        ...
+    ) -> Optional[TypeSubmodelInterface]: ...
 
     def __get__(
         self, obj: Optional[Model], objtype: Optional[type[Model]] = None
@@ -850,12 +848,10 @@ class SubmodelIsMainmodelProperty:
         self._name = name  # type: ignore[misc]
 
     @overload
-    def __get__(self, obj: None, objtype: Optional[type[Model]]) -> Self:
-        ...
+    def __get__(self, obj: None, objtype: Optional[type[Model]]) -> Self: ...
 
     @overload
-    def __get__(self, obj: Model, objtype: Optional[type[Model]]) -> bool:
-        ...
+    def __get__(self, obj: Model, objtype: Optional[type[Model]]) -> bool: ...
 
     def __get__(
         self, obj: Optional[Model], objtype: Optional[type[Model]] = None
@@ -904,12 +900,10 @@ class SubmodelTypeIDProperty:
         self._name = name  # type: ignore[misc]
 
     @overload
-    def __get__(self, obj: None, objtype: Optional[type[Model]]) -> Self:
-        ...
+    def __get__(self, obj: None, objtype: Optional[type[Model]]) -> Self: ...
 
     @overload
-    def __get__(self, obj: Model, objtype: Optional[type[Model]]) -> int:
-        ...
+    def __get__(self, obj: Model, objtype: Optional[type[Model]]) -> int: ...
 
     def __get__(
         self, obj: Optional[Model], objtype: Optional[type[Model]] = None
@@ -933,12 +927,10 @@ class IndexProperty:
         self.name = name.lower()
 
     @overload
-    def __get__(self, obj: Model, objtype: type[Model]) -> int:
-        ...
+    def __get__(self, obj: Model, objtype: type[Model]) -> int: ...
 
     @overload
-    def __get__(self, obj: None, objtype: type[Model]) -> Self:
-        ...
+    def __get__(self, obj: None, objtype: type[Model]) -> Self: ...
 
     def __get__(self, obj: Optional[Model], objtype: type[Model]) -> Union[Self, int]:
         if obj is None:
@@ -2576,8 +2568,7 @@ element.
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
         position: Optional[Literal[0, -1]] = None,
-    ) -> dict[str, Model]:
-        ...
+    ) -> dict[str, Model]: ...
 
     @overload
     def find_submodels(
@@ -2591,8 +2582,7 @@ element.
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
         position: Optional[Literal[0, -1]] = None,
-    ) -> dict[str, Optional[Model]]:
-        ...
+    ) -> dict[str, Optional[Model]]: ...
 
     @overload
     def find_submodels(
@@ -2605,8 +2595,7 @@ element.
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[True],
         repeat_sharedmodels: bool = False,
-    ) -> dict[str, Optional[Model]]:
-        ...
+    ) -> dict[str, Optional[Model]]: ...
 
     @overload
     def find_submodels(
@@ -2619,8 +2608,7 @@ element.
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[True],
         repeat_sharedmodels: bool = False,
-    ) -> dict[str, Optional[Model]]:
-        ...
+    ) -> dict[str, Optional[Model]]: ...
 
     @overload
     def find_submodels(
@@ -2634,8 +2622,7 @@ element.
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
         position: Optional[Literal[0, -1]] = None,
-    ) -> dict[str, Model]:
-        ...
+    ) -> dict[str, Model]: ...
 
     @overload
     def find_submodels(
@@ -2649,8 +2636,7 @@ element.
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
         position: Optional[Literal[0, -1]] = None,
-    ) -> dict[str, Optional[Model]]:
-        ...
+    ) -> dict[str, Optional[Model]]: ...
 
     @overload
     def find_submodels(
@@ -2663,8 +2649,7 @@ element.
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[True],
         repeat_sharedmodels: bool = False,
-    ) -> dict[str, Optional[Model]]:
-        ...
+    ) -> dict[str, Optional[Model]]: ...
 
     @overload
     def find_submodels(
@@ -2677,8 +2662,7 @@ element.
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[True],
         repeat_sharedmodels: bool = False,
-    ) -> dict[str, Optional[Model]]:
-        ...
+    ) -> dict[str, Optional[Model]]: ...
 
     def find_submodels(
         self,
@@ -4602,8 +4586,7 @@ class CoupleModels(Protocol[TypeModel_co]):
 
     def __call__(
         self, *, nodes: devicetools.Nodes, elements: devicetools.Elements
-    ) -> TypeModel_co:
-        ...
+    ) -> TypeModel_co: ...
 
 
 def define_modelcoupler(
@@ -4694,14 +4677,12 @@ sw1d_channel.
         functools.update_wrapper(wrapper=self, wrapped=wrapped)
 
     @overload
-    def __call__(self, *, selection: selectiontools.Selection) -> TypeModel_co:
-        ...
+    def __call__(self, *, selection: selectiontools.Selection) -> TypeModel_co: ...
 
     @overload
     def __call__(
         self, *, nodes: devicetools.Nodes, elements: devicetools.Elements
-    ) -> TypeModel_co:
-        ...
+    ) -> TypeModel_co: ...
 
     def __call__(
         self,

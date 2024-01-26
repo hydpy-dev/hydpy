@@ -757,9 +757,9 @@ class Calc_DailySaturationVapourPressure_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         for k in range(con.nmbhru):
-            fac.dailysaturationvapourpressure[
-                k
-            ] = model.return_saturationvapourpressure_v1(fac.dailyairtemperature[k])
+            fac.dailysaturationvapourpressure[k] = (
+                model.return_saturationvapourpressure_v1(fac.dailyairtemperature[k])
+            )
 
 
 class Calc_SaturationVapourPressureSlope_V1(modeltools.Method):
@@ -859,9 +859,9 @@ class Calc_SaturationVapourPressureSlope_V2(modeltools.Method):
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         for k in range(con.nmbhru):
-            fac.saturationvapourpressureslope[
-                k
-            ] = model.return_saturationvapourpressureslope_v1(fac.airtemperature[k])
+            fac.saturationvapourpressureslope[k] = (
+                model.return_saturationvapourpressureslope_v1(fac.airtemperature[k])
+            )
 
 
 class Calc_DailySaturationVapourPressureSlope_V1(modeltools.Method):
@@ -893,10 +893,10 @@ class Calc_DailySaturationVapourPressureSlope_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         for k in range(con.nmbhru):
-            fac.dailysaturationvapourpressureslope[
-                k
-            ] = model.return_saturationvapourpressureslope_v1(
-                fac.dailyairtemperature[k]
+            fac.dailysaturationvapourpressureslope[k] = (
+                model.return_saturationvapourpressureslope_v1(
+                    fac.dailyairtemperature[k]
+                )
             )
 
 
@@ -1444,9 +1444,9 @@ class Update_LoggedPossibleSunshineDuration_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         log = model.sequences.logs.fastaccess
         for idx in range(der.nmblogentries - 1, 0, -1):
-            log.loggedpossiblesunshineduration[
-                idx
-            ] = log.loggedpossiblesunshineduration[idx - 1]
+            log.loggedpossiblesunshineduration[idx] = (
+                log.loggedpossiblesunshineduration[idx - 1]
+            )
         log.loggedpossiblesunshineduration[0] = fac.possiblesunshineduration
 
 
@@ -3390,13 +3390,13 @@ class Update_LoggedPotentialSoilEvapotranspiration_V1(modeltools.Method):
         log = model.sequences.logs.fastaccess
         for idx in range(der.nmblogentries - 1, 0, -1):
             for k in range(con.nmbhru):
-                log.loggedpotentialsoilevapotranspiration[
-                    idx, k
-                ] = log.loggedpotentialsoilevapotranspiration[idx - 1, k]
+                log.loggedpotentialsoilevapotranspiration[idx, k] = (
+                    log.loggedpotentialsoilevapotranspiration[idx - 1, k]
+                )
         for k in range(con.nmbhru):
-            log.loggedpotentialsoilevapotranspiration[
-                0, k
-            ] = flu.potentialsoilevapotranspiration[k]
+            log.loggedpotentialsoilevapotranspiration[0, k] = (
+                flu.potentialsoilevapotranspiration[k]
+            )
 
 
 class Calc_DailyPotentialSoilEvapotranspiration_V1(modeltools.Method):
@@ -5015,9 +5015,9 @@ class Calc_ReferenceEvapotranspiration_PETModel_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         submodel.determine_potentialevapotranspiration()
         for k in range(con.nmbhru):
-            flu.referenceevapotranspiration[
-                k
-            ] = submodel.get_potentialevapotranspiration(k)
+            flu.referenceevapotranspiration[k] = (
+                submodel.get_potentialevapotranspiration(k)
+            )
 
 
 class Calc_ReferenceEvapotranspiration_V4(modeltools.Method):
@@ -6025,9 +6025,9 @@ class Calc_PotentialInterceptionEvaporation_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbhru):
             if con.interception[k]:
-                flu.potentialinterceptionevaporation[
-                    k
-                ] = model.return_evaporation_penmanmonteith_v1(k, 0.0)
+                flu.potentialinterceptionevaporation[k] = (
+                    model.return_evaporation_penmanmonteith_v1(k, 0.0)
+                )
             else:
                 flu.potentialinterceptionevaporation[k] = 0.0
 
@@ -6134,9 +6134,9 @@ class Calc_PotentialInterceptionEvaporation_PETModel_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         submodel.determine_potentialevapotranspiration()
         for k in range(con.nmbhru):
-            flu.potentialinterceptionevaporation[
-                k
-            ] = submodel.get_potentialevapotranspiration(k)
+            flu.potentialinterceptionevaporation[k] = (
+                submodel.get_potentialevapotranspiration(k)
+            )
 
 
 class Calc_PotentialInterceptionEvaporation_PETModel_V2(modeltools.Method):
@@ -6198,9 +6198,9 @@ class Calc_PotentialInterceptionEvaporation_PETModel_V2(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         submodel.determine_potentialinterceptionevaporation()
         for k in range(con.nmbhru):
-            flu.potentialinterceptionevaporation[
-                k
-            ] = submodel.get_potentialinterceptionevaporation(k)
+            flu.potentialinterceptionevaporation[k] = (
+                submodel.get_potentialinterceptionevaporation(k)
+            )
 
 
 class Calc_PotentialInterceptionEvaporation_V3(modeltools.Method):
@@ -6434,9 +6434,9 @@ class Calc_PotentialSoilEvapotranspiration_PETModel_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbhru):
-            flu.potentialsoilevapotranspiration[
-                k
-            ] = submodel.get_potentialevapotranspiration(k)
+            flu.potentialsoilevapotranspiration[k] = (
+                submodel.get_potentialevapotranspiration(k)
+            )
 
 
 class Calc_PotentialSoilEvapotranspiration_PETModel_V2(modeltools.Method):
@@ -6503,9 +6503,9 @@ class Calc_PotentialSoilEvapotranspiration_PETModel_V2(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         submodel.determine_potentialsoilevapotranspiration()
         for k in range(con.nmbhru):
-            flu.potentialsoilevapotranspiration[
-                k
-            ] = submodel.get_potentialsoilevapotranspiration(k)
+            flu.potentialsoilevapotranspiration[k] = (
+                submodel.get_potentialsoilevapotranspiration(k)
+            )
 
 
 class Calc_PotentialSoilEvapotranspiration_V2(modeltools.Method):
@@ -6601,6 +6601,7 @@ class Calc_SoilEvapotranspiration_V1(modeltools.Method):
         >>> fluxes.soilevapotranspiration
         soilevapotranspiration(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     """
+
     CONTROLPARAMETERS = (
         evap_control.NmbHRU,
         evap_control.Soil,
@@ -6816,10 +6817,10 @@ class Calc_SoilEvapotranspiration_V3(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbhru):
             if con.soil[k] and (con.tree[k] or fac.snowcover[k] == 0.0):
-                flu.soilevapotranspiration[
-                    k
-                ] = model.return_evaporation_penmanmonteith_v1(
-                    k, fac.actualsurfaceresistance[k]
+                flu.soilevapotranspiration[k] = (
+                    model.return_evaporation_penmanmonteith_v1(
+                        k, fac.actualsurfaceresistance[k]
+                    )
                 )
 
             else:
@@ -6986,6 +6987,7 @@ class Update_SoilEvapotranspiration_V2(modeltools.Method):
         >>> fluxes.soilevapotranspiration
         soilevapotranspiration(0.0, 0.0, 0.0, 0.0, 0.0)
     """
+
     CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.Soil)
     REQUIREDSEQUENCES = (evap_factors.SnowCover,)
     RESULTSEQUENCES = (evap_fluxes.SoilEvapotranspiration,)

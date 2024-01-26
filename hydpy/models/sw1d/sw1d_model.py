@@ -304,6 +304,7 @@ class Calc_MaxTimeStep_V1(modeltools.Method):
         >>> factors.maxtimestep
         maxtimestep(inf)
     """
+
     CONTROLPARAMETERS = (sw1d_control.TimeStepFactor,)
     DERIVEDPARAMETERS = (sw1d_derived.LengthMin,)
     FIXEDPARAMETERS = (sw1d_fixed.GravitationalAcceleration,)

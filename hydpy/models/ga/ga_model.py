@@ -2108,6 +2108,7 @@ class Perform_GARTO_V1(modeltools.Method):
     functionalities of application model |ga_garto|, and the explanations and test
     results for |ga_garto| essentially apply to |Perform_GARTO_V1|, too.
     """
+
     SUBMETHODS = (
         Return_LastActiveBin_V1,
         Return_Conductivity_V1,

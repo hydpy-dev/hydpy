@@ -1,4 +1,5 @@
 """This module defines submodel interfaces for providing precipitation."""
+
 # import...
 # ...from hydpy
 from hydpy.core import modeltools

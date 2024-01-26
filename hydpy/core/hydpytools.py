@@ -2214,8 +2214,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
     @overload
     def update_devices(
         self, *, selection: selectiontools.Selection, silent: bool = False
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @overload
     def update_devices(
@@ -2224,8 +2223,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         nodes: Optional[devicetools.NodesConstrArg] = None,
         elements: Optional[devicetools.ElementsConstrArg] = None,
         silent: bool = False,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     def update_devices(
         self,

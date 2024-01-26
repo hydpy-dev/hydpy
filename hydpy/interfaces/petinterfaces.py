@@ -1,5 +1,6 @@
 """This module defines submodel interfaces for calculating potential
 evapotranspiration."""
+
 # import...
 # ...from hydpy
 from hydpy.core import modeltools

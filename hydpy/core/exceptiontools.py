@@ -93,33 +93,27 @@ class _Enum(enum.Enum):
 
 
 @overload
-def getattr_(obj: Any, name: str) -> Any:
-    ...
+def getattr_(obj: Any, name: str) -> Any: ...
 
 
 @overload
-def getattr_(obj: Any, name: str, default: None) -> Optional[Any]:
-    ...
+def getattr_(obj: Any, name: str, default: None) -> Optional[Any]: ...
 
 
 @overload
-def getattr_(obj: Any, name: str, default: T) -> T:
-    ...
+def getattr_(obj: Any, name: str, default: T) -> T: ...
 
 
 @overload
-def getattr_(obj: Any, name: str, *, type_: type[T]) -> T:
-    ...
+def getattr_(obj: Any, name: str, *, type_: type[T]) -> T: ...
 
 
 @overload
-def getattr_(obj: Any, name: str, default: None, type_: type[T]) -> Optional[T]:
-    ...
+def getattr_(obj: Any, name: str, default: None, type_: type[T]) -> Optional[T]: ...
 
 
 @overload
-def getattr_(obj: Any, name: str, default: T1, type_: type[T2]) -> Union[T1, T2]:
-    ...
+def getattr_(obj: Any, name: str, default: T1, type_: type[T2]) -> Union[T1, T2]: ...
 
 
 def getattr_(

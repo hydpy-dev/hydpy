@@ -703,12 +703,10 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
         self._do_refresh = True
 
     @overload
-    def __call__(self, __algorithm: InterpAlgorithm) -> None:
-        ...
+    def __call__(self, __algorithm: InterpAlgorithm) -> None: ...
 
     @overload
-    def __call__(self, **algorithm: InterpAlgorithm) -> None:
-        ...
+    def __call__(self, **algorithm: InterpAlgorithm) -> None: ...
 
     def __call__(
         self, *algorithm: InterpAlgorithm, **algorithms: InterpAlgorithm

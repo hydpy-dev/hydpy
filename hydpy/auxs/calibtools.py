@@ -575,9 +575,11 @@ handle any `musk_classic` model instances.
             else:
                 selections = selectiontools.Selections(
                     *(
-                        sel
-                        if isinstance(sel, selectiontools.Selection)
-                        else hydpy.pub.selections[sel]
+                        (
+                            sel
+                            if isinstance(sel, selectiontools.Selection)
+                            else hydpy.pub.selections[sel]
+                        )
                         for sel in selections
                     )
                 )
@@ -1523,12 +1525,10 @@ does not agree with the one documentated in log file `example_calibration.log` (
             self._update_elements_when_adding_a_rule(rule)
 
     @overload
-    def get_rule(self, name: str) -> TypeRule1:
-        ...
+    def get_rule(self, name: str) -> TypeRule1: ...
 
     @overload
-    def get_rule(self, name: str, type_: type[TypeRule2]) -> TypeRule2:
-        ...
+    def get_rule(self, name: str, type_: type[TypeRule2]) -> TypeRule2: ...
 
     def get_rule(
         self, name: str, type_: Optional[type[TypeRule2]] = None
@@ -1875,12 +1875,10 @@ object named `fc`.
         self._hp.conditions = self.conditions
 
     @overload
-    def apply_values(self, perform_simulation: Literal[True] = ...) -> float:
-        ...
+    def apply_values(self, perform_simulation: Literal[True] = ...) -> float: ...
 
     @overload
-    def apply_values(self, perform_simulation: Literal[False]) -> None:
-        ...
+    def apply_values(self, perform_simulation: Literal[False]) -> None: ...
 
     def apply_values(self, perform_simulation: bool = True) -> Optional[float]:
         """Apply all current calibration parameter values on all relevant parameters.
@@ -2921,8 +2919,7 @@ def make_rules(
     parametersteps: Sequence1[Optional[timetools.PeriodConstrArg]] = None,
     model: Optional[Union[types.ModuleType, str]] = None,
     selections: Literal[None] = None,
-) -> list[TypeRule]:
-    ...
+) -> list[TypeRule]: ...
 
 
 @overload
@@ -2939,8 +2936,7 @@ def make_rules(
     model: Optional[Union[types.ModuleType, str]] = None,
     selections: Iterable[Union[selectiontools.Selection, str]],
     product: bool = False,
-) -> list[TypeRule]:
-    ...
+) -> list[TypeRule]: ...
 
 
 @overload
@@ -2956,8 +2952,7 @@ def make_rules(
     uppers: Optional[Sequence[float]] = None,
     model: Optional[Union[types.ModuleType, str]] = None,
     selections: Literal[None] = None,
-) -> list[TypeRule]:
-    ...
+) -> list[TypeRule]: ...
 
 
 @overload
@@ -2974,8 +2969,7 @@ def make_rules(
     model: Optional[Union[types.ModuleType, str]] = None,
     selections: Iterable[Union[selectiontools.Selection, str]],
     product: bool = False,
-) -> list[TypeRule]:
-    ...
+) -> list[TypeRule]: ...
 
 
 def make_rules(

@@ -27,9 +27,9 @@ else:
 
 
 class _ANNArrayProperty(propertytools.DependentProperty[T_contra, T_co]):
-    _obj2cann: weakref.WeakKeyDictionary[
-        Any, annutils.ANN
-    ] = weakref.WeakKeyDictionary()
+    _obj2cann: weakref.WeakKeyDictionary[Any, annutils.ANN] = (
+        weakref.WeakKeyDictionary()
+    )
 
     def __init__(self, protected: propertytools.ProtectedProperties, doc: str) -> None:
         super().__init__(

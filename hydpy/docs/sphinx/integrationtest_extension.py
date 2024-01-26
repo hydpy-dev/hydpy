@@ -1,4 +1,5 @@
 """Sphinx extension introducing `.. integration-test::` directives."""
+
 # import...
 # from standard library
 from typing import Any

@@ -1,4 +1,5 @@
 """Perform all available consistency checks."""
+
 # import...
 # ...from standard library
 import os

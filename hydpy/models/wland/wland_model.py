@@ -1193,6 +1193,7 @@ class Calc_ES_V1(modeltools.Method):
         |   8 |  3.0 | 4.999995 |
         |   9 |  4.0 |      5.0 |
     """
+
     DERIVEDPARAMETERS = (wland_derived.NUL, wland_derived.RH1)
     REQUIREDSEQUENCES = (wland_fluxes.PE, wland_states.HS)
     RESULTSEQUENCES = (wland_fluxes.ES,)
@@ -1846,6 +1847,7 @@ class Calc_DGEq_V1(modeltools.Method):
         |  12 | 111.172058 | 1600.0 |
         |  13 | 337.579867 | 3200.0 |
     """
+
     CONTROLPARAMETERS = (
         wland_control.ThetaS,
         wland_control.ThetaR,
@@ -1982,6 +1984,7 @@ class Calc_GF_V1(modeltools.Method):
         |  15 | 4701.0 | 99.994314 |
         |  16 | 4710.0 |     100.0 |
     """
+
     CONTROLPARAMETERS = (
         wland_control.ThetaS,
         wland_control.ThetaR,
@@ -2524,6 +2527,7 @@ class Update_DV_V1(modeltools.Method):
         >>> states.dv
         dv(9.0)
     """
+
     DERIVEDPARAMETERS = (wland_derived.NUG,)
     REQUIREDSEQUENCES = (
         wland_fluxes.FXG,
@@ -2561,6 +2565,7 @@ class Update_DG_V1(modeltools.Method):
         >>> states.dg
         dg(5.0)
     """
+
     DERIVEDPARAMETERS = (wland_derived.NUG,)
     REQUIREDSEQUENCES = (wland_fluxes.CDG,)
     UPDATEDSEQUENCES = (wland_states.DG,)

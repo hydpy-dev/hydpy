@@ -1947,7 +1947,6 @@ a valid variable identifier.  ...
 
 
 class Node(Device):
-
     """Handles the data flow between |Element| objects.
 
     |Node| objects always handle two sequences, a |Sim| object for simulated values and

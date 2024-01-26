@@ -1,6 +1,7 @@
 """Sphinx extension introducing directives as
 `.. how_to_understand_model_integration_tests::`.
 """
+
 # import...
 # ...from site-packages
 from docutils import nodes as docutils_nodes

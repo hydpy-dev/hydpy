@@ -42,6 +42,7 @@ class Calc_AdjustedPrecipitation_V1(modeltools.Method):
         >>> fluxes.adjustedprecipitation
         adjustedprecipitation(25.0)
     """
+
     CONTROLPARAMETERS = (dam_control.CorrectionPrecipitation,)
     DERIVEDPARAMETERS = (dam_derived.InputFactor,)
     REQUIREDSEQUENCES = (dam_inputs.Precipitation,)
@@ -109,6 +110,7 @@ class Calc_AdjustedEvaporation_V1(modeltools.Method):
         >>> logs.loggedadjustedevaporation
         loggedadjustedevaporation(23.0)
     """
+
     CONTROLPARAMETERS = (
         dam_control.CorrectionEvaporation,
         dam_control.WeightEvaporation,
@@ -202,6 +204,7 @@ class Calc_ActualEvaporation_V1(modeltools.Method):
         |   9 |      0.007 |          1.999998 |
         |  10 |      0.008 |               2.0 |
     """
+
     CONTROLPARAMETERS = (dam_control.ThresholdEvaporation,)
     DERIVEDPARAMETERS = (dam_derived.SmoothParEvaporation,)
     REQUIREDSEQUENCES = (dam_fluxes.AdjustedEvaporation, dam_factors.WaterLevel)
@@ -3656,9 +3659,9 @@ class Calc_MaxFreeDischarge_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        con.waterleveldifference2maxfreedischarge.inputs[
-            0
-        ] = fac.effectivewaterleveldifference
+        con.waterleveldifference2maxfreedischarge.inputs[0] = (
+            fac.effectivewaterleveldifference
+        )
         toy: int = der.toy[model.idx_sim]
         con.waterleveldifference2maxfreedischarge.calculate_values(toy)
         flu.maxfreedischarge = con.waterleveldifference2maxfreedischarge.outputs[0]

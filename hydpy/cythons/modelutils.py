@@ -1070,7 +1070,7 @@ class PyxWriter:
         pyx, both = lines.pyx.add, lines.add
         both(1, f"cpdef void reset_reuseflags(self){_nogil}:")
         if (methods := self.model.REUSABLE_METHODS) or self.model.find_submodels(
-            include_subsubmodels=False, include_optional=True
+            include_subsubmodels=False, include_optional=True, repeat_sharedmodels=True
         ):
             for method in methods:
                 pyx(2, f"self.{method.REUSEMARKER} = False")
@@ -1414,6 +1414,7 @@ class PyxWriter:
                 include_sidemodels=True,
                 include_optional=True,
                 aggregate_vectors=True,
+                repeat_sharedmodels=True,
             )
         ]
         pyx, pxd, both = lines.pyx.add, lines.pxd.add, lines.add
@@ -1513,7 +1514,7 @@ class PyxWriter:
         both(1, f"cpdef inline void simulate(self, {_int} idx) {_nogil}:")
         pyx(2, "self.idx_sim = idx")
         if self.model.REUSABLE_METHODS or self.model.find_submodels(
-            include_optional=True, include_subsubmodels=False
+            include_optional=True, include_subsubmodels=False, repeat_sharedmodels=True
         ):
             pyx(2, "self.reset_reuseflags()")
         seqs = self.model.sequences
@@ -1534,7 +1535,10 @@ class PyxWriter:
 
     def _call_submodel_method(self, lines: PyxPxdLines, methodcall: str) -> None:
         name2submodel = self.model.find_submodels(
-            include_subsubmodels=False, include_optional=True, aggregate_vectors=True
+            include_subsubmodels=False,
+            include_optional=True,
+            aggregate_vectors=True,
+            repeat_sharedmodels=True,
         )
         pyx = lines.pyx.add
         if any(name.endswith("_*") for name in name2submodel):
@@ -1639,7 +1643,10 @@ class PyxWriter:
     def new2old(self, lines: PyxPxdLines) -> None:
         """Old states to new states statements."""
         name2submodel = self.model.find_submodels(
-            include_subsubmodels=False, include_optional=True, aggregate_vectors=True
+            include_subsubmodels=False,
+            include_optional=True,
+            aggregate_vectors=True,
+            repeat_sharedmodels=True,
         )
         pyx, both = lines.pyx.add, lines.add
         if self.model.sequences.states or name2submodel:

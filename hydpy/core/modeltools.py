@@ -1977,7 +1977,7 @@ to be consistent with the name of the element handling the model.
 
             sublevel += 1
             for name, submodel in model.find_submodels(
-                include_subsubmodels=False
+                include_subsubmodels=False, repeat_sharedmodels=True
             ).items():
                 adder, position = _find_adder_and_position()
                 position = "" if position is None else f", position={position}"
@@ -2038,7 +2038,7 @@ to be consistent with the name of the element handling the model.
             )
         )
 
-        submodels = tuple(self.find_submodels().values())
+        submodels = tuple(self.find_submodels(repeat_sharedmodels=True).values())
         sharable_submodels = set(
             m for m in submodels if isinstance(m, SharableSubmodelInterface)
         )
@@ -2574,6 +2574,7 @@ element.
         include_optional: Literal[False] = ...,
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
+        repeat_sharedmodels: bool = False,
         position: Optional[Literal[0, -1]] = None,
     ) -> dict[str, Model]:
         ...
@@ -2588,6 +2589,7 @@ element.
         include_optional: Literal[True],
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
+        repeat_sharedmodels: bool = False,
         position: Optional[Literal[0, -1]] = None,
     ) -> dict[str, Optional[Model]]:
         ...
@@ -2602,6 +2604,7 @@ element.
         include_optional: Literal[False] = ...,
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[True],
+        repeat_sharedmodels: bool = False,
     ) -> dict[str, Optional[Model]]:
         ...
 
@@ -2615,6 +2618,7 @@ element.
         include_optional: Literal[True],
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[True],
+        repeat_sharedmodels: bool = False,
     ) -> dict[str, Optional[Model]]:
         ...
 
@@ -2628,6 +2632,7 @@ element.
         include_optional: Literal[False] = ...,
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
+        repeat_sharedmodels: bool = False,
         position: Optional[Literal[0, -1]] = None,
     ) -> dict[str, Model]:
         ...
@@ -2642,6 +2647,7 @@ element.
         include_optional: Literal[True],
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
+        repeat_sharedmodels: bool = False,
         position: Optional[Literal[0, -1]] = None,
     ) -> dict[str, Optional[Model]]:
         ...
@@ -2656,6 +2662,7 @@ element.
         include_optional: Literal[False] = ...,
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[True],
+        repeat_sharedmodels: bool = False,
     ) -> dict[str, Optional[Model]]:
         ...
 
@@ -2669,6 +2676,7 @@ element.
         include_optional: Literal[True],
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[True],
+        repeat_sharedmodels: bool = False,
     ) -> dict[str, Optional[Model]]:
         ...
 
@@ -2681,6 +2689,7 @@ element.
         include_optional: bool = False,
         include_feedbacks: bool = False,
         aggregate_vectors: bool = False,
+        repeat_sharedmodels: bool = False,
         position: Optional[Literal[0, -1]] = None,
     ) -> Union[dict[str, Model], dict[str, Optional[Model]]]:
         """Find the (sub)submodel instances of the current main model instance.
@@ -2689,20 +2698,20 @@ element.
         submodel is available:
 
         >>> from hydpy import prepare_model
-        >>> model = prepare_model("lland_v1")
+        >>> model = prepare_model("lland_v3")
         >>> model.find_submodels()
         {}
 
         The `include_mainmodel` parameter allows the addition of the main model:
 
         >>> model.find_submodels(include_mainmodel=True)  # doctest: +ELLIPSIS
-        {'model': <hydpy.models.lland_v1.Model ...>}
+        {'model': <hydpy.models.lland_v3.Model ...>}
 
         The `include_optional` parameter allows considering prepared and unprepared
         submodels:
 
         >>> model.find_submodels(include_optional=True)
-        {'model.aetmodel': None, 'model.soilmodel': None}
+        {'model.aetmodel': None, 'model.radiationmodel': None, 'model.soilmodel': None}
         >>> model.aetmodel = prepare_model("evap_minhas")
         >>> model.aetmodel.petmodel = prepare_model("evap_mlc")
         >>> model.aetmodel.petmodel.retmodel = prepare_model("evap_tw2002")
@@ -2715,6 +2724,7 @@ element.
          'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
          'model.aetmodel.soilwatermodel': None,
+         'model.radiationmodel': None,
          'model.soilmodel': None}
 
         By default, |Model.find_submodels| does not return an additional entry when a
@@ -2729,6 +2739,7 @@ element.
          'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_tw2002.Model ...>,
          'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
+         'model.radiationmodel': None,
          'model.soilmodel': None}
 
         Use the `include_feedbacks` parameter to make such feedback connections
@@ -2736,14 +2747,47 @@ element.
 
         >>> pprint(model.find_submodels(include_mainmodel=True,
         ...     include_optional=True, include_feedbacks=True))  # doctest: +ELLIPSIS
-        {'model': <hydpy.models.lland_v1.Model ...>,
+        {'model': <hydpy.models.lland_v3.Model ...>,
          'model.aetmodel': <hydpy.models.evap_minhas.Model ...>,
          'model.aetmodel.intercmodel': None,
          'model.aetmodel.petmodel': <hydpy.models.evap_mlc.Model ...>,
          'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_tw2002.Model ...>,
          'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
-         'model.aetmodel.soilwatermodel': <hydpy.models.lland_v1.Model object ...>,
+         'model.aetmodel.soilwatermodel': <hydpy.models.lland_v3.Model object ...>,
+         'model.radiationmodel': None,
+         'model.soilmodel': None}
+
+        |Model.find_submodels| includes only one reference to shared model instances by
+        default:
+
+        >>> model.radiationmodel = prepare_model("meteo_v001")
+        >>> model.aetmodel = prepare_model("evap_morsim")
+        >>> model.aetmodel.radiationmodel = model.radiationmodel
+        >>> pprint(model.find_submodels(include_optional=True))  # doctest: +ELLIPSIS
+        {'model.aetmodel': <hydpy.models.evap_morsim.Model ...>,
+         'model.aetmodel.intercmodel': None,
+         'model.aetmodel.snowalbedomodel': None,
+         'model.aetmodel.snowcovermodel': None,
+         'model.aetmodel.snowycanopymodel': None,
+         'model.aetmodel.soilwatermodel': None,
+         'model.aetmodel.tempmodel': None,
+         'model.radiationmodel': <hydpy.models.meteo_v001.Model ...>,
+         'model.soilmodel': None}
+
+        Use the `repeat_sharedmodels` parameter to change this behaviour:
+
+        >>> pprint(model.find_submodels(
+        ...     repeat_sharedmodels=True, include_optional=True))  # doctest: +ELLIPSIS
+        {'model.aetmodel': <hydpy.models.evap_morsim.Model ...>,
+         'model.aetmodel.intercmodel': None,
+         'model.aetmodel.radiationmodel': <hydpy.models.meteo_v001.Model ...>,
+         'model.aetmodel.snowalbedomodel': None,
+         'model.aetmodel.snowcovermodel': None,
+         'model.aetmodel.snowycanopymodel': None,
+         'model.aetmodel.soilwatermodel': None,
+         'model.aetmodel.tempmodel': None,
+         'model.radiationmodel': <hydpy.models.meteo_v001.Model object at ...>,
          'model.soilmodel': None}
 
         All previous examples dealt with scalar submodel references handled by
@@ -2856,13 +2900,18 @@ but the value `1` of type `int` is given.
         def _find_submodels(name: str, model: Model) -> None:
             name2submodel_new = {}
 
+            if isinstance(model, SharableSubmodelInterface):
+                sharables.add(model)
+
             for subprop in SubmodelProperty.__hydpy_modeltype2instance__[type(model)]:
                 sub_is_main = getattr(model, f"{subprop.name}_is_mainmodel")
                 if (include_sidemodels or not subprop.sidemodel) and (
                     include_feedbacks or not sub_is_main
                 ):
                     submodel = getattr(model, subprop.name)
-                    if include_optional or (submodel is not None):
+                    if (include_optional or (submodel is not None)) and (
+                        repeat_sharedmodels or (submodel not in sharables)
+                    ):
                         name2submodel_new[f"{name}.{subprop.name}"] = submodel
 
             for subsprop in SubmodelsProperty.__hydpy_modeltype2instance__[type(model)]:
@@ -2875,6 +2924,8 @@ but the value `1` of type `int` is given.
                             i_last = len(submodels) - 1
                             submodels = [submodels[position]]
                         for i, submodel in enumerate(submodels):
+                            # implement when required:
+                            assert not isinstance(submodel, SharableSubmodelInterface)
                             if include_optional or (submodel is not None):
                                 j = i_last if position == -1 else i
                                 name2submodel_new[f"{submodelsname}_{j}"] = submodel
@@ -2887,6 +2938,7 @@ but the value `1` of type `int` is given.
                         _find_submodels(subname, submodel)
 
         seen: set[Model] = set([self])
+        sharables: set[SharableSubmodelInterface] = set()
         name2submodel = {"model": self} if include_mainmodel else {}
         _find_submodels("model", self)
         return dict(sorted(name2submodel.items()))

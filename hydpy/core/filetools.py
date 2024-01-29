@@ -960,24 +960,22 @@ name or the responsible Element object.
         """
         if not filename.endswith(".py"):
             filename += ".py"
-        path = os.path.join(cls._workingpath, filename)
+        filepath = os.path.abspath(os.path.join(cls._workingpath, filename))
         with hydpy.pub.options.parameterstep(None):
             try:
-                if path not in cls._registry:
-                    with open(path, encoding=config.ENCODING) as file_:
-                        cls._registry[path] = compile(
-                            source=file_.read(),
-                            filename=os.path.abspath(filename),
-                            mode="exec",
+                if filepath not in cls._registry:
+                    with open(filepath, encoding=config.ENCODING) as file_:
+                        cls._registry[filepath] = compile(
+                            source=file_.read(), filename=filepath, mode="exec"
                         )
-                exec(cls._registry[path], {}, info)
+                exec(cls._registry[filepath], {}, info)
             except BaseException:
                 objecttools.augment_excmessage(
-                    f"While trying to load the control file `{path}`"
+                    f"While trying to load the control file `{filepath}`"
                 )
         if "model" not in info:
             raise RuntimeError(
-                f"Model parameters cannot be loaded from control file `{path}`.  "
+                f"Model parameters cannot be loaded from control file `{filepath}`.  "
                 f"Please refer to the HydPy documentation on how to prepare control "
                 f"files properly."
             )

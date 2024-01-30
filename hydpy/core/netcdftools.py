@@ -28,7 +28,7 @@ to be read or written.  The actual reading from or writing to NetCDF files is tr
 by step 3.
 
 During step 2, the |NetCDFInterface| object and its subobjects are accessible, allowing
-to inspect their current state or modify their behaviour.
+one to inspect their current state or modify their behaviour.
 
 The following real code examples show how to perform these three steps both for reading
 and writing data, based on the example configuration defined by function
@@ -70,7 +70,6 @@ time series spatially:
 sequence objects of type |lland_fluxes.NKor| belonging to application model |lland_v1|
 (those of elements `element1` and `element2`; the trailing numbers are the indices of
 the relevant hydrological response units):
-
 
 >>> writer = pub.sequencemanager.netcdfwriter
 >>> writer.lland_v1_flux_nkor.subdevicenames
@@ -138,7 +137,7 @@ the sake of consistency):
 >>> from numpy import array
 >>> filepath = "project/series/default/node_sim_q_mean.nc"
 >>> with TestIO(), netcdf4.Dataset(filepath) as ncfile:
-...     array(ncfile["sim_q"][:])
+...     array(ncfile["values"][:])
 array([[60.],
        [61.],
        [62.],
@@ -146,7 +145,7 @@ array([[60.],
 
 >>> filepath = "project/series/default/lland_v1_flux_nkor_mean.nc"
 >>> with TestIO(), netcdf4.Dataset(filepath) as ncfile:
-...         array(ncfile["flux_nkor"][:])[:, 1]
+...         array(ncfile["values"][:])[:, 1]
 array([16.5, 18.5, 20.5, 22.5])
 
 Besides the testing-related specialities, the described workflow is more or less
@@ -204,7 +203,7 @@ the value of the keyword "nmb_subdevices" if you prefer to call this dimension
 >>> dimmapping["nmb_subdevices"] = "location"
 """
 
-varmapping = {"timepoints": "time", "subdevices": "station_id"}
+varmapping = {"values": "values", "timepoints": "time", "subdevices": "station_id"}
 """Variable-related terms within NetCDF files.
 
 You can change this mapping if it does not suit your requirements.  For example, change 
@@ -373,14 +372,14 @@ def query_variable(ncfile: netcdf4.Dataset, name: str) -> netcdf4.Variable:
     >>> from hydpy.core.netcdftools import netcdf4
     >>> with TestIO():
     ...     file_ = netcdf4.Dataset("model.nc", "w")
-    >>> query_variable(file_, "flux_prec")
+    >>> query_variable(file_, "values")
     Traceback (most recent call last):
     ...
-    RuntimeError: NetCDF file `model.nc` does not contain variable `flux_prec`.
+    RuntimeError: NetCDF file `model.nc` does not contain variable `values`.
 
     >>> from hydpy.core.netcdftools import create_variable
-    >>> create_variable(file_, "flux_prec", "f8", ())
-    >>> isinstance(query_variable(file_, "flux_prec"), netcdf4.Variable)
+    >>> create_variable(file_, "values", "f8", ())
+    >>> isinstance(query_variable(file_, "values"), netcdf4.Variable)
     True
 
     >>> file_.close()
@@ -859,9 +858,8 @@ class NetCDFInterface:
     >>> len(interface)
     16
 
-    You can query all relevant folder names, filenames and variable names via
-    properties |NetCDFInterface.foldernames|, |NetCDFInterface.filenames|, and
-    |NetCDFInterface.variablenames|:
+    You can query all relevant folder names and filenames via properties
+    |NetCDFInterface.foldernames| and |NetCDFInterface.filenames|:
 
     >>> from hydpy import print_values
     >>> print_values(interface.foldernames)
@@ -872,8 +870,6 @@ class NetCDFInterface:
     lland_v1_input_nied_mean, lland_v3_flux_nkor, lland_v3_flux_nkor_mean,
     lland_v3_input_nied, lland_v3_input_nied_mean, node_sim_q,
     node_sim_q_mean, node_sim_t, node_sim_t_mean
-    >>> interface.variablenames
-    ('flux_nkor', 'input_nied', 'sim_q', 'sim_t', 'state_sp')
 
     |NetCDFInterface| provides attribute access to its |NetCDFVariableBase| instances,
     both via their filenames and the combination of its folder names and filenames:
@@ -980,7 +976,7 @@ named `lland_v1` nor does it define a member named `lland_v1`.
             cls: type[NetCDFVariable]
             cls = NetCDFVariableFlat if (aggregation is None) else NetCDFVariableAgg
             filepath = f"{os.path.join(dirpath, filename)}.nc"
-            variable = cls(name=sequence.descr_sequence, filepath=filepath)
+            variable = cls(filepath=filepath)
             file2var[filename] = variable
         variable.log(sequence, infoarray)
         return variable
@@ -1121,7 +1117,7 @@ cover the current simulation period \
         >>> from hydpy.core.netcdftools import netcdf4
         >>> filepath = "LahnH/series/default/hland_v1_factor_contriarea.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath, "r") as ncfile:
-        ...     print_values(ncfile["factor_contriarea"][:, 0])
+        ...     print_values(ncfile["values"][:, 0])
         0.495925, 0.493672, 0.492156, 0.49015
 
         Under particular circumstances, the data variable of a NetCDF file can be
@@ -1135,18 +1131,21 @@ cover the current simulation period \
         same as in the previous example:
 
         >>> with TestIO():
-        ...     for name in ("input_t", "factor_contriarea"):
-        ...         filepath = f"LahnH/series/default/hland_v1_{name}.nc"
+        ...     for name in ("hland_v1_input_t", "hland_v1_factor_contriarea"):
+        ...         filepath = f"LahnH/series/default/{name}.nc"
         ...         with netcdf4.Dataset(filepath, "r+") as ncfile:
-        ...             ncfile.renameVariable(name, "old")
+        ...             ncfile.renameVariable("values", "old")
         ...             _ = ncfile.createDimension("realization", 1)
-        ...             var = ncfile.createVariable(
-        ...                 name, "f8", dimensions=("time", "realization", "stations"))
-        ...             var[:] = ncfile["old"][:] if name == "input_t" else -999.0
+        ...             var = ncfile.createVariable("values", "f8",
+        ...                     dimensions=("time", "realization", "stations"))
+        ...             if name == "hland_v1_input_t":
+        ...                 var[:] = ncfile["old"][:]
+        ...             else:
+        ...                 var[:] = -999.0
         ...     pub.timegrids = "1996-01-01", "1996-01-05", "1d"
         ...     hp.simulate()
         >>> with TestIO(), netcdf4.Dataset(filepath, "r") as ncfile:
-        ...     print_values(ncfile["factor_contriarea"][:, 0, 0])
+        ...     print_values(ncfile["values"][:, 0, 0])
         0.488731, 0.48651, 0.485016, 0.483039
 
         If we try to write the output of a simulation run beyond the original
@@ -1185,8 +1184,8 @@ The data of the NetCDF `...hland_v1_factor_tc.nc` (Timegrid("1996-01-01 00:00:00
         ...
         RuntimeError: While trying to prepare NetCDF files for reading or writing \
 data "just in time" during the current simulation run, the following error occurred: \
-No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
-`...hland_v1_flux_pc.nc` available.
+No data for (sub)device `land_lahn_2_0` available in NetCDF \
+file `...hland_v1_flux_pc.nc`.
 
         One way to prepare complete NetCDF files that are *HydPy* compatible is to work
         with an ordinary NetCDF writer object via |SequenceManager.netcdfwriting|:
@@ -1208,7 +1207,7 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
         >>> filepath_qt = "LahnH/series/default/hland_v1_flux_qt.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath_qt, "r") as ncfile:
         ...     for jdx in range(4):
-        ...         print_values(ncfile["flux_qt"][:, jdx])
+        ...         print_values(ncfile["values"][:, jdx])
         11.78144, 8.902735, 7.132279, 6.018681
         9.648145, 8.518256, 7.78162, 7.345017
         0.0, 0.0, 0.0, 0.0
@@ -1220,7 +1219,7 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
         ...     hp.simulate()
         >>> with TestIO(), netcdf4.Dataset(filepath_qt, "r") as ncfile:  #
         ...         for jdx in range(4):
-        ...             print_values(ncfile["flux_qt"][:, jdx])
+        ...             print_values(ncfile["values"][:, jdx])
         11.78144, 8.902735, 7.132279, 6.018681
         9.648145, 8.518256, 7.78162, 7.345017
         20.590398, 8.663089, 7.282551, 6.403193
@@ -1258,7 +1257,7 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
         >>> filepath_sim = "LahnH/series/default/node_sim_q.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath_sim, "r") as ncfile:
         ...     for jdx in range(4):
-        ...         print_values(ncfile["sim_q"][:, jdx])
+        ...         print_values(ncfile["values"][:, jdx])
         11.78144, 8.902735, 7.132279, 6.018681
         9.648145, 8.518256, 7.78162, 7.345017
         42.371838, 27.213969, 22.933086, 20.203494
@@ -1266,7 +1265,7 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
         >>> filepath_obs = "LahnH/series/default/node_obs_q.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath_obs, "r") as ncfile:
         ...     for jdx in range(4):
-        ...         print_values(ncfile["obs_q"][:, jdx])
+        ...         print_values(ncfile["values"][:, jdx])
         11.78144, 8.902735, 7.132279, 6.018681
         9.648145, 8.518256, 7.78162, 7.345017
         42.371838, 27.213969, 22.933086, 20.203494
@@ -1372,8 +1371,8 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
                     )
                     variable2infos[variable].append(
                         JITAccessInfo(
-                            ncvariable=ncfile[variable.name],
-                            realisation=_is_realisation(ncfile[variable.name], ncfile),
+                            ncvariable=(ncvariable := ncfile[varmapping["values"]]),
+                            realisation=_is_realisation(ncvariable, ncfile),
                             timedelta=variable2timedelta[variable],
                             columns=tuple(get(n) for n in variable.subdevicenames),
                             data=data,
@@ -1411,12 +1410,6 @@ No data for sequence `flux_pc` and (sub)device `land_lahn_2_0` in NetCDF file \
         """The names of all relevant |NetCDFVariableBase| objects."""
         filenames = (file2var.keys() for file2var in self._dir2file2var.values())
         return tuple(sorted(set(itertools.chain(*filenames))))
-
-    @property
-    def variablenames(self) -> tuple[str, ...]:
-        """The names of all handled |NetCDFVariableBase| objects."""
-        variables = (file2var.values() for file2var in self._dir2file2var.values())
-        return tuple(sorted(set(v.name for v in itertools.chain(*variables))))
 
     def __getattr__(self, name: str) -> NetCDFVariable:
         counter = 0
@@ -1478,10 +1471,9 @@ class Subdevice2Index:
     name_ncfile: str
 
     def __init__(
-        self, dict_: dict[str, int], name_sequence: str, name_ncfile: str
+        self, dict_: dict[str, int], name_ncfile: str
     ) -> None:
         self.dict_ = dict_
-        self.name_sequence = name_sequence
         self.name_ncfile = name_ncfile
 
     def get_index(self, name_subdevice: str) -> int:
@@ -1490,23 +1482,20 @@ class Subdevice2Index:
             return self.dict_[name_subdevice]
         except KeyError:
             raise RuntimeError(
-                f"No data for sequence `{self.name_sequence}` and (sub)device "
-                f"`{name_subdevice}` in NetCDF file `{self.name_ncfile}` available."
+                f"No data for (sub)device `{name_subdevice}` available in NetCDF file "
+                f"`{self.name_ncfile}`."
             ) from None
 
 
 class NetCDFVariableBase(abc.ABC):
     """Base class for |NetCDFVariableAgg| and |NetCDFVariableFlat|."""
 
-    name: str
-    """Name of the NetCDF variable within the NetCDF file."""
     filepath: str
     """Path to the relevant NetCDF file."""
     _descr2sequence: dict[str, sequencetools.IOSequence]
     _descr2array: dict[str, Optional[sequencetools.InfoArray]]
 
-    def __init__(self, name: str, filepath: str) -> None:
-        self.name = name
+    def __init__(self, filepath: str) -> None:
         self.filepath = filepath
         self._descr2sequence = {}
         self._descr2array = {}
@@ -1530,7 +1519,7 @@ class NetCDFVariableBase(abc.ABC):
         >>> from hydpy.core.netcdftools import NetCDFVariableBase
         >>> from hydpy import make_abc_testable
         >>> NCVar = make_abc_testable(NetCDFVariableBase)
-        >>> ncvar = NCVar("flux_nkor", "filepath.nc")
+        >>> ncvar = NCVar("filepath.nc")
         >>> from hydpy.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> nkor = elements.element1.model.sequences.fluxes.nkor
@@ -1544,9 +1533,9 @@ class NetCDFVariableBase(abc.ABC):
         >>> ncvar.element2  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        AttributeError: The NetCDFVariable object `flux_nkor` does neither handle \
-time series data under the (sub)device name `element2` nor does it define a member \
-named `element2`...
+        AttributeError: The selected NetCDFVariable object does neither handle time \
+series data for the (sub)device` element2` nor does it define a member named \
+`element2`.. Did you mean: 'element1'?
         """
         descr_device = sequence.descr_device
         self._descr2sequence[descr_device] = sequence
@@ -1578,7 +1567,7 @@ named `element2`...
         (sub)devices, and the second dimension to the number of characters of the
         longest (sub)device name:
 
-        >>> var = Var("var", "filename.nc")
+        >>> var = Var("filename.nc")
         >>> with TestIO():
         ...     ncfile = netcdf4.Dataset("filename.nc", "w")
         >>> var.insert_subdevices(ncfile)
@@ -1612,25 +1601,24 @@ named `element2`...
         >>> from hydpy.core.netcdftools import netcdf4
         >>> Var = make_abc_testable(NetCDFVariableBase)
         >>> Var.subdevicenames = "element1", "element_2"
-        >>> var = Var("flux_prec", "filename.nc")
+        >>> var = Var("filename.nc")
         >>> with TestIO():
         ...     ncfile = netcdf4.Dataset("filename.nc", "w")
         >>> var.query_subdevices(ncfile)
         Traceback (most recent call last):
         ...
         RuntimeError: NetCDF file `filename.nc` does neither contain a variable named \
-`flux_prec_station_id` nor `station_id` for defining the coordinate locations of \
-variable `flux_prec`.
+`values_station_id` nor `station_id` for defining coordinate locations.
 
         After inserting the (sub)device names, they can be queried and returned:
 
         >>> var.insert_subdevices(ncfile)
-        >>> Var("flux_prec", "filename.nc").query_subdevices(ncfile)
+        >>> Var("filename.nc").query_subdevices(ncfile)
         ['element1', 'element_2']
 
         >>> ncfile.close()
         """
-        tests = [f"{pref}{varmapping['subdevices']}" for pref in (f"{self.name}_", "")]
+        tests = [f"{pref}{varmapping['subdevices']}" for pref in (f"values_", "")]
         for subdevices in tests:
             try:
                 chars = ncfile[subdevices][:]
@@ -1640,8 +1628,8 @@ variable `flux_prec`.
         else:
             raise RuntimeError(
                 f"NetCDF file `{get_filepath(ncfile)}` does neither contain a "
-                f"variable named `{tests[0]}` nor `{tests[1]}` for defining the "
-                f"coordinate locations of variable `{self.name}`."
+                f"variable named `{tests[0]}` nor `{tests[1]}` for defining "
+                f"coordinate locations."
             )
         return chars2str(chars.data)
 
@@ -1661,7 +1649,7 @@ variable `flux_prec`.
         ...     ncfile = netcdf4.Dataset("filename.nc", "w")
         >>> Var = make_abc_testable(NetCDFVariableBase)
         >>> Var.subdevicenames = ["element3", "element1", "element1_1", "element2"]
-        >>> var = Var("flux_prec", "filename.nc")
+        >>> var = Var("filename.nc")
         >>> var.insert_subdevices(ncfile)
         >>> subdevice2index = var.query_subdevice2index(ncfile)
         >>> subdevice2index.get_index("element1_1")
@@ -1671,8 +1659,8 @@ variable `flux_prec`.
         >>> subdevice2index.get_index("element5")
         Traceback (most recent call last):
         ...
-        RuntimeError: No data for sequence `flux_prec` and (sub)device `element5` in \
-NetCDF file `filename.nc` available.
+        RuntimeError: No data for (sub)device `element5` available in NetCDF file \
+`filename.nc`.
 
         Additionally, |NetCDFVariableBase.query_subdevice2index| checks for duplicates:
 
@@ -1682,14 +1670,14 @@ NetCDF file `filename.nc` available.
         Traceback (most recent call last):
         ...
         RuntimeError: The NetCDF file `filename.nc` contains duplicate (sub)device \
-names for variable `flux_prec` (the first found duplicate is `element1`).
+names (the first found duplicate is `element1`).
 
         >>> ncfile.close()
         """
         subdevices = self.query_subdevices(ncfile)
         self._test_duplicate_exists(ncfile, subdevices)
         subdev2index = {subdev: idx for (idx, subdev) in enumerate(subdevices)}
-        return Subdevice2Index(subdev2index, self.name, get_filepath(ncfile))
+        return Subdevice2Index(subdev2index, get_filepath(ncfile))
 
     def _test_duplicate_exists(
         self, ncfile: netcdf4.Dataset, subdevices: Sequence[str]
@@ -1700,8 +1688,8 @@ names for variable `flux_prec` (the first found duplicate is `element1`).
                     if name1 == name2:
                         raise RuntimeError(
                             f"The NetCDF file `{get_filepath(ncfile)}` contains "
-                            f"duplicate (sub)device names for variable `{self.name}` "
-                            f"(the first found duplicate is `{name1}`)."
+                            f"duplicate (sub)device names (the first found duplicate "
+                            f"is `{name1}`)."
                         )
 
     @abc.abstractmethod
@@ -1736,8 +1724,8 @@ names for variable `flux_prec` (the first found duplicate is `element1`).
             self._insert_timepoints(ncfile, timepoints, timeunit)
             self.insert_subdevices(ncfile)
             dimensions = dimmapping["nmb_timepoints"], dimmapping["nmb_subdevices"]
-            create_variable(ncfile, self.name, "f8", dimensions)
-            ncfile[self.name][:] = self.array
+            create_variable(ncfile, varmapping["values"], "f8", dimensions)
+            ncfile[varmapping["values"]][:] = self.array
 
     @staticmethod
     def _insert_timepoints(
@@ -1761,9 +1749,9 @@ names for variable `flux_prec` (the first found duplicate is `element1`).
             )
         except KeyError:
             raise AttributeError(
-                f"The NetCDFVariable object `{self.name}` does neither handle time "
-                f"series data under the (sub)device name `{name}` nor does it define "
-                f"a member named `{name}`."
+                f"The selected NetCDFVariable object does neither handle time series "
+                f"data for the (sub)device` {name}` nor does it define a member named "
+                f"`{name}`."
             ) from None
 
     def __dir__(self) -> list[str]:
@@ -1783,9 +1771,9 @@ class NetCDFVariableAgg(NetCDFVariableBase):
     >>> from hydpy.examples import prepare_io_example_1
     >>> nodes, (element1, element2, element3, element4) = prepare_io_example_1()
     >>> from hydpy.core.netcdftools import NetCDFVariableAgg
-    >>> var_nied = NetCDFVariableAgg("input_nied_mean", "nied.nc")
-    >>> var_nkor = NetCDFVariableAgg("flux_nkor_mean", "nkor.nc")
-    >>> var_sp = NetCDFVariableAgg("state_sp_mean", "sp.nc")
+    >>> var_nied = NetCDFVariableAgg("nied.nc")
+    >>> var_nkor = NetCDFVariableAgg("nkor.nc")
+    >>> var_sp = NetCDFVariableAgg("sp.nc")
     >>> for element in (element1, element2):
     ...     nied = element.model.sequences.inputs.nied
     ...     var_nied.log(nied, nied.average_series())
@@ -1804,21 +1792,21 @@ class NetCDFVariableAgg(NetCDFVariableBase):
 
     >>> import numpy
     >>> with TestIO(), netcdf4.Dataset("nied.nc", "r") as ncfile:
-    ...     numpy.array(ncfile["input_nied_mean"][:])
+    ...     numpy.array(ncfile["values"][:])
     array([[0., 4.],
            [1., 5.],
            [2., 6.],
            [3., 7.]])
 
     >>> with TestIO(), netcdf4.Dataset("nkor.nc", "r") as ncfile:
-    ...     numpy.array(ncfile["flux_nkor_mean"][:])
+    ...     numpy.array(ncfile["values"][:])
     array([[12. , 16.5],
            [13. , 18.5],
            [14. , 20.5],
            [15. , 22.5]])
 
     >>> with TestIO(), netcdf4.Dataset("sp.nc", "r") as ncfile:
-    ...     numpy.array(ncfile["state_sp_mean"][:])
+    ...     numpy.array(ncfile["values"][:])
     array([[70.5],
            [76.5],
            [82.5],
@@ -1836,7 +1824,7 @@ class NetCDFVariableAgg(NetCDFVariableBase):
         >>> from hydpy.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableAgg
-        >>> ncvar = NetCDFVariableAgg("flux_nkor", "filename.nc")
+        >>> ncvar = NetCDFVariableAgg("filename.nc")
         >>> for element in elements:
         ...     if element.model.name.startswith("lland"):
         ...         ncvar.log(element.model.sequences.fluxes.nkor, None)
@@ -1846,7 +1834,7 @@ class NetCDFVariableAgg(NetCDFVariableBase):
         There is no difference for 2-dimensional sequences as aggregating their time
         series also results in 1-dimensional data:
 
-        >>> ncvar = NetCDFVariableAgg("state_sp", "filename.nc")
+        >>> ncvar = NetCDFVariableAgg("filename.nc")
         >>> ncvar.log(elements.element4.model.sequences.states.sp, None)
         >>> ncvar.shape
         (4, 1)
@@ -1865,7 +1853,7 @@ class NetCDFVariableAgg(NetCDFVariableBase):
         >>> from hydpy.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableAgg
-        >>> ncvar = NetCDFVariableAgg("flux_nkor", "filename.nc")
+        >>> ncvar = NetCDFVariableAgg("filename.nc")
         >>> for element in elements:
         ...     if element.model.name.startswith("lland"):
         ...         nkor = element.model.sequences.fluxes.nkor
@@ -1879,7 +1867,7 @@ class NetCDFVariableAgg(NetCDFVariableBase):
         There is no difference for 2-dimensional sequences as aggregating their time
         series also results in 1-dimensional data:
 
-        >>> ncvar = NetCDFVariableAgg("state_sp", "filename.nc")
+        >>> ncvar = NetCDFVariableAgg("filename.nc")
         >>> sp = elements.element4.model.sequences.states.sp
         >>> ncvar.log(sp, sp.average_series())
         >>> ncvar.array
@@ -1906,15 +1894,13 @@ class NetCDFVariableAgg(NetCDFVariableBase):
         implementing a reading functionality is not possible:
 
         >>> from hydpy.core.netcdftools import NetCDFVariableAgg
-        >>> NetCDFVariableAgg("flux_nkor", "filename.nc").read()
+        >>> NetCDFVariableAgg("filename.nc").read()
         Traceback (most recent call last):
         ...
-        RuntimeError: The process of aggregating values (of sequence `flux_nkor` and \
-other sequences as well) is not invertible.
+        RuntimeError: The process of aggregating time series values is not invertible.
         """
         raise RuntimeError(
-            f"The process of aggregating values (of sequence `{self.name}` and other "
-            f"sequences as well) is not invertible."
+            f"The process of aggregating time series values is not invertible."
         )
 
 
@@ -1935,9 +1921,9 @@ class NetCDFVariableFlat(NetCDFVariableBase):
     the fourth element:
 
     >>> from hydpy.core.netcdftools import NetCDFVariableFlat
-    >>> var_nied = NetCDFVariableFlat("input_nied", "nied.nc")
-    >>> var_nkor = NetCDFVariableFlat("flux_nkor", "nkor.nc")
-    >>> var_sp = NetCDFVariableFlat("state_sp", "sp.nc")
+    >>> var_nied = NetCDFVariableFlat("nied.nc")
+    >>> var_nkor = NetCDFVariableFlat("nkor.nc")
+    >>> var_sp = NetCDFVariableFlat("sp.nc")
     >>> for element in (element1, element2):
     ...     seqs = element.model.sequences
     ...     var_nied.log(seqs.inputs.nied, seqs.inputs.nied.series)
@@ -1971,9 +1957,9 @@ class NetCDFVariableFlat(NetCDFVariableBase):
     sequences as above, open the existing NetCDF file for reading, read its data, and
     confirm that it has been correctly passed to the test sequences:
 
-    >>> nied1 = NetCDFVariableFlat("input_nied", "nied.nc")
-    >>> nkor1 = NetCDFVariableFlat("flux_nkor", "nkor.nc")
-    >>> sp4 = NetCDFVariableFlat("state_sp", "sp.nc")
+    >>> nied1 = NetCDFVariableFlat("nied.nc")
+    >>> nkor1 = NetCDFVariableFlat("nkor.nc")
+    >>> sp4 = NetCDFVariableFlat("sp.nc")
     >>> for element in (element1, element2):
     ...     sequences = element.model.sequences
     ...     nied1.log(sequences.inputs.nied, None)
@@ -1998,8 +1984,7 @@ class NetCDFVariableFlat(NetCDFVariableBase):
     Traceback (most recent call last):
     ...
     RuntimeError: While trying to read data from NetCDF file `nied.nc`, the following \
-error occurred: No data for sequence `input_nied` and (sub)device `element3` in \
-NetCDF file `nied.nc` available.
+error occurred: No data for (sub)device `element3` available in NetCDF file `nied.nc`.
     """
 
     @property
@@ -2013,7 +1998,7 @@ NetCDF file `nied.nc` available.
         >>> from hydpy.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableFlat
-        >>> ncvar = NetCDFVariableFlat("input_nied", "filename.nc")
+        >>> ncvar = NetCDFVariableFlat("filename.nc")
         >>> for element in elements:
         ...     if element.model.name.startswith("lland"):
         ...         ncvar.log(element.model.sequences.inputs.nied, None)
@@ -2025,7 +2010,7 @@ NetCDF file `nied.nc` available.
         different elements.  The model instances of the three elements define one, two,
         and three response units, respectively, making up a sum of six subdevices:
 
-        >>> ncvar = NetCDFVariableFlat("flux_nkor", "filename.nc")
+        >>> ncvar = NetCDFVariableFlat("filename.nc")
         >>> for element in elements:
         ...     if element.model.name.startswith("lland"):
         ...         ncvar.log(element.model.sequences.fluxes.nkor, None)
@@ -2037,7 +2022,7 @@ NetCDF file `nied.nc` available.
         single snow class (one element times three zones times two snow classes makes
         six subdevices):
 
-        >>> ncvar = NetCDFVariableFlat("state_sp", "filename.nc")
+        >>> ncvar = NetCDFVariableFlat( "filename.nc")
         >>> ncvar.log(elements.element4.model.sequences.states.sp, None)
         >>> ncvar.shape
         (4, 6)
@@ -2059,7 +2044,7 @@ NetCDF file `nied.nc` available.
         >>> from hydpy.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableFlat
-        >>> ncvar = NetCDFVariableFlat("input_nied", "filename.nc")
+        >>> ncvar = NetCDFVariableFlat("filename.nc")
         >>> for element in elements:
         ...     if element.model.name.startswith("lland"):
         ...         nied1 = element.model.sequences.inputs.nied
@@ -2075,7 +2060,7 @@ NetCDF file `nied.nc` available.
         sequence |lland_fluxes.NKor|, we find the time-series of both zones of the
         second element in columns two and three:
 
-        >>> ncvar = NetCDFVariableFlat("flux_nkor", "filename.nc")
+        >>> ncvar = NetCDFVariableFlat("filename.nc")
         >>> for element in elements:
         ...     if element.model.name.startswith("lland"):
         ...         nkor = element.model.sequences.fluxes.nkor
@@ -2090,7 +2075,7 @@ NetCDF file `nied.nc` available.
         |hland_states.SP|.  In this specific case, each column contains the series of a
         single snow class:
 
-        >>> ncvar = NetCDFVariableFlat("state_sp", "filename.nc")
+        >>> ncvar = NetCDFVariableFlat( "filename.nc")
         >>> sp = elements.element4.model.sequences.states.sp
         >>> ncvar.log(sp, sp.series)
         >>> ncvar.array
@@ -2124,7 +2109,7 @@ NetCDF file `nied.nc` available.
         >>> from hydpy.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableFlat
-        >>> ncvar = NetCDFVariableFlat("input_nied", "filename.nc")
+        >>> ncvar = NetCDFVariableFlat("filename.nc")
         >>> for element in elements:
         ...     if element.model.name.startswith("lland"):
         ...         nied = element.model.sequences.inputs.nied
@@ -2137,7 +2122,7 @@ NetCDF file `nied.nc` available.
         |NetCDFVariableAgg.array| contains the series of the first hydrological
         response unit of the second element:
 
-        >>> ncvar = NetCDFVariableFlat("flux_nkor", "filename.nc")
+        >>> ncvar = NetCDFVariableFlat("filename.nc")
         >>> for element in elements:
         ...     if element.model.name.startswith("lland"):
         ...         nkor = element.model.sequences.fluxes.nkor
@@ -2148,7 +2133,7 @@ NetCDF file `nied.nc` available.
 
         2-dimensional sequences like |hland_states.SP| require an additional suffix:
 
-        >>> ncvar = NetCDFVariableFlat("state_sp", "filename.nc")
+        >>> ncvar = NetCDFVariableFlat("filename.nc")
         >>> sp = elements.element4.model.sequences.states.sp
         >>> ncvar.log(sp, sp.series)
         >>> ncvar.subdevicenames
@@ -2192,7 +2177,7 @@ NetCDF file `nied.nc` available.
             with netcdf4.Dataset(self.filepath, "r") as ncfile:
                 sequence = next(iter(self._descr2sequence.values()))
                 timegrid = query_timegrid(ncfile, sequence)
-                array = query_array(ncfile, self.name)
+                array = query_array(ncfile, varmapping["values"])
                 idxs: tuple[Any] = (slice(None),)
                 subdev2index = self.query_subdevice2index(ncfile)
                 for devicename, seq in self._descr2sequence.items():

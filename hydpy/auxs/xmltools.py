@@ -74,7 +74,7 @@ The intermediate soil moisture values have been stored in a NetCDF file called
 >>> with TestIO():
 ...     ncfile = netcdf4.Dataset("LahnH/series/soildata/hland_v1_state_sm.nc")
 ...     chars2str(query_variable(ncfile, "station_id")[:].data)[:3]
-...     print_values(query_variable(ncfile, "state_sm")[:, 0])
+...     print_values(query_variable(ncfile, "values")[:, 0])
 ['land_dill_0', 'land_dill_1', 'land_dill_2']
 184.920402, 184.589155, 184.365769, 184.069586, 183.837826
 >>> ncfile.close()
@@ -1381,6 +1381,8 @@ class XMLSubseries(XMLSelector):
         1
         >>> pub.sequencemanager.aggregation
         'none'
+        >>> pub.sequencemanager.convention
+        'model-specific'
         >>> with TestIO():
         ...     series_io.writers[1].prepare_sequencemanager()
         ...     pub.sequencemanager.currentdir
@@ -1391,6 +1393,8 @@ class XMLSubseries(XMLSelector):
         0
         >>> pub.sequencemanager.aggregation
         'none'
+        >>> pub.sequencemanager.convention
+        'model-specific'
         >>> with TestIO():
         ...     series_io.writers[2].prepare_sequencemanager()
         ...     pub.sequencemanager.currentdir
@@ -1403,6 +1407,8 @@ class XMLSubseries(XMLSelector):
         1
         >>> pub.sequencemanager.aggregation
         'mean'
+        >>> pub.sequencemanager.convention
+        'model-specific'
         """
         sm = hydpy.pub.sequencemanager
         if currentdir is None:
@@ -1417,7 +1423,7 @@ class XMLSubseries(XMLSelector):
         else:
             sm.currentdir = currentdir
 
-        for option in ("filetype", "aggregation", "overwrite"):
+        for option in ("filetype", "aggregation", "convention", "overwrite"):
             delattr(sm, option)
             for element in (self.find(option), self.master.find(option)):
                 if element is not None:
@@ -1744,10 +1750,11 @@ during a simulation run is not supported but tried for sequence `p` of element \
         ...     series_io.save_series()
         >>> import numpy
         >>> with TestIO():
-        ...     os.path.exists("LahnH/series/default/land_lahn_2_flux_pc.npy")
-        ...     os.path.exists("LahnH/series/default/land_lahn_3_flux_pc.npy")
-        ...     numpy.load("LahnH/series/default/land_dill_flux_pc.npy")[13+2, 3]
-        ...     numpy.load("LahnH/series/default/lahn_2_sim_q_mean.npy")[13+4]
+        ...     dirpath = "LahnH/series/default/"
+        ...     os.path.exists(f"{dirpath}land_lahn_2_hland_v1_flux_pc.npy")
+        ...     os.path.exists(f"{dirpath}land_lahn_3_hland_v1_flux_pc.npy")
+        ...     numpy.load(f"{dirpath}land_dill_hland_v1_flux_pc.npy")[13+2, 3]
+        ...     numpy.load(f"{dirpath}lahn_2_sim_q_mean.npy")[13+4]
         True
         False
         9.0

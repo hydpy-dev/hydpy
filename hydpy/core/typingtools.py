@@ -205,6 +205,7 @@ class CySubstepModelProtocol(CyModelProtocol):
 
 SeriesFileType = Literal["npy", "asc", "nc"]
 SeriesAggregationType = Literal["none", "mean"]
+SeriesConventionType = Literal["model-specific", "HydPy"]
 
 l1: Literal[1] = 1
 
@@ -284,6 +285,7 @@ __all__ = [
     "Protocol",
     "Self",
     "SeriesAggregationType",
+    "SeriesConventionType",
     "SeriesFileType",
     "Sequence",
     "Sequence1",

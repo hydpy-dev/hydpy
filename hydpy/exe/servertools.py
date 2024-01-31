@@ -1259,7 +1259,7 @@ registered under the id `0`.  There is nothing registered, so far.
     >>> from hydpy import print_values
     >>> filepath = "LahnH/series/mean_sm/hland_v1_state_sm_mean.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
-    ...     print_values(ncfile["state_sm"][:, 0])
+    ...     print_values(ncfile["values"][:, 0])
     211.231585, 0.0, 0.0, 0.0, 0.0
 
     To save the results of subsequent simulations without overwriting the previous
@@ -1272,7 +1272,7 @@ registered under the id `0`.  There is nothing registered, so far.
     <BLANKLINE>
     >>> filepath = "LahnH/series/sm_averaged/hland_v1_state_sm_mean.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
-    ...     print_values(ncfile["state_sm"][:, 0])
+    ...     print_values(ncfile["values"][:, 0])
     211.231585, 0.0, 0.0, 0.0, 0.0
 
     |HydPyServer.GET_deregister_serieswriterdir| removes the currently set directory
@@ -1298,7 +1298,7 @@ under the id `0`.  There is nothing registered, so far.
 
     >>> filepath = "LahnH/series/temperature/hland_v1_input_t.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
-    ...     print_values(ncfile["input_t"][:, 0])
+    ...     print_values(ncfile["values"][:, 0])
     -0.298846, 0.0, 0.0, 0.0, 0.0
 
     The input sequences |hland_inputs.P| and |evap_inputs.NormalEvapotranspiration| are
@@ -1322,7 +1322,7 @@ under the id `0`.  There is nothing registered, so far.
     <BLANKLINE>
     >>> filepath = "LahnH/series/temp/hland_v1_input_t.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
-    ...     print_values(ncfile["input_t"][:, 0])
+    ...     print_values(ncfile["values"][:, 0])
     -0.298846, 0.0, 0.0, 0.0, 0.0
 
     The "just in time" reading of the series of |hland_inputs.P| and
@@ -1346,8 +1346,8 @@ under the id `0`.  There is nothing registered, so far.
     ...
     urllib.error.HTTPError: HTTP Error 500: FileNotFoundError: While trying to \
 execute method `GET_load_allseries`, the following error occurred: While trying to \
-load the time-series data of sequence `t` of element `land_dill`, the following error \
-occurred: [Errno 2] No such file or directory: ...land_dill_input_t.asc'
+load the time series data of sequence `t` of element `land_dill`, the following error \
+occurred: [Errno 2] No such file or directory: ...land_dill_hland_v1_input_t.asc'
 
     >>> test("simulate", id_="0")  # doctest: +ELLIPSIS
     Traceback (most recent call last):

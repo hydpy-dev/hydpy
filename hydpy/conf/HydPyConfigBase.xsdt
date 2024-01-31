@@ -156,6 +156,9 @@
                 <element name="aggregation"
                          minOccurs="0"
                          type="hpcb:aggregation"/>
+                <element name="convention"
+                         minOccurs="0"
+                         type="hpcb:convention"/>
                 <element name="mode"
                          minOccurs="0"
                          type="hpcb:mode"/>
@@ -193,6 +196,9 @@
                 <element name="filetype"
                          minOccurs="0"
                          type="hpcb:filetype"/>
+                <element name="convention"
+                         minOccurs="0"
+                         type="hpcb:convention"/>
                 <element name="mode"
                          minOccurs="0"
                          type="hpcb:mode"/>
@@ -220,6 +226,9 @@
                 <element name="aggregation"
                          minOccurs="0"
                          type="hpcb:aggregation"/>
+                <element name="convention"
+                         minOccurs="0"
+                         type="hpcb:convention"/>
                 <element name="mode"
                          minOccurs="0"
                          type="hpcb:mode"/>
@@ -240,6 +249,13 @@
         <restriction base="string">
             <enumeration value="none"/>
             <enumeration value="mean"/>
+        </restriction>
+    </simpleType>
+
+    <simpleType name="convention">
+        <restriction base="string">
+            <enumeration value="model-specific"/>
+            <enumeration value="HydPy"/>
         </restriction>
     </simpleType>
 

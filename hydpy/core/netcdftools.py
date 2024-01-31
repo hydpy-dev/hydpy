@@ -135,7 +135,7 @@ the sake of consistency):
 
 >>> from hydpy.core.netcdftools import netcdf4
 >>> from numpy import array
->>> filepath = "project/series/default/node_sim_q_mean.nc"
+>>> filepath = "project/series/default/sim_q_mean.nc"
 >>> with TestIO(), netcdf4.Dataset(filepath) as ncfile:
 ...     array(ncfile["values"][:])
 array([[60.],
@@ -147,6 +147,30 @@ array([[60.],
 >>> with TestIO(), netcdf4.Dataset(filepath) as ncfile:
 ...         array(ncfile["values"][:])[:, 1]
 array([16.5, 18.5, 20.5, 22.5])
+
+(12) The previous examples relied on "model-specific" file names.  The documentation on
+class |HydPy| introduces the standard "HydPy" convention as an alternative for naming
+input time series files and demonstrates it for file types that store the time series
+of single sequence instances.  Here, we take the input sequence |lland_inputs.Nied| as
+an example to show one can use its standard name |StandardInputNames.PRECIPITATION| to
+read and write more generally named NetCDF files:
+
+>>> elements.element2.model.sequences.inputs.nied.series
+InfoArray([4., 5., 6., 7.])
+
+>>> pub.sequencemanager.convention = "HydPy"
+>>> with TestIO(), pub.sequencemanager.netcdfwriting():
+...     elements.save_inputseries()
+>>> filepath = "project/series/default/precipitation.nc"
+>>> with TestIO(), netcdf4.Dataset(filepath) as ncfile:
+...         array(ncfile["values"][:])[:, 1]
+array([4., 5., 6., 7.])
+
+>>> elements.element2.model.sequences.inputs.nied.series = 0.0
+>>> with TestIO(), pub.options.checkseries(False), pub.sequencemanager.netcdfreading():
+...     elements.load_inputseries()
+>>> elements.element2.model.sequences.inputs.nied.series
+InfoArray([4., 5., 6., 7.])
 
 Besides the testing-related specialities, the described workflow is more or less
 standard but allows for different modifications.  We illustrate them in the
@@ -838,10 +862,12 @@ class NetCDFInterface:
     0
 
     >>> from hydpy import pub, TestIO
+    >>> pub.sequencemanager.filetype = "nc"
     >>> with TestIO():
     ...     for sequence in sequences:
     ...         _ = interface.log(sequence, sequence.series)
-    ...         _ = interface.log(sequence, sequence.average_series())
+    ...         with pub.sequencemanager.aggregation("mean"):
+    ...             _ = interface.log(sequence, sequence.average_series())
     >>> len(interface)
     14
 
@@ -854,7 +880,8 @@ class NetCDFInterface:
     >>> with TestIO():
     ...     pub.sequencemanager.currentdir = "test"
     ...     _ = interface.log(nkor, nkor.series)
-    ...     _ = interface.log(nkor, nkor.average_series())
+    ...     with pub.sequencemanager.aggregation("mean"):
+    ...         _ = interface.log(nkor, nkor.average_series())
     >>> len(interface)
     16
 
@@ -868,13 +895,13 @@ class NetCDFInterface:
     hland_v1_state_sp, hland_v1_state_sp_mean, lland_v1_flux_nkor,
     lland_v1_flux_nkor_mean, lland_v1_input_nied,
     lland_v1_input_nied_mean, lland_v3_flux_nkor, lland_v3_flux_nkor_mean,
-    lland_v3_input_nied, lland_v3_input_nied_mean, node_sim_q,
-    node_sim_q_mean, node_sim_t, node_sim_t_mean
+    lland_v3_input_nied, lland_v3_input_nied_mean, sim_q, sim_q_mean,
+    sim_t, sim_t_mean
 
     |NetCDFInterface| provides attribute access to its |NetCDFVariableBase| instances,
     both via their filenames and the combination of its folder names and filenames:
 
-    >>> interface.node_sim_q is interface.default_node_sim_q
+    >>> interface.sim_q is interface.default_sim_q
     True
     >>> print_values(sorted(set(dir(interface)) - set(object.__dir__(interface))))
     default_hland_v1_state_sp, default_hland_v1_state_sp_mean,
@@ -882,12 +909,12 @@ class NetCDFInterface:
     default_lland_v1_input_nied, default_lland_v1_input_nied_mean,
     default_lland_v3_flux_nkor, default_lland_v3_flux_nkor_mean,
     default_lland_v3_input_nied, default_lland_v3_input_nied_mean,
-    default_node_sim_q, default_node_sim_q_mean, default_node_sim_t,
-    default_node_sim_t_mean, hland_v1_state_sp, hland_v1_state_sp_mean,
-    lland_v1_input_nied, lland_v1_input_nied_mean, lland_v3_flux_nkor,
-    lland_v3_flux_nkor_mean, lland_v3_input_nied,
-    lland_v3_input_nied_mean, node_sim_q, node_sim_q_mean, node_sim_t,
-    node_sim_t_mean, test_lland_v1_flux_nkor, test_lland_v1_flux_nkor_mean
+    default_sim_q, default_sim_q_mean, default_sim_t, default_sim_t_mean,
+    hland_v1_state_sp, hland_v1_state_sp_mean, lland_v1_input_nied,
+    lland_v1_input_nied_mean, lland_v3_flux_nkor, lland_v3_flux_nkor_mean,
+    lland_v3_input_nied, lland_v3_input_nied_mean, sim_q, sim_q_mean,
+    sim_t, sim_t_mean, test_lland_v1_flux_nkor,
+    test_lland_v1_flux_nkor_mean
 
     If multiple NetCDF files have the same name, you must prefix the relevant folder
     name:
@@ -968,41 +995,17 @@ named `lland_v1` nor does it define a member named `lland_v1`.
         except KeyError:
             file2var = {}
             self._dir2file2var[dirpath] = file2var
-        filename = self._query_filename(sequence, infoarray)
+        stem = sequence.filename[:-3]
         try:
-            variable = file2var[filename]
+            variable = file2var[stem]
         except KeyError:
-            aggregation = self._query_aggregation(infoarray)
-            cls: type[NetCDFVariable]
-            cls = NetCDFVariableFlat if (aggregation is None) else NetCDFVariableAgg
-            filepath = f"{os.path.join(dirpath, filename)}.nc"
-            variable = cls(filepath=filepath)
-            file2var[filename] = variable
+            if hydpy.pub.sequencemanager.aggregation == "none":
+                variable = NetCDFVariableFlat(sequence.filepath)
+            else:
+                variable = NetCDFVariableAgg(sequence.filepath)
+            file2var[stem] = variable
         variable.log(sequence, infoarray)
         return variable
-
-    def _query_filename(
-        self,
-        sequence: sequencetools.IOSequence,
-        infoarray: Optional[sequencetools.InfoArray],
-    ) -> str:
-        if isinstance(sequence, sequencetools.ModelIOSequence):
-            filename = sequence.descr_model
-        else:
-            filename = "node"
-        filename = f"{filename}_{sequence.descr_sequence}"
-        aggregation = self._query_aggregation(infoarray)
-        if aggregation:
-            filename = f"{filename}_{aggregation}"
-        return filename
-
-    @staticmethod
-    def _query_aggregation(
-        infoarray: Optional[sequencetools.InfoArray],
-    ) -> Optional[str]:
-        if (infoarray is not None) and (infoarray.aggregation != "unmodified"):
-            return infoarray.aggregation
-        return None
 
     def read(self) -> None:
         """Call method |NetCDFVariableBase.read| of all handled |NetCDFVariableBase|
@@ -1254,7 +1257,7 @@ file `...hland_v1_flux_pc.nc`.
         9.648145, 8.518256, 7.78162, 7.345017
         42.371838, 27.213969, 22.933086, 20.203494
         54.046428, 37.32527, 31.925872, 28.416456
-        >>> filepath_sim = "LahnH/series/default/node_sim_q.nc"
+        >>> filepath_sim = "LahnH/series/default/sim_q.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath_sim, "r") as ncfile:
         ...     for jdx in range(4):
         ...         print_values(ncfile["values"][:, jdx])
@@ -1262,7 +1265,7 @@ file `...hland_v1_flux_pc.nc`.
         9.648145, 8.518256, 7.78162, 7.345017
         42.371838, 27.213969, 22.933086, 20.203494
         54.046428, 37.32527, 31.925872, 28.416456
-        >>> filepath_obs = "LahnH/series/default/node_obs_q.nc"
+        >>> filepath_obs = "LahnH/series/default/obs_q.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath_obs, "r") as ncfile:
         ...     for jdx in range(4):
         ...         print_values(ncfile["values"][:, jdx])
@@ -1320,75 +1323,81 @@ file `...hland_v1_flux_pc.nc`.
         ] = collections.defaultdict(lambda: [])
 
         try:  # pylint: disable=too-many-nested-blocks
-            # collect the relevant sequences:
-            log = self.log
-            for sequence in self._yield_disksequences(deviceorder):
-                if sequence.diskflag:
-                    variable = log(sequence)
-                    assert isinstance(variable, NetCDFVariableFlat)
-                    readmode = sequence.diskflag_reading
-                    variable2readmode.setdefault(variable, readmode)
-                    if variable2readmode[variable] != readmode:
-                        raise RuntimeError(
-                            f"For a specific NetCDF file, you can either read or "
-                            f"write data during a simulation run but for file "
-                            f"`{variable.filepath}` both is requested."
-                        )
-                    variable2infos[variable] = readers if readmode else writers
-                    variable2sequences[variable].append(sequence)
 
-            if variable2sequences:
-                # prepare NetCDF files:
-                variable2timedelta: dict[NetCDFVariable, int] = {}
-                tg_init = hydpy.pub.timegrids.init
-                tg_sim = hydpy.pub.timegrids.sim
-                for variable, readmode in variable2readmode.items():
-                    if not os.path.exists(variable.filepath):
-                        if readmode and hydpy.pub.options.checkseries:
-                            raise FileNotFoundError(
-                                f"No file `{variable.filepath}` available for reading."
+            # just-in-time calculations only work with NetCDF files
+            with hydpy.pub.sequencemanager.filetype("nc"):
+
+                # collect the relevant sequences:
+                log = self.log
+                for sequence in self._yield_disksequences(deviceorder):
+                    if sequence.diskflag:
+                        variable = log(sequence)
+                        assert isinstance(variable, NetCDFVariableFlat)
+                        readmode = sequence.diskflag_reading
+                        variable2readmode.setdefault(variable, readmode)
+                        if variable2readmode[variable] != readmode:
+                            raise RuntimeError(
+                                f"For a specific NetCDF file, you can either read or "
+                                f"write data during a simulation run but for file "
+                                f"`{variable.filepath}` both is requested."
                             )
-                        variable.write()
-                    ncfile = netcdf4.Dataset(variable.filepath, "r+")
-                    variable2ncfile[variable] = ncfile
-                    sequence = variable2sequences[variable][0]
-                    tg_variable = query_timegrid(ncfile, sequence)
-                    if tg_sim not in tg_variable:
-                        raise RuntimeError(
-                            f"The data of the NetCDF `{variable.filepath}` "
-                            f"({tg_variable}) does not correctly cover the current "
-                            f"simulation period ({tg_sim})."
-                        )
-                    variable2timedelta[variable] = tg_init[tg_variable.firstdate]
+                        variable2infos[variable] = readers if readmode else writers
+                        variable2sequences[variable].append(sequence)
 
-                # make information for reading and writing temporarily available:
-                for variable, sequences in variable2sequences.items():
-                    ncfile = variable2ncfile[variable]
-                    assert ncfile is not None
-                    get = variable.query_subdevice2index(ncfile).get_index
-                    data: NDArrayFloat = numpy.full(
-                        variable.shape[1], numpy.nan, dtype=float
-                    )
-                    variable2infos[variable].append(
-                        JITAccessInfo(
-                            ncvariable=(ncvariable := ncfile[varmapping["values"]]),
-                            realisation=_is_realisation(ncvariable, ncfile),
-                            timedelta=variable2timedelta[variable],
-                            columns=tuple(get(n) for n in variable.subdevicenames),
-                            data=data,
-                        )
-                    )
-                    idx0 = 0
-                    for sequence in sequences:
-                        product = numpy.product  # type: ignore[attr-defined]
-                        idx1 = idx0 + int(product(sequence.shape))
-                        sequence.connect_netcdf(ncarray=data[idx0:idx1])
-                        idx0 = idx1
-                yield JITAccessHandler(readers=tuple(readers), writers=tuple(writers))
+                if variable2sequences:
+                    # prepare NetCDF files:
+                    variable2timedelta: dict[NetCDFVariable, int] = {}
+                    tg_init = hydpy.pub.timegrids.init
+                    tg_sim = hydpy.pub.timegrids.sim
+                    for variable, readmode in variable2readmode.items():
+                        filepath = variable.filepath
+                        if not os.path.exists(filepath):
+                            if readmode and hydpy.pub.options.checkseries:
+                                raise FileNotFoundError(
+                                    f"No file `{filepath}` available for reading."
+                                )
+                            variable.write()
+                        ncfile = netcdf4.Dataset(filepath, "r+")
+                        variable2ncfile[variable] = ncfile
+                        sequence = variable2sequences[variable][0]
+                        tg_variable = query_timegrid(ncfile, sequence)
+                        if tg_sim not in tg_variable:
+                            raise RuntimeError(
+                                f"The data of the NetCDF `{filepath}` ({tg_variable}) "
+                                f"does not correctly cover the current simulation "
+                                f"period ({tg_sim})."
+                            )
+                        variable2timedelta[variable] = tg_init[tg_variable.firstdate]
 
-            else:
-                # return without useless efforts:
-                yield JITAccessHandler(readers=(), writers=())
+                    # make information for reading and writing temporarily available:
+                    for variable, sequences in variable2sequences.items():
+                        ncfile = variable2ncfile[variable]
+                        assert ncfile is not None
+                        get = variable.query_subdevice2index(ncfile).get_index
+                        data: NDArrayFloat
+                        data = numpy.full(variable.shape[1], numpy.nan, dtype=float)
+                        variable2infos[variable].append(
+                            JITAccessInfo(
+                                ncvariable=(ncvariable := ncfile[varmapping["values"]]),
+                                realisation=_is_realisation(ncvariable, ncfile),
+                                timedelta=variable2timedelta[variable],
+                                columns=tuple(get(n) for n in variable.subdevicenames),
+                                data=data,
+                            )
+                        )
+                        idx0 = 0
+                        for sequence in sequences:
+                            product = numpy.product  # type: ignore[attr-defined]
+                            idx1 = idx0 + int(product(sequence.shape))
+                            sequence.connect_netcdf(ncarray=data[idx0:idx1])
+                            idx0 = idx1
+                    yield JITAccessHandler(
+                        readers=tuple(readers), writers=tuple(writers)
+                    )
+
+                else:
+                    # return without useless efforts:
+                    yield JITAccessHandler(readers=(), writers=())
 
         except BaseException:
             objecttools.augment_excmessage(
@@ -1470,9 +1479,7 @@ class Subdevice2Index:
     name_sequence: str
     name_ncfile: str
 
-    def __init__(
-        self, dict_: dict[str, int], name_ncfile: str
-    ) -> None:
+    def __init__(self, dict_: dict[str, int], name_ncfile: str) -> None:
         self.dict_ = dict_
         self.name_ncfile = name_ncfile
 
@@ -1512,7 +1519,7 @@ class NetCDFVariableBase(abc.ABC):
 
         For writing, the `infoarray` argument allows for passing alternative data that
         replaces the original series of the |IOSequence| object, which helps write
-        modified (e.g. spatially averaged) time series.
+        modified time series.
 
         The logged time-series data is available via attribute access:
 
@@ -1535,7 +1542,7 @@ class NetCDFVariableBase(abc.ABC):
         ...
         AttributeError: The selected NetCDFVariable object does neither handle time \
 series data for the (sub)device` element2` nor does it define a member named \
-`element2`.. Did you mean: 'element1'?
+`element2`...
         """
         descr_device = sequence.descr_device
         self._descr2sequence[descr_device] = sequence
@@ -1618,7 +1625,7 @@ series data for the (sub)device` element2` nor does it define a member named \
 
         >>> ncfile.close()
         """
-        tests = [f"{pref}{varmapping['subdevices']}" for pref in (f"values_", "")]
+        tests = [f"{pref}{varmapping['subdevices']}" for pref in ("values_", "")]
         for subdevices in tests:
             try:
                 chars = ncfile[subdevices][:]
@@ -1900,7 +1907,7 @@ class NetCDFVariableAgg(NetCDFVariableBase):
         RuntimeError: The process of aggregating time series values is not invertible.
         """
         raise RuntimeError(
-            f"The process of aggregating time series values is not invertible."
+            "The process of aggregating time series values is not invertible."
         )
 
 

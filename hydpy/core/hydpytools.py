@@ -306,7 +306,7 @@ required to prepare the model properly.
     Traceback (most recent call last):
     ...
     hydpy.core.exceptiontools.AttributeNotReady: Sequence `t` of element `land_dill` \
-is not requested to make any time-series data available.
+is not requested to make any time series data available.
 
     Before loading time series data, we need to reserve the required memory storage.
     We do this for all sequences at once (not only the |ModelSequence| objects but also
@@ -678,6 +678,78 @@ is not requested to make any time-series data available.
 
     >>> round_(hp.nodes.dill.sequences.sim.series)
     11.78144, 8.902735, 7.132279, 6.018681
+
+    All filenames of meteorological input time series provided by the `LahnH` example
+    follow a "model-specific" pattern.  Each filename contains not only the name of the
+    corresponding |InputSequence| subclass (e.g., "t") in lowercase letters but also
+    the sequence's group (e.g., "input") and the responsible model's name (e.g.,
+    "hland_v1"):
+
+    >>> old_model = hp.elements.land_dill.model
+    >>> old_model.sequences.inputs.t.filename
+    'hland_v1_input_t.nc'
+
+    For file types that store the time series of single sequence instances, file names
+    must also contain information about the location.  Therefore, the relevant
+    element's name prefixes the pure model-specific pattern:
+
+    >>> pub.sequencemanager.filetype = "asc"
+    >>> old_model.sequences.inputs.t.filename
+    'land_dill_hland_v1_input_t.asc'
+
+    This naming pattern is exact but not always convenient.  For example, assume we
+    want to simulate the `dill` subcatchment with application model |hland_v3| instead
+    of |hland_v1|:
+
+    >>> from hydpy import prepare_model
+    >>> hp.elements.land_dill.model = new_model = prepare_model("hland_v3")
+
+    |hland_v3| requires the same meteorological input as |hland_v1|, for example, the
+    air temperature:
+
+    >>> new_model.prepare_inputseries()
+    >>> round_(new_model.sequences.inputs.t.series)
+    nan, nan, nan, nan
+
+    Reading these data from the available files does not work because of the described
+    filename convention:
+
+    >>> with TestIO():
+    ...     hp.load_inputseries()  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    FileNotFoundError: While trying to load the time-series data of sequence `p` of \
+element `land_dill`, the following error occurred: [Errno 2] No such file or \
+directory: '...land_dill_hland_v3_input_p.asc'
+
+    To circumvent this problem, one can use the standard "HydPy" convention instead of
+    the "model-specific" convention when reading or writing input sequences.
+
+    >>> pub.sequencemanager.convention = "HydPy"
+
+    Then, the standard names defined by the |StandardInputNames| enum replace the
+    model-specific filename parts.  For example, the input sequence |hland_inputs.T|
+    selects |StandardInputNames.AIR_TEMPERATURE| as its standard name:
+
+    >>> with pub.sequencemanager.filetype("nc"):
+    ...     old_model.sequences.inputs.t.filename
+    'air_temperature.nc'
+    >>> old_model.sequences.inputs.t.filename
+    'land_dill_air_temperature.asc'
+
+    If we use the |hland_v1| instance to store the meteorological time series based on
+    the "HydPy" convention, the |hland_v3| instance can load them without further
+    effort:
+
+    >>> hp.elements.land_dill.model = old_model
+    >>> with TestIO():
+    ...     hp.save_inputseries()
+    ...     hp.elements.land_dill.model = new_model
+    ...     hp.load_inputseries()
+    >>> round_(old_model.sequences.inputs.t.series)
+    -0.298846, -0.811539, -2.493848, -5.968849
+    >>> round_(new_model.sequences.inputs.t.series)
+    -0.298846, -0.811539, -2.493848, -5.968849
     """
 
     _deviceorder: Optional[tuple[Union[devicetools.Node, devicetools.Element], ...]]

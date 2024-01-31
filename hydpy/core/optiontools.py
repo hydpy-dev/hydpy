@@ -22,6 +22,7 @@ TypeOption = TypeVar(
     timetools.Period,
     SeriesFileType,
     SeriesAggregationType,
+    SeriesConventionType,
 )
 TypeOptionContextBase = TypeVar("TypeOptionContextBase", bound="OptionContextBase[Any]")
 TypeOptionPropertyBase = TypeVar(
@@ -504,6 +505,23 @@ class _OptionPropertySimulationstep(OptionPropertyPeriod):
             return super()._get_value(obj)
 
 
+def _check_seriesfiletype(value: SeriesFileType) -> SeriesFileType:
+    try:
+        if value == "nc":
+            return "nc"
+        if value == "npy":
+            return "npy"
+        if value == "asc":
+            return "asc"
+        assert_never(value)
+    except AssertionError:
+        raise ValueError(
+            f"The given sequence file type `{value}` is not implemented.  Please "
+            f"choose one of the following file types: npy, asc, and nc."
+        ) from None
+    assert False
+
+
 class OptionPropertySeriesFileType(
     OptionPropertyBase[SeriesFileType, OptionContextStr[SeriesFileType]]
 ):
@@ -554,24 +572,23 @@ one of the following file types: npy, asc, and nc.
     >>> assert t.v == "asc"
     """
 
-    @staticmethod
-    def _check_string(value: SeriesFileType) -> SeriesFileType:
-        try:
-            if value == "nc":
-                return "nc"
-            if value == "npy":
-                return "npy"
-            if value == "asc":
-                return "asc"
-            assert_never(value)
-        except AssertionError:
-            raise ValueError(
-                f"The given sequence file type `{value}` is not implemented.  Please "
-                f"choose one of the following file types: npy, asc, and nc."
-            )
-
-    _CONVERTER = (_check_string,)
+    _CONVERTER = (_check_seriesfiletype,)
     _CONTEXT = OptionContextStr[SeriesFileType]
+
+
+def _check_seriesaggregationtype(value: SeriesAggregationType) -> SeriesAggregationType:
+    try:
+        if value == "none":
+            return "none"
+        if value == "mean":
+            return "mean"
+        assert_never(value)
+    except AssertionError:
+        raise ValueError(
+            f"The given aggregation mode `{value}` is not implemented.  Please "
+            f"choose one of the following modes: none and mean."
+        ) from None
+    assert False
 
 
 class OptionPropertySeriesAggregation(
@@ -620,22 +637,78 @@ one of the following modes: none and mean.
     >>> assert t.v == "none"
     """
 
-    @staticmethod
-    def _check_string(value: SeriesAggregationType) -> SeriesAggregationType:
-        try:
-            if value == "none":
-                return "none"
-            if value == "mean":
-                return "mean"
-            assert_never(value)
-        except AssertionError:
-            raise ValueError(
-                f"The given aggregation mode `{value}` is not implemented.  Please "
-                f"choose one of the following modes: none and mean."
-            )
-
-    _CONVERTER = (_check_string,)
+    _CONVERTER = (_check_seriesaggregationtype,)
     _CONTEXT = OptionContextStr[SeriesAggregationType]
+
+
+def _check_seriesconventiontype(value: SeriesConventionType) -> SeriesConventionType:
+    try:
+        if value == "model-specific":
+            return "model-specific"
+        if value == "HydPy":
+            return "HydPy"
+        assert_never(value)
+    except AssertionError:
+        raise ValueError(
+            f"The given time series naming convention `{value}` is not "
+            f"implemented.  Please choose one of the following modes: "
+            f"model-specific and HydPy."
+        ) from None
+    assert False
+
+
+class OptionPropertySeriesConvention(
+    OptionPropertyBase[SeriesConventionType, OptionContextStr[SeriesConventionType]]
+):
+    """Descriptor for defining options of type |SeriesConventionType|.
+
+    *HydPy* currently follows two naming conventions when reading input time series.
+    The original convention is to rely on the model-specific sequence names in
+    lowercase letters ("model-specific").  The more convenient convention is to rely on
+    the standard names defined by the enum |sequencetools.StandardInputNames|
+    ("HydPy").  We will likely support more official naming conventions later and
+    eventually allow writing time series following other conventions than the
+    "model-specific" one:
+
+    >>> from hydpy.core.optiontools import OptionPropertySeriesConvention
+    >>> class T:
+    ...     v = OptionPropertySeriesConvention("model-specific", "x")
+    >>> T.v.__doc__
+    'x'
+
+    >>> t = T()
+    >>> assert t.v == "model-specific"
+    >>> t.v = "WMO"
+    Traceback (most recent call last):
+    ...
+    ValueError: The given time series naming convention `WMO` is not implemented.  \
+Please choose one of the following modes: model-specific and HydPy.
+    >>> assert t.v == "model-specific"
+    >>> t.v = "HydPy"
+    >>> assert t.v == "HydPy"
+    >>> t.v = "model-specific"
+    >>> assert t.v == "model-specific"
+
+    >>> with t.v("WMO"):
+    ...     pass
+    Traceback (most recent call last):
+    ...
+    ValueError: The given time series naming convention `WMO` is not implemented.  \
+Please choose one of the following modes: model-specific and HydPy.
+
+    >>> assert t.v == "model-specific"
+    >>> with t.v("HydPy"):
+    ...     assert t.v == "HydPy"
+    ...     with t.v():
+    ...         assert t.v == "HydPy"
+    ...     with t.v(None):
+    ...         assert t.v == "HydPy"
+    ...     assert t.v == "HydPy"
+    >>> assert t.v == "model-specific"
+    """
+
+    _CONVERTER = (_check_seriesconventiontype,)
+    _CONTEXT = OptionContextStr[SeriesConventionType]
 
 
 class Options:

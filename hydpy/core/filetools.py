@@ -1180,7 +1180,7 @@ class SequenceManager(FileManager):
     65.0
     66.0
     67.0
-    >>> print_file("element2_flux_nkor.asc")
+    >>> print_file("element2_lland_v1_flux_nkor.asc")
     Timegrid("2000-01-01 00:00:00+01:00",
              "2000-01-05 00:00:00+01:00",
              "1d")
@@ -1264,7 +1264,7 @@ not allowed to overwrite the existing file `...`.
 
     >>> with TestIO():
     ...     nkor.save_mean()
-    >>> print_file("element2_flux_nkor_mean.asc")
+    >>> print_file("element2_lland_v1_flux_nkor_mean.asc")
     Timegrid("2000-01-01 00:00:00+01:00",
              "2000-01-05 00:00:00+01:00",
              "1d")
@@ -1283,7 +1283,7 @@ not allowed to overwrite the existing file `...`.
     >>> nkor.subseqs.seqs.model.parameters.control.lnk = ACKER, WASSER
     >>> with TestIO():
     ...     nkor.save_mean("acker")
-    >>> print_file("element2_flux_nkor_mean.asc")
+    >>> print_file("element2_lland_v1_flux_nkor_mean.asc")
     Timegrid("2000-01-01 00:00:00+01:00",
              "2000-01-05 00:00:00+01:00",
              "1d")
@@ -1329,7 +1329,7 @@ not allowed to overwrite the existing file `...`.
 
     >>> import numpy
     >>> path = os.path.join(
-    ...     "project", "series", "default", "element2_flux_nkor_mean.npy")
+    ...     "project", "series", "default", "element2_lland_v1_flux_nkor_mean.npy")
     >>> with TestIO():
     ...     nkor.save_mean("wasser")
     ...     numpy.load(path)[-4:]
@@ -1376,6 +1376,16 @@ not allowed to overwrite the existing file `...`.
 
         |SequenceManager.aggregation| is an option based on 
         |OptionPropertySeriesAggregation|.  See its documentation for further 
+        information.
+        """,
+    )
+    convention = optiontools.OptionPropertySeriesConvention(
+        "model-specific",
+        """Currently selected naming convention for reading and writing input time 
+        series files.
+    
+        |SequenceManager.convention| is an option based on 
+        |OptionPropertySeriesConvention|.  See its documentation for further 
         information.
         """,
     )
@@ -1439,12 +1449,10 @@ not allowed to overwrite the existing file `...`.
                 self._save_nc(sequence, array)
             else:
                 filepath = sequence.filepath
-                if (array is not None) and (array.aggregation != "unmodified"):
-                    filepath = f"{filepath[:-4]}_{array.aggregation}{filepath[-4:]}"
                 if not sequence.overwrite and os.path.exists(filepath):
                     raise OSError(
                         f"Sequence {objecttools.devicephrase(sequence)} is not allowed "
-                        f"to overwrite the existing file `{sequence.filepath}`."
+                        f"to overwrite the existing file `{filepath}`."
                     )
                 if sequence.filetype == "npy":
                     self._save_npy(array, filepath)

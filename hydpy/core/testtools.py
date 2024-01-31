@@ -1353,7 +1353,7 @@ def make_abc_testable(abstract: type[T]) -> type[T]:
     disabled:
 
     >>> from hydpy import make_abc_testable, classname
-    >>> ncvar = make_abc_testable(NetCDFVariableBase)(False, 1)
+    >>> ncvar = make_abc_testable(NetCDFVariableBase)("filepath")
 
     To avoid confusion, |make_abc_testable| appends an underscore to the original class
     name:

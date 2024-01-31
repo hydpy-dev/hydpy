@@ -6,6 +6,7 @@ hydrological model sequences (time series)."""
 from __future__ import annotations
 import abc
 import copy
+import enum
 import os
 import sys
 import types
@@ -381,6 +382,61 @@ class InfoArray(NDArrayFloat):
             self.aggregation = obj.aggregation
         else:
             self.aggregation = None
+
+
+class StandardInputNames(enum.StrEnum):
+    """Standard names for the |InputSequence| subclasses of the various models.
+
+    One can use these names instead of the model-specific sequence names for reading
+    input time series from or to files.  For further information, see the introductory
+    documentation on class |HydPy|.
+
+    The suffix "_HRU" refers to 1-dimensional sequences for which the different entries
+    correspond to different spatial units (typically hydrological response units).
+    """
+
+    AIR_TEMPERATURE = enum.auto()
+    """Air temperature 2 m above the ground [°C]."""
+    ALBEDO_HRU = enum.auto()
+    """Surface albedo [-]."""
+    ARTIFICIAL_GROUNDWATER_RECHARGE = enum.auto()
+    """Artificial/additional groundwater recharge [mm/T]."""
+    ARTIFICIAL_SURFACE_WATER_SUPPLY = enum.auto()
+    """Artificial/additional surface water supply [mm/T]."""
+    ATMOSPHERIC_PRESSURE = enum.auto()
+    """Atmospheric pressure [hPa]."""
+    CAPILLARY_RISE = enum.auto()
+    """Capillary rise [mm/T]."""
+    CLEAR_SKY_SOLAR_RADIATION = enum.auto()
+    """Clear sky solar radiation [W/m²]."""
+    EVAPOTRANSPIRATION = enum.auto()
+    """Actual evapotranspiration [mm/T]."""
+    GLOBAL_RADIATION = enum.auto()
+    """Global radiation [W/m²]."""
+    INTERCEPTED_WATER_HRU = enum.auto()
+    """Amount of intercepted water [mm]."""
+    NORMAL_EVAPOTRANSPIRATION = enum.auto()
+    """Normal evapotranspiration [mm/T]."""
+    NORMAL_AIR_TEMPERATURE = enum.auto()
+    """Normal air temperature 2 m above the ground [°C]."""
+    POSSIBLE_SUNSHINE_DURATION = enum.auto()
+    """Possible sunshine duration [h]."""
+    PRECIPITATION = enum.auto()
+    """Precipitation [mm/T]."""
+    SOIL_WATER_HRU = enum.auto()
+    """Amount of soil water [mm]."""
+    SNOW_COVER_DEGREE_HRU = enum.auto()
+    """Snow cover degree [-]."""
+    SNOW_COVER_DEGREE_CANOPY_HRU = enum.auto()
+    """Snow cover degree in the canopies of tree-like vegetation [-]."""
+    SUNSHINE_DURATION = enum.auto()
+    """Sunshine duration [h]."""
+    POTENTIAL_EVAPOTRANSPIRATION = enum.auto()
+    """Potential evapotranspiration [mm/T]."""
+    RELATIVE_HUMIDITY = enum.auto()
+    """Relative humidity [%]."""
+    WIND_SPEED = enum.auto()
+    """Wind speed [m/s]."""
 
 
 class Sequences:
@@ -1615,29 +1671,54 @@ correctly.
             ) from None
 
     @propertytools.DefaultPropertyStr
-    def filename(self) -> str:  # ToDo: special handling for NetCDF files
+    def filename(self) -> str:
         """The filename of the relevant time series file.
 
-        By default, the filename consists of |IOSequence.descr_device|,
+        By default, the filenames of file types that store time series of single
+        sequence instance consists of |IOSequence.descr_device|,
         |IOSequence.descr_sequence|, and |IOSequence.filetype|:
 
         >>> from hydpy.core.sequencetools import StateSequence
         >>> class S(StateSequence):
-        ...     descr_device = "dev"
-        ...     descr_sequence = "seq"
+        ...     descr_device = "device"
+        ...     descr_sequence = "group_sequence"
         ...     filetype = "npy"
-        >>> S(None).filename
-        'dev_seq.npy'
+        ...     aggregation = "none"
+        >>> s = S(None)
+        >>> s.filename
+        'device_group_sequence.npy'
+
+        For file types that store time series of multiple sequence instances,
+        |IOSequence.descr_device| is omitted:
+
+        >>> s.filetype = "nc"
+        >>> s.filename
+        'group_sequence.nc'
+
+        When dealing with aggregated time series, the aggregation mode is suffixed:
+
+        >>> s.aggregation = "mean"
+        >>> s.filename
+        'group_sequence_mean.nc'
+        >>> s.filetype = "asc"
+        >>> s.filename
+        'device_group_sequence_mean.asc'
         """
-        return f"{self.descr_device}_{self.descr_sequence}.{self.filetype}"
+        if (agg := self.aggregation) == "none":
+            aggregation = ""
+        else:
+            aggregation = f"_{agg}"
+        if (filetype := self.filetype) == "nc":
+            return f"{self.descr_sequence}{aggregation}.nc"
+        return f"{self.descr_device}_{self.descr_sequence}{aggregation}.{filetype}"
 
     @propertytools.DefaultPropertyStr
     def dirpath(self) -> str:
         """The absolute path to the time series directory.
 
-        As long as not overwritten, |IOSequence.dirpath| is identical with the
-        attribute |FileManager.currentpath| of the |SequenceManager| object
-        available in module |pub|:
+        As long as it is not overwritten, |IOSequence.dirpath| is identical to the
+        attribute |FileManager.currentpath| of the |SequenceManager| object available
+        in module |pub|:
 
         >>> from hydpy import pub, repr_
         >>> from hydpy.core.filetools import SequenceManager
@@ -2283,7 +2364,8 @@ sequencemanager of module `pub` is not defined at the moment.
         The main documentation on class |SequenceManager| provides some examples.
         """
         array = InfoArray(self.average_series(*args, **kwargs), aggregation="mean")
-        hydpy.pub.sequencemanager.save_file(self, array=array)
+        with hydpy.pub.sequencemanager.aggregation("mean"):
+            hydpy.pub.sequencemanager.save_file(self, array=array)
 
     @property
     def seriesmatrix(self) -> MatrixFloat:
@@ -2506,16 +2588,20 @@ class ModelSequence(Sequence_):
 
     @property
     def descr_sequence(self) -> str:
-        """Description of the |ModelSequence| object itself and the |SubSequences|
-        group it belongs to.
+        """Description of the |ModelSequence| object itself and the |Model| type and
+        |SubSequences| group it belongs to.
 
         >>> from hydpy import prepare_model
         >>> from hydpy.models import test_v1
         >>> model = prepare_model(test_v1)
         >>> model.sequences.fluxes.q.descr_sequence
-        'flux_q'
+        'test_v1_flux_q'
         """
-        return f"{type(self.subseqs).__name__[:-9].lower()}_{self.name}"
+        return (
+            f"{self.subseqs.seqs.model}_"
+            f"{type(self.subseqs).__name__[:-9].lower()}_"
+            f"{self.name}"
+        )
 
     @property
     def descr_model(self) -> str:
@@ -2621,7 +2707,7 @@ class InputSequence(ModelIOSequence):
 
     |InputSequence| objects provide their master model with input data, which is
     possible in two ways: either by providing their individually managed data (usually
-    read from file) or data shared with an input node (usually calculated by another
+    read from a file) or data shared with an input node (usually calculated by another
     model).  This flexibility allows, for example, to let application model |hland_v1|
     read already preprocessed precipitation time-series or to couple it with
     application models like |conv_v001|, which interpolates precipitation during the
@@ -2706,12 +2792,43 @@ class InputSequence(ModelIOSequence):
     fastaccess: FastAccessInputSequence
     """Object for accessing the input sequence's data with little overhead."""
 
+    STANDARD_NAME: ClassVar[StandardInputNames]
+
     _CLS_FASTACCESS_PYTHON = FastAccessInputSequence
 
     def __hydpy__connect_variable2subgroup__(self) -> None:
         super().__hydpy__connect_variable2subgroup__()
         if self.NDIM == 0:
             self._set_fastaccessattribute("inputflag", False)
+
+    @property
+    def descr_sequence(self) -> str:
+        """Either a model-specific or a standard HydPy string describing the input
+        sequence instance.
+
+        By default, the returned string equals those of other |ModelSequence|
+        subclasses:
+
+        >>> from hydpy import pub
+        >>> from hydpy.core.filetools import SequenceManager
+        >>> pub.sequencemanager = SequenceManager()
+
+        >>> from hydpy.models.hland_v1 import *
+        >>> parameterstep()
+        >>> inputs.t.descr_sequence
+        'hland_v1_input_t'
+
+        When activating the standard "HydPy" convention instead of the "model-specific"
+        convention, |InputSequence.descr_sequence| returns the standard name selected
+        by the respective |InputSequence| subclass:
+
+        >>> with pub.sequencemanager.convention("HydPy"):
+        ...     inputs.t.descr_sequence
+        <StandardInputNames.AIR_TEMPERATURE: 'air_temperature'>
+        """
+        if hydpy.pub.sequencemanager.convention == "model-specific":
+            return super().descr_sequence
+        return self.STANDARD_NAME
 
     def set_pointer(self, double: pointerutils.Double) -> None:
         """Prepare a pointer referencing the given |Double| object.

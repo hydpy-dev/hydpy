@@ -2,7 +2,7 @@
 """
 This module extends the features of module |filetools| for loading data from and
 storing data to netCDF4 files, consistent with the `NetCDF Climate and Forecast (CF)
-Metadata Conventions <http://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/
+Metadata Conventions <http://cfconventions.org/Data/cf-conventions/cf-conventions-1.8/
 cf-conventions.html>`_.
 
 .. _`Delft-FEWS`: https://oss.deltares.nl/web/delft-fews
@@ -1715,7 +1715,11 @@ names (the first found duplicate is `element1`).
         with netcdf4.Dataset(self.filepath, "w") as ncfile:
             now = time.ctime(time.time())
             ncfile.history = f"Created {now} by HydPy {hydpy.__version__}"
-            ncfile.Conventions = "CF-1.6"
+            ncfile.sequence = (
+                f"{os.path.split(self.filepath)[-1][:-3]} "
+                f"(naming convention: {hydpy.pub.sequencemanager.convention})"
+            )
+            ncfile.Conventions = "CF-1.8"
             init = hydpy.pub.timegrids.init
             timeunit = init.firstdate.to_cfunits("hours")
             opts = hydpy.pub.options

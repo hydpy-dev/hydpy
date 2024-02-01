@@ -311,7 +311,7 @@ def prepare_arrays(
     |prepare_arrays| internally (e.g. |nse|).  But you can also use it manually, as
     shown in the following examples.
 
-    Function |prepare_arrays| can extract time-series data from |Node| objects.  To set
+    Function |prepare_arrays| can extract time series data from |Node| objects.  To set
     up an example for this, we define an initialisation period and prepare a |Node|
     object:
 
@@ -328,7 +328,7 @@ def prepare_arrays(
     ...     node.sequences.obs.series = 4.0, 5.0, nan, nan, nan, 6.0
 
     Now we can pass the node object to function |prepare_arrays| and get the
-    (unmodified) time-series data:
+    (unmodified) time series data:
 
     >>> from hydpy import prepare_arrays
     >>> arrays = prepare_arrays(node=node)
@@ -368,7 +368,7 @@ def prepare_arrays(
     >>> round_(arrays.obs)
     5.0, nan, nan, nan
 
-    Suppose one instead passes the simulation and observation time-series directly
+    Suppose one instead passes the simulation and observation time series directly
     (which possibly fit the evaluation period already).  In that case, function
     |prepare_arrays| ignores the current |Timegrids.eval_| |Timegrid| by default:
 
@@ -1739,7 +1739,7 @@ class SummaryRowWeighted(SummaryRow):
     of class |SummaryRowWeighted|.
 
     First, we prepare two nodes.  `n1` provides a complete and `n2` provides an
-    incomplete observation time-series:
+    incomplete observation time series:
 
     >>> from hydpy import print_values, pub, Node, nan
     >>> pub.timegrids = "2000-01-01", "2000-01-04", "1d"

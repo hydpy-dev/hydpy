@@ -1177,19 +1177,19 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         ...     test("device")
         AttributeNotReadyWarning: While trying to query the values of exchange item \
 `uz`, the following error occured: While trying to calculate the mean value of the \
-internal time-series of sequence `uz` of element `land_dill`, the following error \
-occurred: Sequence `uz` of element `land_dill` is not requested to make any \
-time-series data available.
+internal time series of sequence `uz` of element `land_dill`, the following error \
+occurred: Sequence `uz` of element `land_dill` is not requested to make any time \
+series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
 `ic`, the following error occured: While trying to calculate the mean value of the \
-internal time-series of sequence `ic` of element `land_dill`, the following error \
-occurred: Sequence `ic` of element `land_dill` is not requested to make any \
-time-series data available.
+internal time series of sequence `ic` of element `land_dill`, the following error \
+occurred: Sequence `ic` of element `land_dill` is not requested to make any time \
+series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
 `wc`, the following error occured: While trying to calculate the mean value of the \
-internal time-series of sequence `wc` of element `land_dill`, the following error \
-occurred: Sequence `wc` of element `land_dill` is not requested to make any \
-time-series data available.
+internal time series of sequence `wc` of element `land_dill`, the following error \
+occurred: Sequence `wc` of element `land_dill` is not requested to make any time \
+series data available.
 
         >>> for series in uz.value:
         ...     print_values(series)  # doctest: +ELLIPSIS
@@ -1214,13 +1214,13 @@ has/have not been prepared so far.
         ...     test("subunit")
         AttributeNotReadyWarning: While trying to query the values of exchange item \
 `uz`, the following error occured: Sequence `uz` of element `land_dill` is not \
-requested to make any time-series data available.
+requested to make any time series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
 `ic`, the following error occured: Sequence `ic` of element `land_dill` is not \
-requested to make any time-series data available.
+requested to make any time series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
 `wc`, the following error occured: Sequence `wc` of element `land_dill` is not \
-requested to make any time-series data available.
+requested to make any time series data available.
 
         >>> for series in uz.value:
         ...     print_values(series)  # doctest: +ELLIPSIS

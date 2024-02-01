@@ -241,7 +241,7 @@ class PrepareSeriesArguments(NamedTuple):
         Meaning of the arguments:
          * is_reader: is the current XML-Element responsible for reading (or writing)?
          * is_input: serve the addressed sequences as inputs (or outputs)?
-         * prefer_ram: prefer to handle time-series data in RAM (or read and write it
+         * prefer_ram: prefer to handle time series data in RAM (or read and write it
            just in time)?
 
         >>> from hydpy.auxs.xmltools import PrepareSeriesArguments
@@ -1179,7 +1179,7 @@ class XMLSeries(XMLBase):
     @contextlib.contextmanager
     def modify_inputdir(self, currentdir: Optional[str] = None) -> Iterator[None]:
         """Temporarily modify the |IOSequence.dirpath| of all |IOSequence| objects
-        registered for reading time-series data "just in time" during a simulation
+        registered for reading time series data "just in time" during a simulation
         run."""
         try:
             for reader in self.readers:
@@ -1192,7 +1192,7 @@ class XMLSeries(XMLBase):
     @contextlib.contextmanager
     def modify_outputdir(self, currentdir: Optional[str] = None) -> Iterator[None]:
         """Temporarily modify the |IOSequence.dirpath| of all |IOSequence| objects
-        registered for writing time-series data "just in time" during a simulation
+        registered for writing time series data "just in time" during a simulation
         run."""
         try:
             for writer in self.writers:
@@ -1530,7 +1530,7 @@ class XMLSubseries(XMLSelector):
         determine the correct arguments for method |IOSequence.prepare_series| of class
         |IOSequence|.  Those arguments depend on whether the respective |XMLSubseries|
         element is for reading or writing data, addresses input or output sequences,
-        and if one prefers to handle time-series data in RAM or read or write it "just
+        and if one prefers to handle time series data in RAM or read or write it "just
         in time" during model simulations.  Method |XMLSubseries.prepare_series|
         delegates some of the related logic to the |PrepareSeriesArguments.from_xmldata|
         method of class |PrepareSeriesArguments|.  The following examples demonstrate
@@ -1595,8 +1595,8 @@ class XMLSubseries(XMLSelector):
         diskflag_writing=False
 
         For sequence |hland_states.SM|, two writers apply.  The writer "soil moisture"
-        triggers writing the complete time-series "just in time" during the simulation
-        run.  In contrast, the writer "averaged" initiates writing averaged time-series
+        triggers writing the complete time series "just in time" during the simulation
+        run.  In contrast, the writer "averaged" initiates writing averaged time series
         after the simulation run.  The configuration of sequence |hland_states.SM|
         reflects this, with both "ram flag" and "disk flag writing" being "True":
 
@@ -2678,7 +2678,7 @@ class XSDWriter:
         cls, type_: Literal["reader", "writer"], indent: int
     ) -> str:
         """Return the insertion all sequences relevant for reading or writing
-        time-series data.
+        time series data.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_readerwriterinsertion("reader", 1)) # doctest: +ELLIPSIS

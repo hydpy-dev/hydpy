@@ -99,7 +99,7 @@ Aggregation = Optional[Literal["unmodified", "mean"]]
 
 class FastAccessIOSequence(variabletools.FastAccess):
     """Provides fast access to the values of the |IOSequence| objects of a specific
-    subgroup and supports handling time-series data during simulations.
+    subgroup and supports handling time series data during simulations.
 
     The following details are of relevance for *HydPy* developers only.
 
@@ -114,7 +114,7 @@ class FastAccessIOSequence(variabletools.FastAccess):
       * _seq1_ndim (|int|): The number of dimensions.
       * _seq1_length_0 (|int|): Length in the first dimension.
       * _seq1_length_1 (|int|): Length in the second dimension.
-      * _seq1_ramflag (|bool|): Handle time-series data in RAM?
+      * _seq1_ramflag (|bool|): Handle time series data in RAM?
       * _seq1_array (|NDArrayFloat|): Time-series data (when handled in RAM).
       * _seq1_diskflag_reading (|bool|): Read data from a NetCDF file during simulation?
       * _seq1_diskflag_writing (|bool|): Write data to a NetCDF file during simulation?
@@ -135,7 +135,7 @@ class FastAccessIOSequence(variabletools.FastAccess):
          * inputflag (|bool|): Take the data from an "input node".
          * diskflag_reading (|bool|): Read the data "on the fly" from a NetCDF file
            during a simulation run.
-         * ramflag (|bool|): Take the data from the time-series handled by the
+         * ramflag (|bool|): Take the data from the time series handled by the
            |IOSequence.series| attribute of the respective |IOSequence| object.
 
         If, for example, `diskflag_reading` and `ramflag` are both activated,
@@ -166,7 +166,7 @@ class FastAccessIOSequence(variabletools.FastAccess):
 
          * diskflag_writing (|bool|): Write the data "on the fly" to a NetCDF file
            during a simulation run.
-         * ramflag (|bool|): Give the data to the time-series handled by the
+         * ramflag (|bool|): Give the data to the time series handled by the
            |IOSequence.series| attribute of the respective |IOSequence| object.
 
         It is possible to write data to a NetCDF file and pass it to |IOSequence.series|
@@ -482,7 +482,7 @@ class Sequences:
     TypeError: Attribute `model` is of type `Model`, which is not a subtype of class \
 `SubSequences`.
 
-    Class |Sequences| provides some methods related to reading and writing time-series
+    Class |Sequences| provides some methods related to reading and writing time series
     data, which (directly or indirectly) call the corresponding methods of the handled
     |IOSequence| objects.  In most cases, users should prefer to use the related
     methods of class |HydPy|, but using the ones of class |Sequences| can be more
@@ -495,7 +495,7 @@ class Sequences:
     >>> pub.sequencemanager.overwrite = True
 
     Method |Sequences.prepare_series| can both enable and disable the handling of
-    time-series in rapid access memory (RAM), and both enable and disable the reading
+    time series in rapid access memory (RAM), and both enable and disable the reading
     of input data from NetCDF files and the writing of NetCDF files "on the fly"
     during simulation runs:
 
@@ -886,7 +886,7 @@ class SubSequences(
 
     @property
     def name(self) -> str:
-        """The class name in lower case letters omitting the last eight characters
+        """The class name in lowercase letters omitting the last eight characters
         ("equences").
 
         >>> from hydpy.core.sequencetools import StateSequences
@@ -1129,7 +1129,7 @@ class Sequence_(variabletools.Variable):
     Under the hood, class |Sequence_| also prepares some attributes of its |FastAccess|
     object, used for performing the actual simulation calculations.   Framework
     developers should note that the respective `fastaccess` attributes contain both the
-    name of the sequence and the name of the original attribute in lower case letters.
+    name of the sequence and the name of the original attribute in lowercase letters.
     We take `NDIM` as an example:
 
     >>> nkor.fastaccess._nkor_ndim
@@ -1260,7 +1260,7 @@ class IOSequence(Sequence_):
 
     Each |IOSequence| object comes four flags, answering the following questions:
 
-     * |IOSequence.ramflag|: can its time-series can be available in RAM?
+     * |IOSequence.ramflag|: can its time series can be available in RAM?
      * |IOSequence.diskflag_reading|: read its values "on the fly" from a NetCDF file
        during simulation runs?
      * |IOSequence.diskflag_writing|:write its values "on the fly" to a NetCDF file
@@ -1268,7 +1268,7 @@ class IOSequence(Sequence_):
      * |IOSequence.diskflag|: is |IOSequence.diskflag_reading| and/or
        |IOSequence.diskflag_writing| activated?
 
-    For input sequences as |hland_inputs.T|, it is common to store their time-series
+    For input sequences as |hland_inputs.T|, it is common to store their time series
     data (required for any simulation run) in RAM, which is much faster than
     (repeatedly) reading data "on the fly" and should be preferred, as long as limited
     available RAM is not an issue.  For convenience, function |prepare_full_example_2|
@@ -1299,9 +1299,9 @@ class IOSequence(Sequence_):
     >>> round_(factors.tc.series[:, 0])
     nan, nan, nan, nan
 
-    Use |IOSequence.prepare_series| to force a sequence to handle time-series data in
+    Use |IOSequence.prepare_series| to force a sequence to handle time series data in
     RAM or to read or write it on the fly.  We now activate the reading functionality
-    of input sequence |hland_inputs.T| (while still keeping its time-series in RAM,
+    of input sequence |hland_inputs.T| (while still keeping its time series in RAM,
     which we set to zero beforehand) and the writing feature of the factor sequences
     |hland_factors.ContriArea| and |hland_factors.TC| (without handling their data in
     RAM) and the writing feature of the state sequences |hland_states.SM| and
@@ -1341,7 +1341,7 @@ class IOSequence(Sequence_):
     Traceback (most recent call last):
     ...
     hydpy.core.exceptiontools.AttributeNotReady: Sequence `contriarea` of element \
-`land_lahn_1` is not requested to make any time-series data available.
+`land_lahn_1` is not requested to make any time series data available.
 
     >>> states.sm.ramflag
     True
@@ -1362,7 +1362,7 @@ class IOSequence(Sequence_):
     ...     hp.simulate()
 
     After the simulation run, the read (|hland_inputs.T|) and calculated
-    (|hland_states.SM| and |hland_states.SP|) time-series of the sequences with an
+    (|hland_states.SM| and |hland_states.SP|) time series of the sequences with an
     activated |IOSequence.ramflag| are directly available:
 
     >>> round_(inputs.t.series)
@@ -1423,7 +1423,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
     >>> with TestIO():
     ...     hp.load_inputseries()
 
-    You cannot only access the time-series data of individual |IOSequence| objects, but
+    You cannot only access the time series data of individual |IOSequence| objects, but
     you can also modify it.  See, for example, the simulated time series for flux
     sequence |hland_fluxes.PC| (adjusted precipitation), which is zero because the
     values of input sequence |hland_inputs.P| (given precipitation) are also zero:
@@ -1449,7 +1449,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
     (4, 13)
 
     Note that resetting the |IOSequence.shape| of an |IOSequence| object does not
-    change how it handles its internal time-series data but results in a loss of
+    change how it handles its internal time series data but results in a loss of
     current information:
 
     >>> factors.tc.seriesshape
@@ -1480,7 +1480,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
     Traceback (most recent call last):
     ...
     hydpy.core.exceptiontools.AttributeNotReady: Sequence `pc` of element \
-`land_lahn_1` is not requested to make any time-series data available.
+`land_lahn_1` is not requested to make any time series data available.
 
     >>> fluxes.pc.shape = (2,)
     >>> fluxes.pc.seriesshape
@@ -1491,7 +1491,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
     Traceback (most recent call last):
     ...
     hydpy.core.exceptiontools.AttributeNotReady: Sequence `pc` of element \
-`land_lahn_1` is not requested to make any time-series data available.
+`land_lahn_1` is not requested to make any time series data available.
 
     .. testsetup::
 
@@ -1521,7 +1521,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
 
     @propertytools.DefaultPropertySeriesFileType
     def filetype(self) -> SeriesFileType:
-        """"Ending of the time-series data file.
+        """"Ending of the time series data file.
 
         Usually, |IOSequence| objects query the current file type from the
         |SequenceManager| object available in the global |pub| module:
@@ -1573,7 +1573,7 @@ correctly.
 
     @propertytools.DefaultPropertySeriesAggregationType
     def aggregation(self) -> SeriesAggregationType:
-        """Type of aggregation for writing the time-series to a data file.
+        """Type of aggregation for writing the time series to a data file.
 
         Usually, |IOSequence| objects query the current aggregation mode from the
         |SequenceManager| object available in the global |pub| module:
@@ -1790,7 +1790,7 @@ correctly.
         read_jit: Optional[bool] = False,
         write_jit: Optional[bool] = False,
     ) -> None:
-        """Define how to handle the time-series data of the current |IOSequence| object.
+        """Define how to handle the time series data of the current |IOSequence| object.
 
         See the main documentation on class |IOSequence| for general information on
         method |IOSequence.prepare_series|.  Here, we only discuss the special case of
@@ -1864,7 +1864,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
 
     @property
     def ramflag(self) -> bool:
-        """A flag telling if the actual |IOSequence| object makes its time-series data
+        """A flag telling if the actual |IOSequence| object makes its time series data
         directly available in RAM.
 
         See the main documentation on class |IOSequence| for further information.
@@ -1873,7 +1873,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
 
     @property
     def diskflag_reading(self) -> bool:
-        """A flag telling if the actual |IOSequence| reads its time-series data on the
+        """A flag telling if the actual |IOSequence| reads its time series data on the
         fly from a NetCDF file during a simulation run.
 
         See the main documentation on class |IOSequence| for further information.
@@ -1882,7 +1882,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
 
     @property
     def diskflag_writing(self) -> bool:
-        """A flag telling if the actual |IOSequence| writes its time-series data on the
+        """A flag telling if the actual |IOSequence| writes its time series data on the
         fly to a NetCDF file during a simulation run.
 
         See the main documentation on class |IOSequence| for further information.
@@ -1953,13 +1953,13 @@ during a simulation run is not supported but tried for sequence `t` of element \
 
     @property
     def seriesshape(self) -> tuple[int, ...]:
-        """The shape of the whole time-series (time being the first dimension)."""
+        """The shape of the whole time series (time being the first dimension)."""
         seriesshape = [len(hydpy.pub.timegrids.init)]
         seriesshape.extend(self.shape)
         return tuple(seriesshape)
 
     def _get_series(self) -> InfoArray:
-        """The complete time-series data of the current |IOSequence| object within an
+        """The complete time series data of the current |IOSequence| object within an
         |InfoArray| covering the whole initialisation period (defined by the
         |Timegrids.init| |Timegrid| of the global |Timegrids| object available in
         module |pub|)."""
@@ -1968,7 +1968,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
             return InfoArray(array, aggregation="unmodified")
         raise exceptiontools.AttributeNotReady(
             f"Sequence {objecttools.devicephrase(self)} is not requested to make any "
-            f"time-series data available."
+            f"time series data available."
         )
 
     def _set_series(self, values) -> None:
@@ -1978,7 +1978,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
         else:
             raise exceptiontools.AttributeNotReady(
                 f"Sequence {objecttools.devicephrase(self)} is not requested to make "
-                f"any time-series data available."
+                f"any time series data available."
             )
 
     def _del_series(self) -> None:
@@ -2057,7 +2057,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
     evalseries = property(_get_evalseries, _set_evalseries)
 
     def load_series(self) -> None:
-        """Read time-series data from a file.
+        """Read time series data from a file.
 
         Method |IOSequence.load_series| only calls method |SequenceManager.load_file|
         of class |SequenceManager| passing itself as the only argument.  Hence, see the
@@ -2074,15 +2074,15 @@ during a simulation run is not supported but tried for sequence `t` of element \
         >>> StateSequence(None).load_series()
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: While trying to load the \
-time-series data of `statesequence`, the following error occurred: Attribute \
+        hydpy.core.exceptiontools.AttributeNotReady: While trying to load the time \
+series data of `statesequence`, the following error occurred: Attribute \
 sequencemanager of module `pub` is not defined at the moment.
         """
         try:
             sequencemanager = hydpy.pub.sequencemanager
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to load the time-series data of "
+                f"While trying to load the time series data of "
                 f"{objecttools.devicephrase(self)}"
             )
         sequencemanager.load_file(self)
@@ -2090,7 +2090,7 @@ sequencemanager of module `pub` is not defined at the moment.
     def adjust_series(
         self, timegrid_data: timetools.Timegrid, values: NDArrayFloat
     ) -> NDArrayFloat:
-        """Adjust a time-series to the current initialisation period.
+        """Adjust a time series to the current initialisation period.
 
         Note that, in most *HydPy* applications, method |IOSequence.adjust_series| is
         called by other methods related to reading data from files and does not need to
@@ -2098,7 +2098,7 @@ sequencemanager of module `pub` is not defined at the moment.
         some reason, you need to make sure that the shape of the given |numpy|
         |numpy.ndarray| fits the given |Timegrid| object.
 
-        Often, time-series data available in data files cover a longer period than
+        Often, time series data available in data files cover a longer period than
         required for an actual simulation run.  Method |IOSequence.adjust_series|
         selects the relevant data by comparing the initialisation |Timegrid| available
         in module |pub| and the given "data" |Timegrid| object.  We explain this
@@ -2201,9 +2201,9 @@ of sequence `obs` of node `dill` is `1h` but the actual simulation time step is 
     def adjust_short_series(
         self, timegrid: timetools.Timegrid, values: NDArrayFloat
     ) -> NDArrayFloat:
-        """Adjust a short time-series to a longer time grid.
+        """Adjust a short time series to a longer time grid.
 
-        Mostly, time-series data to be read from files should span (at least) the whole
+        Mostly, time series data to be read from files should span (at least) the whole
         initialisation period of a *HydPy* project.  However, incomplete time series
         might also be helpful for some variables used only for comparison (e.g.
         observed runoff used for calibration).  Method |IOSequence.adjust_short_series|
@@ -2326,7 +2326,7 @@ of sequence `obs` of node `dill` is `1h` but the actual simulation time step is 
                 )
 
     def save_series(self) -> None:
-        """Write the time-series data of the current |IOSequence| object to a file.
+        """Write the time series data of the current |IOSequence| object to a file.
 
         Method |IOSequence.save_series| only calls method |SequenceManager.save_file|
         of class |SequenceManager|, passing itself as the only argument.  Hence, see
@@ -2343,21 +2343,21 @@ of sequence `obs` of node `dill` is `1h` but the actual simulation time step is 
         >>> StateSequence(None).save_series()
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: While trying to save the \
-time-series data of `statesequence`, the following error occurred: Attribute \
+        hydpy.core.exceptiontools.AttributeNotReady: While trying to save the time \
+series data of `statesequence`, the following error occurred: Attribute \
 sequencemanager of module `pub` is not defined at the moment.
         """
         try:
             sequencemanager = hydpy.pub.sequencemanager
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to save the time-series data of "
+                f"While trying to save the time series data of "
                 f"{objecttools.devicephrase(self)}"
             )
         sequencemanager.save_file(self)
 
     def save_mean(self, *args, **kwargs) -> None:
-        """Average the time-series data with method |IOSequence.average_series| of
+        """Average the time series data with method |IOSequence.average_series| of
         class |IOSequence| and write the result to file using method
         |SequenceManager.save_file| of class |SequenceManager|.
 
@@ -2406,7 +2406,7 @@ its series to a 2-dimensional matrix.
         )
 
     def average_series(self, *args, **kwargs) -> InfoArray:
-        """Average the actual time-series of the |IOSequence| object for all time
+        """Average the actual time series of the |IOSequence| object for all time
         points.
 
         Method |IOSequence.average_series| works similarly to method
@@ -2478,8 +2478,8 @@ its series to a 2-dimensional matrix.
         >>> sm.average_series()
         Traceback (most recent call last):
         ...
-        IndexError: While trying to calculate the mean value of the internal \
-time-series of sequence `soilmoisture`, the following error occurred: While trying to \
+        IndexError: While trying to calculate the mean value of the internal time \
+series of sequence `soilmoisture`, the following error occurred: While trying to \
 access the value(s) of variable `area` with key `[ True  True]`, the following error \
 occurred: boolean index did not match indexed array along dimension 0; dimension is 3 \
 but corresponding boolean dimension is 2
@@ -2499,12 +2499,12 @@ but corresponding boolean dimension is 2
             return InfoArray(array, aggregation="mean")
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to calculate the mean value of the internal "
-                f"time-series of sequence {objecttools.devicephrase(self)}"
+                f"While trying to calculate the mean value of the internal time "
+                f"series of sequence {objecttools.devicephrase(self)}"
             )
 
     def aggregate_series(self, *args, **kwargs) -> InfoArray:
-        """Aggregate the time-series data based on the actual |IOSequence.aggregation|
+        """Aggregate the time series data based on the actual |IOSequence.aggregation|
         attribute of the current |IOSequence| object.
 
         We prepare some nodes and elements with the help of method
@@ -2515,7 +2515,7 @@ but corresponding boolean dimension is 2
         >>> nodes, elements = prepare_io_example_1()
         >>> seq = elements.element3.model.sequences.fluxes.nkor
 
-        If |IOSequence.aggregation| is `none`, the original time-series values are
+        If |IOSequence.aggregation| is `none`, the original time series values are
         returned:
 
         >>> seq.aggregation
@@ -2693,7 +2693,7 @@ the following error occurred: 'Model' object has no attribute 'numconsts'
 
 
 class ModelIOSequence(ModelSequence, IOSequence):
-    """Base class for sequences with time-series functionalities to be handled by
+    """Base class for sequences with time series functionalities to be handled by
     |Model| objects."""
 
     subvars: ModelIOSequences[ModelIOSequence, FastAccessIOSequence]
@@ -2709,7 +2709,7 @@ class InputSequence(ModelIOSequence):
     possible in two ways: either by providing their individually managed data (usually
     read from a file) or data shared with an input node (usually calculated by another
     model).  This flexibility allows, for example, to let application model |hland_v1|
-    read already preprocessed precipitation time-series or to couple it with
+    read already preprocessed precipitation time series or to couple it with
     application models like |conv_v001|, which interpolates precipitation during the
     simulation run.
 
@@ -3951,7 +3951,7 @@ the following error occurred: ...attribute name must be string...
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> obs = hp.nodes.dill.sequences.obs
 
-        When the sequence does not handle any time-series data,
+        When the sequence does not handle any time series data,
         |NodeSequence.seriescomplete| is |False|:
 
         >>> obs.prepare_series(allocate_ram=False)
@@ -3959,11 +3959,11 @@ the following error occurred: ...attribute name must be string...
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: Sequence `obs` of node `dill` is \
-not requested to make any time-series data available.
+not requested to make any time series data available.
         >>> obs.seriescomplete
         False
 
-        As long as any time-series data is missing, |NodeSequence.seriescomplete| is
+        As long as any time series data is missing, |NodeSequence.seriescomplete| is
         still |False|:
 
         >>> obs.prepare_series()
@@ -3994,7 +3994,7 @@ class Sim(NodeSequence):
     calculated by hydrological models."""
 
     def load_series(self) -> None:
-        """Read time-series data like method |IOSequence.load_series| of class
+        """Read time series data like method |IOSequence.load_series| of class
         |IOSequence| but with special handling of missing data.
 
         The method's "special handling" is to convert errors to warnings.  We explain
@@ -4018,7 +4018,7 @@ class Sim(NodeSequence):
         ...     sim.load_series()  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        UserWarning: While trying to load the time-series data of sequence `sim` of \
+        UserWarning: While trying to load the time series data of sequence `sim` of \
 node `dill`, the following error occurred: [Errno 2] No such file or directory: \
 '...dill_sim_q.asc'
         >>> sim.series
@@ -4041,7 +4041,7 @@ node `dill`, the following error occurred: [Errno 2] No such file or directory: 
         ...     sim.load_series()
         Traceback (most recent call last):
         ...
-        UserWarning: While trying to load the time-series data of sequence `sim` of \
+        UserWarning: While trying to load the time series data of sequence `sim` of \
 node `dill`, the following error occurred: The series array of sequence `sim` of node \
 `dill` contains 1 nan value.
         >>> sim.series
@@ -4071,21 +4071,21 @@ class Obs(NodeSequence):
     read from data files."""
 
     def load_series(self) -> None:
-        """Read time-series data like method |IOSequence.load_series| of class
+        """Read time series data like method |IOSequence.load_series| of class
         |IOSequence| but with special handling of missing data.
 
-        When reading incomplete time-series data, *HydPy* usually raises a
+        When reading incomplete time series data, *HydPy* usually raises a
         |RuntimeError| to prevent from performing erroneous calculations.  This
         functionality makes sense for meteorological input data that is a strict
         requirement for hydrological simulations.  However, the same often does not
-        hold for the time-series of |Obs| sequences, e.g. representing measured
+        hold for the time series of |Obs| sequences, e.g. representing measured
         discharge. Measured discharge is often an optional input or only used for
         comparison purposes.
 
         According to this reasoning, *HydPy* raises (at most) a |UserWarning| in case
-        of missing or incomplete external time-series data of |Obs| sequences.  The
+        of missing or incomplete external time series data of |Obs| sequences.  The
         following examples show this based on the `LahnH` project, mainly focussing on
-        the |Obs| sequence of node `dill`, which is ready for handling time-series data
+        the |Obs| sequence of node `dill`, which is ready for handling time series data
         at the end of the following steps:
 
         >>> from hydpy.examples import prepare_full_example_1
@@ -4102,14 +4102,14 @@ class Obs(NodeSequence):
         True
 
         Trying to read non-existing data raises the following warning and disables the
-        sequence's ability to handle time-series data:
+        sequence's ability to handle time series data:
 
         >>> with TestIO():
         ...     hp.load_obsseries()  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         UserWarning: The `memory flag` of sequence `obs` of node `dill` had to be set \
-to `False` due to the following problem: While trying to load the time-series data of \
+to `False` due to the following problem: While trying to load the time series data of \
 sequence `obs` of node `dill`, the following error occurred: [Errno 2] No such file \
 or directory: '...dill_obs_q.asc'
         >>> obs.ramflag
@@ -4138,7 +4138,7 @@ or directory: '...dill_obs_q.asc'
         ...     obs.load_series()
         Traceback (most recent call last):
         ...
-        UserWarning: While trying to load the time-series data of sequence `obs` of \
+        UserWarning: While trying to load the time series data of sequence `obs` of \
 node `dill`, the following error occurred: The series array of sequence `obs` of node \
 `dill` contains 1 nan value.
         >>> obs.memoryflag

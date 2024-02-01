@@ -2013,7 +2013,7 @@ indexed timegrid `Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d")`.
     ](fget=_get_dates, fset=_set_dates)
 
     def _get_stepsize(self) -> Period:
-        """The time-series data and simulation step size.
+        """The time series data and simulation step size.
 
         You can query and alter the value of property |Timegrid.stepsize| (call method
         |Timegrid.verify| afterwards to make sure the |Timegrid| object did not become

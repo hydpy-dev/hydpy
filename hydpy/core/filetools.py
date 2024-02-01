@@ -1226,7 +1226,7 @@ class SequenceManager(FileManager):
     ...     pub.sequencemanager.load_file(sim)
     Traceback (most recent call last):
     ...
-    NameError: While trying to load the time-series data of sequence `sim` of node \
+    NameError: While trying to load the time series data of sequence `sim` of node \
 `node2`, the following error occurred: name 'timegrid' is not defined
 
     >>> sim_series = sim.series.copy()
@@ -1240,7 +1240,7 @@ class SequenceManager(FileManager):
     ...     pub.sequencemanager.load_file(sim)
     Traceback (most recent call last):
     ...
-    RuntimeError: While trying to load the time-series data of sequence `sim` of node \
+    RuntimeError: While trying to load the time series data of sequence `sim` of node \
 `node2`, the following error occurred: The series array of sequence `sim` of node \
 `node2` contains 1 nan value.
     >>> sim.series = sim_series
@@ -1251,7 +1251,7 @@ class SequenceManager(FileManager):
     ...     sim.save_series()   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    OSError: While trying to save the time-series data of sequence `sim` of \
+    OSError: While trying to save the time series data of sequence `sim` of \
 node `node2`, the following error occurred: Sequence `sim` of node `node2` is \
 not allowed to overwrite the existing file `...`.
     >>> pub.sequencemanager.overwrite = True
@@ -1344,7 +1344,7 @@ not allowed to overwrite the existing file `...`.
     Traceback (most recent call last):
     ...
     hydpy.core.exceptiontools.AttributeNotReady: Sequence `nkor` of element \
-`element2` is not requested to make any time-series data available.
+`element2` is not requested to make any time series data available.
 
     The third option is to store data in netCDF files, which is explained separately in
     the documentation on class |NetCDFInterface|.
@@ -1356,7 +1356,7 @@ not allowed to overwrite the existing file `...`.
 
     filetype = optiontools.OptionPropertySeriesFileType(
         "asc",
-        """Currently active time-series file type.
+        """Currently active time series file type.
         
         |SequenceManager.filetype| is an option based on |OptionPropertySeriesFileType|.
         See its documentation for further information.
@@ -1364,7 +1364,7 @@ not allowed to overwrite the existing file `...`.
     )
     overwrite = optiontools.OptionPropertyBool(
         False,
-        """Currently active overwrite flag for time-series files.
+        """Currently active overwrite flag for time series files.
 
         |SequenceManager.overwrite| is an option based on |OptionPropertyBool|.  See 
         its documentation for further information.
@@ -1372,7 +1372,7 @@ not allowed to overwrite the existing file `...`.
     )
     aggregation = optiontools.OptionPropertySeriesAggregation(
         "none",
-        """Currently active aggregation mode for writing time-series files.
+        """Currently active aggregation mode for writing time series files.
 
         |SequenceManager.aggregation| is an option based on 
         |OptionPropertySeriesAggregation|.  See its documentation for further 
@@ -1405,7 +1405,7 @@ not allowed to overwrite the existing file `...`.
                 self._load_nc(sequence)
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to load the time-series data of sequence "
+                f"While trying to load the time series data of sequence "
                 f"{objecttools.devicephrase(sequence)}"
             )
 
@@ -1460,7 +1460,7 @@ not allowed to overwrite the existing file `...`.
                     self._save_asc(array, filepath)
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to save the time-series data of sequence "
+                f"While trying to save the time series data of sequence "
                 f"{objecttools.devicephrase(sequence)}"
             )
 
@@ -1595,7 +1595,7 @@ currently handle no NetCDF writer object.
     def provide_netcdfjitaccess(
         self, deviceorder: Iterable[Union[devicetools.Node, devicetools.Element]]
     ) -> Iterator[None]:
-        """Open all required internal NetCDF time-series files.
+        """Open all required internal NetCDF time series files.
 
         This method is only relevant for reading data from or writing data to NetCDF
         files "just in time" during simulation runs.  See the main documentation on

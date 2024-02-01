@@ -718,7 +718,7 @@ is not requested to make any time series data available.
     ...     hp.load_inputseries()  # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    FileNotFoundError: While trying to load the time-series data of sequence `p` of \
+    FileNotFoundError: While trying to load the time series data of sequence `p` of \
 element `land_dill`, the following error occurred: [Errno 2] No such file or \
 directory: '...land_dill_hland_v3_input_p.asc'
 

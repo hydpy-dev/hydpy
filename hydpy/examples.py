@@ -119,8 +119,8 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
                [[86., 87., 88.],
                 [89., 90., 91.]]])
 
-    (5) All sequences carry |numpy.ndarray| objects with (deep) copies of the
-    time-series data for testing:
+    (5) All sequences carry |numpy.ndarray| objects with (deep) copies of the time
+    series data for testing:
 
     >>> import numpy
     >>> (numpy.all(nied1.series == nied1.testarray) and

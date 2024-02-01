@@ -729,7 +729,7 @@ standard library for for further information.
 
     def prepare_input_model_sequences(self) -> None:
         """Configure the input sequences of the model in a manner that allows for
-        applying their time-series data in integration tests."""
+        applying their time series data in integration tests."""
         prepare_inputseries = self.element.prepare_inputseries
         prepare_inputseries(allocate_ram=False)
         prepare_inputseries(allocate_ram=True)

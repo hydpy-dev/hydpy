@@ -2103,7 +2103,7 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
           * obs: Deploy observed values instead of simulated values.  The node still
             receives the simulated values from its upstream element(s).  However, it
             deploys values to its downstream element(s), which are defined externally.
-            Usually, these values are observations made available within a time-series
+            Usually, these values are observations made available within a time series
             file. See the documentation on module |sequencetools| for further
             information on file specifications.
           * oldsim: Similar to mode `obs`.  However, it is usually applied when a node
@@ -2385,15 +2385,15 @@ group name `test`.
         >>> dill = hp.nodes.dill
         >>> dill.sequences.obs.series = dill.sequences.sim.series + 10.0
 
-        A call to method |Node.plot_allseries| prints the time-series of both sequences
+        A call to method |Node.plot_allseries| prints the time series of both sequences
         to the screen immediately (if not, you need to activate the interactive mode of
         `matplotlib` first):
 
         >>> figure = dill.plot_allseries()
 
         Subsequent calls to |Node.plot_allseries| or the related methods
-        |Node.plot_simseries| and |Node.plot_obsseries| of nodes add further
-        time-series data to the existing plot:
+        |Node.plot_simseries| and |Node.plot_obsseries| of nodes add further time
+        series data to the existing plot:
 
         >>> lahn_1 = hp.nodes.lahn_1
         >>> figure = lahn_1.plot_simseries()
@@ -2423,7 +2423,7 @@ group name `test`.
         .. image:: Node_plot_allseries_2.png
 
         You can restrict the plotted period via the |Timegrids.eval_| |Timegrid| and
-        overwrite the time-series label and other defaults via keyword arguments.
+        overwrite the time series label and other defaults via keyword arguments.
         For tuples passed to method |Node.plot_allseries|, the first entry corresponds
         to the observation and the second one to the simulation results:
 
@@ -3459,7 +3459,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, _ = prepare_full_example_2(lastdate="1997-01-01")
 
-        Without any arguments, |Element.plot_inputseries| prints the time-series of all
+        Without any arguments, |Element.plot_inputseries| prints the time series of all
         input sequences handled by its |Model| object directly to the screen (in our
         example, |hland_inputs.P|, |hland_inputs.T|, |evap_inputs.NormalAirTemperature|,
         and |evap_inputs.NormalEvapotranspiration| of application model |hland_v1|):
@@ -3478,7 +3478,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
 
         Methods |Element.plot_factorseries|, |Element.plot_fluxseries|, and
         |Element.plot_stateseries| work in the same manner.  Before applying them, one
-        has to calculate the time-series of the |FactorSequence|, |FluxSequence|, and
+        has to calculate the time series of the |FactorSequence|, |FluxSequence|, and
         |StateSequence| objects:
 
         >>> hp.simulate()
@@ -3496,7 +3496,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         .. image:: Element_plot_fluxseries.png
 
         For 1- and 2-dimensional |IOSequence| objects, all three methods plot the
-        individual time-series in the same colour.  We demonstrate this for the frozen
+        individual time series in the same colour.  We demonstrate this for the frozen
         (|hland_states.SP|) and the liquid (|hland_states.WC|) water equivalent of the
         snow cover of different hydrological response units.  Therefore, we restrict
         the shown period to February and March via the |Timegrids.eval_| time grid:
@@ -3507,7 +3507,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
 
         .. image:: Element_plot_stateseries.png
 
-        Alternatively, you can print the averaged time-series by assigning |True| to the
+        Alternatively, you can print the averaged time series by assigning |True| to the
         argument `average`.  We demonstrate this functionality for the factor sequence
         |hland_factors.TC| (this time, without focusing on the time-series y-extent):
 

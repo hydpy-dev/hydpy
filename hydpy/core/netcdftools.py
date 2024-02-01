@@ -43,11 +43,11 @@ and writing data, based on the example configuration defined by function
 >>> from hydpy import pub
 >>> pub.sequencemanager.open_netcdfwriter()
 
-(2) We tell the |SequenceManager| to write all the time-series data to NetCDF files:
+(2) We tell the |SequenceManager| to write all the time series data to NetCDF files:
 
 >>> pub.sequencemanager.filetype = "nc"
 
-(3) We store all the time-series handled by the |Node| and |Element| objects of the
+(3) We store all the time series handled by the |Node| and |Element| objects of the
 example dataset by calling |Nodes.save_allseries| of class |Nodes| and
 |Elements.save_allseries| of class |Elements|.  (In real cases, you would not write the
 `with TestIO():` line.  This code block makes sure we pollute the IO testing directory
@@ -1521,7 +1521,7 @@ class NetCDFVariableBase(abc.ABC):
         replaces the original series of the |IOSequence| object, which helps write
         modified time series.
 
-        The logged time-series data is available via attribute access:
+        The logged time series data is available via attribute access:
 
         >>> from hydpy.core.netcdftools import NetCDFVariableBase
         >>> from hydpy import make_abc_testable
@@ -1913,7 +1913,7 @@ class NetCDFVariableAgg(NetCDFVariableBase):
 
 class NetCDFVariableFlat(NetCDFVariableBase):
     """Relates objects of a specific |IOSequence| subclass with a single NetCDF
-    variable for reading or writing their complete time-series data.
+    variable for reading or writing their complete time series data.
 
     (1) We prepare some devices handling some sequences by applying the function
     |prepare_io_example_1|.  We limit our attention to the returned elements, which
@@ -2062,9 +2062,9 @@ error occurred: No data for (sub)device `element3` available in NetCDF file `nie
                [ 2.,  6., 10.],
                [ 3.,  7., 11.]])
 
-        The flattening of higher dimensional sequences spreads the time-series of
+        The flattening of higher dimensional sequences spreads the time series of
         individual "subdevices" over the array's columns.  For the 1-dimensional
-        sequence |lland_fluxes.NKor|, we find the time-series of both zones of the
+        sequence |lland_fluxes.NKor|, we find the time series of both zones of the
         second element in columns two and three:
 
         >>> ncvar = NetCDFVariableFlat("filename.nc")

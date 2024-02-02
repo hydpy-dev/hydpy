@@ -6,7 +6,6 @@ hydrological model sequences (time series)."""
 from __future__ import annotations
 import abc
 import copy
-import enum
 import os
 import sys
 import types
@@ -22,6 +21,11 @@ from hydpy.core import objecttools
 from hydpy.core import propertytools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
+
+if sys.version_info < (3, 11):
+    from strenum import StrEnum
+else:
+    from enum import StrEnum
 
 if TYPE_CHECKING:
     from hydpy.core import devicetools
@@ -384,7 +388,7 @@ class InfoArray(NDArrayFloat):
             self.aggregation = None
 
 
-class StandardInputNames(enum.StrEnum):
+class StandardInputNames(StrEnum):
     """Standard names for the |InputSequence| subclasses of the various models.
 
     One can use these names instead of the model-specific sequence names for reading
@@ -395,47 +399,47 @@ class StandardInputNames(enum.StrEnum):
     correspond to different spatial units (typically hydrological response units).
     """
 
-    AIR_TEMPERATURE = enum.auto()
+    AIR_TEMPERATURE = "air_temperature"
     """Air temperature 2 m above the ground [°C]."""
-    ALBEDO_HRU = enum.auto()
+    ALBEDO_HRU = "albedo_hru"
     """Surface albedo [-]."""
-    ARTIFICIAL_GROUNDWATER_RECHARGE = enum.auto()
+    ARTIFICIAL_GROUNDWATER_RECHARGE = "artificial_groundwater_recharge"
     """Artificial/additional groundwater recharge [mm/T]."""
-    ARTIFICIAL_SURFACE_WATER_SUPPLY = enum.auto()
+    ARTIFICIAL_SURFACE_WATER_SUPPLY = "artificial_surface_water_supply"
     """Artificial/additional surface water supply [mm/T]."""
-    ATMOSPHERIC_PRESSURE = enum.auto()
+    ATMOSPHERIC_PRESSURE = "atmospheric_pressure"
     """Atmospheric pressure [hPa]."""
-    CAPILLARY_RISE = enum.auto()
+    CAPILLARY_RISE = "capillary_rise"
     """Capillary rise [mm/T]."""
-    CLEAR_SKY_SOLAR_RADIATION = enum.auto()
+    CLEAR_SKY_SOLAR_RADIATION = "clear_sky_solar_radiation"
     """Clear sky solar radiation [W/m²]."""
-    EVAPOTRANSPIRATION = enum.auto()
+    EVAPOTRANSPIRATION = "evapotranspiration"
     """Actual evapotranspiration [mm/T]."""
-    GLOBAL_RADIATION = enum.auto()
+    GLOBAL_RADIATION = "global_radiation"
     """Global radiation [W/m²]."""
-    INTERCEPTED_WATER_HRU = enum.auto()
+    INTERCEPTED_WATER_HRU = "intercepted_water_hru"
     """Amount of intercepted water [mm]."""
-    NORMAL_EVAPOTRANSPIRATION = enum.auto()
+    NORMAL_EVAPOTRANSPIRATION = "normal_evapotranspiration"
     """Normal evapotranspiration [mm/T]."""
-    NORMAL_AIR_TEMPERATURE = enum.auto()
+    NORMAL_AIR_TEMPERATURE = "normal_air_temperature"
     """Normal air temperature 2 m above the ground [°C]."""
-    POSSIBLE_SUNSHINE_DURATION = enum.auto()
+    POSSIBLE_SUNSHINE_DURATION = "possible_sunshine_duration"
     """Possible sunshine duration [h]."""
-    PRECIPITATION = enum.auto()
+    PRECIPITATION = "precipitation"
     """Precipitation [mm/T]."""
-    SOIL_WATER_HRU = enum.auto()
+    SOIL_WATER_HRU = "soil_water_hru"
     """Amount of soil water [mm]."""
-    SNOW_COVER_DEGREE_HRU = enum.auto()
+    SNOW_COVER_DEGREE_HRU = "snow_cover_degree_hru"
     """Snow cover degree [-]."""
-    SNOW_COVER_DEGREE_CANOPY_HRU = enum.auto()
+    SNOW_COVER_DEGREE_CANOPY_HRU = "snow_cover_degree_canopy_hru"
     """Snow cover degree in the canopies of tree-like vegetation [-]."""
-    SUNSHINE_DURATION = enum.auto()
+    SUNSHINE_DURATION = "sunshine_duration"
     """Sunshine duration [h]."""
-    POTENTIAL_EVAPOTRANSPIRATION = enum.auto()
+    POTENTIAL_EVAPOTRANSPIRATION = "potential_evapotranspiration"
     """Potential evapotranspiration [mm/T]."""
-    RELATIVE_HUMIDITY = enum.auto()
+    RELATIVE_HUMIDITY = "relative_humidity"
     """Relative humidity [%]."""
-    WIND_SPEED = enum.auto()
+    WIND_SPEED = "wind_speed"
     """Wind speed [m/s]."""
 
 

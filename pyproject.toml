@@ -11,6 +11,7 @@ requires = [
     "plotly",
     "scipy",
     "setuptools",
+    "strenum; python_version<'3.11'",
     "typing_extensions",
     "wheel",
     "wrapt",

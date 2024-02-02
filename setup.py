@@ -58,6 +58,7 @@ setuptools.setup(
         "black",
         "click",
         "cython",
+        "strenum;python_version<'3.11'",
         "matplotlib",
         "netcdf4",
         "networkx",

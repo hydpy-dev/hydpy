@@ -19,3 +19,4 @@ exclude_lines =
     ^    +pass .*
     assert .*
     ^    +assert_never\(.*\)
+    ^    +from .* import .*

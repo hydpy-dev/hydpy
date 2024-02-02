@@ -53,7 +53,7 @@ setuptools.setup(
     ext_modules=extension_modules,
     include_dirs=[numpy.get_include()],
     scripts=[os.path.join("hydpy", "exe", "hyd.py")],
-    python_requires=">=3.8",
+    python_requires=">=3.9",
     install_requires=[
         "black",
         "click",

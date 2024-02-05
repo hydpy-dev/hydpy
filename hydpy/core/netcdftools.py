@@ -203,6 +203,7 @@ import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import devicetools
 from hydpy.core import objecttools
+from hydpy.core import printtools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
 from hydpy.core.typingtools import *
@@ -1007,16 +1008,18 @@ named `lland_v1` nor does it define a member named `lland_v1`.
         variable.log(sequence, infoarray)
         return variable
 
+    @printtools.print_progress
     def read(self) -> None:
         """Call method |NetCDFVariableBase.read| of all handled |NetCDFVariableBase|
         objects."""
-        for variable in self:
+        for variable in printtools.progressbar(self):
             variable.read()
 
+    @printtools.print_progress
     def write(self) -> None:
         """Call method |NetCDFVariableBase.write| of all handled |NetCDFVariableBase|
         objects."""
-        for variable in self:
+        for variable in printtools.progressbar(self):
             variable.write()
 
     @staticmethod

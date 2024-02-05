@@ -1935,7 +1935,7 @@ class NetCDFVariableFlat(NetCDFVariableBase):
     >>> var_nied = NetCDFVariableFlat("nied.nc")
     >>> var_nkor = NetCDFVariableFlat("nkor.nc")
     >>> var_sp = NetCDFVariableFlat("sp.nc")
-    >>> for element in (element1, element2):
+    >>> for element in (element1, element3):
     ...     seqs = element.model.sequences
     ...     var_nied.log(seqs.inputs.nied, seqs.inputs.nied.series)
     ...     var_nkor.log(seqs.fluxes.nkor, seqs.fluxes.nkor.series)
@@ -1954,15 +1954,12 @@ class NetCDFVariableFlat(NetCDFVariableBase):
     different from the original values available via `testarray` attribute:
 
     >>> seq1 = element1.model.sequences.inputs.nied
-    >>> seq2 = element2.model.sequences.fluxes.nkor
+    >>> seq2 = element3.model.sequences.fluxes.nkor
     >>> seq3 = element4.model.sequences.states.sp
     >>> import numpy
     >>> for seq in (seq1, seq2, seq3):
     ...     seq.series = -777.0
-    ...     print(numpy.any(seq.series == seq.testarray))
-    False
-    False
-    False
+    ...     assert not numpy.any(seq.series == seq.testarray)
 
     (5) Again, we prepare three |NetCDFVariableFlat| instances and log the same
     sequences as above, open the existing NetCDF file for reading, read its data, and
@@ -1971,7 +1968,7 @@ class NetCDFVariableFlat(NetCDFVariableBase):
     >>> nied1 = NetCDFVariableFlat("nied.nc")
     >>> nkor1 = NetCDFVariableFlat("nkor.nc")
     >>> sp4 = NetCDFVariableFlat("sp.nc")
-    >>> for element in (element1, element2):
+    >>> for element in (element1, element3):
     ...     sequences = element.model.sequences
     ...     nied1.log(sequences.inputs.nied, None)
     ...     nkor1.log(sequences.fluxes.nkor, None)
@@ -1981,21 +1978,35 @@ class NetCDFVariableFlat(NetCDFVariableBase):
     ...     nkor1.read()
     ...     sp4.read()
     >>> for seq in (seq1, seq2, seq3):
-    ...     print(numpy.all(seq.series == seq.testarray))
-    True
-    True
-    True
+    ...     assert numpy.all(seq.series == seq.testarray)
 
-    (6) Trying to read data not stored properly results in error messages like the
-    following:
+    (6) Trying to read data that is not stored properly results in error messages like
+    the following:
 
-    >>> nied1.log(element3.model.sequences.inputs.nied, None)
+    >>> for element in (element1, element2, element3):
+    ...     element.model.sequences.inputs.nied.series = -777.0
+    ...     nied1.log(element.model.sequences.inputs.nied, None)
     >>> with TestIO():
     ...     nied1.read()
     Traceback (most recent call last):
     ...
     RuntimeError: While trying to read data from NetCDF file `nied.nc`, the following \
-error occurred: No data for (sub)device `element3` available in NetCDF file `nied.nc`.
+error occurred: No data for (sub)device `element2` available in NetCDF file `nied.nc`.
+
+    Note that |NetCDFVariableFlat.read| does not abort the reading process when missing
+    a time series.  Instead, it sets the entries of the corresponding
+    |IOSequence.series| array to |numpy.nan|, proceeds with the following sequences,
+    and finally re-raises the first encountered exception:
+
+    only mentions the first missing time series but
+    tries to read in the time series of
+
+    >>> element1.model.sequences.inputs.nied.series
+    InfoArray([0., 1., 2., 3.])
+    >>> element2.model.sequences.inputs.nied.series
+    InfoArray([nan, nan, nan, nan])
+    >>> element3.model.sequences.inputs.nied.series
+    InfoArray([ 8.,  9., 10., 11.])
     """
 
     @property
@@ -2191,19 +2202,27 @@ error occurred: No data for (sub)device `element3` available in NetCDF file `nie
                 array = query_array(ncfile, varmapping["values"])
                 idxs: tuple[Any] = (slice(None),)
                 subdev2index = self.query_subdevice2index(ncfile)
+                first_exception: Optional[RuntimeError] = None
                 for devicename, seq in self._descr2sequence.items():
-                    if seq.NDIM:
-                        subshape = (array.shape[0],) + seq.shape
-                        subarray = numpy.empty(subshape)
-                        temp = devicename + "_"
-                        for prod in self._product(seq.shape):
-                            station = temp + "_".join(str(idx) for idx in prod)
-                            subarray[idxs + prod] = array[
-                                :, subdev2index.get_index(station)
-                            ]
-                    else:
-                        subarray = array[:, subdev2index.get_index(devicename)]
-                    seq.series = seq.adjust_series(timegrid, subarray)
+                    try:
+                        if seq.NDIM:
+                            subshape = (array.shape[0],) + seq.shape
+                            subarray = numpy.empty(subshape)
+                            temp = devicename + "_"
+                            for prod in self._product(seq.shape):
+                                station = temp + "_".join(str(idx) for idx in prod)
+                                subarray[idxs + prod] = array[
+                                    :, subdev2index.get_index(station)
+                                ]
+                        else:
+                            subarray = array[:, subdev2index.get_index(devicename)]
+                        seq.series = seq.adjust_series(timegrid, subarray)
+                    except RuntimeError as current_exception:
+                        seq.series[:] = numpy.nan
+                        if first_exception is None:
+                            first_exception = current_exception
+                if first_exception is not None:
+                    raise first_exception
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to read data from NetCDF file `{self.filepath}`"

@@ -839,6 +839,7 @@ following error occurred: The given `lland_v3` instance is not considered sharab
         submodel: modeltools.SubmodelInterface,
         position: Optional[int],
     ) -> None:
+        submodel.__hydpy_element__ = model.__hydpy_element__
         typeid = self.submodelinterface.typeid
         if self.dimensionality == 0:
             setattr(model, self.submodelname, submodel)

@@ -2626,15 +2626,33 @@ class ModelSequence(Sequence_):
     def descr_device(self) -> str:
         """Description of the |Element| object the |ModelSequence| object belongs to.
 
-        >>> from hydpy import prepare_model, Element
-        >>> element = Element("test_element_1")
-        >>> from hydpy.models import test_v1
-        >>> model = prepare_model(test_v1)
-        >>> model.sequences.fluxes.q.descr_device
+        >>> from hydpy import prepare_model, pub, Element
+        >>> element = Element("my_element", outlets="outlet")
+        >>> from hydpy.models.lland_v3 import *
+        >>> parameterstep()
+        >>> model.sequences.inputs.windspeed.descr_device
         '?'
         >>> element.model = model
-        >>> model.sequences.fluxes.q.descr_device
-        'test_element_1'
+        >>> model.sequences.inputs.windspeed.descr_device
+        'my_element'
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2001-01-02", "1d"
+        >>> nhru(1)
+        >>> ft(1.0)
+        >>> fhru(1.0)
+        >>> lnk(ACKER)
+        >>> wmax(300.0)
+        >>> with model.add_aetmodel_v1("evap_morsim"):
+        ...     pass
+        >>> model.aetmodel.sequences.inputs.windspeed.descr_device
+        'my_element'
+
+        .. testsetup::
+
+            >>> from hydpy import Node
+            >>> Node.clear_all()
+            >>> Node.clear_all()
         """
         try:
             return self.subseqs.seqs.model.element.name

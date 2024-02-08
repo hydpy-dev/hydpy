@@ -39,8 +39,11 @@ from hydpy.models.wland.wland_constants import CONIFER, DECIDIOUS, SEALED, SOIL,
 
 
 class Pick_HS_V1(modeltools.Method):
-    """Take the surface water level from a submodel that complies with the
+    r"""Take the surface water level from a submodel that complies with the
     |WaterLevelModel_V1| interface, if available.
+
+    Basic equation:
+      :math:`HS = 1000 \cdot (WaterLevel - BL)`
 
     Examples:
 
@@ -58,40 +61,42 @@ class Pick_HS_V1(modeltools.Method):
         dhs(0.0)
 
         We take |exch_waterlevel| as an example to demonstrate that |Pick_HS_V1|
-        correctly uses submodels that follow the |WaterLevelModel_V1| interface for
-        updating |HS| and logs such changes via sequence |DHS|:
+        correctly uses submodels that follow the |WaterLevelModel_V1| interface and the
+        defined channel bottom level (|BL|) for updating |HS| and logs such changes via
+        sequence |DHS|:
 
+        >>> bl(3.0)
         >>> with model.add_waterlevelmodel_v1("exch_waterlevel"):
         ...     pass
         >>> from hydpy import Element, Node
         >>> wl = Node("wl", variable="WaterLevel")
-        >>> wl.sequences.sim = 2.0
+        >>> wl.sequences.sim = 5.0
         >>> e = Element("e", receivers=wl, outlets="q")
         >>> e.model = model
         >>> model.pick_hs_v1()
         >>> states.hs
         hs(2000.0)
-
         >>> factors.dhs
         dhs(-1000.0)
     """
 
+    CONTROLPARAMETERS = (wland_control.BL,)
     UPDATEDSEQUENCES = (wland_states.HS,)
     RESULTSEQUENCES = (wland_factors.DHS,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         old = model.sequences.states.fastaccess_old
         new = model.sequences.states.fastaccess_new
         if model.waterlevelmodel is None:
             fac.dhs = 0.0
         elif model.waterlevelmodel_typeid == 1:
-            hs: float = 1000.0 * (
-                cast(
-                    stateinterfaces.WaterLevelModel_V1, model.waterlevelmodel
-                ).get_waterlevel()
-            )
+            waterlevel: float = cast(
+                stateinterfaces.WaterLevelModel_V1, model.waterlevelmodel
+            ).get_waterlevel()
+            hs: float = 1000.0 * (waterlevel - con.bl)
             fac.dhs = hs - new.hs
             old.hs = new.hs = hs
 

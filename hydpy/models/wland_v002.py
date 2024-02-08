@@ -39,8 +39,8 @@ Integration tests
 >>> nu(4)
 >>> lt(FIELD, CONIFER, SEALED, WATER)
 >>> aur(0.6 * 0.98, 0.3 * 0.98, 0.1 * 0.98, 0.02)
->>> gl(1.0)
->>> bl(-0.5)
+>>> gl(1.5)
+>>> bl(0.0)
 >>> cp(0.8)
 >>> lai.sealed = 10.0
 >>> lai.conifer = 11.0

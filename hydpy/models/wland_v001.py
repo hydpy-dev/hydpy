@@ -103,11 +103,11 @@ vadose zone 8.82 km²:
 
 >>> aur(0.6 * 0.98, 0.3 * 0.98, 0.1 * 0.98, 0.02)
 
-The ground surface level is 1 m above, and the channel bottom level is 0.5 m below sea
-level, making a channel depth of 1.5 m:
+The ground surface level is 1.5 m above sea level, and the channel bottom level is
+exactly at sea level, making a channel depth of 1.5 m:
 
->>> gl(1.0)
->>> bl(-0.5)
+>>> gl(1.5)
+>>> bl(0.0)
 
 The following parameter values lead to good results in a small catchment near the Kiel
 Canal (northern part of Germany).  For the parameter |LAI|, which provides land

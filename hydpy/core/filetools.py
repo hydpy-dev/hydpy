@@ -1346,8 +1346,8 @@ not allowed to overwrite the existing file `...`.
     hydpy.core.exceptiontools.AttributeNotReady: Sequence `nkor` of element \
 `element2` is not requested to make any time series data available.
 
-    The third option is to store data in netCDF files, which is explained separately in
-    the documentation on class |NetCDFInterface|.
+    The third option is to store data in NetCDF files, which is explained separately in
+    the documentation on module |netcdftools|.
     """
 
     SUPPORTED_MODES = "npy", "asc", "nc"
@@ -1390,8 +1390,8 @@ not allowed to overwrite the existing file `...`.
         """,
     )
 
-    _netcdfreader: Optional[netcdftools.NetCDFInterface] = None
-    _netcdfwriter: Optional[netcdftools.NetCDFInterface] = None
+    _netcdfreader: Optional[netcdftools.NetCDFInterfaceReader] = None
+    _netcdfwriter: Optional[netcdftools.NetCDFInterfaceWriter] = None
     _jitaccesshandler: Optional[netcdftools.JITAccessHandler] = None
 
     def load_file(self, sequence: sequencetools.IOSequence) -> None:
@@ -1433,7 +1433,7 @@ not allowed to overwrite the existing file `...`.
         return timegrid_data, values
 
     def _load_nc(self, sequence: sequencetools.IOSequence) -> None:
-        self.netcdfreader.log(sequence, None)
+        self.netcdfreader.log(sequence)
 
     def save_file(
         self,
@@ -1488,8 +1488,8 @@ not allowed to overwrite the existing file `...`.
         self.netcdfwriter.log(sequence, array)
 
     @property
-    def netcdfreader(self) -> netcdftools.NetCDFInterface:
-        """A |NetCDFInterface| object prepared by method
+    def netcdfreader(self) -> netcdftools.NetCDFInterfaceReader:
+        """A |NetCDFInterfaceReader| object prepared by method
         |SequenceManager.open_netcdfreader| and to be finalised by method
         |SequenceManager.close_netcdfreader|.
 
@@ -1498,50 +1498,49 @@ not allowed to overwrite the existing file `...`.
         >>> sm.netcdfreader
         Traceback (most recent call last):
         ...
-        RuntimeError: The sequence file manager does currently handle no NetCDF \
-reader object.
+        RuntimeError: The sequence file manager currently handles no NetCDF reader \
+object.
 
         >>> sm.open_netcdfreader()
         >>> from hydpy import classname
         >>> classname(sm.netcdfreader)
-        'NetCDFInterface'
+        'NetCDFInterfaceReader'
 
         >>> sm.close_netcdfreader()
         >>> sm.netcdfreader
         Traceback (most recent call last):
         ...
-        RuntimeError: The sequence file manager does currently handle no NetCDF \
-reader object.
+        RuntimeError: The sequence file manager currently handles no NetCDF reader \
+object.
         """
         if self._netcdfreader is None:
             raise RuntimeError(
-                "The sequence file manager does currently handle no NetCDF reader "
-                "object."
+                "The sequence file manager currently handles no NetCDF reader object."
             )
         return self._netcdfreader
 
     def open_netcdfreader(self) -> None:
-        """Prepare a new |NetCDFInterface| object for reading data."""
-        self._netcdfreader = netcdftools.NetCDFInterface()
+        """Prepare a new |NetCDFInterfaceReader| object for reading data."""
+        self._netcdfreader = netcdftools.NetCDFInterfaceReader()
 
     def close_netcdfreader(self) -> None:
-        """Read data with a prepared |NetCDFInterface| object and delete it
+        """Read data with a prepared |NetCDFInterfaceReader| object and delete it
         afterwards."""
         self.netcdfreader.read()
         self._netcdfreader = None
 
     @contextlib.contextmanager
     def netcdfreading(self) -> Iterator[None]:
-        """Prepare a new |NetCDFInterface| object for collecting data at the beginning
-        of a with-block and read the data and delete the object at the end of the same
-        with-block."""
+        """Prepare a new |NetCDFInterfaceReader| object for collecting data at the
+        beginning of a with-block and read the data and delete the object at the end of
+        the same with-block."""
         self.open_netcdfreader()
         yield
         self.close_netcdfreader()
 
     @property
-    def netcdfwriter(self) -> netcdftools.NetCDFInterface:
-        """A |NetCDFInterface| object prepared by method
+    def netcdfwriter(self) -> netcdftools.NetCDFInterfaceWriter:
+        """A |NetCDFInterfaceWriter| object prepared by method
         |SequenceManager.open_netcdfwriter| and to be finalised by method
         |SequenceManager.close_netcdfwriter|.
 
@@ -1550,43 +1549,42 @@ reader object.
         >>> sm.netcdfwriter
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager does \
-currently handle no NetCDF writer object.
+        hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager \
+currently handles no NetCDF writer object.
 
         >>> sm.open_netcdfwriter()
         >>> from hydpy import classname
         >>> classname(sm.netcdfwriter)
-        'NetCDFInterface'
+        'NetCDFInterfaceWriter'
 
         >>> sm.close_netcdfwriter()
         >>> sm.netcdfwriter
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager does \
-currently handle no NetCDF writer object.
+        hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager \
+currently handles no NetCDF writer object.
         """
         if self._netcdfwriter is None:
             raise exceptiontools.AttributeNotReady(
-                "The sequence file manager does currently handle no NetCDF writer "
-                "object."
+                "The sequence file manager currently handles no NetCDF writer object."
             )
         return self._netcdfwriter
 
     def open_netcdfwriter(self) -> None:
-        """Prepare a new |NetCDFInterface| object for writing data."""
-        self._netcdfwriter = netcdftools.NetCDFInterface()
+        """Prepare a new |NetCDFInterfaceWriter| object for writing data."""
+        self._netcdfwriter = netcdftools.NetCDFInterfaceWriter()
 
     def close_netcdfwriter(self) -> None:
-        """Write data with a prepared |NetCDFInterface| object and delete it
+        """Write data with a prepared |NetCDFInterfaceWriter| object and delete it
         afterwards."""
         self.netcdfwriter.write()
         self._netcdfwriter = None
 
     @contextlib.contextmanager
     def netcdfwriting(self) -> Iterator[None]:
-        """Prepare a new |NetCDFInterface| object for collecting data at the beginning
-        of a with-block and write the data and delete the object at the end of the same
-        with-block."""
+        """Prepare a new |NetCDFInterfaceWriter| object for collecting data at the
+        beginning of a with-block and write the data and delete the object at the end
+        of the same with-block."""
         self.open_netcdfwriter()
         yield
         self.close_netcdfwriter()
@@ -1602,7 +1600,7 @@ currently handle no NetCDF writer object.
         class |HydPy| for further information.
         """
         try:
-            interface = netcdftools.NetCDFInterface()
+            interface = netcdftools.NetCDFInterfaceJIT()
             with interface.provide_jitaccess(deviceorder) as jitaccesshandler:
                 self._jitaccesshandler = jitaccesshandler
                 yield

@@ -931,6 +931,8 @@ class IOSequences(
 ):
     """Subclass of |SubSequences|, specialised for handling |IOSequence| objects."""
 
+    seqs: Sequences
+
     def prepare_series(
         self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
     ) -> None:

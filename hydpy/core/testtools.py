@@ -1341,11 +1341,11 @@ def make_abc_testable(abstract: type[T]) -> type[T]:
     Abstract base classes cannot be (and, at least in production code, should not be)
     instantiated:
 
-    >>> from hydpy.core.netcdftools import NetCDFVariableBase
-    >>> ncvar = NetCDFVariableBase()  # doctest: +ELLIPSIS
+    >>> from hydpy.core.netcdftools import NetCDFVariable
+    >>> var = NetCDFVariable()  # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    TypeError: Can't instantiate abstract class NetCDFVariableBase with...
+    TypeError: Can't instantiate abstract class NetCDFVariable with...
 
     However, it is convenient to do so for testing (partly) abstract base classes in
     doctests.  The derived class returned by function |make_abc_testable| is identical
@@ -1353,13 +1353,13 @@ def make_abc_testable(abstract: type[T]) -> type[T]:
     disabled:
 
     >>> from hydpy import make_abc_testable, classname
-    >>> ncvar = make_abc_testable(NetCDFVariableBase)("filepath")
+    >>> var = make_abc_testable(NetCDFVariable)("filepath")
 
     To avoid confusion, |make_abc_testable| appends an underscore to the original class
     name:
 
-    >>> classname(ncvar)
-    'NetCDFVariableBase_'
+    >>> classname(var)
+    'NetCDFVariable_'
     """
     concrete = type(abstract.__name__ + "_", (abstract,), {})
     concrete.__abstractmethods__ = frozenset()  # type: ignore[attr-defined]

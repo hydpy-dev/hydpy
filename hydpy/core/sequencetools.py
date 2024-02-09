@@ -6,6 +6,7 @@ hydrological model sequences (time series)."""
 from __future__ import annotations
 import abc
 import copy
+import dataclasses
 import os
 import sys
 import types
@@ -924,6 +925,18 @@ class ModelSequences(
         super()._init_fastaccess()
         if self._cls_fastaccess and self._cymodel:
             setattr(self._cymodel.sequences, self.name, self.fastaccess)
+
+
+@dataclasses.dataclass
+class SeriesMode:
+    """The type of property |IOSequence.seriesmode| of class |IOSequence|."""
+
+    ramflag: bool
+    """Corresponds to property |IOSequence.ramflag| of class |IOSequence|."""
+    diskflag_reading: bool
+    """Corresponds to property |IOSequence.diskflag_reading| of class |IOSequence|."""
+    diskflag_writing: bool
+    """Corresponds to property |IOSequence.diskflag_writing| of class |IOSequence|."""
 
 
 class IOSequences(
@@ -1932,6 +1945,48 @@ during a simulation run is not supported but tried for sequence `t` of element \
         True True True
         """
         return self.ramflag or self.diskflag
+
+    @property
+    def seriesmode(self) -> SeriesMode:
+        """A combination of property |IOSequence.ramflag|,
+        |IOSequence.diskflag_reading|, and |IOSequence.diskflag_writing|.
+
+        |IOSequence.seriesmode| allows querying and changing all mentioned properties in
+        one step:
+
+        >>> from hydpy.examples import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
+        >>> t = hp.elements.land_lahn_1.model.sequences.inputs.t
+        >>> t.prepare_series(read_jit=True)
+        >>> sm_t = t.seriesmode
+        >>> sm_t
+        SeriesMode(ramflag=True, diskflag_reading=True, diskflag_writing=False)
+        >>> p = hp.elements.land_lahn_1.model.sequences.inputs.p
+        >>> p.prepare_series(allocate_ram=False, write_jit=True)
+        >>> sm_p = p.seriesmode
+        >>> sm_p
+        SeriesMode(ramflag=False, diskflag_reading=False, diskflag_writing=True)
+
+        >>> t.seriesmode = sm_p
+        >>> t.seriesmode
+        SeriesMode(ramflag=False, diskflag_reading=False, diskflag_writing=True)
+        >>> p.seriesmode = sm_t
+        >>> p.seriesmode
+        SeriesMode(ramflag=True, diskflag_reading=True, diskflag_writing=False)
+        """
+        return SeriesMode(
+            ramflag=self.ramflag,
+            diskflag_reading=self.diskflag_reading,
+            diskflag_writing=self.diskflag_writing,
+        )
+
+    @seriesmode.setter
+    def seriesmode(self, sm: SeriesMode) -> None:
+        self.prepare_series(
+            allocate_ram=sm.ramflag,
+            read_jit=sm.diskflag_reading,
+            write_jit=sm.diskflag_writing,
+        )
 
     def __set_array(self, values):
         values = numpy.array(values, dtype=float)

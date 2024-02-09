@@ -750,6 +750,46 @@ directory: '...land_dill_hland_v3_input_p.asc'
     -0.298846, -0.811539, -2.493848, -5.968849
     >>> round_(new_model.sequences.inputs.t.series)
     -0.298846, -0.811539, -2.493848, -5.968849
+
+    The standard "HydPy" naming convention is compatible with reading data
+    "just-in-time" from NetCDF files, even if main models and submodels come with
+    different input sequences that require the same data.  Before explaining this, we
+    restore the original |hland_v1| submodel and write all input time series to NetCDF
+    files following the standard naming convention:
+
+    >>> with TestIO():
+    ...     hp.elements.land_dill.prepare_model()
+    ...     hp.elements.land_dill.model.load_conditions()
+    ...     hp.elements.land_dill.prepare_inputseries()
+    ...     hp.elements.land_dill.load_inputseries()
+    ...     with pub.sequencemanager.filetype("nc"):
+    ...         with pub.sequencemanager.netcdfwriting():
+    ...             hp.save_inputseries()
+
+    Now, instead of letting the |evap_pet_hbv96| sub-submodel query the air temperature
+    from the |hland_v1| main model, we add a |meteo_temp_io| sub-sub-submodel that
+    comes with an independent air temperature sequence
+
+    >>> hland = hp.elements.land_dill.model
+    >>> with hland.aetmodel.petmodel.add_tempmodel_v2("meteo_temp_io"):
+    ...     temperatureaddend(0.0)
+    >>> hp.prepare_inputseries(allocate_ram=True, read_jit=True)
+    >>> round_(hland.aetmodel.petmodel.tempmodel.sequences.inputs.temperature.series)
+    nan, nan, nan, nan
+
+    Reading data "just-in-time" makes the same data of the "air_temperature.nc" file
+    available to both sequences (and leads to the same simulation results):
+
+    >>> hland.sequences.inputs.t.series = -777.0
+    >>> with TestIO():
+    ...     hp.prepare_fluxseries()
+    ...     hp.simulate()
+    >>> round_(hland.sequences.inputs.t.series)
+    -0.298846, -0.811539, -2.493848, -5.968849
+    >>> round_(hland.aetmodel.petmodel.tempmodel.sequences.inputs.temperature.series)
+    -0.298846, -0.811539, -2.493848, -5.968849
+    >>> round_(hland.sequences.fluxes.qt.series)
+    11.78144, 8.902735, 7.132279, 6.018681
     """
 
     _deviceorder: Optional[tuple[Union[devicetools.Node, devicetools.Element], ...]]

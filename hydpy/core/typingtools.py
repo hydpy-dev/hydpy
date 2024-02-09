@@ -36,7 +36,14 @@ from typing import (
     TYPE_CHECKING,
     Union,
 )
-from typing_extensions import assert_never, Concatenate, Never, ParamSpec, Self
+from typing_extensions import (
+    assert_never,
+    Concatenate,
+    Never,
+    ParamSpec,
+    Self,
+    TypeAlias,
+)
 
 # ...from site-packages
 import numpy
@@ -310,6 +317,7 @@ __all__ = [
     "TensorInputObject",
     "TensorInt",
     "TextIO",
+    "TypeAlias",
     "TypeVar",
     "TypedDict",
     "TYPE_CHECKING",

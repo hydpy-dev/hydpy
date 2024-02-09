@@ -258,6 +258,8 @@ You can set another |float| value before writing a NetCDF file:
 
 TypeNetCDFVariable = TypeVar("TypeNetCDFVariable", bound="NetCDFVariable")
 
+FlatUnion: TypeAlias = Union["NetCDFVariableFlatReader", "NetCDFVariableFlatWriter"]
+
 
 def str2chars(strings: Sequence[str]) -> MatrixBytes:
     """Return a |numpy.ndarray| object containing the byte characters (second axis) of
@@ -833,7 +835,7 @@ class JITAccessHandler(NamedTuple):
 
 
 class Subdevice2Index:
-    """Return type of method |NetCDFVariableBase.query_subdevice2index|."""
+    """Return type of method |NetCDFVariable.query_subdevice2index|."""
 
     dict_: dict[str, int]
     name_sequence: str
@@ -924,8 +926,8 @@ class NetCDFVariable(abc.ABC):
         """Return a |Subdevice2Index| object that maps the (sub)device names to their
         position within the given NetCDF file.
 
-        Method |NetCDFVariableBase.query_subdevice2index| relies on
-        |NetCDFVariableBase.query_subdevices|.  The returned |Subdevice2Index| object
+        Method |NetCDFVariable.query_subdevice2index| relies on
+        |NetCDFVariable.query_subdevices|.  The returned |Subdevice2Index| object
         remembers the NetCDF file from which the (sub)device names stem, allowing for
         clear error messages:
 
@@ -950,7 +952,7 @@ class NetCDFVariable(abc.ABC):
         RuntimeError: No data for (sub)device `element5` is available in NetCDF file \
 `filename.nc`.
 
-        Additionally, |NetCDFVariableBase.query_subdevice2index| checks for duplicates:
+        Additionally, |NetCDFVariable.query_subdevice2index| checks for duplicates:
 
         >>> ncfile["station_id"][:] = str2chars(
         ...     ["element3", "element1", "element1_1", "element1"])
@@ -1038,8 +1040,8 @@ class NetCDFVariableFlat(NetCDFVariable, abc.ABC):
     We further try to log the equally named "wind speed" sequences of the main model
     |lland_v3| and the submodel |evap_morsim|.  As both models are handled by the same
     element, which defines the column name, their time series cannot be stored
-    separately in the same NetCDF file.  The |NetCDFVariableFlatWriter.log| method of
-    |NetCDFVariableFlatWriter| checks for potential conflicts:
+    separately in the same NetCDF file.  The |MixinVariableWriter.log| method defined
+    by |MixinVariableWriter| checks for potential conflicts:
 
     >>> var_windspeed = NetCDFVariableFlatWriter("windspeed.nc")
     >>> windspeed_l = element3.model.sequences.inputs.windspeed
@@ -1054,10 +1056,10 @@ Sequence `windspeed` of element `element3` of model `lland_v3` is already regist
 under the same column name(s) but with different time series data.
 
     If the supplied time series are equal, there is no problem.  So,
-    |NetCDFVariableFlatWriter.log| neither accepts the new sequence nor raises an
-    error in such cases:
+    |MixinVariableWriter.log| neither accepts the new sequence nor raises an error in
+    such cases:
 
-    ToDo: Should we implement additional checks for  just-in-time writing?
+    ToDo: Should we implement additional checks for just-in-time writing?
 
     >>> assert var_windspeed.element3.sequence is windspeed_l
     >>> var_windspeed.log(windspeed_e, windspeed_e.series)
@@ -1123,8 +1125,8 @@ under the same column name(s) but with different time series data.
 error occurred: No data for (sub)device `element2` is available in NetCDF file \
 `nied.nc`.
 
-    Note that method |NetCDFVariableFlat.read| does not abort the reading process when
-    missing a time series.  Instead, it sets the entries of the corresponding
+    Note that method |NetCDFVariableFlatReader.read| does not abort the reading process
+    when missing a time series.  Instead, it sets the entries of the corresponding
     |IOSequence.series| array to |numpy.nan|, proceeds with the following sequences,
     and finally re-raises the first encountered exception:
 
@@ -1157,7 +1159,7 @@ error occurred: No data for (sub)device `element2` is available in NetCDF file \
 
         For 1-dimensional sequences like |lland_fluxes.NKor|, a suffix defines the
         index of the respective subdevice.  For example, the third column of
-        |NetCDFVariableAgg.array| contains the series of the first hydrological
+        |NetCDFVariableFlatWriter.array| contains the series of the first hydrological
         response unit of the second element:
 
         >>> var = NetCDFVariableFlatReader("filename.nc")
@@ -1185,6 +1187,51 @@ error occurred: No data for (sub)device `element2` is available in NetCDF file \
             else:
                 stats.append(devicename)
         return tuple(stats)
+
+    @property
+    def shape(self) -> tuple[int, int]:
+        """Required shape of the NetCDF variable.
+
+        For 0-dimensional sequences like |lland_inputs.Nied|, the first axis
+        corresponds to the number of timesteps and the second axis to the number of
+        devices:
+
+        >>> from hydpy.examples import prepare_io_example_1
+        >>> nodes, elements = prepare_io_example_1()
+        >>> from hydpy.core.netcdftools import NetCDFVariableFlatReader
+        >>> var = NetCDFVariableFlatReader("filename.nc")
+        >>> for element in elements:
+        ...     if element.model.name.startswith("lland"):
+        ...         var.log(element.model.sequences.inputs.nied)
+        >>> var.shape
+        (4, 3)
+
+        For 1-dimensional sequences as |lland_fluxes.NKor|, the second axis corresponds
+        to "subdevices".  Here, these "subdevices" are hydrological response units of
+        different elements.  The model instances of the three elements define one, two,
+        and three response units, respectively, making up a sum of six subdevices:
+
+        >>> var = NetCDFVariableFlatReader("filename.nc")
+        >>> for element in elements:
+        ...     if element.model.name.startswith("lland"):
+        ...         var.log(element.model.sequences.fluxes.nkor)
+        >>> var.shape
+        (4, 6)
+
+        The above statements also hold for 2-dimensional sequences as
+        |hland_states.SP|.  In this specific case, each "subdevice" corresponds to a
+        single snow class (one element times three zones times two snow classes makes
+        six subdevices):
+
+        >>> var = NetCDFVariableFlatReader( "filename.nc")
+        >>> var.log(elements.element4.model.sequences.states.sp)
+        >>> var.shape
+        (4, 6)
+        """
+        return (
+            len(hydpy.pub.timegrids.init),
+            sum(seq.numberofvalues for seq in self._descr2anysequence.values()),
+        )
 
     @staticmethod
     def _product(shape: Sequence[int]) -> Iterator[tuple[int, ...]]:
@@ -1368,7 +1415,7 @@ class MixinVariableWriter(NetCDFVariable, abc.ABC):
     def log(
         self,
         sequence: sequencetools.IOSequence,
-        infoarray: Optional[sequencetools.InfoArray],
+        infoarray: Optional[sequencetools.InfoArray] = None,
     ) -> None:
         """Log the given |IOSequence| object for writing data.
 
@@ -1486,58 +1533,13 @@ class NetCDFVariableFlatWriter(MixinVariableWriter, NetCDFVariableFlat):
     """
 
     @property
-    def shape(self) -> tuple[int, int]:
-        """Required shape of |NetCDFVariableFlatWriter.array|.
-
-        For 0-dimensional sequences like |lland_inputs.Nied|, the first axis
-        corresponds to the number of timesteps and the second axis to the number of
-        devices:
-
-        >>> from hydpy.examples import prepare_io_example_1
-        >>> nodes, elements = prepare_io_example_1()
-        >>> from hydpy.core.netcdftools import NetCDFVariableFlatWriter
-        >>> var = NetCDFVariableFlatWriter("filename.nc")
-        >>> for element in elements:
-        ...     if element.model.name.startswith("lland"):
-        ...         var.log(element.model.sequences.inputs.nied, None)
-        >>> var.shape
-        (4, 3)
-
-        For 1-dimensional sequences as |lland_fluxes.NKor|, the second axis corresponds
-        to "subdevices".  Here, these "subdevices" are hydrological response units of
-        different elements.  The model instances of the three elements define one, two,
-        and three response units, respectively, making up a sum of six subdevices:
-
-        >>> var = NetCDFVariableFlatWriter("filename.nc")
-        >>> for element in elements:
-        ...     if element.model.name.startswith("lland"):
-        ...         var.log(element.model.sequences.fluxes.nkor, None)
-        >>> var.shape
-        (4, 6)
-
-        The above statements also hold for 2-dimensional sequences as
-        |hland_states.SP|.  In this specific case, each "subdevice" corresponds to a
-        single snow class (one element times three zones times two snow classes makes
-        six subdevices):
-
-        >>> var = NetCDFVariableFlatWriter( "filename.nc")
-        >>> var.log(elements.element4.model.sequences.states.sp, None)
-        >>> var.shape
-        (4, 6)
-        """
-        return (
-            len(hydpy.pub.timegrids.init),
-            sum(seq.numberofvalues for seq in self._descr2sequence.values()),
-        )
-
-    @property
     def array(self) -> NDArrayFloat:
         """The time series data of all logged |IOSequence| objects in one single
         |numpy.ndarray| object.
 
-        The documentation on |NetCDFVariableAgg.shape| explains the structure of
-        |NetCDFVariableAgg.array|.  The first example confirms that the first axis
-        corresponds to time while the second corresponds to the location:
+        The documentation on |NetCDFVariableFlat.shape| explains the structure of
+        |NetCDFVariableFlatWriter.array|.  The first example confirms that the first
+        axis corresponds to time while the second corresponds to the location:
 
         >>> from hydpy.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
@@ -1651,7 +1653,7 @@ class NetCDFVariableAggregated(MixinVariableWriter, NetCDFVariable):
 
     @property
     def shape(self) -> tuple[int, int]:
-        """Required shape of |NetCDFVariableAgg.array|.
+        """Required shape of |NetCDFVariableAggregated.array|.
 
         The first axis corresponds to the number of timesteps and the second axis to
         the number of devices.  We show this for the 1-dimensional input sequence
@@ -1683,8 +1685,8 @@ class NetCDFVariableAggregated(MixinVariableWriter, NetCDFVariable):
         single |numpy.ndarray| object.
 
         The documentation on |NetCDFVariableAggregated.shape| explains the structure of
-        |NetCDFVariableAgg.array|.  This first example confirms that the first axis
-        corresponds to time while the second corresponds to the location:
+        |NetCDFVariableAggregated.array|.  This first example confirms that the first
+        axis corresponds to time while the second corresponds to the location:
 
         >>> from hydpy.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
@@ -1729,7 +1731,7 @@ class NetCDFInterfaceBase(Generic[TypeNetCDFVariable]):
 
     The core task of all concrete |NetCDFInterfaceBase| subclasses is to distribute
     different |IOSequence| objects on multiple instances of the concrete subclasses of
-    |NetCDFVariableBase|.  The following examples describe the functioning of the
+    |NetCDFVariable|.  The following examples describe the functioning of the
     subclasses |NetCDFInterfaceReader| and |NetCDFInterfaceWriter|, which serve to read
     and write data "in one step", respectively.
 
@@ -1774,8 +1776,8 @@ class NetCDFInterfaceBase(Generic[TypeNetCDFVariable]):
     14
 
     We change the relevant directory before logging the reserved sequence.
-    |NetCDFInterfaceWriter| initialises two new |NetCDFVariableBase| objects, despite
-    other |NetCDFVariableBase| objects related to the same sequence type already being
+    |NetCDFInterfaceWriter| initialises two new |NetCDFVariable| objects, despite
+    other |NetCDFVariable| objects related to the same sequence type already being
     available:
 
     >>> nkor = elements.element1.model.sequences.fluxes.nkor
@@ -1800,7 +1802,7 @@ class NetCDFInterfaceBase(Generic[TypeNetCDFVariable]):
     lland_v3_input_nied, lland_v3_input_nied_mean, sim_q, sim_q_mean,
     sim_t, sim_t_mean
 
-    |NetCDFInterfaceWriter| provides attribute access to its |NetCDFVariableBase|
+    |NetCDFInterfaceWriter| provides attribute access to its |NetCDFVariable|
     instances, both via their filenames and the combination of their folder names and
     filenames:
 
@@ -1919,7 +1921,7 @@ named `lland_v1` nor does it define a member named `lland_v1`.
 
     @property
     def filenames(self) -> tuple[str, ...]:
-        """The base file names of all handled |NetCDFVariableBase| objects."""
+        """The base file names of all handled |NetCDFVariable| objects."""
         filenames = (file2var.keys() for file2var in self._dir2file2var.values())
         return tuple(sorted(set(itertools.chain(*filenames))))
 
@@ -2002,7 +2004,7 @@ class NetCDFInterfaceWriter(
     NetCDFInterfaceBase[Union[NetCDFVariableAggregated, NetCDFVariableFlatWriter]]
 ):
     """Interface between |SequenceManager| and multiple |NetCDFVariableFlatWriter| or
-    |NetCDFVariableFlatAggregated| instances for writing data in one step.
+    |NetCDFVariableAggregated| instances for writing data in one step.
 
     For a general introduction to using |NetCDFInterfaceWriter|, see the
     documentation on base class |NetCDFInterfaceBase|.
@@ -2012,7 +2014,6 @@ class NetCDFInterfaceWriter(
         self,
         sequence: sequencetools.IOSequence,
         infoarray: Optional[sequencetools.InfoArray] = None,
-        force_writer: bool = False,
     ) -> Union[NetCDFVariableAggregated, NetCDFVariableFlatWriter]:
         """Pass the given |IOSequence| to the log method of an already existing or, if
         necessary, freshly created |NetCDFVariableFlatWriter| or
@@ -2038,7 +2039,7 @@ class NetCDFInterfaceWriter(
             variable.write()
 
 
-class NetCDFInterfaceJIT(NetCDFInterfaceBase[NetCDFVariableFlatWriter]):
+class NetCDFInterfaceJIT(NetCDFInterfaceBase[FlatUnion]):
     """Interface between |SequenceManager| and multiple |NetCDFVariableFlatWriter|
     instances for reading or writing data just in time.
 
@@ -2046,16 +2047,19 @@ class NetCDFInterfaceJIT(NetCDFInterfaceBase[NetCDFVariableFlatWriter]):
     information.
     """
 
-    def log(self, sequence: sequencetools.IOSequence) -> NetCDFVariableFlatWriter:
+    def log(self, sequence: sequencetools.IOSequence) -> FlatUnion:
         """Pass the given |IOSequence| to the log method of an already existing or, if
         necessary, freshly created |NetCDFVariableFlatWriter| object."""
         file2var, stem = self._get_dir2file_stem(sequence)
         try:
             variable = file2var[stem]
         except KeyError:
-            variable = NetCDFVariableFlatWriter(sequence.filepath)
+            if sequence.diskflag_reading:
+                variable = NetCDFVariableFlatReader(sequence.filepath)
+            else:
+                variable = NetCDFVariableFlatWriter(sequence.filepath)
             file2var[stem] = variable
-        variable.log(sequence, None)
+        variable.log(sequence)
         return variable
 
     @contextlib.contextmanager
@@ -2196,7 +2200,7 @@ The data of the NetCDF `...hland_v1_factor_tc.nc` (Timegrid("1996-01-01 00:00:00
         Regarding the spatial dimension, things are similar.  You can write data for
         different sequences in subsequent simulation runs, but you need to ensure all
         required data columns are available right from the start.  Hence, relying on
-        the automatic file generation of |NetCDFInterfaceHIT.provide_jitaccess| fails
+        the automatic file generation of |NetCDFInterfaceJIT.provide_jitaccess| fails
         in the following example:
 
         >>> with TestIO():
@@ -2338,12 +2342,13 @@ file `...hland_v1_flux_pc.nc`.
 
         readers: list[JITAccessInfo] = []
         writers: list[JITAccessInfo] = []
-        variable2readmode: dict[NetCDFVariableFlatWriter, bool] = {}
-        variable2ncfile: dict[NetCDFVariableFlatWriter, netcdf4.Dataset] = {}
-        variable2infos: dict[NetCDFVariableFlatWriter, list[JITAccessInfo]] = {}
+        variable2readmode: dict[FlatUnion, bool] = {}
+        variable2ncfile: dict[FlatUnion, netcdf4.Dataset] = {}
+        variable2infos: dict[FlatUnion, list[JITAccessInfo]] = {}
         variable2sequences: collections.defaultdict[
-            NetCDFVariableFlatWriter, list[sequencetools.IOSequence]
+            FlatUnion, list[sequencetools.IOSequence]
         ] = collections.defaultdict(lambda: [])
+        disabled: dict[sequencetools.IOSequence, sequencetools.SeriesMode] = {}
 
         try:  # pylint: disable=too-many-nested-blocks
 
@@ -2355,7 +2360,6 @@ file `...hland_v1_flux_pc.nc`.
                 for sequence in self._yield_disksequences(deviceorder):
                     if sequence.diskflag:
                         variable = log(sequence)
-                        assert isinstance(variable, NetCDFVariableFlatWriter)
                         readmode = sequence.diskflag_reading
                         variable2readmode.setdefault(variable, readmode)
                         if variable2readmode[variable] != readmode:
@@ -2369,16 +2373,24 @@ file `...hland_v1_flux_pc.nc`.
 
                 if variable2sequences:
                     # prepare NetCDF files:
-                    variable2timedelta: dict[NetCDFVariableFlatWriter, int] = {}
+                    variable2timedelta: dict[FlatUnion, int] = {}
                     tg_init = hydpy.pub.timegrids.init
                     tg_sim = hydpy.pub.timegrids.sim
-                    for variable, readmode in variable2readmode.items():
+                    for variable in tuple(variable2readmode):
                         filepath = variable.filepath
                         if not os.path.exists(filepath):
-                            if readmode and hydpy.pub.options.checkseries:
-                                raise FileNotFoundError(
-                                    f"No file `{filepath}` available for reading."
-                                )
+                            if isinstance(variable, NetCDFVariableFlatReader):
+                                if hydpy.pub.options.checkseries:
+                                    raise FileNotFoundError(
+                                        f"No file `{filepath}` available for reading."
+                                    )
+                                del variable2readmode[variable]
+                                del variable2infos[variable]
+                                if sequences := variable2sequences.pop(variable):
+                                    for sequence in sequences:
+                                        sequence.prepare_series(read_jit=False)
+                                        disabled[sequence] = sequence.seriesmode
+                                continue
                             variable.write()
                         ncfile = netcdf4.Dataset(filepath, "r+")
                         variable2ncfile[variable] = ncfile
@@ -2408,12 +2420,17 @@ file `...hland_v1_flux_pc.nc`.
                                 data=data,
                             )
                         )
-                        idx0 = 0
+                        # the following algorithm relies on the iteration order defined
+                        # by method _yield_disksequences:
+                        i0, delta, descr_old = 0, 0, ""
                         for sequence in sequences:
-                            product = numpy.product  # type: ignore[attr-defined]
-                            idx1 = idx0 + int(product(sequence.shape))
-                            sequence.connect_netcdf(ncarray=data[idx0:idx1])
-                            idx0 = idx1
+                            if (descr_new := sequence.descr_device) != descr_old:
+                                descr_old = descr_new
+                                i0 += delta
+                                product = numpy.product  # type: ignore[attr-defined]
+                                delta = int(product(sequence.shape))
+                            sequence.connect_netcdf(ncarray=data[i0 : i0 + delta])
+
                     yield JITAccessHandler(
                         readers=tuple(readers), writers=tuple(writers)
                     )
@@ -2428,6 +2445,7 @@ file `...hland_v1_flux_pc.nc`.
                 '"just in time" during the current simulation run'
             )
         finally:
-            # close NetCDF files:
+            for sequence, seriesmode in disabled.items():
+                sequence.seriesmode = seriesmode
             for ncfile in variable2ncfile.values():
                 ncfile.close()

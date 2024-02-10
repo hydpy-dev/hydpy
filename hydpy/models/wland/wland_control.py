@@ -251,6 +251,12 @@ class CG(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
 
+class RG(parametertools.Parameter):
+    """Groundwater reservoir restriction [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, bool, None, (None, None)
+
+
 class CGF(parametertools.Parameter):
     """Groundwater reservoir flood factor [1/mm]."""
 

@@ -2209,15 +2209,22 @@ class Calc_FGS_V1(modeltools.Method):
     high values can result in increased computation times.
 
     Basic equations (discontinous):
-      :math:`Gradient = CD - DG - HS`
 
-      :math:`ContactSurface = max \left( CD - DG, HS \right)`
-
-      :math:`Excess = max \left( -DG, HS - CD, 0 \right)`
-
-      :math:`Conductivity = \frac{1 + CGF \cdot Excess}{CG}`
-
-      :math:`FGS = Gradient \cdot ContactSurface \cdot Conductivity`
+    .. math::
+      FGS = Gradient \cdot ContactSurface \cdot Conductivity
+      \\ \\
+      HG^* = max(CD - DG, \ 0) \\
+      HS^* = max(HS, \ 0) \\
+      Gradient = \begin{cases}
+      HG^* - HS^* &|\ RG \\
+      CD - DG - HS^* &|\ \overline{RG} \\
+      \end{cases} \\
+      ContactSurface = \begin{cases}
+      HG^* - HS^* &|\ RG \\
+      max(HG^*, \ HS^*) &|\ \overline{RG} \\
+      \end{cases} \\
+      Excess = max(-DG, HS - CD, \ 0) \\
+      Conductivity = (1 + CGF \cdot Excess) / CG
 
     Examples:
 
@@ -2225,6 +2232,7 @@ class Calc_FGS_V1(modeltools.Method):
         >>> simulationstep("12h")
         >>> parameterstep("1d")
         >>> cg(10000.0)
+        >>> rg(False)
         >>> derived.cd(600.0)
         >>> states.hs = 300.0
         >>> from hydpy import UnitTest
@@ -2304,9 +2312,40 @@ class Calc_FGS_V1(modeltools.Method):
         |  13 |  500.0 | 300.0 |     -3.0 |
         |  14 |  600.0 | 300.0 |     -4.5 |
         |  15 |  700.0 | 300.0 |     -6.0 |
+
+        Another difference to the original WALRUS model is optional. Enabling the |RG|
+        option restricts the |FGS| in two ways.  First, the groundwater depth used for
+        calculating the gradient between the surface and the groundwater level is
+        restricted to the channel depth so that extremely low groundwater levels do not
+        result in extremely high surface water infiltration.  Second, the contact
+        surface is restricted to the difference between the surface and the
+        (restricted) groundwater level so that uncertainties in channel depth estimates
+        have a less severe effect both on groundwater drainage and surface water
+        infiltration:
+
+        >>> rg(True)
+        >>> test()
+        | ex. |     dg |    hs |       fgs |
+        ------------------------------------
+        |   1 | -100.0 | 300.0 |     168.0 |
+        |   2 |   -1.0 | 300.0 |   5.44512 |
+        |   3 |    0.0 | 300.0 |  4.684972 |
+        |   4 |    1.0 | 300.0 |   4.47899 |
+        |   5 |  100.0 | 300.0 |       2.0 |
+        |   6 |  200.0 | 300.0 |       0.5 |
+        |   7 |  290.0 | 300.0 |     0.005 |
+        |   8 |  299.0 | 300.0 |   0.00005 |
+        |   9 |  300.0 | 300.0 |       0.0 |
+        |  10 |  301.0 | 300.0 |  -0.00005 |
+        |  11 |  310.0 | 300.0 |    -0.005 |
+        |  12 |  400.0 | 300.0 |      -0.5 |
+        |  13 |  500.0 | 300.0 |      -2.0 |
+        |  14 |  600.0 | 300.0 | -4.493836 |
+        |  15 |  700.0 | 300.0 |      -4.5 |
+
     """
 
-    CONTROLPARAMETERS = (wland_control.CG, wland_control.CGF)
+    CONTROLPARAMETERS = (wland_control.CG, wland_control.RG, wland_control.CGF)
     DERIVEDPARAMETERS = (wland_derived.CD, wland_derived.NUG, wland_derived.RH2)
     REQUIREDSEQUENCES = (wland_states.DG, wland_states.HS)
     RESULTSEQUENCES = (wland_fluxes.FGS,)
@@ -2318,11 +2357,16 @@ class Calc_FGS_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         if der.nug:
-            gradient: float = der.cd - sta.dg - sta.hs
-            contactsurface: float = der.cd - sta.dg
-            contactsurface = smoothutils.smooth_max1(contactsurface, sta.hs, der.rh2)
-            excess: float = sta.hs - der.cd
-            excess = smoothutils.smooth_max2(-sta.dg, excess, 0.0, der.rh2)
+            hg: float = smoothutils.smooth_logistic2(der.cd - sta.dg, der.rh2)
+            hs: float = smoothutils.smooth_logistic2(sta.hs, der.rh2)
+            gradient: float = (hg if con.rg else der.cd - sta.dg) - hs
+            if con.rg:
+                contactsurface: float = modelutils.fabs(hg - hs)
+            else:
+                contactsurface = smoothutils.smooth_max1(hg, hs, der.rh2)
+            excess: float = smoothutils.smooth_max2(
+                -sta.dg, sta.hs - der.cd, 0.0, der.rh2
+            )
             conductivity: float = (1.0 + con.cgf * excess) / con.cg
             flu.fgs = gradient * contactsurface * conductivity
         else:

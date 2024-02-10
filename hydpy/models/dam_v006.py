@@ -30,10 +30,10 @@ ordinary differential equations with an error-adaptive numerical integration met
 Hence, simulation speed, robustness, and accuracy depend on the configuration of the
 parameters of the model equations and the underlying solver.  We discuss these topics
 in more detail in the documentation on the application model |dam_v001|.  Before the
-first usage of any HydPy-Dam model, you should at least read how to set proper smoothing
-parameter values and how to configure |InterpAlgorithm| objects for interpolating the
-relationships between stage and volume (|WaterVolume2WaterLevel|) and between discharge
-and stage (|WaterLevel2FloodDischarge|).
+first usage of any HydPy-Dam model, you should at least read how to set proper
+smoothing parameter values and how to configure |InterpAlgorithm| objects for
+interpolating the relationships between stage and volume (|WaterVolume2WaterLevel|) and
+between discharge and stage (|WaterLevel2FloodDischarge|).
 
 Integration tests
 =================
@@ -112,7 +112,8 @@ The following group of parameters deal with lake precipitation and evaporation. 
 that, despite |dam_v006|'s ability to calculate the water-level dependent surface area
 (see aide sequence |dam_aides.SurfaceArea|), it always assumes a fixed surface area
 (defined by control parameter |dam_control.SurfaceArea|) for converting precipitation
-and evaporation heights into volumes.  Here, we set this fixed surface area to 1.44 km²:
+and evaporation heights into volumes.  Here, we set this fixed surface area to
+1.44 km²:
 
 >>> surfacearea(1.44)
 
@@ -133,10 +134,10 @@ but not mandatory, we set this threshold to 0 m:
 
 >>> thresholdevaporation(0.0)
 
-Additionally, we set the values of the related smoothing parameters |DischargeTolerance|
-and |ToleranceEvaporation| to 0.1 m³/s and 1 mm (these are values we can recommend
-for many cases -- see the documentation on application model |dam_v001| on how to
-fine-tune such smoothing parameters to your needs):
+Additionally, we set the values of the related smoothing parameters
+|DischargeTolerance| and |ToleranceEvaporation| to 0.1 m³/s and 1 mm (these are values
+we can recommend for many cases -- see the documentation on application model
+|dam_v001| on how to fine-tune such smoothing parameters to your needs):
 
 >>> dischargetolerance(0.1)
 >>> toleranceevaporation(0.001)
@@ -165,20 +166,20 @@ not affect the calculated lake outflow:
 >>> exchange.sequences.sim.series = 0.0
 
 The only purpose of parameter |CatchmentArea| is to determine reasonable default values
-for the parameter |AbsErrorMax| automatically, controlling the accuracy of the numerical
-integration process:
+for the parameter |AbsErrorMax| automatically, controlling the accuracy of the
+numerical integration process:
 
 >>> catchmentarea(86.4)
 >>> from hydpy import round_
 >>> round_(solver.abserrormax.INIT)
-0.01
+0.0001
 >>> parameters.update()
 >>> solver.abserrormax
-abserrormax(0.01)
+abserrormax(0.0001)
 
 The following test results show the expected storage retention pattern.  The sums of
-inflow and outflow are nearly identical, and the maximum of the outflow graph intersects
-with the falling limb of the inflow graph:
+inflow and outflow are nearly identical, and the maximum of the outflow graph
+intersects with the falling limb of the inflow graph:
 
 .. integration-test::
 
@@ -186,32 +187,31 @@ with the falling limb of the inflow graph:
     |   date | precipitation | evaporation | waterlevel | adjustedprecipitation | adjustedevaporation | actualevaporation | inflow | exchange | flooddischarge |  outflow | watervolume | exchange | inflow |  outflow |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |           0.0 |         0.0 |        0.0 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |            0.0 |      0.0 |         0.0 |      0.0 |    0.0 |      0.0 |
-    | 02.01. |          50.0 |         0.0 |   0.057904 |                   1.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.329814 | 0.329814 |    0.057904 |      0.0 |    0.0 | 0.329814 |
-    | 03.01. |           0.0 |         0.0 |   0.371486 |                   0.0 |                 0.0 |               0.0 |    6.0 |      0.0 |       2.370574 | 2.370574 |    0.371486 |      0.0 |    6.0 | 2.370574 |
-    | 04.01. |           0.0 |         0.0 |   0.850751 |                   0.0 |                 0.0 |               0.0 |   12.0 |      0.0 |       6.452959 | 6.452959 |    0.850751 |      0.0 |   12.0 | 6.452959 |
-    | 05.01. |           0.0 |         0.0 |   0.937172 |                   0.0 |                 0.0 |               0.0 |   10.0 |      0.0 |       8.999753 | 8.999753 |    0.937172 |      0.0 |   10.0 | 8.999753 |
-    | 06.01. |           0.0 |         0.0 |   0.742131 |                   0.0 |                 0.0 |               0.0 |    6.0 |      0.0 |       8.257426 | 8.257426 |    0.742131 |      0.0 |    6.0 | 8.257426 |
-    | 07.01. |           0.0 |         0.0 |   0.486374 |                   0.0 |                 0.0 |               0.0 |    3.0 |      0.0 |        5.96014 |  5.96014 |    0.486374 |      0.0 |    3.0 |  5.96014 |
-    | 08.01. |           0.0 |         0.0 |   0.320717 |                   0.0 |                 0.0 |               0.0 |    2.0 |      0.0 |       3.917326 | 3.917326 |    0.320717 |      0.0 |    2.0 | 3.917326 |
-    | 09.01. |           0.0 |         0.0 |   0.193041 |                   0.0 |                 0.0 |               0.0 |    1.0 |      0.0 |       2.477741 | 2.477741 |    0.193041 |      0.0 |    1.0 | 2.477741 |
-    | 10.01. |           0.0 |         0.0 |   0.081262 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       1.293731 | 1.293731 |    0.081262 |      0.0 |    0.0 | 1.293731 |
-    | 11.01. |           0.0 |         0.0 |   0.034208 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.544608 | 0.544608 |    0.034208 |      0.0 |    0.0 | 0.544608 |
-    | 12.01. |           0.0 |         0.0 |   0.014537 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.227669 | 0.227669 |    0.014537 |      0.0 |    0.0 | 0.227669 |
-    | 13.01. |           0.0 |         0.0 |   0.006178 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.096753 | 0.096753 |    0.006178 |      0.0 |    0.0 | 0.096753 |
-    | 14.01. |           0.0 |         0.0 |   0.002482 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.042778 | 0.042778 |    0.002482 |      0.0 |    0.0 | 0.042778 |
-    | 15.01. |           0.0 |         0.0 |   0.000997 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.017186 | 0.017186 |    0.000997 |      0.0 |    0.0 | 0.017186 |
-    | 16.01. |           0.0 |         0.0 |   0.000508 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.005664 | 0.005664 |    0.000508 |      0.0 |    0.0 | 0.005664 |
-    | 17.01. |           0.0 |         0.0 |   0.000259 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.002884 | 0.002884 |    0.000259 |      0.0 |    0.0 | 0.002884 |
-    | 18.01. |           0.0 |         0.0 |   0.000132 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.001469 | 0.001469 |    0.000132 |      0.0 |    0.0 | 0.001469 |
-    | 19.01. |           0.0 |         0.0 |   0.000067 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.000748 | 0.000748 |    0.000067 |      0.0 |    0.0 | 0.000748 |
-    | 20.01. |           0.0 |         0.0 |   0.000034 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.000381 | 0.000381 |    0.000034 |      0.0 |    0.0 | 0.000381 |
+    | 02.01. |          50.0 |         0.0 |   0.057853 |                   1.0 |                 0.0 |               0.0 |    0.0 |      0.0 |         0.3304 |   0.3304 |    0.057853 |      0.0 |    0.0 |   0.3304 |
+    | 03.01. |           0.0 |         0.0 |     0.3715 |                   0.0 |                 0.0 |               0.0 |    6.0 |      0.0 |       2.369831 | 2.369831 |      0.3715 |      0.0 |    6.0 | 2.369831 |
+    | 04.01. |           0.0 |         0.0 |    0.85081 |                   0.0 |                 0.0 |               0.0 |   12.0 |      0.0 |       6.452432 | 6.452432 |     0.85081 |      0.0 |   12.0 | 6.452432 |
+    | 05.01. |           0.0 |         0.0 |    0.93712 |                   0.0 |                 0.0 |               0.0 |   10.0 |      0.0 |       9.001037 | 9.001037 |     0.93712 |      0.0 |   10.0 | 9.001037 |
+    | 06.01. |           0.0 |         0.0 |   0.742087 |                   0.0 |                 0.0 |               0.0 |    6.0 |      0.0 |       8.257327 | 8.257327 |    0.742087 |      0.0 |    6.0 | 8.257327 |
+    | 07.01. |           0.0 |         0.0 |   0.486328 |                   0.0 |                 0.0 |               0.0 |    3.0 |      0.0 |       5.960176 | 5.960176 |    0.486328 |      0.0 |    3.0 | 5.960176 |
+    | 08.01. |           0.0 |         0.0 |    0.32068 |                   0.0 |                 0.0 |               0.0 |    2.0 |      0.0 |       3.917227 | 3.917227 |     0.32068 |      0.0 |    2.0 | 3.917227 |
+    | 09.01. |           0.0 |         0.0 |   0.193011 |                   0.0 |                 0.0 |               0.0 |    1.0 |      0.0 |       2.477651 | 2.477651 |    0.193011 |      0.0 |    1.0 | 2.477651 |
+    | 10.01. |           0.0 |         0.0 |   0.081349 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       1.292382 | 1.292382 |    0.081349 |      0.0 |    0.0 | 1.292382 |
+    | 11.01. |           0.0 |         0.0 |   0.034286 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.544712 | 0.544712 |    0.034286 |      0.0 |    0.0 | 0.544712 |
+    | 12.01. |           0.0 |         0.0 |    0.01445 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.229577 | 0.229577 |     0.01445 |      0.0 |    0.0 | 0.229577 |
+    | 13.01. |           0.0 |         0.0 |   0.006091 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.096747 | 0.096747 |    0.006091 |      0.0 |    0.0 | 0.096747 |
+    | 14.01. |           0.0 |         0.0 |   0.002568 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.040782 | 0.040782 |    0.002568 |      0.0 |    0.0 | 0.040782 |
+    | 15.01. |           0.0 |         0.0 |   0.001082 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.017191 | 0.017191 |    0.001082 |      0.0 |    0.0 | 0.017191 |
+    | 16.01. |           0.0 |         0.0 |   0.000456 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.007254 | 0.007254 |    0.000456 |      0.0 |    0.0 | 0.007254 |
+    | 17.01. |           0.0 |         0.0 |   0.000192 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.003054 | 0.003054 |    0.000192 |      0.0 |    0.0 | 0.003054 |
+    | 18.01. |           0.0 |         0.0 |   0.000082 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.001277 | 0.001277 |    0.000082 |      0.0 |    0.0 | 0.001277 |
+    | 19.01. |           0.0 |         0.0 |   0.000035 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.000542 | 0.000542 |    0.000035 |      0.0 |    0.0 | 0.000542 |
+    | 20.01. |           0.0 |         0.0 |   0.000014 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |        0.00024 |  0.00024 |    0.000014 |      0.0 |    0.0 |  0.00024 |
 
-|dam_v006| achieves this sufficiently high accuracy with 174 calls to
-its underlying system of differential equations, which averages to less
-than nine calls per day:
+|dam_v006| achieves this sufficiently high accuracy with 174 calls to its underlying
+system of differential equations, which averages to less than nine calls per day:
 
 >>> model.numvars.nmb_calls
-174
+426
 
 There is no indication of an error in the water balance:
 

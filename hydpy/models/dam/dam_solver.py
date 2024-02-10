@@ -17,28 +17,28 @@ class AbsErrorMax(parametertools.SolverParameter):
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
-    INIT = 0.01
+    INIT = 0.0001
 
     CONTROLPARAMETERS = (dam_control.CatchmentArea,)
 
     def modify_init(self) -> float:
         r"""Adjust and return the value of class constant `INIT`.
 
-        Note that the default initial value 0.01 refers to mm/T.  Hence the actual
+        Note that the default initial value 0.0001 refers to mm/T.  Hence the actual
         default initial value in m³/s is:
 
-        :math:`AbsErrorMax = 0.01 \cdot CatchmentArea \cdot 1000 / Seconds`
+        :math:`AbsErrorMax = 0.0001 \cdot CatchmentArea \cdot 1000 / Seconds`
 
         >>> from hydpy.models.dam import *
         >>> simulationstep("1h")
         >>> parameterstep("1d")
         >>> solver.abserrormax.INIT
-        0.01
+        0.0001
         >>> catchmentarea(2.0)
         >>> derived.seconds.update()
         >>> from hydpy import round_
         >>> round_(solver.abserrormax.modify_init())
-        0.005556
+        0.000056
         """
         pars = self.subpars.pars
         catchmentarea = pars.control.catchmentarea

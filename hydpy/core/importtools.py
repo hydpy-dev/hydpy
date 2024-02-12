@@ -798,6 +798,8 @@ following error occurred: The given `lland_v3` instance is not considered sharab
         for mainmodel in reversed(self._mainmodelstack):
             if self._submodel.add_mainmodel_as_subsubmodel(mainmodel):
                 break
+        else:
+            setattr(self._model, f"{self.submodelname}_is_mainmodel", False)
         return self._submodel
 
     def __exit__(

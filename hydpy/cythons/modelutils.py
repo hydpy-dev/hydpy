@@ -26,7 +26,7 @@ but these are untested in model applications:
 >>> pyxwriter.get_point_states(lines)
             . get_point_states
 >>> lines.pyx  # doctest: +ELLIPSIS
-    cpdef inline void get_point_states(self) nogil:
+    cpdef inline void get_point_states(self) noexcept nogil:
         cdef ...int... idx0
         self.sequences.states.s = \
 self.sequences.states._s_points[self.numvars.idx_stage]
@@ -40,7 +40,7 @@ self.sequences.states._sv_points[self.numvars.idx_stage][idx0]
 >>> pyxwriter.get_point_states(lines)
             . get_point_states
 >>> lines.pyx  # doctest: +ELLIPSIS
-    cpdef inline void get_point_states(self) nogil:
+    cpdef inline void get_point_states(self) noexcept nogil:
         cdef ...int... idx0, idx1
         for idx0 in range(self.sequences.states._s_length0):
             for idx1 in range(self.sequences.states._s_length1):
@@ -65,7 +65,7 @@ numerical integration but deal with |FluxSequence| objects.  We start with the m
 >>> pyxwriter.integrate_fluxes(lines)
             . integrate_fluxes
 >>> lines.pyx  # doctest: +ELLIPSIS
-    cpdef inline void integrate_fluxes(self) nogil:
+    cpdef inline void integrate_fluxes(self) noexcept nogil:
         cdef ...int... jdx, idx0
         self.sequences.fluxes.q = 0.
         for jdx in range(self.numvars.idx_method):
@@ -88,7 +88,7 @@ self.sequences.fluxes._qv_points[jdx, idx0]
 >>> pyxwriter.integrate_fluxes(lines)
             . integrate_fluxes
 >>> lines.pyx  # doctest: +ELLIPSIS
-    cpdef inline void integrate_fluxes(self) nogil:
+    cpdef inline void integrate_fluxes(self) noexcept nogil:
         cdef ...int... jdx, idx0, idx1
         for idx0 in range(self.sequences.fluxes._q_length0):
             for idx1 in range(self.sequences.fluxes._q_length1):
@@ -120,7 +120,7 @@ Method |ELSModel.reset_sum_fluxes|:
 >>> pyxwriter.reset_sum_fluxes(lines)
             . reset_sum_fluxes
 >>> lines.pyx  # doctest: +ELLIPSIS
-    cpdef inline void reset_sum_fluxes(self) nogil:
+    cpdef inline void reset_sum_fluxes(self) noexcept nogil:
         cdef ...int... idx0
         self.sequences.fluxes._q_sum = 0.
         for idx0 in range(self.sequences.fluxes._qv_length):
@@ -132,7 +132,7 @@ Method |ELSModel.reset_sum_fluxes|:
 >>> pyxwriter.reset_sum_fluxes(lines)
             . reset_sum_fluxes
 >>> lines.pyx  # doctest: +ELLIPSIS
-    cpdef inline void reset_sum_fluxes(self) nogil:
+    cpdef inline void reset_sum_fluxes(self) noexcept nogil:
         cdef ...int... idx0, idx1
         for idx0 in range(self.sequences.fluxes._q_length0):
             for idx1 in range(self.sequences.fluxes._q_length1):
@@ -154,7 +154,7 @@ Method |ELSModel.addup_fluxes|:
 >>> pyxwriter.addup_fluxes(lines)
             . addup_fluxes
 >>> lines.pyx  # doctest: +ELLIPSIS
-    cpdef inline void addup_fluxes(self) nogil:
+    cpdef inline void addup_fluxes(self) noexcept nogil:
         cdef ...int... idx0
         self.sequences.fluxes._q_sum = \
 self.sequences.fluxes._q_sum + self.sequences.fluxes.q
@@ -168,7 +168,7 @@ self.sequences.fluxes._qv_sum[idx0] + self.sequences.fluxes.qv[idx0]
 >>> pyxwriter.addup_fluxes(lines)
             . addup_fluxes
 >>> lines.pyx  # doctest: +ELLIPSIS
-    cpdef inline void addup_fluxes(self) nogil:
+    cpdef inline void addup_fluxes(self) noexcept nogil:
         cdef ...int... idx0, idx1
         for idx0 in range(self.sequences.fluxes._q_length0):
             for idx1 in range(self.sequences.fluxes._q_length1):
@@ -192,7 +192,7 @@ Method |ELSModel.calculate_error|:
 >>> pyxwriter.calculate_error(lines)
             . calculate_error
 >>> lines.pyx  # doctest: +ELLIPSIS
-    cpdef inline void calculate_error(self) nogil:
+    cpdef inline void calculate_error(self) noexcept nogil:
         cdef ...int... idx0
         cdef double abserror
         self.numvars.abserror = 0.
@@ -229,7 +229,7 @@ fabs(abserror/self.sequences.fluxes._qv_results[self.numvars.idx_method, idx0]))
 >>> pyxwriter.calculate_error(lines)
             . calculate_error
 >>> lines.pyx  # doctest: +ELLIPSIS
-    cpdef inline void calculate_error(self) nogil:
+    cpdef inline void calculate_error(self) noexcept nogil:
         cdef ...int... idx0, idx1
         cdef double abserror
         self.numvars.abserror = 0.
@@ -387,7 +387,7 @@ del _checkable_types
 
 NDIM2STR = {0: "", 1: "[:]", 2: "[:,:]", 3: "[:,:,:]"}
 
-_nogil = " nogil" if config.FASTCYTHON else ""
+_nogil = " noexcept nogil" if config.FASTCYTHON else ""
 
 
 class Lines(list[str]):
@@ -443,11 +443,11 @@ def get_methodheader(
     >>> config.FASTCYTHON = True
     >>> methodheader = get_methodheader("test", nogil=True, idxarg=True, inline=False)
     >>> print(methodheader)  # doctest: +ELLIPSIS
-    cpdef void test(self, ...int... idx) nogil:
+    cpdef void test(self, ...int... idx) noexcept nogil:
     """
     if not config.FASTCYTHON:
         nogil = False
-    nogil_ = " nogil" if nogil else ""
+    nogil_ = " noexcept nogil" if nogil else ""
     idxarg_ = f", {_int} idx" if idxarg else ""
     inline_ = " inline" if inline else ""
     return f"cpdef{inline_} void {methodname}(self{idxarg_}){nogil_}:"
@@ -1400,7 +1400,7 @@ class PyxWriter:
             pyx(1, "def __init__(self, Model model):")
             pyx(2, "self.model = model")
             for idx, method in enumerate(submodel.METHODS):
-                both(1, f"cpdef double apply_method{idx}(self, double x) nogil:")
+                both(1, f"cpdef double apply_method{idx}(self, double x) {_nogil}:")
                 pyx(2, f"return self.model.{method.__name__.lower()}(x)")
 
     def modeldeclarations(self, lines: PyxPxdLines) -> None:
@@ -1576,12 +1576,12 @@ class PyxWriter:
                     . load_data
                     . save_data
         >>> lines.pyx  # doctest: +ELLIPSIS
-            cpdef void load_data(self, ...int... idx) nogil:
+            cpdef void load_data(self, ...int... idx) noexcept nogil:
                 self.idx_sim = idx
                 self.sequences.inputs.load_data(idx)
                 if (self.aetmodel is not None) and not self.aetmodel_is_mainmodel:
                     self.aetmodel.load_data(idx)
-            cpdef void save_data(self, ...int... idx) nogil:
+            cpdef void save_data(self, ...int... idx) noexcept nogil:
                 self.idx_sim = idx
                 self.sequences.inputs.save_data(idx)
                 self.sequences.factors.save_data(idx)
@@ -1599,12 +1599,12 @@ class PyxWriter:
                     . load_data
                     . save_data
         >>> lines.pyx  # doctest: +ELLIPSIS
-            cpdef void load_data(self, ...int... idx) nogil:
+            cpdef void load_data(self, ...int... idx) noexcept nogil:
                 self.idx_sim = idx
                 self.sequences.inputs.load_data(idx)
                 if (self.aetmodel is not None) and not self.aetmodel_is_mainmodel:
                     self.aetmodel.load_data(idx)
-            cpdef void save_data(self, ...int... idx) nogil:
+            cpdef void save_data(self, ...int... idx) noexcept nogil:
                 self.idx_sim = idx
                 self.sequences.inputs.save_data(idx)
                 if (self.aetmodel is not None) and not self.aetmodel_is_mainmodel:
@@ -1852,12 +1852,12 @@ class PyxWriter:
 
         pyx, pxd = lines.pyx.add, lines.pxd.add
 
-        pxd(0, "ctypedef void (*CallbackType) (Model) nogil")
+        pxd(0, f"ctypedef void (*CallbackType) (Model) {_nogil}")
         pyx(0, "")
         pxd(0, "cdef class CallbackWrapper:")
         pxd(1, "cdef CallbackType callback")
         pyx(0, "")
-        pyx(0, "cdef void do_nothing(Model model) nogil:")
+        pyx(0, f"cdef void do_nothing(Model model) {_nogil}:")
         pyx(1, "pass")
         pyx(0, "")
         pyx(0, "cpdef get_wrapper():")
@@ -2628,7 +2628,7 @@ class FuncConverter:
         >>> model.calc_test_v1 = MethodType(Calc_Test_V1.__call__, model)
         >>> lines = FuncConverter(model, "calc_test_v1", model.calc_test_v1).pyxlines
         >>> lines  # doctest: +ELLIPSIS
-        cpdef inline void calc_test_v1(self) nogil:
+        cpdef inline void calc_test_v1(self) noexcept nogil:
             cdef double d_pc
             cdef ...int... k
             for k in range(self.parameters.control.nmbzones):
@@ -2646,7 +2646,8 @@ class FuncConverter:
         ...         return con.kg[0]*value*values[1]
         >>> model.calc_test_v2 = MethodType(Calc_Test_V2.__call__, model)
         >>> FuncConverter(model, "calc_test_v2", model.calc_test_v2).pyxlines
-        cpdef inline double calc_test_v2(self, double value, double[:] values) nogil:
+        cpdef inline double calc_test_v2(self, double value, double[:] values) \
+noexcept nogil:
             return self.parameters.control.kg[0]*value*values[1]
         <BLANKLINE>
 
@@ -2659,7 +2660,7 @@ class FuncConverter:
         ...         return cast(channelinterfaces.StorageModel_V1, model.soilmodel)
         >>> model.calc_test_v3 = MethodType(Calc_Test_V3.__call__, model)
         >>> FuncConverter(model, "calc_test_v3", model.calc_test_v3).pyxlines
-        cpdef inline masterinterface.MasterInterface calc_test_v3(self) nogil:
+        cpdef inline masterinterface.MasterInterface calc_test_v3(self) noexcept nogil:
             return (<masterinterface.MasterInterface>self.soilmodel)
         <BLANKLINE>
 
@@ -2675,7 +2676,7 @@ class FuncConverter:
         ...         ).get_partialdischargedownstream()
         >>> model.calc_test_v4 = MethodType(Calc_Test_V4.__call__, model)
         >>> FuncConverter(model, "calc_test_v4", model.calc_test_v4).pyxlines
-        cpdef inline void calc_test_v4(self) nogil:
+        cpdef inline void calc_test_v4(self) noexcept nogil:
             (<masterinterface.MasterInterface>self.routingmodels[0]).\
 get_partialdischargedownstream()
         <BLANKLINE>

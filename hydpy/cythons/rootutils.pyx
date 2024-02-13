@@ -13,7 +13,7 @@ from libc.math cimport NAN as nan
 
 cdef class PegasusBase:
 
-    cdef double apply_method0(self, double x) nogil:
+    cdef double apply_method0(self, double x) noexcept nogil:
         return nan
 
     cdef double find_x(
@@ -25,7 +25,7 @@ cdef class PegasusBase:
             double xtol,
             double ytol,
             int itermax,
-    ) nogil:
+    ) noexcept nogil:
         cdef double x, y, y0, y1, dx
         if x0 > x1:
             x0, x1 = x1, x0
@@ -93,9 +93,9 @@ cdef class PegasusPython(PegasusBase):
             double xtol,
             double ytol,
             int itermax,
-    ) nogil:
+    ) noexcept nogil:
         return PegasusBase.find_x(self, x0, x1, xmin, xmax, xtol, ytol, itermax)
 
-    cpdef double apply_method0(self, double x) nogil:
+    cpdef double apply_method0(self, double x) noexcept nogil:
         with gil:
             return self.method0(x)

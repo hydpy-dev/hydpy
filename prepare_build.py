@@ -91,8 +91,11 @@ def _prepare_baseextensions(fast_cython: bool, profile_cython: bool) -> None:
 
 
 def _convert_interfaces(fast_cython: bool, profile_cython: bool) -> None:
+    from hydpy import config
     from hydpy.core.modeltools import abstractmodelmethods
     from hydpy.cythons.modelutils import TYPE2STR
+
+    _nogil = " noexcept nogil" if config.FASTCYTHON else ""
 
     def _write_twice(text: str) -> None:
         pxdfile.write(text)
@@ -113,7 +116,7 @@ def _convert_interfaces(fast_cython: bool, profile_cython: bool) -> None:
         _write_twice("\ncimport numpy\n")
         _write_twice("\nfrom hydpy.cythons.autogen cimport interfaceutils\n")
         _write_twice("\n\ncdef class MasterInterface(interfaceutils.BaseInterface):\n")
-        signature = f"\n    cdef void new2old(self) nogil"
+        signature = f"\n    cdef void new2old(self) {_nogil}"
         pxdfile.write(f"{signature}\n")
         pyxfile.write(f"{signature}:\n")
         pyxfile.write(f"        pass\n")
@@ -138,7 +141,7 @@ def _convert_interfaces(fast_cython: bool, profile_cython: bool) -> None:
                     )
                     returntype = name2type["return"]
                     signature = (
-                        f"\n    cdef {returntype} {funcname}(self, {args}) nogil"
+                        f"\n    cdef {returntype} {funcname}(self, {args}) {_nogil}"
                     )
                     if funcname in funcname2signature:
                         assert signature == funcname2signature[funcname]

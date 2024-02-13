@@ -617,7 +617,7 @@ cdef double MAX_LOG_FLOAT = 700.0
 cpdef inline double _max1(
     double x_value,
     double y_value,
-) nogil:
+) noexcept nogil:
     """The usual (discontinuous) maximum function for two values.
 
     >>> from hydpy.cythons import smoothutils
@@ -639,7 +639,7 @@ cpdef inline double _max2(
     double x_value,
     double y_value,
     double z_value,
-) nogil:
+) noexcept nogil:
     """The usual (discontinuous) maximum function for three values.
 
     >>> from hydpy.cythons import smoothutils
@@ -663,7 +663,7 @@ cpdef inline double _max2(
     return z_value
 
 
-cpdef inline double _min(double x_value, double y_value) nogil:
+cpdef inline double _min(double x_value, double y_value) noexcept nogil:
     """The usual (discontinuous) minimum function.
 
     >>> from hydpy.cythons import smoothutils
@@ -681,7 +681,7 @@ cpdef inline double _min(double x_value, double y_value) nogil:
     return y_value
 
 
-cpdef inline double smooth_logistic1(double value, double parameter) nogil:
+cpdef inline double smooth_logistic1(double value, double parameter) noexcept nogil:
     """Smoothing kernel based on the logistic function."""
     cdef double temp
     if parameter <= 0.0:
@@ -697,7 +697,7 @@ cpdef inline double smooth_logistic1(double value, double parameter) nogil:
 
 
 cpdef inline double smooth_logistic1_derivative2(
-        double value, double parameter) nogil:
+        double value, double parameter) noexcept nogil:
     """Derivative of the function `smooth_logistic1` with respect to its input value."""
     cdef double temp
     if parameter <= 0.0:
@@ -710,7 +710,7 @@ cpdef inline double smooth_logistic1_derivative2(
     return 0.0
 
 
-cpdef inline double smooth_logistic2(double value, double parameter) nogil:
+cpdef inline double smooth_logistic2(double value, double parameter) noexcept nogil:
     """Smoothing kernel based on the integral of the logistic function."""
     cdef double temp
     if parameter <= 0.0:
@@ -723,7 +723,7 @@ cpdef inline double smooth_logistic2(double value, double parameter) nogil:
     return value
 
 cpdef inline double smooth_logistic2_derivative2(
-        double value, double parameter) nogil:
+        double value, double parameter) noexcept nogil:
     """Derivative of the function `smooth_logistic2` with respect to its input value."""
     cdef double temp
     if parameter <= 0.0:
@@ -737,7 +737,7 @@ cpdef inline double smooth_logistic2_derivative2(
 
 
 cpdef inline double smooth_logistic2_derivative1(
-        double value, double parameter) nogil:
+        double value, double parameter) noexcept nogil:
     """Derivative of the function `smooth_logistic2` with respect to its smoothing 
     parameter."""
     cdef double temp
@@ -751,7 +751,7 @@ cpdef inline double smooth_logistic2_derivative1(
     return 0.0
 
 
-cpdef inline double smooth_logistic3(double value, double parameter) nogil:
+cpdef inline double smooth_logistic3(double value, double parameter) noexcept nogil:
     """Smoothing kernel which combines `smooth_logistic1` and `smooth_logistic2` for 
     the regularization of functions containing two second order discontinuities."""
     cdef double subtotal_1 = smooth_logistic2(value, parameter)
@@ -765,7 +765,7 @@ cpdef inline double smooth_max1(
     double x_value,
     double y_value,
     double parameter,
-) nogil:
+) noexcept nogil:
     """Smoothing kernel for approximating the maximum function for two values based on 
     the LogSumExp function."""
     cdef double m_temp, x_temp, y_temp
@@ -781,7 +781,7 @@ cpdef inline double smooth_min1(
     double x_value,
     double y_value,
     double parameter,
-) nogil:
+) noexcept nogil:
     """Smoothing kernel for approximating the minimum function for two values based on 
     the LogSumExp function."""
     return -smooth_max1(-x_value, -y_value, parameter)
@@ -792,7 +792,7 @@ cpdef inline double smooth_max2(
     double y_value,
     double z_value,
     double parameter,
-) nogil:
+) noexcept nogil:
     """Smoothing kernel for approximating the maximum function for three values based 
     on the LogSumExp function."""
     cdef double m_temp, x_temp, y_temp, z_temp
@@ -810,13 +810,13 @@ cpdef inline double smooth_min2(
     double y_value,
     double z_value,
     double parameter,
-) nogil:
+) noexcept nogil:
     """Smoothing kernel for approximating the minimum function for three values based 
     on the LogSumExp function."""
     return -smooth_max2(-x_value, -y_value, -z_value, parameter)
 
 
-cpdef double filter_norm(double value, double mean, double std) nogil:
+cpdef double filter_norm(double value, double mean, double std) noexcept nogil:
     """Filter kernel based on the normal distribution for smoothly turning additional 
     function terms around specific values on or off."""
     if std > 0.0:

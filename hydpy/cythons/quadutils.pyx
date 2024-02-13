@@ -903,7 +903,7 @@ cdef double[:, :] ws = array(
 
 cdef class QuadBase:
 
-    cdef double apply_method0(self, double x) nogil:
+    cdef double apply_method0(self, double x) noexcept nogil:
         return nan
 
     cdef double integrate(
@@ -913,7 +913,7 @@ cdef class QuadBase:
         int nmin,
         int nmax,
         double tol,
-    ) nogil:
+    ) noexcept nogil:
         cdef int i, j
         cdef double x, dx, y, ynew, y00, y05, y10
         if x0 == x1:
@@ -957,9 +957,9 @@ cdef class QuadPython(QuadBase):
         int nmin,
         int nmax,
         double tol,
-    ) nogil:
+    ) noexcept nogil:
         return QuadBase.integrate(self, x0, x1, nmin, nmax, tol)
 
-    cpdef double apply_method0(self, double x) nogil:
+    cpdef double apply_method0(self, double x) noexcept nogil:
         with gil:
             return self.method0(x)

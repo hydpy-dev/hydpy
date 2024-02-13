@@ -16,8 +16,8 @@ cdef class SimpleInterpolator:
     cdef public double[:] outputs
     cdef public double[:] output_derivatives
 
-    cpdef inline void calculate_values(self) nogil
-    cpdef inline void calculate_derivatives(self, int idx_input) nogil
+    cpdef inline void calculate_values(self) noexcept nogil
+    cpdef inline void calculate_derivatives(self, int idx_input) noexcept nogil
 
 
 cdef class SeasonalInterpolator(object):
@@ -31,4 +31,4 @@ cdef class SeasonalInterpolator(object):
     cdef public double[:] inputs
     cdef public double[:] outputs
 
-    cpdef inline void calculate_values(self, int idx_season) nogil
+    cpdef inline void calculate_values(self, int idx_season) noexcept nogil

@@ -2940,13 +2940,11 @@ class Model(modeltools.ELSModel):
     SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
     SUBMODELS = (PegasusDGEq, QuadDVEq_V1, QuadDVEq_V2)
 
-    petmodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
+    petmodel = modeltools.SubmodelProperty(
+        petinterfaces.PETModel_V1, petinterfaces.PETModel_V2
+    )
     petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     petmodel_typeid = modeltools.SubmodelTypeIDProperty()
-
-    pemodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
-    pemodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
-    pemodel_typeid = modeltools.SubmodelTypeIDProperty()
 
     dischargemodel = modeltools.SubmodelProperty(dischargeinterfaces.DischargeModel_V2)
     dischargemodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()

@@ -2439,17 +2439,14 @@ class XSDWriter:
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_insertion())  # doctest: +ELLIPSIS
-            <complexType name="dam_pump_readerType">
+            <complexType name="dummy_interceptedwater_readerType">
                 <sequence>
                     <element name="inputs"
                              minOccurs="0">
                         <complexType>
                             <sequence>
                                 <element
-                                    name="precipitation"
-                                    minOccurs="0"/>
-                                <element
-                                    name="evaporation"
+                                    name="interceptedwater"
                                     minOccurs="0"/>
                             </sequence>
                         </complexType>
@@ -2457,14 +2454,15 @@ class XSDWriter:
                 </sequence>
             </complexType>
         ...
-            <complexType name="readerType">
+            <complexType name="dummy_snowalbedo_readerType">
                 <sequence>
-                    <element name="node"
-                             type="hpcb:node_readerType"
-                             minOccurs="0"/>
-                    <element name="dam_pump"
-                             type="hpcb:dam_pump_readerType"
-                             minOccurs="0"/>
+                    <element name="inputs"
+                             minOccurs="0">
+                        <complexType>
+                            <sequence>
+                                <element
+                                    name="snowalbedo"
+                                    minOccurs="0"/>
         ...
                     <element name="wland_v002"
                              type="hpcb:wland_v002_readerType"
@@ -2687,8 +2685,8 @@ class XSDWriter:
                     <element name="node"
                              type="hpcb:node_readerType"
                              minOccurs="0"/>
-                    <element name="dam_pump"
-                             type="hpcb:dam_pump_readerType"
+                    <element name="dummy_interceptedwater"
+                             type="hpcb:dummy_interceptedwater_readerType"
                              minOccurs="0"/>
         ...
                     <element name="wland_v002"

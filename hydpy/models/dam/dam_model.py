@@ -3,9 +3,12 @@
 
 # imports...
 # ...from HydPy
+from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
 from hydpy.cythons import smoothutils
+from hydpy.interfaces import petinterfaces
+from hydpy.interfaces import precipinterfaces
 from hydpy.models.dam import dam_control
 from hydpy.models.dam import dam_derived
 from hydpy.models.dam import dam_solver
@@ -14,11 +17,58 @@ from hydpy.models.dam import dam_fluxes
 from hydpy.models.dam import dam_states
 from hydpy.models.dam import dam_logs
 from hydpy.models.dam import dam_aides
-from hydpy.models.dam import dam_inputs
 from hydpy.models.dam import dam_inlets
 from hydpy.models.dam import dam_receivers
 from hydpy.models.dam import dam_outlets
 from hydpy.models.dam import dam_senders
+from hydpy.core.typingtools import *
+
+
+class Calc_Precipitation_V1(modeltools.Method):
+    """If available, let a submodel that complies with the |PrecipModel_V2| interface
+    determine precipitation.
+
+    Examples:
+
+        We use |dam_v001| as an example:
+
+        >>> from hydpy.models.dam_v001 import *
+        >>> parameterstep()
+
+        Without a submodel, |Calc_Precipitation_V1| generally sets precipitation to
+        zero:
+
+        >>> model.calc_precipitation_v1()
+        >>> fluxes.precipitation
+        precipitation(0.0)
+
+        Otherwise, it triggers the determination and queries the resulting value from
+        the available submodel:
+
+        >>> surfacearea(2.0)
+        >>> with model.add_precipmodel_v2("meteo_precip_io"):
+        ...     precipitationfactor(1.1)
+        ...     inputs.precipitation = 3.0
+        >>> model.calc_precipitation_v1()
+        >>> fluxes.precipitation
+        precipitation(3.3)
+    """
+
+    RESULTSEQUENCES = (dam_fluxes.Precipitation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+
+        if model.precipmodel is None:
+            flu.precipitation = 0.0
+        elif model.precipmodel_typeid == 2:
+            cast(
+                precipinterfaces.PrecipModel_V2, model.precipmodel
+            ).determine_precipitation()
+            flu.precipitation = cast(
+                precipinterfaces.PrecipModel_V2, model.precipmodel
+            ).get_precipitation(0)
 
 
 class Calc_AdjustedPrecipitation_V1(modeltools.Method):
@@ -37,7 +87,7 @@ class Calc_AdjustedPrecipitation_V1(modeltools.Method):
         >>> correctionprecipitation(1.25)
         >>> derived.seconds.update()
         >>> derived.inputfactor.update()
-        >>> inputs.precipitation = 2.0
+        >>> fluxes.precipitation = 2.0
         >>> model.calc_adjustedprecipitation_v1()
         >>> fluxes.adjustedprecipitation
         adjustedprecipitation(25.0)
@@ -45,26 +95,72 @@ class Calc_AdjustedPrecipitation_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (dam_control.CorrectionPrecipitation,)
     DERIVEDPARAMETERS = (dam_derived.InputFactor,)
-    REQUIREDSEQUENCES = (dam_inputs.Precipitation,)
+    REQUIREDSEQUENCES = (dam_fluxes.Precipitation,)
     RESULTSEQUENCES = (dam_fluxes.AdjustedPrecipitation,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
-        inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.adjustedprecipitation = (
-            der.inputfactor * con.correctionprecipitation * inp.precipitation
+            der.inputfactor * con.correctionprecipitation * flu.precipitation
         )
+
+
+class Calc_PotentialEvaporation_V1(modeltools.Method):
+    """If available, let a submodel that complies with the |PETModel_V1| interface
+    determine potential evaporation.
+
+    Examples:
+
+        We use |dam_v001| as an example:
+
+        >>> from hydpy.models.dam_v001 import *
+        >>> parameterstep()
+
+        Without a submodel, |Calc_PotentialEvaporation_V1| generally sets potential
+        evaporation to zero:
+
+        >>> model.calc_potentialevaporation_v1()
+        >>> fluxes.potentialevaporation
+        potentialevaporation(0.0)
+
+        Otherwise, it triggers the determination and queries the resulting value from
+        the available submodel:
+
+        >>> surfacearea(2.0)
+        >>> with model.add_pemodel_v1("evap_io"):
+        ...     evapotranspirationfactor(1.1)
+        ...     inputs.referenceevapotranspiration = 3.0
+        >>> model.calc_potentialevaporation_v1()
+        >>> fluxes.potentialevaporation
+        potentialevaporation(3.3)
+    """
+
+    RESULTSEQUENCES = (dam_fluxes.PotentialEvaporation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+
+        if model.pemodel is None:
+            flu.potentialevaporation = 0.0
+        elif model.pemodel_typeid == 1:
+            cast(
+                petinterfaces.PETModel_V1, model.pemodel
+            ).determine_potentialevapotranspiration()
+            flu.potentialevaporation = cast(
+                petinterfaces.PETModel_V1, model.pemodel
+            ).get_potentialevapotranspiration(0)
 
 
 class Calc_AdjustedEvaporation_V1(modeltools.Method):
     r"""Adjust the given potential evaporation.
 
     Basic equation:
-      :math:`AdjustedEvaporation =
-      WeightEvaporation \cdot InputFactor \cdot CorrectionEvaporation \cdot Evaporation
+      :math:`AdjustedEvaporation = WeightEvaporation \cdot InputFactor \cdot
+      CorrectionEvaporation \cdot PotentialEvaporation
       + (1 - WeightEvaporation) \cdot LoggedAdjustedEvaporation`
 
     Examples:
@@ -84,7 +180,7 @@ class Calc_AdjustedEvaporation_V1(modeltools.Method):
         >>> weightevaporation(1.0)
         >>> derived.seconds.update()
         >>> derived.inputfactor.update()
-        >>> inputs.evaporation = 2.0
+        >>> fluxes.potentialevaporation = 2.0
         >>> logs.loggedadjustedevaporation = 20.0
         >>> model.calc_adjustedevaporation_v1()
         >>> fluxes.adjustedevaporation
@@ -116,7 +212,7 @@ class Calc_AdjustedEvaporation_V1(modeltools.Method):
         dam_control.WeightEvaporation,
     )
     DERIVEDPARAMETERS = (dam_derived.InputFactor,)
-    REQUIREDSEQUENCES = (dam_inputs.Evaporation,)
+    REQUIREDSEQUENCES = (dam_fluxes.PotentialEvaporation,)
     UPDATEDSEQUENCES = (dam_logs.LoggedAdjustedEvaporation,)
     RESULTSEQUENCES = (dam_fluxes.AdjustedEvaporation,)
 
@@ -124,11 +220,10 @@ class Calc_AdjustedEvaporation_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
-        inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
         d_weight = con.weightevaporation
-        d_new = der.inputfactor * con.correctionevaporation * inp.evaporation
+        d_new = der.inputfactor * con.correctionevaporation * flu.potentialevaporation
         d_old = log.loggedadjustedevaporation[0]
         flu.adjustedevaporation = d_weight * d_new + (1.0 - d_weight) * d_old
         log.loggedadjustedevaporation[0] = flu.adjustedevaporation
@@ -4696,7 +4791,9 @@ class Model(modeltools.ELSModel):
     )
     SOLVERSEQUENCES = ()
     INLET_METHODS = (
+        Calc_Precipitation_V1,
         Calc_AdjustedPrecipitation_V1,
+        Calc_PotentialEvaporation_V1,
         Calc_AdjustedEvaporation_V1,
         Calc_ActualEvaporation_V1,
         Pic_Inflow_V1,
@@ -4773,3 +4870,95 @@ class Model(modeltools.ELSModel):
     )
     SUBMODELINTERFACES = ()
     SUBMODELS = ()
+
+    precipmodel = modeltools.SubmodelProperty(
+        precipinterfaces.PrecipModel_V2, optional=True
+    )
+    precipmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    precipmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    pemodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1, optional=True)
+    pemodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    pemodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+
+class Main_PrecipModel_V2(modeltools.ELSModel):
+    """Base class for HydPy-Dam models that use submodels that comply with the
+    |PrecipModel_V2| interface."""
+
+    precipmodel: modeltools.SubmodelProperty
+    precipmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    precipmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel(
+        "precipmodel",
+        precipinterfaces.PrecipModel_V2,
+        precipinterfaces.PrecipModel_V2.prepare_nmbzones,
+        precipinterfaces.PrecipModel_V2.prepare_subareas,
+    )
+    def add_precipmodel_v2(
+        self,
+        precipmodel: precipinterfaces.PrecipModel_V2,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
+        """Initialise the given `precipmodel` that follows the |PrecipModel_V2|
+        interface.
+
+        >>> from hydpy.models.dam_v001 import *
+        >>> parameterstep()
+        >>> surfacearea(2.0)
+        >>> with model.add_precipmodel_v2("meteo_precip_io"):
+        ...     nmbhru
+        ...     hruarea
+        ...     precipitationfactor(1.5)
+        nmbhru(1)
+        hruarea(2.0)
+        >>> model.precipmodel.parameters.control.precipitationfactor
+        precipitationfactor(1.5)
+        """
+        control = self.parameters.control
+        precipmodel.prepare_nmbzones(1)
+        precipmodel.prepare_subareas(control.surfacearea.value)
+
+
+class Main_PEModel_V1(modeltools.ELSModel):
+    """Base class for HydPy-Dam models that use submodels that comply with the
+    |PETModel_V1| interface."""
+
+    pemodel: modeltools.SubmodelProperty
+    pemodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    pemodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel(
+        "pemodel",
+        petinterfaces.PETModel_V1,
+        petinterfaces.PETModel_V1.prepare_nmbzones,
+        petinterfaces.PETModel_V1.prepare_subareas,
+    )
+    def add_pemodel_v1(
+        self,
+        pemodel: petinterfaces.PETModel_V1,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
+        """Initialise the given `pemodel` that follows the |PETModel_V1| interface.
+
+        >>> from hydpy.models.dam_v001 import *
+        >>> parameterstep()
+        >>> surfacearea(2.0)
+        >>> with model.add_pemodel_v1("evap_tw2002"):
+        ...     nmbhru
+        ...     hruarea
+        ...     evapotranspirationfactor(1.5)
+        nmbhru(1)
+        hruarea(2.0)
+
+        >>> model.pemodel.parameters.control.evapotranspirationfactor
+        evapotranspirationfactor(1.5)
+        """
+        control = self.parameters.control
+        pemodel.prepare_nmbzones(1)
+        pemodel.prepare_subareas(control.surfacearea.value)

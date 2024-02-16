@@ -1017,7 +1017,7 @@ class OutputSequences(
         >>> from hydpy import prepare_model
         >>> model = prepare_model("dam_v001")
         >>> len(model.sequences.fluxes)
-        14
+        16
         >>> for seq in model.sequences.fluxes.numericsequences:
         ...     print(seq)
         adjustedprecipitation(nan)

@@ -7,10 +7,10 @@
 Version 1 of `HydPy-Exch` implements the general weir formula.  We implemented it on
 behalf of the `German Federal Institute of Hydrology (BfG)`_ to connect different
 |dam_v006| instances (lake models), enabling them to exchange water based on water
-level differences.  This specific combination serves to model some huge, connected
-(sub)lakes of the Rhine basin similar to HBV96 :cite:p:`ref-Lindstrom1997HBV96`.
-Combinations with other models providing (something like) water level information and
-allowing for an additional inflow that can be positive and negative are possible.
+level differences.  This specific combination models some huge, connected (sub)lakes of
+the Rhine basin similar to HBV96 :cite:p:`ref-Lindstrom1997HBV96`.  Combinations with
+other models providing (something like) water level information and allowing for an
+additional inflow that can be positive and negative are possible.
 
 Integration tests
 =================
@@ -84,9 +84,9 @@ a negative value to `overflow1` (the first lake loses water) and a positive valu
 ...                    receivers=(waterlevel1, waterlevel2),
 ...                    outlets=(overflow1, overflow2))
 
-In our test configuration, both the nodes' names and the order in which we give them to
-the constructor of class |Element| agree with the nodes' target lakes.  This practice
-seems advisable for keeping clarity, but it is not a technical requirement.  The
+In our test configuration, the nodes' names and the order in which we pass them to the
+constructor of class |Element| agree with the nodes' target lakes.  This practice seems
+advisable for keeping clarity, but it is not a technical requirement.  The
 documentation on class |exch_v001.Model| explains the internal sorting mechanisms and
 plausibility checks underlying the connection-related functionalities of |exch_v001|.
 
@@ -110,7 +110,7 @@ the documentation on |dam_v006|.  We will use them in all examples:
 ...     control.watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))
 ...     control.pars.update()
 
-Now we prepare the exchange model.  We will use common values for the flow coefficient
+Now, we prepare the exchange model.  We will use common values for the flow coefficient
 and exponent throughout the following examples:
 
 >>> from hydpy.models.exch_v001 import *
@@ -126,18 +126,13 @@ An |IntegrationTest| object will help us to perform the individual examples:
 >>> test.plotting_options.axis1 = (factors.waterlevels,)
 >>> test.plotting_options.axis2 = (fluxes.potentialexchange, fluxes.actualexchange)
 
-For simplicity, we set both lakes' inflow, precipitation, and evaporation to zero:
+We set both lakes' inflow to zero for simplicity:
 
 >>> inflow1.sequences.sim.series = 0.0
 >>> inflow2.sequences.sim.series = 0.0
->>> for model_ in (lake1.model, lake2.model):
-...     inputs = model_.sequences.inputs
-...     for seq in (inputs.precipitation, inputs.evaporation):
-...         seq.prepare_series()
-...         seq.series = 0.0
 
 The only difference between both lakes is their initial state.  The first lake starts
-empty, and the second lake starts with a water volume of 1 million m³.  Note that
+empty, and the second starts with a water volume of 1 million m³.  Note that
 |exch_v001| requires the same information.  We must give it to the log sequence
 |LoggedWaterLevels|:
 
@@ -169,10 +164,10 @@ We define a linear relationship between the water level and the outflow for both
 ...     model_.parameters.control.waterlevel2flooddischarge(
 ...         PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 2.0]))
 
-The following results show that the first lake's water level drops fast due to releasing
-water to the second lake and its outlet.  The second lake receives this overflow through
-the whole simulation period but with a decreasing tendency.  Hence, the water level
-rises initially but then falls again because of the lake's outflow:
+The following results show that the first lake's water level drops fast due to the
+release of water to the second lake and its outlet.  The second lake receives this
+overflow throughout the simulation period but with a decreasing tendency.  Hence, the
+water level rises initially but finally falls again because of the lake's outflow:
 
 .. integration-test::
 
@@ -276,18 +271,18 @@ height asymptotically:
 numerical accuracy
 __________________
 
-|exch_v001| is a very flexible tool but requires the user to apply it wisely.  One
-crucial aspect is numerical accuracy.  One can expect sufficiently accurate results
-only if the simulation step size is relatively short compared to water level dynamics.
-In this example, we illustrate what happens if there is too much exchange due to a
-large crest width:
+|exch_v001| s a flexible tool that requires users to apply wisely.  One crucial aspect
+is numerical accuracy.  One can expect sufficiently accurate results only if the
+simulation step size is relatively short compared to water level dynamics.  In this
+example, we illustrate what happens if there is too much exchange due to a large crest
+width:
 
 >>> crestwidth(200.0)
 
 We see substantial numerical oscillations in the results.  Due to the stiffness of the
-underlying system of differential equations, a further increase of the crest width
-would even result in a numerical overflow error that might be hard to trace back in a
-real-world application:
+underlying differential equations, a further increase of the crest width would even
+result in a numerical overflow error that might be hard to trace back in a real-world
+application:
 
 .. integration-test::
 
@@ -331,7 +326,7 @@ real-world application:
 allowed exchange
 ________________
 
-Sometimes there might be hydrological reasons to limit the water exchange.  Still, here
+Sometimes, there might be hydrological reasons to limit the water exchange.  Still,
 we use the related parameter |AllowedExchange| only as a stop-gap for stabilising
 simulation results affected by numerical instability by setting its value to 2.0 m³/s:
 
@@ -389,7 +384,7 @@ from hydpy.models.exch import exch_model
 class Model(modeltools.AdHocModel):
     """Version 1 of the `HydPy-Exch`.
 
-    Before continuing, please first read the general documentation on application model
+    Before continuing, please read the general documentation on application model
     |exch_v001|.
 
     To work correctly, each |exch_v001| must know which water level node and which
@@ -492,7 +487,7 @@ class Model(modeltools.AdHocModel):
     >>> overflow2.sequences.sim
     sim(3.0)
 
-    Now we (accidentally) connect node `waterlevel2` to both lakes.  Therefore,
+    Now, we (accidentally) connect node `waterlevel2` to both lakes.  Therefore,
     |exch_v001| cannot find a water level node connected to the same lake model as
     outlet node `overflow1`:
 
@@ -512,8 +507,8 @@ class Model(modeltools.AdHocModel):
 of the model handled by element `exchange`, the following error occurred: Outlet node \
 `overflow1` does not correspond to any available receiver node.
 
-    |exch_v001| raises the following error if there are not precisely two water level
-    nodes available:
+    |exch_v001| raises the following error if not precisely two water level nodes are
+    available:
 
     >>> Element.clear_all()
     >>> Node.clear_all()

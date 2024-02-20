@@ -146,8 +146,7 @@ acre (summer)
 ...     surfaceresistance.acker = 40.0
 ...     emissivity(0.95)
 ...     averagesoilheatflux.aug = 2.9
-...     fieldcapacity(199.0)
-...     wiltingpoint(119.4)
+...     soilmoisturelimit(119.4 / 309.0)
 ...     model.add_radiationmodel_v4(submodel_meteo_psun_sun_glob_io)
 
 >>> from hydpy import IntegrationTest

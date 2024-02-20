@@ -70,8 +70,9 @@ of them a little unrealistic but simplifies comparisons:
 >>> surfaceresistance(40.0)
 >>> emissivity(0.95)
 >>> averagesoilheatflux(3.0)
->>> fieldcapacity(200.0)
->>> wiltingpoint(100.0)
+>>> maxsoilwater(200.0)
+>>> soilmoisturelimit(100.0)
+>>> soilmoisturelimit(0.5)
 
 We add submodels of type |meteo_temp_io|, |meteo_psun_sun_glob_io|,
 |dummy_interceptedwater|, |dummy_soilwater|, |dummy_snowcover|, |dummy_snowalbedo|, and

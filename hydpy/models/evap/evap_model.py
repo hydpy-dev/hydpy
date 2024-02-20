@@ -3164,11 +3164,13 @@ class Calc_SoilSurfaceResistance_V1(modeltools.Method):
     Basic equations:
       .. math::
         SoilSurfaceResistance = \begin{cases}
-        100 &|\ UFC > 20
+        100 &|\ W_m> 20
         \\
-        \frac{100 \cdot UFC}{min(max(SoilWater-WiltingPoint, \ 0), \ UFC)  + UFC/100}
-        &|\  UFC \leq 20
+        \frac{100 \cdot W_m}{W_a + W_m/100} &|\ W_m\leq 20
         \end{cases}
+        \\ \\
+        W_a = SoilWater \\
+        W_m = MaxSoilWater
 
     Examples:
 
@@ -3178,67 +3180,47 @@ class Calc_SoilSurfaceResistance_V1(modeltools.Method):
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
-        >>> nmbhru(4)
+        >>> nmbhru(5)
         >>> soil(False)
-        >>> fieldcapacity(0.0)
-        >>> wiltingpoint(0.0)
+        >>> maxsoilwater(0.0)
+        >>> soilmoisturelimit(0.0)
         >>> factors.soilwater = 0.0
         >>> model.calc_soilsurfaceresistance_v1()
         >>> factors.soilsurfaceresistance
-        soilsurfaceresistance(nan, nan, nan, nan)
+        soilsurfaceresistance(nan, nan, nan, nan, nan)
 
-        For soils with an available field capacity larger than 20 mm, we set the soil
-        surface resistance to 100.0 s/m:
+        For soils with a maximum water content larger than 20 mm, the soil
+        surface resistance is generally 100.0 s/m:
 
         >>> soil(True)
-        >>> fieldcapacity(20.1, 30.0, 40.0, 40.0)
-        >>> wiltingpoint(0.0, 0.0, 10.0, 10.0)
-        >>> factors.soilwater = 0.0, 20.0, 5.0, 30.0
+        >>> maxsoilwater(20.1)
+        >>> factors.soilwater = 0.0, 5.0, 10.0, 15.0, 20.1
         >>> model.calc_soilsurfaceresistance_v1()
         >>> factors.soilsurfaceresistance
-        soilsurfaceresistance(100.0, 100.0, 100.0, 100.0)
+        soilsurfaceresistance(100.0, 100.0, 100.0, 100.0, 100.0)
 
-        For soils with smaller available field capacities, resistance is 10,000 s/m as
-        long as the soil water content does not exceed the permanent wilting point:
+        For "real" soils, resistance decreases with increasing soil water contents
+        until it reaches a minimum of 99 s/m:
 
-        >>> wiltingpoint(0.1, 20.0, 20.0, 30.0)
-        >>> factors.soilwater = 0.0, 10.0, 20.0, 30.0
+        >>> maxsoilwater(20.0)
+        >>> factors.soilwater = 0.0, 5.0, 10.0, 15.0, 20.0
         >>> model.calc_soilsurfaceresistance_v1()
         >>> factors.soilsurfaceresistance
-        soilsurfaceresistance(10000.0, 10000.0, 10000.0, 10000.0)
+        soilsurfaceresistance(10000.0, 384.615385, 196.078431, 131.578947,
+                              99.009901)
 
-        With increasing soil water contents, resistance decreases and reaches a maximum
-        of 99 s/m:
+        For zero maximum water contents, soil surface resistance is zero:
 
-        >>> wiltingpoint(0.0)
-        >>> fieldcapacity(20.0)
-        >>> factors.soilwater = 5.0, 10.0, 15.0, 20.0
+        >>> maxsoilwater(0.0)
         >>> model.calc_soilsurfaceresistance_v1()
         >>> factors.soilsurfaceresistance
-        soilsurfaceresistance(384.615385, 196.078431, 131.578947, 99.009901)
-
-        >>> fieldcapacity(50.0)
-        >>> wiltingpoint(40.0)
-        >>> factors.soilwater = 42.5, 45.0, 47.5, 50.0
-        >>> model.calc_soilsurfaceresistance_v1()
-        >>> factors.soilsurfaceresistance
-        soilsurfaceresistance(384.615385, 196.078431, 131.578947, 99.009901)
-
-        For zero field capacity, soil surface resistance is zero:
-
-        >>> wiltingpoint(0.0)
-        >>> fieldcapacity(0.0)
-        >>> factors.soilwater = 0.0
-        >>> model.calc_soilsurfaceresistance_v1()
-        >>> factors.soilsurfaceresistance
-        soilsurfaceresistance(inf, inf, inf, inf)
+        soilsurfaceresistance(inf, inf, inf, inf, inf)
     """
 
     CONTROLPARAMETERS = (
         evap_control.NmbHRU,
         evap_control.Soil,
-        evap_control.FieldCapacity,
-        evap_control.WiltingPoint,
+        evap_control.MaxSoilWater,
     )
     REQUIREDSEQUENCES = (evap_factors.SoilWater,)
     RESULTSEQUENCES = (evap_factors.SoilSurfaceResistance,)
@@ -3248,14 +3230,14 @@ class Calc_SoilSurfaceResistance_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         for k in range(con.nmbhru):
-            afc: float = con.fieldcapacity[k] - con.wiltingpoint[k]
+            sw_max: float = con.maxsoilwater[k]
             if not con.soil[k]:
                 fac.soilsurfaceresistance[k] = modelutils.nan
-            elif afc > 20.0:
+            elif sw_max > 20.0:
                 fac.soilsurfaceresistance[k] = 100.0
-            elif afc > 0.0:
-                free: float = min(max(fac.soilwater[k] - con.wiltingpoint[k], 0.0), afc)
-                fac.soilsurfaceresistance[k] = 100.0 * afc / (free + 0.01 * afc)
+            elif sw_max > 0.0:
+                sw_act: float = min(max(fac.soilwater[k], 0.0), sw_max)
+                fac.soilsurfaceresistance[k] = 100.0 * sw_max / (sw_act + 0.01 * sw_max)
             else:
                 fac.soilsurfaceresistance[k] = modelutils.inf
 
@@ -3513,27 +3495,32 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
     surfaces according to :cite:t:`ref-LARSIM` and based on :cite:t:`ref-Thompson1981`.
 
     Basic equations:
-       :math:`LanduseSurfaceResistance = SR \cdot \left(3.5 \cdot
-       \left(1 - \frac{min(SoilWater, \ WiltingPoint)}{WiltingPoint}\right) +
-       exp\left(\frac{0.2 \cdot WiltingPoint}{max(SoilWater, \ 0)}\right)\right)`
-
       .. math::
-        SR = \begin{cases}
-        SurfaceResistance &|\ \overline{Conifer}
+        LanduseSurfaceResistance = r^* \cdot \begin{cases}
+        3.5 \cdot (1 - W / \tau) + exp(0.2 \cdot \tau / W)&|\ W \leq \tau
         \\
-        10\,000 &|\ Conifer \;\; \land \;\; (T \leq -5 \;\; \lor \;\; \Delta \geq 20)
-        \\
-        min\left(\frac{25 \cdot SurfaceResistance}{(T + 5)
-        \cdot (1 - \Delta / 20)}, \ 10\,000\right)
-        &|\ Conifer \;\; \land \;\; (-5 < T < 20 \;\; \land \;\; \Delta < 20)
-        \\
-        min\left(\frac{SurfaceResistance}{1 - \Delta / 20}, \ 10\,000\right)
-        &|\ Conifer \;\; \land \;\; (20 \leq T \;\; \land \;\; \Delta < 20)
+        exp(0.2) &|\ W > \tau
         \end{cases}
-
-      :math:`\Delta = SaturationVapourPressure - ActualVapourPressure`
-
-      :math:`T = AirTemperature`
+        \\ \\ \\
+        r^*= \begin{cases}
+        r&|\ \overline{C}
+        \\
+        10\,000 &|\ C \;\; \land \;\; (T \leq -5 \;\; \lor \;\; \Delta \geq 20)
+        \\
+        min\left(\frac{25 \cdot r}{(T + 5)
+        \cdot (1 - \Delta / 20)}, \ 10\,000\right)
+        &|\ C \;\; \land \;\; (-5 < T < 20 \;\; \land \;\; \Delta < 20)
+        \\
+        min\left(\frac{r}{1 - \Delta / 20}, \ 10\,000\right)
+        &|\ C \;\; \land \;\; (20 \leq T \;\; \land \;\; \Delta < 20)
+        \end{cases}
+        \\ \\ \\
+        W = SoilWater \\
+        C = Conifer \\
+        \tau = SoilMoistureLimit \cdot MaxSoilWater \\
+        r = SurfaceResistance \\
+        \Delta = SaturationVapourPressure - ActualVapourPressure \\
+        T = AirTemperature
 
     Examples:
 
@@ -3577,13 +3564,13 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
 
         For all "soil areas", |Calc_LanduseSurfaceResistance_V1| slightly increases the
         original parameter value by a constant factor for wet soils (|SoilWater| >
-        |WiltingPoint|) and increases it even more for dry soils (|SoilWater| >
-        |WiltingPoint|).  For a completely dried-up soils, surface resistance becomes
-        infinite:
+        |SoilMoistureLimit|) and increases it even more for dry soils (|SoilWater| >
+        |SoilMoistureLimit|).  For a completely dried-up soils, surface resistance
+        becomes infinite:
 
         >>> hrutype(ACRE)
         >>> soil(True)
-        >>> wiltingpoint(0.0)
+        >>> soilmoisturelimit(0.0)
         >>> surfaceresistance.acre_jun = 40.0
         >>> factors.soilwater = 0.0, 10.0, 20.0, 30.0
         >>> model.idx_sim = 2
@@ -3591,7 +3578,8 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
         >>> factors.landusesurfaceresistance
         landusesurfaceresistance(inf, 48.85611, 48.85611, 48.85611)
 
-        >>> wiltingpoint(20.0)
+        >>> maxsoilwater(40.0)
+        >>> soilmoisturelimit(0.5)
         >>> model.calc_landusesurfaceresistance_v1()
         >>> factors.landusesurfaceresistance
         landusesurfaceresistance(inf, 129.672988, 48.85611, 48.85611)
@@ -3653,7 +3641,8 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
         evap_control.Soil,
         evap_control.Conifer,
         evap_control.SurfaceResistance,
-        evap_control.WiltingPoint,
+        evap_control.MaxSoilWater,
+        evap_control.SoilMoistureLimit,
     )
     DERIVEDPARAMETERS = (evap_derived.MOY,)
     REQUIREDSEQUENCES = (
@@ -3688,14 +3677,17 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
             else:
                 fac.landusesurfaceresistance[k] = r
             if con.soil[k]:
-                if fac.soilwater[k] <= 0.0:
+                sw: float = fac.soilwater[k]
+                if sw <= 0.0:
                     fac.landusesurfaceresistance[k] = modelutils.inf
-                elif fac.soilwater[k] < con.wiltingpoint[k]:
-                    fac.landusesurfaceresistance[k] *= 3.5 * (
-                        1.0 - fac.soilwater[k] / con.wiltingpoint[k]
-                    ) + modelutils.exp(0.2 * con.wiltingpoint[k] / fac.soilwater[k])
                 else:
-                    fac.landusesurfaceresistance[k] *= modelutils.exp(0.2)
+                    thresh: float = con.soilmoisturelimit[k] * con.maxsoilwater[k]
+                    if sw < thresh:
+                        fac.landusesurfaceresistance[k] *= 3.5 * (
+                            1.0 - sw / thresh
+                        ) + modelutils.exp(0.2 * thresh / sw)
+                    else:
+                        fac.landusesurfaceresistance[k] *= modelutils.exp(0.2)
 
 
 class Calc_ActualSurfaceResistance_V1(modeltools.Method):
@@ -7567,8 +7559,8 @@ class Determine_SoilEvapotranspiration_V3(modeltools.AutoMethod):
         evap_control.LeafAreaIndex,
         evap_control.SurfaceResistance,
         evap_control.Emissivity,
-        evap_control.FieldCapacity,
-        evap_control.WiltingPoint,
+        evap_control.MaxSoilWater,
+        evap_control.SoilMoistureLimit,
     )
     DERIVEDPARAMETERS = (evap_derived.Hours, evap_derived.MOY)
     FIXEDPARAMETERS = (

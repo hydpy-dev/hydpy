@@ -7520,8 +7520,9 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         ...     soil
         ...     tree
         ...     conifer
-        ...     fieldcapacity(40.0)
-        ...     wiltingpoint(acker=5.0, laubw=15.0, nadelw=25.0, boden=35.0, glets=45.0)
+        ...     maxsoilwater
+        ...     soilmoisturelimit(acker=0.7, laubw=0.8, nadelw=0.9, boden=1.0, \
+glets=1.1)
         ...     leafareaindex.acker_aug = 3.5
         ...     for method, arguments in model.preparemethod2arguments.items():
         ...         print(method, arguments[0][0], sep=": ")
@@ -7538,6 +7539,7 @@ class Main_AETModel_V1(modeltools.AdHocModel):
              nadelw=True, see=False, vers=False, wasser=False)
         conifer(acker=False, boden=False, fluss=False, glets=False,
                 laubw=False, nadelw=True, see=False, vers=False, wasser=False)
+        maxsoilwater(50.0)
         prepare_nmbzones: 9
         prepare_zonetypes: [ 4 14 13  3 16 17 18  7  8]
         prepare_subareas: [0.7 0.8 0.9 1.  1.1 1.2 1.3 1.4 1.6]
@@ -7553,16 +7555,16 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         >>> round_(model.aetmodel.parameters.control.leafareaindex.acker_aug)
         3.5
 
-        >>> wp = model.aetmodel.parameters.control.wiltingpoint
-        >>> wp
-        wiltingpoint(acker=5.0, boden=35.0, glets=40.0, laubw=15.0,
-                     nadelw=25.0)
+        >>> sml = model.aetmodel.parameters.control.soilmoisturelimit
+        >>> sml
+        soilmoisturelimit(acker=0.7, boden=1.0, glets=1.0, laubw=0.8,
+                          nadelw=0.9)
         >>> lnk(NADELW, LAUBW, ACKER, VERS, WASSER, FLUSS, SEE, BODEN, GLETS)
-        >>> wp
-        wiltingpoint(acker=25.0, boden=35.0, glets=40.0, laubw=15.0,
-                     nadelw=5.0)
-        >>> round_(wp.average_values())
-        27.962963
+        >>> sml
+        soilmoisturelimit(acker=0.9, boden=1.0, glets=1.0, laubw=0.8,
+                          nadelw=0.7)
+        >>> round_(sml.average_values())
+        0.914815
         """
         control = self.parameters.control
         nhru = control.nhru.value

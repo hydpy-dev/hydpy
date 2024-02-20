@@ -306,8 +306,8 @@ evapotranspiration for tree-like vegetation:
 snow in tree canopies
 ______________________
 
-However, snow interception in the canopy suppresses interception evaporation (but not
-soil evapotranspiration - should we change this?):
+However, snow interception in the canopy suppresses interception evaporation but not
+soil evapotranspiration:
 
 .. integration-test::
 

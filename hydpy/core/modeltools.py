@@ -1976,6 +1976,16 @@ to be consistent with the name of the element handling the model.
                 include_subsubmodels=False, repeat_sharedmodels=True
             ).items():
                 adder, position = _find_adder_and_position()
+                importtools.TargetParameterUpdater.testmode = True
+                try:
+                    if position is None:
+                        adder.update(model, submodel, refresh=False)
+                    else:
+                        adder.update(
+                            model, submodel, position=int(position), refresh=False
+                        )
+                finally:
+                    importtools.TargetParameterUpdater.testmode = False
                 position = "" if position is None else f", position={position}"
                 addername = adder.get_wrapped().__name__
                 indent = (sublevel - 1) * "    "
@@ -1998,7 +2008,12 @@ to be consistent with the name of the element handling the model.
                     targetparameters = set()
                     for methodname in preparemethods_:
                         updater = getattr(submodel, methodname, None)
-                        if isinstance(updater, importtools.TargetParameterUpdater):
+                        if (
+                            isinstance(updater, importtools.TargetParameterUpdater)
+                            and ((old := updater.values_orig.get(submodel)) is not None)
+                            and ((new := updater.values_test.get(submodel)) is not None)
+                            and objecttools.is_equal(old, new)
+                        ):
                             targetparameters.add(updater.targetparameter)
                     submodellines = (
                         submodel._get_controllines(  # pylint: disable=protected-access
@@ -2041,7 +2056,15 @@ to be consistent with the name of the element handling the model.
         shared_submodels = set(m for m in sharable_submodels if submodels.count(m) > 1)
         visited_shared_submodels: set[SharableSubmodelInterface] = set()
 
-        _extend_lines_submodel(model=self, sublevel=0, preparemethods=set())
+        # ToDo: needs refactoring
+        for submodel in self.find_submodels().values():
+            submodel.preparemethod2arguments.clear()
+        try:
+            _extend_lines_submodel(model=self, sublevel=0, preparemethods=set())
+        finally:
+            for submodel in self.find_submodels().values():
+                submodel.preparemethod2arguments.clear()
+
         text = "".join(lines)
 
         if filepath:

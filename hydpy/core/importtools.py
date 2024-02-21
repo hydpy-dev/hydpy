@@ -9,6 +9,7 @@ from model users and for allowing writing readable doctests.
 from __future__ import annotations
 
 import collections
+import copy
 import os
 import importlib
 import inspect
@@ -945,6 +946,12 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
     unmodified arguments, so that model users might not even realise the
     |TargetParameterUpdater| instance exists:
 
+    .. testsetup::
+
+        >>> from hydpy.models.evap_tw2002 import Model
+        >>> Model.prepare_nmbzones.values_orig = {}
+        >>> Model.prepare_nmbzones.values_test = {}
+
     >>> from hydpy import prepare_model
     >>> model = prepare_model("evap_tw2002")
     >>> model.prepare_nmbzones(3)
@@ -956,10 +963,49 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
 
     >>> model.prepare_nmbzones.targetparameter.__name__
     'NmbHRU'
+
+    They also memorise the passed data and resulting parameter values:
+
+    >>> model.prepare_nmbzones.values_orig  # doctest: +ELLIPSIS
+    {<hydpy.models.evap_tw2002.Model object at ...>: (((3,), {}), 3)}
+
+    With |TargetParameterUpdater.testmode| enabled, |TargetParameterUpdater| instances
+    do not pass the given data to the wrapped method but memorise it together with the
+    already available parameter values in another dictionary:
+
+    >>> type(model.prepare_nmbzones).testmode = True
+    >>> model.prepare_nmbzones(4)
+    >>> model.parameters.control.nmbhru
+    nmbhru(3)
+    >>> model.prepare_nmbzones.values_test  # doctest: +ELLIPSIS
+    {<hydpy.models.evap_tw2002.Model object at ...>: (((4,), {}), 3)}
+
+    .. testsetup::
+
+        >>> type(model.prepare_nmbzones).testmode = False
     """
 
     targetparameter: type[parametertools.Parameter]
     """The control parameter the wrapped method modifies."""
+    testmode: ClassVar[bool] = False
+    """The mode of all |TargetParameterUpdater| instances.
+    
+    |False| indicates the normal "active" mode, 
+    where |TargetParameterUpdater| instances actually change the values of their target 
+    parameters and save the input data and the resulting parameter values in the 
+    |TargetParameterUpdater.values_orig| dictionary.  |True| indicates the testing mode 
+    where |TargetParameterUpdater| instances just collect the input data and the 
+    already available parameter values in the |TargetParameterUpdater.values_test|
+    dictionary.
+    """
+    values_orig: dict[modeltools.Model, tuple[tuple[P.args, P.kwargs], Any]]
+    """Deep copies of the input data (separated by positional and keyword arguments) 
+    and the resulting values of the target parameters of the respective model 
+    instances."""
+    values_test: dict[modeltools.Model, tuple[tuple[P.args, P.kwargs], Any]]
+    """Deep copies of the input data (separated by positional and keyword arguments) 
+    and the already available values of the target parameters of the respective model 
+    instances."""
 
     _wrapped: Callable[Concatenate[TM_contra, P], None]
     """The wrapped, submodel-specific method for setting the value of a single control 
@@ -973,6 +1019,8 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
     ) -> None:
         self._wrapped = wrapped
         self.targetparameter = targetparameter
+        self.values_orig = {}
+        self.values_test = {}
         self.__doc__ = wrapped.__doc__
 
     def __get__(
@@ -985,8 +1033,16 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
     def __call__(self, *args: P.args, **kwargs: P.kwargs) -> None:
         assert (model := self._model) is not None
         model.preparemethod2arguments[self._wrapped.__name__] = args, kwargs
-        if self.targetparameter.name in model.parameters.control.names:
-            self._wrapped(model, *args, **kwargs)
+        control = model.parameters.control
+        if self.testmode:
+            if (name := self.targetparameter.name) in control.names:
+                par = control[name]
+                self.values_test[model] = copy.deepcopy(((args, kwargs), par.value))
+        else:
+            if (name := self.targetparameter.name) in control.names:
+                self._wrapped(model, *args, **kwargs)
+                par = control[name]
+                self.values_orig[model] = copy.deepcopy(((args, kwargs), par.value))
 
 
 def simulationstep(timestep: timetools.PeriodConstrArg) -> None:

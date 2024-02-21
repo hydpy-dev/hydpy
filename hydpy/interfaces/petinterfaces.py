@@ -23,6 +23,9 @@ class PETModel_V1(modeltools.SubmodelInterface):
     def prepare_zonetypes(self, zonetypes: Sequence[int]) -> None:
         """Set the types (usually land cover types) of the individual zones."""
 
+    def prepare_measuringheightwindspeed(self, measuringheightwindspeed: float) -> None:
+        """Set the height above the ground of the wind speed measurements in m."""
+
     @modeltools.abstractmodelmethod
     def determine_potentialevapotranspiration(self) -> None:
         """Calculate potential evapotranspiration."""
@@ -80,14 +83,20 @@ class PETModel_V2(modeltools.SubmodelInterface):
         """Set the flags for whether the individual zones contain tree-like
         vegetation."""
 
+    def prepare_measuringheightwindspeed(self, measuringheightwindspeed: float) -> None:
+        """Set the height above the ground of the wind speed measurements in m."""
+
+    def prepare_leafareaindex(self, maxsoilwater: MatrixInputFloat) -> None:
+        """Set the leaf area index in m²/m²."""
+
     @modeltools.abstractmodelmethod
     def determine_potentialinterceptionevaporation(self) -> None:
         """Calculate potential interception evaporation."""
 
     @modeltools.abstractmodelmethod
     def get_potentialinterceptionevaporation(self, k: int) -> float:
-        """Get the previously calculated potential interception evaporation of the
-        selected zone in mm/T."""
+        """Get the selected zone's previously calculated potential interception
+        evaporation in mm/T."""
 
     @modeltools.abstractmodelmethod
     def determine_potentialsoilevapotranspiration(self) -> None:

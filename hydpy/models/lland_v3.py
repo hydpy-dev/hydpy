@@ -187,9 +187,7 @@ instance due to them requiring the same radiation-related data and
 |SharableSubmodelInterface|:
 
 >>> with model.add_aetmodel_v1("evap_morsim"):
-...     measuringheightwindspeed(10.0)
 ...     albedo.acker_aug = 0.24
-...     leafareaindex.acker_aug = 3.5
 ...     cropheight.acker_aug = 0.4
 ...     surfaceresistance.acker = 40.0
 ...     emissivity(0.95)
@@ -881,10 +879,10 @@ sunshine duration stem from the example :ref:`meteo_v003_daily_simulation_winter
 >>> lnk(ACKER)
 >>> model.aetmodel.parameters.control.cropheight.acker_dec = 0.05
 >>> model.aetmodel.parameters.control.albedo.acker_dec = 0.1
->>> model.aetmodel.parameters.control.leafareaindex.acker_dec = 0.3
 >>> lai.acker_dec = 0.3
->>> model.aetmodel.parameters.control.averagesoilheatflux.dec = -8.6
+>>> model.aetmodel.parameters.control.leafareaindex.acker_dec = 0.3
 >>> wg2z.dec = 8.6
+>>> model.aetmodel.parameters.control.averagesoilheatflux.dec = -8.6
 >>> test = IntegrationTest(land)
 >>> test.dateformat = "%Y-%d-%m"
 
@@ -1020,8 +1018,8 @@ non-forest sites, but this is a feature |evap_morsim|, not of |lland_v3|:
     >>> model.aetmodel.parameters.control.surfaceresistance.nadelw = 56.0
     >>> model.aetmodel.parameters.control.cropheight.nadelw = 10.0
     >>> model.aetmodel.parameters.control.albedo.nadelw = 0.12
-    >>> model.aetmodel.parameters.control.leafareaindex.nadelw = 11.0
     >>> lai.nadelw = 11.0
+    >>> model.aetmodel.parameters.control.leafareaindex.nadelw = 11.0
     >>> conditions_nadelw_winter = test(
     ...     "lland_v3_nadelw_winter_daily",
     ...     axis1=(inputs.nied, fluxes.wada), axis2=(states.waes, states.wats),
@@ -1957,7 +1955,7 @@ from hydpy.models.lland.lland_constants import *
 class Model(
     lland_model.Main_RadiationModel_V1,
     lland_model.Main_RadiationModel_V4,
-    lland_model.Main_AETModel_V1,
+    lland_model.Main_AETModel_V1B,
     lland_model.Main_SoilModel_V1,
     lland_model.Sub_TempModel_V1,
     lland_model.Sub_PrecipModel_V1,

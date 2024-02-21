@@ -1723,16 +1723,21 @@ class Calc_CurrentAlbedo_V2(modeltools.Method):
 
     Examples:
 
-        We use |lland_v1| and |evap_minhas| as main models to prepare an applicable
+        We use |lland_v3| and |evap_minhas| as main models to prepare an applicable
         |evap| instance (more precisely, an |evap_pet_ambav1| instance):
 
-        >>> from hydpy.models.lland_v1 import *
+        >>> from hydpy.models.lland_v3 import *
         >>> parameterstep()
         >>> nhru(5)
         >>> lnk(WASSER, BODEN, ACKER, BAUMB, LAUBW)
         >>> ft(10.0)
         >>> fhru(0.2)
         >>> wmax(200.0)
+        >>> measuringheightwindspeed(10.0)
+        >>> lai.acker = 2.0
+        >>> lai.baumb = 3.0
+        >>> lai.may_laubw = 4.0
+        >>> lai.jun_laubw = 5.0
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-05-30", "2000-06-03", "1d"
         >>> with model.add_aetmodel_v1("evap_minhas"):
@@ -1742,10 +1747,6 @@ class Calc_CurrentAlbedo_V2(modeltools.Method):
         ...         leafalbedo(acker=0.3, baumb=0.3, laubw=0.3)
         ...         leafalbedosnow(0.6)
         ...         wetnessthreshold(0.5)
-        ...         leafareaindex.acker = 2.0
-        ...         leafareaindex.baumb = 3.0
-        ...         leafareaindex.may_laubw = 4.0
-        ...         leafareaindex.jun_laubw = 5.0
         ...         factors.snowcover = 0.0
         ...         fluxes.dailyprecipitation = 1.0
         ...         fluxes.dailypotentialsoilevapotranspiration = 4.0
@@ -8279,9 +8280,34 @@ FluxSequence1D
         """
         self.parameters.control.conifer(conifer)
 
+    @importtools.define_targetparameter(evap_control.LeafAreaIndex)
+    def prepare_leafareaindex(self, leafareaindex: MatrixInputFloat) -> None:
+        """Set the leaf area index in m²/m².
+
+        >>> from hydpy.models.evap_morsim import *
+        >>> parameterstep()
+        >>> model.prepare_leafareaindex(10.0)
+        >>> leafareaindex
+        leafareaindex(ANY=[10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0,
+                           10.0, 10.0, 10.0])
+        """
+        self.parameters.control.leafareaindex(leafareaindex)
+
+    @importtools.define_targetparameter(evap_control.MeasuringHeightWindSpeed)
+    def prepare_measuringheightwindspeed(self, measuringheightwindspeed: float) -> None:
+        """Set the height above the ground of the wind speed measurements in m.
+
+        >>> from hydpy.models.evap_morsim import *
+        >>> parameterstep()
+        >>> model.prepare_measuringheightwindspeed(10.0)
+        >>> measuringheightwindspeed
+        measuringheightwindspeed(10.0)
+        """
+        self.parameters.control.measuringheightwindspeed(measuringheightwindspeed)
+
     @importtools.define_targetparameter(evap_control.MaxSoilWater)
     def prepare_maxsoilwater(self, maxsoilwater: VectorInputFloat) -> None:
-        """Set the maximum soil water content.
+        """Set the maximum soil water content in mm.
 
         >>> from hydpy.models.evap_aet_hbv96 import *
         >>> parameterstep()

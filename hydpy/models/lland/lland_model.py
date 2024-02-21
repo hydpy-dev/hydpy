@@ -7467,13 +7467,45 @@ class Main_RadiationModel_V4(modeltools.AdHocModel):
         """
 
 
-class Main_AETModel_V1(modeltools.AdHocModel):
-    """Base class for HydPy-L models that support submodels that comply with the
-    |AETModel_V1| interface."""
+class _Main_AETModel_V1(modeltools.AdHocModel):
 
     aetmodel: modeltools.SubmodelProperty
     aetmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     aetmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    def _add_aetmodel_v1(self, aetmodel: aetinterfaces.AETModel_V1, /) -> None:
+        control = self.parameters.control
+        nhru = control.nhru.value
+        lnk = control.lnk.values
+
+        aetmodel.prepare_nmbzones(nhru)
+        aetmodel.prepare_zonetypes(lnk)
+        aetmodel.prepare_subareas(control.fhru.values * control.ft.value)
+        aetmodel.prepare_leafareaindex(control.lai.values)
+        aetmodel.prepare_maxsoilwater(control.wmax.values)
+        sel = numpy.full(nhru, False, dtype=bool)
+        sel[lnk == WASSER] = True
+        sel[lnk == FLUSS] = True
+        sel[lnk == SEE] = True
+        aetmodel.prepare_water(sel)
+        aetmodel.prepare_interception(~sel)
+        sel[lnk == VERS] = True
+        aetmodel.prepare_soil(~sel)
+        sel[lnk == BODEN] = True
+        sel[lnk == GLETS] = True
+        aetmodel.prepare_plant(~sel)
+        sel = numpy.full(nhru, False, dtype=bool)
+        sel[lnk == NADELW] = True
+        aetmodel.prepare_conifer(sel)
+        sel[lnk == LAUBW] = True
+        sel[lnk == MISCHW] = True
+        aetmodel.prepare_tree(sel)
+
+
+class Main_AETModel_V1A(_Main_AETModel_V1):
+    """Base class for HydPy-L models that support submodels that comply with the
+    |AETModel_V1| interface and cannot provide information on the measuring height of
+    wind speed."""
 
     @importtools.prepare_submodel(
         "aetmodel",
@@ -7481,13 +7513,122 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         aetinterfaces.AETModel_V1.prepare_nmbzones,
         aetinterfaces.AETModel_V1.prepare_zonetypes,
         aetinterfaces.AETModel_V1.prepare_subareas,
-        aetinterfaces.AETModel_V1.prepare_maxsoilwater,
         aetinterfaces.AETModel_V1.prepare_water,
         aetinterfaces.AETModel_V1.prepare_interception,
         aetinterfaces.AETModel_V1.prepare_soil,
         aetinterfaces.AETModel_V1.prepare_plant,
         aetinterfaces.AETModel_V1.prepare_tree,
         aetinterfaces.AETModel_V1.prepare_conifer,
+        aetinterfaces.AETModel_V1.prepare_leafareaindex,
+        aetinterfaces.AETModel_V1.prepare_maxsoilwater,
+        landtype_constants=lland_constants.CONSTANTS,
+        landtype_refindices=lland_control.Lnk,
+        refweights=lland_control.FHRU,
+    )
+    def add_aetmodel_v1(
+        self,
+        aetmodel: aetinterfaces.AETModel_V1,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
+        """Initialise the given submodel that follows the |AETModel_V1| interface and
+        is responsible for calculating the different kinds of actual
+        evapotranspiration.
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
+        >>> from hydpy.models.lland_v1 import *
+        >>> parameterstep()
+        >>> nhru(9)
+        >>> ft(10.0)
+        >>> fhru(0.07, 0.08, 0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.16)
+        >>> lnk(ACKER, LAUBW, NADELW, VERS, WASSER, FLUSS, SEE, BODEN, GLETS)
+        >>> lai(1.0)
+        >>> lai.acker_jan = 2.0
+        >>> lai.laubw_dec = 3.0
+        >>> wmax(50.0)
+        >>> with model.add_aetmodel_v1("evap_morsim"):
+        ...     nmbhru
+        ...     hrutype
+        ...     water
+        ...     interception
+        ...     soil
+        ...     tree
+        ...     conifer
+        ...     maxsoilwater
+        ...     soilmoisturelimit(acker=0.7, laubw=0.8, nadelw=0.9, boden=1.0, \
+glets=1.1)
+        ...     my_lai = leafareaindex
+        ...     "my_lai", my_lai.nadelw_jun, my_lai.acker_jan, my_lai.laubw_dec
+        ...     for method, arguments in model.preparemethod2arguments.items():
+        ...         print(method, arguments[0][0], sep=": ")  # doctest: +ELLIPSIS
+        nmbhru(9)
+        hrutype(ACKER, LAUBW, NADELW, VERS, WASSER, FLUSS, SEE, BODEN, GLETS)
+        water(acker=False, boden=False, fluss=True, glets=False, laubw=False,
+              nadelw=False, see=True, vers=False, wasser=True)
+        interception(acker=True, boden=True, fluss=False, glets=True,
+                     laubw=True, nadelw=True, see=False, vers=True,
+                     wasser=False)
+        soil(acker=True, boden=True, fluss=False, glets=True, laubw=True,
+             nadelw=True, see=False, vers=False, wasser=False)
+        tree(acker=False, boden=False, fluss=False, glets=False, laubw=True,
+             nadelw=True, see=False, vers=False, wasser=False)
+        conifer(acker=False, boden=False, fluss=False, glets=False,
+                laubw=False, nadelw=True, see=False, vers=False, wasser=False)
+        maxsoilwater(50.0)
+        ('my_lai', 1.0, 2.0, 3.0)
+        prepare_nmbzones: 9
+        prepare_zonetypes: [ 4 14 13  3 16 17 18  7  8]
+        prepare_subareas: [0.7 0.8 0.9 1.  1.1 1.2 1.3 1.4 1.6]
+        prepare_leafareaindex: [[1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.]
+        ...
+        prepare_maxsoilwater: [50. 50. 50. 50. 50. 50. 50. 50. 50.]
+        prepare_water: [False False False  True  True  True  True  True  True]
+        prepare_interception: [ True  True  True  True False False False  True  True]
+        prepare_soil: [ True  True  True False False False False  True  True]
+        prepare_plant: [ True  True  True False False False False False False]
+        prepare_conifer: [False  True  True False False False False False False]
+        prepare_tree: [False  True  True False False False False False False]
+
+        >>> model.aetmodel.parameters.control.leafareaindex.acker_jan
+        2.0
+
+        >>> sml = model.aetmodel.parameters.control.soilmoisturelimit
+        >>> sml
+        soilmoisturelimit(acker=0.7, boden=1.0, glets=1.0, laubw=0.8,
+                          nadelw=0.9)
+        >>> lnk(NADELW, LAUBW, ACKER, VERS, WASSER, FLUSS, SEE, BODEN, GLETS)
+        >>> sml
+        soilmoisturelimit(acker=0.9, boden=1.0, glets=1.0, laubw=0.8,
+                          nadelw=0.7)
+        >>> from hydpy import round_
+        >>> round_(sml.average_values())
+        0.914815
+        """
+        self._add_aetmodel_v1(aetmodel)
+
+
+class Main_AETModel_V1B(_Main_AETModel_V1):
+    """Base class for HydPy-L models that support submodels that comply with the
+    |AETModel_V1| interface and can provide information on the measuring height of
+    wind speed."""
+
+    @importtools.prepare_submodel(
+        "aetmodel",
+        aetinterfaces.AETModel_V1,
+        aetinterfaces.AETModel_V1.prepare_nmbzones,
+        aetinterfaces.AETModel_V1.prepare_zonetypes,
+        aetinterfaces.AETModel_V1.prepare_subareas,
+        aetinterfaces.AETModel_V1.prepare_water,
+        aetinterfaces.AETModel_V1.prepare_interception,
+        aetinterfaces.AETModel_V1.prepare_soil,
+        aetinterfaces.AETModel_V1.prepare_plant,
+        aetinterfaces.AETModel_V1.prepare_tree,
+        aetinterfaces.AETModel_V1.prepare_conifer,
+        aetinterfaces.AETModel_V1.prepare_measuringheightwindspeed,
+        aetinterfaces.AETModel_V1.prepare_leafareaindex,
+        aetinterfaces.AETModel_V1.prepare_maxsoilwater,
         landtype_constants=lland_constants.CONSTANTS,
         landtype_refindices=lland_control.Lnk,
         refweights=lland_control.FHRU,
@@ -7507,90 +7648,25 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
         >>> from hydpy.models.lland_v3 import *
         >>> parameterstep()
-        >>> nhru(9)
+        >>> nhru(2)
         >>> ft(10.0)
-        >>> fhru(0.07, 0.08, 0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.16)
-        >>> lnk(ACKER, LAUBW, NADELW, VERS, WASSER, FLUSS, SEE, BODEN, GLETS)
+        >>> fhru(0.5, 0.5)
+        >>> lnk(ACKER, LAUBW)
+        >>> measuringheightwindspeed(10.0)
+        >>> lai(1.0)
         >>> wmax(50.0)
         >>> with model.add_aetmodel_v1("evap_morsim"):
         ...     nmbhru
         ...     hrutype
-        ...     water
-        ...     interception
-        ...     soil
-        ...     tree
-        ...     conifer
-        ...     maxsoilwater
-        ...     soilmoisturelimit(acker=0.7, laubw=0.8, nadelw=0.9, boden=1.0, \
-glets=1.1)
-        ...     leafareaindex.acker_aug = 3.5
-        ...     for method, arguments in model.preparemethod2arguments.items():
-        ...         print(method, arguments[0][0], sep=": ")
-        nmbhru(9)
-        hrutype(ACKER, LAUBW, NADELW, VERS, WASSER, FLUSS, SEE, BODEN, GLETS)
-        water(acker=False, boden=False, fluss=True, glets=False, laubw=False,
-              nadelw=False, see=True, vers=False, wasser=True)
-        interception(acker=True, boden=True, fluss=False, glets=True,
-                     laubw=True, nadelw=True, see=False, vers=True,
-                     wasser=False)
-        soil(acker=True, boden=True, fluss=False, glets=True, laubw=True,
-             nadelw=True, see=False, vers=False, wasser=False)
-        tree(acker=False, boden=False, fluss=False, glets=False, laubw=True,
-             nadelw=True, see=False, vers=False, wasser=False)
-        conifer(acker=False, boden=False, fluss=False, glets=False,
-                laubw=False, nadelw=True, see=False, vers=False, wasser=False)
-        maxsoilwater(50.0)
-        prepare_nmbzones: 9
-        prepare_zonetypes: [ 4 14 13  3 16 17 18  7  8]
-        prepare_subareas: [0.7 0.8 0.9 1.  1.1 1.2 1.3 1.4 1.6]
-        prepare_maxsoilwater: [50. 50. 50. 50. 50. 50. 50. 50. 50.]
-        prepare_water: [False False False  True  True  True  True  True  True]
-        prepare_interception: [ True  True  True  True False False False  True  True]
-        prepare_soil: [ True  True  True False False False False  True  True]
-        prepare_plant: [ True  True  True False False False False False False]
-        prepare_conifer: [False  True  True False False False False False False]
-        prepare_tree: [False  True  True False False False False False False]
-
-        >>> from hydpy import round_
-        >>> round_(model.aetmodel.parameters.control.leafareaindex.acker_aug)
-        3.5
-
-        >>> sml = model.aetmodel.parameters.control.soilmoisturelimit
-        >>> sml
-        soilmoisturelimit(acker=0.7, boden=1.0, glets=1.0, laubw=0.8,
-                          nadelw=0.9)
-        >>> lnk(NADELW, LAUBW, ACKER, VERS, WASSER, FLUSS, SEE, BODEN, GLETS)
-        >>> sml
-        soilmoisturelimit(acker=0.9, boden=1.0, glets=1.0, laubw=0.8,
-                          nadelw=0.7)
-        >>> round_(sml.average_values())
-        0.914815
+        ...     measuringheightwindspeed
+        nmbhru(2)
+        hrutype(ACKER, LAUBW)
+        measuringheightwindspeed(10.0)
         """
-        control = self.parameters.control
-        nhru = control.nhru.value
-        lnk = control.lnk.values
-
-        aetmodel.prepare_nmbzones(nhru)
-        aetmodel.prepare_zonetypes(lnk)
-        aetmodel.prepare_subareas(control.fhru.values * control.ft.value)
-        aetmodel.prepare_maxsoilwater(control.wmax.values)
-        sel = numpy.full(nhru, False, dtype=bool)
-        sel[lnk == WASSER] = True
-        sel[lnk == FLUSS] = True
-        sel[lnk == SEE] = True
-        aetmodel.prepare_water(sel)
-        aetmodel.prepare_interception(~sel)
-        sel[lnk == VERS] = True
-        aetmodel.prepare_soil(~sel)
-        sel[lnk == BODEN] = True
-        sel[lnk == GLETS] = True
-        aetmodel.prepare_plant(~sel)
-        sel = numpy.full(nhru, False, dtype=bool)
-        sel[lnk == NADELW] = True
-        aetmodel.prepare_conifer(sel)
-        sel[lnk == LAUBW] = True
-        sel[lnk == MISCHW] = True
-        aetmodel.prepare_tree(sel)
+        self._add_aetmodel_v1(aetmodel)
+        aetmodel.prepare_measuringheightwindspeed(
+            self.parameters.control.measuringheightwindspeed.value
+        )
 
 
 class Main_SoilModel_V1(modeltools.AdHocModel):

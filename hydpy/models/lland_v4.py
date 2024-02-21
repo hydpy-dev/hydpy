@@ -139,9 +139,7 @@ acre (summer)
 ...     pass
 
 >>> with model.add_aetmodel_v1("evap_morsim"):
-...     measuringheightwindspeed(10.0)
 ...     albedo.acker_aug = 0.24
-...     leafareaindex.acker_aug = 3.5
 ...     cropheight.acker_aug = 0.4
 ...     surfaceresistance.acker = 40.0
 ...     emissivity(0.95)
@@ -1690,7 +1688,7 @@ from hydpy.models.lland.lland_constants import *
 class Model(
     lland_model.Main_RadiationModel_V1,
     lland_model.Main_RadiationModel_V4,
-    lland_model.Main_AETModel_V1,
+    lland_model.Main_AETModel_V1B,
     lland_model.Main_SoilModel_V1,
     lland_model.Sub_TempModel_V1,
     lland_model.Sub_PrecipModel_V1,

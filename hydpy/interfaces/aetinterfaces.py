@@ -57,8 +57,14 @@ class AETModel_V1(modeltools.SubmodelInterface):
         """Set the flags for whether the individual zones contain conifer-like
         vegetation."""
 
+    def prepare_measuringheightwindspeed(self, measuringheightwindspeed: float) -> None:
+        """Set the height above the ground of the wind speed measurements in m."""
+
+    def prepare_leafareaindex(self, maxsoilwater: MatrixInputFloat) -> None:
+        """Set the leaf area index in m²/m²."""
+
     def prepare_maxsoilwater(self, maxsoilwater: VectorInputFloat) -> None:
-        """Set the maximum soil water content."""
+        """Set the maximum soil water content in mm."""
 
     @modeltools.abstractmodelmethod
     def determine_interceptionevaporation(self) -> None:

@@ -1912,11 +1912,13 @@ to be consistent with the name of the element handling the model.
         >>> ft(1.0)
         >>> fhru(1.0)
         >>> lnk(ACKER)
+        >>> measuringheightwindspeed(10.0)
+        >>> lai(3.0)
         >>> wmax(300.0)
         >>> with model.add_radiationmodel_v1("meteo_v001") as meteo_v001:
         ...     latitude(50.0)
         >>> with model.add_aetmodel_v1("evap_morsim"):
-        ...     measuringheightwindspeed(10.0)
+        ...     measuringheightwindspeed(2.0)
         ...     model.add_radiationmodel_v1(meteo_v001)
 
         To avoid name collisions, |Model.save_controls| prefixes the string `submodel_`
@@ -1939,8 +1941,10 @@ to be consistent with the name of the element handling the model.
         ...
         ft(1.0)
         ...
+        measuringheightwindspeed(10.0)
+        ...
         with model.add_aetmodel_v1(evap_morsim):
-            measuringheightwindspeed(10.0)
+            measuringheightwindspeed(2.0)
             ...
             with model.add_radiationmodel_v1(meteo_v001) as submodel_meteo_v001:
                 latitude(50.0)
@@ -2076,6 +2080,7 @@ to be consistent with the name of the element handling the model.
         >>> fhru(0.2, 0.8)
         >>> lnk(ACKER, MISCHW)
         >>> wmax(acker=100.0, mischw=200.0)
+        >>> measuringheightwindspeed(10.0)
         >>> with model.add_aetmodel_v1("evap_morsim"):
         ...     pass
         >>> with model.aetmodel.define_conditions():

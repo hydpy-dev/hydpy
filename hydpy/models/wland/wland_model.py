@@ -301,6 +301,7 @@ class Calc_PE_PET_PETModel_V2(modeltools.Method):
         >>> at(1.0)
         >>> aur(0.25, 0.15, 0.1, 0.5)
         >>> lt(FIELD, DECIDIOUS, DECIDIOUS, WATER)
+        >>> lai(5.0)
         >>> derived.nul.update()
         >>> inputs.t = 15.0
         >>> inputs.p = 0.0
@@ -312,7 +313,6 @@ class Calc_PE_PET_PETModel_V2(modeltools.Method):
         ...     leafalbedosnow(0.8)
         ...     groundalbedo(0.2)
         ...     groundalbedosnow(0.8)
-        ...     leafareaindex(5.0)
         ...     cropheight.field = 10.0
         ...     cropheight.decidious = 10.0
         ...     cropheight.water = 0.0
@@ -3089,6 +3089,7 @@ class Main_PETModel_V2(modeltools.ELSModel):
         petinterfaces.PETModel_V2.prepare_soil,
         petinterfaces.PETModel_V2.prepare_plant,
         petinterfaces.PETModel_V2.prepare_tree,
+        petinterfaces.PETModel_V2.prepare_leafareaindex,
         landtype_constants=wland_constants.LANDUSE_CONSTANTS,
         landtype_refindices=wland_control.LT,
         refweights=wland_control.AUR,
@@ -3112,6 +3113,9 @@ class Main_PETModel_V2(modeltools.ELSModel):
         ...     0.09, 0.104, 0.118, 0.132, 0.146, 0.164)
         >>> lt(SEALED, FIELD, WINE, ORCHARD, SOIL, PASTURE,
         ...    WETLAND, TREES, CONIFER, DECIDIOUS, MIXED, WATER)
+        >>> lai(1.0)
+        >>> lai.conifer_jan = 2.0
+        >>> lai.pasture_dec = 3.0
         >>> with model.add_petmodel_v2("evap_pet_ambav1") as petmodel:
         ...     nmbhru
         ...     hrutype
@@ -3120,6 +3124,8 @@ class Main_PETModel_V2(modeltools.ELSModel):
         ...     soil
         ...     plant
         ...     tree
+        ...     my_lai = leafareaindex
+        ...     "my_lai", my_lai.field_jun, my_lai.conifer_jan, my_lai.pasture_dec
         ...     petmodel.preparemethod2arguments["prepare_nmbzones"]
         ...     petmodel.preparemethod2arguments["prepare_subareas"]
         ...     groundalbedo(conifer=0.05, decidious=0.1, field=0.15, mixed=0.2,
@@ -3143,6 +3149,7 @@ class Main_PETModel_V2(modeltools.ELSModel):
         tree(conifer=True, decidious=True, field=False, mixed=True,
              orchard=False, pasture=False, sealed=False, soil=False,
              trees=False, water=False, wetland=False, wine=False)
+        ('my_lai', 1.0, 2.0, 3.0)
         ((12,), {})
         ((array([0.06, 0.2 , 0.34, 0.48, 0.62, 0.76, 0.9 , 1.04, 1.18, 1.32, 1.46,
                1.64]),), {})
@@ -3173,6 +3180,7 @@ class Main_PETModel_V2(modeltools.ELSModel):
         petmodel.prepare_nmbzones(nu)
         petmodel.prepare_zonetypes(lt)
         petmodel.prepare_subareas(control.at.value * control.aur.values)
+        petmodel.prepare_leafareaindex(control.lai.values)
         sel = numpy.full(nu, False, dtype=bool)
         sel[-1] = True
         petmodel.prepare_water(sel)

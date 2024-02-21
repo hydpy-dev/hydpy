@@ -178,6 +178,8 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     control3.ft(1.0)
     control3.fhru(1.0)
     control3.lnk(lland.ACKER)
+    control3.measuringheightwindspeed(10.0)
+    control3.lai(3.0)
     control3.wmax(300.0)
     with element3.model.add_aetmodel_v1("evap_morsim"):
         pass

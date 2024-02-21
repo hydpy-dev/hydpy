@@ -2122,7 +2122,7 @@ from hydpy.models.lland.lland_constants import *
 
 
 class Model(
-    lland_model.Main_AETModel_V1,
+    lland_model.Main_AETModel_V1A,
     lland_model.Main_SoilModel_V1,
     lland_model.Sub_TempModel_V1,
     lland_model.Sub_PrecipModel_V1,

@@ -129,6 +129,10 @@ TensorInputInt = Union[Sequence[MatrixInputInt], TensorInt]
 TensorInputBool = Union[Sequence[MatrixInputBool], TensorBool]
 
 
+NestedFloat: TypeAlias = Union[
+    float, NDArrayFloat, Mapping[str, "NestedFloat"], Sequence["NestedFloat"]
+]
+
 ArrayFloat = TypeVar(
     "ArrayFloat", float, VectorFloat, MatrixFloat, Union[float, VectorFloat]
 )
@@ -282,6 +286,7 @@ __all__ = [
     "NDArrayFloat",
     "NDArrayInt",
     "NDArrayObject",
+    "NestedFloat",
     "Never",
     "NewType",
     "NoReturn",

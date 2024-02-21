@@ -430,6 +430,8 @@ class SubmodelAdder(_DoctestAdder, Generic[TD, TM_contra, TI_contra]):
     >>> ft(10.0)
     >>> fhru(0.2, 0.8)
     >>> lnk(ACKER, MISCHW)
+    >>> measuringheightwindspeed(10.0)
+    >>> lai(3.0)
     >>> wmax(acker=100.0, mischw=200.0)
     >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
     ...     nhru
@@ -481,13 +483,15 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
     'prepare_nmbzones'
     'prepare_zonetypes'
     'prepare_subareas'
-    'prepare_maxsoilwater'
     'prepare_water'
     'prepare_interception'
     'prepare_soil'
     'prepare_plant'
     'prepare_tree'
     'prepare_conifer'
+    'prepare_measuringheightwindspeed'
+    'prepare_leafareaindex'
+    'prepare_maxsoilwater'
 
     |SubmodelAdder| supports arbitrarily deep submodel nesting.  It conveniently moves
     some information from main models to sub-submodels or the other way round if the

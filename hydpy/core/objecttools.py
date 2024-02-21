@@ -1906,3 +1906,69 @@ boolean.
         f"The value `{value}` given for argument `{argument}` cannot be interpreted "
         f"as a boolean."
     )
+
+
+def is_equal(xs: NestedFloat, ys: NestedFloat, /) -> bool:
+    """Check if the given nested data objects agree in their structure and values.
+
+    |is_equal| always considers numpy arrays as unequal to lists and tuples and nan
+    values as equal to other nan values.
+
+    >>> from hydpy.core.objecttools import is_equal
+    >>> from numpy import array, nan, ones
+
+    Scalars:
+
+    >>> assert not is_equal(1, [1])
+    >>> assert is_equal(1, 1)
+    >>> assert not is_equal(1, 2)
+    >>> assert is_equal(nan, nan)
+    >>> assert not is_equal(1, nan)
+    >>> assert not is_equal(nan, 2)
+
+    Arrays:
+
+    >>> assert not is_equal(ones(2), [1, 1])
+    >>> assert is_equal(ones(2), ones(2))
+    >>> assert not is_equal(ones(2), ones(3))
+    >>> assert is_equal(array([1, nan, 3]), array([1, nan, 3]))
+    >>> assert not is_equal(array([1, nan, 3]), array([1, nan, nan]))
+
+    Dictionarie:
+
+    >>> assert not is_equal({"a": 1}, 1)
+    >>> assert is_equal({}, {})
+    >>> assert not is_equal({"a": 1}, {"b": 1})
+    >>> assert is_equal({"a": 1}, {"a": 1})
+
+    Lists and tuples:
+
+    >>> assert not is_equal([1], 1)
+    >>> assert is_equal([], ())
+    >>> assert is_equal([1, 2], (1, 2))
+    >>> assert not is_equal([1, 2], (1, 3))
+    >>> assert not is_equal([1, 2], (1,))
+
+    Combinations:
+
+    >>> assert is_equal([1, {"a": [2, ones(3)]}], [1, {"a": [2, ones(3)]}])
+    >>> assert not is_equal([1, {"a": [2, ones(3)]}], [1, {"a": [2, ones(4)]}])
+    """
+    if isinstance(xs, (float, int, bool)):
+        if not isinstance(ys, (float, int, bool)):
+            return False
+        return (xs == ys) or (numpy.isnan(xs) and numpy.isnan(ys))
+    if isinstance(xs, numpy.ndarray):
+        if not isinstance(ys, numpy.ndarray):
+            return False
+        return numpy.array_equal(xs, ys, equal_nan=True)
+    if isinstance(xs, Mapping):
+        if not isinstance(ys, Mapping) or (tuple(xs) != tuple(ys)):
+            return False
+        xs, ys = tuple(xs.values()), tuple(ys.values())
+    if not isinstance(ys, Sequence) or (len(xs) != len(ys)):
+        return False
+    for x, y in zip(xs, ys):
+        if not is_equal(x, y):
+            return False
+    return True

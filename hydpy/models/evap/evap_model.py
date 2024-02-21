@@ -1642,6 +1642,8 @@ class Calc_CurrentAlbedo_V1(modeltools.Method):
         >>> nhru(3)
         >>> fhru(5.0, 3.0, 2.0)
         >>> lnk(ACKER, VERS, VERS)
+        >>> measuringheightwindspeed(10.0)
+        >>> lai(3.0)
         >>> wmax(100.0)
         >>> with model.add_aetmodel_v1("evap_morsim"):
         ...     albedo.acker_jan = 0.2
@@ -4253,6 +4255,8 @@ class Calc_SnowyCanopy_V1(modeltools.Method):
         >>> nhru(3)
         >>> fhru(5.0, 3.0, 2.0)
         >>> lnk(LAUBW, LAUBW, ACKER)
+        >>> measuringheightwindspeed(10.0)
+        >>> lai(3.0)
         >>> wmax(100.0)
         >>> states.stinz = 0.0, 0.1, 0.1
         >>> with model.add_aetmodel_v1("evap_morsim"):

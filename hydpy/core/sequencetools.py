@@ -2699,6 +2699,8 @@ class ModelSequence(Sequence_):
         >>> ft(1.0)
         >>> fhru(1.0)
         >>> lnk(ACKER)
+        >>> measuringheightwindspeed(10.0)
+        >>> lai(10.0)
         >>> wmax(300.0)
         >>> with model.add_aetmodel_v1("evap_morsim"):
         ...     pass

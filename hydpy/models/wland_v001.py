@@ -157,6 +157,7 @@ evapotranspiration values:
 ...     landmonthfactor.conifer = 1.3
 ...     landmonthfactor.field[1:4] = 0.73, 0.77, 0.95
 ...     landmonthfactor.water[1:4] = 1.22, 1.26, 1.28
+...     dampingfactor(1.0)
 ...     with model.add_retmodel_v1("evap_io"):
 ...         evapotranspirationfactor(0.9)
 
@@ -181,12 +182,15 @@ interception height (|IC|), the snowpack (|SP|), and the surface water level (|H
 intentionally negative to make sure even the regularised equations consider the related
 storages as (almost) empty:
 
->>> test.inits = ((states.ic, (-3.0, -3.0, -3.0, 0.0)),
-...               (states.sp, (-3.0, -3.0, -3.0, 0.0)),
-...               (states.dv, 140.0),
-...               (states.dg, 1600.0),
-...               (states.hq, 0.0),
-...               (states.hs, -2.0))
+>>> test.inits = (
+...     (states.ic, (-3.0, -3.0, -3.0, 0.0)),
+...     (states.sp, (-3.0, -3.0, -3.0, 0.0)),
+...     (states.dv, 140.0),
+...     (states.dg, 1600.0),
+...     (states.hq, 0.0),
+...     (states.hs, -2.0),
+...     (model.petmodel.sequences.logs.loggedpotentialevapotranspiration, 0.0),
+... )
 
 The following real data shows a shift from winter to spring conditions in the form of a
 rise in temperature and potential evapo(transpi)ration and includes two heavy rainfall
@@ -228,12 +232,12 @@ _____________
 
 In our base scenario, we do not modify any of the settings described above.  Initially,
 there is no exchange between groundwater and surface water due to the empty channel and
-the groundwater level lying below the channel bottom.  The rainfall events increase
-both the groundwater level (via infiltration and percolation) and the surface water
-level (via quickflow generated on the sealed surfaces and on the saturated fraction of
-the vadose zone).  Due to the faster rise of the surface water level, water first moves
-from the channel into groundwater (more concretely, it enters the vadose zone), but
-this inverses after the channel has discharged most of its content some days after the
+the groundwater level below the channel bottom.  The rainfall events increase both the
+groundwater level (via infiltration and percolation) and the surface water level (via
+quickflow generated on the sealed surfaces and on the saturated fraction of the vadose
+zone).  Due to the faster rise of the surface water level, water first moves from the
+channel into groundwater (more concretely, it enters the vadose zone), but this
+inverses after the channel has discharged most of its content some days after the
 rainfall events.
 
 .. integration-test::
@@ -316,7 +320,7 @@ _______
 |wland_v001| allows modelling external seepage or extraction into or from the
 vadose zone.  We define an extreme value of 10 mm/d, which applies for the whole
 two months, to show how |wland_v001| reacts in case of strong large-scale ponding
-(this is a critical aspect of the `WALRUS`_ concept, see the documentation on
+(this is a critical aspect of the `WALRUS`_ concept; see the documentation on
 method |Calc_FGS_V1| for a more in-depth discussion):
 
 >>> inputs.fxg.series = 10.0
@@ -819,13 +823,14 @@ ____________
 This setting somehow contradicts the original `WALRUS`_ concept.  However, it may
 help to set up |wland_v001| with small "raster sub-catchments" in water basins
 with large lakes. Besides setting the number of hydrological response units (|NU|)
-to one, we need to reset the evapotranspiration factor of |evap_io|, which loses its
-information when its shape changes:
+to one, we need to reset the values of some parameters which lose their information
+when their shape changes:
 
 >>> nu(1)
 >>> aur(1.0)
 >>> lt(WATER)
 >>> model.update_parameters()
+>>> model.petmodel.parameters.control.dampingfactor(1.0)
 >>> model.petmodel.retmodel.parameters.control.evapotranspirationfactor(0.9)
 
 Assigning a new value to parameter |NU| also changes the shape of the state sequences

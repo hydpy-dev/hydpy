@@ -129,8 +129,8 @@ class Update_LoggedAirTemperature_V1(modeltools.Method):
     Example:
 
         The following example shows that each new method call successively moves the
-        six memorised values to the right and stores the respective two new values on
-        the most left position:
+        six memorised values to the right and stores the two respective new values on
+        the leftmost position:
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
@@ -424,7 +424,7 @@ class Update_LoggedWindSpeed2m_V1(modeltools.Method):
 
         The following example shows that each new method call successively moves the
         three memorised values to the right and stores the respective new value on the
-        most left position:
+        leftmost position:
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
@@ -570,8 +570,8 @@ class Update_LoggedRelativeHumidity_V1(modeltools.Method):
     Example:
 
         The following example shows that each new method call successively moves the
-        three memorised values to the right and stores the respective new value on the
-        most left position:
+        three memorised values to the right and stores the new value on the leftmost
+        position:
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
@@ -1335,8 +1335,8 @@ class Update_LoggedSunshineDuration_V1(modeltools.Method):
     Example:
 
         The following example shows that each new method call successively moves the
-        three memorised values to the right and stores the respective new value on the
-        most left position:
+        three memorised values to the right and stores the new value on the leftmost
+        position:
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
@@ -1409,8 +1409,8 @@ class Update_LoggedPossibleSunshineDuration_V1(modeltools.Method):
     Example:
 
         The following example shows that each new method call successively moves the
-        three memorised values to the right and stores the respective new value on the
-        most left position:
+        three memorised values to the right and stores the new value on the leftmost
+        position:
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
@@ -1485,8 +1485,8 @@ class Update_LoggedClearSkySolarRadiation_V1(modeltools.Method):
     Example:
 
         The following example shows that each new method call successively moves the
-        three memorised values to the right and stores the respective new value on the
-        most left position:
+        three memorised values to the right and stores the new value on the leftmost
+        position:
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
@@ -1538,8 +1538,8 @@ class Update_LoggedGlobalRadiation_V1(modeltools.Method):
     Example:
 
         The following example shows that each new method call successively moves the
-        three memorised values to the right and stores the respective new value on the
-        most left position:
+        three memorised values to the right and stores the new value on the leftmost
+        position:
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
@@ -3336,8 +3336,8 @@ class Update_LoggedPotentialSoilEvapotranspiration_V1(modeltools.Method):
     Example:
 
         The following example shows that each new method call successively moves the
-        six memorised values to the right and stores the respective two new values on
-        the most left position:
+        six memorised values to the right and stores the two new values on the leftmost
+        position:
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
@@ -5309,6 +5309,74 @@ class Calc_PotentialEvapotranspiration_V3(modeltools.Method):
                 )
 
 
+class Update_PotentialEvapotranspiration_V1(modeltools.Method):
+    r"""Damp the given potential evapotranspiration and update the corresponding log
+    sequence.
+
+    Basic equation:
+      .. math::
+        E_{mod, new} = \omega \cdot E_{orig, new} + (1 - \omega) \cdot E_{mod, old}
+        \\ \\
+        \omega = DampingFactor \\
+        E = PotentialEvapotranspiration
+
+    Example:
+
+        We prepare four hydrological response units with different combinations of
+        damping factors and "old" potential evapotranspiration values:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep("1d")
+        >>> simulationstep("12h")
+        >>> nmbhru(4)
+        >>> dampingfactor(2.0, 2.0, 0.2, 0.2)
+        >>> fluxes.potentialevapotranspiration = 1.6, 2.4, 1.6, 2.4
+
+        Note that the time-dependent parameter value is reduced due to the difference
+        between the given parameter and the simulation step:
+
+        >>> from hydpy import round_
+        >>> round_(dampingfactor.values)
+        1.0, 1.0, 0.1, 0.1
+
+        The evaporation value of the last simulation step is 2.0 mm:
+
+        >>> logs.loggedpotentialevapotranspiration = 2.0
+
+        For the first two hydrological response units, the "old" potential
+        evapotranspiration is modified by -0.4 mm and +0.4 mm, respectively.  For the
+        other two response units, which weigh the "new" value with 10 %, the new value
+        deviates from its logged counterpart only by -0.04 mm and +0.04 mm:
+
+        >>> model.update_potentialevapotranspiration_v1()
+        >>> fluxes.potentialevapotranspiration
+        potentialevapotranspiration(1.6, 2.4, 1.96, 2.04)
+        >>> logs.loggedpotentialevapotranspiration
+        loggedpotentialevapotranspiration(1.6, 2.4, 1.96, 2.04)
+    """
+
+    CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.DampingFactor)
+    UPDATEDSEQUENCES = (
+        evap_fluxes.PotentialEvapotranspiration,
+        evap_logs.LoggedPotentialEvapotranspiration,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        log = model.sequences.logs.fastaccess
+        for k in range(con.nmbhru):
+            flu.potentialevapotranspiration[k] = (
+                con.dampingfactor[k] * flu.potentialevapotranspiration[k]
+                + (1.0 - con.dampingfactor[k])
+                * log.loggedpotentialevapotranspiration[0, k]
+            )
+            log.loggedpotentialevapotranspiration[0, k] = (
+                flu.potentialevapotranspiration[k]
+            )
+
+
 class Adjust_ReferenceEvapotranspiration_V1(modeltools.Method):
     r"""Adjust the previously calculated reference evapotranspiration.
 
@@ -5415,7 +5483,7 @@ class Calc_MeanPotentialEvapotranspiration_V1(modeltools.Method):
 
 class Calc_PotentialWaterEvaporation_PETModel_V1(modeltools.Method):
     """Query the already calculated potential evapotranspiration from a submodel that
-    complies with the |PETModel_V1| interface and assume it as water evaporation.
+    complies with the |PETModel_V1| interface and assume it to be water evaporation.
 
     Example:
 
@@ -5808,7 +5876,7 @@ class Update_LoggedWaterEvaporation_V1(modeltools.Method):
 
         The following example shows that each new method call successively moves the
         six memorised values to the right and stores the respective two new values on
-        the most left position:
+        the leftmost position:
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
@@ -7933,6 +8001,7 @@ class Model(modeltools.AdHocModel):
         Calc_PotentialEvapotranspiration_V1,
         Calc_PotentialEvapotranspiration_V2,
         Calc_PotentialEvapotranspiration_V3,
+        Update_PotentialEvapotranspiration_V1,
         Calc_MeanReferenceEvapotranspiration_V1,
         Calc_MeanPotentialEvapotranspiration_V1,
         Calc_InterceptedWater_V1,

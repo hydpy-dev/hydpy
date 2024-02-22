@@ -14,6 +14,7 @@ from hydpy.core import parametertools
 # ...from evap
 from hydpy.models.evap import evap_parameters
 from hydpy.models.evap import evap_control
+from hydpy.models.evap import evap_logs
 
 
 class MOY(parametertools.MOYParameter):
@@ -111,11 +112,15 @@ class NmbLogEntries(parametertools.Parameter):
                               [nan, nan],
                               [nan, nan]])
 
+        >>> logs.loggedpotentialevapotranspiration
+        loggedpotentialevapotranspiration(nan, nan, nan)
+
         To prevent losing information, updating parameter |NmbLogEntries| resets the
         shape of the relevant log sequences only when necessary:
 
         >>> logs.loggedglobalradiation = 1.0
         >>> logs.loggedairtemperature = 2.0
+        >>> logs.loggedpotentialevapotranspiration = 3.0
         >>> derived.nmblogentries.update()
         >>> logs.loggedglobalradiation
         loggedglobalradiation(1.0, 1.0, 1.0)
@@ -123,6 +128,8 @@ class NmbLogEntries(parametertools.Parameter):
         loggedairtemperature([[2.0, 2.0],
                               [2.0, 2.0],
                               [2.0, 2.0]])
+        >>> logs.loggedpotentialevapotranspiration
+        loggedpotentialevapotranspiration(3.0, 3.0, 3.0)
 
         There is an explicit check for inappropriate simulation step sizes:
 
@@ -145,11 +152,15 @@ determined for a the current simulation step size.  The fraction of the memory p
         self(nmb)
         pars = self.subpars.pars
         for seq in pars.model.sequences.logs:
-            if seq.NDIM == 1:
-                new_shape = (self.value,)
-            elif seq.NDIM == 2:
-                new_shape = self.value, pars.control.nmbhru.value
-            old_shape = exceptiontools.getattr_(seq, "shape", (None,))
+            if isinstance(seq, evap_logs.LoggedPotentialEvapotranspiration):
+                new_shape = self.value
+                old_shape = exceptiontools.getattr_(seq, "shape", (None, None))[1]
+            else:
+                if seq.NDIM == 1:
+                    new_shape = (self.value,)
+                elif seq.NDIM == 2:
+                    new_shape = self.value, pars.control.nmbhru.value
+                old_shape = exceptiontools.getattr_(seq, "shape", (None,))
             if new_shape != old_shape:
                 seq.shape = new_shape
 

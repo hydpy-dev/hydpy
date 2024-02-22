@@ -34,7 +34,8 @@ is sufficient:
 In our simple test-setting, the submodel of type |evap_io| supplies different
 reference evapotranspiration values for two hydrological response units of type "trees"
 and "water" for the last of January and the first of February 2000.  |evap_mlc| applies
-individual adjustment factors for both months and land cover types:
+individual adjustment factors for both months and land cover types and "damps" the
+second unit's result value:
 
 >>> from hydpy import pub
 >>> pub.timegrids = "2000-01-31", "2000-02-02", "1d"
@@ -45,12 +46,14 @@ individual adjustment factors for both months and land cover types:
 >>> landmonthfactor.trees_feb = 1.4
 >>> landmonthfactor.water_jan = 1.6
 >>> landmonthfactor.water_feb = 1.8
+>>> dampingfactor(1.0, 0.5)
 >>> with model.add_retmodel_v1("evap_io"):
 ...     evapotranspirationfactor(0.8, 1.2)
 >>>
 >>> from hydpy import IntegrationTest
 >>> test = IntegrationTest(element)
 >>> test.dateformat = "%Y-%d-%m"
+>>> test.inits = ((model.sequences.logs.loggedpotentialevapotranspiration, 1.92),)
 >>>
 >>> model.retmodel.sequences.inputs.referenceevapotranspiration.series = 1.0, 2.0
 
@@ -60,7 +63,7 @@ individual adjustment factors for both months and land cover types:
     |       date |      referenceevapotranspiration |       potentialevapotranspiration | meanpotentialevapotranspiration |
     -----------------------------------------------------------------------------------------------------------------------
     | 2000-31-01 | 0.8                          1.2 | 0.96                         1.92 |                           1.728 |
-    | 2000-01-02 | 1.6                          2.4 | 2.24                         4.32 |                           3.904 |
+    | 2000-01-02 | 1.6                          2.4 | 2.24                         3.12 |                           2.944 |
 """
 # import...
 # ...from HydPy
@@ -81,6 +84,7 @@ class Model(
     RUN_METHODS = (
         evap_model.Calc_ReferenceEvapotranspiration_V4,
         evap_model.Calc_PotentialEvapotranspiration_V2,
+        evap_model.Update_PotentialEvapotranspiration_V1,
         evap_model.Calc_MeanPotentialEvapotranspiration_V1,
     )
     INTERFACE_METHODS = (

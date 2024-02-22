@@ -609,63 +609,6 @@ class Calc_ReducedWindSpeed2m_V1(modeltools.Method):
                 flu.reducedwindspeed2m[k] = flu.windspeed2m
 
 
-class Update_EvI_WEvI_V1(modeltools.Method):
-    r"""Delay the given interception evaporation and update the corresponding log
-    sequence.
-
-    Basic equation:
-      :math:`EvI_{new} = WfEvI \cdot EvI_{old} + (1 - WfEvI) \cdot WEvI`
-
-    Example:
-
-        Prepare four hydrological response units with different combinations of delay
-        factors and "old" interception evaporation values:
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep("1d")
-        >>> simulationstep("12h")
-        >>> nhru(4)
-        >>> wfevi(2.0, 2.0, 0.2, 0.2)
-        >>> fluxes.evi = 1.6, 2.4, 1.6, 2.4
-
-        Note that the actual value of the time-dependent parameter |WfEvI| is reduced
-        due to the difference between the given parameter and simulation time steps:
-
-        >>> from hydpy import round_
-        >>> round_(wfevi.values)
-        1.0, 1.0, 0.1, 0.1
-
-        The evaporation value of the last simulation step is 2.0 mm:
-
-        >>> logs.wevi = 2.0
-
-        For the first two hydrological response units, the "old" |EvI| value is
-        modified by -0.4 mm and +0.4 mm, respectively.  For the other two response
-        units, which weigh the "new" evaporation value with 10 %, the new value of
-        |EvI| deviates from |WEvI| by -0.04 mm and +0.04 mm only:
-
-        >>> model.update_evi_wevi_v1()
-        >>> fluxes.evi
-        evi(1.6, 2.4, 1.96, 2.04)
-        >>> logs.wevi
-        wevi(1.6, 2.4, 1.96, 2.04)
-    """
-
-    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.WfEvI)
-    UPDATEDSEQUENCES = (lland_fluxes.EvI, lland_logs.WEvI)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        log = model.sequences.logs.fastaccess
-        for k in range(con.nhru):
-            flu.evi[k] = (
-                con.wfevi[k] * flu.evi[k] + (1.0 - con.wfevi[k]) * log.wevi[0, k]
-            )
-            log.wevi[0, k] = flu.evi[k]
-
-
 class Calc_NBes_Inzp_V1(modeltools.Method):
     r"""Calculate stand precipitation and update the interception storage accordingly.
 
@@ -7348,7 +7291,6 @@ class Model(modeltools.AdHocModel):
         Update_EBdn_V1,
         Update_ESnow_V1,
         Calc_EvI_Inzp_V1,
-        Update_EvI_WEvI_V1,
         Calc_EvB_V1,
         Calc_SchmPot_V1,
         Calc_SchmPot_V2,

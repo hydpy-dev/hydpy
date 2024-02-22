@@ -69,6 +69,7 @@ Integration tests
 ...     landmonthfactor.conifer = 1.3
 ...     landmonthfactor.field[1:4] = 0.73, 0.77, 0.95
 ...     landmonthfactor.water[1:4] = 1.22, 1.26, 1.28
+...     dampingfactor(1.0)
 ...     with model.add_retmodel_v1("evap_io"):
 ...         evapotranspirationfactor(0.9)
 >>> with model.add_dischargemodel_v2("q_walrus"):
@@ -76,12 +77,15 @@ Integration tests
 ...     bankfulldischarge(8.0)
 ...     dischargeexponent(1.5)
 >>> test = IntegrationTest(land)
->>> test.inits = ((states.ic, (-3.0, -3.0, -3.0, 0.0)),
-...               (states.sp, (-3.0, -3.0, -3.0, 0.0)),
-...               (states.dv, 140.0),
-...               (states.dg, 1600.0),
-...               (states.hq, 0.0),
-...               (states.hs, -2.0))
+>>> test.inits = (
+...     (states.ic, (-3.0, -3.0, -3.0, 0.0)),
+...     (states.sp, (-3.0, -3.0, -3.0, 0.0)),
+...     (states.dv, 140.0),
+...     (states.dg, 1600.0),
+...     (states.hq, 0.0),
+...     (states.hs, -2.0),
+...     (model.petmodel.sequences.logs.loggedpotentialevapotranspiration, 0.0),
+... )
 >>> inputs.t.series = (
 ...     -2.8, -1.5, -0.9, -1.6, -1.3, 1.7, 4.4, 4.5, 3.4, 4.8, 6.7, 5.8, 6.5, 5.0, 3.0,
 ...     3.1, 7.1, 9.4, 4.6, 3.7, 4.7, 5.9, 7.7, 6.3, 3.7, 1.6, 4.0, 5.6, 5.8, 5.7, 4.6,
@@ -599,6 +603,7 @@ ____________
 >>> aur(1.0)
 >>> lt(WATER)
 >>> model.update_parameters()
+>>> model.petmodel.parameters.control.dampingfactor(1.0)
 >>> model.petmodel.retmodel.parameters.control.evapotranspirationfactor(0.9)
 >>> test.inits.ic = 0.0
 >>> test.inits.sp = 0.0

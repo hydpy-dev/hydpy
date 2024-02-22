@@ -3178,12 +3178,12 @@ class ConditionSequence(ModelSequence):
         """Reset the value of the actual |StateSequence| or |LogSequence| object to the
         last value defined by "calling" the object.
 
-        We use the |lland_v1| application model, which handles sequences derived from
+        We use the |lland_v3| application model, which handles sequences derived from
         |StateSequence| (taking |lland_states.Inzp| as an example) and from
-        |LogSequence| (taking |lland_logs.WEvI| as an example):
+        |LogSequence| (taking |lland_logs.LoggedSunshineDuration| as an example):
 
         >>> from hydpy import prepare_model, pub
-        >>> model = prepare_model("lland_v1")
+        >>> model = prepare_model("lland_v3")
 
         After defining their shapes, both sequences contain |numpy.nan| values:
 
@@ -3191,10 +3191,10 @@ class ConditionSequence(ModelSequence):
         >>> inzp.shape = (2,)
         >>> inzp
         inzp(nan, nan)
-        >>> wevi = model.sequences.logs.wevi
-        >>> wevi.shape = 2
-        >>> wevi
-        wevi(nan, nan)
+        >>> lsd = model.sequences.logs.loggedsunshineduration
+        >>> lsd.shape = 2
+        >>> lsd
+        loggedsunshineduration(nan, nan)
 
         Before "calling" the sequences method |ConditionSequence.reset| does nothing:
 
@@ -3202,10 +3202,10 @@ class ConditionSequence(ModelSequence):
         >>> inzp.reset()
         >>> inzp
         inzp(0.0, 0.0)
-        >>> wevi.values = 0.0
-        >>> wevi.reset()
-        >>> wevi
-        wevi(0.0, 0.0)
+        >>> lsd.values = 0.0
+        >>> lsd.reset()
+        >>> lsd
+        loggedsunshineduration(0.0, 0.0)
 
         After "calling" the sequences method |ConditionSequence.reset| reuses the
         respective arguments:
@@ -3219,13 +3219,13 @@ class ConditionSequence(ModelSequence):
         ...     inzp.reset()
         >>> inzp
         inzp(0.0, 1.0)
-        >>> wevi(1.0, 2.0)
-        >>> wevi.values = 3.0
-        >>> wevi
-        wevi(3.0, 3.0)
-        >>> wevi.reset()
-        >>> wevi
-        wevi(1.0, 2.0)
+        >>> lsd(1.0, 2.0)
+        >>> lsd.values = 3.0
+        >>> lsd
+        loggedsunshineduration(3.0, 3.0)
+        >>> lsd.reset()
+        >>> lsd
+        loggedsunshineduration(1.0, 2.0)
         """
         if self._oldargs:
             self(*self._oldargs)

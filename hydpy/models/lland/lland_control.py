@@ -37,11 +37,10 @@ class NHRU(parametertools.Parameter):
     """Anzahl der Hydrotope (number of hydrological response units) [-].
 
     Note that |NHRU| determines the length of most 1-dimensional HydPy-L-Land
-    parameters and sequences as well the shape of 2-dimensional log sequences with a
-    predefined length of one axis (see |WEvI|).  This requires that the value of the
-    respective |NHRU| instance is set before any of the values of these 1-dimensional
-    parameters or sequences are set.  Changing the value of the |NHRU| instance
-    necessitates setting their values again:
+    parameters and sequences.  This requires that the value of the respective |NHRU|
+    instance is set before any of the values of these 1-dimensional parameters or
+    sequences are set.  Changing the value of the |NHRU| instance necessitates setting
+    their values again:
 
     Examples:
 
@@ -54,8 +53,6 @@ class NHRU(parametertools.Parameter):
         (5, 2)
         >>> fluxes.tkor.shape
         (5,)
-        >>> logs.wevi.shape
-        (1, 5)
         >>> control.wg2z.shape
         (12,)
     """
@@ -79,8 +76,6 @@ class NHRU(parametertools.Parameter):
                 for seq in subseqs:
                     if seq.NDIM == 1:
                         seq.shape = self.value
-        if hasattr(sequences.logs, "wevi"):
-            sequences.logs.wevi.shape = self.value
 
 
 class Lnk(parametertools.NameParameter):
@@ -454,17 +449,6 @@ class WG2Z(parametertools.MonthParameter):
     [W/m²]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
-    INIT = 0.0
-
-
-# evapotranspiration
-
-
-class WfEvI(lland_parameters.ParameterComplete):
-    """Zeitlicher Wichtungsfaktor der Interzeptionsverdunstung (temporal weighting
-    factor for interception evaporation)."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, 1.0)
     INIT = 0.0
 
 

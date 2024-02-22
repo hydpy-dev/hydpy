@@ -100,7 +100,6 @@ implemented methods on the shown results:
 >>> kt(0.8)
 >>> hinz(0.2)
 >>> lai(4.0)
->>> wfevi(1.0)
 >>> treft(0.0)
 >>> trefn(0.0)
 >>> tgr(1.0)
@@ -144,6 +143,7 @@ Minhas equation to reduce potential evapotranspiration to actual evapotranspirat
 ...     dissefactor(5.0)
 ...     with model.add_petmodel_v1("evap_mlc"):
 ...         landmonthfactor(0.5)
+...         dampingfactor(1.0)
 ...         with model.add_retmodel_v1("evap_tw2002"):
 ...             hrualtitude(100.0)
 ...             coastfactor(0.6)
@@ -161,16 +161,18 @@ Initially, relative soil moisture is 10 %, but all other storages are empty (thi
 setting is not very realistic but makes it easier to understand the results of the
 different integration tests):
 
->>> test.inits = ((states.inzp, 0.0),
-...               (states.wats, 0.0),
-...               (states.waes, 0.0),
-...               (states.bowa, 20.0),
-...               (states.sdg1, 0.0),
-...               (states.sdg2, 0.0),
-...               (states.sig1, 0.0),
-...               (states.sig2, 0.0),
-...               (states.sbg, 0.0),
-...               (logs.wevi, 0.0))
+>>> test.inits = (
+...     (states.inzp, 0.0),
+...     (states.wats, 0.0),
+...     (states.waes, 0.0),
+...     (states.bowa, 20.0),
+...     (states.sdg1, 0.0),
+...     (states.sdg2, 0.0),
+...     (states.sig1, 0.0),
+...     (states.sig2, 0.0),
+...     (states.sbg, 0.0),
+...     (model.aetmodel.petmodel.sequences.logs.loggedpotentialevapotranspiration, 0.0),
+... )
 
 The first input data set mimics an extreme summer precipitation event and sets the
 inflow to zero:
@@ -734,23 +736,22 @@ There is no indication of an error in the water balance:
 
 .. _lland_v1_wasser_delayed:
 
-water (delayed evaporation)
-___________________________
+water (damped evaporation)
+__________________________
 
-As discussed in the last example, the handling of evaporation from water surfaces can
-be problematic.  |lland_v1| offers a smoothing option for the adjustment of |EvI| (see
-method |Update_EvI_WEvI_V1|) that is freely configurable via the "delay weighting
-factor" |WfEvI|. In principle, you can apply this mechanism to all land-use classes.
-However, its original intention is to consider the temporal persistence of (large)
-water bodies.  We demonstrate this functionality by setting the weighting parameter
-|WfEvI| to a value smaller than one and defining a suitable "old" evaporation value
-(|WEvI|):
+As discussed in the last example, handling evaporation from water surfaces can be
+problematic.  Therefore, some potential evapotranspiration submodels offer a damping
+option.  In principle, you can apply this mechanism to all land-use classes.  However,
+its original intention is to consider the temporal persistence of (large) water bodies.
+We demonstrate this functionality by setting the parameter |evap_control.DampingFactor|
+of the selected |evap_mlc| submodel to a value smaller than one and defining a suitable
+"old" evaporation value for the start of the simulation:
 
 .. integration-test::
 
     >>> lnk(WASSER)
-    >>> wfevi(0.01)
-    >>> test.inits.wevi = 0.5
+    >>> model.aetmodel.petmodel.parameters.control.dampingfactor(0.01)
+    >>> test.inits.loggedpotentialevapotranspiration = 0.5
     >>> inlet.sequences.sim.series = 0.0
     >>> test("lland_v1_wasser_delayed",
     ...      axis1=(fluxes.nkor, fluxes.evi, fluxes.qah))
@@ -870,7 +871,7 @@ does not want to represent by a separate specialised lake model like |dam_v006|)
 
 .. integration-test::
 
-    >>> wfevi(1.0)
+    >>> model.aetmodel.petmodel.parameters.control.dampingfactor(1.0)
     >>> inlet.sequences.sim.series = 0.3
     >>> test("lland_v1_wasser_routing",
     ...      axis1=(fluxes.nkor, fluxes.evi, fluxes.qah))
@@ -2163,7 +2164,6 @@ class Model(
         lland_model.Calc_Schm_WATS_V1,
         lland_model.Calc_WaDa_WAeS_V1,
         lland_model.Calc_EvI_Inzp_V1,
-        lland_model.Update_EvI_WEvI_V1,
         lland_model.Calc_EvB_V1,
         lland_model.Calc_QKap_V1,
         lland_model.Calc_QBB_V1,

@@ -521,49 +521,6 @@ class Calc_WindSpeed10m_V1(modeltools.Method):
         fac.windspeed10m = model.return_adjustedwindspeed_v1(10.0)
 
 
-class Calc_AdjustedWindSpeed10m_V1(modeltools.Method):
-    r"""Calculate the land cover-specific wind speed 10 meters above the ground (or 10
-    meters above zero plane displacement) following :cite:t:`ref-Löpmeier2014`.
-
-    Method |Calc_AdjustedWindSpeed10m_V1| combines the result of method
-    |Return_AdjustedWindSpeed_V1| with a correction factor of 0.6 for tree-like
-    vegetation, as suggested by :cite:t:`ref-Oliver1974`.
-
-    Example:
-
-        >>> from hydpy.models.evap import *
-        >>> parameterstep()
-        >>> nmbhru(2)
-        >>> tree(False, True)
-        >>> measuringheightwindspeed(3.0)
-        >>> inputs.windspeed = 5.0
-        >>> model.calc_adjustedwindspeed10m_v1()
-        >>> factors.adjustedwindspeed10m
-        adjustedwindspeed10m(5.871465, 3.522879)
-    """
-
-    SUBMETHODS = (Return_AdjustedWindSpeed_V1,)
-    CONTROLPARAMETERS = (
-        evap_control.NmbHRU,
-        evap_control.Tree,
-        evap_control.MeasuringHeightWindSpeed,
-    )
-    FIXEDPARAMETERS = (evap_fixed.RoughnessLengthGrass,)
-    REQUIREDSEQUENCES = (evap_inputs.WindSpeed,)
-    RESULTSEQUENCES = (evap_factors.AdjustedWindSpeed10m,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        fac = model.sequences.factors.fastaccess
-        v_10m: float = model.return_adjustedwindspeed_v1(10.0)
-        for k in range(con.nmbhru):
-            if con.tree[k]:
-                fac.adjustedwindspeed10m[k] = 0.6 * v_10m
-            else:
-                fac.adjustedwindspeed10m[k] = v_10m
-
-
 class Update_LoggedRelativeHumidity_V1(modeltools.Method):
     """Log the relative humidity values of the last 24 hours.
 
@@ -3069,7 +3026,7 @@ class Calc_AerodynamicResistance_V2(modeltools.Method):
 
     Basic equation:
       .. math::
-        AerodynamicResistance = AerodynamicResistanceFactor / AdjustedWindSpeed10m
+        AerodynamicResistance = AerodynamicResistanceFactor / WindSpeed10m
 
     Examples:
 
@@ -3092,7 +3049,7 @@ class Calc_AerodynamicResistance_V2(modeltools.Method):
         >>> derived.moy.update()
 
         |Calc_AerodynamicResistance_V2| calculates larger resistances for crops smaller
-        than 10 meters and smaller resistances for crops larger than 10 meters:
+        than 10 meters and equal resistances for crops larger than 10 meters:
 
         >>> cropheight.water_jan = 0.0
         >>> cropheight.acre_jan = 1.0
@@ -3101,34 +3058,17 @@ class Calc_AerodynamicResistance_V2(modeltools.Method):
         >>> cropheight.wood_jan = 30.0
         >>> derived.roughnesslength.update()
         >>> derived.aerodynamicresistancefactor.update()
-        >>> factors.adjustedwindspeed10m = 3.0
+        >>> factors.windspeed10m = 3.0
         >>> model.idx_sim = 1
         >>> model.calc_aerodynamicresistance_v2()
         >>> factors.aerodynamicresistance
-        aerodynamicresistance(250.991726, 37.398301, 14.815191, 8.254018,
-                              1.758133)
-
-        The latter difference becomes smaller when assuming reduced wind speeds above
-        trees (as done by method |Calc_AdjustedWindSpeed10m_V1|):
-
-        >>> cropheight.water_feb = 8.0
-        >>> cropheight.acre_feb = 9.0
-        >>> cropheight.bush_feb = 10.0
-        >>> cropheight.trees_feb = 11.0
-        >>> cropheight.wood_feb = 12.0
-        >>> derived.roughnesslength.update()
-        >>> derived.aerodynamicresistancefactor.update()
-        >>> factors.adjustedwindspeed10m = 1.8
-        >>> model.idx_sim = 2
-        >>> model.calc_aerodynamicresistance_v2()
-        >>> factors.aerodynamicresistance
-        aerodynamicresistance(16.930459, 15.214222, 13.756696, 12.501413,
-                              11.407858)
+        aerodynamicresistance(250.991726, 37.398301, 31.333333, 31.333333,
+                              31.333333)
 
         For zero wind speed, resistance becomes infinite:
 
         >>> from hydpy import print_values
-        >>> factors.adjustedwindspeed10m = 0.0
+        >>> factors.windspeed10m = 0.0
         >>> model.calc_aerodynamicresistance_v2()
         >>> factors.aerodynamicresistance
         aerodynamicresistance(inf, inf, inf, inf, inf)
@@ -3140,7 +3080,7 @@ class Calc_AerodynamicResistance_V2(modeltools.Method):
 
     CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.HRUType)
     DERIVEDPARAMETERS = (evap_derived.MOY, evap_derived.AerodynamicResistanceFactor)
-    REQUIREDSEQUENCES = (evap_factors.AdjustedWindSpeed10m,)
+    REQUIREDSEQUENCES = (evap_factors.WindSpeed10m,)
     RESULTSEQUENCES = (evap_factors.AerodynamicResistance,)
 
     @staticmethod
@@ -3149,14 +3089,15 @@ class Calc_AerodynamicResistance_V2(modeltools.Method):
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
 
-        for k in range(con.nmbhru):
-            if fac.adjustedwindspeed10m[k] > 0.0:
+        if fac.windspeed10m > 0.0:
+            for k in range(con.nmbhru):
                 f: float = der.aerodynamicresistancefactor[
                     con.hrutype[k] - der._aerodynamicresistancefactor_rowmin,
                     der.moy[model.idx_sim] - der._aerodynamicresistancefactor_columnmin,
                 ]
-                fac.aerodynamicresistance[k] = f / fac.adjustedwindspeed10m[k]
-            else:
+                fac.aerodynamicresistance[k] = f / fac.windspeed10m
+        else:
+            for k in range(con.nmbhru):
                 fac.aerodynamicresistance[k] = modelutils.inf
 
 
@@ -5532,7 +5473,6 @@ class Calc_PotentialWaterEvaporation_PETModel_V2(modeltools.Method):
         >>> with model.add_petmodel_v2("evap_pet_ambav1"):
         ...     hrutype(0)
         ...     plant(False)
-        ...     tree(False)
         ...     measuringheightwindspeed(10.0)
         ...     groundalbedo(0.2)
         ...     groundalbedosnow(0.8)
@@ -6223,7 +6163,6 @@ class Calc_PotentialInterceptionEvaporation_PETModel_V2(modeltools.Method):
         >>> with model.add_petmodel_v2("evap_pet_ambav1"):
         ...     hrutype(0)
         ...     plant(True)
-        ...     tree(False)
         ...     measuringheightwindspeed(10.0)
         ...     groundalbedo(0.2)
         ...     groundalbedosnow(0.8)
@@ -6251,7 +6190,7 @@ class Calc_PotentialInterceptionEvaporation_PETModel_V2(modeltools.Method):
         ...         inputs.snowcover = 0.0, 0.0, 1.0
         >>> model.calc_potentialinterceptionevaporation_v3()
         >>> fluxes.potentialinterceptionevaporation
-        potentialinterceptionevaporation(0.0, 8.211488, 6.056298)
+        potentialinterceptionevaporation(0.0, 3.301949, 1.146759)
     """
 
     CONTROLPARAMETERS = (evap_control.NmbHRU,)
@@ -6523,7 +6462,6 @@ class Calc_PotentialSoilEvapotranspiration_PETModel_V2(modeltools.Method):
         >>> with model.add_petmodel_v2("evap_pet_ambav1"):
         ...     hrutype(0)
         ...     plant(True)
-        ...     tree(False)
         ...     measuringheightwindspeed(10.0)
         ...     leafalbedo(0.2)
         ...     leafalbedosnow(0.8)
@@ -6556,7 +6494,7 @@ class Calc_PotentialSoilEvapotranspiration_PETModel_V2(modeltools.Method):
         >>> model.petmodel.determine_potentialinterceptionevaporation()
         >>> model.calc_potentialsoilevapotranspiration_v2()
         >>> fluxes.potentialsoilevapotranspiration
-        potentialsoilevapotranspiration(0.0, 3.163548, 2.333242)
+        potentialsoilevapotranspiration(0.0, 2.324763, 0.807385)
     """
 
     CONTROLPARAMETERS = (evap_control.NmbHRU,)
@@ -7285,7 +7223,7 @@ class Determine_PotentialInterceptionEvaporation_V1(modeltools.AutoMethod):
         Calc_SunshineDuration_V1,
         Calc_GlobalRadiation_V1,
         Calc_AirTemperature_V1,
-        Calc_AdjustedWindSpeed10m_V1,
+        Calc_WindSpeed10m_V1,
         Calc_SaturationVapourPressure_V1,
         Calc_SaturationVapourPressureSlope_V1,
         Calc_ActualVapourPressure_V1,
@@ -7310,7 +7248,6 @@ class Determine_PotentialInterceptionEvaporation_V1(modeltools.AutoMethod):
         evap_control.Interception,
         evap_control.Soil,
         evap_control.Plant,
-        evap_control.Tree,
         evap_control.Water,
         evap_control.MeasuringHeightWindSpeed,
         evap_control.GroundAlbedo,
@@ -7351,7 +7288,7 @@ class Determine_PotentialInterceptionEvaporation_V1(modeltools.AutoMethod):
         evap_factors.PossibleSunshineDuration,
         evap_fluxes.GlobalRadiation,
         evap_factors.AirTemperature,
-        evap_factors.AdjustedWindSpeed10m,
+        evap_factors.WindSpeed10m,
         evap_factors.SaturationVapourPressure,
         evap_factors.SaturationVapourPressureSlope,
         evap_factors.ActualVapourPressure,
@@ -7937,7 +7874,6 @@ class Model(modeltools.AdHocModel):
         Calc_DailyAirTemperature_V1,
         Calc_WindSpeed2m_V1,
         Calc_WindSpeed2m_V2,
-        Calc_AdjustedWindSpeed10m_V1,
         Update_LoggedWindSpeed2m_V1,
         Calc_DailyWindSpeed2m_V1,
         Calc_WindSpeed10m_V1,

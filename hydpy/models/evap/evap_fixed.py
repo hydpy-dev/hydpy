@@ -60,3 +60,10 @@ class PsychrometricConstant(parametertools.FixedParameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
     INIT = 0.655
+
+
+class AerodynamicResistanceFactorMinimum(parametertools.FixedParameter):
+    """The lowest allowed factor for calculating aerodynamic resistance [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    INIT = 94.0

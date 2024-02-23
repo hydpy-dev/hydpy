@@ -172,7 +172,6 @@ demonstrate this functionality:
 >>> with model.add_petmodel_v2("evap_pet_ambav1"):
 ...     hrutype(0)
 ...     plant(True)
-...     tree(False)
 ...     measuringheightwindspeed(10.0)
 ...     leafalbedo(0.2)
 ...     leafalbedosnow(0.8)

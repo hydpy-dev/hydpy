@@ -14,6 +14,7 @@ from hydpy.core import parametertools
 # ...from evap
 from hydpy.models.evap import evap_parameters
 from hydpy.models.evap import evap_control
+from hydpy.models.evap import evap_fixed
 from hydpy.models.evap import evap_logs
 
 
@@ -205,11 +206,15 @@ class AerodynamicResistanceFactor(evap_parameters.LandMonthParameter):
 
     CONTROLPARAMETERS = (evap_control.CropHeight,)
     DERIVEDPARAMETERS = (RoughnessLength,)
+    FIXEDPARAMETERS = (evap_fixed.AerodynamicResistanceFactorMinimum,)
 
     def update(self):
         r"""Calculate the factor for calculating aerodynamic resistance based on the
-        :math:`ln(2 / z_0) \cdot ln(10 / z_0) / 0.41^2` with :math:`z_0` being the
-        |RoughnessLength| :cite:p:`ref-Löpmeier2014`.
+        :math:`max \big( ln(2 / z_0) \cdot ln(10 / z_0) / 0.41^2, \ \tau \big)` with
+        :math:`z_0` being the |RoughnessLength| :cite:p:`ref-Löpmeier2014` and
+        :math:`\tau` the "alternative value" suggested by :cite:t:`ref-Thompson1981`
+        and also used by :cite:t:`ref-LARSIM`.
+
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
@@ -219,9 +224,12 @@ class AerodynamicResistanceFactor(evap_parameters.LandMonthParameter):
         >>> derived.aerodynamicresistancefactor.update()
         >>> derived.aerodynamicresistancefactor
         aerodynamicresistancefactor(ANY=[752.975177, 752.975177, 476.301466,
-                                         262.708041, 112.194903, 79.238602,
-                                         62.610305, 51.998576, 44.445572,
-                                         24.762053, 15.897836, 10.794809])
+                                         262.708041, 112.194903, 94.0, 94.0, 94.0,
+                                         94.0, 94.0, 94.0, 94.0])
         """
-        z0 = self.subpars.pars.derived.roughnesslength.values
-        self.values = numpy.log(10.0 / z0) * numpy.log(10.0 / z0) / 0.41**2
+        pars = self.subpars.pars
+        z0 = pars.derived.roughnesslength.values
+        min_ = pars.fixed.aerodynamicresistancefactorminimum.value
+        self.values = numpy.clip(
+            numpy.log(10.0 / z0) * numpy.log(10.0 / z0) / 0.41**2, min_, None
+        )

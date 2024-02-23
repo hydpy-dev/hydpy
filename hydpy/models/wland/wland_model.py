@@ -289,23 +289,22 @@ class Calc_PE_PET_PETModel_V2(modeltools.Method):
     Examples:
 
         We use |evap_pet_ambav1| as an example.  All data stems from the integration
-        tests :ref:`evap_pet_ambav1_non_tree_vegetation_daily`,
-        :ref:`evap_pet_ambav1_tree_like_vegetation_daily`,
+        tests :ref:`evap_pet_ambav1_vegetation_daily`,
         :ref:`evap_pet_ambav1_snow_daily`, and :ref:`evap_pet_ambav1_water_area_daily`:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-08-01", "2000-08-02", "1d"
         >>> from hydpy.models.wland_v001 import *
         >>> parameterstep("1h")
-        >>> nu(4)
+        >>> nu(3)
         >>> at(1.0)
-        >>> aur(0.25, 0.15, 0.1, 0.5)
-        >>> lt(FIELD, DECIDIOUS, DECIDIOUS, WATER)
+        >>> aur(0.5, 0.3, 0.2)
+        >>> lt(FIELD, DECIDIOUS, WATER)
         >>> lai(5.0)
         >>> derived.nul.update()
         >>> inputs.t = 15.0
         >>> inputs.p = 0.0
-        >>> states.sp = 0.0, 0.0, 1.0, 0.0
+        >>> states.sp = 0.0, 1.0, 0.0
         >>> from hydpy import prepare_model
         >>> with model.add_petmodel_v2("evap_pet_ambav1") as ambav:
         ...     measuringheightwindspeed(10.0)
@@ -332,29 +331,27 @@ class Calc_PE_PET_PETModel_V2(modeltools.Method):
         ...         inputs.globalradiation = 190.0
 
         The first example reproduces the results for the first simulated day of the
-        integration tests :ref:`evap_pet_ambav1_non_tree_vegetation_daily` (first
-        response unit), :ref:`evap_pet_ambav1_tree_like_vegetation_daily` (second
-        response unit), and :ref:`evap_pet_ambav1_water_area_daily` (fourth response
-        unit):
+        integration tests :ref:`evap_pet_ambav1_vegetation_daily` (first response
+        unit) and :ref:`evap_pet_ambav1_water_area_daily` (third response unit):
 
         >>> ambav.sequences.logs.loggedprecipitation = [0.0]
         >>> ambav.sequences.logs.loggedpotentialsoilevapotranspiration = [1.0]
         >>> model.calc_pe_pet_v1()
         >>> fluxes.pe
-        pe(8.211488, 5.545339, 3.390149, 1.890672)
+        pe(3.301949, 1.146759, 1.890672)
         >>> fluxes.pet
-        pet(3.073332, 2.768363, 1.692442, 0.0)
+        pet(2.292368, 0.796134, 0.0)
 
         The second example reproduces the results for the third simulated day of the
-        :ref:`evap_pet_ambav1_snow_daily` integration test (third response unit):
+        :ref:`evap_pet_ambav1_snow_daily` integration test (second response unit):
 
         >>> ambav.sequences.logs.loggedprecipitation = [10.0]
         >>> ambav.sequences.logs.loggedpotentialsoilevapotranspiration = [2.282495]
         >>> model.calc_pe_pet_v1()
         >>> fluxes.pe
-        pe(8.211488, 5.545339, 3.390149, 1.890672)
+        pe(3.301949, 1.146759, 1.890672)
         >>> fluxes.pet
-        pet(3.163548, 2.83302, 1.73197, 0.0)
+        pet(2.324763, 0.807385, 0.0)
 
         .. testsetup::
 
@@ -3123,7 +3120,6 @@ class Main_PETModel_V2(modeltools.ELSModel):
         ...     interception
         ...     soil
         ...     plant
-        ...     tree
         ...     my_lai = leafareaindex
         ...     "my_lai", my_lai.field_jun, my_lai.conifer_jan, my_lai.pasture_dec
         ...     petmodel.preparemethod2arguments["prepare_nmbzones"]
@@ -3146,9 +3142,6 @@ class Main_PETModel_V2(modeltools.ELSModel):
         plant(conifer=True, decidious=True, field=True, mixed=True,
               orchard=True, pasture=True, sealed=False, soil=False,
               trees=True, water=False, wetland=True, wine=True)
-        tree(conifer=True, decidious=True, field=False, mixed=True,
-             orchard=False, pasture=False, sealed=False, soil=False,
-             trees=False, water=False, wetland=False, wine=False)
         ('my_lai', 1.0, 2.0, 3.0)
         ((12,), {})
         ((array([0.06, 0.2 , 0.34, 0.48, 0.62, 0.76, 0.9 , 1.04, 1.18, 1.32, 1.46,

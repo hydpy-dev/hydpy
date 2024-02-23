@@ -43,13 +43,6 @@ class WindSpeed10m(sequencetools.FactorSequence):
     NDIM, NUMERIC = 0, False
 
 
-class AdjustedWindSpeed10m(sequencetools.FactorSequence):
-    """Land cover-specific wind speed at 10 m above ground (or zero plane displacement)
-    [m/s]."""
-
-    NDIM, NUMERIC = 1, False
-
-
 class DailyRelativeHumidity(sequencetools.FactorSequence):
     """Average relative humidity in the last 24 hours [%]."""
 

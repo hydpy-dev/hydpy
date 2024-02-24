@@ -6,6 +6,7 @@
 from hydpy.core import exceptiontools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
+from hydpy.auxs import interptools
 
 # ...from sw1d
 from hydpy.models.sw1d import sw1d_fluxes
@@ -182,3 +183,11 @@ class TargetWaterLevel2(parametertools.Parameter):
                 self.subpars.targetwaterlevel1, "value", None
             )
         super().trim(lower, upper)
+
+
+class Gradient2PumpingRate(interptools.SimpleInterpolator):
+    """An interpolation function describing the relationship between the water
+    level height to be overcome and the maximum possible pumping rate [-]."""
+
+    XLABEL = "water level gradient [m]"
+    YLABEL = "maximum pumping rate [m³/s]"

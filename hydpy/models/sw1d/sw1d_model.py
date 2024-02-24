@@ -608,6 +608,61 @@ class Calc_MaxTimeStep_V5(modeltools.Method):
             fac.maxtimestep = modelutils.inf
 
 
+class Calc_MaxTimeStep_V6(modeltools.Method):
+    r"""Estimate the highest possible computation time step for which we can expect
+    stability for an inflow- and outflow-providing routing model.
+
+    Basic equation:
+      :math:`MaxTimeStep = TimeStepFactor \cdot
+      \frac{1000 \cdot LengthMin}{5 / 3 \cdot |Discharge| \cdot WettedArea}`
+
+    Examples:
+
+        >>> from hydpy.models.sw1d import *
+        >>> parameterstep()
+        >>> timestepfactor(0.5)
+        >>> derived.lengthmin(2.0)
+        >>> factors.wettedarea = 5.0
+        >>> states.discharge = -6.0
+        >>> model.calc_maxtimestep_v6()
+        >>> factors.maxtimestep
+        maxtimestep(500.0)
+
+        For zero outflow values, the computation time step needs no restriction:
+
+        >>> states.discharge = 0.0
+        >>> model.calc_maxtimestep_v6()
+        >>> factors.maxtimestep
+        maxtimestep(inf)
+
+        To prevent zero division, |Calc_MaxTimeStep_V4| also sets the maximum time step
+        to infinity if there is no wetted area:
+
+        >>> states.discharge = 6.0
+        >>> factors.wettedarea = 0.0
+        >>> model.calc_maxtimestep_v6()
+        >>> factors.maxtimestep
+        maxtimestep(inf)
+    """
+
+    CONTROLPARAMETERS = (sw1d_control.TimeStepFactor,)
+    DERIVEDPARAMETERS = (sw1d_derived.LengthMin,)
+    REQUIREDSEQUENCES = (sw1d_states.Discharge, sw1d_factors.WettedArea)
+    RESULTSEQUENCES = (sw1d_factors.MaxTimeStep,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        sta = model.sequences.states.fastaccess
+        if (sta.discharge != 0.0) and (fac.wettedarea > 0.0):
+            cel: float = modelutils.fabs(5.0 / 3.0 * sta.discharge / fac.wettedarea)
+            fac.maxtimestep = con.timestepfactor * 1000.0 * der.lengthmin / cel
+        else:
+            fac.maxtimestep = modelutils.inf
+
+
 class Calc_MaxTimeSteps_V1(modeltools.Method):
     """Order all submodels that follow the |RoutingModel_V1|, |RoutingModel_V2|, or
     |RoutingModel_V3| interface to estimate the highest possible computation time step.
@@ -1807,6 +1862,119 @@ class Calc_Discharge_V3(modeltools.Method):
             sta.discharge = 0.0
 
 
+class Calc_Discharge_V4(modeltools.Method):
+    r"""Calculate the pumping rate.
+
+    Basic equation:
+      .. math::
+    Basic equations:
+      .. math::
+        Discharge = \begin{cases}
+        0 &|\  h_u < t_1 \\
+        Q^* \cdot \frac{h_u - t_1}{t_2 - t_1}
+         &|\  t_1 \leq h_u < t_2 \\
+        Q^* &|\  t_2 \leq h_u
+        \end{cases}
+        \\ \\ \\
+        Q^* = max \big( f_{gradient2pumpingrate}(h_d - h_u), \ 0 \big) \\
+        h_u = WaterLevelUpstream \\
+        h_d = WaterLevelDownstream \\
+        t_1 = TargetWaterLevel1 \\
+        t_2 = TargetWaterLevel2
+
+    Examples:
+
+        The maximum pumping rate is 1 m³/s for equal water levels and decreases
+        linearly with rising downstream water levels until it reaches 0 m³/s:
+
+        >>> from hydpy.models.sw1d import *
+        >>> parameterstep()
+        >>> gradient2pumpingrate(PPoly(Poly(x0=0.0, cs=[1.0, -0.1]),
+        ...                            Poly(x0=10.0, cs=[0.0])))
+
+        We prepare a |UnitTest| object to demonstrate how |Calc_Discharge_V4| behaves
+        when the upstream water level changes:
+
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(
+        ...     model, model.calc_discharge_v4,
+        ...     last_example=7,
+        ...     parseqs=(factors.waterlevelupstream, states.discharge))
+
+        We fix the downstream water level to 2 m and vary the upstream water level
+        between 1.5 m to 4.5 m:
+
+        >>> factors.waterleveldownstream = 2.0
+        >>> test.nexts.waterlevelupstream = 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5
+
+        If we set both target water levels to the same value, the pump becomes fully
+        activated or deactivated when the upstream water level exceeds or falls below
+        this threshold:
+
+        >>> targetwaterlevel1(2.0)
+        >>> targetwaterlevel2(2.0)
+        >>> test()
+        | ex. | waterlevelupstream | discharge |
+        ----------------------------------------
+        |   1 |                1.5 |       0.0 |
+        |   2 |                2.0 |       1.0 |
+        |   3 |                2.5 |      0.95 |
+        |   4 |                3.0 |       0.9 |
+        |   5 |                3.5 |      0.85 |
+        |   6 |                4.0 |       0.8 |
+        |   7 |                4.5 |      0.75 |
+
+        Setting |TargetWaterLevel1| and |TargetWaterLevel2| to the same value might
+        result in situations with frequent "on-off switching", which may eventually
+        have adverse effects on computational efficiency or simulation accuracy.  After
+        setting |TargetWaterLevel2| to 4 m, the pump's transition between on and off
+        becomes smoother:
+
+        >>> targetwaterlevel2(4.0)
+        >>> test()
+        | ex. | waterlevelupstream | discharge |
+        ----------------------------------------
+        |   1 |                1.5 |       0.0 |
+        |   2 |                2.0 |       0.0 |
+        |   3 |                2.5 |    0.2375 |
+        |   4 |                3.0 |      0.45 |
+        |   5 |                3.5 |    0.6375 |
+        |   6 |                4.0 |       0.8 |
+        |   7 |                4.5 |      0.75 |
+    """
+
+    CONTROLPARAMETERS = (
+        sw1d_control.Gradient2PumpingRate,
+        sw1d_control.TargetWaterLevel1,
+        sw1d_control.TargetWaterLevel2,
+    )
+    REQUIREDSEQUENCES = (
+        sw1d_factors.WaterLevelUpstream,
+        sw1d_factors.WaterLevelDownstream,
+    )
+    UPDATEDSEQUENCES = (sw1d_states.Discharge,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+        sta = model.sequences.states.fastaccess
+
+        hu: float = fac.waterlevelupstream
+        hd: float = fac.waterleveldownstream
+        t1: float = con.targetwaterlevel1
+        t2: float = con.targetwaterlevel2
+
+        if hu < t1:
+            sta.discharge = 0.0
+        else:
+            con.gradient2pumpingrate.inputs[0] = hu - hd
+            con.gradient2pumpingrate.calculate_values()
+            sta.discharge = max(con.gradient2pumpingrate.outputs[0], 0.0)
+            if hu < t2:
+                sta.discharge *= (hu - t1) / (t2 - t1)
+
+
 class Update_Discharge_V1(modeltools.Method):
     r"""Reduce the already calculated discharge due to limited water availability in
     one of the adjacent channel segments.
@@ -2617,6 +2785,36 @@ class Determine_MaxTimeStep_V5(modeltools.AutoMethod):
     )
 
 
+class Determine_MaxTimeStep_V6(modeltools.AutoMethod):
+    """Interface method for determining the highest possible computation time step at
+    an inflow and outflow location."""
+
+    SUBMETHODS = (
+        Calc_WaterLevelUpstream_V1,
+        Calc_WaterLevelDownstream_V1,
+        Calc_WaterLevel_V2,
+        Calc_WaterDepth_V2,
+        Calc_WettedArea_V1,
+        Calc_MaxTimeStep_V6,
+    )
+    CONTROLPARAMETERS = (
+        sw1d_control.BottomLevel,
+        sw1d_control.BottomWidth,
+        sw1d_control.SideSlope,
+        sw1d_control.TimeStepFactor,
+    )
+    DERIVEDPARAMETERS = (sw1d_derived.LengthMin, sw1d_derived.WeightUpstream)
+    REQUIREDSEQUENCES = (sw1d_states.Discharge,)
+    RESULTSEQUENCES = (
+        sw1d_factors.WaterLevelDownstream,
+        sw1d_factors.WaterLevelUpstream,
+        sw1d_factors.WaterLevel,
+        sw1d_factors.WaterDepth,
+        sw1d_factors.WettedArea,
+        sw1d_factors.MaxTimeStep,
+    )
+
+
 class Determine_Discharge_V1(modeltools.AutoMethod):
     """Interface method for determining the discharge at a central location."""
 
@@ -2744,6 +2942,24 @@ class Determine_Discharge_V6(modeltools.AutoMethod):
         sw1d_factors.TimeStep,
     )
     UPDATEDSEQUENCES = (sw1d_states.Discharge, sw1d_fluxes.DischargeVolume)
+
+
+class Determine_Discharge_V7(modeltools.AutoMethod):
+    """Interface method for determining the discharge at a pumping station."""
+
+    SUBMETHODS = (Calc_WaterLevel_V4, Calc_Discharge_V4, Update_DischargeVolume_V1)
+    CONTROLPARAMETERS = (
+        sw1d_control.Gradient2PumpingRate,
+        sw1d_control.TargetWaterLevel1,
+        sw1d_control.TargetWaterLevel2,
+    )
+    REQUIREDSEQUENCES = (
+        sw1d_factors.WaterLevelUpstream,
+        sw1d_factors.WaterLevelDownstream,
+        sw1d_factors.TimeStep,
+    )
+    UPDATEDSEQUENCES = (sw1d_states.Discharge, sw1d_fluxes.DischargeVolume)
+    RESULTSEQUENCES = (sw1d_factors.WaterLevel,)
 
 
 class Get_WaterVolume_V1(modeltools.Method):
@@ -3061,12 +3277,14 @@ class Model(modeltools.SubstepModel):
         Determine_MaxTimeStep_V3,
         Determine_MaxTimeStep_V4,
         Determine_MaxTimeStep_V5,
+        Determine_MaxTimeStep_V6,
         Determine_Discharge_V1,
         Determine_Discharge_V2,
         Determine_Discharge_V3,
         Determine_Discharge_V4,
         Determine_Discharge_V5,
         Determine_Discharge_V6,
+        Determine_Discharge_V7,
         Get_WaterVolume_V1,
         Get_WaterLevel_V1,
         Get_Discharge_V1,
@@ -3083,6 +3301,7 @@ class Model(modeltools.SubstepModel):
         Calc_MaxTimeStep_V3,
         Calc_MaxTimeStep_V4,
         Calc_MaxTimeStep_V5,
+        Calc_MaxTimeStep_V6,
         Calc_WaterVolumeUpstream_V1,
         Calc_WaterVolumeDownstream_V1,
         Calc_WaterLevelUpstream_V1,
@@ -3101,6 +3320,7 @@ class Model(modeltools.SubstepModel):
         Calc_Discharge_V1,
         Calc_Discharge_V2,
         Calc_Discharge_V3,
+        Calc_Discharge_V4,
         Update_Discharge_V1,
         Update_Discharge_V2,
         Reset_DischargeVolume_V1,

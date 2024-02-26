@@ -45,6 +45,34 @@ class NUG(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
 
+    CONTROLPARAMETERS = (wland_control.LT, wland_control.ER)
+
+    def update(self):
+        r"""Update |NUG| based on
+        :math:`NUG = \Sigma (LT \neq WATER) \land LT \neq SEALED)`.
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+        >>> nu(10)
+        >>> lt(SEALED, FIELD, SEALED, CONIFER, SEALED,
+        ...    SEALED, FIELD, SEALED, SEALED, WATER)
+        >>> er(False, False, False, False, False,
+        ...    True, True, True, True, False)
+        >>> derived.nug.update()
+        >>> derived.nug
+        nug(2)
+        """
+        control = self.subpars.pars.control
+        lt = control.lt.values
+        er = control.er.values
+        self.value = sum((lt != WATER) * (lt != SEALED) * ~er)
+
+
+class NUGE(parametertools.Parameter):
+    r"""Number of groundwater-affected hydrological response units [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+
     CONTROLPARAMETERS = (wland_control.LT,)
 
     def update(self):
@@ -53,14 +81,19 @@ class NUG(parametertools.Parameter):
 
         >>> from hydpy.models.wland import *
         >>> parameterstep()
-        >>> nu(6)
-        >>> lt(SEALED, FIELD, SEALED, CONIFER, SEALED, WATER)
-        >>> derived.nug.update()
-        >>> derived.nug
-        nug(2)
+        >>> nu(10)
+        >>> lt(SEALED, FIELD, SEALED, CONIFER, SEALED,
+        ...    SEALED, FIELD, SEALED, SEALED, WATER)
+        >>> er(True, True, True, True, True,
+        ...    False, False, False, False, False)
+        >>> derived.nuge.update()
+        >>> derived.nuge
+        nuge(2)
         """
-        lt = self.subpars.pars.control.lt.values
-        self.value = sum((lt != WATER) * (lt != SEALED))
+        control = self.subpars.pars.control
+        lt = control.lt.values
+        er = control.er.values
+        self.value = sum((lt != WATER) * (lt != SEALED) * er)
 
 
 class ALR(parametertools.Parameter):
@@ -112,7 +145,7 @@ class AGR(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (wland_control.AUR, wland_control.LT)
+    CONTROLPARAMETERS = (wland_control.AUR, wland_control.LT, wland_control.ER)
 
     def update(self):
         r"""Update |AGR| based on :math:`AGR = \Sigma AUR_{\overline{SEALED}}`.
@@ -120,14 +153,41 @@ class AGR(parametertools.Parameter):
         >>> from hydpy.models.wland import *
         >>> parameterstep()
         >>> nu(6)
-        >>> lt(SEALED, SOIL, SEALED, FIELD, SEALED, WATER)
+        >>> lt(SEALED, SOIL, SEALED, FIELD, FIELD, WATER)
+        >>> er(False, False, False, False, True, False)
         >>> aur(0.02, 0.06, 0.1, 0.14, 0.18, 0.5)
         >>> derived.agr.update()
         >>> derived.agr
         agr(0.2)
         """
         c = self.subpars.pars.control
-        self.value = numpy.sum(c.aur.values[:-1][c.lt.values[:-1] != SEALED])
+        idxs = (c.lt.values[:-1] != SEALED) * ~c.er.values[:-1]
+        self.value = numpy.sum(c.aur.values[:-1][idxs])
+
+
+class AGRE(parametertools.Parameter):
+    r"""Relative groundwater area [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (wland_control.AUR, wland_control.LT, wland_control.ER)
+
+    def update(self):
+        r"""Update |AGR| based on :math:`AGR = \Sigma AUR_{\overline{SEALED}}`.
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+        >>> nu(6)
+        >>> lt(SEALED, SOIL, SEALED, FIELD, FIELD, WATER)
+        >>> er(True, True, True, True, False, False)
+        >>> aur(0.02, 0.06, 0.1, 0.14, 0.18, 0.5)
+        >>> derived.aghr.update()
+        >>> derived.aghr
+        aghr(0.2)
+        """
+        c = self.subpars.pars.control
+        idxs = (c.lt.values[:-1] != SEALED) * c.er.values[:-1]
+        self.value = numpy.sum(c.aur.values[:-1][idxs])
 
 
 class QF(parametertools.Parameter):

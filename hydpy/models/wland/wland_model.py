@@ -905,20 +905,27 @@ class Calc_W_V1(modeltools.Method):
         |  11 | 250.0 |      0.0 |
     """
 
-    CONTROLPARAMETERS = (wland_control.CW,)
+    CONTROLPARAMETERS = (wland_control.CWE, wland_control.CW)
+    DERIVEDPARAMETERS = (wland_derived.NUG, wland_derived.NUGE)
     FIXEDPARAMETERS = (wland_fixed.Pi,)
-    REQUIREDSEQUENCES = (wland_states.DV,)
-    RESULTSEQUENCES = (wland_aides.W,)
+    REQUIREDSEQUENCES = (wland_states.DVE, wland_states.DV)
+    RESULTSEQUENCES = (wland_aides.WE, wland_aides.W)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
         sta = model.sequences.states.fastaccess
         aid = model.sequences.aides.fastaccess
-        aid.w = 0.5 + 0.5 * modelutils.cos(
-            max(min(sta.dv, con.cw), 0.0) * fix.pi / con.cw
-        )
+        if der.nug:
+            aid.w = 0.5 + 0.5 * modelutils.cos(
+                max(min(sta.dv, con.cw), 0.0) * fix.pi / con.cw
+            )
+        if der.nuge:
+            aid.we = 0.5 + 0.5 * modelutils.cos(
+                max(min(sta.dve, con.cwe), 0.0) * fix.pi / con.cwe
+            )
 
 
 class Calc_PV_V1(modeltools.Method):
@@ -940,6 +947,7 @@ class Calc_PV_V1(modeltools.Method):
         >>> nu(4)
         >>> derived.nul.update()
         >>> lt(FIELD, SOIL, SEALED, WATER)
+        >>> er(False)
         >>> aur(0.35, 0.1, 0.05, 0.5)
         >>> derived.agr.update()
         >>> fluxes.rf = 3.0, 2.0, 1.0, 0.0
@@ -950,10 +958,15 @@ class Calc_PV_V1(modeltools.Method):
         pv(1.0)
     """
 
-    CONTROLPARAMETERS = (wland_control.LT, wland_control.AUR)
-    DERIVEDPARAMETERS = (wland_derived.NUL, wland_derived.AGR)
-    REQUIREDSEQUENCES = (wland_fluxes.RF, wland_fluxes.AM, wland_aides.W)
-    RESULTSEQUENCES = (wland_fluxes.PV,)
+    CONTROLPARAMETERS = (wland_control.LT, wland_control.ER, wland_control.AUR)
+    DERIVEDPARAMETERS = (wland_derived.NUL, wland_derived.AGR, wland_derived.AGRE)
+    REQUIREDSEQUENCES = (
+        wland_fluxes.RF,
+        wland_fluxes.AM,
+        wland_aides.W,
+        wland_aides.WE,
+    )
+    RESULTSEQUENCES = (wland_fluxes.PV, wland_fluxes.PVE)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -961,10 +974,14 @@ class Calc_PV_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
-        flu.pv = 0.0
+        flu.pv, flu.pve = 0.0, 0.0
         for k in range(der.nul):
             if con.lt[k] != SEALED:
-                flu.pv += (1.0 - aid.w) * con.aur[k] / der.agr * (flu.rf[k] + flu.am[k])
+                p: float = flu.rf[k] + flu.am[k]
+                if con.er[k]:
+                    flu.pve += p * (1.0 - aid.we) * con.aur[k] / der.agre
+                else:
+                    flu.pv += p * (1.0 - aid.w) * con.aur[k] / der.agr
 
 
 class Calc_PQ_V1(modeltools.Method):
@@ -996,9 +1013,14 @@ class Calc_PQ_V1(modeltools.Method):
         pq(3.0)
     """
 
-    CONTROLPARAMETERS = (wland_control.LT, wland_control.AUR)
+    CONTROLPARAMETERS = (wland_control.LT, wland_control.ER, wland_control.AUR)
     DERIVEDPARAMETERS = (wland_derived.NUL, wland_derived.ALR)
-    REQUIREDSEQUENCES = (wland_fluxes.RF, wland_fluxes.AM, wland_aides.W)
+    REQUIREDSEQUENCES = (
+        wland_fluxes.RF,
+        wland_fluxes.AM,
+        wland_aides.WE,
+        wland_aides.W,
+    )
     RESULTSEQUENCES = (wland_fluxes.PQ,)
 
     @staticmethod
@@ -1011,7 +1033,7 @@ class Calc_PQ_V1(modeltools.Method):
         for k in range(der.nul):
             pq: float = con.aur[k] / der.alr * (flu.rf[k] + flu.am[k])
             if con.lt[k] != SEALED:
-                pq *= aid.w
+                pq *= aid.we if con.er[k] else aid.w
             flu.pq += pq
 
 
@@ -1058,8 +1080,8 @@ class Calc_Beta_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (wland_control.Zeta1, wland_control.Zeta2)
-    REQUIREDSEQUENCES = (wland_states.DV,)
-    RESULTSEQUENCES = (wland_aides.Beta,)
+    REQUIREDSEQUENCES = (wland_states.DVE, wland_states.DV)
+    RESULTSEQUENCES = (wland_aides.BetaE, wland_aides.Beta)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1072,6 +1094,13 @@ class Calc_Beta_V1(modeltools.Method):
         else:
             temp = modelutils.exp(temp)
             aid.beta = 0.5 + 0.5 * (1.0 - temp) / (1.0 + temp)
+
+        temp: float = con.zeta1 * (sta.dve - con.zeta2)
+        if temp > 700.0:
+            aid.betae = 0.0
+        else:
+            temp = modelutils.exp(temp)
+            aid.betae = 0.5 + 0.5 * (1.0 - temp) / (1.0 + temp)
 
 
 class Calc_ETV_V1(modeltools.Method):
@@ -1099,8 +1128,10 @@ class Calc_ETV_V1(modeltools.Method):
         >>> nu(4)
         >>> lt(FIELD, SOIL, SEALED, WATER)
         >>> aur(0.2, 0.2, 0.1, 0.5)
+        >>> er(False)
         >>> derived.nul.update()
         >>> derived.agr.update()
+        >>> derived.agre.update()
         >>> fluxes.pe = 5.0
         >>> fluxes.pet = 4.0
         >>> fluxes.ei = 1.0, 3.0, 2.0, 0.0
@@ -1110,15 +1141,16 @@ class Calc_ETV_V1(modeltools.Method):
         etv(1.8)
     """
 
-    CONTROLPARAMETERS = (wland_control.LT, wland_control.AUR)
-    DERIVEDPARAMETERS = (wland_derived.NUL, wland_derived.AGR)
+    CONTROLPARAMETERS = (wland_control.LT, wland_control.ER, wland_control.AUR)
+    DERIVEDPARAMETERS = (wland_derived.NUL, wland_derived.AGRE, wland_derived.AGR)
     REQUIREDSEQUENCES = (
         wland_fluxes.PE,
         wland_fluxes.PET,
         wland_fluxes.EI,
+        wland_aides.BetaE,
         wland_aides.Beta,
     )
-    RESULTSEQUENCES = (wland_fluxes.ETV,)
+    RESULTSEQUENCES = (wland_fluxes.ETVE, wland_fluxes.ETV)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1126,11 +1158,13 @@ class Calc_ETV_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
-        flu.etv = 0.0
+        flu.etve, flu.etv = 0.0, 0.0
         for k in range(der.nul):
-            if con.lt[k] != SEALED:
-                if flu.pe[k] > 0.0:
-                    pet: float = (flu.pe[k] - flu.ei[k]) / flu.pe[k] * flu.pet[k]
+            if (con.lt[k] != SEALED) and (flu.pe[k] > 0.0):
+                pet: float = (flu.pe[k] - flu.ei[k]) / flu.pe[k] * flu.pet[k]
+                if con.er[k]:
+                    flu.etve += con.aur[k] / der.agre * pet * aid.betae
+                else:
                     flu.etv += con.aur[k] / der.agr * pet * aid.beta
 
 
@@ -1221,11 +1255,14 @@ class Calc_ET_V1(modeltools.Method):
         >>> nu(3)
         >>> lt(FIELD, SEALED, WATER)
         >>> aur(0.5, 0.3, 0.2)
+        >>> er(False)
         >>> derived.nul.update()
         >>> derived.asr.update()
         >>> derived.agr.update()
+        >>> derived.agre.update()
         >>> fluxes.ei = 1.0, 2.0, 0.0
         >>> fluxes.etv = 3.0
+        >>> fluxes.etve = 5.0  # ToDo
         >>> fluxes.es = 4.0
         >>> model.calc_et_v1()
         >>> fluxes.et
@@ -1233,8 +1270,18 @@ class Calc_ET_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (wland_control.AUR,)
-    DERIVEDPARAMETERS = (wland_derived.NUL, wland_derived.ASR, wland_derived.AGR)
-    REQUIREDSEQUENCES = (wland_fluxes.EI, wland_fluxes.ETV, wland_fluxes.ES)
+    DERIVEDPARAMETERS = (
+        wland_derived.NUL,
+        wland_derived.ASR,
+        wland_derived.AGRE,
+        wland_derived.AGR,
+    )
+    REQUIREDSEQUENCES = (
+        wland_fluxes.EI,
+        wland_fluxes.ETVE,
+        wland_fluxes.ETV,
+        wland_fluxes.ES,
+    )
     RESULTSEQUENCES = (wland_fluxes.ET,)
 
     @staticmethod
@@ -1245,7 +1292,7 @@ class Calc_ET_V1(modeltools.Method):
         ei: float = 0.0
         for k in range(der.nul):
             ei += con.aur[k] * flu.ei[k]
-        flu.et = ei + der.agr * flu.etv + der.asr * flu.es
+        flu.et = ei + der.agre * flu.etve + der.agr * flu.etv + der.asr * flu.es
 
 
 class Calc_DVEq_V1(modeltools.Method):
@@ -2008,6 +2055,51 @@ class Calc_GF_V1(modeltools.Method):
         )
 
 
+class Calc_GR1_V1(modeltools.Method):
+    """ToDo"""
+
+    CONTROLPARAMETERS = (wland_control.AC,)
+    DERIVEDPARAMETERS = (wland_derived.NUGE, wland_derived.RH2)
+    REQUIREDSEQUENCES = (wland_states.DVE,)
+    RESULTSEQUENCES = (wland_fluxes.GRA,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        aid = model.sequences.aides.fastaccess
+        if der.nuge:
+            flu.gra = smoothutils.smooth_logistic2(con.ac - sta.dve, der.rh2)
+        else:
+            flu.gra = 0.0
+
+
+class Calc_GR2_V1(modeltools.Method):
+    """ToDo"""
+
+    CONTROLPARAMETERS = (wland_control.CVE,)
+    DERIVEDPARAMETERS = (wland_derived.NUGE,)
+    REQUIREDSEQUENCES = (wland_states.GP, wland_fluxes.GRA)
+    RESULTSEQUENCES = (wland_fluxes.GRD,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        aid = model.sequences.aides.fastaccess
+        if der.nuge:
+            if con.cve == 0.0:
+                flu.grd = flu.gra
+            else:
+                flu.grd = sta.gp / con.cve
+        else:
+            flu.grd = 0.0
+
+
 class Calc_CDG_V1(modeltools.Method):
     r"""Calculate the change in the groundwater depth due to percolation and
     capillary rise.
@@ -2377,10 +2469,21 @@ class Calc_FGS_V1(modeltools.Method):
 
     """
 
-    CONTROLPARAMETERS = (wland_control.CG, wland_control.RG, wland_control.CGF)
-    DERIVEDPARAMETERS = (wland_derived.CD, wland_derived.NUG, wland_derived.RH2)
-    REQUIREDSEQUENCES = (wland_states.DG, wland_states.HS)
-    RESULTSEQUENCES = (wland_fluxes.FGS,)
+    CONTROLPARAMETERS = (
+        wland_control.GL,
+        wland_control.CGE,
+        wland_control.CG,
+        wland_control.RG,
+        wland_control.CGF,
+    )
+    DERIVEDPARAMETERS = (
+        wland_derived.CD,
+        wland_derived.NUGE,
+        wland_derived.NUG,
+        wland_derived.RH2,
+    )
+    REQUIREDSEQUENCES = (wland_states.HGE, wland_states.DG, wland_states.HS)
+    RESULTSEQUENCES = (wland_fluxes.FGSE, wland_fluxes.FGS)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -2403,6 +2506,13 @@ class Calc_FGS_V1(modeltools.Method):
             flu.fgs = gradient * contactsurface * conductivity
         else:
             flu.fgs = 0.0
+
+        if der.nuge:
+            hge: float = sta.hge
+            hg: float = 1000.0 * con.gl - sta.dg
+            flu.fgse = modelutils.fabs(hge - hg) * (hge - hg) / con.cge
+        else:
+            flu.fgse = 0.0
 
 
 class Calc_FQS_V1(modeltools.Method):
@@ -2599,6 +2709,8 @@ class Update_DV_V1(modeltools.Method):
 
         >>> from hydpy.models.wland import *
         >>> parameterstep()
+        >>> derived.nug(1)
+        >>> derived.nuge(0)
         >>> fluxes.fxg = 1.0
         >>> fluxes.pv = 2.0
         >>> fluxes.etv = 3.0
@@ -2609,14 +2721,23 @@ class Update_DV_V1(modeltools.Method):
         dv(9.0)
     """
 
-    DERIVEDPARAMETERS = (wland_derived.NUG,)
+    DERIVEDPARAMETERS = (
+        wland_derived.NUGE,
+        wland_derived.NUG,
+        wland_derived.AGRE,
+        wland_derived.AGR,
+    )
     REQUIREDSEQUENCES = (
         wland_fluxes.FXG,
+        wland_fluxes.PVE,
         wland_fluxes.PV,
+        wland_fluxes.FGSE,
+        wland_fluxes.ETVE,
         wland_fluxes.ETV,
         wland_fluxes.FGS,
+        wland_fluxes.GRA,
     )
-    UPDATEDSEQUENCES = (wland_states.DV,)
+    UPDATEDSEQUENCES = (wland_states.DVE, wland_states.DV)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -2626,8 +2747,35 @@ class Update_DV_V1(modeltools.Method):
         new = model.sequences.states.fastaccess_new
         if der.nug:
             new.dv = old.dv - (flu.fxg + flu.pv - flu.etv - flu.fgs)
+            if der.nuge:
+                new.dv -= flu.fgse * der.agre / der.agr
         else:
             new.dv = modelutils.nan
+
+        if der.nuge:
+            new.dve = old.dve - (flu.pve - flu.etve - flu.gra)
+        else:
+            new.dve = modelutils.nan
+
+
+class Update_GP_V1(modeltools.Method):
+    """ToDo"""
+
+    DERIVEDPARAMETERS = (wland_derived.NUGE,)
+    REQUIREDSEQUENCES = (wland_fluxes.GRA, wland_fluxes.GRD)
+    UPDATEDSEQUENCES = (wland_states.GP,)
+
+    #
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        old = model.sequences.states.fastaccess_old
+        new = model.sequences.states.fastaccess_new
+        if der.nuge:
+            new.gp = old.gp + (flu.gra - flu.grd)
+        else:
+            new.gp = modelutils.nan
 
 
 class Update_DG_V1(modeltools.Method):
@@ -2647,12 +2795,14 @@ class Update_DG_V1(modeltools.Method):
         dg(5.0)
     """
 
-    DERIVEDPARAMETERS = (wland_derived.NUG,)
-    REQUIREDSEQUENCES = (wland_fluxes.CDG,)
-    UPDATEDSEQUENCES = (wland_states.DG,)
+    CONTROLPARAMETERS = (wland_control.ThetaS,)
+    DERIVEDPARAMETERS = (wland_derived.NUGE, wland_derived.NUG)
+    REQUIREDSEQUENCES = (wland_fluxes.GRD, wland_fluxes.FGSE, wland_fluxes.CDG)
+    UPDATEDSEQUENCES = (wland_states.HGE, wland_states.DG)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         old = model.sequences.states.fastaccess_old
@@ -2661,6 +2811,11 @@ class Update_DG_V1(modeltools.Method):
             new.dg = old.dg + flu.cdg
         else:
             new.dg = modelutils.nan
+
+        if der.nuge:
+            new.hge = old.hge + (flu.grd - flu.fgse) / con.thetas
+        else:
+            new.hge = modelutils.nan
 
 
 class Update_HQ_V1(modeltools.Method):
@@ -3033,9 +3188,6 @@ class BaseModel(modeltools.ELSModel):
         fluxes = self.sequences.fluxes
         last = self.sequences.states
         first = initial_conditions["model"]["states"]
-        ddv = (last.dv - first["dv"]) * derived.agr
-        if numpy.isnan(ddv):
-            ddv = 0.0
         return (
             sum(fluxes.pc.series)
             + sum(inputs.fxg.series)
@@ -3045,9 +3197,16 @@ class BaseModel(modeltools.ELSModel):
             + sum(factors.dhs.series) * derived.asr
             - sum((last.ic - first["ic"])[:-1] * control.aur[:-1])
             - sum((last.sp - first["sp"])[:-1] * control.aur[:-1])
+            + ((last.dve - first["dve"]) * derived.agre if derived.nuge else 0.0)
+            + ((last.dv - first["dv"]) * derived.agr if derived.nug else 0.0)
             - (last.hq - first["hq"]) * derived.alr
+            - ((last.gp - first["gp"]) * derived.agre if derived.nuge else 0.0)
+            - (
+                (last.hge - first["hge"]) * derived.agre * control.thetas
+                if derived.nuge
+                else 0.0
+            )
             - (last.hs - first["hs"]) * derived.asr
-            + ddv
         )
 
 

@@ -12,8 +12,20 @@ class FR(sequencetools.AideSequence):
     NDIM, NUMERIC, SPAN = 0, False, (0.0, 1.0)
 
 
+class WE(sequencetools.AideSequence):
+    """Wetness index [-]."""
+
+    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+
+
 class W(sequencetools.AideSequence):
     """Wetness index [-]."""
+
+    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+
+
+class BetaE(sequencetools.AideSequence):
+    """Evapotranspiration reduction factor [-]."""
 
     NDIM, NUMERIC, SPAN = 0, False, (None, None)
 

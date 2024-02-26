@@ -96,6 +96,7 @@ water storage, which is an integral component of the WALRUS concept):
 
 >>> nu(4)
 >>> lt(FIELD, CONIFER, SEALED, WATER)
+>>> er(False, True, False, False)
 
 With the following setting, the water area is 0.2 km², so the total land area is
 9.8 km².  Of this, 0.98 km² are sealed, which makes the size of the (non-sealed)
@@ -124,11 +125,15 @@ use-specific values, we define only those values relevant for |FIELD|, |CONIFER|
 >>> ti(4.0)
 >>> ddf(5.0)
 >>> ddt(0.0)
+>>> cwe(400.0)
 >>> cw(400.0)
+>>> cve(0.2)
 >>> cv(0.2)
+>>> cge(200000.0)
 >>> cg(200000.0)
 >>> cgf(1.0)
 >>> cq(0.5)
+>>> ac(200.0)
 >>> b(soil=SANDY_LOAM)
 >>> psiae(soil=SANDY_LOAM)
 >>> thetas(soil=SANDY_LOAM)
@@ -187,7 +192,10 @@ storages as (almost) empty:
 >>> test.inits = (
 ...     (states.ic, (-3.0, -3.0, -3.0, 0.0)),
 ...     (states.sp, (-3.0, -3.0, -3.0, 0.0)),
+...     (states.dve, 140.0),
 ...     (states.dv, 140.0),
+...     (states.gp, 10.0),
+...     (states.hge, -100.0),
 ...     (states.dg, 1600.0),
 ...     (states.hq, 0.0),
 ...     (states.hs, -2.0),
@@ -917,6 +925,7 @@ when their shape changes:
 >>> nu(1)
 >>> aur(1.0)
 >>> lt(WATER)
+>>> er(False)
 >>> model.update_parameters()
 >>> model.petmodel.parameters.control.dampingfactor(1.0)
 >>> model.petmodel.retmodel.parameters.control.evapotranspirationfactor(0.9)
@@ -1073,6 +1082,8 @@ class Model(
         wland_model.Calc_ETV_V1,
         wland_model.Calc_ES_V1,
         wland_model.Calc_FQS_V1,
+        wland_model.Calc_GR1_V1,
+        wland_model.Calc_GR2_V1,
         wland_model.Calc_FGS_V1,
         wland_model.Calc_RH_V1,
         wland_model.Calc_DVEq_V1,
@@ -1082,6 +1093,7 @@ class Model(
         wland_model.Update_IC_V1,
         wland_model.Update_SP_V1,
         wland_model.Update_DV_V1,
+        wland_model.Update_GP_V1,
         wland_model.Update_DG_V1,
         wland_model.Update_HQ_V1,
         wland_model.Update_HS_V1,

@@ -21,13 +21,31 @@ class SP(wland_sequences.StateSequence1DLand):
     NDIM, NUMERIC, SPAN = 1, True, (None, None)
 
 
+class DVE(sequencetools.StateSequence):
+    """Storage deficit of the vadose zone [mm]."""
+
+    NDIM, NUMERIC, SPAN = 0, True, (None, None)
+
+
 class DV(sequencetools.StateSequence):
     """Storage deficit of the vadose zone [mm]."""
 
     NDIM, NUMERIC, SPAN = 0, True, (None, None)
 
 
+class GP(sequencetools.StateSequence):
+    """Grundwasserpassage [mm]."""
+
+    NDIM, NUMERIC, SPAN = 0, True, (None, None)
+
+
 class DG(sequencetools.StateSequence):
+    """Groundwater depth [mm]."""
+
+    NDIM, NUMERIC, SPAN = 0, True, (None, None)
+
+
+class HGE(sequencetools.StateSequence):
     """Groundwater depth [mm]."""
 
     NDIM, NUMERIC, SPAN = 0, True, (None, None)

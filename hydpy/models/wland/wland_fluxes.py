@@ -70,6 +70,12 @@ class PS(sequencetools.FluxSequence):
     NDIM, NUMERIC, SPAN = 0, True, (0.0, None)
 
 
+class PVE(sequencetools.FluxSequence):
+    """Rainfall (and snowmelt) entering the vadose zone [mm/T]."""
+
+    NDIM, NUMERIC, SPAN = 0, True, (0.0, None)
+
+
 class PV(sequencetools.FluxSequence):
     """Rainfall (and snowmelt) entering the vadose zone [mm/T]."""
 
@@ -80,6 +86,12 @@ class PQ(sequencetools.FluxSequence):
     """Rainfall (and snowmelt) entering the quickflow reservoir [mm/T]."""
 
     NDIM, NUMERIC, SPAN = 0, True, (0.0, None)
+
+
+class ETVE(sequencetools.FluxSequence):
+    """Actual evapotranspiration from the vadose zone [mm/T]."""
+
+    NDIM, NUMERIC, SPAN = 0, True, (None, None)
 
 
 class ETV(sequencetools.FluxSequence):
@@ -100,6 +112,18 @@ class ET(sequencetools.FluxSequence):
     NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
 
+class GRA(sequencetools.FluxSequence):
+    """Actual groundwater recharge [mm/T]."""
+
+    NDIM, NUMERIC, SPAN = 0, True, (None, None)
+
+
+class GRD(sequencetools.FluxSequence):
+    """Delayed groundwater recharge [mm/T]."""
+
+    NDIM, NUMERIC, SPAN = 0, True, (None, None)
+
+
 class FXS(sequencetools.FluxSequence):
     """Surface water supply/extraction (normalised to |ASR|) [mm/T]."""
 
@@ -114,6 +138,12 @@ class FXG(sequencetools.FluxSequence):
 
 class CDG(sequencetools.FluxSequence):
     """Change in the groundwater depth due to percolation and capillary rise [mm/T]."""
+
+    NDIM, NUMERIC, SPAN = 0, True, (None, None)
+
+
+class FGSE(sequencetools.FluxSequence):
+    """Groundwater drainage/surface water infiltration [mm/T]."""
 
     NDIM, NUMERIC, SPAN = 0, True, (None, None)
 

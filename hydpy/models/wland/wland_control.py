@@ -132,6 +132,13 @@ unit, but 2 units are defined as such.
             )
 
 
+class ER(wland_parameters.LanduseParameterLand):
+    """Elevated regions [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, bool, None, (None, None)
+    INIT = False
+
+
 class AUR(parametertools.Parameter):
     """Relative area of each hydrological response unit [-]."""
 
@@ -233,10 +240,22 @@ class DDT(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
 
+class CWE(parametertools.Parameter):
+    """Wetness index parameter [mm]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (1.0, None)
+
+
 class CW(parametertools.Parameter):
     """Wetness index parameter [mm]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (1.0, None)
+
+
+class CVE(parametertools.Parameter):
+    """Vadose zone relaxation time constant [T]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
 
 class CV(parametertools.Parameter):
@@ -246,6 +265,12 @@ class CV(parametertools.Parameter):
 
 
 class CG(parametertools.Parameter):
+    """Groundwater reservoir constant [mm T]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
+
+
+class CGE(parametertools.Parameter):
     """Groundwater reservoir constant [mm T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
@@ -449,6 +474,12 @@ class ThetaR(parametertools.Parameter):
         if upper is None:
             upper = exceptiontools.getattr_(self.subpars.thetas, "value", None)
         super().trim(lower, upper)
+
+
+class AC(parametertools.Parameter):  # ToDo: SoilParameter, default values
+    """Air capacity [mm]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
 
 class Zeta1(parametertools.Parameter):

@@ -1,5 +1,4 @@
-from numpy import float_
-from numpy.typing import NDArray
+from hydpy.core.typingtools import *
 
 class ANN:
     # required for usage as an "algorithm" by interputils:

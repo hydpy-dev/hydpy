@@ -469,8 +469,7 @@ mind, that `name` is the unique identifier for fused variable instances.
         return _registry_fusedvariable.clear()
 
     def __iter__(self) -> Iterator[sequencetools.InOutSequenceTypes]:
-        for variable in self._variables:
-            yield variable
+        yield from self._variables
 
     def __contains__(self, item: object) -> bool:
         sqt = sequencetools
@@ -1190,7 +1189,9 @@ class Nodes(Devices["Node"]):
         _default_variable_copy = _default_variable
         try:
             _default_variable = defaultvariable
-            return super().__new__(cls, *values, mutable=mutable)  # type: ignore[return-value, arg-type]  # pylint: disable=line-too-long
+            return super().__new__(  # type: ignore[return-value]
+                cls, *values, mutable=mutable  # type: ignore[arg-type]
+            )
         finally:
             _default_variable = _default_variable_copy
 
@@ -2294,8 +2295,7 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         ValueError: Function `get_double` of class `Node` does not support the given \
 group name `test`.
         """
-        # due to https://github.com/python/mypy/issues/9718:
-        # pylint: disable=consider-using-in,too-many-boolean-expressions
+        # pylint: disable=consider-using-in
 
         dm = self.deploymode
 

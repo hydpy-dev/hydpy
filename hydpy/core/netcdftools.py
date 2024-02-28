@@ -1904,15 +1904,13 @@ named `lland_v1` nor does it define a member named `lland_v1`.
     ) -> Iterator[sequencetools.IOSequence]:
         for device in deviceorder:
             if isinstance(device, devicetools.Node):
-                for sequence in device.sequences:
-                    yield sequence
+                yield from device.sequences
             else:
                 for model in device.model.find_submodels(
                     include_mainmodel=True
                 ).values():
                     for subseqs in model.sequences.iosubsequences:
-                        for sequence_ in subseqs:
-                            yield sequence_
+                        yield from subseqs
 
     @property
     def foldernames(self) -> tuple[str, ...]:
@@ -1957,8 +1955,7 @@ named `lland_v1` nor does it define a member named `lland_v1`.
 
     def __iter__(self) -> Iterator[TypeNetCDFVariable]:
         for file2var in self._dir2file2var.values():
-            for var in file2var.values():
-                yield var
+            yield from file2var.values()
 
     def __dir__(self) -> list[str]:
         adds_long = []

@@ -219,5 +219,4 @@ def progressbar(iterable: Iterable[T], length: int = 23) -> Iterator[T]:
                 sys.stdout.write(temp_stdout.read())
             sys.stdout.flush()
     else:
-        for next_ in iterable:
-            yield next_
+        yield from iterable

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=line-too-long, unused-wildcard-import
+# pylint: disable=unused-wildcard-import
 """Submodel for querying the current water level from a remote node.
 
 |exch_waterlevel| informs its main model about the current water level simulated by

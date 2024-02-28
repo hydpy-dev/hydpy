@@ -120,7 +120,7 @@ __version__ = "6.0a0"
 
 pub.options = optiontools.Options()
 pub.indexer = indextools.Indexer()
-pub.config = configutils.Config()  # pylint: disable=used-before-assignment
+pub.config = configutils.Config()
 
 pub.scriptfunctions["await_server"] = await_server
 pub.scriptfunctions["exec_commands"] = exec_commands

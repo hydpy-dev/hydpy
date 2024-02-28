@@ -1732,12 +1732,11 @@ object named `fc`.
         information.
         """
         with open(logfilepath, encoding=config.ENCODING) as logfile:
-            # pylint: disable=not-an-iterable
-            # because pylint is sometimes wrong about this
             lines = tuple(
-                line for line in logfile if line.strip() and (not line.startswith("#"))
+                line
+                for line in logfile  # pylint: disable=not-an-iterable
+                if (line.strip() and (not line.startswith("#")))
             )
-            # pylint: enable=not-an-iterable
         idx2name, idx2rule = {}, {}
         parameterstep: Optional[Union[str, timetools.Period]]
         for idx, (name, parameterstep) in enumerate(
@@ -2139,8 +2138,7 @@ parameterstep="1d"))
         return len(self._rules)
 
     def __iter__(self) -> Iterator[TypeRule1]:
-        for rule in self._rules.values():
-            yield rule
+        yield from self._rules.values()
 
     def __getattr__(self, item: str) -> TypeRule1:
         try:
@@ -2266,8 +2264,7 @@ class RuleIUH(Rule["arma_control.Responses"]):
     @property
     def _iuhs(self) -> Iterable[iuhtools.IUH]:
         element2iuh = {} if self._element2iuh is None else self._element2iuh
-        for iuh in element2iuh.values():
-            yield iuh
+        yield from element2iuh.values()
 
     def reset_parameters(self) -> None:
         """Reset all relevant parameter objects to their original states.
@@ -2761,8 +2758,7 @@ object named `second`.
         return len(self._name2parspec)
 
     def __iter__(self) -> Iterator[CalibSpec]:
-        for value in self._name2parspec.values():
-            yield value
+        yield from self._name2parspec.values()
 
     def append(self, *calibspecs: CalibSpec) -> None:
         """Append one or more |CalibSpec| objects.

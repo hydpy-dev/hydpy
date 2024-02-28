@@ -837,8 +837,12 @@ standard library for for further information.
                 axis1 = self.parseqs
             if axis2 is None:
                 axis2 = ()
-            axis1 = objecttools.extract(axis1, (sequencetools.IOSequence,))  # type: ignore[type-abstract]  # pylint: disable=line-too-long
-            axis2 = objecttools.extract(axis2, (sequencetools.IOSequence,))  # type: ignore[type-abstract]  # pylint: disable=line-too-long
+            axis1 = objecttools.extract(
+                axis1, (sequencetools.IOSequence,)  # type: ignore[type-abstract]
+            )
+            axis2 = objecttools.extract(
+                axis2, (sequencetools.IOSequence,)  # type: ignore[type-abstract]
+            )
         sel_sequences = self.plotting_options.selected
         if sel_sequences is None:
             sel_sequences = self.parseqs

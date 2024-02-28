@@ -764,8 +764,7 @@ class Calc_TimeStep_V1(modeltools.Method):
                     ],
                     model.routingmodels.submodels[i],
                 ).get_maxtimestep()
-                if timestep < fac.timestep:
-                    fac.timestep = timestep
+                fac.timestep = min(fac.timestep, timestep)
         if fac.timestep < model.timeleft:
             model.timeleft -= fac.timestep
         else:

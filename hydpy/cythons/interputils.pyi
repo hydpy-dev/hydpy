@@ -1,11 +1,11 @@
-from typing import Sequence, Tuple, Union
+# pylint: disable=missing-docstring, unused-argument
 
 from typing import Sequence, Tuple, Union
 
 from hydpy.auxs.interptools import InterpAlgorithm
-from hydpy.cythons.annutils import ANN
-from hydpy.cythons.ppolyutils import PPoly
 from hydpy.core.typingtools import *
+from hydpy.cythons.autogen.annutils import ANN
+from hydpy.cythons.autogen.ppolyutils import PPoly
 
 class SimpleInterpolator:
     nmb_inputs: int

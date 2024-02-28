@@ -364,8 +364,8 @@ yet: longitude(?).
         derived
         solver
         """
-        for subpars in (self.derived, self.solver):
-            yield subpars
+        yield self.derived
+        yield self.solver
 
     def __getitem__(self, item: str) -> SubParameters:
         try:
@@ -934,8 +934,7 @@ raise_exception=False)
             raise KeywordArgumentsError(
                 f"Cannot iterate an invalid `{type(self).__name__}` object."
             )
-        for item in self._name2value.items():
-            yield item
+        yield from self._name2value.items()
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, KeywordArguments):

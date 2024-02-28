@@ -1,3 +1,5 @@
+# pylint: disable=missing-docstring, unused-argument
+
 from hydpy.core.typingtools import *
 
 class BaseInterface:

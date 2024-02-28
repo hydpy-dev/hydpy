@@ -2470,8 +2470,7 @@ error occurred: 5 values are assigned to the scalar variable `testvar`.
             variable._set_value(value)
 
     def __iter__(self) -> Iterator[TypeVariable_co]:
-        for variable in self._name2variable.values():
-            yield variable
+        yield from self._name2variable.values()
 
     def __len__(self) -> int:
         return len(self.CLASSES)

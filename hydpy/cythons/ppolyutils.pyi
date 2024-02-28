@@ -1,3 +1,5 @@
+# pylint: disable=missing-docstring
+
 from hydpy.core.typingtools import *
 
 class PPoly:

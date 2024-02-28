@@ -224,7 +224,9 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     for node in nodes:
         value1 = init_values(node.sequences.sim, value1)  # type: ignore[arg-type]
     init_values(element4.model.sequences.states.sp, value1)  # type: ignore[arg-type]
-    init_values(element3.model.sequences.inputs.windspeed, value1)  # type: ignore[arg-type]  # pylint: disable=line-too-long
+    init_values(
+        element3.model.sequences.inputs.windspeed, value1  # type: ignore[arg-type]
+    )
     init_values(element3.model.aetmodel.sequences.inputs.windspeed, value1)
 
     return nodes, elements

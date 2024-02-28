@@ -357,8 +357,7 @@ nor does it handle a model named `lland_v1`...
         super().__delattr__(name)
 
     def __iter__(self) -> Iterator[tuple[str, SubAuxfiler]]:
-        for item in sorted(self._model2subauxfiler.items()):
-            yield item
+        yield from sorted(self._model2subauxfiler.items())
 
     def __repr__(self) -> str:
         return objecttools.apply_black(

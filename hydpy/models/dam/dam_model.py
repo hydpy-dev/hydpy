@@ -4103,6 +4103,7 @@ class Calc_FreeDischarge_V1(modeltools.Method):
             fac.remotewaterlevel - con.remotewaterlevelmaximumthreshold,
             der.remotewaterlevelmaximumsmoothpar,
         )
+        # pylint: disable=invalid-unary-operand-type
         q_trimmed: float = -smoothutils.smooth_logistic2(
             -flu.maxfreedischarge, der.dischargesmoothpar
         )

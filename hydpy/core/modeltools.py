@@ -807,8 +807,7 @@ interfaces: RoutingModel_V1 and RoutingModel_V2.
 
     def __iter__(self) -> Iterator[Optional[TypeSubmodelInterface]]:
         assert (mainmodel := self._mainmodel) is not None
-        for submodel in self.__hydpy_mainmodel2submodels__[mainmodel]:
-            yield submodel
+        yield from self.__hydpy_mainmodel2submodels__[mainmodel]
 
     def __len__(self) -> int:
         return self.number

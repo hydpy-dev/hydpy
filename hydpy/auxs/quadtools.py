@@ -21,7 +21,7 @@ class Quad(modeltools.Submodel):
     """Numerical solver for quadrature problems based on the Gauss-Lobatto
     quadrature."""
 
-    CYTHONBASECLASS = quadutils.QuadBase  # pylint: disable=used-before-assignment
+    CYTHONBASECLASS = quadutils.QuadBase
     PYTHONCLASS = quadutils.QuadPython
     _cysubmodel: quadutils.QuadBase
 

@@ -746,10 +746,8 @@ patch(template % "StateSequences") as states:
         """Generator object yielding all conditions (|StateSequence| and |LogSequence|
         objects).
         """
-        for state in self.states:
-            yield state
-        for log in self.logs:
-            yield log
+        yield from self.states
+        yield from self.logs
 
     @property
     def conditions(self) -> ConditionsSubmodel:
@@ -4305,9 +4303,7 @@ class NodeSequences(
 
     def _init_fastaccess(self) -> None:
         if hydpy.pub.options.usecython:
-            self.fastaccess = (
-                sequenceutils.FastAccessNodeSequence()  # pylint: disable=used-before-assignment
-            )
+            self.fastaccess = sequenceutils.FastAccessNodeSequence()
         else:
             self.fastaccess = self._CLS_FASTACCESS_PYTHON()
 

@@ -1017,10 +1017,8 @@ class Substituter:
                 print(key, value)
 
     def __iter__(self) -> Iterator[tuple[str, str]]:
-        for item in sorted(self.short2long.items()):
-            yield item
-        for item in sorted(self.medium2long.items()):
-            yield item
+        yield from sorted(self.short2long.items())
+        yield from sorted(self.medium2long.items())
 
 
 def prepare_mainsubstituter() -> Substituter:
@@ -1068,13 +1066,13 @@ def prepare_mainsubstituter() -> Substituter:
     substituter.add_module(examples)
     substituter.add_modules(models)
     for cymodule in (
-        annutils,  # pylint: disable=used-before-assignment
-        interputils,  # pylint: disable=used-before-assignment
-        ppolyutils,  # pylint: disable=used-before-assignment
-        pointerutils,  # pylint: disable=used-before-assignment
-        quadutils,  # pylint: disable=used-before-assignment
-        rootutils,  # pylint: disable=used-before-assignment
-        smoothutils,  # pylint: disable=used-before-assignment
+        annutils,
+        interputils,
+        ppolyutils,
+        pointerutils,
+        quadutils,
+        rootutils,
+        smoothutils,
     ):
         substituter.add_module(cymodule, cython=True)
     substituter.short2long["|pub|"] = ":mod:`~hydpy.pub`"

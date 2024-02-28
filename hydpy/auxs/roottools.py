@@ -35,7 +35,7 @@ class Pegasus(modeltools.Submodel):
     monotone functions only.
     """
 
-    CYTHONBASECLASS = rootutils.PegasusBase  # pylint: disable=used-before-assignment
+    CYTHONBASECLASS = rootutils.PegasusBase
     PYTHONCLASS = rootutils.PegasusPython
     _cysubmodel: rootutils.PegasusBase
 

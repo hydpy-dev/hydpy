@@ -1,3 +1,5 @@
+# pylint: disable=missing-docstring, unused-argument
+
 from hydpy.core import modeltools
 
 class PegasusBase:

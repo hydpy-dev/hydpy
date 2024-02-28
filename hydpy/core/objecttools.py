@@ -1697,8 +1697,7 @@ classes: str and int.
             if isinstance(values, str) or not isinstance(values, Iterable):
                 raise TypeError("temp")
             for value in values:
-                for subvalue in extract(value, types_, skip):
-                    yield subvalue
+                yield from extract(value, types_, skip)
         except TypeError as exc:
             if exc.args[0].startswith("The given (sub)value"):
                 raise exc

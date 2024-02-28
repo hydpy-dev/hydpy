@@ -5874,7 +5874,7 @@ class Calc_DailyWaterEvaporation_V1(modeltools.Method):
         >>> logs.loggedwaterevaporation = [[1.0, 2.0], [5.0, 6.0], [3.0, 4.0]]
         >>> model.calc_dailywaterevaporation_v1()
         >>> fluxes.dailywaterevaporation
-        dailywaterevaporation(3.0, 4.0)
+        dailywaterevaporation(9.0, 12.0)
     """
 
     CONTROLPARAMETERS = (evap_control.NmbHRU,)
@@ -5893,8 +5893,6 @@ class Calc_DailyWaterEvaporation_V1(modeltools.Method):
         for idx in range(der.nmblogentries):
             for k in range(con.nmbhru):
                 flu.dailywaterevaporation[k] += log.loggedwaterevaporation[idx, k]
-        for k in range(con.nmbhru):
-            flu.dailywaterevaporation[k] /= der.nmblogentries
 
 
 class Calc_InterceptionEvaporation_V1(modeltools.Method):

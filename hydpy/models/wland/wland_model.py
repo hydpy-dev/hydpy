@@ -1769,7 +1769,7 @@ class Return_ErrorDV_V1(modeltools.Method):
         As mentioned above, method |Return_ErrorDV_V1| changes the values of the
         sequences |DG| and |DVEq|, but only temporarily.  Hence, we do not include
         them in the method specifications, even if the following check considers this
-        to be erroneous:
+        erroneous:
 
         >>> from hydpy.core.testtools import check_selectedvariables
         >>> from hydpy.models.wland.wland_model import Return_ErrorDV_V1
@@ -2013,30 +2013,59 @@ class Calc_CDG_V1(modeltools.Method):
     capillary rise.
 
     Basic equation (discontinuous):
-      :math:`CDG = \frac{DV-min(DVEq, DG)}{CV}`
+      .. math::
+        CDG = \frac{DV-min(DVEq, DG)}{CV} + \begin{cases}
+        \frac{FGS - FXG}{ThetaS} &|\ DGC \\
+        0 &|\  \overline{DGC}
+        \end{cases}
 
-    Note that this equation slightly differs from equation 6 of
-    :cite:t:`ref-Brauer2014`.  In the case of large-scale ponding, |DVEq| always stays
-    at zero, and we let |DG| take control of the speed of the water table movement.
-    See the documentation on method |Calc_FGS_V1| for additional information on the
-    differences between |wland| and `WALRUS`_ for this rare situation.
+    Note that this equation differs in two respects from equation 6 of
+    :cite:t:`ref-Brauer2014`.
+
+    First, in the case of large-scale ponding, |DVEq| always stays at zero, and we let
+    |DG| take control of the speed of the water table movement.  See the documentation
+    on method |Calc_FGS_V1| for additional information on the differences between
+    |wland| and `WALRUS`_ for this rare situation.
+
+    Second, one can set |DGC| to |True| to enforce a more direct connection between the
+    groundwater and surface water storage level. According to :cite:t:`ref-Brauer2014`,
+    groundwater drainage and extraction increase and surface water infiltration and
+    seepage decrease the water deficit in the vadose zone but do not change groundwater
+    depth directly.  This abstraction is as if, for example, groundwater drainage would
+    take water from the soil's top.  The groundwater level only reacts with some delay
+    due to its tendency to advance towards the increased equilibrium depth.  With |DGC|
+    enabled, the mentioned fluxes change the vadose zone's deficit and the groundwater
+    depth simultaneously.
 
     Examples:
+
+        Without large-scale ponding and a direct groundwater connection:
 
         >>> from hydpy.models.wland import *
         >>> simulationstep("12h")
         >>> parameterstep("1d")
+        >>> dgc(False)
         >>> cv(10.0)
+        >>> thetas(0.5)
         >>> sh(0.0)
         >>> derived.rh1.update()
         >>> states.dv = 100.0
         >>> states.dg = 1000.0
+        >>> fluxes.fgs = 2.0
+        >>> fluxes.fxg = 3.0
         >>> aides.dveq = 80.0
         >>> model.calc_cdg_v1()
         >>> fluxes.cdg
         cdg(1.0)
 
-        Without large-scale ponding:
+        Without large-scale ponding and with a direct groundwater connection:
+
+        >>> dgc(True)
+        >>> model.calc_cdg_v1()
+        >>> fluxes.cdg
+        cdg(-1.0)
+
+        With large-scale ponding and without smoothing:
 
         >>> from hydpy import UnitTest
         >>> test = UnitTest(
@@ -2045,9 +2074,7 @@ class Calc_CDG_V1(modeltools.Method):
         ...     last_example=5,
         ...     parseqs=(states.dg, fluxes.cdg)
         ... )
-
-        With large-scale ponding and without smoothing:
-
+        >>> dgc(False)
         >>> states.dv = -10.0
         >>> aides.dveq = 0.0
         >>> test.nexts.dg = 10.0, 1.0, 0.0, -1.0, -10.0
@@ -2060,7 +2087,7 @@ class Calc_CDG_V1(modeltools.Method):
         |   4 |  -1.0 | -0.45 |
         |   5 | -10.0 |   0.0 |
 
-        With large-scale ponding and with smoothing:
+        With large-scale ponding and smoothing:
 
         >>> sh(1.0)
         >>> derived.rh1.update()
@@ -2074,9 +2101,15 @@ class Calc_CDG_V1(modeltools.Method):
         |   5 | -10.0 |       0.0 |
     """
 
-    CONTROLPARAMETERS = (wland_control.CV,)
+    CONTROLPARAMETERS = (wland_control.CV, wland_control.ThetaS, wland_control.DGC)
     DERIVEDPARAMETERS = (wland_derived.NUG, wland_derived.RH1)
-    REQUIREDSEQUENCES = (wland_states.DG, wland_states.DV, wland_aides.DVEq)
+    REQUIREDSEQUENCES = (
+        wland_states.DG,
+        wland_states.DV,
+        wland_fluxes.FGS,
+        wland_fluxes.FXG,
+        wland_aides.DVEq,
+    )
     RESULTSEQUENCES = (wland_fluxes.CDG,)
 
     @staticmethod
@@ -2089,6 +2122,8 @@ class Calc_CDG_V1(modeltools.Method):
         if der.nug:
             target: float = smoothutils.smooth_min1(aid.dveq, sta.dg, der.rh1)
             flu.cdg = (sta.dv - target) / con.cv
+            if con.dgc:
+                flu.cdg += (flu.fgs - flu.fxg) / con.thetas
         else:
             flu.cdg = 0.0
 
@@ -2196,11 +2231,11 @@ class Calc_FGS_V1(modeltools.Method):
     r"""Calculate the groundwater drainage or surface water infiltration.
 
     For large-scale ponding, |wland| and `WALRUS`_ calculate |FGS| differently
-    (even for discontinuous parameterisations).  The `WALRUS`_  model redistributes
-    water instantaneously in such cases (see :cite:t:`ref-Brauer2014`, section 5.11),
+    (even for discontinuous parameterisations).  In such cases, he `WALRUS`_ model
+    redistributes water instantaneously (see :cite:t:`ref-Brauer2014`, section 5.11),
     which relates to infinitely high flow velocities and cannot be handled by the
-    numerical integration algorithm underlying |wland|.  Hence, we instead introduce
-    the parameter |CGF|.  Setting it to a value larger than zero increases the flow
+    numerical integration algorithm underlying |wland|.  Hence, we introduce the
+    parameter |CGF| instead.  Setting it to a value larger than zero increases the flow
     velocity with increasing large-scale ponding.  The larger the value of |CGF|,
     the stronger the functional similarity of both approaches.  But note that very
     high values can result in increased computation times.

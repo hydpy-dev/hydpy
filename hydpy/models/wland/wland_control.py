@@ -263,6 +263,12 @@ class CGF(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
 
+class DGC(parametertools.Parameter):
+    """Direct groundwater connect [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, bool, None, (None, None)
+
+
 class CQ(parametertools.Parameter):
     """Quickflow reservoir relaxation time [T]."""
 

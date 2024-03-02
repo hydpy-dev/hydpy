@@ -65,7 +65,7 @@ class AM(wland_sequences.FluxSequence1DLand):
 
 
 class PS(sequencetools.FluxSequence):
-    """Precipitation entering the surface water reservoir [mm/T]."""
+    """Precipitation that enters the surface water reservoir [mm/T]."""
 
     NDIM, NUMERIC, SPAN = 0, True, (0.0, None)
 

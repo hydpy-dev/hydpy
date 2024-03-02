@@ -58,7 +58,7 @@ ones.  Please use one of the following constants: SAND (1), LOAMY_SAND (2), \
 SANDY_LOAM (3), SILT_LOAM (4), LOAM (5), SANDY_CLAY_LOAM (6), SILT_CLAY_LOAM (7), \
 CLAY_LOAM (8), SANDY_CLAY (9), SILTY_CLAY (10), and CLAY (11).
 
-    It is not allowed to combine the `soil` keyword with other keywords:
+    Combining the `soil` keyword with other keywords is not allowed:
 
     >>> b(soil=SAND, landuse='acre')
     Traceback (most recent call last):
@@ -192,8 +192,8 @@ class LanduseParameterLand(parametertools.ZipParameter):
 
 
 class LanduseMonthParameter(parametertools.KeywordParameter2D):
-    """Base class for parameters which values depend both on the actual month and
-    land-use type."""
+    """Base class for parameters which values depend on the actual month and land-use
+    type."""
 
     columnnames = (
         "jan",

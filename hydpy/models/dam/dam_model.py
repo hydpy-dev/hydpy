@@ -3771,10 +3771,9 @@ class Calc_ForcedDischarge_V1(modeltools.Method):
 
     Basic equation:
       .. math::
-        ForcedDischarge = MaxForcedDischarge \cdot r_1 \cdot (1 - r_2)
         ForcedDischarge = \begin{cases}
-                            MaxForcedDischarge \cdot (1 - r_1) \cdot r_2, & \text{if } MaxForcedDischarge < 0 \\
-                            MaxForcedDischarge \cdot r_1 \cdot (1 - r_2), & \text{otherwise}
+                            MaxForcedDischarge \cdot (1 - r_1) \cdot r_2, & | MaxForcedDischarge < 0 \\
+                            MaxForcedDischarge \cdot r_1 \cdot (1 - r_2), & | MaxForcedDischarge \geq 0
                             \end{cases}
         \\ \\
         r_1 = f_{smooth \, logistic1}(WaterLevelMaximumThreshold -
@@ -3874,35 +3873,35 @@ class Calc_ForcedDischarge_V1(modeltools.Method):
 
         When |MaxForcedDischarge| is negative, the flow direction is reversed.
         Forced discharge will start when the |RemoteWaterLevelMaximumThreshold| is higher
-        than 4.9 and will drop to zero as soon as the |WaterLevelMaximumThreshold| is reached.
+        than 4.9 and drop to zero as soon as the |WaterLevelMaximumThreshold| is reached.
 
         >>> fluxes.maxforceddischarge = -2.0
         >>> waterlevelmaximumthreshold(3.1)
         >>> remotewaterlevelmaximumthreshold(4.9)
         >>> test()
-        | ex. |         waterlevel |   remotewaterlevel |         forceddischarge |
-        ---------------------------------------------------------------------------
-        |   1 |               2.95 |               4.85 | -2.1030732710869415e-10 |
-        |   2 |               2.96 |  4.859999999999999 | -2.0820406954058512e-08 |
-        |   3 |               2.97 |  4.869999999999999 | -2.0612181799162244e-06 |
-        |   4 |               2.98 |               4.88 |  -0.0002040399918383784 |
-        |   5 |               2.99 |               4.89 |   -0.019999999999993977 |
-        |   6 |                3.0 | 4.8999999999999995 |     -0.9999999999997462 |
-        |   7 | 3.0100000000000002 |               4.91 |     -1.9799999999978948 |
-        |   8 |               3.02 |               4.92 |     -1.9997959599627049 |
-        |   9 | 3.0300000000000002 |               4.93 |     -1.9999979378089265 |
-        |  10 |               3.04 | 4.9399999999999995 |     -1.9999999583591863 |
-        |  11 |               3.05 |  4.949999999999999 |     -1.9999995542231388 |
-        |  12 |               3.06 |               4.96 |      -1.999990464704211 |
-        |  13 |               3.07 |               4.97 |       -1.99979596000814 |
-        |  14 |               3.08 | 4.9799999999999995 |     -1.9956425157947337 |
-        |  15 |               3.09 |               4.99 |     -1.9107161888512798 |
-        |  16 |                3.1 |                5.0 |                    -1.0 |
-        |  17 |               3.11 |               5.01 |    -0.08928381114873174 |
-        |  18 |               3.12 |               5.02 |   -0.004357484205266049 |
-        |  19 |               3.13 |  5.029999999999999 |  -0.0002040399918383784 |
-        |  20 |               3.14 |               5.04 |   -9.53529366465311e-06 |
-        |  21 |               3.15 |               5.05 | -4.4556655409699886e-07 |
+        | ex. | waterlevel | remotewaterlevel | forceddischarge |
+        ---------------------------------------------------------
+        |   1 |       2.95 |             4.85 |             0.0 |
+        |   2 |       2.96 |             4.86 |             0.0 |
+        |   3 |       2.97 |             4.87 |       -0.000002 |
+        |   4 |       2.98 |             4.88 |       -0.000204 |
+        |   5 |       2.99 |             4.89 |           -0.02 |
+        |   6 |        3.0 |              4.9 |            -1.0 |
+        |   7 |       3.01 |             4.91 |           -1.98 |
+        |   8 |       3.02 |             4.92 |       -1.999796 |
+        |   9 |       3.03 |             4.93 |       -1.999998 |
+        |  10 |       3.04 |             4.94 |            -2.0 |
+        |  11 |       3.05 |             4.95 |            -2.0 |
+        |  12 |       3.06 |             4.96 |        -1.99999 |
+        |  13 |       3.07 |             4.97 |       -1.999796 |
+        |  14 |       3.08 |             4.98 |       -1.995643 |
+        |  15 |       3.09 |             4.99 |       -1.910716 |
+        |  16 |        3.1 |              5.0 |            -1.0 |
+        |  17 |       3.11 |             5.01 |       -0.089284 |
+        |  18 |       3.12 |             5.02 |       -0.004357 |
+        |  19 |       3.13 |             5.03 |       -0.000204 |
+        |  20 |       3.14 |             5.04 |        -0.00001 |
+        |  21 |       3.15 |             5.05 |             0.0 |
     """
 
     CONTROLPARAMETERS = (

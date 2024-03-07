@@ -10,8 +10,8 @@ water level reaches the given target level (|WaterLevelMaximumThreshold|) as
 long as the water level at a remote location does not exceed another defined threshold
 (|RemoteWaterLevelMaximumThreshold|).  The latter restriction helps to prevent further
 increasing high flow conditions in downstream areas.
-If the MaxForcedDischarge is negative, the pumping process is carried out in reverse
-direction (e.g. for modeling irrigation processes).
+If the |MaxForcedDischarge| is negative, the pumping process is carried out in the reverse
+direction (e.g. for modelling irrigation processes).
 
 By default, |dam_pump| neither takes precipitation nor evaporation into account, but
 you can add submodels that comply with the |PrecipModel_V2| or |PETModel_V1| interface

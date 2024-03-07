@@ -3754,9 +3754,7 @@ class Calc_MaxFreeDischarge_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        con.waterleveldifference2maxfreedischarge.inputs[
-            0
-        ] = fac.effectivewaterleveldifference
+        con.waterleveldifference2maxfreedischarge.inputs[0] = fac.effectivewaterleveldifference
         toy: int = der.toy[model.idx_sim]
         con.waterleveldifference2maxfreedischarge.calculate_values(toy)
         flu.maxfreedischarge = con.waterleveldifference2maxfreedischarge.outputs[0]
@@ -3765,9 +3763,11 @@ class Calc_MaxFreeDischarge_V1(modeltools.Method):
 class Calc_ForcedDischarge_V1(modeltools.Method):
     r"""Calculate the actual forced water release through structures as pumps to
     prevent a too-high inner water level if a maximum water level at a remote location
-    is not violated. In the case of a negative value for MaxForcedDischarge (eg. the simulation of irrigation
+    is not violated.
+
+    In the case of a negative value for |MaxForcedDischarge| (e.g. the simulation of irrigation
     processes), the inner water level will be kept higher than a minimum level if the remote water level is higher than
-    WaterLevelMaxumumThreshold.
+    |WaterLevelMaxumumThreshold.|
 
     Basic equation:
       .. math::

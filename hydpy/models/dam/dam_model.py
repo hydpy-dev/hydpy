@@ -3754,7 +3754,9 @@ class Calc_MaxFreeDischarge_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        con.waterleveldifference2maxfreedischarge.inputs[0] = fac.effectivewaterleveldifference
+        con.waterleveldifference2maxfreedischarge.inputs[0] = (
+            fac.effectivewaterleveldifference
+        )
         toy: int = der.toy[model.idx_sim]
         con.waterleveldifference2maxfreedischarge.calculate_values(toy)
         flu.maxfreedischarge = con.waterleveldifference2maxfreedischarge.outputs[0]
@@ -3765,16 +3767,16 @@ class Calc_ForcedDischarge_V1(modeltools.Method):
     prevent a too-high inner water level if a maximum water level at a remote location
     is not violated.
 
-    In the case of a negative value for |MaxForcedDischarge| (e.g. the simulation of irrigation
-    processes), the inner water level will be kept higher than a minimum level if the remote water level is higher than
-    |WaterLevelMaxumumThreshold.|
+    In the case of a negative value for |MaxForcedDischarge| (e.g. the simulation of
+    irrigation processes), the inner water level will be kept higher than a minimum
+    level if the remote water level is higher than |WaterLevelMaximumThreshold|.
 
     Basic equation:
       .. math::
         ForcedDischarge = \begin{cases}
-                            MaxForcedDischarge \cdot (1 - r_1) \cdot r_2, & | MaxForcedDischarge < 0 \\
-                            MaxForcedDischarge \cdot r_1 \cdot (1 - r_2), & | MaxForcedDischarge \geq 0
-                            \end{cases}
+            MaxForcedDischarge \cdot (1 - r_1) \cdot r_2, & | MaxForcedDischarge < 0 \\
+            MaxForcedDischarge \cdot r_1 \cdot (1 - r_2), & | MaxForcedDischarge \geq 0
+            \end{cases}
         \\ \\
         r_1 = f_{smooth \, logistic1}(WaterLevelMaximumThreshold -
         WaterLevel, \, WaterLevelMaximumSmoothPar) \\

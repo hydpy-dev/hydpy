@@ -199,7 +199,7 @@ simultaneously:
 .. _dam_pump_sluice_irrigation_and_sluice:
 
 irrigation and sluice
-_______________
+_____________________
 
 The last example shows how |MaxForcedDischarge| calculates both discharge types
 simultaneously but uses a negative value for maxforceddischarge (resulting in reverse flow direction,

@@ -3767,9 +3767,16 @@ class Calc_ForcedDischarge_V1(modeltools.Method):
     prevent a too-high inner water level if a maximum water level at a remote location
     is not violated.
 
+    In the case of a negative value for |MaxForcedDischarge| (e.g. the simulation of
+    irrigation processes), the inner water level will be kept higher than a minimum
+    level if the remote water level is higher than |WaterLevelMaximumThreshold|.
+
     Basic equation:
       .. math::
-        ForcedDischarge = MaxForcedDischarge \cdot r_1 \cdot (1 - r_2)
+        ForcedDischarge = \begin{cases}
+            MaxForcedDischarge \cdot (1 - r_1) \cdot r_2, & | MaxForcedDischarge < 0 \\
+            MaxForcedDischarge \cdot r_1 \cdot (1 - r_2), & | MaxForcedDischarge \geq 0
+            \end{cases}
         \\ \\
         r_1 = f_{smooth \, logistic1}(WaterLevelMaximumThreshold -
         WaterLevel, \, WaterLevelMaximumSmoothPar) \\
@@ -3865,6 +3872,39 @@ class Calc_ForcedDischarge_V1(modeltools.Method):
         |  19 |       3.13 |             5.03 |        0.000002 |
         |  20 |       3.14 |             5.04 |             0.0 |
         |  21 |       3.15 |             5.05 |             0.0 |
+
+        When |MaxForcedDischarge| is negative, the flow direction is reversed.
+        Forced discharge will start when the |RemoteWaterLevelMaximumThreshold|
+        is higher than 4.9 and drop to zero as soon as the
+        |WaterLevelMaximumThreshold| is reached.
+
+        >>> fluxes.maxforceddischarge = -2.0
+        >>> waterlevelmaximumthreshold(3.1)
+        >>> remotewaterlevelmaximumthreshold(4.9)
+        >>> test()
+        | ex. | waterlevel | remotewaterlevel | forceddischarge |
+        ---------------------------------------------------------
+        |   1 |       2.95 |             4.85 |             0.0 |
+        |   2 |       2.96 |             4.86 |             0.0 |
+        |   3 |       2.97 |             4.87 |       -0.000002 |
+        |   4 |       2.98 |             4.88 |       -0.000204 |
+        |   5 |       2.99 |             4.89 |           -0.02 |
+        |   6 |        3.0 |              4.9 |            -1.0 |
+        |   7 |       3.01 |             4.91 |           -1.98 |
+        |   8 |       3.02 |             4.92 |       -1.999796 |
+        |   9 |       3.03 |             4.93 |       -1.999998 |
+        |  10 |       3.04 |             4.94 |            -2.0 |
+        |  11 |       3.05 |             4.95 |            -2.0 |
+        |  12 |       3.06 |             4.96 |        -1.99999 |
+        |  13 |       3.07 |             4.97 |       -1.999796 |
+        |  14 |       3.08 |             4.98 |       -1.995643 |
+        |  15 |       3.09 |             4.99 |       -1.910716 |
+        |  16 |        3.1 |              5.0 |            -1.0 |
+        |  17 |       3.11 |             5.01 |       -0.089284 |
+        |  18 |       3.12 |             5.02 |       -0.004357 |
+        |  19 |       3.13 |             5.03 |       -0.000204 |
+        |  20 |       3.14 |             5.04 |        -0.00001 |
+        |  21 |       3.15 |             5.05 |             0.0 |
     """
 
     CONTROLPARAMETERS = (
@@ -3896,7 +3936,10 @@ class Calc_ForcedDischarge_V1(modeltools.Method):
             fac.remotewaterlevel - con.remotewaterlevelmaximumthreshold,
             der.remotewaterlevelmaximumsmoothpar,
         )
-        flu.forceddischarge = flu.maxforceddischarge * r1 * (1.0 - r2)
+        if flu.maxforceddischarge >= 0.0:
+            flu.forceddischarge = flu.maxforceddischarge * r1 * (1.0 - r2)
+        else:
+            flu.forceddischarge = flu.maxforceddischarge * (1.0 - r1) * r2
 
 
 class Calc_FreeDischarge_V1(modeltools.Method):

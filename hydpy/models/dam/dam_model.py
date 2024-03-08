@@ -3874,8 +3874,9 @@ class Calc_ForcedDischarge_V1(modeltools.Method):
         |  21 |       3.15 |             5.05 |             0.0 |
 
         When |MaxForcedDischarge| is negative, the flow direction is reversed.
-        Forced discharge will start when the |RemoteWaterLevelMaximumThreshold| is higher
-        than 4.9 and drop to zero as soon as the |WaterLevelMaximumThreshold| is reached.
+        Forced discharge will start when the |RemoteWaterLevelMaximumThreshold|
+        is higher than 4.9 and drop to zero as soon as the
+        |WaterLevelMaximumThreshold| is reached.
 
         >>> fluxes.maxforceddischarge = -2.0
         >>> waterlevelmaximumthreshold(3.1)

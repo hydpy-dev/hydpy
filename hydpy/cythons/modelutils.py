@@ -1815,12 +1815,12 @@ class PyxWriter:
         name2submethods: dict[str, tuple[type[modeltools.Method], ...]] = {}
         for name, member in vars(self.model).items():
             if (
-                isinstance(member, types.MethodType)  # type: ignore[unreachable]
-                and isinstance(call := member.__func__, types.MethodType)  # type: ignore[unreachable]  # pylint: disable=line-too-long
+                isinstance(member, types.MethodType)
+                and isinstance(call := member.__func__, types.MethodType)
                 and inspect.isclass(method := call.__self__)
                 and issubclass(automethod := method, modeltools.AutoMethod)
             ):
-                name2submethods[name] = automethod.SUBMETHODS  # type: ignore[unreachable]  # pylint: disable=line-too-long
+                name2submethods[name] = automethod.SUBMETHODS
         return name2submethods
 
     @property
@@ -2484,15 +2484,17 @@ class FuncConverter:
         ]
 
     @property
-    def reusablemethod(self) -> Optional[modeltools.ReusableMethod]:
+    def reusablemethod(self) -> Optional[type[modeltools.ReusableMethod]]:
         """If the currently handled function object is a reusable method, return the
         corresponding subclass of |ReusableMethod|."""
         if isinstance(method_of_model := self.func, types.MethodType):
-            method_of_reusablemethod = method_of_model.__func__
-            if isinstance(method_of_reusablemethod, types.MethodType):  # type: ignore[unreachable]  # pylint: disable=line-too-long
-                reusablemethod = method_of_reusablemethod.__self__  # type: ignore[unreachable]  # pylint: disable=line-too-long
-                if issubclass(reusablemethod, modeltools.ReusableMethod):
-                    return reusablemethod
+            maybe_method_of_reusablemethod = method_of_model.__func__
+            if isinstance(maybe_method_of_reusablemethod, types.MethodType):
+                maybe_reusablemethod = maybe_method_of_reusablemethod.__self__
+                if isinstance(maybe_reusablemethod, type) and issubclass(
+                    maybe_reusablemethod, modeltools.ReusableMethod
+                ):
+                    return maybe_reusablemethod
         return None
 
     @property

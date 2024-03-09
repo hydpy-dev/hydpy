@@ -1190,7 +1190,7 @@ class Nodes(Devices["Node"]):
         try:
             _default_variable = defaultvariable
             return super().__new__(  # type: ignore[return-value]
-                cls, *values, mutable=mutable  # type: ignore[arg-type]
+                cls, *values, mutable=mutable
             )
         finally:
             _default_variable = _default_variable_copy

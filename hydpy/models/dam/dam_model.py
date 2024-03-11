@@ -3778,10 +3778,10 @@ class Calc_ForcedDischarge_V1(modeltools.Method):
             MaxForcedDischarge \cdot r_1 \cdot (1 - r_2), & | MaxForcedDischarge \geq 0
             \end{cases}
         \\ \\
-        r_1 = f_{smooth \, logistic1}(WaterLevelMaximumThreshold -
-        WaterLevel, \, WaterLevelMaximumSmoothPar) \\
-        r_2 = f_{smooth \, logistic1}(RemoteWaterLevelMaximumThreshold -
-        RemoteWaterLevel, \, RemoteWaterLevelMaximumSmoothPar)
+        r_1 = f_{smooth \, logistic1}(WaterLevel -
+        WaterLevelMaximumThreshold, \, WaterLevelMaximumSmoothPar) \\
+        r_2 = f_{smooth \, logistic1}(RemoteWaterLevel -
+        RemoteWaterLevelMaximumThreshold, \, RemoteWaterLevelMaximumSmoothPar)
 
     Used auxiliary method:
       |smooth_logistic1|

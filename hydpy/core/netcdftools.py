@@ -144,7 +144,7 @@ sake of consistency):
 >>> from numpy import array
 >>> filepath = "project/series/default/sim_q_mean.nc"
 >>> with TestIO(), netcdf4.Dataset(filepath) as ncfile:
-...     array(ncfile["values"][:])
+...     array(ncfile["sim_q_mean"][:])
 array([[60.],
        [61.],
        [62.],
@@ -152,15 +152,16 @@ array([[60.],
 
 >>> filepath = "project/series/default/lland_v1_flux_nkor_mean.nc"
 >>> with TestIO(), netcdf4.Dataset(filepath) as ncfile:
-...         array(ncfile["values"][:])[:, 1]
+...         array(ncfile["lland_v1_flux_nkor_mean"][:])[:, 1]
 array([16.5, 18.5, 20.5, 22.5])
 
-The previous examples relied on "model-specific" file names.  The documentation on
-class |HydPy| introduces the standard "HydPy" convention as an alternative for naming
-input time series files and demonstrates it for file types that store the time series
-of single sequence instances.  Here, we take the input sequence |lland_inputs.Nied| as
-an example to show one can use its standard name |StandardInputNames.PRECIPITATION| to
-read and write more generally named NetCDF files:
+The previous examples relied on "model-specific" file names and variable names.  The
+documentation on class |HydPy| introduces the standard "HydPy" convention as an
+alternative for naming input time series files and demonstrates it for file types that
+store the time series of single sequence instances.  Here, we take the input sequence
+|lland_inputs.Nied| as an example to show that one can use its standard name
+|StandardInputNames.PRECIPITATION| to read and write more generally named NetCDF files
+and variables:
 
 >>> elements.element2.model.sequences.inputs.nied.series
 InfoArray([4., 5., 6., 7.])
@@ -170,7 +171,7 @@ InfoArray([4., 5., 6., 7.])
 ...     elements.save_inputseries()
 >>> filepath = "project/series/default/precipitation.nc"
 >>> with TestIO(), netcdf4.Dataset(filepath) as ncfile:
-...         array(ncfile["values"][:])[:, 1]
+...         array(ncfile["precipitation"][:])[:, 1]
 array([4., 5., 6., 7.])
 
 >>> elements.element2.model.sequences.inputs.nied.series = 0.0
@@ -235,7 +236,7 @@ the value of the keyword "nmb_subdevices" if you prefer to call this dimension
 >>> dimmapping["nmb_subdevices"] = "location"
 """
 
-varmapping = {"values": "values", "timepoints": "time", "subdevices": "station_id"}
+varmapping = {"timepoints": "time", "subdevices": "station_id"}
 """Variable-related terms within NetCDF files.
 
 You can change this mapping if it does not suit your requirements.  For example, change 
@@ -340,8 +341,8 @@ def create_dimension(ncfile: netcdf4.Dataset, name: str, length: int) -> None:
     ...     create_dimension(ncfile, "dim1", 5)
     ... except BaseException as exc:
     ...     print(exc)  # doctest: +ELLIPSIS
-    While trying to add dimension `dim1` with length `5` to the NetCDF file `test.nc`, \
-the following error occurred: ...
+    While trying to add dimension `dim1` with length `5` to the NetCDF file \
+`test.nc`, the following error occurred: ...
 
     >>> ncfile.close()
     """
@@ -874,6 +875,12 @@ class NetCDFVariable(abc.ABC):
         self.filepath = filepath
 
     @property
+    def name(self) -> str:
+        """Name of the NetCDF file and the NetCDF variable containing the time series
+        data."""
+        return os.path.basename(self.filepath)[:-3]
+
+    @property
     @abc.abstractmethod
     def subdevicenames(self) -> tuple[str, ...]:
         """The names of all relevant (sub)devices."""
@@ -1310,7 +1317,7 @@ handle a sequence for the (sub)device `element2` nor define a member named \
         try:
             with netcdf4.Dataset(self.filepath, "r") as ncfile:
                 timegrid = query_timegrid(ncfile, self._anysequence)
-                array = query_array(ncfile, varmapping["values"])
+                array = query_array(ncfile, self.name)
                 idxs: tuple[Any] = (slice(None),)
                 subdev2index = self.query_subdevice2index(ncfile)
                 first_exception: Optional[RuntimeError] = None
@@ -1505,8 +1512,8 @@ series data for the (sub)device `element2` nor define a member named `element2`.
             self._insert_timepoints(ncfile, timepoints, timeunit)
             self.insert_subdevices(ncfile)
             dimensions = dimmapping["nmb_timepoints"], dimmapping["nmb_subdevices"]
-            create_variable(ncfile, varmapping["values"], "f8", dimensions)
-            ncfile[varmapping["values"]][:] = self.array
+            create_variable(ncfile, self.name, "f8", dimensions)
+            ncfile[self.name][:] = self.array
 
     def __getattr__(self, name: str) -> NetCDFVariableInfo:
         try:
@@ -1630,21 +1637,21 @@ class NetCDFVariableAggregated(MixinVariableWriter, NetCDFVariable):
 
     >>> import numpy
     >>> with TestIO(), netcdf4.Dataset("nied.nc", "r") as ncfile:
-    ...     numpy.array(ncfile["values"][:])
+    ...     numpy.array(ncfile["nied"][:])
     array([[0., 4.],
            [1., 5.],
            [2., 6.],
            [3., 7.]])
 
     >>> with TestIO(), netcdf4.Dataset("nkor.nc", "r") as ncfile:
-    ...     numpy.array(ncfile["values"][:])
+    ...     numpy.array(ncfile["nkor"][:])
     array([[12. , 16.5],
            [13. , 18.5],
            [14. , 20.5],
            [15. , 22.5]])
 
     >>> with TestIO(), netcdf4.Dataset("sp.nc", "r") as ncfile:
-    ...     numpy.array(ncfile["values"][:])
+    ...     numpy.array(ncfile["sp"][:])
     array([[70.5],
            [76.5],
            [82.5],
@@ -2144,7 +2151,7 @@ cover the current simulation period \
         >>> from hydpy.core.netcdftools import netcdf4
         >>> filepath = "LahnH/series/default/hland_v1_factor_contriarea.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath, "r") as ncfile:
-        ...     print_values(ncfile["values"][:, 0])
+        ...     print_values(ncfile["hland_v1_factor_contriarea"][:, 0])
         0.495925, 0.493672, 0.492156, 0.49015
 
         Under particular circumstances, the data variable of a NetCDF file can be
@@ -2161,9 +2168,9 @@ cover the current simulation period \
         ...     for name in ("hland_v1_input_t", "hland_v1_factor_contriarea"):
         ...         filepath = f"LahnH/series/default/{name}.nc"
         ...         with netcdf4.Dataset(filepath, "r+") as ncfile:
-        ...             ncfile.renameVariable("values", "old")
+        ...             ncfile.renameVariable(name, "old")
         ...             _ = ncfile.createDimension("realization", 1)
-        ...             var = ncfile.createVariable("values", "f8",
+        ...             var = ncfile.createVariable(name, "f8",
         ...                     dimensions=("time", "realization", "stations"))
         ...             if name == "hland_v1_input_t":
         ...                 var[:] = ncfile["old"][:]
@@ -2172,7 +2179,7 @@ cover the current simulation period \
         ...     pub.timegrids = "1996-01-01", "1996-01-05", "1d"
         ...     hp.simulate()
         >>> with TestIO(), netcdf4.Dataset(filepath, "r") as ncfile:
-        ...     print_values(ncfile["values"][:, 0, 0])
+        ...     print_values(ncfile["hland_v1_factor_contriarea"][:, 0, 0])
         0.488731, 0.48651, 0.485016, 0.483039
 
         If we try to write the output of a simulation run beyond the original
@@ -2234,7 +2241,7 @@ file `...hland_v1_flux_pc.nc`.
         >>> filepath_qt = "LahnH/series/default/hland_v1_flux_qt.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath_qt, "r") as ncfile:
         ...     for jdx in range(4):
-        ...         print_values(ncfile["values"][:, jdx])
+        ...         print_values(ncfile["hland_v1_flux_qt"][:, jdx])
         11.78144, 8.902735, 7.132279, 6.018681
         9.648145, 8.518256, 7.78162, 7.345017
         0.0, 0.0, 0.0, 0.0
@@ -2246,7 +2253,7 @@ file `...hland_v1_flux_pc.nc`.
         ...     hp.simulate()
         >>> with TestIO(), netcdf4.Dataset(filepath_qt, "r") as ncfile:  #
         ...         for jdx in range(4):
-        ...             print_values(ncfile["values"][:, jdx])
+        ...             print_values(ncfile["hland_v1_flux_qt"][:, jdx])
         11.78144, 8.902735, 7.132279, 6.018681
         9.648145, 8.518256, 7.78162, 7.345017
         20.590398, 8.663089, 7.282551, 6.403193
@@ -2284,7 +2291,7 @@ file `...hland_v1_flux_pc.nc`.
         >>> filepath_sim = "LahnH/series/default/sim_q.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath_sim, "r") as ncfile:
         ...     for jdx in range(4):
-        ...         print_values(ncfile["values"][:, jdx])
+        ...         print_values(ncfile["sim_q"][:, jdx])
         11.78144, 8.902735, 7.132279, 6.018681
         9.648145, 8.518256, 7.78162, 7.345017
         42.371838, 27.213969, 22.933086, 20.203494
@@ -2292,7 +2299,7 @@ file `...hland_v1_flux_pc.nc`.
         >>> filepath_obs = "LahnH/series/default/obs_q.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath_obs, "r") as ncfile:
         ...     for jdx in range(4):
-        ...         print_values(ncfile["values"][:, jdx])
+        ...         print_values(ncfile["obs_q"][:, jdx])
         11.78144, 8.902735, 7.132279, 6.018681
         9.648145, 8.518256, 7.78162, 7.345017
         42.371838, 27.213969, 22.933086, 20.203494
@@ -2410,7 +2417,7 @@ file `...hland_v1_flux_pc.nc`.
                         data = numpy.full(variable.shape[1], numpy.nan, dtype=float)
                         variable2infos[variable].append(
                             JITAccessInfo(
-                                ncvariable=(ncvariable := ncfile[varmapping["values"]]),
+                                ncvariable=(ncvariable := ncfile[variable.name]),
                                 realisation=_is_realisation(ncvariable, ncfile),
                                 timedelta=variable2timedelta[variable],
                                 columns=tuple(get(n) for n in variable.subdevicenames),

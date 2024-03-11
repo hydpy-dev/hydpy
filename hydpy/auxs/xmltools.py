@@ -74,7 +74,7 @@ The intermediate soil moisture values have been stored in a NetCDF file called
 >>> with TestIO():
 ...     ncfile = netcdf4.Dataset("LahnH/series/soildata/hland_v1_state_sm.nc")
 ...     chars2str(query_variable(ncfile, "station_id")[:].data)[:3]
-...     print_values(query_variable(ncfile, "values")[:, 0])
+...     print_values(query_variable(ncfile, "hland_v1_state_sm")[:, 0])
 ['land_dill_0', 'land_dill_1', 'land_dill_2']
 184.920402, 184.589155, 184.365769, 184.069586, 183.837826
 >>> ncfile.close()

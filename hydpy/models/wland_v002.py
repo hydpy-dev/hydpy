@@ -770,7 +770,12 @@ class Model(
         wland_model.Pass_R_V1,
     )
     SENDER_METHODS = ()
-    SUBMODELINTERFACES = (petinterfaces.PETModel_V1, petinterfaces.PETModel_V2)
+    SUBMODELINTERFACES = (
+        petinterfaces.PETModel_V1,
+        petinterfaces.PETModel_V2,
+        dischargeinterfaces.DischargeModel_V2,
+        stateinterfaces.WaterLevelModel_V1,
+    )
     SUBMODELS = (wland_model.PegasusDGEq,)
 
     petmodel = modeltools.SubmodelProperty(

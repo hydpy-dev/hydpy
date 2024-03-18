@@ -2969,7 +2969,12 @@ class Model(modeltools.ELSModel):
     )
     OUTLET_METHODS = (Calc_ET_V1, Calc_R_V1, Pass_R_V1)
     SENDER_METHODS = ()
-    SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
+    SUBMODELINTERFACES = (
+        petinterfaces.PETModel_V1,
+        petinterfaces.PETModel_V2,
+        dischargeinterfaces.DischargeModel_V2,
+        stateinterfaces.WaterLevelModel_V1,
+    )
     SUBMODELS = (PegasusDGEq, QuadDVEq_V1, QuadDVEq_V2)
 
     petmodel = modeltools.SubmodelProperty(

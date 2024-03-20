@@ -1016,7 +1016,7 @@ def read_whmod_main(basedir: str) -> Dict[str, Any]:
 'nutzung.txt', 'ROOT_DEPTH_OPTION': 'max_root_depth.txt', 'SIMULATION_START': \
 '1990-01-01', 'SIMULATION_END': '1992-01-01', 'FREQUENCE': '1d', \
 'WITH_CAPPILARY_RISE': True, 'DEGREE_DAY_FACTOR': 4.5, 'PRECIP_RICHTER_CORRECTION': \
-True, 'EVAPORATION_MODE': 'FAO # noch nicht implementiert', 'INTERPOLATION_MODE': \
+True, 'EVAPORATION_MODE': 'FAO', 'INTERPOLATION_MODE': \
 'IDW', 'NODATA_OUTPUT_VALUE': '-9999.0', 'OUTPUTCONFIG': ['Tageswerte.txt', \
 'Monatswerte.txt', 'Variablewerte.txt'], 'AREA_PRECISION': 1e-06}
 

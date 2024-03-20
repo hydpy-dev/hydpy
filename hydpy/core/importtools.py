@@ -847,7 +847,7 @@ following error occurred: The given `lland_v3` instance is not considered sharab
         # pylint: disable=protected-access
         if not issubclass(submodeltype, self.submodelinterface):
             raise TypeError(
-                f"Submodel `{submodeltype._NAME}` does not comply with the "
+                f"Submodel `{submodeltype.__HYDPY_NAME__}` does not comply with the "
                 f"`{self.submodelinterface.__name__}` interface."
             )
 

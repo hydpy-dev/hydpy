@@ -2147,8 +2147,7 @@ the following error occurred: (Sub)model `evap_morsim` is not of type `evap_aet_
         """
         try:
             if module is not None:
-                if isinstance(module, str):
-                    module = importlib.import_module(f"hydpy.models.{module}")
+                module = importtools.load_modelmodule(module)
                 if self.__module__ != module.__name__:
                     raise TypeError(
                         f"(Sub)model `{self.name}` is not of type "

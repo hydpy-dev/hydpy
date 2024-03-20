@@ -2280,12 +2280,12 @@ def aggregate_equaldist_series(
     ...      dims=["row", "col", "time"],
     ...      coords={"time": xarr_index},
     ... )
-    >>> aggregate_equaldist_series(series=xarr_series)
-    <xarray.DataArray 'test' (row: 1, col: 2, time: 6)>
+    >>> aggregate_equaldist_series(series=xarr_series)   # doctest: +ELLIPSIS
+    <xarray.DataArray 'test' (row: 1, col: 2, time: 6)> ...
     array([[[ 15.5,  46. ,  77. , 106.5, 136. , 166.5],
             [ 31. ,  92. , 154. , 213. , 272. , 333. ]]])
     Coordinates:
-      * time     (time) datetime64[ns] 2000-11-01 2000-12-01 ... 2001-04-01
+      * time     (time) datetime64[ns] ... 2000-11-01 2000-12-01 ... 2001-04-01
     Dimensions without coordinates: row, col
 
     Functions |aggregate_equaldist_series| raises errors like the following for
@@ -2302,12 +2302,12 @@ following error occurred: wrong() got an unexpected keyword argument 'axis'
 
     When passing a string, |aggregate_equaldist_series| queries it from |numpy|:
 
-    >>> aggregate_equaldist_series(series=xarr_series, aggregator="sum")
-    <xarray.DataArray 'test' (row: 1, col: 2, time: 6)>
+    >>> aggregate_equaldist_series(series=xarr_series, aggregator="sum")   # doctest: +ELLIPSIS
+    <xarray.DataArray 'test' (row: 1, col: 2, time: 6)> ...
     array([[[ 465, 1426, 2387, 2982, 4216, 4995],
             [ 930, 2852, 4774, 5964, 8432, 9990]]])
     Coordinates:
-      * time     (time) datetime64[ns] 2000-11-01 2000-12-01 ... 2001-04-01
+      * time     (time) datetime64[ns] ... 2000-11-01 2000-12-01 ... 2001-04-01
     Dimensions without coordinates: row, col
 
     |aggregate_equaldist_series| raises the following error when the requested
@@ -2331,12 +2331,12 @@ following error occurred: wrong() got an unexpected keyword argument 'axis'
     ...      dims=["row", "col", "time"],
     ...      coords={"time": xarr_index},
     ... )
-    >>> aggregate_equaldist_series(series=xarr_series, aggregator="sum")
-    <xarray.DataArray 'test' (row: 1, col: 2, time: 4)>
+    >>> aggregate_equaldist_series(series=xarr_series, aggregator="sum")   # doctest: +ELLIPSIS
+    <xarray.DataArray 'test' (row: 1, col: 2, time: 4)> ...
     array([[[1426, 2387, 2982, 4216],
             [2852, 4774, 5964, 8432]]])
     Coordinates:
-      * time     (time) datetime64[ns] 2000-12-01 2001-01-01 2001-02-01 2001-03-01
+      * time     (time) datetime64[ns] ... 2000-12-01 2001-01-01 ... 2001-03-01
     Dimensions without coordinates: row, col
 
 
@@ -2354,12 +2354,12 @@ following error occurred: wrong() got an unexpected keyword argument 'axis'
     ...      dims=["row", "col", "time"],
     ...      coords={"time": xarr_index},
     ... )
-    >>> aggregate_equaldist_series(series=xarr_series)
-    <xarray.DataArray 'test' (row: 1, col: 2, time: 4)>
+    >>> aggregate_equaldist_series(series=xarr_series)   # doctest: +ELLIPSIS
+    <xarray.DataArray 'test' (row: 1, col: 2, time: 4)> ...
     array([[[ 46. ,  77. , 106.5, 136. ],
             [ 92. , 154. , 213. , 272. ]]])
     Coordinates:
-      * time     (time) datetime64[ns] 2000-12-01 2001-01-01 2001-02-01 2001-03-01
+      * time     (time) datetime64[ns] ... 2000-12-01 2001-01-01 ... 2001-03-01
     Dimensions without coordinates: row, col
 
     Now we prepare a time grid with an hourly simulation step size to show some
@@ -2381,12 +2381,12 @@ following error occurred: wrong() got an unexpected keyword argument 'axis'
     0 o'clock, resulting in a loss of the first two and the last 22 values of the
     entire period:
 
-    >>> aggregate_equaldist_series(series=xarr_series, stepsize="daily")
-    <xarray.DataArray 'test' (row: 1, col: 2, time: 3)>
+    >>> aggregate_equaldist_series(series=xarr_series, stepsize="daily")   # doctest: +ELLIPSIS
+    <xarray.DataArray 'test' (row: 1, col: 2, time: 3)> ...
     array([[[ 14.5,  38.5,  62.5],
             [ 29. ,  77. , 125. ]]])
     Coordinates:
-      * time     (time) datetime64[ns] 2000-01-02 2000-01-03 2000-01-04
+      * time     (time) datetime64[ns] ... 2000-01-02 2000-01-03 2000-01-04
     Dimensions without coordinates: row, col
 
     If you want the aggregation to start at a different time of the day, use the
@@ -2394,12 +2394,12 @@ following error occurred: wrong() got an unexpected keyword argument 'axis'
     initialisation time grid and ensures the usage of all available data:
 
     >>> aggregate_equaldist_series(series=xarr_series, stepsize="daily",
-    ...                            basetime="22:00")
-    <xarray.DataArray 'test' (row: 1, col: 2, time: 4)>
+    ...                            basetime="22:00")   # doctest: +ELLIPSIS
+    <xarray.DataArray 'test' (row: 1, col: 2, time: 4)> ...
     array([[[ 12.5,  36.5,  60.5,  84.5],
             [ 25. ,  73. , 121. , 169. ]]])
     Coordinates:
-      * time     (time) datetime64[ns] 2000-01-01T22:00:00 ... 2000-01-04T22:00:00
+      * time     (time) datetime64[ns] ... 2000-01-01T22:00:00 ... 2000-01-04T22:...
     Dimensions without coordinates: row, col
 
     So far, the `basetime` argument works for daily aggregation only:
@@ -2424,12 +2424,12 @@ step size only.
     ...      dims=["row", "col", "time"],
     ...      coords={"time": xarr_index},
     ... )
-    >>> aggregate_equaldist_series(series=xarr_series, stepsize="daily")
-    <xarray.DataArray 'test' (row: 1, col: 2, time: 4)>
+    >>> aggregate_equaldist_series(series=xarr_series, stepsize="daily")   # doctest: +ELLIPSIS
+    <xarray.DataArray 'test' (row: 1, col: 2, time: 4)> ...
     array([[[1, 2, 3, 4],
             [2, 4, 6, 8]]])
     Coordinates:
-      * time     (time) datetime64[ns] 2000-01-01T22:00:00 ... 2000-01-04T22:00:00
+      * time     (time) datetime64[ns] ... 2000-01-01T22:00:00 ... 2000-01-04T22:...
     Dimensions without coordinates: row, col
 
     >>> pub.timegrids = "01.10.2000 22:00", "01.10.2003 22:00", "1d"
@@ -2443,12 +2443,12 @@ step size only.
     ...      coords={"time": xarr_index},
     ... )
     >>> aggregate_equaldist_series(series=xarr_series, stepsize="yearly",
-    ...                            aggregator="sum")
-    <xarray.DataArray 'test' (row: 1, col: 2, time: 2)>
+    ...                            aggregator="sum")   # doctest: +ELLIPSIS
+    <xarray.DataArray 'test' (row: 1, col: 2, time: 2)> ...
     array([[[365., 365.],
             [730., 730.]]])
     Coordinates:
-      * time     (time) datetime64[ns] 2001-01-01 2002-01-01
+      * time     (time) datetime64[ns] ... 2001-01-01 2002-01-01
     Dimensions without coordinates: row, col
 
     We are looking forward supporting other useful aggregation step sizes later:
@@ -2483,23 +2483,23 @@ are supported: `monthly` (default), `daily` and `yearly`.
     ...      dims=["row", "col", "time"],
     ...      coords={"time": xarr_index},
     ... )
-    >>> xarr_series
-    <xarray.DataArray 'test' (row: 1, col: 2, time: 6)>
+    >>> xarr_series   # doctest: +ELLIPSIS
+    <xarray.DataArray 'test' (row: 1, col: 2, time: 6)> ...
     array([[[ 1,  2,  3,  4,  5,  6],
             [ 2,  4,  6,  8, 10, 12]]])
     Coordinates:
-      * time     (time) datetime64[ns] 2000-01-01 2001-01-01 ... 2005-01-01
+      * time     (time) datetime64[ns] ... 2000-01-01 2001-01-01 ... 2005-01-01
     Dimensions without coordinates: row, col
-    >>> aggregate_equaldist_series(series=xarr_series, stepsize="y")
-    <xarray.DataArray 'test' (row: 1, col: 2, time: 6)>
+    >>> aggregate_equaldist_series(series=xarr_series, stepsize="y")    # doctest: +ELLIPSIS
+    <xarray.DataArray 'test' (row: 1, col: 2, time: 6)> ...
     array([[[ 1,  2,  3,  4,  5,  6],
             [ 2,  4,  6,  8, 10, 12]]])
     Coordinates:
-      * time     (time) datetime64[ns] 2000-01-01 2001-01-01 ... 2005-01-01
+      * time     (time) datetime64[ns] ... 2000-01-01 2001-01-01 ... 2005-01-01
     Dimensions without coordinates: row, col
 
-    >>> xarr_index = pandas.date_range(start="2000-01-05", end="2000-05-05",
-    ...                                freq="M")
+    >>> xarr_index = pandas.date_range(start="2000-01-01", end="2000-05-01",
+    ...                                freq=DateOffset(months=1))
     >>> ser1 = numpy.arange(1, len(xarr_index)+1)
     >>> ser2 = 2 * ser1
     >>> xarr_series = xarray.DataArray(
@@ -2508,19 +2508,19 @@ are supported: `monthly` (default), `daily` and `yearly`.
     ...      dims=["row", "col", "time"],
     ...      coords={"time": xarr_index},
     ... )
-    >>> xarr_series
-    <xarray.DataArray 'test' (row: 1, col: 2, time: 4)>
-    array([[[1, 2, 3, 4],
-            [2, 4, 6, 8]]])
+    >>> xarr_series   # doctest: +ELLIPSIS
+    <xarray.DataArray 'test' (row: 1, col: 2, time: 4)> ...
+    array([[[1, 2, 3, 4, 5],
+            [2, 4, 6, 8, 10]]])
     Coordinates:
-      * time     (time) datetime64[ns] 2000-01-31 2000-02-29 2000-03-31 2000-04-30
+      * time     (time) datetime64[ns] ... 2000-01-01 2000-02-01 ... 2000-05-01
     Dimensions without coordinates: row, col
-    >>> aggregate_equaldist_series(series=xarr_series, stepsize="m")
-    <xarray.DataArray 'test' (row: 1, col: 2, time: 4)>
-    array([[[1, 2, 3, 4],
-            [2, 4, 6, 8]]])
+    >>> aggregate_equaldist_series(series=xarr_series, stepsize="m")   # doctest: +ELLIPSIS
+    <xarray.DataArray 'test' (row: 1, col: 2, time: 4)> ...
+    array([[[2, 3, 4],
+            [4, 6, 8]]])
     Coordinates:
-      * time     (time) datetime64[ns] 2000-01-31 2000-02-29 2000-03-31 2000-04-30
+      * time     (time) datetime64[ns] ... 2000-01-31 2000-02-29 2000-03-31 2000-04-30
     Dimensions without coordinates: row, col
     """
     if isinstance(aggregator, str):
@@ -2613,21 +2613,21 @@ def aggregate_flexible_series(
     ... )
     >>> agg_timegrid = pandas.DatetimeIndex(["2011-01-01", "2011-01-02",
     ...                                      "2011-01-08", "2011-01-09"])
-    >>> aggregate_flexible_series(series=xarr_series, aggregation_timegrid=agg_timegrid)
-    <xarray.DataArray 'test' (row: 1, col: 2, time: 3)>
+    >>> aggregate_flexible_series(series=xarr_series, aggregation_timegrid=agg_timegrid)   # doctest: +ELLIPSIS
+    <xarray.DataArray 'test' (row: 1, col: 2, time: 3)> ...
     array([[[ 1. ,  4.5,  8. ],
             [ 2. ,  9. , 16. ]]])
     Coordinates:
-      * time     (time) datetime64[ns] 2011-01-01 2011-01-02 2011-01-08
+      * time     (time) datetime64[ns] ... 2011-01-01 2011-01-02 2011-01-08
     Dimensions without coordinates: row, col
 
     >>> aggregate_flexible_series(series=xarr_series, aggregation_timegrid=agg_timegrid,
-    ...     aggregator="sum")
-    <xarray.DataArray 'test' (row: 1, col: 2, time: 3)>
+    ...     aggregator="sum")   # doctest: +ELLIPSIS
+    <xarray.DataArray 'test' (row: 1, col: 2, time: 3)> ...
     array([[[ 1., 27.,  8.],
             [ 2., 54., 16.]]])
     Coordinates:
-      * time     (time) datetime64[ns] 2011-01-01 2011-01-02 2011-01-08
+      * time     (time) datetime64[ns] ... 2011-01-01 2011-01-02 2011-01-08
     Dimensions without coordinates: row, col
     >>> aggregate_flexible_series(series=xarr_series, aggregation_timegrid=agg_timegrid,
     ...     aggregator="std")

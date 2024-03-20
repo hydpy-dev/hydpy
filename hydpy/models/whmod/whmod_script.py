@@ -1047,11 +1047,14 @@ True, 'EVAPORATION_MODE': 'FAO # noch nicht implementiert', 'INTERPOLATION_MODE'
         os.path.join(basedir, "WHMod_Main.txt"), encoding="utf-8", mode="r"
     ) as infile:
         reader = csv.reader(infile, delimiter="\t")
-        whmod_main = dict(
-            (rows[0], dtype_whmod_main[rows[0]](rows[1].strip()))
-            for rows in reader
-            if not rows[0].startswith("#")
-        )
+        whmod_main = {}
+        for rows in reader:
+            if not rows[0].startswith("#"):
+                value = rows[1].split("#")[0].strip()
+                if dtype_whmod_main[rows[0]] == bool:
+                    whmod_main[rows[0]] = value == "True"
+                else:
+                    whmod_main[rows[0]] = dtype_whmod_main[rows[0]](value)
 
     if "AREA_PRECISION" not in whmod_main:
         whmod_main["AREA_PRECISION"] = 1e-6

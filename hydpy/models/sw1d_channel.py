@@ -1545,6 +1545,8 @@ There is no indication of an error in the water balance:
 """
 # import...
 # ...from HydPy
+from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import
+from hydpy.auxs.ppolytools import Poly, PPoly  # pylint: disable=unused-import
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *

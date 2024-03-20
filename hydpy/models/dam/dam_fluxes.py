@@ -6,10 +6,22 @@
 from hydpy.core import sequencetools
 
 
+class Precipitation(sequencetools.FluxSequence):
+    """Precipitation [mm]."""
+
+    NDIM, NUMERIC = 0, False
+
+
 class AdjustedPrecipitation(sequencetools.FluxSequence):
     """Adjusted precipitation [m³/s]."""
 
     NDIM, NUMERIC = 0, True
+
+
+class PotentialEvaporation(sequencetools.FluxSequence):
+    """Potential evaporation [mm/T]."""
+
+    NDIM, NUMERIC = 0, False
 
 
 class AdjustedEvaporation(sequencetools.FluxSequence):

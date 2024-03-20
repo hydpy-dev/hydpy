@@ -4,45 +4,46 @@ typing."""
 # import...
 # ...from standard library
 from __future__ import annotations
-from typing import (
-    Any,
+from collections.abc import (
     Callable,
-    cast,
-    ClassVar,
     Collection,
-    ContextManager,
-    DefaultDict,
-    Deque,
-    Dict,
+    Generator,
+    Hashable,
     Iterable,
     Iterator,
+    Mapping,
+    Sized,
+    Sequence,
+)
+from contextlib import AbstractContextManager
+from typing import (
+    Any,
+    cast,
+    ClassVar,
     Final,
-    FrozenSet,
-    Generator,
     Generic,
     get_type_hints,
-    Hashable,
-    List,
     Literal,
-    Mapping,
     NamedTuple,
     NewType,
     NoReturn,
     Optional,
     overload,
     Protocol,
-    Sequence,
-    Set,
-    Sized,
-    Tuple,
     TextIO,
-    Type,
     TypedDict,
     TypeVar,
     TYPE_CHECKING,
     Union,
 )
-from typing_extensions import assert_never, Concatenate, Never, ParamSpec, Self
+from typing_extensions import (
+    assert_never,
+    Concatenate,
+    Never,
+    ParamSpec,
+    Self,
+    TypeAlias,
+)
 
 # ...from site-packages
 import numpy
@@ -128,17 +129,17 @@ TensorInputInt = Union[Sequence[MatrixInputInt], TensorInt]
 TensorInputBool = Union[Sequence[MatrixInputBool], TensorBool]
 
 
+NestedFloat: TypeAlias = Union[
+    float, NDArrayFloat, Mapping[str, "NestedFloat"], Sequence["NestedFloat"]
+]
+
 ArrayFloat = TypeVar(
-    "ArrayFloat",
-    float,
-    VectorFloat,
-    MatrixFloat,
-    Union[float, VectorFloat],
+    "ArrayFloat", float, VectorFloat, MatrixFloat, Union[float, VectorFloat]
 )
 
-ConditionsSubmodel = Dict[str, Dict[str, Union[float, NDArrayFloat]]]
-ConditionsModel = Dict[str, ConditionsSubmodel]
-Conditions = Dict[str, ConditionsModel]
+ConditionsSubmodel = dict[str, dict[str, Union[float, NDArrayFloat]]]
+ConditionsModel = dict[str, ConditionsSubmodel]
+Conditions = dict[str, ConditionsModel]
 
 
 class SharableConfiguration(TypedDict):
@@ -215,6 +216,7 @@ class CySubstepModelProtocol(CyModelProtocol):
 
 SeriesFileType = Literal["npy", "asc", "nc"]
 SeriesAggregationType = Literal["none", "mean"]
+SeriesConventionType = Literal["model-specific", "HydPy"]
 
 l1: Literal[1] = 1
 
@@ -231,6 +233,7 @@ MethodGroup = Literal[
 ]
 
 __all__ = [
+    "AbstractContextManager",
     "Any",
     "ArrayFloat",
     "assert_never",
@@ -242,10 +245,6 @@ __all__ = [
     "Conditions",
     "ConditionsModel",
     "ConditionsSubmodel",
-    "ContextManager",
-    "DefaultDict",
-    "Deque",
-    "Dict",
     "CyModelProtocol",
     "CySubstepModelProtocol",
     "Collection1",
@@ -253,7 +252,6 @@ __all__ = [
     "Collection3",
     "DeployMode",
     "Final",
-    "FrozenSet",
     "Generator",
     "Generic",
     "get_type_hints",
@@ -261,7 +259,6 @@ __all__ = [
     "Iterable",
     "Iterator",
     "LineStyle",
-    "List",
     "Literal",
     "l1",
     "Mapping",
@@ -289,6 +286,7 @@ __all__ = [
     "NDArrayFloat",
     "NDArrayInt",
     "NDArrayObject",
+    "NestedFloat",
     "Never",
     "NewType",
     "NoReturn",
@@ -299,8 +297,8 @@ __all__ = [
     "Protocol",
     "Self",
     "SeriesAggregationType",
+    "SeriesConventionType",
     "SeriesFileType",
-    "Set",
     "Sequence",
     "Sequence1",
     "Sequence2",
@@ -324,8 +322,7 @@ __all__ = [
     "TensorInputObject",
     "TensorInt",
     "TextIO",
-    "Tuple",
-    "Type",
+    "TypeAlias",
     "TypeVar",
     "TypedDict",
     "TYPE_CHECKING",

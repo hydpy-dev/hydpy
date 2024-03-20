@@ -11,10 +11,13 @@ cimport cython
 
 cdef class BaseInterface:
 
-    cdef void load_data(self, int idx) nogil:
+    cdef void reset_reuseflags(self) noexcept nogil:
         pass
 
-    cdef void save_data(self, int idx) nogil:
+    cdef void load_data(self, int idx) noexcept nogil:
+        pass
+
+    cdef void save_data(self, int idx) noexcept nogil:
         pass
 
 

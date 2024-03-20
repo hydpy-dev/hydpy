@@ -9,10 +9,11 @@ from model users and for allowing writing readable doctests.
 from __future__ import annotations
 
 import collections
-import contextlib
+import copy
 import os
 import importlib
 import inspect
+import sys
 import types
 import warnings
 
@@ -43,8 +44,7 @@ class PrepSub0D(Protocol[TM_contra, TI_contra]):
 
     def __call__(
         self, model: TM_contra, submodel: TI_contra, /, *, refresh: bool
-    ) -> None:
-        ...
+    ) -> None: ...
 
 
 class PrepSub1D(Protocol[TM_contra, TI_contra]):
@@ -55,8 +55,7 @@ class PrepSub1D(Protocol[TM_contra, TI_contra]):
 
     def __call__(
         self, model: TM_contra, submodel: TI_contra, /, *, position: int, refresh: bool
-    ) -> None:
-        ...
+    ) -> None: ...
 
 
 __HYDPY_MODEL_LOCALS__ = "__hydpy_model_locals__"
@@ -124,9 +123,9 @@ def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
 
 
 def _add_locals_to_namespace(
-    model: modeltools.Model, namespace: Dict[str, Any]
+    model: modeltools.Model, namespace: dict[str, Any]
 ) -> None:
-    new_locals: Dict[str, Any] = namespace.get("CONSTANTS", {}).copy()
+    new_locals: dict[str, Any] = namespace.get("CONSTANTS", {}).copy()
     new_locals["model"] = model
     new_locals["parameters"] = model.parameters
     for pars in model.parameters:
@@ -145,14 +144,14 @@ def _add_locals_to_namespace(
     namespace.update(new_locals)
 
 
-def prepare_parameters(dict_: Dict[str, Any]) -> parametertools.Parameters:
+def prepare_parameters(dict_: dict[str, Any]) -> parametertools.Parameters:
     """Prepare a |Parameters| object based on the given dictionary
     information and return it."""
     cls_parameters = dict_.get("Parameters", parametertools.Parameters)
     return cls_parameters(dict_)
 
 
-def prepare_sequences(dict_: Dict[str, Any]) -> sequencetools.Sequences:
+def prepare_sequences(dict_: dict[str, Any]) -> sequencetools.Sequences:
     """Prepare a |Sequences| object based on the given dictionary
     information and return it."""
     cls_sequences = dict_.get("Sequences", sequencetools.Sequences)
@@ -337,7 +336,7 @@ def prepare_model(
 class _DoctestAdder:
     _wrapped: Callable[..., None]
 
-    def __set_name__(self, objtype: Type[modeltools.Model], name: str) -> None:
+    def __set_name__(self, objtype: type[modeltools.Model], name: str) -> None:
         assert (module := inspect.getmodule(objtype)) is not None
         test = getattr(module, "__test__", {})
         test[f"{objtype.__name__}.{self._wrapped.__name__}"] = self.__doc__
@@ -347,47 +346,45 @@ class _DoctestAdder:
 @overload
 def prepare_submodel(
     submodelname: str,
-    submodelinterface: Type[TI_contra],
+    submodelinterface: type[TI_contra],
     *methods: Callable[[NoReturn, NoReturn], None],
     dimensionality: Literal[0] = ...,
     landtype_constants: Optional[parametertools.Constants] = None,
     soiltype_constants: Optional[parametertools.Constants] = None,
-    landtype_refindices: Optional[Type[parametertools.NameParameter]] = None,
-    soiltype_refindices: Optional[Type[parametertools.NameParameter]] = None,
-    refweights: Optional[Type[parametertools.Parameter]] = None,
+    landtype_refindices: Optional[type[parametertools.NameParameter]] = None,
+    soiltype_refindices: Optional[type[parametertools.NameParameter]] = None,
+    refweights: Optional[type[parametertools.Parameter]] = None,
 ) -> Callable[
     [PrepSub0D[TM_contra, TI_contra]], SubmodelAdder[Literal[0], TM_contra, TI_contra]
-]:
-    ...
+]: ...
 
 
 @overload
 def prepare_submodel(
     submodelname: str,
-    submodelinterface: Type[TI_contra],
+    submodelinterface: type[TI_contra],
     *methods: Callable[[NoReturn, NoReturn], None],
     dimensionality: Literal[1],
     landtype_constants: Optional[parametertools.Constants] = None,
     soiltype_constants: Optional[parametertools.Constants] = None,
-    landtype_refindices: Optional[Type[parametertools.NameParameter]] = None,
-    soiltype_refindices: Optional[Type[parametertools.NameParameter]] = None,
-    refweights: Optional[Type[parametertools.Parameter]] = None,
+    landtype_refindices: Optional[type[parametertools.NameParameter]] = None,
+    soiltype_refindices: Optional[type[parametertools.NameParameter]] = None,
+    refweights: Optional[type[parametertools.Parameter]] = None,
 ) -> Callable[
     [PrepSub1D[TM_contra, TI_contra]], SubmodelAdder[Literal[1], TM_contra, TI_contra]
-]:
-    ...
+]: ...
 
 
 def prepare_submodel(
     submodelname: str,
-    submodelinterface: Type[TI_contra],
+    submodelinterface: type[TI_contra],
     *methods: Callable[[NoReturn, NoReturn], None],
     dimensionality: TD = 0,  # type: ignore[assignment]
     landtype_constants: Optional[parametertools.Constants] = None,
     soiltype_constants: Optional[parametertools.Constants] = None,
-    landtype_refindices: Optional[Type[parametertools.NameParameter]] = None,
-    soiltype_refindices: Optional[Type[parametertools.NameParameter]] = None,
-    refweights: Optional[Type[parametertools.Parameter]] = None,
+    landtype_refindices: Optional[type[parametertools.NameParameter]] = None,
+    soiltype_refindices: Optional[type[parametertools.NameParameter]] = None,
+    refweights: Optional[type[parametertools.Parameter]] = None,
 ) -> Callable[
     [Union[PrepSub0D[TM_contra, TI_contra], PrepSub1D[TM_contra, TI_contra]]],
     SubmodelAdder[TD, TM_contra, TI_contra],
@@ -415,8 +412,8 @@ def prepare_submodel(
 
 
 class SubmodelAdder(_DoctestAdder, Generic[TD, TM_contra, TI_contra]):
-    """Wrapper that extends the functionality of model-specific methods for preparing
-    submodels.
+    """Wrapper that extends the functionality of model-specific methods for adding
+    submodels to main models.
 
     |SubmodelAdder| offers the user-relevant feature of preparing submodels with the
     `with` statement.  When entering the `with` block, |SubmodelAdder| uses the given
@@ -425,15 +422,17 @@ class SubmodelAdder(_DoctestAdder, Generic[TD, TM_contra, TI_contra]):
     based on the main model's configuration.  Next, |SubmodelAdder| makes many
     attributes of the submodel directly available, most importantly, the instances of
     the remaining control parameter, so that users can set their values as conveniently
-    as the ones of the main model ones.  As long as no name conflicts occur, all main
-    model parameter instances are also accessible:
+    as the ones of the main model.  As long as no name conflicts occur, all main model
+    parameter instances are also accessible:
 
-    >>> from hydpy.models.lland_v1 import *
+    >>> from hydpy.models.lland_v3 import *
     >>> parameterstep()
     >>> nhru(2)
     >>> ft(10.0)
     >>> fhru(0.2, 0.8)
     >>> lnk(ACKER, MISCHW)
+    >>> measuringheightwindspeed(10.0)
+    >>> lai(3.0)
     >>> wmax(acker=100.0, mischw=200.0)
     >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
     ...     nhru
@@ -470,7 +469,7 @@ class SubmodelAdder(_DoctestAdder, Generic[TD, TM_contra, TI_contra]):
     ...     ...
     Traceback (most recent call last):
     ...
-    TypeError: While trying to add a submodel to the main model `lland_v1`, the \
+    TypeError: While trying to add a submodel to the main model `lland_v3`, the \
 following error occurred: Submodel `ga_garto_submodel1` does not comply with the \
 `AETModel_V1` interface.
 
@@ -485,17 +484,20 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
     'prepare_nmbzones'
     'prepare_zonetypes'
     'prepare_subareas'
-    'prepare_maxsoilwater'
     'prepare_water'
     'prepare_interception'
     'prepare_soil'
+    'prepare_plant'
     'prepare_tree'
     'prepare_conifer'
+    'prepare_measuringheightwindspeed'
+    'prepare_leafareaindex'
+    'prepare_maxsoilwater'
 
     |SubmodelAdder| supports arbitrarily deep submodel nesting.  It conveniently moves
     some information from main models to sub-submodels or the other way round if the
     intermediate submodel does not consume or provide the corresponding data.
-    The following example shows that the main model of type |lland_v1| shares some of
+    The following example shows that the main model of type |lland_v3| shares some of
     its class-level configurations with the sub-submodel of type |evap_pet_hbv96| and
     that the sub-submodel knows about the zone areas of its main model (which the
     submodel is not aware of) and uses it for querying air temperature data:
@@ -524,63 +526,115 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
     True
     >>> model is model.aetmodel.petmodel.tempmodel
     True
+
+    |SubmodelAdder| tries to update the submodel's derived parameters at the end of the
+    `with` block.  Hence, all required information must be available at that time:
+
+    >>> from hydpy import pub
+    >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
+    >>> with model.add_radiationmodel_v1("meteo_v003"):
+    ...     pass
+    Traceback (most recent call last):
+    ...
+    hydpy.core.exceptiontools.AttributeNotReady: While trying to add submodel \
+`meteo_v003` to the main model `lland_v3`, the following error occurred: While trying \
+to update parameter `latituderad` of element `?`, the following error occurred: While \
+trying to multiply variable `latitude` and `float` instance `0.017453`, the following \
+error occurred: For variable `latitude`, no value has been defined so far.
+
+    You can turn off this behaviour by setting `update` to |False|:
+
+    >>> with model.add_radiationmodel_v1("meteo_v003", update=False) as meteo_v003:
+    ...     pass
+
+    |meteo_v003| is a "sharable" submodel, meaning one of its instances can be used by
+    multiple main models.  We demonstrate this by selecting |evap_morsim| as the
+    evaporation submodel, which requires the same radiation-related data as |lland_v3|.
+    We reuse the |meteo_v003| instance prepared above, which is already a submodel of
+    |lland_v3|, and make it also a submodel of the |evap_morsim| instance:
+
+    >>> with model.add_aetmodel_v1("evap_morsim"):
+    ...     model.add_radiationmodel_v1(meteo_v003)
+    >>> model.radiationmodel is model.aetmodel.radiationmodel
+    True
+
+    When handing over already initialised submodel instances, the `with` statement
+    cannot be used because later modifications of the submodel's configuration would
+    affect the submodel's use by both main models.
+
+    Not all submodels are sharable, and model users might find it hard to see which one
+    is.  Hence, we introduced |SharableSubmodelInterface| and decided that model
+    developers must derive a submodel from this class if convinced it is sharable.  For
+    safety, |SubmodelAdder| checks if a given model instance inherits from
+    |SharableSubmodelInterface|:
+
+    >>> model.add_radiationmodel_v1(model)
+    Traceback (most recent call last):
+    ...
+    TypeError: While trying to add a submodel to the main model `lland_v3`, the \
+following error occurred: The given `lland_v3` instance is not considered sharable.
     """
 
     submodelname: str
     """The submodel's attribute name."""
-    submodelinterface: Type[TI_contra]
+    submodelinterface: type[TI_contra]
     """The relevant submodel interface."""
     dimensionality: TD
     """The dimensionality of the handled submodel reference(s) (either zero or one)."""
-    methods: Tuple[Callable[[NoReturn, NoReturn], None], ...]
+    methods: tuple[Callable[[NoReturn, NoReturn], None], ...]
     """The submodel interface methods the wrapped method uses."""
-    landtype_refindices: Optional[Type[parametertools.NameParameter]]
+    landtype_refindices: Optional[type[parametertools.NameParameter]]
     """Reference to a land cover type-related index parameter."""
-    soiltype_refindices: Optional[Type[parametertools.NameParameter]]
+    soiltype_refindices: Optional[type[parametertools.NameParameter]]
     """Reference to a soil type-related index parameter."""
-    refweights: Optional[Type[parametertools.Parameter]]
+    refweights: Optional[type[parametertools.Parameter]]
     """Reference to a weighting parameter."""
 
-    __hydpy_maintype2subname2adders__: DefaultDict[
-        Type[modeltools.Model], DefaultDict[str, List[SubmodelAdder]]
+    __hydpy_maintype2subname2adders__: collections.defaultdict[
+        type[modeltools.Model], collections.defaultdict[str, list[SubmodelAdder]]
     ] = collections.defaultdict(lambda: collections.defaultdict(lambda: []))
 
+    _methodnames: frozenset[str]
     _wrapped: Union[PrepSub0D[TM_contra, TI_contra], PrepSub1D[TM_contra, TI_contra]]
     _sharable_configuration: SharableConfiguration
-    _model: Optional[TM_contra]
-    _mainmodelstack: ClassVar[List[modeltools.Model]] = []
+    _mainmodelstack: ClassVar[list[modeltools.Model]] = []
+
+    # The following attributes are created when required and deleted afterwards:
+    _model: TM_contra
+    _submodel: modeltools.SubmodelInterface
+    _update: bool
+    _namespace: dict[str, Any]
+    _old_locals: dict[str, Any]
 
     @overload
     def __init__(
         self: SubmodelAdder[Literal[0], TM_contra, TI_contra],
         wrapped: PrepSub0D[TM_contra, TI_contra],
         submodelname: str,
-        submodelinterface: Type[TI_contra],
+        submodelinterface: type[TI_contra],
         methods: Iterable[Callable[[NoReturn, NoReturn], None]],
         dimensionality: TD,
         landtype_constants: Optional[parametertools.Constants],
         soiltype_constants: Optional[parametertools.Constants],
-        landtype_refindices: Optional[Type[parametertools.NameParameter]],
-        soiltype_refindices: Optional[Type[parametertools.NameParameter]],
-        refweights: Optional[Type[parametertools.Parameter]],
-    ) -> None:
-        ...
+        landtype_refindices: Optional[type[parametertools.NameParameter]],
+        soiltype_refindices: Optional[type[parametertools.NameParameter]],
+        refweights: Optional[type[parametertools.Parameter]],
+    ) -> None: ...
 
     @overload
     def __init__(
         self: SubmodelAdder[Literal[1], TM_contra, TI_contra],
         wrapped: PrepSub1D[TM_contra, TI_contra],
         submodelname: str,
-        submodelinterface: Type[TI_contra],
+        submodelinterface: type[TI_contra],
         methods: Iterable[Callable[[NoReturn, NoReturn], None]],
         dimensionality: TD,
         landtype_constants: Optional[parametertools.Constants],
         soiltype_constants: Optional[parametertools.Constants],
-        landtype_refindices: Optional[Type[parametertools.NameParameter]],
-        soiltype_refindices: Optional[Type[parametertools.NameParameter]],
-        refweights: Optional[Type[parametertools.Parameter]],
-    ) -> None:
-        ...
+        landtype_refindices: Optional[type[parametertools.NameParameter]],
+        soiltype_refindices: Optional[type[parametertools.NameParameter]],
+        refweights: Optional[type[parametertools.Parameter]],
+    ) -> None: ...
 
     def __init__(
         self,
@@ -588,19 +642,20 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
             PrepSub0D[TM_contra, TI_contra], PrepSub1D[TM_contra, TI_contra]
         ],
         submodelname: str,
-        submodelinterface: Type[TI_contra],
+        submodelinterface: type[TI_contra],
         methods: Iterable[Callable[[NoReturn, NoReturn], None]],
         dimensionality: TD,
         landtype_constants: Optional[parametertools.Constants],
         soiltype_constants: Optional[parametertools.Constants],
-        landtype_refindices: Optional[Type[parametertools.NameParameter]],
-        soiltype_refindices: Optional[Type[parametertools.NameParameter]],
-        refweights: Optional[Type[parametertools.Parameter]],
+        landtype_refindices: Optional[type[parametertools.NameParameter]],
+        soiltype_refindices: Optional[type[parametertools.NameParameter]],
+        refweights: Optional[type[parametertools.Parameter]],
     ) -> None:
         self._wrapped = wrapped
         self.submodelname = submodelname
         self.submodelinterface = submodelinterface
         self.methods = tuple(methods)
+        self._methodnames = frozenset(method.__name__ for method in methods)
         self.dimensionality = dimensionality
         self._sharable_configuration = {
             "landtype_constants": landtype_constants,
@@ -612,20 +667,17 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
         self._landtype_refindices = landtype_refindices
         self._soiltype_refindices = soiltype_refindices
         self._refweights = refweights
-        self._model = None
         self.__doc__ = wrapped.__doc__
 
     @overload
     def get_wrapped(
         self: SubmodelAdder[Literal[0], TM_contra, TI_contra]
-    ) -> PrepSub0D[TM_contra, TI_contra]:
-        ...
+    ) -> PrepSub0D[TM_contra, TI_contra]: ...
 
     @overload
     def get_wrapped(
         self: SubmodelAdder[Literal[1], TM_contra, TI_contra]
-    ) -> PrepSub1D[TM_contra, TI_contra]:
-        ...
+    ) -> PrepSub1D[TM_contra, TI_contra]: ...
 
     def get_wrapped(
         self: SubmodelAdder[TD, TM_contra, TI_contra]
@@ -635,13 +687,13 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
         return self._wrapped
 
     def __get__(
-        self, obj: Optional[TM_contra], type_: Type[modeltools.Model]
+        self, obj: Optional[TM_contra], type_: type[modeltools.Model]
     ) -> SubmodelAdder[TD, TM_contra, TI_contra]:
         if obj is not None:
             self._model = obj
         return self
 
-    def __set_name__(self, owner: Type[modeltools.Model], name: str) -> None:
+    def __set_name__(self, owner: type[modeltools.Model], name: str) -> None:
         super().__set_name__(owner, name)
         mt2sn2as = self.__hydpy_maintype2subname2adders__
         mt2sn2as[owner][self.submodelname].append(self)
@@ -649,41 +701,62 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
     @overload
     def __call__(
         self: SubmodelAdder[Literal[0], TM_contra, TI_contra],
-        module: Union[types.ModuleType, str],
+        submodel: Union[types.ModuleType, str],
         *,
         update: bool = True,
-    ) -> contextlib._GeneratorContextManager[modeltools.Model]:
-        ...
+    ) -> SubmodelAdder[Literal[0], TM_contra, TI_contra]: ...
 
     @overload
     def __call__(
         self: SubmodelAdder[Literal[1], TM_contra, TI_contra],
-        module: Union[types.ModuleType, str],
+        submodel: Union[types.ModuleType, str],
         *,
         position: int,
         update: bool = True,
-    ) -> contextlib._GeneratorContextManager[modeltools.Model]:
-        ...
+    ) -> SubmodelAdder[Literal[1], TM_contra, TI_contra]: ...
 
-    @contextlib.contextmanager
+    @overload
+    def __call__(
+        self: SubmodelAdder[Literal[0], TM_contra, TI_contra],
+        submodel: modeltools.SharableSubmodelInterface,
+        *,
+        update: bool = True,
+    ) -> None: ...
+
+    @overload
+    def __call__(
+        self: SubmodelAdder[Literal[1], TM_contra, TI_contra],
+        submodel: modeltools.SharableSubmodelInterface,
+        *,
+        position: int,
+        update: bool = True,
+    ) -> None: ...
+
     def __call__(
         self,
-        module: Union[types.ModuleType, str],
+        submodel: Union[types.ModuleType, str, modeltools.SharableSubmodelInterface],
         *,
         position: Optional[int] = None,
         update: bool = True,
-    ) -> Iterator[modeltools.Model]:
+    ) -> Optional[Self]:
         try:
-            if isinstance(module, str):
-                module = importlib.import_module(f"hydpy.models.{module}")
-            interface = self.submodelinterface
-            if not issubclass(submodeltype := module.Model, interface):
-                raise TypeError(
-                    f"Submodel `{module.__name__.rpartition('.')[2]}` does not comply "
-                    f"with the `{interface.__name__}` interface."
-                )
-            shared = self._sharable_configuration
             assert (model := self._model) is not None
+
+            if isinstance(submodel, modeltools.SharableSubmodelInterface):
+                self._check_submodelinterface(submodeltype=type(submodel))
+                self._connect_models(model=model, submodel=submodel, position=position)
+                return None
+
+            if isinstance(submodel, modeltools.Model):
+                raise TypeError(
+                    f"The given `{submodel}` instance is not considered sharable."
+                )
+
+            if isinstance(submodel, str):
+                submodel = importlib.import_module(f"hydpy.models.{submodel}")
+            self._check_submodelinterface(submodeltype=submodel.Model)
+
+            shared = self._sharable_configuration
             control = model.parameters.control
             if (ltr := self._landtype_refindices) is not None:
                 shared["landtype_refindices"] = getattr(control, ltr.name)
@@ -691,60 +764,111 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
                 shared["soiltype_refindices"] = getattr(control, str_.name)
             if (rw := self._refweights) is not None:
                 shared["refweights"] = getattr(control, rw.name)
-            with submodeltype.share_configuration(shared):
-                submodel = prepare_model(module)
-                assert isinstance(submodel, modeltools.SubmodelInterface)
+
+            self._test = submodel.Model.share_configuration(shared)
+            self._test.__enter__()
+            try:
+                submodel_ = prepare_model(submodel)
+                assert isinstance(submodel_, self.submodelinterface)
+                self._connect_models(model=model, submodel=submodel_, position=position)
+                submodel_._submodeladder = self
                 if self.dimensionality == 0:
-                    setattr(model, self.submodelname, submodel)
-                    setattr(model, f"{self.submodelname}_typeid", interface.typeid)
+                    self.update(model, submodel_, refresh=False)
                 elif self.dimensionality == 1:
                     assert position is not None
-                    submodels = getattr(model, self.submodelname)
-                    assert isinstance(submodels, modeltools.SubmodelsProperty)
-                    submodels.put_submodel(
-                        submodel=submodel, typeid=interface.typeid, position=position
-                    )
+                    self.update(model, submodel_, position=position, refresh=False)
                 else:
                     assert_never(self.dimensionality)
-                assert isinstance(submodel, interface)
-                submodel._submodeladder = self
-                if self.dimensionality == 0:
-                    self.update(model, submodel, refresh=False)
-                elif self.dimensionality == 1:
-                    self.update(model, submodel, position=position, refresh=False)
-                else:
-                    assert_never(self.dimensionality)
-                assert (
-                    ((frame1 := inspect.currentframe()) is not None)
-                    and ((frame2 := frame1.f_back) is not None)
-                    and ((frame3 := frame2.f_back) is not None)
+                assert ((frame1 := inspect.currentframe()) is not None) and (
+                    (frame2 := frame1.f_back) is not None
                 )
-                namespace = frame3.f_locals
-                old_locals = namespace.get(__HYDPY_MODEL_LOCALS__, {})
-                try:
-                    _add_locals_to_namespace(submodel, namespace)
-                    self._mainmodelstack.append(model)
-                    for mainmodel in reversed(self._mainmodelstack):
-                        if submodel.add_mainmodel_as_subsubmodel(mainmodel):
-                            break
-                    yield submodel
-                    self._mainmodelstack.pop(-1)
-                    if update:
-                        submodel.parameters.update()
-                finally:
-                    new_locals = namespace[__HYDPY_MODEL_LOCALS__]
-                    for name in new_locals:
-                        namespace.pop(name, None)
-                    namespace.update(old_locals)
-                    namespace[__HYDPY_MODEL_LOCALS__] = old_locals
-                    if isinstance(model, modeltools.SubmodelInterface):
-                        # see https://github.com/python/mypy/issues/12732
-                        model.predefinedmethod2argument.clear()  # type: ignore[attr-defined]  # pylint: disable=line-too-long
+                self._namespace = frame2.f_locals
+                self._old_locals = self._namespace.get(__HYDPY_MODEL_LOCALS__, {})
+                self._submodel = submodel_
+                self._update = update
+            except BaseException as exc:
+                self._tidy_up()
+                raise exc
+
+            return self
+
         except BaseException:
-            assert (model := self._model) is not None
             objecttools.augment_excmessage(
-                f"While trying to add a submodel to the main model `{model.name}`"
+                f"While trying to add a submodel to the main model `{self._model}`"
             )
+
+    def __enter__(self) -> modeltools.SubmodelInterface:
+        _add_locals_to_namespace(self._submodel, self._namespace)
+        self._mainmodelstack.append(self._model)
+        for mainmodel in reversed(self._mainmodelstack):
+            if self._submodel.add_mainmodel_as_subsubmodel(mainmodel):
+                break
+        else:
+            setattr(self._model, f"{self.submodelname}_is_mainmodel", False)
+        return self._submodel
+
+    def __exit__(
+        self,
+        exception_type: Optional[type[BaseException]],
+        exception_value: Optional[BaseException],
+        traceback: Optional[types.TracebackType],
+    ) -> None:
+        try:
+            self._mainmodelstack.pop(-1)
+            if self._update and (exception_type is None):
+                self._submodel.parameters.update()
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to add submodel `{self._submodel}` to the main model "
+                f"`{self._model}`"
+            )
+        finally:
+            new_locals = self._namespace[__HYDPY_MODEL_LOCALS__]
+            for name in new_locals:
+                self._namespace.pop(name, None)
+            self._namespace.update(self._old_locals)
+            self._namespace[__HYDPY_MODEL_LOCALS__] = self._old_locals
+            if isinstance(self._model, modeltools.SubmodelInterface):
+                self._model.preparemethod2arguments.clear()
+            self._tidy_up()
+
+    def _check_submodelinterface(self, submodeltype: type[modeltools.Model]) -> None:
+        # pylint: disable=protected-access
+        if not issubclass(submodeltype, self.submodelinterface):
+            raise TypeError(
+                f"Submodel `{submodeltype._NAME}` does not comply with the "
+                f"`{self.submodelinterface.__name__}` interface."
+            )
+
+    def _connect_models(
+        self,
+        model: modeltools.Model,
+        submodel: modeltools.SubmodelInterface,
+        position: Optional[int],
+    ) -> None:
+        submodel.__hydpy_element__ = model.__hydpy_element__
+        typeid = self.submodelinterface.typeid
+        if self.dimensionality == 0:
+            setattr(model, self.submodelname, submodel)
+            setattr(model, f"{self.submodelname}_typeid", typeid)
+        elif self.dimensionality == 1:
+            assert position is not None
+            submodels = getattr(model, self.submodelname)
+            assert isinstance(submodels, modeltools.SubmodelsProperty)
+            submodels.put_submodel(submodel=submodel, typeid=typeid, position=position)
+        else:
+            assert_never(self.dimensionality)
+
+    def _tidy_up(self) -> None:
+        self._test.__exit__(*sys.exc_info())
+        if hasattr(self, "_submodel"):
+            del self._submodel
+        if hasattr(self, "_update"):
+            del self._update
+        if hasattr(self, "_namespace"):
+            del self._namespace
+        if hasattr(self, "_old_locals"):
+            del self._old_locals
 
     @overload
     def update(
@@ -754,8 +878,7 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
         /,
         *,
         refresh: bool,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @overload
     def update(
@@ -766,8 +889,7 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
         *,
         position: int,
         refresh: bool,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     def update(
         self,
@@ -793,14 +915,14 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
         else:
             assert_never(self.dimensionality)
         if isinstance(model, modeltools.SubmodelInterface):
-            im2a = model.predefinedmethod2argument
-            for methodname in modeltools.SubmodelInterface.GENERAL_METHODS:
-                if (argument := im2a.get(methodname)) is not None:
-                    getattr(submodel, methodname)(argument)
+            for methodname, arguments in model.preparemethod2arguments.items():
+                if methodname not in self._methodnames:
+                    if (method := getattr(submodel, methodname, None)) is not None:
+                        method(*arguments[0], **arguments[1])
 
 
 def define_targetparameter(
-    parameter: Type[parametertools.Parameter],
+    parameter: type[parametertools.Parameter],
 ) -> Callable[
     [Callable[Concatenate[TM_contra, P], None]], TargetParameterUpdater[TM_contra, P]
 ]:
@@ -824,6 +946,12 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
     unmodified arguments, so that model users might not even realise the
     |TargetParameterUpdater| instance exists:
 
+    .. testsetup::
+
+        >>> from hydpy.models.evap_tw2002 import Model
+        >>> Model.prepare_nmbzones.values_orig = {}
+        >>> Model.prepare_nmbzones.values_test = {}
+
     >>> from hydpy import prepare_model
     >>> model = prepare_model("evap_tw2002")
     >>> model.prepare_nmbzones(3)
@@ -835,10 +963,49 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
 
     >>> model.prepare_nmbzones.targetparameter.__name__
     'NmbHRU'
+
+    They also memorise the passed data and resulting parameter values:
+
+    >>> model.prepare_nmbzones.values_orig  # doctest: +ELLIPSIS
+    {<hydpy.models.evap_tw2002.Model object at ...>: (((3,), {}), 3)}
+
+    With |TargetParameterUpdater.testmode| enabled, |TargetParameterUpdater| instances
+    do not pass the given data to the wrapped method but memorise it together with the
+    already available parameter values in another dictionary:
+
+    >>> type(model.prepare_nmbzones).testmode = True
+    >>> model.prepare_nmbzones(4)
+    >>> model.parameters.control.nmbhru
+    nmbhru(3)
+    >>> model.prepare_nmbzones.values_test  # doctest: +ELLIPSIS
+    {<hydpy.models.evap_tw2002.Model object at ...>: (((4,), {}), 3)}
+
+    .. testsetup::
+
+        >>> type(model.prepare_nmbzones).testmode = False
     """
 
-    targetparameter: Type[parametertools.Parameter]
+    targetparameter: type[parametertools.Parameter]
     """The control parameter the wrapped method modifies."""
+    testmode: ClassVar[bool] = False
+    """The mode of all |TargetParameterUpdater| instances.
+    
+    |False| indicates the normal "active" mode, 
+    where |TargetParameterUpdater| instances actually change the values of their target 
+    parameters and save the input data and the resulting parameter values in the 
+    |TargetParameterUpdater.values_orig| dictionary.  |True| indicates the testing mode 
+    where |TargetParameterUpdater| instances just collect the input data and the 
+    already available parameter values in the |TargetParameterUpdater.values_test|
+    dictionary.
+    """
+    values_orig: dict[modeltools.Model, tuple[tuple[P.args, P.kwargs], Any]]
+    """Deep copies of the input data (separated by positional and keyword arguments) 
+    and the resulting values of the target parameters of the respective model 
+    instances."""
+    values_test: dict[modeltools.Model, tuple[tuple[P.args, P.kwargs], Any]]
+    """Deep copies of the input data (separated by positional and keyword arguments) 
+    and the already available values of the target parameters of the respective model 
+    instances."""
 
     _wrapped: Callable[Concatenate[TM_contra, P], None]
     """The wrapped, submodel-specific method for setting the value of a single control 
@@ -848,14 +1015,16 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
     def __init__(
         self,
         wrapped: Callable[Concatenate[TM_contra, P], None],
-        targetparameter: Type[parametertools.Parameter],
+        targetparameter: type[parametertools.Parameter],
     ) -> None:
         self._wrapped = wrapped
         self.targetparameter = targetparameter
+        self.values_orig = {}
+        self.values_test = {}
         self.__doc__ = wrapped.__doc__
 
     def __get__(
-        self, obj: Optional[TM_contra], type_: Type[modeltools.Model]
+        self, obj: Optional[TM_contra], type_: type[modeltools.Model]
     ) -> TargetParameterUpdater[TM_contra, P]:
         if obj is not None:
             self._model = obj
@@ -863,7 +1032,17 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
 
     def __call__(self, *args: P.args, **kwargs: P.kwargs) -> None:
         assert (model := self._model) is not None
-        self._wrapped(model, *args, **kwargs)
+        model.preparemethod2arguments[self._wrapped.__name__] = args, kwargs
+        control = model.parameters.control
+        if self.testmode:
+            if (name := self.targetparameter.name) in control.names:
+                par = control[name]
+                self.values_test[model] = copy.deepcopy(((args, kwargs), par.value))
+        else:
+            if (name := self.targetparameter.name) in control.names:
+                self._wrapped(model, *args, **kwargs)
+                par = control[name]
+                self.values_orig[model] = copy.deepcopy(((args, kwargs), par.value))
 
 
 def simulationstep(timestep: timetools.PeriodConstrArg) -> None:

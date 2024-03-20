@@ -16,7 +16,7 @@ outlet sequence.  Hence, assigning a model instance to a blank |Element| instanc
 sufficient:
 
 >>> from hydpy.models.evap_m import *
->>> parameterstep()
+>>> parameterstep("1d")
 >>> from hydpy import Element
 >>> element = Element("element")
 >>> element.model = model
@@ -24,7 +24,7 @@ sufficient:
 In our simple test-setting, the submodel of type |evap_io| supplies different
 reference evapotranspiration values for two hydrological response units for the last
 of January and the first of February 2000.  |evap_m| applies individual adjustment
-factors for both months:
+factors for both months and "damps" the second unit's result value:
 
 >>> from hydpy import pub
 >>> pub.timegrids = "2000-01-31", "2000-02-02", "1d"
@@ -32,12 +32,14 @@ factors for both months:
 >>> hruarea(0.2, 0.8)
 >>> monthfactor.jan = 0.5
 >>> monthfactor.feb = 2.0
+>>> dampingfactor(1.0, 0.5)
 >>> with model.add_retmodel_v1("evap_io"):
 ...     evapotranspirationfactor(0.8, 1.2)
 >>>
 >>> from hydpy import IntegrationTest
 >>> test = IntegrationTest(element)
 >>> test.dateformat = "%Y-%d-%m"
+>>> test.inits = ((model.sequences.logs.loggedpotentialevapotranspiration, 0.6),)
 >>>
 >>> model.retmodel.sequences.inputs.referenceevapotranspiration.series = 1.0, 2.0
 
@@ -47,7 +49,7 @@ factors for both months:
     |       date |      referenceevapotranspiration |      potentialevapotranspiration | meanpotentialevapotranspiration |
     ----------------------------------------------------------------------------------------------------------------------
     | 2000-31-01 | 0.8                          1.2 | 0.4                          0.6 |                            0.56 |
-    | 2000-01-02 | 1.6                          2.4 | 3.2                          4.8 |                            4.48 |
+    | 2000-01-02 | 1.6                          2.4 | 3.2                          2.7 |                             2.8 |
 """
 # import...
 # ...from HydPy
@@ -57,7 +59,9 @@ from hydpy.interfaces import petinterfaces
 from hydpy.models.evap import evap_model
 
 
-class Model(evap_model.Main_RET_PETModel_V1, evap_model.Sub_PETModel_V1):
+class Model(
+    evap_model.Main_RET_PETModel_V1, evap_model.Sub_ETModel, petinterfaces.PETModel_V1
+):
     """HydPy-Evap-M (month-based adjustment of reference evapotranspiration)."""
 
     INLET_METHODS = ()
@@ -65,6 +69,7 @@ class Model(evap_model.Main_RET_PETModel_V1, evap_model.Sub_PETModel_V1):
     RUN_METHODS = (
         evap_model.Calc_ReferenceEvapotranspiration_V4,
         evap_model.Calc_PotentialEvapotranspiration_V1,
+        evap_model.Update_PotentialEvapotranspiration_V1,
         evap_model.Calc_MeanPotentialEvapotranspiration_V1,
     )
     INTERFACE_METHODS = (

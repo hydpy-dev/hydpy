@@ -190,10 +190,7 @@ class Calc_RHV_V1(modeltools.Method):
         rhv(0.0, 0.01, 0.040983, 0.11, 1.0)
     """
 
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-        lstream_control.HM,
-    )
+    CONTROLPARAMETERS = (lstream_control.GTS, lstream_control.HM)
     DERIVEDPARAMETERS = (lstream_derived.HRP,)
     REQUIREDSEQUENCES = (lstream_states.H,)
     RESULTSEQUENCES = (lstream_aides.RHV,)
@@ -253,10 +250,7 @@ class Calc_RHVDH_V1(modeltools.Method):
         d_rhv/d_h: 0.0, 0.155602, 0.5, 0.844398, 1.0
     """
 
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-        lstream_control.HM,
-    )
+    CONTROLPARAMETERS = (lstream_control.GTS, lstream_control.HM)
     DERIVEDPARAMETERS = (lstream_derived.HRP,)
     REQUIREDSEQUENCES = (lstream_states.H,)
     RESULTSEQUENCES = (lstream_aides.RHVDH,)
@@ -300,19 +294,10 @@ class Calc_RHLVR_RHRVR_V1(modeltools.Method):
         rhrvr(0.0, 0.001974, 0.01, 0.040983, 0.11, 0.9)
     """
 
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-        lstream_control.HM,
-    )
-    DERIVEDPARAMETERS = (
-        lstream_derived.HV,
-        lstream_derived.HRP,
-    )
+    CONTROLPARAMETERS = (lstream_control.GTS, lstream_control.HM)
+    DERIVEDPARAMETERS = (lstream_derived.HV, lstream_derived.HRP)
     REQUIREDSEQUENCES = (lstream_states.H,)
-    RESULTSEQUENCES = (
-        lstream_aides.RHLVR,
-        lstream_aides.RHRVR,
-    )
+    RESULTSEQUENCES = (lstream_aides.RHLVR, lstream_aides.RHRVR)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -381,19 +366,10 @@ class Calc_RHLVRDH_RHRVRDH_V1(modeltools.Method):
         d_rhrvr/d_h: 0.0, 0.0, 0.0, 0.0, 0.155602, 0.5, 0.844398, 1.0
     """
 
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-        lstream_control.HM,
-    )
-    DERIVEDPARAMETERS = (
-        lstream_derived.HRP,
-        lstream_derived.HV,
-    )
+    CONTROLPARAMETERS = (lstream_control.GTS, lstream_control.HM)
+    DERIVEDPARAMETERS = (lstream_derived.HRP, lstream_derived.HV)
     REQUIREDSEQUENCES = (lstream_states.H,)
-    RESULTSEQUENCES = (
-        lstream_aides.RHLVRDH,
-        lstream_aides.RHRVRDH,
-    )
+    RESULTSEQUENCES = (lstream_aides.RHLVRDH, lstream_aides.RHRVRDH)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -491,20 +467,10 @@ class Calc_AM_UM_V1(modeltools.Method):
         um(2.081965, 2.22, 3.000025, 3.8, 4.0, 4.2, 5.0, 6.0)
     """
 
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-        lstream_control.BM,
-        lstream_control.BNM,
-    )
+    CONTROLPARAMETERS = (lstream_control.GTS, lstream_control.BM, lstream_control.BNM)
     DERIVEDPARAMETERS = (lstream_derived.BNMF,)
-    REQUIREDSEQUENCES = (
-        lstream_aides.RHM,
-        lstream_aides.RHV,
-    )
-    RESULTSEQUENCES = (
-        lstream_aides.AM,
-        lstream_aides.UM,
-    )
+    REQUIREDSEQUENCES = (lstream_aides.RHM, lstream_aides.RHV)
+    RESULTSEQUENCES = (lstream_aides.AM, lstream_aides.UM)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -598,11 +564,7 @@ class Calc_AMDH_UMDH_V1(modeltools.Method):
 2.001327, 2.0
     """
 
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-        lstream_control.BM,
-        lstream_control.BNM,
-    )
+    CONTROLPARAMETERS = (lstream_control.GTS, lstream_control.BM, lstream_control.BNM)
     DERIVEDPARAMETERS = (lstream_derived.BNMF,)
     REQUIREDSEQUENCES = (
         lstream_aides.RHM,
@@ -610,10 +572,7 @@ class Calc_AMDH_UMDH_V1(modeltools.Method):
         lstream_aides.RHV,
         lstream_aides.RHVDH,
     )
-    RESULTSEQUENCES = (
-        lstream_aides.AMDH,
-        lstream_aides.UMDH,
-    )
+    RESULTSEQUENCES = (lstream_aides.AMDH, lstream_aides.UMDH)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -756,17 +715,9 @@ class Calc_ALV_ARV_ULV_URV_V1(modeltools.Method):
             3.9, 4.0, 4.1, 5.0)
     """
 
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-        lstream_control.BV,
-        lstream_control.BNV,
-    )
+    CONTROLPARAMETERS = (lstream_control.GTS, lstream_control.BV, lstream_control.BNV)
     DERIVEDPARAMETERS = (lstream_derived.BNVF,)
-    REQUIREDSEQUENCES = (
-        lstream_aides.RHV,
-        lstream_aides.RHLVR,
-        lstream_aides.RHRVR,
-    )
+    REQUIREDSEQUENCES = (lstream_aides.RHV, lstream_aides.RHLVR, lstream_aides.RHRVR)
     RESULTSEQUENCES = (
         lstream_aides.ALV,
         lstream_aides.ARV,
@@ -914,11 +865,7 @@ class Calc_ALVDH_ARVDH_ULVDH_URVDH_V1(modeltools.Method):
 3.04951, 1.000871, 1.000001, 1.0, 1.0, 1.0, 1.0
     """
 
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-        lstream_control.BV,
-        lstream_control.BNV,
-    )
+    CONTROLPARAMETERS = (lstream_control.GTS, lstream_control.BV, lstream_control.BNV)
     DERIVEDPARAMETERS = (lstream_derived.BNVF,)
     REQUIREDSEQUENCES = (
         lstream_aides.RHV,
@@ -1067,15 +1014,9 @@ class Calc_ALVR_ARVR_ULVR_URVR_V1(modeltools.Method):
              9.688137, 10.198039, 10.707941, 12.747549, 15.297059)
     """
 
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-        lstream_control.BNVR,
-    )
+    CONTROLPARAMETERS = (lstream_control.GTS, lstream_control.BNVR)
     DERIVEDPARAMETERS = (lstream_derived.BNVRF,)
-    REQUIREDSEQUENCES = (
-        lstream_aides.RHLVR,
-        lstream_aides.RHRVR,
-    )
+    REQUIREDSEQUENCES = (lstream_aides.RHLVR, lstream_aides.RHRVR)
     RESULTSEQUENCES = (
         lstream_aides.ALVR,
         lstream_aides.ARVR,
@@ -1199,10 +1140,7 @@ class Calc_ALVRDH_ARVRDH_ULVRDH_URVRDH_V1(modeltools.Method):
 2.54951, 4.305599, 5.097936, 5.099019
     """
 
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-        lstream_control.BNVR,
-    )
+    CONTROLPARAMETERS = (lstream_control.GTS, lstream_control.BNVR)
     DERIVEDPARAMETERS = (lstream_derived.BNVRF,)
     REQUIREDSEQUENCES = (
         lstream_aides.RHLVR,
@@ -1252,10 +1190,7 @@ class Calc_QM_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (lstream_control.GTS,)
     DERIVEDPARAMETERS = (lstream_derived.MFM,)
-    REQUIREDSEQUENCES = (
-        lstream_aides.AM,
-        lstream_aides.UM,
-    )
+    REQUIREDSEQUENCES = (lstream_aides.AM, lstream_aides.UM)
     RESULTSEQUENCES = (lstream_aides.QM,)
 
     @staticmethod
@@ -1295,11 +1230,7 @@ class Calc_QM_V2(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (lstream_control.GTS,)
-    REQUIREDSEQUENCES = (
-        lstream_aides.AM,
-        lstream_aides.QMDH,
-        lstream_aides.AMDH,
-    )
+    REQUIREDSEQUENCES = (lstream_aides.AM, lstream_aides.QMDH, lstream_aides.AMDH)
     RESULTSEQUENCES = (lstream_aides.QM,)
 
     @staticmethod
@@ -1435,10 +1366,7 @@ class Calc_QLV_QRV_V1(modeltools.Method):
         lstream_aides.ULV,
         lstream_aides.URV,
     )
-    RESULTSEQUENCES = (
-        lstream_aides.QLV,
-        lstream_aides.QRV,
-    )
+    RESULTSEQUENCES = (lstream_aides.QLV, lstream_aides.QRV)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1497,10 +1425,7 @@ class Calc_QLV_QRV_V2(modeltools.Method):
         lstream_aides.QLVDH,
         lstream_aides.QRVDH,
     )
-    RESULTSEQUENCES = (
-        lstream_aides.QLV,
-        lstream_aides.QRV,
-    )
+    RESULTSEQUENCES = (lstream_aides.QLV, lstream_aides.QRV)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1592,10 +1517,7 @@ class Calc_QLVDH_QRVDH_V1(modeltools.Method):
         lstream_aides.URV,
         lstream_aides.URVDH,
     )
-    RESULTSEQUENCES = (
-        lstream_aides.QLVDH,
-        lstream_aides.QRVDH,
-    )
+    RESULTSEQUENCES = (lstream_aides.QLVDH, lstream_aides.QRVDH)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1666,10 +1588,7 @@ class Calc_QLVR_QRVR_V1(modeltools.Method):
         lstream_aides.ULVR,
         lstream_aides.URVR,
     )
-    RESULTSEQUENCES = (
-        lstream_aides.QLVR,
-        lstream_aides.QRVR,
-    )
+    RESULTSEQUENCES = (lstream_aides.QLVR, lstream_aides.QRVR)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1728,10 +1647,7 @@ class Calc_QLVR_QRVR_V2(modeltools.Method):
         lstream_aides.ALVRDH,
         lstream_aides.ARVRDH,
     )
-    RESULTSEQUENCES = (
-        lstream_aides.QLVR,
-        lstream_aides.QRVR,
-    )
+    RESULTSEQUENCES = (lstream_aides.QLVR, lstream_aides.QRVR)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1819,10 +1735,7 @@ class Calc_QLVRDH_QRVRDH_V1(modeltools.Method):
         lstream_aides.URVR,
         lstream_aides.URVRDH,
     )
-    RESULTSEQUENCES = (
-        lstream_aides.QLVRDH,
-        lstream_aides.QRVRDH,
-    )
+    RESULTSEQUENCES = (lstream_aides.QLVRDH, lstream_aides.QRVRDH)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -2049,15 +1962,8 @@ class Calc_WBM_V1(modeltools.Method):
         d_am/d_h: 2.081965, 7.593774, 7.918034, 8.028465, 8.0
     """
 
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-        lstream_control.BM,
-        lstream_control.BNM,
-    )
-    FIXEDPARAMETERS = (
-        lstream_fixed.WBMin,
-        lstream_fixed.WBReg,
-    )
+    CONTROLPARAMETERS = (lstream_control.GTS, lstream_control.BM, lstream_control.BNM)
+    FIXEDPARAMETERS = (lstream_fixed.WBMin, lstream_fixed.WBReg)
     REQUIREDSEQUENCES = (
         lstream_aides.RHM,
         lstream_aides.RHMDH,
@@ -2152,11 +2058,7 @@ class Calc_WBLV_WBRV_V1(modeltools.Method):
 40.96888, 42.590174, 43.142325, 43.001873, 43.000001
     """
 
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-        lstream_control.BV,
-        lstream_control.BNV,
-    )
+    CONTROLPARAMETERS = (lstream_control.GTS, lstream_control.BV, lstream_control.BNV)
     REQUIREDSEQUENCES = (
         lstream_aides.RHV,
         lstream_aides.RHVDH,
@@ -2165,10 +2067,7 @@ class Calc_WBLV_WBRV_V1(modeltools.Method):
         lstream_aides.RHRVR,
         lstream_aides.RHRVRDH,
     )
-    RESULTSEQUENCES = (
-        lstream_aides.WBLV,
-        lstream_aides.WBRV,
-    )
+    RESULTSEQUENCES = (lstream_aides.WBLV, lstream_aides.WBRV)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -2249,20 +2148,14 @@ class Calc_WBLVR_WBRVR_V1(modeltools.Method):
 0.464419, 2.499532, 5.0
     """
 
-    CONTROLPARAMETERS = (
-        lstream_control.GTS,
-        lstream_control.BNVR,
-    )
+    CONTROLPARAMETERS = (lstream_control.GTS, lstream_control.BNVR)
     REQUIREDSEQUENCES = (
         lstream_aides.RHLVR,
         lstream_aides.RHLVRDH,
         lstream_aides.RHRVR,
         lstream_aides.RHRVRDH,
     )
-    RESULTSEQUENCES = (
-        lstream_aides.WBLVR,
-        lstream_aides.WBRVR,
-    )
+    RESULTSEQUENCES = (lstream_aides.WBLVR, lstream_aides.WBRVR)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -2334,15 +2227,8 @@ class Calc_DH_V1(modeltools.Method):
         dh(-0.000167, -0.000143, -0.000125, 0.000143, 0.000167)
     """
 
-    CONTROLPARAMETERS = (
-        lstream_control.Laen,
-        lstream_control.GTS,
-    )
-    REQUIREDSEQUENCES = (
-        lstream_fluxes.QZ,
-        lstream_fluxes.QG,
-        lstream_aides.WBG,
-    )
+    CONTROLPARAMETERS = (lstream_control.Laen, lstream_control.GTS)
+    REQUIREDSEQUENCES = (lstream_fluxes.QZ, lstream_fluxes.QG, lstream_aides.WBG)
     RESULTSEQUENCES = (lstream_fluxes.DH,)
 
     @staticmethod
@@ -2416,10 +2302,7 @@ class Update_VG_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (lstream_control.GTS,)
     DERIVEDPARAMETERS = (lstream_derived.Sek,)
-    REQUIREDSEQUENCES = (
-        lstream_fluxes.QZA,
-        lstream_fluxes.QG,
-    )
+    REQUIREDSEQUENCES = (lstream_fluxes.QZA, lstream_fluxes.QG)
     UPDATEDSEQUENCES = (lstream_states.VG,)
 
     @staticmethod
@@ -2456,10 +2339,7 @@ class Calc_QA_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (lstream_control.GTS,)
-    REQUIREDSEQUENCES = (
-        lstream_fluxes.QZ,
-        lstream_fluxes.QG,
-    )
+    REQUIREDSEQUENCES = (lstream_fluxes.QZ, lstream_fluxes.QG)
     RESULTSEQUENCES = (lstream_fluxes.QA,)
 
     @staticmethod
@@ -2887,10 +2767,7 @@ class Model(modeltools.ELSModel):
     SOLVERSEQUENCES = ()
     INLET_METHODS = (Pick_Q_V1,)
     RECEIVER_METHODS = ()
-    ADD_METHODS = (
-        Return_QF_V1,
-        Return_H_V1,
-    )
+    ADD_METHODS = (Return_QF_V1, Return_H_V1)
     PART_ODE_METHODS = (
         Calc_RHM_V1,
         Calc_RHMDH_V1,
@@ -2923,10 +2800,7 @@ class Model(modeltools.ELSModel):
         Calc_WBG_V1,
         Calc_DH_V1,
     )
-    FULL_ODE_METHODS = (
-        Update_H_V1,
-        Update_VG_V1,
-    )
+    FULL_ODE_METHODS = (Update_H_V1, Update_VG_V1)
     OUTLET_METHODS = (Pass_Q_V1,)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()
@@ -2990,7 +2864,7 @@ class BaseModelProfile(modeltools.ELSModel):
                 self._ys.insert(0, self._ys[0] + dxdy[1])
                 return self
 
-            def __call__(self) -> Tuple[List[float], List[float]]:
+            def __call__(self) -> tuple[list[float], list[float]]:
                 return self._xs, self._ys
 
         con = self.parameters.control
@@ -3051,7 +2925,7 @@ class BaseModelProfile(modeltools.ELSModel):
         exp: float = 2.0,
         hmin: Optional[float] = None,
         hmax: Optional[float] = None,
-    ) -> Tuple[float, ...]:
+    ) -> tuple[float, ...]:
         """Prepare a vector of the stage values.
 
         The argument `nmb` defines the number of stage values, `exp` defines their
@@ -3085,7 +2959,7 @@ class BaseModelProfile(modeltools.ELSModel):
         hs += hmin
         return tuple(hs)
 
-    def calculate_qgvector(self, hvector: Iterable[float]) -> Tuple[float, ...]:
+    def calculate_qgvector(self, hvector: Iterable[float]) -> tuple[float, ...]:
         """Calculate the discharge values (in m³/s) corresponding to the
         given stage vector.
 
@@ -3133,7 +3007,7 @@ class BaseModelProfile(modeltools.ELSModel):
         finally:
             self.sequences.states.h(h_)
 
-    def calculate_agvector(self, hvector: Iterable[float]) -> Tuple[float, ...]:
+    def calculate_agvector(self, hvector: Iterable[float]) -> tuple[float, ...]:
         """Calculate the wetted cross-section areas (in m²) corresponding to the given
         vector of stage values.
 
@@ -3154,7 +3028,7 @@ class BaseModelProfile(modeltools.ELSModel):
         finally:
             self.sequences.states.h(h_)
 
-    def calculate_vgvector(self, hvector: Iterable[float]) -> Tuple[float, ...]:
+    def calculate_vgvector(self, hvector: Iterable[float]) -> tuple[float, ...]:
         """Calculate the water volume stored within a channel subsection (in Mio m³)
         corresponding to the given vector of stage values.
 

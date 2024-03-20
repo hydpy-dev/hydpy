@@ -1078,16 +1078,10 @@ class Model(lstream_model.BaseModelProfile):
         lstream_solver.RelDTMin,
         lstream_solver.RelDTMax,
     )
-    SOLVERSEQUENCES = (
-        lstream_fluxes.QG,
-        lstream_fluxes.DH,
-    )
+    SOLVERSEQUENCES = (lstream_fluxes.QG, lstream_fluxes.DH)
     INLET_METHODS = (lstream_model.Pick_Q_V1,)
     RECEIVER_METHODS = ()
-    ADD_METHODS = (
-        lstream_model.Return_QF_V1,
-        lstream_model.Return_H_V1,
-    )
+    ADD_METHODS = (lstream_model.Return_QF_V1, lstream_model.Return_H_V1)
     PART_ODE_METHODS = (
         lstream_model.Calc_RHM_V1,
         lstream_model.Calc_RHMDH_V1,

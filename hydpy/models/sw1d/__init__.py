@@ -4,6 +4,8 @@
 situations like backwater effects that "hydrological" methods cannot handle well."""
 # import...
 # ...from HydPy
+from hydpy.auxs.anntools import ANN
+from hydpy.auxs.ppolytools import Poly, PPoly
 from hydpy.exe.modelimports import *
 
 # ...from sw1d

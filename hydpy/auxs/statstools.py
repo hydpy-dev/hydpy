@@ -4,6 +4,7 @@ modelling."""
 # import...
 # ...from standard library
 import abc
+import collections
 import copy
 import warnings
 
@@ -43,17 +44,14 @@ def filter_series(
     *,
     sim: VectorInputFloat,
     obs: VectorInputFloat,
-    date_ranges: Iterable[Tuple[timetools.DateConstrArg, timetools.DateConstrArg]],
+    date_ranges: Iterable[tuple[timetools.DateConstrArg, timetools.DateConstrArg]],
 ) -> SimObs:
     """sim and obs and date_ranges as arguments"""
 
 
 @overload
 def filter_series(
-    *,
-    sim: VectorInputFloat,
-    obs: VectorInputFloat,
-    months: Iterable[int],
+    *, sim: VectorInputFloat, obs: VectorInputFloat, months: Iterable[int]
 ) -> SimObs:
     """sim and obs and month as arguments"""
 
@@ -62,17 +60,13 @@ def filter_series(
 def filter_series(
     *,
     node: devicetools.Node,
-    date_ranges: Iterable[Tuple[timetools.DateConstrArg, timetools.DateConstrArg]],
+    date_ranges: Iterable[tuple[timetools.DateConstrArg, timetools.DateConstrArg]],
 ) -> SimObs:
     """node and date_ranges as arguments"""
 
 
 @overload
-def filter_series(
-    *,
-    node: devicetools.Node,
-    months: Iterable[int],
-) -> SimObs:
+def filter_series(*, node: devicetools.Node, months: Iterable[int]) -> SimObs:
     """node and month as arguments"""
 
 
@@ -83,7 +77,7 @@ def filter_series(
     obs: Optional[VectorInputFloat] = None,
     node: Optional[devicetools.Node] = None,
     date_ranges: Optional[
-        Iterable[Tuple[timetools.DateConstrArg, timetools.DateConstrArg]]
+        Iterable[tuple[timetools.DateConstrArg, timetools.DateConstrArg]]
     ] = None,
     months: Optional[Iterable[int]] = None,
 ) -> SimObs:
@@ -250,11 +244,7 @@ given.
     """
     dataframe = pandas.DataFrame()
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=False,
-        subperiod=False,
+        sim=sim, obs=obs, node=node, skip_nan=False, subperiod=False
     )
     del sim, obs
     dataframe["sim"] = sim_
@@ -304,10 +294,7 @@ given.
             "both of them are given."
         )
     dataframe_selected = dataframe_selected.sort_index()
-    return SimObs(
-        sim=dataframe_selected["sim"],
-        obs=dataframe_selected["obs"],
-    )
+    return SimObs(sim=dataframe_selected["sim"], obs=dataframe_selected["obs"])
 
 
 def prepare_arrays(
@@ -324,7 +311,7 @@ def prepare_arrays(
     |prepare_arrays| internally (e.g. |nse|).  But you can also use it manually, as
     shown in the following examples.
 
-    Function |prepare_arrays| can extract time-series data from |Node| objects.  To set
+    Function |prepare_arrays| can extract time series data from |Node| objects.  To set
     up an example for this, we define an initialisation period and prepare a |Node|
     object:
 
@@ -341,7 +328,7 @@ def prepare_arrays(
     ...     node.sequences.obs.series = 4.0, 5.0, nan, nan, nan, 6.0
 
     Now we can pass the node object to function |prepare_arrays| and get the
-    (unmodified) time-series data:
+    (unmodified) time series data:
 
     >>> from hydpy import prepare_arrays
     >>> arrays = prepare_arrays(node=node)
@@ -381,7 +368,7 @@ def prepare_arrays(
     >>> round_(arrays.obs)
     5.0, nan, nan, nan
 
-    Suppose one instead passes the simulation and observation time-series directly
+    Suppose one instead passes the simulation and observation time series directly
     (which possibly fit the evaluation period already).  In that case, function
     |prepare_arrays| ignores the current |Timegrids.eval_| |Timegrid| by default:
 
@@ -476,10 +463,7 @@ allowed.
         idxs = ~numpy.isnan(sim_) * ~numpy.isnan(obs_)
         sim_ = sim_[idxs]
         obs_ = obs_[idxs]
-    return SimObs(
-        sim=sim_,
-        obs=obs_,
-    )
+    return SimObs(sim=sim_, obs=obs_)
 
 
 class Criterion(Protocol):
@@ -493,18 +477,12 @@ class Criterion(Protocol):
         obs: VectorInputFloat,
         skip_nan: bool = False,
         subperiod: bool = False,
-    ) -> float:
-        ...
+    ) -> float: ...
 
     @overload
     def __call__(
-        self,
-        *,
-        node: devicetools.Node,
-        skip_nan: bool = False,
-        subperiod: bool = True,
-    ) -> float:
-        ...
+        self, *, node: devicetools.Node, skip_nan: bool = False, subperiod: bool = True
+    ) -> float: ...
 
 
 @overload
@@ -520,10 +498,7 @@ def rmse(
 
 @overload
 def rmse(
-    *,
-    node: devicetools.Node,
-    skip_nan: bool = False,
-    subperiod: bool = True,
+    *, node: devicetools.Node, skip_nan: bool = False, subperiod: bool = True
 ) -> float:
     """sim and obs as arguments"""
 
@@ -549,11 +524,7 @@ def rmse(
     for using |rmse|.
     """
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=skip_nan,
-        subperiod=subperiod,
+        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
     )
     del sim, obs
     return cast(float, numpy.sqrt(numpy.mean((sim_ - obs_) ** 2)))
@@ -572,10 +543,7 @@ def nse(
 
 @overload
 def nse(
-    *,
-    node: devicetools.Node,
-    skip_nan: bool = False,
-    subperiod: bool = True,
+    *, node: devicetools.Node, skip_nan: bool = False, subperiod: bool = True
 ) -> float:
     """sim and obs as arguments"""
 
@@ -616,11 +584,7 @@ def nse(
     for using |nse|.
     """
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=skip_nan,
-        subperiod=subperiod,
+        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
     )
     del sim, obs
     return cast(
@@ -642,10 +606,7 @@ def nse_log(
 
 @overload
 def nse_log(
-    *,
-    node: devicetools.Node,
-    skip_nan: bool = False,
-    subperiod: bool = True,
+    *, node: devicetools.Node, skip_nan: bool = False, subperiod: bool = True
 ) -> float:
     """sim and obs as arguments"""
 
@@ -684,11 +645,7 @@ def nse_log(
     for using |nse_log|.
     """
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=skip_nan,
-        subperiod=subperiod,
+        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
     )
     del sim, obs
     return cast(
@@ -712,10 +669,7 @@ def corr2(
 
 @overload
 def corr2(
-    *,
-    node: devicetools.Node,
-    skip_nan: bool = False,
-    subperiod: bool = True,
+    *, node: devicetools.Node, skip_nan: bool = False, subperiod: bool = True
 ) -> float:
     """sim and obs as arguments"""
 
@@ -760,11 +714,7 @@ def corr2(
     for using |corr2|.
     """
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=skip_nan,
-        subperiod=subperiod,
+        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
     )
     del sim, obs
     if (numpy.std(sim_) == 0.0) or (numpy.std(obs_) == 0.0):
@@ -785,10 +735,7 @@ def kge(
 
 @overload
 def kge(
-    *,
-    node: devicetools.Node,
-    skip_nan: bool = False,
-    subperiod: bool = True,
+    *, node: devicetools.Node, skip_nan: bool = False, subperiod: bool = True
 ) -> float:
     """sim and obs as arguments"""
 
@@ -829,11 +776,7 @@ def kge(
     for using |kge|.
     """
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=skip_nan,
-        subperiod=subperiod,
+        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
     )
     del sim, obs
     r = numpy.corrcoef(sim_, obs_)[0, 1]
@@ -857,10 +800,7 @@ def bias_abs(
 
 @overload
 def bias_abs(
-    *,
-    node: devicetools.Node,
-    skip_nan: bool = False,
-    subperiod: bool = True,
+    *, node: devicetools.Node, skip_nan: bool = False, subperiod: bool = True
 ) -> float:
     """sim and obs as arguments"""
 
@@ -889,11 +829,7 @@ def bias_abs(
     for using |bias_abs|.
     """
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=skip_nan,
-        subperiod=subperiod,
+        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
     )
     del sim, obs
     return cast(float, numpy.mean(sim_ - obs_))
@@ -912,10 +848,7 @@ def bias_rel(
 
 @overload
 def bias_rel(
-    *,
-    node: devicetools.Node,
-    skip_nan: bool = False,
-    subperiod: bool = True,
+    *, node: devicetools.Node, skip_nan: bool = False, subperiod: bool = True
 ) -> float:
     """sim and obs as arguments"""
 
@@ -944,11 +877,7 @@ def bias_rel(
     for using |bias_rel|.
     """
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=skip_nan,
-        subperiod=subperiod,
+        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
     )
     del sim, obs
     return cast(float, numpy.mean(sim_) / numpy.mean(obs_) - 1.0)
@@ -967,10 +896,7 @@ def std_ratio(
 
 @overload
 def std_ratio(
-    *,
-    node: devicetools.Node,
-    skip_nan: bool = False,
-    subperiod: bool = True,
+    *, node: devicetools.Node, skip_nan: bool = False, subperiod: bool = True
 ) -> float:
     """sim and obs as arguments"""
 
@@ -999,11 +925,7 @@ def std_ratio(
     for using |std_ratio|.
     """
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=skip_nan,
-        subperiod=subperiod,
+        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
     )
     del sim, obs
     return cast(float, numpy.std(sim_) / numpy.std(obs_) - 1.0)
@@ -1022,10 +944,7 @@ def var_ratio(
 
 @overload
 def var_ratio(
-    *,
-    node: devicetools.Node,
-    skip_nan: bool = False,
-    subperiod: bool = True,
+    *, node: devicetools.Node, skip_nan: bool = False, subperiod: bool = True
 ) -> float:
     """sim and obs as arguments"""
 
@@ -1054,11 +973,7 @@ def var_ratio(
     for using |var_ratio|.
     """
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=skip_nan,
-        subperiod=subperiod,
+        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
     )
     del sim, obs
     var_sim = numpy.std(sim_) / numpy.mean(sim_)
@@ -1079,10 +994,7 @@ def corr(
 
 @overload
 def corr(
-    *,
-    node: devicetools.Node,
-    skip_nan: bool = False,
-    subperiod: bool = True,
+    *, node: devicetools.Node, skip_nan: bool = False, subperiod: bool = True
 ) -> float:
     """sim and obs as arguments"""
 
@@ -1116,11 +1028,7 @@ def corr(
     for use of function |corr|.
     """
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=skip_nan,
-        subperiod=subperiod,
+        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
     )
     del sim, obs
     if (numpy.std(sim_) == 0.0) or (numpy.std(obs_) == 0.0):
@@ -1128,7 +1036,7 @@ def corr(
     return cast(float, numpy.corrcoef(sim_, obs_)[0, 1])
 
 
-def _pars_sepd(xi: float, beta: float) -> Tuple[float, float, float, float]:
+def _pars_sepd(xi: float, beta: float) -> tuple[float, float, float, float]:
     gamma1 = special.gamma(3.0 * (1.0 + beta) / 2.0)
     gamma2 = special.gamma((1.0 + beta) / 2.0)
     w_beta = gamma1**0.5 / (1.0 + beta) / gamma2**1.5
@@ -1136,9 +1044,7 @@ def _pars_sepd(xi: float, beta: float) -> Tuple[float, float, float, float]:
     m_1 = special.gamma(1.0 + beta) / gamma1**0.5 / gamma2**0.5
     m_2 = 1.0
     mu_xi = m_1 * (xi - 1.0 / xi)
-    sigma_xi = numpy.sqrt(
-        (m_2 - m_1**2) * (xi**2 + 1.0 / xi**2) + 2 * m_1**2 - m_2
-    )
+    sigma_xi = numpy.sqrt((m_2 - m_1**2) * (xi**2 + 1.0 / xi**2) + 2 * m_1**2 - m_2)
     return mu_xi, sigma_xi, w_beta, c_beta
 
 
@@ -1287,11 +1193,7 @@ def hsepd_pdf(
     for using |hsepd_pdf|.
     """
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=skip_nan,
-        subperiod=subperiod,
+        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
     )
     del sim, obs
     sigmas = _pars_h(sigma1, sigma2, sim_)
@@ -1405,11 +1307,7 @@ def hsepd_manual(
     for using |hsepd_manual|.
     """
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=skip_nan,
-        subperiod=subperiod,
+        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
     )
     del sim, obs
     return _hsepd_manual(
@@ -1448,7 +1346,7 @@ def hsepd(
     inits: Optional[Iterable[float]] = None,
     return_pars: Literal[True],
     silent: bool = True,
-) -> Tuple[float, Tuple[float, float, float, float]]:
+) -> tuple[float, tuple[float, float, float, float]]:
     """sim and obs as arguments, do return parameters"""
 
 
@@ -1474,7 +1372,7 @@ def hsepd(
     inits: Optional[Iterable[float]] = None,
     return_pars: Literal[True],
     silent: bool = True,
-) -> Tuple[float, Tuple[float, float, float, float]]:
+) -> tuple[float, tuple[float, float, float, float]]:
     """node as an argument, do return parameters"""
 
 
@@ -1491,7 +1389,7 @@ def hsepd(
     inits: Optional[Iterable[float]] = None,
     return_pars: bool = False,
     silent: bool = True,
-) -> Union[float, Tuple[float, Tuple[float, float, float, float]]]:
+) -> Union[float, tuple[float, tuple[float, float, float, float]]]:
     """Calculate the mean of the logarithmic probability densities of the
     heteroskedastic skewed exponential power distribution.
 
@@ -1552,7 +1450,7 @@ def hsepd(
     for using |hsepd|.
     """
 
-    def transform(pars: Tuple[float, float, float, float]) -> float:
+    def transform(pars: tuple[float, float, float, float]) -> float:
         """Transform the actual optimisation problem into a function to be minimised
         and apply parameter constraints."""
         sigma1, sigma2, xi, beta = constrain(*pars)
@@ -1569,7 +1467,7 @@ def hsepd(
 
     def constrain(
         sigma1: float, sigma2: float, xi: float, beta: float
-    ) -> Tuple[float, float, float, float]:
+    ) -> tuple[float, float, float, float]:
         """Apply constraints on the given parameter values."""
         return (
             max(sigma1, 0.0),
@@ -1579,11 +1477,7 @@ def hsepd(
         )
 
     sim_, obs_ = prepare_arrays(
-        sim=sim,
-        obs=obs,
-        node=node,
-        skip_nan=skip_nan,
-        subperiod=subperiod,
+        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
     )
     if inits is None:
         inits = [0.1, 0.2, 3.0, 1.0]
@@ -1592,11 +1486,7 @@ def hsepd(
     )
     constrained_values = constrain(*original_values)
     result = _hsepd_manual(
-        *constrained_values,
-        sim=sim_,
-        obs=obs_,
-        skip_nan=False,
-        subperiod=False,
+        *constrained_values, sim=sim_, obs=obs_, skip_nan=False, subperiod=False
     )
     if return_pars:
         return result, constrained_values
@@ -1635,10 +1525,7 @@ occurred: For the following objects, at least one value is negative: weights.
     weights = numpy.asarray(weights)
     validtools.test_equal_shape(timepoints=timepoints, weights=weights)
     validtools.test_non_negative(weights=weights)
-    return cast(
-        float,
-        numpy.dot(timepoints, weights) / numpy.sum(weights),
-    )
+    return cast(float, numpy.dot(timepoints, weights) / numpy.sum(weights))
 
 
 @objecttools.excmessage_decorator(
@@ -1697,7 +1584,7 @@ negative: weights.
     )
 
 
-def calc_weights(nodes: Collection[devicetools.Node]) -> Dict[devicetools.Node, float]:
+def calc_weights(nodes: Collection[devicetools.Node]) -> dict[devicetools.Node, float]:
     """Calculate "statistical" weights for all given nodes based on the number of
     observations within the evaluation period.
 
@@ -1791,7 +1678,7 @@ class SummaryRow(abc.ABC):
     """
 
     name: str
-    _nodes: Tuple[devicetools.Node, ...]
+    _nodes: tuple[devicetools.Node, ...]
 
     def __init__(self, name: str, nodes: Collection[devicetools.Node]) -> None:
         self.name = name
@@ -1799,7 +1686,7 @@ class SummaryRow(abc.ABC):
 
     def summarise_criteria(
         self, nmb_criteria: int, node2values: Mapping[devicetools.Node, Sequence[float]]
-    ) -> Tuple[float, ...]:
+    ) -> tuple[float, ...]:
         """Summarise the results of all criteria."""
         if len(self._nodes) == 0:
             return tuple(nmb_criteria * [numpy.nan])
@@ -1852,7 +1739,7 @@ class SummaryRowWeighted(SummaryRow):
     of class |SummaryRowWeighted|.
 
     First, we prepare two nodes.  `n1` provides a complete and `n2` provides an
-    incomplete observation time-series:
+    incomplete observation time series:
 
     >>> from hydpy import print_values, pub, Node, nan
     >>> pub.timegrids = "2000-01-01", "2000-01-04", "1d"
@@ -1895,7 +1782,7 @@ class SummaryRowWeighted(SummaryRow):
     -1.0, 2.0
     """
 
-    _node2weight: Dict[devicetools.Node, float]
+    _node2weight: dict[devicetools.Node, float]
     _predefined: bool
     _evaltimegrid: timetools.Timegrid
 
@@ -1944,8 +1831,7 @@ def print_evaluationtable(
     missingvalue: str = "-",
     decimalseperator: str = ".",
     file_: Optional[Union[str, TextIO]] = None,
-) -> None:
-    ...
+) -> None: ...
 
 
 @overload
@@ -1967,8 +1853,7 @@ def print_evaluationtable(
     missingvalue: str = "-",
     decimalseperator: str = ".",
     file_: Optional[Union[str, TextIO]] = None,
-) -> None:
-    ...
+) -> None: ...
 
 
 @objecttools.excmessage_decorator(
@@ -2178,7 +2063,8 @@ number of given alternative names being 1.
     if isinstance(critdigits, int):
         critdigits = len(criteria) * (critdigits,)
     formats = tuple(f"%.{d}f" for d in critdigits)
-    node2values: DefaultDict[devicetools.Node, List[float]] = DefaultDict(lambda: [])
+    node2values: collections.defaultdict[devicetools.Node, list[float]]
+    node2values = collections.defaultdict(lambda: [])
     data = numpy.empty((len(nodes), len(criteria)), dtype=float)
     for idx, node in enumerate(nodes):
         if stepsize is not None:

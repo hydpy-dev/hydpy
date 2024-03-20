@@ -28,10 +28,14 @@ class NmbHRU(parametertools.Parameter):
                         par, parametertools.KeywordParameter1D
                     ):
                         par.shape = nmbhru_new
-            for subseqs in self.subpars.pars.model.sequences:
+            seqs = self.subpars.pars.model.sequences
+            for subseqs in seqs:
                 for seq in subseqs:
                     if seq.NDIM == 1:
                         seq.shape = nmbhru_new
+            seq_ = getattr(seqs.logs, "loggedpotentialevapotranspiration", None)
+            if seq_ is not None:
+                seq_.shape = self.value
 
 
 class HRUType(parametertools.NameParameter):
@@ -58,6 +62,12 @@ class Interception(evap_parameters.ZipParameter1D):
 class Soil(evap_parameters.ZipParameter1D):
     """A flag that indicates whether soil evapotranspiration is relevant for the
     individual zones."""
+
+    TYPE, TIME, SPAN = bool, None, (False, True)
+
+
+class Plant(evap_parameters.ZipParameter1D):
+    """A flag that indicates whether the individual zones contain any vegetation."""
 
     TYPE, TIME, SPAN = bool, None, (False, True)
 
@@ -118,6 +128,36 @@ class Albedo(evap_parameters.LandMonthParameter):
     INIT = 0.5
 
 
+class GroundAlbedo(evap_parameters.ZipParameter1D):
+    """The albedo of the snow-free ground (including soils, sealed surfaces, and water
+    areas) [-]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, 1.0)
+    INIT = 0.2
+
+
+class GroundAlbedoSnow(evap_parameters.ZipParameter1D):
+    """The albedo of the snow-covered ground (including soils and sealed surfaces)
+    [-]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, 1.0)
+    INIT = 0.8
+
+
+class LeafAlbedo(evap_parameters.PlantParameter1D):
+    """The albedo of the snow-free leaves [-]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, 1.0)
+    INIT = 0.2
+
+
+class LeafAlbedoSnow(evap_parameters.PlantParameter1D):
+    """The albedo of the snow-covered leaves [-]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, 1.0)
+    INIT = 0.8
+
+
 class LeafAreaIndex(evap_parameters.LandMonthParameter):
     """Leaf area index [-]."""
 
@@ -129,6 +169,22 @@ class CropHeight(evap_parameters.LandMonthParameter):
     """Crop height [m]."""
 
     TYPE, TIME, SPAN = float, None, (0.0, None)
+    INIT = 1.0
+
+
+class CloudTypeFactor(parametertools.Parameter):
+    """Cloud type-specific factor for calculating atmospheric longwave counter radiation
+    [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    INIT = 0.2
+
+
+class NightCloudFactor(parametertools.Parameter):
+    """Factor for adjusting daytime estimates of the cloud coverage degree to nighttime
+    [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
     INIT = 1.0
 
 
@@ -149,6 +205,36 @@ class AverageSoilHeatFlux(parametertools.MonthParameter):
 class SurfaceResistance(evap_parameters.LandMonthParameter):
     """Surface resistance of water areas, sealed areas, and vegetation with sufficient
     water supply [s/m]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+    INIT = 100.0
+
+
+class WetSoilResistance(evap_parameters.SoilParameter1D):
+    """Surface resistance of wet soils [s/m]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+    INIT = 100.0
+
+
+class SoilResistanceIncrease(evap_parameters.SoilParameter1D):
+    """Increase in soil surface resistance if evaporation dominates precipitation
+    [s/m/T]."""
+
+    TYPE, TIME, SPAN = float, True, (0.0, None)
+    INIT = 0.0
+
+
+class WetnessThreshold(evap_parameters.SoilParameter1D):
+    """The ratio between precipitation and potential evapotranspiration above which the
+    topmost soil layer becomes wet [-]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+    INIT = 1.0
+
+
+class LeafResistance(evap_parameters.PlantParameter1D):
+    """Surface resistance of plant leaves [s/m]."""
 
     TYPE, TIME, SPAN = float, None, (0.0, None)
     INIT = 100.0
@@ -207,6 +293,14 @@ class AirTemperatureFactor(evap_parameters.ZipParameter1D):
     INIT = 0.1
 
 
+class DampingFactor(evap_parameters.ZipParameter1D):
+    """Damping factor (temporal weighting factor) for potential evapotranspiration
+    [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, 1.0)
+    INIT = 0.0
+
+
 class TemperatureThresholdIce(evap_parameters.WaterParameter1D):
     """Temperature threshold for evaporation from water areas [°C].
 
@@ -225,96 +319,13 @@ class MaxSoilWater(evap_parameters.SoilParameter1D):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
     INIT = 200.0
 
-    def trim(self, lower=None, upper=None) -> None:
-        r"""Trim values in accordance with
-        :math:`WiltingPoint \leq FieldCapacity \leq MaxSoilWater`.
-
-        >>> from hydpy.models.evap import *
-        >>> parameterstep()
-        >>> nmbhru(3)
-        >>> wiltingpoint(20.0)
-        >>> maxsoilwater(10.0, 50.0, 90.0)
-        >>> maxsoilwater
-        maxsoilwater(20.0, 50.0, 90.0)
-
-        >>> fieldcapacity.values = 60.0
-        >>> maxsoilwater.trim()
-        >>> maxsoilwater
-        maxsoilwater(60.0, 60.0, 90.0)
-        """
-        if lower is None:
-            p = self.subpars
-            if (fc := getattr(p, "fieldcapacity", None)) is not None:
-                lower = exceptiontools.getattr_(fc, "value", None)
-            if lower is None and (wp := getattr(p, "wiltingpoint", None)) is not None:
-                lower = exceptiontools.getattr_(wp, "value", None)
-        super().trim(lower, upper)
-
-
-class FieldCapacity(evap_parameters.SoilParameter1D):
-    """Field capacity [mm]."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
-    INIT = 100.0
-
-    def trim(self, lower=None, upper=None) -> None:
-        r"""Trim values in accordance with
-        :math:`WiltingPoint \leq FieldCapacity \leq MaxSoilWater`.
-
-        >>> from hydpy.models.evap import *
-        >>> parameterstep()
-        >>> nmbhru(3)
-        >>> wiltingpoint(20.0)
-        >>> maxsoilwater(80.0)
-        >>> fieldcapacity(10.0, 50.0, 90.0)
-        >>> fieldcapacity
-        fieldcapacity(20.0, 50.0, 80.0)
-        """
-        if lower is None:
-            if (wp := getattr(self.subpars, "wiltingpoint", None)) is not None:
-                lower = exceptiontools.getattr_(wp, "value", None)
-        if upper is None:
-            if (msw := getattr(self.subpars, "maxsoilwater", None)) is not None:
-                upper = exceptiontools.getattr_(msw, "value", None)
-        super().trim(lower, upper)
-
-
-class WiltingPoint(evap_parameters.SoilParameter1D):
-    """Permanent wilting point [mm]."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
-    INIT = 50.0
-
-    def trim(self, lower=None, upper=None) -> None:
-        r"""Trim values in accordance with
-        :math:`WiltingPoint \leq FieldCapacity \leq MaxSoilWater`.
-
-        >>> from hydpy.models.evap import *
-        >>> parameterstep()
-        >>> nmbhru(3)
-        >>> maxsoilwater(100.0)
-        >>> wiltingpoint(-10.0, 50.0, 110.0)
-        >>> wiltingpoint
-        wiltingpoint(0.0, 50.0, 100.0)
-
-        >>> fieldcapacity.values = 80.0
-        >>> wiltingpoint.trim()
-        >>> wiltingpoint
-        wiltingpoint(0.0, 50.0, 80.0)
-        """
-        if upper is None:
-            p = self.subpars
-            if (fc := getattr(p, "fieldcapacity", None)) is not None:
-                upper = exceptiontools.getattr_(fc, "value", None)
-            if upper is None and (msw := getattr(p, "maxsoilwater", None)) is not None:
-                upper = exceptiontools.getattr_(msw, "value", None)
-        super().trim(lower, upper)
-
 
 class SoilMoistureLimit(evap_parameters.SoilParameter1D):
     """Relative soil moisture limit for potential evapotranspiration [-].
 
-    In the terminology of HBV96: LP.
+    In the terminology of HBV96: `LP`. Typical value: 0.9.
+
+    In the terminology of MORECS: `PY`. Typical value: 0.6.
     """
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
@@ -332,7 +343,7 @@ class ExcessReduction(evap_parameters.SoilParameter1D):
 
 class DisseFactor(evap_parameters.SoilParameter1D):
     """Factor for calculating actual soil evapotranspiration based on potential
-    evapotranspiration estimates following the :cite:t:`ref-Disse1995` formulation of
+    evapotranspiration estimates that follow the :cite:t:`ref-Disse1995` formulation of
     the :cite:t:`ref-Minhas1974` equation.
 
     In the terminology of :cite:t:`ref-Minhas1974` and :cite:t:`ref-Disse1995`: r.

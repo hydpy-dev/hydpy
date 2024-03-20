@@ -202,7 +202,7 @@ the same threshold value(s) twice.
     `arrays in list` type in Cython.
     """
 
-    _coefs: Dict[str, Tuple[Tuple[float, ...], Tuple[float, ...]]]
+    _coefs: dict[str, tuple[tuple[float, ...], tuple[float, ...]]]
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
@@ -235,7 +235,7 @@ the same threshold value(s) twice.
                 f"value(s) twice."
             )
 
-    def __getattr__(self, key: str) -> Tuple[Tuple[float, ...], Tuple[float, ...]]:
+    def __getattr__(self, key: str) -> tuple[tuple[float, ...], tuple[float, ...]]:
         try:
             std_key = self._standardize_key(key)
         except AttributeError as exc:
@@ -264,7 +264,7 @@ the same threshold value(s) twice.
                         tuple(value.arma.ma_coefs),
                     )
                 else:
-                    value = cast(Tuple[Sequence[float], Sequence[float]], value)
+                    value = cast(tuple[Sequence[float], Sequence[float]], value)
                     self._coefs[std_key] = (
                         tuple(float(v) for v in value[0]),
                         tuple(float(v) for v in value[1]),
@@ -310,19 +310,19 @@ the same threshold value(s) twice.
     def _key2float(key: str) -> float:
         return float(key[3:].replace("_", "."))
 
-    def _get_orders(self, index: int) -> Tuple[int, ...]:
+    def _get_orders(self, index: int) -> tuple[int, ...]:
         orders = []
         for _, coefs in self:
             orders.append(len(coefs[index]))
         return tuple(orders)
 
     @property
-    def ar_orders(self) -> Tuple[int, ...]:
+    def ar_orders(self) -> tuple[int, ...]:
         """Number of AR coefficients of the different response functions."""
         return self._get_orders(0)
 
     @property
-    def ma_orders(self) -> Tuple[int, ...]:
+    def ma_orders(self) -> tuple[int, ...]:
         """Number of MA coefficients of the different response functions."""
         return self._get_orders(1)
 
@@ -362,7 +362,7 @@ the same threshold value(s) twice.
 
     def __iter__(
         self,
-    ) -> Iterator[Tuple[str, Tuple[Tuple[float, ...], Tuple[float, ...]]]]:
+    ) -> Iterator[tuple[str, tuple[tuple[float, ...], tuple[float, ...]]]]:
         for key in sorted(self._coefs.keys(), key=self._key2float):
             yield key, self._coefs[key]
 
@@ -378,5 +378,5 @@ the same threshold value(s) twice.
             return "\n".join(lines)
         return f"{prefix})"
 
-    def __dir__(self) -> List[str]:
-        return cast(List[str], super().__dir__()) + list(self._coefs.keys())
+    def __dir__(self) -> list[str]:
+        return cast(list[str], super().__dir__()) + list(self._coefs.keys())

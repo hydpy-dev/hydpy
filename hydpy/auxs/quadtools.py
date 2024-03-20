@@ -21,17 +21,12 @@ class Quad(modeltools.Submodel):
     """Numerical solver for quadrature problems based on the Gauss-Lobatto
     quadrature."""
 
-    CYTHONBASECLASS = quadutils.QuadBase  # pylint: disable=used-before-assignment
+    CYTHONBASECLASS = quadutils.QuadBase
     PYTHONCLASS = quadutils.QuadPython
     _cysubmodel: quadutils.QuadBase
 
     def integrate(
-        self,
-        x0: float,
-        x1: float,
-        nmin: int,
-        nmax: int,
-        tol: float,
+        self, x0: float, x1: float, nmin: int, nmax: int, tol: float
     ) -> float:
         """Repeatedly integrate the target function within the interval
         :math:`x0 \\leq x \\leq x1` until the estimated accuracy is smaller than

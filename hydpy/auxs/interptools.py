@@ -690,7 +690,7 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
 
     nmb_algorithms: int
 
-    _toy2algorithm: List[Tuple[timetools.TOY, InterpAlgorithm]]
+    _toy2algorithm: list[tuple[timetools.TOY, InterpAlgorithm]]
     _do_refresh: bool
     __seasonalinterpolator: Optional[interputils.SeasonalInterpolator]
 
@@ -703,17 +703,13 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
         self._do_refresh = True
 
     @overload
-    def __call__(self, __algorithm: InterpAlgorithm) -> None:
-        ...
+    def __call__(self, __algorithm: InterpAlgorithm) -> None: ...
 
     @overload
-    def __call__(self, **algorithm: InterpAlgorithm) -> None:
-        ...
+    def __call__(self, **algorithm: InterpAlgorithm) -> None: ...
 
     def __call__(
-        self,
-        *algorithm: InterpAlgorithm,
-        **algorithms: InterpAlgorithm,
+        self, *algorithm: InterpAlgorithm, **algorithms: InterpAlgorithm
     ) -> None:
         self._toy2algorithm = []
         self._do_refresh = False
@@ -908,7 +904,7 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
                 ratios[tdx, idx_0] = 1.0 - ratios[tdx, idx_1]
 
     @property
-    def shape(self) -> Tuple[int, int]:
+    def shape(self) -> tuple[int, int]:
         """The shape of array |SeasonalInterpolator.ratios|."""
         shape = self.ratios.shape
         return int(shape[0]), int(shape[1])
@@ -921,12 +917,12 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
         getattr(self.fastaccess, self.name).ratios = numpy.zeros(shape, dtype=float)
 
     @property
-    def toys(self) -> Tuple[timetools.TOY, ...]:
+    def toys(self) -> tuple[timetools.TOY, ...]:
         """A sorted |tuple| of all contained |TOY| objects."""
         return tuple(toy for (toy, _) in self)
 
     @property
-    def algorithms(self) -> Tuple[InterpAlgorithm, ...]:
+    def algorithms(self) -> tuple[InterpAlgorithm, ...]:
         """A sorted |tuple| of all handled interpolators."""
         return tuple(seasonalinterpolator for (_, seasonalinterpolator) in self)
 
@@ -1059,7 +1055,7 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
         else:
             object.__delattr__(self, name)
 
-    def __iter__(self) -> Iterator[Tuple[timetools.TOY, InterpAlgorithm]]:
+    def __iter__(self) -> Iterator[tuple[timetools.TOY, InterpAlgorithm]]:
         return iter(self._toy2algorithm)
 
     def __repr__(self) -> str:
@@ -1078,7 +1074,7 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
     def __len__(self) -> int:
         return len(self._toy2algorithm)
 
-    def __dir__(self) -> List[str]:
+    def __dir__(self) -> list[str]:
         """
         >>> from hydpy import ANN, pub, SeasonalInterpolator
         >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
@@ -1090,4 +1086,4 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
         >>> sorted(set(dir(si)) - set(object.__dir__(si)))
         ['toy_1_1_0_0_0']
         """
-        return cast(List[str], super().__dir__()) + [str(toy) for toy in self.toys]
+        return cast(list[str], super().__dir__()) + [str(toy) for toy in self.toys]

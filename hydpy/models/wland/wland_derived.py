@@ -13,58 +13,54 @@ from hydpy.auxs import smoothtools
 
 # ...from lland
 from hydpy.models.wland import wland_control
-from hydpy.models.wland.wland_constants import SEALED
+from hydpy.models.wland.wland_constants import SEALED, WATER
 
 
 class MOY(parametertools.MOYParameter):
     r"""References the "global" month of the year index array [-]."""
 
 
+class NUL(parametertools.Parameter):
+    r"""Number of land-related hydrological response units [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+
+    CONTROLPARAMETERS = (wland_control.NU,)
+
+    def update(self):
+        r"""Update |NUL| based on :math:`NUL = NU - 1`.
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+        >>> nu(6)
+        >>> derived.nul.update()
+        >>> derived.nul
+        nul(5)
+        """
+        self.value = self.subpars.pars.control.nu.value - 1
+
+
 class NUG(parametertools.Parameter):
-    r"""Number of groundwater affected hydrological response units [-]."""
+    r"""Number of groundwater-affected hydrological response units [-]."""
 
     NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
 
     CONTROLPARAMETERS = (wland_control.LT,)
 
     def update(self):
-        r"""Update |NUG| based on :math:`NUG = \Sigma (LT \neq SEALED)`.
+        r"""Update |NUG| based on
+        :math:`NUG = \Sigma (LT \neq WATER) \land LT \neq SEALED)`.
 
         >>> from hydpy.models.wland import *
         >>> parameterstep()
-        >>> nu(5)
-        >>> lt(SEALED, FIELD, SEALED, CONIFER, SEALED)
+        >>> nu(6)
+        >>> lt(SEALED, FIELD, SEALED, CONIFER, SEALED, WATER)
         >>> derived.nug.update()
         >>> derived.nug
         nug(2)
         """
-        control = self.subpars.pars.control
-        self.value = sum(control.lt.values != SEALED)
-
-
-class AT(parametertools.Parameter):
-    r"""Total area [km²]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-
-    CONTROLPARAMETERS = (
-        wland_control.AL,
-        wland_control.AS_,
-    )
-
-    def update(self):
-        r"""Update |AT| based on :math:`AT = AL + AS`.
-
-        >>> from hydpy.models.wland import *
-        >>> parameterstep()
-        >>> al(2.0)
-        >>> as_(1.0)
-        >>> derived.at.update()
-        >>> derived.at
-        at(3.0)
-        """
-        control = self.subpars.pars.control
-        self.value = control.al + control.as_
+        lt = self.subpars.pars.control.lt.values
+        self.value = sum((lt != WATER) * (lt != SEALED))
 
 
 class ALR(parametertools.Parameter):
@@ -72,22 +68,21 @@ class ALR(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (wland_control.AL,)
-    DERIVEDPARAMETERS = (AT,)
+    CONTROLPARAMETERS = (wland_control.AUR,)
 
     def update(self):
-        r"""Update |ALR| based on :math:`ALR = AL / AT`.
+        r"""Update |ALR| based on :math:`ALR = \sum_{i = 1}^{NUL} AUR_i`.
 
         >>> from hydpy.models.wland import *
         >>> parameterstep()
-        >>> al(1.4)
-        >>> derived.at(2.0)
+        >>> nu(3)
+        >>> aur(0.5, 0.3, 0.2)
         >>> derived.alr.update()
         >>> derived.alr
-        alr(0.7)
+        alr(0.8)
         """
         pars = self.subpars.pars
-        self.value = pars.control.al / pars.derived.at
+        self.value = numpy.sum(pars.control.aur[:-1])
 
 
 class ASR(parametertools.Parameter):
@@ -95,22 +90,21 @@ class ASR(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (wland_control.AS_,)
-    DERIVEDPARAMTERS = (AT,)
+    CONTROLPARAMETERS = (wland_control.AUR,)
 
     def update(self):
-        r"""Update |ASR| based on :math:`ASR = AS / AT`.
+        r"""Update |ASR| based on :math:`ASR = AUR_{NU}`.
 
         >>> from hydpy.models.wland import *
         >>> parameterstep()
-        >>> as_(0.4)
-        >>> derived.at(2.0)
+        >>> nu(3)
+        >>> aur(0.5, 0.3, 0.2)
         >>> derived.asr.update()
         >>> derived.asr
         asr(0.2)
         """
         pars = self.subpars.pars
-        self.value = pars.control.as_ / pars.derived.at
+        self.value = pars.control.aur[-1]
 
 
 class AGR(parametertools.Parameter):
@@ -118,23 +112,22 @@ class AGR(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (wland_control.AUR,)
-    DERIVEDPARAMETERS = (AT,)
+    CONTROLPARAMETERS = (wland_control.AUR, wland_control.LT)
 
     def update(self):
         r"""Update |AGR| based on :math:`AGR = \Sigma AUR_{\overline{SEALED}}`.
 
         >>> from hydpy.models.wland import *
         >>> parameterstep()
-        >>> nu(5)
-        >>> lt(SEALED, SOIL, SEALED, FIELD, SEALED)
-        >>> aur(0.04, 0.12, 0.2, 0.28, 0.36)
+        >>> nu(6)
+        >>> lt(SEALED, SOIL, SEALED, FIELD, SEALED, WATER)
+        >>> aur(0.02, 0.06, 0.1, 0.14, 0.18, 0.5)
         >>> derived.agr.update()
         >>> derived.agr
-        agr(0.4)
+        agr(0.2)
         """
-        control = self.subpars.pars.control
-        self.value = numpy.sum(control.aur.values[control.lt.values != SEALED])
+        c = self.subpars.pars.control
+        self.value = numpy.sum(c.aur.values[:-1][c.lt.values[:-1] != SEALED])
 
 
 class QF(parametertools.Parameter):
@@ -142,7 +135,7 @@ class QF(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
-    DERIVEDPARAMETERS = (AT,)
+    CONTROLPARAMETERS = (wland_control.AT,)
 
     def update(self):
         r"""Update |QF| based on |AT| and the current simulation step size.
@@ -150,13 +143,35 @@ class QF(parametertools.Parameter):
         >>> from hydpy.models.wland import *
         >>> simulationstep('1d')
         >>> parameterstep()
-        >>> derived.at(10.0)
+        >>> at(10.0)
         >>> derived.qf.update()
         >>> derived.qf
         qf(0.115741)
         """
-        der = self.subpars.pars.derived
-        self.value = der.at * 1000.0 / hydpy.pub.options.simulationstep.seconds
+        at = self.subpars.pars.control.at.value
+        self.value = at * 1000.0 / hydpy.pub.options.simulationstep.seconds
+
+
+class CD(parametertools.Parameter):
+    """Channel depth [mm]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (wland_control.GL, wland_control.BL)
+
+    def update(self):
+        r"""Update |CD| based on :math:`CD = GL - BL`.
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+        >>> gl(5.0)
+        >>> bl(3.0)
+        >>> derived.cd.update()
+        >>> derived.cd
+        cd(2000.0)
+        """
+        con = self.subpars.pars.control
+        self.value = 1000.0 * (con.gl - con.bl)
 
 
 class RH1(parametertools.Parameter):

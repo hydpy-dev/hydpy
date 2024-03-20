@@ -8,6 +8,7 @@ import os
 import sys
 import tempfile
 import time
+import types
 
 # ...from HydPy
 import hydpy
@@ -21,7 +22,7 @@ _printprogress_indentation = -4
 
 @objecttools.decorator
 def print_progress(
-    wrapped: Callable[..., None],
+    wrapped: types.MethodType,
     _: object,
     args: Iterable[object],
     kwargs: Mapping[str, object],
@@ -52,16 +53,17 @@ def print_progress(
 
     >>> time.perf_counter.side_effect = 1, 3, 4, 7
 
-    Now we decorate two test functions.  The first one does nothing; the second one
+    Now we decorate two test methods.  The first one does nothing; the second one
     only calls the first one:
 
     >>> from hydpy.core.printtools import print_progress
-    >>> @print_progress
-    ... def test1():
-    ...     pass
-    >>> @print_progress
-    ... def test2():
-    ...     test1()
+    >>> class Test:
+    ...     @print_progress
+    ...     def test1(self):
+    ...         pass
+    ...     @print_progress
+    ...     def test2(self):
+    ...         self.test1()
 
     The first example shows that the output is appropriately indented, that the
     returned times are at the right place, that the calculated execution the is
@@ -69,9 +71,9 @@ def print_progress(
 
     >>> from hydpy import pub
     >>> pub.options.printprogress = True
-    >>> test2()
-    method test2 started at 20:15:00
-        method test1 started at 20:15:02
+    >>> Test().test2()
+    method Test.test2 started at 20:15:00
+        method Test.test1 started at 20:15:02
             seconds elapsed: 1
         seconds elapsed: 6
     >>> strftime_mock.call_args
@@ -81,9 +83,9 @@ def print_progress(
 
     >>> time.strftime.side_effect = "20:15:00", "20:15:02"
     >>> time.perf_counter.side_effect = 1, 3, 4, 7
-    >>> test2()
-    method test2 started at 20:15:00
-        method test1 started at 20:15:02
+    >>> Test().test2()
+    method Test.test2 started at 20:15:00
+        method Test.test1 started at 20:15:02
             seconds elapsed: 1
         seconds elapsed: 6
 
@@ -91,7 +93,7 @@ def print_progress(
     expected:
 
     >>> pub.options.printprogress = False
-    >>> test2()
+    >>> Test().test2()
 
     >>> time.strftime = strftime
     >>> time.perf_counter = perf_counter
@@ -101,7 +103,7 @@ def print_progress(
     try:
         if hydpy.pub.options.printprogress:
             blanks = " " * _printprogress_indentation
-            name = wrapped.__name__
+            name = f"{type(wrapped.__self__).__name__}.{wrapped.__name__}"
             time_ = time.strftime("%H:%M:%S")
             print(f"{blanks}method {name} started at {time_}")
             seconds = time.perf_counter()
@@ -217,5 +219,4 @@ def progressbar(iterable: Iterable[T], length: int = 23) -> Iterator[T]:
                 sys.stdout.write(temp_stdout.read())
             sys.stdout.flush()
     else:
-        for next_ in iterable:
-            yield next_
+        yield from iterable

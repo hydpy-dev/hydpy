@@ -20,10 +20,10 @@ from hydpy.core import sequencetools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
 
-Device2Target = Dict[
+Device2Target = dict[
     Union[devicetools.Node, devicetools.Element], variabletools.Variable
 ]
-Selection2Targets = Dict[str, Tuple[variabletools.Variable, ...]]
+Selection2Targets = dict[str, tuple[variabletools.Variable, ...]]
 LevelType = Literal["global", "selection", "device", "subunit"]
 
 
@@ -146,8 +146,7 @@ class ExchangeItem:
         raise NotImplementedError()
 
     def _iter_relevantelements(
-        self,
-        selection: selectiontools.Selection,
+        self, selection: selectiontools.Selection
     ) -> Iterator[devicetools.Element]:
         for element in selection.elements:
             name1 = element.model.name
@@ -276,7 +275,7 @@ handle a parameter nor a sequence subgroup named `wrong_group.
         True
         """
         variable: variabletools.Variable
-        variables: List[variabletools.Variable]
+        variables: list[variabletools.Variable]
         if self.targetspecs.master in ("node", "nodes"):
             for selection in selections:
                 variables = []
@@ -326,7 +325,7 @@ class ChangeItem(ExchangeItem):
 
     level: LevelType
     """The level at which the values of the change item are valid."""
-    _shape: Optional[Union[Tuple[()], Tuple[int]]]
+    _shape: Optional[Union[tuple[()], tuple[int]]]
     _value: Optional[NDArrayFloat]
 
     @property
@@ -335,7 +334,7 @@ class ChangeItem(ExchangeItem):
         return (self.level != "global") + self.targetspecs.series
 
     @property
-    def shape(self) -> Union[Tuple[()], Tuple[int]]:
+    def shape(self) -> Union[tuple[()], tuple[int]]:
         """The shape of the target variables.
 
         Trying to access property |ChangeItem.shape| before calling method
@@ -357,7 +356,7 @@ class ChangeItem(ExchangeItem):
         )
 
     @property
-    def seriesshape(self) -> Union[Tuple[int], Tuple[int, int]]:
+    def seriesshape(self) -> Union[tuple[int], tuple[int, int]]:
         """The shape of the target variables' whole time series.
 
         |ChangeItem.seriesshape| extends the |ChangeItem.shape| tuple by the length of
@@ -383,7 +382,7 @@ class ChangeItem(ExchangeItem):
     @property
     def subnames(  # pylint: disable=inconsistent-return-statements
         self,
-    ) -> Optional[Union[Tuple[()], Tuple[str, ...]]]:
+    ) -> Optional[Union[tuple[()], tuple[str, ...]]]:
         """Artificial subnames of all values of all target variables.
 
         Property |ChangeItem.subnames| offers a way to identify specific entries of the
@@ -397,7 +396,7 @@ class ChangeItem(ExchangeItem):
         if self.level == "device":
             return tuple(device.name for device in self.device2target)
         if self.level == "subunit":
-            subnames: List[str] = []
+            subnames: list[str] = []
             for device, target in self.device2target.items():
                 subsubnames = _make_subunit_name(device, target)
                 if isinstance(subsubnames, str):
@@ -1178,19 +1177,19 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         ...     test("device")
         AttributeNotReadyWarning: While trying to query the values of exchange item \
 `uz`, the following error occured: While trying to calculate the mean value of the \
-internal time-series of sequence `uz` of element `land_dill`, the following error \
-occurred: Sequence `uz` of element `land_dill` is not requested to make any \
-time-series data available.
+internal time series of sequence `uz` of element `land_dill`, the following error \
+occurred: Sequence `uz` of element `land_dill` is not requested to make any time \
+series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
 `ic`, the following error occured: While trying to calculate the mean value of the \
-internal time-series of sequence `ic` of element `land_dill`, the following error \
-occurred: Sequence `ic` of element `land_dill` is not requested to make any \
-time-series data available.
+internal time series of sequence `ic` of element `land_dill`, the following error \
+occurred: Sequence `ic` of element `land_dill` is not requested to make any time \
+series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
 `wc`, the following error occured: While trying to calculate the mean value of the \
-internal time-series of sequence `wc` of element `land_dill`, the following error \
-occurred: Sequence `wc` of element `land_dill` is not requested to make any \
-time-series data available.
+internal time series of sequence `wc` of element `land_dill`, the following error \
+occurred: Sequence `wc` of element `land_dill` is not requested to make any time \
+series data available.
 
         >>> for series in uz.value:
         ...     print_values(series)  # doctest: +ELLIPSIS
@@ -1215,13 +1214,13 @@ has/have not been prepared so far.
         ...     test("subunit")
         AttributeNotReadyWarning: While trying to query the values of exchange item \
 `uz`, the following error occured: Sequence `uz` of element `land_dill` is not \
-requested to make any time-series data available.
+requested to make any time series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
 `ic`, the following error occured: Sequence `ic` of element `land_dill` is not \
-requested to make any time-series data available.
+requested to make any time series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
 `wc`, the following error occured: Sequence `wc` of element `land_dill` is not \
-requested to make any time-series data available.
+requested to make any time series data available.
 
         >>> for series in uz.value:
         ...     print_values(series)  # doctest: +ELLIPSIS
@@ -1336,16 +1335,11 @@ class MathItem(ChangeItem):
 
     basespecs: ExchangeSpecification
     """The exchange specification for the chosen base variable."""
-    target2base: Dict[variabletools.Variable, variabletools.Variable]
+    target2base: dict[variabletools.Variable, variabletools.Variable]
     """All target variable objects and their related base variable objects."""
 
     def __init__(
-        self,
-        name: str,
-        master: str,
-        target: str,
-        base: str,
-        level: LevelType,
+        self, name: str, master: str, target: str, base: str, level: LevelType
     ) -> None:
         self.name = Name(name)
         self.targetspecs = ExchangeSpecification(master, target, None)
@@ -1357,10 +1351,7 @@ class MathItem(ChangeItem):
         self.selection2targets = {}
         self.target2base = {}
 
-    def collect_variables(
-        self,
-        selections: selectiontools.Selections,
-    ) -> None:
+    def collect_variables(self, selections: selectiontools.Selections) -> None:
         """Apply method |ChangeItem.collect_variables| of the base class |ChangeItem|
         and also prepare the dictionary |MathItem.target2base|, which maps each target
         variable object to its base variable object.
@@ -1596,7 +1587,7 @@ class GetItem(ExchangeItem):
     """Base class for querying the values of multiple |Parameter| or |Sequence_|
     objects of a specific type."""
 
-    _device2name: Dict[Union[devicetools.Node, devicetools.Element], Name]
+    _device2name: dict[Union[devicetools.Node, devicetools.Element], Name]
     _ndim: Optional[int] = None
 
     def __init__(self, name: Name, master: str, target: str) -> None:
@@ -1662,7 +1653,7 @@ class GetItem(ExchangeItem):
 
     def yield_name2subnames(
         self,
-    ) -> Iterator[Tuple[Name, Union[str, Tuple[()], Tuple[str, ...]]]]:
+    ) -> Iterator[tuple[Name, Union[str, tuple[()], tuple[str, ...]]]]:
         """Sequentially return pairs of the item name and its artificial sub-names.
 
         The purpose and definition of the sub-names are similar to those returned by
@@ -1730,7 +1721,7 @@ class GetItem(ExchangeItem):
 
     def yield_name2value(
         self, idx1: Optional[int] = None, idx2: Optional[int] = None
-    ) -> Iterator[Tuple[Name, str]]:
+    ) -> Iterator[tuple[Name, str]]:
         """Sequentially return name-value pairs describing the current state of the
         target variables.
 

@@ -13,6 +13,24 @@ class Precipitation(evap_sequences.FluxSequence1D):
     NUMERIC = False
 
 
+class DailyPrecipitation(evap_sequences.FluxSequence1D):
+    """The precipitation sum of the last 24 hours [mm/d]."""
+
+    NUMERIC = False
+
+
+class GlobalRadiation(sequencetools.FluxSequence):
+    """Global radiation [W/m²]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class ClearSkySolarRadiation(sequencetools.FluxSequence):
+    """Clear sky solar radiation [W/m²]."""
+
+    NDIM, NUMERIC = 0, False
+
+
 class DailyGlobalRadiation(sequencetools.FluxSequence):
     """Average global radiation in the last 24 hours [W/m²]."""
 
@@ -73,8 +91,20 @@ class PotentialInterceptionEvaporation(evap_sequences.FluxSequence1D):
     NUMERIC = False
 
 
+class PotentialSoilEvapotranspiration(evap_sequences.FluxSequence1D):
+    """Potential evapotranspiration from soils [mm/T]."""
+
+    NUMERIC = False
+
+
 class PotentialEvapotranspiration(evap_sequences.FluxSequence1D):
     """Potential (land type-specific) evapotranspiration [mm/T]."""
+
+    NUMERIC = False
+
+
+class DailyPotentialSoilEvapotranspiration(evap_sequences.FluxSequence1D):
+    """The potential soil evapotranspiration sum of the last 24 hours [mm/d]."""
 
     NUMERIC = False
 
@@ -91,8 +121,20 @@ class MeanPotentialEvapotranspiration(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, False
 
 
+class PotentialWaterEvaporation(evap_sequences.FluxSequence1D):
+    """Potential evaporation from open water areas [mm/T]."""
+
+    NUMERIC = False
+
+
 class WaterEvaporation(evap_sequences.FluxSequence1D):
     """Actual evaporation from open water areas [mm/T]."""
+
+    NUMERIC = False
+
+
+class DailyWaterEvaporation(evap_sequences.FluxSequence1D):
+    """The water evaporation sum of the last 24 hours [mm/d]."""
 
     NUMERIC = False
 

@@ -227,7 +227,7 @@ check the calculated coefficients: 1.0.
     def update_coefs(self) -> None:
         """(Re)calculate the MA coefficients based on the instantaneous unit
         hydrograph."""
-        coefs: List[float] = []
+        coefs: list[float] = []
         sum_coefs = 0.0
         moment1 = self.iuh.moment1
         for t in itertools.count(0.0, 1.0):
@@ -267,7 +267,7 @@ check the calculated coefficients: 1.0.
         )
 
     @property
-    def turningpoint(self) -> Tuple[int, float]:
+    def turningpoint(self) -> tuple[int, float]:
         """Turning point (index and value tuple) in the recession part of the MA
         approximation of the instantaneous unit hydrograph."""
         coefs = self.coefs
@@ -288,7 +288,7 @@ check the calculated coefficients: 1.0.
         return numpy.arange(self.order, dtype=float)
 
     @property
-    def moments(self) -> Tuple[float, float]:
+    def moments(self) -> tuple[float, float]:
         """The first two time delay weighted statistical moments of the MA
         coefficients."""
         moment1 = statstools.calc_mean_time(self.delays, self.coefs)
@@ -640,7 +640,7 @@ far.
     )
 
     @property
-    def coefs(self) -> Tuple[VectorFloat, VectorFloat]:
+    def coefs(self) -> tuple[VectorFloat, VectorFloat]:
         """Tuple containing both the AR and the MA coefficients."""
         return self.ar_coefs, self.ma_coefs
 
@@ -655,7 +655,7 @@ far.
         return len(self.ma_coefs)
 
     @property
-    def order(self) -> Tuple[int, int]:
+    def order(self) -> tuple[int, int]:
         """Number of both the AR and the MA coefficients."""
         return self.ar_order, self.ma_order
 
@@ -820,7 +820,7 @@ far.
     @property
     def response(self) -> VectorFloat:
         """Return the response to a standard dt impulse."""
-        values: List[float] = []
+        values: list[float] = []
         sum_values = 0.0
         ma_coefs = self.ma_coefs
         ar_coefs = self.ar_coefs
@@ -838,7 +838,7 @@ far.
         return numpy.array(values)
 
     @property
-    def moments(self) -> Tuple[float, float]:
+    def moments(self) -> tuple[float, float]:
         """The first two time delay weighted statistical moments of the ARMA
         response."""
         timepoints = self.ma.delays

@@ -1,3 +1,5 @@
+# pylint: disable=missing-docstring, unused-argument, used-before-assignment
+
 from typing import *
 from hydpy.core import typingtools
 

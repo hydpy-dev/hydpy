@@ -13,6 +13,7 @@ from hydpy.auxs import roottools
 from hydpy.cythons import modelutils
 from hydpy.interfaces import aetinterfaces
 from hydpy.interfaces import precipinterfaces
+from hydpy.interfaces import radiationinterfaces
 from hydpy.interfaces import soilinterfaces
 from hydpy.interfaces import stateinterfaces
 from hydpy.interfaces import tempinterfaces
@@ -23,6 +24,7 @@ from hydpy.models.lland import lland_derived
 from hydpy.models.lland import lland_fixed
 from hydpy.models.lland import lland_inlets
 from hydpy.models.lland import lland_inputs
+from hydpy.models.lland import lland_factors
 from hydpy.models.lland import lland_fluxes
 from hydpy.models.lland import lland_states
 from hydpy.models.lland import lland_logs
@@ -34,6 +36,8 @@ from hydpy.models.lland.lland_constants import (
     FLUSS,
     SEE,
     VERS,
+    BODEN,
+    GLETS,
     LAUBW,
     MISCHW,
     NADELW,
@@ -87,6 +91,198 @@ class Calc_QZH_V1(modeltools.Method):
         flu.qzh = flu.qz / der.qfactor
 
 
+class Process_RadiationModel_V1(modeltools.Method):
+    """Let a submodel that complies with the |RadiationModel_V1| interface preprocess
+    all eventually required data.
+
+    Example:
+
+        We use the combination of |lland_v1| and |meteo_v003| as an example:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "1997-08-01", "1997-08-02", "1d"
+        >>> from hydpy.models.lland_v3 import *
+        >>> parameterstep()
+        >>> with model.add_radiationmodel_v1("meteo_v003"):
+        ...     latitude(54.1)
+        ...     longitude(9.7)
+        ...     angstromconstant(0.25)
+        ...     angstromfactor(0.5)
+        ...     angstromalternative(0.15)
+        ...     inputs.sunshineduration = 6.3
+        >>> model.process_radiationmodel_v1()
+        >>> model.radiationmodel.sequences.fluxes.globalradiation
+        globalradiation(190.25149)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+    """
+
+    SUBMODELINTERFACES = (radiationinterfaces.RadiationModel_V1,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        if model.radiationmodel_typeid == 1:
+            cast(
+                radiationinterfaces.RadiationModel_V1, model.radiationmodel
+            ).process_radiation()
+        # ToDo:
+        #     elif ...
+        #     else:
+        #         assert_never(model.radiationmodel)
+
+
+class Calc_PossibleSunshineDuration_V1(modeltools.Method):
+    """Query the possible sunshine duration from a submodel that complies with the
+    |RadiationModel_V1| or |RadiationModel_V4| interface.
+
+    Examples:
+
+        We combine |lland_v3| with submodels that comply with different interfaces.
+        First, with |meteo_v003|, which complies with |RadiationModel_V1|:
+
+        >>> from hydpy.models.lland_v3 import *
+        >>> parameterstep()
+        >>> with model.add_radiationmodel_v1("meteo_v003", update=False):
+        ...     factors.possiblesunshineduration = 10.0
+        >>> model.calc_possiblesunshineduration()
+        >>> factors.possiblesunshineduration
+        possiblesunshineduration(10.0)
+
+        Second, with |meteo_psun_sun_glob_io|, which complies with |RadiationModel_V4|:
+
+        >>> with model.add_radiationmodel_v4("meteo_psun_sun_glob_io", update=False):
+        ...     inputs.possiblesunshineduration = 14.0
+        >>> model.calc_possiblesunshineduration()
+        >>> factors.possiblesunshineduration
+        possiblesunshineduration(14.0)
+    """
+
+    SUBMODELINTERFACES = (
+        radiationinterfaces.RadiationModel_V1,
+        radiationinterfaces.RadiationModel_V4,
+    )
+    RESULTSEQUENCES = (lland_factors.PossibleSunshineDuration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        fac = model.sequences.factors.fastaccess
+
+        if model.radiationmodel_typeid == 1:
+            fac.possiblesunshineduration = cast(
+                radiationinterfaces.RadiationModel_V3, model.radiationmodel
+            ).get_possiblesunshineduration()
+        elif model.radiationmodel_typeid == 4:
+            fac.possiblesunshineduration = cast(
+                radiationinterfaces.RadiationModel_V4, model.radiationmodel
+            ).get_possiblesunshineduration()
+        # ToDo:
+        #     elif ...
+        #     else:
+        #         assert_never(model.radiationmodel)
+
+
+class Calc_SunshineDuration_V1(modeltools.Method):
+    """Query the actual sunshine duration from a submodel that complies with the
+    |RadiationModel_V1| or |RadiationModel_V4| interface.
+
+        We combine |lland_v3| with submodels that comply with different interfaces.
+        First, with |meteo_v001|, which complies with |RadiationModel_V1|:
+
+        >>> from hydpy.models.lland_v3 import *
+        >>> parameterstep()
+        >>> with model.add_radiationmodel_v1("meteo_v003", update=False):
+        ...     inputs.sunshineduration = 10.0
+        >>> model.calc_sunshineduration()
+        >>> factors.sunshineduration
+        sunshineduration(10.0)
+
+        Second, with |meteo_psun_sun_glob_io|, which complies with |RadiationModel_V4|:
+
+        >>> with model.add_radiationmodel_v4("meteo_psun_sun_glob_io", update=False):
+        ...     inputs.sunshineduration = 14.0
+        >>> model.calc_sunshineduration()
+        >>> factors.sunshineduration
+        sunshineduration(14.0)
+    """
+
+    SUBMODELINTERFACES = (
+        radiationinterfaces.RadiationModel_V1,
+        radiationinterfaces.RadiationModel_V4,
+    )
+    RESULTSEQUENCES = (lland_factors.SunshineDuration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        fac = model.sequences.factors.fastaccess
+
+        if model.radiationmodel_typeid == 1:
+            fac.sunshineduration = cast(
+                radiationinterfaces.RadiationModel_V3, model.radiationmodel
+            ).get_sunshineduration()
+        elif model.radiationmodel_typeid == 4:
+            fac.sunshineduration = cast(
+                radiationinterfaces.RadiationModel_V4, model.radiationmodel
+            ).get_sunshineduration()
+        # ToDo:
+        #     elif ...
+        #     else:
+        #         assert_never(model.radiationmodel)
+
+
+class Calc_GlobalRadiation_V1(modeltools.Method):
+    """Query the global radiation from a submodel that complies with the
+    |RadiationModel_V1| or |RadiationModel_V4| interface.
+
+    Examples:
+
+        We combine |lland_v3| with submodels that comply with different interfaces.
+        First, with |meteo_v003|, which complies with |RadiationModel_V1|:
+
+        >>> from hydpy.models.lland_v3 import *
+        >>> parameterstep()
+        >>> with model.add_radiationmodel_v1("meteo_v003", update=False):
+        ...     fluxes.globalradiation = 100.0
+        >>> model.calc_globalradiation()
+        >>> fluxes.globalradiation
+        globalradiation(100.0)
+
+        Second, with |meteo_psun_sun_glob_io|, which complies with
+        |RadiationModel_V4|:
+
+        >>> with model.add_radiationmodel_v4("meteo_psun_sun_glob_io", update=False):
+        ...     inputs.globalradiation = 400.0
+        >>> model.calc_globalradiation()
+        >>> fluxes.globalradiation
+        globalradiation(400.0)
+    """
+
+    SUBMODELINTERFACES = (
+        radiationinterfaces.RadiationModel_V1,
+        radiationinterfaces.RadiationModel_V2,
+        radiationinterfaces.RadiationModel_V3,
+        radiationinterfaces.RadiationModel_V4,
+    )
+    RESULTSEQUENCES = (lland_fluxes.GlobalRadiation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+
+        if model.radiationmodel_typeid == 1:
+            flu.globalradiation = cast(
+                radiationinterfaces.RadiationModel_V1, model.radiationmodel
+            ).get_globalradiation()
+        elif model.radiationmodel_typeid == 4:
+            flu.globalradiation = cast(
+                radiationinterfaces.RadiationModel_V4, model.radiationmodel
+            ).get_globalradiation()
+        # ToDo:
+        #     else:
+        #         assert_never(model.radiationmodel)
+
+
 class Update_LoggedSunshineDuration_V1(modeltools.Method):
     """Log the sunshine duration values of the last 24 hours.
 
@@ -105,7 +301,7 @@ class Update_LoggedSunshineDuration_V1(modeltools.Method):
         >>> test = UnitTest(model,
         ...                 model.update_loggedsunshineduration_v1,
         ...                 last_example=4,
-        ...                 parseqs=(inputs.sunshineduration,
+        ...                 parseqs=(factors.sunshineduration,
         ...                          logs.loggedsunshineduration))
         >>> test.nexts.sunshineduration = 1.0, 3.0, 2.0, 4.0
         >>> del test.inits.loggedsunshineduration
@@ -120,17 +316,17 @@ class Update_LoggedSunshineDuration_V1(modeltools.Method):
     """
 
     DERIVEDPARAMETERS = (lland_derived.NmbLogEntries,)
-    REQUIREDSEQUENCES = (lland_inputs.SunshineDuration,)
+    REQUIREDSEQUENCES = (lland_factors.SunshineDuration,)
     UPDATEDSEQUENCES = (lland_logs.LoggedSunshineDuration,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
-        inp = model.sequences.inputs.fastaccess
+        fac = model.sequences.factors.fastaccess
         log = model.sequences.logs.fastaccess
         for idx in range(der.nmblogentries - 1, 0, -1):
             log.loggedsunshineduration[idx] = log.loggedsunshineduration[idx - 1]
-        log.loggedsunshineduration[0] = inp.sunshineduration
+        log.loggedsunshineduration[0] = fac.sunshineduration
 
 
 class Calc_DailySunshineDuration_V1(modeltools.Method):
@@ -180,7 +376,7 @@ class Update_LoggedPossibleSunshineDuration_V1(modeltools.Method):
         >>> test = UnitTest(model,
         ...                 model.update_loggedpossiblesunshineduration_v1,
         ...                 last_example=4,
-        ...                 parseqs=(inputs.possiblesunshineduration,
+        ...                 parseqs=(factors.possiblesunshineduration,
         ...                          logs.loggedpossiblesunshineduration))
         >>> test.nexts.possiblesunshineduration = 1.0, 3.0, 2.0, 4.0
         >>> del test.inits.loggedpossiblesunshineduration
@@ -195,19 +391,19 @@ class Update_LoggedPossibleSunshineDuration_V1(modeltools.Method):
     """
 
     DERIVEDPARAMETERS = (lland_derived.NmbLogEntries,)
-    REQUIREDSEQUENCES = (lland_inputs.PossibleSunshineDuration,)
+    REQUIREDSEQUENCES = (lland_factors.PossibleSunshineDuration,)
     UPDATEDSEQUENCES = (lland_logs.LoggedPossibleSunshineDuration,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
-        inp = model.sequences.inputs.fastaccess
+        fac = model.sequences.factors.fastaccess
         log = model.sequences.logs.fastaccess
         for idx in range(der.nmblogentries - 1, 0, -1):
-            log.loggedpossiblesunshineduration[
-                idx
-            ] = log.loggedpossiblesunshineduration[idx - 1]
-        log.loggedpossiblesunshineduration[0] = inp.possiblesunshineduration
+            log.loggedpossiblesunshineduration[idx] = (
+                log.loggedpossiblesunshineduration[idx - 1]
+            )
+        log.loggedpossiblesunshineduration[0] = fac.possiblesunshineduration
 
 
 class Calc_DailyPossibleSunshineDuration_V1(modeltools.Method):
@@ -257,10 +453,7 @@ class Calc_NKor_V1(modeltools.Method):
         nkor(8.0, 10.0, 12.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.KG,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.KG)
     REQUIREDSEQUENCES = (lland_inputs.Nied,)
     RESULTSEQUENCES = (lland_fluxes.NKor,)
 
@@ -291,10 +484,7 @@ class Calc_TKor_V1(modeltools.Method):
         tkor(-1.0, 1.0, 3.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.KT,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.KT)
     REQUIREDSEQUENCES = (lland_inputs.TemL,)
     RESULTSEQUENCES = (lland_fluxes.TKor,)
 
@@ -419,69 +609,6 @@ class Calc_ReducedWindSpeed2m_V1(modeltools.Method):
                 flu.reducedwindspeed2m[k] = flu.windspeed2m
 
 
-class Update_EvI_WEvI_V1(modeltools.Method):
-    r"""Delay the given interception evaporation and update the corresponding log
-    sequence.
-
-    Basic equation:
-      :math:`EvI_{new} = WfEvI \cdot EvI_{old} + (1 - WfEvI) \cdot WEvI`
-
-    Example:
-
-        Prepare four hydrological response units with different combinations of delay
-        factors and "old" interception evaporation values:
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep("1d")
-        >>> simulationstep("12h")
-        >>> nhru(4)
-        >>> wfevi(2.0, 2.0, 0.2, 0.2)
-        >>> fluxes.evi = 1.6, 2.4, 1.6, 2.4
-
-        Note that the actual value of the time-dependent parameter |WfEvI| is reduced
-        due to the difference between the given parameter and simulation time steps:
-
-        >>> from hydpy import round_
-        >>> round_(wfevi.values)
-        1.0, 1.0, 0.1, 0.1
-
-        The evaporation value of the last simulation step is 2.0 mm:
-
-        >>> logs.wevi = 2.0
-
-        For the first two hydrological response units, the "old" |EvI| value is
-        modified by -0.4 mm and +0.4 mm, respectively.  For the other two response
-        units, which weigh the "new" evaporation value with 10 %, the new value of
-        |EvI| deviates from |WEvI| by -0.04 mm and +0.04 mm only:
-
-        >>> model.update_evi_wevi_v1()
-        >>> fluxes.evi
-        evi(1.6, 2.4, 1.96, 2.04)
-        >>> logs.wevi
-        wevi(1.6, 2.4, 1.96, 2.04)
-    """
-
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.WfEvI,
-    )
-    UPDATEDSEQUENCES = (
-        lland_fluxes.EvI,
-        lland_logs.WEvI,
-    )
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        log = model.sequences.logs.fastaccess
-        for k in range(con.nhru):
-            flu.evi[k] = (
-                con.wfevi[k] * flu.evi[k] + (1.0 - con.wfevi[k]) * log.wevi[0, k]
-            )
-            log.wevi[0, k] = flu.evi[k]
-
-
 class Calc_NBes_Inzp_V1(modeltools.Method):
     r"""Calculate stand precipitation and update the interception storage accordingly.
 
@@ -573,14 +700,8 @@ class Calc_NBes_Inzp_V1(modeltools.Method):
         nbes(0.4, 0.0, 0.0, 0.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
-    DERIVEDPARAMETERS = (
-        lland_derived.MOY,
-        lland_derived.KInz,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
+    DERIVEDPARAMETERS = (lland_derived.MOY, lland_derived.KInz)
     REQUIREDSEQUENCES = (lland_fluxes.NKor,)
     UPDATEDSEQUENCES = (lland_states.Inzp,)
     RESULTSEQUENCES = (lland_fluxes.NBes,)
@@ -644,11 +765,7 @@ class Calc_SNRatio_V1(modeltools.Method):
         snratio(1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.TGr,
-        lland_control.TSp,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.TGr, lland_control.TSp)
     REQUIREDSEQUENCES = (lland_fluxes.TKor,)
     RESULTSEQUENCES = (lland_aides.SNRatio,)
 
@@ -687,10 +804,7 @@ class Calc_SBes_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (lland_control.NHRU,)
-    REQUIREDSEQUENCES = (
-        lland_aides.SNRatio,
-        lland_fluxes.NBes,
-    )
+    REQUIREDSEQUENCES = (lland_aides.SNRatio, lland_fluxes.NBes)
     RESULTSEQUENCES = (lland_fluxes.SBes,)
 
     @staticmethod
@@ -873,10 +987,7 @@ class Calc_NBesInz_V1(modeltools.Method):
         nbesinz(0.0, 10.0, 10.0, 5.0, 0.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     REQUIREDSEQUENCES = (
         lland_fluxes.NBes,
         lland_fluxes.SnowIntMax,
@@ -920,14 +1031,8 @@ class Calc_SBesInz_V1(modeltools.Method):
         sbesinz(0.0, 8.0, 4.0, 2.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
-    REQUIREDSEQUENCES = (
-        lland_fluxes.NBesInz,
-        lland_aides.SNRatio,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
+    REQUIREDSEQUENCES = (lland_fluxes.NBesInz, lland_aides.SNRatio)
     RESULTSEQUENCES = (lland_fluxes.SBesInz,)
 
     @staticmethod
@@ -962,10 +1067,7 @@ class Calc_STInz_V1(modeltools.Method):
         stinz(0.0, 2.0, 3.0, 4.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     REQUIREDSEQUENCES = (lland_fluxes.SBesInz,)
     UPDATEDSEQUENCES = (lland_states.STInz,)
 
@@ -1007,15 +1109,8 @@ class Calc_WaDaInz_SInz_V1(modeltools.Method):
         wadainz(0.0, 1.0, 0.0, 0.5, 1.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.PWMax,
-    )
-    REQUIREDSEQUENCES = (
-        lland_fluxes.NBesInz,
-        lland_states.STInz,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.PWMax)
+    REQUIREDSEQUENCES = (lland_fluxes.NBesInz, lland_states.STInz)
     UPDATEDSEQUENCES = (lland_states.SInz,)
     RESULTSEQUENCES = (lland_fluxes.WaDaInz,)
 
@@ -1064,15 +1159,8 @@ class Calc_WNiedInz_ESnowInz_V1(modeltools.Method):
         esnowinz(3.4075, -0.469167, -0.226481, 0.016204, 0.258102, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.TRefN,
-    )
-    FIXEDPARAMETERS = (
-        lland_fixed.CPWasser,
-        lland_fixed.CPEis,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.TRefN)
+    FIXEDPARAMETERS = (lland_fixed.CPWasser, lland_fixed.CPEis)
     REQUIREDSEQUENCES = (
         lland_fluxes.TKor,
         lland_fluxes.NBesInz,
@@ -1130,21 +1218,11 @@ class Return_TempSInz_V1(modeltools.Method):
         -273.0
     """
 
-    FIXEDPARAMETERS = (
-        lland_fixed.CPWasser,
-        lland_fixed.CPEis,
-    )
-    REQUIREDSEQUENCES = (
-        lland_states.STInz,
-        lland_states.SInz,
-        lland_states.ESnowInz,
-    )
+    FIXEDPARAMETERS = (lland_fixed.CPWasser, lland_fixed.CPEis)
+    REQUIREDSEQUENCES = (lland_states.STInz, lland_states.SInz, lland_states.ESnowInz)
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        k: int,
-    ) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         fix = model.parameters.fixed.fastaccess
         sta = model.sequences.states.fastaccess
         if sta.sinz[k] > 0.0:
@@ -1176,15 +1254,8 @@ class Calc_TempSInz_V1(modeltools.Method):
 
     SUBMETHODS = (Return_TempSInz_V1,)
     CONTROLPARAMETERS = (lland_control.NHRU,)
-    FIXEDPARAMETERS = (
-        lland_fixed.CPWasser,
-        lland_fixed.CPEis,
-    )
-    REQUIREDSEQUENCES = (
-        lland_states.STInz,
-        lland_states.SInz,
-        lland_states.ESnowInz,
-    )
+    FIXEDPARAMETERS = (lland_fixed.CPWasser, lland_fixed.CPEis)
+    REQUIREDSEQUENCES = (lland_states.STInz, lland_states.SInz, lland_states.ESnowInz)
     RESULTSEQUENCES = (lland_aides.TempSInz,)
 
     @staticmethod
@@ -1227,11 +1298,7 @@ class Update_ASInz_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (lland_control.NHRU,)
     DERIVEDPARAMETERS = (lland_derived.Seconds,)
-    REQUIREDSEQUENCES = (
-        lland_fluxes.SBesInz,
-        lland_states.SInz,
-        lland_aides.TempSInz,
-    )
+    REQUIREDSEQUENCES = (lland_fluxes.SBesInz, lland_states.SInz, lland_aides.TempSInz)
     RESULTSEQUENCES = (lland_states.ASInz,)
 
     @staticmethod
@@ -1281,10 +1348,7 @@ class Calc_ActualAlbedoInz_V1(modeltools.Method):
         lland_control.SnowAgingFactor,
         lland_control.Albedo0Snow,
     )
-    REQUIREDSEQUENCES = (
-        lland_states.ASInz,
-        lland_states.SInz,
-    )
+    REQUIREDSEQUENCES = (lland_states.ASInz, lland_states.SInz)
     RESULTSEQUENCES = (lland_fluxes.ActualAlbedoInz,)
 
     @staticmethod
@@ -1321,7 +1385,7 @@ class Calc_NetShortwaveRadiationInz_V1(modeltools.Method):
         >>> derived.fr.laubw_jan = 0.5
         >>> derived.fr.laubw_feb = 0.1
         >>> derived.moy.update()
-        >>> inputs.globalradiation = 40.0
+        >>> fluxes.globalradiation = 40.0
         >>> fluxes.actualalbedoinz = 0.5
 
         >>> model.idx_sim = pub.timegrids.init["2000-01-31"]
@@ -1339,32 +1403,22 @@ class Calc_NetShortwaveRadiationInz_V1(modeltools.Method):
             >>> del pub.timegrids
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
-    DERIVEDPARAMETERS = (
-        lland_derived.Fr,
-        lland_derived.MOY,
-    )
-    REQUIREDSEQUENCES = (
-        lland_inputs.GlobalRadiation,
-        lland_fluxes.ActualAlbedoInz,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
+    DERIVEDPARAMETERS = (lland_derived.Fr, lland_derived.MOY)
+    REQUIREDSEQUENCES = (lland_fluxes.GlobalRadiation, lland_fluxes.ActualAlbedoInz)
     RESULTSEQUENCES = (lland_fluxes.NetShortwaveRadiationInz,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
-        inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
             if con.lnk[k] in (LAUBW, MISCHW, NADELW):
                 flu.netshortwaveradiationinz[k] = (
                     (1.0 - der.fr[con.lnk[k] - 1, der.moy[model.idx_sim]])
                     * (1.0 - flu.actualalbedoinz[k])
-                    * inp.globalradiation
+                    * flu.globalradiation
                 )
             else:
                 flu.netshortwaveradiationinz[k] = 0.0
@@ -1392,10 +1446,7 @@ class Calc_SchmPotInz_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (lland_control.NHRU,)
     FIXEDPARAMETERS = (lland_fixed.RSchmelz,)
-    REQUIREDSEQUENCES = (
-        lland_states.ESnowInz,
-        lland_states.SInz,
-    )
+    REQUIREDSEQUENCES = (lland_states.ESnowInz, lland_states.SInz)
     RESULTSEQUENCES = (lland_fluxes.SchmPotInz,)
 
     @staticmethod
@@ -1441,10 +1492,7 @@ class Calc_SchmInz_STInz_V1(modeltools.Method):
         schminz(0.0, 0.0, 0.0, 1.0, 2.0, 2.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     REQUIREDSEQUENCES = (lland_fluxes.SchmPotInz,)
     RESULTSEQUENCES = (lland_fluxes.SchmInz,)
     UPDATEDSEQUENCES = (lland_states.STInz,)
@@ -1484,10 +1532,7 @@ class Calc_GefrPotInz_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (lland_control.NHRU,)
     FIXEDPARAMETERS = (lland_fixed.RSchmelz,)
-    REQUIREDSEQUENCES = (
-        lland_states.ESnowInz,
-        lland_states.SInz,
-    )
+    REQUIREDSEQUENCES = (lland_states.ESnowInz, lland_states.SInz)
     RESULTSEQUENCES = (lland_fluxes.GefrPotInz,)
 
     @staticmethod
@@ -1546,10 +1591,7 @@ class Calc_GefrInz_STInz_V1(modeltools.Method):
         lland_control.Lnk,
         lland_control.RefreezeFlag,
     )
-    REQUIREDSEQUENCES = (
-        lland_fluxes.GefrPotInz,
-        lland_states.SInz,
-    )
+    REQUIREDSEQUENCES = (lland_fluxes.GefrPotInz, lland_states.SInz)
     RESULTSEQUENCES = (lland_fluxes.GefrInz,)
     UPDATEDSEQUENCES = (lland_states.STInz,)
 
@@ -1598,17 +1640,11 @@ class Calc_EvSInz_SInz_STInz_V1(modeltools.Method):
         stinz(1.161952, 1.0, 0.595119, 0.190238, 0.0, 0.0, 0.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     FIXEDPARAMETERS = (lland_fixed.LWE,)
     REQUIREDSEQUENCES = (lland_fluxes.WLatInz,)
     RESULTSEQUENCES = (lland_fluxes.EvSInz,)
-    UPDATEDSEQUENCES = (
-        lland_states.SInz,
-        lland_states.STInz,
-    )
+    UPDATEDSEQUENCES = (lland_states.SInz, lland_states.STInz)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1656,16 +1692,9 @@ class Update_WaDaInz_SInz_V1(modeltools.Method):
         wadainz(1.0, 1.0, 1.0, 1.0, 2.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.PWMax,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.PWMax)
     REQUIREDSEQUENCES = (lland_states.STInz,)
-    UPDATEDSEQUENCES = (
-        lland_states.SInz,
-        lland_fluxes.WaDaInz,
-    )
+    UPDATEDSEQUENCES = (lland_states.SInz, lland_fluxes.WaDaInz)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1702,16 +1731,9 @@ class Update_ESnowInz_V2(modeltools.Method):
         esnowinz(0.0, 0.0, -9.074074, 0.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     FIXEDPARAMETERS = (lland_fixed.RSchmelz,)
-    REQUIREDSEQUENCES = (
-        lland_fluxes.GefrInz,
-        lland_fluxes.SchmInz,
-        lland_states.SInz,
-    )
+    REQUIREDSEQUENCES = (lland_fluxes.GefrInz, lland_fluxes.SchmInz, lland_states.SInz)
     UPDATEDSEQUENCES = (lland_states.ESnowInz,)
 
     @staticmethod
@@ -1748,10 +1770,7 @@ class Calc_WATS_V1(modeltools.Method):
         wats(0.0, 0.0, 0.0, 7.5)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     REQUIREDSEQUENCES = (lland_fluxes.SBes,)
     UPDATEDSEQUENCES = (lland_states.WATS,)
 
@@ -1788,14 +1807,8 @@ class Calc_WATS_V2(modeltools.Method):
         wats(0.0, 3.0, 3.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
-    REQUIREDSEQUENCES = (
-        lland_fluxes.SBes,
-        lland_fluxes.SBesInz,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
+    REQUIREDSEQUENCES = (lland_fluxes.SBes, lland_fluxes.SBesInz)
     UPDATEDSEQUENCES = (lland_states.WATS,)
 
     @staticmethod
@@ -1850,15 +1863,8 @@ class Calc_WaDa_WAeS_V1(modeltools.Method):
         actual snow holding capacity to |WaDa|.
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.PWMax,
-    )
-    REQUIREDSEQUENCES = (
-        lland_fluxes.NBes,
-        lland_states.WATS,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.PWMax)
+    REQUIREDSEQUENCES = (lland_fluxes.NBes, lland_states.WATS)
     UPDATEDSEQUENCES = (lland_states.WAeS,)
     RESULTSEQUENCES = (lland_fluxes.WaDa,)
 
@@ -1905,11 +1911,7 @@ class Calc_WaDa_WAeS_V2(modeltools.Method):
         wada(1.5, 1.5, 1.5, 0.5, 1.0, 1.5, 1.0, 0.0, 0.5, 1.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.PWMax,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.PWMax)
     REQUIREDSEQUENCES = (
         lland_fluxes.NBes,
         lland_fluxes.NBesInz,
@@ -2032,20 +2034,9 @@ class Calc_WNied_V1(modeltools.Method):
         wnied(2.9075, -0.969167, -0.726481, -0.483796, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.TRefN,
-    )
-    FIXEDPARAMETERS = (
-        lland_fixed.CPWasser,
-        lland_fixed.CPEis,
-    )
-    REQUIREDSEQUENCES = (
-        lland_fluxes.TKor,
-        lland_fluxes.NBes,
-        lland_fluxes.SBes,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.TRefN)
+    FIXEDPARAMETERS = (lland_fixed.CPWasser, lland_fixed.CPEis)
+    REQUIREDSEQUENCES = (lland_fluxes.TKor, lland_fluxes.NBes, lland_fluxes.SBes)
     RESULTSEQUENCES = (lland_fluxes.WNied,)
 
     @staticmethod
@@ -2097,15 +2088,8 @@ class Calc_WNied_ESnow_V1(modeltools.Method):
         esnow(3.4075, -0.469167, -0.226481, 0.016204, 0.258102, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.TRefN,
-    )
-    FIXEDPARAMETERS = (
-        lland_fixed.CPWasser,
-        lland_fixed.CPEis,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.TRefN)
+    FIXEDPARAMETERS = (lland_fixed.CPWasser, lland_fixed.CPEis)
     REQUIREDSEQUENCES = (
         lland_fluxes.TKor,
         lland_fluxes.NBes,
@@ -2151,10 +2135,7 @@ class Return_SaturationVapourPressure_V1(modeltools.Method):
     """
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        temperature: float,
-    ) -> float:
+    def __call__(model: modeltools.Model, temperature: float) -> float:
         return 6.1078 * 2.71828 ** (17.08085 * temperature / (temperature + 234.175))
 
 
@@ -2258,10 +2239,7 @@ class Calc_RLAtm_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (lland_control.NHRU,)
-    FIXEDPARAMETERS = (
-        lland_fixed.Sigma,
-        lland_fixed.FrAtm,
-    )
+    FIXEDPARAMETERS = (lland_fixed.Sigma, lland_fixed.FrAtm)
     REQUIREDSEQUENCES = (
         lland_fluxes.TKor,
         lland_fluxes.ActualVapourPressure,
@@ -2334,15 +2312,9 @@ class Return_NetLongwaveRadiationInz_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (lland_control.Lnk,)
-    DERIVEDPARAMETERS = (
-        lland_derived.MOY,
-        lland_derived.Fr,
-    )
+    DERIVEDPARAMETERS = (lland_derived.MOY, lland_derived.Fr)
     FIXEDPARAMETERS = (lland_fixed.Sigma,)
-    REQUIREDSEQUENCES = (
-        lland_aides.TempSInz,
-        lland_aides.RLAtm,
-    )
+    REQUIREDSEQUENCES = (lland_aides.TempSInz, lland_aides.RLAtm)
 
     @staticmethod
     def __call__(model: modeltools.Model, k: int) -> float:
@@ -2400,10 +2372,7 @@ class Return_NetLongwaveRadiationSnow_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (lland_control.Lnk,)
-    DERIVEDPARAMETERS = (
-        lland_derived.MOY,
-        lland_derived.Fr,
-    )
+    DERIVEDPARAMETERS = (lland_derived.MOY, lland_derived.Fr)
     FIXEDPARAMETERS = (lland_fixed.Sigma,)
     REQUIREDSEQUENCES = (
         lland_fluxes.TempSSurface,
@@ -2412,10 +2381,7 @@ class Return_NetLongwaveRadiationSnow_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        k: int,
-    ) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
@@ -2471,11 +2437,7 @@ class Update_TauS_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (lland_control.NHRU,)
     DERIVEDPARAMETERS = (lland_derived.Seconds,)
-    REQUIREDSEQUENCES = (
-        lland_fluxes.SBes,
-        lland_states.WAeS,
-        lland_aides.TempS,
-    )
+    REQUIREDSEQUENCES = (lland_fluxes.SBes, lland_states.WAeS, lland_aides.TempS)
     RESULTSEQUENCES = (lland_states.TauS,)
 
     @staticmethod
@@ -2530,10 +2492,7 @@ class Calc_ActualAlbedo_V1(modeltools.Method):
         lland_control.SnowAgingFactor,
         lland_control.Albedo0Snow,
     )
-    REQUIREDSEQUENCES = (
-        lland_states.TauS,
-        lland_states.WAeS,
-    )
+    REQUIREDSEQUENCES = (lland_states.TauS, lland_states.WAeS)
     RESULTSEQUENCES = (lland_fluxes.ActualAlbedo,)
 
     @staticmethod
@@ -2570,7 +2529,7 @@ class Calc_NetShortwaveRadiationSnow_V1(modeltools.Method):
         >>> derived.fr.laubw_jan = 0.5
         >>> derived.fr.laubw_feb = 0.1
         >>> derived.moy.update()
-        >>> inputs.globalradiation = 40.0
+        >>> fluxes.globalradiation = 40.0
         >>> fluxes.actualalbedo = 0.5
 
         >>> model.idx_sim = pub.timegrids.init["2000-01-31"]
@@ -2593,25 +2552,15 @@ class Calc_NetShortwaveRadiationSnow_V1(modeltools.Method):
             >>> del pub.timegrids
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
-    DERIVEDPARAMETERS = (
-        lland_derived.MOY,
-        lland_derived.Fr,
-    )
-    REQUIREDSEQUENCES = (
-        lland_inputs.GlobalRadiation,
-        lland_fluxes.ActualAlbedo,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
+    DERIVEDPARAMETERS = (lland_derived.MOY, lland_derived.Fr)
+    REQUIREDSEQUENCES = (lland_fluxes.GlobalRadiation, lland_fluxes.ActualAlbedo)
     RESULTSEQUENCES = (lland_fluxes.NetShortwaveRadiationSnow,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
-        inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
             if modelutils.isnan(flu.actualalbedo[k]):
@@ -2620,7 +2569,7 @@ class Calc_NetShortwaveRadiationSnow_V1(modeltools.Method):
                 flu.netshortwaveradiationsnow[k] = (
                     der.fr[con.lnk[k] - 1, der.moy[model.idx_sim]]
                     * (1.0 - flu.actualalbedo[k])
-                    * inp.globalradiation
+                    * flu.globalradiation
                 )
 
 
@@ -2660,21 +2609,11 @@ class Return_TempS_V1(modeltools.Method):
         -273.0
     """
 
-    FIXEDPARAMETERS = (
-        lland_fixed.CPWasser,
-        lland_fixed.CPEis,
-    )
-    REQUIREDSEQUENCES = (
-        lland_states.WATS,
-        lland_states.WAeS,
-        lland_states.ESnow,
-    )
+    FIXEDPARAMETERS = (lland_fixed.CPWasser, lland_fixed.CPEis)
+    REQUIREDSEQUENCES = (lland_states.WATS, lland_states.WAeS, lland_states.ESnow)
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        k: int,
-    ) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         fix = model.parameters.fixed.fastaccess
         sta = model.sequences.states.fastaccess
         if sta.waes[k] > 0.0:
@@ -2709,21 +2648,11 @@ class Return_ESnowInz_V1(modeltools.Method):
         -2.0
     """
 
-    FIXEDPARAMETERS = (
-        lland_fixed.CPWasser,
-        lland_fixed.CPEis,
-    )
-    REQUIREDSEQUENCES = (
-        lland_states.STInz,
-        lland_states.SInz,
-    )
+    FIXEDPARAMETERS = (lland_fixed.CPWasser, lland_fixed.CPEis)
+    REQUIREDSEQUENCES = (lland_states.STInz, lland_states.SInz)
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        k: int,
-        temps: float,
-    ) -> float:
+    def __call__(model: modeltools.Model, k: int, temps: float) -> float:
         fix = model.parameters.fixed.fastaccess
         sta = model.sequences.states.fastaccess
         d_ice = fix.cpeis * sta.stinz[k]
@@ -2756,21 +2685,11 @@ class Return_ESnow_V1(modeltools.Method):
         -2.0
     """
 
-    FIXEDPARAMETERS = (
-        lland_fixed.CPWasser,
-        lland_fixed.CPEis,
-    )
-    REQUIREDSEQUENCES = (
-        lland_states.WATS,
-        lland_states.WAeS,
-    )
+    FIXEDPARAMETERS = (lland_fixed.CPWasser, lland_fixed.CPEis)
+    REQUIREDSEQUENCES = (lland_states.WATS, lland_states.WAeS)
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        k: int,
-        temps: float,
-    ) -> float:
+    def __call__(model: modeltools.Model, k: int, temps: float) -> float:
         fix = model.parameters.fixed.fastaccess
         sta = model.sequences.states.fastaccess
         d_ice = fix.cpeis * sta.wats[k]
@@ -2802,15 +2721,8 @@ class Calc_TempS_V1(modeltools.Method):
 
     SUBMETHODS = (Return_TempS_V1,)
     CONTROLPARAMETERS = (lland_control.NHRU,)
-    FIXEDPARAMETERS = (
-        lland_fixed.CPWasser,
-        lland_fixed.CPEis,
-    )
-    REQUIREDSEQUENCES = (
-        lland_states.WATS,
-        lland_states.WAeS,
-        lland_states.ESnow,
-    )
+    FIXEDPARAMETERS = (lland_fixed.CPWasser, lland_fixed.CPEis)
+    REQUIREDSEQUENCES = (lland_states.WATS, lland_states.WAeS, lland_states.ESnow)
     RESULTSEQUENCES = (lland_aides.TempS,)
 
     @staticmethod
@@ -2864,15 +2776,9 @@ class Calc_TZ_V1(modeltools.Method):
         tz(-2.88, -1.44, 0.0, 0.0, 0.0, 1.44, 2.88)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     DERIVEDPARAMETERS = (lland_derived.HeatOfFusion,)
-    FIXEDPARAMETERS = (
-        lland_fixed.Z,
-        lland_fixed.CG,
-    )
+    FIXEDPARAMETERS = (lland_fixed.Z, lland_fixed.CG)
     REQUIREDSEQUENCES = (lland_states.EBdn,)
     RESULTSEQUENCES = (lland_fluxes.TZ,)
 
@@ -2933,10 +2839,7 @@ class Return_WG_V1(modeltools.Method):
         18.0
     """
 
-    FIXEDPARAMETERS = (
-        lland_fixed.Z,
-        lland_fixed.LambdaG,
-    )
+    FIXEDPARAMETERS = (lland_fixed.Z, lland_fixed.LambdaG)
     REQUIREDSEQUENCES = (
         lland_fluxes.TZ,
         lland_fluxes.TKor,
@@ -2945,10 +2848,7 @@ class Return_WG_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        k: int,
-    ) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -2985,14 +2885,8 @@ class Calc_WG_V1(modeltools.Method):
     """
 
     SUBMETHODS = (Return_WG_V1,)
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
-    FIXEDPARAMETERS = (
-        lland_fixed.Z,
-        lland_fixed.LambdaG,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
+    FIXEDPARAMETERS = (lland_fixed.Z, lland_fixed.LambdaG)
     REQUIREDSEQUENCES = (
         lland_fluxes.TZ,
         lland_fluxes.TKor,
@@ -3049,11 +2943,7 @@ class Update_EBdn_V1(modeltools.Method):
             >>> del pub.timegrids
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.WG2Z,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.WG2Z)
     DERIVEDPARAMETERS = (lland_derived.MOY,)
     REQUIREDSEQUENCES = (lland_fluxes.WG,)
     UPDATEDSEQUENCES = (lland_states.EBdn,)
@@ -3095,10 +2985,7 @@ class Return_WSensInz_V1(modeltools.Method):
         8.0
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.Turb0,
-        lland_control.Turb1,
-    )
+    CONTROLPARAMETERS = (lland_control.Turb0, lland_control.Turb1)
     REQUIREDSEQUENCES = (
         lland_fluxes.TKor,
         lland_fluxes.ReducedWindSpeed2m,
@@ -3106,10 +2993,7 @@ class Return_WSensInz_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        k: int,
-    ) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -3142,10 +3026,7 @@ class Return_WSensSnow_V1(modeltools.Method):
         8.0
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.Turb0,
-        lland_control.Turb1,
-    )
+    CONTROLPARAMETERS = (lland_control.Turb0, lland_control.Turb1)
     REQUIREDSEQUENCES = (
         lland_fluxes.TKor,
         lland_fluxes.TempSSurface,
@@ -3153,10 +3034,7 @@ class Return_WSensSnow_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        k: int,
-    ) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         return (con.turb0 + con.turb1 * flu.reducedwindspeed2m[k]) * (
@@ -3198,10 +3076,7 @@ class Return_WLatInz_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        k: int,
-    ) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -3246,10 +3121,7 @@ class Return_WLatSnow_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        k: int,
-    ) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -3289,16 +3161,10 @@ class Return_WSurf_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (lland_control.KTSchnee,)
-    REQUIREDSEQUENCES = (
-        lland_aides.TempS,
-        lland_fluxes.TempSSurface,
-    )
+    REQUIREDSEQUENCES = (lland_aides.TempS, lland_fluxes.TempSSurface)
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        k: int,
-    ) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -3427,14 +3293,8 @@ class Return_EnergyGainSnowSurface_V1(modeltools.Method):
         lland_control.Turb0,
         lland_control.Turb1,
     )
-    DERIVEDPARAMETERS = (
-        lland_derived.MOY,
-        lland_derived.Fr,
-    )
-    FIXEDPARAMETERS = (
-        lland_fixed.PsyInv,
-        lland_fixed.Sigma,
-    )
+    DERIVEDPARAMETERS = (lland_derived.MOY, lland_derived.Fr)
+    FIXEDPARAMETERS = (lland_fixed.PsyInv, lland_fixed.Sigma)
     REQUIREDSEQUENCES = (
         lland_fluxes.NetShortwaveRadiationSnow,
         lland_fluxes.TKor,
@@ -3454,10 +3314,7 @@ class Return_EnergyGainSnowSurface_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        tempssurface: float,
-    ) -> float:
+    def __call__(model: modeltools.Model, tempssurface: float) -> float:
         flu = model.sequences.fluxes.fastaccess
 
         k = model.idx_hru
@@ -3471,8 +3328,7 @@ class Return_EnergyGainSnowSurface_V1(modeltools.Method):
         flu.wsenssnow[k] = model.return_wsenssnow_v1(k)
         flu.netlongwaveradiationsnow[k] = model.return_netlongwaveradiationsnow_v1(k)
         flu.netradiationsnow[k] = model.return_netradiation_v1(
-            flu.netshortwaveradiationsnow[k],
-            flu.netlongwaveradiationsnow[k],
+            flu.netshortwaveradiationsnow[k], flu.netlongwaveradiationsnow[k]
         )
         flu.wsurf[k] = model.return_wsurf_v1(k)
 
@@ -3591,14 +3447,8 @@ class Return_TempSSurface_V1(modeltools.Method):
         lland_control.Turb1,
         lland_control.KTSchnee,
     )
-    DERIVEDPARAMETERS = (
-        lland_derived.MOY,
-        lland_derived.Fr,
-    )
-    FIXEDPARAMETERS = (
-        lland_fixed.Sigma,
-        lland_fixed.PsyInv,
-    )
+    DERIVEDPARAMETERS = (lland_derived.MOY, lland_derived.Fr)
+    FIXEDPARAMETERS = (lland_fixed.Sigma, lland_fixed.PsyInv)
     REQUIREDSEQUENCES = (
         lland_fluxes.NetShortwaveRadiationSnow,
         lland_fluxes.TKor,
@@ -3619,10 +3469,7 @@ class Return_TempSSurface_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        k: int,
-    ) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -3727,19 +3574,9 @@ class Return_WSurfInz_V1(modeltools.Method):
         Return_NetLongwaveRadiationInz_V1,
         Return_NetRadiation_V1,
     )
-    CONTROLPARAMETERS = (
-        lland_control.Turb0,
-        lland_control.Turb1,
-        lland_control.Lnk,
-    )
-    DERIVEDPARAMETERS = (
-        lland_derived.MOY,
-        lland_derived.Fr,
-    )
-    FIXEDPARAMETERS = (
-        lland_fixed.Sigma,
-        lland_fixed.PsyInv,
-    )
+    CONTROLPARAMETERS = (lland_control.Turb0, lland_control.Turb1, lland_control.Lnk)
+    DERIVEDPARAMETERS = (lland_derived.MOY, lland_derived.Fr)
+    FIXEDPARAMETERS = (lland_fixed.Sigma, lland_fixed.PsyInv)
     REQUIREDSEQUENCES = (
         lland_fluxes.NetShortwaveRadiationInz,
         lland_fluxes.TKor,
@@ -3758,10 +3595,7 @@ class Return_WSurfInz_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        k: int,
-    ) -> float:
+    def __call__(model: modeltools.Model, k: int) -> float:
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
         flu.saturationvapourpressureinz[k] = model.return_saturationvapourpressure_v1(
@@ -3864,15 +3698,8 @@ class Return_BackwardEulerErrorInz_V1(modeltools.Method):
         Return_NetRadiation_V1,
         Return_WSurfInz_V1,
     )
-    CONTROLPARAMETERS = (
-        lland_control.Turb0,
-        lland_control.Turb1,
-        lland_control.Lnk,
-    )
-    DERIVEDPARAMETERS = (
-        lland_derived.MOY,
-        lland_derived.Fr,
-    )
+    CONTROLPARAMETERS = (lland_control.Turb0, lland_control.Turb1, lland_control.Lnk)
+    DERIVEDPARAMETERS = (lland_derived.MOY, lland_derived.Fr)
     FIXEDPARAMETERS = (
         lland_fixed.CPWasser,
         lland_fixed.CPEis,
@@ -3900,10 +3727,7 @@ class Return_BackwardEulerErrorInz_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        esnowinz: float,
-    ) -> float:
+    def __call__(model: modeltools.Model, esnowinz: float) -> float:
         sta = model.sequences.states.fastaccess
         aid = model.sequences.aides.fastaccess
         k = model.idx_hru
@@ -4037,21 +3861,14 @@ class Return_BackwardEulerError_V1(modeltools.Method):
         wsurf(10.311874)
     """
 
-    SUBMETHODS = (
-        Return_TempS_V1,
-        Return_WG_V1,
-        Return_TempSSurface_V1,
-    )
+    SUBMETHODS = (Return_TempS_V1, Return_WG_V1, Return_TempSSurface_V1)
     CONTROLPARAMETERS = (
         lland_control.Turb0,
         lland_control.Turb1,
         lland_control.Lnk,
         lland_control.KTSchnee,
     )
-    DERIVEDPARAMETERS = (
-        lland_derived.MOY,
-        lland_derived.Fr,
-    )
+    DERIVEDPARAMETERS = (lland_derived.MOY, lland_derived.Fr)
     FIXEDPARAMETERS = (
         lland_fixed.CPWasser,
         lland_fixed.CPEis,
@@ -4084,10 +3901,7 @@ class Return_BackwardEulerError_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(
-        model: modeltools.Model,
-        esnow: float,
-    ) -> float:
+    def __call__(model: modeltools.Model, esnow: float) -> float:
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -4177,10 +3991,7 @@ class Update_ESnowInz_V1(modeltools.Method):
         lland_control.Turb0,
         lland_control.Turb1,
     )
-    DERIVEDPARAMETERS = (
-        lland_derived.MOY,
-        lland_derived.Fr,
-    )
+    DERIVEDPARAMETERS = (lland_derived.MOY, lland_derived.Fr)
     FIXEDPARAMETERS = (
         lland_fixed.CPWasser,
         lland_fixed.CPEis,
@@ -4359,10 +4170,7 @@ class Update_ESnow_V1(modeltools.Method):
         lland_control.Turb1,
         lland_control.KTSchnee,
     )
-    DERIVEDPARAMETERS = (
-        lland_derived.MOY,
-        lland_derived.Fr,
-    )
+    DERIVEDPARAMETERS = (lland_derived.MOY, lland_derived.Fr)
     FIXEDPARAMETERS = (
         lland_fixed.CPWasser,
         lland_fixed.CPEis,
@@ -4451,10 +4259,7 @@ class Calc_SchmPot_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (lland_control.NHRU,)
     FIXEDPARAMETERS = (lland_fixed.RSchmelz,)
-    REQUIREDSEQUENCES = (
-        lland_fluxes.WGTF,
-        lland_fluxes.WNied,
-    )
+    REQUIREDSEQUENCES = (lland_fluxes.WGTF, lland_fluxes.WNied)
     RESULTSEQUENCES = (lland_fluxes.SchmPot,)
 
     @staticmethod
@@ -4488,10 +4293,7 @@ class Calc_SchmPot_V2(modeltools.Method):
 
     CONTROLPARAMETERS = (lland_control.NHRU,)
     FIXEDPARAMETERS = (lland_fixed.RSchmelz,)
-    REQUIREDSEQUENCES = (
-        lland_states.ESnow,
-        lland_states.WAeS,
-    )
+    REQUIREDSEQUENCES = (lland_states.ESnow, lland_states.WAeS)
     RESULTSEQUENCES = (lland_fluxes.SchmPot,)
 
     @staticmethod
@@ -4529,10 +4331,7 @@ class Calc_GefrPot_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (lland_control.NHRU,)
     FIXEDPARAMETERS = (lland_fixed.RSchmelz,)
-    REQUIREDSEQUENCES = (
-        lland_states.ESnow,
-        lland_states.WAeS,
-    )
+    REQUIREDSEQUENCES = (lland_states.ESnow, lland_states.WAeS)
     RESULTSEQUENCES = (lland_fluxes.GefrPot,)
 
     @staticmethod
@@ -4591,10 +4390,7 @@ class Calc_Schm_WATS_V1(modeltools.Method):
         of stand precipitation.
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     REQUIREDSEQUENCES = (lland_fluxes.SchmPot,)
     RESULTSEQUENCES = (lland_fluxes.Schm,)
     UPDATEDSEQUENCES = (lland_states.WATS,)
@@ -4669,10 +4465,7 @@ class Calc_Gefr_WATS_V1(modeltools.Method):
         lland_control.Lnk,
         lland_control.RefreezeFlag,
     )
-    REQUIREDSEQUENCES = (
-        lland_fluxes.GefrPot,
-        lland_states.WAeS,
-    )
+    REQUIREDSEQUENCES = (lland_fluxes.GefrPot, lland_states.WAeS)
     RESULTSEQUENCES = (lland_fluxes.Gefr,)
     UPDATEDSEQUENCES = (lland_states.WATS,)
 
@@ -4727,16 +4520,9 @@ class Update_WaDa_WAeS_V1(modeltools.Method):
         wada(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.PWMax,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.PWMax)
     REQUIREDSEQUENCES = (lland_states.WATS,)
-    UPDATEDSEQUENCES = (
-        lland_states.WAeS,
-        lland_fluxes.WaDa,
-    )
+    UPDATEDSEQUENCES = (lland_states.WAeS, lland_fluxes.WaDa)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -4773,16 +4559,9 @@ class Update_ESnow_V2(modeltools.Method):
         esnow(0.0, 0.0, 0.0, 0.0, -9.074074, 0.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     FIXEDPARAMETERS = (lland_fixed.RSchmelz,)
-    REQUIREDSEQUENCES = (
-        lland_fluxes.Gefr,
-        lland_fluxes.Schm,
-        lland_states.WAeS,
-    )
+    REQUIREDSEQUENCES = (lland_fluxes.Gefr, lland_fluxes.Schm, lland_states.WAeS)
     UPDATEDSEQUENCES = (lland_states.ESnow,)
 
     @staticmethod
@@ -4819,14 +4598,8 @@ class Calc_SFF_V1(modeltools.Method):
         sff(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
-    FIXEDPARAMETERS = (
-        lland_fixed.BoWa2Z,
-        lland_fixed.RSchmelz,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
+    FIXEDPARAMETERS = (lland_fixed.BoWa2Z, lland_fixed.RSchmelz)
     REQUIREDSEQUENCES = (lland_states.EBdn,)
     RESULTSEQUENCES = (lland_fluxes.SFF,)
 
@@ -4915,17 +4688,15 @@ class Calc_EvB_AETModel_V1(modeltools.Method):
         modifications:
 
         >>> states.bowa = 0.0, 0.0, 50.0, 100.0, 0.0
-        >>> model.aetmodel.sequences.fluxes.potentialevapotranspiration = 5.0
+        >>> model.aetmodel.sequences.fluxes.potentialinterceptionevaporation = 5.0
+        >>> model.aetmodel.sequences.fluxes.potentialsoilevapotranspiration = 5.0
         >>> model.aetmodel.sequences.fluxes.interceptionevaporation = 3.0
         >>> model.calc_evb_v1()
         >>> fluxes.evb
         evb(0.0, 0.0, 1.717962, 2.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     RESULTSEQUENCES = (lland_fluxes.EvB,)
 
     @staticmethod
@@ -4946,10 +4717,7 @@ class Calc_EvB_V1(modeltools.Method):
 
     SUBMODELINTERFACES = (aetinterfaces.AETModel_V1,)
     SUBMETHODS = (Calc_EvB_AETModel_V1,)
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     RESULTSEQUENCES = (lland_fluxes.EvB,)
 
     @staticmethod
@@ -5006,17 +4774,11 @@ class Calc_EvS_WAeS_WATS_V1(modeltools.Method):
         wats(1.202441, 1.0, 0.595119, 0.271214, 0.0, 0.0, 0.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     FIXEDPARAMETERS = (lland_fixed.LWE,)
     REQUIREDSEQUENCES = (lland_fluxes.WLatSnow,)
     RESULTSEQUENCES = (lland_fluxes.EvS,)
-    UPDATEDSEQUENCES = (
-        lland_states.WAeS,
-        lland_states.WATS,
-    )
+    UPDATEDSEQUENCES = (lland_states.WAeS, lland_states.WATS)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -5103,10 +4865,7 @@ class Calc_EvI_Inzp_AETModel_V1(modeltools.Method):
         nbes(0.5, 0.5, 0.5, 0.5, 0.5)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     UPDATEDSEQUENCES = (lland_states.Inzp,)
     RESULTSEQUENCES = (lland_fluxes.EvI,)
 
@@ -5132,10 +4891,7 @@ class Calc_EvI_Inzp_V1(modeltools.Method):
 
     SUBMODELINTERFACES = (aetinterfaces.AETModel_V1,)
     SUBMETHODS = (Calc_EvI_Inzp_AETModel_V1,)
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     UPDATEDSEQUENCES = (lland_states.Inzp,)
     RESULTSEQUENCES = (lland_fluxes.EvI,)
 
@@ -5582,10 +5338,7 @@ class Calc_QDB_V1(modeltools.Method):
         lland_control.WMax,
         lland_control.BSf,
     )
-    REQUIREDSEQUENCES = (
-        lland_fluxes.WaDa,
-        lland_states.BoWa,
-    )
+    REQUIREDSEQUENCES = (lland_fluxes.WaDa, lland_states.BoWa)
     RESULTSEQUENCES = (lland_fluxes.QDB,)
 
     @staticmethod
@@ -5632,10 +5385,7 @@ class Update_QDB_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (lland_control.NHRU,)
-    REQUIREDSEQUENCES = (
-        lland_fluxes.WaDa,
-        lland_fluxes.FVG,
-    )
+    REQUIREDSEQUENCES = (lland_fluxes.WaDa, lland_fluxes.FVG)
     UPDATEDSEQUENCES = (lland_fluxes.QDB,)
 
     @staticmethod
@@ -5761,11 +5511,7 @@ class Calc_BoWa_Default_V1(modeltools.Method):
         qdb(5.0, 5.0, 3.75, 2.5)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.WMax,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.WMax)
     REQUIREDSEQUENCES = (lland_fluxes.WaDa,)
     UPDATEDSEQUENCES = (
         lland_states.BoWa,
@@ -6006,10 +5752,8 @@ class Calc_BoWa_SoilModel_V1(modeltools.Method):
         evb: -1.0, -1.0, -1.0, 0.0
         qkap: 1.0, 1.0, 1.0, 0.0
     """
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-    )
+
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
     REQUIREDSEQUENCES = (lland_fluxes.WaDa,)
     UPDATEDSEQUENCES = (
         lland_states.BoWa,
@@ -6085,15 +5829,8 @@ class Calc_BoWa_V1(modeltools.Method):
     """
 
     SUBMODELINTERFACES = (soilinterfaces.SoilModel_V1,)
-    SUBMETHODS = (
-        Calc_BoWa_Default_V1,
-        Calc_BoWa_SoilModel_V1,
-    )
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.WMax,
-    )
+    SUBMETHODS = (Calc_BoWa_Default_V1, Calc_BoWa_SoilModel_V1)
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.WMax)
     REQUIREDSEQUENCES = (lland_fluxes.WaDa,)
     UPDATEDSEQUENCES = (
         lland_states.BoWa,
@@ -6160,11 +5897,7 @@ class Calc_QBGZ_V1(modeltools.Method):
         qbgz(-3.5)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.FHRU,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.FHRU)
     REQUIREDSEQUENCES = (
         lland_fluxes.NKor,
         lland_fluxes.EvI,
@@ -6203,10 +5936,7 @@ class Calc_QIGZ1_V1(modeltools.Method):
         qigz1(2.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.FHRU,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.FHRU)
     REQUIREDSEQUENCES = (lland_fluxes.QIB1,)
     RESULTSEQUENCES = (lland_fluxes.QIGZ1,)
 
@@ -6237,10 +5967,7 @@ class Calc_QIGZ2_V1(modeltools.Method):
         qigz2(2.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.FHRU,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.FHRU)
     REQUIREDSEQUENCES = (lland_fluxes.QIB2,)
     RESULTSEQUENCES = (lland_fluxes.QIGZ2,)
 
@@ -6288,16 +6015,8 @@ class Calc_QDGZ_V1(modeltools.Method):
         qdgz(-3.0)
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.NHRU,
-        lland_control.Lnk,
-        lland_control.FHRU,
-    )
-    REQUIREDSEQUENCES = (
-        lland_fluxes.NKor,
-        lland_fluxes.EvI,
-        lland_fluxes.QDB,
-    )
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.FHRU)
+    REQUIREDSEQUENCES = (lland_fluxes.NKor, lland_fluxes.EvI, lland_fluxes.QDB)
     RESULTSEQUENCES = (lland_fluxes.QDGZ,)
 
     @staticmethod
@@ -6399,15 +6118,9 @@ class Calc_QDGZ1_QDGZ2_V1(modeltools.Method):
         generation per simulation step
     """
 
-    CONTROLPARAMETERS = (
-        lland_control.A2,
-        lland_control.A1,
-    )
+    CONTROLPARAMETERS = (lland_control.A2, lland_control.A1)
     REQUIREDSEQUENCES = (lland_fluxes.QDGZ,)
-    RESULTSEQUENCES = (
-        lland_fluxes.QDGZ2,
-        lland_fluxes.QDGZ1,
-    )
+    RESULTSEQUENCES = (lland_fluxes.QDGZ2, lland_fluxes.QDGZ1)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -6788,6 +6501,7 @@ class Calc_QBGA_SBG_QBGZ_QDGZ_V1(modeltools.Method):
             >>> check(sm=6.2, g1=1.4, g2=1.4)
             sbg(6.2), qbga(0.568565), qbgz(1.768565), qdgz(1.231435)
     """
+
     CONTROLPARAMETERS = (
         lland_control.VolBMax,
         lland_control.GSBMax,
@@ -6795,11 +6509,7 @@ class Calc_QBGA_SBG_QBGZ_QDGZ_V1(modeltools.Method):
         lland_control.GSBGrad2,
     )
     DERIVEDPARAMETERS = (lland_derived.KB,)
-    UPDATEDSEQUENCES = (
-        lland_states.SBG,
-        lland_fluxes.QDGZ,
-        lland_fluxes.QBGZ,
-    )
+    UPDATEDSEQUENCES = (lland_states.SBG, lland_fluxes.QDGZ, lland_fluxes.QBGZ)
     RESULTSEQUENCES = (lland_fluxes.QBGA,)
     SUBMETHODS = (Calc_QBGA_SBG_V1,)
 
@@ -7528,6 +7238,10 @@ class Model(modeltools.AdHocModel):
     )
     RUN_METHODS = (
         Calc_QZH_V1,
+        Process_RadiationModel_V1,
+        Calc_PossibleSunshineDuration_V1,
+        Calc_SunshineDuration_V1,
+        Calc_GlobalRadiation_V1,
         Update_LoggedSunshineDuration_V1,
         Calc_DailySunshineDuration_V1,
         Update_LoggedPossibleSunshineDuration_V1,
@@ -7577,7 +7291,6 @@ class Model(modeltools.AdHocModel):
         Update_EBdn_V1,
         Update_ESnow_V1,
         Calc_EvI_Inzp_V1,
-        Update_EvI_WEvI_V1,
         Calc_EvB_V1,
         Calc_SchmPot_V1,
         Calc_SchmPot_V2,
@@ -7612,17 +7325,16 @@ class Model(modeltools.AdHocModel):
     )
     OUTLET_METHODS = (Pass_QA_V1,)
     SENDER_METHODS = ()
-    SUBMODELINTERFACES = (
-        aetinterfaces.AETModel_V1,
-        soilinterfaces.SoilModel_V1,
-    )
-    SUBMODELS = (
-        PegasusESnowInz,
-        PegasusESnow,
-        PegasusTempSSurface,
-    )
+    SUBMODELINTERFACES = (aetinterfaces.AETModel_V1, soilinterfaces.SoilModel_V1)
+    SUBMODELS = (PegasusESnowInz, PegasusESnow, PegasusTempSSurface)
 
     idx_hru = modeltools.Idx_HRU()
+
+    radiationmodel = modeltools.SubmodelProperty(
+        radiationinterfaces.RadiationModel_V1, radiationinterfaces.RadiationModel_V4
+    )
+    radiationmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    radiationmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
     aetmodel = modeltools.SubmodelProperty(aetinterfaces.AETModel_V1)
     aetmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -7633,13 +7345,109 @@ class Model(modeltools.AdHocModel):
     soilmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
 
-class Main_AETModel_V1(modeltools.AdHocModel):
+class Main_RadiationModel_V1(modeltools.AdHocModel):
     """Base class for HydPy-L models that support submodels that comply with the
-    |AETModel_V1| interface."""
+    |RadiationModel_V1| interface."""
+
+    radiationmodel: modeltools.SubmodelProperty
+    radiationmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    radiationmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel(
+        "radiationmodel", radiationinterfaces.RadiationModel_V1
+    )
+    def add_radiationmodel_v1(
+        self,
+        radiationmodel: radiationinterfaces.RadiationModel_V1,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
+        """Add the given radiation model that follows the |RadiationModel_V1|
+        interface.
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
+        >>> from hydpy.models.lland_v3 import *
+        >>> parameterstep()
+        >>> with model.add_radiationmodel_v1("meteo_v004"):
+        ...     latitude(50.0)
+        >>> model.radiationmodel.parameters.control.latitude
+        latitude(50.0)
+        """
+
+
+class Main_RadiationModel_V4(modeltools.AdHocModel):
+    """Base class for HydPy-Evap models that support submodels that comply with the
+    |RadiationModel_V4| interface."""
+
+    radiationmodel: modeltools.SubmodelProperty
+    radiationmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    radiationmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel(
+        "radiationmodel", radiationinterfaces.RadiationModel_V4
+    )
+    def add_radiationmodel_v4(
+        self,
+        radiationmodel: radiationinterfaces.RadiationModel_V4,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
+        """Add the given radiation model that follows the |RadiationModel_V4|
+        interface.
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
+        >>> from hydpy.models.lland_v3 import *
+        >>> parameterstep()
+        >>> with model.add_radiationmodel_v4("meteo_psun_sun_glob_io"):
+        ...     inputs.globalradiation = 100.0
+        >>> model.radiationmodel.sequences.inputs.globalradiation
+        globalradiation(100.0)
+        """
+
+
+class _Main_AETModel_V1(modeltools.AdHocModel):
 
     aetmodel: modeltools.SubmodelProperty
     aetmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     aetmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    def _add_aetmodel_v1(self, aetmodel: aetinterfaces.AETModel_V1, /) -> None:
+        control = self.parameters.control
+        nhru = control.nhru.value
+        lnk = control.lnk.values
+
+        aetmodel.prepare_nmbzones(nhru)
+        aetmodel.prepare_zonetypes(lnk)
+        aetmodel.prepare_subareas(control.fhru.values * control.ft.value)
+        aetmodel.prepare_leafareaindex(control.lai.values)
+        aetmodel.prepare_maxsoilwater(control.wmax.values)
+        sel = numpy.full(nhru, False, dtype=bool)
+        sel[lnk == WASSER] = True
+        sel[lnk == FLUSS] = True
+        sel[lnk == SEE] = True
+        aetmodel.prepare_water(sel)
+        aetmodel.prepare_interception(~sel)
+        sel[lnk == VERS] = True
+        aetmodel.prepare_soil(~sel)
+        sel[lnk == BODEN] = True
+        sel[lnk == GLETS] = True
+        aetmodel.prepare_plant(~sel)
+        sel = numpy.full(nhru, False, dtype=bool)
+        sel[lnk == NADELW] = True
+        aetmodel.prepare_conifer(sel)
+        sel[lnk == LAUBW] = True
+        sel[lnk == MISCHW] = True
+        aetmodel.prepare_tree(sel)
+
+
+class Main_AETModel_V1A(_Main_AETModel_V1):
+    """Base class for HydPy-L models that support submodels that comply with the
+    |AETModel_V1| interface and cannot provide information on the measuring height of
+    wind speed."""
 
     @importtools.prepare_submodel(
         "aetmodel",
@@ -7647,12 +7455,122 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         aetinterfaces.AETModel_V1.prepare_nmbzones,
         aetinterfaces.AETModel_V1.prepare_zonetypes,
         aetinterfaces.AETModel_V1.prepare_subareas,
-        aetinterfaces.AETModel_V1.prepare_maxsoilwater,
         aetinterfaces.AETModel_V1.prepare_water,
         aetinterfaces.AETModel_V1.prepare_interception,
         aetinterfaces.AETModel_V1.prepare_soil,
+        aetinterfaces.AETModel_V1.prepare_plant,
         aetinterfaces.AETModel_V1.prepare_tree,
         aetinterfaces.AETModel_V1.prepare_conifer,
+        aetinterfaces.AETModel_V1.prepare_leafareaindex,
+        aetinterfaces.AETModel_V1.prepare_maxsoilwater,
+        landtype_constants=lland_constants.CONSTANTS,
+        landtype_refindices=lland_control.Lnk,
+        refweights=lland_control.FHRU,
+    )
+    def add_aetmodel_v1(
+        self,
+        aetmodel: aetinterfaces.AETModel_V1,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
+        """Initialise the given submodel that follows the |AETModel_V1| interface and
+        is responsible for calculating the different kinds of actual
+        evapotranspiration.
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
+        >>> from hydpy.models.lland_v1 import *
+        >>> parameterstep()
+        >>> nhru(9)
+        >>> ft(10.0)
+        >>> fhru(0.07, 0.08, 0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.16)
+        >>> lnk(ACKER, LAUBW, NADELW, VERS, WASSER, FLUSS, SEE, BODEN, GLETS)
+        >>> lai(1.0)
+        >>> lai.acker_jan = 2.0
+        >>> lai.laubw_dec = 3.0
+        >>> wmax(50.0)
+        >>> with model.add_aetmodel_v1("evap_morsim"):
+        ...     nmbhru
+        ...     hrutype
+        ...     water
+        ...     interception
+        ...     soil
+        ...     tree
+        ...     conifer
+        ...     maxsoilwater
+        ...     soilmoisturelimit(acker=0.7, laubw=0.8, nadelw=0.9, boden=1.0, \
+glets=1.1)
+        ...     my_lai = leafareaindex
+        ...     "my_lai", my_lai.nadelw_jun, my_lai.acker_jan, my_lai.laubw_dec
+        ...     for method, arguments in model.preparemethod2arguments.items():
+        ...         print(method, arguments[0][0], sep=": ")  # doctest: +ELLIPSIS
+        nmbhru(9)
+        hrutype(ACKER, LAUBW, NADELW, VERS, WASSER, FLUSS, SEE, BODEN, GLETS)
+        water(acker=False, boden=False, fluss=True, glets=False, laubw=False,
+              nadelw=False, see=True, vers=False, wasser=True)
+        interception(acker=True, boden=True, fluss=False, glets=True,
+                     laubw=True, nadelw=True, see=False, vers=True,
+                     wasser=False)
+        soil(acker=True, boden=True, fluss=False, glets=True, laubw=True,
+             nadelw=True, see=False, vers=False, wasser=False)
+        tree(acker=False, boden=False, fluss=False, glets=False, laubw=True,
+             nadelw=True, see=False, vers=False, wasser=False)
+        conifer(acker=False, boden=False, fluss=False, glets=False,
+                laubw=False, nadelw=True, see=False, vers=False, wasser=False)
+        maxsoilwater(50.0)
+        ('my_lai', 1.0, 2.0, 3.0)
+        prepare_nmbzones: 9
+        prepare_zonetypes: [ 4 14 13  3 16 17 18  7  8]
+        prepare_subareas: [0.7 0.8 0.9 1.  1.1 1.2 1.3 1.4 1.6]
+        prepare_leafareaindex: [[1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.]
+        ...
+        prepare_maxsoilwater: [50. 50. 50. 50. 50. 50. 50. 50. 50.]
+        prepare_water: [False False False  True  True  True  True  True  True]
+        prepare_interception: [ True  True  True  True False False False  True  True]
+        prepare_soil: [ True  True  True False False False False  True  True]
+        prepare_plant: [ True  True  True False False False False False False]
+        prepare_conifer: [False  True  True False False False False False False]
+        prepare_tree: [False  True  True False False False False False False]
+
+        >>> model.aetmodel.parameters.control.leafareaindex.acker_jan
+        2.0
+
+        >>> sml = model.aetmodel.parameters.control.soilmoisturelimit
+        >>> sml
+        soilmoisturelimit(acker=0.7, boden=1.0, glets=1.0, laubw=0.8,
+                          nadelw=0.9)
+        >>> lnk(NADELW, LAUBW, ACKER, VERS, WASSER, FLUSS, SEE, BODEN, GLETS)
+        >>> sml
+        soilmoisturelimit(acker=0.9, boden=1.0, glets=1.0, laubw=0.8,
+                          nadelw=0.7)
+        >>> from hydpy import round_
+        >>> round_(sml.average_values())
+        0.914815
+        """
+        self._add_aetmodel_v1(aetmodel)
+
+
+class Main_AETModel_V1B(_Main_AETModel_V1):
+    """Base class for HydPy-L models that support submodels that comply with the
+    |AETModel_V1| interface and can provide information on the measuring height of
+    wind speed."""
+
+    @importtools.prepare_submodel(
+        "aetmodel",
+        aetinterfaces.AETModel_V1,
+        aetinterfaces.AETModel_V1.prepare_nmbzones,
+        aetinterfaces.AETModel_V1.prepare_zonetypes,
+        aetinterfaces.AETModel_V1.prepare_subareas,
+        aetinterfaces.AETModel_V1.prepare_water,
+        aetinterfaces.AETModel_V1.prepare_interception,
+        aetinterfaces.AETModel_V1.prepare_soil,
+        aetinterfaces.AETModel_V1.prepare_plant,
+        aetinterfaces.AETModel_V1.prepare_tree,
+        aetinterfaces.AETModel_V1.prepare_conifer,
+        aetinterfaces.AETModel_V1.prepare_measuringheightwindspeed,
+        aetinterfaces.AETModel_V1.prepare_leafareaindex,
+        aetinterfaces.AETModel_V1.prepare_maxsoilwater,
         landtype_constants=lland_constants.CONSTANTS,
         landtype_refindices=lland_control.Lnk,
         refweights=lland_control.FHRU,
@@ -7672,73 +7590,25 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
         >>> from hydpy.models.lland_v3 import *
         >>> parameterstep()
-        >>> nhru(7)
+        >>> nhru(2)
         >>> ft(10.0)
-        >>> fhru(0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1)
-        >>> lnk(ACKER, LAUBW, NADELW, VERS, WASSER, FLUSS, SEE)
-        >>> wmax(200.0)
+        >>> fhru(0.5, 0.5)
+        >>> lnk(ACKER, LAUBW)
+        >>> measuringheightwindspeed(10.0)
+        >>> lai(1.0)
+        >>> wmax(50.0)
         >>> with model.add_aetmodel_v1("evap_morsim"):
         ...     nmbhru
         ...     hrutype
-        ...     water
-        ...     interception
-        ...     soil
-        ...     tree
-        ...     conifer
-        ...     fieldcapacity(200.0)
-        ...     wiltingpoint(acker=50.0, laubw=150.0, nadelw=250.0)
-        ...     leafareaindex.acker_aug = 3.5
-        ...     for method, argument in model.predefinedmethod2argument.items():
-        ...         print(method, argument, sep=": ")
-        nmbhru(7)
-        hrutype(ACKER, LAUBW, NADELW, VERS, WASSER, FLUSS, SEE)
-        water(acker=False, fluss=True, laubw=False, nadelw=False, see=True,
-              vers=False, wasser=True)
-        interception(acker=True, fluss=False, laubw=True, nadelw=True,
-                     see=False, vers=True, wasser=False)
-        soil(acker=True, fluss=False, laubw=True, nadelw=True, see=False,
-             vers=False, wasser=False)
-        tree(acker=False, fluss=False, laubw=True, nadelw=True, see=False,
-             vers=False, wasser=False)
-        conifer(acker=False, fluss=False, laubw=False, nadelw=True, see=False,
-                vers=False, wasser=False)
-        prepare_subareas: [1. 2. 1. 2. 1. 2. 1.]
-
-        >>> from hydpy import round_
-        >>> round_(model.aetmodel.parameters.control.leafareaindex.acker_aug)
-        3.5
-
-        >>> wp = model.aetmodel.parameters.control.wiltingpoint
-        >>> wp
-        wiltingpoint(acker=50.0, laubw=150.0, nadelw=200.0)
-        >>> lnk(NADELW, LAUBW, ACKER, VERS, WASSER, FLUSS, SEE)
-        >>> wp
-        wiltingpoint(acker=200.0, laubw=150.0, nadelw=50.0)
-        >>> round_(wp.average_values())
-        137.5
+        ...     measuringheightwindspeed
+        nmbhru(2)
+        hrutype(ACKER, LAUBW)
+        measuringheightwindspeed(10.0)
         """
-        control = self.parameters.control
-        nhru = control.nhru.value
-        lnk = control.lnk.values
-
-        aetmodel.prepare_nmbzones(nhru)
-        aetmodel.prepare_zonetypes(lnk)
-        aetmodel.prepare_subareas(control.fhru.values * control.ft.value)
-        aetmodel.prepare_maxsoilwater(control.wmax.values)
-        sel = numpy.full(nhru, False, dtype=bool)
-        sel[lnk == WASSER] = True
-        sel[lnk == FLUSS] = True
-        sel[lnk == SEE] = True
-        aetmodel.prepare_water(sel)
-        aetmodel.prepare_interception(~sel)
-        sel[lnk == VERS] = True
-        aetmodel.prepare_soil(~sel)
-        sel = numpy.full(nhru, False, dtype=bool)
-        sel[lnk == NADELW] = True
-        aetmodel.prepare_conifer(sel)
-        sel[lnk == LAUBW] = True
-        sel[lnk == MISCHW] = True
-        aetmodel.prepare_tree(sel)
+        self._add_aetmodel_v1(aetmodel)
+        aetmodel.prepare_measuringheightwindspeed(
+            self.parameters.control.measuringheightwindspeed.value
+        )
 
 
 class Main_SoilModel_V1(modeltools.AdHocModel):

@@ -6,16 +6,17 @@
 
 Conceptionally, |dam_v006| is similar to the "controlled lake" model of `LARSIM`_
 (selectable via the "SEEG" option) in its way to simulate flood retention processes.
-However, in contrast to the "SEEG" option, it allows to directly include precipitation,
-evaporation, and a (positive or negative) water exchange into the lake's water balance.
+However, in contrast to the "SEEG" option, it can include precipitation, evaporation,
+and a (positive or negative) water exchange into the lake's water balance.
 
 One can regard |dam_v006| as controlled in two ways.  First, it allows for seasonal
 modifications of the rating curve via parameter |WaterLevel2FloodDischarge|; second, it
-allows restricting the speed of the water level decrease during periods with little
+supports restricting the speed of the water level decrease during periods with little
 inflow via parameter |AllowedWaterLevelDrop|.
 
-|dam_v006| requires externally calculated values of potential evaporation, given via
-the input sequence |Evaporation|.  If these reflect, for example, grass reference
+The (optional) inclusion of precipitation and evaporation requires submodels that
+follow the |PrecipModel_V2| and |PETModel_V1| interfaces.  The latter must provide
+potential evaporation values.  If these reflect, for example, grass reference
 evaporation, they usually show a too-high short-term variability.  Therefore, the
 parameter |WeightEvaporation| provides a simple means to damp and delay the given
 potential evaporation values by a simple time weighting approach.
@@ -30,10 +31,10 @@ ordinary differential equations with an error-adaptive numerical integration met
 Hence, simulation speed, robustness, and accuracy depend on the configuration of the
 parameters of the model equations and the underlying solver.  We discuss these topics
 in more detail in the documentation on the application model |dam_v001|.  Before the
-first usage of any HydPy-Dam model, you should at least read how to set proper smoothing
-parameter values and how to configure |InterpAlgorithm| objects for interpolating the
-relationships between stage and volume (|WaterVolume2WaterLevel|) and between discharge
-and stage (|WaterLevel2FloodDischarge|).
+first usage of any HydPy-Dam model, you should at least read how to set proper
+smoothing parameter values and how to configure |InterpAlgorithm| objects for
+interpolating the relationships between stage and volume (|WaterVolume2WaterLevel|) and
+between discharge and stage (|WaterLevel2FloodDischarge|).
 
 Integration tests
 =================
@@ -45,13 +46,13 @@ We are going to perform all example calculations over 20 days:
 >>> from hydpy import Element, Node, pub
 >>> pub.timegrids = "01.01.2000", "21.01.2000", "1d"
 
-Now, we prepare a |dam_v006| model instance in the usual manner:
+Now, we prepare a |dam_v006| model instance as usual:
 
 >>> from hydpy.models.dam_v006 import *
 >>> parameterstep("1d")
 
-Next, we embed this model instance into an |Element|, being connected to one inlet
-|Node| (`inflow`) and one outlet |Node| (`outflow`):
+Next, we embed this model instance into an |Element| connected to one inlet |Node|
+(`inflow`) and one outlet |Node| (`outflow`):
 
 >>> inflow = Node("inflow", variable="Q")
 >>> outflow = Node("outflow", variable="Q")
@@ -76,9 +77,9 @@ to zero for each of the following examples:
 >>> test.inits = [(states.watervolume, 0.0),
 ...               (logs.loggedadjustedevaporation, 0.0)]
 
-To use method |Model.check_waterbalance| for proving that |dam_v006| keeps the water
-balance in each example run requires storing the defined (initial) conditions before
-performing the first simulation run:
+Using method |Model.check_waterbalance| prove that |dam_v006| keeps the water balance
+in each example run requires storing the defined (initial) conditions before performing
+the first simulation run:
 
 >>> test.reset_inits()
 >>> conditions = model.conditions
@@ -112,11 +113,12 @@ The following group of parameters deal with lake precipitation and evaporation. 
 that, despite |dam_v006|'s ability to calculate the water-level dependent surface area
 (see aide sequence |dam_aides.SurfaceArea|), it always assumes a fixed surface area
 (defined by control parameter |dam_control.SurfaceArea|) for converting precipitation
-and evaporation heights into volumes.  Here, we set this fixed surface area to 1.44 km²:
+and evaporation heights into volumes.  Here, we set this fixed surface area to
+1.44 km²:
 
 >>> surfacearea(1.44)
 
-We set the correction factors for precipitation and evaporation both to 1.2:
+We set the correction factors for precipitation and evaporation to 1.2:
 
 >>> correctionprecipitation(1.2)
 >>> correctionevaporation(1.2)
@@ -127,16 +129,16 @@ delay and damping, while 0.0 would result in a complete loss of variability):
 
 >>> weightevaporation(0.8)
 
-|dam_v006| uses the parameter |ThresholdEvaporation| for defining the water level
-around which actual evaporation switches from zero to potential evaporation.  As usual
-but not mandatory, we set this threshold to 0 m:
+|dam_v006| uses the parameter |ThresholdEvaporation| to define the water level around
+which actual evaporation switches from zero to potential evaporation.  As usual but not
+mandatory, we set this threshold to 0 m:
 
 >>> thresholdevaporation(0.0)
 
-Additionally, we set the values of the related smoothing parameters |DischargeTolerance|
-and |ToleranceEvaporation| to 0.1 m³/s and 1 mm (these are values we can recommend
-for many cases -- see the documentation on application model |dam_v001| on how to
-fine-tune such smoothing parameters to your needs):
+Additionally, we set the values of the related smoothing parameters
+|DischargeTolerance| and |ToleranceEvaporation| to 0.1 m³/s and 1 mm (these are values
+we can recommend for many cases -- see the documentation on application model
+|dam_v001| on how to fine-tune such smoothing parameters to your needs):
 
 >>> dischargetolerance(0.1)
 >>> toleranceevaporation(0.001)
@@ -144,7 +146,10 @@ fine-tune such smoothing parameters to your needs):
 Finally, we define a precipitation series including only a heavy one-day rainfall event
 and a corresponding inflowing flood wave, starting and ending with zero discharge:
 
->>> inputs.precipitation.series = [
+>>> with model.add_precipmodel_v2("meteo_precip_io") as precipmodel:
+...     precipitationfactor(1.0)
+>>> precipmodel.prepare_inputseries()
+>>> precipmodel.sequences.inputs.precipitation.series = [
 ...     0.0, 50.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 >>> lake.inlets.inflow.sequences.sim.series = [
@@ -156,62 +161,60 @@ and a corresponding inflowing flood wave, starting and ending with zero discharg
 base scenario
 _____________
 
-For our first example, we set the allowed water level drop to |numpy.inf| and the
-external potential evaporation as well as the exchange values to zero to ensure they do
-not affect the calculated lake outflow:
+For our first example, we set the allowed water level drop to |numpy.inf|, neglect
+potential evaporation, and set the exchange values to zero to ensure they do not affect
+the calculated lake outflow:
 
 >>> allowedwaterleveldrop(inf)
->>> inputs.evaporation.series = 0.0
 >>> exchange.sequences.sim.series = 0.0
 
-The only purpose of parameter |CatchmentArea| is to determine reasonable default values
-for the parameter |AbsErrorMax| automatically, controlling the accuracy of the numerical
-integration process:
+The only purpose of parameter |CatchmentArea| is to automatically determine reasonable
+default values for the parameter |AbsErrorMax|, controlling the accuracy of the
+numerical integration process:
 
 >>> catchmentarea(86.4)
 >>> from hydpy import round_
 >>> round_(solver.abserrormax.INIT)
-0.01
+0.0001
 >>> parameters.update()
 >>> solver.abserrormax
-abserrormax(0.01)
+abserrormax(0.0001)
 
 The following test results show the expected storage retention pattern.  The sums of
-inflow and outflow are nearly identical, and the maximum of the outflow graph intersects
-with the falling limb of the inflow graph:
+inflow and outflow are nearly identical, and the maximum of the outflow graph
+intersects with the falling limb of the inflow graph:
 
 .. integration-test::
 
     >>> test("dam_v006_base_scenario")
-    |   date | precipitation | evaporation | waterlevel | adjustedprecipitation | adjustedevaporation | actualevaporation | inflow | exchange | flooddischarge |  outflow | watervolume | exchange | inflow |  outflow |
-    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    | 01.01. |           0.0 |         0.0 |        0.0 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |            0.0 |      0.0 |         0.0 |      0.0 |    0.0 |      0.0 |
-    | 02.01. |          50.0 |         0.0 |   0.057904 |                   1.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.329814 | 0.329814 |    0.057904 |      0.0 |    0.0 | 0.329814 |
-    | 03.01. |           0.0 |         0.0 |   0.371486 |                   0.0 |                 0.0 |               0.0 |    6.0 |      0.0 |       2.370574 | 2.370574 |    0.371486 |      0.0 |    6.0 | 2.370574 |
-    | 04.01. |           0.0 |         0.0 |   0.850751 |                   0.0 |                 0.0 |               0.0 |   12.0 |      0.0 |       6.452959 | 6.452959 |    0.850751 |      0.0 |   12.0 | 6.452959 |
-    | 05.01. |           0.0 |         0.0 |   0.937172 |                   0.0 |                 0.0 |               0.0 |   10.0 |      0.0 |       8.999753 | 8.999753 |    0.937172 |      0.0 |   10.0 | 8.999753 |
-    | 06.01. |           0.0 |         0.0 |   0.742131 |                   0.0 |                 0.0 |               0.0 |    6.0 |      0.0 |       8.257426 | 8.257426 |    0.742131 |      0.0 |    6.0 | 8.257426 |
-    | 07.01. |           0.0 |         0.0 |   0.486374 |                   0.0 |                 0.0 |               0.0 |    3.0 |      0.0 |        5.96014 |  5.96014 |    0.486374 |      0.0 |    3.0 |  5.96014 |
-    | 08.01. |           0.0 |         0.0 |   0.320717 |                   0.0 |                 0.0 |               0.0 |    2.0 |      0.0 |       3.917326 | 3.917326 |    0.320717 |      0.0 |    2.0 | 3.917326 |
-    | 09.01. |           0.0 |         0.0 |   0.193041 |                   0.0 |                 0.0 |               0.0 |    1.0 |      0.0 |       2.477741 | 2.477741 |    0.193041 |      0.0 |    1.0 | 2.477741 |
-    | 10.01. |           0.0 |         0.0 |   0.081262 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       1.293731 | 1.293731 |    0.081262 |      0.0 |    0.0 | 1.293731 |
-    | 11.01. |           0.0 |         0.0 |   0.034208 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.544608 | 0.544608 |    0.034208 |      0.0 |    0.0 | 0.544608 |
-    | 12.01. |           0.0 |         0.0 |   0.014537 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.227669 | 0.227669 |    0.014537 |      0.0 |    0.0 | 0.227669 |
-    | 13.01. |           0.0 |         0.0 |   0.006178 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.096753 | 0.096753 |    0.006178 |      0.0 |    0.0 | 0.096753 |
-    | 14.01. |           0.0 |         0.0 |   0.002482 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.042778 | 0.042778 |    0.002482 |      0.0 |    0.0 | 0.042778 |
-    | 15.01. |           0.0 |         0.0 |   0.000997 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.017186 | 0.017186 |    0.000997 |      0.0 |    0.0 | 0.017186 |
-    | 16.01. |           0.0 |         0.0 |   0.000508 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.005664 | 0.005664 |    0.000508 |      0.0 |    0.0 | 0.005664 |
-    | 17.01. |           0.0 |         0.0 |   0.000259 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.002884 | 0.002884 |    0.000259 |      0.0 |    0.0 | 0.002884 |
-    | 18.01. |           0.0 |         0.0 |   0.000132 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.001469 | 0.001469 |    0.000132 |      0.0 |    0.0 | 0.001469 |
-    | 19.01. |           0.0 |         0.0 |   0.000067 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.000748 | 0.000748 |    0.000067 |      0.0 |    0.0 | 0.000748 |
-    | 20.01. |           0.0 |         0.0 |   0.000034 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.000381 | 0.000381 |    0.000034 |      0.0 |    0.0 | 0.000381 |
+    |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | exchange | flooddischarge |  outflow | watervolume | exchange | inflow |  outflow |
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |            0.0 |      0.0 |         0.0 |      0.0 |    0.0 |      0.0 |
+    | 02.01. |   0.057853 |          50.0 |                   1.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |         0.3304 |   0.3304 |    0.057853 |      0.0 |    0.0 |   0.3304 |
+    | 03.01. |     0.3715 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    6.0 |      0.0 |       2.369831 | 2.369831 |      0.3715 |      0.0 |    6.0 | 2.369831 |
+    | 04.01. |    0.85081 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |   12.0 |      0.0 |       6.452432 | 6.452432 |     0.85081 |      0.0 |   12.0 | 6.452432 |
+    | 05.01. |    0.93712 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |   10.0 |      0.0 |       9.001037 | 9.001037 |     0.93712 |      0.0 |   10.0 | 9.001037 |
+    | 06.01. |   0.742087 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    6.0 |      0.0 |       8.257327 | 8.257327 |    0.742087 |      0.0 |    6.0 | 8.257327 |
+    | 07.01. |   0.486328 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    3.0 |      0.0 |       5.960176 | 5.960176 |    0.486328 |      0.0 |    3.0 | 5.960176 |
+    | 08.01. |    0.32068 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    2.0 |      0.0 |       3.917227 | 3.917227 |     0.32068 |      0.0 |    2.0 | 3.917227 |
+    | 09.01. |   0.193011 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |      0.0 |       2.477651 | 2.477651 |    0.193011 |      0.0 |    1.0 | 2.477651 |
+    | 10.01. |   0.081349 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       1.292382 | 1.292382 |    0.081349 |      0.0 |    0.0 | 1.292382 |
+    | 11.01. |   0.034286 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.544712 | 0.544712 |    0.034286 |      0.0 |    0.0 | 0.544712 |
+    | 12.01. |    0.01445 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.229577 | 0.229577 |     0.01445 |      0.0 |    0.0 | 0.229577 |
+    | 13.01. |   0.006091 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.096747 | 0.096747 |    0.006091 |      0.0 |    0.0 | 0.096747 |
+    | 14.01. |   0.002568 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.040782 | 0.040782 |    0.002568 |      0.0 |    0.0 | 0.040782 |
+    | 15.01. |   0.001082 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.017191 | 0.017191 |    0.001082 |      0.0 |    0.0 | 0.017191 |
+    | 16.01. |   0.000456 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.007254 | 0.007254 |    0.000456 |      0.0 |    0.0 | 0.007254 |
+    | 17.01. |   0.000192 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.003054 | 0.003054 |    0.000192 |      0.0 |    0.0 | 0.003054 |
+    | 18.01. |   0.000082 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.001277 | 0.001277 |    0.000082 |      0.0 |    0.0 | 0.001277 |
+    | 19.01. |   0.000035 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.000542 | 0.000542 |    0.000035 |      0.0 |    0.0 | 0.000542 |
+    | 20.01. |   0.000014 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |        0.00024 |  0.00024 |    0.000014 |      0.0 |    0.0 |  0.00024 |
 
-|dam_v006| achieves this sufficiently high accuracy with 174 calls to
-its underlying system of differential equations, which averages to less
-than nine calls per day:
+|dam_v006| achieves this sufficiently high accuracy with 174 calls to its underlying
+system of differential equations, which averages to less than nine calls per day:
 
 >>> model.numvars.nmb_calls
-174
+426
 
 There is no indication of an error in the water balance:
 
@@ -233,28 +236,28 @@ usually achieves higher accuracies than indicated by the actual tolerance value)
     >>> model.numvars.nmb_calls = 0
     >>> solver.abserrormax(0.1)
     >>> test("dam_v006_low_accuracy")
-    |   date | precipitation | evaporation | waterlevel | adjustedprecipitation | adjustedevaporation | actualevaporation | inflow | exchange | flooddischarge |  outflow | watervolume | exchange | inflow |  outflow |
-    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    | 01.01. |           0.0 |         0.0 |        0.0 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |            0.0 |      0.0 |         0.0 |      0.0 |    0.0 |      0.0 |
-    | 02.01. |          50.0 |         0.0 |   0.057503 |                   1.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.334458 | 0.334458 |    0.057503 |      0.0 |    0.0 | 0.334458 |
-    | 03.01. |           0.0 |         0.0 |   0.371631 |                   0.0 |                 0.0 |               0.0 |    6.0 |      0.0 |        2.36426 |  2.36426 |    0.371631 |      0.0 |    6.0 |  2.36426 |
-    | 04.01. |           0.0 |         0.0 |    0.85129 |                   0.0 |                 0.0 |               0.0 |   12.0 |      0.0 |       6.448386 | 6.448386 |     0.85129 |      0.0 |   12.0 | 6.448386 |
-    | 05.01. |           0.0 |         0.0 |   0.936803 |                   0.0 |                 0.0 |               0.0 |   10.0 |      0.0 |       9.010274 | 9.010274 |    0.936803 |      0.0 |   10.0 | 9.010274 |
-    | 06.01. |           0.0 |         0.0 |   0.743132 |                   0.0 |                 0.0 |               0.0 |    6.0 |      0.0 |       8.241563 | 8.241563 |    0.743132 |      0.0 |    6.0 | 8.241563 |
-    | 07.01. |           0.0 |         0.0 |    0.48654 |                   0.0 |                 0.0 |               0.0 |    3.0 |      0.0 |       5.969805 | 5.969805 |     0.48654 |      0.0 |    3.0 | 5.969805 |
-    | 08.01. |           0.0 |         0.0 |   0.321772 |                   0.0 |                 0.0 |               0.0 |    2.0 |      0.0 |       3.907047 | 3.907047 |    0.321772 |      0.0 |    2.0 | 3.907047 |
-    | 09.01. |           0.0 |         0.0 |   0.194247 |                   0.0 |                 0.0 |               0.0 |    1.0 |      0.0 |       2.475983 | 2.475983 |    0.194247 |      0.0 |    1.0 | 2.475983 |
-    | 10.01. |           0.0 |         0.0 |   0.082549 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       1.292793 | 1.292793 |    0.082549 |      0.0 |    0.0 | 1.292793 |
-    | 11.01. |           0.0 |         0.0 |   0.035081 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |         0.5494 |   0.5494 |    0.035081 |      0.0 |    0.0 |   0.5494 |
-    | 12.01. |           0.0 |         0.0 |   0.014094 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.242907 | 0.242907 |    0.014094 |      0.0 |    0.0 | 0.242907 |
-    | 13.01. |           0.0 |         0.0 |   0.007177 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.080053 | 0.080053 |    0.007177 |      0.0 |    0.0 | 0.080053 |
-    | 14.01. |           0.0 |         0.0 |   0.003655 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.040767 | 0.040767 |    0.003655 |      0.0 |    0.0 | 0.040767 |
-    | 15.01. |           0.0 |         0.0 |   0.001861 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.020761 | 0.020761 |    0.001861 |      0.0 |    0.0 | 0.020761 |
-    | 16.01. |           0.0 |         0.0 |   0.000948 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.010572 | 0.010572 |    0.000948 |      0.0 |    0.0 | 0.010572 |
-    | 17.01. |           0.0 |         0.0 |   0.000483 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.005384 | 0.005384 |    0.000483 |      0.0 |    0.0 | 0.005384 |
-    | 18.01. |           0.0 |         0.0 |   0.000246 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.002742 | 0.002742 |    0.000246 |      0.0 |    0.0 | 0.002742 |
-    | 19.01. |           0.0 |         0.0 |   0.000125 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.001396 | 0.001396 |    0.000125 |      0.0 |    0.0 | 0.001396 |
-    | 20.01. |           0.0 |         0.0 |   0.000064 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.000711 | 0.000711 |    0.000064 |      0.0 |    0.0 | 0.000711 |
+    |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | exchange | flooddischarge |  outflow | watervolume | exchange | inflow |  outflow |
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |            0.0 |      0.0 |         0.0 |      0.0 |    0.0 |      0.0 |
+    | 02.01. |   0.057503 |          50.0 |                   1.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.334458 | 0.334458 |    0.057503 |      0.0 |    0.0 | 0.334458 |
+    | 03.01. |   0.371631 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    6.0 |      0.0 |        2.36426 |  2.36426 |    0.371631 |      0.0 |    6.0 |  2.36426 |
+    | 04.01. |    0.85129 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |   12.0 |      0.0 |       6.448386 | 6.448386 |     0.85129 |      0.0 |   12.0 | 6.448386 |
+    | 05.01. |   0.936803 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |   10.0 |      0.0 |       9.010274 | 9.010274 |    0.936803 |      0.0 |   10.0 | 9.010274 |
+    | 06.01. |   0.743132 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    6.0 |      0.0 |       8.241563 | 8.241563 |    0.743132 |      0.0 |    6.0 | 8.241563 |
+    | 07.01. |    0.48654 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    3.0 |      0.0 |       5.969805 | 5.969805 |     0.48654 |      0.0 |    3.0 | 5.969805 |
+    | 08.01. |   0.321772 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    2.0 |      0.0 |       3.907047 | 3.907047 |    0.321772 |      0.0 |    2.0 | 3.907047 |
+    | 09.01. |   0.194247 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |      0.0 |       2.475983 | 2.475983 |    0.194247 |      0.0 |    1.0 | 2.475983 |
+    | 10.01. |   0.082549 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       1.292793 | 1.292793 |    0.082549 |      0.0 |    0.0 | 1.292793 |
+    | 11.01. |   0.035081 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |         0.5494 |   0.5494 |    0.035081 |      0.0 |    0.0 |   0.5494 |
+    | 12.01. |   0.014094 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.242907 | 0.242907 |    0.014094 |      0.0 |    0.0 | 0.242907 |
+    | 13.01. |   0.007177 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.080053 | 0.080053 |    0.007177 |      0.0 |    0.0 | 0.080053 |
+    | 14.01. |   0.003655 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.040767 | 0.040767 |    0.003655 |      0.0 |    0.0 | 0.040767 |
+    | 15.01. |   0.001861 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.020761 | 0.020761 |    0.001861 |      0.0 |    0.0 | 0.020761 |
+    | 16.01. |   0.000948 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.010572 | 0.010572 |    0.000948 |      0.0 |    0.0 | 0.010572 |
+    | 17.01. |   0.000483 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.005384 | 0.005384 |    0.000483 |      0.0 |    0.0 | 0.005384 |
+    | 18.01. |   0.000246 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.002742 | 0.002742 |    0.000246 |      0.0 |    0.0 | 0.002742 |
+    | 19.01. |   0.000125 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.001396 | 0.001396 |    0.000125 |      0.0 |    0.0 | 0.001396 |
+    | 20.01. |   0.000064 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.000711 | 0.000711 |    0.000064 |      0.0 |    0.0 | 0.000711 |
 
 >>> model.numvars.nmb_calls
 104
@@ -270,39 +273,39 @@ water level drop
 ________________
 
 When setting |AllowedWaterLevelDrop| to 0.1 m/d, the resulting outflow hydrograph shows
-a plateau in its falling limb.  This plateau is in the period where little inflow
-occurs, but the potential outflow (|FloodDischarge|) is still high due to large amounts
-of stored water.  In agreement with the linear relationship between the water volume
-and the water level, there is a constant decrease in the water volume when the allowed
-water level drop limits the outflow:
+a plateau in its falling limb.  This plateau coincides with little inflow but still
+high potential outflow (|FloodDischarge|) due to large amounts of stored water.  In
+agreement with the linear relationship between the water volume and the water level,
+there is a constant decrease in the water volume when the allowed "water level drop"
+limits the outflow:
 
 .. integration-test::
 
     >>> allowedwaterleveldrop(0.1)
     >>> solver.abserrormax(0.01)
     >>> test("dam_v006_water_level_drop")
-    |   date | precipitation | evaporation | waterlevel | adjustedprecipitation | adjustedevaporation | actualevaporation | inflow | exchange | flooddischarge |  outflow | watervolume | exchange | inflow |  outflow |
-    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    | 01.01. |           0.0 |         0.0 |        0.0 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |            0.0 |      0.0 |         0.0 |      0.0 |    0.0 |      0.0 |
-    | 02.01. |          50.0 |         0.0 |   0.057904 |                   1.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.329814 | 0.329814 |    0.057904 |      0.0 |    0.0 | 0.329814 |
-    | 03.01. |           0.0 |         0.0 |   0.371486 |                   0.0 |                 0.0 |               0.0 |    6.0 |      0.0 |       2.370574 | 2.370574 |    0.371486 |      0.0 |    6.0 | 2.370574 |
-    | 04.01. |           0.0 |         0.0 |   0.850751 |                   0.0 |                 0.0 |               0.0 |   12.0 |      0.0 |       6.452959 | 6.452959 |    0.850751 |      0.0 |   12.0 | 6.452959 |
-    | 05.01. |           0.0 |         0.0 |   0.937172 |                   0.0 |                 0.0 |               0.0 |   10.0 |      0.0 |       8.999753 | 8.999753 |    0.937172 |      0.0 |   10.0 | 8.999753 |
-    | 06.01. |           0.0 |         0.0 |   0.837314 |                   0.0 |                 0.0 |               0.0 |    6.0 |      0.0 |        8.87243 | 7.155768 |    0.837314 |      0.0 |    6.0 | 7.155768 |
-    | 07.01. |           0.0 |         0.0 |   0.737455 |                   0.0 |                 0.0 |               0.0 |    3.0 |      0.0 |       7.873846 | 4.155768 |    0.737455 |      0.0 |    3.0 | 4.155768 |
-    | 08.01. |           0.0 |         0.0 |   0.637597 |                   0.0 |                 0.0 |               0.0 |    2.0 |      0.0 |       6.875262 | 3.155768 |    0.637597 |      0.0 |    2.0 | 3.155768 |
-    | 09.01. |           0.0 |         0.0 |   0.537739 |                   0.0 |                 0.0 |               0.0 |    1.0 |      0.0 |       5.876679 | 2.155768 |    0.537739 |      0.0 |    1.0 | 2.155768 |
-    | 10.01. |           0.0 |         0.0 |    0.43788 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       4.878095 | 1.155768 |     0.43788 |      0.0 |    0.0 | 1.155768 |
-    | 11.01. |           0.0 |         0.0 |   0.338022 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       3.879512 | 1.155768 |    0.338022 |      0.0 |    0.0 | 1.155768 |
-    | 12.01. |           0.0 |         0.0 |   0.238164 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       2.880928 | 1.155768 |    0.238164 |      0.0 |    0.0 | 1.155768 |
-    | 13.01. |           0.0 |         0.0 |   0.138316 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       1.882449 | 1.155647 |    0.138316 |      0.0 |    0.0 | 1.155647 |
-    | 14.01. |           0.0 |         0.0 |   0.059782 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.940746 | 0.908959 |    0.059782 |      0.0 |    0.0 | 0.908959 |
-    | 15.01. |           0.0 |         0.0 |   0.025166 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.400649 | 0.400648 |    0.025166 |      0.0 |    0.0 | 0.400648 |
-    | 16.01. |           0.0 |         0.0 |   0.010695 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.167488 | 0.167488 |    0.010695 |      0.0 |    0.0 | 0.167488 |
-    | 17.01. |           0.0 |         0.0 |   0.004545 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.071178 | 0.071178 |    0.004545 |      0.0 |    0.0 | 0.071178 |
-    | 18.01. |           0.0 |         0.0 |   0.001826 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |        0.03147 |  0.03147 |    0.001826 |      0.0 |    0.0 |  0.03147 |
-    | 19.01. |           0.0 |         0.0 |    0.00093 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.010371 | 0.010371 |     0.00093 |      0.0 |    0.0 | 0.010371 |
-    | 20.01. |           0.0 |         0.0 |   0.000474 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.005282 | 0.005282 |    0.000474 |      0.0 |    0.0 | 0.005282 |
+    |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | exchange | flooddischarge |  outflow | watervolume | exchange | inflow |  outflow |
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |            0.0 |      0.0 |         0.0 |      0.0 |    0.0 |      0.0 |
+    | 02.01. |   0.057904 |          50.0 |                   1.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.329814 | 0.329814 |    0.057904 |      0.0 |    0.0 | 0.329814 |
+    | 03.01. |   0.371486 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    6.0 |      0.0 |       2.370574 | 2.370574 |    0.371486 |      0.0 |    6.0 | 2.370574 |
+    | 04.01. |   0.850751 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |   12.0 |      0.0 |       6.452959 | 6.452959 |    0.850751 |      0.0 |   12.0 | 6.452959 |
+    | 05.01. |   0.937172 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |   10.0 |      0.0 |       8.999753 | 8.999753 |    0.937172 |      0.0 |   10.0 | 8.999753 |
+    | 06.01. |   0.837314 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    6.0 |      0.0 |        8.87243 | 7.155768 |    0.837314 |      0.0 |    6.0 | 7.155768 |
+    | 07.01. |   0.737455 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    3.0 |      0.0 |       7.873846 | 4.155768 |    0.737455 |      0.0 |    3.0 | 4.155768 |
+    | 08.01. |   0.637597 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    2.0 |      0.0 |       6.875262 | 3.155768 |    0.637597 |      0.0 |    2.0 | 3.155768 |
+    | 09.01. |   0.537739 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |      0.0 |       5.876679 | 2.155768 |    0.537739 |      0.0 |    1.0 | 2.155768 |
+    | 10.01. |    0.43788 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       4.878095 | 1.155768 |     0.43788 |      0.0 |    0.0 | 1.155768 |
+    | 11.01. |   0.338022 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       3.879512 | 1.155768 |    0.338022 |      0.0 |    0.0 | 1.155768 |
+    | 12.01. |   0.238164 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       2.880928 | 1.155768 |    0.238164 |      0.0 |    0.0 | 1.155768 |
+    | 13.01. |   0.138316 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       1.882449 | 1.155647 |    0.138316 |      0.0 |    0.0 | 1.155647 |
+    | 14.01. |   0.059782 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.940746 | 0.908959 |    0.059782 |      0.0 |    0.0 | 0.908959 |
+    | 15.01. |   0.025166 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.400649 | 0.400648 |    0.025166 |      0.0 |    0.0 | 0.400648 |
+    | 16.01. |   0.010695 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.167488 | 0.167488 |    0.010695 |      0.0 |    0.0 | 0.167488 |
+    | 17.01. |   0.004545 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.071178 | 0.071178 |    0.004545 |      0.0 |    0.0 | 0.071178 |
+    | 18.01. |   0.001826 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |        0.03147 |  0.03147 |    0.001826 |      0.0 |    0.0 |  0.03147 |
+    | 19.01. |    0.00093 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.010371 | 0.010371 |     0.00093 |      0.0 |    0.0 | 0.010371 |
+    | 20.01. |   0.000474 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.005282 | 0.005282 |    0.000474 |      0.0 |    0.0 | 0.005282 |
 
 There is no indication of an error in the water balance:
 
@@ -314,38 +317,42 @@ There is no indication of an error in the water balance:
 evaporation
 ___________
 
-In this example, we set the (unadjusted) potential evaporation to 1 mm/d for the first
-ten days and 5 mm/d for the last ten days.  The adjusted evaporation follows the given
-potential evaporation with a short delay.  When the water volume reaches zero, actual
-evaporation is nearly but, due to the defined smoothing, not completely zero.  Hence,
-slightly negative water volumes result (which do not cause negative outflow):
+In this example, we add an |evap_io| submodel and set its (unadjusted) potential
+evaporation to 1 mm/d for the first ten days and 5 mm/d for the last ten days.  The
+adjusted evaporation follows the given potential evaporation with a short delay.  When
+the water volume reaches zero, actual evaporation is nearly zero, but due to the
+defined smoothing, it is not precisely zero.  Hence, slightly negative water volumes
+result (which do not cause negative outflow):
 
 .. integration-test::
 
-    >>> inputs.evaporation.series = 10 * [1.0] + 10 * [5.0]
+    >>> with model.add_pemodel_v1("evap_io") as pemodel:
+    ...     evapotranspirationfactor(1.0)
+    >>> pemodel.prepare_inputseries()
+    >>> pemodel.sequences.inputs.referenceevapotranspiration.series = 10 * [1.0] + 10 * [5.0]
     >>> test("dam_v006_evaporation")
-    |   date | precipitation | evaporation | waterlevel | adjustedprecipitation | adjustedevaporation | actualevaporation | inflow | exchange | flooddischarge |  outflow | watervolume | exchange | inflow |  outflow |
-    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    | 01.01. |           0.0 |         1.0 |  -0.000373 |                   0.0 |               0.016 |          0.004321 |    0.0 |      0.0 |      -0.003456 |      0.0 |   -0.000373 |      0.0 |    0.0 |      0.0 |
-    | 02.01. |          50.0 |         1.0 |   0.056654 |                   1.0 |              0.0192 |          0.018386 |    0.0 |      0.0 |       0.321392 | 0.321579 |    0.056654 |      0.0 |    0.0 | 0.321579 |
-    | 03.01. |           0.0 |         1.0 |   0.369812 |                   0.0 |             0.01984 |           0.01984 |    6.0 |      0.0 |       2.355646 | 2.355646 |    0.369812 |      0.0 |    6.0 | 2.355646 |
-    | 04.01. |           0.0 |         1.0 |    0.84889 |                   0.0 |            0.019968 |          0.019968 |   12.0 |      0.0 |       6.435147 | 6.435147 |     0.84889 |      0.0 |   12.0 | 6.435147 |
-    | 05.01. |           0.0 |         1.0 |   0.935231 |                   0.0 |            0.019994 |          0.019994 |   10.0 |      0.0 |       8.980686 | 8.980686 |    0.935231 |      0.0 |   10.0 | 8.980686 |
-    | 06.01. |           0.0 |         1.0 |   0.835373 |                   0.0 |            0.019999 |          0.019999 |    6.0 |      0.0 |       8.853018 | 7.135769 |    0.835373 |      0.0 |    6.0 | 7.135769 |
-    | 07.01. |           0.0 |         1.0 |   0.735514 |                   0.0 |                0.02 |              0.02 |    3.0 |      0.0 |       7.854435 | 4.135768 |    0.735514 |      0.0 |    3.0 | 4.135768 |
-    | 08.01. |           0.0 |         1.0 |   0.635656 |                   0.0 |                0.02 |              0.02 |    2.0 |      0.0 |       6.855851 | 3.135768 |    0.635656 |      0.0 |    2.0 | 3.135768 |
-    | 09.01. |           0.0 |         1.0 |   0.535798 |                   0.0 |                0.02 |              0.02 |    1.0 |      0.0 |       5.857267 | 2.135768 |    0.535798 |      0.0 |    1.0 | 2.135768 |
-    | 10.01. |           0.0 |         1.0 |   0.435939 |                   0.0 |                0.02 |              0.02 |    0.0 |      0.0 |       4.858684 | 1.135768 |    0.435939 |      0.0 |    0.0 | 1.135768 |
-    | 11.01. |           0.0 |         5.0 |   0.336081 |                   0.0 |               0.084 |             0.084 |    0.0 |      0.0 |         3.8601 | 1.071768 |    0.336081 |      0.0 |    0.0 | 1.071768 |
-    | 12.01. |           0.0 |         5.0 |   0.236222 |                   0.0 |              0.0968 |            0.0968 |    0.0 |      0.0 |       2.861517 | 1.058968 |    0.236222 |      0.0 |    0.0 | 1.058968 |
-    | 13.01. |           0.0 |         5.0 |   0.136367 |                   0.0 |             0.09936 |           0.09936 |    0.0 |      0.0 |       1.862958 | 1.056379 |    0.136367 |      0.0 |    0.0 | 1.056379 |
-    | 14.01. |           0.0 |         5.0 |    0.05408 |                   0.0 |            0.099872 |          0.099872 |    0.0 |      0.0 |       0.906509 | 0.852516 |     0.05408 |      0.0 |    0.0 | 0.852516 |
-    | 15.01. |           0.0 |         5.0 |   0.016936 |                   0.0 |            0.099974 |          0.099974 |    0.0 |      0.0 |       0.329933 | 0.329932 |    0.016936 |      0.0 |    0.0 | 0.329932 |
-    | 16.01. |           0.0 |         5.0 |   0.001323 |                   0.0 |            0.099995 |          0.099992 |    0.0 |      0.0 |       0.080723 | 0.080723 |    0.001323 |      0.0 |    0.0 | 0.080723 |
-    | 17.01. |           0.0 |         5.0 |  -0.000756 |                   0.0 |            0.099999 |          0.022768 |    0.0 |      0.0 |      -0.004582 | 0.001295 |   -0.000756 |      0.0 |    0.0 | 0.001295 |
-    | 18.01. |           0.0 |         5.0 |  -0.000926 |                   0.0 |                 0.1 |          0.001966 |    0.0 |      0.0 |       -0.00886 |      0.0 |   -0.000926 |      0.0 |    0.0 |      0.0 |
-    | 19.01. |           0.0 |         5.0 |  -0.001022 |                   0.0 |                 0.1 |          0.001102 |    0.0 |      0.0 |      -0.009866 |      0.0 |   -0.001022 |      0.0 |    0.0 |      0.0 |
-    | 20.01. |           0.0 |         5.0 |  -0.001088 |                   0.0 |                 0.1 |          0.000771 |    0.0 |      0.0 |      -0.010607 |      0.0 |   -0.001088 |      0.0 |    0.0 |      0.0 |
+    |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | exchange | flooddischarge |  outflow | watervolume | exchange | inflow |  outflow |
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01.01. |  -0.000373 |           0.0 |                   0.0 |                  1.0 |               0.016 |          0.004321 |    0.0 |      0.0 |      -0.003456 |      0.0 |   -0.000373 |      0.0 |    0.0 |      0.0 |
+    | 02.01. |   0.056654 |          50.0 |                   1.0 |                  1.0 |              0.0192 |          0.018386 |    0.0 |      0.0 |       0.321392 | 0.321579 |    0.056654 |      0.0 |    0.0 | 0.321579 |
+    | 03.01. |   0.369812 |           0.0 |                   0.0 |                  1.0 |             0.01984 |           0.01984 |    6.0 |      0.0 |       2.355646 | 2.355646 |    0.369812 |      0.0 |    6.0 | 2.355646 |
+    | 04.01. |    0.84889 |           0.0 |                   0.0 |                  1.0 |            0.019968 |          0.019968 |   12.0 |      0.0 |       6.435147 | 6.435147 |     0.84889 |      0.0 |   12.0 | 6.435147 |
+    | 05.01. |   0.935231 |           0.0 |                   0.0 |                  1.0 |            0.019994 |          0.019994 |   10.0 |      0.0 |       8.980686 | 8.980686 |    0.935231 |      0.0 |   10.0 | 8.980686 |
+    | 06.01. |   0.835373 |           0.0 |                   0.0 |                  1.0 |            0.019999 |          0.019999 |    6.0 |      0.0 |       8.853018 | 7.135769 |    0.835373 |      0.0 |    6.0 | 7.135769 |
+    | 07.01. |   0.735514 |           0.0 |                   0.0 |                  1.0 |                0.02 |              0.02 |    3.0 |      0.0 |       7.854435 | 4.135768 |    0.735514 |      0.0 |    3.0 | 4.135768 |
+    | 08.01. |   0.635656 |           0.0 |                   0.0 |                  1.0 |                0.02 |              0.02 |    2.0 |      0.0 |       6.855851 | 3.135768 |    0.635656 |      0.0 |    2.0 | 3.135768 |
+    | 09.01. |   0.535798 |           0.0 |                   0.0 |                  1.0 |                0.02 |              0.02 |    1.0 |      0.0 |       5.857267 | 2.135768 |    0.535798 |      0.0 |    1.0 | 2.135768 |
+    | 10.01. |   0.435939 |           0.0 |                   0.0 |                  1.0 |                0.02 |              0.02 |    0.0 |      0.0 |       4.858684 | 1.135768 |    0.435939 |      0.0 |    0.0 | 1.135768 |
+    | 11.01. |   0.336081 |           0.0 |                   0.0 |                  5.0 |               0.084 |             0.084 |    0.0 |      0.0 |         3.8601 | 1.071768 |    0.336081 |      0.0 |    0.0 | 1.071768 |
+    | 12.01. |   0.236222 |           0.0 |                   0.0 |                  5.0 |              0.0968 |            0.0968 |    0.0 |      0.0 |       2.861517 | 1.058968 |    0.236222 |      0.0 |    0.0 | 1.058968 |
+    | 13.01. |   0.136367 |           0.0 |                   0.0 |                  5.0 |             0.09936 |           0.09936 |    0.0 |      0.0 |       1.862958 | 1.056379 |    0.136367 |      0.0 |    0.0 | 1.056379 |
+    | 14.01. |    0.05408 |           0.0 |                   0.0 |                  5.0 |            0.099872 |          0.099872 |    0.0 |      0.0 |       0.906509 | 0.852516 |     0.05408 |      0.0 |    0.0 | 0.852516 |
+    | 15.01. |   0.016936 |           0.0 |                   0.0 |                  5.0 |            0.099974 |          0.099974 |    0.0 |      0.0 |       0.329933 | 0.329932 |    0.016936 |      0.0 |    0.0 | 0.329932 |
+    | 16.01. |   0.001323 |           0.0 |                   0.0 |                  5.0 |            0.099995 |          0.099992 |    0.0 |      0.0 |       0.080723 | 0.080723 |    0.001323 |      0.0 |    0.0 | 0.080723 |
+    | 17.01. |  -0.000756 |           0.0 |                   0.0 |                  5.0 |            0.099999 |          0.022768 |    0.0 |      0.0 |      -0.004582 | 0.001295 |   -0.000756 |      0.0 |    0.0 | 0.001295 |
+    | 18.01. |  -0.000926 |           0.0 |                   0.0 |                  5.0 |                 0.1 |          0.001966 |    0.0 |      0.0 |       -0.00886 |      0.0 |   -0.000926 |      0.0 |    0.0 |      0.0 |
+    | 19.01. |  -0.001022 |           0.0 |                   0.0 |                  5.0 |                 0.1 |          0.001102 |    0.0 |      0.0 |      -0.009866 |      0.0 |   -0.001022 |      0.0 |    0.0 |      0.0 |
+    | 20.01. |  -0.001088 |           0.0 |                   0.0 |                  5.0 |                 0.1 |          0.000771 |    0.0 |      0.0 |      -0.010607 |      0.0 |   -0.001088 |      0.0 |    0.0 |      0.0 |
 
 There is no indication of an error in the water balance:
 
@@ -357,14 +364,14 @@ There is no indication of an error in the water balance:
 exchange
 ________
 
-The water exchange functionality of |dam_v006| is optional insofar that one does not
+The water exchange functionality of |dam_v006| is optional insofar as one does not
 need to connect the inlet sequence |E| to any nodes.  If there is a connection to one
 or multiple nodes, they can add and subtract water, indicated by positive or negative
-values.  This mechanism allows establishing bidirectional water exchange between
-different |dam_v006| (see the documentation |exch_v001| for further information).
+values.  This mechanism allows bidirectional water exchange between different
+|dam_v006| (see the documentation |exch_v001| for further information).
 
 |dam_v006| handles the water exchange strictly as input, meaning it always includes it
-into its water balance without any modification.  Hence, other models calculating the
+in its water balance without any modification.  Hence, other models calculating the
 water exchange must ensure that it does not bring |dam_v006| into an unrealistic state.
 For demonstration, we set the water exchange to 0.5 m³/s in the first half of the
 simulation period and -0.5 m³/s in the second half, which causes highly negative water
@@ -374,47 +381,49 @@ volumes at the end of the simulation period:
 
     >>> exchange.sequences.sim.series = 10 * [0.5] + 10 * [-0.5]
     >>> test("dam_v006_exchange")
-    |   date | precipitation | evaporation | waterlevel | adjustedprecipitation | adjustedevaporation | actualevaporation | inflow | exchange | flooddischarge |  outflow | watervolume | exchange | inflow |  outflow |
-    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    | 01.01. |           0.0 |         1.0 |   0.028037 |                   0.0 |               0.016 |            0.0156 |    0.0 |      0.5 |       0.159893 | 0.159893 |    0.028037 |      0.5 |    0.0 | 0.159893 |
-    | 02.01. |          50.0 |         1.0 |   0.097547 |                   1.0 |              0.0192 |            0.0192 |    0.0 |      0.5 |       0.676291 | 0.676291 |    0.097547 |      0.5 |    0.0 | 0.676291 |
-    | 03.01. |           0.0 |         1.0 |   0.415973 |                   0.0 |             0.01984 |           0.01984 |    6.0 |      0.5 |       2.794675 | 2.794675 |    0.415973 |      0.5 |    6.0 | 2.794675 |
-    | 04.01. |           0.0 |         1.0 |   0.897272 |                   0.0 |            0.019968 |          0.019968 |   12.0 |      0.5 |       6.909446 | 6.909446 |    0.897272 |      0.5 |   12.0 | 6.909446 |
-    | 05.01. |           0.0 |         1.0 |    0.98455 |                   0.0 |            0.019994 |          0.019994 |   10.0 |      0.5 |       9.469841 | 9.469841 |     0.98455 |      0.5 |   10.0 | 9.469841 |
-    | 06.01. |           0.0 |         1.0 |   0.884691 |                   0.0 |            0.019999 |          0.019999 |    6.0 |      0.5 |       9.346206 | 7.635769 |    0.884691 |      0.5 |    6.0 | 7.635769 |
-    | 07.01. |           0.0 |         1.0 |   0.784833 |                   0.0 |                0.02 |              0.02 |    3.0 |      0.5 |       8.347623 | 4.635768 |    0.784833 |      0.5 |    3.0 | 4.635768 |
-    | 08.01. |           0.0 |         1.0 |   0.684975 |                   0.0 |                0.02 |              0.02 |    2.0 |      0.5 |       7.349039 | 3.635768 |    0.684975 |      0.5 |    2.0 | 3.635768 |
-    | 09.01. |           0.0 |         1.0 |   0.585116 |                   0.0 |                0.02 |              0.02 |    1.0 |      0.5 |       6.350455 | 2.635768 |    0.585116 |      0.5 |    1.0 | 2.635768 |
-    | 10.01. |           0.0 |         1.0 |   0.485258 |                   0.0 |                0.02 |              0.02 |    0.0 |      0.5 |       5.351872 | 1.635768 |    0.485258 |      0.5 |    0.0 | 1.635768 |
-    | 11.01. |           0.0 |         5.0 |     0.3854 |                   0.0 |               0.084 |             0.084 |    0.0 |     -0.5 |       4.353288 | 0.571768 |      0.3854 |     -0.5 |    0.0 | 0.571768 |
-    | 12.01. |           0.0 |         5.0 |   0.285541 |                   0.0 |              0.0968 |            0.0968 |    0.0 |     -0.5 |       3.354705 | 0.558968 |    0.285541 |     -0.5 |    0.0 | 0.558968 |
-    | 13.01. |           0.0 |         5.0 |   0.185683 |                   0.0 |             0.09936 |           0.09936 |    0.0 |     -0.5 |       2.356121 | 0.556408 |    0.185683 |     -0.5 |    0.0 | 0.556408 |
-    | 14.01. |           0.0 |         5.0 |   0.085827 |                   0.0 |            0.099872 |          0.099872 |    0.0 |     -0.5 |       1.357564 | 0.555865 |    0.085827 |     -0.5 |    0.0 | 0.555865 |
-    | 15.01. |           0.0 |         5.0 |   0.003815 |                   0.0 |            0.099974 |          0.099974 |    0.0 |     -0.5 |       0.401743 | 0.349246 |    0.003815 |     -0.5 |    0.0 | 0.349246 |
-    | 16.01. |           0.0 |         5.0 |  -0.039982 |                   0.0 |            0.099995 |             0.005 |    0.0 |     -0.5 |        -0.1878 | 0.001907 |   -0.039982 |     -0.5 |    0.0 | 0.001907 |
-    | 17.01. |           0.0 |         5.0 |  -0.083182 |                   0.0 |            0.099999 |               0.0 |    0.0 |     -0.5 |      -0.615821 |      0.0 |   -0.083182 |     -0.5 |    0.0 |      0.0 |
-    | 18.01. |           0.0 |         5.0 |  -0.126382 |                   0.0 |                 0.1 |               0.0 |    0.0 |     -0.5 |      -1.047821 |      0.0 |   -0.126382 |     -0.5 |    0.0 |      0.0 |
-    | 19.01. |           0.0 |         5.0 |  -0.169582 |                   0.0 |                 0.1 |               0.0 |    0.0 |     -0.5 |      -1.479821 |      0.0 |   -0.169582 |     -0.5 |    0.0 |      0.0 |
-    | 20.01. |           0.0 |         5.0 |  -0.212782 |                   0.0 |                 0.1 |               0.0 |    0.0 |     -0.5 |      -1.911821 |      0.0 |   -0.212782 |     -0.5 |    0.0 |      0.0 |
+    |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | exchange | flooddischarge |  outflow | watervolume | exchange | inflow |  outflow |
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01.01. |   0.028037 |           0.0 |                   0.0 |                  1.0 |               0.016 |            0.0156 |    0.0 |      0.5 |       0.159893 | 0.159893 |    0.028037 |      0.5 |    0.0 | 0.159893 |
+    | 02.01. |   0.097547 |          50.0 |                   1.0 |                  1.0 |              0.0192 |            0.0192 |    0.0 |      0.5 |       0.676291 | 0.676291 |    0.097547 |      0.5 |    0.0 | 0.676291 |
+    | 03.01. |   0.415973 |           0.0 |                   0.0 |                  1.0 |             0.01984 |           0.01984 |    6.0 |      0.5 |       2.794675 | 2.794675 |    0.415973 |      0.5 |    6.0 | 2.794675 |
+    | 04.01. |   0.897272 |           0.0 |                   0.0 |                  1.0 |            0.019968 |          0.019968 |   12.0 |      0.5 |       6.909446 | 6.909446 |    0.897272 |      0.5 |   12.0 | 6.909446 |
+    | 05.01. |    0.98455 |           0.0 |                   0.0 |                  1.0 |            0.019994 |          0.019994 |   10.0 |      0.5 |       9.469841 | 9.469841 |     0.98455 |      0.5 |   10.0 | 9.469841 |
+    | 06.01. |   0.884691 |           0.0 |                   0.0 |                  1.0 |            0.019999 |          0.019999 |    6.0 |      0.5 |       9.346206 | 7.635769 |    0.884691 |      0.5 |    6.0 | 7.635769 |
+    | 07.01. |   0.784833 |           0.0 |                   0.0 |                  1.0 |                0.02 |              0.02 |    3.0 |      0.5 |       8.347623 | 4.635768 |    0.784833 |      0.5 |    3.0 | 4.635768 |
+    | 08.01. |   0.684975 |           0.0 |                   0.0 |                  1.0 |                0.02 |              0.02 |    2.0 |      0.5 |       7.349039 | 3.635768 |    0.684975 |      0.5 |    2.0 | 3.635768 |
+    | 09.01. |   0.585116 |           0.0 |                   0.0 |                  1.0 |                0.02 |              0.02 |    1.0 |      0.5 |       6.350455 | 2.635768 |    0.585116 |      0.5 |    1.0 | 2.635768 |
+    | 10.01. |   0.485258 |           0.0 |                   0.0 |                  1.0 |                0.02 |              0.02 |    0.0 |      0.5 |       5.351872 | 1.635768 |    0.485258 |      0.5 |    0.0 | 1.635768 |
+    | 11.01. |     0.3854 |           0.0 |                   0.0 |                  5.0 |               0.084 |             0.084 |    0.0 |     -0.5 |       4.353288 | 0.571768 |      0.3854 |     -0.5 |    0.0 | 0.571768 |
+    | 12.01. |   0.285541 |           0.0 |                   0.0 |                  5.0 |              0.0968 |            0.0968 |    0.0 |     -0.5 |       3.354705 | 0.558968 |    0.285541 |     -0.5 |    0.0 | 0.558968 |
+    | 13.01. |   0.185683 |           0.0 |                   0.0 |                  5.0 |             0.09936 |           0.09936 |    0.0 |     -0.5 |       2.356121 | 0.556408 |    0.185683 |     -0.5 |    0.0 | 0.556408 |
+    | 14.01. |   0.085827 |           0.0 |                   0.0 |                  5.0 |            0.099872 |          0.099872 |    0.0 |     -0.5 |       1.357564 | 0.555865 |    0.085827 |     -0.5 |    0.0 | 0.555865 |
+    | 15.01. |   0.003815 |           0.0 |                   0.0 |                  5.0 |            0.099974 |          0.099974 |    0.0 |     -0.5 |       0.401743 | 0.349246 |    0.003815 |     -0.5 |    0.0 | 0.349246 |
+    | 16.01. |  -0.039982 |           0.0 |                   0.0 |                  5.0 |            0.099995 |             0.005 |    0.0 |     -0.5 |        -0.1878 | 0.001907 |   -0.039982 |     -0.5 |    0.0 | 0.001907 |
+    | 17.01. |  -0.083182 |           0.0 |                   0.0 |                  5.0 |            0.099999 |               0.0 |    0.0 |     -0.5 |      -0.615821 |      0.0 |   -0.083182 |     -0.5 |    0.0 |      0.0 |
+    | 18.01. |  -0.126382 |           0.0 |                   0.0 |                  5.0 |                 0.1 |               0.0 |    0.0 |     -0.5 |      -1.047821 |      0.0 |   -0.126382 |     -0.5 |    0.0 |      0.0 |
+    | 19.01. |  -0.169582 |           0.0 |                   0.0 |                  5.0 |                 0.1 |               0.0 |    0.0 |     -0.5 |      -1.479821 |      0.0 |   -0.169582 |     -0.5 |    0.0 |      0.0 |
+    | 20.01. |  -0.212782 |           0.0 |                   0.0 |                  5.0 |                 0.1 |               0.0 |    0.0 |     -0.5 |      -1.911821 |      0.0 |   -0.212782 |     -0.5 |    0.0 |      0.0 |
 
 >>> round_(model.check_waterbalance(conditions))
 0.0
 """
 # import...
 # ...from HydPy
+import hydpy
 from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import
 from hydpy.auxs.ppolytools import Poly, PPoly  # pylint: disable=unused-import
-import hydpy
-from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
+from hydpy.interfaces import petinterfaces
+from hydpy.interfaces import precipinterfaces
+from hydpy.exe.modelimports import *
 
 # ...from dam
 from hydpy.models.dam import dam_model
 from hydpy.models.dam import dam_solver
 
 
-class Model(modeltools.ELSModel):
+class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
     """Version 6 of HydPy-Dam."""
 
     SOLVERPARAMETERS = (
@@ -424,7 +433,11 @@ class Model(modeltools.ELSModel):
         dam_solver.RelDTMax,
     )
     SOLVERSEQUENCES = ()
-    INLET_METHODS = (dam_model.Calc_AdjustedEvaporation_V1,)
+    INLET_METHODS = (
+        dam_model.Calc_Precipitation_V1,
+        dam_model.Calc_PotentialEvaporation_V1,
+        dam_model.Calc_AdjustedEvaporation_V1,
+    )
     RECEIVER_METHODS = ()
     ADD_METHODS = (dam_model.Fix_Min1_V1,)
     PART_ODE_METHODS = (
@@ -439,13 +452,15 @@ class Model(modeltools.ELSModel):
         dam_model.Calc_Outflow_V2,
     )
     FULL_ODE_METHODS = (dam_model.Update_WaterVolume_V4,)
-    OUTLET_METHODS = (
-        dam_model.Calc_WaterLevel_V1,
-        dam_model.Pass_Outflow_V1,
-    )
+    OUTLET_METHODS = (dam_model.Calc_WaterLevel_V1, dam_model.Pass_Outflow_V1)
     SENDER_METHODS = ()
-    SUBMODELINTERFACES = ()
+    SUBMODELINTERFACES = (precipinterfaces.PrecipModel_V2, petinterfaces.PETModel_V1)
     SUBMODELS = ()
+
+    precipmodel = modeltools.SubmodelProperty(
+        precipinterfaces.PrecipModel_V2, optional=True
+    )
+    pemodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1, optional=True)
 
     def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
         r"""Determine the water balance error of the previous simulation run in million

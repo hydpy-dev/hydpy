@@ -3,15 +3,15 @@
 # due to importing hydpy after eventually changing its source path
 """Evaluate all doctests defined in the different modules and documentation files."""
 from __future__ import annotations
+from collections.abc import Iterable, Sequence
 import os
 import sys
 import importlib
 import time
+from typing import NamedTuple, Optional, NoReturn
 import unittest
 import doctest
 import warnings
-from typing import Dict
-from typing import Iterable, List, NamedTuple, Optional, NoReturn, Set, Sequence, Tuple
 
 import click
 
@@ -23,18 +23,18 @@ def print_(*args: str) -> None:
 
 
 class _FilterFilenames:
-    file_doctests: Set[str]
+    file_doctests: set[str]
 
     def __init__(self, file_doctests: Iterable[str]) -> None:
         self.file_doctests = set(file_doctests)
 
-    def __call__(self, filenames: Sequence[str]) -> Tuple[str, ...]:
+    def __call__(self, filenames: Sequence[str]) -> tuple[str, ...]:
         if self.file_doctests:
             return tuple(fn for fn in filenames if fn in self.file_doctests)
         return tuple(filenames)
 
 
-DocTest = Dict[str, Tuple[unittest.TestResult, int]]
+DocTest = dict[str, tuple[unittest.TestResult, int]]
 
 
 class DocTests(NamedTuple):
@@ -78,13 +78,13 @@ class DocTests(NamedTuple):
 )
 def main(  # pylint: disable=too-many-branches
     hydpy_path: Optional[str],
-    file_doctests: List[str],
+    file_doctests: list[str],
     python_mode: bool,
     cython_mode: bool,
 ) -> NoReturn:
     """Perform all tests (first in Python mode, then in Cython mode)."""
 
-    alldoctests: Dict[str, DocTests] = {}
+    alldoctests: dict[str, DocTests] = {}
     if python_mode:
         alldoctests["Python"] = DocTests(successfull={}, failing={})
     if cython_mode:
@@ -152,19 +152,24 @@ def main(  # pylint: disable=too-many-branches
                 else:
                     del pub.projectname
                     del pub.timegrids
-                    opt = pub.options
-                    opt.usecython = mode == "Cython"
-                    opt.ellipsis = 0
+                    options = pub.options
+                    del options.checkseries
+                    options.ellipsis = 0
                     del pub.options.parameterstep
-                    opt.printprogress = False
-                    opt.reprdigits = 6
+                    options.printprogress = False
+                    options.reprdigits = 6
                     del pub.options.simulationstep
-                    opt.usedefaultvalues = False
-                    opt.utclongitude = 15
-                    opt.utcoffset = 60
-                    opt.timestampleft = True
-                    opt.warnsimulationstep = False
-                    opt.warntrim = False
+                    del options.timestampleft
+                    del options.trimvariables
+                    options.usecython = mode == "Cython"
+                    del options.usedefaultvalues
+                    del options.utclongitude
+                    del options.utcoffset
+                    del options.warnmissingcontrolfile
+                    del options.warnmissingobsfile
+                    del options.warnmissingsimfile
+                    options.warnsimulationstep = False
+                    options.warntrim = False
                     testtools.IntegrationTest.plotting_options = (
                         testtools.PlottingOptions()
                     )
@@ -173,14 +178,16 @@ def main(  # pylint: disable=too-many-branches
                     with warnings.catch_warnings(), open(
                         os.devnull, "w", encoding=config.ENCODING
                     ) as file_, devicetools.clear_registries_temporarily():
-                        warnings.filterwarnings(
-                            action="error",
-                            module="hydpy",
-                        )
+                        warnings.filterwarnings(action="error", module="hydpy")
                         warnings.filterwarnings(
                             action="ignore",
                             category=DeprecationWarning,
                             message="`np.bool`",
+                        )
+                        warnings.filterwarnings(
+                            action="ignore",
+                            category=DeprecationWarning,
+                            message="datetime.datetime.utcfromtimestamp",
                         )
                         runner = unittest.TextTestRunner(stream=file_)
                         testresult = runner.run(suite)

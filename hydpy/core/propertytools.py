@@ -18,7 +18,7 @@ from hydpy.core.typingtools import *
 class BaseDescriptor:
     """Base class for defining descriptors."""
 
-    objtype: Type[Any]
+    objtype: type[Any]
     module: Optional[types.ModuleType]
     name: str
     __doc__: Optional[str]
@@ -32,11 +32,7 @@ class BaseDescriptor:
                 ref = f"{self.objtype.__name__}.{self.name}"
                 self.module.__dict__["__test__"][ref] = doc
 
-    def __set_name__(
-        self,
-        objtype: Type[Any],
-        name: str,
-    ) -> None:
+    def __set_name__(self, objtype: type[Any], name: str) -> None:
         self.objtype = objtype
         self.module = inspect.getmodule(objtype)
         if self.module is not None:
@@ -51,22 +47,19 @@ class BaseDescriptor:
 class FGet(Protocol[T_co]):
     """Callback protocol for getter functions."""
 
-    def __call__(self, __obj: Any) -> T_co:
-        ...
+    def __call__(self, __obj: Any) -> T_co: ...
 
 
 class FSet(Protocol[T_contra]):
     """Callback protocol for setter functions."""
 
-    def __call__(self, __obj: Any, __value: T_contra) -> None:
-        ...
+    def __call__(self, __obj: Any, __value: T_contra) -> None: ...
 
 
 class FDel(Protocol):
     """Callback protocol for deleter functions."""
 
-    def __call__(self, __obj: Any) -> None:
-        ...
+    def __call__(self, __obj: Any) -> None: ...
 
 
 class BaseProperty(Generic[T_contra, T_co], BaseDescriptor):
@@ -117,14 +110,12 @@ class BaseProperty(Generic[T_contra, T_co], BaseDescriptor):
         raise RuntimeError
 
     @overload
-    def __get__(self, obj: None, objtype: Type[Any]) -> Self:
-        ...
+    def __get__(self, obj: None, objtype: type[Any]) -> Self: ...
 
     @overload
-    def __get__(self, obj: Any, objtype: Type[Any]) -> T_co:
-        ...
+    def __get__(self, obj: Any, objtype: type[Any]) -> T_co: ...
 
-    def __get__(self, obj: Optional[Any], objtype: Type[Any]) -> Union[Self, T_co]:
+    def __get__(self, obj: Optional[Any], objtype: type[Any]) -> Union[Self, T_co]:
         if obj is None:
             return self
         if self.fget is self._fgetdummy:
@@ -415,7 +406,7 @@ class ProtectedProperties:
     True
     """
 
-    __properties: Tuple[ProtectedProperty[Any, Any], ...]
+    __properties: tuple[ProtectedProperty[Any, Any], ...]
 
     def __init__(self, *properties: ProtectedProperty[Any, Any]) -> None:
         self.__properties = properties

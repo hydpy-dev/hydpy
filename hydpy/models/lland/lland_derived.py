@@ -51,8 +51,6 @@ class NmbLogEntries(parametertools.Parameter):
         >>> derived.nmblogentries
         nmblogentries(24)
         >>> logs
-        wevi(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-             nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan)
         loggedsunshineduration(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
                                nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
                                nan, nan, nan, nan)
@@ -63,14 +61,11 @@ class NmbLogEntries(parametertools.Parameter):
         To prevent from loosing information, updating parameter |NmbLogEntries| resets
         the shape of the relevant log sequences only when necessary:
 
-        >>> logs.wevi = 1.0
         >>> logs.loggedsunshineduration = 2.0
         >>> logs.loggedpossiblesunshineduration.shape = (6,)
         >>> logs.loggedpossiblesunshineduration = 3.0
         >>> derived.nmblogentries.update()
         >>> logs   # doctest: +ELLIPSIS
-        wevi(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-             1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
         loggedsunshineduration(2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
                                2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
                                2.0, 2.0, 2.0, 2.0)
@@ -114,10 +109,7 @@ class AbsFHRU(lland_parameters.ParameterComplete):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (
-        lland_control.FT,
-        lland_control.FHRU,
-    )
+    CONTROLPARAMETERS = (lland_control.FT, lland_control.FHRU)
 
     def update(self):
         """Update |AbsFHRU| based on |FT| and |FHRU|.
@@ -142,10 +134,7 @@ class KInz(lland_parameters.LanduseMonthParameter):
 
     NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (
-        lland_control.HInz,
-        lland_control.LAI,
-    )
+    CONTROLPARAMETERS = (lland_control.HInz, lland_control.LAI)
 
     def update(self):
         """Update |KInz| based on |HInz| and |LAI| according to :cite:t:`ref-LARSIM`
@@ -173,10 +162,7 @@ class HeatOfFusion(lland_parameters.ParameterLand):
 
     NDIM, TYPE, TIME, SPAN = 1, float, False, (0.0, None)
 
-    FIXEDPARAMETERS = (
-        lland_fixed.BoWa2Z,
-        lland_fixed.RSchmelz,
-    )
+    FIXEDPARAMETERS = (lland_fixed.BoWa2Z, lland_fixed.RSchmelz)
 
     def update(self):
         """Update |HeatOfFusion| based on |RSchmelz| and |BoWa2Z|.
@@ -259,10 +245,7 @@ class KB(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
-    CONTROLPARAMETERS = (
-        lland_control.EQB,
-        lland_control.TInd,
-    )
+    CONTROLPARAMETERS = (lland_control.EQB, lland_control.TInd)
 
     def update(self):
         """Update |KB| based on |EQB| and |TInd|.
@@ -286,10 +269,7 @@ class KI1(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
-    CONTROLPARAMETERS = (
-        lland_control.EQI1,
-        lland_control.TInd,
-    )
+    CONTROLPARAMETERS = (lland_control.EQI1, lland_control.TInd)
 
     def update(self):
         """Update |KI1| based on |EQI1| and |TInd|.
@@ -313,10 +293,7 @@ class KI2(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
-    CONTROLPARAMETERS = (
-        lland_control.EQI2,
-        lland_control.TInd,
-    )
+    CONTROLPARAMETERS = (lland_control.EQI2, lland_control.TInd)
 
     def update(self):
         """Update |KI2| based on |EQI2| and |TInd|.
@@ -340,10 +317,7 @@ class KD1(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
-    CONTROLPARAMETERS = (
-        lland_control.EQD1,
-        lland_control.TInd,
-    )
+    CONTROLPARAMETERS = (lland_control.EQD1, lland_control.TInd)
 
     def update(self):
         """Update |KD1| based on |EQD1| and |TInd|.
@@ -367,10 +341,7 @@ class KD2(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
-    CONTROLPARAMETERS = (
-        lland_control.EQD2,
-        lland_control.TInd,
-    )
+    CONTROLPARAMETERS = (lland_control.EQD2, lland_control.TInd)
 
     def update(self):
         """Update |KD2| based on |EQD2| and |TInd|.

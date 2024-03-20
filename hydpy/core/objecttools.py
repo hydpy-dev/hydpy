@@ -594,7 +594,7 @@ class ResetAttrFuncs:
 
     def __exit__(
         self,
-        exception_type: Type[BaseException],
+        exception_type: type[BaseException],
         exception_value: BaseException,
         traceback_: types.TracebackType,
     ) -> None:
@@ -614,7 +614,7 @@ def copy_(self: T) -> T:
         return copy.copy(self)
 
 
-def deepcopy_(self: T, memo: Optional[Dict[int, object]]) -> T:
+def deepcopy_(self: T, memo: Optional[dict[int, object]]) -> T:
     """Deepcopy function for classes with modified attribute functions.
 
     See the documentation on class |ResetAttrFuncs| for further information.
@@ -724,7 +724,7 @@ class _PreserveStrings:
 
     def __exit__(
         self,
-        exception_type: Type[BaseException],
+        exception_type: type[BaseException],
         exception_value: BaseException,
         traceback: types.TracebackType,
     ) -> None:
@@ -920,9 +920,7 @@ def print_values(values: VectorInputObject, width: int = 70) -> None:
     17, 18, 19, 20
     """
     for line in textwrap.wrap(
-        text=repr_values(values),
-        width=width,
-        break_long_words=False,
+        text=repr_values(values), width=width, break_long_words=False
     ):
         print(line)
 
@@ -1030,9 +1028,7 @@ def assignrepr_values(
     else:
         width -= len(prefix)
         wrapped = textwrap.wrap(
-            text=string + "_" * _fakeend,
-            width=width,
-            break_long_words=False,
+            text=string + "_" * _fakeend, width=width, break_long_words=False
         )
     if not wrapped:
         wrapped = [""]
@@ -1063,7 +1059,7 @@ class _AssignReprBracketed:
 
         def __exit__(
             self,
-            exception_type: Type[BaseException],
+            exception_type: type[BaseException],
             exception_value: BaseException,
             traceback: types.TracebackType,
         ) -> None:
@@ -1076,10 +1072,7 @@ class _AssignReprBracketed:
         self._brackets = brackets
 
     def __call__(
-        self,
-        values: VectorInputObject,
-        prefix: str,
-        width: Optional[int] = None,
+        self, values: VectorInputObject, prefix: str, width: Optional[int] = None
     ) -> str:
         nmb_values = len(values)
         if (nmb_values == 1) and not self._always_bracketed:
@@ -1521,8 +1514,7 @@ def round_(
     sep: str = " ",
     end: str = "\n",
     file_: Optional[TextIO] = None,
-) -> None:
-    ...
+) -> None: ...
 
 
 @overload
@@ -1535,8 +1527,7 @@ def round_(
     sep: str = " ",
     end: str = "\n",
     file_: Optional[TextIO] = None,
-) -> None:
-    ...
+) -> None: ...
 
 
 @overload
@@ -1549,8 +1540,7 @@ def round_(
     sep: str = " ",
     end: str = "\n",
     file_: Optional[TextIO] = None,
-) -> None:
-    ...
+) -> None: ...
 
 
 def round_(
@@ -1629,9 +1619,7 @@ and `rfill`.  This is not allowed.
 
 @overload
 def extract(
-    values: Union[Iterable[object], object],
-    types_: Tuple[Type[T1]],
-    skip: bool = False,
+    values: Union[Iterable[object], object], types_: tuple[type[T1]], skip: bool = False
 ) -> Iterator[T1]:
     """Extract all objects of one defined type."""
 
@@ -1639,7 +1627,7 @@ def extract(
 @overload
 def extract(
     values: Union[Iterable[object], object],
-    types_: Tuple[Type[T1], Type[T2]],
+    types_: tuple[type[T1], type[T2]],
     skip: bool = False,
 ) -> Iterator[Union[T1, T2]]:
     """Extract all objects of two defined types."""
@@ -1648,7 +1636,7 @@ def extract(
 @overload
 def extract(
     values: Union[Iterable[object], object],
-    types_: Tuple[Type[T1], Type[T2], Type[T3]],
+    types_: tuple[type[T1], type[T2], type[T3]],
     skip: bool = False,
 ) -> Iterator[Union[T1, T2, T3]]:
     """Extract all objects of three defined types."""
@@ -1657,9 +1645,7 @@ def extract(
 def extract(
     values: Union[Iterable[object], object],
     types_: Union[
-        Tuple[Type[T1]],
-        Tuple[Type[T1], Type[T2]],
-        Tuple[Type[T1], Type[T2], Type[T3]],
+        tuple[type[T1]], tuple[type[T1], type[T2]], tuple[type[T1], type[T2], type[T3]]
     ],
     skip: bool = False,
 ) -> Iterator[Union[T1, T2, T3]]:
@@ -1711,8 +1697,7 @@ classes: str and int.
             if isinstance(values, str) or not isinstance(values, Iterable):
                 raise TypeError("temp")
             for value in values:
-                for subvalue in extract(value, types_, skip):
-                    yield subvalue
+                yield from extract(value, types_, skip)
         except TypeError as exc:
             if exc.args[0].startswith("The given (sub)value"):
                 raise exc
@@ -1814,7 +1799,7 @@ def get_printtarget(file_: Union[TextIO, str, None]) -> Generator[TextIO, None, 
     argument of the standard |print| function.
 
     Function |get_printtarget| supports three types of arguments.  For |None|,
-    it returns |sys.stdout|:
+    it returns `sys.stdout`:
 
     >>> from hydpy.core.objecttools import get_printtarget
     >>> import sys
@@ -1890,10 +1875,7 @@ string=f"a {10*'very '}long test"))
             (f"{name}={repr(value)}" for name, value in kwargs.items()),
         )
     )
-    return black.format_str(
-        f"{name}({arguments})",
-        mode=_black_filemode,
-    )[:-1]
+    return black.format_str(f"{name}({arguments})", mode=_black_filemode)[:-1]
 
 
 def value2bool(argument: str, value: Union[str, int]) -> bool:
@@ -1923,3 +1905,69 @@ boolean.
         f"The value `{value}` given for argument `{argument}` cannot be interpreted "
         f"as a boolean."
     )
+
+
+def is_equal(xs: NestedFloat, ys: NestedFloat, /) -> bool:
+    """Check if the given nested data objects agree in their structure and values.
+
+    |is_equal| always considers numpy arrays as unequal to lists and tuples and nan
+    values as equal to other nan values.
+
+    >>> from hydpy.core.objecttools import is_equal
+    >>> from numpy import array, nan, ones
+
+    Scalars:
+
+    >>> assert not is_equal(1, [1])
+    >>> assert is_equal(1, 1)
+    >>> assert not is_equal(1, 2)
+    >>> assert is_equal(nan, nan)
+    >>> assert not is_equal(1, nan)
+    >>> assert not is_equal(nan, 2)
+
+    Arrays:
+
+    >>> assert not is_equal(ones(2), [1, 1])
+    >>> assert is_equal(ones(2), ones(2))
+    >>> assert not is_equal(ones(2), ones(3))
+    >>> assert is_equal(array([1, nan, 3]), array([1, nan, 3]))
+    >>> assert not is_equal(array([1, nan, 3]), array([1, nan, nan]))
+
+    Dictionarie:
+
+    >>> assert not is_equal({"a": 1}, 1)
+    >>> assert is_equal({}, {})
+    >>> assert not is_equal({"a": 1}, {"b": 1})
+    >>> assert is_equal({"a": 1}, {"a": 1})
+
+    Lists and tuples:
+
+    >>> assert not is_equal([1], 1)
+    >>> assert is_equal([], ())
+    >>> assert is_equal([1, 2], (1, 2))
+    >>> assert not is_equal([1, 2], (1, 3))
+    >>> assert not is_equal([1, 2], (1,))
+
+    Combinations:
+
+    >>> assert is_equal([1, {"a": [2, ones(3)]}], [1, {"a": [2, ones(3)]}])
+    >>> assert not is_equal([1, {"a": [2, ones(3)]}], [1, {"a": [2, ones(4)]}])
+    """
+    if isinstance(xs, (float, int, bool)):
+        if not isinstance(ys, (float, int, bool)):
+            return False
+        return (xs == ys) or (numpy.isnan(xs) and numpy.isnan(ys))
+    if isinstance(xs, numpy.ndarray):
+        if not isinstance(ys, numpy.ndarray):
+            return False
+        return numpy.array_equal(xs, ys, equal_nan=True)
+    if isinstance(xs, Mapping):
+        if not isinstance(ys, Mapping) or (tuple(xs) != tuple(ys)):
+            return False
+        xs, ys = tuple(xs.values()), tuple(ys.values())
+    if not isinstance(ys, Sequence) or (len(xs) != len(ys)):
+        return False
+    for x, y in zip(xs, ys):
+        if not is_equal(x, y):
+            return False
+    return True

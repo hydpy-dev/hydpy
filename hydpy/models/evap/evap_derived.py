@@ -12,7 +12,10 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 
 # ...from evap
+from hydpy.models.evap import evap_parameters
 from hydpy.models.evap import evap_control
+from hydpy.models.evap import evap_fixed
+from hydpy.models.evap import evap_logs
 
 
 class MOY(parametertools.MOYParameter):
@@ -47,10 +50,7 @@ class Altitude(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
-    CONTROLPARAMETERS = (
-        evap_control.HRUArea,
-        evap_control.HRUAltitude,
-    )
+    CONTROLPARAMETERS = (evap_control.HRUArea, evap_control.HRUAltitude)
 
     def update(self) -> None:
         """Average the individual hydrological response units' altitudes.
@@ -113,11 +113,15 @@ class NmbLogEntries(parametertools.Parameter):
                               [nan, nan],
                               [nan, nan]])
 
+        >>> logs.loggedpotentialevapotranspiration
+        loggedpotentialevapotranspiration(nan, nan, nan)
+
         To prevent losing information, updating parameter |NmbLogEntries| resets the
         shape of the relevant log sequences only when necessary:
 
         >>> logs.loggedglobalradiation = 1.0
         >>> logs.loggedairtemperature = 2.0
+        >>> logs.loggedpotentialevapotranspiration = 3.0
         >>> derived.nmblogentries.update()
         >>> logs.loggedglobalradiation
         loggedglobalradiation(1.0, 1.0, 1.0)
@@ -125,6 +129,8 @@ class NmbLogEntries(parametertools.Parameter):
         loggedairtemperature([[2.0, 2.0],
                               [2.0, 2.0],
                               [2.0, 2.0]])
+        >>> logs.loggedpotentialevapotranspiration
+        loggedpotentialevapotranspiration(3.0, 3.0, 3.0)
 
         There is an explicit check for inappropriate simulation step sizes:
 
@@ -147,10 +153,83 @@ determined for a the current simulation step size.  The fraction of the memory p
         self(nmb)
         pars = self.subpars.pars
         for seq in pars.model.sequences.logs:
-            if seq.NDIM == 1:
-                new_shape = (self.value,)
-            elif seq.NDIM == 2:
-                new_shape = self.value, pars.control.nmbhru.value
-            old_shape = exceptiontools.getattr_(seq, "shape", (None,))
+            if isinstance(seq, evap_logs.LoggedPotentialEvapotranspiration):
+                new_shape = self.value
+                old_shape = exceptiontools.getattr_(seq, "shape", (None, None))[1]
+            else:
+                if seq.NDIM == 1:
+                    new_shape = (self.value,)
+                elif seq.NDIM == 2:
+                    new_shape = self.value, pars.control.nmbhru.value
+                old_shape = exceptiontools.getattr_(seq, "shape", (None,))
             if new_shape != old_shape:
                 seq.shape = new_shape
+
+
+class RoughnessLength(
+    evap_parameters.LandMonthParameter
+):  # ToDo: not directy required, remove?
+    """Roughness length [m]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (evap_control.CropHeight,)
+
+    def update(self):
+        r"""Calculate the roughness length based on
+        :math:`max(0.13 \cdot CropHeight, \ 0.00013)`.
+
+        The original equation seems to go back to Montheith.  We added the minimum
+        value of 0.13 mm to cope with water areas and bare soils (to avoid zero
+        roughness lengths):
+
+        ToDo: Add a reference.
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(3)
+        >>> cropheight(
+        ...     ANY=[0.0, 0.001, 0.01, 0.1, 1.0, 2.0, 3.0, 4.0, 5.0, 10.0, 15.0, 20.0])
+        >>> derived.roughnesslength.update()
+        >>> derived.roughnesslength
+        roughnesslength(ANY=[0.00013, 0.00013, 0.0013, 0.013, 0.13, 0.26, 0.39,
+                             0.52, 0.65, 1.3, 1.95, 2.6])
+        """
+        cropheight = self.subpars.pars.control.cropheight.values
+        self.values = numpy.clip(0.13 * cropheight, 0.00013, None)
+
+
+class AerodynamicResistanceFactor(evap_parameters.LandMonthParameter):
+    """Factor for calculating aerodynamic resistance [-]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (evap_control.CropHeight,)
+    DERIVEDPARAMETERS = (RoughnessLength,)
+    FIXEDPARAMETERS = (evap_fixed.AerodynamicResistanceFactorMinimum,)
+
+    def update(self):
+        r"""Calculate the factor for calculating aerodynamic resistance based on the
+        :math:`max \big( ln(2 / z_0) \cdot ln(10 / z_0) / 0.41^2, \ \tau \big)` with
+        :math:`z_0` being the |RoughnessLength| :cite:p:`ref-Löpmeier2014` and
+        :math:`\tau` the "alternative value" suggested by :cite:t:`ref-Thompson1981`
+        and also used by :cite:t:`ref-LARSIM`.
+
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> derived.roughnesslength(
+        ...     ANY=[0.00013, 0.00013, 0.0013, 0.013, 0.13, 0.26, 0.39, 0.52, 0.65,
+        ...          1.3, 1.95, 2.6])
+        >>> derived.aerodynamicresistancefactor.update()
+        >>> derived.aerodynamicresistancefactor
+        aerodynamicresistancefactor(ANY=[752.975177, 752.975177, 476.301466,
+                                         262.708041, 112.194903, 94.0, 94.0, 94.0,
+                                         94.0, 94.0, 94.0, 94.0])
+        """
+        pars = self.subpars.pars
+        z0 = pars.derived.roughnesslength.values
+        min_ = pars.fixed.aerodynamicresistancefactorminimum.value
+        self.values = numpy.clip(
+            numpy.log(10.0 / z0) * numpy.log(10.0 / z0) / 0.41**2, min_, None
+        )

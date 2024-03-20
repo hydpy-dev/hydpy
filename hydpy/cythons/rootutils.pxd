@@ -6,7 +6,7 @@ cimport numpy
 
 cdef class PegasusBase:
 
-    cdef double apply_method0(self, double x) nogil
+    cdef double apply_method0(self, double x) noexcept nogil
 
     cdef double find_x(
         self,
@@ -17,4 +17,4 @@ cdef class PegasusBase:
         double xtol,
         double ytol,
         int itermax,
-    ) nogil
+    ) noexcept nogil

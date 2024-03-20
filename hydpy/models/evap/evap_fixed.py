@@ -35,10 +35,10 @@ class GasConstantWaterVapour(parametertools.FixedParameter):
 
 
 class HeatCapacityAir(parametertools.FixedParameter):
-    """Specific heat capacity of air [WT/kg/K]."""
+    """Specific heat capacity of air [J/kg/K]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
-    INIT = 0.011631944444444445
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    INIT = 1005.0
 
 
 class HeatOfCondensation(parametertools.FixedParameter):
@@ -60,3 +60,10 @@ class PsychrometricConstant(parametertools.FixedParameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
     INIT = 0.655
+
+
+class AerodynamicResistanceFactorMinimum(parametertools.FixedParameter):
+    """The lowest allowed factor for calculating aerodynamic resistance [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    INIT = 94.0

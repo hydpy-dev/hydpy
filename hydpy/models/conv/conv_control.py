@@ -73,7 +73,7 @@ Node("in3", variable="Q"))
 
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
 
-    nodes: Tuple[devicetools.Node, ...]
+    nodes: tuple[devicetools.Node, ...]
     """The relevant input or output nodes."""
 
     def __init__(self, subvars: parametertools.SubParameters):
@@ -176,7 +176,7 @@ Node("in3", variable="Q"))
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
-    nodes: Tuple[devicetools.Node, ...]
+    nodes: tuple[devicetools.Node, ...]
     """The relevant input or output nodes."""
 
     def __init__(self, subvars: parametertools.SubParameters):

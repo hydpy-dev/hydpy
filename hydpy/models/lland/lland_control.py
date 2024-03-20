@@ -37,11 +37,10 @@ class NHRU(parametertools.Parameter):
     """Anzahl der Hydrotope (number of hydrological response units) [-].
 
     Note that |NHRU| determines the length of most 1-dimensional HydPy-L-Land
-    parameters and sequences as well the shape of 2-dimensional log sequences with a
-    predefined length of one axis (see |WEvI|).  This requires that the value of the
-    respective |NHRU| instance is set before any of the values of these 1-dimensional
-    parameters or sequences are set.  Changing the value of the |NHRU| instance
-    necessitates setting their values again:
+    parameters and sequences.  This requires that the value of the respective |NHRU|
+    instance is set before any of the values of these 1-dimensional parameters or
+    sequences are set.  Changing the value of the |NHRU| instance necessitates setting
+    their values again:
 
     Examples:
 
@@ -54,8 +53,6 @@ class NHRU(parametertools.Parameter):
         (5, 2)
         >>> fluxes.tkor.shape
         (5,)
-        >>> logs.wevi.shape
-        (1, 5)
         >>> control.wg2z.shape
         (12,)
     """
@@ -79,8 +76,6 @@ class NHRU(parametertools.Parameter):
                 for seq in subseqs:
                     if seq.NDIM == 1:
                         seq.shape = self.value
-        if hasattr(sequences.logs, "wevi"):
-            sequences.logs.wevi.shape = self.value
 
 
 class Lnk(parametertools.NameParameter):
@@ -457,17 +452,6 @@ class WG2Z(parametertools.MonthParameter):
     INIT = 0.0
 
 
-# evapotranspiration
-
-
-class WfEvI(lland_parameters.ParameterComplete):
-    """Zeitlicher Wichtungsfaktor der Interzeptionsverdunstung (temporal weighting
-    factor for interception evaporation)."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, 1.0)
-    INIT = 0.0
-
-
 # soil properties
 
 
@@ -478,7 +462,7 @@ class WMax(lland_parameters.ParameterSoil):
     INIT = 100.0
 
     # defined at the bottom of the file:
-    CONTROLPARAMETERS: ClassVar[Tuple[Type[PWP], Type[FK]]]
+    CONTROLPARAMETERS: ClassVar[tuple[type[PWP], type[FK]]]
 
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`PWP \\leq FK \\leq WMax`.
@@ -518,7 +502,7 @@ class FK(lland_parameters.ParameterSoilThreshold):
     INIT = 0.0
 
     # defined at the bottom of the file:
-    CONTROLPARAMETERS: ClassVar[Tuple[Type[PWP], Type[WMax]]]
+    CONTROLPARAMETERS: ClassVar[tuple[type[PWP], type[WMax]]]
 
     def trim(self, lower=None, upper=None):
         """Trim upper values in accordance with :math:`PWP \\leq FK \\leq WMax`.
@@ -553,10 +537,7 @@ class PWP(lland_parameters.ParameterSoilThreshold):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
     INIT = 0.0
 
-    CONTROLPARAMETERS = (
-        WMax,
-        FK,
-    )
+    CONTROLPARAMETERS = (WMax, FK)
 
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`PWP \\leq FK \\leq WMax`.
@@ -896,10 +877,7 @@ is given.
 `FK`, `0_WMax/10`, and `FK/2_FK`, but `NFk` is given.
     """
 
-    CONTROLPARAMETERS = (
-        WMax,
-        FK,
-    )
+    CONTROLPARAMETERS = (WMax, FK)
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
     INIT = 0.0
 
@@ -1291,11 +1269,5 @@ class NegQ(parametertools.Parameter):
     INIT = False
 
 
-WMax.CONTROLPARAMETERS = (
-    PWP,
-    FK,
-)
-FK.CONTROLPARAMETERS = (
-    PWP,
-    WMax,
-)
+WMax.CONTROLPARAMETERS = (PWP, FK)
+FK.CONTROLPARAMETERS = (PWP, WMax)

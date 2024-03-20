@@ -3,9 +3,12 @@
 
 # imports...
 # ...from HydPy
+from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
 from hydpy.cythons import smoothutils
+from hydpy.interfaces import petinterfaces
+from hydpy.interfaces import precipinterfaces
 from hydpy.models.dam import dam_control
 from hydpy.models.dam import dam_derived
 from hydpy.models.dam import dam_solver
@@ -14,11 +17,58 @@ from hydpy.models.dam import dam_fluxes
 from hydpy.models.dam import dam_states
 from hydpy.models.dam import dam_logs
 from hydpy.models.dam import dam_aides
-from hydpy.models.dam import dam_inputs
 from hydpy.models.dam import dam_inlets
 from hydpy.models.dam import dam_receivers
 from hydpy.models.dam import dam_outlets
 from hydpy.models.dam import dam_senders
+from hydpy.core.typingtools import *
+
+
+class Calc_Precipitation_V1(modeltools.Method):
+    """If available, let a submodel that complies with the |PrecipModel_V2| interface
+    determine precipitation.
+
+    Examples:
+
+        We use |dam_v001| as an example:
+
+        >>> from hydpy.models.dam_v001 import *
+        >>> parameterstep()
+
+        Without a submodel, |Calc_Precipitation_V1| generally sets precipitation to
+        zero:
+
+        >>> model.calc_precipitation_v1()
+        >>> fluxes.precipitation
+        precipitation(0.0)
+
+        Otherwise, it triggers the determination and queries the resulting value from
+        the available submodel:
+
+        >>> surfacearea(2.0)
+        >>> with model.add_precipmodel_v2("meteo_precip_io"):
+        ...     precipitationfactor(1.1)
+        ...     inputs.precipitation = 3.0
+        >>> model.calc_precipitation_v1()
+        >>> fluxes.precipitation
+        precipitation(3.3)
+    """
+
+    RESULTSEQUENCES = (dam_fluxes.Precipitation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+
+        if model.precipmodel is None:
+            flu.precipitation = 0.0
+        elif model.precipmodel_typeid == 2:
+            cast(
+                precipinterfaces.PrecipModel_V2, model.precipmodel
+            ).determine_precipitation()
+            flu.precipitation = cast(
+                precipinterfaces.PrecipModel_V2, model.precipmodel
+            ).get_precipitation(0)
 
 
 class Calc_AdjustedPrecipitation_V1(modeltools.Method):
@@ -37,33 +87,80 @@ class Calc_AdjustedPrecipitation_V1(modeltools.Method):
         >>> correctionprecipitation(1.25)
         >>> derived.seconds.update()
         >>> derived.inputfactor.update()
-        >>> inputs.precipitation = 2.0
+        >>> fluxes.precipitation = 2.0
         >>> model.calc_adjustedprecipitation_v1()
         >>> fluxes.adjustedprecipitation
         adjustedprecipitation(25.0)
     """
+
     CONTROLPARAMETERS = (dam_control.CorrectionPrecipitation,)
     DERIVEDPARAMETERS = (dam_derived.InputFactor,)
-    REQUIREDSEQUENCES = (dam_inputs.Precipitation,)
+    REQUIREDSEQUENCES = (dam_fluxes.Precipitation,)
     RESULTSEQUENCES = (dam_fluxes.AdjustedPrecipitation,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
-        inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.adjustedprecipitation = (
-            der.inputfactor * con.correctionprecipitation * inp.precipitation
+            der.inputfactor * con.correctionprecipitation * flu.precipitation
         )
+
+
+class Calc_PotentialEvaporation_V1(modeltools.Method):
+    """If available, let a submodel that complies with the |PETModel_V1| interface
+    determine potential evaporation.
+
+    Examples:
+
+        We use |dam_v001| as an example:
+
+        >>> from hydpy.models.dam_v001 import *
+        >>> parameterstep()
+
+        Without a submodel, |Calc_PotentialEvaporation_V1| generally sets potential
+        evaporation to zero:
+
+        >>> model.calc_potentialevaporation_v1()
+        >>> fluxes.potentialevaporation
+        potentialevaporation(0.0)
+
+        Otherwise, it triggers the determination and queries the resulting value from
+        the available submodel:
+
+        >>> surfacearea(2.0)
+        >>> with model.add_pemodel_v1("evap_io"):
+        ...     evapotranspirationfactor(1.1)
+        ...     inputs.referenceevapotranspiration = 3.0
+        >>> model.calc_potentialevaporation_v1()
+        >>> fluxes.potentialevaporation
+        potentialevaporation(3.3)
+    """
+
+    RESULTSEQUENCES = (dam_fluxes.PotentialEvaporation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+
+        if model.pemodel is None:
+            flu.potentialevaporation = 0.0
+        elif model.pemodel_typeid == 1:
+            cast(
+                petinterfaces.PETModel_V1, model.pemodel
+            ).determine_potentialevapotranspiration()
+            flu.potentialevaporation = cast(
+                petinterfaces.PETModel_V1, model.pemodel
+            ).get_potentialevapotranspiration(0)
 
 
 class Calc_AdjustedEvaporation_V1(modeltools.Method):
     r"""Adjust the given potential evaporation.
 
     Basic equation:
-      :math:`AdjustedEvaporation =
-      WeightEvaporation \cdot InputFactor \cdot CorrectionEvaporation \cdot Evaporation
+      :math:`AdjustedEvaporation = WeightEvaporation \cdot InputFactor \cdot
+      CorrectionEvaporation \cdot PotentialEvaporation
       + (1 - WeightEvaporation) \cdot LoggedAdjustedEvaporation`
 
     Examples:
@@ -83,7 +180,7 @@ class Calc_AdjustedEvaporation_V1(modeltools.Method):
         >>> weightevaporation(1.0)
         >>> derived.seconds.update()
         >>> derived.inputfactor.update()
-        >>> inputs.evaporation = 2.0
+        >>> fluxes.potentialevaporation = 2.0
         >>> logs.loggedadjustedevaporation = 20.0
         >>> model.calc_adjustedevaporation_v1()
         >>> fluxes.adjustedevaporation
@@ -109,12 +206,13 @@ class Calc_AdjustedEvaporation_V1(modeltools.Method):
         >>> logs.loggedadjustedevaporation
         loggedadjustedevaporation(23.0)
     """
+
     CONTROLPARAMETERS = (
         dam_control.CorrectionEvaporation,
         dam_control.WeightEvaporation,
     )
     DERIVEDPARAMETERS = (dam_derived.InputFactor,)
-    REQUIREDSEQUENCES = (dam_inputs.Evaporation,)
+    REQUIREDSEQUENCES = (dam_fluxes.PotentialEvaporation,)
     UPDATEDSEQUENCES = (dam_logs.LoggedAdjustedEvaporation,)
     RESULTSEQUENCES = (dam_fluxes.AdjustedEvaporation,)
 
@@ -122,11 +220,10 @@ class Calc_AdjustedEvaporation_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
-        inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
         d_weight = con.weightevaporation
-        d_new = der.inputfactor * con.correctionevaporation * inp.evaporation
+        d_new = der.inputfactor * con.correctionevaporation * flu.potentialevaporation
         d_old = log.loggedadjustedevaporation[0]
         flu.adjustedevaporation = d_weight * d_new + (1.0 - d_weight) * d_old
         log.loggedadjustedevaporation[0] = flu.adjustedevaporation
@@ -202,12 +299,10 @@ class Calc_ActualEvaporation_V1(modeltools.Method):
         |   9 |      0.007 |          1.999998 |
         |  10 |      0.008 |               2.0 |
     """
+
     CONTROLPARAMETERS = (dam_control.ThresholdEvaporation,)
     DERIVEDPARAMETERS = (dam_derived.SmoothParEvaporation,)
-    REQUIREDSEQUENCES = (
-        dam_fluxes.AdjustedEvaporation,
-        dam_factors.WaterLevel,
-    )
+    REQUIREDSEQUENCES = (dam_fluxes.AdjustedEvaporation, dam_factors.WaterLevel)
     RESULTSEQUENCES = (dam_fluxes.ActualEvaporation,)
 
     @staticmethod
@@ -247,11 +342,7 @@ class Pic_Inflow_V2(modeltools.Method):
       :math:`Inflow = S + R + \\sum Q`
     """
 
-    REQUIREDSEQUENCES = (
-        dam_inlets.Q,
-        dam_inlets.S,
-        dam_inlets.R,
-    )
+    REQUIREDSEQUENCES = (dam_inlets.Q, dam_inlets.S, dam_inlets.R)
     RESULTSEQUENCES = (dam_fluxes.Inflow,)
 
     @staticmethod
@@ -550,10 +641,7 @@ class Calc_WaterLevelDifference_V1(modeltools.Method):
         waterleveldifference(2.0)
     """
 
-    REQUIREDSEQUENCES = (
-        dam_factors.WaterLevel,
-        dam_factors.OuterWaterLevel,
-    )
+    REQUIREDSEQUENCES = (dam_factors.WaterLevel, dam_factors.OuterWaterLevel)
     RESULTSEQUENCES = (dam_factors.WaterLevelDifference,)
 
     @staticmethod
@@ -690,10 +778,7 @@ class Calc_EffectiveWaterLevelDifference_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (dam_control.CrestLevel,)
     DERIVEDPARAMETERS = (dam_derived.CrestLevelSmoothPar,)
-    REQUIREDSEQUENCES = (
-        dam_factors.WaterLevel,
-        dam_factors.OuterWaterLevel,
-    )
+    REQUIREDSEQUENCES = (dam_factors.WaterLevel, dam_factors.OuterWaterLevel)
     RESULTSEQUENCES = (dam_factors.EffectiveWaterLevelDifference,)
 
     @staticmethod
@@ -875,10 +960,7 @@ class Calc_AllowedRemoteRelief_V2(modeltools.Method):
         dam_control.HighestRemoteRelief,
         dam_control.WaterLevelReliefThreshold,
     )
-    DERIVEDPARAMETERS = (
-        dam_derived.TOY,
-        dam_derived.WaterLevelReliefSmoothPar,
-    )
+    DERIVEDPARAMETERS = (dam_derived.TOY, dam_derived.WaterLevelReliefSmoothPar)
     REQUIREDSEQUENCES = (dam_factors.WaterLevel,)
     RESULTSEQUENCES = (dam_fluxes.AllowedRemoteRelief,)
 
@@ -966,10 +1048,7 @@ class Calc_RequiredRemoteSupply_V1(modeltools.Method):
         dam_control.HighestRemoteSupply,
         dam_control.WaterLevelSupplyThreshold,
     )
-    DERIVEDPARAMETERS = (
-        dam_derived.TOY,
-        dam_derived.WaterLevelSupplySmoothPar,
-    )
+    DERIVEDPARAMETERS = (dam_derived.TOY, dam_derived.WaterLevelSupplySmoothPar)
     REQUIREDSEQUENCES = (dam_factors.WaterLevel,)
     RESULTSEQUENCES = (dam_fluxes.RequiredRemoteSupply,)
 
@@ -1024,10 +1103,7 @@ class Calc_NaturalRemoteDischarge_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (dam_control.NmbLogEntries,)
-    REQUIREDSEQUENCES = (
-        dam_logs.LoggedTotalRemoteDischarge,
-        dam_logs.LoggedOutflow,
-    )
+    REQUIREDSEQUENCES = (dam_logs.LoggedTotalRemoteDischarge, dam_logs.LoggedOutflow)
     RESULTSEQUENCES = (dam_fluxes.NaturalRemoteDischarge,)
 
     @staticmethod
@@ -1183,10 +1259,7 @@ class Calc_RemoteFailure_V1(modeltools.Method):
             >>> del pub.timegrids
     """
 
-    CONTROLPARAMETERS = (
-        dam_control.NmbLogEntries,
-        dam_control.RemoteDischargeMinimum,
-    )
+    CONTROLPARAMETERS = (dam_control.NmbLogEntries, dam_control.RemoteDischargeMinimum)
     DERIVEDPARAMETERS = (dam_derived.TOY,)
     REQUIREDSEQUENCES = (dam_logs.LoggedTotalRemoteDischarge,)
     RESULTSEQUENCES = (dam_fluxes.RemoteFailure,)
@@ -1295,14 +1368,8 @@ class Calc_RequiredRemoteRelease_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (dam_control.RemoteDischargeSafety,)
-    DERIVEDPARAMETERS = (
-        dam_derived.TOY,
-        dam_derived.RemoteDischargeSmoothPar,
-    )
-    REQUIREDSEQUENCES = (
-        dam_fluxes.RemoteDemand,
-        dam_fluxes.RemoteFailure,
-    )
+    DERIVEDPARAMETERS = (dam_derived.TOY, dam_derived.RemoteDischargeSmoothPar)
+    REQUIREDSEQUENCES = (dam_fluxes.RemoteDemand, dam_fluxes.RemoteFailure)
     RESULTSEQUENCES = (dam_fluxes.RequiredRemoteRelease,)
 
     @staticmethod
@@ -1312,8 +1379,7 @@ class Calc_RequiredRemoteRelease_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         flu.requiredremoterelease = flu.remotedemand + (
             smoothutils.smooth_logistic1(
-                flu.remotefailure,
-                der.remotedischargesmoothpar[der.toy[model.idx_sim]],
+                flu.remotefailure, der.remotedischargesmoothpar[der.toy[model.idx_sim]]
             )
             * con.remotedischargesafety[der.toy[model.idx_sim]]
         )
@@ -1467,10 +1533,7 @@ class Calc_RequiredRelease_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (dam_control.NearDischargeMinimumThreshold,)
-    DERIVEDPARAMETERS = (
-        dam_derived.TOY,
-        dam_derived.NearDischargeMinimumSmoothPar2,
-    )
+    DERIVEDPARAMETERS = (dam_derived.TOY, dam_derived.NearDischargeMinimumSmoothPar2)
     REQUIREDSEQUENCES = (dam_fluxes.RequiredRemoteRelease,)
     RESULTSEQUENCES = (dam_fluxes.RequiredRelease,)
 
@@ -2101,14 +2164,8 @@ class Calc_TargetedRelease_V1(modeltools.Method):
         dam_control.RestrictTargetedRelease,
         dam_control.NearDischargeMinimumThreshold,
     )
-    DERIVEDPARAMETERS = (
-        dam_derived.NearDischargeMinimumSmoothPar1,
-        dam_derived.TOY,
-    )
-    REQUIREDSEQUENCES = (
-        dam_fluxes.Inflow,
-        dam_fluxes.RequiredRelease,
-    )
+    DERIVEDPARAMETERS = (dam_derived.NearDischargeMinimumSmoothPar1, dam_derived.TOY)
+    REQUIREDSEQUENCES = (dam_fluxes.Inflow, dam_fluxes.RequiredRelease)
     RESULTSEQUENCES = (dam_fluxes.TargetedRelease,)
 
     @staticmethod
@@ -2254,10 +2311,7 @@ class Calc_ActualRelease_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (dam_control.WaterLevelMinimumThreshold,)
     DERIVEDPARAMETERS = (dam_derived.WaterLevelMinimumSmoothPar,)
-    REQUIREDSEQUENCES = (
-        dam_fluxes.TargetedRelease,
-        dam_factors.WaterLevel,
-    )
+    REQUIREDSEQUENCES = (dam_fluxes.TargetedRelease, dam_factors.WaterLevel)
     RESULTSEQUENCES = (dam_fluxes.ActualRelease,)
 
     @staticmethod
@@ -2362,10 +2416,7 @@ class Calc_ActualRelease_V2(modeltools.Method):
         dam_control.AllowedRelease,
         dam_control.WaterLevelMinimumThreshold,
     )
-    DERIVEDPARAMETERS = (
-        dam_derived.TOY,
-        dam_derived.WaterLevelMinimumSmoothPar,
-    )
+    DERIVEDPARAMETERS = (dam_derived.TOY, dam_derived.WaterLevelMinimumSmoothPar)
     REQUIREDSEQUENCES = (dam_factors.WaterLevel,)
     RESULTSEQUENCES = (dam_fluxes.ActualRelease,)
 
@@ -3114,27 +3165,21 @@ class Calc_ActualRelease_V3(modeltools.Method):
         )
         # calculate the release for too-high water volumes:
         d_factor = smoothutils.smooth_logistic3(
-            (new.watervolume - d_target + d_range) / d_range,
-            der.volumesmoothparlog2,
+            (new.watervolume - d_target + d_range) / d_range, der.volumesmoothparlog2
         )
         d_upperbound = smoothutils.smooth_min1(
             d_qmax, flu.inflow, der.dischargesmoothpar
         )
         d_release1 = (1.0 - d_factor) * d_qmin + d_factor * smoothutils.smooth_max1(
-            d_qmin,
-            d_upperbound,
-            der.dischargesmoothpar,
+            d_qmin, d_upperbound, der.dischargesmoothpar
         )
         # calculate the release for too-low water volumes:
         d_factor = smoothutils.smooth_logistic3(
-            (d_target + d_range - new.watervolume) / d_range,
-            der.volumesmoothparlog2,
+            (d_target + d_range - new.watervolume) / d_range, der.volumesmoothparlog2
         )
         d_neutral = smoothutils.smooth_max1(d_qmin, flu.inflow, der.dischargesmoothpar)
         d_release2 = (1.0 - d_factor) * d_qmax + d_factor * smoothutils.smooth_min1(
-            d_qmax,
-            d_neutral,
-            der.dischargesmoothpar,
+            d_qmax, d_neutral, der.dischargesmoothpar
         )
         # combine both releases smoothly:
         d_weight = smoothutils.smooth_logistic1(
@@ -3188,10 +3233,7 @@ class Calc_MissingRemoteRelease_V1(modeltools.Method):
         missingremoterelease(0.0)
     """
 
-    REQUIREDSEQUENCES = (
-        dam_fluxes.ActualRelease,
-        dam_fluxes.RequiredRemoteRelease,
-    )
+    REQUIREDSEQUENCES = (dam_fluxes.ActualRelease, dam_fluxes.RequiredRemoteRelease)
     RESULTSEQUENCES = (dam_fluxes.MissingRemoteRelease,)
 
     @staticmethod
@@ -3285,10 +3327,7 @@ class Calc_ActualRemoteRelease_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (dam_control.WaterLevelMinimumRemoteThreshold,)
     DERIVEDPARAMETERS = (dam_derived.WaterLevelMinimumRemoteSmoothPar,)
-    REQUIREDSEQUENCES = (
-        dam_fluxes.RequiredRemoteRelease,
-        dam_factors.WaterLevel,
-    )
+    REQUIREDSEQUENCES = (dam_fluxes.RequiredRemoteRelease, dam_factors.WaterLevel)
     RESULTSEQUENCES = (dam_fluxes.ActualRemoteRelease,)
 
     @staticmethod
@@ -3715,9 +3754,9 @@ class Calc_MaxFreeDischarge_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        con.waterleveldifference2maxfreedischarge.inputs[
-            0
-        ] = fac.effectivewaterleveldifference
+        con.waterleveldifference2maxfreedischarge.inputs[0] = (
+            fac.effectivewaterleveldifference
+        )
         toy: int = der.toy[model.idx_sim]
         con.waterleveldifference2maxfreedischarge.calculate_values(toy)
         flu.maxfreedischarge = con.waterleveldifference2maxfreedischarge.outputs[0]
@@ -3728,14 +3767,21 @@ class Calc_ForcedDischarge_V1(modeltools.Method):
     prevent a too-high inner water level if a maximum water level at a remote location
     is not violated.
 
+    In the case of a negative value for |MaxForcedDischarge| (e.g. the simulation of
+    irrigation processes), the inner water level will be kept higher than a minimum
+    level if the remote water level is higher than |WaterLevelMaximumThreshold|.
+
     Basic equation:
       .. math::
-        ForcedDischarge = MaxForcedDischarge \cdot r_1 \cdot (1 - r_2)
+        ForcedDischarge = \begin{cases}
+            MaxForcedDischarge \cdot (1 - r_1) \cdot r_2, & | MaxForcedDischarge < 0 \\
+            MaxForcedDischarge \cdot r_1 \cdot (1 - r_2), & | MaxForcedDischarge \geq 0
+            \end{cases}
         \\ \\
-        r_1 = f_{smooth \, logistic1}(WaterLevelMaximumThreshold -
-        WaterLevel, \, WaterLevelMaximumSmoothPar) \\
-        r_2 = f_{smooth \, logistic1}(RemoteWaterLevelMaximumThreshold -
-        RemoteWaterLevel, \, RemoteWaterLevelMaximumSmoothPar)
+        r_1 = f_{smooth \, logistic1}(WaterLevel -
+        WaterLevelMaximumThreshold, \, WaterLevelMaximumSmoothPar) \\
+        r_2 = f_{smooth \, logistic1}(RemoteWaterLevel -
+        RemoteWaterLevelMaximumThreshold, \, RemoteWaterLevelMaximumSmoothPar)
 
     Used auxiliary method:
       |smooth_logistic1|
@@ -3826,6 +3872,39 @@ class Calc_ForcedDischarge_V1(modeltools.Method):
         |  19 |       3.13 |             5.03 |        0.000002 |
         |  20 |       3.14 |             5.04 |             0.0 |
         |  21 |       3.15 |             5.05 |             0.0 |
+
+        When |MaxForcedDischarge| is negative, the flow direction is reversed.
+        Forced discharge will start when the |RemoteWaterLevelMaximumThreshold|
+        is higher than 4.9 and drop to zero as soon as the
+        |WaterLevelMaximumThreshold| is reached.
+
+        >>> fluxes.maxforceddischarge = -2.0
+        >>> waterlevelmaximumthreshold(3.1)
+        >>> remotewaterlevelmaximumthreshold(4.9)
+        >>> test()
+        | ex. | waterlevel | remotewaterlevel | forceddischarge |
+        ---------------------------------------------------------
+        |   1 |       2.95 |             4.85 |             0.0 |
+        |   2 |       2.96 |             4.86 |             0.0 |
+        |   3 |       2.97 |             4.87 |       -0.000002 |
+        |   4 |       2.98 |             4.88 |       -0.000204 |
+        |   5 |       2.99 |             4.89 |           -0.02 |
+        |   6 |        3.0 |              4.9 |            -1.0 |
+        |   7 |       3.01 |             4.91 |           -1.98 |
+        |   8 |       3.02 |             4.92 |       -1.999796 |
+        |   9 |       3.03 |             4.93 |       -1.999998 |
+        |  10 |       3.04 |             4.94 |            -2.0 |
+        |  11 |       3.05 |             4.95 |            -2.0 |
+        |  12 |       3.06 |             4.96 |        -1.99999 |
+        |  13 |       3.07 |             4.97 |       -1.999796 |
+        |  14 |       3.08 |             4.98 |       -1.995643 |
+        |  15 |       3.09 |             4.99 |       -1.910716 |
+        |  16 |        3.1 |              5.0 |            -1.0 |
+        |  17 |       3.11 |             5.01 |       -0.089284 |
+        |  18 |       3.12 |             5.02 |       -0.004357 |
+        |  19 |       3.13 |             5.03 |       -0.000204 |
+        |  20 |       3.14 |             5.04 |        -0.00001 |
+        |  21 |       3.15 |             5.05 |             0.0 |
     """
 
     CONTROLPARAMETERS = (
@@ -3857,7 +3936,10 @@ class Calc_ForcedDischarge_V1(modeltools.Method):
             fac.remotewaterlevel - con.remotewaterlevelmaximumthreshold,
             der.remotewaterlevelmaximumsmoothpar,
         )
-        flu.forceddischarge = flu.maxforceddischarge * r1 * (1.0 - r2)
+        if flu.maxforceddischarge >= 0.0:
+            flu.forceddischarge = flu.maxforceddischarge * r1 * (1.0 - r2)
+        else:
+            flu.forceddischarge = flu.maxforceddischarge * (1.0 - r1) * r2
 
 
 class Calc_FreeDischarge_V1(modeltools.Method):
@@ -4051,10 +4133,7 @@ class Calc_FreeDischarge_V1(modeltools.Method):
         dam_derived.RemoteWaterLevelMaximumSmoothPar,
         dam_derived.DischargeSmoothPar,
     )
-    REQUIREDSEQUENCES = (
-        dam_factors.RemoteWaterLevel,
-        dam_fluxes.MaxFreeDischarge,
-    )
+    REQUIREDSEQUENCES = (dam_factors.RemoteWaterLevel, dam_fluxes.MaxFreeDischarge)
     RESULTSEQUENCES = (dam_fluxes.FreeDischarge,)
 
     @staticmethod
@@ -4067,6 +4146,7 @@ class Calc_FreeDischarge_V1(modeltools.Method):
             fac.remotewaterlevel - con.remotewaterlevelmaximumthreshold,
             der.remotewaterlevelmaximumsmoothpar,
         )
+        # pylint: disable=invalid-unary-operand-type
         q_trimmed: float = -smoothutils.smooth_logistic2(
             -flu.maxfreedischarge, der.dischargesmoothpar
         )
@@ -4098,10 +4178,7 @@ class Calc_Outflow_V1(modeltools.Method):
         outflow(0.0)
     """
 
-    REQUIREDSEQUENCES = (
-        dam_fluxes.ActualRelease,
-        dam_fluxes.FloodDischarge,
-    )
+    REQUIREDSEQUENCES = (dam_fluxes.ActualRelease, dam_fluxes.FloodDischarge)
     RESULTSEQUENCES = (dam_fluxes.Outflow,)
 
     @staticmethod
@@ -4231,19 +4308,13 @@ class Calc_AllowedDischarge_V2(modeltools.Method):
             >>> del pub.timegrids
     """
 
-    CONTROLPARAMETERS = (
-        dam_control.AllowedRelease,
-        dam_control.AllowedWaterLevelDrop,
-    )
+    CONTROLPARAMETERS = (dam_control.AllowedRelease, dam_control.AllowedWaterLevelDrop)
     DERIVEDPARAMETERS = (
         dam_derived.TOY,
         dam_derived.Seconds,
         dam_derived.DischargeSmoothPar,
     )
-    REQUIREDSEQUENCES = (
-        dam_fluxes.Inflow,
-        dam_aides.SurfaceArea,
-    )
+    REQUIREDSEQUENCES = (dam_fluxes.Inflow, dam_aides.SurfaceArea)
     RESULTSEQUENCES = (dam_aides.AllowedDischarge,)
 
     @staticmethod
@@ -4328,10 +4399,7 @@ class Calc_Outflow_V2(modeltools.Method):
     """
 
     DERIVEDPARAMETERS = (dam_derived.DischargeSmoothPar,)
-    REQUIREDSEQUENCES = (
-        dam_fluxes.FloodDischarge,
-        dam_aides.AllowedDischarge,
-    )
+    REQUIREDSEQUENCES = (dam_fluxes.FloodDischarge, dam_aides.AllowedDischarge)
     RESULTSEQUENCES = (dam_fluxes.Outflow,)
 
     @staticmethod
@@ -4411,10 +4479,7 @@ class Calc_Outflow_V5(modeltools.Method):
         outflow(5.0)
     """
 
-    REQUIREDSEQUENCES = (
-        dam_fluxes.FreeDischarge,
-        dam_fluxes.ForcedDischarge,
-    )
+    REQUIREDSEQUENCES = (dam_fluxes.FreeDischarge, dam_fluxes.ForcedDischarge)
     RESULTSEQUENCES = (dam_fluxes.Outflow,)
 
     @staticmethod
@@ -4770,7 +4835,9 @@ class Model(modeltools.ELSModel):
     )
     SOLVERSEQUENCES = ()
     INLET_METHODS = (
+        Calc_Precipitation_V1,
         Calc_AdjustedPrecipitation_V1,
+        Calc_PotentialEvaporation_V1,
         Calc_AdjustedEvaporation_V1,
         Calc_ActualEvaporation_V1,
         Pic_Inflow_V1,
@@ -4847,3 +4914,95 @@ class Model(modeltools.ELSModel):
     )
     SUBMODELINTERFACES = ()
     SUBMODELS = ()
+
+    precipmodel = modeltools.SubmodelProperty(
+        precipinterfaces.PrecipModel_V2, optional=True
+    )
+    precipmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    precipmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    pemodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1, optional=True)
+    pemodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    pemodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+
+class Main_PrecipModel_V2(modeltools.ELSModel):
+    """Base class for HydPy-Dam models that use submodels that comply with the
+    |PrecipModel_V2| interface."""
+
+    precipmodel: modeltools.SubmodelProperty
+    precipmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    precipmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel(
+        "precipmodel",
+        precipinterfaces.PrecipModel_V2,
+        precipinterfaces.PrecipModel_V2.prepare_nmbzones,
+        precipinterfaces.PrecipModel_V2.prepare_subareas,
+    )
+    def add_precipmodel_v2(
+        self,
+        precipmodel: precipinterfaces.PrecipModel_V2,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
+        """Initialise the given `precipmodel` that follows the |PrecipModel_V2|
+        interface.
+
+        >>> from hydpy.models.dam_v001 import *
+        >>> parameterstep()
+        >>> surfacearea(2.0)
+        >>> with model.add_precipmodel_v2("meteo_precip_io"):
+        ...     nmbhru
+        ...     hruarea
+        ...     precipitationfactor(1.5)
+        nmbhru(1)
+        hruarea(2.0)
+        >>> model.precipmodel.parameters.control.precipitationfactor
+        precipitationfactor(1.5)
+        """
+        control = self.parameters.control
+        precipmodel.prepare_nmbzones(1)
+        precipmodel.prepare_subareas(control.surfacearea.value)
+
+
+class Main_PEModel_V1(modeltools.ELSModel):
+    """Base class for HydPy-Dam models that use submodels that comply with the
+    |PETModel_V1| interface."""
+
+    pemodel: modeltools.SubmodelProperty
+    pemodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    pemodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel(
+        "pemodel",
+        petinterfaces.PETModel_V1,
+        petinterfaces.PETModel_V1.prepare_nmbzones,
+        petinterfaces.PETModel_V1.prepare_subareas,
+    )
+    def add_pemodel_v1(
+        self,
+        pemodel: petinterfaces.PETModel_V1,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
+        """Initialise the given `pemodel` that follows the |PETModel_V1| interface.
+
+        >>> from hydpy.models.dam_v001 import *
+        >>> parameterstep()
+        >>> surfacearea(2.0)
+        >>> with model.add_pemodel_v1("evap_tw2002"):
+        ...     nmbhru
+        ...     hruarea
+        ...     evapotranspirationfactor(1.5)
+        nmbhru(1)
+        hruarea(2.0)
+
+        >>> model.pemodel.parameters.control.evapotranspirationfactor
+        evapotranspirationfactor(1.5)
+        """
+        control = self.parameters.control
+        pemodel.prepare_nmbzones(1)
+        pemodel.prepare_subareas(control.surfacearea.value)

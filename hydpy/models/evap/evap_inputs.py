@@ -10,48 +10,28 @@ class ReferenceEvapotranspiration(sequencetools.InputSequence):
     """Reference evapotranspiration [mm/T]."""
 
     NDIM, NUMERIC = 0, False
+    STANDARD_NAME = sequencetools.StandardInputNames.POTENTIAL_EVAPOTRANSPIRATION
 
 
 class RelativeHumidity(sequencetools.InputSequence):
     """Relative humidity [%]."""
 
     NDIM, NUMERIC = 0, False
+    STANDARD_NAME = sequencetools.StandardInputNames.RELATIVE_HUMIDITY
 
 
 class WindSpeed(sequencetools.InputSequence):
     """Wind speed [m/s]."""
 
     NDIM, NUMERIC = 0, False
+    STANDARD_NAME = sequencetools.StandardInputNames.WIND_SPEED
 
 
 class AtmosphericPressure(sequencetools.InputSequence):
     """Atmospheric pressure [hPa]."""
 
     NDIM, NUMERIC = 0, False
-
-
-class SunshineDuration(sequencetools.InputSequence):
-    """Sunshine duration [h]."""
-
-    NDIM, NUMERIC = 0, False
-
-
-class PossibleSunshineDuration(sequencetools.InputSequence):
-    """Astronomically possible sunshine duration [h]."""
-
-    NDIM, NUMERIC = 0, False
-
-
-class GlobalRadiation(sequencetools.InputSequence):
-    """Global radiation [W/m²]."""
-
-    NDIM, NUMERIC = 0, False
-
-
-class ClearSkySolarRadiation(sequencetools.InputSequence):
-    """Clear sky solar radiation [W/m²]."""
-
-    NDIM, NUMERIC = 0, False
+    STANDARD_NAME = sequencetools.StandardInputNames.ATMOSPHERIC_PRESSURE
 
 
 class NormalAirTemperature(sequencetools.InputSequence):
@@ -62,6 +42,7 @@ class NormalAirTemperature(sequencetools.InputSequence):
     """
 
     NDIM, NUMERIC = 0, False
+    STANDARD_NAME = sequencetools.StandardInputNames.NORMAL_AIR_TEMPERATURE
 
 
 class NormalEvapotranspiration(sequencetools.InputSequence):
@@ -71,3 +52,4 @@ class NormalEvapotranspiration(sequencetools.InputSequence):
     """
 
     NDIM, NUMERIC = 0, False
+    STANDARD_NAME = sequencetools.StandardInputNames.NORMAL_EVAPOTRANSPIRATION

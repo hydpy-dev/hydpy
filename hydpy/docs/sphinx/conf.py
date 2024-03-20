@@ -13,10 +13,11 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+from collections.abc import Callable
 import dataclasses
 import os
 import sys
-from typing import Any, Callable, Dict
+from typing import Any
 
 import pybtex.plugin
 from pybtex.database import Person
@@ -322,7 +323,7 @@ htmlhelp_basename = "HydPydoc"
 
 # -- Options for LaTeX output --------------------------------------------------
 
-latex_elements: Dict[str, str] = {
+latex_elements: dict[str, str] = {
     # The paper size ('letterpaper' or 'a4paper').
     #'papersize': 'letterpaper',
     # The font size ('10pt', '11pt' or '12pt').
@@ -334,7 +335,7 @@ latex_elements: Dict[str, str] = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-    ("index", "HydPy.tex", "HydPy Documentation", "HydPy Developers", "manual"),
+    ("index", "HydPy.tex", "HydPy Documentation", "HydPy Developers", "manual")
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -382,7 +383,7 @@ texinfo_documents = [
         "HydPy",
         "One line description of project.",
         "Miscellaneous",
-    ),
+    )
 ]
 
 # Documents to append as an appendix to all manuals.

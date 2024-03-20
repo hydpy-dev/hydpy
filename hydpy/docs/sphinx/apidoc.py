@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Generate and polish the HTML documentation."""
 import os
-from typing import List
 
 os.system(r"make clean")
 os.system(r"make html")
@@ -9,7 +8,7 @@ os.system(r"make html")
 folder = "../_built/html"
 filenames = sorted(fn for fn in os.listdir(folder) if fn.endswith(".html"))
 for path in (os.path.join(folder, fn) for fn in filenames):
-    lines: List[str] = []
+    lines: list[str] = []
     with open(path, encoding="utf-8") as file_:
         for line in file_.readlines():
             if line.startswith('<dd><p>alias of <a class="reference external"'):
@@ -17,8 +16,7 @@ for path in (os.path.join(folder, fn) for fn in filenames):
                 line = line.split(">")[1]
                 line = line.split("<")[0]
                 lines[-1] = lines[-1].replace(
-                    "TYPE</code>",
-                    f'TYPE</code><em class="property"> = {line}</em>',
+                    "TYPE</code>", f'TYPE</code><em class="property"> = {line}</em>'
                 )
             else:
                 lines.append(line)

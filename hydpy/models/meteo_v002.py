@@ -36,7 +36,7 @@ ________________
 We repeat the :ref:`meteo_v001_daily_simulation` example of |meteo_v001| but use its
 global radiation result as input:
 
->>> from hydpy import IntegrationTest, pub
+>>> from hydpy import IntegrationTest, pub, round_
 >>> pub.timegrids = "2000-07-06", "2000-07-07", "1d"
 >>> latitude(50.8)
 >>> angstromconstant(0.25)
@@ -58,6 +58,17 @@ which is the input value used in the :ref:`meteo_v001_daily_simulation` example 
     |       date | globalradiation | earthsundistance | solardeclination | sunsethourangle | solartimeangle | possiblesunshineduration | sunshineduration | extraterrestrialradiation | clearskysolarradiation | node1 |     node2 |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2000-06-07 |      255.367464 |         0.967121 |         0.394547 |        2.106601 |            nan |                16.093247 |             9.25 |                475.201614 |              356.40121 |  9.25 | 16.093247 |
+
+All getters specified by the |RadiationModel_V1| interface return the correct data.
+
+>>> round_(model.get_possiblesunshineduration())
+16.093247
+>>> round_(model.get_sunshineduration())
+9.25
+>>> round_(model.get_clearskysolarradiation())
+356.40121
+>>> round_(model.get_globalradiation())
+255.367464
 
 .. _meteo_v002_hourly_simulation:
 
@@ -137,10 +148,11 @@ Again, there is a good agreement with the results of |meteo_v001|:
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
+from hydpy.interfaces import radiationinterfaces
 from hydpy.models.meteo import meteo_model
 
 
-class Model(modeltools.AdHocModel):
+class Model(modeltools.AdHocModel, radiationinterfaces.RadiationModel_V1):
     """Version 2 of the Meteo model."""
 
     INLET_METHODS = ()
@@ -154,6 +166,13 @@ class Model(modeltools.AdHocModel):
         meteo_model.Calc_ExtraterrestrialRadiation_V1,
         meteo_model.Calc_ClearSkySolarRadiation_V1,
         meteo_model.Calc_SunshineDuration_V1,
+    )
+    INTERFACE_METHODS = (
+        meteo_model.Process_Radiation_V1,
+        meteo_model.Get_PossibleSunshineDuration_V1,
+        meteo_model.Get_SunshineDuration_V1,
+        meteo_model.Get_ClearSkySolarRadiation_V1,
+        meteo_model.Get_GlobalRadiation_V2,
     )
     ADD_METHODS = ()
     OUTLET_METHODS = ()

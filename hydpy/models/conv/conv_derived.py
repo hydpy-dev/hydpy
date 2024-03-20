@@ -109,10 +109,7 @@ class Distances(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
 
-    CONTROLPARAMETERS = (
-        conv_control.InputCoordinates,
-        conv_control.OutputCoordinates,
-    )
+    CONTROLPARAMETERS = (conv_control.InputCoordinates, conv_control.OutputCoordinates)
 
     def update(self) -> None:
         """Determine the distances.
@@ -216,10 +213,7 @@ class Weights(parametertools.Parameter):
         conv_control.Power,
     )
 
-    DERIVEDPARAMETERS = (
-        Distances,
-        ProximityOrder,
-    )
+    DERIVEDPARAMETERS = (Distances, ProximityOrder)
 
     def update(self) -> None:
         """Determine the weighting coefficients.

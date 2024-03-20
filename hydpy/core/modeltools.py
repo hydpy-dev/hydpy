@@ -46,26 +46,26 @@ TypeSubmodelInterface = TypeVar("TypeSubmodelInterface", bound="SubmodelInterfac
 
 
 class _ModelModule(types.ModuleType):
-    ControlParameters: Type[parametertools.SubParameters]
-    DerivedParameters: Type[parametertools.SubParameters]
-    FixedParameters: Type[parametertools.SubParameters]
-    SolverParameters: Type[parametertools.SubParameters]
+    ControlParameters: type[parametertools.SubParameters]
+    DerivedParameters: type[parametertools.SubParameters]
+    FixedParameters: type[parametertools.SubParameters]
+    SolverParameters: type[parametertools.SubParameters]
 
 
 class Method:
     """Base class for defining (hydrological) calculation methods."""
 
-    SUBMODELINTERFACES: ClassVar[Tuple[Type[SubmodelInterface], ...]]
-    SUBMETHODS: Tuple[Type[Method], ...] = ()
-    CONTROLPARAMETERS: Tuple[
-        Type[Union[parametertools.Parameter, interptools.BaseInterpolator]], ...
+    SUBMODELINTERFACES: ClassVar[tuple[type[SubmodelInterface], ...]]
+    SUBMETHODS: tuple[type[Method], ...] = ()
+    CONTROLPARAMETERS: tuple[
+        type[Union[parametertools.Parameter, interptools.BaseInterpolator]], ...
     ] = ()
-    DERIVEDPARAMETERS: Tuple[Type[parametertools.Parameter], ...] = ()
-    FIXEDPARAMETERS: Tuple[Type[parametertools.Parameter], ...] = ()
-    SOLVERPARAMETERS: Tuple[Type[parametertools.Parameter], ...] = ()
-    REQUIREDSEQUENCES: Tuple[Type[sequencetools.Sequence_], ...] = ()
-    UPDATEDSEQUENCES: Tuple[Type[sequencetools.Sequence_], ...] = ()
-    RESULTSEQUENCES: Tuple[Type[sequencetools.Sequence_], ...] = ()
+    DERIVEDPARAMETERS: tuple[type[parametertools.Parameter], ...] = ()
+    FIXEDPARAMETERS: tuple[type[parametertools.Parameter], ...] = ()
+    SOLVERPARAMETERS: tuple[type[parametertools.Parameter], ...] = ()
+    REQUIREDSEQUENCES: tuple[type[sequencetools.Sequence_], ...] = ()
+    UPDATEDSEQUENCES: tuple[type[sequencetools.Sequence_], ...] = ()
+    RESULTSEQUENCES: tuple[type[sequencetools.Sequence_], ...] = ()
 
     __call__: Callable
     __name__: str
@@ -85,7 +85,35 @@ class AutoMethod(Method):
             method.__call__(model)
 
 
-abstractmodelmethods: Set[Callable[..., Any]] = set()
+class ReusableMethod(Method):
+    """Base class for defining methods that need not or must not be called multiple
+    times for the same simulation step.
+
+    |ReusableMethod| helps to implement "sharable" submodels, of which single instances
+    can be used by multiple main model instances.  See |SharableSubmodelInterface| for
+    further information.
+    """
+
+    REUSEMARKER: str
+    """Name of an additional model attribute for marking if the respective method has 
+    already been called and should not be called again for the same simulation step and 
+    its results can be reused."""
+
+    def __init_subclass__(cls) -> None:
+        super().__init_subclass__()
+        cls.REUSEMARKER = f"__hydpy_reuse_{cls.__name__.lower()}__"
+
+    @classmethod
+    def call_reusablemethod(cls, model: Model, *args, **kwargs) -> None:
+        """Execute the "normal" model-specific `__call__` method only when indicated by
+        the |ReusableMethod.REUSEMARKER| attribute and update this attribute when
+        necessary."""
+        if not getattr(model, cls.REUSEMARKER):
+            cls.__call__(model, *args, **kwargs)
+            setattr(model, cls.REUSEMARKER, True)
+
+
+abstractmodelmethods: set[Callable[..., Any]] = set()
 
 
 def abstractmodelmethod(method: Callable[P, T]) -> Callable[P, T]:
@@ -105,7 +133,7 @@ def abstractmodelmethod(method: Callable[P, T]) -> Callable[P, T]:
 
 
 class _SubmodelPropertyBase(Generic[TypeSubmodelInterface]):
-    interfaces: Tuple[Type[TypeSubmodelInterface], ...]
+    interfaces: tuple[type[TypeSubmodelInterface], ...]
 
     _CYTHON_PYTHON_SUBMODEL_ERROR_MESSAGE: Final = (
         "The main model is initialised in Cython mode, but the submodel is "
@@ -125,7 +153,7 @@ class _SubmodelPropertyBase(Generic[TypeSubmodelInterface]):
 
     def _find_first_suitable_interface(
         self, submodel: TypeSubmodelInterface
-    ) -> Type[SubmodelInterface]:
+    ) -> type[SubmodelInterface]:
         for interface in self.interfaces:
             if isinstance(submodel, interface):
                 return interface
@@ -221,7 +249,7 @@ instance of any of the following supported interfaces: SoilModel_V1.
 
     name: str
     """The addressed submodels' group name."""
-    interfaces: Tuple[Type[TypeSubmodelInterface], ...]
+    interfaces: tuple[type[TypeSubmodelInterface], ...]
     """The supported interfaces."""
     optional: Final[bool]
     """Flag indicating whether a submodel is optional or strictly required."""
@@ -231,12 +259,12 @@ instance of any of the following supported interfaces: SoilModel_V1.
     "real" submodels of a third model but need direct references."""
 
     __hydpy_modeltype2instance__: ClassVar[
-        DefaultDict[Type[Model], List[SubmodelProperty[Any]]]
+        collections.defaultdict[type[Model], list[SubmodelProperty[Any]]]
     ] = collections.defaultdict(lambda: [])
 
     def __init__(
         self,
-        *interfaces: Type[TypeSubmodelInterface],
+        *interfaces: type[TypeSubmodelInterface],
         optional: bool = False,
         sidemodel: bool = False,
     ) -> None:
@@ -255,22 +283,20 @@ instance of any of the following supported interfaces: SoilModel_V1.
             f"{objecttools.enumeration(interfacenames, conjunction='or')}."
         )
 
-    def __set_name__(self, owner: Type[Model], name: str) -> None:
+    def __set_name__(self, owner: type[Model], name: str) -> None:
         self.name = name
         self.__hydpy_modeltype2instance__[owner].append(self)
 
     @overload
-    def __get__(self, obj: None, objtype: Optional[Type[Model]]) -> Self:
-        ...
+    def __get__(self, obj: None, objtype: Optional[type[Model]]) -> Self: ...
 
     @overload
     def __get__(
-        self, obj: Model, objtype: Optional[Type[Model]]
-    ) -> Optional[TypeSubmodelInterface]:
-        ...
+        self, obj: Model, objtype: Optional[type[Model]]
+    ) -> Optional[TypeSubmodelInterface]: ...
 
     def __get__(
-        self, obj: Optional[Model], objtype: Optional[Type[Model]] = None
+        self, obj: Optional[Model], objtype: Optional[type[Model]] = None
     ) -> Union[Self, Optional[TypeSubmodelInterface]]:
         if obj is None:
             return self
@@ -328,7 +354,7 @@ class SubmodelsProperty(_SubmodelPropertyBase[TypeSubmodelInterface]):
 
     name: str
     """The addressed submodels' group name."""
-    interfaces: Tuple[Type[TypeSubmodelInterface], ...]
+    interfaces: tuple[type[TypeSubmodelInterface], ...]
     """The supported interfaces."""
     sidemodels: bool
     """Flag indicating whether the handled submodel is more a "side model" than a 
@@ -336,22 +362,22 @@ class SubmodelsProperty(_SubmodelPropertyBase[TypeSubmodelInterface]):
     "real" submodels of a third model but need direct references."""
 
     __hydpy_modeltype2instance__: ClassVar[
-        DefaultDict[Type[Model], List[SubmodelsProperty[Any]]]
+        collections.defaultdict[type[Model], list[SubmodelsProperty[Any]]]
     ] = collections.defaultdict(lambda: [])
-    __hydpy_mainmodel2submodels__: DefaultDict[
-        Model, List[Optional[TypeSubmodelInterface]]
+    __hydpy_mainmodel2submodels__: collections.defaultdict[
+        Model, list[Optional[TypeSubmodelInterface]]
     ]
 
     _mainmodel: Optional[Model]
-    _mainmodel2numbersubmodels: DefaultDict[Model, int]
-    _mainmodel2submodeltypeids: DefaultDict[Model, List[int]]
+    _mainmodel2numbersubmodels: collections.defaultdict[Model, int]
+    _mainmodel2submodeltypeids: collections.defaultdict[Model, list[int]]
 
-    def __set_name__(self, owner: Type[Model], name: str) -> None:
+    def __set_name__(self, owner: type[Model], name: str) -> None:
         self.name = name
         self.__hydpy_modeltype2instance__[owner].append(self)
 
     def __init__(
-        self, *interfaces: Type[TypeSubmodelInterface], sidemodels: bool = False
+        self, *interfaces: type[TypeSubmodelInterface], sidemodels: bool = False
     ) -> None:
         self.interfaces = tuple(interfaces)
         self.sidemodels = sidemodels
@@ -366,7 +392,7 @@ class SubmodelsProperty(_SubmodelPropertyBase[TypeSubmodelInterface]):
         )
 
     def __get__(
-        self, obj: Optional[Model], objtype: Optional[Type[Model]] = None
+        self, obj: Optional[Model], objtype: Optional[type[Model]] = None
     ) -> Self:
         if obj is None:
             return self
@@ -746,7 +772,7 @@ interfaces: RoutingModel_V1 and RoutingModel_V2.
             )
 
     @property
-    def submodels(self) -> Tuple[Optional[TypeSubmodelInterface], ...]:
+    def submodels(self) -> tuple[Optional[TypeSubmodelInterface], ...]:
         """The currently handled submodels.
 
         >>> from hydpy import prepare_model
@@ -761,7 +787,7 @@ interfaces: RoutingModel_V1 and RoutingModel_V2.
         return tuple(self.__hydpy_mainmodel2submodels__[mainmodel])
 
     @property
-    def typeids(self) -> Tuple[int, ...]:
+    def typeids(self) -> tuple[int, ...]:
         """The interface-specific type IDs of the currently handled submodels.
 
         >>> from hydpy import prepare_model
@@ -781,8 +807,7 @@ interfaces: RoutingModel_V1 and RoutingModel_V2.
 
     def __iter__(self) -> Iterator[Optional[TypeSubmodelInterface]]:
         assert (mainmodel := self._mainmodel) is not None
-        for submodel in self.__hydpy_mainmodel2submodels__[mainmodel]:
-            yield submodel
+        yield from self.__hydpy_mainmodel2submodels__[mainmodel]
 
     def __len__(self) -> int:
         return self.number
@@ -811,26 +836,24 @@ class SubmodelIsMainmodelProperty:
     1
     """
 
-    _owner2value: Dict[Model, bool]
+    _owner2value: dict[Model, bool]
     _name: Final[str]  # type: ignore[misc]
 
     def __init__(self, doc: Optional[str] = None) -> None:
         self._owner2value = {}
         self.__doc__ = doc
 
-    def __set_name__(self, owner: Type[Model], name: str) -> None:
+    def __set_name__(self, owner: type[Model], name: str) -> None:
         self._name = name  # type: ignore[misc]
 
     @overload
-    def __get__(self, obj: None, objtype: Optional[Type[Model]]) -> Self:
-        ...
+    def __get__(self, obj: None, objtype: Optional[type[Model]]) -> Self: ...
 
     @overload
-    def __get__(self, obj: Model, objtype: Optional[Type[Model]]) -> bool:
-        ...
+    def __get__(self, obj: Model, objtype: Optional[type[Model]]) -> bool: ...
 
     def __get__(
-        self, obj: Optional[Model], objtype: Optional[Type[Model]] = None
+        self, obj: Optional[Model], objtype: Optional[type[Model]] = None
     ) -> Union[Self, bool]:
         if obj is None:
             return self
@@ -865,26 +888,24 @@ class SubmodelTypeIDProperty:
     1
     """
 
-    _owner2value: Dict[Model, int]
+    _owner2value: dict[Model, int]
     _name: Final[str]  # type: ignore[misc]
 
     def __init__(self, doc: Optional[str] = None) -> None:
         self._owner2value = {}
         self.__doc__ = doc
 
-    def __set_name__(self, owner: Type[Model], name: str) -> None:
+    def __set_name__(self, owner: type[Model], name: str) -> None:
         self._name = name  # type: ignore[misc]
 
     @overload
-    def __get__(self, obj: None, objtype: Optional[Type[Model]]) -> Self:
-        ...
+    def __get__(self, obj: None, objtype: Optional[type[Model]]) -> Self: ...
 
     @overload
-    def __get__(self, obj: Model, objtype: Optional[Type[Model]]) -> int:
-        ...
+    def __get__(self, obj: Model, objtype: Optional[type[Model]]) -> int: ...
 
     def __get__(
-        self, obj: Optional[Model], objtype: Optional[Type[Model]] = None
+        self, obj: Optional[Model], objtype: Optional[type[Model]] = None
     ) -> Union[Self, int]:
         if obj is None:
             return self
@@ -905,14 +926,12 @@ class IndexProperty:
         self.name = name.lower()
 
     @overload
-    def __get__(self, obj: Model, objtype: Type[Model]) -> int:
-        ...
+    def __get__(self, obj: Model, objtype: type[Model]) -> int: ...
 
     @overload
-    def __get__(self, obj: None, objtype: Type[Model]) -> Self:
-        ...
+    def __get__(self, obj: None, objtype: type[Model]) -> Self: ...
 
-    def __get__(self, obj: Optional[Model], objtype: Type[Model]) -> Union[Self, int]:
+    def __get__(self, obj: Optional[Model], objtype: type[Model]) -> Union[Self, int]:
         if obj is None:
             return self
         if obj.cymodel:
@@ -1042,16 +1061,18 @@ class Model:
     __hydpy_element__: Optional[devicetools.Element]
     _NAME: ClassVar[str]
 
-    INLET_METHODS: ClassVar[Tuple[Type[Method], ...]]
-    OUTLET_METHODS: ClassVar[Tuple[Type[Method], ...]]
-    RECEIVER_METHODS: ClassVar[Tuple[Type[Method], ...]]
-    SENDER_METHODS: ClassVar[Tuple[Type[Method], ...]]
-    ADD_METHODS: ClassVar[Tuple[Callable, ...]]
-    METHOD_GROUPS: ClassVar[Tuple[str, ...]]
-    SUBMODELINTERFACES: ClassVar[Tuple[Type[SubmodelInterface], ...]]
-    SUBMODELS: ClassVar[Tuple[Type[Submodel], ...]]
+    INLET_METHODS: ClassVar[tuple[type[Method], ...]]
+    OUTLET_METHODS: ClassVar[tuple[type[Method], ...]]
+    RECEIVER_METHODS: ClassVar[tuple[type[Method], ...]]
+    SENDER_METHODS: ClassVar[tuple[type[Method], ...]]
+    ADD_METHODS: ClassVar[tuple[Callable, ...]]
+    METHOD_GROUPS: ClassVar[tuple[str, ...]]
+    SUBMODELINTERFACES: ClassVar[tuple[type[SubmodelInterface], ...]]
+    SUBMODELS: ClassVar[tuple[type[Submodel], ...]]
 
-    SOLVERPARAMETERS: Tuple[Type[parametertools.Parameter], ...] = ()
+    SOLVERPARAMETERS: tuple[type[parametertools.Parameter], ...] = ()
+
+    REUSABLE_METHODS: ClassVar[tuple[type[ReusableMethod], ...]]
 
     COMPOSITE: bool = False
     """Flag for informing whether the respective |Model| subclass is usually not 
@@ -1067,11 +1088,15 @@ class Model:
     def _init_methods(self) -> None:
         """Convert all pure Python calculation functions of the model class to methods
         and assign them to the model instance."""
-        blacklist_shortnames: Set[str] = set()
-        shortname2method: Dict[str, types.MethodType] = {}
+        blacklist_shortnames: set[str] = set()
+        shortname2method: dict[str, types.MethodType] = {}
         for cls_ in self.get_methods():
             longname = cls_.__name__.lower()
-            method = types.MethodType(cls_.__call__, self)
+            if issubclass(cls_, ReusableMethod):
+                setattr(self, cls_.REUSEMARKER, False)
+                method = types.MethodType(cls_.call_reusablemethod, self)
+            else:
+                method = types.MethodType(cls_.__call__, self)
             setattr(self, longname, method)
             shortname = longname.rpartition("_")[0]
             if shortname in blacklist_shortnames:
@@ -1766,8 +1791,8 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         simulationstep: Optional[timetools.PeriodConstrArg] = None,
         auxfiler: Optional[auxfiletools.Auxfiler] = None,
         sublevel: int = 0,
-        ignore: Optional[Tuple[Type[parametertools.Parameter], ...]] = None,
-    ) -> List[str]:
+        ignore: Optional[tuple[type[parametertools.Parameter], ...]] = None,
+    ) -> list[str]:
         parameter2auxfile = None if auxfiler is None else auxfiler.get(self)
         lines = []
         opts = hydpy.pub.options
@@ -1869,13 +1894,70 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
 filename must be known.  This can be done, by passing a filename to function \
 `save_controls` directly.  But in complete HydPy applications, it is usally assumed \
 to be consistent with the name of the element handling the model.
+
+        Submodels like |meteo_v001| allow using their instances by multiple main
+        models.  We prepare such a case by selecting such an instance as the submodel
+        of the absolute main model |lland_v3| and the the relative submodel
+        |evap_morsim|:
+
+        >>> from hydpy.core.importtools import reverse_model_wildcard_import
+        >>> reverse_model_wildcard_import()
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2001-01-02", "1d"
+        >>> from hydpy.models.lland_v3 import *
+        >>> parameterstep()
+        >>> nhru(1)
+        >>> ft(1.0)
+        >>> fhru(1.0)
+        >>> lnk(ACKER)
+        >>> measuringheightwindspeed(10.0)
+        >>> lai(3.0)
+        >>> wmax(300.0)
+        >>> with model.add_radiationmodel_v1("meteo_v001") as meteo_v001:
+        ...     latitude(50.0)
+        >>> with model.add_aetmodel_v1("evap_morsim"):
+        ...     measuringheightwindspeed(2.0)
+        ...     model.add_radiationmodel_v1(meteo_v001)
+
+        To avoid name collisions, |Model.save_controls| prefixes the string `submodel_`
+        to the submodel name (which is identical to the submodel module's name) to
+        create the name of the variable that references the shared model's instance:
+
+        >>> with Open():  # doctest: +ELLIPSIS
+        ...     model.save_controls(filepath="otherdir/otherfile.py")
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        otherdir/otherfile.py
+        --------------------------------------------------------------------------------
+        # -*- coding: utf-8 -*-
+        ...
+        from hydpy.models.lland_v3 import *
+        from hydpy.models import evap_morsim
+        from hydpy.models import meteo_v001
+        ...
+        simulationstep("1d")
+        parameterstep("1d")
+        ...
+        ft(1.0)
+        ...
+        measuringheightwindspeed(10.0)
+        ...
+        with model.add_aetmodel_v1(evap_morsim):
+            measuringheightwindspeed(2.0)
+            ...
+            with model.add_radiationmodel_v1(meteo_v001) as submodel_meteo_v001:
+                latitude(50.0)
+                ...
+        model.add_radiationmodel_v1(submodel_meteo_v001)
+        ...
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         """
 
         def _extend_lines_submodel(
-            model: Model, sublevel: int, general_methods: Set[str]
+            model: Model, sublevel: int, preparemethods: set[str]
         ) -> None:
             def _find_adder_and_position() -> (
-                Tuple[importtools.SubmodelAdder, Optional[str]]
+                tuple[importtools.SubmodelAdder, Optional[str]]
             ):
                 mt2sn2as = importtools.SubmodelAdder.__hydpy_maintype2subname2adders__
                 subname, position = name.rpartition(".")[2], None
@@ -1890,41 +1972,66 @@ to be consistent with the name of the element handling the model.
 
             sublevel += 1
             for name, submodel in model.find_submodels(
-                include_subsubmodels=False
+                include_subsubmodels=False, repeat_sharedmodels=True
             ).items():
                 adder, position = _find_adder_and_position()
+                importtools.TargetParameterUpdater.testmode = True
+                try:
+                    if position is None:
+                        adder.update(model, submodel, refresh=False)
+                    else:
+                        adder.update(
+                            model, submodel, position=int(position), refresh=False
+                        )
+                finally:
+                    importtools.TargetParameterUpdater.testmode = False
                 position = "" if position is None else f", position={position}"
-                lines.append(
-                    f"{(sublevel - 1) * '    '}with "
-                    f"model.{adder.get_wrapped().__name__}({submodel}{position}):\n"
-                )
-                all_methods: Set[str] = general_methods.copy()
-                for method in adder.methods:
-                    methodname = method.__name__
-                    all_methods.add(methodname)
-                    if methodname in SubmodelInterface.GENERAL_METHODS:
-                        general_methods.add(methodname)
-                targetparameters = set()
-                for methodname in all_methods:
-                    updater = getattr(submodel, methodname)
-                    if isinstance(updater, importtools.TargetParameterUpdater):
-                        targetparameters.add(updater.targetparameter)
-                submodellines = (
-                    submodel._get_controllines(  # pylint: disable=protected-access
-                        parameterstep=parameterstep,
-                        simulationstep=simulationstep,
-                        auxfiler=auxfiler,
-                        sublevel=sublevel,
-                        ignore=tuple(targetparameters),
+                addername = adder.get_wrapped().__name__
+                indent = (sublevel - 1) * "    "
+                if submodel in visited_shared_submodels:
+                    lines.append(
+                        f"{indent}model.{addername}(submodel_{submodel}{position})\n"
                     )
-                )
-                if submodellines:
-                    lines.extend(submodellines)
                 else:
-                    lines.append(f"{sublevel * '    '}pass\n")  # pragma: no cover
-                _extend_lines_submodel(
-                    model=submodel, sublevel=sublevel, general_methods=general_methods
-                )
+                    line = f"{indent}with model.{addername}({submodel}{position})"
+                    if submodel in shared_submodels:
+                        assert isinstance(submodel, SharableSubmodelInterface)
+                        visited_shared_submodels.add(submodel)
+                        line = f"{line} as submodel_{submodel}:\n"
+                    else:
+                        line = f"{line}:\n"
+                    lines.append(line)
+                    preparemethods_ = preparemethods.copy()
+                    for method in adder.methods:
+                        preparemethods_.add(method.__name__)
+                    targetparameters = set()
+                    for methodname in preparemethods_:
+                        updater = getattr(submodel, methodname, None)
+                        if (
+                            isinstance(updater, importtools.TargetParameterUpdater)
+                            and ((old := updater.values_orig.get(submodel)) is not None)
+                            and ((new := updater.values_test.get(submodel)) is not None)
+                            and objecttools.is_equal(old, new)
+                        ):
+                            targetparameters.add(updater.targetparameter)
+                    submodellines = (
+                        submodel._get_controllines(  # pylint: disable=protected-access
+                            parameterstep=parameterstep,
+                            simulationstep=simulationstep,
+                            auxfiler=auxfiler,
+                            sublevel=sublevel,
+                            ignore=tuple(targetparameters),
+                        )
+                    )
+                    if submodellines:
+                        lines.extend(submodellines)
+                    else:
+                        lines.append(f"{sublevel * '    '}pass\n")  # pragma: no cover
+                    _extend_lines_submodel(
+                        model=submodel,
+                        sublevel=sublevel,
+                        preparemethods=preparemethods_,
+                    )
 
         header = self.get_controlfileheader(
             import_submodels=True,
@@ -1940,8 +2047,25 @@ to be consistent with the name of the element handling the model.
                 sublevel=0,
             )
         )
-        _extend_lines_submodel(model=self, sublevel=0, general_methods=set())
+
+        submodels = tuple(self.find_submodels(repeat_sharedmodels=True).values())
+        sharable_submodels = set(
+            m for m in submodels if isinstance(m, SharableSubmodelInterface)
+        )
+        shared_submodels = set(m for m in sharable_submodels if submodels.count(m) > 1)
+        visited_shared_submodels: set[SharableSubmodelInterface] = set()
+
+        # ToDo: needs refactoring
+        for submodel in self.find_submodels().values():
+            submodel.preparemethod2arguments.clear()
+        try:
+            _extend_lines_submodel(model=self, sublevel=0, preparemethods=set())
+        finally:
+            for submodel in self.find_submodels().values():
+                submodel.preparemethod2arguments.clear()
+
         text = "".join(lines)
+
         if filepath:
             with open(filepath, mode="w", encoding="utf-8") as controlfile:
                 controlfile.write(text)
@@ -1978,6 +2102,7 @@ to be consistent with the name of the element handling the model.
         >>> fhru(0.2, 0.8)
         >>> lnk(ACKER, MISCHW)
         >>> wmax(acker=100.0, mischw=200.0)
+        >>> measuringheightwindspeed(10.0)
         >>> with model.add_aetmodel_v1("evap_morsim"):
         ...     pass
         >>> with model.aetmodel.define_conditions():
@@ -2218,7 +2343,7 @@ element.
                 lines.append(
                     f'\ncontrolcheck(projectdir=r"{con.projectdir}", '
                     f'controldir="{con.currentdir}", '
-                    f'stepsize="{hydpy.pub.timegrids.stepsize}")\n\n',
+                    f'stepsize="{hydpy.pub.timegrids.stepsize}")\n\n'
                 )
                 for seq in self.sequences.conditionsequences:
                     lines.append(f"{repr(seq)}\n")
@@ -2245,6 +2370,18 @@ element.
     @abc.abstractmethod
     def simulate(self, idx: int) -> None:
         """Perform a simulation run over a single simulation time step."""
+
+    def reset_reuseflags(self) -> None:
+        """Reset all |ReusableMethod.REUSEMARKER| attributes of the current model
+        instance and its submodels (usually at the beginning of a simulation step).
+
+        When working in Cython mode, the standard model import overrides this generic
+        Python version with a model-specific Cython version.
+        """
+        for method in self.REUSABLE_METHODS:
+            setattr(self, method.REUSEMARKER, False)
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            submodel.reset_reuseflags()
 
     def load_data(self, idx: int) -> None:
         """Call method |Sequences.load_data| of the attribute `sequences` of the
@@ -2393,7 +2530,7 @@ element.
         self.sequences.update_outputs()
 
     @classmethod
-    def get_methods(cls, skip: Tuple[MethodGroup, ...] = ()) -> Iterator[Type[Method]]:
+    def get_methods(cls, skip: tuple[MethodGroup, ...] = ()) -> Iterator[type[Method]]:
         """Convenience method for iterating through all methods selected by a |Model|
         subclass.
 
@@ -2456,9 +2593,9 @@ element.
         include_optional: Literal[False] = ...,
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
+        repeat_sharedmodels: bool = False,
         position: Optional[Literal[0, -1]] = None,
-    ) -> Dict[str, Model]:
-        ...
+    ) -> dict[str, Model]: ...
 
     @overload
     def find_submodels(
@@ -2470,9 +2607,9 @@ element.
         include_optional: Literal[True],
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
+        repeat_sharedmodels: bool = False,
         position: Optional[Literal[0, -1]] = None,
-    ) -> Dict[str, Optional[Model]]:
-        ...
+    ) -> dict[str, Optional[Model]]: ...
 
     @overload
     def find_submodels(
@@ -2484,8 +2621,8 @@ element.
         include_optional: Literal[False] = ...,
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[True],
-    ) -> Dict[str, Optional[Model]]:
-        ...
+        repeat_sharedmodels: bool = False,
+    ) -> dict[str, Optional[Model]]: ...
 
     @overload
     def find_submodels(
@@ -2497,8 +2634,8 @@ element.
         include_optional: Literal[True],
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[True],
-    ) -> Dict[str, Optional[Model]]:
-        ...
+        repeat_sharedmodels: bool = False,
+    ) -> dict[str, Optional[Model]]: ...
 
     @overload
     def find_submodels(
@@ -2510,9 +2647,9 @@ element.
         include_optional: Literal[False] = ...,
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
+        repeat_sharedmodels: bool = False,
         position: Optional[Literal[0, -1]] = None,
-    ) -> Dict[str, Model]:
-        ...
+    ) -> dict[str, Model]: ...
 
     @overload
     def find_submodels(
@@ -2524,9 +2661,9 @@ element.
         include_optional: Literal[True],
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
+        repeat_sharedmodels: bool = False,
         position: Optional[Literal[0, -1]] = None,
-    ) -> Dict[str, Optional[Model]]:
-        ...
+    ) -> dict[str, Optional[Model]]: ...
 
     @overload
     def find_submodels(
@@ -2538,8 +2675,8 @@ element.
         include_optional: Literal[False] = ...,
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[True],
-    ) -> Dict[str, Optional[Model]]:
-        ...
+        repeat_sharedmodels: bool = False,
+    ) -> dict[str, Optional[Model]]: ...
 
     @overload
     def find_submodels(
@@ -2551,8 +2688,8 @@ element.
         include_optional: Literal[True],
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[True],
-    ) -> Dict[str, Optional[Model]]:
-        ...
+        repeat_sharedmodels: bool = False,
+    ) -> dict[str, Optional[Model]]: ...
 
     def find_submodels(
         self,
@@ -2563,28 +2700,29 @@ element.
         include_optional: bool = False,
         include_feedbacks: bool = False,
         aggregate_vectors: bool = False,
+        repeat_sharedmodels: bool = False,
         position: Optional[Literal[0, -1]] = None,
-    ) -> Union[Dict[str, Model], Dict[str, Optional[Model]]]:
+    ) -> Union[dict[str, Model], dict[str, Optional[Model]]]:
         """Find the (sub)submodel instances of the current main model instance.
 
         Method |Model.find_submodels| returns by default an empty dictionary if no
         submodel is available:
 
         >>> from hydpy import prepare_model
-        >>> model = prepare_model("lland_v1")
+        >>> model = prepare_model("lland_v3")
         >>> model.find_submodels()
         {}
 
         The `include_mainmodel` parameter allows the addition of the main model:
 
         >>> model.find_submodels(include_mainmodel=True)  # doctest: +ELLIPSIS
-        {'model': <hydpy.models.lland_v1.Model ...>}
+        {'model': <hydpy.models.lland_v3.Model ...>}
 
         The `include_optional` parameter allows considering prepared and unprepared
         submodels:
 
         >>> model.find_submodels(include_optional=True)
-        {'model.aetmodel': None, 'model.soilmodel': None}
+        {'model.aetmodel': None, 'model.radiationmodel': None, 'model.soilmodel': None}
         >>> model.aetmodel = prepare_model("evap_minhas")
         >>> model.aetmodel.petmodel = prepare_model("evap_mlc")
         >>> model.aetmodel.petmodel.retmodel = prepare_model("evap_tw2002")
@@ -2594,8 +2732,10 @@ element.
          'model.aetmodel.intercmodel': None,
          'model.aetmodel.petmodel': <hydpy.models.evap_mlc.Model ...>,
          'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_tw2002.Model ...>,
+         'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
          'model.aetmodel.soilwatermodel': None,
+         'model.radiationmodel': None,
          'model.soilmodel': None}
 
         By default, |Model.find_submodels| does not return an additional entry when a
@@ -2608,7 +2748,9 @@ element.
          'model.aetmodel.intercmodel': None,
          'model.aetmodel.petmodel': <hydpy.models.evap_mlc.Model ...>,
          'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_tw2002.Model ...>,
+         'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
+         'model.radiationmodel': None,
          'model.soilmodel': None}
 
         Use the `include_feedbacks` parameter to make such feedback connections
@@ -2616,13 +2758,47 @@ element.
 
         >>> pprint(model.find_submodels(include_mainmodel=True,
         ...     include_optional=True, include_feedbacks=True))  # doctest: +ELLIPSIS
-        {'model': <hydpy.models.lland_v1.Model ...>,
+        {'model': <hydpy.models.lland_v3.Model ...>,
          'model.aetmodel': <hydpy.models.evap_minhas.Model ...>,
          'model.aetmodel.intercmodel': None,
          'model.aetmodel.petmodel': <hydpy.models.evap_mlc.Model ...>,
          'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_tw2002.Model ...>,
+         'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
-         'model.aetmodel.soilwatermodel': <hydpy.models.lland_v1.Model object ...>,
+         'model.aetmodel.soilwatermodel': <hydpy.models.lland_v3.Model object ...>,
+         'model.radiationmodel': None,
+         'model.soilmodel': None}
+
+        |Model.find_submodels| includes only one reference to shared model instances by
+        default:
+
+        >>> model.radiationmodel = prepare_model("meteo_v001")
+        >>> model.aetmodel = prepare_model("evap_morsim")
+        >>> model.aetmodel.radiationmodel = model.radiationmodel
+        >>> pprint(model.find_submodels(include_optional=True))  # doctest: +ELLIPSIS
+        {'model.aetmodel': <hydpy.models.evap_morsim.Model ...>,
+         'model.aetmodel.intercmodel': None,
+         'model.aetmodel.snowalbedomodel': None,
+         'model.aetmodel.snowcovermodel': None,
+         'model.aetmodel.snowycanopymodel': None,
+         'model.aetmodel.soilwatermodel': None,
+         'model.aetmodel.tempmodel': None,
+         'model.radiationmodel': <hydpy.models.meteo_v001.Model ...>,
+         'model.soilmodel': None}
+
+        Use the `repeat_sharedmodels` parameter to change this behaviour:
+
+        >>> pprint(model.find_submodels(
+        ...     repeat_sharedmodels=True, include_optional=True))  # doctest: +ELLIPSIS
+        {'model.aetmodel': <hydpy.models.evap_morsim.Model ...>,
+         'model.aetmodel.intercmodel': None,
+         'model.aetmodel.radiationmodel': <hydpy.models.meteo_v001.Model ...>,
+         'model.aetmodel.snowalbedomodel': None,
+         'model.aetmodel.snowcovermodel': None,
+         'model.aetmodel.snowycanopymodel': None,
+         'model.aetmodel.soilwatermodel': None,
+         'model.aetmodel.tempmodel': None,
+         'model.radiationmodel': <hydpy.models.meteo_v001.Model object at ...>,
          'model.soilmodel': None}
 
         All previous examples dealt with scalar submodel references handled by
@@ -2735,13 +2911,18 @@ but the value `1` of type `int` is given.
         def _find_submodels(name: str, model: Model) -> None:
             name2submodel_new = {}
 
+            if isinstance(model, SharableSubmodelInterface):
+                sharables.add(model)
+
             for subprop in SubmodelProperty.__hydpy_modeltype2instance__[type(model)]:
                 sub_is_main = getattr(model, f"{subprop.name}_is_mainmodel")
                 if (include_sidemodels or not subprop.sidemodel) and (
                     include_feedbacks or not sub_is_main
                 ):
                     submodel = getattr(model, subprop.name)
-                    if include_optional or (submodel is not None):
+                    if (include_optional or (submodel is not None)) and (
+                        repeat_sharedmodels or (submodel not in sharables)
+                    ):
                         name2submodel_new[f"{name}.{subprop.name}"] = submodel
 
             for subsprop in SubmodelsProperty.__hydpy_modeltype2instance__[type(model)]:
@@ -2754,6 +2935,8 @@ but the value `1` of type `int` is given.
                             i_last = len(submodels) - 1
                             submodels = [submodels[position]]
                         for i, submodel in enumerate(submodels):
+                            # implement when required:
+                            assert not isinstance(submodel, SharableSubmodelInterface)
                             if include_optional or (submodel is not None):
                                 j = i_last if position == -1 else i
                                 name2submodel_new[f"{submodelsname}_{j}"] = submodel
@@ -2765,12 +2948,13 @@ but the value `1` of type `int` is given.
                         seen.add(submodel)
                         _find_submodels(subname, submodel)
 
-        seen: Set[Model] = set([self])
+        seen: set[Model] = set([self])
+        sharables: set[SharableSubmodelInterface] = set()
         name2submodel = {"model": self} if include_mainmodel else {}
         _find_submodels("model", self)
         return dict(sorted(name2submodel.items()))
 
-    def update_parameters(self) -> None:
+    def update_parameters(self, ignore_errors: bool = False) -> None:
         """Use the control parameter values of the current model for updating its
         derived parameters and the control and derived parameters of all its submodels.
 
@@ -2842,7 +3026,7 @@ but the value `1` of type `int` is given.
         >>> model.aetmodel.petmodel.parameters.derived.altitude
         altitude(400.0)
         """
-        self.parameters.update()
+        self.parameters.update(ignore_errors=ignore_errors)
         for name, submodel in self.find_submodels(include_subsubmodels=False).items():
             if isinstance(submodel, SubmodelInterface):
                 adder = submodel._submodeladder  # pylint: disable=protected-access
@@ -2854,7 +3038,7 @@ but the value `1` of type `int` is given.
                         adder.update(self, submodel, position=position, refresh=True)
                     else:
                         assert_never(adder.dimensionality)
-                    submodel.update_parameters()
+                    submodel.update_parameters(ignore_errors=ignore_errors)
 
     @property
     def conditions(self) -> ConditionsModel:
@@ -2906,7 +3090,7 @@ but the value `1` of type `int` is given.
 
         allsequences = set()
         st = sequencetools
-        infos: Tuple[Tuple[Type[Any], Type[Any], Set[Any]], ...] = (
+        infos: tuple[tuple[type[Any], type[Any], set[Any]], ...] = (
             (st.InletSequences, st.InletSequence, set()),
             (st.ReceiverSequences, st.ReceiverSequence, set()),
             (st.InputSequences, st.InputSequence, set()),
@@ -2992,13 +3176,17 @@ but the value `1` of type `int` is given.
                 },
             )
 
+        cls.REUSABLE_METHODS = tuple(
+            method for method in cls.get_methods() if issubclass(method, ReusableMethod)
+        )
+
 
 class RunModel(Model):
     """Base class for |AdHocModel| and |SegmentModel| that introduces so-called "run
     methods", which need to be executed in the order of their positions in the
     |RunModel.RUN_METHODS| tuple."""
 
-    RUN_METHODS: ClassVar[Tuple[Type[Method], ...]]
+    RUN_METHODS: ClassVar[tuple[type[Method], ...]]
     METHOD_GROUPS = (
         "RECEIVER_METHODS",
         "INLET_METHODS",
@@ -3060,6 +3248,7 @@ class RunModel(Model):
             >>> Node.clear_all()
             >>> Element.clear_all()
         """
+        self.reset_reuseflags()
         self.load_data(idx)
         self.update_inlets()
         self.run()
@@ -3198,8 +3387,8 @@ class SolverModel(Model):
     """Base class for hydrological models, which solve ordinary differential equations
     with numerical integration algorithms."""
 
-    PART_ODE_METHODS: ClassVar[Tuple[Type[Method], ...]]
-    FULL_ODE_METHODS: ClassVar[Tuple[Type[Method], ...]]
+    PART_ODE_METHODS: ClassVar[tuple[type[Method], ...]]
+    FULL_ODE_METHODS: ClassVar[tuple[type[Method], ...]]
 
     @abc.abstractmethod
     def solve(self) -> None:
@@ -3326,9 +3515,9 @@ class ELSModel(SolverModel):
     simulation times.
     """
 
-    SOLVERSEQUENCES: ClassVar[Tuple[Type[sequencetools.DependentSequence], ...]]
-    PART_ODE_METHODS: ClassVar[Tuple[Type[Method], ...]]
-    FULL_ODE_METHODS: ClassVar[Tuple[Type[Method], ...]]
+    SOLVERSEQUENCES: ClassVar[tuple[type[sequencetools.DependentSequence], ...]]
+    PART_ODE_METHODS: ClassVar[tuple[type[Method], ...]]
+    FULL_ODE_METHODS: ClassVar[tuple[type[Method], ...]]
     METHOD_GROUPS = (
         "RECEIVER_METHODS",
         "INLET_METHODS",
@@ -3353,6 +3542,7 @@ class ELSModel(SolverModel):
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
+        self.reset_reuseflags()
         self.load_data(idx)
         self.update_inlets()
         self.solve()
@@ -4319,29 +4509,12 @@ class ELSModel(SolverModel):
                 self.numvars.extrapolated_relerror = modelutils.inf
 
 
-class PredefinedMethod2Argument(TypedDict, total=False):
-    """Dictionary for passing arguments from main models to sub-submodels if the
-    submodel does not override the related "general" interface methods for transfering
-    parameter values from main models to submodels."""
-
-    prepare_nmbzones: int
-    prepare_zonetypes: VectorInputInt
-    prepare_subareas: VectorInputFloat
-    prepare_elevations: VectorInputFloat
-
-
 class SubmodelInterface(Model, abc.ABC):
     """Base class for defining interfaces for submodels."""
 
-    INTERFACE_METHODS: ClassVar[Tuple[Type[Method], ...]]
-    GENERAL_METHODS: Tuple[str, ...] = (
-        "prepare_nmbzones",
-        "prepare_zonetypes",
-        "prepare_subareas",
-        "prepare_elevations",
-    )
+    INTERFACE_METHODS: ClassVar[tuple[type[Method], ...]]
     _submodeladder: Optional[importtools.SubmodelAdder]
-    predefinedmethod2argument: PredefinedMethod2Argument
+    preparemethod2arguments: dict[str, tuple[tuple[Any, ...], dict[str, Any]]]
 
     typeid: ClassVar[int]
     """Type identifier that we use for differentiating submodels that target the same 
@@ -4356,7 +4529,7 @@ class SubmodelInterface(Model, abc.ABC):
     def __init__(self) -> None:
         super().__init__()
         self._submodeladder = None
-        self.predefinedmethod2argument = {}
+        self.preparemethod2arguments = {}
 
     @staticmethod
     @contextlib.contextmanager
@@ -4386,68 +4559,16 @@ class SubmodelInterface(Model, abc.ABC):
         """
         return False
 
-    def prepare_nmbzones(self, nmbzones: int) -> None:
-        """Set the number of zones in which the actual calculations take place.
 
-        If a submodel does not work with a variable number of zones, it probably must
-        not override |SubmodelInterface.prepare_nmbzones|.  Then, the default behaviour
-        applies, where |SubmodelInterface.prepare_nmbzones| stores the given number of
-        zones in the |SubmodelInterface.predefinedmethod2argument| dictionary.  There,
-        it is available to eventual sub-submodels:
+class SharableSubmodelInterface(SubmodelInterface, abc.ABC):
+    """Base class for defining interfaces for submodels designed as "sharable".
 
-        >>> from hydpy.core.modeltools import SubmodelInterface
-        >>> from hydpy.core.testtools import make_abc_testable
-        >>> si = make_abc_testable(SubmodelInterface)()
-        >>> si.prepare_nmbzones(3)
-        >>> si.predefinedmethod2argument
-        {'prepare_nmbzones': 3}
-        """
-        self.predefinedmethod2argument["prepare_nmbzones"] = nmbzones
-
-    def prepare_zonetypes(self, zonetypes: Sequence[int]) -> None:
-        """Set the types (usually land cover types) of the individual zones.
-
-        The explanation on method |SubmodelInterface.prepare_nmbzones| also holds for
-        the default behaviour of method |SubmodelInterface.prepare_zonetypes|:
-
-        >>> from hydpy.core.modeltools import SubmodelInterface
-        >>> from hydpy.core.testtools import make_abc_testable
-        >>> si = make_abc_testable(SubmodelInterface)()
-        >>> si.prepare_zonetypes([1, 2])
-        >>> si.predefinedmethod2argument
-        {'prepare_zonetypes': [1, 2]}
-        """
-        self.predefinedmethod2argument["prepare_zonetypes"] = zonetypes
-
-    def prepare_subareas(self, subareas: Sequence[float]) -> None:
-        """Set the areas of the individual zones in km².
-
-        The explanation on method |SubmodelInterface.prepare_nmbzones| also holds for
-        the default behaviour of method |SubmodelInterface.prepare_subareas|:
-
-        >>> from hydpy.core.modeltools import SubmodelInterface
-        >>> from hydpy.core.testtools import make_abc_testable
-        >>> si = make_abc_testable(SubmodelInterface)()
-        >>> si.prepare_subareas([1.0, 2.0])
-        >>> si.predefinedmethod2argument
-        {'prepare_subareas': [1.0, 2.0]}
-        """
-        self.predefinedmethod2argument["prepare_subareas"] = subareas
-
-    def prepare_elevations(self, elevations: Sequence[float]) -> None:
-        """Set the elevations of the individual zones in m.
-
-        The explanation on method |SubmodelInterface.prepare_nmbzones| also holds for
-        the default behaviour of method |SubmodelInterface.prepare_elevations|:
-
-        >>> from hydpy.core.modeltools import SubmodelInterface
-        >>> from hydpy.core.testtools import make_abc_testable
-        >>> si = make_abc_testable(SubmodelInterface)()
-        >>> si.prepare_elevations([1.0, 2.0])
-        >>> si.predefinedmethod2argument
-        {'prepare_elevations': [1.0, 2.0]}
-        """
-        self.predefinedmethod2argument["prepare_elevations"] = elevations
+    Currently, |SharableSubmodelInterface|  implements no functionality.  Its sole
+    purpose is to allow model developers to mark a submodel as sharable, meaning
+    multiple main model instances can share the same submodel instance.  It is more of
+    a safety mechanism to prevent reusing submodels that are not designed for this
+    purpose.
+    """
 
 
 class Submodel:
@@ -4462,9 +4583,9 @@ class Submodel:
     interfaces and Cython implementations of a root-finding algorithms, respectively.
     """
 
-    METHODS: ClassVar[Tuple[Type[Method], ...]]
-    CYTHONBASECLASS: ClassVar[Type]
-    PYTHONCLASS: ClassVar[Type]
+    METHODS: ClassVar[tuple[type[Method], ...]]
+    CYTHONBASECLASS: ClassVar[type[object]]
+    PYTHONCLASS: ClassVar[type[object]]
     name: ClassVar[str]
     _cysubmodel: object
 
@@ -4492,12 +4613,11 @@ class CoupleModels(Protocol[TypeModel_co]):
 
     def __call__(
         self, *, nodes: devicetools.Nodes, elements: devicetools.Elements
-    ) -> TypeModel_co:
-        ...
+    ) -> TypeModel_co: ...
 
 
 def define_modelcoupler(
-    inputtypes: Tuple[Type[TypeModel_contra], ...], outputtype: Type[TypeModel_co]
+    inputtypes: tuple[type[TypeModel_contra], ...], outputtype: type[TypeModel_co]
 ) -> Callable[
     [CoupleModels[TypeModel_co]], ModelCoupler[TypeModel_co, TypeModel_contra]
 ]:
@@ -4568,14 +4688,14 @@ occurred: `musk_classic` of element `e3` is not among the supported model types:
 sw1d_channel.
     """
 
-    _inputtypes: Tuple[Type[TypeModel_contra], ...]
-    _outputtype: Type[TypeModel_co]
+    _inputtypes: tuple[type[TypeModel_contra], ...]
+    _outputtype: type[TypeModel_co]
     _wrapped: CoupleModels
 
     def __init__(
         self,
-        inputtypes: Tuple[Type[TypeModel_contra], ...],
-        outputtype: Type[TypeModel_co],
+        inputtypes: tuple[type[TypeModel_contra], ...],
+        outputtype: type[TypeModel_co],
         wrapped: CoupleModels[TypeModel_co],
     ) -> None:
         self._inputtypes = inputtypes
@@ -4584,14 +4704,12 @@ sw1d_channel.
         functools.update_wrapper(wrapper=self, wrapped=wrapped)
 
     @overload
-    def __call__(self, *, selection: selectiontools.Selection) -> TypeModel_co:
-        ...
+    def __call__(self, *, selection: selectiontools.Selection) -> TypeModel_co: ...
 
     @overload
     def __call__(
         self, *, nodes: devicetools.Nodes, elements: devicetools.Elements
-    ) -> TypeModel_co:
-        ...
+    ) -> TypeModel_co: ...
 
     def __call__(
         self,

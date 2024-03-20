@@ -60,10 +60,7 @@ class EffectiveCapillarySuction(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (
-        ga_control.PoreSizeDistribution,
-        ga_control.AirEntryPotential,
-    )
+    CONTROLPARAMETERS = (ga_control.PoreSizeDistribution, ga_control.AirEntryPotential)
 
     def update(self) -> None:
         r"""Calculate the effective capillary suction based on the current values of

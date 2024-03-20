@@ -45,9 +45,10 @@ class Poly(NamedTuple):
     >>> p.cs[0] + p.cs[1] * (x - p.x0) + p.cs[2] * (x - p.x0) ** 2
     24.0
     """
+
     x0: float
     """Constant of the power series."""
-    cs: Tuple[float, ...]
+    cs: tuple[float, ...]
     """Coefficients of the power series."""
 
     def assignrepr(self, prefix: str) -> str:
@@ -257,8 +258,7 @@ polynomial function by passing at leas one `Poly` object.
         xs: VectorFloat,
         ys: VectorFloat,
         method: Union[
-            Literal["linear"],
-            Type[interpolate.CubicHermiteSpline],
+            Literal["linear"], type[interpolate.CubicHermiteSpline]
         ] = "linear",
     ) -> PPoly:
         """Prepare a |PPoly| object based on x-y data.
@@ -647,7 +647,7 @@ has not been prepared so far.
         self._calgorithm.calculate_derivatives(idx)
 
     @property
-    def polynomials(self) -> Tuple[Poly, ...]:
+    def polynomials(self) -> tuple[Poly, ...]:
         """The configuration of the current |ppolytools.PPoly| object, represented by a
         tuple of |Poly| objects.
 

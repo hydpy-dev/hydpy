@@ -26,7 +26,7 @@ but these are untested in model applications:
 >>> pyxwriter.get_point_states(lines)
             . get_point_states
 >>> lines.pyx  # doctest: +ELLIPSIS
-    cpdef inline void get_point_states(self) nogil:
+    cpdef inline void get_point_states(self) noexcept nogil:
         cdef ...int... idx0
         self.sequences.states.s = \
 self.sequences.states._s_points[self.numvars.idx_stage]
@@ -40,7 +40,7 @@ self.sequences.states._sv_points[self.numvars.idx_stage][idx0]
 >>> pyxwriter.get_point_states(lines)
             . get_point_states
 >>> lines.pyx  # doctest: +ELLIPSIS
-    cpdef inline void get_point_states(self) nogil:
+    cpdef inline void get_point_states(self) noexcept nogil:
         cdef ...int... idx0, idx1
         for idx0 in range(self.sequences.states._s_length0):
             for idx1 in range(self.sequences.states._s_length1):
@@ -65,7 +65,7 @@ numerical integration but deal with |FluxSequence| objects.  We start with the m
 >>> pyxwriter.integrate_fluxes(lines)
             . integrate_fluxes
 >>> lines.pyx  # doctest: +ELLIPSIS
-    cpdef inline void integrate_fluxes(self) nogil:
+    cpdef inline void integrate_fluxes(self) noexcept nogil:
         cdef ...int... jdx, idx0
         self.sequences.fluxes.q = 0.
         for jdx in range(self.numvars.idx_method):
@@ -88,7 +88,7 @@ self.sequences.fluxes._qv_points[jdx, idx0]
 >>> pyxwriter.integrate_fluxes(lines)
             . integrate_fluxes
 >>> lines.pyx  # doctest: +ELLIPSIS
-    cpdef inline void integrate_fluxes(self) nogil:
+    cpdef inline void integrate_fluxes(self) noexcept nogil:
         cdef ...int... jdx, idx0, idx1
         for idx0 in range(self.sequences.fluxes._q_length0):
             for idx1 in range(self.sequences.fluxes._q_length1):
@@ -120,7 +120,7 @@ Method |ELSModel.reset_sum_fluxes|:
 >>> pyxwriter.reset_sum_fluxes(lines)
             . reset_sum_fluxes
 >>> lines.pyx  # doctest: +ELLIPSIS
-    cpdef inline void reset_sum_fluxes(self) nogil:
+    cpdef inline void reset_sum_fluxes(self) noexcept nogil:
         cdef ...int... idx0
         self.sequences.fluxes._q_sum = 0.
         for idx0 in range(self.sequences.fluxes._qv_length):
@@ -132,7 +132,7 @@ Method |ELSModel.reset_sum_fluxes|:
 >>> pyxwriter.reset_sum_fluxes(lines)
             . reset_sum_fluxes
 >>> lines.pyx  # doctest: +ELLIPSIS
-    cpdef inline void reset_sum_fluxes(self) nogil:
+    cpdef inline void reset_sum_fluxes(self) noexcept nogil:
         cdef ...int... idx0, idx1
         for idx0 in range(self.sequences.fluxes._q_length0):
             for idx1 in range(self.sequences.fluxes._q_length1):
@@ -154,7 +154,7 @@ Method |ELSModel.addup_fluxes|:
 >>> pyxwriter.addup_fluxes(lines)
             . addup_fluxes
 >>> lines.pyx  # doctest: +ELLIPSIS
-    cpdef inline void addup_fluxes(self) nogil:
+    cpdef inline void addup_fluxes(self) noexcept nogil:
         cdef ...int... idx0
         self.sequences.fluxes._q_sum = \
 self.sequences.fluxes._q_sum + self.sequences.fluxes.q
@@ -168,7 +168,7 @@ self.sequences.fluxes._qv_sum[idx0] + self.sequences.fluxes.qv[idx0]
 >>> pyxwriter.addup_fluxes(lines)
             . addup_fluxes
 >>> lines.pyx  # doctest: +ELLIPSIS
-    cpdef inline void addup_fluxes(self) nogil:
+    cpdef inline void addup_fluxes(self) noexcept nogil:
         cdef ...int... idx0, idx1
         for idx0 in range(self.sequences.fluxes._q_length0):
             for idx1 in range(self.sequences.fluxes._q_length1):
@@ -192,7 +192,7 @@ Method |ELSModel.calculate_error|:
 >>> pyxwriter.calculate_error(lines)
             . calculate_error
 >>> lines.pyx  # doctest: +ELLIPSIS
-    cpdef inline void calculate_error(self) nogil:
+    cpdef inline void calculate_error(self) noexcept nogil:
         cdef ...int... idx0
         cdef double abserror
         self.numvars.abserror = 0.
@@ -229,7 +229,7 @@ fabs(abserror/self.sequences.fluxes._qv_results[self.numvars.idx_method, idx0]))
 >>> pyxwriter.calculate_error(lines)
             . calculate_error
 >>> lines.pyx  # doctest: +ELLIPSIS
-    cpdef inline void calculate_error(self) nogil:
+    cpdef inline void calculate_error(self) noexcept nogil:
         cdef ...int... idx0, idx1
         cdef double abserror
         self.numvars.abserror = 0.
@@ -343,7 +343,7 @@ _dllextension = get_dllextension()
 
 _int = "numpy." + str(numpy.array([1]).dtype) + "_t"
 
-TYPE2STR: Dict[Union[Type[Any], str, None], str] = {  # pylint: disable=duplicate-key
+TYPE2STR: dict[Union[type[Any], str, None], str] = {  # pylint: disable=duplicate-key
     bool: "numpy.npy_bool",
     "bool": "numpy.npy_bool",
     int: _int,
@@ -373,7 +373,7 @@ The Cython type belonging to Python's |int| is selected to agree with numpy's de
 integer type on the current platform/system.
 """
 
-_checkable_types: List[Type[Any]] = []
+_checkable_types: list[type[Any]] = []
 for maybe_a_type in TYPE2STR:
     try:
         isinstance(1, maybe_a_type)  # type: ignore[arg-type]
@@ -381,16 +381,16 @@ for maybe_a_type in TYPE2STR:
         continue
     assert isinstance(maybe_a_type, type)
     _checkable_types.append(maybe_a_type)
-CHECKABLE_TYPES: Tuple[Type[Any], ...] = tuple(_checkable_types)
+CHECKABLE_TYPES: tuple[type[Any], ...] = tuple(_checkable_types)
 """"Real types" of |TYPE2STR| allowed as second arguments of function |isinstance|."""
 del _checkable_types
 
 NDIM2STR = {0: "", 1: "[:]", 2: "[:,:]", 3: "[:,:,:]"}
 
-_nogil = " nogil" if config.FASTCYTHON else ""
+_nogil = " noexcept nogil" if config.FASTCYTHON else ""
 
 
-class Lines(List[str]):
+class Lines(list[str]):
     """Handles the code lines for a `.pyx` or a `pxd` file."""
 
     def __init__(self, *args: str) -> None:
@@ -443,11 +443,11 @@ def get_methodheader(
     >>> config.FASTCYTHON = True
     >>> methodheader = get_methodheader("test", nogil=True, idxarg=True, inline=False)
     >>> print(methodheader)  # doctest: +ELLIPSIS
-    cpdef void test(self, ...int... idx) nogil:
+    cpdef void test(self, ...int... idx) noexcept nogil:
     """
     if not config.FASTCYTHON:
         nogil = False
-    nogil_ = " nogil" if nogil else ""
+    nogil_ = " noexcept nogil" if nogil else ""
     idxarg_ = f", {_int} idx" if idxarg else ""
     inline_ = " inline" if inline else ""
     return f"cpdef{inline_} void {methodname}(self{idxarg_}){nogil_}:"
@@ -582,9 +582,9 @@ Python processes and restart the cythonization afterwards.
 class Cythonizer:
     """Handles the writing, compiling and initialisation of Cython models."""
 
-    Model: Type[modeltools.Model]
-    Parameters: Type[parametertools.Parameters]
-    Sequences: Type[sequencetools.Sequences]
+    Model: type[modeltools.Model]
+    Parameters: type[parametertools.Parameters]
+    Sequences: type[sequencetools.Sequences]
     tester: testtools.Tester
     pymodule: str
     _cymodule: Optional[types.ModuleType]
@@ -761,7 +761,7 @@ class PyxWriter:
 
     Method |PyxWriter| serves as a master method, which triggers the complete writing
     process.  The other properties and methods supply the required code lines.  Their
-    names are selected to match the names of the original Python models as close as
+    names are selected to match the names of the original Python models as closely as
     possible.
     """
 
@@ -945,7 +945,7 @@ class PyxWriter:
                     try:
                         ctype = TYPE2STR[par.TYPE] + NDIM2STR[par.NDIM]
                     except KeyError:
-                        ctype = par.TYPE + NDIM2STR[par.NDIM]
+                        ctype = par.TYPE + NDIM2STR[par.NDIM]  # type: ignore[operator]
                     pxd(1, f"cdef public {ctype} {par.name}")
                     if isinstance(par, pt.KeywordParameter1D):
                         pxd(1, f"cdef public {TYPE2STR[int]} _{par.name}_entrymin")
@@ -985,6 +985,8 @@ class PyxWriter:
         both(0, "@cython.final")
         both(0, "cdef class Sequences:")
         pyx(1, "pass")
+        if not self.model.sequences:
+            pxd(1, "pass")
         for subseqs in self.model.sequences:
             pxd(1, f"cdef public {type(subseqs).__name__} {subseqs.name}")
         if self.model.sequences.states:
@@ -1061,6 +1063,20 @@ class PyxWriter:
         if maxndim:
             jdxs = ", ".join(f"jdx{ndim}" for ndim in range(maxndim))
             lines.pyx.add(2, f"cdef {_int} {jdxs}")
+
+    def reset_reuseflags(self, lines: PyxPxdLines) -> None:
+        """Reset reuse flag statements."""
+        print("            . reset_reuseflags")
+        pyx, both = lines.pyx.add, lines.add
+        both(1, f"cpdef void reset_reuseflags(self){_nogil}:")
+        if (methods := self.model.REUSABLE_METHODS) or self.model.find_submodels(
+            include_subsubmodels=False, include_optional=True, repeat_sharedmodels=True
+        ):
+            for method in methods:
+                pyx(2, f"self.{method.REUSEMARKER} = False")
+            self._call_submodel_method(lines, "reset_reuseflags()")
+        else:
+            pyx(2, "pass")
 
     @classmethod
     def load_data(
@@ -1182,8 +1198,7 @@ class PyxWriter:
         print("            . set_pointer0d")
         pyx, both = lines.pyx.add, lines.add
         both(
-            1,
-            "cpdef inline set_pointer0d(self, str name, pointerutils.Double value):",
+            1, "cpdef inline set_pointer0d(self, str name, pointerutils.Double value):"
         )
         pyx(2, "cdef pointerutils.PDouble pointer = pointerutils.PDouble(value)")
         for seq in (seq for seq in subseqs if seq.NDIM == 0):
@@ -1326,13 +1341,13 @@ class PyxWriter:
     @staticmethod
     def _filter_inputsequences(
         subseqs: sequencetools.InputSequences,
-    ) -> List[sequencetools.InputSequence]:
+    ) -> list[sequencetools.InputSequence]:
         return [subseq for subseq in subseqs if not subseq.NDIM]
 
     @staticmethod
     def _filter_outputsequences(
         subseqs: sequencetools.OutputSequences[Any],
-    ) -> List[sequencetools.OutputSequence]:
+    ) -> list[sequencetools.OutputSequence]:
         return [subseq for subseq in subseqs if not subseq.NDIM]
 
     def numericalparameters(self, lines: PyxPxdLines) -> None:
@@ -1385,7 +1400,7 @@ class PyxWriter:
             pyx(1, "def __init__(self, Model model):")
             pyx(2, "self.model = model")
             for idx, method in enumerate(submodel.METHODS):
-                both(1, f"cpdef double apply_method{idx}(self, double x) nogil:")
+                both(1, f"cpdef double apply_method{idx}(self, double x) {_nogil}:")
                 pyx(2, f"return self.model.{method.__name__.lower()}(x)")
 
     def modeldeclarations(self, lines: PyxPxdLines) -> None:
@@ -1399,6 +1414,7 @@ class PyxWriter:
                 include_sidemodels=True,
                 include_optional=True,
                 aggregate_vectors=True,
+                repeat_sharedmodels=True,
             )
         ]
         pyx, pxd, both = lines.pyx.add, lines.pxd.add, lines.add
@@ -1456,10 +1472,13 @@ class PyxWriter:
                 pyx(2, f"return self.{name}")
                 pyx(1, f"def set_{name}(self, {name}: {baseinterface}) -> None:")
                 pyx(2, f"self.{name} = {name}")
+        for method in self.model.REUSABLE_METHODS:
+            pxd(1, f"cdef bint {method.REUSEMARKER}")
 
     def modelstandardfunctions(self, lines: PyxPxdLines) -> None:
         """The standard functions of the model class."""
         self.simulate(lines)
+        self.reset_reuseflags(lines)
         self.iofunctions(lines)
         self.new2old(lines)
         if isinstance(self.model, modeltools.RunModel):
@@ -1494,6 +1513,10 @@ class PyxWriter:
         pyx, both = lines.pyx.add, lines.add
         both(1, f"cpdef inline void simulate(self, {_int} idx) {_nogil}:")
         pyx(2, "self.idx_sim = idx")
+        if self.model.REUSABLE_METHODS or self.model.find_submodels(
+            include_optional=True, include_subsubmodels=False, repeat_sharedmodels=True
+        ):
+            pyx(2, "self.reset_reuseflags()")
         seqs = self.model.sequences
         if seqs.inputs or self.model.SUBMODELINTERFACES:
             pyx(2, "self.load_data(idx)")
@@ -1515,6 +1538,7 @@ class PyxWriter:
             include_subsubmodels=False,
             include_optional=True,
             aggregate_vectors=True,
+            repeat_sharedmodels=True,
         )
         pyx = lines.pyx.add
         if any(name.endswith("_*") for name in name2submodel):
@@ -1552,12 +1576,12 @@ class PyxWriter:
                     . load_data
                     . save_data
         >>> lines.pyx  # doctest: +ELLIPSIS
-            cpdef void load_data(self, ...int... idx) nogil:
+            cpdef void load_data(self, ...int... idx) noexcept nogil:
                 self.idx_sim = idx
                 self.sequences.inputs.load_data(idx)
                 if (self.aetmodel is not None) and not self.aetmodel_is_mainmodel:
                     self.aetmodel.load_data(idx)
-            cpdef void save_data(self, ...int... idx) nogil:
+            cpdef void save_data(self, ...int... idx) noexcept nogil:
                 self.idx_sim = idx
                 self.sequences.inputs.save_data(idx)
                 self.sequences.factors.save_data(idx)
@@ -1575,12 +1599,12 @@ class PyxWriter:
                     . load_data
                     . save_data
         >>> lines.pyx  # doctest: +ELLIPSIS
-            cpdef void load_data(self, ...int... idx) nogil:
+            cpdef void load_data(self, ...int... idx) noexcept nogil:
                 self.idx_sim = idx
                 self.sequences.inputs.load_data(idx)
                 if (self.aetmodel is not None) and not self.aetmodel_is_mainmodel:
                     self.aetmodel.load_data(idx)
-            cpdef void save_data(self, ...int... idx) nogil:
+            cpdef void save_data(self, ...int... idx) noexcept nogil:
                 self.idx_sim = idx
                 self.sequences.inputs.save_data(idx)
                 if (self.aetmodel is not None) and not self.aetmodel_is_mainmodel:
@@ -1609,7 +1633,7 @@ class PyxWriter:
             pyx(2, "self.idx_sim = idx")
             for subseqs in seqs:
                 if func == "load_data":
-                    applyfuncs: Tuple[str, ...] = ("inputs",)
+                    applyfuncs: tuple[str, ...] = ("inputs",)
                 else:
                     applyfuncs = ("inputs", "factors", "fluxes", "states")
                 if subseqs.name in applyfuncs:
@@ -1619,7 +1643,10 @@ class PyxWriter:
     def new2old(self, lines: PyxPxdLines) -> None:
         """Old states to new states statements."""
         name2submodel = self.model.find_submodels(
-            include_subsubmodels=False, include_optional=True, aggregate_vectors=True
+            include_subsubmodels=False,
+            include_optional=True,
+            aggregate_vectors=True,
+            repeat_sharedmodels=True,
         )
         pyx, both = lines.pyx.add, lines.add
         if self.model.sequences.states or name2submodel:
@@ -1655,7 +1682,7 @@ class PyxWriter:
         self,
         lines: PyxPxdLines,
         name: str,
-        methods: Tuple[Type[modeltools.Method], ...],
+        methods: tuple[type[modeltools.Method], ...],
         idx_as_arg: bool = False,
     ) -> None:
         if hasattr(self.model, name):
@@ -1671,7 +1698,7 @@ class PyxWriter:
                 pyx(2, "pass")
 
     def _call_runmethods_segmentwise(
-        self, lines: PyxPxdLines, methods: Tuple[Type[modeltools.Method], ...]
+        self, lines: PyxPxdLines, methods: tuple[type[modeltools.Method], ...]
     ) -> None:
         if hasattr(self.model, "run"):
             pyx, both = lines.pyx.add, lines.add
@@ -1769,20 +1796,23 @@ class PyxWriter:
         self._call_methods(lines, "calculate_full_terms", model.FULL_ODE_METHODS)
 
     @property
-    def name2function_method(self) -> Dict[str, Callable[..., Any]]:
+    def name2function_method(self) -> dict[str, types.MethodType]:
         """Functions defined by |Method| subclasses."""
         name2function = {}
         for name, member in vars(self.model).items():
-            if getattr(getattr(member, "__func__", None), "__HYDPY_METHOD__", False):
+            if (getattr(member, "__name__", None) == "call_reusablemethod") or getattr(
+                getattr(member, "__func__", None), "__HYDPY_METHOD__", False
+            ):
                 name2function[name] = member
         return name2function
 
     @property
     def name2submethodnames_automethod(
         self,
-    ) -> Dict[str, Tuple[Type[modeltools.Method], ...]]:
+    ) -> dict[str, tuple[type[modeltools.Method], ...]]:
         """Submethods selected by |AutoMethod| subclasses."""
-        name2submethods = {}
+        # see https://github.com/python/typeshed/issues/11200
+        name2submethods: dict[str, tuple[type[modeltools.Method], ...]] = {}
         for name, member in vars(self.model).items():
             if (
                 isinstance(member, types.MethodType)
@@ -1794,7 +1824,7 @@ class PyxWriter:
         return name2submethods
 
     @property
-    def interfacemethods(self) -> Set[str]:
+    def interfacemethods(self) -> set[str]:
         """The full and abbreviated names of the selected model's interface methods."""
         if hasattr(self.model, "INTERFACE_METHODS"):
             interfaces = set(m.__name__.lower() for m in self.model.INTERFACE_METHODS)
@@ -1810,7 +1840,7 @@ class PyxWriter:
             funcconverter = FuncConverter(
                 model=self.model, funcname=name, func=func, inline=inline
             )
-            pyxlines = funcconverter.pyxlines
+            pyxlines = tuple(f"    {line}" for line in funcconverter.pyxlines)
             lines.pyx.extend(pyxlines)
             lines.pxd.append(pyxlines[0][:-1])
         for name, submethods in self.name2submethodnames_automethod.items():
@@ -1822,12 +1852,12 @@ class PyxWriter:
 
         pyx, pxd = lines.pyx.add, lines.pxd.add
 
-        pxd(0, "ctypedef void (*CallbackType) (Model) nogil")
+        pxd(0, f"ctypedef void (*CallbackType) (Model) {_nogil}")
         pyx(0, "")
         pxd(0, "cdef class CallbackWrapper:")
         pxd(1, "cdef CallbackType callback")
         pyx(0, "")
-        pyx(0, "cdef void do_nothing(Model model) nogil:")
+        pyx(0, f"cdef void do_nothing(Model model) {_nogil}:")
         pyx(1, "pass")
         pyx(0, "")
         pyx(0, "cpdef get_wrapper():")
@@ -1840,7 +1870,7 @@ class PyxWriter:
         self,
         lines: PyxPxdLines,
         name: str,
-        submethods: Tuple[Type[modeltools.Method], ...],
+        submethods: tuple[type[modeltools.Method], ...],
     ) -> None:
         """Lines of a method defined by a |AutoMethod| subclass."""
         pyx, both = lines.pyx.add, lines.add
@@ -1854,7 +1884,7 @@ class PyxWriter:
         if solve := getattr(self.model, "solve", None):
             print("            . solve")
             funcconverter = FuncConverter(self.model, "solve", solve)
-            pyxlines = funcconverter.pyxlines
+            pyxlines = tuple(f"    {line}" for line in funcconverter.pyxlines)
             lines.pyx.extend(pyxlines)
             lines.pxd.append(pyxlines[0][:-1])
 
@@ -2175,7 +2205,7 @@ class PyxWriter:
             funcconverter = FuncConverter(
                 self.model, "extrapolate_error", extrapolate_error
             )
-            pyxlines = funcconverter.pyxlines
+            pyxlines = tuple(f"    {line}" for line in funcconverter.pyxlines)
             lines.pyx.extend(pyxlines)
             lines.pxd.append(pyxlines[0][:-1])
 
@@ -2303,14 +2333,14 @@ class FuncConverter:
 
     model: modeltools.Model
     funcname: str
-    func: Callable[..., Any]
+    func: Union[types.MethodType, Callable[[modeltools.Model], None]]
     inline: bool
 
     def __init__(
         self,
         model: modeltools.Model,
         funcname: str,
-        func: Callable[..., Any],
+        func: Union[types.MethodType, Callable[[modeltools.Model], None]],
         inline: bool = True,
     ) -> None:
         self.model = model
@@ -2319,7 +2349,14 @@ class FuncConverter:
         self.inline = inline
 
     @property
-    def argnames(self) -> List[str]:
+    def realfunc(self) -> Callable:
+        """The "real" function, as as defined by the model developer or user."""
+        if (reusablemethod := self.reusablemethod) is not None:
+            return reusablemethod.__call__
+        return self.func
+
+    @property
+    def argnames(self) -> list[str]:
         """The argument names of the current function.
 
         >>> from hydpy.cythons.modelutils import FuncConverter
@@ -2329,10 +2366,10 @@ class FuncConverter:
         >>> FuncConverter(model, None, model.calc_tc_v1).argnames
         ['model']
         """
-        return inspect.getargs(self.func.__code__)[0]
+        return inspect.getargs(self.realfunc.__code__)[0]
 
     @property
-    def varnames(self) -> Tuple[str, ...]:
+    def varnames(self) -> tuple[str, ...]:
         """The variable names of the current function.
 
         >>> from hydpy.cythons.modelutils import FuncConverter
@@ -2343,11 +2380,11 @@ class FuncConverter:
         ('self', 'con', 'der', 'inp', 'fac', 'k')
         """
         return tuple(
-            vn if vn != "model" else "self" for vn in self.func.__code__.co_varnames
+            vn if vn != "model" else "self" for vn in self.realfunc.__code__.co_varnames
         )
 
     @property
-    def locnames(self) -> List[str]:
+    def locnames(self) -> list[str]:
         """The variable names of the handled function except for the argument names.
 
         >>> from hydpy.cythons.modelutils import FuncConverter
@@ -2360,7 +2397,7 @@ class FuncConverter:
         return [vn for vn in self.varnames if vn not in self.argnames]
 
     @property
-    def subgroupnames(self) -> List[str]:
+    def subgroupnames(self) -> list[str]:
         """The complete names of the subgroups relevant for the current function.
 
         >>> from hydpy.cythons.modelutils import FuncConverter
@@ -2383,7 +2420,7 @@ class FuncConverter:
         return names
 
     @property
-    def subgroupshortcuts(self) -> List[str]:
+    def subgroupshortcuts(self) -> list[str]:
         """The abbreviated names of the subgroups relevant for the current function.
 
         >>> from hydpy.cythons.modelutils import FuncConverter
@@ -2396,7 +2433,7 @@ class FuncConverter:
         return [name.split(".")[-1][:3] for name in self.subgroupnames]
 
     @property
-    def untypedvarnames(self) -> List[str]:
+    def untypedvarnames(self) -> list[str]:
         """The names of the untyped variables used in the current function.
 
         >>> from hydpy.cythons.modelutils import FuncConverter
@@ -2413,7 +2450,7 @@ class FuncConverter:
         ]
 
     @property
-    def untypedarguments(self) -> List[str]:
+    def untypedarguments(self) -> list[str]:
         """The names of the untyped arguments used by the current function.
 
         >>> from hydpy.cythons.modelutils import FuncConverter
@@ -2431,7 +2468,7 @@ class FuncConverter:
         ]
 
     @property
-    def untypedinternalvarnames(self) -> List[str]:
+    def untypedinternalvarnames(self) -> list[str]:
         """The names of the untyped variables used in the current function except for
         those of the arguments.
 
@@ -2447,7 +2484,21 @@ class FuncConverter:
         ]
 
     @property
-    def cleanlines(self) -> List[str]:
+    def reusablemethod(self) -> Optional[type[modeltools.ReusableMethod]]:
+        """If the currently handled function object is a reusable method, return the
+        corresponding subclass of |ReusableMethod|."""
+        if isinstance(method_of_model := self.func, types.MethodType):
+            maybe_method_of_reusablemethod = method_of_model.__func__
+            if isinstance(maybe_method_of_reusablemethod, types.MethodType):
+                maybe_reusablemethod = maybe_method_of_reusablemethod.__self__
+                if isinstance(maybe_reusablemethod, type) and issubclass(
+                    maybe_reusablemethod, modeltools.ReusableMethod
+                ):
+                    return maybe_reusablemethod
+        return None
+
+    @property
+    def cleanlines(self) -> list[str]:
         """The leaned code lines of the current function.
 
         The implemented cleanups:
@@ -2463,7 +2514,7 @@ class FuncConverter:
           * remove ".values" and "value"
           * remove the ": float" annotation
         """
-        code = inspect.getsource(self.func)
+        code = inspect.getsource(self.realfunc)
         code = "\n".join(code.split('"""')[::2])
         code = code.replace("modelutils.", "")
         code = code.replace(" model.", " self.")
@@ -2478,8 +2529,10 @@ class FuncConverter:
         code = self.remove_linebreaks_within_equations(code)
         lines = code.splitlines()
         self.remove_imath_operators(lines)
-        del lines[0]  # remove @staticmethod
-        lines = [line[4:] for line in lines]  # unindent
+        if lines[0].lstrip().startswith("@"):
+            del lines[0]  # remove @staticmethod
+        indent = len(lines[0]) - len(lines[0].lstrip())
+        lines = [line[indent:] for line in lines]  # normalise indentation
         argnames = self.argnames
         argnames[0] = "self"
         lines[0] = f"def {self.funcname}({', '.join(argnames)}):"
@@ -2513,7 +2566,7 @@ class FuncConverter:
         return "".join(chars)
 
     @staticmethod
-    def remove_imath_operators(lines: List[str]) -> None:
+    def remove_imath_operators(lines: list[str]) -> None:
         """Remove mathematical expressions that require Pythons global interpreter
         locking mechanism.
 
@@ -2577,12 +2630,12 @@ class FuncConverter:
         >>> model.calc_test_v1 = MethodType(Calc_Test_V1.__call__, model)
         >>> lines = FuncConverter(model, "calc_test_v1", model.calc_test_v1).pyxlines
         >>> lines  # doctest: +ELLIPSIS
-            cpdef inline void calc_test_v1(self) nogil:
-                cdef double d_pc
-                cdef ...int... k
-                for k in range(self.parameters.control.nmbzones):
-                    d_pc = self.parameters.control.kg[k]*self.sequences.inputs.p[k]
-                    self.sequences.fluxes.pc[k] = d_pc
+        cpdef inline void calc_test_v1(self) noexcept nogil:
+            cdef double d_pc
+            cdef ...int... k
+            for k in range(self.parameters.control.nmbzones):
+                d_pc = self.parameters.control.kg[k]*self.sequences.inputs.p[k]
+                self.sequences.fluxes.pc[k] = d_pc
         <BLANKLINE>
 
         The second example shows that `float` and `Vector` annotations translate into
@@ -2595,9 +2648,9 @@ class FuncConverter:
         ...         return con.kg[0]*value*values[1]
         >>> model.calc_test_v2 = MethodType(Calc_Test_V2.__call__, model)
         >>> FuncConverter(model, "calc_test_v2", model.calc_test_v2).pyxlines
-            cpdef inline double calc_test_v2(self, double value, double[:] values) \
-nogil:
-                return self.parameters.control.kg[0]*value*values[1]
+        cpdef inline double calc_test_v2(self, double value, double[:] values) \
+noexcept nogil:
+            return self.parameters.control.kg[0]*value*values[1]
         <BLANKLINE>
 
         Third, Python's standard cast function translates into Cython's cast syntax:
@@ -2609,8 +2662,8 @@ nogil:
         ...         return cast(channelinterfaces.StorageModel_V1, model.soilmodel)
         >>> model.calc_test_v3 = MethodType(Calc_Test_V3.__call__, model)
         >>> FuncConverter(model, "calc_test_v3", model.calc_test_v3).pyxlines
-            cpdef inline masterinterface.MasterInterface calc_test_v3(self) nogil:
-                return (<masterinterface.MasterInterface>self.soilmodel)
+        cpdef inline masterinterface.MasterInterface calc_test_v3(self) noexcept nogil:
+            return (<masterinterface.MasterInterface>self.soilmodel)
         <BLANKLINE>
 
         >>> class Calc_Test_V4(Method):
@@ -2625,8 +2678,8 @@ nogil:
         ...         ).get_partialdischargedownstream()
         >>> model.calc_test_v4 = MethodType(Calc_Test_V4.__call__, model)
         >>> FuncConverter(model, "calc_test_v4", model.calc_test_v4).pyxlines
-            cpdef inline void calc_test_v4(self) nogil:
-                (<masterinterface.MasterInterface>self.routingmodels[0]).\
+        cpdef inline void calc_test_v4(self) noexcept nogil:
+            (<masterinterface.MasterInterface>self.routingmodels[0]).\
 get_partialdischargedownstream()
         <BLANKLINE>
         """
@@ -2639,23 +2692,29 @@ get_partialdischargedownstream()
                 return "masterinterface.MasterInterface"
             return f"{pytype.__module__.split('.')[-1]}.{pytype.__name__}"
 
-        annotations_ = get_type_hints(self.func)
-        lines = ["    " + line for line in self.cleanlines]
+        annotations_ = get_type_hints(self.realfunc)
+        lines = self.cleanlines
         lines[0] = lines[0].lower()
         inline = " inline" if self.inline else ""
         lines[0] = lines[0].replace("def ", f"cpdef{inline} {_get_cytype('return')} ")
         lines[0] = lines[0].replace("):", f"){_nogil}:")
+        if (reusablemethod := self.reusablemethod) is not None:
+            lines[0] = lines[0].replace("(self, model", "(self")
+            for i in range(1, len(lines)):
+                lines[i] = f"    {lines[i]}"
+            lines.insert(1, f"    if not self.{reusablemethod.REUSEMARKER}:")
+            lines.append(f"        self.{reusablemethod.REUSEMARKER} = True")
         for name in self.untypedarguments:
             cytype = _get_cytype(name)
             lines[0] = lines[0].replace(f", {name},", f", {cytype} {name},")
             lines[0] = lines[0].replace(f", {name})", f", {cytype} {name})")
-        code = inspect.getsource(self.func)
+        code = inspect.getsource(self.realfunc)
         for name in self.untypedinternalvarnames:
             if (f" {name}: float" in code) or name.startswith("d_"):
                 cytype = "double"
             else:
                 cytype = "int"
-            lines.insert(1, f"        cdef {cytype} {name}")
+            lines.insert(1, f"    cdef {cytype} {name}")
         for idx, line in enumerate(lines):
             if "cast(" in line:
                 part1, _, part23 = line.partition("cast(")
@@ -2677,6 +2736,10 @@ def get_callbackcymodule(
     pyfilepath = os.path.join(autogenpath, f"{basename}.pysource")
     pycode = inspect.getsource(callback)
 
+    lines = pycode.split("\n")
+    indent = len(lines[0]) - len(lines[0].lstrip())
+    pycode = "\n".join(line[indent:] for line in lines)
+
     refresh = True
     if os.path.exists(pyfilepath):
         with open(pyfilepath, "r", encoding=config.ENCODING) as sf:
@@ -2692,15 +2755,11 @@ def get_callbackcymodule(
         cythonizer.pyxwriter.cimports(preamble)
 
         pyx = FuncConverter(
-            model=model,
-            funcname=callback.__name__,
-            func=callback,
-            inline=False,
+            model=model, funcname=callback.__name__, func=callback, inline=False
         ).pyxlines
         pyx.insert(
             0, f"from hydpy.cythons.autogen.c_{model} cimport Model, CallbackWrapper\n"
         )
-        pyx[1] = pyx[1].strip()
         pyx[1] = pyx[1].replace("cpdef ", "cdef ").replace("(self)", "(Model self)")
         pyx.add(0, "")
         pyx.add(0, "cdef class MyCallbackWrapper(CallbackWrapper):")

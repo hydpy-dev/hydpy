@@ -878,7 +878,7 @@ arguments are given, which is ambiguous.
         nzones = (numpy.sum((z > zonez) * (zonez >= (z - dheight))) for z in zonez)
         return self._prepare(tuple(max(n, 1) for n in nzones))
 
-    def _prepare(self, nzones: Tuple[int, ...]) -> MatrixFloat:
+    def _prepare(self, nzones: tuple[int, ...]) -> MatrixFloat:
         nmbzones = self.subpars.nmbzones.value
         zonearea = self.subpars.zonearea.value
         types_ = self.subpars.zonetype.value
@@ -1300,7 +1300,7 @@ class K0(hland_parameters.ParameterUpperZone):
     NDIM, TYPE, TIME, SPAN = 1, float, False, (None, None)
 
     # defined at the bottom of the file:
-    CONTROLPARAMETERS: Tuple[Type[K1]]
+    CONTROLPARAMETERS: tuple[type[K1]]
 
     def trim(self, lower=None, upper=None):
         r"""Trim |K0| following :math:`K^* \leq K0 \leq K1` with
@@ -1354,7 +1354,7 @@ class K1(hland_parameters.ParameterUpperZone):
     NDIM, TYPE, TIME, SPAN = 1, float, False, (None, None)
 
     # defined at the bottom of the file:
-    CONTROLPARAMETERS: Tuple[Type[K0], Type[K2]]
+    CONTROLPARAMETERS: tuple[type[K0], type[K2]]
     FIXEDPARAMETERS = (hland_fixed.K1L,)
 
     def trim(self, lower=None, upper=None):
@@ -1388,9 +1388,7 @@ class K1(hland_parameters.ParameterUpperZone):
                 lower = k1l
             else:
                 lower = numpy.clip(
-                    lower,
-                    -1.0 / numpy.log(1.0 - numpy.exp(-1.0 / lower)),
-                    numpy.inf,
+                    lower, -1.0 / numpy.log(1.0 - numpy.exp(-1.0 / lower)), numpy.inf
                 )
                 lower = numpy.clip(lower, k1l, numpy.inf)
                 lower[numpy.isnan(lower)] = k1l
@@ -1437,7 +1435,7 @@ class K2(hland_parameters.ParameterUpperZone):
     NDIM, TYPE, TIME, SPAN = 1, float, False, (None, None)
 
     # defined at the bottom of the file:
-    CONTROLPARAMETERS: Tuple[Type[K1], Type[K3]]
+    CONTROLPARAMETERS: tuple[type[K1], type[K3]]
     FIXEDPARAMETERS = (hland_fixed.K1L,)
 
     def trim(self, lower=None, upper=None):
@@ -1548,11 +1546,5 @@ class NmbStorages(parametertools.Parameter):
 
 
 K0.CONTROLPARAMETERS = (K1,)
-K1.CONTROLPARAMETERS = (
-    K0,
-    K2,
-)
-K2.CONTROLPARAMETERS = (
-    K1,
-    K3,
-)
+K1.CONTROLPARAMETERS = (K0, K2)
+K2.CONTROLPARAMETERS = (K1, K3)

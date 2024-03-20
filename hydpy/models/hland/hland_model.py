@@ -120,11 +120,7 @@ class Calc_FracRain_V1(modeltools.Method):
         fracrain(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0)
     """
 
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.TT,
-        hland_control.TTInt,
-    )
+    CONTROLPARAMETERS = (hland_control.NmbZones, hland_control.TT, hland_control.TTInt)
     REQUIREDSEQUENCES = (hland_factors.TC,)
     RESULTSEQUENCES = (hland_factors.FracRain,)
 
@@ -185,16 +181,9 @@ class Calc_RFC_SFC_V1(modeltools.Method):
         sfc(1.2, 0.9, 0.6, 0.3, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.RfCF,
-        hland_control.SfCF,
-    )
+    CONTROLPARAMETERS = (hland_control.NmbZones, hland_control.RfCF, hland_control.SfCF)
     REQUIREDSEQUENCES = (hland_factors.FracRain,)
-    RESULTSEQUENCES = (
-        hland_factors.RfC,
-        hland_factors.SfC,
-    )
+    RESULTSEQUENCES = (hland_factors.RfC, hland_factors.SfC)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -257,11 +246,7 @@ class Calc_PC_V1(modeltools.Method):
         hland_control.PCorr,
     )
     DERIVEDPARAMETERS = (hland_derived.Z,)
-    REQUIREDSEQUENCES = (
-        hland_inputs.P,
-        hland_factors.RfC,
-        hland_factors.SfC,
-    )
+    REQUIREDSEQUENCES = (hland_inputs.P, hland_factors.RfC, hland_factors.SfC)
     RESULTSEQUENCES = (hland_fluxes.PC,)
 
     @staticmethod
@@ -428,10 +413,7 @@ class Calc_EI_Ic_AETModel_V1(modeltools.Method):
         tf(0.5, 0.5, 0.5, 0.5, 0.5)
     """
 
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.ZoneType,
-    )
+    CONTROLPARAMETERS = (hland_control.NmbZones, hland_control.ZoneType)
     UPDATEDSEQUENCES = (hland_states.Ic,)
     RESULTSEQUENCES = (hland_fluxes.EI,)
 
@@ -456,10 +438,7 @@ class Calc_EI_Ic_V1(modeltools.Method):
 
     SUBMODELINTERFACES = (aetinterfaces.AETModel_V1,)
     SUBMETHODS = (Calc_EI_Ic_AETModel_V1,)
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.ZoneType,
-    )
+    CONTROLPARAMETERS = (hland_control.NmbZones, hland_control.ZoneType)
     UPDATEDSEQUENCES = (hland_states.Ic,)
     RESULTSEQUENCES = (hland_fluxes.EI,)
 
@@ -551,15 +530,8 @@ class Calc_SP_WC_V1(modeltools.Method):
         hland_control.ZoneType,
         hland_control.SFDist,
     )
-    REQUIREDSEQUENCES = (
-        hland_fluxes.TF,
-        hland_factors.RfC,
-        hland_factors.SfC,
-    )
-    UPDATEDSEQUENCES = (
-        hland_states.WC,
-        hland_states.SP,
-    )
+    REQUIREDSEQUENCES = (hland_fluxes.TF, hland_factors.RfC, hland_factors.SfC)
+    UPDATEDSEQUENCES = (hland_states.WC, hland_states.SP)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -660,14 +632,8 @@ class Calc_SPL_WCL_SP_WC_V1(modeltools.Method):
         hland_control.ZoneType,
         hland_control.SMax,
     )
-    UPDATEDSEQUENCES = (
-        hland_states.WC,
-        hland_states.SP,
-    )
-    RESULTSEQUENCES = (
-        hland_fluxes.SPL,
-        hland_fluxes.WCL,
-    )
+    UPDATEDSEQUENCES = (hland_states.WC, hland_states.SP)
+    RESULTSEQUENCES = (hland_fluxes.SPL, hland_fluxes.WCL)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -952,14 +918,8 @@ class Calc_SPG_WCG_SP_WC_V1(modeltools.Method):
         hland_derived.SRedOrder,
         hland_derived.SRedEnd,
     )
-    REQUIREDSEQUENCES = (
-        hland_fluxes.SPL,
-        hland_fluxes.WCL,
-    )
-    UPDATEDSEQUENCES = (
-        hland_states.WC,
-        hland_states.SP,
-    )
+    REQUIREDSEQUENCES = (hland_fluxes.SPL, hland_fluxes.WCL)
+    UPDATEDSEQUENCES = (hland_states.WC, hland_states.SP)
     RESULTSEQUENCES = (
         hland_aides.SPE,
         hland_aides.WCE,
@@ -1252,14 +1212,8 @@ class Calc_Melt_SP_WC_V1(modeltools.Method):
         hland_control.ZoneType,
     )
     DERIVEDPARAMETERS = (hland_derived.TTM,)
-    REQUIREDSEQUENCES = (
-        hland_factors.TC,
-        hland_factors.CFAct,
-    )
-    UPDATEDSEQUENCES = (
-        hland_states.WC,
-        hland_states.SP,
-    )
+    REQUIREDSEQUENCES = (hland_factors.TC, hland_factors.CFAct)
+    UPDATEDSEQUENCES = (hland_states.WC, hland_states.SP)
     RESULTSEQUENCES = (hland_fluxes.Melt,)
 
     @staticmethod
@@ -1410,10 +1364,7 @@ class Calc_Refr_SP_WC_V1(modeltools.Method):
     )
     DERIVEDPARAMETERS = (hland_derived.TTM,)
     REQUIREDSEQUENCES = (hland_factors.TC,)
-    UPDATEDSEQUENCES = (
-        hland_states.WC,
-        hland_states.SP,
-    )
+    UPDATEDSEQUENCES = (hland_states.WC, hland_states.SP)
     RESULTSEQUENCES = (hland_fluxes.Refr,)
 
     @staticmethod
@@ -1526,10 +1477,7 @@ class Calc_In_WC_V1(modeltools.Method):
         hland_control.ZoneType,
         hland_control.WHC,
     )
-    REQUIREDSEQUENCES = (
-        hland_fluxes.TF,
-        hland_states.SP,
-    )
+    REQUIREDSEQUENCES = (hland_fluxes.TF, hland_states.SP)
     UPDATEDSEQUENCES = (hland_states.WC,)
     RESULTSEQUENCES = (hland_fluxes.In_,)
 
@@ -1581,10 +1529,7 @@ class Calc_SWE_V1(modeltools.Method):
         hland_control.SClass,
         hland_control.ZoneType,
     )
-    REQUIREDSEQUENCES = (
-        hland_states.SP,
-        hland_states.WC,
-    )
+    REQUIREDSEQUENCES = (hland_states.SP, hland_states.WC)
     RESULTSEQUENCES = (hland_factors.SWE,)
 
     @staticmethod
@@ -1626,10 +1571,7 @@ class Calc_SR_V1(modeltools.Method):
         sr(0.0, 0.0, 0.0, 0.0, 1.0)
     """
 
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.ZoneType,
-    )
+    CONTROLPARAMETERS = (hland_control.NmbZones, hland_control.ZoneType)
     REQUIREDSEQUENCES = (hland_fluxes.In_,)
     RESULTSEQUENCES = (hland_fluxes.SR,)
 
@@ -1789,11 +1731,7 @@ class Calc_GlMelt_In_V1(modeltools.Method):
         hland_control.ZoneType,
     )
     DERIVEDPARAMETERS = (hland_derived.TTM,)
-    REQUIREDSEQUENCES = (
-        hland_states.SP,
-        hland_factors.TC,
-        hland_factors.GAct,
-    )
+    REQUIREDSEQUENCES = (hland_states.SP, hland_factors.TC, hland_factors.GAct)
     UPDATEDSEQUENCES = (hland_fluxes.In_,)
     RESULTSEQUENCES = (hland_fluxes.GlMelt,)
 
@@ -2008,10 +1946,7 @@ class Calc_CF_SM_V1(modeltools.Method):
         hland_control.FC,
         hland_control.CFlux,
     )
-    REQUIREDSEQUENCES = (
-        hland_fluxes.R,
-        hland_states.UZ,
-    )
+    REQUIREDSEQUENCES = (hland_fluxes.R, hland_states.UZ)
     UPDATEDSEQUENCES = (hland_states.SM,)
     RESULTSEQUENCES = (hland_fluxes.CF,)
 
@@ -2061,7 +1996,8 @@ class Calc_EA_SM_AETModel_V1(modeltools.Method):
 
         |Calc_EA_SM_AETModel_V1| uses the flux returned by the submodel to adjust |SM|:
 
-        >>> model.aetmodel.sequences.fluxes.potentialevapotranspiration = 1.0
+        >>> model.aetmodel.sequences.fluxes.potentialinterceptionevaporation = 1.0
+        >>> model.aetmodel.sequences.fluxes.potentialsoilevapotranspiration = 1.0
         >>> model.aetmodel.sequences.fluxes.interceptionevaporation = 1.0
         >>> states.sm = 3.0
         >>> model.calc_ea_sm_v1()
@@ -2075,7 +2011,8 @@ class Calc_EA_SM_AETModel_V1(modeltools.Method):
         |Calc_EA_SM_AETModel_V1| eventually reduces |EA| so that |SM| does not become
         negative:
 
-        >>> model.aetmodel.sequences.fluxes.potentialevapotranspiration = 5.0
+        >>> model.aetmodel.sequences.fluxes.potentialinterceptionevaporation = 5.0
+        >>> model.aetmodel.sequences.fluxes.potentialsoilevapotranspiration = 5.0
         >>> model.aetmodel.sequences.fluxes.interceptionevaporation = 5.0
         >>> states.sm = 3.0
         >>> model.calc_ea_sm_v1()
@@ -2090,7 +2027,8 @@ class Calc_EA_SM_AETModel_V1(modeltools.Method):
         that would cause soil water to exceed field capacity to the effective soil
         response (|R|):
 
-        >>> model.aetmodel.sequences.fluxes.potentialevapotranspiration = -5.0
+        >>> model.aetmodel.sequences.fluxes.potentialinterceptionevaporation = -5.0
+        >>> model.aetmodel.sequences.fluxes.potentialsoilevapotranspiration = -5.0
         >>> model.aetmodel.sequences.fluxes.interceptionevaporation = -5.0
         >>> states.sm = 47.0
         >>> model.calc_ea_sm_v1()
@@ -2107,10 +2045,7 @@ class Calc_EA_SM_AETModel_V1(modeltools.Method):
         hland_control.ZoneType,
         hland_control.FC,
     )
-    UPDATEDSEQUENCES = (
-        hland_states.SM,
-        hland_fluxes.R,
-    )
+    UPDATEDSEQUENCES = (hland_states.SM, hland_fluxes.R)
     RESULTSEQUENCES = (hland_fluxes.EA,)
 
     @staticmethod
@@ -2142,10 +2077,7 @@ class Calc_EA_SM_V1(modeltools.Method):
         hland_control.ZoneType,
         hland_control.FC,
     )
-    UPDATEDSEQUENCES = (
-        hland_states.SM,
-        hland_fluxes.R,
-    )
+    UPDATEDSEQUENCES = (hland_states.SM, hland_fluxes.R)
     RESULTSEQUENCES = (hland_fluxes.EA,)
 
     @staticmethod
@@ -2199,18 +2131,9 @@ class Calc_InUZ_V1(modeltools.Method):
         inuz(0.0)
     """
 
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.ZoneType,
-    )
-    DERIVEDPARAMETERS = (
-        hland_derived.RelZoneAreas,
-        hland_derived.RelUpperZoneArea,
-    )
-    REQUIREDSEQUENCES = (
-        hland_fluxes.R,
-        hland_fluxes.CF,
-    )
+    CONTROLPARAMETERS = (hland_control.NmbZones, hland_control.ZoneType)
+    DERIVEDPARAMETERS = (hland_derived.RelZoneAreas, hland_derived.RelUpperZoneArea)
+    REQUIREDSEQUENCES = (hland_fluxes.R, hland_fluxes.CF)
     RESULTSEQUENCES = (hland_fluxes.InUZ,)
 
     @staticmethod
@@ -2249,10 +2172,7 @@ class Calc_SUZ_V1(modeltools.Method):
         suz(3.0, 0.0, 4.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.ZoneType,
-    )
+    CONTROLPARAMETERS = (hland_control.NmbZones, hland_control.ZoneType)
     REQUIREDSEQUENCES = (hland_fluxes.R,)
     UPDATEDSEQUENCES = (hland_states.SUZ,)
 
@@ -2344,10 +2264,7 @@ class Calc_ContriArea_V1(modeltools.Method):
         hland_control.FC,
         hland_control.Beta,
     )
-    DERIVEDPARAMETERS = (
-        hland_derived.RelZoneAreas,
-        hland_derived.RelSoilArea,
-    )
+    DERIVEDPARAMETERS = (hland_derived.RelZoneAreas, hland_derived.RelSoilArea)
     REQUIREDSEQUENCES = (hland_states.SM,)
     RESULTSEQUENCES = (hland_factors.ContriArea,)
 
@@ -2579,15 +2496,9 @@ class Calc_Q0_Perc_UZ_V1(modeltools.Method):
         hland_control.Alpha,
     )
     DERIVEDPARAMETERS = (hland_derived.DT,)
-    REQUIREDSEQUENCES = (
-        hland_factors.ContriArea,
-        hland_fluxes.InUZ,
-    )
+    REQUIREDSEQUENCES = (hland_factors.ContriArea, hland_fluxes.InUZ)
     UPDATEDSEQUENCES = (hland_states.UZ,)
-    RESULTSEQUENCES = (
-        hland_fluxes.Perc,
-        hland_fluxes.Q0,
-    )
+    RESULTSEQUENCES = (hland_fluxes.Perc, hland_fluxes.Q0)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -2963,10 +2874,7 @@ class Calc_QAb1_QVs1_BW1_V1(modeltools.Method):
     )
     REQUIREDSEQUENCES = (hland_fluxes.R,)
     UPDATEDSEQUENCES = (hland_states.BW1,)
-    RESULTSEQUENCES = (
-        hland_fluxes.QAb1,
-        hland_fluxes.QVs1,
-    )
+    RESULTSEQUENCES = (hland_fluxes.QAb1, hland_fluxes.QVs1)
     SUBMETHODS = (Calc_QAb_QVs_BW_V1,)
 
     @staticmethod
@@ -3060,10 +2968,7 @@ class Calc_QAb2_QVs2_BW2_V1(modeltools.Method):
     )
     REQUIREDSEQUENCES = (hland_fluxes.QVs1,)
     UPDATEDSEQUENCES = (hland_states.BW2,)
-    RESULTSEQUENCES = (
-        hland_fluxes.QAb2,
-        hland_fluxes.QVs2,
-    )
+    RESULTSEQUENCES = (hland_fluxes.QAb2, hland_fluxes.QVs2)
     SUBMETHODS = (Calc_QAb_QVs_BW_V1,)
 
     @staticmethod
@@ -3147,15 +3052,9 @@ class Calc_RS_RI_SUZ_V1(modeltools.Method):
         hland_control.ZoneType,
         hland_control.SGR,
     )
-    DERIVEDPARAMETERS = (
-        hland_derived.W0,
-        hland_derived.W1,
-    )
+    DERIVEDPARAMETERS = (hland_derived.W0, hland_derived.W1)
     UPDATEDSEQUENCES = (hland_states.SUZ,)
-    RESULTSEQUENCES = (
-        hland_fluxes.RS,
-        hland_fluxes.RI,
-    )
+    RESULTSEQUENCES = (hland_fluxes.RS, hland_fluxes.RI)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -3249,19 +3148,13 @@ class Calc_LZ_V1(modeltools.Method):
         lz(0.0)
     """
 
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.ZoneType,
-    )
+    CONTROLPARAMETERS = (hland_control.NmbZones, hland_control.ZoneType)
     DERIVEDPARAMETERS = (
         hland_derived.RelUpperZoneArea,
         hland_derived.RelLowerZoneArea,
         hland_derived.RelZoneAreas,
     )
-    REQUIREDSEQUENCES = (
-        hland_fluxes.Perc,
-        hland_fluxes.PC,
-    )
+    REQUIREDSEQUENCES = (hland_fluxes.Perc, hland_fluxes.PC)
     UPDATEDSEQUENCES = (hland_states.LZ,)
 
     @staticmethod
@@ -3318,18 +3211,9 @@ class Calc_LZ_V2(modeltools.Method):
         lz(8.0)
     """
 
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.ZoneType,
-    )
-    DERIVEDPARAMETERS = (
-        hland_derived.RelZoneAreas,
-        hland_derived.RelLowerZoneArea,
-    )
-    REQUIREDSEQUENCES = (
-        hland_fluxes.QVs2,
-        hland_fluxes.PC,
-    )
+    CONTROLPARAMETERS = (hland_control.NmbZones, hland_control.ZoneType)
+    DERIVEDPARAMETERS = (hland_derived.RelZoneAreas, hland_derived.RelLowerZoneArea)
+    REQUIREDSEQUENCES = (hland_fluxes.QVs2, hland_fluxes.PC)
     UPDATEDSEQUENCES = (hland_states.LZ,)
 
     @staticmethod
@@ -3510,24 +3394,11 @@ class Calc_GR2_GR3_V1(modeltools.Method):
         gr3(0.5)
     """
 
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.ZoneType,
-    )
-    DERIVEDPARAMETERS = (
-        hland_derived.RelZoneAreas,
-        hland_derived.RelLowerZoneArea,
-    )
+    CONTROLPARAMETERS = (hland_control.NmbZones, hland_control.ZoneType)
+    DERIVEDPARAMETERS = (hland_derived.RelZoneAreas, hland_derived.RelLowerZoneArea)
     FIXEDPARAMETERS = (hland_fixed.FSG,)
-    REQUIREDSEQUENCES = (
-        hland_fluxes.PC,
-        hland_fluxes.DP,
-        hland_fluxes.GR1,
-    )
-    RESULTSEQUENCES = (
-        hland_fluxes.GR2,
-        hland_fluxes.GR3,
-    )
+    REQUIREDSEQUENCES = (hland_fluxes.PC, hland_fluxes.DP, hland_fluxes.GR1)
+    RESULTSEQUENCES = (hland_fluxes.GR2, hland_fluxes.GR3)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -3584,7 +3455,7 @@ class Calc_EL_SG2_SG3_AETModel_V1(modeltools.Method):
         subarea and the fraction between the spatial extents of the first-order and the
         second-order slow response groundwater reservoir:
 
-        >>> model.aetmodel.sequences.fluxes.potentialevapotranspiration = 2.25
+        >>> model.aetmodel.sequences.fluxes.potentialwaterevaporation = 2.25
         >>> states.sg2 = 3.0
         >>> states.sg3 = 0.3
         >>> model.calc_el_sg2_sg3_v1()
@@ -3599,7 +3470,7 @@ class Calc_EL_SG2_SG3_AETModel_V1(modeltools.Method):
         is always possible.  Therefore, applying |Calc_EL_SG2_SG3_AETModel_V1| can
         result in negative |SG2| and |SG3| values:
 
-        >>> model.aetmodel.sequences.fluxes.potentialevapotranspiration = 4.5
+        >>> model.aetmodel.sequences.fluxes.potentialwaterevaporation = 4.5
         >>> states.sg2 = 1.0
         >>> states.sg3 = 0.1
         >>> model.calc_el_sg2_sg3_v1()
@@ -3611,19 +3482,10 @@ class Calc_EL_SG2_SG3_AETModel_V1(modeltools.Method):
         sg3(-0.15)
     """
 
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.ZoneType,
-    )
-    DERIVEDPARAMETERS = (
-        hland_derived.RelZoneAreas,
-        hland_derived.RelLowerZoneArea,
-    )
+    CONTROLPARAMETERS = (hland_control.NmbZones, hland_control.ZoneType)
+    DERIVEDPARAMETERS = (hland_derived.RelZoneAreas, hland_derived.RelLowerZoneArea)
     FIXEDPARAMETERS = (hland_fixed.FSG,)
-    UPDATEDSEQUENCES = (
-        hland_states.SG2,
-        hland_states.SG3,
-    )
+    UPDATEDSEQUENCES = (hland_states.SG2, hland_states.SG3)
     RESULTSEQUENCES = (hland_fluxes.EL,)
 
     @staticmethod
@@ -3652,19 +3514,10 @@ class Calc_EL_SG2_SG3_V1(modeltools.Method):
 
     SUBMODELINTERFACES = (aetinterfaces.AETModel_V1,)
     SUBMETHODS = (Calc_EL_SG2_SG3_AETModel_V1,)
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.ZoneType,
-    )
-    DERIVEDPARAMETERS = (
-        hland_derived.RelZoneAreas,
-        hland_derived.RelLowerZoneArea,
-    )
+    CONTROLPARAMETERS = (hland_control.NmbZones, hland_control.ZoneType)
+    DERIVEDPARAMETERS = (hland_derived.RelZoneAreas, hland_derived.RelLowerZoneArea)
     FIXEDPARAMETERS = (hland_fixed.FSG,)
-    UPDATEDSEQUENCES = (
-        hland_states.SG2,
-        hland_states.SG3,
-    )
+    UPDATEDSEQUENCES = (hland_states.SG2, hland_states.SG3)
     RESULTSEQUENCES = (hland_fluxes.EL,)
 
     @staticmethod
@@ -3830,10 +3683,7 @@ class Calc_RG3_SG3_V1(modeltools.Method):
         sg3(0.786939)
     """
 
-    DERIVEDPARAMETERS = (
-        hland_derived.K4,
-        hland_derived.W4,
-    )
+    DERIVEDPARAMETERS = (hland_derived.K4, hland_derived.W4)
     REQUIREDSEQUENCES = (hland_fluxes.GR3,)
     UPDATEDSEQUENCES = (hland_states.SG3,)
     RESULTSEQUENCES = (hland_fluxes.RG3,)
@@ -3890,7 +3740,7 @@ class Calc_EL_LZ_AETModel_V1(modeltools.Method):
         |Calc_EL_LZ_AETModel_V1| uses the flux returned by the submodel to adjust |LZ|,
         considering the extent of the groundwater-affected subarea:
 
-        >>> model.aetmodel.sequences.fluxes.potentialevapotranspiration = 2.0
+        >>> model.aetmodel.sequences.fluxes.potentialwaterevaporation = 2.0
         >>> states.lz = 3.0
         >>> model.calc_el_lz_v1()
         >>> fluxes.el
@@ -3902,7 +3752,7 @@ class Calc_EL_LZ_AETModel_V1(modeltools.Method):
         is always possible.  Therefore, applying |Calc_EL_LZ_AETModel_V1| can result in
         negative |LZ| values:
 
-        >>> model.aetmodel.sequences.fluxes.potentialevapotranspiration = 6.0
+        >>> model.aetmodel.sequences.fluxes.potentialwaterevaporation = 6.0
         >>> states.lz = 1.0
         >>> model.calc_el_lz_v1()
         >>> fluxes.el
@@ -3911,14 +3761,8 @@ class Calc_EL_LZ_AETModel_V1(modeltools.Method):
         lz(-2.0)
     """
 
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.ZoneType,
-    )
-    DERIVEDPARAMETERS = (
-        hland_derived.RelZoneAreas,
-        hland_derived.RelLowerZoneArea,
-    )
+    CONTROLPARAMETERS = (hland_control.NmbZones, hland_control.ZoneType)
+    DERIVEDPARAMETERS = (hland_derived.RelZoneAreas, hland_derived.RelLowerZoneArea)
     UPDATEDSEQUENCES = (hland_states.LZ,)
     RESULTSEQUENCES = (hland_fluxes.EL,)
 
@@ -3943,14 +3787,8 @@ class Calc_EL_LZ_V1(modeltools.Method):
 
     SUBMODELINTERFACES = (aetinterfaces.AETModel_V1,)
     SUBMETHODS = (Calc_EL_LZ_AETModel_V1,)
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.ZoneType,
-    )
-    DERIVEDPARAMETERS = (
-        hland_derived.RelZoneAreas,
-        hland_derived.RelLowerZoneArea,
-    )
+    CONTROLPARAMETERS = (hland_control.NmbZones, hland_control.ZoneType)
+    DERIVEDPARAMETERS = (hland_derived.RelZoneAreas, hland_derived.RelLowerZoneArea)
     UPDATEDSEQUENCES = (hland_states.LZ,)
     RESULTSEQUENCES = (hland_fluxes.EL,)
 
@@ -4030,10 +3868,7 @@ class Calc_Q1_LZ_V1(modeltools.Method):
         0.1
     """
 
-    CONTROLPARAMETERS = (
-        hland_control.K4,
-        hland_control.Gamma,
-    )
+    CONTROLPARAMETERS = (hland_control.K4, hland_control.Gamma)
     UPDATEDSEQUENCES = (hland_states.LZ,)
     RESULTSEQUENCES = (hland_fluxes.Q1,)
 
@@ -4096,20 +3931,13 @@ class Calc_InUH_V1(modeltools.Method):
         inuh(4.1)
     """
 
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.ZoneType,
-    )
+    CONTROLPARAMETERS = (hland_control.NmbZones, hland_control.ZoneType)
     DERIVEDPARAMETERS = (
         hland_derived.RelZoneAreas,
         hland_derived.RelUpperZoneArea,
         hland_derived.RelLowerZoneArea,
     )
-    REQUIREDSEQUENCES = (
-        hland_fluxes.R,
-        hland_fluxes.Q0,
-        hland_fluxes.Q1,
-    )
+    REQUIREDSEQUENCES = (hland_fluxes.R, hland_fluxes.Q0, hland_fluxes.Q1)
     RESULTSEQUENCES = (hland_fluxes.InUH,)
 
     @staticmethod
@@ -4161,14 +3989,8 @@ class Calc_InUH_V2(modeltools.Method):
         inuh(7.53)
     """
 
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.ZoneType,
-    )
-    DERIVEDPARAMETERS = (
-        hland_derived.RelZoneAreas,
-        hland_derived.RelLowerZoneArea,
-    )
+    CONTROLPARAMETERS = (hland_control.NmbZones, hland_control.ZoneType)
+    DERIVEDPARAMETERS = (hland_derived.RelZoneAreas, hland_derived.RelLowerZoneArea)
     REQUIREDSEQUENCES = (
         hland_fluxes.R,
         hland_fluxes.RS,
@@ -4228,19 +4050,9 @@ class Calc_InUH_V3(modeltools.Method):
         inuh(7.0)
     """
 
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.ZoneType,
-    )
-    DERIVEDPARAMETERS = (
-        hland_derived.RelZoneAreas,
-        hland_derived.RelLandArea,
-    )
-    REQUIREDSEQUENCES = (
-        hland_fluxes.R,
-        hland_fluxes.QAb1,
-        hland_fluxes.QAb2,
-    )
+    CONTROLPARAMETERS = (hland_control.NmbZones, hland_control.ZoneType)
+    DERIVEDPARAMETERS = (hland_derived.RelZoneAreas, hland_derived.RelLandArea)
+    REQUIREDSEQUENCES = (hland_fluxes.R, hland_fluxes.QAb1, hland_fluxes.QAb2)
     RESULTSEQUENCES = (hland_fluxes.InUH,)
 
     @staticmethod
@@ -4416,14 +4228,8 @@ class Calc_OutUH_SC_V1(modeltools.Method):
         2.0
     """
 
-    CONTROLPARAMETERS = (
-        hland_control.NmbStorages,
-        hland_control.RecStep,
-    )
-    DERIVEDPARAMETERS = (
-        hland_derived.DT,
-        hland_derived.KSC,
-    )
+    CONTROLPARAMETERS = (hland_control.NmbStorages, hland_control.RecStep)
+    DERIVEDPARAMETERS = (hland_derived.DT, hland_derived.KSC)
     REQUIREDSEQUENCES = (hland_fluxes.InUH,)
     UPDATEDSEQUENCES = (hland_states.SC,)
     RESULTSEQUENCES = (hland_fluxes.OutUH,)
@@ -4465,6 +4271,7 @@ class Calc_RT_V1(modeltools.Method):
         >>> fluxes.rt
         rt(3.0)
     """
+
     REQUIREDSEQUENCES = (hland_fluxes.OutUH,)
     RESULTSEQUENCES = (hland_fluxes.RT,)
 
@@ -4493,14 +4300,8 @@ class Calc_RT_V2(modeltools.Method):
         rt(2.6)
     """
 
-    DERIVEDPARAMETERS = (
-        hland_derived.RelLandArea,
-        hland_derived.RelLowerZoneArea,
-    )
-    REQUIREDSEQUENCES = (
-        hland_fluxes.OutUH,
-        hland_fluxes.Q1,
-    )
+    DERIVEDPARAMETERS = (hland_derived.RelLandArea, hland_derived.RelLowerZoneArea)
+    REQUIREDSEQUENCES = (hland_fluxes.OutUH, hland_fluxes.Q1)
     RESULTSEQUENCES = (hland_fluxes.RT,)
 
     @staticmethod
@@ -4800,6 +4601,7 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         aetinterfaces.AETModel_V1.prepare_water,
         aetinterfaces.AETModel_V1.prepare_interception,
         aetinterfaces.AETModel_V1.prepare_soil,
+        aetinterfaces.AETModel_V1.prepare_plant,
         landtype_constants=hland_constants.CONSTANTS,
         landtype_refindices=hland_control.ZoneType,
         refweights=hland_control.ZoneArea,
@@ -4829,12 +4631,23 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         ...     interception
         ...     soil
         ...     excessreduction(field=1.0, forest=0.5, default=nan)
+        ...     for method, arguments in model.preparemethod2arguments.items():
+        ...         print(method, arguments[0][0], sep=": ")
         nmbhru(5)
         water(field=False, forest=False, glacier=False, ilake=True,
               sealed=False)
         interception(field=True, forest=True, glacier=False, ilake=False,
                      sealed=True)
         soil(field=True, forest=True, glacier=False, ilake=False, sealed=False)
+        prepare_nmbzones: 5
+        prepare_zonetypes: [1 2 4 3 5]
+        prepare_subareas: [2. 2. 2. 2. 2.]
+        prepare_elevations: [300. 300. 300. 300. 300.]
+        prepare_maxsoilwater: [200. 200. 200. 200. 200.]
+        prepare_water: [False False  True False False]
+        prepare_interception: [ True  True False False False]
+        prepare_plant: [ True  True False False False]
+        prepare_soil: [ True  True False False False]
 
         >>> ered = model.aetmodel.parameters.control.excessreduction
         >>> ered
@@ -4855,18 +4668,15 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         aetmodel.prepare_subareas(control.zonearea.value)
         aetmodel.prepare_elevations(100.0 * control.zonez.values)
         aetmodel.prepare_maxsoilwater(control.fc.values)
-        water = numpy.full(nmbzones, False, dtype=bool)
-        water[zonetype == ILAKE] = True
-        aetmodel.prepare_water(water)
-        interception = numpy.full(nmbzones, True, dtype=bool)
-        interception[zonetype == ILAKE] = False
-        interception[zonetype == GLACIER] = False
-        aetmodel.prepare_interception(interception)
-        soil = numpy.full(nmbzones, True, dtype=bool)
-        soil[zonetype == ILAKE] = False
-        soil[zonetype == GLACIER] = False
-        soil[zonetype == SEALED] = False
-        aetmodel.prepare_soil(soil)
+        sel = numpy.full(nmbzones, False, dtype=bool)
+        sel[zonetype == ILAKE] = True
+        aetmodel.prepare_water(sel)
+        sel = ~sel
+        sel[zonetype == GLACIER] = False
+        aetmodel.prepare_interception(sel)
+        aetmodel.prepare_plant(sel)
+        sel[zonetype == SEALED] = False
+        aetmodel.prepare_soil(sel)
 
 
 class Sub_TempModel_V1(modeltools.AdHocModel, tempinterfaces.TempModel_V1):

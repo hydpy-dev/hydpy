@@ -17,10 +17,7 @@ class WeightUpstream(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
 
-    CONTROLPARAMETERS = (
-        sw1d_control.LengthUpstream,
-        sw1d_control.LengthDownstream,
-    )
+    CONTROLPARAMETERS = (sw1d_control.LengthUpstream, sw1d_control.LengthDownstream)
 
     def update(self) -> None:
         r"""Update the value according to :math:`WeightUpstream = LengthDownstream
@@ -44,10 +41,7 @@ class LengthMin(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (
-        sw1d_control.LengthUpstream,
-        sw1d_control.LengthDownstream,
-    )
+    CONTROLPARAMETERS = (sw1d_control.LengthUpstream, sw1d_control.LengthDownstream)
 
     def update(self) -> None:
         """Take the minimum of |LengthUpstream| and |LengthDownstream|.
@@ -70,10 +64,7 @@ class LengthMean(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (
-        sw1d_control.LengthUpstream,
-        sw1d_control.LengthDownstream,
-    )
+    CONTROLPARAMETERS = (sw1d_control.LengthUpstream, sw1d_control.LengthDownstream)
 
     def update(self) -> None:
         """Take the mean of |LengthUpstream| and |LengthDownstream|.

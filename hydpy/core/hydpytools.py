@@ -66,13 +66,14 @@ class HydPy:
     >>> hp.nodes
     Traceback (most recent call last):
     ...
-    AttributeError: The actual HydPy instance does not handle any nodes at the moment.
+    hydpy.core.exceptiontools.AttributeNotReady: The actual HydPy instance does not \
+handle any nodes at the moment.
 
     >>> hp.elements
     Traceback (most recent call last):
     ...
-    AttributeError: The actual HydPy instance does not handle any elements at the \
-moment.
+    hydpy.core.exceptiontools.AttributeNotReady: The actual HydPy instance does not \
+handle any elements at the moment.
 
     One could continue rather quickly by calling the method |HydPy.prepare_everything|,
     which would make our |HydPy| instance ready for its first simulation run in one go.
@@ -306,7 +307,7 @@ required to prepare the model properly.
     Traceback (most recent call last):
     ...
     hydpy.core.exceptiontools.AttributeNotReady: Sequence `t` of element `land_dill` \
-is not requested to make any time-series data available.
+is not requested to make any time series data available.
 
     Before loading time series data, we need to reserve the required memory storage.
     We do this for all sequences at once (not only the |ModelSequence| objects but also
@@ -678,9 +679,121 @@ is not requested to make any time-series data available.
 
     >>> round_(hp.nodes.dill.sequences.sim.series)
     11.78144, 8.902735, 7.132279, 6.018681
+
+    All filenames of meteorological input time series provided by the `LahnH` example
+    follow a "model-specific" pattern.  Each filename contains not only the name of the
+    corresponding |InputSequence| subclass (e.g., "t") in lowercase letters but also
+    the sequence's group (e.g., "input") and the responsible model's name (e.g.,
+    "hland_v1"):
+
+    >>> old_model = hp.elements.land_dill.model
+    >>> old_model.sequences.inputs.t.filename
+    'hland_v1_input_t.nc'
+
+    For file types that store the time series of single sequence instances, file names
+    must also contain information about the location.  Therefore, the relevant
+    element's name prefixes the pure model-specific pattern:
+
+    >>> pub.sequencemanager.filetype = "asc"
+    >>> old_model.sequences.inputs.t.filename
+    'land_dill_hland_v1_input_t.asc'
+
+    This naming pattern is exact but not always convenient.  For example, assume we
+    want to simulate the `dill` subcatchment with application model |hland_v3| instead
+    of |hland_v1|:
+
+    >>> from hydpy import prepare_model
+    >>> hp.elements.land_dill.model = new_model = prepare_model("hland_v3")
+
+    |hland_v3| requires the same meteorological input as |hland_v1|, for example, the
+    air temperature:
+
+    >>> new_model.prepare_inputseries()
+    >>> round_(new_model.sequences.inputs.t.series)
+    nan, nan, nan, nan
+
+    Reading these data from the available files does not work because of the described
+    filename convention:
+
+    >>> with TestIO():
+    ...     hp.load_inputseries()  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    FileNotFoundError: While trying to load the time series data of sequence `p` of \
+element `land_dill`, the following error occurred: [Errno 2] No such file or \
+directory: '...land_dill_hland_v3_input_p.asc'
+
+    To circumvent this problem, one can use the standard "HydPy" convention instead of
+    the "model-specific" convention when reading or writing input sequences.
+
+    >>> pub.sequencemanager.convention = "HydPy"
+
+    Then, the standard names defined by the |StandardInputNames| enum replace the
+    model-specific filename parts.  For example, the input sequence |hland_inputs.T|
+    selects |StandardInputNames.AIR_TEMPERATURE| as its standard name:
+
+    >>> with pub.sequencemanager.filetype("nc"):
+    ...     old_model.sequences.inputs.t.filename
+    'air_temperature.nc'
+    >>> old_model.sequences.inputs.t.filename
+    'land_dill_air_temperature.asc'
+
+    If we use the |hland_v1| instance to store the meteorological time series based on
+    the "HydPy" convention, the |hland_v3| instance can load them without further
+    effort:
+
+    >>> hp.elements.land_dill.model = old_model
+    >>> with TestIO():
+    ...     hp.save_inputseries()
+    ...     hp.elements.land_dill.model = new_model
+    ...     hp.load_inputseries()
+    >>> round_(old_model.sequences.inputs.t.series)
+    -0.298846, -0.811539, -2.493848, -5.968849
+    >>> round_(new_model.sequences.inputs.t.series)
+    -0.298846, -0.811539, -2.493848, -5.968849
+
+    The standard "HydPy" naming convention is compatible with reading data
+    "just-in-time" from NetCDF files, even if main models and submodels come with
+    different input sequences that require the same data.  Before explaining this, we
+    restore the original |hland_v1| submodel and write all input time series to NetCDF
+    files following the standard naming convention:
+
+    >>> with TestIO():
+    ...     hp.elements.land_dill.prepare_model()
+    ...     hp.elements.land_dill.model.load_conditions()
+    ...     hp.elements.land_dill.prepare_inputseries()
+    ...     hp.elements.land_dill.load_inputseries()
+    ...     with pub.sequencemanager.filetype("nc"):
+    ...         with pub.sequencemanager.netcdfwriting():
+    ...             hp.save_inputseries()
+
+    Now, instead of letting the |evap_pet_hbv96| sub-submodel query the air temperature
+    from the |hland_v1| main model, we add a |meteo_temp_io| sub-sub-submodel that
+    comes with an independent air temperature sequence
+
+    >>> hland = hp.elements.land_dill.model
+    >>> with hland.aetmodel.petmodel.add_tempmodel_v2("meteo_temp_io"):
+    ...     temperatureaddend(0.0)
+    >>> hp.prepare_inputseries(allocate_ram=True, read_jit=True)
+    >>> round_(hland.aetmodel.petmodel.tempmodel.sequences.inputs.temperature.series)
+    nan, nan, nan, nan
+
+    Reading data "just-in-time" makes the same data of the "air_temperature.nc" file
+    available to both sequences (and leads to the same simulation results):
+
+    >>> hland.sequences.inputs.t.series = -777.0
+    >>> with TestIO():
+    ...     hp.prepare_fluxseries()
+    ...     hp.simulate()
+    >>> round_(hland.sequences.inputs.t.series)
+    -0.298846, -0.811539, -2.493848, -5.968849
+    >>> round_(hland.aetmodel.petmodel.tempmodel.sequences.inputs.temperature.series)
+    -0.298846, -0.811539, -2.493848, -5.968849
+    >>> round_(hland.sequences.fluxes.qt.series)
+    11.78144, 8.902735, 7.132279, 6.018681
     """
 
-    _deviceorder: Optional[Tuple[Union[devicetools.Node, devicetools.Element], ...]]
+    _deviceorder: Optional[tuple[Union[devicetools.Node, devicetools.Element], ...]]
 
     _nodes: Optional[devicetools.Nodes]
     _elements: Optional[devicetools.Elements]
@@ -715,8 +828,8 @@ is not requested to make any time-series data available.
         >>> hp.nodes
         Traceback (most recent call last):
         ...
-        AttributeError: The actual HydPy instance does not handle any nodes at the \
-moment.
+        hydpy.core.exceptiontools.AttributeNotReady: The actual HydPy instance does \
+not handle any nodes at the moment.
 
         >>> hp.nodes = "dill", "lahn_1"
         >>> hp.nodes
@@ -728,7 +841,7 @@ moment.
         """
         nodes = self._nodes
         if nodes is None:
-            raise AttributeError(
+            raise exceptiontools.AttributeNotReady(
                 "The actual HydPy instance does not handle any nodes at the moment."
             )
         return nodes
@@ -762,8 +875,8 @@ moment.
         >>> hp.elements
         Traceback (most recent call last):
         ...
-        AttributeError: The actual HydPy instance does not handle any elements \
-at the moment.
+        hydpy.core.exceptiontools.AttributeNotReady: The actual HydPy instance does \
+not handle any elements at the moment.
 
         >>> hp.elements = "land_dill", "land_lahn_1"
         >>> hp.elements
@@ -776,7 +889,7 @@ at the moment.
         """
         elements = self._elements
         if elements is None:
-            raise AttributeError(
+            raise exceptiontools.AttributeNotReady(
                 "The actual HydPy instance does not handle any elements at the moment."
             )
         return elements
@@ -1892,9 +2005,8 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
     @property
     def networkproperties(
         self,
-    ) -> Dict[
-        str,
-        Union[int, Union[Dict[str, int], Dict[devicetools.NodeVariableType, int]]],
+    ) -> dict[
+        str, Union[int, Union[dict[str, int], dict[devicetools.NodeVariableType, int]]]
     ]:
         """Some properties of the network defined by the currently relevant |Node| and
         |Element| objects.
@@ -1938,9 +2050,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         Applied model types: hland_v1 (4) and musk_classic (3)
         """
         value: Union[
-            str,
-            int,
-            Union[Dict[str, int], Dict[devicetools.NodeVariableType, int]],
+            str, int, Union[dict[str, int], dict[devicetools.NodeVariableType, int]]
         ]
         for key, value in self.networkproperties.items():
             if isinstance(value, dict):
@@ -2141,7 +2251,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         return sels1
 
     @property
-    def variables(self) -> Dict[devicetools.NodeVariableType, int]:
+    def variables(self) -> dict[devicetools.NodeVariableType, int]:
         """Summary of all |Node.variable| properties of the currently relevant |Node|
         objects.
 
@@ -2160,15 +2270,15 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         >>> hp.variables
         {'Q': 4, FusedVariable("T", hland_inputs_T): 1}
         """
-        variables: DefaultDict[
+        variables: collections.defaultdict[
             Union[
                 str,
-                Type[sequencetools.InputSequence],
-                Type[sequencetools.InletSequence],
-                Type[sequencetools.ReceiverSequence],
-                Type[sequencetools.OutputSequence],
-                Type[sequencetools.OutletSequence],
-                Type[sequencetools.SenderSequence],
+                type[sequencetools.InputSequence],
+                type[sequencetools.InletSequence],
+                type[sequencetools.ReceiverSequence],
+                type[sequencetools.OutputSequence],
+                type[sequencetools.OutletSequence],
+                type[sequencetools.SenderSequence],
                 devicetools.FusedVariable,
             ],
             int,
@@ -2183,7 +2293,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         )
 
     @property
-    def modeltypes(self) -> Dict[str, int]:
+    def modeltypes(self) -> dict[str, int]:
         """Summary of all |Model| subclasses of the currently relevant |Element|
         objects.
 
@@ -2202,7 +2312,8 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         >>> hp.modeltypes
         {'hland_v1': 4, 'musk_classic': 3}
         """
-        modeltypes: Dict[str, int] = collections.defaultdict(lambda: 0)
+        modeltypes: collections.defaultdict[str, int]
+        modeltypes = collections.defaultdict(lambda: 0)
         for element in self.elements:
             model = exceptiontools.getattr_(
                 element,
@@ -2215,12 +2326,8 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
 
     @overload
     def update_devices(
-        self,
-        *,
-        selection: selectiontools.Selection,
-        silent: bool = False,
-    ) -> None:
-        ...
+        self, *, selection: selectiontools.Selection, silent: bool = False
+    ) -> None: ...
 
     @overload
     def update_devices(
@@ -2229,8 +2336,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         nodes: Optional[devicetools.NodesConstrArg] = None,
         elements: Optional[devicetools.ElementsConstrArg] = None,
         silent: bool = False,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     def update_devices(
         self,
@@ -2430,7 +2536,7 @@ prepared so far.
             self._deviceorder = tuple(d for d in devices if d.name in names)
 
     @property
-    def deviceorder(self) -> Tuple[Union[devicetools.Node, devicetools.Element], ...]:
+    def deviceorder(self) -> tuple[Union[devicetools.Node, devicetools.Element], ...]:
         """The simulation order of the currently selected devices.
 
         |HydPy| needs to know the devices before determining their order:
@@ -2439,9 +2545,9 @@ prepared so far.
         >>> HydPy().deviceorder
         Traceback (most recent call last):
         ...
-        AttributeError: While trying to access the simulation order of the currently \
-relevant devices, the following error occurred: The actual HydPy instance does not \
-handle any elements at the moment.
+        hydpy.core.exceptiontools.AttributeNotReady: While trying to access the \
+simulation order of the currently relevant devices, the following error occurred: The \
+actual HydPy instance does not handle any elements at the moment.
 
         Usually, |HydPy.deviceorder| is ready after calling |HydPy.prepare_network|.
         |HydPy.update_devices| updates the given devices' order, too.
@@ -2458,7 +2564,7 @@ handle any elements at the moment.
             )
 
     @property
-    def methodorder(self) -> List[Callable[[int], None]]:
+    def methodorder(self) -> list[Callable[[int], None]]:
         """All methods of the currently relevant |Node| and |Element| objects, which
         are to be processed by method |HydPy.simulate| during a simulation time step,
         in a working execution order.
@@ -2468,7 +2574,7 @@ handle any elements at the moment.
         # due to https://github.com/python/mypy/issues/9718:
         # pylint: disable=consider-using-in
 
-        funcs: List[Callable[[int], None]] = []
+        funcs: list[Callable[[int], None]] = []
         if exceptiontools.attrready(hydpy.pub, "sequencemanager"):
             funcs.append(hydpy.pub.sequencemanager.read_netcdfslices)
         for node in self.nodes:
@@ -2503,11 +2609,9 @@ handle any elements at the moment.
                 assert_never(dm)
         elements = self.collectives
         for element in elements:
-            if element.senders:
-                funcs.append(element.model.update_senders)
+            funcs.append(element.model.update_senders)
         for element in elements:
-            if element.receivers:
-                funcs.append(element.model.update_receivers)
+            funcs.append(element.model.update_receivers)
         for element in elements:
             funcs.append(element.model.save_data)
         for node in self.nodes:
@@ -2708,7 +2812,7 @@ handle any elements at the moment.
         """
         idx_start, idx_end = hydpy.pub.timegrids.simindices
         methodorder = self.methodorder
-        cm: ContextManager[None] = contextlib.nullcontext()
+        cm: AbstractContextManager[None] = contextlib.nullcontext()
         if exceptiontools.attrready(hydpy.pub, "sequencemanager"):
             cm = hydpy.pub.sequencemanager.provide_netcdfjitaccess(self.deviceorder)
         with cm:

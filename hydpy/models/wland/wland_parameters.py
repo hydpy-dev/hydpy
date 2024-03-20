@@ -16,12 +16,12 @@ if TYPE_CHECKING:
 class SoilParameter(parametertools.Parameter):
     """Base class for parameters related to the soil character.
 
-    Some parameters of *HydPy-W-Land* are strongly related to the soil character
-    and come with default values. To apply these default values, use the `soil`
-    keyword in combination with one of the available soil constants.
+    Some parameters of *HydPy-W-Land* are strongly related to the soil character and
+    come with default values. To apply these default values, use the `soil` keyword in
+    combination with one of the available soil constants.
 
-    We take parameter |B| and the soil character |SAND| as an example,
-    which has the default value `4.05`:
+    We take parameter |B| and the soil character |SAND| as an example, which has the
+    default value `4.05`:
 
     >>> from hydpy.models.wland import *
     >>> parameterstep()
@@ -38,45 +38,44 @@ class SoilParameter(parametertools.Parameter):
     >>> b
     b(3.0)
 
-    The string representation relies on the `soil` keyword only when used to
-    define the value directly beforehand:
+    The string representation relies on the `soil` keyword only when used to define the
+    value directly beforehand:
 
     >>> b(4.05)
     >>> b
     b(4.05)
 
-    For a list of the available defaults, see the respective parameter's
-    documentation or the error message that class |SoilParameter|  raises if
-    one passes a wrong value:
+    For a list of the available defaults, see the respective parameter's documentation
+    or the error message that class |SoilParameter|  raises if one passes a wrong
+    value:
 
     >>> b(soil=0)
     Traceback (most recent call last):
     ...
-    ValueError: While trying the set the value of parameter `b` of element \
-`?`, the following error occurred: The given soil constant `0` is not among \
-the available ones.  Please use one of the following constants: SAND (1), \
-LOAMY_SAND (2), SANDY_LOAM (3), SILT_LOAM (4), LOAM (5), SANDY_CLAY_LOAM (6), \
-SILT_CLAY_LOAM (7), CLAY_LOAM (8), SANDY_CLAY (9), SILTY_CLAY (10), and \
-CLAY (11).
+    ValueError: While trying the set the value of parameter `b` of element `?`, the \
+following error occurred: The given soil constant `0` is not among the available \
+ones.  Please use one of the following constants: SAND (1), LOAMY_SAND (2), \
+SANDY_LOAM (3), SILT_LOAM (4), LOAM (5), SANDY_CLAY_LOAM (6), SILT_CLAY_LOAM (7), \
+CLAY_LOAM (8), SANDY_CLAY (9), SILTY_CLAY (10), and CLAY (11).
 
-    It is not allowed to combine the `soil` keyword with other keywords:
+    Combining the `soil` keyword with other keywords is not allowed:
 
     >>> b(soil=SAND, landuse='acre')
     Traceback (most recent call last):
     ...
-    TypeError: While trying the set the value of parameter `b` of element `?`, \
-the following error occurred: It is not allowed to combine keyword `soil` with \
-other keywords, but the following ones are also used: landuse.
+    TypeError: While trying the set the value of parameter `b` of element `?`, the \
+following error occurred: It is not allowed to combine keyword `soil` with other \
+keywords, but the following ones are also used: landuse.
 
     >>> b(landuse='acre')
     Traceback (most recent call last):
     ...
-    NotImplementedError: While trying the set the value of parameter `b` of \
-element `?`, the following error occurred: The value(s) of parameter `b` of \
-element `?` could not be set based on the given keyword arguments.
+    NotImplementedError: While trying the set the value of parameter `b` of element \
+`?`, the following error occurred: The value(s) of parameter `b` of element `?` could \
+not be set based on the given keyword arguments.
     """
 
-    _SOIL2VALUE: Dict[int, float]
+    _SOIL2VALUE: dict[int, float]
     _soil: Optional[int]
 
     def __init__(self, subvars: parametertools.SubParameters):
@@ -94,9 +93,9 @@ element `?` could not be set based on the given keyword arguments.
                     raise exc
                 if kwargs:
                     raise TypeError(
-                        f"It is not allowed to combine keyword `soil` with "
-                        f"other keywords, but the following ones are also "
-                        f"used: {objecttools.enumeration(kwargs.keys())}."
+                        f"It is not allowed to combine keyword `soil` with other "
+                        f"keywords, but the following ones are also used: "
+                        f"{objecttools.enumeration(kwargs.keys())}."
                     ) from None
                 try:
                     self(self._SOIL2VALUE[soil])
@@ -108,9 +107,9 @@ element `?` could not be set based on the given keyword arguments.
                         for value in self._SOIL2VALUE.keys()
                     )
                     raise ValueError(
-                        f"The given soil constant `{soil}` is not among the "
-                        f"available ones.  Please use one of the following "
-                        f"constants: {objecttools.enumeration(names)}."
+                        f"The given soil constant `{soil}` is not among the available "
+                        f"ones.  Please use one of the following constants: "
+                        f"{objecttools.enumeration(names)}."
                     ) from None
             except BaseException:
                 objecttools.augment_excmessage(
@@ -138,19 +137,18 @@ element `?` could not be set based on the given keyword arguments.
         return f"{self.name}({objecttools.repr_(value)})"
 
 
-class LanduseParameter(parametertools.ZipParameter):
-    """Base class for 1-dimensional parameters relevant for all types
-    of land-use.
+class LanduseParameterLand(parametertools.ZipParameter):
+    """Base class for 1-dimensional parameters relevant for all land-related units.
 
-    We take the parameter |DDT| as an example.  You can define its values by using
-    the names of all land use-related constants in lower-case as keywords:
+    We take the parameter |DDT| as an example.  You can define its values by using the
+    names of all land use-related constants in lower-case as keywords:
 
     >>> from hydpy.models.wland import *
     >>> simulationstep("1d")
     >>> parameterstep("1d")
-    >>> nu(12)
+    >>> nu(13)
     >>> lt(SEALED, FIELD, WINE, ORCHARD, SOIL, PASTURE, WETLAND,
-    ...    TREES, CONIFER, DECIDIOUS, MIXED, SEALED)
+    ...    TREES, CONIFER, DECIDIOUS, MIXED, SEALED, WATER)
     >>> ddf(sealed=0.0, field=1.0, wine=2.0, orchard=3.0, soil=4.0, pasture=5.0,
     ...     wetland=6.0, trees=7.0, conifer=8.0, decidious=9.0, mixed=10.0)
     >>> ddf
@@ -158,24 +156,24 @@ class LanduseParameter(parametertools.ZipParameter):
         pasture=5.0, sealed=0.0, soil=4.0, trees=7.0, wetland=6.0,
         wine=2.0)
     >>> ddf.values
-    array([ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9., 10.,  0.])
+    array([ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9., 10.,  0., nan])
 
-    You can average the current values with regard to the hydrological
-    response area fractions, defined via parameter |AUR|:
+    You can average the current values with regard to the hydrological response area
+    fractions, defined via parameter |AUR|:
 
-    >>> aur(0.01, 0.02, 0.04, 0.05, 0.06, 0.08, 0.09, 0.1, 0.12, 0.13, 0.14, 0.16)
+    >>> aur(0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.11, 0.12, 0.22)
     >>> from hydpy import round_
     >>> round_(ddf.average_values())
-    5.66
+    5.641026
 
-    You can query or change the values related to specific land use types
-    via attribute access:
+    You can query or change the values related to specific land use types via attribute
+    access:
 
     >>> ddf.sealed
     array([0., 0.])
     >>> ddf.sealed = 11.0, 12.0
     >>> ddf
-    ddf(11.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 12.0)
+    ddf(11.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 12.0, nan)
     >>> ddf.sealed = 12.0
     >>> ddf
     ddf(conifer=8.0, decidious=9.0, field=1.0, mixed=10.0, orchard=3.0,
@@ -184,18 +182,18 @@ class LanduseParameter(parametertools.ZipParameter):
     """
 
     constants = wland_constants.LANDUSE_CONSTANTS
-    mask = wland_masks.Complete()
+    mask = wland_masks.Land()
 
     @property
     def refweights(self):
-        """Alias for the associated instance of |AUR| for calculating
-        areal mean values."""
+        """Alias for the associated instance of |AUR| for calculating areal mean
+        values."""
         return self.subpars.aur
 
 
 class LanduseMonthParameter(parametertools.KeywordParameter2D):
-    """Base class for parameters which values depend both on the actual month and
-    land-use type."""
+    """Base class for parameters which values depend on the actual month and land-use
+    type."""
 
     columnnames = (
         "jan",

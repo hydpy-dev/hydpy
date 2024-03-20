@@ -851,7 +851,7 @@ class Options:
         processes to the standard output.""",
     )
     reprdigits = OptionPropertyInt(
-        -1,
+        6,
         """Required precision of string representations of floating point numbers, 
         defined as the minimum number of digits to be reproduced by the string 
         representation (see function |repr_|).""",

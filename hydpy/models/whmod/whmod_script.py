@@ -1052,7 +1052,7 @@ True, 'EVAPORATION_MODE': 'FAO', 'INTERPOLATION_MODE': \
             if not rows[0].startswith("#"):
                 value = rows[1].split("#")[0].strip()
                 if dtype_whmod_main[rows[0]] == bool:
-                    whmod_main[rows[0]] = value == "True"
+                    whmod_main[rows[0]] = hydpy.core.objecttools.value2bool("x", value)
                 else:
                     whmod_main[rows[0]] = dtype_whmod_main[rows[0]](value)
 

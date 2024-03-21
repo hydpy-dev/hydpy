@@ -2492,8 +2492,8 @@ are supported: `monthly` (default), `daily` and `yearly`.
     Dimensions without coordinates: row, col
     >>> aggregate_equaldist_series(series=xarr_series, stepsize="y")    # doctest: +ELLIPSIS
     <xarray.DataArray 'test' (row: 1, col: 2, time: 6)> ...
-    array([[[ 1,  2,  3,  4,  5,  6],
-            [ 2,  4,  6,  8, 10, 12]]])
+    array([[[ 1.,  2.,  3.,  4.,  5.,  6.],
+            [ 2.,  4.,  6.,  8., 10., 12.]]])
     Coordinates:
       * time     (time) datetime64[ns] ... 2000-01-01 2001-01-01 ... 2005-01-01
     Dimensions without coordinates: row, col
@@ -2509,18 +2509,18 @@ are supported: `monthly` (default), `daily` and `yearly`.
     ...      coords={"time": xarr_index},
     ... )
     >>> xarr_series   # doctest: +ELLIPSIS
-    <xarray.DataArray 'test' (row: 1, col: 2, time: 4)> ...
-    array([[[1, 2, 3, 4, 5],
-            [2, 4, 6, 8, 10]]])
+    <xarray.DataArray 'test' (row: 1, col: 2, time: 5)> ...
+    array([[[ 1,  2,  3,  4,  5],
+            [ 2,  4,  6,  8, 10]]])
     Coordinates:
       * time     (time) datetime64[ns] ... 2000-01-01 2000-02-01 ... 2000-05-01
     Dimensions without coordinates: row, col
     >>> aggregate_equaldist_series(series=xarr_series, stepsize="m")   # doctest: +ELLIPSIS
-    <xarray.DataArray 'test' (row: 1, col: 2, time: 4)> ...
-    array([[[2, 3, 4],
-            [4, 6, 8]]])
+    <xarray.DataArray 'test' (row: 1, col: 2, time: 5)> ...
+    array([[[ 1.,  2.,  3.,  4.,  5.],
+            [ 2.,  4.,  6.,  8., 10.]]])
     Coordinates:
-      * time     (time) datetime64[ns] ... 2000-01-31 2000-02-29 2000-03-31 2000-04-30
+      * time     (time) datetime64[ns] ... 2000-01-01 2000-02-01 ... 2000-05-01
     Dimensions without coordinates: row, col
     """
     if isinstance(aggregator, str):

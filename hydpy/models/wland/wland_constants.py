@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""*HydPy-W-Land* provides two types of constants: those associated with the
-average soil character of a sub-catchment and those associated with the land-use
-type of the different hydrological response units of a sub-catchment.  They are
-all available via wildcard-imports:
+"""*HydPy-W-Land* provides two types of constants: those associated with the average
+soil character of a sub-catchment and those associated with the land-use type of the
+different hydrological response units of a sub-catchment.  They are all available via
+wildcard-imports:
 
 >>> from hydpy.models.wland import *
 >>> (SAND, LOAMY_SAND, SANDY_LOAM, SILT_LOAM, LOAM, SANDY_CLAY_LOAM,
@@ -62,6 +62,8 @@ DECIDIOUS = parametertools.IntConstant(21)
 """Land type constant for deciduous forests."""
 MIXED = parametertools.IntConstant(22)
 """Land type constant for mixed forests."""
+WATER = parametertools.IntConstant(23)
+"""Land type constant for the surface water storage."""
 
 
 CONSTANTS = parametertools.Constants()
@@ -98,4 +100,5 @@ __all__ = [
     "CONIFER",
     "DECIDIOUS",
     "MIXED",
+    "WATER",
 ]

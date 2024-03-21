@@ -57,7 +57,7 @@ as they provide input data:
 
 |conv_v002| does not implement any state or log sequences and thus has
 no memory at all, making finalising the test setup quite easy.  We only
-need to define time-series for both inlet nodes.  Note that we set some
+need to define time series for both inlet nodes.  Note that we set some
 |numpy| |numpy.nan| values to demonstrate how |conv_v002| deals with
 missing values:
 

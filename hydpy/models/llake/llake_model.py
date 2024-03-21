@@ -49,10 +49,7 @@ class Solve_DV_DT_V1(modeltools.Method):
 
     DERIVEDPARAMETERS = (llake_derived.NmbSubsteps,)
     UPDATEDSEQUENCES = (llake_states.V,)
-    RESULTSEQUENCES = (
-        llake_aides.V,
-        llake_fluxes.QA,
-    )
+    RESULTSEQUENCES = (llake_aides.V, llake_fluxes.QA)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -97,14 +94,8 @@ class Calc_VQ_V1(modeltools.Method):
         vq(243200.0)
     """
 
-    DERIVEDPARAMETERS = (
-        llake_derived.Seconds,
-        llake_derived.NmbSubsteps,
-    )
-    REQUIREDSEQUENCES = (
-        llake_aides.V,
-        llake_fluxes.QZ,
-    )
+    DERIVEDPARAMETERS = (llake_derived.Seconds, llake_derived.NmbSubsteps)
+    REQUIREDSEQUENCES = (llake_aides.V, llake_fluxes.QZ)
     RESULTSEQUENCES = (llake_aides.VQ,)
 
     @staticmethod
@@ -198,14 +189,8 @@ class Interp_QA_V1(modeltools.Method):
 
     """
 
-    CONTROLPARAMETERS = (
-        llake_control.N,
-        llake_control.Q,
-    )
-    DERIVEDPARAMETERS = (
-        llake_derived.TOY,
-        llake_derived.VQ,
-    )
+    CONTROLPARAMETERS = (llake_control.N, llake_control.Q)
+    DERIVEDPARAMETERS = (llake_derived.TOY, llake_derived.VQ)
     REQUIREDSEQUENCES = (llake_aides.VQ,)
     RESULTSEQUENCES = (llake_aides.QA,)
 
@@ -275,15 +260,9 @@ class Calc_V_QA_V1(modeltools.Method):
         calculation step size defined by parameter `maxdt`.
     """
 
-    DERIVEDPARAMETERS = (
-        llake_derived.NmbSubsteps,
-        llake_derived.Seconds,
-    )
+    DERIVEDPARAMETERS = (llake_derived.NmbSubsteps, llake_derived.Seconds)
     REQUIREDSEQUENCES = (llake_fluxes.QZ,)
-    UPDATEDSEQUENCES = (
-        llake_aides.QA,
-        llake_aides.V,
-    )
+    UPDATEDSEQUENCES = (llake_aides.QA, llake_aides.V)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -337,11 +316,7 @@ class Interp_W_V1(modeltools.Method):
         used for linear extrapolation.
     """
 
-    CONTROLPARAMETERS = (
-        llake_control.N,
-        llake_control.V,
-        llake_control.W,
-    )
+    CONTROLPARAMETERS = (llake_control.N, llake_control.V, llake_control.W)
     REQUIREDSEQUENCES = (llake_states.V,)
     RESULTSEQUENCES = (llake_states.W,)
 
@@ -399,11 +374,7 @@ class Interp_V_V1(modeltools.Method):
         pairs, the outer two highest pairs are used for linear extrapolation.
     """
 
-    CONTROLPARAMETERS = (
-        llake_control.N,
-        llake_control.V,
-        llake_control.W,
-    )
+    CONTROLPARAMETERS = (llake_control.N, llake_control.V, llake_control.W)
     REQUIREDSEQUENCES = (llake_states.W,)
     RESULTSEQUENCES = (llake_states.V,)
 
@@ -536,16 +507,9 @@ class Corr_DW_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (llake_control.MaxDW,)
-    DERIVEDPARAMETERS = (
-        llake_derived.TOY,
-        llake_derived.Seconds,
-    )
+    DERIVEDPARAMETERS = (llake_derived.TOY, llake_derived.Seconds)
     REQUIREDSEQUENCES = (llake_fluxes.QZ,)
-    UPDATEDSEQUENCES = (
-        llake_states.W,
-        llake_states.V,
-        llake_fluxes.QA,
-    )
+    UPDATEDSEQUENCES = (llake_states.W, llake_states.V, llake_fluxes.QA)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -676,18 +640,8 @@ class Model(modeltools.AdHocModel):
 
     INLET_METHODS = (Pick_Q_V1,)
     RECEIVER_METHODS = ()
-    RUN_METHODS = (
-        Solve_DV_DT_V1,
-        Interp_W_V1,
-        Corr_DW_V1,
-        Modify_QA_V1,
-    )
-    ADD_METHODS = (
-        Interp_V_V1,
-        Calc_VQ_V1,
-        Interp_QA_V1,
-        Calc_V_QA_V1,
-    )
+    RUN_METHODS = (Solve_DV_DT_V1, Interp_W_V1, Corr_DW_V1, Modify_QA_V1)
+    ADD_METHODS = (Interp_V_V1, Calc_VQ_V1, Interp_QA_V1, Calc_V_QA_V1)
     OUTLET_METHODS = (Pass_Q_V1,)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()

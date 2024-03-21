@@ -82,8 +82,7 @@ def calc_smoothpar_logistic1(metapar):
 
 
 def _error_smoothpar_logistic2(par, metapar):
-    sl2 = smoothutils.smooth_logistic2  # pylint: disable=used-before-assignment
-    return sl2(-metapar, par) - 0.01
+    return smoothutils.smooth_logistic2(-metapar, par) - 0.01
 
 
 def _smooth_logistic2_derivative1(par, metapar):

@@ -42,10 +42,10 @@
 
 \
 
-.. image:: https://img.shields.io/travis/hydpy-dev/hydpy/master?label=Travis%20master
+.. image:: https://img.shields.io/travis/com/hydpy-dev/hydpy/master?label=Travis%20master
    :alt: Travis master
    :target: https://app.travis-ci.com/github/hydpy-dev/hydpy/branches
-.. image:: https://img.shields.io/travis/hydpy-dev/hydpy?label=latest
+.. image:: https://img.shields.io/travis/com/hydpy-dev/hydpy?label=latest
    :alt: Travis latest
    :target: https://app.travis-ci.com/hydpy-dev/hydpy
 

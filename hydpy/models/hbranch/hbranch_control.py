@@ -160,7 +160,7 @@ sequence and connect it to the respective outlet nodes properly.
 
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         try:
             shape = (len(kwargs), self.subpars.xpoints.shape[0])
         except exceptiontools.AttributeNotReady:
@@ -196,7 +196,7 @@ sequence and connect it to the respective outlet nodes properly.
                         f"branch to node `{key}`, but such a node is not available."
                     )
             try:
-                self.values[idx] = value
+                self.values[idx] = value  # type: ignore[index]
             except BaseException:
                 if shape[1] != len(value):
                     raise ValueError(
@@ -215,13 +215,13 @@ sequence and connect it to the respective outlet nodes properly.
         self.subpars.pars.model.sequences.fluxes.outputs.shape = shape[0]
         self.subpars.pars.model.nodenames.clear()
         for idx, key in enumerate(sorted(kwargs.keys())):
-            setattr(self, key, self.values[idx])
+            setattr(self, key, self.values[idx])  # type: ignore[index]
             self.subpars.pars.model.nodenames.append(key)
 
     def __repr__(self) -> str:
         try:
-            lines = self.commentrepr
             names = self.subpars.pars.model.nodenames
+            lines = []
             for idx, (name, values) in enumerate(zip(names, self._get_value())):
                 line = f"{name}={repr(list(values))},"
                 if not idx:

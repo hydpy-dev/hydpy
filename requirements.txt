@@ -15,6 +15,7 @@ plotly
 pylint
 pynsist
 setuptools
+strenum; python_version<'3.11'
 types-docutils
 typing_extensions
 scipy

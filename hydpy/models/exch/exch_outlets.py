@@ -6,7 +6,7 @@
 from hydpy.core import sequencetools
 
 
-class E(sequencetools.OutletSequence):
-    """Bidirectional water exchange [m³]."""
+class Exchange(sequencetools.OutletSequence):
+    """Bidirectional water exchange [m³/s]."""
 
     NDIM, NUMERIC = 1, False

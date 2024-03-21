@@ -161,10 +161,7 @@ class Model(conv_model.BaseModel):
 
     INLET_METHODS = (conv_model.Pick_Inputs_V1,)
     RECEIVER_METHODS = ()
-    ADD_METHODS = (
-        conv_model.Return_Mean_V1,
-        conv_model.Interpolate_InverseDistance_V1,
-    )
+    ADD_METHODS = (conv_model.Return_Mean_V1, conv_model.Interpolate_InverseDistance_V1)
     RUN_METHODS = (
         conv_model.Calc_ActualConstant_ActualFactor_V1,
         conv_model.Calc_InputPredictions_V1,

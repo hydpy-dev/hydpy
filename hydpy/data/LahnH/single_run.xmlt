@@ -61,12 +61,16 @@
             <reader info="all input data">
                 <selections>from_keywords</selections>
                 <sequences>
+                    <evap_pet_hbv96>
+                        <inputs>
+                            <normalairtemperature/>
+                            <normalevapotranspiration/>
+                        </inputs>
+                    </evap_pet_hbv96>
                     <hland_v1>
                         <inputs>
                             <p/>
                             <t/>
-                            <tn/>
-                            <epn/>
                         </inputs>
                     </hland_v1>
                 </sequences>

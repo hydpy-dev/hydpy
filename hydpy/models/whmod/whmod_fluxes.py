@@ -5,14 +5,7 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
-
-
-class Sequence1D(sequencetools.FluxSequence):
-    NDIM, NUMERIC = 1, False
-
-    @property
-    def refweights(self):
-        return self.subseqs.seqs.model.parameters.derived.relarea
+from hydpy.models.whmod import whmod_sequences
 
 
 class NiederschlagRichter(sequencetools.FluxSequence):
@@ -21,69 +14,59 @@ class NiederschlagRichter(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, False
 
 
-class InterzeptionsVerdunstung(Sequence1D):
+class InterzeptionsVerdunstung(whmod_sequences.Flux1DSequence):
     """[mm]"""
 
 
-class NiedNachInterz(Sequence1D):
+class NiedNachInterz(whmod_sequences.Flux1DSequence):
     """[mm]"""
 
 
-class Seeniederschlag(Sequence1D):
+class Seeniederschlag(whmod_sequences.Flux1DSequence):
     """[mm]"""
 
 
-class ZuflussBoden(Sequence1D):
+class ZuflussBoden(whmod_sequences.Flux1DSequence):
     """[mm]"""
 
 
-class Oberflaechenabfluss(Sequence1D):
+class Oberflaechenabfluss(whmod_sequences.Flux1DSequence):
     """[mm]"""
 
 
-class RelBodenfeuchte(Sequence1D):
-    """[-]"""
-
-
-class Sickerwasser(Sequence1D):
+class Sickerwasser(whmod_sequences.Flux1DSequence):
     """[mm]"""
 
 
-class Saettigungsdampfdruckdefizit(sequencetools.FluxSequence):
-    """[mbar]"""
-
-    NDIM, NUMERIC = 0, False
-
-
-class MaxVerdunstung(Sequence1D):
+class MaxVerdunstung(whmod_sequences.Flux1DSequence):
     """[mm]"""
 
 
-class Bodenverdunstung(Sequence1D):
+class Bodenverdunstung(whmod_sequences.Flux1DSequence):
     """[mm]"""
 
 
-class Seeverdunstung(Sequence1D):
+class Seeverdunstung(whmod_sequences.Flux1DSequence):
     """[mm]"""
 
 
-class AktVerdunstung(Sequence1D):
+class AktVerdunstung(whmod_sequences.Flux1DSequence):
     """[mm]"""
 
 
-class PotKapilAufstieg(Sequence1D):
+class PotKapilAufstieg(whmod_sequences.Flux1DSequence):
     """[mm]"""
 
 
-class KapilAufstieg(Sequence1D):
+class KapilAufstieg(whmod_sequences.Flux1DSequence):
     """[mm]"""
 
 
-class PotGrundwasserneubildung(Sequence1D):
+class PotGrundwasserneubildung(whmod_sequences.Flux1DSequence):
     """[mm]"""
 
 
-class Basisabfluss(Sequence1D):
+class Basisabfluss(whmod_sequences.Flux1DSequence):
     """[mm]"""
 
 

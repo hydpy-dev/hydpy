@@ -24,7 +24,7 @@ from hydpy.models.ga import ga_model
 ADDITIONAL_CONTROLPARAMETERS = (ga_control.NmbSoils,)
 
 
-class Model(ga_model.Base_SoilModel_V1, ga_model.MixinGARTO):
+class Model(ga_model.Base_SoilModel_V1):
     """The GARTO algorithm (assuming a hydrostatic groundwater table), implemented as
     a submodel meeting the requirements of the |SoilModel_V1| interface."""
 

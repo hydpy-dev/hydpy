@@ -41,13 +41,13 @@ class ParameterIUH:
 
     name: str
     """Name of the handled |IUH| parameter."""
-    type_: Type[float]
+    type_: type[float]
     """Type of the handled |IUH| parameter."""
 
     _name: str
 
     def __init__(
-        self, name: str, type_: Type[Any] = float, doc: Optional[object] = None
+        self, name: str, type_: type[Any] = float, doc: Optional[object] = None
     ):
         self.name = name
         self._name = "_" + name
@@ -58,15 +58,13 @@ class ParameterIUH:
         )
 
     @overload
-    def __get__(self, obj: None, type_: Optional[Type[IUH]] = None) -> Self:
-        ...
+    def __get__(self, obj: None, type_: Optional[type[IUH]] = None) -> Self: ...
 
     @overload
-    def __get__(self, obj: IUH, type_: Optional[Type[IUH]] = None) -> float:
-        ...
+    def __get__(self, obj: IUH, type_: Optional[type[IUH]] = None) -> float: ...
 
     def __get__(
-        self, obj: Optional[IUH], type_: Optional[Type[IUH]] = None
+        self, obj: Optional[IUH], type_: Optional[type[IUH]] = None
     ) -> Union[ParameterIUH, float]:
         return self if obj is None else getattr(obj, self._name)
 
@@ -119,7 +117,7 @@ class MetaIUH(type):
     """
 
     def __new__(
-        mcs, name: str, parents: Tuple[Type[Any]], dict_: Dict[str, Any]
+        mcs, name: str, parents: tuple[type[Any]], dict_: dict[str, Any]
     ) -> MetaIUH:
         primary_parameters = {}
         secondary_parameters = {}
@@ -159,8 +157,8 @@ class IUH(metaclass=MetaIUH):
     """Smallest value taken into account for plotting and analyzing iuh functions."""
 
     # Overwritten by metaclass:
-    _PRIMARY_PARAMETERS: Dict[str, PrimaryParameterIUH] = {}
-    _SECONDARY_PARAMETERS: Dict[str, SecondaryParameterIUH] = {}
+    _PRIMARY_PARAMETERS: dict[str, PrimaryParameterIUH] = {}
+    _SECONDARY_PARAMETERS: dict[str, SecondaryParameterIUH] = {}
 
     def __init__(self, **kwargs: float) -> None:
         self.ma = armatools.MA(self)
@@ -218,7 +216,7 @@ class IUH(metaclass=MetaIUH):
                 delattr(self, secpar.name)
 
     @property
-    def delay_response_series(self) -> Tuple[VectorFloat, VectorFloat]:
+    def delay_response_series(self) -> tuple[VectorFloat, VectorFloat]:
         """A tuple of two numpy arrays, which hold the time delays and the associated
         iuh values respectively."""
         delays = []
@@ -266,7 +264,7 @@ class IUH(metaclass=MetaIUH):
         return statstools.calc_mean_time_deviation(delays, response, moment1)
 
     @property
-    def moments(self) -> Tuple[float, float]:
+    def moments(self) -> tuple[float, float]:
         """The first two time delay weighted statistical moments of the instantaneous
         unit hydrograph."""
         return self.moment1, self.moment2
@@ -431,12 +429,10 @@ keywords were given: d and u.
         self.b = self.u / (2.0 * self.d**0.5)
 
     @overload
-    def __call__(self, t: float) -> float:
-        ...
+    def __call__(self, t: float) -> float: ...
 
     @overload
-    def __call__(self, t: VectorFloat) -> VectorFloat:
-        ...
+    def __call__(self, t: VectorFloat) -> VectorFloat: ...
 
     def __call__(self, t: Union[float, VectorFloat]) -> Union[float, VectorFloat]:
         # float-handling optimised for fast numerical integration
@@ -517,12 +513,10 @@ class LinearStorageCascade(IUH):
         self.log_k = numpy.log(self.k)
 
     @overload
-    def __call__(self, t: float) -> float:
-        ...
+    def __call__(self, t: float) -> float: ...
 
     @overload
-    def __call__(self, t: VectorFloat) -> VectorFloat:
-        ...
+    def __call__(self, t: VectorFloat) -> VectorFloat: ...
 
     def __call__(self, t: Union[float, VectorFloat]) -> Union[float, VectorFloat]:
         # float-handling optimised for fast numerical integration

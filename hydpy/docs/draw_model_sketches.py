@@ -7,14 +7,15 @@ some refactoring.
 For now, calling this script is not part of our Travis-CI workflow.  So we have to run
 the script and exchange the resulting png files manually each time something changes.
 """
+
 # pylint: disable=missing-class-docstring
 # pylint: disable=missing-function-docstring
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 import os
-from typing import Literal
-from typing import Final, List, NamedTuple, Optional, Sequence, Tuple, Union
+from typing import Final, Literal, NamedTuple, Optional, Union
 
 from matplotlib import pyplot
 import numpy
@@ -53,8 +54,8 @@ class Index:
 class Grid:
     nrows: int
     ncols: int
-    xs: Tuple[float, ...] = field(init=False)
-    ys: Tuple[float, ...] = field(init=False)
+    xs: tuple[float, ...] = field(init=False)
+    ys: tuple[float, ...] = field(init=False)
     dx: float = field(init=False)
     dy: float = field(init=False)
 
@@ -68,10 +69,7 @@ class Grid:
         j1 = (index.j0 if index.j1 is None else index.j1) + 1
         i1 = (index.i0 if index.i1 is None else index.i1) + 1
         return CellExtent(
-            x0=self.xs[index.j0],
-            x1=self.xs[j1],
-            y0=self.ys[index.i0],
-            y1=self.ys[i1],
+            x0=self.xs[index.j0], x1=self.xs[j1], y0=self.ys[index.i0], y1=self.ys[i1]
         )
 
 
@@ -92,13 +90,10 @@ class Point(NamedTuple):
         x1m = cellextent.x1 - margins.right * cellextent.dx
         y0m = cellextent.y0 + margins.bottom * cellextent.dy
         y1m = cellextent.y1 - margins.top * cellextent.dy
-        return type(self)(
-            x=self.x * (x1m - x0m) + x0m,
-            y=self.y * (y1m - y0m) + y0m,
-        )
+        return type(self)(x=self.x * (x1m - x0m) + x0m, y=self.y * (y1m - y0m) + y0m)
 
 
-class Points(List[Point]):
+class Points(list[Point]):
     def __init__(self, *args: Point) -> None:
         super().__init__(args)
 
@@ -189,11 +184,7 @@ class Element:
         )
 
     def draw_text(
-        self,
-        frame: Frame,
-        text: str,
-        point: Point,
-        properties: TextProperties,
+        self, frame: Frame, text: str, point: Point, properties: TextProperties
     ) -> None:
         point = self._adjust_point(frame, point)
         pyplot.text(
@@ -206,11 +197,7 @@ class Element:
         )
 
     def draw_arrow(
-        self,
-        frame: Frame,
-        base: Point,
-        length: Point,
-        properties: ArrowProperties,
+        self, frame: Frame, base: Point, length: Point, properties: ArrowProperties
     ) -> None:
         base = self._adjust_point(frame=frame, point=base)
         pyplot.arrow(
@@ -226,10 +213,7 @@ class Element:
             head_width=properties.headwidth,
         )
 
-    def draw_special_form(
-        self,
-        frame: Frame,
-    ) -> None:
+    def draw_special_form(self, frame: Frame) -> None:
         top = 1.0
         self.draw_line(
             frame=frame,
@@ -248,10 +232,7 @@ class Element:
         gol = GOL * (top - TOL) + TOL
         self.draw_line(
             frame=frame,
-            points=Points(
-                Point(0.0, gol),
-                Point(top, gol),
-            ),
+            points=Points(Point(0.0, gol), Point(top, gol)),
             properties=LineProperties(style="dotted"),
         )
 
@@ -298,10 +279,7 @@ class Interception(Element):
             properties=TextProperties(horizontal="left"),
         )
         self.draw_text(
-            frame=frame,
-            text="IC",
-            point=Point(0.5, TOL),
-            properties=TextProperties(),
+            frame=frame, text="IC", point=Point(0.5, TOL), properties=TextProperties()
         )
         self.draw_arrow(
             frame=frame,
@@ -375,40 +353,24 @@ class Snow(Element):
             frame=frame,
             points=(
                 Points(
-                    Point(0.0, 1.0),
-                    Point(0.0, TOL),
-                    Point(0.5, TOL),
-                    Point(0.5, 1.0),
+                    Point(0.0, 1.0), Point(0.0, TOL), Point(0.5, TOL), Point(0.5, 1.0)
                 ),
-                Points(
-                    Point(0.5, TOL),
-                    Point(0.75 - HOW, TOL),
-                    Point(0.75 - HOW, 0.0),
-                ),
+                Points(Point(0.5, TOL), Point(0.75 - HOW, TOL), Point(0.75 - HOW, 0.0)),
                 Points(
                     Point(0.75 + HOW, 0.0),
                     Point(0.75 + HOW, TOL),
                     Point(1.0, TOL),
                     Point(1.0, 0.8),
                 ),
-                Points(
-                    Point(0.5, 0.8),
-                    Point(1.0, 0.8),
-                ),
+                Points(Point(0.5, 0.8), Point(1.0, 0.8)),
             ),
             properties=LineProperties(),
         )
         self.draw_line(
             frame=frame,
             points=(
-                Points(
-                    Point(0.0, 0.9),
-                    Point(0.5, 0.9),
-                ),
-                Points(
-                    Point(0.5, 0.6),
-                    Point(1.0, 0.6),
-                ),
+                Points(Point(0.0, 0.9), Point(0.5, 0.9)),
+                Points(Point(0.5, 0.6), Point(1.0, 0.6)),
             ),
             properties=LineProperties(style="dotted"),
         )
@@ -419,16 +381,10 @@ class Snow(Element):
             properties=TextProperties(horizontal="right"),
         )
         self.draw_text(
-            frame=frame,
-            text="SP",
-            point=Point(0.25, TOL),
-            properties=TextProperties(),
+            frame=frame, text="SP", point=Point(0.25, TOL), properties=TextProperties()
         )
         self.draw_text(
-            frame=frame,
-            text="WC",
-            point=Point(0.75, TOL),
-            properties=TextProperties(),
+            frame=frame, text="WC", point=Point(0.75, TOL), properties=TextProperties()
         )
         self.draw_arrow(
             frame=frame,
@@ -508,10 +464,7 @@ class Soil(Element):
             properties=TextProperties(horizontal="left"),
         )
         self.draw_text(
-            frame=frame,
-            text="SM",
-            point=Point(0.5, TOL),
-            properties=TextProperties(),
+            frame=frame, text="SM", point=Point(0.5, TOL), properties=TextProperties()
         )
         if self.version == "v1_v2":
             x_r = 0.25
@@ -610,16 +563,10 @@ class UZ_SG1_BW(Element):
         raise NotImplementedError
 
     @property
-    def arrayinfo(self) -> Tuple[ArrowProperties, float]:
+    def arrayinfo(self) -> tuple[ArrowProperties, float]:
         if self.arrows:
             return ArrowProperties(), -1.31
-        return (
-            ArrowProperties(
-                color="grey",
-                headwidth=0.0,
-            ),
-            -1.0,
-        )
+        return (ArrowProperties(color="grey", headwidth=0.0), -1.0)
 
 
 @dataclass
@@ -675,17 +622,10 @@ class UZ(UZ_SG1_BW):
             )
         else:
             raise NotImplementedError
+        self.draw_line(frame=frame, points=points, properties=LineProperties())
         self.draw_line(
             frame=frame,
-            points=points,
-            properties=LineProperties(),
-        )
-        self.draw_line(
-            frame=frame,
-            points=Points(
-                Point(0.0, 1.0),
-                Point(1.0, 1.0),
-            ),
+            points=Points(Point(0.0, 1.0), Point(1.0, 1.0)),
             properties=LineProperties(style="dotted"),
         )
         if self.version == "v1_v2":
@@ -753,10 +693,7 @@ class UZ(UZ_SG1_BW):
         if self.version == "v3":
             self.draw_line(
                 frame=frame,
-                points=Points(
-                    Point(0.0, TOL + d_outlet2),
-                    Point(1.0, TOL + d_outlet2),
-                ),
+                points=Points(Point(0.0, TOL + d_outlet2), Point(1.0, TOL + d_outlet2)),
                 properties=LineProperties(style="dashed"),
             )
             if not self.arrows:
@@ -812,27 +749,18 @@ class LZ(Element):
                     Point(0.0, 0.5 + 2 * HOW),
                     Point(0.0, oversize),
                 ),
-                Points(
-                    Point(1.0, bottom),
-                    Point(1.0, oversize),
-                ),
+                Points(Point(1.0, bottom), Point(1.0, oversize)),
             ),
             properties=LineProperties(),
         )
         y = 0.8
         self.draw_line(
             frame=frame,
-            points=Points(
-                Point(0.0, y),
-                Point(1.0, y),
-            ),
+            points=Points(Point(0.0, y), Point(1.0, y)),
             properties=LineProperties(style="dotted"),
         )
         self.draw_text(
-            frame=frame,
-            text="LZ",
-            point=Point(0.5, TOL),
-            properties=TextProperties(),
+            frame=frame, text="LZ", point=Point(0.5, TOL), properties=TextProperties()
         )
         self.draw_arrow(
             frame=frame,
@@ -914,10 +842,7 @@ class SG1(UZ_SG1_BW):
         y = 0.8
         self.draw_line(
             frame=frame,
-            points=Points(
-                Point(0.0, y),
-                Point(1.0, y),
-            ),
+            points=Points(Point(0.0, y), Point(1.0, y)),
             properties=LineProperties(style="dotted"),
         )
         self.draw_text(
@@ -1000,20 +925,14 @@ class SG23(Element):
                     Point(0.0 + 0.0, 0.5 + 2 * HOW),
                     Point(0.0 + 0.0, 1.0),
                 ),
-                Points(
-                    Point(1.0, bottom),
-                    Point(1.0, 1.0),
-                ),
+                Points(Point(1.0, bottom), Point(1.0, 1.0)),
             ),
             properties=LineProperties(),
         )
         y = 0.8
         self.draw_line(
             frame=frame,
-            points=Points(
-                Point(0.0, y),
-                Point(1.0, y),
-            ),
+            points=Points(Point(0.0, y), Point(1.0, y)),
             properties=LineProperties(style="dotted"),
         )
         self.draw_text(
@@ -1110,10 +1029,7 @@ class BW(UZ_SG1_BW):
         )
         self.draw_line(
             frame=frame,
-            points=Points(
-                Point(0.0, 1.0),
-                Point(1.0, 1.0),
-            ),
+            points=Points(Point(0.0, 1.0), Point(1.0, 1.0)),
             properties=LineProperties(style="dotted"),
         )
         self.draw_text(
@@ -1173,10 +1089,7 @@ class UH(Element):
             properties=LineProperties(),
         )
         self.draw_text(
-            frame=frame,
-            text="Q",
-            point=Point(0.25, 0.25),
-            properties=TextProperties(),
+            frame=frame, text="Q", point=Point(0.25, 0.25), properties=TextProperties()
         )
 
 
@@ -1287,8 +1200,7 @@ class Frame:
         fig.subplots_adjust(right=1)
         fig.subplots_adjust(left=0)
         fig.set_size_inches(
-            self.xfactor * self.grid.ncols,
-            self.yfactor * self.grid.nrows,
+            self.xfactor * self.grid.ncols, self.yfactor * self.grid.nrows
         )
         if filename is None:
             pyplot.show()
@@ -1316,9 +1228,7 @@ if __name__ == "__main__":
     ]
     elements_hland_v1 = elements_hland_v1_v2 + [UH(Index(i0=0, j0=0))]
     Frame(
-        grid=Grid(nrows=11, ncols=4),
-        margins=Margins(),
-        elements=elements_hland_v1,
+        grid=Grid(nrows=11, ncols=4), margins=Margins(), elements=elements_hland_v1
     ).plot("HydPy-H-Land_Version-1.png")
 
     elements_hland_v2 = elements_hland_v1_v2 + [SC(Index(i0=0, j0=0))]
@@ -1334,9 +1244,7 @@ if __name__ == "__main__":
         if isinstance(element, LZ):
             element.version = "v2"
     Frame(
-        grid=Grid(nrows=12, ncols=5),
-        margins=Margins(),
-        elements=elements_hland_v2,
+        grid=Grid(nrows=12, ncols=5), margins=Margins(), elements=elements_hland_v2
     ).plot("HydPy-H-Land_Version-2.png")
 
     elements_hland_v3 = [e for e in elements_hland_v2 if not isinstance(e, (UZ, LZ))]
@@ -1363,9 +1271,7 @@ if __name__ == "__main__":
         )
     )
     Frame(
-        grid=Grid(nrows=15, ncols=5),
-        margins=Margins(),
-        elements=elements_hland_v3,
+        grid=Grid(nrows=15, ncols=5), margins=Margins(), elements=elements_hland_v3
     ).plot("HydPy-H-Land_Version-3.png")
 
     elements_hland_v4 = [
@@ -1393,7 +1299,5 @@ if __name__ == "__main__":
         )
     )
     Frame(
-        grid=Grid(nrows=13, ncols=5),
-        margins=Margins(),
-        elements=elements_hland_v4,
+        grid=Grid(nrows=13, ncols=5), margins=Margins(), elements=elements_hland_v4
     ).plot("HydPy-H-Land_Version-4.png")

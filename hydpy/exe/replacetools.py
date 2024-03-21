@@ -169,7 +169,7 @@ for marker `e4`.
     with open(templatename, encoding=config.ENCODING) as templatefile:
         templatebody = templatefile.read()
     parts = templatebody.replace("<!--|", "|-->").split("|-->")
-    defaults: Dict[str, str] = {}
+    defaults: dict[str, str] = {}
     for idx, part in enumerate(parts):
         if idx % 2:
             subparts = part.partition("=")

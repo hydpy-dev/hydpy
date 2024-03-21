@@ -38,18 +38,19 @@ if TYPE_CHECKING:
         descr_sequence = "just_for_testing"
 
 
-def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
+def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     """Prepare an IO example configuration for testing purposes.
 
     Function |prepare_io_example_1| is thought for testing the functioning of *HydPy*
-    and thus should be of interest for framework developers only.  It uses the
-    application models |lland_v1|, |lland_v3|, and |hland_v1|.  Here, we apply
-    |prepare_io_example_1| and shortly discuss different aspects of its generated data.
+    and thus should be of interest for framework developers only.  It uses the main
+    models |lland_v1|, |lland_v3|, and |hland_v1| and the submodel |evap_morsim|.
+    Here, we apply |prepare_io_example_1| and shortly discuss different aspects of its
+    generated data:
 
     >>> from hydpy.examples import prepare_io_example_1
     >>> nodes, elements = prepare_io_example_1()
 
-    (1) It defines a short initialisation period of five days:
+    It defines a short initialisation period of five days:
 
     >>> from hydpy import pub
     >>> pub.timegrids
@@ -57,7 +58,7 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
               "2000-01-05 00:00:00",
               "1d")
 
-    (2) It prepares an empty directory for IO testing:
+    It prepares an empty directory for IO testing:
 
     >>> import os
     >>> from hydpy import repr_, TestIO
@@ -67,8 +68,8 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     '...iotesting/project/series/default'
     []
 
-    (3) It returns four |Element| objects handling either application model |lland_v1|
-    |lland_v3|, or |hland_v1|, and two |Node| objects handling variables `Q` and `T`:
+    It returns four |Element| objects handling either application model |lland_v1|
+    |lland_v3|, or |hland_v1|:
 
     >>> for element in elements:
     ...     print(element.name, element.model)
@@ -76,14 +77,23 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     element2 lland_v1
     element3 lland_v3
     element4 hland_v1
+
+    The |lland_v3| instance has a submodel of type |evap_morsim|:
+
+    >>> print(elements.element3.model.aetmodel.name)
+    evap_morsim
+
+    Two |Node| objects handling variables `Q` and `T`:
+
     >>> for node in nodes:
     ...     print(node.name, node.variable)
     node1 Q
     node2 T
 
-    (4) It generates artificial time series data for the input sequence
+    It generates artificial time series data for the input sequence
     |lland_inputs.Nied|, the flux sequence |lland_fluxes.NKor|, and the state sequence
-    |lland_states.BoWa| of each |lland| model instance, the state sequence
+    |lland_states.BoWa| of each |lland| model instance, the equally named wind speed
+    sequences of |lland_v3| and |evap_morsim|, the state sequence
     |hland_states.SP| of the |hland_v1| model instance, and the |Sim| sequence of each
     node instance.  For precise test results, all generated values are unique:
 
@@ -118,20 +128,26 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     <BLANKLINE>
                [[86., 87., 88.],
                 [89., 90., 91.]]])
+    >>> v_l = elements.element3.model.sequences.inputs.windspeed
+    >>> v_l.series
+    InfoArray([68., 69., 70., 71.])
+    >>> v_e = elements.element3.model.aetmodel.sequences.inputs.windspeed
+    >>> v_e.series
+    InfoArray([68., 69., 70., 71.])
 
-    (5) All sequences carry |numpy.ndarray| objects with (deep) copies of the
-    time-series data for testing:
+    All sequences carry |numpy.ndarray| objects with (deep) copies of the time
+    series data for testing:
 
     >>> import numpy
-    >>> (numpy.all(nied1.series == nied1.testarray) and
-    ...  numpy.all(nkor1.series == nkor1.testarray) and
-    ...  numpy.all(bowa3.series == bowa3.testarray) and
-    ...  numpy.all(sim2.series == sim2.testarray) and
-    ...  numpy.all(sp4.series == sp4.testarray))
-    InfoArray(True)
+    >>> assert numpy.all(nied1.series == nied1.testarray)
+    >>> assert numpy.all(nkor1.series == nkor1.testarray)
+    >>> assert numpy.all(bowa3.series == bowa3.testarray)
+    >>> assert numpy.all(sim2.series == sim2.testarray)
+    >>> assert numpy.all(sp4.series == sp4.testarray)
+    >>> assert numpy.all(v_l.series == v_l.testarray)
+    >>> assert numpy.all(v_e.series == v_e.testarray)
     >>> bowa3.series[1, 2] = -999.0
-    >>> numpy.all(bowa3.series == bowa3.testarray)
-    InfoArray(False)
+    >>> assert not numpy.all(bowa3.series == bowa3.testarray)
     """
     testtools.TestIO.clear()
 
@@ -157,16 +173,27 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     element3.model = importtools.prepare_model("lland_v3")
     element4.model = importtools.prepare_model("hland_v1")
 
+    control3 = element3.model.parameters.control
+    control3.nhru(1)
+    control3.ft(1.0)
+    control3.fhru(1.0)
+    control3.lnk(lland.ACKER)
+    control3.measuringheightwindspeed(10.0)
+    control3.lai(3.0)
+    control3.wmax(300.0)
+    with element3.model.add_aetmodel_v1("evap_morsim"):
+        pass
+
     for idx, element in enumerate(elements_lland):
         parameters = element.model.parameters
         parameters.control.nhru(idx + 1)
         parameters.control.lnk(lland.ACKER)
         parameters.derived.absfhru(10.0)
-    control = element4.model.parameters.control
-    control.nmbzones(3)
-    control.sclass(2)
-    control.zonetype(hland.FIELD)
-    control.zonearea.values = 10.0
+    control4 = element4.model.parameters.control
+    control4.nmbzones(3)
+    control4.sclass(2)
+    control4.zonetype(hland.FIELD)
+    control4.zonearea.values = 10.0
 
     with hydpy.pub.options.printprogress(False):
         nodes.prepare_simseries(allocate_ram=False)  # ToDo: add option "reset"
@@ -197,6 +224,10 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     for node in nodes:
         value1 = init_values(node.sequences.sim, value1)  # type: ignore[arg-type]
     init_values(element4.model.sequences.states.sp, value1)  # type: ignore[arg-type]
+    init_values(
+        element3.model.sequences.inputs.windspeed, value1  # type: ignore[arg-type]
+    )
+    init_values(element3.model.aetmodel.sequences.inputs.windspeed, value1)
 
     return nodes, elements
 
@@ -257,7 +288,7 @@ def prepare_full_example_1(dirpath: Optional[str] = None) -> None:
 
 def prepare_full_example_2(
     lastdate: timetools.DateConstrArg = "1996-01-05",
-) -> Tuple[hydpytools.HydPy, pubtools.Pub, Type[testtools.TestIO]]:
+) -> tuple[hydpytools.HydPy, pubtools.Pub, type[testtools.TestIO]]:
     """Prepare the `LahnH` project on disk and in RAM.
 
     Function |prepare_full_example_2| is an extensions of function

@@ -5,6 +5,9 @@
 # ...from HydPy
 from hydpy.core import sequencetools
 
+# ...from wland
+from hydpy.models.wland import wland_sequences
+
 
 class PC(sequencetools.FluxSequence):
     """Corrected precipitation [mm/T]."""
@@ -12,68 +15,57 @@ class PC(sequencetools.FluxSequence):
     NDIM, NUMERIC, SPAN = 0, True, (0.0, None)
 
 
-class PET(sequencetools.FluxSequence):
-    """Potential evapotranspiration [mm/T]."""
+class PE(wland_sequences.FluxSequence1DComplete):
+    """Potential evaporation from the interception and the surface water storage
+    [mm/T]."""
 
     NDIM, NUMERIC = 1, False
 
 
-class PE(sequencetools.FluxSequence):
-    """Potential evaporation [mm/T]."""
+class PET(wland_sequences.FluxSequence1DSoil):
+    """Potential evapotranspiration from the vadose zone [mm/T]."""
 
-    NDIM, NUMERIC = 0, False
-
-
-class PETL(sequencetools.FluxSequence):
-    """Adjusted potential evapotranspiration of the land areas [mm/T]."""
-
-    NDIM, NUMERIC, SPAN = 1, True, (0.0, None)
+    NDIM, NUMERIC = 1, False
 
 
-class PES(sequencetools.FluxSequence):
-    """Adjusted potential evaporation of the surface water area [mm/T]."""
-
-    NDIM, NUMERIC, SPAN = 0, True, (0.0, None)
-
-
-class TF(sequencetools.FluxSequence):
+class TF(wland_sequences.FluxSequence1DLand):
     """Total amount of throughfall [mm/T]."""
 
     NDIM, NUMERIC, SPAN = 1, True, (0.0, None)
 
 
-class EI(sequencetools.FluxSequence):
+class EI(wland_sequences.FluxSequence1DLand):
     """Interception evaporation [mm/T]."""
 
     NDIM, NUMERIC, SPAN = 1, True, (0.0, None)
 
 
-class RF(sequencetools.FluxSequence):
+class RF(wland_sequences.FluxSequence1DLand):
     """Rainfall (or, more concrete, the liquid amount of throughfall) [mm/T]."""
 
     NDIM, NUMERIC, SPAN = 1, True, (0.0, None)
 
 
-class SF(sequencetools.FluxSequence):
+class SF(wland_sequences.FluxSequence1DLand):
     """Snowfall (or, more concrete, the frozen amount of throughfall) [mm/T]."""
 
     NDIM, NUMERIC, SPAN = 1, True, (0.0, None)
 
 
-class PM(sequencetools.FluxSequence):
+class PM(wland_sequences.FluxSequence1DLand):
     """Potential snowmelt [mm/T]."""
 
     NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
 
 
-class AM(sequencetools.FluxSequence):
+class AM(wland_sequences.FluxSequence1DLand):
     """Actual snowmelt [mm/T]."""
 
     NDIM, NUMERIC, SPAN = 1, True, (0.0, None)
 
 
 class PS(sequencetools.FluxSequence):
-    """Precipitation entering the surface water reservoir [mm/T]."""
+    """Precipitation that enters the surface water reservoir [mm/T]."""
 
     NDIM, NUMERIC, SPAN = 0, True, (0.0, None)
 
@@ -109,13 +101,13 @@ class ET(sequencetools.FluxSequence):
 
 
 class FXS(sequencetools.FluxSequence):
-    """Surface water supply/extraction (normalised to |AS_|) [mm/T]."""
+    """Surface water supply/extraction (normalised to |ASR|) [mm/T]."""
 
     NDIM, NUMERIC, SPAN = 0, True, (0.0, None)
 
 
 class FXG(sequencetools.FluxSequence):
-    """Seepage/extraction (normalised to |AL|) [mm/T]."""
+    """Seepage/extraction (normalised to |ALR|) [mm/T]."""
 
     NDIM, NUMERIC, SPAN = 0, True, (0.0, None)
 

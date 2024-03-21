@@ -3,12 +3,12 @@
 .. _LARSIM: http://www.larsim.de/das-modell/
 .. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN
 
-.. _HydPy-D:
+.. _HydPy-Dam:
 
-HydPy-D (DAM)
-=============
+HydPy-Dam
+=========
 
-The HydPy-D model family implements dams and similar natural and anthropogenic
+The HydPy-Dam model family implements dams and similar natural and anthropogenic
 flow barriers.
 
 At the current state of development, all its application models rely on an
@@ -24,10 +24,10 @@ water to the downstream river channel to increase water stages at remote gauges.
 
 All application models are tested and ready for use.  However, please note that
 some improvements in style and structure (e.g. changes in some variable names)
-might be necessary for the future. At the moment, it is a little hard to pick
+might be necessary in the future. At the moment, it is a little hard to pick
 the correct application model.  We will have to find a way to prevent selecting
 a suitable model from becoming too hard when the collection of application
-models grows.  For the moment, the following overview over the first five
+models grows.  For the moment, the following overview of the first five
 application models might be helpful:
 
 ================================================================= ==== ==== ==== ==== ====
@@ -46,18 +46,20 @@ Does the dam model…                                               v001 v002 v0
 …allow for discharge from a remote location for flood protection? no   no   no   no   yes
 ================================================================= ==== ==== ==== ==== ====
 
-These five application models are independent implementations, developed for
-the forecasting system of the German federal state of Saxony and run by the
-`Landeshochwasserzentrum (LHWZ)`_.  More recently, we added the application
-models |dam_v006|, |dam_v007|, and |dam_v008| on behalf of the `German Federal
-Institute of Hydrology (BfG)`_.  Conceptionally, these *HydPy* models
-correspond to the `LARSIM`_ models "SEEG" (controlled lake), "RUEC" (retention
-basin) and "TALS" (reservoir).
+These five application models are independent implementations, developed for the
+forecasting system of the German federal state of Saxony and run by the
+`Landeshochwasserzentrum (LHWZ)`_.  Later, we added the application models |dam_v006|,
+|dam_v007|, and |dam_v008| on behalf of the `German Federal Institute of Hydrology
+(BfG)`_.  Conceptionally, these *HydPy* models correspond to the `LARSIM`_ models
+"SEEG" (controlled lake), "RUEC" (retention basin) and "TALS" (reservoir).  Most
+recently, we developed |dam_pump|, |dam_sluice|, and |dam_pump_sluice| for improving
+simulations in low-land areas, where the draining of land areas via pumps and sluices
+often plays a more relevant role than gravity-driven runoff.
 
-|dam_v001| has been the starting point for the development of the other
-application models. Hence its documentation is very comprehensive, and it seems
-to be a good starting point to become acquainted with any of the application
-models prepared so far.
+|dam_v001| has been the starting point for the development of the other application
+models. Hence its documentation is very comprehensive, and it seems to be a good
+starting point for becomimg acquainted with any of the application models prepared so
+far.
 
 Base model:
 
@@ -79,3 +81,6 @@ Application model:
    dam_v006 (controlled lake) <dam_v006>
    dam_v007 (retention basin) <dam_v007>
    dam_v008 (reservoir) <dam_v008>
+   Pumping station <dam_pump>
+   Sluice <dam_sluice>
+   Pump with Sluice <dam_pump_sluice>

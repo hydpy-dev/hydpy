@@ -5,15 +5,18 @@
 # ...from HydPy
 from hydpy.core import sequencetools
 
+# ...from wland
+from hydpy.models.wland import wland_sequences
 
-class IC(sequencetools.StateSequence):
+
+class IC(wland_sequences.StateSequence1DLand):
     """Interception storage [mm]."""
 
     NDIM, NUMERIC, SPAN = 1, True, (None, None)
 
 
-class SP(sequencetools.StateSequence):
-    """Snowpack [mm]."""
+class SP(wland_sequences.StateSequence1DLand):
+    """Snow pack [mm]."""
 
     NDIM, NUMERIC, SPAN = 1, True, (None, None)
 

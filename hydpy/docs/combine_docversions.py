@@ -12,7 +12,6 @@ This script does not push anything to Github-Pages.
 import os
 import shutil
 import sys
-from typing import Dict, List, Tuple
 
 
 def print_(*message: str) -> None:
@@ -35,7 +34,7 @@ call("git config --replace-all remote.origin.fetch +refs/heads/*:refs/remotes/or
 call("git fetch --all")
 call("git checkout --track origin/available_doc_versions")
 
-branch2version: Dict[str, str] = {}
+branch2version: dict[str, str] = {}
 with open("relevant_branches.txt", encoding="utf-8") as file_:
     for line in file_.readlines()[1:]:
         try:
@@ -93,7 +92,7 @@ for version in branch2version.values():
     shutil.move(version, target)
 
 print_("Search for the relevant HTML files:")
-version2htmls: Dict[str, Tuple[str, ...]] = {}
+version2htmls: dict[str, tuple[str, ...]] = {}
 for version in branch2version.values():
     print_(f"\tversion {version}")
     folderpath = os.path.join("result", version)
@@ -114,7 +113,7 @@ for version1, htmls1 in version2htmls.items():
             continue
         if idx <= 0:
             continue
-        links: List[str] = []
+        links: list[str] = []
         for version2, htmls2 in version2htmls.items():
             if html1 in htmls2:
                 links.append(f'<li><a href="../{version2}/{html1}">{version2}</a></li>')
@@ -127,14 +126,7 @@ for version1, htmls1 in version2htmls.items():
         below = f"{above[jdx:]}{below}"
         above = above[:jdx]
         text = "\n".join(
-            (
-                above,
-                "<h3>Versions</h3>",
-                "<ul>",
-                "\n".join(links),
-                "</ul>",
-                below,
-            )
+            (above, "<h3>Versions</h3>", "<ul>", "\n".join(links), "</ul>", below)
         )
         with open(filepath1, "w", encoding="utf-8-sig") as file_:
             file_.write(text)

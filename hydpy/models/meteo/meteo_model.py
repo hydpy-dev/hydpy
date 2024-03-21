@@ -3,12 +3,19 @@
 .. _`solar time`: https://en.wikipedia.org/wiki/Solar_time
 """
 # imports...
+# ...from standard library
+import contextlib
+
 # ...from HydPy
+from hydpy.core import importtools
 from hydpy.core import modeltools
+from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
+from hydpy.models.meteo import meteo_parameters
 from hydpy.models.meteo import meteo_fixed
 from hydpy.models.meteo import meteo_control
 from hydpy.models.meteo import meteo_derived
+from hydpy.models.meteo import meteo_sequences
 from hydpy.models.meteo import meteo_inputs
 from hydpy.models.meteo import meteo_factors
 from hydpy.models.meteo import meteo_fluxes
@@ -16,7 +23,7 @@ from hydpy.models.meteo import meteo_logs
 
 
 class Calc_EarthSunDistance_V1(modeltools.Method):
-    r"""Calculate the relative inverse distance between the earth and the sun
+    r"""Calculate the relative inverse distance between the Earth and the sun
     according to :cite:t:`ref-Allen1998`.
 
     Basic equation (:cite:t:`ref-Allen1998`, equation 23):
@@ -30,8 +37,8 @@ class Calc_EarthSunDistance_V1(modeltools.Method):
 
     Examples:
 
-        We define an initialisation period covering both a leap year (2000) and a
-        non-leap year (2001):
+        We define an initialisation period covering a leap year (2000) and a non-leap
+        year (2001):
 
         >>> from hydpy.models.meteo import *
         >>> parameterstep()
@@ -220,6 +227,7 @@ class Calc_SolarDeclination_V2(modeltools.Method):
 
             >>> del pub.timegrids
     """
+
     DERIVEDPARAMETERS = (meteo_derived.DOY,)
     FIXEDPARAMETERS = (meteo_fixed.Pi,)
     RESULTSEQUENCES = (meteo_factors.SolarDeclination,)
@@ -361,8 +369,8 @@ class Calc_TimeOfSunrise_TimeOfSunset_V1(modeltools.Method):
     Examples:
 
         We calculate the local time of sunrise and sunset for a latitude of
-        approximately 52°N and a longitude of 10°E, which is 5° west of the longitude
-        that defines the local time zone:
+        approximately 52°N and a longitude of 10°E, 5° west of the longitude that
+        defines the local time zone:
 
         >>> from hydpy.models.meteo import *
         >>> parameterstep()
@@ -389,16 +397,10 @@ class Calc_TimeOfSunrise_TimeOfSunset_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (meteo_control.Longitude,)
-    DERIVEDPARAMETERS = (
-        meteo_derived.LatitudeRad,
-        meteo_derived.UTCLongitude,
-    )
+    DERIVEDPARAMETERS = (meteo_derived.LatitudeRad, meteo_derived.UTCLongitude)
     FIXEDPARAMETERS = (meteo_fixed.Pi,)
     REQUIREDSEQUENCES = (meteo_factors.SolarDeclination,)
-    RESULTSEQUENCES = (
-        meteo_factors.TimeOfSunrise,
-        meteo_factors.TimeOfSunset,
-    )
+    RESULTSEQUENCES = (meteo_factors.TimeOfSunrise, meteo_factors.TimeOfSunset)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -551,14 +553,8 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
         1440: -356.953632
     """
 
-    FIXEDPARAMETERS = (
-        meteo_fixed.Pi,
-        meteo_fixed.SolarConstant,
-    )
-    DERIVEDPARAMETERS = (
-        meteo_derived.Days,
-        meteo_derived.LatitudeRad,
-    )
+    FIXEDPARAMETERS = (meteo_fixed.Pi, meteo_fixed.SolarConstant)
+    DERIVEDPARAMETERS = (meteo_derived.Days, meteo_derived.LatitudeRad)
     REQUIREDSEQUENCES = (
         meteo_factors.SolarTimeAngle,
         meteo_factors.EarthSunDistance,
@@ -654,10 +650,7 @@ class Calc_ExtraterrestrialRadiation_V2(modeltools.Method):
     """
 
     DERIVEDPARAMETERS = (meteo_derived.LatitudeRad,)
-    FIXEDPARAMETERS = (
-        meteo_fixed.Pi,
-        meteo_fixed.SolarConstant,
-    )
+    FIXEDPARAMETERS = (meteo_fixed.Pi, meteo_fixed.SolarConstant)
     REQUIREDSEQUENCES = (
         meteo_factors.SolarDeclination,
         meteo_factors.EarthSunDistance,
@@ -752,14 +745,8 @@ class Calc_PossibleSunshineDuration_V1(modeltools.Method):
     """
 
     FIXEDPARAMETERS = (meteo_fixed.Pi,)
-    DERIVEDPARAMETERS = (
-        meteo_derived.Days,
-        meteo_derived.Hours,
-    )
-    REQUIREDSEQUENCES = (
-        meteo_factors.SolarTimeAngle,
-        meteo_factors.SunsetHourAngle,
-    )
+    DERIVEDPARAMETERS = (meteo_derived.Days, meteo_derived.Hours)
+    REQUIREDSEQUENCES = (meteo_factors.SolarTimeAngle, meteo_factors.SunsetHourAngle)
     RESULTSEQUENCES = (meteo_factors.PossibleSunshineDuration,)
 
     @staticmethod
@@ -843,14 +830,8 @@ class Calc_PossibleSunshineDuration_V2(modeltools.Method):
             >>> del pub.timegrids
     """
 
-    DERIVEDPARAMETERS = (
-        meteo_derived.SCT,
-        meteo_derived.Hours,
-    )
-    REQUIREDSEQUENCES = (
-        meteo_factors.TimeOfSunrise,
-        meteo_factors.TimeOfSunset,
-    )
+    DERIVEDPARAMETERS = (meteo_derived.SCT, meteo_derived.Hours)
+    REQUIREDSEQUENCES = (meteo_factors.TimeOfSunrise, meteo_factors.TimeOfSunset)
     RESULTSEQUENCES = (meteo_factors.PossibleSunshineDuration,)
 
     @staticmethod
@@ -880,10 +861,7 @@ class Calc_DailyPossibleSunshineDuration_V1(modeltools.Method):
         dailypossiblesunshineduration(7.2)
     """
 
-    REQUIREDSEQUENCES = (
-        meteo_factors.TimeOfSunrise,
-        meteo_factors.TimeOfSunset,
-    )
+    REQUIREDSEQUENCES = (meteo_factors.TimeOfSunrise, meteo_factors.TimeOfSunset)
     RESULTSEQUENCES = (meteo_factors.DailyPossibleSunshineDuration,)
 
     @staticmethod
@@ -1188,15 +1166,9 @@ class Calc_PortionDailyRadiation_V1(modeltools.Method):
             >>> del pub.timegrids
         """
 
-    DERIVEDPARAMETERS = (
-        meteo_derived.SCT,
-        meteo_derived.Hours,
-    )
+    DERIVEDPARAMETERS = (meteo_derived.SCT, meteo_derived.Hours)
     FIXEDPARAMETERS = (meteo_fixed.Pi,)
-    REQUIREDSEQUENCES = (
-        meteo_factors.TimeOfSunrise,
-        meteo_factors.TimeOfSunset,
-    )
+    REQUIREDSEQUENCES = (meteo_factors.TimeOfSunrise, meteo_factors.TimeOfSunset)
     RESULTSEQUENCES = (meteo_factors.PortionDailyRadiation,)
 
     @staticmethod
@@ -1315,10 +1287,7 @@ class Return_DailyGlobalRadiation_V1(modeltools.Method):
         meteo_control.AngstromFactor,
         meteo_control.AngstromAlternative,
     )
-    DERIVEDPARAMETERS = (
-        meteo_derived.MOY,
-        meteo_derived.Days,
-    )
+    DERIVEDPARAMETERS = (meteo_derived.MOY, meteo_derived.Days)
     REQUIREDSEQUENCES = (meteo_fluxes.ExtraterrestrialRadiation,)
 
     @staticmethod
@@ -1378,10 +1347,7 @@ class Calc_ClearSkySolarRadiation_V1(modeltools.Method):
             >>> del pub.timegrids
     """
 
-    CONTROLPARAMETERS = (
-        meteo_control.AngstromConstant,
-        meteo_control.AngstromFactor,
-    )
+    CONTROLPARAMETERS = (meteo_control.AngstromConstant, meteo_control.AngstromFactor)
     DERIVEDPARAMETERS = (meteo_derived.MOY,)
     REQUIREDSEQUENCES = (meteo_fluxes.ExtraterrestrialRadiation,)
     RESULTSEQUENCES = (meteo_fluxes.ClearSkySolarRadiation,)
@@ -1444,10 +1410,7 @@ class Calc_GlobalRadiation_V1(modeltools.Method):
             >>> del pub.timegrids
     """
 
-    CONTROLPARAMETERS = (
-        meteo_control.AngstromConstant,
-        meteo_control.AngstromFactor,
-    )
+    CONTROLPARAMETERS = (meteo_control.AngstromConstant, meteo_control.AngstromFactor)
     DERIVEDPARAMETERS = (meteo_derived.MOY,)
     REQUIREDSEQUENCES = (
         meteo_inputs.SunshineDuration,
@@ -1501,7 +1464,7 @@ class Calc_UnadjustedGlobalRadiation_V1(modeltools.Method):
         Method |Calc_UnadjustedGlobalRadiation_V1| uses the actual value of
         |PortionDailyRadiation| and method |Return_DailyGlobalRadiation_V1| to
         calculate global radiation according to the current values of
-        |meteo_inputs.SunshineDuration| and |PossibleSunshineDuration|:
+        |meteo_inputs.SunshineDuration| and |meteo_factors.PossibleSunshineDuration|:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-31", "2000-02-02", "6h"
@@ -1522,9 +1485,9 @@ class Calc_UnadjustedGlobalRadiation_V1(modeltools.Method):
         >>> fluxes.unadjustedglobalradiation
         unadjustedglobalradiation(272.0)
 
-        During nighttime periods, the value of |PossibleSunshineDuration| is zero.
-        Then, |Calc_GlobalRadiation_V1| uses the values of |DailySunshineDuration| and
-        |DailyPossibleSunshineDuration| as surrogates:
+        During nighttime periods, the value of |meteo_factors.PossibleSunshineDuration|
+        is zero.  Then, |Calc_GlobalRadiation_V1| uses the values of
+        |DailySunshineDuration| and |DailyPossibleSunshineDuration| as surrogates:
 
         >>> factors.possiblesunshineduration = 0.0
         >>> factors.dailysunshineduration = 4.0
@@ -1576,6 +1539,44 @@ class Calc_UnadjustedGlobalRadiation_V1(modeltools.Method):
         ) * model.return_dailyglobalradiation_v1(d_act, d_pos)
 
 
+class Adjust_ClearSkySolarRadiation_V1(modeltools.Method):
+    r"""Use the portion of the daily radiation sum to adjust the clear sky solar
+    radiation's daily average to the current simulation step.
+
+    Basic equation:
+      .. math::
+        C_{new} = N \cdot P / 100 \cdot C_{old}
+        \\ \\
+        C = ClearSkySolarRadiation \\
+        N = NmbLogEntries \\
+        P = PortionDailyRadiation
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> derived.nmblogentries(4)
+        >>> factors.portiondailyradiation = 10.0
+        >>> fluxes.clearskysolarradiation = 200.0
+        >>> model.adjust_clearskysolarradiation_v1()
+        >>> fluxes.clearskysolarradiation
+        clearskysolarradiation(80.0)
+        """
+
+    DERIVEDPARAMETERS = (meteo_derived.NmbLogEntries,)
+    REQUIREDSEQUENCES = (meteo_factors.PortionDailyRadiation,)
+    UPDATEDSEQUENCES = (meteo_fluxes.ClearSkySolarRadiation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.clearskysolarradiation *= (
+            der.nmblogentries * fac.portiondailyradiation / 100.0
+        )
+
+
 class Update_LoggedUnadjustedGlobalRadiation_V1(modeltools.Method):
     """Log the unadjusted global radiation values of the last 24 hours.
 
@@ -1617,9 +1618,9 @@ class Update_LoggedUnadjustedGlobalRadiation_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
         for idx in range(der.nmblogentries - 1, 0, -1):
-            log.loggedunadjustedglobalradiation[
-                idx
-            ] = log.loggedunadjustedglobalradiation[idx - 1]
+            log.loggedunadjustedglobalradiation[idx] = (
+                log.loggedunadjustedglobalradiation[idx - 1]
+            )
         log.loggedunadjustedglobalradiation[0] = flu.unadjustedglobalradiation
 
 
@@ -1696,10 +1697,7 @@ class Calc_DailyGlobalRadiation_V1(modeltools.Method):
         meteo_control.AngstromFactor,
         meteo_control.AngstromAlternative,
     )
-    DERIVEDPARAMETERS = (
-        meteo_derived.MOY,
-        meteo_derived.Days,
-    )
+    DERIVEDPARAMETERS = (meteo_derived.MOY, meteo_derived.Days)
     REQUIREDSEQUENCES = (
         meteo_factors.DailySunshineDuration,
         meteo_factors.DailyPossibleSunshineDuration,
@@ -1797,10 +1795,7 @@ class Return_SunshineDuration_V1(modeltools.Method):
     """
 
     SUBMETHODS = ()
-    CONTROLPARAMETERS = (
-        meteo_control.AngstromConstant,
-        meteo_control.AngstromFactor,
-    )
+    CONTROLPARAMETERS = (meteo_control.AngstromConstant, meteo_control.AngstromFactor)
     DERIVEDPARAMETERS = (meteo_derived.MOY,)
 
     @staticmethod
@@ -1836,11 +1831,11 @@ class Calc_UnadjustedSunshineDuration_V1(modeltools.Method):
     Example:
 
         Method |Calc_UnadjustedSunshineDuration_V1| relies on
-        |Return_SunshineDuration_V1| and thus comes with the same limitation regarding
-        periods with little sunshine.  See its documentation for further information.
-        Here, we only demonstrate the proper passing of |meteo_inputs.GlobalRadiation|,
+        |Return_SunshineDuration_V1| and thus has the same limitation regarding periods
+        with little sunshine.  See its documentation for further information.  Here, we
+        only demonstrate the proper passing of |meteo_inputs.GlobalRadiation|,
         |ExtraterrestrialRadiation| (eventually reduced by |PortionDailyRadiation|) and
-        |PossibleSunshineDuration|:
+        |meteo_factors.PossibleSunshineDuration|:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-31", "2000-02-02", "6h"
@@ -1865,14 +1860,8 @@ class Calc_UnadjustedSunshineDuration_V1(modeltools.Method):
     """
 
     SUBMETHODS = (Return_SunshineDuration_V1,)
-    CONTROLPARAMETERS = (
-        meteo_control.AngstromConstant,
-        meteo_control.AngstromFactor,
-    )
-    DERIVEDPARAMETERS = (
-        meteo_derived.MOY,
-        meteo_derived.NmbLogEntries,
-    )
+    CONTROLPARAMETERS = (meteo_control.AngstromConstant, meteo_control.AngstromFactor)
+    DERIVEDPARAMETERS = (meteo_derived.MOY, meteo_derived.NmbLogEntries)
     REQUIREDSEQUENCES = (
         meteo_inputs.GlobalRadiation,
         meteo_factors.PossibleSunshineDuration,
@@ -2072,10 +2061,7 @@ class Calc_SunshineDuration_V1(modeltools.Method):
             >>> del pub.timegrids
     """
 
-    CONTROLPARAMETERS = (
-        meteo_control.AngstromConstant,
-        meteo_control.AngstromFactor,
-    )
+    CONTROLPARAMETERS = (meteo_control.AngstromConstant, meteo_control.AngstromFactor)
     DERIVEDPARAMETERS = (meteo_derived.MOY,)
     REQUIREDSEQUENCES = (
         meteo_inputs.GlobalRadiation,
@@ -2143,9 +2129,9 @@ class Update_LoggedUnadjustedSunshineDuration_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         log = model.sequences.logs.fastaccess
         for idx in range(der.nmblogentries - 1, 0, -1):
-            log.loggedunadjustedsunshineduration[
-                idx
-            ] = log.loggedunadjustedsunshineduration[idx - 1]
+            log.loggedunadjustedsunshineduration[idx] = (
+                log.loggedunadjustedsunshineduration[idx - 1]
+            )
         log.loggedunadjustedsunshineduration[0] = fac.unadjustedsunshineduration
 
 
@@ -2190,10 +2176,7 @@ class Calc_DailySunshineDuration_V2(modeltools.Method):
     """
 
     SUBMETHODS = (Return_SunshineDuration_V1,)
-    CONTROLPARAMETERS = (
-        meteo_control.AngstromConstant,
-        meteo_control.AngstromFactor,
-    )
+    CONTROLPARAMETERS = (meteo_control.AngstromConstant, meteo_control.AngstromFactor)
     DERIVEDPARAMETERS = (meteo_derived.MOY,)
     REQUIREDSEQUENCES = (
         meteo_factors.DailyPossibleSunshineDuration,
@@ -2298,6 +2281,481 @@ class Calc_SunshineDuration_V2(modeltools.Method):
             fac.sunshineduration = min(d_nom / d_denom, fac.possiblesunshineduration)
 
 
+class Calc_Temperature_V1(modeltools.Method):
+    r"""Take the input temperature for each hydrological response unit.
+
+    Basic equation:
+      :math:`Temperature_{factors} = Temperature_{inputs}`
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> inputs.temperature = 2.0
+        >>> model.calc_temperature_v1()
+        >>> factors.temperature
+        temperature(2.0, 2.0)
+    """
+
+    CONTROLPARAMETERS = (meteo_control.NmbHRU,)
+    REQUIREDSEQUENCES = (meteo_inputs.Temperature,)
+    RESULTSEQUENCES = (meteo_factors.Temperature,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        fac = model.sequences.factors.fastaccess
+        for k in range(con.nmbhru):
+            fac.temperature[k] = inp.temperature
+
+
+class Adjust_Temperature_V1(modeltools.Method):
+    r"""Adjust the previously determined temperature values.
+
+    Basic equation:
+      :math:`Temperature_{new} = TemperatureAddend + Temperature_{old}`
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> temperatureaddend(-0.6, -1.2)
+        >>> factors.temperature = 2.0
+        >>> model.adjust_temperature_v1()
+        >>> factors.temperature
+        temperature(1.4, 0.8)
+    """
+
+    CONTROLPARAMETERS = (meteo_control.NmbHRU, meteo_control.TemperatureAddend)
+    UPDATEDSEQUENCES = (meteo_factors.Temperature,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+        for k in range(con.nmbhru):
+            fac.temperature[k] += con.temperatureaddend[k]
+
+
+class Calc_MeanTemperature_V1(modeltools.Method):
+    r"""Calculate the average temperature.
+
+    Basic equation:
+      :math:`MeanTemperature =
+      \sum_{i=1}^{NmbHRU} HRUAreaFraction_i \cdot Temperature_i`
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> derived.hruareafraction(0.8, 0.2)
+        >>> factors.temperature = 1.0, 2.0
+        >>> model.calc_meantemperature_v1()
+        >>> factors.meantemperature
+        meantemperature(1.2)
+    """
+
+    CONTROLPARAMETERS = (meteo_control.NmbHRU,)
+    DERIVEDPARAMETERS = (meteo_derived.HRUAreaFraction,)
+    REQUIREDSEQUENCES = (meteo_factors.Temperature,)
+    RESULTSEQUENCES = (meteo_factors.MeanTemperature,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+
+        fac.meantemperature = 0.0
+        for s in range(con.nmbhru):
+            fac.meantemperature += der.hruareafraction[s] * fac.temperature[s]
+
+
+class Calc_Precipitation_V1(modeltools.Method):
+    r"""Take the input precipitation for each hydrological response unit.
+
+    Basic equation:
+      :math:`Precipitation_{fluxes} = Precipitation_{inputs}`
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> inputs.precipitation = 2.0
+        >>> model.calc_precipitation_v1()
+        >>> fluxes.precipitation
+        precipitation(2.0, 2.0)
+    """
+
+    CONTROLPARAMETERS = (meteo_control.NmbHRU,)
+    REQUIREDSEQUENCES = (meteo_inputs.Precipitation,)
+    RESULTSEQUENCES = (meteo_fluxes.Precipitation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            flu.precipitation[k] = inp.precipitation
+
+
+class Adjust_Precipitation_V1(modeltools.Method):
+    r"""Adjust the previously determined precipitation values.
+
+    Basic equation:
+      :math:`Precipitation_{new} = PrecipitationFactor \cdot Precipitation_{old}`
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> precipitationfactor(0.5, 2.0)
+        >>> fluxes.precipitation = 2.0
+        >>> model.adjust_precipitation_v1()
+        >>> fluxes.precipitation
+        precipitation(1.0, 4.0)
+    """
+
+    CONTROLPARAMETERS = (meteo_control.NmbHRU, meteo_control.PrecipitationFactor)
+    UPDATEDSEQUENCES = (meteo_fluxes.Precipitation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            flu.precipitation[k] *= con.precipitationfactor[k]
+
+
+class Calc_MeanPrecipitation_V1(modeltools.Method):
+    r"""Calculate the average precipitation.
+
+    Basic equation:
+      :math:`MeanPrecipitation =
+      \sum_{i=1}^{NmbHRU} HRUAreaFraction_i \cdot Precipitation_i`
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> derived.hruareafraction(0.8, 0.2)
+        >>> fluxes.precipitation = 1.0, 2.0
+        >>> model.calc_meanprecipitation_v1()
+        >>> fluxes.meanprecipitation
+        meanprecipitation(1.2)
+    """
+
+    CONTROLPARAMETERS = (meteo_control.NmbHRU,)
+    DERIVEDPARAMETERS = (meteo_derived.HRUAreaFraction,)
+    REQUIREDSEQUENCES = (meteo_fluxes.Precipitation,)
+    RESULTSEQUENCES = (meteo_fluxes.MeanPrecipitation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        flu.meanprecipitation = 0.0
+        for s in range(con.nmbhru):
+            flu.meanprecipitation += der.hruareafraction[s] * flu.precipitation[s]
+
+
+class Determine_Temperature_V1(modeltools.Method):
+    r"""Interface method that applies the complete application model by executing all
+    "run methods"."""
+
+    @staticmethod
+    def __call__(model: modeltools.AdHocModel) -> None:
+        model.run()
+
+
+class Get_Temperature_V1(modeltools.Method):
+    """Get the current temperature from the selected hydrological response unit.
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> factors.temperature = 2.0, 4.0
+        >>> model.get_temperature_v1(0)
+        2.0
+        >>> model.get_temperature_v1(1)
+        4.0
+    """
+
+    REQUIREDSEQUENCES = (meteo_factors.Temperature,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int) -> float:
+        fac = model.sequences.factors.fastaccess
+
+        return fac.temperature[s]
+
+
+class Get_MeanTemperature_V1(modeltools.Method):
+    """Get the mean temperature.
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> factors.meantemperature = 3.0
+        >>> model.get_meantemperature_v1()
+        3.0
+    """
+
+    REQUIREDSEQUENCES = (meteo_factors.MeanTemperature,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> float:
+        fac = model.sequences.factors.fastaccess
+
+        return fac.meantemperature
+
+
+class Determine_Precipitation_V1(modeltools.Method):
+    r"""Interface method that applies the complete application model by executing all
+    "run methods"."""
+
+    @staticmethod
+    def __call__(model: modeltools.AdHocModel) -> None:
+        model.run()
+
+
+class Get_Precipitation_V1(modeltools.Method):
+    """Get the current precipitation from the selected hydrological response unit.
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> fluxes.precipitation = 2.0, 4.0
+        >>> model.get_precipitation_v1(0)
+        2.0
+        >>> model.get_precipitation_v1(1)
+        4.0
+    """
+
+    REQUIREDSEQUENCES = (meteo_fluxes.Precipitation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int) -> float:
+        flu = model.sequences.fluxes.fastaccess
+
+        return flu.precipitation[s]
+
+
+class Get_MeanPrecipitation_V1(modeltools.Method):
+    """Get the mean precipitation.
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> fluxes.meanprecipitation = 3.0
+        >>> model.get_meanprecipitation_v1()
+        3.0
+    """
+
+    REQUIREDSEQUENCES = (meteo_fluxes.MeanPrecipitation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> float:
+        flu = model.sequences.fluxes.fastaccess
+
+        return flu.meanprecipitation
+
+
+class Process_Radiation_V1(modeltools.ReusableMethod):
+    """Interface method for radiation-related submodels that executes all "run
+    methods"."""
+
+    @staticmethod
+    def __call__(model: modeltools.AdHocModel) -> None:
+        model.run()
+
+
+class Get_PossibleSunshineDuration_V1(modeltools.Method):
+    """Get the potential sunshine duration in h.
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> factors.possiblesunshineduration = 3.0
+        >>> model.get_possiblesunshineduration_v1()
+        3.0
+    """
+
+    REQUIREDSEQUENCES = (meteo_factors.PossibleSunshineDuration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> float:
+        fac = model.sequences.factors.fastaccess
+
+        return fac.possiblesunshineduration
+
+
+class Get_PossibleSunshineDuration_V2(modeltools.Method):
+    """Get the potential sunshine duration in h.
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> inputs.possiblesunshineduration = 3.0
+        >>> model.get_possiblesunshineduration_v2()
+        3.0
+    """
+
+    REQUIREDSEQUENCES = (meteo_inputs.PossibleSunshineDuration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> float:
+        inp = model.sequences.inputs.fastaccess
+
+        return inp.possiblesunshineduration
+
+
+class Get_SunshineDuration_V1(modeltools.Method):
+    """Get the actual sunshine duration in h.
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> factors.sunshineduration = 3.0
+        >>> model.get_sunshineduration_v1()
+        3.0
+    """
+
+    REQUIREDSEQUENCES = (meteo_factors.SunshineDuration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> float:
+        fac = model.sequences.factors.fastaccess
+
+        return fac.sunshineduration
+
+
+class Get_SunshineDuration_V2(modeltools.Method):
+    """Get the actual sunshine duration in h.
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> inputs.sunshineduration = 3.0
+        >>> model.get_sunshineduration_v2()
+        3.0
+    """
+
+    REQUIREDSEQUENCES = (meteo_inputs.SunshineDuration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> float:
+        inp = model.sequences.inputs.fastaccess
+
+        return inp.sunshineduration
+
+
+class Get_ClearSkySolarRadiation_V1(modeltools.Method):
+    """Get the clear sky solar radiation in W/m².
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> fluxes.clearskysolarradiation = 3.0
+        >>> model.get_clearskysolarradiation_v1()
+        3.0
+    """
+
+    REQUIREDSEQUENCES = (meteo_fluxes.ClearSkySolarRadiation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> float:
+        flu = model.sequences.fluxes.fastaccess
+
+        return flu.clearskysolarradiation
+
+
+class Get_ClearSkySolarRadiation_V2(modeltools.Method):
+    """Get the clear sky solar radiation in W/m².
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> inputs.clearskysolarradiation = 3.0
+        >>> model.get_clearskysolarradiation_v2()
+        3.0
+    """
+
+    REQUIREDSEQUENCES = (meteo_inputs.ClearSkySolarRadiation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> float:
+        inp = model.sequences.inputs.fastaccess
+
+        return inp.clearskysolarradiation
+
+
+class Get_GlobalRadiation_V1(modeltools.Method):
+    """Get the global radiation in W/m².
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> fluxes.globalradiation = 3.0
+        >>> model.get_globalradiation_v1()
+        3.0
+    """
+
+    REQUIREDSEQUENCES = (meteo_fluxes.GlobalRadiation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> float:
+        flu = model.sequences.fluxes.fastaccess
+
+        return flu.globalradiation
+
+
+class Get_GlobalRadiation_V2(modeltools.Method):
+    """Get the global radiation in W/m².
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> inputs.globalradiation = 3.0
+        >>> model.get_globalradiation_v2()
+        3.0
+    """
+
+    REQUIREDSEQUENCES = (meteo_inputs.GlobalRadiation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> float:
+        inp = model.sequences.inputs.fastaccess
+
+        return inp.globalradiation
+
+
 class Model(modeltools.AdHocModel):
     """The Meteo base model."""
 
@@ -2323,6 +2781,7 @@ class Model(modeltools.AdHocModel):
         Calc_SunshineDuration_V1,
         Calc_PortionDailyRadiation_V1,
         Calc_ClearSkySolarRadiation_V1,
+        Adjust_ClearSkySolarRadiation_V1,
         Calc_GlobalRadiation_V1,
         Calc_UnadjustedGlobalRadiation_V1,
         Calc_UnadjustedSunshineDuration_V1,
@@ -2331,12 +2790,110 @@ class Model(modeltools.AdHocModel):
         Calc_DailyGlobalRadiation_V1,
         Calc_GlobalRadiation_V2,
         Calc_SunshineDuration_V2,
+        Calc_Temperature_V1,
+        Adjust_Temperature_V1,
+        Calc_MeanTemperature_V1,
+        Calc_Precipitation_V1,
+        Adjust_Precipitation_V1,
+        Calc_MeanPrecipitation_V1,
     )
-    ADD_METHODS = (
-        Return_DailyGlobalRadiation_V1,
-        Return_SunshineDuration_V1,
+    INTERFACE_METHODS = (
+        Determine_Temperature_V1,
+        Get_Temperature_V1,
+        Get_MeanTemperature_V1,
+        Determine_Precipitation_V1,
+        Get_Precipitation_V1,
+        Get_MeanPrecipitation_V1,
+        Process_Radiation_V1,
+        Get_PossibleSunshineDuration_V1,
+        Get_PossibleSunshineDuration_V2,
+        Get_SunshineDuration_V1,
+        Get_SunshineDuration_V2,
+        Get_ClearSkySolarRadiation_V1,
+        Get_ClearSkySolarRadiation_V2,
+        Get_GlobalRadiation_V1,
+        Get_GlobalRadiation_V2,
     )
+    ADD_METHODS = (Return_DailyGlobalRadiation_V1, Return_SunshineDuration_V1)
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()
     SUBMODELS = ()
+
+
+class Sub_BaseModel(modeltools.AdHocModel):
+    """Base class for HydPy-Meteo submodels."""
+
+    @staticmethod
+    @contextlib.contextmanager
+    def share_configuration(
+        sharable_configuration: SharableConfiguration,
+    ) -> Generator[None, None, None]:
+        """Take the `landtype_constants` data to adjust all parameters inherited from
+        |meteo_parameters.ZipParameter1D| and the `refweights` parameter instance to
+        adjust the index references of all parameters inherited from
+        |meteo_parameters.ZipParameter1D| and all sequences inherited from
+        |meteo_sequences.FluxSequence1D|:
+
+        >>> from hydpy.core.parametertools import Constants, NameParameter, Parameter
+        >>> consts = Constants(GRASS=1, TREES=3, WATER=2)
+        >>> class LandType(NameParameter):
+        ...     __name__ = "temp.py"
+        ...     constants = consts
+        >>> class Subarea(Parameter):
+        ...     ...
+        >>> from hydpy.models.meteo.meteo_model import Sub_BaseModel
+        >>> with Sub_BaseModel.share_configuration(
+        ...         {"landtype_refindices": LandType,
+        ...          "refweights": Subarea}):
+        ...     from hydpy.models.meteo.meteo_parameters import ZipParameter1D
+        ...     ZipParameter1D.constants
+        ...     ZipParameter1D.refindices.__name__
+        ...     ZipParameter1D._refweights.__name__
+        ...     from hydpy.models.meteo.meteo_sequences import FluxSequence1D
+        ...     FluxSequence1D._refweights.__name__
+        {'GRASS': 1, 'TREES': 3, 'WATER': 2}
+        'LandType'
+        'Subarea'
+        'Subarea'
+        >>> ZipParameter1D.constants
+        {}
+        >>> ZipParameter1D.refindices
+        >>> ZipParameter1D._refweights
+        >>> FluxSequence1D._refweights
+        """
+        with meteo_parameters.ZipParameter1D.modify_refindices(
+            sharable_configuration["landtype_refindices"]
+        ), meteo_parameters.ZipParameter1D.modify_refweights(
+            sharable_configuration["refweights"]
+        ), meteo_parameters.ZipParameter1D.modify_refweights(
+            sharable_configuration["refweights"]
+        ), meteo_sequences.FluxSequence1D.modify_refweights(
+            sharable_configuration["refweights"]
+        ):
+            yield
+
+    @importtools.define_targetparameter(meteo_control.NmbHRU)
+    def prepare_nmbzones(self, nmbzones: int) -> None:
+        """Set the number of hydrological response units.
+
+        >>> from hydpy.models.meteo_precip_io import *
+        >>> parameterstep()
+        >>> model.prepare_nmbzones(2)
+        >>> nmbhru
+        nmbhru(2)
+        """
+        self.parameters.control.nmbhru(nmbzones)
+
+    @importtools.define_targetparameter(meteo_control.HRUArea)
+    def prepare_subareas(self, subareas: Sequence[float]) -> None:
+        """Set the area of all hydrological response units in km².
+
+        >>> from hydpy.models.meteo_precip_io import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> model.prepare_subareas([1.0, 3.0])
+        >>> hruarea
+        hruarea(1.0, 3.0)
+        """
+        self.parameters.control.hruarea(subareas)

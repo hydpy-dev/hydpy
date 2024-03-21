@@ -25,7 +25,7 @@ class _PubProperty(propertytools.DefaultProperty[T_contra, T_co]):
 
     def _fget(self, obj: Any) -> NoReturn:
         raise exceptiontools.AttributeNotReady(
-            f"Attribute {self.name} of module `pub` is not defined at the moment.",
+            f"Attribute {self.name} of module `pub` is not defined at the moment."
         )
 
 
@@ -34,7 +34,7 @@ class TimegridsProperty(
         Union[
             timetools.Timegrids,
             timetools.Timegrid,
-            Tuple[
+            tuple[
                 timetools.DateConstrArg,
                 timetools.DateConstrArg,
                 timetools.PeriodConstrArg,
@@ -90,7 +90,7 @@ class TimegridsProperty(
         value: Union[
             timetools.Timegrids,
             timetools.Timegrid,
-            Tuple[
+            tuple[
                 timetools.DateConstrArg,
                 timetools.DateConstrArg,
                 timetools.PeriodConstrArg,
@@ -158,7 +158,7 @@ is not defined at the moment.
 
     options: optiontools.Options
     config: configutils.Config
-    scriptfunctions: Dict[str, Callable[..., Optional[int]]]
+    scriptfunctions: dict[str, Callable[..., Optional[int]]]
 
     projectname = _PubProperty[str, str]()
     indexer = _PubProperty[indextools.Indexer, indextools.Indexer]()

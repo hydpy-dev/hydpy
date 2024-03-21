@@ -7,7 +7,7 @@ from hydpy.core import parametertools
 
 
 class AbsErrorMax(parametertools.SolverParameter):
-    """Absolute numerical error tolerance [m3/s]."""
+    """Absolute numerical error tolerance [m³/s]."""
 
     NDIM = 0
     TYPE = float

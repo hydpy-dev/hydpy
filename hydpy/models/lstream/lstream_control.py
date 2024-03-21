@@ -211,16 +211,13 @@ class VG2FG(interptools.SimpleInterpolator):
     _keyword: Optional[Literal["velocity", "timedelay"]] = None
 
     @overload
-    def __call__(self, *, velocity: float) -> None:
-        ...
+    def __call__(self, *, velocity: float) -> None: ...
 
     @overload
-    def __call__(self, *, timedelay: float) -> None:
-        ...
+    def __call__(self, *, timedelay: float) -> None: ...
 
     @overload
-    def __call__(self, algorithm: interptools.InterpAlgorithm) -> None:
-        ...
+    def __call__(self, algorithm: interptools.InterpAlgorithm) -> None: ...
 
     def __call__(
         self,

@@ -32,10 +32,10 @@ from hydpy.core.typingtools import *
 class Folder2Path:
     """Map folder names to their pathnames.
 
-    You can both pass positional arguments and keyword arguments when initialising
-    |Folder2Path|.  For positional arguments, the folder and its path are assumed to be
-    identical.  For keyword arguments, the keyword corresponds to the folder name and
-    its value to the pathname:
+    You can pass positional or keyword arguments when initialising |Folder2Path|.  For
+    positional arguments, the folder and its path are assumed to be identical.  For
+    keyword arguments, the keyword corresponds to the folder name and its value to the
+    pathname:
 
     >>> from hydpy.core.filetools import Folder2Path
     >>> Folder2Path()
@@ -111,23 +111,23 @@ not start with numbers, cannot be mistaken with Python built-ins like `for`...)
             self.add(key, value)
 
     def add(self, directory: str, path: Optional[str] = None) -> None:
-        """Add a directory and optionally its path."""
+        """Add a directory and, optionally, its path."""
         objecttools.valid_variable_identifier(directory)
         if path is None:
             path = directory
         setattr(self, directory, path)
 
     @property
-    def folders(self) -> List[str]:
+    def folders(self) -> list[str]:
         """The currently handled folder names."""
         return [folder for folder, path in self]
 
     @property
-    def paths(self) -> List[str]:
+    def paths(self) -> list[str]:
         """The currently handled path names."""
         return [path for folder, path in self]
 
-    def __iter__(self) -> Iterator[Tuple[str, str]]:
+    def __iter__(self) -> Iterator[tuple[str, str]]:
         for key, value in sorted(vars(self).items()):
             yield key, value
 
@@ -300,7 +300,7 @@ class FileManager:
 been defined manually and cannot be determined automatically: \
 `.../projectname/basename` does not contain any available directories.
 
-        If only one directory exists, it is considered as the current working directory
+        If only one directory exists, it is considered the current working directory
         automatically:
 
         >>> with TestIO():
@@ -317,7 +317,7 @@ been defined manually and cannot be determined automatically: \
         'dir1'
 
         Set the value of |FileManager.currentdir| to |None| to let it forget the
-        memorised directory.  After that, to try to query the current working directory
+        memorised directory.  After that, trying to query the current working directory
         results in another error, as it is not clear which directory to select:
 
         >>> with TestIO():
@@ -493,7 +493,7 @@ occurred: ...
         return os.path.join(self.basepath, self.currentdir)
 
     @property
-    def filenames(self) -> List[str]:
+    def filenames(self) -> list[str]:
         """The names of the files placed in the current working directory, except those
         starting with an underscore.
 
@@ -515,7 +515,7 @@ occurred: ...
         )
 
     @property
-    def filepaths(self) -> List[str]:
+    def filepaths(self) -> list[str]:
         """The absolute path names of the files returned by property
         |FileManager.filenames|.
 
@@ -742,7 +742,7 @@ error occurred: name 'y' is not defined
         """Read all network files of the current working directory, structure their
         contents in a |selectiontools.Selections| object, and return it.
 
-        See the main documentation on class |NetworkManager| for further information.
+        See the main documentation of class |NetworkManager| for further information.
         """
         devicetools.Node.clear_all()
         devicetools.Element.clear_all()
@@ -839,7 +839,7 @@ class ControlManager(FileManager):
 
     # The following file path to content mapping is used to circumvent reading
     # the same auxiliary control parameter file from disk multiple times.
-    _registry: Dict[str, types.CodeType] = {}
+    _registry: dict[str, types.CodeType] = {}
     _workingpath: str = "."
     BASEDIR = "control"
     DEFAULTDIR = "default"
@@ -849,16 +849,16 @@ class ControlManager(FileManager):
         element: Optional[devicetools.Element] = None,
         filename: Optional[str] = None,
         clear_registry: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Return the namespace of the given file (and eventually of its corresponding
         auxiliary subfiles).
 
-        By default, |ControlManager| clears the internal registry when after having
-        loaded a control file and all its corresponding auxiliary files.  You can
-        change this behaviour by passing `False` to the `clear_registry` argument,
-        which might decrease model initialisation times significantly.  However, then
-        it is your own responsibility to call the method |ControlManager.clear_registry|
-        when necessary (usually before reloading a changed control file).
+        By default, |ControlManager| clears the internal registry after loading a
+        control file and all its corresponding auxiliary files.  You can change this
+        behaviour by passing `False` to the `clear_registry` argument, which might
+        decrease model initialisation times significantly.  However, then it is your
+        own responsibility to call the method |ControlManager.clear_registry| when
+        necessary (usually before reloading a changed control file).
 
         One advantage of using method |ControlManager.load_file| directly is that it
         supports reading control files that are yet not correctly integrated into a
@@ -886,20 +886,12 @@ class ControlManager(FileManager):
                  56.94, 1.09, 3.61)
         psi(1.0)
         zonez(2.0, 2.0, 3.0, 3.0, 4.0, 4.0, 5.0, 5.0, 6.0, 6.0, 7.0, 7.0)
-        zrelp(3.75)
-        zrelt(3.75)
-        zrele(3.665)
         pcorr(1.0)
         pcalt(0.1)
         rfcf(1.04283)
         sfcf(1.1)
+        tcorr(0.0)
         tcalt(0.6)
-        ecorr(1.0)
-        ecalt(0.0)
-        epf(0.02)
-        etf(0.1)
-        ered(0.0)
-        ttice(nan)
         icmax(field=1.0, forest=1.5)
         sfdist(1.0)
         smax(inf)
@@ -914,7 +906,6 @@ class ControlManager(FileManager):
         cfr(0.05)
         whc(0.1)
         fc(278.0)
-        lp(0.9)
         beta(2.54011)
         percmax(1.39636)
         cflux(0.0)
@@ -958,7 +949,7 @@ name or the responsible Element object.
         return info
 
     @classmethod
-    def read2dict(cls, filename: str, info: Dict[str, Any]) -> None:
+    def read2dict(cls, filename: str, info: dict[str, Any]) -> None:
         """Read the control parameters from the given path (and its auxiliary paths,
         where appropriate) and store them in the given |dict| object `info`.
 
@@ -969,24 +960,22 @@ name or the responsible Element object.
         """
         if not filename.endswith(".py"):
             filename += ".py"
-        path = os.path.join(cls._workingpath, filename)
+        filepath = os.path.abspath(os.path.join(cls._workingpath, filename))
         with hydpy.pub.options.parameterstep(None):
             try:
-                if path not in cls._registry:
-                    with open(path, encoding=config.ENCODING) as file_:
-                        cls._registry[path] = compile(
-                            source=file_.read(),
-                            filename=filename,
-                            mode="exec",
+                if filepath not in cls._registry:
+                    with open(filepath, encoding=config.ENCODING) as file_:
+                        cls._registry[filepath] = compile(
+                            source=file_.read(), filename=filepath, mode="exec"
                         )
-                exec(cls._registry[path], {}, info)
+                exec(cls._registry[filepath], {}, info)
             except BaseException:
                 objecttools.augment_excmessage(
-                    f"While trying to load the control file `{path}`"
+                    f"While trying to load the control file `{filepath}`"
                 )
         if "model" not in info:
             raise RuntimeError(
-                f"Model parameters cannot be loaded from control file `{path}`.  "
+                f"Model parameters cannot be loaded from control file `{filepath}`.  "
                 f"Please refer to the HydPy documentation on how to prepare control "
                 f"files properly."
             )
@@ -1191,7 +1180,7 @@ class SequenceManager(FileManager):
     65.0
     66.0
     67.0
-    >>> print_file("element2_flux_nkor.asc")
+    >>> print_file("element2_lland_v1_flux_nkor.asc")
     Timegrid("2000-01-01 00:00:00+01:00",
              "2000-01-05 00:00:00+01:00",
              "1d")
@@ -1237,7 +1226,7 @@ class SequenceManager(FileManager):
     ...     pub.sequencemanager.load_file(sim)
     Traceback (most recent call last):
     ...
-    NameError: While trying to load the time-series data of sequence `sim` of node \
+    NameError: While trying to load the time series data of sequence `sim` of node \
 `node2`, the following error occurred: name 'timegrid' is not defined
 
     >>> sim_series = sim.series.copy()
@@ -1251,7 +1240,7 @@ class SequenceManager(FileManager):
     ...     pub.sequencemanager.load_file(sim)
     Traceback (most recent call last):
     ...
-    RuntimeError: While trying to load the time-series data of sequence `sim` of node \
+    RuntimeError: While trying to load the time series data of sequence `sim` of node \
 `node2`, the following error occurred: The series array of sequence `sim` of node \
 `node2` contains 1 nan value.
     >>> sim.series = sim_series
@@ -1262,7 +1251,7 @@ class SequenceManager(FileManager):
     ...     sim.save_series()   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    OSError: While trying to save the time-series data of sequence `sim` of \
+    OSError: While trying to save the time series data of sequence `sim` of \
 node `node2`, the following error occurred: Sequence `sim` of node `node2` is \
 not allowed to overwrite the existing file `...`.
     >>> pub.sequencemanager.overwrite = True
@@ -1275,7 +1264,7 @@ not allowed to overwrite the existing file `...`.
 
     >>> with TestIO():
     ...     nkor.save_mean()
-    >>> print_file("element2_flux_nkor_mean.asc")
+    >>> print_file("element2_lland_v1_flux_nkor_mean.asc")
     Timegrid("2000-01-01 00:00:00+01:00",
              "2000-01-05 00:00:00+01:00",
              "1d")
@@ -1294,7 +1283,7 @@ not allowed to overwrite the existing file `...`.
     >>> nkor.subseqs.seqs.model.parameters.control.lnk = ACKER, WASSER
     >>> with TestIO():
     ...     nkor.save_mean("acker")
-    >>> print_file("element2_flux_nkor_mean.asc")
+    >>> print_file("element2_lland_v1_flux_nkor_mean.asc")
     Timegrid("2000-01-01 00:00:00+01:00",
              "2000-01-05 00:00:00+01:00",
              "1d")
@@ -1340,7 +1329,7 @@ not allowed to overwrite the existing file `...`.
 
     >>> import numpy
     >>> path = os.path.join(
-    ...     "project", "series", "default", "element2_flux_nkor_mean.npy")
+    ...     "project", "series", "default", "element2_lland_v1_flux_nkor_mean.npy")
     >>> with TestIO():
     ...     nkor.save_mean("wasser")
     ...     numpy.load(path)[-4:]
@@ -1355,10 +1344,10 @@ not allowed to overwrite the existing file `...`.
     Traceback (most recent call last):
     ...
     hydpy.core.exceptiontools.AttributeNotReady: Sequence `nkor` of element \
-`element2` is not requested to make any time-series data available.
+`element2` is not requested to make any time series data available.
 
-    The third option is to store data in netCDF files, which is explained separately in
-    the documentation on class |NetCDFInterface|.
+    The third option is to store data in NetCDF files, which is explained separately in
+    the documentation on module |netcdftools|.
     """
 
     SUPPORTED_MODES = "npy", "asc", "nc"
@@ -1367,7 +1356,7 @@ not allowed to overwrite the existing file `...`.
 
     filetype = optiontools.OptionPropertySeriesFileType(
         "asc",
-        """Currently active time-series file type.
+        """Currently active time series file type.
         
         |SequenceManager.filetype| is an option based on |OptionPropertySeriesFileType|.
         See its documentation for further information.
@@ -1375,7 +1364,7 @@ not allowed to overwrite the existing file `...`.
     )
     overwrite = optiontools.OptionPropertyBool(
         False,
-        """Currently active overwrite flag for time-series files.
+        """Currently active overwrite flag for time series files.
 
         |SequenceManager.overwrite| is an option based on |OptionPropertyBool|.  See 
         its documentation for further information.
@@ -1383,16 +1372,26 @@ not allowed to overwrite the existing file `...`.
     )
     aggregation = optiontools.OptionPropertySeriesAggregation(
         "none",
-        """Currently active aggregation mode for writing time-series files.
+        """Currently active aggregation mode for writing time series files.
 
         |SequenceManager.aggregation| is an option based on 
         |OptionPropertySeriesAggregation|.  See its documentation for further 
         information.
         """,
     )
+    convention = optiontools.OptionPropertySeriesConvention(
+        "model-specific",
+        """Currently selected naming convention for reading and writing input time 
+        series files.
+    
+        |SequenceManager.convention| is an option based on 
+        |OptionPropertySeriesConvention|.  See its documentation for further 
+        information.
+        """,
+    )
 
-    _netcdfreader: Optional[netcdftools.NetCDFInterface] = None
-    _netcdfwriter: Optional[netcdftools.NetCDFInterface] = None
+    _netcdfreader: Optional[netcdftools.NetCDFInterfaceReader] = None
+    _netcdfwriter: Optional[netcdftools.NetCDFInterfaceWriter] = None
     _jitaccesshandler: Optional[netcdftools.JITAccessHandler] = None
 
     def load_file(self, sequence: sequencetools.IOSequence) -> None:
@@ -1406,14 +1405,14 @@ not allowed to overwrite the existing file `...`.
                 self._load_nc(sequence)
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to load the time-series data of sequence "
+                f"While trying to load the time series data of sequence "
                 f"{objecttools.devicephrase(sequence)}"
             )
 
     @staticmethod
     def _load_npy(
         sequence: sequencetools.IOSequence,
-    ) -> Tuple[timetools.Timegrid, NDArrayFloat]:
+    ) -> tuple[timetools.Timegrid, NDArrayFloat]:
         data = numpy.load(sequence.filepath)
         timegrid_data = timetools.Timegrid.from_array(data)
         return timegrid_data, data[13:]
@@ -1421,7 +1420,7 @@ not allowed to overwrite the existing file `...`.
     @staticmethod
     def _load_asc(
         sequence: sequencetools.IOSequence,
-    ) -> Tuple[timetools.Timegrid, NDArrayFloat]:
+    ) -> tuple[timetools.Timegrid, NDArrayFloat]:
         filepath = sequence.filepath
         with open(filepath, encoding=config.ENCODING) as file_:
             header = "\n".join([file_.readline() for _ in range(3)])
@@ -1434,7 +1433,7 @@ not allowed to overwrite the existing file `...`.
         return timegrid_data, values
 
     def _load_nc(self, sequence: sequencetools.IOSequence) -> None:
-        self.netcdfreader.log(sequence, None)
+        self.netcdfreader.log(sequence)
 
     def save_file(
         self,
@@ -1450,12 +1449,10 @@ not allowed to overwrite the existing file `...`.
                 self._save_nc(sequence, array)
             else:
                 filepath = sequence.filepath
-                if (array is not None) and (array.aggregation != "unmodified"):
-                    filepath = f"{filepath[:-4]}_{array.aggregation}{filepath[-4:]}"
                 if not sequence.overwrite and os.path.exists(filepath):
                     raise OSError(
                         f"Sequence {objecttools.devicephrase(sequence)} is not allowed "
-                        f"to overwrite the existing file `{sequence.filepath}`."
+                        f"to overwrite the existing file `{filepath}`."
                     )
                 if sequence.filetype == "npy":
                     self._save_npy(array, filepath)
@@ -1463,7 +1460,7 @@ not allowed to overwrite the existing file `...`.
                     self._save_asc(array, filepath)
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to save the time-series data of sequence "
+                f"While trying to save the time series data of sequence "
                 f"{objecttools.devicephrase(sequence)}"
             )
 
@@ -1491,8 +1488,8 @@ not allowed to overwrite the existing file `...`.
         self.netcdfwriter.log(sequence, array)
 
     @property
-    def netcdfreader(self) -> netcdftools.NetCDFInterface:
-        """A |NetCDFInterface| object prepared by method
+    def netcdfreader(self) -> netcdftools.NetCDFInterfaceReader:
+        """A |NetCDFInterfaceReader| object prepared by method
         |SequenceManager.open_netcdfreader| and to be finalised by method
         |SequenceManager.close_netcdfreader|.
 
@@ -1501,50 +1498,49 @@ not allowed to overwrite the existing file `...`.
         >>> sm.netcdfreader
         Traceback (most recent call last):
         ...
-        RuntimeError: The sequence file manager does currently handle no NetCDF \
-reader object.
+        RuntimeError: The sequence file manager currently handles no NetCDF reader \
+object.
 
         >>> sm.open_netcdfreader()
         >>> from hydpy import classname
         >>> classname(sm.netcdfreader)
-        'NetCDFInterface'
+        'NetCDFInterfaceReader'
 
         >>> sm.close_netcdfreader()
         >>> sm.netcdfreader
         Traceback (most recent call last):
         ...
-        RuntimeError: The sequence file manager does currently handle no NetCDF \
-reader object.
+        RuntimeError: The sequence file manager currently handles no NetCDF reader \
+object.
         """
         if self._netcdfreader is None:
             raise RuntimeError(
-                "The sequence file manager does currently handle no NetCDF reader "
-                "object."
+                "The sequence file manager currently handles no NetCDF reader object."
             )
         return self._netcdfreader
 
     def open_netcdfreader(self) -> None:
-        """Prepare a new |NetCDFInterface| object for reading data."""
-        self._netcdfreader = netcdftools.NetCDFInterface()
+        """Prepare a new |NetCDFInterfaceReader| object for reading data."""
+        self._netcdfreader = netcdftools.NetCDFInterfaceReader()
 
     def close_netcdfreader(self) -> None:
-        """Read data with a prepared |NetCDFInterface| object and delete it
+        """Read data with a prepared |NetCDFInterfaceReader| object and delete it
         afterwards."""
         self.netcdfreader.read()
         self._netcdfreader = None
 
     @contextlib.contextmanager
     def netcdfreading(self) -> Iterator[None]:
-        """Prepare a new |NetCDFInterface| object for collecting data at the beginning
-        of a with-block and read the data and delete the object at the end of the same
-        with-block."""
+        """Prepare a new |NetCDFInterfaceReader| object for collecting data at the
+        beginning of a with-block and read the data and delete the object at the end of
+        the same with-block."""
         self.open_netcdfreader()
         yield
         self.close_netcdfreader()
 
     @property
-    def netcdfwriter(self) -> netcdftools.NetCDFInterface:
-        """A |NetCDFInterface| object prepared by method
+    def netcdfwriter(self) -> netcdftools.NetCDFInterfaceWriter:
+        """A |NetCDFInterfaceWriter| object prepared by method
         |SequenceManager.open_netcdfwriter| and to be finalised by method
         |SequenceManager.close_netcdfwriter|.
 
@@ -1553,43 +1549,42 @@ reader object.
         >>> sm.netcdfwriter
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager does \
-currently handle no NetCDF writer object.
+        hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager \
+currently handles no NetCDF writer object.
 
         >>> sm.open_netcdfwriter()
         >>> from hydpy import classname
         >>> classname(sm.netcdfwriter)
-        'NetCDFInterface'
+        'NetCDFInterfaceWriter'
 
         >>> sm.close_netcdfwriter()
         >>> sm.netcdfwriter
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager does \
-currently handle no NetCDF writer object.
+        hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager \
+currently handles no NetCDF writer object.
         """
         if self._netcdfwriter is None:
             raise exceptiontools.AttributeNotReady(
-                "The sequence file manager does currently handle no NetCDF writer "
-                "object."
+                "The sequence file manager currently handles no NetCDF writer object."
             )
         return self._netcdfwriter
 
     def open_netcdfwriter(self) -> None:
-        """Prepare a new |NetCDFInterface| object for writing data."""
-        self._netcdfwriter = netcdftools.NetCDFInterface()
+        """Prepare a new |NetCDFInterfaceWriter| object for writing data."""
+        self._netcdfwriter = netcdftools.NetCDFInterfaceWriter()
 
     def close_netcdfwriter(self) -> None:
-        """Write data with a prepared |NetCDFInterface| object and delete it
+        """Write data with a prepared |NetCDFInterfaceWriter| object and delete it
         afterwards."""
         self.netcdfwriter.write()
         self._netcdfwriter = None
 
     @contextlib.contextmanager
     def netcdfwriting(self) -> Iterator[None]:
-        """Prepare a new |NetCDFInterface| object for collecting data at the beginning
-        of a with-block and write the data and delete the object at the end of the same
-        with-block."""
+        """Prepare a new |NetCDFInterfaceWriter| object for collecting data at the
+        beginning of a with-block and write the data and delete the object at the end
+        of the same with-block."""
         self.open_netcdfwriter()
         yield
         self.close_netcdfwriter()
@@ -1598,14 +1593,14 @@ currently handle no NetCDF writer object.
     def provide_netcdfjitaccess(
         self, deviceorder: Iterable[Union[devicetools.Node, devicetools.Element]]
     ) -> Iterator[None]:
-        """Open all required internal NetCDF time-series files.
+        """Open all required internal NetCDF time series files.
 
         This method is only relevant for reading data from or writing data to NetCDF
         files "just in time" during simulation runs.  See the main documentation on
         class |HydPy| for further information.
         """
         try:
-            interface = netcdftools.NetCDFInterface()
+            interface = netcdftools.NetCDFInterfaceJIT()
             with interface.provide_jitaccess(deviceorder) as jitaccesshandler:
                 self._jitaccesshandler = jitaccesshandler
                 yield
@@ -1613,7 +1608,7 @@ currently handle no NetCDF writer object.
             self._jitaccesshandler = None
 
     def read_netcdfslices(self, idx: int) -> None:
-        """Read the time slice relevant for the current simulation step.
+        """Read the time slice relevant to the current simulation step.
 
         This method is only relevant for reading data from or writing data to NetCDF
         files "just in time" during simulation runs.  See the main documentation on
@@ -1624,7 +1619,7 @@ currently handle no NetCDF writer object.
             handler.read_slices(idx)
 
     def write_netcdfslices(self, idx: int) -> None:
-        """Write the time slice relevant for the current simulation step.
+        """Write the time slice relevant to the current simulation step.
 
         This method is only relevant for reading data from or writing data to NetCDF
         files "just in time" during simulation runs.  See the main documentation on

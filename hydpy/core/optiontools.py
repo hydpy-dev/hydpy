@@ -22,25 +22,155 @@ TypeOption = TypeVar(
     timetools.Period,
     SeriesFileType,
     SeriesAggregationType,
-)
-TypeOptionPropertyBase = TypeVar(
-    "TypeOptionPropertyBase", bound="OptionPropertyBase[Any]"
+    SeriesConventionType,
 )
 TypeOptionContextBase = TypeVar("TypeOptionContextBase", bound="OptionContextBase[Any]")
+TypeOptionPropertyBase = TypeVar(
+    "TypeOptionPropertyBase", bound="OptionPropertyBase[Any, Any]"
+)
 
 
-class OptionPropertyBase(propertytools.BaseDescriptor, Generic[TypeOption]):
+class OptionContextBase(Generic[TypeOption]):
+    """Base class for defining context managers required for the different
+    |OptionPropertyBase| subclasses."""
+
+    _old_value: TypeOption
+    _new_value: Optional[TypeOption]
+    _set_value: Optional[tuple[Callable[[Optional[TypeOption]], None]]]
+
+    def __init__(
+        self,
+        value: TypeOption,
+        set_value: Optional[Callable[[Optional[TypeOption]], None]] = None,
+    ) -> None:
+        self._old_value = value
+        self._new_value = None
+        if set_value is None:
+            self._set_value = None
+        else:
+            self._set_value = (set_value,)
+
+    def __call__(
+        self: TypeOptionContextBase, new_value: Optional[TypeOption] = None
+    ) -> TypeOptionContextBase:
+        self._new_value = new_value
+        return self
+
+    def __enter__(self) -> None:
+        if self._set_value is not None:
+            self._set_value[0](self._new_value)
+
+    def __exit__(
+        self,
+        exception_type: type[BaseException],
+        exception_value: BaseException,
+        traceback_: types.TracebackType,
+    ) -> None:
+        self._new_value = None
+        if self._set_value is not None:
+            self._set_value[0](self._old_value)
+
+
+class OptionContextBool(int, OptionContextBase[bool]):
+    """Context manager required by |OptionPropertyBool|."""
+
+    def __new__(  # pylint: disable=unused-argument
+        cls, value: bool, set_value: Optional[Callable[[bool], None]] = None
+    ) -> OptionContextBool:
+        return super().__new__(cls, value)
+
+
+class OptionContextInt(int, OptionContextBase[int]):
+    """Context manager required by |OptionPropertyInt|."""
+
+    def __new__(  # pylint: disable=unused-argument
+        cls, value: int, set_value: Optional[Callable[[int], None]] = None
+    ) -> OptionContextInt:
+        return super().__new__(cls, value)
+
+
+class _OptionContextEllipsis(int, OptionContextBase[int]):
+    def __new__(  # pylint: disable=unused-argument
+        cls,
+        value: int,
+        set_value: Optional[Callable[[int], None]] = None,
+        optional: bool = False,
+    ) -> _OptionContextEllipsis:
+        return super().__new__(cls, value)
+
+    def __call__(
+        self: TypeOptionContextBase,
+        new_value: Optional[int] = None,
+        optional: bool = False,
+    ) -> TypeOptionContextBase:
+        if optional and (self._old_value != -999):
+            self._new_value = self._old_value
+        else:
+            self._new_value = new_value
+        return self
+
+
+class OptionContextStr(str, OptionContextBase[TypeOption]):
+    """Context manager required by |OptionPropertyStr|."""
+
+    def __new__(  # pylint: disable=unused-argument
+        cls, value: TypeOption, set_value: Optional[Callable[[TypeOption], None]] = None
+    ) -> Self:
+        return super().__new__(cls, value)
+
+
+class OptionContextPeriod(timetools.Period, OptionContextBase[timetools.Period]):
+    """Context manager required by |OptionPropertyPeriod|."""
+
+    _set_value: tuple[Callable[[Optional[timetools.PeriodConstrArg]], None]]
+
+    def __new__(  # pylint: disable=unused-argument
+        cls,
+        value: timetools.PeriodConstrArg,
+        set_value: Optional[
+            Callable[[Optional[timetools.PeriodConstrArg]], None]
+        ] = None,
+    ) -> OptionContextPeriod:
+        return super().__new__(cls, value)
+
+    def __call__(
+        self: TypeOptionContextBase,
+        new_value: Optional[timetools.PeriodConstrArg] = None,
+    ) -> TypeOptionContextBase:
+        self._new_value = new_value
+        return self
+
+
+class OptionPropertyBase(
+    propertytools.BaseDescriptor, Generic[TypeOption, TypeOptionContextBase]
+):
     """Base class for defining descriptors that work like regular |property| instances
     and support the `with` statement to change the property's value temporarily."""
 
-    _CONVERTER: Tuple[Callable[[TypeOption], TypeOption]]
+    _CONVERTER: tuple[Callable[[TypeOption], TypeOption]]
+    _CONTEXT: type[TypeOptionContextBase]
     _default: TypeOption
-    _obj2value: Dict[Hashable, TypeOption]
+    _obj2value: dict[Hashable, TypeOption]
 
     def __init__(self, default: TypeOption, doc: str) -> None:
         self._default = default
         self._obj2value = {}
         self.set_doc(doc)
+
+    @overload
+    def __get__(self, obj: None, typ: type[Hashable]) -> Self: ...
+
+    @overload
+    def __get__(self, obj: Hashable, typ: type[Hashable]) -> TypeOptionContextBase: ...
+
+    def __get__(
+        self, obj: Optional[Hashable], typ: type[Hashable]
+    ) -> Union[Self, TypeOptionContextBase]:
+        if obj is None:
+            return self
+        return self._CONTEXT(
+            self._get_value(obj), lambda value: self._set_value(obj, value)
+        )
 
     def __set__(self, obj: Hashable, value: TypeOption) -> None:
         self._obj2value[obj] = self._CONVERTER[0](value)
@@ -57,7 +187,7 @@ class OptionPropertyBase(propertytools.BaseDescriptor, Generic[TypeOption]):
             self._obj2value[obj] = self._CONVERTER[0](value)
 
 
-class OptionPropertyBool(OptionPropertyBase[bool]):
+class OptionPropertyBool(OptionPropertyBase[bool, OptionContextBool]):
     """Descriptor for defining options of type |bool|.
 
     Framework or model developers should implement options of type |bool| as follows:
@@ -66,7 +196,7 @@ class OptionPropertyBool(OptionPropertyBase[bool]):
     >>> class T:
     ...     v = OptionPropertyBool(True, "x")
 
-    The given string serves for documentation:
+    The given string serves as documentation:
 
     >>> T.v.__doc__
     'x'
@@ -83,7 +213,7 @@ class OptionPropertyBool(OptionPropertyBase[bool]):
     >>> del t.v
     >>> assert t.v
 
-    In most cases, the prefered way is to change options "temporarily" for a specific
+    In most cases, the preferred way is to change options "temporarily" for a specific
     code block introduced by the `with` statement:
 
     >>> with t.v(False):
@@ -115,28 +245,10 @@ class OptionPropertyBool(OptionPropertyBase[bool]):
     """
 
     _CONVERTER = (bool,)
-
-    @overload
-    def __get__(
-        self: TypeOptionPropertyBase, obj: None, typ: Type[Hashable]
-    ) -> TypeOptionPropertyBase:
-        ...
-
-    @overload
-    def __get__(self, obj: Hashable, typ: Type[Hashable]) -> OptionContextBool:
-        ...
-
-    def __get__(
-        self: TypeOptionPropertyBase, obj: Optional[Hashable], typ: Type[Hashable]
-    ) -> Union[TypeOptionPropertyBase, OptionContextBool]:
-        if obj is None:
-            return self
-        return OptionContextBool(
-            self._get_value(obj), lambda value: self._set_value(obj, value)
-        )
+    _CONTEXT = OptionContextBool
 
 
-class OptionPropertyInt(OptionPropertyBase[int]):
+class OptionPropertyInt(OptionPropertyBase[int, OptionContextInt]):
     """Descriptor for defining options of type |int|.
 
     Framework or model developers should implement options of type |int| as follows:
@@ -145,7 +257,7 @@ class OptionPropertyInt(OptionPropertyBase[int]):
     >>> class T:
     ...     v = OptionPropertyInt(1, "x")
 
-    The given string serves for documentation:
+    The given string serves as documentation:
 
     >>> T.v.__doc__
     'x'
@@ -194,28 +306,10 @@ class OptionPropertyInt(OptionPropertyBase[int]):
     """
 
     _CONVERTER = (int,)
-
-    @overload
-    def __get__(
-        self: TypeOptionPropertyBase, obj: None, typ: Type[Hashable]
-    ) -> TypeOptionPropertyBase:
-        ...
-
-    @overload
-    def __get__(self, obj: Hashable, typ: Type[Hashable]) -> OptionContextInt:
-        ...
-
-    def __get__(
-        self: TypeOptionPropertyBase, obj: Optional[Hashable], typ: Type[Hashable]
-    ) -> Union[TypeOptionPropertyBase, OptionContextInt]:
-        if obj is None:
-            return self
-        return OptionContextInt(
-            self._get_value(obj), lambda value: self._set_value(obj, value)
-        )
+    _CONTEXT = OptionContextInt
 
 
-class _OptionPropertyEllipsis(OptionPropertyBase[int]):
+class _OptionPropertyEllipsis(OptionPropertyBase[int, _OptionContextEllipsis]):
     """
     >>> from hydpy.core.optiontools import _OptionPropertyEllipsis
     >>> class T:
@@ -267,28 +361,10 @@ class _OptionPropertyEllipsis(OptionPropertyBase[int]):
     """
 
     _CONVERTER = (int,)
-
-    @overload
-    def __get__(
-        self: TypeOptionPropertyBase, obj: None, typ: Type[Hashable]
-    ) -> TypeOptionPropertyBase:
-        ...
-
-    @overload
-    def __get__(self, obj: Hashable, typ: Type[Hashable]) -> _OptionContextEllipsis:
-        ...
-
-    def __get__(
-        self: TypeOptionPropertyBase, obj: Optional[Hashable], typ: Type[Hashable]
-    ) -> Union[TypeOptionPropertyBase, _OptionContextEllipsis]:
-        if obj is None:
-            return self
-        return _OptionContextEllipsis(
-            self._get_value(obj), lambda value: self._set_value(obj, value)
-        )
+    _CONTEXT = _OptionContextEllipsis
 
 
-class OptionPropertyStr(OptionPropertyBase[str]):
+class OptionPropertyStr(OptionPropertyBase[str, OptionContextStr]):
     """Descriptor for defining options of type |str|.
 
     Framework or model developers should implement options of type |str| as follows:
@@ -297,7 +373,7 @@ class OptionPropertyStr(OptionPropertyBase[str]):
     >>> class T:
     ...     v = OptionPropertyStr("1", "x")
 
-    The given string serves for documentation:
+    The given string serves as documentation:
 
     >>> T.v.__doc__
     'x'
@@ -346,28 +422,10 @@ class OptionPropertyStr(OptionPropertyBase[str]):
     """
 
     _CONVERTER = (str,)
-
-    @overload
-    def __get__(
-        self: TypeOptionPropertyBase, obj: None, typ: Type[Hashable]
-    ) -> TypeOptionPropertyBase:
-        ...
-
-    @overload
-    def __get__(self, obj: Hashable, typ: Type[Hashable]) -> OptionContextStr:
-        ...
-
-    def __get__(
-        self: TypeOptionPropertyBase, obj: Optional[Hashable], typ: Type[Hashable]
-    ) -> Union[TypeOptionPropertyBase, OptionContextStr]:
-        if obj is None:
-            return self
-        return OptionContextStr(
-            self._get_value(obj), lambda value: self._set_value(obj, value)
-        )
+    _CONTEXT = OptionContextStr
 
 
-class OptionPropertyPeriod(OptionPropertyBase[timetools.Period]):
+class OptionPropertyPeriod(OptionPropertyBase[timetools.Period, OptionContextPeriod]):
     """Descriptor for defining options of type |Period|.
 
     Framework or model developers should implement options of type |Period| as follows:
@@ -376,7 +434,7 @@ class OptionPropertyPeriod(OptionPropertyBase[timetools.Period]):
     >>> class T:
     ...     v = OptionPropertyPeriod("1d", "x")
 
-    The given string serves for documentation:
+    The given string serves as documentation:
 
     >>> T.v.__doc__
     'x'
@@ -427,25 +485,7 @@ class OptionPropertyPeriod(OptionPropertyBase[timetools.Period]):
     """
 
     _CONVERTER = (timetools.Period,)
-
-    @overload
-    def __get__(
-        self: TypeOptionPropertyBase, obj: None, typ: Type[Hashable]
-    ) -> TypeOptionPropertyBase:
-        ...
-
-    @overload
-    def __get__(self, obj: Hashable, typ: Type[Hashable]) -> OptionContextPeriod:
-        ...
-
-    def __get__(
-        self: TypeOptionPropertyBase, obj: Optional[Hashable], typ: Type[Hashable]
-    ) -> Union[TypeOptionPropertyBase, OptionContextPeriod]:
-        if obj is None:
-            return self
-        return OptionContextPeriod(
-            self._get_value(obj), lambda value: self._set_value(obj, value)
-        )
+    _CONTEXT = OptionContextPeriod
 
     def __set__(self, obj: Hashable, value: timetools.PeriodConstrArg) -> None:
         self._obj2value[obj] = self._CONVERTER[0](value)
@@ -465,20 +505,26 @@ class _OptionPropertySimulationstep(OptionPropertyPeriod):
             return super()._get_value(obj)
 
 
-def _str2seriesfiletype(value: str) -> SeriesFileType:
-    if value == "nc":
-        return "nc"
-    if value == "npy":
-        return "npy"
-    if value == "asc":
-        return "asc"
-    raise ValueError(
-        f"The given sequence file type `{value}` is not implemented.  Please choose "
-        f"one of the following file types: npy, asc, and nc."
-    )
+def _check_seriesfiletype(value: SeriesFileType) -> SeriesFileType:
+    try:
+        if value == "nc":
+            return "nc"
+        if value == "npy":
+            return "npy"
+        if value == "asc":
+            return "asc"
+        assert_never(value)
+    except AssertionError:
+        raise ValueError(
+            f"The given sequence file type `{value}` is not implemented.  Please "
+            f"choose one of the following file types: npy, asc, and nc."
+        ) from None
+    assert False
 
 
-class OptionPropertySeriesFileType(OptionPropertyBase[SeriesFileType]):
+class OptionPropertySeriesFileType(
+    OptionPropertyBase[SeriesFileType, OptionContextStr[SeriesFileType]]
+):
     """Descriptor for defining options of type |SeriesFileType|.
 
     *HydPy* currently supports a simple text format (`asc`), the numpy binary format
@@ -526,47 +572,33 @@ one of the following file types: npy, asc, and nc.
     >>> assert t.v == "asc"
     """
 
-    _CONVERTER = (_str2seriesfiletype,)
-
-    @overload
-    def __get__(
-        self: TypeOptionPropertyBase, obj: None, typ: Type[Hashable]
-    ) -> TypeOptionPropertyBase:
-        ...
-
-    @overload
-    def __get__(
-        self, obj: Hashable, typ: Type[Hashable]
-    ) -> OptionContextSeriesFileType:
-        ...
-
-    def __get__(
-        self: TypeOptionPropertyBase, obj: Optional[Hashable], typ: Type[Hashable]
-    ) -> Union[TypeOptionPropertyBase, OptionContextSeriesFileType]:
-        if obj is None:
-            return self
-        return OptionContextSeriesFileType(
-            self._get_value(obj), lambda value: self._set_value(obj, value)
-        )
+    _CONVERTER = (_check_seriesfiletype,)
+    _CONTEXT = OptionContextStr[SeriesFileType]
 
 
-def _str2seriesaggregationtype(value: str) -> SeriesAggregationType:
-    if value == "none":
-        return "none"
-    if value == "mean":
-        return "mean"
-    raise ValueError(
-        f"The given aggregation mode `{value}` is not implemented.  Please choose "
-        f"one of the following modes: none and mean."
-    )
+def _check_seriesaggregationtype(value: SeriesAggregationType) -> SeriesAggregationType:
+    try:
+        if value == "none":
+            return "none"
+        if value == "mean":
+            return "mean"
+        assert_never(value)
+    except AssertionError:
+        raise ValueError(
+            f"The given aggregation mode `{value}` is not implemented.  Please "
+            f"choose one of the following modes: none and mean."
+        ) from None
+    assert False
 
 
-class OptionPropertySeriesAggregation(OptionPropertyBase[SeriesAggregationType]):
+class OptionPropertySeriesAggregation(
+    OptionPropertyBase[SeriesAggregationType, OptionContextStr[SeriesAggregationType]]
+):
     """Descriptor for defining options of type |SeriesAggregationType|.
 
     The only currently supported aggregation is averaging (`mean`).  Use `none` to
     avoid any aggregation.  Options based on |OptionPropertySeriesAggregation|
-    automatically check if the given string meets one of these modes and raises errors
+    automatically check if the given string meets one of these modes and raise errors
     if not:
 
     >>> from hydpy.core.optiontools import OptionPropertySeriesAggregation
@@ -605,167 +637,78 @@ one of the following modes: none and mean.
     >>> assert t.v == "none"
     """
 
-    _CONVERTER = (_str2seriesaggregationtype,)
-
-    @overload
-    def __get__(
-        self: TypeOptionPropertyBase, obj: None, typ: Type[Hashable]
-    ) -> TypeOptionPropertyBase:
-        ...
-
-    @overload
-    def __get__(
-        self, obj: Hashable, typ: Type[Hashable]
-    ) -> OptionContextSeriesAggregation:
-        ...
-
-    def __get__(
-        self: TypeOptionPropertyBase, obj: Optional[Hashable], typ: Type[Hashable]
-    ) -> Union[TypeOptionPropertyBase, OptionContextSeriesAggregation]:
-        if obj is None:
-            return self
-        return OptionContextSeriesAggregation(
-            self._get_value(obj), lambda value: self._set_value(obj, value)
-        )
+    _CONVERTER = (_check_seriesaggregationtype,)
+    _CONTEXT = OptionContextStr[SeriesAggregationType]
 
 
-class OptionContextBase(Generic[TypeOption]):
-    """Base class for defining context managers required for the different
-    |OptionPropertyBase| subclasses."""
-
-    _old_value: TypeOption
-    _new_value: Optional[TypeOption]
-    _set_value: Optional[Tuple[Callable[[Optional[TypeOption]], None]]]
-
-    def __init__(
-        self,
-        value: TypeOption,
-        set_value: Optional[Callable[[Optional[TypeOption]], None]] = None,
-    ) -> None:
-        self._old_value = value
-        self._new_value = None
-        if set_value is None:
-            self._set_value = None
-        else:
-            self._set_value = (set_value,)
-
-    def __call__(
-        self: TypeOptionContextBase, new_value: Optional[TypeOption] = None
-    ) -> TypeOptionContextBase:
-        self._new_value = new_value
-        return self
-
-    def __enter__(self) -> None:
-        if self._set_value is not None:
-            self._set_value[0](self._new_value)
-
-    def __exit__(
-        self,
-        exception_type: Type[BaseException],
-        exception_value: BaseException,
-        traceback_: types.TracebackType,
-    ) -> None:
-        self._new_value = None
-        if self._set_value is not None:
-            self._set_value[0](self._old_value)
+def _check_seriesconventiontype(value: SeriesConventionType) -> SeriesConventionType:
+    try:
+        if value == "model-specific":
+            return "model-specific"
+        if value == "HydPy":
+            return "HydPy"
+        assert_never(value)
+    except AssertionError:
+        raise ValueError(
+            f"The given time series naming convention `{value}` is not "
+            f"implemented.  Please choose one of the following modes: "
+            f"model-specific and HydPy."
+        ) from None
+    assert False
 
 
-class OptionContextBool(int, OptionContextBase[bool]):
-    """Context manager required by |OptionPropertyBool|."""
+class OptionPropertySeriesConvention(
+    OptionPropertyBase[SeriesConventionType, OptionContextStr[SeriesConventionType]]
+):
+    """Descriptor for defining options of type |SeriesConventionType|.
 
-    def __new__(  # pylint: disable=unused-argument
-        cls,
-        value: bool,
-        set_value: Optional[Callable[[bool], None]] = None,
-    ) -> OptionContextBool:
-        return super().__new__(cls, value)
+    *HydPy* currently follows two naming conventions when reading input time series.
+    The original convention is to rely on the model-specific sequence names in
+    lowercase letters ("model-specific").  The more convenient convention is to rely on
+    the standard names defined by the enum |sequencetools.StandardInputNames|
+    ("HydPy").  We will likely support more official naming conventions later and
+    eventually allow writing time series following other conventions than the
+    "model-specific" one:
 
+    >>> from hydpy.core.optiontools import OptionPropertySeriesConvention
+    >>> class T:
+    ...     v = OptionPropertySeriesConvention("model-specific", "x")
+    >>> T.v.__doc__
+    'x'
 
-class OptionContextInt(int, OptionContextBase[int]):
-    """Context manager required by |OptionPropertyInt|."""
+    >>> t = T()
+    >>> assert t.v == "model-specific"
+    >>> t.v = "WMO"
+    Traceback (most recent call last):
+    ...
+    ValueError: The given time series naming convention `WMO` is not implemented.  \
+Please choose one of the following modes: model-specific and HydPy.
+    >>> assert t.v == "model-specific"
+    >>> t.v = "HydPy"
+    >>> assert t.v == "HydPy"
+    >>> t.v = "model-specific"
+    >>> assert t.v == "model-specific"
 
-    def __new__(  # pylint: disable=unused-argument
-        cls,
-        value: int,
-        set_value: Optional[Callable[[int], None]] = None,
-    ) -> OptionContextInt:
-        return super().__new__(cls, value)
+    >>> with t.v("WMO"):
+    ...     pass
+    Traceback (most recent call last):
+    ...
+    ValueError: The given time series naming convention `WMO` is not implemented.  \
+Please choose one of the following modes: model-specific and HydPy.
 
+    >>> assert t.v == "model-specific"
+    >>> with t.v("HydPy"):
+    ...     assert t.v == "HydPy"
+    ...     with t.v():
+    ...         assert t.v == "HydPy"
+    ...     with t.v(None):
+    ...         assert t.v == "HydPy"
+    ...     assert t.v == "HydPy"
+    >>> assert t.v == "model-specific"
+    """
 
-class _OptionContextEllipsis(int, OptionContextBase[int]):
-    def __new__(  # pylint: disable=unused-argument
-        cls,
-        value: int,
-        set_value: Optional[Callable[[int], None]] = None,
-        optional: bool = False,
-    ) -> _OptionContextEllipsis:
-        return super().__new__(cls, value)
-
-    def __call__(
-        self: TypeOptionContextBase,
-        new_value: Optional[int] = None,
-        optional: bool = False,
-    ) -> TypeOptionContextBase:
-        if optional and (self._old_value != -999):
-            self._new_value = self._old_value
-        else:
-            self._new_value = new_value
-        return self
-
-
-class OptionContextStr(str, OptionContextBase[str]):
-    """Context manager required by |OptionPropertyStr|."""
-
-    def __new__(  # pylint: disable=unused-argument
-        cls,
-        value: str,
-        set_value: Optional[Callable[[str], None]] = None,
-    ) -> OptionContextStr:
-        return super().__new__(cls, value)
-
-
-class OptionContextPeriod(timetools.Period, OptionContextBase[timetools.Period]):
-    """Context manager required by |OptionPropertyPeriod|."""
-
-    _set_value: Tuple[Callable[[Optional[timetools.PeriodConstrArg]], None]]
-
-    def __new__(  # pylint: disable=unused-argument
-        cls,
-        value: timetools.PeriodConstrArg,
-        set_value: Optional[
-            Callable[[Optional[timetools.PeriodConstrArg]], None]
-        ] = None,
-    ) -> OptionContextPeriod:
-        return super().__new__(cls, value)
-
-    def __call__(
-        self: TypeOptionContextBase,
-        new_value: Optional[timetools.PeriodConstrArg] = None,
-    ) -> TypeOptionContextBase:
-        self._new_value = new_value
-        return self
-
-
-class OptionContextSeriesFileType(str, OptionContextBase[SeriesFileType]):
-    """Context manager required by |OptionPropertySeriesFileType|."""
-
-    def __new__(  # pylint: disable=unused-argument
-        cls,
-        value: SeriesFileType,
-        set_value: Optional[Callable[[SeriesFileType], None]] = None,
-    ) -> OptionContextSeriesFileType:
-        return super().__new__(cls, value)
-
-
-class OptionContextSeriesAggregation(str, OptionContextBase[SeriesAggregationType]):
-    """Context manager required by |OptionPropertySeriesAggregation|."""
-
-    def __new__(  # pylint: disable=unused-argument
-        cls,
-        value: SeriesAggregationType,
-        set_value: Optional[Callable[[SeriesAggregationType], None]] = None,
-    ) -> OptionContextSeriesAggregation:
-        return super().__new__(cls, value)
+    _CONVERTER = (_check_seriesconventiontype,)
+    _CONTEXT = OptionContextStr[SeriesConventionType]
 
 
 class Options:
@@ -850,11 +793,6 @@ class Options:
         """A True/False flag for printing information about the progress of some 
         processes to the standard output.""",
     )
-    reprcomments = OptionPropertyBool(
-        False,
-        """A True/False flag for including comments into string representations.  So 
-        far, this option affects the behaviour of a few implemented classes, only.""",
-    )
     reprdigits = OptionPropertyInt(
         -1,
         """Required precision of string representations of floating point numbers, 
@@ -896,6 +834,18 @@ class Options:
         Period()
         """,
     )
+    timestampleft = OptionPropertyBool(
+        True,
+        """A True/False flag telling if assigning interval data (like hourly 
+        precipitation) to single time points relies on the start (True, default) or the 
+        end (False) of the respective interval.  
+
+        *HydPy*-internally, we usually prevent such potentially problematic assignments 
+        by using |Timegrid| objects that define grids of intervals instead of time 
+        points.  However, some exceptions cannot be avoided, for example, when reading 
+        or writing NetCDF files.
+        """,
+    )
     trimvariables = OptionPropertyBool(
         True,
         """A True/False flag for enabling/disabling function |trim|.  Set it to |False| 
@@ -907,8 +857,7 @@ class Options:
         faster than pure Python models. """,
     )
     usedefaultvalues = OptionPropertyBool(
-        False,
-        """A True/False flag for initialising parameters with standard values.""",
+        False, """A True/False flag for initialising parameters with standard values."""
     )
     utclongitude = OptionPropertyInt(
         15,
@@ -920,18 +869,6 @@ class Options:
         60,
         """Local time offset from UTC in minutes (see option |Options.utclongitude|.  
         Defaults to 60, which corresponds to  UTC+01:00.""",
-    )
-    timestampleft = OptionPropertyBool(
-        True,
-        """A True/False flag telling if assigning interval data (like hourly 
-        precipitation) to single time points relies on the start (True, default) or the 
-        end (False) of the respective interval.  
-        
-        *HydPy*-internally, we usually prevent such potentially problematic assignments 
-        by using |Timegrid| objects that define grids of intervals instead of time 
-        points.  However, some exceptions cannot be avoided, for example, when reading 
-        or writing NetCDF files.
-        """,
     )
     warnmissingcontrolfile = OptionPropertyBool(
         False,

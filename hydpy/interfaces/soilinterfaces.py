@@ -3,10 +3,8 @@
 .. _`issue 89`: https://github.com/hydpy-dev/hydpy/issues/89
 
 """
-# import...
-# ...from standard library
-import abc
 
+# import...
 # ...from hydpy
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
@@ -30,8 +28,8 @@ class SoilModel_V1(modeltools.SubmodelInterface):
     """
 
     typeid: ClassVar[Literal[1]] = 1
+    """Type identifier for |SoilModel_V1| submodels."""
 
-    @abc.abstractmethod
     def prepare_nmbzones(self, nmbzones: int) -> None:
         """Set the number of zones in which the actual calculations take place."""
 

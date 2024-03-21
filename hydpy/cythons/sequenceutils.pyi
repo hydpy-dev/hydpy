@@ -1,3 +1,5 @@
+# pylint: disable=missing-module-docstring
+
 from hydpy.core import sequencetools
 
 class FastAccessNodeSequence(sequencetools.FastAccessNodeSequence):

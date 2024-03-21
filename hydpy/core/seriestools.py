@@ -192,7 +192,7 @@ occurred: Module `numpy` does not provide a function named `Sum`.
     2000-01-02    14.5
     2000-01-03    38.5
     2000-01-04    62.5
-    Freq: 86400S, Name: series, dtype: float64
+    Freq: 86400s, Name: series, dtype: float64
 
     If you want the aggregation to start at a different time of the day, use the
     `basetime` argument.  In our example, starting at 22 o'clock fits the defined
@@ -203,7 +203,7 @@ occurred: Module `numpy` does not provide a function named `Sum`.
     2000-01-02 22:00:00    36.5
     2000-01-03 22:00:00    60.5
     2000-01-04 22:00:00    84.5
-    Freq: 86400S, Name: series, dtype: float64
+    Freq: 86400s, Name: series, dtype: float64
 
     So far, the `basetime` argument works for daily aggregation only:
 
@@ -225,7 +225,7 @@ size only.
     2000-01-02    2.0
     2000-01-03    3.0
     2000-01-04    4.0
-    Freq: 86400S, Name: series, dtype: float64
+    Freq: 86400s, Name: series, dtype: float64
 
     >>> pub.timegrids = "01.01.2000 22:00", "05.01.2000 22:00", "2d"
     >>> node.prepare_simseries()
@@ -242,7 +242,7 @@ occurred: Data aggregation is not supported for simulation step sizes greater on
     >>> aggregate_series(series=sim.series, stepsize="yearly", aggregator="sum")
     2001-01-01    365.0
     2002-01-01    365.0
-    Freq: AS-JAN, Name: series, dtype: float64
+    Freq: YS-JAN, Name: series, dtype: float64
 
     We are looking forward supporting other useful aggregation step sizes later:
 

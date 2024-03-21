@@ -79,10 +79,7 @@ class BodenTyp(parametertools.NameParameter):
     constants = whmod_constants.SOIL_CONSTANTS
 
 
-whmod_parameters.BodenCompleteParameter.CONTROLPARAMETERS = (
-    BodenTyp,
-    Nmb_Cells,
-)
+whmod_parameters.BodenCompleteParameter.CONTROLPARAMETERS = (BodenTyp, Nmb_Cells)
 
 
 class F_AREA(whmod_parameters.NutzCompleteParameter):

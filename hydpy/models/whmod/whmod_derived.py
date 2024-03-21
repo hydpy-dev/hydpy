@@ -25,10 +25,7 @@ class RelArea(whmod_parameters.NutzCompleteParameter):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
 
-    CONTROLPARAMETERS = (
-        whmod_control.F_AREA,
-        whmod_control.Area,
-    )
+    CONTROLPARAMETERS = (whmod_control.F_AREA, whmod_control.Area)
 
     def update(self):
         """
@@ -56,10 +53,7 @@ class Wurzeltiefe(whmod_parameters.NutzBodenParameter):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (
-        whmod_control.MaxWurzeltiefe,
-        whmod_control.Flurab,
-    )
+    CONTROLPARAMETERS = (whmod_control.MaxWurzeltiefe, whmod_control.Flurab)
 
     def update(self):
         """

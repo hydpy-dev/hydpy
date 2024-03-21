@@ -114,9 +114,7 @@ from hydpy.exe.commandtools import (
 )
 from hydpy.exe.replacetools import xml_replace
 from hydpy.exe.servertools import await_server, start_server
-from hydpy.models.whmod.whmod_script import (
-    run_whmod,
-)
+from hydpy.models.whmod.whmod_script import run_whmod
 
 __version__ = "6.0a0"
 

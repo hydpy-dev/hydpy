@@ -48,7 +48,7 @@ import shutil
 import warnings
 from typing import get_args
 from itertools import product
-from dateutil.parser import parse  # type: ignore[import]
+from dateutil.parser import parse  # type: ignore[import-untyped]
 import numpy
 import pandas
 import xarray
@@ -101,9 +101,7 @@ class RasterArea(NDArrayInt):
     def from_elements(cls, elements: hydpy.Elements) -> Self:
         """Erstelle RasterArea aus Elementflächen"""
         pb = Positionbounds.from_elementnames(elements=elements)
-        area_grid = numpy.zeros(
-            (pb.rowmax - pb.rowmin + 1, pb.colmax - pb.colmin + 1)
-        )
+        area_grid = numpy.zeros((pb.rowmax - pb.rowmin + 1, pb.colmax - pb.colmin + 1))
         area_sum = 0.0
         for element in elements:
             area_sum += element.model.parameters.control.area
@@ -164,10 +162,7 @@ class Positionbounds(NamedTuple):
             colmin = min(colmin, pos.col)
             colmax = max(colmax, pos.col)
         return Positionbounds(
-            rowmin=rowmin,
-            rowmax=rowmax,
-            colmin=colmin,
-            colmax=colmax,
+            rowmin=rowmin, rowmax=rowmax, colmin=colmin, colmax=colmax
         )
 
 
@@ -177,9 +172,9 @@ class _XY(NamedTuple):
 
 
 def _collect_hrus(
-    table: pandas.DataFrame, idx_: int, landuse_dict: Dict[str, Dict[str, int]]
-) -> Dict[str, Dict[str, object]]:
-    """Collect the hrus of the respective raster-cell. Returns Dictionary.
+    table: pandas.DataFrame, idx_: int, landuse_dict: dict[str, dict[str, int]]
+) -> dict[str, dict[str, object]]:
+    """Collect the hrus of the respective raster-cell. Returns dictionary.
 
     >>> from hydpy import TestIO
     >>> TestIO.clear()
@@ -207,7 +202,7 @@ id 4 angesetzt wird ist nicht definiert"
     ValueError: 'verzoegerung' muss den Datentyp float enthalten oder die Option \
 'flurab_probst'
     """
-    result: Dict[str, Dict[str, object]] = {}
+    result: dict[str, dict[str, object]] = {}
     hrus = table[table["id"] == idx_]
     extended_hrus = pandas.DataFrame(columns=hrus.columns)
     n_hrus = 0
@@ -244,7 +239,7 @@ id 4 angesetzt wird ist nicht definiert"
     return result
 
 
-def _return_con_hru(hrus: Dict[str, Dict[str, T]], con: str) -> List[T]:
+def _return_con_hru(hrus: dict[str, dict[str, T]], con: str) -> list[T]:
     """Returns a list of the condition (con) of a hru."""
     temp_list = []
     for hru in hrus:
@@ -318,7 +313,7 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     Initialize WHMOD (...).
     Apply the Richter correction (...).
     Interpolate Temperature data to precipitation station (Richter correction) (...).
-    method simulate started at ...
+    method HydPy.simulate started at ...
         |---------------------|
         ***********************
         seconds elapsed: ...
@@ -622,12 +617,12 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     Initialize WHMOD (...).
     Apply the Richter correction (...).
     Interpolate Temperature data to precipitation station (Richter correction) (...).
-    method simulate started at ...
+    method HydPy.simulate started at ...
         |---------------------|
         ***********************
         seconds elapsed: ...
     Start WHMOD simulation (...).
-    method simulate started at ...
+    method HydPy.simulate started at ...
         |---------------------|
         ***********************
         seconds elapsed: ...
@@ -689,7 +684,6 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     whmod_selection = hydpy.Selection("raster")
     evap_selection_stat = hydpy.Selection("evap_stat")
     evap_selection_raster = hydpy.Selection("evap_raster")
-    meteo_selection_stat = hydpy.Selection("meteo_stat")
     cssr_selection_stat = hydpy.Selection("CSSR_stat")
     gsr_selection_stat = hydpy.Selection("GSR_stat")
     temp_selection_stat = hydpy.Selection("temp_stat")
@@ -700,7 +694,7 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     hp = hydpy.HydPy("run_WHMod")
     hydpy.pub.sequencemanager.filetype = "asc"
 
-    node2xy: Dict[hydpy.Node, _XY] = {}
+    node2xy: dict[hydpy.Node, _XY] = {}
 
     _initialize_whmod_models(
         write_output=write_output_,
@@ -719,9 +713,6 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     _initialize_weather_stations(
         df_stammdaten=df_stammdaten,
         richter=whmod_main["PRECIP_RICHTER_CORRECTION"],
-        cssr_selection_stat=cssr_selection_stat,
-        gsr_selection_stat=gsr_selection_stat,
-        meteo_selection_stat=meteo_selection_stat,
         evap_selection_stat=evap_selection_stat,
         temp_selection_stat=temp_selection_stat,
         prec_selection_stat=prec_selection_stat,
@@ -748,7 +739,6 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
         whmod_selection,
         cssr_selection_stat,
         gsr_selection_stat,
-        meteo_selection_stat,
         evap_selection_stat,
         evap_selection_raster,
         temp_selection_stat,
@@ -999,7 +989,7 @@ def read_nodeproperties(basedir: str, filename_node_data: str) -> pandas.DataFra
     return df_knoteneigenschaften
 
 
-def read_whmod_main(basedir: str) -> Dict[str, Any]:
+def read_whmod_main(basedir: str) -> dict[str, Any]:
     """
     Read the whmod main file.
 
@@ -1047,7 +1037,7 @@ True, 'EVAPORATION_MODE': 'FAO', 'INTERPOLATION_MODE': \
         os.path.join(basedir, "WHMod_Main.txt"), encoding="utf-8", mode="r"
     ) as infile:
         reader = csv.reader(infile, delimiter="\t")
-        whmod_main = {}
+        whmod_main: dict[str, Union[str, bool, float, list[str]]] = {}
         for rows in reader:
             if not rows[0].startswith("#"):
                 value = rows[1].split("#")[0].strip()
@@ -1059,14 +1049,14 @@ True, 'EVAPORATION_MODE': 'FAO', 'INTERPOLATION_MODE': \
     if "AREA_PRECISION" not in whmod_main:
         whmod_main["AREA_PRECISION"] = 1e-6
     whmod_main["OUTPUTCONFIG"] = [
-        stepsize.strip() for stepsize in whmod_main["OUTPUTCONFIG"].split(",")
+        stepsize.strip() for stepsize in str(whmod_main["OUTPUTCONFIG"]).split(",")
     ]
-    whmod_main["OUTPUTDIR"] = os.path.join(basedir, whmod_main["OUTPUTDIR"])
+    whmod_main["OUTPUTDIR"] = os.path.join(basedir, str(whmod_main["OUTPUTDIR"]))
     assert whmod_main["INTERPOLATION_MODE"] in get_args(InterpolationModes)
     return whmod_main
 
 
-def read_landuse(filepath_landuse: str) -> Dict[str, Dict[str, int]]:
+def read_landuse(filepath_landuse: str) -> dict[str, dict[str, int]]:
     """Read the landuse file.
 
     >>> from hydpy import TestIO
@@ -1101,7 +1091,7 @@ def read_landuse(filepath_landuse: str) -> Dict[str, Dict[str, int]]:
     return landuse_dict
 
 
-def read_root_depth(root_depth_option: str, basedir: str) -> Dict[str, float]:
+def read_root_depth(root_depth_option: str, basedir: str) -> dict[str, float]:
     """Reads maximum root_depth from file or takes predefined values according to the
     chosen option.
 
@@ -1200,7 +1190,7 @@ enthalten.
 
 def read_outputconfig(
     outputconfigfile: str, basedir: str
-) -> Dict[str, List[Union[str, pandas.DatetimeIndex]]]:
+) -> dict[str, list[Union[str, pandas.DatetimeIndex]]]:
     """
     Read text files which define the stepsize of the outputfiles.
 
@@ -1264,9 +1254,7 @@ def read_outputconfig(
         aggregation_timegrid = pandas.to_datetime(
             [parse(string, fuzzy=False) for string in outputconfig_dict["steps"]]
         )
-        outputconfig_dict["steps"] = [
-            aggregation_timegrid,
-        ]
+        outputconfig_dict["steps"] = [aggregation_timegrid]
         if any(sorted(aggregation_timegrid) != aggregation_timegrid):
             raise AssertionError(
                 "Output timesteps of user defined output have to be sorted"
@@ -1296,9 +1284,9 @@ def _initialize_whmod_models(
     whmod_selection: hydpy.Selection,
     with_capillary_rise: bool,
     day_degree_factor: float,
-    landuse_dict: Dict[str, Dict[str, int]],
-    root_depth: Dict[str, float],
-    node2xy: Dict[hydpy.Node, _XY],
+    landuse_dict: dict[str, dict[str, int]],
+    root_depth: dict[str, float],
+    node2xy: dict[hydpy.Node, _XY],
 ) -> None:
     """In this function, the whmod-elements are initialized based on the data provided
     in Node_Data.csv.  The arguments of this function are HydPy-selections, which
@@ -1469,15 +1457,12 @@ def _initialize_whmod_models(
 def _initialize_weather_stations(
     df_stammdaten: pandas.DataFrame,
     richter: bool,
-    cssr_selection_stat: hydpy.Selection,
-    gsr_selection_stat: hydpy.Selection,
-    meteo_selection_stat: hydpy.Selection,
     evap_selection_stat: hydpy.Selection,
     temp_selection_stat: hydpy.Selection,
     prec_selection_stat: hydpy.Selection,
     filename_timeseries: str,
     basedir: str,
-    node2xy: Dict[hydpy.Node, _XY],
+    node2xy: dict[hydpy.Node, _XY],
     write_output: bool,
     interpolation_method: InterpolationModes,
 ) -> None:
@@ -1490,21 +1475,9 @@ def _initialize_weather_stations(
     """
     from hydpy import aliases  # pylint: disable=import-outside-toplevel
 
-    # Initialization Meteo-Elements, Evap-Elements, Temp-Nodes
-    # Fused Variables
-    cssr = devicetools.FusedVariable(
-        "CSSR",
-        aliases.meteo_fluxes_ClearSkySolarRadiation,
-        aliases.evap_inputs_ClearSkySolarRadiation,
-    )
-    gsr = devicetools.FusedVariable(
-        "GSR", aliases.meteo_fluxes_GlobalRadiation, aliases.evap_inputs_GlobalRadiation
-    )
+    # Initialization Evap-Elements, Temp-Nodes
 
-    timeseries_path = os.path.join(
-        basedir,
-        filename_timeseries,
-    )
+    timeseries_path = os.path.join(basedir, filename_timeseries)
     if richter:
         # Interpolate temperature for richter correction:
         if write_output:
@@ -1551,46 +1524,34 @@ def _initialize_weather_stations(
             # there is only precipitation data
             continue
 
-        cssr_node = hydpy.Node(f"CSSR_{stat}", variable=cssr)
-        gsr_node = hydpy.Node(f"GSR_{stat}", variable=gsr)
-        cssr_selection_stat.nodes.add_device(cssr_node)
-        gsr_selection_stat.nodes.add_device(gsr_node)
-
         evap_node = hydpy.Node(
             f"E_{stat}", variable=aliases.evap_fluxes_MeanReferenceEvapotranspiration
         )
         node2xy[evap_node] = xy
 
-        # Meteo-Elemente
-        meteo_element = hydpy.Element(f"Meteo_{stat}", outputs=(cssr_node, gsr_node))
-        meteo = hydpy.prepare_model("meteo_v001", "1d")
-        meteo_element.model = meteo
-
         # Evap-Element
-        evap_element = hydpy.Element(
-            f"Evap_{stat}", inputs=(cssr_node, gsr_node), outputs=(evap_node)
-        )
+        evap_element = hydpy.Element(f"Evap_{stat}", outputs=(evap_node))
         evap = hydpy.prepare_model("evap_fao56", "1d")
-        evap_element.model = evap
-
-        con_evap = evap.parameters.control
-        con_meteo = meteo.parameters.control
-
-        # Control Meteo-Element
-        con_meteo.latitude(lat)
-        con_meteo.longitude(long)
-        con_meteo.angstromconstant(0.25)
-        con_meteo.angstromfactor(0.5)
-        meteo.parameters.update()
 
         # Control Evap-Element
+        con_evap = evap.parameters.control
         con_evap.nmbhru(1)
         con_evap.hruarea(1.0)  # tatsächliche Fläche hier irrelevant
         con_evap.measuringheightwindspeed(10.0)
         con_evap.evapotranspirationfactor(1.0)
         with evap.add_tempmodel_v2("meteo_temp_io") as tempmodel:
             tempmodel.parameters.control.temperatureaddend(0.0)
-        evap.parameters.update()
+        evap.update_parameters()
+
+        with evap.add_radiationmodel_v1("meteo_v001") as meteo:
+            con_meteo = meteo.parameters.control
+            # Control Meteo-Element
+            con_meteo.latitude(lat)
+            con_meteo.longitude(long)
+            con_meteo.angstromconstant(0.25)
+            con_meteo.angstromfactor(0.5)
+        evap_element.model = evap
+        evap.update_parameters()
 
         evap_element.model.sequences.logs.loggedglobalradiation(0.0)
         evap_element.model.sequences.logs.loggedclearskysolarradiation(0.0)
@@ -1604,8 +1565,7 @@ def _initialize_weather_stations(
         inp_tem.prepare_series()
 
         inp_meteo.sunshineduration.filepath = os.path.join(
-            timeseries_path,
-            seq_sunshineduration,
+            timeseries_path, seq_sunshineduration
         )
         with hydpy.pub.options.checkseries(False):
             inp_meteo.sunshineduration.load_series()
@@ -1617,8 +1577,7 @@ def _initialize_weather_stations(
             inp_tem.temperature.load_series()
 
             inp_evap.relativehumidity.filepath = os.path.join(
-                timeseries_path,
-                seq_relativehumidity,
+                timeseries_path, seq_relativehumidity
             )
 
             inp_evap.relativehumidity.load_series()
@@ -1629,8 +1588,7 @@ def _initialize_weather_stations(
             del inp_evap.windspeed.filepath
 
             inp_evap.atmosphericpressure.filepath = os.path.join(
-                timeseries_path,
-                seq_atmosphericpressure,
+                timeseries_path, seq_atmosphericpressure
             )
             inp_evap.atmosphericpressure.load_series()
             del inp_evap.atmosphericpressure.filepath
@@ -1643,8 +1601,7 @@ def _initialize_weather_stations(
             t_node.sequences.obs.series = inp_tem.temperature.series
         node2xy[t_node] = xy
 
-        # add meteo-elements, evap-elements, evap-nodes to selections
-        meteo_selection_stat.elements.add_device(meteo_element)
+        # add evap-elements, evap-nodes to selections
         evap_selection_stat.nodes.add_device(evap_node)
         evap_selection_stat.elements.add_device(evap_element)
         temp_selection_stat.nodes.add_device(t_node)
@@ -1769,7 +1726,7 @@ def _initialize_conv_models(
     temp_selection_raster: hydpy.Selection,
     prec_selection_stat: hydpy.Selection,
     prec_selection_raster: hydpy.Selection,
-    node2xy: Dict[hydpy.Node, _XY],
+    node2xy: dict[hydpy.Node, _XY],
     interpolation_method: Literal["NN", "IDW"],
 ) -> None:
     """The conv models are based on the selections of the input data of the weather
@@ -1777,9 +1734,10 @@ def _initialize_conv_models(
     rasterized counterpart (evapselection_raster, tempselection_raster,
     precselection_raster).
     """
+
     # Initialization Conv-Modelle
-    def _get_coordinatedict(nodes: hydpy.Nodes) -> Dict[str, _XY]:
-        """Returns a Dictionary with x and y values. Used for Conv-models."""
+    def _get_coordinatedict(nodes: hydpy.Nodes) -> dict[str, _XY]:
+        """Returns a dictionary with x and y values. Used for Conv-models."""
         return {n.name: node2xy[n] for n in nodes}
 
     # Conv-Modell PET
@@ -1999,8 +1957,8 @@ def inplace_change(filename: str, old_string: str, new_string: str) -> None:
 
 
 def save_results(
-    aggregated_series: Dict[str, Dict[Literal["mean", "sum"], xarray.DataArray]],
-    loggers: List[Dict[str, List[Union[str, pandas.DatetimeIndex]]]],
+    aggregated_series: dict[str, dict[Literal["mean", "sum"], xarray.DataArray]],
+    loggers: list[dict[str, list[Union[str, pandas.DatetimeIndex]]]],
     outputdir: str,
     df_knoteneigenschaften: pandas.DataFrame,
     person_in_charge: str,
@@ -2099,7 +2057,7 @@ def save_results(
 
 
 def prepare_rch(
-    grid: Dict[Union[Literal["mean"], Literal["sum"]], xarray.DataArray], seq: str
+    grid: dict[Union[Literal["mean"], Literal["sum"]], xarray.DataArray], seq: str
 ) -> xarray.DataArray:
     """
     Konvertiere Einheiten entsprechend Anforderungen.
@@ -2118,9 +2076,8 @@ def prepare_rch(
 
 
 def aggregate_whmod_series(
-    loggers: List[Dict[str, List[Union[str, pandas.DatetimeIndex]]]],
-    seriesdir: str,
-) -> Dict[str, Dict[Literal["sum", "mean"], xarray.DataArray]]:
+    loggers: list[dict[str, list[Union[str, pandas.DatetimeIndex]]]], seriesdir: str
+) -> dict[str, dict[Literal["sum", "mean"], xarray.DataArray]]:
     """
     Aggregate whmod series
     """
@@ -2128,12 +2085,12 @@ def aggregate_whmod_series(
     whm_elements = (
         hydpy.pub.selections["complete"].search_modeltypes("whmod_pet").elements
     )
-    all_series: List[str] = []
+    all_series: list[str] = []
     orig_index = get_pandasindex()
     pb = Positionbounds.from_elementnames(elements=whm_elements)
     raster_shape = (pb.rowmax - pb.rowmin + 1, pb.colmax - pb.colmin + 1)
-    aggregated_series: Dict[str, Dict[Literal["sum", "mean"], xarray.DataArray]] = {}
-    sequencelogger: Dict[str, List[Dict[str, Any]]] = {}
+    aggregated_series: dict[str, dict[Literal["sum", "mean"], xarray.DataArray]] = {}
+    sequencelogger: dict[str, list[dict[str, Any]]] = {}
     for logger in loggers:
         for i, (step, seq) in enumerate(product(logger["steps"], logger["sequence"])):
             unit = _get_sequenceunit(sequencestring=seq)
@@ -2170,12 +2127,14 @@ def aggregate_whmod_series(
         xarr_series = xarr_series.assign_coords(cellid=(["row", "col"], rasterids))
         xarr_series = xarr_series.assign_coords(relarea=(["row", "col"], rasterareas))
 
+        hydpy.pub.options.printprogress = False
         with hydpy.pub.sequencemanager.netcdfreading():
             for element in whm_elements:
                 sequence = _get_sequence(model=element.model, sequencestring=seq)
                 sequence.prepare_series(allocate_ram=True)
                 with hydpy.pub.options.checkseries(False):
                     sequence.load_series()
+        hydpy.pub.options.printprogress = True
 
         for element in whm_elements:
             sequence = _get_sequence(model=element.model, sequencestring=seq)
@@ -2202,9 +2161,7 @@ def aggregate_whmod_series(
 
             if isinstance(step, pandas.DatetimeIndex):
                 agg_ser_sum = aggregate_flexible_series(
-                    series=xarr_series_time,
-                    aggregation_timegrid=step,
-                    aggregator="sum",
+                    series=xarr_series_time, aggregation_timegrid=step, aggregator="sum"
                 )
                 agg_ser_mean = aggregate_flexible_series(
                     series=xarr_series_time,
@@ -2225,7 +2182,6 @@ def aggregate_whmod_series(
             if seq not in all_series:
                 print(
                     f"Mean {seq} [{unit}/a]: "
-                    f""
                     f"{objecttools.repr_(float(xarr_series.mean().values) * 365.24)}"
                 )
                 all_series.append(seq)
@@ -2674,11 +2630,7 @@ def aggregate_flexible_series(
         )
 
     agg_arr = series.copy()
-    agg_arr = agg_arr.reindex(
-        indexers={
-            "time": aggregation_timegrid[:-1],
-        }
-    )
+    agg_arr = agg_arr.reindex(indexers={"time": aggregation_timegrid[:-1]})
     agg_arr.data[:] = numpy.nan
     start_time: datetime.datetime
     freq = xarray.infer_freq(index=series.time)
@@ -2722,7 +2674,7 @@ def get_richter_factors(
         "frei", "leicht_geschuetzt", "maessig_geschuetzt", "stark_geschuetzt"
     ],
     ns_art: Literal["Sommerregen", "Winterregen", "Mischniederschlag", "Schnee"],
-) -> Tuple[float, float]:
+) -> tuple[float, float]:
     """
     Gibt den Richterkorrekturwert zurück
 
@@ -2744,7 +2696,7 @@ def calc_richter(
         "frei", "leicht_geschuetzt", "maessig_geschuetzt", "stark_geschuetzt"
     ],
     precipitation: numpy.typing.NDArray[numpy.float64],
-) -> List[float]:
+) -> list[float]:
     """
     Gibt nach Richter korrigiergte Zeitreihe zurück
 
@@ -2779,7 +2731,7 @@ def get_pandasindex() -> pandas.Index:
     index = pandas.date_range(
         tg.firstdate.datetime,
         (tg.lastdate - tg.stepsize).datetime,
-        (tg.lastdate - tg.firstdate - tg.stepsize) / tg.stepsize + 1,
+        int((tg.lastdate - tg.firstdate - tg.stepsize) / tg.stepsize + 1),
     )
     return index
 
@@ -3000,8 +2952,8 @@ def _conv_models_temperature(
     temperature_out = stammdaten_in[stammdaten_in["Messungsart"] == "Niederschlag"]
 
     hp_temperature = hydpy.HydPy("temperature")
-    in_coords_dict: Dict[str, Tuple[float, float]] = {}
-    out_coords_dict: Dict[str, Tuple[float, float]] = {}
+    in_coords_dict: dict[str, tuple[float, float]] = {}
+    out_coords_dict: dict[str, tuple[float, float]] = {}
     e = hydpy.Element("conv_temperature_richter")
 
     inlet_nodes = hydpy.Nodes()

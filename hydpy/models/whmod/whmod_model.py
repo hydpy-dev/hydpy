@@ -247,10 +247,7 @@ class Calc_Seeniederschlag_V1(modeltools.Method):
     seeniederschlag(0.0, 0.0, 2.0)
     """
 
-    CONTROLPARAMETERS = (
-        whmod_control.Nmb_Cells,
-        whmod_control.Nutz_Nr,
-    )
+    CONTROLPARAMETERS = (whmod_control.Nmb_Cells, whmod_control.Nutz_Nr)
     REQUIREDSEQUENCES = (whmod_fluxes.NiederschlagRichter,)
     RESULTSEQUENCES = (whmod_fluxes.Seeniederschlag,)
 
@@ -279,14 +276,8 @@ class Calc_InterzeptionsVerdunstung_V1(modeltools.Method):
     interzeptionsverdunstung(2.0, 1.0, 0.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        whmod_control.Nmb_Cells,
-        whmod_control.Nutz_Nr,
-    )
-    REQUIREDSEQUENCES = (
-        whmod_fluxes.NiederschlagRichter,
-        whmod_fluxes.NiedNachInterz,
-    )
+    CONTROLPARAMETERS = (whmod_control.Nmb_Cells, whmod_control.Nutz_Nr)
+    REQUIREDSEQUENCES = (whmod_fluxes.NiederschlagRichter, whmod_fluxes.NiedNachInterz)
     RESULTSEQUENCES = (whmod_fluxes.InterzeptionsVerdunstung,)
 
     @staticmethod
@@ -361,10 +352,7 @@ class Calc_Interzeptionsspeicher_V1(modeltools.Method):
         whmod_control.MaxInterz,
     )
     DERIVEDPARAMETERS = (whmod_derived.MOY,)
-    REQUIREDSEQUENCES = (
-        whmod_fluxes.NiederschlagRichter,
-        whmod_fluxes.MaxVerdunstung,
-    )
+    REQUIREDSEQUENCES = (whmod_fluxes.NiederschlagRichter, whmod_fluxes.MaxVerdunstung)
     UPDATEDSEQUENCES = (whmod_states.Interzeptionsspeicher,)
     RESULTSEQUENCES = (
         whmod_fluxes.NiedNachInterz,
@@ -455,10 +443,7 @@ class Calc_Interzeptionsspeicher_V2(modeltools.Method):
         whmod_control.MaxInterz,
     )
     DERIVEDPARAMETERS = (whmod_derived.MOY,)
-    REQUIREDSEQUENCES = (
-        whmod_fluxes.NiederschlagRichter,
-        whmod_fluxes.MaxVerdunstung,
-    )
+    REQUIREDSEQUENCES = (whmod_fluxes.NiederschlagRichter, whmod_fluxes.MaxVerdunstung)
     UPDATEDSEQUENCES = (whmod_states.Interzeptionsspeicher,)
     RESULTSEQUENCES = (
         whmod_fluxes.NiedNachInterz,
@@ -503,10 +488,7 @@ class Calc_Oberflaechenabfluss_V1(modeltools.Method):
     oberflaechenabfluss(3.0, 0.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        whmod_control.Nmb_Cells,
-        whmod_control.Nutz_Nr,
-    )
+    CONTROLPARAMETERS = (whmod_control.Nmb_Cells, whmod_control.Nutz_Nr)
     REQUIREDSEQUENCES = (whmod_fluxes.NiedNachInterz,)
     RESULTSEQUENCES = (whmod_fluxes.Oberflaechenabfluss,)
 
@@ -566,10 +548,7 @@ class Calc_ZuflussBoden_V1(modeltools.Method):
         whmod_control.Nutz_Nr,
         whmod_control.Gradfaktor,
     )
-    REQUIREDSEQUENCES = (
-        whmod_inputs.Temp_TM,
-        whmod_fluxes.NiedNachInterz,
-    )
+    REQUIREDSEQUENCES = (whmod_inputs.Temp_TM, whmod_fluxes.NiedNachInterz)
     UPDATEDSEQUENCES = (whmod_states.Schneespeicher,)
     RESULTSEQUENCES = (whmod_fluxes.ZuflussBoden,)
 
@@ -608,10 +587,7 @@ class Calc_RelBodenfeuchte_V1(modeltools.Method):
     relbodenfeuchte(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        whmod_control.Nmb_Cells,
-        whmod_control.Nutz_Nr,
-    )
+    CONTROLPARAMETERS = (whmod_control.Nmb_Cells, whmod_control.Nutz_Nr)
     DERIVEDPARAMETERS = (whmod_derived.nFKwe,)
     REQUIREDSEQUENCES = (whmod_states.AktBodenwassergehalt,)
     RESULTSEQUENCES = (whmod_factors.RelBodenfeuchte,)
@@ -646,15 +622,9 @@ class Calc_Sickerwasser_V1(modeltools.Method):
     sickerwasser(2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 0.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        whmod_control.Nmb_Cells,
-        whmod_control.Nutz_Nr,
-    )
+    CONTROLPARAMETERS = (whmod_control.Nmb_Cells, whmod_control.Nutz_Nr)
     DERIVEDPARAMETERS = (whmod_derived.Beta,)
-    REQUIREDSEQUENCES = (
-        whmod_fluxes.ZuflussBoden,
-        whmod_factors.RelBodenfeuchte,
-    )
+    REQUIREDSEQUENCES = (whmod_fluxes.ZuflussBoden, whmod_factors.RelBodenfeuchte)
     RESULTSEQUENCES = (whmod_fluxes.Sickerwasser,)
 
     @staticmethod
@@ -697,10 +667,7 @@ class Calc_Saettigungsdampfdruckdefizit_V1(modeltools.Method):
     |   6 |   30.0 |            0.0 |                     42.20658 |
     """
 
-    REQUIREDSEQUENCES = (
-        whmod_inputs.RelLuftfeuchte,
-        whmod_inputs.Temp14,
-    )
+    REQUIREDSEQUENCES = (whmod_inputs.RelLuftfeuchte, whmod_inputs.Temp14)
     RESULTSEQUENCES = (whmod_factors.Saettigungsdampfdruckdefizit,)
 
     @staticmethod
@@ -907,10 +874,7 @@ class Calc_Bodenverdunstung_V1(modeltools.Method):
         whmod_control.Nutz_Nr,
         whmod_control.MinhasR,
     )
-    REQUIREDSEQUENCES = (
-        whmod_factors.RelBodenfeuchte,
-        whmod_fluxes.MaxVerdunstung,
-    )
+    REQUIREDSEQUENCES = (whmod_factors.RelBodenfeuchte, whmod_fluxes.MaxVerdunstung)
     RESULTSEQUENCES = (whmod_fluxes.Bodenverdunstung,)
 
     @staticmethod
@@ -956,10 +920,7 @@ class Corr_Bodenverdunstung_V1(modeltools.Method):
     1.0, 1.25, 1.5, 1.75, 2.0
     """
 
-    CONTROLPARAMETERS = (
-        whmod_control.Nmb_Cells,
-        whmod_control.Nutz_Nr,
-    )
+    CONTROLPARAMETERS = (whmod_control.Nmb_Cells, whmod_control.Nutz_Nr)
     REQUIREDSEQUENCES = (
         whmod_fluxes.MaxVerdunstung,
         whmod_fluxes.InterzeptionsVerdunstung,
@@ -994,10 +955,7 @@ class Calc_Seeverdunstung_V1(modeltools.Method):
     seeverdunstung(0.0, 0.0, 2.0)
     """
 
-    CONTROLPARAMETERS = (
-        whmod_control.Nmb_Cells,
-        whmod_control.Nutz_Nr,
-    )
+    CONTROLPARAMETERS = (whmod_control.Nmb_Cells, whmod_control.Nutz_Nr)
     REQUIREDSEQUENCES = (whmod_fluxes.MaxVerdunstung,)
     RESULTSEQUENCES = (whmod_fluxes.Seeverdunstung,)
 
@@ -1223,10 +1181,7 @@ class Calc_KapilAufstieg_V1(modeltools.Method):
         whmod_control.Nutz_Nr,
         whmod_control.MitFunktion_KapillarerAufstieg,
     )
-    REQUIREDSEQUENCES = (
-        whmod_fluxes.PotKapilAufstieg,
-        whmod_factors.RelBodenfeuchte,
-    )
+    REQUIREDSEQUENCES = (whmod_fluxes.PotKapilAufstieg, whmod_factors.RelBodenfeuchte)
     RESULTSEQUENCES = (whmod_fluxes.KapilAufstieg,)
 
     @staticmethod
@@ -1277,10 +1232,7 @@ class Calc_AktBodenwassergehalt_V1(modeltools.Method):
     kapilaufstieg(3.0, 3.0, 3.0, 4.0, 2.0)
     """
 
-    CONTROLPARAMETERS = (
-        whmod_control.Nmb_Cells,
-        whmod_control.Nutz_Nr,
-    )
+    CONTROLPARAMETERS = (whmod_control.Nmb_Cells, whmod_control.Nutz_Nr)
     DERIVEDPARAMETERS = (whmod_derived.nFKwe,)
     REQUIREDSEQUENCES = (
         whmod_fluxes.ZuflussBoden,
@@ -1330,10 +1282,7 @@ class Calc_PotGrundwasserneubildung_V1(modeltools.Method):
     potgrundwasserneubildung(1.0, 0.0, 3.0)
     """
 
-    CONTROLPARAMETERS = (
-        whmod_control.Nmb_Cells,
-        whmod_control.Nutz_Nr,
-    )
+    CONTROLPARAMETERS = (whmod_control.Nmb_Cells, whmod_control.Nutz_Nr)
     REQUIREDSEQUENCES = (
         whmod_fluxes.Seeniederschlag,
         whmod_fluxes.Seeverdunstung,

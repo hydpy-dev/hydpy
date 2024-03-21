@@ -66,7 +66,7 @@ class BodenCompleteParameter(parametertools.ZipParameter):
 
     # defined at the bottom of the file:
     CONTROLPARAMETERS: ClassVar[
-        Tuple[Type[whmod_control.BodenTyp], Type[whmod_control.Nmb_Cells]]
+        tuple[type[whmod_control.BodenTyp], type[whmod_control.Nmb_Cells]]
     ]
 
     constants = whmod_constants.SOIL_CONSTANTS

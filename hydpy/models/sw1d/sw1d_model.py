@@ -2149,7 +2149,12 @@ class Update_Discharge_V2(modeltools.Method):
         |   7 |                7.0 |                  8.0 |       1.0 |
     """
 
-    CONTROLPARAMETERS = (sw1d_control.TargetWaterLevel1, sw1d_control.TargetWaterLevel2)
+    CONTROLPARAMETERS = (
+        sw1d_control.BottomLowWaterThreshold,
+        sw1d_control.UpperLowWaterThreshold,
+        sw1d_control.BottomHighWaterThreshold,
+        sw1d_control.UpperHighWaterThreshold,
+    )
     REQUIREDSEQUENCES = (
         sw1d_factors.WaterLevelUpstream,
         sw1d_factors.WaterLevelDownstream,
@@ -2162,16 +2167,33 @@ class Update_Discharge_V2(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         sta = model.sequences.states.fastaccess
 
-        if sta.discharge < 0.0:
-            hu: float = fac.waterlevelupstream
-            hd: float = fac.waterleveldownstream
-            t1: float = con.targetwaterlevel1
-            t2: float = con.targetwaterlevel2
-            if t1 < hu < hd:
-                if hu < t2:
-                    sta.discharge *= 1 - (hu - t1) / (t2 - t1)
-                else:
-                    sta.discharge = 0.0
+        hu: float = fac.waterlevelupstream
+        hd: float = fac.waterleveldownstream
+        lt1: float = con.bottomlowwaterthreshold
+        lt2: float = con.upperlowwaterthreshold
+        ht1: float = con.bottomhighwaterthreshold
+        ht2: float = con.upperhighwaterthreshold
+        q: float = sta.discharge
+
+        if q < 0.0:
+            # Is the sluice generally closed? (low water protection)
+            if hu < lt1:
+                state_closed: float = 1.0
+            elif hu < lt2:
+                state_closed = 1.0 - (hu - lt1) / (lt2 - lt1)
+            else:
+                state_closed = 0.0
+            # Is the sluice in real sluice mode? (high water protection)
+            if hu < ht1:
+                state_sluice: float = 0.0
+            elif hu < ht2:
+                state_sluice = (hu - ht1) / (ht2 - ht1)
+            else:
+                state_sluice = 1.0
+            # Is the sluice generally open? (no protection measures necessary)
+            state_free: float = 1.0 - state_closed - state_sluice
+
+            sta.discharge = state_free * q + state_sluice * q if hu > hd else 0.0
 
 
 class Reset_DischargeVolume_V1(modeltools.Method):

@@ -43,8 +43,10 @@ except replacing the |sw1d_lias| submodel at the central location with a
 ...         timestepfactor(0.7)
 ...         diffusionfactor(0.2)
 ...         if i == 4:
-...             targetwaterlevel1(5.0)
-...             targetwaterlevel2(5.0)
+...             bottomlowwaterthreshold(0.0)
+...             upperlowwaterthreshold(0.0)
+...             bottomhighwaterthreshold(5.0)
+...             upperhighwaterthreshold(5.0)
 
 >>> from hydpy import Element
 >>> channel = Element("channel")

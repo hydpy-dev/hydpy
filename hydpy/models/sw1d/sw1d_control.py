@@ -185,6 +185,30 @@ class TargetWaterLevel2(parametertools.Parameter):
         super().trim(lower, upper)
 
 
+class BottomLowWaterThreshold(parametertools.Parameter):
+    """ToDo"""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+
+
+class UpperLowWaterThreshold(parametertools.Parameter):
+    """ToDo"""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+
+
+class BottomHighWaterThreshold(parametertools.Parameter):
+    """ToDo"""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+
+
+class UpperHighWaterThreshold(parametertools.Parameter):
+    """ToDo"""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+
+
 class Gradient2PumpingRate(interptools.SimpleInterpolator):
     """An interpolation function describing the relationship between the water
     level height to be overcome and the maximum possible pumping rate [-]."""

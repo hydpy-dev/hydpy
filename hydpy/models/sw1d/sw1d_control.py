@@ -185,6 +185,34 @@ class TargetWaterLevel2(parametertools.Parameter):
         super().trim(lower, upper)
 
 
+class BottomLowWaterThreshold(parametertools.SeasonalParameter):
+    """Water level below which gates are fully closed to stop drainage during low flow
+    periods [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+
+
+class UpperLowWaterThreshold(parametertools.SeasonalParameter):
+    """Water level below which gates are partly closed to reduce drainage during low
+    flow periods [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+
+
+class BottomHighWaterThreshold(parametertools.SeasonalParameter):
+    """Water level above which gate operation is partly sluice-like to increase
+    drainage during high flow periods [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+
+
+class UpperHighWaterThreshold(parametertools.SeasonalParameter):
+    """Water level above which gate operation is fully sluice-like to maximise drainage
+    during high flow periods [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+
+
 class Gradient2PumpingRate(interptools.SimpleInterpolator):
     """An interpolation function describing the relationship between the water
     level height to be overcome and the maximum possible pumping rate [-]."""

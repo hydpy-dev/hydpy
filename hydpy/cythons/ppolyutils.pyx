@@ -18,7 +18,7 @@ from libc.stdlib cimport malloc, free
 @cython.final
 cdef class PPoly:
 
-    cpdef inline int find_index(self) nogil:
+    cpdef inline int find_index(self) noexcept nogil:
         """Return the index of the polynomial coefficients."""
         cdef int idx
         cdef double x = self.inputs[0]
@@ -27,7 +27,7 @@ cdef class PPoly:
                 return idx - 1
         return self.nmb_ps - 1
 
-    cpdef inline void calculate_values(self) nogil:
+    cpdef inline void calculate_values(self) noexcept nogil:
         cdef int i, j
         cdef double x0, x, y
         i = self.find_index()
@@ -38,7 +38,7 @@ cdef class PPoly:
             y += self.cs[i, j] * (x - x0) ** j
         self.outputs[0] = y
 
-    cpdef inline void calculate_derivatives(self, int idx_input) nogil:
+    cpdef inline void calculate_derivatives(self, int idx_input) noexcept nogil:
         cdef int i, j
         cdef double x0, x, y
         i = self.find_index()

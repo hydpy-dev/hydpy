@@ -13,10 +13,10 @@ from hydpy.models.dummy import dummy_fluxes
 
 
 class Pick_Q_V1(modeltools.Method):
-    """Query the current inflow from all inlet nodes.
+    r"""Query the current inflow from all inlet nodes.
 
     Basic equation:
-      :math:`Q_{fluxes} = \\sum Q_{inputs}`
+      :math:`Q_{fluxes} = \sum Q_{inputs}`
     """
 
     REQUIREDSEQUENCES = (dummy_inlets.Q,)
@@ -32,7 +32,7 @@ class Pick_Q_V1(modeltools.Method):
 
 
 class Pass_Q_V1(modeltools.Method):
-    """Uptdate the outlet link sequence.
+    """Update the outlet link sequence.
 
     Basic equation:
         :math:`Q_{outlets} = Q_{fluxes}`
@@ -49,7 +49,7 @@ class Pass_Q_V1(modeltools.Method):
 
 
 class Get_InterceptedWater_V1(modeltools.Method):
-    """Get the current precipitation from the selected zone.
+    """Get the selected zone's current amount of intercepted water.
 
     Example:
 
@@ -73,7 +73,7 @@ class Get_InterceptedWater_V1(modeltools.Method):
 
 
 class Get_SoilWater_V1(modeltools.Method):
-    """Get the current precipitation from the selected zone.
+    """Get the selected zone's current soil water amount.
 
     Example:
 
@@ -97,7 +97,7 @@ class Get_SoilWater_V1(modeltools.Method):
 
 
 class Get_SnowCover_V1(modeltools.Method):
-    """Get the current precipitation from the selected zone.
+    """Get the selected zone's current snow cover fraction.
 
     Example:
 
@@ -120,8 +120,57 @@ class Get_SnowCover_V1(modeltools.Method):
         return inp.snowcover[k]
 
 
+class Get_SnowyCanopy_V1(modeltools.Method):
+    """Get the selected zone's current snow cover degree in the canopies of tree-like
+    vegetation (or |numpy.nan| if the zone's vegetation is not tree-like).
+
+    Example:
+
+        >>> from hydpy.models.dummy import *
+        >>> parameterstep()
+        >>> inputs.snowycanopy.shape = 2
+        >>> inputs.snowycanopy = 2.0, 4.0
+        >>> model.get_snowycanopy_v1(0)
+        2.0
+        >>> model.get_snowycanopy_v1(1)
+        4.0
+    """
+
+    REQUIREDSEQUENCES = (dummy_inputs.SnowyCanopy,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, k: int) -> float:
+        inp = model.sequences.inputs.fastaccess
+
+        return inp.snowycanopy[k]
+
+
+class Get_SnowAlbedo_V1(modeltools.Method):
+    """Get the selected zone's current snow albedo.
+
+    Example:
+
+        >>> from hydpy.models.dummy import *
+        >>> parameterstep()
+        >>> inputs.snowalbedo.shape = 2
+        >>> inputs.snowalbedo = 2.0, 4.0
+        >>> model.get_snowalbedo_v1(0)
+        2.0
+        >>> model.get_snowalbedo_v1(1)
+        4.0
+    """
+
+    REQUIREDSEQUENCES = (dummy_inputs.SnowAlbedo,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, k: int) -> float:
+        inp = model.sequences.inputs.fastaccess
+
+        return inp.snowalbedo[k]
+
+
 class Model(modeltools.AdHocModel):
-    """The HydPy-Dummy model."""
+    """The HydPy-Dummy base model."""
 
     INLET_METHODS = (Pick_Q_V1,)
     RECEIVER_METHODS = ()
@@ -130,6 +179,8 @@ class Model(modeltools.AdHocModel):
         Get_InterceptedWater_V1,
         Get_SoilWater_V1,
         Get_SnowCover_V1,
+        Get_SnowyCanopy_V1,
+        Get_SnowAlbedo_V1,
     )
     ADD_METHODS = ()
     OUTLET_METHODS = (Pass_Q_V1,)

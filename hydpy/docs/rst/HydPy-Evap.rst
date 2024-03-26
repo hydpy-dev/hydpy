@@ -28,3 +28,5 @@ Application models:
    Evap-MLC <evap_mlc>
    Evap-AET-HBV96 <evap_aet_hbv96>
    Evap-Minhas <evap_minhas>
+   Evap-MORSIM <evap_morsim>
+   Evap-PET-AMBAV-1.0 <evap_pet_ambav1>

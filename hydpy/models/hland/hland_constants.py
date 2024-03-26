@@ -34,10 +34,4 @@ SEALED = parametertools.IntConstant(5)
 CONSTANTS = parametertools.Constants()
 """Dictionary containing all constants defined by HydPy-H-Land."""
 
-__all__ = [
-    "FIELD",
-    "FOREST",
-    "GLACIER",
-    "ILAKE",
-    "SEALED",
-]
+__all__ = ["FIELD", "FOREST", "GLACIER", "ILAKE", "SEALED"]

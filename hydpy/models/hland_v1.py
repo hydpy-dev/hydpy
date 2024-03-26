@@ -53,10 +53,10 @@ Integration tests
 The following integration tests rely on the meteorological input data used for testing
 the application model |lland_v1|. The values of the input sequences |P| (precipitation)
 and |T| (temperature) are copy-pasted.  The |evap_inputs.NormalEvapotranspiration|
-values are the |lland_fluxes.EvPo| values calcuted by |evap_tw2002| but divided by 0.4
-to account for the selected value of the evaporation adjustment factor
-|evap_control.EvapotranspirationFactor|.  Hopefully, this eases drawing comparisons
-between both models.
+values are the |evap_fluxes.ReferenceEvapotranspiration| values calcuted by
+|evap_tw2002| but divided by 0.4 to account for the selected value of the evaporation
+adjustment factor |evap_control.EvapotranspirationFactor|.  Hopefully, this eases
+drawing comparisons between both models.
 
 We perform all integration tests over five days with a simulation step of one hour:
 
@@ -202,7 +202,7 @@ We memorise the initial conditions to check later if |hland_v1| holds the water 
 
 >>> derived.uh.update()
 >>> test.reset_inits()
->>> conditions = sequences.conditions
+>>> conditions = model.conditions
 
 .. _hland_v1_field:
 
@@ -1105,8 +1105,8 @@ types are as to be expected:
     >>> for name, value in name2value.items():
     ...     if name not in ("nmbzones", "sclass", "area", "zonearea", "zonetype", "sfdist"):
     ...         control[name].value = value
-    >>> model.add_aetmodel_v1.update(model, model.aetmodel)
-    >>> model.aetmodel.add_petmodel_v1.update(model.aetmodel, model.aetmodel.petmodel)
+    >>> model.add_aetmodel_v1.update(model, model.aetmodel, refresh=True)
+    >>> model.aetmodel.add_petmodel_v1.update(model.aetmodel, model.aetmodel.petmodel, refresh=True)
     >>> aetcontrol = model.aetmodel.parameters.control
     >>> aetcontrol.temperaturethresholdice(0.0)
     >>> aetcontrol.soilmoisturelimit(0.8)
@@ -1545,7 +1545,6 @@ class Model(
         hland_model.Calc_RFC_SFC_V1,
         hland_model.Calc_PC_V1,
         hland_model.Calc_TF_Ic_V1,
-        hland_model.Calc_EI_Ic_V1,
         hland_model.Calc_SP_WC_V1,
         hland_model.Calc_SPL_WCL_SP_WC_V1,
         hland_model.Calc_SPG_WCG_SP_WC_V1,
@@ -1557,6 +1556,7 @@ class Model(
         hland_model.Calc_SR_V1,
         hland_model.Calc_GAct_V1,
         hland_model.Calc_GlMelt_In_V1,
+        hland_model.Calc_EI_Ic_V1,
         hland_model.Calc_R_SM_V1,
         hland_model.Calc_CF_SM_V1,
         hland_model.Calc_EA_SM_V1,
@@ -1591,9 +1591,7 @@ class Model(
 
     aetmodel = modeltools.SubmodelProperty(aetinterfaces.AETModel_V1)
 
-    def check_waterbalance(
-        self, initial_conditions: Dict[str, Dict[str, ArrayFloat]]
-    ) -> float:
+    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
         r"""Determine the water balance error of the previous simulation run in mm.
 
         Method |Model.check_waterbalance| calculates the balance error as follows:
@@ -1621,7 +1619,8 @@ class Model(
         derived = self.parameters.derived
         fluxes = self.sequences.fluxes
         last = self.sequences.states
-        first = initial_conditions["states"]
+        first = initial_conditions["model"]["states"]
+        logs = initial_conditions["model"]["logs"]
         areas = derived.relzoneareas.value
         idxs_lake = self.parameters.control.zonetype.values == ILAKE
         idxs_land = ~idxs_lake
@@ -1641,7 +1640,7 @@ class Model(
             - numpy.sum(((last.sm - first["sm"]) * areas)[idxs_soil])
             - (last.uz - first["uz"]) * derived.relupperzonearea
             - (last.lz - first["lz"]) * derived.rellowerzonearea
-            - numpy.sum(self.sequences.logs.quh - initial_conditions["logs"]["quh"])
+            - numpy.sum(self.sequences.logs.quh - logs["quh"])
         )
 
 

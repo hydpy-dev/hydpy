@@ -1,6 +1,7 @@
 """Sphinx extension introducing directives as
 `.. how_to_understand_model_integration_tests::`.
 """
+
 # import...
 # ...from site-packages
 from docutils import nodes as docutils_nodes
@@ -26,17 +27,12 @@ class HowToUnderstandIntegrationTests(rst.Directive):
         )
         node = docutils_nodes.section()
         node.document = self.state.document
-        sphinx_nodes.nested_parse_with_titles(
-            self.state,
-            viewlist,
-            node,
-        )
+        sphinx_nodes.nested_parse_with_titles(self.state, viewlist, node)
         return node.children
 
 
 def setup(app):
     """Add the defined directives to the sphinx application."""
     app.add_directive(
-        "how_to_understand_integration_tests",
-        HowToUnderstandIntegrationTests,
+        "how_to_understand_integration_tests", HowToUnderstandIntegrationTests
     )

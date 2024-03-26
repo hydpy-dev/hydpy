@@ -1,6 +1,7 @@
 """Copy `hydpydoctestcustomize.pth` and `hydpydoctestcustomize.py` into the
 site-packages folder to ensure the coverage measurement is complete when executing
 tests in sub-processes."""
+
 import os
 
 import coverage

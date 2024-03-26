@@ -3,20 +3,15 @@
 # import...
 # ...from HydPy
 from hydpy.core import exceptiontools
+from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.models.wland import wland_parameters
 from hydpy.models.wland import wland_constants
 from hydpy.models.wland.wland_constants import *
 
 
-class AL(parametertools.Parameter):
-    """Land area [km²]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-
-
-class AS_(parametertools.Parameter):
-    """Surface water area [km²]."""
+class AT(parametertools.Parameter):
+    """Total area [km²]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
@@ -56,9 +51,9 @@ class NU(parametertools.Parameter):
     ic(1.0, 1.0)
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         old = exceptiontools.getattr_(self, "value", None)
         super().__call__(*args, **kwargs)
         new = self._get_value()
@@ -84,21 +79,116 @@ class LT(parametertools.NameParameter):
 
     >>> from hydpy.models.wland import *
     >>> parameterstep()
-    >>> nu(11)
-    >>> lt(SEALED, FIELD, WINE, ORCHARD, SOIL, PASTURE, WETLAND,
-    ...    TREES, CONIFER, DECIDIOUS, MIXED)
+    >>> nu(12)
+    >>> lt(SEALED, FIELD, WINE, ORCHARD, SOIL, PASTURE,
+    ...    WETLAND, TREES, CONIFER, DECIDIOUS, MIXED, WATER)
     >>> lt
     lt(SEALED, FIELD, WINE, ORCHARD, SOIL, PASTURE, WETLAND, TREES,
-       CONIFER, DECIDIOUS, MIXED)
+       CONIFER, DECIDIOUS, MIXED, WATER)
+
+    Note that |wland| generally requires a single surface water storage unit, which
+    must be placed at the last position.  Trying to set another land type causes the
+    following error:
+
+    >>> lt(SEALED, FIELD, WINE, ORCHARD, SOIL, PASTURE,
+    ...    WETLAND, TREES, CONIFER, DECIDIOUS, MIXED, MIXED)
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to set the land use types via parameter `lt` of element \
+`?`, the following error occurred: The last land use type must be `WATER`, but \
+`MIXED` is given.
+
+    Trying to define multiple such units results in the following error:
+
+    >>> lt(SEALED, FIELD, WINE, ORCHARD, SOIL, PASTURE,
+    ...    WETLAND, TREES, CONIFER, DECIDIOUS, WATER, WATER)
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to set the land use types via parameter `lt` of element \
+`?`, the following error occurred: W-Land requires a single surface water storage \
+unit, but 2 units are defined as such.
     """
 
     constants = wland_constants.LANDUSE_CONSTANTS
+
+    def __call__(self, *args, **kwargs) -> None:
+        super().__call__(*args, **kwargs)
+        try:
+            is_water = self.values == WATER
+            if not is_water[-1]:
+                lt = wland_constants.LANDUSE_CONSTANTS.value2name[self.values[-1]]
+                raise ValueError(
+                    f"The last land use type must be `WATER`, but `{lt}` is given."
+                )
+            if sum(is_water) > 1:
+                raise ValueError(
+                    f"W-Land requires a single surface water storage unit, but "
+                    f"{sum(is_water)} units are defined as such."
+                )
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to set the land use types via parameter "
+                f"{objecttools.elementphrase(self)}"
+            )
 
 
 class AUR(parametertools.Parameter):
     """Relative area of each hydrological response unit [-]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+
+
+class GL(parametertools.Parameter):
+    """Ground level [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+
+    def trim(self, lower=None, upper=None):
+        r"""Ensure |GL| is above |BL|.
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+
+        >>> gl(2.0)
+        >>> gl
+        gl(2.0)
+
+        >>> bl.value = 4.0
+        >>> gl(3.0)
+        >>> gl
+        gl(4.0)
+        """
+        if lower is None:
+            lower = exceptiontools.getattr_(self.subpars.bl, "value", None)
+        super().trim(lower, upper)
+
+
+class BL(parametertools.Parameter):
+    """Channel bottom level [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+
+    def trim(self, lower=None, upper=None):
+        r"""Ensure |BL| is below |GL|.
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+
+        >>> bl(4.0)
+        >>> bl
+        bl(4.0)
+
+        >>> gl.value = 2.0
+        >>> bl(3.0)
+        >>> bl
+        bl(2.0)
+        """
+        if upper is None:
+            upper = exceptiontools.getattr_(self.subpars.gl, "value", None)
+        super().trim(lower, upper)
 
 
 class CP(parametertools.Parameter):
@@ -131,7 +221,7 @@ class TI(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
 
-class DDF(wland_parameters.LanduseParameter):
+class DDF(wland_parameters.LanduseParameterLand):
     """Day degree factor [mm/°C/T]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, None)
@@ -161,41 +251,28 @@ class CG(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
 
+class RG(parametertools.Parameter):
+    """Groundwater reservoir restriction [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, bool, None, (None, None)
+
+
 class CGF(parametertools.Parameter):
     """Groundwater reservoir flood factor [1/mm]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
 
+class DGC(parametertools.Parameter):
+    """Direct groundwater connect [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, bool, None, (None, None)
+
+
 class CQ(parametertools.Parameter):
     """Quickflow reservoir relaxation time [T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
-
-
-class CD(parametertools.Parameter):
-    """Channel depth [mm]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-
-
-class CS(parametertools.Parameter):
-    """Surface water parameter for bankfull discharge [mm/T]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
-
-
-class HSMin(parametertools.Parameter):
-    """Surface water level where and below which discharge is zero [mm]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-
-
-class XS(parametertools.Parameter):
-    """Stage-discharge relation exponent [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-    INIT = 1.5
 
 
 class B(wland_parameters.SoilParameter):

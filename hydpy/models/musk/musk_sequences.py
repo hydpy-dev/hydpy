@@ -36,7 +36,9 @@ class MixinSequence1D:
         return length / numpy.sum(length)
 
 
-class StateSequence1D(MixinSequence1D, sequencetools.StateSequence):  # type: ignore[misc]  # pylint: disable=line-too-long
+class StateSequence1D(  # type: ignore[misc]
+    MixinSequence1D, sequencetools.StateSequence
+):
     """Base class for the 1-dimensional state sequences.
 
     For a wrong number of input values, subclasses like |Discharge| use their average
@@ -76,9 +78,11 @@ array from shape (2,) into shape (3,)
             )
 
 
-class FactorSequence1D(MixinSequence1D, sequencetools.FactorSequence):  # type: ignore[misc]  # pylint: disable=line-too-long
+class FactorSequence1D(  # type: ignore[misc]
+    MixinSequence1D, sequencetools.FactorSequence
+):
     """Base class for the 1-dimensional factor sequences."""
 
 
-class FluxSequence1D(MixinSequence1D, sequencetools.FluxSequence):  # type: ignore[misc]  # pylint: disable=line-too-long
+class FluxSequence1D(MixinSequence1D, sequencetools.FluxSequence):  # type: ignore[misc]
     """Base class for the 1-dimensional flux sequences."""

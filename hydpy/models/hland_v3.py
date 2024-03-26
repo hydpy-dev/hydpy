@@ -157,7 +157,7 @@ All input time series are identical:
 ...     6.298329, 2.948416, 1.309232, 0.32955, 0.089508, 0.085771, 0.0845, 0.084864)
 
 >>> test.reset_inits()
->>> conditions = sequences.conditions
+>>> conditions = model.conditions
 
 .. _hland_v3_field:
 
@@ -668,8 +668,8 @@ the only fast runoff component |hland_fluxes.Q0| of |hland_v1|:
     >>> for name, value in name2value.items():
     ...     if name not in ("nmbzones", "sclass", "area", "zonearea", "zonetype", "sfdist"):
     ...         control[name].value = value
-    >>> model.add_aetmodel_v1.update(model, model.aetmodel)
-    >>> model.aetmodel.add_petmodel_v1.update(model.aetmodel, model.aetmodel.petmodel)
+    >>> model.add_aetmodel_v1.update(model, model.aetmodel, refresh=True)
+    >>> model.aetmodel.add_petmodel_v1.update(model.aetmodel, model.aetmodel.petmodel, refresh=True)
     >>> aetcontrol = model.aetmodel.parameters.control
     >>> aetcontrol.temperaturethresholdice(0.0)
     >>> aetcontrol.soilmoisturelimit(0.8)
@@ -943,7 +943,6 @@ class Model(
         hland_model.Calc_RFC_SFC_V1,
         hland_model.Calc_PC_V1,
         hland_model.Calc_TF_Ic_V1,
-        hland_model.Calc_EI_Ic_V1,
         hland_model.Calc_SP_WC_V1,
         hland_model.Calc_SPL_WCL_SP_WC_V1,
         hland_model.Calc_SPG_WCG_SP_WC_V1,
@@ -955,6 +954,7 @@ class Model(
         hland_model.Calc_SR_V1,
         hland_model.Calc_GAct_V1,
         hland_model.Calc_GlMelt_In_V1,
+        hland_model.Calc_EI_Ic_V1,
         hland_model.Calc_R_SM_V1,
         hland_model.Calc_EA_SM_V1,
         hland_model.Calc_SUZ_V1,
@@ -991,10 +991,7 @@ class Model(
 
     aetmodel = modeltools.SubmodelProperty(aetinterfaces.AETModel_V1)
 
-    def check_waterbalance(
-        self,
-        initial_conditions: Dict[str, Dict[str, ArrayFloat]],
-    ) -> float:
+    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
         r"""Determine the water balance error of the previous simulation run in mm.
 
         Method |Model.check_waterbalance| calculates the balance error as follows:
@@ -1025,7 +1022,7 @@ class Model(
         derived = self.parameters.derived
         fluxes = self.sequences.fluxes
         last = self.sequences.states
-        first = initial_conditions["states"]
+        first = initial_conditions["model"]["states"]
         areas = derived.relzoneareas.value
         zonetypes = self.parameters.control.zonetype.values
         idxs_lake = zonetypes == ILAKE

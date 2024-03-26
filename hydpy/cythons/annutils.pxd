@@ -14,8 +14,8 @@ cdef class ANN:
     cdef public double[:] outputs
     cdef public double[:] output_derivatives
 
-    cpdef inline void calculate_values(self) nogil
-    cpdef inline void calculate_derivatives(self, int idx_input) nogil
+    cpdef inline void calculate_values(self) noexcept nogil
+    cpdef inline void calculate_derivatives(self, int idx_input) noexcept nogil
 
     # algorithm-specific requirements:
 
@@ -30,5 +30,5 @@ cdef class ANN:
     cdef public double[:, :] neurons
     cdef public double[:, :] neuron_derivatives
 
-    cdef inline void apply_activationfunction(self, int idx_layer, int idx_neuron, double input_) nogil
-    cdef inline double apply_derivativefunction(self, int idx_layer, int idx_neuron, double inner) nogil
+    cdef inline void apply_activationfunction(self, int idx_layer, int idx_neuron, double input_) noexcept nogil
+    cdef inline double apply_derivativefunction(self, int idx_layer, int idx_neuron, double inner) noexcept nogil

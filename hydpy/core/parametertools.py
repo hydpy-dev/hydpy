@@ -23,9 +23,12 @@ from hydpy.core import exceptiontools
 from hydpy.core import filetools
 from hydpy.core import masktools
 from hydpy.core import objecttools
+from hydpy.core import propertytools
 from hydpy.core import timetools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
+
+# from hydpy.cythons import modelutils  # actual download below
 
 if TYPE_CHECKING:
     from hydpy.core import auxfiletools
@@ -120,10 +123,10 @@ class IntConstant(int):
         return const
 
 
-class Constants(Dict[str, int]):
+class Constants(dict[str, int]):
     """Base class for defining integer constants for a specific model."""
 
-    value2name: Dict[int, str]
+    value2name: dict[int, str]
     """Mapping from the the values of the constants to their names."""
 
     def __init__(self, *args, **kwargs) -> None:
@@ -157,7 +160,7 @@ class Constants(Dict[str, int]):
                     value.__doc__ = doc
 
     @property
-    def sortednames(self) -> Tuple[str, ...]:
+    def sortednames(self) -> tuple[str, ...]:
         """The lowercase constants' names, sorted by the constants' values.
 
         >>> from hydpy.core.parametertools import Constants
@@ -176,10 +179,9 @@ class Parameters:
 
     >>> from hydpy.models.meteo_v001 import *
     >>> parameterstep("1d")
-    >>> bool(model.parameters.control)
-    True
-    >>> bool(model.parameters.solver)
-    False
+    >>> assert model.parameters
+    >>> assert model.parameters.control
+    >>> assert not model.parameters.solver
 
     Iterations makes only the non-empty subgroups available, which are actually
     handling |Parameter| objects:
@@ -229,7 +231,7 @@ class Parameters:
             kwargs.get("cymodel"),
         )
 
-    def update(self) -> None:
+    def update(self, ignore_errors: bool = False) -> None:
         """Call method |Parameter.update| of all "secondary" parameters.
 
         Directly after initialisation, neither the primary (`control`) parameters nor
@@ -292,10 +294,11 @@ For variable `latitude`, no value has been defined so far.
                 try:
                     par.update()
                 except BaseException:
-                    objecttools.augment_excmessage(
-                        f"While trying to update parameter "
-                        f"{objecttools.elementphrase(par)}"
-                    )
+                    if not ignore_errors:
+                        objecttools.augment_excmessage(
+                            f"While trying to update parameter "
+                            f"{objecttools.elementphrase(par)}"
+                        )
 
     def verify(self) -> None:
         """Call method |Variable.verify| of all |Parameter| objects handled by the
@@ -361,10 +364,10 @@ yet: longitude(?).
         derived
         solver
         """
-        for subpars in (self.derived, self.solver):
-            yield subpars
+        yield self.derived
+        yield self.solver
 
-    def __getitem__(self, item: str) -> "SubParameters":
+    def __getitem__(self, item: str) -> SubParameters:
         try:
             subpars = getattr(self, item)
         except AttributeError:
@@ -384,6 +387,9 @@ yet: longitude(?).
     def __len__(self):
         return sum(1 for _ in self)
 
+    def __bool__(self) -> bool:
+        return any(pars for pars in self)
+
 
 class FastAccessParameter(variabletools.FastAccess):
     """Used as a surrogate for typed Cython classes handling parameters
@@ -391,7 +397,7 @@ class FastAccessParameter(variabletools.FastAccess):
 
 
 class SubParameters(
-    variabletools.SubVariables[Parameters, "Parameter", FastAccessParameter],
+    variabletools.SubVariables[Parameters, "Parameter", FastAccessParameter]
 ):
     '''Base class for handling subgroups of model parameters.
 
@@ -454,7 +460,7 @@ class SubParameters(
     def __init__(
         self,
         master: Parameters,
-        cls_fastaccess: Optional[Type[FastAccessParameter]] = None,
+        cls_fastaccess: Optional[type[FastAccessParameter]] = None,
         cymodel: Optional[CyModelProtocol] = None,
     ):
         self.pars = master
@@ -486,14 +492,14 @@ class Keyword(NamedTuple):
 
     name: str
     """The keyword argument's name."""
-    type_: Type[Union[float, int]] = float
+    type_: type[Union[float, int]] = float
     """The keyword argument's type (equivalent to the |Variable.TYPE| attribute of 
     class |Variable|)."""
     time: Optional[bool] = None
     """Type of the keyword argument's time dependency (equivalent to the 
     |Parameter.TIME| attribute of class |Parameter|).
     """
-    span: Tuple[Optional[float], Optional[float]] = (None, None)
+    span: tuple[Optional[float], Optional[float]] = (None, None)
     """The keyword argument's lower and upper boundary (equivalent to the 
     |Variable.SPAN| attribute of class |Variable|).
     """
@@ -640,7 +646,7 @@ under the keyword `laubw`.'
 
     valid: bool
     """Flag indicating whether the actual |KeywordArguments| object is valid or not."""
-    _name2value: Dict[str, T]
+    _name2value: dict[str, T]
 
     def __init__(self, __valid: bool = True, **keywordarguments: T) -> None:
         self.valid = __valid
@@ -733,7 +739,7 @@ the unequal argument `1` under the keyword `one`.
 
     def extend(
         self,
-        parametertype: Type[Parameter],
+        parametertype: type[Parameter],
         elements: Iterable[devicetools.Element],
         raise_exception: bool = True,
     ) -> None:
@@ -910,7 +916,7 @@ raise_exception=False)
                 f"argument under the keyword `{key}`."
             ) from None
 
-    def __contains__(self, item: Tuple[str, T]) -> bool:
+    def __contains__(self, item: tuple[str, T]) -> bool:
         if not self.valid:
             raise KeywordArgumentsError(
                 f"Cannot check if an item is defined by an invalid "
@@ -923,13 +929,12 @@ raise_exception=False)
     def __len__(self) -> int:
         return len(self._name2value)
 
-    def __iter__(self) -> Iterator[Tuple[str, T]]:
+    def __iter__(self) -> Iterator[tuple[str, T]]:
         if not self.valid:
             raise KeywordArgumentsError(
                 f"Cannot iterate an invalid `{type(self).__name__}` object."
             )
-        for item in self._name2value.items():
-            yield item
+        yield from self._name2value.items()
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, KeywordArguments):
@@ -1239,7 +1244,7 @@ broadcast input array from shape (2,) into shape (2,3)
             f"be set based on the given keyword arguments."
         )
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         if args and kwargs:
             self._raise_args_and_kwargs_error()
         if not args and not kwargs:
@@ -1300,8 +1305,8 @@ broadcast input array from shape (2,) into shape (2,3)
     def _find_kwargscombination(
         self,
         given_args: Sequence[Any],
-        given_kwargs: Dict[str, Any],
-        allowed_combinations: Tuple[Set[str], ...],
+        given_kwargs: dict[str, Any],
+        allowed_combinations: tuple[set[str], ...],
     ) -> Optional[int]:
         if given_kwargs and ("auxfile" not in given_kwargs):
             if given_args:
@@ -1327,7 +1332,7 @@ broadcast input array from shape (2,) into shape (2,3)
         return
 
     @property
-    def initinfo(self) -> Tuple[Union[float, int, bool], bool]:
+    def initinfo(self) -> tuple[Union[float, int, bool], bool]:
         """A |tuple| containing the initial value and |True| or a missing
         value and |False|, depending on the actual |Parameter| subclass and
         the actual value of option |Options.usedefaultvalues|.
@@ -1456,10 +1461,8 @@ parameter and a simulation time step size first.
             date2 = date1 + options.simulationstep
             parfactor = timetools.Timegrids(
                 timetools.Timegrid(
-                    firstdate=date1,
-                    lastdate=date2,
-                    stepsize=options.simulationstep,
-                ),
+                    firstdate=date1, lastdate=date2, stepsize=options.simulationstep
+                )
             ).parfactor
         return parfactor(parameterstep)
 
@@ -1519,10 +1522,7 @@ parameter and a simulation time step size first.
         return values
 
     @classmethod
-    def revert_timefactor(
-        cls,
-        values: ArrayFloat,
-    ) -> ArrayFloat:
+    def revert_timefactor(cls, values: ArrayFloat) -> ArrayFloat:
         """The inverse version of method |Parameter.apply_timefactor|.
 
         See the explanations on method Parameter.apply_timefactor| to
@@ -1775,16 +1775,23 @@ implement method `update`.
                 (self.NDIM == 2) and (self.shape[0] != 1)
             )
             return variabletools.to_repr(self, values, brackets)
-        lines = self.commentrepr
         if exceptiontools.attrready(self, "value"):
             value = self.revert_timefactor(self.value)
         else:
             value = "?"
-        lines.append(f"{self.name}({objecttools.repr_(value)})")
-        return "\n".join(lines)
+        return f"{self.name}({objecttools.repr_(value)})"
 
 
-class NameParameter(Parameter):
+class _MixinModifiableParameter(Parameter):
+    @classmethod
+    def _reset_after_modification(cls, name: str, value: Optional[object]) -> None:
+        if value is None:
+            delattr(cls, name)
+        else:
+            setattr(cls, name, value)
+
+
+class NameParameter(_MixinModifiableParameter, Parameter):
     """Parameter displaying the names of constants instead of their values.
 
     For demonstration, we define the test class `LandType`, covering three different
@@ -1846,7 +1853,7 @@ class NameParameter(Parameter):
     TIME = None
     SPAN = (None, None)
     constants: Constants
-    _possible_values: Set[int]
+    _possible_values: set[int]
 
     def __init__(self, subvars: SubParameters) -> None:
         super().__init__(subvars)
@@ -1933,12 +1940,12 @@ class NameParameter(Parameter):
         if constants is None:
             yield
         else:
-            old = cls.constants
+            old = vars(cls).get("constants")
             try:
                 cls.constants = constants
                 yield
             finally:
-                cls.constants = old
+                cls._reset_after_modification("constants", old)
 
     def trim(self, lower=None, upper=None) -> None:
         """Check if all previously set values comply with the supported constants.
@@ -1981,7 +1988,7 @@ valid.
         return f"{string})"
 
 
-class ZipParameter(Parameter):
+class ZipParameter(_MixinModifiableParameter, Parameter):
     """Base class for 1-dimensional model parameters that offers an additional
     keyword-based zipping functionality.
 
@@ -2130,11 +2137,11 @@ incomplete and no default value is available.
 
     Improper use of these "special attributes" results in errors like the following:
 
-    >>> par.Soil
+    >>> par.Soil  # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
     AttributeError: `Soil` is neither a normal attribute of parameter `par` of element \
-`?` nor among the following special attributes: soil, water, and glacier.
+`?` nor among the following special attributes: soil, water, and glacier...
 
     >>> par.soil = "test"
     Traceback (most recent call last):
@@ -2145,11 +2152,11 @@ convert string to float: 'test'
     """
 
     NDIM = 1
-    constants: Dict[str, int]
+    constants: dict[str, int]
     """Mapping of the constants' names and values."""
     refindices: Optional[NameParameter] = None
     """Optional reference to the relevant index parameter."""
-    relevant: Optional[Tuple[int, ...]] = None
+    relevant: Optional[tuple[int, ...]] = None
     """The values of all (potentially) relevant constants."""
     mask: masktools.IndexMask
 
@@ -2238,18 +2245,19 @@ index parameter.
         if refindices is None:
             yield
         else:
-            old_refindices = cls.refindices
-            old_constants = cls.constants
-            old_relevant = cls.relevant
+            get = vars(cls).get
+            old_refindices = get("refindices")
+            old_constants = get("constants")
+            old_relevant = get("relevant")
             try:
                 cls.refindices = refindices
                 cls.constants = refindices.constants
                 cls.relevant = tuple(refindices.constants.values())
                 yield
             finally:
-                cls.refindices = old_refindices
-                cls.constants = old_constants
-                cls.relevant = old_relevant
+                cls._reset_after_modification("refindices", old_refindices)
+                cls._reset_after_modification("constants", old_constants)
+                cls._reset_after_modification("relevant", old_relevant)
 
     def __init__(self, subvars: SubParameters) -> None:
         super().__init__(subvars)
@@ -2270,7 +2278,7 @@ index parameter.
                     f"`{objecttools.enumeration(kwargs)}`"
                 )
 
-    def _own_call(self, kwargs: Dict[str, Any]) -> None:
+    def _own_call(self, kwargs: dict[str, Any]) -> None:
         mask = self.mask
         self._set_value(numpy.nan)
         values = self._get_value()
@@ -2414,13 +2422,11 @@ index parameter.
             f"{name}={objecttools.repr_(value)}" for name, value in keywordarguments
         ]
         string = objecttools.assignrepr_values(
-            values=sorted(results),
-            prefix=f"{self.name}(",
-            width=70,
+            values=sorted(results), prefix=f"{self.name}(", width=70
         )
         return f"{string})"
 
-    def __dir__(self) -> List[str]:
+    def __dir__(self) -> list[str]:
         """
         >>> from hydpy.models.lland_v1 import *
         >>> parameterstep()
@@ -2430,7 +2436,7 @@ index parameter.
 'weinb']
         """
         names = itertools.chain(
-            cast(List[str], super().__dir__()),
+            cast(list[str], super().__dir__()),
             (key.lower() for key in self.constants.keys()),
         )
         return list(names)
@@ -2598,7 +2604,7 @@ broadcast input array from shape (2,) into shape (366,3)
 
     strict_valuehandling: bool = False
 
-    _toy2values: List[Tuple[timetools.TOY, Union[float, NDArrayFloat]]]
+    _toy2values: list[tuple[timetools.TOY, Union[float, NDArrayFloat]]]
 
     def __init__(self, subvars) -> None:
         super().__init__(subvars)
@@ -2606,7 +2612,7 @@ broadcast input array from shape (2,) into shape (366,3)
 
     def __call__(self, *args, **kwargs) -> None:
         if self.NDIM == 1:
-            self.shape = (None,)
+            self.shape = (-1,)
         try:
             super().__call__(*args, **kwargs)
             self._toy2values = [(timetools.TOY(), self.values[0])]
@@ -2673,7 +2679,7 @@ broadcast input array from shape (2,) into shape (366,3)
         When a |SeasonalParameter| object does not contain any toy-value pairs yet, the
         method |SeasonalParameter.refresh| sets all actual simulation values to zero:
 
-        >>> par.values = 1.
+        >>> par.values = 1.0
         >>> par.refresh()
         >>> par.values[0]
         0.0
@@ -2681,7 +2687,7 @@ broadcast input array from shape (2,) into shape (366,3)
         When there is only one toy-value pair, its values are relevant for all actual
         simulation values:
 
-        >>> par.toy_1 = 2. # calls refresh automatically
+        >>> par.toy_1 = 2.0  # calls refresh automatically
         >>> par.values[0]
         2.0
 
@@ -2689,7 +2695,7 @@ broadcast input array from shape (2,) into shape (366,3)
         central time points of each simulation time step.  Hence, in the following
         example, the original values of the toy-value pairs do not show up:
 
-        >>> par.toy_12_31 = 4.
+        >>> par.toy_12_31 = 4.0
         >>> from hydpy import round_
         >>> round_(par.values[0])
         2.00274
@@ -2704,7 +2710,7 @@ broadcast input array from shape (2,) into shape (366,3)
         >>> del par.toy_1
         >>> del par.toy_12_31
         >>> par.toy_1_1_12 = 2
-        >>> par.toy_12_31_12 = 4.
+        >>> par.toy_12_31_12 = 4.0
         >>> par.values[0]
         2.0
         >>> round_(par.values[1])
@@ -2735,7 +2741,7 @@ broadcast input array from shape (2,) into shape (366,3)
 
             >>> del pub.timegrids
         """
-        if not self:
+        if not self._toy2values:
             self._set_value(0.0)
         elif len(self) == 1:
             self.values[:] = self.apply_timefactor(self._toy2values[0][1])
@@ -2837,11 +2843,11 @@ broadcast input array from shape (2,) into shape (366,3)
         return y0 + (y1 - y0) / (x1 - x0) * (xnew - x0)
 
     @property
-    def toys(self) -> Tuple[timetools.TOY, ...]:
+    def toys(self) -> tuple[timetools.TOY, ...]:
         """A sorted |tuple| of all contained |TOY| objects."""
         return tuple(toy for toy, _ in self._toy2values)
 
-    def _get_shape(self) -> Tuple[int, ...]:
+    def _get_shape(self) -> tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
         .. testsetup::
@@ -2903,7 +2909,7 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
         """
         return super()._get_shape()
 
-    def _set_shape(self, shape: Union[int, Tuple[int, ...]]) -> None:
+    def _set_shape(self, shape: Union[int, tuple[int, ...]]) -> None:
         if isinstance(shape, tuple):
             shape_ = list(shape)
         else:
@@ -2921,9 +2927,9 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
         shape_[0] = int(numpy.ceil(round(shape_[0], 10)))
         super()._set_shape(tuple(shape_))
 
-    shape = property(fget=_get_shape, fset=_set_shape)
+    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
-    def __iter__(self) -> Iterator[Tuple[timetools.TOY, Any]]:
+    def __iter__(self) -> Iterator[tuple[timetools.TOY, Any]]:
         return iter(self._toy2values)
 
     def __getattr__(self, name: str) -> Union[float, NDArrayFloat]:
@@ -2990,7 +2996,7 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
     def __len__(self) -> int:
         return len(self._toy2values)
 
-    def __dir__(self) -> List[str]:
+    def __dir__(self) -> list[str]:
         """
 
         >>> from hydpy import pub
@@ -3010,10 +3016,10 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
 
             >>> del pub.timegrids
         """
-        return cast(List[str], super().__dir__()) + [str(toy) for (toy, dummy) in self]
+        return cast(list[str], super().__dir__()) + [str(toy) for (toy, dummy) in self]
 
 
-class KeywordParameter1D(Parameter):
+class KeywordParameter1D(_MixinModifiableParameter, Parameter):
     """Base class for 1-dimensional model parameters with values depending on one
     factor.
 
@@ -3095,7 +3101,7 @@ for axis 0 with size 1
     """
 
     NDIM = 1
-    entrynames: Tuple[str, ...]
+    entrynames: tuple[str, ...]
     entrymin: int = 0
 
     strict_valuehandling: bool = False
@@ -3183,15 +3189,16 @@ for axis 0 with size 1
         if constants is None:
             yield
         else:
-            old_names = cls.entrynames
-            old_min = cls.entrymin
+            get = vars(cls).get
+            old_names = get("entrynames")
+            old_min = get("entrymin")
             try:
                 cls.entrynames = constants.sortednames
                 cls.entrymin = min(constants.values())
                 yield
             finally:
-                cls.entrynames = old_names
-                cls.entrymin = old_min
+                cls._reset_after_modification("entrynames", old_names)
+                cls._reset_after_modification("entrymin", old_min)
 
     def __hydpy__connect_variable2subgroup__(self) -> None:
         super().__hydpy__connect_variable2subgroup__()
@@ -3249,9 +3256,9 @@ for axis 0 with size 1
             super().__setattr__(key, values)
 
     def __repr__(self):
-        lines = self.commentrepr
         values = self.revert_timefactor(self.values)
         prefix = f"{self.name}("
+        lines = []
         if len(numpy.unique(values)) == 1:
             lines.append(f"{prefix}{objecttools.repr_(values[0])})")
         else:
@@ -3272,7 +3279,7 @@ for axis 0 with size 1
             lines[-1] += ")"
         return "\n".join(lines)
 
-    def __dir__(self) -> List[str]:
+    def __dir__(self) -> list[str]:
         """
         >>> from hydpy.core.parametertools import KeywordParameter1D
         >>> class Season(KeywordParameter1D):
@@ -3283,7 +3290,7 @@ for axis 0 with size 1
         >>> sorted(set(dir(season)) - set(object.__dir__(season)))
         ['summer', 'winter']
         """
-        return cast(List[str], super().__dir__()) + list(self.entrynames)
+        return cast(list[str], super().__dir__()) + list(self.entrynames)
 
 
 class MonthParameter(KeywordParameter1D):
@@ -3328,7 +3335,7 @@ class MonthParameter(KeywordParameter1D):
     )
 
 
-class KeywordParameter2D(Parameter):
+class KeywordParameter2D(_MixinModifiableParameter, Parameter):
     """Base class for 2-dimensional model parameters with values depending on two
     factors.
 
@@ -3463,14 +3470,14 @@ attribute nor a row or column related attribute named `wrong`.
     """
 
     NDIM = 2
-    rownames: Tuple[str, ...]
-    columnnames: Tuple[str, ...]
+    rownames: tuple[str, ...]
+    columnnames: tuple[str, ...]
     rowmin: int = 0
     columnmin: int = 0
 
     strict_valuehandling: bool = False
 
-    _rowcolumnmappings: Dict[str, Tuple[int, int]]
+    _rowcolumnmappings: dict[str, tuple[int, int]]
 
     def __init__(self, subvars: SubParameters) -> None:
         super().__init__(subvars)
@@ -3586,15 +3593,16 @@ attribute nor a row or column related attribute named `wrong`.
         if constants is None:
             yield
         else:
-            old_names = cls.rownames
-            old_min = cls.rowmin
+            get = vars(cls).get
+            old_names = get("rownames")
+            old_min = get("rowmin")
             try:
                 cls.rownames = constants.sortednames
                 cls.rowmin = min(constants.values())
                 yield
             finally:
-                cls.rownames = old_names
-                cls.rowmin = old_min
+                cls._reset_after_modification("rownames", old_names)
+                cls._reset_after_modification("rowmin", old_min)
 
     @classmethod
     @contextlib.contextmanager
@@ -3609,20 +3617,21 @@ attribute nor a row or column related attribute named `wrong`.
         if constants is None:
             yield
         else:
-            old_names = cls.columnnames
-            old_min = cls.columnmin
+            get = vars(cls).get
+            old_names = get("columnnames")
+            old_min = get("columnmin")
             try:
                 cls.columnnames = constants.sortednames
                 cls.columnmin = min(constants.values())
                 yield
             finally:
-                cls.columnnames = old_names
-                cls.columnmin = old_min
+                cls._reset_after_modification("columnnames", old_names)
+                cls._reset_after_modification("columnmin", old_min)
 
     @classmethod
     def _make_rowcolumnmappings(
-        cls, rownames: Tuple[str, ...], columnnames: Tuple[str, ...]
-    ) -> Dict[str, Tuple[int, int]]:
+        cls, rownames: tuple[str, ...], columnnames: tuple[str, ...]
+    ) -> dict[str, tuple[int, int]]:
         rowcolmappings = {}
         for idx, rowname in enumerate(rownames):
             for jdx, colname in enumerate(columnnames):
@@ -3725,10 +3734,10 @@ attribute nor a row or column related attribute named `wrong`.
             super().__setattr__(key, values)
 
     def __repr__(self) -> str:
-        lines = self.commentrepr
         values = self.revert_timefactor(self.values)
         prefix = f"{self.name}("
         blanks = " " * len(prefix)
+        lines = []
         for idx, key in enumerate(self.rownames):
             subprefix = f"{prefix}{key}=" if idx == 0 else f"{blanks}{key}="
             lines.append(
@@ -3737,7 +3746,7 @@ attribute nor a row or column related attribute named `wrong`.
         lines[-1] = lines[-1][:-1] + ")"
         return "\n".join(lines)
 
-    def __dir__(self) -> List[str]:
+    def __dir__(self) -> list[str]:
         """
         >>> from hydpy.core.parametertools import KeywordParameter2D
         >>> class IsWarm(KeywordParameter2D):
@@ -3752,7 +3761,7 @@ attribute nor a row or column related attribute named `wrong`.
         """
         assert (rowcolmappings := self._rowcolumnmappings) is not None
         return (
-            cast(List[str], super().__dir__())
+            cast(list[str], super().__dir__())
             + list(self.rownames)
             + list(self.columnnames)
             + list(rowcolmappings)
@@ -3870,13 +3879,10 @@ parameter value must be given, but is not.
         self.values[1] = value
 
     def __repr__(self):
-        lines = self.commentrepr
         values = [objecttools.repr_(value) for value in self.values]
         if values[0] == values[1]:
-            lines.append(f"{self.name}({values[0]})")
-        else:
-            lines.append(f"{self.name}(left={values[0]}, right={values[1]})")
-        return "\n".join(lines)
+            return f"{self.name}({values[0]})"
+        return f"{self.name}(left={values[0]}, right={values[1]})"
 
 
 class FixedParameter(Parameter):
@@ -3890,7 +3896,7 @@ class FixedParameter(Parameter):
     INIT: Union[int, float, bool]
 
     @property
-    def initinfo(self) -> Tuple[Union[float, int, bool], bool]:
+    def initinfo(self) -> tuple[Union[float, int, bool], bool]:
         """A |tuple| always containing the fixed value and |True|, except
         for time-dependent parameters and incomplete time-information.
 
@@ -3921,28 +3927,28 @@ class FixedParameter(Parameter):
     def restore(self) -> None:
         """Restore the original parameter value.
 
-        Method |FixedParameter.restore| is relevant for testing mainly.
-        Note that it might be necessary to call it after changing the
-        simulation step size, as shown in the following example using
-        the parameter |lland_fixed.LW| of base model |lland|:
+        Method |FixedParameter.restore| is relevant for testing mainly.  Note that it
+        might be necessary to call it after changing the simulation step size, as shown
+        in the following example using the parameter |evap_fixed.HeatOfCondensation| of
+        base model |evap|:
 
-        >>> from hydpy.models.lland import *
+        >>> from hydpy.models.evap import *
         >>> simulationstep("1d")
         >>> parameterstep("1d")
         >>> from hydpy import round_
-        >>> fixed.lw
-        lw(28.5)
-        >>> round_(fixed.lw.value)
+        >>> fixed.heatofcondensation
+        heatofcondensation(28.5)
+        >>> round_(fixed.heatofcondensation.value)
         28.5
         >>> simulationstep("12h")
-        >>> fixed.lw
-        lw(14.25)
-        >>> round_(fixed.lw.value)
+        >>> fixed.heatofcondensation
+        heatofcondensation(14.25)
+        >>> round_(fixed.heatofcondensation.value)
         28.5
-        >>> fixed.lw.restore()
-        >>> fixed.lw
-        lw(28.5)
-        >>> round_(fixed.lw.value)
+        >>> fixed.heatofcondensation.restore()
+        >>> fixed.heatofcondensation
+        heatofcondensation(28.5)
+        >>> round_(fixed.heatofcondensation.value)
         57.0
         """
         with hydpy.pub.options.parameterstep("1d"):
@@ -4329,3 +4335,229 @@ class UTCLongitudeParameter(Parameter):
         utclongitudeparameter(0)
         """
         self(hydpy.pub.options.utclongitude)
+
+
+def do_nothing(model: modeltools.Model) -> None:  # pylint: disable=unused-argument
+    """The default Python version of the |CallbackParameter|
+    |CallbackParameter.callback| function, which does nothing."""
+
+
+class CallbackParameter(Parameter):
+    """Base class for parameters that support calculating their values via user-defined
+    callback functions alternatively of sticking to the same values during a simulation
+    run.
+
+    We use the callback parameter |sw1d_control.GateHeight| of application model
+    |sw1d_gate_out| for the following technical explanations (for a more
+    application-oriented example, see the |sw1d_model.Calc_Discharge_V3|
+    documentation):
+
+    >>> from hydpy.models.sw1d_gate_out import *
+    >>> parameterstep()
+
+    You can define a fixed gate height as usual:
+
+    >>> gateheight
+    gateheight(?)
+    >>> gateheight(3.0)
+    >>> gateheight
+    gateheight(3.0)
+
+    Alternatively, you can write an individual callback function.  Its only argument
+    accepts the model under consideration (here, |sw1d_gate_out|).  Principally, you
+    are free to modify the model in any way you like, but the expected behaviour is
+    to set the considered parameter's value only:
+
+    >>> def adjust_gateheight(model) -> None:
+    ...     con = model.parameters.control.fastaccess
+    ...     my_gateheight: float = 2.0 + 3.0
+    ...     con.gateheight = my_gateheight
+
+    However, when working in Cython mode, *HydPy* converts the pure Python function to
+    a Cython function and compiles it to C in the background, similar to how it handles
+    "normal" model methods.  This background conversion is crucial for efficiency but
+    restricts the allowed syntax and functionality.  Generally, you should work with
+    the usual "fast access shortcuts", be explicit about the |None| return type, and
+    cannot import any Python library, but are free to use Cython-functionalities
+    implemented for and used by other model methods instead. A trivial example is using
+    |fabs| for calculating absolute values.
+
+    Next, we hand the callback function over to the parameter.  Here, we do this a
+    little strangely between the creation of two tuples for hiding potential
+    information printed by Cython or the used C compiler:
+
+    >>> ();gateheight(callback=adjust_gateheight);()  # doctest: +ELLIPSIS
+    (...)
+
+    The string representation now includes the callback's source code:
+
+    >>> gateheight
+    def adjust_gateheight(model) -> None:
+        con = model.parameters.control.fastaccess
+        my_gateheight: float = 2.0 + 3.0
+        con.gateheight = my_gateheight
+    gateheight(callback=adjust_gateheight)
+
+    When interested in the parameter's value, request it via the
+    |CallbackParameter.value| property.  Note that this property applies the callback
+    automatically before returning the (then updated) value:
+
+    >>> from hydpy import round_
+    >>> round_(gateheight.value)
+    5.0
+
+    You can return the parameter to "normal behaviour" by assigning a fixed value:
+
+    >>> gateheight(7.0)
+    >>> gateheight
+    gateheight(7.0)
+
+    Alternatively, one can assign a function via the |CallbackParameter.callback|
+    property.  We do not need to hide potential compiler output this time because the
+    Python function has already been converted to a reusable Cython function:
+
+    >>> gateheight.callback = adjust_gateheight
+    >>> gateheight
+    def adjust_gateheight(model) -> None:
+        con = model.parameters.control.fastaccess
+        my_gateheight: float = 2.0 + 3.0
+        con.gateheight = my_gateheight
+    gateheight(callback=adjust_gateheight)
+    >>> round_(gateheight.value)
+    5.0
+
+    Note that *HydPy* stores the Cython callbacks persistently on disk, using the
+    Python function name as a part of the Cython module name. Hence, you cannot use
+    two equally named callback functions for the same parameter of the same application
+    model within one project.
+
+    Use the `del` statement to remove the callback function:
+
+    >>> assert gateheight.callback is not None
+    >>> del gateheight.callback
+    >>> assert gateheight.callback is None
+    >>> gateheight
+    gateheight(5.0)
+    >>> round_(gateheight.value)
+    5.0
+
+    Failing attempts to pass a callback function might result in the following errors:
+
+    >>> gateheight(Callback=adjust_gateheight)
+    Traceback (most recent call last):
+    ...
+    ValueError: When trying to prepare parameter `gateheight` of element `?` via a \
+keyword argument, it must be `callback`, and you need to pass a callback function.
+
+    >>> gateheight(value=1.0, callback=adjust_gateheight)
+    Traceback (most recent call last):
+    ...
+    ValueError: Parameter `gateheight` of element `?` does not allow to combine the \
+`callback` argument with other arguments.
+
+    The conversion from Python to Cython also works when defining the original function
+    in an indentated block:
+
+    >>> try:
+    ...     def adjust_gateheight_indented(model) -> None:
+    ...         con = model.parameters.control.fastaccess
+    ...         my_gateheight: float = 2.0 * 3.0
+    ...         con.gateheight = my_gateheight
+    ... finally:
+    ...     ();gateheight(callback=adjust_gateheight_indented);()  # doctest: +ELLIPSIS
+    (...)
+    >>> gateheight.callback = adjust_gateheight_indented
+    >>> gateheight
+    def adjust_gateheight_indented(model) -> None:
+        con = model.parameters.control.fastaccess
+        my_gateheight: float = 2.0 * 3.0
+        con.gateheight = my_gateheight
+    gateheight(callback=adjust_gateheight_indented)
+    >>> round_(gateheight.value)
+    6.0
+    """
+
+    _has_callback: bool = False
+
+    def __call__(self, *args, **kwargs) -> None:
+        try:
+            super().__call__(*args, **kwargs)
+        except NotImplementedError as exc:
+            if (callback := kwargs.get("callback", None)) is None:
+                raise ValueError(
+                    f"When trying to prepare parameter "
+                    f"{objecttools.elementphrase(self)} via a keyword argument, it "
+                    f"must be `callback`, and you need to pass a callback function."
+                ) from exc
+            if (len(args) > 0) or (len(kwargs) > 1):
+                raise ValueError(
+                    f"Parameter {objecttools.elementphrase(self)} does not allow to "
+                    f"combine the `callback` argument with other arguments."
+                ) from exc
+            self.callback = callback
+
+    def _init_callback(self):
+        if init := getattr(self.fastaccess, f"init_{self.name}_callback", None):
+            init()
+        else:
+            setattr(self.fastaccess, f"{self.name}_callback", do_nothing)
+
+    def __hydpy__connect_variable2subgroup__(self) -> None:
+        super().__hydpy__connect_variable2subgroup__()
+        self._init_callback()
+
+    @property
+    def callback(self) -> Optional[Callable[[modeltools.Model], None]]:
+        """The currently handled callback function for updating the parameter value."""
+        if self._has_callback:
+            if get := getattr(self.fastaccess, f"get_{self.name}_callback", None):
+                return get()
+            return getattr(self.fastaccess, f"{self.name}_callback")
+        return None
+
+    @callback.setter
+    def callback(self, callback: Callable[[modeltools.Model], None]) -> None:
+        from hydpy.cythons import modelutils  # pylint: disable=import-outside-toplevel
+
+        if set_ := getattr(self.fastaccess, f"set_{self.name}_callback", None):
+            cymodule = modelutils.get_callbackcymodule(
+                model=self.subpars.pars.model, parameter=self, callback=callback
+            )
+            set_(cymodule.get_wrapper())
+        else:
+            setattr(self.fastaccess, f"{self.name}_callback", callback)
+        self._has_callback = True
+
+    @callback.deleter
+    def callback(self) -> None:
+        self._has_callback = False
+        self._init_callback()
+
+    def _get_value(self):
+        """The fixed value or the value last updated by the callback function."""
+        if self._has_callback:
+            self.callback(self.subpars.pars.model)
+            self._valueready = True
+        return super()._get_value()
+
+    def _set_value(self, value) -> None:
+        self._init_callback()
+        self._has_callback = False
+        super()._set_value(value)
+
+    value = property(fget=_get_value, fset=_set_value)
+
+    def __repr__(self) -> str:
+        if self._has_callback:
+            callback: Any = self.callback
+            if isinstance(callback, types.FunctionType):
+                lines = inspect.getsource(callback).split("\n")
+                indent = len(lines[0]) - len(lines[0].lstrip())
+                pycode = "\n".join(line[indent:] for line in lines).rstrip()
+                funcname = callback.__name__
+            else:
+                pycode = callback.get_sourcecode()
+                funcname = callback.get_name()
+            varrepr = f"{self.name}(callback={funcname})"
+            return "\n".join((pycode, varrepr))
+        return super().__repr__()

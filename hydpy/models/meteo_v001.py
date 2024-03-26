@@ -22,19 +22,19 @@ Integration tests
 
 Application model |meteo_v001| calculates multiple meteorological factors hydrological 
 models could require.  Many require |meteo_fluxes.GlobalRadiation| for calculating net
-shortwave radiation.  Some also require |PossibleSunshineDuration| or
-|ClearSkySolarRadiation| to guess cloudiness for calculating net longwave radiation.
-Here, we select |meteo_fluxes.GlobalRadiation| and |ClearSkySolarRadiation| by
-importing their globally available aliases, which we hand over to the |Node| instances
-`node1` and `node2`:
+shortwave radiation.  Some also require |meteo_factors.PossibleSunshineDuration| or
+|meteo_fluxes.ClearSkySolarRadiation| to guess cloudiness for calculating net longwave
+radiation.  Here, we select |meteo_fluxes.GlobalRadiation| and
+|meteo_fluxes.ClearSkySolarRadiation| by importing their globally available aliases,
+which we hand over to the |Node| instances `node1` and `node2`:
 
 >>> from hydpy import Element, Node
->>> from hydpy.outputs import meteo_GlobalRadiation, meteo_ClearSkySolarRadiation
->>> node1 = Node("node1", variable=meteo_GlobalRadiation)
->>> node2 = Node("node2", variable=meteo_ClearSkySolarRadiation)
+>>> from hydpy.aliases import meteo_fluxes_GlobalRadiation, meteo_fluxes_ClearSkySolarRadiation
+>>> node1 = Node("node1", variable=meteo_fluxes_GlobalRadiation)
+>>> node2 = Node("node2", variable=meteo_fluxes_ClearSkySolarRadiation)
 
-Now we can prepare an instance of |meteo_v001| and assign it to an element connected to 
-the prepared nodes:
+Now, we can prepare an instance of |meteo_v001| and assign it to an element connected
+to the prepared nodes:
 
 >>> from hydpy.models.meteo_v001 import *
 >>> parameterstep()
@@ -50,7 +50,7 @@ The first example deals with a daily simulation time step.  We calculate the rad
 terms on 6 July in Uccle (Brussels, Belgium) and take all input data from example 18 of 
 :cite:t:`ref-Allen1998`:
 
->>> from hydpy import IntegrationTest, pub
+>>> from hydpy import IntegrationTest, pub, round_
 >>> pub.timegrids = "2000-07-06", "2000-07-07", "1d"
 >>> latitude(50.8)
 >>> angstromconstant(0.25)
@@ -62,8 +62,9 @@ terms on 6 July in Uccle (Brussels, Belgium) and take all input data from exampl
 
 >>> inputs.sunshineduration.series = 9.25
 
-Both for |meteo_fluxes.GlobalRadiation| and |ClearSkySolarRadiation|, the differences
-to the results given by :cite:t:`ref-Allen1998` are significantly less than 1 %:
+Both for |meteo_fluxes.GlobalRadiation| and |meteo_fluxes.ClearSkySolarRadiation|, the
+differences to the results given by :cite:t:`ref-Allen1998` are significantly less than
+1 %:
 
 .. integration-test::
 
@@ -72,6 +73,17 @@ to the results given by :cite:t:`ref-Allen1998` are significantly less than 1 %:
     -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2000-06-07 |             9.25 |         0.967121 |         0.394547 |        2.106601 |            nan |                16.093247 |                475.201614 |              356.40121 |      255.367464 | 255.367464 | 356.40121 |
 
+All getters specified by the |RadiationModel_V1| interface return the correct data:
+
+>>> round_(model.get_possiblesunshineduration())
+16.093247
+>>> round_(model.get_sunshineduration())
+9.25
+>>> round_(model.get_clearskysolarradiation())
+356.40121
+>>> round_(model.get_globalradiation())
+255.367464
+
 .. _meteo_v001_hourly_simulation:
 
 hourly simulation
@@ -79,7 +91,7 @@ _________________
 
 The second example deals with an hourly simulation over multiple time steps.  We 
 calculate the different radiation terms from 30 September to 1 October in N'Diaye 
-(Senegal) and take (or try to derive as good as possible) all parameter and input 
+(Senegal) and take (or try to derive as well as possible) all parameter and input
 values from example 19 of :cite:t:`ref-Allen1998`.
 
 Example 19 of :cite:t:`ref-Allen1998` gives results for the intervals between 2 and 3
@@ -101,11 +113,11 @@ We reuse the Ångström coefficients from the first example:
 >>> test = IntegrationTest(element)
 >>> test.dateformat = "%Y-%d-%m %H:00"
 
-We set the sunshine duration constantly to 80 % during the first daytime period and
-let it linearly increase from 82 % to 88 % in the (incomplete) second daytime period.
-The exceedance of the potential sunshine duration during both sunsets does not affect
-the results negatively.  At the end of the simulation period, the given sunshine 
-duration of 88 % corresponds to a ratio of global radiation and clear sky radiation of 
+We set the sunshine duration constant at 80 % during the first daytime period and let
+it linearly increase from 82 % to 88 % in the (incomplete) second daytime period.  The
+exceedance of the potential sunshine duration during both sunsets does not affect the
+results negatively.  At the end of the simulation period, the given sunshine duration
+of 88 % corresponds to a ratio of global radiation and clear sky radiation of
 approximately 0.92, which is an intermediate result of :cite:t:`ref-Allen1998`:
 
 >>> import numpy
@@ -113,8 +125,9 @@ approximately 0.92, which is an intermediate result of :cite:t:`ref-Allen1998`:
 >>> inputs.sunshineduration.series[3:16] = 0.8
 >>> inputs.sunshineduration.series[27:] = numpy.linspace(0.82, 0.88, 10)
 
-Again, the calculated |meteo_fluxes.GlobalRadiation| and |ClearSkySolarRadiation|
-differs significantly less than 1 % from the results given by :cite:t:`ref-Allen1998`:
+Again, the calculated |meteo_fluxes.GlobalRadiation| and
+|meteo_fluxes.ClearSkySolarRadiation| differ significantly less than 1 % from the
+results given by :cite:t:`ref-Allen1998`:
 
 .. integration-test::
 
@@ -164,10 +177,11 @@ differs significantly less than 1 % from the results given by :cite:t:`ref-Allen
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
+from hydpy.interfaces import radiationinterfaces
 from hydpy.models.meteo import meteo_model
 
 
-class Model(modeltools.AdHocModel):
+class Model(modeltools.AdHocModel, radiationinterfaces.RadiationModel_V1):
     """Version 1 of the Meteo model."""
 
     INLET_METHODS = ()
@@ -181,6 +195,13 @@ class Model(modeltools.AdHocModel):
         meteo_model.Calc_ExtraterrestrialRadiation_V1,
         meteo_model.Calc_ClearSkySolarRadiation_V1,
         meteo_model.Calc_GlobalRadiation_V1,
+    )
+    INTERFACE_METHODS = (
+        meteo_model.Process_Radiation_V1,
+        meteo_model.Get_PossibleSunshineDuration_V1,
+        meteo_model.Get_SunshineDuration_V2,
+        meteo_model.Get_ClearSkySolarRadiation_V1,
+        meteo_model.Get_GlobalRadiation_V1,
     )
     ADD_METHODS = ()
     OUTLET_METHODS = ()

@@ -74,7 +74,7 @@ The intermediate soil moisture values have been stored in a NetCDF file called
 >>> with TestIO():
 ...     ncfile = netcdf4.Dataset("LahnH/series/soildata/hland_v1_state_sm.nc")
 ...     chars2str(query_variable(ncfile, "station_id")[:].data)[:3]
-...     print_values(query_variable(ncfile, "state_sm")[:, 0])
+...     print_values(query_variable(ncfile, "values")[:, 0])
 ['land_dill_0', 'land_dill_1', 'land_dill_2']
 184.920402, 184.589155, 184.365769, 184.069586, 183.837826
 >>> ncfile.close()
@@ -135,10 +135,7 @@ _TypeSetOrAddOrMultiplyItem = TypeVar(
     itemtools.MultiplyItem,
 )
 _TypeGetOrChangeItem = TypeVar(
-    "_TypeGetOrChangeItem",
-    itemtools.GetItem,
-    itemtools.ChangeItem,
-    itemtools.SetItem,
+    "_TypeGetOrChangeItem", itemtools.GetItem, itemtools.ChangeItem, itemtools.SetItem
 )
 
 namespace = (
@@ -244,7 +241,7 @@ class PrepareSeriesArguments(NamedTuple):
         Meaning of the arguments:
          * is_reader: is the current XML-Element responsible for reading (or writing)?
          * is_input: serve the addressed sequences as inputs (or outputs)?
-         * prefer_ram: prefer to handle time-series data in RAM (or read and write it
+         * prefer_ram: prefer to handle time series data in RAM (or read and write it
            just in time)?
 
         >>> from hydpy.auxs.xmltools import PrepareSeriesArguments
@@ -324,7 +321,7 @@ def run_simulation(projectname: str, xmlfile: str) -> None:
     write("Create the custom selections (if defined)")
     interface.update_selections()
     write("Activate the selected network")
-    hp.update_devices(selection=interface.fullselection)
+    hp.update_devices(selection=interface.fullselection, silent=True)
     write("Read the required control files")
     interface.control_io.prepare_models()
     write("Read the required condition files")
@@ -486,7 +483,7 @@ validating '1996-01-32T00:00:00' with XsdAtomicBuiltin(name='xs:dateTime')...
         ...
         Reason: day is out of range for month
         ...
-        Schema:
+        Schema component:
         ...
         Instance:
         ...
@@ -589,15 +586,14 @@ correctly refer to one of the available XML schema files \
             ellipsis -> 0
             parameterstep -> Period("1d")
             printprogress -> 0
-            reprcomments -> 0
             reprdigits -> 6
             simulationstep -> Period()
+            timestampleft -> 1
             trimvariables -> 1
             usecython -> 1
             usedefaultvalues -> 0
             utclongitude -> 15
             utcoffset -> 60
-            timestampleft -> 1
             warnmissingcontrolfile -> 0
             warnmissingobsfile -> 1
             warnmissingsimfile -> 1
@@ -712,7 +708,7 @@ of the available devices has this keyword.
 devices has this name.
         """
 
-        def _get_texts(root: ElementTree.Element, name: str) -> List[str]:
+        def _get_texts(root: ElementTree.Element, name: str) -> list[str]:
             xmlelement = find(root=root, name=name, optional=True)
             if xmlelement is None or xmlelement.text is None:
                 return []
@@ -821,7 +817,7 @@ text `head_waters`, but the actual project does not handle such a `Selection` ob
         stream_lahn_2_lahn_3
         """
         selections = copy.copy(self.selections)
-        elements: Set[devicetools.Element] = set()
+        elements: set[devicetools.Element] = set()
         for selection in selections:
             for element in selection.elements:
                 if element not in elements:
@@ -1079,7 +1075,7 @@ class XMLConditions(XMLBase):
             currentdir = str(self.find("inputdir", optional=False).text)
         hydpy.pub.conditionmanager.currentdir = currentdir
         for element in self.master.elements:
-            element.model.sequences.load_conditions()
+            element.model.load_conditions()
 
     def save_conditions(self, currentdir: Optional[str] = None) -> None:
         """Save the condition files of the |Model| objects of all |Element| objects
@@ -1122,7 +1118,7 @@ class XMLConditions(XMLBase):
             currentdir = str(self.find("outputdir", optional=False).text)
         hydpy.pub.conditionmanager.currentdir = currentdir
         for element in self.master.elements:
-            element.model.sequences.save_conditions()
+            element.model.save_conditions()
         if self.find("zip", optional=False).text == "true":
             hydpy.pub.conditionmanager.zip_currentdir()
 
@@ -1136,7 +1132,7 @@ class XMLSeries(XMLBase):
         self.root: ElementTree.Element = root
 
     @property
-    def readers(self) -> List[XMLSubseries]:
+    def readers(self) -> list[XMLSubseries]:
         """The reader XML elements defined in the actual XML file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
@@ -1149,7 +1145,7 @@ class XMLSeries(XMLBase):
         return [XMLSubseries(self, _) for _ in self.find("readers", optional=False)]
 
     @property
-    def writers(self) -> List[XMLSubseries]:
+    def writers(self) -> list[XMLSubseries]:
         """The writer XML elements defined in the actual XML file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
@@ -1183,7 +1179,7 @@ class XMLSeries(XMLBase):
     @contextlib.contextmanager
     def modify_inputdir(self, currentdir: Optional[str] = None) -> Iterator[None]:
         """Temporarily modify the |IOSequence.dirpath| of all |IOSequence| objects
-        registered for reading time-series data "just in time" during a simulation
+        registered for reading time series data "just in time" during a simulation
         run."""
         try:
             for reader in self.readers:
@@ -1196,7 +1192,7 @@ class XMLSeries(XMLBase):
     @contextlib.contextmanager
     def modify_outputdir(self, currentdir: Optional[str] = None) -> Iterator[None]:
         """Temporarily modify the |IOSequence.dirpath| of all |IOSequence| objects
-        registered for writing time-series data "just in time" during a simulation
+        registered for writing time series data "just in time" during a simulation
         run."""
         try:
             for writer in self.writers:
@@ -1385,6 +1381,8 @@ class XMLSubseries(XMLSelector):
         1
         >>> pub.sequencemanager.aggregation
         'none'
+        >>> pub.sequencemanager.convention
+        'model-specific'
         >>> with TestIO():
         ...     series_io.writers[1].prepare_sequencemanager()
         ...     pub.sequencemanager.currentdir
@@ -1395,6 +1393,8 @@ class XMLSubseries(XMLSelector):
         0
         >>> pub.sequencemanager.aggregation
         'none'
+        >>> pub.sequencemanager.convention
+        'model-specific'
         >>> with TestIO():
         ...     series_io.writers[2].prepare_sequencemanager()
         ...     pub.sequencemanager.currentdir
@@ -1407,6 +1407,8 @@ class XMLSubseries(XMLSelector):
         1
         >>> pub.sequencemanager.aggregation
         'mean'
+        >>> pub.sequencemanager.convention
+        'model-specific'
         """
         sm = hydpy.pub.sequencemanager
         if currentdir is None:
@@ -1421,7 +1423,7 @@ class XMLSubseries(XMLSelector):
         else:
             sm.currentdir = currentdir
 
-        for option in ("filetype", "aggregation", "overwrite"):
+        for option in ("filetype", "aggregation", "convention", "overwrite"):
             delattr(sm, option)
             for element in (self.find(option), self.master.find(option)):
                 if element is not None:
@@ -1444,7 +1446,9 @@ class XMLSubseries(XMLSelector):
         return mode.text == "ram"
 
     @property
-    def model2subs2seqs(self) -> DefaultDict[str, DefaultDict[str, List[str]]]:
+    def model2subs2seqs(
+        self,
+    ) -> collections.defaultdict[str, collections.defaultdict[str, list[str]]]:
         """A nested |collections.defaultdict| containing the model-specific information
         provided by the XML `sequences` element.
 
@@ -1461,8 +1465,9 @@ class XMLSubseries(XMLSelector):
         hland_v1 states ['sm']
         musk_classic states ['discharge']
         """
-        model2subs2seqs: DefaultDict[str, DefaultDict[str, List[str]]]
-        model2subs2seqs = collections.defaultdict(lambda: collections.defaultdict(list))
+        model2subs2seqs: collections.defaultdict[
+            str, collections.defaultdict[str, list[str]]
+        ] = collections.defaultdict(lambda: collections.defaultdict(list))
         for model in self.find("sequences", optional=False):
             model_name = strip(model.tag)
             if model_name == "node":
@@ -1475,7 +1480,7 @@ class XMLSubseries(XMLSelector):
         return model2subs2seqs
 
     @property
-    def subs2seqs(self) -> Dict[str, List[str]]:
+    def subs2seqs(self) -> dict[str, list[str]]:
         """A |collections.defaultdict| containing the node-specific information
         provided by XML `sequences` element.
 
@@ -1488,7 +1493,8 @@ class XMLSubseries(XMLSelector):
         ...     print(subs, seq)
         node ['sim', 'obs']
         """
-        subs2seqs: DefaultDict[str, List[str]] = collections.defaultdict(list)
+        subs2seqs: collections.defaultdict[str, list[str]]
+        subs2seqs = collections.defaultdict(list)
         nodes = find(self.find("sequences", optional=False), "node")
         if nodes is not None:
             for seq in nodes:
@@ -1524,7 +1530,7 @@ class XMLSubseries(XMLSelector):
         determine the correct arguments for method |IOSequence.prepare_series| of class
         |IOSequence|.  Those arguments depend on whether the respective |XMLSubseries|
         element is for reading or writing data, addresses input or output sequences,
-        and if one prefers to handle time-series data in RAM or read or write it "just
+        and if one prefers to handle time series data in RAM or read or write it "just
         in time" during model simulations.  Method |XMLSubseries.prepare_series|
         delegates some of the related logic to the |PrepareSeriesArguments.from_xmldata|
         method of class |PrepareSeriesArguments|.  The following examples demonstrate
@@ -1589,8 +1595,8 @@ class XMLSubseries(XMLSelector):
         diskflag_writing=False
 
         For sequence |hland_states.SM|, two writers apply.  The writer "soil moisture"
-        triggers writing the complete time-series "just in time" during the simulation
-        run.  In contrast, the writer "averaged" initiates writing averaged time-series
+        triggers writing the complete time series "just in time" during the simulation
+        run.  In contrast, the writer "averaged" initiates writing averaged time series
         after the simulation run.  The configuration of sequence |hland_states.SM|
         reflects this, with both "ram flag" and "disk flag writing" being "True":
 
@@ -1744,10 +1750,11 @@ during a simulation run is not supported but tried for sequence `p` of element \
         ...     series_io.save_series()
         >>> import numpy
         >>> with TestIO():
-        ...     os.path.exists("LahnH/series/default/land_lahn_2_flux_pc.npy")
-        ...     os.path.exists("LahnH/series/default/land_lahn_3_flux_pc.npy")
-        ...     numpy.load("LahnH/series/default/land_dill_flux_pc.npy")[13+2, 3]
-        ...     numpy.load("LahnH/series/default/lahn_2_sim_q_mean.npy")[13+4]
+        ...     dirpath = "LahnH/series/default/"
+        ...     os.path.exists(f"{dirpath}land_lahn_2_hland_v1_flux_pc.npy")
+        ...     os.path.exists(f"{dirpath}land_lahn_3_hland_v1_flux_pc.npy")
+        ...     numpy.load(f"{dirpath}land_dill_hland_v1_flux_pc.npy")[13+2, 3]
+        ...     numpy.load(f"{dirpath}lahn_2_sim_q_mean.npy")[13+4]
         True
         False
         9.0
@@ -1792,10 +1799,10 @@ class XMLExchange(XMLBase):
         self.root: ElementTree.Element = root
 
     def _get_items_of_certain_item_types(
-        self, itemgroups: Iterable[str], itemtype: Type[_TypeGetOrChangeItem]
-    ) -> List[_TypeGetOrChangeItem]:
+        self, itemgroups: Iterable[str], itemtype: type[_TypeGetOrChangeItem]
+    ) -> list[_TypeGetOrChangeItem]:
         """Return either all |GetItem| or all |ChangeItem| objects."""
-        items: List[_TypeGetOrChangeItem] = []
+        items: list[_TypeGetOrChangeItem] = []
         for itemgroup in self.itemgroups:
             if (
                 issubclass(itemtype, itemtools.GetItem)
@@ -1822,7 +1829,7 @@ class XMLExchange(XMLBase):
         return items
 
     @property
-    def parameteritems(self) -> List[itemtools.ChangeItem]:
+    def parameteritems(self) -> list[itemtools.ChangeItem]:
         """Create and return all items for changing control parameter values.
 
         >>> from hydpy.examples import prepare_full_example_1
@@ -1851,7 +1858,7 @@ class XMLExchange(XMLBase):
         )
 
     @property
-    def inputitems(self) -> List[itemtools.SetItem]:
+    def inputitems(self) -> list[itemtools.SetItem]:
         """Return all items for changing input sequence values.
 
         >>> from hydpy.examples import prepare_full_example_1
@@ -1873,7 +1880,7 @@ class XMLExchange(XMLBase):
         )
 
     @property
-    def conditionitems(self) -> List[itemtools.SetItem]:
+    def conditionitems(self) -> list[itemtools.SetItem]:
         """Return all items for changing condition sequence values.
 
         >>> from hydpy.examples import prepare_full_example_1
@@ -1899,7 +1906,7 @@ class XMLExchange(XMLBase):
         )
 
     @property
-    def outputitems(self) -> List[itemtools.SetItem]:
+    def outputitems(self) -> list[itemtools.SetItem]:
         """Return all items for querying the current values or the complete time
         series of sequences in the "setitem" style.
 
@@ -1922,7 +1929,7 @@ class XMLExchange(XMLBase):
         )
 
     @property
-    def getitems(self) -> List[itemtools.GetItem]:
+    def getitems(self) -> list[itemtools.GetItem]:
         """Return all items for querying the current values or the complete time
         series of sequences in the "getitem style".
 
@@ -1980,7 +1987,7 @@ class XMLExchange(XMLBase):
                     #         base.prepare_series()   ToDo
 
     @property
-    def itemgroups(self) -> List[XMLItemgroup]:
+    def itemgroups(self) -> list[XMLItemgroup]:
         """The relevant |XMLItemgroup| objects."""
         return [XMLItemgroup(self, element) for element in self]
 
@@ -1995,14 +2002,14 @@ class XMLItemgroup(XMLBase):
         self.root: ElementTree.Element = root
 
     @property
-    def models(self) -> List[XMLModel]:
+    def models(self) -> list[XMLModel]:
         """The required |XMLModel| objects."""
         return [
             XMLModel(self, element) for element in self if strip(element.tag) != "nodes"
         ]
 
     @property
-    def nodes(self) -> List[XMLNode]:
+    def nodes(self) -> list[XMLNode]:
         """The required |XMLNode| objects."""
         return [
             XMLNode(self, element) for element in self if strip(element.tag) == "nodes"
@@ -2018,7 +2025,7 @@ class XMLModel(XMLBase):
         self.root: ElementTree.Element = root
 
     @property
-    def subvars(self) -> List[XMLSubvars]:
+    def subvars(self) -> list[XMLSubvars]:
         """The required |XMLSubVars| objects."""
         return [XMLSubvars(self, element) for element in self]
 
@@ -2032,7 +2039,7 @@ class XMLSubvars(XMLBase):
         self.root: ElementTree.Element = root
 
     @property
-    def vars(self) -> List[XMLVar]:
+    def vars(self) -> list[XMLVar]:
         """The required |XMLVar| objects."""
         return [XMLVar(self, element) for element in self]
 
@@ -2046,7 +2053,7 @@ class XMLNode(XMLBase):
         self.root: ElementTree.Element = root
 
     @property
-    def vars(self) -> List[XMLVar]:
+    def vars(self) -> list[XMLVar]:
         """The required |XMLVar| objects."""
         return [XMLVar(self, element) for element in self]
 
@@ -2288,7 +2295,7 @@ class XMLVar(XMLSelector):
         return self._get_changeitem(target, master, itemtype)
 
     def _get_getitem(
-        self, target: str, master: str, itemtype: Type[itemtools.GetItem]
+        self, target: str, master: str, itemtype: type[itemtools.GetItem]
     ) -> itemtools.GetItem:
         xmlelement = self.find("name", optional=True)
         if xmlelement is None or xmlelement.text is None:
@@ -2300,7 +2307,7 @@ class XMLVar(XMLSelector):
         return item
 
     def _get_changeitem(
-        self, target: str, master: str, itemtype: Type[_TypeSetOrAddOrMultiplyItem]
+        self, target: str, master: str, itemtype: type[_TypeSetOrAddOrMultiplyItem]
     ) -> _TypeSetOrAddOrMultiplyItem:
         name = cast(Name, self.find("name", optional=False).text)
         assert name is not None
@@ -2395,7 +2402,7 @@ class XSDWriter:
             file_.write(template)
 
     @staticmethod
-    def get_basemodelnames() -> List[str]:
+    def get_basemodelnames() -> list[str]:
         """Return a sorted |list| containing all base model names.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
@@ -2411,7 +2418,7 @@ class XSDWriter:
         return sorted(dn for dn in os.listdir(modelspath) if _is_basemodel(dn))
 
     @staticmethod
-    def get_applicationmodelnames() -> List[str]:
+    def get_applicationmodelnames() -> list[str]:
         """Return a sorted |list| containing all application model names.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
@@ -2432,17 +2439,14 @@ class XSDWriter:
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_insertion())  # doctest: +ELLIPSIS
-            <complexType name="dam_v001_readerType">
+            <complexType name="dummy_interceptedwater_readerType">
                 <sequence>
                     <element name="inputs"
                              minOccurs="0">
                         <complexType>
                             <sequence>
                                 <element
-                                    name="precipitation"
-                                    minOccurs="0"/>
-                                <element
-                                    name="evaporation"
+                                    name="interceptedwater"
                                     minOccurs="0"/>
                             </sequence>
                         </complexType>
@@ -2450,14 +2454,15 @@ class XSDWriter:
                 </sequence>
             </complexType>
         ...
-            <complexType name="readerType">
+            <complexType name="dummy_snowalbedo_readerType">
                 <sequence>
-                    <element name="node"
-                             type="hpcb:node_readerType"
-                             minOccurs="0"/>
-                    <element name="dam_v001"
-                             type="hpcb:dam_v001_readerType"
-                             minOccurs="0"/>
+                    <element name="inputs"
+                             minOccurs="0">
+                        <complexType>
+                            <sequence>
+                                <element
+                                    name="snowalbedo"
+                                    minOccurs="0"/>
         ...
                     <element name="wland_v002"
                              type="hpcb:wland_v002_readerType"
@@ -2502,7 +2507,7 @@ class XSDWriter:
         indent = 1
         blanks = " " * (indent * 4)
         subs = []
-        types_: Tuple[Literal["reader", "writer"], ...] = ("reader", "writer")
+        types_: tuple[Literal["reader", "writer"], ...] = ("reader", "writer")
         for type_ in types_:
             for name in cls.get_applicationmodelnames():
                 model = importtools.prepare_model(name)
@@ -2587,7 +2592,7 @@ class XSDWriter:
                 </complexType>
             </element>
         """
-        names: Tuple[str, ...] = ("inputs",)
+        names: tuple[str, ...] = ("inputs",)
         if type_ == "writer":
             names += "factors", "fluxes", "states"
         texts = []
@@ -2671,7 +2676,7 @@ class XSDWriter:
         cls, type_: Literal["reader", "writer"], indent: int
     ) -> str:
         """Return the insertion all sequences relevant for reading or writing
-        time-series data.
+        time series data.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_readerwriterinsertion("reader", 1)) # doctest: +ELLIPSIS
@@ -2680,8 +2685,8 @@ class XSDWriter:
                     <element name="node"
                              type="hpcb:node_readerType"
                              minOccurs="0"/>
-                    <element name="dam_v001"
-                             type="hpcb:dam_v001_readerType"
+                    <element name="dummy_interceptedwater"
+                             type="hpcb:dummy_interceptedwater_readerType"
                              minOccurs="0"/>
         ...
                     <element name="wland_v002"
@@ -2716,7 +2721,10 @@ class XSDWriter:
             f'{blanks}                 minOccurs="0"/>',
         ]
         for name in cls.get_applicationmodelnames():
-            if (type_ == "writer") or importtools.prepare_model(name).sequences.inputs:
+            seqs = importtools.prepare_model(name).sequences
+            if seqs.inputs or (
+                ((type_ == "writer") and (seqs.factors or seqs.fluxes or seqs.states))
+            ):
                 subs.extend(
                     [
                         f'{blanks}        <element name="{name}"',

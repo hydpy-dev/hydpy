@@ -162,10 +162,7 @@ class Return_RelativeMoisture_V1(modeltools.Method):
         soil: 1, bin: 4 -> relativemoisture 1.0
     """
 
-    CONTROLPARAMETERS = (
-        ga_control.ResidualMoisture,
-        ga_control.SaturationMoisture,
-    )
+    CONTROLPARAMETERS = (ga_control.ResidualMoisture, ga_control.SaturationMoisture)
     REQUIREDSEQUENCES = (ga_states.Moisture,)
 
     @staticmethod
@@ -346,10 +343,7 @@ class Percolate_FilledBin_V1(modeltools.Method):
                     [nan, nan, nan]])
     """
 
-    SUBMETHODS = (
-        Return_RelativeMoisture_V1,
-        Return_Conductivity_V1,
-    )
+    SUBMETHODS = (Return_RelativeMoisture_V1, Return_Conductivity_V1)
     CONTROLPARAMETERS = (
         ga_control.DT,
         ga_control.SoilDepth,
@@ -1640,10 +1634,7 @@ class Merge_SoilDepthOvershootings_V1(modeltools.Method):
         percolation: 60.0
     """
 
-    CONTROLPARAMETERS = (
-        ga_control.NmbBins,
-        ga_control.SoilDepth,
-    )
+    CONTROLPARAMETERS = (ga_control.NmbBins, ga_control.SoilDepth)
     UPDATEDSEQUENCES = (
         ga_states.FrontDepth,
         ga_states.Moisture,
@@ -2117,6 +2108,7 @@ class Perform_GARTO_V1(modeltools.Method):
     functionalities of application model |ga_garto|, and the explanations and test
     results for |ga_garto| essentially apply to |Perform_GARTO_V1|, too.
     """
+
     SUBMETHODS = (
         Return_LastActiveBin_V1,
         Return_Conductivity_V1,
@@ -2141,10 +2133,7 @@ class Perform_GARTO_V1(modeltools.Method):
         ga_control.AirEntryPotential,
         ga_control.PoreSizeDistribution,
     )
-    DERIVEDPARAMETERS = (
-        ga_derived.NmbSubsteps,
-        ga_derived.EffectiveCapillarySuction,
-    )
+    DERIVEDPARAMETERS = (ga_derived.NmbSubsteps, ga_derived.EffectiveCapillarySuction)
     REQUIREDSEQUENCES = (
         ga_fluxes.SurfaceWaterSupply,
         ga_fluxes.SoilWaterSupply,
@@ -2510,10 +2499,7 @@ class Execute_Infiltration_V1(modeltools.Method):
         ga_control.AirEntryPotential,
         ga_control.PoreSizeDistribution,
     )
-    DERIVEDPARAMETERS = (
-        ga_derived.NmbSubsteps,
-        ga_derived.EffectiveCapillarySuction,
-    )
+    DERIVEDPARAMETERS = (ga_derived.NmbSubsteps, ga_derived.EffectiveCapillarySuction)
     REQUIREDSEQUENCES = (ga_aides.InitialSurfaceWater,)
     UPDATEDSEQUENCES = (
         ga_aides.ActualSurfaceWater,
@@ -2742,15 +2728,8 @@ class Get_SoilWaterContent_V1(modeltools.Method):
         0.0
     """
 
-    CONTROLPARAMETERS = (
-        ga_control.NmbBins,
-        ga_control.Sealed,
-        ga_control.SoilDepth,
-    )
-    REQUIREDSEQUENCES = (
-        ga_states.Moisture,
-        ga_states.FrontDepth,
-    )
+    CONTROLPARAMETERS = (ga_control.NmbBins, ga_control.Sealed, ga_control.SoilDepth)
+    REQUIREDSEQUENCES = (ga_states.Moisture, ga_states.FrontDepth)
 
     @staticmethod
     def __call__(model: modeltools.Model, s: int) -> float:
@@ -2822,10 +2801,7 @@ class Model(modeltools.AdHocModel):
 class BaseModel(modeltools.AdHocModel):
     """General base class for GARTO-like Green-Ampt models."""
 
-    def check_waterbalance(
-        self,
-        initial_conditions: Dict[str, Dict[str, ArrayFloat]],
-    ) -> float:
+    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
         r"""Determine the water balance error of the previous simulation run in mm.
 
         Method |ga_model.BaseModel.check_waterbalance| calculates the balance error as
@@ -2844,9 +2820,10 @@ class BaseModel(modeltools.AdHocModel):
         """
         inputs = self.sequences.inputs
         fluxes = self.sequences.fluxes
+        first = initial_conditions["model"]["states"]
         old_watercontent = self._calc_watercontent(
-            frontdepth=initial_conditions["states"]["frontdepth"],  # type: ignore[arg-type]  # pylint: disable=line-too-long
-            moisture=initial_conditions["states"]["moisture"],  # type: ignore[arg-type]  # pylint: disable=line-too-long
+            frontdepth=first["frontdepth"],  # type: ignore[arg-type]
+            moisture=first["moisture"],  # type: ignore[arg-type]
         )
         return float(
             numpy.sum(inputs.rainfall.evalseries)

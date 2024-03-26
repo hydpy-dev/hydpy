@@ -4,46 +4,46 @@ typing."""
 # import...
 # ...from standard library
 from __future__ import annotations
-from typing import (
-    AbstractSet,
-    Any,
+from collections.abc import (
     Callable,
-    cast,
-    ClassVar,
     Collection,
-    ContextManager,
-    DefaultDict,
-    Deque,
-    Dict,
+    Generator,
+    Hashable,
     Iterable,
     Iterator,
+    Mapping,
+    Sized,
+    Sequence,
+)
+from contextlib import AbstractContextManager
+from typing import (
+    Any,
+    cast,
+    ClassVar,
     Final,
-    FrozenSet,
-    Generator,
     Generic,
     get_type_hints,
-    Hashable,
-    List,
     Literal,
-    Mapping,
     NamedTuple,
     NewType,
     NoReturn,
     Optional,
     overload,
     Protocol,
-    Sequence,
-    Set,
-    Sized,
-    Tuple,
     TextIO,
-    Type,
     TypedDict,
     TypeVar,
     TYPE_CHECKING,
     Union,
 )
-from typing_extensions import assert_never, Concatenate, Never, ParamSpec, Self
+from typing_extensions import (
+    assert_never,
+    Concatenate,
+    Never,
+    ParamSpec,
+    Self,
+    TypeAlias,
+)
 
 # ...from site-packages
 import numpy
@@ -66,6 +66,8 @@ T3 = TypeVar("T3")
 P = ParamSpec("P")
 
 Name = NewType("Name", str)
+Name.__doc__ = """Type for strings that represent names."""
+
 
 Mayberable1 = Union[T, Iterable[T]]
 Mayberable2 = Union[T1, T2, Iterable[Union[T1, T2]]]
@@ -127,13 +129,17 @@ TensorInputInt = Union[Sequence[MatrixInputInt], TensorInt]
 TensorInputBool = Union[Sequence[MatrixInputBool], TensorBool]
 
 
+NestedFloat: TypeAlias = Union[
+    float, NDArrayFloat, Mapping[str, "NestedFloat"], Sequence["NestedFloat"]
+]
+
 ArrayFloat = TypeVar(
-    "ArrayFloat",
-    float,
-    VectorFloat,
-    MatrixFloat,
-    Union[float, VectorFloat],
+    "ArrayFloat", float, VectorFloat, MatrixFloat, Union[float, VectorFloat]
 )
+
+ConditionsSubmodel = dict[str, dict[str, Union[float, NDArrayFloat]]]
+ConditionsModel = dict[str, ConditionsSubmodel]
+Conditions = dict[str, ConditionsModel]
 
 
 class SharableConfiguration(TypedDict):
@@ -153,7 +159,16 @@ class SharableConfiguration(TypedDict):
     computational subunits like the area of hydrological response units)."""
 
 
-DeployMode = Literal["newsim", "oldsim", "obs", "obs_newsim", "obs_oldsim"]
+DeployMode = Literal[
+    "newsim",
+    "oldsim",
+    "obs",
+    "obs_newsim",
+    "obs_oldsim",
+    "oldsim_bi",
+    "obs_bi",
+    "obs_oldsim_bi",
+]
 LineStyle = Literal["-", "--", "-.", ":", "solid", "dashed", "dashdot", "dotted"]
 StepSize = Literal["daily", "d", "monthly", "m"]
 
@@ -161,7 +176,7 @@ StepSize = Literal["daily", "d", "monthly", "m"]
 class CyParametersProtocol(Protocol):
     """The protocol for the `parameters` attribute of Cython extension classes.
 
-    Class |Cythonizer| generates the actual, model specific implementations
+    Class |Cythonizer| generates the actual, model-specific implementations
     automatically.
     """
 
@@ -169,7 +184,7 @@ class CyParametersProtocol(Protocol):
 class CySequencesProtocol(Protocol):
     """The protocol for the `sequences` attribute of Cython extension classes.
 
-    Class |Cythonizer| generates the actual, model specific implementations
+    Class |Cythonizer| generates the actual, model-specific implementations
     automatically.
     """
 
@@ -178,7 +193,7 @@ class CyModelProtocol(Protocol):
     """The protocol of Cython extension classes for defining efficient model
     implementations.
 
-    Class |Cythonizer| generates the actual, model specific implementations
+    Class |Cythonizer| generates the actual, model-specific implementations
     automatically.
     """
 
@@ -187,11 +202,38 @@ class CyModelProtocol(Protocol):
     sequences: CySequencesProtocol
 
 
+class CySubstepModelProtocol(CyModelProtocol):
+    """The protocol of Cython extension classes for defining efficient model
+    implementations compatible with class |SubstepModel|.
+
+    Class |Cythonizer| generates the actual, model-specific implementations
+    automatically.
+    """
+
+    timeleft: float
+    """The time left within the current simulation step [s]."""
+
+
 SeriesFileType = Literal["npy", "asc", "nc"]
 SeriesAggregationType = Literal["none", "mean"]
+SeriesConventionType = Literal["model-specific", "HydPy"]
+
+l1: Literal[1] = 1
+
+MethodGroup = Literal[
+    "RECEIVER_METHODS",
+    "INLET_METHODS",
+    "RUN_METHODS",
+    "PART_ODE_METHODS",
+    "FULL_ODE_METHODS",
+    "ADD_METHODS",
+    "INTERFACE_METHODS",
+    "OUTLET_METHODS",
+    "SENDER_METHODS",
+]
 
 __all__ = [
-    "AbstractSet",
+    "AbstractContextManager",
     "Any",
     "ArrayFloat",
     "assert_never",
@@ -200,17 +242,16 @@ __all__ = [
     "Concatenate",
     "ClassVar",
     "Collection",
-    "ContextManager",
-    "DefaultDict",
-    "Deque",
-    "Dict",
+    "Conditions",
+    "ConditionsModel",
+    "ConditionsSubmodel",
     "CyModelProtocol",
+    "CySubstepModelProtocol",
     "Collection1",
     "Collection2",
     "Collection3",
     "DeployMode",
     "Final",
-    "FrozenSet",
     "Generator",
     "Generic",
     "get_type_hints",
@@ -218,8 +259,8 @@ __all__ = [
     "Iterable",
     "Iterator",
     "LineStyle",
-    "List",
     "Literal",
+    "l1",
     "Mapping",
     "Matrix",
     "MatrixBool",
@@ -237,6 +278,7 @@ __all__ = [
     "MayNonerable1",
     "MayNonerable2",
     "MayNonerable3",
+    "MethodGroup",
     "Name",
     "NamedTuple",
     "NDArray",
@@ -244,6 +286,7 @@ __all__ = [
     "NDArrayFloat",
     "NDArrayInt",
     "NDArrayObject",
+    "NestedFloat",
     "Never",
     "NewType",
     "NoReturn",
@@ -254,8 +297,8 @@ __all__ = [
     "Protocol",
     "Self",
     "SeriesAggregationType",
+    "SeriesConventionType",
     "SeriesFileType",
-    "Set",
     "Sequence",
     "Sequence1",
     "Sequence2",
@@ -279,8 +322,7 @@ __all__ = [
     "TensorInputObject",
     "TensorInt",
     "TextIO",
-    "Tuple",
-    "Type",
+    "TypeAlias",
     "TypeVar",
     "TypedDict",
     "TYPE_CHECKING",

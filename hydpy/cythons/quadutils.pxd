@@ -6,7 +6,7 @@ cimport numpy
 
 cdef class QuadBase:
 
-    cdef double apply_method0(self, double x) nogil
+    cdef double apply_method0(self, double x) noexcept nogil
 
     cdef double integrate(
         self,
@@ -15,4 +15,4 @@ cdef class QuadBase:
         int nmin,
         int nmax,
         double tol,
-    ) nogil
+    ) noexcept nogil

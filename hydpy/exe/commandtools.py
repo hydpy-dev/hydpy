@@ -42,7 +42,7 @@ def run_subprocess(
     """Execute the given command in a new process.
 
     Only when both `verbose` and `blocking` are |True|, |run_subprocess| prints all
-    responses to the current value of |sys.stdout|:
+    responses to the current value of `sys.stdout`:
 
     >>> from hydpy import run_subprocess
     >>> import platform
@@ -568,7 +568,7 @@ class LogFileInterface:
         return getattr(self.logfile, name)
 
 
-def parse_argument(string: str) -> Union[str, Tuple[str, str]]:
+def parse_argument(string: str) -> Union[str, tuple[str, str]]:
     """Return a single value for a string understood as a positional argument or a
     |tuple| containing a keyword and its value for a string understood as a keyword
     argument.

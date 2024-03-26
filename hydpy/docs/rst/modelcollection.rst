@@ -80,7 +80,7 @@ and will have to be discussed later.
    HydPy-C
    HydPy-Exch
    HydPy-Evap
-   HydPy-D
+   HydPy-Dam
    HydPy-Dummy
    HydPy-GA
    HydPy-Grxj
@@ -89,5 +89,7 @@ and will have to be discussed later.
    HydPy-Meteo
    HydPy-Musk
    HydPy-Snow
+   HydPy-SW1D
    HydPy-T
    HydPy-W
+   HydPy-Q

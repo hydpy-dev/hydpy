@@ -38,23 +38,29 @@ class STInz(lland_sequences.State1DSequence):
     mask = lland_masks.Forest()
 
     def trim(self, lower=None, upper=None):
-        r"""Trim values in accordance with :math:`SInz \leq PWMax \cdot STInz`,
-        or at least in accordance with if :math:`STInz \geq 0`.
+        r"""Trim values in accordance with :math:`SInz / PWMax \leq STInz \leq SInz`, or
+        at least in accordance with if :math:`STInz \geq 0`.
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> nhru(7)
         >>> pwmax(2.0)
-        >>> states.sinz = -1.0, 0.0, 1.0, -1.0, 5.0, 10.0, 20.0
+        >>> states.stinz(-3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0)
+        >>> states.stinz
+        stinz(0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 3.0)
+
+        >>> states.sinz = -1.0, 0.0, 1.0, 5.0, 10.0, 20.0, 3.0
         >>> states.stinz(-1.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0)
         >>> states.stinz
-        stinz(0.0, 0.0, 0.5, 5.0, 5.0, 5.0, 10.0)
+        stinz(0.0, 0.0, 0.5, 5.0, 5.0, 10.0, 3.0)
         """
         pwmax = self.subseqs.seqs.model.parameters.control.pwmax
-        sinz = self.subseqs.sinz
+        sinz = numpy.clip(self.subseqs.sinz.values, 0.0, numpy.inf)
         if lower is None:
-            lower = numpy.clip(sinz / pwmax, 0.0, numpy.inf)
+            lower = sinz / pwmax
             lower[numpy.isnan(lower)] = 0.0
+        if upper is None:
+            upper = sinz
         super().trim(lower, upper)
 
 
@@ -66,21 +72,29 @@ class SInz(lland_sequences.State1DSequence):
     mask = lland_masks.Forest()
 
     def trim(self, lower=None, upper=None):
-        r"""Trim values in accordance with :math:`0 \leq SInz \leq PWMax \cdot STInz`.
+        r"""Trim values in accordance with :math:`SInz / PWMax \leq STInz \leq SInz`, or
+        at least in accordance with if :math:`SInz \geq 0`.
 
         >>> from hydpy.models.lland import *
         >>> parameterstep("1d")
         >>> nhru(7)
         >>> pwmax(2.0)
-        >>> states.stinz = 0.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0
-        >>> states.sinz(-1.0, 0.0, 1.0, -1.0, 5.0, 10.0, 20.0)
+        >>> states.sinz(-3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0)
         >>> states.sinz
-        sinz(0.0, 0.0, 0.0, 0.0, 5.0, 10.0, 10.0)
+        sinz(0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 3.0)
+
+        >>> states.stinz = -1.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0
+        >>> states.sinz(-1.0, 0.0, 1.0, 5.0, 10.0, 20.0, 3.0)
+        >>> states.sinz
+        sinz(0.0, 0.0, 0.0, 5.0, 10.0, 10.0, 5.0)
         """
         pwmax = self.subseqs.seqs.model.parameters.control.pwmax
-        stinz = self.subseqs.stinz
+        stinz = numpy.clip(self.subseqs.stinz, 0.0, numpy.inf)
         if upper is None:
             upper = pwmax * stinz
+        if lower is None:
+            lower = stinz
+            lower[numpy.isnan(lower)] = 0.0
         super().trim(lower, upper)
 
 
@@ -110,23 +124,29 @@ class WATS(lland_sequences.State1DSequence):
     mask = lland_masks.Land()
 
     def trim(self, lower=None, upper=None):
-        r"""Trim values in accordance with :math:`WAeS \leq PWMax \cdot WATS`,
-        or at least in accordance with if :math:`WATS \geq 0`.
+        r"""Trim values in accordance with :math:`WAeS / PWMax \leq WATS \leq WAeS`, or
+        at least in accordance with if :math:`WATS \geq 0`.
 
         >>> from hydpy.models.lland import *
         >>> parameterstep("1d")
         >>> nhru(7)
         >>> pwmax(2.0)
-        >>> states.waes = -1., 0., 1., -1., 5., 10., 20.
-        >>> states.wats(-1., 0., 0., 5., 5., 5., 5.)
+        >>> states.wats(-3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0)
         >>> states.wats
-        wats(0.0, 0.0, 0.5, 5.0, 5.0, 5.0, 10.0)
+        wats(0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 3.0)
+
+        >>> states.waes = -1.0, 0.0, 1.0, 5.0, 10.0, 20.0, 3.0
+        >>> states.wats(-1.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0)
+        >>> states.wats
+        wats(0.0, 0.0, 0.5, 5.0, 5.0, 10.0, 3.0)
         """
         pwmax = self.subseqs.seqs.model.parameters.control.pwmax
-        waes = self.subseqs.waes
+        waes = numpy.clip(self.subseqs.waes.values, 0.0, numpy.inf)
         if lower is None:
-            lower = numpy.clip(waes / pwmax, 0.0, numpy.inf)
+            lower = waes / pwmax
             lower[numpy.isnan(lower)] = 0.0
+        if upper is None:
+            upper = waes
         super().trim(lower, upper)
 
 
@@ -138,21 +158,30 @@ class WAeS(lland_sequences.State1DSequence):
     mask = lland_masks.Land()
 
     def trim(self, lower=None, upper=None):
-        r"""Trim in accordance with :math:`WAeS \leq PWMax \cdot WATS`.
+        r"""Trim values in accordance with :math:`WAeS / PWMax \leq WATS \leq WAeS`, or
+        at least in accordance with if :math:`WAeS \geq 0`
+
 
         >>> from hydpy.models.lland import *
         >>> parameterstep("1d")
         >>> nhru(7)
-        >>> pwmax(2.)
-        >>> states.wats = 0., 0., 0., 5., 5., 5., 5.
-        >>> states.waes(-1., 0., 1., -1., 5., 10., 20.)
+        >>> pwmax(2.0)
+        >>> states.waes(-3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0)
         >>> states.waes
-        waes(0.0, 0.0, 0.0, 0.0, 5.0, 10.0, 10.0)
+        waes(0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 3.0)
+
+        >>> states.wats = -1.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0
+        >>> states.waes(-1.0, 0.0, 1.0, 5.0, 10.0, 20.0, 3.0)
+        >>> states.waes
+        waes(0.0, 0.0, 0.0, 5.0, 10.0, 10.0, 5.0)
         """
         pwmax = self.subseqs.seqs.model.parameters.control.pwmax
-        wats = self.subseqs.wats
+        wats = numpy.clip(self.subseqs.wats, 0.0, numpy.inf)
         if upper is None:
             upper = pwmax * wats
+        if lower is None:
+            lower = wats
+            lower[numpy.isnan(lower)] = 0.0
         super().trim(lower, upper)
 
 
@@ -207,13 +236,13 @@ class BoWa(lland_sequences.State1DSequence):
 class SDG1(sequencetools.StateSequence):
     """Träger Direktabfluss-Gebietsspeicher (slow direct runoff storage) [mm]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
+    NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
 
 class SDG2(sequencetools.StateSequence):
     """Dynamischer Direktabfluss-Gebietsspeicher (fast direct runoff storage) [mm]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
+    NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
 
 class SIG1(sequencetools.StateSequence):
@@ -231,18 +260,15 @@ class SIG2(sequencetools.StateSequence):
 class SBG(sequencetools.StateSequence):
     """Basisabfluss-Gebietsspeicher (base flow storage) [mm]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
+    NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
     def trim(self, lower=None, upper=None):
-        r"""Trim in accordance with :math:`0 \leq SBG \leq GSBMax \cdot VolBMax`.
+        r"""Trim in accordance with :math:`SBG \leq GSBMax \cdot VolBMax`.
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> volbmax(10.0)
         >>> gsbmax(2.0)
-        >>> states.sbg(-1.0)
-        >>> states.sbg
-        sbg(0.0)
         >>> states.sbg(10.0)
         >>> states.sbg
         sbg(10.0)

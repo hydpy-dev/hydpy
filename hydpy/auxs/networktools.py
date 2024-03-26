@@ -139,7 +139,7 @@ basin number.
         return (digit for digit in ("3", "5", "7", "9") if digit > self.rstrip("9")[-1])
 
     @property
-    def possible_next_initial_digits(self) -> Tuple[str, ...]:
+    def possible_next_initial_digits(self) -> tuple[str, ...]:
         """Return all potential candidates for the next downstream river basin number.
 
         Eventually, only the first and the last returned candidate should be relevant.
@@ -275,7 +275,7 @@ class RiverBasinNumbers(tuple):
             except KeyError:
                 return RiverBasinNumbers(())
 
-        def _walk(number_: str, tree_: Dict[str, Dict], numbers: set) -> set:
+        def _walk(number_: str, tree_: dict[str, dict], numbers: set) -> set:
             if tree_:
                 numbers.remove(number_)
                 for digit_, subtree in tree_.items():
@@ -296,7 +296,7 @@ class RiverBasinNumbers(tuple):
         return None
 
     @property
-    def next_numbers(self) -> Tuple[Optional[RiverBasinNumber], ...]:
+    def next_numbers(self) -> tuple[Optional[RiverBasinNumber], ...]:
         """A tuple of the next downstream river basin numbers.
 
         The order of the returned numbers corresponds to the order of the numbers
@@ -392,7 +392,7 @@ class RiverBasinNumbers2Selection:
     node_prefix: str
     last_node: str
     selection_name: str
-    _up2down: Dict[RiverBasinNumber, Optional[RiverBasinNumber]]
+    _up2down: dict[RiverBasinNumber, Optional[RiverBasinNumber]]
 
     def __init__(self, numbers: Iterable[Union[int, str]]):
         self.supplier_prefix = "land_"
@@ -404,12 +404,12 @@ class RiverBasinNumbers2Selection:
         self._up2down = dict(tuple_ for tuple_ in zip(rbns, rbns.next_numbers))
 
     @property
-    def _supplier_numbers(self) -> Tuple[RiverBasinNumber, ...]:
+    def _supplier_numbers(self) -> tuple[RiverBasinNumber, ...]:
         """A tuple of the numbers of all "supplying basins"."""
         return tuple(self._up2down.keys())
 
     @property
-    def _router_numbers(self) -> Tuple[RiverBasinNumber, ...]:
+    def _router_numbers(self) -> tuple[RiverBasinNumber, ...]:
         """A tuple of the numbers of all "routing basins"."""
         return tuple(up for up in self._up2down.keys() if up in self._up2down.values())
 

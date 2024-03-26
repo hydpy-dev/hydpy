@@ -202,17 +202,11 @@ class Model(modeltools.SegmentModel):
     """The classic, fixed-coefficient version of HydPy-Musk (|musk_classic|)."""
 
     SOLVERPARAMETERS = (NmbRuns,)
-    INLET_METHODS = (
-        musk_model.Pick_Inflow_V1,
-        musk_model.Update_Discharge_V1,
-    )
+    INLET_METHODS = (musk_model.Pick_Inflow_V1, musk_model.Update_Discharge_V1)
     RECEIVER_METHODS = ()
     RUN_METHODS = (musk_model.Calc_Discharge_V1,)
     ADD_METHODS = ()
-    OUTLET_METHODS = (
-        musk_model.Calc_Outflow_V1,
-        musk_model.Pass_Outflow_V1,
-    )
+    OUTLET_METHODS = (musk_model.Calc_Outflow_V1, musk_model.Pass_Outflow_V1)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()
     SUBMODELS = ()

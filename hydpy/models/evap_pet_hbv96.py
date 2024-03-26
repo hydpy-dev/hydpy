@@ -86,6 +86,7 @@ estimate is the same in both tables:
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
+from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import precipinterfaces
 from hydpy.interfaces import tempinterfaces
 from hydpy.models.evap import evap_model
@@ -95,8 +96,9 @@ class Model(
     evap_model.Main_TempModel_V1,
     evap_model.Main_TempModel_V2A,
     evap_model.Main_PrecipModel_V1,
-    evap_model.Main_PrecipModel_V2,
-    evap_model.Sub_PETModel_V1,
+    evap_model.Main_PrecipModel_V2A,
+    evap_model.Sub_ETModel,
+    petinterfaces.PETModel_V1,
 ):
     """The HBV96 version of HydPy-Evap for calculating potential evapotranspiration."""
 

@@ -10,6 +10,7 @@ import itertools
 import types
 
 # ...from site-packages
+import black
 import networkx
 
 # ...from HydPy
@@ -19,7 +20,6 @@ from hydpy.core import hydpytools
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
-from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
 
 ModelTypesArg = Union[modeltools.Model, types.ModuleType, str]
@@ -39,11 +39,11 @@ class Selections:
 
     Also, you can query, add, and remove |Selection| objects via attribute access:
 
-    >>> selections.sel3
+    >>> selections.sel3  # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
     AttributeError: The actual Selections object handles neither a normal attribute \
-nor a Selection object called `sel3` that could be returned.
+nor a Selection object called `sel3`...
     >>> sel3 = Selection("sel3", ["node1", "node4"], ["element3"])
     >>> selections.sel3 = sel3
     >>> selections.sel3
@@ -77,7 +77,7 @@ identical.  However,  for selection `sel3` the given attribute name is `sel4`.
     Traceback (most recent call last):
     ...
     KeyError: 'The actual Selections object does not handle a Selection object called \
-`sel4` that could be returned.'
+`sel4`.'
     >>> selections["sel4"] = Selection("sel4")
     >>> selections["sel4"]
     Selection("sel4",
@@ -163,11 +163,11 @@ objects, but the type of the given argument is `str`.
     """
 
     def __init__(self, *selections: Selection) -> None:
-        self.__selections: Dict[str, Selection] = {}
+        self.__selections: dict[str, Selection] = {}
         self.add_selections(*selections)
 
     @property
-    def names(self) -> Tuple[str, ...]:
+    def names(self) -> tuple[str, ...]:
         """The names of the actual |Selection| objects.
 
         >>> from hydpy import Selection, Selections
@@ -281,20 +281,18 @@ objects, but the type of the given argument is `str`.
     @overload
     def query_intersections(
         self, selection2element: Literal[True] = ...
-    ) -> Dict[Selection, Dict[Selection, devicetools.Elements]]:
-        ...
+    ) -> dict[Selection, dict[Selection, devicetools.Elements]]: ...
 
     @overload
     def query_intersections(
         self, selection2element: Literal[False]
-    ) -> Dict[devicetools.Element, Selections]:
-        ...
+    ) -> dict[devicetools.Element, Selections]: ...
 
     def query_intersections(
         self, selection2element: bool = True
     ) -> Union[
-        Dict[Selection, Dict[Selection, devicetools.Elements]],
-        Dict[devicetools.Element, Selections],
+        dict[Selection, dict[Selection, devicetools.Elements]],
+        dict[devicetools.Element, Selections],
     ]:
         """A dictionary covering all cases where one |Element| object is a member of
         multiple |Selection| objects.
@@ -304,17 +302,16 @@ objects, but the type of the given argument is `str`.
         example.
         """
         if selection2element:
-            intersections: Dict[
-                Selection,
-                Dict[Selection, devicetools.Elements],
-            ] = collections.defaultdict(dict)
+            intersections: dict[Selection, dict[Selection, devicetools.Elements]] = (
+                collections.defaultdict(dict)
+            )
             for selection1, selection2 in itertools.combinations(self, 2):
                 intersection = selection1.elements.intersection(*selection2.elements)
                 if intersection:
                     intersections[selection1][selection2] = intersection
                     intersections[selection2][selection1] = intersection
             return dict(intersections)
-        intersections_: Dict[devicetools.Element, Selections] = {}
+        intersections_: dict[devicetools.Element, Selections] = {}
         for element in self.elements:
             selections = self.find(element)
             if len(selections) > 1:
@@ -385,7 +382,7 @@ objects, but the type of the given argument is `str`.
         except KeyError:
             raise AttributeError(
                 f"The actual Selections object handles neither a normal attribute nor "
-                f"a Selection object called `{key}` that could be returned."
+                f"a Selection object called `{key}`."
             ) from None
 
     def __setattr__(self, name: str, value: object) -> None:
@@ -409,7 +406,7 @@ objects, but the type of the given argument is `str`.
         except KeyError:
             raise KeyError(
                 f"The actual Selections object does not handle a Selection object "
-                f"called `{key}` that could be returned."
+                f"called `{key}`."
             ) from None
 
     def __setitem__(self, key: str, value: Selection) -> None:
@@ -443,7 +440,7 @@ objects, but the type of the given argument is `str`.
         return len(self.__selections)
 
     @staticmethod
-    def __getiterable(value: Mayberable1[Selection]) -> List[Selection]:
+    def __getiterable(value: Mayberable1[Selection]) -> list[Selection]:
         """Try to convert the given argument to a |list| of  |Selection| objects and
         return it."""
         try:
@@ -509,8 +506,8 @@ objects, but the type of the given argument is `str`.
                     f"{objecttools.assignrepr_values(sorted(self.names), prefix, 70)})"
                 )
 
-    def __dir__(self) -> List[str]:
-        return cast(List[str], super().__dir__()) + list(self.names)
+    def __dir__(self) -> list[str]:
+        return cast(list[str], super().__dir__()) + list(self.names)
 
 
 class Selection:
@@ -765,9 +762,8 @@ the "outlet device", but the given `device` value is of type `int`.
         """
         try:
             device = self._check_device(device, "outlet")
-            devices = networkx.ancestors(
-                hydpytools.create_directedgraph(self), source=device
-            )
+            graph = hydpytools.create_directedgraph(self.nodes, self.elements)
+            devices = networkx.ancestors(graph, source=device)
             devices.add(device)
             selection = Selection(
                 name=name,
@@ -914,9 +910,8 @@ required as the "inlet device", but the given `device` value is of type `int`.
         """
         try:
             device = self._check_device(device, "inlet")
-            devices = networkx.descendants(
-                hydpytools.create_directedgraph(self), source=device
-            )
+            graph = hydpytools.create_directedgraph(self.nodes, self.elements)
+            devices = networkx.descendants(graph, source=device)
             devices.add(device)
             selection = Selection(
                 name=name,
@@ -1224,10 +1219,7 @@ following error occurred: 'in <string>' requires string as left operand, not lis
         self.elements = self.search_elementnames(*substrings).elements
         return self
 
-    def deselect_elementnames(
-        self,
-        *substrings: str,
-    ) -> Selection:
+    def deselect_elementnames(self, *substrings: str) -> Selection:
         """Restrict the current selection to all elements with a name not containing at
         least one of the given substrings.   (does not affect any nodes).
 
@@ -1335,16 +1327,20 @@ following error occurred: 'in <string>' requires string as left operand, not lis
         variable `Q`:
 
         >>> from hydpy import FusedVariable, Node
-        >>> from hydpy.inputs import hland_P, hland_T, lland_Nied
-        >>> from hydpy.outputs import hland_Perc, hland_Q0, hland_Q1
-        >>> Precip = FusedVariable("Precip", hland_P, lland_Nied)
-        >>> Runoff = FusedVariable("Runoff", hland_Q0, hland_Q1)
+        >>> from hydpy.aliases import (
+        ...     hland_inputs_P, hland_inputs_T, lland_inputs_Nied, dam_receivers_OWL,
+        ...     hland_fluxes_Perc, hland_fluxes_Q0, hland_fluxes_Q1,
+        ...     dam_factors_WaterLevel)
+        >>> Precip = FusedVariable("Precip", hland_inputs_P, lland_inputs_Nied)
+        >>> Runoff = FusedVariable("Runoff", hland_fluxes_Q0, hland_fluxes_Q1)
+        >>> Level = FusedVariable("Level", dam_receivers_OWL, dam_factors_WaterLevel)
         >>> nodes = pub.selections.headwaters.nodes
         >>> nodes.add_device(Node("test1", variable="X"))
-        >>> nodes.add_device(Node("test2", variable=hland_T))
+        >>> nodes.add_device(Node("test2", variable=hland_inputs_T))
         >>> nodes.add_device(Node("test3", variable=Precip))
-        >>> nodes.add_device(Node("test4", variable=hland_Perc))
+        >>> nodes.add_device(Node("test4", variable=hland_fluxes_Perc))
         >>> nodes.add_device(Node("test5", variable=Runoff))
+        >>> nodes.add_device(Node("test6", variable=Level))
         >>> with TestIO():
         ...     pub.selections.headwaters.save_networkfile(
         ...         "test.py", write_defaultnodes=False)
@@ -1353,22 +1349,34 @@ following error occurred: 'in <string>' requires string as left operand, not lis
         # -*- coding: utf-8 -*-
         <BLANKLINE>
         from hydpy import Element, FusedVariable, Node
-        from hydpy.inputs import hland_P, hland_T, lland_Nied
-        from hydpy.outputs import hland_Perc, hland_Q0, hland_Q1
+        from hydpy.aliases import (
+            dam_factors_WaterLevel,
+            dam_receivers_OWL,
+            hland_fluxes_Perc,
+            hland_fluxes_Q0,
+            hland_fluxes_Q1,
+            hland_inputs_P,
+            hland_inputs_T,
+            lland_inputs_Nied,
+        )
         <BLANKLINE>
-        Precip = FusedVariable("Precip", hland_P, lland_Nied)
-        Runoff = FusedVariable("Runoff", hland_Q0, hland_Q1)
+        <BLANKLINE>
+        Level = FusedVariable("Level", dam_factors_WaterLevel, dam_receivers_OWL)
+        Precip = FusedVariable("Precip", hland_inputs_P, lland_inputs_Nied)
+        Runoff = FusedVariable("Runoff", hland_fluxes_Q0, hland_fluxes_Q1)
         <BLANKLINE>
         <BLANKLINE>
         Node("test1", variable="X")
         <BLANKLINE>
-        Node("test2", variable=hland_T)
+        Node("test2", variable=hland_inputs_T)
         <BLANKLINE>
         Node("test3", variable=Precip)
         <BLANKLINE>
-        Node("test4", variable=hland_Perc)
+        Node("test4", variable=hland_fluxes_Perc)
         <BLANKLINE>
         Node("test5", variable=Runoff)
+        <BLANKLINE>
+        Node("test6", variable=Level)
         <BLANKLINE>
         <BLANKLINE>
         Element("land_dill",
@@ -1380,24 +1388,18 @@ following error occurred: 'in <string>' requires string as left operand, not lis
                 keywords="catchment")
         <BLANKLINE>
         """
-        inputaliases: Set[str] = set()
-        outputaliases: Set[str] = set()
-        fusedvariables: Set[devicetools.FusedVariable] = set()
+        aliases: set[str] = set()
+        fusedvariables: set[devicetools.FusedVariable] = set()
         for variable in self.nodes.variables:
             if isinstance(variable, str):
                 continue
             if isinstance(variable, devicetools.FusedVariable):
                 fusedvariables.add(variable)
-            elif issubclass(variable, sequencetools.InputSequence):
-                inputaliases.add(hydpy.sequence2alias[variable])
             else:
-                outputaliases.add(hydpy.sequence2alias[variable])
+                aliases.add(hydpy.sequence2alias[variable])
         for fusedvariable in fusedvariables:
             for sequence in fusedvariable:
-                if issubclass(sequence, sequencetools.InputSequence):
-                    inputaliases.add(hydpy.sequence2alias[sequence])
-                else:
-                    outputaliases.add(hydpy.sequence2alias[sequence])
+                aliases.add(hydpy.sequence2alias[sequence])
         if filepath is None:
             filepath = self.name + ".py"
         with open(filepath, "w", encoding="utf-8") as file_:
@@ -1406,12 +1408,11 @@ following error occurred: 'in <string>' requires string as left operand, not lis
                 file_.write("\nfrom hydpy import Element, FusedVariable, Node")
             else:
                 file_.write("\nfrom hydpy import Element, Node")
-            if inputaliases:
-                aliases = ", ".join(sorted(inputaliases))
-                file_.write(f"\nfrom hydpy.inputs import {aliases}")
-            if outputaliases:
-                aliases = ", ".join(sorted(outputaliases))
-                file_.write(f"\nfrom hydpy.outputs import {aliases}")
+            if aliases:
+                import_aliases = ", ".join(sorted(aliases))
+                import_aliases = f"from hydpy.aliases import {import_aliases}"
+                import_aliases = black.format_str(import_aliases, mode=black.FileMode())
+                file_.write(f"\n{import_aliases}")
             file_.write("\n\n")
             for fusedvariable in sorted(fusedvariables, key=str):
                 file_.write(f"{fusedvariable} = {repr(fusedvariable)}\n")

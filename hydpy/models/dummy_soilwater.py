@@ -2,18 +2,18 @@
 # pylint: disable=unused-wildcard-import
 """Submodel for reading the current soil water content.
 
-|dummy_sc| merely serves testing purposes.  We use it, for example, to perform the
-integration tests for submodels like |evap_aet_hbv96| without the need to couple them
-to complex main models like |hland_v1| for providing snow cover data.
+|dummy_soilwater| merely serves testing purposes.  We use it, for example, to perform
+the integration tests for submodels like |evap_aet_hbv96| without the need to couple
+them to complex main models like |hland_v1| for providing soil water data.
 
 Integration test
 ================
 
-The only functionality of |dummy_sc| is reading input time series.  Hence, configuring
-and testing it does not require additional explanations:
+The only functionality of |dummy_soilwater| is reading input time series.  Hence,
+configuring and testing it does not require additional explanations:
 
 
->>> from hydpy.models.dummy_sc import *
+>>> from hydpy.models.dummy_soilwater import *
 >>> parameterstep()
 >>> from hydpy import Element
 >>> element = Element("element")
@@ -26,17 +26,17 @@ and testing it does not require additional explanations:
 >>> test = IntegrationTest(element)
 >>> test.dateformat = "%Y-%d-%m"
 
->>> inputs.snowcover.series = [[1.0, 2.0], [3.0, 4.0]]
+>>> inputs.soilwater.series = [[1.0, 2.0], [3.0, 4.0]]
 
 .. integration-test::
 
     >>> test()
-    |       date |      snowcover |
+    |       date |      soilwater |
     -------------------------------
     | 2000-01-01 | 1.0        2.0 |
     | 2000-02-01 | 3.0        4.0 |
 
->>> round_(model.get_snowcover_v1(1))
+>>> round_(model.get_soilwater_v1(1))
 4.0
 """
 # import...
@@ -51,13 +51,13 @@ from hydpy.interfaces import stateinterfaces
 ADDITIONAL_CONTROLPARAMETERS = (dummy_control.NmbZones,)
 
 
-class Model(modeltools.AdHocModel, stateinterfaces.SnowCoverModel_V1):
-    """Model for reading the snow cover degree from files."""
+class Model(modeltools.AdHocModel, stateinterfaces.SoilWaterModel_V1):
+    """Model for reading the soil water content from files."""
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = ()
-    INTERFACE_METHODS = (dummy_model.Get_SnowCover_V1,)
+    INTERFACE_METHODS = (dummy_model.Get_SoilWater_V1,)
     ADD_METHODS = ()
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
@@ -68,7 +68,7 @@ class Model(modeltools.AdHocModel, stateinterfaces.SnowCoverModel_V1):
     def prepare_nmbzones(self, nmbzones: int) -> None:
         """Set the number of zones.
 
-        >>> from hydpy.models.dummy_sc import *
+        >>> from hydpy.models.dummy_soilwater import *
         >>> parameterstep()
         >>> model.prepare_nmbzones(2)
         >>> nmbzones

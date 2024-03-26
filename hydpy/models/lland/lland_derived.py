@@ -51,43 +51,27 @@ class NmbLogEntries(parametertools.Parameter):
         >>> derived.nmblogentries
         nmblogentries(24)
         >>> logs
-        wevi(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-             nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan)
-        loggedteml(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                   nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan)
-        loggedrelativehumidity(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                               nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                               nan, nan, nan, nan)
         loggedsunshineduration(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
                                nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
                                nan, nan, nan, nan)
         loggedpossiblesunshineduration(nan, nan, nan, nan, nan, nan, nan, nan,
                                        nan, nan, nan, nan, nan, nan, nan, nan,
                                        nan, nan, nan, nan, nan, nan, nan, nan)
-        loggedglobalradiation(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                              nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                              nan, nan, nan, nan)
-        loggedwindspeed2m(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                          nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                          nan, nan)
 
         To prevent from loosing information, updating parameter |NmbLogEntries| resets
         the shape of the relevant log sequences only when necessary:
 
-        >>> logs.wevi = 1.0
-        >>> logs.loggedteml = 2.0
-        >>> logs.loggedrelativehumidity.shape = (6,)
-        >>> logs.loggedrelativehumidity = 3.0
+        >>> logs.loggedsunshineduration = 2.0
+        >>> logs.loggedpossiblesunshineduration.shape = (6,)
+        >>> logs.loggedpossiblesunshineduration = 3.0
         >>> derived.nmblogentries.update()
         >>> logs   # doctest: +ELLIPSIS
-        wevi(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-             1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
-        loggedteml(2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
-                   2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0)
-        loggedrelativehumidity(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                               nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                               nan, nan, nan, nan)
-        ...
+        loggedsunshineduration(2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+                               2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+                               2.0, 2.0, 2.0, 2.0)
+        loggedpossiblesunshineduration(nan, nan, nan, nan, nan, nan, nan, nan,
+                                       nan, nan, nan, nan, nan, nan, nan, nan,
+                                       nan, nan, nan, nan, nan, nan, nan, nan)
 
         There is an explicit check for inappropriate simulation step sizes:
 
@@ -125,10 +109,7 @@ class AbsFHRU(lland_parameters.ParameterComplete):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (
-        lland_control.FT,
-        lland_control.FHRU,
-    )
+    CONTROLPARAMETERS = (lland_control.FT, lland_control.FHRU)
 
     def update(self):
         """Update |AbsFHRU| based on |FT| and |FHRU|.
@@ -153,10 +134,7 @@ class KInz(lland_parameters.LanduseMonthParameter):
 
     NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (
-        lland_control.HInz,
-        lland_control.LAI,
-    )
+    CONTROLPARAMETERS = (lland_control.HInz, lland_control.LAI)
 
     def update(self):
         """Update |KInz| based on |HInz| and |LAI| according to :cite:t:`ref-LARSIM`
@@ -184,10 +162,7 @@ class HeatOfFusion(lland_parameters.ParameterLand):
 
     NDIM, TYPE, TIME, SPAN = 1, float, False, (0.0, None)
 
-    FIXEDPARAMETERS = (
-        lland_fixed.BoWa2Z,
-        lland_fixed.RSchmelz,
-    )
+    FIXEDPARAMETERS = (lland_fixed.BoWa2Z, lland_fixed.RSchmelz)
 
     def update(self):
         """Update |HeatOfFusion| based on |RSchmelz| and |BoWa2Z|.
@@ -264,43 +239,13 @@ class Fr(lland_parameters.LanduseMonthParameter):
                 values[idx, :] = 1.0
 
 
-class NFk(lland_parameters.ParameterSoil):
-    """Nutzbare Feldkapazität (usable field capacity) [mm]."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
-
-    CONTROLPARAMETERS = (
-        lland_control.PWP,
-        lland_control.FK,
-    )
-
-    def update(self):
-        """Update |NFk| based on |PWP| and |FK|.
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep("1d")
-        >>> nhru(1)
-        >>> lnk(ACKER)
-        >>> fk(100.0)
-        >>> pwp(20.0)
-        >>> derived.nfk.update()
-        >>> derived.nfk
-        nfk(80.0)
-        """
-        con = self.subpars.pars.control
-        self.value = con.fk - con.pwp
-
-
 class KB(parametertools.Parameter):
     """Konzentrationszeit des Basisabflusses (concentration time of the baseflow
     storage) [T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
-    CONTROLPARAMETERS = (
-        lland_control.EQB,
-        lland_control.TInd,
-    )
+    CONTROLPARAMETERS = (lland_control.EQB, lland_control.TInd)
 
     def update(self):
         """Update |KB| based on |EQB| and |TInd|.
@@ -324,10 +269,7 @@ class KI1(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
-    CONTROLPARAMETERS = (
-        lland_control.EQI1,
-        lland_control.TInd,
-    )
+    CONTROLPARAMETERS = (lland_control.EQI1, lland_control.TInd)
 
     def update(self):
         """Update |KI1| based on |EQI1| and |TInd|.
@@ -351,10 +293,7 @@ class KI2(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
-    CONTROLPARAMETERS = (
-        lland_control.EQI2,
-        lland_control.TInd,
-    )
+    CONTROLPARAMETERS = (lland_control.EQI2, lland_control.TInd)
 
     def update(self):
         """Update |KI2| based on |EQI2| and |TInd|.
@@ -378,10 +317,7 @@ class KD1(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
-    CONTROLPARAMETERS = (
-        lland_control.EQD1,
-        lland_control.TInd,
-    )
+    CONTROLPARAMETERS = (lland_control.EQD1, lland_control.TInd)
 
     def update(self):
         """Update |KD1| based on |EQD1| and |TInd|.
@@ -405,10 +341,7 @@ class KD2(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
-    CONTROLPARAMETERS = (
-        lland_control.EQD2,
-        lland_control.TInd,
-    )
+    CONTROLPARAMETERS = (lland_control.EQD2, lland_control.TInd)
 
     def update(self):
         """Update |KD2| based on |EQD2| and |TInd|.

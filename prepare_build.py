@@ -28,11 +28,17 @@ def _clear_autogendir() -> None:
 
 
 def _prepare_cythonoptions(fast_cython: bool, profile_cython: bool) -> List[str]:
+
+    # ToDo: do not share code with PyxWriter.cythondistutilsoptions
+
     cythonoptions = [
         "# -*- coding: utf-8 -*-",
         "# !python",
+        "# distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION",
         "# cython: language_level=3",
+        "# cython: cpow=True",
     ]
+
     if fast_cython:
         cythonoptions.extend(
             [
@@ -51,6 +57,7 @@ def _prepare_cythonoptions(fast_cython: bool, profile_cython: bool) -> List[str]
                 "# cython: cdivision=False",
             ]
         )
+
     if profile_cython:
         cythonoptions.extend(
             [
@@ -59,6 +66,7 @@ def _prepare_cythonoptions(fast_cython: bool, profile_cython: bool) -> List[str]
                 "# distutils: define_macros=CYTHON_TRACE_NOGIL=1",
             ]
         )
+
     return cythonoptions
 
 
@@ -83,8 +91,11 @@ def _prepare_baseextensions(fast_cython: bool, profile_cython: bool) -> None:
 
 
 def _convert_interfaces(fast_cython: bool, profile_cython: bool) -> None:
+    from hydpy import config
     from hydpy.core.modeltools import abstractmodelmethods
     from hydpy.cythons.modelutils import TYPE2STR
+
+    _nogil = " noexcept nogil" if config.FASTCYTHON else ""
 
     def _write_twice(text: str) -> None:
         pxdfile.write(text)
@@ -105,6 +116,10 @@ def _convert_interfaces(fast_cython: bool, profile_cython: bool) -> None:
         _write_twice("\ncimport numpy\n")
         _write_twice("\nfrom hydpy.cythons.autogen cimport interfaceutils\n")
         _write_twice("\n\ncdef class MasterInterface(interfaceutils.BaseInterface):\n")
+        signature = f"\n    cdef void new2old(self) {_nogil}"
+        pxdfile.write(f"{signature}\n")
+        pyxfile.write(f"{signature}:\n")
+        pyxfile.write(f"        pass\n")
         for modulename in modulenames:
             pymodule = importlib.import_module(f"hydpy.interfaces.{modulename}")
             name2class = {
@@ -126,7 +141,7 @@ def _convert_interfaces(fast_cython: bool, profile_cython: bool) -> None:
                     )
                     returntype = name2type["return"]
                     signature = (
-                        f"\n    cdef {returntype} {funcname}(self, {args}) nogil"
+                        f"\n    cdef {returntype} {funcname}(self, {args}) {_nogil}"
                     )
                     if funcname in funcname2signature:
                         assert signature == funcname2signature[funcname]

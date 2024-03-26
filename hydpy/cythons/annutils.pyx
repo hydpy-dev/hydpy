@@ -12,7 +12,7 @@ from libc.math cimport NAN as nan
 @cython.final
 cdef class ANN:
 
-    cdef inline void apply_activationfunction(self, int idx_layer, int idx_neuron, double input_) nogil:
+    cdef inline void apply_activationfunction(self, int idx_layer, int idx_neuron, double input_) noexcept nogil:
         if self.activation[idx_layer, idx_neuron] == 1:
             self.neurons[idx_layer, idx_neuron] = \
                 smoothutils.smooth_logistic1(self.neurons[idx_layer, idx_neuron], 1.0)
@@ -20,12 +20,12 @@ cdef class ANN:
             self.neurons[idx_layer, idx_neuron] = \
                 input_ * smoothutils.smooth_logistic1(self.neurons[idx_layer, idx_neuron], 1.0)
 
-    cdef inline double apply_derivativefunction(self, int idx_layer, int idx_neuron, double inner) nogil:
+    cdef inline double apply_derivativefunction(self, int idx_layer, int idx_neuron, double inner) noexcept nogil:
         if self.activation[idx_layer, idx_neuron] in (1, 2):
             return smoothutils.smooth_logistic1_derivative2(inner, 1.0)
         return 1.0
 
-    cpdef inline void calculate_values(self) nogil:
+    cpdef inline void calculate_values(self) noexcept nogil:
         cdef int idx_input, idx_neuron1, idx_neuron2, idx_output, idx_layer
         cdef double input_
 
@@ -66,7 +66,7 @@ cdef class ANN:
                 )
 
 
-    cpdef inline void calculate_derivatives(self, int idx_input) nogil:
+    cpdef inline void calculate_derivatives(self, int idx_input) noexcept nogil:
         cdef int idx_neuron1, idx_neuron2, idx_input_, idx_output, idx_layer
         cdef double weight, input_
         cdef double der1   # outer derivative

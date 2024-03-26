@@ -37,11 +37,10 @@ class NHRU(parametertools.Parameter):
     """Anzahl der Hydrotope (number of hydrological response units) [-].
 
     Note that |NHRU| determines the length of most 1-dimensional HydPy-L-Land
-    parameters and sequences as well the shape of 2-dimensional log sequences with a
-    predefined length of one axis (see |WEvI|).  This requires that the value of the
-    respective |NHRU| instance is set before any of the values of these 1-dimensional
-    parameters or sequences are set.  Changing the value of the |NHRU| instance
-    necessitates setting their values again:
+    parameters and sequences.  This requires that the value of the respective |NHRU|
+    instance is set before any of the values of these 1-dimensional parameters or
+    sequences are set.  Changing the value of the |NHRU| instance necessitates setting
+    their values again:
 
     Examples:
 
@@ -54,33 +53,29 @@ class NHRU(parametertools.Parameter):
         (5, 2)
         >>> fluxes.tkor.shape
         (5,)
-        >>> logs.wevi.shape
-        (1, 5)
         >>> control.wg2z.shape
         (12,)
     """
 
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         super().__call__(*args, **kwargs)
 
-        skip = (parametertools.MonthParameter, parametertools.MOYParameter)
+        skippars = (parametertools.MonthParameter, parametertools.MOYParameter)
         for subpars in self.subpars.pars.model.parameters:
             for par in subpars:
-                if (par.NDIM == 1) and not isinstance(par, skip):
+                if (par.NDIM == 1) and not isinstance(par, skippars):
                     par.shape = self.value
         self.subpars.kapgrenz.shape = self.value, 2
 
-        skip = (sequencetools.LogSequences, sequencetools.LinkSequences)
+        skipseqs = (sequencetools.LogSequences, sequencetools.LinkSequences)
         sequences = self.subpars.pars.model.sequences
         for subseqs in sequences:
-            if not isinstance(subseqs, skip):
+            if not isinstance(subseqs, skipseqs):
                 for seq in subseqs:
                     if seq.NDIM == 1:
                         seq.shape = self.value
-        if hasattr(sequences.logs, "wevi"):
-            sequences.logs.wevi.shape = self.value
 
 
 class Lnk(parametertools.NameParameter):
@@ -151,13 +146,6 @@ class P2Strahl(parametertools.Parameter):
     INIT = 1.0 / 35.0
 
 
-class Albedo(lland_parameters.LanduseMonthParameter):
-    """Albedo [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, 1.0)
-    INIT = 0.0
-
-
 class Albedo0Snow(parametertools.Parameter):
     """Albedo von Neuschnee (albedo of fresh snow) [-]."""
 
@@ -195,13 +183,6 @@ class Turb1(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
     INIT = 2.0
-
-
-class Emissivity(parametertools.Parameter):
-    """Emissivität der Oberfläche (emissivity) [-]"""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
-    INIT = 0.95
 
 
 # wind speed adjustment
@@ -407,7 +388,7 @@ a positional nor a keyword argument is given.
     NDIM, TYPE, TIME, SPAN = 1, float, None, (1.0, None)
     INIT = 1.4278333871488538
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         """The prefered way to pass values to |PWMax| instances within parameter
         control files.
         """
@@ -471,31 +452,6 @@ class WG2Z(parametertools.MonthParameter):
     INIT = 0.0
 
 
-# evapotranspiration
-
-
-class WfEvI(lland_parameters.ParameterComplete):
-    """Zeitlicher Wichtungsfaktor der Interzeptionsverdunstung (temporal weighting
-    factor for interception evaporation)."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, 1.0)
-    INIT = 0.0
-
-
-class CropHeight(lland_parameters.LanduseMonthParameter):
-    """Crop height [m]."""
-
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
-    INIT = 0.0
-
-
-class SurfaceResistance(lland_parameters.LanduseMonthParameter):
-    """Surface Resistance [s/m]."""
-
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
-    INIT = 0.0
-
-
 # soil properties
 
 
@@ -506,7 +462,7 @@ class WMax(lland_parameters.ParameterSoil):
     INIT = 100.0
 
     # defined at the bottom of the file:
-    CONTROLPARAMETERS: ClassVar[Tuple[Type[PWP], Type[FK]]]
+    CONTROLPARAMETERS: ClassVar[tuple[type[PWP], type[FK]]]
 
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`PWP \\leq FK \\leq WMax`.
@@ -546,7 +502,7 @@ class FK(lland_parameters.ParameterSoilThreshold):
     INIT = 0.0
 
     # defined at the bottom of the file:
-    CONTROLPARAMETERS: ClassVar[Tuple[Type[PWP], Type[WMax]]]
+    CONTROLPARAMETERS: ClassVar[tuple[type[PWP], type[WMax]]]
 
     def trim(self, lower=None, upper=None):
         """Trim upper values in accordance with :math:`PWP \\leq FK \\leq WMax`.
@@ -581,10 +537,7 @@ class PWP(lland_parameters.ParameterSoilThreshold):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
     INIT = 0.0
 
-    CONTROLPARAMETERS = (
-        WMax,
-        FK,
-    )
+    CONTROLPARAMETERS = (WMax, FK)
 
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`PWP \\leq FK \\leq WMax`.
@@ -607,37 +560,6 @@ class PWP(lland_parameters.ParameterSoilThreshold):
             upper = exceptiontools.getattr_(self.subpars.fk, "value", None)
             if upper is None:
                 upper = exceptiontools.getattr_(self.subpars.wmax, "value", None)
-        super().trim(lower, upper)
-
-
-class PY(lland_parameters.ParameterSoilThreshold):
-    """Permanenter Welkepunkt / Schwellenwert für den Anteil des für Pflanzen
-    gebundenen Bodenwassers (permanent wilting point) [mm].
-
-    Note that one can define the values of parameter |PY| via the
-    keyword argument `relative`, as explained in the documentation
-    on class |ParameterSoilThreshold|.
-    """
-
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
-    INIT = 0.0
-
-    CONTROLPARAMETERS = (WMax,)
-
-    def trim(self, lower=None, upper=None):
-        """Trim values in accordance with :math:`PY \\leq WMax`.
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
-        >>> nhru(3)
-        >>> lnk(ACKER)
-        >>> wmax(100.0)
-        >>> py(-10.0, 50.0, 110.0)
-        >>> py
-        py(0.0, 50.0, 100.0)
-        """
-        if upper is None:
-            upper = exceptiontools.getattr_(self.subpars.wmax, "value", None)
         super().trim(lower, upper)
 
 
@@ -712,17 +634,16 @@ Keyword `rdmin` is not among the available model constants.
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, None)
     INIT = 0.0
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         """The prefered way to pass values to |DMin| instances
         within parameter control files.
         """
         try:
             lland_parameters.ParameterSoil.__call__(self, *args, **kwargs)
         except TypeError:
-            args = kwargs.get("r_dmin")
-            if args is not None:
+            if (r := kwargs.get("r_dmin")) is not None:
                 hours = hydpy.pub.timegrids.init.stepsize.hours
-                self.value = 0.001008 * hours * numpy.array(args)
+                self.value = 0.001008 * hours * numpy.array(r)
                 self.trim()
             else:
                 objecttools.augment_excmessage()
@@ -788,17 +709,16 @@ Keyword `rdmax` is not among the available model constants.
     NDIM, TYPE, TIME, SPAN = 1, float, True, (None, None)
     INIT = 1.0
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         """The prefered way to pass values to |DMax| instances
         within parameter control files.
         """
         try:
             lland_parameters.ParameterSoil.__call__(self, *args, **kwargs)
         except TypeError:
-            args = kwargs.get("r_dmax")
-            if args is not None:
+            if (r := kwargs.get("r_dmax")) is not None:
                 self.value = (
-                    0.1008 * hydpy.pub.timegrids.init.stepsize.hours * numpy.array(args)
+                    0.1008 * hydpy.pub.timegrids.init.stepsize.hours * numpy.array(r)
                 )
                 self.trim()
             else:
@@ -925,7 +845,7 @@ class KapGrenz(parametertools.Parameter):
               [0.0, 20.0]])
 
     The third possible string is `FK/2_FK` where the lower and the upper
-    threshold are 50 % and 100 % of the value of parameter |NFk|, which does
+    threshold are 50 % and 100 % of the value of parameter |FK|, which does
     not correspond to any available `LARSIM`_ option:
 
     >>> kapgrenz(option="FK/2_FK")
@@ -957,14 +877,11 @@ is given.
 `FK`, `0_WMax/10`, and `FK/2_FK`, but `NFk` is given.
     """
 
-    CONTROLPARAMETERS = (
-        WMax,
-        FK,
-    )
+    CONTROLPARAMETERS = (WMax, FK)
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
     INIT = 0.0
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         try:
             super().__call__(*args, **kwargs)
         except NotImplementedError:
@@ -984,14 +901,14 @@ is given.
             con = self.subpars
             self.values = 0.0
             if kwargs["option"] == "FK/2_FK":
-                self.values[:, 0] = 0.5 * con.fk
-                self.values[:, 1] = con.fk
+                self.values[:, 0] = 0.5 * con.fk  # type: ignore[index]
+                self.values[:, 1] = con.fk  # type: ignore[index]
             elif kwargs["option"] == "0_WMax/10":
-                self.values[:, 0] = 0.0
-                self.values[:, 1] = 0.1 * con.wmax
+                self.values[:, 0] = 0.0  # type: ignore[index]
+                self.values[:, 1] = 0.1 * con.wmax  # type: ignore[index]
             elif kwargs["option"] == "FK":
-                self.values[:, 0] = con.fk
-                self.values[:, 1] = con.fk
+                self.values[:, 0] = con.fk  # type: ignore[index]
+                self.values[:, 1] = con.fk  # type: ignore[index]
             else:
                 raise ValueError(
                     f"Parameter {objecttools.elementphrase(self)} supports "
@@ -1184,7 +1101,7 @@ must be given.
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
     INIT = 1.0
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         try:
             super().__call__(*args, **kwargs)
         except NotImplementedError:
@@ -1352,11 +1269,5 @@ class NegQ(parametertools.Parameter):
     INIT = False
 
 
-WMax.CONTROLPARAMETERS = (
-    PWP,
-    FK,
-)
-FK.CONTROLPARAMETERS = (
-    PWP,
-    WMax,
-)
+WMax.CONTROLPARAMETERS = (PWP, FK)
+FK.CONTROLPARAMETERS = (PWP, WMax)

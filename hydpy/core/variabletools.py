@@ -11,8 +11,8 @@ from __future__ import annotations
 import abc
 import contextlib
 import copy
+import functools
 import inspect
-import textwrap
 import warnings
 
 # ...from site-packages
@@ -23,6 +23,7 @@ import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import masktools
 from hydpy.core import objecttools
+from hydpy.core import propertytools
 from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
@@ -883,7 +884,7 @@ var < [0.0, 1.0, 2.0]
     (True, False, False, False)
 
     Hence, when all entries of two compared objects are |numpy.nan|, we
-    consider these objects as equal:
+    consider these objects equal:
 
     >>> var.values = nan
     >>> var < [nan, nan, nan], var <= [nan, nan, nan], var == [nan, nan, nan], \
@@ -896,14 +897,20 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     >>> var < nan, var <= nan, var == nan, var != nan, var >= nan, var > nan
     (False, True, True, False, True, False)
 
-    The |len| operator always returns the total number of values handles
-    by the variable according to the current shape:
+    The |len| operator does not work for 0-dimensional variables:
 
     >>> Var.NDIM = 0
     >>> var = Var(None)
     >>> var.shape = ()
     >>> len(var)
-    1
+    Traceback (most recent call last):
+    ...
+    TypeError: The `len` operator was applied on `var`, but this variable is \
+0-dimensional and thus unsized.  Consider using the `numberofvalues` property instead.
+
+    For higher-dimensional variables, `len` always returns the length of the first
+    dimension:
+
     >>> Var.NDIM = 1
     >>> var = Var(None)
     >>> var.shape = (5,)
@@ -913,12 +920,12 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     >>> var = Var(None)
     >>> var.shape = (2, 1, 4)
     >>> len(var)
-    8
+    2
 
-    |Variable| objects are hashable based on their |id| value for
-    avoiding confusion when adding different but equal objects into
-    one |set| or |dict| object.  The following examples show this
-    behaviour by making deep copies of existing |Variable| objects:
+    |Variable| objects are hashable based on their |id| value to avoid avoiding
+    confusion when adding different but equal objects into one |set| or |dict| object.
+    The following examples show this behaviour by making deep copies of existing
+    |Variable| objects:
 
     >>> Var.NDIM = 0
     >>> var1 = Var(None)
@@ -951,23 +958,6 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     >>> var2 in varset
     False
 
-    Enabling option |Options.reprcomments| adds the respective docstring
-    header to the string representation of a variable:
-
-    >>> Var.NDIM = 0
-    >>> Var.__doc__ = "header.\\n\\nbody\\n"
-    >>> var = Var(None)
-    >>> var.value = 3.0
-    >>> from hydpy import pub
-    >>> pub.options.reprcomments = True
-    >>> var
-    # header.
-    var(3.0)
-
-    >>> pub.options.reprcomments = False
-    >>> var
-    var(3.0)
-
     During initialisation, each |Variable| subclass tries to extract its
     unit from its docstring:
 
@@ -986,15 +976,15 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
 
     # Subclasses need to define...
     NDIM: int
-    TYPE: Type
+    TYPE: type[Union[float, int, bool]]  # ToDo: is still `str` in some cases
     # ...and optionally...
-    SPAN: Tuple[Union[int, float, bool, None], Union[int, float, bool, None]] = (
+    SPAN: tuple[Union[int, float, bool, None], Union[int, float, bool, None]] = (
         None,
         None,
     )
     INIT: Union[int, float, bool, None] = None
 
-    _NOT_DEEPCOPYABLE_MEMBERS: Final[FrozenSet[str]] = frozenset(
+    _NOT_DEEPCOPYABLE_MEMBERS: Final[frozenset[str]] = frozenset(
         (
             "subvars",
             "subpars",
@@ -1004,7 +994,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
             "fastaccess_new",
         )
     )
-    _CLS_FASTACCESS_PYTHON: ClassVar[Type[FastAccess]]
+    _CLS_FASTACCESS_PYTHON: ClassVar[type[FastAccess]]
 
     strict_valuehandling: bool = True
 
@@ -1084,7 +1074,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     def __init__(self, subvars: SubVariables) -> None:
         self.subvars = subvars
         self.fastaccess = self._CLS_FASTACCESS_PYTHON()
-        self.__valueready = False
+        self._valueready = False
         self.__shapeready = False
         self._refweights = type(self)._refweights
 
@@ -1118,9 +1108,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
 
     @property
     @abc.abstractmethod
-    def initinfo(
-        self,
-    ) -> Tuple[Union[float, int, bool, pointerutils.Double,], bool,]:
+    def initinfo(self) -> tuple[Union[float, int, bool, pointerutils.Double], bool]:
         """To be overridden."""
 
     def __call__(self, *args) -> None:
@@ -1235,7 +1223,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
         array([], shape=(0, 0), dtype=int...)
         """
         value = self._prepare_getvalue(
-            self.__valueready or not self.strict_valuehandling,
+            self._valueready or not self.strict_valuehandling,
             getattr(self.fastaccess, self.name, None),
         )
         if value is None:
@@ -1250,7 +1238,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
         try:
             value = self._prepare_setvalue(value)
             setattr(self.fastaccess, self.name, value)
-            self.__valueready = True
+            self._valueready = True
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to set the value(s) of variable "
@@ -1304,7 +1292,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
     def values(self, values):
         self._set_value(values)
 
-    def _get_shape(self) -> Tuple[int, ...]:
+    def _get_shape(self) -> tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
         Note that setting a new |Variable.shape| results in a loss of
@@ -1449,8 +1437,8 @@ as `var` can only be `()`, but `(2,)` is given.
             )
         return ()
 
-    def _set_shape(self, shape: Union[int, Tuple[int, ...]]) -> None:
-        self.__valueready = False
+    def _set_shape(self, shape: Union[int, tuple[int, ...]]) -> None:
+        self._valueready = False
         self.__shapeready = False
         initvalue, initflag = self.initinfo
         if self.NDIM:
@@ -1477,9 +1465,9 @@ as `var` can only be `()`, but `(2,)` is given.
                 self._raise_wrongshape(shape)
             setattr(self.fastaccess, self.name, initvalue)
         if initflag:
-            self.__valueready = True
+            self._valueready = True
 
-    shape = property(fget=_get_shape, fset=_set_shape)
+    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
     def _raise_wrongshape(self, shape):
         raise ValueError(
@@ -1487,6 +1475,55 @@ as `var` can only be `()`, but `(2,)` is given.
             f"as {objecttools.devicephrase(self)} can only be `()`, "
             f"but `{shape}` is given."
         )
+
+    @property
+    def numberofvalues(self) -> int:
+        """The total number of values handles by the variable according to the current
+        shape.
+
+        We create an incomplete |Variable| subclass for testing:
+
+        >>> from hydpy.core.variabletools import FastAccess, Variable
+        >>> class Var(Variable):
+        ...     TYPE = float
+        ...     initinfo = 0.0, False
+        ...     _CLS_FASTACCESS_PYTHON = FastAccess
+        >>> var = Var(None)
+
+        0-dimensional variables always handle precisely one value:
+
+        >>> Var.NDIM = 0
+        >>> var = Var(None)
+        >>> var.shape = ()
+        >>> var.numberofvalues
+        1
+
+        For higher-dimensional variables, |Variable.numberofvalues| is the cumulative
+        product of the individual dimensons lengths:
+
+        >>> Var.NDIM = 1
+        >>> var = Var(None)
+        >>> var.shape = (5,)
+        >>> var.numberofvalues
+        5
+        >>> Var.NDIM = 3
+        >>> var = Var(None)
+        >>> var.shape = (2, 1, 4)
+        >>> var.numberofvalues
+        8
+
+        As long as the shape of a higher-dimensional variable is undefined,
+        |Variable.numberofvalues| is zero:
+
+        >>> var = Var(None)
+        >>> var.numberofvalues
+        0
+        """
+        if self.NDIM == 0:
+            return 1
+        if (shape := exceptiontools.getattr_(self, "shape", None)) is None:
+            return 0
+        return int(numpy.cumprod(shape)[-1])
 
     def verify(self) -> None:
         """Raise a |RuntimeError| if at least one of the required values of a |Variable|
@@ -1543,12 +1580,12 @@ var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
         >>> Var.mask[1, 1] = False
         >>> var.verify()
         """
-        valueready = self.__valueready
+        valueready = self._valueready
         try:
-            self.__valueready = True
+            self._valueready = True
             nmbnan: int = numpy.sum(numpy.isnan(numpy.array(self.value)[self.mask]))
         finally:
-            self.__valueready = valueready
+            self._valueready = valueready
         if nmbnan and ((self.INIT is None) or ~numpy.isnan(self.INIT)):
             text = "value has" if nmbnan == 1 else "values have"
             raise RuntimeError(
@@ -1888,10 +1925,13 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             )
 
     def __len__(self) -> int:
-        try:
-            return numpy.cumprod(self.shape)[-1]
-        except IndexError:
-            return 1
+        if self.NDIM == 0:
+            raise TypeError(
+                f"The `len` operator was applied on {objecttools.devicephrase(self)}, "
+                f"but this variable is 0-dimensional and thus unsized.  Consider "
+                f"using the `numberofvalues` property instead."
+            )
+        return self._get_shape()[0]
 
     def _do_math(self, other, methodname, description):
         try:
@@ -2056,7 +2096,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                     other=other,
                     comparefunc=lambda vs1, vs2: vs1 < vs2,
                     callingfunc="lt",
-                ),
+                )
             )
         )
 
@@ -2067,7 +2107,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                     other=other,
                     comparefunc=lambda vs1, vs2: vs1 <= vs2,
                     callingfunc="le",
-                ),
+                )
             )
         )
 
@@ -2080,7 +2120,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                     other=other,
                     comparefunc=lambda vs1, vs2: vs1 == vs2,
                     callingfunc="eq",
-                ),
+                )
             )
         )
 
@@ -2091,7 +2131,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                     other=other,
                     comparefunc=lambda vs1, vs2: vs1 != vs2,
                     callingfunc="ne",
-                ),
+                )
             )
         )
 
@@ -2102,7 +2142,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                     other=other,
                     comparefunc=lambda vs1, vs2: vs1 >= vs2,
                     callingfunc="ge",
-                ),
+                )
             )
         )
 
@@ -2113,7 +2153,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                     other=other,
                     comparefunc=lambda vs1, vs2: vs1 > vs2,
                     callingfunc="gt",
-                ),
+                )
             )
         )
 
@@ -2127,9 +2167,9 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         return type_(self.value)
 
     def __bool__(self) -> bool:
-        if self.NDIM:
-            return bool(len(self))
-        return bool(self.value)
+        if self.NDIM == 0:
+            return bool(self.value)
+        return self.numberofvalues > 0
 
     def __float__(self) -> float:
         return self._typeconversion(float)
@@ -2143,24 +2183,6 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
     def __hash__(self) -> int:
         return id(self)
 
-    @property
-    def commentrepr(self) -> List[str]:
-        """A list with comments for making string representations more informative.
-
-        With the |Options.reprcomments| option disabled, |Variable.commentrepr| is
-        empty.
-        """
-        if hydpy.pub.options.reprcomments:
-            return [
-                f"# {line}"
-                for line in textwrap.wrap(
-                    text=objecttools.description(self),
-                    width=72,
-                    break_long_words=False,
-                )
-            ]
-        return []
-
     def __repr__(self) -> str:
         brackets = (self.NDIM == 2) and (self.shape[0] != 1)
         return to_repr(self, self.value, brackets)
@@ -2169,42 +2191,42 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 class MixinFixedShape:
     """Mixin class for defining variables with a fixed shape."""
 
-    SHAPE: Union[Tuple[int, ...]]
+    SHAPE: Union[tuple[int, ...]]
     name: str
 
     def _finalise_connections(self) -> None:
         super()._finalise_connections()  # type: ignore[misc]
         self.shape = self.SHAPE
 
-    def _get_shape(self) -> Tuple[int, ...]:
+    def _get_shape(self) -> tuple[int, ...]:
         """Variables that mix in |MixinFixedShape| are generally initialised with a
         fixed shape.
 
         We take parameter |lstream_control.BV| of base model |lstream| and sequence
-        |exch_factors.WaterLevel| of base model |exch| as examples:
+        |exch_factors.WaterLevels| of base model |exch| as examples:
 
         >>> from hydpy import prepare_model
         >>> prepare_model("lstream").parameters.control.bv.shape
         (2,)
-        >>> waterlevel = prepare_model("exch").sequences.factors.waterlevel
-        >>> waterlevel.shape
+        >>> waterlevels = prepare_model("exch").sequences.factors.waterlevels
+        >>> waterlevels.shape
         (2,)
 
         If we try to set a new shape, |MixinFixedShape| responds with the following
         exceptions:
 
-        >>> waterlevel.shape = 2
+        >>> waterlevels.shape = 2
         Traceback (most recent call last):
         ...
-        AttributeError: The shape of variable `waterlevel` cannot be changed but this \
-was attempted for element `?`.
+        AttributeError: The shape of variable `waterlevels` cannot be changed but \
+this was attempted for element `?`.
 
         See the documentation on property |Variable.shape| of class |Variable| for
         further information.
         """
         return super()._get_shape()  # type: ignore[misc]
 
-    def _set_shape(self, shape: Union[int, Tuple[int, ...]]) -> None:
+    def _set_shape(self, shape: Union[int, tuple[int, ...]]) -> None:
         oldshape = exceptiontools.getattr_(self, "shape", None)
         if oldshape is None:
             super()._set_shape(shape)  # type: ignore[misc]
@@ -2214,26 +2236,24 @@ was attempted for element `?`.
                 f"attempted for element `{objecttools.devicename(self)}`."
             )
 
-    shape = property(fget=_get_shape, fset=_set_shape)
+    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
 
 @overload
 def sort_variables(
-    values: Iterable[Type[TypeVariable_co]],
-) -> Tuple[Type[TypeVariable_co], ...]:
-    ...
+    values: Iterable[type[TypeVariable_co]],
+) -> tuple[type[TypeVariable_co], ...]: ...
 
 
 @overload
 def sort_variables(
-    values: Iterable[Tuple[Type[TypeVariable_co], T]],
-) -> Tuple[Tuple[Type[TypeVariable_co], T], ...]:
-    ...
+    values: Iterable[tuple[type[TypeVariable_co], T]]
+) -> tuple[tuple[type[TypeVariable_co], T], ...]: ...
 
 
 def sort_variables(
-    values: Iterable[Union[Type[TypeVariable], Tuple[Type[TypeVariable], T]]]
-) -> Tuple[Union[Type[TypeVariable], Tuple[Type[TypeVariable], T]], ...]:
+    values: Iterable[Union[type[TypeVariable], tuple[type[TypeVariable], T]]]
+) -> tuple[Union[type[TypeVariable], tuple[type[TypeVariable], T]], ...]:
     """Sort the given |Variable| subclasses by their initialisation order.
 
     When defined in one module, the initialisation order corresponds to the order
@@ -2263,23 +2283,22 @@ def sort_variables(
     Function |sort_variables| also supports sorting tuples.  Each first entry must be
     a |Variable| subclass:
 
-    >>> for var, idx in sort_variables([(NmbZones, 1), (ZoneType, 2), (Area, 3)]):
-    ...     print(classname(var), idx)
+    >>> for var, i in sort_variables([(NmbZones, 1), (ZoneType, 2), (Area, 3)]):
+    ...     print(classname(var), i)
     Area 3
     NmbZones 1
     ZoneType 2
 
-    >>> for var, idx in sort_variables([(NmbZones, 1), (ZoneType, 2), (Area, 3)]):
-    ...     print(classname(var), idx)
+    >>> for var, i in sort_variables([(NmbZones, 1), (ZoneType, 2), (Area, 3)]):
+    ...     print(classname(var), i)
     Area 3
     NmbZones 1
     ZoneType 2
 
     |sort_variables| does not remove duplicates:
 
-    >>> for var, idx in \
-sort_variables([(Area, 3), (ZoneType, 2), (Area, 1), (Area, 3)]):
-    ...     print(classname(var), idx)
+    >>> for var, i in sort_variables([(Area, 3), (ZoneType, 2), (Area, 1), (Area, 3)]):
+    ...     print(classname(var), i)
     Area 1
     Area 3
     Area 3
@@ -2322,28 +2341,19 @@ class SubVariables(Generic[TypeGroup_co, TypeVariable_co, TypeFastAccess_co]):
     ...     _CLS_FASTACCESS_PYTHON = FastAccess
 
 
-    After initialisation, |SubVariables| objects reference their master
-    object (either a |Parameters| or a |Sequences| object), passed to their
-    constructor. However, in our simple test example, we just passed
-    a string instead:
+    After initialisation, |SubVariables| objects reference their master object (either
+    a |Parameters| or a |Sequences| object), passed to their constructor. However, in
+    our simple test example, we just passed a string instead:
 
     >>> subvars = SubVars("test")
     >>> subvars.vars
     'test'
 
-    The string representation lists all available variables and,
-    with the option |Options.reprcomments| enabled, an additional
-    informative header:
+    The string representation lists all available variables and uses question marks to
+    indicate cases where their values are not readily available:
 
     >>> subvars
     testvar(?)
-    >>> from hydpy import pub
-    >>> pub.options.reprcomments = True
-    >>> subvars
-    # SubVars object defined in module variabletools,
-    # handling the following variables:
-    testvar(?)
-    >>> pub.options.reprcomments = False
 
     Class |SubVariables| provides attribute access to the handled |Variable| objects
     and protects |Variable| objects from accidental overwriting:
@@ -2352,8 +2362,8 @@ class SubVariables(Generic[TypeGroup_co, TypeVariable_co, TypeFastAccess_co]):
     >>> subvars.testvar
     testvar(3.0)
 
-    Trying to query not available |Variable| objects (or other attributes)
-    results in the following error message:
+    Trying to query not available |Variable| objects (or other attributes) results in
+    the following error message:
 
     >>> subvars.wrong
     Traceback (most recent call last):
@@ -2361,8 +2371,8 @@ class SubVariables(Generic[TypeGroup_co, TypeVariable_co, TypeFastAccess_co]):
     AttributeError: Collection object `subvars` does neither handle a \
 variable nor another attribute named wrong.
 
-    Class |SubVariables| protects only the handled |Variable| objects
-    from overwriting with unplausible data:
+    Class |SubVariables| protects only the handled |Variable| objects from overwriting
+    with unplausible data:
 
     >>> subvars.vars = "wrong"
     >>> subvars.vars
@@ -2371,9 +2381,8 @@ variable nor another attribute named wrong.
     >>> subvars.testvar = "wrong"
     Traceback (most recent call last):
     ...
-    ValueError: While trying to set the value(s) of variable `testvar`, \
-the following error occurred: 5 values are assigned to the scalar \
-variable `testvar`.
+    ValueError: While trying to set the value(s) of variable `testvar`, the following \
+error occurred: 5 values are assigned to the scalar variable `testvar`.
 
     Alternatively, you can item-access a variable:
 
@@ -2383,11 +2392,10 @@ variable `testvar`.
     >>> subvars["wrong"]
     Traceback (most recent call last):
     ...
-    AttributeError: Collection object `subvars` does not handle a variable \
-named `wrong`.
+    AttributeError: Collection object `subvars` does not handle a variable named \
+`wrong`.
 
-    Class |SubVariables| supporte iteration and the application of the
-    |len| operator:
+    Class |SubVariables| supporte iteration and the application of the |len| operator:
 
     >>> for variable in subvars:
     ...     print(variable.name)
@@ -2396,17 +2404,17 @@ named `wrong`.
     1
     """
 
-    CLASSES: Tuple[Type[TypeVariable_co], ...]
+    CLASSES: tuple[type[TypeVariable_co], ...]
     vars: TypeGroup_co
-    _name2variable: Dict[str, TypeVariable_co] = {}
+    _name2variable: dict[str, TypeVariable_co] = {}
     fastaccess: TypeFastAccess_co
-    _cls_fastaccess: Optional[Type[TypeFastAccess_co]] = None
-    _CLS_FASTACCESS_PYTHON: ClassVar[Type[TypeFastAccess_co]]  # type: ignore[misc]
+    _cls_fastaccess: Optional[type[TypeFastAccess_co]] = None
+    _CLS_FASTACCESS_PYTHON: ClassVar[type[TypeFastAccess_co]]  # type: ignore[misc]
 
     def __init__(
         self,
         master: TypeGroup_co,
-        cls_fastaccess: Optional[Type[TypeFastAccess_co]] = None,
+        cls_fastaccess: Optional[type[TypeFastAccess_co]] = None,
     ):
         self.vars = master
         if cls_fastaccess:
@@ -2423,9 +2431,14 @@ named `wrong`.
     def name(self) -> str:
         """To be overridden."""
 
+    @functools.cached_property
+    def names(self) -> frozenset:
+        """The names of all handled variables."""
+        return frozenset(self._name2variable)
+
     def _init_fastaccess(self) -> None:
-        """Create a `fastaccess` attribute and build the required connections
-        to the related cythonized model eventually."""
+        """Create a `fastaccess` attribute and build the required connections to the
+        related cythonized model eventually."""
         if (self._cls_fastaccess is None) or (self._cymodel is None):
             self.fastaccess = self._CLS_FASTACCESS_PYTHON()
         else:
@@ -2457,20 +2470,16 @@ named `wrong`.
             variable._set_value(value)
 
     def __iter__(self) -> Iterator[TypeVariable_co]:
-        for variable in self._name2variable.values():
-            yield variable
+        yield from self._name2variable.values()
 
     def __len__(self) -> int:
         return len(self.CLASSES)
 
+    def __bool__(self) -> bool:
+        return bool(self.CLASSES)
+
     def __repr__(self) -> str:
         lines = []
-        if hydpy.pub.options.reprcomments:
-            lines.append(
-                f"# {type(self).__name__} object defined in module "
-                f"{objecttools.modulename(self)},\n"
-                f"# handling the following variables:"
-            )
         for variable in self:
             try:
                 lines.append(repr(variable))
@@ -2478,7 +2487,7 @@ named `wrong`.
                 lines.append(f"{variable.name}(?)")
         return "\n".join(lines)
 
-    def __dir__(self) -> List[str]:
+    def __dir__(self) -> list[str]:
         """
         >>> from hydpy.core.variabletools import SubVariables, Variable
         >>> class TestVar(Variable):
@@ -2494,7 +2503,7 @@ named `wrong`.
         >>> sorted(set(dir(testsubvars)) - set(object.__dir__(testsubvars)))
         ['testvar']
         """
-        return cast(List[str], super().__dir__()) + list(self._name2variable.keys())
+        return cast(list[str], super().__dir__()) + list(self._name2variable.keys())
 
 
 def to_repr(self: Variable, values, brackets: bool = False) -> str:
@@ -2558,17 +2567,13 @@ def to_repr(self: Variable, values, brackets: bool = False) -> str:
     """
     prefix = f"{self.name}("
     if isinstance(values, str):
-        string = f"{self.name}({values})"
-    elif self.NDIM == 0:
-        string = f"{self.name}({objecttools.repr_(values)})"
-    elif self.NDIM == 1:
+        return f"{self.name}({values})"
+    if self.NDIM == 0:
+        return f"{self.name}({objecttools.repr_(values)})"
+    if self.NDIM == 1:
         if brackets:
-            string = objecttools.assignrepr_list(values, prefix, 72) + ")"
-        else:
-            string = objecttools.assignrepr_values(values, prefix, 72) + ")"
-    else:
-        if brackets:
-            string = objecttools.assignrepr_list2(values, prefix, 72) + ")"
-        else:
-            string = objecttools.assignrepr_values2(values, prefix, 72) + ")"
-    return "\n".join(self.commentrepr + [string])
+            return objecttools.assignrepr_list(values, prefix, 72) + ")"
+        return objecttools.assignrepr_values(values, prefix, 72) + ")"
+    if brackets:
+        return objecttools.assignrepr_list2(values, prefix, 72) + ")"
+    return objecttools.assignrepr_values2(values, prefix, 72) + ")"

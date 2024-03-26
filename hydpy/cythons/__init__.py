@@ -19,6 +19,7 @@ modulenames = sorted(
 )
 
 for modulename in modulenames:
-    module = importlib.import_module(f"hydpy.cythons.autogen.{modulename}")
-    sys.modules[f"hydpy.cythons.{modulename}"] = module
-    locals()[modulename] = module
+    if not modulename.startswith("callback_"):
+        module = importlib.import_module(f"hydpy.cythons.autogen.{modulename}")
+        sys.modules[f"hydpy.cythons.{modulename}"] = module
+        locals()[modulename] = module

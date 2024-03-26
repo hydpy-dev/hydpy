@@ -39,18 +39,20 @@ parameters |MaxSoilWater| and |DisseFactor|:
 >>> maxsoilwater(200.0)
 >>> dissefactor(5.0)
 
-We add submodels of type |evap_io|, |dummy_ic|, and |dummy_sw| for providing
-pre-defined values of potential evapotranspiration, intercepted water, and soil water:
+We add submodels of type |evap_io|, |dummy_interceptedwater|, and |dummy_soilwater| for
+providing pre-defined values of potential evapotranspiration (identical values for
+potential interception evaporation and soil evapotranspiration), intercepted water, and
+soil water:
 
 >>> with model.add_petmodel_v1("evap_io"):
 ...     hruarea(1.0)
 ...     evapotranspirationfactor(1.0)
->>> with model.add_intercmodel_v1("dummy_ic"):
+>>> with model.add_intercmodel_v1("dummy_interceptedwater"):
 ...     pass
->>> with model.add_soilwatermodel_v1("dummy_sw"):
+>>> with model.add_soilwatermodel_v1("dummy_soilwater"):
 ...     pass
 
-Now we can initialise an |IntegrationTest| object:
+Now, we can initialise an |IntegrationTest| object:
 
 >>> test = IntegrationTest(element)
 >>> test.dateformat = "%d/%m"
@@ -82,12 +84,11 @@ water evapotranspiration never exceeds the given potential evapotranspiration:
 .. integration-test::
 
     >>> test()
-    |  date | interceptedwater | soilwater | potentialevapotranspiration | waterevaporation | interceptionevaporation | soilevapotranspiration |
-    --------------------------------------------------------------------------------------------------------------------------------------------
-    | 01/01 |              0.0 |     100.0 |                         2.0 |              0.0 |                     0.0 |               1.717962 |
-    | 02/01 |              1.0 |     100.0 |                         2.0 |              0.0 |                     1.0 |               0.858981 |
-    | 03/01 |              2.0 |     100.0 |                         2.0 |              0.0 |                     2.0 |                    0.0 |
-
+    |  date | interceptedwater | soilwater | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01/01 |              0.0 |     100.0 |                              2.0 |                             2.0 |                       2.0 |              0.0 |                     0.0 |               1.717962 |
+    | 02/01 |              1.0 |     100.0 |                              2.0 |                             2.0 |                       2.0 |              0.0 |                     1.0 |               0.858981 |
+    | 03/01 |              2.0 |     100.0 |                              2.0 |                             2.0 |                       2.0 |              0.0 |                     2.0 |                    0.0 |
 
 .. _evap_minhas_bare_soil:
 
@@ -106,11 +107,11 @@ identical for all three days:
 .. integration-test::
 
     >>> test()
-    |  date | interceptedwater | soilwater | potentialevapotranspiration | waterevaporation | interceptionevaporation | soilevapotranspiration |
-    --------------------------------------------------------------------------------------------------------------------------------------------
-    | 01/01 |              0.0 |     100.0 |                         2.0 |              0.0 |                     0.0 |               1.717962 |
-    | 02/01 |              1.0 |     100.0 |                         2.0 |              0.0 |                     0.0 |               1.717962 |
-    | 03/01 |              2.0 |     100.0 |                         2.0 |              0.0 |                     0.0 |               1.717962 |
+    |  date | interceptedwater | soilwater | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01/01 |              0.0 |     100.0 |                              2.0 |                             2.0 |                       2.0 |              0.0 |                     0.0 |               1.717962 |
+    | 02/01 |              1.0 |     100.0 |                              2.0 |                             2.0 |                       2.0 |              0.0 |                     0.0 |               1.717962 |
+    | 03/01 |              2.0 |     100.0 |                              2.0 |                             2.0 |                       2.0 |              0.0 |                     0.0 |               1.717962 |
 
 .. _evap_minhas_sealed_soil:
 
@@ -128,11 +129,11 @@ All results are as to be expected:
 .. integration-test::
 
     >>> test()
-    |  date | interceptedwater | soilwater | potentialevapotranspiration | waterevaporation | interceptionevaporation | soilevapotranspiration |
-    --------------------------------------------------------------------------------------------------------------------------------------------
-    | 01/01 |              0.0 |     100.0 |                         2.0 |              0.0 |                     0.0 |                    0.0 |
-    | 02/01 |              1.0 |     100.0 |                         2.0 |              0.0 |                     1.0 |                    0.0 |
-    | 03/01 |              2.0 |     100.0 |                         2.0 |              0.0 |                     2.0 |                    0.0 |
+    |  date | interceptedwater | soilwater | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01/01 |              0.0 |     100.0 |                              2.0 |                             2.0 |                       2.0 |              0.0 |                     0.0 |                    0.0 |
+    | 02/01 |              1.0 |     100.0 |                              2.0 |                             2.0 |                       2.0 |              0.0 |                     1.0 |                    0.0 |
+    | 03/01 |              2.0 |     100.0 |                              2.0 |                             2.0 |                       2.0 |              0.0 |                     2.0 |                    0.0 |
 
 .. _evap_minhas_water_area:
 
@@ -150,17 +151,118 @@ There is never any difference between potential and actual evaporation for water
 .. integration-test::
 
     >>> test()
-    |  date | interceptedwater | soilwater | potentialevapotranspiration | waterevaporation | interceptionevaporation | soilevapotranspiration |
-    --------------------------------------------------------------------------------------------------------------------------------------------
-    | 01/01 |              0.0 |     100.0 |                         2.0 |              2.0 |                     0.0 |                    0.0 |
-    | 02/01 |              1.0 |     100.0 |                         2.0 |              2.0 |                     0.0 |                    0.0 |
-    | 03/01 |              2.0 |     100.0 |                         2.0 |              2.0 |                     0.0 |                    0.0 |
-"""
+    |  date | interceptedwater | soilwater | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01/01 |              0.0 |     100.0 |                              2.0 |                             2.0 |                       2.0 |              2.0 |                     0.0 |                    0.0 |
+    | 02/01 |              1.0 |     100.0 |                              2.0 |                             2.0 |                       2.0 |              2.0 |                     0.0 |                    0.0 |
+    | 03/01 |              2.0 |     100.0 |                              2.0 |                             2.0 |                       2.0 |              2.0 |                     0.0 |                    0.0 |
 
+.. _evap_minhas_unequal_potential_values_soil:
+
+unequal potential values, soil
+______________________________
+
+The previous examples relied on the |evap_io| submodel, which complies with the
+|PETModel_V1| interface that provides only a single potential evapotranspiration value
+per time step.  |evap_minhas| is also compatible with submodels that follow
+|PETModel_V2|, which offers separate potential values for interception evaporation,
+soil evapotranspiration, and evaporation from water areas.  We use |evap_pet_ambav1| to
+demonstrate this functionality:
+
+>>> with model.add_petmodel_v2("evap_pet_ambav1"):
+...     hrutype(0)
+...     plant(True)
+...     measuringheightwindspeed(10.0)
+...     leafalbedo(0.2)
+...     leafalbedosnow(0.8)
+...     groundalbedo(0.2)
+...     groundalbedosnow(0.8)
+...     leafareaindex(5.0)
+...     cropheight(1.0)
+...     leafresistance(40.0)
+...     wetsoilresistance(100.0)
+...     soilresistanceincrease(1.0)
+...     wetnessthreshold(0.5)
+...     cloudtypefactor(0.2)
+...     nightcloudfactor(1.0)
+...     with model.add_tempmodel_v2("meteo_temp_io"):
+...         hruarea(1.0)
+...         temperatureaddend(0.0)
+...     with model.add_precipmodel_v2("meteo_precip_io"):
+...         hruarea(1.0)
+...         precipitationfactor(1.0)
+...     with model.add_radiationmodel_v4("meteo_psun_sun_glob_io"):
+...         pass
+...     with model.add_snowcovermodel_v1("dummy_snowcover"):
+...         pass
+
+After recreating the |IntegrationTest| object, we can define the time series and
+initial conditions required by |evap_pet_ambav1|:
+
+>>> test = IntegrationTest(element)
+>>> test.dateformat = "%d/%m"
+
+>>> model.petmodel.sequences.inputs.windspeed.series = 2.0
+>>> model.petmodel.sequences.inputs.relativehumidity.series = 80.0
+>>> model.petmodel.sequences.inputs.atmosphericpressure.series = 1000.0
+>>> model.petmodel.tempmodel.sequences.inputs.temperature.series = 15.0
+>>> model.petmodel.precipmodel.sequences.inputs.precipitation.series = 0.0
+>>> model.petmodel.radiationmodel.sequences.inputs.sunshineduration.series = 6.0
+>>> model.petmodel.radiationmodel.sequences.inputs.possiblesunshineduration.series = 16.0
+>>> model.petmodel.radiationmodel.sequences.inputs.globalradiation.series = 190.0
+>>> model.petmodel.snowcovermodel.sequences.inputs.snowcover.series = 0.0
+
+>>> test.inits = (
+...     (model.petmodel.sequences.states.soilresistance, 100.0),
+...     (model.petmodel.sequences.logs.loggedprecipitation, [0.0]),
+...     (model.petmodel.sequences.logs.loggedpotentialsoilevapotranspiration, [1.0])
+... )
+
+The time series of intercepted and soil water agree with the previous examples:
+
+>>> model.intercmodel.sequences.inputs.interceptedwater.series = [[0.0], [1.0], [2.0]]
+>>> model.soilwatermodel.sequences.inputs.soilwater.series = 100.0
+
+The following results are comparable to the :ref:`evap_minhas_vegetated_soil` example.
+As long as (positive) potential interception evaporation is larger than (positive)
+potential soil evapotranspiration, the sum of actual interception evaporation and
+actual soil evapotranspiration should never exceed potential interception evaporation:
+
+.. integration-test::
+
+    >>> interception(True)
+    >>> soil(True)
+    >>> water(False)
+    >>> test()
+    |  date | interceptedwater | soilwater | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01/01 |              0.0 |     100.0 |                         3.017202 |                        2.203966 |                       0.0 |              0.0 |                     0.0 |               1.893165 |
+    | 02/01 |              1.0 |     100.0 |                         3.017202 |                        2.184337 |                       0.0 |              0.0 |                     1.0 |               1.254435 |
+    | 03/01 |              2.0 |     100.0 |                         3.017202 |                        2.169588 |                       0.0 |              0.0 |                     2.0 |               0.628295 |
+
+unequal potential values, water
+_______________________________
+
+For water areas, |evap_minhas| takes the potential water evaporation calculated by
+|evap_pet_ambav1| as actual water evaporation:
+
+.. integration-test::
+
+    >>> interception(False)
+    >>> soil(False)
+    >>> water(True)
+    >>> test()
+    |  date | interceptedwater | soilwater | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01/01 |              0.0 |     100.0 |                              0.0 |                             0.0 |                  3.142563 |         3.142563 |                     0.0 |                    0.0 |
+    | 02/01 |              1.0 |     100.0 |                              0.0 |                             0.0 |                  3.142563 |         3.142563 |                     0.0 |                    0.0 |
+    | 03/01 |              2.0 |     100.0 |                              0.0 |                             0.0 |                  3.142563 |         3.142563 |                     0.0 |                    0.0 |
+"""
 # import...
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
+from hydpy.interfaces import aetinterfaces
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import stateinterfaces
 from hydpy.models.evap import evap_model
@@ -168,9 +270,11 @@ from hydpy.models.evap import evap_model
 
 class Model(
     evap_model.Main_PET_PETModel_V1,
+    evap_model.Main_PET_PETModel_V2,
     evap_model.Main_IntercModel_V1,
     evap_model.Main_SoilWaterModel_V1,
-    evap_model.Sub_AETModel_V1,
+    evap_model.Sub_ETModel,
+    aetinterfaces.AETModel_V1,
 ):
     """The Minhas version of HydPy-Evap for calculating actual evapotranspiration."""
 
@@ -182,21 +286,29 @@ class Model(
         evap_model.Determine_WaterEvaporation_V2,
     )
     INTERFACE_METHODS = (
-        evap_model.Determine_WaterEvaporation_V2,
         evap_model.Determine_InterceptionEvaporation_V1,
         evap_model.Determine_SoilEvapotranspiration_V2,
+        evap_model.Determine_WaterEvaporation_V2,
         evap_model.Get_WaterEvaporation_V1,
         evap_model.Get_InterceptionEvaporation_V1,
         evap_model.Get_SoilEvapotranspiration_V1,
     )
     ADD_METHODS = (
-        evap_model.Calc_PotentialEvapotranspiration_V4,
+        evap_model.Calc_PotentialInterceptionEvaporation_PETModel_V1,
+        evap_model.Calc_PotentialInterceptionEvaporation_PETModel_V2,
+        evap_model.Calc_PotentialInterceptionEvaporation_V3,
+        evap_model.Calc_PotentialWaterEvaporation_PETModel_V1,
+        evap_model.Calc_PotentialWaterEvaporation_PETModel_V2,
+        evap_model.Calc_PotentialWaterEvaporation_V1,
         evap_model.Calc_WaterEvaporation_V2,
         evap_model.Calc_InterceptedWater_V1,
         evap_model.Calc_InterceptionEvaporation_V1,
         evap_model.Calc_SoilWater_V1,
+        evap_model.Calc_PotentialSoilEvapotranspiration_PETModel_V1,
+        evap_model.Calc_PotentialSoilEvapotranspiration_PETModel_V2,
+        evap_model.Calc_PotentialSoilEvapotranspiration_V2,
         evap_model.Calc_SoilEvapotranspiration_V2,
-        evap_model.Calc_PotentialEvapotranspiration_PETModel_V1,
+        evap_model.Update_SoilEvapotranspiration_V3,
         evap_model.Calc_InterceptedWater_IntercModel_V1,
         evap_model.Calc_SoilWater_SoilWaterModel_V1,
     )
@@ -205,7 +317,9 @@ class Model(
     SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
     SUBMODELS = ()
 
-    petmodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
+    petmodel = modeltools.SubmodelProperty(
+        petinterfaces.PETModel_V1, petinterfaces.PETModel_V2
+    )
     intercmodel = modeltools.SubmodelProperty(stateinterfaces.IntercModel_V1)
     soilwatermodel = modeltools.SubmodelProperty(stateinterfaces.SoilWaterModel_V1)
 

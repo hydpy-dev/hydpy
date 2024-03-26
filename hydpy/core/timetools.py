@@ -177,7 +177,7 @@ following error occurred: hour must be in 0..23
 
     datetime: datetime_.datetime
 
-    def __new__(cls: Type[TypeDate], date: DateConstrArg) -> TypeDate:
+    def __new__(cls: type[TypeDate], date: DateConstrArg) -> TypeDate:
         try:
             if isinstance(date, Date):
                 return cls.from_date(date)
@@ -196,7 +196,7 @@ following error occurred: hour must be in 0..23
             )
 
     @classmethod
-    def from_date(cls: Type[TypeDate], date: Date) -> TypeDate:
+    def from_date(cls: type[TypeDate], date: Date) -> TypeDate:
         """Create a new |Date| object based on another |Date| object and return it.
 
         Initialisation from other |Date| objects preserves their |Date.style|
@@ -218,7 +218,7 @@ following error occurred: hour must be in 0..23
         return self
 
     @classmethod
-    def from_datetime(cls: Type[TypeDate], date: datetime_.datetime) -> TypeDate:
+    def from_datetime(cls: type[TypeDate], date: datetime_.datetime) -> TypeDate:
         """Create a new |Date| object based on a |datetime.datetime| object and return
         it.
 
@@ -267,7 +267,7 @@ given `datetime` object it is `2` instead.
         return self
 
     @classmethod
-    def from_string(cls: Type[TypeDate], date: str) -> TypeDate:
+    def from_string(cls: type[TypeDate], date: str) -> TypeDate:
         """Create a new |Date| object based on a |datetime.datetime| object and return
         it.
 
@@ -362,7 +362,7 @@ base 10: '0X'
         return self
 
     @staticmethod
-    def _extract_offset(string: str) -> Tuple[str, Optional[str]]:
+    def _extract_offset(string: str) -> tuple[str, Optional[str]]:
         if "Z" in string:
             return string.split("Z")[0].strip(), "+0000"
         if "+" in string:
@@ -376,7 +376,7 @@ base 10: '0X'
     @classmethod
     def _extract_date(
         cls, substring: str, string: str
-    ) -> Tuple[str, datetime_.datetime]:
+    ) -> tuple[str, datetime_.datetime]:
         strptime = datetime_.datetime.strptime
         try:
             style, format_ = cls._lastformatstring
@@ -434,7 +434,7 @@ base 10: '0X'
         return new_date
 
     @classmethod
-    def from_array(cls: Type[TypeDate], array: NDArrayFloat) -> TypeDate:
+    def from_array(cls: type[TypeDate], array: NDArrayFloat) -> TypeDate:
         """Return a |Date| instance based on date information (year, month, day, hour,
         minute, second) stored as the first entries of the successive rows of a
         |numpy.ndarray|.
@@ -480,31 +480,34 @@ base 10: '0X'
         )
 
     @classmethod
-    def from_cfunits(cls: Type[TypeDate], units: str) -> TypeDate:
+    def from_cfunits(cls: type[TypeDate], units: str) -> TypeDate:
         """Return a |Date| object representing the reference date of the given `units`
         string agreeing with the NetCDF-CF conventions.
 
         We took the following example string from the `Time Coordinate`_ chapter of the
         NetCDF-CF conventions documentation (modified).  Note that method
-        |Date.from_cfunits| ignores the first entry (the unit):
+        |Date.from_cfunits| ignores the first entry (the unit) and assumes UTC+00 for
+        strings without time zone identifiers (as opposed to the usual `HydPy`
+        convention that dates without time zone identifiers correspond to the local
+        time defined by the option |Options.utcoffset|):
 
         >>> from hydpy import Date
         >>> Date.from_cfunits("seconds since 1992-10-8 15:15:42 -6:00")
         Date("1992-10-08 22:15:42")
         >>> Date.from_cfunits(" day since 1992-10-8 15:15:00")
-        Date("1992-10-08 15:15:00")
+        Date("1992-10-08 16:15:00")
         >>> Date.from_cfunits("seconds since 1992-10-8 -6:00")
         Date("1992-10-08 07:00:00")
         >>> Date.from_cfunits("m since 1992-10-8")
-        Date("1992-10-08 00:00:00")
+        Date("1992-10-08 01:00:00")
 
-        One can also pass the unmodified example string from `Time Coordinate`_, as
-        long as one omits any decimal fractions of a second different from zero:
+        One can also pass the unmodified example string from `Time Coordinate`_ as long
+        as one omits any decimal fractions of a second different from zero:
 
         >>> Date.from_cfunits("seconds since 1992-10-8 15:15:42.")
-        Date("1992-10-08 15:15:42")
+        Date("1992-10-08 16:15:42")
         >>> Date.from_cfunits("seconds since 1992-10-8 15:15:42.00")
-        Date("1992-10-08 15:15:42")
+        Date("1992-10-08 16:15:42")
         >>> Date.from_cfunits("seconds since 1992-10-8 15:15:42. -6:00")
         Date("1992-10-08 22:15:42")
         >>> Date.from_cfunits("seconds since 1992-10-8 15:15:42.0 -6:00")
@@ -534,6 +537,9 @@ decimal fraction of a second than "0" allowed.
                     else:
                         jdx += 1
                 string = f"{string[:idx]}{string[idx+jdx+1:]}"
+            offset = cls._extract_offset(string)[1]
+            if offset is None:
+                string = f"{string} +00:00"
             return cls.from_string(string)
         except BaseException:
             objecttools.augment_excmessage(
@@ -597,7 +603,7 @@ decimal fraction of a second than "0" allowed.
         >>> date.style
         'iso2'
 
-        To try to set a non-existing style results in the following error message:
+        Trying to set a non-existing style results in the following error message:
 
         >>> date.style = "iso"
         Traceback (most recent call last):
@@ -987,7 +993,7 @@ twelve (December) but `0` is given
     def __ge__(self, other: DateConstrArg) -> bool:
         return self.datetime >= type(self)(other).datetime
 
-    def __deepcopy__(self: TypeDate, dict_: Dict[str, Any]) -> TypeDate:
+    def __deepcopy__(self: TypeDate, dict_: dict[str, Any]) -> TypeDate:
         new = type(self).from_date(self)
         new.datetime = copy.deepcopy(self.datetime)
         return new
@@ -1209,7 +1215,7 @@ following error occurred: The supplied argument must be either an instance of \
     """
 
     def __new__(
-        cls: Type[TypePeriod], period: Optional[PeriodConstrArg] = None
+        cls: type[TypePeriod], period: Optional[PeriodConstrArg] = None
     ) -> TypePeriod:
         try:
             if isinstance(period, Period):
@@ -1232,7 +1238,7 @@ following error occurred: The supplied argument must be either an instance of \
             )
 
     @classmethod
-    def from_period(cls: Type[TypePeriod], period: Period) -> TypePeriod:
+    def from_period(cls: type[TypePeriod], period: Period) -> TypePeriod:
         """Create a new |Period| object based on another |Period| object and return it.
 
         >>> from hydpy import Period
@@ -1252,7 +1258,7 @@ following error occurred: The supplied argument must be either an instance of \
 
     @classmethod
     def from_timedelta(
-        cls: Type[TypePeriod], period: datetime_.timedelta
+        cls: type[TypePeriod], period: datetime_.timedelta
     ) -> TypePeriod:
         """Create a new |Period| object based on a |datetime.timedelta| object and
         return it.
@@ -1286,7 +1292,7 @@ However, for the given `timedelta` object it is `1` instead.
         return period
 
     @classmethod
-    def from_string(cls: Type[TypePeriod], period: str) -> TypePeriod:
+    def from_string(cls: type[TypePeriod], period: str) -> TypePeriod:
         """Create a new |Period| object based on a |str| object and return it.
 
         The string must consist of a leading integer number followed by one of the
@@ -1358,7 +1364,7 @@ character is `D`.
         )
 
     @classmethod
-    def from_seconds(cls: Type[TypePeriod], seconds: int) -> TypePeriod:
+    def from_seconds(cls: type[TypePeriod], seconds: int) -> TypePeriod:
         """Create a new |Period| object based on the given integer number of seconds
         and return it.
 
@@ -1369,7 +1375,7 @@ character is `D`.
         return cls.from_timedelta(datetime_.timedelta(0, int(seconds)))
 
     @classmethod
-    def from_cfunits(cls: Type[TypePeriod], units: TypeUnit) -> TypePeriod:
+    def from_cfunits(cls: type[TypePeriod], units: TypeUnit) -> TypePeriod:
         """Create a |Period| object representing the time unit of the given `units`
         string agreeing with the NetCDF-CF conventions and return it.
 
@@ -1603,16 +1609,12 @@ moment.
         self.timedelta += type(self)(other).timedelta
         return self
 
-    def __sub__(
-        self: TypePeriod,
-        other: PeriodConstrArg,
-    ) -> TypePeriod:
+    def __sub__(self: TypePeriod, other: PeriodConstrArg) -> TypePeriod:
         return type(self).from_timedelta(self.timedelta - type(self)(other).timedelta)
 
     @overload
     def __rsub__(  # type: ignore
-        self: TypePeriod,
-        other: Union[Date, datetime_.datetime],
+        self: TypePeriod, other: Union[Date, datetime_.datetime]
     ) -> TypePeriod:
         # without more flexible ways to relate types to string patterns, there is
         # nothing we can do about it (except providing a less flexible interface, of
@@ -1621,8 +1623,7 @@ moment.
 
     @overload
     def __rsub__(  # type: ignore
-        self,
-        other: Union[Period, datetime_.timedelta],
+        self, other: Union[Period, datetime_.timedelta]
     ) -> Date:
         # without more flexible ways to relate types to string patterns, there is
         # nothing we can do about it (except providing a less flexible interface, of
@@ -1987,7 +1988,7 @@ indexed timegrid `Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d")`.
         fget=_get_lastdate, fset=_set_lastdate
     )
 
-    def _get_dates(self) -> Tuple[Date, Date]:
+    def _get_dates(self) -> tuple[Date, Date]:
         """Shortcut to get or set both property |Timegrid.firstdate| and property
         |Timegrid.lastdate| in one step.
 
@@ -2003,16 +2004,16 @@ indexed timegrid `Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d")`.
         """
         return self.firstdate, self.lastdate
 
-    def _set_dates(self, dates: Tuple[DateConstrArg, DateConstrArg]) -> None:
+    def _set_dates(self, dates: tuple[DateConstrArg, DateConstrArg]) -> None:
         self.firstdate = dates[0]
         self.lastdate = dates[1]
 
     dates = propertytools.Property[
-        Tuple[DateConstrArg, DateConstrArg], Tuple[Date, Date]
+        tuple[DateConstrArg, DateConstrArg], tuple[Date, Date]
     ](fget=_get_dates, fset=_set_dates)
 
     def _get_stepsize(self) -> Period:
-        """The time-series data and simulation step size.
+        """The time series data and simulation step size.
 
         You can query and alter the value of property |Timegrid.stepsize| (call method
         |Timegrid.verify| afterwards to make sure the |Timegrid| object did not become
@@ -2038,7 +2039,7 @@ indexed timegrid `Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d")`.
     )
 
     @classmethod
-    def from_array(cls: Type[TypeTimegrid], array: NDArrayFloat) -> TypeTimegrid:
+    def from_array(cls: type[TypeTimegrid], array: NDArrayFloat) -> TypeTimegrid:
         """Create a |Timegrid| instance based on information stored in the first 13
         rows of a |numpy.ndarray| object and return it.
 
@@ -2105,7 +2106,7 @@ required, but the given array consist of 12 entries/rows only.
 
     @classmethod
     def from_timepoints(
-        cls: Type[TypeTimegrid],
+        cls: type[TypeTimegrid],
         timepoints: Sequence[float],
         refdate: DateConstrArg,
         unit: TypeUnit = "hours",
@@ -2433,11 +2434,7 @@ the step size `4d`.
         lastdate_copy = self.lastdate
         stepsize_copy = self.stepsize
         try:
-            self.modify(
-                firstdate=firstdate,
-                lastdate=lastdate,
-                stepsize=stepsize,
-            )
+            self.modify(firstdate=firstdate, lastdate=lastdate, stepsize=stepsize)
             yield self
         finally:
             self.firstdate = firstdate_copy
@@ -2755,7 +2752,7 @@ occurred: There is a conflict between the given positional and keyword arguments
                     f"Initialising `Timegrids` objects requires one, two, or three "
                     f"arguments but `{len(values)}` are given."
                 )
-            arguments: List[Union[None, Timegrid, DateConstrArg, PeriodConstrArg]] = [
+            arguments: list[Union[None, Timegrid, DateConstrArg, PeriodConstrArg]] = [
                 None,
                 None,
                 None,
@@ -2976,10 +2973,7 @@ size `3d`.
             objecttools.augment_excmessage(
                 f"While trying to verify the evaluation time grid `{self.eval_}`"
             )
-        for tg, descr in (
-            (self.sim, "simulation"),
-            (self.eval_, "evaluation"),
-        ):
+        for tg, descr in ((self.sim, "simulation"), (self.eval_, "evaluation")):
             if self.init.firstdate > tg.firstdate:
                 raise ValueError(
                     f"The first date of the initialisation period "
@@ -3006,7 +3000,7 @@ size `3d`.
                 ) from exc
 
     @property
-    def initindices(self) -> Tuple[int, int]:
+    def initindices(self) -> tuple[int, int]:
         """A tuple containing the start and end index of the initialisation period.
 
         >>> from hydpy import Timegrids
@@ -3017,7 +3011,7 @@ size `3d`.
         return 0, len(self.init)
 
     @property
-    def simindices(self) -> Tuple[int, int]:
+    def simindices(self) -> tuple[int, int]:
         """A tuple containing the start and end index of the simulation period
         regarding the initialisation period.
 
@@ -3033,7 +3027,7 @@ size `3d`.
         return self.init[self.sim.firstdate], self.init[self.sim.lastdate]
 
     @property
-    def evalindices(self) -> Tuple[int, int]:
+    def evalindices(self) -> tuple[int, int]:
         """A tuple containing the start and end index of the evaluation period
         regarding the initialisation period.
 
@@ -3435,7 +3429,7 @@ must not be the given value `4`, as the day has already been set to `31`.
         )
 
     @classmethod
-    def centred_timegrid(cls) -> Tuple[Timegrid, NDArrayFloat]:
+    def centred_timegrid(cls) -> tuple[Timegrid, NDArrayFloat]:
         """Return a |Timegrid| object defining the central time points of the year
         2000 and a boolean array describing its intersection with the current
         initialisation period, not taking the year information into account.

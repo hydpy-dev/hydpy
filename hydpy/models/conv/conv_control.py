@@ -73,7 +73,7 @@ Node("in3", variable="Q"))
 
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
 
-    nodes: Tuple[devicetools.Node, ...]
+    nodes: tuple[devicetools.Node, ...]
     """The relevant input or output nodes."""
 
     def __init__(self, subvars: parametertools.SubParameters):
@@ -176,7 +176,7 @@ Node("in3", variable="Q"))
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
-    nodes: Tuple[devicetools.Node, ...]
+    nodes: tuple[devicetools.Node, ...]
     """The relevant input or output nodes."""
 
     def __init__(self, subvars: parametertools.SubParameters):
@@ -245,7 +245,7 @@ class MaxNmbInputs(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         if not args and not kwargs:
             super().__call__(self.subpars.inputcoordinates.shape[0])
         else:

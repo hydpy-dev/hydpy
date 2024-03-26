@@ -6,10 +6,13 @@ from __future__ import annotations
 import abc
 import collections
 import contextlib
+import copy
+import functools
 import importlib
 import inspect
 import itertools
 import os
+import runpy
 import types
 
 # ...from site-packages
@@ -32,39 +35,85 @@ from hydpy.cythons import modelutils
 
 if TYPE_CHECKING:
     from hydpy.core import masktools
+    from hydpy.core import selectiontools
     from hydpy.auxs import interptools
+    from hydpy.cythons import interfaceutils
+
+
+TypeModel_co = TypeVar("TypeModel_co", bound="Model", covariant=True)
+TypeModel_contra = TypeVar("TypeModel_contra", bound="Model", contravariant=True)
+TypeSubmodelInterface = TypeVar("TypeSubmodelInterface", bound="SubmodelInterface")
 
 
 class _ModelModule(types.ModuleType):
-    ControlParameters: Type[parametertools.SubParameters]
-    DerivedParameters: Type[parametertools.SubParameters]
-    FixedParameters: Type[parametertools.SubParameters]
-    SolverParameters: Type[parametertools.SubParameters]
+    ControlParameters: type[parametertools.SubParameters]
+    DerivedParameters: type[parametertools.SubParameters]
+    FixedParameters: type[parametertools.SubParameters]
+    SolverParameters: type[parametertools.SubParameters]
 
 
 class Method:
     """Base class for defining (hydrological) calculation methods."""
 
-    SUBMODELINTERFACES: ClassVar[Tuple[Type[SubmodelInterface], ...]]
-    SUBMETHODS: Tuple[Type[Method], ...] = ()
-    CONTROLPARAMETERS: Tuple[
-        Type[Union[parametertools.Parameter, interptools.BaseInterpolator]], ...
+    SUBMODELINTERFACES: ClassVar[tuple[type[SubmodelInterface], ...]]
+    SUBMETHODS: tuple[type[Method], ...] = ()
+    CONTROLPARAMETERS: tuple[
+        type[Union[parametertools.Parameter, interptools.BaseInterpolator]], ...
     ] = ()
-    DERIVEDPARAMETERS: Tuple[Type[parametertools.Parameter], ...] = ()
-    FIXEDPARAMETERS: Tuple[Type[parametertools.Parameter], ...] = ()
-    SOLVERPARAMETERS: Tuple[Type[parametertools.Parameter], ...] = ()
-    REQUIREDSEQUENCES: Tuple[Type[sequencetools.Sequence_], ...] = ()
-    UPDATEDSEQUENCES: Tuple[Type[sequencetools.Sequence_], ...] = ()
-    RESULTSEQUENCES: Tuple[Type[sequencetools.Sequence_], ...] = ()
+    DERIVEDPARAMETERS: tuple[type[parametertools.Parameter], ...] = ()
+    FIXEDPARAMETERS: tuple[type[parametertools.Parameter], ...] = ()
+    SOLVERPARAMETERS: tuple[type[parametertools.Parameter], ...] = ()
+    REQUIREDSEQUENCES: tuple[type[sequencetools.Sequence_], ...] = ()
+    UPDATEDSEQUENCES: tuple[type[sequencetools.Sequence_], ...] = ()
+    RESULTSEQUENCES: tuple[type[sequencetools.Sequence_], ...] = ()
 
     __call__: Callable
     __name__: str
 
     def __init_subclass__(cls) -> None:
-        setattr(cls.__call__, "CYTHONIZE", True)
+        if isinstance(call := cls.__call__, types.FunctionType):
+            setattr(call, "__HYDPY_METHOD__", True)
 
 
-abstractmodelmethods: Set[Callable[..., Any]] = set()
+class AutoMethod(Method):
+    """Base class for defining methods that only call their submethods in the specified
+    order without passing any arguments or other customisations."""
+
+    @classmethod
+    def __call__(cls, model: Model) -> None:
+        for method in cls.SUBMETHODS:
+            method.__call__(model)
+
+
+class ReusableMethod(Method):
+    """Base class for defining methods that need not or must not be called multiple
+    times for the same simulation step.
+
+    |ReusableMethod| helps to implement "sharable" submodels, of which single instances
+    can be used by multiple main model instances.  See |SharableSubmodelInterface| for
+    further information.
+    """
+
+    REUSEMARKER: str
+    """Name of an additional model attribute for marking if the respective method has 
+    already been called and should not be called again for the same simulation step and 
+    its results can be reused."""
+
+    def __init_subclass__(cls) -> None:
+        super().__init_subclass__()
+        cls.REUSEMARKER = f"__hydpy_reuse_{cls.__name__.lower()}__"
+
+    @classmethod
+    def call_reusablemethod(cls, model: Model, *args, **kwargs) -> None:
+        """Execute the "normal" model-specific `__call__` method only when indicated by
+        the |ReusableMethod.REUSEMARKER| attribute and update this attribute when
+        necessary."""
+        if not getattr(model, cls.REUSEMARKER):
+            cls.__call__(model, *args, **kwargs)
+            setattr(model, cls.REUSEMARKER, True)
+
+
+abstractmodelmethods: set[Callable[..., Any]] = set()
 
 
 def abstractmodelmethod(method: Callable[P, T]) -> Callable[P, T]:
@@ -83,7 +132,39 @@ def abstractmodelmethod(method: Callable[P, T]) -> Callable[P, T]:
     return method
 
 
-class SubmodelProperty:
+class _SubmodelPropertyBase(Generic[TypeSubmodelInterface]):
+    interfaces: tuple[type[TypeSubmodelInterface], ...]
+
+    _CYTHON_PYTHON_SUBMODEL_ERROR_MESSAGE: Final = (
+        "The main model is initialised in Cython mode, but the submodel is "
+        "initialised in pure Python mode so that the main model's cythonized methods "
+        "could apply the submodel's methods."
+    )
+
+    def _check_submodel_follows_interface(
+        self, submodel: TypeSubmodelInterface
+    ) -> None:
+        if not isinstance(submodel, self.interfaces):
+            interfacenames = (i.__name__ for i in self.interfaces)
+            raise ValueError(
+                f"The given submodel is not an instance of any of the following "
+                f"supported interfaces: {objecttools.enumeration(interfacenames)}."
+            )
+
+    def _find_first_suitable_interface(
+        self, submodel: TypeSubmodelInterface
+    ) -> type[SubmodelInterface]:
+        for interface in self.interfaces:
+            if isinstance(submodel, interface):
+                return interface
+        interfacenames = (i.__name__ for i in self.interfaces)
+        raise ValueError(
+            f"The given submodel is not an instance of any of the following supported "
+            f"interfaces: {objecttools.enumeration(interfacenames)}."
+        )
+
+
+class SubmodelProperty(_SubmodelPropertyBase[TypeSubmodelInterface]):
     """Descriptor for submodel attributes.
 
     |SubmodelProperty| instances link main models and their submodels.  They follow the
@@ -92,8 +173,8 @@ class SubmodelProperty:
     Cython level and perform some type-related tests (to avoid errors due to selecting
     submodels following the wrong interfaces).
 
-    We prepare the main model and its submodel in the Cython and pure Python mode to
-    test that |SubmodelProperty| works for all possible combinations:
+    We prepare the main model and its submodel in Cython and pure Python mode to test
+    that |SubmodelProperty| works for all possible combinations:
 
     >>> from hydpy import prepare_model, pub
     >>> with pub.options.usecython(False):
@@ -136,10 +217,10 @@ class SubmodelProperty:
     >>> mainmodel_cython.soilmodel = submodel_python
     Traceback (most recent call last):
     ...
-    RuntimeError: While trying to assign value `ga_garto_submodel1` of type `Model` \
-to property `soilmodel`, the following error occurred: The main model `lland` is \
-initialised in Cython mode, but the submodel `ga_garto_submodel1` in pure Python \
-mode, so that the main model's cythonized methods cannot apply the submodel's methods.
+    RuntimeError: While trying to assign submodel `ga_garto_submodel1` to property \
+`soilmodel` of the main model `lland`, the following error occurred: The main model \
+is initialised in Cython mode, but the submodel is initialised in pure Python mode so \
+that the main model's cythonized methods could apply the submodel's methods.
 
     Disconnecting a submodel from its main model works by assigning |None| as well as
     using the `del` statement:
@@ -151,12 +232,14 @@ mode, so that the main model's cythonized methods cannot apply the submodel's me
     >>> mainmodel_cython.soilmodel
     >>> mainmodel_cython.cymodel.get_soilmodel()
 
+    Trying to assign an unsuitable submodel results in the following error:
+
     >>> mainmodel_python.soilmodel = mainmodel_python
     Traceback (most recent call last):
     ...
-    ValueError: While trying to assign value `lland` of type `Model` to property \
-`soilmodel`, the following error occurred: The given value is neither `None` nor an \
-instance of any of the following types: `SoilModel_V1`.
+    ValueError: While trying to assign submodel `lland` to property `soilmodel` of \
+the main model `lland`, the following error occurred: The given submodel is not an \
+instance of any of the following supported interfaces: SoilModel_V1.
 
     The automatically generated docstrings list the supported interfaces:
 
@@ -164,18 +247,30 @@ instance of any of the following types: `SoilModel_V1`.
     Optional submodel that complies with the following interface: SoilModel_V1.
     """
 
-    interfaces: Final[Tuple[Type[SubmodelInterface], ...]]
+    name: str
+    """The addressed submodels' group name."""
+    interfaces: tuple[type[TypeSubmodelInterface], ...]
+    """The supported interfaces."""
     optional: Final[bool]
-    name: Final[str]  # type: ignore[misc]
-    modeltype2instance: ClassVar[
-        DefaultDict[Type[Model], List[SubmodelProperty]]
+    """Flag indicating whether a submodel is optional or strictly required."""
+    sidemodel: Final[bool]
+    """Flag indicating whether the handled submodel is more a "side model" than a 
+    submodel.  Usually, two models consider each other as side models if they are 
+    "real" submodels of a third model but need direct references."""
+
+    __hydpy_modeltype2instance__: ClassVar[
+        collections.defaultdict[type[Model], list[SubmodelProperty[Any]]]
     ] = collections.defaultdict(lambda: [])
 
     def __init__(
-        self, *interfaces: Type[SubmodelInterface], optional: bool = False
+        self,
+        *interfaces: type[TypeSubmodelInterface],
+        optional: bool = False,
+        sidemodel: bool = False,
     ) -> None:
         self.interfaces = tuple(interfaces)
         self.optional = optional
+        self.sidemodel = sidemodel
         interfacenames = (i.__name__ for i in self.interfaces)
         prefix = "Optional submodel" if optional else "Required submodel"
         suffix = (
@@ -188,58 +283,534 @@ instance of any of the following types: `SoilModel_V1`.
             f"{objecttools.enumeration(interfacenames, conjunction='or')}."
         )
 
-    def __set_name__(self, owner: Type[Model], name: str) -> None:
-        self.name = name  # type: ignore[misc]
-        self.modeltype2instance[owner].append(self)
+    def __set_name__(self, owner: type[Model], name: str) -> None:
+        self.name = name
+        self.__hydpy_modeltype2instance__[owner].append(self)
 
     @overload
-    def __get__(self, obj: None, objtype: Optional[Type[Model]]) -> Self:
-        ...
+    def __get__(self, obj: None, objtype: Optional[type[Model]]) -> Self: ...
 
     @overload
-    def __get__(self, obj: Model, objtype: Optional[Type[Model]]) -> Optional[Model]:
-        ...
+    def __get__(
+        self, obj: Model, objtype: Optional[type[Model]]
+    ) -> Optional[TypeSubmodelInterface]: ...
 
     def __get__(
-        self,
-        obj: Optional[Model],
-        objtype: Optional[Type[Model]] = None,
-    ) -> Union[SubmodelProperty, Optional[Model]]:
+        self, obj: Optional[Model], objtype: Optional[type[Model]] = None
+    ) -> Union[Self, Optional[TypeSubmodelInterface]]:
         if obj is None:
             return self
         return vars(obj).get(self.name, None)
 
-    def __set__(self, obj: Model, value: Optional[Model]) -> None:
+    def __set__(self, obj: Model, value: Optional[TypeSubmodelInterface]) -> None:
         try:
             if value is None:
                 self.__delete__(obj)
-            elif isinstance(value, self.interfaces):
+            else:
+                self._check_submodel_follows_interface(value)
                 vars(obj)[self.name] = value
                 if obj.cymodel is not None:
                     if value.cymodel is None:
-                        raise RuntimeError(
-                            f"The main model `{obj.name}` is initialised in Cython "
-                            f"mode, but the submodel `{value.name}` in pure Python "
-                            f"mode, so that the main model's cythonized methods "
-                            f"cannot apply the submodel's methods."
-                        )
+                        raise RuntimeError(self._CYTHON_PYTHON_SUBMODEL_ERROR_MESSAGE)
                     getattr(obj.cymodel, f"set_{self.name}")(value.cymodel)
-            else:
-                interfacenames = (i.__name__ for i in self.interfaces)
-                raise ValueError(
-                    f"The given value is neither `None` nor an instance of any of the "
-                    f"following types: `{objecttools.enumeration(interfacenames)}`."
-                )
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to assign {objecttools.value_of_type(value)} to "
-                f"property `{self.name}`"
+                f"While trying to assign submodel `{value}` to property `{self.name}` "
+                f"of the main model `{obj.name}`"
             )
 
     def __delete__(self, obj: Model) -> None:
         vars(obj)[self.name] = None
         if obj.cymodel is not None:
             getattr(obj.cymodel, f"set_{self.name}")(None)
+
+
+class SubmodelsProperty(_SubmodelPropertyBase[TypeSubmodelInterface]):
+    """Descriptor for handling multiple submodels that follow defined interfaces.
+
+    |SubmodelsProperty| supports the `len` operator and is iterable and indexable:
+
+    >>> from hydpy import prepare_model
+    >>> main = prepare_model("sw1d_channel")
+    >>> sub1 = prepare_model("sw1d_q_in")
+    >>> sub2 = prepare_model("sw1d_lias")
+
+    >>> from hydpy.core.modeltools import SubmodelsProperty
+    >>> assert isinstance(type(main).routingmodels, SubmodelsProperty)
+
+    >>> main.routingmodels.append_submodel(submodel=sub1, typeid=1)
+    >>> main.routingmodels.append_submodel(submodel=sub2, typeid=1)
+    >>> len(main.routingmodels)
+    2
+    >>> for submodel in main.routingmodels:
+    ...     print(submodel.name)
+    sw1d_q_in
+    sw1d_lias
+    >>> main.routingmodels[0] is sub1
+    True
+    >>> main.routingmodels[1] is sub2
+    True
+    """
+
+    name: str
+    """The addressed submodels' group name."""
+    interfaces: tuple[type[TypeSubmodelInterface], ...]
+    """The supported interfaces."""
+    sidemodels: bool
+    """Flag indicating whether the handled submodel is more a "side model" than a 
+    submodel.  Usually, two models consider each other as side models if they are 
+    "real" submodels of a third model but need direct references."""
+
+    __hydpy_modeltype2instance__: ClassVar[
+        collections.defaultdict[type[Model], list[SubmodelsProperty[Any]]]
+    ] = collections.defaultdict(lambda: [])
+    __hydpy_mainmodel2submodels__: collections.defaultdict[
+        Model, list[Optional[TypeSubmodelInterface]]
+    ]
+
+    _mainmodel: Optional[Model]
+    _mainmodel2numbersubmodels: collections.defaultdict[Model, int]
+    _mainmodel2submodeltypeids: collections.defaultdict[Model, list[int]]
+
+    def __set_name__(self, owner: type[Model], name: str) -> None:
+        self.name = name
+        self.__hydpy_modeltype2instance__[owner].append(self)
+
+    def __init__(
+        self, *interfaces: type[TypeSubmodelInterface], sidemodels: bool = False
+    ) -> None:
+        self.interfaces = tuple(interfaces)
+        self.sidemodels = sidemodels
+        self.__hydpy_mainmodel2submodels__ = collections.defaultdict(lambda: [])
+        self._mainmodel2numbersubmodels = collections.defaultdict(lambda: 0)
+        self._mainmodel2submodeltypeids = collections.defaultdict(lambda: [])
+        interfacenames = (i.__name__ for i in self.interfaces)
+        suffix = "s" if len(interfaces) > 1 else ""
+        self.__doc__ = (
+            f"Vector of submodels that comply with the following interface{suffix}: "
+            f"{objecttools.enumeration(interfacenames, conjunction='or')}."
+        )
+
+    def __get__(
+        self, obj: Optional[Model], objtype: Optional[type[Model]] = None
+    ) -> Self:
+        if obj is None:
+            return self
+        try:
+            self._mainmodel = obj
+            return copy.copy(self)
+        finally:
+            self._mainmodel = None
+
+    @property
+    def number(self) -> int:
+        """The maximum number of handled submodels.
+
+        Initially, the maximum number of submodels is zero:
+
+        >>> from hydpy import prepare_model, pub
+        >>> with pub.options.usecython(False):
+        ...     model = prepare_model("sw1d_channel")
+        >>> model.storagemodels.number
+        0
+        >>> model.storagemodels.submodels
+        ()
+        >>> model.storagemodels.typeids
+        ()
+
+        Setting it to another value automatically prepares |SubmodelsProperty.typeids|
+        and |SubmodelsProperty.submodels|:
+
+        >>> model.storagemodels.number = 2
+        >>> model.storagemodels.number
+        2
+        >>> model.storagemodels.typeids
+        (0, 0)
+        >>> model.storagemodels.submodels
+        (None, None)
+
+        When working in Cython mode, property |SubmodelsProperty.number| also prepares
+        the analogue vectors of the cythonized model:
+
+        >>> with pub.options.usecython(True):
+        ...     model = prepare_model("sw1d_channel")
+        >>> model.storagemodels.number
+        0
+        >>> model.storagemodels.submodels
+        ()
+        >>> model.storagemodels.typeids
+        ()
+
+        >>> model.storagemodels.number = 2
+        >>> model.storagemodels.number
+        2
+        >>> model.storagemodels.submodels
+        (None, None)
+        >>> model.storagemodels.typeids
+        (0, 0)
+        >>> model.cymodel.storagemodels._get_number()
+        2
+        >>> model.cymodel.storagemodels._get_typeid(0)
+        0
+        >>> model.cymodel.storagemodels._get_submodel(0)
+        """
+        assert (model := self._mainmodel) is not None
+        return self._mainmodel2numbersubmodels[model]
+
+    @number.setter
+    def number(self, number: int) -> None:
+        if number != self.number:
+            assert (model := self._mainmodel) is not None
+            self._mainmodel2numbersubmodels[model] = number
+            self.__hydpy_mainmodel2submodels__[model] = [None for _ in range(number)]
+            self._mainmodel2submodeltypeids[model] = number * [0]
+            if (cymodel := model.cymodel) is not None:
+                cyprop: interfaceutils.SubmodelsProperty = getattr(cymodel, self.name)
+                cyprop.set_number(number)
+
+    def put_submodel(
+        self, submodel: TypeSubmodelInterface, typeid: int, position: int
+    ) -> None:
+        """Put a submodel and its relevant type ID to the given position.
+
+        We prepare the main model and its submodel in Cython and pure Python mode to
+        test that |SubmodelsProperty.put_submodel| works for all possible combinations:
+
+        >>> from hydpy import prepare_model, pub
+        >>> with pub.options.usecython(False):
+        ...     main_py = prepare_model("sw1d_channel")
+        ...     sub_py = prepare_model("sw1d_storage")
+        >>> with pub.options.usecython(True):
+        ...     main_cy = prepare_model("sw1d_channel")
+        ...     sub_cy = prepare_model("sw1d_storage")
+
+        For two pure Python models, there is no need to bother with synchronising
+        cythonized models:
+
+        >>> main_py.storagemodels.number = 2
+        >>> main_py.storagemodels.put_submodel(submodel=sub_py, typeid=1, position=0)
+        >>> assert main_py.storagemodels.typeids[0] == 1
+        >>> assert main_py.storagemodels.submodels[0] is sub_py
+        >>> assert main_py.storagemodels.typeids[1] == 0
+        >>> assert main_py.storagemodels.submodels[1] is None
+
+        If both models are initialised in Cython mode, |SubmodelsProperty.put_submodel|
+        updates |SubmodelsProperty.typeids| and |SubmodelsProperty.submodels| as well
+        as the corresponding vectors of the cythonized models:
+
+        >>> main_cy.storagemodels.number = 2
+        >>> main_cy.storagemodels.put_submodel(submodel=sub_cy, typeid=1, position=0)
+        >>> assert main_cy.storagemodels.typeids[0] == 1
+        >>> assert main_cy.cymodel.storagemodels._get_typeid(0) == 1
+        >>> assert main_cy.storagemodels.submodels[0] is sub_cy
+        >>> assert main_cy.cymodel.storagemodels._get_submodel(0) is sub_cy.cymodel
+        >>> assert main_cy.storagemodels.typeids[1] == 0
+        >>> assert main_cy.cymodel.storagemodels._get_typeid(1) == 0
+        >>> assert main_cy.storagemodels.submodels[1] is None
+        >>> assert main_cy.cymodel.storagemodels._get_submodel(1) is None
+
+        Connecting a pure Python mode main model with a Cython mode submodel causes no
+        harm:
+
+        >>> main_py.storagemodels.number = 0
+        >>> main_py.storagemodels.number = 2
+        >>> main_py.storagemodels.put_submodel(submodel=sub_cy, typeid=1, position=0)
+        >>> assert main_py.storagemodels.typeids[0] == 1
+        >>> assert main_py.storagemodels.submodels[0] is sub_cy
+        >>> assert main_py.storagemodels.typeids[1] == 0
+        >>> assert main_py.storagemodels.submodels[1] is None
+
+        However, connecting a Cython mode main model with a pure Python mode submodel
+        would result in erroneous calculations and thus raises the following error:
+
+        >>> main_cy.storagemodels.number = 0
+        >>> main_cy.storagemodels.number = 2
+        >>> main_cy.storagemodels.put_submodel(submodel=sub_py, typeid=1, position=0)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: While trying to put submodel `sw1d_storage` to position `0` of \
+property `storagemodels` of the main model `sw1d_channel`, the following error \
+occurred: The main model is initialised in Cython mode, but the submodel is \
+initialised in pure Python mode so that the main model's cythonized methods could \
+apply the submodel's methods.
+        >>> assert main_cy.storagemodels.typeids[0] == 0
+        >>> assert main_cy.cymodel.storagemodels._get_typeid(0) == 0
+        >>> assert main_cy.storagemodels.submodels[0] is None
+        >>> assert main_cy.cymodel.storagemodels._get_submodel(0) is None
+        >>> assert main_cy.storagemodels.typeids[1] == 0
+        >>> assert main_cy.cymodel.storagemodels._get_typeid(1) == 0
+        >>> assert main_cy.storagemodels.submodels[1] is None
+        >>> assert main_cy.cymodel.storagemodels._get_submodel(1) is None
+
+        Method |SubmodelsProperty.put_submodel| checks if the given submodel follows
+        at least one supported interface:
+
+        >>> sub_py = prepare_model("sw1d_lias")
+        >>> main_py.storagemodels.number = 0
+        >>> main_py.storagemodels.number = 2
+        >>> main_py.storagemodels.put_submodel(submodel=sub_py, typeid=1, position=0)
+        Traceback (most recent call last):
+        ...
+        ValueError: While trying to put submodel `sw1d_lias` to position `0` of \
+property `storagemodels` of the main model `sw1d_channel`, the following error \
+occurred: The given submodel is not an instance of any of the following supported \
+interfaces: StorageModel_V1.
+        >>> assert main_py.storagemodels.typeids[0] == 0
+        >>> assert main_py.storagemodels.submodels[0] is None
+        >>> assert main_py.storagemodels.typeids[1] == 0
+        >>> assert main_py.storagemodels.submodels[1] is None
+        """
+        assert (mainmodel := self._mainmodel) is not None
+        try:
+            self._check_submodel_follows_interface(submodel)
+            if (cymain := mainmodel.cymodel) is not None:
+                if (cysub := submodel.cymodel) is None:
+                    raise RuntimeError(self._CYTHON_PYTHON_SUBMODEL_ERROR_MESSAGE)
+                cyprop: interfaceutils.SubmodelsProperty = getattr(cymain, self.name)
+                cyprop.put_submodel(submodel=cysub, typeid=typeid, position=position)
+            self.__hydpy_mainmodel2submodels__[mainmodel][position] = submodel
+            self._mainmodel2submodeltypeids[mainmodel][position] = typeid
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to put submodel `{submodel}` to position `{position}` "
+                f"of property `{self.name}` of the main model `{mainmodel}`"
+            )
+
+    def delete_submodel(self, position: int) -> None:
+        """Delete the submodel at the given position.
+
+        We prepare the main model and its submodel in Cython and pure Python mode to
+        test that |SubmodelsProperty.delete_submodel| works both in Cython and pure
+        Python Cython mode:
+
+        >>> from hydpy import prepare_model, pub
+        >>> with pub.options.usecython(False):
+        ...     main_py = prepare_model("sw1d_channel")
+        ...     sub_py = prepare_model("sw1d_storage")
+        >>> with pub.options.usecython(True):
+        ...     main_cy = prepare_model("sw1d_channel")
+        ...     sub_cy = prepare_model("sw1d_storage")
+
+        In pure Python mode, |SubmodelsProperty.delete_submodel| resets the entry in
+        the submodel vector to |None| and the type ID to zero:
+
+        >>> main_py.storagemodels.number = 3
+        >>> main_py.storagemodels.put_submodel(submodel=sub_py, typeid=1, position=1)
+        >>> assert main_py.storagemodels.typeids[1] == 1
+        >>> assert main_py.storagemodels.submodels[1] is sub_py
+
+        >>> main_py.storagemodels.delete_submodel(position=1)
+        >>> assert main_py.storagemodels.typeids[1] == 0
+        >>> assert main_py.storagemodels.submodels[1] is None
+
+        In Cython mode, |SubmodelsProperty.delete_submodel| does the same for the
+        analogue C vectors:
+
+        >>> main_cy.storagemodels.number = 3
+        >>> main_cy.storagemodels.put_submodel(submodel=sub_cy, typeid=1, position=1)
+        >>> assert main_cy.storagemodels.typeids[1] == 1
+        >>> assert main_cy.cymodel.storagemodels._get_typeid(1) == 1
+        >>> assert main_cy.storagemodels.submodels[1] is sub_cy
+        >>> assert main_cy.cymodel.storagemodels._get_submodel(1) is sub_cy.cymodel
+
+        >>> main_cy.storagemodels.delete_submodel(position=1)
+        >>> assert main_cy.storagemodels.typeids[1] == 0
+        >>> assert main_cy.cymodel.storagemodels._get_typeid(1) == 0
+        >>> assert main_cy.storagemodels.submodels[1] is None
+        >>> assert main_cy.cymodel.storagemodels._get_submodel(1) is None
+
+        Calling |SubmodelsProperty.delete_submodel| for a position with an existing
+        submodel does not raise a warning or error:
+
+        >>> main_cy.storagemodels.delete_submodel(position=1)
+
+        Potential errors are reported like this:
+
+        >>> main_cy.storagemodels.delete_submodel(position=3)
+        Traceback (most recent call last):
+        ...
+        IndexError: While trying to delete a submodel at position `3` of property \
+`storagemodels` of the main model `sw1d_channel`, the following error occurred: list \
+assignment index out of range
+        """
+        assert (mainmodel := self._mainmodel) is not None
+        try:
+            self.__hydpy_mainmodel2submodels__[mainmodel][position] = None
+            self._mainmodel2submodeltypeids[mainmodel][position] = 0
+            if (cymain := mainmodel.cymodel) is not None:
+                cyprop: interfaceutils.SubmodelsProperty = getattr(cymain, self.name)
+                cyprop.put_submodel(submodel=None, typeid=0, position=position)
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to delete a submodel at position `{position}` of "
+                f"property `{self.name}` of the main model `{mainmodel}`"
+            )
+
+    def append_submodel(
+        self, submodel: TypeSubmodelInterface, typeid: Optional[int] = None
+    ) -> None:
+        """Append a submodel and its relevant type ID to the already available ones.
+
+        We prepare the main model and its submodel in Cython and pure Python mode to
+        test that |SubmodelsProperty.append_submodel| works for all possible
+        combinations:
+
+        >>> from hydpy import prepare_model, pub
+        >>> with pub.options.usecython(False):
+        ...     main_py = prepare_model("sw1d_channel")
+        ...     sub_py = prepare_model("sw1d_storage")
+        >>> with pub.options.usecython(True):
+        ...     main_cy = prepare_model("sw1d_channel")
+        ...     sub_cy = prepare_model("sw1d_storage")
+
+        For two pure Python models, there is no need to bother with synchronising
+        cythonized models:
+
+        >>> main_py.storagemodels.append_submodel(submodel=sub_py, typeid=1)
+        >>> assert main_py.storagemodels.number == 1
+        >>> assert main_py.storagemodels.typeids[0] == 1
+        >>> assert main_py.storagemodels.submodels[0] is sub_py
+
+        If both models are initialised in Cython mode,
+        |SubmodelsProperty.append_submodel| updates |SubmodelsProperty.typeids| and
+        |SubmodelsProperty.submodels| as well as the corresponding vectors of the
+        cythonized models:
+
+        >>> main_cy.storagemodels.append_submodel(submodel=sub_cy, typeid=1)
+        >>> assert main_cy.storagemodels.number == 1
+        >>> assert main_cy.storagemodels.typeids[0] == 1
+        >>> assert main_cy.cymodel.storagemodels._get_typeid(0) == 1
+        >>> assert main_cy.storagemodels.submodels[0] is sub_cy
+        >>> assert main_cy.cymodel.storagemodels._get_submodel(0) is sub_cy.cymodel
+
+        Connecting a pure Python mode main model with a Cython mode submodel causes no
+        harm:
+
+        >>> main_py.storagemodels.append_submodel(submodel=sub_cy, typeid=1)
+        >>> assert main_py.storagemodels.number == 2
+        >>> assert main_py.storagemodels.typeids[0] == 1
+        >>> assert main_py.storagemodels.submodels[0] is sub_py
+        >>> assert main_py.storagemodels.typeids[1] == 1
+        >>> assert main_py.storagemodels.submodels[1] is sub_cy
+
+        However, connecting a Cython mode main model with a pure Python mode submodel
+        would result in erroneous calculations and thus raises the following error:
+
+        >>> main_cy.storagemodels.append_submodel(submodel=sub_py, typeid=1)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: While trying to append submodel `sw1d_storage` to property \
+`storagemodels` of the main model `sw1d_channel`, the following error occurred: The \
+main model is initialised in Cython mode, but the submodel is initialised in pure \
+Python mode so that the main model's cythonized methods could apply the submodel's \
+methods.
+
+        >>> assert main_cy.storagemodels.number == 1
+        >>> assert main_cy.storagemodels.typeids[0] == 1
+        >>> assert main_cy.cymodel.storagemodels._get_typeid(0) == 1
+        >>> assert main_cy.storagemodels.submodels[0] is sub_cy
+        >>> assert main_cy.cymodel.storagemodels._get_submodel(0) is sub_cy.cymodel
+
+        Method |SubmodelsProperty.append_submodel| checks if the given submodel follows
+        at least one supported interface:
+
+        >>> sub_wrong = prepare_model("sw1d_lias")
+        >>> main_py.storagemodels.append_submodel(submodel=sub_wrong, typeid=1)
+        Traceback (most recent call last):
+        ...
+        ValueError: While trying to append submodel `sw1d_lias` to property \
+`storagemodels` of the main model `sw1d_channel`, the following error occurred: The \
+given submodel is not an instance of any of the following supported interfaces: \
+StorageModel_V1.
+
+        >>> assert main_py.storagemodels.number == 2
+        >>> assert main_py.storagemodels.typeids[0] == 1
+        >>> assert main_py.storagemodels.submodels[0] is sub_py
+        >>> assert main_py.storagemodels.typeids[1] == 1
+        >>> assert main_py.storagemodels.submodels[1] is sub_cy
+
+        For convenience, you can omit to pass the type ID.
+        |SubmodelsProperty.append_submodel| then detects the first suitable ID
+        automatically:
+
+        >>> main_py.routingmodels.append_submodel(prepare_model("sw1d_weir_out"))
+        >>> main_py.routingmodels.append_submodel(prepare_model("sw1d_q_in"))
+        >>> main_py.routingmodels.append_submodel(prepare_model("sw1d_lias"))
+        >>> assert main_py.routingmodels.number == 3
+        >>> assert main_py.routingmodels.typeids == (3, 1, 2)
+
+        Method |SubmodelsProperty.append_submodel| checks if the given submodel follows
+        at least one supported interface:
+
+        >>> main_py.routingmodels[0].routingmodelsupstream.append_submodel(
+        ...     prepare_model("sw1d_q_out"))
+        Traceback (most recent call last):
+        ...
+        ValueError: While trying to append submodel `sw1d_q_out` to property \
+`routingmodelsupstream` of the main model `sw1d_weir_out`, the following error \
+occurred: The given submodel is not an instance of any of the following supported \
+interfaces: RoutingModel_V1 and RoutingModel_V2.
+        """
+        assert (mainmodel := self._mainmodel) is not None
+        try:
+            if typeid is None:
+                typeid = self._find_first_suitable_interface(submodel).typeid
+            else:
+                self._check_submodel_follows_interface(submodel)
+            if (cymain := mainmodel.cymodel) is not None:
+                if (cysub := submodel.cymodel) is None:
+                    raise RuntimeError(self._CYTHON_PYTHON_SUBMODEL_ERROR_MESSAGE)
+                cyprop: interfaceutils.SubmodelsProperty = getattr(cymain, self.name)
+                cyprop.append_submodel(submodel=cysub, typeid=typeid)
+            self._mainmodel2numbersubmodels[mainmodel] += 1
+            self.__hydpy_mainmodel2submodels__[mainmodel].append(submodel)
+            self._mainmodel2submodeltypeids[mainmodel].append(typeid)
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to append submodel `{submodel}` to property "
+                f"`{self.name}` of the main model `{mainmodel}`"
+            )
+
+    @property
+    def submodels(self) -> tuple[Optional[TypeSubmodelInterface], ...]:
+        """The currently handled submodels.
+
+        >>> from hydpy import prepare_model
+        >>> main = prepare_model("sw1d_channel")
+        >>> sub1 = prepare_model("sw1d_q_in")
+        >>> sub2 = prepare_model("sw1d_lias")
+        >>> main.routingmodels.append_submodel(submodel=sub1, typeid=1)
+        >>> main.routingmodels.append_submodel(submodel=sub2, typeid=1)
+        >>> assert main.routingmodels.submodels == (sub1, sub2)
+        """
+        assert (mainmodel := self._mainmodel) is not None
+        return tuple(self.__hydpy_mainmodel2submodels__[mainmodel])
+
+    @property
+    def typeids(self) -> tuple[int, ...]:
+        """The interface-specific type IDs of the currently handled submodels.
+
+        >>> from hydpy import prepare_model
+        >>> main = prepare_model("sw1d_channel")
+        >>> sub1 = prepare_model("sw1d_q_in")
+        >>> sub2 = prepare_model("sw1d_lias")
+        >>> main.routingmodels.append_submodel(submodel=sub1, typeid=1)
+        >>> main.routingmodels.append_submodel(submodel=sub2, typeid=1)
+        >>> assert main.routingmodels.typeids == (1, 1)
+        """
+        assert (mainmodel := self._mainmodel) is not None
+        return tuple(self._mainmodel2submodeltypeids[mainmodel])
+
+    def __getitem__(self, value: int) -> Optional[TypeSubmodelInterface]:
+        assert (mainmodel := self._mainmodel) is not None
+        return self.__hydpy_mainmodel2submodels__[mainmodel][value]
+
+    def __iter__(self) -> Iterator[Optional[TypeSubmodelInterface]]:
+        assert (mainmodel := self._mainmodel) is not None
+        yield from self.__hydpy_mainmodel2submodels__[mainmodel]
+
+    def __len__(self) -> int:
+        return self.number
 
 
 class SubmodelIsMainmodelProperty:
@@ -265,26 +836,24 @@ class SubmodelIsMainmodelProperty:
     1
     """
 
-    _owner2value: Dict[Model, bool]
+    _owner2value: dict[Model, bool]
     _name: Final[str]  # type: ignore[misc]
 
     def __init__(self, doc: Optional[str] = None) -> None:
         self._owner2value = {}
         self.__doc__ = doc
 
-    def __set_name__(self, owner: Type[Model], name: str) -> None:
+    def __set_name__(self, owner: type[Model], name: str) -> None:
         self._name = name  # type: ignore[misc]
 
     @overload
-    def __get__(self, obj: None, objtype: Optional[Type[Model]]) -> Self:
-        ...
+    def __get__(self, obj: None, objtype: Optional[type[Model]]) -> Self: ...
 
     @overload
-    def __get__(self, obj: Model, objtype: Optional[Type[Model]]) -> bool:
-        ...
+    def __get__(self, obj: Model, objtype: Optional[type[Model]]) -> bool: ...
 
     def __get__(
-        self, obj: Optional[Model], objtype: Optional[Type[Model]] = None
+        self, obj: Optional[Model], objtype: Optional[type[Model]] = None
     ) -> Union[Self, bool]:
         if obj is None:
             return self
@@ -319,26 +888,24 @@ class SubmodelTypeIDProperty:
     1
     """
 
-    _owner2value: Dict[Model, int]
+    _owner2value: dict[Model, int]
     _name: Final[str]  # type: ignore[misc]
 
     def __init__(self, doc: Optional[str] = None) -> None:
         self._owner2value = {}
         self.__doc__ = doc
 
-    def __set_name__(self, owner: Type[Model], name: str) -> None:
+    def __set_name__(self, owner: type[Model], name: str) -> None:
         self._name = name  # type: ignore[misc]
 
     @overload
-    def __get__(self, obj: None, objtype: Optional[Type[Model]]) -> Self:
-        ...
+    def __get__(self, obj: None, objtype: Optional[type[Model]]) -> Self: ...
 
     @overload
-    def __get__(self, obj: Model, objtype: Optional[Type[Model]]) -> int:
-        ...
+    def __get__(self, obj: Model, objtype: Optional[type[Model]]) -> int: ...
 
     def __get__(
-        self, obj: Optional[Model], objtype: Optional[Type[Model]] = None
+        self, obj: Optional[Model], objtype: Optional[type[Model]] = None
     ) -> Union[Self, int]:
         if obj is None:
             return self
@@ -359,14 +926,12 @@ class IndexProperty:
         self.name = name.lower()
 
     @overload
-    def __get__(self, obj: Model, objtype: Type[Model]) -> int:
-        ...
+    def __get__(self, obj: Model, objtype: type[Model]) -> int: ...
 
     @overload
-    def __get__(self, obj: None, objtype: Type[Model]) -> Self:
-        ...
+    def __get__(self, obj: None, objtype: type[Model]) -> Self: ...
 
-    def __get__(self, obj: Optional[Model], objtype: Type[Model]) -> Union[Self, int]:
+    def __get__(self, obj: Optional[Model], objtype: type[Model]) -> Union[Self, int]:
         if obj is None:
             return self
         if obj.cymodel:
@@ -493,37 +1058,45 @@ class Model:
     masks: masktools.Masks
     idx_sim = Idx_Sim()
 
-    _element: Optional[devicetools.Element]
+    __hydpy_element__: Optional[devicetools.Element]
     _NAME: ClassVar[str]
 
-    INLET_METHODS: ClassVar[Tuple[Type[Method], ...]]
-    OUTLET_METHODS: ClassVar[Tuple[Type[Method], ...]]
-    RECEIVER_METHODS: ClassVar[Tuple[Type[Method], ...]]
-    SENDER_METHODS: ClassVar[Tuple[Type[Method], ...]]
-    ADD_METHODS: ClassVar[Tuple[Callable, ...]]
-    METHOD_GROUPS: ClassVar[Tuple[str, ...]]
-    SUBMODELINTERFACES: ClassVar[Tuple[Type[SubmodelInterface], ...]]
-    SUBMODELS: ClassVar[Tuple[Type[Submodel], ...]]
+    INLET_METHODS: ClassVar[tuple[type[Method], ...]]
+    OUTLET_METHODS: ClassVar[tuple[type[Method], ...]]
+    RECEIVER_METHODS: ClassVar[tuple[type[Method], ...]]
+    SENDER_METHODS: ClassVar[tuple[type[Method], ...]]
+    ADD_METHODS: ClassVar[tuple[Callable, ...]]
+    METHOD_GROUPS: ClassVar[tuple[str, ...]]
+    SUBMODELINTERFACES: ClassVar[tuple[type[SubmodelInterface], ...]]
+    SUBMODELS: ClassVar[tuple[type[Submodel], ...]]
 
-    SOLVERPARAMETERS: Tuple[Type[parametertools.Parameter], ...] = ()
+    SOLVERPARAMETERS: tuple[type[parametertools.Parameter], ...] = ()
+
+    REUSABLE_METHODS: ClassVar[tuple[type[ReusableMethod], ...]]
+
+    COMPOSITE: bool = False
+    """Flag for informing whether the respective |Model| subclass is usually not 
+    directly applied by model users but behind the scenes for compositing all models 
+    owned by elements belonging to the same |Element.collective| (see method 
+    |Elements.unite_collectives|)."""
 
     def __init__(self) -> None:
         self.cymodel = None
-        self._element = None
+        self.__hydpy_element__ = None
         self._init_methods()
 
     def _init_methods(self) -> None:
         """Convert all pure Python calculation functions of the model class to methods
         and assign them to the model instance."""
-        blacklist_longnames: Set[str] = set()
-        blacklist_shortnames: Set[str] = set()
-        shortname2method: Dict[str, types.MethodType] = {}
+        blacklist_shortnames: set[str] = set()
+        shortname2method: dict[str, types.MethodType] = {}
         for cls_ in self.get_methods():
             longname = cls_.__name__.lower()
-            if longname in blacklist_longnames:
-                continue
-            blacklist_longnames.add(longname)
-            method = types.MethodType(cls_.__call__, self)
+            if issubclass(cls_, ReusableMethod):
+                setattr(self, cls_.REUSEMARKER, False)
+                method = types.MethodType(cls_.call_reusablemethod, self)
+            else:
+                method = types.MethodType(cls_.__call__, self)
             setattr(self, longname, method)
             shortname = longname.rpartition("_")[0]
             if shortname in blacklist_shortnames:
@@ -577,7 +1150,7 @@ connected to an `Element` so far.
         hydpy.core.exceptiontools.AttributeNotReady: The model object of element `e` \
 has been requested but not been prepared so far.
         """
-        if (element := self._element) is None:
+        if (element := self.__hydpy_element__) is None:
             raise exceptiontools.AttributeNotReady(
                 f"Model `{self.name}` is not connected to an `Element` so far."
             )
@@ -585,18 +1158,20 @@ has been requested but not been prepared so far.
 
     @element.setter
     def element(self, element: devicetools.Element) -> None:
-        for model in self.find_submodels(include_mainmodel=True).values():
-            model._element = element  # pylint: disable=protected-access
+        self.__hydpy_element__ = element
+        if not self.COMPOSITE:
+            for model in self.find_submodels().values():
+                model.__hydpy_element__ = element
         if exceptiontools.getattr_(element, "model", None) is not self:
             element.model = self
 
     @element.deleter
     def element(self) -> None:
-        if (element := self._element) is not None:
+        if (element := self.__hydpy_element__) is not None:
             if exceptiontools.getattr_(element, "model", None) is self:
                 del element.model
         for model in self.find_submodels(include_mainmodel=True).values():
-            model._element = None  # pylint: disable=protected-access
+            model.__hydpy_element__ = None
 
     def connect(self) -> None:
         """Connect all |LinkSequence| objects and the selected |InputSequence| and
@@ -727,19 +1302,18 @@ The following nodes have not been connected to any sequences: in2.
         separate output nodes, whereas all other fluxes and states do not.  This
         functionality requires telling each node which sequence it should connect to,
         which we do by passing the sequence types (or the globally available aliases
-        `hland_P`, `hland_Q0`, and `hland_UZ`) to the `variable` keyword of different
-        node objects:
+        `hland_inputs_P`, `hland_fluxes_Q0`, and `hland_states_UZ`) to the `variable`
+        keyword of different node objects:
 
         >>> from hydpy import pub
-        >>> from hydpy.inputs import hland_P
-        >>> from hydpy.outputs import hland_Q0, hland_UZ
+        >>> from hydpy.aliases import hland_inputs_P, hland_fluxes_Q0, hland_states_UZ
         >>> pub.timegrids = "2000-01-01", "2000-01-06", "1d"
 
-        >>> inp1 = Node("inp1", variable=hland_P)
-        >>> outp1 = Node("outp1", variable=hland_Q0)
-        >>> outp2 = Node("outp2", variable=hland_UZ)
-        >>> element8 = Element(
-        ...     "element8", outlets=out1, inputs=inp1, outputs=[outp1, outp2])
+        >>> inp1 = Node("inp1", variable=hland_inputs_P)
+        >>> outp1 = Node("outp1", variable=hland_fluxes_Q0)
+        >>> outp2 = Node("outp2", variable=hland_states_UZ)
+        >>> element8 = Element("element8", outlets=out1, inputs=inp1,
+        ...                    outputs=[outp1, outp2])
         >>> element8.model = prepare_model("hland_v1")
         >>> element8.prepare_inputseries()
         >>> element8.model.sequences.inputs.t.series = 1.0, 2.0, 3.0, 4.0, 5.0
@@ -763,11 +1337,10 @@ The following nodes have not been connected to any sequences: in2.
         realistic example):
 
         >>> from hydpy import FusedVariable
-        >>> from hydpy.inputs import lland_Nied
-        >>> from hydpy.outputs import lland_QDGZ
-        >>> Precip = FusedVariable("Precip", hland_P, lland_Nied)
+        >>> from hydpy.aliases import lland_inputs_Nied, lland_fluxes_QDGZ
+        >>> Precip = FusedVariable("Precip", hland_inputs_P, lland_inputs_Nied)
         >>> inp2 = Node("inp2", variable=Precip)
-        >>> FastRunoff = FusedVariable("FastRunoff", hland_Q0, lland_QDGZ)
+        >>> FastRunoff = FusedVariable("FastRunoff", hland_fluxes_Q0, lland_fluxes_QDGZ)
         >>> outp3 = Node("outp3", variable=FastRunoff)
         >>> element9 = Element("element9", outlets=out1, inputs=inp2, outputs=outp3)
         >>> element9.model = prepare_model("hland_v1")
@@ -783,17 +1356,16 @@ The following nodes have not been connected to any sequences: in2.
         Method |Model.connect| reports if one of the given fused variables does not
         find a fitting sequence:
 
-        >>> from hydpy.inputs import lland_TemL
-        >>> Wrong = FusedVariable("Wrong", lland_Nied, lland_TemL)
+        >>> from hydpy.aliases import lland_inputs_TemL
+        >>> Wrong = FusedVariable("Wrong", lland_inputs_Nied, lland_inputs_TemL)
         >>> inp3 = Node("inp3", variable=Wrong)
         >>> element10 = Element("element10", outlets=out1, inputs=inp3)
         >>> element10.model = prepare_model("hland_v1")
         Traceback (most recent call last):
         ...
-        TypeError: While trying to build the node connection of the `input` sequences \
-of the model handled by element `element10`, the following error occurred: None of \
-the input sequences of model `hland_v1` is among the sequences of the fused variable \
-`Wrong` of node `inp3`.
+        RuntimeError: While trying to build the node connection of the `input` \
+sequences of the model handled by element `element10`, the following error occurred: \
+The following nodes have not been connected to any sequences: inp3.
 
         >>> outp4 = Node("outp4", variable=Wrong)
         >>> element11 = Element("element11", outlets=out1, outputs=outp4)
@@ -805,16 +1377,16 @@ sequences of the model handled by element `element11`, the following error occur
 None of the output sequences of model `hland_v1` is among the sequences of the fused \
 variable `Wrong` of node `outp4`.
 
-        Selecting wrong sequences results in the following error messages:
+        Selecting the wrong sequences results in the following error messages:
 
-        >>> outp5 = Node("outp5", variable=hland_Q0)
+        >>> outp5 = Node("outp5", variable=hland_fluxes_Q0)
         >>> element12 = Element("element12", outlets=out1, inputs=outp5)
         >>> element12.model = prepare_model("hland_v1")
         Traceback (most recent call last):
         ...
-        TypeError: While trying to build the node connection of the `input` sequences \
-of the model handled by element `element12`, the following error occurred: No input \
-sequence of model `hland_v1` is named `q0`.
+        RuntimeError: While trying to build the node connection of the `input` \
+sequences of the model handled by element `element12`, the following error occurred: \
+The following nodes have not been connected to any sequences: outp5.
 
         >>> inp5 = Node("inp5", variable="P")
         >>> element13 = Element("element13", outlets=out1, outputs=inp5)
@@ -837,6 +1409,46 @@ flux, or state sequence of model `hland_v1` is named `p`.
 of the model handled by element `element14`, the following error occurred: Only \
 connections with 0-dimensional output sequences are supported, but sequence `pc` is \
 1-dimensional.
+
+        |FusedVariable| also supports |ReceiverSequence| for passing information from
+        output nodes to receiver sequences (instead of input sequences, which we
+        demonstrated in the above examples).  We take the receiver sequences
+        |dam_receivers.OWL| (outer water level) and |dam_receivers.RWL| (remote water
+        level) used by the application model |dam_pump| as an example:
+
+        >>> from hydpy.aliases import dam_receivers_OWL, dam_receivers_RWL
+
+        One |dam_pump| instance (handled by element `dam1`) shall receive the water
+        level (|dam_factors.WaterLevel|) of two independent |dam_pump| instances.
+        `dam1` interprets the water level of `dam2` as its outer water level and the
+        water level of `dam3` as its remote water level:
+
+        >>> from hydpy.aliases import dam_factors_WaterLevel
+        >>> owl = FusedVariable("OWL", dam_receivers_OWL, dam_factors_WaterLevel)
+        >>> rwl = FusedVariable("RWL", dam_receivers_RWL, dam_factors_WaterLevel)
+        >>> n21, n31 = Node("n21", variable=owl), Node("n31", variable=rwl)
+        >>> x, y = Node("x", variable=owl), Node("y", variable=rwl)
+        >>> dam1 = Element("dam1", inlets="n01", outlets="n12",
+        ...                receivers=(n21, n31))
+        >>> dam2 = Element("dam2", inlets="n12", outlets="n23",
+        ...                receivers=(x,y), outputs=n21)
+        >>> dam3 = Element("dam3", inlets="n23", outlets="n34",
+        ...                receivers=(x, y), outputs=n31)
+        >>> dam1.model = prepare_model("dam_pump")
+        >>> dam2.model = prepare_model("dam_pump")
+        >>> dam3.model = prepare_model("dam_pump")
+
+        We confirm that all connections are correctly built by letting `dam2` and
+        `dam3` send different water levels:
+
+        >>> dam2.model.sequences.factors.waterlevel = 2.0
+        >>> dam2.model.update_outputs()
+        >>> dam3.model.sequences.factors.waterlevel = 3.0
+        >>> dam3.model.update_outputs()
+        >>> dam1.model.sequences.receivers.owl
+        owl(2.0)
+        >>> dam1.model.sequences.receivers.rwl
+        rwl(3.0)
 
         .. testsetup::
 
@@ -864,31 +1476,8 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                 f"`{objecttools.devicename(self)}`"
             )
 
-    def _connect_inputs(self) -> None:
-        for node in self.element.inputs:
-            if isinstance(node.variable, devicetools.FusedVariable):
-                connected = False
-                for submodel in self.find_submodels(include_mainmodel=True).values():
-                    for sequence in submodel.sequences.inputs:
-                        if sequence in node.variable:
-                            sequence.set_pointer(node.get_double("inputs"))
-                            connected = True
-                            break
-                if not connected:
-                    submodelphrase = objecttools.submodelphrase(self)
-                    raise TypeError(
-                        f"None of the input sequences of {submodelphrase} is among "
-                        f"the sequences of the fused variable `{node.variable}` of "
-                        f"node `{node.name}`."
-                    )
-            else:
-                name = self._determine_name(node.variable)
-                sequence_ = getattr(self.sequences.inputs, name, None)
-                if sequence_ is None:
-                    raise TypeError(
-                        f"No input sequence of model `{self}` is named `{name}`."
-                    )
-                sequence_.set_pointer(node.get_double("inputs"))
+    def _connect_inputs(self, report_noconnect: bool = True) -> None:
+        self._connect_subgroup("inputs", report_noconnect)
 
     def _connect_outputs(self) -> None:
         def _set_pointer(
@@ -940,49 +1529,67 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
             return var.lower()
         return var.__name__.lower()
 
-    def _connect_inlets(self) -> None:
-        self._connect_subgroup("inlets")
+    def _connect_inlets(self, report_noconnect: bool = True) -> None:
+        self._connect_subgroup("inlets", report_noconnect, 0)
 
-    def _connect_receivers(self) -> None:
-        self._connect_subgroup("receivers")
+    def _connect_receivers(self, report_noconnect: bool = True) -> None:
+        self._connect_subgroup("receivers", report_noconnect, -1)
 
-    def _connect_outlets(self) -> None:
-        self._connect_subgroup("outlets")
+    def _connect_outlets(self, report_noconnect: bool = True) -> None:
+        self._connect_subgroup("outlets", report_noconnect, -1)
 
-    def _connect_senders(self) -> None:
-        self._connect_subgroup("senders")
+    def _connect_senders(self, report_noconnect: bool = True) -> None:
+        self._connect_subgroup("senders", report_noconnect, 0)
 
-    def _connect_subgroup(self, group: str) -> None:
+    def _connect_subgroup(
+        self,
+        group: str,
+        report_noconnect: bool,
+        position: Optional[Literal[0, -1]] = None,
+    ) -> None:
+        st = sequencetools
         available_nodes = getattr(self.element, group)
-        links = getattr(self.sequences, group, ())
         applied_nodes = []
-        for seq in links:
-            selected_nodes = tuple(
-                node
-                for node in available_nodes
-                if str(node.variable).lower() == seq.name
-            )
-            if seq.NDIM == 0:
-                if not selected_nodes:
-                    raise RuntimeError(
-                        f"Sequence {objecttools.elementphrase(seq)} cannot be "
-                        f"connected due to no available node handling variable "
-                        f"`{seq.name.upper()}`."
-                    )
-                if len(selected_nodes) > 1:
-                    raise RuntimeError(
-                        f"Sequence `{seq.name}` cannot be connected as it is "
-                        f"0-dimensional but multiple nodes are available which are "
-                        f"handling variable `{seq.name.upper()}`."
-                    )
-                applied_nodes.append(selected_nodes[0])
-                seq.set_pointer(selected_nodes[0].get_double(group))
-            elif seq.NDIM == 1:
-                seq.shape = len(selected_nodes)
-                for idx, node in enumerate(selected_nodes):
-                    applied_nodes.append(node)
-                    seq.set_pointer(node.get_double(group), idx)
-        if len(applied_nodes) < len(available_nodes):
+        for submodel in self.find_submodels(
+            include_mainmodel=True, position=position
+        ).values():
+            sequences = submodel.sequences[group]
+            for sequence in sequences:
+                selected_nodes = []
+                for node in available_nodes:
+                    if isinstance(var := node.variable, devicetools.FusedVariable):
+                        if sequence in var:
+                            selected_nodes.append(node)
+                    else:
+                        name = var.lower() if isinstance(var, str) else var.name
+                        if name == sequence.name:
+                            selected_nodes.append(node)
+                if sequence.NDIM == 0:
+                    if not selected_nodes:
+                        if (group == "inputs") or not report_noconnect:
+                            # see https://github.com/nedbat/coveragepy/issues/198:
+                            continue  # pragma: no cover
+                        raise RuntimeError(
+                            f"Sequence {objecttools.elementphrase(sequence)} cannot "
+                            f"be connected due to no available node handling variable "
+                            f"`{sequence.name.upper()}`."
+                        )
+                    if len(selected_nodes) > 1:
+                        raise RuntimeError(
+                            f"Sequence `{sequence.name}` cannot be connected as it is "
+                            f"0-dimensional but multiple nodes are available which "
+                            f"are handling variable `{type(sequence).__name__}`."
+                        )
+                    applied_nodes.append(selected_nodes[0])
+                    assert isinstance(sequence, (st.InputSequence, st.LinkSequence))
+                    sequence.set_pointer(selected_nodes[0].get_double(group))
+                elif sequence.NDIM == 1:
+                    sequence.shape = len(selected_nodes)
+                    for idx, node in enumerate(selected_nodes):
+                        applied_nodes.append(node)
+                        assert isinstance(sequence, st.LinkSequence)
+                        sequence.set_pointer(node.get_double(group), idx)
+        if report_noconnect and (len(applied_nodes) < len(available_nodes)):
             remaining_nodes = [
                 node.name for node in available_nodes if node not in applied_nodes
             ]
@@ -1162,8 +1769,12 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         """
         lines = ["# -*- coding: utf-8 -*-\n", f"from hydpy.models.{self} import *"]
         if import_submodels:
-            for submodel in self.find_submodels(include_subsubmodels=True).values():
-                lines.append(f"from hydpy.models import {submodel}")
+            names = []
+            for submodel in self.find_submodels().values():
+                if (name := submodel.name) not in names:
+                    names.append(name)
+            for name in sorted(names):
+                lines.append(f"from hydpy.models import {name}")
         options = hydpy.pub.options
         with options.parameterstep(parameterstep):
             if simulationstep is None:
@@ -1180,12 +1791,9 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         simulationstep: Optional[timetools.PeriodConstrArg] = None,
         auxfiler: Optional[auxfiletools.Auxfiler] = None,
         sublevel: int = 0,
-        ignore: Optional[Tuple[Type[parametertools.Parameter], ...]] = None,
-    ) -> List[str]:
-        if auxfiler is None:
-            parameter2auxfile = None
-        else:
-            parameter2auxfile = auxfiler.get(self)
+        ignore: Optional[tuple[type[parametertools.Parameter], ...]] = None,
+    ) -> list[str]:
+        parameter2auxfile = None if auxfiler is None else auxfiler.get(self)
         lines = []
         opts = hydpy.pub.options
         with opts.parameterstep(parameterstep), opts.simulationstep(simulationstep):
@@ -1286,53 +1894,149 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
 filename must be known.  This can be done, by passing a filename to function \
 `save_controls` directly.  But in complete HydPy applications, it is usally assumed \
 to be consistent with the name of the element handling the model.
+
+        Submodels like |meteo_v001| allow using their instances by multiple main
+        models.  We prepare such a case by selecting such an instance as the submodel
+        of the absolute main model |lland_v3| and the the relative submodel
+        |evap_morsim|:
+
+        >>> from hydpy.core.importtools import reverse_model_wildcard_import
+        >>> reverse_model_wildcard_import()
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2001-01-02", "1d"
+        >>> from hydpy.models.lland_v3 import *
+        >>> parameterstep()
+        >>> nhru(1)
+        >>> ft(1.0)
+        >>> fhru(1.0)
+        >>> lnk(ACKER)
+        >>> measuringheightwindspeed(10.0)
+        >>> lai(3.0)
+        >>> wmax(300.0)
+        >>> with model.add_radiationmodel_v1("meteo_v001") as meteo_v001:
+        ...     latitude(50.0)
+        >>> with model.add_aetmodel_v1("evap_morsim"):
+        ...     measuringheightwindspeed(2.0)
+        ...     model.add_radiationmodel_v1(meteo_v001)
+
+        To avoid name collisions, |Model.save_controls| prefixes the string `submodel_`
+        to the submodel name (which is identical to the submodel module's name) to
+        create the name of the variable that references the shared model's instance:
+
+        >>> with Open():  # doctest: +ELLIPSIS
+        ...     model.save_controls(filepath="otherdir/otherfile.py")
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        otherdir/otherfile.py
+        --------------------------------------------------------------------------------
+        # -*- coding: utf-8 -*-
+        ...
+        from hydpy.models.lland_v3 import *
+        from hydpy.models import evap_morsim
+        from hydpy.models import meteo_v001
+        ...
+        simulationstep("1d")
+        parameterstep("1d")
+        ...
+        ft(1.0)
+        ...
+        measuringheightwindspeed(10.0)
+        ...
+        with model.add_aetmodel_v1(evap_morsim):
+            measuringheightwindspeed(2.0)
+            ...
+            with model.add_radiationmodel_v1(meteo_v001) as submodel_meteo_v001:
+                latitude(50.0)
+                ...
+        model.add_radiationmodel_v1(submodel_meteo_v001)
+        ...
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         """
 
         def _extend_lines_submodel(
-            model: Model, sublevel: int, general_methods: Set[str]
+            model: Model, sublevel: int, preparemethods: set[str]
         ) -> None:
+            def _find_adder_and_position() -> (
+                tuple[importtools.SubmodelAdder, Optional[str]]
+            ):
+                mt2sn2as = importtools.SubmodelAdder.__hydpy_maintype2subname2adders__
+                subname, position = name.rpartition(".")[2], None
+                for modeltype in inspect.getmro(type(model)):
+                    if (name2adders := mt2sn2as.get(modeltype)) is not None:
+                        if subname.rsplit("_")[-1].isnumeric():
+                            subname, position = subname.rsplit("_")
+                        for adder in name2adders[subname]:
+                            if isinstance(submodel, adder.submodelinterface):
+                                return adder, position
+                assert False
+
             sublevel += 1
             for name, submodel in model.find_submodels(
-                include_subsubmodels=False
+                include_subsubmodels=False, repeat_sharedmodels=True
             ).items():
-                t2n2a = importtools.SubmodelAdder.modeltype2submodelname2submodeladder
-                subname = name.rpartition(".")[2]
-                for modeltype in inspect.getmro(type(model)):
-                    if (name2adder := t2n2a.get(modeltype)) is not None:
-                        if (adder := name2adder.get(subname)) is not None:
-                            break
-                else:
-                    assert False
-                lines.append(
-                    f"{(sublevel - 1) * '    '}with "
-                    f"model.{adder.wrapped.__name__}({submodel}):\n"
-                )
-                all_methods: Set[str] = general_methods.copy()
-                for method in adder.methods:
-                    methodname = method.__name__
-                    all_methods.add(methodname)
-                    if methodname in SubmodelInterface.GENERAL_METHODS:
-                        general_methods.add(methodname)
-                targetparameters = set()
-                for methodname in all_methods:
-                    updater = getattr(submodel, methodname)
-                    if isinstance(updater, importtools.TargetParameterUpdater):
-                        targetparameters.add(updater.targetparameter)
-                lines.extend(
-                    submodel._get_controllines(  # pylint: disable=protected-access
-                        parameterstep=parameterstep,
-                        simulationstep=simulationstep,
-                        auxfiler=auxfiler,
-                        sublevel=sublevel,
-                        ignore=tuple(targetparameters),
+                adder, position = _find_adder_and_position()
+                importtools.TargetParameterUpdater.testmode = True
+                try:
+                    if position is None:
+                        adder.update(model, submodel, refresh=False)
+                    else:
+                        adder.update(
+                            model, submodel, position=int(position), refresh=False
+                        )
+                finally:
+                    importtools.TargetParameterUpdater.testmode = False
+                position = "" if position is None else f", position={position}"
+                addername = adder.get_wrapped().__name__
+                indent = (sublevel - 1) * "    "
+                if submodel in visited_shared_submodels:
+                    lines.append(
+                        f"{indent}model.{addername}(submodel_{submodel}{position})\n"
                     )
-                )
-                _extend_lines_submodel(
-                    model=submodel, sublevel=sublevel, general_methods=general_methods
-                )
+                else:
+                    line = f"{indent}with model.{addername}({submodel}{position})"
+                    if submodel in shared_submodels:
+                        assert isinstance(submodel, SharableSubmodelInterface)
+                        visited_shared_submodels.add(submodel)
+                        line = f"{line} as submodel_{submodel}:\n"
+                    else:
+                        line = f"{line}:\n"
+                    lines.append(line)
+                    preparemethods_ = preparemethods.copy()
+                    for method in adder.methods:
+                        preparemethods_.add(method.__name__)
+                    targetparameters = set()
+                    for methodname in preparemethods_:
+                        updater = getattr(submodel, methodname, None)
+                        if (
+                            isinstance(updater, importtools.TargetParameterUpdater)
+                            and ((old := updater.values_orig.get(submodel)) is not None)
+                            and ((new := updater.values_test.get(submodel)) is not None)
+                            and objecttools.is_equal(old, new)
+                        ):
+                            targetparameters.add(updater.targetparameter)
+                    submodellines = (
+                        submodel._get_controllines(  # pylint: disable=protected-access
+                            parameterstep=parameterstep,
+                            simulationstep=simulationstep,
+                            auxfiler=auxfiler,
+                            sublevel=sublevel,
+                            ignore=tuple(targetparameters),
+                        )
+                    )
+                    if submodellines:
+                        lines.extend(submodellines)
+                    else:
+                        lines.append(f"{sublevel * '    '}pass\n")  # pragma: no cover
+                    _extend_lines_submodel(
+                        model=submodel,
+                        sublevel=sublevel,
+                        preparemethods=preparemethods_,
+                    )
 
         header = self.get_controlfileheader(
-            parameterstep=parameterstep, simulationstep=simulationstep
+            import_submodels=True,
+            parameterstep=parameterstep,
+            simulationstep=simulationstep,
         )
         lines = [header]
         lines.extend(
@@ -1343,8 +2047,25 @@ to be consistent with the name of the element handling the model.
                 sublevel=0,
             )
         )
-        _extend_lines_submodel(model=self, sublevel=0, general_methods=set())
+
+        submodels = tuple(self.find_submodels(repeat_sharedmodels=True).values())
+        sharable_submodels = set(
+            m for m in submodels if isinstance(m, SharableSubmodelInterface)
+        )
+        shared_submodels = set(m for m in sharable_submodels if submodels.count(m) > 1)
+        visited_shared_submodels: set[SharableSubmodelInterface] = set()
+
+        # ToDo: needs refactoring
+        for submodel in self.find_submodels().values():
+            submodel.preparemethod2arguments.clear()
+        try:
+            _extend_lines_submodel(model=self, sublevel=0, preparemethods=set())
+        finally:
+            for submodel in self.find_submodels().values():
+                submodel.preparemethod2arguments.clear()
+
         text = "".join(lines)
+
         if filepath:
             with open(filepath, mode="w", encoding="utf-8") as controlfile:
                 controlfile.write(text)
@@ -1360,9 +2081,307 @@ to be consistent with the name of the element handling the model.
                 )
             hydpy.pub.controlmanager.save_file(filename, text)
 
+    @contextlib.contextmanager
+    def define_conditions(
+        self, module: Optional[Union[types.ModuleType, str]] = None
+    ) -> Generator[None, None, None]:
+        """Allow defining the values of condition sequences in condition files
+        conveniently.
+
+        |Model.define_conditions| works similar to the "add_submodel" methods wrapped
+        by instances of class |SubmodelAdder| but is much simpler.  In combination with
+        the `with` statement, it makes the all relevant state and log sequences
+        temporarily directly available:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2001-01-01", "6h"
+        >>> from hydpy.models.lland_v3 import *
+        >>> parameterstep()
+        >>> nhru(2)
+        >>> ft(10.0)
+        >>> fhru(0.2, 0.8)
+        >>> lnk(ACKER, MISCHW)
+        >>> wmax(acker=100.0, mischw=200.0)
+        >>> measuringheightwindspeed(10.0)
+        >>> with model.add_aetmodel_v1("evap_morsim"):
+        ...     pass
+        >>> with model.aetmodel.define_conditions():
+        ...     loggedwindspeed2m(1.0, 3.0, 2.0, 4.0)
+        >>> loggedwindspeed2m
+        Traceback (most recent call last):
+        ...
+        NameError: name 'loggedwindspeed2m' is not defined
+        >>> model.aetmodel.sequences.logs.loggedwindspeed2m
+        loggedwindspeed2m(1.0, 3.0, 2.0, 4.0)
+
+        One can pass the submodel's module or name for documentation purposes:
+
+        >>> with model.aetmodel.define_conditions("evap_morsim"):
+        ...     loggedwindspeed2m(4.0, 2.0, 3.0, 1.0)
+        >>> loggedwindspeed2m
+        Traceback (most recent call last):
+        ...
+        NameError: name 'loggedwindspeed2m' is not defined
+        >>> model.aetmodel.sequences.logs.loggedwindspeed2m
+        loggedwindspeed2m(4.0, 2.0, 3.0, 1.0)
+
+        For misleading input, |Model.define_conditions| raises the following error:
+
+        >>> from hydpy.models import evap_aet_hbv96
+        >>> with model.aetmodel.define_conditions(evap_aet_hbv96):
+        ...     loggedwindspeed2m(1.0, 3.0, 2.0, 4.0)
+        Traceback (most recent call last):
+        ...
+        TypeError: While trying to define the conditions of (sub)model `evap_morsim`, \
+the following error occurred: (Sub)model `evap_morsim` is not of type `evap_aet_hbv96`.
+        >>> loggedwindspeed2m
+        Traceback (most recent call last):
+        ...
+        NameError: name 'loggedwindspeed2m' is not defined
+        >>> model.aetmodel.sequences.logs.loggedwindspeed2m
+        loggedwindspeed2m(4.0, 2.0, 3.0, 1.0)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+        """
+        try:
+            if module is not None:
+                if isinstance(module, str):
+                    module = importlib.import_module(f"hydpy.models.{module}")
+                if self.__module__ != module.__name__:
+                    raise TypeError(
+                        f"(Sub)model `{self.name}` is not of type "
+                        f"`{module.__name__.rpartition('.')[2]}`."
+                    )
+            assert (
+                ((frame1 := inspect.currentframe()) is not None)
+                and ((frame2 := frame1.f_back) is not None)
+                and ((frame3 := frame2.f_back) is not None)
+            )
+            namespace = frame3.f_locals
+            old_locals = namespace.get(importtools.__HYDPY_MODEL_LOCALS__, {})
+            new_locals = {}
+            for seq in self.sequences.conditionsequences:
+                new_locals[seq.name] = seq
+            try:
+                namespace[importtools.__HYDPY_MODEL_LOCALS__] = new_locals
+                namespace.update(new_locals)
+                yield
+            finally:
+                for name in new_locals:
+                    namespace.pop(name, None)
+                namespace.update(old_locals)
+                namespace[importtools.__HYDPY_MODEL_LOCALS__] = old_locals
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to define the conditions of (sub)model `{self.name}`"
+            )
+
+    def __prepare_conditionfilename(self, filename: Optional[str]) -> str:
+        if filename is None:
+            filename = objecttools.devicename(self)
+            if filename == "?":
+                raise RuntimeError(
+                    "To load or save the conditions of a model from or to a file, its "
+                    "filename must be known.  This can be done, by passing filename "
+                    "to method `load_conditions` or `save_conditions` directly.  But "
+                    "in complete HydPy applications, it is usally assumed to be "
+                    "consistent with the name of the element handling the model.  "
+                    "Actually, neither a filename is given nor does the model know "
+                    "its master element."
+                )
+        if not filename.endswith(".py"):
+            filename += ".py"
+        return filename
+
+    def load_conditions(self, filename: Optional[str] = None) -> None:
+        """Read the initial conditions from a file and assign them to the respective
+        |StateSequence| and |LogSequence| objects.
+
+        The documentation on method |HydPy.load_conditions| of class |HydPy| explains
+        how to read and write condition values for complete *HydPy* projects in the
+        most convenient manner.  However, using the underlying methods
+        |Model.load_conditions| and |Model.save_conditions| directly offers the
+        advantage of specifying alternative filenames.  We demonstrate this by using
+        the state sequence |hland_states.SM| if the `land_dill` |Element| object of the
+        `LahnH` example project:
+
+        >>> from hydpy.examples import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
+        >>> dill = hp.elements.land_dill.model
+        >>> dill.sequences.states.sm
+        sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
+           222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
+
+        We work in the freshly created condition directory `test`:
+
+        >>> with TestIO():
+        ...     pub.conditionmanager.currentdir = "test"
+
+        We set all soil moisture values to zero and write the updated values to file
+        `cold_start.py`:
+
+        >>> dill.sequences.states.sm(0.0)
+        >>> with TestIO():
+        ...     dill.save_conditions("cold_start.py")
+
+        Trying to reload from the written file (after changing the soil moisture values
+        again) without passing the file name fails due to the wrong assumption that the
+        element's name serves as the file name base:
+
+        >>> dill.sequences.states.sm(100.0)
+        >>> with TestIO():   # doctest: +ELLIPSIS
+        ...     dill.load_conditions()
+        Traceback (most recent call last):
+        ...
+        FileNotFoundError: While trying to load the initial conditions of element \
+`land_dill`, the following error occurred: [Errno 2] No such file or directory: \
+'...land_dill.py'
+
+        One does not need to explicitly state the file extensions (`.py`):
+
+        >>> with TestIO():
+        ...     dill.load_conditions("cold_start")
+        >>> dill.sequences.states.sm
+        sm(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+
+        Automatically determining the file name requires a proper reference to the
+        related |Element| object:
+
+        >>> del dill.element
+        >>> with TestIO():
+        ...     dill.save_conditions()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: While trying to save the actual conditions of element `?`, the \
+following error occurred: To load or save the conditions of a model from or to a file, \
+its filename must be known.  This can be done, by passing filename to method \
+`load_conditions` or `save_conditions` directly.  But in complete HydPy applications, \
+it is usally assumed to be consistent with the name of the element handling the \
+model.  Actually, neither a filename is given nor does the model know its master \
+element.
+
+        The submodels selected in the `LahnH` example project do not require any
+        condition sequences.  Hence, we replace the combination of |evap_aet_hbv96| and
+        |evap_pet_hbv96| with a plain |evap_morsim| instance, which relies on some log
+        sequences:
+
+        >>> with dill.add_aetmodel_v1("evap_morsim"):
+        ...     pass
+
+        The following code demonstrates that reading and writing of condition sequences
+        also works for submodels:
+
+        >>> logs = dill.aetmodel.sequences.logs
+        >>> logs.loggedairtemperature = 20.0
+        >>> logs.loggedwindspeed2m = 2.0
+        >>> with TestIO():   # doctest: +ELLIPSIS
+        ...     dill.save_conditions("submodel_conditions.py")
+        >>> logs.loggedairtemperature = 10.0
+        >>> logs.loggedwindspeed2m = 1.0
+        >>> with TestIO():   # doctest: +ELLIPSIS
+        ...     dill.load_conditions("submodel_conditions.py")
+        >>> logs.loggedairtemperature
+        loggedairtemperature(20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0,
+                             20.0, 20.0, 20.0, 20.0)
+        >>> logs.loggedwindspeed2m
+        loggedwindspeed2m(2.0)
+
+        .. testsetup::
+
+            >>> from hydpy import Element, Node, pub
+            >>> Element.clear_all()
+            >>> Node.clear_all()
+            >>> del pub.timegrids
+        """
+        hasconditions = any(
+            model.sequences.states or model.sequences.logs
+            for model in self.find_submodels(include_mainmodel=True).values()
+        )
+        if hasconditions:
+            try:
+                dict_ = locals()
+                for seq in self.sequences.conditionsequences:
+                    dict_[seq.name] = seq
+                dict_["model"] = self
+                filepath = os.path.join(
+                    hydpy.pub.conditionmanager.inputpath,
+                    self.__prepare_conditionfilename(filename),
+                )
+                runpy.run_path(filepath, init_globals=dict_)
+            except BaseException:
+                objecttools.augment_excmessage(
+                    f"While trying to load the initial conditions of element "
+                    f"`{objecttools.devicename(self)}`"
+                )
+
+    def save_conditions(self, filename: Optional[str] = None) -> None:
+        """Query the actual conditions of the |StateSequence| and |LogSequence| objects
+        and write them into an initial condition file.
+
+        See the documentation on method |Model.load_conditions| for further
+        information.
+        """
+        try:
+            model2hasconditions = {}
+            for model in self.find_submodels(include_mainmodel=True).values():
+                seqs = model.sequences
+                model2hasconditions[model] = seqs.states or seqs.logs
+            if any(model2hasconditions.values()):
+                con = hydpy.pub.controlmanager
+                lines = [
+                    "# -*- coding: utf-8 -*-\n\n",
+                    f"from hydpy.models.{self} import *\n",
+                ]
+                submodelnames = set()
+                for model, hasconditions in model2hasconditions.items():
+                    if hasconditions and (model is not self):
+                        submodelnames.add(model.name)
+                for submodelname in sorted(submodelnames):
+                    lines.append(f"from hydpy.models import {submodelname}\n")
+                lines.append(
+                    f'\ncontrolcheck(projectdir=r"{con.projectdir}", '
+                    f'controldir="{con.currentdir}", '
+                    f'stepsize="{hydpy.pub.timegrids.stepsize}")\n\n'
+                )
+                for seq in self.sequences.conditionsequences:
+                    lines.append(f"{repr(seq)}\n")
+                for fullname, model in self.find_submodels().items():
+                    if model2hasconditions[model]:
+                        if fullname.rsplit("_")[-1].isnumeric():
+                            prefix, _, position = fullname.rpartition("_")
+                            fullname = f"{prefix}[{position}]"
+                        lines.append(f"with {fullname}.define_conditions({model}):\n")
+                        for seq in model.sequences.conditionsequences:
+                            lines.append(f"    {repr(seq)}\n")
+                filepath = os.path.join(
+                    hydpy.pub.conditionmanager.outputpath,
+                    self.__prepare_conditionfilename(filename),
+                )
+                with open(filepath, "w", encoding="utf-8") as file_:
+                    file_.writelines(lines)
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to save the actual conditions of element "
+                f"`{objecttools.devicename(self)}`"
+            )
+
     @abc.abstractmethod
     def simulate(self, idx: int) -> None:
         """Perform a simulation run over a single simulation time step."""
+
+    def reset_reuseflags(self) -> None:
+        """Reset all |ReusableMethod.REUSEMARKER| attributes of the current model
+        instance and its submodels (usually at the beginning of a simulation step).
+
+        When working in Cython mode, the standard model import overrides this generic
+        Python version with a model-specific Cython version.
+        """
+        for method in self.REUSABLE_METHODS:
+            setattr(self, method.REUSEMARKER, False)
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            submodel.reset_reuseflags()
 
     def load_data(self, idx: int) -> None:
         """Call method |Sequences.load_data| of the attribute `sequences` of the
@@ -1498,6 +2517,9 @@ to be consistent with the name of the element handling the model.
         """
         if self.sequences:
             self.sequences.states.new2old()
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            if submodel.sequences:
+                submodel.new2old()
 
     def update_outputs(self) -> None:
         """Call method |Sequences.update_outputs| of attribute |Model.sequences|.
@@ -1508,7 +2530,7 @@ to be consistent with the name of the element handling the model.
         self.sequences.update_outputs()
 
     @classmethod
-    def get_methods(cls) -> Iterator[Method]:
+    def get_methods(cls, skip: tuple[MethodGroup, ...] = ()) -> Iterator[type[Method]]:
         """Convenience method for iterating through all methods selected by a |Model|
         subclass.
 
@@ -1528,17 +2550,38 @@ to be consistent with the name of the element handling the model.
         ...
         Withdraw_AllBins_V1
 
+        One can skip all methods that belong to specific groups:
+
+        >>> for method in hland_v1.Model.get_methods(skip=("OUTLET_METHODS",)):
+        ...     print(method.__name__)   # doctest: +ELLIPSIS
+        Calc_TC_V1
+        ...
+        Calc_EL_LZ_AETModel_V1
+
+        >>> for method in hland_v1.Model.get_methods(("OUTLET_METHODS", "ADD_METHODS")):
+        ...     print(method.__name__)   # doctest: +ELLIPSIS
+        Calc_TC_V1
+        ...
+        Calc_QT_V1
+
         Note that function |Model.get_methods| returns the "raw" |Method| objects
         instead of the modified Python or Cython functions used for performing
         calculations.
         """
+        methods = set()
         if hasattr(cls, "METHOD_GROUPS"):
             for groupname in cls.METHOD_GROUPS:
+                if groupname in skip:
+                    continue
                 if (groupname == "ADD_METHODS") and hasattr(cls, "INTERFACE_METHODS"):
                     for method in cls.INTERFACE_METHODS:
-                        yield method
+                        if method not in methods:
+                            methods.add(method)
+                            yield method
                 for method in getattr(cls, groupname, ()):
-                    yield method
+                    if method not in methods:
+                        methods.add(method)
+                        yield method
 
     @overload
     def find_submodels(
@@ -1546,9 +2589,13 @@ to be consistent with the name of the element handling the model.
         *,
         include_subsubmodels: bool = True,
         include_mainmodel: bool = False,
+        include_sidemodels: Literal[False] = ...,
         include_optional: Literal[False] = ...,
-    ) -> Dict[str, Model]:
-        ...
+        include_feedbacks: bool = False,
+        aggregate_vectors: Literal[False] = ...,
+        repeat_sharedmodels: bool = False,
+        position: Optional[Literal[0, -1]] = None,
+    ) -> dict[str, Model]: ...
 
     @overload
     def find_submodels(
@@ -1556,38 +2603,126 @@ to be consistent with the name of the element handling the model.
         *,
         include_subsubmodels: bool = True,
         include_mainmodel: bool = False,
+        include_sidemodels: Literal[False] = ...,
         include_optional: Literal[True],
-    ) -> Dict[str, Optional[Model]]:
-        ...
+        include_feedbacks: bool = False,
+        aggregate_vectors: Literal[False] = ...,
+        repeat_sharedmodels: bool = False,
+        position: Optional[Literal[0, -1]] = None,
+    ) -> dict[str, Optional[Model]]: ...
+
+    @overload
+    def find_submodels(
+        self,
+        *,
+        include_subsubmodels: bool = True,
+        include_mainmodel: bool = False,
+        include_sidemodels: Literal[False] = ...,
+        include_optional: Literal[False] = ...,
+        include_feedbacks: bool = False,
+        aggregate_vectors: Literal[True],
+        repeat_sharedmodels: bool = False,
+    ) -> dict[str, Optional[Model]]: ...
+
+    @overload
+    def find_submodels(
+        self,
+        *,
+        include_subsubmodels: bool = True,
+        include_mainmodel: bool = False,
+        include_sidemodels: Literal[False] = ...,
+        include_optional: Literal[True],
+        include_feedbacks: bool = False,
+        aggregate_vectors: Literal[True],
+        repeat_sharedmodels: bool = False,
+    ) -> dict[str, Optional[Model]]: ...
+
+    @overload
+    def find_submodels(
+        self,
+        *,
+        include_subsubmodels: Literal[False],
+        include_mainmodel: bool = False,
+        include_sidemodels: Literal[True],
+        include_optional: Literal[False] = ...,
+        include_feedbacks: bool = False,
+        aggregate_vectors: Literal[False] = ...,
+        repeat_sharedmodels: bool = False,
+        position: Optional[Literal[0, -1]] = None,
+    ) -> dict[str, Model]: ...
+
+    @overload
+    def find_submodels(
+        self,
+        *,
+        include_subsubmodels: Literal[False],
+        include_mainmodel: bool = False,
+        include_sidemodels: Literal[True],
+        include_optional: Literal[True],
+        include_feedbacks: bool = False,
+        aggregate_vectors: Literal[False] = ...,
+        repeat_sharedmodels: bool = False,
+        position: Optional[Literal[0, -1]] = None,
+    ) -> dict[str, Optional[Model]]: ...
+
+    @overload
+    def find_submodels(
+        self,
+        *,
+        include_subsubmodels: Literal[False],
+        include_mainmodel: bool = False,
+        include_sidemodels: Literal[True],
+        include_optional: Literal[False] = ...,
+        include_feedbacks: bool = False,
+        aggregate_vectors: Literal[True],
+        repeat_sharedmodels: bool = False,
+    ) -> dict[str, Optional[Model]]: ...
+
+    @overload
+    def find_submodels(
+        self,
+        *,
+        include_subsubmodels: Literal[False],
+        include_mainmodel: bool = False,
+        include_sidemodels: Literal[True],
+        include_optional: Literal[True],
+        include_feedbacks: bool = False,
+        aggregate_vectors: Literal[True],
+        repeat_sharedmodels: bool = False,
+    ) -> dict[str, Optional[Model]]: ...
 
     def find_submodels(
         self,
         *,
         include_subsubmodels: bool = True,
         include_mainmodel: bool = False,
+        include_sidemodels: bool = False,
         include_optional: bool = False,
         include_feedbacks: bool = False,
-    ) -> Union[Dict[str, Model], Dict[str, Optional[Model]]]:
+        aggregate_vectors: bool = False,
+        repeat_sharedmodels: bool = False,
+        position: Optional[Literal[0, -1]] = None,
+    ) -> Union[dict[str, Model], dict[str, Optional[Model]]]:
         """Find the (sub)submodel instances of the current main model instance.
 
         Method |Model.find_submodels| returns by default an empty dictionary if no
         submodel is available:
 
         >>> from hydpy import prepare_model
-        >>> model = prepare_model("lland_v1")
+        >>> model = prepare_model("lland_v3")
         >>> model.find_submodels()
         {}
 
         The `include_mainmodel` parameter allows the addition of the main model:
 
         >>> model.find_submodels(include_mainmodel=True)  # doctest: +ELLIPSIS
-        {'model': <hydpy.models.lland_v1.Model ...>}
+        {'model': <hydpy.models.lland_v3.Model ...>}
 
         The `include_optional` parameter allows considering prepared and unprepared
         submodels:
 
         >>> model.find_submodels(include_optional=True)
-        {'model.aetmodel': None, 'model.soilmodel': None}
+        {'model.aetmodel': None, 'model.radiationmodel': None, 'model.soilmodel': None}
         >>> model.aetmodel = prepare_model("evap_minhas")
         >>> model.aetmodel.petmodel = prepare_model("evap_mlc")
         >>> model.aetmodel.petmodel.retmodel = prepare_model("evap_tw2002")
@@ -1597,8 +2732,10 @@ to be consistent with the name of the element handling the model.
          'model.aetmodel.intercmodel': None,
          'model.aetmodel.petmodel': <hydpy.models.evap_mlc.Model ...>,
          'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_tw2002.Model ...>,
+         'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
          'model.aetmodel.soilwatermodel': None,
+         'model.radiationmodel': None,
          'model.soilmodel': None}
 
         By default, |Model.find_submodels| does not return an additional entry when a
@@ -1611,7 +2748,9 @@ to be consistent with the name of the element handling the model.
          'model.aetmodel.intercmodel': None,
          'model.aetmodel.petmodel': <hydpy.models.evap_mlc.Model ...>,
          'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_tw2002.Model ...>,
+         'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
+         'model.radiationmodel': None,
          'model.soilmodel': None}
 
         Use the `include_feedbacks` parameter to make such feedback connections
@@ -1619,25 +2758,189 @@ to be consistent with the name of the element handling the model.
 
         >>> pprint(model.find_submodels(include_mainmodel=True,
         ...     include_optional=True, include_feedbacks=True))  # doctest: +ELLIPSIS
-        {'model': <hydpy.models.lland_v1.Model ...>,
+        {'model': <hydpy.models.lland_v3.Model ...>,
          'model.aetmodel': <hydpy.models.evap_minhas.Model ...>,
          'model.aetmodel.intercmodel': None,
          'model.aetmodel.petmodel': <hydpy.models.evap_mlc.Model ...>,
          'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_tw2002.Model ...>,
+         'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
-         'model.aetmodel.soilwatermodel': <hydpy.models.lland_v1.Model object ...>,
+         'model.aetmodel.soilwatermodel': <hydpy.models.lland_v3.Model object ...>,
+         'model.radiationmodel': None,
          'model.soilmodel': None}
+
+        |Model.find_submodels| includes only one reference to shared model instances by
+        default:
+
+        >>> model.radiationmodel = prepare_model("meteo_v001")
+        >>> model.aetmodel = prepare_model("evap_morsim")
+        >>> model.aetmodel.radiationmodel = model.radiationmodel
+        >>> pprint(model.find_submodels(include_optional=True))  # doctest: +ELLIPSIS
+        {'model.aetmodel': <hydpy.models.evap_morsim.Model ...>,
+         'model.aetmodel.intercmodel': None,
+         'model.aetmodel.snowalbedomodel': None,
+         'model.aetmodel.snowcovermodel': None,
+         'model.aetmodel.snowycanopymodel': None,
+         'model.aetmodel.soilwatermodel': None,
+         'model.aetmodel.tempmodel': None,
+         'model.radiationmodel': <hydpy.models.meteo_v001.Model ...>,
+         'model.soilmodel': None}
+
+        Use the `repeat_sharedmodels` parameter to change this behaviour:
+
+        >>> pprint(model.find_submodels(
+        ...     repeat_sharedmodels=True, include_optional=True))  # doctest: +ELLIPSIS
+        {'model.aetmodel': <hydpy.models.evap_morsim.Model ...>,
+         'model.aetmodel.intercmodel': None,
+         'model.aetmodel.radiationmodel': <hydpy.models.meteo_v001.Model ...>,
+         'model.aetmodel.snowalbedomodel': None,
+         'model.aetmodel.snowcovermodel': None,
+         'model.aetmodel.snowycanopymodel': None,
+         'model.aetmodel.soilwatermodel': None,
+         'model.aetmodel.tempmodel': None,
+         'model.radiationmodel': <hydpy.models.meteo_v001.Model object at ...>,
+         'model.soilmodel': None}
+
+        All previous examples dealt with scalar submodel references handled by
+        |SubmodelProperty|.  Now we will focus on vectors of submodel references
+        handled by |SubmodelsProperty| and take |sw1d_channel| as an example:
+
+        >>> channel = prepare_model("sw1d_channel")
+        >>> channel.parameters.control.nmbsegments(2)
+
+        Again, method |Model.find_submodels| returns by default an empty dictionary if
+        no submodel is available:
+
+        >>> channel.find_submodels()
+        {}
+
+        The `include_optional` parameter works as shown for the scalar case.  But for
+        scalar cases, the names contain an additional suffix to indicate the position
+        of the respective submodel:
+
+        >>> pprint(channel.find_submodels(include_optional=True))
+        {'model.routingmodels_0': None,
+         'model.routingmodels_1': None,
+         'model.routingmodels_2': None,
+         'model.storagemodels_0': None,
+         'model.storagemodels_1': None}
+
+        We now add some possible submodels to the |sw1d_channel| main model:
+
+        >>> with channel.add_routingmodel_v1("sw1d_q_in", position=0, update=False):
+        ...     pass
+        >>> with channel.add_storagemodel_v1("sw1d_storage", position=0, update=False):
+        ...     pass
+        >>> with channel.add_routingmodel_v2("sw1d_lias", position=1, update=False):
+        ...     pass
+        >>> with channel.add_storagemodel_v1("sw1d_storage", position=1, update=False):
+        ...     pass
+        >>> with channel.add_routingmodel_v3("sw1d_weir_out", position=2, update=False):
+        ...     pass
+
+        Method |Model.find_submodels| associates them with the correct positions:
+
+        >>> pprint(channel.find_submodels())  # doctest: +ELLIPSIS
+        {'model.routingmodels_0': <hydpy.models.sw1d_q_in.Model object at ...>,
+         'model.routingmodels_1': <hydpy.models.sw1d_lias.Model object at ...>,
+         'model.routingmodels_2': <hydpy.models.sw1d_weir_out.Model object at ...>,
+         'model.storagemodels_0': <hydpy.models.sw1d_storage.Model object at ...>,
+         'model.storagemodels_1': <hydpy.models.sw1d_storage.Model object at ...>}
+
+        One can use the `aggregate_vectors` parameter to gain a better overview.
+        Then, |Model.find_submodels| reports only the names of the respective
+        |SubmodelsProperty| instances with a suffixed wildcard to distinguish them
+        from |SubmodelProperty| instances:
+
+        >>> channel.find_submodels(aggregate_vectors=True)  # doctest: +ELLIPSIS
+        {'model.routingmodels_*': None, 'model.storagemodels_*': None}
+
+        Another option is to include side models.  However, this does not work in
+        combination with including sub-submodels and thus cannot give further insight
+        into the configuration of a |sw1d_channel| model:
+
+        >>> pprint(channel.find_submodels(include_sidemodels=True))
+        Traceback (most recent call last):
+        ...
+        ValueError: Including sub-submodels and side-models leads to ambiguous results.
+
+        So, one needs to apply it to the respective submodels directly:
+
+        >>> pprint(channel.storagemodels[0].find_submodels(  # doctest: +ELLIPSIS
+        ...     include_subsubmodels=False, include_sidemodels=True))
+        {'model.routingmodelsdownstream_0': \
+<hydpy.models.sw1d_lias.Model object at ...>,
+         'model.routingmodelsupstream_0': <hydpy.models.sw1d_q_in.Model object at ...>}
+
+        >>> pprint(channel.routingmodels[1].find_submodels(  # doctest: +ELLIPSIS
+        ...     include_subsubmodels=False, include_sidemodels=True))
+        {'model.routingmodelsdownstream_0': <hydpy.models.sw1d_weir_out.Model object \
+at ...>,
+         'model.routingmodelsupstream_0': <hydpy.models.sw1d_q_in.Model object at ...>,
+         'model.storagemodeldownstream': <hydpy.models.sw1d_storage.Model object at \
+...>,
+         'model.storagemodelupstream': <hydpy.models.sw1d_storage.Model object at ...>}
+
+        When dealing with submodel arrays handled by |SubmodelsProperty| instances, one
+        might be interested in only querying the first or the last model, which is
+        supported by the `position` parameter:
+
+        >>> pprint(channel.find_submodels(position=0))  # doctest: +ELLIPSIS
+        {'model.routingmodels_0': <hydpy.models.sw1d_q_in.Model object at ...>,
+         'model.storagemodels_0': <hydpy.models.sw1d_storage.Model object at ...>}
+        >>> pprint(channel.find_submodels(position=-1))  # doctest: +ELLIPSIS
+        {'model.routingmodels_2': <hydpy.models.sw1d_weir_out.Model object at ...>,
+         'model.storagemodels_1': <hydpy.models.sw1d_storage.Model object at ...>}
+        >>> pprint(channel.find_submodels(position=1))  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        ValueError: The `position` argument requires the integer value `0´ or `-1`, \
+but the value `1` of type `int` is given.
         """
+
+        if include_subsubmodels and include_sidemodels:
+            raise ValueError(
+                "Including sub-submodels and side-models leads to ambiguous results."
+            )
+        if position not in (None, 0, -1):
+            raise ValueError(
+                "The `position` argument requires the integer value `0´ or `-1`, but "
+                f"the {objecttools.value_of_type(position)} is given."
+            )
 
         def _find_submodels(name: str, model: Model) -> None:
             name2submodel_new = {}
-            for submodelproperty in SubmodelProperty.modeltype2instance[type(model)]:
-                if include_feedbacks or (
-                    not getattr(model, f"{submodelproperty.name}_is_mainmodel")
+
+            if isinstance(model, SharableSubmodelInterface):
+                sharables.add(model)
+
+            for subprop in SubmodelProperty.__hydpy_modeltype2instance__[type(model)]:
+                sub_is_main = getattr(model, f"{subprop.name}_is_mainmodel")
+                if (include_sidemodels or not subprop.sidemodel) and (
+                    include_feedbacks or not sub_is_main
                 ):
-                    submodel = getattr(model, submodelproperty.name)
-                    if include_optional or (submodel is not None):
-                        name2submodel_new[f"{name}.{submodelproperty.name}"] = submodel
+                    submodel = getattr(model, subprop.name)
+                    if (include_optional or (submodel is not None)) and (
+                        repeat_sharedmodels or (submodel not in sharables)
+                    ):
+                        name2submodel_new[f"{name}.{subprop.name}"] = submodel
+
+            for subsprop in SubmodelsProperty.__hydpy_modeltype2instance__[type(model)]:
+                if include_sidemodels or not subsprop.sidemodels:
+                    submodelsname = f"{name}.{subsprop.name}"
+                    if aggregate_vectors:
+                        name2submodel_new[f"{submodelsname}_*"] = None
+                    elif submodels := subsprop.__hydpy_mainmodel2submodels__[model]:
+                        if position is not None:
+                            i_last = len(submodels) - 1
+                            submodels = [submodels[position]]
+                        for i, submodel in enumerate(submodels):
+                            # implement when required:
+                            assert not isinstance(submodel, SharableSubmodelInterface)
+                            if include_optional or (submodel is not None):
+                                j = i_last if position == -1 else i
+                                name2submodel_new[f"{submodelsname}_{j}"] = submodel
+
             name2submodel.update(name2submodel_new)
             if include_subsubmodels:
                 for subname, submodel in name2submodel_new.items():
@@ -1645,12 +2948,13 @@ to be consistent with the name of the element handling the model.
                         seen.add(submodel)
                         _find_submodels(subname, submodel)
 
-        seen: Set[Model] = set([self])
+        seen: set[Model] = set([self])
+        sharables: set[SharableSubmodelInterface] = set()
         name2submodel = {"model": self} if include_mainmodel else {}
         _find_submodels("model", self)
         return dict(sorted(name2submodel.items()))
 
-    def update_parameters(self) -> None:
+    def update_parameters(self, ignore_errors: bool = False) -> None:
         """Use the control parameter values of the current model for updating its
         derived parameters and the control and derived parameters of all its submodels.
 
@@ -1722,13 +3026,43 @@ to be consistent with the name of the element handling the model.
         >>> model.aetmodel.petmodel.parameters.derived.altitude
         altitude(400.0)
         """
-        self.parameters.update()
-        for submodel in self.find_submodels(include_subsubmodels=False).values():
+        self.parameters.update(ignore_errors=ignore_errors)
+        for name, submodel in self.find_submodels(include_subsubmodels=False).items():
             if isinstance(submodel, SubmodelInterface):
                 adder = submodel._submodeladder  # pylint: disable=protected-access
                 if adder is not None:
-                    adder.update(self, submodel)
-                    submodel.update_parameters()
+                    if adder.dimensionality == 0:
+                        adder.update(self, submodel, refresh=True)
+                    elif adder.dimensionality == 1:
+                        position = int(name.rpartition("_")[2])
+                        adder.update(self, submodel, position=position, refresh=True)
+                    else:
+                        assert_never(adder.dimensionality)
+                    submodel.update_parameters(ignore_errors=ignore_errors)
+
+    @property
+    def conditions(self) -> ConditionsModel:
+        """A nested dictionary that contains the values of all condition sequences of
+        a model and its submodels.
+
+        See the documentation on property |HydPy.conditions| for further information.
+        """
+        conditions = {}
+        for name, model in self.find_submodels(include_mainmodel=True).items():
+            conditions[name] = model.sequences.conditions
+        return conditions
+
+    @conditions.setter
+    def conditions(self, conditions: ConditionsModel) -> None:
+        for name, model in self.find_submodels(include_mainmodel=True).items():
+            model.sequences.conditions = conditions[name]
+
+    @property
+    def couple_models(self) -> Optional[ModelCoupler]:
+        """If available, return a function object for coupling models to a composite
+        model suitable at least for the actual model subclass (see method
+        |Elements.unite_collectives|)."""
+        return None
 
     # ToDo: Replace this hack with a Mypy plugin?
     def __getattr__(self, item: str) -> Any:
@@ -1756,7 +3090,7 @@ to be consistent with the name of the element handling the model.
 
         allsequences = set()
         st = sequencetools
-        infos: Tuple[Tuple[Type[Any], Type[Any], Set[Any]], ...] = (
+        infos: tuple[tuple[type[Any], type[Any], set[Any]], ...] = (
             (st.InletSequences, st.InletSequence, set()),
             (st.ReceiverSequences, st.ReceiverSequence, set()),
             (st.InputSequences, st.InputSequence, set()),
@@ -1842,13 +3176,17 @@ to be consistent with the name of the element handling the model.
                 },
             )
 
+        cls.REUSABLE_METHODS = tuple(
+            method for method in cls.get_methods() if issubclass(method, ReusableMethod)
+        )
+
 
 class RunModel(Model):
     """Base class for |AdHocModel| and |SegmentModel| that introduces so-called "run
     methods", which need to be executed in the order of their positions in the
     |RunModel.RUN_METHODS| tuple."""
 
-    RUN_METHODS: ClassVar[Tuple[Type[Method], ...]]
+    RUN_METHODS: ClassVar[tuple[type[Method], ...]]
     METHOD_GROUPS = (
         "RECEIVER_METHODS",
         "INLET_METHODS",
@@ -1910,6 +3248,7 @@ class RunModel(Model):
             >>> Node.clear_all()
             >>> Element.clear_all()
         """
+        self.reset_reuseflags()
         self.load_data(idx)
         self.update_inlets()
         self.run()
@@ -1999,12 +3338,57 @@ class SegmentModel(RunModel):
             self.idx_segment = 0
 
 
+class SubstepModel(RunModel):
+    """Base class for (routing) models that solve the underlying differential equations
+    "substep-wise".
+
+    "substep-wise" means method |SubstepModel.run| repeatedly calls all "run methods"
+    in the usual order within each simulation step until the |SubstepModel.timeleft|
+    attribute is not larger than zero anymore.  The concrete model subclass is up to
+    reduce |SubstepModel.timeleft|.  This mechanism allows the concrete model to
+    adjust the internal calculation time step depending on its current accuracy and
+    stability requirements.
+    """
+
+    cymodel: Optional[CySubstepModelProtocol]
+
+    _timeleft: float = 0.0
+
+    @property
+    def timeleft(self) -> float:
+        """The time left within the current simulation step [s]."""
+        if (cymodel := self.cymodel) is None:
+            return self._timeleft
+        return cymodel.timeleft
+
+    @timeleft.setter
+    def timeleft(self, value: float) -> None:
+        if (cymodel := self.cymodel) is None:
+            self._timeleft = value
+        else:
+            cymodel.timeleft = value
+
+    def run(self) -> None:
+        """Call all methods defined as "run methods" repeatedly.
+
+        When working in Cython mode, the standard model import overrides this generic
+        Python version with a model-specific Cython version.
+        """
+        self.timeleft = self.parameters.derived.seconds.value
+        while True:
+            for method in self.RUN_METHODS:
+                method.__call__(self)  # pylint: disable=unnecessary-dunder-call
+            if self.timeleft <= 0.0:
+                break
+            self.new2old()
+
+
 class SolverModel(Model):
     """Base class for hydrological models, which solve ordinary differential equations
     with numerical integration algorithms."""
 
-    PART_ODE_METHODS: ClassVar[Tuple[Type[Method], ...]]
-    FULL_ODE_METHODS: ClassVar[Tuple[Type[Method], ...]]
+    PART_ODE_METHODS: ClassVar[tuple[type[Method], ...]]
+    FULL_ODE_METHODS: ClassVar[tuple[type[Method], ...]]
 
     @abc.abstractmethod
     def solve(self) -> None:
@@ -2131,9 +3515,9 @@ class ELSModel(SolverModel):
     simulation times.
     """
 
-    SOLVERSEQUENCES: ClassVar[Tuple[Type[sequencetools.DependentSequence], ...]]
-    PART_ODE_METHODS: ClassVar[Tuple[Type[Method], ...]]
-    FULL_ODE_METHODS: ClassVar[Tuple[Type[Method], ...]]
+    SOLVERSEQUENCES: ClassVar[tuple[type[sequencetools.DependentSequence], ...]]
+    PART_ODE_METHODS: ClassVar[tuple[type[Method], ...]]
+    FULL_ODE_METHODS: ClassVar[tuple[type[Method], ...]]
     METHOD_GROUPS = (
         "RECEIVER_METHODS",
         "INLET_METHODS",
@@ -2158,6 +3542,7 @@ class ELSModel(SolverModel):
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
+        self.reset_reuseflags()
         self.load_data(idx)
         self.update_inlets()
         self.solve()
@@ -3124,48 +4509,27 @@ class ELSModel(SolverModel):
                 self.numvars.extrapolated_relerror = modelutils.inf
 
 
-class PredefinedMethod2Argument(TypedDict, total=False):
-    """Dictionary for passing arguments from main models to sub-submodels if the
-    submodel does not override the related "general" interface methods for transfering
-    parameter values from main models to submodels."""
-
-    prepare_nmbzones: int
-    prepare_zonetypes: VectorInputInt
-    prepare_subareas: VectorInputFloat
-    prepare_elevations: VectorInputFloat
-
-
 class SubmodelInterface(Model, abc.ABC):
     """Base class for defining interfaces for submodels."""
 
-    INTERFACE_METHODS: ClassVar[Tuple[Type[Method], ...]]
-    GENERAL_METHODS: Tuple[str, ...] = (
-        "prepare_nmbzones",
-        "prepare_zonetypes",
-        "prepare_subareas",
-        "prepare_elevations",
-    )
+    INTERFACE_METHODS: ClassVar[tuple[type[Method], ...]]
     _submodeladder: Optional[importtools.SubmodelAdder]
-    predefinedmethod2argument: PredefinedMethod2Argument
+    preparemethod2arguments: dict[str, tuple[tuple[Any, ...], dict[str, Any]]]
+
+    typeid: ClassVar[int]
+    """Type identifier that we use for differentiating submodels that target the same 
+    process group (e.g. infiltration) but follow different interfaces.
+
+    For `Submodel_V1`, |SubmodelInterface.typeid| is 1, for `Submodel_V2` 2, and so on.
+
+    We prefer using |SubmodelInterface.typeid| over the standard |isinstance| checks in 
+    model equations as it allows releasing Python's Globel Interpreter Lock in Cython.
+    """
 
     def __init__(self) -> None:
         super().__init__()
         self._submodeladder = None
-        self.predefinedmethod2argument = {}
-
-    @property
-    @abc.abstractmethod
-    def typeid(self) -> int:
-        """Type identifier that we use for differentiating submodels that target the
-        same process group (e.g. infiltration) but follow different interfaces.
-
-        For `Submodel_V1`, |SubmodelInterface.typeid| is 1, for `Submodel_V2` 2, and so
-        on.
-
-        We prefer using |SubmodelInterface.typeid| over the standard |isinstance|
-        checks in model equations as it allows releasing Python's Globel Interpreter
-        Lock in Cython.
-        """
+        self.preparemethod2arguments = {}
 
     @staticmethod
     @contextlib.contextmanager
@@ -3195,68 +4559,16 @@ class SubmodelInterface(Model, abc.ABC):
         """
         return False
 
-    def prepare_nmbzones(self, nmbzones: int) -> None:
-        """Set the number of zones in which the actual calculations take place.
 
-        If a submodel does not work with a variable number of zones, it probably must
-        not override |SubmodelInterface.prepare_nmbzones|.  Then, the default behaviour
-        applies, where |SubmodelInterface.prepare_nmbzones| stores the given number of
-        zones in the |SubmodelInterface.predefinedmethod2argument| dictionary.  There,
-        it is available to eventual sub-submodels:
+class SharableSubmodelInterface(SubmodelInterface, abc.ABC):
+    """Base class for defining interfaces for submodels designed as "sharable".
 
-        >>> from hydpy.core.modeltools import SubmodelInterface
-        >>> from hydpy.core.testtools import make_abc_testable
-        >>> si = make_abc_testable(SubmodelInterface)()
-        >>> si.prepare_nmbzones(3)
-        >>> si.predefinedmethod2argument
-        {'prepare_nmbzones': 3}
-        """
-        self.predefinedmethod2argument["prepare_nmbzones"] = nmbzones
-
-    def prepare_zonetypes(self, zonetypes: Sequence[int]) -> None:
-        """Set the types (usually land cover types) of the individual zones.
-
-        The explanation on method |SubmodelInterface.prepare_nmbzones| also holds for
-        the default behaviour of method |SubmodelInterface.prepare_zonetypes|:
-
-        >>> from hydpy.core.modeltools import SubmodelInterface
-        >>> from hydpy.core.testtools import make_abc_testable
-        >>> si = make_abc_testable(SubmodelInterface)()
-        >>> si.prepare_zonetypes([1, 2])
-        >>> si.predefinedmethod2argument
-        {'prepare_zonetypes': [1, 2]}
-        """
-        self.predefinedmethod2argument["prepare_zonetypes"] = zonetypes
-
-    def prepare_subareas(self, subareas: Sequence[float]) -> None:
-        """Set the areas of the individual zones in km².
-
-        The explanation on method |SubmodelInterface.prepare_nmbzones| also holds for
-        the default behaviour of method |SubmodelInterface.prepare_subareas|:
-
-        >>> from hydpy.core.modeltools import SubmodelInterface
-        >>> from hydpy.core.testtools import make_abc_testable
-        >>> si = make_abc_testable(SubmodelInterface)()
-        >>> si.prepare_subareas([1.0, 2.0])
-        >>> si.predefinedmethod2argument
-        {'prepare_subareas': [1.0, 2.0]}
-        """
-        self.predefinedmethod2argument["prepare_subareas"] = subareas
-
-    def prepare_elevations(self, elevations: Sequence[float]) -> None:
-        """Set the elevations of the individual zones in m.
-
-        The explanation on method |SubmodelInterface.prepare_nmbzones| also holds for
-        the default behaviour of method |SubmodelInterface.prepare_elevations|:
-
-        >>> from hydpy.core.modeltools import SubmodelInterface
-        >>> from hydpy.core.testtools import make_abc_testable
-        >>> si = make_abc_testable(SubmodelInterface)()
-        >>> si.prepare_elevations([1.0, 2.0])
-        >>> si.predefinedmethod2argument
-        {'prepare_elevations': [1.0, 2.0]}
-        """
-        self.predefinedmethod2argument["prepare_elevations"] = elevations
+    Currently, |SharableSubmodelInterface|  implements no functionality.  Its sole
+    purpose is to allow model developers to mark a submodel as sharable, meaning
+    multiple main model instances can share the same submodel instance.  It is more of
+    a safety mechanism to prevent reusing submodels that are not designed for this
+    purpose.
+    """
 
 
 class Submodel:
@@ -3271,9 +4583,9 @@ class Submodel:
     interfaces and Cython implementations of a root-finding algorithms, respectively.
     """
 
-    METHODS: ClassVar[Tuple[Type[Method], ...]]
-    CYTHONBASECLASS: ClassVar[Type]
-    PYTHONCLASS: ClassVar[Type]
+    METHODS: ClassVar[tuple[type[Method], ...]]
+    CYTHONBASECLASS: ClassVar[type[object]]
+    PYTHONCLASS: ClassVar[type[object]]
     name: ClassVar[str]
     _cysubmodel: object
 
@@ -3291,3 +4603,139 @@ class Submodel:
                     f"method{idx}",
                     getattr(model, methodtype.__name__.lower()),
                 )
+
+
+class CoupleModels(Protocol[TypeModel_co]):
+    """Specification for defining custom "couple_models" functions to be wrapped by
+    function |define_modelcoupler|."""
+
+    __name__: str
+
+    def __call__(
+        self, *, nodes: devicetools.Nodes, elements: devicetools.Elements
+    ) -> TypeModel_co: ...
+
+
+def define_modelcoupler(
+    inputtypes: tuple[type[TypeModel_contra], ...], outputtype: type[TypeModel_co]
+) -> Callable[
+    [CoupleModels[TypeModel_co]], ModelCoupler[TypeModel_co, TypeModel_contra]
+]:
+    """Wrap a model-specific function for creating a composite model based given on
+    |Node| and |Element| objects and their handled "normal" |Model| instances."""
+
+    def _define_modelcoupler(
+        wrapped: CoupleModels[TypeModel_co],
+    ) -> ModelCoupler[TypeModel_co, TypeModel_contra]:
+        return ModelCoupler(
+            inputtypes=inputtypes, outputtype=outputtype, wrapped=wrapped
+        )
+
+    return _define_modelcoupler
+
+
+class ModelCoupler(Generic[TypeModel_co, TypeModel_contra]):
+    """Wrapper that extends the functionality of model-specific functions for coupling
+    "normal" models to composite models.
+
+    One benefit of using |ModelCoupler| over raw "couple_models" is that it
+    alternatively accepts |Selection| objects instead of |Nodes| and |Elements|
+    objects:
+
+    >>> from hydpy import Element, Elements, Node, Nodes, prepare_model, Selection
+    >>> n12 = Node("n12", variable="LongQ")
+    >>> e1 = Element("e1", outlets=n12)
+    >>> channel1 = prepare_model("sw1d_channel")
+    >>> channel1.parameters.control.nmbsegments(1)
+    >>> with channel1.add_storagemodel_v1("sw1d_storage", position=0, update=False):
+    ...     pass
+    >>> with channel1.add_routingmodel_v2("sw1d_lias", position=1, update=False):
+    ...     pass
+    >>> e1.model = channel1
+    >>> e2 = Element("e2", inlets=n12)
+    >>> channel2 = prepare_model("sw1d_channel")
+    >>> channel2.parameters.control.nmbsegments(1)
+    >>> with channel2.add_storagemodel_v1("sw1d_storage", position=0, update=False):
+    ...     pass
+    >>> e2.model = channel2
+
+    >>> network1 = e1.model.couple_models(nodes=Nodes(n12), elements=Elements(e1, e2))
+    >>> assert network1.storagemodels[0] is channel1.storagemodels[0]
+    >>> assert network1.storagemodels[1] is channel2.storagemodels[0]
+    >>> assert network1.routingmodels[0] is channel1.routingmodels[1]
+    >>> assert network1.storagemodels[0].routingmodelsdownstream.number == 1
+    >>> assert network1.storagemodels[1].routingmodelsupstream.number == 1
+
+    >>> selection = Selection("test", nodes=n12, elements=[e1, e2])
+    >>> network2 = e1.model.couple_models(selection=selection)
+    >>> assert network2.storagemodels[0] is channel1.storagemodels[0]
+    >>> assert network2.storagemodels[1] is channel2.storagemodels[0]
+    >>> assert network2.routingmodels[0] is channel1.routingmodels[1]
+    >>> assert network2.storagemodels[0].routingmodelsdownstream.number == 1
+    >>> assert network2.storagemodels[1].routingmodelsupstream.number == 1
+
+    It additionally checks if the wrapped "couple_models" function supports the types
+    of all passed model instances:
+
+    >>> e3 = Element("e3", inlets="n3_in", outlets="n3_out")
+    >>> e3.model = prepare_model("musk_classic")
+    >>> e1.model.couple_models(nodes=Nodes(n12), elements=Elements(e1, e2, e3))
+    Traceback (most recent call last):
+    ...
+    TypeError: While trying to couple the given model instances to a composite model \
+of type `sw1d_network` based on function `combine_channels`, the following error \
+occurred: `musk_classic` of element `e3` is not among the supported model types: \
+sw1d_channel.
+    """
+
+    _inputtypes: tuple[type[TypeModel_contra], ...]
+    _outputtype: type[TypeModel_co]
+    _wrapped: CoupleModels
+
+    def __init__(
+        self,
+        inputtypes: tuple[type[TypeModel_contra], ...],
+        outputtype: type[TypeModel_co],
+        wrapped: CoupleModels[TypeModel_co],
+    ) -> None:
+        self._inputtypes = inputtypes
+        self._outputtype = outputtype
+        self._wrapped = wrapped
+        functools.update_wrapper(wrapper=self, wrapped=wrapped)
+
+    @overload
+    def __call__(self, *, selection: selectiontools.Selection) -> TypeModel_co: ...
+
+    @overload
+    def __call__(
+        self, *, nodes: devicetools.Nodes, elements: devicetools.Elements
+    ) -> TypeModel_co: ...
+
+    def __call__(
+        self,
+        *,
+        nodes: Optional[devicetools.Nodes] = None,
+        elements: Optional[devicetools.Elements] = None,
+        selection: Optional[selectiontools.Selection] = None,
+    ) -> TypeModel_co:
+        try:
+            if selection is None:
+                assert nodes is not None
+                assert elements is not None
+            else:
+                nodes = selection.nodes
+                elements = selection.elements
+            for element in elements:
+                if not isinstance(element.model, self._inputtypes):
+                    raise TypeError(
+                        f"{objecttools.elementphrase(element.model)} is not among the "
+                        f"supported model types: "
+                        f"{objecttools.enumeration(m._NAME for m in self._inputtypes)}."
+                    )
+            return self._wrapped(nodes=nodes, elements=elements)
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to couple the given model instances to a composite "
+                f"model of type `{self._outputtype._NAME}` based on function "
+                f"`{self._wrapped.__name__}`"
+            )

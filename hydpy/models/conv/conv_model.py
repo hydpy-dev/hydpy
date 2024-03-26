@@ -71,10 +71,7 @@ class Calc_Outputs_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (conv_control.MaxNmbInputs,)
-    DERIVEDPARAMETERS = (
-        conv_derived.NmbOutputs,
-        conv_derived.ProximityOrder,
-    )
+    DERIVEDPARAMETERS = (conv_derived.NmbOutputs, conv_derived.ProximityOrder)
     REQUIREDSEQUENCES = (conv_fluxes.Inputs,)
     RESULTSEQUENCES = (conv_fluxes.Outputs,)
 
@@ -121,10 +118,7 @@ class Return_Mean_V1(modeltools.Method):
 
     @staticmethod
     def __call__(
-        model: modeltools.Model,
-        values: VectorFloat,
-        mask: VectorFloat,
-        number: int,
+        model: modeltools.Model, values: VectorFloat, mask: VectorFloat, number: int
     ) -> float:
         counter = 0
         d_result = 0.0
@@ -222,10 +216,7 @@ class Calc_ActualConstant_ActualFactor_V1(modeltools.Method):
     )
     DERIVEDPARAMETERS = (conv_derived.NmbInputs,)
     REQUIREDSEQUENCES = (conv_fluxes.Inputs,)
-    RESULTSEQUENCES = (
-        conv_fluxes.ActualConstant,
-        conv_fluxes.ActualFactor,
-    )
+    RESULTSEQUENCES = (conv_fluxes.ActualConstant, conv_fluxes.ActualFactor)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -284,10 +275,7 @@ class Calc_InputPredictions_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (conv_control.InputHeights,)
     DERIVEDPARAMETERS = (conv_derived.NmbInputs,)
-    REQUIREDSEQUENCES = (
-        conv_fluxes.ActualConstant,
-        conv_fluxes.ActualFactor,
-    )
+    REQUIREDSEQUENCES = (conv_fluxes.ActualConstant, conv_fluxes.ActualFactor)
     RESULTSEQUENCES = (conv_fluxes.InputPredictions,)
 
     @staticmethod
@@ -323,10 +311,7 @@ class Calc_OutputPredictions_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (conv_control.OutputHeights,)
     DERIVEDPARAMETERS = (conv_derived.NmbOutputs,)
-    REQUIREDSEQUENCES = (
-        conv_fluxes.ActualConstant,
-        conv_fluxes.ActualFactor,
-    )
+    REQUIREDSEQUENCES = (conv_fluxes.ActualConstant, conv_fluxes.ActualFactor)
     RESULTSEQUENCES = (conv_fluxes.OutputPredictions,)
 
     @staticmethod
@@ -360,10 +345,7 @@ class Calc_InputResiduals_V1(modeltools.Method):
 
     CONTROLPARAMETERS = ()
     DERIVEDPARAMETERS = (conv_derived.NmbInputs,)
-    REQUIREDSEQUENCES = (
-        conv_fluxes.Inputs,
-        conv_fluxes.InputPredictions,
-    )
+    REQUIREDSEQUENCES = (conv_fluxes.Inputs, conv_fluxes.InputPredictions)
     RESULTSEQUENCES = (conv_fluxes.InputResiduals,)
 
     @staticmethod
@@ -554,10 +536,7 @@ class Calc_Outputs_V3(modeltools.Method):
 
     CONTROLPARAMETERS = ()
     DERIVEDPARAMETERS = (conv_derived.NmbOutputs,)
-    REQUIREDSEQUENCES = (
-        conv_fluxes.OutputPredictions,
-        conv_fluxes.OutputResiduals,
-    )
+    REQUIREDSEQUENCES = (conv_fluxes.OutputPredictions, conv_fluxes.OutputResiduals)
     RESULTSEQUENCES = (conv_fluxes.Outputs,)
 
     @staticmethod
@@ -599,10 +578,7 @@ class Model(modeltools.AdHocModel):
         Calc_OutputResiduals_V1,
         Calc_Outputs_V3,
     )
-    ADD_METHODS = (
-        Return_Mean_V1,
-        Interpolate_InverseDistance_V1,
-    )
+    ADD_METHODS = (Return_Mean_V1, Interpolate_InverseDistance_V1)
     OUTLET_METHODS = (Pass_Outputs_V1,)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()

@@ -28,3 +28,15 @@ class R(sequencetools.ReceiverSequence):
     """Allowed water relief [m³/s]."""
 
     NDIM, NUMERIC = 0, False
+
+
+class OWL(sequencetools.ReceiverSequence):
+    """The water level directly below the dam [m]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class RWL(sequencetools.ReceiverSequence):
+    """The water level at a remote location [m]."""
+
+    NDIM, NUMERIC = 0, False

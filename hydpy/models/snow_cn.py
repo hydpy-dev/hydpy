@@ -128,7 +128,7 @@ For simplicity, we set the initial conditions to 0:
 ...               (states.etg, [0.0, 0.0, 0.0, 0.0, 0.0]),
 ...               (states.gratio, [0.0, 0.0, 0.0, 0.0, 0.0]))
 
-The input time series for |P| and |T| were taken from the sample data set:
+Time series for precipitation and temperature were taken from the sample data set:
 
 >>> inputs.p.series = (
 ...     0.4,  0. ,  1. ,  1.6,  3.1,  0. ,  0. ,  0. ,  0. ,  2.4,  2.1,

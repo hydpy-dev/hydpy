@@ -58,12 +58,7 @@ class NSnowLayers(parametertools.Parameter):
             for subpars in self.subpars.pars.model.parameters:
                 for par in subpars:
                     if (par.NDIM > 0) and (
-                        par.name
-                        not in (
-                            "gradtmean",
-                            "gradtmin",
-                            "gradtmax",
-                        )
+                        par.name not in ("gradtmean", "gradtmin", "gradtmax")
                     ):
                         par.shape = new_value
             for subseqs in self.subpars.pars.model.sequences:

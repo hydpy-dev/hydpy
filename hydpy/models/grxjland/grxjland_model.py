@@ -50,14 +50,8 @@ class Calc_Pn_En_V1(modeltools.Method):
         pn(40.0)
     """
 
-    REQUIREDSEQUENCES = (
-        grxjland_inputs.P,
-        grxjland_inputs.E,
-    )
-    RESULTSEQUENCES = (
-        grxjland_fluxes.Pn,
-        grxjland_fluxes.En,
-    )
+    REQUIREDSEQUENCES = (grxjland_inputs.P, grxjland_inputs.E)
+    RESULTSEQUENCES = (grxjland_fluxes.Pn, grxjland_fluxes.En)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -109,10 +103,7 @@ class Calc_PS_V1(modeltools.Method):
         ps(0.0)
     """
 
-    REQUIREDSEQUENCES = (
-        grxjland_fluxes.Pn,
-        grxjland_states.S,
-    )
+    REQUIREDSEQUENCES = (grxjland_fluxes.Pn, grxjland_states.S)
     CONTROLPARAMETERS = (grxjland_control.X1,)
 
     RESULTSEQUENCES = (grxjland_fluxes.Ps,)
@@ -161,10 +152,7 @@ class Calc_Es_V1(modeltools.Method):
         es(0.13027)
     """
 
-    REQUIREDSEQUENCES = (
-        grxjland_fluxes.En,
-        grxjland_states.S,
-    )
+    REQUIREDSEQUENCES = (grxjland_fluxes.En, grxjland_states.S)
     CONTROLPARAMETERS = (grxjland_control.X1,)
 
     RESULTSEQUENCES = (grxjland_fluxes.Es,)
@@ -202,10 +190,7 @@ class Update_S_V1(modeltools.Method):
         s(277.0)
     """
 
-    REQUIREDSEQUENCES = (
-        grxjland_fluxes.Ps,
-        grxjland_fluxes.Es,
-    )
+    REQUIREDSEQUENCES = (grxjland_fluxes.Ps, grxjland_fluxes.Es)
     UPDATEDSEQUENCES = (grxjland_states.S,)
 
     @staticmethod
@@ -311,11 +296,7 @@ class Calc_AE_V1(modeltools.Method):
         ae(9.978652)
     """
 
-    REQUIREDSEQUENCES = (
-        grxjland_inputs.E,
-        grxjland_fluxes.En,
-        grxjland_fluxes.Es,
-    )
+    REQUIREDSEQUENCES = (grxjland_inputs.E, grxjland_fluxes.En, grxjland_fluxes.Es)
     RESULTSEQUENCES = (grxjland_fluxes.AE,)
 
     @staticmethod
@@ -347,11 +328,7 @@ class Calc_Pr_V1(modeltools.Method):
         pr(12.0)
     """
 
-    REQUIREDSEQUENCES = (
-        grxjland_fluxes.Ps,
-        grxjland_fluxes.Pn,
-        grxjland_fluxes.Perc,
-    )
+    REQUIREDSEQUENCES = (grxjland_fluxes.Ps, grxjland_fluxes.Pn, grxjland_fluxes.Perc)
 
     RESULTSEQUENCES = (grxjland_fluxes.Pr,)
 
@@ -385,10 +362,7 @@ class Calc_PrUH1_PrUH2_V1(modeltools.Method):
     """
 
     REQUIREDSEQUENCES = (grxjland_fluxes.Pr,)
-    RESULTSEQUENCES = (
-        grxjland_fluxes.PrUH1,
-        grxjland_fluxes.PrUH2,
-    )
+    RESULTSEQUENCES = (grxjland_fluxes.PrUH1, grxjland_fluxes.PrUH2)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -657,10 +631,7 @@ class Calc_Q1_Q9_V2(modeltools.Method):
     """
 
     REQUIREDSEQUENCES = (grxjland_fluxes.QOutUH2,)
-    RESULTSEQUENCES = (
-        grxjland_fluxes.Q1,
-        grxjland_fluxes.Q9,
-    )
+    RESULTSEQUENCES = (grxjland_fluxes.Q1, grxjland_fluxes.Q9)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -706,10 +677,7 @@ class Calc_F_V1(modeltools.Method):
         f(0.000029)
     """
 
-    CONTROLPARAMETERS = (
-        grxjland_control.X2,
-        grxjland_control.X3,
-    )
+    CONTROLPARAMETERS = (grxjland_control.X2, grxjland_control.X3)
 
     UPDATEDSEQUENCES = (grxjland_states.R,)
     RESULTSEQUENCES = (grxjland_fluxes.F,)
@@ -743,11 +711,7 @@ class Calc_F_V2(modeltools.Method):
         f(-0.137898)
     """
 
-    CONTROLPARAMETERS = (
-        grxjland_control.X2,
-        grxjland_control.X3,
-        grxjland_control.X5,
-    )
+    CONTROLPARAMETERS = (grxjland_control.X2, grxjland_control.X3, grxjland_control.X5)
 
     UPDATEDSEQUENCES = (grxjland_states.R,)
 
@@ -781,10 +745,7 @@ class Update_R_V1(modeltools.Method):
         r(114.862102)
     """
 
-    REQUIREDSEQUENCES = (
-        grxjland_fluxes.Q9,
-        grxjland_fluxes.F,
-    )
+    REQUIREDSEQUENCES = (grxjland_fluxes.Q9, grxjland_fluxes.F)
     UPDATEDSEQUENCES = (grxjland_states.R,)
 
     @staticmethod
@@ -814,10 +775,7 @@ class Update_R_V2(modeltools.Method):
         r(106.862102)
     """
 
-    REQUIREDSEQUENCES = (
-        grxjland_fluxes.Q9,
-        grxjland_fluxes.F,
-    )
+    REQUIREDSEQUENCES = (grxjland_fluxes.Q9, grxjland_fluxes.F)
     UPDATEDSEQUENCES = (grxjland_states.R,)
 
     @staticmethod
@@ -908,10 +866,7 @@ class Update_R2_V1(modeltools.Method):
         r2(43.5)
     """
 
-    REQUIREDSEQUENCES = (
-        grxjland_fluxes.Q9,
-        grxjland_fluxes.F,
-    )
+    REQUIREDSEQUENCES = (grxjland_fluxes.Q9, grxjland_fluxes.F)
     UPDATEDSEQUENCES = (grxjland_states.R2,)
 
     @staticmethod
@@ -1025,10 +980,7 @@ class Calc_Qd_V1(modeltools.Method):
         qd(0.0)
     """
 
-    REQUIREDSEQUENCES = (
-        grxjland_fluxes.Q1,
-        grxjland_fluxes.F,
-    )
+    REQUIREDSEQUENCES = (grxjland_fluxes.Q1, grxjland_fluxes.F)
 
     RESULTSEQUENCES = (grxjland_fluxes.Qd,)
 
@@ -1058,10 +1010,7 @@ class Calc_Qt_V1(modeltools.Method):
 
     """
 
-    REQUIREDSEQUENCES = (
-        grxjland_fluxes.Qr,
-        grxjland_fluxes.Qd,
-    )
+    REQUIREDSEQUENCES = (grxjland_fluxes.Qr, grxjland_fluxes.Qd)
 
     RESULTSEQUENCES = (grxjland_fluxes.Qt,)
 
@@ -1090,11 +1039,7 @@ class Calc_Qt_V3(modeltools.Method):
         qt(40.0)
     """
 
-    REQUIREDSEQUENCES = (
-        grxjland_fluxes.Qr,
-        grxjland_fluxes.Qr2,
-        grxjland_fluxes.Qd,
-    )
+    REQUIREDSEQUENCES = (grxjland_fluxes.Qr, grxjland_fluxes.Qr2, grxjland_fluxes.Qd)
 
     RESULTSEQUENCES = (grxjland_fluxes.Qt,)
 

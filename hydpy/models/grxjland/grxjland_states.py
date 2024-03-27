@@ -27,7 +27,7 @@ class S(sequencetools.StateSequence):
         s(200.0)
         """
         if upper is None:
-            upper = self.subseqs.seqs.model.parameters.control.x1
+            upper = self.subseqs.seqs.model.parameters.control.x1.value
         super().trim(lower, upper)
 
 
@@ -52,7 +52,7 @@ class R(sequencetools.StateSequence):
         r(200.0)
         """
         if upper is None:
-            upper = self.subseqs.seqs.model.parameters.control.x3
+            upper = self.subseqs.seqs.model.parameters.control.x3.value
         super().trim(lower, upper)
 
 

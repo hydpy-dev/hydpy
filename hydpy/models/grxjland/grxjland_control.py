@@ -38,7 +38,7 @@ class X3(parametertools.Parameter):
 class X4(parametertools.Parameter):
     """Time base of unit hydrographs `UH1` (`X4`) and `UH2` (2*`X4`) [T]."""
 
-    # todo: 0.5 Tage als untere Grenze
+    # todo: obere Grenze unit hydrograph 20 Tage?
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.5, None)
 

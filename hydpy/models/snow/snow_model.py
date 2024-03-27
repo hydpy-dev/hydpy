@@ -166,10 +166,7 @@ class Return_T_V1(modeltools.Method):
 
     @staticmethod
     def __call__(
-        model: modeltools.Model,
-        t: float,
-        gradtmean: float,
-        zlayer: float,
+        model: modeltools.Model, t: float, gradtmean: float, zlayer: float
     ) -> float:
         con = model.parameters.control.fastaccess
 
@@ -538,10 +535,7 @@ class Calc_SolidFraction_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (snow_control.NSnowLayers,)
-    FIXEDPARAMETERS = (
-        snow_fixed.TThreshSnow,
-        snow_fixed.TThreshRain,
-    )
+    FIXEDPARAMETERS = (snow_fixed.TThreshSnow, snow_fixed.TThreshRain)
     REQUIREDSEQUENCES = (snow_fluxes.TLayer,)
     RESULTSEQUENCES = (snow_fluxes.SolidFraction,)
 
@@ -605,15 +599,9 @@ class Calc_SolidFraction_V2(modeltools.Method):
         solidfraction(0.518447, 0.884092, 1.0, 1.0, 1.0)
     """
 
-    CONTROLPARAMETERS = (
-        snow_control.NSnowLayers,
-        snow_control.ZInputs,
-    )
+    CONTROLPARAMETERS = (snow_control.NSnowLayers, snow_control.ZInputs)
 
-    FIXEDPARAMETERS = (
-        snow_fixed.TThreshSnow,
-        snow_fixed.TThreshRain,
-    )
+    FIXEDPARAMETERS = (snow_fixed.TThreshSnow, snow_fixed.TThreshRain)
 
     REQUIREDSEQUENCES = (
         snow_fluxes.TLayer,
@@ -670,10 +658,7 @@ class Calc_PRainLayer_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (snow_control.NSnowLayers,)
-    REQUIREDSEQUENCES = (
-        snow_fluxes.PLayer,
-        snow_fluxes.SolidFraction,
-    )
+    REQUIREDSEQUENCES = (snow_fluxes.PLayer, snow_fluxes.SolidFraction)
     RESULTSEQUENCES = (snow_fluxes.PRainLayer,)
 
     @staticmethod
@@ -707,10 +692,7 @@ class Calc_PSnowLayer_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (snow_control.NSnowLayers,)
-    REQUIREDSEQUENCES = (
-        snow_fluxes.PLayer,
-        snow_fluxes.SolidFraction,
-    )
+    REQUIREDSEQUENCES = (snow_fluxes.PLayer, snow_fluxes.SolidFraction)
     RESULTSEQUENCES = (snow_fluxes.PSnowLayer,)
 
     @staticmethod
@@ -779,10 +761,7 @@ class Calc_ETG_V1(modeltools.Method):
         etg(0.0, -0.987613, -0.044592, -0.067267, -0.100019)
     """
 
-    CONTROLPARAMETERS = (
-        snow_control.NSnowLayers,
-        snow_control.CN1,
-    )
+    CONTROLPARAMETERS = (snow_control.NSnowLayers, snow_control.CN1)
     REQUIREDSEQUENCES = (snow_fluxes.TLayer,)
     UPDATEDSEQUENCES = (snow_states.ETG,)
 
@@ -824,15 +803,8 @@ class Calc_PotMelt_V1(modeltools.Method):
         potmelt(0.0, 0.0, 1.0, 2.249, 3.3735)
     """
 
-    CONTROLPARAMETERS = (
-        snow_control.NSnowLayers,
-        snow_control.CN2,
-    )
-    REQUIREDSEQUENCES = (
-        snow_fluxes.TLayer,
-        snow_states.ETG,
-        snow_states.G,
-    )
+    CONTROLPARAMETERS = (snow_control.NSnowLayers, snow_control.CN2)
+    REQUIREDSEQUENCES = (snow_fluxes.TLayer, snow_states.ETG, snow_states.G)
     RESULTSEQUENCES = (snow_fluxes.PotMelt,)
 
     @staticmethod
@@ -918,18 +890,9 @@ class Calc_GRatio_GLocalMax_V1(modeltools.Method):
         glocalmax(40.0, 30.0, 12.0, 10.0, 72.0)
     """
 
-    CONTROLPARAMETERS = (
-        snow_control.NSnowLayers,
-        snow_derived.GThresh,
-    )
-    REQUIREDSEQUENCES = (
-        snow_states.G,
-        snow_fluxes.PotMelt,
-    )
-    UPDATEDSEQUENCES = (
-        snow_states.GRatio,
-        snow_logs.GLocalMax,
-    )
+    CONTROLPARAMETERS = (snow_control.NSnowLayers, snow_derived.GThresh)
+    REQUIREDSEQUENCES = (snow_states.G, snow_fluxes.PotMelt)
+    UPDATEDSEQUENCES = (snow_states.GRatio, snow_logs.GLocalMax)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -975,10 +938,7 @@ class Calc_Melt_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (snow_control.NSnowLayers,)
     FIXEDPARAMETERS = (snow_fixed.MinMelt,)
-    REQUIREDSEQUENCES = (
-        snow_fluxes.PotMelt,
-        snow_states.GRatio,
-    )
+    REQUIREDSEQUENCES = (snow_fluxes.PotMelt, snow_states.GRatio)
     RESULTSEQUENCES = (snow_fluxes.Melt,)
 
     @staticmethod
@@ -1077,20 +1037,10 @@ class Update_GRatio_GLocalMax_V1(modeltools.Method):
         glocalmax(10.0, 10.0, 10.0, 10.0, 20.0)
     """
 
-    CONTROLPARAMETERS = (
-        snow_control.NSnowLayers,
-        snow_control.CN3,
-    )
+    CONTROLPARAMETERS = (snow_control.NSnowLayers, snow_control.CN3)
     DERIVEDPARAMETERS = (snow_derived.GThresh,)
-    REQUIREDSEQUENCES = (
-        snow_fluxes.Melt,
-        snow_fluxes.PSnowLayer,
-        snow_states.G,
-    )
-    UPDATEDSEQUENCES = (
-        snow_states.GRatio,
-        snow_logs.GLocalMax,
-    )
+    REQUIREDSEQUENCES = (snow_fluxes.Melt, snow_fluxes.PSnowLayer, snow_states.G)
+    UPDATEDSEQUENCES = (snow_states.GRatio, snow_logs.GLocalMax)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1135,10 +1085,7 @@ class Calc_PNetLayer_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (snow_control.NSnowLayers,)
-    REQUIREDSEQUENCES = (
-        snow_fluxes.Melt,
-        snow_fluxes.PRainLayer,
-    )
+    REQUIREDSEQUENCES = (snow_fluxes.Melt, snow_fluxes.PRainLayer)
     RESULTSEQUENCES = (snow_fluxes.PNetLayer,)
 
     @staticmethod
@@ -1171,10 +1118,7 @@ class Calc_PNet_V1(modeltools.Method):
         6.1
     """
 
-    CONTROLPARAMETERS = (
-        snow_control.NSnowLayers,
-        snow_control.LayerArea,
-    )
+    CONTROLPARAMETERS = (snow_control.NSnowLayers, snow_control.LayerArea)
     REQUIREDSEQUENCES = (snow_fluxes.PNetLayer,)
     RESULTSEQUENCES = (snow_fluxes.PNet,)
 

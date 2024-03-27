@@ -13,8 +13,6 @@ import itertools
 import time
 import types
 import warnings
-from typing import *
-from typing import TextIO
 
 # ...from site-packages
 import black
@@ -28,21 +26,22 @@ from hydpy.core import hydpytools
 from hydpy.core import masktools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core import propertytools
 from hydpy.core import selectiontools
 from hydpy.core import timetools
 from hydpy.core import variabletools
 from hydpy.auxs import iuhtools
-from hydpy.models.arma import arma_control
 from hydpy.core.typingtools import *
+
+if TYPE_CHECKING:
+    from hydpy.models.arma import arma_control
 
 TypeParameter = TypeVar("TypeParameter", bound=parametertools.Parameter)
 TypeRule1 = TypeVar(
-    "TypeRule1",
-    bound=Union["Replace", "Add", "Multiply", "ReplaceIUH", "MultiplyIUH"],
+    "TypeRule1", bound=Union["Replace", "Add", "Multiply", "ReplaceIUH", "MultiplyIUH"]
 )
 TypeRule2 = TypeVar(
-    "TypeRule2",
-    bound=Union["Replace", "Add", "Multiply", "ReplaceIUH", "MultiplyIUH"],
+    "TypeRule2", bound=Union["Replace", "Add", "Multiply", "ReplaceIUH", "MultiplyIUH"]
 )
 TypeRule = TypeVar("TypeRule", "Replace", "Add", "Multiply")
 Target = Optional[str]
@@ -139,7 +138,7 @@ class SumAdaptor(Adaptor):
     k(0.6)
     """
 
-    _rules: Tuple[Rule[parametertools.Parameter], ...]
+    _rules: tuple[Rule[parametertools.Parameter], ...]
 
     def __init__(self, *rules: Rule[parametertools.Parameter]):
         self._rules = tuple(rules)
@@ -272,7 +271,7 @@ class FactorAdaptor(Adaptor):
     def __init__(
         self,
         rule: Rule[parametertools.Parameter],
-        reference: Union[Type[parametertools.Parameter], parametertools.Parameter, str],
+        reference: Union[type[parametertools.Parameter], parametertools.Parameter, str],
         mask: Optional[Union[masktools.BaseMask, str]] = None,
     ):
         self._rule = rule
@@ -525,7 +524,7 @@ handle any `musk_classic` model instances.
     parametername: str
     """The name of the addressed |Parameter| objects."""
 
-    parametertype: Type[TypeParameter]
+    parametertype: type[TypeParameter]
     """The type of the addressed |Parameter| objects."""
 
     keyword: Optional[str]
@@ -535,19 +534,19 @@ handle any `musk_classic` model instances.
     elements: devicetools.Elements
     """The |Element| objects, which handle the relevant target |Parameter| instances."""
 
-    selections: Tuple[str, ...]
+    selections: tuple[str, ...]
     """The names of all relevant |Selection| objects."""
 
     _value: float
     _model: Optional[str]
     _parameterstep: Optional[timetools.Period]
-    _original_parameter_values: Tuple[Union[float, Vector[float], Matrix[float]], ...]
+    _original_parameter_values: tuple[Any, ...]
 
     def __init__(
         self,
         *,
         name: str,
-        parameter: Union[Type[TypeParameter], TypeParameter, str],
+        parameter: Union[type[TypeParameter], TypeParameter, str],
         value: float,
         lower: float = -numpy.inf,
         upper: float = numpy.inf,
@@ -576,9 +575,11 @@ handle any `musk_classic` model instances.
             else:
                 selections = selectiontools.Selections(
                     *(
-                        sel
-                        if isinstance(sel, selectiontools.Selection)
-                        else hydpy.pub.selections[sel]
+                        (
+                            sel
+                            if isinstance(sel, selectiontools.Selection)
+                            else hydpy.pub.selections[sel]
+                        )
                         for sel in selections
                     )
                 )
@@ -606,7 +607,7 @@ handle any `musk_classic` model instances.
             self.parametertype = type(  # type: ignore[assignment]
                 tuple(self.elements)[0].model.parameters.control[self.parametername]
             )
-            self.parameterstep = parameterstep  # type: ignore[assignment]
+            self.parameterstep = parameterstep
             self._original_parameter_values = self._get_original_parameter_values()
         except BaseException:
             objecttools.augment_excmessage(
@@ -614,9 +615,7 @@ handle any `musk_classic` model instances.
                 f"`{name}`"
             )
 
-    def _get_original_parameter_values(
-        self,
-    ) -> Tuple[Union[float, Vector[float], Matrix[float]], ...]:
+    def _get_original_parameter_values(self) -> tuple[Any, ...]:
         with hydpy.pub.options.parameterstep(self.parameterstep):
             if self.keyword is None:
                 return tuple(par.revert_timefactor(par.value) for par in self)
@@ -682,7 +681,7 @@ value `200.0` instead.
     def _update_parameter(
         self,
         parameter: parametertools.Parameter,
-        value: Union[float, Vector[float], Matrix[float]],
+        value: Union[float, VectorFloat, MatrixFloat],
     ) -> None:
         if self.keyword is None:
             parameter(value)
@@ -716,8 +715,7 @@ value `200.0` instead.
             for parameter, orig in zip(self, self._original_parameter_values):
                 self._update_parameter(parameter, orig)
 
-    @property
-    def parameterstep(self) -> Optional[timetools.Period]:
+    def _get_parameterstep(self) -> Optional[timetools.Period]:
         """The parameter step size relevant to the related model parameter.
 
         For non-time-dependent parameters, property |Rule.parameterstep| is (usually)
@@ -725,8 +723,7 @@ value `200.0` instead.
         """
         return self._parameterstep
 
-    @parameterstep.setter
-    def parameterstep(self, value: Optional[timetools.PeriodConstrArg]) -> None:
+    def _set_parameterstep(self, value: Optional[timetools.PeriodConstrArg]) -> None:
         if self.keyword is None:
             time_ = self.parametertype.TIME
         else:
@@ -747,6 +744,10 @@ value `200.0` instead.
                     ) from None
             self._parameterstep = timetools.Period(value)
 
+    parameterstep = propertytools.Property(
+        fget=_get_parameterstep, fset=_set_parameterstep
+    )
+
     def assignrepr(self, prefix: str, indent: int = 0) -> str:
         """Return a string representation of the actual |Rule| object prefixed with the
         given string."""
@@ -757,8 +758,7 @@ value `200.0` instead.
         blanks = (indent + 4) * " "
         selprefix = f"{blanks}selections="
         selline = objecttools.assignrepr_tuple(
-            values=tuple(f'"{sel}"' for sel in self.selections),
-            prefix=selprefix,
+            values=tuple(f'"{sel}"' for sel in self.selections), prefix=selprefix
         )
         return (
             f"{prefix}{type(self).__name__}(\n"
@@ -782,7 +782,9 @@ value `200.0` instead.
 
     def __iter__(self) -> Iterator[TypeParameter]:
         for element in self.elements:
-            yield element.model.parameters.control[self.parametername]
+            parameter = element.model.parameters.control[self.parametername]
+            assert isinstance(parameter, self.parametertype)
+            yield parameter
 
 
 class Replace(Rule[parametertools.Parameter]):
@@ -1196,7 +1198,7 @@ attribute nor a rule object named `FC`.
     anymore:
 
     >>> round_(ci.result)
-    1.605136
+    1.603574
 
     Use method |CalibrationInterface.reset_parameters| to restore the initial states of
     all affected parameters:
@@ -1239,7 +1241,7 @@ attribute nor a rule object named `FC`.
     |CalibrationInterface.apply_values|:
 
     >>> round_(ci.perform_calibrationstep([100.0, 5.0, 0.3]))
-    1.605136
+    1.603574
 
     >>> stream.parameters.control
     nmbsegments(lag=0.583)
@@ -1269,9 +1271,9 @@ attribute nor a rule object named `FC`.
     ...         print(file_.read())
     # Just a doctest example.
     <BLANKLINE>
-    NSE           fc    percmax damp
-    parameterstep None	1d      None
-    1.605136      100.0 5.0     0.3
+    NSE	fc	percmax	damp
+    parameterstep	None	1d	None
+    1.603574	100.0	5.0	0.3
     <BLANKLINE>
 
     To prevent (automatic) calibration runs from crashing due to IO problems, method
@@ -1293,8 +1295,8 @@ following problem occured: [Errno 2] No such file or directory: 'dirname1/filena
     ...     ci.update_logfile()
     ...     with open("dirname1/filename.log") as file_:
     ...         print(file_.read())
-    1.605136 100.0 5.0 0.3
-    1.605136 100.0 5.0 0.3
+    1.603574	100.0	5.0	0.3
+    1.603574	100.0	5.0	0.3
     <BLANKLINE>
 
     Call method |CalibrationInterface.finalise_logfile| to ensure the
@@ -1331,7 +1333,7 @@ following problem occured: [Errno 2] No such file or directory: 'dirname2/filena
     ...     ci.finalise_logfile()
     ...     with open("dirname2/filename.log") as file_:
     ...         print(file_.read())
-    1.605136 100.0 5.0 0.3
+    1.603574	100.0	5.0	0.3
     <BLANKLINE>
 
     >>> ci._logfilepath = "example_calibration.log"
@@ -1369,12 +1371,12 @@ following problem occured: [Errno 2] No such file or directory: 'dirname2/filena
     ...         print(file_.read())
     # Just a doctest example.
     <BLANKLINE>
-    NSE           fc    percmax damp
-    parameterstep None  1d      None
-    1.605136      100.0 5.0     0.3
-    -0.710211     50.0  1.0     0.0
-    2.313934      200.0 10.0    0.5
-    1.605136      100.0 5.0     0.3
+    NSE	fc	percmax	damp
+    parameterstep	None	1d	None
+    1.603574	100.0	5.0	0.3
+    -0.709987	50.0	1.0	0.0
+    2.312553	200.0	10.0	0.5
+    1.603574	100.0	5.0	0.3
     <BLANKLINE>
 
     Class |CalibrationInterface| also provides method
@@ -1391,9 +1393,9 @@ following problem occured: [Errno 2] No such file or directory: 'dirname2/filena
     >>> ci.damp.value
     0.5
     >>> round_(ci.result)
-    2.313934
+    2.312553
     >>> round_(ci.apply_values())
-    2.313934
+    2.312553
 
     On the contrary, if we set argument `maximisation` to |False|, method
     |CalibrationInterface.read_logfile| returns the worst result in our example:
@@ -1407,9 +1409,9 @@ following problem occured: [Errno 2] No such file or directory: 'dirname2/filena
     >>> ci.damp.value
     0.0
     >>> round_(ci.result)
-    -0.710211
+    -0.709987
     >>> round_(ci.apply_values())
-    -0.710211
+    -0.709987
 
     To prevent errors due to different parameter step-sizes, method
     |CalibrationInterface.read_logfile| raises the following error whenever it detects
@@ -1464,17 +1466,17 @@ does not agree with the one documentated in log file `example_calibration.log` (
 
     result: Optional[float]
     """The last result, as calculated by the target function."""
-    conditions: hydpytools.ConditionsType
+    conditions: Conditions
     """The |HydPy.conditions| of the given |HydPy| object.
 
     |CalibrationInterface| queries the conditions during its initialisation and uses 
     them later to reset all relevant conditions before each new simulation run.
     """
     _logfilepath: Optional[str]
-    _logfilelines: Deque[str]
+    _logfilelines: collections.deque[str]
     _hp: hydpytools.HydPy
     _targetfunction: TargetFunction
-    _rules: Dict[str, TypeRule1]
+    _rules: dict[str, TypeRule1]
     _elements: devicetools.Elements
 
     def __init__(self, hp: hydpytools.HydPy, targetfunction: TargetFunction) -> None:
@@ -1523,15 +1525,13 @@ does not agree with the one documentated in log file `example_calibration.log` (
             self._update_elements_when_adding_a_rule(rule)
 
     @overload
-    def get_rule(self, name: str) -> TypeRule1:
-        ...
+    def get_rule(self, name: str) -> TypeRule1: ...
 
     @overload
-    def get_rule(self, name: str, type_: Type[TypeRule2]) -> TypeRule2:
-        ...
+    def get_rule(self, name: str, type_: type[TypeRule2]) -> TypeRule2: ...
 
     def get_rule(
-        self, name: str, type_: Optional[Type[TypeRule2]] = None
+        self, name: str, type_: Optional[type[TypeRule2]] = None
     ) -> Union[TypeRule1, TypeRule2]:
         """Return a |Rule| object (of a specific type).
 
@@ -1732,16 +1732,15 @@ object named `fc`.
         information.
         """
         with open(logfilepath, encoding=config.ENCODING) as logfile:
-            # pylint: disable=not-an-iterable
-            # because pylint is sometimes wrong about this
             lines = tuple(
-                line for line in logfile if line.strip() and (not line.startswith("#"))
+                line
+                for line in logfile  # pylint: disable=not-an-iterable
+                if (line.strip() and (not line.startswith("#")))
             )
-            # pylint: enable=not-an-iterable
         idx2name, idx2rule = {}, {}
         parameterstep: Optional[Union[str, timetools.Period]]
         for idx, (name, parameterstep) in enumerate(
-            zip(lines[0].split()[1:], lines[1].split()[1:]),
+            zip(lines[0].split()[1:], lines[1].split()[1:])
         ):
             if name in self._rules:
                 rule = self._rules[name]
@@ -1793,7 +1792,7 @@ object named `fc`.
             self._elements += rule.elements
 
     @property
-    def names(self) -> Tuple[str, ...]:
+    def names(self) -> tuple[str, ...]:
         """The names of all handled |Rule| objects.
 
         See the main documentation on class |CalibrationInterface| for further
@@ -1802,7 +1801,7 @@ object named `fc`.
         return tuple(rule.name for rule in self)
 
     @property
-    def values(self) -> Tuple[float, ...]:
+    def values(self) -> tuple[float, ...]:
         """The values of all handled |Rule| objects.
 
         See the main documentation on class |CalibrationInterface| for further
@@ -1811,7 +1810,7 @@ object named `fc`.
         return tuple(rule.value for rule in self)
 
     @property
-    def keywords(self) -> Tuple[Optional[str], ...]:
+    def keywords(self) -> tuple[Optional[str], ...]:
         """The (optional) target keywords of all handled |Rule| objects.
 
         See the main documentation on class |CalibrationInterface| for further
@@ -1820,7 +1819,7 @@ object named `fc`.
         return tuple(rule.keyword for rule in self)
 
     @property
-    def lowers(self) -> Tuple[float, ...]:
+    def lowers(self) -> tuple[float, ...]:
         """The lower boundaries of all handled |Rule| objects.
 
         See the main documentation on class |CalibrationInterface| for further
@@ -1829,7 +1828,7 @@ object named `fc`.
         return tuple(rule.lower for rule in self)
 
     @property
-    def uppers(self) -> Tuple[float, ...]:
+    def uppers(self) -> tuple[float, ...]:
         """The upper boundaries of all handled |Rule| objects.
 
         See the main documentation on class |CalibrationInterface| for further
@@ -1838,7 +1837,7 @@ object named `fc`.
         return tuple(rule.upper for rule in self)
 
     @property
-    def selections(self) -> Tuple[str, ...]:
+    def selections(self) -> tuple[str, ...]:
         """The names of all |Selection| objects addressed at least one of the handled
         |Rule| objects.
 
@@ -1851,13 +1850,13 @@ object named `fc`.
     @property
     def parametertypes(
         self,
-    ) -> Tuple[Tuple[Type[parametertools.Parameter], Target], ...]:
+    ) -> tuple[tuple[type[parametertools.Parameter], Target], ...]:
         """The types of all |Parameter| objects addressed by at least one of the
         handled |Rule| objects.
 
         See the documentation on function |make_rules| for further information.
         """
-        parametertypes: List[Tuple[Type[parametertools.Parameter], Target]] = []
+        parametertypes: list[tuple[type[parametertools.Parameter], Target]] = []
         for rule in self:
             if isinstance(rule, RuleIUH):
                 parametertypes.append((rule.parametertype, rule.target))
@@ -1871,16 +1870,14 @@ object named `fc`.
 
     def _refresh_hp(self) -> None:
         for element in self._elements:
-            element.model.parameters.update()
+            element.model.update_parameters()
         self._hp.conditions = self.conditions
 
     @overload
-    def apply_values(self, perform_simulation: Literal[True] = ...) -> float:
-        ...
+    def apply_values(self, perform_simulation: Literal[True] = ...) -> float: ...
 
     @overload
-    def apply_values(self, perform_simulation: Literal[False]) -> None:
-        ...
+    def apply_values(self, perform_simulation: Literal[False]) -> None: ...
 
     def apply_values(self, perform_simulation: bool = True) -> Optional[float]:
         """Apply all current calibration parameter values on all relevant parameters.
@@ -1920,10 +1917,7 @@ object named `fc`.
         return self.result
 
     def perform_calibrationstep(
-        self,
-        values: Iterable[float],
-        *args: Any,
-        **kwargs: Any,
+        self, values: Iterable[float], *args: Any, **kwargs: Any
     ) -> float:
         # pylint: disable=unused-argument
         # for optimisers that pass additional informative data
@@ -1944,13 +1938,13 @@ object named `fc`.
         parametertypes: Optional[
             Sequence[
                 Union[
-                    Type[parametertools.Parameter],
-                    Tuple[Type[parametertools.Parameter], Target],
+                    type[parametertools.Parameter],
+                    tuple[type[parametertools.Parameter], Target],
                 ]
             ]
         ] = None,
         selections: Optional[Sequence[str]] = None,
-        bounds: Optional[Tuple[str, str]] = ("lower", "upper"),
+        bounds: Optional[tuple[str, str]] = ("lower", "upper"),
         fillvalue: str = "/",
         sep: str = "\t",
         file_: Optional[TextIO] = None,
@@ -2144,8 +2138,7 @@ parameterstep="1d"))
         return len(self._rules)
 
     def __iter__(self) -> Iterator[TypeRule1]:
-        for rule in self._rules.values():
-            yield rule
+        yield from self._rules.values()
 
     def __getattr__(self, item: str) -> TypeRule1:
         try:
@@ -2174,7 +2167,7 @@ parameterstep="1d"))
     def __str__(self) -> str:
         return type(self).__name__
 
-    def __dir__(self) -> List[str]:
+    def __dir__(self) -> list[str]:
         """
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -2192,10 +2185,10 @@ parameterstep="1d"))
         >>> sorted(set(dir(ci)) - set(object.__dir__(ci)))
         ['fc', 'percmax']
         """
-        return cast(List[str], super().__dir__()) + list(self._rules.keys())
+        return cast(list[str], super().__dir__()) + list(self._rules.keys())
 
 
-class RuleIUH(Rule[arma_control.Responses]):
+class RuleIUH(Rule["arma_control.Responses"]):
     """A |Rule|, class specialised for |IUH| parameters.
 
     |RuleIUH| serves as a base class only.  Please see the concrete implementation
@@ -2212,14 +2205,14 @@ class RuleIUH(Rule[arma_control.Responses]):
     Set this flag to |False| for the first |ReplaceIUH| object when another handles the 
     same elements and is applied afterwards.
     """
-    _element2iuh: Optional[Dict[str, iuhtools.IUH]] = None
+    _element2iuh: Optional[dict[str, iuhtools.IUH]] = None
 
     def __init__(
         self,
         *,
         name: str,
         target: str,
-        parameter: Union[Type[arma_control.Responses], arma_control.Responses, str],
+        parameter: Union[type[arma_control.Responses], arma_control.Responses, str],
         value: float,
         lower: float = -numpy.inf,
         upper: float = numpy.inf,
@@ -2239,9 +2232,7 @@ class RuleIUH(Rule[arma_control.Responses]):
         )
         self.target = target
 
-    def _get_original_parameter_values(
-        self,
-    ) -> Tuple[Tuple[Vector[float], Vector[float]], ...]:
+    def _get_original_parameter_values(self) -> tuple[Any, ...]:
         return tuple(
             (par.ar_coefs[0, :].copy(), par.ma_coefs[0, :].copy()) for par in self
         )
@@ -2273,8 +2264,7 @@ class RuleIUH(Rule[arma_control.Responses]):
     @property
     def _iuhs(self) -> Iterable[iuhtools.IUH]:
         element2iuh = {} if self._element2iuh is None else self._element2iuh
-        for iuh in element2iuh.values():
-            yield iuh
+        yield from element2iuh.values()
 
     def reset_parameters(self) -> None:
         """Reset all relevant parameter objects to their original states.
@@ -2515,7 +2505,7 @@ class MultiplyIUH(RuleIUH):
                       (0.699212, -0.663835, 0.093935, 0.046177, -0.00854)))
     """
 
-    _original_iuh_values: List[float]
+    _original_iuh_values: list[float]
 
     def add_iuhs(self, **iuhs: iuhtools.IUH) -> None:
         """Add one |IUH| object for each relevant |Element| object.
@@ -2524,7 +2514,7 @@ class MultiplyIUH(RuleIUH):
         """
         super().add_iuhs(**iuhs)
         target = self.target
-        original_iuh_values: List[float] = []
+        original_iuh_values: list[float] = []
         assert self._element2iuh is not None  # ensured by `RuleIUH.add_iuhs`
         for iuh in self._element2iuh.values():
             original_iuh_values.append(getattr(iuh, target))
@@ -2640,8 +2630,7 @@ parameterstep="1d"
         if self.parameterstep is not None:
             arguments.append(f'parameterstep="{self.parameterstep}"')
         return black.format_str(
-            f"{type(self).__name__}({', '.join(arguments)})",
-            mode=black.FileMode(),
+            f"{type(self).__name__}({', '.join(arguments)})", mode=black.FileMode()
         )[:-1]
 
 
@@ -2721,7 +2710,7 @@ object named `second`.
     third
     """
 
-    _name2parspec: Dict[str, CalibSpec]
+    _name2parspec: dict[str, CalibSpec]
 
     def __init__(self, *parspecs: CalibSpec) -> None:
         self._name2parspec = {parspec.name: parspec for parspec in parspecs}
@@ -2769,8 +2758,7 @@ object named `second`.
         return len(self._name2parspec)
 
     def __iter__(self) -> Iterator[CalibSpec]:
-        for value in self._name2parspec.values():
-            yield value
+        yield from self._name2parspec.values()
 
     def append(self, *calibspecs: CalibSpec) -> None:
         """Append one or more |CalibSpec| objects.
@@ -2795,7 +2783,7 @@ parameterstep="1d"),
             self._name2parspec[calibspec.name] = calibspec
 
     @property
-    def names(self) -> Tuple[str, ...]:
+    def names(self) -> tuple[str, ...]:
         """The names of all |CalibSpec| objects in the order of attachment.
 
         >>> from hydpy import CalibSpec, CalibSpecs
@@ -2810,7 +2798,7 @@ parameterstep="1d"),
         return tuple(parspec.name for parspec in self._name2parspec.values())
 
     @property
-    def defaults(self) -> Tuple[float, ...]:
+    def defaults(self) -> tuple[float, ...]:
         """The default values of all |CalibSpec| objects in the order of attachment.
 
         >>> from hydpy import CalibSpec, CalibSpecs
@@ -2826,7 +2814,7 @@ parameterstep="1d"),
         return tuple(parspec.default for parspec in self._name2parspec.values())
 
     @property
-    def keywords(self) -> Tuple[Optional[str], ...]:
+    def keywords(self) -> tuple[Optional[str], ...]:
         """The (optional) target keywords of all |CalibSpec| objects in the order of
         attachment.
 
@@ -2843,7 +2831,7 @@ parameterstep="1d"),
         return tuple(parspec.keyword for parspec in self._name2parspec.values())
 
     @property
-    def lowers(self) -> Tuple[float, ...]:
+    def lowers(self) -> tuple[float, ...]:
         """The lower boundary values of all |CalibSpec| objects in the order of
         attachment.
 
@@ -2860,7 +2848,7 @@ parameterstep="1d"),
         return tuple(parspec.lower for parspec in self._name2parspec.values())
 
     @property
-    def uppers(self) -> Tuple[float, ...]:
+    def uppers(self) -> tuple[float, ...]:
         """The upper boundary values of all |CalibSpec| objects in the order of
         attachment.
 
@@ -2877,7 +2865,7 @@ parameterstep="1d"),
         return tuple(parspec.upper for parspec in self._name2parspec.values())
 
     @property
-    def parametersteps(self) -> Tuple[Optional[timetools.Period], ...]:
+    def parametersteps(self) -> tuple[Optional[timetools.Period], ...]:
         """The parameter steps of all |CalibSpec| objects in the order of attachment.
 
         >>> from hydpy import CalibSpec, CalibSpecs
@@ -2895,18 +2883,16 @@ parameterstep="1d"),
     def __str__(self) -> str:
         arguments = (f'"{name}"' for name in self._name2parspec.keys())
         return black.format_str(
-            f"{type(self).__name__}({', '.join(arguments)})",
-            mode=black.FileMode(),
+            f"{type(self).__name__}({', '.join(arguments)})", mode=black.FileMode()
         )[:-1]
 
     def __repr__(self) -> str:
         arguments = (repr(value) for value in self._name2parspec.values())
         return black.format_str(
-            f"{type(self).__name__}({', '.join(arguments)})",
-            mode=black.FileMode(),
+            f"{type(self).__name__}({', '.join(arguments)})", mode=black.FileMode()
         )[:-1]
 
-    def __dir__(self) -> List[str]:
+    def __dir__(self) -> list[str]:
         """
         >>> from hydpy import CalibSpec, CalibSpecs, print_values
         >>> calibspecs = CalibSpecs(CalibSpec(name="first", default=1.0),
@@ -2920,7 +2906,7 @@ parameterstep="1d"),
 @overload
 def make_rules(
     *,
-    rule: Type[TypeRule],
+    rule: type[TypeRule],
     names: Sequence[str],
     parameters: Sequence[Union[parametertools.Parameter, str]],
     values: Sequence[float],
@@ -2929,14 +2915,13 @@ def make_rules(
     parametersteps: Sequence1[Optional[timetools.PeriodConstrArg]] = None,
     model: Optional[Union[types.ModuleType, str]] = None,
     selections: Literal[None] = None,
-) -> List[TypeRule]:
-    ...
+) -> list[TypeRule]: ...
 
 
 @overload
 def make_rules(
     *,
-    rule: Type[TypeRule],
+    rule: type[TypeRule],
     names: Sequence[str],
     parameters: Sequence[Union[parametertools.Parameter, str]],
     values: Sequence[float],
@@ -2947,14 +2932,13 @@ def make_rules(
     model: Optional[Union[types.ModuleType, str]] = None,
     selections: Iterable[Union[selectiontools.Selection, str]],
     product: bool = False,
-) -> List[TypeRule]:
-    ...
+) -> list[TypeRule]: ...
 
 
 @overload
 def make_rules(
     *,
-    rule: Type[TypeRule],
+    rule: type[TypeRule],
     calibspecs: CalibSpecs,
     names: Optional[Sequence[str]] = None,
     parameters: Optional[Sequence[Union[parametertools.Parameter, str]]] = None,
@@ -2964,14 +2948,13 @@ def make_rules(
     uppers: Optional[Sequence[float]] = None,
     model: Optional[Union[types.ModuleType, str]] = None,
     selections: Literal[None] = None,
-) -> List[TypeRule]:
-    ...
+) -> list[TypeRule]: ...
 
 
 @overload
 def make_rules(
     *,
-    rule: Type[TypeRule],
+    rule: type[TypeRule],
     calibspecs: CalibSpecs,
     names: Optional[Sequence[str]] = None,
     parameters: Optional[Sequence[Union[parametertools.Parameter, str]]] = None,
@@ -2982,13 +2965,12 @@ def make_rules(
     model: Optional[Union[types.ModuleType, str]] = None,
     selections: Iterable[Union[selectiontools.Selection, str]],
     product: bool = False,
-) -> List[TypeRule]:
-    ...
+) -> list[TypeRule]: ...
 
 
 def make_rules(
     *,
-    rule: Type[TypeRule],
+    rule: type[TypeRule],
     calibspecs: Optional[CalibSpecs] = None,
     names: Optional[Sequence[str]] = None,
     parameters: Optional[Sequence[Union[parametertools.Parameter, str]]] = None,
@@ -3000,7 +2982,7 @@ def make_rules(
     model: Optional[Union[types.ModuleType, str]] = None,
     selections: Optional[Iterable[Union[selectiontools.Selection, str]]] = None,
     product: bool = False,
-) -> List[TypeRule]:
+) -> list[TypeRule]:
     """Conveniently create multiple |Rule| objects at once.
 
     Please see the main documentation on class |CalibrationInterface| first, from

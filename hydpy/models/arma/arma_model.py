@@ -77,11 +77,7 @@ class Calc_QPIn_V1(modeltools.Method):
         |  10 | 12.0 | 12.0 |
     """
 
-    DERIVEDPARAMETERS = (
-        arma_derived.Nmb,
-        arma_derived.MaxQ,
-        arma_derived.DiffQ,
-    )
+    DERIVEDPARAMETERS = (arma_derived.Nmb, arma_derived.MaxQ, arma_derived.DiffQ)
     REQUIREDSEQUENCES = (arma_fluxes.QIn,)
     RESULTSEQUENCES = (arma_fluxes.QPIn,)
 
@@ -146,10 +142,7 @@ class Update_LogIn_V1(modeltools.Method):
                [9.0, 4.0, 5.0]])
     """
 
-    DERIVEDPARAMETERS = (
-        arma_derived.Nmb,
-        arma_derived.MA_Order,
-    )
+    DERIVEDPARAMETERS = (arma_derived.Nmb, arma_derived.MA_Order)
     REQUIREDSEQUENCES = (arma_fluxes.QPIn,)
     UPDATEDSEQUENCES = (arma_logs.LogIn,)
 
@@ -207,11 +200,7 @@ class Calc_QMA_V1(modeltools.Method):
 
     """
 
-    DERIVEDPARAMETERS = (
-        arma_derived.Nmb,
-        arma_derived.MA_Order,
-        arma_derived.MA_Coefs,
-    )
+    DERIVEDPARAMETERS = (arma_derived.Nmb, arma_derived.MA_Order, arma_derived.MA_Coefs)
     REQUIREDSEQUENCES = (arma_logs.LogIn,)
     RESULTSEQUENCES = (arma_fluxes.QMA,)
 
@@ -272,11 +261,7 @@ class Calc_QAR_V1(modeltools.Method):
 
     """
 
-    DERIVEDPARAMETERS = (
-        arma_derived.Nmb,
-        arma_derived.AR_Order,
-        arma_derived.AR_Coefs,
-    )
+    DERIVEDPARAMETERS = (arma_derived.Nmb, arma_derived.AR_Order, arma_derived.AR_Coefs)
     REQUIREDSEQUENCES = (arma_logs.LogOut,)
     RESULTSEQUENCES = (arma_fluxes.QAR,)
 
@@ -317,10 +302,7 @@ class Calc_QPOut_V1(modeltools.Method):
     """
 
     DERIVEDPARAMETERS = (arma_derived.Nmb,)
-    REQUIREDSEQUENCES = (
-        arma_fluxes.QMA,
-        arma_fluxes.QAR,
-    )
+    REQUIREDSEQUENCES = (arma_fluxes.QMA, arma_fluxes.QAR)
     RESULTSEQUENCES = (arma_fluxes.QPOut,)
 
     @staticmethod
@@ -377,10 +359,7 @@ class Update_LogOut_V1(modeltools.Method):
 
     """
 
-    DERIVEDPARAMETERS = (
-        arma_derived.Nmb,
-        arma_derived.AR_Order,
-    )
+    DERIVEDPARAMETERS = (arma_derived.Nmb, arma_derived.AR_Order)
     REQUIREDSEQUENCES = (arma_fluxes.QPOut,)
     UPDATEDSEQUENCES = (arma_logs.LogOut,)
 

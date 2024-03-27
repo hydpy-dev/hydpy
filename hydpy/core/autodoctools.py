@@ -4,6 +4,7 @@ standardisation of the online documentation generated with Sphinx."""
 # import...
 # ...from standard library
 from __future__ import annotations
+import abc
 import builtins
 import collections
 import copy
@@ -24,13 +25,13 @@ import sys
 import time
 import types
 import typing
-from typing import *
 import unittest
 import warnings
 
 # ...from site-packages
 # import matplotlib    actual import below
 import numpy
+import typing_extensions
 
 # import pandas    actual import below
 # import scipy    actual import below
@@ -47,6 +48,8 @@ from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
 from hydpy.core import typingtools
+from hydpy.core.typingtools import *
+
 
 if TYPE_CHECKING:
     from hydpy.cythons import annutils
@@ -127,7 +130,7 @@ HYDPY = Priority.HYDPY
 ELSE = Priority.ELSE
 
 
-EXCLUDE_MEMBERS = (
+excluded_members = {
     "CLASSES",
     "RUN_METHODS",
     "INTERFACE_METHODS",
@@ -157,7 +160,9 @@ EXCLUDE_MEMBERS = (
     "subvars",
     "subpars",
     "subseqs",
-)
+}
+excluded_members.update(typing.__all__)
+excluded_members.update(typing_extensions.__all__)
 
 _PAR_SPEC2CAPT = collections.OrderedDict(
     (
@@ -193,12 +198,12 @@ _all_spec2capt.update(_SEQ_SPEC2CAPT)
 _all_spec2capt.update(_AUX_SPEC2CAPT)
 
 
-def _add_title(title: str, marker: str) -> List[str]:
+def _add_title(title: str, marker: str) -> list[str]:
     """Return a title for a basemodels docstring."""
     return ["", title, marker * len(title)]
 
 
-def _add_lines(specification: str, module: types.ModuleType) -> List[str]:
+def _add_lines(specification: str, module: types.ModuleType) -> list[str]:
     """Return autodoc commands for a basemodels docstring.
 
     Note that `collection classes` (e.g. `Model`, `ControlParameters`, `InputSequences`
@@ -214,7 +219,7 @@ def _add_lines(specification: str, module: types.ModuleType) -> List[str]:
     else:
         exists_collectionclass = False
     lines = []
-    exc_mem = ", ".join(EXCLUDE_MEMBERS)
+    exc_mem = ", ".join(excluded_members)
     if specification == "model":
         lines += [
             "",
@@ -280,14 +285,14 @@ def autodoc_basemodel(module: types.ModuleType) -> None:
         methods = list(model.get_methods())
     _extend_methoddocstrings(module)
     _gain_and_insert_additional_information_into_docstrings(module, methods)
-    for (title, spec2capt) in (
+    for title, spec2capt in (
         ("Parameter Features", _PAR_SPEC2CAPT),
         ("Sequence Features", _SEQ_SPEC2CAPT),
         ("Auxiliary Features", _AUX_SPEC2CAPT),
     ):
         found_module = False
         new_lines = _add_title(title, "-")
-        for (specification, caption) in spec2capt.items():
+        for specification, caption in spec2capt.items():
             modulename = f"{basemodulename}_{specification}"
             if modulename in modules:
                 module = modules[modulename]
@@ -318,13 +323,7 @@ def _insert_links_into_docstring(target: object, insertion: str) -> None:
             target.__doc__ = "\n\n".join([doc, insertion])
         else:
             position += 2
-            target.__doc__ = "".join(
-                [
-                    doc[:position],
-                    insertion,
-                    doc[position:],
-                ]
-            )
+            target.__doc__ = "".join([doc[:position], insertion, doc[position:]])
     return
 
 
@@ -341,7 +340,7 @@ def _get_ending(container: Sized) -> str:
     return "s" if len(container) > 1 else ""
 
 
-def _get_methoddocstringinsertions(method: modeltools.Method) -> List[str]:
+def _get_methoddocstringinsertions(method: modeltools.Method) -> list[str]:
     insertions = []
     submethods = getattr(method, "SUBMETHODS", ())
     if submethods:
@@ -433,8 +432,7 @@ def _gain_and_insert_additional_information_into_docstrings(
 
 
 def autodoc_applicationmodel(module: types.ModuleType) -> None:
-    """Improves the docstrings of application models when called at the bottom of the
-    respective module.
+    """Improves the docstrings of application models.
 
     |autodoc_applicationmodel| requires, similar to |autodoc_basemodel|, that both the
     application model and its base model are defined in the conventional way.
@@ -453,10 +451,10 @@ class Substituter:
     """Implements a HydPy specific docstring substitution mechanism."""
 
     master: Optional[Substituter]
-    slaves: List[Substituter]
-    short2long: Dict[str, str]
-    short2priority: Dict[str, Priority]
-    medium2long: Dict[str, str]
+    slaves: list[Substituter]
+    short2long: dict[str, str]
+    short2priority: dict[str, Priority]
+    medium2long: dict[str, str]
 
     def __init__(self, master: Optional[Substituter] = None) -> None:
         self.master = master
@@ -476,8 +474,8 @@ class Substituter:
         name_member: str,
         member: Any,
         module: types.ModuleType,
-        class_: Optional[Type[object]] = None,
-        ignore: Optional[Dict[str, object]] = None,
+        class_: Optional[type[object]] = None,
+        ignore: Optional[dict[str, object]] = None,
     ) -> bool:
         """Return |True| if the given member should be added to the substitutions.  If
         not, return |False|.
@@ -499,7 +497,7 @@ class Substituter:
 
         Members that are actually imported modules should not be added:
 
-        >>> Substituter.consider_member("warnings", numpy.random, numpy)
+        >>> Substituter.consider_member("random", numpy.random, numpy)
         False
 
         Members that are actually defined in other modules should not be added:
@@ -626,11 +624,7 @@ class Substituter:
         return "const"
 
     def add_substitution(
-        self,
-        short: str,
-        medium: str,
-        long: str,
-        module: types.ModuleType,
+        self, short: str, medium: str, long: str, module: types.ModuleType
     ) -> None:
         """Add the given substitutions both as a `short2long` and a `medium2long`
         mapping.
@@ -846,7 +840,7 @@ class Substituter:
         short = f"|{name_module}|"
         long = f":mod:`~{module.__name__}`"
         self.short2long[short] = long
-        for (name_member, member) in vars(module).items():
+        for name_member, member in vars(module).items():
             if self.consider_member(name_member, member, module):
                 role = self.get_role(member, cython)
                 short = f"|{name_member}|"
@@ -994,10 +988,9 @@ class Substituter:
         .. |OptionContextBase._old_value| replace:: \
 :attr:`~hydpy.core.optiontools.OptionContextBase._old_value`
         ...
-        .. |optiontools.TypeOptionPropertyBase| replace:: \
-:const:`~hydpy.core.optiontools.TypeOptionPropertyBase`
         .. |optiontools.TypeOption| replace:: \
 :const:`~hydpy.core.optiontools.TypeOption`
+        .. |optiontools.l1| replace:: :const:`~hydpy.core.optiontools.l1`
 
         Through passing a string (usually the source code of a file to be documented),
         only the replacement commands relevant for this string are translated:
@@ -1023,11 +1016,9 @@ class Substituter:
             if (text in key) or (text in value):
                 print(key, value)
 
-    def __iter__(self) -> Iterator[Tuple[str, str]]:
-        for item in sorted(self.short2long.items()):
-            yield item
-        for item in sorted(self.medium2long.items()):
-            yield item
+    def __iter__(self) -> Iterator[tuple[str, str]]:
+        yield from sorted(self.short2long.items())
+        yield from sorted(self.medium2long.items())
 
 
 def prepare_mainsubstituter() -> Substituter:
@@ -1042,6 +1033,7 @@ def prepare_mainsubstituter() -> Substituter:
 
     substituter = Substituter()
     for module in (
+        abc,
         builtins,
         numpy,
         datetime,
@@ -1074,13 +1066,13 @@ def prepare_mainsubstituter() -> Substituter:
     substituter.add_module(examples)
     substituter.add_modules(models)
     for cymodule in (
-        annutils,  # pylint: disable=used-before-assignment
-        interputils,  # pylint: disable=used-before-assignment
-        ppolyutils,  # pylint: disable=used-before-assignment
-        pointerutils,  # pylint: disable=used-before-assignment
-        quadutils,  # pylint: disable=used-before-assignment
-        rootutils,  # pylint: disable=used-before-assignment
-        smoothutils,  # pylint: disable=used-before-assignment
+        annutils,
+        interputils,
+        ppolyutils,
+        pointerutils,
+        quadutils,
+        rootutils,
+        smoothutils,
     ):
         substituter.add_module(cymodule, cython=True)
     substituter.short2long["|pub|"] = ":mod:`~hydpy.pub`"
@@ -1090,12 +1082,12 @@ def prepare_mainsubstituter() -> Substituter:
     return substituter
 
 
-def _number_of_line(member_tuple: Tuple[str, object]) -> int:
+def _number_of_line(member_tuple: tuple[str, object]) -> int:
     """Try to return the number of the first line of the definition of a member of a
     module."""
 
     def _query_index_first_line(member_: object) -> int:
-        result = member_.__code__.co_firstlineno
+        result = member_.__code__.co_firstlineno  # type: ignore[attr-defined]
         assert isinstance(result, int)
         return result
 
@@ -1105,19 +1097,20 @@ def _number_of_line(member_tuple: Tuple[str, object]) -> int:
     except AttributeError:
         pass
     try:
-        return inspect.findsource(member)[1]
+        return inspect.findsource(member)[1]  # type: ignore[arg-type]
     except BaseException:
         pass
-    for value in vars(member).values():
-        try:
-            return _query_index_first_line(value)
-        except AttributeError:
-            pass
+    if (submembers := getattr(member, "__dict__", None)) is not None:
+        for value in submembers.values():
+            try:
+                return _query_index_first_line(value)
+            except AttributeError:
+                pass
     return 0
 
 
 def autodoc_module(module: types.ModuleType) -> None:
-    """Add a short summary of all implemented members to a modules docstring."""
+    """Add a short summary of all implemented members to a module's docstring."""
     doc = getattr(module, "__doc__")
     members = []
     for name, member in inspect.getmembers(module):
@@ -1128,7 +1121,7 @@ def autodoc_module(module: types.ModuleType) -> None:
         lines = [
             f"\n\nModule :mod:`~{module.__name__}` implements the following members:\n"
         ]
-        for (name, member) in members:
+        for name, member in members:
             if inspect.isfunction(member):
                 type_ = "func"
             elif inspect.isclass(member):
@@ -1191,7 +1184,7 @@ _name2descr = {
     ),
 }
 
-_loggedtuples: Set[str] = set()
+_loggedtuples: set[str] = set()
 
 
 def autodoc_tuple2doc(module: types.ModuleType) -> None:

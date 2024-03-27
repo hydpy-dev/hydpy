@@ -16,7 +16,6 @@ the related methods in the Cython extension module |interputils|.
 from __future__ import annotations
 import abc
 import itertools
-from typing import *
 
 # ...from site-packages
 import numpy
@@ -26,6 +25,7 @@ import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core import propertytools
 from hydpy.core import timetools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
@@ -47,34 +47,20 @@ class _Labeled:
             pyplot.ylabel(ylabel)
 
 
-class InterpAlgorithm(abc.ABC, _Labeled):
+class InterpAlgorithm(_Labeled):
     """Base class for defining interpolation algorithms usable by classes
     |SimpleInterpolator| and |SeasonalInterpolator|."""
 
-    @property
-    @abc.abstractmethod
-    def nmb_inputs(self) -> int:
-        """The number of input values."""
-
-    @property
-    @abc.abstractmethod
-    def inputs(self) -> Vector[float]:
-        """The current input values."""
-
-    @property
-    @abc.abstractmethod
-    def nmb_outputs(self) -> int:
-        """The number of output values."""
-
-    @property
-    @abc.abstractmethod
-    def outputs(self) -> Vector[float]:
-        """The lastly calculated output values."""
-
-    @property
-    @abc.abstractmethod
-    def output_derivatives(self) -> Vector[float]:
-        """The lastly calculated first-order derivatives."""
+    nmb_inputs: propertytools.BaseProperty[Never, int]
+    """The number of input values."""
+    inputs: propertytools.BaseProperty[Never, VectorFloat]
+    """The current input values."""
+    nmb_outputs: propertytools.BaseProperty[Never, int]
+    """The lastly calculated output values."""
+    outputs: propertytools.BaseProperty[Never, VectorFloat]
+    """The lastly calculated output values."""
+    output_derivatives: propertytools.BaseProperty[Never, VectorFloat]
+    """The lastly calculated first-order derivatives."""
 
     @abc.abstractmethod
     def calculate_values(self) -> None:
@@ -95,7 +81,7 @@ class InterpAlgorithm(abc.ABC, _Labeled):
         """Return a string representation of the actual |InterpAlgorithm| object
         prefixed with the given string."""
 
-    def print_table(self, xs: Union[Vector[float], Matrix[float]]) -> None:
+    def print_table(self, xs: Union[VectorFloat, MatrixFloat]) -> None:
         """Process the given input data and print the interpolated output values as
         well as all partial first-order derivatives.
 
@@ -175,7 +161,7 @@ dy1/dx3   dy2/dx3
 
         # Mypy problem? See issue https://github.com/python/mypy/issues/8586:
         xs_: Union[float, Iterable[float]]
-        for ri, xs_ in enumerate(xs):  # type: ignore[assignment]
+        for ri, xs_ in enumerate(xs):
             ri += 1
             if isinstance(xs_, float):
                 xs_ = (xs_,)
@@ -203,7 +189,7 @@ dy1/dx3   dy2/dx3
         idx_input: int = 0,
         idx_output: int = 0,
         points: int = 100,
-        **kwargs: Optional[Union[float, str]],
+        **kwargs: Any,
     ) -> pyplot.Figure:
         """Plot the relationship between particular input (`idx_input`) and output
         (`idx_output`) values defined by the actual |InterpAlgorithm| object.
@@ -376,17 +362,17 @@ interpolator has been defined so far.
         return self.algorithm.nmb_outputs
 
     @property
-    def inputs(self) -> int:
+    def inputs(self) -> VectorFloat:
         """The current input values."""
         return self.algorithm.inputs
 
     @property
-    def outputs(self) -> int:
+    def outputs(self) -> VectorFloat:
         """The current input values."""
         return self.algorithm.outputs
 
     @property
-    def output_derivatives(self) -> int:
+    def output_derivatives(self) -> VectorFloat:
         """The current input values."""
         return self.algorithm.output_derivatives
 
@@ -404,7 +390,7 @@ interpolator has been defined so far.
         value of the given index."""
         self.algorithm.calculate_derivatives(idx)
 
-    def print_table(self, xs: Union[Vector[float], Matrix[float]]) -> None:
+    def print_table(self, xs: Union[VectorFloat, MatrixFloat]) -> None:
         """Process the given input data and print the interpolated output values as
         well as all partial first-order derivatives."""
         self.algorithm.print_table(xs=xs)
@@ -704,7 +690,7 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
 
     nmb_algorithms: int
 
-    _toy2algorithm: List[Tuple[timetools.TOY, InterpAlgorithm]]
+    _toy2algorithm: list[tuple[timetools.TOY, InterpAlgorithm]]
     _do_refresh: bool
     __seasonalinterpolator: Optional[interputils.SeasonalInterpolator]
 
@@ -717,17 +703,13 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
         self._do_refresh = True
 
     @overload
-    def __call__(self, __algorithm: InterpAlgorithm) -> None:
-        ...
+    def __call__(self, __algorithm: InterpAlgorithm) -> None: ...
 
     @overload
-    def __call__(self, **algorithm: InterpAlgorithm) -> None:
-        ...
+    def __call__(self, **algorithm: InterpAlgorithm) -> None: ...
 
     def __call__(
-        self,
-        *algorithm: InterpAlgorithm,
-        **algorithms: InterpAlgorithm,
+        self, *algorithm: InterpAlgorithm, **algorithms: InterpAlgorithm
     ) -> None:
         self._toy2algorithm = []
         self._do_refresh = False
@@ -742,7 +724,7 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
                 )
             if algorithm:
                 algorithms["_1"] = algorithm[0]
-            for (toystr, value) in algorithms.items():
+            for toystr, value in algorithms.items():
                 if not isinstance(value, InterpAlgorithm):
                     raise TypeError(
                         f"Type `{type(value).__name__}` is not (a subclass of) type "
@@ -922,7 +904,7 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
                 ratios[tdx, idx_0] = 1.0 - ratios[tdx, idx_1]
 
     @property
-    def shape(self) -> Tuple[int, int]:
+    def shape(self) -> tuple[int, int]:
         """The shape of array |SeasonalInterpolator.ratios|."""
         shape = self.ratios.shape
         return int(shape[0]), int(shape[1])
@@ -935,17 +917,17 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
         getattr(self.fastaccess, self.name).ratios = numpy.zeros(shape, dtype=float)
 
     @property
-    def toys(self) -> Tuple[timetools.TOY, ...]:
+    def toys(self) -> tuple[timetools.TOY, ...]:
         """A sorted |tuple| of all contained |TOY| objects."""
         return tuple(toy for (toy, _) in self)
 
     @property
-    def algorithms(self) -> Tuple[InterpAlgorithm, ...]:
+    def algorithms(self) -> tuple[InterpAlgorithm, ...]:
         """A sorted |tuple| of all handled interpolators."""
         return tuple(seasonalinterpolator for (_, seasonalinterpolator) in self)
 
     @property
-    def ratios(self) -> Matrix[float]:
+    def ratios(self) -> MatrixFloat:
         """The ratios for weighting the interpolator outputs."""
         return numpy.asarray(self._seasonalinterpolator.ratios)
 
@@ -965,7 +947,7 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
         return self._seasonalinterpolator.nmb_inputs
 
     @property
-    def inputs(self) -> Vector[float]:
+    def inputs(self) -> VectorFloat:
         """The general input data for the interpolators."""
         return numpy.asarray(self._seasonalinterpolator.inputs)
 
@@ -975,7 +957,7 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
         return self._seasonalinterpolator.nmb_outputs
 
     @property
-    def outputs(self) -> Vector[float]:
+    def outputs(self) -> VectorFloat:
         """The weighted output of the interpolators."""
         return numpy.asarray(self._seasonalinterpolator.outputs)
 
@@ -1073,7 +1055,7 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
         else:
             object.__delattr__(self, name)
 
-    def __iter__(self) -> Iterator[Tuple[timetools.TOY, InterpAlgorithm]]:
+    def __iter__(self) -> Iterator[tuple[timetools.TOY, InterpAlgorithm]]:
         return iter(self._toy2algorithm)
 
     def __repr__(self) -> str:
@@ -1092,7 +1074,7 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
     def __len__(self) -> int:
         return len(self._toy2algorithm)
 
-    def __dir__(self) -> List[str]:
+    def __dir__(self) -> list[str]:
         """
         >>> from hydpy import ANN, pub, SeasonalInterpolator
         >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
@@ -1104,4 +1086,4 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
         >>> sorted(set(dir(si)) - set(object.__dir__(si)))
         ['toy_1_1_0_0_0']
         """
-        return cast(List[str], super().__dir__()) + [str(toy) for toy in self.toys]
+        return cast(list[str], super().__dir__()) + [str(toy) for toy in self.toys]

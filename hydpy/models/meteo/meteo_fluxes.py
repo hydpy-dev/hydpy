@@ -4,6 +4,7 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.models.meteo import meteo_sequences
 
 
 class ExtraterrestrialRadiation(sequencetools.FluxSequence):
@@ -32,5 +33,15 @@ class DailyGlobalRadiation(sequencetools.FluxSequence):
 
 class GlobalRadiation(sequencetools.FluxSequence):
     """Global radiation [W/m²]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class Precipitation(meteo_sequences.FluxSequence1D):
+    """Precipitation [mm/T]."""
+
+
+class MeanPrecipitation(sequencetools.FluxSequence):
+    """Mean precipitation [mm/T]."""
 
     NDIM, NUMERIC = 0, False

@@ -116,7 +116,7 @@ for subpackage in (auxs, core, cythons, exe, interfaces, models, hydpy):
             module = importlib.import_module(f"{models.__name__}.{filename}")
             substituter = module.substituter
         if is_module or is_package:
-            _exc_mem = list(autodoctools.EXCLUDE_MEMBERS)
+            _exc_mem = autodoctools.excluded_members.copy()
             if subpackage is models:
                 for member in vars(module).values():
                     if (
@@ -124,7 +124,7 @@ for subpackage in (auxs, core, cythons, exe, interfaces, models, hydpy):
                         and issubclass(member, variabletools.SubVariables)
                         and not member.CLASSES
                     ):
-                        _exc_mem.append(member.__name__)
+                        _exc_mem.add(member.__name__)
             excludemembers = ", ".join(_exc_mem)
             lines = [
                 "",
@@ -165,3 +165,11 @@ for subpackage in (autofigs, bib, figs, sphinx, rst):
                     file_.write(orig)
             elif filename != "build":
                 shutil.copy(path_in, path_out)
+
+# copy _themes path from sphinx subpackage into folder `auto`
+# _themes folder contains the modified sphinx html themes
+themespath = os.path.join(sphinx.__path__[0], "_themes")
+themespathdest = os.path.join(AUTOPATH, "_themes")
+if not os.path.isdir(themespath):
+    raise RuntimeError("Cannot find path `_themes` in sphinx subpackage")
+shutil.copytree(themespath, themespathdest)

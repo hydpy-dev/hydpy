@@ -2,12 +2,10 @@
 # pylint: disable=missing-module-docstring
 
 # import...
-# ...from standard library
-from typing import *
-
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.core import objecttools
+from hydpy.core.typingtools import *
 from hydpy.models.hbranch import hbranch_control
 from hydpy.models.hbranch import hbranch_derived
 from hydpy.models.hbranch import hbranch_fluxes
@@ -79,10 +77,7 @@ class Calc_AdjustedInput_V1(modeltools.Method):
         adjustedinput(1.5)
     """
 
-    CONTROLPARAMETERS = (
-        hbranch_control.Delta,
-        hbranch_control.Minimum,
-    )
+    CONTROLPARAMETERS = (hbranch_control.Delta, hbranch_control.Minimum)
     DERIVEDPARAMETERS = (hbranch_derived.MOY,)
     REQUIREDSEQUENCES = (hbranch_fluxes.OriginalInput,)
     RESULTSEQUENCES = (hbranch_fluxes.AdjustedInput,)
@@ -154,14 +149,8 @@ class Calc_Outputs_V1(modeltools.Method):
                 branch2=5.0)
     """
 
-    CONTROLPARAMETERS = (
-        hbranch_control.XPoints,
-        hbranch_control.YPoints,
-    )
-    DERIVEDPARAMETERS = (
-        hbranch_derived.NmbPoints,
-        hbranch_derived.NmbBranches,
-    )
+    CONTROLPARAMETERS = (hbranch_control.XPoints, hbranch_control.YPoints)
+    DERIVEDPARAMETERS = (hbranch_derived.NmbPoints, hbranch_derived.NmbBranches)
     REQUIREDSEQUENCES = (hbranch_fluxes.AdjustedInput,)
     RESULTSEQUENCES = (hbranch_fluxes.Outputs,)
 
@@ -209,17 +198,14 @@ class Model(modeltools.AdHocModel):
 
     INLET_METHODS = (Pick_OriginalInput_V1,)
     RECEIVER_METHODS = ()
-    RUN_METHODS = (
-        Calc_AdjustedInput_V1,
-        Calc_Outputs_V1,
-    )
+    RUN_METHODS = (Calc_AdjustedInput_V1, Calc_Outputs_V1)
     ADD_METHODS = ()
     OUTLET_METHODS = (Pass_Outputs_V1,)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
-    nodenames: List[str]
+    nodenames: list[str]
     """Names of the output nodes."""
 
     def __init__(self) -> None:
@@ -273,38 +259,22 @@ class Model(modeltools.AdHocModel):
         ...
         RuntimeError: Model `hbranch` of element `branch` tried to connect to an \
 outlet node named `outflow1`, which is not an available outlet node of element `branch`.
-
-        A missing reference to the corresponding element results in the following error
-        message:
-
-        >>> model.element = None
-        >>> model.connect()
-        Traceback (most recent call last):
-        ...
-        RuntimeError: Model  hbranch does not know the element it shall connect with \
-so far.
         """
-        element = self.element
-        if element is None:
-            raise RuntimeError(
-                f"Model  {self.name} does not know the element it shall connect with "
-                f"so far."
-            )
-        nodes = element.inlets
+        nodes = self.element.inlets
         total = self.sequences.inlets.total
         if total.shape != (len(nodes),):
             total.shape = len(nodes)
         for idx, node in enumerate(nodes):
             double = node.get_double("inlets")
             total.set_pointer(double, idx)
-        for (idx, name) in enumerate(self.nodenames):
+        for idx, name in enumerate(self.nodenames):
             try:
-                outlet = getattr(element.outlets, name)
+                outlet = getattr(self.element.outlets, name)
             except AttributeError:
                 raise RuntimeError(
                     f"Model {objecttools.elementphrase(self)} tried to connect to an "
                     f"outlet node named `{name}`, which is not an available outlet "
-                    f"node of element `{element.name}`."
+                    f"node of element `{self.element.name}`."
                 ) from None
             double = outlet.get_double("outlets")
             self.sequences.outlets.branched.set_pointer(double, idx)

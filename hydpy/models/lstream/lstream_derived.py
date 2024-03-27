@@ -18,10 +18,7 @@ class HV(parametertools.LeftRightParameter):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (
-        lstream_control.BBV,
-        lstream_control.BNV,
-    )
+    CONTROLPARAMETERS = (lstream_control.BBV, lstream_control.BNV)
 
     def update(self):
         """Update based on :math:`HV=BBV/BNV`.
@@ -54,11 +51,7 @@ class MFM(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (
-        lstream_control.EKM,
-        lstream_control.SKM,
-        lstream_control.Gef,
-    )
+    CONTROLPARAMETERS = (lstream_control.EKM, lstream_control.SKM, lstream_control.Gef)
 
     def update(self):
         """Update based on :math:`MFM=EKM \\cdot SKM \\cdot \\sqrt{Gef}`.
@@ -84,11 +77,7 @@ class MFV(parametertools.LeftRightParameter):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (
-        lstream_control.EKV,
-        lstream_control.SKV,
-        lstream_control.Gef,
-    )
+    CONTROLPARAMETERS = (lstream_control.EKV, lstream_control.SKV, lstream_control.Gef)
 
     def update(self):
         """Update based on :math:`MFV=EKV \\cdot SKV \\cdot \\sqrt{Gef}`.

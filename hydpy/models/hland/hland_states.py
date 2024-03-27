@@ -19,24 +19,6 @@ class Ic(hland_sequences.State1DSequence):
     SPAN = (0.0, None)
     mask = hland_masks.Interception()
 
-    CONTROLPARAMETERS = (hland_control.IcMax,)
-
-    def trim(self, lower=None, upper=None):
-        r"""Trim |Ic| following :math:`0 \leq IC \leq ICMAX`.
-
-        >>> from hydpy.models.hland import *
-        >>> parameterstep("1d")
-        >>> nmbzones(5)
-        >>> icmax(2.0)
-        >>> states.ic(-1.0, 0.0, 1.0, 2.0, 3.0)
-        >>> states.ic
-        ic(0.0, 0.0, 1.0, 2.0, 2.0)
-        """
-        if upper is None:
-            control = self.subseqs.seqs.model.parameters.control
-            upper = control.icmax
-        super().trim(lower, upper)
-
 
 class SP(hland_sequences.State2DSequence):
     """Frozen water stored in the snow layer [mm]."""

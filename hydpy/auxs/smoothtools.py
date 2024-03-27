@@ -29,7 +29,6 @@ them computationally efficient by using Cython (see the extension module
 # import...
 # ...from standard-library
 import os
-from typing import *
 
 # ...from site-packages
 # from scipy but not optional due to using interp1d during module initialisation:
@@ -39,6 +38,7 @@ import numpy
 # ...from HydPy
 from hydpy import conf
 from hydpy.core import exceptiontools
+from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
     from scipy import optimize
@@ -82,8 +82,7 @@ def calc_smoothpar_logistic1(metapar):
 
 
 def _error_smoothpar_logistic2(par, metapar):
-    sl2 = smoothutils.smooth_logistic2  # pylint: disable=used-before-assignment
-    return sl2(-metapar, par) - 0.01
+    return smoothutils.smooth_logistic2(-metapar, par) - 0.01
 
 
 def _smooth_logistic2_derivative1(par, metapar):

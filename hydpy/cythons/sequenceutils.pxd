@@ -1,12 +1,4 @@
-# -*- coding: utf-8 -*-
-# !python
-# cython: language_level=3
-# cython: boundscheck=False
-# cython: wraparound=False
-# cython: initializedcheck=False
-# cython: cdivision=True
-"""This module defines the Cython declarations related to module
-|sequencetools|.
+"""This module defines the Cython declarations related to module |sequencetools|.
 """
 # import...
 import numpy

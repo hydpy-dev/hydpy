@@ -3,6 +3,7 @@
 
 # import...
 # ...from HydPy
+from hydpy.core import exceptiontools
 from hydpy.core import parametertools
 from hydpy.auxs import interptools
 
@@ -22,9 +23,9 @@ class CatchmentArea(parametertools.Parameter):
 class NmbLogEntries(parametertools.Parameter):
     """Number of log entries for certain variables [-].
 
-    Note that setting a new value by calling the parameter object sets
-    the shapes of all associated log sequences automatically, except those
-    with a predefined default shape:
+    Note that setting a new value by calling the parameter object sets the shapes of
+    all associated log sequences automatically, except those with a predefined default
+    shape:
 
     >>> from hydpy.models.dam import *
     >>> parameterstep()
@@ -36,17 +37,30 @@ class NmbLogEntries(parametertools.Parameter):
     loggedadjustedevaporation(nan)
     loggedrequiredremoterelease(nan)
     loggedallowedremoterelief(nan)
+    loggedouterwaterlevel(nan)
+    loggedremotewaterlevel(nan)
+
+    To prevent losing information, updating parameter |NmbLogEntries| resets the shape
+    of the relevant log sequences only when necessary:
+
+    >>> logs.loggedtotalremotedischarge = 1.0
+    >>> nmblogentries(3)
+    >>> logs.loggedtotalremotedischarge
+    loggedtotalremotedischarge(1.0, 1.0, 1.0)
     """
 
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         super().__call__(*args, **kwargs)
+        new_shape = (self.value,)
         for seq in self.subpars.pars.model.sequences.logs:
-            try:
-                seq.shape = self
-            except AttributeError:
-                pass
+            old_shape = exceptiontools.getattr_(seq, "shape", (None,))
+            if new_shape != old_shape:
+                try:
+                    seq.shape = new_shape
+                except AttributeError:
+                    pass
 
 
 class CorrectionPrecipitation(parametertools.Parameter):
@@ -73,19 +87,19 @@ class RemoteDischargeMinimum(parametertools.SeasonalParameter):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
-    def __call__(self, *args, **kwargs):
-        self.shape = (None,)
+    def __call__(self, *args, **kwargs) -> None:
+        self.shape = (-1,)
         parametertools.SeasonalParameter.__call__(self, *args, **kwargs)
 
 
 class RemoteDischargeSafety(parametertools.SeasonalParameter):
-    """Safety factor for reducing the risk to release not enough water [m³/s]."""
+    """Safety factor for reducing the risk of insufficient water release [m³/s]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
 class WaterLevel2PossibleRemoteRelief(interptools.SimpleInterpolator):
-    """Artificial neural network describing the relationship between water level and
+    """An interpolation function describing the relationship between water level and
     the highest possible water release used to relieve the dam during high flow
     conditions [-]."""
 
@@ -134,14 +148,38 @@ class WaterLevelMinimumThreshold(parametertools.Parameter):
 class WaterLevelMinimumTolerance(parametertools.Parameter):
     """A tolerance value for the minimum operating water level [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+
+class WaterLevelMaximumThreshold(parametertools.Parameter):
+    """The water level not to be exceeded [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+
+
+class WaterLevelMaximumTolerance(parametertools.Parameter):
+    """A tolerance value for the water level maximum [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+
+class RemoteWaterLevelMaximumThreshold(parametertools.Parameter):
+    """The remote water level not to be exceeded [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+
+
+class RemoteWaterLevelMaximumTolerance(parametertools.Parameter):
+    """Tolerance value for the remote water level maximum [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
 
 class ThresholdEvaporation(parametertools.Parameter):
     """The water level at which actual evaporation is 50 % of potential evaporation
     [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
 
 class ToleranceEvaporation(parametertools.Parameter):
@@ -216,19 +254,35 @@ class HighestRemoteTolerance(parametertools.Parameter):
 
 
 class WaterVolume2WaterLevel(interptools.SimpleInterpolator):
-    """Artificial neural network describing the relationship between water level and
-    water volume [-]."""
+    """An interpolation function that describes the relationship between water level
+    and water volume [-]."""
 
     XLABEL = "water volume [million m³]"
     YLABEL = "water level [m]"
 
 
 class WaterLevel2FloodDischarge(interptools.SeasonalInterpolator):
-    """Artificial neural network describing the relationship between flood discharge
-    and water volume [-]."""
+    """An interpolation function that describesg the relationship between flood
+    discharge and water volume [-]."""
 
     XLABEL = "water level [m]"
     YLABEL = "flood discharge [m³/s]"
+
+
+class WaterLevelDifference2MaxForcedDischarge(interptools.SeasonalInterpolator):
+    """An interpolation function that describes the relationship between the highest
+    possible forced discharge and the water level difference [-]."""
+
+    XLABEL = "water level difference [m]"
+    YLABEL = "max. forced discharge [m³/s]"
+
+
+class WaterLevelDifference2MaxFreeDischarge(interptools.SeasonalInterpolator):
+    """An interpolation function that describes the relationship between the highest
+    possible free discharge and the water level difference [-]."""
+
+    XLABEL = "water level difference [m]"
+    YLABEL = "max. free discharge [m³/s]"
 
 
 class AllowedWaterLevelDrop(parametertools.Parameter):
@@ -270,12 +324,24 @@ class TargetRangeRelative(parametertools.Parameter):
 
 
 class VolumeTolerance(parametertools.Parameter):
-    """Smoothing parameter for volume related smoothing operations [Mio. m³]."""
+    """Smoothing parameter for volume-related smoothing operations [Mio. m³]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
 
 class DischargeTolerance(parametertools.Parameter):
-    """Smoothing parameter for discharge related smoothing operations [m³/s]."""
+    """Smoothing parameter for discharge-related smoothing operations [m³/s]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+
+class CrestLevel(parametertools.Parameter):
+    """The crest level of a weir [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+
+
+class CrestLevelTolerance(parametertools.Parameter):
+    """A tolerance value for the crest level of a weir [m]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)

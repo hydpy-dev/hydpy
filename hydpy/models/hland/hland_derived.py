@@ -268,6 +268,37 @@ class IndicesZoneZ(parametertools.Parameter):
         self.values = numpy.argsort(self.subpars.pars.control.zonez.values)
 
 
+class Z(parametertools.Parameter):
+    """Average (reference) subbasin elevation [100m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+
+    CONTROLPARAMETERS = (
+        hland_control.Area,
+        hland_control.ZoneArea,
+        hland_control.ZoneZ,
+    )
+
+    def update(self) -> None:
+        """Average the individual zone elevations.
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep()
+        >>> nmbzones(3)
+        >>> area(10.0)
+        >>> zonearea(5.0, 3.0, 2.0)
+        >>> zonez(1.0, 3.0, 8.0)
+        >>> derived.z.update()
+        >>> derived.z
+        z(3.0)
+        """
+        control = self.subpars.pars.control
+        self.value = (
+            numpy.dot(control.zonearea.values, control.zonez.values)
+            / control.area.value
+        )
+
+
 class SRedOrder(parametertools.Parameter):
     """Processing order for the snow redistribution routine [-]."""
 
@@ -417,10 +448,7 @@ class TTM(hland_parameters.ParameterLand):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
-    CONTROLPARAMETERS = (
-        hland_control.TT,
-        hland_control.DTTM,
-    )
+    CONTROLPARAMETERS = (hland_control.TT, hland_control.DTTM)
 
     def update(self):
         """Update |TTM| based on :math:`TTM = TT + DTTM`.
@@ -754,10 +782,7 @@ class KSC(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
 
-    CONTROLPARAMETERS = (
-        hland_control.MaxBaz,
-        hland_control.NmbStorages,
-    )
+    CONTROLPARAMETERS = (hland_control.MaxBaz, hland_control.NmbStorages)
 
     def update(self):
         """Update |KSC| based on :math:`KSC = \\frac{2 \\cdot NmbStorages}{MaxBaz}`.

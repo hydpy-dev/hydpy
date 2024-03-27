@@ -43,25 +43,24 @@ class N(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, int, None, (2, None)
 
-    def __call__(self, *args, **kwargs):
-        """The prefered way to pass a value to |N| instances
-        within parameter control files.  Sets the shape of the associated
-        1- and 2-dimensional parameter objects additionally.
+    def __call__(self, *args, **kwargs) -> None:
+        """The prefered way to pass a value to |N| instances within parameter control
+        files.  Sets the shape of the associated 1- and 2-dimensional parameter objects
+        additionally.
         """
+        pt = parametertools
         super().__call__(*args, **kwargs)
         for subpars in self.subpars.pars.model.parameters:
             for par in subpars:
                 if par.name == "toy":
                     continue
                 if par.NDIM == 1:
-                    if isinstance(par, parametertools.SeasonalParameter):
-                        par.shape = (None,)
+                    if isinstance(par, pt.SeasonalParameter):
+                        par.shape = (-1,)
                     else:
                         par.shape = self.value
-                elif (par.NDIM == 2) and isinstance(
-                    par, parametertools.SeasonalParameter
-                ):
-                    par.shape = (None, self.value)
+                elif (par.NDIM == 2) and isinstance(par, pt.SeasonalParameter):
+                    par.shape = (-1, self.value)
 
 
 class W(parametertools.Parameter):
@@ -143,14 +142,13 @@ of `Period`, `datetime.timedelta`, or `str`, but the given type is `float`. \
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         try:
-            args = [timetools.Period(args[0]).seconds]
+            args = (timetools.Period(args[0]).seconds,)
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying the set the value of parameter `maxdt` "
-                f"of the lake model handled by element "
-                f"`{objecttools.devicename(self)}`",
+                f"While trying the set the value of parameter `maxdt` of the lake "
+                f"model handled by element `{objecttools.devicename(self)}`",
                 '(An example: set `max dt` to 3600 seconds by writing `maxdt("1h"))',
             )
         super().__call__(*args, **kwargs)

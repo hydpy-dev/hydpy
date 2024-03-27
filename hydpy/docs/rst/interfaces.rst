@@ -12,5 +12,12 @@ more detail.
 .. toctree::
    :hidden:
 
+   aetinterfaces
+   channelinterfaces
+   dischargeinterfaces
    petinterfaces
+   precipinterfaces
+   radiationinterfaces
    soilinterfaces
+   stateinterfaces
+   tempinterfaces

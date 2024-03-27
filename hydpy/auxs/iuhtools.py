@@ -12,7 +12,6 @@ from __future__ import annotations
 import abc
 import itertools
 import math
-from typing import *
 
 # ...from site-packages
 import numpy
@@ -20,9 +19,9 @@ import numpy
 # ...from Hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
+from hydpy.core.typingtools import *
 from hydpy.auxs import statstools
 from hydpy.auxs import armatools
-from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
     from matplotlib import pyplot
@@ -42,16 +41,13 @@ class ParameterIUH:
 
     name: str
     """Name of the handled |IUH| parameter."""
-    type_: Type[float]
+    type_: type[float]
     """Type of the handled |IUH| parameter."""
 
     _name: str
 
     def __init__(
-        self,
-        name: str,
-        type_: Type[Any] = float,
-        doc: Optional[object] = None,
+        self, name: str, type_: type[Any] = float, doc: Optional[object] = None
     ):
         self.name = name
         self._name = "_" + name
@@ -62,19 +58,15 @@ class ParameterIUH:
         )
 
     @overload
-    def __get__(self, obj: None, type_: Optional[Type[IUH]] = None) -> ParameterIUH:
-        ...
+    def __get__(self, obj: None, type_: Optional[type[IUH]] = None) -> Self: ...
 
     @overload
-    def __get__(self, obj: IUH, type_: Optional[Type[IUH]] = None) -> float:
-        ...
+    def __get__(self, obj: IUH, type_: Optional[type[IUH]] = None) -> float: ...
 
     def __get__(
-        self,
-        obj: Optional[IUH],
-        type_: Optional[Type[IUH]] = None,
+        self, obj: Optional[IUH], type_: Optional[type[IUH]] = None
     ) -> Union[ParameterIUH, float]:
-        return self if obj is None else getattr(obj, self._name, None)
+        return self if obj is None else getattr(obj, self._name)
 
     def _convert_type(self, value: float) -> float:
         try:
@@ -125,10 +117,7 @@ class MetaIUH(type):
     """
 
     def __new__(
-        mcs,
-        name: str,
-        parents: Tuple[Type[Any]],
-        dict_: Dict[str, Any],
+        mcs, name: str, parents: tuple[type[Any]], dict_: dict[str, Any]
     ) -> MetaIUH:
         primary_parameters = {}
         secondary_parameters = {}
@@ -168,8 +157,8 @@ class IUH(metaclass=MetaIUH):
     """Smallest value taken into account for plotting and analyzing iuh functions."""
 
     # Overwritten by metaclass:
-    _PRIMARY_PARAMETERS: Dict[str, PrimaryParameterIUH] = {}
-    _SECONDARY_PARAMETERS: Dict[str, SecondaryParameterIUH] = {}
+    _PRIMARY_PARAMETERS: dict[str, PrimaryParameterIUH] = {}
+    _SECONDARY_PARAMETERS: dict[str, SecondaryParameterIUH] = {}
 
     def __init__(self, **kwargs: float) -> None:
         self.ma = armatools.MA(self)
@@ -186,7 +175,7 @@ class IUH(metaclass=MetaIUH):
         given = sorted(kwargs.keys())
         required = sorted(self._PRIMARY_PARAMETERS)
         if given == required:
-            for (key, value) in kwargs.items():
+            for key, value in kwargs.items():
                 setattr(self, key, value)
         else:
             raise ValueError(
@@ -203,7 +192,7 @@ class IUH(metaclass=MetaIUH):
         """True/False flag that indicates whether the values of all primary parameters
         are defined or not."""
         for primpar in self._PRIMARY_PARAMETERS.values():
-            if getattr(self, primpar.name) is None:
+            if getattr(self, f"_{primpar.name}", None) is None:
                 return False
         return True
 
@@ -227,7 +216,7 @@ class IUH(metaclass=MetaIUH):
                 delattr(self, secpar.name)
 
     @property
-    def delay_response_series(self) -> Tuple[Vector[float], Vector[float]]:
+    def delay_response_series(self) -> tuple[VectorFloat, VectorFloat]:
         """A tuple of two numpy arrays, which hold the time delays and the associated
         iuh values respectively."""
         delays = []
@@ -275,14 +264,14 @@ class IUH(metaclass=MetaIUH):
         return statstools.calc_mean_time_deviation(delays, response, moment1)
 
     @property
-    def moments(self) -> Tuple[float, float]:
+    def moments(self) -> tuple[float, float]:
         """The first two time delay weighted statistical moments of the instantaneous
         unit hydrograph."""
         return self.moment1, self.moment2
 
     def __repr__(self) -> str:
         parts = [type(self).__name__, "("]
-        for (name, primpar) in sorted(self._PRIMARY_PARAMETERS.items()):
+        for name, primpar in sorted(self._PRIMARY_PARAMETERS.items()):
             value = primpar.__get__(self)
             if value is not None:
                 parts.extend([name, "=", objecttools.repr_(value), ", "])
@@ -330,7 +319,7 @@ class TranslationDiffusionEquation(IUH):
 
     >>> round_(tde([0.0, 5.0, 10.0, 15.0, 20.0]))
     0.0, 0.040559, 0.115165, 0.031303, 0.00507
-    >>> round_(tde(value) for value in [0.0, 5.0, 10.0, 15.0, 20.0])
+    >>> round_([tde(value) for value in [0.0, 5.0, 10.0, 15.0, 20.0]])
     0.0, 0.040559, 0.115165, 0.031303, 0.00507
 
     The first delay weighted central moment of the translation diffusion equation
@@ -440,14 +429,12 @@ keywords were given: d and u.
         self.b = self.u / (2.0 * self.d**0.5)
 
     @overload
-    def __call__(self, t: float) -> float:
-        ...
+    def __call__(self, t: float) -> float: ...
 
     @overload
-    def __call__(self, t: Vector[float]) -> Vector[float]:
-        ...
+    def __call__(self, t: VectorFloat) -> VectorFloat: ...
 
-    def __call__(self, t: Union[float, Vector[float]]) -> Union[float, Vector[float]]:
+    def __call__(self, t: Union[float, VectorFloat]) -> Union[float, VectorFloat]:
         # float-handling optimised for fast numerical integration
         if isinstance(t, float):
             if t < 1e-10:  # pylint: disable=consider-using-max-builtin
@@ -488,7 +475,7 @@ class LinearStorageCascade(IUH):
     0.376126
     >>> round_(lsc([0.0, 5.0, 10.0, 15.0, 20.0]))
     0.0, 0.122042, 0.028335, 0.004273, 0.00054
-    >>> round_(lsc(value) for value in [0.0, 5.0, 10.0, 15.0, 20.0])
+    >>> round_([lsc(value) for value in [0.0, 5.0, 10.0, 15.0, 20.0]])
     0.0, 0.122042, 0.028335, 0.004273, 0.00054
 
     Note that we do not use the above equation directly.  Instead, we apply a
@@ -526,14 +513,12 @@ class LinearStorageCascade(IUH):
         self.log_k = numpy.log(self.k)
 
     @overload
-    def __call__(self, t: float) -> float:
-        ...
+    def __call__(self, t: float) -> float: ...
 
     @overload
-    def __call__(self, t: Vector[float]) -> Vector[float]:
-        ...
+    def __call__(self, t: VectorFloat) -> VectorFloat: ...
 
-    def __call__(self, t: Union[float, Vector[float]]) -> Union[float, Vector[float]]:
+    def __call__(self, t: Union[float, VectorFloat]) -> Union[float, VectorFloat]:
         # float-handling optimised for fast numerical integration
         if isinstance(t, float):
             if t == 0.0:

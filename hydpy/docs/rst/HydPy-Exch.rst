@@ -34,3 +34,4 @@ Application model:
    :maxdepth: 1
 
    exch_v001 (weir) <exch_v001>
+   Exch-WL <exch_waterlevel>

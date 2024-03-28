@@ -3,8 +3,11 @@
 
 # imports...
 # ...from HydPy
+from hydpy.core import importtools
 from hydpy.core import modeltools
+from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
+from hydpy.interfaces import petinterfaces
 
 # ...from grxjland
 from hydpy.models.grxjland import grxjland_inputs
@@ -16,14 +19,64 @@ from hydpy.models.grxjland import grxjland_derived
 from hydpy.models.grxjland import grxjland_logs
 
 
+class Calc_PET_PETModel_V1(modeltools.Method):
+    """Let a submodel that complies with the |PETModel_V1| interface calculate the
+    potential evapotranspiration of the land areas.
+
+    Example:
+
+        We use |evap_tw2002| as an example:
+
+        >>> from hydpy.models.grxjland_gr4j import *
+        >>> parameterstep()
+        >>> from hydpy import prepare_model
+        >>> area(50.)
+        >>> with model.add_petmodel_v1("evap_tw2002"):
+        ...     hrualtitude(200.0)
+        ...     coastfactor(0.6)
+        ...     evapotranspirationfactor(1.1)
+        ...     with model.add_radiationmodel_v2("meteo_glob_io"):
+        ...         inputs.globalradiation = 200.0
+        ...     with model.add_tempmodel_v2("meteo_temp_io"):
+        ...         temperatureaddend(1.0)
+        ...         inputs.temperature = 14.0
+        >>> model.calc_pet_v1()
+        >>> fluxes.pet
+        pet(3.07171)
+    """
+
+    RESULTSEQUENCES = (grxjland_fluxes.PET,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        submodel.determine_potentialevapotranspiration()
+        flu.pet = submodel.get_potentialevapotranspiration(0)
+
+
+class Calc_PET_V1(modeltools.Method):
+    """Let a submodel that complies with the |PETModel_V1| or |PETModel_V2| interface
+    calculate the potential evapotranspiration of the land areas and the potential
+    evaporation of the surface water storage."""
+
+    SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
+    SUBMETHODS = (Calc_PET_PETModel_V1,)
+    RESULTSEQUENCES = (grxjland_fluxes.PET,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        if model.petmodel_typeid == 1:
+            model.calc_pet_petmodel_v1(cast(petinterfaces.PETModel_V1, model.petmodel))
+
+
 class Calc_Pn_En_V1(modeltools.Method):
     """Calculate net rainfall `Pn` and net evapotranspiration capacity `En`.
 
     Basic equations:
 
-      :math:`Pn = P - E, En = 0 \\ | \\ P \\geq E`
+      :math:`Pn = P - PET, En = 0 \\ | \\ P \\geq PET`
 
-      :math:`Pn = 0,  En = E - P\\ | \\ P < E``
+      :math:`Pn = 0,  En = PET - P\\ | \\ P < PET``
 
     Examples:
 
@@ -32,7 +85,7 @@ class Calc_Pn_En_V1(modeltools.Method):
         >>> from hydpy.models.grxjland import *
         >>> parameterstep('1d')
         >>> inputs.p = 20.
-        >>> inputs.e = 30.
+        >>> fluxes.pet = 30.
         >>> model.calc_pn_en_v1()
         >>> fluxes.en
         en(10.0)
@@ -42,7 +95,7 @@ class Calc_Pn_En_V1(modeltools.Method):
         Precipitation larger than evapotranspiration:
 
         >>> inputs.p = 50.
-        >>> inputs.e = 10.
+        >>> fluxes.pet = 10.
         >>> model.calc_pn_en_v1()
         >>> fluxes.en
         en(0.0)
@@ -50,20 +103,20 @@ class Calc_Pn_En_V1(modeltools.Method):
         pn(40.0)
     """
 
-    REQUIREDSEQUENCES = (grxjland_inputs.P, grxjland_inputs.E)
-    RESULTSEQUENCES = (grxjland_fluxes.Pn, grxjland_fluxes.En)
+    REQUIREDSEQUENCES = (grxjland_inputs.P,)
+    RESULTSEQUENCES = (grxjland_fluxes.Pn, grxjland_fluxes.PET, grxjland_fluxes.En)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
 
-        if inp.p >= inp.e:
-            flu.pn = inp.p - inp.e
+        if inp.p >= flu.pet:
+            flu.pn = inp.p - flu.pet
             flu.en = 0.0
         else:
             flu.pn = 0.0
-            flu.en = inp.e - inp.p
+            flu.en = flu.pet - inp.p
 
 
 class Calc_PS_V1(modeltools.Method):
@@ -281,14 +334,14 @@ class Calc_AE_V1(modeltools.Method):
 
     Basic equations:
 
-      :math:`AE = E - En + Es`
+      :math:`AE = PET - En + Es`
 
     Examples:
 
         >>> from hydpy.models.grxjland import *
         >>> from hydpy import pub
         >>> parameterstep('1d')
-        >>> inputs.e = 10.
+        >>> fluxes.pet = 10.
         >>> fluxes.en = 2.
         >>> fluxes.es = 1.978652
         >>> model.calc_ae_v1()
@@ -296,14 +349,13 @@ class Calc_AE_V1(modeltools.Method):
         ae(9.978652)
     """
 
-    REQUIREDSEQUENCES = (grxjland_inputs.E, grxjland_fluxes.En, grxjland_fluxes.Es)
+    REQUIREDSEQUENCES = (grxjland_fluxes.PET, grxjland_fluxes.En, grxjland_fluxes.Es)
     RESULTSEQUENCES = (grxjland_fluxes.AE,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
-        inp = model.sequences.inputs.fastaccess
-        flu.ae = inp.e - flu.en + flu.es
+        flu.ae = flu.pet - flu.en + flu.es
 
 
 class Calc_Pr_V1(modeltools.Method):
@@ -1071,7 +1123,7 @@ class Pass_Q_V1(modeltools.Method):
 class Model(modeltools.AdHocModel):
     """The GRxJ-Land base model."""
 
-    INLET_METHODS = ()
+    INLET_METHODS = (Calc_PET_V1,)
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         Calc_Pn_En_V1,
@@ -1101,8 +1153,45 @@ class Model(modeltools.AdHocModel):
         Calc_Qt_V1,
         Calc_Qt_V3,
     )
-    ADD_METHODS = ()
+    ADD_METHODS = (Calc_PET_PETModel_V1,)
     OUTLET_METHODS = (Pass_Q_V1,)
     SENDER_METHODS = ()
-    SUBMODELINTERFACES = ()
+    SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
     SUBMODELS = ()
+
+    petmodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
+    petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    petmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+
+class Main_PETModel_V1(modeltools.AdHocModel):
+    """Base class for HydPy-W models that use submodels that comply with the
+    |PETModel_V1| interface."""
+
+    petmodel: modeltools.SubmodelProperty
+    petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    petmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel("petmodel", petinterfaces.PETModel_V1)
+    def add_petmodel_v1(
+        self,
+        petmodel: petinterfaces.PETModel_V1,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
+        """Initialise the given `petmodel` that follows the |PETModel_V1| interface.
+
+        >>> from hydpy.models.grxjland_gr4j import *
+        >>> parameterstep()
+        >>> area(50.)
+        >>> with model.add_petmodel_v1("evap_tw2002"):
+        ...     evapotranspirationfactor(1.5)
+
+        >>> etf = model.petmodel.parameters.control.evapotranspirationfactor
+        >>> etf
+        evapotranspirationfactor(1.5)
+        """
+        control = self.parameters.control
+        petmodel.prepare_nmbzones(1)
+        petmodel.prepare_subareas(control.area.value)

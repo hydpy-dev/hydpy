@@ -8,9 +8,3 @@ class P(sequencetools.InputSequence):
     """Net Precipitation [mm]."""
 
     NDIM, NUMERIC = 0, False
-
-
-class E(sequencetools.InputSequence):
-    """Potential Evapotranspiration [mm]."""
-
-    NDIM, NUMERIC = 0, False

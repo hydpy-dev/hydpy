@@ -48,13 +48,19 @@ All tests are performed using a lumped basin with a size of
 
 >>> area(360.0)
 
+We add the |evap_io| submodel, which can provide predefined time series
+of potential evaporation:
+
+>>> with model.add_petmodel_v1("evap_io"):
+...     evapotranspirationfactor(1.0)
+
 Initialize a test function object, which prepares and runs the tests
 and prints their results for the given sequences:
 
 >>> from hydpy import IntegrationTest
 >>> IntegrationTest.plotting_options.height = 900
 >>> IntegrationTest.plotting_options.activated=(
-...     inputs.e, inputs.p, fluxes.qt)
+...     fluxes.pet, inputs.p, fluxes.qt)
 >>> test = IntegrationTest(land)
 >>> test.dateformat = '%d.%m.'
 
@@ -85,14 +91,14 @@ Set initial storage levels: production store 30% filled, routing store 50% fille
 ...               (logs.quh1, [0.0, 0.0, 0.0]),
 ...               (logs.quh2, [0.0, 0.0, 0.0, 0.0, 0.0]))
 
-Input sequences |P| and |E|:
+The input data shows high precipitation and low evapotranspiration:
 
 >>> inputs.p.series = (
 ...     0.0,  9.3,  3.2,  7.3,  0.0,  0.0,  0.0,  0.0,  0.1,  0.2,  2.9,  0.2,  0.0,  0.0,  0.0,
 ...     3.3,  4.6,  0.8,  1.8,  1.1,  0.0,  5.0, 13.1, 14.6,  4.0,  0.8,  0.1,  3.3,  7.7, 10.3,
 ...     3.7, 15.3,  3.2,  2.7,  2.2,  8.0, 14.3,  6.3,  0.0,  5.9,  9.2,  6.1,  0.1,  0.0,  2.8,
 ...     10.6,  8.8,  7.2,  4.9,  1.8)
->>> inputs.e.series = (
+>>> model.petmodel.sequences.inputs.referenceevapotranspiration.series = (
 ...     0.3, 0.4, 0.4, 0.3, 0.1, 0.1, 0.1, 0.2, 0.2, 0.3, 0.3, 0.2, 0.2, 0.2, 0.2, 0.3, 0.3, 0.2, 0.2,
 ...     0.3, 0.2, 0.2, 0.3, 0.6, 0.4, 0.4, 0.4, 0.5, 0.4, 0.3, 0.3, 0.5, 0.5, 0.3, 0.3, 0.4, 0.4, 0.3,
 ...     0.2, 0.1, 0.1, 0.0, 0.1, 0.1, 0.0, 0.2, 0.9, 0.9, 0.5, 0.9)
@@ -105,7 +111,7 @@ Input sequences |P| and |E|:
     >>> conditions = sequences.conditions
 
     >>> test("grxjland_gr6j_ex1")
-    |   date |    p |   e |  en |   pn |        ps |       es |       ae |       pr |    pruh1 |    pruh2 |     perc |       q9 |       q1 |        f |       qr |      qr2 |       qd |       qt |          s |         r |         r2 |    outlet |
+    |   date |    p | pet |  en |   pn |        ps |       es |       ae |       pr |    pruh1 |    pruh2 |     perc |       q9 |       q1 |        f |       qr |      qr2 |       qd |       qt |          s |         r |         r2 |    outlet |
     -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |  0.0 | 0.3 | 0.3 |  0.0 |       0.0 | 0.152867 | 0.152867 | 0.005681 | 0.005113 | 0.000568 | 0.005681 | 0.000698 | 0.000039 | 0.048412 | 0.406074 | 3.323095 | 0.048451 |  3.77762 |  72.518551 | 26.401257 |  -3.274404 | 15.740083 |
     | 02.01. |  9.3 | 0.4 | 0.0 |  8.9 |   8.01079 |      0.0 |      0.4 | 0.898798 | 0.808918 |  0.08988 | 0.009588 | 0.113658 | 0.006314 |  0.04416 | 0.384929 | 1.967881 | 0.050474 | 2.403284 |  80.519753 | 26.128682 |  -5.152662 | 10.013685 |
@@ -180,7 +186,7 @@ Run Integration test
 .. integration-test::
 
     >>> test("grxjland_gr6j_ex2")
-    |   date |    p |   e |  en |   pn |        ps |       es |       ae |       pr |    pruh1 |    pruh2 |     perc |       q9 |       q1 |         f |       qr |      qr2 |       qd |       qt |          s |         r |         r2 |   outlet |
+    |   date |    p | pet |  en |   pn |        ps |       es |       ae |       pr |    pruh1 |    pruh2 |     perc |       q9 |       q1 |         f |       qr |      qr2 |       qd |       qt |          s |         r |         r2 |   outlet |
     -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |  0.0 | 0.3 | 0.3 |  0.0 |       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.270088 |      0.0 | 3.165559 |      0.0 | 3.165559 |        0.0 |       0.0 |  -3.435647 | 13.18983 |
     | 02.01. |  9.3 | 0.4 | 0.0 |  8.9 |  8.895998 |      0.0 |      0.4 | 0.004002 | 0.003602 |   0.0004 |      0.0 | 0.000492 | 0.000027 | -0.270088 |      0.0 | 1.797819 |      0.0 | 1.797819 |   8.895998 |       0.0 |  -5.503357 | 7.490911 |
@@ -251,7 +257,7 @@ Run Integration test
 .. integration-test::
 
     >>> test("grxjland_gr6j_ex3")
-    |   date |    p |   e |  en |   pn |        ps |       es |       ae |       pr |    pruh1 |    pruh2 |     perc |       q9 |       q1 |         f |       qr |      qr2 |       qd |       qt |          s |         r |         r2 |    outlet |
+    |   date |    p | pet |  en |   pn |        ps |       es |       ae |       pr |    pruh1 |    pruh2 |     perc |       q9 |       q1 |         f |       qr |      qr2 |       qd |       qt |          s |         r |         r2 |    outlet |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |  0.0 | 0.3 | 0.3 |  0.0 |       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |  0.270088 |      0.0 | 3.435647 | 0.270088 | 3.705735 |        0.0 |  0.270088 |  -3.165559 | 15.440563 |
     | 02.01. |  9.3 | 0.4 | 0.0 |  8.9 |  8.895998 |      0.0 |      0.4 | 0.004002 | 0.003602 |   0.0004 |      0.0 | 0.000492 | 0.000027 |  0.266873 |      0.0 | 2.066781 | 0.266901 | 2.333682 |   8.895998 |  0.537256 |  -4.965271 |  9.723674 |
@@ -309,15 +315,16 @@ Run Integration test
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
+from hydpy.interfaces import petinterfaces
 
 # ...from  grxjland
 from hydpy.models.grxjland import grxjland_model
 
 
-class Model(modeltools.AdHocModel):
+class Model(grxjland_model.Main_PETModel_V1):
     """GR6J version of GRxJ-Land (|grxjland_gr6j|)."""
 
-    INLET_METHODS = ()
+    INLET_METHODS = (grxjland_model.Calc_PET_V1,)
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         grxjland_model.Calc_Pn_En_V1,
@@ -340,11 +347,14 @@ class Model(modeltools.AdHocModel):
         grxjland_model.Calc_Qd_V1,
         grxjland_model.Calc_Qt_V3,
     )
-    ADD_METHODS = ()
+    INTERFACE_METHODS = ()
+    ADD_METHODS = (grxjland_model.Calc_PET_PETModel_V1,)
     OUTLET_METHODS = (grxjland_model.Pass_Q_V1,)
     SENDER_METHODS = ()
-    SUBMODELINTERFACES = ()
+    SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
     SUBMODELS = ()
+
+    petmodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
 
 
 tester = Tester()

@@ -6,6 +6,12 @@ from hydpy.core import sequencetools
 # ...from grxjland
 
 
+class PET(sequencetools.FluxSequence):
+    """Potential Evapotranspiration [mm]."""
+
+    NDIM, NUMERIC = 0, False
+
+
 class En(sequencetools.FluxSequence):
     """Net evapotranspiration capacity [mm]."""
 

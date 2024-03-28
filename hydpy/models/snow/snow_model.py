@@ -288,7 +288,6 @@ class Calc_TLayer_V1(modeltools.Method):
 
 
 class Calc_TMinLayer_V1(modeltools.Method):
-
     """Calculate minimum air temperature for each snow layer in
     dependence of elevation.
 
@@ -400,7 +399,6 @@ class Calc_TMinLayer_V1(modeltools.Method):
 
 
 class Calc_TMaxLayer_V1(modeltools.Method):
-
     """Calculate minimum air temperature for each snow layer in dependence of elevation.
 
     Method |Calc_TMaxLayer_V1| uses method |Return_T_V1| to adjust tempereture off all

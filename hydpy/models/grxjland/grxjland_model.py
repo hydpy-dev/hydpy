@@ -103,8 +103,8 @@ class Calc_Pn_En_V1(modeltools.Method):
         pn(40.0)
     """
 
-    REQUIREDSEQUENCES = (grxjland_inputs.P,)
-    RESULTSEQUENCES = (grxjland_fluxes.Pn, grxjland_fluxes.PET, grxjland_fluxes.En)
+    REQUIREDSEQUENCES = (grxjland_inputs.P, grxjland_inputs.PET)
+    RESULTSEQUENCES = (grxjland_fluxes.Pn, grxjland_fluxes.En)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:

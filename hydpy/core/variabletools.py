@@ -484,6 +484,27 @@ def _warn_trim(self, oldvalue, newvalue):
         )
 
 
+def combine_arrays_to_lower_or_upper_bound(
+    *arrays: Optional[NDArrayFloat], lower: bool
+) -> Optional[NDArrayFloat]:
+    """Helper function for parameter-specific trimming functions that collects all
+    available lower or upper bound values.
+
+    See function |sw1d_control.BottomLowWaterThreshold.trim| of class
+    |sw1d_control.BottomLowWaterThreshold| for an example.
+    """
+    result: Optional[NDArrayFloat] = None
+    for array in arrays:
+        if (array is not None) and (array.ndim > 0):
+            if result is None:
+                result = array
+            elif lower:
+                result = numpy.maximum(result, array)
+            else:
+                result = numpy.minimum(result, array)
+    return result
+
+
 class FastAccess:
     """Used as a surrogate for typed Cython classes handling parameters or sequences
     when working in pure Python mode."""

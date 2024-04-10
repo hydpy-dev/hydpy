@@ -2973,7 +2973,7 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
         |SeasonalParameter| tries to keep track of recent trimmings to warn if users
         try to used the unmodified "visible" values later:
 
-         >>> from hydpy import pub, round_
+        >>> from hydpy import pub, round_
         >>> pub.timegrids = "2000-01-01", "2000-01-04", "1d"
         >>> from hydpy.models.sw1d import *
         >>> parameterstep()
@@ -3010,15 +3010,15 @@ Using the latter without modification might result in inconsistencies.
         >>> with pub.options.warntrim(True), warn_later():
         ...     round_(bottomlowwaterthreshold.toy_1_1_12)  # doctest: +ELLIPSIS
         3.0
-        UserWarning: The "background values"...
+        UserWarning: The "background values"...result in inconsistencies.
         >>> with pub.options.warntrim(True), warn_later():
         ...     tuple(bottomlowwaterthreshold)  # doctest: +ELLIPSIS
         ((TOY("1_1_12_0_0"), 3.0), (TOY("1_3_12_0_0"), 1.0))
-        UserWarning: The "background values"...
+        UserWarning: The "background values"...result in inconsistencies.
         >>> with pub.options.warntrim(True), warn_later():
         ...     len(bottomlowwaterthreshold)  # doctest: +ELLIPSIS
         2
-        UserWarning: The "background values"...
+        UserWarning: The "background values"...result in inconsistencies.
 
         .. testsetup::
 

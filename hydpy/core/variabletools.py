@@ -52,8 +52,10 @@ integer values."""
 TYPE2MISSINGVALUE = {float: numpy.nan, int: INT_NAN, bool: False}
 
 
-def trim(self: Variable, lower=None, upper=None) -> None:
+def trim(self: Variable, lower=None, upper=None) -> bool:
     """Trim the value(s) of a |Variable| instance.
+
+    The returned boolean indicates whether at least one value has been trimmed.
 
     Usually, users do not need to apply the |trim| function directly. Instead, some
     |Variable| subclasses implement their own `trim` methods relying on function |trim|.
@@ -87,23 +89,22 @@ def trim(self: Variable, lower=None, upper=None) -> None:
 
     >>> var = Var(None)
     >>> var.value = 2.0
-    >>> var.trim()
+    >>> assert var.trim() is False
     >>> var
     var(2.0)
 
     >>> var.value = 0.0
-    >>> var.trim()
-    Traceback (most recent call last):
-    ...
+    >>> from hydpy.core.testtools import warn_later
+    >>> with warn_later():
+    ...     assert var.trim() is True
     UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
 and the new value(s) are `0.0` and `1.0`, respectively.
     >>> var
     var(1.0)
 
     >>> var.value = 4.0
-    >>> var.trim()
-    Traceback (most recent call last):
-    ...
+    >>> with warn_later():
+    ...     assert var.trim() is True
     UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
 and the new value(s) are `4.0` and `3.0`, respectively.
     >>> var
@@ -117,29 +118,27 @@ and the new value(s) are `4.0` and `3.0`, respectively.
     >>> var.value = 1.0 - 1e-15
     >>> var == 1.0
     False
-    >>> trim(var)
+    >>> assert trim(var) is False
     >>> var == 1.0
     True
 
     >>> var.value = 3.0 + 1e-15
     >>> var == 3.0
     False
-    >>> var.trim()
+    >>> assert var.trim() is False
     >>> var == 3.0
     True
 
     Use arguments `lower` and `upper` to override the (eventually) available `SPAN`
     entries:
 
-    >>> var.trim(lower=4.0)
-    Traceback (most recent call last):
-    ...
+    >>> with warn_later():
+    ...     assert var.trim(lower=4.0) is True
     UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
 and the new value(s) are `3.0` and `4.0`, respectively.
 
-    >>> var.trim(upper=3.0)
-    Traceback (most recent call last):
-    ...
+    >>> with warn_later():
+    ...     assert var.trim(lower=3.0) is True
     UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
 and the new value(s) are `4.0` and `3.0`, respectively.
 
@@ -148,23 +147,24 @@ and the new value(s) are `4.0` and `3.0`, respectively.
 
     >>> import numpy
     >>> var.value = 0.0
-    >>> var.trim(lower=numpy.nan)
+    >>> assert var.trim(lower=numpy.nan) is False
     >>> var.value = 5.0
-    >>> var.trim(upper=numpy.nan)
+    >>> assert var.trim(upper=numpy.nan) is False
 
     You can disable function |trim| via option |Options.trimvariables|:
 
     >>> with pub.options.trimvariables(False):
     ...     var.value = 5.0
-    ...     var.trim()
+    ...     assert var.trim() is False
     >>> var
     var(5.0)
 
-    Alternatively, you can omit the warning messages only:
+    Alternatively, you can omit the warning messages only without modifying the return
+    value:
 
     >>> with pub.options.warntrim(False):
     ...     var.value = 5.0
-    ...     var.trim()
+    ...     assert var.trim() is True
     >>> var
     var(3.0)
 
@@ -173,12 +173,12 @@ and the new value(s) are `4.0` and `3.0`, respectively.
 
     >>> del Var.SPAN
     >>> var.value = 5.0
-    >>> var.trim()
+    >>> assert var.trim() is False
     >>> var
     var(5.0)
 
     >>> Var.SPAN = (None, None)
-    >>> var.trim()
+    >>> assert var.trim() is False
     >>> var
     var(5.0)
 
@@ -189,21 +189,19 @@ and the new value(s) are `4.0` and `3.0`, respectively.
     >>> Var.NDIM = 2
     >>> var.shape = 1, 3
     >>> var.values = 2.0
-    >>> var.trim()
+    >>> assert var.trim() is False
 
     >>> var.values = 0.0, 1.0, 2.0
-    >>> var.trim()
-    Traceback (most recent call last):
-    ...
+    >>> with warn_later():
+    ...     assert var.trim() is True
     UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
 and the new value(s) are `0.0, 1.0, 2.0` and `1.0, 1.0, 2.0`, respectively.
     >>> var
     var(1.0, 1.0, 2.0)
 
     >>> var.values = 2.0, 3.0, 4.0
-    >>> var.trim()
-    Traceback (most recent call last):
-    ...
+    >>> with warn_later():
+    ...     assert var.trim() is True
     UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
 and the new value(s) are `2.0, 3.0, 4.0` and `2.0, 3.0, 3.0`, respectively.
     >>> var
@@ -212,25 +210,23 @@ and the new value(s) are `2.0, 3.0, 4.0` and `2.0, 3.0, 3.0`, respectively.
     >>> var.values = 1.0-1e-15, 2.0, 3.0+1e-15
     >>> var.values == (1.0, 2.0, 3.0)
     array([[False,  True, False]])
-    >>> var.trim()
+    >>> assert var.trim() is False
     >>> var.values == (1.0, 2.0, 3.0)
     array([[ True,  True,  True]])
 
     >>> var.values = 0.0, 2.0, 4.0
-    >>> var.trim(lower=numpy.nan, upper=numpy.nan)
+    >>> assert var.trim(lower=numpy.nan, upper=numpy.nan) is False
     >>> var
     var(0.0, 2.0, 4.0)
 
-    >>> var.trim(lower=[numpy.nan, 3.0, 3.0])
-    Traceback (most recent call last):
-    ...
+    >>> with warn_later():
+    ...     assert var.trim(lower=[numpy.nan, 3.0, 3.0]) is True
     UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
 and the new value(s) are `0.0, 2.0, 4.0` and `0.0, 3.0, 3.0`, respectively.
 
     >>> var.values = 0.0, 2.0, 4.0
-    >>> var.trim(upper=[numpy.nan, 1.0, numpy.nan])
-    Traceback (most recent call last):
-    ...
+    >>> with warn_later():
+    ...     assert var.trim(upper=[numpy.nan, 1.0, numpy.nan]) is True
     UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
 and the new value(s) are `0.0, 2.0, 4.0` and `1.0, 1.0, 4.0`, respectively.
 
@@ -246,7 +242,7 @@ and the new value(s) are `0.0, 2.0, 4.0` and `1.0, 1.0, 4.0`, respectively.
     >>> Var.SPAN = 1, 3
 
     >>> var.value = 2
-    >>> var.trim()
+    >>> assert var.trim() is False
     >>> var
     var(2)
 
@@ -267,12 +263,12 @@ and the new value(s) are `0.0, 2.0, 4.0` and `1.0, 1.0, 4.0`, respectively.
 
     >>> from hydpy import INT_NAN
     >>> var.value = 0
-    >>> var.trim(lower=0)
-    >>> var.trim(lower=INT_NAN)
+    >>> assert var.trim(lower=0) is False
+    >>> assert var.trim(lower=INT_NAN) is False
 
     >>> var.value = 4
-    >>> var.trim(upper=4)
-    >>> var.trim(upper=INT_NAN)
+    >>> assert var.trim(upper=4) is False
+    >>> assert var.trim(upper=INT_NAN) is False
 
     >>> Var.SPAN = 1, None
     >>> var.value = 0
@@ -285,7 +281,7 @@ and the new value(s) are `0.0, 2.0, 4.0` and `1.0, 1.0, 4.0`, respectively.
 
     >>> Var.SPAN = None, 3
     >>> var.value = 0
-    >>> var.trim()
+    >>> assert var.trim() is False
     >>> var.value = 4
     >>> var.trim()
     Traceback (most recent call last):
@@ -294,15 +290,15 @@ and the new value(s) are `0.0, 2.0, 4.0` and `1.0, 1.0, 4.0`, respectively.
 
     >>> del Var.SPAN
     >>> var.value = 0
-    >>> var.trim()
+    >>> assert var.trim() is False
     >>> var.value = 4
-    >>> var.trim()
+    >>> assert var.trim() is False
 
     >>> Var.SPAN = 1, 3
     >>> Var.NDIM = 2
     >>> var.shape = (1, 3)
     >>> var.values = 2
-    >>> var.trim()
+    >>> assert var.trim() is False
 
     >>> var.values = 0, 1, 2
     >>> var.trim()
@@ -321,16 +317,16 @@ and the new value(s) are `0.0, 2.0, 4.0` and `1.0, 1.0, 4.0`, respectively.
 
 
     >>> var.values = 0, 0, 2
-    >>> var.trim(lower=[0, INT_NAN, 2])
+    >>> assert var.trim(lower=[0, INT_NAN, 2]) is False
 
     >>> var.values = 2, 4, 4
-    >>> var.trim(upper=[2, INT_NAN, 4])
+    >>> assert var.trim(upper=[2, INT_NAN, 4]) is False
 
     For |bool| values, defining outliers does not make much sense, which is why
     function |trim| does nothing when applied to variables handling |bool| values:
 
     >>> Var.TYPE = bool
-    >>> var.trim()
+    >>> assert var.trim() is False
 
     If function |trim| encounters an unmanageable type, it raises an exception like the
     following:
@@ -353,27 +349,25 @@ is `str`.
         type_ = getattr(self, "TYPE", float)
         if type_ is float:
             if self.NDIM == 0:
-                _trim_float_0d(self, lower, upper)
-            else:
-                _trim_float_nd(self, lower, upper)
-        elif type_ is int:
+                return _trim_float_0d(self, lower, upper)
+            return _trim_float_nd(self, lower, upper)
+        if type_ is int:
             if self.NDIM == 0:
-                _trim_int_0d(self, lower, upper)
-            else:
-                _trim_int_nd(self, lower, upper)
-        elif type_ is bool:
-            pass
-        else:
-            raise NotImplementedError(
-                f"Method `trim` can only be applied on parameters handling "
-                f'floating-point, integer, or boolean values, but the "value type" of '
-                f"parameter `{self.name}` is `{self.TYPE.__name__}`."
-            )
+                return _trim_int_0d(self, lower, upper)
+            return _trim_int_nd(self, lower, upper)
+        if type_ is bool:
+            return False
+        raise NotImplementedError(
+            f"Method `trim` can only be applied on parameters handling "
+            f'floating-point, integer, or boolean values, but the "value type" of '
+            f"parameter `{self.name}` is `{self.TYPE.__name__}`."
+        )
+    return False
 
 
-def _trim_float_0d(self, lower, upper):
+def _trim_float_0d(self, lower, upper) -> bool:
     if numpy.isnan(self.value):
-        return
+        return False
     if (lower is None) or numpy.isnan(lower):
         lower = -numpy.inf
     if (upper is None) or numpy.isnan(upper):
@@ -383,14 +377,17 @@ def _trim_float_0d(self, lower, upper):
         self.value = lower
         if (old + get_tolerance(old)) < (lower - get_tolerance(lower)):
             _warn_trim(self, oldvalue=old, newvalue=lower)
+            return True
     elif self > upper:
         old = self.value
         self.value = upper
         if (old - get_tolerance(old)) > (upper + get_tolerance(upper)):
             _warn_trim(self, oldvalue=old, newvalue=upper)
+            return True
+    return False
 
 
-def _trim_float_nd(self, lower, upper):
+def _trim_float_nd(self, lower, upper) -> bool:
     values = self.values
     shape = values.shape
     if lower is None:
@@ -402,19 +399,23 @@ def _trim_float_nd(self, lower, upper):
     upper = numpy.full(shape, upper, dtype=float)
     upper[numpy.where(numpy.isnan(upper))] = numpy.inf
     idxs = numpy.isnan(values)
-    values[idxs] = lower[idxs]
-    if numpy.any(values < lower) or numpy.any(values > upper):
-        old = values.copy()
-        trimmed = numpy.clip(values, lower, upper)
-        values[:] = trimmed
-        if numpy.any(
-            (old + get_tolerance(old)) < (lower - get_tolerance(lower))
-        ) or numpy.any((old - get_tolerance(old)) > (upper + get_tolerance(upper))):
-            _warn_trim(self, oldvalue=old, newvalue=trimmed)
-    values[idxs] = numpy.nan
+    try:
+        values[idxs] = lower[idxs]
+        if numpy.any(values < lower) or numpy.any(values > upper):
+            old = values.copy()
+            trimmed = numpy.clip(values, lower, upper)
+            values[:] = trimmed
+            if numpy.any(
+                (old + get_tolerance(old)) < (lower - get_tolerance(lower))
+            ) or numpy.any((old - get_tolerance(old)) > (upper + get_tolerance(upper))):
+                _warn_trim(self, oldvalue=old, newvalue=trimmed)
+                return True
+        return False
+    finally:
+        values[idxs] = numpy.nan
 
 
-def _trim_int_0d(self, lower, upper):
+def _trim_int_0d(self, lower, upper) -> bool:
     if lower is None:
         lower = INT_NAN
     if (upper is None) or (upper == INT_NAN):
@@ -424,9 +425,10 @@ def _trim_int_0d(self, lower, upper):
             f"The value `{self.value}` of parameter "
             f"{objecttools.elementphrase(self)} is not valid."
         )
+    return False
 
 
-def _trim_int_nd(self, lower, upper):
+def _trim_int_nd(self, lower, upper) -> bool:
     if lower is None:
         lower = INT_NAN
     lower = numpy.full(self.shape, lower, dtype=int)
@@ -435,13 +437,16 @@ def _trim_int_nd(self, lower, upper):
     upper = numpy.full(self.shape, upper, dtype=int)
     upper[upper == INT_NAN] = -INT_NAN
     idxs = numpy.where(self.values == INT_NAN)
-    self[idxs] = lower[idxs]
-    if numpy.any(self.values < lower) or numpy.any(self.values > upper):
-        raise ValueError(
-            f"At least one value of parameter "
-            f"{objecttools.elementphrase(self)} is not valid."
-        )
-    self[idxs] = INT_NAN
+    try:
+        self[idxs] = lower[idxs]
+        if numpy.any(self.values < lower) or numpy.any(self.values > upper):
+            raise ValueError(
+                f"At least one value of parameter {objecttools.elementphrase(self)} "
+                f"is not valid."
+            )
+        return False
+    finally:
+        self[idxs] = INT_NAN
 
 
 def get_tolerance(values):
@@ -548,8 +553,7 @@ class Variable:
     >>> var
     var(2.0)
 
-    In case something went wrong, all math operations return errors
-    like the following:
+    If something goes wrong, all math operations return errors like the following:
 
     >>> var = Var(None)
     >>> var + 1.0
@@ -1001,7 +1005,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     __hydpy__subclasscounter__ = 1
 
     name: str
-    """Name of the variable in lower case letters."""
+    """Name of the variable in lowercase letters."""
     unit: str
     """Unit of the variable."""
     fastaccess: FastAccess
@@ -1478,7 +1482,7 @@ as `var` can only be `()`, but `(2,)` is given.
 
     @property
     def numberofvalues(self) -> int:
-        """The total number of values handles by the variable according to the current
+        """The total number of values handled by the variable according to the current
         shape.
 
         We create an incomplete |Variable| subclass for testing:

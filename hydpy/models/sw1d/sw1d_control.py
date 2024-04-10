@@ -144,7 +144,7 @@ class TargetWaterLevel1(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |TargetWaterLevel1| following
         :math:`TargetWaterLevel1 \leq TargetWaterLevel2`.
 
@@ -159,7 +159,7 @@ class TargetWaterLevel1(parametertools.Parameter):
             upper = exceptiontools.getattr_(
                 self.subpars.targetwaterlevel2, "value", None
             )
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class TargetWaterLevel2(parametertools.Parameter):
@@ -167,7 +167,7 @@ class TargetWaterLevel2(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |TargetWaterLevel2| following
         :math:`TargetWaterLevel1 \leq TargetWaterLevel2`.
 
@@ -182,7 +182,7 @@ class TargetWaterLevel2(parametertools.Parameter):
             lower = exceptiontools.getattr_(
                 self.subpars.targetwaterlevel1, "value", None
             )
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class BottomLowWaterThreshold(parametertools.SeasonalParameter):

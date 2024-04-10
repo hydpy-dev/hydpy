@@ -1466,9 +1466,9 @@ parameter and a simulation time step size first.
             ).parfactor
         return parfactor(parameterstep)
 
-    def trim(self, lower=None, upper=None) -> None:
+    def trim(self, lower=None, upper=None) -> bool:
         """Apply function |trim| of module |variabletools|."""
-        variabletools.trim(self, lower, upper)
+        return variabletools.trim(self, lower, upper)
 
     @classmethod
     def apply_timefactor(cls, values: ArrayFloat) -> ArrayFloat:
@@ -1947,7 +1947,7 @@ class NameParameter(_MixinModifiableParameter, Parameter):
             finally:
                 cls._reset_after_modification("constants", old)
 
-    def trim(self, lower=None, upper=None) -> None:
+    def trim(self, lower=None, upper=None) -> bool:
         """Check if all previously set values comply with the supported constants.
 
         >>> from hydpy.core.parametertools import Constants, NameParameter
@@ -1971,6 +1971,7 @@ valid.
                     f"At least one value of parameter "
                     f"{objecttools.elementphrase(self)} is not valid."
                 )
+        return False
 
     def __repr__(self) -> str:
         string = super().compress_repr()

@@ -21,7 +21,7 @@ class Moisture(sequencetools.StateSequence):
 
     CONTROLPARAMETERS = (ga_control.ResidualMoisture, ga_control.SaturationMoisture)
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim the relative moisture following
         :math:`ResidualMoisture \leq Moisture \leq SaturationMoisture`.
 
@@ -48,7 +48,7 @@ class Moisture(sequencetools.StateSequence):
             lower = control.residualmoisture
         if upper is None:
             upper = control.saturationmoisture
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class FrontDepth(sequencetools.StateSequence):
@@ -62,7 +62,7 @@ class FrontDepth(sequencetools.StateSequence):
 
     CONTROLPARAMETERS = (ga_control.SoilDepth,)
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim the wetting front depth following
         :math:`0 \leq FrontDepth \leq SoilDepth`.
 
@@ -85,4 +85,4 @@ class FrontDepth(sequencetools.StateSequence):
         """
         if upper is None:
             upper = self.subseqs.seqs.model.parameters.control.soildepth
-        super().trim(lower, upper)
+        return super().trim(lower, upper)

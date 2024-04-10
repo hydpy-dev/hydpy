@@ -3168,9 +3168,9 @@ class ConditionSequence(ModelSequence):
         self.trim()
         self._oldargs = copy.deepcopy(args)
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         """Apply |trim| of module |variabletools|."""
-        variabletools.trim(self, lower, upper)
+        return variabletools.trim(self, lower, upper)
 
     def reset(self):
         """Reset the value of the actual |StateSequence| or |LogSequence| object to the

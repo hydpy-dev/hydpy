@@ -200,6 +200,8 @@
                         </init>
                     </sm>
                 </states>
+            </hland_v1>
+            <rconc_uh>
                 <logs>
                     <selections>catchment_lahn_2</selections>
                     <quh>
@@ -208,7 +210,7 @@
                         <init>10.0</init>
                     </quh>
                 </logs>
-            </hland_v1>
+            </rconc_uh>
         </setitems>
         <setitems>
             <hland_v1>

@@ -56,7 +56,7 @@ conditions and the written final conditions of sequence |hland_states.SM| for th
 ...         print("".join(file_.readlines()[10:12]))
 ...     filepath = "LahnH/conditions/init_1996_01_06/land_dill.py"
 ...     with open(filepath) as file_:
-...         print("".join(file_.readlines()[9:12]))
+...         print("".join(file_.readlines()[10:13]))
 sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
    222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 <BLANKLINE>
@@ -353,6 +353,7 @@ class XMLBase:
     >>> for element in itemgroup:
     ...     print(strip(element.tag))
     hland_v1
+    rconc_uh
     >>> for element in itemgroup.models[0].subvars[0].vars[0]:
     ...     print(strip(element.tag))
     name
@@ -1099,7 +1100,7 @@ class XMLConditions(XMLBase):
         ...     interface.conditions_io.save_conditions()
         ...     dirpath = "LahnH/conditions/init_1996_01_06"
         ...     with open(os.path.join(dirpath, "land_dill.py")) as file_:
-        ...         print(file_.readlines()[11].strip())
+        ...         print(file_.readlines()[12].strip())
         ...     os.path.exists(os.path.join(dirpath, "land_lahn_2.py"))
         lz(999.0)
         False
@@ -3077,8 +3078,6 @@ class XSDWriter:
             <element name="fluxes"
         ...
             <element name="states"
-        ...
-            <element name="logs"
         ...
         """
         subs = []

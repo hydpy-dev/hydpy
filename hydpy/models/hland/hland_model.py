@@ -13,6 +13,7 @@ from hydpy.cythons import modelutils
 from hydpy.core.typingtools import *
 from hydpy.interfaces import aetinterfaces
 from hydpy.interfaces import precipinterfaces
+from hydpy.interfaces import rconcinterfaces
 from hydpy.interfaces import tempinterfaces
 from hydpy.interfaces import stateinterfaces
 
@@ -4154,6 +4155,46 @@ class Calc_OutUH_QUH_V1(modeltools.Method):
             log.quh[jdx - 1] = der.uh[jdx] * flu.inuh + log.quh[jdx]
 
 
+class Calc_OutUH_RConcModel_V1(modeltools.Method):
+    """Let a submodel that follows the |RConcModel_V1| submodel interface calculate
+    runoff concentration."""
+
+    REQUIREDSEQUENCES = (hland_fluxes.InUH,)
+    RESULTSEQUENCES = (hland_fluxes.OutUH,)
+
+    @staticmethod
+    def __call__(
+        model: modeltools.Model, submodel: rconcinterfaces.RConcModel_V1
+    ) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        submodel.set_inflow(flu.inuh)
+        submodel.determine_outflow()
+        flu.outuh = submodel.get_outflow()
+
+
+class Calc_OutUH_V1(modeltools.Method):
+    """Let a submodel that follows the |RConcModel_V1| submodel interface calculate
+    runoff concentration."""
+
+    SUBMODELINTERFACES = (rconcinterfaces.RConcModel_V1,)
+    SUBMETHODS = (Calc_OutUH_RConcModel_V1,)
+    REQUIREDSEQUENCES = (hland_fluxes.InUH,)
+    RESULTSEQUENCES = (hland_fluxes.OutUH,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        if model.rconcmodel is None:
+            flu = model.sequences.fluxes.fastaccess
+            flu.outuh = flu.inuh
+        elif model.rconcmodel_typeid == 1:
+            model.calc_outuh_rconcmodel_v1(
+                cast(rconcinterfaces.RConcModel_V1, model.rconcmodel)
+            )
+        # ToDo:
+        #     else:
+        #         assert_never(model.petmodel)
+
+
 class Calc_OutUH_SC_V1(modeltools.Method):
     r"""Calculate the linear storage cascade output (state-space approach).
 
@@ -4553,6 +4594,7 @@ class Model(modeltools.AdHocModel):
         Calc_InUH_V3,
         Calc_OutUH_QUH_V1,
         Calc_OutUH_SC_V1,
+        Calc_OutUH_V1,
         Calc_InUH_V2,
         Calc_RT_V1,
         Calc_RT_V2,
@@ -4572,15 +4614,20 @@ class Model(modeltools.AdHocModel):
         Calc_EL_LZ_AETModel_V1,
         Calc_EL_SG2_SG3_AETModel_V1,
         Calc_QAb_QVs_BW_V1,
+        Calc_OutUH_RConcModel_V1,
     )
     OUTLET_METHODS = (Pass_Q_V1,)
     SENDER_METHODS = ()
-    SUBMODELINTERFACES = (aetinterfaces.AETModel_V1,)
+    SUBMODELINTERFACES = (aetinterfaces.AETModel_V1, rconcinterfaces.RConcModel_V1)
     SUBMODELS = ()
 
     aetmodel = modeltools.SubmodelProperty(aetinterfaces.AETModel_V1)
     aetmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     aetmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    rconcmodel = modeltools.SubmodelProperty(rconcinterfaces.RConcModel_V1)
+    rconcmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    rconcmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
 
 class Main_AETModel_V1(modeltools.AdHocModel):
@@ -4677,6 +4724,37 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         aetmodel.prepare_plant(sel)
         sel[zonetype == SEALED] = False
         aetmodel.prepare_soil(sel)
+
+
+class Main_RConcModel_V1(modeltools.AdHocModel):
+    """Base class for HydPy-H models that use submodels that comply with the
+    |RConcModel_V1| interface."""
+
+    rconcmodel: modeltools.SubmodelProperty
+    rconcmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    rconcmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel("rconcmodel", rconcinterfaces.RConcModel_V1)
+    def add_rconcmodel_v1(
+        self, rconcmodel: rconcinterfaces.RConcModel_V1, /, *, refresh: bool
+    ) -> None:
+        """Initialise the given submodel that follows the |RConcModel_V1| interface and
+        is responsible for calculating the runoff concentration.
+
+        >>> from hydpy.models.hland_v1 import *
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
+        >>> with model.add_rconcmodel_v1("rconc_uh"):
+        ...     pass
+        >>> model.rconcmodel.parameters.control.uh.shape = 3
+        >>> model.rconcmodel.parameters.control.uh = 0.3, 0.5, 0.2
+        >>> model.rconcmodel.sequences.logs.quh.shape = 3
+        >>> model.rconcmodel.sequences.logs.quh = 1.0, 3.0, 0.0
+        >>> model.sequences.fluxes.inuh = 0.0
+        >>> model.calc_outuh_v1()
+        >>> fluxes.outuh
+        outuh(1.0)
+        """
 
 
 class Sub_TempModel_V1(modeltools.AdHocModel, tempinterfaces.TempModel_V1):

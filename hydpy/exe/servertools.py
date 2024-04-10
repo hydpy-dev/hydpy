@@ -314,7 +314,7 @@ class ServerState:
     SetItem("ic_lahn_1", "hland_v1", "states.ic", None, "subunit")
     SetItem("sm_lahn_2", "hland_v1", "states.sm", None, "device")
     SetItem("sm_lahn_1", "hland_v1", "states.sm", None, "subunit")
-    SetItem("quh", "hland_v1", "logs.quh", None, "device")
+    SetItem("quh", "rconc_uh", "logs.quh", None, "device")
     >>> for item in state.getitems:
     ...     print(item)
     GetItem("?", "hland_v1", "factors.contriarea")
@@ -468,8 +468,8 @@ class HydPyServer(http.server.BaseHTTPRequestHandler):
     >>> with TestIO():
     ...     process = run_subprocess(
     ...         "hyd.py start_server 8080 LahnH multiple_runs.xml debugging=enable",
-    ...         blocking=False, verbose=False)
-    ...     result = run_subprocess("hyd.py await_server 8080 10", verbose=False)
+    ...         blocking=False, verbose=True)
+    ...     result = run_subprocess("hyd.py await_server 8080 10", verbose=True)
 
     We define a test function that simplifies sending the following requests and offers
     two optional arguments.  When passing a value to `id_`, `test` adds this value as
@@ -823,9 +823,11 @@ parameter item `lag` is missing.
 
     >>> for element in ("land_lahn_1", "land_lahn_2"):
     ...     sequences = f"HydPyServer.state.hp.elements.{element}.model.sequences"
+    ...     submodel_sequences = (f"HydPyServer.state.hp.elements.{element}.model."
+    ...                           f"rconcmodel.sequences")
     ...     test("evaluate",
     ...          data=(f"sm = {sequences}.states.sm \\n"
-    ...                f"quh = {sequences}.logs.quh"))  # doctest: +ELLIPSIS
+    ...                f"quh = {submodel_sequences}.logs.quh"))  # doctest: +ELLIPSIS
     sm = sm(99.27505, ..., 142.84148)
     quh = quh(0.0)
     sm = sm(138.31396, ..., 164.63255)
@@ -834,9 +836,11 @@ parameter item `lag` is missing.
     <BLANKLINE>
     >>> for element in ("land_lahn_1", "land_lahn_2"):
     ...     sequences = f"HydPyServer.state.hp.elements.{element}.model.sequences"
+    ...     submodel_sequences = (f"HydPyServer.state.hp.elements.{element}.model."
+    ...                           f"rconcmodel.sequences")
     ...     test("evaluate",
     ...          data=(f"sm = {sequences}.states.sm \\n"
-    ...                f"quh = {sequences}.logs.quh"))  # doctest: +ELLIPSIS
+    ...                f"quh = {submodel_sequences}.logs.quh"))  # doctest: +ELLIPSIS
     sm = sm(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0)
     quh = quh(0.0)
     sm = sm(197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0)
@@ -1392,6 +1396,7 @@ under the id `0`.  There is nothing registered, so far.
     from hydpy.models.hland_v1 import *
     from hydpy.models import evap_aet_hbv96
     from hydpy.models import evap_pet_hbv96
+    from hydpy.models import rconc_uh
     <BLANKLINE>
     simulationstep("1d")
     parameterstep("1d")

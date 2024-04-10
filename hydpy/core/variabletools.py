@@ -1136,7 +1136,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     def initinfo(self) -> tuple[Union[float, int, bool, pointerutils.Double], bool]:
         """To be overridden."""
 
-    def __call__(self, *args) -> None:
+    def __call__(self, *args, **kwargs) -> None:
         if len(args) == 1:
             args = args[0]
         self.values = args

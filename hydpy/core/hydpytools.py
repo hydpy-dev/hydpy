@@ -211,15 +211,17 @@ required to prepare the model properly.
     >>> pub.options.parameterstep("1h")
     Period("1d")
 
-    The values of the derived parameters, which need to be calculated before starting a
-    simulation run based on the control parameters and eventually based on some other
-    settings (e.g. the initialisation period), are also ready.  Here we show the value
-    of the derived parameter  |hland_derived.UH|, representing the ordinates of a unit
-    hydrograph (the single value of 1.0 means that the unit hydrograph does not cause
-    any time delay):
+    Unlike previous versions of Hydpy, the former parameter |hland_derived.UH| is now
+    part of the rconc submodel and is no longer a derived parameter, but a control
+    parameter that is parameterized directly upon setting, in this case, already in the
+    control file. Here we show the value of the control parameter  |rconc_control.UH|,
+    representing the ordinates of a unit hydrograph (the single value of 1.0 means that
+    the unit hydrograph does not cause any time delay):
 
-    >>> model.parameters.derived.uh
-    uh(1.0)
+    >>> model.rconcmodel.parameters.control.uh
+    uh("triangle", tb=0.36728)
+    >>> model.rconcmodel.parameters.control.uh.value
+    array([1.])
 
     We define all class names in "CamelCase" letters (which is a Python convention) and,
     whenever practical, name the related objects identically but in lowercase letters.
@@ -236,7 +238,7 @@ required to prepare the model properly.
     >>> classname(hp.nodes)
     'Nodes'
 
-    >>> classname(model.parameters.derived.uh)
+    >>> classname(model.rconcmodel.parameters.control.uh)
     'UH'
 
     As shown above, all |Parameter| objects of the model of element `land_dill` are
@@ -1350,13 +1352,14 @@ deprecated.  Use method `prepare_models` instead.
         from hydpy.models.hland_v1 import *
         from hydpy.models import evap_aet_hbv96
         from hydpy.models import evap_pet_hbv96
+        from hydpy.models import rconc_uh
         <BLANKLINE>
         simulationstep("1h")
         parameterstep("2d")
         <BLANKLINE>
         area(692.3)
         ...
-        maxbaz(0.18364)
+        gamma(0.0)
         with model.add_aetmodel_v1(evap_aet_hbv96):
             temperaturethresholdice(nan)
             soilmoisturelimit(0.9)
@@ -1366,6 +1369,8 @@ deprecated.  Use method `prepare_models` instead.
                 altitudefactor(0.0)
                 precipitationfactor(0.01)
                 airtemperaturefactor(0.1)
+        with model.add_rconcmodel_v1(rconc_uh):
+            uh("triangle", tb=0.18364)
         <BLANKLINE>
 
         When delegating parameter value definitions to auxiliary files, it makes no
@@ -1397,7 +1402,7 @@ deprecated.  Use method `prepare_models` instead.
         ...         print(controlfile.read())  # doctest: +ELLIPSIS
         # -*- coding: utf-8 -*-
         ...
-        maxbaz(0.18364)
+        gamma(0.0)
         with model.add_aetmodel_v1(evap_aet_hbv96):
             temperaturethresholdice(nan)
             soilmoisturelimit(0.9)
@@ -1407,6 +1412,8 @@ deprecated.  Use method `prepare_models` instead.
                 altitudefactor(0.0)
                 precipitationfactor(0.01)
                 airtemperaturefactor(auxfile="evap")
+        with model.add_rconcmodel_v1(rconc_uh):
+            uh("triangle", tb=0.18364)
         <BLANKLINE>
 
         >>> with TestIO():
@@ -1631,8 +1638,8 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     with open(path, "r") as file_:
         ...         lines = file_.read().split("\\n")
-        ...         print(lines[10])
         ...         print(lines[11])
+        ...         print(lines[12])
         sm(184.589155, 180.656622, 199.21884, 195.98291, 211.418845, 208.874732,
            221.470275, 219.48168, 229.632697, 228.037615, 236.225193, 234.953769)
 
@@ -1647,8 +1654,8 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     with open(path, "r") as file_:
         ...         lines = file_.read().split("\\n")
-        ...         print(lines[10])
         ...         print(lines[11])
+        ...         print(lines[12])
         sm(184.589155, 180.656622, 199.21884, 195.98291, 211.418845, 208.874732,
            221.470275, 219.48168, 229.632697, 228.037615, 236.225193, 234.953769)
 

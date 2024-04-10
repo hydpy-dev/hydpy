@@ -915,7 +915,6 @@ class ControlManager(FileManager):
         k(0.005618)
         k4(0.05646)
         gamma(0.0)
-        maxbaz(0.36728)
 
         >>> results["percmax"].values
         0.69818

@@ -15,61 +15,63 @@
 .. figure:: hydpy/docs/figs/HydPy_Logo_Text.png
    :alt: HydPy logo
 
-
-.. image:: https://img.shields.io/pypi/v/HydPy
+.. |PyPi| image:: https://img.shields.io/pypi/v/HydPy
    :alt: PyPI
    :target: https://pypi.org/project/HydPy
-.. image:: https://img.shields.io/pypi/v/HydPy?label=download
+.. |Releases| image:: https://img.shields.io/pypi/v/HydPy?label=download
    :alt: Releases
    :target: https://github.com/hydpy-dev/hydpy/releases
-.. image:: https://img.shields.io/badge/docs-latest-informational
+.. |Documentation| image:: https://img.shields.io/badge/docs-latest-informational
    :alt: Documentation
    :target: https://hydpy-dev.github.io/hydpy/index.html
-.. image:: https://img.shields.io/github/license/hydpy-dev/hydpy?color=blue
-   :alt: GitHub
+.. |Licence| image:: https://img.shields.io/github/license/hydpy-dev/hydpy?color=blue
+   :alt: Licence
    :target: https://github.com/hydpy-dev/hydpy/blob/master/LICENSE
 
-\
+|PyPi| |Releases| |Documentation| |Licence|
 
-.. image:: https://img.shields.io/badge/Coverage-100%20%25-green
+.. |Coverage| image:: https://img.shields.io/badge/Coverage-100%20%25-green
    :alt: Coverage
    :target: https://coverage.readthedocs.io
-.. image:: https://img.shields.io/badge/Black-All%20done%21-green
+.. |Black| image:: https://img.shields.io/badge/Black-All%20done%21-green
    :alt: Black
    :target: https://github.com/psf/black
-.. image:: https://img.shields.io/badge/Pylint-10.00/10-green
+.. |Pylint| image:: https://img.shields.io/badge/Pylint-10.00/10-green
    :alt: Pylint
    :target: https://www.pylint.org/
-.. image:: https://img.shields.io/badge/Mypy-work%20in%20progress-orange
+.. |Mypy| image:: https://img.shields.io/badge/Mypy-work%20in%20progress-orange
    :alt: Mypy
    :target: https://mypy.readthedocs.io/en/stable
 
-\
+|Coverage| |Black| |Pylint| |Mypy|
 
-.. image:: https://img.shields.io/travis/hydpy-dev/hydpy/master?label=Travis%20master
-   :alt: Travis (.org) branch
-   :target: https://travis-ci.org/hydpy-dev/hydpy/branches
-.. image:: https://img.shields.io/travis/hydpy-dev/hydpy?label=latest
-   :alt: Travis (.org)
-   :target: https://travis-ci.org/hydpy-dev/hydpy
+.. |Travis master| image:: https://img.shields.io/travis/com/hydpy-dev/hydpy/master?label=Travis%20master
+   :alt: Travis master
+   :target: https://app.travis-ci.com/github/hydpy-dev/hydpy/branches
+.. |Travis latest| image:: https://img.shields.io/travis/com/hydpy-dev/hydpy?label=latest
+   :alt: Travis latest
+   :target: https://app.travis-ci.com/hydpy-dev/hydpy
 
-\
+|Travis master| |Travis latest|
 
-.. image:: https://img.shields.io/appveyor/build/tyralla/hydpy-hep1s/master?label=AppVeyor%20master
-   :alt: AppVeyor branch
+.. |AppVeyor master| image:: https://img.shields.io/appveyor/build/tyralla/hydpy-hep1s/master?label=AppVeyor%20master
+   :alt: AppVeyor master
    :target: https://ci.appveyor.com/project/tyralla/hydpy-hep1s/history
-.. image:: https://img.shields.io/appveyor/build/tyralla/hydpy-hep1s?label=latest
-   :alt: AppVeyor
+.. |AppVeyor latest| image:: https://img.shields.io/appveyor/build/tyralla/hydpy-hep1s?label=latest
+   :alt: AppVeyor latest
    :target: https://ci.appveyor.com/project/tyralla/hydpy-hep1s
 
-\
+|AppVeyor master| |AppVeyor latest|
 
-.. image:: https://img.shields.io/github/issues-raw/hydpy-dev/hydpy
+.. |GitHub open issues| image:: https://img.shields.io/github/issues-raw/hydpy-dev/hydpy
    :alt: GitHub issues
    :target: https://github.com/hydpy-dev/hydpy/issues?q=is%3Aopen+is%3Aissue
-.. image:: https://img.shields.io/github/issues-closed-raw/hydpy-dev/hydpy?label=closed
+.. |GitHub closed issues| image:: https://img.shields.io/github/issues-closed-raw/hydpy-dev/hydpy?label=closed
    :alt: GitHub closed issues
    :target: https://github.com/hydpy-dev/hydpy/issues?q=is%3Aissue+is%3Aclosed
+
+|GitHub open issues| |GitHub closed issues|
+
 
 *HydPy* is an interactive framework for developing and applying
 different types of hydrological models, originally developed

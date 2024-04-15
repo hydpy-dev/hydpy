@@ -422,9 +422,9 @@ class Update_LoggedPossibleSunshineDuration_V1(modeltools.Method):
         inp = model.sequences.inputs.fastaccess
         log = model.sequences.logs.fastaccess
         for idx in range(der.nmblogentries - 1, 0, -1):
-            log.loggedpossiblesunshineduration[
-                idx
-            ] = log.loggedpossiblesunshineduration[idx - 1]
+            log.loggedpossiblesunshineduration[idx] = (
+                log.loggedpossiblesunshineduration[idx - 1]
+            )
         log.loggedpossiblesunshineduration[0] = inp.possiblesunshineduration
 
 
@@ -2780,9 +2780,9 @@ class Calc_DailySaturationVapourPressure_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
-            flu.dailysaturationvapourpressure[
-                k
-            ] = model.return_saturationvapourpressure_v1(flu.tkortag[k])
+            flu.dailysaturationvapourpressure[k] = (
+                model.return_saturationvapourpressure_v1(flu.tkortag[k])
+            )
 
 
 class Calc_SaturationVapourPressureSlope_V1(modeltools.Method):
@@ -2813,9 +2813,9 @@ class Calc_SaturationVapourPressureSlope_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
-            flu.saturationvapourpressureslope[
-                k
-            ] = model.return_saturationvapourpressureslope_v1(flu.tkor[k])
+            flu.saturationvapourpressureslope[k] = (
+                model.return_saturationvapourpressureslope_v1(flu.tkor[k])
+            )
 
 
 class Calc_DailySaturationVapourPressureSlope_V1(modeltools.Method):
@@ -2846,9 +2846,9 @@ class Calc_DailySaturationVapourPressureSlope_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
-            flu.dailysaturationvapourpressureslope[
-                k
-            ] = model.return_saturationvapourpressureslope_v1(flu.tkortag[k])
+            flu.dailysaturationvapourpressureslope[k] = (
+                model.return_saturationvapourpressureslope_v1(flu.tkortag[k])
+            )
 
 
 class Return_ActualVapourPressure_V1(modeltools.Method):
@@ -8899,6 +8899,7 @@ class Update_QDGZ_QBGZ_QBGA_V2(modeltools.Method):
         >>> fluxes.qdgz
         qdgz(4.111353)
     """
+
     CONTROLPARAMETERS = (
         lland_control.GSBGrad1,
         lland_control.GSBGrad2,

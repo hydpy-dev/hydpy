@@ -120,12 +120,10 @@ class OptionPropertyBool(OptionPropertyBase[bool]):
     @overload
     def __get__(
         self: TypeOptionPropertyBase, obj: None, typ: Type[Hashable]
-    ) -> TypeOptionPropertyBase:
-        ...
+    ) -> TypeOptionPropertyBase: ...
 
     @overload
-    def __get__(self, obj: Hashable, typ: Type[Hashable]) -> OptionContextBool:
-        ...
+    def __get__(self, obj: Hashable, typ: Type[Hashable]) -> OptionContextBool: ...
 
     def __get__(
         self: TypeOptionPropertyBase, obj: Optional[Hashable], typ: Type[Hashable]
@@ -199,12 +197,10 @@ class OptionPropertyInt(OptionPropertyBase[int]):
     @overload
     def __get__(
         self: TypeOptionPropertyBase, obj: None, typ: Type[Hashable]
-    ) -> TypeOptionPropertyBase:
-        ...
+    ) -> TypeOptionPropertyBase: ...
 
     @overload
-    def __get__(self, obj: Hashable, typ: Type[Hashable]) -> OptionContextInt:
-        ...
+    def __get__(self, obj: Hashable, typ: Type[Hashable]) -> OptionContextInt: ...
 
     def __get__(
         self: TypeOptionPropertyBase, obj: Optional[Hashable], typ: Type[Hashable]
@@ -272,12 +268,10 @@ class _OptionPropertyEllipsis(OptionPropertyBase[int]):
     @overload
     def __get__(
         self: TypeOptionPropertyBase, obj: None, typ: Type[Hashable]
-    ) -> TypeOptionPropertyBase:
-        ...
+    ) -> TypeOptionPropertyBase: ...
 
     @overload
-    def __get__(self, obj: Hashable, typ: Type[Hashable]) -> _OptionContextEllipsis:
-        ...
+    def __get__(self, obj: Hashable, typ: Type[Hashable]) -> _OptionContextEllipsis: ...
 
     def __get__(
         self: TypeOptionPropertyBase, obj: Optional[Hashable], typ: Type[Hashable]
@@ -351,12 +345,10 @@ class OptionPropertyStr(OptionPropertyBase[str]):
     @overload
     def __get__(
         self: TypeOptionPropertyBase, obj: None, typ: Type[Hashable]
-    ) -> TypeOptionPropertyBase:
-        ...
+    ) -> TypeOptionPropertyBase: ...
 
     @overload
-    def __get__(self, obj: Hashable, typ: Type[Hashable]) -> OptionContextStr:
-        ...
+    def __get__(self, obj: Hashable, typ: Type[Hashable]) -> OptionContextStr: ...
 
     def __get__(
         self: TypeOptionPropertyBase, obj: Optional[Hashable], typ: Type[Hashable]
@@ -432,12 +424,10 @@ class OptionPropertyPeriod(OptionPropertyBase[timetools.Period]):
     @overload
     def __get__(
         self: TypeOptionPropertyBase, obj: None, typ: Type[Hashable]
-    ) -> TypeOptionPropertyBase:
-        ...
+    ) -> TypeOptionPropertyBase: ...
 
     @overload
-    def __get__(self, obj: Hashable, typ: Type[Hashable]) -> OptionContextPeriod:
-        ...
+    def __get__(self, obj: Hashable, typ: Type[Hashable]) -> OptionContextPeriod: ...
 
     def __get__(
         self: TypeOptionPropertyBase, obj: Optional[Hashable], typ: Type[Hashable]
@@ -532,14 +522,12 @@ one of the following file types: npy, asc, and nc.
     @overload
     def __get__(
         self: TypeOptionPropertyBase, obj: None, typ: Type[Hashable]
-    ) -> TypeOptionPropertyBase:
-        ...
+    ) -> TypeOptionPropertyBase: ...
 
     @overload
     def __get__(
         self, obj: Hashable, typ: Type[Hashable]
-    ) -> OptionContextSeriesFileType:
-        ...
+    ) -> OptionContextSeriesFileType: ...
 
     def __get__(
         self: TypeOptionPropertyBase, obj: Optional[Hashable], typ: Type[Hashable]
@@ -611,14 +599,12 @@ one of the following modes: none and mean.
     @overload
     def __get__(
         self: TypeOptionPropertyBase, obj: None, typ: Type[Hashable]
-    ) -> TypeOptionPropertyBase:
-        ...
+    ) -> TypeOptionPropertyBase: ...
 
     @overload
     def __get__(
         self, obj: Hashable, typ: Type[Hashable]
-    ) -> OptionContextSeriesAggregation:
-        ...
+    ) -> OptionContextSeriesAggregation: ...
 
     def __get__(
         self: TypeOptionPropertyBase, obj: Optional[Hashable], typ: Type[Hashable]

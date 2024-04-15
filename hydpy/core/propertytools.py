@@ -57,22 +57,19 @@ class BaseDescriptor:
 class FGet(Protocol[TypeOutput_co]):
     """Callback protocol for getter functions."""
 
-    def __call__(self, __obj: Any) -> TypeOutput_co:
-        ...
+    def __call__(self, __obj: Any) -> TypeOutput_co: ...
 
 
 class FSet(Protocol[TypeInput_contra]):
     """Callback protocol for setter functions."""
 
-    def __call__(self, __obj: Any, __value: TypeInput_contra) -> None:
-        ...
+    def __call__(self, __obj: Any, __value: TypeInput_contra) -> None: ...
 
 
 class FDel(Protocol):
     """Callback protocol for deleter functions."""
 
-    def __call__(self, __obj: Any) -> None:
-        ...
+    def __call__(self, __obj: Any) -> None: ...
 
 
 class BaseProperty(Generic[TypeInput, TypeOutput], BaseDescriptor):
@@ -125,12 +122,10 @@ class BaseProperty(Generic[TypeInput, TypeOutput], BaseDescriptor):
     @overload
     def __get__(
         self, obj: None, objtype: Type[Any]
-    ) -> BaseProperty[TypeInput, TypeOutput]:
-        ...
+    ) -> BaseProperty[TypeInput, TypeOutput]: ...
 
     @overload
-    def __get__(self, obj: Any, objtype: Type[Any]) -> TypeOutput:
-        ...
+    def __get__(self, obj: Any, objtype: Type[Any]) -> TypeOutput: ...
 
     def __get__(
         self, obj: Optional[Any], objtype: Type[Any]

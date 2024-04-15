@@ -282,18 +282,14 @@ objects, but the type of the given argument is `str`.
     @overload
     def query_intersections(
         self, selection2element: Literal[True] = ...
-    ) -> Dict[Selection, Dict[Selection, devicetools.Elements]]:
-        ...
+    ) -> Dict[Selection, Dict[Selection, devicetools.Elements]]: ...
 
     @overload
     def query_intersections(
         self, selection2element: Literal[False]
-    ) -> Dict[devicetools.Element, Selections]:
-        ...
+    ) -> Dict[devicetools.Element, Selections]: ...
 
-    def query_intersections(
-        self, selection2element: bool = True
-    ) -> Union[
+    def query_intersections(self, selection2element: bool = True) -> Union[
         Dict[Selection, Dict[Selection, devicetools.Elements]],
         Dict[devicetools.Element, Selections],
     ]:

@@ -59,27 +59,22 @@ class VectorInput(Protocol[Float_co]):
     def __getitem__(
         self,
         item: int,
-    ) -> Float_co:
-        ...
+    ) -> Float_co: ...
 
     @overload
     def __getitem__(
         self,
         item: slice,
-    ) -> "VectorInput[Float_co]":
-        ...
+    ) -> "VectorInput[Float_co]": ...
 
     def __getitem__(
         self,
         item: Union[int, slice],
-    ) -> Union[Float_co, "VectorInput[Float_co]"]:
-        ...
+    ) -> Union[Float_co, "VectorInput[Float_co]"]: ...
 
-    def __len__(self) -> int:
-        ...
+    def __len__(self) -> int: ...
 
-    def __iter__(self) -> Iterator[Float_co]:
-        ...
+    def __iter__(self) -> Iterator[Float_co]: ...
 
 
 MatrixInput = VectorInput[VectorInput[Float_co]]
@@ -94,143 +89,120 @@ class Vector(VectorInput[Float1]):
     def __getitem__(
         self,
         item: int,
-    ) -> Float1:
-        ...
+    ) -> Float1: ...
 
     @overload
     def __getitem__(
         self,
         item: VectorSlice,
-    ) -> "Vector[Float1]":
-        ...
+    ) -> "Vector[Float1]": ...
 
     def __getitem__(
         self,
         item: Union[int, slice, VectorInput[int]],
-    ) -> Union[Float1, "Vector[Float1]"]:
-        ...
+    ) -> Union[Float1, "Vector[Float1]"]: ...
 
     @overload
     def __setitem__(
         self,
         item: int,
         value: float,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @overload
     def __setitem__(
         self,
         item: VectorSlice,
         value: Union[float, VectorInput[float]],
-    ) -> None:
-        ...
+    ) -> None: ...
 
     def __setitem__(
         self,
         item: Union[int, VectorSlice],
         value: Union[float, VectorInput[float]],
-    ) -> None:
-        ...
+    ) -> None: ...
 
-    def __invert__(self) -> "Vector[Float1]":
-        ...
+    def __invert__(self) -> "Vector[Float1]": ...
 
     def __add__(
         self: "Vector[Float1]",
         other: Union[Float2, "Vector[Float2]"],
-    ) -> "Vector[Union[Float1, Float2]]":
-        ...
+    ) -> "Vector[Union[Float1, Float2]]": ...
 
     def __radd__(
         self: "Vector[Float1]",
         other: Union[Float2, "Vector[Float2]"],
-    ) -> "Vector[Union[Float1, Float2]]":
-        ...
+    ) -> "Vector[Union[Float1, Float2]]": ...
 
     def __sub__(
         self: "Vector[Float1]",
         other: Union[Float2, "Vector[Float2]"],
-    ) -> "Vector[Union[Float1, Float2]]":
-        ...
+    ) -> "Vector[Union[Float1, Float2]]": ...
 
     def __rsub__(
         self: "Vector[Float1]",
         other: Union[Float2, "Vector[Float2]"],
-    ) -> "Vector[Union[Float1, Float2]]":
-        ...
+    ) -> "Vector[Union[Float1, Float2]]": ...
 
     def __mul__(
         self: "Vector[Float1]",
         other: Union[Float2, "Vector[Float2]"],
-    ) -> "Vector[Union[Float1, Float2]]":
-        ...
+    ) -> "Vector[Union[Float1, Float2]]": ...
 
     def __rmul__(
         self: "Vector[Float1]",
         other: Union[Float2, "Vector[Float2]"],
-    ) -> "Vector[Union[Float1, Float2]]":
-        ...
+    ) -> "Vector[Union[Float1, Float2]]": ...
 
     def __truediv__(
         self: "Vector[Float1]",
         other: Union[Float2, "Vector[Float2]"],
-    ) -> "Vector[Union[Float1, Float2]]":
-        ...
+    ) -> "Vector[Union[Float1, Float2]]": ...
 
     def __rtruediv__(
         self: "Vector[Float1]",
         other: Union[Float2, "Vector[Float2]"],
-    ) -> "Vector[Union[Float1, Float2]]":
-        ...
+    ) -> "Vector[Union[Float1, Float2]]": ...
 
     def __pow__(
         self: "Vector[Float1]",
         other: Union[Float2, "Vector[Float2]"],
-    ) -> "Vector[Union[Float1, Float2]]":
-        ...
+    ) -> "Vector[Union[Float1, Float2]]": ...
 
     def __rpow__(
         self: "Vector[Float1]",
         other: Union[Float2, "Vector[Float2]"],
-    ) -> "Vector[Union[Float1, Float2]]":
-        ...
+    ) -> "Vector[Union[Float1, Float2]]": ...
 
     def __lt__(
         self,
         other: Union[Float2, "Vector[Float2]"],
-    ) -> "Vector[bool]":
-        ...
+    ) -> "Vector[bool]": ...
 
     def __le__(
         self,
         other: Union[Float2, "Vector[Float2]"],
-    ) -> "Vector[bool]":
-        ...
+    ) -> "Vector[bool]": ...
 
     def __eq__(  # type: ignore[override]
         self,
         other: Union[Float2, "Vector[Float2]"],
-    ) -> "Vector[bool]":
-        ...
+    ) -> "Vector[bool]": ...
 
     def __ne__(  # type: ignore[override]
         self,
         other: Union[Float2, "Vector[Float2]"],
-    ) -> "Vector[bool]":
-        ...
+    ) -> "Vector[bool]": ...
 
     def __ge__(
         self,
         other: Union[Float2, "Vector[Float2]"],
-    ) -> "Vector[bool]":
-        ...
+    ) -> "Vector[bool]": ...
 
     def __gt__(
         self,
         other: Union[Float2, "Vector[Float2]"],
-    ) -> "Vector[bool]":
-        ...
+    ) -> "Vector[bool]": ...
 
     def shape(self) -> Tuple[int]:
         """Length of the vector."""
@@ -243,8 +215,7 @@ class Matrix(MatrixInput[Float1]):
     def __getitem__(
         self,
         item: Tuple[int, int],
-    ) -> Float1:
-        ...
+    ) -> Float1: ...
 
     @overload
     def __getitem__(
@@ -254,15 +225,13 @@ class Matrix(MatrixInput[Float1]):
             Tuple[int, VectorSlice],
             Tuple[VectorSlice, int],
         ],
-    ) -> Vector[Float1]:
-        ...
+    ) -> Vector[Float1]: ...
 
     @overload
     def __getitem__(
         self,
         item: Union[slice, Tuple[VectorSlice, VectorSlice]],
-    ) -> Matrix[Float1]:
-        ...
+    ) -> Matrix[Float1]: ...
 
     def __getitem__(
         self,
@@ -274,28 +243,24 @@ class Matrix(MatrixInput[Float1]):
             slice,
             Tuple[VectorSlice, VectorSlice],
         ],
-    ) -> Union[Float1, Vector[Float1], Matrix[Float1]]:
-        ...
+    ) -> Union[Float1, Vector[Float1], Matrix[Float1]]: ...
 
     @overload
-    def __setitem__(self, item: Tuple[int, int], value: float) -> None:
-        ...
+    def __setitem__(self, item: Tuple[int, int], value: float) -> None: ...
 
     @overload
     def __setitem__(
         self,
         item: Union[int, Tuple[int, VectorSlice], Tuple[VectorSlice, int]],
         value: Union[float, VectorInput[float]],
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @overload
     def __setitem__(
         self,
         item: Union[slice, Tuple[VectorSlice, VectorSlice]],
         value: Union[float, MatrixInput[float]],
-    ) -> None:
-        ...
+    ) -> None: ...
 
     def __setitem__(
         self,
@@ -308,113 +273,93 @@ class Matrix(MatrixInput[Float1]):
             Tuple[VectorSlice, VectorSlice],
         ],
         value: Union[float, VectorInput[float], MatrixInput[float]],
-    ) -> None:
-        ...
+    ) -> None: ...
 
-    def __len__(self) -> int:
-        ...
+    def __len__(self) -> int: ...
 
-    def __iter__(self) -> Iterator[Vector[Float1]]:
-        ...
+    def __iter__(self) -> Iterator[Vector[Float1]]: ...
 
-    def __invert__(self) -> Matrix[Float1]:
-        ...
+    def __invert__(self) -> Matrix[Float1]: ...
 
     def __add__(
         self: Matrix[Float1],
         other: Union[Float2, Vector[Float2], Matrix[Float2]],
-    ) -> Matrix[Union[Float1, Float2]]:
-        ...
+    ) -> Matrix[Union[Float1, Float2]]: ...
 
     def __radd__(
         self: Matrix[Float1],
         other: Union[Float2, Vector[Float2], Matrix[Float2]],
-    ) -> Matrix[Union[Float1, Float2]]:
-        ...
+    ) -> Matrix[Union[Float1, Float2]]: ...
 
     def __sub__(
         self: Matrix[Float1],
         other: Union[Float2, Vector[Float2], Matrix[Float2]],
-    ) -> Matrix[Union[Float1, Float2]]:
-        ...
+    ) -> Matrix[Union[Float1, Float2]]: ...
 
     def __rsub__(
         self: Matrix[Float1],
         other: Union[Float2, Vector[Float2], Matrix[Float2]],
-    ) -> Matrix[Union[Float1, Float2]]:
-        ...
+    ) -> Matrix[Union[Float1, Float2]]: ...
 
     def __mul__(
         self: Matrix[Float1],
         other: Union[Float2, Vector[Float2], Matrix[Float2]],
-    ) -> Matrix[Union[Float1, Float2]]:
-        ...
+    ) -> Matrix[Union[Float1, Float2]]: ...
 
     def __rmul__(
         self: Matrix[Float1],
         other: Union[Float2, Vector[Float2], Matrix[Float2]],
-    ) -> Matrix[Union[Float1, Float2]]:
-        ...
+    ) -> Matrix[Union[Float1, Float2]]: ...
 
     def __truediv__(
         self: Matrix[Float1],
         other: Union[Float2, Vector[Float2], Matrix[Float2]],
-    ) -> Matrix[Union[Float1, Float2]]:
-        ...
+    ) -> Matrix[Union[Float1, Float2]]: ...
 
     def __rtruediv__(
         self: Matrix[Float1],
         other: Union[Float2, Vector[Float2], Matrix[Float2]],
-    ) -> Matrix[Union[Float1, Float2]]:
-        ...
+    ) -> Matrix[Union[Float1, Float2]]: ...
 
     def __pow__(
         self: Matrix[Float1],
         other: Union[Float2, Vector[Float2], Matrix[Float2]],
-    ) -> Matrix[Union[Float1, Float2]]:
-        ...
+    ) -> Matrix[Union[Float1, Float2]]: ...
 
     def __rpow__(
         self: Matrix[Float1],
         other: Union[Float2, Vector[Float2], Matrix[Float2]],
-    ) -> Matrix[Union[Float1, Float2]]:
-        ...
+    ) -> Matrix[Union[Float1, Float2]]: ...
 
     def __lt__(
         self,
         other: Union[Float2, Vector[Float2], Matrix[Float2]],
-    ) -> Matrix[bool]:
-        ...
+    ) -> Matrix[bool]: ...
 
     def __le__(
         self,
         other: Union[Float2, Vector[Float2], Matrix[Float2]],
-    ) -> Matrix[bool]:
-        ...
+    ) -> Matrix[bool]: ...
 
     def __eq__(  # type: ignore[override]
         self,
         other: Union[Float2, Vector[Float2], Matrix[Float2]],
-    ) -> Matrix[bool]:
-        ...
+    ) -> Matrix[bool]: ...
 
     def __ne__(  # type: ignore[override]
         self,
         other: Union[Float2, Vector[Float2], Matrix[Float2]],
-    ) -> Matrix[bool]:
-        ...
+    ) -> Matrix[bool]: ...
 
     def __ge__(
         self,
         other: Union[Float2, Vector[Float2], Matrix[Float2]],
-    ) -> Matrix[bool]:
-        ...
+    ) -> Matrix[bool]: ...
 
     def __gt__(
         self,
         other: Union[Float2, Vector[Float2], Matrix[Float2]],
-    ) -> Matrix[bool]:
-        ...
+    ) -> Matrix[bool]: ...
 
     @property
     def shape(self) -> Tuple[int, int]:
@@ -474,8 +419,7 @@ class ScriptFunction(Protocol):
     |hyd| for further information).
     """
 
-    def __call__(self, *args: str, **kwargs: str) -> Optional[int]:
-        ...
+    def __call__(self, *args: str, **kwargs: str) -> Optional[int]: ...
 
 
 SeriesFileType = Literal["npy", "asc", "nc"]

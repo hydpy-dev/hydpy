@@ -495,8 +495,7 @@ class Criterion(Protocol):
         obs: VectorInput[float],
         skip_nan: bool = False,
         subperiod: bool = False,
-    ) -> float:
-        ...
+    ) -> float: ...
 
     @overload
     def __call__(
@@ -505,8 +504,7 @@ class Criterion(Protocol):
         node: devicetools.Node,
         skip_nan: bool = False,
         subperiod: bool = True,
-    ) -> float:
-        ...
+    ) -> float: ...
 
 
 @overload
@@ -1138,9 +1136,7 @@ def _pars_sepd(xi: float, beta: float) -> Tuple[float, float, float, float]:
     m_1 = special.gamma(1.0 + beta) / gamma1**0.5 / gamma2**0.5
     m_2 = 1.0
     mu_xi = m_1 * (xi - 1.0 / xi)
-    sigma_xi = numpy.sqrt(
-        (m_2 - m_1**2) * (xi**2 + 1.0 / xi**2) + 2 * m_1**2 - m_2
-    )
+    sigma_xi = numpy.sqrt((m_2 - m_1**2) * (xi**2 + 1.0 / xi**2) + 2 * m_1**2 - m_2)
     return mu_xi, sigma_xi, w_beta, c_beta
 
 
@@ -1953,8 +1949,7 @@ def print_evaluationtable(
     missingvalue: str = "-",
     decimalseperator: str = ".",
     file_: Optional[Union[str, TextIO]] = None,
-) -> None:
-    ...
+) -> None: ...
 
 
 @overload
@@ -1976,8 +1971,7 @@ def print_evaluationtable(
     missingvalue: str = "-",
     decimalseperator: str = ".",
     file_: Optional[Union[str, TextIO]] = None,
-) -> None:
-    ...
+) -> None: ...
 
 
 @objecttools.excmessage_decorator(

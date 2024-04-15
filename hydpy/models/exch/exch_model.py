@@ -101,6 +101,7 @@ class Calc_DeltaWaterLevel_V1(modeltools.Method):
         |   4 |         4.0 |             0.0 |
         |   5 |         5.0 |             0.0 |
     """
+
     CONTROLPARAMETERS = (exch_control.CrestHeight,)
     REQUIREDSEQUENCES = (exch_factors.WaterLevel,)
     RESULTSEQUENCES = (exch_factors.DeltaWaterLevel,)
@@ -142,6 +143,7 @@ class Calc_PotentialExchange_V1(modeltools.Method):
         >>> fluxes.potentialexchange
         potentialexchange(-6.0)
     """
+
     CONTROLPARAMETERS = (
         exch_control.CrestWidth,
         exch_control.FlowCoefficient,
@@ -200,6 +202,7 @@ class Calc_ActualExchange_V1(modeltools.Method):
         >>> fluxes.actualexchange
         actualexchange(-2.0)
     """
+
     CONTROLPARAMETERS = (exch_control.AllowedExchange,)
     REQUIREDSEQUENCES = (exch_fluxes.PotentialExchange,)
     RESULTSEQUENCES = (exch_fluxes.ActualExchange,)

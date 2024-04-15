@@ -7,6 +7,7 @@ some refactoring.
 For now, calling this script is not part of our Travis-CI workflow.  So we have to run
 the script and exchange the resulting png files manually each time something changes.
 """
+
 # pylint: disable=missing-class-docstring
 # pylint: disable=missing-function-docstring
 from __future__ import annotations

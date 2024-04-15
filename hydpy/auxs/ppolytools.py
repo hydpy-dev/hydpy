@@ -46,6 +46,7 @@ class Poly(NamedTuple):
     >>> p.cs[0] + p.cs[1] * (x - p.x0) + p.cs[2] * (x - p.x0) ** 2
     24.0
     """
+
     x0: float
     """Constant of the power series."""
     cs: Tuple[float, ...]

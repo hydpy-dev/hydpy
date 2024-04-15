@@ -1526,8 +1526,7 @@ def round_(
     sep: str = " ",
     end: str = "\n",
     file_: Optional[TextIO] = None,
-) -> None:
-    ...
+) -> None: ...
 
 
 @overload
@@ -1540,8 +1539,7 @@ def round_(
     sep: str = " ",
     end: str = "\n",
     file_: Optional[TextIO] = None,
-) -> None:
-    ...
+) -> None: ...
 
 
 @overload
@@ -1554,8 +1552,7 @@ def round_(
     sep: str = " ",
     end: str = "\n",
     file_: Optional[TextIO] = None,
-) -> None:
-    ...
+) -> None: ...
 
 
 def round_(

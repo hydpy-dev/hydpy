@@ -1059,7 +1059,15 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     @abc.abstractmethod
     def initinfo(
         self,
-    ) -> Tuple[Union[float, int, bool, pointerutils.Double,], bool,]:
+    ) -> Tuple[
+        Union[
+            float,
+            int,
+            bool,
+            pointerutils.Double,
+        ],
+        bool,
+    ]:
         """To be overridden."""
 
     def __call__(self, *args) -> None:
@@ -2193,15 +2201,13 @@ was attempted for element `?`.
 @overload
 def sort_variables(
     values: Iterable[Type[TypeVariable_co]],
-) -> Tuple[Type[TypeVariable_co], ...]:
-    ...
+) -> Tuple[Type[TypeVariable_co], ...]: ...
 
 
 @overload
 def sort_variables(
     values: Iterable[Tuple[Type[TypeVariable_co], T]],
-) -> Tuple[Tuple[Type[TypeVariable_co], T], ...]:
-    ...
+) -> Tuple[Tuple[Type[TypeVariable_co], T], ...]: ...
 
 
 def sort_variables(

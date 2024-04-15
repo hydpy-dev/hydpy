@@ -220,6 +220,7 @@ class Calc_SolarDeclination_V2(modeltools.Method):
 
             >>> del pub.timegrids
     """
+
     DERIVEDPARAMETERS = (meteo_derived.DOY,)
     FIXEDPARAMETERS = (meteo_fixed.Pi,)
     RESULTSEQUENCES = (meteo_factors.SolarDeclination,)
@@ -1617,9 +1618,9 @@ class Update_LoggedUnadjustedGlobalRadiation_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
         for idx in range(der.nmblogentries - 1, 0, -1):
-            log.loggedunadjustedglobalradiation[
-                idx
-            ] = log.loggedunadjustedglobalradiation[idx - 1]
+            log.loggedunadjustedglobalradiation[idx] = (
+                log.loggedunadjustedglobalradiation[idx - 1]
+            )
         log.loggedunadjustedglobalradiation[0] = flu.unadjustedglobalradiation
 
 
@@ -2143,9 +2144,9 @@ class Update_LoggedUnadjustedSunshineDuration_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         log = model.sequences.logs.fastaccess
         for idx in range(der.nmblogentries - 1, 0, -1):
-            log.loggedunadjustedsunshineduration[
-                idx
-            ] = log.loggedunadjustedsunshineduration[idx - 1]
+            log.loggedunadjustedsunshineduration[idx] = (
+                log.loggedunadjustedsunshineduration[idx - 1]
+            )
         log.loggedunadjustedsunshineduration[0] = fac.unadjustedsunshineduration
 
 

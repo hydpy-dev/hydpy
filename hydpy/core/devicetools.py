@@ -1643,10 +1643,10 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
             element.model.save_conditions()
 
     def trim_conditions(self) -> None:
-        """Call method |Sequences.trim_conditions| of the |Sequences| object handled
-        (indirectly) by each |Element| object."""
+        """Call method |Model.trim_conditions| of the |Model| object handled by each
+        |Element| object."""
         for element in self:
-            element.model.sequences.trim_conditions()
+            element.model.trim_conditions()
 
     def reset_conditions(self) -> None:
         """Call method |Sequences.reset| of the |Sequences| object handled (indirectly)

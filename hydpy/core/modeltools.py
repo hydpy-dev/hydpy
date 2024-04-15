@@ -2371,6 +2371,11 @@ element.
         for model in self.find_submodels(include_mainmodel=True).values():
             model.sequences.trim_conditions()
 
+    def reset_conditions(self) -> None:
+        """Call method |Sequences.reset| of the handled |Sequences| object."""
+        for model in self.find_submodels(include_mainmodel=True).values():
+            model.sequences.reset()
+
     @abc.abstractmethod
     def simulate(self, idx: int) -> None:
         """Perform a simulation run over a single simulation time step."""

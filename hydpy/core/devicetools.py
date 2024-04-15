@@ -1649,10 +1649,10 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
             element.model.trim_conditions()
 
     def reset_conditions(self) -> None:
-        """Call method |Sequences.reset| of the |Sequences| object handled (indirectly)
-        by each |Element| object."""
+        """Call method |Model.reset_conditions| of the |Model| object handled by each
+        |Element| object."""
         for element in self:
-            element.model.sequences.reset()
+            element.model.reset_conditions()
 
     @property
     def conditions(self) -> Conditions:

@@ -25,7 +25,7 @@ class Pn(sequencetools.FluxSequence):
 
 
 class Ps(sequencetools.FluxSequence):
-    """Part of `Pn` filling the production store [mm]."""
+    """Part of |Pn| filling the production store [mm]."""
 
     NDIM, NUMERIC = 0, False
 

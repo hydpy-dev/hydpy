@@ -10,7 +10,7 @@ has five parameters.
 Compared to GR5J, the routing store is split into a linear and an exponential
 routing store, which introduces a new parameter.
 
-The following figure cite:p:`ref-airGRManual` shows the general structure of HydPy
+The following figure :cite:p:`ref-airGRManual` shows the general structure of HydPy
 GrXJ-Land Version GR6J:
 
 .. image:: HydPy-GrXJ-Land_Version-Gr6J.png
@@ -104,11 +104,6 @@ The input data shows high precipitation and low evapotranspiration:
 ...     0.2, 0.1, 0.1, 0.0, 0.1, 0.1, 0.0, 0.2, 0.9, 0.9, 0.5, 0.9)
 
 .. integration-test::
-
-    >>> derived.uh1.update()
-    >>> derived.uh2.update()
-    >>> test.reset_inits()
-    >>> conditions = sequences.conditions
 
     >>> test("grxjland_gr6j_ex1")
     |   date |    p | pet |  en |   pn |        ps |       es |       ae |       pr |    pruh1 |    pruh2 |     perc |       q9 |       q1 |        f |       qr |      qr2 |       qd |       qt |          s |         r |         r2 |    outlet |

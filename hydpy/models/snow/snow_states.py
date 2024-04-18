@@ -18,7 +18,7 @@ class ETG(sequencetools.StateSequence):
 
 
 class GRatio(sequencetools.StateSequence):
-    """Snow covered area [/]."""
+    """Snow covered area [-]."""
 
     NDIM, NUMERIC, SPAN = 1, False, (0, 1)
     INIT = 0

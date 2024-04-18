@@ -15,7 +15,7 @@ The following list summarises the main components of |grxjland_gr4j|:
  * Groundwater exchange
  * Non-linear routing store
 
-The following figure cite:p:`ref-airGRManual` shows the general structure of HydPy
+The following figure :cite:p:`ref-airGRManual` shows the general structure of HydPy
 GrXJ-Land Version Gr4J:
 
 .. image:: HydPy-GrXJ-Land_Version-Gr4J.png
@@ -104,11 +104,6 @@ The input data shows high precipitation and low evapotranspiration:
 Run Integration test
 
 .. integration-test::
-
-    >>> derived.uh1.update()
-    >>> derived.uh2.update()
-    >>> test.reset_inits()
-    >>> conditions = sequences.conditions
 
     >>> test("grxjland_gr4j_ex1")
     |   date |    p | pet |  en |   pn |        ps |       es |       ae |       pr |    pruh1 |    pruh2 |     perc |       q9 |       q1 |        f |       qr |       qd |       qt |          s |         r |    outlet |

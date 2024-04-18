@@ -15,8 +15,10 @@ Integration tests
 .. how_to_understand_integration_tests::
 
 The integration test is equivalent to the integration test of |snow_cnhyst|, values for
-`TMin` and `TMax` are freely invented (but the same as in |snow_cn_minmax|), because
+|TMin| and |TMax| are freely invented (but the same as in |snow_cn_minmax|), because
 airGR has no example dataset for this case.
+
+The implemented |snow_cnhyst_minmax| should be applied to daily data.
 
 >>> from hydpy import pub
 >>> pub.timegrids = '01.04.1990', '01.06.1990', '1d'

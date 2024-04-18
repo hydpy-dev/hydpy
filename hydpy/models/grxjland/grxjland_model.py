@@ -55,9 +55,8 @@ class Calc_PET_PETModel_V1(modeltools.Method):
 
 
 class Calc_PET_V1(modeltools.Method):
-    """Let a submodel that complies with the |PETModel_V1| or |PETModel_V2| interface
-    calculate the potential evapotranspiration of the land areas and the potential
-    evaporation of the surface water storage."""
+    """Let a submodel that complies with the |PETModel_V1| interface calculate the
+    potential evapotranspiration."""
 
     SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
     SUBMETHODS = (Calc_PET_PETModel_V1,)
@@ -70,13 +69,15 @@ class Calc_PET_V1(modeltools.Method):
 
 
 class Calc_Pn_En_V1(modeltools.Method):
-    """Calculate net rainfall `Pn` and net evapotranspiration capacity `En`.
+    r"""Calculate net rainfall |Pn| and net evapotranspiration capacity |En|.
 
     Basic equations:
 
-      :math:`Pn = P - PET, En = 0 \\ | \\ P \\geq PET`
-
-      :math:`Pn = 0,  En = PET - P\\ | \\ P < PET``
+      .. math::
+        Pn = \begin{cases}
+        P - PET, En = 0 &|\ P \geq PET \\
+        0, En = PET - P &|\ P < PET
+        \end{cases}
 
     Examples:
 
@@ -120,12 +121,14 @@ class Calc_Pn_En_V1(modeltools.Method):
 
 
 class Calc_PS_V1(modeltools.Method):
-    """Calculate part of net rainfall `Pn` filling the production store in mm.
+    r"""Calculate part of net rainfall |Pn| filling the production store in mm.
 
     Basic equation:
 
-      :math:`Ps = \\frac{X1(1-(\\frac{S}{X1}^{2}tanh(
-      \\frac{Pn}{X1}){1+\\frac{S}{X1}tanh(\\frac{Pn}{X1})}`
+      :math:`Ps = \frac{
+      x1\left(1-\left(\frac{S}{x1}\right)^{2}\right ) \cdot
+      tanh \left( \frac{Pn }{x1} \right)}
+      {1 + \frac{S}{x1}\cdot tanh \left( \frac{Pn}{x1} \right)}`
 
     Examples:
 
@@ -176,16 +179,17 @@ class Calc_PS_V1(modeltools.Method):
 
 
 class Calc_Es_V1(modeltools.Method):
-    """Calculate actual evaporation rate from production store.
+    r"""Calculate actual evaporation rate from production store.
 
     Basic equations:
 
-      :math:`Es = \\frac{S(2-\\frac{S}{X1}tanh(\\frac{En}{X1})}{1+(
-      1-\\frac{S}{X1})tanh(\\frac{En}{X1})}`
+      .. math ::
+        ws = tanh\left(\frac{En}{x1}\right), \quad sr = \frac{S}{x1} \\
+        Es = \frac{S \cdot (2-sr) \cdot ws}{1+(1-sr) \cdot ws}
 
     Examples:
 
-        Production store almost full, no rain: `Es` reaches almost `En`:
+        Production store almost full, no rain: |Es| reaches almost |En|:
 
         >>> from hydpy.models.grxjland import *
         >>> from hydpy import pub
@@ -197,7 +201,7 @@ class Calc_Es_V1(modeltools.Method):
         >>> fluxes.es
         es(1.978652)
 
-        Production store almost empty, no rain: `Es` reaches almost 0:
+        Production store almost empty, no rain: |Es| reaches almost 0:
 
         >>> states.s = 10.
         >>> model.calc_es_v1()
@@ -215,10 +219,12 @@ class Calc_Es_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         con = model.parameters.control.fastaccess
-        d_sr = sta.s / con.x1
-        d_ws = flu.en / con.x1
-        d_tw = modelutils.tanh(d_ws)  # equals ((exp(2*d_ws) - 1) / (exp(2*d_ws) + 1))
-        flu.es = (sta.s * (2.0 - d_sr) * d_tw) / (1.0 + (1.0 - d_sr) * d_tw)
+        # fill level of production storage
+        sr: float = sta.s / con.x1
+        # relative part of net evapotranspiration to storage capacity
+        ws: float = flu.en / con.x1
+        tw: float = modelutils.tanh(ws)  # equals (exp(2*d_ws) - 1) / (exp(2*d_ws) + 1)
+        flu.es = (sta.s * (2.0 - sr) * tw) / (1.0 + (1.0 - sr) * tw)
 
 
 class Update_S_V1(modeltools.Method):
@@ -254,11 +260,12 @@ class Update_S_V1(modeltools.Method):
 
 
 class Calc_Perc_V1(modeltools.Method):
-    """Calculate percolation from the production store.
+    r"""Calculate percolation from the production store.
 
     Basic equations:
 
-      :math:`Perc = S{1-[1+(\\frac{4 S}{9 X1})^{4}]^{-1/4}}`
+      :math:`Perc = S \cdot \left( 1-\left(1+\left(\frac{4 \cdot S}
+      {9 \cdot X1}\right )^{4}\right )^{-1/4}\right )`
 
     Examples:
 
@@ -266,7 +273,7 @@ class Calc_Perc_V1(modeltools.Method):
         >>> from hydpy import pub
         >>> parameterstep('1d')
 
-        Producion store is almost full (maximum percolation 0.009 `S``):
+        Producion store is almost full (maximum percolation 0.009 |S|):
 
         >>> x1(300.)
         >>> states.s = 268.
@@ -359,7 +366,7 @@ class Calc_AE_V1(modeltools.Method):
 
 
 class Calc_Pr_V1(modeltools.Method):
-    """Calculate total quantity `Pr` of water reaching the routing functions.
+    """Calculate total quantity |Pr| of water reaching the routing functions.
 
     Basic equation:
 
@@ -391,7 +398,7 @@ class Calc_Pr_V1(modeltools.Method):
 
 
 class Calc_PrUH1_PrUH2_V1(modeltools.Method):
-    r"""Splitting `Pr` into `PrUH1` and `PrUH2`.
+    r"""Splitting |Pr| into |PrUH1| and |PrUH2|.
 
     Basic equations:
 
@@ -424,7 +431,7 @@ class Calc_PrUH1_PrUH2_V1(modeltools.Method):
 
 
 class Calc_Q9_V1(modeltools.Method):
-    """Calculate the unit hydrograph `UH1` output (convolution) with `PrUH1` as input.
+    """Calculate the unit hydrograph |UH1| output (convolution) with |PrUH1| as input.
 
     Examples:
 
@@ -495,7 +502,6 @@ class Calc_Q9_V1(modeltools.Method):
         >>> model.calc_q9_v1()
         >>> fluxes.q9
         q9(3.6)
-
     """
 
     DERIVEDPARAMETERS = (grxjland_derived.UH1,)
@@ -514,8 +520,8 @@ class Calc_Q9_V1(modeltools.Method):
 
 
 class Calc_Q1_V1(modeltools.Method):
-    """Calculate the unit hydrograph `UH2` output (convolution). Input to the unit
-    hydrograph `UH2` is `PrUH2`.
+    """Calculate the unit hydrograph |UH2| output (convolution). Input to the unit
+    hydrograph |UH2| is |PrUH2|.
 
     Examples:
 
@@ -659,7 +665,7 @@ class Calc_QUH2_V1(modeltools.Method):
 
 
 class Calc_Q1_Q9_V2(modeltools.Method):
-    r"""Calculate `Q1` and `Q9` by splittung `QOutUH2`. This is the version for the GR5J
+    r"""Calculate |Q1| and |Q9| by splittung |QOutUH2|. This is the version for the GR5J
     model.
 
     Basic equations:
@@ -679,7 +685,6 @@ class Calc_Q1_Q9_V2(modeltools.Method):
         q1(1.0)
         >>> fluxes.q9
         q9(9.0)
-
     """
 
     REQUIREDSEQUENCES = (grxjland_fluxes.QOutUH2,)
@@ -693,17 +698,16 @@ class Calc_Q1_Q9_V2(modeltools.Method):
 
 
 class Calc_F_V1(modeltools.Method):
-    """Calculate the groundwater exchange term `F` used in GR4j.
+    r"""Calculate the groundwater exchange term |F| used in GR4j.
 
     Basic equations:
 
-      :math:`F = X2 \\frac{R}{X3}^{7/2}`
-
+      :math:`F = X2 \cdot \left (\frac{R}{X3}\right )^{7/2}`
 
     Examples:
 
-        Groundwater exchange is high when the routing storage is almost full (`R` close
-        to `X3`):
+        Groundwater exchange is high when the routing storage is almost full (|R| close
+        to |X3|):
 
         >>> from hydpy.models.grxjland import *
         >>> from hydpy import pub
@@ -715,7 +719,7 @@ class Calc_F_V1(modeltools.Method):
         >>> fluxes.f
         f(0.852379)
 
-        Groundwater exchange is high when the routing storage is almost empty (`R`
+        Groundwater exchange is high when the routing storage is almost empty (|R|
         close to 0):
 
         >>> from hydpy.models.grxjland import *
@@ -743,11 +747,11 @@ class Calc_F_V1(modeltools.Method):
 
 
 class Calc_F_V2(modeltools.Method):
-    """Calculate groundwater exchange term `F` used in GR5j and GR6j.
+    r"""Calculate groundwater exchange term |F| used in GR5j and GR6j.
 
     Basic equations:
 
-      :math:`F = X2 (\\frac{R}{X3} - X5)`
+      :math:`F = X2 \cdot \left (\frac{R}{X3} - X5 \right )`
 
     Examples:
 
@@ -778,7 +782,7 @@ class Calc_F_V2(modeltools.Method):
 
 
 class Update_R_V1(modeltools.Method):
-    """Update level of the non-linear routing store `R` used in GR4j and GR5j.
+    """Update level of the non-linear routing store |R| used in GR4j and GR5j.
 
     Basic equations:
 
@@ -808,7 +812,7 @@ class Update_R_V1(modeltools.Method):
 
 
 class Update_R_V2(modeltools.Method):
-    r"""Update level of the non-linear routing store `R` used in GR6j.
+    r"""Update level of the non-linear routing store |R| used in GR6j.
 
     Basic equations:
 
@@ -838,12 +842,12 @@ class Update_R_V2(modeltools.Method):
 
 
 class Calc_Qr_V1(modeltools.Method):
-    r"""Calculate the outflow `Qr` of the reservoir.
+    r"""Calculate the outflow |Qr| of the reservoir.
 
     Basic equations:
 
-      :math:`Qr = R{1-[1+(\\frac{R}{X3})^{4}]^{-1/4}}`
-
+      :math:`Qr = R \cdot \left( 1 - \left[1 + \left( \frac{R}{X3} \right)^{4}
+      \right]^{-1/4} \right)`
 
     Examples:
 
@@ -933,9 +937,9 @@ class Calc_Qr2_R2_V1(modeltools.Method):
 
     Basic equations:
 
-      :math:`ar = Max(-33.0, Min(33.0, R2 / X6))`
-
       .. math::
+        ar = Max(-33.0, Min(33.0, R2 / X6))
+        \\
         Qr = \begin{cases}
         X6 \cdot exp(ar) &|\ ar < -7
         \\
@@ -943,7 +947,6 @@ class Calc_Qr2_R2_V1(modeltools.Method):
         \\
         R2 + X6 / exp(ar) &|\ ar > 7
         \end{cases}
-
 
     Examples:
 
@@ -967,7 +970,7 @@ class Calc_Qr2_R2_V1(modeltools.Method):
         >>> states.r2
         r2(-3.119162)
 
-        For very small values of `R2`, `Qr2` goes toward 0
+        For very small values of |R2|, |Qr2| goes toward 0
 
         >>> states.r2 = -50.
         >>> model.calc_qr2_r2_v1()
@@ -986,14 +989,15 @@ class Calc_Qr2_R2_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         con = model.parameters.control.fastaccess
-        d_ar = max(-33.0, min(33.0, sta.r2 / con.x6))
+        ar: float = max(-33.0, min(33.0, sta.r2 / con.x6))
 
-        if d_ar > 7:
-            flu.qr2 = sta.r2 + con.x6 / modelutils.exp(d_ar)
-        elif d_ar < -7:
-            flu.qr2 = con.x6 * modelutils.exp(d_ar)
+        if ar > 7:
+            flu.qr2 =\
+                sta.r2 + con.x6 / modelutils.exp(ar)
+        elif ar < -7:
+            flu.qr2 = con.x6 * modelutils.exp(ar)
         else:
-            flu.qr2 = con.x6 * modelutils.log(modelutils.exp(d_ar) + 1.0)
+            flu.qr2 = con.x6 * modelutils.log(modelutils.exp(ar) + 1.0)
 
         sta.r2 -= flu.qr2
 
@@ -1004,7 +1008,6 @@ class Calc_Qd_V1(modeltools.Method):
     Basic equations:
 
       :math:`Qd = max(0; Q1 + F)`
-
 
     Examples:
 
@@ -1059,7 +1062,6 @@ class Calc_Qt_V1(modeltools.Method):
         >>> model.calc_qt_v1()
         >>> fluxes.qt
         qt(30.0)
-
     """
 
     REQUIREDSEQUENCES = (grxjland_fluxes.Qr, grxjland_fluxes.Qd)
@@ -1102,10 +1104,10 @@ class Calc_Qt_V3(modeltools.Method):
 
 
 class Pass_Q_V1(modeltools.Method):
-    """Update the outlet link sequence.
+    r"""Update the outlet link sequence.
 
     Basic equation:
-      :math:`Q = QFactor \\cdot QT`
+      :math:`Q = QFactor \cdot QT`
     """
 
     DERIVEDPARAMETERS = (grxjland_derived.QFactor,)

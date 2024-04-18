@@ -17,13 +17,14 @@ from hydpy.models.snow import snow_logs
 
 
 class Calc_PLayer_V1(modeltools.Method):
-    r"""Calculate the precipitation as a function of altitude for all snow layers.
+    r"""Calculate the precipitation as a function of altitude for all snow layers
+    according to :cite:t:`ref-Valery`.
     Above 4000 m the precipitation does not change anymore.
 
     Basic equations:
 
       .. math::
-        PLayer = \begin{cases}
+        PLayer* = \begin{cases}
         P \cdot exp \left( \left( ZLayers - Z \right) \cdot GradP \right) &|\
         ZLayers \leq
         ZThreshold
@@ -33,17 +34,18 @@ class Calc_PLayer_V1(modeltools.Method):
         \\
         P
         \end{cases}
+        \\
+        MeanPrecipitation = \sum_{i=1}^{NSnowLayers} LayerArea \cdot PLayer*
+        \\
+        PLayer = \frac{PLayer*}{MeanPrecipitation} \cdot P
 
-      :math:`PLayer = \frac{PLayer}{\overline{PLayer}} * P`
-
-    Todo Nichts zu Grenzwert 4000 in originaler Veröffentlichung gefunden. Aber
-            Ergebnisse stimmen mit airGR überein
+    Todo Nichts zu Grenzwert 4000 in originaler Veröffentlichung Valery gefunden. Aber
+            Ergebnisse stimmen mit airGR überein.
 
     Examples:
 
         >>> from hydpy.models.snow import *
         >>> from hydpy import pub
-        >>> pub.options.reprdigits = 6
         >>> parameterstep('1d')
         >>> nsnowlayers(5)
         >>> inputs.p(10.0)
@@ -124,7 +126,7 @@ class Calc_PLayer_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
 
         # calculate mean precipitation to scale
-        d_meanplayer = 0.0
+        mean_precipitation: float = 0.0
         for k in range(con.nsnowlayers):
             if con.zlayers[k] <= fix.zthreshold:
                 flu.player[k] = inp.p * modelutils.exp(
@@ -136,19 +138,19 @@ class Calc_PLayer_V1(modeltools.Method):
                 )
             else:
                 flu.player[k] = inp.p
-            d_meanplayer = d_meanplayer + flu.player[k] * con.layerarea[k]
-        # scale precipitation, that the mean of yone precipitation is equal to the
-        # subbasin precipitation
-        if d_meanplayer > 0.0:
+            mean_precipitation = mean_precipitation + flu.player[k] * con.layerarea[k]
+        # scale precipitation, that the mean of precipitation of all layers is equal to
+        # the subbasin precipitation
+        if mean_precipitation > 0.0:
             for k in range(con.nsnowlayers):
-                flu.player[k] = flu.player[k] / d_meanplayer * inp.p
+                flu.player[k] = flu.player[k] / mean_precipitation * inp.p
 
 
 class Return_T_V1(modeltools.Method):
-    """Return the altitude adjusted temperature
+    r"""Return the altitude adjusted temperature
 
     Basic equation:
-      :math:`TLayer = T + (Z - ZLayers) * GradTMean / 100`
+      :math:`TLayer = T + (Z - ZLayers) \cdot GradTMean / 100`
 
     Example:
 
@@ -177,7 +179,7 @@ class Calc_TLayer_V1(modeltools.Method):
     r"""Calculate daily mean temperature for each snow layer in dependence of
     elevation taking into account the temperature-altitude gradient.
 
-    Method |Calc_TLayer_V1| uses method |Return_T_V1| to adjust tempereture off all
+    Method |Calc_TLayer_V1| uses method |Return_T_V1| to adjust temperature off all
     snow layers.
 
     Examples:
@@ -230,25 +232,24 @@ class Calc_TLayer_V1(modeltools.Method):
         ...     0.428, 0.428, 0.428, 0.428, 0.428, 0.428, 0.429, 0.429, 0.429, 0.43,
         ...     0.43, 0.431, 0.431, 0.432, 0.433)
 
+        Now we we calculate the temperature of each layer for the first, second and
+        third day of year, respectively:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2024-01-01", "2024-01-04", "1d"
+        >>> model.update_parameters()
+        >>> derived.doy
+        doy(0, 1, 2)
+        >>> model.idx_sim = 0
 
         >>> inputs.t = -1.60835
-
-        Now we prepare a |DOY| object, that assumes that the first, second,
-        and third simulation time steps are first, second and third day of year,
-        respectively:
-
-        # todo: hier pub.timegrids verwenden?
-
-        >>> derived.doy.shape = 3
-        >>> derived.doy = 0, 1, 2
-        >>> model.idx_sim = 1
-
         >>> model.calc_tlayer_v1()
         >>> fluxes.tlayer
         tlayer(0.92621, -0.53637, -1.56495, -2.41559, -3.24453)
 
         Second simulation step
 
+        >>> model.idx_sim = 1
         >>> inputs.t = -2.44165
         >>> model.calc_tlayer_v1()
         >>> fluxes.tlayer
@@ -256,11 +257,11 @@ class Calc_TLayer_V1(modeltools.Method):
 
         Third simulation step
 
+        >>> model.idx_sim = 2
         >>> inputs.t = -10.41945
         >>> model.calc_tlayer_v1()
         >>> fluxes.tlayer
-        tlayer(-7.88489, -9.34747, -10.37605, -11.22669, -12.05563)
-
+        tlayer(-7.87905, -9.345, -10.37595, -11.22855, -12.0594)
     """
 
     SUBMETHODS = (Return_T_V1,)
@@ -298,7 +299,6 @@ class Calc_TMinLayer_V1(modeltools.Method):
 
         >>> from hydpy.models.snow import *
         >>> from hydpy import pub
-        >>> ret = pub.options.reprdigits(6)
         >>> parameterstep('1d')
         >>> nsnowlayers(5)
         >>> zinputs(1636.0)
@@ -346,13 +346,15 @@ class Calc_TMinLayer_V1(modeltools.Method):
 
         >>> inputs.tmin = -3.2
 
-        Now we prepare a |DOY| object, that assumes that the first, second,
-        and third simulation time steps are first, second and third day of year,
-        respectively:
+        Now we we calculate the temperature of each layer for the first, second and
+        third day of year, respectively:
 
-        >>> derived.doy.shape = 3
-        >>> derived.doy = 0, 1, 2
-        >>> model.idx_sim = 1
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2024-01-01", "2024-01-04", "1d"
+        >>> model.update_parameters()
+        >>> derived.doy
+        doy(0, 1, 2)
+        >>> model.idx_sim = 0
 
         >>> model.calc_tminlayer_v1()
         >>> fluxes.tminlayer
@@ -360,6 +362,7 @@ class Calc_TMinLayer_V1(modeltools.Method):
 
         Second simulation step
 
+        >>> model.idx_sim = 1
         >>> inputs.tmin = -5.1
         >>> model.calc_tminlayer_v1()
         >>> fluxes.tminlayer
@@ -367,10 +370,11 @@ class Calc_TMinLayer_V1(modeltools.Method):
 
         Third simulation step
 
+        >>> model.idx_sim = 2
         >>> inputs.tmin = -16.3
         >>> model.calc_tminlayer_v1()
         >>> fluxes.tminlayer
-        tminlayer(-14.16256, -15.39598, -16.2634, -16.98076, -17.67982)
+        tminlayer(-14.15672, -15.39351, -16.2633, -16.98262, -17.68359)
 
     """
 
@@ -408,7 +412,6 @@ class Calc_TMaxLayer_V1(modeltools.Method):
 
         >>> from hydpy.models.snow import *
         >>> from hydpy import pub
-        >>> ret = pub.options.reprdigits(6)
         >>> parameterstep('1d')
         >>> nsnowlayers(5)
         >>> zinputs(1636.0)
@@ -456,20 +459,23 @@ class Calc_TMaxLayer_V1(modeltools.Method):
 
         >>> inputs.tmax = 2.2
 
-        Now we prepare a |DOY| object, that assumes that the first, second,
-        and third simulation time steps are first, second and third day of year,
-        respectively:
+        Now we we calculate the temperature of each layer for the first, second and
+        third day of year, respectively:
 
-        >>> derived.doy.shape = 3
-        >>> derived.doy = 0, 1, 2
-        >>> model.idx_sim = 1
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2024-01-01", "2024-01-04", "1d"
+        >>> model.update_parameters()
+        >>> derived.doy
+        doy(0, 1, 2)
+        >>> model.idx_sim = 0
 
         >>> model.calc_tmaxlayer_v1()
         >>> fluxes.tmaxlayer
-        tmaxlayer(5.12, 3.435, 2.25, 1.27, 0.315)
+        tmaxlayer(5.10832, 3.43006, 2.2498, 1.27372, 0.32254)
 
         Second simulation step
 
+        >>> model.idx_sim = 1
         >>> inputs.tmax = 0.3
         >>> model.calc_tmaxlayer_v1()
         >>> fluxes.tmaxlayer
@@ -477,10 +483,11 @@ class Calc_TMaxLayer_V1(modeltools.Method):
 
         Third simulation step
 
+        >>> model.idx_sim = 2
         >>> inputs.tmax = -5.3
         >>> model.calc_tmaxlayer_v1()
         >>> fluxes.tmaxlayer
-        tmaxlayer(-2.38, -4.065, -5.25, -6.23, -7.185)
+        tmaxlayer(-2.37416, -4.06253, -5.2499, -6.23186, -7.18877)
 
     """
 
@@ -512,7 +519,8 @@ class Calc_SolidFraction_V1(modeltools.Method):
     r"""Calculate solid precipitation fraction [-] for each snow layer.
     Above 3°C all precipiation is rain, below -1 °C all precipitation is snow,
     in between it is linear decreasing :cite:p:`ref-Turcotte2007`.
-    todo: keine Seite angegeben.schlecht digitalisiert 437 Seiten
+    todo: keine Seite angegeben und schlecht digitalisiert 437 Seiten. Vergleich nicht
+        möglich
 
     Basic equation:
       :math:`SolidFraction = Min \left( 1, Max \left( 0, \frac{3 - TLayer}{3 + 1}
@@ -522,7 +530,6 @@ class Calc_SolidFraction_V1(modeltools.Method):
 
         >>> from hydpy.models.snow import *
         >>> from hydpy import pub
-        >>> ret = pub.options.reprdigits(6)
         >>> parameterstep('1d')
         >>> nsnowlayers(9)
         >>> fluxes.tlayer = -3.0, -3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, 3.0
@@ -545,9 +552,9 @@ class Calc_SolidFraction_V1(modeltools.Method):
 
         for k in range(con.nsnowlayers):
             flu.solidfraction[k] = min(
-                1,
+                1.0,
                 max(
-                    0,
+                    0.0,
                     (fix.tthreshrain - flu.tlayer[k])
                     / (fix.tthreshrain - fix.tthreshsnow),
                 ),
@@ -555,9 +562,9 @@ class Calc_SolidFraction_V1(modeltools.Method):
 
 
 class Calc_SolidFraction_V2(modeltools.Method):
-    # Todo: Wird derzeit nicht verwendet. -> Neues Anwendungsmodell
-    r"""Calculate solid precipitation fraction ¢-] for each snow layer according to
-    :cite:t:`ref-Turcotte2007`. todo: Grenze von 1500m steht nicht in Turcotte nur AirGR
+    r"""Calculate solid precipitation fraction [-] for each snow layer according to
+    :cite:t:`ref-Turcotte2007`.
+    todo: Grenze von 1500m steht nicht in Turcotte nur AirGR
 
     Basic equation:
       .. math::
@@ -566,14 +573,13 @@ class Calc_SolidFraction_V2(modeltools.Method):
         \right) \right) &|\ Z < 1500
         \\
         Min \left( 1, Max \left( 0, 1 - \frac{TLayer + 1}{3 + 1} \right)  \right)
-        \end{cases} &|\ Z >= 1500
+        &|\ Z >= 1500 \end{cases}
 
 
     Examples:
 
         >>> from hydpy.models.snow import *
         >>> from hydpy import pub
-        >>> ret = pub.options.reprdigits(6)
         >>> parameterstep('1d')
         >>> nsnowlayers(5)
         >>> zinputs(1000)
@@ -617,17 +623,17 @@ class Calc_SolidFraction_V2(modeltools.Method):
         for k in range(con.nsnowlayers):
             if con.zinputs < 1500.0:
                 flu.solidfraction[k] = min(
-                    1,
+                    1.0,
                     max(
-                        0,
+                        0.0,
                         1.0 - flu.tmaxlayer[k] / (flu.tmaxlayer[k] - flu.tminlayer[k]),
                     ),
                 )
             else:
                 flu.solidfraction[k] = min(
-                    1,
+                    1.0,
                     max(
-                        0,
+                        0.0,
                         (fix.tthreshrain - flu.tlayer[k])
                         / (fix.tthreshrain - fix.tthreshsnow),
                     ),
@@ -644,7 +650,6 @@ class Calc_PRainLayer_V1(modeltools.Method):
 
         >>> from hydpy.models.snow import *
         >>> from hydpy import pub
-        >>> ret = pub.options.reprdigits(6)
         >>> parameterstep('1d')
         >>> nsnowlayers(9)
         >>> fluxes.player = 0.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 0.0
@@ -652,7 +657,6 @@ class Calc_PRainLayer_V1(modeltools.Method):
         >>> model.calc_prainlayer()
         >>> fluxes.prainlayer
         prainlayer(0.0, 0.0, 0.0, 0.0, 1.25, 2.5, 3.75, 5.0, 0.0)
-
     """
 
     CONTROLPARAMETERS = (snow_control.NSnowLayers,)
@@ -679,7 +683,6 @@ class Calc_PSnowLayer_V1(modeltools.Method):
 
         >>> from hydpy.models.snow import *
         >>> from hydpy import pub
-        >>> ret = pub.options.reprdigits(6)
         >>> parameterstep('1d')
         >>> nsnowlayers(9)
         >>> fluxes.player = 0.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 0.0
@@ -721,7 +724,6 @@ class Calc_G_V1(modeltools.Method):
         >>> model.calc_g_v1()
         >>> states.g
         g(1.072731, 0.086445, 0.098578, 0.104188, 0.11286)
-
     """
 
     CONTROLPARAMETERS = (snow_control.NSnowLayers,)
@@ -770,7 +772,8 @@ class Calc_ETG_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
 
         for k in range(con.nsnowlayers):
-            sta.etg[k] = min(0, con.cn1 * sta.etg[k] + (1.0 - con.cn1) * flu.tlayer[k])
+            sta.etg[k] = min(0.0, con.cn1 * sta.etg[k] + (1.0 - con.cn1) *
+                             flu.tlayer[k])
 
 
 class Calc_PotMelt_V1(modeltools.Method):
@@ -812,15 +815,15 @@ class Calc_PotMelt_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
 
         for k in range(con.nsnowlayers):
-            if sta.etg[k] == 0 and flu.tlayer[k] > 0:
+            if sta.etg[k] == 0.0 and flu.tlayer[k] > 0.0:
                 flu.potmelt[k] = min(sta.g[k], con.cn2 * flu.tlayer[k])
             else:
                 flu.potmelt[k] = 0.0
 
 
 class Calc_GRatio_V1(modeltools.Method):
-    """Calculate snow covered area for each snow layer. We set `CN4`, which is used
-    to derive `GThresh` to the default value of 0.9, to obtain the same results as
+    """Calculate snow covered area for each snow layer. We set |CN4|, which is used
+    to derive |GThresh| to the default value of 0.9, to obtain the same results as
     the original Cema Neige Model.
 
     Basic equations:
@@ -858,12 +861,13 @@ class Calc_GRatio_V1(modeltools.Method):
 
 
 class Calc_GRatio_GLocalMax_V1(modeltools.Method):
-    r"""Calculate snow covered area for each snow layer and update `GLocalMax`.
+    r"""Calculate snow covered area for each snow layer and update |GLocalMax|.
 
     Basic equations:
-      :math:`GLocalMax_{new} = Min(G, GLocalMax) if PotMelt > 0 and GRatio = 1`
-
-      :math:`Gratio = Min(G / GLocalMax, 1.0)`
+      .. math::
+        GLocalMax_{new} = Min(G, GLocalMax)
+        \\
+        Gratio = Min(G / GLocalMax, 1.0)
 
     Examples:
 
@@ -904,10 +908,8 @@ class Calc_GRatio_GLocalMax_V1(modeltools.Method):
             # todo: eigentlich nur Sonderfall muss das mit in Doku?
             if log.glocalmax[k] == 0.0:
                 log.glocalmax[k] = der.gthresh[k]
-            if flu.potmelt[k] > 0:
-                # sta.glocalmax letzte Schneemenge, bei gratio=1
-                # Setze neues glocalmax auf aktuelle Schneehöhe, falls alles
-                # schneebedeckt ist
+            if flu.potmelt[k] > 0.0:
+                # restrict glocalmax to amount of snow if everything is snow
                 if sta.gratio[k] == 1.0:
                     log.glocalmax[k] = min(sta.g[k], log.glocalmax[k])
                 sta.gratio[k] = min(sta.g[k] / log.glocalmax[k], 1.0)
@@ -918,7 +920,6 @@ class Calc_Melt_V1(modeltools.Method):
 
     Basic equations:
       :math:`Melt = ((1 - MinMelt) \cdot GRatio + MinMelt) \cdot PotMelt`
-
 
     Examples:
 
@@ -948,7 +949,7 @@ class Calc_Melt_V1(modeltools.Method):
 
         # todo: kann dazu führen, dass im gesamten Sommer (ganz wenig) Schnee liegt
 
-        # umso mehr Schnee liegt, umso schneller schmilzt der Schnee (bis threshold)
+        # more snow leads to more snow melt
         for k in range(con.nsnowlayers):
             flu.melt[k] = (
                 (1.0 - fix.minmelt) * sta.gratio[k] + fix.minmelt
@@ -960,7 +961,6 @@ class Update_G_V1(modeltools.Method):
 
     Basic equations:
       :math:`G_{new} = G_{old} - Melt`
-
 
     Examples:
 
@@ -995,9 +995,9 @@ class Update_GRatio_GLocalMax_V1(modeltools.Method):
 
     Basic equations:
 
-      :math:`\Delta G = PSnowLayer - Melt`
-
       .. math::
+        \Delta G = PSnowLayer - Melt
+        \\
         Gratio = \begin{cases}
         Min \left( GRatio + \Delta G / CN3, 1.0 \right) &|\ \Delta G >0
         \\
@@ -1005,8 +1005,7 @@ class Update_GRatio_GLocalMax_V1(modeltools.Method):
         \end{cases}
 
     When complete snow coverage is reached (gratio = 1) due to new sonwfall,
-    the local melt threshold (`GLocalMax`) is reset to `GThresh`.
-
+    the local melt threshold (|GLocalMax|) is reset to |GThresh|.
 
     Examples:
 
@@ -1049,16 +1048,16 @@ class Update_GRatio_GLocalMax_V1(modeltools.Method):
         log = model.sequences.logs.fastaccess
 
         for k in range(con.nsnowlayers):
-            d_dg = flu.psnowlayer[k] - flu.melt[k]
-            if d_dg > 0:
-                # Aufbau der Schneedecke
-                # Korrektur gratio durch Aufbau der Schneedecke
-                sta.gratio[k] = min(sta.gratio[k] + d_dg / con.cn3, 1.0)
-                # Wenn alles Schnee, dann Abnahme mit gthresh
+            dg: float = flu.psnowlayer[k] - flu.melt[k]
+            if dg > 0.0:
+                # snow cover build up
+                # update of snow covered area
+                sta.gratio[k] = min(sta.gratio[k] + dg / con.cn3, 1.0)
+                # reset glocalmax to gthresh if everything is snow
                 if sta.gratio[k] == 1.0:
                     log.glocalmax[k] = der.gthresh[k]
-            elif d_dg < 0:
-                # wenn kein Aufbau der Schneedecke und mehr Schmelze als Aufbau
+            elif dg < 0.0:
+                # snow cover degradation
                 sta.gratio[k] = min(sta.g[k] / log.glocalmax[k], 1.0)
 
 

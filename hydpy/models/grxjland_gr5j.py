@@ -11,7 +11,7 @@ hydrograph, as is the case in Gr4j, in GR5J only one unit hydrograph is applied
 and the components are split afterwards. In addition, the groundwater exchange `F` is
 calculated differently using an additional parameter.
 
-The following figure cite:p:`ref-airGRManual` shows the general structure of HydPy
+The following figure :cite:p:`ref-airGRManual` shows the general structure of HydPy
 GrXJ-Land Version GR5J:
 
 .. image:: HydPy-GrXJ-Land_Version-Gr5J.png
@@ -104,10 +104,6 @@ The input data shows high precipitation and low evapotranspiration:
 ...     0.2, 0.1, 0.1, 0.0, 0.1, 0.1, 0.0, 0.2, 0.9, 0.9, 0.5, 0.9)
 
 .. integration-test::
-
-    >>> derived.uh2.update()
-    >>> test.reset_inits()
-    >>> conditions = sequences.conditions
 
     >>> test("grxjland_gr5j_ex1")
     |   date |    p | pet |  en |   pn |        ps |       es |       ae |       pr |  qoutuh2 |     perc |       q9 |       q1 |         f |       qr |       qd |       qt |          s |         r |    outlet |

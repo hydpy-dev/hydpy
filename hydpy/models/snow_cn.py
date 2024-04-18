@@ -60,7 +60,7 @@ _____________
 The first example is run with the example dataset L0123001 of the R-package airGR
 without any modification for May and April 1990
 
-First of all we set the Cema-Neige parameters `CN1` and `CN2`:
+First of all we set the Cema-Neige parameters |CN1| and |CN2|:
 
 >>> cn1(0.962)
 >>> cn2(2.249)
@@ -81,8 +81,8 @@ and the height and area distribution of these layers:
 >>> zlayers
 zlayers(360.0, 463.0, 577.0, 714.0, 916.0)
 
-We also have to set the parameter `CN4`. Together with the mean annual fixed
-precipitation `GThresh` can be calculated. In the original model this value is not
+We also have to set the parameter |CN4|. Together with the mean annual fixed
+precipitation |GThresh| can be calculated. In the original model this value is not
 adjustable and set to a fix value of 0.9.
 
 >>> cn4(0.9)

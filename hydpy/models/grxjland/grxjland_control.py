@@ -36,7 +36,7 @@ class X3(parametertools.Parameter):
 
 
 class X4(parametertools.Parameter):
-    """Time base of unit hydrographs `UH1` (`X4`) and `UH2` (2*`X4`) [T]."""
+    """Time base of unit hydrographs |UH1| (|X4|) and |UH2| (2*|X4|) [T]."""
 
     # todo: obere Grenze unit hydrograph 20 Tage?
 

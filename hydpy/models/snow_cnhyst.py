@@ -14,8 +14,8 @@ Integration tests
 .. how_to_understand_integration_tests::
 
 The setup of this example is the same as the |snow_cnhyst| example. The difference is
-the additional declaration of the parameters `CN3` and `CN4` and additional state
-`GLocalMax`.
+the additional declaration of the parameters |CN3| and |CN4| and additional state
+|GLocalMax|.
 
 >>> from hydpy import pub
 >>> pub.timegrids = '01.04.1990', '01.06.1990', '1d'

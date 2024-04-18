@@ -2342,6 +2342,51 @@ of sequence `obs` of node `dill` is `1h` but the actual simulation time step is 
         values[zdx1:zdx2] = valcopy
         return values
 
+    def apply_adjusted_series(
+        self, timegrid_data: timetools.Timegrid, series: NDArrayFloat
+    ) -> None:
+        """Take the values of the given "adjusted series".
+
+        The "adjusted series" is usually returned by method |IOSequence.adjust_series|.
+        The behaviour of method |IOSequence.apply_adjusted_series| depends on option
+        |SequenceManager.reset|.  By default, "resetting" is enabled, meaning that
+        |numpy.nan| values due to incomplete time series files overwrite previously
+        available data.  We demonstrate this using the NetCDF data provided by function
+        |prepare_full_example_2| but shifting the initialisation period by two days:
+
+        >>> from hydpy.examples import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
+        >>> pub.timegrids.init.firstdate -= "2d"
+        >>> pub.timegrids.init.lastdate -= "2d"
+        >>> t = hp.elements.land_dill.model.sequences.inputs.t
+        >>> t.series = -99.9
+        >>> opt = pub.options
+        >>> sm = pub.sequencemanager
+        >>> with TestIO(), sm.filetype("nc"), opt.checkseries(False):
+        ...     with sm.netcdfreading():
+        ...         t.load_series()
+        >>> from hydpy import round_
+        >>> round_(t.series)
+        nan, nan, -0.298846, -0.811539
+
+        With option |SequenceManager.reset| disabled, method
+        |IOSequence.apply_adjusted_series| keeps the already available data:
+
+        >>> t.series = 99.9
+        >>> with TestIO(), sm.reset(False), sm.filetype("nc"), opt.checkseries(False):
+        ...     with sm.netcdfreading():
+        ...         t.load_series()
+        >>> from hydpy import round_
+        >>> round_(t.series)
+        99.9, 99.9, -0.298846, -0.811539
+        """
+        if hydpy.pub.sequencemanager.reset:
+            self.series = series
+        else:
+            init = hydpy.pub.timegrids.init
+            i0, i1 = init[timegrid_data.firstdate], init[timegrid_data.lastdate]
+            self.series[i0:i1] = series[i0:i1]
+
     def check_completeness(self) -> None:
         """Raise a |RuntimeError| if the |IOSequence.series| contains at least one
         |numpy.nan| value and if the option |Options.checkseries| is enabled.

@@ -1335,7 +1335,8 @@ handle a sequence for the (sub)device `element2` nor define a member named \
                                     ]
                             else:
                                 subarray = array[:, subdev2index.get_index(devicename)]
-                            seq.series = seq.adjust_series(timegrid, subarray)
+                            series = seq.adjust_series(timegrid, subarray)
+                            seq.apply_adjusted_series(timegrid, series)
                         except RuntimeError as current_exception:
                             seq.series[:] = numpy.nan
                             if first_exception is None:

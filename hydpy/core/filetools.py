@@ -1212,6 +1212,89 @@ class SequenceManager(FileManager):
                [20., 21.],
                [22., 23.]])
 
+
+    We now write two files that do not span the initialisation period.
+
+    >>> with TestIO():
+    ...     for filename in ("incomplete_1.asc", "incomplete_2.asc"):
+    ...         path = os.path.join("project", "series", "default", filename)
+    ...         with open(path, "w") as file_:
+    ...             _ = file_.write('Timegrid("2000-01-02 00:00:00+01:00",\\n'
+    ...                             '         "2000-01-04 00:00:00+01:00",\\n'
+    ...                             '         "1d")\\n')
+    ...             for value in (1.0, 2.0):
+    ...                 if filename == "incomplete_1.asc":
+    ...                     _ = file_.write(f"{value}\\n")
+    ...                 else:
+    ...                     _ = file_.write(f"{value} {value + 1.0}\\n")
+
+    >>> print_file("incomplete_1.asc")
+    Timegrid("2000-01-02 00:00:00+01:00",
+             "2000-01-04 00:00:00+01:00",
+             "1d")
+    1.0
+    2.0
+
+    >>> print_file("incomplete_2.asc")
+    Timegrid("2000-01-02 00:00:00+01:00",
+             "2000-01-04 00:00:00+01:00",
+             "1d")
+    1.0, 2.0
+    2.0, 3.0
+
+    By default, trying to read such incomplete files results in an error:
+
+    >>> sim.filename = "incomplete_1.asc"
+    >>> nkor.filename = "incomplete_2.asc"
+    >>> with TestIO():  # doctest: +ELLIPSIS
+    ...     pub.sequencemanager.load_file(sim)
+    Traceback (most recent call last):
+    ...
+    RuntimeError: While trying to load the time series data of sequence `sim` of node \
+`node2`, the following error occurred: For sequence `sim` of node `node2` the \
+initialisation time grid (Timegrid("2000-01-01 00:00:00", "2000-01-05 00:00:00", \
+"1d")) does not define a subset of the time grid of the data file \
+`...incomplete_1.asc` (Timegrid("2000-01-02 00:00:00", "2000-01-04 00:00:00", "1d")).
+
+    Setting option |Options.checkseries| to |False| turns this safety mechanism off:
+
+    >>> with TestIO(), pub.options.checkseries(False):
+    ...     pub.sequencemanager.load_file(sim)
+    ...     nkor.load_series()
+    >>> sim.series
+    InfoArray([nan,  1.,  2., nan])
+    >>> nkor.series
+    InfoArray([[nan, nan],
+               [ 1.,  2.],
+               [ 2.,  3.],
+               [nan, nan]])
+
+    Note that all previously available data outside the period supported by the read
+    files has been set to |numpy.nan|, another safety mechanism to avoid accidentally
+    mixing data.  If you instead want to mix data from different sources, set option
+    |SequenceManager.reset| to |True|:
+
+    >>> sim.series = 5.0, 6.0, 7.0, 8.0
+    >>> nkor.series = [[5.0, 6.0], [6.0, 7.0], [7.0, 8.0], [8.0, 9.0]]
+    >>> with TestIO(), pub.options.checkseries(False), pub.sequencemanager.reset(False):
+    ...     pub.sequencemanager.load_file(sim)
+    ...     nkor.load_series()
+    >>> sim.series
+    InfoArray([5., 1., 2., 8.])
+    >>> nkor.series
+    InfoArray([[5., 6.],
+               [1., 2.],
+               [2., 3.],
+               [8., 9.]])
+
+    We reset the file names and data for the remaining tests:
+
+    >>> del sim.filename
+    >>> del nkor.filename
+    >>> with TestIO():
+    ...     pub.sequencemanager.load_file(sim)
+    ...     nkor.load_series()
+
     Wrongly formatted ASCII files and incomplete data should result in understandable
     error messages:
 
@@ -1362,6 +1445,15 @@ not allowed to overwrite the existing file `...`.
         See its documentation for further information.
         """,
     )
+    reset = optiontools.OptionPropertyBool(
+        True,
+        """A flag that indicates whether to reset already available time series data 
+        before reading incomplete time series files.
+
+        |SequenceManager.reset| is an option based on |OptionPropertyBool|.  See its 
+        documentation for further information.
+        """,
+    )
     overwrite = optiontools.OptionPropertyBool(
         False,
         """Currently active overwrite flag for time series files.
@@ -1397,12 +1489,15 @@ not allowed to overwrite the existing file `...`.
     def load_file(self, sequence: sequencetools.IOSequence) -> None:
         """Load data from a data file and pass it to the given |IOSequence|."""
         try:
-            if sequence.filetype == "npy":
-                sequence.series = sequence.adjust_series(*self._load_npy(sequence))
-            elif sequence.filetype == "asc":
-                sequence.series = sequence.adjust_series(*self._load_asc(sequence))
-            elif sequence.filetype == "nc":
+            if sequence.filetype == "nc":
                 self._load_nc(sequence)
+            else:
+                if sequence.filetype == "npy":
+                    timegrid, series = self._load_npy(sequence)
+                elif sequence.filetype == "asc":
+                    timegrid, series = self._load_asc(sequence)
+                series = sequence.adjust_series(timegrid, series)
+                sequence.apply_adjusted_series(timegrid, series)
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to load the time series data of sequence "

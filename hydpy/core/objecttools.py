@@ -1221,9 +1221,12 @@ def _assignrepr_bracketed2(
         else:
             lines.append(assignrepr_bracketed1(subvalues, blanks, width))
         lines[-1] += ","
-    if (len(values) > 1) or (brackets != "()"):
-        lines[-1] = lines[-1][:-1]
-    lines[-1] += brackets[1]
+    if lines:
+        if (len(values) > 1) or (brackets != "()"):
+            lines[-1] = lines[-1][:-1]
+        lines[-1] += brackets[1]
+    else:
+        lines.append(prefix + brackets[1])
     return "\n".join(lines)
 
 
@@ -1255,6 +1258,8 @@ def assignrepr_tuple2(
 
     >>> print(assignrepr_tuple2([[]], "test = "))
     test = ((),)
+    >>> print(assignrepr_tuple2([], "test = "))
+    test = ()
     >>> print(assignrepr_tuple2([[], [1]], "test = "))
     test = ((),
             (1,))
@@ -1289,6 +1294,8 @@ def assignrepr_list2(
 
     >>> print(assignrepr_list2([[]], "test = "))
     test = [[]]
+    >>> print(assignrepr_list2([], "test = "))
+    test = []
     >>> print(assignrepr_list2([[], [1]], "test = "))
     test = [[],
             [1]]
@@ -1318,9 +1325,12 @@ def _assignrepr_bracketed3(
                 _assignrepr_bracketed2(assignrepr_bracketed1, subvalues, blanks, width)
             )
         lines[-1] += ","
-    if (len(values) > 1) or (brackets != "()"):
-        lines[-1] = lines[-1][:-1]
-    lines[-1] += brackets[1]
+    if lines:
+        if (len(values) > 1) or (brackets != "()"):
+            lines[-1] = lines[-1][:-1]
+        lines[-1] += brackets[1]
+    else:
+        lines.append(prefix + brackets[1])
     return "\n".join(lines)
 
 
@@ -1368,6 +1378,10 @@ def assignrepr_tuple3(
 
     >>> print(assignrepr_tuple3([[[]]], "test = "))
     test = (((),),)
+    >>> print(assignrepr_tuple3([[]], "test = "))
+    test = ((),)
+    >>> print(assignrepr_tuple3([], "test = "))
+    test = ()
     >>> print(assignrepr_tuple3([[[], [1]]], "test = "))
     test = (((),
              (1,)),)

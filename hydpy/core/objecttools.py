@@ -1433,6 +1433,10 @@ def assignrepr_list3(
 
     >>> print(assignrepr_list3([[[]]], "test = "))
     test = [[[]]]
+    >>> print(assignrepr_list3([[]], "test = "))
+    test = [[]]
+    >>> print(assignrepr_list3([], "test = "))
+    test = []
     >>> print(assignrepr_list3([[[], [1]]], "test = "))
     test = [[[],
              [1]]]

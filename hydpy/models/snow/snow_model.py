@@ -518,9 +518,7 @@ class Calc_TMaxLayer_V1(modeltools.Method):
 class Calc_SolidFraction_V1(modeltools.Method):
     r"""Calculate solid precipitation fraction [-] for each snow layer.
     Above 3°C all precipiation is rain, below -1 °C all precipitation is snow,
-    in between it is linear decreasing :cite:p:`ref-Turcotte2007`.
-    todo: keine Seite angegeben und schlecht digitalisiert 437 Seiten. Vergleich nicht
-        möglich
+    in between it is linear decreasing :cite:p:`ref-USACE1956`.
 
     Basic equation:
       :math:`SolidFraction = Min \left( 1, Max \left( 0, \frac{3 - TLayer}{3 + 1}
@@ -563,8 +561,8 @@ class Calc_SolidFraction_V1(modeltools.Method):
 
 class Calc_SolidFraction_V2(modeltools.Method):
     r"""Calculate solid precipitation fraction [-] for each snow layer according to
-    :cite:t:`ref-Turcotte2007`.
-    todo: Grenze von 1500m steht nicht in Turcotte nur AirGR
+    :cite:t:`ref-Turcotte2007` and `ref-USACE1956`.
+    todo: Grenze von 1500m steht nicht in Turcotte nur AirGR. Turcotte S.216
 
     Basic equation:
       .. math::

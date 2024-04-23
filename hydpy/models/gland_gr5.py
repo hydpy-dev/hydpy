@@ -8,7 +8,7 @@ of GR4 (|gland_gr4|). Here it is implemented according to :cite:t:`ref-airGR2017
 The model contains two stores and has five parameters. Instead of splitting the
 direct flow component and the inflow to the routing storage before applying the unit
 hydrograph, as is the case in Gr4, in GR5 only one unit hydrograph is applied
-and the components are split afterwards. In addition, the groundwater exchange `F` is
+and the components are split afterwards. In addition, the groundwater exchange |F| is
 calculated differently using an additional parameter.
 
 The following figure :cite:p:`ref-airGRManual` shows the general structure of HydPy

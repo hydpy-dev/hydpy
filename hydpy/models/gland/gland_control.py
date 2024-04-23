@@ -7,7 +7,7 @@
 # ...from HydPy
 from hydpy.core import parametertools
 
-# ...from grxjland
+# ...from gland
 
 
 class Area(parametertools.Parameter):

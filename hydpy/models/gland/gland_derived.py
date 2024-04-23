@@ -10,7 +10,7 @@ import hydpy
 from hydpy.core import parametertools
 
 # ...from snow
-from hydpy.models.grxjland import grxjland_control
+from hydpy.models.gland import gland_control
 
 
 class DOY(parametertools.DOYParameter):
@@ -23,7 +23,7 @@ class UH1(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
     strict_valuehandling = False
 
-    CONTROLPARAMETERS = (grxjland_control.X4,)
+    CONTROLPARAMETERS = (gland_control.X4,)
 
     def update(self):
         """Update |UH1| based on |X4|.
@@ -36,7 +36,7 @@ class UH1(parametertools.Parameter):
         |X4| being not larger than the simulation step size is
         identical with applying no unit hydrograph at all:
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> simulationstep('1d')
@@ -110,7 +110,7 @@ class UH2(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
     strict_valuehandling = False
 
-    CONTROLPARAMETERS = (grxjland_control.X4,)
+    CONTROLPARAMETERS = (gland_control.X4,)
 
     def update(self):
         """Update |UH2| based on |X4|.
@@ -122,7 +122,7 @@ class UH2(parametertools.Parameter):
         2 x |X4| determines the time base of the unit hydrograph. If X4 is smaller or
         equal to 1, UH2 has two ordinates:
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> simulationstep('1d')
@@ -201,13 +201,13 @@ class QFactor(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (grxjland_control.Area,)
+    CONTROLPARAMETERS = (gland_control.Area,)
 
     def update(self):
         """Update |QFactor| based on |Area| and the current simulation
         step size.
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> simulationstep('1d')

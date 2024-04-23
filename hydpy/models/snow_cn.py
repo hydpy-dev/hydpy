@@ -221,7 +221,7 @@ Time series for precipitation and temperature were taken from the sample data se
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
 
-# ...from  grxjland
+# ...from  snow
 from hydpy.models.snow import snow_model
 
 

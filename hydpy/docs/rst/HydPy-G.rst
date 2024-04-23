@@ -1,9 +1,9 @@
-.. _HydPy-Grxj:
+.. _HydPy-G:
 
-HydPy-Grxj
+HydPy-G
 ================
 
-The "HydPy-Grxj" model family (modèle due Génie Rural) comprises daily lumped
+The "HydPy-G" model family (modèle due Génie Rural) comprises daily lumped
 hydrological models with different amount of paramters which only differ in the
 groundwater exchange function.
 
@@ -12,13 +12,13 @@ Base model:
 .. toctree::
    :maxdepth: 1
 
-   grxjland
+   gland
 
 Application models:
 
 .. toctree::
    :maxdepth: 1
 
-   Gr4j <grxjland_gr4j>
-   Gr5j <grxjland_gr5j>
-   Gr6j <grxjland_gr6j>
+   Gr4 <gland_gr4>
+   Gr5 <gland_gr5>
+   Gr6 <gland_gr6>

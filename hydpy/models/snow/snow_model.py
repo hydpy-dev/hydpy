@@ -6,7 +6,7 @@
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
 
-# ...from grxjland
+# ...from snow
 from hydpy.models.snow import snow_inputs
 from hydpy.models.snow import snow_fluxes
 from hydpy.models.snow import snow_control
@@ -772,8 +772,9 @@ class Calc_ETG_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
 
         for k in range(con.nsnowlayers):
-            sta.etg[k] = min(0.0, con.cn1 * sta.etg[k] + (1.0 - con.cn1) *
-                             flu.tlayer[k])
+            sta.etg[k] = min(
+                0.0, con.cn1 * sta.etg[k] + (1.0 - con.cn1) * flu.tlayer[k]
+            )
 
 
 class Calc_PotMelt_V1(modeltools.Method):

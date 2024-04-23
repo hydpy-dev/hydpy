@@ -17,7 +17,7 @@ class QUH1(sequencetools.LogSequence):
 
     The last value is always set to zero to avoid biased results:
 
-    >>> from hydpy.models.grxjland import *
+    >>> from hydpy.models.gland import *
     >>> from hydpy import pub
     >>> parameterstep('1d')
     >>> simulationstep('1d')
@@ -40,7 +40,7 @@ class QUH1(sequencetools.LogSequence):
     Traceback (most recent call last):
     ...
     UserWarning: Due to the following problem, log sequence `quh1` of \
-element `?` handling model `grxjland` could be initialised with a averaged \
+element `?` handling model `gland` could be initialised with a averaged \
 value only: While trying to set the value(s) of variable `quh1`, the \
 following error occurred: While trying to convert the value(s) \
 `(1.0, 2.0, 3.0)` to a numpy ndarray with shape `(4,)` and type \
@@ -76,7 +76,7 @@ class QUH2(sequencetools.LogSequence):
 
     The last value is always set to zero to avoid biased results:
 
-    >>> from hydpy.models.grxjland import *
+    >>> from hydpy.models.gland import *
     >>> from hydpy import pub
     >>> ret = pub.options.warnsimulationstep(False)
     >>> parameterstep('1d')
@@ -95,7 +95,7 @@ class QUH2(sequencetools.LogSequence):
     Traceback (most recent call last):
     ...
     UserWarning: Due to the following problem, log sequence `quh2` of \
-element `?` handling model `grxjland` could be initialised with a averaged \
+element `?` handling model `gland` could be initialised with a averaged \
 value only: While trying to set the value(s) of variable `quh2`, the \
 following error occurred: While trying to convert the value(s) \
 `(1.0, 2.0, 3.0)` to a numpy ndarray with shape `(7,)` and type \

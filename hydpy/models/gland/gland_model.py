@@ -9,14 +9,14 @@ from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
 from hydpy.interfaces import petinterfaces
 
-# ...from grxjland
-from hydpy.models.grxjland import grxjland_inputs
-from hydpy.models.grxjland import grxjland_fluxes
-from hydpy.models.grxjland import grxjland_control
-from hydpy.models.grxjland import grxjland_states
-from hydpy.models.grxjland import grxjland_outlets
-from hydpy.models.grxjland import grxjland_derived
-from hydpy.models.grxjland import grxjland_logs
+# ...from gland
+from hydpy.models.gland import gland_inputs
+from hydpy.models.gland import gland_fluxes
+from hydpy.models.gland import gland_control
+from hydpy.models.gland import gland_states
+from hydpy.models.gland import gland_outlets
+from hydpy.models.gland import gland_derived
+from hydpy.models.gland import gland_logs
 
 
 class Calc_PET_PETModel_V1(modeltools.Method):
@@ -27,7 +27,7 @@ class Calc_PET_PETModel_V1(modeltools.Method):
 
         We use |evap_tw2002| as an example:
 
-        >>> from hydpy.models.grxjland_gr4j import *
+        >>> from hydpy.models.gland_gr4 import *
         >>> parameterstep()
         >>> from hydpy import prepare_model
         >>> area(50.)
@@ -45,7 +45,7 @@ class Calc_PET_PETModel_V1(modeltools.Method):
         pet(3.07171)
     """
 
-    RESULTSEQUENCES = (grxjland_fluxes.PET,)
+    RESULTSEQUENCES = (gland_fluxes.PET,)
 
     @staticmethod
     def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
@@ -60,7 +60,7 @@ class Calc_PET_V1(modeltools.Method):
 
     SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
     SUBMETHODS = (Calc_PET_PETModel_V1,)
-    RESULTSEQUENCES = (grxjland_fluxes.PET,)
+    RESULTSEQUENCES = (gland_fluxes.PET,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -83,7 +83,7 @@ class Calc_Pn_En_V1(modeltools.Method):
 
         Evapotranspiration larger than precipitation:
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> parameterstep('1d')
         >>> inputs.p = 20.
         >>> fluxes.pet = 30.
@@ -104,8 +104,8 @@ class Calc_Pn_En_V1(modeltools.Method):
         pn(40.0)
     """
 
-    REQUIREDSEQUENCES = (grxjland_inputs.P, grxjland_fluxes.PET)
-    RESULTSEQUENCES = (grxjland_fluxes.Pn, grxjland_fluxes.En)
+    REQUIREDSEQUENCES = (gland_inputs.P, gland_fluxes.PET)
+    RESULTSEQUENCES = (gland_fluxes.Pn, gland_fluxes.En)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -134,7 +134,7 @@ class Calc_PS_V1(modeltools.Method):
 
         Production store is full, no more rain can enter the production store
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> x1(300)
@@ -159,10 +159,10 @@ class Calc_PS_V1(modeltools.Method):
         ps(0.0)
     """
 
-    REQUIREDSEQUENCES = (grxjland_fluxes.Pn, grxjland_states.S)
-    CONTROLPARAMETERS = (grxjland_control.X1,)
+    REQUIREDSEQUENCES = (gland_fluxes.Pn, gland_states.S)
+    CONTROLPARAMETERS = (gland_control.X1,)
 
-    RESULTSEQUENCES = (grxjland_fluxes.Ps,)
+    RESULTSEQUENCES = (gland_fluxes.Ps,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -191,7 +191,7 @@ class Calc_Es_V1(modeltools.Method):
 
         Production store almost full, no rain: |Es| reaches almost |En|:
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> x1(300.)
@@ -209,10 +209,10 @@ class Calc_Es_V1(modeltools.Method):
         es(0.13027)
     """
 
-    REQUIREDSEQUENCES = (grxjland_fluxes.En, grxjland_states.S)
-    CONTROLPARAMETERS = (grxjland_control.X1,)
+    REQUIREDSEQUENCES = (gland_fluxes.En, gland_states.S)
+    CONTROLPARAMETERS = (gland_control.X1,)
 
-    RESULTSEQUENCES = (grxjland_fluxes.Es,)
+    RESULTSEQUENCES = (gland_fluxes.Es,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -237,7 +237,7 @@ class Update_S_V1(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> x1(300.)
@@ -249,8 +249,8 @@ class Update_S_V1(modeltools.Method):
         s(277.0)
     """
 
-    REQUIREDSEQUENCES = (grxjland_fluxes.Ps, grxjland_fluxes.Es)
-    UPDATEDSEQUENCES = (grxjland_states.S,)
+    REQUIREDSEQUENCES = (gland_fluxes.Ps, gland_fluxes.Es)
+    UPDATEDSEQUENCES = (gland_states.S,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -269,7 +269,7 @@ class Calc_Perc_V1(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> from hydpy import pub
         >>> parameterstep('1d')
 
@@ -290,11 +290,11 @@ class Calc_Perc_V1(modeltools.Method):
         perc(0.000376)
     """
 
-    CONTROLPARAMETERS = (grxjland_control.X1,)
+    CONTROLPARAMETERS = (gland_control.X1,)
 
-    UPDATEDSEQUENCES = (grxjland_states.S,)
+    UPDATEDSEQUENCES = (gland_states.S,)
 
-    RESULTSEQUENCES = (grxjland_fluxes.Perc,)
+    RESULTSEQUENCES = (gland_fluxes.Perc,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -315,7 +315,7 @@ class Update_S_V2(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> fluxes.perc = 1.6402
@@ -325,9 +325,9 @@ class Update_S_V2(modeltools.Method):
         s(266.381148)
     """
 
-    REQUIREDSEQUENCES = (grxjland_fluxes.Perc,)
+    REQUIREDSEQUENCES = (gland_fluxes.Perc,)
 
-    UPDATEDSEQUENCES = (grxjland_states.S,)
+    UPDATEDSEQUENCES = (gland_states.S,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -345,7 +345,7 @@ class Calc_AE_V1(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> fluxes.pet = 10.
@@ -356,8 +356,8 @@ class Calc_AE_V1(modeltools.Method):
         ae(9.978652)
     """
 
-    REQUIREDSEQUENCES = (grxjland_fluxes.PET, grxjland_fluxes.En, grxjland_fluxes.Es)
-    RESULTSEQUENCES = (grxjland_fluxes.AE,)
+    REQUIREDSEQUENCES = (gland_fluxes.PET, gland_fluxes.En, gland_fluxes.Es)
+    RESULTSEQUENCES = (gland_fluxes.AE,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -376,7 +376,7 @@ class Calc_Pr_V1(modeltools.Method):
 
         Example production store almost full, no rain:
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> parameterstep('1d')
         >>> fluxes.ps = 3.
         >>> fluxes.perc = 10.
@@ -387,9 +387,9 @@ class Calc_Pr_V1(modeltools.Method):
         pr(12.0)
     """
 
-    REQUIREDSEQUENCES = (grxjland_fluxes.Ps, grxjland_fluxes.Pn, grxjland_fluxes.Perc)
+    REQUIREDSEQUENCES = (gland_fluxes.Ps, gland_fluxes.Pn, gland_fluxes.Perc)
 
-    RESULTSEQUENCES = (grxjland_fluxes.Pr,)
+    RESULTSEQUENCES = (gland_fluxes.Pr,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -410,7 +410,7 @@ class Calc_PrUH1_PrUH2_V1(modeltools.Method):
 
         Example production store nearly full, no rain:
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> parameterstep('1d')
         >>> fluxes.pr = 10.0
         >>> model.calc_pruh1_pruh2_v1()
@@ -420,8 +420,8 @@ class Calc_PrUH1_PrUH2_V1(modeltools.Method):
         pruh2(1.0)
     """
 
-    REQUIREDSEQUENCES = (grxjland_fluxes.Pr,)
-    RESULTSEQUENCES = (grxjland_fluxes.PrUH1, grxjland_fluxes.PrUH2)
+    REQUIREDSEQUENCES = (gland_fluxes.Pr,)
+    RESULTSEQUENCES = (gland_fluxes.PrUH1, gland_fluxes.PrUH2)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -437,7 +437,7 @@ class Calc_Q9_V1(modeltools.Method):
 
         Prepare a unit hydrograph with only three ordinates:
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> simulationstep('1d')
@@ -504,10 +504,10 @@ class Calc_Q9_V1(modeltools.Method):
         q9(3.6)
     """
 
-    DERIVEDPARAMETERS = (grxjland_derived.UH1,)
-    REQUIREDSEQUENCES = (grxjland_fluxes.PrUH1,)
-    UPDATEDSEQUENCES = (grxjland_logs.QUH1,)
-    RESULTSEQUENCES = (grxjland_fluxes.Q9,)
+    DERIVEDPARAMETERS = (gland_derived.UH1,)
+    REQUIREDSEQUENCES = (gland_fluxes.PrUH1,)
+    UPDATEDSEQUENCES = (gland_logs.QUH1,)
+    RESULTSEQUENCES = (gland_fluxes.Q9,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -527,7 +527,7 @@ class Calc_Q1_V1(modeltools.Method):
 
         Prepare a unit hydrograph with six ordinates:
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> simulationstep('1d')
@@ -590,10 +590,10 @@ class Calc_Q1_V1(modeltools.Method):
         q1(0.0)
     """
 
-    DERIVEDPARAMETERS = (grxjland_derived.UH2,)
-    REQUIREDSEQUENCES = (grxjland_fluxes.PrUH2,)
-    UPDATEDSEQUENCES = (grxjland_logs.QUH2,)
-    RESULTSEQUENCES = (grxjland_fluxes.Q1,)
+    DERIVEDPARAMETERS = (gland_derived.UH2,)
+    REQUIREDSEQUENCES = (gland_fluxes.PrUH2,)
+    UPDATEDSEQUENCES = (gland_logs.QUH2,)
+    RESULTSEQUENCES = (gland_fluxes.Q1,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -608,13 +608,13 @@ class Calc_Q1_V1(modeltools.Method):
 class Calc_QUH2_V1(modeltools.Method):
     """Calculate the unit hydrograph UH2 output (convolution).
 
-    This is the version for the GR5J model. The input is 100% of Pr.
+    This is the version for the GR5 model. The input is 100% of Pr.
 
     Examples:
 
         Prepare a unit hydrograph with only six ordinates:
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> simulationstep('1d')
@@ -649,10 +649,10 @@ class Calc_QUH2_V1(modeltools.Method):
         quh2(0.298737, 2.637113, 4.637113, 0.298737, 0.06415, 0.0)
     """
 
-    DERIVEDPARAMETERS = (grxjland_derived.UH2,)
-    REQUIREDSEQUENCES = (grxjland_fluxes.Pr,)
-    UPDATEDSEQUENCES = (grxjland_logs.QUH2,)
-    RESULTSEQUENCES = (grxjland_fluxes.QOutUH2,)
+    DERIVEDPARAMETERS = (gland_derived.UH2,)
+    REQUIREDSEQUENCES = (gland_fluxes.Pr,)
+    UPDATEDSEQUENCES = (gland_logs.QUH2,)
+    RESULTSEQUENCES = (gland_fluxes.QOutUH2,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -665,7 +665,7 @@ class Calc_QUH2_V1(modeltools.Method):
 
 
 class Calc_Q1_Q9_V2(modeltools.Method):
-    r"""Calculate |Q1| and |Q9| by splittung |QOutUH2|. This is the version for the GR5J
+    r"""Calculate |Q1| and |Q9| by splittung |QOutUH2|. This is the version for the GR5
     model.
 
     Basic equations:
@@ -676,7 +676,7 @@ class Calc_Q1_Q9_V2(modeltools.Method):
 
     Example:
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> parameterstep('1d')
         >>> simulationstep('1d')
         >>> fluxes.qoutuh2 = 10.0
@@ -687,8 +687,8 @@ class Calc_Q1_Q9_V2(modeltools.Method):
         q9(9.0)
     """
 
-    REQUIREDSEQUENCES = (grxjland_fluxes.QOutUH2,)
-    RESULTSEQUENCES = (grxjland_fluxes.Q1, grxjland_fluxes.Q9)
+    REQUIREDSEQUENCES = (gland_fluxes.QOutUH2,)
+    RESULTSEQUENCES = (gland_fluxes.Q1, gland_fluxes.Q9)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -698,7 +698,7 @@ class Calc_Q1_Q9_V2(modeltools.Method):
 
 
 class Calc_F_V1(modeltools.Method):
-    r"""Calculate the groundwater exchange term |F| used in GR4j.
+    r"""Calculate the groundwater exchange term |F| used in GR4.
 
     Basic equations:
 
@@ -709,7 +709,7 @@ class Calc_F_V1(modeltools.Method):
         Groundwater exchange is high when the routing storage is almost full (|R| close
         to |X3|):
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> x2(1.02)
@@ -722,7 +722,7 @@ class Calc_F_V1(modeltools.Method):
         Groundwater exchange is high when the routing storage is almost empty (|R|
         close to 0):
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> x2(1.02)
@@ -733,10 +733,10 @@ class Calc_F_V1(modeltools.Method):
         f(0.000029)
     """
 
-    CONTROLPARAMETERS = (grxjland_control.X2, grxjland_control.X3)
+    CONTROLPARAMETERS = (gland_control.X2, gland_control.X3)
 
-    UPDATEDSEQUENCES = (grxjland_states.R,)
-    RESULTSEQUENCES = (grxjland_fluxes.F,)
+    UPDATEDSEQUENCES = (gland_states.R,)
+    RESULTSEQUENCES = (gland_fluxes.F,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -747,7 +747,7 @@ class Calc_F_V1(modeltools.Method):
 
 
 class Calc_F_V2(modeltools.Method):
-    r"""Calculate groundwater exchange term |F| used in GR5j and GR6j.
+    r"""Calculate groundwater exchange term |F| used in GR5 and GR6
 
     Basic equations:
 
@@ -755,7 +755,7 @@ class Calc_F_V2(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> x2(-0.163)
@@ -767,11 +767,11 @@ class Calc_F_V2(modeltools.Method):
         f(-0.137898)
     """
 
-    CONTROLPARAMETERS = (grxjland_control.X2, grxjland_control.X3, grxjland_control.X5)
+    CONTROLPARAMETERS = (gland_control.X2, gland_control.X3, gland_control.X5)
 
-    UPDATEDSEQUENCES = (grxjland_states.R,)
+    UPDATEDSEQUENCES = (gland_states.R,)
 
-    RESULTSEQUENCES = (grxjland_fluxes.F,)
+    RESULTSEQUENCES = (gland_fluxes.F,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -782,7 +782,7 @@ class Calc_F_V2(modeltools.Method):
 
 
 class Update_R_V1(modeltools.Method):
-    """Update level of the non-linear routing store |R| used in GR4j and GR5j.
+    """Update level of the non-linear routing store |R| used in GR4 and GR5.
 
     Basic equations:
 
@@ -790,7 +790,7 @@ class Update_R_V1(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> fluxes.q9 = 20.
@@ -801,8 +801,8 @@ class Update_R_V1(modeltools.Method):
         r(114.862102)
     """
 
-    REQUIREDSEQUENCES = (grxjland_fluxes.Q9, grxjland_fluxes.F)
-    UPDATEDSEQUENCES = (grxjland_states.R,)
+    REQUIREDSEQUENCES = (gland_fluxes.Q9, gland_fluxes.F)
+    UPDATEDSEQUENCES = (gland_states.R,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -812,7 +812,7 @@ class Update_R_V1(modeltools.Method):
 
 
 class Update_R_V2(modeltools.Method):
-    r"""Update level of the non-linear routing store |R| used in GR6j.
+    r"""Update level of the non-linear routing store |R| used in GR6.
 
     Basic equations:
 
@@ -820,7 +820,7 @@ class Update_R_V2(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> fluxes.q9 = 20.
@@ -831,8 +831,8 @@ class Update_R_V2(modeltools.Method):
         r(106.862102)
     """
 
-    REQUIREDSEQUENCES = (grxjland_fluxes.Q9, grxjland_fluxes.F)
-    UPDATEDSEQUENCES = (grxjland_states.R,)
+    REQUIREDSEQUENCES = (gland_fluxes.Q9, gland_fluxes.F)
+    UPDATEDSEQUENCES = (gland_states.R,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -851,7 +851,7 @@ class Calc_Qr_V1(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> x3(100.)
@@ -861,9 +861,9 @@ class Calc_Qr_V1(modeltools.Method):
         qr(26.30361)
     """
 
-    CONTROLPARAMETERS = (grxjland_control.X3,)
-    UPDATEDSEQUENCES = (grxjland_states.R,)
-    RESULTSEQUENCES = (grxjland_fluxes.Qr,)
+    CONTROLPARAMETERS = (gland_control.X3,)
+    UPDATEDSEQUENCES = (gland_states.R,)
+    RESULTSEQUENCES = (gland_fluxes.Qr,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -882,7 +882,7 @@ class Update_R_V3(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> fluxes.qr = 26.30361
@@ -892,8 +892,8 @@ class Update_R_V3(modeltools.Method):
         r(89.548769)
     """
 
-    REQUIREDSEQUENCES = (grxjland_fluxes.Qr,)
-    UPDATEDSEQUENCES = (grxjland_states.R,)
+    REQUIREDSEQUENCES = (gland_fluxes.Qr,)
+    UPDATEDSEQUENCES = (gland_states.R,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -911,7 +911,7 @@ class Update_R2_V1(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> fluxes.q9 = 10.
@@ -922,8 +922,8 @@ class Update_R2_V1(modeltools.Method):
         r2(43.5)
     """
 
-    REQUIREDSEQUENCES = (grxjland_fluxes.Q9, grxjland_fluxes.F)
-    UPDATEDSEQUENCES = (grxjland_states.R2,)
+    REQUIREDSEQUENCES = (gland_fluxes.Q9, gland_fluxes.F)
+    UPDATEDSEQUENCES = (gland_states.R2,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -933,7 +933,7 @@ class Update_R2_V1(modeltools.Method):
 
 
 class Calc_Qr2_R2_V1(modeltools.Method):
-    r"""Calculates the exponential store of the GR6J version.
+    r"""Calculates the exponential store of the GR6 version.
 
     Basic equations:
 
@@ -950,7 +950,7 @@ class Calc_Qr2_R2_V1(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> x6(4.5)
@@ -980,9 +980,9 @@ class Calc_Qr2_R2_V1(modeltools.Method):
         r2(-50.000067)
     """
 
-    CONTROLPARAMETERS = (grxjland_control.X6,)
-    UPDATEDSEQUENCES = (grxjland_states.R2,)
-    RESULTSEQUENCES = (grxjland_fluxes.Qr2,)
+    CONTROLPARAMETERS = (gland_control.X6,)
+    UPDATEDSEQUENCES = (gland_states.R2,)
+    RESULTSEQUENCES = (gland_fluxes.Qr2,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -992,8 +992,7 @@ class Calc_Qr2_R2_V1(modeltools.Method):
         ar: float = max(-33.0, min(33.0, sta.r2 / con.x6))
 
         if ar > 7:
-            flu.qr2 =\
-                sta.r2 + con.x6 / modelutils.exp(ar)
+            flu.qr2 = sta.r2 + con.x6 / modelutils.exp(ar)
         elif ar < -7:
             flu.qr2 = con.x6 * modelutils.exp(ar)
         else:
@@ -1013,7 +1012,7 @@ class Calc_Qd_V1(modeltools.Method):
 
         Positive groundwater exchange:
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> parameterstep('1d')
         >>> fluxes.q1 = 20
         >>> fluxes.f = 20
@@ -1035,9 +1034,9 @@ class Calc_Qd_V1(modeltools.Method):
         qd(0.0)
     """
 
-    REQUIREDSEQUENCES = (grxjland_fluxes.Q1, grxjland_fluxes.F)
+    REQUIREDSEQUENCES = (gland_fluxes.Q1, gland_fluxes.F)
 
-    RESULTSEQUENCES = (grxjland_fluxes.Qd,)
+    RESULTSEQUENCES = (gland_fluxes.Qd,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1055,7 +1054,7 @@ class Calc_Qt_V1(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> parameterstep('1d')
         >>> fluxes.qr = 20
         >>> fluxes.qd = 10
@@ -1064,9 +1063,9 @@ class Calc_Qt_V1(modeltools.Method):
         qt(30.0)
     """
 
-    REQUIREDSEQUENCES = (grxjland_fluxes.Qr, grxjland_fluxes.Qd)
+    REQUIREDSEQUENCES = (gland_fluxes.Qr, gland_fluxes.Qd)
 
-    RESULTSEQUENCES = (grxjland_fluxes.Qt,)
+    RESULTSEQUENCES = (gland_fluxes.Qt,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1075,7 +1074,7 @@ class Calc_Qt_V1(modeltools.Method):
 
 
 class Calc_Qt_V3(modeltools.Method):
-    """Calculate total flow (GR6j model version).
+    """Calculate total flow (GR6 model version).
 
     Basic equations:
 
@@ -1083,7 +1082,7 @@ class Calc_Qt_V3(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> parameterstep('1d')
         >>> fluxes.qr = 20.
         >>> fluxes.qr2 = 10.
@@ -1093,9 +1092,9 @@ class Calc_Qt_V3(modeltools.Method):
         qt(40.0)
     """
 
-    REQUIREDSEQUENCES = (grxjland_fluxes.Qr, grxjland_fluxes.Qr2, grxjland_fluxes.Qd)
+    REQUIREDSEQUENCES = (gland_fluxes.Qr, gland_fluxes.Qr2, gland_fluxes.Qd)
 
-    RESULTSEQUENCES = (grxjland_fluxes.Qt,)
+    RESULTSEQUENCES = (gland_fluxes.Qt,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1110,9 +1109,9 @@ class Pass_Q_V1(modeltools.Method):
       :math:`Q = QFactor \cdot QT`
     """
 
-    DERIVEDPARAMETERS = (grxjland_derived.QFactor,)
-    REQUIREDSEQUENCES = (grxjland_fluxes.Qt,)
-    RESULTSEQUENCES = (grxjland_outlets.Q,)
+    DERIVEDPARAMETERS = (gland_derived.QFactor,)
+    REQUIREDSEQUENCES = (gland_fluxes.Qt,)
+    RESULTSEQUENCES = (gland_outlets.Q,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1123,7 +1122,7 @@ class Pass_Q_V1(modeltools.Method):
 
 
 class Model(modeltools.AdHocModel):
-    """The GRxJ-Land base model."""
+    """The G-Land base model."""
 
     INLET_METHODS = (Calc_PET_V1,)
     RECEIVER_METHODS = ()
@@ -1184,7 +1183,7 @@ class Main_PETModel_V1(modeltools.AdHocModel):
     ) -> None:
         """Initialise the given `petmodel` that follows the |PETModel_V1| interface.
 
-        >>> from hydpy.models.grxjland_gr4j import *
+        >>> from hydpy.models.gland_gr4 import *
         >>> parameterstep()
         >>> area(50.)
         >>> with model.add_petmodel_v1("evap_tw2002"):

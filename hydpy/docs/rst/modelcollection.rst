@@ -83,7 +83,7 @@ and will have to be discussed later.
    HydPy-Dam
    HydPy-Dummy
    HydPy-GA
-   HydPy-Grxj
+   HydPy-G
    HydPy-H
    HydPy-L
    HydPy-Meteo

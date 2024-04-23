@@ -3,7 +3,7 @@
 
 from hydpy.core import sequencetools
 
-# ...from grxjland
+# ...from gland
 
 
 class PET(sequencetools.FluxSequence):

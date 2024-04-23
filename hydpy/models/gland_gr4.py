@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
-The GR4J model (modèle du Génie Rural à 4 parametres Journalier) is a daily
+The GR4 model (modèle du Génie Rural à 4 parametres Journalier) is a daily
 lumped four-parameter rainfall-runoff model and belongs to the family of soil moisture
 accounting models. It was published by :cite:t:`ref-Perrin2003` and is a modification
 of GR3J. Here it is implemented according to :cite:t:`ref-airGR2017`. The model
 contains two stores and has four parameters.
 
-The following list summarises the main components of |grxjland_gr4j|:
+The following list summarises the main components of |gland_gr4|:
 
  * Calculation of net precipitation/net rainfall
  * A production store influencing actual evaporation and percolation
@@ -16,11 +16,11 @@ The following list summarises the main components of |grxjland_gr4j|:
  * Non-linear routing store
 
 The following figure :cite:p:`ref-airGRManual` shows the general structure of HydPy
-GrXJ-Land Version Gr4J:
+G-Land Version Gr4:
 
-.. image:: HydPy-GrXJ-Land_Version-Gr4J.png
+.. image:: HydPy-G-Land_Version-Gr4.png
 
-.. _grxjland_gr4j_integration_tests:
+.. _gland_gr4_integration_tests:
 
 Integration tests
 =================
@@ -38,7 +38,7 @@ a simulation step of one day:
 Prepare the model instance and build the connections to element `land`
 and node `outlet`:
 
->>> from hydpy.models.grxjland_gr4j import *
+>>> from hydpy.models.gland_gr4 import *
 >>> from hydpy import pub
 >>> pub.options.reprdigits = 6
 >>> ret = pub.options.printprogress(False)
@@ -69,7 +69,7 @@ and prints their results for the given sequences:
 >>> test = IntegrationTest(land)
 >>> test.dateformat = '%d.%m.'
 
-.. _grxjland_gr4j_ex1:
+.. _gland_gr4_ex1:
 
 Example 1
 _____________
@@ -105,7 +105,7 @@ Run Integration test
 
 .. integration-test::
 
-    >>> test("grxjland_gr4j_ex1")
+    >>> test("gland_gr4_ex1")
     |   date |    p | pet |  en |   pn |        ps |       es |       ae |       pr |    pruh1 |    pruh2 |     perc |       q9 |       q1 |        f |       qr |       qd |       qt |          s |         r |    outlet |
     -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |  0.0 | 0.3 | 0.3 |  0.0 |       0.0 | 0.152875 | 0.152875 | 0.006036 | 0.005433 | 0.000604 | 0.006036 |  0.00075 | 0.000042 | 0.089449 | 0.670218 | 0.089491 | 0.759709 |  77.012489 | 43.537481 |  3.165453 |
@@ -160,7 +160,7 @@ Run Integration test
     | 19.02. |  1.8 | 0.9 | 0.0 |  0.9 |  0.384007 |      0.0 |      0.9 | 1.138596 | 1.024736 |  0.11386 | 0.622603 | 2.771502 | 0.373883 | 0.241862 | 3.203911 | 0.615745 | 3.819656 | 194.345427 | 58.428293 | 15.915234 |
 
 
-.. _grxjland_gr4j_ex2:
+.. _gland_gr4_ex2:
 
 Example 2
 _____________
@@ -174,7 +174,7 @@ In the second example we start from empty storages:
 
 .. integration-test::
 
-    >>> test("grxjland_gr4j_ex2")
+    >>> test("gland_gr4_ex2")
     |   date |    p | pet |  en |   pn |        ps |       es |       ae |       pr |    pruh1 |    pruh2 |     perc |       q9 |       q1 |        f |       qr |       qd |       qt |          s |         r |   outlet |
     ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |  0.0 | 0.3 | 0.3 |  0.0 |       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |        0.0 |       0.0 |      0.0 |
@@ -229,7 +229,7 @@ In the second example we start from empty storages:
     | 19.02. |  1.8 | 0.9 | 0.0 |  0.9 |  0.545454 |      0.0 |      0.9 | 0.600092 | 0.540083 | 0.060009 | 0.245546 | 1.708351 | 0.230702 | 0.013698 | 0.064859 |   0.2444 | 0.309259 | 161.481472 | 27.466728 |  1.28858 |
 
 
-.. _grxjland_gr4j_ex3:
+.. _gland_gr4_ex3:
 
 Example 3
 _____________
@@ -243,7 +243,7 @@ Run Integration test
 
 .. integration-test::
 
-    >>> test("grxjland_gr4j_ex3")
+    >>> test("gland_gr4_ex3")
     |   date |    p | pet |  en |   pn |        ps |       es |       ae |       pr |    pruh1 |    pruh2 |     perc |       q9 |       q1 |         f |       qr |       qd |       qt |          s |         r |   outlet |
     -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |  0.0 | 0.3 | 0.3 |  0.0 |       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |       0.0 |      0.0 |      0.0 |      0.0 |        0.0 |       0.0 |      0.0 |
@@ -304,37 +304,37 @@ from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
 from hydpy.interfaces import petinterfaces
 
-# ...from  grxjland
-from hydpy.models.grxjland import grxjland_model
+# ...from  gland
+from hydpy.models.gland import gland_model
 
 
-class Model(grxjland_model.Main_PETModel_V1):
-    """GR4J version of GRxJ-Land (|grxjland_gr4j|)."""
+class Model(gland_model.Main_PETModel_V1):
+    """GR4 version of G-Land (|gland_gr4|)."""
 
-    INLET_METHODS = (grxjland_model.Calc_PET_V1,)
+    INLET_METHODS = (gland_model.Calc_PET_V1,)
     RECEIVER_METHODS = ()
     RUN_METHODS = (
-        grxjland_model.Calc_Pn_En_V1,
-        grxjland_model.Calc_PS_V1,
-        grxjland_model.Calc_Es_V1,
-        grxjland_model.Update_S_V1,
-        grxjland_model.Calc_Perc_V1,
-        grxjland_model.Update_S_V2,
-        grxjland_model.Calc_AE_V1,
-        grxjland_model.Calc_Pr_V1,
-        grxjland_model.Calc_PrUH1_PrUH2_V1,
-        grxjland_model.Calc_Q9_V1,
-        grxjland_model.Calc_Q1_V1,
-        grxjland_model.Calc_F_V1,
-        grxjland_model.Update_R_V1,
-        grxjland_model.Calc_Qr_V1,
-        grxjland_model.Update_R_V3,
-        grxjland_model.Calc_Qd_V1,
-        grxjland_model.Calc_Qt_V1,
+        gland_model.Calc_Pn_En_V1,
+        gland_model.Calc_PS_V1,
+        gland_model.Calc_Es_V1,
+        gland_model.Update_S_V1,
+        gland_model.Calc_Perc_V1,
+        gland_model.Update_S_V2,
+        gland_model.Calc_AE_V1,
+        gland_model.Calc_Pr_V1,
+        gland_model.Calc_PrUH1_PrUH2_V1,
+        gland_model.Calc_Q9_V1,
+        gland_model.Calc_Q1_V1,
+        gland_model.Calc_F_V1,
+        gland_model.Update_R_V1,
+        gland_model.Calc_Qr_V1,
+        gland_model.Update_R_V3,
+        gland_model.Calc_Qd_V1,
+        gland_model.Calc_Qt_V1,
     )
     INTERFACE_METHODS = ()
-    ADD_METHODS = (grxjland_model.Calc_PET_PETModel_V1,)
-    OUTLET_METHODS = (grxjland_model.Pass_Q_V1,)
+    ADD_METHODS = (gland_model.Calc_PET_PETModel_V1,)
+    OUTLET_METHODS = (gland_model.Pass_Q_V1,)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
     SUBMODELS = ()

@@ -3,7 +3,7 @@
 
 # ...from HydPy
 from hydpy.core import sequencetools
-from hydpy.models.grxjland import grxjland_control
+from hydpy.models.gland import gland_control
 
 
 class S(sequencetools.StateSequence):
@@ -11,12 +11,12 @@ class S(sequencetools.StateSequence):
 
     NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
 
-    CONTROLPARAMETERS = (grxjland_control.X1,)
+    CONTROLPARAMETERS = (gland_control.X1,)
 
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`S \\leq X1`.
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> parameterstep('1d')
         >>> x1(200.0)
         >>> states.s(-100.0)
@@ -36,12 +36,12 @@ class R(sequencetools.StateSequence):
 
     NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
 
-    CONTROLPARAMETERS = (grxjland_control.X3,)
+    CONTROLPARAMETERS = (gland_control.X3,)
 
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`R \\leq X3`.
 
-        >>> from hydpy.models.grxjland import *
+        >>> from hydpy.models.gland import *
         >>> parameterstep('1d')
         >>> x3(200.0)
         >>> states.r(-100.0)

@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
-The GR5J model (modèle du Génie Rural à 4 parametres Journalier) is a daily
+The GR5 model (modèle du Génie Rural à 5 parametres Journalier) is a daily
 lumped five-parameter rainfall-runoff model and belongs to the family of soil moisture
 accounting models. It was published by :cite:t:`ref-Moine2008` and is a modification
-of GR4J (|grxjland_gr4j|). Here it is implemented according to :cite:t:`ref-airGR2017`.
+of GR4 (|gland_gr4|). Here it is implemented according to :cite:t:`ref-airGR2017`.
 The model contains two stores and has five parameters. Instead of splitting the
 direct flow component and the inflow to the routing storage before applying the unit
-hydrograph, as is the case in Gr4j, in GR5J only one unit hydrograph is applied
+hydrograph, as is the case in Gr4, in GR5 only one unit hydrograph is applied
 and the components are split afterwards. In addition, the groundwater exchange `F` is
 calculated differently using an additional parameter.
 
 The following figure :cite:p:`ref-airGRManual` shows the general structure of HydPy
-GrXJ-Land Version GR5J:
+G-Land Version GR5:
 
-.. image:: HydPy-GrXJ-Land_Version-Gr5J.png
+.. image:: HydPy-G-Land_Version-Gr5.png
 
-.. _grxjland_gr5j_integration_tests:
+.. _gland_gr5_integration_tests:
 
 Integration tests
 =================
@@ -34,7 +34,7 @@ a simulation step of one day:
 Prepare the model instance and build the connections to element `land`
 and node `outlet`:
 
->>> from hydpy.models.grxjland_gr5j import *
+>>> from hydpy.models.gland_gr5 import *
 >>> from hydpy import pub
 >>> pub.options.reprdigits = 6
 >>> ret = pub.options.printprogress(False)
@@ -66,14 +66,14 @@ and prints their results for the given sequences:
 >>> test = IntegrationTest(land)
 >>> test.dateformat = '%d.%m.'
 
-.. _grxjland_gr5j_ex1:
+.. _gland_gr5_ex1:
 
 Example 1
 _____________
 
-We compared the results of grxjland_gr5j with the results of
-the GR5J implementation of the airGR package:
-The following code was used to run the airGR Gr5J model to compare our results:
+We compared the results of gland_gr5 with the results of
+the GR5 implementation of the airGR package:
+The following code was used to run the airGR Gr5 model to compare our results:
 
 
 Set control parameters:
@@ -105,7 +105,7 @@ The input data shows high precipitation and low evapotranspiration:
 
 .. integration-test::
 
-    >>> test("grxjland_gr5j_ex1")
+    >>> test("gland_gr5_ex1")
     |   date |    p | pet |  en |   pn |        ps |       es |       ae |       pr |  qoutuh2 |     perc |       q9 |       q1 |         f |       qr |       qd |       qt |          s |         r |    outlet |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |  0.0 | 0.3 | 0.3 |  0.0 |       0.0 | 0.152869 | 0.152869 | 0.005768 | 0.000403 | 0.005768 | 0.000362 |  0.00004 |  0.067782 |    0.682 | 0.067822 | 0.749822 |  73.616763 | 44.394645 |  3.124258 |
@@ -159,7 +159,7 @@ The input data shows high precipitation and low evapotranspiration:
     | 18.02. |  4.9 | 0.5 | 0.0 |  4.4 |  1.815109 |      0.0 |      0.5 | 3.229276 | 4.811099 | 0.644385 |  4.32999 |  0.48111 |  0.217236 | 3.217024 | 0.698346 |  3.91537 | 188.746907 |  59.43845 | 16.314042 |
     | 19.02. |  1.8 | 0.9 | 0.0 |  0.9 |  0.368785 |      0.0 |      0.9 | 1.170957 | 3.842725 | 0.639741 | 3.458453 | 0.384273 |  0.232413 | 3.328116 | 0.616685 | 3.944801 |  188.47595 | 59.801199 | 16.436671 |
 
-.. _grxjland_gr5j_ex2:
+.. _gland_gr5_ex2:
 
 Example 2
 _____________
@@ -178,7 +178,7 @@ Set initial storage levels: empty production store and routing store. log.sequen
 
 .. integration-test::
 
-    >>> test("grxjland_gr5j_ex2")
+    >>> test("gland_gr5_ex2")
     |   date |    p | pet |  en |   pn |        ps |       es |       ae |       pr |  qoutuh2 |     perc |       q9 |       q1 |         f |       qr |       qd |       qt |          s |         r |   outlet |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |  0.0 | 0.3 | 0.3 |  0.0 |       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.445718 |      0.0 |      0.0 |      0.0 |        0.0 |       0.0 |      0.0 |
@@ -232,7 +232,7 @@ Set initial storage levels: empty production store and routing store. log.sequen
     | 18.02. |  4.9 | 0.5 | 0.0 |  4.4 |  2.589936 |      0.0 |      0.5 |   2.0801 | 3.048011 | 0.270036 |  2.74321 | 0.304801 | -0.277499 | 0.005744 | 0.027302 | 0.033046 | 158.747005 | 17.204444 | 0.137692 |
     | 19.02. |  1.8 | 0.9 | 0.0 |  0.9 |  0.523724 |      0.0 |      0.9 | 0.648465 | 2.458831 | 0.272189 | 2.212948 | 0.245883 | -0.249433 | 0.009839 |      0.0 | 0.009839 |  158.99854 | 19.158119 | 0.040997 |
 
-.. _grxjland_gr5j_ex3:
+.. _gland_gr5_ex3:
 
 Example 3
 _____________
@@ -249,7 +249,7 @@ Run Integration test
 
 .. integration-test::
 
-    >>> test("grxjland_gr5j_ex3")
+    >>> test("gland_gr5_ex3")
     |   date |    p | pet |  en |   pn |        ps |       es |       ae |       pr |  qoutuh2 |     perc |       q9 |       q1 |         f |       qr |       qd |       qt |          s |         r |   outlet |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |  0.0 | 0.3 | 0.3 |  0.0 |       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |  0.445718 |      0.0 | 0.445718 | 0.445718 |        0.0 |  0.445718 | 1.857158 |
@@ -310,36 +310,36 @@ from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
 from hydpy.interfaces import petinterfaces
 
-# ...from  grxjland
-from hydpy.models.grxjland import grxjland_model
+# ...from  gland
+from hydpy.models.gland import gland_model
 
 
-class Model(grxjland_model.Main_PETModel_V1):
-    """GR5J version of GRxJ-Land (|grxjland_gr5j|)."""
+class Model(gland_model.Main_PETModel_V1):
+    """GR5 version of G-Land (|gland_gr5|)."""
 
-    INLET_METHODS = (grxjland_model.Calc_PET_V1,)
+    INLET_METHODS = (gland_model.Calc_PET_V1,)
     RECEIVER_METHODS = ()
     RUN_METHODS = (
-        grxjland_model.Calc_Pn_En_V1,
-        grxjland_model.Calc_PS_V1,
-        grxjland_model.Calc_Es_V1,
-        grxjland_model.Update_S_V1,
-        grxjland_model.Calc_Perc_V1,
-        grxjland_model.Update_S_V2,
-        grxjland_model.Calc_AE_V1,
-        grxjland_model.Calc_Pr_V1,
-        grxjland_model.Calc_QUH2_V1,
-        grxjland_model.Calc_Q1_Q9_V2,
-        grxjland_model.Calc_F_V2,
-        grxjland_model.Update_R_V1,
-        grxjland_model.Calc_Qr_V1,
-        grxjland_model.Update_R_V3,
-        grxjland_model.Calc_Qd_V1,
-        grxjland_model.Calc_Qt_V1,
+        gland_model.Calc_Pn_En_V1,
+        gland_model.Calc_PS_V1,
+        gland_model.Calc_Es_V1,
+        gland_model.Update_S_V1,
+        gland_model.Calc_Perc_V1,
+        gland_model.Update_S_V2,
+        gland_model.Calc_AE_V1,
+        gland_model.Calc_Pr_V1,
+        gland_model.Calc_QUH2_V1,
+        gland_model.Calc_Q1_Q9_V2,
+        gland_model.Calc_F_V2,
+        gland_model.Update_R_V1,
+        gland_model.Calc_Qr_V1,
+        gland_model.Update_R_V3,
+        gland_model.Calc_Qd_V1,
+        gland_model.Calc_Qt_V1,
     )
     INTERFACE_METHODS = ()
-    ADD_METHODS = (grxjland_model.Calc_PET_PETModel_V1,)
-    OUTLET_METHODS = (grxjland_model.Pass_Q_V1,)
+    ADD_METHODS = (gland_model.Calc_PET_PETModel_V1,)
+    OUTLET_METHODS = (gland_model.Pass_Q_V1,)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
     SUBMODELS = ()

@@ -149,26 +149,31 @@ class ExchangeItem:
         self, selection: selectiontools.Selection
     ) -> Iterator[devicetools.Element]:
         for element in selection.elements:
-            name1 = element.model.name
-            name2 = name1.rpartition("_")[0]
-            if self.targetspecs.master in (name1, name2):
-                yield element
+            for model in element.model.find_submodels(include_mainmodel=True).values():
+                name1 = model.name
+                name2 = name1.rpartition("_")[0]
+                if self.targetspecs.master in (name1, name2):
+                    yield element
+                    break
 
     @staticmethod
     def _query_elementvariable(
         element: devicetools.Element, properties: ExchangeSpecification
     ) -> variabletools.Variable:
-        model = element.model
-        for group in (model.parameters, model.sequences):
-            if properties.subgroup is not None:
-                subgroup = getattr(group, properties.subgroup, None)
-                if subgroup is not None:
-                    variable_ = subgroup[properties.variable]
-                    assert isinstance(variable_, variabletools.Variable)
-                    return variable_
+        # ToDo: Return more then one variable (possible for similar submodels).
+        p = properties
+        for model in element.model.find_submodels(include_mainmodel=True).values():
+            for group in (model.parameters, model.sequences):
+                if (
+                    ((subgroupname := p.subgroup) is not None)
+                    and ((subgroup := getattr(group, subgroupname, None)) is not None)
+                    and ((variable := getattr(subgroup, p.variable, None)) is not None)
+                ):
+                    assert isinstance(variable, variabletools.Variable)
+                    return variable
         raise RuntimeError(
-            f"Model {objecttools.elementphrase(model)} does neither handle a "
-            f"parameter nor a sequence subgroup named `{properties.subgroup}."
+            f"No model of element `{element.name}` handles a parameter or sequence "
+            f"named `{p.variable}` in subgroup `{p.subgroup}`."
         )
 
     @staticmethod
@@ -253,8 +258,8 @@ class ExchangeItem:
         >>> item.collect_variables(pub.selections)
         Traceback (most recent call last):
         ...
-        RuntimeError: Model `hland_v1` of element `land_dill` does neither \
-handle a parameter nor a sequence subgroup named `wrong_group.
+        RuntimeError: No model of element `land_dill` handles a parameter or sequence \
+named `ic` in subgroup `wrong_group`.
 
         Collecting the |Sim| or |Obs| sequences of |Node| objects works similarly:
 

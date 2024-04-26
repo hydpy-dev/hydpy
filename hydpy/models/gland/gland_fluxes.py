@@ -90,8 +90,20 @@ class Q1(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, False
 
 
-class F(sequencetools.FluxSequence):
-    """Groundwater exchange term [mm]."""
+class FD(sequencetools.FluxSequence):
+    """Groundwater exchange term direct runoff [mm]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class FR(sequencetools.FluxSequence):
+    """Groundwater exchange term routing store [mm]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class FR2(sequencetools.FluxSequence):
+    """Groundwater exchange term exponential routing store [mm]."""
 
     NDIM, NUMERIC = 0, False
 

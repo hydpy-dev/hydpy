@@ -94,11 +94,7 @@ class Calc_EI_V1(modeltools.Method):
         ei(0.7)
     """
 
-    REQUIREDSEQUENCES = (
-        gland_inputs.P,
-        gland_fluxes.PET,
-        gland_states.I,
-    )
+    REQUIREDSEQUENCES = (gland_inputs.P, gland_fluxes.PET, gland_states.I)
 
     RESULTSEQUENCES = (gland_fluxes.EI,)
 
@@ -137,11 +133,7 @@ class Calc_Pn_V1(modeltools.Method):
         pn(1.0)
     """
 
-    REQUIREDSEQUENCES = (
-        gland_inputs.P,
-        gland_fluxes.EI,
-        gland_states.I,
-    )
+    REQUIREDSEQUENCES = (gland_inputs.P, gland_fluxes.EI, gland_states.I)
 
     CONTROLPARAMETERS = (gland_control.IMax,)
 
@@ -798,12 +790,12 @@ class Calc_Q1_Q9_V2(modeltools.Method):
         flu.q9 = 0.9 * flu.qoutuh2
 
 
-class Calc_F_V1(modeltools.Method):
-    r"""Calculate the groundwater exchange term |F| used in GR4.
+class Calc_FR_V1(modeltools.Method):
+    r"""Calculate the potential groundwater exchange term |FR| used in GR4.
 
     Basic equations:
 
-      :math:`F = X2 \cdot \left (\frac{R}{X3}\right )^{7/2}`
+      :math:`FR = X2 \cdot \left (\frac{R}{X3}\right )^{7/2}`
 
     Examples:
 
@@ -816,9 +808,9 @@ class Calc_F_V1(modeltools.Method):
         >>> x2(1.02)
         >>> x3(100.)
         >>> states.r = 95.
-        >>> model.calc_f_v1()
-        >>> fluxes.f
-        f(0.852379)
+        >>> model.calc_fr_v1()
+        >>> fluxes.fr
+        fr(0.852379)
 
         Groundwater exchange is low when the routing storage is almost empty (|R|
         close to 0):
@@ -829,30 +821,30 @@ class Calc_F_V1(modeltools.Method):
         >>> x2(1.02)
         >>> x3(100.)
         >>> states.r = 5.
-        >>> model.calc_f_v1()
-        >>> fluxes.f
-        f(0.000029)
+        >>> model.calc_fr_v1()
+        >>> fluxes.fr
+        fr(0.000029)
     """
 
     CONTROLPARAMETERS = (gland_control.X2, gland_control.X3)
 
     UPDATEDSEQUENCES = (gland_states.R,)
-    RESULTSEQUENCES = (gland_fluxes.F,)
+    RESULTSEQUENCES = (gland_fluxes.FR,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         con = model.parameters.control.fastaccess
-        flu.f = con.x2 * (sta.r / con.x3) ** 3.5
+        flu.fr = con.x2 * (sta.r / con.x3) ** 3.5
 
 
-class Calc_F_V2(modeltools.Method):
-    r"""Calculate groundwater exchange term |F| used in GR5 and GR6
+class Calc_FR_V2(modeltools.Method):
+    r"""Calculate groundwater exchange term |FR| used in GR5 and GR6
 
     Basic equations:
 
-      :math:`F = X2 \cdot \left (\frac{R}{X3} - X5 \right )`
+      :math:`FR = X2 \cdot \left (\frac{R}{X3} - X5 \right )`
 
     Examples:
 
@@ -863,23 +855,23 @@ class Calc_F_V2(modeltools.Method):
         >>> x3(100.)
         >>> x5(0.104)
         >>> states.r = 95.
-        >>> model.calc_f_v2()
-        >>> fluxes.f
-        f(-0.137898)
+        >>> model.calc_fr_v2()
+        >>> fluxes.fr
+        fr(-0.137898)
     """
 
     CONTROLPARAMETERS = (gland_control.X2, gland_control.X3, gland_control.X5)
 
     UPDATEDSEQUENCES = (gland_states.R,)
 
-    RESULTSEQUENCES = (gland_fluxes.F,)
+    RESULTSEQUENCES = (gland_fluxes.FR,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         con = model.parameters.control.fastaccess
-        flu.f = con.x2 * (sta.r / con.x3 - con.x5)
+        flu.fr = con.x2 * (sta.r / con.x3 - con.x5)
 
 
 class Update_R_V1(modeltools.Method):
@@ -887,7 +879,7 @@ class Update_R_V1(modeltools.Method):
 
     Basic equations:
 
-      :math:`R = max(0; R + Q9 + F)`
+      :math:`R = R + Q9 + FR`
 
     Examples:
 
@@ -895,21 +887,21 @@ class Update_R_V1(modeltools.Method):
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> fluxes.q9 = 20.
-        >>> fluxes.f = -0.137898
+        >>> fluxes.fr = -0.137898
         >>> states.r = 95.
         >>> model.update_r_v1()
         >>> states.r
         r(114.862102)
     """
 
-    REQUIREDSEQUENCES = (gland_fluxes.Q9, gland_fluxes.F)
+    REQUIREDSEQUENCES = (gland_fluxes.Q9, gland_fluxes.FR)
     UPDATEDSEQUENCES = (gland_states.R,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        sta.r = max(0.0, sta.r + flu.q9 + flu.f)
+        sta.r = max(0.0, sta.r + flu.q9 + flu.fr)
 
 
 class Update_R_V2(modeltools.Method):
@@ -925,21 +917,21 @@ class Update_R_V2(modeltools.Method):
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> fluxes.q9 = 20.
-        >>> fluxes.f = -0.137898
+        >>> fluxes.fr = -0.137898
         >>> states.r = 95.
         >>> model.update_r_v2()
         >>> states.r
         r(106.862102)
     """
 
-    REQUIREDSEQUENCES = (gland_fluxes.Q9, gland_fluxes.F)
+    REQUIREDSEQUENCES = (gland_fluxes.Q9, gland_fluxes.FR)
     UPDATEDSEQUENCES = (gland_states.R,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        sta.r = max(0.0, sta.r + 0.6 * flu.q9 + flu.f)
+        sta.r = max(0.0, sta.r + 0.6 * flu.q9 + flu.fr)
 
 
 class Calc_Qr_V1(modeltools.Method):
@@ -1003,12 +995,39 @@ class Update_R_V3(modeltools.Method):
         sta.r = sta.r - flu.qr
 
 
+class Calc_FR2_V1(modeltools.Method):
+    r"""Calculate groundwater exchange term exponential routing store.
+
+    Basic equation:
+
+      :math:`FR2 = FR`
+
+    Examples:
+
+        >>> from hydpy.models.gland import *
+        >>> from hydpy import pub
+        >>> parameterstep('1d')
+        >>> fluxes.fr = -0.5
+        >>> model.calc_fr2_v1()
+        >>> fluxes.fr2
+        fr2(-0.5)
+    """
+
+    REQUIREDSEQUENCES = (gland_fluxes.FR,)
+    RESULTSEQUENCES = (gland_fluxes.FR2,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        flu.fr2 = flu.fr
+
+
 class Update_R2_V1(modeltools.Method):
     r"""Update Exponential Routing Store.
 
     Basic equation:
 
-      :math:`R2 = R2 + 0.4 \cdot Q9 \cdot F`
+      :math:`R2 = R2 + 0.4 \cdot Q9 + FR2`
 
     Examples:
 
@@ -1016,21 +1035,21 @@ class Update_R2_V1(modeltools.Method):
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> fluxes.q9 = 10.
-        >>> fluxes.f = -0.5
+        >>> fluxes.fr2 = -0.5
         >>> states.r2 = 40.
         >>> model.update_r2_v1()
         >>> states.r2
         r2(43.5)
     """
 
-    REQUIREDSEQUENCES = (gland_fluxes.Q9, gland_fluxes.F)
+    REQUIREDSEQUENCES = (gland_fluxes.Q9, gland_fluxes.FR2)
     UPDATEDSEQUENCES = (gland_states.R2,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        sta.r2 = sta.r2 + 0.4 * flu.q9 + flu.f
+        sta.r2 = sta.r2 + 0.4 * flu.q9 + flu.fr2
 
 
 class Calc_Qr2_R2_V1(modeltools.Method):
@@ -1102,12 +1121,54 @@ class Calc_Qr2_R2_V1(modeltools.Method):
         sta.r2 -= flu.qr2
 
 
+class Calc_FD_V1(modeltools.Method):
+    r"""Calculate groundwater exchange term direct runoff.
+
+    Basic equation:
+
+      .. math::
+        FD = \begin{cases}
+        - Q1 &|\ (Q1 + FR) \leq 0
+        \\
+        FR &|\ (Q1 + FR) > 0
+        \end{cases}
+
+    Examples:
+
+        >>> from hydpy.models.gland import *
+        >>> from hydpy import pub
+        >>> parameterstep('1d')
+        >>> fluxes.q1 = 10.
+        >>> fluxes.fr = -0.5
+        >>> model.calc_fd_v1()
+        >>> fluxes.fd
+        fd(-0.5)
+
+        >>> fluxes.q1 = 1.
+        >>> fluxes.fr = -1.5
+        >>> model.calc_fd_v1()
+        >>> fluxes.fd
+        fd(-1.0)
+    """
+
+    REQUIREDSEQUENCES = (gland_fluxes.Q1, gland_fluxes.FR)
+    RESULTSEQUENCES = (gland_fluxes.FD,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        if (flu.q1 + flu.fr) > 0:
+            flu.fd = flu.fr
+        else:
+            flu.fd = -flu.q1
+
+
 class Calc_Qd_V1(modeltools.Method):
     """Calculate direct flow component.
 
     Basic equations:
 
-      :math:`Qd = max(0; Q1 + F)`
+      :math:`Qd = max(0; Q1 + FD)`
 
     Examples:
 
@@ -1116,33 +1177,33 @@ class Calc_Qd_V1(modeltools.Method):
         >>> from hydpy.models.gland import *
         >>> parameterstep('1d')
         >>> fluxes.q1 = 20
-        >>> fluxes.f = 20
+        >>> fluxes.fd = 20
         >>> model.calc_qd_v1()
         >>> fluxes.qd
         qd(40.0)
 
         Negative groundwater exchange:
 
-        >>> fluxes.f = -10
+        >>> fluxes.fd = -10
         >>> model.calc_qd_v1()
         >>> fluxes.qd
         qd(10.0)
 
         Negative groundwater exchange exceeding outflow of unit hydrograph:
-        >>> fluxes.f = -30
+        >>> fluxes.fd = -30
         >>> model.calc_qd_v1()
         >>> fluxes.qd
         qd(0.0)
     """
 
-    REQUIREDSEQUENCES = (gland_fluxes.Q1, gland_fluxes.F)
+    REQUIREDSEQUENCES = (gland_fluxes.Q1, gland_fluxes.FD)
 
     RESULTSEQUENCES = (gland_fluxes.Qd,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
-        flu.qd = max(0.0, flu.q1 + flu.f)
+        flu.qd = max(0.0, flu.q1 + flu.fd)
 
 
 class Calc_Qt_V1(modeltools.Method):
@@ -1244,16 +1305,18 @@ class Model(modeltools.AdHocModel):
         Calc_Q1_V1,
         Calc_QUH2_V1,
         Calc_Q1_Q9_V2,
-        Calc_F_V1,
-        Calc_F_V2,
+        Calc_FR_V1,
+        Calc_FR_V2,
         Update_R_V1,
         Update_R_V3,
         Update_R_V2,
         Calc_Qr_V1,
         Update_R_V3,
+        Calc_FR2_V1,
         Update_R2_V1,
         Calc_Qr2_R2_V1,
         Update_R_V2,
+        Calc_FD_V1,
         Calc_Qd_V1,
         Calc_Qt_V1,
         Calc_Qt_V3,

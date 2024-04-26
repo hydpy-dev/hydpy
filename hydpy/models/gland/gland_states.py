@@ -6,6 +6,31 @@ from hydpy.core import sequencetools
 from hydpy.models.gland import gland_control
 
 
+class I(sequencetools.StateSequence):
+    """Water content interception store [mm]."""
+
+    NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
+
+    CONTROLPARAMETERS = (gland_control.IMax,)
+
+    def trim(self, lower=None, upper=None):
+        """Trim values in accordance with :math:`S \\leq X1`.
+
+        >>> from hydpy.models.gland import *
+        >>> parameterstep('1d')
+        >>> imax(20.0)
+        >>> states.i(-10.0)
+        >>> states.i
+        i(0.0)
+        >>> states.i(30.0)
+        >>> states.i
+        i(20.0)
+        """
+        if upper is None:
+            upper = self.subseqs.seqs.model.parameters.control.imax.value
+        super().trim(lower, upper)
+
+
 class S(sequencetools.StateSequence):
     """Water content production store [mm]."""
 

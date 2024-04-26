@@ -68,56 +68,158 @@ class Calc_PET_V1(modeltools.Method):
             model.calc_pet_petmodel_v1(cast(petinterfaces.PETModel_V1, model.petmodel))
 
 
-class Calc_Pn_En_V1(modeltools.Method):
-    r"""Calculate net rainfall |Pn| and net evapotranspiration capacity |En|.
+class Calc_EI_V1(modeltools.Method):
+    r"""Calculate actual evaporation rate from interception store.
 
     Basic equations:
 
-      .. math::
-        Pn = \begin{cases}
-        P - PET, En = 0 &|\ P \geq PET \\
-        0, En = PET - P &|\ P < PET
-        \end{cases}
+      :math:`EI = Min(PET, I + P)`
 
     Examples:
 
-        Evapotranspiration larger than precipitation:
-
         >>> from hydpy.models.gland import *
-        >>> parameterstep('1d')
-        >>> inputs.p = 20.
-        >>> fluxes.pet = 30.
-        >>> model.calc_pn_en_v1()
-        >>> fluxes.en
-        en(10.0)
+        >>> parameterstep()
+        >>> inputs.p = 1.0
+        >>> fluxes.pet = 0.5
+        >>> states.i = 0.0
+        >>> model.calc_ei_v1()
+        >>> fluxes.ei
+        ei(0.5)
+
+        >>> inputs.p = 0.5
+        >>> fluxes.pet = 1.0
+        >>> states.i = 0.2
+        >>> model.calc_ei_v1()
+        >>> fluxes.ei
+        ei(0.7)
+    """
+
+    REQUIREDSEQUENCES = (
+        gland_inputs.P,
+        gland_fluxes.PET,
+        gland_states.I,
+    )
+
+    RESULTSEQUENCES = (gland_fluxes.EI,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        sta = model.sequences.states.fastaccess
+        flu.ei = min(flu.pet, sta.i + inp.p)
+
+
+class Calc_Pn_V1(modeltools.Method):
+    r"""Calculate netto precipitation.
+
+    Basic equations:
+
+      :math:`Pn = Max(0, P - (IMax - I) - EI)`
+
+    Examples:
+        >>> from hydpy.models.gland import *
+        >>> parameterstep()
+        >>> inputs.p = 1.0
+        >>> control.imax = 10.0
+        >>> states.i = 5.0
+        >>> fluxes.ei = 2.0
+        >>> model.calc_pn_v1()
         >>> fluxes.pn
         pn(0.0)
 
-        Precipitation larger than evapotranspiration:
-
-        >>> inputs.p = 50.
-        >>> fluxes.pet = 10.
-        >>> model.calc_pn_en_v1()
-        >>> fluxes.en
-        en(0.0)
+        >>> inputs.p = 5.0
+        >>> control.imax = 10.0
+        >>> states.i = 8.0
+        >>> fluxes.ei = 2.0
+        >>> model.calc_pn_v1()
         >>> fluxes.pn
-        pn(40.0)
+        pn(1.0)
     """
 
-    REQUIREDSEQUENCES = (gland_inputs.P, gland_fluxes.PET)
-    RESULTSEQUENCES = (gland_fluxes.Pn, gland_fluxes.En)
+    REQUIREDSEQUENCES = (
+        gland_inputs.P,
+        gland_fluxes.EI,
+        gland_states.I,
+    )
+
+    CONTROLPARAMETERS = (gland_control.IMax,)
+
+    RESULTSEQUENCES = (gland_fluxes.Pn,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        sta = model.sequences.states.fastaccess
+        flu.pn = max(0.0, inp.p - (con.imax - sta.i) - flu.ei)
+
+
+class Calc_En_V1(modeltools.Method):
+    r"""Calculate netto evaporation.
+
+    Basic equations:
+
+      :math:`En = Max(0, PET - EI)`
+
+    Examples:
+        >>> from hydpy.models.gland import *
+        >>> parameterstep()
+        >>> fluxes.pet = 1.0
+        >>> fluxes.ei = 2.0
+        >>> model.calc_en_v1()
+        >>> fluxes.en
+        en(0.0)
+
+        >>> fluxes.pet = 2.0
+        >>> fluxes.ei = 1.0
+        >>> model.calc_en_v1()
+        >>> fluxes.en
+        en(1.0)
+    """
+
+    REQUIREDSEQUENCES = (gland_fluxes.EI, gland_fluxes.PET)
+
+    RESULTSEQUENCES = (gland_fluxes.En,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        flu.en = max(0.0, flu.pet - flu.ei)
+
+
+class Update_I_V1(modeltools.Method):
+    """Update the interception store based on filling and evaporation from interception
+    store.
+
+    Basic equations:
+
+      :math:`I_{new} = I - EI - Pn`
+
+    Examples:
+
+        >>> from hydpy.models.gland import *
+        >>> from hydpy import pub
+        >>> parameterstep('1d')
+        >>> states.i = 10.0
+        >>> inputs.p = 5.0
+        >>> fluxes.ei = 2.0
+        >>> fluxes.pn = 5.
+        >>> model.update_i_v1()
+        >>> states.i
+        i(8.0)
+    """
+
+    REQUIREDSEQUENCES = (gland_inputs.P, gland_fluxes.Pn, gland_fluxes.EI)
+    UPDATEDSEQUENCES = (gland_states.I,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
-
-        if inp.p >= flu.pet:
-            flu.pn = inp.p - flu.pet
-            flu.en = 0.0
-        else:
-            flu.pn = 0.0
-            flu.en = flu.pet - inp.p
+        sta = model.sequences.states.fastaccess
+        sta.i = sta.i + inp.p - flu.ei - flu.pn
 
 
 class Calc_PS_V1(modeltools.Method):
@@ -228,7 +330,7 @@ class Calc_Es_V1(modeltools.Method):
 
 
 class Update_S_V1(modeltools.Method):
-    """Update the production store based on filling and evapoation from production
+    """Update the production store based on filling and evaporation from production
     store.
 
     Basic equations:
@@ -341,28 +443,27 @@ class Calc_AE_V1(modeltools.Method):
 
     Basic equations:
 
-      :math:`AE = PET - En + Es`
+      :math:`AE = EI + Es`
 
     Examples:
 
         >>> from hydpy.models.gland import *
         >>> from hydpy import pub
         >>> parameterstep('1d')
-        >>> fluxes.pet = 10.
-        >>> fluxes.en = 2.
+        >>> fluxes.ei = 8.
         >>> fluxes.es = 1.978652
         >>> model.calc_ae_v1()
         >>> fluxes.ae
         ae(9.978652)
     """
 
-    REQUIREDSEQUENCES = (gland_fluxes.PET, gland_fluxes.En, gland_fluxes.Es)
+    REQUIREDSEQUENCES = (gland_fluxes.EI, gland_fluxes.Es)
     RESULTSEQUENCES = (gland_fluxes.AE,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
-        flu.ae = flu.pet - flu.en + flu.es
+        flu.ae = flu.ei + flu.es
 
 
 class Calc_Pr_V1(modeltools.Method):
@@ -719,7 +820,7 @@ class Calc_F_V1(modeltools.Method):
         >>> fluxes.f
         f(0.852379)
 
-        Groundwater exchange is high when the routing storage is almost empty (|R|
+        Groundwater exchange is low when the routing storage is almost empty (|R|
         close to 0):
 
         >>> from hydpy.models.gland import *
@@ -1041,7 +1142,7 @@ class Calc_Qd_V1(modeltools.Method):
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
-        flu.qd = max(0, flu.q1 + flu.f)
+        flu.qd = max(0.0, flu.q1 + flu.f)
 
 
 class Calc_Qt_V1(modeltools.Method):
@@ -1127,7 +1228,10 @@ class Model(modeltools.AdHocModel):
     INLET_METHODS = (Calc_PET_V1,)
     RECEIVER_METHODS = ()
     RUN_METHODS = (
-        Calc_Pn_En_V1,
+        Calc_EI_V1,
+        Calc_Pn_V1,
+        Calc_En_V1,
+        Update_I_V1,
         Calc_PS_V1,
         Calc_Es_V1,
         Update_S_V1,

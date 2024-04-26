@@ -30,6 +30,12 @@ class Ps(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, False
 
 
+class EI(sequencetools.FluxSequence):
+    """Evaporation rate from interception store [mm]."""
+
+    NDIM, NUMERIC = 0, False
+
+
 class Es(sequencetools.FluxSequence):
     """Actual evaporation rate from production store [mm]."""
 

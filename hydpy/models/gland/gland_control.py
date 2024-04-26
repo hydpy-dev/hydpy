@@ -53,3 +53,9 @@ class X6(parametertools.Parameter):
     """coefficient for emptying exponential store [mm]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
+
+
+class IMax(parametertools.Parameter):
+    """Interception store capacity [mm]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)

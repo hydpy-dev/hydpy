@@ -6,25 +6,25 @@ from hydpy.core import sequencetools
 # ...from gland
 
 
-class PET(sequencetools.FluxSequence):
+class E(sequencetools.FluxSequence):
     """Potential Evapotranspiration [mm]."""
 
     NDIM, NUMERIC = 0, False
 
 
-class En(sequencetools.FluxSequence):
+class EN(sequencetools.FluxSequence):
     """Net evapotranspiration capacity [mm]."""
 
     NDIM, NUMERIC = 0, False
 
 
-class Pn(sequencetools.FluxSequence):
+class PN(sequencetools.FluxSequence):
     """Net rainfall [mm]."""
 
     NDIM, NUMERIC = 0, False
 
 
-class Ps(sequencetools.FluxSequence):
+class PS(sequencetools.FluxSequence):
     """Part of |Pn| filling the production store [mm]."""
 
     NDIM, NUMERIC = 0, False
@@ -36,7 +36,7 @@ class EI(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, False
 
 
-class Es(sequencetools.FluxSequence):
+class ES(sequencetools.FluxSequence):
     """Actual evaporation rate from production store [mm]."""
 
     NDIM, NUMERIC = 0, False
@@ -48,26 +48,26 @@ class AE(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, False
 
 
-class Pr(sequencetools.FluxSequence):
+class PR(sequencetools.FluxSequence):
     """Total quantity of water reaching unit hydrograph [mm]."""
 
     NDIM, NUMERIC = 0, False
 
 
-class PrUH1(sequencetools.FluxSequence):
-    """Total quantity of water reaching unit hydrograph 1 [mm]."""
+class PR9(sequencetools.FluxSequence):
+    """90% of |PR| [mm]."""
 
     NDIM, NUMERIC = 0, False
 
 
-class PrUH2(sequencetools.FluxSequence):
-    """Total quantity of water reaching unit hydrograph 2 [mm]."""
+class PR1(sequencetools.FluxSequence):
+    """10% of |PR|  [mm]."""
 
     NDIM, NUMERIC = 0, False
 
 
-class QOutUH2(sequencetools.FluxSequence):
-    """Outlet of unit hydrograph 2 [mm]."""
+class Q10(sequencetools.FluxSequence):
+    """Outlet of runoff concentration [mm]."""
 
     NDIM, NUMERIC = 0, False
 
@@ -108,25 +108,31 @@ class FR2(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, False
 
 
-class Qr(sequencetools.FluxSequence):
+class QR(sequencetools.FluxSequence):
     """Outflow of the routing storage [mm]."""
 
     NDIM, NUMERIC = 0, False
 
 
-class Qr2(sequencetools.FluxSequence):
+class QR2(sequencetools.FluxSequence):
     """Outflow of the exponential storage [mm]."""
 
     NDIM, NUMERIC = 0, False
 
 
-class Qd(sequencetools.FluxSequence):
+class QD(sequencetools.FluxSequence):
     """Flow component direct flow [mm]."""
 
     NDIM, NUMERIC = 0, False
 
 
-class Qt(sequencetools.FluxSequence):
+class QH(sequencetools.FluxSequence):
     """Total streamflow [mm]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class QV(sequencetools.FluxSequence):
+    """Total streamflow [m³/s]."""
 
     NDIM, NUMERIC = 0, False

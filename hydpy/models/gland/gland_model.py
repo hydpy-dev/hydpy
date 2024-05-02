@@ -19,9 +19,9 @@ from hydpy.models.gland import gland_derived
 from hydpy.models.gland import gland_logs
 
 
-class Calc_PET_PETModel_V1(modeltools.Method):
-    """Let a submodel that complies with the |PETModel_V1| interface calculate the
-    potential evapotranspiration of the land areas.
+class Calc_E_PETModel_V1(modeltools.Method):
+    """Let a submodel that conforms to the |PETModel_V1| interface calculate the
+    potential evapotranspiration.
 
     Example:
 
@@ -40,61 +40,62 @@ class Calc_PET_PETModel_V1(modeltools.Method):
         ...     with model.add_tempmodel_v2("meteo_temp_io"):
         ...         temperatureaddend(1.0)
         ...         inputs.temperature = 14.0
-        >>> model.calc_pet_v1()
-        >>> fluxes.pet
-        pet(3.07171)
+        >>> model.calc_e_v1()
+        >>> fluxes.e
+        e(3.07171)
     """
 
-    RESULTSEQUENCES = (gland_fluxes.PET,)
+    RESULTSEQUENCES = (gland_fluxes.E,)
 
     @staticmethod
     def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
         flu = model.sequences.fluxes.fastaccess
         submodel.determine_potentialevapotranspiration()
-        flu.pet = submodel.get_potentialevapotranspiration(0)
+        flu.e = submodel.get_potentialevapotranspiration(0)
 
 
-class Calc_PET_V1(modeltools.Method):
-    """Let a submodel that complies with the |PETModel_V1| interface calculate the
+class Calc_E_V1(modeltools.Method):
+    """Let a submodel that conforms to the |PETModel_V1| interface calculate the
     potential evapotranspiration."""
 
     SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
-    SUBMETHODS = (Calc_PET_PETModel_V1,)
-    RESULTSEQUENCES = (gland_fluxes.PET,)
+    SUBMETHODS = (Calc_E_PETModel_V1,)
+    RESULTSEQUENCES = (gland_fluxes.E,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         if model.petmodel_typeid == 1:
-            model.calc_pet_petmodel_v1(cast(petinterfaces.PETModel_V1, model.petmodel))
+            model.calc_e_petmodel_v1(cast(petinterfaces.PETModel_V1, model.petmodel))
 
 
 class Calc_EI_V1(modeltools.Method):
-    r"""Calculate actual evaporation rate from interception store.
+    r"""Calculate the actual evaporation rate from interception store. It is limited
+    by the amount of water available and the potential evapotranspiration (|E|).
 
     Basic equations:
 
-      :math:`EI = Min(PET, I + P)`
+      :math:`EI = Min(E, I + P)`
 
     Examples:
 
         >>> from hydpy.models.gland import *
         >>> parameterstep()
         >>> inputs.p = 1.0
-        >>> fluxes.pet = 0.5
+        >>> fluxes.e = 0.5
         >>> states.i = 0.0
         >>> model.calc_ei_v1()
         >>> fluxes.ei
         ei(0.5)
 
         >>> inputs.p = 0.5
-        >>> fluxes.pet = 1.0
+        >>> fluxes.e = 1.0
         >>> states.i = 0.2
         >>> model.calc_ei_v1()
         >>> fluxes.ei
         ei(0.7)
     """
 
-    REQUIREDSEQUENCES = (gland_inputs.P, gland_fluxes.PET, gland_states.I)
+    REQUIREDSEQUENCES = (gland_inputs.P, gland_fluxes.E, gland_states.I)
 
     RESULTSEQUENCES = (gland_fluxes.EI,)
 
@@ -103,15 +104,16 @@ class Calc_EI_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         inp = model.sequences.inputs.fastaccess
         sta = model.sequences.states.fastaccess
-        flu.ei = min(flu.pet, sta.i + inp.p)
+        flu.ei = min(flu.e, sta.i + inp.p)
 
 
-class Calc_Pn_V1(modeltools.Method):
-    r"""Calculate netto precipitation.
+class Calc_PN_V1(modeltools.Method):
+    r"""Calculate the net precipitation by subtracting the intercepted water and the
+    evaporated water from the input precipitation.
 
     Basic equations:
 
-      :math:`Pn = Max(0, P - (IMax - I) - EI)`
+      :math:`PN = Max(0, P - (IMax - I) - EI)`
 
     Examples:
         >>> from hydpy.models.gland import *
@@ -137,7 +139,7 @@ class Calc_Pn_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (gland_control.IMax,)
 
-    RESULTSEQUENCES = (gland_fluxes.Pn,)
+    RESULTSEQUENCES = (gland_fluxes.PN,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -148,46 +150,46 @@ class Calc_Pn_V1(modeltools.Method):
         flu.pn = max(0.0, inp.p - (con.imax - sta.i) - flu.ei)
 
 
-class Calc_En_V1(modeltools.Method):
-    r"""Calculate netto evaporation.
+class Calc_EN_V1(modeltools.Method):
+    r"""Calculate the net evaporation.
 
     Basic equations:
 
-      :math:`En = Max(0, PET - EI)`
+      :math:`En = Max(0, E - EI)`
 
     Examples:
         >>> from hydpy.models.gland import *
         >>> parameterstep()
-        >>> fluxes.pet = 1.0
+        >>> fluxes.e = 1.0
         >>> fluxes.ei = 2.0
         >>> model.calc_en_v1()
         >>> fluxes.en
         en(0.0)
 
-        >>> fluxes.pet = 2.0
+        >>> fluxes.e = 2.0
         >>> fluxes.ei = 1.0
         >>> model.calc_en_v1()
         >>> fluxes.en
         en(1.0)
     """
 
-    REQUIREDSEQUENCES = (gland_fluxes.EI, gland_fluxes.PET)
+    REQUIREDSEQUENCES = (gland_fluxes.EI, gland_fluxes.E)
 
-    RESULTSEQUENCES = (gland_fluxes.En,)
+    RESULTSEQUENCES = (gland_fluxes.EN,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
-        flu.en = max(0.0, flu.pet - flu.ei)
+        flu.en = max(0.0, flu.e - flu.ei)
 
 
 class Update_I_V1(modeltools.Method):
-    """Update the interception store based on filling and evaporation from interception
-    store.
+    """Update the interception store based on net precipitation and evaporation from
+    interception store.
 
     Basic equations:
 
-      :math:`I_{new} = I - EI - Pn`
+      :math:`I_{new} = I_{old} - EI - PN`
 
     Examples:
 
@@ -203,7 +205,7 @@ class Update_I_V1(modeltools.Method):
         i(8.0)
     """
 
-    REQUIREDSEQUENCES = (gland_inputs.P, gland_fluxes.Pn, gland_fluxes.EI)
+    REQUIREDSEQUENCES = (gland_inputs.P, gland_fluxes.PN, gland_fluxes.EI)
     UPDATEDSEQUENCES = (gland_states.I,)
 
     @staticmethod
@@ -215,14 +217,14 @@ class Update_I_V1(modeltools.Method):
 
 
 class Calc_PS_V1(modeltools.Method):
-    r"""Calculate part of net rainfall |Pn| filling the production store in mm.
+    r"""Calculate part of net rainfall |PN| filling the production store.
 
     Basic equation:
 
-      :math:`Ps = \frac{
-      x1\left(1-\left(\frac{S}{x1}\right)^{2}\right ) \cdot
-      tanh \left( \frac{Pn }{x1} \right)}
-      {1 + \frac{S}{x1}\cdot tanh \left( \frac{Pn}{x1} \right)}`
+      :math:`PS = \frac{
+      X1\left(1-\left(\frac{S}{X1}\right)^{2}\right ) \cdot
+      tanh \left( \frac{PN }{X1} \right)}
+      {1 + \frac{S}{X1}\cdot tanh \left( \frac{PN}{X1} \right)}`
 
     Examples:
 
@@ -253,10 +255,10 @@ class Calc_PS_V1(modeltools.Method):
         ps(0.0)
     """
 
-    REQUIREDSEQUENCES = (gland_fluxes.Pn, gland_states.S)
+    REQUIREDSEQUENCES = (gland_fluxes.PN, gland_states.S)
     CONTROLPARAMETERS = (gland_control.X1,)
 
-    RESULTSEQUENCES = (gland_fluxes.Ps,)
+    RESULTSEQUENCES = (gland_fluxes.PS,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -272,18 +274,18 @@ class Calc_PS_V1(modeltools.Method):
         )
 
 
-class Calc_Es_V1(modeltools.Method):
+class Calc_ES_V1(modeltools.Method):
     r"""Calculate actual evaporation rate from production store.
 
     Basic equations:
 
       .. math ::
-        ws = tanh\left(\frac{En}{x1}\right), \quad sr = \frac{S}{x1} \\
+        ws = tanh\left(\frac{EN}{X1}\right), \quad sr = \frac{S}{X1} \\
         Es = \frac{S \cdot (2-sr) \cdot ws}{1+(1-sr) \cdot ws}
 
     Examples:
 
-        Production store almost full, no rain: |Es| reaches almost |En|:
+        Production store almost full, no rain: |ES| reaches almost |EN|:
 
         >>> from hydpy.models.gland import *
         >>> from hydpy import pub
@@ -295,7 +297,7 @@ class Calc_Es_V1(modeltools.Method):
         >>> fluxes.es
         es(1.978652)
 
-        Production store almost empty, no rain: |Es| reaches almost 0:
+        Production store almost empty, no rain: |ES| reaches almost 0:
 
         >>> states.s = 10.
         >>> model.calc_es_v1()
@@ -303,10 +305,10 @@ class Calc_Es_V1(modeltools.Method):
         es(0.13027)
     """
 
-    REQUIREDSEQUENCES = (gland_fluxes.En, gland_states.S)
+    REQUIREDSEQUENCES = (gland_fluxes.EN, gland_states.S)
     CONTROLPARAMETERS = (gland_control.X1,)
 
-    RESULTSEQUENCES = (gland_fluxes.Es,)
+    RESULTSEQUENCES = (gland_fluxes.ES,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -327,7 +329,7 @@ class Update_S_V1(modeltools.Method):
 
     Basic equations:
 
-      :math:`S = S - Es + Ps`
+      :math:`S_{new} = S_{old} - ES + PS`
 
     Examples:
 
@@ -343,7 +345,7 @@ class Update_S_V1(modeltools.Method):
         s(277.0)
     """
 
-    REQUIREDSEQUENCES = (gland_fluxes.Ps, gland_fluxes.Es)
+    REQUIREDSEQUENCES = (gland_fluxes.PS, gland_fluxes.ES)
     UPDATEDSEQUENCES = (gland_states.S,)
 
     @staticmethod
@@ -354,7 +356,8 @@ class Update_S_V1(modeltools.Method):
 
 
 class Calc_Perc_V1(modeltools.Method):
-    r"""Calculate percolation from the production store.
+    r"""Calculate percolation from the production store. The percolation rate varies
+    between 0 mm (empty storage) and 0.0095 mm |S| (completely filled storage).
 
     Basic equations:
 
@@ -367,7 +370,7 @@ class Calc_Perc_V1(modeltools.Method):
         >>> from hydpy import pub
         >>> parameterstep('1d')
 
-        Producion store is almost full (maximum percolation 0.009 |S|):
+        Producion store is almost full:
 
         >>> x1(300.)
         >>> states.s = 268.
@@ -405,7 +408,7 @@ class Update_S_V2(modeltools.Method):
 
     Basic equations:
 
-      :math:`S = S - Perc`
+      :math:`S_{new} = S_{old} - Perc`
 
     Examples:
 
@@ -431,11 +434,11 @@ class Update_S_V2(modeltools.Method):
 
 
 class Calc_AE_V1(modeltools.Method):
-    """Calculate actual evaporation (only for output).
+    """Calculate actual evaporation |AE| (for output only).
 
     Basic equations:
 
-      :math:`AE = EI + Es`
+      :math:`AE = EI + ES`
 
     Examples:
 
@@ -449,7 +452,7 @@ class Calc_AE_V1(modeltools.Method):
         ae(9.978652)
     """
 
-    REQUIREDSEQUENCES = (gland_fluxes.EI, gland_fluxes.Es)
+    REQUIREDSEQUENCES = (gland_fluxes.EI, gland_fluxes.ES)
     RESULTSEQUENCES = (gland_fluxes.AE,)
 
     @staticmethod
@@ -459,11 +462,11 @@ class Calc_AE_V1(modeltools.Method):
 
 
 class Calc_Pr_V1(modeltools.Method):
-    """Calculate total quantity |Pr| of water reaching the routing functions.
+    """Calculate total quantity |PR| of water reaching the routing functions.
 
     Basic equation:
 
-      :math:`Pr = Perc + (Pn - Ps)`
+      :math:`PR = Perc + (PN - PS)`
 
     Examples:
 
@@ -480,9 +483,9 @@ class Calc_Pr_V1(modeltools.Method):
         pr(12.0)
     """
 
-    REQUIREDSEQUENCES = (gland_fluxes.Ps, gland_fluxes.Pn, gland_fluxes.Perc)
+    REQUIREDSEQUENCES = (gland_fluxes.PS, gland_fluxes.PN, gland_fluxes.Perc)
 
-    RESULTSEQUENCES = (gland_fluxes.Pr,)
+    RESULTSEQUENCES = (gland_fluxes.PR,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -490,14 +493,14 @@ class Calc_Pr_V1(modeltools.Method):
         flu.pr = flu.perc + flu.pn - flu.ps
 
 
-class Calc_PrUH1_PrUH2_V1(modeltools.Method):
-    r"""Splitting |Pr| into |PrUH1| and |PrUH2|.
+class Calc_PR1_PR9_V1(modeltools.Method):
+    r"""Splitting |PR| into |PR1| and |PR9|.
 
     Basic equations:
 
-      :math:`PrUH1 = 0.9 \cdot Pr`
+      :math:`PR9 = 0.9 \cdot PR`
 
-      :math:`PrUH2 = 1 - PrUH1`
+      :math:`PR1 = PR - PR1`
 
     Examples:
 
@@ -506,25 +509,25 @@ class Calc_PrUH1_PrUH2_V1(modeltools.Method):
         >>> from hydpy.models.gland import *
         >>> parameterstep('1d')
         >>> fluxes.pr = 10.0
-        >>> model.calc_pruh1_pruh2_v1()
-        >>> fluxes.pruh1
-        pruh1(9.0)
-        >>> fluxes.pruh2
-        pruh2(1.0)
+        >>> model.calc_pr1_pr9_v1()
+        >>> fluxes.pr9
+        pr9(9.0)
+        >>> fluxes.pr1
+        pr1(1.0)
     """
 
-    REQUIREDSEQUENCES = (gland_fluxes.Pr,)
-    RESULTSEQUENCES = (gland_fluxes.PrUH1, gland_fluxes.PrUH2)
+    REQUIREDSEQUENCES = (gland_fluxes.PR,)
+    RESULTSEQUENCES = (gland_fluxes.PR9, gland_fluxes.PR1)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
-        flu.pruh1 = 0.9 * flu.pr
-        flu.pruh2 = flu.pr - flu.pruh1
+        flu.pr9 = 0.9 * flu.pr
+        flu.pr1 = flu.pr - flu.pr9
 
 
 class Calc_Q9_V1(modeltools.Method):
-    """Calculate the unit hydrograph |UH1| output (convolution) with |PrUH1| as input.
+    """Calculate the urunofff concentration with |PR9| as input.
 
     Examples:
 
@@ -540,39 +543,37 @@ class Calc_Q9_V1(modeltools.Method):
         uh1(0.06415, 0.298737, 0.637113)
         >>> logs.quh1 = 1.0, 3.0, 0.0
 
-        Without new input, the actual output is simply the first value
-        stored in the logging sequence and the values of the logging
-        sequence are shifted to the left:
+        Without new input, the actual output is simply the first value stored in the
+        logging sequence and the values of the logging sequence are shifted to the left:
 
-        >>> fluxes.pruh1 = 0.0
+        >>> fluxes.pr9 = 0.0
         >>> model.calc_q9_v1()
         >>> fluxes.q9
         q9(1.0)
         >>> logs.quh1
         quh1(3.0, 0.0, 0.0)
 
-        With an new input of 4mm, the actual output consists of the first
-        value stored in the logging sequence and the input value
-        multiplied with the first unit hydrograph ordinate.  The updated
-        logging sequence values result from the multiplication of the
-        input values and the remaining ordinates:
+        With an new input of 4mm, the actual output consists of the first value
+        stored in the logging sequence and the input value multiplied with the first
+        unit hydrograph ordinate. The updated logging sequence values result from the
+        multiplication of the input values and the remaining ordinates:
 
-        >>> fluxes.pruh1 = 3.6
+        >>> fluxes.pr9 = 3.6
         >>> model.calc_q9_v1()
         >>> fluxes.q9
         q9(3.23094)
         >>> logs.quh1
         quh1(1.075454, 2.293605, 0.0)
 
-        In the next example we set the memory to zero (no input in the past), and
-        apply a single input signal:
+        In the next example we set the memory to zero (no input in the past),
+        and apply a single input signal:
 
         >>> logs.quh1 = 0.0, 0.0, 0.0
-        >>> fluxes.pruh1 = 3.6
+        >>> fluxes.pr9 = 3.6
         >>> model.calc_q9_v1()
         >>> fluxes.q9
         q9(0.23094)
-        >>> fluxes.pruh1 = 0.0
+        >>> fluxes.pr9 = 0.0
         >>> model.calc_q9_v1()
         >>> fluxes.q9
         q9(1.075454)
@@ -583,22 +584,22 @@ class Calc_Q9_V1(modeltools.Method):
         >>> fluxes.q9
         q9(0.0)
 
-        A unit hydrograph with only one ordinate results in the direct
-        routing of the input, remember, only 90% of pr enters UH1:
+        A unit hydrograph with only one ordinate results in the direct routing of the
+        input, remember, only 90% of pr enters |UH1|:
 
         >>> x4(0.8)
         >>> derived.uh1.update()
         >>> derived.uh1
         uh1(1.0)
         >>> logs.quh1 = 0
-        >>> fluxes.pruh1 = 3.6
+        >>> fluxes.pr9 = 3.6
         >>> model.calc_q9_v1()
         >>> fluxes.q9
         q9(3.6)
     """
 
     DERIVEDPARAMETERS = (gland_derived.UH1,)
-    REQUIREDSEQUENCES = (gland_fluxes.PrUH1,)
+    REQUIREDSEQUENCES = (gland_fluxes.PR9,)
     UPDATEDSEQUENCES = (gland_logs.QUH1,)
     RESULTSEQUENCES = (gland_fluxes.Q9,)
 
@@ -607,14 +608,13 @@ class Calc_Q9_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
-        flu.q9 = der.uh1[0] * flu.pruh1 + log.quh1[0]
+        flu.q9 = der.uh1[0] * flu.pr9 + log.quh1[0]
         for jdx in range(1, len(der.uh1)):
-            log.quh1[jdx - 1] = der.uh1[jdx] * flu.pruh1 + log.quh1[jdx]
+            log.quh1[jdx - 1] = der.uh1[jdx] * flu.pr9 + log.quh1[jdx]
 
 
 class Calc_Q1_V1(modeltools.Method):
-    """Calculate the unit hydrograph |UH2| output (convolution). Input to the unit
-    hydrograph |UH2| is |PrUH2|.
+    """Calculate the urunofff concentration with |PR1| as input.
 
     Examples:
 
@@ -630,24 +630,22 @@ class Calc_Q1_V1(modeltools.Method):
         uh2(0.032075, 0.149369, 0.318556, 0.318556, 0.149369, 0.032075)
         >>> logs.quh2 = 1.0, 3.0, 0.0, 2.0, 1.0, 0.0
 
-        Without new input, the actual output is simply the first value
-        stored in the logging sequence and the values of the logging
-        sequence are shifted to the left:
+        Without new input, the actual output is simply the first value stored in the
+        logging sequence and the values of the logging sequence are shifted to the left:
 
-        >>> fluxes.pruh2 = 0.0
+        >>> fluxes.pr1 = 0.0
         >>> model.calc_q1_v1()
         >>> fluxes.q1
         q1(1.0)
         >>> logs.quh2
         quh2(3.0, 0.0, 2.0, 1.0, 0.0, 0.0)
 
-        With an new input of 4mm, the actual output consists of the first
-        value stored in the logging sequence and the input value
-        multiplied with the first unit hydrograph ordinate.  The updated
-        logging sequence values result from the multiplication of the
-        input values and the remaining ordinates:
+        With an new input of 4mm, the actual output consists of the first value
+        stored in the logging sequence and the input value multiplied with the first
+        unit hydrograph ordinate. The updated logging sequence values result from the
+        multiplication of the input values and the remaining ordinates:
 
-        >>> fluxes.pruh2 = 0.4
+        >>> fluxes.pr1 = 0.4
         >>> model.calc_q1_v1()
         >>> fluxes.q1
         q1(3.01283)
@@ -658,11 +656,11 @@ class Calc_Q1_V1(modeltools.Method):
         apply a single input signal:
 
         >>> logs.quh2 = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-        >>> fluxes.pruh2 = 0.4
+        >>> fluxes.pr1 = 0.4
         >>> model.calc_q1_v1()
         >>> fluxes.q1
         q1(0.01283)
-        >>> fluxes.pruh2 = 0.0
+        >>> fluxes.pr1 = 0.0
         >>> model.calc_q1_v1()
         >>> fluxes.q1
         q1(0.059747)
@@ -684,7 +682,7 @@ class Calc_Q1_V1(modeltools.Method):
     """
 
     DERIVEDPARAMETERS = (gland_derived.UH2,)
-    REQUIREDSEQUENCES = (gland_fluxes.PrUH2,)
+    REQUIREDSEQUENCES = (gland_fluxes.PR1,)
     UPDATEDSEQUENCES = (gland_logs.QUH2,)
     RESULTSEQUENCES = (gland_fluxes.Q1,)
 
@@ -693,15 +691,16 @@ class Calc_Q1_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
-        flu.q1 = der.uh2[0] * flu.pruh2 + log.quh2[0]
+        flu.q1 = der.uh2[0] * flu.pr1 + log.quh2[0]
         for jdx in range(1, len(der.uh2)):
-            log.quh2[jdx - 1] = der.uh2[jdx] * flu.pruh2 + log.quh2[jdx]
+            log.quh2[jdx - 1] = der.uh2[jdx] * flu.pr1 + log.quh2[jdx]
 
 
-class Calc_QUH2_V1(modeltools.Method):
-    """Calculate the unit hydrograph UH2 output (convolution).
+class Calc_Q10_V1(modeltools.Method):
+    """Calculate the unit hydrograph |UH2| output (convolution).
 
-    This is the version for the GR5 model. The input is 100% of Pr.
+    This is the version for the GR5 model with only one unit hydrograph. The input is
+    100% of |PR|.
 
     Examples:
 
@@ -717,62 +716,60 @@ class Calc_QUH2_V1(modeltools.Method):
         uh2(0.032075, 0.149369, 0.318556, 0.318556, 0.149369, 0.032075)
         >>> logs.quh2 = 3.0, 3.0, 0.0, 2.0, 4.0, 0.0
 
-        Without new input, the actual output is simply the first value
-        stored in the logging sequence and the values of the logging
-        sequence are shifted to the left.
+        Without new input, the actual output is simply the first value stored in the
+        logging sequence and the values of the logging sequence are shifted to the left.
 
         >>> fluxes.pr = 0.0
-        >>> model.calc_quh2_v1()
-        >>> fluxes.qoutuh2
-        qoutuh2(3.0)
+        >>> model.calc_q10_v1()
+        >>> fluxes.q10
+        q10(3.0)
         >>> logs.quh2
         quh2(3.0, 0.0, 2.0, 4.0, 0.0, 0.0)
 
-        With an new input of 2mm, the actual output consists of the first
-        value stored in the logging sequence and the input value
-        multiplied with the first unit hydrograph ordinate.  The updated
-        logging sequence values result from the multiplication of the
-        input values and the remaining ordinates:
+        With an new input of 2mm, the actual output consists of the first value
+        stored in the logging sequence and the input value multiplied with the first
+        unit hydrograph ordinate. The updatedlogging sequence values result from the
+        multiplication of the input values and the remaining ordinates:
 
         >>> fluxes.pr = 2.0
-        >>> model.calc_quh2_v1()
-        >>> fluxes.qoutuh2
-        qoutuh2(3.06415)
+        >>> model.calc_q10_v1()
+        >>> fluxes.q10
+        q10(3.06415)
         >>> logs.quh2
         quh2(0.298737, 2.637113, 4.637113, 0.298737, 0.06415, 0.0)
     """
 
     DERIVEDPARAMETERS = (gland_derived.UH2,)
-    REQUIREDSEQUENCES = (gland_fluxes.Pr,)
+    REQUIREDSEQUENCES = (gland_fluxes.PR,)
     UPDATEDSEQUENCES = (gland_logs.QUH2,)
-    RESULTSEQUENCES = (gland_fluxes.QOutUH2,)
+    RESULTSEQUENCES = (gland_fluxes.Q10,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
-        flu.qoutuh2 = der.uh2[0] * flu.pr + log.quh2[0]
+        flu.q10 = der.uh2[0] * flu.pr + log.quh2[0]
         for jdx in range(1, len(der.uh2)):
             log.quh2[jdx - 1] = der.uh2[jdx] * flu.pr + log.quh2[jdx]
 
 
 class Calc_Q1_Q9_V2(modeltools.Method):
-    r"""Calculate |Q1| and |Q9| by splittung |QOutUH2|. This is the version for the GR5
+    r"""Calculate |Q1| and |Q9| by splittung |Q10|. This is the version for the GR5
     model.
 
     Basic equations:
 
-      :math:`Q9 = 0.9 \cdot QUH2`
+      :math:`Q9 = 0.9 \cdot Q10`
 
-      :math:`Q1 = QUH2 - Q9`
+      :math:`Q1 = Q10 - Q9`
 
     Example:
 
         >>> from hydpy.models.gland import *
         >>> parameterstep('1d')
         >>> simulationstep('1d')
-        >>> fluxes.qoutuh2 = 10.0
+        >>> fluxes.q10 = 10.0
         >>> model.calc_q1_q9_v2()
         >>> fluxes.q1
         q1(1.0)
@@ -780,14 +777,14 @@ class Calc_Q1_Q9_V2(modeltools.Method):
         q9(9.0)
     """
 
-    REQUIREDSEQUENCES = (gland_fluxes.QOutUH2,)
+    REQUIREDSEQUENCES = (gland_fluxes.Q10,)
     RESULTSEQUENCES = (gland_fluxes.Q1, gland_fluxes.Q9)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
-        flu.q1 = 0.1 * flu.qoutuh2
-        flu.q9 = 0.9 * flu.qoutuh2
+        flu.q1 = 0.1 * flu.q10
+        flu.q9 = 0.9 * flu.q10
 
 
 class Calc_FR_V1(modeltools.Method):
@@ -840,7 +837,7 @@ class Calc_FR_V1(modeltools.Method):
 
 
 class Calc_FR_V2(modeltools.Method):
-    r"""Calculate groundwater exchange term |FR| used in GR5 and GR6
+    r"""Calculate he routing store groundwater exchange term |FR| used in GR5 and GR6.
 
     Basic equations:
 
@@ -934,12 +931,12 @@ class Update_R_V2(modeltools.Method):
         sta.r = max(0.0, sta.r + 0.6 * flu.q9 + flu.fr)
 
 
-class Calc_Qr_V1(modeltools.Method):
-    r"""Calculate the outflow |Qr| of the reservoir.
+class Calc_QR_V1(modeltools.Method):
+    r"""Calculate the outflow |QR| of the reservoir.
 
     Basic equations:
 
-      :math:`Qr = R \cdot \left( 1 - \left[1 + \left( \frac{R}{X3} \right)^{4}
+      :math:`QR = R \cdot \left( 1 - \left[1 + \left( \frac{R}{X3} \right)^{4}
       \right]^{-1/4} \right)`
 
     Examples:
@@ -956,7 +953,7 @@ class Calc_Qr_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (gland_control.X3,)
     UPDATEDSEQUENCES = (gland_states.R,)
-    RESULTSEQUENCES = (gland_fluxes.Qr,)
+    RESULTSEQUENCES = (gland_fluxes.QR,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -967,11 +964,11 @@ class Calc_Qr_V1(modeltools.Method):
 
 
 class Update_R_V3(modeltools.Method):
-    """Update the non-linear routing store R according to its outflow.
+    """Update the non-linear routing store |R| according to its outflow.
 
     Basic equation:
 
-      :math:`R = R - Qr`
+      :math:`R = R - QR`
 
     Examples:
 
@@ -985,7 +982,7 @@ class Update_R_V3(modeltools.Method):
         r(89.548769)
     """
 
-    REQUIREDSEQUENCES = (gland_fluxes.Qr,)
+    REQUIREDSEQUENCES = (gland_fluxes.QR,)
     UPDATEDSEQUENCES = (gland_states.R,)
 
     @staticmethod
@@ -996,7 +993,7 @@ class Update_R_V3(modeltools.Method):
 
 
 class Calc_FR2_V1(modeltools.Method):
-    r"""Calculate groundwater exchange term exponential routing store.
+    r"""Calculate groundwater exchange term of the exponential routing store.
 
     Basic equation:
 
@@ -1023,7 +1020,7 @@ class Calc_FR2_V1(modeltools.Method):
 
 
 class Update_R2_V1(modeltools.Method):
-    r"""Update Exponential Routing Store.
+    r"""Update the exponential Routing Store.
 
     Basic equation:
 
@@ -1052,15 +1049,15 @@ class Update_R2_V1(modeltools.Method):
         sta.r2 = sta.r2 + 0.4 * flu.q9 + flu.fr2
 
 
-class Calc_Qr2_R2_V1(modeltools.Method):
-    r"""Calculates the exponential store of the GR6 version.
+class Calc_QR2_R2_V1(modeltools.Method):
+    r"""Calculates the exponential routing store of the GR6 version.
 
     Basic equations:
 
       .. math::
         ar = Max(-33.0, Min(33.0, R2 / X6))
         \\
-        Qr = \begin{cases}
+        QR = \begin{cases}
         X6 \cdot exp(ar) &|\ ar < -7
         \\
         X6 \cdot log(exp(ar)+1) &|\ -7 \leq ar \leq 7
@@ -1090,7 +1087,7 @@ class Calc_Qr2_R2_V1(modeltools.Method):
         >>> states.r2
         r2(-3.119162)
 
-        For very small values of |R2|, |Qr2| goes toward 0
+        For very small values of |R2|, |QR2| tends to 0:
 
         >>> states.r2 = -50.
         >>> model.calc_qr2_r2_v1()
@@ -1102,7 +1099,7 @@ class Calc_Qr2_R2_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (gland_control.X6,)
     UPDATEDSEQUENCES = (gland_states.R2,)
-    RESULTSEQUENCES = (gland_fluxes.Qr2,)
+    RESULTSEQUENCES = (gland_fluxes.QR2,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1122,7 +1119,7 @@ class Calc_Qr2_R2_V1(modeltools.Method):
 
 
 class Calc_FD_V1(modeltools.Method):
-    r"""Calculate groundwater exchange term direct runoff.
+    r"""Calculate groundwater exchange term with direct runoff.
 
     Basic equation:
 
@@ -1168,7 +1165,7 @@ class Calc_Qd_V1(modeltools.Method):
 
     Basic equations:
 
-      :math:`Qd = max(0; Q1 + FD)`
+      :math:`QD = max(0; Q1 + FD)`
 
     Examples:
 
@@ -1198,7 +1195,7 @@ class Calc_Qd_V1(modeltools.Method):
 
     REQUIREDSEQUENCES = (gland_fluxes.Q1, gland_fluxes.FD)
 
-    RESULTSEQUENCES = (gland_fluxes.Qd,)
+    RESULTSEQUENCES = (gland_fluxes.QD,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1206,122 +1203,150 @@ class Calc_Qd_V1(modeltools.Method):
         flu.qd = max(0.0, flu.q1 + flu.fd)
 
 
-class Calc_Qt_V1(modeltools.Method):
+class Calc_QH_V1(modeltools.Method):
     """Calculate total flow.
 
     Basic equations:
 
-      :math:`Qt = Qr + Qd`
+      :math:`QH = QR + QD`
 
-
-    Examples:
+    Example:
 
         >>> from hydpy.models.gland import *
         >>> parameterstep('1d')
         >>> fluxes.qr = 20
         >>> fluxes.qd = 10
-        >>> model.calc_qt_v1()
-        >>> fluxes.qt
-        qt(30.0)
+        >>> model.calc_qh_v1()
+        >>> fluxes.qh
+        qh(30.0)
     """
 
-    REQUIREDSEQUENCES = (gland_fluxes.Qr, gland_fluxes.Qd)
+    REQUIREDSEQUENCES = (gland_fluxes.QR, gland_fluxes.QD)
 
-    RESULTSEQUENCES = (gland_fluxes.Qt,)
+    RESULTSEQUENCES = (gland_fluxes.QH,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
-        flu.qt = flu.qr + flu.qd
+        flu.qh = flu.qr + flu.qd
 
 
-class Calc_Qt_V3(modeltools.Method):
+class Calc_QH_V2(modeltools.Method):
     """Calculate total flow (GR6 model version).
 
     Basic equations:
 
-      :math:`Qt = Qr + Qr2 + Qd`
+      :math:`QH = QR + QR2 + QD`
 
-    Examples:
+    Example:
 
         >>> from hydpy.models.gland import *
         >>> parameterstep('1d')
         >>> fluxes.qr = 20.
         >>> fluxes.qr2 = 10.
         >>> fluxes.qd = 10.
-        >>> model.calc_qt_v3()
-        >>> fluxes.qt
-        qt(40.0)
+        >>> model.calc_qh_v2()
+        >>> fluxes.qh
+        qh(40.0)
     """
 
-    REQUIREDSEQUENCES = (gland_fluxes.Qr, gland_fluxes.Qr2, gland_fluxes.Qd)
+    REQUIREDSEQUENCES = (gland_fluxes.QR, gland_fluxes.QR2, gland_fluxes.QD)
 
-    RESULTSEQUENCES = (gland_fluxes.Qt,)
+    RESULTSEQUENCES = (gland_fluxes.QH,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
-        flu.qt = flu.qr + flu.qr2 + flu.qd
+        flu.qh = flu.qr + flu.qr2 + flu.qd
+
+
+class Calc_QV_V1(modeltools.Method):
+    """Calculate total runoff in m³/s.
+
+    Basic equations:
+
+      :math:`QV = QFactor \\cdot QH`
+
+    Example:
+
+        >>> from hydpy.models.gland import *
+        >>> parameterstep('1d')
+        >>> fluxes.qh = 10.
+        >>> derived.qfactor = 5.
+        >>> model.calc_qv_v1()
+        >>> fluxes.qv
+        qv(50.0)
+    """
+
+    DERIVEDPARAMETERS = (gland_derived.QFactor,)
+    REQUIREDSEQUENCES = (gland_fluxes.QH,)
+
+    RESULTSEQUENCES = (gland_fluxes.QV,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.qv = flu.qh * der.qfactor
 
 
 class Pass_Q_V1(modeltools.Method):
     r"""Update the outlet link sequence.
 
     Basic equation:
-      :math:`Q = QFactor \cdot QT`
+      :math:`Q = QV`
     """
 
-    DERIVEDPARAMETERS = (gland_derived.QFactor,)
-    REQUIREDSEQUENCES = (gland_fluxes.Qt,)
+    REQUIREDSEQUENCES = (gland_fluxes.QV,)
     RESULTSEQUENCES = (gland_outlets.Q,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
-        out.q[0] += der.qfactor * flu.qt
+        out.q[0] += flu.qv
 
 
 class Model(modeltools.AdHocModel):
     """The G-Land base model."""
 
-    INLET_METHODS = (Calc_PET_V1,)
+    INLET_METHODS = (Calc_E_V1,)
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         Calc_EI_V1,
-        Calc_Pn_V1,
-        Calc_En_V1,
+        Calc_PN_V1,
+        Calc_EN_V1,
         Update_I_V1,
         Calc_PS_V1,
-        Calc_Es_V1,
+        Calc_ES_V1,
         Update_S_V1,
         Calc_Perc_V1,
         Update_S_V2,
         Calc_AE_V1,
         Calc_Pr_V1,
-        Calc_PrUH1_PrUH2_V1,
+        Calc_PR1_PR9_V1,
         Calc_Q9_V1,
         Calc_Q1_V1,
-        Calc_QUH2_V1,
+        Calc_Q10_V1,
         Calc_Q1_Q9_V2,
         Calc_FR_V1,
         Calc_FR_V2,
         Update_R_V1,
         Update_R_V3,
         Update_R_V2,
-        Calc_Qr_V1,
+        Calc_QR_V1,
         Update_R_V3,
         Calc_FR2_V1,
         Update_R2_V1,
-        Calc_Qr2_R2_V1,
+        Calc_QR2_R2_V1,
         Update_R_V2,
         Calc_FD_V1,
         Calc_Qd_V1,
-        Calc_Qt_V1,
-        Calc_Qt_V3,
+        Calc_QH_V1,
+        Calc_QH_V2,
+        Calc_QV_V1,
     )
-    ADD_METHODS = (Calc_PET_PETModel_V1,)
+    ADD_METHODS = (Calc_E_PETModel_V1,)
     OUTLET_METHODS = (Pass_Q_V1,)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)

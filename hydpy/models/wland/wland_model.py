@@ -2504,7 +2504,7 @@ class Calc_FGS_V1(modeltools.Method):
       CD - DG - HS^* &|\ \overline{RG} \\
       \end{cases} \\
       ContactSurface = \begin{cases}
-      HG^* - HS^* &|\ RG \\
+      |HG^* - HS^*| &|\ RG \\
       max(HG^*, \ HS^*) &|\ \overline{RG} \\
       \end{cases} \\
       Excess = max(-DG, HS - CD, \ 0) \\

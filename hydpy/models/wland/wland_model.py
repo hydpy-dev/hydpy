@@ -2202,7 +2202,7 @@ class Calc_CDG_V1(modeltools.Method):
     Basic equation (discontinuous):
       .. math::
         CDG = \frac{DV - min(DV\!Eq, \ DG)}{CV} + \begin{cases}
-        \frac{FGS - FXG}{ThetaS} &|\ DGC \\
+        \frac{FGS - FGSE - FXG}{ThetaS} &|\ DGC \\
         0 &|\  \overline{DGC}
         \end{cases}
 
@@ -2239,7 +2239,8 @@ class Calc_CDG_V1(modeltools.Method):
         >>> states.dv = 100.0
         >>> states.dg = 1000.0
         >>> fluxes.fgs = 2.0
-        >>> fluxes.fxg = 3.0
+        >>> fluxes.fgse = 0.5
+        >>> fluxes.fxg = 2.5
         >>> aides.dveq = 80.0
         >>> model.calc_cdg_v1()
         >>> fluxes.cdg
@@ -2294,6 +2295,7 @@ class Calc_CDG_V1(modeltools.Method):
         wland_states.DG,
         wland_states.DV,
         wland_fluxes.FGS,
+        wland_fluxes.FGSE,
         wland_fluxes.FXG,
         wland_aides.DVEq,
     )
@@ -2310,19 +2312,19 @@ class Calc_CDG_V1(modeltools.Method):
             target: float = smoothutils.smooth_min1(aid.dveq, sta.dg, der.rh1)
             flu.cdg = (sta.dv - target) / con.cv
             if con.dgc:
-                flu.cdg += (flu.fgs - flu.fxg) / con.thetas
+                flu.cdg += (flu.fgs - flu.fgse - flu.fxg) / con.thetas
         else:
             flu.cdg = 0.0
 
 
 class Calc_CDG_V2(modeltools.Method):
     r"""Calculate the vadose zone's storage deficit change due to percolation,
-    capillary rise, macropore infiltration, seepage, groundwater drainage, and channel
+    capillary rise, macropore infiltration, seepage, groundwater flow, and channel
     water infiltration.
 
     Basic equation:
       :math:`CDG =
-      \frac{DV-min(DV\!Eq, \ DG)}{CV} + GF \cdot \big( FGS - PV - FXG \big)`
+      \frac{DV-min(DV\!Eq, \ DG)}{CV} + GF \cdot \big( FGS - FGSE - PV - FXG \big)`
 
     Method |Calc_CDG_V2| extends |Calc_CDG_V1|, which implements the (nearly) original
     `WALRUS`_ relationship defined by equation 6 of :cite:t:`ref-Brauer2014`).  See the
@@ -2342,7 +2344,8 @@ class Calc_CDG_V2(modeltools.Method):
         >>> states.dv = 100.0
         >>> states.dg = 1000.0
         >>> fluxes.pv = 1.0
-        >>> fluxes.fxg = 2.0
+        >>> fluxes.fxg = 0.5
+        >>> fluxes.fgse = 1.5
         >>> fluxes.fgs = 4.0
         >>> aides.dveq = 80.0
         >>> aides.gf = 2.0
@@ -2391,6 +2394,7 @@ class Calc_CDG_V2(modeltools.Method):
     REQUIREDSEQUENCES = (
         wland_fluxes.PV,
         wland_fluxes.FGS,
+        wland_fluxes.FGSE,
         wland_fluxes.FXG,
         wland_states.DG,
         wland_states.DV,
@@ -2409,7 +2413,7 @@ class Calc_CDG_V2(modeltools.Method):
         if der.nug:
             target: float = smoothutils.smooth_min1(aid.dveq, sta.dg, der.rh1)
             cdg_slow: float = (sta.dv - target) / con.cv
-            cdg_fast: float = aid.gf * (flu.fgs - flu.pv - flu.fxg)
+            cdg_fast: float = aid.gf * (flu.fgs - flu.fgse - flu.pv - flu.fxg)
             flu.cdg = cdg_slow + cdg_fast
         else:
             flu.cdg = 0.0

@@ -920,7 +920,7 @@ standard library for for further information.
             ("remove all", (False, False)),
             ("add all to y-axis 2", (False, True)),
         ):
-            subbuttons = [
+            subbuttons: list[dict[str, Union[str, list[Any]]]] = [
                 {
                     "label": label,
                     "method": "restyle",

@@ -2466,9 +2466,8 @@ class SeasonalParameter(Parameter):
 
     However, class |SeasonalParameter| offers more flexibility in defining seasonal
     patterns, which is often helpful for modelling technical control systems.  One
-    example is the parameter pair |llake_control.W| and |llake_control.Q| of base model
-    |llake|, defining the desired water stage to discharge relationship throughout the
-    year.
+    example is the parameter |dam_control.TargetVolume| of base model |dam| for
+    determining a dam's desired volume throughout the year.
 
     .. testsetup::
 

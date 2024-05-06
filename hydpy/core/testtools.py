@@ -543,7 +543,7 @@ class IntegrationTest(Test):
     """Defines model integration doctests.
 
     The functionality of |IntegrationTest| is easiest to understand by inspecting
-    doctests like the ones of modules |llake_v1| or |arma_v1|.
+    doctests like the ones of modules |arma_v1|.
 
     Note that all condition sequences (state and logging sequences) are initialised in
     accordance with the values are given as `inits` values.  The values of the

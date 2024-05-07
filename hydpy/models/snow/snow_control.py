@@ -284,3 +284,10 @@ class CN4(parametertools.Parameter):
     [-]"""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0, 1)
+
+
+class Hysteresis(parametertools.Parameter):
+    """Hysteresis of build-up and melting of the snow cover [-]"""
+
+    NDIM, TYPE, TIME, SPAN = 0, bool, None, (None, None)
+    INIT = False

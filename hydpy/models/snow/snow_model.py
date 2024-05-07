@@ -884,14 +884,29 @@ class Calc_GRatio_GLocalMax_V1(modeltools.Method):
         >>> states.gratio = 0., 0.2, 1.0, 1.0, 1.0
         >>> fluxes.potmelt = 10.0, 10.0, 10., 0.0, 0.0
         >>> logs.glocalmax(40.0, 30.0, 20.0, 10.0, 0.0)
+        >>> hysteresis(True)
         >>> model.calc_gratio_glocalmax_v1()
         >>> states.gratio
         gratio(0.75, 0.666667, 1.0, 1.0, 1.0)
         >>> logs.glocalmax
         glocalmax(40.0, 30.0, 12.0, 10.0, 72.0)
+
+        If we switch off hysteresis, |GRatio| will dependent solely on |GThresh| and
+        |GlocalMax| is not updated.
+        >>> hysteresis(False)
+        >>> logs.glocalmax(0.0, 0.0, 0.0, 0.0, 0.0)
+        >>> model.calc_gratio_glocalmax_v1()
+        >>> states.gratio
+        gratio(0.416667, 0.277778, 0.166667, 1.0, 0.694444)
+        >>> logs.glocalmax
+        glocalmax(0.0, 0.0, 0.0, 0.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (snow_control.NLayers, snow_derived.GThresh)
+    CONTROLPARAMETERS = (
+        snow_control.NLayers,
+        snow_control.Hysteresis,
+    )
+    DERIVEDPARAMETERS = (snow_derived.GThresh,)
     REQUIREDSEQUENCES = (snow_states.G, snow_fluxes.PotMelt)
     UPDATEDSEQUENCES = (snow_states.GRatio, snow_logs.GLocalMax)
 
@@ -904,14 +919,16 @@ class Calc_GRatio_GLocalMax_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
 
         for k in range(con.nlayers):
-            # todo: eigentlich nur Sonderfall muss das mit in Doku?
-            if log.glocalmax[k] == 0.0:
-                log.glocalmax[k] = der.gthresh[k]
-            if flu.potmelt[k] > 0.0:
-                # restrict glocalmax to amount of snow if everything is snow
-                if sta.gratio[k] == 1.0:
-                    log.glocalmax[k] = min(sta.g[k], log.glocalmax[k])
-                sta.gratio[k] = min(sta.g[k] / log.glocalmax[k], 1.0)
+            if con.hysteresis:
+                if log.glocalmax[k] == 0.0:
+                    log.glocalmax[k] = der.gthresh[k]
+                if flu.potmelt[k] > 0.0:
+                    # restrict glocalmax to amount of snow if everything is snow
+                    if sta.gratio[k] == 1.0:
+                        log.glocalmax[k] = min(sta.g[k], log.glocalmax[k])
+                    sta.gratio[k] = min(sta.g[k] / log.glocalmax[k], 1.0)
+            else:
+                sta.gratio[k] = min(sta.g[k] / der.gthresh[k], 1.0)
 
 
 class Calc_Melt_V1(modeltools.Method):
@@ -1023,17 +1040,36 @@ class Update_GRatio_GLocalMax_V1(modeltools.Method):
 
         >>> states.gratio = 0.1, 0.5, 0.8, 0.2, 0.4
         >>> logs.glocalmax = 10.0
-        >>> model.update_gratio_glocalmax_v1()
 
+        If |Hysteresis| is deactivated this method has no effect:
+
+        >>> hysteresis(False)
+        >>> model.update_gratio_glocalmax_v1()
+        >>> derived.gthresh
+        gthresh(20.0)
+        >>> states.gratio
+        gratio(0.1, 0.5, 0.8, 0.2, 0.4)
+        >>> logs.glocalmax
+        glocalmax(10.0, 10.0, 10.0, 10.0, 10.0)
+
+        If we switch on |Hysteresis| this has an effect on |GRatio| and |GLocalMax|
+
+        >>> hysteresis(True)
+        >>> model.update_gratio_glocalmax_v1()
         >>> derived.gthresh
         gthresh(20.0)
         >>> states.gratio
         gratio(0.1, 0.833333, 1.0, 0.533333, 1.0)
         >>> logs.glocalmax
         glocalmax(10.0, 10.0, 10.0, 10.0, 20.0)
+
     """
 
-    CONTROLPARAMETERS = (snow_control.NLayers, snow_control.CN3)
+    CONTROLPARAMETERS = (
+        snow_control.NLayers,
+        snow_control.CN3,
+        snow_control.Hysteresis,
+    )
     DERIVEDPARAMETERS = (snow_derived.GThresh,)
     REQUIREDSEQUENCES = (snow_fluxes.Melt, snow_fluxes.PSnowLayer, snow_states.G)
     UPDATEDSEQUENCES = (snow_states.GRatio, snow_logs.GLocalMax)
@@ -1046,18 +1082,19 @@ class Update_GRatio_GLocalMax_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         log = model.sequences.logs.fastaccess
 
-        for k in range(con.nlayers):
-            dg: float = flu.psnowlayer[k] - flu.melt[k]
-            if dg > 0.0:
-                # snow cover build up
-                # update of snow covered area
-                sta.gratio[k] = min(sta.gratio[k] + dg / con.cn3, 1.0)
-                # reset glocalmax to gthresh if everything is snow
-                if sta.gratio[k] == 1.0:
-                    log.glocalmax[k] = der.gthresh[k]
-            elif dg < 0.0:
-                # snow cover degradation
-                sta.gratio[k] = min(sta.g[k] / log.glocalmax[k], 1.0)
+        if con.hysteresis:
+            for k in range(con.nlayers):
+                dg: float = flu.psnowlayer[k] - flu.melt[k]
+                if dg > 0.0:
+                    # snow cover build up
+                    # update of snow covered area
+                    sta.gratio[k] = min(sta.gratio[k] + dg / con.cn3, 1.0)
+                    # reset glocalmax to gthresh if everything is snow
+                    if sta.gratio[k] == 1.0:
+                        log.glocalmax[k] = der.gthresh[k]
+                elif dg < 0.0:
+                    # snow cover degradation
+                    sta.gratio[k] = min(sta.g[k] / log.glocalmax[k], 1.0)
 
 
 class Calc_PNetLayer_V1(modeltools.Method):

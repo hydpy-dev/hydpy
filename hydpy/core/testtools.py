@@ -1587,7 +1587,7 @@ def update_integrationtests(
 |  0.0 |  0.0 |  0.0 |
     <BLANKLINE>
     """
-    module = importlib.import_module(f"hydpy.models.{applicationmodel}")
+    module = importtools.load_modelmodule(applicationmodel)
     assert (docstring := module.__doc__) is not None
     stringio = io.StringIO
     with stringio() as file_, contextlib.redirect_stdout(file_):

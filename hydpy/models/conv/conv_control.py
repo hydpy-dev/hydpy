@@ -251,7 +251,7 @@ class MaxNmbInputs(parametertools.Parameter):
         else:
             super().__call__(*args, **kwargs)
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         """Assure that the value of |MaxNmbInputs| does not exceed the
         number of available input locations.
 
@@ -273,7 +273,7 @@ element `?` is not valid.
         """
         if upper is None:
             upper = self.subpars.inputcoordinates.shape[0]
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class MinNmbInputs(parametertools.Parameter):

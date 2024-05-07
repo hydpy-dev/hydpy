@@ -202,7 +202,7 @@ class ZoneArea(hland_parameters.ParameterComplete):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |ZoneArea| so that :math:`\Sigma ZoneArea = Area` holds and each zone
         area is non-negative.
 
@@ -251,7 +251,7 @@ class ZoneArea(hland_parameters.ParameterComplete):
             lower = areas
         if upper is None:
             upper = areas
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class Psi(parametertools.Parameter):
@@ -1302,7 +1302,7 @@ class K0(hland_parameters.ParameterUpperZone):
     # defined at the bottom of the file:
     CONTROLPARAMETERS: tuple[type[K1]]
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |K0| following :math:`K^* \leq K0 \leq K1` with
         :math:`K^* = -1/ln \left( 1 - e^{-1 / k1} \right)`.
 
@@ -1326,7 +1326,7 @@ class K0(hland_parameters.ParameterUpperZone):
                 lower = 0.0
         if upper is None:
             upper = exceptiontools.getattr_(self.subpars.k1, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class H1(hland_parameters.ParameterUpperZone):
@@ -1357,7 +1357,7 @@ class K1(hland_parameters.ParameterUpperZone):
     CONTROLPARAMETERS: tuple[type[K0], type[K2]]
     FIXEDPARAMETERS = (hland_fixed.K1L,)
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |K1| following :math:`max (K0, K^*) \leq K1 \leq K2` with
         :math:`K^* = max \left( -1/ln \left( 1 - e^{-1 / k0} \right), K1L \right)`.
 
@@ -1394,7 +1394,7 @@ class K1(hland_parameters.ParameterUpperZone):
                 lower[numpy.isnan(lower)] = k1l
         if upper is None:
             upper = exceptiontools.getattr_(self.subpars.k2, "values", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class SG1Max(hland_parameters.ParameterUpperZone):
@@ -1438,7 +1438,7 @@ class K2(hland_parameters.ParameterUpperZone):
     CONTROLPARAMETERS: tuple[type[K1], type[K3]]
     FIXEDPARAMETERS = (hland_fixed.K1L,)
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |K2| following :math:`max(K1, K1L) \leq K2 \leq K3`.
 
         >>> from hydpy.models.hland import *
@@ -1467,7 +1467,7 @@ class K2(hland_parameters.ParameterUpperZone):
                 lower = numpy.clip(lower, k1l, numpy.inf)
         if upper is None:
             upper = exceptiontools.getattr_(self.subpars.k3, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class K3(parametertools.Parameter):
@@ -1478,7 +1478,7 @@ class K3(parametertools.Parameter):
     CONTROLPARAMETERS = (K2,)
     FIXEDPARAMETERS = (hland_fixed.K1L,)
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |K3| in accordance with :math:`max(K2, K1L) \leq K3`.
 
         >>> from hydpy.models.hland import *
@@ -1510,7 +1510,7 @@ class K3(parametertools.Parameter):
             else:
                 if not k1l < lower:
                     lower = k1l
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class Gamma(parametertools.Parameter):

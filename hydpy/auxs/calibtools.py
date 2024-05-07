@@ -482,8 +482,8 @@ via option `parameterstep`.
     >>> rule.elements
     Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
 
-    Without using the `model` argument, you must ensure the selected elements handle
-    the correct model instance yourself:
+    When not using the model argument, you must ensure the selected elements handle the
+    correct model instance:
 
     >>> Replace(name="fc",
     ...         parameter="fc",
@@ -491,8 +491,10 @@ via option `parameterstep`.
     Traceback (most recent call last):
     ...
     RuntimeError: While trying to initialise the `Replace` rule object `fc`, the \
-following error occurred: Model `musk_classic` of element `stream_dill_lahn_2` does \
-not define a control parameter named `fc`.
+following error occurred: No (sub)model of element `stream_dill_lahn_2` defines a \
+control parameter named `fc`.
+
+    "Empty" rule objects are always considered erroneous:
 
     >>> Replace(name="fc",
     ...         parameter="fc",
@@ -504,6 +506,50 @@ not define a control parameter named `fc`.
     ValueError: While trying to initialise the `Replace` rule object `fc`, the \
 following error occurred: Object `Selections("headwaters", "nonheadwaters")` does not \
 handle any `musk_classic` model instances.
+
+    All mentioned functionalities also work for submodels:
+
+    >>> rule = Replace(name="soilmoisturelimit",
+    ...                parameter="soilmoisturelimit",
+    ...                value=0.8,
+    ...                model="evap_aet_hbv96")
+    >>> submodel = hp.elements.land_lahn_1.model.aetmodel
+    >>> soilmoisturelimit = submodel.parameters.control.soilmoisturelimit
+    >>> soilmoisturelimit
+    soilmoisturelimit(0.9)
+    >>> rule.apply_value()
+    >>> soilmoisturelimit
+    soilmoisturelimit(0.8)
+
+    We encourage explicitly defining the model type when working with complex submodel
+    combinations so as not to calibrate different but equally named parameters
+    accidentally:
+
+    >>> rule = Replace(name="fc",
+    ...                parameter="fc",
+    ...                value=0.8,
+    ...                model="evap_aet_hbv96")
+    Traceback (most recent call last):
+    ...
+    RuntimeError: While trying to initialise the `Replace` rule object `fc`, the \
+following error occurred: Model `evap_aet_hbv96` of element `land_dill` does not \
+define a control parameter named `fc`.
+
+    We consider name clashes like the following made-up example unlikely but still
+    carry out additional runtime type checks as a precaution:
+
+    >>> control = hp.elements.land_lahn_1.model.parameters.control
+    >>> control.soilmoisturelimit = control.fc
+    >>> rule = Replace(name="?",
+    ...                parameter="soilmoisturelimit",
+    ...                value=0.8,
+    ...                selections=[pub.selections.headwaters])
+    Traceback (most recent call last):
+    ...
+    RuntimeError: While trying to initialise the `Replace` rule object `?`, the \
+following error occurred: Parameter types are inconsistent: \
+`hydpy.models.hland.hland_control.FC` vs \
+`hydpy.models.evap.evap_control.SoilMoistureLimit`.
     """
 
     name: str
@@ -531,8 +577,8 @@ handle any `musk_classic` model instances.
     """The name of the addressed keyword argument or, for a positional argument, 
     |None|."""
 
-    elements: devicetools.Elements
-    """The |Element| objects, which handle the relevant target |Parameter| instances."""
+    element2parameters: dict[devicetools.Element, list[TypeParameter]]
+    """The |Element| objects and their related parameter objects."""
 
     selections: tuple[str, ...]
     """The names of all relevant |Selection| objects."""
@@ -555,6 +601,23 @@ handle any `musk_classic` model instances.
         selections: Optional[Iterable[Union[selectiontools.Selection, str]]] = None,
         model: Optional[Union[types.ModuleType, str]] = None,
     ) -> None:
+
+        def _add_parameter(element: hydpy.Element, parameter: TypeParameter, /) -> None:
+            if hasattr(self, "parametertype"):
+                if not isinstance(parameter, self.parametertype):
+                    type1 = type(parameter)
+                    name1 = ".".join([type1.__module__, type1.__name__])
+                    type2 = self.parametertype
+                    name2 = ".".join([type2.__module__, type2.__name__])
+                    raise RuntimeError(
+                        f"Parameter types are inconsistent: `{name1}` vs `{name2}`."
+                    )
+            else:
+                self.parametertype = type(parameter)
+            if element not in self.element2parameters:
+                self.element2parameters[element] = []
+            self.element2parameters[element].append(parameter)
+
         try:
             self.name = name
             self.parametername = str(getattr(parameter, "name", parameter))
@@ -562,51 +625,60 @@ handle any `musk_classic` model instances.
             self.upper = upper
             self.lower = lower
             self.value = value
+
             if model is None:
                 self._model = model
             elif isinstance(model, str):
                 self._model = model
             else:
                 self._model = model.__name__.rpartition(".")[-1]
+
+            st = selectiontools
             if selections is None:
                 selections = hydpy.pub.selections
                 if "complete" in selections:
-                    selections = selectiontools.Selections(selections.complete)
+                    selections = st.Selections(selections.complete)
             else:
-                selections = selectiontools.Selections(
+                selections = st.Selections(
                     *(
-                        (
-                            sel
-                            if isinstance(sel, selectiontools.Selection)
-                            else hydpy.pub.selections[sel]
-                        )
-                        for sel in selections
+                        (s if isinstance(s, st.Selection) else hydpy.pub.selections[s])
+                        for s in selections
                     )
                 )
             self.selections = selections.names
-            if self._model is None:
-                self.elements = selections.elements
-            else:
-                self.elements = devicetools.Elements(
-                    element
-                    for element in selections.elements
-                    if str(element.model) == self._model
-                )
-            if not self.elements:
+
+            parname = self.parametername
+            self.element2parameters = {}
+            for element in selections.elements:
+                if self._model is None:
+                    found_submodel = False
+                    for submodel in element.model.find_submodels(
+                        include_mainmodel=True
+                    ).values():
+                        control = submodel.parameters.control
+                        if (par := getattr(control, parname, None)) is not None:
+                            found_submodel = True
+                            _add_parameter(element, par)
+                    if not found_submodel:
+                        raise RuntimeError(
+                            f"No (sub)model of element `{element.name}` defines a "
+                            f"control parameter named `{parname}`."
+                        )
+                else:
+                    for submodel in element.model.query_submodels(self._model):
+                        control = submodel.parameters.control
+                        if (par := getattr(control, parname, None)) is None:
+                            raise RuntimeError(
+                                f"Model {objecttools.elementphrase(submodel)} does "
+                                f"not define a control parameter named `{parname}`."
+                            )
+                        _add_parameter(element, par)
+            if not self.element2parameters:
                 raise ValueError(
                     f"Object `{selections}` does not handle any `{self._model}` model "
                     f"instances."
                 )
-            for element in self.elements:
-                control = element.model.parameters.control
-                if not hasattr(control, self.parametername):
-                    raise RuntimeError(
-                        f"Model {objecttools.elementphrase(element.model)} does not "
-                        f"define a control parameter named `{self.parametername}`."
-                    )
-            self.parametertype = type(  # type: ignore[assignment]
-                tuple(self.elements)[0].model.parameters.control[self.parametername]
-            )
+
             self.parameterstep = parameterstep
             self._original_parameter_values = self._get_original_parameter_values()
         except BaseException:
@@ -614,6 +686,12 @@ handle any `musk_classic` model instances.
                 f"While trying to initialise the `{type(self).__name__}` rule object "
                 f"`{name}`"
             )
+
+    @property
+    def elements(self) -> hydpy.Elements:
+        """The |Element| objects, which handle the relevant target |Parameter|
+        instances."""
+        return hydpy.Elements(self.element2parameters)
 
     def _get_original_parameter_values(self) -> tuple[Any, ...]:
         with hydpy.pub.options.parameterstep(self.parameterstep):
@@ -781,10 +859,8 @@ value `200.0` instead.
         return self.name
 
     def __iter__(self) -> Iterator[TypeParameter]:
-        for element in self.elements:
-            parameter = element.model.parameters.control[self.parametername]
-            assert isinstance(parameter, self.parametertype)
-            yield parameter
+        for parameters in self.element2parameters.values():
+            yield from parameters
 
 
 class Replace(Rule[parametertools.Parameter]):

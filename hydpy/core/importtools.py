@@ -268,6 +268,19 @@ def reverse_model_wildcard_import() -> None:
         namespace[__HYDPY_MODEL_LOCALS__] = {}
 
 
+def load_modelmodule(module: Union[types.ModuleType, str], /) -> types.ModuleType:
+    """Load the given model module (if necessary) and return it.
+
+    >>> from hydpy.core.importtools import load_modelmodule
+    >>> from hydpy.models import evap_aet_hbv96
+    >>> assert evap_aet_hbv96 is load_modelmodule(evap_aet_hbv96)
+    >>> assert evap_aet_hbv96 is load_modelmodule("evap_aet_hbv96")
+    """
+    if isinstance(module, str):
+        return importlib.import_module(f"hydpy.models.{module}")
+    return module
+
+
 def prepare_model(
     module: Union[types.ModuleType, str],
     timestep: Optional[timetools.PeriodConstrArg] = None,
@@ -288,8 +301,7 @@ def prepare_model(
     """
     if timestep is not None:
         hydpy.pub.options.parameterstep = timetools.Period(timestep)
-    if isinstance(module, str):
-        module = importlib.import_module(f"hydpy.models.{module}")
+    module = load_modelmodule(module)
     model = module.Model()
     assert isinstance(model, modeltools.Model)
     if hydpy.pub.options.usecython and hasattr(module, "cythonizer"):
@@ -752,8 +764,7 @@ following error occurred: The given `lland_v3` instance is not considered sharab
                     f"The given `{submodel}` instance is not considered sharable."
                 )
 
-            if isinstance(submodel, str):
-                submodel = importlib.import_module(f"hydpy.models.{submodel}")
+            submodel = load_modelmodule(submodel)
             self._check_submodelinterface(submodeltype=submodel.Model)
 
             shared = self._sharable_configuration
@@ -836,7 +847,7 @@ following error occurred: The given `lland_v3` instance is not considered sharab
         # pylint: disable=protected-access
         if not issubclass(submodeltype, self.submodelinterface):
             raise TypeError(
-                f"Submodel `{submodeltype._NAME}` does not comply with the "
+                f"Submodel `{submodeltype.__HYDPY_NAME__}` does not comply with the "
                 f"`{self.submodelinterface.__name__}` interface."
             )
 

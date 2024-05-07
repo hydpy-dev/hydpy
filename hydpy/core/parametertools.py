@@ -288,6 +288,10 @@ For variable `latitude`, no value has been defined so far.
         sct(12.0)
         utclongitude(15)
         latituderad(0.872665)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
         """
         for subpars in self.secondary_subpars:
             for par in subpars:
@@ -345,6 +349,10 @@ yet: longitude(?).
         >>> pub.timegrids = "2000-01-30", "2000-02-04", "1d"
         >>> model.parameters.update()
         >>> model.parameters.verify()
+
+        .. testsetup::
+
+            >>> del pub.timegrids
         """
         for subpars in self:
             for par in subpars:
@@ -1466,9 +1474,9 @@ parameter and a simulation time step size first.
             ).parfactor
         return parfactor(parameterstep)
 
-    def trim(self, lower=None, upper=None) -> None:
+    def trim(self, lower=None, upper=None) -> bool:
         """Apply function |trim| of module |variabletools|."""
-        variabletools.trim(self, lower, upper)
+        return variabletools.trim(self, lower, upper)
 
     @classmethod
     def apply_timefactor(cls, values: ArrayFloat) -> ArrayFloat:
@@ -1947,7 +1955,7 @@ class NameParameter(_MixinModifiableParameter, Parameter):
             finally:
                 cls._reset_after_modification("constants", old)
 
-    def trim(self, lower=None, upper=None) -> None:
+    def trim(self, lower=None, upper=None) -> bool:
         """Check if all previously set values comply with the supported constants.
 
         >>> from hydpy.core.parametertools import Constants, NameParameter
@@ -1971,6 +1979,7 @@ valid.
                     f"At least one value of parameter "
                     f"{objecttools.elementphrase(self)} is not valid."
                 )
+        return False
 
     def __repr__(self) -> str:
         string = super().compress_repr()
@@ -2604,20 +2613,42 @@ broadcast input array from shape (2,) into shape (366,3)
 
     strict_valuehandling: bool = False
 
-    _toy2values: list[tuple[timetools.TOY, Union[float, NDArrayFloat]]]
+    _toy2values_unprotected: list[tuple[timetools.TOY, Union[float, NDArrayFloat]]]
+    _trimmed_insufficiently: bool
+    _trimming_disabled: bool
 
     def __init__(self, subvars) -> None:
         super().__init__(subvars)
-        self._toy2values = []
+        self._toy2values_unprotected = []
+        self._trimming_disabled = False
+        self._trimmed_insufficiently = False
+
+    @property
+    def _toy2values_protected(
+        self,
+    ) -> list[tuple[timetools.TOY, Union[float, NDArrayFloat]]]:
+        if self._trimmed_insufficiently and hydpy.pub.options.warntrim:
+            warnings.warn(
+                f'The "background values" of parameter '
+                f"{objecttools.elementphrase(self)} have been trimmed but not its "
+                f"original time of year-specific values.  Using the latter without "
+                f"modification might result in inconsistencies."
+            )
+        return self._toy2values_unprotected
 
     def __call__(self, *args, **kwargs) -> None:
         if self.NDIM == 1:
             self.shape = (-1,)
         try:
-            super().__call__(*args, **kwargs)
-            self._toy2values = [(timetools.TOY(), self.values[0])]
+            try:
+                self._trimming_disabled = True
+                super().__call__(*args, **kwargs)
+            finally:
+                self._trimming_disabled = False
+            self._toy2values_unprotected = [(timetools.TOY(), self.values[0])]
+            self.trim()
         except BaseException as exc:
-            self._toy2values = []
+            self._toy2values_unprotected = []
             if args:
                 raise exc
             for toystr, values in kwargs.items():
@@ -2636,19 +2667,20 @@ broadcast input array from shape (2,) into shape (366,3)
         else:
             value = numpy.full(self.shape[1:], value)
         toy_new = timetools.TOY(name)
-        if len(self._toy2values) == 0:
-            self._toy2values.append((toy_new, value))
+        toy2values = self._toy2values_unprotected
+        if len(toy2values) == 0:
+            toy2values.append((toy_new, value))
         secs_new = toy_new.seconds_passed
-        if secs_new > self._toy2values[-1][0].seconds_passed:
-            self._toy2values.append((toy_new, value))
+        if secs_new > toy2values[-1][0].seconds_passed:
+            toy2values.append((toy_new, value))
         else:
-            for idx, (toy_old, _) in enumerate(self._toy2values[:]):
+            for idx, (toy_old, _) in enumerate(toy2values[:]):
                 secs_old = toy_old.seconds_passed
                 if secs_new == secs_old:
-                    self._toy2values[idx] = toy_new, value
+                    toy2values[idx] = toy_new, value
                     break
                 if secs_new < secs_old:
-                    self._toy2values.insert(idx, (toy_new, value))
+                    toy2values.insert(idx, (toy_new, value))
                     break
 
     def refresh(self) -> None:
@@ -2741,10 +2773,11 @@ broadcast input array from shape (2,) into shape (366,3)
 
             >>> del pub.timegrids
         """
-        if not self._toy2values:
+        toy2values = self._toy2values_unprotected
+        if not toy2values:
             self._set_value(0.0)
         elif len(self) == 1:
-            self.values[:] = self.apply_timefactor(self._toy2values[0][1])
+            self.values[:] = self.apply_timefactor(toy2values[0][1])
         else:
             centred = timetools.TOY.centred_timegrid()
             values = self._get_value()
@@ -2752,6 +2785,7 @@ broadcast input array from shape (2,) into shape (366,3)
                 values[idx] = self.interp(date) if rel else numpy.nan
             values = self.apply_timefactor(values)
             self._set_value(values)
+        self.trim()
 
     def interp(self, date: timetools.Date) -> float:
         """Perform a linear value interpolation for the given `date` and return the
@@ -2845,7 +2879,7 @@ broadcast input array from shape (2,) into shape (366,3)
     @property
     def toys(self) -> tuple[timetools.TOY, ...]:
         """A sorted |tuple| of all contained |TOY| objects."""
-        return tuple(toy for toy, _ in self._toy2values)
+        return tuple(toy for toy, _ in self._toy2values_unprotected)
 
     def _get_shape(self) -> tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
@@ -2929,12 +2963,77 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
 
     shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
+    def trim(self, lower=None, upper=None) -> bool:
+        """Extend the usual trim logic with a warning mechanism to account for that
+        trimming only affects "background values" and not the "visible" time of year /
+        value pairs.
+
+        The usual trimming process affects the simulation-relevant "background values",
+        not the "visible" original values supplied by the user.  Hence,
+        |SeasonalParameter| tries to keep track of recent trimmings to warn if users
+        try to used the unmodified "visible" values later:
+
+        >>> from hydpy import pub, round_
+        >>> pub.timegrids = "2000-01-01", "2000-01-04", "1d"
+        >>> from hydpy.models.sw1d import *
+        >>> parameterstep()
+        >>> upperlowwaterthreshold.shape = 1
+        >>> upperlowwaterthreshold.values[:3] = 1.0, 2.0, 3.0
+        >>> bottomlowwaterthreshold(2.0)
+        >>> round_(bottomlowwaterthreshold.values[:3])
+        1.0, 2.0, 2.0
+        >>> from hydpy.core.testtools import warn_later
+        >>> with pub.options.warntrim(True), warn_later():
+        ...     bottomlowwaterthreshold
+        bottomlowwaterthreshold(2.0)
+        UserWarning: The "background values" of parameter `bottomlowwaterthreshold` \
+of element `?` have been trimmed but not its original time of year-specific values.  \
+Using the latter without modification might result in inconsistencies.
+
+        In such cases, modify the values of the affected parameter or its boundaries
+        and call |SeasonalParameter.refresh| manually.  If successful, the warning
+        disappears:
+
+        >>> upperlowwaterthreshold.values[0] = 2.0
+        >>> bottomlowwaterthreshold.refresh()
+        >>> with pub.options.warntrim(True):
+        ...     bottomlowwaterthreshold
+        bottomlowwaterthreshold(2.0)
+
+        The explained mechanism equivalently works when defining seasonally varying
+        parameter values and trying to access the unmodified "visible" values in other
+        ways:
+
+        >>> bottomlowwaterthreshold(_1_1_12=3.0, _1_3_12=1.0)
+        >>> round_(bottomlowwaterthreshold.values[:3])
+        2.0, 2.0, 1.0
+        >>> with pub.options.warntrim(True), warn_later():
+        ...     round_(bottomlowwaterthreshold.toy_1_1_12)  # doctest: +ELLIPSIS
+        3.0
+        UserWarning: The "background values"...result in inconsistencies.
+        >>> with pub.options.warntrim(True), warn_later():
+        ...     tuple(bottomlowwaterthreshold)  # doctest: +ELLIPSIS
+        ((TOY("1_1_12_0_0"), 3.0), (TOY("1_3_12_0_0"), 1.0))
+        UserWarning: The "background values"...result in inconsistencies.
+        >>> with pub.options.warntrim(True), warn_later():
+        ...     len(bottomlowwaterthreshold)  # doctest: +ELLIPSIS
+        2
+        UserWarning: The "background values"...result in inconsistencies.
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+        """
+        if not self._trimming_disabled:
+            self._trimmed_insufficiently = super().trim(lower, upper)
+        return self._trimmed_insufficiently
+
     def __iter__(self) -> Iterator[tuple[timetools.TOY, Any]]:
-        return iter(self._toy2values)
+        return iter(self._toy2values_protected)
 
     def __getattr__(self, name: str) -> Union[float, NDArrayFloat]:
         selected = timetools.TOY(name)
-        for available, value in self._toy2values:
+        for available, value in self._toy2values_protected:
             if selected == available:
                 return value
         raise AttributeError(
@@ -2960,7 +3059,7 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
             super().__delattr__(name)
         except AttributeError:
             selected = timetools.TOY(name)
-            for idx, (available, _) in enumerate(self._toy2values):
+            for idx, (available, _) in enumerate(self._toy2values_unprotected):
                 if selected == available:
                     break
             else:
@@ -2969,7 +3068,7 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
                     f'neither a normal attribute nor does it handle a "time of year" '
                     f"named `{name}`."
                 ) from None
-            del self._toy2values[idx]
+            del self._toy2values_unprotected[idx]
             self.refresh()
 
     def __repr__(self) -> str:
@@ -2978,11 +3077,12 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
                 return objecttools.assignrepr_value(value_, prefix_)
             return objecttools.assignrepr_list(value_, prefix_, width=79)
 
-        if not self:
+        toy2values = self._toy2values_protected
+        if not toy2values:
             return f"{self.name}()"
         toy0 = timetools.TOY0
-        if (len(self) == 1) and (toy0 == self._toy2values[0][0]):
-            return f'{_assignrepr(self._toy2values[0][1], f"{self.name}(")})'
+        if (len(self) == 1) and (toy0 == toy2values[0][0]):
+            return f'{_assignrepr(toy2values[0][1], f"{self.name}(")})'
         lines = []
         blanks = " " * (len(self.name) + 1)
         for idx, (toy, value) in enumerate(self):
@@ -2994,7 +3094,7 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
         return ",\n".join(lines)
 
     def __len__(self) -> int:
-        return len(self._toy2values)
+        return len(self._toy2values_protected)
 
     def __dir__(self) -> list[str]:
         """

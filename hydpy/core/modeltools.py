@@ -1059,7 +1059,7 @@ class Model:
     idx_sim = Idx_Sim()
 
     __hydpy_element__: Optional[devicetools.Element]
-    _NAME: ClassVar[str]
+    __HYDPY_NAME__: ClassVar[str]
 
     INLET_METHODS: ClassVar[tuple[type[Method], ...]]
     OUTLET_METHODS: ClassVar[tuple[type[Method], ...]]
@@ -1620,7 +1620,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         >>> hland.name
         'hland'
         """
-        return self._NAME
+        return self.__HYDPY_NAME__
 
     def prepare_allseries(self, allocate_ram: bool = True, jit: bool = False) -> None:
         """Call method |Model.prepare_inputseries| with `read_jit=jit` and methods
@@ -2147,8 +2147,7 @@ the following error occurred: (Sub)model `evap_morsim` is not of type `evap_aet_
         """
         try:
             if module is not None:
-                if isinstance(module, str):
-                    module = importlib.import_module(f"hydpy.models.{module}")
+                module = importtools.load_modelmodule(module)
                 if self.__module__ != module.__name__:
                     raise TypeError(
                         f"(Sub)model `{self.name}` is not of type "
@@ -2366,6 +2365,16 @@ element.
                 f"While trying to save the actual conditions of element "
                 f"`{objecttools.devicename(self)}`"
             )
+
+    def trim_conditions(self) -> None:
+        """Call method |Sequences.trim_conditions| of the handled |Sequences| object."""
+        for model in self.find_submodels(include_mainmodel=True).values():
+            model.sequences.trim_conditions()
+
+    def reset_conditions(self) -> None:
+        """Call method |Sequences.reset| of the handled |Sequences| object."""
+        for model in self.find_submodels(include_mainmodel=True).values():
+            model.sequences.reset()
 
     @abc.abstractmethod
     def simulate(self, idx: int) -> None:
@@ -2705,7 +2714,7 @@ element.
     ) -> Union[dict[str, Model], dict[str, Optional[Model]]]:
         """Find the (sub)submodel instances of the current main model instance.
 
-        Method |Model.find_submodels| returns by default an empty dictionary if no
+        Method |Model.find_submodels| returns an empty dictionary by default if no
         submodel is available:
 
         >>> from hydpy import prepare_model
@@ -2954,6 +2963,34 @@ but the value `1` of type `int` is given.
         _find_submodels("model", self)
         return dict(sorted(name2submodel.items()))
 
+    def query_submodels(self, name: Union[types.ModuleType, str], /) -> list[Model]:
+        """Use |Model.find_submodels| to query all (sub)models of the given type.
+
+       >>> from hydpy import prepare_model
+        >>> model = prepare_model("lland_v3")
+        >>> model.query_submodels("meteo_v001")
+        []
+
+        >>> model.radiationmodel = prepare_model("meteo_v001")
+        >>> model.query_submodels("meteo_v001")  # doctest: +ELLIPSIS
+        [<hydpy.models.meteo_v001.Model object at ...>]
+
+        >>> model.aetmodel = prepare_model("evap_morsim")
+        >>> model.aetmodel.radiationmodel = model.radiationmodel
+        >>> model.query_submodels("meteo_v001")  # doctest: +ELLIPSIS
+        [<hydpy.models.meteo_v001.Model object at ...>]
+
+        >>> from hydpy.models import meteo_v001
+        >>> model.aetmodel.radiationmodel = prepare_model(meteo_v001)
+        >>> model.query_submodels(meteo_v001)  # doctest: +ELLIPSIS
+        [<hydpy.models.meteo_v001.Model object at ...>, \
+<hydpy.models.meteo_v001.Model object at ...0>]
+        """
+        if isinstance(name, types.ModuleType):
+            name = importtools.load_modelmodule(name).Model.__HYDPY_NAME__
+        submodels = self.find_submodels(include_mainmodel=True)
+        return [s for s in submodels.values() if s.name == name]
+
     def update_parameters(self, ignore_errors: bool = False) -> None:
         """Use the control parameter values of the current model for updating its
         derived parameters and the control and derived parameters of all its submodels.
@@ -3086,7 +3123,7 @@ but the value `1` of type `int` is given.
             modulename = modulename.rpartition(".")[0]
         module = cast(_ModelModule, importlib.import_module(modulename))
         modelname = modulename.split(".")[-1]
-        cls._NAME = modelname
+        cls.__HYDPY_NAME__ = modelname
 
         allsequences = set()
         st = sequencetools
@@ -4727,15 +4764,16 @@ sw1d_channel.
                 elements = selection.elements
             for element in elements:
                 if not isinstance(element.model, self._inputtypes):
+                    modeltypes = (m.__HYDPY_NAME__ for m in self._inputtypes)
                     raise TypeError(
                         f"{objecttools.elementphrase(element.model)} is not among the "
                         f"supported model types: "
-                        f"{objecttools.enumeration(m._NAME for m in self._inputtypes)}."
+                        f"{objecttools.enumeration(modeltypes)}."
                     )
             return self._wrapped(nodes=nodes, elements=elements)
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to couple the given model instances to a composite "
-                f"model of type `{self._outputtype._NAME}` based on function "
+                f"model of type `{self._outputtype.__HYDPY_NAME__}` based on function "
                 f"`{self._wrapped.__name__}`"
             )

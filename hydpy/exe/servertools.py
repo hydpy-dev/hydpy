@@ -1259,7 +1259,7 @@ registered under the id `0`.  There is nothing registered, so far.
     >>> from hydpy import print_values
     >>> filepath = "LahnH/series/mean_sm/hland_v1_state_sm_mean.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
-    ...     print_values(ncfile["values"][:, 0])
+    ...     print_values(ncfile["hland_v1_state_sm_mean"][:, 0])
     211.231585, 0.0, 0.0, 0.0, 0.0
 
     To save the results of subsequent simulations without overwriting the previous
@@ -1272,7 +1272,7 @@ registered under the id `0`.  There is nothing registered, so far.
     <BLANKLINE>
     >>> filepath = "LahnH/series/sm_averaged/hland_v1_state_sm_mean.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
-    ...     print_values(ncfile["values"][:, 0])
+    ...     print_values(ncfile["hland_v1_state_sm_mean"][:, 0])
     211.231585, 0.0, 0.0, 0.0, 0.0
 
     |HydPyServer.GET_deregister_serieswriterdir| removes the currently set directory
@@ -1298,7 +1298,7 @@ under the id `0`.  There is nothing registered, so far.
 
     >>> filepath = "LahnH/series/temperature/hland_v1_input_t.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
-    ...     print_values(ncfile["values"][:, 0])
+    ...     print_values(ncfile["hland_v1_input_t"][:, 0])
     -0.298846, 0.0, 0.0, 0.0, 0.0
 
     The input sequences |hland_inputs.P| and |evap_inputs.NormalEvapotranspiration| are
@@ -1322,7 +1322,7 @@ under the id `0`.  There is nothing registered, so far.
     <BLANKLINE>
     >>> filepath = "LahnH/series/temp/hland_v1_input_t.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
-    ...     print_values(ncfile["values"][:, 0])
+    ...     print_values(ncfile["hland_v1_input_t"][:, 0])
     -0.298846, 0.0, 0.0, 0.0, 0.0
 
     The "just in time" reading of the series of |hland_inputs.P| and

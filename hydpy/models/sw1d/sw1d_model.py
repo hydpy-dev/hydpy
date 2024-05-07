@@ -2043,113 +2043,228 @@ class Update_Discharge_V1(modeltools.Method):
 
 
 class Update_Discharge_V2(modeltools.Method):
-    r"""Suppress upstream flow if the downstream water level exceeds the upstream one.
+    r"""Sluice-like discharge reduction with separate control for low and high flow
+    protection.
 
     Basic equations:
       .. math::
-        Q_{new} = \begin{cases}
-        Q_{old} &|\  0 \leq Q_{old} \ \lor  \ h_d \leq h_u  \ \lor \ h_u \leq t_1 \\
-        Q_{old} \cdot \left( 1 - \frac{h_u - t_1}{t_2 - t_1} \right)
-         &|\  Q_{old} < 0 \ \land  \ h_u < h_d \ \ \land \ t_1 < h_u < t_2 \\
-        0 &|\  Q_{old} < 0 \ \land  \ h_u < h_d \ \ \land \ t_2 \leq h_u
+        Q_{new} = Q_{new} \cdot \begin{cases}
+        free  &|\  h_u \leq h_d \\
+        free + sluice &|\  h_d < h_u \\
         \end{cases} \\
+        \\ \\
+        closed = \begin{cases}
+        1 &|\  h_u \leq t_{bl} \\
+        1 - \frac{h_u - t_{bl}}{t_{ul} - t_{bl}} &|\  t_{bl} < h_u < t_{ul} \\
+        0 &|\  t_{ul} \leq h_u
+        \end{cases} \\
+        \\
+        sluice = \begin{cases}
+        0 &|\  h_u \leq t_{bh} \\
+        \frac{h_u - t_{bh}}{t_{uh} - t_{bh}} &|\  t_{bh} < h_u < t_{uh} \\
+        1 &|\  t_{uh} \leq h_u
+        \end{cases} \\
+        \\
+        free = 1 - closed - sluice \\
         \\
         Q = Discharge \\
         h_u = WaterLevelUpstream \\
         h_d = WaterLevelDownstream \\
-        t_1 = TargetWaterLevel1 \\
-        t_2 = TargetWaterLevel2
+        t_{bl} = BottomLowWaterThreshold \\
+        t_{ul} = UpperLowWaterThreshold \\
+        t_{bh} = BottomHighWaterThreshold \\
+        t_{uh} = UpperHighWaterThreshold
 
     Examples:
 
-        We use the same unmodified discharge of -1 m³/s in most examples:
+        All involved control parameters are subclasses of |SeasonalParameter|, which
+        allows the simulation of seasonal sluice control schemes.  To show how this
+        works, we first define a simulation period of four days:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-05", "1d"
+
+        We prepare a model and define different control schemes for four consecutive
+        days:
 
         >>> from hydpy.models.sw1d import *
         >>> parameterstep()
-        >>> states.discharge = -1.0
+        >>> bottomlowwaterthreshold(_1_1_12=5.0, _1_2_12=2.0, _1_3_12=2.0, _1_4_12=2.0)
+        >>> upperlowwaterthreshold(_1_1_12=5.0, _1_2_12=8.0, _1_3_12=5.0, _1_4_12=6.0)
+        >>> bottomhighwaterthreshold(_1_1_12=5.0, _1_2_12=2.0, _1_3_12=5.0, _1_4_12=4.0)
+        >>> upperhighwaterthreshold(_1_1_12=5.0, _1_2_12=8.0, _1_3_12=8.0, _1_4_12=8.0)
+        >>> derived.toy.update()
 
-        At first, we set |TargetWaterLevel1| and |TargetWaterLevel2| to the same value
-        of 2 m:
-
-        >>> targetwaterlevel1(2.0)
-        >>> targetwaterlevel2(2.0)
-
-        We prepare a |UnitTest| object demonstrating |Update_Discharge_V2| for multiple
-        upstream and downstream water levels:
+        We prepare a |UnitTest| object to demonstrate the dependency of
+        |Update_Discharge_V2| on the downstream water level:
 
         >>> from hydpy import UnitTest
-        >>> test = UnitTest(
-        ...     model, model.update_discharge_v2,
-        ...     last_example=7,
-        ...     parseqs=(factors.waterlevelupstream, factors.waterleveldownstream,
-        ...              states.discharge))
+        >>> test = UnitTest(model, model.update_discharge_v2, last_example=9,
+        ...                 parseqs=(factors.waterlevelupstream, states.discharge))
+        >>> test.nexts.waterlevelupstream = 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0
 
-        |Update_Discharge_V2| does never modify the original discharge value as long as
-        the downstream water level does not exceed the upstream one:
+        We will discuss each day's control scheme for a normal flow situation with a
+        relatively low downstream water level and a reversed flow situation with a
+        relatively high downstream water level.
 
-        >>> test.nexts.waterlevelupstream = 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0
-        >>> test.nexts.waterleveldownstream = 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0
-        >>> test()
-        | ex. | waterlevelupstream | waterleveldownstream | discharge |
-        ---------------------------------------------------------------
-        |   1 |                1.0 |                  1.0 |      -1.0 |
-        |   2 |                2.0 |                  2.0 |      -1.0 |
-        |   3 |                3.0 |                  3.0 |      -1.0 |
-        |   4 |                4.0 |                  4.0 |      -1.0 |
-        |   5 |                5.0 |                  5.0 |      -1.0 |
-        |   6 |                6.0 |                  6.0 |      -1.0 |
-        |   7 |                7.0 |                  7.0 |      -1.0 |
+        For April 1, all threshold parameters have the same value of 5 m.  So, gates
+        are generally closed below an upstream water level of 5 m to prevent
+        the source catchment from running dry during low flow periods ("closed gate")
+        and only allow normal flow above 5 m to maximise drainage during high flow
+        periods ("sluice mode"):
 
-        After raising the downstream water level, |Update_Discharge_V2| sets the
-        upstream flow to zero as soon as the upper water level exceeds the given lower
-        and upper threshold values:
-
-        >>> test.nexts.waterleveldownstream = 7 * [8.0]
-        >>> test()
-        | ex. | waterlevelupstream | waterleveldownstream | discharge |
-        ---------------------------------------------------------------
-        |   1 |                1.0 |                  8.0 |      -1.0 |
-        |   2 |                2.0 |                  8.0 |      -1.0 |
-        |   3 |                3.0 |                  8.0 |       0.0 |
-        |   4 |                4.0 |                  8.0 |       0.0 |
-        |   5 |                5.0 |                  8.0 |       0.0 |
-        |   6 |                6.0 |                  8.0 |       0.0 |
-        |   7 |                7.0 |                  8.0 |       0.0 |
-
-        Setting |TargetWaterLevel1| and |TargetWaterLevel2| to the same value might
-        result in situations with frequent "on-off switching" with eventually adverse
-        effects on computational efficiency or simulation accuracy.  After setting
-        |TargetWaterLevel2| to 5 m, we see that |Update_Discharge_V2| reduces the
-        original upstream flow more smoothly via linear interpolation:
-
-        >>> targetwaterlevel2(6.0)
-        >>> test()
-        | ex. | waterlevelupstream | waterleveldownstream | discharge |
-        ---------------------------------------------------------------
-        |   1 |                1.0 |                  8.0 |      -1.0 |
-        |   2 |                2.0 |                  8.0 |      -1.0 |
-        |   3 |                3.0 |                  8.0 |     -0.75 |
-        |   4 |                4.0 |                  8.0 |      -0.5 |
-        |   5 |                5.0 |                  8.0 |     -0.25 |
-        |   6 |                6.0 |                  8.0 |       0.0 |
-        |   7 |                7.0 |                  8.0 |       0.0 |
-
-        The discussed reductions do not apply to downstream flows:
-
+        >>> model.idx_sim = pub.timegrids.init["2000-01-01"]
+        >>> factors.waterleveldownstream = 0.0
         >>> test.inits.discharge = 1.0
         >>> test()
-        | ex. | waterlevelupstream | waterleveldownstream | discharge |
-        ---------------------------------------------------------------
-        |   1 |                1.0 |                  8.0 |       1.0 |
-        |   2 |                2.0 |                  8.0 |       1.0 |
-        |   3 |                3.0 |                  8.0 |       1.0 |
-        |   4 |                4.0 |                  8.0 |       1.0 |
-        |   5 |                5.0 |                  8.0 |       1.0 |
-        |   6 |                6.0 |                  8.0 |       1.0 |
-        |   7 |                7.0 |                  8.0 |       1.0 |
+        | ex. | waterlevelupstream | discharge |
+        ----------------------------------------
+        |   1 |                1.0 |       0.0 |
+        |   2 |                2.0 |       0.0 |
+        |   3 |                3.0 |       0.0 |
+        |   4 |                4.0 |       0.0 |
+        |   5 |                5.0 |       1.0 |
+        |   6 |                6.0 |       1.0 |
+        |   7 |                7.0 |       1.0 |
+        |   8 |                8.0 |       1.0 |
+        |   9 |                9.0 |       1.0 |
+
+        >>> factors.waterleveldownstream = 10.0
+        >>> test.inits.discharge = -1.0
+        >>> test()
+        | ex. | waterlevelupstream | discharge |
+        ----------------------------------------
+        |   1 |                1.0 |       0.0 |
+        |   2 |                2.0 |       0.0 |
+        |   3 |                3.0 |       0.0 |
+        |   4 |                4.0 |       0.0 |
+        |   5 |                5.0 |       0.0 |
+        |   6 |                6.0 |       0.0 |
+        |   7 |                7.0 |       0.0 |
+        |   8 |                8.0 |       0.0 |
+        |   9 |                9.0 |       0.0 |
+
+        In the following examples, he transitions between the low and high water
+        control schemes are not sharp but gradual, which is often more realistic and
+        numerically favourable.  For April 2, the values of |BottomLowWaterThreshold|
+        and |BottomHighWaterThreshold| and the values of |UpperLowWaterThreshold| and
+        |UpperHighWaterThreshold| are equal.  Hence, we see a linear-interpolation-like
+        transition from the "closed gate" to the "sluice mode" control schemes:
+
+        >>> model.idx_sim = pub.timegrids.init["2000-01-02"]
+        >>> factors.waterleveldownstream = 0.0
+        >>> test.inits.discharge = 1.0
+        >>> test()
+        | ex. | waterlevelupstream | discharge |
+        ----------------------------------------
+        |   1 |                1.0 |       0.0 |
+        |   2 |                2.0 |       0.0 |
+        |   3 |                3.0 |  0.166667 |
+        |   4 |                4.0 |  0.333333 |
+        |   5 |                5.0 |       0.5 |
+        |   6 |                6.0 |  0.666667 |
+        |   7 |                7.0 |  0.833333 |
+        |   8 |                8.0 |       1.0 |
+        |   9 |                9.0 |       1.0 |
+
+        >>> factors.waterleveldownstream = 10.0
+        >>> test.inits.discharge = -1.0
+        >>> test()
+        | ex. | waterlevelupstream | discharge |
+        ----------------------------------------
+        |   1 |                1.0 |       0.0 |
+        |   2 |                2.0 |       0.0 |
+        |   3 |                3.0 |       0.0 |
+        |   4 |                4.0 |       0.0 |
+        |   5 |                5.0 |       0.0 |
+        |   6 |                6.0 |       0.0 |
+        |   7 |                7.0 |       0.0 |
+        |   8 |                8.0 |       0.0 |
+        |   9 |                9.0 |       0.0 |
+
+        For April 3, the values of |UpperLowWaterThreshold| and
+        |BottomHighWaterThreshold| are equal.  So, at this point, neither the "closed
+        gate" nor the "sluice mode" control schemes apply, and the water can flow
+        freely in both directions ("free discharge"):
+
+        >>> model.idx_sim = pub.timegrids.init["2000-01-03"]
+        >>> factors.waterleveldownstream = 0.0
+        >>> test.inits.discharge = 1.0
+        >>> test()
+        | ex. | waterlevelupstream | discharge |
+        ----------------------------------------
+        |   1 |                1.0 |       0.0 |
+        |   2 |                2.0 |       0.0 |
+        |   3 |                3.0 |  0.333333 |
+        |   4 |                4.0 |  0.666667 |
+        |   5 |                5.0 |       1.0 |
+        |   6 |                6.0 |       1.0 |
+        |   7 |                7.0 |       1.0 |
+        |   8 |                8.0 |       1.0 |
+        |   9 |                9.0 |       1.0 |
+
+        >>> factors.waterleveldownstream = 10.0
+        >>> test.inits.discharge = -1.0
+        >>> test()
+        | ex. | waterlevelupstream | discharge |
+        ----------------------------------------
+        |   1 |                1.0 |       0.0 |
+        |   2 |                2.0 |       0.0 |
+        |   3 |                3.0 | -0.333333 |
+        |   4 |                4.0 | -0.666667 |
+        |   5 |                5.0 |      -1.0 |
+        |   6 |                6.0 | -0.666667 |
+        |   7 |                7.0 | -0.333333 |
+        |   8 |                8.0 |       0.0 |
+        |   9 |                9.0 |       0.0 |
+
+
+        For April 4, the "closed gate" and "sluice mode" parameter ranges are partly
+        overlapping, so reversed flow can occur but only with reduced intensity:
+
+        >>> model.idx_sim = pub.timegrids.init["2000-01-04"]
+        >>> factors.waterleveldownstream = 0.0
+        >>> test.inits.discharge = 1.0
+        >>> test()
+        | ex. | waterlevelupstream | discharge |
+        ----------------------------------------
+        |   1 |                1.0 |       0.0 |
+        |   2 |                2.0 |       0.0 |
+        |   3 |                3.0 |      0.25 |
+        |   4 |                4.0 |       0.5 |
+        |   5 |                5.0 |      0.75 |
+        |   6 |                6.0 |       1.0 |
+        |   7 |                7.0 |       1.0 |
+        |   8 |                8.0 |       1.0 |
+        |   9 |                9.0 |       1.0 |
+
+        >>> factors.waterleveldownstream = 10.0
+        >>> test.inits.discharge = -1.0
+        >>> test()
+        | ex. | waterlevelupstream | discharge |
+        ----------------------------------------
+        |   1 |                1.0 |       0.0 |
+        |   2 |                2.0 |       0.0 |
+        |   3 |                3.0 |     -0.25 |
+        |   4 |                4.0 |      -0.5 |
+        |   5 |                5.0 |      -0.5 |
+        |   6 |                6.0 |      -0.5 |
+        |   7 |                7.0 |     -0.25 |
+        |   8 |                8.0 |       0.0 |
+        |   9 |                9.0 |       0.0 |
+
+        .. testsetup::
+
+            >>> del pub.timegrids
     """
 
-    CONTROLPARAMETERS = (sw1d_control.TargetWaterLevel1, sw1d_control.TargetWaterLevel2)
+    CONTROLPARAMETERS = (
+        sw1d_control.BottomLowWaterThreshold,
+        sw1d_control.UpperLowWaterThreshold,
+        sw1d_control.BottomHighWaterThreshold,
+        sw1d_control.UpperHighWaterThreshold,
+    )
+    DERIVEDPARAMETERS = (sw1d_derived.TOY,)
     REQUIREDSEQUENCES = (
         sw1d_factors.WaterLevelUpstream,
         sw1d_factors.WaterLevelDownstream,
@@ -2159,19 +2274,36 @@ class Update_Discharge_V2(modeltools.Method):
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
         sta = model.sequences.states.fastaccess
 
-        if sta.discharge < 0.0:
-            hu: float = fac.waterlevelupstream
-            hd: float = fac.waterleveldownstream
-            t1: float = con.targetwaterlevel1
-            t2: float = con.targetwaterlevel2
-            if t1 < hu < hd:
-                if hu < t2:
-                    sta.discharge *= 1 - (hu - t1) / (t2 - t1)
-                else:
-                    sta.discharge = 0.0
+        hu: float = fac.waterlevelupstream
+        hd: float = fac.waterleveldownstream
+        toy = der.toy[model.idx_sim]
+        lt1: float = con.bottomlowwaterthreshold[toy]
+        lt2: float = con.upperlowwaterthreshold[toy]
+        ht1: float = con.bottomhighwaterthreshold[toy]
+        ht2: float = con.upperhighwaterthreshold[toy]
+
+        # Is the sluice generally closed? (low water protection)
+        if hu < lt1:
+            state_closed: float = 1.0
+        elif hu < lt2:
+            state_closed = 1.0 - (hu - lt1) / (lt2 - lt1)
+        else:
+            state_closed = 0.0
+        # Is the sluice in real sluice mode? (high water protection)
+        if hu < ht1:
+            state_sluice: float = 0.0
+        elif hu < ht2:
+            state_sluice = (hu - ht1) / (ht2 - ht1)
+        else:
+            state_sluice = 1.0
+        # Is the sluice generally open? (no protection measures necessary)
+        state_free: float = 1.0 - state_closed - state_sluice
+
+        sta.discharge *= state_free + (state_sluice if hu > hd else 0.0)
 
 
 class Reset_DischargeVolume_V1(modeltools.Method):
@@ -2901,10 +3033,12 @@ class Determine_Discharge_V5(modeltools.AutoMethod):
     CONTROLPARAMETERS = (
         sw1d_control.StricklerCoefficient,
         sw1d_control.DiffusionFactor,
-        sw1d_control.TargetWaterLevel1,
-        sw1d_control.TargetWaterLevel2,
+        sw1d_control.BottomLowWaterThreshold,
+        sw1d_control.UpperLowWaterThreshold,
+        sw1d_control.BottomHighWaterThreshold,
+        sw1d_control.UpperHighWaterThreshold,
     )
-    DERIVEDPARAMETERS = (sw1d_derived.LengthMean,)
+    DERIVEDPARAMETERS = (sw1d_derived.TOY, sw1d_derived.LengthMean)
     FIXEDPARAMETERS = (sw1d_fixed.GravitationalAcceleration,)
     REQUIREDSEQUENCES = (
         sw1d_factors.WaterLevelUpstream,

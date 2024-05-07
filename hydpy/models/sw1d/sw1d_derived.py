@@ -11,6 +11,11 @@ class Seconds(parametertools.SecondsParameter):
     """The length of the actual simulation step size in seconds [s]."""
 
 
+class TOY(parametertools.TOYParameter):
+    """References the |Indexer.timeofyear| index array provided by the instance of
+    class |Indexer| available in module |pub| [-]."""
+
+
 class WeightUpstream(parametertools.Parameter):
     """A weighting coefficient for interpolating the water level from the centroids of
     two adjacent segments to their shared edge [-]."""

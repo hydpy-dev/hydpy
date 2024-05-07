@@ -5,7 +5,10 @@ The *HydPy-SW1D* model family member |sw1d_lias_sluice| extends the routing subm
 |sw1d_lias| with simple sluice functionalities.
 
 The main model |sw1d_channel| documentation explains |sw1d_lias| depth.  Here, we limit
-the discussion to the additional features of |sw1d_lias_sluice|.
+the discussion to some of the additional features of |sw1d_lias_sluice|.  Please also
+read the documentation on method |Update_Discharge_V2|, which shows how to define
+seasonal control schemes and additional and "closed gate" functionality, which helps
+to prevent source catchment from running dry during low flow periods.
 
 Integration tests
 =================
@@ -43,8 +46,10 @@ except replacing the |sw1d_lias| submodel at the central location with a
 ...         timestepfactor(0.7)
 ...         diffusionfactor(0.2)
 ...         if i == 4:
-...             targetwaterlevel1(5.0)
-...             targetwaterlevel2(5.0)
+...             bottomlowwaterthreshold(0.0)
+...             upperlowwaterthreshold(0.0)
+...             bottomhighwaterthreshold(5.0)
+...             upperhighwaterthreshold(5.0)
 
 >>> from hydpy import Element
 >>> channel = Element("channel")
@@ -79,10 +84,11 @@ Due to the identical setting of all common parameters, the following results are
 identical to those of the :ref:`sw1d_channel_zero_inflow_and_outflow` example for the
 first four hours of the simulation period.  The water levelling takes place by an
 unhindered downstream water movement.  However, due to setting the additional
-parameters |TargetWaterLevel1| and |TargetWaterLevel2| to 5 m (the channel bottom), the
-sluice functionality is potentially active all the time, which is noticeable in the
-fifth hour.  The excess water in the last four channel segments cannot flow back, so
-two different water levels (one above and one below the sluice) start to set in:
+parameters |BottomHighWaterThreshold| and |UpperHighWaterThreshold| to 5 m (the channel
+bottom), the sluice functionality is potentially active all the time, which is
+noticeable in the fifth hour.  The excess water in the last four channel segments
+cannot flow back, so two different water levels (one above and one below the sluice)
+start to set in:
 
 .. integration-test::
 
@@ -137,18 +143,18 @@ two different water levels (one above and one below the sluice) start to set in:
     | 2000-01-01 03:45:00 |     300.0 | 7.001358  7.003505  7.002649  7.001402   6.99813   6.99574  6.997963     6.999286 | 0.0   0.214166   0.526232   0.684152   0.805203   0.766215   0.538901   0.336802         0.0 |
     | 2000-01-01 03:50:00 |     300.0 | 6.995678  6.997997   6.99857  6.999452  6.999308  6.999754  7.003144     7.004998 | 0.0   0.189335   0.464764    0.60075   0.698243   0.658976   0.458301   0.285605         0.0 |
     | 2000-01-01 03:55:00 |     300.0 | 6.990772  6.993245  6.995147  6.997932  7.000436  7.003205  7.007467     7.009737 | 0.0   0.163546    0.40111   0.515219   0.591202   0.553589   0.381022   0.236926         0.0 |
-    | 2000-01-01 04:00:00 |     300.0 | 6.986669  6.989274  6.992373  6.996799  7.001463  7.006073  7.010955     7.013547 | 0.0    0.13676   0.335337   0.427783   0.484427   0.450191   0.306782   0.190502         0.0 |
-    | 2000-01-01 04:05:00 |     300.0 | 6.983399  6.986102  6.990239  6.996009  7.002345  7.008345  7.013632     7.016468 | 0.0   0.108995   0.267588    0.33873   0.378258   0.348872   0.235278   0.146056         0.0 |
-    | 2000-01-01 04:10:00 |     300.0 | 6.980989  6.983747   6.98873  6.995517  7.003045  7.010015  7.015519     7.018534 | 0.0   0.080337   0.198098   0.248407   0.273014   0.249683   0.166206   0.103317         0.0 |
-    | 2000-01-01 04:15:00 |     300.0 |  6.97946  6.982221  6.987829  6.995282  7.003535  7.011082  7.016636     7.019775 | 0.0   0.050946   0.127216   0.157227    0.16898   0.152653   0.099283   0.062028         0.0 |
-    | 2000-01-01 04:20:00 |     300.0 | 6.978829  6.981534  6.987521  6.995267  7.003794  7.011553  7.017005     7.020214 | 0.0    0.02104   0.055406   0.065681   0.066424   0.057791   0.034262   0.021969         0.0 |
-    | 2000-01-01 04:25:00 |     300.0 | 6.979102  6.981687  6.987788  6.994754   7.00484  7.011436  7.016645     7.019873 | 0.0  -0.009105  -0.016742  -0.025635        0.0  -0.034891  -0.029054  -0.017033         0.0 |
-    | 2000-01-01 04:30:00 |     300.0 | 6.980272  6.982663  6.988249   6.99269  7.008077   7.01107  7.015596      7.01878 | 0.0  -0.038998   -0.08782  -0.103187        0.0   -0.10789  -0.089609   -0.05467         0.0 |
-    | 2000-01-01 04:35:00 |     300.0 |  6.98229  6.984254  6.988046   6.98989  7.011903  7.011295  7.014115     7.016992 | 0.0   -0.06725  -0.146766      -0.14        0.0   -0.12753  -0.138766  -0.089381         0.0 |
-    | 2000-01-01 04:40:00 |     300.0 | 6.984989  6.985983   6.98706  6.987018  7.015072  7.012403  7.012798      7.01465 | 0.0  -0.089986  -0.176449  -0.143594        0.0  -0.105632  -0.161032  -0.117135         0.0 |
-    | 2000-01-01 04:45:00 |     300.0 | 6.987964  6.987402  6.985789  6.984463  7.017092  7.014061   7.01214     7.012083 | 0.0  -0.099164  -0.170126   -0.12776        0.0  -0.067352  -0.150274  -0.128337         0.0 |
-    | 2000-01-01 04:50:00 |     300.0 | 6.990597  6.988339  6.984773  6.982449  7.018066  7.015675  7.012156     7.009809 | 0.0  -0.087743  -0.134602  -0.100724        0.0  -0.032447  -0.113153  -0.113699         0.0 |
-    | 2000-01-01 04:55:00 |     300.0 | 6.992279  6.988863  6.984266  6.981141  7.018331  7.016736  7.012479     7.008357 | 0.0  -0.056077  -0.082256  -0.065363        0.0  -0.008828  -0.061837  -0.072605         0.0 |
+    | 2000-01-01 04:00:00 |     300.0 | 6.986669  6.989274  6.992373  7.006488   6.98693  7.006073  7.010955     7.013547 | 0.0    0.13676   0.335337   0.427783        0.0   0.450191   0.306782   0.190502         0.0 |
+    | 2000-01-01 04:05:00 |     300.0 | 6.983399  6.986102  6.994673  7.005714  6.989306  7.004376  7.013632     7.016468 | 0.0   0.108995   0.267588   0.190935   0.229626   0.150432   0.235278   0.146056         0.0 |
+    | 2000-01-01 04:10:00 |     300.0 | 6.980989  6.985004  6.996644  6.999306  7.001298  7.002123  7.013618     7.018534 | 0.0   0.080337   0.135218   0.069495   0.389911  -0.009812   0.102848   0.103317         0.0 |
+    | 2000-01-01 04:15:00 |     300.0 | 6.980078   6.98587  6.993989  7.000818  7.003299  7.001616  7.011362     7.019211 | 0.0   0.030361  -0.012916   0.075605        0.0  -0.066696  -0.041367   0.033823         0.0 |
+    | 2000-01-01 04:20:00 |     300.0 | 6.981329   6.98735  6.991062  7.000455  7.004412  7.004011    7.0085     7.017983 | 0.0  -0.041707  -0.115716  -0.018166        0.0  -0.037094   -0.15682  -0.061391         0.0 |
+    | 2000-01-01 04:25:00 |     300.0 | 6.984753  6.987834  6.990987  6.997738   7.00562  7.006841  7.008286     7.014489 | 0.0  -0.114128  -0.138316  -0.135812        0.0  -0.040287  -0.181798  -0.174675         0.0 |
+    | 2000-01-01 04:30:00 |     300.0 | 6.988878  6.988428  6.991838  6.993827  7.007547   7.00909   7.00966      7.01004 | 0.0  -0.137492  -0.167207  -0.195557        0.0  -0.064233  -0.176664  -0.222478         0.0 |
+    | 2000-01-01 04:35:00 |     300.0 | 6.992408   6.99006  6.991499  6.990067  7.010128  7.010767  7.010277      7.00623 | 0.0   -0.11769  -0.199284  -0.187983        0.0  -0.086023  -0.169898  -0.190467         0.0 |
+    | 2000-01-01 04:40:00 |     300.0 | 6.994936  6.992329  6.989981  6.987125  7.012875  7.011973  7.009214     7.003901 | 0.0  -0.084253  -0.197714  -0.147126        0.0  -0.091576  -0.151884  -0.116449         0.0 |
+    | 2000-01-01 04:45:00 |     300.0 | 6.996601   6.99416  6.988588  6.985113  7.015161   7.01257  7.007367     7.003013 | 0.0  -0.055498  -0.147048  -0.100597        0.0  -0.076179  -0.105989  -0.044399         0.0 |
+    | 2000-01-01 04:50:00 |     300.0 | 6.997502  6.994873  6.988215  6.984047  7.016365  7.012457  7.006176     7.003118 | 0.0  -0.030048  -0.065707  -0.053293        0.0  -0.040131  -0.034475   0.005219         0.0 |
+    | 2000-01-01 04:55:00 |     300.0 | 6.997494  6.994542  6.988735  6.984038  7.016044  7.011834   7.00612     7.003991 | 0.0   0.000283   0.016866  -0.000463        0.0   0.010696   0.041814   0.043659         0.0 |
 
 There is no indication of an error in the water balance:
 
@@ -161,11 +167,11 @@ There is no indication of an error in the water balance:
 Sharp targets
 _____________
 
-Next, we set the lower and upper target water level to 6.5 m (corresponding to a water
-depth of 1.5 m) and reverse the initial water depths:
+Next, we set the lower and the upper high water threshold to 6.5 m (corresponding to a
+water depth of 1.5 m) and reverse the initial water depths:
 
->>> model.routingmodels[4].parameters.control.targetwaterlevel2(6.5)
->>> model.routingmodels[4].parameters.control.targetwaterlevel1(6.5)
+>>> model.routingmodels[4].parameters.control.upperhighwaterthreshold(6.5)
+>>> model.routingmodels[4].parameters.control.bottomhighwaterthreshold(6.5)
 >>> prepare_inits(hs=[1.0, 1.0, 1.0, 1.0, 3.0, 3.0, 3.0, 3.0])
 
 The water should initially stream from the last to the first four segments until the
@@ -339,10 +345,10 @@ Fuzzy targets
 _____________
 
 One might reach more satisfactory results by setting two different thresholds and,
-thus, a more fuzzy target water level.  Here, we reduce the lower threshold to 6.3 m:
+thus, a more fuzzy target water level.  Here, we reduce the bottom threshold to 6.3 m:
 
->>> model.routingmodels[4].parameters.control.targetwaterlevel2(6.5)
->>> model.routingmodels[4].parameters.control.targetwaterlevel1(6.3)
+>>> model.routingmodels[4].parameters.control.bottomhighwaterthreshold(6.3)
+>>> model.routingmodels[4].parameters.control.upperhighwaterthreshold(6.5)
 
 Also, we reset the initial time step and diffusion factors to reduce computation time:
 

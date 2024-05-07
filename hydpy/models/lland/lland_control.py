@@ -464,7 +464,7 @@ class WMax(lland_parameters.ParameterSoil):
     # defined at the bottom of the file:
     CONTROLPARAMETERS: ClassVar[tuple[type[PWP], type[FK]]]
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         """Trim values in accordance with :math:`PWP \\leq FK \\leq WMax`.
 
         >>> from hydpy.models.lland import *
@@ -478,7 +478,7 @@ class WMax(lland_parameters.ParameterSoil):
         wmax(20.0, 50.0, 90.0)
 
         >>> fk.values = 60.0
-        >>> wmax.trim()
+        >>> assert wmax.trim() is True
         >>> wmax
         wmax(60.0, 60.0, 90.0)
         """
@@ -486,7 +486,7 @@ class WMax(lland_parameters.ParameterSoil):
             lower = exceptiontools.getattr_(self.subpars.fk, "value", None)
             if lower is None:
                 lower = exceptiontools.getattr_(self.subpars.pwp, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class FK(lland_parameters.ParameterSoilThreshold):
@@ -504,7 +504,7 @@ class FK(lland_parameters.ParameterSoilThreshold):
     # defined at the bottom of the file:
     CONTROLPARAMETERS: ClassVar[tuple[type[PWP], type[WMax]]]
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         """Trim upper values in accordance with :math:`PWP \\leq FK \\leq WMax`.
 
         >>> from hydpy.models.lland import *
@@ -521,7 +521,7 @@ class FK(lland_parameters.ParameterSoilThreshold):
             lower = exceptiontools.getattr_(self.subpars.pwp, "value", None)
         if upper is None:
             upper = exceptiontools.getattr_(self.subpars.wmax, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class PWP(lland_parameters.ParameterSoilThreshold):
@@ -539,7 +539,7 @@ class PWP(lland_parameters.ParameterSoilThreshold):
 
     CONTROLPARAMETERS = (WMax, FK)
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         """Trim values in accordance with :math:`PWP \\leq FK \\leq WMax`.
 
         >>> from hydpy.models.lland import *
@@ -552,7 +552,7 @@ class PWP(lland_parameters.ParameterSoilThreshold):
         pwp(0.0, 50.0, 100.0)
 
         >>> fk.values = 80.0
-        >>> pwp.trim()
+        >>> assert pwp.trim() is True
         >>> pwp
         pwp(0.0, 50.0, 80.0)
         """
@@ -560,7 +560,7 @@ class PWP(lland_parameters.ParameterSoilThreshold):
             upper = exceptiontools.getattr_(self.subpars.fk, "value", None)
             if upper is None:
                 upper = exceptiontools.getattr_(self.subpars.wmax, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 # runoff generation
@@ -648,7 +648,7 @@ Keyword `rdmin` is not among the available model constants.
             else:
                 objecttools.augment_excmessage()
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         """Trim upper values in accordance with :math:`DMin \\leq DMax`.
 
         >>> from hydpy.models.lland import *
@@ -663,7 +663,7 @@ Keyword `rdmin` is not among the available model constants.
         """
         if upper is None:
             upper = exceptiontools.getattr_(self.subpars.dmax, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class DMax(lland_parameters.ParameterSoil):
@@ -724,7 +724,7 @@ Keyword `rdmax` is not among the available model constants.
             else:
                 objecttools.augment_excmessage()
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         """Trim upper values in accordance with :math:`DMax \\geq DMin`.
 
         >>> from hydpy.models.lland import *
@@ -739,7 +739,7 @@ Keyword `rdmax` is not among the available model constants.
         """
         if lower is None:
             lower = exceptiontools.getattr_(self.subpars.dmin, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class Beta(lland_parameters.ParameterSoil):
@@ -949,7 +949,7 @@ class GSBGrad1(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, True, (None, None)
     INIT = numpy.inf
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim upper values in accordance with :math:`GSBGrad1 \leq GSBGrad2`.
 
         >>> from hydpy.models.lland import *
@@ -968,7 +968,7 @@ class GSBGrad1(parametertools.Parameter):
         """
         if upper is None:
             upper = exceptiontools.getattr_(self.subpars.gsbgrad2, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class GSBGrad2(parametertools.Parameter):
@@ -978,7 +978,7 @@ class GSBGrad2(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, True, (None, None)
     INIT = numpy.inf
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim upper values in accordance with :math:`GSBGrad1 \leq GSBGrad2`.
 
         >>> from hydpy.models.lland import *
@@ -997,7 +997,7 @@ class GSBGrad2(parametertools.Parameter):
         """
         if lower is None:
             lower = exceptiontools.getattr_(self.subpars.gsbgrad1, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 # runoff concentration
@@ -1153,7 +1153,7 @@ class EQI1(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
     INIT = 2000.0
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         """Trim upper values in accordance with :math:`EQI2 \\leq EQI1`.
 
         >>> from hydpy.models.lland import *
@@ -1171,7 +1171,7 @@ class EQI1(parametertools.Parameter):
         """
         if lower is None:
             lower = exceptiontools.getattr_(self.subpars.eqi2, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class EQI2(parametertools.Parameter):
@@ -1182,7 +1182,7 @@ class EQI2(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
     INIT = 1000.0
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         """Trim upper values in accordance with :math:`EQI2 \\leq EQI1`.
 
         >>> from hydpy.models.lland import *
@@ -1200,7 +1200,7 @@ class EQI2(parametertools.Parameter):
         """
         if upper is None:
             upper = exceptiontools.getattr_(self.subpars.eqi1, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class EQD1(parametertools.Parameter):
@@ -1211,7 +1211,7 @@ class EQD1(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
     INIT = 100.0
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         """Trim upper values in accordance with :math:`EQD2 \\leq EQD1`.
 
         >>> from hydpy.models.lland import *
@@ -1229,7 +1229,7 @@ class EQD1(parametertools.Parameter):
         """
         if lower is None:
             lower = exceptiontools.getattr_(self.subpars.eqd2, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class EQD2(parametertools.Parameter):
@@ -1240,7 +1240,7 @@ class EQD2(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
     INIT = 50.0
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         """Trim upper values in accordance with :math:`EQD2 \\leq EQD1`.
 
         >>> from hydpy.models.lland import *
@@ -1258,7 +1258,7 @@ class EQD2(parametertools.Parameter):
         """
         if upper is None:
             upper = exceptiontools.getattr_(self.subpars.eqd1, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class NegQ(parametertools.Parameter):

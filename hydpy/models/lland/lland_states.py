@@ -37,7 +37,7 @@ class STInz(lland_sequences.State1DSequence):
     NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
     mask = lland_masks.Forest()
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim values in accordance with :math:`SInz / PWMax \leq STInz \leq SInz`, or
         at least in accordance with if :math:`STInz \geq 0`.
 
@@ -61,7 +61,7 @@ class STInz(lland_sequences.State1DSequence):
             lower[numpy.isnan(lower)] = 0.0
         if upper is None:
             upper = sinz
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class SInz(lland_sequences.State1DSequence):
@@ -71,7 +71,7 @@ class SInz(lland_sequences.State1DSequence):
     NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
     mask = lland_masks.Forest()
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim values in accordance with :math:`SInz / PWMax \leq STInz \leq SInz`, or
         at least in accordance with if :math:`SInz \geq 0`.
 
@@ -88,14 +88,14 @@ class SInz(lland_sequences.State1DSequence):
         >>> states.sinz
         sinz(0.0, 0.0, 0.0, 5.0, 10.0, 10.0, 5.0)
         """
-        pwmax = self.subseqs.seqs.model.parameters.control.pwmax
-        stinz = numpy.clip(self.subseqs.stinz, 0.0, numpy.inf)
+        pwmax = self.subseqs.seqs.model.parameters.control.pwmax.values
+        stinz = numpy.clip(self.subseqs.stinz.values, 0.0, numpy.inf)
         if upper is None:
             upper = pwmax * stinz
         if lower is None:
             lower = stinz
             lower[numpy.isnan(lower)] = 0.0
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class ESnowInz(lland_sequences.State1DSequence):
@@ -123,7 +123,7 @@ class WATS(lland_sequences.State1DSequence):
     NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
     mask = lland_masks.Land()
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim values in accordance with :math:`WAeS / PWMax \leq WATS \leq WAeS`, or
         at least in accordance with if :math:`WATS \geq 0`.
 
@@ -147,7 +147,7 @@ class WATS(lland_sequences.State1DSequence):
             lower[numpy.isnan(lower)] = 0.0
         if upper is None:
             upper = waes
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class WAeS(lland_sequences.State1DSequence):
@@ -157,7 +157,7 @@ class WAeS(lland_sequences.State1DSequence):
     NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
     mask = lland_masks.Land()
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim values in accordance with :math:`WAeS / PWMax \leq WATS \leq WAeS`, or
         at least in accordance with if :math:`WAeS \geq 0`
 
@@ -175,14 +175,14 @@ class WAeS(lland_sequences.State1DSequence):
         >>> states.waes
         waes(0.0, 0.0, 0.0, 5.0, 10.0, 10.0, 5.0)
         """
-        pwmax = self.subseqs.seqs.model.parameters.control.pwmax
-        wats = numpy.clip(self.subseqs.wats, 0.0, numpy.inf)
+        pwmax = self.subseqs.seqs.model.parameters.control.pwmax.values
+        wats = numpy.clip(self.subseqs.wats.values, 0.0, numpy.inf)
         if upper is None:
             upper = pwmax * wats
         if lower is None:
             lower = wats
             lower[numpy.isnan(lower)] = 0.0
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class ESnow(lland_sequences.State1DSequence):
@@ -217,7 +217,7 @@ class BoWa(lland_sequences.State1DSequence):
     NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
     mask = lland_masks.Soil()
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim in accordance with :math:`0 \leq BoWa \leq WMax`.
 
         >>> from hydpy.models.lland import *
@@ -230,7 +230,7 @@ class BoWa(lland_sequences.State1DSequence):
         """
         if upper is None:
             upper = self.subseqs.seqs.model.parameters.control.wmax
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class SDG1(sequencetools.StateSequence):
@@ -262,7 +262,7 @@ class SBG(sequencetools.StateSequence):
 
     NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim in accordance with :math:`SBG \leq GSBMax \cdot VolBMax`.
 
         >>> from hydpy.models.lland import *
@@ -279,4 +279,4 @@ class SBG(sequencetools.StateSequence):
         if upper is None:
             control = self.subseqs.seqs.model.parameters.control
             upper = control.gsbmax.value * control.volbmax.value
-        super().trim(lower, upper)
+        return super().trim(lower, upper)

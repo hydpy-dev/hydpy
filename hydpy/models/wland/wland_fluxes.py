@@ -70,8 +70,15 @@ class PS(sequencetools.FluxSequence):
     NDIM, NUMERIC, SPAN = 0, True, (0.0, None)
 
 
+class PVE(sequencetools.FluxSequence):
+    """Rainfall (and snowmelt) entering the vadose zone in the elevated region
+    [mm/T]."""
+
+    NDIM, NUMERIC, SPAN = 0, True, (0.0, None)
+
+
 class PV(sequencetools.FluxSequence):
-    """Rainfall (and snowmelt) entering the vadose zone [mm/T]."""
+    """Rainfall (and snowmelt) entering the vadose zone in the lowland region [mm/T]."""
 
     NDIM, NUMERIC, SPAN = 0, True, (0.0, None)
 
@@ -82,8 +89,14 @@ class PQ(sequencetools.FluxSequence):
     NDIM, NUMERIC, SPAN = 0, True, (0.0, None)
 
 
+class ETVE(sequencetools.FluxSequence):
+    """Actual evapotranspiration from the vadose zone in the elevated region [mm/T]."""
+
+    NDIM, NUMERIC, SPAN = 0, True, (None, None)
+
+
 class ETV(sequencetools.FluxSequence):
-    """Actual evapotranspiration from the vadose zone [mm/T]."""
+    """Actual evapotranspiration from the vadose zone in the lowland region [mm/T]."""
 
     NDIM, NUMERIC, SPAN = 0, True, (None, None)
 
@@ -100,6 +113,12 @@ class ET(sequencetools.FluxSequence):
     NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
 
+class GR(sequencetools.FluxSequence):
+    """Groundwater recharge in the elevated region [mm/T]."""
+
+    NDIM, NUMERIC, SPAN = 0, True, (None, None)
+
+
 class FXS(sequencetools.FluxSequence):
     """Surface water supply/extraction (normalised to |ASR|) [mm/T]."""
 
@@ -114,6 +133,12 @@ class FXG(sequencetools.FluxSequence):
 
 class CDG(sequencetools.FluxSequence):
     """Change in the groundwater depth due to percolation and capillary rise [mm/T]."""
+
+    NDIM, NUMERIC, SPAN = 0, True, (None, None)
+
+
+class FGSE(sequencetools.FluxSequence):
+    """Groundwater flow between the elevated and the lowland region [mm/T]."""
 
     NDIM, NUMERIC, SPAN = 0, True, (None, None)
 

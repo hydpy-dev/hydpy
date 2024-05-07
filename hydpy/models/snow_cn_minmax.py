@@ -57,7 +57,7 @@ Next, we define the corresponding height of the input data, the number of snow l
 and the height and area distribution of these layers:
 
 >>> zinputs(577)
->>> nsnowlayers(5)
+>>> nlayers(5)
 >>> layerarea(0.2)
 >>> zlayers(hypsodata=[
 ...     286, 309, 320, 327, 333, 338, 342, 347, 351, 356, 360, 365, 369, 373, 378, 382, 387, 393, 399,

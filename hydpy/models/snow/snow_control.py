@@ -18,21 +18,21 @@ class ZInputs(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
 
-class NSnowLayers(parametertools.Parameter):
+class NLayers(parametertools.Parameter):
     """Number of snow layers  [-].
 
-    Note that |NSnowLayers| determines the length of the 1-dimensional
+    Note that |NLayers| determines the length of the 1-dimensional
     HydPy-Snow parameters and sequences.  This requires that the value of
-    the respective |NSnowLayers| instance is set before any of the values
+    the respective |NLayers| instance is set before any of the values
     of these 1-dimensional parameters or sequences are set.  Changing the
-    value of the |NSnowLayers| instance necessitates setting their values
+    value of the |NLayers| instance necessitates setting their values
     again.
 
     Examples:
 
         >>> from hydpy.models.snow import *
         >>> parameterstep('1d')
-        >>> nsnowlayers(5)
+        >>> nlayers(5)
         >>> meanansolidprecip.shape
         (5,)
         >>> layerarea.shape
@@ -74,7 +74,7 @@ class ZLayers(parametertools.Parameter):
 
     >>> from hydpy.models.snow import *
     >>> parameterstep("1d")
-    >>> nsnowlayers(5)
+    >>> nlayers(5)
     >>> zlayers(400.0, 1000.0, 2000.0, 3000.0, 4000.0)
     >>> zlayers
     zlayers(400.0, 1000.0, 2000.0, 3000.0, 4000.0)
@@ -104,7 +104,7 @@ class ZLayers(parametertools.Parameter):
     >>> round(zlayers.average_values(), 1)
     1334.7
 
-    >>> nsnowlayers(70)
+    >>> nlayers(70)
     >>> zlayers(hypsodata =
     ...     [ 471. ,  656.2,  749.4,  808. ,  868. ,  908. ,  948. ,  991.2,
     ...      1022.6, 1052. , 1075. , 1101. , 1120.4, 1147.6, 1166.8, 1185. ,
@@ -184,10 +184,10 @@ arguments, but the following are given: option and hypsodata
                     f"If the hypsodata option is to be used exactly 101 values "
                     f"must be given. But {len(hypsodata)} values were given"
                 ) from None
-            nmoy = 100 // con.nsnowlayers
-            nreste = 100 % con.nsnowlayers
+            nmoy = 100 // con.nlayers
+            nreste = 100 % con.nlayers
             ncont = 0
-            for ilayer in range(int(con.nsnowlayers)):
+            for ilayer in range(int(con.nlayers)):
                 if nreste > 0:
                     nn = nmoy + 1
                     nreste -= 1

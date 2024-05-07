@@ -44,7 +44,7 @@ Set control parameters:
 >>> cn3(100)
 >>> cn4(0.4)
 >>> zinputs(577)
->>> nsnowlayers(5)
+>>> nlayers(5)
 >>> layerarea(0.2)
 >>> zlayers(hypsodata=[
 ...     286, 309, 320, 327, 333, 338, 342, 347, 351, 356, 360, 365, 369, 373, 378, 382, 387, 393, 399,

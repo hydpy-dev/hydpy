@@ -25,7 +25,7 @@ class GThresh(parametertools.Parameter):
     CONTROLPARAMETERS = (
         snow_control.MeanAnSolidPrecip,
         snow_control.CN4,
-        snow_control.NSnowLayers,
+        snow_control.NLayers,
     )
 
     def update(self):
@@ -35,7 +35,7 @@ class GThresh(parametertools.Parameter):
 
         >>> from hydpy.models.snow import *
         >>> parameterstep('1d')
-        >>> nsnowlayers(5)
+        >>> nlayers(5)
         >>> meanansolidprecip(700., 750., 730., 630., 700.)
         >>> cn4(0.6)
         >>> derived.gthresh.update()
@@ -43,6 +43,6 @@ class GThresh(parametertools.Parameter):
         gthresh(420.0, 450.0, 438.0, 378.0, 420.0)
         """
         con = self.subpars.pars.control.fastaccess
-        self.shape = con.nsnowlayers
+        self.shape = con.nlayers
         gthresh = numpy.array(con.meanansolidprecip) * con.cn4
         self(gthresh)

@@ -2,6 +2,8 @@
 # pylint: disable=missing-module-docstring
 
 # imports...
+import numpy
+
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
@@ -946,16 +948,26 @@ class Calc_Melt_V1(modeltools.Method):
         >>> parameterstep('1d')
         >>> simulationstep('1d')
         >>> nlayers(5)
-        >>> fluxes.potmelt = (2.0, 2.0, 2.0, 2.0, 2.0)
+        >>> fluxes.potmelt = 0.0, 0.5, 1.0, 1.5, 2.0
         >>> states.gratio = 0.0, 0.25, 0.5, 0.75, 1.0
+        >>> states.g = 0.0, 0.5, 1.0, 1.5, 2.0
         >>> model.calc_melt_v1()
         >>> fluxes.melt
-        melt(0.2, 0.65, 1.1, 1.55, 2.0)
+        melt(0.0, 0.1625, 0.55, 1.1625, 2.0)
+
+        Since this can lead to infinitely thin layers of snow in summer we decided to
+        introduce the fixed parameter |MinG| defining an amount of snow below which
+        snow is melting with |PotMelt|.
+
+        >>> fixed.ming(1.0)
+        >>> model.calc_melt_v1()
+        >>> fluxes.melt
+        melt(0.0, 0.5, 0.55, 1.1625, 2.0)
     """
 
     CONTROLPARAMETERS = (snow_control.NLayers,)
-    FIXEDPARAMETERS = (snow_fixed.MinMelt,)
-    REQUIREDSEQUENCES = (snow_fluxes.PotMelt, snow_states.GRatio)
+    FIXEDPARAMETERS = (snow_fixed.MinMelt, snow_fixed.MinG)
+    REQUIREDSEQUENCES = (snow_fluxes.PotMelt, snow_states.GRatio, snow_states.G)
     RESULTSEQUENCES = (snow_fluxes.Melt,)
 
     @staticmethod
@@ -965,13 +977,14 @@ class Calc_Melt_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
 
-        # todo: kann dazu führen, dass im gesamten Sommer (ganz wenig) Schnee liegt
-
         # more snow leads to more snow melt
         for k in range(con.nlayers):
-            flu.melt[k] = (
-                (1.0 - fix.minmelt) * sta.gratio[k] + fix.minmelt
-            ) * flu.potmelt[k]
+            if sta.g[k] >= fix.ming:
+                flu.melt[k] = (
+                    (1.0 - fix.minmelt) * sta.gratio[k] + fix.minmelt
+                ) * flu.potmelt[k]
+            else:
+                flu.melt[k] = flu.potmelt[k]
 
 
 class Update_G_V1(modeltools.Method):

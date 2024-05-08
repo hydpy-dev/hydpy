@@ -32,3 +32,11 @@ class TThreshRain(parametertools.FixedParameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
     INIT = 3.0
+
+
+class MinG(parametertools.FixedParameter):
+    """Minimum amount of snow below which snow melts with |PotMelt| to avoid very low
+    snow cover also in summer [mm]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    INIT = 0.0

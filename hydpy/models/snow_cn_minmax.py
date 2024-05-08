@@ -57,14 +57,15 @@ Next, we define the corresponding height of the input data, the number of snow l
 and the height and area distribution of these layers:
 
 >>> nlayers(5)
->>> layerarea(0.2)
->>> zlayers(hypsodata=[
+>>> model.layers_from_hypsodata([
 ...     286, 309, 320, 327, 333, 338, 342, 347, 351, 356, 360, 365, 369, 373, 378, 382, 387, 393, 399,
 ...     405, 411, 417, 423, 428, 434, 439, 443, 448, 453, 458, 463, 469, 474, 480, 485, 491, 496, 501, 507,
 ...     513, 519, 524, 530, 536, 542, 548, 554, 560, 566, 571, 577, 583, 590, 596, 603, 609, 615, 622, 629,
 ...     636, 642, 649, 656, 663, 669, 677, 684, 691, 698, 706, 714, 722, 730, 738, 746, 754, 762, 770, 777,
 ...     786, 797, 808, 819, 829, 841, 852, 863, 875, 887, 901, 916, 934, 952, 972, 994, 1012, 1029, 1054, 1080,
 ...     1125, 1278])
+>>> layerarea
+layerarea(0.2)
 >>> zlayers
 zlayers(360.0, 463.0, 577.0, 714.0, 916.0)
 
@@ -367,7 +368,7 @@ from hydpy.exe.modelimports import *
 from hydpy.models.snow import snow_model
 
 
-class Model(modeltools.AdHocModel):
+class Model(snow_model.BaseModel):
     """The Cema-Neige version of the HydPy-Snow."""
 
     INLET_METHODS = ()

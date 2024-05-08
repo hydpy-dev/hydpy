@@ -15,7 +15,7 @@ class Flux1DSequence(sequencetools.FluxSequence):
 
     >>> from hydpy.models.snow import *
     >>> parameterstep("1d")
-    >>> nsnowlayers(4)
+    >>> nlayers(4)
     >>> layerarea(0.25, 0.25, 0.25, 0.25)
     >>> fluxes.player(5.0, 2.0, 4.0, 1.0)
     >>> from hydpy import round_

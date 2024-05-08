@@ -424,26 +424,26 @@ class StandardInputNames(StrEnum):
     """Highest air temperature 2 m above the ground within time interval [°C]."""
     MINIMUM_AIR_TEMPERATURE = "minimum_air_temperature"
     """Lowest air temperature 2 m above the ground within time interval [°C]."""
-    NORMAL_EVAPOTRANSPIRATION = "normal_evapotranspiration"
-    """Normal evapotranspiration [mm/T]."""
     NORMAL_AIR_TEMPERATURE = "normal_air_temperature"
     """Normal air temperature 2 m above the ground [°C]."""
+    NORMAL_EVAPOTRANSPIRATION = "normal_evapotranspiration"
+    """Normal evapotranspiration [mm/T]."""
     POSSIBLE_SUNSHINE_DURATION = "possible_sunshine_duration"
     """Possible sunshine duration [h]."""
-    PRECIPITATION = "precipitation"
-    """Precipitation [mm/T]."""
-    SOIL_WATER_HRU = "soil_water_hru"
-    """Amount of soil water [mm]."""
-    SNOW_COVER_DEGREE_HRU = "snow_cover_degree_hru"
-    """Snow cover degree [-]."""
-    SNOW_COVER_DEGREE_CANOPY_HRU = "snow_cover_degree_canopy_hru"
-    """Snow cover degree in the canopies of tree-like vegetation [-]."""
-    SUNSHINE_DURATION = "sunshine_duration"
-    """Sunshine duration [h]."""
     POTENTIAL_EVAPOTRANSPIRATION = "potential_evapotranspiration"
     """Potential evapotranspiration [mm/T]."""
+    PRECIPITATION = "precipitation"
+    """Precipitation [mm/T]."""
     RELATIVE_HUMIDITY = "relative_humidity"
     """Relative humidity [%]."""
+    SNOW_COVER_DEGREE_CANOPY_HRU = "snow_cover_degree_canopy_hru"
+    """Snow cover degree in the canopies of tree-like vegetation [-]."""
+    SNOW_COVER_DEGREE_HRU = "snow_cover_degree_hru"
+    """Snow cover degree [-]."""
+    SOIL_WATER_HRU = "soil_water_hru"
+    """Amount of soil water [mm]."""
+    SUNSHINE_DURATION = "sunshine_duration"
+    """Sunshine duration [h]."""
     WIND_SPEED = "wind_speed"
     """Wind speed [m/s]."""
 
@@ -2345,6 +2345,51 @@ of sequence `obs` of node `dill` is `1h` but the actual simulation time step is 
         zdx2 = zdx1 + jdxs[1] - jdxs[0]
         values[zdx1:zdx2] = valcopy
         return values
+
+    def apply_adjusted_series(
+        self, timegrid_data: timetools.Timegrid, series: NDArrayFloat
+    ) -> None:
+        """Take the values of the given "adjusted series".
+
+        The "adjusted series" is usually returned by method |IOSequence.adjust_series|.
+        The behaviour of method |IOSequence.apply_adjusted_series| depends on option
+        |SequenceManager.reset|.  By default, "resetting" is enabled, meaning that
+        |numpy.nan| values due to incomplete time series files overwrite previously
+        available data.  We demonstrate this using the NetCDF data provided by function
+        |prepare_full_example_2| but shifting the initialisation period by two days:
+
+        >>> from hydpy.examples import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
+        >>> pub.timegrids.init.firstdate -= "2d"
+        >>> pub.timegrids.init.lastdate -= "2d"
+        >>> t = hp.elements.land_dill.model.sequences.inputs.t
+        >>> t.series = -99.9
+        >>> opt = pub.options
+        >>> sm = pub.sequencemanager
+        >>> with TestIO(), sm.filetype("nc"), opt.checkseries(False):
+        ...     with sm.netcdfreading():
+        ...         t.load_series()
+        >>> from hydpy import round_
+        >>> round_(t.series)
+        nan, nan, -0.298846, -0.811539
+
+        With option |SequenceManager.reset| disabled, method
+        |IOSequence.apply_adjusted_series| keeps the already available data:
+
+        >>> t.series = 99.9
+        >>> with TestIO(), sm.reset(False), sm.filetype("nc"), opt.checkseries(False):
+        ...     with sm.netcdfreading():
+        ...         t.load_series()
+        >>> from hydpy import round_
+        >>> round_(t.series)
+        99.9, 99.9, -0.298846, -0.811539
+        """
+        if hydpy.pub.sequencemanager.reset:
+            self.series = series
+        else:
+            init = hydpy.pub.timegrids.init
+            i0, i1 = init[timegrid_data.firstdate], init[timegrid_data.lastdate]
+            self.series[i0:i1] = series[i0:i1]
 
     def check_completeness(self) -> None:
         """Raise a |RuntimeError| if the |IOSequence.series| contains at least one

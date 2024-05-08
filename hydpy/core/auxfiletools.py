@@ -367,9 +367,9 @@ nor does it handle a model named `lland_v1`...
     def __dir__(self) -> list[str]:
         """
         >>> aux = Auxfiler()
-        >>> aux.add_models("llake_v1", "lland_v1", "lstream_v001")
+        >>> aux.add_models("lland_v3", "lland_v1", "hland_v1")
         >>> sorted(set(dir(aux)) - set(object.__dir__(aux)))
-        ['llake_v1', 'lland_v1', 'lstream_v001']
+        ['hland_v1', 'lland_v1', 'lland_v3']
         """
         return cast(list[str], super().__dir__()) + list(self.modelnames)
 

@@ -28,14 +28,13 @@ programmed more independently and were incorporated into the original LARSIM
 implementation later.
 
 
-*HydPy-L* includes three different base models:
+*HydPy-L* includes two different base models:
 
 .. toctree::
    :maxdepth: 1
 
    lland (L-Land) <lland>
    lstream (L-Stream) <lstream>
-   llake (L-Lake) <llake>
 
 
 So far, we compiled the following application models:
@@ -48,7 +47,6 @@ So far, we compiled the following application models:
    lland_v4 (Knauf, snow interception) <lland_v4>
    lstream_v001 (kinematic wave, Manning-Strickler) <lstream_v001>
    lstream_v002 (kinematic wave, external rating curve) <lstream_v002>
-   llake_v1 (controlled lake) <llake_v1>
 
 These application models are stand-alone models.  You can combine them freely with all
 other models implemented in *HydPy*.

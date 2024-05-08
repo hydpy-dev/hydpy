@@ -116,6 +116,7 @@ NodesConstrArg = MayNonerable2["Node", str]
 ElementsConstrArg = MayNonerable2["Element", str]
 NodeConstrArg = Union["Node", str]
 ElementConstrArg = Union["Element", str]
+IOSequenceArg = Union[str, sequencetools.IOSequence, type[sequencetools.IOSequence]]
 
 NodeVariableType = Union[str, sequencetools.InOutSequenceTypes, "FusedVariable"]
 
@@ -3361,7 +3362,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
             sequencetools.IOSequence,
             sequencetools.FastAccessIOSequence,
         ],
-        names: Optional[Sequence[str]],
+        sequences: tuple[IOSequenceArg, ...],
         average: bool,
         labels: Optional[tuple[str, ...]],
         colors: Optional[Union[str, tuple[str, ...]]],
@@ -3387,12 +3388,8 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
 
         idx0, idx1 = hydpy.pub.timegrids.evalindices
         index = _get_pandasindex()[idx0:idx1]
-        selseqs: Iterable[sequencetools.IOSequence]
-        if names:
-            selseqs = (getattr(subseqs, name.lower()) for name in names)
-        else:
-            selseqs = subseqs
-        nmb_sequences = len(subseqs)
+        selseqs = self._query_iosequences(subseqs, sequences)
+        nmb_sequences = len(selseqs)
         labels_: tuple[Optional[str], ...]
         if isinstance(labels, tuple):
             labels_ = labels
@@ -3440,10 +3437,50 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
             pyplot.ylim((0.0, None))
         return pyplot.gcf()
 
+    def _query_iosequences(
+        self,
+        subseqs: sequencetools.IOSequences[
+            sequencetools.Sequences,
+            sequencetools.IOSequence,
+            sequencetools.FastAccessIOSequence,
+        ],
+        sequences: tuple[IOSequenceArg, ...],
+    ) -> list[sequencetools.IOSequence]:
+        models = tuple(self.model.find_submodels(include_mainmodel=True).values())
+        if sequences:
+            selseqs = []
+            for sequence in sequences:
+                typ: Optional[type[sequencetools.IOSequence]]
+                if isinstance(sequence, str):
+                    name = sequence
+                    typ = None
+                else:
+                    name = sequence.name
+                    if isinstance(sequence, sequencetools.IOSequence):
+                        typ = type(sequence)
+                    else:
+                        typ = sequence
+                for model in models:
+                    seq = getattr(model.sequences[subseqs.name], name, None)
+                    if (seq is not None) and ((typ is None) or isinstance(seq, typ)):
+                        selseqs.append(seq)
+                        break
+                else:
+                    raise ValueError(
+                        f"No (sub)model handled by element `{self.name}` has "
+                        f"{'an' if subseqs.name == 'inputs' else 'a'} "
+                        f"{'flux' if subseqs.name == 'fluxes' else subseqs.name[:-1]} "
+                        f"sequence named `{name}`"
+                        f"{'' if typ is None else f' of type `{typ.__name__}'}."
+                    )
+            return selseqs
+        return list(
+            itertools.chain(*(getattr(m.sequences, subseqs.name) for m in models))
+        )
+
     def plot_inputseries(
         self,
-        names: Optional[Sequence[str]] = None,
-        *,
+        *sequences: IOSequenceArg,
         average: bool = False,
         labels: Optional[tuple[str, ...]] = None,
         colors: Optional[Union[str, tuple[str, ...]]] = None,
@@ -3460,9 +3497,10 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         >>> hp, pub, _ = prepare_full_example_2(lastdate="1997-01-01")
 
         Without any arguments, |Element.plot_inputseries| prints the time series of all
-        input sequences handled by its |Model| object directly to the screen (in our
-        example, |hland_inputs.P|, |hland_inputs.T|, |evap_inputs.NormalAirTemperature|,
-        and |evap_inputs.NormalEvapotranspiration| of application model |hland_v1|):
+        input sequences handled by its (sub)models directly to the screen (in our
+        example, |hland_inputs.P| and |hland_inputs.T| of |hland_v1| and
+        |evap_inputs.NormalAirTemperature| and |evap_inputs.NormalEvapotranspiration|
+        of |evap_pet_hbv96|):
 
         >>> land = hp.elements.land_dill
         >>> figure = land.plot_inputseries()
@@ -3472,9 +3510,26 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         `matplotlib` is disabled):
 
         >>> from hydpy.core.testtools import save_autofig
-        >>> save_autofig("Element_plot_inputseries.png", figure)
+        >>> save_autofig("Element_plot_inputseries_complete.png", figure)
 
-        .. image:: Element_plot_inputseries.png
+        .. image:: Element_plot_inputseries_complete.png
+
+        Select specific sequences by passing their names, types, or example objects:
+
+        >>> from hydpy.models.hland.hland_inputs import T
+        >>> net = land.model.aetmodel.petmodel.sequences.inputs.normalevapotranspiration
+        >>> figure = land.plot_inputseries("p", T, net)
+        >>> save_autofig("Element_plot_inputseries_selection.png", figure)
+
+        .. image:: Element_plot_inputseries_selection.png
+
+        Misleading sequence specifiers result in the following error:
+
+        >>> figure = land.plot_inputseries("xy")
+        Traceback (most recent call last):
+        ...
+        ValueError: No (sub)model handled by element `land_dill` has an input sequence \
+named `xy`.
 
         Methods |Element.plot_factorseries|, |Element.plot_fluxseries|, and
         |Element.plot_stateseries| work in the same manner.  Before applying them, one
@@ -3483,13 +3538,11 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
 
         >>> hp.simulate()
 
-        All three methods allow selecting specific sequences by passing their names
-        (here, flux sequences |hland_fluxes.Q0| and |hland_fluxes.Q1| of |hland_v1|).
-        Additionally, you can pass general or individual values to the arguments
-        `labels`, `colors`, `linestyles`, and `linewidths`:
+        The arguments "labels," "colours," "line styles," and "line widths" can accept
+        general or individual values:
 
         >>> figure = land.plot_fluxseries(
-        ...     ["q0", "q1"], labels=("direct runoff", "base flow"),
+        ...     "q0", "q1", labels=("direct runoff", "base flow"),
         ...     colors=("red", "green"), linestyles="--", linewidths=2)
         >>> save_autofig("Element_plot_fluxseries.png", figure)
 
@@ -3502,7 +3555,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         the shown period to February and March via the |Timegrids.eval_| time grid:
 
         >>> with pub.timegrids.eval_(firstdate="1996-02-01", lastdate="1996-04-01"):
-        ...     figure = land.plot_stateseries(["sp", "wc"])
+        ...     figure = land.plot_stateseries("sp", "wc")
         >>> save_autofig("Element_plot_stateseries.png", figure)
 
         .. image:: Element_plot_stateseries.png
@@ -3511,16 +3564,16 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         argument `average`.  We demonstrate this functionality for the factor sequence
         |hland_factors.TC| (this time, without focusing on the time-series y-extent):
 
-        >>> figure = land.plot_factorseries(["tc"], colors=("grey",))
+        >>> figure = land.plot_factorseries("tc", colors=("grey",))
         >>> figure = land.plot_factorseries(
-        ...     ["tc"], average=True, focus=False, colors="black", linewidths=3)
+        ...     "tc", average=True, focus=False, colors="black", linewidths=3)
         >>> save_autofig("Element_plot_factorseries.png", figure)
 
         .. image:: Element_plot_factorseries.png
         """
         return self._plot_series(
             subseqs=self.model.sequences.inputs,
-            names=names,
+            sequences=sequences,
             average=average,
             labels=labels,
             colors=colors,
@@ -3531,8 +3584,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
 
     def plot_factorseries(
         self,
-        names: Optional[Sequence[str]] = None,
-        *,
+        *sequences: IOSequenceArg,
         average: bool = False,
         labels: Optional[tuple[str, ...]] = None,
         colors: Optional[Union[str, tuple[str, ...]]] = None,
@@ -3547,7 +3599,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         """
         return self._plot_series(
             subseqs=self.model.sequences.factors,
-            names=names,
+            sequences=sequences,
             average=average,
             labels=labels,
             colors=colors,
@@ -3558,8 +3610,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
 
     def plot_fluxseries(
         self,
-        names: Optional[Sequence[str]] = None,
-        *,
+        *sequences: IOSequenceArg,
         average: bool = False,
         labels: Optional[tuple[str, ...]] = None,
         colors: Optional[Union[str, tuple[str, ...]]] = None,
@@ -3574,7 +3625,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         """
         return self._plot_series(
             subseqs=self.model.sequences.fluxes,
-            names=names,
+            sequences=sequences,
             average=average,
             labels=labels,
             colors=colors,
@@ -3585,8 +3636,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
 
     def plot_stateseries(
         self,
-        names: Optional[Sequence[str]] = None,
-        *,
+        *sequences: IOSequenceArg,
         average: bool = False,
         labels: Optional[tuple[str, ...]] = None,
         colors: Optional[Union[str, tuple[str, ...]]] = None,
@@ -3601,7 +3651,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         """
         return self._plot_series(
             subseqs=self.model.sequences.states,
-            names=names,
+            sequences=sequences,
             average=average,
             labels=labels,
             colors=colors,

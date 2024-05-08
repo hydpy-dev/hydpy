@@ -91,6 +91,7 @@ adjustable and set to a fix value of 0.9.
 
 >>> cn4(0.9)
 >>> meanansolidprecip(83., 83., 83., 83., 83.)
+>>> hysteresis(False)
 >>> parameters.update()
 
 In the original airGR package, the measurement height of temperature and precipitation

@@ -46,3 +46,26 @@ class GThresh(parametertools.Parameter):
         self.shape = con.nlayers
         gthresh = numpy.array(con.meanansolidprecip) * con.cn4
         self(gthresh)
+
+
+class ZMean(parametertools.Parameter):
+    """Mean elevation of layers [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+
+    CONTROLPARAMETERS = (snow_control.ZLayers,)
+
+    def update(self):
+        """Update |ZMean| based on mean elevation.
+
+        >>> from hydpy.models.snow import *
+        >>> parameterstep('1d')
+        >>> nlayers(5)
+        >>> zlayers(700., 750., 730., 630., 700.)
+        >>> layerarea(0.1, 0.3, 0.2, 0.2, 0.2)
+        >>> derived.zmean.update()
+        >>> derived.zmean
+        zmean(707.0)
+        """
+        con = self.subpars.pars.control
+        self(con.zlayers.average_values())

@@ -68,7 +68,6 @@ First of all we set the Cema-Neige parameters |CN1| and |CN2|:
 Next, we define the corresponding height of the input data, the number of snow layers
 and the height and area distribution of these layers:
 
->>> zinputs(577)
 >>> nlayers(5)
 >>> layerarea(0.2)
 >>> zlayers(hypsodata=[
@@ -78,6 +77,11 @@ and the height and area distribution of these layers:
 ...     636, 642, 649, 656, 663, 669, 677, 684, 691, 698, 706, 714, 722, 730, 738, 746, 754, 762, 770, 777,
 ...     786, 797, 808, 819, 829, 841, 852, 863, 875, 887, 901, 916, 934, 952, 972, 994, 1012, 1029, 1054, 1080,
 ...     1125, 1278])
+>>> derived.zmean.update()
+>>> derived.zmean
+zmean(606.0)
+>>> layerarea
+layerarea(0.2)
 >>> zlayers
 zlayers(360.0, 463.0, 577.0, 714.0, 916.0)
 
@@ -88,6 +92,15 @@ adjustable and set to a fix value of 0.9.
 >>> cn4(0.9)
 >>> meanansolidprecip(83., 83., 83., 83., 83.)
 >>> parameters.update()
+
+In the original airGR package, the measurement height of temperature and precipitation
+can be set independently of the catchment height. Since nowadays it is
+common to interpolate station data in the pre-processing, we decided to remove this
+parameter and instead introduce the derived parameter |ZMean|, which is calculated from
+the height of the layers. To be consistent with the airGR test case, we set the
+|ZMean| value in this example to 577, the original station height.
+
+>>> derived.zmean(577)
 >>> derived.gthresh
 gthresh(74.7)
 
@@ -152,7 +165,8 @@ Time series for precipitation and temperature were taken from the sample data se
     >>> test.reset_inits()
     >>> conditions = sequences.conditions
 
-    >>> test("snow_cn_ex1", axis1=(fluxes.player, fluxes.pnetlayer), axis2=states.g)
+    >>> test("snow_cn_ex1", axis1=(fluxes.player, fluxes.pnetlayer), axis2=states.g,
+    ...      update_parameters=False)
     |   date |    p |    t |                                                player |                                          psnowlayer |                                             prainlayer |                                       tlayer |                                      solidfraction |                                            potmelt |                                             melt |                                             pnetlayer |      pnet |                                                  g |                                 etg |                                           gratio |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.04. |  0.4 |  7.2 |  0.360463   0.376011   0.394003   0.416768   0.452754 |      0.0       0.0       0.0        0.0         0.0 |  0.360463   0.376011   0.394003   0.416768    0.452754 |  8.48247   7.87374   7.2   6.39033   5.19651 |      0.0       0.0    0.0       0.0            0.0 |      0.0       0.0       0.0        0.0        0.0 |      0.0       0.0       0.0       0.0       0.0 |  0.360463   0.376011   0.394003   0.416768   0.452754 |       0.4 |      0.0       0.0       0.0        0.0        0.0 | 0.0  0.0  0.0        0.0        0.0 |      0.0       0.0       0.0       0.0       0.0 |
@@ -230,6 +244,8 @@ with snow and add some more snow after some time steps.
     >>> cn3(20)
     >>> cn4(0.4)
     >>> parameters.update()
+
+    >>> derived.zmean(577)
     >>> hysteresis(True)
 
     >>> test.inits = ((states.g, [10.0, 15.0, 20.0, 30.0, 40.0]),
@@ -246,7 +262,8 @@ with snow and add some more snow after some time steps.
     >>> conditions = sequences.conditions
 
     >>> test("snow_cnhyst_ex2",
-    ...      axis1=(fluxes.player, fluxes.pnetlayer), axis2=states.g)
+    ...      axis1=(fluxes.player, fluxes.pnetlayer), axis2=states.g,
+    ...      update_parameters=False)
     |   date |    p |    t |                                             player |                                          psnowlayer |                               prainlayer |                                       tlayer |                               solidfraction |                                            potmelt |                                             melt |                                         pnetlayer |     pnet |                                                     g |                                                   etg |                                           gratio |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |  0.0 |  5.0 |      0.0       0.0       0.0        0.0        0.0 |      0.0       0.0       0.0        0.0         0.0 |      0.0       0.0  0.0  0.0         0.0 |  5.94178   5.49476   5.0   4.40542   3.52874 |      0.0       0.0  0.0  0.0            0.0 |      10.0  12.357715    11.245   9.90779  7.936136 | 3.710843  6.260746  7.221187  9.048319  7.936136 | 3.710843  6.260746  7.221187  9.048319   7.936136 | 6.835446 |  6.289157   8.739254  12.778813  20.951681  32.063864 |       0.0        0.0        0.0        0.0        0.0 | 0.189432  0.263231  0.384904  0.631075  0.965779 |
@@ -270,7 +287,6 @@ with snow and add some more snow after some time steps.
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *
-from hydpy.core import modeltools
 
 # ...from  snow
 from hydpy.models.snow import snow_model

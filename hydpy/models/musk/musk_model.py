@@ -194,10 +194,10 @@ class Calc_ReferenceDischarge_V1(modeltools.Method):
         new = model.sequences.states.fastaccess_new
         i = model.idx_segment
         if model.idx_run == 0:
-            d_est = old.discharge[i + 1] + new.discharge[i] - old.discharge[i]
+            est: float = old.discharge[i + 1] + new.discharge[i] - old.discharge[i]
         else:
-            d_est = new.discharge[i + 1]
-        flu.referencedischarge[i] = (new.discharge[i] + d_est) / 2.0
+            est = new.discharge[i + 1]
+        flu.referencedischarge[i] = (new.discharge[i] + est) / 2.0
 
 
 class Return_WettedArea_V1(modeltools.Method):
@@ -627,21 +627,16 @@ class Calc_ReferenceWaterLevel_V1(modeltools.Method):
         sol = model.parameters.solver.fastaccess
         fac = model.sequences.factors.fastaccess
         i = model.idx_segment
-        d_wl = fac.referencewaterlevel[i]
-        if modelutils.isnan(d_wl) or modelutils.isinf(d_wl):
-            d_min, d_max = 0.0, 2.0
-        elif d_wl <= 0.001:
-            d_min, d_max = 0.0, 0.01
+        wl: float = fac.referencewaterlevel[i]
+        if modelutils.isnan(wl) or modelutils.isinf(wl):
+            mn: float = 0.0
+            mx: float = 2.0
+        elif wl <= 0.001:
+            mn, mx = 0.0, 0.01
         else:
-            d_min, d_max = 0.9 * d_wl, 1.1 * d_wl
+            mn, mx = 0.9 * wl, 1.1 * wl
         fac.referencewaterlevel[i] = model.pegasusreferencewaterlevel.find_x(
-            d_min,
-            d_max,
-            0.0,
-            1000.0,
-            sol.tolerancewaterlevel,
-            sol.tolerancedischarge,
-            100,
+            mn, mx, 0.0, 1000.0, sol.tolerancewaterlevel, sol.tolerancedischarge, 100
         )
 
 
@@ -755,13 +750,13 @@ class Return_Celerity_V1(modeltools.Method):
         i = model.idx_segment
         if fac.wettedarea[i] == 0.0:
             return 0.0
-        d_r = fac.wettedarea[i] / fac.wettedperimeter[i]
+        r: float = fac.wettedarea[i] / fac.wettedperimeter[i]
         return (
             con.stricklercoefficient[i]
             * con.bottomslope[i] ** 0.5
-            * d_r ** (2.0 / 3.0)
+            * r ** (2.0 / 3.0)
             / 3.0
-        ) * (5.0 - (2.0 * d_r * der.perimeterincrease[i] / fac.surfacewidth[i]))
+        ) * (5.0 - (2.0 * r * der.perimeterincrease[i] / fac.surfacewidth[i]))
 
 
 class Calc_Celerity_V1(modeltools.Method):
@@ -940,17 +935,17 @@ class Calc_ReynoldsNumber_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         i = model.idx_segment
-        d_denom = (
+        denom: float = (
             fac.correctingfactor[i]
             * fac.surfacewidth[i]
             * con.bottomslope[i]
             * fac.celerity[i]
             * (1000.0 * con.length[i])
         )
-        if d_denom == 0.0:
+        if denom == 0.0:
             sta.reynoldsnumber[i] = 0.0
         else:
-            sta.reynoldsnumber[i] = flu.referencedischarge[i] / d_denom
+            sta.reynoldsnumber[i] = flu.referencedischarge[i] / denom
 
 
 class Calc_Coefficient1_Coefficient2_Coefficient3_V1(modeltools.Method):
@@ -1034,12 +1029,12 @@ class Calc_Coefficient1_Coefficient2_Coefficient3_V1(modeltools.Method):
         new = model.sequences.states.fastaccess_new
         old = model.sequences.states.fastaccess_old
         i = model.idx_segment
-        d_f = 1.0 / (1.0 + new.courantnumber[i] + new.reynoldsnumber[i])
-        fac.coefficient1[i] = (new.courantnumber[i] + new.reynoldsnumber[i] - 1.0) * d_f
+        f: float = 1.0 / (1.0 + new.courantnumber[i] + new.reynoldsnumber[i])
+        fac.coefficient1[i] = (new.courantnumber[i] + new.reynoldsnumber[i] - 1.0) * f
         if old.courantnumber[i] != 0.0:
-            d_f *= new.courantnumber[i] / old.courantnumber[i]
-        fac.coefficient2[i] = (1 + old.courantnumber[i] - old.reynoldsnumber[i]) * d_f
-        fac.coefficient3[i] = (1 - old.courantnumber[i] + old.reynoldsnumber[i]) * d_f
+            f *= new.courantnumber[i] / old.courantnumber[i]
+        fac.coefficient2[i] = (1 + old.courantnumber[i] - old.reynoldsnumber[i]) * f
+        fac.coefficient3[i] = (1 - old.courantnumber[i] + old.reynoldsnumber[i]) * f
 
 
 class Calc_Discharge_V2(modeltools.Method):

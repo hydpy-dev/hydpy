@@ -211,17 +211,14 @@ required to prepare the model properly.
     >>> pub.options.parameterstep("1h")
     Period("1d")
 
-    Unlike previous versions of Hydpy, the former parameter |hland_derived.UH| is now
-    part of the rconc submodel and is no longer a derived parameter, but a control
-    parameter that is parameterized directly upon setting, in this case, already in the
-    control file. Here we show the value of the control parameter  |rconc_control.UH|,
-    representing the ordinates of a unit hydrograph (the single value of 1.0 means that
-    the unit hydrograph does not cause any time delay):
+    The values of the derived parameters, which need to be calculated before starting a
+    simulation run based on the control parameters and eventually based on some other
+    settings (e.g. the initialisation period), are also ready.  Here we show the value
+    of the derived parameter  |hland_derived.Z|, representing the average (reference)
+    subbasin elevation:
 
-    >>> model.rconcmodel.parameters.control.uh
-    uh("triangle", tb=0.36728)
-    >>> model.rconcmodel.parameters.control.uh.value
-    array([1.])
+    >>> model.parameters.derived.z
+    z(4.205345)
 
     We define all class names in "CamelCase" letters (which is a Python convention) and,
     whenever practical, name the related objects identically but in lowercase letters.
@@ -238,8 +235,8 @@ required to prepare the model properly.
     >>> classname(hp.nodes)
     'Nodes'
 
-    >>> classname(model.rconcmodel.parameters.control.uh)
-    'UH'
+    >>> classname(model.parameters.derived.z)
+    'Z'
 
     As shown above, all |Parameter| objects of the model of element `land_dill` are
     ready to be used. However, all sequences (which handle the time variable properties)

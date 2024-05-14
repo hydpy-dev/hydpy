@@ -108,13 +108,13 @@ class Determine_Outflow_V2(modeltools.Method):
         :math:`\frac{dSC}{dt} = Inflow - Outflow`
 
     Note that the given base equations only hold for one single linear storage, while
-    |Calc_Outflow_V2| supports a cascade of linear storages.  Also, the equations
+    |Determine_Outflow_V2| supports a cascade of linear storages.  Also, the equations
     do not reflect the possibility to increase numerical accuracy via decreasing the
     internal simulation step size.
 
     Examples:
 
-        If the number of storages is zero, |Calc_Outflow_V2| routes the received
+        If the number of storages is zero, |Determine_Outflow_V2| routes the received
         input directly:
 
         >>> from hydpy.models.rconc import *

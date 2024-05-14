@@ -468,8 +468,8 @@ class HydPyServer(http.server.BaseHTTPRequestHandler):
     >>> with TestIO():
     ...     process = run_subprocess(
     ...         "hyd.py start_server 8080 LahnH multiple_runs.xml debugging=enable",
-    ...         blocking=False, verbose=True)
-    ...     result = run_subprocess("hyd.py await_server 8080 10", verbose=True)
+    ...         blocking=False, verbose=False)
+    ...     result = run_subprocess("hyd.py await_server 8080 10", verbose=False)
 
     We define a test function that simplifies sending the following requests and offers
     two optional arguments.  When passing a value to `id_`, `test` adds this value as
@@ -822,12 +822,12 @@ parameter item `lag` is missing.
     its highest possible value defined by control parameter |hland_control.FC|):
 
     >>> for element in ("land_lahn_1", "land_lahn_2"):
-    ...     sequences = f"HydPyServer.state.hp.elements.{element}.model.sequences"
-    ...     submodel_sequences = (f"HydPyServer.state.hp.elements.{element}.model."
-    ...                           f"rconcmodel.sequences")
+    ...     path_element = f"HydPyServer.state.hp.elements.{element}"
+    ...     path_sequences_model = f"{path_element}.model.sequences"
+    ...     path_sequences_submodel = f"{path_element}.model.rconcmodel.sequences"
     ...     test("evaluate",
-    ...          data=(f"sm = {sequences}.states.sm \\n"
-    ...                f"quh = {submodel_sequences}.logs.quh"))  # doctest: +ELLIPSIS
+    ...          data=(f"sm = {path_sequences_model}.states.sm \\n"
+    ...                f"quh = {path_sequences_submodel}.logs.quh"))  # doctest: +ELLIPSIS
     sm = sm(99.27505, ..., 142.84148)
     quh = quh(0.0)
     sm = sm(138.31396, ..., 164.63255)
@@ -835,12 +835,12 @@ parameter item `lag` is missing.
     >>> test("activate_conditionitemvalues", id_="0")
     <BLANKLINE>
     >>> for element in ("land_lahn_1", "land_lahn_2"):
-    ...     sequences = f"HydPyServer.state.hp.elements.{element}.model.sequences"
-    ...     submodel_sequences = (f"HydPyServer.state.hp.elements.{element}.model."
-    ...                           f"rconcmodel.sequences")
+    ...     path_element = f"HydPyServer.state.hp.elements.{element}"
+    ...     path_sequences_model = f"{path_element}.model.sequences"
+    ...     path_sequences_submodel = f"{path_element}.model.rconcmodel.sequences"
     ...     test("evaluate",
-    ...          data=(f"sm = {sequences}.states.sm \\n"
-    ...                f"quh = {submodel_sequences}.logs.quh"))  # doctest: +ELLIPSIS
+    ...          data=(f"sm = {path_sequences_model}.states.sm \\n"
+    ...                f"quh = {path_sequences_submodel}.logs.quh"))  # doctest: +ELLIPSIS
     sm = sm(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0)
     quh = quh(0.0)
     sm = sm(197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0)
@@ -994,7 +994,7 @@ under the id `0`.  There is nothing registered, so far.
     firstdate_sim = 1996-01-01T00:00:00+01:00
     lastdate_sim = 1996-01-02T00:00:00+01:00
     >>> test("evaluate",
-    ...      data=f"sm_lahn2 = {sequences}.states.sm")  # doctest: +ELLIPSIS
+    ...      data=f"sm_lahn2 = {path_sequences_model}.states.sm")  # doctest: +ELLIPSIS
     sm_lahn2 = sm(100.33562, ..., 100.0)
     >>> test("save_internalconditions", id_="0")
     <BLANKLINE>
@@ -1006,7 +1006,7 @@ under the id `0`.  There is nothing registered, so far.
     >>> test("load_internalconditions", id_="0")
     <BLANKLINE>
     >>> test("evaluate",
-    ...      data=f"sm_lahn2 = {sequences}.states.sm")  # doctest: +ELLIPSIS
+    ...      data=f"sm_lahn2 = {path_sequences_model}.states.sm")  # doctest: +ELLIPSIS
     sm_lahn2 = sm(138.31396, ..., 164.63255)
 
     If we set the first date of the simulation period to January 2, method
@@ -1022,7 +1022,7 @@ under the id `0`.  There is nothing registered, so far.
     >>> test("load_internalconditions", id_="0")
     <BLANKLINE>
     >>> test("evaluate",
-    ...      data=f"sm_lahn2 = {sequences}.states.sm")  # doctest: +ELLIPSIS
+    ...      data=f"sm_lahn2 = {path_sequences_model}.states.sm")  # doctest: +ELLIPSIS
     sm_lahn2 = sm(100.33562, ..., 100.0)
 
     Loading condition values for a specific time point requires saving them before:

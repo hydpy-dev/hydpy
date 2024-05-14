@@ -22,6 +22,7 @@ class TD(TypedDict, total=False):
     tb: float
     tp: Optional[float]
     x4: float
+    beta: Optional[float]
     auxfile: str
 
 
@@ -115,7 +116,6 @@ class UH(parametertools.Parameter):
     >>> print_values(uh.values)
     1.0
 
-
     >>> uh("gr_uh2", x4=2.8)
     >>> uh
     uh("gr_uh2", x4=2.8)
@@ -126,17 +126,26 @@ class UH(parametertools.Parameter):
     >>> print_values(uh.values)
     0.75643, 0.24357
 
+    The exponent 'beta' is set to a default value of 2.5, but it can be specified with
+    other values when calling the function:
 
+    >>> uh("gr_uh1", x4=6.3, beta=1.5)
+    >>> print_values(uh.values)
+    0.06324, 0.115629, 0.149734, 0.177314, 0.201123, 0.222388, 0.070571
+
+    >>> uh("gr_uh2", x4=2.8, beta=1.5)
+    >>> print_values(uh.values)
+    0.106717, 0.195124, 0.250762, 0.231417, 0.166382, 0.049598
 
     The triangle unit hydrograph must not be called with the parameters for the
-    GR unit hydrograph:
+    gland unit hydrograph:
 
     >>> uh("triangle", x4=2.0)
     Traceback (most recent call last):
     ...
     ValueError: Wrong arguments for option 'triangle'
 
-    The GR unit hydrographs  must not be called with the parameters for the
+    The gland unit hydrographs  must not be called with the parameters for the
     triangle unit hydrograph:
     >>> uh("gr_uh1", tb=2.0, tp=3.0)
     Traceback (most recent call last):
@@ -155,6 +164,7 @@ class UH(parametertools.Parameter):
         "tb": parametertools.Keyword(name="tb", time=False),
         "tp": parametertools.Keyword(name="tp", time=False),
         "x4": parametertools.Keyword(name="x4", time=False),
+        "beta": parametertools.Keyword(name="beta", time=False),
     }
 
     @overload
@@ -171,6 +181,11 @@ class UH(parametertools.Parameter):
     @overload
     def __call__(
         self, option: Literal["gr_uh1", "gr_uh2"], /, *, x4: float
+    ) -> None: ...
+
+    @overload
+    def __call__(
+        self, option: Literal["gr_uh1", "gr_uh2"], /, *, x4: float, beta: float
     ) -> None: ...
 
     @overload
@@ -215,7 +230,9 @@ class UH(parametertools.Parameter):
             return None
 
         idx = self._find_kwargscombination(
-            args, dict(kwargs), (set(("tb",)), set(("tb", "tp")), set(("x4",)))
+            args,
+            dict(kwargs),
+            (set(("tb",)), set(("tb", "tp")), set(("x4",)), set(("x4", "beta"))),
         )
 
         if option == "triangle":
@@ -238,23 +255,37 @@ class UH(parametertools.Parameter):
             else:
                 raise ValueError("Wrong arguments for option 'triangle'")
         elif option == "gr_uh1":
-            if idx == 2:
+            if idx in [2, 3]:
                 x4 = kwargs["x4"]
                 x4 /= self.get_timefactor()
-                self._keywordarguments = parametertools.KeywordArguments(
-                    option=option, x4=x4
-                )
-                self.set_gr_uh1_uh(x4=x4)
+                if idx == 3 and kwargs["beta"] is not None:
+                    beta = kwargs["beta"]
+                    self._keywordarguments = parametertools.KeywordArguments(
+                        option=option, x4=x4, beta=beta
+                    )
+                else:
+                    beta = 2.5
+                    self._keywordarguments = parametertools.KeywordArguments(
+                        option=option, x4=x4
+                    )
+                self.set_gr_uh1_uh(x4=x4, beta=beta)
             else:
                 raise ValueError("Wrong arguments for option 'gr_uh1'")
         elif option == "gr_uh2":
-            if idx == 2:
+            if idx in [2, 3]:
                 x4 = kwargs["x4"]
                 x4 /= self.get_timefactor()
-                self._keywordarguments = parametertools.KeywordArguments(
-                    option=option, x4=x4
-                )
-                self.set_gr_uh2_uh(x4=x4)
+                if idx == 3 and kwargs["beta"] is not None:
+                    beta = kwargs["beta"]
+                    self._keywordarguments = parametertools.KeywordArguments(
+                        option=option, x4=x4, beta=beta
+                    )
+                else:
+                    beta = 2.5
+                    self._keywordarguments = parametertools.KeywordArguments(
+                        option=option, x4=x4
+                    )
+                self.set_gr_uh2_uh(x4=x4, beta=beta)
             else:
                 raise ValueError("Wrong arguments for option 'gr_uh2'")
         return None
@@ -331,7 +362,7 @@ class UH(parametertools.Parameter):
             uh[:] = uh / numpy.sum(uh)
             self.values = uh
 
-    def set_gr_uh1_uh(self, x4: float) -> None:
+    def set_gr_uh1_uh(self, x4: float, beta: float = 2.5) -> None:
         """Calculate and set the ordinates of a unit hydrograph as used in GR model
         (UH1)
         """
@@ -344,8 +375,8 @@ class UH(parametertools.Parameter):
             self.values = 1.0
         else:
             index = numpy.arange(1, numpy.ceil(x4) + 1)
-            sh1j = (index / x4) ** 2.5
-            sh1j_1 = ((index - 1) / x4) ** 2.5
+            sh1j = (index / x4) ** beta
+            sh1j_1 = ((index - 1) / x4) ** beta
             sh1j[index >= x4] = 1
             sh1j_1[index - 1 >= x4] = 1
             self.shape = len(sh1j)
@@ -356,7 +387,7 @@ class UH(parametertools.Parameter):
             # sum should be equal to one but better normalize
             uh1[:] = uh1 / numpy.sum(uh1)
 
-    def set_gr_uh2_uh(self, x4: float) -> None:
+    def set_gr_uh2_uh(self, x4: float, beta: float = 2.5) -> None:
         """Calculate and set the ordinates of a unit hydrograph as used in GR model
         (UH2)
         """
@@ -373,16 +404,16 @@ class UH(parametertools.Parameter):
 
         for idx in range(nmb_uhs):
             if index[idx] <= x4:
-                sh2j[idx] = 0.5 * (index[idx] / x4) ** 2.5
+                sh2j[idx] = 0.5 * (index[idx] / x4) ** beta
             elif x4 < index[idx] < 2.0 * x4:
-                sh2j[idx] = 1.0 - 0.5 * (2.0 - index[idx] / x4) ** 2.5
+                sh2j[idx] = 1.0 - 0.5 * (2.0 - index[idx] / x4) ** beta
             else:
                 sh2j[idx] = 1
 
             if index[idx] - 1 <= x4:
-                sh2j_1[idx] = 0.5 * ((index[idx] - 1) / x4) ** 2.5
+                sh2j_1[idx] = 0.5 * ((index[idx] - 1) / x4) ** beta
             elif x4 < index[idx] - 1 < 2.0 * x4:
-                sh2j_1[idx] = 1.0 - 0.5 * (2.0 - (index[idx] - 1) / x4) ** 2.5
+                sh2j_1[idx] = 1.0 - 0.5 * (2.0 - (index[idx] - 1) / x4) ** beta
             else:
                 # sh2j_1[idx] = 1
                 assert False, "Please check gr_uh2 algorithm, line has been removed"

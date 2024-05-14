@@ -55,7 +55,7 @@ good impression of the functional differences of both models.
 >>> psi(1.0)
 
 We assign identical values to all parameters, besides those that are specific to
-|hland_v4| (|H1|, |TAb1|, |TVs1|, |H1|, |TAb1|, |TVs1|, and |NmbStorages|):
+|hland_v4| (|H1|, |TAb1|, |TVs1|, |H1|, |TAb1|, |TVs1|):
 
 >>> zonetype(FIELD)
 

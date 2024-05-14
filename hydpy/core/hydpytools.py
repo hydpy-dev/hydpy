@@ -225,7 +225,7 @@ required to prepare the model properly.
     We hope that eases finding the relevant parts of the online documentation when in
     trouble with a particular object.  Three examples we already encountered are the
     |Timegrids| instance `timegrids` of module `pub`, the |Nodes| instance `nodes` of
-    class `HydPy`, and the |hland_derived.UH| instance `uh` of application model
+    class `HydPy`, and the |hland_derived.Z| instance `z` of application model
     |hland_v1|:
 
     >>> from hydpy import classname

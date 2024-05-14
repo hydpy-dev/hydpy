@@ -56,7 +56,7 @@ The following settings are identical:
 >>> psi(1.0)
 
 We assign identical values to all parameters, besides those that are specific to
-|hland_v3| (|SGR|, |SG1Max|, |K0|, |K1|, |K2|, and |K3|, and |NmbStorages|):
+|hland_v3| (|SGR|, |SG1Max|, |K0|, |K1|, |K2|, and |K3|):
 
 >>> zonetype(FIELD)
 >>> pcorr(1.1)

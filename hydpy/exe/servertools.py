@@ -825,9 +825,9 @@ parameter item `lag` is missing.
     ...     path_element = f"HydPyServer.state.hp.elements.{element}"
     ...     path_sequences_model = f"{path_element}.model.sequences"
     ...     path_sequences_submodel = f"{path_element}.model.rconcmodel.sequences"
-    ...     test("evaluate",
+    ...     test("evaluate",  # doctest: +ELLIPSIS
     ...          data=(f"sm = {path_sequences_model}.states.sm \\n"
-    ...                f"quh = {path_sequences_submodel}.logs.quh"))  # doctest: +ELLIPSIS
+    ...                f"quh = {path_sequences_submodel}.logs.quh"))
     sm = sm(99.27505, ..., 142.84148)
     quh = quh(0.0)
     sm = sm(138.31396, ..., 164.63255)
@@ -838,9 +838,9 @@ parameter item `lag` is missing.
     ...     path_element = f"HydPyServer.state.hp.elements.{element}"
     ...     path_sequences_model = f"{path_element}.model.sequences"
     ...     path_sequences_submodel = f"{path_element}.model.rconcmodel.sequences"
-    ...     test("evaluate",
+    ...     test("evaluate",  # doctest: +ELLIPSIS
     ...          data=(f"sm = {path_sequences_model}.states.sm \\n"
-    ...                f"quh = {path_sequences_submodel}.logs.quh"))  # doctest: +ELLIPSIS
+    ...                f"quh = {path_sequences_submodel}.logs.quh"))
     sm = sm(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0)
     quh = quh(0.0)
     sm = sm(197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0, 197.0)

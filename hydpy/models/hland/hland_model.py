@@ -27,7 +27,6 @@ from hydpy.models.hland import hland_inputs
 from hydpy.models.hland import hland_factors
 from hydpy.models.hland import hland_fluxes
 from hydpy.models.hland import hland_states
-from hydpy.models.hland import hland_logs
 from hydpy.models.hland import hland_aides
 from hydpy.models.hland import hland_outlets
 

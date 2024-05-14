@@ -1525,26 +1525,6 @@ class MaxBaz(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
 
-class NmbStorages(parametertools.Parameter):
-    """Number of storages of the linear storage cascade [-].
-
-    Defining a value for parameter |NmbStorages| automatically sets the shape of state
-    sequence |SC|:
-
-    >>> from hydpy.models.hland import *
-    >>> parameterstep()
-    >>> nmbstorages(5)
-    >>> states.sc.shape
-    (5,)
-    """
-
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
-
-    def __call__(self, *args, **kwargs) -> None:
-        super().__call__(*args, **kwargs)
-        self.subpars.pars.model.sequences.states.sc.shape = self.value
-
-
 K0.CONTROLPARAMETERS = (K1,)
 K1.CONTROLPARAMETERS = (K0, K2)
 K2.CONTROLPARAMETERS = (K1, K3)

@@ -25,8 +25,10 @@ lower storages (|SG2| and |SG3|), dealing with slow and slowest groundwater resp
 slightly different from PREVAH.  First, their outflows (|RG2| and |RG3|) are
 individually accessible (PREVAH handles their outflow as one runoff component).  Second,
 it represents internal lakes as an "extension" of the groundwater (like in
-|hland_v1|/HBV96).  Like all |hland| application models, |hland_v3| allows an
-optional submodel for runoff concentration.
+|hland_v1|/HBV96).  Like all |hland| application models, |hland_v3| optionally allows
+using a submodel for additional consideration of runoff concentration. While the figure
+of |hland_v1| relies on |rconc_uh|, the figure of |hland_v3| selects |rconc_nash| as an
+example.
 
 Integration tests
 =================
@@ -56,7 +58,9 @@ The following settings are identical:
 >>> psi(1.0)
 
 We assign identical values to all parameters, besides those that are specific to
-|hland_v3| (|SGR|, |SG1Max|, |K0|, |K1|, |K2|, and |K3|):
+|hland_v3| (|SGR|, |SG1Max|, |K0|, |K1|, |K2|, and |K3|). Also, we use the same
+submodels to simulate evaporation but select |rconc_nash| instead of |rconc_uh| for
+extending the simulation of runoff concentration processes:
 
 >>> zonetype(FIELD)
 >>> pcorr(1.1)
@@ -1109,14 +1113,6 @@ class Model(
         rconcinterfaces.RConcModel_V1, optional=True
     )
 
-    def get_rconcmodel_waterbalance(
-        self, rconcmodel_conditions: ConditionsSubmodel
-    ) -> float:
-        r"""get the water balance of the rconc submodel if used"""
-        if self.rconcmodel is None:
-            return 0.0
-        return self.rconcmodel.get_waterbalance(rconcmodel_conditions)
-
     def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
         r"""Determine the water balance error of the previous simulation run in mm.
 
@@ -1157,9 +1153,6 @@ class Model(
         idxs_land = ~idxs_lake
         idxs_upper = idxs_land * ~idxs_seal
         idxs_soil = idxs_upper * ~idxs_glac
-        rconcmodel_waterbalance = self.get_rconcmodel_waterbalance(
-            initial_conditions["model.rconcmodel"]
-        )
         return (
             numpy.sum(fluxes.pc.series * areas)
             + numpy.sum((fluxes.glmelt.series * areas)[:, idxs_glac])
@@ -1175,7 +1168,7 @@ class Model(
             - numpy.sum(((last.sg1 - first["sg1"]) * areas)[idxs_upper])
             - (last.sg2 - first["sg2"]) * derived.rellowerzonearea
             - (last.sg3 - first["sg3"]) * derived.rellowerzonearea
-            - numpy.sum(rconcmodel_waterbalance)
+            - self._get_rconcmodel_waterbalance(initial_conditions["model.rconcmodel"])
         )
 
 

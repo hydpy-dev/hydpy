@@ -24,8 +24,8 @@ subbasin-specific.  For the subbasin-wide lower zone storage (|LZ|), there is no
 difference to |hland_v1|.  Like all |hland| application models, |hland_v4| allows an
 optional submodel for runoff concentration.  Using |rconc_nash| and setting the number
 of storages to one agrees with COSERO's approach to model runoff concentration
-with a single bucket. In agreement with COSERO but in contrast to |hland_v3|, in
-|hland_v4| base flow is not taken into account when calculating runoff concentration.
+with a single bucket. In agreement with COSERO but in contrast to |hland_v3|,
+|hland_v4| does not take base flow into account when calculating runoff concentration.
 
 
 Integration tests
@@ -1105,14 +1105,6 @@ class Model(
         rconcinterfaces.RConcModel_V1, optional=True
     )
 
-    def get_rconcmodel_waterbalance(
-        self, rconcmodel_conditions: ConditionsSubmodel
-    ) -> float:
-        r"""get the water balance of the rconc submodel if used"""
-        if self.rconcmodel is None:
-            return 0.0
-        return self.rconcmodel.get_waterbalance(rconcmodel_conditions)
-
     def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
         r"""Determine the water balance error of the previous simulation run in mm.
 
@@ -1151,9 +1143,6 @@ class Model(
         idxs_land = ~idxs_lake
         idxs_upper = idxs_land * ~idxs_seal
         idxs_soil = idxs_upper * ~idxs_glac
-        rconcmodel_waterbalance = self.get_rconcmodel_waterbalance(
-            initial_conditions["model.rconcmodel"]
-        )
         return (
             numpy.sum(fluxes.pc.series * areas)
             + numpy.sum((fluxes.glmelt.series * areas)[:, idxs_glac])
@@ -1168,7 +1157,8 @@ class Model(
             - numpy.sum(((last.bw1 - first["bw1"]) * areas)[idxs_upper])
             - numpy.sum(((last.bw2 - first["bw2"]) * areas)[idxs_upper])
             - (last.lz - first["lz"]) * derived.rellowerzonearea
-            - numpy.sum(rconcmodel_waterbalance) * derived.rellandarea
+            - self._get_rconcmodel_waterbalance(initial_conditions["model.rconcmodel"])
+            * derived.rellandarea
         )
 
 

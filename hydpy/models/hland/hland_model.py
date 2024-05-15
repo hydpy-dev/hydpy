@@ -4089,8 +4089,8 @@ class Calc_OutUH_RConcModel_V1(modeltools.Method):
 
 
 class Calc_OutUH_V1(modeltools.Method):
-    """Let a submodel that follows the |RConcModel_V1| submodel interface calculate
-    runoff concentration."""
+    """If the model has a submodel that follows the |RConcModel_V1| submodel interface,
+    calculate runoff concentration. If not, set the output equal to the input."""
 
     SUBMODELINTERFACES = (rconcinterfaces.RConcModel_V1,)
     SUBMETHODS = (Calc_OutUH_RConcModel_V1,)
@@ -4557,16 +4557,22 @@ class Main_RConcModel_V1(modeltools.AdHocModel):
         >>> simulationstep("12h")
         >>> parameterstep("1d")
         >>> with model.add_rconcmodel_v1("rconc_uh"):
-        ...     pass
-        >>> model.rconcmodel.parameters.control.uh.shape = 3
-        >>> model.rconcmodel.parameters.control.uh = 0.3, 0.5, 0.2
-        >>> model.rconcmodel.sequences.logs.quh.shape = 3
-        >>> model.rconcmodel.sequences.logs.quh = 1.0, 3.0, 0.0
+        ...     uh([0.3, 0.5, 0.2])
+        ...     logs.quh.shape = 3
+        ...     logs.quh = 1.0, 3.0, 0.0
         >>> model.sequences.fluxes.inuh = 0.0
         >>> model.calc_outuh_v1()
         >>> fluxes.outuh
         outuh(1.0)
         """
+
+    def _get_rconcmodel_waterbalance(
+        self, rconcmodel_conditions: ConditionsSubmodel
+    ) -> float:
+        r"""get the water balance of the rconc submodel if used."""
+        if self.rconcmodel is None:
+            return 0.0
+        return self.rconcmodel.get_waterbalance(rconcmodel_conditions)
 
 
 class Sub_TempModel_V1(modeltools.AdHocModel, tempinterfaces.TempModel_V1):

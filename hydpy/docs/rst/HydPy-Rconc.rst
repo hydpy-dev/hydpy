@@ -5,7 +5,7 @@ HydPy-Rconc
 ===========
 
 All `HydPy-Rconc` models are submodels that calculate runoff concentration by either
-the convolution of a unit hydrograph or by the linear storage cascade approach
+the convolution of a unit hydrograph or the linear storage cascade approach
 (Nash-Cascade).
 
 Base model:
@@ -20,5 +20,5 @@ Application model:
 .. toctree::
    :maxdepth: 1
 
-   Rconc_UH <rconc_uh>
-   Rconc_Nash <rconc_nash>
+   Rconc-UH <rconc_uh>
+   Rconc-Nash <rconc_nash>

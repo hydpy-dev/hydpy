@@ -4,6 +4,7 @@
 """
 # imports...
 # ...from standard library
+import numpy
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
@@ -267,6 +268,8 @@ class Sub_RConcModel(modeltools.AdHocModel):
         elif "states" in initial_conditions and "sc" in initial_conditions["states"]:
             waterbalance = self.sequences.states.sc - initial_conditions["states"]["sc"]
         else:
-            waterbalance = 0.0
-
-        return waterbalance
+            raise ValueError(
+                f"No initial conditions for submodel rconc found when calculating"
+                f"waterbalance."
+            )
+        return numpy.sum(waterbalance)

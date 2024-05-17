@@ -20,8 +20,8 @@ class NmbRuns(parametertools.SolverParameter):
     TIME = None
 
 
-class ToleranceWaterLevel(parametertools.SolverParameter):
-    """Acceptable water level error for determining the reference water level [m]."""
+class ToleranceWaterDepth(parametertools.SolverParameter):
+    """Acceptable water depth error for determining the reference water depth [m]."""
 
     NDIM = 0
     TYPE = float
@@ -31,7 +31,7 @@ class ToleranceWaterLevel(parametertools.SolverParameter):
 
 
 class ToleranceDischarge(parametertools.SolverParameter):
-    """Acceptable discharge error for determining the reference water level [m³/s]."""
+    """Acceptable discharge error for determining the reference water depth [m³/s]."""
 
     NDIM = 0
     TYPE = float
@@ -44,7 +44,7 @@ class ToleranceDischarge(parametertools.SolverParameter):
     def modify_init(self) -> float:
         r"""Adjust and return the value of class constant `INIT`.
 
-        Ideally, in the long term, the iterative search for the reference water level
+        Ideally, in the long term, the iterative search for the reference water depth
         takes comparable computation time and yields comparable relative accuracy for
         channels that pass different amounts of water.  We use the catchment size as an
         indicator of the expected (average) amount of water.  For central European

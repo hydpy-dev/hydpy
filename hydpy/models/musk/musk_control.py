@@ -36,7 +36,7 @@ class NmbSegments(parametertools.Parameter):
     (2,)
     >>> derived.perimeterincrease.shape
     (2,)
-    >>> factors.referencewaterlevel.shape
+    >>> factors.referencewaterdepth.shape
     (2,)
     >>> fluxes.referencedischarge.shape
     (2,)

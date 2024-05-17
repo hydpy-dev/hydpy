@@ -6,8 +6,8 @@
 from hydpy.models.musk import musk_sequences
 
 
-class ReferenceWaterLevel(musk_sequences.FactorSequence1D):
-    """Reference water level [m]."""
+class ReferenceWaterDepth(musk_sequences.FactorSequence1D):
+    """Reference water depth [m]."""
 
     SPAN = (0.0, None)
 

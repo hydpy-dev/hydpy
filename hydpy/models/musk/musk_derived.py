@@ -14,7 +14,7 @@ class Seconds(parametertools.SecondsParameter):
 
 class PerimeterIncrease(musk_parameters.Parameter1D):
     """Increase of the (wetted) perimeter of a trapozoidal profile relative to a water
-    level increase [-]."""
+    depth increase [-]."""
 
     TYPE, TIME, SPAN = float, None, (0.0, None)
 

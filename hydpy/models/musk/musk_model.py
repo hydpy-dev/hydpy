@@ -204,7 +204,7 @@ class Return_WettedArea_V1(modeltools.Method):
     r"""Calculate and return the wetted area in a trapezoidal profile.
 
     Basic equation:
-      :math:`waterlevel \cdot (BottomWidth + SideSlope \cdot waterlevel)`
+      :math:`waterdepth \cdot (BottomWidth + SideSlope \cdot waterdepth)`
 
     Examples:
 
@@ -240,10 +240,10 @@ class Return_WettedArea_V1(modeltools.Method):
     CONTROLPARAMETERS = (musk_control.BottomWidth, musk_control.SideSlope)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel, waterlevel: float) -> float:
+    def __call__(model: modeltools.SegmentModel, waterdepth: float) -> float:
         con = model.parameters.control.fastaccess
         i = model.idx_segment
-        return waterlevel * (con.bottomwidth[i] + con.sideslope[i] * waterlevel)
+        return waterdepth * (con.bottomwidth[i] + con.sideslope[i] * waterdepth)
 
 
 class Calc_WettedArea_V1(modeltools.Method):
@@ -260,7 +260,7 @@ class Calc_WettedArea_V1(modeltools.Method):
         >>> nmbsegments(3)
         >>> bottomwidth(2.0, 0.0, 2.0)
         >>> sideslope(0.0, 2.0, 2.0)
-        >>> factors.referencewaterlevel = 3.0
+        >>> factors.referencewaterdepth = 3.0
         >>> model.run_segments(model.calc_wettedarea_v1)
         >>> factors.wettedarea
         wettedarea(6.0, 18.0, 24.0)
@@ -268,21 +268,21 @@ class Calc_WettedArea_V1(modeltools.Method):
 
     SUBMETHODS = (Return_WettedArea_V1,)
     CONTROLPARAMETERS = (musk_control.BottomWidth, musk_control.SideSlope)
-    REQUIREDSEQUENCES = (musk_factors.ReferenceWaterLevel,)
+    REQUIREDSEQUENCES = (musk_factors.ReferenceWaterDepth,)
     RESULTSEQUENCES = (musk_factors.WettedArea,)
 
     @staticmethod
     def __call__(model: modeltools.SegmentModel) -> None:
         fac = model.sequences.factors.fastaccess
         i = model.idx_segment
-        fac.wettedarea[i] = model.return_wettedarea_v1(fac.referencewaterlevel[i])
+        fac.wettedarea[i] = model.return_wettedarea_v1(fac.referencewaterdepth[i])
 
 
 class Return_WettedPerimeter_V1(modeltools.Method):
     r"""Calculate and return the wetted perimeter in a trapezoidal profile.
 
     Basic equation:
-      :math:`BottomWidth + 2 \cdot waterlevel \cdot \sqrt{1 + SideSlope^2}`
+      :math:`BottomWidth + 2 \cdot waterdepth \cdot \sqrt{1 + SideSlope^2}`
 
     Examples:
 
@@ -318,11 +318,11 @@ class Return_WettedPerimeter_V1(modeltools.Method):
     CONTROLPARAMETERS = (musk_control.BottomWidth, musk_control.SideSlope)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel, waterlevel: float) -> float:
+    def __call__(model: modeltools.SegmentModel, waterdepth: float) -> float:
         con = model.parameters.control.fastaccess
         i = model.idx_segment
         return con.bottomwidth[i] + (
-            2.0 * waterlevel * (1.0 + con.sideslope[i] ** 2.0) ** 0.5
+            2.0 * waterdepth * (1.0 + con.sideslope[i] ** 2.0) ** 0.5
         )
 
 
@@ -340,7 +340,7 @@ class Calc_WettedPerimeter_V1(modeltools.Method):
         >>> nmbsegments(3)
         >>> bottomwidth(2.0, 0.0, 2.0)
         >>> sideslope(0.0, 2.0, 2.0)
-        >>> factors.referencewaterlevel = 3.0
+        >>> factors.referencewaterdepth = 3.0
         >>> model.run_segments(model.calc_wettedperimeter_v1)
         >>> factors.wettedperimeter
         wettedperimeter(8.0, 13.416408, 15.416408)
@@ -348,7 +348,7 @@ class Calc_WettedPerimeter_V1(modeltools.Method):
 
     SUBMETHODS = (Return_WettedPerimeter_V1,)
     CONTROLPARAMETERS = (musk_control.BottomWidth, musk_control.SideSlope)
-    REQUIREDSEQUENCES = (musk_factors.ReferenceWaterLevel,)
+    REQUIREDSEQUENCES = (musk_factors.ReferenceWaterDepth,)
     RESULTSEQUENCES = (musk_factors.WettedPerimeter,)
 
     @staticmethod
@@ -356,7 +356,7 @@ class Calc_WettedPerimeter_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         i = model.idx_segment
         fac.wettedperimeter[i] = model.return_wettedperimeter_v1(
-            fac.referencewaterlevel[i]
+            fac.referencewaterdepth[i]
         )
 
 
@@ -364,7 +364,7 @@ class Return_SurfaceWidth_V1(modeltools.Method):
     r"""Calculate and return the surface width in a trapezoidal profile.
 
     Basic equation:
-      :math:`BottomWidth + 2 \cdot SideSlope \cdot waterlevel`
+      :math:`BottomWidth + 2 \cdot SideSlope \cdot waterdepth`
 
     Examples:
 
@@ -400,10 +400,10 @@ class Return_SurfaceWidth_V1(modeltools.Method):
     CONTROLPARAMETERS = (musk_control.BottomWidth, musk_control.SideSlope)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel, waterlevel: float) -> float:
+    def __call__(model: modeltools.SegmentModel, waterdepth: float) -> float:
         con = model.parameters.control.fastaccess
         i = model.idx_segment
-        return con.bottomwidth[i] + 2.0 * con.sideslope[i] * waterlevel
+        return con.bottomwidth[i] + 2.0 * con.sideslope[i] * waterdepth
 
 
 class Calc_SurfaceWidth_V1(modeltools.Method):
@@ -420,7 +420,7 @@ class Calc_SurfaceWidth_V1(modeltools.Method):
         >>> nmbsegments(3)
         >>> bottomwidth(2.0, 0.0, 2.0)
         >>> sideslope(0.0, 2.0, 2.0)
-        >>> factors.referencewaterlevel = 3.0
+        >>> factors.referencewaterdepth = 3.0
         >>> model.run_segments(model.calc_surfacewidth_v1)
         >>> factors.surfacewidth
         surfacewidth(2.0, 12.0, 14.0)
@@ -428,14 +428,14 @@ class Calc_SurfaceWidth_V1(modeltools.Method):
 
     SUBMETHODS = (Return_SurfaceWidth_V1,)
     CONTROLPARAMETERS = (musk_control.BottomWidth, musk_control.SideSlope)
-    REQUIREDSEQUENCES = (musk_factors.ReferenceWaterLevel,)
+    REQUIREDSEQUENCES = (musk_factors.ReferenceWaterDepth,)
     RESULTSEQUENCES = (musk_factors.SurfaceWidth,)
 
     @staticmethod
     def __call__(model: modeltools.SegmentModel) -> None:
         fac = model.sequences.factors.fastaccess
         i = model.idx_segment
-        fac.surfacewidth[i] = model.return_surfacewidth_v1(fac.referencewaterlevel[i])
+        fac.surfacewidth[i] = model.return_surfacewidth_v1(fac.referencewaterdepth[i])
 
 
 class Return_Discharge_V1(modeltools.Method):
@@ -446,9 +446,9 @@ class Return_Discharge_V1(modeltools.Method):
       :math:`
       StricklerCoefficient \cdot \sqrt{BottomSlope} \cdot \frac{A^{5/3}}{P^{2/3}}`
 
-      :math:`A = Return\_WettedArea(waterlevel)\_V1`
+      :math:`A = Return\_WettedArea(waterdepth)\_V1`
 
-      :math:`P = Return\_WettedPerimeter(waterlevel)\_V1`
+      :math:`P = Return\_WettedPerimeter(waterdepth)\_V1`
 
     Examples:
 
@@ -501,25 +501,25 @@ class Return_Discharge_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel, waterlevel: float) -> float:
+    def __call__(model: modeltools.SegmentModel, waterdepth: float) -> float:
         con = model.parameters.control.fastaccess
-        if waterlevel <= 0.0:
+        if waterdepth <= 0.0:
             return 0.0
         i = model.idx_segment
         return (
             con.stricklercoefficient[i]
             * con.bottomslope[i] ** 0.5
-            * model.return_wettedarea(waterlevel) ** (5.0 / 3.0)
-            / model.return_wettedperimeter(waterlevel) ** (2.0 / 3.0)
+            * model.return_wettedarea(waterdepth) ** (5.0 / 3.0)
+            / model.return_wettedperimeter(waterdepth) ** (2.0 / 3.0)
         )
 
 
 class Return_ReferenceDischargeError_V1(modeltools.Method):
     r"""Calculate the difference between the discharge corresponding to the given water
-    level and the reference discharge.
+    depth and the reference discharge.
 
     Basic equation:
-      :math:`Return\_Discharge\_V1(waterlevel) - ReferenceDischarge`
+      :math:`Return\_Discharge\_V1(waterdepth) - ReferenceDischarge`
 
     Example:
 
@@ -549,21 +549,21 @@ class Return_ReferenceDischargeError_V1(modeltools.Method):
     REQUIREDSEQUENCES = (musk_fluxes.ReferenceDischarge,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel, waterlevel: float) -> float:
+    def __call__(model: modeltools.SegmentModel, waterdepth: float) -> float:
         flu = model.sequences.fluxes.fastaccess
         i = model.idx_segment
-        return model.return_discharge(waterlevel) - flu.referencedischarge[i]
+        return model.return_discharge(waterdepth) - flu.referencedischarge[i]
 
 
-class Calc_ReferenceWaterLevel_V1(modeltools.Method):
-    r"""Find the reference water level via |Pegasus| iteration.
+class Calc_ReferenceWaterDepth_V1(modeltools.Method):
+    r"""Find the reference water depth via |Pegasus| iteration.
 
     Examples:
 
         The following test calculation extends the example of the documentation on
         method |Return_ReferenceDischargeError_V1|.  The first and the last channel
-        segments demonstrate that method |Calc_ReferenceWaterLevel_V1| restricts the
-        Pegasus search to the lowest water level of 0 m and the highest water level of
+        segments demonstrate that method |Calc_ReferenceWaterDepth_V1| restricts the
+        Pegasus search to the lowest water depth of 0 m and the highest water depth of
         1000 m:
 
         >>> from hydpy.models.musk import *
@@ -574,41 +574,41 @@ class Calc_ReferenceWaterLevel_V1(modeltools.Method):
         >>> stricklercoefficient(20.0)
         >>> bottomwidth(2.0)
         >>> sideslope(2.0)
-        >>> solver.tolerancewaterlevel.update()
+        >>> solver.tolerancewaterdepth.update()
         >>> solver.tolerancedischarge.update()
         >>> fluxes.referencedischarge = -10.0, 0.0, 64.475285, 1000.0, 1000000000.0
-        >>> model.run_segments(model.calc_referencewaterlevel_v1)
-        >>> factors.referencewaterlevel
-        referencewaterlevel(0.0, 0.0, 3.0, 9.199035, 1000.0)
+        >>> model.run_segments(model.calc_referencewaterdepth_v1)
+        >>> factors.referencewaterdepth
+        referencewaterdepth(0.0, 0.0, 3.0, 9.199035, 1000.0)
 
-        Repeated applications of |Calc_ReferenceWaterLevel_V1| should always yield
-        the same results but be often more efficient than the initial calculation due
-        to using old reference water level estimates to gain more precise initial
-        search intervals:
+        Repeated applications of |Calc_ReferenceWaterDepth_V1| should always yield the
+        same results, but they are often more efficient than the initial calculation
+        because they use old reference water depth estimates to gain more precise
+        initial search intervals:
 
-        >>> model.run_segments(model.calc_referencewaterlevel_v1)
-        >>> factors.referencewaterlevel
-        referencewaterlevel(0.0, 0.0, 3.0, 9.199035, 1000.0)
+        >>> model.run_segments(model.calc_referencewaterdepth_v1)
+        >>> factors.referencewaterdepth
+        referencewaterdepth(0.0, 0.0, 3.0, 9.199035, 1000.0)
 
-        The Pegasus algorithm stops either when the search interval is smaller than the
-        tolerance value defined by the |ToleranceWaterLevel| parameter or if the
+        The Pegasus algorithm stops when the search interval is smaller than the
+        tolerance value defined by the |ToleranceWaterDepth| parameter or if the
         difference to the target discharge is less than the tolerance value defined by
-        the |ToleranceDischarge| parameter.  By default, the water level-related
+        the |ToleranceDischarge| parameter.  By default, the water depth-related
         tolerance is zero; hence, the discharge-related tolerance must stop the
         iteration:
 
-        >>> solver.tolerancewaterlevel
-        tolerancewaterlevel(0.0)
+        >>> solver.tolerancewaterdepth
+        tolerancewaterdepth(0.0)
         >>> solver.tolerancedischarge
         tolerancedischarge(0.0001)
 
         Increase at least one parameter to reduce computation time:
 
-        >>> solver.tolerancewaterlevel(0.1)
-        >>> factors.referencewaterlevel = nan
-        >>> model.run_segments(model.calc_referencewaterlevel_v1)
-        >>> factors.referencewaterlevel
-        referencewaterlevel(0.0, 0.0, 3.000295, 9.196508, 1000.0)
+        >>> solver.tolerancewaterdepth(0.1)
+        >>> factors.referencewaterdepth = nan
+        >>> model.run_segments(model.calc_referencewaterdepth_v1)
+        >>> factors.referencewaterdepth
+        referencewaterdepth(0.0, 0.0, 3.000295, 9.196508, 1000.0)
     """
 
     SUBMETHODS = (Return_ReferenceDischargeError_V1,)
@@ -618,16 +618,16 @@ class Calc_ReferenceWaterLevel_V1(modeltools.Method):
         musk_control.BottomSlope,
         musk_control.StricklerCoefficient,
     )
-    SOLVERPARAMETERS = (musk_solver.ToleranceWaterLevel, musk_solver.ToleranceDischarge)
+    SOLVERPARAMETERS = (musk_solver.ToleranceWaterDepth, musk_solver.ToleranceDischarge)
     REQUIREDSEQUENCES = (musk_fluxes.ReferenceDischarge,)
-    RESULTSEQUENCES = (musk_factors.ReferenceWaterLevel,)
+    RESULTSEQUENCES = (musk_factors.ReferenceWaterDepth,)
 
     @staticmethod
     def __call__(model: modeltools.SegmentModel) -> None:
         sol = model.parameters.solver.fastaccess
         fac = model.sequences.factors.fastaccess
         i = model.idx_segment
-        wl: float = fac.referencewaterlevel[i]
+        wl: float = fac.referencewaterdepth[i]
         if modelutils.isnan(wl) or modelutils.isinf(wl):
             mn: float = 0.0
             mx: float = 2.0
@@ -635,8 +635,8 @@ class Calc_ReferenceWaterLevel_V1(modeltools.Method):
             mn, mx = 0.0, 0.01
         else:
             mn, mx = 0.9 * wl, 1.1 * wl
-        fac.referencewaterlevel[i] = model.pegasusreferencewaterlevel.find_x(
-            mn, mx, 0.0, 1000.0, sol.tolerancewaterlevel, sol.tolerancedischarge, 100
+        fac.referencewaterdepth[i] = model.pegasusreferencewaterdepth.find_x(
+            mn, mx, 0.0, 1000.0, sol.tolerancewaterdepth, sol.tolerancedischarge, 100
         )
 
 
@@ -776,7 +776,7 @@ class Calc_Celerity_V1(modeltools.Method):
         >>> bottomwidth(2.0, 0.0, 2.0)
         >>> sideslope(0.0, 2.0, 2.0)
         >>> derived.perimeterincrease.update()
-        >>> factors.referencewaterlevel = 3.0
+        >>> factors.referencewaterdepth = 3.0
         >>> model.run_segments(model.calc_wettedarea_v1)
         >>> model.run_segments(model.calc_wettedperimeter_v1)
         >>> model.run_segments(model.calc_surfacewidth_v1)
@@ -1180,8 +1180,8 @@ class Pass_Outflow_V1(modeltools.Method):
         out.q[0] += flu.outflow
 
 
-class PegasusReferenceWaterLevel(roottools.Pegasus):
-    """Pegasus iterator for finding the correct reference water level."""
+class PegasusReferenceWaterDepth(roottools.Pegasus):
+    """Pegasus iterator for finding the correct reference water depth."""
 
     METHODS = (Return_ReferenceDischargeError_V1,)
 
@@ -1191,7 +1191,7 @@ class Model(modeltools.SegmentModel):
 
     SOLVERPARAMETERS = (
         musk_solver.NmbRuns,
-        musk_solver.ToleranceWaterLevel,
+        musk_solver.ToleranceWaterDepth,
         musk_solver.ToleranceDischarge,
     )
     INLET_METHODS = (Pick_Inflow_V1, Update_Discharge_V1)
@@ -1199,7 +1199,7 @@ class Model(modeltools.SegmentModel):
     RUN_METHODS = (
         Calc_Discharge_V1,
         Calc_ReferenceDischarge_V1,
-        Calc_ReferenceWaterLevel_V1,
+        Calc_ReferenceWaterDepth_V1,
         Calc_WettedArea_V1,
         Calc_WettedPerimeter_V1,
         Calc_SurfaceWidth_V1,
@@ -1221,4 +1221,4 @@ class Model(modeltools.SegmentModel):
     OUTLET_METHODS = (Calc_Outflow_V1, Pass_Outflow_V1)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()
-    SUBMODELS = (PegasusReferenceWaterLevel,)
+    SUBMODELS = (PegasusReferenceWaterDepth,)

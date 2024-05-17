@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
-"""This simple test model is thought for testing numerical integration
-strategies.  It can be seen from two perspectives.  On the one hand
-it implements a simple discontinous equation, bringing numerical integration
-algorithms into trouble.  On the other hand it describes a simple storage
-with a loss that is constant over time, as long as some storage content is
-left.  The loss rate |Q| and the initial storage content |S| can be set as
-required.
+"""This simple test model is thought for testing numerical integration strategies.  It
+can be seen from two perspectives.  On the one hand it implements a simple discontinous
+equation, bringing numerical integration algorithms into trouble.  On the other hand it
+describes a simple storage with a loss that is constant over time, as long as some
+storage content is left.  The loss rate |Q| and the initial storage content |S| can be
+set as required.
 """
 # imports...
 # ...from HydPy

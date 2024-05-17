@@ -2,30 +2,30 @@
 # pylint: disable=line-too-long, unused-wildcard-import
 """Inverse distance weighted interpolation with external drift.
 
-Version 3 of HydPy-C extends version 2 by taking an additional
-statistical relationship between the interpolated variable and an arbitrary
-independent variable into account.  A typical use case is elevation-dependent
-temperature interpolation.  You can understand the approach of |conv_v003|
-as a simplification of External Drift Kriging.
+Version 3 of HydPy-Conv extends version 2 by taking an additional statistical
+relationship between the interpolated variable and an arbitrary independent variable
+into account.  A typical use case is elevation-dependent temperature interpolation.
+You can understand the approach of |conv_v003| as a simplification of External Drift
+Kriging.
 
-The algorithm works as follows (we take elevation-dependent temperature
-interpolation as an example):
+The algorithm works as follows (we take elevation-dependent temperature interpolation
+as an example):
 
- * Estimate the linear regression coefficients to model the relationship
-   between air temperature and elevation at the available stations for the
-   current simulation time step (or take the given default values).
- * Use the resulting linear model to predict the temperature at the stations
-   and the interpolation target points.
- * Calculate the residuals (differences between predictions and measurements)
-   at all stations.
- * Interpolate the residuals based on the same inverse distance weighting
-   approach as applied by application model |conv_v002|.
- * Combine the predicted temperature values and the interpolated residuals
-   to gain the final interpolation results at all target points.
+ * Estimate the linear regression coefficients to model the relationship between air
+   temperature and elevation at the available stations for the current simulation time
+   step (or take the given default values).
+ * Use the resulting linear model to predict the temperature at the stations and the
+   interpolation target points.
+ * Calculate the residuals (differences between predictions and measurements) at all
+   stations.
+ * Interpolate the residuals based on the same inverse distance weighting approach as
+   applied by application model |conv_v002|.
+ * Combine the predicted temperature values and the interpolated residuals to gain the
+   final interpolation results at all target points.
 
-For perfect correlations between temperature and elevation, the interpolated
-values depend only on elevation.  If there is no correlation, the interpolated
-values depend solely on spatial proximity to the stations.
+For perfect correlations between temperature and elevation, the interpolated values
+depend only on elevation.  If there is no correlation, the interpolated values depend
+solely on spatial proximity to the stations.
 
 Integration tests
 =================
@@ -33,8 +33,8 @@ Integration tests
 .. how_to_understand_integration_tests::
 
 We start the following explanations with repeating the examples documented for
-application model |conv_v002|.  Hence, we first define identical test settings
-(please see the documentation on application model |conv_v002| for more information):
+application model |conv_v002|.  Hence, we first define identical test settings (please
+see the documentation on application model |conv_v002| for more information):
 
 
 >>> from hydpy import Element, Node, pub
@@ -67,8 +67,8 @@ application model |conv_v002|.  Hence, we first define identical test settings
 ...     in2.sequences.sim.series = 3.0, 2.0, nan
 ...     in3.sequences.sim.series = 4.0, nan, nan
 
-Next, we prepare the additional parameters of |conv_v003|.  Most importantly, we
-define the values of the independent variable for all input and output nodes:
+Next, we prepare the additional parameters of |conv_v003|.  Most importantly, we define
+the values of the independent variable for all input and output nodes:
 
 >>> inputheights(in1=0.0,
 ...              in2=2.0,
@@ -88,8 +88,8 @@ functionality so that |conv_v003| works exactly like |conv_v002|:
 >>> defaultconstant(0.0)
 >>> defaultfactor(0.0)
 
-Under the given configuration, |conv_v003| reproduces the results of the test
-examples documented for application model |conv_v002| precisely:
+Under the given configuration, |conv_v003| reproduces the results of the test examples
+documented for application model |conv_v002| precisely:
 
 >>> test()
 |       date |           inputs | actualconstant | actualfactor |           inputpredictions |                outputpredictions |           inputresiduals |                 outputresiduals |                 outputs | in1 | in2 | in3 | out1 | out2 | out3 | out4 |
@@ -121,8 +121,8 @@ Hence, |conv_v003| employs the same linear model in all simulation time steps:
 
 If we set the required number of data-points to three (two would also be fine),
 |conv_v003| estimates the parameters of the linear model (|ActualFactor| and
-|ActualConstant|) in the first time step on its own, and falls back to the
-default values in the remaining time steps:
+|ActualConstant|) in the first time step on its own, and falls back to the default
+values in the remaining time steps:
 
 >>> minnmbinputs(2)
 >>> test()
@@ -132,13 +132,13 @@ default values in the remaining time steps:
 | 2000-01-02 | nan  2.0     nan |            2.0 |          1.0 |      2.0       4.0               6.0 |      2.0       3.0       4.0                5.0 |       nan      -2.0             nan |      -2.0      -2.0       -2.0             -2.0 | 0.0    1.0       2.0      3.0 | nan | 2.0 | nan |  0.0 |   1.0 |      2.0 |  3.0 |
 | 2000-01-03 | nan  nan     nan |            2.0 |          1.0 |      2.0       4.0               6.0 |      2.0       3.0       4.0                5.0 |       nan       nan             nan |       nan       nan        nan              nan | nan    nan       nan      nan | nan | nan | nan |  nan |   nan |      nan |  nan |
 
-The final example shows that everything works as expected for the edge cases of
-perfect and missing correlation. In the first time step, there is a perfect
-(negative) correlation at the input nodes.  Hence, all residuals (calculated for
-the input nodes and interpolated for the output nodes) are zero.  In the second
-time step, there is no correlation.  Hence, all values predicted by the linear
-model are the same.  The third time step shows that |conv_v003| handles the
-special (but not uncommon) case of missing variability in the input values well:
+The final example shows that everything works as expected for the edge cases of perfect
+and missing correlation. In the first time step, there is a perfect (negative)
+correlation at the input nodes.  Hence, all residuals (calculated for the input nodes
+and interpolated for the output nodes) are zero.  In the second time step, there is no
+correlation.  Hence, all values predicted by the linear model are the same.  The third
+time step shows that |conv_v003| handles the special (but not uncommon) case of missing
+variability in the input values well:
 
 >>> in1.sequences.sim.series = 4.0, 0.0, 0.0
 >>> in2.sequences.sim.series = 3.0, 1.0, 0.0
@@ -157,7 +157,7 @@ from hydpy.models.conv import conv_model
 
 
 class Model(conv_model.BaseModel):
-    """Version 3 of the Conv model."""
+    """Version 3 of the HydPy-Conv model."""
 
     INLET_METHODS = (conv_model.Pick_Inputs_V1,)
     RECEIVER_METHODS = ()

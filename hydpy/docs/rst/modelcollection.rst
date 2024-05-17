@@ -77,7 +77,7 @@ and will have to be discussed later.
    :hidden:
 
    HydPy-ARMA
-   HydPy-C
+   HydPy-Conv
    HydPy-Exch
    HydPy-Evap
    HydPy-Dam

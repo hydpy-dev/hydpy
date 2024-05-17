@@ -76,7 +76,7 @@ and will have to be discussed later.
 .. toctree::
    :hidden:
 
-   HydPy-A
+   HydPy-ARMA
    HydPy-C
    HydPy-Exch
    HydPy-Evap

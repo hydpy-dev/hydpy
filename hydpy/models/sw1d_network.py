@@ -630,7 +630,7 @@ from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core.typingtools import *
 from hydpy.exe.modelimports import *
-from hydpy.interfaces import channelinterfaces
+from hydpy.interfaces import routinginterfaces
 
 # ...from sw1d
 from hydpy.models.sw1d import sw1d_model
@@ -662,20 +662,20 @@ class Model(modeltools.SubstepModel):
     OUTLET_METHODS = (sw1d_model.Trigger_Postprocessing_V1,)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (
-        channelinterfaces.RoutingModel_V1,
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.RoutingModel_V3,
-        channelinterfaces.StorageModel_V1,
-        channelinterfaces.ChannelModel_V1,
+        routinginterfaces.RoutingModel_V1,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V3,
+        routinginterfaces.StorageModel_V1,
+        routinginterfaces.ChannelModel_V1,
     )
     SUBMODELS = ()
 
-    channelmodels = modeltools.SubmodelsProperty(channelinterfaces.ChannelModel_V1)
-    storagemodels = modeltools.SubmodelsProperty(channelinterfaces.StorageModel_V1)
+    channelmodels = modeltools.SubmodelsProperty(routinginterfaces.ChannelModel_V1)
+    storagemodels = modeltools.SubmodelsProperty(routinginterfaces.StorageModel_V1)
     routingmodels = modeltools.SubmodelsProperty(
-        channelinterfaces.RoutingModel_V1,
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.RoutingModel_V3,
+        routinginterfaces.RoutingModel_V1,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V3,
     )
 
     def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
@@ -710,16 +710,16 @@ class Model(modeltools.SubstepModel):
               more general solution when we implement incompatible models.
         """
 
-        r1 = channelinterfaces.RoutingModel_V1
-        r3 = channelinterfaces.RoutingModel_V3
-        r2 = channelinterfaces.RoutingModel_V2
-        v2 = channelinterfaces.ChannelModel_V1
+        r1 = routinginterfaces.RoutingModel_V1
+        r3 = routinginterfaces.RoutingModel_V3
+        r2 = routinginterfaces.RoutingModel_V2
+        v2 = routinginterfaces.ChannelModel_V1
 
         secs = self.parameters.derived.seconds.value
         volume_old, volume_new, latflow = 0.0, 0.0, 0.0
         inflow, outflow = 0.0, 0.0
         for name, model in self.find_submodels().items():
-            if isinstance(model, channelinterfaces.StorageModel_V1):
+            if isinstance(model, routinginterfaces.StorageModel_V1):
                 wv = initial_conditions[name]["states"]["watervolume"]
                 assert isinstance(wv, float)
                 volume_old += 1000.0 * wv
@@ -1013,10 +1013,10 @@ connected to `sw1d_storage` of element `e3a` and `sw1d_storage` of element `e3b`
     """
     # pylint: disable=too-many-nested-blocks,too-many-branches,too-many-statements
 
-    c1 = channelinterfaces.ChannelModel_V1
-    r1 = channelinterfaces.RoutingModel_V1
-    r2 = channelinterfaces.RoutingModel_V2
-    r3 = channelinterfaces.RoutingModel_V3
+    c1 = routinginterfaces.ChannelModel_V1
+    r1 = routinginterfaces.RoutingModel_V1
+    r2 = routinginterfaces.RoutingModel_V2
+    r3 = routinginterfaces.RoutingModel_V3
     network = importtools.prepare_model("sw1d_network")
     assert isinstance(network, Model)
     channelmodels = network.channelmodels

@@ -1,6 +1,5 @@
 # pylint: disable=unused-argument
-"""This module defines submodel interfaces for calculating 1-dimensional water flows in
-channels."""
+"""This module defines submodel interfaces for calculating 1-dimensional water flows."""
 # import...
 # ...from standard library
 from __future__ import annotations

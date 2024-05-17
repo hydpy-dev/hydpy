@@ -13,12 +13,12 @@ more detail.
    :hidden:
 
    aetinterfaces
-   channelinterfaces
    dischargeinterfaces
    petinterfaces
    precipinterfaces
    radiationinterfaces
    rconcinterfaces
+   routinginterfaces
    soilinterfaces
    stateinterfaces
    tempinterfaces

@@ -2663,11 +2663,11 @@ noexcept nogil:
 
         Third, Python's standard cast function translates into Cython's cast syntax:
 
-        >>> from hydpy.interfaces import channelinterfaces
+        >>> from hydpy.interfaces import routinginterfaces
         >>> class Calc_Test_V3(Method):
         ...     @staticmethod
-        ...     def __call__(model: Model) -> channelinterfaces.StorageModel_V1:
-        ...         return cast(channelinterfaces.StorageModel_V1, model.soilmodel)
+        ...     def __call__(model: Model) -> routinginterfaces.StorageModel_V1:
+        ...         return cast(routinginterfaces.StorageModel_V1, model.soilmodel)
         >>> model.calc_test_v3 = MethodType(Calc_Test_V3.__call__, model)
         >>> FuncConverter(model, "calc_test_v3", model.calc_test_v3).pyxlines
         cpdef inline masterinterface.MasterInterface calc_test_v3(self) noexcept nogil:
@@ -2679,8 +2679,8 @@ noexcept nogil:
         ...     def __call__(model: Model) -> None:
         ...         cast(
         ...             Union[
-        ...                 channelinterfaces.RoutingModel_V1,
-        ...                 channelinterfaces.RoutingModel_V2,
+        ...                 routinginterfaces.RoutingModel_V1,
+        ...                 routinginterfaces.RoutingModel_V2,
         ...             ],
         ...             model.routingmodels[0],
         ...         ).get_partialdischargedownstream()

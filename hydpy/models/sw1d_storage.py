@@ -12,13 +12,13 @@ detail.
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
-from hydpy.interfaces import channelinterfaces
+from hydpy.interfaces import routinginterfaces
 
 # ...from musk
 from hydpy.models.sw1d import sw1d_model
 
 
-class Model(modeltools.AdHocModel, channelinterfaces.StorageModel_V1):
+class Model(modeltools.AdHocModel, routinginterfaces.StorageModel_V1):
     """A storage submodel for calculating a single channel segment's water balance and
     water level."""
 
@@ -44,23 +44,23 @@ class Model(modeltools.AdHocModel, channelinterfaces.StorageModel_V1):
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (
-        channelinterfaces.RoutingModel_V1,
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.RoutingModel_V3,
-        channelinterfaces.StorageModel_V1,
+        routinginterfaces.RoutingModel_V1,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V3,
+        routinginterfaces.StorageModel_V1,
     )
     SUBMODELS = ()
 
     routingmodelsupstream = modeltools.SubmodelsProperty(
-        channelinterfaces.RoutingModel_V1,
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.RoutingModel_V3,
+        routinginterfaces.RoutingModel_V1,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V3,
         sidemodels=True,
     )
     routingmodelsdownstream = modeltools.SubmodelsProperty(
-        channelinterfaces.RoutingModel_V1,
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.RoutingModel_V3,
+        routinginterfaces.RoutingModel_V1,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V3,
         sidemodels=True,
     )
 

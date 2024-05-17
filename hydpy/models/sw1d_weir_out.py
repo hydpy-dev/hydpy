@@ -12,13 +12,13 @@ more detail (see, for example, `:ref:`sw1d_channel_weir_outflow`).
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
-from hydpy.interfaces import channelinterfaces
+from hydpy.interfaces import routinginterfaces
 
 # ...from musk
 from hydpy.models.sw1d import sw1d_model
 
 
-class Model(modeltools.AdHocModel, channelinterfaces.RoutingModel_V3):
+class Model(modeltools.AdHocModel, routinginterfaces.RoutingModel_V3):
     """A routing submodel for calculating "longitudinal" outflow from the last segment
     of a channel as free flow over a weir after Poleni."""
 
@@ -48,21 +48,21 @@ class Model(modeltools.AdHocModel, channelinterfaces.RoutingModel_V3):
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (
-        channelinterfaces.RoutingModel_V1,
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.StorageModel_V1,
+        routinginterfaces.RoutingModel_V1,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.StorageModel_V1,
     )
     SUBMODELS = ()
 
     storagemodelupstream = modeltools.SubmodelProperty(
-        channelinterfaces.StorageModel_V1, sidemodel=True
+        routinginterfaces.StorageModel_V1, sidemodel=True
     )
     storagemodelupstream_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     storagemodelupstream_typeid = modeltools.SubmodelTypeIDProperty()
 
     routingmodelsupstream = modeltools.SubmodelsProperty(
-        channelinterfaces.RoutingModel_V1,
-        channelinterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V1,
+        routinginterfaces.RoutingModel_V2,
         sidemodels=True,
     )
 

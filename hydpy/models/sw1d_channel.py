@@ -1551,7 +1551,7 @@ from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.exe.modelimports import *
-from hydpy.interfaces import channelinterfaces
+from hydpy.interfaces import routinginterfaces
 
 # ...from musk
 from hydpy.models.sw1d import sw1d_control
@@ -1565,7 +1565,7 @@ ADDITIONAL_DERIVEDPARAMETERS = (sw1d_derived.Seconds,)
 ADDITIONAL_CONTROLPARAMETERS = (sw1d_control.NmbSegments,)
 
 
-class Model(modeltools.SubstepModel, channelinterfaces.ChannelModel_V1):
+class Model(modeltools.SubstepModel, routinginterfaces.ChannelModel_V1):
     """A "user model" for preparing river networks to simulate routing based on the
     1-dimensional shallow water equations."""
 
@@ -1587,21 +1587,21 @@ class Model(modeltools.SubstepModel, channelinterfaces.ChannelModel_V1):
     )
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (
-        channelinterfaces.RoutingModel_V1,
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.RoutingModel_V3,
-        channelinterfaces.StorageModel_V1,
+        routinginterfaces.RoutingModel_V1,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V3,
+        routinginterfaces.StorageModel_V1,
     )
     SUBMODELS = ()
 
-    storagemodels = modeltools.SubmodelsProperty(channelinterfaces.StorageModel_V1)
+    storagemodels = modeltools.SubmodelsProperty(routinginterfaces.StorageModel_V1)
 
     @importtools.prepare_submodel(
-        "storagemodels", channelinterfaces.StorageModel_V1, dimensionality=l1
+        "storagemodels", routinginterfaces.StorageModel_V1, dimensionality=l1
     )
     def add_storagemodel_v1(
         self,
-        storagemodel: channelinterfaces.StorageModel_V1,
+        storagemodel: routinginterfaces.StorageModel_V1,
         *,
         position: int,
         refresh: bool,
@@ -1652,9 +1652,9 @@ class Model(modeltools.SubstepModel, channelinterfaces.ChannelModel_V1):
         if not refresh:
             s = storagemodel
             p = position
-            r1 = channelinterfaces.RoutingModel_V1
-            r2 = channelinterfaces.RoutingModel_V2
-            r3 = channelinterfaces.RoutingModel_V3
+            r1 = routinginterfaces.RoutingModel_V1
+            r2 = routinginterfaces.RoutingModel_V2
+            r3 = routinginterfaces.RoutingModel_V3
             if (ru := self.routingmodels[p]) is not None:
                 if isinstance(ru, (r1, r2)):
                     s.routingmodelsupstream.append_submodel(submodel=ru)
@@ -1673,17 +1673,17 @@ class Model(modeltools.SubstepModel, channelinterfaces.ChannelModel_V1):
                     assert_never(rd)
 
     routingmodels = modeltools.SubmodelsProperty(
-        channelinterfaces.RoutingModel_V1,
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.RoutingModel_V3,
+        routinginterfaces.RoutingModel_V1,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V3,
     )
 
     @importtools.prepare_submodel(
-        "routingmodels", channelinterfaces.RoutingModel_V1, dimensionality=l1
+        "routingmodels", routinginterfaces.RoutingModel_V1, dimensionality=l1
     )
     def add_routingmodel_v1(
         self,
-        routingmodel: channelinterfaces.RoutingModel_V1,
+        routingmodel: routinginterfaces.RoutingModel_V1,
         position: int,
         refresh: bool,
     ) -> None:
@@ -1757,9 +1757,9 @@ first channel position 0, but `1` is given.
                     f"the first channel position 0, but `{position}` is given."
                 )
             r = routingmodel
-            r1 = channelinterfaces.RoutingModel_V1
-            r2 = channelinterfaces.RoutingModel_V2
-            r3 = channelinterfaces.RoutingModel_V3
+            r1 = routinginterfaces.RoutingModel_V1
+            r2 = routinginterfaces.RoutingModel_V2
+            r3 = routinginterfaces.RoutingModel_V3
             if (rd := self.routingmodels[1]) is not None:
                 if isinstance(rd, (r2, r3)):
                     r.routingmodelsdownstream.append_submodel(submodel=rd)
@@ -1773,11 +1773,11 @@ first channel position 0, but `1` is given.
                 sd.routingmodelsupstream.append_submodel(submodel=r)
 
     @importtools.prepare_submodel(
-        "routingmodels", channelinterfaces.RoutingModel_V2, dimensionality=l1
+        "routingmodels", routinginterfaces.RoutingModel_V2, dimensionality=l1
     )
     def add_routingmodel_v2(
         self,
-        routingmodel: channelinterfaces.RoutingModel_V2,
+        routingmodel: routinginterfaces.RoutingModel_V2,
         position: int,
         refresh: bool,
     ) -> None:
@@ -1842,9 +1842,9 @@ first channel position 0, but `1` is given.
         if not refresh:
             p = position
             r = routingmodel
-            r1 = channelinterfaces.RoutingModel_V1
-            r2 = channelinterfaces.RoutingModel_V2
-            r3 = channelinterfaces.RoutingModel_V3
+            r1 = routinginterfaces.RoutingModel_V1
+            r2 = routinginterfaces.RoutingModel_V2
+            r3 = routinginterfaces.RoutingModel_V3
             nmb = self.parameters.control.nmbsegments.value
             if (p > 0) and ((ru := self.routingmodels[p - 1]) is not None):
                 if isinstance(ru, (r1, r2)):
@@ -1870,11 +1870,11 @@ first channel position 0, but `1` is given.
                 sd.routingmodelsupstream.append_submodel(submodel=r)
 
     @importtools.prepare_submodel(
-        "routingmodels", channelinterfaces.RoutingModel_V3, dimensionality=l1
+        "routingmodels", routinginterfaces.RoutingModel_V3, dimensionality=l1
     )
     def add_routingmodel_v3(
         self,
-        routingmodel: channelinterfaces.RoutingModel_V3,
+        routingmodel: routinginterfaces.RoutingModel_V3,
         position: int,
         refresh: bool,
     ) -> None:
@@ -1948,9 +1948,9 @@ as rm2:
                     f"the last channel position ({nmb}), but `{position}` is given."
                 )
             r = routingmodel
-            r1 = channelinterfaces.RoutingModel_V1
-            r2 = channelinterfaces.RoutingModel_V2
-            r3 = channelinterfaces.RoutingModel_V3
+            r1 = routinginterfaces.RoutingModel_V1
+            r2 = routinginterfaces.RoutingModel_V2
+            r3 = routinginterfaces.RoutingModel_V3
             if (ru := self.routingmodels[p - 1]) is not None:
                 if isinstance(ru, (r1, r2)):
                     r.routingmodelsupstream.append_submodel(submodel=ru)
@@ -2004,7 +2004,7 @@ as rm2:
         secs = self.parameters.derived.seconds.value
         volume_old, volume_new, latflow = 0.0, 0.0, 0.0
         for name, model in self.find_submodels().items():
-            if isinstance(model, channelinterfaces.StorageModel_V1):
+            if isinstance(model, routinginterfaces.StorageModel_V1):
                 wv = initial_conditions[name]["states"]["watervolume"]
                 assert isinstance(wv, float)
                 volume_old += 1000.0 * wv

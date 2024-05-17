@@ -13,13 +13,13 @@ detail (see, for example, `:ref:`sw1d_channel_longitudinal_inflow`).
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
-from hydpy.interfaces import channelinterfaces
+from hydpy.interfaces import routinginterfaces
 
 # ...from musk
 from hydpy.models.sw1d import sw1d_model
 
 
-class Model(modeltools.AdHocModel, channelinterfaces.RoutingModel_V1):
+class Model(modeltools.AdHocModel, routinginterfaces.RoutingModel_V1):
     """A simple routing submodel for inserting "longitudinal" inflow into the first
     segment of a channel."""
 
@@ -49,21 +49,21 @@ class Model(modeltools.AdHocModel, channelinterfaces.RoutingModel_V1):
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.RoutingModel_V3,
-        channelinterfaces.StorageModel_V1,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V3,
+        routinginterfaces.StorageModel_V1,
     )
     SUBMODELS = ()
 
     storagemodeldownstream = modeltools.SubmodelProperty(
-        channelinterfaces.StorageModel_V1, sidemodel=True
+        routinginterfaces.StorageModel_V1, sidemodel=True
     )
     storagemodeldownstream_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     storagemodeldownstream_typeid = modeltools.SubmodelTypeIDProperty()
 
     routingmodelsdownstream = modeltools.SubmodelsProperty(
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.RoutingModel_V3,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V3,
         sidemodels=True,
     )
 

@@ -435,13 +435,13 @@ There is no indication of an error in the water balance:
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
-from hydpy.interfaces import channelinterfaces
+from hydpy.interfaces import routinginterfaces
 
 # ...from musk
 from hydpy.models.sw1d import sw1d_model
 
 
-class Model(modeltools.AdHocModel, channelinterfaces.RoutingModel_V2):
+class Model(modeltools.AdHocModel, routinginterfaces.RoutingModel_V2):
     """A routing submodel combining the "local inertial approximation of the shallow
     water equations" introduced by :cite:t:`ref-Bates2010` and "stabilised" by
     :cite:t:`ref-Almeida2012` with simple sluice functionalities."""
@@ -483,34 +483,34 @@ class Model(modeltools.AdHocModel, channelinterfaces.RoutingModel_V2):
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (
-        channelinterfaces.RoutingModel_V1,
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.RoutingModel_V3,
-        channelinterfaces.StorageModel_V1,
+        routinginterfaces.RoutingModel_V1,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V3,
+        routinginterfaces.StorageModel_V1,
     )
     SUBMODELS = ()
 
     storagemodelupstream = modeltools.SubmodelProperty(
-        channelinterfaces.StorageModel_V1, sidemodel=True
+        routinginterfaces.StorageModel_V1, sidemodel=True
     )
     storagemodelupstream_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     storagemodelupstream_typeid = modeltools.SubmodelTypeIDProperty()
 
     storagemodeldownstream = modeltools.SubmodelProperty(
-        channelinterfaces.StorageModel_V1, sidemodel=True
+        routinginterfaces.StorageModel_V1, sidemodel=True
     )
     storagemodeldownstream_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     storagemodeldownstream_typeid = modeltools.SubmodelTypeIDProperty()
 
     routingmodelsupstream = modeltools.SubmodelsProperty(
-        channelinterfaces.RoutingModel_V1,
-        channelinterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V1,
+        routinginterfaces.RoutingModel_V2,
         sidemodels=True,
     )
 
     routingmodelsdownstream = modeltools.SubmodelsProperty(
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.RoutingModel_V3,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V3,
         sidemodels=True,
     )
 

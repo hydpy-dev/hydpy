@@ -7,7 +7,7 @@ from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
 from hydpy.cythons import smoothutils
-from hydpy.interfaces import channelinterfaces
+from hydpy.interfaces import routinginterfaces
 from hydpy.models.sw1d import sw1d_control
 from hydpy.models.sw1d import sw1d_derived
 from hydpy.models.sw1d import sw1d_fixed
@@ -196,10 +196,10 @@ class Trigger_Preprocessing_V1(modeltools.Method):
     """
 
     SUBMODELINTERFACES = (
-        channelinterfaces.RoutingModel_V1,
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.RoutingModel_V3,
-        channelinterfaces.StorageModel_V1,
+        routinginterfaces.RoutingModel_V1,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V3,
+        routinginterfaces.StorageModel_V1,
     )
 
     @staticmethod
@@ -208,16 +208,16 @@ class Trigger_Preprocessing_V1(modeltools.Method):
             if model.routingmodels.typeids[i] in (1, 2, 3):
                 cast(
                     Union[
-                        channelinterfaces.RoutingModel_V1,
-                        channelinterfaces.RoutingModel_V2,
-                        channelinterfaces.RoutingModel_V3,
+                        routinginterfaces.RoutingModel_V1,
+                        routinginterfaces.RoutingModel_V2,
+                        routinginterfaces.RoutingModel_V3,
                     ],
                     model.routingmodels.submodels[i],
                 ).perform_preprocessing()
         for i in range(model.storagemodels.number):
             if model.storagemodels.typeids[i] == 1:
                 cast(
-                    channelinterfaces.StorageModel_V1, model.storagemodels.submodels[i]
+                    routinginterfaces.StorageModel_V1, model.storagemodels.submodels[i]
                 ).perform_preprocessing()
 
 
@@ -252,10 +252,10 @@ class Trigger_Postprocessing_V1(modeltools.Method):
     """
 
     SUBMODELINTERFACES = (
-        channelinterfaces.RoutingModel_V1,
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.RoutingModel_V3,
-        channelinterfaces.StorageModel_V1,
+        routinginterfaces.RoutingModel_V1,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V3,
+        routinginterfaces.StorageModel_V1,
     )
 
     @staticmethod
@@ -264,16 +264,16 @@ class Trigger_Postprocessing_V1(modeltools.Method):
             if model.routingmodels.typeids[i] in (1, 2, 3):
                 cast(
                     Union[
-                        channelinterfaces.RoutingModel_V1,
-                        channelinterfaces.RoutingModel_V2,
-                        channelinterfaces.RoutingModel_V3,
+                        routinginterfaces.RoutingModel_V1,
+                        routinginterfaces.RoutingModel_V2,
+                        routinginterfaces.RoutingModel_V3,
                     ],
                     model.routingmodels.submodels[i],
                 ).perform_postprocessing()
         for i in range(model.storagemodels.number):
             if model.storagemodels.typeids[i] == 1:
                 cast(
-                    channelinterfaces.StorageModel_V1, model.storagemodels.submodels[i]
+                    routinginterfaces.StorageModel_V1, model.storagemodels.submodels[i]
                 ).perform_postprocessing()
 
 
@@ -688,9 +688,9 @@ class Calc_MaxTimeSteps_V1(modeltools.Method):
     """
 
     SUBMODELINTERFACES = (
-        channelinterfaces.RoutingModel_V1,
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.RoutingModel_V3,
+        routinginterfaces.RoutingModel_V1,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V3,
     )
 
     @staticmethod
@@ -699,9 +699,9 @@ class Calc_MaxTimeSteps_V1(modeltools.Method):
             if model.routingmodels.typeids[i] in (1, 2, 3):
                 cast(
                     Union[
-                        channelinterfaces.RoutingModel_V1,
-                        channelinterfaces.RoutingModel_V2,
-                        channelinterfaces.RoutingModel_V3,
+                        routinginterfaces.RoutingModel_V1,
+                        routinginterfaces.RoutingModel_V2,
+                        routinginterfaces.RoutingModel_V3,
                     ],
                     model.routingmodels.submodels[i],
                 ).determine_maxtimestep()
@@ -743,9 +743,9 @@ class Calc_TimeStep_V1(modeltools.Method):
     """
 
     SUBMODELINTERFACES = (
-        channelinterfaces.RoutingModel_V1,
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.RoutingModel_V3,
+        routinginterfaces.RoutingModel_V1,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V3,
     )
     RESULTSEQUENCES = (sw1d_factors.TimeStep,)
 
@@ -758,9 +758,9 @@ class Calc_TimeStep_V1(modeltools.Method):
             if model.routingmodels.typeids[i] in (1, 2, 3):
                 timestep: float = cast(
                     Union[
-                        channelinterfaces.RoutingModel_V1,
-                        channelinterfaces.RoutingModel_V2,
-                        channelinterfaces.RoutingModel_V3,
+                        routinginterfaces.RoutingModel_V1,
+                        routinginterfaces.RoutingModel_V2,
+                        routinginterfaces.RoutingModel_V3,
                     ],
                     model.routingmodels.submodels[i],
                 ).get_maxtimestep()
@@ -795,10 +795,10 @@ class Send_TimeStep_V1(modeltools.Method):
     """
 
     SUBMODELINTERFACES = (
-        channelinterfaces.RoutingModel_V1,
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.RoutingModel_V3,
-        channelinterfaces.StorageModel_V1,
+        routinginterfaces.RoutingModel_V1,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V3,
+        routinginterfaces.StorageModel_V1,
     )
     REQUIREDSEQUENCES = (sw1d_factors.TimeStep,)
 
@@ -810,16 +810,16 @@ class Send_TimeStep_V1(modeltools.Method):
             if model.routingmodels.typeids[i] in (1, 2, 3):
                 cast(
                     Union[
-                        channelinterfaces.RoutingModel_V1,
-                        channelinterfaces.RoutingModel_V2,
-                        channelinterfaces.RoutingModel_V3,
+                        routinginterfaces.RoutingModel_V1,
+                        routinginterfaces.RoutingModel_V2,
+                        routinginterfaces.RoutingModel_V3,
                     ],
                     model.routingmodels.submodels[i],
                 ).set_timestep(fac.timestep)
         for i in range(model.storagemodels.number):
             if model.storagemodels.typeids[i] == 1:
                 cast(
-                    channelinterfaces.StorageModel_V1, model.storagemodels.submodels[i]
+                    routinginterfaces.StorageModel_V1, model.storagemodels.submodels[i]
                 ).set_timestep(fac.timestep)
 
 
@@ -839,7 +839,7 @@ class Calc_WaterLevelUpstream_V1(modeltools.Method):
         waterlevelupstream(2.0)
     """
 
-    SUBMODELINTERFACES = (channelinterfaces.StorageModel_V1,)
+    SUBMODELINTERFACES = (routinginterfaces.StorageModel_V1,)
     RESULTSEQUENCES = (sw1d_factors.WaterLevelUpstream,)
 
     @staticmethod
@@ -847,7 +847,7 @@ class Calc_WaterLevelUpstream_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         if model.storagemodelupstream_typeid == 1:
             fac.waterlevelupstream = cast(
-                channelinterfaces.StorageModel_V1, model.storagemodelupstream
+                routinginterfaces.StorageModel_V1, model.storagemodelupstream
             ).get_waterlevel()
 
 
@@ -867,7 +867,7 @@ class Calc_WaterLevelDownstream_V1(modeltools.Method):
         waterleveldownstream(2.0)
     """
 
-    SUBMODELINTERFACES = (channelinterfaces.StorageModel_V1,)
+    SUBMODELINTERFACES = (routinginterfaces.StorageModel_V1,)
     RESULTSEQUENCES = (sw1d_factors.WaterLevelDownstream,)
 
     @staticmethod
@@ -875,7 +875,7 @@ class Calc_WaterLevelDownstream_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         if model.storagemodeldownstream_typeid == 1:
             fac.waterleveldownstream = cast(
-                channelinterfaces.StorageModel_V1, model.storagemodeldownstream
+                routinginterfaces.StorageModel_V1, model.storagemodeldownstream
             ).get_waterlevel()
 
 
@@ -895,7 +895,7 @@ class Calc_WaterVolumeUpstream_V1(modeltools.Method):
         watervolumeupstream(2.0)
     """
 
-    SUBMODELINTERFACES = (channelinterfaces.StorageModel_V1,)
+    SUBMODELINTERFACES = (routinginterfaces.StorageModel_V1,)
     RESULTSEQUENCES = (sw1d_factors.WaterVolumeUpstream,)
 
     @staticmethod
@@ -903,7 +903,7 @@ class Calc_WaterVolumeUpstream_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         if model.storagemodelupstream_typeid == 1:
             fac.watervolumeupstream = cast(
-                channelinterfaces.StorageModel_V1, model.storagemodelupstream
+                routinginterfaces.StorageModel_V1, model.storagemodelupstream
             ).get_watervolume()
 
 
@@ -923,7 +923,7 @@ class Calc_WaterVolumeDownstream_V1(modeltools.Method):
         watervolumedownstream(2.0)
     """
 
-    SUBMODELINTERFACES = (channelinterfaces.StorageModel_V1,)
+    SUBMODELINTERFACES = (routinginterfaces.StorageModel_V1,)
     RESULTSEQUENCES = (sw1d_factors.WaterVolumeDownstream,)
 
     @staticmethod
@@ -931,7 +931,7 @@ class Calc_WaterVolumeDownstream_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         if model.storagemodeldownstream_typeid == 1:
             fac.watervolumedownstream = cast(
-                channelinterfaces.StorageModel_V1, model.storagemodeldownstream
+                routinginterfaces.StorageModel_V1, model.storagemodeldownstream
             ).get_watervolume()
 
 
@@ -1357,8 +1357,8 @@ class Calc_DischargeUpstream_V1(modeltools.Method):
     """
 
     SUBMODELINTERFACES = (
-        channelinterfaces.RoutingModel_V1,
-        channelinterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V1,
+        routinginterfaces.RoutingModel_V2,
     )
     REQUIREDSEQUENCES = (sw1d_states.Discharge,)
     RESULTSEQUENCES = (sw1d_fluxes.DischargeUpstream,)
@@ -1373,8 +1373,8 @@ class Calc_DischargeUpstream_V1(modeltools.Method):
             if model.routingmodelsupstream.typeids[i] in (1, 2):
                 flu.dischargeupstream += cast(
                     Union[
-                        channelinterfaces.RoutingModel_V1,
-                        channelinterfaces.RoutingModel_V2,
+                        routinginterfaces.RoutingModel_V1,
+                        routinginterfaces.RoutingModel_V2,
                     ],
                     model.routingmodelsupstream.submodels[i],
                 ).get_partialdischargeupstream(sta.discharge)
@@ -1427,8 +1427,8 @@ class Calc_DischargeDownstream_V1(modeltools.Method):
     """
 
     SUBMODELINTERFACES = (
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.RoutingModel_V3,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V3,
     )
     REQUIREDSEQUENCES = (sw1d_states.Discharge,)
     RESULTSEQUENCES = (sw1d_fluxes.DischargeDownstream,)
@@ -1443,8 +1443,8 @@ class Calc_DischargeDownstream_V1(modeltools.Method):
             if model.routingmodelsdownstream.typeids[i] in (2, 3):
                 flu.dischargedownstream += cast(
                     Union[
-                        channelinterfaces.RoutingModel_V2,
-                        channelinterfaces.RoutingModel_V3,
+                        routinginterfaces.RoutingModel_V2,
+                        routinginterfaces.RoutingModel_V3,
                     ],
                     model.routingmodelsdownstream.submodels[i],
                 ).get_partialdischargedownstream(sta.discharge)
@@ -2443,9 +2443,9 @@ class Calc_Discharges_V1(modeltools.Method):
     """
 
     SUBMODELINTERFACES = (
-        channelinterfaces.RoutingModel_V1,
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.RoutingModel_V3,
+        routinginterfaces.RoutingModel_V1,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V3,
     )
 
     @staticmethod
@@ -2454,9 +2454,9 @@ class Calc_Discharges_V1(modeltools.Method):
             if model.routingmodels.typeids[i] in (1, 2, 3):
                 cast(
                     Union[
-                        channelinterfaces.RoutingModel_V1,
-                        channelinterfaces.RoutingModel_V2,
-                        channelinterfaces.RoutingModel_V3,
+                        routinginterfaces.RoutingModel_V1,
+                        routinginterfaces.RoutingModel_V2,
+                        routinginterfaces.RoutingModel_V3,
                     ],
                     model.routingmodels.submodels[i],
                 ).determine_discharge()
@@ -2484,9 +2484,9 @@ class Calc_Discharges_V2(modeltools.Method):
     """
 
     SUBMODELINTERFACES = (
-        channelinterfaces.RoutingModel_V1,
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.RoutingModel_V3,
+        routinginterfaces.RoutingModel_V1,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V3,
     )
     DERIVEDPARAMETERS = (sw1d_derived.Seconds,)
     RESULTSEQUENCES = (sw1d_fluxes.Discharges,)
@@ -2501,9 +2501,9 @@ class Calc_Discharges_V2(modeltools.Method):
                 flu.discharges[i] = (
                     cast(
                         Union[
-                            channelinterfaces.RoutingModel_V1,
-                            channelinterfaces.RoutingModel_V2,
-                            channelinterfaces.RoutingModel_V3,
+                            routinginterfaces.RoutingModel_V1,
+                            routinginterfaces.RoutingModel_V2,
+                            routinginterfaces.RoutingModel_V3,
                         ],
                         model.routingmodels.submodels[i],
                     ).get_dischargevolume()
@@ -2561,9 +2561,9 @@ class Calc_NetInflow_V1(modeltools.Method):
     """
 
     SUBMODELINTERFACES = (
-        channelinterfaces.RoutingModel_V1,
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.StorageModel_V1,
+        routinginterfaces.RoutingModel_V1,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.StorageModel_V1,
     )
     REQUIREDSEQUENCES = (sw1d_factors.TimeStep, sw1d_fluxes.LateralFlow)
     RESULTSEQUENCES = (sw1d_fluxes.NetInflow,)
@@ -2577,8 +2577,8 @@ class Calc_NetInflow_V1(modeltools.Method):
             if model.routingmodelsupstream.typeids[i] in (1, 2):
                 flu.netinflow += cast(
                     Union[
-                        channelinterfaces.RoutingModel_V1,
-                        channelinterfaces.RoutingModel_V2,
+                        routinginterfaces.RoutingModel_V1,
+                        routinginterfaces.RoutingModel_V2,
                     ],
                     model.routingmodelsupstream.submodels[i],
                 ).get_discharge()
@@ -2586,8 +2586,8 @@ class Calc_NetInflow_V1(modeltools.Method):
             if model.routingmodelsdownstream.typeids[i] in (2, 3):
                 flu.netinflow -= cast(
                     Union[
-                        channelinterfaces.RoutingModel_V2,
-                        channelinterfaces.RoutingModel_V3,
+                        routinginterfaces.RoutingModel_V2,
+                        routinginterfaces.RoutingModel_V3,
                     ],
                     model.routingmodelsdownstream.submodels[i],
                 ).get_discharge()
@@ -2644,14 +2644,14 @@ class Update_Storages_V1(modeltools.Method):
         watervolume(1.1)
     """
 
-    SUBMODELINTERFACES = (channelinterfaces.StorageModel_V1,)
+    SUBMODELINTERFACES = (routinginterfaces.StorageModel_V1,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         for i in range(model.storagemodels.number):
             if model.storagemodels.typeids[i] == 1:
                 cast(
-                    channelinterfaces.StorageModel_V1, model.storagemodels.submodels[i]
+                    routinginterfaces.StorageModel_V1, model.storagemodels.submodels[i]
                 ).update_storage()
 
 
@@ -2673,7 +2673,7 @@ class Query_WaterLevels_V1(modeltools.Method):
         waterlevels(1.0, -1.0)
     """
 
-    SUBMODELINTERFACES = (channelinterfaces.StorageModel_V1,)
+    SUBMODELINTERFACES = (routinginterfaces.StorageModel_V1,)
     RESULTSEQUENCES = (sw1d_factors.WaterLevels,)
 
     @staticmethod
@@ -2683,7 +2683,7 @@ class Query_WaterLevels_V1(modeltools.Method):
         for i in range(model.storagemodels.number):
             if model.storagemodels.typeids[i] == 1:
                 fac.waterlevels[i] = cast(
-                    channelinterfaces.StorageModel_V1, model.storagemodels.submodels[i]
+                    routinginterfaces.StorageModel_V1, model.storagemodels.submodels[i]
                 ).get_waterlevel()
 
 
@@ -3231,8 +3231,8 @@ class Get_PartialDischargeUpstream_V1(modeltools.Method):
     """
 
     SUBMODELINTERFACES = (
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.RoutingModel_V3,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V3,
     )
     REQUIREDSEQUENCES = (sw1d_states.Discharge,)
 
@@ -3246,8 +3246,8 @@ class Get_PartialDischargeUpstream_V1(modeltools.Method):
                 dischargedownstream += modelutils.fabs(
                     cast(
                         Union[
-                            channelinterfaces.RoutingModel_V2,
-                            channelinterfaces.RoutingModel_V3,
+                            routinginterfaces.RoutingModel_V2,
+                            routinginterfaces.RoutingModel_V3,
                         ],
                         model.routingmodelsdownstream.submodels[i],
                     ).get_discharge()
@@ -3326,8 +3326,8 @@ class Get_PartialDischargeDownstream_V1(modeltools.Method):
     """
 
     SUBMODELINTERFACES = (
-        channelinterfaces.RoutingModel_V1,
-        channelinterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V1,
+        routinginterfaces.RoutingModel_V2,
     )
     REQUIREDSEQUENCES = (sw1d_states.Discharge,)
 
@@ -3341,8 +3341,8 @@ class Get_PartialDischargeDownstream_V1(modeltools.Method):
                 dischargeupstream += modelutils.fabs(
                     cast(
                         Union[
-                            channelinterfaces.RoutingModel_V1,
-                            channelinterfaces.RoutingModel_V2,
+                            routinginterfaces.RoutingModel_V1,
+                            routinginterfaces.RoutingModel_V2,
                         ],
                         model.routingmodelsupstream.submodels[i],
                     ).get_discharge()
@@ -3471,39 +3471,39 @@ class Model(modeltools.SubstepModel):
     )
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (
-        channelinterfaces.ChannelModel_V1,
-        channelinterfaces.StorageModel_V1,
-        channelinterfaces.RoutingModel_V1,
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.RoutingModel_V3,
+        routinginterfaces.ChannelModel_V1,
+        routinginterfaces.StorageModel_V1,
+        routinginterfaces.RoutingModel_V1,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V3,
     )
     SUBMODELS = ()
 
-    channelmodels = modeltools.SubmodelsProperty(channelinterfaces.ChannelModel_V1)
-    storagemodels = modeltools.SubmodelsProperty(channelinterfaces.StorageModel_V1)
-    routingmodels = modeltools.SubmodelsProperty(channelinterfaces.RoutingModel_V1)
+    channelmodels = modeltools.SubmodelsProperty(routinginterfaces.ChannelModel_V1)
+    storagemodels = modeltools.SubmodelsProperty(routinginterfaces.StorageModel_V1)
+    routingmodels = modeltools.SubmodelsProperty(routinginterfaces.RoutingModel_V1)
 
     storagemodelupstream = modeltools.SubmodelProperty(
-        channelinterfaces.StorageModel_V1
+        routinginterfaces.StorageModel_V1
     )
     storagemodelupstream_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     storagemodelupstream_typeid = modeltools.SubmodelTypeIDProperty()
 
     storagemodeldownstream = modeltools.SubmodelProperty(
-        channelinterfaces.StorageModel_V1
+        routinginterfaces.StorageModel_V1
     )
     storagemodeldownstream_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     storagemodeldownstream_typeid = modeltools.SubmodelTypeIDProperty()
 
     routingmodelsupstream = modeltools.SubmodelsProperty(
-        channelinterfaces.RoutingModel_V1,
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.RoutingModel_V3,
+        routinginterfaces.RoutingModel_V1,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V3,
         sidemodels=True,
     )
     routingmodelsdownstream = modeltools.SubmodelsProperty(
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.RoutingModel_V3,
-        channelinterfaces.RoutingModel_V3,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V3,
+        routinginterfaces.RoutingModel_V3,
         sidemodels=True,
     )

@@ -2408,7 +2408,7 @@ class XSDWriter:
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_basemodelnames())  # doctest: +ELLIPSIS
-        ['arma', 'conv', ..., 'wland']
+        ['arma', 'conv', ..., 'wland', 'wq']
         """
         modelspath: str = models.__path__[0]
 

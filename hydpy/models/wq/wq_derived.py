@@ -6,7 +6,7 @@ from hydpy.core import parametertools
 from hydpy.auxs import smoothtools
 
 # ...from lland
-from hydpy.models.q import q_control
+from hydpy.models.wq import wq_control
 
 
 class CrestHeightRegularisation(parametertools.Parameter):
@@ -15,7 +15,7 @@ class CrestHeightRegularisation(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (q_control.CrestHeightTolerance,)
+    CONTROLPARAMETERS = (wq_control.CrestHeightTolerance,)
 
     def update(self):
         """Calculate the smoothing parameter value.
@@ -23,7 +23,7 @@ class CrestHeightRegularisation(parametertools.Parameter):
         The documentation on module |smoothtools| explains the following example in
         some detail:
 
-        >>> from hydpy.models.q import *
+        >>> from hydpy.models.wq import *
         >>> from hydpy.cythons.smoothutils import smooth_logistic2
         >>> from hydpy import round_
         >>> parameterstep()

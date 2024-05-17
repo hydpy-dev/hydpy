@@ -76,7 +76,7 @@ Integration tests
 ...     dampingfactor(1.0)
 ...     with model.add_retmodel_v1("evap_io"):
 ...         evapotranspirationfactor(0.9)
->>> with model.add_dischargemodel_v2("q_walrus"):
+>>> with model.add_dischargemodel_v2("wq_walrus"):
 ...     crestheight(0.0)
 ...     bankfulldischarge(8.0)
 ...     dischargeexponent(1.5)
@@ -598,7 +598,7 @@ _________________
 0.0
 
 >>> del model.waterlevelmodel
->>> with model.add_dischargemodel_v2("q_walrus"):
+>>> with model.add_dischargemodel_v2("wq_walrus"):
 ...     crestheight(0.0)
 ...     bankfulldischarge(8.0)
 ...     dischargeexponent(1.5)

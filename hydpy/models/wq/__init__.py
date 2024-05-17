@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""The `HydPy-Q` base model provides features to implement small function-like
+"""The `HydPy-WQ` base model provides features to implement small function-like
 submodels for calculating discharge based on information like the current water level.
 """
 # import...
@@ -7,7 +7,7 @@ submodels for calculating discharge based on information like the current water 
 from hydpy.exe.modelimports import *
 
 # ...from exch
-from hydpy.models.q.q_model import Model
+from hydpy.models.wq.wq_model import Model
 
 tester = Tester()
 cythonizer = Cythonizer()

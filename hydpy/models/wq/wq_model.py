@@ -8,9 +8,9 @@ from hydpy.core import modeltools
 from hydpy.cythons import smoothutils
 from hydpy.interfaces import dischargeinterfaces
 
-# ...from q
-from hydpy.models.q import q_control
-from hydpy.models.q import q_derived
+# ...from wq
+from hydpy.models.wq import wq_control
+from hydpy.models.wq import wq_derived
 
 
 class Calculate_Discharge_V1(modeltools.Method):
@@ -30,7 +30,7 @@ class Calculate_Discharge_V1(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.q_walrus import *
+        >>> from hydpy.models.wq_walrus import *
         >>> simulationstep("12h")
         >>> parameterstep("1d")
         >>> channeldepth(5.0)
@@ -76,12 +76,12 @@ class Calculate_Discharge_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (
-        q_control.ChannelDepth,
-        q_control.CrestHeight,
-        q_control.BankfullDischarge,
-        q_control.DischargeExponent,
+        wq_control.ChannelDepth,
+        wq_control.CrestHeight,
+        wq_control.BankfullDischarge,
+        wq_control.DischargeExponent,
     )
-    DERIVEDPARAMETERS = (q_derived.CrestHeightRegularisation,)
+    DERIVEDPARAMETERS = (wq_derived.CrestHeightRegularisation,)
 
     @staticmethod
     def __call__(model: modeltools.Model, waterdepth: float) -> float:
@@ -96,7 +96,7 @@ class Calculate_Discharge_V1(modeltools.Method):
 
 
 class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
-    """The HydPy-Q base model."""
+    """The HydPy-WQ base model."""
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
@@ -110,14 +110,14 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
 
 
 class Base_DischargeModel_V2(dischargeinterfaces.DischargeModel_V2):
-    """Base class for HydPy-Q models that comply with the |DischargeModel_V2| submodel
+    """Base class for HydPy-WQ models that comply with the |DischargeModel_V2| submodel
     interface."""
 
-    @importtools.define_targetparameter(q_control.ChannelDepth)
+    @importtools.define_targetparameter(wq_control.ChannelDepth)
     def prepare_channeldepth(self, channeldepth: float) -> None:
         """Set the channel depth in m.
 
-        >>> from hydpy.models.q_walrus import *
+        >>> from hydpy.models.wq_walrus import *
         >>> parameterstep()
         >>> model.prepare_channeldepth(2.0)
         >>> channeldepth
@@ -125,11 +125,11 @@ class Base_DischargeModel_V2(dischargeinterfaces.DischargeModel_V2):
         """
         self.parameters.control.channeldepth(channeldepth)
 
-    @importtools.define_targetparameter(q_control.CrestHeightTolerance)
+    @importtools.define_targetparameter(wq_control.CrestHeightTolerance)
     def prepare_tolerance(self, tolerance: float) -> None:
         """Set the depth-related smoothing parameter in m.
 
-        >>> from hydpy.models.q_walrus import *
+        >>> from hydpy.models.wq_walrus import *
         >>> parameterstep()
         >>> model.prepare_tolerance(2.0)
         >>> crestheighttolerance

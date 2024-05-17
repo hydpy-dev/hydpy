@@ -2730,14 +2730,14 @@ class Calc_RH_V1(modeltools.Method):
         >>> fluxes.rh
         rh(0.92)
 
-        We use |q_walrus|, which implements WALRUS' standard approach for calculating
+        We use |wq_walrus|, which implements WALRUS' standard approach for calculating
         |RH|, to demonstrate that |Calc_RH_V1| correctly uses submodels that follow the
         |DischargeModel_V2| interface:
 
         >>> sh(0.1)
         >>> states.hs(3000.0)
         >>> derived.cd(5000.0)
-        >>> with model.add_dischargemodel_v2("q_walrus"):
+        >>> with model.add_dischargemodel_v2("wq_walrus"):
         ...     crestheight(2.0)
         ...     bankfulldischarge(2.0)
         ...     dischargeexponent(2.0)
@@ -3634,7 +3634,7 @@ class Main_DischargeModel_V2(modeltools.ELSModel):
         >>> from hydpy.models.wland_v001 import *
         >>> parameterstep()
         >>> sh(10.0)
-        >>> with model.add_dischargemodel_v2("q_walrus", update=False):
+        >>> with model.add_dischargemodel_v2("wq_walrus", update=False):
         ...     pass
         Traceback (most recent call last):
         ...
@@ -3648,7 +3648,7 @@ so far.
         You can define its value manually for testing:
 
         >>> derived.cd(2000.0)
-        >>> with model.add_dischargemodel_v2("q_walrus", update=False):
+        >>> with model.add_dischargemodel_v2("wq_walrus", update=False):
         ...     channeldepth
         ...     crestheighttolerance
         channeldepth(2.0)
@@ -3665,7 +3665,7 @@ so far.
 
         >>> gl(4.0)
         >>> bl(3.0)
-        >>> with model.add_dischargemodel_v2("q_walrus", update=False):
+        >>> with model.add_dischargemodel_v2("wq_walrus", update=False):
         ...     channeldepth
         ...     crestheighttolerance
         channeldepth(1.0)

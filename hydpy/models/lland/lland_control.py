@@ -828,9 +828,11 @@ class KapGrenz(parametertools.Parameter):
     >>> fk(60.0, 120.0, 180.0)
     >>> kapgrenz(option="FK")
     >>> kapgrenz
-    kapgrenz([[60.0, 60.0],
-              [120.0, 120.0],
-              [180.0, 180.0]])
+    kapgrenz(option="FK")
+    >>> kapgrenz.value
+    array([[ 60.,  60.],
+           [120., 120.],
+           [180., 180.]])
 
     The second possible string is `0_WMax/10`, which corresponds to the
     LARSIM option `KOPPELUNG BODEN/GRUNDWASSER`, where the lower and upper
@@ -840,9 +842,11 @@ class KapGrenz(parametertools.Parameter):
     >>> wmax(100.0, 150.0, 200.0)
     >>> kapgrenz(option="0_WMax/10")
     >>> kapgrenz
-    kapgrenz([[0.0, 10.0],
-              [0.0, 15.0],
-              [0.0, 20.0]])
+    kapgrenz(option="0_WMax/10")
+    >>> kapgrenz.values
+    array([[ 0., 10.],
+           [ 0., 15.],
+           [ 0., 20.]])
 
     The third possible string is `FK/2_FK` where the lower and the upper
     threshold are 50 % and 100 % of the value of parameter |FK|, which does
@@ -850,25 +854,61 @@ class KapGrenz(parametertools.Parameter):
 
     >>> kapgrenz(option="FK/2_FK")
     >>> kapgrenz
+    kapgrenz(option="FK/2_FK")
+    >>> kapgrenz.values
+    array([[ 30.,  60.],
+           [ 60., 120.],
+           [ 90., 180.]])
+
+    >>> kapgrenz
+    kapgrenz(option="FK/2_FK")
+
+    >>> kapgrenz.values = [[30.0, 60.0], [60.0, 120.0], [90.0, 180.0]]
+    >>> kapgrenz
+    kapgrenz(option="FK/2_FK")
+
+    If we change the values and they do not comply with the option, the values
+    instead of the option will be returned
+
+    >>> kapgrenz.values = 100.0
+    >>> kapgrenz
+    kapgrenz(100.0)
+
+    If we change the parameter |FK|, on which |KapGrenz| depends, |KapGrenz| will not
+    be updated, but will remain at its old values. The option is no longer returned
+    because it is not valid anymore.
+    >>> kapgrenz(option="FK/2_FK")
+    >>> kapgrenz
+    kapgrenz(option="FK/2_FK")
+    >>> kapgrenz.values
+    array([[ 30.,  60.],
+           [ 60., 120.],
+           [ 90., 180.]])
+    >>> fk(100)
+    >>> kapgrenz
     kapgrenz([[30.0, 60.0],
               [60.0, 120.0],
               [90.0, 180.0]])
 
-    Wrong keyword arguments result in errors like the following:
+    The option will also not be returned if it leads to nan values:
+    >>> fk(numpy.nan)
+    >>> kapgrenz(option="FK/2_FK")
+    >>> kapgrenz
+    kapgrenz(nan)
 
+    Wrong keyword arguments result in errors like the following:
 
     >>> kapgrenz(option1="FK", option2="0_WMax/10")
     Traceback (most recent call last):
     ...
-    ValueError: Parameter `kapgrenz` of element `?` does not accept multiple \
-keyword arguments, but the following are given: option1 and option2
+    NotImplementedError: The value(s) of parameter `kapgrenz` of element `?` \
+could not be set based on the given keyword arguments.
 
     >>> kapgrenz(option1="FK")
     Traceback (most recent call last):
     ...
-    ValueError: Besides the standard keyword arguments, parameter `kapgrenz` \
-of element `?` does only support the keyword argument `option`, but `option1` \
-is given.
+    NotImplementedError: The value(s) of parameter `kapgrenz` of element `?` \
+could not be set based on the given keyword arguments.
 
     >>> kapgrenz(option="NFk")
     Traceback (most recent call last):
@@ -880,41 +920,50 @@ is given.
     CONTROLPARAMETERS = (WMax, FK)
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
     INIT = 0.0
+    KEYWORDS = {"option": parametertools.Keyword(name="option")}
 
     def __call__(self, *args, **kwargs) -> None:
-        try:
+        self._keywordarguments = parametertools.KeywordArguments(False)
+        idx = self._find_kwargscombination(args, kwargs, ({"option"},))
+        if idx is None:
             super().__call__(*args, **kwargs)
-        except NotImplementedError:
-            if len(kwargs) > 1:
-                raise ValueError(
-                    f"Parameter {objecttools.elementphrase(self)} does not "
-                    f"accept multiple keyword arguments, but the following "
-                    f"are given: {objecttools.enumeration(kwargs.keys())}"
-                ) from None
-            if "option" not in kwargs:
-                raise ValueError(
-                    f"Besides the standard keyword arguments, parameter "
-                    f"{objecttools.elementphrase(self)} does only support "
-                    f"the keyword argument `option`, but `{tuple(kwargs)[0]}` "
-                    f"is given."
-                ) from None
-            con = self.subpars
-            self.values = 0.0
-            if kwargs["option"] == "FK/2_FK":
-                self.values[:, 0] = 0.5 * con.fk  # type: ignore[index]
-                self.values[:, 1] = con.fk  # type: ignore[index]
-            elif kwargs["option"] == "0_WMax/10":
-                self.values[:, 0] = 0.0  # type: ignore[index]
-                self.values[:, 1] = 0.1 * con.wmax  # type: ignore[index]
-            elif kwargs["option"] == "FK":
-                self.values[:, 0] = con.fk  # type: ignore[index]
-                self.values[:, 1] = con.fk  # type: ignore[index]
-            else:
-                raise ValueError(
-                    f"Parameter {objecttools.elementphrase(self)} supports "
-                    f"the options `FK`, `0_WMax/10`, and `FK/2_FK`, but "
-                    f"`{kwargs['option']}` is given."
-                ) from None
+        else:
+            self._keywordarguments = parametertools.KeywordArguments(
+                option=kwargs["option"]
+            )
+            self.values = self._get_values_according_to_option()
+
+    def _get_values_according_to_option(self) -> NDArrayFloat:
+        con = self.subpars
+        values = numpy.zeros(self.shape)
+        kwargs = self._keywordarguments
+        if kwargs["option"] == "FK/2_FK":
+            values[:, 0] = 0.5 * con.fk
+            values[:, 1] = con.fk
+        elif kwargs["option"] == "0_WMax/10":
+            values[:, 0] = 0.0
+            values[:, 1] = 0.1 * con.wmax
+        elif kwargs["option"] == "FK":
+            values[:, 0] = con.fk
+            values[:, 1] = con.fk
+        else:
+            raise ValueError(
+                f"Parameter {objecttools.elementphrase(self)} supports "
+                f"the options `FK`, `0_WMax/10`, and `FK/2_FK`, but "
+                f"`{kwargs['option']}` is given."
+            ) from None
+        return values
+
+    def __repr__(self) -> str:
+        if self._keywordarguments.valid:
+            values = self._get_values_according_to_option()
+            if (values == self.values).all():
+                strings = []
+                for name, value in self._keywordarguments:
+                    strings.append(f'{name}="{objecttools.repr_(value)}"')
+                return f"{self.name}({', '.join(strings)})"
+
+        return super().__repr__()
 
 
 class RBeta(parametertools.Parameter):

@@ -41,14 +41,10 @@ class Model(rconc_model.Sub_RConcModel, rconcinterfaces.RConcModel_V1):
     def get_waterbalance(self, initial_conditions: ConditionsSubmodel) -> float:
         """Return the water balance after the submodel has been executed."""
 
-        if "logs" in initial_conditions and "quh" in initial_conditions["logs"]:
-            waterbalance = self.sequences.logs.quh - initial_conditions["logs"]["quh"]
-        else:
-            raise ValueError(
-                f"No initial conditions for submodel rconc found when calculating"
-                f"waterbalance."
-            )
+        waterbalance = self.sequences.logs.quh - initial_conditions["logs"]["quh"]
+
         return float(numpy.sum(waterbalance))
+
 
 tester = Tester()
 cythonizer = Cythonizer()

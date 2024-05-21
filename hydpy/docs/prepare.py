@@ -18,8 +18,7 @@ import sys
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.abspath(os.path.join("..", "..")))
 # pylint: disable=wrong-import-position
-# (changing the path is necessary when calling `prepare.py` from the
-# command line)
+# (changing the path is necessary when calling `prepare.py` from the command line)
 # ...from HydPy
 import hydpy
 from hydpy import auxs
@@ -40,6 +39,7 @@ from hydpy.docs import bib
 from hydpy.docs import figs
 from hydpy.docs import sphinx
 from hydpy.docs import rst
+from hydpy.core.typingtools import *
 
 # Prepare folder `auto`.
 docspath: str = docs.__path__[0]
@@ -80,6 +80,8 @@ for subpackage in (auxs, core, cythons, exe, interfaces, models, hydpy):
             and ("." not in filename)
             and (filename not in ("build", "__pycache__"))
         )
+        assert not (is_module and is_package)
+        source: Optional[str] = None
         if is_module:
             path = os.path.join(subpackagepath, filename)
             with open(path, encoding="utf-8") as file_:
@@ -100,7 +102,7 @@ for subpackage in (auxs, core, cythons, exe, interfaces, models, hydpy):
                 ):
                     sources.append(member.__doc__ if member.__doc__ else "")
             source = "\n".join(sources)
-        if is_package:
+        elif is_package:
             sources = []
             path = os.path.join(subpackagepath, filename)
             for subfilename in sorted(os.listdir(path)):
@@ -141,6 +143,7 @@ for subpackage in (auxs, core, cythons, exe, interfaces, models, hydpy):
             ]
             path = os.path.join(AUTOPATH, filename + ".rst")
             with open(path, "w", encoding="utf-8") as file_:
+                assert source is not None
                 path2source[path] = source
                 file_.write(substituter.get_commands(source))
                 file_.write("\n")

@@ -860,23 +860,24 @@ class KapGrenz(parametertools.Parameter):
            [ 60., 120.],
            [ 90., 180.]])
 
-    >>> kapgrenz
-    kapgrenz(option="FK/2_FK")
+    If we set the values directly and they comply with the previously set option,
+    the string representation will show the previously set option:
 
     >>> kapgrenz.values = [[30.0, 60.0], [60.0, 120.0], [90.0, 180.0]]
     >>> kapgrenz
     kapgrenz(option="FK/2_FK")
 
-    If we change the values and they do not comply with the option, the values
-    instead of the option will be returned
+    If we change the values and they do not comply with the option, the string
+    representation will show the modified values instead of the outdated option:
 
     >>> kapgrenz.values = 100.0
     >>> kapgrenz
     kapgrenz(100.0)
 
     If we change the parameter |FK|, on which |KapGrenz| depends, |KapGrenz| will not
-    be updated, but will remain at its old values. The option is no longer returned
-    because it is not valid anymore.
+    be updated, but will remain at its old values. The option is no longer printed
+    because it is not valid anymore:
+
     >>> kapgrenz(option="FK/2_FK")
     >>> kapgrenz
     kapgrenz(option="FK/2_FK")
@@ -890,7 +891,8 @@ class KapGrenz(parametertools.Parameter):
               [60.0, 120.0],
               [90.0, 180.0]])
 
-    The option will also not be returned if it leads to nan values:
+    The option will also not be printed if it leads to |numpy.nan| values:
+
     >>> fk(numpy.nan)
     >>> kapgrenz(option="FK/2_FK")
     >>> kapgrenz
@@ -933,7 +935,7 @@ could not be set based on the given keyword arguments.
             )
             self.values = self._get_values_according_to_option()
 
-    def _get_values_according_to_option(self) -> NDArrayFloat:
+    def _get_values_according_to_option(self) -> MatrixFloat:
         con = self.subpars
         values = numpy.zeros(self.shape)
         kwargs = self._keywordarguments

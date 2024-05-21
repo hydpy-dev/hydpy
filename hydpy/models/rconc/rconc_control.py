@@ -418,7 +418,8 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
             ts = numpy.arange(0.0, x4 + 1.0)
         else:
             ts = numpy.arange(2.0 * x4 - numpy.ceil(x4) + 1.0, -1.0, -1.0)[::-1]
-        totals = (ts / x4) ** beta
+        totals = numpy.empty(len(ts), dtype=float)
+        totals[1:-1] = (ts[1:-1] / x4) ** beta
         totals[0], totals[-1] = 0.0, 1.0
         deltas = numpy.diff(totals)
         if not left:

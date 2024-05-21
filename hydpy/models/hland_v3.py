@@ -105,7 +105,7 @@ extending the simulation of runoff concentration processes:
 >>> with model.add_rconcmodel_v1("rconc_nash"):
 ...     retentiontime(3.0)
 ...     nmbstorages(5)
-...     recstep(100)
+...     nmbsteps(100)
 
 >>> from hydpy import IntegrationTest
 >>> IntegrationTest.plotting_options.axis1 = (

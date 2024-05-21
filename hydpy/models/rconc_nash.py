@@ -1,21 +1,26 @@
 # -*- coding: utf-8 -*-
-"""Calculate runoff concentration by linear storage cascade model ('Nash cascade').
+"""Calculate runoff concentration with linear storage cascade model ("Nash cascade").
 
-|rconc_nash| is a submodel that supplies its main model with the
-calculation of the runoff concentration by the storage cascade approach.
+|rconc_nash| is a submodel that supports its main model by calculating the runoff
+concentration using the storage cascade approach.
 
-The integration test of the application model |hland_v3| uses the
-|rconc_nash| submodel.
+See the integration tests of the application model |hland_v3|, which use |rconc_nash|
+as a submodel.
 """
 # import...
+import numpy
+from numpy import ndarray
+
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import rconcinterfaces
 from hydpy.models.rconc import rconc_model
+from hydpy.core.typingtools import *
 
 
 class Model(rconc_model.Sub_RConcModel, rconcinterfaces.RConcModel_V1):
-    """Model that calculates runoff concentration by storage cascade approach"""
+    """A model that calculates runoff concentration using the storage cascade
+    approach."""
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
@@ -31,6 +36,17 @@ class Model(rconc_model.Sub_RConcModel, rconcinterfaces.RConcModel_V1):
     SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
+    def get_waterbalance(self, initial_conditions: ConditionsSubmodel) -> float:
+        """Return the water balance after the submodel has been executed."""
+
+        if "states" in initial_conditions and "sc" in initial_conditions["states"]:
+            waterbalance = self.sequences.states.sc - initial_conditions["states"]["sc"]
+        else:
+            raise ValueError(
+                f"No initial conditions for submodel rconc found when calculating"
+                f"waterbalance."
+            )
+        return float(numpy.sum(waterbalance))
 
 tester = Tester()
 cythonizer = Cythonizer()

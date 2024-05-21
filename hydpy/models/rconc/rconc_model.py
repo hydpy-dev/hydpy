@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-.. _`issue 118`: https://github.com/hydpy-dev/hydpy/issues/118
-"""
 # imports...
 # ...from standard library
 import numpy
@@ -33,7 +30,7 @@ class Determine_Outflow_V1(modeltools.Method):
         >>> logs.quh = 1.0, 3.0, 0.0
 
         Without new input, the actual output is simply the first value stored in the
-        logging sequence, and the values of the logging sequence shift to the left:
+        logging sequence and the values of the logging sequence shift to the left:
 
         >>> fluxes.inflow = 0.0
         >>> model.determine_outflow_v1()
@@ -42,11 +39,10 @@ class Determine_Outflow_V1(modeltools.Method):
         >>> logs.quh
         quh(3.0, 0.0, 0.0)
 
-        With a new input of 4 mm, the actual output consists of the first
-        value stored in the logging sequence and the input value
-        multiplied with the first unit hydrograph ordinate.  The updated
-        logging sequence values result from the multiplication of the
-        input values and the remaining ordinates:
+        With a new input of 4 mm, the actual output consists of the first value stored
+        in the logging sequence and the input value multiplied with the first unit
+        hydrograph ordinate.  The updated logging sequence values result from
+        multiplying input values and the remaining ordinates:
 
         >>> fluxes.inflow = 4.0
         >>> model.determine_outflow_v1()
@@ -55,7 +51,8 @@ class Determine_Outflow_V1(modeltools.Method):
         >>> logs.quh
         quh(2.0, 0.8, 0.0)
 
-        The following example demonstrates the updating of a non-empty logging sequence:
+        The following example demonstrates the updating of a non-empty logging
+        sequence:
 
         >>> fluxes.inflow = 4.0
         >>> model.determine_outflow_v1()
@@ -64,7 +61,8 @@ class Determine_Outflow_V1(modeltools.Method):
         >>> logs.quh
         quh(2.8, 0.8, 0.0)
 
-        A unit hydrograph consisting of one ordinate routes the received input directly:
+        A unit hydrograph consisting of one ordinate routes the received input
+        directly:
 
         >>> control.uh.shape = 1
         >>> control.uh = 1.0
@@ -110,7 +108,7 @@ class Determine_Outflow_V2(modeltools.Method):
 
     Note that the given base equations only hold for one single linear storage, while
     |Determine_Outflow_V2| supports a cascade of linear storages.  Also, the equations
-    do not reflect the possibility to increase numerical accuracy via decreasing the
+    do not reflect the possibility of increasing numerical accuracy by decreasing the
     internal simulation step size.
 
     Examples:
@@ -129,9 +127,9 @@ class Determine_Outflow_V2(modeltools.Method):
 
         We solve the underlying ordinary differential equation via the explicit Euler
         method.  Nevertheless, defining arbitrarily high storage coefficients does not
-        pose any stability problems due to truncating too high outflow values:
+        pose any stability problems due to truncating too-high outflow values:
 
-        >>> control.recstep(1)
+        >>> control.nmbsteps(1)
         >>> derived.dt.update()
         >>> nmbstorages(5)
         >>> derived.ksc(inf)
@@ -139,7 +137,7 @@ class Determine_Outflow_V2(modeltools.Method):
         >>> fluxes.outflow
         outflow(2.0)
 
-        Increasing the number of internal calculation steps via parameter |RecStep|
+        Increasing the number of internal calculation steps via parameter |NmbSteps|
         results in higher numerical accuracy without violating the water balance:
 
         >>> derived.ksc(2.0)
@@ -150,7 +148,7 @@ class Determine_Outflow_V2(modeltools.Method):
         >>> states.sc
         sc(0.0, 0.0, 0.0, 0.0, 0.0)
 
-        >>> control.recstep(10)
+        >>> control.nmbsteps(10)
         >>> derived.dt.update()
         >>> states.sc = 0.0
         >>> model.determine_outflow_v2()
@@ -162,7 +160,7 @@ class Determine_Outflow_V2(modeltools.Method):
         >>> round_(fluxes.outflow + sum(states.sc))
         2.0
 
-        >>> control.recstep(100)
+        >>> control.nmbsteps(100)
         >>> derived.dt.update()
         >>> states.sc = 0.0
         >>> model.determine_outflow_v2()
@@ -174,7 +172,7 @@ class Determine_Outflow_V2(modeltools.Method):
         2.0
     """
 
-    CONTROLPARAMETERS = (rconc_control.NmbStorages, rconc_control.RecStep)
+    CONTROLPARAMETERS = (rconc_control.NmbStorages, rconc_control.NmbSteps)
     DERIVEDPARAMETERS = (rconc_derived.DT, rconc_derived.KSC)
     REQUIREDSEQUENCES = (rconc_fluxes.Inflow,)
     UPDATEDSEQUENCES = (rconc_states.SC,)
@@ -190,7 +188,7 @@ class Determine_Outflow_V2(modeltools.Method):
             flu.outflow = flu.inflow
         else:
             flu.outflow = 0.0
-            for _ in range(con.recstep):
+            for _ in range(con.nmbsteps):
                 sta.sc[0] += der.dt * flu.inflow
                 for j in range(con.nmbstorages - 1):
                     d_q = min(der.dt * der.ksc * sta.sc[j], sta.sc[j])
@@ -203,18 +201,18 @@ class Determine_Outflow_V2(modeltools.Method):
 
 
 class Set_Inflow_V1(modeltools.Method):
-    """Set the input for the calculation of the runoff concentration."""
+    """Set the runoff concentration input in mm/T."""
 
     RESULTSEQUENCES = (rconc_fluxes.Inflow,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, v: float) -> None:
+    def __call__(model: modeltools.Model, inflow: float) -> None:
         flu = model.sequences.fluxes.fastaccess
-        flu.inflow = v
+        flu.inflow = inflow
 
 
 class Get_Outflow_V1(modeltools.Method):
-    """Get the previously calculated runoff concentration output.
+    """Get the previously calculated runoff concentration output in mm/T.
 
     Example:
 
@@ -237,7 +235,7 @@ class Get_Outflow_V1(modeltools.Method):
 
 
 class Model(modeltools.AdHocModel):
-    """The HydPy-RConc base model."""
+    """The HydPy-Rconc base model."""
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
@@ -258,18 +256,3 @@ class Model(modeltools.AdHocModel):
 class Sub_RConcModel(modeltools.AdHocModel):
     """Base class for submodels that comply with the submodel interfaces defined in
     module |rconcinterfaces|."""
-
-    def get_waterbalance(self, initial_conditions: ConditionsSubmodel) -> float:
-        """Return the water balance after the submodel has been executed.
-        Requires initial conditions as parameter."""
-
-        if "logs" in initial_conditions and "quh" in initial_conditions["logs"]:
-            waterbalance = self.sequences.logs.quh - initial_conditions["logs"]["quh"]
-        elif "states" in initial_conditions and "sc" in initial_conditions["states"]:
-            waterbalance = self.sequences.states.sc - initial_conditions["states"]["sc"]
-        else:
-            raise ValueError(
-                f"No initial conditions for submodel rconc found when calculating"
-                f"waterbalance."
-            )
-        return numpy.sum(waterbalance)

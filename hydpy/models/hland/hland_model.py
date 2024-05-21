@@ -4090,7 +4090,37 @@ class Calc_OutUH_RConcModel_V1(modeltools.Method):
 
 class Calc_OutUH_V1(modeltools.Method):
     """If the model has a submodel that follows the |RConcModel_V1| submodel interface,
-    calculate runoff concentration. If not, set the output equal to the input."""
+    calculate runoff concentration. If not, set the output equal to the input.
+
+    Example:
+
+        A model without a submodel for runoff concentration directs the input directly
+        to the output.
+
+        >>> from hydpy.models.hland_v1 import *
+        >>> simulationstep("1h")
+        >>> parameterstep("1d")
+        >>> fluxes.inuh = 1.0
+        >>> model.calc_outuh_v1()
+        >>> fluxes.outuh
+        outuh(1.0)
+
+        If a submodel for runoff concentration is added (in this case, a unit
+        hydrograph with three ordinates), the output for the first time step
+        corresponds to the portion of the input specified by the first ordinate (since
+        the initial conditions of the logging sequence quh were set to zero, and thus
+        no additional runoff portions from previous time steps are included).
+
+        >>> with model.add_rconcmodel_v1("rconc_uh"):
+        ...     uh([0.3,0.4,0.3])
+        ...     logs.quh.shape = 3
+        ...     logs.quh = 0.0, 0.0, 0.0
+        >>> model.calc_outuh_v1()
+        >>> fluxes.outuh
+        outuh(0.3)
+    """
+
+
 
     SUBMODELINTERFACES = (rconcinterfaces.RConcModel_V1,)
     SUBMETHODS = (Calc_OutUH_RConcModel_V1,)
@@ -4099,16 +4129,13 @@ class Calc_OutUH_V1(modeltools.Method):
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
         if model.rconcmodel is None:
-            flu = model.sequences.fluxes.fastaccess
             flu.outuh = flu.inuh
         elif model.rconcmodel_typeid == 1:
             model.calc_outuh_rconcmodel_v1(
                 cast(rconcinterfaces.RConcModel_V1, model.rconcmodel)
             )
-        # ToDo:
-        #     else:
-        #         assert_never(model.petmodel)
 
 
 class Calc_RT_V1(modeltools.Method):
@@ -4569,7 +4596,7 @@ class Main_RConcModel_V1(modeltools.AdHocModel):
     def _get_rconcmodel_waterbalance(
         self, rconcmodel_conditions: ConditionsSubmodel
     ) -> float:
-        r"""get the water balance of the rconc submodel if used."""
+        r"""Get the water balance of the rconc submodel if used."""
         if self.rconcmodel is None:
             return 0.0
         return self.rconcmodel.get_waterbalance(rconcmodel_conditions)

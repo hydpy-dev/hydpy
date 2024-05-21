@@ -42,7 +42,7 @@ The following list summarises the main components of |hland_v1|:
 
 The following figure shows the general structure of H-Land Version 1.  Note that zones
 of type |FIELD| and |FOREST| are based on the same set of process equations. In this
-scheme the submodel |rconc_uh| is included (which is optional):
+scheme, the submodel |rconc_uh| is included (which is optional):
 
 .. image:: HydPy-H-Land_Version-1.png
 
@@ -340,7 +340,7 @@ There is no indication of an error in the water balance:
 .. _hland_v1_no_rconc_submodel:
 
 no rconc submodel
-_____________________
+_________________
 
 Using a submodel like |rconc_uh| as an additional means for calculating runoff
 concentration is optional. We repeat the last integration test without one, so there is

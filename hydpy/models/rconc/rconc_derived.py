@@ -46,32 +46,32 @@ class KSC(parametertools.Parameter):
 
 
 class DT(parametertools.Parameter):
-    """Relative time step length for the upper zone layer calculations [-]."""
+    """Relative length of each simulation step [-]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
 
-    CONTROLPARAMETERS = (rconc_control.RecStep,)
+    CONTROLPARAMETERS = (rconc_control.NmbSteps,)
 
     def update(self):
-        """Update |DT| based on :math:`DT = \\frac{1}{RecStep}`.
+        """Update |DT| based on :math:`DT = \\frac{1}{NmbSteps}`.
 
         >>> from hydpy.models.rconc import *
         >>> parameterstep("1d")
         >>> simulationstep("12h")
-        >>> recstep(2.0)
+        >>> nmbsteps(2.0)
         >>> derived.dt.update()
         >>> derived.dt
         dt(1.0)
-        >>> recstep(10.0)
+        >>> nmbsteps(10.0)
         >>> derived.dt.update()
         >>> derived.dt
         dt(0.2)
 
-        Note that the value assigned to parameter |RecStep| depends on the current
+        Note that the value assigned to parameter |NmbSteps| depends on the current
         parameter step size (one day).  Due to the current simulation step size (one
-        hour), the applied |RecStep| value is five:
+        hour), the applied |NmbSteps| value is five:
 
-        >>> recstep.value
+        >>> nmbsteps.value
         5
         """
-        self(1.0 / self.subpars.pars.control.recstep)
+        self(1.0 / self.subpars.pars.control.nmbsteps)

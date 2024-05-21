@@ -14,7 +14,7 @@ from hydpy.core.typingtools import *
 
 
 class QUH(sequencetools.LogSequence):
-    """All temporary outflow values of the unit hydrograph [mm].
+    """All temporary outflow values of the unit hydrograph [mm/T].
 
     The last value is always set to zero to avoid biased results:
 
@@ -35,9 +35,9 @@ class QUH(sequencetools.LogSequence):
     UserWarning: Due to the following problem, log sequence `quh` of element `?` \
 handling model `rconc` could be initialised with a averaged value only: While trying \
 to set the value(s) of variable `quh`, the following error occurred: While trying to \
-convert the value(s) `(1.0, 2.0, 3.0, 0.0)` to a numpy ndarray with shape `(3...)` and \
-type `float`, the following error occurred: could not broadcast input array from shape \
-(4...) into shape (3...)
+convert the value(s) `(1.0, 2.0, 3.0, 0.0)` to a numpy ndarray with shape `(3...)` \
+and type `float`, the following error occurred: could not broadcast input array from \
+shape (4...) into shape (3...)
 
     >>> logs.quh
     quh(3.0, 3.0, 0.0)

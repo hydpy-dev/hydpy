@@ -7,14 +7,14 @@ from hydpy.core import sequencetools
 
 
 class Inflow(sequencetools.FluxSequence):
-    """Input of the triangle unit hydrograph  [mm/T]."""
+    """Input [mm/T]."""
 
     NDIM = 0
     NUMERIC = False
 
 
 class Outflow(sequencetools.FluxSequence):
-    """Output of the triangle unit hydrograph  [mm/T]."""
+    """Outflow [mm/T]."""
 
     NDIM = 0
     NUMERIC = False

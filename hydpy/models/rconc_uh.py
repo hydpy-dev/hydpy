@@ -2,22 +2,27 @@
 """Calculate runoff concentration by convolution of the isosceles triangular
 unit hydrograph.
 
-|rconc_uh| is a submodel that supplies its main model with the
-calculation of the runoff concentration by convolution of the isoscelese
-triangular unit hydrograph.
-
-The integration test of the application model |hland_v1| uses the
-|rconc_uh| submodel.
+|rconc_uh| is a submodel that supports its main model by calculating runoff
+concentration using the unit hydrograph approach. It allows for different unit
+hydrograph shapes, which can be configured based on specific geometries or wholly
+customised. One example of a specific geometry is the isosceles triangle of HBV96
+:cite:p:ref-Lindstrom1997HBV96. See the documentation on parameter |UH| for further
+information. Also, see the integration tests of application model |hland_v1|, which
+use |rconc_uh| as a submodel.
 """
 # import...
+import numpy
+from numpy import ndarray
+
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import rconcinterfaces
 from hydpy.models.rconc import rconc_model
+from hydpy.core.typingtools import *
 
 
 class Model(rconc_model.Sub_RConcModel, rconcinterfaces.RConcModel_V1):
-    """Model that calculates runoff concentration by convolution"""
+    """Calculate runoff concentration using the unit hydrograph approach."""
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
@@ -33,6 +38,17 @@ class Model(rconc_model.Sub_RConcModel, rconcinterfaces.RConcModel_V1):
     SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
+    def get_waterbalance(self, initial_conditions: ConditionsSubmodel) -> float:
+        """Return the water balance after the submodel has been executed."""
+
+        if "logs" in initial_conditions and "quh" in initial_conditions["logs"]:
+            waterbalance = self.sequences.logs.quh - initial_conditions["logs"]["quh"]
+        else:
+            raise ValueError(
+                f"No initial conditions for submodel rconc found when calculating"
+                f"waterbalance."
+            )
+        return float(numpy.sum(waterbalance))
 
 tester = Tester()
 cythonizer = Cythonizer()

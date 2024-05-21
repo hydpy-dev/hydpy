@@ -18,12 +18,12 @@ class RConcModel_V1(modeltools.SubmodelInterface):
         conditions in mm."""
 
     @modeltools.abstractmodelmethod
-    def set_inflow(self, v: float) -> None:
+    def set_inflow(self, inflow: float) -> None:
         """Set the runoff concentration input in mm/T."""
 
     @modeltools.abstractmodelmethod
     def determine_outflow(self) -> None:
-        """Calculate runoff concentration output in mm/T."""
+        """Calculate runoff concentration output."""
 
     @modeltools.abstractmodelmethod
     def get_outflow(self) -> float:

@@ -29,7 +29,6 @@ So far the following application models are compiled:
    :maxdepth: 1
 
    hland_v1 (HBV96) <hland_v1>
-   hland_v2 (HBV96-SC) <hland_v2>
    hland_v3 (HBV96-SC/PREVAH) <hland_v3>
    hland_v4 (HBV96-SC/COSERO) <hland_v4>
    hbranch_v1 (HBV96) <hbranch_v1>

@@ -18,6 +18,7 @@ more detail.
    petinterfaces
    precipinterfaces
    radiationinterfaces
+   rconcinterfaces
    soilinterfaces
    stateinterfaces
    tempinterfaces

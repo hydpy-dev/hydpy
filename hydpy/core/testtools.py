@@ -143,7 +143,6 @@ class Tester:
          'hland_fixed.py',
          'hland_fluxes.py',
          'hland_inputs.py',
-         'hland_logs.py',
          'hland_masks.py',
          'hland_model.py',
          'hland_outlets.py',
@@ -173,7 +172,6 @@ class Tester:
          'hland_fixed',
          'hland_fluxes',
          'hland_inputs',
-         'hland_logs',
          'hland_masks',
          'hland_model',
          'hland_outlets',
@@ -224,8 +222,6 @@ class Tester:
             * hland_fluxes:
                 no failures occurred
             * hland_inputs:
-                no failures occurred
-            * hland_logs:
                 no failures occurred
             * hland_masks:
                 no failures occurred

@@ -3,6 +3,7 @@
 from hydpy.models.hland_v1 import *
 from hydpy.models import evap_aet_hbv96
 from hydpy.models import evap_pet_hbv96
+from hydpy.models import rconc_uh
 
 simulationstep("1h")
 parameterstep("1d")
@@ -45,7 +46,6 @@ alpha(auxfile="land")
 k(0.002571233607305936)
 k4(0.04087)
 gamma(0.0)
-maxbaz(0.54769)
 with model.add_aetmodel_v1(evap_aet_hbv96):
     temperaturethresholdice(nan)
     soilmoisturelimit(0.9)
@@ -55,3 +55,5 @@ with model.add_aetmodel_v1(evap_aet_hbv96):
         altitudefactor(0.0)
         precipitationfactor(0.02)
         evapotranspirationfactor(1.0)
+with model.add_rconcmodel_v1(rconc_uh):
+    uh("triangle", tb=0.54769)

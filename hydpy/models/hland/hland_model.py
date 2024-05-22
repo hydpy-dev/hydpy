@@ -13,6 +13,7 @@ from hydpy.cythons import modelutils
 from hydpy.core.typingtools import *
 from hydpy.interfaces import aetinterfaces
 from hydpy.interfaces import precipinterfaces
+from hydpy.interfaces import rconcinterfaces
 from hydpy.interfaces import tempinterfaces
 from hydpy.interfaces import stateinterfaces
 
@@ -26,7 +27,6 @@ from hydpy.models.hland import hland_inputs
 from hydpy.models.hland import hland_factors
 from hydpy.models.hland import hland_fluxes
 from hydpy.models.hland import hland_states
-from hydpy.models.hland import hland_logs
 from hydpy.models.hland import hland_aides
 from hydpy.models.hland import hland_outlets
 
@@ -4071,189 +4071,70 @@ class Calc_InUH_V3(modeltools.Method):
                 flu.inuh += d_weight * (flu.qab1[k] + flu.qab2[k])
 
 
-class Calc_OutUH_QUH_V1(modeltools.Method):
-    r"""Calculate the unit hydrograph output (convolution).
+class Calc_OutUH_RConcModel_V1(modeltools.Method):
+    """Let a submodel that follows the |RConcModel_V1| submodel interface calculate
+    runoff concentration."""
+
+    REQUIREDSEQUENCES = (hland_fluxes.InUH,)
+    RESULTSEQUENCES = (hland_fluxes.OutUH,)
+
+    @staticmethod
+    def __call__(
+        model: modeltools.Model, submodel: rconcinterfaces.RConcModel_V1
+    ) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        submodel.set_inflow(flu.inuh)
+        submodel.determine_outflow()
+        flu.outuh = submodel.get_outflow()
+
+
+class Calc_OutUH_V1(modeltools.Method):
+    """If the model has a submodel that follows the |RConcModel_V1| submodel interface,
+    calculate runoff concentration. If not, set the output equal to the input.
 
     Examples:
 
-        Prepare a unit hydrograph with only three ordinates representing a fast
-        catchment response compared to the selected simulation step size:
+        A model without a submodel for runoff concentration directs the input directly
+        to the output:
 
-        >>> from hydpy.models.hland import *
-        >>> simulationstep("12h")
+        >>> from hydpy.models.hland_v1 import *
+        >>> simulationstep("1h")
         >>> parameterstep("1d")
-        >>> derived.uh.shape = 3
-        >>> derived.uh = 0.3, 0.5, 0.2
-        >>> logs.quh.shape = 3
-        >>> logs.quh = 1.0, 3.0, 0.0
-
-        Without new input, the actual output is simply the first value stored in the
-        logging sequence, and the values of the logging sequence shift to the left:
-
-        >>> fluxes.inuh = 0.0
-        >>> model.calc_outuh_quh_v1()
+        >>> fluxes.inuh = 1.0
+        >>> model.calc_outuh_v1()
         >>> fluxes.outuh
         outuh(1.0)
-        >>> logs.quh
-        quh(3.0, 0.0, 0.0)
 
-        With a new input of 4 mm, the actual output consists of the first
-        value stored in the logging sequence and the input value
-        multiplied with the first unit hydrograph ordinate.  The updated
-        logging sequence values result from the multiplication of the
-        input values and the remaining ordinates:
+        If a submodel for runoff concentration is added (in this case, a unit
+        hydrograph with three ordinates), the output for the first time step
+        corresponds to the portion of the input specified by the first ordinate (since
+        the initial conditions of the logging sequence |rconc_logs.QUH| were set to
+        zero, and thus no additional runoff portions from previous time steps are
+        included).
 
-        >>> fluxes.inuh = 4.0
-        >>> model.calc_outuh_quh_v1()
+        >>> with model.add_rconcmodel_v1("rconc_uh"):
+        ...     uh([0.3,0.4,0.3])
+        ...     logs.quh.shape = 3
+        ...     logs.quh = 0.0, 0.0, 0.0
+        >>> model.calc_outuh_v1()
         >>> fluxes.outuh
-        outuh(4.2)
-        >>> logs.quh
-        quh(2.0, 0.8, 0.0)
-
-        The following example demonstrates the updating of a non-empty logging sequence:
-
-        >>> fluxes.inuh = 4.0
-        >>> model.calc_outuh_quh_v1()
-        >>> fluxes.outuh
-        outuh(3.2)
-        >>> logs.quh
-        quh(2.8, 0.8, 0.0)
-
-        A unit hydrograph consisting of one ordinate routes the received input directly:
-
-        >>> derived.uh.shape = 1
-        >>> derived.uh = 1.0
-        >>> fluxes.inuh = 0.0
-        >>> logs.quh.shape = 1
-        >>> logs.quh = 0.0
-        >>> model.calc_outuh_quh_v1()
-        >>> fluxes.outuh
-        outuh(0.0)
-        >>> logs.quh
-        quh(0.0)
-        >>> fluxes.inuh = 4.0
-        >>> model.calc_outuh_quh()
-        >>> fluxes.outuh
-        outuh(4.0)
-        >>> logs.quh
-        quh(0.0)
+        outuh(0.3)
     """
 
-    DERIVEDPARAMETERS = (hland_derived.UH,)
+    SUBMODELINTERFACES = (rconcinterfaces.RConcModel_V1,)
+    SUBMETHODS = (Calc_OutUH_RConcModel_V1,)
     REQUIREDSEQUENCES = (hland_fluxes.InUH,)
-    UPDATEDSEQUENCES = (hland_logs.QUH,)
     RESULTSEQUENCES = (hland_fluxes.OutUH,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        log = model.sequences.logs.fastaccess
-        flu.outuh = der.uh[0] * flu.inuh + log.quh[0]
-        for jdx in range(1, len(der.uh)):
-            log.quh[jdx - 1] = der.uh[jdx] * flu.inuh + log.quh[jdx]
-
-
-class Calc_OutUH_SC_V1(modeltools.Method):
-    r"""Calculate the linear storage cascade output (state-space approach).
-
-    Basic equations:
-        :math:`OutUH = KSC \cdot SC`
-
-        :math:`\frac{dSC}{dt} = InUH - OutUH`
-
-    Note that the given base equations only hold for one single linear storage, while
-    |Calc_OutUH_SC_V1| supports a cascade of linear storages.  Also, the equations do
-    not reflect the possibility to increase numerical accuracy via decreasing the
-    internal simulation step size.
-
-    Examples:
-
-        If the number of storages is zero, |Calc_OutUH_SC_V1| routes the received
-        input directly:
-
-        >>> from hydpy.models.hland import *
-        >>> simulationstep("1d")
-        >>> parameterstep("1d")
-        >>> nmbstorages(0)
-        >>> fluxes.inuh = 2.0
-        >>> model.calc_outuh_sc_v1()
-        >>> fluxes.outuh
-        outuh(2.0)
-
-        We solve the underlying ordinary differential equation via the explicit Euler
-        method.  Nevertheless, defining arbitrarily high storage coefficients does not
-        pose any stability problems due to truncating too high outflow values:
-
-        >>> control.recstep(1)
-        >>> derived.dt.update()
-        >>> nmbstorages(5)
-        >>> derived.ksc(inf)
-        >>> model.calc_outuh_sc_v1()
-        >>> fluxes.outuh
-        outuh(2.0)
-
-        Increasing the number of internal calculation steps via parameter |RecStep|
-        results in higher numerical accuracy without violating the water balance:
-
-        >>> derived.ksc(2.0)
-        >>> states.sc = 0.0
-        >>> model.calc_outuh_sc_v1()
-        >>> fluxes.outuh
-        outuh(2.0)
-        >>> states.sc
-        sc(0.0, 0.0, 0.0, 0.0, 0.0)
-
-        >>> control.recstep(10)
-        >>> derived.dt.update()
-        >>> states.sc = 0.0
-        >>> model.calc_outuh_sc_v1()
-        >>> fluxes.outuh
-        outuh(0.084262)
-        >>> states.sc
-        sc(0.714101, 0.542302, 0.353323, 0.202141, 0.103872)
-        >>> from hydpy import round_
-        >>> round_(fluxes.outuh + sum(states.sc))
-        2.0
-
-        >>> control.recstep(100)
-        >>> derived.dt.update()
-        >>> states.sc = 0.0
-        >>> model.calc_outuh_sc_v1()
-        >>> fluxes.outuh
-        outuh(0.026159)
-        >>> states.sc
-        sc(0.850033, 0.590099, 0.327565, 0.149042, 0.057103)
-        >>> round_(fluxes.outuh + sum(states.sc))
-        2.0
-    """
-
-    CONTROLPARAMETERS = (hland_control.NmbStorages, hland_control.RecStep)
-    DERIVEDPARAMETERS = (hland_derived.DT, hland_derived.KSC)
-    REQUIREDSEQUENCES = (hland_fluxes.InUH,)
-    UPDATEDSEQUENCES = (hland_states.SC,)
-    RESULTSEQUENCES = (hland_fluxes.OutUH,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        sta = model.sequences.states.fastaccess
-        if (con.nmbstorages == 0) or modelutils.isinf(der.ksc):
+        if model.rconcmodel is None:
             flu.outuh = flu.inuh
-        else:
-            flu.outuh = 0.0
-            for _ in range(con.recstep):
-                sta.sc[0] += der.dt * flu.inuh
-                for j in range(con.nmbstorages - 1):
-                    d_q = min(der.dt * der.ksc * sta.sc[j], sta.sc[j])
-                    sta.sc[j] -= d_q
-                    sta.sc[j + 1] += d_q
-                j = con.nmbstorages - 1
-                d_q = min(der.dt * der.ksc * sta.sc[j], sta.sc[j])
-                sta.sc[j] -= d_q
-                flu.outuh += d_q
+        elif model.rconcmodel_typeid == 1:
+            model.calc_outuh_rconcmodel_v1(
+                cast(rconcinterfaces.RConcModel_V1, model.rconcmodel)
+            )
 
 
 class Calc_RT_V1(modeltools.Method):
@@ -4551,8 +4432,7 @@ class Model(modeltools.AdHocModel):
         Calc_Q1_LZ_V1,
         Calc_InUH_V1,
         Calc_InUH_V3,
-        Calc_OutUH_QUH_V1,
-        Calc_OutUH_SC_V1,
+        Calc_OutUH_V1,
         Calc_InUH_V2,
         Calc_RT_V1,
         Calc_RT_V2,
@@ -4572,15 +4452,20 @@ class Model(modeltools.AdHocModel):
         Calc_EL_LZ_AETModel_V1,
         Calc_EL_SG2_SG3_AETModel_V1,
         Calc_QAb_QVs_BW_V1,
+        Calc_OutUH_RConcModel_V1,
     )
     OUTLET_METHODS = (Pass_Q_V1,)
     SENDER_METHODS = ()
-    SUBMODELINTERFACES = (aetinterfaces.AETModel_V1,)
+    SUBMODELINTERFACES = (aetinterfaces.AETModel_V1, rconcinterfaces.RConcModel_V1)
     SUBMODELS = ()
 
     aetmodel = modeltools.SubmodelProperty(aetinterfaces.AETModel_V1)
     aetmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     aetmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    rconcmodel = modeltools.SubmodelProperty(rconcinterfaces.RConcModel_V1)
+    rconcmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    rconcmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
 
 class Main_AETModel_V1(modeltools.AdHocModel):
@@ -4677,6 +4562,43 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         aetmodel.prepare_plant(sel)
         sel[zonetype == SEALED] = False
         aetmodel.prepare_soil(sel)
+
+
+class Main_RConcModel_V1(modeltools.AdHocModel):
+    """Base class for HydPy-H models that use submodels that comply with the
+    |RConcModel_V1| interface."""
+
+    rconcmodel: modeltools.SubmodelProperty
+    rconcmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    rconcmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel("rconcmodel", rconcinterfaces.RConcModel_V1)
+    def add_rconcmodel_v1(
+        self, rconcmodel: rconcinterfaces.RConcModel_V1, /, *, refresh: bool
+    ) -> None:
+        """Initialise the given submodel that follows the |RConcModel_V1| interface and
+        is responsible for calculating the runoff concentration.
+
+        >>> from hydpy.models.hland_v1 import *
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
+        >>> with model.add_rconcmodel_v1("rconc_uh"):
+        ...     uh([0.3, 0.5, 0.2])
+        ...     logs.quh.shape = 3
+        ...     logs.quh = 1.0, 3.0, 0.0
+        >>> model.sequences.fluxes.inuh = 0.0
+        >>> model.calc_outuh_v1()
+        >>> fluxes.outuh
+        outuh(1.0)
+        """
+
+    def _get_rconcmodel_waterbalance(
+        self, rconcmodel_conditions: ConditionsSubmodel
+    ) -> float:
+        r"""Get the water balance of the rconc submodel if used."""
+        if self.rconcmodel is None:
+            return 0.0
+        return self.rconcmodel.get_waterbalance(rconcmodel_conditions)
 
 
 class Sub_TempModel_V1(modeltools.AdHocModel, tempinterfaces.TempModel_V1):

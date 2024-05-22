@@ -467,11 +467,10 @@ class Sequences:
     factors
     fluxes
     states
-    logs
     aides
     outlets
     >>> len(sequences)
-    7
+    6
 
     Keyword access provides a type-safe way to query a subgroup via a string:
 

@@ -11,9 +11,6 @@ information. Also, see the integration tests of application model |hland_v1|, wh
 use |rconc_uh| as a submodel.
 """
 # import...
-import numpy
-from numpy import ndarray
-
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import rconcinterfaces

@@ -228,12 +228,7 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
         #    super().__call__(*args, **kwargs)
         #    return None
         try:
-            if len(args) != 1:
-                raise ValueError(
-                    f"Exactly one positional argument is expected, but none or more "
-                    f"than one is given."
-
-                )
+            self._validate_args(args)
             if isinstance(args[0], str):
                 option = args[0]
                 args = ()
@@ -315,6 +310,13 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
             )
 
         return None
+
+    def _validate_args(self, args):
+        if len(args) != 1:
+            raise ValueError(
+                "Exactly one positional argument is expected, but none or more "
+                "than one is given."
+            )
 
     def __repr__(self) -> str:
         if self._keywordarguments.valid:
@@ -425,6 +427,7 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
         if not left:
             deltas = deltas[::-1]
         return len(deltas), deltas / numpy.sum(deltas)
+
 
 class RetentionTime(parametertools.Parameter):
     """Retention time of the linear storage cascade [T]."""

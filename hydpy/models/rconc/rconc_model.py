@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-module-docstring
 # imports...
 # ...from standard library
-import numpy
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *

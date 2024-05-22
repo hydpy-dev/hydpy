@@ -8,9 +8,6 @@ See the integration tests of the application model |hland_v3|, which use |rconc_
 as a submodel.
 """
 # import...
-import numpy
-from numpy import ndarray
-
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import rconcinterfaces

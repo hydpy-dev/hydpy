@@ -43,6 +43,7 @@ from typing_extensions import (
     ParamSpec,
     Self,
     TypeAlias,
+    Unpack,
 )
 
 # ...from site-packages
@@ -327,6 +328,7 @@ __all__ = [
     "TypedDict",
     "TYPE_CHECKING",
     "Union",
+    "Unpack",
     "Vector",
     "VectorBool",
     "VectorFloat",

@@ -420,11 +420,11 @@ class Snow(Element):
 
 
 class Soil(Element):
-    version: Literal["v1_v2", "v3_v4"] = "v1_v2"
+    version: Literal["v1_base", "v3_v4"] = "v1_base"
 
     def plot(self, frame: Frame) -> None:
         top = 1.0
-        if self.version == "v1_v2":
+        if self.version == "v1_base":
             self.draw_line(
                 frame=frame,
                 points=(
@@ -466,7 +466,7 @@ class Soil(Element):
         self.draw_text(
             frame=frame, text="SM", point=Point(0.5, TOL), properties=TextProperties()
         )
-        if self.version == "v1_v2":
+        if self.version == "v1_base":
             x_r = 0.25
             self.draw_arrow(
                 frame=frame,
@@ -571,18 +571,18 @@ class UZ_SG1_BW(Element):
 
 @dataclass
 class UZ(UZ_SG1_BW):
-    version: Literal["v1_v2", "v3"] = "v1_v2"
+    version: Literal["v1_base", "v3"] = "v1_base"
 
     def __post_init__(self) -> None:
-        if self.version == "v1_v2":
+        if self.version == "v1_base":
             self.margins = Margins(left=0.03, right=0.03)
 
     def plot(self, frame: Frame) -> None:
         top = 1.0
-        denom = 4 if self.version == "v1_v2" else 2
+        denom = 4 if self.version == "v1_base" else 2
         d_outlet2 = 0.5
         oversize = 1.2
-        denom_ = 2 if self.version == "v1_v2" else 1
+        denom_ = 2 if self.version == "v1_base" else 1
         points = [
             Points(
                 Point(-TOL / denom, TOL),
@@ -596,7 +596,7 @@ class UZ(UZ_SG1_BW):
                 Point(1.0, oversize * top),
             ),
         ]
-        if self.version == "v1_v2":
+        if self.version == "v1_base":
             points.append(
                 Points(
                     Point(-TOL / denom, TOL + 4 * HOW),
@@ -628,7 +628,7 @@ class UZ(UZ_SG1_BW):
             points=Points(Point(0.0, 1.0), Point(1.0, 1.0)),
             properties=LineProperties(style="dotted"),
         )
-        if self.version == "v1_v2":
+        if self.version == "v1_base":
             self.draw_text(
                 frame=frame,
                 text="UZ",
@@ -650,7 +650,7 @@ class UZ(UZ_SG1_BW):
             length=Point(0.0, -1.0),
             properties=ArrowProperties(),
         )
-        if self.version == "v1_v2":
+        if self.version == "v1_base":
             self.draw_text(
                 frame=frame,
                 text="Perc",
@@ -670,11 +670,11 @@ class UZ(UZ_SG1_BW):
             frame=frame,
             base=Point(-TOL / denom, TOL + 2 * HOW),
             length=Point(
-                self.arrayinfo[1] + (0.06 if self.version == "v1_v2" else 0.0), 0.0
+                self.arrayinfo[1] + (0.06 if self.version == "v1_base" else 0.0), 0.0
             ),
             properties=self.arrayinfo[0],
         )
-        if self.version == "v1_v2":
+        if self.version == "v1_base":
             self.draw_text(
                 frame=frame,
                 text="Q0",
@@ -1210,7 +1210,7 @@ class Frame:
 
 
 if __name__ == "__main__":
-    elements_hland_v1_v2 = [
+    elements_hland_v1_base = [
         Edge(index=Index(i0=0, i1=10, j0=0, j1=3)),
         Title(index=Index(i0=10, j0=0), text="SEALED"),
         Title(index=Index(i0=10, j0=1), text="INTERNAL LAKE"),
@@ -1226,13 +1226,13 @@ if __name__ == "__main__":
         UZ(Index(i0=2, j0=2, j1=3)),
         LZ(Index(i0=0, j0=1, j1=3)),
     ]
-    elements_hland_v1 = elements_hland_v1_v2 + [UH(Index(i0=0, j0=0))]
+    elements_hland_v1 = elements_hland_v1_base + [UH(Index(i0=0, j0=0))]
     Frame(
         grid=Grid(nrows=11, ncols=4), margins=Margins(), elements=elements_hland_v1
     ).plot("HydPy-H-Land_Version-1.png")
 
-    elements_hland_v2 = elements_hland_v1_v2 + [SC(Index(i0=0, j0=0))]
-    for element in elements_hland_v2:
+    elements_hland_v3 = elements_hland_v1_base + [SC(Index(i0=0, j0=0))]
+    for element in elements_hland_v3:
         if element.index.i1 is not None:
             element.index.i1 += 1
         if element.index.j1 is not None:
@@ -1241,13 +1241,8 @@ if __name__ == "__main__":
             continue
         element.index.i0 += 1
         element.index.j0 += 1
-        if isinstance(element, LZ):
-            element.version = "v2"
-    Frame(
-        grid=Grid(nrows=12, ncols=5), margins=Margins(), elements=elements_hland_v2
-    ).plot("HydPy-H-Land_Version-2.png")
 
-    elements_hland_v3 = [e for e in elements_hland_v2 if not isinstance(e, (UZ, LZ))]
+    elements_hland_v3 = [e for e in elements_hland_v3 if not isinstance(e, (UZ, LZ))]
     for idx, element in enumerate(elements_hland_v3):
         if isinstance(element, SC):
             continue

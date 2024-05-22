@@ -1581,6 +1581,8 @@ class PyxWriter:
                 self.sequences.inputs.load_data(idx)
                 if (self.aetmodel is not None) and not self.aetmodel_is_mainmodel:
                     self.aetmodel.load_data(idx)
+                if (self.rconcmodel is not None) and not self.rconcmodel_is_mainmodel:
+                    self.rconcmodel.load_data(idx)
             cpdef void save_data(self, ...int... idx) noexcept nogil:
                 self.idx_sim = idx
                 self.sequences.inputs.save_data(idx)
@@ -1589,6 +1591,8 @@ class PyxWriter:
                 self.sequences.states.save_data(idx)
                 if (self.aetmodel is not None) and not self.aetmodel_is_mainmodel:
                     self.aetmodel.save_data(idx)
+                if (self.rconcmodel is not None) and not self.rconcmodel_is_mainmodel:
+                    self.rconcmodel.save_data(idx)
         <BLANKLINE>
 
         >>> pyxwriter.model.sequences.factors = None
@@ -1604,11 +1608,15 @@ class PyxWriter:
                 self.sequences.inputs.load_data(idx)
                 if (self.aetmodel is not None) and not self.aetmodel_is_mainmodel:
                     self.aetmodel.load_data(idx)
+                if (self.rconcmodel is not None) and not self.rconcmodel_is_mainmodel:
+                    self.rconcmodel.load_data(idx)
             cpdef void save_data(self, ...int... idx) noexcept nogil:
                 self.idx_sim = idx
                 self.sequences.inputs.save_data(idx)
                 if (self.aetmodel is not None) and not self.aetmodel_is_mainmodel:
                     self.aetmodel.save_data(idx)
+                if (self.rconcmodel is not None) and not self.rconcmodel_is_mainmodel:
+                    self.rconcmodel.save_data(idx)
         <BLANKLINE>
 
         >>> pyxwriter.model.sequences.inputs = None

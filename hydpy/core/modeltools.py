@@ -2565,7 +2565,7 @@ element.
         ...     print(method.__name__)   # doctest: +ELLIPSIS
         Calc_TC_V1
         ...
-        Calc_EL_LZ_AETModel_V1
+        Calc_OutUH_RConcModel_V1
 
         >>> for method in hland_v1.Model.get_methods(("OUTLET_METHODS", "ADD_METHODS")):
         ...     print(method.__name__)   # doctest: +ELLIPSIS

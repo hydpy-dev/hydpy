@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Calculate runoff concentration with linear storage cascade model ("Nash cascade").
+"""Calculate runoff concentration with a linear storage cascade model ("Nash cascade").
 
 |rconc_nash| is a submodel that supports its main model by calculating the runoff
 concentration using the storage cascade approach.

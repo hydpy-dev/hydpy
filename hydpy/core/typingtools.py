@@ -43,7 +43,7 @@ from typing_extensions import (
     ParamSpec,
     Self,
     TypeAlias,
-    Unpack
+    Unpack,
 )
 
 # ...from site-packages

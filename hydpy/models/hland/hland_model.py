@@ -4092,10 +4092,10 @@ class Calc_OutUH_V1(modeltools.Method):
     """If the model has a submodel that follows the |RConcModel_V1| submodel interface,
     calculate runoff concentration. If not, set the output equal to the input.
 
-    Example:
+    Examples:
 
         A model without a submodel for runoff concentration directs the input directly
-        to the output.
+        to the output:
 
         >>> from hydpy.models.hland_v1 import *
         >>> simulationstep("1h")
@@ -4108,8 +4108,9 @@ class Calc_OutUH_V1(modeltools.Method):
         If a submodel for runoff concentration is added (in this case, a unit
         hydrograph with three ordinates), the output for the first time step
         corresponds to the portion of the input specified by the first ordinate (since
-        the initial conditions of the logging sequence quh were set to zero, and thus
-        no additional runoff portions from previous time steps are included).
+        the initial conditions of the logging sequence |rconc_logs.QUH| were set to
+        zero, and thus no additional runoff portions from previous time steps are
+        included).
 
         >>> with model.add_rconcmodel_v1("rconc_uh"):
         ...     uh([0.3,0.4,0.3])
@@ -4119,8 +4120,6 @@ class Calc_OutUH_V1(modeltools.Method):
         >>> fluxes.outuh
         outuh(0.3)
     """
-
-
 
     SUBMODELINTERFACES = (rconcinterfaces.RConcModel_V1,)
     SUBMETHODS = (Calc_OutUH_RConcModel_V1,)

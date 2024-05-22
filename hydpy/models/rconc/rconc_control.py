@@ -112,9 +112,9 @@ of floats but a value of `bool` is given.
 following error occurred: Parameter 'tp' must not be greater than 'tb'.
 
     In addition to the HBV96-oriented triangular unit hydrograph (with the general
-    purpose of damping the flood pulse, see :cite:t:`ref-Harlin1992`), the unit
+    purpose of damping the flood pulse; see :cite:t:`ref-Harlin1992`), the unit
     hydrographs used in the GR4J model (which reflect the outflow of the two
-    conceptional storages used in this approach, see :cite:t:`ref-Perrin2007`) are also
+    conceptional storages used in this approach; see :cite:t:`ref-Perrin2007`) are also
     available:
 
     >>> uh("gr_uh1", x4=6.3)
@@ -148,8 +148,8 @@ following error occurred: Parameter 'tp' must not be greater than 'tb'.
     >>> print_values(uh.values)
     0.106717, 0.195124, 0.250762, 0.231417, 0.166382, 0.049598
 
-    The triangle unit hydrograph must not be called with the parameters for the gland
-    unit hydrograph:
+    The triangle unit hydrograph must not be called with the parameters for the
+    GR4J-like unit hydrograph:
 
     >>> uh("triangle", x4=2.0)
     Traceback (most recent call last):
@@ -157,7 +157,7 @@ following error occurred: Parameter 'tp' must not be greater than 'tb'.
     ValueError: While trying to set the values of parameter `uh` of element `?`, the \
 following error occurred: Wrong arguments for option 'triangle'.
 
-    The GR4J based options cannot be mixed with the triangle parameters:
+    The GR4J-based options cannot be mixed with the triangle parameters:
 
     >>> uh("gr_uh1", tb=2.0, tp=3.0)
     Traceback (most recent call last):
@@ -311,7 +311,7 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
 
         return None
 
-    def _validate_args(self, args):
+    def _validate_args(self, args: tuple[Union[VectorInputFloat, str], ...]) -> None:
         if len(args) != 1:
             raise ValueError(
                 "Exactly one positional argument is expected, but none or more "
@@ -417,11 +417,11 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
             return 1, numpy.ones(1, dtype=float)
 
         if left:
-            ts = numpy.arange(0.0, x4 + 1.0)
+            ts = numpy.arange(1.0, x4)
         else:
-            ts = numpy.arange(2.0 * x4 - numpy.ceil(x4) + 1.0, -1.0, -1.0)[::-1]
-        totals = numpy.empty(len(ts), dtype=float)
-        totals[1:-1] = (ts[1:-1] / x4) ** beta
+            ts = numpy.arange(2.0 * x4 - numpy.ceil(x4), 0.0, -1.0)[::-1]
+        totals = numpy.empty(len(ts) + 2, dtype=float)
+        totals[1:-1] = (ts / x4) ** beta
         totals[0], totals[-1] = 0.0, 1.0
         deltas = numpy.diff(totals)
         if not left:

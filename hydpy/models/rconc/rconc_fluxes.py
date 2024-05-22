@@ -7,7 +7,7 @@ from hydpy.core import sequencetools
 
 
 class Inflow(sequencetools.FluxSequence):
-    """Input [mm/T]."""
+    """Inflow [mm/T]."""
 
     NDIM = 0
     NUMERIC = False

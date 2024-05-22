@@ -214,10 +214,9 @@ def _add_lines(specification: str, module: types.ModuleType) -> list[str]:
     """
     caption = _all_spec2capt.get(specification, "dummy")
     if caption.split()[-1] in ("parameters", "sequences", "Masks"):
-        exists_collectionclass = True
         name_collectionclass = caption.title().replace(" ", "")
     else:
-        exists_collectionclass = False
+        name_collectionclass = None
     lines = []
     exc_mem = ", ".join(excluded_members)
     if specification == "model":
@@ -228,7 +227,7 @@ def _add_lines(specification: str, module: types.ModuleType) -> list[str]:
             "    :show-inheritance:",
             f"    :exclude-members: {exc_mem}",
         ]
-    elif exists_collectionclass:
+    elif name_collectionclass is not None:
         lines += [
             "",
             f'.. autoclass:: {module.__name__.rpartition(".")[0]}'
@@ -246,10 +245,10 @@ def _add_lines(specification: str, module: types.ModuleType) -> list[str]:
     ]
     if specification == "model":
         lines += [f"    :exclude-members: Model, {exc_mem}"]
-    elif exists_collectionclass:
-        lines += [f"    :exclude-members:  {name_collectionclass}, {exc_mem}"]
-    else:
+    elif name_collectionclass is None:
         lines += [f"    :exclude-members: {exc_mem}"]
+    else:
+        lines += [f"    :exclude-members:  {name_collectionclass}, {exc_mem}"]
     return lines
 
 
@@ -275,6 +274,7 @@ def autodoc_basemodel(module: types.ModuleType) -> None:
     lines = []
     specification = "model"
     modulename = f"{basemodulename}_{specification}"
+    methods: tuple[type[modeltools.Method], ...] = ()
     if modulename in modules:
         module = modules[modulename]
         lines += _add_title("Method Features", "-")
@@ -282,7 +282,7 @@ def autodoc_basemodel(module: types.ModuleType) -> None:
         substituter.add_module(module)
         model = module.Model
         assert issubclass(model, modeltools.Model)
-        methods = list(model.get_methods())
+        methods = tuple(model.get_methods())
     _extend_methoddocstrings(module)
     _gain_and_insert_additional_information_into_docstrings(module, methods)
     for title, spec2capt in (
@@ -398,7 +398,7 @@ def _get_methoddocstringinsertions(method: modeltools.Method) -> list[str]:
 
 
 def _gain_and_insert_additional_information_into_docstrings(
-    module: types.ModuleType, allmethods: Iterable[modeltools.Method]
+    module: types.ModuleType, allmethods: tuple[type[modeltools.Method], ...]
 ) -> None:
     for value in vars(module).values():
         insertions = []

@@ -161,6 +161,8 @@ determined for a the current simulation step size.  The fraction of the memory p
                     new_shape = (self.value,)
                 elif seq.NDIM == 2:
                     new_shape = self.value, pars.control.nmbhru.value
+                else:
+                    assert False
                 old_shape = exceptiontools.getattr_(seq, "shape", (None,))
             if new_shape != old_shape:
                 seq.shape = new_shape

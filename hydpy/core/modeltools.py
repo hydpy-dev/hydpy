@@ -2940,8 +2940,8 @@ but the value `1` of type `int` is given.
                     if aggregate_vectors:
                         name2submodel_new[f"{submodelsname}_*"] = None
                     elif submodels := subsprop.__hydpy_mainmodel2submodels__[model]:
+                        i_last = len(submodels) - 1
                         if position is not None:
-                            i_last = len(submodels) - 1
                             submodels = [submodels[position]]
                         for i, submodel in enumerate(submodels):
                             # implement when required:

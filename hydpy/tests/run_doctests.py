@@ -137,14 +137,12 @@ def main(  # pylint: disable=too-many-branches
                     pingtime = time.perf_counter()
                 if name.split(".")[-1] in ("apidoc", "prepare"):
                     continue
-                if not name[-4:] in (".rst", ".pyx"):
-                    module = importlib.import_module(name)
                 suite = unittest.TestSuite()
                 try:
                     if name[-4:] in (".rst", ".pyx"):
                         test = doctest.DocFileSuite(name, module_relative=False)
                     else:
-                        test = doctest.DocTestSuite(module)
+                        test = doctest.DocTestSuite(importlib.import_module(name))
                     suite.addTest(test)
                 except ValueError as exc:
                     if exc.args[-1] != "has no docstrings":

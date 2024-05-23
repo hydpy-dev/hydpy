@@ -6,7 +6,7 @@ unit hydrograph.
 concentration using the unit hydrograph approach. It allows for different unit
 hydrograph shapes, which can be configured based on specific geometries or wholly
 customised. One example of a specific geometry is the isosceles triangle of HBV96
-:cite:p:ref-Lindstrom1997HBV96. See the documentation on parameter |UH| for further
+:cite:p:`ref-Lindstrom1997HBV96`. See the documentation on parameter |UH| for further
 information. Also, see the integration tests of application model |hland_v1|, which
 use |rconc_uh| as a submodel.
 """

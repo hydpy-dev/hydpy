@@ -1111,25 +1111,45 @@ class Model(
         Method |Model.check_waterbalance| calculates the balance error as follows:
 
           .. math::
-            \sum_{k=1}^{NmbZones} RelZoneAreas^k \cdot \left(
-            \sum_{t=t0}^{t1} \big( PC_t^k + GLMelt_t^k - EI_t^k - EA_t^k - EL_t^k \big)
-            + \big( IC_{t0}^k - IC_{t1}^k \big)
-            + \frac{1}{SClass} \cdot \sum_{c=1}^{SClass}
-            \Big( \big( SP_{t0}^{c,k} - SP_{t1}^{c,k} \big)
-            + \big( WC_{t0}^{c,k} - WC_{t1}^{c,k} \big) \Big)
-            + \big( SM_{t0}^k - SM_{t1}^k \big)
-            + \big( BW1_{t0}^k - BW2_{t1}^k \big)
-            + \big( BW2_{t0}^k - BW2_{t1}^k \big) \right)
-            - \sum_{t=t0}^{t1} RT_t
-            + RelLowerZoneArea \cdot \big( LZ_{t0} - LZ_{t1} \big)
-            + RelLandArea \cdot \sum_{i=1}^{NmbStorages} \big( SC_{t0}^i - SC_{t1}^i \big)
+            \Sigma In_{hru} - \Sigma Out_{hru} - \Sigma Out_{basin}
+            + \Delta Vol_{hru} + \Delta Vol_{snow} + \Delta Vol_{basin}
+            - \Delta Vol_{rconc}
+            \\ \\
+            \Sigma In_{hru} =
+            \sum_{k=1}^{N_{hru}} A_Z^k \cdot \sum_{t=t0}^{t1} PC_t^k + GLMelt_t^k
+            \\
+            \Sigma Out_{hru} =
+            \sum_{k=1}^{N_{hru}} A_Z^k \cdot \sum_{t=t0}^{t1} EI_t^k + EA_t^k + EL_t^k
+            \\
+            \Sigma Out_{basin} = \sum_{t=t0}^{t1} RT_t
+            \\
+            \Delta Vol_{snow} = \sum_{k=1}^{N_{hru}} A_Z^k \cdot \frac{1}{N_{snow}}
+            \cdot \sum_{c=1}^{N_{snow}} \left(SP_{t0}^{k,s} - SP_{t1}^{k,s}\right) +
+            \left(WC_{t0}^{k,s} - WC_{t1}^{k,s}\right)
+            \\
+            \Delta Vol_{hru} = \sum_{k=1}^{N_{hru}} A_Z^k \cdot \Big(
+            \big(IC_{t0}^k - IC_{t1}^k\big) + \big(SM_{t0}^k - SM_{t1}^k\big) +
+            \big( BW1_{t0}^k - BW2_{t1}^k \big)
+            + \big( BW2_{t0}^k - BW2_{t1}^k \big)
+            \Big)
+            \\
+            \Delta Vol_{basin} = A_L \cdot \big( LZ_{t0} - LZ_{t1} \big)
+            \\
+            \Delta Vol_{rconc} = \begin{cases}
+            rconcmodel.get\_waterbalance &|\ rconcmodel \\
+            0 &|\ \overline{rconcmodel} \end{cases}
+            \\ \\
+            N_{hru} = NmbZones \\
+            N_{snow} = SClass \\
+            A_Z = RelZoneAreas \\
+            A_L = RelLowerZoneArea
 
-        The returned error should always be in scale with numerical precision so
-        that it does not affect the simulation results in any relevant manner.
+        The returned error should always be in scale with numerical precision so that
+        it does not affect the simulation results in any relevant manner.
 
-        Pick the required initial conditions before starting the simulation run
-        via property |Sequences.conditions|.  See the integration tests of the
-        application model |hland_v4| for some examples.
+        Pick the required initial conditions before starting the simulation run via
+        property |Sequences.conditions|.  See the integration tests of the application
+        model |hland_v4| for some examples.
         """
         fluxes = self.sequences.fluxes
         last = self.sequences.states

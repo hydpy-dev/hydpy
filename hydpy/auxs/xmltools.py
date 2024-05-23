@@ -2823,18 +2823,18 @@ class XSDWriter:
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_keyworditemsinsertion(1))  # doctest: +ELLIPSIS
-            <simpleType name="musk_control_nmbsegments_keywordType">
+            <simpleType name="lland_control_kapgrenz_keywordType">
                 <restriction base="string">
-                    <enumeration value="lag"/>
+                    <enumeration value="option"/>
                 </restriction>
             </simpleType>
         <BLANKLINE>
-            <complexType name="musk_control_nmbsegments_setitemType">
+            <complexType name="lland_control_kapgrenz_setitemType">
                 <complexContent>
                     <extension base="hpcb:setitemType">
                         <sequence>
                             <element name="keyword"
-                                     type="hpcb:musk_control_nmbsegments_keywordType"
+                                     type="hpcb:lland_control_kapgrenz_keywordType"
                                      minOccurs = "0"/>
                         </sequence>
                     </extension>

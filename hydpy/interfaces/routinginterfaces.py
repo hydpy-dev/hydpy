@@ -9,6 +9,46 @@ from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 
 
+class CrossSectionModel_V1(modeltools.SubmodelInterface):
+    """Interface for calculating the discharge and related properties at a channel
+    cross-section."""
+
+    typeid: ClassVar[Literal[1]] = 1
+    """Type identifier for |CrossSectionModel_V1| submodels."""
+
+    def prepare_bottomslope(self, bottomslope: int) -> None:
+        """Set the bottom's slope (in the longitudinal direction) [-]."""
+
+    @modeltools.abstractmodelmethod
+    def set_waterdepth(self, set_waterdepth: float) -> None:
+        """Set the water depth in m and adjust the current water level."""
+
+    @modeltools.abstractmodelmethod
+    def set_waterlevel(self, set_waterlevel: float) -> None:
+        """Set the water level in m and adjust the current water depth."""
+
+    @modeltools.abstractmodelmethod
+    def process(self) -> None:
+        """Process all possible output data according to the current water depth/water
+        level."""
+
+    @modeltools.abstractmodelmethod
+    def get_wettedarea(self) -> float:
+        """Get the wetted area in m²."""
+
+    @modeltools.abstractmodelmethod
+    def get_surfacewidth(self) -> float:
+        """Get the surface width in m."""
+
+    @modeltools.abstractmodelmethod
+    def get_discharge(self) -> float:
+        """Get the discharge in m³/s."""
+
+    @modeltools.abstractmodelmethod
+    def get_celerity(self) -> float:
+        """Get the wave celerity in m/s."""
+
+
 class RoutingModelBase(modeltools.SubmodelInterface):
     """Base interface for routing models at inflow, central, and outflow locations.
 

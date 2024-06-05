@@ -21,4 +21,5 @@ Application model:
 .. toctree::
    :maxdepth: 1
 
+   WQ-Trapeze <wq_trapeze>
    WQ-WALRUS <wq_walrus>

@@ -18,12 +18,6 @@ class WettedArea(musk_sequences.FactorSequence1D):
     SPAN = (0.0, None)
 
 
-class WettedPerimeter(musk_sequences.FactorSequence1D):
-    """Wetted perimeter [m]."""
-
-    SPAN = (0.0, None)
-
-
 class SurfaceWidth(musk_sequences.FactorSequence1D):
     """Surface width [m]."""
 

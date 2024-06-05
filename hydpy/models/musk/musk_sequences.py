@@ -27,13 +27,12 @@ class MixinSequence1D:
 
         >>> from hydpy.models.musk import *
         >>> parameterstep()
-        >>> nmbsegments(3)
-        >>> length(4.0, 1.0, 3.0)
+        >>> nmbsegments(4)
         >>> fluxes.referencedischarge.refweights
-        array([0.5  , 0.125, 0.375])
+        array([0.25, 0.25, 0.25, 0.25])
         """
-        length = self.subseqs.seqs.model.parameters.control.length.values
-        return length / numpy.sum(length)
+        nmbsegments = self.subseqs.seqs.model.parameters.control.nmbsegments.values
+        return numpy.full(nmbsegments, 1.0 / nmbsegments, dtype=float)
 
 
 class StateSequence1D(  # type: ignore[misc]

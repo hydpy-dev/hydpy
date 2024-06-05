@@ -8,7 +8,6 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
-from hydpy.models.musk import musk_parameters
 
 
 class CatchmentArea(parametertools.Parameter):
@@ -32,10 +31,6 @@ class NmbSegments(parametertools.Parameter):
     |NmbSegments| prepares the shape of most 1-dimensional parameters and sequences
     automatically:
 
-    >>> length.shape
-    (2,)
-    >>> derived.perimeterincrease.shape
-    (2,)
     >>> factors.referencewaterdepth.shape
     (2,)
     >>> fluxes.referencedischarge.shape
@@ -322,42 +317,15 @@ with value `1.0` needed to be trimmed to `0.0`.
 
 
 class Length(parametertools.Parameter):
-    """Segment length [km]."""
+    """The total length of channel [km]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
 
-class BottomSlope(musk_parameters.Parameter1D):
+class BottomSlope(parametertools.Parameter):
     r"""Bottom slope [-].
 
     :math:`BottomSlope = \frac{elevation_{start} - elevation_{end}}{Length}`
     """
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
-
-
-class BottomWidth(musk_parameters.Parameter1D):
-    """Bottom width [m]."""
-
-    TYPE, TIME, SPAN = float, None, (0.0, None)
-
-
-class SideSlope(musk_parameters.Parameter1D):
-    """Side slope [-].
-
-    A value of zero corresponds to a rectangular channel shape.  A value of two
-    corresponds to an increase of a half meter elevation for each additional meter
-    distance from the channel.
-    """
-
-    TYPE, TIME, SPAN = float, None, (0.0, None)
-
-
-class StricklerCoefficient(musk_parameters.Parameter1D):
-    """Gauckler-Manning-Strickler coefficient [m^(1/3)/s].
-
-    The higher the coefficient's value, the higher the calculated discharge.  Typical
-    values range from 20 to 80.
-    """
-
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)

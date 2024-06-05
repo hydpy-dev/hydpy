@@ -6,6 +6,9 @@
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
 from hydpy.auxs import roottools
+from hydpy.interfaces import routinginterfaces
+from hydpy.core.typingtools import *
+
 from hydpy.models.musk import musk_control
 from hydpy.models.musk import musk_derived
 from hydpy.models.musk import musk_solver
@@ -200,318 +203,22 @@ class Calc_ReferenceDischarge_V1(modeltools.Method):
         flu.referencedischarge[i] = (new.discharge[i] + est) / 2.0
 
 
-class Return_WettedArea_V1(modeltools.Method):
-    r"""Calculate and return the wetted area in a trapezoidal profile.
+class Return_Discharge_CrossSectionModel_V1(modeltools.Method):
+    """Let a submodel that follows the |CrossSectionModel_V1| submodel interface
+    calculate the discharge for the given water depth and return it.
 
-    Basic equation:
-      :math:`waterdepth \cdot (BottomWidth + SideSlope \cdot waterdepth)`
-
-    Examples:
-
-        The first example deals with a rectangular profile:
-
-        >>> from hydpy.models.musk import *
-        >>> parameterstep()
-        >>> nmbsegments(1)
-        >>> bottomwidth(2.0)
-        >>> sideslope(0.0)
-        >>> from hydpy import round_
-        >>> round_(model.return_wettedarea_v1(3.0))
-        6.0
-
-        The second example deals with a triangular profile:
-
-        >>> bottomwidth(0.0)
-        >>> sideslope(2.0)
-        >>> from hydpy import round_
-        >>> round_(model.return_wettedarea_v1(3.0))
-        18.0
-
-        The third example combines the two profiles defined above into a trapezoidal
-        profile:
-
-        >>> bottomwidth(2.0)
-        >>> sideslope(2.0)
-        >>> from hydpy import round_
-        >>> round_(model.return_wettedarea_v1(3.0))
-        24.0
+    See the documentation on method |Return_ReferenceDischargeError_V1| for an example.
     """
 
-    CONTROLPARAMETERS = (musk_control.BottomWidth, musk_control.SideSlope)
-
     @staticmethod
-    def __call__(model: modeltools.SegmentModel, waterdepth: float) -> float:
-        con = model.parameters.control.fastaccess
-        i = model.idx_segment
-        return waterdepth * (con.bottomwidth[i] + con.sideslope[i] * waterdepth)
-
-
-class Calc_WettedArea_V1(modeltools.Method):
-    r"""Calculate the wetted area in a trapezoidal profile.
-
-    Examples:
-
-        Method |Calc_WettedArea_V1| uses the submethod |Return_WettedArea_V1| to
-        calculate the wetted area, from which's documentation we take the following
-        examples:
-
-        >>> from hydpy.models.musk import *
-        >>> parameterstep()
-        >>> nmbsegments(3)
-        >>> bottomwidth(2.0, 0.0, 2.0)
-        >>> sideslope(0.0, 2.0, 2.0)
-        >>> factors.referencewaterdepth = 3.0
-        >>> model.run_segments(model.calc_wettedarea_v1)
-        >>> factors.wettedarea
-        wettedarea(6.0, 18.0, 24.0)
-    """
-
-    SUBMETHODS = (Return_WettedArea_V1,)
-    CONTROLPARAMETERS = (musk_control.BottomWidth, musk_control.SideSlope)
-    REQUIREDSEQUENCES = (musk_factors.ReferenceWaterDepth,)
-    RESULTSEQUENCES = (musk_factors.WettedArea,)
-
-    @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
-        fac = model.sequences.factors.fastaccess
-        i = model.idx_segment
-        fac.wettedarea[i] = model.return_wettedarea_v1(fac.referencewaterdepth[i])
-
-
-class Return_WettedPerimeter_V1(modeltools.Method):
-    r"""Calculate and return the wetted perimeter in a trapezoidal profile.
-
-    Basic equation:
-      :math:`BottomWidth + 2 \cdot waterdepth \cdot \sqrt{1 + SideSlope^2}`
-
-    Examples:
-
-        The first example deals with a rectangular profile:
-
-        >>> from hydpy.models.musk import *
-        >>> parameterstep()
-        >>> nmbsegments(1)
-        >>> bottomwidth(2.0)
-        >>> sideslope(0.0)
-        >>> from hydpy import round_
-        >>> round_(model.return_wettedperimeter_v1(3.0))
-        8.0
-
-        The second example deals with a triangular profile:
-
-        >>> bottomwidth(0.0)
-        >>> sideslope(2.0)
-        >>> from hydpy import round_
-        >>> round_(model.return_wettedperimeter_v1(3.0))
-        13.416408
-
-        The third example combines the two profiles defined above into a trapezoidal
-        profile:
-
-        >>> bottomwidth(2.0)
-        >>> sideslope(2.0)
-        >>> from hydpy import round_
-        >>> round_(model.return_wettedperimeter_v1(3.0))
-        15.416408
-    """
-
-    CONTROLPARAMETERS = (musk_control.BottomWidth, musk_control.SideSlope)
-
-    @staticmethod
-    def __call__(model: modeltools.SegmentModel, waterdepth: float) -> float:
-        con = model.parameters.control.fastaccess
-        i = model.idx_segment
-        return con.bottomwidth[i] + (
-            2.0 * waterdepth * (1.0 + con.sideslope[i] ** 2.0) ** 0.5
-        )
-
-
-class Calc_WettedPerimeter_V1(modeltools.Method):
-    r"""Calculate the wetted perimeter in a trapezoidal profile.
-
-    Examples:
-
-        Method |Calc_WettedPerimeter_V1| uses the submethod |Return_WettedPerimeter_V1|
-        to calculate the wetted perimeter, from which's documentation we take the
-        following examples:
-
-        >>> from hydpy.models.musk import *
-        >>> parameterstep()
-        >>> nmbsegments(3)
-        >>> bottomwidth(2.0, 0.0, 2.0)
-        >>> sideslope(0.0, 2.0, 2.0)
-        >>> factors.referencewaterdepth = 3.0
-        >>> model.run_segments(model.calc_wettedperimeter_v1)
-        >>> factors.wettedperimeter
-        wettedperimeter(8.0, 13.416408, 15.416408)
-    """
-
-    SUBMETHODS = (Return_WettedPerimeter_V1,)
-    CONTROLPARAMETERS = (musk_control.BottomWidth, musk_control.SideSlope)
-    REQUIREDSEQUENCES = (musk_factors.ReferenceWaterDepth,)
-    RESULTSEQUENCES = (musk_factors.WettedPerimeter,)
-
-    @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
-        fac = model.sequences.factors.fastaccess
-        i = model.idx_segment
-        fac.wettedperimeter[i] = model.return_wettedperimeter_v1(
-            fac.referencewaterdepth[i]
-        )
-
-
-class Return_SurfaceWidth_V1(modeltools.Method):
-    r"""Calculate and return the surface width in a trapezoidal profile.
-
-    Basic equation:
-      :math:`BottomWidth + 2 \cdot SideSlope \cdot waterdepth`
-
-    Examples:
-
-        The first example deals with a rectangular profile:
-
-        >>> from hydpy.models.musk import *
-        >>> parameterstep()
-        >>> nmbsegments(1)
-        >>> bottomwidth(2.0)
-        >>> sideslope(0.0)
-        >>> from hydpy import round_
-        >>> round_(model.return_surfacewidth_v1(3.0))
-        2.0
-
-        The second example deals with a triangular profile:
-
-        >>> bottomwidth(0.0)
-        >>> sideslope(2.0)
-        >>> from hydpy import round_
-        >>> round_(model.return_surfacewidth_v1(3.0))
-        12.0
-
-        The third example combines the two profiles defined above into a trapezoidal
-        profile:
-
-        >>> bottomwidth(2.0)
-        >>> sideslope(2.0)
-        >>> from hydpy import round_
-        >>> round_(model.return_surfacewidth_v1(3.0))
-        14.0
-    """
-
-    CONTROLPARAMETERS = (musk_control.BottomWidth, musk_control.SideSlope)
-
-    @staticmethod
-    def __call__(model: modeltools.SegmentModel, waterdepth: float) -> float:
-        con = model.parameters.control.fastaccess
-        i = model.idx_segment
-        return con.bottomwidth[i] + 2.0 * con.sideslope[i] * waterdepth
-
-
-class Calc_SurfaceWidth_V1(modeltools.Method):
-    r"""Calculate the surface width in a trapezoidal profile.
-
-    Examples:
-
-        Method |Calc_SurfaceWidth_V1| uses the submethod |Return_SurfaceWidth_V1| to
-        calculate the surface width, from which's documentation we take the following
-        examples:
-
-        >>> from hydpy.models.musk import *
-        >>> parameterstep()
-        >>> nmbsegments(3)
-        >>> bottomwidth(2.0, 0.0, 2.0)
-        >>> sideslope(0.0, 2.0, 2.0)
-        >>> factors.referencewaterdepth = 3.0
-        >>> model.run_segments(model.calc_surfacewidth_v1)
-        >>> factors.surfacewidth
-        surfacewidth(2.0, 12.0, 14.0)
-    """
-
-    SUBMETHODS = (Return_SurfaceWidth_V1,)
-    CONTROLPARAMETERS = (musk_control.BottomWidth, musk_control.SideSlope)
-    REQUIREDSEQUENCES = (musk_factors.ReferenceWaterDepth,)
-    RESULTSEQUENCES = (musk_factors.SurfaceWidth,)
-
-    @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
-        fac = model.sequences.factors.fastaccess
-        i = model.idx_segment
-        fac.surfacewidth[i] = model.return_surfacewidth_v1(fac.referencewaterdepth[i])
-
-
-class Return_Discharge_V1(modeltools.Method):
-    r"""Calculate and return the discharge in a trapezoidal profile after the
-    Gauckler-Manning-Strickler formula under the kinematic wave assumption.
-
-    Basic equation:
-      :math:`
-      StricklerCoefficient \cdot \sqrt{BottomSlope} \cdot \frac{A^{5/3}}{P^{2/3}}`
-
-      :math:`A = Return\_WettedArea(waterdepth)\_V1`
-
-      :math:`P = Return\_WettedPerimeter(waterdepth)\_V1`
-
-    Examples:
-
-        We hold the bottom slope and Strickler coefficient constant in all examples:
-
-        >>> from hydpy.models.musk import *
-        >>> parameterstep()
-        >>> nmbsegments(1)
-        >>> bottomslope(0.01)
-        >>> stricklercoefficient(20.0)
-
-        The first example deals with a rectangular profile:
-
-        >>> bottomwidth(2.0)
-        >>> sideslope(0.0)
-        >>> from hydpy import round_
-        >>> round_(model.return_discharge_v1(3.0))
-        9.905782
-
-        The second example deals with a triangular profile:
-
-        >>> bottomwidth(0.0)
-        >>> sideslope(2.0)
-        >>> from hydpy import round_
-        >>> round_(model.return_discharge_v1(3.0))
-        43.791854
-
-        In an empty triangular profile, the wetted perimeter is zero.  To prevent zero
-        division errors, |Return_Discharge_V1| generally returns zero in such cases:
-
-        >>> round_(model.return_discharge_v1(0.0))
-        0.0
-
-        The third example combines the two profiles defined above into a trapezoidal
-        profile:
-
-        >>> bottomwidth(2.0)
-        >>> sideslope(2.0)
-        >>> from hydpy import round_
-        >>> round_(model.return_discharge_v1(3.0))
-        64.475285
-    """
-
-    SUBMETHODS = (Return_WettedArea_V1, Return_WettedPerimeter_V1)
-    CONTROLPARAMETERS = (
-        musk_control.StricklerCoefficient,
-        musk_control.BottomWidth,
-        musk_control.SideSlope,
-        musk_control.BottomSlope,
-    )
-
-    @staticmethod
-    def __call__(model: modeltools.SegmentModel, waterdepth: float) -> float:
-        con = model.parameters.control.fastaccess
-        if waterdepth <= 0.0:
-            return 0.0
-        i = model.idx_segment
-        return (
-            con.stricklercoefficient[i]
-            * con.bottomslope[i] ** 0.5
-            * model.return_wettedarea(waterdepth) ** (5.0 / 3.0)
-            / model.return_wettedperimeter(waterdepth) ** (2.0 / 3.0)
-        )
+    def __call__(
+        model: modeltools.SegmentModel,
+        wqmodel: routinginterfaces.CrossSectionModel_V1,
+        waterdepth: float,
+    ) -> float:
+        wqmodel.set_waterdepth(waterdepth)
+        wqmodel.process()
+        return wqmodel.get_discharge()
 
 
 class Return_ReferenceDischargeError_V1(modeltools.Method):
@@ -523,36 +230,37 @@ class Return_ReferenceDischargeError_V1(modeltools.Method):
 
     Example:
 
-        The following test calculation extends the trapezoidal profile example of the
-        documentation on method |Return_Discharge_V1|:
+        We use the submodel |wq_trapeze| as an example:
 
-        >>> from hydpy.models.musk import *
+        >>> from hydpy.models.musk_mct import *
         >>> parameterstep()
         >>> nmbsegments(1)
         >>> bottomslope(0.01)
-        >>> stricklercoefficient(20.0)
-        >>> bottomwidth(2.0)
-        >>> sideslope(2.0)
+        >>> with model.add_wqmodel_v1("wq_trapeze"):
+        ...     nmbtrapezes(1)
+        ...     bottomlevels(0.0)
+        ...     bottomwidths(2.0)
+        ...     sideslopes(2.0)
+        ...     stricklercoefficients(20.0)
         >>> fluxes.referencedischarge = 50.0
         >>> from hydpy import round_
         >>> round_(model.return_referencedischargeerror_v1(3.0))
         14.475285
     """
 
-    SUBMETHODS = (Return_Discharge_V1, Return_WettedArea_V1, Return_WettedPerimeter_V1)
-    CONTROLPARAMETERS = (
-        musk_control.BottomWidth,
-        musk_control.SideSlope,
-        musk_control.BottomSlope,
-        musk_control.StricklerCoefficient,
-    )
+    SUBMETHODS = (Return_Discharge_CrossSectionModel_V1,)
     REQUIREDSEQUENCES = (musk_fluxes.ReferenceDischarge,)
 
     @staticmethod
     def __call__(model: modeltools.SegmentModel, waterdepth: float) -> float:
         flu = model.sequences.fluxes.fastaccess
         i = model.idx_segment
-        return model.return_discharge(waterdepth) - flu.referencedischarge[i]
+        return (
+            model.return_discharge_crosssectionmodel_v1(
+                cast(routinginterfaces.CrossSectionModel_V1, model.wqmodel), waterdepth
+            )
+            - flu.referencedischarge[i]
+        )
 
 
 class Calc_ReferenceWaterDepth_V1(modeltools.Method):
@@ -566,14 +274,17 @@ class Calc_ReferenceWaterDepth_V1(modeltools.Method):
         Pegasus search to the lowest water depth of 0 m and the highest water depth of
         1000 m:
 
-        >>> from hydpy.models.musk import *
+        >>> from hydpy.models.musk_mct import *
         >>> parameterstep()
         >>> catchmentarea(100.0)
         >>> nmbsegments(5)
         >>> bottomslope(0.01)
-        >>> stricklercoefficient(20.0)
-        >>> bottomwidth(2.0)
-        >>> sideslope(2.0)
+        >>> with model.add_wqmodel_v1("wq_trapeze"):
+        ...     nmbtrapezes(1)
+        ...     bottomlevels(0.0)
+        ...     bottomwidths(2.0)
+        ...     sideslopes(2.0)
+        ...     stricklercoefficients(20.0)
         >>> solver.tolerancewaterdepth.update()
         >>> solver.tolerancedischarge.update()
         >>> fluxes.referencedischarge = -10.0, 0.0, 64.475285, 1000.0, 1000000000.0
@@ -582,9 +293,9 @@ class Calc_ReferenceWaterDepth_V1(modeltools.Method):
         referencewaterdepth(0.0, 0.0, 3.0, 9.199035, 1000.0)
 
         Repeated applications of |Calc_ReferenceWaterDepth_V1| should always yield the
-        same results, but they are often more efficient than the initial calculation
-        because they use old reference water depth estimates to gain more precise
-        initial search intervals:
+        same results but are often more efficient than the initial calculation because
+        they use old reference water depth estimates to gain more precise initial
+        search intervals:
 
         >>> model.run_segments(model.calc_referencewaterdepth_v1)
         >>> factors.referencewaterdepth
@@ -612,12 +323,6 @@ class Calc_ReferenceWaterDepth_V1(modeltools.Method):
     """
 
     SUBMETHODS = (Return_ReferenceDischargeError_V1,)
-    CONTROLPARAMETERS = (
-        musk_control.BottomWidth,
-        musk_control.SideSlope,
-        musk_control.BottomSlope,
-        musk_control.StricklerCoefficient,
-    )
     SOLVERPARAMETERS = (musk_solver.ToleranceWaterDepth, musk_solver.ToleranceDischarge)
     REQUIREDSEQUENCES = (musk_fluxes.ReferenceDischarge,)
     RESULTSEQUENCES = (musk_factors.ReferenceWaterDepth,)
@@ -640,171 +345,75 @@ class Calc_ReferenceWaterDepth_V1(modeltools.Method):
         )
 
 
-class Return_Celerity_V1(modeltools.Method):
-    r"""Calculate and return the kinematic celerity in a trapezoidal profile.
+class Calc_WettedArea_SurfaceWidth_Celerity_CrossSectionModel_V1(modeltools.Method):
+    """Let a submodel that follows the |CrossSectionModel_V1| interface calculate all
+    its properties based on the current reference water level and query the wetted
+    area, the surface width, and the celerity."""
 
-    Basic equation:
-      :math:`StricklerCoefficient \cdot \sqrt{BottomSlope} \cdot
-      \left( \frac{WettedArea}{WettedPerimeter} \right)^{\frac{2}{3}} \cdot \left(
-      \frac{5}{3} - \frac{2 \cdot WettedArea \cdot PerimeterIncrease}{3 \cdot
-      WettedPerimeter \cdot SurfaceWidth} \right)`
-
-    Examples:
-
-        We hold the bottom slope and Strickler coefficient constant in all examples:
-
-        >>> from hydpy.models.musk import *
-        >>> parameterstep()
-        >>> nmbsegments(1)
-        >>> bottomslope(0.01)
-        >>> stricklercoefficient(20.0)
-
-        The first example deals with a rectangular profile:
-
-        >>> bottomwidth(2.0)
-        >>> sideslope(0.0)
-        >>> derived.perimeterincrease.update()
-        >>> factors.wettedarea = model.return_wettedarea_v1(3.0)
-        >>> factors.wettedperimeter = model.return_wettedperimeter_v1(3.0)
-        >>> factors.surfacewidth = model.return_surfacewidth_v1(3.0)
-        >>> from hydpy import round_
-        >>> round_(model.return_celerity_v1())
-        1.926124
-
-        The returned celerity relies on the analytical solution of the following
-        differential equation:
-
-        :math:`\frac{\mathrm{d}}{\mathrm{d} h} \frac{Q(h)}{A(h)}`
-
-        We define a test function to check the returned celerity via a numerical
-        approximation:
-
-        >>> def check_celerity():
-        ...     q0 = model.return_discharge_v1(3.0-1e-6)
-        ...     q1 = model.return_discharge_v1(3.0+1e-6)
-        ...     a0 = model.return_wettedarea_v1(3.0-1e-6)
-        ...     a1 = model.return_wettedarea_v1(3.0+1e-6)
-        ...     round_((q1 - q0) / (a1 - a0))
-
-        >>> check_celerity()
-        1.926124
-
-        The second example deals with a triangular profile:
-
-        >>> bottomwidth(0.0)
-        >>> sideslope(2.0)
-        >>> derived.perimeterincrease.update()
-        >>> factors.wettedarea = model.return_wettedarea_v1(3.0)
-        >>> factors.wettedperimeter = model.return_wettedperimeter_v1(3.0)
-        >>> factors.surfacewidth = model.return_surfacewidth_v1(3.0)
-        >>> round_(model.return_celerity_v1())
-        3.243841
-        >>> check_celerity()
-        3.243841
-
-        In an empty triangular profile, the wetted perimeter is zero.  To prevent zero
-        division errors, |Return_Celerity_V1| generally returns zero in such cases:
-
-        >>> factors.wettedarea = model.return_wettedarea_v1(0.0)
-        >>> round_(model.return_celerity_v1())
-        0.0
-
-        The third example combines the two profiles defined above into a trapezoidal
-        profile:
-
-        >>> bottomwidth(2.0)
-        >>> sideslope(2.0)
-        >>> derived.perimeterincrease.update()
-        >>> factors.wettedarea = model.return_wettedarea_v1(3.0)
-        >>> factors.wettedperimeter = model.return_wettedperimeter_v1(3.0)
-        >>> factors.surfacewidth = model.return_surfacewidth_v1(3.0)
-        >>> round_(model.return_celerity_v1())
-        3.586803
-        >>> check_celerity()
-        3.586803
-    """
-
-    SUBMETHODS = (
-        Return_WettedArea_V1,
-        Return_WettedPerimeter_V1,
-        Return_SurfaceWidth_V1,
-    )
-    CONTROLPARAMETERS = (
-        musk_control.BottomWidth,
-        musk_control.SideSlope,
-        musk_control.BottomSlope,
-        musk_control.StricklerCoefficient,
-    )
-    REQUIREDSEQUENCES = (
+    SUBMETHODS = ()
+    REQUIREDSEQUENCES = (musk_factors.ReferenceWaterDepth,)
+    RESULTSEQUENCES = (
         musk_factors.WettedArea,
-        musk_factors.WettedPerimeter,
         musk_factors.SurfaceWidth,
+        musk_factors.Celerity,
     )
-    DERIVEDPARAMETERS = (musk_derived.PerimeterIncrease,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> float:
-        con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
+    def __call__(
+        model: modeltools.SegmentModel, wqmodel: routinginterfaces.CrossSectionModel_V1
+    ) -> None:
         fac = model.sequences.factors.fastaccess
         i = model.idx_segment
-        if fac.wettedarea[i] == 0.0:
-            return 0.0
-        r: float = fac.wettedarea[i] / fac.wettedperimeter[i]
-        return (
-            con.stricklercoefficient[i]
-            * con.bottomslope[i] ** 0.5
-            * r ** (2.0 / 3.0)
-            / 3.0
-        ) * (5.0 - (2.0 * r * der.perimeterincrease[i] / fac.surfacewidth[i]))
+        wqmodel.set_waterdepth(fac.referencewaterdepth[i])
+        wqmodel.process()
+        fac.wettedarea[i] = wqmodel.get_wettedarea()
+        fac.surfacewidth[i] = wqmodel.get_surfacewidth()
+        fac.celerity[i] = wqmodel.get_celerity()
 
 
-class Calc_Celerity_V1(modeltools.Method):
-    r"""Calculate the kinematic celerity in a trapezoidal profile.
+class Calc_WettedArea_SurfaceWidth_Celerity_V1(modeltools.Method):
+    """Let a submodel that follows the |CrossSectionModel_V1| interface calculate all
+    its properties based on the current reference water level and query the wetted
+    area, the surface width, and the celerity.
 
-    Examples:
+    Example:
 
-        Method |Calc_SurfaceWidth_V1| uses the submethod |Return_SurfaceWidth_V1| to
-        calculate the kinematic celerity, from which's documentation we take the
-        following examples:
+        We use the submodel |wq_trapeze| as an example:
 
-        >>> from hydpy.models.musk import *
+        >>> from hydpy.models.musk_mct import *
         >>> parameterstep()
         >>> nmbsegments(3)
         >>> bottomslope(0.01)
-        >>> stricklercoefficient(20.0)
-        >>> bottomwidth(2.0, 0.0, 2.0)
-        >>> sideslope(0.0, 2.0, 2.0)
-        >>> derived.perimeterincrease.update()
-        >>> factors.referencewaterdepth = 3.0
-        >>> model.run_segments(model.calc_wettedarea_v1)
-        >>> model.run_segments(model.calc_wettedperimeter_v1)
-        >>> model.run_segments(model.calc_surfacewidth_v1)
-        >>> model.run_segments(model.calc_celerity_v1)
+        >>> with model.add_wqmodel_v1("wq_trapeze"):
+        ...     nmbtrapezes(1)
+        ...     bottomlevels(0.0)
+        ...     bottomwidths(2.0)
+        ...     sideslopes(0.0)
+        ...     stricklercoefficients(20.0)
+        >>> factors.referencewaterdepth = 1.0, 2.0, 3.0
+        >>> model.run_segments(model.calc_wettedarea_surfacewidth_celerity_v1)
+        >>> factors.wettedarea
+        wettedarea(2.0, 4.0, 6.0)
+        >>> factors.surfacewidth
+        surfacewidth(2.0, 2.0, 2.0)
         >>> factors.celerity
-        celerity(1.926124, 3.243841, 3.586803)
+        celerity(1.679895, 1.86546, 1.926124)
     """
 
-    SUBMETHODS = (Return_Celerity_V1,)
-    CONTROLPARAMETERS = (
-        musk_control.BottomWidth,
-        musk_control.SideSlope,
-        musk_control.BottomSlope,
-        musk_control.StricklerCoefficient,
-    )
-    DERIVEDPARAMETERS = (musk_derived.PerimeterIncrease,)
-    REQUIREDSEQUENCES = (
+    SUBMETHODS = (Calc_WettedArea_SurfaceWidth_Celerity_CrossSectionModel_V1,)
+    REQUIREDSEQUENCES = (musk_factors.ReferenceWaterDepth,)
+    RESULTSEQUENCES = (
         musk_factors.WettedArea,
-        musk_factors.WettedPerimeter,
         musk_factors.SurfaceWidth,
+        musk_factors.Celerity,
     )
-    RESULTSEQUENCES = (musk_factors.Celerity,)
 
     @staticmethod
     def __call__(model: modeltools.SegmentModel) -> None:
-        fac = model.sequences.factors.fastaccess
-        i = model.idx_segment
-        fac.celerity[i] = model.return_celerity_v1()
+        if model.wqmodel_typeid == 1:
+            model.calc_wettedarea_surfacewidth_celerity_crosssectionmodel_v1(
+                cast(routinginterfaces.CrossSectionModel_V1, model.wqmodel)
+            )
 
 
 class Calc_CorrectingFactor_V1(modeltools.Method):
@@ -854,7 +463,7 @@ class Calc_CourantNumber_V1(modeltools.Method):
 
     Basic equation (equation 50):
       :math:`CourantNumber =
-      \frac{Celerity \cdot Seconds}{CorrectingFactor \cdot 1000 \cdot Length}`
+      \frac{Celerity \cdot Seconds}{CorrectingFactor \cdot 1000 \cdot SegmentLength}`
 
     Example:
 
@@ -864,8 +473,8 @@ class Calc_CourantNumber_V1(modeltools.Method):
         >>> from hydpy.models.musk import *
         >>> parameterstep()
         >>> nmbsegments(5)
-        >>> length(4.0)
         >>> derived.seconds(1000.0)
+        >>> derived.segmentlength(4.0)
         >>> factors.celerity = 2.0
         >>> factors.correctingfactor = 0.0, 0.5, 1.0, 2.0, inf
         >>> model.run_segments(model.calc_courantnumber_v1)
@@ -873,14 +482,12 @@ class Calc_CourantNumber_V1(modeltools.Method):
         courantnumber(0.0, 1.0, 0.5, 0.25, 0.0)
     """
 
-    CONTROLPARAMETERS = (musk_control.Length,)
-    DERIVEDPARAMETERS = (musk_derived.Seconds,)
+    DERIVEDPARAMETERS = (musk_derived.Seconds, musk_derived.SegmentLength)
     REQUIREDSEQUENCES = (musk_factors.Celerity, musk_factors.CorrectingFactor)
     RESULTSEQUENCES = (musk_states.CourantNumber,)
 
     @staticmethod
     def __call__(model: modeltools.SegmentModel) -> None:
-        con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
         sta = model.sequences.states.fastaccess
@@ -889,7 +496,7 @@ class Calc_CourantNumber_V1(modeltools.Method):
             sta.courantnumber[i] = 0.0
         else:
             sta.courantnumber[i] = (fac.celerity[i] / fac.correctingfactor[i]) * (
-                der.seconds / (1000.0 * con.length[i])
+                der.seconds / (1000.0 * der.segmentlength)
             )
 
 
@@ -898,7 +505,7 @@ class Calc_ReynoldsNumber_V1(modeltools.Method):
 
     Basic equation (equation 51):
       :math:`ReynoldsNumber = \frac{ReferenceDischarge}{CorrectingFactor \cdot
-      SurfaceWidth \cdot BottomSlope \cdot Celerity \cdot 1000 \cdot Length}`
+      SurfaceWidth \cdot BottomSlope \cdot Celerity \cdot 1000 \cdot SegmentLength}`
 
     Example:
 
@@ -908,8 +515,8 @@ class Calc_ReynoldsNumber_V1(modeltools.Method):
         >>> from hydpy.models.musk import *
         >>> parameterstep()
         >>> nmbsegments(5)
-        >>> length(4.0)
         >>> bottomslope(0.01)
+        >>> derived.segmentlength(4.0)
         >>> factors.surfacewidth = 5.0
         >>> factors.celerity = 2.0
         >>> factors.correctingfactor = 0.0, 0.5, 1.0, 2.0, inf
@@ -919,7 +526,8 @@ class Calc_ReynoldsNumber_V1(modeltools.Method):
         reynoldsnumber(0.0, 0.05, 0.025, 0.0125, 0.0)
     """
 
-    CONTROLPARAMETERS = (musk_control.Length, musk_control.BottomSlope)
+    CONTROLPARAMETERS = (musk_control.BottomSlope,)
+    DERIVEDPARAMETERS = (musk_derived.SegmentLength,)
     REQUIREDSEQUENCES = (
         musk_fluxes.ReferenceDischarge,
         musk_factors.CorrectingFactor,
@@ -931,6 +539,7 @@ class Calc_ReynoldsNumber_V1(modeltools.Method):
     @staticmethod
     def __call__(model: modeltools.SegmentModel) -> None:
         con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -938,9 +547,9 @@ class Calc_ReynoldsNumber_V1(modeltools.Method):
         denom: float = (
             fac.correctingfactor[i]
             * fac.surfacewidth[i]
-            * con.bottomslope[i]
+            * con.bottomslope
             * fac.celerity[i]
-            * (1000.0 * con.length[i])
+            * (1000.0 * der.segmentlength)
         )
         if denom == 0.0:
             sta.reynoldsnumber[i] = 0.0
@@ -975,9 +584,9 @@ class Calc_Coefficient1_Coefficient2_Coefficient3_V1(modeltools.Method):
         >>> from hydpy.models.musk import *
         >>> parameterstep()
         >>> nmbsegments(5)
-        >>> length(4.0)
         >>> bottomslope(0.01)
         >>> derived.seconds(1000.0)
+        >>> derived.segmentlength(4.0)
         >>> factors.celerity = 2.0
         >>> factors.surfacewidth = 5.0
         >>> factors.correctingfactor = 0.0, 0.5, 1.0, 2.0, inf
@@ -1200,10 +809,7 @@ class Model(modeltools.SegmentModel):
         Calc_Discharge_V1,
         Calc_ReferenceDischarge_V1,
         Calc_ReferenceWaterDepth_V1,
-        Calc_WettedArea_V1,
-        Calc_WettedPerimeter_V1,
-        Calc_SurfaceWidth_V1,
-        Calc_Celerity_V1,
+        Calc_WettedArea_SurfaceWidth_Celerity_V1,
         Calc_CorrectingFactor_V1,
         Calc_CourantNumber_V1,
         Calc_ReynoldsNumber_V1,
@@ -1211,14 +817,15 @@ class Model(modeltools.SegmentModel):
         Calc_Discharge_V2,
     )
     ADD_METHODS = (
-        Return_WettedArea_V1,
-        Return_WettedPerimeter_V1,
-        Return_SurfaceWidth_V1,
-        Return_Discharge_V1,
+        Return_Discharge_CrossSectionModel_V1,
         Return_ReferenceDischargeError_V1,
-        Return_Celerity_V1,
+        Calc_WettedArea_SurfaceWidth_Celerity_CrossSectionModel_V1,
     )
     OUTLET_METHODS = (Calc_Outflow_V1, Pass_Outflow_V1)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()
     SUBMODELS = (PegasusReferenceWaterDepth,)
+
+    wqmodel = modeltools.SubmodelProperty(routinginterfaces.CrossSectionModel_V1)
+    wqmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    wqmodel_typeid = modeltools.SubmodelTypeIDProperty()

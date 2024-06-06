@@ -4,10 +4,11 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.models.meteo import meteo_sequences
 
 
 class EarthSunDistance(sequencetools.FactorSequence):
-    """The relative inverse distance between the earth and the sun [-]."""
+    """The relative inverse distance between the Earth and the sun [-]."""
 
     NDIM, NUMERIC = 0, False
 
@@ -74,5 +75,15 @@ class DailySunshineDuration(sequencetools.FactorSequence):
 
 class PortionDailyRadiation(sequencetools.FactorSequence):
     """Portion of the daily radiation sum [%]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class Temperature(meteo_sequences.FactorSequence1D):
+    """Temperature [°C]."""
+
+
+class MeanTemperature(sequencetools.FactorSequence):
+    """Mean temperature [°C]."""
 
     NDIM, NUMERIC = 0, False

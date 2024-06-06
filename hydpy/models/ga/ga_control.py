@@ -13,7 +13,7 @@ class NmbSoils(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         nmbsoils_old = exceptiontools.getattr_(self, "value", None)
         super().__call__(*args, **kwargs)
         nmbsoils_new = self.value
@@ -48,7 +48,7 @@ class NmbBins(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, int, None, (2, None)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         nmbbins_old = exceptiontools.getattr_(self, "value", None)
         super().__call__(*args, **kwargs)
         nmbbins_new = self.value
@@ -66,7 +66,7 @@ class DT(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (None, None)
 
-    def trim(self, lower=None, upper=None) -> None:
+    def trim(self, lower=None, upper=None) -> bool:
         """Adjust |DT| when necessary, so the simulation period is an integer multiple.
 
         Assume we want to perform a simulation over intervals of 30 minutes but define
@@ -114,7 +114,7 @@ class DT(parametertools.Parameter):
             dt = 1.0 / (max_seconds // act_seconds)
         else:
             dt = 1.0 / (max_seconds // act_seconds + 1)
-        super().trim(lower=dt, upper=dt)
+        return super().trim(lower=dt, upper=dt)
 
 
 class Sealed(parametertools.Parameter):
@@ -140,7 +140,7 @@ class ResidualMoisture(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
 
-    def trim(self, lower=None, upper=None) -> None:
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |ResidualMoisture| following
         :math:`0 \leq ResidualMoisture \leq SaturationMoisture \leq 1`.
 
@@ -160,7 +160,7 @@ class ResidualMoisture(parametertools.Parameter):
             upper = exceptiontools.getattr_(
                 self.subpars.saturationmoisture, "values", None
             )
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class SaturationMoisture(parametertools.Parameter):
@@ -168,7 +168,7 @@ class SaturationMoisture(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
 
-    def trim(self, lower=None, upper=None) -> None:
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |SaturationMoisture| following
         :math:`0 \leq ResidualMoisture \leq SaturationMoisture \leq 1`.
 
@@ -188,7 +188,7 @@ class SaturationMoisture(parametertools.Parameter):
             lower = exceptiontools.getattr_(
                 self.subpars.residualmoisture, "values", None
             )
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class SaturatedConductivity(parametertools.Parameter):

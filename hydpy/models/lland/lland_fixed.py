@@ -69,29 +69,6 @@ class Sigma(parametertools.FixedParameter):
     INIT = 5.67e-08
 
 
-class RDryAir(parametertools.FixedParameter):
-    """Gaskonstante für trockene Luft (gas constant for dry air) [J/kg/K]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-    INIT = 287.058
-
-
-class RWaterVapour(parametertools.FixedParameter):
-    """Gaskonstante für Wasserdampf (gas constant for water vapour)
-    [J/kg/K]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-    INIT = 461.495
-
-
-class LW(parametertools.FixedParameter):
-    """Latente Verdunstungswärme bei 15°C (heat of condensation at at temperature of
-    15°C) [WT/kg)]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
-    INIT = 28.5
-
-
 class LWE(parametertools.FixedParameter):
     """Mittlere latente Verdunstungswärme für Wasser und Eis (average heat of
     condensation for water and ice) [WT/kg].
@@ -118,22 +95,6 @@ class LWE(parametertools.FixedParameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
     INIT = 30.87326388888889
-
-
-class CPLuft(parametertools.FixedParameter):
-    """Spezifische Wärmekapazität Luft (heat of condensation for a water temperature of
-    15°C) [WT/kg/K]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
-    INIT = 0.011631944444444445
-
-
-class Psy(parametertools.FixedParameter):
-    """Psychrometerkonstante bei Normaldruck (psychrometric constant at normal
-    pressure) [hPa/K]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-    INIT = 0.655
 
 
 class PsyInv(parametertools.FixedParameter):

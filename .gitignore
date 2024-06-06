@@ -1,4 +1,6 @@
 venv*
+extra_python_sources/*
+extra_wheel_sources/*
 .nox*
 *.spyderproject
 *.spyderworkspace
@@ -8,9 +10,9 @@ venv*
 *.pyc
 *.c
 *.h
+*.pysource
 temp
-hydpy/inputs.py
-hydpy/outputs.py
+hydpy/aliases.py
 hydpy/conf/mimetypes.txt
 hydpy/cythons/autogen/*.pyd
 hydpy/cythons/autogen/*.pyc

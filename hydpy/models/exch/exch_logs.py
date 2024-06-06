@@ -6,8 +6,8 @@
 from hydpy.core import sequencetools
 
 
-class LoggedWaterLevel(sequencetools.LogSequenceFixed):
-    """Logged water level [m]."""
+class LoggedWaterLevels(sequencetools.LogSequenceFixed):
+    """Logged water levels [m]."""
 
     NUMERIC = False
     SHAPE = 2

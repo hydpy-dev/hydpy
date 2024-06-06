@@ -156,15 +156,12 @@ from hydpy.exe.modelimports import *
 from hydpy.models.conv import conv_model
 
 
-class Model(conv_model.Model):
+class Model(conv_model.BaseModel):
     """Version 3 of the Conv model."""
 
     INLET_METHODS = (conv_model.Pick_Inputs_V1,)
     RECEIVER_METHODS = ()
-    ADD_METHODS = (
-        conv_model.Return_Mean_V1,
-        conv_model.Interpolate_InverseDistance_V1,
-    )
+    ADD_METHODS = (conv_model.Return_Mean_V1, conv_model.Interpolate_InverseDistance_V1)
     RUN_METHODS = (
         conv_model.Calc_ActualConstant_ActualFactor_V1,
         conv_model.Calc_InputPredictions_V1,

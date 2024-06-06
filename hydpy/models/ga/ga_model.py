@@ -3,16 +3,15 @@
 .. _`issue 89`: https://github.com/hydpy-dev/hydpy/issues/89
 """
 # imports...
-# ...from standard library
-from typing import *
-
 # ...from site-packages
 import numpy
 
 # ...from HydPy
+from hydpy.core import importtools
 from hydpy.core import modeltools
-from hydpy.cythons import modelutils
 from hydpy.core.typingtools import *
+from hydpy.cythons import modelutils
+from hydpy.interfaces import soilinterfaces
 
 # ...from hland
 from hydpy.models.ga import ga_control
@@ -163,10 +162,7 @@ class Return_RelativeMoisture_V1(modeltools.Method):
         soil: 1, bin: 4 -> relativemoisture 1.0
     """
 
-    CONTROLPARAMETERS = (
-        ga_control.ResidualMoisture,
-        ga_control.SaturationMoisture,
-    )
+    CONTROLPARAMETERS = (ga_control.ResidualMoisture, ga_control.SaturationMoisture)
     REQUIREDSEQUENCES = (ga_states.Moisture,)
 
     @staticmethod
@@ -347,10 +343,7 @@ class Percolate_FilledBin_V1(modeltools.Method):
                     [nan, nan, nan]])
     """
 
-    SUBMETHODS = (
-        Return_RelativeMoisture_V1,
-        Return_Conductivity_V1,
-    )
+    SUBMETHODS = (Return_RelativeMoisture_V1, Return_Conductivity_V1)
     CONTROLPARAMETERS = (
         ga_control.DT,
         ga_control.SoilDepth,
@@ -878,7 +871,7 @@ class Shift_Front_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, b: int, s: int) -> float:
+    def __call__(model: modeltools.Model, b: int, s: int) -> None:
         con = model.parameters.control.fastaccess
         sta = model.sequences.states.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -1135,7 +1128,7 @@ class Redistribute_Front_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, b: int, s: int) -> float:
+    def __call__(model: modeltools.Model, b: int, s: int) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         sta = model.sequences.states.fastaccess
@@ -1159,7 +1152,7 @@ class Redistribute_Front_V1(modeltools.Method):
             )
         else:
             drydepth: float = model.return_drydepth_v1(s)
-            conductivity: float = model.return_conductivity_v1(b - 1, s)
+            conductivity = model.return_conductivity_v1(b - 1, s)
             log.moisturechange[b, s] = (
                 aid.actualsurfacewater[s] - con.dt * conductivity
             ) / drydepth
@@ -1501,7 +1494,7 @@ class Merge_FrontDepthOvershootings_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int) -> float:
+    def __call__(model: modeltools.Model, s: int) -> None:
         con = model.parameters.control.fastaccess
         sta = model.sequences.states.fastaccess
         log = model.sequences.logs.fastaccess
@@ -1641,10 +1634,7 @@ class Merge_SoilDepthOvershootings_V1(modeltools.Method):
         percolation: 60.0
     """
 
-    CONTROLPARAMETERS = (
-        ga_control.NmbBins,
-        ga_control.SoilDepth,
-    )
+    CONTROLPARAMETERS = (ga_control.NmbBins, ga_control.SoilDepth)
     UPDATEDSEQUENCES = (
         ga_states.FrontDepth,
         ga_states.Moisture,
@@ -1653,7 +1643,7 @@ class Merge_SoilDepthOvershootings_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int) -> float:
+    def __call__(model: modeltools.Model, s: int) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -2095,9 +2085,7 @@ class Withdraw_AllBins_V1(modeltools.Method):
         if sta.moisture[0, s] <= con.residualmoisture[s]:
             return
 
-        available: float = con.soildepth[s] * (
-            sta.moisture[0, s] - con.residualmoisture[s]
-        )
+        available = con.soildepth[s] * (sta.moisture[0, s] - con.residualmoisture[s])
         if demand <= available:
             sta.moisture[0, s] -= demand / con.soildepth[s]
             flu.withdrawal[s] += demand
@@ -2120,6 +2108,7 @@ class Perform_GARTO_V1(modeltools.Method):
     functionalities of application model |ga_garto|, and the explanations and test
     results for |ga_garto| essentially apply to |Perform_GARTO_V1|, too.
     """
+
     SUBMETHODS = (
         Return_LastActiveBin_V1,
         Return_Conductivity_V1,
@@ -2144,10 +2133,7 @@ class Perform_GARTO_V1(modeltools.Method):
         ga_control.AirEntryPotential,
         ga_control.PoreSizeDistribution,
     )
-    DERIVEDPARAMETERS = (
-        ga_derived.NmbSubsteps,
-        ga_derived.EffectiveCapillarySuction,
-    )
+    DERIVEDPARAMETERS = (ga_derived.NmbSubsteps, ga_derived.EffectiveCapillarySuction)
     REQUIREDSEQUENCES = (
         ga_fluxes.SurfaceWaterSupply,
         ga_fluxes.SoilWaterSupply,
@@ -2513,10 +2499,7 @@ class Execute_Infiltration_V1(modeltools.Method):
         ga_control.AirEntryPotential,
         ga_control.PoreSizeDistribution,
     )
-    DERIVEDPARAMETERS = (
-        ga_derived.NmbSubsteps,
-        ga_derived.EffectiveCapillarySuction,
-    )
+    DERIVEDPARAMETERS = (ga_derived.NmbSubsteps, ga_derived.EffectiveCapillarySuction)
     REQUIREDSEQUENCES = (ga_aides.InitialSurfaceWater,)
     UPDATEDSEQUENCES = (
         ga_aides.ActualSurfaceWater,
@@ -2745,15 +2728,8 @@ class Get_SoilWaterContent_V1(modeltools.Method):
         0.0
     """
 
-    CONTROLPARAMETERS = (
-        ga_control.NmbBins,
-        ga_control.Sealed,
-        ga_control.SoilDepth,
-    )
-    REQUIREDSEQUENCES = (
-        ga_states.Moisture,
-        ga_states.FrontDepth,
-    )
+    CONTROLPARAMETERS = (ga_control.NmbBins, ga_control.Sealed, ga_control.SoilDepth)
+    REQUIREDSEQUENCES = (ga_states.Moisture, ga_states.FrontDepth)
 
     @staticmethod
     def __call__(model: modeltools.Model, s: int) -> float:
@@ -2822,16 +2798,14 @@ class Model(modeltools.AdHocModel):
     SUBMODELS = ()
 
 
-class MixinGARTO:
-    """Mixin class for GARTO-like Green-Ampt models."""
+class BaseModel(modeltools.AdHocModel):
+    """General base class for GARTO-like Green-Ampt models."""
 
-    def check_waterbalance(
-        self,
-        initial_conditions: Dict[str, Dict[str, ArrayFloat]],
-    ) -> float:
+    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
         r"""Determine the water balance error of the previous simulation run in mm.
 
-        Method |MixinGARTO.check_waterbalance| calculates the balance error as follows:
+        Method |ga_model.BaseModel.check_waterbalance| calculates the balance error as
+        follows:
 
         :math:`\sum_{t=t0}^{t1} \big(
         Rainfall_t - TotalPercolation_t  + TotalSoilWaterAddition_t - TotalWithdrawal_t
@@ -2846,9 +2820,10 @@ class MixinGARTO:
         """
         inputs = self.sequences.inputs
         fluxes = self.sequences.fluxes
+        first = initial_conditions["model"]["states"]
         old_watercontent = self._calc_watercontent(
-            frontdepth=initial_conditions["states"]["frontdepth"],
-            moisture=initial_conditions["states"]["moisture"],
+            frontdepth=first["frontdepth"],  # type: ignore[arg-type]
+            moisture=first["moisture"],  # type: ignore[arg-type]
         )
         return float(
             numpy.sum(inputs.rainfall.evalseries)
@@ -2863,8 +2838,8 @@ class MixinGARTO:
     def watercontents(self) -> NDArrayFloat:
         """The unique water content of each soil compartment in mm.
 
-        Property |MixinGARTO.watercontents| generally returns zero values for sealed
-        soil compartments:
+        Property |ga_model.BaseModel.watercontents| generally returns zero values for
+        sealed soil compartments:
 
         >>> from hydpy.models.ga_garto import *
         >>> parameterstep()
@@ -2897,8 +2872,8 @@ class MixinGARTO:
     def watercontent(self) -> float:
         """The average water content of all soil compartments in mm.
 
-        Property |MixinGARTO.watercontent| includes sealed soil compartments in the
-        average, which is why the presence of sealing reduces the returned value:
+        Property |ga_model.BaseModel.watercontent| includes sealed soil compartments in
+        the average, which is why the presence of sealing reduces the returned value:
 
         >>> from hydpy.models.ga_garto import *
         >>> parameterstep()
@@ -2945,9 +2920,26 @@ class MixinGARTO:
 
     def _calc_watercontent(
         self, frontdepth: NDArrayFloat, moisture: NDArrayFloat
-    ) -> Union[float, NDArrayFloat]:
+    ) -> float:
         weights = self.parameters.derived.soilareafraction.values
         watercontents = self._calc_watercontents(
             frontdepth=frontdepth, moisture=moisture
         )
         return numpy.nansum(weights * watercontents)
+
+
+class Base_SoilModel_V1(BaseModel, soilinterfaces.SoilModel_V1):
+    """Base class for HydPy-GA models that comply with the |SoilModel_V1| submodel
+    interface."""
+
+    @importtools.define_targetparameter(ga_control.NmbSoils)
+    def prepare_nmbzones(self, nmbzones: int) -> None:
+        """Set the number of soil compartments.
+
+        >>> from hydpy.models.ga_garto_submodel1 import *
+        >>> parameterstep()
+        >>> model.prepare_nmbzones(2)
+        >>> nmbsoils
+        nmbsoils(2)
+        """
+        self.parameters.control.nmbsoils(nmbzones)

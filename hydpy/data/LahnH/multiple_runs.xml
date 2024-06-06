@@ -65,10 +65,14 @@
 
             <reader info="read during initialisation">
                 <sequences>
+                    <evap_pet_hbv96>
+                        <inputs>
+                            <normalairtemperature/>
+                        </inputs>
+                    </evap_pet_hbv96>
                     <hland_v1>
                         <inputs>
                             <t/>
-                            <tn/>
                         </inputs>
                     </hland_v1>
                 </sequences>
@@ -76,10 +80,14 @@
 
             <reader info="read during simulation">
                 <sequences>
+                    <evap_pet_hbv96>
+                        <inputs>
+                            <normalevapotranspiration/>
+                        </inputs>
+                    </evap_pet_hbv96>
                     <hland_v1>
                         <inputs>
                             <p/>
-                            <epn/>
                         </inputs>
                     </hland_v1>
                 </sequences>
@@ -106,10 +114,14 @@
             <writer info="temperature">
                 <directory>temperature</directory>
                 <sequences>
+                    <evap_pet_hbv96>
+                        <inputs>
+                            <normalairtemperature/>
+                        </inputs>
+                    </evap_pet_hbv96>
                     <hland_v1>
                         <inputs>
                             <t/>
-                            <tn/>
                         </inputs>
                     </hland_v1>
                 </sequences>
@@ -188,6 +200,8 @@
                         </init>
                     </sm>
                 </states>
+            </hland_v1>
+            <rconc_uh>
                 <logs>
                     <selections>catchment_lahn_2</selections>
                     <quh>
@@ -196,7 +210,7 @@
                         <init>10.0</init>
                     </quh>
                 </logs>
-            </hland_v1>
+            </rconc_uh>
         </setitems>
         <setitems>
             <hland_v1>
@@ -267,7 +281,7 @@
             <hland_v1>
                 <factors>
                     <selections>catchment_dill</selections>
-                    <tmean/>
+                    <contriarea/>
                 </factors>
                 <fluxes>
                     <selections>catchment_dill</selections>

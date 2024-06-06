@@ -3,8 +3,8 @@ Python module |interptools|.
 """
 
 import numpy
+
 cimport cython
-from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 from libc.math cimport NAN as nan
 from libc.stdlib cimport malloc, free
 
@@ -34,7 +34,7 @@ cdef class SimpleInterpolator:
         self.algorithm_type = _type2number()[type(algorithm)]
         self.algorithm = <PyObject*>algorithm._calgorithm
 
-    cpdef inline void calculate_values(self) nogil:
+    cpdef inline void calculate_values(self) noexcept nogil:
         cdef int idx
         if self.algorithm_type == _ANN:
             for idx in range(self.nmb_inputs):
@@ -49,7 +49,7 @@ cdef class SimpleInterpolator:
             for idx in range(self.nmb_outputs):
                 self.outputs[idx] = (<ppolyutils.PPoly>self.algorithm).outputs[idx]
 
-    cpdef inline void calculate_derivatives(self, int idx_input) nogil:
+    cpdef inline void calculate_derivatives(self, int idx_input) noexcept nogil:
         cdef int idx_output
         if self.algorithm_type == _ANN:
             (<annutils.ANN>self.algorithm).calculate_derivatives(idx_input)
@@ -81,7 +81,7 @@ cdef class SeasonalInterpolator:
     def __dealloc__(self):
         free(self.algorithms)
 
-    cpdef inline void calculate_values(self, int idx_season) nogil:
+    cpdef inline void calculate_values(self, int idx_season) noexcept nogil:
         cdef int idx_algorithm, idx_input, idx_output
         cdef double ratio, frac
         for idx_output in range(self.nmb_outputs):

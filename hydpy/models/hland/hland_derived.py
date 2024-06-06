@@ -268,6 +268,37 @@ class IndicesZoneZ(parametertools.Parameter):
         self.values = numpy.argsort(self.subpars.pars.control.zonez.values)
 
 
+class Z(parametertools.Parameter):
+    """Average (reference) subbasin elevation [100m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+
+    CONTROLPARAMETERS = (
+        hland_control.Area,
+        hland_control.ZoneArea,
+        hland_control.ZoneZ,
+    )
+
+    def update(self) -> None:
+        """Average the individual zone elevations.
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep()
+        >>> nmbzones(3)
+        >>> area(10.0)
+        >>> zonearea(5.0, 3.0, 2.0)
+        >>> zonez(1.0, 3.0, 8.0)
+        >>> derived.z.update()
+        >>> derived.z
+        z(3.0)
+        """
+        control = self.subpars.pars.control
+        self.value = (
+            numpy.dot(control.zonearea.values, control.zonez.values)
+            / control.area.value
+        )
+
+
 class SRedOrder(parametertools.Parameter):
     """Processing order for the snow redistribution routine [-]."""
 
@@ -417,10 +448,7 @@ class TTM(hland_parameters.ParameterLand):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
-    CONTROLPARAMETERS = (
-        hland_control.TT,
-        hland_control.DTTM,
-    )
+    CONTROLPARAMETERS = (hland_control.TT, hland_control.DTTM)
 
     def update(self):
         """Update |TTM| based on :math:`TTM = TT + DTTM`.
@@ -628,160 +656,6 @@ class W4(parametertools.Parameter):
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", _ZERO_DIVISION_MESSAGE)
             self.values = numpy.exp(-1.0 / self.subpars.k4.value)
-
-
-class UH(parametertools.Parameter):
-    """Unit hydrograph ordinates based on an isosceles triangle [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
-    strict_valuehandling: bool = False
-
-    CONTROLPARAMETERS = (hland_control.MaxBaz,)
-
-    def update(self):
-        """Update |UH| based on |MaxBaz|.
-
-        .. note::
-
-            This method also updates the shape of the log sequence |QUH|.
-
-        |MaxBaz| determines the endpoint of the triangle.  A value of |MaxBaz| being
-        not larger than the simulation step size is identical with applying no unit
-        hydrograph at all:
-
-        >>> from hydpy.models.hland import *
-        >>> parameterstep("1d")
-        >>> simulationstep("12h")
-        >>> maxbaz(0.0)
-        >>> derived.uh.update()
-        >>> logs.quh.shape
-        (1,)
-        >>> derived.uh
-        uh(1.0)
-
-        Note that, due to the given difference of the parameter and the simulation step
-        size, the largest assigned value resulting in an "inactive" unit hydrograph is
-        1/2:
-
-        >>> maxbaz(0.5)
-        >>> derived.uh.update()
-        >>> logs.quh.shape
-        (1,)
-        >>> derived.uh
-        uh(1.0)
-
-        When the value of |MaxBaz| is twice the simulation step size, both unit
-        hydrograph ordinates must be 1/2 due to the symmetry of the triangle:
-
-        >>> maxbaz(1.0)
-        >>> derived.uh.update()
-        >>> logs.quh.shape
-        (2,)
-        >>> derived.uh
-        uh(0.5)
-        >>> derived.uh.values
-        array([0.5, 0.5])
-
-        A |MaxBaz| value three times the simulation step size results in the ordinate
-        values 2/9, 5/9, and 2/9:
-
-        >>> maxbaz(1.5)
-        >>> derived.uh.update()
-        >>> logs.quh.shape
-        (3,)
-        >>> derived.uh
-        uh(0.222222, 0.555556, 0.222222)
-
-        When the end of the triangle lies in the middle of the fourth interval, the
-        resulting fractions are:
-
-        >>> maxbaz(1.75)
-        >>> derived.uh.update()
-        >>> logs.quh.shape
-        (4,)
-        >>> derived.uh
-        uh(0.163265, 0.469388, 0.326531, 0.040816)
-        """
-        maxbaz = self.subpars.pars.control.maxbaz.value
-        quh = self.subpars.pars.model.sequences.logs.quh
-        # Determine UH parameters...
-        if maxbaz <= 1.0:
-            # ...when MaxBaz smaller than or equal to the simulation time step.
-            self.shape = 1
-            self(1.0)
-            quh.shape = 1
-        else:
-            # ...when MaxBaz is greater than the simulation time step.
-            # Define some shortcuts for the following calculations.
-            full = maxbaz
-            # Now comes a terrible trick due to rounding problems coming from
-            # the conversation of the SMHI parameter set to the HydPy
-            # parameter set.  Time to get rid of it...
-            if (full % 1.0) < 1e-4:
-                full //= 1.0
-            full_f = int(numpy.floor(full))
-            full_c = int(numpy.ceil(full))
-            half = full / 2.0
-            half_f = int(numpy.floor(half))
-            half_c = int(numpy.ceil(half))
-            full_2 = full**2.0
-            # Calculate the triangle ordinate(s)...
-            self.shape = full_c
-            uh = self.values
-            quh.shape = full_c
-            # ...of the rising limb.
-            points = numpy.arange(1, half_f + 1)
-            uh[:half_f] = (2.0 * points - 1.0) / (2.0 * full_2)
-            # ...around the peak (if it exists).
-            if numpy.mod(half, 1.0) != 0.0:
-                uh[half_f] = (half_c - half) / full + (
-                    2 * half**2.0 - half_f**2.0 - half_c**2.0
-                ) / (2.0 * full_2)
-            # ...of the falling limb (eventually except the last one).
-            points = numpy.arange(half_c + 1.0, full_f + 1.0)
-            uh[half_c:full_f] = 1.0 / full - (2.0 * points - 1.0) / (2.0 * full_2)
-            # ...at the end (if not already done).
-            if numpy.mod(full, 1.0) != 0.0:
-                uh[full_f] = (full - full_f) / full - (full_2 - full_f**2.0) / (
-                    2.0 * full_2
-                )
-            # Normalize the ordinates.
-            self(uh / numpy.sum(uh))
-
-
-class KSC(parametertools.Parameter):
-    """Coefficient of the individual storages of the linear storage cascade [1/T]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
-
-    CONTROLPARAMETERS = (
-        hland_control.MaxBaz,
-        hland_control.NmbStorages,
-    )
-
-    def update(self):
-        """Update |KSC| based on :math:`KSC = \\frac{2 \\cdot NmbStorages}{MaxBaz}`.
-
-        >>> from hydpy.models.hland import *
-        >>> simulationstep('12h')
-        >>> parameterstep('1d')
-        >>> maxbaz(8.0)
-        >>> nmbstorages(2.0)
-        >>> derived.ksc.update()
-        >>> derived.ksc
-        ksc(0.5)
-
-        >>> maxbaz(0.0)
-        >>> nmbstorages(2.0)
-        >>> derived.ksc.update()
-        >>> derived.ksc
-        ksc(inf)
-        """
-        control = self.subpars.pars.control
-        if control.maxbaz.value <= 0.0:
-            self.value = numpy.inf
-        else:
-            self.value = 2.0 * control.nmbstorages.value / control.maxbaz.value
 
 
 class QFactor(parametertools.Parameter):

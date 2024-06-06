@@ -122,24 +122,14 @@ def mypy(session: nox.Session) -> None:
     """Use "mypy" to check the correctness of all type hints and the source code's type
     safety.
 
-    So far, we do not run the `mypy` session on Travis or AppVeyor.  We will do so as
-    soon it does not report any errors under the non-strict mode.  However, our long
-    term goal is to meet the requirements of the strict mode, which requires much
-    additional effort regarding the typing of numpy arrays, model parameters and so on.
+    We currently generally apply Mypy in the non-strict mode and handle the `models`
+    subpackage even less strictly.  However, our long term-goal is to meet the
+    requirements of the strict mode, which requires much additional effort regarding
+    the typing of numpy arrays, model parameters and so on.
     """
-    session.install("-r", "HydPy.egg-info/requires.txt")
-    session.install("mypy")
-    session.run(
-        "mypy",
-        "hydpy",
-        "--exclude=hydpy/data/|hydpy/tests/iotesting",
-        "--follow-imports=silent",
-        "--warn-unused-ignores",
-        "--warn-redundant-casts",
-        "--warn-unreachable",
-        "--show-error-codes",
-        "--show-traceback",
-    )
+    _install_hydpy(session)
+    session.install("mypy", "types-docutils")
+    session.run("mypy", "hydpy")
 
 
 @nox.session
@@ -179,3 +169,4 @@ def sphinx(session: nox.Session) -> None:
     session.run(
         "sphinx-build", "hydpy/docs/auto", "hydpy/docs/auto/build", *session.posargs
     )
+    shutil.rmtree("hydpy/docs/auto/build/.doctrees")

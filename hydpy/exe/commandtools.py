@@ -13,37 +13,36 @@ import subprocess
 import sys
 import time
 import traceback
-from typing import *
-from typing import TextIO
 
 # ...from hydpy
 import hydpy
 import hydpy.tests.run_doctests
 from hydpy import config
 from hydpy.core import objecttools
+from hydpy.core.typingtools import *
 
 
 @overload
 def run_subprocess(
-    command: str, verbose: bool = True, blocking: Literal[True] = ...
+    command: str, *, verbose: bool = True, blocking: Literal[True] = ...
 ) -> subprocess.CompletedProcess[str]:
     """non-blocking"""
 
 
 @overload
 def run_subprocess(
-    command: str, verbose: bool = True, blocking: Literal[False] = ...
+    command: str, *, verbose: bool = True, blocking: Literal[False]
 ) -> subprocess.Popen[str]:
     """blocking"""
 
 
 def run_subprocess(
-    command: str, verbose: bool = True, blocking: bool = True
+    command: str, *, verbose: bool = True, blocking: bool = True
 ) -> Union[subprocess.CompletedProcess[str], subprocess.Popen[str]]:
     """Execute the given command in a new process.
 
     Only when both `verbose` and `blocking` are |True|, |run_subprocess| prints all
-    responses to the current value of |sys.stdout|:
+    responses to the current value of `sys.stdout`:
 
     >>> from hydpy import run_subprocess
     >>> import platform
@@ -159,11 +158,10 @@ def run_doctests() -> int:  # pylint: disable=inconsistent-return-statements
     >>> assert "cython_mode=True" in str(main.mock_calls)
     """
     try:
-        hydpy.tests.run_doctests.main.callback(
-            hydpy_path=None, file_doctests=[], python_mode=True, cython_mode=True
-        )
+        callback = cast(Callable[..., NoReturn], hydpy.tests.run_doctests.main.callback)
+        callback(hydpy_path=None, file_doctests=[], python_mode=True, cython_mode=True)
     except SystemExit as exc:
-        return exc.code
+        return code if isinstance(code := exc.code, int) else 999
 
 
 def exec_script(filepath: str) -> None:
@@ -570,7 +568,7 @@ class LogFileInterface:
         return getattr(self.logfile, name)
 
 
-def parse_argument(string: str) -> Union[str, Tuple[str, str]]:
+def parse_argument(string: str) -> Union[str, tuple[str, str]]:
     """Return a single value for a string understood as a positional argument or a
     |tuple| containing a keyword and its value for a string understood as a keyword
     argument.

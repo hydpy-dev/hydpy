@@ -18,8 +18,7 @@ import sys
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.abspath(os.path.join("..", "..")))
 # pylint: disable=wrong-import-position
-# (changing the path is necessary when calling `prepare.py` from the
-# command line)
+# (changing the path is necessary when calling `prepare.py` from the command line)
 # ...from HydPy
 import hydpy
 from hydpy import auxs
@@ -40,6 +39,7 @@ from hydpy.docs import bib
 from hydpy.docs import figs
 from hydpy.docs import sphinx
 from hydpy.docs import rst
+from hydpy.core.typingtools import *
 
 # Prepare folder `auto`.
 docspath: str = docs.__path__[0]
@@ -80,6 +80,8 @@ for subpackage in (auxs, core, cythons, exe, interfaces, models, hydpy):
             and ("." not in filename)
             and (filename not in ("build", "__pycache__"))
         )
+        assert not (is_module and is_package)
+        source: Optional[str] = None
         if is_module:
             path = os.path.join(subpackagepath, filename)
             with open(path, encoding="utf-8") as file_:
@@ -100,7 +102,7 @@ for subpackage in (auxs, core, cythons, exe, interfaces, models, hydpy):
                 ):
                     sources.append(member.__doc__ if member.__doc__ else "")
             source = "\n".join(sources)
-        if is_package:
+        elif is_package:
             sources = []
             path = os.path.join(subpackagepath, filename)
             for subfilename in sorted(os.listdir(path)):
@@ -116,7 +118,7 @@ for subpackage in (auxs, core, cythons, exe, interfaces, models, hydpy):
             module = importlib.import_module(f"{models.__name__}.{filename}")
             substituter = module.substituter
         if is_module or is_package:
-            _exc_mem = list(autodoctools.EXCLUDE_MEMBERS)
+            _exc_mem = autodoctools.excluded_members.copy()
             if subpackage is models:
                 for member in vars(module).values():
                     if (
@@ -124,7 +126,7 @@ for subpackage in (auxs, core, cythons, exe, interfaces, models, hydpy):
                         and issubclass(member, variabletools.SubVariables)
                         and not member.CLASSES
                     ):
-                        _exc_mem.append(member.__name__)
+                        _exc_mem.add(member.__name__)
             excludemembers = ", ".join(_exc_mem)
             lines = [
                 "",
@@ -141,6 +143,7 @@ for subpackage in (auxs, core, cythons, exe, interfaces, models, hydpy):
             ]
             path = os.path.join(AUTOPATH, filename + ".rst")
             with open(path, "w", encoding="utf-8") as file_:
+                assert source is not None
                 path2source[path] = source
                 file_.write(substituter.get_commands(source))
                 file_.write("\n")
@@ -165,3 +168,11 @@ for subpackage in (autofigs, bib, figs, sphinx, rst):
                     file_.write(orig)
             elif filename != "build":
                 shutil.copy(path_in, path_out)
+
+# copy _themes path from sphinx subpackage into folder `auto`
+# _themes folder contains the modified sphinx html themes
+themespath = os.path.join(sphinx.__path__[0], "_themes")
+themespathdest = os.path.join(AUTOPATH, "_themes")
+if not os.path.isdir(themespath):
+    raise RuntimeError("Cannot find path `_themes` in sphinx subpackage")
+shutil.copytree(themespath, themespathdest)

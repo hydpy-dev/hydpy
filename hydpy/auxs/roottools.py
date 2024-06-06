@@ -7,11 +7,10 @@ of the mathematical algorithms.
 """
 
 # import...
-# ...from standard library
-from typing import *
 
 # ...from HydPy
 from hydpy.core import modeltools
+from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
     from hydpy.cythons import rootutils
@@ -36,7 +35,7 @@ class Pegasus(modeltools.Submodel):
     monotone functions only.
     """
 
-    CYTHONBASECLASS = rootutils.PegasusBase  # pylint: disable=used-before-assignment
+    CYTHONBASECLASS = rootutils.PegasusBase
     PYTHONCLASS = rootutils.PegasusPython
     _cysubmodel: rootutils.PegasusBase
 
@@ -91,7 +90,6 @@ class Pegasus(modeltools.Submodel):
         >>> turb0(2.0)
         >>> turb1(2.0)
         >>> ktschnee(5.0)
-        >>> derived.days.update()
         >>> inputs.relativehumidity = 60.0
         >>> states.waes.values = 1.0
         >>> fluxes.tkor = -3.0

@@ -71,10 +71,7 @@ class Calc_Outputs_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (conv_control.MaxNmbInputs,)
-    DERIVEDPARAMETERS = (
-        conv_derived.NmbOutputs,
-        conv_derived.ProximityOrder,
-    )
+    DERIVEDPARAMETERS = (conv_derived.NmbOutputs, conv_derived.ProximityOrder)
     REQUIREDSEQUENCES = (conv_fluxes.Inputs,)
     RESULTSEQUENCES = (conv_fluxes.Outputs,)
 
@@ -121,10 +118,7 @@ class Return_Mean_V1(modeltools.Method):
 
     @staticmethod
     def __call__(
-        model: modeltools.Model,
-        values: Vector[float],
-        mask: Vector[float],
-        number: int,
+        model: modeltools.Model, values: VectorFloat, mask: VectorFloat, number: int
     ) -> float:
         counter = 0
         d_result = 0.0
@@ -222,10 +216,7 @@ class Calc_ActualConstant_ActualFactor_V1(modeltools.Method):
     )
     DERIVEDPARAMETERS = (conv_derived.NmbInputs,)
     REQUIREDSEQUENCES = (conv_fluxes.Inputs,)
-    RESULTSEQUENCES = (
-        conv_fluxes.ActualConstant,
-        conv_fluxes.ActualFactor,
-    )
+    RESULTSEQUENCES = (conv_fluxes.ActualConstant, conv_fluxes.ActualFactor)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -284,10 +275,7 @@ class Calc_InputPredictions_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (conv_control.InputHeights,)
     DERIVEDPARAMETERS = (conv_derived.NmbInputs,)
-    REQUIREDSEQUENCES = (
-        conv_fluxes.ActualConstant,
-        conv_fluxes.ActualFactor,
-    )
+    REQUIREDSEQUENCES = (conv_fluxes.ActualConstant, conv_fluxes.ActualFactor)
     RESULTSEQUENCES = (conv_fluxes.InputPredictions,)
 
     @staticmethod
@@ -323,10 +311,7 @@ class Calc_OutputPredictions_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (conv_control.OutputHeights,)
     DERIVEDPARAMETERS = (conv_derived.NmbOutputs,)
-    REQUIREDSEQUENCES = (
-        conv_fluxes.ActualConstant,
-        conv_fluxes.ActualFactor,
-    )
+    REQUIREDSEQUENCES = (conv_fluxes.ActualConstant, conv_fluxes.ActualFactor)
     RESULTSEQUENCES = (conv_fluxes.OutputPredictions,)
 
     @staticmethod
@@ -360,10 +345,7 @@ class Calc_InputResiduals_V1(modeltools.Method):
 
     CONTROLPARAMETERS = ()
     DERIVEDPARAMETERS = (conv_derived.NmbInputs,)
-    REQUIREDSEQUENCES = (
-        conv_fluxes.Inputs,
-        conv_fluxes.InputPredictions,
-    )
+    REQUIREDSEQUENCES = (conv_fluxes.Inputs, conv_fluxes.InputPredictions)
     RESULTSEQUENCES = (conv_fluxes.InputResiduals,)
 
     @staticmethod
@@ -554,10 +536,7 @@ class Calc_Outputs_V3(modeltools.Method):
 
     CONTROLPARAMETERS = ()
     DERIVEDPARAMETERS = (conv_derived.NmbOutputs,)
-    REQUIREDSEQUENCES = (
-        conv_fluxes.OutputPredictions,
-        conv_fluxes.OutputResiduals,
-    )
+    REQUIREDSEQUENCES = (conv_fluxes.OutputPredictions, conv_fluxes.OutputResiduals)
     RESULTSEQUENCES = (conv_fluxes.Outputs,)
 
     @staticmethod
@@ -599,33 +578,33 @@ class Model(modeltools.AdHocModel):
         Calc_OutputResiduals_V1,
         Calc_Outputs_V3,
     )
-    ADD_METHODS = (
-        Return_Mean_V1,
-        Interpolate_InverseDistance_V1,
-    )
+    ADD_METHODS = (Return_Mean_V1, Interpolate_InverseDistance_V1)
     OUTLET_METHODS = (Pass_Outputs_V1,)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
-    def connect(self):
-        """Connect the |InletSequence| and |OutletSequence| objects of
-        the actual model to the |NodeSequence| objects handled by an
-        arbitrary number of inlet and outlet nodes.
 
-        To application models derived from |conv_model.Model|, you first
-        need to define an |Element| connected with an arbitrary number of
-        inlet and outlet nodes:
+class BaseModel(modeltools.AdHocModel):
+    """Base class for all HydPy-Conv application models."""
+
+    def connect(self):
+        """Connect the |InletSequence| and |OutletSequence| objects of the actual model
+        to the |NodeSequence| objects handled by an arbitrary number of inlet and
+        outlet nodes.
+
+        To application models derived from |conv_model.Model|, you first need to define
+        an |Element| connected with an arbitrary number of inlet and outlet nodes:
 
         >>> from hydpy import Element
         >>> conv = Element("conv",
         ...                inlets=["in1", "in2"],
         ...                outlets=["out1", "out2", "out3"])
 
-        Second, you must define the inlet and outlet nodes' coordinates via
-        parameter |InputCoordinates| and |OutputCoordinates|, respectively.
-        In both cases, use the names of the |Node| objects as keyword arguments
-        to pass the corresponding coordinates:
+        Second, you must define the inlet and outlet nodes' coordinates via parametera
+        |InputCoordinates| and |OutputCoordinates|, respectively.  In both cases, use
+        the names of the |Node| objects as keyword arguments to pass the corresponding
+        coordinates:
 
         >>> from hydpy.models.conv_v001 import *
         >>> parameterstep()
@@ -639,10 +618,9 @@ class Model(modeltools.AdHocModel):
         >>> maxnmbinputs()
         >>> parameters.update()
 
-        |conv| passes the current values of the inlet nodes correctly to
-        the outlet nodes (note that node `in1` works with simulated values
-        while node `in2` works with observed values, as we set its
-        |Node.deploymode| to `obs`):
+        |conv| passes the current values of the inlet nodes correctly to the outlet
+        nodes (note that node `in1` works with simulated values while node `in2` works
+        with observed values, as we set its |Node.deploymode| to `obs`):
 
         >>> conv.model = model
         >>> conv.inlets.in1.sequences.sim = 1.0
@@ -656,8 +634,8 @@ class Model(modeltools.AdHocModel):
         >>> conv.outlets.out3.sequences.sim
         sim(1.0)
 
-        When you forget a node (or misspell its name), you get the
-        following error message:
+        You get the following error message when you forget a node (or misspell its
+        name):
 
         >>> outputcoordinates(
         ...     out1=(0.0, 3.0),
@@ -667,10 +645,10 @@ class Model(modeltools.AdHocModel):
         >>> conv.model = model
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to connect model `conv_v001` of element \
-`conv`, the following error occurred: The node handled by control parameter \
-outputcoordinates (out1 and out2) are not the same as the outlet nodes \
-handled by element conv (out1, out2, and out3).
+        RuntimeError: While trying to connect model `conv_v001` of element `conv`, \
+the following error occurred: The node handled by control parameter outputcoordinates \
+(out1 and out2) are not the same as the outlet nodes handled by element conv (out1, \
+out2, and out3).
         """
         try:
             for coordinates, sequence, nodes in (
@@ -695,11 +673,10 @@ handled by element conv (out1, out2, and out3).
                     parameternodes = objecttools.enumeration(coordinates.nodes)
                     elementnodes = objecttools.enumeration(nodes)
                     raise RuntimeError(
-                        f"The node handled by control parameter "
-                        f"{coordinates.name} ({parameternodes}) are not the "
-                        f"same as the {sequence.subseqs.name[:-1]} nodes "
-                        f"handled by element {self.element.name} "
-                        f"({elementnodes})."
+                        f"The node handled by control parameter {coordinates.name} "
+                        f"({parameternodes}) are not the same as the "
+                        f"{sequence.subseqs.name[:-1]} nodes handled by element "
+                        f"{self.element.name} ({elementnodes})."
                     )
         except BaseException:
             objecttools.augment_excmessage(

@@ -18,7 +18,6 @@ class NmbRuns(parametertools.SolverParameter):
     NDIM = 0
     TYPE = int
     TIME = None
-    SPAN = (1, None)
 
 
 class ToleranceWaterLevel(parametertools.SolverParameter):
@@ -42,7 +41,7 @@ class ToleranceDischarge(parametertools.SolverParameter):
 
     CONTROLPARAMETERS = (musk_control.CatchmentArea,)
 
-    def modify_init(self) -> None:
+    def modify_init(self) -> float:
         r"""Adjust and return the value of class constant `INIT`.
 
         Ideally, in the long term, the iterative search for the reference water level

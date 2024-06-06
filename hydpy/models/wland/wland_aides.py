@@ -12,14 +12,26 @@ class FR(sequencetools.AideSequence):
     NDIM, NUMERIC, SPAN = 0, False, (0.0, 1.0)
 
 
+class WE(sequencetools.AideSequence):
+    """Wetness index in the elevated region [-]."""
+
+    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+
+
 class W(sequencetools.AideSequence):
-    """Wetness index [-]."""
+    """Wetness index in the lowland region [-]."""
+
+    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+
+
+class BetaE(sequencetools.AideSequence):
+    """Evapotranspiration reduction factor in the elevated region [-]."""
 
     NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
 
 class Beta(sequencetools.AideSequence):
-    """Evapotranspiration reduction factor [-]."""
+    """Evapotranspiration reduction factor in the lowland region [-]."""
 
     NDIM, NUMERIC, SPAN = 0, False, (None, None)
 

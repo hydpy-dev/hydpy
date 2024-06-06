@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-"""This module implements so-called exchange items, simplifying modifying the values of
-|Parameter| and |Sequence_| objects."""
+"""This module implements so-called exchange items that simplify modifying the values
+of |Parameter| and |Sequence_| objects."""
 # import...
 # ...from standard library
 import itertools
 import warnings
-from typing import *
 
 # ...from site-packages
 import numpy
@@ -21,10 +20,10 @@ from hydpy.core import sequencetools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
 
-Device2Target = Dict[
+Device2Target = dict[
     Union[devicetools.Node, devicetools.Element], variabletools.Variable
 ]
-Selection2Targets = Dict[str, Tuple[variabletools.Variable, ...]]
+Selection2Targets = dict[str, tuple[variabletools.Variable, ...]]
 LevelType = Literal["global", "selection", "device", "subunit"]
 
 
@@ -72,7 +71,7 @@ class ExchangeSpecification:
     """(Optional) name of the target keyword argument of the target or base variable."""
     series: bool
     """Flag indicating whether to tackle the target variable's actual values (|False|)
-    or complete time-series (|True|)."""
+    or complete time series (|True|)."""
     subgroup: Optional[str]
     """For model variables, the name of the parameter or sequence subgroup of the
     target or base variable; for node sequences, |None|."""
@@ -147,30 +146,34 @@ class ExchangeItem:
         raise NotImplementedError()
 
     def _iter_relevantelements(
-        self,
-        selection: selectiontools.Selection,
+        self, selection: selectiontools.Selection
     ) -> Iterator[devicetools.Element]:
         for element in selection.elements:
-            name1 = element.model.name
-            name2 = name1.rpartition("_")[0]
-            if self.targetspecs.master in (name1, name2):
-                yield element
+            for model in element.model.find_submodels(include_mainmodel=True).values():
+                name1 = model.name
+                name2 = name1.rpartition("_")[0]
+                if self.targetspecs.master in (name1, name2):
+                    yield element
+                    break
 
     @staticmethod
     def _query_elementvariable(
         element: devicetools.Element, properties: ExchangeSpecification
     ) -> variabletools.Variable:
-        model = element.model
-        for group in (model.parameters, model.sequences):
-            if properties.subgroup is not None:
-                subgroup = getattr(group, properties.subgroup, None)
-                if subgroup is not None:
-                    variable_ = subgroup[properties.variable]
-                    assert isinstance(variable_, variabletools.Variable)
-                    return variable_
+        # ToDo: Return more then one variable (possible for similar submodels).
+        p = properties
+        for model in element.model.find_submodels(include_mainmodel=True).values():
+            for group in (model.parameters, model.sequences):
+                if (
+                    ((subgroupname := p.subgroup) is not None)
+                    and ((subgroup := getattr(group, subgroupname, None)) is not None)
+                    and ((variable := getattr(subgroup, p.variable, None)) is not None)
+                ):
+                    assert isinstance(variable, variabletools.Variable)
+                    return variable
         raise RuntimeError(
-            f"Model {objecttools.elementphrase(model)} does neither handle a "
-            f"parameter nor a sequence subgroup named `{properties.subgroup}."
+            f"No model of element `{element.name}` handles a parameter or sequence "
+            f"named `{p.variable}` in subgroup `{p.subgroup}`."
         )
 
     @staticmethod
@@ -255,8 +258,8 @@ class ExchangeItem:
         >>> item.collect_variables(pub.selections)
         Traceback (most recent call last):
         ...
-        RuntimeError: Model `hland_v1` of element `land_dill` does neither \
-handle a parameter nor a sequence subgroup named `wrong_group.
+        RuntimeError: No model of element `land_dill` handles a parameter or sequence \
+named `ic` in subgroup `wrong_group`.
 
         Collecting the |Sim| or |Obs| sequences of |Node| objects works similarly:
 
@@ -277,7 +280,7 @@ handle a parameter nor a sequence subgroup named `wrong_group.
         True
         """
         variable: variabletools.Variable
-        variables: List[variabletools.Variable]
+        variables: list[variabletools.Variable]
         if self.targetspecs.master in ("node", "nodes"):
             for selection in selections:
                 variables = []
@@ -327,7 +330,7 @@ class ChangeItem(ExchangeItem):
 
     level: LevelType
     """The level at which the values of the change item are valid."""
-    _shape: Optional[Union[Tuple[()], Tuple[int]]]
+    _shape: Optional[Union[tuple[()], tuple[int]]]
     _value: Optional[NDArrayFloat]
 
     @property
@@ -336,7 +339,7 @@ class ChangeItem(ExchangeItem):
         return (self.level != "global") + self.targetspecs.series
 
     @property
-    def shape(self) -> Union[Tuple[()], Tuple[int]]:
+    def shape(self) -> Union[tuple[()], tuple[int]]:
         """The shape of the target variables.
 
         Trying to access property |ChangeItem.shape| before calling method
@@ -358,7 +361,7 @@ class ChangeItem(ExchangeItem):
         )
 
     @property
-    def seriesshape(self) -> Union[Tuple[int], Tuple[int, int]]:
+    def seriesshape(self) -> Union[tuple[int], tuple[int, int]]:
         """The shape of the target variables' whole time series.
 
         |ChangeItem.seriesshape| extends the |ChangeItem.shape| tuple by the length of
@@ -382,7 +385,9 @@ class ChangeItem(ExchangeItem):
         return (len(hydpy.pub.timegrids.sim),)
 
     @property
-    def subnames(self) -> Optional[Union[Tuple[()], Tuple[str, ...]]]:
+    def subnames(  # pylint: disable=inconsistent-return-statements
+        self,
+    ) -> Optional[Union[tuple[()], tuple[str, ...]]]:
         """Artificial subnames of all values of all target variables.
 
         Property |ChangeItem.subnames| offers a way to identify specific entries of the
@@ -396,7 +401,7 @@ class ChangeItem(ExchangeItem):
         if self.level == "device":
             return tuple(device.name for device in self.device2target)
         if self.level == "subunit":
-            subnames: List[str] = []
+            subnames: list[str] = []
             for device, target in self.device2target.items():
                 subsubnames = _make_subunit_name(device, target)
                 if isinstance(subsubnames, str):
@@ -404,8 +409,7 @@ class ChangeItem(ExchangeItem):
                 else:
                     subnames.extend(subsubnames)
             return tuple(subnames)
-        objecttools.assert_never(self.level)
-        return None
+        assert_never(self.level)
 
     @property
     def value(self) -> NDArrayFloat:
@@ -519,7 +523,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         >>> item.subnames
 
         For the "selection" level, we need one value for each relevant selection.
-        Therefore, we use the plain selection names as sub names:
+        Therefore, we use the plain selection names as sub-names:
 
         >>> item = SetItem("ic", "hland", "states.ic", None, "selection")
         >>> item.collect_variables(pub.selections)
@@ -529,7 +533,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         ('headwaters', 'nonheadwaters')
 
         For the "device" level, we need one value for each relevant device.  Therefore,
-        we use the plain device names as sub names:
+        we use the plain device names as sub-names:
 
         >>> item = SetItem("ic", "hland", "states.ic", None, "device")
         >>> item.collect_variables(pub.selections)
@@ -552,9 +556,9 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         >>> item.subnames  # doctest: +ELLIPSIS
         ('land_dill_0', 'land_dill_1', ..., 'land_lahn_3_12', 'land_lahn_3_13')
 
-        For 2-dimensional sequences, |ChangeItem.shape| returns the total number
-        of matrix entries and each sub name indicates the row and the column of a
-        specific matrix entry:
+        For 2-dimensional sequences, |ChangeItem.shape| returns the total number of
+        matrix entries, and each sub-name indicates the row and the column of a specific
+        matrix entry:
 
         >>> dill = hp.elements.land_dill.model
         >>> dill.parameters.control.sclass(2)
@@ -565,6 +569,16 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         >>> item.subnames  # doctest: +ELLIPSIS
         ('land_dill_0_0', 'land_dill_0_1', ..., \
 'land_dill_1_10', 'land_dill_1_11', ..., 'land_lahn_3_0_12', 'land_lahn_3_0_13')
+
+        For 0-dimensional sequences, |ChangeItem.shape| equals their number, and all
+        sub-names are identical to the corresponding device names:
+
+        >>> item = SetItem("lz", "hland", "states.lz", None, "subunit")
+        >>> item.collect_variables(pub.selections)
+        >>> item.shape
+        (4,)
+        >>> item.subnames  # doctest: +ELLIPSIS
+        ('land_dill', 'land_lahn_1', 'land_lahn_2', 'land_lahn_3')
 
         Everything works as explained above when specifying a keyword argument for
         defining values, except there is no support for the `subunit` level.  We show
@@ -612,9 +626,11 @@ keyword for an exchange item, its aggregation level cannot be `subunit`.
                     f"defining a keyword for an exchange item, its aggregation level "
                     f"cannot be `subunit`."
                 )
-            self._shape = (sum(len(target) for target in self.device2target.values()),)
+            self._shape = (
+                sum(target.numberofvalues for target in self.device2target.values()),
+            )
         else:
-            objecttools.assert_never(self.level)
+            assert_never(self.level)
 
     def update_variable(
         self, variable: variabletools.Variable, value: NDArrayFloat
@@ -817,10 +833,8 @@ value `wrong` cannot be converted to type `float`.
         land_lahn_2 tt(field=1.0, forest=0.0)
         land_lahn_3 tt(field=1.0, forest=0.0)
 
-        In contrast, when working on the "device" level, each device receives one
-        specific value (note that the final values of element `land_lahn_2` are partly
-        affected and that those of element `land_lahn_3` are all affected by the
-        |hland_states.Ic.trim| method of sequence |hland_states.IC|):
+        In contrast, each device receives one specific value when working on the
+        "device" level:
 
         >>> item = SetItem("ic", "hland_v1", "states.ic", None, "device")
         >>> item.collect_variables(pub.selections)
@@ -830,8 +844,8 @@ value `wrong` cannot be converted to type `float`.
         ...     print(element, element.model.sequences.states.ic)
         land_dill ic(0.5, 0.5, ..., 0.5, 0.5)
         land_lahn_1 ic(1.0, 1.0, ... 1.0, 1.0)
-        land_lahn_2 ic(1.0, 1.5, ..., 1.0, 1.5)
-        land_lahn_3 ic(1.0, 1.5, ..., 1.5, 1.5)
+        land_lahn_2 ic(1.5, 1.5, ..., 1.5, 1.5)
+        land_lahn_3 ic(2.0, 2.0, ..., 2.0, 2.0)
 
         >>> item = SetItem("t", "hland_v1", "inputs.t.series", None, "device")
         >>> item.collect_variables(pub.selections)
@@ -906,14 +920,14 @@ value `wrong` cannot be converted to type `float`.
         elif self.level == "subunit":
             idx0 = 0
             for variable in self.device2target.values():
-                idx1 = idx0 + len(variable)
+                idx1 = idx0 + variable.numberofvalues
                 subvalues = values[idx0:idx1]
                 if variable.NDIM > 1:
                     subvalues = subvalues.reshape(variable.shape)
                 self.update_variable(variable, subvalues)
                 idx0 = idx1
         else:
-            objecttools.assert_never(self.level)
+            assert_never(self.level)
 
 
 class SetItem(ChangeItem):
@@ -962,7 +976,7 @@ class SetItem(ChangeItem):
 
         The additional |SetItem| objects `uz`, `ic`, and `wc` address the time series
         of the 0-dimensional sequence |hland_states.UZ|, the 1-dimensional sequence
-        |hland_states.Ic|, and 2-dimensional sequence |hland_states.WC|:
+        |hland_states.Ic|, and the 2-dimensional sequence |hland_states.WC|:
 
         >>> uz = SetItem("uz", "hland_v1", "states.uz.series", None, "to be defined")
         >>> ic = SetItem("ic", "hland_v1", "states.ic.series", None, "to be defined")
@@ -983,8 +997,8 @@ class SetItem(ChangeItem):
         >>> dill = hp.elements.land_dill.model
 
         For rigorous testing, we increase the number of snow classes of this model
-        instance and thus the length of the first axis of its |hland_states.SP| and its
-        |hland_states.WC| object:
+        instance and, thus, the length of the first axis of its |hland_states.SP| and
+        its |hland_states.WC| object:
 
         >>> import numpy
         >>> dill.parameters.control.sclass(2)
@@ -1004,7 +1018,7 @@ class SetItem(ChangeItem):
         the (spatial) aggregation of data, which is not possible beyond the `device`
         level.  Therefore, until the implementation of a more general spatial data
         concept into *HydPy*, |SetItem.extract_values| raises the following error when
-        being applied on items working on the `global` or `selection` level:
+        being applied to items working on the `global` or `selection` level:
 
         >>> test("global")
         Traceback (most recent call last):
@@ -1168,19 +1182,19 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         ...     test("device")
         AttributeNotReadyWarning: While trying to query the values of exchange item \
 `uz`, the following error occured: While trying to calculate the mean value of the \
-internal time-series of sequence `uz` of element `land_dill`, the following error \
-occurred: Sequence `uz` of element `land_dill` is not requested to make any \
-time-series data available.
+internal time series of sequence `uz` of element `land_dill`, the following error \
+occurred: Sequence `uz` of element `land_dill` is not requested to make any time \
+series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
 `ic`, the following error occured: While trying to calculate the mean value of the \
-internal time-series of sequence `ic` of element `land_dill`, the following error \
-occurred: Sequence `ic` of element `land_dill` is not requested to make any \
-time-series data available.
+internal time series of sequence `ic` of element `land_dill`, the following error \
+occurred: Sequence `ic` of element `land_dill` is not requested to make any time \
+series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
 `wc`, the following error occured: While trying to calculate the mean value of the \
-internal time-series of sequence `wc` of element `land_dill`, the following error \
-occurred: Sequence `wc` of element `land_dill` is not requested to make any \
-time-series data available.
+internal time series of sequence `wc` of element `land_dill`, the following error \
+occurred: Sequence `wc` of element `land_dill` is not requested to make any time \
+series data available.
 
         >>> for series in uz.value:
         ...     print_values(series)  # doctest: +ELLIPSIS
@@ -1205,13 +1219,13 @@ has/have not been prepared so far.
         ...     test("subunit")
         AttributeNotReadyWarning: While trying to query the values of exchange item \
 `uz`, the following error occured: Sequence `uz` of element `land_dill` is not \
-requested to make any time-series data available.
+requested to make any time series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
 `ic`, the following error occured: Sequence `ic` of element `land_dill` is not \
-requested to make any time-series data available.
+requested to make any time series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
 `wc`, the following error occured: Sequence `wc` of element `land_dill` is not \
-requested to make any time-series data available.
+requested to make any time series data available.
 
         >>> for series in uz.value:
         ...     print_values(series)  # doctest: +ELLIPSIS
@@ -1241,7 +1255,7 @@ has/have not been prepared so far.
                 if series:
                     assert isinstance(variable, sequencetools.IOSequence)
                     try:
-                        targetvalues = variable.average_series()[jdx0:jdx1]
+                        itemvalues[idx] = variable.average_series()[jdx0:jdx1]
                     except exceptiontools.AttributeNotReady as exc:
                         self._value = None
                         warnings.warn(
@@ -1251,15 +1265,16 @@ has/have not been prepared so far.
                         )
                         return
                 elif self.targetspecs.keyword is None:
-                    targetvalues = variable.average_values()
+                    itemvalues[idx] = variable.average_values()
                 else:
                     assert isinstance(variable, parametertools.Parameter)
-                    targetvalues = variable.keywordarguments[self.targetspecs.keyword]
-                itemvalues[idx] = targetvalues
+                    itemvalues[idx] = variable.keywordarguments[
+                        self.targetspecs.keyword
+                    ]
         elif self.level == "subunit":
             idx0 = 0
             for variable in self.device2target.values():
-                idx1 = idx0 + len(variable)
+                idx1 = idx0 + variable.numberofvalues
                 if series:
                     assert isinstance(variable, sequencetools.IOSequence)
                     try:
@@ -1289,7 +1304,7 @@ has/have not been prepared so far.
                 f"far.  So, it is not possible to aggregate to the {self.level} level."
             )
         else:
-            objecttools.assert_never(self.level)
+            assert_never(self.level)
         self.value = itemvalues
         return
 
@@ -1325,16 +1340,11 @@ class MathItem(ChangeItem):
 
     basespecs: ExchangeSpecification
     """The exchange specification for the chosen base variable."""
-    target2base: Dict[variabletools.Variable, variabletools.Variable]
+    target2base: dict[variabletools.Variable, variabletools.Variable]
     """All target variable objects and their related base variable objects."""
 
     def __init__(
-        self,
-        name: str,
-        master: str,
-        target: str,
-        base: str,
-        level: LevelType,
+        self, name: str, master: str, target: str, base: str, level: LevelType
     ) -> None:
         self.name = Name(name)
         self.targetspecs = ExchangeSpecification(master, target, None)
@@ -1346,10 +1356,7 @@ class MathItem(ChangeItem):
         self.selection2targets = {}
         self.target2base = {}
 
-    def collect_variables(
-        self,
-        selections: selectiontools.Selections,
-    ) -> None:
+    def collect_variables(self, selections: selectiontools.Selections) -> None:
         """Apply method |ChangeItem.collect_variables| of the base class |ChangeItem|
         and also prepare the dictionary |MathItem.target2base|, which maps each target
         variable object to its base variable object.
@@ -1585,7 +1592,7 @@ class GetItem(ExchangeItem):
     """Base class for querying the values of multiple |Parameter| or |Sequence_|
     objects of a specific type."""
 
-    _device2name: Dict[Union[devicetools.Node, devicetools.Element], Name]
+    _device2name: dict[Union[devicetools.Node, devicetools.Element], Name]
     _ndim: Optional[int] = None
 
     def __init__(self, name: Name, master: str, target: str) -> None:
@@ -1651,21 +1658,21 @@ class GetItem(ExchangeItem):
 
     def yield_name2subnames(
         self,
-    ) -> Iterator[Tuple[Name, Union[str, Tuple[()], Tuple[str, ...]]]]:
-        """Sequentially return pairs of the item name and its artificial sub names.
+    ) -> Iterator[tuple[Name, Union[str, tuple[()], tuple[str, ...]]]]:
+        """Sequentially return pairs of the item name and its artificial sub-names.
 
-        The purpose and definition of the sub names are similar to those returned by
+        The purpose and definition of the sub-names are similar to those returned by
         property |ChangeItem.subnames| of class |ChangeItem| described in the
         documentation on method |ChangeItem.collect_variables|.  However, class
         |GetItem| does not support different aggregation levels and each |GetItem|
-        object operates on the device level.  Therefore, the returned sub names rely on
+        object operates on the device level.  Therefore, the returned sub-names rely on
         the device names; and, for non-scalar target variables, additionally on the
         individual vector or matrix indices.
 
         Each item name is automatically generated and contains the name of the
         respective |Variable| object's |Device| and the target description.
 
-        For 0-dimensional variables, there is only one sub name that is identical to
+        For 0-dimensional variables, there is only one sub-name that is identical to
         the device name:
 
         >>> from hydpy.examples import prepare_full_example_2
@@ -1689,7 +1696,7 @@ class GetItem(ExchangeItem):
         lahn_2_sim_series lahn_2
         lahn_3_sim_series lahn_3
 
-        For non-scalar variables, the sub names combine the device name and all
+        For non-scalar variables, the sub-names combine the device name and all
         possible index combinations for the current shape of the target variable:
 
         >>> item = GetItem("sm", "hland_v1", "states.sm")
@@ -1719,7 +1726,7 @@ class GetItem(ExchangeItem):
 
     def yield_name2value(
         self, idx1: Optional[int] = None, idx2: Optional[int] = None
-    ) -> Iterator[Tuple[Name, str]]:
+    ) -> Iterator[tuple[Name, str]]:
         """Sequentially return name-value pairs describing the current state of the
         target variables.
 

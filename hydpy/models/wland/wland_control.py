@@ -3,20 +3,15 @@
 # import...
 # ...from HydPy
 from hydpy.core import exceptiontools
+from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.models.wland import wland_parameters
 from hydpy.models.wland import wland_constants
 from hydpy.models.wland.wland_constants import *
 
 
-class AL(parametertools.Parameter):
-    """Land area [km²]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-
-
-class AS_(parametertools.Parameter):
-    """Surface water area [km²]."""
+class AT(parametertools.Parameter):
+    """Total area [km²]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
@@ -56,23 +51,23 @@ class NU(parametertools.Parameter):
     ic(1.0, 1.0)
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         old = exceptiontools.getattr_(self, "value", None)
         super().__call__(*args, **kwargs)
-        new = self.__hydpy__get_value__()
+        new = self._get_value()
         if new != old:
             for subpars in self.subpars.pars.model.parameters:
                 for par in subpars:
                     if (par.NDIM == 1) and (
                         not isinstance(par, parametertools.MonthParameter)
                     ):
-                        par.__hydpy__set_shape__(new)
+                        par._set_shape(new)
             for subseqs in self.subpars.pars.model.sequences:
                 for seq in subseqs:
                     if seq.NDIM == 1:
-                        seq.__hydpy__set_shape__(new)
+                        seq._set_shape(new)
 
 
 class LT(parametertools.NameParameter):
@@ -84,20 +79,64 @@ class LT(parametertools.NameParameter):
 
     >>> from hydpy.models.wland import *
     >>> parameterstep()
-    >>> nu(11)
-    >>> lt(SEALED, FIELD, WINE, ORCHARD, SOIL, PASTURE, WETLAND,
-    ...    TREES, CONIFER, DECIDIOUS, MIXED)
+    >>> nu(12)
+    >>> lt(SEALED, FIELD, WINE, ORCHARD, SOIL, PASTURE,
+    ...    WETLAND, TREES, CONIFER, DECIDIOUS, MIXED, WATER)
     >>> lt
     lt(SEALED, FIELD, WINE, ORCHARD, SOIL, PASTURE, WETLAND, TREES,
-       CONIFER, DECIDIOUS, MIXED)
+       CONIFER, DECIDIOUS, MIXED, WATER)
+
+    Note that |wland| generally requires a single surface water storage unit, which
+    must be placed at the last position.  Trying to set another land type causes the
+    following error:
+
+    >>> lt(SEALED, FIELD, WINE, ORCHARD, SOIL, PASTURE,
+    ...    WETLAND, TREES, CONIFER, DECIDIOUS, MIXED, MIXED)
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to set the land use types via parameter `lt` of element \
+`?`, the following error occurred: The last land use type must be `WATER`, but \
+`MIXED` is given.
+
+    Trying to define multiple such units results in the following error:
+
+    >>> lt(SEALED, FIELD, WINE, ORCHARD, SOIL, PASTURE,
+    ...    WETLAND, TREES, CONIFER, DECIDIOUS, WATER, WATER)
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to set the land use types via parameter `lt` of element \
+`?`, the following error occurred: W-Land requires a single surface water storage \
+unit, but 2 units are defined as such.
     """
 
-    NDIM, TYPE, TIME = 1, int, None
-    SPAN = (
-        min(wland_constants.LANDUSE_CONSTANTS.values()),
-        max(wland_constants.LANDUSE_CONSTANTS.values()),
-    )
-    CONSTANTS = wland_constants.LANDUSE_CONSTANTS
+    constants = wland_constants.LANDUSE_CONSTANTS
+
+    def __call__(self, *args, **kwargs) -> None:
+        super().__call__(*args, **kwargs)
+        try:
+            is_water = self.values == WATER
+            if not is_water[-1]:
+                lt = wland_constants.LANDUSE_CONSTANTS.value2name[self.values[-1]]
+                raise ValueError(
+                    f"The last land use type must be `WATER`, but `{lt}` is given."
+                )
+            if sum(is_water) > 1:
+                raise ValueError(
+                    f"W-Land requires a single surface water storage unit, but "
+                    f"{sum(is_water)} units are defined as such."
+                )
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to set the land use types via parameter "
+                f"{objecttools.elementphrase(self)}"
+            )
+
+
+class ER(wland_parameters.LanduseParameterLand):
+    """Elevated region [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, bool, None, (None, None)
+    INIT = False
 
 
 class AUR(parametertools.Parameter):
@@ -106,25 +145,63 @@ class AUR(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
 
 
+class GL(parametertools.Parameter):
+    """The lowland region's average ground level [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+
+    def trim(self, lower=None, upper=None) -> bool:
+        r"""Ensure |GL| is above |BL|.
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+
+        >>> gl(2.0)
+        >>> gl
+        gl(2.0)
+
+        >>> bl.value = 4.0
+        >>> gl(3.0)
+        >>> gl
+        gl(4.0)
+        """
+        if lower is None:
+            lower = exceptiontools.getattr_(self.subpars.bl, "value", None)
+        return super().trim(lower, upper)
+
+
+class BL(parametertools.Parameter):
+    """Channel bottom level [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+
+    def trim(self, lower=None, upper=None) -> bool:
+        r"""Ensure |BL| is below |GL|.
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+
+        >>> bl(4.0)
+        >>> bl
+        bl(4.0)
+
+        >>> gl.value = 2.0
+        >>> bl(3.0)
+        >>> bl
+        bl(2.0)
+        """
+        if upper is None:
+            upper = exceptiontools.getattr_(self.subpars.gl, "value", None)
+        return super().trim(lower, upper)
+
+
 class CP(parametertools.Parameter):
     """Factor for correcting precipitation [-]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-
-
-class CPETL(wland_parameters.LanduseMonthParameter):
-    """Factor for converting general potential evapotranspiration (usually grass
-    reference evapotranspiration) to land-use-specific potential evapotranspiration
-    [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
-
-
-class CPES(parametertools.MonthParameter):
-    """Factor for converting general potential evapotranspiration (usually grass
-    reference evapotranspiration) to potential evaporation from water areas [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
 class LAI(wland_parameters.LanduseMonthParameter):
@@ -151,7 +228,7 @@ class TI(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
 
-class DDF(wland_parameters.LanduseParameter):
+class DDF(wland_parameters.LanduseParameterLand):
     """Day degree factor [mm/°C/T]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, None)
@@ -163,22 +240,40 @@ class DDT(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
 
+class CWE(parametertools.Parameter):
+    """Wetness index parameter for the elevated region [mm]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (1.0, None)
+
+
 class CW(parametertools.Parameter):
-    """Wetness index parameter [mm]."""
+    """Wetness index parameter for the lowland region [mm]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (1.0, None)
 
 
 class CV(parametertools.Parameter):
-    """Vadose zone relaxation time constant [T]."""
+    """Vadose zone relaxation time constant for the lowland region [T]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
+
+
+class CGE(parametertools.Parameter):
+    """Groundwater reservoir constant for the elevated region [mm T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
 
 class CG(parametertools.Parameter):
-    """Groundwater reservoir constant [mm T]."""
+    """Groundwater reservoir constant for the lowland region [mm T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
+
+
+class RG(parametertools.Parameter):
+    """Groundwater reservoir restriction [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, bool, None, (None, None)
 
 
 class CGF(parametertools.Parameter):
@@ -187,35 +282,16 @@ class CGF(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
 
+class DGC(parametertools.Parameter):
+    """Direct groundwater connect [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, bool, None, (None, None)
+
+
 class CQ(parametertools.Parameter):
     """Quickflow reservoir relaxation time [T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
-
-
-class CD(parametertools.Parameter):
-    """Channel depth [mm]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-
-
-class CS(parametertools.Parameter):
-    """Surface water parameter for bankfull discharge [mm/T]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
-
-
-class HSMin(parametertools.Parameter):
-    """Surface water level where and below which discharge is zero [mm]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-
-
-class XS(parametertools.Parameter):
-    """Stage-discharge relation exponent [-]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-    INIT = 1.5
 
 
 class B(wland_parameters.SoilParameter):
@@ -337,7 +413,7 @@ class ThetaS(wland_parameters.SoilParameter):
         CLAY: 0.482,
     }
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |ThetaS| following :math:`1e^{-6} \leq ThetaS \leq 1.0` and,
         if |ThetaR| exists for the relevant application model, also following
         :math:`ThetaR \leq ThetaS`.
@@ -367,7 +443,7 @@ class ThetaS(wland_parameters.SoilParameter):
                 lower = exceptiontools.getattr_(self.subpars.thetar, "value", 1e-6)
             else:
                 lower = 1e-6
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class ThetaR(parametertools.Parameter):
@@ -376,7 +452,7 @@ class ThetaR(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (1e-6, None)
     INIT = 0.01
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |ThetaR| following :math:`1e^{-6} \leq ThetaR \leq ThetaS`.
 
         >>> from hydpy.models.wland import *
@@ -391,7 +467,20 @@ class ThetaR(parametertools.Parameter):
         """
         if upper is None:
             upper = exceptiontools.getattr_(self.subpars.thetas, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
+
+
+class AC(parametertools.Parameter):
+    """Air capacity for the elevated region [mm].
+
+    ToDo: We should principally derive |AC| from |SoilParameter|, but
+          :cite:t:`ref-Brauer2014` provides no soil-specific default values for it
+          because it is not part of the original WALRUS model.  Do we want to determine
+          consistent ones by ourselves?
+    """
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    INIT = 200.0
 
 
 class Zeta1(parametertools.Parameter):

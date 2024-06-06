@@ -14,8 +14,8 @@ cdef class PPoly:
     cdef public double[:] outputs
     cdef public double[:] output_derivatives
 
-    cpdef inline void calculate_values(self) nogil
-    cpdef inline void calculate_derivatives(self, int idx_input) nogil
+    cpdef inline void calculate_values(self) noexcept nogil
+    cpdef inline void calculate_derivatives(self, int idx_input) noexcept nogil
 
     # algorithm-specific requirements:
 
@@ -24,4 +24,4 @@ cdef class PPoly:
     cdef public double[:] x0s
     cdef public double[:, :] cs
 
-    cpdef inline int find_index(self) nogil
+    cpdef inline int find_index(self) noexcept nogil

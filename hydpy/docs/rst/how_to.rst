@@ -95,7 +95,7 @@ Now it will reset each given state to the corresponding initial value
 before each test run.  Note that |Test.inits| also accepts |LogSequence|
 objects (see for example the documentation on application model |hland_v1|,
 in which we define a single value for the unit hydrograph memory sequence
-|hland_logs.QUH|).
+|rconc_logs.QUH|).
 
 Finally, we define all model input series.  |lland_v1| receives external
 meteorological input only, which we make available via the |IOSequence.series|

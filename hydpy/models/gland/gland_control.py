@@ -35,14 +35,6 @@ class X3(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
 
 
-class X4(parametertools.Parameter):
-    """Time base of unit hydrographs |UH1| (|X4|) and |UH2| (2*|X4|) [T]."""
-
-    # todo: obere Grenze unit hydrograph 20 Tage?
-
-    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.5, None)
-
-
 class X5(parametertools.Parameter):
     """Intercatchment exchange threshold [-]."""
 

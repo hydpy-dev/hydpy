@@ -8,6 +8,7 @@ from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
 from hydpy.interfaces import petinterfaces
+from hydpy.interfaces import rconcinterfaces
 
 # ...from gland
 from hydpy.models.gland import gland_inputs
@@ -16,7 +17,6 @@ from hydpy.models.gland import gland_control
 from hydpy.models.gland import gland_states
 from hydpy.models.gland import gland_outlets
 from hydpy.models.gland import gland_derived
-from hydpy.models.gland import gland_logs
 
 
 class Calc_E_PETModel_V1(modeltools.Method):
@@ -526,22 +526,51 @@ class Calc_PR1_PR9_V1(modeltools.Method):
         flu.pr1 = flu.pr - flu.pr9
 
 
+class Calc_Q9_RConcModel_V1(modeltools.Method):
+    """Let a submodel that follows the |RConcModel_V1| submodel interface calculate
+    runoff concentration."""
+
+    REQUIREDSEQUENCES = (gland_fluxes.PR9,)
+    RESULTSEQUENCES = (gland_fluxes.Q9,)
+
+    @staticmethod
+    def __call__(
+        model: modeltools.Model, submodel: rconcinterfaces.RConcModel_V1
+    ) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        submodel.set_inflow(flu.pr9)
+        submodel.determine_outflow()
+        flu.q9 = submodel.get_outflow()
+
+
 class Calc_Q9_V1(modeltools.Method):
-    """Calculate the urunofff concentration with |PR9| as input.
+    """Calculate the runofff concentration with |PR9| as input.
 
     Examples:
 
-        Prepare a unit hydrograph with only three ordinates:
+        A model without a submodel for runoff concentration directs the input directly
+        to the output:
+
+        >>> from hydpy.models.gland_gr4 import *
+        >>> simulationstep("1h")
+        >>> parameterstep("1d")
+        >>> fluxes.pr9 = 1.0
+        >>> model.calc_q9_v1()
+        >>> fluxes.q9
+        q9(1.0)
+
+        Prepare a submodel for a unit hydrograph with only three ordinates:
 
         >>> from hydpy.models.gland import *
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> simulationstep('1d')
-        >>> x4(3)
-        >>> derived.uh1.update()
-        >>> derived.uh1
-        uh1(0.06415, 0.298737, 0.637113)
-        >>> logs.quh1 = 1.0, 3.0, 0.0
+        >>> with model.add_rconcmodel_routingstore_v1("rconc_uh"):
+        ...     uh("gr_uh1", x4=3)
+        >>> from hydpy import round_
+        >>> round_(model.rconcmodel_routingstore.parameters.control.uh.values)
+        0.06415, 0.298737, 0.637113
+        >>> model.rconcmodel_routingstore.sequences.logs.quh = 1.0, 3.0, 0.0
 
         Without new input, the actual output is simply the first value stored in the
         logging sequence and the values of the logging sequence are shifted to the left:
@@ -550,10 +579,10 @@ class Calc_Q9_V1(modeltools.Method):
         >>> model.calc_q9_v1()
         >>> fluxes.q9
         q9(1.0)
-        >>> logs.quh1
-        quh1(3.0, 0.0, 0.0)
+        >>> model.rconcmodel_routingstore.sequences.logs.quh
+        quh(3.0, 0.0, 0.0)
 
-        With an new input of 4mm, the actual output consists of the first value
+        With an new input of 4 mm, the actual output consists of the first value
         stored in the logging sequence and the input value multiplied with the first
         unit hydrograph ordinate. The updated logging sequence values result from the
         multiplication of the input values and the remaining ordinates:
@@ -562,13 +591,13 @@ class Calc_Q9_V1(modeltools.Method):
         >>> model.calc_q9_v1()
         >>> fluxes.q9
         q9(3.23094)
-        >>> logs.quh1
-        quh1(1.075454, 2.293605, 0.0)
+        >>> model.rconcmodel_routingstore.sequences.logs.quh
+        quh(1.075454, 2.293605, 0.0)
 
         In the next example we set the memory to zero (no input in the past),
         and apply a single input signal:
 
-        >>> logs.quh1 = 0.0, 0.0, 0.0
+        >>> model.rconcmodel_routingstore.sequences.logs.quh = 0.0, 0.0, 0.0
         >>> fluxes.pr9 = 3.6
         >>> model.calc_q9_v1()
         >>> fluxes.q9
@@ -585,50 +614,81 @@ class Calc_Q9_V1(modeltools.Method):
         q9(0.0)
 
         A unit hydrograph with only one ordinate results in the direct routing of the
-        input, remember, only 90% of pr enters |UH1|:
+        input, remember, only 90% of pr enters UH:
 
-        >>> x4(0.8)
-        >>> derived.uh1.update()
-        >>> derived.uh1
-        uh1(1.0)
-        >>> logs.quh1 = 0
+        >>> with model.add_rconcmodel_routingstore_v1("rconc_uh"):
+        ...     uh("gr_uh1", x4=0.8)
+        >>> round_(model.rconcmodel_routingstore.parameters.control.uh.values)
+        1.0
+        >>> model.rconcmodel_routingstore.sequences.logs.quh = 0.0
         >>> fluxes.pr9 = 3.6
         >>> model.calc_q9_v1()
         >>> fluxes.q9
         q9(3.6)
     """
 
-    DERIVEDPARAMETERS = (gland_derived.UH1,)
+    SUBMODELINTERFACES = (rconcinterfaces.RConcModel_V1,)
+    SUBMETHODS = (Calc_Q9_RConcModel_V1,)
     REQUIREDSEQUENCES = (gland_fluxes.PR9,)
-    UPDATEDSEQUENCES = (gland_logs.QUH1,)
     RESULTSEQUENCES = (gland_fluxes.Q9,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        log = model.sequences.logs.fastaccess
-        flu.q9 = der.uh1[0] * flu.pr9 + log.quh1[0]
-        for jdx in range(1, len(der.uh1)):
-            log.quh1[jdx - 1] = der.uh1[jdx] * flu.pr9 + log.quh1[jdx]
+        if model.rconcmodel_routingstore is None:
+            flu.q9 = flu.pr9
+        elif model.rconcmodel_routingstore_typeid == 1:
+            model.calc_q9_rconcmodel_v1(
+                cast(rconcinterfaces.RConcModel_V1, model.rconcmodel_routingstore)
+            )
+
+
+class Calc_Q1_RConcModel_V1(modeltools.Method):
+    """Let a submodel that follows the |RConcModel_V1| submodel interface calculate
+    runoff concentration."""
+
+    REQUIREDSEQUENCES = (gland_fluxes.PR1,)
+    RESULTSEQUENCES = (gland_fluxes.Q1,)
+
+    @staticmethod
+    def __call__(
+        model: modeltools.Model, submodel: rconcinterfaces.RConcModel_V1
+    ) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        submodel.set_inflow(flu.pr1)
+        submodel.determine_outflow()
+        flu.q1 = submodel.get_outflow()
 
 
 class Calc_Q1_V1(modeltools.Method):
-    """Calculate the urunofff concentration with |PR1| as input.
+    """Calculate the runofff concentration with |PR1| as input.
 
     Examples:
 
-        Prepare a unit hydrograph with six ordinates:
+        A model without a submodel for runoff concentration directs the input directly
+        to the output:
+
+        >>> from hydpy.models.gland_gr4 import *
+        >>> simulationstep("1h")
+        >>> parameterstep("1d")
+        >>> fluxes.pr1 = 1.0
+        >>> model.calc_q1_v1()
+        >>> fluxes.q1
+        q1(1.0)
+
+        Prepare a submodel for a unit hydrograph with six ordinates:
 
         >>> from hydpy.models.gland import *
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> simulationstep('1d')
-        >>> x4(3)
-        >>> derived.uh2.update()
-        >>> derived.uh2
-        uh2(0.032075, 0.149369, 0.318556, 0.318556, 0.149369, 0.032075)
-        >>> logs.quh2 = 1.0, 3.0, 0.0, 2.0, 1.0, 0.0
+        >>> with model.add_rconcmodel_directflow_v1("rconc_uh"):
+        ...     uh("gr_uh2", x4=3)
+        >>> from hydpy import round_
+        >>> round_(model.rconcmodel_directflow.parameters.control.uh.values)
+        0.032075, 0.149369, 0.318556, 0.318556, 0.149369, 0.032075
+        >>> model.rconcmodel_directflow.sequences.logs.quh = (1.0, 3.0, 0.0, 2.0,
+        ...                                                   1.0, 0.0)
 
         Without new input, the actual output is simply the first value stored in the
         logging sequence and the values of the logging sequence are shifted to the left:
@@ -637,8 +697,8 @@ class Calc_Q1_V1(modeltools.Method):
         >>> model.calc_q1_v1()
         >>> fluxes.q1
         q1(1.0)
-        >>> logs.quh2
-        quh2(3.0, 0.0, 2.0, 1.0, 0.0, 0.0)
+        >>> model.rconcmodel_directflow.sequences.logs.quh
+        quh(3.0, 0.0, 2.0, 1.0, 0.0, 0.0)
 
         With an new input of 4mm, the actual output consists of the first value
         stored in the logging sequence and the input value multiplied with the first
@@ -649,13 +709,14 @@ class Calc_Q1_V1(modeltools.Method):
         >>> model.calc_q1_v1()
         >>> fluxes.q1
         q1(3.01283)
-        >>> logs.quh2
-        quh2(0.059747, 2.127423, 1.127423, 0.059747, 0.01283, 0.0)
+        >>> model.rconcmodel_directflow.sequences.logs.quh
+        quh(0.059747, 2.127423, 1.127423, 0.059747, 0.01283, 0.0)
 
         In the next example we set the memory to zero (no input in the past), and
         apply a single input signal:
 
-        >>> logs.quh2 = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+        >>> model.rconcmodel_directflow.sequences.logs.quh = (0.0, 0.0, 0.0, 0.0,
+        ...                                                   0.0, 0.0)
         >>> fluxes.pr1 = 0.4
         >>> model.calc_q1_v1()
         >>> fluxes.q1
@@ -681,40 +742,70 @@ class Calc_Q1_V1(modeltools.Method):
         q1(0.0)
     """
 
-    DERIVEDPARAMETERS = (gland_derived.UH2,)
+    SUBMODELINTERFACES = (rconcinterfaces.RConcModel_V1,)
+    SUBMETHODS = (Calc_Q1_RConcModel_V1,)
     REQUIREDSEQUENCES = (gland_fluxes.PR1,)
-    UPDATEDSEQUENCES = (gland_logs.QUH2,)
     RESULTSEQUENCES = (gland_fluxes.Q1,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        log = model.sequences.logs.fastaccess
-        flu.q1 = der.uh2[0] * flu.pr1 + log.quh2[0]
-        for jdx in range(1, len(der.uh2)):
-            log.quh2[jdx - 1] = der.uh2[jdx] * flu.pr1 + log.quh2[jdx]
+        if model.rconcmodel_directflow is None:
+            flu.q1 = flu.pr1
+        elif model.rconcmodel_directflow_typeid == 1:
+            model.calc_q1_rconcmodel_v1(
+                cast(rconcinterfaces.RConcModel_V1, model.rconcmodel_directflow)
+            )
+
+
+class Calc_Q10_RConcModel_V1(modeltools.Method):
+    """Let a submodel that follows the |RConcModel_V1| submodel interface calculate
+    runoff concentration."""
+
+    REQUIREDSEQUENCES = (gland_fluxes.PR,)
+    RESULTSEQUENCES = (gland_fluxes.Q10,)
+
+    @staticmethod
+    def __call__(
+        model: modeltools.Model, submodel: rconcinterfaces.RConcModel_V1
+    ) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        submodel.set_inflow(flu.pr)
+        submodel.determine_outflow()
+        flu.q10 = submodel.get_outflow()
 
 
 class Calc_Q10_V1(modeltools.Method):
-    """Calculate the unit hydrograph |UH2| output (convolution).
+    """Calculate the runoff concentration with |PR| as input.
 
-    This is the version for the GR5 model with only one unit hydrograph. The input is
+    This version is used in the GR5 model with only one unit hydrograph. The input is
     100% of |PR|.
 
     Examples:
 
-        Prepare a unit hydrograph with only six ordinates:
+        A model without a submodel for runoff concentration directs the input directly
+        to the output:
+
+        >>> from hydpy.models.gland_gr5 import *
+        >>> simulationstep("1h")
+        >>> parameterstep("1d")
+        >>> fluxes.pr = 1.0
+        >>> model.calc_q10_v1()
+        >>> fluxes.q10
+        q10(1.0)
+
+        Prepare a submodel for a unit hydrograph with six ordinates:
 
         >>> from hydpy.models.gland import *
         >>> from hydpy import pub
         >>> parameterstep('1d')
         >>> simulationstep('1d')
-        >>> x4(3)
-        >>> derived.uh2.update()
-        >>> derived.uh2
-        uh2(0.032075, 0.149369, 0.318556, 0.318556, 0.149369, 0.032075)
-        >>> logs.quh2 = 3.0, 3.0, 0.0, 2.0, 4.0, 0.0
+        >>> with model.add_rconcmodel_v1("rconc_uh"):
+        ...     uh("gr_uh2", x4=3)
+        >>> from hydpy import round_
+        >>> round_(model.rconcmodel.parameters.control.uh.values)
+        0.032075, 0.149369, 0.318556, 0.318556, 0.149369, 0.032075
+        >>> model.rconcmodel.sequences.logs.quh = 3.0, 3.0, 0.0, 2.0, 4.0, 0.0
 
         Without new input, the actual output is simply the first value stored in the
         logging sequence and the values of the logging sequence are shifted to the left.
@@ -723,8 +814,8 @@ class Calc_Q10_V1(modeltools.Method):
         >>> model.calc_q10_v1()
         >>> fluxes.q10
         q10(3.0)
-        >>> logs.quh2
-        quh2(3.0, 0.0, 2.0, 4.0, 0.0, 0.0)
+        >>> model.rconcmodel.sequences.logs.quh
+        quh(3.0, 0.0, 2.0, 4.0, 0.0, 0.0)
 
         With an new input of 2mm, the actual output consists of the first value
         stored in the logging sequence and the input value multiplied with the first
@@ -735,23 +826,24 @@ class Calc_Q10_V1(modeltools.Method):
         >>> model.calc_q10_v1()
         >>> fluxes.q10
         q10(3.06415)
-        >>> logs.quh2
-        quh2(0.298737, 2.637113, 4.637113, 0.298737, 0.06415, 0.0)
+        >>> model.rconcmodel.sequences.logs.quh
+        quh(0.298737, 2.637113, 4.637113, 0.298737, 0.06415, 0.0)
     """
 
-    DERIVEDPARAMETERS = (gland_derived.UH2,)
+    SUBMODELINTERFACES = (rconcinterfaces.RConcModel_V1,)
+    SUBMETHODS = (Calc_Q10_RConcModel_V1,)
     REQUIREDSEQUENCES = (gland_fluxes.PR,)
-    UPDATEDSEQUENCES = (gland_logs.QUH2,)
     RESULTSEQUENCES = (gland_fluxes.Q10,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        log = model.sequences.logs.fastaccess
-        flu.q10 = der.uh2[0] * flu.pr + log.quh2[0]
-        for jdx in range(1, len(der.uh2)):
-            log.quh2[jdx - 1] = der.uh2[jdx] * flu.pr + log.quh2[jdx]
+        if model.rconcmodel is None:
+            flu.q10 = flu.pr
+        elif model.rconcmodel_typeid == 1:
+            model.calc_q10_rconcmodel_v1(
+                cast(rconcinterfaces.RConcModel_V1, model.rconcmodel)
+            )
 
 
 class Calc_Q1_Q9_V2(modeltools.Method):
@@ -1346,15 +1438,32 @@ class Model(modeltools.AdHocModel):
         Calc_QH_V2,
         Calc_QV_V1,
     )
-    ADD_METHODS = (Calc_E_PETModel_V1,)
+    ADD_METHODS = (
+        Calc_E_PETModel_V1,
+        Calc_Q1_RConcModel_V1,
+        Calc_Q9_RConcModel_V1,
+        Calc_Q10_RConcModel_V1,
+    )
     OUTLET_METHODS = (Pass_Q_V1,)
     SENDER_METHODS = ()
-    SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
+    SUBMODELINTERFACES = (petinterfaces.PETModel_V1, rconcinterfaces.RConcModel_V1)
     SUBMODELS = ()
 
     petmodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
     petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     petmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    rconcmodel = modeltools.SubmodelProperty(rconcinterfaces.RConcModel_V1)
+    rconcmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    rconcmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    rconcmodel_directflow = modeltools.SubmodelProperty(rconcinterfaces.RConcModel_V1)
+    rconcmodel_directflow_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    rconcmodel_directflow_typeid = modeltools.SubmodelTypeIDProperty()
+
+    rconcmodel_routingstore = modeltools.SubmodelProperty(rconcinterfaces.RConcModel_V1)
+    rconcmodel_routingstore_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    rconcmodel_routingstore_typeid = modeltools.SubmodelTypeIDProperty()
 
 
 class Main_PETModel_V1(modeltools.AdHocModel):
@@ -1388,3 +1497,118 @@ class Main_PETModel_V1(modeltools.AdHocModel):
         control = self.parameters.control
         petmodel.prepare_nmbzones(1)
         petmodel.prepare_subareas(control.area.value)
+
+
+class Main_RConcModel_V1(modeltools.AdHocModel):
+    """Base class for HydPy-H models that use submodels that comply with the
+    |RConcModel_V1| interface."""
+
+    rconcmodel: modeltools.SubmodelProperty
+    rconcmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    rconcmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel("rconcmodel", rconcinterfaces.RConcModel_V1)
+    def add_rconcmodel_v1(
+        self, rconcmodel: rconcinterfaces.RConcModel_V1, /, *, refresh: bool
+    ) -> None:
+        """Initialise the given submodel that follows the |RConcModel_V1| interface and
+        is responsible for calculating the runoff concentration.
+
+        >>> from hydpy.models.gland_gr5 import *
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
+        >>> with model.add_rconcmodel_v1("rconc_uh"):
+        ...     uh("gr_uh2", x4=3)
+        >>> from hydpy import round_
+        >>> model.rconcmodel.sequences.logs.quh = 1.0, 3.0, 0.0, 2.0, 1.0, 0.0
+        >>> model.sequences.fluxes.pr = 0.0
+        >>> model.calc_q10_v1()
+        >>> fluxes.q10
+        q10(1.0)
+        """
+
+    def _get_rconcmodel_waterbalance(
+        self, initial_conditions: ConditionsModel
+    ) -> float:
+        r"""Get the water balance of the rconc submodel if used."""
+        if self.rconcmodel:
+            return self.rconcmodel.get_waterbalance(
+                initial_conditions["model.rconcmodel"]
+            )
+        return 0.0
+
+
+class Main_RConcModel_V2(modeltools.AdHocModel):
+    """Base class for HydPy-H models that use submodels that comply with the
+    |RConcModel_V1| interface."""
+
+    rconcmodel_routingstore: modeltools.SubmodelProperty
+    rconcmodel_directflow: modeltools.SubmodelProperty
+    rconcmodel_routingstore_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    rconcmodel_directflow_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    rconcmodel_routingstore_typeid = modeltools.SubmodelTypeIDProperty()
+    rconcmodel_directflow_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel(
+        "rconcmodel_routingstore", rconcinterfaces.RConcModel_V1
+    )
+    def add_rconcmodel_routingstore_v1(
+        self, rconcmodel: rconcinterfaces.RConcModel_V1, /, *, refresh: bool
+    ) -> None:
+        """Initialise the given submodel that follows the |RConcModel_V1| interface and
+        is responsible for calculating the runoff concentration.
+
+        >>> from hydpy.models.gland_gr4 import *
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
+        >>> with model.add_rconcmodel_routingstore_v1("rconc_uh"):
+        ...     uh([0.3, 0.5, 0.2])
+        ...     logs.quh.shape = 3
+        ...     logs.quh = 1.0, 3.0, 0.0
+        >>> model.sequences.fluxes.pr9 = 0.0
+        >>> model.calc_q9_v1()
+        >>> fluxes.q9
+        q9(1.0)
+        """
+
+    @importtools.prepare_submodel(
+        "rconcmodel_directflow", rconcinterfaces.RConcModel_V1
+    )
+    def add_rconcmodel_directflow_v1(
+        self, rconcmodel: rconcinterfaces.RConcModel_V1, /, *, refresh: bool
+    ) -> None:
+        """Initialise the given submodel that follows the |RConcModel_V1| interface and
+        is responsible for calculating the runoff concentration.
+
+        >>> from hydpy.models.gland_gr4 import *
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
+        >>> with model.add_rconcmodel_directflow_v1("rconc_uh"):
+        ...     uh([0.3, 0.5, 0.2])
+        ...     logs.quh.shape = 3
+        ...     logs.quh = 1.0, 3.0, 0.0
+        >>> model.sequences.fluxes.pr1 = 0.0
+        >>> model.calc_q1_v1()
+        >>> fluxes.q1
+        q1(1.0)
+        """
+
+    def _get_rconcmodel_waterbalance_routingstore(
+        self, initial_conditions: ConditionsModel
+    ) -> float:
+        r"""Get the water balance of the rconc submodel if used."""
+        if self.rconcmodel_routingstore:
+            return self.rconcmodel_routingstore.get_waterbalance(
+                initial_conditions["model.rconcmodel_routingstore"]
+            )
+        return 0.0
+
+    def _get_rconcmodel_waterbalance_directflow(
+        self, initial_conditions: ConditionsModel
+    ) -> float:
+        r"""Get the water balance of the rconc submodel if used."""
+        if self.rconcmodel_directflow:
+            return self.rconcmodel_directflow.get_waterbalance(
+                initial_conditions["model.rconcmodel_directflow"]
+            )
+        return 0.0

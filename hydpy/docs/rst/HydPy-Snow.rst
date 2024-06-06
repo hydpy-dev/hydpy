@@ -22,6 +22,5 @@ Application models:
 
    snow_cn (Cema-Neige) <snow_cn>
    snow_cn_minmax (Cema-Neige with Tmin/Tmax) <snow_cn_minmax>
-   snow_cnhyst (Cema-Neige with hysteresis) <snow_cnhyst>
-   snow_cnhyst_minmax (Cema-Neige with hysteresis and Tmin/Tmax) <snow_cnhyst_minmax>
+<snow_cnhyst_minmax>
 

@@ -4617,12 +4617,13 @@ class Main_RConcModel_V1(modeltools.AdHocModel):
         """
 
     def _get_rconcmodel_waterbalance(
-        self, rconcmodel_conditions: ConditionsSubmodel
+        self, initial_conditions: ConditionsModel
     ) -> float:
         r"""Get the water balance of the rconc submodel if used."""
-        if self.rconcmodel is None:
-            return 0.0
-        return self.rconcmodel.get_waterbalance(rconcmodel_conditions)
+        if self.rconcmodel:
+            rconcmodel_conditions = initial_conditions["model.rconcmodel"]
+            return self.rconcmodel.get_waterbalance(rconcmodel_conditions)
+        return 0.0
 
 
 class Sub_TempModel_V1(modeltools.AdHocModel, tempinterfaces.TempModel_V1):

@@ -1795,7 +1795,7 @@ class Model(
             - numpy.sum(((last.sm - first["sm"]) * areas)[idxs_soil])
             - (last.uz - first["uz"]) * derived.relupperzonearea
             - (last.lz - first["lz"]) * derived.rellowerzonearea
-            - self._get_rconcmodel_waterbalance(initial_conditions["model.rconcmodel"])
+            - self._get_rconcmodel_waterbalance(initial_conditions)
         )
 
 

@@ -1177,7 +1177,7 @@ class Model(
             - numpy.sum(((last.bw1 - first["bw1"]) * areas)[idxs_upper])
             - numpy.sum(((last.bw2 - first["bw2"]) * areas)[idxs_upper])
             - (last.lz - first["lz"]) * derived.rellowerzonearea
-            - self._get_rconcmodel_waterbalance(initial_conditions["model.rconcmodel"])
+            - self._get_rconcmodel_waterbalance(initial_conditions)
             * derived.rellandarea
         )
 

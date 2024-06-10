@@ -1490,10 +1490,10 @@ class NumericalDifferentiator:
     @property
     def _yvalues(self) -> dict[sequencetools.ModelSequence, NDArrayFloat]:
         xvalues = copy.deepcopy(self._xsequence.values)
-        if not self._xsequence.NDIM:
-            nmb = 1
-        else:
-            nmb = len(xvalues)
+        ndim = self._ysequences[0].NDIM
+        assert all(ndim == seq.NDIM for seq in self._ysequences)
+        nmb = self._ysequences[0].numberofvalues
+        assert all(nmb == seq.numberofvalues for seq in self._ysequences)
         yvalues = {
             ysequence: numpy.empty((nmb, self.__NMBNODES))
             for ysequence in self._ysequences

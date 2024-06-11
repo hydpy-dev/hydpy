@@ -4138,7 +4138,6 @@ class Calc_OutRC_V1(modeltools.Method):
 
         >>> with model.add_rconcmodel_v1("rconc_uh"):
         ...     uh([0.3,0.4,0.3])
-        ...     logs.quh.shape = 3
         ...     logs.quh = 0.0, 0.0, 0.0
         >>> model.calc_outrc_v1()
         >>> fluxes.outrc

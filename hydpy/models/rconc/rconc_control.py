@@ -35,6 +35,7 @@ class UH(parametertools.Parameter):
     >>> simulationstep("1d")
     >>> parameterstep("1d")
     >>> uh([0.1,0.2,0.4,0.2,0.1])
+    >>> logs.quh = 0.0, 0.0, 0.0, 0.0, 0.0
     >>> uh
     uh(0.1, 0.2, 0.4, 0.2, 0.1)
 
@@ -235,6 +236,7 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
             else:
                 try:
                     self.shape = len(args[0])
+                    self.subpars.pars.model.sequences.logs.quh.shape = self.shape
                 except TypeError:
                     raise TypeError(
                         f"The expected type of the positional argument is a "

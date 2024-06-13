@@ -4,15 +4,16 @@
 based on an arbitrary number of stacket, symmetric trapezes and the Manning-Strickler
 equation.
 
-|wq_trapeze| is a stateless submodel that requires information on the current water
-level or depth from its main model (usually a routing model).  It returns the
+|wq_trapeze_strickler| is a stateless submodel that requires information on the current
+water level or depth from its main model (usually a routing model).  It returns the
 corresponding discharge and related properties, such as the kinematic wave celerity.
 See the documentation on the application model |musk_mct|, which shows how to use
-|wq_trapeze| in practice.  Here, we only aim to visualise how |wq_trapeze| combines
-multiple trapezes to a single cross-section profile via method |wq_trapeze.Model.plot|.
+|wq_trapeze_strickler| in practice.  Here, we only aim to visualise how
+|wq_trapeze_strickler| combines multiple trapezes to a single cross-section profile via
+method |wq_trapeze_strickler.Model.plot|.
 
-The following test function helps us to use method |wq_trapeze.Model.plot| repeatedly
-and insert the generated figures into the online documentation:
+The following test function helps us to use method |wq_trapeze_strickler.Model.plot|
+repeatedly and insert the generated figures into the online documentation:
 
 >>> from matplotlib import pyplot
 >>> from hydpy.core.testtools import save_autofig
@@ -25,11 +26,11 @@ and insert the generated figures into the online documentation:
 ...         pyplot.plot([x, x], [y, 5.0], color=kwargs.get("color"), linestyle=":")
 ...         pyplot.plot([-x, -x], [y, 5.0], color=kwargs.get("color"), linestyle=":")
 ...     if example is not None:
-...         save_autofig(f"wq_trapeze_{example}.png", figure=figure)
+...         save_autofig(f"wq_trapeze_strickler_{example}.png", figure=figure)
 
 We start with a single trapeze:
 
->>> from hydpy.models.wq_trapeze import *
+>>> from hydpy.models.wq_trapeze_strickler import *
 >>> parameterstep()
 >>> nmbtrapezes(1)
 
@@ -45,7 +46,7 @@ the single trapeze becomes a simple, infinitely high rectangle:
 >>> sideslopes(0.0)
 >>> plot("rectangle")
 
-    .. image:: wq_trapeze_rectangle.png
+    .. image:: wq_trapeze_strickler_rectangle.png
 
 Conversely, the single trapeze becomes a simple, infinitely high triangle:
 
@@ -53,7 +54,7 @@ Conversely, the single trapeze becomes a simple, infinitely high triangle:
 >>> sideslopes(2.0)
 >>> plot("triangle")
 
-    .. image:: wq_trapeze_triangle.png
+    .. image:: wq_trapeze_strickler_triangle.png
 
 Set both values larger than zero to gain a "complete" trapeze:
 
@@ -61,7 +62,7 @@ Set both values larger than zero to gain a "complete" trapeze:
 >>> sideslopes(2.0)
 >>> plot("one_trapeze")
 
-    .. image:: wq_trapeze_one_trapeze.png
+    .. image:: wq_trapeze_strickler_one_trapeze.png
 
 Next, we want to construct a more complex profile consisting of three trapezes:
 
@@ -78,7 +79,7 @@ The following profile combines the three previously defined geometries:
 >>> sideslopes(0.0, 2.0, 2.0)
 >>> plot("three_trapezes")
 
-    .. image:: wq_trapeze_three_trapezes.png
+    .. image:: wq_trapeze_strickler_three_trapezes.png
 
 Note that each upper trapeze is stretched according to the width of its lower
 neighbour.  The following example illustrates this more clearly by plotting each
@@ -98,19 +99,19 @@ trapeze in a different colour:
 >>> sideslopes(2.0)
 >>> plot("config_1", ymax=5.0, color="red", label="trapeze 3")
 
-    .. image:: wq_trapeze_config_1.png
+    .. image:: wq_trapeze_strickler_config_1.png
 
 In addition to the configuration options shown in the last example, one can pass |True|
-to the keyword argument `label`. Then, |wq_trapeze.Model.plot| tries to include the
-responsible element's name into the legend, which is impossible in this example, so
-that "?" serves as a spare:
+to the keyword argument `label`. Then, |wq_trapeze_strickler.Model.plot| tries to
+include the responsible element's name into the legend, which is impossible in this
+example, so that "?" serves as a spare:
 
 >>> plot("config_2", ymax=3.0, label=True)
 
-    .. image:: wq_trapeze_config_2.png
+    .. image:: wq_trapeze_strickler_config_2.png
 
-(Upon closer inspection, the last example also shows that |wq_trapeze.Model.plot|
-ignores too low `ymax`  values silently.)
+(Upon closer inspection, the last example also shows that
+|wq_trapeze_strickler.Model.plot| ignores too low `ymax`  values silently.)
 """
 # import...
 # ...from site-packages
@@ -171,7 +172,7 @@ class Model(modeltools.AdHocModel, routinginterfaces.CrossSectionModel_V1):
     ) -> pyplot.Figure:
         """Plot the channel profile.
 
-        See the main documentation of application model |wq_trapeze| for more
+        See the main documentation of application model |wq_trapeze_strickler| for more
         information.
         """
         con = self.parameters.control
@@ -223,7 +224,7 @@ class Model(modeltools.AdHocModel, routinginterfaces.CrossSectionModel_V1):
     def prepare_bottomslope(self, bottomslope: float) -> None:
         """Set the bottom's slope (in the longitudinal direction) [-].
 
-        >>> from hydpy.models.wq_trapeze import *
+        >>> from hydpy.models.wq_trapeze_strickler import *
         >>> parameterstep()
         >>> model.prepare_bottomslope(0.01)
         >>> bottomslope

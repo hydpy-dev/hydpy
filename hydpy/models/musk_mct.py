@@ -90,9 +90,9 @@ segments:
 >>> length(100.0)
 >>> bottomslope(0.00025)
 
-We use the |wq_trapeze| submodel to configure the shape of a simple trapeze:
+We use the |wq_trapeze_strickler| submodel to configure the shape of a simple trapeze:
 
->>> with model.add_wqmodel_v1("wq_trapeze"):
+>>> with model.add_wqmodel_v1("wq_trapeze_strickler"):
 ...     nmbtrapezes(1)
 ...     bottomlevels(0.0)
 ...     bottomwidths(15.0)
@@ -1085,7 +1085,7 @@ class Model(modeltools.SegmentModel):
         >>> nmbsegments(3)
         >>> length(6.0)
         >>> bottomslope(0.00025)
-        >>> with model.add_wqmodel_v1("wq_trapeze"):
+        >>> with model.add_wqmodel_v1("wq_trapeze_strickler"):
         ...     nmbtrapezes(1)
         ...     bottomlevels(0.0)
         ...     bottomwidths(15.0)
@@ -1189,7 +1189,7 @@ class Model(modeltools.SegmentModel):
         >>> from hydpy.models.musk_mct import *
         >>> parameterstep()
         >>> bottomslope(0.01)
-        >>> with model.add_wqmodel_v1("wq_trapeze"):
+        >>> with model.add_wqmodel_v1("wq_trapeze_strickler"):
         ...     nmbtrapezes(2)
         ...     bottomlevels(1.0, 3.0)
         ...     sideslopes(2.0, 4.0)

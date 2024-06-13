@@ -2498,8 +2498,8 @@ class XSDWriter:
                              type="hpcb:arma_v1_writerType"
                              minOccurs="0"/>
         ...
-                    <element name="wq_trapeze"
-                             type="hpcb:wq_trapeze_writerType"
+                    <element name="wq_trapeze_strickler"
+                             type="hpcb:wq_trapeze_strickler_writerType"
                              minOccurs="0"/>
                 </sequence>
             </complexType>
@@ -2706,8 +2706,8 @@ class XSDWriter:
                              type="hpcb:arma_v1_writerType"
                              minOccurs="0"/>
         ...
-                    <element name="wq_trapeze"
-                             type="hpcb:wq_trapeze_writerType"
+                    <element name="wq_trapeze_strickler"
+                             type="hpcb:wq_trapeze_strickler_writerType"
                              minOccurs="0"/>
                 </sequence>
             </complexType>

@@ -230,13 +230,13 @@ class Return_ReferenceDischargeError_V1(modeltools.Method):
 
     Example:
 
-        We use the submodel |wq_trapeze| as an example:
+        We use the submodel |wq_trapeze_strickler| as an example:
 
         >>> from hydpy.models.musk_mct import *
         >>> parameterstep()
         >>> nmbsegments(1)
         >>> bottomslope(0.01)
-        >>> with model.add_wqmodel_v1("wq_trapeze"):
+        >>> with model.add_wqmodel_v1("wq_trapeze_strickler"):
         ...     nmbtrapezes(1)
         ...     bottomlevels(0.0)
         ...     bottomwidths(2.0)
@@ -279,7 +279,7 @@ class Calc_ReferenceWaterDepth_V1(modeltools.Method):
         >>> catchmentarea(100.0)
         >>> nmbsegments(5)
         >>> bottomslope(0.01)
-        >>> with model.add_wqmodel_v1("wq_trapeze"):
+        >>> with model.add_wqmodel_v1("wq_trapeze_strickler"):
         ...     nmbtrapezes(1)
         ...     bottomlevels(0.0)
         ...     bottomwidths(2.0)
@@ -378,13 +378,13 @@ class Calc_WettedArea_SurfaceWidth_Celerity_V1(modeltools.Method):
 
     Example:
 
-        We use the submodel |wq_trapeze| as an example:
+        We use the submodel |wq_trapeze_strickler| as an example:
 
         >>> from hydpy.models.musk_mct import *
         >>> parameterstep()
         >>> nmbsegments(3)
         >>> bottomslope(0.01)
-        >>> with model.add_wqmodel_v1("wq_trapeze"):
+        >>> with model.add_wqmodel_v1("wq_trapeze_strickler"):
         ...     nmbtrapezes(1)
         ...     bottomlevels(0.0)
         ...     bottomwidths(2.0)

@@ -3,6 +3,7 @@
 
 # import...
 # ...from HydPy
+from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
@@ -676,7 +677,6 @@ class Calc_MaxTimeSteps_V1(modeltools.Method):
         ...     factors.waterlevel = 6.0
         >>> with model.add_routingmodel_v2("sw1d_lias", position=1, update=False):
         ...     timestepfactor(0.5)
-        ...     bottomlevel(1.0)
         ...     derived.weightupstream(0.5)
         ...     derived.lengthmin(2.0)
         ...     factors.waterdepth = 4.0
@@ -936,34 +936,6 @@ class Calc_WaterVolumeDownstream_V1(modeltools.Method):
 
 
 class Calc_WaterLevel_V1(modeltools.Method):
-    r"""Calculate the water level based on the water depth.
-
-    Basic equation:
-      :math:`WaterLevel = BottomLevel + WaterDepth`
-
-    Example:
-
-        >>> from hydpy.models.sw1d import *
-        >>> parameterstep()
-        >>> bottomlevel(3.0)
-        >>> factors.waterdepth = 2.0
-        >>> model.calc_waterlevel_v1()
-        >>> factors.waterlevel
-        waterlevel(5.0)
-    """
-
-    CONTROLPARAMETERS = (sw1d_control.BottomLevel,)
-    REQUIREDSEQUENCES = (sw1d_factors.WaterDepth,)
-    RESULTSEQUENCES = (sw1d_factors.WaterLevel,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        fac = model.sequences.factors.fastaccess
-        fac.waterlevel = con.bottomlevel + fac.waterdepth
-
-
-class Calc_WaterLevel_V2(modeltools.Method):
     r"""Interpolate the water level based on the water levels of the adjacent channel
     segments.
 
@@ -981,7 +953,7 @@ class Calc_WaterLevel_V2(modeltools.Method):
         >>> derived.weightupstream(0.8)
         >>> factors.waterlevelupstream = 3.0
         >>> factors.waterleveldownstream = 1.0
-        >>> model.calc_waterlevel_v2()
+        >>> model.calc_waterlevel_v1()
         >>> factors.waterlevel
         waterlevel(2.6)
     """
@@ -1003,7 +975,7 @@ class Calc_WaterLevel_V2(modeltools.Method):
         )
 
 
-class Calc_WaterLevel_V3(modeltools.Method):
+class Calc_WaterLevel_V2(modeltools.Method):
     r"""Take the water level from the downstream channel segment.
 
     Basic equation:
@@ -1014,7 +986,7 @@ class Calc_WaterLevel_V3(modeltools.Method):
         >>> from hydpy.models.sw1d import *
         >>> parameterstep()
         >>> factors.waterleveldownstream = 3.0
-        >>> model.calc_waterlevel_v3()
+        >>> model.calc_waterlevel_v2()
         >>> factors.waterlevel
         waterlevel(3.0)
     """
@@ -1028,7 +1000,7 @@ class Calc_WaterLevel_V3(modeltools.Method):
         fac.waterlevel = fac.waterleveldownstream
 
 
-class Calc_WaterLevel_V4(modeltools.Method):
+class Calc_WaterLevel_V3(modeltools.Method):
     r"""Take the water level from the upstream channel segment.
 
     Basic equation:
@@ -1039,7 +1011,7 @@ class Calc_WaterLevel_V4(modeltools.Method):
         >>> from hydpy.models.sw1d import *
         >>> parameterstep()
         >>> factors.waterlevelupstream = 3.0
-        >>> model.calc_waterlevel_v4()
+        >>> model.calc_waterlevel_v3()
         >>> factors.waterlevel
         waterlevel(3.0)
     """
@@ -1053,7 +1025,7 @@ class Calc_WaterLevel_V4(modeltools.Method):
         fac.waterlevel = fac.waterlevelupstream
 
 
-class Calc_WaterLevel_V5(modeltools.Method):
+class Calc_WaterLevel_V4(modeltools.Method):
     """Average the upstream and the downstream water level.
 
     Basic equation:
@@ -1065,7 +1037,7 @@ class Calc_WaterLevel_V5(modeltools.Method):
         >>> parameterstep()
         >>> factors.waterlevelupstream = 3.0
         >>> factors.waterleveldownstream = 1.0
-        >>> model.calc_waterlevel_v5()
+        >>> model.calc_waterlevel_v4()
         >>> factors.waterlevel
         waterlevel(2.0)
     """
@@ -1082,232 +1054,184 @@ class Calc_WaterLevel_V5(modeltools.Method):
         fac.waterlevel = (fac.waterlevelupstream + fac.waterleveldownstream) / 2.0
 
 
-class Calc_WaterDepth_V1(modeltools.Method):
-    r"""Calculate the water depth assuming a symmetric trapezoidal channel profile.
+class Calc_WaterDepth_WaterLevel_CrossSectionModel_V2(modeltools.Method):
+    """Let a submodel that follows the |CrossSectionModel_V2| submodel interface
+    calculate the water depth and level based on the current water volume."""
 
-    Basic equation:
-      .. math::
-        WaterDepth = \begin{cases}
-        a / w &|\ s = 0
-        \\
-        \left( \sqrt{4 \cdot s \cdot a + w^2} - w \right) / (2 \cdot s) &|\ s > 0
-        \end{cases}
-        \\ \\
-        a = WaterVolume / Length \\
-        w = BottomWidth \\
-        s = SideSlope
-
-    Examples:
-
-        The first example deals with a rectangular profile:
-
-        >>> from hydpy.models.sw1d import *
-        >>> parameterstep()
-        >>> length(2.0)
-        >>> bottomwidth(3.0)
-        >>> sideslope(0.0)
-        >>> states.watervolume = 1.0
-        >>> model.calc_waterdepth_v1()
-        >>> factors.waterdepth
-        waterdepth(0.166667)
-
-        The second example deals with a triangular profile:
-
-        >>> bottomwidth(0.0)
-        >>> sideslope(2.0)
-        >>> states.watervolume = 2.0
-        >>> model.calc_waterdepth_v1()
-        >>> factors.waterdepth
-        waterdepth(0.707107)
-
-        The third example combines the two profiles defined above into a trapezoidal
-        profile:
-
-        >>> bottomwidth(3.0)
-        >>> sideslope(2.0)
-        >>> states.watervolume = 3.0
-        >>> model.calc_waterdepth_v1()
-        >>> factors.waterdepth
-        waterdepth(0.395644)
-
-        The third example shows that zero water volume results in zero water depth:
-
-        >>> bottomwidth(3.0)
-        >>> sideslope(2.0)
-        >>> states.watervolume = 0.0
-        >>> model.calc_waterdepth_v1()
-        >>> factors.waterdepth
-        waterdepth(0.0)
-
-        The fourth example deals with a quasi-rectangular profile with nearly zero
-        side slopes.  Method |Calc_WaterDepth_V1| handles side slopes smaller than
-        1e-10 as zero to circumvent errors due to the limited precision of floating
-        point numbers:
-
-        >>> sideslope(1e-20)
-        >>> states.watervolume = 1.0
-        >>> model.calc_waterdepth_v1()
-        >>> factors.waterdepth
-        waterdepth(0.166667)
-    """
-
-    CONTROLPARAMETERS = (
-        sw1d_control.Length,
-        sw1d_control.BottomWidth,
-        sw1d_control.SideSlope,
-    )
+    CONTROLPARAMETERS = (sw1d_control.Length,)
     REQUIREDSEQUENCES = (sw1d_states.WaterVolume,)
-    RESULTSEQUENCES = (sw1d_factors.WaterDepth,)
+    RESULTSEQUENCES = (sw1d_factors.WaterDepth, sw1d_factors.WaterLevel)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(
+        model: modeltools.Model, submodel: routinginterfaces.CrossSectionModel_V2
+    ) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         sta = model.sequences.states.fastaccess
-        if sta.watervolume > 0.0:
-            a: float = sta.watervolume / con.length
-            w: float = con.bottomwidth
-            s: float = con.sideslope
-            if s < 1e-10:
-                fac.waterdepth = a / w
-            else:
-                fac.waterdepth = ((4.0 * s * a + w**2) ** 0.5 - w) / (2.0 * s)
-        else:
-            fac.waterdepth = 0.0
+        submodel.use_wettedarea(sta.watervolume / con.length)
+        fac.waterdepth = submodel.get_waterdepth()
+        fac.waterlevel = submodel.get_waterlevel()
 
 
-class Calc_WaterDepth_V2(modeltools.Method):
-    r"""Calculate the water depth based on the water level.
+class Calc_WaterDepth_WaterLevel_V1(modeltools.Method):
+    """Let a submodel that follows the |CrossSectionModel_V2| submodel interface
+    calculate the water depth and level based on the current water volume.
 
-    Basic equation:
-      :math:`WaterDepth = max(WaterLevel - BottomLevel, \ 0)`
+    Example:
 
-    Examples:
+        We use |wq_trapeze| as an example submodel and configure it so that a wetted
+        area of 18 m² corresponds to water depth of 4 m and a water level of 5 m:
 
-        >>> from hydpy.models.sw1d import *
+        >>> from hydpy.models.sw1d_storage import *
         >>> parameterstep()
-        >>> bottomlevel(3.0)
-        >>> factors.waterlevel = 5.0
-        >>> model.calc_waterdepth_v2()
+        >>> length(2.0)
+        >>> with model.add_crosssection_v2("wq_trapeze"):
+        ...     nmbtrapezes(3)
+        ...     bottomlevels(1.0, 3.0, 4.0)
+        ...     bottomwidths(2.0, 0.0, 2.0)
+        ...     sideslopes(0.0, 2.0, 2.0)
+        >>> states.watervolume = 36.0
+        >>> model.calc_waterdepth_waterlevel_v1()
         >>> factors.waterdepth
-        waterdepth(2.0)
-
-        >>> factors.waterlevel = 2.0
-        >>> model.calc_waterdepth_v2()
-        >>> factors.waterdepth
-        waterdepth(0.0)
+        waterdepth(4.0)
+        >>> factors.waterlevel
+        waterlevel(5.0)
     """
 
-    CONTROLPARAMETERS = (sw1d_control.BottomLevel,)
-    REQUIREDSEQUENCES = (sw1d_factors.WaterLevel,)
-    RESULTSEQUENCES = (sw1d_factors.WaterDepth,)
+    SUBMETHODS = (Calc_WaterDepth_WaterLevel_CrossSectionModel_V2,)
+    CONTROLPARAMETERS = (sw1d_control.Length,)
+    REQUIREDSEQUENCES = (sw1d_states.WaterVolume,)
+    RESULTSEQUENCES = (sw1d_factors.WaterDepth, sw1d_factors.WaterLevel)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
+        if model.crosssection_typeid == 2:
+            model.calc_waterdepth_waterlevel_crosssectionmodel_v2(
+                cast(routinginterfaces.CrossSectionModel_V2, model.crosssection)
+            )
+
+
+class Calc_WaterDepth_WettedArea_CrossSectionModel_V2(modeltools.Method):
+    """Let a submodel that follows the |CrossSectionModel_V2| submodel interface
+    calculate the water depth and the wetted area based on the current water level."""
+
+    REQUIREDSEQUENCES = (sw1d_factors.WaterLevel,)
+    RESULTSEQUENCES = (sw1d_factors.WaterDepth, sw1d_factors.WettedArea)
+
+    @staticmethod
+    def __call__(
+        model: modeltools.Model, submodel: routinginterfaces.CrossSectionModel_V2
+    ) -> None:
         fac = model.sequences.factors.fastaccess
-        fac.waterdepth = max(fac.waterlevel - con.bottomlevel, 0.0)
+        submodel.use_waterlevel(fac.waterlevel)
+        fac.waterdepth = submodel.get_waterdepth()
+        fac.wettedarea = submodel.get_wettedarea()
 
 
-class Calc_WettedArea_V1(modeltools.Method):
-    r"""Calculate the wetted area in a symmetric trapezoidal profile.
+class Calc_WaterDepth_WettedArea_V1(modeltools.Method):
+    """Let a submodel that follows the |CrossSectionModel_V2| submodel interface
+    calculate the water depth and the wetted area based on the current water level.
 
-    Basic equation:
-      :math:`WettedArea = WaterDepth \cdot (BottomWidth + SideSlope \cdot WaterDepth)`
+    Example:
 
-    Examples:
+        We use |wq_trapeze| as an example submodel and configure it so that a water
+        level of 5 m corresponds to a water depth of 4 m and a wetted area of 18 m²:
 
-        The first example deals with a rectangular profile:
-
-        >>> from hydpy.models.sw1d import *
+        >>> from hydpy.models.sw1d_pump import *
         >>> parameterstep()
-        >>> factors.waterdepth = 3.0
-        >>> bottomwidth(2.0)
-        >>> sideslope(0.0)
-        >>> model.calc_wettedarea_v1()
-        >>> factors.wettedarea
-        wettedarea(6.0)
-
-        The second example deals with a triangular profile:
-
-        >>> bottomwidth(0.0)
-        >>> sideslope(2.0)
-        >>> model.calc_wettedarea_v1()
+        >>> with model.add_crosssection_v2("wq_trapeze"):
+        ...     nmbtrapezes(3)
+        ...     bottomlevels(1.0, 3.0, 4.0)
+        ...     bottomwidths(2.0, 0.0, 2.0)
+        ...     sideslopes(0.0, 2.0, 2.0)
+        >>> factors.waterlevel = 5.0
+        >>> model.calc_waterdepth_wettedarea_v1()
+        >>> factors.waterdepth
+        waterdepth(4.0)
         >>> factors.wettedarea
         wettedarea(18.0)
-
-        The third example combines the two profiles defined above into a trapezoidal
-        profile:
-
-        >>> bottomwidth(2.0)
-        >>> sideslope(2.0)
-        >>> model.calc_wettedarea_v1()
-        >>> factors.wettedarea
-        wettedarea(24.0)
     """
 
-    CONTROLPARAMETERS = (sw1d_control.BottomWidth, sw1d_control.SideSlope)
-    REQUIREDSEQUENCES = (sw1d_factors.WaterDepth,)
-    RESULTSEQUENCES = (sw1d_factors.WettedArea,)
+    SUBMETHODS = (Calc_WaterDepth_WettedArea_CrossSectionModel_V2,)
+    REQUIREDSEQUENCES = (sw1d_factors.WaterLevel,)
+    RESULTSEQUENCES = (sw1d_factors.WaterDepth, sw1d_factors.WettedArea)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
+        if model.crosssection_typeid == 2:
+            model.calc_waterdepth_wettedarea_crosssectionmodel_v2(
+                cast(routinginterfaces.CrossSectionModel_V2, model.crosssection)
+            )
+
+
+class Calc_WaterDepth_WettedArea_WettedPerimeter_CrossSectionModel_V2(
+    modeltools.Method
+):
+    """Let a submodel that follows the |CrossSectionModel_V2| submodel interface
+    calculate the water depth, the wetted area, and the wetted perimeter based on the
+    current water level."""
+
+    REQUIREDSEQUENCES = (sw1d_factors.WaterLevel,)
+    RESULTSEQUENCES = (
+        sw1d_factors.WaterDepth,
+        sw1d_factors.WettedArea,
+        sw1d_factors.WettedPerimeter,
+    )
+
+    @staticmethod
+    def __call__(
+        model: modeltools.Model, submodel: routinginterfaces.CrossSectionModel_V2
+    ) -> None:
         fac = model.sequences.factors.fastaccess
-        fac.wettedarea = fac.waterdepth * (
-            con.bottomwidth + con.sideslope * fac.waterdepth
-        )
+        submodel.use_waterlevel(fac.waterlevel)
+        fac.waterdepth = submodel.get_waterdepth()
+        fac.wettedarea = submodel.get_wettedarea()
+        fac.wettedperimeter = submodel.get_wettedperimeter()
 
 
-class Calc_WettedPerimeter_V1(modeltools.Method):
-    r"""Calculate the wetted perimeter in a trapezoidal profile.
+class Calc_WaterDepth_WettedArea_WettedPerimeter_V1(modeltools.Method):
+    """Let a submodel that follows the |CrossSectionModel_V2| submodel interface
+    calculate the water depth, the wetted area, and the wetted perimeter based on the
+    current water level.
 
-    Basic equation:
-      :math:`WettedPerimeter =
-      BottomWidth + 2 \cdot WaterDepth \cdot \sqrt{1 + SideSlope^2}`
+    Example:
 
-    Examples:
+        We use |wq_trapeze| as an example submodel and configure it so that a water
+        level of 5 m corresponds to a water depth of 4 m, a wetted area of 18 m², and
+        a wetted perimeter of nearly 23 m:
 
-        The first example deals with a rectangular profile:
-
-        >>> from hydpy.models.sw1d import *
+        >>> from hydpy.models.sw1d_lias import *
         >>> parameterstep()
-        >>> factors.waterdepth = 3.0
-        >>> bottomwidth(2.0)
-        >>> sideslope(0.0)
-        >>> model.calc_wettedperimeter_v1()
+        >>> with model.add_crosssection_v2("wq_trapeze"):
+        ...     nmbtrapezes(3)
+        ...     bottomlevels(1.0, 3.0, 4.0)
+        ...     bottomwidths(2.0, 0.0, 2.0)
+        ...     sideslopes(0.0, 2.0, 2.0)
+        >>> factors.waterlevel = 5.0
+        >>> model.calc_waterdepth_wettedarea_wettedperimeter_v1()
+        >>> factors.waterdepth
+        waterdepth(4.0)
+        >>> factors.wettedarea
+        wettedarea(18.0)
         >>> factors.wettedperimeter
-        wettedperimeter(8.0)
-
-        The second example deals with a triangular profile:
-
-        >>> bottomwidth(0.0)
-        >>> sideslope(2.0)
-        >>> model.calc_wettedperimeter_v1()
-        >>> factors.wettedperimeter
-        wettedperimeter(13.416408)
-
-        The third example combines the two profiles defined above into a trapezoidal
-        profile:
-
-        >>> bottomwidth(2.0)
-        >>> sideslope(2.0)
-        >>> model.calc_wettedperimeter_v1()
-        >>> factors.wettedperimeter
-        wettedperimeter(15.416408)
+        wettedperimeter(22.944272)
     """
 
-    CONTROLPARAMETERS = (sw1d_control.BottomWidth, sw1d_control.SideSlope)
-    REQUIREDSEQUENCES = (sw1d_factors.WaterDepth,)
-    RESULTSEQUENCES = (sw1d_factors.WettedPerimeter,)
+    SUBMETHODS = (Calc_WaterDepth_WettedArea_WettedPerimeter_CrossSectionModel_V2,)
+    REQUIREDSEQUENCES = (sw1d_factors.WaterLevel,)
+    RESULTSEQUENCES = (
+        sw1d_factors.WaterDepth,
+        sw1d_factors.WettedArea,
+        sw1d_factors.WettedPerimeter,
+    )
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        fac = model.sequences.factors.fastaccess
-        fac.wettedperimeter = con.bottomwidth + (
-            2.0 * fac.waterdepth * (1.0 + con.sideslope**2.0) ** 0.5
-        )
+        if model.crosssection_typeid == 2:
+            model.calc_waterdepth_wettedarea_wettedperimeter_crosssectionmodel_v2(
+                cast(routinginterfaces.CrossSectionModel_V2, model.crosssection)
+            )
 
 
 class Calc_DischargeUpstream_V1(modeltools.Method):
@@ -2631,9 +2555,6 @@ class Update_Storages_V1(modeltools.Method):
         ...     states.discharge = 50.0
         >>> with model.add_storagemodel_v1("sw1d_storage", position=0, update=False):
         ...     length(2.0)
-        ...     bottomwidth(3.0)
-        ...     sideslope(0.0)
-        ...     bottomlevel(10.0)
         ...     states.watervolume = 2.0
         ...     factors.timestep = 100.0
         ...     fluxes.lateralflow = 1.0
@@ -2711,13 +2632,8 @@ class Perform_Preprocessing_V3(modeltools.AutoMethod):
     """Storage model interface method for preprocessing data that is invariant within
     each external simulation step."""
 
-    SUBMETHODS = (Pick_LateralFlow_V1, Calc_WaterDepth_V1, Calc_WaterLevel_V1)
-    CONTROLPARAMETERS = (
-        sw1d_control.Length,
-        sw1d_control.BottomLevel,
-        sw1d_control.BottomWidth,
-        sw1d_control.SideSlope,
-    )
+    SUBMETHODS = (Pick_LateralFlow_V1, Calc_WaterDepth_WaterLevel_V1)
+    CONTROLPARAMETERS = (sw1d_control.Length,)
     REQUIREDSEQUENCES = (sw1d_inlets.LatQ, sw1d_states.WaterVolume)
     RESULTSEQUENCES = (
         sw1d_factors.WaterDepth,
@@ -2790,20 +2706,13 @@ class Determine_MaxTimeStep_V1(modeltools.AutoMethod):
     SUBMETHODS = (
         Calc_WaterLevelUpstream_V1,
         Calc_WaterLevelDownstream_V1,
-        Calc_WaterLevel_V2,
-        Calc_WaterDepth_V2,
-        Calc_WettedArea_V1,
-        Calc_WettedPerimeter_V1,
+        Calc_WaterLevel_V1,
+        Calc_WaterDepth_WettedArea_WettedPerimeter_V1,
         Calc_DischargeUpstream_V1,
         Calc_DischargeDownstream_V1,
         Calc_MaxTimeStep_V1,
     )
-    CONTROLPARAMETERS = (
-        sw1d_control.BottomLevel,
-        sw1d_control.BottomWidth,
-        sw1d_control.SideSlope,
-        sw1d_control.TimeStepFactor,
-    )
+    CONTROLPARAMETERS = (sw1d_control.TimeStepFactor,)
     DERIVEDPARAMETERS = (sw1d_derived.WeightUpstream, sw1d_derived.LengthMin)
     FIXEDPARAMETERS = (sw1d_fixed.GravitationalAcceleration,)
     REQUIREDSEQUENCES = (sw1d_states.Discharge,)
@@ -2826,18 +2735,11 @@ class Determine_MaxTimeStep_V2(modeltools.AutoMethod):
 
     SUBMETHODS = (
         Calc_WaterLevelDownstream_V1,
-        Calc_WaterLevel_V3,
-        Calc_WaterDepth_V2,
-        Calc_WettedArea_V1,
+        Calc_WaterLevel_V2,
+        Calc_WaterDepth_WettedArea_V1,
         Calc_MaxTimeStep_V2,
     )
-    CONTROLPARAMETERS = (
-        sw1d_control.BottomLevel,
-        sw1d_control.BottomWidth,
-        sw1d_control.SideSlope,
-        sw1d_control.LengthDownstream,
-        sw1d_control.TimeStepFactor,
-    )
+    CONTROLPARAMETERS = (sw1d_control.LengthDownstream, sw1d_control.TimeStepFactor)
     REQUIREDSEQUENCES = (sw1d_fluxes.Inflow,)
     RESULTSEQUENCES = (
         sw1d_factors.WaterLevelDownstream,
@@ -2852,7 +2754,7 @@ class Determine_MaxTimeStep_V3(modeltools.AutoMethod):
     """Interface method for determining the highest possible computation time step at
     an outflow weir."""
 
-    SUBMETHODS = (Calc_WaterLevelUpstream_V1, Calc_WaterLevel_V4, Calc_MaxTimeStep_V3)
+    SUBMETHODS = (Calc_WaterLevelUpstream_V1, Calc_WaterLevel_V3, Calc_MaxTimeStep_V3)
     CONTROLPARAMETERS = (
         sw1d_control.CrestHeight,
         sw1d_control.FlowCoefficient,
@@ -2873,18 +2775,11 @@ class Determine_MaxTimeStep_V4(modeltools.AutoMethod):
 
     SUBMETHODS = (
         Calc_WaterLevelUpstream_V1,
-        Calc_WaterLevel_V4,
-        Calc_WaterDepth_V2,
-        Calc_WettedArea_V1,
+        Calc_WaterLevel_V3,
+        Calc_WaterDepth_WettedArea_V1,
         Calc_MaxTimeStep_V4,
     )
-    CONTROLPARAMETERS = (
-        sw1d_control.BottomLevel,
-        sw1d_control.BottomWidth,
-        sw1d_control.SideSlope,
-        sw1d_control.LengthUpstream,
-        sw1d_control.TimeStepFactor,
-    )
+    CONTROLPARAMETERS = (sw1d_control.LengthUpstream, sw1d_control.TimeStepFactor)
     REQUIREDSEQUENCES = (sw1d_fluxes.Outflow,)
     RESULTSEQUENCES = (
         sw1d_factors.WaterLevelUpstream,
@@ -2899,7 +2794,7 @@ class Determine_MaxTimeStep_V5(modeltools.AutoMethod):
     """Interface method for determining the highest possible computation time step at
     an outflow gate."""
 
-    SUBMETHODS = (Calc_WaterLevelUpstream_V1, Calc_WaterLevel_V5, Calc_MaxTimeStep_V5)
+    SUBMETHODS = (Calc_WaterLevelUpstream_V1, Calc_WaterLevel_V4, Calc_MaxTimeStep_V5)
     CONTROLPARAMETERS = (
         sw1d_control.BottomLevel,
         sw1d_control.GateHeight,
@@ -2923,17 +2818,11 @@ class Determine_MaxTimeStep_V6(modeltools.AutoMethod):
     SUBMETHODS = (
         Calc_WaterLevelUpstream_V1,
         Calc_WaterLevelDownstream_V1,
-        Calc_WaterLevel_V2,
-        Calc_WaterDepth_V2,
-        Calc_WettedArea_V1,
+        Calc_WaterLevel_V1,
+        Calc_WaterDepth_WettedArea_V1,
         Calc_MaxTimeStep_V6,
     )
-    CONTROLPARAMETERS = (
-        sw1d_control.BottomLevel,
-        sw1d_control.BottomWidth,
-        sw1d_control.SideSlope,
-        sw1d_control.TimeStepFactor,
-    )
+    CONTROLPARAMETERS = (sw1d_control.TimeStepFactor,)
     DERIVEDPARAMETERS = (sw1d_derived.LengthMin, sw1d_derived.WeightUpstream)
     REQUIREDSEQUENCES = (sw1d_states.Discharge,)
     RESULTSEQUENCES = (
@@ -3080,7 +2969,7 @@ class Determine_Discharge_V6(modeltools.AutoMethod):
 class Determine_Discharge_V7(modeltools.AutoMethod):
     """Interface method for determining the discharge at a pumping station."""
 
-    SUBMETHODS = (Calc_WaterLevel_V4, Calc_Discharge_V4, Update_DischargeVolume_V1)
+    SUBMETHODS = (Calc_WaterLevel_V3, Calc_Discharge_V4, Update_DischargeVolume_V1)
     CONTROLPARAMETERS = (
         sw1d_control.Gradient2PumpingRate,
         sw1d_control.TargetWaterLevel1,
@@ -3358,15 +3247,9 @@ class Update_Storage_V1(modeltools.AutoMethod):
     SUBMETHODS = (
         Calc_NetInflow_V1,
         Update_WaterVolume_V1,
-        Calc_WaterDepth_V1,
-        Calc_WaterLevel_V1,
+        Calc_WaterDepth_WaterLevel_V1,
     )
-    CONTROLPARAMETERS = (
-        sw1d_control.Length,
-        sw1d_control.BottomLevel,
-        sw1d_control.BottomWidth,
-        sw1d_control.SideSlope,
-    )
+    CONTROLPARAMETERS = (sw1d_control.Length,)
     REQUIREDSEQUENCES = (sw1d_factors.TimeStep, sw1d_fluxes.LateralFlow)
     RESULTSEQUENCES = (
         sw1d_fluxes.NetInflow,
@@ -3443,11 +3326,12 @@ class Model(modeltools.SubstepModel):
         Calc_WaterLevel_V2,
         Calc_WaterLevel_V3,
         Calc_WaterLevel_V4,
-        Calc_WaterLevel_V5,
-        Calc_WaterDepth_V1,
-        Calc_WaterDepth_V2,
-        Calc_WettedArea_V1,
-        Calc_WettedPerimeter_V1,
+        Calc_WaterDepth_WaterLevel_CrossSectionModel_V2,
+        Calc_WaterDepth_WaterLevel_V1,
+        Calc_WaterDepth_WettedArea_CrossSectionModel_V2,
+        Calc_WaterDepth_WettedArea_V1,
+        Calc_WaterDepth_WettedArea_WettedPerimeter_CrossSectionModel_V2,
+        Calc_WaterDepth_WettedArea_WettedPerimeter_V1,
         Calc_DischargeUpstream_V1,
         Calc_DischargeDownstream_V1,
         Calc_Discharge_V1,
@@ -3471,6 +3355,7 @@ class Model(modeltools.SubstepModel):
     )
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (
+        routinginterfaces.CrossSectionModel_V2,
         routinginterfaces.ChannelModel_V1,
         routinginterfaces.StorageModel_V1,
         routinginterfaces.RoutingModel_V1,
@@ -3478,6 +3363,10 @@ class Model(modeltools.SubstepModel):
         routinginterfaces.RoutingModel_V3,
     )
     SUBMODELS = ()
+
+    crosssection = modeltools.SubmodelProperty(routinginterfaces.CrossSectionModel_V2)
+    crosssection_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    crosssection_typeid = modeltools.SubmodelTypeIDProperty()
 
     channelmodels = modeltools.SubmodelsProperty(routinginterfaces.ChannelModel_V1)
     storagemodels = modeltools.SubmodelsProperty(routinginterfaces.StorageModel_V1)
@@ -3507,3 +3396,39 @@ class Model(modeltools.SubstepModel):
         routinginterfaces.RoutingModel_V3,
         sidemodels=True,
     )
+
+
+class Main_CrossSectionModel_V2(modeltools.AdHocModel):
+    """Base class for HydPy-SW1D models that use submodels named `crosssection` and
+    comply with the |CrossSectionModel_V2| interface."""
+
+    crosssection: modeltools.SubmodelProperty[routinginterfaces.CrossSectionModel_V2]
+    crosssection_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    crosssection_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel(
+        "crosssection", routinginterfaces.CrossSectionModel_V2
+    )
+    def add_crosssection_v2(
+        self,
+        crosssection: routinginterfaces.CrossSectionModel_V2,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
+        """Initialise the given submodel that follows the |CrossSectionModel_V1|
+        interface and is responsible for calculating discharge and related properties.
+
+        >>> from hydpy.models.sw1d_storage import *
+        >>> parameterstep()
+        >>> with model.add_crosssection_v2("wq_trapeze"):
+        ...     nmbtrapezes(2)
+        ...     bottomlevels(1.0, 3.0)
+        ...     bottomwidths(2.0)
+        ...     sideslopes(2.0, 4.0)
+
+        >>> model.crosssection.parameters.control.nmbtrapezes
+        nmbtrapezes(2)
+        >>> model.crosssection.parameters.control.bottomlevels
+        bottomlevels(1.0, 3.0)
+        """

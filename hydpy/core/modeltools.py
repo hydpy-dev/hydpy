@@ -85,6 +85,24 @@ class AutoMethod(Method):
             method.__call__(model)
 
 
+class SetAutoMethod(Method):
+    """Base class for defining setter methods that also use the given data to calculate
+    other properties.
+
+    |SetAutoMethod| calls its submethods in the specified order.  If, for example, the
+    first two submethods are setters, it requires precisely two parameter values.  It
+    passes the first value to the first setter and the second value to the second
+    setter. After that, it executes the remaining methods without exchanging any data.
+    """
+
+    @classmethod
+    def __call__(cls, model: Model, *values) -> None:
+        for method, value in zip(cls.SUBMETHODS, values):
+            method.__call__(model, value)
+        for method in cls.SUBMETHODS[len(values) :]:
+            method.__call__(model)
+
+
 class ReusableMethod(Method):
     """Base class for defining methods that need not or must not be called multiple
     times for the same simulation step.

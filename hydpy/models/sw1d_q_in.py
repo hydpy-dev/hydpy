@@ -19,7 +19,7 @@ from hydpy.interfaces import routinginterfaces
 from hydpy.models.sw1d import sw1d_model
 
 
-class Model(modeltools.AdHocModel, routinginterfaces.RoutingModel_V1):
+class Model(sw1d_model.Main_CrossSectionModel_V2, routinginterfaces.RoutingModel_V1):
     """A simple routing submodel for inserting "longitudinal" inflow into the first
     segment of a channel."""
 
@@ -40,20 +40,23 @@ class Model(modeltools.AdHocModel, routinginterfaces.RoutingModel_V1):
     ADD_METHODS = (
         sw1d_model.Pick_Inflow_V1,
         sw1d_model.Calc_WaterLevelDownstream_V1,
-        sw1d_model.Calc_WaterLevel_V3,
-        sw1d_model.Calc_WaterDepth_V2,
-        sw1d_model.Calc_WettedArea_V1,
+        sw1d_model.Calc_WaterLevel_V2,
+        sw1d_model.Calc_WaterDepth_WettedArea_CrossSectionModel_V2,
+        sw1d_model.Calc_WaterDepth_WettedArea_V1,
         sw1d_model.Calc_MaxTimeStep_V2,
         sw1d_model.Calc_DischargeVolume_V1,
     )
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (
+        routinginterfaces.CrossSectionModel_V2,
         routinginterfaces.RoutingModel_V2,
         routinginterfaces.RoutingModel_V3,
         routinginterfaces.StorageModel_V1,
     )
     SUBMODELS = ()
+
+    crosssection = modeltools.SubmodelProperty(routinginterfaces.CrossSectionModel_V2)
 
     storagemodeldownstream = modeltools.SubmodelProperty(
         routinginterfaces.StorageModel_V1, sidemodel=True

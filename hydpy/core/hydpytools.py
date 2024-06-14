@@ -1429,16 +1429,20 @@ deprecated.  Use method `prepare_models` instead.
         >>> from hydpy import prepare_model
         >>> channel = prepare_model("sw1d_channel")
         >>> channel.parameters.control.nmbsegments(2)
-        >>> with channel.add_storagemodel_v1("sw1d_storage", position=0):
+        >>> with channel.add_storagemodel_v1("sw1d_storage", position=0) as storage:
         ...     length(1.0)
-        ...     bottomlevel(5.0)
-        ...     bottomwidth(10.0)
-        ...     sideslope(0.0)
-        >>> with channel.add_storagemodel_v1("sw1d_storage", position=1):
+        ...     with storage.add_crosssection_v2("wq_trapeze"):
+        ...         nmbtrapezes(1)
+        ...         bottomlevels(5.0)
+        ...         bottomwidths(10.0)
+        ...         sideslopes(0.0)
+        >>> with channel.add_storagemodel_v1("sw1d_storage", position=1) as storage:
         ...     length(2.0)
-        ...     bottomlevel(5.0)
-        ...     bottomwidth(10.0)
-        ...     sideslope(0.0)
+        ...     with storage.add_crosssection_v2("wq_trapeze"):
+        ...         nmbtrapezes(1)
+        ...         bottomlevels(5.0)
+        ...         bottomwidths(10.0)
+        ...         sideslopes(0.0)
         >>> from hydpy import Element
         >>> my_channel = Element("my_channel")
         >>> my_channel.model = channel
@@ -1451,6 +1455,7 @@ deprecated.  Use method `prepare_models` instead.
         <BLANKLINE>
         from hydpy.models.sw1d_channel import *
         from hydpy.models import sw1d_storage
+        from hydpy.models import wq_trapeze
         <BLANKLINE>
         simulationstep("1d")
         parameterstep("1d")
@@ -1471,12 +1476,14 @@ deprecated.  Use method `prepare_models` instead.
         >>> with channel.add_routingmodel_v2("sw1d_lias", position=1):
         ...     lengthupstream(1.0)
         ...     lengthdownstream(2.0)
-        ...     bottomlevel(5.0)
-        ...     bottomwidth(10.0)
-        ...     sideslope(0.0)
         ...     stricklercoefficient(30.0)
         ...     timestepfactor(0.7)
         ...     diffusionfactor(0.2)
+        ...     with storage.add_crosssection_v2("wq_trapeze"):
+        ...         nmbtrapezes(1)
+        ...         bottomlevels(5.0)
+        ...         bottomwidths(10.0)
+        ...         sideslopes(0.0)
         >>> with TestIO():
         ...     hp.save_controls()
         ...     with open(dir_ + "my_channel.py") as controlfile:
@@ -1486,6 +1493,7 @@ deprecated.  Use method `prepare_models` instead.
         from hydpy.models.sw1d_channel import *
         from hydpy.models import sw1d_lias
         from hydpy.models import sw1d_storage
+        from hydpy.models import wq_trapeze
         <BLANKLINE>
         simulationstep("1d")
         parameterstep("1d")
@@ -1520,6 +1528,7 @@ deprecated.  Use method `prepare_models` instead.
         from hydpy.models import sw1d_q_in
         from hydpy.models import sw1d_storage
         from hydpy.models import sw1d_weir_out
+        from hydpy.models import wq_trapeze
         <BLANKLINE>
         simulationstep("1d")
         parameterstep("1d")

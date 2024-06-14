@@ -1956,7 +1956,9 @@ PotentialInterceptionEvaporation
                         submethod.REQUIREDSEQUENCES
                     )
                 )
-                if issubclass(method, modeltools.AutoMethod):
+                if issubclass(
+                    method, (modeltools.AutoMethod, modeltools.SetAutoMethod)
+                ):
                     for previous in method.SUBMETHODS[:idx_submethod]:
                         vars_submethods.difference_update(previous.RESULTSEQUENCES)
             diff = vars_submethods - vars_method

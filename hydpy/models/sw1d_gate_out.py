@@ -31,20 +31,24 @@ except adding a |sw1d_gate_out| submodel at the channel outlet:
 >>> for i, length_ in enumerate(lengths):
 ...     with model.add_storagemodel_v1("sw1d_storage", position=i):
 ...         length(length_)
-...         bottomlevel(5.0)
-...         bottomwidth(5.0)
-...         sideslope(0.0)
+...         with model.add_crosssection_v2("wq_trapeze"):
+...             nmbtrapezes(1)
+...             bottomlevels(5.0)
+...             bottomwidths(5.0)
+...             sideslopes(0.0)
 
 >>> for i in range(1, nmbsegments.value):
 ...     with model.add_routingmodel_v2("sw1d_lias", position=i):
 ...         lengthupstream(2.0 if i % 2 else 3.0)
 ...         lengthdownstream(3.0 if i % 2 else 2.0)
-...         bottomlevel(5.0)
-...         bottomwidth(5.0)
-...         sideslope(0.0)
 ...         stricklercoefficient(1.0/0.03)
 ...         timestepfactor(0.7)
 ...         diffusionfactor(0.2)
+...         with model.add_crosssection_v2("wq_trapeze"):
+...             nmbtrapezes(1)
+...             bottomlevels(5.0)
+...             bottomwidths(5.0)
+...             sideslopes(0.0)
 
 >>> with model.add_routingmodel_v3("sw1d_gate_out", position=8):
 ...     lengthupstream(lengths[-1])
@@ -75,8 +79,9 @@ to the receiver sequence |sw1d_receivers.WaterLevel|:
 ...         hs = nmbsegments.value * [hs]
 ...     inits = []
 ...     for h, s in zip(hs, model.storagemodels):
-...         c = s.parameters.control
-...         v = h * c.bottomwidth * c.length
+...         length = s.parameters.control.length
+...         c = s.crosssection.parameters.control
+...         v = h * (c.bottomwidths[0] + h * c.sideslopes[0]) * length
 ...         inits.append((s.sequences.states.watervolume, v))
 ...     for r in model.routingmodels[1:]:
 ...         inits.append((r.sequences.states.discharge, 0.0))
@@ -556,7 +561,7 @@ class Model(modeltools.AdHocModel, routinginterfaces.RoutingModel_V3):
         sw1d_model.Pick_WaterLevelDownstream_V1,
         sw1d_model.Reset_DischargeVolume_V1,
         sw1d_model.Calc_WaterLevelUpstream_V1,
-        sw1d_model.Calc_WaterLevel_V5,
+        sw1d_model.Calc_WaterLevel_V4,
         sw1d_model.Calc_MaxTimeStep_V5,
         sw1d_model.Calc_Discharge_V3,
         sw1d_model.Update_DischargeVolume_V1,

@@ -52,23 +52,6 @@ class BottomLevel(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
 
-class BottomWidth(parametertools.Parameter):
-    """The channel bottom width [m]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-
-
-class SideSlope(parametertools.Parameter):
-    """The channel side slope [-].
-
-    A value of zero corresponds to a rectangular channel shape.  A value of two
-    corresponds to an increase of half a meter in elevation for each additional meter
-    distance from the channel bottom.
-    """
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-
-
 class StricklerCoefficient(parametertools.Parameter):
     """The average Gauckler-Manning-Strickler coefficient [m^(1/3)/s].
 

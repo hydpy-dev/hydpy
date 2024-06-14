@@ -29,8 +29,8 @@ five minutes for all integration tests:
 >>> from hydpy import pub
 >>> pub.timegrids = "2000-01-01 00:00", "2000-01-01 05:00", "5m"
 
-The considered 20 km channel consists of eight segments with a length of alternately
-two and three kilometres:
+The considered 20 km channel consists of eight segments with alternating lengths of two
+and three kilometres:
 
 >>> from hydpy.models.sw1d_channel import *
 >>> parameterstep()
@@ -39,14 +39,18 @@ two and three kilometres:
 
 A valid |sw1d_channel| configuration requires one storage model that complies with the
 |StorageModel_V1| at each segment.  We prepare |sw1d_storage| submodels with identical
-channel bottom elevations and rectangular profiles:
+channel bottom elevations and rectangular profiles.  As for other submodels of the
+HydPy-SW1D model family, one specifies such geometries by sub-submodels that comply
+with |CrossSectionModel_V2| interface.  Here, we select |wq_trapeze|:
 
 >>> for i, length_ in enumerate(lengths):
 ...     with model.add_storagemodel_v1("sw1d_storage", position=i):
 ...         length(length_)
-...         bottomlevel(5.0)
-...         bottomwidth(5.0)
-...         sideslope(0.0)
+...         with model.add_crosssection_v2("wq_trapeze"):
+...             nmbtrapezes(1)
+...             bottomlevels(5.0)
+...             bottomwidths(5.0)
+...             sideslopes(0.0)
 
 Additionally, |sw1d_channel| requires one routing model that complies with the
 |RoutingModel_V2| interface between each pair of segments.  So, our example model
@@ -59,12 +63,14 @@ integration:
 ...     with model.add_routingmodel_v2("sw1d_lias", position=i):
 ...         lengthupstream(2.0 if i % 2 else 3.0)
 ...         lengthdownstream(3.0 if i % 2 else 2.0)
-...         bottomlevel(5.0)
-...         bottomwidth(5.0)
-...         sideslope(0.0)
 ...         stricklercoefficient(1.0/0.03)
 ...         timestepfactor(0.7)
 ...         diffusionfactor(0.2)
+...         with model.add_crosssection_v2("wq_trapeze"):
+...             nmbtrapezes(1)
+...             bottomlevels(5.0)
+...             bottomwidths(5.0)
+...             sideslopes(0.0)
 
 The prepared model has neither a submodel for receiving nor releasing flow at the first
 or last channel segment. We leave it like that to assign it to an |Element| instance
@@ -74,7 +80,7 @@ that is neither connected to any inlet nor outlet nodes:
 >>> channel = Element("channel")
 >>> channel.model = model
 
-Next, we prepare a test function object for controlling the following test runs:
+Next, we prepare a test function object to control the following test runs:
 
 >>> from hydpy.core.testtools import IntegrationTest
 >>> test = IntegrationTest(channel)
@@ -91,8 +97,9 @@ water depth and discharge values:
 ...         qs = (nmbsegments.value + 1) * [qs]
 ...     inits = []
 ...     for h, s in zip(hs, model.storagemodels):
-...         c = s.parameters.control
-...         v = h * (c.bottomwidth + h * c.sideslope) * c.length
+...         length = s.parameters.control.length
+...         c = s.crosssection.parameters.control
+...         v = h * (c.bottomwidths[0] + h * c.sideslopes[0]) * length
 ...         inits.append((s.sequences.states.watervolume, v))
 ...     for q, r in zip(qs, model.routingmodels):
 ...         if r is not None:
@@ -381,10 +388,12 @@ allows using observed or previously simulated discharge series as inflow:
 
 >>> with model.add_routingmodel_v1("sw1d_q_in", position=0):
 ...     lengthdownstream(2.0)
-...     bottomlevel(5.0)
-...     bottomwidth(5.0)
-...     sideslope(0.0)
 ...     timestepfactor(0.7)
+...     with model.add_crosssection_v2("wq_trapeze"):
+...         nmbtrapezes(1)
+...         bottomlevels(5.0)
+...         bottomwidths(5.0)
+...         sideslopes(0.0)
 
 No matter if adding |sw1d_lias|, |sw1d_q_in|, or another routing model to the first
 position, we must now add an inlet node connectible to the inlet variable
@@ -820,15 +829,15 @@ of a rapid change in geometry, we increase the bottom width of the last four cha
 segments from 5 m to 10 m:
 
 >>> for storagemodel in model.storagemodels[4:]:
-...     storagemodel.parameters.control.bottomwidth(10.0)
+...     storagemodel.crosssection.parameters.control.bottomwidths(10.0)
 
 As the |sw1d_lias| models need to know the channel geometry as well, we set the bottom
 width of the central one to the average value of 7.5 m and the bottom width of the last
 three to 10 m:
 
->>> model.routingmodels[4].parameters.control.bottomwidth(7.5)
+>>> model.routingmodels[4].crosssection.parameters.control.bottomwidths(7.5)
 >>> for routingmodel in model.routingmodels[5:-1]:
-...     routingmodel.parameters.control.bottomwidth(10.0)
+...     routingmodel.crosssection.parameters.control.bottomwidths(10.0)
 
 We reset the initial depth to 1 m and the initial discharge to zero:
 
@@ -932,9 +941,9 @@ for this reason:
 For simplicity, we reset all profiles to the same width:
 
 >>> for storagemodel in model.storagemodels[4:]:
-...     storagemodel.parameters.control.bottomwidth(5.0)
+...     storagemodel.crosssection.parameters.control.bottomwidths(5.0)
 >>> for routingmodel in model.routingmodels[4:-1]:
-...     routingmodel.parameters.control.bottomwidth(5.0)
+...     routingmodel.crosssection.parameters.control.bottomwidths(5.0)
 
 At least when using |sw1d_lias| as the routing submodel, starting with zero initial
 water depth does not result in apparent errors (e.g. zero divisions).  The water level
@@ -1025,18 +1034,18 @@ levels.  We create such a potentially problematic case by increasing the height 
 first, the fourth, and the last segment by one metre:
 
 >>> for i in [0, 3, 7]:
-...     model.storagemodels[i].parameters.control.bottomlevel(6.0)
+...     model.storagemodels[i].crosssection.parameters.control.bottomlevels(6.0)
 
 We set all inflow to zero and the initial water depth to only 0.1 m:
 
 >>> inflow.sequences.sim.series = 0.0
 >>> prepare_inits(hs=0.1, qs=0.0)
 
-It is up to the selected submodels how they handle potentially negative water depths.
+The selected submodels decide how they handle potentially negative water depths.
 |sw1d_lias| relies on method |Update_Discharge_V1| to prevent or at least limit taking
-too much water from a channel segment, and |sw1d_storage| uses method
-|Calc_WaterDepth_V1|, which determines a depth of zero even for negative volumes.  So,
-the following results look impeccable:
+too much water from a channel segment, and |sw1d_storage| uses the sub-submodel
+|wq_trapeze|, whose method |wq_model.Calc_WaterDepth_V2| determines a depth of zero
+even for negative volumes.  So, the following results look impeccable:
 
 .. integration-test::
 
@@ -1139,10 +1148,12 @@ necessary steps:
 >>> from hydpy.models import sw1d_q_out
 >>> with channel.model.add_routingmodel_v3(sw1d_q_out, position=8):
 ...     lengthupstream(2.0)
-...     bottomlevel(5.0)
-...     bottomwidth(5.0)
-...     sideslope(0.0)
 ...     timestepfactor(0.7)
+...     with model.add_crosssection_v2("wq_trapeze"):
+...         nmbtrapezes(1)
+...         bottomlevels(5.0)
+...         bottomwidths(5.0)
+...         sideslopes(0.0)
 >>> channel.model.connect()
 
 >>> test = IntegrationTest()
@@ -1152,7 +1163,7 @@ necessary steps:
 We reset all bottom levels to 5 m for simplicity:
 
 >>> for i in [0, 3, 7]:
-...     model.storagemodels[i].parameters.control.bottomlevel(5.0)
+...     model.storagemodels[i].crosssection.parameters.control.bottomlevels(5.0)
 
 The simulation starts with a consistent water depth of a half metre:
 
@@ -1269,35 +1280,41 @@ The simulation period and step size are identical:
 >>> pub.timegrids = "2000-01-01", "2000-01-05", "30m"
 
 We also prepare a 50 km long channel and divide it into 50 equally long and shaped
-segments.  |musk_mct|, we cannot set the bottom slope directly but must
-ensure the individual bottom levels agree with it:
+segments.  |musk_mct|, we cannot set the bottom slope directly but must ensure the
+individual bottom levels agree with it:
 
 >>> nmbsegments(50)
 >>> for i in range(50):
 ...     with model.add_storagemodel_v1("sw1d_storage", position=i):
 ...         length(2.0)
-...         bottomlevel(-1000.0 * (i * 2.0 + 1.0) * 0.00025)
-...         bottomwidth(15.0)
-...         sideslope(5.0)
+...         with model.add_crosssection_v2("wq_trapeze"):
+...             nmbtrapezes(1)
+...             bottomlevels(-1000.0 * (i * 2.0 + 1.0) * 0.00025)
+...             bottomwidths(15.0)
+...             sideslopes(5.0)
 >>> for i in range(1, 50):
 ...     with model.add_routingmodel_v2("sw1d_lias", position=i):
 ...         lengthupstream(2.0)
 ...         lengthdownstream(2.0)
-...         bottomlevel(-1000.0 * (i * 2.0) * 0.00025)
-...         bottomwidth(15.0)
-...         sideslope(5.0)
 ...         stricklercoefficient(1.0/0.035)
 ...         timestepfactor(0.7)
 ...         diffusionfactor(0.2)
+...         with model.add_crosssection_v2("wq_trapeze"):
+...             nmbtrapezes(1)
+...             bottomlevels(-1000.0 * (i * 2.0) * 0.00025)
+...             bottomwidths(15.0)
+...             sideslopes(5.0)
 
-We use a |sw1d_q_in| submodel for providing the channel inflow:
+We use a |sw1d_q_in| submodel to provide the channel inflow:
 
 >>> with model.add_routingmodel_v1("sw1d_q_in", position=0):
 ...     lengthdownstream(2.0)
-...     bottomlevel(0.0)
-...     bottomwidth(15.0)
-...     sideslope(5.0)
 ...     timestepfactor(0.7)
+...     with model.add_crosssection_v2("wq_trapeze"):
+...         nmbtrapezes(1)
+...         bottomlevels(0.0)
+...         bottomwidths(15.0)
+...         sideslopes(5.0)
 
 In contrast to |musk_mct|, we also need an explicit assumption for the channel outflow
 and select the |sw1d_weir_out| submodel for this purpose.  We set its crest height

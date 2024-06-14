@@ -24,32 +24,38 @@ except that we replace the |sw1d_lias| submodel at the central location with a
 >>> for i, length_ in enumerate(lengths):
 ...     with model.add_storagemodel_v1("sw1d_storage", position=i):
 ...         length(length_)
-...         bottomlevel(5.0)
-...         bottomwidth(5.0)
-...         sideslope(0.0)
+...         with model.add_crosssection_v2("wq_trapeze"):
+...             nmbtrapezes(1)
+...             bottomlevels(5.0)
+...             bottomwidths(5.0)
+...             sideslopes(0.0)
 
 >>> for i in range(1, nmbsegments.value):
 ...     if i == 4:
 ...         with model.add_routingmodel_v2("sw1d_pump", position=i) as pump:
 ...             lengthupstream(2.0 if i % 2 else 3.0)
 ...             lengthdownstream(3.0 if i % 2 else 2.0)
-...             bottomlevel(5.0)
-...             bottomwidth(5.0)
-...             sideslope(0.0)
 ...             gradient2pumpingrate(PPoly(Poly(x0=0.0, cs=[8.0])))
 ...             targetwaterlevel1(6.0)
 ...             targetwaterlevel2(6.0)
 ...             timestepfactor(0.7)
+...             with model.add_crosssection_v2("wq_trapeze"):
+...                 nmbtrapezes(1)
+...                 bottomlevels(5.0)
+...                 bottomwidths(5.0)
+...                 sideslopes(0.0)
 ...     else:
 ...         with model.add_routingmodel_v2("sw1d_lias", position=i):
 ...             lengthupstream(2.0 if i % 2 else 3.0)
 ...             lengthdownstream(3.0 if i % 2 else 2.0)
-...             bottomlevel(5.0)
-...             bottomwidth(5.0)
-...             sideslope(0.0)
 ...             stricklercoefficient(1.0/0.03)
 ...             timestepfactor(0.7)
 ...             diffusionfactor(0.2)
+...             with model.add_crosssection_v2("wq_trapeze"):
+...                 nmbtrapezes(1)
+...                 bottomlevels(5.0)
+...                 bottomwidths(5.0)
+...                 sideslopes(0.0)
 
 >>> from hydpy import Element
 >>> channel = Element("channel")
@@ -64,8 +70,9 @@ except that we replace the |sw1d_lias| submodel at the central location with a
 ...         hs = nmbsegments.value * [hs]
 ...     inits = []
 ...     for h, s in zip(hs, model.storagemodels):
-...         c = s.parameters.control
-...         v = h * (c.bottomwidth + h * c.sideslope) * c.length
+...         length = s.parameters.control.length
+...         c = s.crosssection.parameters.control
+...         v = h * (c.bottomwidths[0] + h * c.sideslopes[0]) * length
 ...         inits.append((s.sequences.states.watervolume, v))
 ...     for r in model.routingmodels[1:-1]:
 ...         inits.append((r.sequences.states.discharge, 0.0))
@@ -363,7 +370,7 @@ from hydpy.interfaces import routinginterfaces
 from hydpy.models.sw1d import sw1d_model
 
 
-class Model(modeltools.AdHocModel, routinginterfaces.RoutingModel_V2):
+class Model(sw1d_model.Main_CrossSectionModel_V2, routinginterfaces.RoutingModel_V2):
     """A routing submodel for calculating water pumping from one channel segment into
     another."""
 
@@ -386,11 +393,11 @@ class Model(modeltools.AdHocModel, routinginterfaces.RoutingModel_V2):
         sw1d_model.Reset_DischargeVolume_V1,
         sw1d_model.Calc_WaterLevelUpstream_V1,
         sw1d_model.Calc_WaterLevelDownstream_V1,
-        sw1d_model.Calc_WaterLevel_V2,
-        sw1d_model.Calc_WaterDepth_V2,
-        sw1d_model.Calc_WettedArea_V1,
+        sw1d_model.Calc_WaterLevel_V1,
+        sw1d_model.Calc_WaterDepth_WettedArea_CrossSectionModel_V2,
+        sw1d_model.Calc_WaterDepth_WettedArea_V1,
         sw1d_model.Calc_MaxTimeStep_V6,
-        sw1d_model.Calc_WaterLevel_V4,
+        sw1d_model.Calc_WaterLevel_V3,
         sw1d_model.Calc_Discharge_V4,
         sw1d_model.Update_DischargeVolume_V1,
         sw1d_model.Pass_Discharge_V1,
@@ -398,12 +405,15 @@ class Model(modeltools.AdHocModel, routinginterfaces.RoutingModel_V2):
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (
+        routinginterfaces.CrossSectionModel_V2,
         routinginterfaces.RoutingModel_V1,
         routinginterfaces.RoutingModel_V2,
         routinginterfaces.RoutingModel_V3,
         routinginterfaces.StorageModel_V1,
     )
     SUBMODELS = ()
+
+    crosssection = modeltools.SubmodelProperty(routinginterfaces.CrossSectionModel_V2)
 
     storagemodelupstream = modeltools.SubmodelProperty(
         routinginterfaces.StorageModel_V1, sidemodel=True

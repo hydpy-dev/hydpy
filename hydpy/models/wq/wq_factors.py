@@ -36,6 +36,12 @@ class WettedPerimeters(sequencetools.FactorSequence):
     NDIM, SPAN = 1, (0.0, None)
 
 
+class WettedPerimeter(sequencetools.FactorSequence):
+    """Total wetted perimeter [m]."""
+
+    NDIM, SPAN = 0, (0.0, None)
+
+
 class WettedPerimeterDerivatives(sequencetools.FactorSequence):
     """Change in the wetted perimeter of each trapeze range with respect to a water
     level increase [-]."""

@@ -63,19 +63,23 @@ elements:
 ...     for i, length_ in enumerate(lengths):
 ...         with channel.add_storagemodel_v1(sw1d_storage, position=i):
 ...             length(length_)
-...             bottomlevel(5.0)
-...             bottomwidth(5.0)
-...             sideslope(0.0)
+...             with model.add_crosssection_v2("wq_trapeze"):
+...                 nmbtrapezes(1)
+...                 bottomlevels(5.0)
+...                 bottomwidths(5.0)
+...                 sideslopes(0.0)
 ...     for i in range(1, 5 if element is channel1a else 4):
 ...         with channel.add_routingmodel_v2(sw1d_lias, position=i):
 ...             lengthupstream(2.0 if i % 2 else 3.0)
 ...             lengthdownstream(3.0 if i % 2 else 2.0)
-...             bottomlevel(5.0)
-...             bottomwidth(5.0)
-...             sideslope(0.0)
 ...             stricklercoefficient(1.0/0.03)
 ...             timestepfactor(0.7)
 ...             diffusionfactor(0.2)
+...             with model.add_crosssection_v2("wq_trapeze"):
+...                 nmbtrapezes(1)
+...                 bottomlevels(5.0)
+...                 bottomwidths(5.0)
+...                 sideslopes(0.0)
 ...     element.model = channel
 
 The following test function object finds all nodes and elements automatically upon
@@ -93,8 +97,9 @@ discharge to zero:
 ...     for name, h in name2depth.items():
 ...         e = Element(name)
 ...         for s in e.model.storagemodels:
-...             c = s.parameters.control
-...             v = h * c.bottomwidth * c.length
+...             length = s.parameters.control.length
+...             c = s.crosssection.parameters.control
+...             v = h * (c.bottomwidths[0] + h * c.sideslopes[0]) * length
 ...             inits.append((s.sequences.states.watervolume, v))
 ...         for r in e.model.routingmodels:
 ...             if r is not None:
@@ -208,10 +213,12 @@ model:
 >>> from hydpy.models import sw1d_q_in
 >>> with channel1a.model.add_routingmodel_v1(sw1d_q_in, position=0):
 ...     lengthdownstream(2.0)
-...     bottomlevel(5.0)
-...     bottomwidth(5.0)
-...     sideslope(0.0)
 ...     timestepfactor(0.7)
+...     with model.add_crosssection_v2("wq_trapeze"):
+...         nmbtrapezes(1)
+...         bottomlevels(5.0)
+...         bottomwidths(5.0)
+...         sideslopes(0.0)
 >>> channel1a.model.connect()
 
 And we add an identical |sw1d_weir_out| submodel at the outflow position of the lower
@@ -323,10 +330,10 @@ the junction (`channel2`) has a width of 10 m:
 
 >>> for element, width in ([channel1a, 8.0], [channel2, 10.0]):
 ...     for storagemodel in element.model.storagemodels:
-...         storagemodel.parameters.control.bottomwidth(width)
+...         storagemodel.crosssection.parameters.control.bottomwidths(width)
 ...     for routingmodel in element.model.routingmodels:
 ...         if isinstance(routingmodel, (sw1d_lias.Model, sw1d_q_in.Model)):
-...             routingmodel.parameters.control.bottomwidth(width)
+...             routingmodel.crosssection.parameters.control.bottomwidths(width)
 
 The new 10 km long side channel also consists of four segments but is only 2 m wide:
 
@@ -335,18 +342,22 @@ The new 10 km long side channel also consists of four segments but is only 2 m w
 >>> for i, length_ in enumerate(lengths[:4]):
 ...     with channel.add_storagemodel_v1(sw1d_storage, position=i):
 ...         length(length_)
-...         bottomlevel(5.0)
-...         bottomwidth(2.0)
-...         sideslope(0.0)
+...         with model.add_crosssection_v2("wq_trapeze"):
+...             nmbtrapezes(1)
+...             bottomlevels(5.0)
+...             bottomwidths(2.0)
+...             sideslopes(0.0)
 
 It receives a separate inflow via another |sw1d_q_in| instance:
 
 >>> with channel.add_routingmodel_v1(sw1d_q_in, position=0):
 ...     lengthdownstream(2.0)
-...     bottomlevel(5.0)
-...     bottomwidth(2.0)
-...     sideslope(0.0)
 ...     timestepfactor(0.7)
+...     with model.add_crosssection_v2("wq_trapeze"):
+...         nmbtrapezes(1)
+...         bottomlevels(5.0)
+...         bottomwidths(2.0)
+...         sideslopes(0.0)
 
 We add |sw1d_lias| models for all other possible positions, including the last one:
 
@@ -354,12 +365,14 @@ We add |sw1d_lias| models for all other possible positions, including the last o
 ...     with channel.add_routingmodel_v2(sw1d_lias, position=i):
 ...         lengthupstream(2.0 if i % 2 else 3.0)
 ...         lengthdownstream(3.0 if i % 2 else 2.0)
-...         bottomlevel(5.0)
-...         bottomwidth(2.0)
-...         sideslope(0.0)
 ...         stricklercoefficient(1.0/0.03)
 ...         timestepfactor(0.7)
 ...         diffusionfactor(0.2)
+...         with model.add_crosssection_v2("wq_trapeze"):
+...             nmbtrapezes(1)
+...             bottomlevels(5.0)
+...             bottomwidths(2.0)
+...             sideslopes(0.0)
 
 So, now the |sw1d_channel| models of the elements `channel1a` and `channel1b` have
 routing models at their outflow locations, and the one of element `channel2` does not
@@ -512,10 +525,13 @@ functionally nearly identical to |sw1d_q_in| but to be placed at outlet location
 >>> from hydpy.models import sw1d_q_out
 >>> with channel2.model.add_routingmodel_v3(sw1d_q_out, position=4):
 ...     lengthupstream(2.0)
-...     bottomlevel(5.0)
-...     bottomwidth(5.0)
-...     sideslope(0.0)
 ...     timestepfactor(0.7)
+...     with model.add_crosssection_v2("wq_trapeze"):
+...         nmbtrapezes(1)
+...         bottomlevels(5.0)
+...         bottomwidths(5.0)
+...         sideslopes(0.0)
+
 >>> channel2.model.connect()
 
 We set the initial conditions as in the :ref:`sw1d_network_confluences` example:
@@ -718,7 +734,7 @@ class Model(modeltools.SubstepModel):
         secs = self.parameters.derived.seconds.value
         volume_old, volume_new, latflow = 0.0, 0.0, 0.0
         inflow, outflow = 0.0, 0.0
-        for name, model in self.find_submodels().items():
+        for name, model in self.find_submodels(include_subsubmodels=False).items():
             if isinstance(model, routinginterfaces.StorageModel_V1):
                 wv = initial_conditions[name]["states"]["watervolume"]
                 assert isinstance(wv, float)

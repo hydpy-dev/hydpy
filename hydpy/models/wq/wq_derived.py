@@ -92,6 +92,41 @@ class SlopeWidths(parametertools.Parameter):
         self.values[:-1] = 2.0 * sideslopes[:-1] * trapezeheights[:-1]
 
 
+class TrapezeAreas(parametertools.Parameter):
+    """The individual area of each trapeze [m].
+
+    The highest trapeze has no upper neighbour and is thus infinitely large.
+    """
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (wq_control.BottomWidths,)
+    DERIVEDPARAMETERS = (TrapezeHeights, SlopeWidths)
+
+    def update(self):
+        r"""Calculate the perimeter derivatives based on
+        :math:`(BottomWidths + SlopeWidths / 2) \cdot TrapezeHeights`.
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbtrapezes(4)
+        >>> bottomlevels(1.0, 3.0, 4.0, 5.0)
+        >>> bottomwidths(2.0, 0.0, 2.0, 2.0)
+        >>> sideslopes(0.0, 2.0, 2.0, 2.0)
+        >>> derived.trapezeheights.update()
+        >>> derived.slopewidths.update()
+        >>> derived.trapezeareas.update()
+        >>> derived.trapezeareas
+        trapezeareas(4.0, 4.0, 10.0, inf)
+        """
+        wb = self.subpars.pars.control.bottomwidths.values
+        ht = self.subpars.trapezeheights.values
+        ws = self.subpars.slopewidths.values
+        self.values = (wb + ws / 2.0) * ht
+        w = numpy.cumsum(wb + ws)
+        self.values[1:] += w[:-1] * ht[1:]
+
+
 class PerimeterDerivatives(parametertools.Parameter):
     """Change of the perimeter of each trapeze relative to a water level increase
     within the trapeze's range [-].
@@ -114,7 +149,7 @@ class PerimeterDerivatives(parametertools.Parameter):
         perimeterderivatives(2.0, 4.472136)
         """
         sideslopes = self.subpars.pars.control.sideslopes.value
-        self.value = 2.0 * (1.0 + sideslopes**2.0) ** 0.5
+        self.values = 2.0 * (1.0 + sideslopes**2.0) ** 0.5
 
 
 class CrestHeightRegularisation(parametertools.Parameter):

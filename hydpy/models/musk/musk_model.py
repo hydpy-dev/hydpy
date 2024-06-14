@@ -216,8 +216,7 @@ class Return_Discharge_CrossSectionModel_V1(modeltools.Method):
         wqmodel: routinginterfaces.CrossSectionModel_V1,
         waterdepth: float,
     ) -> float:
-        wqmodel.set_waterdepth(waterdepth)
-        wqmodel.process()
+        wqmodel.use_waterdepth(waterdepth)
         return wqmodel.get_discharge()
 
 
@@ -364,8 +363,7 @@ class Calc_WettedArea_SurfaceWidth_Celerity_CrossSectionModel_V1(modeltools.Meth
     ) -> None:
         fac = model.sequences.factors.fastaccess
         i = model.idx_segment
-        wqmodel.set_waterdepth(fac.referencewaterdepth[i])
-        wqmodel.process()
+        wqmodel.use_waterdepth(fac.referencewaterdepth[i])
         fac.wettedarea[i] = wqmodel.get_wettedarea()
         fac.surfacewidth[i] = wqmodel.get_surfacewidth()
         fac.celerity[i] = wqmodel.get_celerity()

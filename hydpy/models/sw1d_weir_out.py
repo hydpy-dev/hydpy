@@ -39,7 +39,7 @@ class Model(modeltools.AdHocModel, routinginterfaces.RoutingModel_V3):
     ADD_METHODS = (
         sw1d_model.Reset_DischargeVolume_V1,
         sw1d_model.Calc_WaterLevelUpstream_V1,
-        sw1d_model.Calc_WaterLevel_V4,
+        sw1d_model.Calc_WaterLevel_V3,
         sw1d_model.Calc_MaxTimeStep_V3,
         sw1d_model.Calc_Discharge_V2,
         sw1d_model.Update_DischargeVolume_V1,

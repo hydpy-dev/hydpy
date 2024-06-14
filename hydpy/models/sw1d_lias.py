@@ -20,7 +20,7 @@ from hydpy.interfaces import routinginterfaces
 from hydpy.models.sw1d import sw1d_model
 
 
-class Model(modeltools.AdHocModel, routinginterfaces.RoutingModel_V2):
+class Model(sw1d_model.Main_CrossSectionModel_V2, routinginterfaces.RoutingModel_V2):
     """A routing submodel based on the "local inertial approximation of the shallow
     water equations" introduced by :cite:t:`ref-Bates2010` and "stabilised" by
     :cite:t:`ref-Almeida2012`."""
@@ -46,11 +46,10 @@ class Model(modeltools.AdHocModel, routinginterfaces.RoutingModel_V2):
         sw1d_model.Calc_WaterVolumeDownstream_V1,
         sw1d_model.Calc_WaterLevelUpstream_V1,
         sw1d_model.Calc_WaterLevelDownstream_V1,
-        sw1d_model.Calc_WaterLevel_V2,
-        sw1d_model.Calc_WaterDepth_V2,
+        sw1d_model.Calc_WaterLevel_V1,
+        sw1d_model.Calc_WaterDepth_WettedArea_WettedPerimeter_CrossSectionModel_V2,
+        sw1d_model.Calc_WaterDepth_WettedArea_WettedPerimeter_V1,
         sw1d_model.Calc_MaxTimeStep_V1,
-        sw1d_model.Calc_WettedArea_V1,
-        sw1d_model.Calc_WettedPerimeter_V1,
         sw1d_model.Calc_DischargeUpstream_V1,
         sw1d_model.Calc_DischargeDownstream_V1,
         sw1d_model.Calc_Discharge_V1,
@@ -61,12 +60,15 @@ class Model(modeltools.AdHocModel, routinginterfaces.RoutingModel_V2):
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (
+        routinginterfaces.CrossSectionModel_V2,
         routinginterfaces.RoutingModel_V1,
         routinginterfaces.RoutingModel_V2,
         routinginterfaces.RoutingModel_V3,
         routinginterfaces.StorageModel_V1,
     )
     SUBMODELS = ()
+
+    crosssection = modeltools.SubmodelProperty(routinginterfaces.CrossSectionModel_V2)
 
     storagemodelupstream = modeltools.SubmodelProperty(
         routinginterfaces.StorageModel_V1, sidemodel=True

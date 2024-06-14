@@ -18,7 +18,7 @@ from hydpy.interfaces import routinginterfaces
 from hydpy.models.sw1d import sw1d_model
 
 
-class Model(modeltools.AdHocModel, routinginterfaces.StorageModel_V1):
+class Model(sw1d_model.Main_CrossSectionModel_V2, routinginterfaces.StorageModel_V1):
     """A storage submodel for calculating a single channel segment's water balance and
     water level."""
 
@@ -35,21 +35,24 @@ class Model(modeltools.AdHocModel, routinginterfaces.StorageModel_V1):
     )
     ADD_METHODS = (
         sw1d_model.Pick_LateralFlow_V1,
-        sw1d_model.Calc_WaterDepth_V1,
-        sw1d_model.Calc_WaterLevel_V1,
         sw1d_model.Calc_NetInflow_V1,
         sw1d_model.Update_WaterVolume_V1,
+        sw1d_model.Calc_WaterDepth_WaterLevel_V1,
+        sw1d_model.Calc_WaterDepth_WaterLevel_CrossSectionModel_V2,
         sw1d_model.Pass_WaterLevel_V1,
     )
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (
+        routinginterfaces.CrossSectionModel_V2,
         routinginterfaces.RoutingModel_V1,
         routinginterfaces.RoutingModel_V2,
         routinginterfaces.RoutingModel_V3,
         routinginterfaces.StorageModel_V1,
     )
     SUBMODELS = ()
+
+    crosssection = modeltools.SubmodelProperty(routinginterfaces.CrossSectionModel_V2)
 
     routingmodelsupstream = modeltools.SubmodelsProperty(
         routinginterfaces.RoutingModel_V1,

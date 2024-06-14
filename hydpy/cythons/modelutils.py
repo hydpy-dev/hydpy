@@ -1815,21 +1815,21 @@ class PyxWriter:
         return name2function
 
     @property
-    def name2submethodnames_automethod(
-        self,
-    ) -> dict[str, tuple[type[modeltools.Method], ...]]:
-        """Submethods selected by |AutoMethod| subclasses."""
-        # see https://github.com/python/typeshed/issues/11200
-        name2submethods: dict[str, tuple[type[modeltools.Method], ...]] = {}
+    def automethod2name(self) -> dict[str, tuple[type[modeltools.Method], ...]]:
+        """Submethods selected by |AutoMethod| and |SetAutoMethod| subclasses."""
+        automethod2name: dict[str, tuple[type[modeltools.Method], ...]] = {}
         for name, member in vars(self.model).items():
             if (
                 isinstance(member, types.MethodType)
                 and isinstance(call := member.__func__, types.MethodType)
                 and inspect.isclass(method := call.__self__)
-                and issubclass(automethod := method, modeltools.AutoMethod)
+                and issubclass(
+                    automethod := method,
+                    (modeltools.AutoMethod, modeltools.SetAutoMethod),
+                )
             ):
-                name2submethods[name] = automethod.SUBMETHODS
-        return name2submethods
+                automethod2name[name] = automethod.SUBMETHODS
+        return automethod2name
 
     @property
     def interfacemethods(self) -> set[str]:
@@ -1851,7 +1851,7 @@ class PyxWriter:
             pyxlines = tuple(f"    {line}" for line in funcconverter.pyxlines)
             lines.pyx.extend(pyxlines)
             lines.pxd.append(pyxlines[0][:-1])
-        for name, submethods in self.name2submethodnames_automethod.items():
+        for name, submethods in self.automethod2name.items():
             print(f"            . {name}")
             self.automethod(lines, name=name, submethods=submethods)
 
@@ -1880,12 +1880,29 @@ class PyxWriter:
         name: str,
         submethods: tuple[type[modeltools.Method], ...],
     ) -> None:
-        """Lines of a method defined by a |AutoMethod| subclass."""
+        """Lines of a method defined by a |AutoMethod| or |SetAutoMethod| subclass."""
         pyx, both = lines.pyx.add, lines.add
         inline = name not in self.interfacemethods
-        both(1, get_methodheader(methodname=name, nogil=True, inline=inline))
+
+        submethod2arg, subsignatures = {}, []
         for submethod in submethods:
-            pyx(2, f"self.{submethod.__name__.lower()}()")
+            if len(args := inspect.getargs(submethod.__call__.__code__).args) == 2:
+                submethod2arg[submethod] = args[1]
+                type_ = get_type_hints(submethod.__call__)[args[1]]
+                subsignatures.append(f"{TYPE2STR[type_]} {args[1]}")
+            else:
+                assert len(args) == 1
+
+        header = get_methodheader(methodname=name, nogil=True, inline=inline)
+        if subsignatures:
+            subheaders = list(header.partition(")"))
+            subheaders.insert(1, ", ".join([""] + subsignatures))
+            header = "".join(subheaders)
+        both(1, header)
+
+        for submethod in submethods:
+            arg = submethod2arg.get(submethod, "")
+            pyx(2, f"self.{submethod.__name__.lower()}({arg})")
 
     def solve(self, lines: PyxPxdLines) -> None:
         """Lines of the model method with the same name."""

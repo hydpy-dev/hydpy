@@ -20,17 +20,12 @@ class CrossSectionModel_V1(modeltools.SubmodelInterface):
         """Set the bottom's slope (in the longitudinal direction) [-]."""
 
     @modeltools.abstractmodelmethod
-    def set_waterdepth(self, set_waterdepth: float) -> None:
-        """Set the water depth in m and adjust the current water level."""
+    def use_waterdepth(self, waterdepth: float, /) -> None:
+        """Set the water depth in m and use it to calculate all other properties."""
 
     @modeltools.abstractmodelmethod
-    def set_waterlevel(self, set_waterlevel: float) -> None:
-        """Set the water level in m and adjust the current water depth."""
-
-    @modeltools.abstractmodelmethod
-    def process(self) -> None:
-        """Process all possible output data according to the current water depth/water
-        level."""
+    def use_waterlevel(self, waterlevel: float, /) -> None:
+        """Set the water level in m and use it to calculate all other properties."""
 
     @modeltools.abstractmodelmethod
     def get_wettedarea(self) -> float:
@@ -47,6 +42,42 @@ class CrossSectionModel_V1(modeltools.SubmodelInterface):
     @modeltools.abstractmodelmethod
     def get_celerity(self) -> float:
         """Get the wave celerity in m/s."""
+
+
+class CrossSectionModel_V2(modeltools.SubmodelInterface):
+    """Interface for calculating discharge-related properties at a channel
+    cross-section."""
+
+    typeid: ClassVar[Literal[2]] = 2
+    """Type identifier for |CrossSectionModel_V2| submodels."""
+
+    @modeltools.abstractmodelmethod
+    def use_waterdepth(self, waterdepth: float, /) -> None:
+        """Set the water depth in m and use it to calculate all other properties."""
+
+    @modeltools.abstractmodelmethod
+    def use_waterlevel(self, waterlevel: float, /) -> None:
+        """Set the water level in m and use it to calculate all other properties."""
+
+    @modeltools.abstractmodelmethod
+    def use_wettedarea(self, wettedarea: float, /) -> None:
+        """Set the wetted area in m² and use it to calculate all other properties."""
+
+    @modeltools.abstractmodelmethod
+    def get_waterdepth(self) -> float:
+        """Get the water depth in m."""
+
+    @modeltools.abstractmodelmethod
+    def get_waterlevel(self) -> float:
+        """Get the water level in m."""
+
+    @modeltools.abstractmodelmethod
+    def get_wettedarea(self) -> float:
+        """Get the wetted area in m²."""
+
+    @modeltools.abstractmodelmethod
+    def get_wettedperimeter(self) -> float:
+        """Get the wetted perimeter in m."""
 
 
 class RoutingModelBase(modeltools.SubmodelInterface):

@@ -62,7 +62,7 @@ setuptools.setup(
         "matplotlib",
         "netcdf4",
         "networkx",
-        "numpy",
+        "numpy < 2.0",
         "pandas",
         "plotly",
         "scipy",

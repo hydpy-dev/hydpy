@@ -9,7 +9,7 @@ matplotlib
 netcdf4
 networkx
 nox
-numpy
+numpy < 2.0
 pandas
 plotly
 pylint

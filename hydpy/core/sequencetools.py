@@ -3140,10 +3140,10 @@ class DependentSequence(OutputSequence):
         developers.  One such attribute is the `results` array, handling the
         (intermediate or final) calculation results for factor and flux sequences, as
         shown in the following example for the 0-dimensional flux sequence
-        |wland_fluxes.RH| of the |wland| model:
+        |wland_fluxes.RH| of the |wland_wag| model:
 
         >>> from hydpy import prepare_model, print_values, pub
-        >>> model = prepare_model("wland_v001")
+        >>> model = prepare_model("wland_wag")
         >>> print_values(model.sequences.fluxes.rh.fastaccess._rh_results)
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
@@ -3399,10 +3399,10 @@ not broadcast input array from shape (3,) into shape (2,)
         which should only be of interest to framework developers.  One such attribute
         is the `results` array, handling the (intermediate or final) calculation
         results for state sequence, as shown in the following example for the
-        0-dimensional sequence |wland_states.HS| of the |wland| model:
+        0-dimensional sequence |wland_states.HS| of the |wland_wag| model:
 
         >>> from hydpy import prepare_model, print_values, pub
-        >>> model = prepare_model("wland_v001")
+        >>> model = prepare_model("wland_wag")
         >>> print_values(model.sequences.states.hs.fastaccess._hs_results)
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 

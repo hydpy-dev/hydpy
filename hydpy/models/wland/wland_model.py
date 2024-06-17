@@ -47,7 +47,7 @@ class Pick_HS_V1(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.wland_v001 import *
+        >>> from hydpy.models.wland_wag import *
         >>> parameterstep()
 
         Without an available submodel, |Pick_HS_V1| does not change the current value
@@ -243,7 +243,7 @@ class Calc_PE_PET_PETModel_V1(modeltools.Method):
 
         We use |evap_tw2002| as an example:
 
-        >>> from hydpy.models.wland_v001 import *
+        >>> from hydpy.models.wland_wag import *
         >>> parameterstep()
         >>> nu(4)
         >>> at(1.0)
@@ -294,7 +294,7 @@ class Calc_PE_PET_PETModel_V2(modeltools.Method):
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-08-01", "2000-08-02", "1d"
-        >>> from hydpy.models.wland_v001 import *
+        >>> from hydpy.models.wland_wag import *
         >>> parameterstep("1h")
         >>> nu(3)
         >>> at(1.0)
@@ -2712,7 +2712,7 @@ class Calc_RH_V1(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.wland_v001 import *
+        >>> from hydpy.models.wland_wag import *
         >>> simulationstep("12h")
         >>> parameterstep("1d")
 
@@ -3356,7 +3356,7 @@ class Model(modeltools.ELSModel):
 
 
 class BaseModel(modeltools.ELSModel):
-    """Base model for |wland_v001| and |wland_v002|."""
+    """Base model for |wland_wag| and |wland_gd|."""
 
     def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
         r"""Determine the water balance error of the previous simulation run in mm.
@@ -3390,7 +3390,7 @@ class BaseModel(modeltools.ELSModel):
 
         Pick the required initial conditions before starting the simulation via
         property |Sequences.conditions|.  See the integration tests of the application
-        model |wland_v001| for some examples.
+        model |wland_wag| for some examples.
         """
         control = self.parameters.control
         derived = self.parameters.derived
@@ -3453,7 +3453,7 @@ class Main_PETModel_V1(modeltools.ELSModel):
     ) -> None:
         """Initialise the given `petmodel` that follows the |PETModel_V1| interface.
 
-        >>> from hydpy.models.wland_v001 import *
+        >>> from hydpy.models.wland_wag import *
         >>> parameterstep()
         >>> nu(3)
         >>> at(10.0)
@@ -3517,7 +3517,7 @@ class Main_PETModel_V2(modeltools.ELSModel):
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
-        >>> from hydpy.models.wland_v001 import *
+        >>> from hydpy.models.wland_wag import *
         >>> parameterstep()
         >>> nu(12)
         >>> at(10.0)
@@ -3631,7 +3631,7 @@ class Main_DischargeModel_V2(modeltools.ELSModel):
 
         Note the dependency on the derived parameter |CD|:
 
-        >>> from hydpy.models.wland_v001 import *
+        >>> from hydpy.models.wland_wag import *
         >>> parameterstep()
         >>> sh(10.0)
         >>> with model.add_dischargemodel_v2("wq_walrus", update=False):
@@ -3639,7 +3639,7 @@ class Main_DischargeModel_V2(modeltools.ELSModel):
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: While trying to add a submodel \
-to the main model `wland_v001`, the following error occurred: While trying to \
+to the main model `wland_wag`, the following error occurred: While trying to \
 determine the missing value of the derived parameter `cd` of element `?`, the \
 following error occurred: While trying to subtract variable `gl` and `BL` instance \
 `bl(?)`, the following error occurred: For variable `bl`, no value has been defined \
@@ -3710,7 +3710,7 @@ class Main_WaterLevelModel_V1(modeltools.ELSModel):
         """Initialise the given `waterlevelmodel` that follows the |WaterLevelModel_V1|
         interface.
 
-        >>> from hydpy.models.wland_v001 import *
+        >>> from hydpy.models.wland_wag import *
         >>> parameterstep()
         >>> from hydpy.models import exch_waterlevel
         >>> with model.add_waterlevelmodel_v1(exch_waterlevel):

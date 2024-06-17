@@ -18,7 +18,7 @@ class LandMonthParameter(parametertools.KeywordParameter2D):
 
     >>> from hydpy import pub
     >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
-    >>> from hydpy.models.wland_v001 import *
+    >>> from hydpy.models.wland_wag import *
     >>> parameterstep()
     >>> nu(2)
     >>> at(10.0)

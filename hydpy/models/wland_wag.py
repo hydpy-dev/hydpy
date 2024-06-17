@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-r"""Version 1 of *HydPy-W-Land* is a slightly modified and extended version of the
+r"""|wland_wag.DOCNAME.complete| is a slightly modified and extended version of the
 `WALRUS`_ model, specifically designed to simulate surface water fluxes in lowland
 catchments influenced by near-surface groundwater :cite:p:`ref-Brauer2014`.  We
-implemented |wland_v001| on behalf of the `German Federal Institute of Hydrology
-(BfG)`_ in the context of optimising the control of the Kiel Canal (Nord-Ostsee-Kanal).
+implemented |wland_wag| on behalf of the `German Federal Institute of Hydrology (BfG)`_
+in the context of optimising the control of the Kiel Canal (Nord-Ostsee-Kanal).
 
 .. _`WALRUS`: https://www.wur.nl/en/Research-Results/Chair-groups/Environmental-Sciences/Hydrology-and-Quantitative-Water-Management-Group/Research/WALRUS-1.htm
 .. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN
 .. _`WALRUS repository`: https://github.com/ClaudiaBrauer/WALRUS
 
-With identical parameter values, `WALRUS`_ and |wland_v001| yield very similar
-results for the tutorial data available within the `WALRUS repository`_.  We found that
-all of the relatively small discrepancies were due to using different numerical
-integration algorithms, not differences in the underlying differential equations (we
-discuss the only exception to this in the documentation on method |Calc_CDG_V1|).
-However, to keep our extensions consistent, we found it necessary to adjust a few
-variable names and some unit conversions related to the size of some subareas.
+With identical parameter values, `WALRUS`_ and |wland_wag| yield very similar results
+for the tutorial data available within the `WALRUS repository`_.  We found that all of
+the relatively small discrepancies were due to using different numerical integration
+algorithms, not differences in the underlying differential equations (we discuss the
+only exception to this in the documentation on method |Calc_CDG_V1|).  However, to keep
+our extensions consistent, we found it necessary to adjust a few variable names and
+some unit conversions related to the size of some subareas.
 
 Most of our extensions focus on the hydrological processes that apply before
 precipitation reaches the vadose zone:
@@ -25,7 +25,7 @@ precipitation reaches the vadose zone:
   2. We introduce simple storages for intercepted water and snow, implemented
      similarly as in |lland_v1|.
   3. We support the specification of hydrological response units for these processes,
-     making |wland_v001| a semi-distributed model (but we model the vadose zone in
+     making |wland_wag| a semi-distributed model (but we model the vadose zone in
      agreement with `WALRUS`_  still in a lumped manner).
   4. We define the land-use type |SEALED|, which has no vadose zone and directly routes
      all water reaching the soil surface into the quickflow reservoir.
@@ -41,7 +41,7 @@ a pumping station on evapotranspiration due to decreased drainage of agricultura
 or even to reversed flow from the adjacent channels to the shallow groundwater
 (influent flow conditions).
 
-Last but not least, |wland_v001| allows the inclusion of so-called "elevated regions".
+Last but not least, |wland_wag| allows the inclusion of so-called "elevated regions".
 The original WALRUS model focuses on extremely flat areas like those frequently
 encountered in the Netherlands and hence does not consider any topographic influences.
 We realised this model concept strictness to be a limitation when applying it to areas
@@ -57,11 +57,11 @@ increase in groundwater availability in the lowland region. If the elevated regi
 sufficiently large and the groundwater travel time sufficiently long, this can
 significantly reduce summerly drought periods.
 
-The following figure shows the general structure of |wland_v001|.  Note that, besides
+The following figure shows the general structure of |wland_wag|.  Note that, besides
 surface water areas and sealed surfaces, all land-use types rely on the same set of
 process equations:
 
-.. image:: HydPy-W-Land_Version-1.png
+.. image:: HydPy-W-Wag.png
 
 The `WALRUS`_ model defines some discontinuous differential equations, which
 complicate numerical integration :cite:p:`ref-Brauer2014`.  We applied the
@@ -92,11 +92,11 @@ simulation step size:
 >>> from hydpy import IntegrationTest, Element, pub, round_
 >>> pub.timegrids = "2017-02-10", "2017-04-10", "1d"
 
-|wland_v001| usually reads its temperature and precipitation input data from files and
+|wland_wag| usually reads its temperature and precipitation input data from files and
 receives its potential evaporation and evapotranspiration input data from a submodel
 (`petmodel`), making the definition of the relevant |Element| object straightforward:
 
->>> from hydpy.models.wland_v001 import *
+>>> from hydpy.models.wland_wag import *
 >>> parameterstep("1d")
 >>> land = Element("land", outlets="outlet")
 >>> land.model = model
@@ -171,12 +171,12 @@ We set both regularisation parameters to one (in agreement with the discussion a
 In agreement with the original WALRUS model, we disable the |RG| option (the
 documentation on method |Calc_FGS_V1| explains the stabilising functionalities of the
 restrictions |RG| is connected to) and the |DGC| option (we enable it in the
-:ref:`wland_v001_groundwater_connect` example):
+:ref:`wland_wag_groundwater_connect` example):
 
 >>> rg(False)
 >>> dgc(False)
 
-|wland_v001| requires a submodel for calculating the potential evapotranspiration of
+|wland_wag| requires a submodel for calculating the potential evapotranspiration of
 land units and the potential evaporation of the sole water unit.  We apply |evap_io| to
 smuggle in the underlying reference evapotranspiration. |evap_mlc| adjusts the given
 reference evapotranspiration to the month- and land cover-specific potential
@@ -191,9 +191,9 @@ evapotranspiration values:
 ...     with model.add_retmodel_v1("evap_io"):
 ...         evapotranspirationfactor(0.9)
 
-Additionally, |wland_v001| requires a submodel for calculating the discharge out of
-the surface water storage (the same as the discharge at a catchment's outlet.  Here, we
-use |wq_walrus|, which implements the default approach of the original WALRUS model:
+Additionally, |wland_wag| requires a submodel for calculating the discharge out of the
+surface water storage (the same as the discharge at a catchment's outlet.  Here, we use
+|wq_walrus|, which implements the default approach of the original WALRUS model:
 
 >>> with model.add_dischargemodel_v2("wq_walrus"):
 ...     crestheight(0.0)
@@ -244,20 +244,20 @@ events:
 ...     1.2, 0.9, 0.9, 1.2, 1.4, 1.1, 1.1, 0.5, 0.6, 1.5, 2.0, 1.6, 1.6, 1.2, 1.3,
 ...     1.6, 1.9, 0.8, 1.5, 2.7, 1.5, 1.6, 2.0, 2.1, 1.7, 1.7, 0.8, 1.3, 2.5)
 
-|wland_v001| allows for defining additional supply and extraction series.  We will
+|wland_wag| allows for defining additional supply and extraction series.  We will
 discuss them later and set both to zero for now.
 
 >>> inputs.fxg.series = 0.0
 >>> inputs.fxs.series = 0.0
 
 As we want to use method |wland_model.BaseModel.check_waterbalance| to prove that
-|wland_v001| keeps the water balance in each example run, we need to store the defined
+|wland_wag| keeps the water balance in each example run, we need to store the defined
 (initial) conditions before performing the first simulation run:
 
 >>> test.reset_inits()
 >>> conditions = model.conditions
 
-.. _wland_v001_base_scenario:
+.. _wland_wag_base_scenario:
 
 base scenario
 _____________
@@ -274,7 +274,7 @@ rainfall events.
 
 .. integration-test::
 
-    >>> test("wland_v001_base_scenario",
+    >>> test("wland_wag_base_scenario",
     ...      axis1=(fluxes.pc, fluxes.fqs, fluxes.fgs, fluxes.rh),
     ...      axis2=(states.dg, states.hs))
     |                date |    t |    p | fxg | fxs | dhs |    pc |                           pe |                       pet |                                   tf |                                ei |                                   rf |                 sf |                                   pm |                                am |    ps | pve |       pv |        pq | etve |      etv |       es |       et |  gr | fxs | fxg |        cdg | fgse |       fgs |       fqs |       rh |        r |                                   ic |                                   sp | dve |         dv | hge |          dg |       hq |         hs |   outlet |
@@ -344,31 +344,31 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _wland_v001_seepage:
+.. _wland_wag_seepage:
 
 seepage
 _______
 
-|wland_v001| allows modelling external seepage or extraction into or from the
-vadose zone.  We define an extreme value of 10 mm/d, which applies for the whole
-two months, to show how |wland_v001| reacts in case of strong large-scale ponding
-(this is a critical aspect of the `WALRUS`_ concept; see the documentation on
-method |Calc_FGS_V1| for a more in-depth discussion):
+|wland_wag| allows modelling external seepage or extraction into or from the vadose
+zone.  We define an extreme value of 10 mm/d, which applies for the whole two months,
+to show how |wland_wag| reacts in case of strong large-scale ponding (this is a
+critical aspect of the `WALRUS`_ concept; see the documentation on method |Calc_FGS_V1|
+for a more in-depth discussion):
 
 >>> inputs.fxg.series = 10.0
 
-The integration algorithm implemented by |ELSModel| solves the differential
-equations of |wland_v001| stable; the results look as expected.  Within the first
-few days, the groundwater table rises fast and finally exceeds the soil surface
-(large-scale ponding, indicated by negative values).  The highest flow from
-groundwater to surface water occurs directly after ponding and before the surface
-water level reaches its steady state.  At the end of the simulation run, the
-groundwater level is always slightly higher than the surface water level, which
-assures the necessary gradient to discharge the seepage water into the stream:
+The integration algorithm implemented by |ELSModel| solves the differential equations
+of |wland_wag| stable; the results look as expected.  Within the first few days, the
+groundwater table rises fast and finally exceeds the soil surface (large-scale ponding,
+indicated by negative values).  The highest flow from groundwater to surface water
+occurs directly after ponding and before the surface water level reaches its steady
+state.  At the end of the simulation run, the groundwater level is always slightly
+higher than the surface water level, which assures the necessary gradient to discharge
+the seepage water into the stream:
 
 .. integration-test::
 
-    >>> test("wland_v001_seepage",
+    >>> test("wland_wag_seepage",
     ...      axis1=(fluxes.pc, fluxes.fqs, fluxes.fgs, fluxes.rh),
     ...      axis2=(states.dg, states.hs))
     |                date |    t |    p |  fxg | fxs | dhs |    pc |                           pe |                       pet |                                   tf |                                ei |                                   rf |                 sf |                                   pm |                                am |    ps | pve |       pv |        pq | etve |      etv |       es |       et |  gr | fxs |       fxg |         cdg | fgse |       fgs |       fqs |       rh |        r |                                   ic |                                   sp | dve |          dv | hge |          dg |       hq |          hs |   outlet |
@@ -438,7 +438,7 @@ There is no violation of the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _wland_v001_groundwater_connect:
+.. _wland_wag_groundwater_connect:
 
 groundwater connect
 ___________________
@@ -451,7 +451,7 @@ internal and external forcings explained in the documentation on method |Calc_CD
 
 .. integration-test::
 
-    >>> test("wland_v001_groundwater_connect",
+    >>> test("wland_wag_groundwater_connect",
     ...      axis1=(fluxes.pc, fluxes.fqs, fluxes.fgs, fluxes.rh),
     ...      axis2=(states.dg, states.hs))
     |                date |    t |    p |  fxg | fxs | dhs |    pc |                           pe |                       pet |                                   tf |                                ei |                                   rf |                 sf |                                   pm |                                am |    ps | pve |       pv |        pq | etve |      etv |       es |       et |  gr | fxs |       fxg |         cdg | fgse |       fgs |       fqs |       rh |        r |                                   ic |                                   sp | dve |          dv | hge |          dg |       hq |          hs |   outlet |
@@ -523,19 +523,19 @@ There is no violation of the water balance:
 
 >>> dgc(False)
 
-.. _wland_v001_surface_water_supply:
+.. _wland_wag_surface_water_supply:
 
 surface water supply
 ____________________
 
-We now repeat the :ref:`wland_v001_seepage` example but use the input sequence
+We now repeat the :ref:`wland_wag_seepage` example but use the input sequence
 |wland_inputs.FXS| instead of |wland_inputs.FXG| to feed the water into the
 surface water reservoir instead of the vadose zone reservoir:
 
 >>> inputs.fxg.series =  0.0
 >>> inputs.fxs.series = 10.0
 
-Overall, the following results look similar to the ones of the :ref:`wland_v001_seepage`
+Overall, the following results look similar to the ones of the :ref:`wland_wag_seepage`
 example.  However, it takes longer until the groundwater and surface water levels
 approach their final values because of the faster surface runoff response.  The
 steady-state surface water level is higher than the groundwater level, but to a much
@@ -544,7 +544,7 @@ evapotranspiration:
 
 .. integration-test::
 
-    >>> test("wland_v001_surface_water_supply",
+    >>> test("wland_wag_surface_water_supply",
     ...      axis1=(fluxes.pc, fluxes.fqs, fluxes.fgs, fluxes.rh),
     ...      axis2=(states.dg, states.hs))
     |                date |    t |    p | fxg |  fxs | dhs |    pc |                           pe |                       pet |                                   tf |                                ei |                                   rf |                 sf |                                   pm |                                am |    ps | pve |       pv |        pq | etve |      etv |       es |       et |  gr |   fxs | fxg |        cdg | fgse |        fgs |       fqs |       rh |        r |                                   ic |                                   sp | dve |         dv | hge |          dg |       hq |          hs |   outlet |
@@ -614,13 +614,13 @@ There is no violation of the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _wland_v001_elevated_regions:
+.. _wland_wag_elevated_regions:
 
 elevated regions
 ________________
 
-This test demonstrates the initially explained elevated region add-on of |wland_v001|
-by setting the coniferous hydrological response unit's |ER| flag to |True|:
+This test demonstrates the initially explained elevated region add-on of |wland_wag| by
+setting the coniferous hydrological response unit's |ER| flag to |True|:
 
 >>> inputs.fxs.series = 0.0
 >>> er(conifer=True, default=False)
@@ -634,11 +634,11 @@ The elevated region-specific parameters |AC|, |CWE|, and |CGE| now require value
 The elevated region's initial groundwater level is 1 m above the lowland's.  Hence,
 there is a permanent flux from the elevated to the lowland region, and the lowland's
 groundwater depth decreases by 0.4 m during the simulation period instead of less than
-0.2 m in the :ref:`wland_v001_base_scenario` example:
+0.2 m in the :ref:`wland_wag_base_scenario` example:
 
 .. integration-test::
 
-    >>> test("wland_v001_elevated_regions",
+    >>> test("wland_wag_elevated_regions",
     ...      axis1=(fluxes.pc, fluxes.fgse, fluxes.fgs),
     ...      axis2=(states.hge, states.dg))
     |                date |    t |    p | fxg | fxs | dhs |    pc |                           pe |                       pet |                                   tf |                                ei |                                   rf |                 sf |                                   pm |                                am |    ps |      pve |       pv |        pq |     etve |      etv |       es |       et |  gr | fxs | fxg |        cdg |     fgse |       fgs |       fqs |       rh |        r |                                   ic |                                   sp |        dve |         dv |        hge |          dg |       hq |          hs |   outlet |
@@ -708,7 +708,7 @@ There is no violation of the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _wland_v001_snowfall:
+.. _wland_wag_snowfall:
 
 snowfall
 ________
@@ -729,7 +729,7 @@ such a small amount, |SP| does not decrease in a relevant manner anymore:
 
 .. integration-test::
 
-    >>> test("wland_v001_snowfall", axis1=(fluxes.pc, states.sp), axis2=(inputs.t,))
+    >>> test("wland_wag_snowfall", axis1=(fluxes.pc, states.sp), axis2=(inputs.t,))
     |                date |     t |    p | fxg | fxs | dhs |    pc |                           pe |                       pet |                                   tf |                                ei |                                rf |                                   sf |                                   pm |                                   am |    ps | pve |       pv |        pq | etve |      etv |       es |       et |  gr | fxs | fxg |        cdg | fgse |       fgs |       fqs |       rh |        r |                                   ic |                                   sp | dve |         dv | hge |          dg |        hq |          hs |   outlet |
     ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2017-02-10 00:00:00 | -10.8 |  0.0 | 0.0 | 0.0 | 0.0 |   0.0 | 0.3942  0.702  0.378  0.6588 | 0.3942  0.702  0.378  0.0 |       0.0        0.0        0.0  0.0 |      0.0  0.000001       0.0  0.0 |      0.0       0.0       0.0  0.0 |       0.0        0.0        0.0  0.0 |       0.0        0.0        0.0  0.0 |       0.0        0.0        0.0  0.0 |   0.0 | 0.0 |      0.0 |       0.0 |  0.0 |  0.49406 | 0.000066 | 0.435763 | 0.0 | 0.0 | 0.0 |   7.689815 |  0.0 | -0.000107 |       0.0 |      0.0 |      0.0 |      -3.0  -3.000001       -3.0  0.0 |      -3.0       -3.0       -3.0  0.0 | nan | 140.493953 | nan | 1607.689815 |       0.0 |   -2.004788 |      0.0 |
@@ -797,7 +797,7 @@ There is no violation of the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _wland_v001_backwater_effects:
+.. _wland_wag_backwater_effects:
 
 backwater effects
 _________________
@@ -826,7 +826,7 @@ We create such a node and build the required connections:
 Usually, the remote node would receive its data from a downstream model like |dam_pump|
 or |sw1d_storage|.  Here, we simplify things by directly defining the downstream
 location's water level time series by reusing the tabulated results of the
-:ref:`wland_v001_snowfall` example:
+:ref:`wland_wag_snowfall` example:
 
 >>> waterlevel.prepare_simseries()
 >>> waterlevel.deploymode = "oldsim"
@@ -842,13 +842,13 @@ location's water level time series by reusing the tabulated results of the
 ...     859.04159, 626.665696, 481.755443, 387.029438, 320.183349, 271.859287,
 ...     234.668462, 205.397587]
 
-We need to convert the unit from mm (used by |wland_v001|) to m (specified by the
+We need to convert the unit from mm (used by |wland_wag|) to m (specified by the
 |WaterLevelModel_V1| interface):
 
 >>> waterlevel.sequences.sim.series /= 1000.0
 
 Despite inserting the water levels taken from the result table of the
-:ref:`wland_v001_snowfall` example, some relevant deviations in the other properties
+:ref:`wland_wag_snowfall` example, some relevant deviations in the other properties
 arise because the (externally defined) surface water level is kept constant within each
 simulation step.   So, these deviations indicate numerical inaccuracy and could be
 reduced by setting a smaller simulation step size.  Also, note that sequence |DHS| now
@@ -857,7 +857,7 @@ inaccuracies and helps keep track of the water balance:
 
 .. integration-test::
 
-    >>> test("wland_v001_backwater_effects",
+    >>> test("wland_wag_backwater_effects",
     ...      axis1=(fluxes.pc, states.sp), axis2=(inputs.t,))
     |                date |     t |    p | fxg | fxs |         dhs |    pc |                           pe |                       pet |                                   tf |                                ei |                                rf |                                   sf |                                   pm |                                   am |    ps | pve |       pv |        pq | etve |      etv |       es |       et |  gr | fxs | fxg |        cdg | fgse |       fgs |       fqs |        rh |         r |                                   ic |                                   sp | dve |         dv | hge |          dg |        hq |          hs |    outlet |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -926,8 +926,8 @@ There is no violation of the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-We return |wland_v001| to the standard "unidirectional" mode by removing the water
-level submodel and reintroducing the same discharge submodel:
+We return |wland_wag| to the standard "unidirectional" mode by removing the water level
+submodel and reintroducing the same discharge submodel:
 
 >>> del model.waterlevelmodel
 >>> with model.add_dischargemodel_v2("wq_walrus"):
@@ -935,12 +935,12 @@ level submodel and reintroducing the same discharge submodel:
 ...     bankfulldischarge(8.0)
 ...     dischargeexponent(1.5)
 
-.. _wland_v001_no_vadose_zone:
+.. _wland_wag_no_vadose_zone:
 
 no vadose zone
 ______________
 
-This example demonstrates that |wland_v001| works well with completely sealed land
+This example demonstrates that |wland_wag| works well with completely sealed land
 surfaces.  We enforce this by assigning the land-use type |SEALED| to all three
 land-related hydrological response units:
 
@@ -955,7 +955,7 @@ flux |FGS| and the change in the groundwater level (|CDG|) to zero:
 
 .. integration-test::
 
-    >>> test("wland_v001_no_vadose_zone",
+    >>> test("wland_wag_no_vadose_zone",
     ...      axis1=(fluxes.pc, fluxes.fqs, fluxes.fgs, fluxes.rh),
     ...      axis2=(states.dg, states.hs))
     |                date |     t |    p | fxg | fxs | dhs |    pc |                          pe |                      pet |                                   tf |                                ei |                                rf |                                   sf |                                   pm |                                   am |    ps | pve |  pv |        pq | etve | etv |       es |       et |  gr | fxs | fxg | cdg | fgse | fgs |       fqs |        rh |        r |                                   ic |                                   sp | dve |  dv | hge |  dg |        hq |          hs |   outlet |
@@ -1025,17 +1025,17 @@ There is no violation of the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _wland_v001_no_land_area:
+.. _wland_wag_no_land_area:
 
 no land area
 ____________
 
-|wland_v001| also works for "catchments" consisting of surface water areas only.
-This setting somehow contradicts the original `WALRUS`_ concept.  However, it may
-help to set up |wland_v001| with small "raster sub-catchments" in water basins
-with large lakes. Besides setting the number of hydrological response units (|NU|)
-to one, we need to reset the values of some parameters which lose their information
-when their shape changes:
+|wland_wag| also works for "catchments" consisting of surface water areas only.  This
+setting somehow contradicts the original `WALRUS`_ concept.  However, it may help to
+set up |wland_wag| with small "raster sub-catchments" in water basins with large lakes.
+Besides setting the number of hydrological response units (|NU|) to one, we need to
+reset the values of some parameters which lose their information when their shape
+changes:
 
 >>> nu(1)
 >>> aur(1.0)
@@ -1054,14 +1054,14 @@ method |wland_model.BaseModel.check_waterbalance| after simulation:
 >>> test.reset_inits()
 >>> conditions = model.conditions
 
-In contrast to the :ref:`wland_v001_no_vadose_zone` example, the generated runoff
-(|RH|) nearly vanishes due to the little rise in the water level, even for the two
-heavy precipitation events.  Our "catchment" now works like a lake, and nearly all
-stored precipitation water evaporates sooner or later:
+In contrast to the :ref:`wland_wag_no_vadose_zone` example, the generated runoff (|RH|)
+nearly vanishes due to the little rise in the water level, even for the two heavy
+precipitation events.  Our "catchment" now works like a lake, and nearly all stored
+precipitation water evaporates sooner or later:
 
 .. integration-test::
 
-    >>> test("wland_v001_no_land_area",
+    >>> test("wland_wag_no_land_area",
     ...      axis1=(fluxes.pc, fluxes.et, fluxes.rh), axis2=(states.hs,))
     |                date |     t |    p | fxg | fxs | dhs |    pc |     pe | pet |  tf |  ei |  rf |  sf |  pm |  am |    ps | pve |  pv |  pq | etve | etv |       es |       et |  gr | fxs | fxg | cdg | fgse | fgs | fqs |       rh |        r |  ic |  sp | dve |  dv | hge |  dg |  hq |        hs |   outlet |
     ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1155,7 +1155,7 @@ class Model(
     wland_model.Sub_PrecipModel_V1,
     wland_model.Sub_SnowCoverModel_V1,
 ):
-    """The (extended) implementation of the original WALRUS model."""
+    """|wland_wag.DOCNAME.complete|."""
 
     SOLVERPARAMETERS = (
         wland_solver.AbsErrorMax,

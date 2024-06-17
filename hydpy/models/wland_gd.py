@@ -1,27 +1,27 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-r"""Version 2 of *HydPy-W-Land* is still under development and is likely to change in
+r"""|wland_wag.DOCNAME.complete| is still under development and is likely to change in
 the future.
 
-When applying |wland_v001| on the Kiel Catchment river basins, we realised some
-strengths and limitations of the `WALRUS`_ concept.  First, |wland_v001| does not
+When applying |wland_wag| on the Kiel Catchment river basins, we realised some
+strengths and limitations of the `WALRUS`_ concept.  First, |wland_wag| does not
 predict the high dynamics of the groundwater levels encountered at many groundwater
 gauges.  This shortcoming is likely with an observed tendency to underestimate
-streamflow peaks.  Second, |wland_v001| tends to run dry during summer conditions much
+streamflow peaks.  Second, |wland_wag| tends to run dry during summer conditions much
 too fast.
 
 .. _`WALRUS`: https://www.wur.nl/en/Research-Results/Chair-groups/Environmental-Sciences/Hydrology-and-Quantitative-Water-Management-Group/Research/WALRUS-1.htm
 
-So far, |wland_v002| offers a physically based approach that increases groundwater
+So far, |wland_gd| offers a physically based approach that increases groundwater
 dynamics.  See the documentation on method |Calc_GF_V1| for an in-depth explanation.
 The second problem seems to be related to a lack of "groundwater recharge areas" where
 groundwater is less exposed to evapotranspiration.  We will address this later.
 
-The following integration tests are identical to the ones of |wland_v001|, except that
+The following integration tests are identical to the ones of |wland_wag|, except that
 we set the additional parameter |ThetaR| to 0.01.  Compare the
-:ref:`wland_v001_base_scenario` example of |wland_v001| with the
-:ref:`wland_v002_base_scenario` example of |wland_v002| to see how the differences
-between both models affect groundwater dynamics.
+:ref:`wland_wag_base_scenario` example of |wland_wag| with the
+:ref:`wland_gd_base_scenario` example of |wland_gd| to see how the differences between
+both models affect groundwater dynamics.
 
 
 Integration tests
@@ -31,7 +31,7 @@ Integration tests
 
 >>> from hydpy import IntegrationTest, Element, pub, round_
 >>> pub.timegrids = "2017-02-10", "2017-04-10", "1d"
->>> from hydpy.models.wland_v002 import *
+>>> from hydpy.models.wland_gd import *
 >>> parameterstep("1d")
 >>> land = Element("land", outlets="outlet")
 >>> land.model = model
@@ -112,14 +112,14 @@ Integration tests
 >>> test.reset_inits()
 >>> conditions = model.conditions
 
-.. _wland_v002_base_scenario:
+.. _wland_gd_base_scenario:
 
 base scenario
 _____________
 
 .. integration-test::
 
-    >>> test("wland_v002_base_scenario",
+    >>> test("wland_gd_base_scenario",
     ...      axis1=(fluxes.pc, fluxes.fqs, fluxes.fgs, fluxes.rh),
     ...      axis2=(states.dg, states.hs))
     |                date |    t |    p | fxg | fxs | dhs |    pc |                           pe |                       pet |                                   tf |                                ei |                                   rf |                 sf |                                   pm |                                am |    ps | pve |       pv |        pq | etve |      etv |       es |       et |  gr | fxs | fxg |         cdg | fgse |       fgs |       fqs |       rh |        r |                                   ic |                                   sp | dve |         dv | hge |          dg |       hq |         hs |   outlet |
@@ -187,7 +187,7 @@ _____________
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _wland_v002_seepage:
+.. _wland_gd_seepage:
 
 seepage
 _______
@@ -196,7 +196,7 @@ _______
 
 .. integration-test::
 
-    >>> test("wland_v002_seepage",
+    >>> test("wland_gd_seepage",
     ...      axis1=(fluxes.pc, fluxes.fqs, fluxes.fgs, fluxes.rh),
     ...      axis2=(states.dg, states.hs))
     |                date |    t |    p |  fxg | fxs | dhs |    pc |                           pe |                       pet |                                   tf |                                ei |                                   rf |                 sf |                                   pm |                                am |    ps | pve |       pv |        pq | etve |      etv |       es |       et |  gr | fxs |       fxg |         cdg | fgse |       fgs |       fqs |       rh |        r |                                   ic |                                   sp | dve |          dv | hge |          dg |       hq |          hs |   outlet |
@@ -264,7 +264,7 @@ _______
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _wland_v002_surface_water_supply:
+.. _wland_gd_surface_water_supply:
 
 surface water supply
 ____________________
@@ -274,7 +274,7 @@ ____________________
 
 .. integration-test::
 
-    >>> test("wland_v002_surface_water_supply",
+    >>> test("wland_gd_surface_water_supply",
     ...      axis1=(fluxes.pc, fluxes.fqs, fluxes.fgs, fluxes.rh),
     ...      axis2=(states.dg, states.hs))
     |                date |    t |    p | fxg |  fxs | dhs |    pc |                           pe |                       pet |                                   tf |                                ei |                                   rf |                 sf |                                   pm |                                am |    ps | pve |       pv |        pq | etve |      etv |       es |       et |  gr |   fxs | fxg |         cdg | fgse |        fgs |       fqs |       rh |        r |                                   ic |                                   sp | dve |         dv | hge |          dg |       hq |          hs |   outlet |
@@ -342,7 +342,7 @@ ____________________
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _wland_v002_elevated_regions:
+.. _wland_gd_elevated_regions:
 
 elevated regions
 ________________
@@ -356,7 +356,7 @@ ________________
 
 .. integration-test::
 
-    >>> test("wland_v001_elevated_regions",
+    >>> test("wland_wag_elevated_regions",
     ...      axis1=(fluxes.pc, fluxes.fgse, fluxes.fgs),
     ...      axis2=(states.hge, states.dg))
     |                date |    t |    p | fxg | fxs | dhs |    pc |                           pe |                       pet |                                   tf |                                ei |                                   rf |                 sf |                                   pm |                                am |    ps |      pve |       pv |        pq |     etve |      etv |       es |       et |  gr | fxs | fxg |         cdg |     fgse |       fgs |       fqs |       rh |        r |                                   ic |                                   sp |        dve |         dv |        hge |          dg |       hq |          hs |   outlet |
@@ -424,7 +424,7 @@ ________________
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _wland_v002_snowfall:
+.. _wland_gd_snowfall:
 
 snowfall
 ________
@@ -434,7 +434,7 @@ ________
 
 .. integration-test::
 
-    >>> test("wland_v002_snowfall", axis1=(fluxes.pc, states.sp), axis2=(inputs.t,))
+    >>> test("wland_gd_snowfall", axis1=(fluxes.pc, states.sp), axis2=(inputs.t,))
     |                date |     t |    p | fxg | fxs | dhs |    pc |                           pe |                       pet |                                   tf |                                ei |                                rf |                                   sf |                                   pm |                                   am |    ps | pve |       pv |        pq | etve |      etv |       es |       et |  gr | fxs | fxg |         cdg | fgse |       fgs |       fqs |       rh |        r |                                   ic |                                   sp | dve |         dv | hge |          dg |        hq |          hs |   outlet |
     -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2017-02-10 00:00:00 | -10.8 |  0.0 | 0.0 | 0.0 | 0.0 |   0.0 | 0.3942  0.702  0.378  0.6588 | 0.3942  0.702  0.378  0.0 |       0.0        0.0        0.0  0.0 |      0.0  0.000001       0.0  0.0 |      0.0       0.0       0.0  0.0 |       0.0        0.0        0.0  0.0 |       0.0        0.0        0.0  0.0 |       0.0        0.0        0.0  0.0 |   0.0 | 0.0 |      0.0 |       0.0 |  0.0 |  0.49406 | 0.000067 | 0.435763 | 0.0 | 0.0 | 0.0 |  -37.374521 |  0.0 | -0.000081 |       0.0 |      0.0 |      0.0 |      -3.0  -3.000001       -3.0  0.0 |      -3.0       -3.0       -3.0  0.0 | nan | 140.493979 | nan | 1562.625479 |       0.0 |    -2.00364 |      0.0 |
@@ -500,7 +500,7 @@ ________
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _wland_v002_backwater_effects:
+.. _wland_gd_backwater_effects:
 
 backwater effects
 _________________
@@ -530,7 +530,7 @@ _________________
 
 .. integration-test::
 
-    >>> test("wland_v002_backwater_effects",
+    >>> test("wland_gd_backwater_effects",
     ...      axis1=(fluxes.pc, states.sp), axis2=(inputs.t,))
     |                date |     t |    p | fxg | fxs |         dhs |    pc |                           pe |                       pet |                                   tf |                                ei |                                rf |                                   sf |                                   pm |                                   am |    ps | pve |       pv |        pq | etve |      etv |       es |       et |  gr | fxs | fxg |         cdg | fgse |       fgs |       fqs |        rh |         r |                                   ic |                                   sp | dve |         dv | hge |          dg |        hq |          hs |    outlet |
     ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -603,7 +603,7 @@ _________________
 ...     bankfulldischarge(8.0)
 ...     dischargeexponent(1.5)
 
-.. _wland_v002_no_vadose_zone:
+.. _wland_gd_no_vadose_zone:
 
 no vadose zone
 ______________
@@ -614,7 +614,7 @@ ______________
 
 .. integration-test::
 
-    >>> test("wland_v002_no_vadose_zone",
+    >>> test("wland_gd_no_vadose_zone",
     ...      axis1=(fluxes.pc, fluxes.fqs, fluxes.fgs, fluxes.rh),
     ...      axis2=(states.dg, states.hs))
     |                date |     t |    p | fxg | fxs | dhs |    pc |                          pe |                      pet |                                   tf |                                ei |                                rf |                                   sf |                                   pm |                                   am |    ps | pve |  pv |        pq | etve | etv |       es |       et |  gr | fxs | fxg | cdg | fgse | fgs |       fqs |        rh |        r |                                   ic |                                   sp | dve |  dv | hge |  dg |        hq |          hs |   outlet |
@@ -682,7 +682,7 @@ ______________
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _wland_v002_no_land_area:
+.. _wland_gd_no_land_area:
 
 no land area
 ____________
@@ -701,7 +701,7 @@ ____________
 
 .. integration-test::
 
-    >>> test("wland_v002_no_land_area",
+    >>> test("wland_gd_no_land_area",
     ...      axis1=(fluxes.pc, fluxes.et, fluxes.rh),
     ...      axis2=(states.hs,))
     |                date |     t |    p | fxg | fxs | dhs |    pc |     pe | pet |  tf |  ei |  rf |  sf |  pm |  am |    ps | pve |  pv |  pq | etve | etv |       es |       et |  gr | fxs | fxg | cdg | fgse | fgs | fqs |       rh |        r |  ic |  sp | dve |  dv | hge |  dg |  hq |        hs |   outlet |
@@ -794,7 +794,7 @@ class Model(
     wland_model.Sub_PrecipModel_V1,
     wland_model.Sub_SnowCoverModel_V1,
 ):
-    """The *HydPy-W-Land* model."""
+    """|wland_gd.DOCNAME.complete|"""
 
     SOLVERPARAMETERS = (
         wland_solver.AbsErrorMax,

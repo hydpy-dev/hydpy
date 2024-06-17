@@ -4,9 +4,9 @@
 
 |exch_waterlevel| informs its main model about the current water level simulated by
 another model or passed in as a time series by the user.  Use it, for example, to
-couple |wland_v001| and |dam_pump| so that the water level at a pumping station
+couple |wland_wag| and |dam_pump| so that the water level at a pumping station
 (modelled by |dam_pump|) can affect the upstream groundwater level (modelled by
-|wland_v001|).
+|wland_wag|).
 
 Integration test
 ================

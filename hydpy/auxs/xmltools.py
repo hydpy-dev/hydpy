@@ -2465,8 +2465,8 @@ class XSDWriter:
                                     name="snowalbedo"
                                     minOccurs="0"/>
         ...
-                    <element name="wland_v002"
-                             type="hpcb:wland_v002_readerType"
+                    <element name="wland_wag"
+                             type="hpcb:wland_wag_readerType"
                              minOccurs="0"/>
                 </sequence>
             </complexType>
@@ -2690,8 +2690,8 @@ class XSDWriter:
                              type="hpcb:dummy_interceptedwater_readerType"
                              minOccurs="0"/>
         ...
-                    <element name="wland_v002"
-                             type="hpcb:wland_v002_readerType"
+                    <element name="wland_wag"
+                             type="hpcb:wland_wag_readerType"
                              minOccurs="0"/>
                 </sequence>
             </complexType>

@@ -6,7 +6,7 @@
 The primary purpose of |evap_pet_hbv96| is to serve as a submodel that provides
 estimates of potential evapotranspiration.  Of course, you can connect it to |hland_v1|
 if you long for a close HBV96 emulation, but it also works with other main models like
-|lland_v1| or |wland_v001|.
+|lland_v1| or |wland_wag|.
 
 |evap_pet_hbv96| itself requires other models for determining temperature and
 precipitation.  By default, it queries the already available data from its main model.

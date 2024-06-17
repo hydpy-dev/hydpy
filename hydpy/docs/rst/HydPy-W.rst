@@ -6,7 +6,7 @@
 HydPy-W (WALRUS)
 ================
 
-The *HydPy-W* model family is based on the `WALRUS`_ model, specifically designed to
+The HydPy-W model family is based on the `WALRUS`_ model, specifically designed to
 simulate surface water fluxes in lowland catchments influenced by near-surface
 groundwater :cite:`ref-Brauer2014`.
 

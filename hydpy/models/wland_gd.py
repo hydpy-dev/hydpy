@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-r"""|DOCNAME.complete| is still under development and is likely to change in the
-future.
+r"""|wland_gd| is still under development and is likely to change in the future.
 
 When applying |wland_wag| on the Kiel Catchment river basins, we realised some
 strengths and limitations of the `WALRUS`_ concept.  First, |wland_wag| does not
@@ -794,7 +793,7 @@ class Model(
     wland_model.Sub_PrecipModel_V1,
     wland_model.Sub_SnowCoverModel_V1,
 ):
-    """|DOCNAME.complete|"""
+    """|wland_gd.DOCNAME.complete|"""
 
     DOCNAME = modeltools.DocName(
         short="W-GD",

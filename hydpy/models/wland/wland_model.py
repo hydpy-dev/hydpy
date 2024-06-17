@@ -3266,7 +3266,7 @@ class QuadDVEq_V2(quadtools.Quad):
 
 
 class Model(modeltools.ELSModel):
-    """The *HydPy-W-Land* model."""
+    """|wland.DOCNAME.complete|"""
 
     DOCNAME = modeltools.DocName(short="W")
 
@@ -3429,8 +3429,8 @@ class BaseModel(modeltools.ELSModel):
 
 
 class Main_PETModel_V1(modeltools.ELSModel):
-    """Base class for HydPy-W models that use submodels that comply with the
-    |PETModel_V1| interface."""
+    """Base class for |wland.DOCNAME.long| models that use submodels that comply with
+    the |PETModel_V1| interface."""
 
     petmodel: modeltools.SubmodelProperty
     petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -3485,8 +3485,8 @@ class Main_PETModel_V1(modeltools.ELSModel):
 
 
 class Main_PETModel_V2(modeltools.ELSModel):
-    """Base class for HydPy-W models that use submodels that comply with the
-    |PETModel_V2| interface."""
+    """Base class for |wland.DOCNAME.long| models that use submodels that comply with
+    the |PETModel_V2| interface."""
 
     petmodel: modeltools.SubmodelProperty
     petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -3608,8 +3608,8 @@ class Main_PETModel_V2(modeltools.ELSModel):
 
 
 class Main_DischargeModel_V2(modeltools.ELSModel):
-    """Base class for HydPy-W models that use submodels that comply with the
-    |DischargeModel_V2| interface."""
+    """Base class for |wland.DOCNAME.long| models that use submodels that comply with
+    the |DischargeModel_V2| interface."""
 
     dischargemodel: modeltools.SubmodelProperty
     dischargemodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -3694,8 +3694,8 @@ so far.
 
 
 class Main_WaterLevelModel_V1(modeltools.ELSModel):
-    """Base class for HydPy-W models that use submodels that comply with the
-    |WaterLevelModel_V1| interface."""
+    """Base class for |wland.DOCNAME.long| models that use submodels that comply with
+    the |WaterLevelModel_V1| interface."""
 
     waterlevelmodel: modeltools.SubmodelProperty
     waterlevelmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -3722,15 +3722,15 @@ class Main_WaterLevelModel_V1(modeltools.ELSModel):
 
 
 class Sub_TempModel_V1(modeltools.ELSModel, tempinterfaces.TempModel_V1):
-    """Base class for HydPy-W models that comply with the |TempModel_V1| submodel
-    interface."""
+    """Base class for |wland.DOCNAME.long| models that comply with the |TempModel_V1|
+    submodel interface."""
 
 
 class Sub_PrecipModel_V1(modeltools.ELSModel, precipinterfaces.PrecipModel_V1):
-    """Base class for HydPy-W models that comply with the |PrecipModel_V1| submodel
-    interface."""
+    """Base class for |wland.DOCNAME.long| models that comply with the |PrecipModel_V1|
+    submodel interface."""
 
 
 class Sub_SnowCoverModel_V1(modeltools.ELSModel, stateinterfaces.SnowCoverModel_V1):
-    """Base class for HydPy-W models that comply with the |SnowCoverModel_V1| submodel
-    interface."""
+    """Base class for |wland.DOCNAME.long| models that comply with the
+    |SnowCoverModel_V1| submodel interface."""

@@ -16,9 +16,9 @@ if TYPE_CHECKING:
 class SoilParameter(parametertools.Parameter):
     """Base class for parameters related to the soil character.
 
-    Some parameters of *HydPy-W-Land* are strongly related to the soil character and
-    come with default values. To apply these default values, use the `soil` keyword in
-    combination with one of the available soil constants.
+    Some parameters of |wland.DOCNAME.long| are strongly related to the soil character
+    and come with default values. To apply these default values, use the `soil` keyword
+    in combination with one of the available soil constants.
 
     We take parameter |B| and the soil character |SAND| as an example, which has the
     default value `4.05`:

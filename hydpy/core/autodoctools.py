@@ -307,6 +307,11 @@ def autodoc_basemodel(module: types.ModuleType) -> None:
     namespace["__doc__"] = moduledoc
     basemodule = importlib.import_module(namespace["__name__"])
     substituter.add_module(basemodule)
+    insert_docname_substitutions(
+        module=modules[f"{basemodulename}_model"],
+        name=basemodulename,
+        substituter=substituter,
+    )
     substituter.update_masters()
     namespace["substituter"] = substituter
 
@@ -438,13 +443,68 @@ def autodoc_applicationmodel(module: types.ModuleType) -> None:
     application model and its base model are defined in the conventional way.
     """
     autodoc_tuple2doc(module)
-    name_applicationmodel = module.__name__
-    name_basemodel = name_applicationmodel.split("_")[0]
-    module_basemodel = importlib.import_module(name_basemodel)
+    path_applicationmodel = module.__name__
+    path_basemodel = path_applicationmodel.split("_")[0]
+    module_basemodel = importlib.import_module(path_basemodel)
     substituter = Substituter(module_basemodel.substituter)
     substituter.add_module(module)
+    insert_docname_substitutions(
+        module=module,
+        name=path_applicationmodel.split(".")[-1],
+        substituter=substituter,
+    )
     substituter.update_masters()
     module.substituter = substituter  # type: ignore[attr-defined]
+
+
+def insert_docname_substitutions(
+    module: types.ModuleType, name: str, substituter: Substituter
+) -> None:
+    r"""Insert model-specific substitutions based on the definitions provided by the
+    available |DocName| member.
+
+    >>> from hydpy.core.autodoctools import insert_docname_substitutions, Substituter
+    >>> from hydpy.models import wland_wag
+    >>> substituter = Substituter()
+    >>> insert_docname_substitutions(wland_wag, "wland_wag", substituter)
+    >>> for command in substituter.get_commands().split("\n"):
+    ...     print(command)   # doctest: +ELLIPSIS
+    .. |wland_wag.DOCNAME.complete| replace:: HydPy-W-Wag (extended version ...
+    .. |wland_wag.DOCNAME.description| replace:: extended version ...
+    .. |wland_wag.DOCNAME.family| replace:: HydPy-W
+    .. |wland_wag.DOCNAME.long| replace:: HydPy-W-Wag
+    .. |wland_wag.DOCNAME.short| replace:: W-Wag
+    .. |wland_wag.Model.DOCNAME.complete| replace:: HydPy-W-Wag (extended version ...
+    .. |wland_wag.Model.DOCNAME.description| replace:: extended version ...
+    .. |wland_wag.Model.DOCNAME.family| replace:: HydPy-W
+    .. |wland_wag.Model.DOCNAME.long| replace:: HydPy-W-Wag
+    .. |wland_wag.Model.DOCNAME.short| replace:: W-Wag
+
+    >>> from hydpy.models.wland import wland_model
+    >>> substituter = Substituter()
+    >>> insert_docname_substitutions(wland_model, "wland", substituter)
+    >>> for command in substituter.get_commands().split("\n"):
+    ...     print(command)   # doctest: +ELLIPSIS
+    .. |wland.DOCNAME.complete| replace:: HydPy-W (base model)
+    .. |wland.DOCNAME.description| replace:: base model
+    .. |wland.DOCNAME.family| replace:: HydPy-W
+    .. |wland.DOCNAME.long| replace:: HydPy-W
+    .. |wland.DOCNAME.short| replace:: W
+    .. |wland.Model.DOCNAME.complete| replace:: HydPy-W (base model)
+    .. |wland.Model.DOCNAME.description| replace:: base model
+    .. |wland.Model.DOCNAME.family| replace:: HydPy-W
+    .. |wland.Model.DOCNAME.long| replace:: HydPy-W
+    .. |wland.Model.DOCNAME.short| replace:: W
+    """
+    docname = module.Model.DOCNAME
+    for member in dir(docname):
+        if not (member.startswith("_") or hasattr(tuple, member)):
+            substituter.add_substitution(
+                short=f"|{name}.DOCNAME.{member}|",
+                medium=f"|{name}.Model.DOCNAME.{member}|",
+                long=getattr(docname, member),
+                module=module,
+            )
 
 
 class Substituter:

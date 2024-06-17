@@ -20,7 +20,7 @@ class NU(parametertools.Parameter):
     """Number of hydrological response units [-].
 
     Parameter |NU| automatically sets the length of most 1-dimensional parameters and
-    sequences of *HydPy-W-Land*:
+    sequences of |wland.DOCNAME.long|:
 
     >>> from hydpy.models.wland import *
     >>> parameterstep()

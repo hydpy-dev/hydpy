@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-r"""|wland_wag.DOCNAME.complete| is a slightly modified and extended version of the
-`WALRUS`_ model, specifically designed to simulate surface water fluxes in lowland
-catchments influenced by near-surface groundwater :cite:p:`ref-Brauer2014`.  We
-implemented |wland_wag| on behalf of the `German Federal Institute of Hydrology (BfG)`_
-in the context of optimising the control of the Kiel Canal (Nord-Ostsee-Kanal).
+r"""|DOCNAME.complete| is a slightly modified and extended version of the `WALRUS`_
+model, specifically designed to simulate surface water fluxes in lowland catchments
+influenced by near-surface groundwater :cite:p:`ref-Brauer2014`.  We implemented
+|wland_wag| on behalf of the `German Federal Institute of Hydrology (BfG)`_ in the
+context of optimising the control of the Kiel Canal (Nord-Ostsee-Kanal).
 
 .. _`WALRUS`: https://www.wur.nl/en/Research-Results/Chair-groups/Environmental-Sciences/Hydrology-and-Quantitative-Water-Management-Group/Research/WALRUS-1.htm
 .. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN
@@ -1155,7 +1155,12 @@ class Model(
     wland_model.Sub_PrecipModel_V1,
     wland_model.Sub_SnowCoverModel_V1,
 ):
-    """|wland_wag.DOCNAME.complete|."""
+    """|DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="W-Wag",
+        description="extended version of the original Wageningen WALRUS model",
+    )
 
     SOLVERPARAMETERS = (
         wland_solver.AbsErrorMax,

@@ -1023,6 +1023,48 @@ class Idx_Run(IndexProperty):
         self.__doc__ = "The run index."
 
 
+class DocName(NamedTuple):
+    """Definitions for the documentation names of specific base or application
+    models."""
+
+    short: str
+    """Short name of a model, e.g. "W-Wag"."""
+
+    description: str = "base model"
+    """Description of a model, e.g. "extended version of the original Wageningen WALRUS 
+    model"."""
+
+    @property
+    def long(self):
+        """Long name of a model.
+
+        >>> from hydpy.models.wland_wag import Model
+        >>> Model.DOCNAME.long
+        'HydPy-W-Wag'
+        """
+        return f"HydPy-{self.short}"
+
+    @property
+    def complete(self) -> str:
+        """Complete presentation of a model.
+
+        >>> from hydpy.models.wland_wag import Model
+        >>> Model.DOCNAME.complete
+        'HydPy-W-Wag (extended version of the original Wageningen WALRUS model)'
+        """
+        return f"{self.long} ({self.description})"
+
+    @property
+    def family(self) -> str:
+        """Family name of a model.
+
+        >>> from hydpy.models.wland_wag import Model
+        >>> Model.DOCNAME.family
+        'HydPy-W'
+        """
+        return "-".join(self.long.split("-")[:2])
+
+
 class Model:
     """Base class for all hydrological models.
 

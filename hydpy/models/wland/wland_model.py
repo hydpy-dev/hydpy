@@ -3268,6 +3268,8 @@ class QuadDVEq_V2(quadtools.Quad):
 class Model(modeltools.ELSModel):
     """The *HydPy-W-Land* model."""
 
+    DOCNAME = modeltools.DocName(short="W")
+
     SOLVERPARAMETERS = (
         wland_solver.AbsErrorMax,
         wland_solver.RelErrorMax,

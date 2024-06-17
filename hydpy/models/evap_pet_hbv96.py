@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Implementation of the potential evapotranspiration routines of HBV96
-:cite:p:`ref-Lindstrom1997HBV96`.
-
-The primary purpose of |evap_pet_hbv96| is to serve as a submodel that provides
-estimates of potential evapotranspiration.  Of course, you can connect it to |hland_v1|
-if you long for a close HBV96 emulation, but it also works with other main models like
-|lland_v1| or |wland_wag|.
+"""The primary purpose of |evap_pet_hbv96| is to serve as a submodel that provides
+estimates of potential evapotranspiration corresponding to HBV96
+:cite:p:`ref-Lindstrom1997HBV96`.  Of course, you can connect it to |hland_v1| if you
+want a close HBV96 emulation, but it also works with other main models like |lland_v1|
+or |wland_wag|.
 
 |evap_pet_hbv96| itself requires other models for determining temperature and
 precipitation.  By default, it queries the already available data from its main model.
@@ -100,7 +98,11 @@ class Model(
     evap_model.Sub_ETModel,
     petinterfaces.PETModel_V1,
 ):
-    """The HBV96 version of HydPy-Evap for calculating potential evapotranspiration."""
+    """|evap_pet_hbv96.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Evap-PET-HBV96", description="potential evapotranspiration after HBV96"
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

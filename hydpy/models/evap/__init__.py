@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""The HydPy-Evap model family supplies methods for calculating potential
+"""The |evap.DOCNAME.complete| model family supplies methods for calculating potential
 evapotranspiration.
 """
 # import...

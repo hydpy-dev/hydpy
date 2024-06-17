@@ -3,8 +3,8 @@
 """Submodel for reading clear-sky solar radiation and global radiation data.
 
 Use |meteo_clear_glob_io| as a submodel for supplying (relative) main models like
-|evap_fao56| with externally available clear-sky solar radiation and global radiation
-time series.
+|evap_ret_fao56| with externally available clear-sky solar radiation and global
+radiation time series.
 
 Integration test
 ================

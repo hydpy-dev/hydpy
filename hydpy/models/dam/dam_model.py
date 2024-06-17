@@ -130,7 +130,7 @@ class Calc_PotentialEvaporation_V1(modeltools.Method):
         the available submodel:
 
         >>> surfacearea(2.0)
-        >>> with model.add_pemodel_v1("evap_io"):
+        >>> with model.add_pemodel_v1("evap_ret_io"):
         ...     evapotranspirationfactor(1.1)
         ...     inputs.referenceevapotranspiration = 3.0
         >>> model.calc_potentialevaporation_v1()
@@ -4996,7 +4996,7 @@ class Main_PEModel_V1(modeltools.ELSModel):
         >>> from hydpy.models.dam_v001 import *
         >>> parameterstep()
         >>> surfacearea(2.0)
-        >>> with model.add_pemodel_v1("evap_tw2002"):
+        >>> with model.add_pemodel_v1("evap_ret_tw2002"):
         ...     nmbhru
         ...     hruarea
         ...     evapotranspirationfactor(1.5)

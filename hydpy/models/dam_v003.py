@@ -253,10 +253,10 @@ ___________
 
 This example corresponds to the :ref:`dam_v001_evaporation` example of application model
 |dam_v001| and the :ref:`dam_v002_evaporation` example of application model |dam_v002|.
-We add an |evap_io| submodel and update the required remote release time series
+We add an |evap_ret_io| submodel and update the required remote release time series
 accordingly:
 
->>> with model.add_pemodel_v1("evap_io") as pemodel:
+>>> with model.add_pemodel_v1("evap_ret_io") as pemodel:
 ...     evapotranspirationfactor(1.0)
 >>> pemodel.prepare_inputseries()
 >>> pemodel.sequences.inputs.referenceevapotranspiration.series = 10 * [1.0] + 10 * [5.0]

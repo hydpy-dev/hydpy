@@ -42,7 +42,7 @@ We take all of the following settings from the documentation on the application 
 
 >>> with model.add_precipmodel_v2("meteo_precip_io"):
 ...     precipitationfactor(1.0)
->>> with model.add_pemodel_v1("evap_io"):
+>>> with model.add_pemodel_v1("evap_ret_io"):
 ...     evapotranspirationfactor(1.0)
 
 >>> test = IntegrationTest(dam)

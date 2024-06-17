@@ -138,7 +138,7 @@ acre (summer)
 >>> with model.add_radiationmodel_v4("meteo_psun_sun_glob_io") as submodel_meteo_psun_sun_glob_io:
 ...     pass
 
->>> with model.add_aetmodel_v1("evap_morsim"):
+>>> with model.add_aetmodel_v1("evap_aet_morsim"):
 ...     albedo.acker_aug = 0.24
 ...     cropheight.acker_aug = 0.4
 ...     surfaceresistance.acker = 40.0

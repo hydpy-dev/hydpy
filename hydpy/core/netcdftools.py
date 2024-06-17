@@ -1045,8 +1045,8 @@ class NetCDFVariableFlat(NetCDFVariable, abc.ABC):
     >>> var_sp.log(sp, sp.series)
 
     We further try to log the equally named "wind speed" sequences of the main model
-    |lland_v3| and the submodel |evap_morsim|.  As both models are handled by the same
-    element, which defines the column name, their time series cannot be stored
+    |lland_v3| and the submodel |evap_aet_morsim|.  As both models are handled by the
+    same element, which defines the column name, their time series cannot be stored
     separately in the same NetCDF file.  The |MixinVariableWriter.log| method defined
     by |MixinVariableWriter| checks for potential conflicts:
 
@@ -1058,9 +1058,9 @@ class NetCDFVariableFlat(NetCDFVariable, abc.ABC):
     Traceback (most recent call last):
     ...
     RuntimeError: When trying to log the time series of sequence `windspeed` of \
-element `element3` of model `evap_morsim` for writing, the following error occurred: \
-Sequence `windspeed` of element `element3` of model `lland_v3` is already registered \
-under the same column name(s) but with different time series data.
+element `element3` of model `evap_aet_morsim` for writing, the following error \
+occurred: Sequence `windspeed` of element `element3` of model `lland_v3` is already \
+registered under the same column name(s) but with different time series data.
 
     If the supplied time series are equal, there is no problem.  So,
     |MixinVariableWriter.log| neither accepts the new sequence nor raises an error in

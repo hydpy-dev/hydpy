@@ -2744,7 +2744,7 @@ class ModelSequence(Sequence_):
         >>> measuringheightwindspeed(10.0)
         >>> lai(10.0)
         >>> wmax(300.0)
-        >>> with model.add_aetmodel_v1("evap_morsim"):
+        >>> with model.add_aetmodel_v1("evap_aet_morsim"):
         ...     pass
         >>> model.aetmodel.sequences.inputs.windspeed.descr_device
         'my_element'

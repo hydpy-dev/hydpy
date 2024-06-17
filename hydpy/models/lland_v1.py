@@ -131,20 +131,21 @@ implemented methods on the shown results:
 >>> eqd2(2.0)
 >>> negq(False)
 
-We select |evap_tw2002| as the submodel for calculating reference evapotranspiration,
-which implements the Turc-Wendling method (despite the following examples working on an
-hourly step size while the Turc-Wendling should be applied on at least daily time
-steps), and wrap this submodel into another submodel of type |evap_mlc| for converting
-reference evapotranspiration to potential evapotranspiration.  Finally, these two
-submodels are wrapped by a submodel of type |evap_minhas| that essentially uses the
-Minhas equation to reduce potential evapotranspiration to actual evapotranspiration:
+We select |evap_ret_tw2002| as the submodel for calculating reference
+evapotranspiration, which implements the Turc-Wendling method (despite the following
+examples working on an hourly step size while the Turc-Wendling should be applied on at
+least daily time steps), and wrap this submodel into another submodel of type
+|evap_pet_mlc| for converting reference evapotranspiration to potential
+evapotranspiration.  Finally, these two submodels are wrapped by a submodel of type
+|evap_aet_minhas| that essentially uses the Minhas equation to reduce potential
+evapotranspiration to actual evapotranspiration:
 
->>> with model.add_aetmodel_v1("evap_minhas"):
+>>> with model.add_aetmodel_v1("evap_aet_minhas"):
 ...     dissefactor(5.0)
-...     with model.add_petmodel_v1("evap_mlc"):
+...     with model.add_petmodel_v1("evap_pet_mlc"):
 ...         landmonthfactor(0.5)
 ...         dampingfactor(1.0)
-...         with model.add_retmodel_v1("evap_tw2002"):
+...         with model.add_retmodel_v1("evap_ret_tw2002"):
 ...             hrualtitude(100.0)
 ...             coastfactor(0.6)
 ...             evapotranspirationfactor(0.4)
@@ -744,8 +745,8 @@ problematic.  Therefore, some potential evapotranspiration submodels offer a dam
 option.  In principle, you can apply this mechanism to all land-use classes.  However,
 its original intention is to consider the temporal persistence of (large) water bodies.
 We demonstrate this functionality by setting the parameter |evap_control.DampingFactor|
-of the selected |evap_mlc| submodel to a value smaller than one and defining a suitable
-"old" evaporation value for the start of the simulation:
+of the selected |evap_pet_mlc| submodel to a value smaller than one and defining a
+suitable "old" evaporation value for the start of the simulation:
 
 .. integration-test::
 

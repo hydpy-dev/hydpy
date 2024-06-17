@@ -671,10 +671,10 @@ evaporation
 ___________
 
 In agreement with the :ref:`evaporation example <dam_llake_evaporation>` of application
-model |dam_llake|, we add an |evap_io| submodel and set the (unadjusted) potential
+model |dam_llake|, we add an |evap_ret_io| submodel and set the (unadjusted) potential
 evaporation to 1 mm/d for the first ten days and 5 mm/d for the last ten days:
 
->>> with model.add_pemodel_v1("evap_io") as pemodel:
+>>> with model.add_pemodel_v1("evap_ret_io") as pemodel:
 ...     evapotranspirationfactor(1.0)
 >>> pemodel.prepare_inputseries()
 >>> pemodel.sequences.inputs.referenceevapotranspiration.series = 10 * [1.0] + 10 * [5.0]

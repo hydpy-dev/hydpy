@@ -358,7 +358,8 @@ class Calc_EI_Ic_AETModel_V1(modeltools.Method):
     Examples:
 
         We build an example based on |evap_aet_hbv96| for calculating interception
-        evaporation, which uses |evap_io| for querying potential evapotranspiration:
+        evaporation, which uses |evap_ret_io| for querying potential
+        evapotranspiration:
 
         >>> from hydpy.models.hland_v1 import *
         >>> parameterstep("1h")
@@ -371,7 +372,7 @@ class Calc_EI_Ic_AETModel_V1(modeltools.Method):
         >>> fc(50.0)
         >>> fluxes.tf = 0.5
         >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
-        ...     with model.add_petmodel_v1("evap_io"):
+        ...     with model.add_petmodel_v1("evap_ret_io"):
         ...         evapotranspirationfactor(0.6, 0.8, 1.0, 1.2, 1.4)
         ...         inputs.referenceevapotranspiration = 1.0
 

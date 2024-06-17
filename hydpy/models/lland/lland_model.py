@@ -4672,7 +4672,7 @@ class Calc_EvB_AETModel_V1(modeltools.Method):
 
     Examples:
 
-        We build an example based on |evap_minhas|:
+        We build an example based on |evap_aet_minhas|:
 
         >>> from hydpy.models.lland_v1 import *
         >>> parameterstep("1h")
@@ -4681,7 +4681,7 @@ class Calc_EvB_AETModel_V1(modeltools.Method):
         >>> ft(1.0)
         >>> fhru(0.05, 0.1, 0.2, 0.3, 0.35)
         >>> wmax(100.0)
-        >>> with model.add_aetmodel_v1("evap_minhas"):
+        >>> with model.add_aetmodel_v1("evap_aet_minhas"):
         ...     dissefactor(5.0)
 
         |Calc_EvB_AETModel_V1| stores the flux returned by the submodel without any
@@ -4807,8 +4807,9 @@ class Calc_EvI_Inzp_AETModel_V1(modeltools.Method):
 
     Examples:
 
-        We build an example based on |evap_minhas| for calculating interception
-        evaporation, which uses |evap_io| for querying potential evapotranspiration:
+        We build an example based on |evap_aet_minhas| for calculating interception
+        evaporation, which uses |evap_ret_io| for querying potential
+        evapotranspiration:
 
         >>> from hydpy.models.lland_v1 import *
         >>> parameterstep("1h")
@@ -4821,8 +4822,8 @@ class Calc_EvI_Inzp_AETModel_V1(modeltools.Method):
         >>> derived.moy.shape = 1
         >>> derived.moy(5)
         >>> fluxes.nbes = 0.5
-        >>> with model.add_aetmodel_v1("evap_minhas"):
-        ...     with model.add_petmodel_v1("evap_io"):
+        >>> with model.add_aetmodel_v1("evap_aet_minhas"):
+        ...     with model.add_petmodel_v1("evap_ret_io"):
         ...         evapotranspirationfactor(0.6, 0.8, 1.0, 1.2, 1.4)
         ...         inputs.referenceevapotranspiration = 1.0
 
@@ -7378,7 +7379,7 @@ class Main_RadiationModel_V1(modeltools.AdHocModel):
 
 
 class Main_RadiationModel_V4(modeltools.AdHocModel):
-    """Base class for HydPy-Evap models that support submodels that comply with the
+    """Base class for HydPy-L models that support submodels that comply with the
     |RadiationModel_V4| interface."""
 
     radiationmodel: modeltools.SubmodelProperty
@@ -7490,7 +7491,7 @@ class Main_AETModel_V1A(_Main_AETModel_V1):
         >>> lai.acker_jan = 2.0
         >>> lai.laubw_dec = 3.0
         >>> wmax(50.0)
-        >>> with model.add_aetmodel_v1("evap_morsim"):
+        >>> with model.add_aetmodel_v1("evap_aet_morsim"):
         ...     nmbhru
         ...     hrutype
         ...     water
@@ -7597,7 +7598,7 @@ class Main_AETModel_V1B(_Main_AETModel_V1):
         >>> measuringheightwindspeed(10.0)
         >>> lai(1.0)
         >>> wmax(50.0)
-        >>> with model.add_aetmodel_v1("evap_morsim"):
+        >>> with model.add_aetmodel_v1("evap_aet_morsim"):
         ...     nmbhru
         ...     hrutype
         ...     measuringheightwindspeed

@@ -3,7 +3,7 @@
 """Submodel for reading global radiation data.
 
 Use |meteo_glob_io| as a submodel for supplying (relative) main models like
-|evap_tw2002| with externally available global radiation time series.
+|evap_ret_tw2002| with externally available global radiation time series.
 
 Integration test
 ================

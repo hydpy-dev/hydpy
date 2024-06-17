@@ -1,20 +1,19 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Submodel for reading reference evapotranspiration.
-
-Use |evap_io| as a submodel for handing externally available time series of reference
-evapotranspiration to main models like |lland_v1|.
+"""
+Use |evap_ret_io| as a submodel for handing externally available time series of
+reference evapotranspiration to main models like |lland_v1|.
 
 Integration test
 ================
 
 .. how_to_understand_integration_tests::
 
-The only functionality of |evap_io| besides reading input time series is to adjust the
-given values to multiple hydrological response units.  Hence, configuring and testing
-it does not require additional explanations:
+The only functionality of |evap_ret_io| besides reading input time series is to adjust
+the given values to multiple hydrological response units.  Hence, configuring and
+testing it does not require additional explanations:
 
->>> from hydpy.models.evap_io import *
+>>> from hydpy.models.evap_ret_io import *
 >>> parameterstep()
 >>> from hydpy import Element
 >>> element = Element("element")
@@ -41,13 +40,16 @@ it does not require additional explanations:
 """
 # import...
 # ...from HydPy
+from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import petinterfaces
 from hydpy.models.evap import evap_model
 
 
 class Model(evap_model.Sub_ETModel, petinterfaces.PETModel_V1):
-    """The input reader version of HydPy-Evap."""
+    """|evap_ret_io.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="Evap-RET-IO", description="external data")
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

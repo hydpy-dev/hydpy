@@ -24,7 +24,7 @@ class LandMonthParameter(parametertools.KeywordParameter2D):
     >>> at(10.0)
     >>> aur(0.2, 0.8)
     >>> lt(FIELD, WATER)
-    >>> with model.add_petmodel_v1("evap_mlc"):
+    >>> with model.add_petmodel_v1("evap_pet_mlc"):
     ...     pass
     >>> model.petmodel.parameters.control.landmonthfactor  # doctest: +ELLIPSIS
     landmonthfactor(sealed=[nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
@@ -110,7 +110,7 @@ class PlantParameter1D(ZipParameter1D):
     >>> wmax(200.0)
     >>> from hydpy import pub
     >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
-    >>> with model.add_aetmodel_v1("evap_minhas"):
+    >>> with model.add_aetmodel_v1("evap_aet_minhas"):
     ...     with model.add_petmodel_v2("evap_pet_ambav1"):
     ...         leafresistance(acker=30.0, baumb=40.0, mischw=50.0)
     >>> r = model.aetmodel.petmodel.parameters.control.leafresistance

@@ -560,12 +560,12 @@ error occurred: For variable `latitude`, no value has been defined so far.
     ...     pass
 
     |meteo_v003| is a "sharable" submodel, meaning one of its instances can be used by
-    multiple main models.  We demonstrate this by selecting |evap_morsim| as the
+    multiple main models.  We demonstrate this by selecting |evap_aet_morsim| as the
     evaporation submodel, which requires the same radiation-related data as |lland_v3|.
     We reuse the |meteo_v003| instance prepared above, which is already a submodel of
-    |lland_v3|, and make it also a submodel of the |evap_morsim| instance:
+    |lland_v3|, and make it also a submodel of the |evap_aet_morsim| instance:
 
-    >>> with model.add_aetmodel_v1("evap_morsim"):
+    >>> with model.add_aetmodel_v1("evap_aet_morsim"):
     ...     model.add_radiationmodel_v1(meteo_v003)
     >>> model.radiationmodel is model.aetmodel.radiationmodel
     True
@@ -959,12 +959,12 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
 
     .. testsetup::
 
-        >>> from hydpy.models.evap_tw2002 import Model
+        >>> from hydpy.models.evap_ret_tw2002 import Model
         >>> Model.prepare_nmbzones.values_orig = {}
         >>> Model.prepare_nmbzones.values_test = {}
 
     >>> from hydpy import prepare_model
-    >>> model = prepare_model("evap_tw2002")
+    >>> model = prepare_model("evap_ret_tw2002")
     >>> model.prepare_nmbzones(3)
     >>> model.parameters.control.nmbhru
     nmbhru(3)
@@ -978,7 +978,7 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
     They also memorise the passed data and resulting parameter values:
 
     >>> model.prepare_nmbzones.values_orig  # doctest: +ELLIPSIS
-    {<hydpy.models.evap_tw2002.Model object at ...>: (((3,), {}), 3)}
+    {<hydpy.models.evap_ret_tw2002.Model object at ...>: (((3,), {}), 3)}
 
     With |TargetParameterUpdater.testmode| enabled, |TargetParameterUpdater| instances
     do not pass the given data to the wrapped method but memorise it together with the
@@ -989,7 +989,7 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
     >>> model.parameters.control.nmbhru
     nmbhru(3)
     >>> model.prepare_nmbzones.values_test  # doctest: +ELLIPSIS
-    {<hydpy.models.evap_tw2002.Model object at ...>: (((4,), {}), 3)}
+    {<hydpy.models.evap_ret_tw2002.Model object at ...>: (((4,), {}), 3)}
 
     .. testsetup::
 

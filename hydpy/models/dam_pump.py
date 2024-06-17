@@ -63,12 +63,12 @@ help understand the following settings:
 >>> thresholdevaporation(0.0)
 >>> toleranceevaporation(0.001)
 
-We add |meteo_precip_io| and |evap_io| submodels that can supply predefined time series
-of precipitation and potential evaporation:
+We add |meteo_precip_io| and |evap_ret_io| submodels that can supply predefined time
+series of precipitation and potential evaporation:
 
 >>> with model.add_precipmodel_v2("meteo_precip_io"):
 ...     precipitationfactor(1.0)
->>> with model.add_pemodel_v1("evap_io"):
+>>> with model.add_pemodel_v1("evap_ret_io"):
 ...     evapotranspirationfactor(1.0)
 
 Now, we prepare an |IntegrationTest| object and register zero initial conditions for

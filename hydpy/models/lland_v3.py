@@ -11,12 +11,12 @@ input parameters.  The main difference is that |lland_v3| models the energy bala
 snow processes in more detail (following Knauf, 2006), taking not only the air
 temperature but also forcings like the soil heat flux or global radiation into account
 explicitly.  This methodology includes calculating age-dependent snow albedo values,
-which |lland_v3| can provide to actual evapotranspiration submodels as |evap_morsim|
-for fine-tuning their radiation energy balance.  The second difference is that
-|lland_v3| models the soil temperature to simulate the effect of soil water freezing on
-runoff generation.  We created |lland_v3| on behalf of the `German Federal Institute of
-Hydrology (BfG)`_ in the context of optimising the control of the Kiel Canal
-(Nord-Ostsee-Kanal).
+which |lland_v3| can provide to actual evapotranspiration submodels as
+|evap_aet_morsim| for fine-tuning their radiation energy balance.  The second
+difference is that |lland_v3| models the soil temperature to simulate the effect of
+soil water freezing on runoff generation.  We created |lland_v3| on behalf of the
+`German Federal Institute of Hydrology (BfG)`_ in the context of optimising the control
+of the Kiel Canal (Nord-Ostsee-Kanal).
 
 The following list summarises the main components of |lland_v3|:
 
@@ -179,14 +179,14 @@ radiation-related data.  We use the |meteo_psun_sun_glob_io| submodel to provide
 >>> with model.add_radiationmodel_v4("meteo_psun_sun_glob_io") as submodel_meteo_psun_sun_glob_io:
 ...     pass
 
-We select |evap_morsim|, which implements the MORECS method with some LARSIM-specific
-modifications, as the submodel for calculating the different evapotranspiration
-components.  Note that |evap_morsim| and |lland_v3| can share the same submodel
-instance due to them requiring the same radiation-related data and
+We select |evap_aet_morsim|, which implements the MORECS method with some
+LARSIM-specific modifications, as the submodel for calculating the different
+evapotranspiration components.  Note that |evap_aet_morsim| and |lland_v3| can share
+the same submodel instance due to them requiring the same radiation-related data and
 |meteo_psun_sun_glob_io| being a sharable submodel that complies with
 |SharableSubmodelInterface|:
 
->>> with model.add_aetmodel_v1("evap_morsim"):
+>>> with model.add_aetmodel_v1("evap_aet_morsim"):
 ...     albedo.acker_aug = 0.24
 ...     cropheight.acker_aug = 0.4
 ...     surfaceresistance.acker = 40.0
@@ -1010,7 +1010,7 @@ take the shadowing effects of the tree canopies into account.  Here, the net eff
 these modifications is that the total water equivalent's peak amounts are two to three
 times smaller than for land use type |ACKER|.  Also, snow evaporation (|EvS|) coincides
 with interception (|EvI|) and soil evaporation (|EvB|), which never happens at
-non-forest sites, but this is a feature |evap_morsim|, not of |lland_v3|:
+non-forest sites, but this is a feature |evap_aet_morsim|, not of |lland_v3|:
 
 .. integration-test::
 
@@ -1466,7 +1466,8 @@ water
 For our hourly integration test on water type |WASSER|, we deviate from the input data
 of the daily simulation (:ref:`lland_v3_wasser_daily`) in setting precipitation to the
 constant value of 0.05 mm/h.  The actual interception evaporation (|EvI|) does not show
-a diurnal pattern due to submodel |evap_morsim| relying on daily aggregated input data:
+a diurnal pattern due to submodel |evap_aet_morsim| relying on daily aggregated input
+data:
 
 .. integration-test::
 

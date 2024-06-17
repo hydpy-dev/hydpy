@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Model for converting potential evapotranspiration to different kinds of actual
-evapotranspiration that essentially relies on the :cite:t:`ref-Minhas1974` equation.
-
-|evap_minhas| serves as a submodel that supplies its main model with estimates of
-evapotranspiration from soils and evaporation from interception storages and water
+"""|evap_aet_minhas| serves as a submodel that supplies its main model with estimates
+of evapotranspiration from soils and evaporation from interception storages and water
 areas.  Therefore, it requires potential evapotranspiration data calculated by a
 sub-submodel.  See, for example, the documentation of application model |lland_v1|,
-where |evap_tw2002| calculates grass reference evapotranspiration values after
-Turc-Wendling :cite:p:`ref-DVWK`, which |evap_mlc| converts to month- and land
+where |evap_ret_tw2002| calculates grass reference evapotranspiration values after
+Turc-Wendling :cite:p:`ref-DVWK`, which |evap_pet_mlc| converts to month- and land
 type-specific potential evapotranspiration values.
 
 Integration tests
@@ -16,12 +13,12 @@ Integration tests
 
 .. how_to_understand_integration_tests::
 
-According to the intended usage as a submodel, |evap_minhas| requires no connections to
-any nodes.  Hence, assigning a model instance to a blank |Element| instance is
-sufficient:
+According to the intended usage as a submodel, |evap_aet_minhas| requires no
+connections to any nodes.  Hence, assigning a model instance to a blank |Element|
+instance is sufficient:
 
 >>> from hydpy import Element
->>> from hydpy.models.evap_minhas import *
+>>> from hydpy.models.evap_aet_minhas import *
 >>> parameterstep("1h")
 >>> element = Element("element")
 >>> element.model = model
@@ -31,20 +28,20 @@ We perform the integration test for three simulation days:
 >>> from hydpy import IntegrationTest, pub
 >>> pub.timegrids = "2000-01-01", "2000-01-04", "1d"
 
-Besides the number of hydrological response units, which |evap_minhas| usually receives
-from its main model in real applications, we only need to define values for the control
-parameters |MaxSoilWater| and |DisseFactor|:
+Besides the number of hydrological response units, which |evap_aet_minhas| usually
+receives from its main model in real applications, we only need to define values for
+the control parameters |MaxSoilWater| and |DisseFactor|:
 
 >>> nmbhru(1)
 >>> maxsoilwater(200.0)
 >>> dissefactor(5.0)
 
-We add submodels of type |evap_io|, |dummy_interceptedwater|, and |dummy_soilwater| for
-providing pre-defined values of potential evapotranspiration (identical values for
+We add submodels of type |evap_ret_io|, |dummy_interceptedwater|, and |dummy_soilwater|
+for providing pre-defined values of potential evapotranspiration (identical values for
 potential interception evaporation and soil evapotranspiration), intercepted water, and
 soil water:
 
->>> with model.add_petmodel_v1("evap_io"):
+>>> with model.add_petmodel_v1("evap_ret_io"):
 ...     hruarea(1.0)
 ...     evapotranspirationfactor(1.0)
 >>> with model.add_intercmodel_v1("dummy_interceptedwater"):
@@ -66,7 +63,7 @@ varies from 0 to 2 mm, of which the last value equals reference evaporation:
 >>> model.intercmodel.sequences.inputs.interceptedwater.series = [[0.0], [1.0], [2.0]]
 >>> model.soilwatermodel.sequences.inputs.soilwater.series = 100.0
 
-.. _evap_minhas_vegetated_soil:
+.. _evap_aet_minhas_vegetated_soil:
 
 vegetated soil
 ______________
@@ -90,7 +87,7 @@ water evapotranspiration never exceeds the given potential evapotranspiration:
     | 02/01 |              1.0 |     100.0 |                              2.0 |                             2.0 |                       2.0 |              0.0 |                     1.0 |               0.858981 |
     | 03/01 |              2.0 |     100.0 |                              2.0 |                             2.0 |                       2.0 |              0.0 |                     2.0 |                    0.0 |
 
-.. _evap_minhas_bare_soil:
+.. _evap_aet_minhas_bare_soil:
 
 bare soil
 _________
@@ -113,7 +110,7 @@ identical for all three days:
     | 02/01 |              1.0 |     100.0 |                              2.0 |                             2.0 |                       2.0 |              0.0 |                     0.0 |               1.717962 |
     | 03/01 |              2.0 |     100.0 |                              2.0 |                             2.0 |                       2.0 |              0.0 |                     0.0 |               1.717962 |
 
-.. _evap_minhas_sealed_soil:
+.. _evap_aet_minhas_sealed_soil:
 
 sealed soil
 ___________
@@ -135,7 +132,7 @@ All results are as to be expected:
     | 02/01 |              1.0 |     100.0 |                              2.0 |                             2.0 |                       2.0 |              0.0 |                     1.0 |                    0.0 |
     | 03/01 |              2.0 |     100.0 |                              2.0 |                             2.0 |                       2.0 |              0.0 |                     2.0 |                    0.0 |
 
-.. _evap_minhas_water_area:
+.. _evap_aet_minhas_water_area:
 
 water area
 __________
@@ -157,14 +154,14 @@ There is never any difference between potential and actual evaporation for water
     | 02/01 |              1.0 |     100.0 |                              2.0 |                             2.0 |                       2.0 |              2.0 |                     0.0 |                    0.0 |
     | 03/01 |              2.0 |     100.0 |                              2.0 |                             2.0 |                       2.0 |              2.0 |                     0.0 |                    0.0 |
 
-.. _evap_minhas_unequal_potential_values_soil:
+.. _evap_aet_minhas_unequal_potential_values_soil:
 
 unequal potential values, soil
 ______________________________
 
-The previous examples relied on the |evap_io| submodel, which complies with the
+The previous examples relied on the |evap_ret_io| submodel, which complies with the
 |PETModel_V1| interface that provides only a single potential evapotranspiration value
-per time step.  |evap_minhas| is also compatible with submodels that follow
+per time step.  |evap_aet_minhas| is also compatible with submodels that follow
 |PETModel_V2|, which offers separate potential values for interception evaporation,
 soil evapotranspiration, and evaporation from water areas.  We use |evap_pet_ambav1| to
 demonstrate this functionality:
@@ -223,10 +220,11 @@ The time series of intercepted and soil water agree with the previous examples:
 >>> model.intercmodel.sequences.inputs.interceptedwater.series = [[0.0], [1.0], [2.0]]
 >>> model.soilwatermodel.sequences.inputs.soilwater.series = 100.0
 
-The following results are comparable to the :ref:`evap_minhas_vegetated_soil` example.
-As long as (positive) potential interception evaporation is larger than (positive)
-potential soil evapotranspiration, the sum of actual interception evaporation and
-actual soil evapotranspiration should never exceed potential interception evaporation:
+The following results are comparable to the :ref:`evap_aet_minhas_vegetated_soil`
+example.  As long as (positive) potential interception evaporation is larger than
+(positive) potential soil evapotranspiration, the sum of actual interception
+evaporation and actual soil evapotranspiration should never exceed potential
+interception evaporation:
 
 .. integration-test::
 
@@ -243,7 +241,7 @@ actual soil evapotranspiration should never exceed potential interception evapor
 unequal potential values, water
 _______________________________
 
-For water areas, |evap_minhas| takes the potential water evaporation calculated by
+For water areas, |evap_aet_minhas| takes the potential water evaporation calculated by
 |evap_pet_ambav1| as actual water evaporation:
 
 .. integration-test::
@@ -276,7 +274,12 @@ class Model(
     evap_model.Sub_ETModel,
     aetinterfaces.AETModel_V1,
 ):
-    """The Minhas version of HydPy-Evap for calculating actual evapotranspiration."""
+    """|evap_aet_minhas.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Evap-AET-Minhas",
+        description="actual evapotranspiration based on the Minhas equation",
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

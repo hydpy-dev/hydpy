@@ -43,7 +43,7 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
 
     Function |prepare_io_example_1| is thought for testing the functioning of *HydPy*
     and thus should be of interest for framework developers only.  It uses the main
-    models |lland_v1|, |lland_v3|, and |hland_v1| and the submodel |evap_morsim|.
+    models |lland_v1|, |lland_v3|, and |hland_v1| and the submodel |evap_aet_morsim|.
     Here, we apply |prepare_io_example_1| and shortly discuss different aspects of its
     generated data:
 
@@ -78,10 +78,10 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     element3 lland_v3
     element4 hland_v1
 
-    The |lland_v3| instance has a submodel of type |evap_morsim|:
+    The |lland_v3| instance has a submodel of type |evap_aet_morsim|:
 
     >>> print(elements.element3.model.aetmodel.name)
-    evap_morsim
+    evap_aet_morsim
 
     Two |Node| objects handling variables `Q` and `T`:
 
@@ -93,7 +93,7 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     It generates artificial time series data for the input sequence
     |lland_inputs.Nied|, the flux sequence |lland_fluxes.NKor|, and the state sequence
     |lland_states.BoWa| of each |lland| model instance, the equally named wind speed
-    sequences of |lland_v3| and |evap_morsim|, the state sequence
+    sequences of |lland_v3| and |evap_aet_morsim|, the state sequence
     |hland_states.SP| of the |hland_v1| model instance, and the |Sim| sequence of each
     node instance.  For precise test results, all generated values are unique:
 
@@ -181,7 +181,7 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     control3.measuringheightwindspeed(10.0)
     control3.lai(3.0)
     control3.wmax(300.0)
-    with element3.model.add_aetmodel_v1("evap_morsim"):
+    with element3.model.add_aetmodel_v1("evap_aet_morsim"):
         pass
 
     for idx, element in enumerate(elements_lland):

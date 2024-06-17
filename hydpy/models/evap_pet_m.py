@@ -1,29 +1,28 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Submodel for month-based adjusting of reference evapotranspiration.
-
-Use |evap_m| as a plug-in between a main model like |lland_v1| and another submodel
-like |evap_tw2002| to adjust the reference evapotranspiration given by |evap_tw2002| by
-month.
+"""
+Use |evap_pet_m| as a plug-in between a main model like |lland_v1| and another submodel
+like |evap_ret_tw2002| to adjust the reference evapotranspiration given by
+|evap_ret_tw2002| by month.
 
 Integration tests
 =================
 
 .. how_to_understand_integration_tests::
 
-Application model |evap_m| requires no input from another model and does not supply any
-outlet sequence.  Hence, assigning a model instance to a blank |Element| instance is
-sufficient:
+Application model |evap_pet_m| requires no input from another model and does not supply
+any outlet sequence.  Hence, assigning a model instance to a blank |Element| instance
+is sufficient:
 
->>> from hydpy.models.evap_m import *
+>>> from hydpy.models.evap_pet_m import *
 >>> parameterstep("1d")
 >>> from hydpy import Element
 >>> element = Element("element")
 >>> element.model = model
 
-In our simple test-setting, the submodel of type |evap_io| supplies different
+In our simple test-setting, the submodel of type |evap_ret_io| supplies different
 reference evapotranspiration values for two hydrological response units for the last
-of January and the first of February 2000.  |evap_m| applies individual adjustment
+of January and the first of February 2000.  |evap_pet_m| applies individual adjustment
 factors for both months and "damps" the second unit's result value:
 
 >>> from hydpy import pub
@@ -33,7 +32,7 @@ factors for both months and "damps" the second unit's result value:
 >>> monthfactor.jan = 0.5
 >>> monthfactor.feb = 2.0
 >>> dampingfactor(1.0, 0.5)
->>> with model.add_retmodel_v1("evap_io"):
+>>> with model.add_retmodel_v1("evap_ret_io"):
 ...     evapotranspirationfactor(0.8, 1.2)
 >>>
 >>> from hydpy import IntegrationTest
@@ -62,7 +61,12 @@ from hydpy.models.evap import evap_model
 class Model(
     evap_model.Main_RET_PETModel_V1, evap_model.Sub_ETModel, petinterfaces.PETModel_V1
 ):
-    """HydPy-Evap-M (month-based adjustment of reference evapotranspiration)."""
+    """|evap_pet_m.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Evap-PET-M",
+        description="month-based adjustment of reference evapotranspiration",
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

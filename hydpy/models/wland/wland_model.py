@@ -241,7 +241,7 @@ class Calc_PE_PET_PETModel_V1(modeltools.Method):
 
     Example:
 
-        We use |evap_tw2002| as an example:
+        We use |evap_ret_tw2002| as an example:
 
         >>> from hydpy.models.wland_wag import *
         >>> parameterstep()
@@ -251,7 +251,7 @@ class Calc_PE_PET_PETModel_V1(modeltools.Method):
         >>> lt(FIELD, FIELD, FIELD, WATER)
         >>> derived.nul.update()
         >>> from hydpy import prepare_model
-        >>> with model.add_petmodel_v1("evap_tw2002"):
+        >>> with model.add_petmodel_v1("evap_ret_tw2002"):
         ...     hrualtitude(200.0, 600.0, 1000.0, 100.0)
         ...     coastfactor(0.6)
         ...     evapotranspirationfactor(1.1)
@@ -3461,7 +3461,7 @@ class Main_PETModel_V1(modeltools.ELSModel):
         >>> at(10.0)
         >>> aur(0.5, 0.3, 0.2)
         >>> lt(FIELD, TREES, WATER)
-        >>> with model.add_petmodel_v1("evap_tw2002"):
+        >>> with model.add_petmodel_v1("evap_ret_tw2002"):
         ...     nmbhru
         ...     hruarea
         ...     evapotranspirationfactor(field=1.0, trees=2.0, water=1.5)

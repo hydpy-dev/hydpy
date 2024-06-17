@@ -265,17 +265,17 @@ class FusedVariable:
     Using class |FusedVariable| is easiest to explain by a concrete example.  Assume we
     use |conv_v001| to interpolate the air temperature for a specific location.  We use
     this temperature as input to an |meteo_temp_io| model, which passes it to an
-    |evap_fao56| model, which requires this and other meteorological data to calculate
-    potential evapotranspiration.  Further, we pass the estimated potential
+    |evap_ret_fao56| model, which requires this and other meteorological data to
+    calculate potential evapotranspiration.  Further, we pass the estimated potential
     evapotranspiration as input to |lland_v1| for calculating the actual
-    evapotranspiration, which receives it through a submodel instance of |evap_io|.
+    evapotranspiration, which receives it through a submodel instance of |evap_ret_io|.
     Hence, we need to connect the output sequence
-    |evap_fluxes.MeanReferenceEvapotranspiration| of |evap_fao56| with the input
-    sequence |evap_inputs.ReferenceEvapotranspiration| of |evap_io|.
+    |evap_fluxes.MeanReferenceEvapotranspiration| of |evap_ret_fao56| with the input
+    sequence |evap_inputs.ReferenceEvapotranspiration| of |evap_ret_io|.
 
-    ToDo: This example needs to be updated.  Today one could directly use |evap_fao56|
-          as a submodel of |lland_v1|.  However, it still demonstrates the relevant
-          connection mechanisms correctly.
+    ToDo: This example needs to be updated.  Today one could directly use
+          |evap_ret_fao56| as a submodel of |lland_v1|.  However, it still demonstrates
+          the relevant connection mechanisms correctly.
 
     Additionally, |lland_v1| requires temperature data itself for modelling snow
     processes, introducing the problem that we need to use the same data (the output of
@@ -328,12 +328,12 @@ class FusedVariable:
     >>> model_conv.parameters.control.maxnmbinputs(1)
     >>> model_conv.parameters.update()
     >>> conv.model = model_conv
-    >>> model = prepare_model("evap_fao56")
+    >>> model = prepare_model("evap_ret_fao56")
     >>> model.tempmodel = prepare_model("meteo_temp_io")
     >>> evap.model = model
     >>> model = prepare_model("lland_v1")
-    >>> model.aetmodel = prepare_model("evap_minhas")
-    >>> model.aetmodel.petmodel = prepare_model("evap_io")
+    >>> model.aetmodel = prepare_model("evap_aet_minhas")
+    >>> model.aetmodel.petmodel = prepare_model("evap_ret_io")
     >>> lland.model = model
 
     We assign a temperature value to node `t1`:
@@ -347,10 +347,10 @@ class FusedVariable:
     >>> t2.sequences.sim
     sim(-273.15)
 
-    Without further configuration, |evap_fao56| cannot perform any simulation steps.
-    Hence, we just call its |Model.load_data| method to show that the input sequence
-    |meteo_inputs.Temperature| of its submodel is well connected to the |Sim| sequence
-    of node `t2` and receives the correct data:
+    Without further configuration, |evap_ret_fao56| cannot perform any simulation
+    steps.  Hence, we just call its |Model.load_data| method to show that the input
+    sequence |meteo_inputs.Temperature| of its submodel is well connected to the |Sim|
+    sequence of node `t2` and receives the correct data:
 
     >>> evap.model.load_data(0)
     >>> evap.model.tempmodel.sequences.inputs.temperature

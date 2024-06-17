@@ -55,9 +55,9 @@ The following integration tests rely on the meteorological input data used for t
 the application model |lland_v1|. The values of the input sequences |P| (precipitation)
 and |T| (temperature) are copy-pasted.  The |evap_inputs.NormalEvapotranspiration|
 values are the |evap_fluxes.ReferenceEvapotranspiration| values calcuted by
-|evap_tw2002| but divided by 0.4 to account for the selected value of the evaporation
-adjustment factor |evap_control.EvapotranspirationFactor|.  Hopefully, this eases
-drawing comparisons between both models.
+|evap_ret_tw2002| but divided by 0.4 to account for the selected value of the
+evaporation adjustment factor |evap_control.EvapotranspirationFactor|.  Hopefully, this
+eases drawing comparisons between both models.
 
 We perform all integration tests over five days with a simulation step of one hour:
 

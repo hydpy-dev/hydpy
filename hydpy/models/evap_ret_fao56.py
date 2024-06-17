@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Implementation of the FAO reference evapotranspiration model.
+"""
+|evap_ret_fao56| follows the guideline provided by :cite:t:`ref-Allen1998`.  However,
+there are some differences in input data assumptions (averaged daily temperature and
+relative humidity values instead of maximum and minimum values).
 
-|evap_fao56| follows the guideline provided by :cite:t:`ref-Allen1998`.  However, there
-are some differences in input data assumptions (averaged daily temperature and relative
-humidity values instead of maximum and minimum values).
+The primary purpose of |evap_ret_fao56| is to serve as a submodel that provides
+estimates of potential grass reference evapotranspiration.  However, you can also use
+it as a stand-alone model, as it does not require interaction with a main model.  The
+following examples make use of this stand-alone functionality.
 
-The primary purpose of |evap_fao56| is to serve as a submodel that provides estimates
-of potential grass reference evapotranspiration.  However, you can also use it as a
-stand-alone model, as it does not require interaction with a main model.  The following
-examples make use of this stand-alone functionality.
-
-On the other hand, |evap_fao56| requires two submodels.  One must follow the
+On the other hand, |evap_ret_fao56| requires two submodels.  One must follow the
 |RadiationModel_V1| or the |RadiationModel_V3| interface and provide clear-sky solar
 radiation and global radiation data; the other must follow the |TempModel_V1| or the
 |TempModel_V2| interface and provide temperature data.  Regarding radiation,
@@ -22,17 +21,17 @@ Integration tests
 
 .. how_to_understand_integration_tests::
 
-Application model |evap_fao56| requires no input from an external model and does not
-supply  any data to an outlet sequence.  Hence, assigning a model instance to a blank
-|Element| instance is sufficient:
+Application model |evap_ret_fao56| requires no input from an external model and does
+not supply  any data to an outlet sequence.  Hence, assigning a model instance to a
+blank |Element| instance is sufficient:
 
 >>> from hydpy import Element
->>> from hydpy.models.evap_fao56 import *
+>>> from hydpy.models.evap_ret_fao56 import *
 >>> parameterstep()
 >>> element = Element("element")
 >>> element.model = model
 
-.. _evap_fao56_daily_simulation:
+.. _evap_ret_fao56_daily_simulation:
 
 daily simulation
 ________________
@@ -69,11 +68,12 @@ recalculates example 18 of :cite:t:`ref-Allen1998`:
 
 The calculated reference evapotranspiration is about 0.1 mm (3 %) smaller than the one
 given by :cite:t:`ref-Allen1998`. This discrepancy is mainly due to different ways to
-calculate |SaturationVapourPressure|.  :cite:t:`ref-Allen1998` estimates it both for the
-minimum and maximum temperature and averages the results, while |evap_fao56| directly
-applies the corresponding formula to the average air temperature.  The first approach
-results in higher pressure values due to the nonlinearity of the vapour pressure curve.
-All other methodical differences show, at least in this example, less severe impacts:
+calculate |SaturationVapourPressure|.  :cite:t:`ref-Allen1998` estimates it both for
+the minimum and maximum temperature and averages the results, while |evap_ret_fao56|
+directly applies the corresponding formula to the average air temperature.  The first
+approach results in higher pressure values due to the nonlinearity of the vapour
+pressure curve.  All other methodical differences show, at least in this example, less
+severe impacts:
 
 .. integration-test::
 
@@ -83,7 +83,7 @@ All other methodical differences show, at least in this example, less severe imp
     | 2000-06-07 |             73.0 |  2.777778 |              1001.0 |           16.9 |    2.077091 |                19.254836 |                      1.221127 |             14.05603 |              0.665665 |      255.367464 |              356.40121 |            196.632947 |            43.150905 |   153.482043 |          0.0 |                    3.750015 |                        3.750015 |
 
 
-.. _evap_fao56_hourly_simulation:
+.. _evap_ret_fao56_hourly_simulation:
 
 hourly simulation
 _________________
@@ -150,7 +150,7 @@ of the saturation vapour pressure:
 
 .. integration-test::
 
-    >>> test("evap_fao56_hourly", update_parameters=False,
+    >>> test("evap_ret_fao56_hourly", update_parameters=False,
     ...      axis1=fluxes.referenceevapotranspiration)
     |             date | relativehumidity | windspeed | atmosphericpressure | airtemperature | windspeed2m | saturationvapourpressure | saturationvapourpressureslope | actualvapourpressure | psychrometricconstant | globalradiation | clearskysolarradiation | netshortwaveradiation | netlongwaveradiation | netradiation | soilheatflux | referenceevapotranspiration | meanreferenceevapotranspiration |
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -210,7 +210,12 @@ class Model(
     evap_model.Sub_ETModel,
     petinterfaces.PETModel_V1,
 ):
-    """The FAO-56 version of the HydPy-Evap."""
+    """|evap_ret_fao56.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Evap-RET-FAO56",
+        description="FAO-56 Penman-Monteith reference evapotranspiration",
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

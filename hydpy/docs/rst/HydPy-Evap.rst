@@ -8,25 +8,19 @@ potential, or actual evapo(transpi)ration.  The implemented application models w
 stand-alone models but are primarily thought to be used as submodels by main models
 like |lland_v1|.
 
-Base model:
+Available models:
 
 .. toctree::
    :maxdepth: 1
 
    evap
-
-Application models:
-
-.. toctree::
-   :maxdepth: 1
-
-   Evap-IO <evap_io>
-   Evap-FAO-56 <evap_fao56>
-   Evap-TW-2002 <evap_tw2002>
-   Evap-PET-HBV96 <evap_pet_hbv96>
-   Evap-M <evap_m>
-   Evap-MLC <evap_mlc>
-   Evap-AET-HBV96 <evap_aet_hbv96>
-   Evap-Minhas <evap_minhas>
-   Evap-MORSIM <evap_morsim>
-   Evap-PET-AMBAV-1.0 <evap_pet_ambav1>
+   evap_ret_io
+   evap_ret_fao56
+   evap_ret_tw2002
+   evap_pet_m
+   evap_pet_mlc
+   evap_pet_ambav1
+   evap_pet_hbv96
+   evap_aet_hbv96
+   evap_aet_minhas
+   evap_aet_morsim

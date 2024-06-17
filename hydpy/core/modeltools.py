@@ -1958,7 +1958,7 @@ to be consistent with the name of the element handling the model.
         Submodels like |meteo_v001| allow using their instances by multiple main
         models.  We prepare such a case by selecting such an instance as the submodel
         of the absolute main model |lland_v3| and the the relative submodel
-        |evap_morsim|:
+        |evap_aet_morsim|:
 
         >>> from hydpy.core.importtools import reverse_model_wildcard_import
         >>> reverse_model_wildcard_import()
@@ -1976,7 +1976,7 @@ to be consistent with the name of the element handling the model.
         >>> wmax(300.0)
         >>> with model.add_radiationmodel_v1("meteo_v001") as meteo_v001:
         ...     latitude(50.0)
-        >>> with model.add_aetmodel_v1("evap_morsim"):
+        >>> with model.add_aetmodel_v1("evap_aet_morsim"):
         ...     measuringheightwindspeed(2.0)
         ...     model.add_radiationmodel_v1(meteo_v001)
 
@@ -1992,7 +1992,7 @@ to be consistent with the name of the element handling the model.
         # -*- coding: utf-8 -*-
         ...
         from hydpy.models.lland_v3 import *
-        from hydpy.models import evap_morsim
+        from hydpy.models import evap_aet_morsim
         from hydpy.models import meteo_v001
         ...
         simulationstep("1d")
@@ -2002,7 +2002,7 @@ to be consistent with the name of the element handling the model.
         ...
         measuringheightwindspeed(10.0)
         ...
-        with model.add_aetmodel_v1(evap_morsim):
+        with model.add_aetmodel_v1(evap_aet_morsim):
             measuringheightwindspeed(2.0)
             ...
             with model.add_radiationmodel_v1(meteo_v001) as submodel_meteo_v001:
@@ -2163,7 +2163,7 @@ to be consistent with the name of the element handling the model.
         >>> lnk(ACKER, MISCHW)
         >>> wmax(acker=100.0, mischw=200.0)
         >>> measuringheightwindspeed(10.0)
-        >>> with model.add_aetmodel_v1("evap_morsim"):
+        >>> with model.add_aetmodel_v1("evap_aet_morsim"):
         ...     pass
         >>> with model.aetmodel.define_conditions():
         ...     loggedwindspeed2m(1.0, 3.0, 2.0, 4.0)
@@ -2176,7 +2176,7 @@ to be consistent with the name of the element handling the model.
 
         One can pass the submodel's module or name for documentation purposes:
 
-        >>> with model.aetmodel.define_conditions("evap_morsim"):
+        >>> with model.aetmodel.define_conditions("evap_aet_morsim"):
         ...     loggedwindspeed2m(4.0, 2.0, 3.0, 1.0)
         >>> loggedwindspeed2m
         Traceback (most recent call last):
@@ -2192,8 +2192,9 @@ to be consistent with the name of the element handling the model.
         ...     loggedwindspeed2m(1.0, 3.0, 2.0, 4.0)
         Traceback (most recent call last):
         ...
-        TypeError: While trying to define the conditions of (sub)model `evap_morsim`, \
-the following error occurred: (Sub)model `evap_morsim` is not of type `evap_aet_hbv96`.
+        TypeError: While trying to define the conditions of (sub)model \
+`evap_aet_morsim`, the following error occurred: (Sub)model `evap_aet_morsim` is not \
+of type `evap_aet_hbv96`.
         >>> loggedwindspeed2m
         Traceback (most recent call last):
         ...
@@ -2323,10 +2324,10 @@ element.
 
         The submodels selected in the `LahnH` example project do not require any
         condition sequences.  Hence, we replace the combination of |evap_aet_hbv96| and
-        |evap_pet_hbv96| with a plain |evap_morsim| instance, which relies on some log
-        sequences:
+        |evap_pet_hbv96| with a plain |evap_aet_morsim| instance, which relies on some
+        log sequences:
 
-        >>> with dill.add_aetmodel_v1("evap_morsim"):
+        >>> with dill.add_aetmodel_v1("evap_aet_morsim"):
         ...     pass
 
         The following code demonstrates that reading and writing of condition sequences
@@ -2792,15 +2793,15 @@ element.
 
         >>> model.find_submodels(include_optional=True)
         {'model.aetmodel': None, 'model.radiationmodel': None, 'model.soilmodel': None}
-        >>> model.aetmodel = prepare_model("evap_minhas")
-        >>> model.aetmodel.petmodel = prepare_model("evap_mlc")
-        >>> model.aetmodel.petmodel.retmodel = prepare_model("evap_tw2002")
+        >>> model.aetmodel = prepare_model("evap_aet_minhas")
+        >>> model.aetmodel.petmodel = prepare_model("evap_pet_mlc")
+        >>> model.aetmodel.petmodel.retmodel = prepare_model("evap_ret_tw2002")
         >>> from pprint import pprint
         >>> pprint(model.find_submodels(include_optional=True))  # doctest: +ELLIPSIS
-        {'model.aetmodel': <hydpy.models.evap_minhas.Model ...>,
+        {'model.aetmodel': <hydpy.models.evap_aet_minhas.Model ...>,
          'model.aetmodel.intercmodel': None,
-         'model.aetmodel.petmodel': <hydpy.models.evap_mlc.Model ...>,
-         'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_tw2002.Model ...>,
+         'model.aetmodel.petmodel': <hydpy.models.evap_pet_mlc.Model ...>,
+         'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_ret_tw2002.Model ...>,
          'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
          'model.aetmodel.soilwatermodel': None,
@@ -2813,10 +2814,10 @@ element.
         >>> model.aetmodel.soilwatermodel = model
         >>> model.aetmodel.soilwatermodel_is_mainmodel = True
         >>> pprint(model.find_submodels(include_optional=True))  # doctest: +ELLIPSIS
-        {'model.aetmodel': <hydpy.models.evap_minhas.Model object ...>,
+        {'model.aetmodel': <hydpy.models.evap_aet_minhas.Model object ...>,
          'model.aetmodel.intercmodel': None,
-         'model.aetmodel.petmodel': <hydpy.models.evap_mlc.Model ...>,
-         'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_tw2002.Model ...>,
+         'model.aetmodel.petmodel': <hydpy.models.evap_pet_mlc.Model ...>,
+         'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_ret_tw2002.Model ...>,
          'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
          'model.radiationmodel': None,
@@ -2828,10 +2829,10 @@ element.
         >>> pprint(model.find_submodels(include_mainmodel=True,
         ...     include_optional=True, include_feedbacks=True))  # doctest: +ELLIPSIS
         {'model': <hydpy.models.lland_v3.Model ...>,
-         'model.aetmodel': <hydpy.models.evap_minhas.Model ...>,
+         'model.aetmodel': <hydpy.models.evap_aet_minhas.Model ...>,
          'model.aetmodel.intercmodel': None,
-         'model.aetmodel.petmodel': <hydpy.models.evap_mlc.Model ...>,
-         'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_tw2002.Model ...>,
+         'model.aetmodel.petmodel': <hydpy.models.evap_pet_mlc.Model ...>,
+         'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_ret_tw2002.Model ...>,
          'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
          'model.aetmodel.soilwatermodel': <hydpy.models.lland_v3.Model object ...>,
@@ -2842,10 +2843,10 @@ element.
         default:
 
         >>> model.radiationmodel = prepare_model("meteo_v001")
-        >>> model.aetmodel = prepare_model("evap_morsim")
+        >>> model.aetmodel = prepare_model("evap_aet_morsim")
         >>> model.aetmodel.radiationmodel = model.radiationmodel
         >>> pprint(model.find_submodels(include_optional=True))  # doctest: +ELLIPSIS
-        {'model.aetmodel': <hydpy.models.evap_morsim.Model ...>,
+        {'model.aetmodel': <hydpy.models.evap_aet_morsim.Model ...>,
          'model.aetmodel.intercmodel': None,
          'model.aetmodel.snowalbedomodel': None,
          'model.aetmodel.snowcovermodel': None,
@@ -2859,7 +2860,7 @@ element.
 
         >>> pprint(model.find_submodels(
         ...     repeat_sharedmodels=True, include_optional=True))  # doctest: +ELLIPSIS
-        {'model.aetmodel': <hydpy.models.evap_morsim.Model ...>,
+        {'model.aetmodel': <hydpy.models.evap_aet_morsim.Model ...>,
          'model.aetmodel.intercmodel': None,
          'model.aetmodel.radiationmodel': <hydpy.models.meteo_v001.Model ...>,
          'model.aetmodel.snowalbedomodel': None,
@@ -3035,7 +3036,7 @@ but the value `1` of type `int` is given.
         >>> model.query_submodels("meteo_v001")  # doctest: +ELLIPSIS
         [<hydpy.models.meteo_v001.Model object at ...>]
 
-        >>> model.aetmodel = prepare_model("evap_morsim")
+        >>> model.aetmodel = prepare_model("evap_aet_morsim")
         >>> model.aetmodel.radiationmodel = model.radiationmodel
         >>> model.query_submodels("meteo_v001")  # doctest: +ELLIPSIS
         [<hydpy.models.meteo_v001.Model object at ...>]

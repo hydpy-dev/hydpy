@@ -67,13 +67,13 @@ Integration tests
 >>> sh(1.0)
 >>> st(1.0)
 >>> rg(False)
->>> with model.add_petmodel_v1("evap_mlc"):
+>>> with model.add_petmodel_v1("evap_pet_mlc"):
 ...     landmonthfactor.sealed = 0.7
 ...     landmonthfactor.conifer = 1.3
 ...     landmonthfactor.field[1:4] = 0.73, 0.77, 0.95
 ...     landmonthfactor.water[1:4] = 1.22, 1.26, 1.28
 ...     dampingfactor(1.0)
-...     with model.add_retmodel_v1("evap_io"):
+...     with model.add_retmodel_v1("evap_ret_io"):
 ...         evapotranspirationfactor(0.9)
 >>> with model.add_dischargemodel_v2("wq_walrus"):
 ...     crestheight(0.0)

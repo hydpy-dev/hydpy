@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Implementation of the MORECS equations :cite:p:`ref-Thompson1981` for calculating
+"""
+|evap_aet_morsim| is a submodel that supplies its main model with estimates of
+evapotranspiration from soils and evaporation from interception storages and water
+areas.  It  implements the MORECS equations :cite:p:`ref-Thompson1981` for calculating
 actual evapotranspiration with some modifications following the LARSIM model
 :cite:p:`ref-LARSIM`.
 
-|evap_morsim| is a submodel that supplies its main model with estimates of
-evapotranspiration from soils and evaporation from interception storages and water
-areas.  The following list summarises its main components:
+The following list summarises its main components:
 
  * Evaporation from water surfaces after Penman :cite:p:`ref-Penman1948`.
  * Interception evaporation after Penman-Monteith, assuming zero surface resistance
@@ -16,7 +17,7 @@ areas.  The following list summarises its main components:
    :cite:p:`ref-Thompson1981`.
  * "Actual" evapotranspiration from soils after Wigmosta :cite:p:`ref-Wigmosta1994`.
 
-|evap_morsim| requires additional data about the catchment's current state, which it
+|evap_aet_morsim| requires additional data about the catchment's current state, which it
 usually queries from its main model, if possible:
 
  * The current air temperature (required).
@@ -26,17 +27,17 @@ usually queries from its main model, if possible:
  * The current snow albedo (optional).
  * The snow cover degree within the canopy of tree-like vegetation (optional).
 
-The last two data types are optional.  Hence, |evap_morsim| works in combination with
-models as |hland_v1|, which cannot estimate the current snow albedo and snow
-interception.  Then, |evap_morsim| relies on land type-specific albedo values (for
+The last two data types are optional.  Hence, |evap_aet_morsim| works in combination
+with models as |hland_v1|, which cannot estimate the current snow albedo and snow
+interception.  Then, |evap_aet_morsim| relies on land type-specific albedo values (for
 snow-free conditions) and assumes zero snow interception.
 
 The above data is usually supplied by the respective main model but can be supplied by
 sub-submodels, too, of which we make use in the following examples to simplify the
-necessary configuration.  However, |evap_morsim| also requires radiation-related data
-from another model (potential sunshine duration, actual sunshine duration, and global
-radiation), for which it generally requires a "real" submodel that complies with the
-|RadiationModel_V1| or the |RadiationModel_V4| interface.
+necessary configuration.  However, |evap_aet_morsim| also requires radiation-related
+data from another model (potential sunshine duration, actual sunshine duration, and
+global radiation), for which it generally requires a "real" submodel that complies with
+the |RadiationModel_V1| or the |RadiationModel_V4| interface.
 
 Integration tests
 =================
@@ -48,12 +49,12 @@ We prepare a simulation period of three days for the first examples:
 >>> from hydpy import pub, Timegrid
 >>> pub.timegrids = "2000-08-01", "2000-08-04", "1d"
 
-According to the intended usage as a submodel, |evap_morsim| requires no connections to
-any nodes.  Hence, assigning a model instance to a blank |Element| instance is
-sufficient:
+According to the intended usage as a submodel, |evap_aet_morsim| requires no
+connections to any nodes.  Hence, assigning a model instance to a blank |Element|
+instance is sufficient:
 
 >>> from hydpy import Element
->>> from hydpy.models.evap_morsim import *
+>>> from hydpy.models.evap_aet_morsim import *
 >>> parameterstep("1h")
 >>> element = Element("element")
 >>> element.model = model
@@ -118,14 +119,14 @@ intercepted water:
 >>> model.intercmodel.sequences.inputs.interceptedwater.series = [0.0], [3.0], [6.0]
 >>> model.soilwatermodel.sequences.inputs.soilwater.series = 50.0
 
-We set the snow-related data so that |evap_morsim| assumes snow-free conditions for
+We set the snow-related data so that |evap_aet_morsim| assumes snow-free conditions for
 now:
 
 >>> model.snowcovermodel.sequences.inputs.snowcover.series = 0.0
 >>> model.snowycanopymodel.sequences.inputs.snowycanopy.series = 0.0
 >>> model.snowalbedomodel.sequences.inputs.snowalbedo.series[:] = nan
 
-.. _evap_morsim_non_tree_vegetation:
+.. _evap_aet_morsim_non_tree_vegetation:
 
 non-tree vegetation
 ___________________
@@ -138,8 +139,8 @@ response units with vegetation:
 >>> tree(False)
 >>> conifer(False)
 
-The following test results demonstrate the general functioning of |evap_morsim|.  Due
-to the simulation step of one day, the "daily" averages or sums (e.g.
+The following test results demonstrate the general functioning of |evap_aet_morsim|.
+Due to the simulation step of one day, the "daily" averages or sums (e.g.
 |DailyAirTemperature|) are equal to their original counterparts (|AirTemperature|).
 The last two columns show how the :cite:t:`ref-Wigmosta1994` approach reduces soil
 evapotranspiration to prevent too high total evaporation estimates:
@@ -153,15 +154,15 @@ evapotranspiration to prevent too high total evaporation estimates:
     | 02/08 |             80.0 |       2.0 |              1000.0 |           15.0 |                15.0 |    1.603182 |         1.603182 |          2.0 |                  80.0 |              6.0 |                     16.0 |                   6.0 |                          16.0 |                17.078326 |                     17.078326 |                      1.100236 |                           1.100236 |            13.662661 |                 13.662661 |     986.337339 |   1.202716 |           0.2 |                  47.0 |                 100.0 |               129.672988 |              106.410903 |              3.0 |      50.0 |       0.0 |         0.0 |           190.0 |                190.0 |                 152.0 |                      152.0 |                 23.835187 |   128.164813 |        128.164813 |          3.0 |                         4.522584 |              0.0 |                     3.0 |               0.783365 |
     | 03/08 |             80.0 |       2.0 |              1000.0 |           15.0 |                15.0 |    1.603182 |         1.603182 |          2.0 |                  80.0 |              6.0 |                     16.0 |                   6.0 |                          16.0 |                17.078326 |                     17.078326 |                      1.100236 |                           1.100236 |            13.662661 |                 13.662661 |     986.337339 |   1.202716 |           0.2 |                  47.0 |                 100.0 |               129.672988 |              106.410903 |              6.0 |      50.0 |       0.0 |         0.0 |           190.0 |                190.0 |                 152.0 |                      152.0 |                 23.835187 |   128.164813 |        128.164813 |          3.0 |                         4.522584 |              0.0 |                4.522584 |                    0.0 |
 
-.. _evap_morsim_deciduous_trees:
+.. _evap_aet_morsim_deciduous_trees:
 
 deciduous trees
 _______________
 
-|evap_morsim| does not distinguish between non-tree vegetation and deciduous trees for
-snow-free conditions.  Hence, without adjusting other model parameters, activating the
-|evap_control.Tree| flag while keeping the |evap_control.Conifer| flag disabled does
-not change simulation results:
+|evap_aet_morsim| does not distinguish between non-tree vegetation and deciduous trees
+for snow-free conditions.  Hence, without adjusting other model parameters, activating
+the |evap_control.Tree| flag while keeping the |evap_control.Conifer| flag disabled
+does not change simulation results:
 
 .. integration-test::
 
@@ -173,14 +174,14 @@ not change simulation results:
     | 02/08 |             80.0 |       2.0 |              1000.0 |           15.0 |                15.0 |    1.603182 |         1.603182 |          2.0 |                  80.0 |              6.0 |                     16.0 |                   6.0 |                          16.0 |                17.078326 |                     17.078326 |                      1.100236 |                           1.100236 |            13.662661 |                 13.662661 |     986.337339 |   1.202716 |           0.2 |                  47.0 |                 100.0 |               129.672988 |              106.410903 |              3.0 |      50.0 |       0.0 |         0.0 |           190.0 |                190.0 |                 152.0 |                      152.0 |                 23.835187 |   128.164813 |        128.164813 |          3.0 |                         4.522584 |              0.0 |                     3.0 |               0.783365 |
     | 03/08 |             80.0 |       2.0 |              1000.0 |           15.0 |                15.0 |    1.603182 |         1.603182 |          2.0 |                  80.0 |              6.0 |                     16.0 |                   6.0 |                          16.0 |                17.078326 |                     17.078326 |                      1.100236 |                           1.100236 |            13.662661 |                 13.662661 |     986.337339 |   1.202716 |           0.2 |                  47.0 |                 100.0 |               129.672988 |              106.410903 |              6.0 |      50.0 |       0.0 |         0.0 |           190.0 |                190.0 |                 152.0 |                      152.0 |                 23.835187 |   128.164813 |        128.164813 |          3.0 |                         4.522584 |              0.0 |                4.522584 |                    0.0 |
 
-.. _evap_morsim_conifers:
+.. _evap_aet_morsim_conifers:
 
 conifers
 ________
 
-However, |evap_morsim| applies additional equations for coniferous trees as explained
-in the documentation on method |Calc_LanduseSurfaceResistance_V1|.  Hence, also
-enabling the |evap_control.Conifer| flag causes some differences from the previous
+However, |evap_aet_morsim| applies additional equations for coniferous trees as
+explained in the documentation on method |Calc_LanduseSurfaceResistance_V1|.  Hence,
+also enabling the |evap_control.Conifer| flag causes some differences from the previous
 results:
 
 .. integration-test::
@@ -193,7 +194,7 @@ results:
     | 02/08 |             80.0 |       2.0 |              1000.0 |           15.0 |                15.0 |    1.603182 |         1.603182 |          2.0 |                  80.0 |              6.0 |                     16.0 |                   6.0 |                          16.0 |                17.078326 |                     17.078326 |                      1.100236 |                           1.100236 |            13.662661 |                 13.662661 |     986.337339 |   1.202716 |           0.2 |                  47.0 |                 100.0 |               195.475111 |              125.663522 |              3.0 |      50.0 |       0.0 |         0.0 |           190.0 |                190.0 |                 152.0 |                      152.0 |                 23.835187 |   128.164813 |        128.164813 |          3.0 |                         4.522584 |              0.0 |                     3.0 |               0.720111 |
     | 03/08 |             80.0 |       2.0 |              1000.0 |           15.0 |                15.0 |    1.603182 |         1.603182 |          2.0 |                  80.0 |              6.0 |                     16.0 |                   6.0 |                          16.0 |                17.078326 |                     17.078326 |                      1.100236 |                           1.100236 |            13.662661 |                 13.662661 |     986.337339 |   1.202716 |           0.2 |                  47.0 |                 100.0 |               195.475111 |              125.663522 |              6.0 |      50.0 |       0.0 |         0.0 |           190.0 |                190.0 |                 152.0 |                      152.0 |                 23.835187 |   128.164813 |        128.164813 |          3.0 |                         4.522584 |              0.0 |                4.522584 |                    0.0 |
 
-.. _evap_morsim_bare_soil:
+.. _evap_aet_morsim_bare_soil:
 
 bare soil
 _________
@@ -213,7 +214,7 @@ evapotranspiration becomes identical for all three days:
     | 02/08 |             80.0 |       2.0 |              1000.0 |           15.0 |                15.0 |    1.603182 |         1.603182 |          2.0 |                  80.0 |              6.0 |                     16.0 |                   6.0 |                          16.0 |                17.078326 |                     17.078326 |                      1.100236 |                           1.100236 |            13.662661 |                 13.662661 |     986.337339 |   1.202716 |           0.2 |                  47.0 |                 100.0 |               129.672988 |              106.410903 |              3.0 |      50.0 |       0.0 |         0.0 |           190.0 |                190.0 |                 152.0 |                      152.0 |                 23.835187 |   128.164813 |        128.164813 |          3.0 |                              0.0 |              0.0 |                     0.0 |               2.326858 |
     | 03/08 |             80.0 |       2.0 |              1000.0 |           15.0 |                15.0 |    1.603182 |         1.603182 |          2.0 |                  80.0 |              6.0 |                     16.0 |                   6.0 |                          16.0 |                17.078326 |                     17.078326 |                      1.100236 |                           1.100236 |            13.662661 |                 13.662661 |     986.337339 |   1.202716 |           0.2 |                  47.0 |                 100.0 |               129.672988 |              106.410903 |              6.0 |      50.0 |       0.0 |         0.0 |           190.0 |                190.0 |                 152.0 |                      152.0 |                 23.835187 |   128.164813 |        128.164813 |          3.0 |                              0.0 |              0.0 |                     0.0 |               2.326858 |
 
-.. _evap_morsim_sealed_surface:
+.. _evap_aet_morsim_sealed_surface:
 
 sealed surface
 ______________
@@ -252,14 +253,14 @@ Penman-based open water evaporation estimation:
     | 02/08 |             80.0 |       2.0 |              1000.0 |           15.0 |                15.0 |    1.603182 |         1.603182 |          2.0 |                  80.0 |              6.0 |                     16.0 |                   6.0 |                          16.0 |                17.078326 |                     17.078326 |                      1.100236 |                           1.100236 |            13.662661 |                 13.662661 |     986.337339 |   1.202716 |           0.2 |                  47.0 |                   nan |                     40.0 |                    40.0 |              3.0 |      50.0 |       0.0 |         0.0 |           190.0 |                190.0 |                 152.0 |                      152.0 |                 23.835187 |   128.164813 |        128.164813 |          0.0 |                              0.0 |          3.17665 |                     0.0 |                    0.0 |
     | 03/08 |             80.0 |       2.0 |              1000.0 |           15.0 |                15.0 |    1.603182 |         1.603182 |          2.0 |                  80.0 |              6.0 |                     16.0 |                   6.0 |                          16.0 |                17.078326 |                     17.078326 |                      1.100236 |                           1.100236 |            13.662661 |                 13.662661 |     986.337339 |   1.202716 |           0.2 |                  47.0 |                   nan |                     40.0 |                    40.0 |              6.0 |      50.0 |       0.0 |         0.0 |           190.0 |                190.0 |                 152.0 |                      152.0 |                 23.835187 |   128.164813 |        128.164813 |          0.0 |                              0.0 |          3.17665 |                     0.0 |                    0.0 |
 
-.. _evap_morsim_snow_on_non_tree_vegetation:
+.. _evap_aet_morsim_snow_on_non_tree_vegetation:
 
 snow on non-tree vegetation
 ___________________________
 
-Next, we show how |evap_morsim| uses external information on the occurrence of snow to
-modify its outputs.  Therefore, we set the degree of the snow cover (on the ground) to
-one and the snow albedo to 0.8:
+Next, we show how |evap_aet_morsim| uses external information on the occurrence of snow
+to modify its outputs.  Therefore, we set the degree of the snow cover (on the ground)
+to one and the snow albedo to 0.8:
 
 >>> water(False)
 >>> interception(True)
@@ -267,10 +268,11 @@ one and the snow albedo to 0.8:
 >>> model.snowcovermodel.sequences.inputs.snowcover.series = 1.0
 >>> model.snowalbedomodel.sequences.inputs.snowalbedo.series = 0.8
 
-Now |evap_morsim| uses the given snow albedo instead of the land type-specific albedo
-value for snow-free conditions for calculating the net shortwave radiation.  However,
-this difference is irrelevant for non-tree vegetation, as any appearance of snow (on
-the ground) suppresses interception evaporation and soil evapotranspiration completely:
+Now |evap_aet_morsim| uses the given snow albedo instead of the land type-specific
+albedo value for snow-free conditions for calculating the net shortwave radiation.
+However, this difference is irrelevant for non-tree vegetation, as any appearance of
+snow (on the ground) suppresses interception evaporation and soil evapotranspiration
+completely:
 
 .. integration-test::
 
@@ -283,7 +285,7 @@ the ground) suppresses interception evaporation and soil evapotranspiration comp
     | 02/08 |             80.0 |       2.0 |              1000.0 |           15.0 |                15.0 |    1.603182 |         1.603182 |          2.0 |                  80.0 |              6.0 |                     16.0 |                   6.0 |                          16.0 |                17.078326 |                     17.078326 |                      1.100236 |                           1.100236 |            13.662661 |                 13.662661 |     986.337339 |   1.202716 |           0.8 |                  47.0 |                 100.0 |               129.672988 |              106.410903 |              3.0 |      50.0 |       1.0 |         0.0 |           190.0 |                190.0 |                  38.0 |                       38.0 |                 23.835187 |    14.164813 |         14.164813 |          3.0 |                         2.189754 |              0.0 |                     0.0 |                    0.0 |
     | 03/08 |             80.0 |       2.0 |              1000.0 |           15.0 |                15.0 |    1.603182 |         1.603182 |          2.0 |                  80.0 |              6.0 |                     16.0 |                   6.0 |                          16.0 |                17.078326 |                     17.078326 |                      1.100236 |                           1.100236 |            13.662661 |                 13.662661 |     986.337339 |   1.202716 |           0.8 |                  47.0 |                 100.0 |               129.672988 |              106.410903 |              6.0 |      50.0 |       1.0 |         0.0 |           190.0 |                190.0 |                  38.0 |                       38.0 |                 23.835187 |    14.164813 |         14.164813 |          3.0 |                         2.189754 |              0.0 |                     0.0 |                    0.0 |
 
-.. _evap_morsim_snow_under_tree_canopies:
+.. _evap_aet_morsim_snow_under_tree_canopies:
 
 snow under tree canopies
 ________________________
@@ -301,7 +303,7 @@ evapotranspiration for tree-like vegetation:
     | 02/08 |             80.0 |       2.0 |              1000.0 |           15.0 |                15.0 |    1.603182 |         1.603182 |          2.0 |                  80.0 |              6.0 |                     16.0 |                   6.0 |                          16.0 |                17.078326 |                     17.078326 |                      1.100236 |                           1.100236 |            13.662661 |                 13.662661 |     986.337339 |   1.202716 |           0.8 |                  47.0 |                 100.0 |               129.672988 |              106.410903 |              3.0 |      50.0 |       1.0 |         0.0 |           190.0 |                190.0 |                  38.0 |                       38.0 |                 23.835187 |    14.164813 |         14.164813 |          3.0 |                         2.189754 |              0.0 |                2.189754 |                    0.0 |
     | 03/08 |             80.0 |       2.0 |              1000.0 |           15.0 |                15.0 |    1.603182 |         1.603182 |          2.0 |                  80.0 |              6.0 |                     16.0 |                   6.0 |                          16.0 |                17.078326 |                     17.078326 |                      1.100236 |                           1.100236 |            13.662661 |                 13.662661 |     986.337339 |   1.202716 |           0.8 |                  47.0 |                 100.0 |               129.672988 |              106.410903 |              6.0 |      50.0 |       1.0 |         0.0 |           190.0 |                190.0 |                  38.0 |                       38.0 |                 23.835187 |    14.164813 |         14.164813 |          3.0 |                         2.189754 |              0.0 |                2.189754 |                    0.0 |
 
-.. _evap_morsim_snow_in_tree_canopies:
+.. _evap_aet_morsim_snow_in_tree_canopies:
 
 snow in tree canopies
 ______________________
@@ -319,13 +321,13 @@ soil evapotranspiration:
     | 02/08 |             80.0 |       2.0 |              1000.0 |           15.0 |                15.0 |    1.603182 |         1.603182 |          2.0 |                  80.0 |              6.0 |                     16.0 |                   6.0 |                          16.0 |                17.078326 |                     17.078326 |                      1.100236 |                           1.100236 |            13.662661 |                 13.662661 |     986.337339 |   1.202716 |           0.8 |                  47.0 |                 100.0 |               129.672988 |              106.410903 |              3.0 |      50.0 |       1.0 |         1.0 |           190.0 |                190.0 |                  38.0 |                       38.0 |                 23.835187 |    14.164813 |         14.164813 |          3.0 |                         2.189754 |              0.0 |                     0.0 |               1.126623 |
     | 03/08 |             80.0 |       2.0 |              1000.0 |           15.0 |                15.0 |    1.603182 |         1.603182 |          2.0 |                  80.0 |              6.0 |                     16.0 |                   6.0 |                          16.0 |                17.078326 |                     17.078326 |                      1.100236 |                           1.100236 |            13.662661 |                 13.662661 |     986.337339 |   1.202716 |           0.8 |                  47.0 |                 100.0 |               129.672988 |              106.410903 |              6.0 |      50.0 |       1.0 |         1.0 |           190.0 |                190.0 |                  38.0 |                       38.0 |                 23.835187 |    14.164813 |         14.164813 |          3.0 |                         2.189754 |              0.0 |                     0.0 |               1.126623 |
 
-.. _evap_morsim_hourly_simulation_land:
+.. _evap_aet_morsim_hourly_simulation_land:
 
 hourly simulation, land
 _______________________
 
-For sub-daily step sizes, the averaging and summing mechanisms of |evap_morsim| come
-into play.  To demonstrate this, we prepare a simulation period of 24 hours:
+For sub-daily step sizes, the averaging and summing mechanisms of |evap_aet_morsim|
+come into play.  To demonstrate this, we prepare a simulation period of 24 hours:
 
 >>> pub.timegrids = "2000-08-03", "2000-08-04", "1h"
 
@@ -365,9 +367,10 @@ The following meteorological input data also stems from the
 ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.5, 0.7, 0.8, 0.5, 0.4, 0.5,
 ...     0.5, 0.3, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0)
 
-|evap_morsim| calculates "daily" averages and sums based on the last 24 hours.  Hence,
-we must provide the corresponding logged data for the 24 hours preceding the simulation
-period.  We take them from the :ref:`lland_v3_acker_summer_hourly` example, too:
+|evap_aet_morsim| calculates "daily" averages and sums based on the last 24 hours.
+Hence, we must provide the corresponding logged data for the 24 hours preceding the
+simulation period.  We take them from the :ref:`lland_v3_acker_summer_hourly` example,
+too:
 
 >>> test.inits = (
 ...     (logs.loggedsunshineduration,
@@ -412,7 +415,7 @@ equation uses only a few "daily" input values (see
 
 .. integration-test::
 
-    >>> test("evap_morsim_hourly_simulation_land",
+    >>> test("evap_aet_morsim_hourly_simulation_land",
     ...      axis1=(fluxes.potentialinterceptionevaporation,
     ...             fluxes.interceptionevaporation, fluxes.soilevapotranspiration))
     |                date | relativehumidity | windspeed | atmosphericpressure | airtemperature | dailyairtemperature | windspeed2m | dailywindspeed2m | windspeed10m | dailyrelativehumidity | sunshineduration | possiblesunshineduration | dailysunshineduration | dailypossiblesunshineduration | saturationvapourpressure | dailysaturationvapourpressure | saturationvapourpressureslope | dailysaturationvapourpressureslope | actualvapourpressure | dailyactualvapourpressure | dryairpressure | airdensity | currentalbedo | aerodynamicresistance | soilsurfaceresistance | landusesurfaceresistance | actualsurfaceresistance | interceptedwater | soilwater | snowcover | snowycanopy | globalradiation | dailyglobalradiation | netshortwaveradiation | dailynetshortwaveradiation | dailynetlongwaveradiation | netradiation | dailynetradiation | soilheatflux | potentialinterceptionevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |
@@ -442,7 +445,7 @@ equation uses only a few "daily" input values (see
     | 2000-08-03 22:00:00 |             90.1 |       1.7 |              1017.0 |           17.0 |           18.808333 |    1.362705 |         1.142201 |          1.7 |             82.554167 |              0.0 |                      0.0 |                   4.5 |                     15.566134 |                19.406929 |                     21.746678 |                      1.230421 |                           1.359123 |            17.485643 |                 17.952788 |     999.514357 |   1.213101 |           0.2 |             55.294118 |                 100.0 |                 48.85611 |               83.333333 |              0.1 |       nan |       0.0 |         0.0 |             0.0 |           175.016667 |                   0.0 |                 140.013334 |                 16.101364 |   -16.101364 |        123.911969 |          3.0 |                         0.020744 |              0.0 |                0.020744 |                    0.0 |
     | 2000-08-03 23:00:00 |             90.9 |       2.3 |              1017.0 |           16.4 |           18.941667 |     1.84366 |         1.185687 |          2.3 |             82.379167 |              0.0 |                      0.0 |                   4.5 |                     15.566134 |                 18.68084 |                     21.928555 |                      1.190065 |                           1.369047 |            16.980884 |                 18.064561 |    1000.019116 |   1.215845 |           0.2 |             40.869565 |                 100.0 |                 48.85611 |               83.333333 |              0.1 |       nan |       0.0 |         0.0 |             0.0 |           175.016667 |                   0.0 |                 140.013334 |                 16.005095 |   -16.005095 |        124.008238 |          3.0 |                         0.027678 |              0.0 |                0.027678 |                    0.0 |
 
-.. _evap_morsim_hourly_simulation_water:
+.. _evap_aet_morsim_hourly_simulation_water:
 
 hourly simulation, water
 ________________________
@@ -455,7 +458,7 @@ its evaporation estimates show a more pronounced delay and no diurnal pattern:
     >>> interception(False)
     >>> soil(False)
     >>> water(True)
-    >>> test("evap_morsim_hourly_simulation_water", axis1=fluxes.waterevaporation)
+    >>> test("evap_aet_morsim_hourly_simulation_water", axis1=fluxes.waterevaporation)
     |                date | relativehumidity | windspeed | atmosphericpressure | airtemperature | dailyairtemperature | windspeed2m | dailywindspeed2m | windspeed10m | dailyrelativehumidity | sunshineduration | possiblesunshineduration | dailysunshineduration | dailypossiblesunshineduration | saturationvapourpressure | dailysaturationvapourpressure | saturationvapourpressureslope | dailysaturationvapourpressureslope | actualvapourpressure | dailyactualvapourpressure | dryairpressure | airdensity | currentalbedo | aerodynamicresistance | soilsurfaceresistance | landusesurfaceresistance | actualsurfaceresistance | interceptedwater | soilwater | snowcover | snowycanopy | globalradiation | dailyglobalradiation | netshortwaveradiation | dailynetshortwaveradiation | dailynetlongwaveradiation | netradiation | dailynetradiation | soilheatflux | potentialinterceptionevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |
     -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2000-08-03 00:00:00 |             95.1 |       0.8 |              1015.0 |           16.9 |           17.279167 |    0.641273 |         1.605886 |          0.8 |             85.883333 |              0.0 |                      0.0 |                   1.3 |                          15.7 |                19.284227 |                     19.753091 |                      1.223615 |                           1.249589 |              18.3393 |                 16.964613 |       996.6607 |    1.21073 |           0.2 |                 117.5 |                   nan |                     40.0 |                    40.0 |              0.1 |       nan |       0.0 |         0.0 |             0.0 |           136.579167 |                   0.0 |                 109.263333 |                 10.408237 |   -10.408237 |         98.855096 |          0.0 |                              0.0 |         0.106048 |                     0.0 |                    0.0 |
@@ -507,7 +510,12 @@ class Model(
     evap_model.Sub_ETModel,
     aetinterfaces.AETModel_V1,
 ):
-    """A MORECS version of HydPy-Evap with some modifications according to LARSIM."""
+    """|evap_aet_morsim.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Evap-AET-MORSIM ",
+        description="actual evapotranspiration based on MORECS/LARSIM",
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

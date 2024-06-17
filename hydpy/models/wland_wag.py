@@ -177,18 +177,18 @@ restrictions |RG| is connected to) and the |DGC| option (we enable it in the
 >>> dgc(False)
 
 |wland_wag| requires a submodel for calculating the potential evapotranspiration of
-land units and the potential evaporation of the sole water unit.  We apply |evap_io| to
-smuggle in the underlying reference evapotranspiration. |evap_mlc| adjusts the given
-reference evapotranspiration to the month- and land cover-specific potential
-evapotranspiration values:
+land units and the potential evaporation of the sole water unit.  We apply
+|evap_ret_io| to smuggle in the underlying reference evapotranspiration.
+|evap_pet_mlc| adjusts the given reference evapotranspiration to the month- and land
+cover-specific potential evapotranspiration values:
 
->>> with model.add_petmodel_v1("evap_mlc"):
+>>> with model.add_petmodel_v1("evap_pet_mlc"):
 ...     landmonthfactor.sealed = 0.7
 ...     landmonthfactor.conifer = 1.3
 ...     landmonthfactor.field[1:4] = 0.73, 0.77, 0.95
 ...     landmonthfactor.water[1:4] = 1.22, 1.26, 1.28
 ...     dampingfactor(1.0)
-...     with model.add_retmodel_v1("evap_io"):
+...     with model.add_retmodel_v1("evap_ret_io"):
 ...         evapotranspirationfactor(0.9)
 
 Additionally, |wland_wag| requires a submodel for calculating the discharge out of the

@@ -1,28 +1,26 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Implementation of the Turc-Wendling reference evapotranspiration model
-:cite:p:`ref-DVWK`.
+"""The primary purpose of |evap_ret_tw2002| is to serve as a submodel that provides
+estimates of potential grass reference evapotranspiration following :cite:t:`ref-DVWK`,
+as demonstrated for |lland_v1|.  However, you can also use it as a stand-alone model,
+as it does not require interaction with a main model.  The following examples make use
+of this stand-alone functionality.
 
-The primary purpose of |evap_tw2002| is to serve as a submodel that provides estimates
-of potential grass reference evapotranspiration (as demonstrated for |lland_v1|).
-However, you can also use it as a stand-alone model, as it does not require interaction
-with a main model.  The following examples make use of this stand-alone functionality.
-
-|evap_tw2002| requires two submodels.  One must follow the |RadiationModel_V1| or the
-|RadiationModel_V2| interface and provide global radiation data; the other must follow
-the |TempModel_V1| or the |TempModel_V2| interface and provide temperature data.
+|evap_ret_tw2002| requires two submodels.  One must follow the |RadiationModel_V1| or
+the |RadiationModel_V2| interface and provide global radiation data; the other must
+follow the |TempModel_V1| or the |TempModel_V2| interface and provide temperature data.
 
 Integration tests
 =================
 
 .. how_to_understand_integration_tests::
 
-Application model |evap_tw2002| requires no input from an external model and does not
-supply any data to an outlet sequence.  Hence, assigning a model instance to a blank
-|Element| instance is sufficient:
+Application model |evap_ret_tw2002| requires no input from an external model and does
+not supply any data to an outlet sequence.  Hence, assigning a model instance to a
+blank |Element| instance is sufficient:
 
 >>> from hydpy import Element
->>> from hydpy.models.evap_tw2002 import *
+>>> from hydpy.models.evap_ret_tw2002 import *
 >>> parameterstep()
 >>> element = Element("element")
 >>> element.model = model
@@ -33,7 +31,7 @@ The implemented Turc-Wendling should be applied to daily data:
 >>> pub.timegrids = "2000-07-06", "2000-07-07", "1d"
 
 We set the parameter and input values in agreement with the
-:ref:`evap_fao56_hourly_simulation` example of |evap_fao56|, which allows for
+:ref:`evap_ret_fao56_hourly_simulation` example of |evap_ret_fao56|, which allows for
 comparison with the results of the FAO reference evapotranspiration model applied to
 data of station Uccle (Brussels, Belgium), as reported in example 18 of
 :cite:t:`ref-Allen1998`:
@@ -43,7 +41,7 @@ data of station Uccle (Brussels, Belgium), as reported in example 18 of
 >>> evapotranspirationfactor(1.0)
 >>> hrualtitude(100.0)
 
-|evap_fao56| has no counterpart for the |CoastFactor| parameter.  We set its value from
+|evap_ret_fao56| has no counterpart for the |CoastFactor| parameter.  We set its value from
 our gut feeling to 0.9, as Brussels is not directly adjacent to the coastline (0.6) but
 also not that far away from it (1.0):
 
@@ -66,7 +64,7 @@ input:
 >>> model.radiationmodel.sequences.inputs.globalradiation.series = 255.367464
 
 For the example at hand, there is an excellent agreement with the result calculated by
-|evap_fao56| and given by :cite:t:`ref-Allen1998`, which is 3.75 mm/d:
+|evap_ret_fao56| and given by :cite:t:`ref-Allen1998`, which is 3.75 mm/d:
 
 .. integration-test::
 
@@ -75,14 +73,14 @@ For the example at hand, there is an excellent agreement with the result calcula
     -----------------------------------------------------------------------------------------------------------------
     | 2000-06-07 |           16.9 |      255.367464 |                    3.787245 |                        3.787245 |
 
-Instead of IO submodels, one could use the main model of |evap_tw2002| for providing
-the temperature data or a "real" submodel that calculates the global radiation data.
-The first option is not feasible here due to not using |evap_tw2002| as a submodel but
-as a stand-alone model.  But we can demonstrate the latter option by using, for
-example, |meteo_v001|, which we also configure in agreement with the
-:ref:`evap_fao56_hourly_simulation` example.  Hence, |meteo_v001| reproduces the global
-radiation above so that |evap_tw2002| calculates the same potential evapotranspiration
-value:
+Instead of IO submodels, one could use the main model of |evap_ret_tw2002| for
+providing the temperature data or a "real" submodel that calculates the global
+radiation data.  The first option is not feasible here due to not using
+|evap_ret_tw2002| as a submodel but as a stand-alone model.  But we can demonstrate the
+latter option by using, for example, |meteo_v001|, which we also configure in agreement
+with the :ref:`evap_ret_fao56_hourly_simulation` example.  Hence, |meteo_v001|
+reproduces the global radiation above so that |evap_ret_tw2002| calculates the same
+potential evapotranspiration value:
 
 >>> with model.add_radiationmodel_v1("meteo_v001"):
 ...     latitude(50.8)
@@ -120,7 +118,12 @@ class Model(
     evap_model.Sub_ETModel,
     petinterfaces.PETModel_V1,
 ):
-    """The Turc-Wendling version of HydPy-Evap."""
+    """|evap_ret_tw2002.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Evap-RET-TW2002",
+        description="Turc-Wendling reference evapotranspiration, 2002",
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

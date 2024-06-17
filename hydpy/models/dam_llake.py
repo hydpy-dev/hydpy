@@ -316,7 +316,7 @@ There is no indication of an error in the water balance:
 evaporation
 ___________
 
-In this example, we add an |evap_io| submodel and set its (unadjusted) potential
+In this example, we add an |evap_ret_io| submodel and set its (unadjusted) potential
 evaporation to 1 mm/d for the first ten days and 5 mm/d for the last ten days.  The
 adjusted evaporation follows the given potential evaporation with a short delay.  When
 the water volume reaches zero, actual evaporation is nearly zero, but due to the
@@ -325,7 +325,7 @@ result (which do not cause negative outflow):
 
 .. integration-test::
 
-    >>> with model.add_pemodel_v1("evap_io") as pemodel:
+    >>> with model.add_pemodel_v1("evap_ret_io") as pemodel:
     ...     evapotranspirationfactor(1.0)
     >>> pemodel.prepare_inputseries()
     >>> pemodel.sequences.inputs.referenceevapotranspiration.series = 10 * [1.0] + 10 * [5.0]

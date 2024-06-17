@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Controlled lake version of HydPy-Dam.
-
+"""
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
 
-Conceptionally, |dam_v006| is similar to the "controlled lake" model of `LARSIM`_
+Conceptionally, |dam_llake| is similar to the "controlled lake" model of `LARSIM`_
 (selectable via the "SEEG" option) in its way to simulate flood retention processes.
 However, in contrast to the "SEEG" option, it can include precipitation, evaporation,
 and a (positive or negative) water exchange into the lake's water balance.
 
-One can regard |dam_v006| as controlled in two ways.  First, it allows for seasonal
+One can regard |dam_llake| as controlled in two ways.  First, it allows for seasonal
 modifications of the rating curve via parameter |WaterLevel2FloodDischarge|; second, it
 supports restricting the speed of the water level decrease during periods with little
 inflow via parameter |AllowedWaterLevelDrop|.
@@ -21,18 +20,18 @@ evaporation, they usually show a too-high short-term variability.  Therefore, th
 parameter |WeightEvaporation| provides a simple means to damp and delay the given
 potential evaporation values by a simple time weighting approach.
 
-The optional water exchange term enables bidirectional coupling of |dam_v006| instances
-and other model objects.  Please see the documentation on the exchange model
+The optional water exchange term enables bidirectional coupling of |dam_llake|
+instances and other model objects.  Please see the documentation on the exchange model
 |exch_v001|, where we demonstrate how to represent a system of two lakes connected by
 a short ditch.
 
-Like all models of the HydPy-Dam family, |dam_v006| solves its underlying continuous
-ordinary differential equations with an error-adaptive numerical integration method.
-Hence, simulation speed, robustness, and accuracy depend on the configuration of the
-parameters of the model equations and the underlying solver.  We discuss these topics
-in more detail in the documentation on the application model |dam_v001|.  Before the
-first usage of any HydPy-Dam model, you should at least read how to set proper
-smoothing parameter values and how to configure |InterpAlgorithm| objects for
+Like all models of the |dam.DOCNAME.long| family, |dam_llake| solves its underlying
+continuous ordinary differential equations with an error-adaptive numerical integration
+method.  Hence, simulation speed, robustness, and accuracy depend on the configuration
+of the parameters of the model equations and the underlying solver.  We discuss these
+topics in more detail in the documentation on the application model |dam_v001|.  Before
+the first usage of any |dam.DOCNAME.long| model, you should at least read how to set
+proper smoothing parameter values and how to configure |InterpAlgorithm| objects for
 interpolating the relationships between stage and volume (|WaterVolume2WaterLevel|) and
 between discharge and stage (|WaterLevel2FloodDischarge|).
 
@@ -46,9 +45,9 @@ We are going to perform all example calculations over 20 days:
 >>> from hydpy import Element, Node, pub
 >>> pub.timegrids = "01.01.2000", "21.01.2000", "1d"
 
-Now, we prepare a |dam_v006| model instance as usual:
+Now, we prepare a |dam_llake| model instance as usual:
 
->>> from hydpy.models.dam_v006 import *
+>>> from hydpy.models.dam_llake import *
 >>> parameterstep("1d")
 
 Next, we embed this model instance into an |Element| connected to one inlet |Node|
@@ -69,7 +68,7 @@ change some of its default output settings:
 >>> test.plotting_options.axis1 = fluxes.inflow, fluxes.outflow
 >>> test.plotting_options.axis2 = states.watervolume
 
-|WaterVolume| is the only state sequence of |dam_v006|.  The purpose of the only log
+|WaterVolume| is the only state sequence of |dam_llake|.  The purpose of the only log
 sequence |LoggedAdjustedEvaporation| is to allow for the mentioned time-weighting of
 the external potential evaporation values.  We set the initial values of both sequences
 to zero for each of the following examples:
@@ -77,25 +76,25 @@ to zero for each of the following examples:
 >>> test.inits = [(states.watervolume, 0.0),
 ...               (logs.loggedadjustedevaporation, 0.0)]
 
-Using method |Model.check_waterbalance| prove that |dam_v006| keeps the water balance
+Using method |Model.check_waterbalance| prove that |dam_llake| keeps the water balance
 in each example run requires storing the defined (initial) conditions before performing
 the first simulation run:
 
 >>> test.reset_inits()
 >>> conditions = model.conditions
 
-|dam_v006| assumes the relationship between |WaterLevel| and |WaterVolume| to be
+|dam_llake| assumes the relationship between |WaterLevel| and |WaterVolume| to be
 constant over time.  For simplicity, we define a linear relationship by using |PPoly|:
 
 >>> watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))
 >>> figure = watervolume2waterlevel.plot(0.0, 1.0)
 >>> from hydpy.core.testtools import save_autofig
->>> save_autofig("dam_v006_watervolume2waterlevel.png", figure=figure)
+>>> save_autofig("dam_llake_watervolume2waterlevel.png", figure=figure)
 
-.. image:: dam_v006_watervolume2waterlevel.png
+.. image:: dam_llake_watervolume2waterlevel.png
    :width: 400
 
-|dam_v006| uses parameter |WaterLevel2FloodDischarge| (which extends parameter
+|dam_llake| uses parameter |WaterLevel2FloodDischarge| (which extends parameter
 |SeasonalInterpolator|) to allow for annual changes in the relationship between
 |FloodDischarge| and |WaterLevel|.  Please read the documentation on class
 |SeasonalInterpolator| on how to model seasonal patterns.  Here, we keep things as
@@ -104,13 +103,13 @@ year:
 
 >>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 10.0]))
 >>> figure = waterlevel2flooddischarge.plot(0.0, 1.0)
->>> figure = save_autofig("dam_v006_waterlevel2flooddischarge.png", figure=figure)
+>>> figure = save_autofig("dam_llake_waterlevel2flooddischarge.png", figure=figure)
 
-.. image:: dam_v006_waterlevel2flooddischarge.png
+.. image:: dam_llake_waterlevel2flooddischarge.png
    :width: 400
 
 The following group of parameters deal with lake precipitation and evaporation.  Note
-that, despite |dam_v006|'s ability to calculate the water-level dependent surface area
+that, despite |dam_llake|'s ability to calculate the water-level dependent surface area
 (see aide sequence |dam_aides.SurfaceArea|), it always assumes a fixed surface area
 (defined by control parameter |dam_control.SurfaceArea|) for converting precipitation
 and evaporation heights into volumes.  Here, we set this fixed surface area to
@@ -129,7 +128,7 @@ delay and damping, while 0.0 would result in a complete loss of variability):
 
 >>> weightevaporation(0.8)
 
-|dam_v006| uses the parameter |ThresholdEvaporation| to define the water level around
+|dam_llake| uses the parameter |ThresholdEvaporation| to define the water level around
 which actual evaporation switches from zero to potential evaporation.  As usual but not
 mandatory, we set this threshold to 0 m:
 
@@ -156,7 +155,7 @@ and a corresponding inflowing flood wave, starting and ending with zero discharg
 ...     0.0, 0.0, 6.0, 12.0, 10.0, 6.0, 3.0, 2.0, 1.0, 0.0,
 ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
-.. _dam_v006_base_scenario:
+.. _dam_llake_base_scenario:
 
 base scenario
 _____________
@@ -186,7 +185,7 @@ intersects with the falling limb of the inflow graph:
 
 .. integration-test::
 
-    >>> test("dam_v006_base_scenario")
+    >>> test("dam_llake_base_scenario")
     |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | exchange | flooddischarge |  outflow | watervolume | exchange | inflow |  outflow |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |            0.0 |      0.0 |         0.0 |      0.0 |    0.0 |      0.0 |
@@ -210,7 +209,7 @@ intersects with the falling limb of the inflow graph:
     | 19.01. |   0.000035 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.000542 | 0.000542 |    0.000035 |      0.0 |    0.0 | 0.000542 |
     | 20.01. |   0.000014 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |        0.00024 |  0.00024 |    0.000014 |      0.0 |    0.0 |  0.00024 |
 
-|dam_v006| achieves this sufficiently high accuracy with 174 calls to its underlying
+|dam_llake| achieves this sufficiently high accuracy with 174 calls to its underlying
 system of differential equations, which averages to less than nine calls per day:
 
 >>> model.numvars.nmb_calls
@@ -222,20 +221,20 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _dam_v006_low_accuracy:
+.. _dam_llake_low_accuracy:
 
 low accuracy
 ____________
 
 By increasing the numerical tolerance, e.g. setting |AbsErrorMax| to 0.1 m³/s, we gain
-some additional speedups without relevant deteriorations of the results (|dam_v006|
+some additional speedups without relevant deteriorations of the results (|dam_llake|
 usually achieves higher accuracies than indicated by the actual tolerance value):
 
 .. integration-test::
 
     >>> model.numvars.nmb_calls = 0
     >>> solver.abserrormax(0.1)
-    >>> test("dam_v006_low_accuracy")
+    >>> test("dam_llake_low_accuracy")
     |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | exchange | flooddischarge |  outflow | watervolume | exchange | inflow |  outflow |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |            0.0 |      0.0 |         0.0 |      0.0 |    0.0 |      0.0 |
@@ -267,7 +266,7 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _dam_v006_water_level_drop:
+.. _dam_llake_water_level_drop:
 
 water level drop
 ________________
@@ -283,7 +282,7 @@ limits the outflow:
 
     >>> allowedwaterleveldrop(0.1)
     >>> solver.abserrormax(0.01)
-    >>> test("dam_v006_water_level_drop")
+    >>> test("dam_llake_water_level_drop")
     |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | exchange | flooddischarge |  outflow | watervolume | exchange | inflow |  outflow |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |            0.0 |      0.0 |         0.0 |      0.0 |    0.0 |      0.0 |
@@ -312,7 +311,7 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _dam_v006_evaporation:
+.. _dam_llake_evaporation:
 
 evaporation
 ___________
@@ -330,7 +329,7 @@ result (which do not cause negative outflow):
     ...     evapotranspirationfactor(1.0)
     >>> pemodel.prepare_inputseries()
     >>> pemodel.sequences.inputs.referenceevapotranspiration.series = 10 * [1.0] + 10 * [5.0]
-    >>> test("dam_v006_evaporation")
+    >>> test("dam_llake_evaporation")
     |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | exchange | flooddischarge |  outflow | watervolume | exchange | inflow |  outflow |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |  -0.000373 |           0.0 |                   0.0 |                  1.0 |               0.016 |          0.004321 |    0.0 |      0.0 |      -0.003456 |      0.0 |   -0.000373 |      0.0 |    0.0 |      0.0 |
@@ -359,28 +358,28 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _dam_v006_exchange:
+.. _dam_llake_exchange:
 
 exchange
 ________
 
-The water exchange functionality of |dam_v006| is optional insofar as one does not
+The water exchange functionality of |dam_llake| is optional insofar as one does not
 need to connect the inlet sequence |E| to any nodes.  If there is a connection to one
 or multiple nodes, they can add and subtract water, indicated by positive or negative
 values.  This mechanism allows bidirectional water exchange between different
-|dam_v006| (see the documentation |exch_v001| for further information).
+|dam_llake| (see the documentation |exch_v001| for further information).
 
-|dam_v006| handles the water exchange strictly as input, meaning it always includes it
+|dam_llake| handles the water exchange strictly as input, meaning it always includes it
 in its water balance without any modification.  Hence, other models calculating the
-water exchange must ensure that it does not bring |dam_v006| into an unrealistic state.
-For demonstration, we set the water exchange to 0.5 m³/s in the first half of the
-simulation period and -0.5 m³/s in the second half, which causes highly negative water
-volumes at the end of the simulation period:
+water exchange must ensure that it does not bring |dam_llake| into an unrealistic
+state.  For demonstration, we set the water exchange to 0.5 m³/s in the first half of
+the simulation period and -0.5 m³/s in the second half, which causes highly negative
+water volumes at the end of the simulation period:
 
 .. integration-test::
 
     >>> exchange.sequences.sim.series = 10 * [0.5] + 10 * [-0.5]
-    >>> test("dam_v006_exchange")
+    >>> test("dam_llake_exchange")
     |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | exchange | flooddischarge |  outflow | watervolume | exchange | inflow |  outflow |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |   0.028037 |           0.0 |                   0.0 |                  1.0 |               0.016 |            0.0156 |    0.0 |      0.5 |       0.159893 | 0.159893 |    0.028037 |      0.5 |    0.0 | 0.159893 |
@@ -424,7 +423,11 @@ from hydpy.models.dam import dam_solver
 
 
 class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
-    """Version 6 of HydPy-Dam."""
+    """|dam_llake.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Dam-L-Lake", description="controlled lake model adopted from LARSIM"
+    )
 
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,
@@ -478,7 +481,7 @@ class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
 
         Pick the required initial conditions before starting the simulation run via
         property |Sequences.conditions|.  See the integration tests of the application
-        model |dam_v006| for some examples.
+        model |dam_llake| for some examples.
         """
         fluxes = self.sequences.fluxes
         first = initial_conditions["model"]["states"]

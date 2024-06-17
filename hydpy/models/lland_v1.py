@@ -867,7 +867,7 @@ _______________
 With available inflow, more water is available for evaporation, and the differences
 between potential and actual evaporation are less pronounced (hence, the routing
 approach offers the opportunity to capture the evaporation effects of small lakes one
-does not want to represent by a separate specialised lake model like |dam_v006|):
+does not want to represent by a separate specialised lake model like |dam_llake|):
 
 .. integration-test::
 

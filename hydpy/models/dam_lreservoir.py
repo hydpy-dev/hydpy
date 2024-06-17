@@ -1,23 +1,22 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Reservoir version of HydPy-Dam.
-
+"""
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
 
-|dam_v008| is a relatively simple reservoir model, similar to the "TALS" model of
-`LARSIM`_.  It combines the features of |dam_v006| ("controlled lake") and |dam_v007|
-("retention basin").  Additionally, it allows controlling the stored water volume via
-defining target values that can vary seasonally.
+|dam_lreservoir| is a relatively simple reservoir model, similar to the "TALS" model of
+`LARSIM`_.  It combines the features of |dam_llake| ("controlled lake") and
+|dam_lretention| ("retention basin").  Additionally, it allows controlling the stored
+water volume via defining target values that can vary seasonally.
 
-Like |dam_v007|, |dam_v008| allows for combining controlled, "harmless outflow" (via
-parameter |AllowedRelease|) and uncontrolled, "spillway outflow" (via parameter
-|WaterLevel2FloodDischarge|), and like |dam_v006|, it allows restricting the speed of
-the water level decrease during periods with little inflow via parameter
+Like |dam_lretention|, |dam_lreservoir| allows for combining controlled, "harmless
+outflow" (via parameter |AllowedRelease|) and uncontrolled, "spillway outflow" (via
+parameter |WaterLevel2FloodDischarge|), and like |dam_llake|, it allows restricting the
+speed of the water level decrease during periods with little inflow via parameter
 |AllowedWaterLevelDrop| (only through reducing the controlled outflow, of course).
 Before continuing, please first read the documentation on these two application models.
 
-The additional feature of |dam_v008| is its ability to track seasonal target volumes.
-We define these target volumes via parameter |TargetVolume|.  The parameters
+The additional feature of |dam_lreservoir| is its ability to track seasonal target
+volumes.  We define these target volumes via parameter |TargetVolume|.  The parameters
 |VolumeTolerance|, |TargetRangeAbsolute|, and |TargetRangeRelative| serve to yield more
 smooth and realistic reservoir responses for slight deviations from the given target
 values.  Setting |TargetRangeRelative| to 0.2 and both other parameters to zero
@@ -31,13 +30,13 @@ Integration tests
 
 .. how_to_understand_integration_tests::
 
-We prepare a test set similar to the ones for application models |dam_v006| and
-|dam_v007|, including an identical inflow series and an identical relationship between
-stage and volume:
+We prepare a test set similar to the ones for application models |dam_llake| and
+|dam_lretention|, including an identical inflow series and an identical relationship
+between stage and volume:
 
 >>> from hydpy import IntegrationTest, Element, pub
 >>> pub.timegrids = "01.01.2000", "21.01.2000", "1d"
->>> from hydpy.models.dam_v008 import *
+>>> from hydpy.models.dam_lreservoir import *
 >>> parameterstep("1d")
 >>> element = Element("element", inlets="input_", outlets="output")
 >>> element.model = model
@@ -68,14 +67,14 @@ stage and volume:
 ...     0.0, 0.0, 6.0, 12.0, 10.0, 6.0, 3.0, 2.0, 1.0, 0.0,
 ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
-.. _dam_v008_base_scenario:
+.. _dam_lreservoir_base_scenario:
 
 base scenario
 _____________
 
 First, we again use the linear relation between discharge and stage used
-throughout the integration tests of |dam_v006| and in the :ref:`base example
-<dam_v007_base_scenario>` of |dam_v007|:
+throughout the integration tests of |dam_llake| and in the :ref:`base example
+<dam_lretention_base_scenario>` of |dam_lretention|:
 
 >>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 10.0]))
 
@@ -95,12 +94,12 @@ becomes "flood discharge":
 >>> allowedwaterleveldrop(100.0)
 
 Due to the same the neural network configuration, the results are identical to the ones
-of the :ref:`base example <dam_v006_base_scenario>` of |dam_v006| and the
-:ref:`base example <dam_v007_base_scenario>` of |dam_v007|:
+of the :ref:`base example <dam_llake_base_scenario>` of |dam_llake| and the
+:ref:`base example <dam_lretention_base_scenario>` of |dam_lretention|:
 
 .. integration-test::
 
-    >>> test("dam_v008_base_scenario")
+    >>> test("dam_lreservoir_base_scenario")
     |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |
@@ -130,20 +129,20 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _dam_v008_spillway:
+.. _dam_lreservoir_spillway:
 
 spillway
 ________
 
 When we reuse the more realistic relationship between flood discharge and stage of the
-:ref:`spillway example <dam_v007_spillway>` on |dam_v007|, we again get the same flood
-discharge time series:
+:ref:`spillway example <dam_lretention_spillway>` on |dam_lretention|, we again get the
+same flood discharge time series:
 
 .. integration-test::
 
     >>> waterlevel2flooddischarge(ANN(weights_input=10.0, weights_output=50.0,
     ...                               intercepts_hidden=-20.0, intercepts_output=0.0))
-    >>> test("dam_v008_spillway")
+    >>> test("dam_lreservoir_spillway")
     |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |
@@ -172,38 +171,39 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _dam_v008_target_volume:
+.. _dam_lreservoir_target_volume:
 
 target volume
 _____________
 
-During dry periods, application model |dam_v007| generally releases all its water until
-the basin runs dry, as long as |AllowedRelease| is larger than zero.  Application model
-|dam_v008| instead allows fo defining target volumes.  |dam_v008| tries to control its
-outflow so that the actual volume approximately equals the (potentially seasonally
-varying) target volume.  However, it cannot release arbitrary amounts of water to
-fulfil this task due to its priority to release a predefined minimum amount of water
-(for ecological reasons) and its second priority to not release too much water (for
-flood protection).  In this example, we activate these mechanisms by changing some
-corresponding parameter values (see the documentation on method |Calc_ActualRelease_V3|
-for more detailed examples, including the numerous corner cases):
+During dry periods, application model |dam_lretention| generally releases all its water
+until the basin runs dry, as long as |AllowedRelease| is larger than zero.  Application
+model |dam_lreservoir| instead allows fo defining target volumes.  |dam_lreservoir|
+tries to control its outflow so that the actual volume approximately equals the
+(potentially seasonally varying) target volume.  However, it cannot release arbitrary
+amounts of water to fulfil this task due to its priority to release a predefined
+minimum amount of water (for ecological reasons) and its second priority to not release
+too much water (for flood protection).  In this example, we activate these mechanisms
+by changing some corresponding parameter values (see the documentation on method
+|Calc_ActualRelease_V3| for more detailed examples, including the numerous corner
+cases):
 
 >>> targetvolume(0.5)
 >>> neardischargeminimumthreshold(0.1)
 >>> allowedrelease(4.0)
 >>> allowedwaterleveldrop(1.0)
 
-Compared with the :ref:`dam_v007_allowed_release` results of |dam_v007|, |dam_v008|
-dampens the given flood event less efficiently.  |dam_v007| releases all initial
-inflow, while |dam_v008| stores most of it until it reaches the target volume of
-0.5 million m³. After peak flow, |dam_v008| first releases its water as fast as allowed
-but then tries  to meet the target volume again.  The slow negative trend away from the
-target value at the end of the simulation period results from the lack of inflow while
-still needing to release at least 0.1 m³/s:
+Compared with the :ref:`dam_lretention_allowed_release` results of |dam_lretention|,
+|dam_lreservoir| dampens the given flood event less efficiently.  |dam_lretention|
+releases all initial inflow, while |dam_lreservoir| stores most of it until it reaches
+the  target volume of 0.5 million m³. After peak flow, |dam_lreservoir| first releases
+its water as fast as allowed but then tries  to meet the target volume again.  The slow
+negative trend away from the target value at the end of the simulation period results
+from the lack of inflow while still needing to release at least 0.1 m³/s:
 
 .. integration-test::
 
-    >>> test("dam_v008_target_volume")
+    >>> test("dam_lreservoir_target_volume")
     |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |  -0.004502 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.052109 |            0.0 | 0.052109 |   -0.004502 |    0.0 | 0.052109 |
@@ -232,7 +232,7 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _dam_v008_sharp_transitions:
+.. _dam_lreservoir_sharp_transitions:
 
 sharp transitions
 _________________
@@ -249,7 +249,7 @@ more similar results:
     >>> targetrangerelative(0.0)
     >>> volumetolerance(0.0)
     >>> dischargetolerance(0.0)
-    >>> test("dam_v008_sharp_transitions")
+    >>> test("dam_lreservoir_sharp_transitions")
     |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |  -0.000014 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.000167 |            0.0 | 0.000167 |   -0.000014 |    0.0 | 0.000167 |
@@ -278,13 +278,13 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _dam_v008_higher_accuracy:
+.. _dam_lreservoir_higher_accuracy:
 
 higher accuracy
 _______________
 
 The first water volume calculated in the :ref:`sharp transitions example
-<dam_v008_sharp_transitions>` is negative, resulting from the limited numerical
+<dam_lreservoir_sharp_transitions>` is negative, resulting from the limited numerical
 accuracy of the underlying integration algorithm.  We can decrease such errors by
 defining smaller error tolerances but at the risk of relevant increases in computation
 times (especially in case one applies zero smoothing values):
@@ -292,7 +292,7 @@ times (especially in case one applies zero smoothing values):
 .. integration-test::
 
     >>> solver.abserrormax(1e-6)
-    >>> test("dam_v008_higher_accuracy")
+    >>> test("dam_lreservoir_higher_accuracy")
     |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.000002 |            0.0 | 0.000002 |         0.0 |    0.0 | 0.000002 |
@@ -321,7 +321,7 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _dam_v008_target_range:
+.. _dam_lreservoir_target_range:
 
 target range
 ____________
@@ -330,11 +330,11 @@ In the last example, the reservoir behaviour changes abruptly when the actual vo
 transcends the target volume. According to its documentation, `LARSIM`_ predicts
 unrealistic jumps in discharge in such cases.  To solve this issue, `LARSIM`_ offers
 the "TALSPERRE SOLLRANGE" option, which ensures smoother transitions between 80 % and
-120 % of the target volume, accomplished by linear interpolation.  |dam_v008| should
-never output similar jumps as it controls the correctness of its results.  As a
+120 % of the target volume, accomplished by linear interpolation.  |dam_lreservoir|
+should never output similar jumps as it controls the correctness of its results.  As a
 drawback, correcting these jumps (which still occur "unseeable" and possibly multiple
 times within each affected simulation time step) costs computation time.  Hence, at
-least for small smoothing parameter values, |dam_v008| can also benefit from this
+least for small smoothing parameter values, |dam_lreservoir| can also benefit from this
 approach.  You can define the interpolation range freely via |TargetRangeAbsolute| and
 |TargetRangeRelative|, depending on your specific needs.  Setting the latter to 0.2
 corresponds to the original "TALSPERRE SOLLRANGE"-configuration:
@@ -342,7 +342,7 @@ corresponds to the original "TALSPERRE SOLLRANGE"-configuration:
 .. integration-test::
 
     >>> targetrangerelative(0.2)
-    >>> test("dam_v008_target_range")
+    >>> test("dam_lreservoir_target_range")
     |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.000002 |            0.0 | 0.000002 |         0.0 |    0.0 | 0.000002 |
@@ -383,7 +383,7 @@ water below which no release occurs:
 .. integration-test::
 
     >>> watervolumeminimumthreshold(0.45)
-    >>> test("dam_v008_minimum_volume")
+    >>> test("dam_lreservoir_minimum_volume")
     |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |
@@ -412,13 +412,13 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _dam_v008_evaporation:
+.. _dam_lreservoir_evaporation:
 
 evaporation
 ___________
 
-This example takes up the :ref:`evaporation example <dam_v006_evaporation>` of
-application model |dam_v006|.  The reservoir can no longer maintain the target water
+This example takes up the :ref:`evaporation example <dam_llake_evaporation>` of
+application model |dam_llake|.  The reservoir can no longer maintain the target water
 level at the end of the simulation period due to missing precipitation or inflow for
 compensating evaporation:
 
@@ -428,7 +428,7 @@ compensating evaporation:
     ...     evapotranspirationfactor(1.0)
     >>> pemodel.prepare_inputseries()
     >>> pemodel.sequences.inputs.referenceevapotranspiration.series = 10 * [1.0] + 10 * [5.0]
-    >>> test("dam_v008_evaporation")
+    >>> test("dam_lreservoir_evaporation")
     |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |  -0.000376 |           0.0 |                   0.0 |                  1.0 |               0.016 |           0.00435 |    0.0 |           0.0 |            0.0 |      0.0 |   -0.000376 |    0.0 |      0.0 |
@@ -474,7 +474,11 @@ from hydpy.models.dam import dam_solver
 
 
 class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
-    """Version 8 of HydPy-Dam."""
+    """|dam_lreservoir.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Dam-L-Res", description="reservoir model adopted from LARSIM"
+    )
 
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,
@@ -527,7 +531,7 @@ class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
 
         Pick the required initial conditions before starting the simulation run via
         property |Sequences.conditions|.  See the integration tests of the application
-        model |dam_v008| for some examples.
+        model |dam_lreservoir| for some examples.
         """
         fluxes = self.sequences.fluxes
         first = initial_conditions["model"]["states"]

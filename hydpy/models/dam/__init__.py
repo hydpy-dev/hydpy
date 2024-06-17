@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-The HydPy-Dam base model provides features to implement water barriers like dams,
-weirs, lakes, or polders.
+The |dam.DOCNAME.long| base model provides features to implement water barriers like
+dams, weirs, lakes, or polders.
 """
 # import...
 # ...from HydPy

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Pumping station combined with a sluice.
-
-|dam_pump_sluice| combines the "forced discharge" component of |dam_pump| with the
+"""|dam_pump_sluice| combines the "forced discharge" component of |dam_pump| with the
 "free discharge" component of |dam_sluice|.
 
 Integration tests
@@ -255,7 +253,11 @@ from hydpy.models.dam import dam_solver
 
 
 class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
-    """Pumping station combined with a sluice."""
+    """|dam_pump_sluice.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Dam-Pump-Sluice", description="pumping station with sluice model"
+    )
 
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,
@@ -320,7 +322,7 @@ class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
 
         Pick the required initial conditions before starting the simulation run via
         property |Sequences.conditions|.  See the integration tests of the application
-        model |dam_v008| for some examples.
+        model |dam_lreservoir| for some examples.
         """
         fluxes = self.sequences.fluxes
         first = initial_conditions["model"]["states"]

@@ -136,7 +136,7 @@ class ANN(interptools.InterpAlgorithm):
     .. image:: ANN_plot.png
 
     Some models might require the derivative of certain outputs with respect to
-    individual inputs.  One example is application model the |dam_v006|, which uses
+    individual inputs.  One example is application model the |dam_llake|, which uses
     class |ANN| to model the relationship between water storage and stage of a lake.
     During a simulation run , it additionally needs to know the area of the water
     surface, which is the derivative of storage with respect to stage.  For such

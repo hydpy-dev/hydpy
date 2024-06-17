@@ -154,7 +154,7 @@ possible input values:
 
 The exact values of the following parameters are relevant only for those examples where
 we take precipitation or evaporation into account.  Please see the documentation on the
-simple lake model |dam_v006|, which discusses these parameters in detail:
+simple lake model |dam_llake|, which discusses these parameters in detail:
 
 >>> surfacearea(1.44)
 >>> correctionprecipitation(1.2)
@@ -670,8 +670,8 @@ increasing computation times too much.
 evaporation
 ___________
 
-In agreement with the :ref:`evaporation example <dam_v006_evaporation>` of application
-model |dam_v006|, we add an |evap_io| submodel and set the (unadjusted) potential
+In agreement with the :ref:`evaporation example <dam_llake_evaporation>` of application
+model |dam_llake|, we add an |evap_io| submodel and set the (unadjusted) potential
 evaporation to 1 mm/d for the first ten days and 5 mm/d for the last ten days:
 
 >>> with model.add_pemodel_v1("evap_io") as pemodel:

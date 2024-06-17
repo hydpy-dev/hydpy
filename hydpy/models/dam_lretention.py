@@ -1,31 +1,30 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Retention basin version of HydPy-Dam.
-
+"""
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
 
-|dam_v007| is a simple "retention basin" model, similar to the "RUEC" model of
-`LARSIM`_.  One can understand it as an extension of |dam_v006|, which partly requires
+|dam_lretention| is a simple "retention basin" model, similar to the "RUEC" model of
+`LARSIM`_.  One can understand it as an extension of |dam_llake|, which partly requires
 equal specifications.  Hence, before continuing, please first the documentation on
-|dam_v006|.
+|dam_llake|.
 
-In extension to |dam_v006|, |dam_v007| implements the control parameter
+In extension to |dam_llake|, |dam_lretention| implements the control parameter
 |AllowedRelease| (and the related parameters |WaterLevelMinimumThreshold| and
 |WaterLevelMinimumTolerance|).  Usually, one takes the discharge that does not cause
-any harm downstream the "allowed release", making |dam_v007| behave like a retention
-basin without active control.  However, one can vary the allowed release seasonally
-(|AllowedRelease| inherits from class |SeasonalParameter|).
+any harm downstream the "allowed release", making |dam_lretention| behave like a
+retention basin without active control.  However, one can vary the allowed release
+seasonally (|AllowedRelease| inherits from class |SeasonalParameter|).
 
-In contrast to |dam_v006|, |dam_v007| does not allow to restrict the speed of the water
-level decrease during periods with little inflow, and thus does not use the parameter
-|AllowedWaterLevelDrop|.
+In contrast to |dam_llake|, |dam_lretention| does not allow to restrict the speed of
+the water level decrease during periods with little inflow, and thus does not use the
+parameter |AllowedWaterLevelDrop|.
 
 Integration tests
 =================
 
 .. how_to_understand_integration_tests::
 
-We reuse the |dam_v006| test set,, including identical input series and an identical
+We reuse the |dam_llake| test set,, including identical input series and an identical
 relationship between stage and volume:
 
 >>> from hydpy import IntegrationTest, Element, pub
@@ -60,17 +59,17 @@ relationship between stage and volume:
 ...     0.0, 0.0, 6.0, 12.0, 10.0, 6.0, 3.0, 2.0, 1.0, 0.0,
 ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
-.. _dam_v007_base_scenario:
+.. _dam_lretention_base_scenario:
 
 base scenario
 _____________
 
-To show that |dam_v007| extends |dam_v006| correctly, we also define the same
+To show that |dam_lretention| extends |dam_llake| correctly, we also define the same
 quasi-linear relation between discharge and stage used throughout the integration tests
-of |dam_v006| and additionally set the allowed release to 0 m³/s (which makes the
+of |dam_llake| and additionally set the allowed release to 0 m³/s (which makes the
 values of the two water-related control parameters irrelevant).  As expected,
-|dam_v007| now calculates outflow values identical to the ones of the
-:ref:`dam_v006_base_scenario` example of |dam_v006| (where |AllowedWaterLevelDrop| is
+|dam_lretention| now calculates outflow values identical to the ones of the
+:ref:`dam_llake_base_scenario` example of |dam_llake| (where |AllowedWaterLevelDrop| is
 |numpy.inf|):
 
 .. integration-test::
@@ -79,7 +78,7 @@ values of the two water-related control parameters irrelevant).  As expected,
     >>> allowedrelease(0.0)
     >>> waterlevelminimumtolerance(0.1)
     >>> waterlevelminimumthreshold(0.0)
-    >>> test("dam_v007_base_scenario")
+    >>> test("dam_lretention_base_scenario")
     |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |
@@ -109,7 +108,7 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _dam_v007_spillway:
+.. _dam_lretention_spillway:
 
 spillway
 ________
@@ -122,16 +121,16 @@ when the water volume exceeds about 1.4 million m³:
 ...                               intercepts_hidden=-20.0, intercepts_output=0.0))
 >>> figure = waterlevel2flooddischarge.plot(0.0, 2.0)
 >>> from hydpy.core.testtools import save_autofig
->>> save_autofig("dam_v007_waterlevel2flooddischarge.png", figure=figure)
+>>> save_autofig("dam_lretention_waterlevel2flooddischarge.png", figure=figure)
 
-.. image:: dam_v007_waterlevel2flooddischarge.png
+.. image:: dam_lretention_waterlevel2flooddischarge.png
    :width: 400
 
 The initial storage volume of about 1.4 million m³ reduces the peak flow to 7.3 m³/s:
 
 .. integration-test::
 
-    >>> test("dam_v007_spillway")
+    >>> test("dam_lretention_spillway")
     |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |
@@ -160,22 +159,22 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _dam_v007_allowed_release:
+.. _dam_lretention_allowed_release:
 
 allowed release
 _______________
 
-In the :ref:`spillway example <dam_v007_spillway>`, |dam_v007| would not handle a second
-event following the first one similarly well due to the retention basin not releasing
-the remaining 1.4 million m³ water.  Setting the allowed release to 4 m³/s solves this
-problem and decreases the amount of water stored during the beginning of the event and
-thus further reduces the peak flow to 4.6 m³/s:
+In the :ref:`spillway example <dam_lretention_spillway>`, |dam_lretention| would not
+handle a second event following the first one similarly well due to the retention basin
+not releasing the remaining 1.4 million m³ water.  Setting the allowed release to
+4 m³/s solves this problem and decreases the amount of water stored during the
+beginning of  the event and thus further reduces the peak flow to 4.6 m³/s:
 
 .. integration-test::
 
     >>> allowedrelease(4.0)
     >>> waterlevelminimumthreshold(0.1)
-    >>> test("dam_v007_allowed_release")
+    >>> test("dam_lretention_allowed_release")
     |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |   -0.00321 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |      0.037149 |            0.0 | 0.037149 |    -0.00321 |    0.0 | 0.037149 |
@@ -211,13 +210,13 @@ increasing |WaterLevelMinimumThreshold| or decreasing |WaterLevelMinimumToleranc
 Theoretically, one could set |WaterLevelMinimumTolerance| to zero at the cost of
 potentially increased computation times.
 
-.. _dam_v007_evaporation:
+.. _dam_lretention_evaporation:
 
 evaporation
 ___________
 
-This example takes up the :ref:`evaporation example <dam_v006_evaporation>` of
-application model |dam_v006|.  The effect of evaporation on the retention of the flood
+This example takes up the :ref:`evaporation example <dam_llake_evaporation>` of
+application model |dam_llake|.  The effect of evaporation on the retention of the flood
 wave is as little as expected:
 
 .. integration-test::
@@ -226,7 +225,7 @@ wave is as little as expected:
     ...     evapotranspirationfactor(1.0)
     >>> pemodel.prepare_inputseries()
     >>> pemodel.sequences.inputs.referenceevapotranspiration.series = 10 * [1.0] + 10 * [5.0]
-    >>> test("dam_v007_evaporation")
+    >>> test("dam_lretention_evaporation")
     |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |  -0.003258 |           0.0 |                   0.0 |                  1.0 |               0.016 |          0.000638 |    0.0 |      0.037067 |            0.0 | 0.037067 |   -0.003258 |    0.0 | 0.037067 |
@@ -272,7 +271,11 @@ from hydpy.models.dam import dam_solver
 
 
 class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
-    """Version 7 of HydPy-Dam."""
+    """|dam_lretention.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Dam-L-RB", description="retention basin model adopted from LARSIM"
+    )
 
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,
@@ -323,7 +326,7 @@ class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
 
         Pick the required initial conditions before starting the simulation run via
         property |Sequences.conditions|.  See the integration tests of the application
-        model |dam_v007| for some examples.
+        model |dam_lretention| for some examples.
         """
         fluxes = self.sequences.fluxes
         first = initial_conditions["model"]["states"]

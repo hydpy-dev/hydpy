@@ -6,7 +6,7 @@
 
 Version 1 of `HydPy-Exch` implements the general weir formula.  We implemented it on
 behalf of the `German Federal Institute of Hydrology (BfG)`_ to connect different
-|dam_v006| instances (lake models), enabling them to exchange water based on water
+|dam_llake| instances (lake models), enabling them to exchange water based on water
 level differences.  This specific combination models some huge, connected (sub)lakes of
 the Rhine basin similar to HBV96 :cite:p:`ref-Lindstrom1997HBV96`.  Combinations with
 other models providing (something like) water level information and allowing for an
@@ -23,7 +23,7 @@ We perform all integration tests over a month with a simulation step of one day:
 >>> pub.timegrids = "2000-01-01", "2000-02-01", "1d"
 
 The following examples demonstrate how |exch_v001| interacts with lake models like
-|dam_v006|.  Therefore, we must set up one |exch_v001| instance and two |dam_v006|
+|dam_llake|.  Therefore, we must set up one |exch_v001| instance and two |dam_llake|
 instances.
 
 First, we define the eight required |Node| objects:
@@ -35,7 +35,7 @@ First, we define the eight required |Node| objects:
    water levels.
 
 We define the |Node.variable| type of all nodes explicitly.  For the inflow and outflow
-nodes, we stick to the default by using the string literal "Q", telling |dam_v006| to
+nodes, we stick to the default by using the string literal "Q", telling |dam_llake| to
 connect these nodes to the inlet sequence |dam_inlets.Q| and outlet sequence
 |dam_outlets.Q|, respectively:
 
@@ -45,7 +45,7 @@ connect these nodes to the inlet sequence |dam_inlets.Q| and outlet sequence
 The overflow nodes do not connect both lakes directly but the lakes with the exchange
 model. Therefore, we define a |FusedVariable| that combines the aliases of the outlet
 sequence |exch_outlets.Exchange| of |exch_v001| and the inlet sequence |dam_inlets.E|
-of |dam_v006|:
+of |dam_llake|:
 
 >>> from hydpy.aliases import exch_outlets_Exchange, dam_inlets_E
 >>> Exchange = FusedVariable("Exchange", exch_outlets_Exchange, dam_inlets_E)
@@ -53,14 +53,14 @@ of |dam_v006|:
 
 Next, we define a |FusedVariable| that combines the aliases of the receiver sequence
 |exch_receivers.WaterLevels| of |exch_v001| and the output sequence
-|dam_factors.WaterLevel| of |dam_v006|:
+|dam_factors.WaterLevel| of |dam_llake|:
 
 >>> from hydpy.aliases import exch_receivers_WaterLevels, dam_factors_WaterLevel
 >>> WaterLevel = FusedVariable("WaterLevel", exch_receivers_WaterLevels, dam_factors_WaterLevel)
 >>> waterlevel1, waterlevel2 = Nodes("waterlevel1", "waterlevel2", defaultvariable=WaterLevel)
 
-Now, we prepare the two |Element| objects holding the |dam_v006| instances.  The
-configuration is similar to the one in the documentation on |dam_v006|, except in
+Now, we prepare the two |Element| objects holding the |dam_llake| instances.  The
+configuration is similar to the one in the documentation on |dam_llake|, except in
 connecting `waterlevel1` and `waterlevel2` as additional output nodes:
 
 >>> lake1 = Element("lake1",
@@ -90,11 +90,11 @@ advisable for keeping clarity, but it is not a technical requirement.  The
 documentation on class |exch_v001.Model| explains the internal sorting mechanisms and
 plausibility checks underlying the connection-related functionalities of |exch_v001|.
 
-We parameterise both lake models identically. All of the following values stem from
-the documentation on |dam_v006|.  We will use them in all examples:
+We parameterise both lake models identically. All of the following values stem from the
+documentation on |dam_llake|.  We will use them in all examples:
 
->>> lake1.model = prepare_model("dam_v006")
->>> lake2.model = prepare_model("dam_v006")
+>>> lake1.model = prepare_model("dam_llake")
+>>> lake2.model = prepare_model("dam_llake")
 >>> from numpy import inf
 >>> for model_ in (lake1.model, lake2.model):
 ...     control = model_.parameters.control

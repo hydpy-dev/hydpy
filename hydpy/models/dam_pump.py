@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Pumping station version of HydPy-Dam.
-
-|dam_pump| is a simple model for modelling pumping stations draining low-land areas.
+"""|dam_pump| is a simple model for modelling pumping stations draining low-land areas.
 Users can define a relationship between the highest possible pumping rate and the
 difference between current inner and outer water levels
 (|WaterLevelDifference2MaxForcedDischarge|).  Actual pumping happens when the inner
@@ -199,7 +197,9 @@ from hydpy.models.dam import dam_solver
 
 
 class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
-    """Pumping station version of HydPy-Dam."""
+    """|dam_pump.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="Dam-Pump", description="pumping station model")
 
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,

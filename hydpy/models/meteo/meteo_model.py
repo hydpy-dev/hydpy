@@ -2757,7 +2757,9 @@ class Get_GlobalRadiation_V2(modeltools.Method):
 
 
 class Model(modeltools.AdHocModel):
-    """The Meteo base model."""
+    """|meteo.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="Meteo")
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
@@ -2822,7 +2824,7 @@ class Model(modeltools.AdHocModel):
 
 
 class Sub_BaseModel(modeltools.AdHocModel):
-    """Base class for HydPy-Meteo submodels."""
+    """Base class for |meteo.DOCNAME.long| submodels."""
 
     @staticmethod
     @contextlib.contextmanager

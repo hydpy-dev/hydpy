@@ -1012,13 +1012,14 @@ class Process_RadiationModel_V1(modeltools.Method):
 
     Example:
 
-        We use the combination of |evap_ret_fao56| and |meteo_v001| as an example:
+        We use the combination of |evap_ret_fao56| and |meteo_glob_fao56| as an
+        example:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-07-06", "2000-07-07", "1d"
         >>> from hydpy.models.evap_ret_fao56 import *
         >>> parameterstep()
-        >>> with model.add_radiationmodel_v1("meteo_v001"):
+        >>> with model.add_radiationmodel_v1("meteo_glob_fao56"):
         ...     latitude(50.8)
         ...     angstromconstant(0.25)
         ...     angstromfactor(0.5)
@@ -1053,11 +1054,12 @@ class Calc_PossibleSunshineDuration_V1(modeltools.Method):
     Examples:
 
         We combine |evap_pet_ambav1| with submodels that comply with different
-        interfaces.  First, with |meteo_v001|, which complies with |RadiationModel_V1|:
+        interfaces.  First, with |meteo_glob_fao56|, which complies with
+        |RadiationModel_V1|:
 
         >>> from hydpy.models.evap_pet_ambav1 import *
         >>> parameterstep()
-        >>> with model.add_radiationmodel_v1("meteo_v001", update=False):
+        >>> with model.add_radiationmodel_v1("meteo_glob_fao56", update=False):
         ...     factors.possiblesunshineduration = 10.0
         >>> model.calc_possiblesunshineduration()
         >>> factors.possiblesunshineduration
@@ -1103,11 +1105,12 @@ class Calc_SunshineDuration_V1(modeltools.Method):
     Examples:
 
         We combine |evap_pet_ambav1| with submodels that comply with different
-        interfaces.  First, with |meteo_v001|, which complies with |RadiationModel_V1|:
+        interfaces.  First, with |meteo_glob_fao56|, which complies with
+        |RadiationModel_V1|:
 
         >>> from hydpy.models.evap_pet_ambav1 import *
         >>> parameterstep()
-        >>> with model.add_radiationmodel_v1("meteo_v001", update=False):
+        >>> with model.add_radiationmodel_v1("meteo_glob_fao56", update=False):
         ...     inputs.sunshineduration = 10.0
         >>> model.calc_sunshineduration()
         >>> factors.sunshineduration
@@ -1153,11 +1156,12 @@ class Calc_ClearSkySolarRadiation_V1(modeltools.Method):
     Examples:
 
         We combine |evap_ret_fao56| with submodels that comply with different
-        interfaces.  First, with |meteo_v001|, which complies with |RadiationModel_V1|:
+        interfaces.  First, with |meteo_glob_fao56|, which complies with
+        |RadiationModel_V1|:
 
         >>> from hydpy.models.evap_ret_fao56 import *
         >>> parameterstep()
-        >>> with model.add_radiationmodel_v1("meteo_v001", update=False):
+        >>> with model.add_radiationmodel_v1("meteo_glob_fao56", update=False):
         ...     fluxes.clearskysolarradiation = 100.0
         >>> model.calc_clearskysolarradiation()
         >>> fluxes.clearskysolarradiation
@@ -1204,12 +1208,12 @@ class Calc_GlobalRadiation_V1(modeltools.Method):
     Examples:
 
         We combine three main models with submodels that comply with the four
-        radiation-related interfaces.  First, |evap_ret_fao56| with |meteo_v001|, which
-        complies with |RadiationModel_V1|:
+        radiation-related interfaces.  First, |evap_ret_fao56| with |meteo_glob_fao56|,
+        which complies with |RadiationModel_V1|:
 
         >>> from hydpy.models.evap_ret_fao56 import *
         >>> parameterstep()
-        >>> with model.add_radiationmodel_v1("meteo_v001", update=False):
+        >>> with model.add_radiationmodel_v1("meteo_glob_fao56", update=False):
         ...     fluxes.globalradiation = 100.0
         >>> model.calc_globalradiation()
         >>> fluxes.globalradiation
@@ -8730,7 +8734,7 @@ class Main_RadiationModel_V1(modeltools.AdHocModel):
         >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
         >>> from hydpy.models.evap_ret_tw2002 import *
         >>> parameterstep()
-        >>> with model.add_radiationmodel_v1("meteo_v001"):
+        >>> with model.add_radiationmodel_v1("meteo_glob_fao56"):
         ...     latitude(50.0)
         ...     longitude(5.0)
         >>> model.radiationmodel.parameters.control.latitude

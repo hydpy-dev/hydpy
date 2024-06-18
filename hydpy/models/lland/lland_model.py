@@ -97,13 +97,13 @@ class Process_RadiationModel_V1(modeltools.Method):
 
     Example:
 
-        We use the combination of |lland_v1| and |meteo_v003| as an example:
+        We use the combination of |lland_v1| and |meteo_glob_morsim| as an example:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "1997-08-01", "1997-08-02", "1d"
         >>> from hydpy.models.lland_v3 import *
         >>> parameterstep()
-        >>> with model.add_radiationmodel_v1("meteo_v003"):
+        >>> with model.add_radiationmodel_v1("meteo_glob_morsim"):
         ...     latitude(54.1)
         ...     longitude(9.7)
         ...     angstromconstant(0.25)
@@ -140,11 +140,11 @@ class Calc_PossibleSunshineDuration_V1(modeltools.Method):
     Examples:
 
         We combine |lland_v3| with submodels that comply with different interfaces.
-        First, with |meteo_v003|, which complies with |RadiationModel_V1|:
+        First, with |meteo_glob_morsim|, which complies with |RadiationModel_V1|:
 
         >>> from hydpy.models.lland_v3 import *
         >>> parameterstep()
-        >>> with model.add_radiationmodel_v1("meteo_v003", update=False):
+        >>> with model.add_radiationmodel_v1("meteo_glob_morsim", update=False):
         ...     factors.possiblesunshineduration = 10.0
         >>> model.calc_possiblesunshineduration()
         >>> factors.possiblesunshineduration
@@ -188,11 +188,11 @@ class Calc_SunshineDuration_V1(modeltools.Method):
     |RadiationModel_V1| or |RadiationModel_V4| interface.
 
         We combine |lland_v3| with submodels that comply with different interfaces.
-        First, with |meteo_v001|, which complies with |RadiationModel_V1|:
+        First, with |meteo_glob_fao56|, which complies with |RadiationModel_V1|:
 
         >>> from hydpy.models.lland_v3 import *
         >>> parameterstep()
-        >>> with model.add_radiationmodel_v1("meteo_v003", update=False):
+        >>> with model.add_radiationmodel_v1("meteo_glob_morsim", update=False):
         ...     inputs.sunshineduration = 10.0
         >>> model.calc_sunshineduration()
         >>> factors.sunshineduration
@@ -238,11 +238,11 @@ class Calc_GlobalRadiation_V1(modeltools.Method):
     Examples:
 
         We combine |lland_v3| with submodels that comply with different interfaces.
-        First, with |meteo_v003|, which complies with |RadiationModel_V1|:
+        First, with |meteo_glob_morsim|, which complies with |RadiationModel_V1|:
 
         >>> from hydpy.models.lland_v3 import *
         >>> parameterstep()
-        >>> with model.add_radiationmodel_v1("meteo_v003", update=False):
+        >>> with model.add_radiationmodel_v1("meteo_glob_morsim", update=False):
         ...     fluxes.globalradiation = 100.0
         >>> model.calc_globalradiation()
         >>> fluxes.globalradiation
@@ -7371,7 +7371,7 @@ class Main_RadiationModel_V1(modeltools.AdHocModel):
         >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
         >>> from hydpy.models.lland_v3 import *
         >>> parameterstep()
-        >>> with model.add_radiationmodel_v1("meteo_v004"):
+        >>> with model.add_radiationmodel_v1("meteo_sun_morsim"):
         ...     latitude(50.0)
         >>> model.radiationmodel.parameters.control.latitude
         latitude(50.0)

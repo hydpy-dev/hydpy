@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
-"""Submodel for reading precipitation data.
-
-Use |meteo_precip_io| as a submodel for supplying (relative) main models like
+"""Use |meteo_precip_io| as a submodel to supply (relative) main models like
 |evap_pet_hbv96| with externally available precipitation time series.
 
 Integration tests
@@ -42,13 +40,18 @@ and testing it does not require additional explanations:
 """
 # import...
 # ...from HydPy
+from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.models.meteo import meteo_model
 from hydpy.interfaces import precipinterfaces
 
 
 class Model(meteo_model.Sub_BaseModel, precipinterfaces.PrecipModel_V2):
-    """Precipitation reader version of HydPy-Meteo."""
+    """|meteo_precip_io.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Meteo-Precip-IO", description="external precipitation  data"
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

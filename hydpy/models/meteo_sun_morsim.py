@@ -1,23 +1,22 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Model for estimating sunshine duration based on global radiation following the
-`LARSIM`_ model.
-
+"""
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
 
-|meteo_v004| is similar to |meteo_v003| but uses |meteo_inputs.GlobalRadiation| to
-estimate |meteo_factors.SunshineDuration|, while |meteo_v003| uses
-|meteo_inputs.SunshineDuration| to estimate |meteo_fluxes.GlobalRadiation|.  So, the
-relationship of |meteo_v004| and |meteo_v003| corresponds to the one of |meteo_v002|
-and |meteo_v001|.  However, opposed to |meteo_v002| and |meteo_v001|, |meteo_v004|
-"inverts" |meteo_v003| only approximately for sub-daily simulation time steps.  This
-deficit is primarily due to the "daily radiation adjustment" described in the
-documentation of |meteo_v003|.
+|meteo_sun_morsim| is similar to |meteo_glob_morsim| but uses
+|meteo_inputs.GlobalRadiation| to estimate |meteo_factors.SunshineDuration|, while
+|meteo_glob_morsim| uses |meteo_inputs.SunshineDuration| to estimate
+|meteo_fluxes.GlobalRadiation|.  So, the relationship of |meteo_sun_morsim| and
+|meteo_glob_morsim| corresponds to the one of |meteo_sun_fao56| and |meteo_glob_fao56|.
+However, opposed to |meteo_sun_fao56| and |meteo_glob_fao56|, |meteo_sun_morsim|
+"inverts" |meteo_glob_morsim| only approximately for sub-daily simulation time steps.
+This deficit is primarily due to the "daily radiation adjustment" described in the
+documentation of |meteo_glob_morsim|.
 
 .. note::
 
-   |meteo_v004| is still under discussion.  Please be aware that we might modify it
-   later if we find a way to achieve higher agreements with |meteo_v003|.
+   |meteo_sun_morsim| is still under discussion.  Please be aware that we might modify
+   it later if we find a way to achieve higher agreements with |meteo_glob_morsim|.
 
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
 
@@ -27,35 +26,36 @@ Integration tests
 
 .. how_to_understand_integration_tests::
 
-We design all integration tests as similar to those of |meteo_v003|.  This time, we
-select |meteo_factors.SunshineDuration| and |meteo_factors.PossibleSunshineDuration| as
-output sequences:
+We design all integration tests as similar to those of |meteo_glob_morsim|.  This time,
+we select |meteo_factors.SunshineDuration| and |meteo_factors.PossibleSunshineDuration|
+as output sequences:
 
 >>> from hydpy import Element, Node
 >>> from hydpy.aliases import meteo_factors_SunshineDuration, meteo_factors_PossibleSunshineDuration
 >>> node1 = Node("node1", variable=meteo_factors_SunshineDuration)
 >>> node2 = Node("node2", variable=meteo_factors_PossibleSunshineDuration)
 
->>> from hydpy.models.meteo_v004 import *
+>>> from hydpy.models.meteo_sun_morsim import *
 >>> parameterstep()
 >>> element = Element("element", outputs=(node1, node2))
 >>> element.model = model
 
-We take all parameter values without modifications.  But note that |meteo_v004| does
-not use the parameter |AngstromAlternative| (ideas to include it sensibly are welcome):
+We take all parameter values without modifications.  But note that |meteo_sun_morsim|
+does not use the parameter |AngstromAlternative| (ideas to include it sensibly are
+welcome):
 
 >>> latitude(54.1)
 >>> longitude(9.7)
 >>> angstromconstant(0.25)
 >>> angstromfactor(0.5)
 
-.. _meteo_v004_daily_simulation_summer:
+.. _meteo_sun_morsim_daily_simulation_summer:
 
 daily simulation summer
 _______________________
 
-We repeat the :ref:`meteo_v003_daily_simulation_summer` example of |meteo_v003| but use
-its global radiation result as input:
+We repeat the :ref:`meteo_glob_morsim_daily_simulation_summer` example of
+|meteo_glob_morsim| but use its global radiation result as input:
 
 >>> from hydpy import IntegrationTest, pub, round_
 >>> pub.timegrids = "1997-08-01", "1997-09-01", "1d"
@@ -71,12 +71,13 @@ its global radiation result as input:
 ...     199.71349, 233.771902, 246.121286, 90.58551, 171.944993, 216.549813, 166.91683,
 ...     145.985611, 165.54389, 87.693346, 84.356885, 142.309203, 126.722078)
 
-|meteo_v004| calculates a sunshine duration series equal to the one we use in the
-:ref:`meteo_v003_daily_simulation_summer` example of |meteo_v003| as input:
+|meteo_sun_morsim| calculates a sunshine duration series equal to the one we use in the
+:ref:`meteo_glob_morsim_daily_simulation_summer` example of |meteo_glob_morsim| as
+input:
 
 .. integration-test::
 
-    >>> test("meteo_v004_daily_summer")
+    >>> test("meteo_sun_morsim_daily_summer")
     |       date | globalradiation | earthsundistance | solardeclination | timeofsunrise | timeofsunset | possiblesunshineduration | dailypossiblesunshineduration | unadjustedsunshineduration | sunshineduration | dailysunshineduration | portiondailyradiation | extraterrestrialradiation | clearskysolarradiation | dailyglobalradiation | node1 |     node2 |
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 1997-01-08 |       190.25149 |         0.971564 |         0.307429 |      4.507941 |    20.198726 |                15.690785 |                     15.690785 |                        6.3 |              6.3 |                   6.3 |                 100.0 |                422.073153 |             316.554865 |            190.25149 |   6.3 | 15.690785 |
@@ -122,13 +123,13 @@ All getters specified by the |RadiationModel_V1| interface return the correct da
 >>> round_(model.get_globalradiation())
 126.722078
 
-.. _meteo_v004_daily_simulation_winter:
+.. _meteo_sun_morsim_daily_simulation_winter:
 
 daily simulation winter
 _______________________
 
-We repeat the :ref:`meteo_v003_daily_simulation_winter` example of |meteo_v003| but use
-its global radiation results as input:
+We repeat the :ref:`meteo_glob_morsim_daily_simulation_winter` example of
+|meteo_glob_morsim| but use its global radiation results as input:
 
 >>> pub.timegrids = "2010-12-01", "2011-01-01", "1d"
 
@@ -143,7 +144,7 @@ Again, there is a perfect agreement regarding the sunshine duration:
 
 .. integration-test::
 
-    >>> test("meteo_v004_daily_winter")
+    >>> test("meteo_sun_morsim_daily_winter")
     |       date | globalradiation | earthsundistance | solardeclination | timeofsunrise | timeofsunset | possiblesunshineduration | dailypossiblesunshineduration | unadjustedsunshineduration | sunshineduration | dailysunshineduration | portiondailyradiation | extraterrestrialradiation | clearskysolarradiation | dailyglobalradiation | node1 |    node2 |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2010-01-12 |       31.942798 |         1.028719 |        -0.389384 |      8.532819 |    16.173848 |                 7.641029 |                      7.641029 |                        3.5 |              3.5 |                   3.5 |                 100.0 |                 66.682705 |              50.012029 |            31.942798 |   3.5 | 7.641029 |
@@ -178,14 +179,14 @@ Again, there is a perfect agreement regarding the sunshine duration:
     | 2010-30-12 |         9.19999 |         1.032995 |        -0.403321 |      8.635699 |    16.070967 |                 7.435268 |                      7.435268 |                        0.0 |              0.0 |                   0.0 |                 100.0 |                 61.333263 |              45.999948 |              9.19999 |   0.0 | 7.435268 |
     | 2010-31-12 |       32.062234 |            1.033 |        -0.401992 |      8.625761 |    16.080906 |                 7.455145 |                      7.455145 |                        4.0 |              4.0 |                   4.0 |                 100.0 |                 61.863826 |              46.397869 |            32.062234 |   4.0 | 7.455145 |
 
-.. _meteo_v004_hourly_simulation_summer:
+.. _meteo_sun_morsim_hourly_simulation_summer:
 
 hourly simulation summer
 ________________________
 
-We repeat the :ref:`meteo_v003_hourly_simulation_summer` example of |meteo_v003| but
-use its global radiation results as input and prepare the log sequences
-|LoggedGlobalRadiation| and |LoggedUnadjustedSunshineDuration| instead of
+We repeat the :ref:`meteo_glob_morsim_hourly_simulation_summer` example of
+|meteo_glob_morsim| but use its global radiation results as input and prepare the log
+sequences |LoggedGlobalRadiation| and |LoggedUnadjustedSunshineDuration| instead of
 |LoggedSunshineDuration| and |LoggedUnadjustedSunshineDuration|:
 
 >>> pub.timegrids = "1997-08-03", "1997-08-06", "1h"
@@ -216,13 +217,14 @@ use its global radiation results as input and prepare the log sequences
 ...       0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]))
 
 For this hourly simulation, there are relevant differences between the "real" sunshine
-durations defined in the :ref:`meteo_v003_hourly_simulation_summer` example and the
-estimates of |meteo_v004|.  The "daily sunshine adjustment" approach implemented by
-method |Calc_SunshineDuration_V2| improves the agreement but cannot achieve equality:
+durations defined in the :ref:`meteo_glob_morsim_hourly_simulation_summer` example and
+the estimates of |meteo_sun_morsim|.  The "daily sunshine adjustment" approach
+implemented by method |Calc_SunshineDuration_V2| improves the agreement but cannot
+achieve equality:
 
 .. integration-test::
 
-    >>> test("meteo_v004_hourly_summer")
+    >>> test("meteo_sun_morsim_hourly_summer")
     |             date | globalradiation | earthsundistance | solardeclination | timeofsunrise | timeofsunset | possiblesunshineduration | dailypossiblesunshineduration | unadjustedsunshineduration | sunshineduration | dailysunshineduration | portiondailyradiation | extraterrestrialradiation | clearskysolarradiation | dailyglobalradiation |    node1 |    node2 |
     ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 1997-03-08 00:00 |             0.0 |         0.972155 |         0.297909 |      4.570266 |      20.1364 |                      0.0 |                     15.566134 |                        0.0 |              0.0 |              2.420919 |                   0.0 |                416.686259 |                    0.0 |           136.574074 |      0.0 |      0.0 |
@@ -298,14 +300,14 @@ method |Calc_SunshineDuration_V2| improves the agreement but cannot achieve equa
     | 1997-05-08 22:00 |             0.0 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                      0.0 |                     15.438712 |                        0.0 |              0.0 |              13.83278 |                   0.0 |                411.114245 |                    0.0 |           286.953669 |      0.0 |      0.0 |
     | 1997-05-08 23:00 |             0.0 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                      0.0 |                     15.438712 |                        0.0 |              0.0 |              13.83278 |                   0.0 |                411.114245 |                    0.0 |           286.953669 |      0.0 |      0.0 |
 
-.. _meteo_v004_hourly_simulation_winter:
+.. _meteo_sun_morsim_hourly_simulation_winter:
 
 hourly simulation winter
 ________________________
 
-We repeat the :ref:`meteo_v003_hourly_simulation_winter` example of |meteo_v003| but
-use its global radiation results as input and prepare the log sequences
-|LoggedGlobalRadiation| and |LoggedUnadjustedSunshineDuration| instead of
+We repeat the :ref:`meteo_glob_morsim_hourly_simulation_winter` example of
+|meteo_glob_morsim|  but use its global radiation results as input and prepare the log
+sequences |LoggedGlobalRadiation| and |LoggedUnadjustedSunshineDuration| instead of
 |LoggedSunshineDuration| and |LoggedUnadjustedSunshineDuration|:
 
 >>> pub.timegrids = "2010-12-10", "2010-12-13", "1h"
@@ -335,7 +337,7 @@ slightly (which needs further investigation):
 
 .. integration-test::
 
-    >>> test("meteo_v004_hourly_winter")
+    >>> test("meteo_sun_morsim_hourly_winter")
     |             date | globalradiation | earthsundistance | solardeclination | timeofsunrise | timeofsunset | possiblesunshineduration | dailypossiblesunshineduration | unadjustedsunshineduration | sunshineduration | dailysunshineduration | portiondailyradiation | extraterrestrialradiation | clearskysolarradiation | dailyglobalradiation |    node1 |    node2 |
     ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2010-10-12 00:00 |             0.0 |         1.030879 |         -0.40453 |      8.644768 |    16.061898 |                      0.0 |                       7.41713 |                        0.0 |              0.0 |                 1.946 |                   0.0 |                  60.72715 |                    0.0 |            23.148148 |      0.0 |      0.0 |
@@ -420,7 +422,12 @@ from hydpy.models.meteo import meteo_model
 
 
 class Model(modeltools.AdHocModel, radiationinterfaces.RadiationModel_V1):
-    """Version 4 of the Meteo model."""
+    """|meteo_sun_morsim.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Meteo-Sun-MORSIM",
+        description="sunshine duration estimation adopted from MORECS/LARSIM",
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

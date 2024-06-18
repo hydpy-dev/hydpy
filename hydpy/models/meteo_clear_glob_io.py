@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
-"""Submodel for reading clear-sky solar radiation and global radiation data.
-
-Use |meteo_clear_glob_io| as a submodel for supplying (relative) main models like
+"""Use |meteo_clear_glob_io| as a submodel to supply (relative) main models like
 |evap_ret_fao56| with externally available clear-sky solar radiation and global
 radiation time series.
 
@@ -54,7 +52,12 @@ from hydpy.models.meteo import meteo_model
 
 
 class Model(modeltools.AdHocModel, radiationinterfaces.RadiationModel_V3):
-    """Clear-sky solar radiation and global radiation reader version of HydPy-Meteo."""
+    """|meteo_clear_glob_io.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Meteo-Clear-Glob-IO",
+        description="external clear sky and global radiation data",
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

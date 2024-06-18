@@ -228,9 +228,10 @@ We need to restore the values of all time-dependent parameters:
 ...     parameter.restore()
 
 As in the :ref:`evap_aet_morsim_hourly_simulation_land` example, we switch to using
-|meteo_v003| instead of |meteo_psun_sun_glob_io| to gain the radiation-related data:
+|meteo_glob_morsim| instead of |meteo_psun_sun_glob_io| to gain the radiation-related
+data:
 
->>> with model.add_radiationmodel_v1("meteo_v003"):
+>>> with model.add_radiationmodel_v1("meteo_glob_morsim"):
 ...     latitude(54.1)
 ...     longitude(9.7)
 ...     angstromconstant(0.25)

@@ -177,7 +177,7 @@ class Parameters:
     subparameters, the `derived` subparameters, the `fixed` subparameters and the
     `solver` subparameters:
 
-    >>> from hydpy.models.meteo_v001 import *
+    >>> from hydpy.models.meteo_glob_fao56 import *
     >>> parameterstep("1d")
     >>> assert model.parameters
     >>> assert model.parameters.control
@@ -235,10 +235,10 @@ class Parameters:
         """Call method |Parameter.update| of all "secondary" parameters.
 
         Directly after initialisation, neither the primary (`control`) parameters nor
-        the secondary (`derived`)  parameters of application model |meteo_v001| are
-        ready for usage:
+        the secondary (`derived`)  parameters of application model |meteo_glob_fao56|
+        are ready for usage:
 
-        >>> from hydpy.models.meteo_v001 import *
+        >>> from hydpy.models.meteo_glob_fao56 import *
         >>> parameterstep("1d")
         >>> simulationstep("1d")
         >>> derived
@@ -309,10 +309,10 @@ For variable `latitude`, no value has been defined so far.
         actual model.
 
         When calling method |Parameters.verify| directly after initialising model
-        |meteo_v001| (without using default values), it raises a |RuntimeError| due to
-        the undefined value of control parameter |meteo_control.Latitude|:
+        |meteo_glob_fao56| (without using default values), it raises a |RuntimeError|
+        due to the undefined value of control parameter |meteo_control.Latitude|:
 
-        >>> from hydpy.models.meteo_v001 import *
+        >>> from hydpy.models.meteo_glob_fao56 import *
         >>> parameterstep("1d")
         >>> simulationstep("1d")
         >>> model.parameters.verify()
@@ -365,7 +365,7 @@ yet: longitude(?).
         These secondary parameter subgroups are the `derived` parameters and the
         `solver` parameters at the moment:
 
-        >>> from hydpy.models.meteo_v001 import *
+        >>> from hydpy.models.meteo_glob_fao56 import *
         >>> parameterstep("1d")
         >>> for subpars in model.parameters.secondary_subpars:
         ...     print(subpars.name)

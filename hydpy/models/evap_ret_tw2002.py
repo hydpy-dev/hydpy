@@ -77,12 +77,12 @@ Instead of IO submodels, one could use the main model of |evap_ret_tw2002| for
 providing the temperature data or a "real" submodel that calculates the global
 radiation data.  The first option is not feasible here due to not using
 |evap_ret_tw2002| as a submodel but as a stand-alone model.  But we can demonstrate the
-latter option by using, for example, |meteo_v001|, which we also configure in agreement
-with the :ref:`evap_ret_fao56_hourly_simulation` example.  Hence, |meteo_v001|
-reproduces the global radiation above so that |evap_ret_tw2002| calculates the same
-potential evapotranspiration value:
+latter option by using, for example, |meteo_glob_fao56|, which we also configure in
+agreement with the :ref:`evap_ret_fao56_hourly_simulation` example.  Hence,
+|meteo_glob_fao56| reproduces the global radiation above so that |evap_ret_tw2002|
+calculates the same potential evapotranspiration value:
 
->>> with model.add_radiationmodel_v1("meteo_v001"):
+>>> with model.add_radiationmodel_v1("meteo_glob_fao56"):
 ...     latitude(50.8)
 ...     angstromconstant(0.25)
 ...     angstromfactor(0.5)

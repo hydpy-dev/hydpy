@@ -54,7 +54,8 @@ system to the other, the need to fine-tune some parameters via calibration might
 |lland_v3| requires a submodel that complies with the |RadiationModel_V1| or the
 |RadiationModel_V4| interface and provides the time series of possible sunshine
 duration, actual sunshine duration, and global radiation.  An obvious choice is
-|meteo_v003|, which estimates these meteorological properties according to `LARSIM`_.
+|meteo_glob_morsim|, which estimates these meteorological properties according to
+`LARSIM`_.
 
 .. note::
 
@@ -254,9 +255,9 @@ We prepare those input time series usually available as measurements:
 
 >>> inlet.sequences.sim.series = 0.0
 
-The following two input time series stem from the results of |meteo_v003| calculated in
-the :ref:`meteo_v003_daily_simulation_summer` example, which addresses the same place
-and time:
+The following two input time series stem from the results of |meteo_glob_morsim|
+calculated in the :ref:`meteo_glob_morsim_daily_simulation_summer` example, which
+addresses the same place and time:
 
 >>> model.radiationmodel.sequences.inputs.possiblesunshineduration.series = (
 ...     15.69078473, 15.62882066, 15.56613383, 15.50275437, 15.43871163, 15.37403418,
@@ -872,8 +873,8 @@ acre (winter)
 None of the examples discussed so far dealt with snow processes.  Thus, we now switch
 from a warm August to a snowy December and adapt the initial conditions and the input
 time series accordingly (those of global radiation and the astronomically possible
-sunshine duration stem from the example :ref:`meteo_v003_daily_simulation_winter` of
-|meteo_v003|):
+sunshine duration stem from the example
+:ref:`meteo_glob_morsim_daily_simulation_winter` of |meteo_glob_morsim|):
 
 >>> pub.timegrids = "2010-12-01", "2011-01-01", "1d"
 >>> lnk(ACKER)
@@ -1158,20 +1159,20 @@ fixed parameter values:
 ...     parameter.restore()
 
 For all integration tests performed in hourly simulation steps, we switch to
-calculating the radiation-related data on the fly using submodel |meteo_v003| with
-parameter values taken from its documentation:
+calculating the radiation-related data on the fly using submodel |meteo_glob_morsim|
+with parameter values taken from its documentation:
 
->>> with model.add_radiationmodel_v1("meteo_v003") as submodel_meteo_v003:
+>>> with model.add_radiationmodel_v1("meteo_glob_morsim") as submodel_meteo_glob_morsim:
 ...     latitude(54.1)
 ...     longitude(9.7)
 ...     angstromconstant(0.25)
 ...     angstromfactor(0.5)
 ...     angstromalternative(0.15)
 
-As |meteo_psun_sun_glob_io|, |meteo_v003| complies with |SharableSubmodelInterface| and
-is hence "sharable":
+As |meteo_psun_sun_glob_io|, |meteo_glob_morsim| complies with
+|SharableSubmodelInterface| and is hence "sharable":
 
->>> model.aetmodel.add_radiationmodel_v1(submodel_meteo_v003)
+>>> model.aetmodel.add_radiationmodel_v1(submodel_meteo_glob_morsim)
 
 >>> test = IntegrationTest(land)
 
@@ -1182,7 +1183,8 @@ acre (summer)
 
 The following input values agree with the ones of the respective sub-period
 of the daily integration test :ref:`lland_v3_acker_summer_daily` (global radiation and
-possible sunshine duration stem from :ref:`meteo_v003_hourly_simulation_summer`):
+possible sunshine duration stem from
+:ref:`meteo_glob_morsim_hourly_simulation_summer`):
 
 >>> inputs.nied.series = 0.0
 >>> inputs.teml.series = (
@@ -1571,7 +1573,8 @@ melting occurs:
 
 The following input values agree with the ones of the respective sub-period of the
 daily integration test :ref:`lland_v3_acker_winter_daily` (global radiation and
-possible sunshine duration stem from :ref:`meteo_v003_hourly_simulation_winter`):
+possible sunshine duration stem from
+:ref:`meteo_glob_morsim_hourly_simulation_winter`):
 
 >>> inputs.nied.series = (
 ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,

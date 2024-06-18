@@ -971,14 +971,14 @@ _________________
 >>> for parameter in model.aetmodel.parameters.fixed:
 ...     parameter.restore()
 
->>> with model.add_radiationmodel_v1("meteo_v003") as submodel_meteo_v003:
+>>> with model.add_radiationmodel_v1("meteo_glob_morsim") as submodel_meteo_glob_morsim:
 ...     latitude(54.1)
 ...     longitude(9.7)
 ...     angstromconstant(0.25)
 ...     angstromfactor(0.5)
 ...     angstromalternative(0.15)
 
->>> model.aetmodel.add_radiationmodel_v1(submodel_meteo_v003)
+>>> model.aetmodel.add_radiationmodel_v1(submodel_meteo_glob_morsim)
 
 >>> test = IntegrationTest(land)
 

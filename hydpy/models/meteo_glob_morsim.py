@@ -1,39 +1,37 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Model for calculating radiation terms based on sunshine duration following the
-`LARSIM`_ model.
-
+"""
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
 
-Version 3 of *HydPy-Meteo* applies the equations given in :cite:t:`ref-LARSIM` and
-:cite:t:`ref-LARSIM-Hilfe` for estimating global radiation.  It is pretty similar to
-|meteo_v001| for daily simulations.  However, it is more complicated for hourly (or
-other short) timesteps, as it implements an approach of adjusting hourly global
+|meteo_glob_morsim| applies the equations given in :cite:t:`ref-LARSIM` and
+:cite:t:`ref-LARSIM-Hilfe` to estimate global radiation.  It is pretty similar to
+|meteo_glob_fao56| for daily simulations.  However, it is more complicated for hourly
+(or other short) timesteps, as it implements an approach of adjusting hourly global
 radiation values to directly calculated daily global radiation sums.  The documentation
 on method |Calc_GlobalRadiation_V2| explains this in more detail.
 
-Users that strive for high consistency with *LARSIM's* results should note |meteo_v003|
-works slightly different regarding the mentioned approach for adjusting hourly global
-radiation values.  *LARSIM* normalises them so that their sum is identical with the
-directly calculated global radiation sum of the current calendar day.  Hence,
-estimating the global radiation for the early morning takes the sunshine duration
-measured for the late evening into account.  *HydPy* generally does not support looking
-into the future for calculating current states or fluxes.  Instead, we decided to let
-|meteo_v003| always uses data of the last 24 hours for this adjustment process.  Hence,
-there are noticeable differences in individual hourly radiation estimates of *LARSIM*
-and |meteo_v003|, but these are random short term fluctuations that do not introduce
-any long term bias.
+Users that strive for high consistency with *LARSIM's* results should note
+|meteo_glob_morsim| works slightly differently regarding the mentioned approach for
+adjusting hourly global radiation values.  *LARSIM* normalises them so that their sum
+is identical with the directly calculated global radiation sum of the current calendar
+day.  Hence, estimating the global radiation for the early morning takes the sunshine
+duration measured for the late evening into account.  *HydPy* generally does not
+support looking into the future for calculating current states or fluxes.  Instead, we
+decided to let |meteo_glob_morsim| always uses data of the last 24 hours for this
+adjustment process.  Hence, there are noticeable differences in individual hourly
+radiation estimates of *LARSIM* and |meteo_glob_morsim|, but these are random short
+term fluctuations that do not introduce any long term bias.
 
 Integration tests
 =================
 
 .. how_to_understand_integration_tests::
 
-Application model |meteo_v003| calculates multiple meteorological factors hydrological
-models could require.  We design the following integration tests so that their output
-can serve as input for the integration tests of |lland_v3|.  Among others, |lland_v3|
-requires global radiation and possible sunshine duration as input, which is why we
-select the corresponding sequences |meteo_fluxes.GlobalRadiation| and
+Application model |meteo_glob_morsim| calculates multiple meteorological factors
+hydrological models could require.  We design the following integration tests so that
+their output can serve as input for the integration tests of |lland_v3|.  Among others,
+|lland_v3| requires global radiation and possible sunshine duration as input, which is
+why we select the corresponding sequences |meteo_fluxes.GlobalRadiation| and
 |meteo_factors.PossibleSunshineDuration| as outputs.  We hand them over to the |Node|
 instances `node1` and `node2`:
 
@@ -42,10 +40,10 @@ instances `node1` and `node2`:
 >>> node1 = Node("node1", variable=meteo_fluxes_GlobalRadiation)
 >>> node2 = Node("node2", variable=meteo_factors_PossibleSunshineDuration)
 
-We prepare a |meteo_v003| instance and assign it to an element connected to those
-nodes:
+We prepare a |meteo_glob_morsim| instance and assign it to an element connected to
+those nodes:
 
->>> from hydpy.models.meteo_v003 import *
+>>> from hydpy.models.meteo_glob_morsim import *
 >>> parameterstep()
 >>> element = Element("element", outputs=(node1, node2))
 >>> element.model = model
@@ -58,7 +56,7 @@ We will use the same coordinates and Ångström coefficients in all examples:
 >>> angstromfactor(0.5)
 >>> angstromalternative(0.15)
 
-.. _meteo_v003_daily_simulation_summer:
+.. _meteo_glob_morsim_daily_simulation_summer:
 
 daily simulation summer
 _______________________
@@ -82,7 +80,7 @@ series of (measured) sunshine duration:
 
 .. integration-test::
 
-    >>> test("meteo_v003_daily_summer")
+    >>> test("meteo_glob_morsim_daily_summer")
     |       date | sunshineduration | earthsundistance | solardeclination | timeofsunrise | timeofsunset | possiblesunshineduration | dailypossiblesunshineduration | dailysunshineduration | portiondailyradiation | extraterrestrialradiation | clearskysolarradiation | unadjustedglobalradiation | dailyglobalradiation | globalradiation |      node1 |     node2 |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 1997-01-08 |              6.3 |         0.971564 |         0.307429 |      4.507941 |    20.198726 |                15.690785 |                     15.690785 |                   6.3 |                 100.0 |                422.073153 |             316.554865 |                 190.25149 |            190.25149 |       190.25149 |  190.25149 | 15.690785 |
@@ -128,13 +126,13 @@ All getters specified by the |RadiationModel_V1| interface return the correct da
 >>> round_(model.get_globalradiation())
 126.722078
 
-.. _meteo_v003_daily_simulation_winter:
+.. _meteo_glob_morsim_daily_simulation_winter:
 
 daily simulation winter
 _______________________
 
-This test is similar to the :ref:`meteo_v003_daily_simulation_summer` example but
-deals with winter conditions:
+This test is similar to the :ref:`meteo_glob_morsim_daily_simulation_summer` example
+but deals with winter conditions:
 
 >>> pub.timegrids = "2010-12-01", "2011-01-01", "1d"
 
@@ -144,7 +142,7 @@ deals with winter conditions:
 
 .. integration-test::
 
-    >>> test("meteo_v003_daily_winter")
+    >>> test("meteo_glob_morsim_daily_winter")
     |       date | sunshineduration | earthsundistance | solardeclination | timeofsunrise | timeofsunset | possiblesunshineduration | dailypossiblesunshineduration | dailysunshineduration | portiondailyradiation | extraterrestrialradiation | clearskysolarradiation | unadjustedglobalradiation | dailyglobalradiation | globalradiation |     node1 |    node2 |
     ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2010-01-12 |              3.5 |         1.028719 |        -0.389384 |      8.532819 |    16.173848 |                 7.641029 |                      7.641029 |                   3.5 |                 100.0 |                 66.682705 |              50.012029 |                 31.942798 |            31.942798 |       31.942798 | 31.942798 | 7.641029 |
@@ -179,7 +177,7 @@ deals with winter conditions:
     | 2010-30-12 |              0.0 |         1.032995 |        -0.403321 |      8.635699 |    16.070967 |                 7.435268 |                      7.435268 |                   0.0 |                 100.0 |                 61.333263 |              45.999948 |                   9.19999 |              9.19999 |         9.19999 |   9.19999 | 7.435268 |
     | 2010-31-12 |              4.0 |            1.033 |        -0.401992 |      8.625761 |    16.080906 |                 7.455145 |                      7.455145 |                   4.0 |                 100.0 |                 61.863826 |              46.397869 |                 32.062234 |            32.062234 |       32.062234 | 32.062234 | 7.455145 |
 
-.. _meteo_v003_hourly_simulation_summer:
+.. _meteo_glob_morsim_hourly_simulation_summer:
 
 hourly simulation summer
 ________________________
@@ -213,7 +211,7 @@ we pass to the sequences |LoggedSunshineDuration| and |LoggedUnadjustedGlobalRad
 
 .. integration-test::
 
-    >>> test("meteo_v003_hourly_summer")
+    >>> test("meteo_glob_morsim_hourly_summer")
     |             date | sunshineduration | earthsundistance | solardeclination | timeofsunrise | timeofsunset | possiblesunshineduration | dailypossiblesunshineduration | dailysunshineduration | portiondailyradiation | extraterrestrialradiation | clearskysolarradiation | unadjustedglobalradiation | dailyglobalradiation | globalradiation |      node1 |    node2 |
     -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 1997-03-08 00:00 |              0.0 |         0.972155 |         0.297909 |      4.570266 |      20.1364 |                      0.0 |                     15.566134 |                   1.3 |                   0.0 |                416.686259 |                    0.0 |                       0.0 |           121.571265 |             0.0 |        0.0 |      0.0 |
@@ -289,12 +287,12 @@ we pass to the sequences |LoggedSunshineDuration| and |LoggedUnadjustedGlobalRad
     | 1997-05-08 22:00 |              0.0 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                      0.0 |                     15.438712 |                  13.9 |                   0.0 |                411.114245 |                    0.0 |                       0.0 |           287.848667 |             0.0 |        0.0 |      0.0 |
     | 1997-05-08 23:00 |              0.0 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                      0.0 |                     15.438712 |                  13.9 |                   0.0 |                411.114245 |                    0.0 |                       0.0 |           287.848667 |             0.0 |        0.0 |      0.0 |
 
-.. _meteo_v003_hourly_simulation_winter:
+.. _meteo_glob_morsim_hourly_simulation_winter:
 
 hourly simulation winter
 ________________________
 
-This test is similar to the :ref:`meteo_v003_hourly_simulation_summer` example but
+This test is similar to the :ref:`meteo_glob_morsim_hourly_simulation_summer` example but
 deals with winter conditions:
 
 >>> pub.timegrids = "2010-12-10", "2010-12-13", "1h"
@@ -317,7 +315,7 @@ deals with winter conditions:
 
 .. integration-test::
 
-    >>> test("meteo_v003_hourly_winter")
+    >>> test("meteo_glob_morsim_hourly_winter")
     |             date | sunshineduration | earthsundistance | solardeclination | timeofsunrise | timeofsunset | possiblesunshineduration | dailypossiblesunshineduration | dailysunshineduration | portiondailyradiation | extraterrestrialradiation | clearskysolarradiation | unadjustedglobalradiation | dailyglobalradiation | globalradiation |      node1 |    node2 |
     -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2010-10-12 00:00 |              0.0 |         1.030879 |         -0.40453 |      8.644768 |    16.061898 |                      0.0 |                       7.41713 |                  4.41 |                   0.0 |                  60.72715 |                    0.0 |                       0.0 |            33.235046 |             0.0 |        0.0 |      0.0 |
@@ -402,7 +400,12 @@ from hydpy.models.meteo import meteo_model
 
 
 class Model(modeltools.AdHocModel, radiationinterfaces.RadiationModel_V1):
-    """Version 3 of the Meteo model."""
+    """|meteo_glob_morsim.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Meteo-Glob-MORSIM",
+        description="global radiation estimation adopted from MORECS/LARSIM",
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

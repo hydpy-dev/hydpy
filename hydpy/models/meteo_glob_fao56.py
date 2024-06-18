@@ -1,47 +1,45 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Model for calculating radiation terms based on sunshine duration following the FAO
-reference evapotranspiration model.
+"""|meteo_glob_fao56| follows the guideline provided by :cite:t:`ref-Allen1998`.  There
+are a few differences, but, at least for the following example calculations, they seem
+to be of minor importance.  See the documentation on the individual methods for more
+detailed information.
 
-Version 1 of `HydPy-Meteo` follows the guide-line provided by :cite:t:`ref-Allen1998`.
-There are a few differences, but, at least for the following example calculations, they
-seem to be of minor importance.  See the documentation on the individual methods for
-more detailed information.
-
-|meteo_v001| is tested for daily and hourly simulation time steps.  We are confident 
-that it also works fine for steps shorter than one hour.  Applying it on step sizes 
-longer one day or between one hour and one day is not advisable (your contributions to 
-extend its applicability are welcome, of course).  There is also a geographic 
-restriction due to the calculation of the longwave radiation, which fails during polar 
-nights (again, contributions are welcome).
+|meteo_glob_fao56| is tested for daily and hourly simulation time steps.  We are
+confident that it also works fine for steps shorter than one hour.  Applying it on step
+sizes  longer one day or between one hour and one day is not advisable (your
+contributions to  extend its applicability are welcome, of course).  There is also a
+geographic restriction due to the calculation of the longwave radiation, which fails
+during polar nights (again, contributions are welcome).
 
 Integration tests
 =================
 
 .. how_to_understand_integration_tests::
 
-Application model |meteo_v001| calculates multiple meteorological factors hydrological 
-models could require.  Many require |meteo_fluxes.GlobalRadiation| for calculating net
-shortwave radiation.  Some also require |meteo_factors.PossibleSunshineDuration| or
-|meteo_fluxes.ClearSkySolarRadiation| to guess cloudiness for calculating net longwave
-radiation.  Here, we select |meteo_fluxes.GlobalRadiation| and
-|meteo_fluxes.ClearSkySolarRadiation| by importing their globally available aliases,
-which we hand over to the |Node| instances `node1` and `node2`:
+Application model |meteo_glob_fao56| calculates multiple meteorological factors
+hydrological models could require.  Many require |meteo_fluxes.GlobalRadiation| for
+calculating net shortwave radiation.  Some also require
+|meteo_factors.PossibleSunshineDuration| or |meteo_fluxes.ClearSkySolarRadiation| to
+guess cloudiness for calculating net longwave radiation.  Here, we select
+|meteo_fluxes.GlobalRadiation| and |meteo_fluxes.ClearSkySolarRadiation| by importing
+their globally available aliases, which we hand over to the |Node| instances `node1`
+and `node2`:
 
 >>> from hydpy import Element, Node
 >>> from hydpy.aliases import meteo_fluxes_GlobalRadiation, meteo_fluxes_ClearSkySolarRadiation
 >>> node1 = Node("node1", variable=meteo_fluxes_GlobalRadiation)
 >>> node2 = Node("node2", variable=meteo_fluxes_ClearSkySolarRadiation)
 
-Now, we can prepare an instance of |meteo_v001| and assign it to an element connected
-to the prepared nodes:
+Now, we can prepare an instance of |meteo_glob_fao56| and assign it to an element
+connected to the prepared nodes:
 
->>> from hydpy.models.meteo_v001 import *
+>>> from hydpy.models.meteo_glob_fao56 import *
 >>> parameterstep()
 >>> element = Element("element", outputs=(node1, node2))
 >>> element.model = model
 
-.. _meteo_v001_daily_simulation:
+.. _meteo_glob_fao56_daily_simulation:
 
 daily simulation
 ________________
@@ -84,7 +82,7 @@ All getters specified by the |RadiationModel_V1| interface return the correct da
 >>> round_(model.get_globalradiation())
 255.367464
 
-.. _meteo_v001_hourly_simulation:
+.. _meteo_glob_fao56_hourly_simulation:
 
 hourly simulation
 _________________
@@ -131,7 +129,7 @@ results given by :cite:t:`ref-Allen1998`:
 
 .. integration-test::
 
-    >>> test("meteo_v001_hourly",
+    >>> test("meteo_glob_fao56_hourly",
     ...      axis1=(fluxes.globalradiation, fluxes.clearskysolarradiation))
     |             date | sunshineduration | earthsundistance | solardeclination | sunsethourangle | solartimeangle | possiblesunshineduration | extraterrestrialradiation | clearskysolarradiation | globalradiation |      node1 |      node2 |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -182,7 +180,12 @@ from hydpy.models.meteo import meteo_model
 
 
 class Model(modeltools.AdHocModel, radiationinterfaces.RadiationModel_V1):
-    """Version 1 of the Meteo model."""
+    """|meteo_glob_fao56.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Meteo-Glob-FAO56",
+        description="global radiation estimation adopted from FAO56",
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

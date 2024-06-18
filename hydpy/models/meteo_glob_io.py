@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
-"""Submodel for reading global radiation data.
-
-Use |meteo_glob_io| as a submodel for supplying (relative) main models like
+"""Use |meteo_glob_io| as a submodel to supply (relative) main models like
 |evap_ret_tw2002| with externally available global radiation time series.
 
 Integration test
@@ -49,7 +47,11 @@ from hydpy.models.meteo import meteo_model
 
 
 class Model(modeltools.AdHocModel, radiationinterfaces.RadiationModel_V2):
-    """Global radiation reader version of HydPy-Meteo."""
+    """|meteo_glob_io.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Meteo-Glob-IO", description="external global radiation data"
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

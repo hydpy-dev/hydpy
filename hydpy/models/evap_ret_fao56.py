@@ -14,7 +14,7 @@ On the other hand, |evap_ret_fao56| requires two submodels.  One must follow the
 |RadiationModel_V1| or the |RadiationModel_V3| interface and provide clear-sky solar
 radiation and global radiation data; the other must follow the |TempModel_V1| or the
 |TempModel_V2| interface and provide temperature data.  Regarding radiation,
-|meteo_v001| is an obvious choice, as it follows the FAO guideline, too.
+|meteo_glob_fao56| is an obvious choice, as it follows the FAO guideline, too.
 
 Integration tests
 =================
@@ -60,8 +60,8 @@ parameter values and input values from example 18 of :cite:t:`ref-Allen1998`:
 >>> inputs.atmosphericpressure.series = 1001.0
 
 The following global and clear sky solar radiation values are the results of the
-:ref:`meteo_v001_daily_simulation` integration test of |meteo_v001| that also
-recalculates example 18 of :cite:t:`ref-Allen1998`:
+:ref:`meteo_glob_fao56_daily_simulation` integration test of |meteo_glob_fao56| that
+also recalculates example 18 of :cite:t:`ref-Allen1998`:
 
 >>> model.radiationmodel.sequences.inputs.clearskysolarradiation.series = 356.40121
 >>> model.radiationmodel.sequences.inputs.globalradiation.series = 255.367464
@@ -104,11 +104,11 @@ to UTC-1:
 >>> pub.timegrids = "2001-09-30 02:00", "2001-10-01 15:00", "1h"
 
 This time, we do not let |meteo_clear_glob_io| provide the precalculated clear-sky and
-global radiation of the :ref:`meteo_v001_hourly_simulation` integration test, which
-corresponds to example 19 of :cite:t:`ref-Allen1998`, but let |meteo_v001| calculate
-it on the fly:
+global radiation of the :ref:`meteo_glob_fao56_hourly_simulation` integration test,
+which corresponds to example 19 of :cite:t:`ref-Allen1998`, but let |meteo_glob_fao56|
+calculate it on the fly:
 
->>> with model.add_radiationmodel_v1("meteo_v001"):
+>>> with model.add_radiationmodel_v1("meteo_glob_fao56"):
 ...     latitude(16.0 + 0.13 / 60 * 100)
 ...     longitude(-16.25)
 ...     angstromconstant(0.25)

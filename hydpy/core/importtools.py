@@ -544,29 +544,32 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
 
     >>> from hydpy import pub
     >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
-    >>> with model.add_radiationmodel_v1("meteo_v003"):
+    >>> with model.add_radiationmodel_v1("meteo_glob_morsim"):
     ...     pass
     Traceback (most recent call last):
     ...
     hydpy.core.exceptiontools.AttributeNotReady: While trying to add submodel \
-`meteo_v003` to the main model `lland_v3`, the following error occurred: While trying \
-to update parameter `latituderad` of element `?`, the following error occurred: While \
-trying to multiply variable `latitude` and `float` instance `0.017453`, the following \
-error occurred: For variable `latitude`, no value has been defined so far.
+`meteo_glob_morsim` to the main model `lland_v3`, the following error occurred: While \
+trying to update parameter `latituderad` of element `?`, the following error \
+occurred: While trying to multiply variable `latitude` and `float` instance \
+`0.017453`, the following error occurred: For variable `latitude`, no value has been \
+defined so far.
 
     You can turn off this behaviour by setting `update` to |False|:
 
-    >>> with model.add_radiationmodel_v1("meteo_v003", update=False) as meteo_v003:
+    >>> with model.add_radiationmodel_v1("meteo_glob_morsim", update=False) as \
+meteo_glob_morsim:
     ...     pass
 
-    |meteo_v003| is a "sharable" submodel, meaning one of its instances can be used by
-    multiple main models.  We demonstrate this by selecting |evap_aet_morsim| as the
-    evaporation submodel, which requires the same radiation-related data as |lland_v3|.
-    We reuse the |meteo_v003| instance prepared above, which is already a submodel of
-    |lland_v3|, and make it also a submodel of the |evap_aet_morsim| instance:
+    |meteo_glob_morsim| is a "sharable" submodel, meaning one of its instances can be
+    used by multiple main models.  We demonstrate this by selecting |evap_aet_morsim|
+    as the evaporation submodel, which requires the same radiation-related data as
+    |lland_v3|.  We reuse the |meteo_glob_morsim| instance prepared above, which is
+    already a submodel of |lland_v3|, and make it also a submodel of the
+    |evap_aet_morsim| instance:
 
     >>> with model.add_aetmodel_v1("evap_aet_morsim"):
-    ...     model.add_radiationmodel_v1(meteo_v003)
+    ...     model.add_radiationmodel_v1(meteo_glob_morsim)
     >>> model.radiationmodel is model.aetmodel.radiationmodel
     True
 

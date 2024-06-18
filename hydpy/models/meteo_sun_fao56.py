@@ -1,20 +1,18 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Model for estimating sunshine duration based on global radiation following the FAO
-reference evapotranspiration model.
-
-|meteo_v002| is nearly identical with |meteo_v001|, except that it expects
+"""|meteo_sun_fao56| is nearly identical to |meteo_glob_fao56|, except that it expects
 |meteo_inputs.GlobalRadiation| as input and estimates |meteo_factors.SunshineDuration|,
-while |meteo_v001| expects |meteo_inputs.SunshineDuration| as input and estimates
-|meteo_fluxes.GlobalRadiation|.  Hence, please read the documentation on |meteo_v001|.
-The following explanations focus only on the differences between both models.
+while |meteo_glob_fao56| expects |meteo_inputs.SunshineDuration| as input and estimates
+|meteo_fluxes.GlobalRadiation|.  Hence, please read the documentation on
+|meteo_glob_fao56|.  The following explanations focus only on the differences between
+both models.
 
 Integration tests
 =================
 
 .. how_to_understand_integration_tests::
 
-We design all integration tests as similar to those of |meteo_v001|.  This time, we
+We design all integration tests similar to those of |meteo_glob_fao56|.  This time, we
 select |meteo_factors.SunshineDuration| and |meteo_factors.PossibleSunshineDuration| as
 output sequences:
 
@@ -23,18 +21,18 @@ output sequences:
 >>> node1 = Node("node1", variable=meteo_factors_SunshineDuration)
 >>> node2 = Node("node2", variable=meteo_factors_PossibleSunshineDuration)
 
->>> from hydpy.models.meteo_v002 import *
+>>> from hydpy.models.meteo_sun_fao56 import *
 >>> parameterstep()
 >>> element = Element("element", outputs=(node1, node2))
 >>> element.model = model
 
-.. _meteo_v002_daily_simulation:
+.. _meteo_sun_fao56_daily_simulation:
 
 daily simulation
 ________________
 
-We repeat the :ref:`meteo_v001_daily_simulation` example of |meteo_v001| but use its
-global radiation result as input:
+We repeat the :ref:`meteo_glob_fao56_daily_simulation` example of |meteo_glob_fao56|
+but use its global radiation result as input:
 
 >>> from hydpy import IntegrationTest, pub, round_
 >>> pub.timegrids = "2000-07-06", "2000-07-07", "1d"
@@ -48,9 +46,9 @@ global radiation result as input:
 
 >>> inputs.globalradiation.series = 255.367464
 
-|meteo_v002| calculates the same radiation terms and a sunshine duration of 9.25 h,
-which is the input value used in the :ref:`meteo_v001_daily_simulation` example of
-|meteo_v001|:
+|meteo_sun_fao56| calculates the same radiation terms and a sunshine duration of
+9.25 h, which is the input value used in the :ref:`meteo_glob_fao56_daily_simulation`
+example of |meteo_glob_fao56|:
 
 .. integration-test::
 
@@ -70,13 +68,13 @@ All getters specified by the |RadiationModel_V1| interface return the correct da
 >>> round_(model.get_globalradiation())
 255.367464
 
-.. _meteo_v002_hourly_simulation:
+.. _meteo_sun_fao56_hourly_simulation:
 
 hourly simulation
 _________________
 
-We repeat the :ref:`meteo_v001_hourly_simulation` example of |meteo_v001| but use its
-global radiation results as input:
+We repeat the :ref:`meteo_glob_fao56_hourly_simulation` example of |meteo_glob_fao56|
+but use its global radiation results as input:
 
 >>> pub.options.utcoffset = -60
 >>> pub.options.utclongitude = -15
@@ -98,11 +96,11 @@ global radiation results as input:
 ...     117.778042, 336.055513, 532.152561, 692.390544, 805.415479, 863.000911,
 ...     860.643794, 797.910345, 678.505661)
 
-Again, there is a good agreement with the results of |meteo_v001|:
+Again, there is a good agreement with the results of |meteo_glob_fao56|:
 
 .. integration-test::
 
-    >>> test("meteo_v002_hourly",
+    >>> test("meteo_sun_fao56_hourly",
     ...      axis1=(factors.sunshineduration, factors.possiblesunshineduration))
     |             date | globalradiation | earthsundistance | solardeclination | sunsethourangle | solartimeangle | possiblesunshineduration | sunshineduration | extraterrestrialradiation | clearskysolarradiation |    node1 |    node2 |
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -153,7 +151,12 @@ from hydpy.models.meteo import meteo_model
 
 
 class Model(modeltools.AdHocModel, radiationinterfaces.RadiationModel_V1):
-    """Version 2 of the Meteo model."""
+    """|meteo_sun_fao56.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Meteo-Sun-FAO56",
+        description="sunshine duration estimation adopted from FAO56",
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

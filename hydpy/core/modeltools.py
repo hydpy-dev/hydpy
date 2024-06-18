@@ -1955,7 +1955,7 @@ filename must be known.  This can be done, by passing a filename to function \
 `save_controls` directly.  But in complete HydPy applications, it is usally assumed \
 to be consistent with the name of the element handling the model.
 
-        Submodels like |meteo_v001| allow using their instances by multiple main
+        Submodels like |meteo_glob_fao56| allow using their instances by multiple main
         models.  We prepare such a case by selecting such an instance as the submodel
         of the absolute main model |lland_v3| and the the relative submodel
         |evap_aet_morsim|:
@@ -1974,11 +1974,11 @@ to be consistent with the name of the element handling the model.
         >>> measuringheightwindspeed(10.0)
         >>> lai(3.0)
         >>> wmax(300.0)
-        >>> with model.add_radiationmodel_v1("meteo_v001") as meteo_v001:
+        >>> with model.add_radiationmodel_v1("meteo_glob_fao56") as meteo_glob_fao56:
         ...     latitude(50.0)
         >>> with model.add_aetmodel_v1("evap_aet_morsim"):
         ...     measuringheightwindspeed(2.0)
-        ...     model.add_radiationmodel_v1(meteo_v001)
+        ...     model.add_radiationmodel_v1(meteo_glob_fao56)
 
         To avoid name collisions, |Model.save_controls| prefixes the string `submodel_`
         to the submodel name (which is identical to the submodel module's name) to
@@ -1986,14 +1986,14 @@ to be consistent with the name of the element handling the model.
 
         >>> with Open():  # doctest: +ELLIPSIS
         ...     model.save_controls(filepath="otherdir/otherfile.py")
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
         otherdir/otherfile.py
-        --------------------------------------------------------------------------------
+        ----------------------------------------------------------------------------...
         # -*- coding: utf-8 -*-
         ...
         from hydpy.models.lland_v3 import *
         from hydpy.models import evap_aet_morsim
-        from hydpy.models import meteo_v001
+        from hydpy.models import meteo_glob_fao56
         ...
         simulationstep("1d")
         parameterstep("1d")
@@ -2005,12 +2005,13 @@ to be consistent with the name of the element handling the model.
         with model.add_aetmodel_v1(evap_aet_morsim):
             measuringheightwindspeed(2.0)
             ...
-            with model.add_radiationmodel_v1(meteo_v001) as submodel_meteo_v001:
+            with model.add_radiationmodel_v1(meteo_glob_fao56) as \
+submodel_meteo_glob_fao56:
                 latitude(50.0)
                 ...
-        model.add_radiationmodel_v1(submodel_meteo_v001)
+        model.add_radiationmodel_v1(submodel_meteo_glob_fao56)
         ...
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
         """
 
         def _extend_lines_submodel(
@@ -2842,7 +2843,7 @@ element.
         |Model.find_submodels| includes only one reference to shared model instances by
         default:
 
-        >>> model.radiationmodel = prepare_model("meteo_v001")
+        >>> model.radiationmodel = prepare_model("meteo_glob_fao56")
         >>> model.aetmodel = prepare_model("evap_aet_morsim")
         >>> model.aetmodel.radiationmodel = model.radiationmodel
         >>> pprint(model.find_submodels(include_optional=True))  # doctest: +ELLIPSIS
@@ -2853,7 +2854,7 @@ element.
          'model.aetmodel.snowycanopymodel': None,
          'model.aetmodel.soilwatermodel': None,
          'model.aetmodel.tempmodel': None,
-         'model.radiationmodel': <hydpy.models.meteo_v001.Model ...>,
+         'model.radiationmodel': <hydpy.models.meteo_glob_fao56.Model ...>,
          'model.soilmodel': None}
 
         Use the `repeat_sharedmodels` parameter to change this behaviour:
@@ -2862,13 +2863,13 @@ element.
         ...     repeat_sharedmodels=True, include_optional=True))  # doctest: +ELLIPSIS
         {'model.aetmodel': <hydpy.models.evap_aet_morsim.Model ...>,
          'model.aetmodel.intercmodel': None,
-         'model.aetmodel.radiationmodel': <hydpy.models.meteo_v001.Model ...>,
+         'model.aetmodel.radiationmodel': <hydpy.models.meteo_glob_fao56.Model ...>,
          'model.aetmodel.snowalbedomodel': None,
          'model.aetmodel.snowcovermodel': None,
          'model.aetmodel.snowycanopymodel': None,
          'model.aetmodel.soilwatermodel': None,
          'model.aetmodel.tempmodel': None,
-         'model.radiationmodel': <hydpy.models.meteo_v001.Model object at ...>,
+         'model.radiationmodel': <hydpy.models.meteo_glob_fao56.Model object at ...>,
          'model.soilmodel': None}
 
         All previous examples dealt with scalar submodel references handled by
@@ -3029,23 +3030,23 @@ but the value `1` of type `int` is given.
 
        >>> from hydpy import prepare_model
         >>> model = prepare_model("lland_v3")
-        >>> model.query_submodels("meteo_v001")
+        >>> model.query_submodels("meteo_glob_fao56")
         []
 
-        >>> model.radiationmodel = prepare_model("meteo_v001")
-        >>> model.query_submodels("meteo_v001")  # doctest: +ELLIPSIS
-        [<hydpy.models.meteo_v001.Model object at ...>]
+        >>> model.radiationmodel = prepare_model("meteo_glob_fao56")
+        >>> model.query_submodels("meteo_glob_fao56")  # doctest: +ELLIPSIS
+        [<hydpy.models.meteo_glob_fao56.Model object at ...>]
 
         >>> model.aetmodel = prepare_model("evap_aet_morsim")
         >>> model.aetmodel.radiationmodel = model.radiationmodel
-        >>> model.query_submodels("meteo_v001")  # doctest: +ELLIPSIS
-        [<hydpy.models.meteo_v001.Model object at ...>]
+        >>> model.query_submodels("meteo_glob_fao56")  # doctest: +ELLIPSIS
+        [<hydpy.models.meteo_glob_fao56.Model object at ...>]
 
-        >>> from hydpy.models import meteo_v001
-        >>> model.aetmodel.radiationmodel = prepare_model(meteo_v001)
-        >>> model.query_submodels(meteo_v001)  # doctest: +ELLIPSIS
-        [<hydpy.models.meteo_v001.Model object at ...>, \
-<hydpy.models.meteo_v001.Model object at ...0>]
+        >>> from hydpy.models import meteo_glob_fao56
+        >>> model.aetmodel.radiationmodel = prepare_model(meteo_glob_fao56)
+        >>> model.query_submodels(meteo_glob_fao56)  # doctest: +ELLIPSIS
+        [<hydpy.models.meteo_glob_fao56.Model object at ...>, \
+<hydpy.models.meteo_glob_fao56.Model object at ...0>]
         """
         if isinstance(name, types.ModuleType):
             name = importtools.load_modelmodule(name).Model.__HYDPY_NAME__

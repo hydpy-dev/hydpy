@@ -3,7 +3,7 @@
 """
 |dummy_interceptedwater| merely serves testing purposes.  We use it, for example, to
 perform the integration tests for submodels like |evap_aet_hbv96| without the need to
-couple them to complex main models like |hland_v1| for providing interception data.
+couple them to complex main models like |hland_96| for providing interception data.
 
 Integration test
 ================

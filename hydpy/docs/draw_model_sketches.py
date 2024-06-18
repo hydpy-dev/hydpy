@@ -1210,7 +1210,7 @@ class Frame:
 
 
 if __name__ == "__main__":
-    elements_hland_v1_base = [
+    elements_hland_96_base = [
         Edge(index=Index(i0=0, i1=10, j0=0, j1=3)),
         Title(index=Index(i0=10, j0=0), text="SEALED"),
         Title(index=Index(i0=10, j0=1), text="INTERNAL LAKE"),
@@ -1226,13 +1226,13 @@ if __name__ == "__main__":
         UZ(Index(i0=2, j0=2, j1=3)),
         LZ(Index(i0=0, j0=1, j1=3)),
     ]
-    elements_hland_v1 = elements_hland_v1_base + [UH(Index(i0=0, j0=0))]
+    elements_hland_96 = elements_hland_96_base + [UH(Index(i0=0, j0=0))]
     Frame(
-        grid=Grid(nrows=11, ncols=4), margins=Margins(), elements=elements_hland_v1
-    ).plot("HydPy-H-Land_Version-1.png")
+        grid=Grid(nrows=11, ncols=4), margins=Margins(), elements=elements_hland_96
+    ).plot("HydPy-H-HBV96.png")
 
-    elements_hland_v3 = elements_hland_v1_base + [SC(Index(i0=0, j0=0))]
-    for element in elements_hland_v3:
+    elements_hland_96p = elements_hland_96_base + [SC(Index(i0=0, j0=0))]
+    for element in elements_hland_96p:
         if element.index.i1 is not None:
             element.index.i1 += 1
         if element.index.j1 is not None:
@@ -1242,8 +1242,8 @@ if __name__ == "__main__":
         element.index.i0 += 1
         element.index.j0 += 1
 
-    elements_hland_v3 = [e for e in elements_hland_v3 if not isinstance(e, (UZ, LZ))]
-    for idx, element in enumerate(elements_hland_v3):
+    elements_hland_96p = [e for e in elements_hland_96p if not isinstance(e, (UZ, LZ))]
+    for idx, element in enumerate(elements_hland_96p):
         if isinstance(element, SC):
             continue
         if element.index.i1 is not None:
@@ -1255,7 +1255,7 @@ if __name__ == "__main__":
             element.arrowfactor = 8.5
         if isinstance(element, Soil):
             element.version = "v3_v4"
-    elements_hland_v3.extend(
+    elements_hland_96p.extend(
         (
             UZ(Index(i0=6, j0=3), version="v3"),
             UZ(Index(i0=6, j0=4), version="v3", arrows=False),
@@ -1266,13 +1266,13 @@ if __name__ == "__main__":
         )
     )
     Frame(
-        grid=Grid(nrows=15, ncols=5), margins=Margins(), elements=elements_hland_v3
-    ).plot("HydPy-H-Land_Version-3.png")
+        grid=Grid(nrows=15, ncols=5), margins=Margins(), elements=elements_hland_96p
+    ).plot("HydPy-H-HBV96-PREVAH.png")
 
-    elements_hland_v4 = [
-        e for e in elements_hland_v3 if not isinstance(e, (UZ_SG1_BW, SG23))
+    elements_hland_96c = [
+        e for e in elements_hland_96p if not isinstance(e, (UZ_SG1_BW, SG23))
     ]
-    for element in elements_hland_v4:
+    for element in elements_hland_96c:
         if isinstance(element, SC):
             element.version = "v4"
             element.index.i0 = 2
@@ -1284,7 +1284,7 @@ if __name__ == "__main__":
         element.index.i0 -= 2
         if isinstance(element, Snow) and element.index.j0 == 1:
             element.arrowfactor = 5.25
-    elements_hland_v4.extend(
+    elements_hland_96c.extend(
         (
             BW(Index(i0=4, j0=3)),
             BW(Index(i0=4, j0=4), number=1, arrows=False),
@@ -1294,5 +1294,5 @@ if __name__ == "__main__":
         )
     )
     Frame(
-        grid=Grid(nrows=13, ncols=5), margins=Margins(), elements=elements_hland_v4
-    ).plot("HydPy-H-Land_Version-4.png")
+        grid=Grid(nrows=13, ncols=5), margins=Margins(), elements=elements_hland_96c
+    ).plot("HydPy-H-HBV96-COSERO.png")

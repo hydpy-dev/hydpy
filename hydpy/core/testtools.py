@@ -106,11 +106,11 @@ class Tester:
     Usually, a |Tester| object is initialised at the end of the `__init__`
     file of its base model or the end of the module of an application model.
 
-    >>> from hydpy.models import hland, hland_v1
+    >>> from hydpy.models import hland, hland_96
 
     >>> hland.tester.package
     'hydpy.models.hland'
-    >>> hland_v1.tester.package
+    >>> hland_96.tester.package
     'hydpy.models'
     """
 
@@ -131,7 +131,7 @@ class Tester:
     def filenames(self) -> list[str]:
         """The filenames which define the considered base or application model.
 
-        >>> from hydpy.models import hland, hland_v1
+        >>> from hydpy.models import hland, hland_96
         >>> from pprint import pprint
         >>> pprint(hland.tester.filenames)
         ['__init__.py',
@@ -149,8 +149,8 @@ class Tester:
          'hland_parameters.py',
          'hland_sequences.py',
          'hland_states.py']
-        >>> hland_v1.tester.filenames
-        ['hland_v1.py']
+        >>> hland_96.tester.filenames
+        ['hland_96.py']
         """
         if self.ispackage:
             filenames = os.listdir(os.path.dirname(self.filepath))
@@ -161,7 +161,7 @@ class Tester:
     def modulenames(self) -> list[str]:
         """The module names to be taken into account for testing.
 
-        >>> from hydpy.models import hland, hland_v1
+        >>> from hydpy.models import hland, hland_96
         >>> from pprint import pprint
         >>> pprint(hland.tester.modulenames)
         ['hland_aides',
@@ -178,8 +178,8 @@ class Tester:
          'hland_parameters',
          'hland_sequences',
          'hland_states']
-        >>> hland_v1.tester.modulenames
-        ['hland_v1']
+        >>> hland_96.tester.modulenames
+        ['hland_96']
         """
         return [
             os.path.split(fn)[-1].split(".")[0]
@@ -204,7 +204,7 @@ class Tester:
         >>> pub.projectname = "test"
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
 
-        >>> from hydpy.models import hland, hland_v1
+        >>> from hydpy.models import hland, hland_96
         >>> hland.tester.perform_tests()  # doctest: +ELLIPSIS
         Test package hydpy.models.hland in ...ython mode.
             * hland_aides:
@@ -236,9 +236,9 @@ class Tester:
             * hland_states:
                 no failures occurred
 
-        >>> hland_v1.tester.perform_tests()  # doctest: +ELLIPSIS
-        Test module hland_v1 in ...ython mode.
-            * hland_v1:
+        >>> hland_96.tester.perform_tests()  # doctest: +ELLIPSIS
+        Test module hland_96 in ...ython mode.
+            * hland_96:
                 no failures occurred
 
         >>> pub.projectname
@@ -670,7 +670,7 @@ class IntegrationTest(Test):
         >>> from hydpy import Element, IntegrationTest, prepare_model, pub
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
         >>> element = Element("element", outlets="node")
-        >>> element.model = prepare_model("hland_v1")
+        >>> element.model = prepare_model("hland_96")
         >>> __package__ = "testpackage"
         >>> tester = IntegrationTest(element)
         >>> tester.dateformat

@@ -38,10 +38,10 @@ class ExchangeSpecification:
     >>> from hydpy.core.itemtools import ExchangeSpecification
     >>> ExchangeSpecification("musk_classic", "control.nmbsequences", "lag")
     ExchangeSpecification("musk_classic", "control.nmbsequences", "lag")
-    >>> ExchangeSpecification("hland_v1", "fluxes.qt", None)
-    ExchangeSpecification("hland_v1", "fluxes.qt", None)
-    >>> ExchangeSpecification("hland_v1", "fluxes.qt.series", None)
-    ExchangeSpecification("hland_v1", "fluxes.qt.series", None)
+    >>> ExchangeSpecification("hland_96", "fluxes.qt", None)
+    ExchangeSpecification("hland_96", "fluxes.qt", None)
+    >>> ExchangeSpecification("hland_96", "fluxes.qt.series", None)
+    ExchangeSpecification("hland_96", "fluxes.qt.series", None)
     >>> ExchangeSpecification("node", "sim", None)
     ExchangeSpecification("node", "sim", None)
     >>> ExchangeSpecification("node", "sim.series", None)
@@ -64,7 +64,7 @@ class ExchangeSpecification:
 
     master: str
     """Either "node" or the name of the relevant base or application model (e. g. 
-    "hland_v1")."""
+    "hland_96")."""
     variable: str
     """Name of the target or base variable."""
     keyword: Optional[str]
@@ -94,7 +94,7 @@ class ExchangeSpecification:
         `variable`.
 
         >>> from hydpy.core.itemtools import ExchangeSpecification
-        >>> spec = ExchangeSpecification("hland_v1", "fluxes.qt", None)
+        >>> spec = ExchangeSpecification("hland_96", "fluxes.qt", None)
         >>> spec.specstring
         'fluxes.qt'
         >>> spec.series = True
@@ -229,10 +229,10 @@ class ExchangeItem:
         True
 
         Asking for |hland_states.Ic| objects corresponding to application model
-        |hland_v1| only results in skipping the |Element| `land_lahn_3` (handling
+        |hland_96| only results in skipping the |Element| `land_lahn_3` (handling
         the |hland| base model due to the hack above):
 
-        >>> item.targetspecs.master = "hland_v1"
+        >>> item.targetspecs.master = "hland_96"
         >>> item.device2target.clear()
         >>> item.collect_variables(pub.selections)
         >>> for element in sorted(item.device2target, key=lambda x: x.name):
@@ -645,7 +645,7 @@ keyword for an exchange item, its aggregation level cannot be `subunit`.
         >>> from hydpy.core.itemtools import ChangeItem, ExchangeSpecification
         >>> item = ChangeItem()
         >>> item.name = "alpha"
-        >>> item.targetspecs = ExchangeSpecification("hland_v1", "control.alpha", None)
+        >>> item.targetspecs = ExchangeSpecification("hland_96", "control.alpha", None)
         >>> item.level = "global"
         >>> item.device2target = {}
         >>> item.selection2targets = {}
@@ -692,9 +692,9 @@ value `wrong` cannot be converted to type `float`.
         target variables (we use parameter |hland_control.Alpha| as an example):
 
         >>> from hydpy import SetItem
-        >>> item = SetItem("alpha", "hland_v1", "control.alpha", None, "global")
+        >>> item = SetItem("alpha", "hland_96", "control.alpha", None, "global")
         >>> item
-        SetItem("alpha", "hland_v1", "control.alpha", None, "global")
+        SetItem("alpha", "hland_96", "control.alpha", None, "global")
         >>> item.collect_variables(pub.selections)
         >>> land_dill = hp.elements.land_dill
         >>> land_dill.model.parameters.control.alpha
@@ -716,7 +716,7 @@ value `wrong` cannot be converted to type `float`.
         their target variables, which we demonstrate for the input time series
         |hland_inputs.T|:
 
-        >>> item = SetItem("t", "hland_v1", "inputs.t.series", None, "global")
+        >>> item = SetItem("t", "hland_96", "inputs.t.series", None, "global")
         >>> item.collect_variables(pub.selections)
         >>> item.value = 0.5, 1.0, 1.5, 2.0
         >>> item.update_variables()
@@ -757,7 +757,7 @@ value `wrong` cannot be converted to type `float`.
         "global" |SetItem| assigns the same value to each vector entry or the selected
         keyword argument:
 
-        >>> item = SetItem("fc", "hland_v1", "control.fc", None, "global")
+        >>> item = SetItem("fc", "hland_96", "control.fc", None, "global")
         >>> item.collect_variables(pub.selections)
         >>> item.value = 200.0
         >>> land_dill.model.parameters.control.fc
@@ -766,7 +766,7 @@ value `wrong` cannot be converted to type `float`.
         >>> land_dill.model.parameters.control.fc
         fc(200.0)
 
-        >>> item = SetItem("fc", "hland_v1", "control.fc", "forest", "global")
+        >>> item = SetItem("fc", "hland_96", "control.fc", "forest", "global")
         >>> item.collect_variables(pub.selections)
         >>> item.value = 300.0
         >>> land_dill.model.parameters.control.fc
@@ -780,7 +780,7 @@ value `wrong` cannot be converted to type `float`.
         of the first axis for demonstration purposes):
 
         >>> land_dill.model.parameters.control.sclass(2)
-        >>> item = SetItem("sp", "hland_v1", "states.sp", None, "global")
+        >>> item = SetItem("sp", "hland_96", "states.sp", None, "global")
         >>> item.collect_variables(pub.selections)
         >>> item.value = 5.0
         >>> land_dill.model.sequences.states.sp
@@ -795,7 +795,7 @@ value `wrong` cannot be converted to type `float`.
         value to the target variables of each relevant selection, regardless of target
         variable's dimensionality:
 
-        >>> item = SetItem("ic", "hland_v1", "states.ic", None, "selection")
+        >>> item = SetItem("ic", "hland_96", "states.ic", None, "selection")
         >>> item.collect_variables(pub.selections)
         >>> land_dill.model.sequences.states.ic  # doctest: +ELLIPSIS
         ic(0.9694, ..., 1.47487)
@@ -808,7 +808,7 @@ value `wrong` cannot be converted to type `float`.
         land_lahn_2 ic(1.0, 1.0, ..., 1.0, 1.0)
         land_lahn_3 ic(1.0, 1.0, ..., 1.0, 1.0)
 
-        >>> item = SetItem("t", "hland_v1", "inputs.t.series", None, "selection")
+        >>> item = SetItem("t", "hland_96", "inputs.t.series", None, "selection")
         >>> item.collect_variables(pub.selections)
         >>> item.value = [0.5, 1.0, 1.5, 2.0], [2.5, 3.0, 3.5, 4.0]
         >>> item.update_variables()
@@ -820,7 +820,7 @@ value `wrong` cannot be converted to type `float`.
         land_lahn_2: 2.5, 3.0, 3.5, 4.0
         land_lahn_3: 2.5, 3.0, 3.5, 4.0
 
-        >>> item = SetItem("tt", "hland_v1", "control.tt", "field", "selection")
+        >>> item = SetItem("tt", "hland_96", "control.tt", "field", "selection")
         >>> item.collect_variables(pub.selections)
         >>> item.value = [0.0, 1.0]
         >>> land_dill.model.parameters.control.tt
@@ -836,7 +836,7 @@ value `wrong` cannot be converted to type `float`.
         In contrast, each device receives one specific value when working on the
         "device" level:
 
-        >>> item = SetItem("ic", "hland_v1", "states.ic", None, "device")
+        >>> item = SetItem("ic", "hland_96", "states.ic", None, "device")
         >>> item.collect_variables(pub.selections)
         >>> item.value = 0.5, 1.0, 1.5, 2.0
         >>> item.update_variables()
@@ -847,7 +847,7 @@ value `wrong` cannot be converted to type `float`.
         land_lahn_2 ic(1.5, 1.5, ..., 1.5, 1.5)
         land_lahn_3 ic(2.0, 2.0, ..., 2.0, 2.0)
 
-        >>> item = SetItem("t", "hland_v1", "inputs.t.series", None, "device")
+        >>> item = SetItem("t", "hland_96", "inputs.t.series", None, "device")
         >>> item.collect_variables(pub.selections)
         >>> item.value = [[0.5, 1.0, 1.5, 2.0], [2.5, 3.0, 3.5, 4.0],
         ...               [4.5, 5.0, 5.5, 6.0], [6.5, 7.0, 7.5, 8.0]]
@@ -860,7 +860,7 @@ value `wrong` cannot be converted to type `float`.
         land_lahn_2: 4.5, 5.0, 5.5, 6.0
         land_lahn_3: 6.5, 7.0, 7.5, 8.0
 
-        >>> item = SetItem("beta", "hland_v1", "control.beta", "forest", "device")
+        >>> item = SetItem("beta", "hland_96", "control.beta", "forest", "device")
         >>> item.collect_variables(pub.selections)
         >>> item.value = [1.0, 2.0, 3.0, 4.0]
         >>> land_dill.model.parameters.control.beta
@@ -877,7 +877,7 @@ value `wrong` cannot be converted to type `float`.
         |hland_states.IC|, the |SetItem| object handles one value for each of the 49
         hydrological response units of the complete `Lahn` river basin:
 
-        >>> item = SetItem("ic", "hland_v1", "states.ic", None, "subunit")
+        >>> item = SetItem("ic", "hland_96", "states.ic", None, "subunit")
         >>> item.collect_variables(pub.selections)
         >>> item.value = [value/100 for value in range(49)]
         >>> item.update_variables()
@@ -894,7 +894,7 @@ value `wrong` cannot be converted to type `float`.
         object.  Each item value relates to a specific matrix entry of a specific
         target variable:
 
-        >>> item = SetItem("sp", "hland_v1", "states.sp", None, "subunit")
+        >>> item = SetItem("sp", "hland_96", "states.sp", None, "subunit")
         >>> item.collect_variables(pub.selections)
         >>> item.value = [value/100 for value in range(61)]
         >>> item.update_variables()
@@ -970,17 +970,17 @@ class SetItem(ChangeItem):
         sequence |hland_states.SP|:
 
         >>> from hydpy import print_values, round_, SetItem
-        >>> lz = SetItem("lz", "hland_v1", "states.lz", None, "to be defined")
-        >>> sm = SetItem("sm", "hland_v1", "states.sm", None, "to be defined")
-        >>> sp = SetItem("sp", "hland_v1", "states.sp", None, "to be defined")
+        >>> lz = SetItem("lz", "hland_96", "states.lz", None, "to be defined")
+        >>> sm = SetItem("sm", "hland_96", "states.sm", None, "to be defined")
+        >>> sp = SetItem("sp", "hland_96", "states.sp", None, "to be defined")
 
         The additional |SetItem| objects `uz`, `ic`, and `wc` address the time series
         of the 0-dimensional sequence |hland_states.UZ|, the 1-dimensional sequence
         |hland_states.Ic|, and the 2-dimensional sequence |hland_states.WC|:
 
-        >>> uz = SetItem("uz", "hland_v1", "states.uz.series", None, "to be defined")
-        >>> ic = SetItem("ic", "hland_v1", "states.ic.series", None, "to be defined")
-        >>> wc = SetItem("wc", "hland_v1", "states.wc.series", None, "to be defined")
+        >>> uz = SetItem("uz", "hland_96", "states.uz.series", None, "to be defined")
+        >>> ic = SetItem("ic", "hland_96", "states.ic.series", None, "to be defined")
+        >>> wc = SetItem("wc", "hland_96", "states.wc.series", None, "to be defined")
 
         The following test function updates the aggregation level and calls
         |SetItem.extract_values| for all six items:
@@ -1157,7 +1157,7 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         resolve the `subunit` level, extracting the values of keyword arguments works
         only for the `device` level:
 
-        >>> cfmax = SetItem("lag", "hland_v1", "control.cfmax", "forest", "device")
+        >>> cfmax = SetItem("lag", "hland_96", "control.cfmax", "forest", "device")
         >>> cfmax.collect_variables(pub.selections)
         >>> cfmax.extract_values()
         >>> dill.parameters.control.cfmax
@@ -1325,13 +1325,13 @@ class MathItem(ChangeItem):
     base variables:
 
     >>> from hydpy.core.itemtools import MathItem
-    >>> item = MathItem("sfcf", "hland_v1", "control.sfcf", "control.rfcf", "global")
+    >>> item = MathItem("sfcf", "hland_96", "control.sfcf", "control.rfcf", "global")
     >>> item
-    MathItem("sfcf", "hland_v1", "control.sfcf", "control.rfcf", "global")
+    MathItem("sfcf", "hland_96", "control.sfcf", "control.rfcf", "global")
     >>> item.targetspecs
-    ExchangeSpecification("hland_v1", "control.sfcf", None)
+    ExchangeSpecification("hland_96", "control.sfcf", None)
     >>> item.basespecs
-    ExchangeSpecification("hland_v1", "control.rfcf", None)
+    ExchangeSpecification("hland_96", "control.rfcf", None)
 
     Generally, each |MathItem| object calculates the value of the target variable of
     a |Device| object by using its current |ChangeItem.value| and the value(s) of the
@@ -1364,7 +1364,7 @@ class MathItem(ChangeItem):
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import AddItem
-        >>> item = AddItem(name="alpha", master="hland_v1", target="control.sfcf",
+        >>> item = AddItem(name="alpha", master="hland_96", target="control.sfcf",
         ...                base="control.rfcf", level="global")
         >>> item.collect_variables(pub.selections)
         >>> land_dill = hp.elements.land_dill
@@ -1411,7 +1411,7 @@ class AddItem(MathItem):
     >>> del pub.selections["complete"]
 
     We use the rainfall correction parameter (|hland_control.RfCF|) of the application
-    model |hland_v1| as the base variable.  Defining a different correction factor for
+    model |hland_96| as the base variable.  Defining a different correction factor for
     each of the 49 hydrological response units allows strict testing:
 
     >>> value = 0.8
@@ -1431,7 +1431,7 @@ class AddItem(MathItem):
     available aggregation levels:
 
     >>> from hydpy.core.itemtools import AddItem
-    >>> item = AddItem(name="sfcf", master="hland_v1", target="control.sfcf",
+    >>> item = AddItem(name="sfcf", master="hland_96", target="control.sfcf",
     ...                base="control.rfcf", level="global")
     >>> item.collect_variables(pub.selections)
     >>> item.value = 0.1
@@ -1454,7 +1454,7 @@ class AddItem(MathItem):
     land_lahn_2 sfcf(1.05, ... 1.14)
     land_lahn_3 sfcf(1.15, ... 1.28)
 
-    >>> item = AddItem(name="sfcf", master="hland_v1", target="control.sfcf",
+    >>> item = AddItem(name="sfcf", master="hland_96", target="control.sfcf",
     ...                base="control.rfcf", level="device")
     >>> item.collect_variables(pub.selections)
     >>> item.value = -0.1, 0.0, 0.1, 0.2
@@ -1466,7 +1466,7 @@ class AddItem(MathItem):
     land_lahn_2 sfcf(1.15, ... 1.24)
     land_lahn_3 sfcf(1.35, ... 1.48)
 
-    >>> item = AddItem(name="sfcf", master="hland_v1", target="control.sfcf",
+    >>> item = AddItem(name="sfcf", master="hland_96", target="control.sfcf",
     ...                base="control.rfcf", level="subunit")
     >>> item.collect_variables(pub.selections)
     >>> item.value = [idx/100 for idx in range(-20, 29)]
@@ -1491,7 +1491,7 @@ class AddItem(MathItem):
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy.core.itemtools import AddItem
-        >>> item = AddItem(name="sfcf", master="hland_v1", target="control.sfcf",
+        >>> item = AddItem(name="sfcf", master="hland_96", target="control.sfcf",
         ...                base="control.rfcf", level="global")
         >>> item.collect_variables(pub.selections)
         >>> item._value = 0.1, 0.2
@@ -1539,7 +1539,7 @@ class MultiplyItem(MathItem):
     land_lahn_3 rfcf(1.15, ... 1.28)
 
     >>> from hydpy.core.itemtools import MultiplyItem
-    >>> item = MultiplyItem(name="sfcf", master="hland_v1", target="control.sfcf",
+    >>> item = MultiplyItem(name="sfcf", master="hland_96", target="control.sfcf",
     ...                     base="control.rfcf", level="global")
     >>> item.collect_variables(pub.selections)
     >>> item.value = 2.0
@@ -1564,7 +1564,7 @@ class MultiplyItem(MathItem):
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy.core.itemtools import MultiplyItem
-        >>> item = MultiplyItem(name="sfcf", master="hland_v1", target="control.sfcf",
+        >>> item = MultiplyItem(name="sfcf", master="hland_96", target="control.sfcf",
         ...                     base="control.rfcf", level="global")
         >>> item.collect_variables(pub.selections)
         >>> item._value = 0.1, 0.2
@@ -1611,7 +1611,7 @@ class GetItem(ExchangeItem):
         |GetItem.collect_variables| results in the following error message:
 
         >>> from hydpy.core.itemtools import GetItem
-        >>> GetItem("temp", "hland_v1", "states.lz").ndim
+        >>> GetItem("temp", "hland_96", "states.lz").ndim
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: Attribute `ndim` of GetItem \
@@ -1639,13 +1639,13 @@ class GetItem(ExchangeItem):
         >>> from hydpy.core.itemtools import GetItem
         >>> for target in ("states.lz", "states.lz.series",
         ...                "states.sm", "states.sm.series"):
-        ...     item = GetItem("temp", "hland_v1", target)
+        ...     item = GetItem("temp", "hland_96", target)
         ...     item.collect_variables(pub.selections)
         ...     print(item, item.ndim)
-        GetItem("temp", "hland_v1", "states.lz") 0
-        GetItem("temp", "hland_v1", "states.lz.series") 1
-        GetItem("temp", "hland_v1", "states.sm") 1
-        GetItem("temp", "hland_v1", "states.sm.series") 2
+        GetItem("temp", "hland_96", "states.lz") 0
+        GetItem("temp", "hland_96", "states.lz.series") 1
+        GetItem("temp", "hland_96", "states.sm") 1
+        GetItem("temp", "hland_96", "states.sm.series") 2
         """
         super().collect_variables(selections)
         for device in sorted(self.device2target.keys(), key=lambda x: x.name):
@@ -1678,7 +1678,7 @@ class GetItem(ExchangeItem):
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import SetItem
-        >>> item = GetItem("lz", "hland_v1", "states.lz")
+        >>> item = GetItem("lz", "hland_96", "states.lz")
         >>> item.collect_variables(pub.selections)
         >>> for name, subnames in item.yield_name2subnames():
         ...     print(name, subnames)
@@ -1699,7 +1699,7 @@ class GetItem(ExchangeItem):
         For non-scalar variables, the sub-names combine the device name and all
         possible index combinations for the current shape of the target variable:
 
-        >>> item = GetItem("sm", "hland_v1", "states.sm")
+        >>> item = GetItem("sm", "hland_96", "states.sm")
         >>> item.collect_variables(pub.selections)
         >>> for name, subnames in item.yield_name2subnames():
         ...     print(name, subnames)  # doctest: +ELLIPSIS
@@ -1708,7 +1708,7 @@ class GetItem(ExchangeItem):
         land_lahn_2_states_sm ('land_lahn_2_0', ..., 'land_lahn_2_9')
         land_lahn_3_states_sm ('land_lahn_3_0', ..., 'land_lahn_3_13')
 
-        >>> item = GetItem("sp", "hland_v1", "states.sp")
+        >>> item = GetItem("sp", "hland_96", "states.sp")
         >>> item.collect_variables(pub.selections)
         >>> for name, subnames in item.yield_name2subnames():
         ...     print(name, subnames)  # doctest: +ELLIPSIS
@@ -1736,7 +1736,7 @@ class GetItem(ExchangeItem):
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import SetItem
-        >>> item = GetItem("lz", "hland_v1", "states.lz")
+        >>> item = GetItem("lz", "hland_96", "states.lz")
         >>> item.collect_variables(pub.selections)
         >>> hp.elements.land_dill.model.sequences.states.lz = 100.0
         >>> for name, value in item.yield_name2value():
@@ -1745,7 +1745,7 @@ class GetItem(ExchangeItem):
         land_lahn_1_states_lz 8.18711
         land_lahn_2_states_lz 10.14007
         land_lahn_3_states_lz 7.52648
-        >>> item = GetItem("sm", "hland_v1", "states.sm")
+        >>> item = GetItem("sm", "hland_96", "states.sm")
         >>> item.collect_variables(pub.selections)
         >>> hp.elements.land_dill.model.sequences.states.sm = 2.0
         >>> for name, value in item.yield_name2value():

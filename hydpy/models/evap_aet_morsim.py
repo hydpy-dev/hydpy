@@ -28,7 +28,7 @@ usually queries from its main model, if possible:
  * The snow cover degree within the canopy of tree-like vegetation (optional).
 
 The last two data types are optional.  Hence, |evap_aet_morsim| works in combination
-with models as |hland_v1|, which cannot estimate the current snow albedo and snow
+with models as |hland_96|, which cannot estimate the current snow albedo and snow
 interception.  Then, |evap_aet_morsim| relies on land type-specific albedo values (for
 snow-free conditions) and assumes zero snow interception.
 

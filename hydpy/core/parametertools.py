@@ -772,7 +772,7 @@ the unequal argument `1` under the keyword `one`.
 
         When passing a |Parameter| subclass (in our example
         |hland_control.IcMax|) and some |Element| objects (at first the headwater
-        elements, which handle instances of application model |hland_v1|), method
+        elements, which handle instances of application model |hland_96|), method
         |KeywordArguments.extend| collects their relevant keyword arguments:
 
         >>> from hydpy.models.hland.hland_control import IcMax

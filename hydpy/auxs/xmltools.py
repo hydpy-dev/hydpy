@@ -66,15 +66,15 @@ sm(183.837826, 179.9213, 198.407964, 195.185205, 210.558313, 208.024555,
 <BLANKLINE>
 
 The intermediate soil moisture values have been stored in a NetCDF file called
-`hland_v1_state_sm.nc`:
+`hland_96_state_sm.nc`:
 
 >>> import numpy
 >>> from hydpy import print_values
 >>> from hydpy.core.netcdftools import netcdf4, chars2str, query_variable
 >>> with TestIO():
-...     ncfile = netcdf4.Dataset("LahnH/series/soildata/hland_v1_state_sm.nc")
+...     ncfile = netcdf4.Dataset("LahnH/series/soildata/hland_96_state_sm.nc")
 ...     chars2str(query_variable(ncfile, "station_id")[:].data)[:3]
-...     print_values(query_variable(ncfile, "hland_v1_state_sm")[:, 0])
+...     print_values(query_variable(ncfile, "hland_96_state_sm")[:, 0])
 ['land_dill_0', 'land_dill_1', 'land_dill_2']
 184.920402, 184.589155, 184.365769, 184.069586, 183.837826
 >>> ncfile.close()
@@ -352,7 +352,7 @@ class XMLBase:
     >>> itemgroup = interface.exchange.itemgroups[1]
     >>> for element in itemgroup:
     ...     print(strip(element.tag))
-    hland_v1
+    hland_96
     rconc_uh
     >>> for element in itemgroup.models[0].subvars[0].vars[0]:
     ...     print(strip(element.tag))
@@ -1461,9 +1461,9 @@ class XMLSubseries(XMLSelector):
         >>> for model, subs2seqs in sorted(model2subs2seqs.items()):
         ...     for subs, seq in sorted(subs2seqs.items()):
         ...         print(model, subs, seq)
-        hland_v1 factors ['tc']
-        hland_v1 fluxes ['tf']
-        hland_v1 states ['sm']
+        hland_96 factors ['tc']
+        hland_96 fluxes ['tf']
+        hland_96 states ['sm']
         musk_classic states ['discharge']
         """
         model2subs2seqs: collections.defaultdict[
@@ -1752,9 +1752,9 @@ during a simulation run is not supported but tried for sequence `p` of element \
         >>> import numpy
         >>> with TestIO():
         ...     dirpath = "LahnH/series/default/"
-        ...     os.path.exists(f"{dirpath}land_lahn_2_hland_v1_flux_pc.npy")
-        ...     os.path.exists(f"{dirpath}land_lahn_3_hland_v1_flux_pc.npy")
-        ...     numpy.load(f"{dirpath}land_dill_hland_v1_flux_pc.npy")[13+2, 3]
+        ...     os.path.exists(f"{dirpath}land_lahn_2_hland_96_flux_pc.npy")
+        ...     os.path.exists(f"{dirpath}land_lahn_3_hland_96_flux_pc.npy")
+        ...     numpy.load(f"{dirpath}land_dill_hland_96_flux_pc.npy")[13+2, 3]
         ...     numpy.load(f"{dirpath}lahn_2_sim_q_mean.npy")[13+4]
         True
         False
@@ -2088,7 +2088,7 @@ class XMLVar(XMLSelector):
         >>> interface.update_selections()
 
         One of the defined |SetItem| objects modifies the values of all
-        |hland_control.Alpha| objects of application model |hland_v1|.  We demonstrate
+        |hland_control.Alpha| objects of application model |hland_96|.  We demonstrate
         this for the control parameter object handled by the `land_dill` element:
 
         >>> var = interface.exchange.itemgroups[0].models[0].subvars[0].vars[0]
@@ -2537,7 +2537,7 @@ class XSDWriter:
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> from hydpy import prepare_model
-        >>> model = prepare_model("hland_v1")
+        >>> model = prepare_model("hland_96")
         >>> print(XSDWriter.get_modelinsertion(
         ...     model=model, type_="reader", indent=1))  # doctest: +ELLIPSIS
             <element name="inputs"
@@ -2613,7 +2613,7 @@ class XSDWriter:
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> from hydpy import prepare_model
-        >>> model = prepare_model("hland_v1")
+        >>> model = prepare_model("hland_96")
         >>> print(XSDWriter.get_subsequencesinsertion(
         ...     model.sequences.factors, 1))  # doctest: +ELLIPSIS
             <element name="factors"
@@ -2659,7 +2659,7 @@ class XSDWriter:
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> from hydpy import prepare_model
-        >>> model = prepare_model("hland_v1")
+        >>> model = prepare_model("hland_96")
         >>> print(XSDWriter.get_sequenceinsertion(model.sequences.fluxes.pc, 1))
             <element
                 name="pc"
@@ -2898,8 +2898,8 @@ class XSDWriter:
                         <element ref="hpcb:selections"
                                  minOccurs="0"/>
         ...
-                        <element name="hland_v1"
-                                 type="hpcb:hland_v1_setitemsType"
+                        <element name="hland_96"
+                                 type="hpcb:hland_96_setitemsType"
                                  minOccurs="0"
                                  maxOccurs="unbounded"/>
         ...
@@ -2977,8 +2977,8 @@ class XSDWriter:
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_itemtypeinsertion(
-        ...     "setitems", "hland_v1", 1))  # doctest: +ELLIPSIS
-            <complexType name="hland_v1_setitemsType">
+        ...     "setitems", "hland_96", 1))  # doctest: +ELLIPSIS
+            <complexType name="hland_96_setitemsType">
                 <sequence>
                     <element ref="hpcb:selections"
                              minOccurs="0"/>
@@ -3065,7 +3065,7 @@ class XSDWriter:
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_subgroupsiteminsertion(
-        ...     "setitems", "hland_v1", 1))  # doctest: +ELLIPSIS
+        ...     "setitems", "hland_96", 1))  # doctest: +ELLIPSIS
             <element name="control"
                      minOccurs="0"
                      maxOccurs="unbounded">
@@ -3118,7 +3118,7 @@ class XSDWriter:
         referenced, respectively, and for all others, the model-specific `mathitemType`:
 
         >>> from hydpy import prepare_model
-        >>> model = prepare_model("hland_v1")
+        >>> model = prepare_model("hland_96")
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_subgroupiteminsertion(  # doctest: +ELLIPSIS
         ...     "setitems", model, model.parameters.control, 1))
@@ -3154,7 +3154,7 @@ class XSDWriter:
             <element name="control"
         ...
                         <element name="area"
-                                 type="hpcb:hland_v1_mathitemType"
+                                 type="hpcb:hland_96_mathitemType"
                                  minOccurs="0"
                                  maxOccurs="unbounded"/>
         ...
@@ -3164,7 +3164,7 @@ class XSDWriter:
             <element name="control"
         ...
                         <element name="area"
-                                 type="hpcb:hland_v1_mathitemType"
+                                 type="hpcb:hland_96_mathitemType"
                                  minOccurs="0"
                                  maxOccurs="unbounded"/>
         ...

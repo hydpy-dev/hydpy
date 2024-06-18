@@ -93,7 +93,7 @@ states by default).  To avoid additional resetting work, class
 |StateSequence| objects and initial values, which our test object memorises.
 Now it will reset each given state to the corresponding initial value
 before each test run.  Note that |Test.inits| also accepts |LogSequence|
-objects (see for example the documentation on application model |hland_v1|,
+objects (see for example the documentation on application model |hland_96|,
 in which we define a single value for the unit hydrograph memory sequence
 |rconc_logs.QUH|).
 

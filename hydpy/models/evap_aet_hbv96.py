@@ -33,13 +33,13 @@ sufficient:
 
 We perform the integration test for two simulation steps.  We will configure the first
 step identical to the first hour of the second day of the simulation period selected
-for the integration tests of |hland_v1|:
+for the integration tests of |hland_96|:
 
 >>> from hydpy import IntegrationTest, pub
 >>> pub.timegrids = "2000-01-01", "2000-01-03", "1d"
 
-We set all parameter values identical to the ones defined in the :ref:`hland_v1_field`
-example of |hland_v1|:
+We set all parameter values identical to the ones defined in the :ref:`hland_96_field`
+example of |hland_96|:
 
 >>> nmbhru(1)
 >>> maxsoilwater(200.0)
@@ -70,26 +70,26 @@ Now, we can initialise an |IntegrationTest| object:
 >>> test = IntegrationTest(element)
 >>> test.dateformat = "%d/%m"
 
-The first temperature input also stems from the input data of the :ref:`hland_v1_field`
+The first temperature input also stems from the input data of the :ref:`hland_96_field`
 example, while the second represents winter conditions:
 
 >>> model.tempmodel.sequences.inputs.temperature.series = 19.2, 0.0
 
 The (constant) potential evapotranspiration value stems from the output of the
 integration test of |evap_pet_hbv96|, which is also consistent with the
-:ref:`hland_v1_field` example:
+:ref:`hland_96_field` example:
 
 >>> model.petmodel.sequences.inputs.referenceevapotranspiration.series = 0.06896
 
 The following interception and soil water contents are intermediate values of the
-:ref:`hland_v1_field` example that occur after adding precipitation but before removing
+:ref:`hland_96_field` example that occur after adding precipitation but before removing
 evapotranspiration:
 
 >>> model.intercmodel.sequences.inputs.interceptedwater.series = 2.0
 >>> model.soilwatermodel.sequences.inputs.soilwater.series = 99.622389
 
 The first snow cover value represents summer conditions (like in the
-:ref:`hland_v1_field` example), while the second represents winter conditions:
+:ref:`hland_96_field` example), while the second represents winter conditions:
 
 >>> model.snowcovermodel.sequences.inputs.snowcover.series = [[0.0], [1.0]]
 

@@ -661,7 +661,7 @@ patch(template % "StateSequences") as states:
         `states`.
 
         >>> from hydpy import prepare_model
-        >>> model = prepare_model("hland_v1", "1d")
+        >>> model = prepare_model("hland_96", "1d")
         >>> for subseqs in model.sequences.iosubsequences:
         ...     print(subseqs.name)
         inputs
@@ -2831,7 +2831,7 @@ class InputSequence(ModelIOSequence):
     |InputSequence| objects provide their master model with input data, which is
     possible in two ways: either by providing their individually managed data (usually
     read from a file) or data shared with an input node (usually calculated by another
-    model).  This flexibility allows, for example, to let application model |hland_v1|
+    model).  This flexibility allows, for example, to let application model |hland_96|
     read already preprocessed precipitation time series or to couple it with
     application models like |conv_nn|, which interpolates precipitation during the
     simulation run.
@@ -2936,10 +2936,10 @@ class InputSequence(ModelIOSequence):
         >>> from hydpy.core.filetools import SequenceManager
         >>> pub.sequencemanager = SequenceManager()
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> parameterstep()
         >>> inputs.t.descr_sequence
-        'hland_v1_input_t'
+        'hland_96_input_t'
 
         When activating the standard "HydPy" convention instead of the "model-specific"
         convention, |InputSequence.descr_sequence| returns the standard name selected
@@ -3284,7 +3284,7 @@ class StateSequence(OutputSequence, ConditionSequence):
     is an additional feature for keeping the supplemental information.
 
     We demonstrate the above explanations using state sequence |hland_states.SM| of the
-    base model |hland_v1| with a shape of two:
+    base model |hland_96| with a shape of two:
 
     >>> from hydpy import prepare_model
     >>> model = prepare_model("hland", "1d")

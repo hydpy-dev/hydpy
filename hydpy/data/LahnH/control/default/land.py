@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from hydpy.models.hland_v1 import *
+from hydpy.models.hland_96 import *
 
 simulationstep("1h")
 parameterstep("1d")

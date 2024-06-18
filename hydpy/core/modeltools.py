@@ -840,7 +840,7 @@ class SubmodelIsMainmodelProperty:
 
     >>> from hydpy import prepare_model, pub
     >>> with pub.options.usecython(True):
-    ...     model = prepare_model("hland_v1")
+    ...     model = prepare_model("hland_96")
     >>> type(model).aetmodel_is_mainmodel._name
     'aetmodel_is_mainmodel'
     >>> model.aetmodel_is_mainmodel
@@ -892,7 +892,7 @@ class SubmodelTypeIDProperty:
 
     >>> from hydpy import prepare_model, pub
     >>> with pub.options.usecython(True):
-    ...     model = prepare_model("hland_v1")
+    ...     model = prepare_model("hland_96")
     >>> type(model).aetmodel_typeid._name
     'aetmodel_typeid'
     >>> model.aetmodel_typeid
@@ -971,7 +971,7 @@ class Idx_Sim(IndexProperty):
     |Model.simulate|.  However, you can change it manually via the |modeltools.Idx_Sim|
     descriptor, which is often beneficial during testing:
 
-    >>> from hydpy.models.hland_v1 import *
+    >>> from hydpy.models.hland_96 import *
     >>> parameterstep("1d")
     >>> model.idx_sim
     0
@@ -1081,7 +1081,7 @@ class Model:
     attribute, making all predefined masks of the actual model type available within a
     |Masks| object:
 
-    >>> from hydpy.models.hland_v1 import *
+    >>> from hydpy.models.hland_96 import *
     >>> parameterstep("1d")
     >>> model.masks
     complete of module hydpy.models.hland.hland_masks
@@ -1355,7 +1355,7 @@ The following nodes have not been connected to any sequences: in2.
 
         We demonstrate this functionality by focussing on the input sequences
         |hland_inputs.T| and |hland_inputs.P| and the output sequences |hland_fluxes.Q0|
-        and |hland_states.UZ| of application model |hland_v1|.  |hland_inputs.T| uses
+        and |hland_states.UZ| of application model |hland_96|.  |hland_inputs.T| uses
         its own data (which we define manually, but we could read it from a file as
         well), whereas |hland_inputs.P| gets its data from node `inp1`.  Flux sequence
         |hland_fluxes.Q0| and state sequence |hland_states.UZ| pass their data to two
@@ -1374,7 +1374,7 @@ The following nodes have not been connected to any sequences: in2.
         >>> outp2 = Node("outp2", variable=hland_states_UZ)
         >>> element8 = Element("element8", outlets=out1, inputs=inp1,
         ...                    outputs=[outp1, outp2])
-        >>> element8.model = prepare_model("hland_v1")
+        >>> element8.model = prepare_model("hland_96")
         >>> element8.prepare_inputseries()
         >>> element8.model.sequences.inputs.t.series = 1.0, 2.0, 3.0, 4.0, 5.0
         >>> inp1.sequences.sim(9.0)
@@ -1403,7 +1403,7 @@ The following nodes have not been connected to any sequences: in2.
         >>> FastRunoff = FusedVariable("FastRunoff", hland_fluxes_Q0, lland_fluxes_QDGZ)
         >>> outp3 = Node("outp3", variable=FastRunoff)
         >>> element9 = Element("element9", outlets=out1, inputs=inp2, outputs=outp3)
-        >>> element9.model = prepare_model("hland_v1")
+        >>> element9.model = prepare_model("hland_96")
         >>> inp2.sequences.sim(9.0)
         >>> element9.model.load_data(0)
         >>> element9.model.sequences.inputs.p
@@ -1420,7 +1420,7 @@ The following nodes have not been connected to any sequences: in2.
         >>> Wrong = FusedVariable("Wrong", lland_inputs_Nied, lland_inputs_TemL)
         >>> inp3 = Node("inp3", variable=Wrong)
         >>> element10 = Element("element10", outlets=out1, inputs=inp3)
-        >>> element10.model = prepare_model("hland_v1")
+        >>> element10.model = prepare_model("hland_96")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to build the node connection of the `input` \
@@ -1429,19 +1429,19 @@ The following nodes have not been connected to any sequences: inp3.
 
         >>> outp4 = Node("outp4", variable=Wrong)
         >>> element11 = Element("element11", outlets=out1, outputs=outp4)
-        >>> element11.model = prepare_model("hland_v1")
+        >>> element11.model = prepare_model("hland_96")
         Traceback (most recent call last):
         ...
         TypeError: While trying to build the node connection of the `output` \
 sequences of the model handled by element `element11`, the following error occurred: \
-None of the output sequences of model `hland_v1` is among the sequences of the fused \
+None of the output sequences of model `hland_96` is among the sequences of the fused \
 variable `Wrong` of node `outp4`.
 
         Selecting the wrong sequences results in the following error messages:
 
         >>> outp5 = Node("outp5", variable=hland_fluxes_Q0)
         >>> element12 = Element("element12", outlets=out1, inputs=outp5)
-        >>> element12.model = prepare_model("hland_v1")
+        >>> element12.model = prepare_model("hland_96")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to build the node connection of the `input` \
@@ -1450,19 +1450,19 @@ The following nodes have not been connected to any sequences: outp5.
 
         >>> inp5 = Node("inp5", variable="P")
         >>> element13 = Element("element13", outlets=out1, outputs=inp5)
-        >>> element13.model = prepare_model("hland_v1")
+        >>> element13.model = prepare_model("hland_96")
         Traceback (most recent call last):
         ...
         TypeError: While trying to build the node connection of the `output` sequences \
 of the model handled by element `element13`, the following error occurred: No factor, \
-flux, or state sequence of model `hland_v1` is named `p`.
+flux, or state sequence of model `hland_96` is named `p`.
 
         So far, you can build connections to 0-dimensional output sequences only:
 
         >>> from hydpy.models.hland.hland_fluxes import PC
         >>> outp6 = Node("outp6", variable=PC)
         >>> element14 = Element("element14", outlets=out1, outputs=outp6)
-        >>> element14.model = prepare_model("hland_v1")
+        >>> element14.model = prepare_model("hland_96")
         Traceback (most recent call last):
         ...
         TypeError: While trying to build the node connection of the `output` sequences \
@@ -1671,9 +1671,9 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
 
         For application models, |Model.name| to corresponds the module name:
 
-        >>> hland_v1 = prepare_model("hland_v1")
-        >>> hland_v1.name
-        'hland_v1'
+        >>> hland_96 = prepare_model("hland_96")
+        >>> hland_96.name
+        'hland_96'
 
         This last example has only technical reasons:
 
@@ -1795,13 +1795,13 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         and the actual parameter and simulation step sizes:
 
         >>> from hydpy import prepare_model, pub
-        >>> model = prepare_model("hland_v1")
+        >>> model = prepare_model("hland_96")
         >>> model.aetmodel = prepare_model("evap_aet_hbv96")
         >>> pub.timegrids = "2000.01.01", "2001.01.01", "1h"
         >>> print(model.get_controlfileheader())
         # -*- coding: utf-8 -*-
         <BLANKLINE>
-        from hydpy.models.hland_v1 import *
+        from hydpy.models.hland_96 import *
         from hydpy.models import evap_aet_hbv96
         <BLANKLINE>
         simulationstep("1h")
@@ -1816,7 +1816,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         ...     import_submodels=False, parameterstep="2d", simulationstep="3d"))
         # -*- coding: utf-8 -*-
         <BLANKLINE>
-        from hydpy.models.hland_v1 import *
+        from hydpy.models.hland_96 import *
         <BLANKLINE>
         simulationstep("3d")
         parameterstep("2d")
@@ -2605,8 +2605,8 @@ element.
         """Convenience method for iterating through all methods selected by a |Model|
         subclass.
 
-        >>> from hydpy.models import hland_v1, ga_garto_submodel1
-        >>> for method in hland_v1.Model.get_methods():
+        >>> from hydpy.models import hland_96, ga_garto_submodel1
+        >>> for method in hland_96.Model.get_methods():
         ...     print(method.__name__)   # doctest: +ELLIPSIS
         Calc_TC_V1
         ...
@@ -2623,13 +2623,13 @@ element.
 
         One can skip all methods that belong to specific groups:
 
-        >>> for method in hland_v1.Model.get_methods(skip=("OUTLET_METHODS",)):
+        >>> for method in hland_96.Model.get_methods(skip=("OUTLET_METHODS",)):
         ...     print(method.__name__)   # doctest: +ELLIPSIS
         Calc_TC_V1
         ...
         Calc_OutRC_RConcModel_V1
 
-        >>> for method in hland_v1.Model.get_methods(("OUTLET_METHODS", "ADD_METHODS")):
+        >>> for method in hland_96.Model.get_methods(("OUTLET_METHODS", "ADD_METHODS")):
         ...     print(method.__name__)   # doctest: +ELLIPSIS
         Calc_TC_V1
         ...
@@ -3057,7 +3057,7 @@ but the value `1` of type `int` is given.
         """Use the control parameter values of the current model for updating its
         derived parameters and the control and derived parameters of all its submodels.
 
-        We use the combination of |hland_v1|, |evap_aet_hbv96|, and |evap_pet_hbv96|
+        We use the combination of |hland_96|, |evap_aet_hbv96|, and |evap_pet_hbv96|
         used by the `LahnH` project for modelling the Dill catchment as an example:
 
         >>> from hydpy.examples import prepare_full_example_2
@@ -3078,7 +3078,7 @@ but the value `1` of type `int` is given.
         >>> model.aetmodel.parameters.control.soil
         soil(True)
 
-        Second, |hland_v1| requires definitions for the zones' altitude
+        Second, |hland_96| requires definitions for the zones' altitude
         (|hland_control.ZoneZ|) and determines the average basin altitude
         (|hland_derived.Z|) automatically:
 
@@ -3099,7 +3099,7 @@ but the value `1` of type `int` is given.
         We now set the first zone to type |hland_constants.ILAKE| and the altitude of
         all zones to 400 m:
 
-        >>> from hydpy.models.hland_v1 import ILAKE
+        >>> from hydpy.models.hland_96 import ILAKE
         >>> model.parameters.control.zonetype[0] = ILAKE
         >>> model.parameters.control.zonez(4.0)
 
@@ -3115,7 +3115,7 @@ but the value `1` of type `int` is given.
 
         Additionally, |Model.update_parameters| uses method |Parameters.update| of
         class |Parameters| for updating the derived parameters |hland_derived.Z| of the
-        |hland_v1| main model and |evap_derived.Altitude| of the |evap_pet_hbv96|
+        |hland_96| main model and |evap_derived.Altitude| of the |evap_pet_hbv96|
         submodel:
 
         >>> model.parameters.derived.z

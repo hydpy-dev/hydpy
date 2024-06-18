@@ -2,7 +2,7 @@
 # pylint: disable=line-too-long, unused-wildcard-import
 """The primary purpose of |evap_pet_hbv96| is to serve as a submodel that provides
 estimates of potential evapotranspiration corresponding to HBV96
-:cite:p:`ref-Lindstrom1997HBV96`.  Of course, you can connect it to |hland_v1| if you
+:cite:p:`ref-Lindstrom1997HBV96`.  Of course, you can connect it to |hland_96| if you
 want a close HBV96 emulation, but it also works with other main models like |lland_dd|
 or |wland_wag|.
 
@@ -27,13 +27,13 @@ sufficient:
 >>> element.model = model
 
 We perform the integration test for a single simulation step, the first hour of the
-second day of the simulation period selected for the integration tests of |hland_v1|:
+second day of the simulation period selected for the integration tests of |hland_96|:
 
 >>> from hydpy import IntegrationTest, pub
 >>> pub.timegrids = "2000-01-02 00:00", "2000-01-02 01:00", "1h"
 
-We set all parameter values identical to the ones defined in the :ref:`hland_v1_field`
-example of |hland_v1|:
+We set all parameter values identical to the ones defined in the :ref:`hland_96_field`
+example of |hland_96|:
 
 >>> nmbhru(1)
 >>> hruarea(1.0)
@@ -57,20 +57,20 @@ Now we can initialise an |IntegrationTest| object:
 >>> test.dateformat = "%d/%m %H:00"
 
 The following meteorological input also stems from the input data of the
-:ref:`hland_v1_field` example:
+:ref:`hland_96_field` example:
 
 >>> inputs.normalairtemperature.series = 18.2
 >>> inputs.normalevapotranspiration.series = 0.097474
 >>> model.tempmodel.sequences.inputs.temperature.series = 19.2
 
 The following precipitation value is from the results table of the
-:ref:`hland_v1_field` example:
+:ref:`hland_96_field` example:
 
 >>> model.precipmodel.sequences.inputs.precipitation.series = 0.847
 
 The following simulation results contain the calculated reference and potential
 evapotranspiration.  Reference evapotranspiration is not available in the results of
-the :ref:`hland_v1_field` example of |hland_v1|.  The potential evapotranspiration
+the :ref:`hland_96_field` example of |hland_96|.  The potential evapotranspiration
 estimate is the same in both tables:
 
 .. integration-test::

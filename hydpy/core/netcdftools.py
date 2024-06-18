@@ -439,7 +439,7 @@ def query_timegrid(
     >>> from hydpy.examples import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
     >>> from netCDF4 import Dataset
-    >>> filepath = "LahnH/series/default/hland_v1_input_p.nc"
+    >>> filepath = "LahnH/series/default/hland_96_input_p.nc"
     >>> with TestIO(), Dataset(filepath) as ncfile:
     ...     ncfile.timereference
     'left interval boundary'
@@ -490,7 +490,7 @@ def query_timegrid(
              "2006-12-31 00:00:00",
              "1d")
     UserWarning: The `timereference` attribute (`right interval boundary`) of the \
-NetCDF file `...hland_v1_input_p.nc` conflicts with the current value of the global \
+NetCDF file `...hland_96_input_p.nc` conflicts with the current value of the global \
 `timestampleft` option (`True`).  The file-specific information is prioritised.
 
     State sequences like |hland_states.SM| handle data for specific time points instead
@@ -529,7 +529,7 @@ NetCDF file `...hland_v1_input_p.nc` conflicts with the current value of the glo
              "2006-12-31 00:00:00",
              "1d")
     UserWarning: The `timereference` attribute (`current time`) of the NetCDF file \
-`...hland_v1_input_p.nc` conflicts with the type of the relevant sequence (`P`).  The \
+`...hland_96_input_p.nc` conflicts with the type of the relevant sequence (`P`).  The \
 file-specific information is prioritised.
 
     >>> with TestIO(), Dataset(filepath, "r+") as ncfile:
@@ -540,7 +540,7 @@ file-specific information is prioritised.
              "2007-01-01 00:00:00",
              "1d")
     UserWarning: The `timereference` attribute (`left interval boundary`) of the \
-NetCDF file `...hland_v1_input_p.nc` conflicts with the type of the relevant sequence \
+NetCDF file `...hland_96_input_p.nc` conflicts with the type of the relevant sequence \
 (`SM`).  The file-specific information is prioritised.
 
     |query_timegrid| also raises specific warnings for misstated `timereference`
@@ -555,7 +555,7 @@ NetCDF file `...hland_v1_input_p.nc` conflicts with the type of the relevant seq
              "2007-01-01 00:00:00",
              "1d")
     UserWarning: The value of the `timereference` attribute (`wrong`) of the NetCDF \
-file `...hland_v1_input_p.nc` is not among the accepted values (`left...`, \
+file `...hland_96_input_p.nc` is not among the accepted values (`left...`, \
 `right...`, `current...`).  Assuming `left interval boundary` according to the \
 current value of the global `timestampleft` option.
 
@@ -565,7 +565,7 @@ current value of the global `timestampleft` option.
              "2006-12-31 00:00:00",
              "1d")
     UserWarning: The value of the `timereference` attribute (`wrong`) of the NetCDF \
-file `...hland_v1_input_p.nc` is not among the accepted values (`left...`, \
+file `...hland_96_input_p.nc` is not among the accepted values (`left...`, \
 `right...`, `current...`).  Assuming `current time` according to the type of the \
 relevant sequence (`SM`).
     """
@@ -1756,7 +1756,7 @@ class NetCDFInterfaceBase(Generic[TypeNetCDFVariable]):
     >>> for node in nodes:
     ...     sequences.append(node.sequences.sim)
     >>> for element in elements:
-    ...     if element.model.name == "hland_v1":
+    ...     if element.model.name == "hland_96":
     ...         sequences.append(element.model.sequences.states.sp)
     ...     else:
     ...         sequences.append(element.model.sequences.inputs.nied)
@@ -1804,7 +1804,7 @@ class NetCDFInterfaceBase(Generic[TypeNetCDFVariable]):
     >>> print_values(writer.foldernames)
     default, test
     >>> print_values(writer.filenames)
-    hland_v1_state_sp, hland_v1_state_sp_mean, lland_dd_flux_nkor,
+    hland_96_state_sp, hland_96_state_sp_mean, lland_dd_flux_nkor,
     lland_dd_flux_nkor_mean, lland_dd_input_nied,
     lland_dd_input_nied_mean, lland_knauf_flux_nkor,
     lland_knauf_flux_nkor_mean, lland_knauf_input_nied,
@@ -1816,13 +1816,13 @@ class NetCDFInterfaceBase(Generic[TypeNetCDFVariable]):
 
     >>> assert writer.sim_q is writer.default_sim_q
     >>> print_values(sorted(set(dir(writer)) - set(object.__dir__(writer))))
-    default_hland_v1_state_sp, default_hland_v1_state_sp_mean,
+    default_hland_96_state_sp, default_hland_96_state_sp_mean,
     default_lland_dd_flux_nkor, default_lland_dd_flux_nkor_mean,
     default_lland_dd_input_nied, default_lland_dd_input_nied_mean,
     default_lland_knauf_flux_nkor, default_lland_knauf_flux_nkor_mean,
     default_lland_knauf_input_nied, default_lland_knauf_input_nied_mean,
     default_sim_q, default_sim_q_mean, default_sim_t, default_sim_t_mean,
-    hland_v1_state_sp, hland_v1_state_sp_mean, lland_dd_input_nied,
+    hland_96_state_sp, hland_96_state_sp_mean, lland_dd_input_nied,
     lland_dd_input_nied_mean, lland_knauf_flux_nkor,
     lland_knauf_flux_nkor_mean, lland_knauf_input_nied,
     lland_knauf_input_nied_mean, sim_q, sim_q_mean, sim_t, sim_t_mean,
@@ -2110,7 +2110,7 @@ class NetCDFInterfaceJIT(NetCDFInterfaceBase[FlatUnion]):
         RuntimeError: While trying to prepare NetCDF files for reading or writing \
 data "just in time" during the current simulation run, the following error occurred: \
 For a specific NetCDF file, you can either read or write data during a simulation run \
-but for file `...hland_v1_input_p.nc` both is requested.
+but for file `...hland_96_input_p.nc` both is requested.
 
         Clearly, each NetCDF file we want to read data from needs to span the current
         simulation period:
@@ -2124,7 +2124,7 @@ but for file `...hland_v1_input_p.nc` both is requested.
         ...
         RuntimeError: While trying to prepare NetCDF files for reading or writing \
 data "just in time" during the current simulation run, the following error occurred: \
-The data of the NetCDF `...hland_v1_input_p.nc` \
+The data of the NetCDF `...hland_96_input_p.nc` \
 (Timegrid("1996-01-01 00:00:00", "2007-01-01 00:00:00", "1d")) does not correctly \
 cover the current simulation period \
 (Timegrid("1995-01-01 00:00:00", "1996-01-05 00:00:00", "1d")).
@@ -2150,37 +2150,37 @@ cover the current simulation period \
         ...     hp.elements["land_dill"].model.sequences.factors.contriarea.series)
         0.495925, 0.493672, 0.492156, 0.49015
         >>> from hydpy.core.netcdftools import netcdf4
-        >>> filepath = "LahnH/series/default/hland_v1_factor_contriarea.nc"
+        >>> filepath = "LahnH/series/default/hland_96_factor_contriarea.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath, "r") as ncfile:
-        ...     print_values(ncfile["hland_v1_factor_contriarea"][:, 0])
+        ...     print_values(ncfile["hland_96_factor_contriarea"][:, 0])
         0.495925, 0.493672, 0.492156, 0.49015
 
         Under particular circumstances, the data variable of a NetCDF file can be
         3-dimensional.  The documentation on function |query_array| explains this in
         detail.  The following example demonstrates that reading and writing such
         3-dimensional variables "just in time" works correctly.  Therefore, we add a
-        `realization` dimension to the input file `hland_v1_input_t.nc` (part of the
-        example project data) and the output file `hland_v1_factor_contriarea.nc`
+        `realization` dimension to the input file `hland_96_input_t.nc` (part of the
+        example project data) and the output file `hland_96_factor_contriarea.nc`
         (written in the previous example) and use them for redefining their data
         variables with this additional dimension.  As expected, the results are the
         same as in the previous example:
 
         >>> with TestIO():
-        ...     for name in ("hland_v1_input_t", "hland_v1_factor_contriarea"):
+        ...     for name in ("hland_96_input_t", "hland_96_factor_contriarea"):
         ...         filepath = f"LahnH/series/default/{name}.nc"
         ...         with netcdf4.Dataset(filepath, "r+") as ncfile:
         ...             ncfile.renameVariable(name, "old")
         ...             _ = ncfile.createDimension("realization", 1)
         ...             var = ncfile.createVariable(name, "f8",
         ...                     dimensions=("time", "realization", "stations"))
-        ...             if name == "hland_v1_input_t":
+        ...             if name == "hland_96_input_t":
         ...                 var[:] = ncfile["old"][:]
         ...             else:
         ...                 var[:] = -999.0
         ...     pub.timegrids = "1996-01-01", "1996-01-05", "1d"
         ...     hp.simulate()
         >>> with TestIO(), netcdf4.Dataset(filepath, "r") as ncfile:
-        ...     print_values(ncfile["hland_v1_factor_contriarea"][:, 0, 0])
+        ...     print_values(ncfile["hland_96_factor_contriarea"][:, 0, 0])
         0.488731, 0.48651, 0.485016, 0.483039
 
         If we try to write the output of a simulation run beyond the original
@@ -2196,7 +2196,7 @@ cover the current simulation period \
         ...
         RuntimeError: While trying to prepare NetCDF files for reading or writing \
 data "just in time" during the current simulation run, the following error occurred: \
-The data of the NetCDF `...hland_v1_factor_tc.nc` (Timegrid("1996-01-01 00:00:00", \
+The data of the NetCDF `...hland_96_factor_tc.nc` (Timegrid("1996-01-01 00:00:00", \
 "1996-01-05 00:00:00", "1d")) does not correctly cover the current simulation period \
 (Timegrid("1996-01-05 00:00:00", "1996-01-10 00:00:00", "1d")).
 
@@ -2220,7 +2220,7 @@ The data of the NetCDF `...hland_v1_factor_tc.nc` (Timegrid("1996-01-01 00:00:00
         RuntimeError: While trying to prepare NetCDF files for reading or writing \
 data "just in time" during the current simulation run, the following error occurred: \
 No data for (sub)device `land_lahn_2_0` is available in NetCDF \
-file `...hland_v1_flux_pc.nc`.
+file `...hland_96_flux_pc.nc`.
 
         One way to prepare complete NetCDF files that are *HydPy* compatible is to work
         with an ordinary NetCDF writer object via |SequenceManager.netcdfwriting|:
@@ -2239,10 +2239,10 @@ file `...hland_v1_flux_pc.nc`.
         9.648145, 8.518256, 7.78162, 7.345017
         20.590398, 8.663089, 7.282551, 6.403193
         11.67459, 10.111301, 8.992786, 8.212961
-        >>> filepath_qt = "LahnH/series/default/hland_v1_flux_qt.nc"
+        >>> filepath_qt = "LahnH/series/default/hland_96_flux_qt.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath_qt, "r") as ncfile:
         ...     for jdx in range(4):
-        ...         print_values(ncfile["hland_v1_flux_qt"][:, jdx])
+        ...         print_values(ncfile["hland_96_flux_qt"][:, jdx])
         11.78144, 8.902735, 7.132279, 6.018681
         9.648145, 8.518256, 7.78162, 7.345017
         0.0, 0.0, 0.0, 0.0
@@ -2254,7 +2254,7 @@ file `...hland_v1_flux_pc.nc`.
         ...     hp.simulate()
         >>> with TestIO(), netcdf4.Dataset(filepath_qt, "r") as ncfile:  #
         ...         for jdx in range(4):
-        ...             print_values(ncfile["hland_v1_flux_qt"][:, jdx])
+        ...             print_values(ncfile["hland_96_flux_qt"][:, jdx])
         11.78144, 8.902735, 7.132279, 6.018681
         9.648145, 8.518256, 7.78162, 7.345017
         20.590398, 8.663089, 7.282551, 6.403193

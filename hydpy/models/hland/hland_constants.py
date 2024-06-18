@@ -32,6 +32,6 @@ SEALED = parametertools.IntConstant(5)
 """Constant for the zone type `sealed surface`."""
 
 CONSTANTS = parametertools.Constants()
-"""Dictionary containing all constants defined by HydPy-H-Land."""
+"""Dictionary containing all constants defined by |hland.DOCNAME.long|."""
 
 __all__ = ["FIELD", "FOREST", "GLACIER", "ILAKE", "SEALED"]

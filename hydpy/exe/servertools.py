@@ -300,28 +300,28 @@ class ServerState:
 
     >>> for item in state.parameteritems:
     ...     print(item)
-    SetItem("alpha", "hland_v1", "control.alpha", None, "global")
-    SetItem("beta", "hland_v1", "control.beta", None, "global")
+    SetItem("alpha", "hland_96", "control.alpha", None, "global")
+    SetItem("beta", "hland_96", "control.beta", None, "global")
     SetItem("lag", "musk_classic", "control.nmbsegments", "lag", "global")
     SetItem("damp", "musk_classic", "control.coefficients", "damp", "global")
-    AddItem("sfcf_1", "hland_v1", "control.sfcf", "control.rfcf", "global")
-    AddItem("sfcf_2", "hland_v1", "control.sfcf", "control.rfcf", "global")
-    AddItem("sfcf_3", "hland_v1", "control.sfcf", "control.rfcf", "subunit")
-    MultiplyItem("k4", "hland_v1", "control.k4", "control.k", "global")
+    AddItem("sfcf_1", "hland_96", "control.sfcf", "control.rfcf", "global")
+    AddItem("sfcf_2", "hland_96", "control.sfcf", "control.rfcf", "global")
+    AddItem("sfcf_3", "hland_96", "control.sfcf", "control.rfcf", "subunit")
+    MultiplyItem("k4", "hland_96", "control.k4", "control.k", "global")
     >>> for item in state.conditionitems:
     ...     print(item)
-    SetItem("ic_lahn_2", "hland_v1", "states.ic", None, "device")
-    SetItem("ic_lahn_1", "hland_v1", "states.ic", None, "subunit")
-    SetItem("sm_lahn_2", "hland_v1", "states.sm", None, "device")
-    SetItem("sm_lahn_1", "hland_v1", "states.sm", None, "subunit")
+    SetItem("ic_lahn_2", "hland_96", "states.ic", None, "device")
+    SetItem("ic_lahn_1", "hland_96", "states.ic", None, "subunit")
+    SetItem("sm_lahn_2", "hland_96", "states.sm", None, "device")
+    SetItem("sm_lahn_1", "hland_96", "states.sm", None, "subunit")
     SetItem("quh", "rconc_uh", "logs.quh", None, "device")
     >>> for item in state.getitems:
     ...     print(item)
-    GetItem("?", "hland_v1", "factors.contriarea")
-    GetItem("current_discharge", "hland_v1", "fluxes.qt")
-    GetItem("entire_discharge_series", "hland_v1", "fluxes.qt.series")
-    GetItem("?", "hland_v1", "states.sm")
-    GetItem("?", "hland_v1", "states.sm.series")
+    GetItem("?", "hland_96", "factors.contriarea")
+    GetItem("current_discharge", "hland_96", "fluxes.qt")
+    GetItem("entire_discharge_series", "hland_96", "fluxes.qt.series")
+    GetItem("?", "hland_96", "states.sm")
+    GetItem("?", "hland_96", "states.sm.series")
     GetItem("?", "nodes", "nodes.sim.series")
 
     The initialisation also memorises the initial conditions of all elements:
@@ -1261,9 +1261,9 @@ registered under the id `0`.  There is nothing registered, so far.
 
     >>> import netCDF4
     >>> from hydpy import print_values
-    >>> filepath = "LahnH/series/mean_sm/hland_v1_state_sm_mean.nc"
+    >>> filepath = "LahnH/series/mean_sm/hland_96_state_sm_mean.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
-    ...     print_values(ncfile["hland_v1_state_sm_mean"][:, 0])
+    ...     print_values(ncfile["hland_96_state_sm_mean"][:, 0])
     211.231585, 0.0, 0.0, 0.0, 0.0
 
     To save the results of subsequent simulations without overwriting the previous
@@ -1274,9 +1274,9 @@ registered under the id `0`.  There is nothing registered, so far.
     <BLANKLINE>
     >>> test("save_allseries", id_="0")
     <BLANKLINE>
-    >>> filepath = "LahnH/series/sm_averaged/hland_v1_state_sm_mean.nc"
+    >>> filepath = "LahnH/series/sm_averaged/hland_96_state_sm_mean.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
-    ...     print_values(ncfile["hland_v1_state_sm_mean"][:, 0])
+    ...     print_values(ncfile["hland_96_state_sm_mean"][:, 0])
     211.231585, 0.0, 0.0, 0.0, 0.0
 
     |HydPyServer.GET_deregister_serieswriterdir| removes the currently set directory
@@ -1300,9 +1300,9 @@ under the id `0`.  There is nothing registered, so far.
     |hland_inputs.T| and |evap_inputs.NormalAirTemperature| to the directory
     `temperature` during the last simulation:
 
-    >>> filepath = "LahnH/series/temperature/hland_v1_input_t.nc"
+    >>> filepath = "LahnH/series/temperature/hland_96_input_t.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
-    ...     print_values(ncfile["hland_v1_input_t"][:, 0])
+    ...     print_values(ncfile["hland_96_input_t"][:, 0])
     -0.298846, 0.0, 0.0, 0.0, 0.0
 
     The input sequences |hland_inputs.P| and |evap_inputs.NormalEvapotranspiration| are
@@ -1324,9 +1324,9 @@ under the id `0`.  There is nothing registered, so far.
     <BLANKLINE>
     >>> test("simulate", id_="0")
     <BLANKLINE>
-    >>> filepath = "LahnH/series/temp/hland_v1_input_t.nc"
+    >>> filepath = "LahnH/series/temp/hland_96_input_t.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
-    ...     print_values(ncfile["hland_v1_input_t"][:, 0])
+    ...     print_values(ncfile["hland_96_input_t"][:, 0])
     -0.298846, 0.0, 0.0, 0.0, 0.0
 
     The "just in time" reading of the series of |hland_inputs.P| and
@@ -1351,7 +1351,7 @@ under the id `0`.  There is nothing registered, so far.
     urllib.error.HTTPError: HTTP Error 500: FileNotFoundError: While trying to \
 execute method `GET_load_allseries`, the following error occurred: While trying to \
 load the time series data of sequence `t` of element `land_dill`, the following error \
-occurred: [Errno 2] No such file or directory: ...land_dill_hland_v1_input_t.asc'
+occurred: [Errno 2] No such file or directory: ...land_dill_hland_96_input_t.asc'
 
     >>> test("simulate", id_="0")  # doctest: +ELLIPSIS
     Traceback (most recent call last):
@@ -1359,7 +1359,7 @@ occurred: [Errno 2] No such file or directory: ...land_dill_hland_v1_input_t.asc
     urllib.error.HTTPError: HTTP Error 500: FileNotFoundError: While trying to \
 execute method `GET_simulate`, the following error occurred: While trying to prepare \
 NetCDF files for reading or writing data "just in time" during the current simulation \
-run, the following error occurred: No file `...hland_v1_input_p.nc` available for \
+run, the following error occurred: No file `...hland_96_input_p.nc` available for \
 reading.
 
     After deregistering the "no_data" directory, both methods work again:
@@ -1393,7 +1393,7 @@ under the id `0`.  There is nothing registered, so far.
     ...     print(file_.read())  # doctest: +ELLIPSIS
     # -*- coding: utf-8 -*-
     <BLANKLINE>
-    from hydpy.models.hland_v1 import *
+    from hydpy.models.hland_96 import *
     from hydpy.models import evap_aet_hbv96
     from hydpy.models import evap_pet_hbv96
     from hydpy.models import rconc_uh

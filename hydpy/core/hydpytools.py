@@ -180,7 +180,7 @@ required to prepare the model properly.
     >>> pub.timegrids = "1996-01-01", "1996-01-05", "1d"
 
     Now, method |HydPy.prepare_models| does not complain anymore and adds an instance
-    of the |hland_v1| application model to element `land_dill`, to which we set an
+    of the |hland_96| application model to element `land_dill`, to which we set an
     additional reference to shorten the following examples:
 
     >>> with TestIO():
@@ -188,7 +188,7 @@ required to prepare the model properly.
 
     >>> model = hp.elements.land_dill.model
     >>> model.name
-    'hland_v1'
+    'hland_96'
 
     All control parameter values, defined in the corresponding control file, are
     correctly set.  As an example, we show the values of the control parameter
@@ -226,7 +226,7 @@ required to prepare the model properly.
     trouble with a particular object.  Three examples we already encountered are the
     |Timegrids| instance `timegrids` of module `pub`, the |Nodes| instance `nodes` of
     class `HydPy`, and the |hland_derived.Z| instance `z` of application model
-    |hland_v1|:
+    |hland_96|:
 
     >>> from hydpy import classname
     >>> classname(pub.timegrids)
@@ -682,11 +682,11 @@ is not requested to make any time series data available.
     follow a "model-specific" pattern.  Each filename contains not only the name of the
     corresponding |InputSequence| subclass (e.g., "t") in lowercase letters but also
     the sequence's group (e.g., "input") and the responsible model's name (e.g.,
-    "hland_v1"):
+    "hland_96"):
 
     >>> old_model = hp.elements.land_dill.model
     >>> old_model.sequences.inputs.t.filename
-    'hland_v1_input_t.nc'
+    'hland_96_input_t.nc'
 
     For file types that store the time series of single sequence instances, file names
     must also contain information about the location.  Therefore, the relevant
@@ -694,16 +694,16 @@ is not requested to make any time series data available.
 
     >>> pub.sequencemanager.filetype = "asc"
     >>> old_model.sequences.inputs.t.filename
-    'land_dill_hland_v1_input_t.asc'
+    'land_dill_hland_96_input_t.asc'
 
     This naming pattern is exact but not always convenient.  For example, assume we
-    want to simulate the `dill` subcatchment with application model |hland_v3| instead
-    of |hland_v1|:
+    want to simulate the `dill` subcatchment with application model |hland_96p| instead
+    of |hland_96|:
 
     >>> from hydpy import prepare_model
-    >>> hp.elements.land_dill.model = new_model = prepare_model("hland_v3")
+    >>> hp.elements.land_dill.model = new_model = prepare_model("hland_96p")
 
-    |hland_v3| requires the same meteorological input as |hland_v1|, for example, the
+    |hland_96p| requires the same meteorological input as |hland_96|, for example, the
     air temperature:
 
     >>> new_model.prepare_inputseries()
@@ -719,7 +719,7 @@ is not requested to make any time series data available.
     ...
     FileNotFoundError: While trying to load the time series data of sequence `p` of \
 element `land_dill`, the following error occurred: [Errno 2] No such file or \
-directory: '...land_dill_hland_v3_input_p.asc'
+directory: '...land_dill_hland_96p_input_p.asc'
 
     To circumvent this problem, one can use the standard "HydPy" convention instead of
     the "model-specific" convention when reading or writing input sequences.
@@ -736,8 +736,8 @@ directory: '...land_dill_hland_v3_input_p.asc'
     >>> old_model.sequences.inputs.t.filename
     'land_dill_air_temperature.asc'
 
-    If we use the |hland_v1| instance to store the meteorological time series based on
-    the "HydPy" convention, the |hland_v3| instance can load them without further
+    If we use the |hland_96| instance to store the meteorological time series based on
+    the "HydPy" convention, the |hland_96p| instance can load them without further
     effort:
 
     >>> hp.elements.land_dill.model = old_model
@@ -753,7 +753,7 @@ directory: '...land_dill_hland_v3_input_p.asc'
     The standard "HydPy" naming convention is compatible with reading data
     "just-in-time" from NetCDF files, even if main models and submodels come with
     different input sequences that require the same data.  Before explaining this, we
-    restore the original |hland_v1| submodel and write all input time series to NetCDF
+    restore the original |hland_96| submodel and write all input time series to NetCDF
     files following the standard naming convention:
 
     >>> with TestIO():
@@ -766,7 +766,7 @@ directory: '...land_dill_hland_v3_input_p.asc'
     ...             hp.save_inputseries()
 
     Now, instead of letting the |evap_pet_hbv96| sub-submodel query the air temperature
-    from the |hland_v1| main model, we add a |meteo_temp_io| sub-sub-submodel that
+    from the |hland_96| main model, we add a |meteo_temp_io| sub-sub-submodel that
     comes with an independent air temperature sequence
 
     >>> hland = hp.elements.land_dill.model
@@ -1054,7 +1054,7 @@ first.
         parameter values defined in the relevant control file:
 
         >>> hp.elements.land_dill.model.name
-        'hland_v1'
+        'hland_96'
         >>> hp.elements.land_dill.model.parameters.control.area
         area(692.3)
         >>> hp.elements.stream_lahn_1_lahn_2.model.name
@@ -1160,7 +1160,7 @@ deprecated.  Use method `prepare_models` instead.
         We use the `LahnH` example project to demonstrate how to write a complete set
         of parameter control files.  For convenience, we let function
         |prepare_full_example_2| prepare a fully functional |HydPy| object, handling
-        seven |Element| objects controlling four |hland_v1| and three |musk_classic|
+        seven |Element| objects controlling four |hland_96| and three |musk_classic|
         application models:
 
         >>> from hydpy.examples import prepare_full_example_2
@@ -1335,7 +1335,7 @@ deprecated.  Use method `prepare_models` instead.
         coefficients(auxfile="stream")
         <BLANKLINE>
 
-        In the `LahnH` example project, all |hland_v1| instances use an
+        In the `LahnH` example project, all |hland_96| instances use an
         |evap_pet_hbv96| submodel for calculating potential evapotranspiration.  The
         discussed writing mechanisms include such submodels automatically.  The written
         files rely on the preferred "with" block syntax for adding submodels and
@@ -1346,7 +1346,7 @@ deprecated.  Use method `prepare_models` instead.
         ...         print(controlfile.read())  # doctest: +ELLIPSIS
         # -*- coding: utf-8 -*-
         <BLANKLINE>
-        from hydpy.models.hland_v1 import *
+        from hydpy.models.hland_96 import *
         from hydpy.models import evap_aet_hbv96
         from hydpy.models import evap_pet_hbv96
         from hydpy.models import rconc_uh
@@ -2059,7 +2059,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         Number of end nodes: 1
         Number of distinct networks: 1
         Applied node variables: Q (4)
-        Applied model types: hland_v1 (4) and musk_classic (3)
+        Applied model types: hland_96 (4) and musk_classic (3)
         """
         value: Union[
             str, int, Union[dict[str, int], dict[devicetools.NodeVariableType, int]]
@@ -2322,7 +2322,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         >>> with TestIO():
         ...     hp.prepare_models()
         >>> hp.modeltypes
-        {'hland_v1': 4, 'musk_classic': 3}
+        {'hland_96': 4, 'musk_classic': 3}
         """
         modeltypes: collections.defaultdict[str, int]
         modeltypes = collections.defaultdict(lambda: 0)

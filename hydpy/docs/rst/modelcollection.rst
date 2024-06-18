@@ -28,7 +28,7 @@ and order.
 
 If not stated otherwise, all models can be freely combined and applied
 on arbitrary simulation time steps.  It is, for example, possible to
-simulate the "land processes" with |hland_v1|, the "stream processes"
+simulate the "land processes" with |hland_96|, the "stream processes"
 with |arma_rimorido|, the "dam processes" with |dam_v001| in either a
 daily or hourly time step.
 

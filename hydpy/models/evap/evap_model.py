@@ -34,9 +34,9 @@ class Calc_AirTemperature_TempModel_V1(modeltools.Method):
 
     Example:
 
-        We use the combination of |hland_v1| and |evap_ret_tw2002| as an example:
+        We use the combination of |hland_96| and |evap_ret_tw2002| as an example:
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> parameterstep()
         >>> area(10.0)
         >>> nmbzones(3)
@@ -215,9 +215,9 @@ class Calc_MeanAirTemperature_TempModel_V1(modeltools.Method):
 
     Example:
 
-        We use the combination of |hland_v1| and |evap_pet_hbv96| as an example:
+        We use the combination of |hland_96| and |evap_pet_hbv96| as an example:
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> parameterstep()
         >>> area(10.0)
         >>> nmbzones(3)
@@ -4016,9 +4016,9 @@ class Calc_Precipitation_PrecipModel_V1(modeltools.Method):
 
     Example:
 
-        We use the combination of |hland_v1| and |evap_pet_hbv96| as an example:
+        We use the combination of |hland_96| and |evap_pet_hbv96| as an example:
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> parameterstep()
         >>> area(10.0)
         >>> nmbzones(3)
@@ -4115,9 +4115,9 @@ class Calc_InterceptedWater_IntercModel_V1(modeltools.Method):
 
     Example:
 
-        We use the combination of |hland_v1| and |evap_aet_hbv96| as an example:
+        We use the combination of |hland_96| and |evap_aet_hbv96| as an example:
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> parameterstep()
         >>> area(10.0)
         >>> nmbzones(3)
@@ -4251,9 +4251,9 @@ class Calc_SoilWater_SoilWaterModel_V1(modeltools.Method):
 
     Example:
 
-        We use the combination of |hland_v1| and |evap_aet_hbv96| as an example:
+        We use the combination of |hland_96| and |evap_aet_hbv96| as an example:
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> parameterstep()
         >>> area(10.0)
         >>> nmbzones(3)
@@ -4308,9 +4308,9 @@ class Calc_SnowCover_SnowCoverModel_V1(modeltools.Method):
 
     Example:
 
-        We use the combination of |hland_v1| and |evap_aet_hbv96| as an example:
+        We use the combination of |hland_96| and |evap_aet_hbv96| as an example:
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> parameterstep()
         >>> area(10.0)
         >>> nmbzones(3)
@@ -8483,7 +8483,7 @@ class Main_TempModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
         >>> evap.tempmodel_typeid
         0
 
-        >>> hland = prepare_model("hland_v1")
+        >>> hland = prepare_model("hland_96")
         >>> evap.add_mainmodel_as_subsubmodel(hland)
         True
         >>> evap.tempmodel is hland
@@ -8608,7 +8608,7 @@ class Main_PrecipModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
         >>> evap.precipmodel_typeid
         0
 
-        >>> hland = prepare_model("hland_v1")
+        >>> hland = prepare_model("hland_96")
         >>> evap.add_mainmodel_as_subsubmodel(hland)
         True
         >>> evap.precipmodel is hland
@@ -8869,7 +8869,7 @@ class Main_IntercModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
         >>> evap.intercmodel_typeid
         0
 
-        >>> hland = prepare_model("hland_v1")
+        >>> hland = prepare_model("hland_96")
         >>> evap.add_mainmodel_as_subsubmodel(hland)
         True
         >>> evap.intercmodel is hland
@@ -8935,7 +8935,7 @@ class Main_SoilWaterModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface
         >>> evap.soilwatermodel_typeid
         0
 
-        >>> hland = prepare_model("hland_v1")
+        >>> hland = prepare_model("hland_96")
         >>> evap.add_mainmodel_as_subsubmodel(hland)
         True
         >>> evap.soilwatermodel is hland
@@ -9001,7 +9001,7 @@ class Main_SnowCoverModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface
         >>> evap.snowcovermodel_typeid
         0
 
-        >>> hland = prepare_model("hland_v1")
+        >>> hland = prepare_model("hland_96")
         >>> evap.add_mainmodel_as_subsubmodel(hland)
         True
         >>> evap.snowcovermodel is hland

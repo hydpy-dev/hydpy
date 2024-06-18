@@ -39,12 +39,12 @@
                             <normalevapotranspiration/>
                         </inputs>
                     </evap_pet_hbv96>
-                    <hland_v1>
+                    <hland_96>
                         <inputs>
                             <p/>
                             <t/>
                         </inputs>
-                    </hland_v1>
+                    </hland_96>
                 </sequences>
             </reader>
         </readers>
@@ -52,7 +52,7 @@
     </series_io>
     <exchange>
         <setitems>
-            <hland_v1>
+            <hland_96>
                 <control>
                     <alpha>
                         <selections>catchment</selections>
@@ -61,7 +61,7 @@
                         <init>2.0</init>
                     </alpha>
                 </control>
-            </hland_v1>
+            </hland_96>
         </setitems>
         <getitems>
             <nodes>

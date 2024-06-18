@@ -67,12 +67,12 @@
                             <normalevapotranspiration/>
                         </inputs>
                     </evap_pet_hbv96>
-                    <hland_v1>
+                    <hland_96>
                         <inputs>
                             <p/>
                             <t/>
                         </inputs>
-                    </hland_v1>
+                    </hland_96>
                 </sequences>
                 <filetype>nc</filetype>
             </reader>
@@ -86,7 +86,7 @@
                     from_devices
                 </selections>
                 <sequences>
-                    <hland_v1>
+                    <hland_96>
                         <inputs>
                             <p/>
                         </inputs>
@@ -94,7 +94,7 @@
                             <pc/>
                             <tf/>
                         </fluxes>
-                    </hland_v1>
+                    </hland_96>
                 </sequences>
                 <filetype>npy</filetype>
             </writer>
@@ -102,11 +102,11 @@
             <writer info="soilmoisture">
                 <selections>complete</selections>
                 <sequences>
-                    <hland_v1>
+                    <hland_96>
                         <states>
                             <sm/>
                         </states>
-                    </hland_v1>
+                    </hland_96>
                 </sequences>
                 <filetype>nc</filetype>
                 <overwrite>false</overwrite>
@@ -118,7 +118,7 @@
                         <sim/>
                         <obs/>
                     </node>
-                    <hland_v1>
+                    <hland_96>
                         <fluxes>
                             <pc/>
                             <tf/>
@@ -126,7 +126,7 @@
                         <states>
                             <sm/>
                         </states>
-                    </hland_v1>
+                    </hland_96>
                     <musk_classic>
                         <states>
                             <discharge/>

@@ -54,7 +54,7 @@ class ZipParameter1D(parametertools.ZipParameter):
     """Base class for 1-dimensional parameters that provide additional keyword-based
     zipping functionalities.
 
-    >>> from hydpy.models.hland_v1 import *
+    >>> from hydpy.models.hland_96 import *
     >>> parameterstep()
     >>> nmbzones(5)
     >>> area(10.0)
@@ -79,7 +79,7 @@ class ZipParameter1D(parametertools.ZipParameter):
 class SoilParameter1D(ZipParameter1D):
     """Base class for soil-related 1-dimensional parameters.
 
-    >>> from hydpy.models.hland_v1 import *
+    >>> from hydpy.models.hland_96 import *
     >>> parameterstep()
     >>> nmbzones(6)
     >>> area(9.0)
@@ -131,7 +131,7 @@ class PlantParameter1D(ZipParameter1D):
 class WaterParameter1D(ZipParameter1D):
     """Base class for water area-related 1-dimensional parameters.
 
-    >>> from hydpy.models.hland_v1 import *
+    >>> from hydpy.models.hland_96 import *
     >>> parameterstep()
     >>> nmbzones(5)
     >>> area(6.0)

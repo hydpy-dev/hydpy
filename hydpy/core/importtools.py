@@ -1079,7 +1079,7 @@ def simulationstep(timestep: timetools.PeriodConstrArg) -> None:
     >>> from hydpy.core.testtools import warn_later
     >>> from hydpy import pub
     >>> with warn_later(), pub.options.warnsimulationstep(True):
-    ...     from hydpy.models.hland_v1 import *
+    ...     from hydpy.models.hland_96 import *
     ...     simulationstep("1h")
     ...     parameterstep("1d")
     UserWarning: Note that the applied function `simulationstep` is intended for \
@@ -1148,7 +1148,7 @@ input array from shape (2...) into shape (12...)
     |hland_states.Ic| as specified by the value of parameter |hland_control.NmbZones|
     given in the corresponding control file:
 
-    >>> from hydpy.models.hland_v1 import *
+    >>> from hydpy.models.hland_96 import *
     >>> __file__ = "land_dill.py"
     >>> with TestIO():
     ...     os.chdir(cwd)
@@ -1179,7 +1179,7 @@ the following error occurred: ...
     |lland_states.Inzp| during periods with high leaf area indices than during periods
     with small leaf area indices.
 
-    To show the related functionalities, we first replace the |hland_v1| application
+    To show the related functionalities, we first replace the |hland_96| application
     model of element `land_dill` with a |lland_dd| model object, define some of its
     parameter values, and write its control and condition files.  Note that the
     |lland_control.LAI| value of the only relevant land use the

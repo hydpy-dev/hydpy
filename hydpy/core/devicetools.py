@@ -3083,11 +3083,11 @@ already a collective `NileRiver` member.
         During scripting and when working interactively in the Python shell, it is
         often convenient to assign a |model| directly.
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> parameterstep("1d")
         >>> hland.model = model
         >>> hland.model.name
-        'hland_v1'
+        'hland_96'
 
         >>> del hland.model
         >>> attrready(hland, "model")
@@ -3497,7 +3497,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
 
         Without any arguments, |Element.plot_inputseries| prints the time series of all
         input sequences handled by its (sub)models directly to the screen (in our
-        example, |hland_inputs.P| and |hland_inputs.T| of |hland_v1| and
+        example, |hland_inputs.P| and |hland_inputs.T| of |hland_96| and
         |evap_inputs.NormalAirTemperature| and |evap_inputs.NormalEvapotranspiration|
         of |evap_pet_hbv96|):
 

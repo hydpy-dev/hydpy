@@ -107,7 +107,7 @@ def devicename(self: object) -> str:
     not possible return `?`.
 
     >>> from hydpy import prepare_model
-    >>> model = prepare_model("hland_v1")
+    >>> model = prepare_model("hland_96")
     >>> from hydpy.core.objecttools import devicename
     >>> devicename(model)
     '?'

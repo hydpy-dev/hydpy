@@ -400,7 +400,7 @@ class SRedEnd(parametertools.Parameter):
     def update(self) -> None:
         """Update the dead-end flags based on parameter |SRedOrder|.
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> parameterstep("1d")
         >>> nmbzones(6)
         >>> derived.sredorder.shape = 9, 2

@@ -4,7 +4,7 @@
 |rconc_nash| is a submodel that supports its main model by calculating the runoff
 concentration using the storage cascade approach.
 
-See the integration tests of the application model |hland_v3|, which use |rconc_nash|
+See the integration tests of the application model |hland_96p|, which use |rconc_nash|
 as a submodel.
 """
 # import...

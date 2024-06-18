@@ -7,7 +7,7 @@ automatically.
 Most model developers do not need to be aware of the features implemented in module
 |modelutils|, except that they need to initialise class |Cythonizer| within the main
 modules of their base and application models (see, for example, the source code of base
-model |hland| and application model |hland_v1|).
+model |hland| and application model |hland_96|).
 
 However, when implementing models with functionalities not envisaged so far, problems
 might arise.  Please contact the *HydPy* developer team then, preferably by opening an
@@ -507,12 +507,12 @@ def move_dll(pyname: str, cyname: str, cydirpath: str, buildpath: str) -> None:
     time:
 
     >>> from hydpy.cythons.modelutils import move_dll
-    >>> from hydpy.models.hland_v1 import cythonizer as c
+    >>> from hydpy.models.hland_96 import cythonizer as c
     >>> move_dll(pyname=c.pyname, cyname=c.cyname,
     ...          cydirpath=c.cydirpath, buildpath=c.buildpath)  # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    OSError: After trying to cythonize `hland_v1`, the resulting file `c_hland_v1...` \
+    OSError: After trying to cythonize `hland_96`, the resulting file `c_hland_96...` \
 could not be found in directory `.../hydpy/cythons/autogen/_build` nor any of its \
 subdirectories.  The distutil report should tell whether the file has been stored \
 somewhere else, is named somehow else, or could not be build at all.
@@ -526,7 +526,7 @@ somewhere else, is named somehow else, or could not be build at all.
     ...     ) as mocked_buildpath:
     ...         mocked_buildpath.return_value = "_build"
     ...         os.makedirs("_build/subdir", exist_ok=True)
-    ...         filepath = f"_build/subdir/c_hland_v1{get_dllextension()}"
+    ...         filepath = f"_build/subdir/c_hland_96{get_dllextension()}"
     ...         with open(filepath, "w"):
     ...             pass
     ...         with mock.patch(
@@ -536,10 +536,10 @@ somewhere else, is named somehow else, or could not be build at all.
     ...                      cydirpath=c.cydirpath, buildpath=c.buildpath)
     Traceback (most recent call last):
     ...
-    PermissionError: After trying to cythonize `hland_v1`, when trying to move the \
-final cython module `c_hland_v1...` from directory `_build` to directory \
+    PermissionError: After trying to cythonize `hland_96`, when trying to move the \
+final cython module `c_hland_96...` from directory `_build` to directory \
 `.../hydpy/cythons/autogen`, the following error occurred: Denied! A likely error \
-cause is that the cython module `c_hland_v1...` does already exist in this directory \
+cause is that the cython module `c_hland_96...` does already exist in this directory \
 and is currently blocked by another Python process.  Maybe it helps to close all \
 Python processes and restart the cythonization afterwards.
     """
@@ -623,9 +623,9 @@ class Cythonizer:
         >>> from hydpy.models.hland import cythonizer
         >>> cythonizer.pyname
         'hland'
-        >>> from hydpy.models.hland_v1 import cythonizer
+        >>> from hydpy.models.hland_96 import cythonizer
         >>> cythonizer.pyname
-        'hland_v1'
+        'hland_96'
         """
         return self.pymodule.split(".")[-1]
 
@@ -636,9 +636,9 @@ class Cythonizer:
         >>> from hydpy.models.hland import cythonizer
         >>> cythonizer.cyname
         'c_hland'
-        >>> from hydpy.models.hland_v1 import cythonizer
+        >>> from hydpy.models.hland_96 import cythonizer
         >>> cythonizer.cyname
-        'c_hland_v1'
+        'c_hland_96'
         """
         return "c_" + self.pyname
 
@@ -662,9 +662,9 @@ class Cythonizer:
 
         Property |Cythonizer.cymodule| returns the relevant DLL module:
 
-        >>> from hydpy.models.hland_v1 import cythonizer
-        >>> from hydpy.cythons.autogen import c_hland_v1
-        >>> c_hland_v1 is cythonizer.cymodule
+        >>> from hydpy.models.hland_96 import cythonizer
+        >>> from hydpy.cythons.autogen import c_hland_96
+        >>> c_hland_96 is cythonizer.cymodule
         True
 
         However, if this module is missing for some reasons, it tries to create the
@@ -701,10 +701,10 @@ class Cythonizer:
     def pyxfilepath(self) -> str:
         """The absolute path of the compiled module.
 
-        >>> from hydpy.models.hland_v1 import cythonizer
+        >>> from hydpy.models.hland_96 import cythonizer
         >>> from hydpy import repr_
         >>> repr_(cythonizer.pyxfilepath)   # doctest: +ELLIPSIS
-        '.../hydpy/cythons/autogen/c_hland_v1.pyx'
+        '.../hydpy/cythons/autogen/c_hland_96.pyx'
         >>> import os
         >>> os.path.exists(cythonizer.pyxfilepath)
         True
@@ -715,10 +715,10 @@ class Cythonizer:
     def dllfilepath(self) -> str:
         """The absolute path of the compiled module.
 
-        >>> from hydpy.models.hland_v1 import cythonizer
+        >>> from hydpy.models.hland_96 import cythonizer
         >>> from hydpy import repr_
         >>> repr_(cythonizer.dllfilepath)   # doctest: +ELLIPSIS
-        '.../hydpy/cythons/autogen/c_hland_v1...'
+        '.../hydpy/cythons/autogen/c_hland_96...'
         >>> import os
         >>> os.path.exists(os.path.split(cythonizer.dllfilepath)[0])
         True
@@ -729,7 +729,7 @@ class Cythonizer:
     def buildpath(self) -> str:
         """The absolute path for temporarily build files.
 
-        >>> from hydpy.models.hland_v1 import cythonizer
+        >>> from hydpy.models.hland_96 import cythonizer
         >>> from hydpy import repr_
         >>> repr_(cythonizer.buildpath)   # doctest: +ELLIPSIS
         '.../hydpy/cythons/autogen/_build'
@@ -740,7 +740,7 @@ class Cythonizer:
     def pyxwriter(self) -> PyxWriter:
         """A new |PyxWriter| instance.
 
-        >>> from hydpy.models.hland_v1 import cythonizer
+        >>> from hydpy.models.hland_96 import cythonizer
         >>> pyxwriter = cythonizer.pyxwriter
         >>> from hydpy import classname
         >>> classname(pyxwriter)
@@ -1565,10 +1565,10 @@ class PyxWriter:
 
         The result of property |PyxWriter.iofunctions| depends on the availability of
         different types of sequences.  So far, the models implemented in *HydPy* do not
-        reflect all possible combinations, which is why we modify the |hland_v1|
+        reflect all possible combinations, which is why we modify the |hland_96|
         application model in the following examples:
 
-        >>> from hydpy.models.hland_v1 import cythonizer
+        >>> from hydpy.models.hland_96 import cythonizer
         >>> pyxwriter = cythonizer.pyxwriter
         >>> from hydpy.cythons.modelutils import PyxPxdLines
         >>> lines = PyxPxdLines()
@@ -2387,7 +2387,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model("hland_v1")
+        ...     model = prepare_model("hland_96")
         >>> FuncConverter(model, None, model.calc_tc_v1).argnames
         ['model']
         """
@@ -2400,7 +2400,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model("hland_v1")
+        ...     model = prepare_model("hland_96")
         >>> FuncConverter(model, None, model.calc_tc_v1).varnames
         ('self', 'con', 'der', 'inp', 'fac', 'k')
         """
@@ -2415,7 +2415,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model("hland_v1")
+        ...     model = prepare_model("hland_96")
         >>> FuncConverter(model, None, model.calc_tc_v1).locnames
         ['self', 'con', 'der', 'inp', 'fac', 'k']
         """
@@ -2428,7 +2428,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model("hland_v1")
+        ...     model = prepare_model("hland_96")
         >>> FuncConverter(model, None, model.calc_tc_v1).subgroupnames
         ['parameters.control', 'parameters.derived', 'sequences.inputs', \
 'sequences.factors']
@@ -2451,7 +2451,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model("hland_v1")
+        ...     model = prepare_model("hland_96")
         >>> FuncConverter(model, None, model.calc_tc_v1).subgroupshortcuts
         ['con', 'der', 'inp', 'fac']
         """
@@ -2464,7 +2464,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model("hland_v1")
+        ...     model = prepare_model("hland_96")
         >>> FuncConverter(model, None, model.calc_tc_v1).untypedvarnames
         ['k']
         """
@@ -2481,7 +2481,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model("hland_v1")
+        ...     model = prepare_model("hland_96")
         >>> FuncConverter(model, None, model.calc_tc_v1).untypedarguments
         []
         """
@@ -2500,7 +2500,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model("hland_v1")
+        ...     model = prepare_model("hland_96")
         >>> FuncConverter(model, None, model.calc_tc_v1).untypedinternalvarnames
         ['k']
         """
@@ -2630,7 +2630,7 @@ class FuncConverter:
           * Identical type names in Python and Cython when casting.
 
         We import some classes and prepare a pure-Python instance of application model
-        |hland_v1|:
+        |hland_96|:
 
         >>> from types import MethodType
         >>> from hydpy.core.modeltools import Method, Model
@@ -2638,7 +2638,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model("hland_v1")
+        ...     model = prepare_model("hland_96")
 
         First, we show an example of a standard method without additional arguments and
         returning nothing but requiring two local variables:

@@ -361,7 +361,7 @@ class Calc_EI_Ic_AETModel_V1(modeltools.Method):
         evaporation, which uses |evap_ret_io| for querying potential
         evapotranspiration:
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> parameterstep("1h")
         >>> nmbzones(5)
         >>> zonetype(GLACIER, SEALED, FIELD, FOREST, ILAKE)
@@ -1982,7 +1982,7 @@ class Calc_EA_SM_AETModel_V1(modeltools.Method):
         We build an example based on |evap_aet_hbv96| for calculating soil
         evapotranspiration:
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> parameterstep("1h")
         >>> nmbzones(5)
         >>> zonetype(GLACIER, SEALED, FIELD, FOREST, ILAKE)
@@ -3436,7 +3436,7 @@ class Calc_EL_SG2_SG3_AETModel_V1(modeltools.Method):
 
         We build an example based on |evap_aet_hbv96| for calculating lake evaporation:
 
-        >>> from hydpy.models.hland_v3 import *
+        >>> from hydpy.models.hland_96p import *
         >>> parameterstep("1h")
         >>> nmbzones(5)
         >>> zonetype(GLACIER, SEALED, FIELD, FOREST, ILAKE)
@@ -3723,7 +3723,7 @@ class Calc_EL_LZ_AETModel_V1(modeltools.Method):
 
         We build an example based on |evap_aet_hbv96| for calculating lake evaporation:
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> parameterstep("1h")
         >>> nmbzones(5)
         >>> zonetype(GLACIER, SEALED, FIELD, FOREST, ILAKE)
@@ -4122,7 +4122,7 @@ class Calc_OutRC_V1(modeltools.Method):
         A model without a submodel for runoff concentration directs the input directly
         to the output:
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> simulationstep("1h")
         >>> parameterstep("1d")
         >>> fluxes.inrc = 1.0
@@ -4411,7 +4411,9 @@ class Get_SnowCover_V1(modeltools.Method):
 
 
 class Model(modeltools.AdHocModel):
-    r"""The HydPy-H-Land base model."""
+    """|hland.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="H")
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
@@ -4493,8 +4495,8 @@ class Model(modeltools.AdHocModel):
 
 
 class Main_AETModel_V1(modeltools.AdHocModel):
-    """Base class for HydPy-H models that use submodels that comply with the
-    |AETModel_V1| interface."""
+    """Base class for |hland.DOCNAME.long| models that use submodels that comply with
+    the |AETModel_V1| interface."""
 
     aetmodel: modeltools.SubmodelProperty
     aetmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -4526,7 +4528,7 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         is responsible for calculating the different kinds of actual
         evapotranspiration.
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> parameterstep()
         >>> nmbzones(5)
         >>> area(10.0)
@@ -4589,8 +4591,8 @@ class Main_AETModel_V1(modeltools.AdHocModel):
 
 
 class Main_RConcModel_V1(modeltools.AdHocModel):
-    """Base class for HydPy-H models that use submodels that comply with the
-    |RConcModel_V1| interface."""
+    """Base class for |hland.DOCNAME.long| models that use submodels that comply with
+    the |RConcModel_V1| interface."""
 
     rconcmodel: modeltools.SubmodelProperty
     rconcmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -4603,7 +4605,7 @@ class Main_RConcModel_V1(modeltools.AdHocModel):
         """Initialise the given submodel that follows the |RConcModel_V1| interface and
         is responsible for calculating the runoff concentration.
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> simulationstep("12h")
         >>> parameterstep("1d")
         >>> with model.add_rconcmodel_v1("rconc_uh"):
@@ -4627,25 +4629,25 @@ class Main_RConcModel_V1(modeltools.AdHocModel):
 
 
 class Sub_TempModel_V1(modeltools.AdHocModel, tempinterfaces.TempModel_V1):
-    """Base class for HydPy-H models that comply with the |TempModel_V1| submodel
-    interface."""
+    """Base class for |hland.DOCNAME.long| models that comply with the |TempModel_V1|
+    submodel interface."""
 
 
 class Sub_PrecipModel_V1(modeltools.AdHocModel, precipinterfaces.PrecipModel_V1):
-    """Base class for HydPy-H models that comply with the |PrecipModel_V1| submodel
-    interface."""
+    """Base class for |hland.DOCNAME.long| models that comply with the |PrecipModel_V1|
+    submodel interface."""
 
 
 class Sub_IntercModel_V1(modeltools.AdHocModel, stateinterfaces.IntercModel_V1):
-    """Base class for HydPy-H models that comply with the |IntercModel_V1| submodel
-    interface."""
+    """Base class for |hland.DOCNAME.long| models that comply with the |IntercModel_V1|
+    submodel interface."""
 
 
 class Sub_SoilWaterModel_V1(modeltools.AdHocModel, stateinterfaces.SoilWaterModel_V1):
-    """Base class for HydPy-H models that comply with the |SoilWaterModel_V1| submodel
-    interface."""
+    """Base class for |hland.DOCNAME.long| models that comply with the
+    |SoilWaterModel_V1| submodel interface."""
 
 
 class Sub_SnowCoverModel_V1(modeltools.AdHocModel, stateinterfaces.SnowCoverModel_V1):
-    """Base class for HydPy-H models that comply with the |SnowCoverModel_V1| submodel
-    interface."""
+    """Base class for |hland.DOCNAME.long| models that comply with the
+    |SnowCoverModel_V1| submodel interface."""

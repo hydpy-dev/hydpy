@@ -3,29 +3,29 @@
 """
 .. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN
 
-Version 4 of H-Land combines `HBV96's` :cite:p:`ref-Lindstrom1997HBV96` and `COSERO's`
+|hland_96c| combines `HBV96's` :cite:p:`ref-Lindstrom1997HBV96` and `COSERO's`
 :cite:p:`ref-Kling2005,ref-Kling2006` process equations.  We implemented it on behalf
-of the `German Federal Institute of Hydrology (BfG)`_ as an alternative to |hland_v1|
+of the `German Federal Institute of Hydrology (BfG)`_ as an alternative to |hland_96|
 for modelling large river basins in central Europe.  All processes "above the soil"
 (input data correction, interception, snowmelt) and "inside the soil" (evaporation,
 generation of effective precipitation), as well as the handling of water areas, are
-identical with |hland_v1| (and so with HBV96). Most processes "below the soil" agree
+identical with |hland_96| (and so with HBV96). Most processes "below the soil" agree
 with COSERO (runoff generation and runoff concentration).
 
-The following figure shows the general structure of |hland_v4|:
+The following figure shows the general structure of |hland_96c|:
 
-.. image:: HydPy-H-Land_Version-4.png
+.. image:: HydPy-H-HBV96-COSERO.png
 
-Comparing the above figure with the analogue figure of |hland_v1| reveals that
-|hland_v4| models three instead of two runoff components, requiring a larger number of
+Comparing the above figure with the analogue figure of |hland_96| reveals that
+|hland_96c| models three instead of two runoff components, requiring a larger number of
 vertically arranged storages.  The two upper storages (|BW1| and |BW2|) are
-zone-specific.  In comparison, the upper zone layer (|UZ|) of |hland_v1| is
+zone-specific.  In comparison, the upper zone layer (|UZ|) of |hland_96| is
 subbasin-specific.  For the subbasin-wide lower zone storage (|LZ|), there is no
-difference to |hland_v1|.  Like all |hland| application models, |hland_v4| allows an
+difference to |hland_96|.  Like all |hland| application models, |hland_96c| allows an
 optional submodel for runoff concentration.  Using |rconc_nash| and setting the number
 of storages to one agrees with COSERO's approach to model runoff concentration
-with a single bucket. In agreement with COSERO but in contrast to |hland_v3|,
-|hland_v4| does not take base flow into account when calculating runoff concentration.
+with a single bucket. In agreement with COSERO but in contrast to |hland_96p|,
+|hland_96c| does not take base flow into account when calculating runoff concentration.
 
 
 Integration tests
@@ -34,13 +34,13 @@ Integration tests
 .. how_to_understand_integration_tests::
 
 We define the settings of the following test calculations as similar to the ones of
-application model |hland_v1| as possible.  Hence, comparing the test results gives a
+application model |hland_96| as possible.  Hence, comparing the test results gives a
 good impression of the functional differences of both models.
 
 >>> from hydpy import pub
 >>> pub.timegrids = "01.01.2000", "05.01.2000", "1h"
 
->>> from hydpy.models.hland_v4 import *
+>>> from hydpy.models.hland_96c import *
 >>> parameterstep("1h")
 >>> from hydpy import Node, Element
 >>> outlet = Node("outlet")
@@ -55,7 +55,7 @@ good impression of the functional differences of both models.
 >>> psi(1.0)
 
 We assign identical values to all parameters, besides those that are specific to
-|hland_v4| (|H1|, |TAb1|, |TVs1|, |H1|, |TAb1|, |TVs1|):
+|hland_96c| (|H1|, |TAb1|, |TVs1|, |H1|, |TAb1|, |TVs1|):
 
 >>> zonetype(FIELD)
 
@@ -156,20 +156,20 @@ We assign identical values to all parameters, besides those that are specific to
 >>> test.reset_inits()
 >>> conditions = model.conditions
 
-.. _hland_v4_field:
+.. _hland_96c_field:
 
 field
 _____
 
-|hland_v4| neither implements an approach analogue to HBV96's contributing area concept
-nor a substep mechanism controlling the numerical accuracy of the runoff generation
-module.  Hence, we provide only a single "field" example, that is comparable both with
-the :ref:`first <hland_v1_field>` and the :ref:`second <hland_v1_resparea>` example of
-|hland_v1|:
+|hland_96c| neither implements an approach analogue to HBV96's contributing area
+concept nor a substep mechanism controlling the numerical accuracy of the runoff
+generation module.  Hence, we provide only a single "field" example, that is comparable
+both with the :ref:`first <hland_96_field>` and the :ref:`second <hland_96_resparea>`
+example of |hland_96|:
 
 .. integration-test::
 
-    >>> test("hland_v4_field")
+    >>> test("hland_96c_field")
     |        date |    p |    t |   tc | fracrain | rfc | sfc |    cfact | swe | gact |     pc |       ei |        tf | spl | wcl | spg | wcg | glmelt | melt | refr |       in_ |         r |  sr |       ea |     qvs1 |     qab1 |     qvs2 |     qab2 |  el |       q1 |     inrc |    outrc |       rt |       qt |       ic |  sp |  wc |         sm |       bw1 |       bw2 |        lz |   outlet |
     -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01/01 00:00 |  0.0 | 21.2 | 21.8 |      1.0 | 1.1 | 0.0 | 0.450977 | 0.0 |  0.0 |    0.0 |      0.0 |       0.0 | 0.0 | 0.0 | 0.0 | 0.0 |    0.0 |  0.0 |  0.0 |       0.0 |       0.0 | 0.0 | 0.048465 |      0.0 |      0.0 |      0.0 |      0.0 | 0.0 |     0.05 |      0.0 | 0.160107 | 0.210107 | 0.058363 |      0.0 | 0.0 | 0.0 |  99.951535 |       0.0 |       0.0 |      9.95 | 0.058363 |
@@ -275,15 +275,15 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _hland_v4_ilake:
+.. _hland_96c_ilake:
 
 internal lake
 _____________
 
-Regarding the simulation of internal lakes, the functionalities of |hland_v4| are
-identical to |hland_v1|.  Hence, the simulated baseflow shown in the following table
-agrees with the :ref:`hland_v1_ilake` example of |hland_v1|.  Nevertheless, the
-resulting subbasin's outflow appears less smoothed due to |hland_v4| not sending its
+Regarding the simulation of internal lakes, the functionalities of |hland_96c| are
+identical to |hland_96|.  Hence, the simulated baseflow shown in the following table
+agrees with the :ref:`hland_96_ilake` example of |hland_96|.  Nevertheless, the
+resulting subbasin's outflow appears less smoothed due to |hland_96c| not sending its
 baseflow through the linear storage cascade:
 
 .. integration-test::
@@ -293,7 +293,7 @@ baseflow through the linear storage cascade:
     >>> test.inits.sc = 0.0
     >>> test.reset_inits()
     >>> conditions = model.conditions
-    >>> test("hland_v4_ilake")
+    >>> test("hland_96c_ilake")
     |        date |    p |    t |   tc | fracrain | rfc | sfc | cfact | swe | gact |     pc |  ei |     tf | spl | wcl | spg | wcg | glmelt | melt | refr |    in_ |      r |  sr |  ea | qvs1 | qab1 | qvs2 | qab2 |       el |       q1 | inrc | outrc |       rt |       qt |  ic |  sp |  wc |  sm | bw1 | bw2 |         lz |   outlet |
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01/01 00:00 |  0.0 | 21.2 | 21.8 |      1.0 | 1.1 | 0.0 |   0.0 | 0.0 |  0.0 |    0.0 | 0.0 |    0.0 | 0.0 | 0.0 | 0.0 | 0.0 |    0.0 |  0.0 |  0.0 |    0.0 |    0.0 | 0.0 | 0.0 |  0.0 |  0.0 |  0.0 |  0.0 | 0.077544 | 0.049612 |  0.0 |   0.0 | 0.049612 | 0.013781 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |   9.872843 | 0.013781 |
@@ -398,14 +398,14 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _hland_v4_snow_classes:
+.. _hland_96c_snow_classes:
 
 snow classes
 ____________
 
-Regarding snow simulation, all functionalities of |hland_v4| are identical with the
-ones of |hland_v1|.  Hence, all snow data in the following table agrees with the
-:ref:`hland_v1_snow_classes` example of |hland_v1|:
+Regarding snow simulation, all functionalities of |hland_96c| are identical with the
+ones of |hland_96|.  Hence, all snow data in the following table agrees with the
+:ref:`hland_96_snow_classes` example of |hland_96|:
 
 .. integration-test::
 
@@ -417,7 +417,7 @@ ones of |hland_v1|.  Hence, all snow data in the following table agrees with the
     >>> inputs.t.series[:48] = -20.0
     >>> inputs.t.series[48:] = 20.0
     >>> petinputs.normalairtemperature.series = inputs.t.series
-    >>> test("hland_v4_snow_classes")
+    >>> test("hland_96c_snow_classes")
     |        date |    p |     t |    tc | fracrain | rfc | sfc |    cfact |                    swe | gact |     pc |       ei |        tf | spl | wcl | spg | wcg | glmelt |               melt |      refr |       in_ |        r |  sr |       ea |     qvs1 |     qab1 |     qvs2 |     qab2 |  el |       q1 |     inrc |    outrc |       rt |       qt |       ic |                     sp |                   wc |         sm |       bw1 |       bw2 |        lz |   outlet |
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01/01 00:00 |  0.0 | -20.0 | -19.4 |      0.0 | 0.0 | 1.3 | 0.450977 |        0.0         0.0 |  0.0 |    0.0 |      0.0 |       0.0 | 0.0 | 0.0 | 0.0 | 0.0 |    0.0 |      0.0       0.0 | 0.0   0.0 |       0.0 |      0.0 | 0.0 | 0.044059 |      0.0 |      0.0 |      0.0 |      0.0 | 0.0 |     0.05 |      0.0 |      0.0 |     0.05 | 0.013889 |      0.0 |        0.0         0.0 |       0.0        0.0 |  99.955941 |       0.0 |       0.0 |      9.95 | 0.013889 |
@@ -522,14 +522,14 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _hland_v4_glacier:
+.. _hland_96c_glacier:
 
 glacier
 _______
 
-Regarding glacier simulation, all functionalities of |hland_v4| are identical with the
-ones of |hland_v1|.  Hence, all snow data in the following table agrees with the
-:ref:`hland_v1_glacier` example of |hland_v1|:
+Regarding glacier simulation, all functionalities of |hland_96c| are identical with the
+ones of |hland_96|.  Hence, all snow data in the following table agrees with the
+:ref:`hland_96_glacier` example of |hland_96|:
 
 .. integration-test::
 
@@ -537,7 +537,7 @@ ones of |hland_v1|.  Hence, all snow data in the following table agrees with the
     >>> test.inits.sc = 0.05
     >>> test.reset_inits()
     >>> conditions = model.conditions
-    >>> test("hland_v4_glacier")
+    >>> test("hland_96c_glacier")
     |        date |    p |     t |    tc | fracrain | rfc | sfc |    cfact |                    swe |     gact |     pc |  ei |     tf | spl | wcl | spg | wcg |    glmelt |               melt |      refr |       in_ |         r |  sr |  ea |      qvs1 |     qab1 |     qvs2 |     qab2 |  el |       q1 |      inrc |     outrc |        rt |       qt |  ic |                     sp |                   wc |  sm |       bw1 |       bw2 |         lz |   outlet |
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01/01 00:00 |  0.0 | -20.0 | -19.4 |      0.0 | 0.0 | 1.3 | 0.450977 |        0.0         0.0 | 0.901953 |    0.0 | 0.0 |    0.0 | 0.0 | 0.0 | 0.0 | 0.0 |       0.0 |      0.0       0.0 | 0.0   0.0 |       0.0 |       0.0 | 0.0 | 0.0 |       0.0 |      0.0 |      0.0 |      0.0 | 0.0 |     0.05 |       0.0 |  0.160107 |  0.210107 | 0.058363 | 0.0 |        0.0         0.0 |       0.0        0.0 | 0.0 |       0.0 |       0.0 |       9.95 | 0.058363 |
@@ -642,17 +642,17 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _hland_v4_multiple_zones:
+.. _hland_96c_multiple_zones:
 
 multiple zones
 ______________
 
-This example focuses on the spatial configuration of |hland_v4|.  The most marked
-difference to |hland_v1| is the separate modelling of the faster runoff components
+This example focuses on the spatial configuration of |hland_96c|.  The most marked
+difference to |hland_96| is the separate modelling of the faster runoff components
 (|QAb1|, |QAb2|) for each zone.  Hence, there are five distinct values for each
 runoff component in the following table.  In contrast, the table of the corresponding
-:ref:`hland_v1_multiple_zones` example of |hland_v1| contains only a single value for
-the only fast runoff component |hland_fluxes.Q0| of |hland_v1|:
+:ref:`hland_96_multiple_zones` example of |hland_96| contains only a single value for
+the only fast runoff component |hland_fluxes.Q0| of |hland_96|:
 
 .. integration-test::
 
@@ -679,7 +679,7 @@ the only fast runoff component |hland_fluxes.Q0| of |hland_v1|:
     >>> petcontrol.precipitationfactor(0.1)
     >>> inputs.t.series = t_series
     >>> petinputs.normalairtemperature.series = tn_series
-    >>> test("hland_v4_multiple_zones",
+    >>> test("hland_96c_multiple_zones",
     ...      axis1=(inputs.p, fluxes.rt, fluxes.qt),
     ...      axis2=inputs.t)
     |        date |    p |    t |                           tc |                     fracrain |                     rfc |                     sfc |                                       cfact |                     swe |                          gact |                                     pc |                                     ei |                                              tf |                     spl |                     wcl |                     spg |                     wcg |                           glmelt |                     melt |                     refr |                                                in_ |                                                  r |                            sr |                                ea |                                     qvs1 |                                     qab1 |                                    qvs2 |                                    qab2 |                           el |       q1 |      inrc |    outrc |       rt |        qt |                                     ic |                      sp |                      wc |                                    sm |                                       bw1 |                                       bw2 |         lz |    outlet |
@@ -786,14 +786,14 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _hland_v4_snow_redistribution:
+.. _hland_96c_snow_redistribution:
 
 snow redistribution
 ___________________
 
-Regarding snow redistribution, all functionalities of |hland_v4| are identical with the
-ones of |hland_v1|.  Hence, all snow data in the following table agrees with the
-:ref:`hland_v1_snow_redistribution_1` example of |hland_v1|:
+Regarding snow redistribution, all functionalities of |hland_96c| are identical with the
+ones of |hland_96|.  Hence, all snow data in the following table agrees with the
+:ref:`hland_96_snow_redistribution_1` example of |hland_96|:
 
 .. integration-test::
 
@@ -803,7 +803,7 @@ ones of |hland_v1|.  Hence, all snow data in the following table agrees with the
     >>> inputs.t.series = -0.4
     >>> pcorr *= 2.0
     >>> pcalt(0.05)
-    >>> test("hland_v4_snow_redistribution",
+    >>> test("hland_96c_snow_redistribution",
     ...      axis1=(states.sp, states.wc), axis2=(factors.tc, fluxes.pc))
     |        date |    p |    t |                         tc |                     fracrain |                      rfc |                      sfc |                                       cfact |                                                 swe |                          gact |                                        pc |                                ei |                                          tf |                                                 spl |                                             wcl |                                                 spg |                                             wcg |                     glmelt |                          melt |                               refr |                                    in_ |                                    r |                      sr |                      ea |                               qvs1 |                     qab1 |                               qvs2 |                          qab2 |                      el |       q1 |     inrc |    outrc |       rt |       qt |                                  ic |                                                  sp |                                                  wc |                                    sm |                               bw1 |                                bw2 |        lz |   outlet |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -916,7 +916,7 @@ a submodel for runoff concentration.
 
 .. integration-test::
 
-    >>> test("hland_v4_snow_redistribution",
+    >>> test("hland_96c_snow_redistribution",
     ...      axis1=(states.sp, states.wc), axis2=(factors.tc, fluxes.pc))
     |        date |    p |    t |                         tc |                     fracrain |                      rfc |                      sfc |                                       cfact |                                                 swe |                          gact |                                        pc |                                ei |                                          tf |                                                 spl |                                             wcl |                                                 spg |                                             wcg |                     glmelt |                          melt |                               refr |                                    in_ |                                    r |                      sr |                      ea |                               qvs1 |                     qab1 |                               qvs2 |                          qab2 |                      el |       q1 |     inrc |    outrc |       rt |       qt |                                  ic |                                                  sp |                                                  wc |                                    sm |                               bw1 |                                bw2 |        lz |   outlet |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1046,7 +1046,11 @@ class Model(
     hland_model.Sub_SoilWaterModel_V1,
     hland_model.Sub_SnowCoverModel_V1,
 ):
-    """HBV96-SC/COSERO version of HydPy-H-Land (|hland_v4|)."""
+    """|hland_96c.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="H-HBV96-COSERO", description="fusion of SMHI-IHMS-HBV96 and COSERO"
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
@@ -1149,7 +1153,7 @@ class Model(
 
         Pick the required initial conditions before starting the simulation run via
         property |Sequences.conditions|.  See the integration tests of the application
-        model |hland_v4| for some examples.
+        model |hland_96c| for some examples.
         """
         fluxes = self.sequences.fluxes
         last = self.sequences.states
@@ -1183,7 +1187,7 @@ class Model(
 
 
 class Masks(masktools.Masks):
-    """Masks applicable to |hland_v4|."""
+    """Masks applicable to |hland_96c|."""
 
     CLASSES = hland_masks.Masks.CLASSES
 

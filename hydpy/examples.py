@@ -43,7 +43,7 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
 
     Function |prepare_io_example_1| is thought for testing the functioning of *HydPy*
     and thus should be of interest for framework developers only.  It uses the main
-    models |lland_dd|, |lland_knauf|, and |hland_v1| and the submodel
+    models |lland_dd|, |lland_knauf|, and |hland_96| and the submodel
     |evap_aet_morsim|.  Here, we apply |prepare_io_example_1| and shortly discuss
     different aspects of its generated data:
 
@@ -69,14 +69,14 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     []
 
     It returns four |Element| objects handling either application model |lland_dd|
-    |lland_knauf|, or |hland_v1|:
+    |lland_knauf|, or |hland_96|:
 
     >>> for element in elements:
     ...     print(element.name, element.model)
     element1 lland_dd
     element2 lland_dd
     element3 lland_knauf
-    element4 hland_v1
+    element4 hland_96
 
     The |lland_knauf| instance has a submodel of type |evap_aet_morsim|:
 
@@ -94,7 +94,7 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     |lland_inputs.Nied|, the flux sequence |lland_fluxes.NKor|, and the state sequence
     |lland_states.BoWa| of each |lland| model instance, the equally named wind speed
     sequences of |lland_knauf| and |evap_aet_morsim|, the state sequence
-    |hland_states.SP| of the |hland_v1| model instance, and the |Sim| sequence of each
+    |hland_states.SP| of the |hland_96| model instance, and the |Sim| sequence of each
     node instance.  For precise test results, all generated values are unique:
 
     >>> nied1 = elements.element1.model.sequences.inputs.nied
@@ -171,7 +171,7 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     element1.model = importtools.prepare_model("lland_dd")
     element2.model = importtools.prepare_model("lland_dd")
     element3.model = importtools.prepare_model("lland_knauf")
-    element4.model = importtools.prepare_model("hland_v1")
+    element4.model = importtools.prepare_model("hland_96")
 
     control3 = element3.model.parameters.control
     control3.nhru(1)

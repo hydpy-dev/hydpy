@@ -70,11 +70,11 @@
                             <normalairtemperature/>
                         </inputs>
                     </evap_pet_hbv96>
-                    <hland_v1>
+                    <hland_96>
                         <inputs>
                             <t/>
                         </inputs>
-                    </hland_v1>
+                    </hland_96>
                 </sequences>
             </reader>
 
@@ -85,11 +85,11 @@
                             <normalevapotranspiration/>
                         </inputs>
                     </evap_pet_hbv96>
-                    <hland_v1>
+                    <hland_96>
                         <inputs>
                             <p/>
                         </inputs>
-                    </hland_v1>
+                    </hland_96>
                 </sequences>
                 <mode>jit</mode>
             </reader>
@@ -101,11 +101,11 @@
             <writer info="averaged moisture">
                 <directory>mean_sm</directory>
                 <sequences>
-                    <hland_v1>
+                    <hland_96>
                         <states>
                             <sm/>
                         </states>
-                    </hland_v1>
+                    </hland_96>
                 </sequences>
                 <filetype>nc</filetype>
                 <aggregation>mean</aggregation>
@@ -119,11 +119,11 @@
                             <normalairtemperature/>
                         </inputs>
                     </evap_pet_hbv96>
-                    <hland_v1>
+                    <hland_96>
                         <inputs>
                             <t/>
                         </inputs>
-                    </hland_v1>
+                    </hland_96>
                 </sequences>
                 <filetype>nc</filetype>
                 <mode>jit</mode>
@@ -136,7 +136,7 @@
     <exchange>
 
         <setitems info="globally applied items">
-            <hland_v1>
+            <hland_96>
                 <control>
                     <alpha>
                         <name>alpha</name>
@@ -144,8 +144,8 @@
                         <init>2.0</init>
                     </alpha>
                 </control>
-            </hland_v1>
-            <hland_v1>
+            </hland_96>
+            <hland_96>
                 <control>
                     <beta>
                         <name>beta</name>
@@ -153,7 +153,7 @@
                         <init>1.0</init>
                     </beta>
                 </control>
-            </hland_v1>
+            </hland_96>
             <musk_classic>
                 <control>
                     <nmbsegments>
@@ -172,7 +172,7 @@
             </musk_classic>
         </setitems>
         <setitems>
-            <hland_v1>
+            <hland_96>
                 <states>
                     <ic>
                         <selections>catchment_lahn_2</selections>
@@ -200,7 +200,7 @@
                         </init>
                     </sm>
                 </states>
-            </hland_v1>
+            </hland_96>
             <rconc_uh>
                 <logs>
                     <selections>catchment_lahn_2</selections>
@@ -213,7 +213,7 @@
             </rconc_uh>
         </setitems>
         <setitems>
-            <hland_v1>
+            <hland_96>
                 <inputs>
                     <t.series>
                         <selections>headwaters</selections>
@@ -221,8 +221,8 @@
                         <level>device</level>
                     </t.series>
                 </inputs>
-            </hland_v1>
-            <hland_v1>
+            </hland_96>
+            <hland_96>
                 <factors>
                     <swe.series>
                         <selections>headwaters</selections>
@@ -230,10 +230,10 @@
                         <level>device</level>
                     </swe.series>
                 </factors>
-            </hland_v1>
+            </hland_96>
         </setitems>
         <additems>
-            <hland_v1>
+            <hland_96>
                 <selections>headwaters</selections>
                 <control>
                     <sfcf>
@@ -262,11 +262,11 @@
                         <control.rfcf/>
                     </sfcf>
                 </control>
-            </hland_v1>
+            </hland_96>
         </additems>
         <multiplyitems>
             <selections>complete</selections>
-            <hland_v1>
+            <hland_96>
                 <control>
                     <k4>
                         <name>k4</name>
@@ -275,10 +275,10 @@
                         <control.k/>
                     </k4>
                 </control>
-            </hland_v1>
+            </hland_96>
         </multiplyitems>
         <getitems>
-            <hland_v1>
+            <hland_96>
                 <factors>
                     <selections>catchment_dill</selections>
                     <contriarea/>
@@ -298,7 +298,7 @@
                         <selections>catchment_lahn_3</selections>
                     </sm.series>
                 </states>
-            </hland_v1>
+            </hland_96>
             <nodes>
                 <selections>gauge_dill</selections>
                 <sim.series/>

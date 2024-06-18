@@ -978,15 +978,15 @@ required as the "inlet device", but the given `device` value is of type `int`.
 
         >>> test = pub.selections.complete.copy("test")
         >>> from hydpy import prepare_model
-        >>> hland_v1 = prepare_model("hland_v1")
+        >>> hland_96 = prepare_model("hland_96")
 
-        >>> test.search_modeltypes(hland_v1)
+        >>> test.search_modeltypes(hland_96)
         Selection("modeltypes",
                   nodes=(),
                   elements=("land_dill", "land_lahn_1", "land_lahn_2",
                             "land_lahn_3"))
         >>> test.search_modeltypes(
-        ...     hland_v1, "musk_classic", "lland_dd", name="MODELTYPES")
+        ...     hland_96, "musk_classic", "lland_dd", name="MODELTYPES")
         Selection("MODELTYPES",
                   nodes=(),
                   elements=("land_dill", "land_lahn_1", "land_lahn_2",
@@ -1005,7 +1005,7 @@ following error occurred: No module named 'hydpy.models.wrong'
         Method |Selection.select_modeltypes| restricts the current selection to the one
         determined with the method the |Selection.search_modeltypes|:
 
-        >>> test.select_modeltypes(hland_v1)
+        >>> test.select_modeltypes(hland_96)
         Selection("test",
                   nodes=(),
                   elements=("land_dill", "land_lahn_1", "land_lahn_2",
@@ -1015,7 +1015,7 @@ following error occurred: No module named 'hydpy.models.wrong'
         selection to all devices not determined by method the
         |Selection.search_upstream|:
 
-        >>> pub.selections.complete.deselect_modeltypes(hland_v1)
+        >>> pub.selections.complete.deselect_modeltypes(hland_96)
         Selection("complete",
                   nodes=(),
                   elements=("stream_dill_lahn_2", "stream_lahn_1_lahn_2",

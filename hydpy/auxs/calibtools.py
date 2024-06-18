@@ -100,7 +100,7 @@ class SumAdaptor(Adaptor):
     example, we could search for the best direct runoff delay between 1 and 5 days and
     the base flow delay between 5 and 100 days.  We demonstrate this for the recession
     coefficient parameters |hland_control.K| and |hland_control.K4| of application
-    model |hland_v1| (assuming the nonlinearity parameter |hland_control.Alpha| to be
+    model |hland_96| (assuming the nonlinearity parameter |hland_control.Alpha| to be
     zero):
 
     >>> from hydpy.examples import prepare_full_example_2
@@ -112,14 +112,14 @@ class SumAdaptor(Adaptor):
     ...             lower=5.0**-1,
     ...             upper=1.0**-1,
     ...             parameterstep="1d",
-    ...             model="hland_v1")
+    ...             model="hland_96")
     >>> k4 = Replace(name="k4",
     ...             parameter="k4",
     ...             value=10.0**-1,
     ...             lower=100.0**-1,
     ...             upper=5.0**-1,
     ...             parameterstep="1d",
-    ...             model="hland_v1")
+    ...             model="hland_96")
 
     To allow for non-fixed non-overlapping ranges, we can prepare a |SumAdaptor| object,
     knowing both our |Rule| objects, assign it the direct runoff-related |Rule| object,
@@ -170,7 +170,7 @@ class FactorAdaptor(Adaptor):
     >>> from hydpy.examples import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
 
-    |hland_v1| calculates the "normal" potential snow-melt with the degree-day factor
+    |hland_96| calculates the "normal" potential snow-melt with the degree-day factor
     |hland_control.CFMax|.  For glacial zones, it also calculates a separate potential
     glacier-melt with the additional degree-day factor |hland_control.GMelt|.  Suppose
     we have |hland_control.CFMax| readily available for the different hydrological
@@ -185,7 +185,7 @@ class FactorAdaptor(Adaptor):
     ...                 lower=0.5,
     ...                 upper=2.0,
     ...                 parameterstep="1d",
-    ...                 model="hland_v1")
+    ...                 model="hland_96")
 
     Second, we initialise a |FactorAdaptor| object based on target rule `gmelt` and our
     reference parameter |hland_control.CFMax| and assign it our rule object:
@@ -229,7 +229,7 @@ class FactorAdaptor(Adaptor):
     clearer, we set the  first six response units to |hland_control.ZoneType|
     |hland_constants.GLACIER|:
 
-    >>> from hydpy.models.hland_v1 import *
+    >>> from hydpy.models.hland_96 import *
     >>> control.zonetype(GLACIER, GLACIER, GLACIER, GLACIER, GLACIER, GLACIER,
     ...                  FIELD, FOREST, ILAKE, FIELD, FOREST, ILAKE)
 
@@ -307,7 +307,7 @@ class Rule(abc.ABC, Generic[TypeParameter]):
     >>> rule = Replace(name="fc",
     ...                parameter="fc",
     ...                value=100.0,
-    ...                model="hland_v1")
+    ...                model="hland_96")
 
     The following string representation shows us the complete list of available
     arguments:
@@ -321,7 +321,7 @@ class Rule(abc.ABC, Generic[TypeParameter]):
         upper=inf,
         keyword=None,
         parameterstep=None,
-        model="hland_v1",
+        model="hland_96",
         selections=("complete",),
     )
 
@@ -375,7 +375,7 @@ class Rule(abc.ABC, Generic[TypeParameter]):
     ...                parameter="fc",
     ...                value=100.0,
     ...                keyword="forest",
-    ...                model="hland_v1")
+    ...                model="hland_96")
     >>> rule.apply_value()
     >>> fc
     fc(field=206.0, forest=100.0)
@@ -388,7 +388,7 @@ class Rule(abc.ABC, Generic[TypeParameter]):
     >>> Replace(name="fc",
     ...         parameter=fc,
     ...         value=100.0,
-    ...         model="hland_v1",
+    ...         model="hland_96",
     ...         parameterstep="1d")
     Replace(
         name="fc",
@@ -398,21 +398,21 @@ class Rule(abc.ABC, Generic[TypeParameter]):
         upper=inf,
         keyword=None,
         parameterstep=None,
-        model="hland_v1",
+        model="hland_96",
         selections=("complete",),
     )
 
     For time-dependent parameters, the rule queries the current global
     |Options.parameterstep| value if you do not specify one explicitly (note that we
-    pass the parameter type |hland_control.PercMax| and the module |hland_v1| this
+    pass the parameter type |hland_control.PercMax| and the module |hland_96| this
     time):
 
-    >>> from hydpy.models import hland_v1
+    >>> from hydpy.models import hland_96
     >>> from hydpy.models.hland.hland_control import PercMax
     >>> rule = Replace(name="percmax",
     ...                parameter=PercMax,
     ...                value=5.0,
-    ...                model=hland_v1)
+    ...                model=hland_96)
 
     The |Rule| object internally handles, to avoid confusion, a copy of
     |Options.parameterstep|.
@@ -428,7 +428,7 @@ class Rule(abc.ABC, Generic[TypeParameter]):
         upper=inf,
         keyword=None,
         parameterstep="1d",
-        model="hland_v1",
+        model="hland_96",
         selections=("complete",),
     )
     >>> rule.apply_value()
@@ -442,7 +442,7 @@ class Rule(abc.ABC, Generic[TypeParameter]):
     >>> rule = Replace(name="percmax",
     ...                parameter="percmax",
     ...                value=5.0,
-    ...                model="hland_v1",
+    ...                model="hland_96",
     ...                parameterstep="2d")
     >>> rule.apply_value()
     >>> with pub.options.parameterstep("1d"):
@@ -454,7 +454,7 @@ class Rule(abc.ABC, Generic[TypeParameter]):
     >>> Replace(name="percmax",
     ...         parameter="percmax",
     ...         value=5.0,
-    ...         model="hland_v1")
+    ...         model="hland_96")
     Traceback (most recent call last):
     ...
     RuntimeError: While trying to initialise the `Replace` rule object `percmax`, the \
@@ -463,12 +463,12 @@ information on the parameter timestep size.  Either assign it directly or define
 via option `parameterstep`.
 
     With the following definition, the |Rule| object queries all |Element| objects
-    handling |hland_v1| instances from the global |Selections| object `pub.selections`:
+    handling |hland_96| instances from the global |Selections| object `pub.selections`:
 
     >>> rule = Replace(name="fc",
     ...                parameter="fc",
     ...                value=100.0,
-    ...                model="hland_v1")
+    ...                model="hland_96")
     >>> rule.elements
     Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
 
@@ -714,7 +714,7 @@ following error occurred: Parameter types are inconsistent: \
         ...                value=100.0,
         ...                lower=50.0,
         ...                upper=200.0,
-        ...                model="hland_v1")
+        ...                model="hland_96")
 
         >>> rule.value = 0.0
         >>> rule.value
@@ -778,7 +778,7 @@ value `200.0` instead.
         >>> rule = Replace(name="fc",
         ...                parameter="fc",
         ...                value=100.0,
-        ...                model="hland_v1")
+        ...                model="hland_96")
         >>> fc = hp.elements.land_lahn_1.model.parameters.control.fc
         >>> fc
         fc(206.0)
@@ -908,7 +908,7 @@ class Add(Rule[parametertools.Parameter]):
     >>> rule = Add(name="fc",
     ...            parameter="fc",
     ...            value=100.0,
-    ...            model="hland_v1")
+    ...            model="hland_96")
     >>> fc = hp.elements.land_lahn_1.model.parameters.control.fc
     >>> fc
     fc(206.0)
@@ -924,7 +924,7 @@ class Add(Rule[parametertools.Parameter]):
     ...            parameter="fc",
     ...            value=100.0,
     ...            keyword="field",
-    ...            model="hland_v1")
+    ...            model="hland_96")
     >>> rule.apply_value()
     >>> fc
     fc(field=306.0, forest=206.0)
@@ -936,7 +936,7 @@ class Add(Rule[parametertools.Parameter]):
     >>> rule = Add(name="cfmax",
     ...            parameter="cfmax",
     ...            value=2.0,
-    ...            model="hland_v1",
+    ...            model="hland_96",
     ...            parameterstep="2d")
     >>> cfmax = hp.elements.land_lahn_1.model.parameters.control.cfmax
     >>> cfmax
@@ -952,7 +952,7 @@ class Add(Rule[parametertools.Parameter]):
     ...            parameter="cfmax",
     ...            value=2.0,
     ...            keyword="forest",
-    ...            model="hland_v1",
+    ...            model="hland_96",
     ...            parameterstep="2d")
     >>> rule.apply_value()
     >>> cfmax
@@ -1000,7 +1000,7 @@ class Multiply(Rule[parametertools.Parameter]):
     >>> rule = Multiply(name="fc",
     ...                 parameter="fc",
     ...                 value=2.0,
-    ...                 model="hland_v1")
+    ...                 model="hland_96")
     >>> fc = hp.elements.land_lahn_1.model.parameters.control.fc
     >>> fc
     fc(206.0)
@@ -1016,7 +1016,7 @@ class Multiply(Rule[parametertools.Parameter]):
     ...            parameter="fc",
     ...            value=2.0,
     ...            keyword="field",
-    ...            model="hland_v1")
+    ...            model="hland_96")
     >>> rule.apply_value()
     >>> fc
     fc(field=412.0, forest=206.0)
@@ -1028,7 +1028,7 @@ class Multiply(Rule[parametertools.Parameter]):
     >>> rule = Multiply(name="cfmax",
     ...                 parameter="cfmax",
     ...                 value=2.0,
-    ...                 model="hland_v1",
+    ...                 model="hland_96",
     ...                 parameterstep="2d")
     >>> cfmax = hp.elements.land_lahn_1.model.parameters.control.cfmax
     >>> cfmax
@@ -1044,7 +1044,7 @@ class Multiply(Rule[parametertools.Parameter]):
     ...                 parameter="cfmax",
     ...                 value=2.0,
     ...                 keyword="forest",
-    ...                 model="hland_v1",
+    ...                 model="hland_96",
     ...                 parameterstep="2d")
     >>> cfmax
     cfmax(field=5.0, forest=3.0)
@@ -1116,7 +1116,7 @@ class CalibrationInterface(Generic[TypeRule1]):
     ...                          lowers=[50.0, 1.0],
     ...                          uppers=[200.0, 10.0],
     ...                          parametersteps="1d",
-    ...                          model="hland_v1"))
+    ...                          model="hland_96"))
 
     >>> print(ci)
     CalibrationInterface
@@ -1129,7 +1129,7 @@ class CalibrationInterface(Generic[TypeRule1]):
         upper=200.0,
         keyword=None,
         parameterstep=None,
-        model="hland_v1",
+        model="hland_96",
         selections=("complete",),
     )
     Replace(
@@ -1140,7 +1140,7 @@ class CalibrationInterface(Generic[TypeRule1]):
         upper=10.0,
         keyword=None,
         parameterstep="1d",
-        model="hland_v1",
+        model="hland_96",
         selections=("complete",),
     )
 
@@ -1172,7 +1172,7 @@ class CalibrationInterface(Generic[TypeRule1]):
         upper=200.0,
         keyword=None,
         parameterstep=None,
-        model="hland_v1",
+        model="hland_96",
         selections=("complete",),
     )
 
@@ -1523,7 +1523,7 @@ does not agree with the one documentated in log file `example_calibration.log` (
     ...                      lower=1.0,
     ...                      upper=4.0,
     ...                      selections=["complete"],
-    ...                      model="hland_v1"))
+    ...                      model="hland_96"))
     >>> ci.fc.value = 0.0
     >>> ci.damp.value = 0.0
     >>> with TestIO():
@@ -1576,11 +1576,11 @@ does not agree with the one documentated in log file `example_calibration.log` (
         >>> ci.add_rules(Replace(name="fc",
         ...                      parameter="fc",
         ...                      value=100.0,
-        ...                      model="hland_v1"),
+        ...                      model="hland_96"),
         ...              Replace(name="percmax",
         ...                      parameter="percmax",
         ...                      value=5.0,
-        ...                      model="hland_v1"))
+        ...                      model="hland_96"))
 
         Note that method |CalibrationInterface.add_rules| might change the number of
         |Element| objects relevant for the |CalibrationInterface| object:
@@ -1630,7 +1630,7 @@ does not agree with the one documentated in log file `example_calibration.log` (
         ...                          lowers=[50.0, 1.0],
         ...                          uppers=[200.0, 10.0],
         ...                          parametersteps="1d",
-        ...                          model="hland_v1"))
+        ...                          model="hland_96"))
 
         >>> ci.get_rule("fc", Replace).name
         'fc'
@@ -1675,11 +1675,11 @@ named `fc` of type `Add`.
         >>> ci.add_rules(Replace(name="fc",
         ...                      parameter="fc",
         ...                      value=100.0,
-        ...                      model="hland_v1"),
+        ...                      model="hland_96"),
         ...              Replace(name="percmax",
         ...                      parameter="percmax",
         ...                      value=5.0,
-        ...                      model="hland_v1"),
+        ...                      model="hland_96"),
         ...              Replace(name="damp",
         ...                      parameter="coefficients",
         ...                      value=0.2,
@@ -2048,7 +2048,7 @@ object named `fc`.
         >>> from hydpy import CalibrationInterface
         >>> ci = CalibrationInterface(hp=hp, targetfunction=lambda: 1.0)
 
-        Regarding |hland_v1|, we intend to calibrate the parameters |hland_control.FC|
+        Regarding |hland_96|, we intend to calibrate the parameters |hland_control.FC|
         and |hland_control.PercMax| with different values for the selections
         `headwaters` and `nonheadwaters`:
 
@@ -2059,7 +2059,7 @@ object named `fc`.
 parameterstep="1d"))
         >>> ci.add_rules(*make_rules(rule=Replace,
         ...                          calibspecs=calibspecs,
-        ...                          model="hland_v1",
+        ...                          model="hland_96",
         ...                          selections=("headwaters", "nonheadwaters"),
         ...                          product=True))
 
@@ -2089,7 +2089,7 @@ parameterstep="1d"))
         >>> n.add_iuhs(**name2lsc)
         >>> ci.add_rules(k, n)
 
-        We change the values of two |Rule| objects related to |hland_v1| to clarify
+        We change the values of two |Rule| objects related to |hland_96| to clarify
         that all values appear in the correct table cells:
 
         >>> ci["fc_headwaters"].value = 200.0
@@ -2257,7 +2257,7 @@ parameterstep="1d"))
         ...                          lowers=[50.0, 1.0],
         ...                          uppers=[200.0, 10.0],
         ...                          parametersteps="1d",
-        ...                          model="hland_v1"))
+        ...                          model="hland_96"))
         >>> sorted(set(dir(ci)) - set(object.__dir__(ci)))
         ['fc', 'percmax']
         """
@@ -3086,7 +3086,7 @@ def make_rules(
     ...            lowers=[50.0, 1.0],
     ...            uppers=[200.0],
     ...            parametersteps="1d",
-    ...            model="hland_v1")
+    ...            model="hland_96")
     Traceback (most recent call last):
     ...
     ValueError: When creating rules via function `make_rules`, all given sequences \
@@ -3105,7 +3105,7 @@ parameterstep="1d"))
     >>> make_rules(rule=Replace,
     ...            calibspecs=calibspecs,
     ...            parametersteps="1d",
-    ...            model="hland_v1")[1]
+    ...            model="hland_96")[1]
     Replace(
         name="percmax",
         parameter="percmax",
@@ -3114,7 +3114,7 @@ parameterstep="1d"))
         upper=10.0,
         keyword=None,
         parameterstep="1d",
-        model="hland_v1",
+        model="hland_96",
         selections=("complete",),
     )
 
@@ -3125,7 +3125,7 @@ parameterstep="1d"))
     ...            calibspecs=calibspecs,
     ...            names=[name.upper() for name in calibspecs.names],
     ...            parametersteps="1d",
-    ...            model="hland_v1")[1]
+    ...            model="hland_96")[1]
     Replace(
         name="PERCMAX",
         parameter="percmax",
@@ -3134,7 +3134,7 @@ parameterstep="1d"))
         upper=10.0,
         keyword=None,
         parameterstep="1d",
-        model="hland_v1",
+        model="hland_96",
         selections=("complete",),
     )
 
@@ -3148,7 +3148,7 @@ parameterstep="1d"))
     ...            keywords=["forest", None],
     ...            lowers=[50.0, 1.0],
     ...            parametersteps="1d",
-    ...            model="hland_v1")
+    ...            model="hland_96")
     Traceback (most recent call last):
     ...
     TypeError: When creating rules via function `make_rules`, you must pass a \
@@ -3161,7 +3161,7 @@ names, parameters, values, keywords, lowers, and uppers.
 
     >>> make_rules(rule=Replace,
     ...            calibspecs=calibspecs,
-    ...            model="hland_v1",
+    ...            model="hland_96",
     ...            selections=("headwaters", "nonheadwaters"),
     ...            product=True)
     [Replace(
@@ -3172,7 +3172,7 @@ names, parameters, values, keywords, lowers, and uppers.
         upper=200.0,
         keyword="forest",
         parameterstep=None,
-        model="hland_v1",
+        model="hland_96",
         selections=("headwaters",),
     ), Replace(
         name="percmax_headwaters",
@@ -3182,7 +3182,7 @@ names, parameters, values, keywords, lowers, and uppers.
         upper=10.0,
         keyword=None,
         parameterstep="1d",
-        model="hland_v1",
+        model="hland_96",
         selections=("headwaters",),
     ), Replace(
         name="fc_nonheadwaters",
@@ -3192,7 +3192,7 @@ names, parameters, values, keywords, lowers, and uppers.
         upper=200.0,
         keyword="forest",
         parameterstep=None,
-        model="hland_v1",
+        model="hland_96",
         selections=("nonheadwaters",),
     ), Replace(
         name="percmax_nonheadwaters",
@@ -3202,7 +3202,7 @@ names, parameters, values, keywords, lowers, and uppers.
         upper=10.0,
         keyword=None,
         parameterstep="1d",
-        model="hland_v1",
+        model="hland_96",
         selections=("nonheadwaters",),
     )]
 
@@ -3212,7 +3212,7 @@ names, parameters, values, keywords, lowers, and uppers.
     >>> make_rules(rule=Replace,
     ...            calibspecs=calibspecs,
     ...            parametersteps="1d",
-    ...            model="hland_v1",
+    ...            model="hland_96",
     ...            product=True)
     Traceback (most recent call last):
     ...

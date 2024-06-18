@@ -3,13 +3,12 @@
 """
 .. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN
 
-Version 1 of HydPy-H-Land closely emulates the "land components" of HBV96
+|hland_96| closely emulates the "land components" of HBV96
 :cite:p:`ref-Lindstrom1997HBV96` while providing additional functionalities (for
 example, the land-use type |SEALED|).  We implemented it on behalf of the `German
-Federal Institute of Hydrology (BfG)`_ for modelling large river basins in central
-Europe.
+Federal Institute of Hydrology (BfG)`_ to model large river basins in central Europe.
 
-The following list summarises the main components of |hland_v1|:
+The following list summarises the main components of |hland_96|:
 
  * Apply different correction factors to the liquid and the frozen amount of
    precipitation.
@@ -37,14 +36,14 @@ The following list summarises the main components of |hland_v1|:
    lower zone layers as nonlinear storages.
  * Conceptualise the melting of glacial ice with an additional application of the
    degree-day method.
- * Optionally, use a submodel like |rconc_uh| for calculating runoff concentration.
+ * Optionally, use a submodel like |rconc_uh| to calculate runoff concentration.
 
 
-The following figure shows the general structure of H-Land Version 1.  Note that zones
-of type |FIELD| and |FOREST| are based on the same set of process equations. In this
+The following figure shows the general structure of |hland_96|.  Note that zones of
+type |FIELD| and |FOREST| are based on the same set of process equations. In this
 scheme, the submodel |rconc_uh| is included (which is optional):
 
-.. image:: HydPy-H-Land_Version-1.png
+.. image:: HydPy-H-HBV96.png
 
 Integration tests
 =================
@@ -57,7 +56,7 @@ and |T| (temperature) are copy-pasted.  The |evap_inputs.NormalEvapotranspiratio
 values are the |evap_fluxes.ReferenceEvapotranspiration| values calcuted by
 |evap_ret_tw2002| but divided by 0.4 to account for the selected value of the
 evaporation adjustment factor |evap_control.EvapotranspirationFactor|.  Hopefully, this
-eases drawing comparisons between both models.
+will make it easier to draw comparisons between both models.
 
 We perform all integration tests over five days with a simulation step of one hour:
 
@@ -67,7 +66,7 @@ We perform all integration tests over five days with a simulation step of one ho
 First, we prepare the model instance and build the connections to element `land` and
 node `outlet`:
 
->>> from hydpy.models.hland_v1 import *
+>>> from hydpy.models.hland_96 import *
 >>> parameterstep("1h")
 >>> from hydpy import Node, Element
 >>> outlet = Node("outlet")
@@ -93,7 +92,7 @@ land-use type |FOREST| would be the same):
 >>> zonetype(FIELD)
 
 The following set of control parameter values tries to configure application model
-|hland_v1| in a manner that allows retracing the influence of the different implemented
+|hland_96| in a manner that allows retracing the influence of the different implemented
 methods on the shown results:
 
 >>> pcorr(1.1)
@@ -124,7 +123,7 @@ methods on the shown results:
 >>> k4(0.005)
 >>> gamma(0.0)
 
-|hland_v1| requires a submodel for calculating actual evapotranspiration.  Therefore,
+|hland_96| requires a submodel for calculating actual evapotranspiration.  Therefore,
 we select |evap_aet_hbv96|, which also closely follows equations used by HBV96
 :cite:p:`ref-Lindstrom1997HBV96`.  The same holds for |evap_pet_hbv96|, which will
 provide |evap_aet_hbv96| with HBV96-like potential evapotranspiration estimates:
@@ -139,7 +138,7 @@ provide |evap_aet_hbv96| with HBV96-like potential evapotranspiration estimates:
 ...         altitudefactor(-0.1)
 ...         precipitationfactor(0.1)
 
-|hland_v1| can use a submodel that follows the |RConcModel_V1| to consider additional
+|hland_96| can use a submodel that follows the |RConcModel_V1| to consider additional
 runoff concentration processes. A possible choice is |rconc_uh|, which implements the
 unit hydrograph method and provides a convenient way to set the required ordinates in
 the triangle shape typical for HBV96:
@@ -168,7 +167,7 @@ and all other storages are empty:
 ...               (model.rconcmodel.sequences.logs.quh, 0.05))
 
 As mentioned above, the values of the input sequences |P| and |hland_inputs.T| of
-|hland_v1| stem from :ref:`here <lland_dd_acker_summer>`.  For educational purposes, we
+|hland_96| stem from :ref:`here <lland_dd_acker_summer>`.  For educational purposes, we
 again use unrealistically high values of |evap_inputs.NormalEvapotranspiration|.  For
 the sake of simplicity, we define |evap_inputs.NormalAirTemperature| to be constantly
 1 °C below |hland_inputs.T|:
@@ -206,12 +205,12 @@ the sake of simplicity, we define |evap_inputs.NormalAirTemperature| to be const
 ...     3.195876, 5.191651, 7.155036, 8.391432, 8.391286, 10.715238, 9.383394, 7.861915,
 ...     6.298329, 2.948416, 1.309232, 0.32955, 0.089508, 0.085771, 0.0845, 0.084864)
 
-We memorise the initial conditions to check later if |hland_v1| holds the water balance:
+We memorise the initial conditions to check later if |hland_96| holds the water balance:
 
 >>> test.reset_inits()
 >>> conditions = model.conditions
 
-.. _hland_v1_field:
+.. _hland_96_field:
 
 field
 _____
@@ -222,7 +221,7 @@ for the accuracy-related parameter |RecStep|:
 >>> resparea(False)
 >>> recstep(100)
 
-The following results show the response of application model |hland_v1| to the given
+The following results show the response of application model |hland_96| to the given
 extreme precipitation event.  The intense evaporation weakens the response markedly.
 One striking difference to other models like |lland_dd| is the block-like appearance of
 percolation (|Perc|), which is one reason for the unusual transitions between event
@@ -231,7 +230,7 @@ base flow periods (consisting of |Q1| only):
 
 .. integration-test::
 
-    >>> test("hland_v1_field")
+    >>> test("hland_96_field")
     |        date |    p |    t |   tc | fracrain | rfc | sfc |    cfact | swe | gact | contriarea |     pc |       ei |        tf | spl | wcl | spg | wcg | glmelt | melt | refr |       in_ |         r |  sr |       ea |       cf |      inuz |     perc |        q0 |  el |       q1 |      inrc |     outrc |        rt |       qt |       ic |  sp |  wc |         sm |        uz |        lz |   outlet |
     -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01/01 00:00 |  0.0 | 21.2 | 21.8 |      1.0 | 1.1 | 0.0 | 0.450977 | 0.0 |  0.0 |        1.0 |    0.0 |      0.0 |       0.0 | 0.0 | 0.0 | 0.0 | 0.0 |    0.0 |  0.0 |  0.0 |       0.0 |       0.0 | 0.0 | 0.048465 |      0.0 |       0.0 |      0.0 |       0.0 | 0.0 |     0.05 |      0.05 |  0.061111 |  0.061111 | 0.016975 |      0.0 | 0.0 | 0.0 |  99.951535 |       0.0 |      9.95 | 0.016975 |
@@ -337,7 +336,7 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _hland_v1_no_rconc_submodel:
+.. _hland_96_no_rconc_submodel:
 
 no rconc submodel
 _________________
@@ -350,7 +349,7 @@ less delay in the catchment's simulated outflow.
 
 .. integration-test::
 
-    >>> test("hland_v1_no_rconc_submodel")
+    >>> test("hland_96_no_rconc_submodel")
     |        date |    p |    t |   tc | fracrain | rfc | sfc |    cfact | swe | gact | contriarea |     pc |       ei |        tf | spl | wcl | spg | wcg | glmelt | melt | refr |       in_ |         r |  sr |       ea |       cf |      inuz |     perc |        q0 |  el |       q1 |      inrc |     outrc |        rt |       qt |       ic |  sp |  wc |         sm |        uz |        lz |   outlet |
     -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01/01 00:00 |  0.0 | 21.2 | 21.8 |      1.0 | 1.1 | 0.0 | 0.450977 | 0.0 |  0.0 |        1.0 |    0.0 |      0.0 |       0.0 | 0.0 | 0.0 | 0.0 | 0.0 |    0.0 |  0.0 |  0.0 |       0.0 |       0.0 | 0.0 | 0.048465 |      0.0 |       0.0 |      0.0 |       0.0 | 0.0 |     0.05 |      0.05 |      0.05 |      0.05 | 0.013889 |      0.0 | 0.0 | 0.0 |  99.951535 |       0.0 |      9.95 | 0.013889 |
@@ -460,12 +459,12 @@ For the next tests, we use the rconc submodel again:
 >>> with model.add_rconcmodel_v1("rconc_uh"):
 ...     uh("triangle", tb=3.0)
 
-.. _hland_v1_resparea:
+.. _hland_96_resparea:
 
 contributing area
 _________________
 
-We can substantially change the functioning of |hland_v1| by enabling its |RespArea|
+We can substantially change the functioning of |hland_96| by enabling its |RespArea|
 option, which decreases |Perc| but increases |Q0| in dry periods (more concretely: in
 periods with dry soils).  Hence the simulated result of |Perc| appears less "block-like"
 and reaches its maximum at the same time as the result of |SM| does, whereas |Q0| shows
@@ -474,7 +473,7 @@ more pronounced peaks in the initial subperiod when the soil is not saturated ye
 .. integration-test::
 
     >>> resparea(True)
-    >>> test("hland_v1_resparea")
+    >>> test("hland_96_resparea")
     |        date |    p |    t |   tc | fracrain | rfc | sfc |    cfact | swe | gact | contriarea |     pc |       ei |        tf | spl | wcl | spg | wcg | glmelt | melt | refr |       in_ |         r |  sr |       ea |       cf |      inuz |     perc |        q0 |  el |       q1 |      inrc |    outrc |       rt |       qt |       ic |  sp |  wc |         sm |        uz |        lz |   outlet |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01/01 00:00 |  0.0 | 21.2 | 21.8 |      1.0 | 1.1 | 0.0 | 0.450977 | 0.0 |  0.0 |   0.249758 |    0.0 |      0.0 |       0.0 | 0.0 | 0.0 | 0.0 | 0.0 |    0.0 |  0.0 |  0.0 |       0.0 |       0.0 | 0.0 | 0.048465 |      0.0 |       0.0 |      0.0 |       0.0 | 0.0 |     0.05 |      0.05 | 0.061111 | 0.061111 | 0.016975 |      0.0 | 0.0 | 0.0 |  99.951535 |       0.0 |      9.95 | 0.016975 |
@@ -579,7 +578,7 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _hland_v1_low_accuracy:
+.. _hland_96_low_accuracy:
 
 low accuracy
 ____________
@@ -593,7 +592,7 @@ peak of |Q0| is high above the peak of |R|, which is physically impossible:
 .. integration-test::
 
     >>> recstep(1)
-    >>> test("hland_v1_low_accuracy")
+    >>> test("hland_96_low_accuracy")
     |        date |    p |    t |   tc | fracrain | rfc | sfc |    cfact | swe | gact | contriarea |     pc |       ei |        tf | spl | wcl | spg | wcg | glmelt | melt | refr |       in_ |         r |  sr |       ea |       cf |      inuz |     perc |        q0 |  el |       q1 |      inrc |     outrc |        rt |       qt |       ic |  sp |  wc |         sm |       uz |        lz |   outlet |
     ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01/01 00:00 |  0.0 | 21.2 | 21.8 |      1.0 | 1.1 | 0.0 | 0.450977 | 0.0 |  0.0 |   0.249758 |    0.0 |      0.0 |       0.0 | 0.0 | 0.0 | 0.0 | 0.0 |    0.0 |  0.0 |  0.0 |       0.0 |       0.0 | 0.0 | 0.048465 |      0.0 |       0.0 |      0.0 |       0.0 | 0.0 |     0.05 |      0.05 |  0.061111 |  0.061111 | 0.016975 |      0.0 | 0.0 | 0.0 |  99.951535 |      0.0 |      9.95 | 0.016975 |
@@ -698,14 +697,14 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _hland_v1_sealed:
+.. _hland_96_sealed:
 
 sealed area
 ___________
 
-|hland_v1| tends to underestimate the runoff response to small or medium-sized rain
+|hland_96| tends to underestimate the runoff response to small or medium-sized rain
 events that fall on dry soils.  One means to improve the situation is to activate the
-:ref:`contributing area <hland_v1_resparea>` option.  Unfortunately, this option has the
+:ref:`contributing area <hland_96_resparea>` option.  Unfortunately, this option has the
 side-effect that decreasing the soil moisture increases the direct discharge released by
 the upper zone storage.  Defining sealed areas provides an alternative to the
 "contributing area" approach.  The following example shows that a zone classified as
@@ -718,7 +717,7 @@ that is most perceptible during dry conditions:
 
     >>> recstep(100)
     >>> zonetype(SEALED)
-    >>> test("hland_v1_sealed")
+    >>> test("hland_96_sealed")
     |        date |    p |    t |   tc | fracrain | rfc | sfc |    cfact | swe | gact | contriarea |     pc |       ei |        tf | spl | wcl | spg | wcg | glmelt | melt | refr |       in_ |         r |        sr |  ea |  cf | inuz | perc |  q0 |  el |  q1 |      inrc |     outrc |        rt |       qt |       ic |  sp |  wc |  sm |  uz |  lz |   outlet |
     ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01/01 00:00 |  0.0 | 21.2 | 21.8 |      1.0 | 1.1 | 0.0 | 0.450977 | 0.0 |  0.0 |        1.0 |    0.0 |      0.0 |       0.0 | 0.0 | 0.0 | 0.0 | 0.0 |    0.0 |  0.0 |  0.0 |       0.0 |       0.0 |       0.0 | 0.0 | 0.0 |  0.0 |  0.0 | 0.0 | 0.0 | 0.0 |       0.0 |      0.05 |      0.05 | 0.013889 |      0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.013889 |
@@ -823,7 +822,7 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _hland_v1_ilake:
+.. _hland_96_ilake:
 
 internal lake
 _____________
@@ -843,7 +842,7 @@ value of 13°C, resulting in a zero |EL| for the last day of the simulation peri
 
     >>> zonetype(ILAKE)
     >>> model.aetmodel.parameters.control.temperaturethresholdice(13.0)
-    >>> test("hland_v1_ilake")
+    >>> test("hland_96_ilake")
     |        date |    p |    t |   tc | fracrain | rfc | sfc | cfact | swe | gact | contriarea |     pc |  ei |     tf | spl | wcl | spg | wcg | glmelt | melt | refr |    in_ |      r |  sr |  ea |  cf | inuz | perc |  q0 |       el |       q1 |     inrc |    outrc |       rt |       qt |  ic |  sp |  wc |  sm |  uz |         lz |   outlet |
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01/01 00:00 |  0.0 | 21.2 | 21.8 |      1.0 | 1.1 | 0.0 |   0.0 | 0.0 |  0.0 |        1.0 |    0.0 | 0.0 |    0.0 | 0.0 | 0.0 | 0.0 | 0.0 |    0.0 |  0.0 |  0.0 |    0.0 |    0.0 | 0.0 | 0.0 | 0.0 |  0.0 |  0.0 | 0.0 | 0.077544 | 0.049612 | 0.049612 | 0.061025 | 0.061025 | 0.016951 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |   9.872843 | 0.016951 |
@@ -948,7 +947,7 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _hland_v1_snow_classes:
+.. _hland_96_snow_classes:
 
 snow classes
 ____________
@@ -980,7 +979,7 @@ releases its meltwater later.  Also, it takes longer until it is finally snow-fr
 
 .. integration-test::
 
-    >>> test("hland_v1_snow_classes")
+    >>> test("hland_96_snow_classes")
     |        date |    p |     t |    tc | fracrain | rfc | sfc |    cfact |                    swe | gact | contriarea |     pc |       ei |        tf | spl | wcl | spg | wcg | glmelt |               melt |      refr |       in_ |        r |  sr |       ea |       cf |      inuz |     perc |       q0 |  el |       q1 |     inrc |    outrc |       rt |       qt |       ic |                     sp |                   wc |         sm |        uz |        lz |   outlet |
     ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01/01 00:00 |  0.0 | -20.0 | -19.4 |      0.0 | 0.0 | 1.3 | 0.450977 |        0.0         0.0 |  0.0 |    0.24978 |    0.0 |      0.0 |       0.0 | 0.0 | 0.0 | 0.0 | 0.0 |    0.0 |      0.0       0.0 | 0.0   0.0 |       0.0 |      0.0 | 0.0 | 0.044059 |      0.0 |       0.0 |      0.0 |      0.0 | 0.0 |     0.05 |     0.05 | 0.061111 | 0.061111 | 0.016975 |      0.0 |        0.0         0.0 |       0.0        0.0 |  99.955941 |       0.0 |      9.95 | 0.016975 |
@@ -1085,7 +1084,7 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _hland_v1_glacier:
+.. _hland_96_glacier:
 
 glacier
 _______
@@ -1104,7 +1103,7 @@ to |GMelt| being larger than |CFMax|:
 .. integration-test::
 
     >>> zonetype(GLACIER)
-    >>> test("hland_v1_glacier")
+    >>> test("hland_96_glacier")
     |        date |    p |     t |    tc | fracrain | rfc | sfc |    cfact |                    swe |     gact | contriarea |     pc |  ei |     tf | spl | wcl | spg | wcg |    glmelt |               melt |      refr |       in_ |         r |  sr |  ea |  cf |      inuz | perc |        q0 |  el |       q1 |      inrc |     outrc |        rt |       qt |  ic |                     sp |                   wc |  sm |        uz |        lz |   outlet |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01/01 00:00 |  0.0 | -20.0 | -19.4 |      0.0 | 0.0 | 1.3 | 0.450977 |        0.0         0.0 | 0.901953 |        1.0 |    0.0 | 0.0 |    0.0 | 0.0 | 0.0 | 0.0 | 0.0 |       0.0 |      0.0       0.0 | 0.0   0.0 |       0.0 |       0.0 | 0.0 | 0.0 | 0.0 |       0.0 |  0.0 |       0.0 | 0.0 |     0.05 |      0.05 |  0.061111 |  0.061111 | 0.016975 | 0.0 |        0.0         0.0 |       0.0        0.0 | 0.0 |       0.0 |      9.95 | 0.016975 |
@@ -1209,7 +1208,7 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _hland_v1_multiple_zones:
+.. _hland_96_multiple_zones:
 
 multiple zones
 ______________
@@ -1218,7 +1217,7 @@ All of the above examples deal with a subbasin consisting of a single zone.  Hen
 none of them is suitable to check if, for instance, the aggregation of fluxes
 addressing different spatial extents does not introduce errors into the water balance.
 The following example fills this gap.  We restore the initial
-:ref:`field example <hland_v1_field>` settings, except defining five zones of different
+:ref:`field example <hland_96_field>` settings, except defining five zones of different
 land-use types and sizes.  The variations between the responses of the land-use
 types are as to be expected:
 
@@ -1248,7 +1247,7 @@ types are as to be expected:
     >>> petcontrol.precipitationfactor(0.1)
     >>> inputs.t.series = t_series
     >>> petinputs.normalairtemperature.series = tn_series
-    >>> test("hland_v1_multiple_zones")
+    >>> test("hland_96_multiple_zones")
     |        date |    p |    t |                           tc |                     fracrain |                     rfc |                     sfc |                                       cfact |                     swe |                          gact | contriarea |                                     pc |                                     ei |                                              tf |                     spl |                     wcl |                     spg |                     wcg |                           glmelt |                     melt |                     refr |                                                in_ |                                                  r |                            sr |                                ea |                                cf |      inuz | perc |        q0 |                           el |       q1 |      inrc |     outrc |        rt |        qt |                                     ic |                      sp |                      wc |                                    sm |        uz |        lz |    outlet |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01/01 00:00 |  0.0 | 21.2 | 21.8  21.8  21.8  21.8  21.8 | 1.0  1.0  1.0  1.0       1.0 | 1.1  1.1  1.1  1.1  1.1 | 0.0  0.0  0.0  0.0  0.0 | 0.450977  0.450977  0.450977  0.0  0.450977 | 0.0  0.0  0.0  0.0  0.0 | 0.0  0.0  0.901953  0.0   0.0 |        1.0 |    0.0     0.0     0.0     0.0     0.0 |      0.0       0.0  0.0  0.0       0.0 |       0.0        0.0     0.0     0.0        0.0 | 0.0  0.0  0.0  0.0  0.0 | 0.0  0.0  0.0  0.0  0.0 | 0.0  0.0  0.0  0.0  0.0 | 0.0  0.0  0.0  0.0  0.0 | 0.0  0.0  18.760624  0.0     0.0 | 0.0  0.0  0.0  0.0   0.0 | 0.0  0.0  0.0  0.0   0.0 |       0.0        0.0  18.760624     0.0        0.0 |       0.0        0.0  18.760624     0.0        0.0 | 0.0  0.0  0.0  0.0        0.0 | 0.048465  0.048465  0.0  0.0  0.0 |      0.0       0.0  0.0  0.0  0.0 |  4.690156 |  0.5 |  0.018623 | 0.0  0.0  0.0  0.077544  0.0 | 0.052087 |  0.063513 |  0.064114 |  0.064114 |  0.267142 |      0.0       0.0  0.0  0.0       0.0 | 0.0  0.0  0.0  0.0  0.0 | 0.0  0.0  0.0  0.0  0.0 |  99.951535   99.951535  0.0  0.0  0.0 |  4.171533 | 10.365406 |  0.267142 |
@@ -1353,7 +1352,7 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _hland_v1_snow_redistribution_1:
+.. _hland_96_snow_redistribution_1:
 
 snow redistribution 1
 _____________________
@@ -1411,7 +1410,7 @@ snow redistribution above |SRED| (again, please also read the documentation on m
 
 .. integration-test::
 
-    >>> test("hland_v1_snow_redistribution_1",
+    >>> test("hland_96_snow_redistribution_1",
     ...      axis1=(states.sp, states.wc), axis2=(factors.tc, fluxes.pc))
     |        date |    p |    t |                         tc |                     fracrain |                      rfc |                      sfc |                                       cfact |                                                 swe |                          gact | contriarea |                                        pc |                                ei |                                          tf |                                                 spl |                                             wcl |                                                 spg |                                             wcg |                     glmelt |                          melt |                               refr |                                    in_ |                                    r |                      sr |                      ea |                                cf |      inuz |     perc |       q0 |                      el |       q1 |     inrc |    outrc |       rt |       qt |                                  ic |                                                  sp |                                                  wc |                                    sm |       uz |        lz |   outlet |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1520,12 +1519,12 @@ There is no indication of an error in the water balance:
 >>> sclass(2)
 >>> sfdist(linear=0.2)
 
-.. _hland_v1_snow_redistribution_2:
+.. _hland_96_snow_redistribution_2:
 
 snow redistribution 2
 _____________________
 
-The example :ref:`hland_v1_snow_redistribution_1` assumes uniform snow distributions
+The example :ref:`hland_96_snow_redistribution_1` assumes uniform snow distributions
 within all zones.  Here, we introduce some heterogeneity by defining two snow classes
 for each zone:
 
@@ -1538,7 +1537,7 @@ or redistributed snow while the second one already routes it to the next lower z
 
 .. integration-test::
 
-    >>> test("hland_v1_snow_redistribution_2", axis1=(states.sp, states.wc))
+    >>> test("hland_96_snow_redistribution_2", axis1=(states.sp, states.wc))
     |        date |    p |    t |                         tc |                     fracrain |                      rfc |                      sfc |                                       cfact |                                                                                                      swe |                          gact | contriarea |                                        pc |                                ei |                                          tf |                                                 spl |                                             wcl |                                                 spg |                                             wcg |                     glmelt |                                                        melt |                                                   refr |                                  in_ |                                    r |                      sr |                      ea |                                cf |      inuz |     perc |       q0 |                      el |       q1 |     inrc |    outrc |       rt |       qt |                                  ic |                                                                                                       sp |                                                                                                       wc |                                    sm |       uz |        lz |   outlet |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01/01 00:00 |  0.0 | -0.4 | 6.2  0.2  -11.8  6.2  -5.8 | 1.0  0.6  0.0  1.0       0.0 | 1.1  0.66  0.0  1.1  0.0 | 0.0  0.52  1.3  0.0  1.3 | 0.450977  0.450977  0.450977  0.0  0.450977 |        0.0         0.0         0.0  0.0         0.0         0.0         0.0         0.0  0.0         0.0 | 0.0  0.0  0.901953  0.0   0.0 |        1.0 |    0.0      0.0      0.0     0.0      0.0 | 0.0       0.0  0.0  0.0       0.0 |    0.0       0.0      0.0     0.0       0.0 |        0.0         0.0         0.0  0.0         0.0 |       0.0        0.0        0.0  0.0        0.0 |        0.0         0.0         0.0  0.0         0.0 |       0.0        0.0        0.0  0.0        0.0 | 0.0  0.0  0.0  0.0     0.0 |      0.0  0.0  0.0  0.0  0.0       0.0  0.0  0.0  0.0   0.0 | 0.0   0.0   0.0  0.0   0.0  0.0   0.0   0.0  0.0   0.0 |      0.0       0.0  0.0     0.0  0.0 |      0.0       0.0  0.0     0.0  0.0 | 0.0  0.0  0.0  0.0  0.0 | 0.0  0.0  0.0  0.0  0.0 |      0.0       0.0  0.0  0.0  0.0 |       0.0 |      0.0 |      0.0 | 0.0  0.0  0.0  0.0  0.0 |     0.05 | 0.046667 |  0.06037 |  0.06037 | 0.251543 |   0.0       0.0  0.0  0.0       0.0 |        0.0         0.0         0.0  0.0         0.0         0.0         0.0         0.0  0.0         0.0 |        0.0         0.0         0.0  0.0         0.0         0.0         0.0         0.0  0.0         0.0 |      100.0       100.0  0.0  0.0  0.0 |      0.0 |      9.95 | 0.251543 |
@@ -1667,7 +1666,11 @@ class Model(
     hland_model.Sub_SoilWaterModel_V1,
     hland_model.Sub_SnowCoverModel_V1,
 ):
-    """HBV96 version of HydPy-H-Land (|hland_v1|)."""
+    """|hland_96.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="H-HBV96", description="adoption of SMHI-IHMS-HBV96"
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
@@ -1770,7 +1773,7 @@ class Model(
 
         Pick the required initial conditions before starting the simulation run via
         property |Sequences.conditions|.  See the integration tests of the application
-        model |hland_v1| for some examples.
+        model |hland_96| for some examples.
         """
         derived = self.parameters.derived
         fluxes = self.sequences.fluxes
@@ -1800,7 +1803,7 @@ class Model(
 
 
 class Masks(masktools.Masks):
-    """Masks applicable to |hland_v1|."""
+    """Masks applicable to |hland_96|."""
 
     CLASSES = hland_masks.Masks.CLASSES
 

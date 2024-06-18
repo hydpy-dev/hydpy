@@ -235,7 +235,9 @@ class Get_Outflow_V1(modeltools.Method):
 
 
 class Model(modeltools.AdHocModel):
-    """The HydPy-Rconc base model."""
+    """|rconc.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="Rconc")
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

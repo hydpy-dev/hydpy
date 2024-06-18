@@ -42,7 +42,8 @@ The following time-related setup is identical to the one of |dam_v001|:
 >>> pub.timegrids = "01.01.2000", "21.01.2000",  "1d"
 
 Due to the high complexity of |dam_v005| and our test setting, which includes two
-instances of another model type  (|arma_v1|), we need to define lots of |Node| objects:
+instances of another model type  (|arma_rimorido|), we need to define lots of |Node|
+objects:
 
 >>> from hydpy import Node
 >>> inflow = Node("inflow", variable="Q")
@@ -91,15 +92,15 @@ use cases of |dam_v005|.  However, we do not want to further bloat up the alread
 scenario setting.  Hence, we prefer to apply a predefined discharge time series instead
 of dynamically calculating the remote location discharges.
 
-We configure both |arma_v1| models, the |IntegrationTest| object, and the initial
+We configure both |arma_rimorido| models, the |IntegrationTest| object, and the initial
 conditions precisely as in the |dam_v001| examples:
 
 >>> from hydpy import prepare_model
->>> stream2.model = prepare_model("arma_v1")
+>>> stream2.model = prepare_model("arma_rimorido")
 >>> stream2.model.parameters.control.responses(((), (1.0,)))
 >>> stream2.model.parameters.update()
 
->>> stream1.model = prepare_model("arma_v1")
+>>> stream1.model = prepare_model("arma_rimorido")
 >>> stream1.model.parameters.control.responses(((), (0.2, 0.4, 0.3, 0.1)))
 >>> stream1.model.parameters.update()
 

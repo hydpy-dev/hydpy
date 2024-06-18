@@ -1,59 +1,57 @@
 # -*- coding: utf-8 -*-
 """
-Version 1 of the HydPy-ARMA model generalises the RIMO/RIDO flood routing approach.
+|arma_rimorido| relies on the RIMO/RIDO method, which is based on the `translation
+diffusion equation`, which is a linear approximation of the Saint-Venant equations
+involving only two parameters - one for the celerity and one for the diffusivity of the
+flood wave.  The linearity of the approach allows for constructing Unit Hydrograph
+ordinates for each specific combination of celerity, diffusivity, and the length of the
+considered river section.  One can understand these ordinates as coefficients of a
+moving average (MA) process.
 
-RIMO/RIDO is based on the `translation diffusion equation`, which is a linear
-approximation on the Saint-Venant equations involving only two parameters - one for the
-celerity and one for the diffusivity of the flood wave.  The linearity of the approach
-allows for constructing Unit Hydrograph ordinates for each specific combination of
-celerity, diffusivity, and the length of the considered river section.  One can
-understand these ordinates as coefficients of a moving average (MA) process.
-
-RIMO/RIDO adds two additional features to this conventional approach.
+|arma_rimorido| adds two additional features to this conventional approach.
 
 Firstly, RIMO/RIDO approximates the response function described by the MA coefficients
-by an ARMA process, which is useful for response functions with long tails.  Very
-often, autoregressive (AR) models are capable of approximating long-tailed responses
-sufficiently with few parameters.  Hence, using ARMA models (which reflect the rising
-limb of a response function with their MA coefficients its falling limb with their AR
-coefficients) is often more parameter efficient than using pure MA models.
+by an ARMA process, which is helpful for response functions with long tails.  Very
+often, autoregressive (AR) modelscan approximate long-tailed responses sufficiently
+with few parameters.  Hence, ARMA models (which reflect the rising limb of a response
+function with their MA coefficients and its falling limb with their AR coefficients)
+are often more parameter efficient than pure MA models.
 
 Secondly, RIMO/RIDO separates the flow into the river section into different "portions"
-based on discharge threshold. Each portion is routed by a separate ARMA model, allowing
-to factor in the nonlinearity of rating curves to a certain degree.  For example, the
-bank-full discharge can serve as a threshold.  Then one can apply smaller celerity
-values and larger diffusivity values on the "upper" flow portion to simulate retention
-processes on flood-plains.
+based on discharge thresholds.  Each portion is routed by a separate ARMA model,
+allowing RIMO/RIDO to reflect the nonlinearity of rating curves to a certain degree.
+For example, the bank-full discharge can serve as a threshold.  Then, one can apply
+smaller celerity values and larger diffusivity values on the "upper" flow portion to
+simulate retention processes on floodplains.
 
-If you want to apply |arma_v1| precisely like RIMO/RIDO, consider using
-|TranslationDiffusionEquation| for calculating its coefficients.  But you are free to
-define other parameters, e.g. those of the |LinearStorageCascade|. Additionally, you
-are free to apply combined ARMA coefficients or pure MA coefficients only, as described
-in the following examples.
+If you want to apply |arma_rimorido| precisely like RIMO/RIDO, consider using
+|TranslationDiffusionEquation| for calculating its coefficients.  But you can also
+define them differently, e.g. using |LinearStorageCascade|. Additionally, you are free
+to apply combined ARMA coefficients or pure MA coefficients only, as described in the
+following examples.
 
 Integration tests
 =================
 
 .. how_to_understand_integration_tests::
 
-The following tests are performed over a period of 20 hours:
+We perform the following tests over 20 hours:
 
 >>> from hydpy import pub, Nodes, Element
 >>> pub.timegrids = "01.01.2000 00:00",  "01.01.2000 20:00", "1h"
 
 Import the model and define the time settings:
 
->>> from hydpy.models.arma_v1 import *
+>>> from hydpy.models.arma_rimorido import *
 >>> parameterstep("1h")
 
-For testing purposes, the model input shall be retrieved from the nodes `input1` and
-`input2` and the model output shall be passed to node `output`.  Firstly, define all
-nodes:
+For testing purposes, |arma_rimorido| shall retrieve its input from the nodes `input1`
+and `input2` and pass its output to the node `output`.  Firstly, we define all nodes:
 
 >>> nodes = Nodes("input1", "input2", "output")
 
 Define the element `stream` and build the connections between the nodes defined above
-and the |arma_v1| model instance:
+and the |arma_rimorido| model instance:
 
 >>> stream = Element("stream",
 ...                  inlets=["input1", "input2"],
@@ -62,7 +60,7 @@ and the |arma_v1| model instance:
 
 Prepare a test function object, which prints the respective values of the model
 sequences |QIn|, |QPIn|, |QPOut|, and |QOut|.  The node sequence `sim` is added in
-order to prove that the values calculated for |QOut| are actually passed to `sim`:
+to that the values calculated for |QOut| are actually passed to `sim`:
 
 >>> from hydpy import IntegrationTest
 >>> IntegrationTest.plotting_options.activated=(
@@ -78,11 +76,11 @@ To start the respective example runs from stationary conditions, a base flow val
 >>> test.inits = ((logs.login, 2.0),
 ...               (logs.logout, 2.0))
 
-Print just the time instead of the whole date:
+We want to print just the time instead of the whole date:
 
 >>> test.dateformat = "%H:%M"
 
-Define two flood events, one for each lake inflow:
+We define two flood events, one for each inlet node:
 
 >>> nodes.input1.sequences.sim.series = (
 ...     1.0, 1.0, 2.0, 4.0, 3.0, 2.0, 1.0, 1.0, 1.0, 1.0,
@@ -91,22 +89,22 @@ Define two flood events, one for each lake inflow:
 ...     1.0, 2.0, 6.0, 9.0, 8.0, 6.0, 4.0, 3.0, 2.0, 1.0,
 ...     1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
 
-.. _arma_v1_ma:
+.. _arma_rimorido_ma:
 
 MA coefficients
 _______________
 
-In the first example, a pure fourth order moving avarage (MA) process is defined via
-the control parameter |Responses|:
+In the first example, we define a pure fourth-order moving average (MA) process via the
+control parameter |Responses|:
 
 >>> responses(((), (0.2, 0.4, 0.3, 0.1)))
 
-This leads to a usual "unit hydrograph" convolution result, where all inflow "impulses"
-are separated onto the actual and the three subsequent time steps:
+This configuration leads to a usual "unit hydrograph" convolution result, where all
+inflow "impulses" are separated into the actual and the three subsequent time steps:
 
 .. integration-test::
 
-    >>> test("arma_v1_ma")
+    >>> test("arma_rimorido_ma")
     |  date |  qin | qpin | qpout | qout | output |
     -----------------------------------------------
     | 00:00 |  2.0 |  2.0 |   2.0 |  2.0 |    2.0 |
@@ -130,12 +128,12 @@ are separated onto the actual and the three subsequent time steps:
     | 18:00 |  2.0 |  2.0 |   2.0 |  2.0 |    2.0 |
     | 19:00 |  2.0 |  2.0 |   2.0 |  2.0 |    2.0 |
 
-.. _arma_v1_arma:
+.. _arma_rimorido_arma:
 
 ARMA coefficients
 _________________
 
-Now we set the order of the MA process to the smalles possible value, which is one.
+Now, we set the order of the MA process to the smallest possible value, which is one.
 The autoregression (AR) process is of order two.  Note that negative AR coefficients
 are allowed (also note the opposite signs of the coefficients in contrast to the
 statistical literature):
@@ -147,7 +145,7 @@ is theoretically infinite:
 
 .. integration-test::
 
-    >>> test("arma_v1_arma")
+    >>> test("arma_rimorido_arma")
     |  date |  qin | qpin |    qpout |     qout |   output |
     --------------------------------------------------------
     | 00:00 |  2.0 |  2.0 |      2.0 |      2.0 |      2.0 |
@@ -171,19 +169,19 @@ is theoretically infinite:
     | 18:00 |  2.0 |  2.0 | 2.045705 | 2.045705 | 2.045705 |
     | 19:00 |  2.0 |  2.0 | 2.027863 | 2.027863 | 2.027863 |
 
-.. _arma_v1_delay:
+.. _arma_rimorido_delay:
 
 Increased delay
 _______________
 
-This example equals the second one, except in the additional time delay of exactly one
-hour, due to the changed MA process:
+This example is identical to the second one, except for the additional time delay of
+exactly one hour due to the changed MA process:
 
 >>> responses(((1.1, -0.3), (0.0, 0.2)))
 
 .. integration-test::
 
-    >>> test("arma_v1_delay")
+    >>> test("arma_rimorido_delay")
     |  date |  qin | qpin |    qpout |     qout |   output |
     --------------------------------------------------------
     | 00:00 |  2.0 |  2.0 |      2.0 |      2.0 |      2.0 |
@@ -207,23 +205,24 @@ hour, due to the changed MA process:
     | 18:00 |  2.0 |  2.0 | 2.074708 | 2.074708 | 2.074708 |
     | 19:00 |  2.0 |  2.0 | 2.045705 | 2.045705 | 2.045705 |
 
-.. _arma_v1_negative_discharge:
+.. _arma_rimorido_negative_discharge:
 
 Negative discharge
 __________________
 
-In some hydrological applications, the inflow into a channel might be lower than 0 m³/s
-at times.  |arma| generally routes such negative discharges using the response function
-with the lowest discharge threshold.  When we repeat the calculation of the
-:ref:`arma_v1_delay` example with inflow constantly decreased by 3 m³/s, the outflow is
-also constantly decreased by 3 m³/s and many simulated values are negative:
+In some hydrological applications, the inflow into a channel might sometimes be lower
+than 0 m³/s.  |arma_rimorido| generally routes such negative discharges using the
+response function with the lowest discharge threshold.  When we repeat the calculation
+of the :ref:`arma_rimorido_delay` example with inflow constantly decreased by 3 m³/s,
+the outflow is also constantly decreased by 3 m³/s, and many simulated values are
+negative:
 
 .. integration-test::
 
     >>> nodes.input1.sequences.sim.series -= 3.0
     >>> test.inits = ((logs.login, -1.0),
     ...               (logs.logout, -1.0))
-    >>> test("arma_v1_negative_discharge")
+    >>> test("arma_rimorido_negative_discharge")
     |  date |  qin | qpin |     qpout |      qout |    output |
     -----------------------------------------------------------
     | 00:00 | -1.0 | -1.0 |      -1.0 |      -1.0 |      -1.0 |
@@ -251,22 +250,22 @@ also constantly decreased by 3 m³/s and many simulated values are negative:
 >>> test.inits = ((logs.login, 2.0),
 ...               (logs.logout, 2.0))
 
-.. _arma_v1_plausibility:
+.. _arma_rimorido_plausibility:
 
 Plausibility
 ____________
 
-Be aware that neither parameter |Responses| does check the assigned coefficients nor
-does model |arma_v1| check the calculated outflow for plausibility (one can use the
-features provided in modules |iuhtools| and |armatools| to calculate reliable
-coefficients).  The fourth example increases the span of the AR coefficients used in
-the third example.  The complete ARMA process is still mass conservative, but some
-response values of the recession curve are negative:
+Be aware that neither parameter |Responses| checks the assigned coefficients nor does
+|arma_rimorido| check the calculated outflow for plausibility (one can use the features
+provided in modules |iuhtools| and |armatools| to calculate reliable coefficients).
+The fourth example increases the span of the AR coefficients used in the third example.
+The complete ARMA process is still mass conservative, but some response values of the
+recession curve are negative:
 
 .. integration-test::
 
     >>> responses(((1.5, -0.7), (0.0, 0.2)))
-    >>> test("arma_v1_plausibility")
+    >>> test("arma_rimorido_plausibility")
     |  date |  qin | qpin |     qpout |      qout |    output |
     -----------------------------------------------------------
     | 00:00 |  2.0 |  2.0 |       2.0 |       2.0 |       2.0 |
@@ -290,23 +289,22 @@ response values of the recession curve are negative:
     | 18:00 |  2.0 |  2.0 |  2.014753 |  2.014753 |  2.014753 |
     | 19:00 |  2.0 |  2.0 |  2.494044 |  2.494044 |  2.494044 |
 
-.. _arma_v1_nonlinearity:
+.. _arma_rimorido_nonlinearity:
 
 Nonlinearity
 ____________
 
-
-In the next example, the coefficients of the first two examples are combined.  For
-inflow discharges between 0 and 7 m³/s, the pure AR process is applied.  For inflow
-discharges exceeding 7 m³/s, inflow is separated.  The AR process is still applied on a
-portion of 7 m³/s, but for the inflow exceeding the threshold the mixed ARMA model is
-applied:
+In the following example, we combine the coefficients of the first two examples.
+Between inflow values of 0 and 7 m³/s, the pure AR process is applied.  For inflow
+discharges exceeding 7 m³/s, inflow is separated.  The AR process is still applied on
+the portion of 7 m³/s, but for the inflow exceeding this threshold, the mixed ARMA
+model is applied:
 
 >>> responses(_0=((), (0.2, 0.4, 0.3, 0.1)),
 ...           _7=((1.1, -0.3), (0.2,)))
 
-To again start from stationary conditions, one has to apply different values to both
-log sequences.  The base flow value of 2 m³/s is only given to the (low flow) MA model,
+To start from stationary conditions again, one has to apply different values to both
+log sequences.  The base flow value of 2 m³/s is only given to the (low flow) MA model;
 the (high flow) ARMA model is initialized with zero values instead:
 
 >>> test.inits.login = [[2.0], [0.0]]
@@ -314,12 +312,12 @@ the (high flow) ARMA model is initialized with zero values instead:
 
 The separate handling of the inflow can be studied by inspecting the columns of
 sequence |QPIn| and sequence |QPOut|.  The respective left columns show the input and
-output of the MA model, the respective right colums show the input and output of the
-ARMA model:
+output of the MA model, and the respective right columns show the input and output of
+the ARMA model:
 
 .. integration-test::
 
-    >>> test("arma_v1_nonlinearity")
+    >>> test("arma_rimorido_nonlinearity")
     |  date |  qin |      qpin |         qpout |     qout |   output |
     ------------------------------------------------------------------
     | 00:00 |  2.0 | 2.0   0.0 | 2.0       0.0 |      2.0 |      2.0 |
@@ -354,7 +352,12 @@ from hydpy.models.arma import arma_model
 
 
 class Model(modeltools.AdHocModel):
-    """Rimo/Rido version of HydPy-ARMA."""
+    """|arma_rimorido.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="ARMA-RIMO/RIDO",
+        description="nonlinear routing by multiple ARMA processes",
+    )
 
     INLET_METHODS = (arma_model.Pick_Q_V1,)
     RECEIVER_METHODS = ()

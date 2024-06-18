@@ -46,10 +46,10 @@ We perform all of the following examples over 20 days:
 
 The first examples demonstrate how |dam_v001| reduces drought events at a cross-section
 far downstream under different configurations.  In real cases, this requires taking the
-travel time of the released water into account.  Therefore, we will use the |arma_v1|
-application model to route the dam's outflow to the cross-section under investigation.
-Furthermore, we add some "natural" discharge to the cross-section, reflecting the
-influence of the subcatchment between the dam and the cross-section.
+travel time of the released water into account.  Therefore, we will use the
+|arma_rimorido| application model to route the dam's outflow to the cross-section under
+investigation.  Furthermore, we add some "natural" discharge to the cross-section,
+reflecting the influence of the subcatchment between the dam and the cross-section.
 
 We define four |Node| objects:
 
@@ -68,10 +68,10 @@ We define four |Node| objects:
 We use these nodes to connect the following three elements:
 
  * Element `dam` handles the tested |dam_v001| model instance.
- * Element `stream1` uses one |arma_v1| model instance to route the dam's outflow with
-   significant delay.
- * Element `stream2` uses another |arma_v1| model instance to pass the subcatchment's
-   additional discharge without delay.
+ * Element `stream1` uses one |arma_rimorido| model instance to route the dam's outflow
+   with significant delay.
+ * Element `stream2` uses another |arma_rimorido| model instance to pass the
+   subcatchment's additional discharge without delay.
 
 >>> from hydpy import Element
 >>> dam = Element("dam", inlets=inflow, outlets=outflow, receivers=remote)
@@ -83,14 +83,14 @@ Setting the |arma_control.Responses| parameter in the following manner defines a
 Moving Average model that neither results in translation nor retention:
 
 >>> from hydpy import prepare_model
->>> stream2.model = prepare_model("arma_v1")
+>>> stream2.model = prepare_model("arma_rimorido")
 >>> stream2.model.parameters.control.responses(((), (1.0,)))
 >>> stream2.model.parameters.update()
 
 `stream2` also works like a pure Moving Average model but causes a time delay of
 1.8 days:
 
->>> stream1.model = prepare_model("arma_v1")
+>>> stream1.model = prepare_model("arma_rimorido")
 >>> stream1.model.parameters.control.responses(((), (0.2, 0.4, 0.3, 0.1)))
 >>> stream1.model.parameters.update()
 

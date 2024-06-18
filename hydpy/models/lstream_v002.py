@@ -304,10 +304,10 @@ but leads to comparable results.
 Note that, even when used as a linear storage cascade, |lstream_v002| still relies
 on the numerical integration of its set of differential equations.  Hence, it is
 computationally less efficient than Unit Hydrograph based approaches like those
-implemented in application model |arma_v1|, especially for short channels and high
-numbers of channel subsections.  On the other hand, |lstream_v002| only requires the
-actual water volume stored in the subsections for describing its current state,
-which is more concise and understandable than the logged values of |arma_v1| and
+implemented in application model |arma_rimorido|, especially for short channels and
+high numbers of channel subsections.  On the other hand, |lstream_v002| only requires
+the actual water volume stored in the subsections for describing its current state,
+which is more concise and understandable than the logged values of |arma_rimorido| and
 can simplify the coupling with data assimilation approaches.
 
 .. integration-test::

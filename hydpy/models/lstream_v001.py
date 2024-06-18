@@ -23,7 +23,7 @@ following structure:
 A running |lstream_v001| model consists of a several equally long
 channel-subsections, which one can understand as an array of nonlinear
 storages.  This nonlinearity is computationally more demanding than using
-linear approaches (for example, the linear storage cascade, see |arma_v1|
+linear approaches (for example, the linear storage cascade, see |arma_rimorido|
 and |LinearStorageCascade|). Still, it allows to model changes in velocity
 due to rising or falling water stages more easily.
 

@@ -439,7 +439,9 @@ class Pass_Q_V1(modeltools.Method):
 
 
 class Model(modeltools.AdHocModel):
-    """Base model ARMA."""
+    """|arma.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="ARMA")
 
     INLET_METHODS = (Pick_Q_V1,)
     RECEIVER_METHODS = ()

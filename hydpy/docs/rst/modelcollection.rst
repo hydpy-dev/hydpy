@@ -29,8 +29,8 @@ and order.
 If not stated otherwise, all models can be freely combined and applied
 on arbitrary simulation time steps.  It is, for example, possible to
 simulate the "land processes" with |hland_v1|, the "stream processes"
-with |arma_v1|, the "dam processes" with |dam_v001| in either a daily
-or hourly time step.
+with |arma_rimorido|, the "dam processes" with |dam_v001| in either a
+daily or hourly time step.
 
 Often base models offer different versions of a method to calculate the
 value of the same variable.  For example, base model |dam| offers two

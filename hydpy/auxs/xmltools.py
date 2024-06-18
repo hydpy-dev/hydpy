@@ -2471,7 +2471,7 @@ class XSDWriter:
                 </sequence>
             </complexType>
         ...
-            <complexType name="arma_v1_writerType">
+            <complexType name="arma_rimorido_writerType">
                 <sequence>
                     <element name="fluxes"
                              minOccurs="0">
@@ -2494,8 +2494,8 @@ class XSDWriter:
                     <element name="node"
                              type="hpcb:node_writerType"
                              minOccurs="0"/>
-                    <element name="arma_v1"
-                             type="hpcb:arma_v1_writerType"
+                    <element name="arma_rimorido"
+                             type="hpcb:arma_rimorido_writerType"
                              minOccurs="0"/>
         ...
                     <element name="wq_trapeze_strickler"
@@ -2573,7 +2573,7 @@ class XSDWriter:
         ...
             </element>
 
-        >>> model = prepare_model("arma_v1")
+        >>> model = prepare_model("arma_rimorido")
         >>> XSDWriter.get_modelinsertion(
         ...     model=model, type_="reader", indent=1)  # doctest: +ELLIPSIS
         >>> print(XSDWriter.get_modelinsertion(
@@ -2702,8 +2702,8 @@ class XSDWriter:
                     <element name="node"
                              type="hpcb:node_writerType"
                              minOccurs="0"/>
-                    <element name="arma_v1"
-                             type="hpcb:arma_v1_writerType"
+                    <element name="arma_rimorido"
+                             type="hpcb:arma_rimorido_writerType"
                              minOccurs="0"/>
         ...
                     <element name="wq_trapeze_strickler"
@@ -2743,11 +2743,11 @@ class XSDWriter:
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_exchangeinsertion())  # doctest: +ELLIPSIS
-            <complexType name="arma_v1_mathitemType">
+            <complexType name="arma_rimorido_mathitemType">
         ...
             <element name="setitems">
         ...
-            <complexType name="arma_v1_setitemsType">
+            <complexType name="arma_rimorido_setitemsType">
         ...
             <element name="additems">
         ...
@@ -2772,7 +2772,7 @@ class XSDWriter:
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_mathitemsinsertion(1))  # doctest: +ELLIPSIS
-            <complexType name="arma_v1_mathitemType">
+            <complexType name="arma_rimorido_mathitemType">
                 <complexContent>
                     <extension base="hpcb:mathitemType">
                         <choice>
@@ -2955,7 +2955,7 @@ class XSDWriter:
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_itemtypesinsertion(
         ...     "setitems", 1))  # doctest: +ELLIPSIS
-            <complexType name="arma_v1_setitemsType">
+            <complexType name="arma_rimorido_setitemsType">
         ...
             </complexType>
         <BLANKLINE>

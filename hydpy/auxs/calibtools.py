@@ -2032,14 +2032,14 @@ object named `fc`.
         understand them before proceeding.
 
         We again use the `Lahn` example project but replace the |musk_classic| model
-        instances with those of application model |arma_v1|, which allows discussing
-        some special cases concerning the handling of |RuleIUH|:
+        instances with those of application model |arma_rimorido|, which allows
+        discussing some special cases concerning the handling of |RuleIUH|:
 
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import prepare_model
         >>> for element in hp.elements.river:
-        ...     element.model = prepare_model("arma_v1")
+        ...     element.model = prepare_model("arma_rimorido")
         ...     element.model.parameters.control.responses([[], [1.0]])
         ...     element.model.parameters.update()
 
@@ -2063,7 +2063,7 @@ parameterstep="1d"))
         ...                          selections=("headwaters", "nonheadwaters"),
         ...                          product=True))
 
-        Regarding |arma_v1|, we cannot calibrate the values of parameter
+        Regarding |arma_rimorido|, we cannot calibrate the values of parameter
         |arma_control.Responses| in a meaningful way.  So instead, we use the
         |LinearStorageCascade| as a meta-model and calibrate its parameters
         |LinearStorageCascade.k| and |LinearStorageCascade.n|:
@@ -2356,9 +2356,10 @@ class ReplaceIUH(RuleIUH):
     calibration parameter values.
 
     Usually, it is not a good idea to calibrate the AR and MA coefficients of
-    parameters like |arma_control.Responses| of model |arma_v1| individually.  Instead,
-    we need to calibrate the few coefficients of the underlying |IUH| objects, which
-    calculate the ARMA coefficients.  Class |ReplaceIUH| helps to accomplish this task.
+    parameters like |arma_control.Responses| of model |arma_rimorido| individually.
+    Instead, we need to calibrate the few coefficients of the underlying |IUH| objects,
+    which calculate the ARMA coefficients.  Class |ReplaceIUH| helps to accomplish this
+    task.
 
     .. note::
 
@@ -2367,19 +2368,19 @@ class ReplaceIUH(RuleIUH):
         discharge thresholds.  Hence, the usage of class |ReplaceIUH| might change in
         the future.
 
-    So far, there is no example project containing |arma_v1| models instances.
+    So far, there is no example project containing |arma_rimorido| models instances.
     Therefore, we generate a simple one consisting of two |Element| objects only:
 
     >>> from hydpy import Element, prepare_model, Selection
     >>> element1 = Element("element1", inlets="in1", outlets="out1")
     >>> element2 = Element("element2", inlets="in2", outlets="out2")
     >>> complete = Selection("complete", elements=[element1, element2])
-    >>> element1.model = prepare_model("arma_v1")
-    >>> element2.model = prepare_model("arma_v1")
+    >>> element1.model = prepare_model("arma_rimorido")
+    >>> element2.model = prepare_model("arma_rimorido")
 
     We focus on class |TranslationDiffusionEquation| in the following.  First, we
     create two separate instances and use them to calculate the response coefficients
-    of both |arma_v1| instances:
+    of both |arma_rimorido| instances:
 
     >>> from hydpy import TranslationDiffusionEquation
     >>> tde1 = TranslationDiffusionEquation(u=5.0, d=15.0, x=1.0)
@@ -2507,8 +2508,8 @@ class MultiplyIUH(RuleIUH):
     >>> element1 = Element("element1", inlets="in1", outlets="out1")
     >>> element2 = Element("element2", inlets="in2", outlets="out2")
     >>> complete = Selection("complete", elements=[element1, element2])
-    >>> element1.model = prepare_model("arma_v1")
-    >>> element2.model = prepare_model("arma_v1")
+    >>> element1.model = prepare_model("arma_rimorido")
+    >>> element2.model = prepare_model("arma_rimorido")
 
     >>> from hydpy import TranslationDiffusionEquation
     >>> tde1 = TranslationDiffusionEquation(u=5.0, d=15.0, x=1.0)

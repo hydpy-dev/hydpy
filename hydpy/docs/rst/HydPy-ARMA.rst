@@ -18,16 +18,10 @@ Consider using one of its application models when you require a robust, computat
 efficient, easily calibratable approach.  However, taking nonlinear rating curves or
 backwater effects into account can be cumbersome or even impossible.
 
-Base model:
+Available models:
 
 .. toctree::
    :maxdepth: 1
 
    arma
-
-Application model:
-
-.. toctree::
-   :maxdepth: 1
-
-   arma_v1
+   arma_rimorido

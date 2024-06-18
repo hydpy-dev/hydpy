@@ -1179,7 +1179,7 @@ class SequenceManager(FileManager):
     65.0
     66.0
     67.0
-    >>> print_file("element2_lland_v1_flux_nkor.asc")
+    >>> print_file("element2_lland_dd_flux_nkor.asc")
     Timegrid("2000-01-01 00:00:00+01:00",
              "2000-01-05 00:00:00+01:00",
              "1d")
@@ -1346,7 +1346,7 @@ not allowed to overwrite the existing file `...`.
 
     >>> with TestIO():
     ...     nkor.save_mean()
-    >>> print_file("element2_lland_v1_flux_nkor_mean.asc")
+    >>> print_file("element2_lland_dd_flux_nkor_mean.asc")
     Timegrid("2000-01-01 00:00:00+01:00",
              "2000-01-05 00:00:00+01:00",
              "1d")
@@ -1361,11 +1361,11 @@ not allowed to overwrite the existing file `...`.
     field (|lland_constants.ACKER|) and water (|lland_constants.WASSER|) and averaging
     the values of sequence |lland_fluxes.NKor| for the single field area only:
 
-    >>> from hydpy.models.lland_v1 import ACKER, WASSER
+    >>> from hydpy.models.lland_dd import ACKER, WASSER
     >>> nkor.subseqs.seqs.model.parameters.control.lnk = ACKER, WASSER
     >>> with TestIO():
     ...     nkor.save_mean("acker")
-    >>> print_file("element2_lland_v1_flux_nkor_mean.asc")
+    >>> print_file("element2_lland_dd_flux_nkor_mean.asc")
     Timegrid("2000-01-01 00:00:00+01:00",
              "2000-01-05 00:00:00+01:00",
              "1d")
@@ -1411,7 +1411,7 @@ not allowed to overwrite the existing file `...`.
 
     >>> import numpy
     >>> path = os.path.join(
-    ...     "project", "series", "default", "element2_lland_v1_flux_nkor_mean.npy")
+    ...     "project", "series", "default", "element2_lland_dd_flux_nkor_mean.npy")
     >>> with TestIO():
     ...     nkor.save_mean("wasser")
     ...     numpy.load(path)[-4:]

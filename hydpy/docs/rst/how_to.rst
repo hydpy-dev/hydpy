@@ -52,24 +52,24 @@ individual components of a hydrological model are combined correctly, so
 that the model can perform rational calculations.  Like *HydPy* standardises
 model implementation, it suggests a certain structure for such tests.
 
-We use the integration test on the application model |lland_v1| as an
+We use the integration test on the application model |lland_dd| as an
 example.  After some "usual" introductory remarks, we start with the
-:ref:`lland_v1_integration_tests` section and prepare some general settings.
+:ref:`lland_dd_integration_tests` section and prepare some general settings.
 As we want our model to perform "real" simulations, we first define a
 simulation period and step size via the |Timegrids| object available in
 module |pub|.
 
 Next, we prepare an object of the respective |Model| subclass (here,
-|lland_v1.Model| of |lland_v1|) as well as an |Element| and a |Node|
+|lland_dd.Model| of |lland_dd|) as well as an |Element| and a |Node|
 object.  Through connecting these objects like in "real" projects, we check
-that |lland_v1| does not only calculate the correct outflow but passes it
+that |lland_dd| does not only calculate the correct outflow but passes it
 correctly to the downstream node (und thus potentially to other models
 downstream).  For routing models as |lstream_v001|, we need to define
 additional upstream nodes, to make sure the model also receives its inflow
 correctly.
 
 Eventually, we define some control parameters relevant for all integration
-test examples.  For |lland_v1|, we decide to set parameter
+test examples.  For |lland_dd|, we decide to set parameter
 |lland_control.NHRU| to one to focus only on one land-use type at a time.
 
 The last general step is to initialise an |IntegrationTest| object,
@@ -77,8 +77,8 @@ which we use later for executing the individual integration test runs.
 Behind the scenes, our test object prepares an |HydPy| object and uses
 it very similar like we would do in a "real" *HydPy* project.
 
-In the first example (:ref:`lland_v1_acker_summer`), we decide to test
-|lland_v1| for the land-use type |lland_constants.ACKER| and set the
+In the first example (:ref:`lland_dd_acker_summer`), we decide to test
+|lland_dd| for the land-use type |lland_constants.ACKER| and set the
 land use parameter |lland_control.Lnk| accordingly.  After that, we
 prepare all remaining control parameters.  We can define the parameter
 values as we would do within the control files of "real" *HydPy* projects.
@@ -97,7 +97,7 @@ objects (see for example the documentation on application model |hland_v1|,
 in which we define a single value for the unit hydrograph memory sequence
 |rconc_logs.QUH|).
 
-Finally, we define all model input series.  |lland_v1| receives external
+Finally, we define all model input series.  |lland_dd| receives external
 meteorological input only, which we make available via the |IOSequence.series|
 property of the relevant |InputSequence| objects (here we pass hard-coded
 values to, for example, the precipitation sequence |lland_inputs.Nied|).
@@ -139,14 +139,14 @@ the identity of both series gives us confidence  |lstream_v001| integrates
 correctly with all relevant *HydPy* functionalities.
 
 When passing a filename to our test object (in example
-:ref:`lland_v1_acker_summer`: "lland_v1_acker_summer") it also creates an
+:ref:`lland_dd_acker_summer`: "lland_dd_acker_summer") it also creates an
 interactive HTML plot, stores it in the `html_` subpackage, and embeds it
 into the documentation.  This mechanism ensures that each graph is always
 in-sync with the considered *HydPy* version.  The additional arguments
 `axis1` and `axis2` allow modifying the initial plot configuration.
 
-We then continue the :ref:`lland_v1_integration_tests` section with example
-:ref:`lland_v1_wasser`, dealing with one of the water types of |lland_v1|.
+We then continue the :ref:`lland_dd_integration_tests` section with example
+:ref:`lland_dd_wasser`, dealing with one of the water types of |lland_dd|.
 We only need to assign the constant |lland_constants.WASSER| to parameter
 |lland_control.Lnk| and call our test object again to get the next results.
 

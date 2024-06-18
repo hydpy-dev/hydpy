@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Use |evap_pet_mlc| as a plug-in between a main model like |lland_v1| and another
+"""Use |evap_pet_mlc| as a plug-in between a main model like |lland_dd| and another
 submodel like |evap_ret_tw2002| to adjust the reference evapotranspiration given by
 |evap_ret_tw2002| by month and land cover.
 

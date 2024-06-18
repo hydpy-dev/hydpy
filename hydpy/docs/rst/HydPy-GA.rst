@@ -21,7 +21,7 @@ implements GARTO, a "Green-Ampt infiltration with Redistribution" model that
 simulating complex rainfall events that include significant low-intensity subperiods.
 
 Hydrologically, |ga_garto_submodel1| works like |ga_garto|, Technically, it is a
-submodel that can hook into larger main models like |lland_v1| to include (additional)
+submodel that can hook into larger main models like |lland_dd| to include (additional)
 surface runoff due to infiltration excess into simulations.
 
 Base model:

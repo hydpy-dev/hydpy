@@ -97,11 +97,11 @@ class Process_RadiationModel_V1(modeltools.Method):
 
     Example:
 
-        We use the combination of |lland_v1| and |meteo_glob_morsim| as an example:
+        We use the combination of |lland_dd| and |meteo_glob_morsim| as an example:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "1997-08-01", "1997-08-02", "1d"
-        >>> from hydpy.models.lland_v3 import *
+        >>> from hydpy.models.lland_knauf import *
         >>> parameterstep()
         >>> with model.add_radiationmodel_v1("meteo_glob_morsim"):
         ...     latitude(54.1)
@@ -139,10 +139,10 @@ class Calc_PossibleSunshineDuration_V1(modeltools.Method):
 
     Examples:
 
-        We combine |lland_v3| with submodels that comply with different interfaces.
+        We combine |lland_knauf| with submodels that comply with different interfaces.
         First, with |meteo_glob_morsim|, which complies with |RadiationModel_V1|:
 
-        >>> from hydpy.models.lland_v3 import *
+        >>> from hydpy.models.lland_knauf import *
         >>> parameterstep()
         >>> with model.add_radiationmodel_v1("meteo_glob_morsim", update=False):
         ...     factors.possiblesunshineduration = 10.0
@@ -187,10 +187,10 @@ class Calc_SunshineDuration_V1(modeltools.Method):
     """Query the actual sunshine duration from a submodel that complies with the
     |RadiationModel_V1| or |RadiationModel_V4| interface.
 
-        We combine |lland_v3| with submodels that comply with different interfaces.
+        We combine |lland_knauf| with submodels that comply with different interfaces.
         First, with |meteo_glob_fao56|, which complies with |RadiationModel_V1|:
 
-        >>> from hydpy.models.lland_v3 import *
+        >>> from hydpy.models.lland_knauf import *
         >>> parameterstep()
         >>> with model.add_radiationmodel_v1("meteo_glob_morsim", update=False):
         ...     inputs.sunshineduration = 10.0
@@ -237,10 +237,10 @@ class Calc_GlobalRadiation_V1(modeltools.Method):
 
     Examples:
 
-        We combine |lland_v3| with submodels that comply with different interfaces.
+        We combine |lland_knauf| with submodels that comply with different interfaces.
         First, with |meteo_glob_morsim|, which complies with |RadiationModel_V1|:
 
-        >>> from hydpy.models.lland_v3 import *
+        >>> from hydpy.models.lland_knauf import *
         >>> parameterstep()
         >>> with model.add_radiationmodel_v1("meteo_glob_morsim", update=False):
         ...     fluxes.globalradiation = 100.0
@@ -4674,7 +4674,7 @@ class Calc_EvB_AETModel_V1(modeltools.Method):
 
         We build an example based on |evap_aet_minhas|:
 
-        >>> from hydpy.models.lland_v1 import *
+        >>> from hydpy.models.lland_dd import *
         >>> parameterstep("1h")
         >>> nhru(5)
         >>> lnk(VERS, ACKER, ACKER, MISCHW, WASSER)
@@ -4811,7 +4811,7 @@ class Calc_EvI_Inzp_AETModel_V1(modeltools.Method):
         evaporation, which uses |evap_ret_io| for querying potential
         evapotranspiration:
 
-        >>> from hydpy.models.lland_v1 import *
+        >>> from hydpy.models.lland_dd import *
         >>> parameterstep("1h")
         >>> nhru(5)
         >>> lnk(VERS, ACKER, ACKER, MISCHW, WASSER)
@@ -5569,7 +5569,7 @@ class Calc_BoWa_SoilModel_V1(modeltools.Method):
         We prepare a |lland| model instance consisting of four hydrological response
         units, which will serve as the main model:
 
-        >>> from hydpy.models.lland_v1 import *
+        >>> from hydpy.models.lland_dd import *
         >>> simulationstep("1h")
         >>> parameterstep("1h")
         >>> nhru(4)
@@ -7197,7 +7197,9 @@ class PegasusTempSSurface(roottools.Pegasus):
 
 
 class Model(modeltools.AdHocModel):
-    """Base model for HydPy-L-Land."""
+    """|lland.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="L")
 
     INLET_METHODS = (Pick_QZ_V1,)
     RECEIVER_METHODS = ()
@@ -7347,8 +7349,8 @@ class Model(modeltools.AdHocModel):
 
 
 class Main_RadiationModel_V1(modeltools.AdHocModel):
-    """Base class for HydPy-L models that support submodels that comply with the
-    |RadiationModel_V1| interface."""
+    """Base class for |lland.DOCNAME.long| models that support submodels that comply
+    with the |RadiationModel_V1| interface."""
 
     radiationmodel: modeltools.SubmodelProperty
     radiationmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -7369,7 +7371,7 @@ class Main_RadiationModel_V1(modeltools.AdHocModel):
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
-        >>> from hydpy.models.lland_v3 import *
+        >>> from hydpy.models.lland_knauf import *
         >>> parameterstep()
         >>> with model.add_radiationmodel_v1("meteo_sun_morsim"):
         ...     latitude(50.0)
@@ -7379,8 +7381,8 @@ class Main_RadiationModel_V1(modeltools.AdHocModel):
 
 
 class Main_RadiationModel_V4(modeltools.AdHocModel):
-    """Base class for HydPy-L models that support submodels that comply with the
-    |RadiationModel_V4| interface."""
+    """Base class for |lland.DOCNAME.long| models that support submodels that comply
+    with the |RadiationModel_V4| interface."""
 
     radiationmodel: modeltools.SubmodelProperty
     radiationmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -7401,7 +7403,7 @@ class Main_RadiationModel_V4(modeltools.AdHocModel):
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
-        >>> from hydpy.models.lland_v3 import *
+        >>> from hydpy.models.lland_knauf import *
         >>> parameterstep()
         >>> with model.add_radiationmodel_v4("meteo_psun_sun_glob_io"):
         ...     inputs.globalradiation = 100.0
@@ -7446,9 +7448,9 @@ class _Main_AETModel_V1(modeltools.AdHocModel):
 
 
 class Main_AETModel_V1A(_Main_AETModel_V1):
-    """Base class for HydPy-L models that support submodels that comply with the
-    |AETModel_V1| interface and cannot provide information on the measuring height of
-    wind speed."""
+    """Base class for |lland.DOCNAME.long| models that support submodels that comply
+    with the |AETModel_V1| interface and cannot provide information on the measuring
+    height of wind speed."""
 
     @importtools.prepare_submodel(
         "aetmodel",
@@ -7481,7 +7483,7 @@ class Main_AETModel_V1A(_Main_AETModel_V1):
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
-        >>> from hydpy.models.lland_v1 import *
+        >>> from hydpy.models.lland_dd import *
         >>> parameterstep()
         >>> nhru(9)
         >>> ft(10.0)
@@ -7553,9 +7555,9 @@ glets=1.1)
 
 
 class Main_AETModel_V1B(_Main_AETModel_V1):
-    """Base class for HydPy-L models that support submodels that comply with the
-    |AETModel_V1| interface and can provide information on the measuring height of
-    wind speed."""
+    """Base class for |lland.DOCNAME.long| models that support submodels that comply
+    with the |AETModel_V1| interface and can provide information on the measuring
+    height of wind speed."""
 
     @importtools.prepare_submodel(
         "aetmodel",
@@ -7589,7 +7591,7 @@ class Main_AETModel_V1B(_Main_AETModel_V1):
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
-        >>> from hydpy.models.lland_v3 import *
+        >>> from hydpy.models.lland_knauf import *
         >>> parameterstep()
         >>> nhru(2)
         >>> ft(10.0)
@@ -7613,8 +7615,8 @@ class Main_AETModel_V1B(_Main_AETModel_V1):
 
 
 class Main_SoilModel_V1(modeltools.AdHocModel):
-    """Base class for HydPy-L models that support submodels that comply with the
-    |SoilModel_V1| interface."""
+    """Base class for |lland.DOCNAME.long| models that support submodels that comply
+    with the |SoilModel_V1| interface."""
 
     soilmodel: modeltools.SubmodelProperty
     soilmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -7634,7 +7636,7 @@ class Main_SoilModel_V1(modeltools.AdHocModel):
     ) -> None:
         """Initialise the given soil model that follows the |SoilModel_V1| interface.
 
-        >>> from hydpy.models.lland_v1 import *
+        >>> from hydpy.models.lland_dd import *
         >>> parameterstep()
         >>> nhru(2)
         >>> ft(10.0)
@@ -7650,37 +7652,37 @@ class Main_SoilModel_V1(modeltools.AdHocModel):
 
 
 class Sub_TempModel_V1(modeltools.AdHocModel, tempinterfaces.TempModel_V1):
-    """Base class for HydPy-L models that comply with the |TempModel_V1| submodel
-    interface."""
+    """Base class for |lland.DOCNAME.long| models that comply with the |TempModel_V1|
+    submodel interface."""
 
 
 class Sub_PrecipModel_V1(modeltools.AdHocModel, precipinterfaces.PrecipModel_V1):
-    """Base class for HydPy-L models that comply with the |PrecipModel_V1| submodel
-    interface."""
+    """Base class for |lland.DOCNAME.long| models that comply with the |PrecipModel_V1|
+    submodel interface."""
 
 
 class Sub_IntercModel_V1(modeltools.AdHocModel, stateinterfaces.IntercModel_V1):
-    """Base class for HydPy-L models that comply with the |IntercModel_V1| submodel
-    interface."""
+    """Base class for |lland.DOCNAME.long| models that comply with the |IntercModel_V1|
+    submodel interface."""
 
 
 class Sub_SoilWaterModel_V1(modeltools.AdHocModel, stateinterfaces.SoilWaterModel_V1):
-    """Base class for HydPy-L models that comply with the |SoilWaterModel_V1| submodel
-    interface."""
+    """Base class for |lland.DOCNAME.long| models that comply with the
+    |SoilWaterModel_V1| submodel interface."""
 
 
 class Sub_SnowCoverModel_V1(modeltools.AdHocModel, stateinterfaces.SnowCoverModel_V1):
-    """Base class for HydPy-L models that comply with the |SnowCoverModel_V1| submodel
-    interface."""
+    """Base class for |lland.DOCNAME.long| models that comply with the
+    |SnowCoverModel_V1| submodel interface."""
 
 
 class Sub_SnowyCanopyModel_V1(
     modeltools.AdHocModel, stateinterfaces.SnowyCanopyModel_V1
 ):
-    """Base class for HydPy-L models that comply with the |SnowyCanopyModel_V1|
-    submodel interface."""
+    """Base class for |lland.DOCNAME.long| models that comply with the
+    |SnowyCanopyModel_V1| submodel interface."""
 
 
 class Sub_SnowAlbedoModel_V1(modeltools.AdHocModel, stateinterfaces.SnowAlbedoModel_V1):
-    """Base class for HydPy-L models that comply with the |SnowAlbedoModel_V1| submodel
-    interface."""
+    """Base class for |lland.DOCNAME.long| models that comply with the
+    |SnowAlbedoModel_V1| submodel interface."""

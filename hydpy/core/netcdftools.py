@@ -74,12 +74,12 @@ ToDo: Support spatial averaging for sequences of submodels.
 We can now navigate into the details of the logged time series data via the
 |NetCDFInterfaceWriter| object and its |NetCDFVariableFlatReader| and
 |NetCDFVariableAggregated| subobjects.  For example, we can query the logged flux
-sequence objects of type |lland_fluxes.NKor| belonging to application model |lland_v1|
+sequence objects of type |lland_fluxes.NKor| belonging to application model |lland_dd|
 (those of elements `element1` and `element2`; the trailing numbers are the indices of
 the relevant hydrological response units):
 
 >>> writer = pub.sequencemanager.netcdfwriter
->>> writer.lland_v1_flux_nkor.subdevicenames
+>>> writer.lland_dd_flux_nkor.subdevicenames
 ('element1_0', 'element2_0', 'element2_1')
 
 In the example discussed here, all sequences belong to the same folder (`default`).
@@ -88,7 +88,7 @@ such cases, you must include the folder in the attribute name:
 
 >>> writer.foldernames
 ('default',)
->>> writer.default_lland_v1_flux_nkor.subdevicenames
+>>> writer.default_lland_dd_flux_nkor.subdevicenames
 ('element1_0', 'element2_0', 'element2_1')
 
 We close the |NetCDFInterfaceWriter| object, which is the moment when the writing
@@ -150,9 +150,9 @@ array([[60.],
        [62.],
        [63.]])
 
->>> filepath = "project/series/default/lland_v1_flux_nkor_mean.nc"
+>>> filepath = "project/series/default/lland_dd_flux_nkor_mean.nc"
 >>> with TestIO(), netcdf4.Dataset(filepath) as ncfile:
-...         array(ncfile["lland_v1_flux_nkor_mean"][:])[:, 1]
+...         array(ncfile["lland_dd_flux_nkor_mean"][:])[:, 1]
 array([16.5, 18.5, 20.5, 22.5])
 
 The previous examples relied on "model-specific" file names and variable names.  The
@@ -1045,8 +1045,8 @@ class NetCDFVariableFlat(NetCDFVariable, abc.ABC):
     >>> var_sp.log(sp, sp.series)
 
     We further try to log the equally named "wind speed" sequences of the main model
-    |lland_v3| and the submodel |evap_aet_morsim|.  As both models are handled by the
-    same element, which defines the column name, their time series cannot be stored
+    |lland_knauf| and the submodel |evap_aet_morsim|.  As both models are handled by
+    the same element, which defines the column name, their time series cannot be stored
     separately in the same NetCDF file.  The |MixinVariableWriter.log| method defined
     by |MixinVariableWriter| checks for potential conflicts:
 
@@ -1059,8 +1059,8 @@ class NetCDFVariableFlat(NetCDFVariable, abc.ABC):
     ...
     RuntimeError: When trying to log the time series of sequence `windspeed` of \
 element `element3` of model `evap_aet_morsim` for writing, the following error \
-occurred: Sequence `windspeed` of element `element3` of model `lland_v3` is already \
-registered under the same column name(s) but with different time series data.
+occurred: Sequence `windspeed` of element `element3` of model `lland_knauf` is \
+already registered under the same column name(s) but with different time series data.
 
     If the supplied time series are equal, there is no problem.  So,
     |MixinVariableWriter.log| neither accepts the new sequence nor raises an error in
@@ -1804,11 +1804,11 @@ class NetCDFInterfaceBase(Generic[TypeNetCDFVariable]):
     >>> print_values(writer.foldernames)
     default, test
     >>> print_values(writer.filenames)
-    hland_v1_state_sp, hland_v1_state_sp_mean, lland_v1_flux_nkor,
-    lland_v1_flux_nkor_mean, lland_v1_input_nied,
-    lland_v1_input_nied_mean, lland_v3_flux_nkor, lland_v3_flux_nkor_mean,
-    lland_v3_input_nied, lland_v3_input_nied_mean, sim_q, sim_q_mean,
-    sim_t, sim_t_mean
+    hland_v1_state_sp, hland_v1_state_sp_mean, lland_dd_flux_nkor,
+    lland_dd_flux_nkor_mean, lland_dd_input_nied,
+    lland_dd_input_nied_mean, lland_knauf_flux_nkor,
+    lland_knauf_flux_nkor_mean, lland_knauf_input_nied,
+    lland_knauf_input_nied_mean, sim_q, sim_q_mean, sim_t, sim_t_mean
 
     |NetCDFInterfaceWriter| provides attribute access to its |NetCDFVariable|
     instances, both via their filenames and the combination of their folder names and
@@ -1817,35 +1817,35 @@ class NetCDFInterfaceBase(Generic[TypeNetCDFVariable]):
     >>> assert writer.sim_q is writer.default_sim_q
     >>> print_values(sorted(set(dir(writer)) - set(object.__dir__(writer))))
     default_hland_v1_state_sp, default_hland_v1_state_sp_mean,
-    default_lland_v1_flux_nkor, default_lland_v1_flux_nkor_mean,
-    default_lland_v1_input_nied, default_lland_v1_input_nied_mean,
-    default_lland_v3_flux_nkor, default_lland_v3_flux_nkor_mean,
-    default_lland_v3_input_nied, default_lland_v3_input_nied_mean,
+    default_lland_dd_flux_nkor, default_lland_dd_flux_nkor_mean,
+    default_lland_dd_input_nied, default_lland_dd_input_nied_mean,
+    default_lland_knauf_flux_nkor, default_lland_knauf_flux_nkor_mean,
+    default_lland_knauf_input_nied, default_lland_knauf_input_nied_mean,
     default_sim_q, default_sim_q_mean, default_sim_t, default_sim_t_mean,
-    hland_v1_state_sp, hland_v1_state_sp_mean, lland_v1_input_nied,
-    lland_v1_input_nied_mean, lland_v3_flux_nkor, lland_v3_flux_nkor_mean,
-    lland_v3_input_nied, lland_v3_input_nied_mean, sim_q, sim_q_mean,
-    sim_t, sim_t_mean, test_lland_v1_flux_nkor,
-    test_lland_v1_flux_nkor_mean
+    hland_v1_state_sp, hland_v1_state_sp_mean, lland_dd_input_nied,
+    lland_dd_input_nied_mean, lland_knauf_flux_nkor,
+    lland_knauf_flux_nkor_mean, lland_knauf_input_nied,
+    lland_knauf_input_nied_mean, sim_q, sim_q_mean, sim_t, sim_t_mean,
+    test_lland_dd_flux_nkor, test_lland_dd_flux_nkor_mean
 
     If multiple NetCDF files have the same name, you must prefix the relevant folder
     name:
 
-    >>> writer.lland_v1_flux_nkor
+    >>> writer.lland_dd_flux_nkor
     Traceback (most recent call last):
     ...
     RuntimeError: The current NetCDFInterface object handles multiple NetCDF files \
-named `lland_v1_flux_nkor`.  Please be more specific.
-    >>> assert hasattr(writer, "default_lland_v1_flux_nkor")
+named `lland_dd_flux_nkor`.  Please be more specific.
+    >>> assert hasattr(writer, "default_lland_dd_flux_nkor")
 
     |NetCDFInterfaceWriter| raises the following error for completely wrong attribute
     names:
 
-    >>> writer.lland_v1
+    >>> writer.lland_dd
     Traceback (most recent call last):
     ...
     AttributeError: The current NetCDFInterface object neither handles a NetCDF file \
-named `lland_v1` nor does it define a member named `lland_v1`.
+named `lland_dd` nor does it define a member named `lland_dd`.
 
     We write all NetCDF files into the `default` folder of the testing directory,
     defined by |prepare_io_example_1|:

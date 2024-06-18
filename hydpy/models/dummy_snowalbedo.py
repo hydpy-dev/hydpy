@@ -4,7 +4,7 @@
 
 |dummy_snowalbedo| merely serves testing purposes.  We use it, for example, to perform
 the integration tests for submodels like |evap_aet_morsim| without the need to couple
-them to complex main models like |lland_v3| for providing snow albedo data.
+them to complex main models like |lland_knauf| for providing snow albedo data.
 
 Integration test
 ================

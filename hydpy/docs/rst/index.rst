@@ -30,7 +30,7 @@ forecasting in large river basins.  Now it is being maintained by
 on the programming language `Python`_, commonly used in many scientific
 fields.  Through using different well-established `Python`_ libraries
 and design principles, we target high quality and transparency standards.
-To avoid writing model cores (like |lland_v1|) in a more native
+To avoid writing model cores (like |lland_dd|) in a more native
 programming language, *HydPy* includes a `Cython`_ based mechanism
 to automatically translate Python code to C code and to compile it.
 

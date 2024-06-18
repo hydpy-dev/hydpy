@@ -16,13 +16,12 @@ from hydpy.models.lland import lland_sequences
 class Inzp(lland_sequences.State1DSequence):
     """Interzeptionsspeicherung (interception storage) [mm].
 
-    Note that |Inzp| of HydPy-L implements no specialized trim method
-    (as opposed to |hland_states.Ic| of |hland|).  This is due the
-    discontinuous evolution of |KInz| in time.  In accordance with the
-    original LARSIM implementation, |Inzp| can be temporarily overfilled
-    during rain periods whenever |KInz| drops rapidly between two months.
-    A specialized trim method would just make the excess water vanish.
-    But in HydPy-L, the excess water becomes |NBes| in the first
+    Note that |Inzp| of |lland.DOCNAME.long| implements no specialized trim method (as
+    opposed to |hland_states.Ic| of |hland|).  This is due the discontinuous evolution
+    of |KInz| in time.  In accordance with the original LARSIM implementation, |Inzp|
+    can be temporarily overfilled during rain periods whenever |KInz| drops rapidly
+    between two months.  A specialized trim method would just make the excess water
+    vanish.  But in |lland.DOCNAME.long|, the excess water becomes |NBes| in the first
     simulation step of the new month.
     """
 

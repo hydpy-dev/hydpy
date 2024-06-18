@@ -1591,13 +1591,13 @@ class Calc_CurrentAlbedo_V1(modeltools.Method):
 
     Examples:
 
-        We use the combination of |lland_v3| and |evap_aet_morsim| as an example and
+        We use the combination of |lland_knauf| and |evap_aet_morsim| as an example and
         set different albedo values for the land types |lland_constants.ACKER| and
         |lland_constants.VERS| for January and February:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-30", "2000-02-03", "1d"
-        >>> from hydpy.models.lland_v3 import *
+        >>> from hydpy.models.lland_knauf import *
         >>> parameterstep()
         >>> ft(10.0)
         >>> nhru(3)
@@ -1686,10 +1686,10 @@ class Calc_CurrentAlbedo_V2(modeltools.Method):
 
     Examples:
 
-        We use |lland_v3| and |evap_aet_minhas| as main models to prepare an applicable
-        |evap| instance (more precisely, an |evap_pet_ambav1| instance):
+        We use |lland_knauf| and |evap_aet_minhas| as main models to prepare an
+        applicable |evap| instance (more precisely, an |evap_pet_ambav1| instance):
 
-        >>> from hydpy.models.lland_v3 import *
+        >>> from hydpy.models.lland_knauf import *
         >>> parameterstep()
         >>> nhru(5)
         >>> lnk(WASSER, BODEN, ACKER, BAUMB, LAUBW)
@@ -3833,10 +3833,10 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
 
         |Calc_ActualSurfaceResistance_V2| works similarly to method
         |Calc_ActualSurfaceResistance_V1|.  We build up a comparable setting but use
-        |lland_v1| and |evap_aet_minhas| as main models to prepare an applicable |evap|
+        |lland_dd| and |evap_aet_minhas| as main models to prepare an applicable |evap|
         instance (more precisely, an |evap_pet_ambav1| instance) more easily:
 
-        >>> from hydpy.models.lland_v1 import *
+        >>> from hydpy.models.lland_dd import *
         >>> parameterstep()
         >>> nhru(5)
         >>> lnk(WASSER, FLUSS, SEE, BODEN, BODEN)
@@ -4190,11 +4190,11 @@ class Calc_SnowyCanopy_V1(modeltools.Method):
 
     Examples:
 
-        We use the combination of |lland_v4| and |evap_aet_morsim| as an example:
+        We use the combination of |lland_knauf_ic| and |evap_aet_morsim| as an example:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
-        >>> from hydpy.models.lland_v4 import *
+        >>> from hydpy.models.lland_knauf_ic import *
         >>> parameterstep()
         >>> ft(10.0)
         >>> nhru(3)
@@ -9067,7 +9067,7 @@ class Main_SnowyCanopyModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterfa
         >>> evap.snowycanopymodel_typeid
         0
 
-        >>> lland = prepare_model("lland_v4")
+        >>> lland = prepare_model("lland_knauf_ic")
         >>> evap.add_mainmodel_as_subsubmodel(lland)
         True
         >>> evap.snowycanopymodel is lland
@@ -9133,7 +9133,7 @@ class Main_SnowAlbedoModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterfac
         >>> evap.snowalbedomodel_typeid
         0
 
-        >>> lland = prepare_model("lland_v3")
+        >>> lland = prepare_model("lland_knauf")
         >>> evap.add_mainmodel_as_subsubmodel(lland)
         True
         >>> evap.snowalbedomodel is lland

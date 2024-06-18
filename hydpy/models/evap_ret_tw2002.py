@@ -2,7 +2,7 @@
 # pylint: disable=line-too-long, unused-wildcard-import
 """The primary purpose of |evap_ret_tw2002| is to serve as a submodel that provides
 estimates of potential grass reference evapotranspiration following :cite:t:`ref-DVWK`,
-as demonstrated for |lland_v1|.  However, you can also use it as a stand-alone model,
+as demonstrated for |lland_dd|.  However, you can also use it as a stand-alone model,
 as it does not require interaction with a main model.  The following examples make use
 of this stand-alone functionality.
 

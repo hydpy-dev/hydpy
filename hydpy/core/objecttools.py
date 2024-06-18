@@ -214,17 +214,17 @@ def submodelphrase(model: modeltools.Model, include_subsubmodels: bool = True) -
 
     >>> from hydpy import prepare_model
     >>> from hydpy.core.objecttools import submodelphrase
-    >>> model = prepare_model("lland_v1")
+    >>> model = prepare_model("lland_dd")
     >>> submodelphrase(model)
-    'model `lland_v1`'
+    'model `lland_dd`'
 
     >>> model.aetmodel = prepare_model("evap_aet_minhas")
     >>> submodelphrase(model)
-    'model `lland_v1` and its submodel (`aetmodel/evap_aet_minhas`)'
+    'model `lland_dd` and its submodel (`aetmodel/evap_aet_minhas`)'
 
     >>> model.soilmodel = prepare_model("ga_garto_submodel1")
     >>> submodelphrase(model)
-    'model `lland_v1` and its submodels (`aetmodel/evap_aet_minhas` and \
+    'model `lland_dd` and its submodels (`aetmodel/evap_aet_minhas` and \
 `soilmodel/ga_garto_submodel1`)'
     """
     submodels = model.find_submodels(include_subsubmodels=include_subsubmodels)

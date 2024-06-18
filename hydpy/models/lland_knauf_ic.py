@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
-Version 4 of *HydPy-L-Land* is still under development and likely to change in the
-future.  Its goal is to extend |lland_v3| with processes dealing with the interception
-of snow in canopies, similar to the `SCHNEEINTERZEPTION` option of `LARSIM`_.  The
-publically available `LARSIM`_ documentation does not provide all information required
-for implementing a perfect emulation, but detailed comparisons suggest that the
-essential process equations are defined similarly.
+|lland_knauf_ic| is still under development and likely to change in the future.  Its
+goal is to extend |lland_knauf| with processes dealing with the interception of snow in
+canopies, similar to the `SCHNEEINTERZEPTION` option of `LARSIM`_.  The publically
+available `LARSIM`_ documentation does not provide all information required for
+implementing a perfect emulation, but detailed comparisons suggest that the essential
+process equations are defined similarly.
 
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
 
-The following list summarises the current status of |lland_v4| by discussing its
-main differences to |lland_v3|:
+The following list summarises the current status of |lland_knauf_ic| by discussing its
+main differences to |lland_knauf|:
 
  * Snow interception occurs only in tree canopies, which is why the results of
-   |lland_v4| differ from those of |lland_v3| only for the land-use types |LAUBW|,
-   |MISCHW|, and |NADELW|.
+   |lland_knauf_ic| differ from those of |lland_knauf| only for the land-use types
+   |LAUBW|, |MISCHW|, and |NADELW|.
  * There is are two additional storages, |SInz| and |STInz|, which handle the total
    and the frozen amount of intercepted snowfall, placed between the "normal"
    interception and the "normal" snow module.
@@ -40,16 +40,16 @@ main differences to |lland_v3|:
 
 :cite:t:`ref-LARSIM` discusses many of these points in more detail.
 
-In our experience, |lland_v4| tends to calculate thicker snowpacks on the ground
-than |lland_v3| (the highest values of |WAeS| are usually larger when applying
-|lland_v4|).  This counterintuitive behaviour seems to be related to disabling the
-"normal" interception evaporation (|EvI|) during snow interception periods and is
+In our experience, |lland_knauf_ic| tends to calculate thicker snowpacks on the ground
+than |lland_knauf| (the highest values of |WAeS| are usually larger when applying
+|lland_knauf_ic|).  This counterintuitive behaviour seems to be related to disabling
+the "normal" interception evaporation (|EvI|) during snow interception periods and is
 still under discussion.
 
 We will add further explanations and references as soon as we can consolidate
-|lland_v4|.
+|lland_knauf_ic|.
 
-The following integration tests are identical to the ones of |lland_v3|, except for
+The following integration tests are identical to the ones of |lland_knauf|, except for
 the additional snow interception processes.
 
 Integration tests
@@ -62,7 +62,7 @@ ________________
 
 >>> from hydpy import pub
 >>> pub.timegrids = "1997-08-01", "1997-09-01", "1d"
->>> from hydpy.models.lland_v4 import *
+>>> from hydpy.models.lland_knauf_ic import *
 >>> parameterstep("1h")
 >>> from hydpy import Node, Element
 >>> outlet = Node("outlet")
@@ -73,7 +73,7 @@ ________________
 >>> ft(1.0)
 >>> fhru(1.0)
 
-.. _lland_v4_acker_summer_daily:
+.. _lland_knauf_ic_acker_summer_daily:
 
 acre (summer)
 -------------
@@ -223,7 +223,7 @@ acre (summer)
     >>> test.reset_inits()
     >>> conditions = model.conditions
     >>> conditions_acker_summer = test(
-    ...     "lland_v4_acker_summer_daily",
+    ...     "lland_knauf_ic_acker_summer_daily",
     ...     axis1=(inputs.nied, fluxes.qah), axis2=states.bowa,
     ...     get_conditions="1997-08-03")
     |       date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |   nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressureinz | saturationvapourpressuresnow | actualvapourpressure |        tz |         wg | netshortwaveradiationinz | netshortwaveradiationsnow | netlongwaveradiationinz | netlongwaveradiationsnow | netradiationinz | netradiationsnow |   nbes | sbes | snowintmax | snowintrate | nbesinz | sbesinz | wniedinz | actualalbedoinz | wadainz | schmpotinz | schminz | gefrpotinz | gefrinz | evsinz |   evi |      evb | evs | wnied | tempssurface | actualalbedo | schmpot | schm | gefrpot | gefr | wlatinz | wlatsnow | wsensinz | wsenssnow | wsurfinz | wsurf | sff | fvg |   wada |      qdb | qib1 | qib2 | qbb |     qkap |     qdgz |    qdgz1 | qdgz2 | qigz1 | qigz2 |      qbgz |    qdga1 | qdga2 | qiga1 | qiga2 |      qbga |       qah |        qa | inzp | stinz | sinz | esnowinz | asinz | wats | waes | esnow | taus |       ebdn |      bowa |     sdg1 | sdg2 | sig1 | sig2 |       sbg | inlet |    outlet |
@@ -264,16 +264,16 @@ acre (summer)
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _lland_v4_acker_routing_daily:
+.. _lland_knauf_ic_acker_routing_daily:
 
-:ref:`acre (routing) <lland_v1_acker_routing>`
+:ref:`acre (routing) <lland_dd_acker_routing>`
 ----------------------------------------------
 
 .. integration-test::
 
     >>> inlet.sequences.sim.series = 0.02
     >>> control.negq(False)
-    >>> test("lland_v4_acker_routing_daily",
+    >>> test("lland_knauf_ic_acker_routing_daily",
     ...      axis1=(inputs.nied, fluxes.qah), axis2=states.bowa)
     |       date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |   qz |   qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |   nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressureinz | saturationvapourpressuresnow | actualvapourpressure |        tz |         wg | netshortwaveradiationinz | netshortwaveradiationsnow | netlongwaveradiationinz | netlongwaveradiationsnow | netradiationinz | netradiationsnow |   nbes | sbes | snowintmax | snowintrate | nbesinz | sbesinz | wniedinz | actualalbedoinz | wadainz | schmpotinz | schminz | gefrpotinz | gefrinz | evsinz |   evi |      evb | evs | wnied | tempssurface | actualalbedo | schmpot | schm | gefrpot | gefr | wlatinz | wlatsnow | wsensinz | wsenssnow | wsurfinz | wsurf | sff | fvg |   wada |      qdb | qib1 | qib2 | qbb |     qkap |     qdgz |    qdgz1 | qdgz2 | qigz1 | qigz2 |      qbgz |    qdga1 | qdga2 | qiga1 | qiga2 |      qbga |      qah |       qa | inzp | stinz | sinz | esnowinz | asinz | wats | waes | esnow | taus |       ebdn |      bowa |     sdg1 | sdg2 | sig1 | sig2 |       sbg | inlet |   outlet |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -312,7 +312,7 @@ acre (summer)
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _lland_v4_acker_heavy_rain_daily:
+.. _lland_knauf_ic_acker_heavy_rain_daily:
 
 acre (heavy rain)
 -----------------
@@ -324,7 +324,7 @@ acre (heavy rain)
     >>> nied = inputs.nied.series.copy()
     >>> inputs.nied.series = 20.0
     >>> conditions_acker_heavy_rain = test(
-    ...     "lland_v4_acker_heavy_rain_daily",
+    ...     "lland_knauf_ic_acker_heavy_rain_daily",
     ...     axis1=(inputs.nied, fluxes.qah), axis2=states.bowa,
     ...     get_conditions="1997-08-03")
     |       date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation | nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressureinz | saturationvapourpressuresnow | actualvapourpressure |        tz |         wg | netshortwaveradiationinz | netshortwaveradiationsnow | netlongwaveradiationinz | netlongwaveradiationsnow | netradiationinz | netradiationsnow | nbes | sbes | snowintmax | snowintrate | nbesinz | sbesinz | wniedinz | actualalbedoinz | wadainz | schmpotinz | schminz | gefrpotinz | gefrinz | evsinz | evi |      evb | evs | wnied | tempssurface | actualalbedo | schmpot | schm | gefrpot | gefr | wlatinz | wlatsnow | wsensinz | wsenssnow | wsurfinz | wsurf | sff | fvg | wada |       qdb |     qib1 |     qib2 |      qbb | qkap |      qdgz |     qdgz1 |    qdgz2 |    qigz1 |    qigz2 |     qbgz |     qdga1 |    qdga2 |    qiga1 |    qiga2 |     qbga |       qah |       qa | inzp | stinz | sinz | esnowinz | asinz | wats | waes | esnow | taus |       ebdn |       bowa |      sdg1 |     sdg2 |     sig1 |     sig2 |      sbg | inlet |   outlet |
@@ -364,7 +364,7 @@ acre (heavy rain)
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _lland_v4_acker_garto_daily:
+.. _lland_knauf_ic_acker_garto_daily:
 
 acre (GARTO)
 ------------
@@ -387,7 +387,7 @@ acre (GARTO)
 
 .. integration-test::
 
-    >>> test("lland_v4_acker_garto_daily",
+    >>> test("lland_knauf_ic_acker_garto_daily",
     ...      axis1=(inputs.nied, fluxes.qah), axis2=states.bowa)
     |       date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation | nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressureinz | saturationvapourpressuresnow | actualvapourpressure |        tz |         wg | netshortwaveradiationinz | netshortwaveradiationsnow | netlongwaveradiationinz | netlongwaveradiationsnow | netradiationinz | netradiationsnow | nbes | sbes | snowintmax | snowintrate | nbesinz | sbesinz | wniedinz | actualalbedoinz | wadainz | schmpotinz | schminz | gefrpotinz | gefrinz | evsinz | evi |      evb | evs | wnied | tempssurface | actualalbedo | schmpot | schm | gefrpot | gefr | wlatinz | wlatsnow | wsensinz | wsenssnow | wsurfinz | wsurf | sff | fvg | wada |      qdb |     qib1 |     qib2 |       qbb | qkap |     qdgz |    qdgz1 | qdgz2 |    qigz1 |    qigz2 |      qbgz |    qdga1 | qdga2 |    qiga1 |    qiga2 |     qbga |      qah |       qa | inzp | stinz | sinz | esnowinz | asinz | wats | waes | esnow | taus |       ebdn |       bowa |     sdg1 | sdg2 |     sig1 |     sig2 |        sbg | inlet |   outlet |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -431,7 +431,7 @@ There is no indication of an error in the water balance:
 >>> del model.soilmodel
 >>> inputs.nied.series = nied
 
-.. _lland_v4_wasser_daily:
+.. _lland_knauf_ic_wasser_daily:
 
 water
 -----
@@ -444,7 +444,7 @@ water
     >>> model.aetmodel.parameters.control.cropheight.wasser_aug = 0.05
     >>> model.aetmodel.parameters.control.albedo.wasser_aug = 0.7
     >>> conditions_wasser = test(
-    ...     "lland_v4_wasser_daily",
+    ...     "lland_knauf_ic_wasser_daily",
     ...     axis1=(fluxes.nkor, fluxes.evi, fluxes.qah),
     ...     get_conditions="1997-08-03")
     |       date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |   nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressureinz | saturationvapourpressuresnow | actualvapourpressure |  tz |  wg | netshortwaveradiationinz | netshortwaveradiationsnow | netlongwaveradiationinz | netlongwaveradiationsnow | netradiationinz | netradiationsnow | nbes | sbes | snowintmax | snowintrate | nbesinz | sbesinz | wniedinz | actualalbedoinz | wadainz | schmpotinz | schminz | gefrpotinz | gefrinz | evsinz |      evi | evb | evs | wnied | tempssurface | actualalbedo | schmpot | schm | gefrpot | gefr | wlatinz | wlatsnow | wsensinz | wsenssnow | wsurfinz | wsurf | sff | fvg | wada | qdb | qib1 | qib2 | qbb | qkap | qdgz | qdgz1 | qdgz2 | qigz1 | qigz2 | qbgz | qdga1 | qdga2 | qiga1 | qiga2 | qbga |       qah |       qa | inzp | stinz | sinz | esnowinz | asinz | wats | waes | esnow | taus | ebdn | bowa | sdg1 | sdg2 | sig1 | sig2 | sbg | inlet |   outlet |
@@ -484,7 +484,7 @@ water
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _lland_v4_wasser_routing_daily:
+.. _lland_knauf_ic_wasser_routing_daily:
 
 water (routing)
 ---------------
@@ -492,7 +492,7 @@ water (routing)
 .. integration-test::
 
     >>> inlet.sequences.sim.series = 0.02
-    >>> test("lland_v4_wasser_routing_daily",
+    >>> test("lland_knauf_ic_wasser_routing_daily",
     ...      axis1=(fluxes.nkor, fluxes.evi, fluxes.qah))
     |       date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |   qz |   qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |   nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressureinz | saturationvapourpressuresnow | actualvapourpressure |  tz |  wg | netshortwaveradiationinz | netshortwaveradiationsnow | netlongwaveradiationinz | netlongwaveradiationsnow | netradiationinz | netradiationsnow | nbes | sbes | snowintmax | snowintrate | nbesinz | sbesinz | wniedinz | actualalbedoinz | wadainz | schmpotinz | schminz | gefrpotinz | gefrinz | evsinz |      evi | evb | evs | wnied | tempssurface | actualalbedo | schmpot | schm | gefrpot | gefr | wlatinz | wlatsnow | wsensinz | wsenssnow | wsurfinz | wsurf | sff | fvg | wada | qdb | qib1 | qib2 | qbb | qkap | qdgz | qdgz1 | qdgz2 | qigz1 | qigz2 | qbgz | qdga1 | qdga2 | qiga1 | qiga2 | qbga |       qah |       qa | inzp | stinz | sinz | esnowinz | asinz | wats | waes | esnow | taus | ebdn | bowa | sdg1 | sdg2 | sig1 | sig2 | sbg | inlet |   outlet |
     -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -531,7 +531,7 @@ water (routing)
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _lland_v4_wasser_negq_daily:
+.. _lland_knauf_ic_wasser_negq_daily:
 
 water (negative runoff)
 -----------------------
@@ -540,7 +540,7 @@ water (negative runoff)
 
     >>> negq(True)
     >>> inlet.sequences.sim.series = 0.0
-    >>> test("lland_v4_wasser_negq_daily",
+    >>> test("lland_knauf_ic_wasser_negq_daily",
     ...      axis1=(fluxes.nkor, fluxes.evi, fluxes.qah))
     |       date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |   nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressureinz | saturationvapourpressuresnow | actualvapourpressure |  tz |  wg | netshortwaveradiationinz | netshortwaveradiationsnow | netlongwaveradiationinz | netlongwaveradiationsnow | netradiationinz | netradiationsnow | nbes | sbes | snowintmax | snowintrate | nbesinz | sbesinz | wniedinz | actualalbedoinz | wadainz | schmpotinz | schminz | gefrpotinz | gefrinz | evsinz |      evi | evb | evs | wnied | tempssurface | actualalbedo | schmpot | schm | gefrpot | gefr | wlatinz | wlatsnow | wsensinz | wsenssnow | wsurfinz | wsurf | sff | fvg | wada | qdb | qib1 | qib2 | qbb | qkap | qdgz | qdgz1 | qdgz2 | qigz1 | qigz2 | qbgz | qdga1 | qdga2 | qiga1 | qiga2 | qbga |       qah |        qa | inzp | stinz | sinz | esnowinz | asinz | wats | waes | esnow | taus | ebdn | bowa | sdg1 | sdg2 | sig1 | sig2 | sbg | inlet |    outlet |
     ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -579,7 +579,7 @@ water (negative runoff)
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _lland_v4_see_daily:
+.. _lland_knauf_ic_see_daily:
 
 lakes
 -----
@@ -591,7 +591,7 @@ lakes
     >>> model.aetmodel.parameters.control.cropheight.see_aug = 0.05
     >>> model.aetmodel.parameters.control.albedo.see_aug = 0.7
     >>> negq(False)
-    >>> test("lland_v4_see_daily",
+    >>> test("lland_knauf_ic_see_daily",
     ...      axis1=(fluxes.nkor, fluxes.evi, fluxes.qah))
     |       date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |   nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressureinz | saturationvapourpressuresnow | actualvapourpressure |  tz |  wg | netshortwaveradiationinz | netshortwaveradiationsnow | netlongwaveradiationinz | netlongwaveradiationsnow | netradiationinz | netradiationsnow | nbes | sbes | snowintmax | snowintrate | nbesinz | sbesinz | wniedinz | actualalbedoinz | wadainz | schmpotinz | schminz | gefrpotinz | gefrinz | evsinz |      evi | evb | evs | wnied | tempssurface | actualalbedo | schmpot | schm | gefrpot | gefr | wlatinz | wlatsnow | wsensinz | wsenssnow | wsurfinz | wsurf | sff | fvg | wada | qdb | qib1 | qib2 | qbb | qkap | qdgz | qdgz1 | qdgz2 | qigz1 | qigz2 |      qbgz | qdga1 | qdga2 | qiga1 | qiga2 |      qbga |      qah |       qa | inzp | stinz | sinz | esnowinz | asinz | wats | waes | esnow | taus | ebdn | bowa | sdg1 | sdg2 | sig1 | sig2 |        sbg | inlet |   outlet |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -630,7 +630,7 @@ lakes
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _lland_v4_fluss_daily:
+.. _lland_knauf_ic_fluss_daily:
 
 streams
 -------
@@ -641,7 +641,7 @@ streams
     >>> model.aetmodel.parameters.control.surfaceresistance.fluss_aug = 0.0
     >>> model.aetmodel.parameters.control.cropheight.fluss_aug = 0.05
     >>> model.aetmodel.parameters.control.albedo.fluss_aug = 0.7
-    >>> test("lland_v4_fluss_daily",
+    >>> test("lland_knauf_ic_fluss_daily",
     ...      axis1=(fluxes.nkor, fluxes.evi, fluxes.qah))
     |       date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |   nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressureinz | saturationvapourpressuresnow | actualvapourpressure |  tz |  wg | netshortwaveradiationinz | netshortwaveradiationsnow | netlongwaveradiationinz | netlongwaveradiationsnow | netradiationinz | netradiationsnow | nbes | sbes | snowintmax | snowintrate | nbesinz | sbesinz | wniedinz | actualalbedoinz | wadainz | schmpotinz | schminz | gefrpotinz | gefrinz | evsinz |       evi | evb | evs | wnied | tempssurface | actualalbedo | schmpot | schm | gefrpot | gefr | wlatinz | wlatsnow | wsensinz | wsenssnow | wsurfinz | wsurf | sff | fvg | wada | qdb | qib1 | qib2 | qbb | qkap |      qdgz |     qdgz1 |    qdgz2 | qigz1 | qigz2 | qbgz |     qdga1 |    qdga2 | qiga1 | qiga2 | qbga |      qah |       qa | inzp | stinz | sinz | esnowinz | asinz | wats | waes | esnow | taus | ebdn | bowa |      sdg1 |     sdg2 | sig1 | sig2 | sbg | inlet |   outlet |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -680,7 +680,7 @@ streams
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _lland_v4_vers_daily:
+.. _lland_knauf_ic_vers_daily:
 
 sealed surfaces
 ---------------
@@ -693,7 +693,7 @@ sealed surfaces
     >>> model.aetmodel.parameters.control.cropheight.vers_aug = 5.0
     >>> model.aetmodel.parameters.control.albedo.vers_aug = 0.10
     >>> lai.vers_aug = 10.0
-    >>> test("lland_v4_vers_daily",
+    >>> test("lland_knauf_ic_vers_daily",
     ...      axis1=(inputs.nied, fluxes.qah, states.bowa))
     |       date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |   nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressureinz | saturationvapourpressuresnow | actualvapourpressure |        tz |         wg | netshortwaveradiationinz | netshortwaveradiationsnow | netlongwaveradiationinz | netlongwaveradiationsnow | netradiationinz | netradiationsnow |   nbes | sbes | snowintmax | snowintrate | nbesinz | sbesinz | wniedinz | actualalbedoinz | wadainz | schmpotinz | schminz | gefrpotinz | gefrinz | evsinz |   evi | evb | evs | wnied | tempssurface | actualalbedo | schmpot | schm | gefrpot | gefr | wlatinz | wlatsnow | wsensinz | wsenssnow | wsurfinz | wsurf | sff | fvg |   wada |    qdb | qib1 | qib2 | qbb | qkap |   qdgz |  qdgz1 | qdgz2 | qigz1 | qigz2 | qbgz |    qdga1 |    qdga2 | qiga1 | qiga2 | qbga |      qah |       qa | inzp | stinz | sinz | esnowinz | asinz | wats | waes | esnow | taus |       ebdn | bowa |      sdg1 |     sdg2 | sig1 | sig2 | sbg | inlet |   outlet |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -732,7 +732,7 @@ sealed surfaces
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _lland_v4_acker_winter_daily:
+.. _lland_knauf_ic_acker_winter_daily:
 
 acre (winter)
 -------------
@@ -811,7 +811,7 @@ acre (winter)
 .. integration-test::
 
     >>> conditions_acker_winter = test(
-    ...     "lland_v4_acker_winter_daily",
+    ...     "lland_knauf_ic_acker_winter_daily",
     ...     axis1=(inputs.nied, fluxes.wada), axis2=(states.waes, states.wats),
     ...     get_conditions="2010-12-10")
     |       date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |   nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressureinz | saturationvapourpressuresnow | actualvapourpressure |         tz |         wg | netshortwaveradiationinz | netshortwaveradiationsnow | netlongwaveradiationinz | netlongwaveradiationsnow | netradiationinz | netradiationsnow |   nbes |    sbes | snowintmax | snowintrate | nbesinz | sbesinz | wniedinz | actualalbedoinz | wadainz | schmpotinz | schminz | gefrpotinz | gefrinz | evsinz | evi |     evb |       evs |     wnied | tempssurface | actualalbedo |   schmpot |      schm |  gefrpot |     gefr | wlatinz |   wlatsnow | wsensinz |  wsenssnow | wsurfinz |       wsurf |      sff |      fvg |      wada |      qdb | qib1 | qib2 | qbb | qkap |     qdgz |    qdgz1 | qdgz2 | qigz1 | qigz2 | qbgz |    qdga1 | qdga2 | qiga1 | qiga2 | qbga |      qah |       qa | inzp | stinz | sinz | esnowinz | asinz |      wats |      waes |     esnow |     taus |       ebdn |      bowa |     sdg1 | sdg2 | sig1 | sig2 | sbg | inlet |   outlet |
@@ -851,7 +851,7 @@ acre (winter)
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _lland_v4_nadelw_winter_daily:
+.. _lland_knauf_ic_nadelw_winter_daily:
 
 conifers (winter)
 -----------------
@@ -865,7 +865,7 @@ conifers (winter)
     >>> model.aetmodel.parameters.control.leafareaindex.nadelw = 11.0
     >>> lai.nadelw = 11.0
     >>> conditions_nadelw_winter = test(
-    ...     "lland_v4_nadelw_winter_daily",
+    ...     "lland_knauf_ic_nadelw_winter_daily",
     ...     axis1=(inputs.nied, fluxes.wada), axis2=(states.waes, states.wats),
     ...     get_conditions="2010-12-10")
     |       date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |   nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressureinz | saturationvapourpressuresnow | actualvapourpressure |        tz |         wg | netshortwaveradiationinz | netshortwaveradiationsnow | netlongwaveradiationinz | netlongwaveradiationsnow | netradiationinz | netradiationsnow |  nbes |    sbes | snowintmax | snowintrate |  nbesinz |  sbesinz |  wniedinz | actualalbedoinz |  wadainz | schmpotinz |  schminz | gefrpotinz |  gefrinz |   evsinz | evi |       evb |       evs |     wnied | tempssurface | actualalbedo |   schmpot |      schm |  gefrpot |     gefr |   wlatinz |   wlatsnow |   wsensinz |  wsenssnow |   wsurfinz |      wsurf |      sff |      fvg |      wada |      qdb | qib1 | qib2 | qbb | qkap |     qdgz |    qdgz1 | qdgz2 | qigz1 | qigz2 | qbgz |    qdga1 | qdga2 | qiga1 | qiga2 | qbga |      qah |       qa | inzp |    stinz |     sinz |  esnowinz |    asinz |      wats |      waes |     esnow |     taus |       ebdn |      bowa |     sdg1 | sdg2 | sig1 | sig2 | sbg | inlet |   outlet |
@@ -905,7 +905,7 @@ conifers (winter)
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _lland_v4_acker_winter_ktschnee_daily:
+.. _lland_knauf_ic_acker_winter_ktschnee_daily:
 
 acre (snow surface temperature)
 -------------------------------
@@ -915,7 +915,7 @@ acre (snow surface temperature)
     >>> lnk(ACKER)
     >>> ktschnee(5.0)
     >>> conditions_acker_winter_ktschnee = test(
-    ...     "lland_v4_acker_winter_ktschnee_daily",
+    ...     "lland_knauf_ic_acker_winter_ktschnee_daily",
     ...     axis1=(inputs.nied, fluxes.wada), axis2=(states.waes, states.wats),
     ...     get_conditions="2010-12-10")
     |       date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |   nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressureinz | saturationvapourpressuresnow | actualvapourpressure |        tz |         wg | netshortwaveradiationinz | netshortwaveradiationsnow | netlongwaveradiationinz | netlongwaveradiationsnow | netradiationinz | netradiationsnow |   nbes |    sbes | snowintmax | snowintrate | nbesinz | sbesinz | wniedinz | actualalbedoinz | wadainz | schmpotinz | schminz | gefrpotinz | gefrinz | evsinz |  evi |      evb |       evs |     wnied | tempssurface | actualalbedo |   schmpot |      schm |  gefrpot |     gefr | wlatinz |   wlatsnow | wsensinz |  wsenssnow | wsurfinz |       wsurf |      sff |      fvg |      wada |       qdb | qib1 | qib2 | qbb | qkap |      qdgz |     qdgz1 | qdgz2 | qigz1 | qigz2 | qbgz |    qdga1 | qdga2 | qiga1 | qiga2 | qbga |      qah |       qa | inzp | stinz | sinz | esnowinz | asinz |      wats |      waes |     esnow |     taus |       ebdn |      bowa |     sdg1 | sdg2 | sig1 | sig2 | sbg | inlet |   outlet |
@@ -982,7 +982,7 @@ _________________
 
 >>> test = IntegrationTest(land)
 
-.. _lland_v4_acker_summer_hourly:
+.. _lland_knauf_ic_acker_summer_hourly:
 
 acre (summer)
 -------------
@@ -1063,7 +1063,7 @@ acre (summer)
 
 .. integration-test::
 
-    >>> test("lland_v4_acker_summer_hourly",
+    >>> test("lland_knauf_ic_acker_summer_hourly",
     ...      axis1=(fluxes.evb, fluxes.qah), axis2=states.bowa,
     ...      use_conditions=conditions_acker_summer)
     |                date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation | nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressureinz | saturationvapourpressuresnow | actualvapourpressure |        tz |         wg | netshortwaveradiationinz | netshortwaveradiationsnow | netlongwaveradiationinz | netlongwaveradiationsnow | netradiationinz | netradiationsnow | nbes | sbes | snowintmax | snowintrate | nbesinz | sbesinz | wniedinz | actualalbedoinz | wadainz | schmpotinz | schminz | gefrpotinz | gefrinz | evsinz |       evi |      evb | evs | wnied | tempssurface | actualalbedo | schmpot | schm | gefrpot | gefr | wlatinz | wlatsnow | wsensinz | wsenssnow | wsurfinz | wsurf | sff | fvg | wada | qdb | qib1 | qib2 | qbb | qkap | qdgz | qdgz1 | qdgz2 | qigz1 | qigz2 | qbgz |    qdga1 | qdga2 | qiga1 | qiga2 | qbga |      qah |       qa |     inzp | stinz | sinz | esnowinz | asinz | wats | waes | esnow | taus |        ebdn |      bowa |     sdg1 | sdg2 | sig1 | sig2 | sbg | inlet |   outlet |
@@ -1144,7 +1144,7 @@ acre (summer)
 >>> round_(model.check_waterbalance(conditions_acker_summer))
 0.0
 
-.. _lland_v4_acker_heavy_rain_hourly:
+.. _lland_knauf_ic_acker_heavy_rain_hourly:
 
 acre (heavy rain)
 -----------------
@@ -1153,7 +1153,7 @@ acre (heavy rain)
 
     >>> inputs.nied.series = 20.0 / 24.0
     >>> control.negq(False)
-    >>> test("lland_v4_acker_heavy_rain_hourly",
+    >>> test("lland_knauf_ic_acker_heavy_rain_hourly",
     ...      axis1=(inputs.nied, fluxes.qah), axis2=states.bowa,
     ...      use_conditions=conditions_acker_heavy_rain)
     |                date |     nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |     nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressureinz | saturationvapourpressuresnow | actualvapourpressure |        tz |         wg | netshortwaveradiationinz | netshortwaveradiationsnow | netlongwaveradiationinz | netlongwaveradiationsnow | netradiationinz | netradiationsnow |     nbes | sbes | snowintmax | snowintrate | nbesinz | sbesinz | wniedinz | actualalbedoinz | wadainz | schmpotinz | schminz | gefrpotinz | gefrinz | evsinz |       evi |      evb | evs | wnied | tempssurface | actualalbedo | schmpot | schm | gefrpot | gefr | wlatinz | wlatsnow | wsensinz | wsenssnow | wsurfinz | wsurf | sff | fvg |     wada |      qdb |     qib1 | qib2 |      qbb | qkap |     qdgz |    qdgz1 | qdgz2 |    qigz1 | qigz2 |     qbgz |    qdga1 | qdga2 |    qiga1 | qiga2 |     qbga |      qah |       qa |     inzp | stinz | sinz | esnowinz | asinz | wats | waes | esnow | taus |        ebdn |       bowa |     sdg1 | sdg2 |     sig1 | sig2 |      sbg | inlet |   outlet |
@@ -1234,7 +1234,7 @@ acre (heavy rain)
 >>> round_(model.check_waterbalance(conditions_acker_heavy_rain))
 0.0
 
-.. _lland_v4_water_hourly:
+.. _lland_knauf_ic_water_hourly:
 
 water
 -----
@@ -1243,7 +1243,7 @@ water
 
     >>> lnk(WASSER)
     >>> inputs.nied.series = 0.05
-    >>> test("lland_v4_water_hourly",
+    >>> test("lland_knauf_ic_water_hourly",
     ...      axis1=(fluxes.nkor, fluxes.evi, fluxes.qah),
     ...      use_conditions=conditions_wasser)
     |                date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |  nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressureinz | saturationvapourpressuresnow | actualvapourpressure |  tz |  wg | netshortwaveradiationinz | netshortwaveradiationsnow | netlongwaveradiationinz | netlongwaveradiationsnow | netradiationinz | netradiationsnow | nbes | sbes | snowintmax | snowintrate | nbesinz | sbesinz | wniedinz | actualalbedoinz | wadainz | schmpotinz | schminz | gefrpotinz | gefrinz | evsinz |      evi | evb | evs | wnied | tempssurface | actualalbedo | schmpot | schm | gefrpot | gefr | wlatinz | wlatsnow | wsensinz | wsenssnow | wsurfinz | wsurf | sff | fvg | wada | qdb | qib1 | qib2 | qbb | qkap | qdgz | qdgz1 | qdgz2 | qigz1 | qigz2 | qbgz | qdga1 | qdga2 | qiga1 | qiga2 | qbga |      qah |       qa | inzp | stinz | sinz | esnowinz | asinz | wats | waes | esnow | taus | ebdn | bowa | sdg1 | sdg2 | sig1 | sig2 | sbg | inlet |   outlet |
@@ -1325,7 +1325,7 @@ water
 >>> round_(model.check_waterbalance(conditions_wasser))
 0.0
 
-.. _lland_v4_acker_winter_hourly:
+.. _lland_knauf_ic_acker_winter_hourly:
 
 acre (winter)
 -------------
@@ -1405,7 +1405,7 @@ acre (winter)
 .. integration-test::
 
     >>> lnk(ACKER)
-    >>> test("lland_v4_acker_winter_hourly",
+    >>> test("lland_knauf_ic_acker_winter_hourly",
     ...      axis1=(inputs.nied, fluxes.wada), axis2=(states.waes, states.wats),
     ...      use_conditions=conditions_acker_winter)
     |                date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |  nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressureinz | saturationvapourpressuresnow | actualvapourpressure |        tz |         wg | netshortwaveradiationinz | netshortwaveradiationsnow | netlongwaveradiationinz | netlongwaveradiationsnow | netradiationinz | netradiationsnow |     nbes |    sbes | snowintmax | snowintrate | nbesinz | sbesinz | wniedinz | actualalbedoinz | wadainz | schmpotinz | schminz | gefrpotinz | gefrinz | evsinz |      evi |      evb |       evs |    wnied | tempssurface | actualalbedo |  schmpot |     schm |  gefrpot |     gefr | wlatinz |   wlatsnow | wsensinz |  wsenssnow | wsurfinz |       wsurf |      sff |      fvg |     wada |      qdb | qib1 | qib2 | qbb | qkap |     qdgz |    qdgz1 |    qdgz2 | qigz1 | qigz2 | qbgz |    qdga1 |    qdga2 | qiga1 | qiga2 | qbga |      qah |       qa |     inzp | stinz | sinz | esnowinz | asinz |      wats |      waes |       esnow |     taus |        ebdn |      bowa |     sdg1 |     sdg2 | sig1 | sig2 | sbg | inlet |   outlet |
@@ -1486,7 +1486,7 @@ acre (winter)
 >>> round_(model.check_waterbalance(conditions_acker_winter))
 0.0
 
-.. _lland_v4_nadelw_winter_hourly:
+.. _lland_knauf_ic_nadelw_winter_hourly:
 
 conifers (winter)
 -----------------
@@ -1494,7 +1494,7 @@ conifers (winter)
 .. integration-test::
 
     >>> lnk(NADELW)
-    >>> test("lland_v4_nadelw_winter_hourly",
+    >>> test("lland_knauf_ic_nadelw_winter_hourly",
     ...      axis1=(inputs.nied, fluxes.wada), axis2=(states.waes, states.wats),
     ...      use_conditions=conditions_nadelw_winter)
     |                date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |  nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressureinz | saturationvapourpressuresnow | actualvapourpressure |        tz |         wg | netshortwaveradiationinz | netshortwaveradiationsnow | netlongwaveradiationinz | netlongwaveradiationsnow | netradiationinz | netradiationsnow |  nbes |   sbes | snowintmax | snowintrate |  nbesinz |  sbesinz | wniedinz | actualalbedoinz |  wadainz | schmpotinz |  schminz | gefrpotinz |  gefrinz |   evsinz |      evi |       evb |       evs |     wnied | tempssurface | actualalbedo |  schmpot |     schm |  gefrpot |     gefr |   wlatinz |   wlatsnow |   wsensinz |  wsenssnow |   wsurfinz |       wsurf |      sff |      fvg |     wada |      qdb | qib1 | qib2 | qbb | qkap |     qdgz |    qdgz1 |    qdgz2 | qigz1 | qigz2 | qbgz |    qdga1 |    qdga2 | qiga1 | qiga2 | qbga |      qah |       qa |     inzp |    stinz |     sinz |   esnowinz |    asinz |     wats |      waes |      esnow |     taus |        ebdn |      bowa |     sdg1 |     sdg2 | sig1 | sig2 | sbg | inlet |   outlet |
@@ -1575,7 +1575,7 @@ conifers (winter)
 >>> round_(model.check_waterbalance(conditions_nadelw_winter))
 0.0
 
-.. _lland_v4_acker_winter_ktschnee_hourly:
+.. _lland_knauf_ic_acker_winter_ktschnee_hourly:
 
 acre (snow surface temperature)
 -------------------------------
@@ -1584,7 +1584,7 @@ acre (snow surface temperature)
 
     >>> lnk(ACKER)
     >>> ktschnee(5.0)
-    >>> test("lland_v4_acker_winter_ktschnee_hourly",
+    >>> test("lland_knauf_ic_acker_winter_ktschnee_hourly",
     ...      axis1=(inputs.nied, fluxes.wada),
     ...      axis2=(states.waes, states.wats),
     ...      use_conditions=conditions_acker_winter_ktschnee)
@@ -1698,7 +1698,15 @@ class Model(
     lland_model.Sub_SnowyCanopyModel_V1,
     lland_model.Sub_SnowAlbedoModel_V1,
 ):
-    """Knauf with snow interception version of HydPy-L-Land."""
+    """|lland_knauf_ic.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="L-Knauf-Ic",
+        description=(
+            "adoption of LARSIM with Knauf-based snow modelling including snow "
+            "interception"
+        ),
+    )
 
     INLET_METHODS = (lland_model.Pick_QZ_V1,)
     RECEIVER_METHODS = ()
@@ -1866,11 +1874,11 @@ class Model(
         it does not affect the simulation results in any relevant manner.  The only
         exception we are aware of is the "generation" of additional water when the
         base flow storage cannot meet the water demand required for the calculated
-        capillary rise (see :ref:`lland_v1_acker_qkap_negq-false`).
+        capillary rise (see :ref:`lland_dd_acker_qkap_negq-false`).
 
         Pick the required initial conditions before starting the simulation run via
         property |Sequences.conditions|.  See the integration tests of the application
-        model |lland_v4| for some examples.
+        model |lland_knauf_ic| for some examples.
         """
         control = self.parameters.control
         fluxes = self.sequences.fluxes
@@ -1903,7 +1911,7 @@ class Model(
 
 
 class Masks(masktools.Masks):
-    """Masks applicable to |lland_v4|."""
+    """Masks applicable to |lland_knauf_ic|."""
 
     CLASSES = lland_masks.Masks.CLASSES
 

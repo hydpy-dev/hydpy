@@ -339,8 +339,8 @@ We need to restore the values of all time-dependent parameters:
 This time, we prefer to let |meteo_glob_morsim| calculate the possible sunshine
 duration, the actual sunshine duration, and the global radiation on the fly instead of
 inserting pre-calculated values via |meteo_psun_sun_glob_io|.  The following
-configuration agrees with the :ref:`lland_v3_acker_summer_hourly` example of
-|lland_v3|:
+configuration agrees with the :ref:`lland_knauf_acker_summer_hourly` example of
+|lland_knauf|:
 
 >>> with model.add_radiationmodel_v1("meteo_glob_morsim"):
 ...     latitude(54.1)
@@ -352,7 +352,7 @@ configuration agrees with the :ref:`lland_v3_acker_summer_hourly` example of
 >>> test = IntegrationTest(element)
 
 The following meteorological input data also stems from the
-:ref:`lland_v3_acker_summer_hourly` example of |lland_v3|, too:
+:ref:`lland_knauf_acker_summer_hourly` example of |lland_knauf|, too:
 
 >>> inputs.atmosphericpressure.series = (
 ...     1015.0, 1015.0, 1015.0, 1015.0, 1015.0, 1015.0, 1015.0, 1015.0, 1016.0, 1016.0,
@@ -370,8 +370,8 @@ The following meteorological input data also stems from the
 
 |evap_aet_morsim| calculates "daily" averages and sums based on the last 24 hours.
 Hence, we must provide the corresponding logged data for the 24 hours preceding the
-simulation period.  We take them from the :ref:`lland_v3_acker_summer_hourly` example,
-too:
+simulation period.  We take them from the :ref:`lland_knauf_acker_summer_hourly`
+example, too:
 
 >>> test.inits = (
 ...     (logs.loggedsunshineduration,

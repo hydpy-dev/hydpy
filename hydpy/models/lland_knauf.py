@@ -4,21 +4,21 @@
 .. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
 
-One can understand version 3 of the L-Land model as an extended, more complicated
-version of the application model |lland_v1|, using precipitation, temperature, wind
+One can understand |lland_knauf| as an extended, more complicated
+version of the application model |lland_dd|, using precipitation, temperature, wind
 speed, relative humidity, and actual and possible sunshine duration as meteorological
-input parameters.  The main difference is that |lland_v3| models the energy balance of
-snow processes in more detail (following Knauf, 2006), taking not only the air
+input parameters.  The main difference is that |lland_knauf| models the energy balance
+of snow processes in more detail :cite:p:`ref-LUBW2006a`, taking not only the air
 temperature but also forcings like the soil heat flux or global radiation into account
 explicitly.  This methodology includes calculating age-dependent snow albedo values,
-which |lland_v3| can provide to actual evapotranspiration submodels as
+which |lland_knauf| can provide to actual evapotranspiration submodels as
 |evap_aet_morsim| for fine-tuning their radiation energy balance.  The second
-difference is that |lland_v3| models the soil temperature to simulate the effect of
-soil water freezing on runoff generation.  We created |lland_v3| on behalf of the
+difference is that |lland_knauf| models the soil temperature to simulate the effect of
+soil water freezing on runoff generation.  We created |lland_knauf| on behalf of the
 `German Federal Institute of Hydrology (BfG)`_ in the context of optimising the control
 of the Kiel Canal (Nord-Ostsee-Kanal).
 
-The following list summarises the main components of |lland_v3|:
+The following list summarises the main components of |lland_knauf|:
 
  * Multiple routines for adjusting the meteorological input data
  * Mixed precipitation within a definable temperature range
@@ -39,19 +39,20 @@ The following list summarises the main components of |lland_v3|:
  * Additional evaporation from water areas within the subcatchment
  * Optional evaporation from inflowing runoff
 
-Some notes for `LARSIM`_ users: |lland_v3| is similar to many `LARSIM`_ models used for
-forecasting (relying on a combination of options equivalent to the features listed
+Some notes for `LARSIM`_ users: |lland_knauf| is similar to many `LARSIM`_ models used
+for forecasting (relying on a combination of options equivalent to the features listed
 above) but not identical.  Often, we strive for more flexibility. One example is
-modifying parameter |KTSchnee| to control if and how |lland_v3| adjusts the snow
+modifying parameter |KTSchnee| to control if and how |lland_knauf| adjusts the snow
 surface temperature.  However, there are also differences due to technical reasons.
 One relevant difference is that *HydPy* does not include "future values" in the current
 simulation timestep. For example, `LARSIM`_ fills nightly gaps regarding cloudiness
-with the average value of the present calendar day, while |lland_v3| uses the average
-over the 24 hours preceding the current simulation step.  Hence, do not expect the
-results of |lland_v3| and `LARSIM`_ to be identical.  When switching from one model
-system to the other, the need to fine-tune some parameters via calibration might arise.
+with the average value of the present calendar day, while |lland_knauf| uses the
+average over the 24 hours preceding the current simulation step.  Hence, do not expect
+the results of |lland_knauf| and `LARSIM`_ to be identical.  When switching from one
+model system to the other, the need to fine-tune some parameters via calibration might
+arise.
 
-|lland_v3| requires a submodel that complies with the |RadiationModel_V1| or the
+|lland_knauf| requires a submodel that complies with the |RadiationModel_V1| or the
 |RadiationModel_V4| interface and provides the time series of possible sunshine
 duration, actual sunshine duration, and global radiation.  An obvious choice is
 |meteo_glob_morsim|, which estimates these meteorological properties according to
@@ -59,7 +60,7 @@ duration, actual sunshine duration, and global radiation.  An obvious choice is
 
 .. note::
 
-    Some details of |lland_v3| are still under discussion and might change in the
+    Some details of |lland_knauf| are still under discussion and might change in the
     future.
 
 Integration tests
@@ -68,12 +69,13 @@ Integration tests
 .. how_to_understand_integration_tests::
 
 Many of the following integration tests are similar to those for the application model
-|lland_v1|.  When there are no substantial differences, we do not repeat our
+|lland_dd|.  When there are no substantial differences, we do not repeat our
 explanations, so please note the respective sections of the documentation on
-|lland_v1|.  Some additional tests cover structural differences between land-use types
-that only exist for |lland_v3|; others show various possible snow-related
-configurations of |lland_v3|.  Furthermore, we perform daily and hourly tests to point
-out differences and ensure |lland_v3| works well for different simulation step sizes.
+|lland_dd|.  Some additional tests cover structural differences between land-use types
+that only exist for |lland_knauf|; others show various possible snow-related
+configurations of |lland_knauf|.  Furthermore, we perform daily and hourly tests to
+point out differences and ensure |lland_knauf| works well for different simulation step
+sizes.
 
 Note that while our daily simulations always cover an entire month, our hourly
 simulations cover only three days, focussing on the "most interesting" part of the
@@ -86,12 +88,12 @@ longer daily simulation).
 daily simulation
 ________________
 
-The following general setup is identical to the one of |lland_v1|, except that we now
+The following general setup is identical to the one of |lland_dd|, except that we now
 start with a different period and a daily simulation time step:
 
 >>> from hydpy import pub
 >>> pub.timegrids = "1997-08-01", "1997-09-01", "1d"
->>> from hydpy.models.lland_v3 import *
+>>> from hydpy.models.lland_knauf import *
 >>> parameterstep("1h")
 >>> from hydpy import Node, Element
 >>> outlet = Node("outlet")
@@ -102,13 +104,13 @@ start with a different period and a daily simulation time step:
 >>> ft(1.0)
 >>> fhru(1.0)
 
-.. _lland_v3_acker_summer_daily:
+.. _lland_knauf_acker_summer_daily:
 
 acre (summer)
 -------------
 
 First, we set the values of those parameters also required by the application model
-|lland_v1| (see integration test :ref:`lland_v1_acker_summer`):
+|lland_dd| (see integration test :ref:`lland_dd_acker_summer`):
 
 >>> lnk(ACKER)
 >>> kg(0.94)
@@ -143,15 +145,15 @@ First, we set the values of those parameters also required by the application mo
 >>> eqd1(200.0)
 >>> eqd2(50.0)
 
-In contrast to the documentation on |lland_v1|, we set parameter |NegQ| to |True| in
+In contrast to the documentation on |lland_dd|, we set parameter |NegQ| to |True| in
 most examples.  That means we favour negative discharge estimates over water balance
 errors whenever the base flow storage cannot meet the water demand of the capillary
 rise of groundwater into the soil:
 
 >>> negq(True)
 
-Next, we set the values of the parameters specific to |lland_v3|, beginning with those
-required for the energy-accounting snow modelling approach after Knauf
+Next, we set the values of the parameters specific to |lland_knauf|, beginning with
+those required for the energy-accounting snow modelling approach after Knauf
 :cite:p:`ref-LUBW2006a`:
 
 >>> measuringheightwindspeed(10.0)
@@ -175,14 +177,14 @@ soil layer:
 
 All integration tests performed in daily simulation steps rely on pre-calculated
 radiation-related data.  We use the |meteo_psun_sun_glob_io| submodel to provide
-|lland_v3| with this data:
+|lland_knauf| with this data:
 
 >>> with model.add_radiationmodel_v4("meteo_psun_sun_glob_io") as submodel_meteo_psun_sun_glob_io:
 ...     pass
 
 We select |evap_aet_morsim|, which implements the MORECS method with some
 LARSIM-specific modifications, as the submodel for calculating the different
-evapotranspiration components.  Note that |evap_aet_morsim| and |lland_v3| can share
+evapotranspiration components.  Note that |evap_aet_morsim| and |lland_knauf| can share
 the same submodel instance due to them requiring the same radiation-related data and
 |meteo_psun_sun_glob_io| being a sharable submodel that complies with
 |SharableSubmodelInterface|:
@@ -274,12 +276,12 @@ addresses the same place and time:
 ...     166.9168296, 145.9856109, 165.5438903, 87.6933456, 84.356885, 142.3092025,
 ...     126.7220785)
 
-The following results illustrate the behaviour of |lland_v3| for relatively dry and hot
-summer condions. Compared to the result table of integration test
-:ref:`lland_v1_acker_summer` of the application model |lland_v1|, there are many more
+The following results illustrate the behaviour of |lland_knauf| for relatively dry and
+hot summer condions. Compared to the result table of integration test
+:ref:`lland_dd_acker_summer` of the application model |lland_dd|, there are many more
 columns because of to the higher number of input, flux, and state sequences.  These are
 mainly due to the increased data requirements and the more complex calculations of the
-Knauf :cite:p:`ref-LUBW2006a` approach. Therefore, |lland_v3| calculates some "daily
+Knauf :cite:p:`ref-LUBW2006a` approach. Therefore, |lland_knauf| calculates some "daily
 values", representing the averages or sums over the last 24 hours:
 
 .. integration-test::
@@ -288,7 +290,7 @@ values", representing the averages or sums over the last 24 hours:
     >>> test.reset_inits()
     >>> conditions = model.conditions
     >>> conditions_acker_summer = test(
-    ...     "lland_v3_acker_summer_daily",
+    ...     "lland_knauf_acker_summer_daily",
     ...     axis1=(inputs.nied, fluxes.qah), axis2=states.bowa,
     ...     get_conditions="1997-08-03")
     |       date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |   nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressuresnow | actualvapourpressure |        tz |         wg | netshortwaveradiationsnow | netlongwaveradiationsnow | netradiationsnow |   nbes | sbes |   evi |      evb | evs | wnied | tempssurface | actualalbedo | schmpot | schm | gefrpot | gefr | wlatsnow | wsenssnow | wsurf | sff | fvg |   wada |      qdb | qib1 | qib2 | qbb |     qkap |     qdgz |    qdgz1 | qdgz2 | qigz1 | qigz2 |      qbgz |    qdga1 | qdga2 | qiga1 | qiga2 |      qbga |       qah |        qa | inzp | wats | waes | esnow | taus |       ebdn |      bowa |     sdg1 | sdg2 | sig1 | sig2 |       sbg | inlet |    outlet |
@@ -331,18 +333,18 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _lland_v3_acker_routing_daily:
+.. _lland_knauf_acker_routing_daily:
 
-:ref:`acre (routing) <lland_v1_acker_routing>`
+:ref:`acre (routing) <lland_dd_acker_routing>`
 ----------------------------------------------
 
 The following calculation shows the possibility of routing inflowing runoff, discussed
-in the documentation of |lland_v1|:
+in the documentation of |lland_dd|:
 
 .. integration-test::
 
     >>> inlet.sequences.sim.series = 0.02
-    >>> test("lland_v3_acker_routing_daily",
+    >>> test("lland_knauf_acker_routing_daily",
     ...      axis1=(inputs.nied, fluxes.qah), axis2=states.bowa)
     |       date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |   qz |   qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |   nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressuresnow | actualvapourpressure |        tz |         wg | netshortwaveradiationsnow | netlongwaveradiationsnow | netradiationsnow |   nbes | sbes |   evi |      evb | evs | wnied | tempssurface | actualalbedo | schmpot | schm | gefrpot | gefr | wlatsnow | wsenssnow | wsurf | sff | fvg |   wada |      qdb | qib1 | qib2 | qbb |     qkap |     qdgz |    qdgz1 | qdgz2 | qigz1 | qigz2 |      qbgz |    qdga1 | qdga2 | qiga1 | qiga2 |      qbga |      qah |       qa | inzp | wats | waes | esnow | taus |       ebdn |      bowa |     sdg1 | sdg2 | sig1 | sig2 |       sbg | inlet |   outlet |
     -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -383,16 +385,16 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _lland_v3_acker_heavy_rain_daily:
+.. _lland_knauf_acker_heavy_rain_daily:
 
 acre (heavy rain)
 -----------------
 
-Integration test :ref:`lland_v3_acker_summer_daily` deals with dry summer conditions.
-To show how |lland_v3| works for warm but wet conditions, we set the precipitation
-input time series constantly to 20 mm.  Now, the soil water content (|BoWa|) rises from
-its initial value of 72 mm and nearly reaches its maximum value of 309 mm (|WMax|),
-resulting in a relevant response of all runoff components:
+Integration test :ref:`lland_knauf_acker_summer_daily` deals with dry summer
+conditions.  To show how |lland_knauf| works for warm but wet conditions, we set the
+precipitation input time series constantly to 20 mm.  Now, the soil water content
+(|BoWa|) rises from its initial value of 72 mm and nearly reaches its maximum value of
+309 mm (|WMax|), resulting in a relevant response of all runoff components:
 
 .. integration-test::
 
@@ -400,7 +402,7 @@ resulting in a relevant response of all runoff components:
     >>> nied = inputs.nied.series.copy()
     >>> inputs.nied.series = 20.0
     >>> conditions_acker_heavy_rain = test(
-    ...     "lland_v3_acker_heavy_rain_daily",
+    ...     "lland_knauf_acker_heavy_rain_daily",
     ...     axis1=(inputs.nied, fluxes.qah), axis2=states.bowa,
     ...     get_conditions="1997-08-03")
     |       date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation | nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressuresnow | actualvapourpressure |        tz |         wg | netshortwaveradiationsnow | netlongwaveradiationsnow | netradiationsnow | nbes | sbes | evi |      evb | evs | wnied | tempssurface | actualalbedo | schmpot | schm | gefrpot | gefr | wlatsnow | wsenssnow | wsurf | sff | fvg | wada |       qdb |     qib1 |     qib2 |      qbb | qkap |      qdgz |     qdgz1 |    qdgz2 |    qigz1 |    qigz2 |     qbgz |     qdga1 |    qdga2 |    qiga1 |    qiga2 |     qbga |       qah |       qa | inzp | wats | waes | esnow | taus |       ebdn |       bowa |      sdg1 |     sdg2 |     sig1 |     sig2 |      sbg | inlet |   outlet |
@@ -442,18 +444,18 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _lland_v3_acker_heavy_garto_daily:
+.. _lland_knauf_acker_heavy_garto_daily:
 
 acre (GARTO)
 ------------
 
-One can pep up |lland_v3| with submodels following the |SoilModel_V1| interface for the
-reasons discussed in the :ref:`lland_v1_acker_garto` example of application model
-|lland_v1|.  As in the :ref:`lland_v1_acker_garto` example, we prepare a
+One can pep up |lland_knauf| with submodels following the |SoilModel_V1| interface for
+the reasons discussed in the :ref:`lland_dd_acker_garto` example of application model
+|lland_dd|.  As in the :ref:`lland_dd_acker_garto` example, we prepare a
 |ga_garto_submodel1| model and assume loam soil for illustration. for illustration.
 We set the soil depth in agreement with the maximum soil water content (309.0 mm) and
 the initial relative soil moisture in agreement with the initial water content (72 mm)
-of the previous :ref:`lland_v3_acker_heavy_rain_daily` example:
+of the previous :ref:`lland_knauf_acker_heavy_rain_daily` example:
 
 >>> from hydpy import pub
 >>> with model.add_soilmodel_v1("ga_garto_submodel1"):
@@ -471,13 +473,13 @@ of the previous :ref:`lland_v3_acker_heavy_rain_daily` example:
 ...     states.frontdepth = 0.0
 ...     states.moisturechange = 0.0
 
-When comparing the |lland_v1| examples :ref:`lland_v1_acker_summer` and
-:ref:`lland_v1_acker_garto`, we see an increase in direct runoff generation due to
+When comparing the |lland_dd| examples :ref:`lland_dd_acker_summer` and
+:ref:`lland_dd_acker_garto`, we see an increase in direct runoff generation due to
 including infiltration excess when using |ga_garto_submodel1|.  However, comparing the
-following results with the :ref:`lland_v3_acker_heavy_rain_daily` example, we see a
+following results with the :ref:`lland_knauf_acker_heavy_rain_daily` example, we see a
 decrease in direct runoff generation.  This behaviour results from the lower rainfall
 rates, which never exceed the soil's (saturated) conductivity.  Hence,
-|ga_garto_submodel1| always lets the surface water supplied by |lland_v3| infiltrate
+|ga_garto_submodel1| always lets the surface water supplied by |lland_knauf| infiltrate
 and creates no additional direct runoff component.  But, starting from August 13, it
 calculates extra groundwater recharge.  At this time, the (partly saturated) wetting
 front reaches the soil's bottom and enables the continuous percolation of all rainfall
@@ -485,7 +487,7 @@ through the soil column:
 
 .. integration-test::
 
-    >>> test("lland_v3_acker_garto_daily",
+    >>> test("lland_knauf_acker_garto_daily",
     ...      axis1=(inputs.nied, fluxes.qah), axis2=states.bowa)
     |       date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation | nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressuresnow | actualvapourpressure |        tz |         wg | netshortwaveradiationsnow | netlongwaveradiationsnow | netradiationsnow | nbes | sbes | evi |      evb | evs | wnied | tempssurface | actualalbedo | schmpot | schm | gefrpot | gefr | wlatsnow | wsenssnow | wsurf | sff | fvg | wada |      qdb |     qib1 |     qib2 |       qbb | qkap |     qdgz |    qdgz1 | qdgz2 |    qigz1 |    qigz2 |      qbgz |    qdga1 | qdga2 |    qiga1 |    qiga2 |     qbga |      qah |       qa | inzp | wats | waes | esnow | taus |       ebdn |       bowa |     sdg1 | sdg2 |     sig1 |     sig2 |        sbg | inlet |   outlet |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -529,15 +531,16 @@ There is no indication of an error in the water balance:
 >>> del model.soilmodel
 >>> inputs.nied.series = nied
 
-.. _lland_v3_wasser_daily:
+.. _lland_knauf_wasser_daily:
 
 water
 -----
 
-L-Land defines three types of water areas, |WASSER|, |FLUSS|, and |SEE|.  |lland_v3|
-calculates their evaporation based on the same submodel interface as |lland_v1|.  So,
-please read the detailed discussions in integration test :ref:`lland_v1_wasser` to
-better understand the following test results for water type |WASSER|:
+|lland.DOCNAME.long| defines three types of water areas, |WASSER|, |FLUSS|, and |SEE|.
+|lland_knauf| calculates their evaporation based on the same submodel interface as
+|lland_dd|.  So, please read the detailed discussions in integration test
+:ref:`lland_dd_wasser` to better understand the following test results for water type
+|WASSER|:
 
 .. integration-test::
 
@@ -547,7 +550,7 @@ better understand the following test results for water type |WASSER|:
     >>> model.aetmodel.parameters.control.cropheight.wasser_aug = 0.05
     >>> model.aetmodel.parameters.control.albedo.wasser_aug = 0.7
     >>> conditions_wasser = test(
-    ...     "lland_v3_wasser_daily",
+    ...     "lland_knauf_wasser_daily",
     ...     axis1=(fluxes.nkor, fluxes.evi, fluxes.qah),
     ...     get_conditions="1997-08-03")
     |       date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |   nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressuresnow | actualvapourpressure |  tz |  wg | netshortwaveradiationsnow | netlongwaveradiationsnow | netradiationsnow | nbes | sbes |      evi | evb | evs | wnied | tempssurface | actualalbedo | schmpot | schm | gefrpot | gefr | wlatsnow | wsenssnow | wsurf | sff | fvg | wada | qdb | qib1 | qib2 | qbb | qkap | qdgz | qdgz1 | qdgz2 | qigz1 | qigz2 | qbgz | qdga1 | qdga2 | qiga1 | qiga2 | qbga |       qah |       qa | inzp | wats | waes | esnow | taus | ebdn | bowa | sdg1 | sdg2 | sig1 | sig2 | sbg | inlet |   outlet |
@@ -589,19 +592,19 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _lland_v3_wasser_routing_daily:
+.. _lland_knauf_wasser_routing_daily:
 
 water (routing)
 ---------------
 
 The following calculation shows the possibility of subtracting evaporation from
-inflowing runoff, discussed in the integration test :ref:`lland_v1_wasser_routing` of
-|lland_v1|:
+inflowing runoff, discussed in the integration test :ref:`lland_dd_wasser_routing` of
+|lland_dd|:
 
 .. integration-test::
 
     >>> inlet.sequences.sim.series = 0.02
-    >>> test("lland_v3_wasser_routing_daily",
+    >>> test("lland_knauf_wasser_routing_daily",
     ...      axis1=(fluxes.nkor, fluxes.evi, fluxes.qah))
     |       date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |   qz |   qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |   nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressuresnow | actualvapourpressure |  tz |  wg | netshortwaveradiationsnow | netlongwaveradiationsnow | netradiationsnow | nbes | sbes |      evi | evb | evs | wnied | tempssurface | actualalbedo | schmpot | schm | gefrpot | gefr | wlatsnow | wsenssnow | wsurf | sff | fvg | wada | qdb | qib1 | qib2 | qbb | qkap | qdgz | qdgz1 | qdgz2 | qigz1 | qigz2 | qbgz | qdga1 | qdga2 | qiga1 | qiga2 | qbga |       qah |       qa | inzp | wats | waes | esnow | taus | ebdn | bowa | sdg1 | sdg2 | sig1 | sig2 | sbg | inlet |   outlet |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -642,19 +645,19 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _lland_v3_wasser_negq_daily:
+.. _lland_knauf_wasser_negq_daily:
 
 water (negative runoff)
 -----------------------
 
 The following calculation shows the possibility of calculating negative discharge
-values, discussed in the integration test :ref:`lland_v1_wasser_negq` of |lland_v1|:
+values, discussed in the integration test :ref:`lland_dd_wasser_negq` of |lland_dd|:
 
 .. integration-test::
 
     >>> negq(True)
     >>> inlet.sequences.sim.series = 0.0
-    >>> test("lland_v3_wasser_negq_daily",
+    >>> test("lland_knauf_wasser_negq_daily",
     ...      axis1=(fluxes.nkor, fluxes.evi, fluxes.qah))
     |       date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |   nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressuresnow | actualvapourpressure |  tz |  wg | netshortwaveradiationsnow | netlongwaveradiationsnow | netradiationsnow | nbes | sbes |      evi | evb | evs | wnied | tempssurface | actualalbedo | schmpot | schm | gefrpot | gefr | wlatsnow | wsenssnow | wsurf | sff | fvg | wada | qdb | qib1 | qib2 | qbb | qkap | qdgz | qdgz1 | qdgz2 | qigz1 | qigz2 | qbgz | qdga1 | qdga2 | qiga1 | qiga2 | qbga |       qah |        qa | inzp | wats | waes | esnow | taus | ebdn | bowa | sdg1 | sdg2 | sig1 | sig2 | sbg | inlet |    outlet |
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -695,13 +698,13 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _lland_v3_see_daily:
+.. _lland_knauf_see_daily:
 
 lakes
 -----
 
 The following example focuses on water-type |SEE| (for further information, see
-integration test :ref:`lland_v1_see` of |lland_v1|):
+integration test :ref:`lland_dd_see` of |lland_dd|):
 
 .. integration-test::
 
@@ -710,7 +713,7 @@ integration test :ref:`lland_v1_see` of |lland_v1|):
     >>> model.aetmodel.parameters.control.cropheight.see_aug = 0.05
     >>> model.aetmodel.parameters.control.albedo.see_aug = 0.7
     >>> negq(False)
-    >>> test("lland_v3_see_daily",
+    >>> test("lland_knauf_see_daily",
     ...      axis1=(fluxes.nkor, fluxes.evi, fluxes.qah))
     |       date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |   nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressuresnow | actualvapourpressure |  tz |  wg | netshortwaveradiationsnow | netlongwaveradiationsnow | netradiationsnow | nbes | sbes |      evi | evb | evs | wnied | tempssurface | actualalbedo | schmpot | schm | gefrpot | gefr | wlatsnow | wsenssnow | wsurf | sff | fvg | wada | qdb | qib1 | qib2 | qbb | qkap | qdgz | qdgz1 | qdgz2 | qigz1 | qigz2 |      qbgz | qdga1 | qdga2 | qiga1 | qiga2 |      qbga |      qah |       qa | inzp | wats | waes | esnow | taus | ebdn | bowa | sdg1 | sdg2 | sig1 | sig2 |        sbg | inlet |   outlet |
     ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -751,13 +754,13 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _lland_v3_fluss_daily:
+.. _lland_knauf_fluss_daily:
 
 streams
 -------
 
 The following example focuses on water-type |FLUSS| (for further information, see
-integration test :ref:`lland_v1_fluss` of |lland_v1|):
+integration test :ref:`lland_dd_fluss` of |lland_dd|):
 
 .. integration-test::
 
@@ -765,7 +768,7 @@ integration test :ref:`lland_v1_fluss` of |lland_v1|):
     >>> model.aetmodel.parameters.control.surfaceresistance.fluss_aug = 0.0
     >>> model.aetmodel.parameters.control.cropheight.fluss_aug = 0.05
     >>> model.aetmodel.parameters.control.albedo.fluss_aug = 0.7
-    >>> test("lland_v3_fluss_daily",
+    >>> test("lland_knauf_fluss_daily",
     ...       axis1=(fluxes.nkor, fluxes.evi, fluxes.qah))
     |       date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |   nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressuresnow | actualvapourpressure |  tz |  wg | netshortwaveradiationsnow | netlongwaveradiationsnow | netradiationsnow | nbes | sbes |       evi | evb | evs | wnied | tempssurface | actualalbedo | schmpot | schm | gefrpot | gefr | wlatsnow | wsenssnow | wsurf | sff | fvg | wada | qdb | qib1 | qib2 | qbb | qkap |      qdgz |     qdgz1 |    qdgz2 | qigz1 | qigz2 | qbgz |     qdga1 |    qdga2 | qiga1 | qiga2 | qbga |      qah |       qa | inzp | wats | waes | esnow | taus | ebdn | bowa |      sdg1 |     sdg2 | sig1 | sig2 | sbg | inlet |   outlet |
     ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -806,12 +809,12 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _lland_v3_vers_daily:
+.. _lland_knauf_vers_daily:
 
 sealed surfaces
 ---------------
 
-As also shown in the integration test :ref:`lland_v1_vers` of |lland_v1|, sealed
+As also shown in the integration test :ref:`lland_dd_vers` of |lland_dd|, sealed
 surfaces route the not intercepted water to the linear storages for direct discharge
 immediately:
 
@@ -824,7 +827,7 @@ immediately:
     >>> model.aetmodel.parameters.control.albedo.vers_aug = 0.10
     >>> lai.vers_aug = 10.0
     >>> model.aetmodel.parameters.control.leafareaindex.vers_aug = 10.0
-    >>> test("lland_v3_vers_daily",
+    >>> test("lland_knauf_vers_daily",
     ...      axis1=(inputs.nied, fluxes.qah, states.bowa))
     |       date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |   nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressuresnow | actualvapourpressure |        tz |         wg | netshortwaveradiationsnow | netlongwaveradiationsnow | netradiationsnow |   nbes | sbes |   evi | evb | evs | wnied | tempssurface | actualalbedo | schmpot | schm | gefrpot | gefr | wlatsnow | wsenssnow | wsurf | sff | fvg |   wada |    qdb | qib1 | qib2 | qbb | qkap |   qdgz |  qdgz1 | qdgz2 | qigz1 | qigz2 | qbgz |    qdga1 |    qdga2 | qiga1 | qiga2 | qbga |      qah |       qa | inzp | wats | waes | esnow | taus |       ebdn | bowa |      sdg1 |     sdg2 | sig1 | sig2 | sbg | inlet |   outlet |
     ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -865,7 +868,7 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _lland_v3_acker_winter_daily:
+.. _lland_knauf_acker_winter_daily:
 
 acre (winter)
 -------------
@@ -944,20 +947,21 @@ sunshine duration stem from the example
 ...     28.9823209, 9.1276454, 9.1999895, 32.0622345)
 
 When comparing the following results with those of integration test
-:ref:`lland_v1_acker_winter` on |lland_v1|, it is not immediately clear what
-differences are due to the much higher complexities of the snow module of |lland_v3|.
-But, at least, one can see that |lland_v3| allows for the (re)freezing of liquid water
-within the snow layer.  Refreezing occurs around December 7, where the frozen water
-equivalent (|WATS|) grows until it reaches to total water equivalent (|WAeS|) (a note
-for `LARSIM`_ users: currently, `LARSIM`_ does not implement such a freezing feature;
-you can disable it in |lland_v3| through setting |RefreezeFlag| to |False|):
+:ref:`lland_dd_acker_winter` on |lland_dd|, it is not immediately clear what
+differences are due to the much higher complexities of the snow module of
+|lland_knauf|.  But, at least, one can see that |lland_knauf| allows for the
+(re)freezing of liquid water within the snow layer.  Refreezing occurs around
+December 7, where the  frozen water equivalent (|WATS|) grows until it reaches to total
+water equivalent (|WAeS|) (a note for `LARSIM`_ users: currently, `LARSIM`_ does not
+implement such a freezing feature; you can disable it in |lland_knauf| through setting
+|RefreezeFlag| to |False|):
 
 .. integration-test::
 
     >>> test.reset_inits()
     >>> conditions = model.conditions
     >>> conditions_acker_winter = test(
-    ...     "lland_v3_acker_winter_daily",
+    ...     "lland_knauf_acker_winter_daily",
     ...     axis1=(inputs.nied, fluxes.wada), axis2=(states.waes, states.wats),
     ...     get_conditions="2010-12-10")
     |       date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |   nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressuresnow | actualvapourpressure |         tz |         wg | netshortwaveradiationsnow | netlongwaveradiationsnow | netradiationsnow |   nbes |    sbes | evi |      evb |       evs |     wnied | tempssurface | actualalbedo |   schmpot |      schm |  gefrpot |     gefr |   wlatsnow |  wsenssnow |       wsurf |      sff |      fvg |      wada |      qdb | qib1 | qib2 | qbb | qkap |     qdgz |    qdgz1 | qdgz2 | qigz1 | qigz2 | qbgz |    qdga1 | qdga2 | qiga1 | qiga2 | qbga |      qah |       qa | inzp |      wats |      waes |     esnow |     taus |       ebdn |      bowa |     sdg1 | sdg2 | sig1 | sig2 | sbg | inlet |   outlet |
@@ -999,19 +1003,20 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _lland_v3_nadelw_winter_daily:
+.. _lland_knauf_nadelw_winter_daily:
 
 conifers (winter)
 -----------------
 
-Next, we repeat the integration test :ref:`lland_v3_acker_winter_daily` but select the
-land use type |NADELW| instead of |ACKER|.  Like for |LAUBW| and |MISCHW|, |lland_v3|
-now modifies the global radiation, the net longwave radiation, and the wind speed to
-take the shadowing effects of the tree canopies into account.  Here, the net effect of
-these modifications is that the total water equivalent's peak amounts are two to three
-times smaller than for land use type |ACKER|.  Also, snow evaporation (|EvS|) coincides
-with interception (|EvI|) and soil evaporation (|EvB|), which never happens at
-non-forest sites, but this is a feature |evap_aet_morsim|, not of |lland_v3|:
+Next, we repeat the integration test :ref:`lland_knauf_acker_winter_daily` but select
+the land use type |NADELW| instead of |ACKER|.  Like for |LAUBW| and |MISCHW|,
+|lland_knauf| now modifies the global radiation, the net longwave radiation, and the
+wind speed to take the shadowing effects of the tree canopies into account.  Here, the
+net effect of these modifications is that the total water equivalent's peak amounts are
+two to three times smaller than for land use type |ACKER|.  Also, snow evaporation
+(|EvS|) coincides with interception (|EvI|) and soil evaporation (|EvB|), which never
+happens at non-forest sites, but this is a feature |evap_aet_morsim|, not of
+|lland_knauf|:
 
 .. integration-test::
 
@@ -1022,7 +1027,7 @@ non-forest sites, but this is a feature |evap_aet_morsim|, not of |lland_v3|:
     >>> lai.nadelw = 11.0
     >>> model.aetmodel.parameters.control.leafareaindex.nadelw = 11.0
     >>> conditions_nadelw_winter = test(
-    ...     "lland_v3_nadelw_winter_daily",
+    ...     "lland_knauf_nadelw_winter_daily",
     ...     axis1=(inputs.nied, fluxes.wada), axis2=(states.waes, states.wats),
     ...     get_conditions="2010-12-10")
     |       date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |   nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressuresnow | actualvapourpressure |        tz |         wg | netshortwaveradiationsnow | netlongwaveradiationsnow | netradiationsnow |     nbes |     sbes |       evi |      evb |       evs |     wnied | tempssurface | actualalbedo |   schmpot |      schm |  gefrpot |     gefr |   wlatsnow |  wsenssnow |      wsurf |      sff |      fvg |     wada |      qdb | qib1 | qib2 | qbb | qkap |     qdgz |    qdgz1 | qdgz2 | qigz1 | qigz2 | qbgz |    qdga1 | qdga2 | qiga1 | qiga2 | qbga |      qah |       qa |     inzp |      wats |      waes |     esnow |     taus |       ebdn |      bowa |     sdg1 | sdg2 | sig1 | sig2 | sbg | inlet |   outlet |
@@ -1064,13 +1069,13 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _lland_v3_acker_winter_ktschnee_daily:
+.. _lland_knauf_acker_winter_ktschnee_daily:
 
 acre (snow surface temperature)
 -------------------------------
 
-In integration test :ref:`lland_v3_acker_winter_daily`, |lland_v3| assumes that the
-snow layer has a constant temperature over its complete depth.  For less simplified
+In integration test :ref:`lland_knauf_acker_winter_daily`, |lland_knauf| assumes that
+the snow layer has a constant temperature over its complete depth.  For less simplified
 modelling of the processes within the snow layer, one can enable an iterative
 adjustment of the snow surface temperature (see method |Return_TempSSurface_V1|).
 Therefore, one must set the thermal conductivity of the top snow layer (|KTSchnee|) to
@@ -1081,7 +1086,7 @@ to zero (which is not advisable) would prevent any thermal exchange.  Setting it
 differences within the snow layer.
 
 We show what happens when we use the default |KTSchnee| value used by `LARSIM`_.  In
-integration test :ref:`lland_v3_acker_winter_daily`, with :math:`KTSchnee = inf`,
+integration test :ref:`lland_knauf_acker_winter_daily`, with :math:`KTSchnee = inf`,
 nearly the complete frozen water equivalent melts on December 11, when the average air
 temperature is 5 °C.  In our next test, with :math:`KTSchnee = 5 W/m²/K`, the limited
 thermal conductivity of the top snow layer weakens the energy flux into the snow layer
@@ -1095,7 +1100,7 @@ layer and larger longwave radiation losses (|NetLongwaveRadiationSnow|):
     >>> lnk(ACKER)
     >>> ktschnee(5.0)
     >>> conditions_acker_winter_ktschnee = test(
-    ...     "lland_v3_acker_winter_ktschnee_daily",
+    ...     "lland_knauf_acker_winter_ktschnee_daily",
     ...     axis1=(inputs.nied, fluxes.wada), axis2=(states.waes, states.wats),
     ...     get_conditions="2010-12-10")
     |       date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |   nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressuresnow | actualvapourpressure |        tz |         wg | netshortwaveradiationsnow | netlongwaveradiationsnow | netradiationsnow |   nbes |    sbes |  evi |      evb |       evs |     wnied | tempssurface | actualalbedo |   schmpot |     schm |  gefrpot |     gefr |   wlatsnow |  wsenssnow |       wsurf |      sff |      fvg |      wada |       qdb | qib1 | qib2 | qbb | qkap |      qdgz |     qdgz1 | qdgz2 | qigz1 | qigz2 | qbgz |    qdga1 | qdga2 | qiga1 | qiga2 | qbga |      qah |       qa | inzp |      wats |      waes |     esnow |     taus |       ebdn |      bowa |     sdg1 | sdg2 | sig1 | sig2 | sbg | inlet |   outlet |
@@ -1176,14 +1181,14 @@ As |meteo_psun_sun_glob_io|, |meteo_glob_morsim| complies with
 
 >>> test = IntegrationTest(land)
 
-.. _lland_v3_acker_summer_hourly:
+.. _lland_knauf_acker_summer_hourly:
 
 acre (summer)
 -------------
 
 The following input values agree with the ones of the respective sub-period
-of the daily integration test :ref:`lland_v3_acker_summer_daily` (global radiation and
-possible sunshine duration stem from
+of the daily integration test :ref:`lland_knauf_acker_summer_daily` (global radiation
+and possible sunshine duration stem from
 :ref:`meteo_glob_morsim_hourly_simulation_summer`):
 
 >>> inputs.nied.series = 0.0
@@ -1277,7 +1282,7 @@ evapotranspiration from the soil (|EvB|) reaches its maximum:
 
 .. integration-test::
 
-    >>> test("lland_v3_acker_summer_hourly",
+    >>> test("lland_knauf_acker_summer_hourly",
     ...      axis1=(fluxes.evb, fluxes.qah), axis2=states.bowa,
     ...      use_conditions=conditions_acker_summer)
     |                date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation | nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressuresnow | actualvapourpressure |        tz |         wg | netshortwaveradiationsnow | netlongwaveradiationsnow | netradiationsnow | nbes | sbes |       evi |      evb | evs | wnied | tempssurface | actualalbedo | schmpot | schm | gefrpot | gefr | wlatsnow | wsenssnow | wsurf | sff | fvg | wada | qdb | qib1 | qib2 | qbb | qkap | qdgz | qdgz1 | qdgz2 | qigz1 | qigz2 | qbgz |    qdga1 | qdga2 | qiga1 | qiga2 | qbga |      qah |       qa |     inzp | wats | waes | esnow | taus |        ebdn |      bowa |     sdg1 | sdg2 | sig1 | sig2 | sbg | inlet |   outlet |
@@ -1360,16 +1365,16 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions_acker_summer))
 0.0
 
-.. _lland_v3_acker_heavy_rain_hourly:
+.. _lland_knauf_acker_heavy_rain_hourly:
 
 acre (heavy rain)
 -----------------
 
 When comparing the soil moisture content (|BoWa|) on August 6, 00:00, we notice only
-minor differences between the daily (:ref:`lland_v3_acker_summer_daily`, 70.2 mm) and
-the hourly (:ref:`lland_v3_acker_summer_daily`, 69.5) simulation results for a dry
-situation.  However, when we compare the differences between our daily
-(:ref:`lland_v3_acker_heavy_rain_daily`, 152.8 mm) and our hourly test for a wet
+minor differences between the daily (:ref:`lland_knauf_acker_summer_daily`, 70.2 mm)
+and the hourly (:ref:`lland_knauf_acker_summer_daily`, 69.5) simulation results for a
+dry situation.  However, when we compare the differences between our daily
+(:ref:`lland_knauf_acker_heavy_rain_daily`, 152.8 mm) and our hourly test for a wet
 situation, we see much more pronounced differences, which are mainly due to the
 prioritisation of throughfall (|NBes|) over interception evaporation (|EvI|):
 
@@ -1377,7 +1382,7 @@ prioritisation of throughfall (|NBes|) over interception evaporation (|EvI|):
 
     >>> inputs.nied.series = 20.0 / 24.0
     >>> control.negq(False)
-    >>> test("lland_v3_acker_heavy_rain_hourly",
+    >>> test("lland_knauf_acker_heavy_rain_hourly",
     ...      axis1=(inputs.nied, fluxes.qah), axis2=states.bowa,
     ...      use_conditions=conditions_acker_heavy_rain)
     |                date |     nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |     nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressuresnow | actualvapourpressure |        tz |         wg | netshortwaveradiationsnow | netlongwaveradiationsnow | netradiationsnow |     nbes | sbes |       evi |      evb | evs | wnied | tempssurface | actualalbedo | schmpot | schm | gefrpot | gefr | wlatsnow | wsenssnow | wsurf | sff | fvg |     wada |      qdb |     qib1 | qib2 |      qbb | qkap |     qdgz |    qdgz1 | qdgz2 |    qigz1 | qigz2 |     qbgz |    qdga1 | qdga2 |    qiga1 | qiga2 |     qbga |      qah |       qa |     inzp | wats | waes | esnow | taus |        ebdn |       bowa |     sdg1 | sdg2 |     sig1 | sig2 |      sbg | inlet |   outlet |
@@ -1460,22 +1465,22 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions_acker_heavy_rain))
 0.0
 
-.. _lland_v3_water_hourly:
+.. _lland_knauf_water_hourly:
 
 water
 -----
 
 For our hourly integration test on water type |WASSER|, we deviate from the input data
-of the daily simulation (:ref:`lland_v3_wasser_daily`) in setting precipitation to the
-constant value of 0.05 mm/h.  The actual interception evaporation (|EvI|) does not show
-a diurnal pattern due to submodel |evap_aet_morsim| relying on daily aggregated input
-data:
+of the daily simulation (:ref:`lland_knauf_wasser_daily`) in setting precipitation to
+the constant value of 0.05 mm/h.  The actual interception evaporation (|EvI|) does not
+show a diurnal pattern due to submodel |evap_aet_morsim| relying on daily aggregated
+input data:
 
 .. integration-test::
 
     >>> lnk(WASSER)
     >>> inputs.nied.series = 0.05
-    >>> test("lland_v3_water_hourly",
+    >>> test("lland_knauf_water_hourly",
     ...      axis1=(fluxes.nkor, fluxes.evi, fluxes.qah),
     ...      use_conditions=conditions_wasser)
     |                date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |  nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressuresnow | actualvapourpressure |  tz |  wg | netshortwaveradiationsnow | netlongwaveradiationsnow | netradiationsnow | nbes | sbes |      evi | evb | evs | wnied | tempssurface | actualalbedo | schmpot | schm | gefrpot | gefr | wlatsnow | wsenssnow | wsurf | sff | fvg | wada | qdb | qib1 | qib2 | qbb | qkap | qdgz | qdgz1 | qdgz2 | qigz1 | qigz2 | qbgz | qdga1 | qdga2 | qiga1 | qiga2 | qbga |      qah |       qa | inzp | wats | waes | esnow | taus | ebdn | bowa | sdg1 | sdg2 | sig1 | sig2 | sbg | inlet |   outlet |
@@ -1560,7 +1565,7 @@ There is no indication of an error in the water balance:
 
     >>> inputs.nied.series = 0.0
 
-.. _lland_v3_acker_winter_hourly:
+.. _lland_knauf_acker_winter_hourly:
 
 acre (winter)
 -------------
@@ -1572,7 +1577,7 @@ melting occurs:
 >>> pub.timegrids = "2010-12-10", "2010-12-13", "1h"
 
 The following input values agree with the ones of the respective sub-period of the
-daily integration test :ref:`lland_v3_acker_winter_daily` (global radiation and
+daily integration test :ref:`lland_knauf_acker_winter_daily` (global radiation and
 possible sunshine duration stem from
 :ref:`meteo_glob_morsim_hourly_simulation_winter`):
 
@@ -1651,14 +1656,14 @@ Hence, we need to define them manually:
 ...      [2.2, 2.0, 2.5, 2.6, 2.3, 1.7, 2.8, 1.9, 2.6, 2.9, 3.5, 3.4, 3.5, 3.0, 3.9,
 ...       3.6, 2.2, 2.4, 2.5, 1.5, 2.5, 3.0, 3.2, 3.1]))
 
-Compared to the daily simulation :ref:`lland_v3_acker_winter_daily`, the hourly
+Compared to the daily simulation :ref:`lland_knauf_acker_winter_daily`, the hourly
 simulation estimates a slightly more pronounced melting rate for land-use type |ACKER|,
 resulting in a complete depletion of the snow cover:
 
 .. integration-test::
 
     >>> lnk(ACKER)
-    >>> test("lland_v3_acker_winter_hourly",
+    >>> test("lland_knauf_acker_winter_hourly",
     ...      axis1=(inputs.nied, fluxes.wada), axis2=(states.waes, states.wats),
     ...      use_conditions=conditions_acker_winter)
     |                date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |  nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressuresnow | actualvapourpressure |        tz |         wg | netshortwaveradiationsnow | netlongwaveradiationsnow | netradiationsnow |     nbes |    sbes |      evi |      evb |       evs |    wnied | tempssurface | actualalbedo |  schmpot |     schm |  gefrpot |     gefr |   wlatsnow |  wsenssnow |       wsurf |      sff |      fvg |     wada |      qdb | qib1 | qib2 | qbb | qkap |     qdgz |    qdgz1 |    qdgz2 | qigz1 | qigz2 | qbgz |    qdga1 |    qdga2 | qiga1 | qiga2 | qbga |      qah |       qa |     inzp |      wats |      waes |       esnow |     taus |        ebdn |      bowa |     sdg1 |     sdg2 | sig1 | sig2 | sbg | inlet |   outlet |
@@ -1741,13 +1746,13 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions_acker_winter))
 0.0
 
-.. _lland_v3_nadelw_winter_hourly:
+.. _lland_knauf_nadelw_winter_hourly:
 
 conifers (winter)
 -----------------
 
 By comparing the hourly simulation results for |ACKER|
-(:ref:`lland_v3_acker_winter_hourly`) and |NADELW| (this example), you can see the
+(:ref:`lland_knauf_acker_winter_hourly`) and |NADELW| (this example), you can see the
 shading effect of the tree canopies.  During the nighttime, the decreased longwave
 radiation loss (|NetLongwaveRadiationSnow|) under the canopy results in an earlier
 start of the snow melt.  But then, during the daytime, the decreased shortwave
@@ -1757,7 +1762,7 @@ the complete melting process finishes even later for |NADELW| than for |ACKER|:
 .. integration-test::
 
     >>> lnk(NADELW)
-    >>> test("lland_v3_nadelw_winter_hourly",
+    >>> test("lland_knauf_nadelw_winter_hourly",
     ...      axis1=(inputs.nied, fluxes.wada), axis2=(states.waes, states.wats),
     ...      use_conditions=conditions_nadelw_winter)
     |                date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |  nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressuresnow | actualvapourpressure |        tz |         wg | netshortwaveradiationsnow | netlongwaveradiationsnow | netradiationsnow |     nbes |     sbes |       evi |      evb |       evs |     wnied | tempssurface | actualalbedo |  schmpot |     schm |  gefrpot |     gefr |   wlatsnow |  wsenssnow |       wsurf |      sff |      fvg |     wada |      qdb | qib1 | qib2 | qbb | qkap |     qdgz |    qdgz1 |    qdgz2 | qigz1 | qigz2 | qbgz |    qdga1 |    qdga2 | qiga1 | qiga2 | qbga |      qah |       qa |     inzp |      wats |      waes |      esnow |     taus |        ebdn |      bowa |     sdg1 |     sdg2 | sig1 | sig2 | sbg | inlet |   outlet |
@@ -1840,21 +1845,21 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions_nadelw_winter))
 0.0
 
-.. _lland_v3_acker_winter_ktschnee_hourly:
+.. _lland_knauf_acker_winter_ktschnee_hourly:
 
 acre (snow surface temperature)
 -------------------------------
 
 Due to the reasons discussed in the daily integration test
-:ref:`lland_v3_acker_winter_ktschnee_daily`, enabling the iterative adjustment of the
-snow surface temperature results in a more delayed and smoothed snow melt, which
+:ref:`lland_knauf_acker_winter_ktschnee_daily`, enabling the iterative adjustment of
+the snow surface temperature results in a more delayed and smoothed snow melt, which
 becomes even more apparent in the following hourly simulation results:
 
 .. integration-test::
 
     >>> lnk(ACKER)
     >>> ktschnee(5.0)
-    >>> test("lland_v3_acker_winter_ktschnee_hourly",
+    >>> test("lland_knauf_acker_winter_ktschnee_hourly",
     ...      axis1=(inputs.nied, fluxes.wada), axis2=(states.waes, states.wats),
     ...      use_conditions=conditions_acker_winter_ktschnee)
     |                date | nied | teml | relativehumidity | windspeed | possiblesunshineduration | sunshineduration |  qz | qzh | dailysunshineduration | dailypossiblesunshineduration | globalradiation |  nkor | tkor | windspeed2m | reducedwindspeed2m | saturationvapourpressure | saturationvapourpressuresnow | actualvapourpressure |        tz |         wg | netshortwaveradiationsnow | netlongwaveradiationsnow | netradiationsnow |     nbes |    sbes |      evi |      evb |       evs |    wnied | tempssurface | actualalbedo |  schmpot |     schm |  gefrpot |     gefr |   wlatsnow |  wsenssnow |       wsurf |      sff |      fvg |     wada |      qdb | qib1 | qib2 | qbb | qkap |     qdgz |    qdgz1 |    qdgz2 | qigz1 | qigz2 | qbgz |    qdga1 |    qdga2 | qiga1 | qiga2 | qbga |      qah |       qa |     inzp |      wats |      waes |      esnow |     taus |        ebdn |      bowa |     sdg1 |     sdg2 | sig1 | sig2 | sbg | inlet |   outlet |
@@ -1968,7 +1973,12 @@ class Model(
     lland_model.Sub_SnowCoverModel_V1,
     lland_model.Sub_SnowAlbedoModel_V1,
 ):
-    """Knauf version of HydPy-L-Land."""
+    """|lland_knauf.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="L-Knauf",
+        description="adoption of LARSIM with Knauf-based snow modelling",
+    )
 
     INLET_METHODS = (lland_model.Pick_QZ_V1,)
     RECEIVER_METHODS = ()
@@ -2103,11 +2113,11 @@ class Model(
         it does not affect the simulation results in any relevant manner.  The only
         exception we are aware of is the "generation" of additional water when the
         base flow storage cannot meet the water demand required for the calculated
-        capillary rise (see :ref:`lland_v1_acker_qkap_negq-false`).
+        capillary rise (see :ref:`lland_dd_acker_qkap_negq-false`).
 
         Pick the required initial conditions before starting the simulation run via
         property |Sequences.conditions|.  See the integration tests of the application
-        model |lland_v3| for some examples.
+        model |lland_knauf| for some examples.
         """
         control = self.parameters.control
         fluxes = self.sequences.fluxes
@@ -2137,7 +2147,7 @@ class Model(
 
 
 class Masks(masktools.Masks):
-    """Masks applicable to |lland_v3|."""
+    """Masks applicable to |lland_knauf|."""
 
     CLASSES = lland_masks.Masks.CLASSES
 

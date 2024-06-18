@@ -43,9 +43,9 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
 
     Function |prepare_io_example_1| is thought for testing the functioning of *HydPy*
     and thus should be of interest for framework developers only.  It uses the main
-    models |lland_v1|, |lland_v3|, and |hland_v1| and the submodel |evap_aet_morsim|.
-    Here, we apply |prepare_io_example_1| and shortly discuss different aspects of its
-    generated data:
+    models |lland_dd|, |lland_knauf|, and |hland_v1| and the submodel
+    |evap_aet_morsim|.  Here, we apply |prepare_io_example_1| and shortly discuss
+    different aspects of its generated data:
 
     >>> from hydpy.examples import prepare_io_example_1
     >>> nodes, elements = prepare_io_example_1()
@@ -68,17 +68,17 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     '...iotesting/project/series/default'
     []
 
-    It returns four |Element| objects handling either application model |lland_v1|
-    |lland_v3|, or |hland_v1|:
+    It returns four |Element| objects handling either application model |lland_dd|
+    |lland_knauf|, or |hland_v1|:
 
     >>> for element in elements:
     ...     print(element.name, element.model)
-    element1 lland_v1
-    element2 lland_v1
-    element3 lland_v3
+    element1 lland_dd
+    element2 lland_dd
+    element3 lland_knauf
     element4 hland_v1
 
-    The |lland_v3| instance has a submodel of type |evap_aet_morsim|:
+    The |lland_knauf| instance has a submodel of type |evap_aet_morsim|:
 
     >>> print(elements.element3.model.aetmodel.name)
     evap_aet_morsim
@@ -93,7 +93,7 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     It generates artificial time series data for the input sequence
     |lland_inputs.Nied|, the flux sequence |lland_fluxes.NKor|, and the state sequence
     |lland_states.BoWa| of each |lland| model instance, the equally named wind speed
-    sequences of |lland_v3| and |evap_aet_morsim|, the state sequence
+    sequences of |lland_knauf| and |evap_aet_morsim|, the state sequence
     |hland_states.SP| of the |hland_v1| model instance, and the |Sim| sequence of each
     node instance.  For precise test results, all generated values are unique:
 
@@ -168,9 +168,9 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     elements_lland = devicetools.Elements(element1, element2, element3)
     elements = elements_lland + element4
 
-    element1.model = importtools.prepare_model("lland_v1")
-    element2.model = importtools.prepare_model("lland_v1")
-    element3.model = importtools.prepare_model("lland_v3")
+    element1.model = importtools.prepare_model("lland_dd")
+    element2.model = importtools.prepare_model("lland_dd")
+    element3.model = importtools.prepare_model("lland_knauf")
     element4.model = importtools.prepare_model("hland_v1")
 
     control3 = element3.model.parameters.control

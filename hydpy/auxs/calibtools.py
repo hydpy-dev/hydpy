@@ -154,7 +154,7 @@ class FactorAdaptor(Adaptor):
 
     Class |FactorAdaptor| helps to respect dependencies between model parameters.  If
     you, for example, aim at calibrating the permanent wilting point
-    (|lland_control.PWP|) of model |lland_v1|, you need to make sure it always agrees
+    (|lland_control.PWP|) of model |lland_dd|, you need to make sure it always agrees
     with the maximum soil water storage (|lland_control.WMax|).  Especially, one should
     avoid permanent wilting points larger than total porosity.  Due to the high
     variability of soil properties within most catchments, it is no real option to
@@ -300,7 +300,7 @@ class Rule(abc.ABC, Generic[TypeParameter]):
     >>> hp, pub, TestIO = prepare_full_example_2()
 
     We define a |Rule| object supposed to replace the values of parameter
-    |hland_control.FC| of application model |lland_v1|.  Note that argument `name` is
+    |hland_control.FC| of application model |lland_dd|.  Note that argument `name` is
     the rule's name, whereas the argument `parameter` is the parameter's name:
 
     >>> from hydpy import Replace

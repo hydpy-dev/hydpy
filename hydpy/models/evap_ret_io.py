@@ -2,7 +2,7 @@
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 Use |evap_ret_io| as a submodel for handing externally available time series of
-reference evapotranspiration to main models like |lland_v1|.
+reference evapotranspiration to main models like |lland_dd|.
 
 Integration test
 ================

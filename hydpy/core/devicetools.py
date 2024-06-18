@@ -267,21 +267,21 @@ class FusedVariable:
     this temperature as input to an |meteo_temp_io| model, which passes it to an
     |evap_ret_fao56| model, which requires this and other meteorological data to
     calculate potential evapotranspiration.  Further, we pass the estimated potential
-    evapotranspiration as input to |lland_v1| for calculating the actual
+    evapotranspiration as input to |lland_dd| for calculating the actual
     evapotranspiration, which receives it through a submodel instance of |evap_ret_io|.
     Hence, we need to connect the output sequence
     |evap_fluxes.MeanReferenceEvapotranspiration| of |evap_ret_fao56| with the input
     sequence |evap_inputs.ReferenceEvapotranspiration| of |evap_ret_io|.
 
     ToDo: This example needs to be updated.  Today one could directly use
-          |evap_ret_fao56| as a submodel of |lland_v1|.  However, it still demonstrates
+          |evap_ret_fao56| as a submodel of |lland_dd|.  However, it still demonstrates
           the relevant connection mechanisms correctly.
 
-    Additionally, |lland_v1| requires temperature data itself for modelling snow
+    Additionally, |lland_dd| requires temperature data itself for modelling snow
     processes, introducing the problem that we need to use the same data (the output of
     |conv_v001|) as the input of two differently named input sequences
     (|meteo_inputs.Temperature| and |lland_inputs.TemL| for |meteo_temp_io| and
-    |lland_v1|, respectively).
+    |lland_dd|, respectively).
 
     We need to create two |FusedVariable| objects, for our concrete example.  `E`
     combines |evap_fluxes.MeanReferenceEvapotranspiration| and
@@ -331,7 +331,7 @@ class FusedVariable:
     >>> model = prepare_model("evap_ret_fao56")
     >>> model.tempmodel = prepare_model("meteo_temp_io")
     >>> evap.model = model
-    >>> model = prepare_model("lland_v1")
+    >>> model = prepare_model("lland_dd")
     >>> model.aetmodel = prepare_model("evap_aet_minhas")
     >>> model.aetmodel.petmodel = prepare_model("evap_ret_io")
     >>> lland.model = model

@@ -52,7 +52,7 @@ Integration tests
 .. how_to_understand_integration_tests::
 
 The following integration tests rely on the meteorological input data used for testing
-the application model |lland_v1|. The values of the input sequences |P| (precipitation)
+the application model |lland_dd|. The values of the input sequences |P| (precipitation)
 and |T| (temperature) are copy-pasted.  The |evap_inputs.NormalEvapotranspiration|
 values are the |evap_fluxes.ReferenceEvapotranspiration| values calcuted by
 |evap_ret_tw2002| but divided by 0.4 to account for the selected value of the
@@ -168,7 +168,7 @@ and all other storages are empty:
 ...               (model.rconcmodel.sequences.logs.quh, 0.05))
 
 As mentioned above, the values of the input sequences |P| and |hland_inputs.T| of
-|hland_v1| stem from :ref:`here <lland_v1_acker_summer>`.  For educational purposes, we
+|hland_v1| stem from :ref:`here <lland_dd_acker_summer>`.  For educational purposes, we
 again use unrealistically high values of |evap_inputs.NormalEvapotranspiration|.  For
 the sake of simplicity, we define |evap_inputs.NormalAirTemperature| to be constantly
 1 °C below |hland_inputs.T|:
@@ -224,7 +224,7 @@ for the accuracy-related parameter |RecStep|:
 
 The following results show the response of application model |hland_v1| to the given
 extreme precipitation event.  The intense evaporation weakens the response markedly.
-One striking difference to other models like |lland_v1| is the block-like appearance of
+One striking difference to other models like |lland_dd| is the block-like appearance of
 percolation (|Perc|), which is one reason for the unusual transitions between event
 periods (consisting of both runoff components |Q0| and |Q1|) and the subsequent pure
 base flow periods (consisting of |Q1| only):

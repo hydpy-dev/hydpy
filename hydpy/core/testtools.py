@@ -1649,11 +1649,11 @@ def check_methodorder(model: modeltools.Model, indent: int = 0) -> str:
     completeness of the sequence's values, were called after the first but before the
     second method.
 
-    We use the quite complex model |lland_v3| as an example.  |check_methodorder| does
-    not report any problems:
+    We use the quite complex model |lland_knauf| as an example.  |check_methodorder|
+    does not report any problems:
 
     >>> from hydpy.core.testtools import check_methodorder
-    >>> from hydpy.models.lland_v3 import Model
+    >>> from hydpy.models.lland_knauf import Model
     >>> print(check_methodorder(Model))
     <BLANKLINE>
 
@@ -2029,11 +2029,11 @@ def perform_consistencychecks(
     documentation.
 
     As an example, we apply |perform_consistencychecks| on the application model
-    |lland_v3|.  It does not report any potential problems (not already discussed in
+    |lland_knauf|.  It does not report any potential problems (not already discussed in
     the documentation on the individual model methods):
 
     >>> from hydpy.core.testtools import perform_consistencychecks
-    >>> print(perform_consistencychecks("lland_v3"))
+    >>> print(perform_consistencychecks("lland_knauf"))
     <BLANKLINE>
 
     To show how |perform_consistencychecks| reports errors, we modify the
@@ -2042,7 +2042,7 @@ def perform_consistencychecks(
     >>> from hydpy.models.lland.lland_model import Calc_NKor_V1
     >>> resultsequences = Calc_NKor_V1.RESULTSEQUENCES
     >>> Calc_NKor_V1.RESULTSEQUENCES = ()
-    >>> print(perform_consistencychecks("lland_v3"))
+    >>> print(perform_consistencychecks("lland_knauf"))
     Potential consistency problems for individual methods:
        Method Calc_NKor_V1:
             Definitely missing: nkor
@@ -2059,7 +2059,7 @@ result sequences of any of its predecessors: NKor
     To tidy up, we need to revert the above changes:
 
     >>> Calc_NKor_V1.RESULTSEQUENCES = resultsequences
-    >>> print(perform_consistencychecks("lland_v3"))
+    >>> print(perform_consistencychecks("lland_knauf"))
     <BLANKLINE>
     """
     blanks = " " * indent

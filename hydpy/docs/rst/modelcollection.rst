@@ -18,7 +18,7 @@ processes").
 
 The separation into subgroups is of greater importance.  Each subgroup
 consists of one base model (e.g. |lland|) and a number of application
-models (e.g. |lland_v1|).  The base models offer basic features like
+models (e.g. |lland_dd|).  The base models offer basic features like
 model parameter classes (e.g. |lland_control.KG|), sequence classes
 (e.g. |lland_fluxes.NKor|) and process equation methods (e.g.
 |lland_model.Calc_NKor_V1|), but cannot perform an actual simulation run.

@@ -1957,7 +1957,7 @@ to be consistent with the name of the element handling the model.
 
         Submodels like |meteo_glob_fao56| allow using their instances by multiple main
         models.  We prepare such a case by selecting such an instance as the submodel
-        of the absolute main model |lland_v3| and the the relative submodel
+        of the absolute main model |lland_knauf| and the the relative submodel
         |evap_aet_morsim|:
 
         >>> from hydpy.core.importtools import reverse_model_wildcard_import
@@ -1965,7 +1965,7 @@ to be consistent with the name of the element handling the model.
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2001-01-02", "1d"
-        >>> from hydpy.models.lland_v3 import *
+        >>> from hydpy.models.lland_knauf import *
         >>> parameterstep()
         >>> nhru(1)
         >>> ft(1.0)
@@ -1991,7 +1991,7 @@ to be consistent with the name of the element handling the model.
         ----------------------------------------------------------------------------...
         # -*- coding: utf-8 -*-
         ...
-        from hydpy.models.lland_v3 import *
+        from hydpy.models.lland_knauf import *
         from hydpy.models import evap_aet_morsim
         from hydpy.models import meteo_glob_fao56
         ...
@@ -2156,7 +2156,7 @@ submodel_meteo_glob_fao56:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "6h"
-        >>> from hydpy.models.lland_v3 import *
+        >>> from hydpy.models.lland_knauf import *
         >>> parameterstep()
         >>> nhru(2)
         >>> ft(10.0)
@@ -2780,14 +2780,14 @@ element.
         submodel is available:
 
         >>> from hydpy import prepare_model
-        >>> model = prepare_model("lland_v3")
+        >>> model = prepare_model("lland_knauf")
         >>> model.find_submodels()
         {}
 
         The `include_mainmodel` parameter allows the addition of the main model:
 
         >>> model.find_submodels(include_mainmodel=True)  # doctest: +ELLIPSIS
-        {'model': <hydpy.models.lland_v3.Model ...>}
+        {'model': <hydpy.models.lland_knauf.Model ...>}
 
         The `include_optional` parameter allows considering prepared and unprepared
         submodels:
@@ -2829,14 +2829,14 @@ element.
 
         >>> pprint(model.find_submodels(include_mainmodel=True,
         ...     include_optional=True, include_feedbacks=True))  # doctest: +ELLIPSIS
-        {'model': <hydpy.models.lland_v3.Model ...>,
+        {'model': <hydpy.models.lland_knauf.Model ...>,
          'model.aetmodel': <hydpy.models.evap_aet_minhas.Model ...>,
          'model.aetmodel.intercmodel': None,
          'model.aetmodel.petmodel': <hydpy.models.evap_pet_mlc.Model ...>,
          'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_ret_tw2002.Model ...>,
          'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
-         'model.aetmodel.soilwatermodel': <hydpy.models.lland_v3.Model object ...>,
+         'model.aetmodel.soilwatermodel': <hydpy.models.lland_knauf.Model object ...>,
          'model.radiationmodel': None,
          'model.soilmodel': None}
 
@@ -3029,7 +3029,7 @@ but the value `1` of type `int` is given.
         """Use |Model.find_submodels| to query all (sub)models of the given type.
 
        >>> from hydpy import prepare_model
-        >>> model = prepare_model("lland_v3")
+        >>> model = prepare_model("lland_knauf")
         >>> model.query_submodels("meteo_glob_fao56")
         []
 

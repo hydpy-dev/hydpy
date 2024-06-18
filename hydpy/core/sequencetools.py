@@ -778,14 +778,14 @@ patch(template % "StateSequences") as states:
         |Sequences.trim_conditions| is just a convenience function for calling method
         |trim| of all |StateSequence| and |LogSequence| objects returned by property
         |Sequences.conditionsequences|.  We demonstrate its functionality by preparing
-        an instance of application model |lland_v1|, using its available default
+        an instance of application model |lland_dd|, using its available default
         values, and defining out-of-bound values of the soil moisture state sequence
         |lland_states.BoWa|:
 
         >>> from hydpy import prepare_model, pub
         >>> pub.timegrids = "2000-01-01", "2000-01-10", "1d"
         >>> with pub.options.usedefaultvalues(True):
-        ...     model = prepare_model("lland_v1", "1d")
+        ...     model = prepare_model("lland_dd", "1d")
         ...     model.parameters.control.nhru(2)
         >>> model.sequences.states.bowa = -100.0
         >>> model.sequences.trim_conditions()
@@ -850,7 +850,7 @@ class SubSequences(
 
     >>> from hydpy import classname, Node, prepare_model, pub
     >>> with pub.options.usecython(False):
-    ...     model = prepare_model("lland_v1")
+    ...     model = prepare_model("lland_dd")
     >>> classname(model.sequences.logs.fastaccess)
     'FastAccess'
     >>> classname(model.sequences.inputs.fastaccess)
@@ -867,7 +867,7 @@ class SubSequences(
     model and sequence group:
 
     >>> with pub.options.usecython(True):
-    ...     model = prepare_model("lland_v1")
+    ...     model = prepare_model("lland_dd")
     >>> classname(model.sequences.inputs.fastaccess)
     'InputSequences'
     >>> from hydpy.cythons.sequenceutils import FastAccessNodeSequence
@@ -1124,7 +1124,7 @@ class Sequence_(variabletools.Variable):
     shape:
 
     >>> from hydpy import prepare_model
-    >>> model = prepare_model("lland_v1", "1d")
+    >>> model = prepare_model("lland_dd", "1d")
     >>> model.sequences.fluxes.qa.shape
     ()
     >>> nkor = model.sequences.fluxes.nkor
@@ -1781,7 +1781,7 @@ correctly.
         subclasses as |lland_fluxes.NKor|:
 
         >>> from hydpy import prepare_model
-        >>> model = prepare_model("lland_v1")
+        >>> model = prepare_model("lland_dd")
         >>> nkor = model.sequences.fluxes.nkor
         >>> nkor.fastaccess._nkor_length
         0
@@ -2727,7 +2727,7 @@ class ModelSequence(Sequence_):
 
         >>> from hydpy import prepare_model, pub, Element
         >>> element = Element("my_element", outlets="outlet")
-        >>> from hydpy.models.lland_v3 import *
+        >>> from hydpy.models.lland_knauf import *
         >>> parameterstep()
         >>> model.sequences.inputs.windspeed.descr_device
         '?'
@@ -3220,12 +3220,12 @@ class ConditionSequence(ModelSequence):
         """Reset the value of the actual |StateSequence| or |LogSequence| object to the
         last value defined by "calling" the object.
 
-        We use the |lland_v3| application model, which handles sequences derived from
-        |StateSequence| (taking |lland_states.Inzp| as an example) and from
+        We use the |lland_knauf| application model, which handles sequences derived
+        from |StateSequence| (taking |lland_states.Inzp| as an example) and from
         |LogSequence| (taking |lland_logs.LoggedSunshineDuration| as an example):
 
         >>> from hydpy import prepare_model, pub
-        >>> model = prepare_model("lland_v3")
+        >>> model = prepare_model("lland_knauf")
 
         After defining their shapes, both sequences contain |numpy.nan| values:
 

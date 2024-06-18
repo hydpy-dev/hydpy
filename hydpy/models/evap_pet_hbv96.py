@@ -3,7 +3,7 @@
 """The primary purpose of |evap_pet_hbv96| is to serve as a submodel that provides
 estimates of potential evapotranspiration corresponding to HBV96
 :cite:p:`ref-Lindstrom1997HBV96`.  Of course, you can connect it to |hland_v1| if you
-want a close HBV96 emulation, but it also works with other main models like |lland_v1|
+want a close HBV96 emulation, but it also works with other main models like |lland_dd|
 or |wland_wag|.
 
 |evap_pet_hbv96| itself requires other models for determining temperature and

@@ -36,7 +36,7 @@ class FT(parametertools.Parameter):
 class NHRU(parametertools.Parameter):
     """Anzahl der Hydrotope (number of hydrological response units) [-].
 
-    Note that |NHRU| determines the length of most 1-dimensional HydPy-L-Land
+    Note that |NHRU| determines the length of most 1-dimensional |lland.DOCNAME.long|
     parameters and sequences.  This requires that the value of the respective |NHRU|
     instance is set before any of the values of these 1-dimensional parameters or
     sequences are set.  Changing the value of the |NHRU| instance necessitates setting
@@ -81,7 +81,7 @@ class NHRU(parametertools.Parameter):
 class Lnk(parametertools.NameParameter):
     """Landnutzungsklasse (land use class) [-].
 
-    For increasing legibility, the HydPy-L-Land constants are used for string
+    For increasing legibility, |lland.DOCNAME.long| constants are used for string
     representions of |Lnk| objects:
 
     >>> from hydpy.models.lland import *
@@ -431,13 +431,12 @@ class KTSchnee(parametertools.Parameter):
     """Effektive Wärmeleitfähigkeit der obersten Schneeschicht (effective
     thermal conductivity of the top snow layer) [W/m²/K].
 
-    Note that, at least for application model |lland_v3|, it is fine to
-    set the value of parameter |KTSchnee| to |numpy.inf| to disable the
-    explicite modelling of the top snow layer.  As a result, the top
-    layer does not dampen the effects of atmospheric influences like
-    radiative heating.  Another aspect is that the snow surface temperature
-    does not need to be determined iteratively, as it is always identical
-    with the the snow bulk temperature, which decreases computation times.
+    Note that, at least for application model |lland_knauf|, it is fine to set the
+    value of parameter |KTSchnee| to |numpy.inf| to disable the explicit modelling of
+    the top snow layer.  As a result, the top layer does not dampen the effects of
+    atmospheric influences like radiative heating.  Another aspect is that the snow
+    surface temperature does not need to be determined iteratively, as it is always
+    identical with the the snow bulk temperature, which decreases computation times.
     """
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, numpy.inf)

@@ -23,7 +23,7 @@ precipitation reaches the vadose zone:
 
   1. We add some factors to correct or adapt the meteorological input data.
   2. We introduce simple storages for intercepted water and snow, implemented
-     similarly as in |lland_v1|.
+     similarly as in |lland_dd|.
   3. We support the specification of hydrological response units for these processes,
      making |wland_wag| a semi-distributed model (but we model the vadose zone in
      agreement with `WALRUS`_  still in a lumped manner).

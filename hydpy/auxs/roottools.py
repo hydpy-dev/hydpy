@@ -65,7 +65,7 @@ class Pegasus(modeltools.Submodel):
         by using method |lland_model.Return_TempSSurface_V1|.
 
         Method |lland_model.Return_TempSSurface_V1| (used by application model
-        |lland_v3|) implements the Pegasus iteration to determine the surface
+        |lland_knauf|) implements the Pegasus iteration to determine the surface
         temperature of the snow layer with the help of the Pegasus subclass
         |lland_model.PegasusTempSSurface|.  For the correct surface
         temperature, the net energy gain of the surface (defined by method

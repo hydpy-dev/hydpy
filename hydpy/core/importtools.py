@@ -182,12 +182,12 @@ def reverse_model_wildcard_import() -> None:
 
     >>> from hydpy import reverse_model_wildcard_import
 
-    Assume you import the first version of HydPy-L-Land (|lland_v1|):
+    Assume you import |lland_dd|:
 
-    >>> from hydpy.models.lland_v1 import *
+    >>> from hydpy.models.lland_dd import *
 
     This import adds, for example, the collection class for handling control parameters
-    of `lland_v1` into the local namespace:
+    of `lland_dd` into the local namespace:
 
     >>> print(ControlParameters(None).name)
     control
@@ -203,7 +203,7 @@ def reverse_model_wildcard_import() -> None:
     from unexpected classes like the one we define now):
 
     >>> class Test:
-    ...     __module__ = "hydpy.models.lland_v1"
+    ...     __module__ = "hydpy.models.lland_dd"
     >>> test = Test()
 
     >>> reverse_model_wildcard_import()
@@ -437,7 +437,7 @@ class SubmodelAdder(_DoctestAdder, Generic[TD, TM_contra, TI_contra]):
     as the ones of the main model.  As long as no name conflicts occur, all main model
     parameter instances are also accessible:
 
-    >>> from hydpy.models.lland_v3 import *
+    >>> from hydpy.models.lland_knauf import *
     >>> parameterstep()
     >>> nhru(2)
     >>> ft(10.0)
@@ -481,7 +481,7 @@ class SubmodelAdder(_DoctestAdder, Generic[TD, TM_contra, TI_contra]):
     ...     ...
     Traceback (most recent call last):
     ...
-    TypeError: While trying to add a submodel to the main model `lland_v3`, the \
+    TypeError: While trying to add a submodel to the main model `lland_knauf`, the \
 following error occurred: Submodel `ga_garto_submodel1` does not comply with the \
 `AETModel_V1` interface.
 
@@ -509,9 +509,9 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
     |SubmodelAdder| supports arbitrarily deep submodel nesting.  It conveniently moves
     some information from main models to sub-submodels or the other way round if the
     intermediate submodel does not consume or provide the corresponding data.
-    The following example shows that the main model of type |lland_v3| shares some of
-    its class-level configurations with the sub-submodel of type |evap_pet_hbv96| and
-    that the sub-submodel knows about the zone areas of its main model (which the
+    The following example shows that the main model of type |lland_knauf| shares some
+    of its class-level configurations with the sub-submodel of type |evap_pet_hbv96|
+    and that the sub-submodel knows about the zone areas of its main model (which the
     submodel is not aware of) and uses it for querying air temperature data:
 
     >>> lnk(ACKER, WASSER)
@@ -549,8 +549,8 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
     Traceback (most recent call last):
     ...
     hydpy.core.exceptiontools.AttributeNotReady: While trying to add submodel \
-`meteo_glob_morsim` to the main model `lland_v3`, the following error occurred: While \
-trying to update parameter `latituderad` of element `?`, the following error \
+`meteo_glob_morsim` to the main model `lland_knauf`, the following error occurred: \
+While trying to update parameter `latituderad` of element `?`, the following error \
 occurred: While trying to multiply variable `latitude` and `float` instance \
 `0.017453`, the following error occurred: For variable `latitude`, no value has been \
 defined so far.
@@ -564,8 +564,8 @@ meteo_glob_morsim:
     |meteo_glob_morsim| is a "sharable" submodel, meaning one of its instances can be
     used by multiple main models.  We demonstrate this by selecting |evap_aet_morsim|
     as the evaporation submodel, which requires the same radiation-related data as
-    |lland_v3|.  We reuse the |meteo_glob_morsim| instance prepared above, which is
-    already a submodel of |lland_v3|, and make it also a submodel of the
+    |lland_knauf|.  We reuse the |meteo_glob_morsim| instance prepared above, which is
+    already a submodel of |lland_knauf|, and make it also a submodel of the
     |evap_aet_morsim| instance:
 
     >>> with model.add_aetmodel_v1("evap_aet_morsim"):
@@ -586,8 +586,8 @@ meteo_glob_morsim:
     >>> model.add_radiationmodel_v1(model)
     Traceback (most recent call last):
     ...
-    TypeError: While trying to add a submodel to the main model `lland_v3`, the \
-following error occurred: The given `lland_v3` instance is not considered sharable.
+    TypeError: While trying to add a submodel to the main model `lland_knauf`, the \
+following error occurred: The given `lland_knauf` instance is not considered sharable.
     """
 
     submodelname: str
@@ -1172,7 +1172,7 @@ the following error occurred: ...
 
     For some models, the appropriate states may depend on the initialisation date.  One
     example is the interception storage (|lland_states.Inzp|) of application model
-    |lland_v1|, which should not exceed the interception capacity
+    |lland_dd|, which should not exceed the interception capacity
     (|lland_derived.KInz|).  However, |lland_derived.KInz| depends on the leaf
     area index parameter |lland_control.LAI|, which offers different values depending
     on land-use type and month.  Hence, one can assign higher values to state
@@ -1180,20 +1180,20 @@ the following error occurred: ...
     with small leaf area indices.
 
     To show the related functionalities, we first replace the |hland_v1| application
-    model of element `land_dill` with a |lland_v1| model object, define some of its
+    model of element `land_dill` with a |lland_dd| model object, define some of its
     parameter values, and write its control and condition files.  Note that the
     |lland_control.LAI| value of the only relevant land use the
     (|lland_constants.ACKER|) is 0.5 during January and 5.0 during July:
 
     >>> from hydpy import HydPy, prepare_model, pub
-    >>> from hydpy.models.lland_v1 import ACKER
+    >>> from hydpy.models.lland_dd import ACKER
     >>> pub.timegrids = "2000-06-01", "2000-07-01", "1d"
     >>> with TestIO():
     ...     hp = HydPy("LahnH")
     ...     hp.prepare_network()
     ...     land_dill = hp.elements["land_dill"]
     ...     with pub.options.usedefaultvalues(True):
-    ...         land_dill.model = prepare_model("lland_v1")
+    ...         land_dill.model = prepare_model("lland_dd")
     ...         control = land_dill.model.parameters.control
     ...         control.nhru(2)
     ...         control.ft(1.0)

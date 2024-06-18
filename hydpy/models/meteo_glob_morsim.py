@@ -29,11 +29,11 @@ Integration tests
 
 Application model |meteo_glob_morsim| calculates multiple meteorological factors
 hydrological models could require.  We design the following integration tests so that
-their output can serve as input for the integration tests of |lland_v3|.  Among others,
-|lland_v3| requires global radiation and possible sunshine duration as input, which is
-why we select the corresponding sequences |meteo_fluxes.GlobalRadiation| and
-|meteo_factors.PossibleSunshineDuration| as outputs.  We hand them over to the |Node|
-instances `node1` and `node2`:
+their output can serve as input for the integration tests of |lland_knauf|.  Among
+others, |lland_knauf| requires global radiation and possible sunshine duration as
+input, which is why we select the corresponding sequences
+|meteo_fluxes.GlobalRadiation| and |meteo_factors.PossibleSunshineDuration| as outputs.
+We hand them over to the |Node| instances `node1` and `node2`:
 
 >>> from hydpy import Element, Node
 >>> from hydpy.aliases import meteo_fluxes_GlobalRadiation, meteo_factors_PossibleSunshineDuration

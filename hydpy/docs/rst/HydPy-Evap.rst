@@ -3,10 +3,10 @@
 HydPy-Evap
 ==========
 
-The "HydPy-Evap" model family aims to calculate different kinds of reference,
-potential, or actual evapo(transpi)ration.  The implemented application models work as
-stand-alone models but are primarily thought to be used as submodels by main models
-like |lland_v1|.
+The HydPy-Evap model family aims to calculate different kinds of reference, potential,
+or actual evapo(transpi)ration.  The implemented application models work as stand-alone
+models but are primarily thought to be used as submodels by main models like
+|lland_dd|.
 
 Available models:
 

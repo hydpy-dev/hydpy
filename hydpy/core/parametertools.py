@@ -447,7 +447,7 @@ class SubParameters(
 
     >>> from hydpy import classname, prepare_model, pub
     >>> with pub.options.usecython(False):
-    ...     model = prepare_model("lland_v1")
+    ...     model = prepare_model("lland_dd")
     >>> classname(model.parameters.control.fastaccess)
     'FastAccessParameter'
 
@@ -456,7 +456,7 @@ class SubParameters(
     specialised for the respective model and sequence group:
 
     >>> with pub.options.usecython(True):
-    ...     model = prepare_model("lland_v1")
+    ...     model = prepare_model("lland_dd")
     >>> classname(model.parameters.control.fastaccess)
     'ControlParameters'
     '''
@@ -533,11 +533,11 @@ class KeywordArguments(Generic[T]):
     This object should contain the keyword arguments that, when passed to the same
     parameter instance or another parameter instance of the same type, sets it into
     an equal state.  This is best explained by the following example based on
-    parameter |lland_control.TRefT| of application model |lland_v1| (see the
+    parameter |lland_control.TRefT| of application model |lland_dd| (see the
     documentation on property |ZipParameter.keywordarguments| of class |ZipParameter|
     for additional information):
 
-    >>> from hydpy.models.lland_v1 import *
+    >>> from hydpy.models.lland_dd import *
     >>> parameterstep()
     >>> nhru(4)
     >>> lnk(ACKER, LAUBW, WASSER, ACKER)
@@ -2320,13 +2320,13 @@ index parameter.
     def keywordarguments(self) -> KeywordArguments[float]:
         """A |KeywordArguments| object providing the currently valid keyword arguments.
 
-        We take parameter |lland_control.TRefT| of application model |lland_v1| as an
+        We take parameter |lland_control.TRefT| of application model |lland_dd| as an
         example and set its shape (the number of hydrological response units defined by
         parameter |lland_control.NHRU|) to four and prepare the land use types
         |lland_constants.ACKER| (acre), |lland_constants.LAUBW| (deciduous forest), and
         |lland_constants.WASSER| (water) via parameter |lland_control.Lnk|:
 
-        >>> from hydpy.models.lland_v1 import *
+        >>> from hydpy.models.lland_dd import *
         >>> parameterstep()
         >>> nhru(4)
         >>> lnk(ACKER, LAUBW, WASSER, ACKER)
@@ -2364,7 +2364,7 @@ index parameter.
         >>> treft.keywordarguments.valid
         True
 
-        ToDo: document "refinement" asa lland_v1 uses the AETModel_V1 interface
+        ToDo: document "refinement" asa lland_dd uses the AETModel_V1 interface
         """
         try:
             mask = self.mask
@@ -2437,7 +2437,7 @@ index parameter.
 
     def __dir__(self) -> list[str]:
         """
-        >>> from hydpy.models.lland_v1 import *
+        >>> from hydpy.models.lland_dd import *
         >>> parameterstep()
         >>> sorted(set(dir(treft)) - set(object.__dir__(treft)))
         ['acker', 'baumb', 'boden', 'feucht', 'fluss', 'glets', 'grue_e', 'grue_i', \

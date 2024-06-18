@@ -3,7 +3,7 @@
 """|evap_aet_minhas| serves as a submodel that supplies its main model with estimates
 of evapotranspiration from soils and evaporation from interception storages and water
 areas.  Therefore, it requires potential evapotranspiration data calculated by a
-sub-submodel.  See, for example, the documentation of application model |lland_v1|,
+sub-submodel.  See, for example, the documentation of application model |lland_dd|,
 where |evap_ret_tw2002| calculates grass reference evapotranspiration values after
 Turc-Wendling :cite:p:`ref-DVWK`, which |evap_pet_mlc| converts to month- and land
 type-specific potential evapotranspiration values.

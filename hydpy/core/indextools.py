@@ -34,7 +34,7 @@ def _get_timegrids(func):
 class IndexerProperty(propertytools.BaseProperty):
     """A property for handling time-related indices.
 
-    Some models (e.g. |lland_v1|) require time related index values.
+    Some models (e.g. |lland_dd|) require time related index values.
     |IndexerProperty| provides some caching functionalities to avoid
     recalculating the same indices for different model instances over
     and over again.  We illustrate this by taking property

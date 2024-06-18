@@ -101,7 +101,7 @@ class SoilParameter1D(ZipParameter1D):
 class PlantParameter1D(ZipParameter1D):
     """Base class for plant-related 1-dimensional parameters.
 
-    >>> from hydpy.models.lland_v1 import *
+    >>> from hydpy.models.lland_dd import *
     >>> parameterstep()
     >>> nhru(6)
     >>> lnk(WASSER, GLETS, BODEN, ACKER, BAUMB, MISCHW)

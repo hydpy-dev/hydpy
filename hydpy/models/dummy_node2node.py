@@ -3,15 +3,15 @@
 """
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
 
-Version 1 of the dummy model serves as a placeholder model.  In each simulation step,
-it simply sums up its inputs and hands the resulting value to the downstream node
-without modifications.
+|dummy_node2node| serves as a placeholder model.  In each simulation step, it simply
+sums up its inputs and hands the resulting value to the downstream node without
+modifications.
 
 In *HydPy*, it is fairly easy to introduce additional |Element| objects and thus bring
 new models of arbitrary types into existing network structures.  Hence, there is
 typically no need to define dummy elements or models in anticipation of possible future
-changes.  However, application model |dummy_v1| can help to more closely reflect the
-actual network structures of other model systems as `LARSIM`_, which are more
+changes.  However, application model |dummy_node2node| can help to more closely reflect
+the actual network structures of other model systems as `LARSIM`_, which are more
 restrictive regarding future changes and network complexity.
 
 Integration test
@@ -26,7 +26,7 @@ Integration test
 
     The model object does not require any parameter information:
 
-    >>> from hydpy.models.dummy_v1 import *
+    >>> from hydpy.models.dummy_node2node import *
     >>> parameterstep()
 
     We add the model object to an element connected to two inlet nodes and one outlet
@@ -62,7 +62,12 @@ from hydpy.models.dummy import dummy_model
 
 
 class Model(modeltools.AdHocModel):
-    """Dummy model for passing data from inlet nodes to outlet nodes."""
+    """|dummy_node2node.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Dummy-Node2Node",
+        description="dummy model passing data from inlet to outlet nodes",
+    )
 
     INLET_METHODS = (dummy_model.Pick_Q_V1,)
     RECEIVER_METHODS = ()

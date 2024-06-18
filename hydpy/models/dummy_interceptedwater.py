@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
-"""Submodel for reading the current amount of intercepted water.
-
+"""
 |dummy_interceptedwater| merely serves testing purposes.  We use it, for example, to
 perform the integration tests for submodels like |evap_aet_hbv96| without the need to
 couple them to complex main models like |hland_v1| for providing interception data.
@@ -52,7 +51,12 @@ ADDITIONAL_CONTROLPARAMETERS = (dummy_control.NmbZones,)
 
 
 class Model(modeltools.AdHocModel, stateinterfaces.IntercModel_V1):
-    """Model for reading the amount of intercepted water from files."""
+    """|dummy_interceptedwater.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Dummy-InterceptedWater",
+        description="dummy model supplying main models with intercepted water states",
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

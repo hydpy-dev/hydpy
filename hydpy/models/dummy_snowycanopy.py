@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
-"""Submodel for reading the current snow cover degree in the canopy of tree-like
-vegetation
-
+"""
 |dummy_snowycanopy| merely serves testing purposes.  We use it, for example, to perform
 the integration tests for submodels like |evap_aet_morsim| without the need to couple
 them to complex main models like |lland_knauf| for providing snow interception data.
@@ -52,7 +50,14 @@ ADDITIONAL_CONTROLPARAMETERS = (dummy_control.NmbZones,)
 
 
 class Model(modeltools.AdHocModel, stateinterfaces.SnowyCanopyModel_V1):
-    """Model for reading the snow cover degree from files."""
+    """|dummy_snowycanopy.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Dummy-SnowyCanopy",
+        description=(
+            "dummy model supplying main models with snow cover degrees in canopies"
+        ),
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

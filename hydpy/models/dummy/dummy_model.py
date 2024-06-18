@@ -170,7 +170,9 @@ class Get_SnowAlbedo_V1(modeltools.Method):
 
 
 class Model(modeltools.AdHocModel):
-    """The HydPy-Dummy base model."""
+    """|dummy.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="Dummy")
 
     INLET_METHODS = (Pick_Q_V1,)
     RECEIVER_METHODS = ()

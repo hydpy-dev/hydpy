@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
-"""Implementation of the equation suggested by :cite:t:`ref-Brauer2014` for calculating
-the outflow of subcatchment through a ditch or channel.
+"""
+.. _`issue 120`: https://github.com/hydpy-dev/hydpy/issues/120
 
 |wq_walrus| is a submodel that supplies its main model with discharge estimates.  It
-assumes a rectangular channel geometry and, optionally, the existence of a weir at the
-channel outlet.  See `issue 120`_ for more additional information.
-
-.. _`issue 120`: https://github.com/hydpy-dev/hydpy/issues/120
+implements the equation suggested by :cite:t:`ref-Brauer2014` for calculating the
+outflow of a subcatchment through a ditch or channel, which assumes a rectangular
+channel geometry and, optionally, the existence of a weir at the channel outlet.  See
+`issue 120`_ for more additional information.
 
 As |wq_walrus| only applies the single method |Calculate_Discharge_V1|, we keep the
 tests short and take a single example from its documentation:
@@ -35,8 +35,12 @@ from hydpy.models.wq import wq_model
 
 
 class Model(modeltools.AdHocModel, wq_model.Base_DischargeModel_V2):
-    """The WALRUS version of HydPy-WQ for calculating the flow out of a ditch or
-    channel."""
+    """|wq_walrus.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="WQ-WALRUS",
+        description="WALRUS default function for calculating catchment outflow",
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
-"""Submodel for calculating discharge and related properties at a river cross-section
-based on an arbitrary number of stacket, symmetric trapezes and the Manning-Strickler
-equation.
-
+"""
 |wq_trapeze_strickler| is a stateless submodel that requires information on the current
 water level or depth from its main model (usually a routing model).  It returns the
 corresponding discharge and related properties, such as the kinematic wave celerity.
@@ -34,6 +31,7 @@ to the documentation on |wq_trapeze| for further details:
 # import...
 # ...from HydPy
 from hydpy.core import importtools
+from hydpy.core import modeltools
 from hydpy.interfaces import routinginterfaces
 from hydpy.exe.modelimports import *
 
@@ -43,8 +41,15 @@ from hydpy.models.wq import wq_model
 
 
 class Model(wq_model.TrapezeModel, routinginterfaces.CrossSectionModel_V1):
-    """Multi-trapeze channel profile version of HydPy-WQ that includes flow
-    calculations according to Gauckler-Manning-Strickler."""
+    """|wq_trapeze_strickler.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="WQ-Trapeze-Strickler",
+        description=(
+            "multi-trapeze river profile submodel including Strickler-based "
+            "calculations"
+        ),
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

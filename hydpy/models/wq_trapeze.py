@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
-"""Submodel for calculating discharge-related geometries at a river cross-section based
-on an arbitrary number of stacket, symmetric trapezes.
-
+"""
 |wq_trapeze| is a stateless "two-way" submodel.  It supports calculating properties
 like the wetted area for a given water depth and properties like the water depth for a
 given wetted area.  See the documentation on the application model |sw1d_channel|,
 which shows the usage of "both ways" in practice.  Here, we only aim to visualise how
-|wq_trapeze| combines multiple trapezes to a single cross-section profile via method
-|TrapezeModel.plot|.
+|wq_trapeze| combines multiple symmetric trapezes to a single cross-section profile via
+method |TrapezeModel.plot|.
 
 The following test function helps us to use method |TrapezeModel.plot| repeatedly and
 insert the generated figures into the online documentation:
@@ -120,6 +118,7 @@ too low `ymax`  values silently.)
 # import...
 
 # ...from HydPy
+from hydpy.core import modeltools
 from hydpy.interfaces import routinginterfaces
 from hydpy.exe.modelimports import *
 
@@ -128,7 +127,11 @@ from hydpy.models.wq import wq_model
 
 
 class Model(wq_model.TrapezeModel, routinginterfaces.CrossSectionModel_V2):
-    """Multi-trapeze channel profile version of HydPy-WQ."""
+    """|wq_trapeze.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="WQ-Trapeze", description="multi-trapeze river profile submodel"
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

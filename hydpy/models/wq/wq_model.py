@@ -1742,7 +1742,9 @@ class Get_Celerity_V1(modeltools.Method):
 
 
 class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
-    """The HydPy-WQ base model."""
+    """|wq.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="WQ")
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
@@ -1789,7 +1791,7 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
 
 
 class TrapezeModel(modeltools.AdHocModel):
-    """Base class for HydPy-WQ models that rely on trapezoidal geometries."""
+    """Base class for |wq.DOCNAME.long| models that rely on trapezoidal geometries."""
 
     def plot(
         self,
@@ -1850,8 +1852,8 @@ class TrapezeModel(modeltools.AdHocModel):
 
 
 class Base_DischargeModel_V2(dischargeinterfaces.DischargeModel_V2):
-    """Base class for HydPy-WQ models that comply with the |DischargeModel_V2| submodel
-    interface."""
+    """Base class for |wq.DOCNAME.long| models that comply with the |DischargeModel_V2|
+    submodel interface."""
 
     @importtools.define_targetparameter(wq_control.ChannelDepth)
     def prepare_channeldepth(self, channeldepth: float) -> None:

@@ -2833,7 +2833,7 @@ class InputSequence(ModelIOSequence):
     read from a file) or data shared with an input node (usually calculated by another
     model).  This flexibility allows, for example, to let application model |hland_v1|
     read already preprocessed precipitation time series or to couple it with
-    application models like |conv_v001|, which interpolates precipitation during the
+    application models like |conv_nn|, which interpolates precipitation during the
     simulation run.
 
     The second mechanism (coupling |InputSequence| objects with input nodes) is

@@ -1526,38 +1526,36 @@ def update_integrationtests(
     applicationmodel: Union[types.ModuleType, str],
     resultfilepath: str = "update_integrationtests.txt",
 ) -> None:
-    """Write the docstring of the given application model, updated with
-    the current simulation results, to file.
+    """Write the docstring of the given application model, updated with the current
+    simulation results, to file.
 
-    Sometimes, even tiny model-related changes bring a great deal of work
-    concerning *HydPy's* integration test strategy.  For example, if you
-    modify the value of a fixed parameter, the results of possibly dozens
-    of integration tests of your application model might become wrong.
-    In such situations, function |update_integrationtests| helps you in
-    replacing all integration tests results at once.  Therefore, it
-    calculates the new results, updates the old module docstring and
-    writes it.  You only need to copy-paste the printed result into the
-    affected module.  But be aware that function |update_integrationtests|
-    cannot guarantee the correctness of the new results.  Whenever in doubt
-    if the new results are really correct under all possible conditions,
-    you should inspect and replace each integration test result manually.
+    Sometimes, even tiny model-related changes bring a great deal of work concerning
+    *HydPy's* integration test strategy.  For example, if you modify the value of a
+    fixed parameter, the results of possibly dozens of integration tests of your
+    application model might become wrong.  In such situations, function
+    |update_integrationtests| helps you in replacing all integration tests results at
+    once.  Therefore, it calculates the new results, updates the old module docstring
+    and writes it.  You only need to copy-paste the printed result into the affected
+    module.  But be aware that function |update_integrationtests| cannot guarantee the
+    correctness of the new results.  Whenever in doubt if the new results are really
+    correct under all possible conditions, you should inspect and replace each
+    integration test result manually.
 
     In the following example, we disable method |conv_model.Pass_Outputs_V1|
-    temporarily.  Accordingly, application model |conv_v001| does not pass
-    any output to its outlet nodes, which is why the last four columns of
-    both integration test tables now contain zero value only (we can perform
-    this mocking-based test in Python-mode only):
+    temporarily.  Accordingly, application model |conv_nn| does not pass any output to
+    its outlet nodes, which is why the last four columns of both integration test
+    tables now contain zero value only (we can perform this mocking-based test in
+    Python-mode only):
 
     >>> from hydpy import pub, TestIO, update_integrationtests
     >>> from unittest import mock
     >>> pass_output = "hydpy.models.conv.conv_model.Pass_Outputs_V1.__call__"
     >>> with TestIO(), pub.options.usecython(False), mock.patch(pass_output):
-    ...     update_integrationtests("conv_v001", "temp.txt")
+    ...     update_integrationtests("conv_nn", "temp.txt")
     ...     with open("temp.txt") as resultfile:
     ...         print(resultfile.read())  # doctest: +ELLIPSIS
     Number of replacements: 2
     <BLANKLINE>
-    Nearest-neighbour interpolation.
     ... test()
     |       date |      inputs |                outputs | in1 | in2 | out1 \
 | out2 | out3 | out4 |

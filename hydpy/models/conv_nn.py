@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Nearest-neighbour interpolation.
-
-Version 1 of HydPy-Conv performs simple nearest-neighbour interpolations between an
-arbitrary number of models (or data files) providing output and an arbitrary number of
-models requiring input.
+"""
+|conv_nn| performs simple nearest-neighbour interpolations between an arbitrary number
+of models (or data files) providing output and an arbitrary number of models requiring
+input.
 
 Integration tests
 =================
@@ -16,14 +15,14 @@ We perform the following examples over a simulation period of 3 days:
 >>> from hydpy import Element, Node, pub
 >>> pub.timegrids = "2000-01-01", "2000-01-04", "1d"
 
-|conv_v001| implements no parameter with values depending on the simulation step size,
+|conv_nn| implements no parameter with values depending on the simulation step size,
 which is why we can pass anything (or nothing) to function |parameterstep| without
 changing the following results:
 
->>> from hydpy.models.conv_v001 import *
+>>> from hydpy.models.conv_nn import *
 >>> parameterstep()
 
-Due to the following configuration, |conv_v001| queries its input from the inlet nodes
+Due to the following configuration, |conv_nn| queries its input from the inlet nodes
 `in1` and `in2` and passes the interpolation results to the outlet nodes `out1`,
 `out2`, `out3`, and `out4`:
 
@@ -49,10 +48,10 @@ always take only one input location into account, even in case of missing data:
 
 >>> maxnmbinputs(1)
 
-|conv_v001| does not implement any state or log sequences and thus has no memory at
-all, making finalising the test setup quite easy.  We only need to define time series
-for both inlet nodes.  Note that we set some |numpy| |numpy.nan| values to demonstrate
-how |conv_v001| deals with missing values:
+|conv_nn| does not implement any state or log sequences and thus has no memory at all,
+making finalising the test setup quite easy.  We only need to define time series for
+both inlet nodes.  Note that we set some |numpy| |numpy.nan| values to demonstrate how
+|conv_nn| deals with missing values:
 
 >>> element.model = model
 >>> from hydpy.core.testtools import IntegrationTest
@@ -62,7 +61,7 @@ how |conv_v001| deals with missing values:
 ...     in1.sequences.sim.series = 1.0, 2.0, nan
 ...     in2.sequences.sim.series = 4.0, nan, nan
 
-The calculated results provide no supprises.  However, outlet node `out4` receives the
+The calculated results provide no surprises.  However, outlet node `out4` receives the
 output of node `in1` instead of the equidistant node `in2`, which is due to their
 definition order when preparing parameter |InputCoordinates| above:
 
@@ -87,12 +86,17 @@ achieve complete output for the second timestep:
 """
 # import...
 # ...from HydPy
+from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.models.conv import conv_model
 
 
 class Model(conv_model.BaseModel):
-    """Version 1 of the Hydpy-Conv model."""
+    """|conv_nn.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Conv-NN", description="nearest neighbour interpolation"
+    )
 
     INLET_METHODS = (conv_model.Pick_Inputs_V1,)
     RECEIVER_METHODS = ()

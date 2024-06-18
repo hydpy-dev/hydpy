@@ -263,7 +263,7 @@ class FusedVariable:
     connectable.
 
     Using class |FusedVariable| is easiest to explain by a concrete example.  Assume we
-    use |conv_v001| to interpolate the air temperature for a specific location.  We use
+    use |conv_nn| to interpolate the air temperature for a specific location.  We use
     this temperature as input to an |meteo_temp_io| model, which passes it to an
     |evap_ret_fao56| model, which requires this and other meteorological data to
     calculate potential evapotranspiration.  Further, we pass the estimated potential
@@ -279,7 +279,7 @@ class FusedVariable:
 
     Additionally, |lland_dd| requires temperature data itself for modelling snow
     processes, introducing the problem that we need to use the same data (the output of
-    |conv_v001|) as the input of two differently named input sequences
+    |conv_nn|) as the input of two differently named input sequences
     (|meteo_inputs.Temperature| and |lland_inputs.TemL| for |meteo_temp_io| and
     |lland_dd|, respectively).
 
@@ -318,11 +318,11 @@ class FusedVariable:
 
     Now we can prepare the different model objects and assign them to their
     corresponding elements (note that parameters |conv_control.InputCoordinates| and
-    |conv_control.OutputCoordinates| of |conv_v001| first require information on the
+    |conv_control.OutputCoordinates| of |conv_nn| first require information on the
     location of the relevant nodes):
 
     >>> from hydpy import prepare_model
-    >>> model_conv = prepare_model("conv_v001")
+    >>> model_conv = prepare_model("conv_nn")
     >>> model_conv.parameters.control.inputcoordinates(t1=(0, 0))
     >>> model_conv.parameters.control.outputcoordinates(t2=(1, 1))
     >>> model_conv.parameters.control.maxnmbinputs(1)
@@ -340,8 +340,7 @@ class FusedVariable:
 
     >>> t1.sequences.sim = -273.15
 
-    Model |conv_v001| can now perform a simulation step and pass its output to node
-    `t2`:
+    Model |conv_nn| can now perform a simulation step and pass its output to node `t2`:
 
     >>> conv.model.simulate(0)
     >>> t2.sequences.sim

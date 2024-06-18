@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Inverse distance weighted interpolation.
-
-Version 2 of HydPy-Conv performs simple inverse distance weighted interpolations
-between an arbitrary number of models (or data files) providing output and an arbitrary
-number of models requiring input.
+"""
+|conv_idw| performs simple inverse distance weighted interpolations between an
+arbitrary number of models (or data files) providing output and an arbitrary number of
+models requiring input.
 
 Integration tests
 =================
@@ -16,14 +15,14 @@ We perform the following examples over a simulation period of 3 days:
 >>> from hydpy import Element, Node, pub
 >>> pub.timegrids = "2000-01-01", "2000-01-04", "1d"
 
-|conv_v002| implements no parameter with values depending on the simulation step size,
+|conv_idw| implements no parameter with values depending on the simulation step size,
 which is why we can pass anything (or nothing) to function |parameterstep| without
 changing the following results:
 
->>> from hydpy.models.conv_v002 import *
+>>> from hydpy.models.conv_idw import *
 >>> parameterstep()
 
-Due to the following configuration, |conv_v002| queries its input from the inlet nodes
+Due to the following configuration, |conv_idw| queries its input from the inlet nodes
 `in1`, `in2`, and `in3` and passes the interpolation results to the outlet nodes
 `out1`, `out2`, `out3`, and `out4`:
 
@@ -54,10 +53,10 @@ where we take all input location into account, as long as they provide input dat
 
 >>> maxnmbinputs(3)
 
-|conv_v002| does not implement any state or log sequences and thus has no memory at
-all, making finalising the test setup quite easy.  We only need to define time series
-for both inlet nodes.  Note that we set some |numpy| |numpy.nan| values to demonstrate
-how |conv_v002| deals with missing values:
+|conv_idw| does not implement any state or log sequences and thus has no memory at all,
+making finalising the test setup quite easy.  We only need to define time series for
+both inlet nodes.  Note that we set some |numpy| |numpy.nan| values to demonstrate how
+|conv_idw| deals with missing values:
 
 >>> element.model = model
 >>> from hydpy.core.testtools import IntegrationTest
@@ -95,12 +94,17 @@ values:
 """
 # import...
 # ...from HydPy
+from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.models.conv import conv_model
 
 
 class Model(conv_model.BaseModel):
-    """Version 2 of the HydPy-Conv model."""
+    """|conv_idw.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Conv-IDW", description="inverse distance weighted interpolation"
+    )
 
     INLET_METHODS = (conv_model.Pick_Inputs_V1,)
     RECEIVER_METHODS = ()

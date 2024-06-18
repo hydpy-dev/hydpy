@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Bidirectional water exchange over a weir.
-
+"""
 .. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN
 
-Version 1 of `HydPy-Exch` implements the general weir formula.  We implemented it on
-behalf of the `German Federal Institute of Hydrology (BfG)`_ to connect different
-|dam_llake| instances (lake models), enabling them to exchange water based on water
-level differences.  This specific combination models some huge, connected (sub)lakes of
-the Rhine basin similar to HBV96 :cite:p:`ref-Lindstrom1997HBV96`.  Combinations with
-other models providing (something like) water level information and allowing for an
-additional inflow that can be positive and negative are possible.
+|exch_weir_hbv96| implements the general weir formula.  We implemented it on behalf of
+the `German Federal Institute of Hydrology (BfG)`_ to connect different |dam_llake|
+instances (lake models), enabling them to exchange water in both directions based on
+water level differences.  This specific combination models some huge, connected
+(sub)lakes of the Rhine basin similar to HBV96 :cite:p:`ref-Lindstrom1997HBV96`.
+Combinations with other models providing (something like) water level information and
+allowing for an additional inflow that can be positive and negative are possible.
 
 Integration tests
 =================
@@ -22,9 +21,9 @@ We perform all integration tests over a month with a simulation step of one day:
 >>> from hydpy import Element, FusedVariable, Nodes, PPoly, prepare_model, pub
 >>> pub.timegrids = "2000-01-01", "2000-02-01", "1d"
 
-The following examples demonstrate how |exch_v001| interacts with lake models like
-|dam_llake|.  Therefore, we must set up one |exch_v001| instance and two |dam_llake|
-instances.
+The following examples demonstrate how |exch_weir_hbv96| interacts with lake models
+like |dam_llake|.  Therefore, we must set up one |exch_weir_hbv96| instance and two
+|dam_llake| instances.
 
 First, we define the eight required |Node| objects:
 
@@ -44,15 +43,15 @@ connect these nodes to the inlet sequence |dam_inlets.Q| and outlet sequence
 
 The overflow nodes do not connect both lakes directly but the lakes with the exchange
 model. Therefore, we define a |FusedVariable| that combines the aliases of the outlet
-sequence |exch_outlets.Exchange| of |exch_v001| and the inlet sequence |dam_inlets.E|
-of |dam_llake|:
+sequence |exch_outlets.Exchange| of |exch_weir_hbv96| and the inlet sequence
+|dam_inlets.E| of |dam_llake|:
 
 >>> from hydpy.aliases import exch_outlets_Exchange, dam_inlets_E
 >>> Exchange = FusedVariable("Exchange", exch_outlets_Exchange, dam_inlets_E)
 >>> overflow1, overflow2 = Nodes("overflow1", "overflow2", defaultvariable=Exchange)
 
 Next, we define a |FusedVariable| that combines the aliases of the receiver sequence
-|exch_receivers.WaterLevels| of |exch_v001| and the output sequence
+|exch_receivers.WaterLevels| of |exch_weir_hbv96| and the output sequence
 |dam_factors.WaterLevel| of |dam_llake|:
 
 >>> from hydpy.aliases import exch_receivers_WaterLevels, dam_factors_WaterLevel
@@ -74,11 +73,11 @@ connecting `waterlevel1` and `waterlevel2` as additional output nodes:
 
 From the perspective of the exchange element, `waterlevel1` and `waterlevel2` are
 receiver nodes, while `overflow1` and `overflow2` are outlet nodes.  At the beginning
-of each simulation step, |exch_v001| receives water level information from both lakes.
-Then, it calculates the correct exchange and sends it to both lakes via the overflow
-nodes, but with different signs.  If the first lake's water level is higher, it passes
-a negative value to `overflow1` (the first lake loses water) and a positive value to
-`overflow2` (the second lake gains water), and vice versa:
+of each simulation step, |exch_weir_hbv96| receives water level information from both
+lakes.  Then, it calculates the correct exchange and sends it to both lakes via the
+overflow nodes, but with different signs.  If the first lake's water level is higher,
+it passes a negative value to `overflow1` (the first lake loses water) and a positive
+value to `overflow2` (the second lake gains water), and vice versa:
 
 >>> exchange = Element("exchange",
 ...                    receivers=(waterlevel1, waterlevel2),
@@ -87,8 +86,9 @@ a negative value to `overflow1` (the first lake loses water) and a positive valu
 In our test configuration, the nodes' names and the order in which we pass them to the
 constructor of class |Element| agree with the nodes' target lakes.  This practice seems
 advisable for keeping clarity, but it is not a technical requirement.  The
-documentation on class |exch_v001.Model| explains the internal sorting mechanisms and
-plausibility checks underlying the connection-related functionalities of |exch_v001|.
+documentation on class |exch_weir_hbv96.Model| explains the internal sorting mechanisms
+and plausibility checks underlying the connection-related functionalities of
+|exch_weir_hbv96|.
 
 We parameterise both lake models identically. All of the following values stem from the
 documentation on |dam_llake|.  We will use them in all examples:
@@ -113,7 +113,7 @@ documentation on |dam_llake|.  We will use them in all examples:
 Now, we prepare the exchange model.  We will use common values for the flow coefficient
 and exponent throughout the following examples:
 
->>> from hydpy.models.exch_v001 import *
+>>> from hydpy.models.exch_weir_hbv96 import *
 >>> parameterstep("1d")
 >>> flowcoefficient(0.62)
 >>> flowexponent(1.5)
@@ -133,7 +133,7 @@ We set both lakes' inflow to zero for simplicity:
 
 The only difference between both lakes is their initial state.  The first lake starts
 empty, and the second starts with a water volume of 1 million m³.  Note that
-|exch_v001| requires the same information.  We must give it to the log sequence
+|exch_weir_hbv96| requires the same information.  We must give it to the log sequence
 |LoggedWaterLevels|:
 
 >>> test.inits = [(lake1.model.sequences.states.watervolume, 0.0),
@@ -142,7 +142,7 @@ empty, and the second starts with a water volume of 1 million m³.  Note that
 ...               (lake2.model.sequences.logs.loggedadjustedevaporation, 0.0),
 ...               (logs.loggedwaterlevels, (0.0, 1.0))]
 
-.. _exch_v001_base_scenario:
+.. _exch_weir_hbv96_base_scenario:
 
 base scenario
 _____________
@@ -171,7 +171,7 @@ water level rises initially but finally falls again because of the lake's outflo
 
 .. integration-test::
 
-    >>> test("exch_v001_base_scenario")
+    >>> test("exch_weir_hbv96_base_scenario")
     |                date |           waterlevels | deltawaterlevel | potentialexchange | actualexchange | inflow1 | inflow2 | outflow1 | outflow2 | overflow1 | overflow2 | waterlevel1 | waterlevel2 |
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2000-01-01 00:00:00 |      0.0          1.0 |            -1.0 |            -0.124 |         -0.124 |     0.0 |     0.0 | 0.010123 | 1.826616 |     0.124 |    -0.124 |    0.009839 |    0.831467 |
@@ -206,7 +206,7 @@ water level rises initially but finally falls again because of the lake's outflo
     | 2000-01-30 00:00:00 | 0.000727     0.005935 |       -0.005209 |         -0.000047 |      -0.000047 |     0.0 |     0.0 | 0.001339 |   0.0109 |  0.000047 | -0.000047 |    0.000615 |    0.004989 |
     | 2000-01-31 00:00:00 | 0.000615     0.004989 |       -0.004374 |         -0.000036 |      -0.000036 |     0.0 |     0.0 | 0.001133 | 0.009163 |  0.000036 | -0.000036 |     0.00052 |    0.004195 |
 
-.. _exch_v001_crest_height:
+.. _exch_weir_hbv96_crest_height:
 
 crest height
 ____________
@@ -231,7 +231,7 @@ height asymptotically:
 
 .. integration-test::
 
-    >>> test("exch_v001_crest_height")
+    >>> test("exch_weir_hbv96_crest_height")
     |                date |           waterlevels | deltawaterlevel | potentialexchange | actualexchange | inflow1 | inflow2 | outflow1 | outflow2 | overflow1 | overflow2 | waterlevel1 | waterlevel2 |
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2000-01-01 00:00:00 |      0.0          1.0 |            -0.5 |         -4.384062 |      -4.384062 |     0.0 |     0.0 |      0.0 |      0.0 |  4.384062 | -4.384062 |    0.378783 |    0.621217 |
@@ -266,13 +266,13 @@ height asymptotically:
     | 2000-01-30 00:00:00 | 0.497376     0.502624 |       -0.002624 |         -0.001667 |      -0.001667 |     0.0 |     0.0 |      0.0 |      0.0 |  0.001667 | -0.001667 |     0.49752 |     0.50248 |
     | 2000-01-31 00:00:00 |  0.49752      0.50248 |        -0.00248 |         -0.001531 |      -0.001531 |     0.0 |     0.0 |      0.0 |      0.0 |  0.001531 | -0.001531 |    0.497652 |    0.502348 |
 
-.. _exch_v001_numerical_accuracy:
+.. _exch_weir_hbv96_numerical_accuracy:
 
 numerical accuracy
 __________________
 
-|exch_v001| s a flexible tool that requires users to apply wisely.  One crucial aspect
-is numerical accuracy.  One can expect sufficiently accurate results only if the
+|exch_weir_hbv96| s a flexible tool that requires users to apply wisely.  One crucial
+aspect is numerical accuracy.  One can expect sufficiently accurate results only if the
 simulation step size is relatively short compared to water level dynamics.  In this
 example, we illustrate what happens if there is too much exchange due to a large crest
 width:
@@ -286,7 +286,7 @@ application:
 
 .. integration-test::
 
-    >>> test("exch_v001_numerical_accuracy")
+    >>> test("exch_weir_hbv96_numerical_accuracy")
     |                date |           waterlevels | deltawaterlevel | potentialexchange | actualexchange | inflow1 | inflow2 | outflow1 | outflow2 | overflow1 | overflow2 | waterlevel1 | waterlevel2 |
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2000-01-01 00:00:00 |      0.0          1.0 |            -0.5 |         -43.84062 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |       0.432 |       0.568 |
@@ -321,7 +321,7 @@ application:
     | 2000-01-30 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |
     | 2000-01-31 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |
 
-.. _exch_v001_allowed_exchange:
+.. _exch_weir_hbv96_allowed_exchange:
 
 allowed exchange
 ________________
@@ -337,7 +337,7 @@ oscillate for a few days) but are at least stable and not overly wrong:
 
 .. integration-test::
 
-    >>> test("exch_v001_allowed_exchange")
+    >>> test("exch_weir_hbv96_allowed_exchange")
     |                date |           waterlevels | deltawaterlevel | potentialexchange | actualexchange | inflow1 | inflow2 | outflow1 | outflow2 | overflow1 | overflow2 | waterlevel1 | waterlevel2 |
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2000-01-01 00:00:00 |      0.0          1.0 |            -0.5 |         -43.84062 |           -2.0 |     0.0 |     0.0 |      0.0 |      0.0 |       2.0 |      -2.0 |      0.1728 |      0.8272 |
@@ -382,21 +382,21 @@ from hydpy.models.exch import exch_model
 
 
 class Model(modeltools.AdHocModel):
-    """Version 1 of the `HydPy-Exch`.
+    """|exch_weir_hbv96.DOCNAME.complete|.
 
     Before continuing, please read the general documentation on application model
-    |exch_v001|.
+    |exch_weir_hbv96|.
 
-    To work correctly, each |exch_v001| must know which water level node and which
-    overflow node belong to the same lake model.  The following examples might provide
-    insight into how we deal with this issue but are merely there for testing that we
-    handle all expected cases well.
+    To work correctly, each |exch_weir_hbv96| must know which water level node and
+    which overflow node belong to the same lake model.  The following examples might
+    provide insight into how we deal with this issue but are merely there for testing
+    that we handle all expected cases well.
 
     We recreate the configuration of the |Node| and |Element| objects of the main
     documentation, neglecting the lakes' inflow and outflow nodes, which are not
-    relevant for connecting |exch_v001|:
+    relevant for connecting |exch_weir_hbv96|:
 
-    >>> from hydpy.models.exch_v001 import *
+    >>> from hydpy.models.exch_weir_hbv96 import *
     >>> parameterstep()
     >>> from hydpy import Element, FusedVariable, Node, Nodes
     >>> from hydpy.aliases import exch_outlets_Exchange, dam_factors_WaterLevel, exch_receivers_WaterLevels
@@ -488,8 +488,8 @@ class Model(modeltools.AdHocModel):
     sim(3.0)
 
     Now, we (accidentally) connect node `waterlevel2` to both lakes.  Therefore,
-    |exch_v001| cannot find a water level node connected to the same lake model as
-    outlet node `overflow1`:
+    |exch_weir_hbv96| cannot find a water level node connected to the same lake model
+    as outlet node `overflow1`:
 
     >>> Element.clear_all()
     >>> Node.clear_all()
@@ -507,8 +507,8 @@ class Model(modeltools.AdHocModel):
 of the model handled by element `exchange`, the following error occurred: Outlet node \
 `overflow1` does not correspond to any available receiver node.
 
-    |exch_v001| raises the following error if not precisely two water level nodes are
-    available:
+    |exch_weir_hbv96| raises the following error if not precisely two water level nodes
+    are available:
 
     >>> Element.clear_all()
     >>> Node.clear_all()
@@ -527,8 +527,8 @@ sequences of the model handled by element `exchange`, the following error occurr
 There must be exactly 2 outlet receiver but the following `1` receiver nodes are \
 defined: waterlevel1.
 
-    Correspondingly, |exch_v001| raises the following error if there are not precisely
-    two overflow nodes available:
+    Correspondingly, |exch_weir_hbv96| raises the following error if there are not
+    precisely two overflow nodes available:
 
     >>> Element.clear_all()
     >>> Node.clear_all()
@@ -547,6 +547,10 @@ of the model handled by element `exchange`, the following error occurred: There 
 be exactly 2 outlet nodes but the following `3` outlet nodes are defined: overflow1, \
 overflow2, and waterlevel2.
     """
+
+    DOCNAME = modeltools.DocName(
+        short="Exch-Weir-HBV96", description="weir model adopted from IHMS-HBV96"
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = (exch_model.Pic_LoggedWaterLevels_V1,)

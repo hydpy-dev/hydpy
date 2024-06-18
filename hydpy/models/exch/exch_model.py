@@ -247,7 +247,9 @@ class Get_WaterLevel_V1(modeltools.Method):
 
 
 class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
-    """HydPy-Exch base model."""
+    """|exch.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="Exch")
 
     INLET_METHODS = ()
     RECEIVER_METHODS = (Pic_LoggedWaterLevels_V1,)

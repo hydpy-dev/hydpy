@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
-"""Submodel for querying the current water level from a remote node.
-
-|exch_waterlevel| informs its main model about the current water level simulated by
+"""|exch_waterlevel| informs its main model about the current water level simulated by
 another model or passed in as a time series by the user.  Use it, for example, to
 couple |wland_wag| and |dam_pump| so that the water level at a pumping station
 (modelled by |dam_pump|) can affect the upstream groundwater level (modelled by
@@ -53,7 +51,12 @@ from hydpy.models.exch import exch_model
 
 
 class Model(modeltools.AdHocModel, stateinterfaces.WaterLevelModel_V1):
-    """Submodel for querying the water level from a remote node."""
+    """|exch_waterlevel.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Exch-WL",
+        description="submodel for querying the water level from a remote node",
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = (exch_model.Get_WaterLevel_V1,)

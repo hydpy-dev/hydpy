@@ -22,8 +22,8 @@ potential evaporation values by a simple time weighting approach.
 
 The optional water exchange term enables bidirectional coupling of |dam_llake|
 instances and other model objects.  Please see the documentation on the exchange model
-|exch_v001|, where we demonstrate how to represent a system of two lakes connected by
-a short ditch.
+|exch_weir_hbv96|, where we demonstrate how to represent a system of two lakes
+connected by a short ditch.
 
 Like all models of the |dam.DOCNAME.long| family, |dam_llake| solves its underlying
 continuous ordinary differential equations with an error-adaptive numerical integration
@@ -367,7 +367,7 @@ The water exchange functionality of |dam_llake| is optional insofar as one does 
 need to connect the inlet sequence |E| to any nodes.  If there is a connection to one
 or multiple nodes, they can add and subtract water, indicated by positive or negative
 values.  This mechanism allows bidirectional water exchange between different
-|dam_llake| (see the documentation |exch_v001| for further information).
+|dam_llake| (see the documentation |exch_weir_hbv96| for further information).
 
 |dam_llake| handles the water exchange strictly as input, meaning it always includes it
 in its water balance without any modification.  Hence, other models calculating the

@@ -794,7 +794,9 @@ class PegasusReferenceWaterDepth(roottools.Pegasus):
 
 
 class Model(modeltools.SegmentModel):
-    """The HydPy-Musk model."""
+    """|musk.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="Musk")
 
     SOLVERPARAMETERS = (
         musk_solver.NmbRuns,

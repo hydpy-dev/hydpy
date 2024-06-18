@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
-The *HydPy-Musk* model family member |musk_mct| realises a modification of the
+The |musk.DOCNAME.long| family member |musk_mct| realises a modification of the
 variable coefficient Muskingum approach of :cite:t:`ref-Cunge1969` (*MC*) proposed by
 :cite:t:`ref-Todini2007` (*MCT*).
 
@@ -1042,7 +1042,11 @@ class NmbRuns(musk_solver.NmbRuns):
 
 
 class Model(modeltools.SegmentModel):
-    """The Muskingum-Cunge-Todini version of *HydPy-Musk* (|musk_mct|)."""
+    """|musk_mct.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Musk-MCT", description="Muskingum-Cunge-Todini routing"
+    )
 
     SOLVERPARAMETERS = (
         NmbRuns,

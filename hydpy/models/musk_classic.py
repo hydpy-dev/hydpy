@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
-The *HydPy-Musk* model family member |musk_classic| realises the well-known Muskingum
+The |musk.DOCNAME.long| family member |musk_classic| realises the well-known Muskingum
 routing method :cite:p:`ref-McCarthy1940`.  The Muskingum method is a simple
 "hydrological" routing approach that applies a finite difference approximation of the
 continuity equation with fixed coefficients.  Users are free to define these
@@ -182,9 +182,10 @@ class NmbRuns(musk_solver.NmbRuns):
     """The number of runs of the |RunModel.RUN_METHODS| of the |musk_classic| model per
     simulation step [-].
 
-    As opposed to other members of the *HydPy-Musk* model family, repeating the "run
-    methods" of |musk_classic| does not improve the accuracy of the simulated results.
-    Hence, we restrict the highest value of parameter |musk_classic.NmbRuns| to one:
+    As opposed to other members of the |musk.DOCNAME.long| model family, repeating the
+    "run methods" of |musk_classic| does not improve the accuracy of the simulated
+    results.  Hence, we restrict the highest value of parameter |musk_classic.NmbRuns|
+    to one:
 
     >>> from hydpy.models.musk_classic import *
     >>> parameterstep()
@@ -199,7 +200,12 @@ class NmbRuns(musk_solver.NmbRuns):
 
 
 class Model(modeltools.SegmentModel):
-    """The classic, fixed-coefficient version of HydPy-Musk (|musk_classic|)."""
+    """|musk_classic.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Musk-Classic",
+        description="classic Muskingum routing, compatible with SMHI-IHMS-HBV96",
+    )
 
     SOLVERPARAMETERS = (NmbRuns,)
     INLET_METHODS = (musk_model.Pick_Inflow_V1, musk_model.Update_Discharge_V1)

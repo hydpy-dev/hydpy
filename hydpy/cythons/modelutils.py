@@ -2653,8 +2653,9 @@ class FuncConverter:
         ...             d_pc = con.kg[k]*inp.p[k]
         ...             flu.pc[k] = d_pc
         >>> model.calc_test_v1 = MethodType(Calc_Test_V1.__call__, model)
-        >>> lines = FuncConverter(model, "calc_test_v1", model.calc_test_v1).pyxlines
-        >>> lines  # doctest: +ELLIPSIS
+        >>> FuncConverter(
+        ...     model, "calc_test_v1", model.calc_test_v1
+        ... ).pyxlines   # doctest: +ELLIPSIS
         cpdef inline void calc_test_v1(self) noexcept nogil:
             cdef double d_pc
             cdef ...int... k
@@ -2671,10 +2672,12 @@ class FuncConverter:
         ...     def __call__(model: Model, value: float, values: Vector) -> float:
         ...         con = model.parameters.control.fastaccess
         ...         return con.kg[0]*value*values[1]
-        >>> model.calc_test_v2 = MethodType(Calc_Test_V2.__call__, model)
-        >>> FuncConverter(model, "calc_test_v2", model.calc_test_v2).pyxlines
-        cpdef inline double calc_test_v2(self, double value, double[:] values) \
-noexcept nogil:
+        >>> model.calc_test_discontinous = MethodType(Calc_Test_V2.__call__, model)
+        >>> FuncConverter(
+        ...     model, "calc_test_discontinous", model.calc_test_discontinous
+        ... ).pyxlines
+        cpdef inline double calc_test_discontinous(self, double value, double[:] \
+values) noexcept nogil:
             return self.parameters.control.kg[0]*value*values[1]
         <BLANKLINE>
 
@@ -2685,9 +2688,10 @@ noexcept nogil:
         ...     @staticmethod
         ...     def __call__(model: Model) -> routinginterfaces.StorageModel_V1:
         ...         return cast(routinginterfaces.StorageModel_V1, model.soilmodel)
-        >>> model.calc_test_v3 = MethodType(Calc_Test_V3.__call__, model)
-        >>> FuncConverter(model, "calc_test_v3", model.calc_test_v3).pyxlines
-        cpdef inline masterinterface.MasterInterface calc_test_v3(self) noexcept nogil:
+        >>> model.calc_test_stiff1d = MethodType(Calc_Test_V3.__call__, model)
+        >>> FuncConverter(model, "calc_test_stiff1d", model.calc_test_stiff1d).pyxlines
+        cpdef inline masterinterface.MasterInterface calc_test_stiff1d(self) noexcept \
+nogil:
             return (<masterinterface.MasterInterface>self.soilmodel)
         <BLANKLINE>
 

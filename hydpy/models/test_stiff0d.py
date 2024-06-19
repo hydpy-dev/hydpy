@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
-"""This simple test model is thought for testing numerical integration strategies.  It
-can be seen from two perspectives.  On the one hand it implements the Dahlquist test
-equation (on the real axis only), which is related to stiff initial value problems.  On
-the other hand it describes a simple storage with a linear loss term and without any
-input.  The loss rate |Q| and the initial storage content |S| can be set as required.
+"""|test_stiff0d| is a simple test model that serves to test numerical integration
+strategies.  It can be seen from two perspectives.  On the one hand, it implements the
+Dahlquist test equation (on the real axis only), which is related to stiff initial
+value problems.  On the other hand, it describes a simple storage with a linear loss
+term and without any input.  The loss rate |Q| and the initial storage content |S| can
+be set as required.
 """
 # imports...
 # ...HydPy specific
@@ -17,7 +18,12 @@ from hydpy.models.test import test_solver
 
 
 class Model(modeltools.ELSModel):
-    """Test model, Version 1."""
+    """|test_stiff0d.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Test-Stiff-0D",
+        description="test model for stiff ODEs and scalar sequences",
+    )
 
     SOLVERPARAMETERS = (
         test_solver.AbsErrorMax,

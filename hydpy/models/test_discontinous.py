@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
-"""This simple test model is thought for testing numerical integration strategies.  It
-can be seen from two perspectives.  On the one hand it implements a simple discontinous
-equation, bringing numerical integration algorithms into trouble.  On the other hand it
-describes a simple storage with a loss that is constant over time, as long as some
+"""|test_discontinous| serves to test numerical integration strategies only.  It can be
+seen from two perspectives.  On the one hand, it implements a simple discontinuous
+equation, which causes trouble for numerical integration algorithms.  On the other
+hand, it describes simple storage with a constant loss over time as long as some
 storage content is left.  The loss rate |Q| and the initial storage content |S| can be
 set as required.
 """
@@ -18,7 +18,11 @@ from hydpy.models.test import test_solver
 
 
 class Model(modeltools.ELSModel):
-    """Test model, Version 2."""
+    """|test_discontinous.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Test-Discontinuous", description="test model for discontinuous ODEs"
+    )
 
     SOLVERPARAMETERS = (
         test_solver.AbsErrorMax,

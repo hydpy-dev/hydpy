@@ -2695,10 +2695,10 @@ class ModelSequence(Sequence_):
         |SubSequences| group it belongs to.
 
         >>> from hydpy import prepare_model
-        >>> from hydpy.models import test_v1
-        >>> model = prepare_model(test_v1)
+        >>> from hydpy.models import test_stiff0d
+        >>> model = prepare_model(test_stiff0d)
         >>> model.sequences.fluxes.q.descr_sequence
-        'test_v1_flux_q'
+        'test_stiff0d_flux_q'
         """
         return (
             f"{self.subseqs.seqs.model}_"
@@ -2711,13 +2711,13 @@ class ModelSequence(Sequence_):
         """Description of the |Model| the |ModelSequence| object belongs to.
 
         >>> from hydpy import prepare_model
-        >>> from hydpy.models import test, test_v1
+        >>> from hydpy.models import test, test_stiff0d
         >>> model = prepare_model(test)
         >>> model.sequences.fluxes.q.descr_model
         'test'
-        >>> model = prepare_model(test_v1)
+        >>> model = prepare_model(test_stiff0d)
         >>> model.sequences.fluxes.q.descr_model
-        'test_v1'
+        'test_stiff0d'
         """
         return self.subseqs.seqs.model.__module__.split(".")[2]
 

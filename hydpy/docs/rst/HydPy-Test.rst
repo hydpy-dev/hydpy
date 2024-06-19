@@ -8,18 +8,12 @@ The HydPy-Test base model is thought for providing simple test models to test an
 explain the functionality of some framework features.   So far, three applications
 models for testing numerical integration algorithms are available.
 
-Base model:
+Available models:
 
 .. toctree::
    :maxdepth: 1
 
    test
-
-Application model:
-
-.. toctree::
-   :maxdepth: 1
-
-   test_v1
-   test_v2
-   test_v3
+   test_stiff0d
+   test_stiff1d
+   test_discontinous

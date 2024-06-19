@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
-"""This simple test model is nearly identical with |test_v1| but works on 1-dimensional
-sequences instead on 0-dimensional sequences."""
+"""|test_stiff1d| similar to |test_stiff0d| but works on 1-dimensional sequences
+instead of 0-dimensional sequences."""
 # imports...
 # ...from HydPy
 from hydpy.exe.modelimports import *
@@ -13,7 +13,12 @@ from hydpy.models.test import test_solver
 
 
 class Model(modeltools.ELSModel):
-    """Test model, Version 3."""
+    """|test_stiff1d.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Test-Stiff-1D",
+        description="test model for stiff ODEs and 1-dimensional sequences",
+    )
 
     SOLVERPARAMETERS = (
         test_solver.AbsErrorMax,

@@ -1897,7 +1897,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         advantage of choosing an arbitrary file path, as shown in the following
         example:
 
-        >>> from hydpy.models.test_v3 import *
+        >>> from hydpy.models.test_stiff1d import *
         >>> parameterstep("1d")
         >>> simulationstep("1h")
         >>> k(0.1)
@@ -1906,12 +1906,12 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         >>> from hydpy import Open
         >>> with Open():
         ...     model.save_controls(filepath="otherdir/otherfile.py")
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         otherdir/otherfile.py
-        ----------------------------------
+        ---------------------------------------
         # -*- coding: utf-8 -*-
         <BLANKLINE>
-        from hydpy.models.test_v3 import *
+        from hydpy.models.test_stiff1d import *
         <BLANKLINE>
         simulationstep("1h")
         parameterstep("1d")
@@ -1919,7 +1919,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         k(0.1)
         n(3)
         <BLANKLINE>
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         Method |Model.save_controls| also writes the string representations of all
         |SolverParameter| objects with non-default values into the control file:
@@ -1927,12 +1927,12 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         >>> solver.abserrormax(1e-6)
         >>> with Open():
         ...     model.save_controls(filepath="otherdir/otherfile.py")
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         otherdir/otherfile.py
-        ----------------------------------
+        ---------------------------------------
         # -*- coding: utf-8 -*-
         <BLANKLINE>
-        from hydpy.models.test_v3 import *
+        from hydpy.models.test_stiff1d import *
         <BLANKLINE>
         simulationstep("1h")
         parameterstep("1d")
@@ -1942,7 +1942,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         <BLANKLINE>
         solver.abserrormax(0.000001)
         <BLANKLINE>
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         Without a given file path and a proper project configuration, method
         |Model.save_controls| raises the following error:
@@ -3654,13 +3654,13 @@ class ELSModel(SolverModel):
         Implementing numerical integration algorithms that (hopefully) always work well
         in practice is a tricky task.  The following exhaustive examples show how well
         our "Explicit Lobatto Sequence" algorithm performs for the numerical test
-        models |test_v1| and |test_v2|.  We hope to cover all possible corner cases.
-        Please tell us if you find one we missed.
+        models |test_stiff0d| and |test_discontinous|.  We hope to cover all possible
+        corner cases.  Please tell us if you find one we missed.
 
         First, we set the value of parameter |test_control.K| to zero, resulting in no
         changes at all and thus defining the simplest test case possible:
 
-        >>> from hydpy.models.test_v1 import *
+        >>> from hydpy.models.test_stiff0d import *
         >>> parameterstep()
         >>> k(0.0)
 
@@ -3946,12 +3946,12 @@ class ELSModel(SolverModel):
         q(0.9815)
 
         Besides its weaknesses with stiff problems, |ELSModel| cannot solve
-        discontinuous problems well.  We use the |test_v1| example model to demonstrate
-        how |ELSModel| behaves when confronted with such a problem.
+        discontinuous problems well.  We use the |test_stiff0d| example model to
+        demonstrate how |ELSModel| behaves when confronted with such a problem.
 
         >>> from hydpy import reverse_model_wildcard_import
         >>> reverse_model_wildcard_import()
-        >>> from hydpy.models.test_v2 import *
+        >>> from hydpy.models.test_discontinous import *
         >>> parameterstep()
 
         Everything works fine as long as the discontinuity does not affect the
@@ -4081,7 +4081,7 @@ class ELSModel(SolverModel):
     def calculate_single_terms(self) -> None:
         """Apply all methods stored in the `PART_ODE_METHODS` tuple.
 
-        >>> from hydpy.models.test_v1 import *
+        >>> from hydpy.models.test_stiff0d import *
         >>> parameterstep()
         >>> k(0.25)
         >>> states.s = 1.0
@@ -4096,7 +4096,7 @@ class ELSModel(SolverModel):
     def calculate_full_terms(self) -> None:
         """Apply all methods stored in the `FULL_ODE_METHODS` tuple.
 
-        >>> from hydpy.models.test_v1 import *
+        >>> from hydpy.models.test_stiff0d import *
         >>> parameterstep()
         >>> k(0.25)
         >>> states.s.old = 1.0
@@ -4114,7 +4114,7 @@ class ELSModel(SolverModel):
         """Load the states corresponding to the actual stage.
 
         >>> from hydpy import round_
-        >>> from hydpy.models.test_v1 import *
+        >>> from hydpy.models.test_stiff0d import *
         >>> parameterstep()
         >>> states.s.old = 2.0
         >>> states.s.new = 2.0
@@ -4129,7 +4129,7 @@ class ELSModel(SolverModel):
 
         >>> from hydpy import reverse_model_wildcard_import, print_values
         >>> reverse_model_wildcard_import()
-        >>> from hydpy.models.test_v3 import *
+        >>> from hydpy.models.test_stiff1d import *
         >>> parameterstep()
         >>> n(2)
         >>> states.sv.old = 3.0, 3.0
@@ -4156,7 +4156,7 @@ class ELSModel(SolverModel):
         """Save the states corresponding to the actual stage.
 
         >>> from hydpy import print_values
-        >>> from hydpy.models.test_v1 import *
+        >>> from hydpy.models.test_stiff0d import *
         >>> parameterstep()
         >>> states.s.old = 2.0
         >>> states.s.new = 1.0
@@ -4169,7 +4169,7 @@ class ELSModel(SolverModel):
 
         >>> from hydpy import reverse_model_wildcard_import
         >>> reverse_model_wildcard_import()
-        >>> from hydpy.models.test_v3 import *
+        >>> from hydpy.models.test_stiff1d import *
         >>> parameterstep()
         >>> n(2)
         >>> states.sv.old = 3.0, 3.0
@@ -4189,7 +4189,7 @@ class ELSModel(SolverModel):
         """Save the final states of the actual method.
 
         >>> from hydpy import print_values
-        >>> from hydpy.models.test_v1 import *
+        >>> from hydpy.models.test_stiff0d import *
         >>> parameterstep()
         >>> states.s.old = 2.0
         >>> states.s.new = 1.0
@@ -4202,7 +4202,7 @@ class ELSModel(SolverModel):
 
         >>> from hydpy import reverse_model_wildcard_import
         >>> reverse_model_wildcard_import()
-        >>> from hydpy.models.test_v3 import *
+        >>> from hydpy.models.test_stiff1d import *
         >>> parameterstep()
         >>> n(2)
         >>> states.sv.old = 3.0, 3.0
@@ -4227,7 +4227,7 @@ class ELSModel(SolverModel):
     def get_sum_fluxes(self) -> None:
         """Get the sum of the fluxes calculated so far.
 
-        >>> from hydpy.models.test_v1 import *
+        >>> from hydpy.models.test_stiff0d import *
         >>> parameterstep()
         >>> fluxes.q = 0.0
         >>> fluxes.fastaccess._q_sum = 1.0
@@ -4237,7 +4237,7 @@ class ELSModel(SolverModel):
 
         >>> from hydpy import reverse_model_wildcard_import, print_values
         >>> reverse_model_wildcard_import()
-        >>> from hydpy.models.test_v3 import *
+        >>> from hydpy.models.test_stiff1d import *
         >>> parameterstep()
         >>> n(2)
         >>> fluxes.qv = 0.0, 0.0
@@ -4254,7 +4254,7 @@ class ELSModel(SolverModel):
         """Save the fluxes corresponding to the actual stage.
 
         >>> from hydpy import print_values
-        >>> from hydpy.models.test_v1 import *
+        >>> from hydpy.models.test_stiff0d import *
         >>> parameterstep()
         >>> fluxes.q = 1.0
         >>> model.numvars.idx_stage = 2
@@ -4266,7 +4266,7 @@ class ELSModel(SolverModel):
 
         >>> from hydpy import reverse_model_wildcard_import
         >>> reverse_model_wildcard_import()
-        >>> from hydpy.models.test_v3 import *
+        >>> from hydpy.models.test_stiff1d import *
         >>> parameterstep()
         >>> n(2)
         >>> fluxes.qv = 1.0, 2.0
@@ -4285,7 +4285,7 @@ class ELSModel(SolverModel):
         """Save the final fluxes of the actual method.
 
         >>> from hydpy import print_values
-        >>> from hydpy.models.test_v1 import *
+        >>> from hydpy.models.test_stiff0d import *
         >>> parameterstep()
         >>> fluxes.q = 1.0
         >>> model.numvars.idx_method = 2
@@ -4298,7 +4298,7 @@ class ELSModel(SolverModel):
 
         >>> from hydpy import reverse_model_wildcard_import
         >>> reverse_model_wildcard_import()
-        >>> from hydpy.models.test_v3 import *
+        >>> from hydpy.models.test_stiff1d import *
         >>> parameterstep()
         >>> n(2)
         >>> fluxes.qv = 1.0, 2.0
@@ -4324,7 +4324,7 @@ class ELSModel(SolverModel):
         associated with the different stages of the actual method.
 
         >>> from hydpy import print_values
-        >>> from hydpy.models.test_v1 import *
+        >>> from hydpy.models.test_stiff0d import *
         >>> parameterstep()
         >>> model.numvars.idx_method = 2
         >>> model.numvars.idx_stage = 1
@@ -4341,7 +4341,7 @@ class ELSModel(SolverModel):
 
         >>> from hydpy import reverse_model_wildcard_import
         >>> reverse_model_wildcard_import()
-        >>> from hydpy.models.test_v3 import *
+        >>> from hydpy.models.test_stiff1d import *
         >>> parameterstep()
         >>> n(2)
         >>> model.numvars.idx_method = 2
@@ -4369,7 +4369,7 @@ class ELSModel(SolverModel):
     def reset_sum_fluxes(self) -> None:
         """Set the sum of the fluxes calculated so far to zero.
 
-        >>> from hydpy.models.test_v1 import *
+        >>> from hydpy.models.test_stiff0d import *
         >>> parameterstep()
         >>> fluxes.fastaccess._q_sum = 5.0
         >>> model.reset_sum_fluxes()
@@ -4378,7 +4378,7 @@ class ELSModel(SolverModel):
 
         >>> from hydpy import reverse_model_wildcard_import, print_values
         >>> reverse_model_wildcard_import()
-        >>> from hydpy.models.test_v3 import *
+        >>> from hydpy.models.test_stiff1d import *
         >>> parameterstep()
         >>> n(2)
         >>> import numpy
@@ -4398,7 +4398,7 @@ class ELSModel(SolverModel):
     def addup_fluxes(self) -> None:
         """Add up the sum of the fluxes calculated so far.
 
-        >>> from hydpy.models.test_v1 import *
+        >>> from hydpy.models.test_stiff0d import *
         >>> parameterstep()
         >>> fluxes.fastaccess._q_sum = 1.0
         >>> fluxes.q(2.0)
@@ -4408,7 +4408,7 @@ class ELSModel(SolverModel):
 
         >>> from hydpy import reverse_model_wildcard_import, print_values
         >>> reverse_model_wildcard_import()
-        >>> from hydpy.models.test_v3 import *
+        >>> from hydpy.models.test_stiff1d import *
         >>> parameterstep()
         >>> n(2)
         >>> sums = numpy.asarray(fluxes.fastaccess._qv_sum)
@@ -4433,7 +4433,7 @@ class ELSModel(SolverModel):
         sequences of the respective model with a |True| `NUMERIC` attribute.
 
         >>> from hydpy import round_
-        >>> from hydpy.models.test_v1 import *
+        >>> from hydpy.models.test_stiff0d import *
         >>> parameterstep()
         >>> results = numpy.asarray(fluxes.fastaccess._q_results)
         >>> results[:5] = 0.0, 0.0, 3.0, 4.0, 4.0
@@ -4468,7 +4468,7 @@ class ELSModel(SolverModel):
 
         >>> from hydpy import reverse_model_wildcard_import
         >>> reverse_model_wildcard_import()
-        >>> from hydpy.models.test_v3 import *
+        >>> from hydpy.models.test_stiff1d import *
         >>> parameterstep()
         >>> n(2)
         >>> model.numvars.use_relerror = True
@@ -4533,7 +4533,7 @@ class ELSModel(SolverModel):
         the current method is the first one, method |ELSModel.extrapolate_error|
         returns `-999.9`:
 
-         >>> from hydpy.models.test_v1 import *
+         >>> from hydpy.models.test_stiff0d import *
          >>> parameterstep()
          >>> model.numvars.use_relerror = False
          >>> model.numvars.abserror = 0.01

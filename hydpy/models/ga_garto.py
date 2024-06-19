@@ -943,6 +943,7 @@ There is no indication of an error in the water balance:
 """
 # import...
 # ...from HydPy
+from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.core.typingtools import *
 
@@ -951,8 +952,15 @@ from hydpy.models.ga import ga_model
 
 
 class Model(ga_model.BaseModel):
-    """The GARTO algorithm (assuming a hydrostatic groundwater table), implemented as
-    a stand-alone model."""
+    """|ga_garto.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="GA-GARTO",
+        description=(
+            "main model for calculating the Green-Ampt / Talbot-Ogden infiltration "
+            "with redistribution"
+        ),
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

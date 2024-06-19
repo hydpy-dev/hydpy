@@ -2747,7 +2747,9 @@ class Get_SoilWaterContent_V1(modeltools.Method):
 
 
 class Model(modeltools.AdHocModel):
-    r"""The Green-Ampt base model."""
+    """|ga.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="GA")
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
@@ -2929,8 +2931,8 @@ class BaseModel(modeltools.AdHocModel):
 
 
 class Base_SoilModel_V1(BaseModel, soilinterfaces.SoilModel_V1):
-    """Base class for HydPy-GA models that comply with the |SoilModel_V1| submodel
-    interface."""
+    """Base class for |ga.DOCNAME.long| models that comply with the |SoilModel_V1|
+    submodel interface."""
 
     @importtools.define_targetparameter(ga_control.NmbSoils)
     def prepare_nmbzones(self, nmbzones: int) -> None:

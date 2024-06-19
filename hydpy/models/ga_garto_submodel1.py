@@ -14,6 +14,7 @@ the integration tests :ref:`lland_dd_acker_garto` of application model |lland_dd
 """
 # import...
 # ...from HydPy
+from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 
 # ...from ga
@@ -25,8 +26,15 @@ ADDITIONAL_CONTROLPARAMETERS = (ga_control.NmbSoils,)
 
 
 class Model(ga_model.Base_SoilModel_V1):
-    """The GARTO algorithm (assuming a hydrostatic groundwater table), implemented as
-    a submodel meeting the requirements of the |SoilModel_V1| interface."""
+    """|ga_garto_submodel1.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="GA-GARTO-Sub1",
+        description=(
+            "submodel for calculating the Green-Ampt / Talbot-Ogden infiltration with "
+            "redistribution"
+        ),
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""HydPy-SW1D provides features for implementing models for approximating the
+"""|sw1d.DOCNAME.long| provides features for implementing models for approximating the
 1-dimensional shallow water equations in a "hydrodynamic" manner to account for
 situations like backwater effects that "hydrological" methods cannot handle well."""
 # import...

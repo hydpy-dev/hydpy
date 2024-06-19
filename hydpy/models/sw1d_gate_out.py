@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
-The *HydPy-SW1D* model family member |sw1d_gate_out| is a routing submodel, which
-calculates the flow under a submerged gate.
+The |sw1d.DOCNAME.long| model family member |sw1d_gate_out| is a routing submodel,
+which calculates the flow under a submerged gate.
 
 Principally, |sw1d_gate_out| is similar to |sw1d_weir_out|, which calculates the flow
 over a weir.  Both models must be placed at a network outlet.  However, while
@@ -540,8 +540,14 @@ from hydpy.models.sw1d import sw1d_model
 
 
 class Model(modeltools.AdHocModel, routinginterfaces.RoutingModel_V3):
-    """A routing submodel for calculating "longitudinal" outflow from the last segment
-    of a channel as the flow under a submerged gate."""
+    """|sw1d_gate_out.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="SW1D-Gate-Out",
+        description=(
+            "submodel for calculating flow under a submerged gate at a channel outlet"
+        ),
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

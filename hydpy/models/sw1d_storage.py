@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-The *HydPy-SW1D* model family member |sw1d_storage| is a storage submodel for keeping
-track of the water amount stored in a channel segment and calculating the water level.
+The |sw1d.DOCNAME.long| model family member |sw1d_storage| is a storage submodel for
+keeping track of the water amount stored in a channel segment and calculating the water
+level.
 
 Please refer to the documentation of the "user model" |sw1d_channel| and the
 "composite model" |sw1d_network|, where we demonstrate and discuss |sw1d_storage| in
@@ -19,8 +20,12 @@ from hydpy.models.sw1d import sw1d_model
 
 
 class Model(sw1d_model.Main_CrossSectionModel_V2, routinginterfaces.StorageModel_V1):
-    """A storage submodel for calculating a single channel segment's water balance and
-    water level."""
+    """|sw1d_storage.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="SW1D-Storage",
+        description="submodel for calculating a single channel segment's water balance",
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

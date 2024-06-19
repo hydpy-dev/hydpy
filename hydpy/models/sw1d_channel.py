@@ -4,7 +4,7 @@
 .. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN
 .. _`LIAS issue on GitHub`: https://github.com/hydpy-dev/hydpy/issues/98
 
-The *HydPy-SW1D* model family member |sw1d_channel| allows combining different
+The |sw1d.DOCNAME.long| model family member |sw1d_channel| allows combining different
 storage and routing submodels for representing the 1-dimensional flow processes within
 a single channel reach.
 
@@ -40,8 +40,8 @@ and three kilometres:
 A valid |sw1d_channel| configuration requires one storage model that complies with the
 |StorageModel_V1| at each segment.  We prepare |sw1d_storage| submodels with identical
 channel bottom elevations and rectangular profiles.  As for other submodels of the
-HydPy-SW1D model family, one specifies such geometries by sub-submodels that comply
-with |CrossSectionModel_V2| interface.  Here, we select |wq_trapeze|:
+|sw1d.DOCNAME.long| model family, one specifies such geometries by sub-submodels that
+comply with |CrossSectionModel_V2| interface.  Here, we select |wq_trapeze|:
 
 >>> for i, length_ in enumerate(lengths):
 ...     with model.add_storagemodel_v1("sw1d_storage", position=i):
@@ -1583,8 +1583,15 @@ ADDITIONAL_CONTROLPARAMETERS = (sw1d_control.NmbSegments,)
 
 
 class Model(modeltools.SubstepModel, routinginterfaces.ChannelModel_V1):
-    """A "user model" for preparing river networks to simulate routing based on the
-    1-dimensional shallow water equations."""
+    """|sw1d_channel.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="SW1D-Channel",
+        description=(
+            '"user model" for preparing single channels that will be combined and '
+            "solved by HydPy-SW1D-Network"
+        ),
+    )
 
     INLET_METHODS = (sw1d_model.Trigger_Preprocessing_V1,)
     RECEIVER_METHODS = ()

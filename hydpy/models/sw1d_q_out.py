@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """
-The *HydPy-SW1D* model family member |sw1d_q_out| is a simple routing submodel, which
-allows taking observed or previously simulated discharge series as "longitudinal"
+The |sw1d.DOCNAME.long| model family member |sw1d_q_out| is a simple routing submodel,
+which allows taking observed or previously simulated discharge series as "longitudinal"
 channel outflow.
 
 Please refer to the documentation of the "composite model" |sw1d_network|, where we
@@ -20,8 +20,14 @@ from hydpy.models.sw1d import sw1d_model
 
 
 class Model(sw1d_model.Main_CrossSectionModel_V2, routinginterfaces.RoutingModel_V3):
-    """A simple routing submodel for removing "longitudinal" outflow from the last
-    segment of a channel."""
+    """|sw1d_q_out.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="SW1D-Q-Out",
+        description=(
+            "submodel for subtracting pre-determined discharge from a channel outlet"
+        ),
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

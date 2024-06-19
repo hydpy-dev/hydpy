@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """
-The *HydPy-SW1D* model family member |sw1d_lias| is a routing submodel that allows
-applying a 1-dimensional version of the "local inertial approximation of the shallow
-water equations" introduced by :cite:t:`ref-Bates2010` and "stabilised" by
+The |sw1d.DOCNAME.long| model family member |sw1d_lias| is a routing submodel that
+allows applying a 1-dimensional version of the "local inertial approximation of the
+shallow water equations" introduced by :cite:t:`ref-Bates2010` and "stabilised" by
 :cite:t:`ref-Almeida2012`.
 
 Please refer to the documentation of the "user model" |sw1d_channel| and the
@@ -21,9 +21,15 @@ from hydpy.models.sw1d import sw1d_model
 
 
 class Model(sw1d_model.Main_CrossSectionModel_V2, routinginterfaces.RoutingModel_V2):
-    """A routing submodel based on the "local inertial approximation of the shallow
-    water equations" introduced by :cite:t:`ref-Bates2010` and "stabilised" by
-    :cite:t:`ref-Almeida2012`."""
+    """|sw1d_lias.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="SW1D-LIAS",
+        description=(
+            "submodel for calculating the discharge between two channel segments "
+            "based on Bates et al. (2010) and Almeida et al. (2012)"
+        ),
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

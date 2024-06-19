@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
-The *HydPy-SW1D* model family member |sw1d_lias_sluice| extends the routing submodel
-|sw1d_lias| with simple sluice functionalities.
+The |sw1d.DOCNAME.long| model family member |sw1d_lias_sluice| extends the routing
+submodel |sw1d_lias| with simple sluice functionalities.
 
 The main model |sw1d_channel| documentation explains |sw1d_lias| depth.  Here, we limit
 the discussion to some of the additional features of |sw1d_lias_sluice|.  Please also
@@ -447,9 +447,14 @@ from hydpy.models.sw1d import sw1d_model
 
 
 class Model(sw1d_model.Main_CrossSectionModel_V2, routinginterfaces.RoutingModel_V2):
-    """A routing submodel combining the "local inertial approximation of the shallow
-    water equations" introduced by :cite:t:`ref-Bates2010` and "stabilised" by
-    :cite:t:`ref-Almeida2012` with simple sluice functionalities."""
+    """|sw1d_lias_sluice.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="SW1D-LIAS/Sluice",
+        description=(
+            "submodel that extends HydPy-SW1D-LIAS with sluice functionalities"
+        ),
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

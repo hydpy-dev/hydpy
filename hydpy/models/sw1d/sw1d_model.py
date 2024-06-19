@@ -3260,7 +3260,9 @@ class Update_Storage_V1(modeltools.AutoMethod):
 
 
 class Model(modeltools.SubstepModel):
-    """The HydPy-SW-1D model."""
+    """|sw1d.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="SW1D")
 
     INLET_METHODS = (
         Pick_Inflow_V1,
@@ -3399,8 +3401,8 @@ class Model(modeltools.SubstepModel):
 
 
 class Main_CrossSectionModel_V2(modeltools.AdHocModel):
-    """Base class for HydPy-SW1D models that use submodels named `crosssection` and
-    comply with the |CrossSectionModel_V2| interface."""
+    """Base class for |sw1d.DOCNAME.long| models that use submodels named
+    `crosssection` and comply with the |CrossSectionModel_V2| interface."""
 
     crosssection: modeltools.SubmodelProperty[routinginterfaces.CrossSectionModel_V2]
     crosssection_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()

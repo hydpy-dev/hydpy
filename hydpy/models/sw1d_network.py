@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
-The *HydPy-SW1D* model family member |sw1d_network| allows combining different
+The |sw1d.DOCNAME.long| model family member |sw1d_network| allows combining different
 storage and routing submodels for representing the 1-dimensional flow processes within
 a complete channel network.
 
@@ -657,8 +657,15 @@ ADDITIONAL_DERIVEDPARAMETERS = (sw1d_derived.Seconds,)
 
 
 class Model(modeltools.SubstepModel):
-    """A "composite model" for solving the 1-dimensional shallow water equations in
-    complex channel networks."""
+    """|sw1d_network.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="SW1D-Network",
+        description=(
+            '"composite model" for solving the 1-dimensional shallow water equations '
+            "in channel networks"
+        ),
+    )
 
     COMPOSITE = True
     """|sw1d_network| is a composite model.  (One usually only works with it 

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """
-The *HydPy-SW1D* model family member |sw1d_q_in| is a simple routing submodel, which
-allows taking observed or previously simulated discharge series as "longitudinal"
+The |sw1d.DOCNAME.long| model family member |sw1d_q_in| is a simple routing submodel,
+which allows taking observed or previously simulated discharge series as "longitudinal"
 channel inflow.
 
 Please refer to the documentation of the "user model" |sw1d_channel| and the
@@ -20,8 +20,12 @@ from hydpy.models.sw1d import sw1d_model
 
 
 class Model(sw1d_model.Main_CrossSectionModel_V2, routinginterfaces.RoutingModel_V1):
-    """A simple routing submodel for inserting "longitudinal" inflow into the first
-    segment of a channel."""
+    """|sw1d_q_in.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="SW1D-Q-In",
+        description="submodel for adding pre-determined discharge to a channel inlet",
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

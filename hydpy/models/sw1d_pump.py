@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
-The *HydPy-SW1D* model family member |sw1d_pump| is a routing submodel that calculates
-water pumping from one channel segment into another.
+The |sw1d.DOCNAME.long| model family member |sw1d_pump| is a routing submodel that
+calculates water pumping from one channel segment into another.
 
 Integration tests
 =================
@@ -371,8 +371,12 @@ from hydpy.models.sw1d import sw1d_model
 
 
 class Model(sw1d_model.Main_CrossSectionModel_V2, routinginterfaces.RoutingModel_V2):
-    """A routing submodel for calculating water pumping from one channel segment into
-    another."""
+    """|sw1d_pump.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="SW1D-Pump",
+        description="submodel for pumping water between two channel segments",
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

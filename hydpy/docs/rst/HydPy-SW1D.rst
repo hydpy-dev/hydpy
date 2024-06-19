@@ -4,7 +4,7 @@
 HydPy-SW1D (Shallow Water 1D)
 =============================
 
-All models of the `HydPy-SW1D` model family serve to solve the 1-dimensional shallow
+All models of the HydPy-SW1D model family serve to solve the 1-dimensional shallow
 water equations.  Opposed to models like |musk_mct|, they do so in a more
 `hydrodynamical` manner, which extends their scope to situations where traditional
 `hydrological` flood routing approaches fail.  Most importantly, they can account for
@@ -31,25 +31,19 @@ interface), for calculating the flow between channel segments (like |sw1d_lias|,
 follows the |RoutingModel_V2| interface), and for removing water from the lower
 segments (like |sw1d_weir_out|, which follows the |RoutingModel_V3| interface).
 
-Base model:
+Available models:
 
 .. toctree::
    :maxdepth: 1
 
    sw1d
-
-Application models:
-
-.. toctree::
-   :maxdepth: 1
-
-   Channel <sw1d_channel>
-   Network <sw1d_network>
-   Storage <sw1d_storage>
-   Q-In <sw1d_q_in>
-   LIAS <sw1d_lias>
-   LIAS/Sluice <sw1d_lias_sluice>
-   Pump <sw1d_pump>
-   Q-Out <sw1d_q_out>
-   Weir-Out <sw1d_weir_out>
-   Gate-Out <sw1d_gate_out>
+   sw1d_channel
+   sw1d_network
+   sw1d_storage
+   sw1d_q_in
+   sw1d_lias
+   sw1d_lias_sluice
+   sw1d_pump
+   sw1d_q_out
+   sw1d_weir_out
+   sw1d_gate_out

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """
-The *HydPy-SW1D* model family member |sw1d_weir_out| is a routing submodel, which
-calculates the free flow over a weir out of a channel after Poleni.
+The |sw1d.DOCNAME.long| model family member |sw1d_weir_out| is a routing submodel,
+which calculates the free flow over a weir out of a channel after Poleni.
 
 Please refer to the documentation of the "user model" |sw1d_channel| and the
 "composite model" |sw1d_network|, where we demonstrate and discuss |sw1d_weir_out| in
@@ -19,8 +19,12 @@ from hydpy.models.sw1d import sw1d_model
 
 
 class Model(modeltools.AdHocModel, routinginterfaces.RoutingModel_V3):
-    """A routing submodel for calculating "longitudinal" outflow from the last segment
-    of a channel as free flow over a weir after Poleni."""
+    """|sw1d_weir_out.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="SW1D-Weir-Out",
+        description="submodel for calculating free weir flow at a channel outlet",
+    )
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

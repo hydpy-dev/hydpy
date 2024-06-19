@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Version 3 of HydPy-Dam.
-
+"""
 |dam_v003| is quite similar to |dam_v002|.  Both application models provide the same
 flood retention functionalities.  Also, both try to meet the water demand at a remote
 location.  The difference is that |dam_v002| expects this demand to occur in the
@@ -371,7 +370,9 @@ from hydpy.models.dam import dam_solver
 
 
 class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
-    """Version 3 of HydPy-Dam."""
+    """|dam_v003.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="Dam-V3", description="dam model, version 3")
 
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,

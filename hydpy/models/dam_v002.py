@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Version 2 of HydPy-Dam.
-
+"""
 Application model |dam_v002| is a simplification of |dam_v001|.  While most
 functionalities are identical, |dam_v002| does not calculate |RequiredRemoteRelease| on
 its own but picks this information from the simulation results of another model.
@@ -335,7 +334,9 @@ from hydpy.models.dam import dam_solver
 
 
 class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
-    """Version 2 of HydPy-Dam."""
+    """|dam_v002.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="Dam-V2", description="dam model, version 2")
 
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,

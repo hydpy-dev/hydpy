@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Version 1 application model of HydPy-Dam.
-
+"""
 |dam_v001| is supposed to represent a dam with an "active" low water control scheme and
 a "passive" high water control scheme.
 
@@ -1071,7 +1070,9 @@ from hydpy.models.dam import dam_solver
 
 
 class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
-    """Version 1 of HydPy-Dam."""
+    """|dam_v001.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="Dam-V1", description="dam model, version 1")
 
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,

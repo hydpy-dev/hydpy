@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Version 5 application model of HydPy-Dam.
-
+"""
 Application model |dam_v005| extends |dam_v001| with two features enabling
 collaboration with other dam models for better drought and flood prevention.
 
@@ -416,7 +415,9 @@ from hydpy.models.dam import dam_solver
 
 
 class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
-    """Version 5 of HydPy-Dam."""
+    """|dam_v005.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="Dam-V5", description="dam model, version 5")
 
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Version 4 of HydPy-Dam.
-
+"""
 Application model |dam_v004| extends |dam_v003|.  Both models discharge water into the
 channel downstream and to "remote locations".  The difference is that |dam_v003|
 releases water only to a single remote location (for example, to a drinking water
@@ -605,7 +604,9 @@ from hydpy.models.dam import dam_solver
 
 
 class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
-    """Version 4 of HydPy-Dam."""
+    """|dam_v004.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="Dam-V4", description="dam model, version 4")
 
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,

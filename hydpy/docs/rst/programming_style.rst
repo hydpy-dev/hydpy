@@ -553,7 +553,7 @@ models in detail to understand how to implement new ones correctly.
 *HydPy* provides many standard features, allowing you to write straightforward
 model source code in many cases.  However, you are free to implement any
 functionalities you find missing (see, for example, the complex "connect"
-method defined by the |hbranch| model). If those functionalities might
+method defined by the |exch_branch_hbv96| model). If those functionalities might
 be of importance to other models as well, consider generalising them and
 adding them to the suitable subpackage.
 

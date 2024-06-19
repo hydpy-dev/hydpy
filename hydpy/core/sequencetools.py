@@ -3707,14 +3707,14 @@ convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and type 
 (2,) into shape (1,)
 
         In the example above, the 1-dimensional inlet sequence |musk_inlets.Q| only
-        points a single |NodeSequence| value.  We now prepare a |hbranch_v1|
+        points a single |NodeSequence| value.  We now prepare a |exch_branch_hbv96|
         application model instance to show what happens when connecting a 1-dimensional
-        |LinkSequence| object (|hbranch_outlets.Branched|) with three |NodeSequence|
-        objects (see the documentation of application model |hbranch_v1| for more
-        details):
+        |LinkSequence| object (|exch_outlets.Branched|) with three |NodeSequence|
+        objects (see the documentation of application model |exch_branch_hbv96| for
+        more details):
 
         >>> from hydpy import Element, Nodes, prepare_model
-        >>> model = prepare_model("hbranch_v1")
+        >>> model = prepare_model("exch_branch_hbv96")
         >>> nodes = Nodes("input1", "input2", "output1", "output2", "output3")
         >>> branch = Element("branch",
         ...                  inlets=["input1", "input2"],

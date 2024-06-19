@@ -5,6 +5,8 @@
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.models.exch import exch_control
+from hydpy.models.exch import exch_derived
+from hydpy.models.exch import exch_inlets
 from hydpy.models.exch import exch_factors
 from hydpy.models.exch import exch_fluxes
 from hydpy.models.exch import exch_logs
@@ -235,6 +237,186 @@ class Pass_ActualExchange_V1(modeltools.Method):
         out.exchange[1][0] += flu.actualexchange
 
 
+class Pick_OriginalInput_V1(modeltools.Method):
+    r"""Update |OriginalInput| based on |Total|.
+
+    Basic equation:
+      :math:`OriginalInput = \sum Total`
+    """
+
+    REQUIREDSEQUENCES = (exch_inlets.Total,)
+    RESULTSEQUENCES = (exch_fluxes.OriginalInput,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        inl = model.sequences.inlets.fastaccess
+        flu.originalinput = 0.0
+        for idx in range(inl.len_total):
+            flu.originalinput += inl.total[idx][0]
+
+
+class Calc_AdjustedInput_V1(modeltools.Method):
+    r"""Adjust the original input data.
+
+    Basic equation:
+        :math:`AdjustedInput = max(OriginalInput + Delta, \ Minimum)`
+
+    Examples:
+
+        The degree of the input adjustment may vary monthly.  Hence, we must define a
+        concrete initialisation period for the following examples:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-03-30", "2000-04-03", "1d"
+        >>> from hydpy.models.exch import *
+        >>> parameterstep()
+        >>> derived.moy.update()
+
+        Negative |Delta| values correspond to decreasing input:
+
+        >>> delta.mar = -1.0
+        >>> minimum(0.0)
+        >>> model.idx_sim = pub.timegrids.init["2000-03-31"]
+        >>> fluxes.originalinput = 1.5
+        >>> model.calc_adjustedinput_v1()
+        >>> fluxes.adjustedinput
+        adjustedinput(0.5)
+
+        The adjusted input values are never smaller than the threshold value defined
+        by parameter |Minimum|:
+
+        >>> minimum(1.0)
+        >>> model.calc_adjustedinput_v1()
+        >>> fluxes.adjustedinput
+        adjustedinput(1.0)
+
+        Positive |Delta| values correspond to increasing input:
+
+        >>> model.idx_sim = pub.timegrids.init["2000-04-01"]
+        >>> delta.apr = 1.0
+        >>> fluxes.originalinput = 0.5
+        >>> model.calc_adjustedinput_v1()
+        >>> fluxes.adjustedinput
+        adjustedinput(1.5)
+    """
+
+    CONTROLPARAMETERS = (exch_control.Delta, exch_control.Minimum)
+    DERIVEDPARAMETERS = (exch_derived.MOY,)
+    REQUIREDSEQUENCES = (exch_fluxes.OriginalInput,)
+    RESULTSEQUENCES = (exch_fluxes.AdjustedInput,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.adjustedinput = flu.originalinput + con.delta[der.moy[model.idx_sim]]
+        flu.adjustedinput = max(flu.adjustedinput, con.minimum)
+
+
+class Calc_Outputs_V1(modeltools.Method):
+    """Calculate the output via interpolation or extrapolation.
+
+    Examples:
+
+        For example, assume a weir directing all discharge into `branch1` until
+        reaching the capacity limit of 2 m³/s.  |exch_branch_hbv96| redirects the
+        discharge exceeding this threshold to `branch2`:
+
+        >>> from hydpy.models.exch_branch_hbv96 import *
+        >>> parameterstep()
+        >>> xpoints(0.0, 2.0, 4.0)
+        >>> ypoints(branch1=[0.0, 2.0, 2.0],
+        ...         branch2=[0.0, 0.0, 2.0])
+        >>> derived.nmbbranches.update()
+        >>> derived.nmbpoints.update()
+
+        Low discharge example (linear interpolation between the first two supporting
+        point pairs):
+
+        >>> fluxes.adjustedinput = 1.
+        >>> model.calc_outputs_v1()
+        >>> fluxes.outputs
+        outputs(branch1=1.0,
+                branch2=0.0)
+
+        Medium discharge example (linear interpolation between the second two
+        supporting point pairs):
+
+        >>> fluxes.adjustedinput = 3.0
+        >>> model.calc_outputs_v1()
+        >>> print(fluxes.outputs)
+        outputs(branch1=2.0,
+                branch2=1.0)
+
+        High discharge example (linear extrapolation beyond the second two supporting
+        point pairs):
+
+        >>> fluxes.adjustedinput = 5.0
+        >>> model.calc_outputs_v1()
+        >>> fluxes.outputs
+        outputs(branch1=2.0,
+                branch2=3.0)
+
+        Non-monotonous relationships and balance violations are allowed:
+
+        >>> xpoints(0.0, 2.0, 4.0, 6.0)
+        >>> ypoints(branch1=[0.0, 2.0, 0.0, 0.0],
+        ...         branch2=[0.0, 0.0, 2.0, 4.0])
+        >>> derived.nmbbranches.update()
+        >>> derived.nmbpoints.update()
+        >>> fluxes.adjustedinput = 7.0
+        >>> model.calc_outputs_v1()
+        >>> fluxes.outputs
+        outputs(branch1=0.0,
+                branch2=5.0)
+    """
+
+    CONTROLPARAMETERS = (exch_control.XPoints, exch_control.YPoints)
+    DERIVEDPARAMETERS = (exch_derived.NmbPoints, exch_derived.NmbBranches)
+    REQUIREDSEQUENCES = (exch_fluxes.AdjustedInput,)
+    RESULTSEQUENCES = (exch_fluxes.Outputs,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        # Search for the index of the two relevant x points...
+        for pdx in range(1, der.nmbpoints):
+            if con.xpoints[pdx] > flu.adjustedinput:
+                break
+        # ...and use it for linear interpolation (or extrapolation).
+        d_x = flu.adjustedinput
+        for bdx in range(der.nmbbranches):
+            d_x0 = con.xpoints[pdx - 1]
+            d_dx = con.xpoints[pdx] - d_x0
+            d_y0 = con.ypoints[bdx, pdx - 1]
+            d_dy = con.ypoints[bdx, pdx] - d_y0
+            flu.outputs[bdx] = (d_x - d_x0) * d_dy / d_dx + d_y0
+
+
+class Pass_Outputs_V1(modeltools.Method):
+    """Update |Branched| based on |Outputs|.
+
+    Basic equation:
+      :math:`Branched_i = Outputs_i`
+    """
+
+    DERIVEDPARAMETERS = (exch_derived.NmbBranches,)
+    REQUIREDSEQUENCES = (exch_fluxes.Outputs,)
+    RESULTSEQUENCES = (exch_outlets.Branched,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        out = model.sequences.outlets.fastaccess
+        for bdx in range(der.nmbbranches):
+            out.branched[bdx][0] += flu.outputs[bdx]
+
+
 class Get_WaterLevel_V1(modeltools.Method):
     """Pick the water level from a receiver node and return it in m."""
 
@@ -251,17 +433,19 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
 
     DOCNAME = modeltools.DocName(short="Exch")
 
-    INLET_METHODS = ()
+    INLET_METHODS = (Pick_OriginalInput_V1,)
     RECEIVER_METHODS = (Pic_LoggedWaterLevels_V1,)
     RUN_METHODS = (
         Update_WaterLevels_V1,
         Calc_DeltaWaterLevel_V1,
         Calc_PotentialExchange_V1,
         Calc_ActualExchange_V1,
+        Calc_AdjustedInput_V1,
+        Calc_Outputs_V1,
     )
     INTERFACE_METHODS = (Get_WaterLevel_V1,)
     ADD_METHODS = ()
-    OUTLET_METHODS = (Pass_ActualExchange_V1,)
+    OUTLET_METHODS = (Pass_ActualExchange_V1, Pass_Outputs_V1)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()
     SUBMODELS = ()

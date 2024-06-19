@@ -26,5 +26,6 @@ Available models:
    :maxdepth: 1
 
    exch
+   exch_branch_hbv96
    exch_weir_hbv96
    exch_waterlevel

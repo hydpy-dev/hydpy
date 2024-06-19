@@ -13,7 +13,7 @@ be as precise as possible regarding the implementation of the process equations.
 background of the scientifical development of the HBV96 model is more thoroughly
 covered in :cite:t:`ref-Lindstrom1997HBV96`.
 
-Available "land" models:
+Available models:
 
 .. toctree::
    :maxdepth: 1
@@ -22,12 +22,3 @@ Available "land" models:
    hland_96
    hland_96p
    hland_96c
-
-Available "branch" models:
-
-.. toctree::
-   :maxdepth: 1
-
-   hbranch
-   hbranch_v1
-

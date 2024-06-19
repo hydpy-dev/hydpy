@@ -4,7 +4,7 @@
 # import...
 # ...from HydPy
 from hydpy.core import parametertools
-from hydpy.models.hbranch import hbranch_control
+from hydpy.models.exch import exch_control
 
 
 class MOY(parametertools.MOYParameter):
@@ -16,7 +16,7 @@ class NmbBranches(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
-    CONTROLPARAMETERS = (hbranch_control.YPoints,)
+    CONTROLPARAMETERS = (exch_control.YPoints,)
 
     def update(self):
         """Determine the number of branches."""
@@ -29,7 +29,7 @@ class NmbPoints(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, int, None, (2, None)
 
-    CONTROLPARAMETERS = (hbranch_control.YPoints,)
+    CONTROLPARAMETERS = (exch_control.YPoints,)
 
     def update(self):
         """Determine the number of points."""

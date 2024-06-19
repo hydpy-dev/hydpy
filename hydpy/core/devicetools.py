@@ -3100,8 +3100,8 @@ already a collective `NileRiver` member.
         |Element.model| creates some connection required by the respective model type
         automatically.  These examples should be relevant for developers only.
 
-        The following |hbranch| model branches a single input value (from to node
-        `inp`) to multiple outputs (nodes `out1` and `out2`):
+        The following |exch_branch_hbv96| model branches a single input value (from to
+        node `inp`) to multiple outputs (nodes `out1` and `out2`):
 
         >>> from hydpy import Element, Node, reverse_model_wildcard_import, pub
         >>> reverse_model_wildcard_import()
@@ -3111,7 +3111,7 @@ already a collective `NileRiver` member.
         ...                   outlets=("branch_output_1", "branch_output_2"))
         >>> inp = element.inlets.branch_input
         >>> out1, out2 = element.outlets
-        >>> from hydpy.models.hbranch import *
+        >>> from hydpy.models.exch_branch_hbv96 import *
         >>> parameterstep()
         >>> delta(0.0)
         >>> minimum(0.0)

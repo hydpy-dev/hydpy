@@ -57,27 +57,27 @@ class Auxfiler:
     Each |Auxfiler| object is capable of handling parameter information for different
     kinds of models and performs some plausibility checks on added data.  Assume we
     want to store the control files of a "LARSIM type" HydPy project involving the
-    application models |lland_dd|, |lland_knauf| and |lstream_v001|.  The following
+    application models |lland_dd|, |lland_knauf| and |kinw_williams|.  The following
     example shows how we add these models to the |Auxfiler| object by passing through
     module (|lland_dd|), a working model object (|lland_knauf|) or their name
-    (|lstream_v001|):
+    (|kinw_williams|):
 
     >>> from hydpy import prepare_model
     >>> from hydpy.models import lland_dd as module
     >>> model = prepare_model("lland_knauf")
-    >>> string = "lstream_v001"
+    >>> string = "kinw_williams"
 
     You can add all model types individually or in groups:
 
     >>> auxfiler.add_models(module)
     >>> auxfiler.add_models(model, string)
     >>> auxfiler
-    Auxfiler("lland_dd", "lland_knauf", "lstream_v001")
+    Auxfiler("kinw_williams", "lland_dd", "lland_knauf")
 
     Alternatively, you can pass the models directly to the constructor:
 
     >>> Auxfiler(model, string, module)
-    Auxfiler("lland_dd", "lland_knauf", "lstream_v001")
+    Auxfiler("kinw_williams", "lland_dd", "lland_knauf")
 
     Wrong model specifications result in errors like the following:
 
@@ -228,8 +228,8 @@ nor does it handle a model named `lland_dd`...
         """A sorted |tuple| of all names of the handled models.
 
         >>> from hydpy import Auxfiler
-        >>> Auxfiler("lland_knauf", "lstream_v001", "lland_dd").modelnames
-        ('lland_dd', 'lland_knauf', 'lstream_v001')
+        >>> Auxfiler("lland_knauf", "kinw_williams", "lland_dd").modelnames
+        ('kinw_williams', 'lland_dd', 'lland_knauf')
         """
         return tuple(sorted(self._model2subauxfiler.keys()))
 
@@ -470,8 +470,8 @@ been allocated to filename `file1`.
         additional plausibility checks.  First, it prevents from using the same
         filename twice:
 
-        >>> auxfiler.add_models("lstream_v001")
-        >>> auxfiler.lstream_v001.add_parameter(tgr, filename="file1")
+        >>> auxfiler.add_models("kinw_williams")
+        >>> auxfiler.kinw_williams.add_parameter(tgr, filename="file1")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to extend the range of parameters handled by the \
@@ -481,12 +481,12 @@ already allocated to another `SubAuxfiler` object.
         Second, it checks that an assigned parameter belongs to the corresponding
         model:
 
-        >>> auxfiler.lstream_v001.add_parameter(tgr, filename="file3")
+        >>> auxfiler.kinw_williams.add_parameter(tgr, filename="file3")
         Traceback (most recent call last):
         ...
         TypeError: While trying to extend the range of parameters handled by the \
 actual `SubAuxfiler` object, the following error occurred: Variable type `TGr` is not \
-handled by model `lstream_v001`.
+handled by model `kinw_williams`.
 
         The examples above deal with simple 0-dimensional |Parameter| subclasses where
         there is no question in how to define equality.  However, for multidimensional

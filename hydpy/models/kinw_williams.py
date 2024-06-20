@@ -1,92 +1,80 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
-.. _`Williams (1969)`: \
-https://elibrary.asabe.org/abstract.asp?aid=38772&confalias=
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
 
-Version 1 of *HydPy-L-Stream* is a kinematic wave routing approach.
-Initially, we designed it to agree with the variable storage-coefficient
-procedure `Williams (1969)`_.  After recognising some accuracy and stability
-issues, we reimplemented it in a more hydrodynamical fashion.  It is now
-similar to the "DV/DQ FUER WILLIAMS" option of `LARSIM`_, which is also a
-more hydrodynamical version of the pure "WILLIAMS" option.
+|kinw_williams| is a kinematic wave routing approach.  Initially, we designed it to
+agree with the variable storage-coefficient procedure of :cite:t:`ref-Williams1969`.
+After recognising some accuracy and stability issues, we reimplemented it in a more
+hydrodynamical mode.  It is now similar to the "DV/DQ FUER WILLIAMS" option of
+`LARSIM`_, which is also a more hydrodynamical version of the pure "WILLIAMS" option.
 
-While `Williams (1969)`_ uses precalculated tabulated data, both `LARSIM`_
-and *HydPy* calculate the discharge dynamically based on the actualchannel
-storage or water stage.  For this purpose, they apply the
-Gauckler-Manning-Strickler equation on a triple trapezoid profile of the
-following structure:
+While :cite:t:`ref-Williams1969` uses precalculated tabulated data, |kinw_williams|
+calculates the discharge dynamically based on the actual channel storage or water
+stage.  For this purpose, it uses the Gauckler-Manning-Strickler equation in
+combination with a triple trapezoid profile of the following structure:
 
-.. image:: HydPy-L-Stream_Version-1.png
+.. image:: HydPy-KinW-Williams.png
 
-A running |lstream_v001| model consists of a several equally long
-channel-subsections, which one can understand as an array of nonlinear
-storages.  This nonlinearity is computationally more demanding than using
-linear approaches (for example, the linear storage cascade, see |arma_rimorido|
-and |LinearStorageCascade|). Still, it allows to model changes in velocity
-due to rising or falling water stages more easily.
+A running |kinw_williams| model consists of a several equally long channel subsections
+represented by nonlinear storages.  This nonlinearity is computationally more demanding
+than using linear approaches (for example, the linear storage cascade, see
+|arma_rimorido| and |LinearStorageCascade|). Still, it allows more easily to model
+changes in velocity due to rising or falling water stages.
 
-|lstream_v001| is not a fully dynamical 1D-approach considering all energy
-terms of the Saint-Venant equation.  Instead, as all kinematic approaches,
-it takes only the local water stage into account explicitly and ignores
-changes in depth or velocity over the channel length. Hence, do not use
-|lstream_v001| when you expect substantial backwater effects or other
-hydraulic complications.
+|kinw_williams| is not a fully dynamical onedimensional approach considering all energy
+terms of the Saint-Venant equation.  Instead, as with all kinematic approaches, it
+takes only the local water stage into account explicitly and ignores changes in depth
+or velocity over the channel length. Hence, do not use |kinw_williams| when you expect
+substantial backwater effects or other hydraulic complications.
 
-While |lstream_v001| is kinematic, it still allows for diffusion (or
-attenuation) of flood waves. You can control the strength of diffusivity
-via parameter |GTS|, which determines the number of channel-subsections.
-The more subsections, the smaller the numerical diffusivity: peak flows
-decrease less over the complete channel length. Contrary, when you set
-|GTS| to one, you get the highest possible flood attenuation.  You can
-use method |Model.calculate_characteristiclength| to gain reasonable
-estimates for |GTS|.
+While |kinw_williams| it still simulates flood wave diffusion (or attenuation). You can
+control the strength of diffusivity via parameter |GTS|, which determines the number of
+channel subsections.  The more subsections, the smaller the numerical diffusivity: peak
+flows decrease less over the complete channel length. On the contrary, when you set
+|GTS| to one, you get the highest possible flood attenuation.  You can use method
+|Model.calculate_characteristiclength| to gain reasonable estimates for |GTS|.
 
-Please note that a high number of channel-subsections does not only result
-in high peak-flows but often also in high computation times.  This
-unfavourable aspect is due to increased stiffness, which the explicit
-integration method implemented in |ELSModel| cannot handle very efficiently.
-Usually, |ELSModel| still returns good results (more correctly: results
-meeting the acceptable numerical tolerance), but it may need to decrease
-the internal numerical integration step size considerably.
+Please note that a high number of channel subsections results not only in high peak
+flows but often also in high computation times.  This unfavourable aspect is due to
+increased stiffness, which the explicit integration method implemented in |ELSModel|
+cannot handle very efficiently.  Usually, |ELSModel| still returns good results (more
+correctly: results meeting the acceptable numerical tolerance), but it may need to
+decrease the internal numerical integration step size considerably.
 
 The default values of the numerical tolerance parameters (|AbsErrorMax| and
-|RelErrorMax|) should work well for most situations.  However, you are
-always free to modify them to either gain more computational speed or
-numerical accuracy.
+|RelErrorMax|) should work well for most situations.  However, you are always free to
+modify them to increase computational speed or numerical accuracy.
 
-One implementation detail of |lstream_v001| stems from the fact that the
-triple trapezoid profile depicted above introduces discontinuities into the
-relationships between water stage and some other variables.  Generally,
-discontinuities decrease the speed and reliability of numerical integration
-algorithms.  As a solution, we "smooth" the affected relationships or, put
-more concretely, we apply the function |smooth_logistic2| to calculate
-different modified water stages for the locations around the individual
+One implementation detail of |kinw_williams| is due to the triple trapezoid profile
+depicted above introducing discontinuities into the relationships between the water
+stage and some other variables.  Generally, discontinuities decrease the speed and
+reliability of numerical integration algorithms.  As a solution, we "smooth" the
+affected relationships or, more concretely, we apply the function |smooth_logistic2| to
+calculate different modified water stages for the locations around the individual
 discontinuities.
 
-On the downside, this approach introduces one more control parameter that is
-not too easy to understand: |HR|.  The higher the value of |HR|, the smoother
-the affected relationships.  Hence, high |HR| values are beneficial for numerical
-reasons, but at some point, they caninfluence the calculated results notably.
-In our experience, 0.1 m serves as a good compromise value in most cases.
+On the downside, this approach introduces one more control parameter that is not too
+easy to understand: |HR|.  The higher the value of |HR|, the smoother the affected
+relationships.  Hence, high |HR| values are beneficial for numerical reasons, but at
+some point, they caninfluence the calculated results notably.  In our experience, 0.1 m
+is a good compromise value in most cases.
 
 Integration tests
 =================
 
 .. how_to_understand_integration_tests::
 
-.. _lstream_v001_main_channel_flow:
+.. _kinw_williams_main_channel_flow:
 
 main channel flow
 _________________
 
-For our first test, we take up one of the examples given by
-:cite:t:`ref-Todini2007`, focussing on the routing of a unimodal flood wave
-through a 100 km long channel exhibiting the trapezoidal cross-section
-shown in figure 5.
+For our first test, we take one of the examples from :cite:t:`ref-Todini2007`, which
+focuses on routing a single-peak flood wave through a 100 km-long channel exhibiting
+the trapezoidal cross-section shown in Figure 5.
 
->>> from hydpy.models.lstream_v001 import *
+>>> from hydpy.models.kinw_williams import *
 >>> parameterstep("1d")
 
 The simulation period spans 96 hours; the simulation step is 30 minutes:
@@ -94,29 +82,28 @@ The simulation period spans 96 hours; the simulation step is 30 minutes:
 >>> from hydpy import pub, Nodes, Element
 >>> pub.timegrids = "2000-01-01", "2000-01-05", "30m"
 
-For testing purposes, the model retrieves its input data from two nodes
-(`input1` and `input2`) and passes its output to node `output`.  First,
-we define these nodes:
+For testing purposes, the model retrieves its input data from two nodes (`input1` and
+`input2`) and passes its output to node `output`.  First, we define these nodes:
 
 >>> nodes = Nodes("input1", "input2", "output")
 
-Second, we define the element `stream` and build the connections between
-the prepared nodes and the |lstream_v001| model instance:
+Second, we define the element `stream` and build the connections between the prepared
+nodes and the |kinw_williams| model instance:
 
 >>> stream = Element("stream",
 ...                  inlets=["input1", "input2"],
 ...                  outlets="output")
 >>> stream.model = model
 
-Next, we prepare a test function object which sets the intial stage
-to 3.71783276 m, which results in an initial outflow of 100 m³/s:
+Next, we prepare a test function object that sets the intial stage to 3.71783276 m,
+which results in an initial outflow of 100 m³/s:
 
 >>> from hydpy.core.testtools import IntegrationTest
 >>> IntegrationTest.plotting_options.activated = fluxes.qz, fluxes.qa
 >>> test = IntegrationTest(stream, inits=[[states.h, 3.71783276]])
 
-Now we define the geometry and roughness values for the main channel
-given by :cite:t:`ref-Todini2007`:
+Now, we define the geometry and roughness values for the main channel given by
+:cite:t:`ref-Todini2007`:
 
 >>> laen(100.0)
 >>> gef(0.00025)
@@ -124,13 +111,12 @@ given by :cite:t:`ref-Todini2007`:
 >>> bnm(5.0)
 >>> skm(1.0/0.035)
 
-To enforce that all water flows through the main channel only, we set
-its height to infinity:
+We set its height to infinity to ensure all water flows through the main channel:
 
 >>> hm(inf)
 
-Hence, the following values, describing the forelands and outer
-embankments, are irrelevant in this first example:
+Hence, the following values, describing the forelands and outer embankments, are
+irrelevant in this first example:
 
 >>> bv(100.0)
 >>> bbv(20.0)
@@ -140,51 +126,45 @@ embankments, are irrelevant in this first example:
 >>> ekm(1.0)
 >>> ekv(1.0)
 
-
-The same holds for the value of parameter |HR|, which, for example, defines
-the degree of smoothness of the differential equations as soon as water
-leaves the main channel:
+The same holds for the parameter |HR|, which, for example, defines the degree of
+smoothness of the differential equations as soon as water leaves the main channel:
 
 >>> hr(0.1)
 
-:cite:t:`ref-Todini2007` divides the channel into different numbers of
-subsections in his experiments.  Here, we define eight subsections, which is in
-agreement with the characteristic length of the Kalinin-Milyukov method:
+:cite:t:`ref-Todini2007` divides the channel into different numbers of subsections in
+his experiments.  Here, we define eight subsections in agreement with the
+characteristic length of the Kalinin-Milyukov method:
 
 >>> gts(8)
 
-As we do not change the default solver parameter values, the accuracy of
-the following results should be driven by the relative error estimates,
-which must be lower than the tolerance defined by parameter |RelErrorMax|:
+As we do not change the default solver parameter values, the relative error estimates
+should drive the accuracy of the following results, which must be lower than the
+tolerance defined by parameter |RelErrorMax|:
 
 >>> parameters.update()
 >>> solver.relerrormax
 relerrormax(0.001)
 
-Node `input1` supplies constant base flow and node `input2` supplies
-the actual flood wave.  The peak occurs after 24 hours and with a
-(total) height of 900 m³/s:
+Node `input1` supplies constant base flow, and node `input2` supplies the actual flood
+wave.  The peak occurs after 24 hours, with a (total) height of 900 m³/s:
 
 >>> import numpy
 >>> q_base = 100.0
 >>> q_peak = 900.0
 >>> t_peak = 24.0
->>> β = 16.0
+>>> beta = 16.0
 >>> ts = pub.timegrids.init.to_timepoints()
 >>> nodes.input1.sequences.sim.series = q_base
 >>> nodes.input2.sequences.sim.series = (
-...     (q_peak-q_base)*((ts/t_peak)*numpy.exp(1.0-ts/t_peak))**β)
+...     (q_peak-q_base)*((ts/t_peak)*numpy.exp(1.0-ts/t_peak))**beta)
 
-The following table and figure show all relevant input and output data
-as well as all relevant variables calculated internally.  |QG| shows
-the typical storage cascade pattern with translation and retention
-increasing from subsection to subsection. |lstream_v001| keeps the water
-balance with high accuracy.  The height and timing of the calculated peak flow
-agree very well with the results of :cite:t:`ref-Todini2007` (see figure 13):
+|QG| shows the typical storage cascade pattern with increasing translation and
+retention from subsection to subsection. The height and timing of the calculated peak
+flow agree very well with the results of :cite:t:`ref-Todini2007` (see Figure 13):
 
 .. integration-test::
 
-    >>> test("lstream_v001_main_channel_flow")
+    >>> test("kinw_williams_main_channel_flow")
     |                date |         qz |                                                                                             qg |         qa |                                                                                     dh |                                                                              h | input1 |     input2 |     output |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2000-01-01 00:00:00 |      100.0 |      100.0       100.0       100.0       100.0       100.0       100.0       100.0       100.0 |      100.0 |       0.0        0.0        0.0        0.0        0.0        0.0        0.0        0.0 | 3.717833  3.717833  3.717833  3.717833  3.717833  3.717833  3.717833  3.717833 |  100.0 |        0.0 |      100.0 |
@@ -380,26 +360,26 @@ agree very well with the results of :cite:t:`ref-Todini2007` (see figure 13):
     | 2000-01-04 23:00:00 |      100.0 | 100.000019  100.000262  100.001933  100.009883  100.039072  100.126724  100.349958   100.84446 |  100.84446 |       0.0        0.0        0.0        0.0        0.0        0.0        0.0  -0.000001 | 3.717833  3.717837  3.717865  3.717996  3.718481  3.719945  3.723686  3.731995 |  100.0 |        0.0 |  100.84446 |
     | 2000-01-04 23:30:00 |      100.0 | 100.000016  100.000227  100.001688  100.008711  100.034749  100.113677  100.316562  100.770063 | 100.770063 |       0.0        0.0        0.0        0.0        0.0        0.0        0.0  -0.000001 | 3.717833  3.717836  3.717861  3.717977  3.718409  3.719727  3.723127  3.730747 |  100.0 |        0.0 | 100.770063 |
 
-.. _lstream_v001_overbank_flow:
+.. _kinw_williams_overbank_flow:
 
 overbank flow
 _____________
 
-In the above example, water flows in the main channel only.  Next, we
-set the height of the main channel to 6 m:
+In the above example, water flows only in the main channel only.  Next, we set the
+height of the main channel to 6 m:
 
 >>> hm(6.0)
 >>> parameters.update()
 
-Now the calculated flood wave shows a considerable increase in translation
-and retention.  Inspecting the time series of the stages reveals that this
-effect is actually due to the (originally discontinuous) transition from
-pure channel flow to a mixture of channel and overbank flow, where
-additional storage capacities come into play:
+Now, the calculated flood wave shows a considerable increase in translation and
+retention.  Inspecting the time series of the stages reveals that this effect is
+actually due to the (originally discontinuous) transition from pure channel flow to a
+mixture of channel and overbank flow, where additional storage capacities come into
+play:
 
 .. integration-test::
 
-    >>> test("lstream_v001_overbank_flow")
+    >>> test("kinw_williams_overbank_flow")
     |                date |         qz |                                                                                             qg |         qa |                                                                                     dh |                                                                              h | input1 |     input2 |     output |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2000-01-01 00:00:00 |      100.0 |      100.0       100.0       100.0       100.0       100.0       100.0       100.0       100.0 |      100.0 |       0.0        0.0        0.0        0.0        0.0        0.0        0.0        0.0 | 3.717833  3.717833  3.717833  3.717833  3.717833  3.717833  3.717833  3.717833 |  100.0 |        0.0 |      100.0 |
@@ -595,14 +575,14 @@ additional storage capacities come into play:
     | 2000-01-04 23:00:00 |      100.0 | 100.000023  100.000352  100.002905  100.016936   100.07774  100.297564  100.984143  102.883726 | 102.883726 |       0.0        0.0        0.0        0.0        0.0        0.0  -0.000001  -0.000003 | 3.717833  3.717839   3.71788  3.718112  3.719119  3.722771  3.734185  3.765634 |  100.0 |        0.0 | 102.883726 |
     | 2000-01-04 23:30:00 |      100.0 |  100.00002  100.000304  100.002531  100.014872  100.068761  100.264973  100.881856  102.598641 | 102.598641 |       0.0        0.0        0.0        0.0        0.0        0.0  -0.000001  -0.000003 | 3.717833  3.717838  3.717874  3.718078   3.71897   3.72223  3.732487  3.760937 |  100.0 |        0.0 | 102.598641 |
 
-.. _lstream_v001_negative_water_stage:
+.. _kinw_williams_negative_water_stage:
 
 negative water stages
 _____________________
 
-Now, we show that |lstream_v001| allows for negative stages.
-Therefore, we reset |HM| to infinity, set the base flow provided by
-node `input1` to zero, and set the initial water stage to -1.0 m:
+Now, we show that |kinw_williams| allows for negative stages.  Therefore, we reset |HM|
+to infinity, set the base flow provided by node `input1` to zero, and set the initial
+water stage to -1.0 m:
 
 >>> hm(inf)
 >>> nodes.input1.sequences.sim.series = 0.0
@@ -619,7 +599,7 @@ to 0.1 m):
 .. integration-test::
 
     >>> with pub.options.reprdigits(2):
-    ...     test("lstream_v001_negative_water_stage")
+    ...     test("kinw_williams_negative_water_stage")
     |                date |     qz |                                                             qg |     qa |                                     dh |                                                      h | input1 | input2 | output |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2000-01-01 00:00:00 |    0.0 |    0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0 |    0.0 | 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 |  -1.0   -1.0   -1.0   -1.0   -1.0   -1.0   -1.0   -1.0 |    0.0 |    0.0 |    0.0 |
@@ -817,12 +797,13 @@ to 0.1 m):
 
 We printed the last test results with lower precision than usual.  Otherwise, there
 were some differences when performing the test in Python and Cython mode and possibly
-also when working with different compilers, which indicates that |lstream_v001| reaches
-limited numerical accuracy when negative water stages occur.  In our real applications,
-we did not realise any problems stemming from this.  However, we cannot guarantee that
-they will never happen.  Any suggestions on solving this issue are welcome.
+when working with different compilers.  This inaccuracy indicates that |kinw_williams|
+reaches limited numerical accuracy when negative water stages occur.  In our real
+applications, we did not realise any problems stemming from this.  However, we cannot
+guarantee that they will never happen.  Any suggestions on solving this issue are
+welcome.
 
-.. _lstream_v001_directly_forwarded_runoff:
+.. _kinw_williams_directly_forwarded_runoff:
 
 directly forwarded runoff
 _________________________
@@ -834,7 +815,7 @@ set the number of subchannels to zero:
 
     >>> laen(0.0)
     >>> gts(0)
-    >>> test("lstream_v001_directly_forwarded_runoff")
+    >>> test("kinw_williams_directly_forwarded_runoff")
     |                date |         qz | qg |         qa | dh | h | input1 |     input2 |     output |
     --------------------------------------------------------------------------------------------------
     | 2000-01-01 00:00:00 |        0.0 |  - |        0.0 |  - | - |    0.0 |        0.0 |        0.0 |
@@ -1032,18 +1013,19 @@ set the number of subchannels to zero:
 """
 # import...
 # ...from HydPy
+from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core.typingtools import *
 from hydpy.exe.modelimports import *
 
-# ...from lstream
-from hydpy.models.lstream import lstream_fluxes
-from hydpy.models.lstream import lstream_model
-from hydpy.models.lstream import lstream_solver
+# ...from kinw
+from hydpy.models.kinw import kinw_fluxes
+from hydpy.models.kinw import kinw_model
+from hydpy.models.kinw import kinw_solver
 
 
 class Characteristics(NamedTuple):
-    """Data class for holding the results of method
+    """Named tuple for the results of method
     |Model.calculate_characteristiclength|."""
 
     waterstage: float
@@ -1069,46 +1051,54 @@ class Characteristics(NamedTuple):
         return objecttools.flatten_repr(self)
 
 
-class Model(lstream_model.BaseModelProfile):
-    """Version 1 of HydPy-L-Stream."""
+class Model(kinw_model.BaseModelProfile):
+    """|kinw_williams.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="KinW-Williams",
+        description=(
+            "Williams routing based on a triple trapeze profile and the Strickler "
+            "equation"
+        ),
+    )
 
     SOLVERPARAMETERS = (
-        lstream_solver.AbsErrorMax,
-        lstream_solver.RelErrorMax,
-        lstream_solver.RelDTMin,
-        lstream_solver.RelDTMax,
+        kinw_solver.AbsErrorMax,
+        kinw_solver.RelErrorMax,
+        kinw_solver.RelDTMin,
+        kinw_solver.RelDTMax,
     )
-    SOLVERSEQUENCES = (lstream_fluxes.QG, lstream_fluxes.DH)
-    INLET_METHODS = (lstream_model.Pick_Q_V1,)
+    SOLVERSEQUENCES = (kinw_fluxes.QG, kinw_fluxes.DH)
+    INLET_METHODS = (kinw_model.Pick_Q_V1,)
     RECEIVER_METHODS = ()
-    ADD_METHODS = (lstream_model.Return_QF_V1, lstream_model.Return_H_V1)
+    ADD_METHODS = (kinw_model.Return_QF_V1, kinw_model.Return_H_V1)
     PART_ODE_METHODS = (
-        lstream_model.Calc_RHM_V1,
-        lstream_model.Calc_RHMDH_V1,
-        lstream_model.Calc_RHV_V1,
-        lstream_model.Calc_RHVDH_V1,
-        lstream_model.Calc_RHLVR_RHRVR_V1,
-        lstream_model.Calc_RHLVRDH_RHRVRDH_V1,
-        lstream_model.Calc_AM_UM_V1,
-        lstream_model.Calc_ALV_ARV_ULV_URV_V1,
-        lstream_model.Calc_ALVR_ARVR_ULVR_URVR_V1,
-        lstream_model.Calc_QM_V1,
-        lstream_model.Calc_QLV_QRV_V1,
-        lstream_model.Calc_QLVR_QRVR_V1,
-        lstream_model.Calc_AG_V1,
-        lstream_model.Calc_QG_V1,
-        lstream_model.Calc_QA_V1,
-        lstream_model.Calc_WBM_V1,
-        lstream_model.Calc_WBLV_WBRV_V1,
-        lstream_model.Calc_WBLVR_WBRVR_V1,
-        lstream_model.Calc_WBG_V1,
-        lstream_model.Calc_DH_V1,
+        kinw_model.Calc_RHM_V1,
+        kinw_model.Calc_RHMDH_V1,
+        kinw_model.Calc_RHV_V1,
+        kinw_model.Calc_RHVDH_V1,
+        kinw_model.Calc_RHLVR_RHRVR_V1,
+        kinw_model.Calc_RHLVRDH_RHRVRDH_V1,
+        kinw_model.Calc_AM_UM_V1,
+        kinw_model.Calc_ALV_ARV_ULV_URV_V1,
+        kinw_model.Calc_ALVR_ARVR_ULVR_URVR_V1,
+        kinw_model.Calc_QM_V1,
+        kinw_model.Calc_QLV_QRV_V1,
+        kinw_model.Calc_QLVR_QRVR_V1,
+        kinw_model.Calc_AG_V1,
+        kinw_model.Calc_QG_V1,
+        kinw_model.Calc_QA_V1,
+        kinw_model.Calc_WBM_V1,
+        kinw_model.Calc_WBLV_WBRV_V1,
+        kinw_model.Calc_WBLVR_WBRVR_V1,
+        kinw_model.Calc_WBG_V1,
+        kinw_model.Calc_DH_V1,
     )
-    FULL_ODE_METHODS = (lstream_model.Update_H_V1,)
-    OUTLET_METHODS = (lstream_model.Pass_Q_V1,)
+    FULL_ODE_METHODS = (kinw_model.Update_H_V1,)
+    OUTLET_METHODS = (kinw_model.Pass_Q_V1,)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()
-    SUBMODELS = (lstream_model.PegasusH,)
+    SUBMODELS = (kinw_model.PegasusH,)
 
     def calculate_characteristiclength(
         self,
@@ -1119,26 +1109,22 @@ class Model(lstream_model.BaseModelProfile):
         lenmin: float = 0.1,
         nmbmax: int = 50,
     ) -> Characteristics:
-        """Approximate the characteristic length after the Kalinin-Milyukov
-        method.
+        """Approximate the characteristic length after the Kalinin-Milyukov method.
 
-        Method |Model.calculate_characteristiclength| determines the
-        characteristic length based on a finite difference approach and
-        returns it, accompanied by some intermediate results, within a
-        |Characteristics| object.  You need to pass in either the stage
-        or the discharge (`q`) value of interest (`h`).  Optionally, you
-        can define alternative values for the finite-difference step size
-        (`dx`), the smallest allowed subsection length (`minlen`) and the
-        maximum number of cross-sections (`nmbmax`).  The returned
-        `length_orig` value is the initial approximation of the ideal
-        characteristic length, and `length_adj` is its adjustment to the
-        actual channel length.  All length value must be given and are
-        returned in kilometres.
+        Method |Model.calculate_characteristiclength| determines the characteristic
+        length based on a finite difference approach and returns it, accompanied by
+        some intermediate results, within a |Characteristics| object.  You need to
+        provide either the stage or the discharge (`q`) value of interest (`h`).
+        Optionally, you can define alternative values for the finite-difference step
+        size (`dx`), the smallest allowed subsection length (`minlen`) and the maximum
+        number of cross-sections (`nmbmax`).  The returned `length_orig` value is the
+        initial approximation of the ideal characteristic length, and `length_adj` is
+        its adjustment to the actual channel length.  All length values must be given
+        and are returned in kilometres.
 
-        We reuse the example given in the main documentation on module
-        |lstream_v001|:
+        We reuse the example given in the main documentation on module |kinw_williams|:
 
-        >>> from hydpy.models.lstream_v001 import *
+        >>> from hydpy.models.kinw_williams import *
         >>> parameterstep("1d")
         >>> simulationstep("30m")
 
@@ -1160,9 +1146,9 @@ class Model(lstream_model.BaseModelProfile):
         >>> parameters.update()
 
         When passing a water stage of 7.5 m, method
-        |Model.calculate_characteristiclength| determines a characteristic
-        length of 13 km and suggest to split the total channel length of
-        100 km length into eight subsections:
+        |Model.calculate_characteristiclength| determines a characteristic length of
+        13 km and suggests splitting the total channel length of 100 km length into
+        eight subsections:
 
         >>> model.calculate_characteristiclength(h=7.5)
         Characteristics(
@@ -1174,11 +1160,10 @@ class Model(lstream_model.BaseModelProfile):
             length_adj=12.5,
         )
 
-        Passing the discharge value corresponding to the lastly defined
-        water stage returns equal results (method
-        |Model.calculate_characteristiclength| uses first method
-        |lstream_model.Return_H_V1| to calculate the water stage
-        and then precedes as usual):
+        Passing the discharge value corresponding to the last defined water stage
+        returns equal results (method |Model.calculate_characteristiclength| uses first
+        method |kinw_model.Return_H_V1| to calculate the water stage and then precedes
+        as usual):
 
         >>> model.calculate_characteristiclength(q=470.654321)
         Characteristics(
@@ -1190,46 +1175,44 @@ class Model(lstream_model.BaseModelProfile):
             length_adj=12.5,
         )
 
-        The relevant discharge value must be greater than zero:
+        The discharge value must be greater than zero:
 
         >>> model.calculate_characteristiclength(q=0.0)
         Traceback (most recent call last):
         ...
-        ValueError: While trying to calculate the characteristic length for \
-the river channel of `lstream_v001` of element `?`, the following error \
-occurred: The given values result in a mean discharge of 0.0 m³/s and a \
-discharge gradient of 0.0 m³/s/m.
+        ValueError: While trying to calculate the characteristic length for the river \
+channel of `kinw_williams` of element `?`, the following error occurred: The given \
+values result in a mean discharge of 0.0 m³/s and a discharge gradient of 0.0 m³/s/m.
 
         The same holds for the discharge gradient:
 
         >>> model.calculate_characteristiclength(q=100.0, dx=0.0)
         Traceback (most recent call last):
         ...
-        ValueError: While trying to calculate the characteristic length for \
-the river channel of `lstream_v001` of element `?`, the following error \
-occurred: The given values result in a mean discharge of 100.0 m³/s and a \
-discharge gradient of 0.0 m³/s/m.
+        ValueError: While trying to calculate the characteristic length for the river \
+channel of `kinw_williams` of element `?`, the following error occurred: The given \
+values result in a mean discharge of 100.0 m³/s and a discharge gradient of 0.0 m³/s/m.
 
-        One must define at either `h` or `q` but not both:
+        One must define `h` or `q` but not both:
 
         >>> model.calculate_characteristiclength()
         Traceback (most recent call last):
         ...
-        ValueError: While trying to calculate the characteristic length for \
-the river channel of `lstream_v001` of element `?`, the following error \
-occurred: Calculating the characteristic length requires either a reference \
-stage or a discharge value, but neither is given.
+        ValueError: While trying to calculate the characteristic length for the river \
+channel of `kinw_williams` of element `?`, the following error occurred: Calculating \
+the characteristic length requires either a reference stage or a discharge value, but \
+neither is given.
 
         >>> model.calculate_characteristiclength(h=7.5, q=470.654321)
         Traceback (most recent call last):
         ...
-        ValueError: While trying to calculate the characteristic length for \
-the river channel of `lstream_v001` of element `?`, the following error \
-occurred: Calculating the characteristic length requires either a reference \
-stage or a discharge value, but both are given.
+        ValueError: While trying to calculate the characteristic length for the river \
+channel of `kinw_williams` of element `?`, the following error occurred: Calculating \
+the characteristic length requires either a reference stage or a discharge value, but \
+both are given.
 
-        You can modify the allowed channel length or increase the allowed
-        number of subsections:
+        You can modify the allowed channel length or increase the allowed number of
+        subsections:
 
         >>> model.calculate_characteristiclength(h=7.5, lenmin=20.0)
         Characteristics(
@@ -1269,16 +1252,15 @@ stage or a discharge value, but both are given.
             if h is None:
                 if q is None:
                     raise ValueError(
-                        "Calculating the characteristic length requires either "
-                        "a reference stage or a discharge value, but neither is "
-                        "given."
+                        "Calculating the characteristic length requires either a "
+                        "reference stage or a discharge value, but neither is given."
                     )
                 self.sequences.fluxes.qg = q
                 h = self.return_h_v1()
             elif q is not None:
                 raise ValueError(
-                    "Calculating the characteristic length requires either "
-                    "a reference stage or a discharge value, but both are given."
+                    "Calculating the characteristic length requires either a "
+                    "reference stage or a discharge value, but both are given."
                 )
             qs = []
             for h_ in (h - dx / 2.0, h + dx / 2.0):
@@ -1290,8 +1272,8 @@ stage or a discharge value, but both are given.
             if (qmean == 0.0) or (dq == 0.0):
                 raise ValueError(
                     f"The given values result in a mean discharge of "
-                    f"{objecttools.repr_(qmean)} m³/s and a discharge "
-                    f"gradient of {objecttools.repr_(dq)} m³/s/m."
+                    f"{objecttools.repr_(qmean)} m³/s and a discharge gradient of "
+                    f"{objecttools.repr_(dq)} m³/s/m."
                 )
             length_orig = (qmean * dx) / (self.parameters.control.gef * dq) / 1000.0
             length_adj = max(length_orig, lenmin)
@@ -1308,8 +1290,8 @@ stage or a discharge value, but both are given.
             )
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to calculate the characteristic length for "
-                f"the river channel of {objecttools.elementphrase(self)}"
+                f"While trying to calculate the characteristic length for the river "
+                f"channel of {objecttools.elementphrase(self)}"
             )
 
 

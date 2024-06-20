@@ -7,13 +7,13 @@ from hydpy.core import parametertools
 
 
 class WBMin(parametertools.FixedParameter):
-    """Mindestwert der Wasserspiegelbreite  (minimum value of the water level
-    width [m].
+    """Mindestwert der Wasserspiegelbreite  (minimum value of the water level width
+    [m].
 
-    In theory, the value of |WBMin| should always be zero.  However, at least
-    the numerical implementation of application model |lstream_v001| requires
-    a value slightly lower than zero for reasons of numerical stability
-    when the simulated river section is dry.
+    In theory, the value of |WBMin| should always be zero.  However, at least the
+    numerical implementation of application model |kinw_williams| requires a value
+    slightly lower than zero for reasons of numerical stability when the simulated
+    river section is dry.
     """
 
     NDIM = 0

@@ -27,7 +27,7 @@ Baden-Württemberg) and the HYDRON GmbH.  Some other parts of *HydPy-L* have bee
 programmed more independently and were incorporated into the original LARSIM
 implementation later.
 
-Available "land" models:
+Available models:
 
 .. toctree::
    :maxdepth: 1
@@ -36,15 +36,6 @@ Available "land" models:
    lland_dd
    lland_knauf
    lland_knauf_ic
-
-Available "stream" models:
-
-.. toctree::
-   :maxdepth: 1
-
-   lstream
-   lstream_v001
-   lstream_v002
 
 For reasons of consistency with the original LARSIM implementation, the names of all
 parameter and sequence classes are German terms and abbreviations.  Additionally, the

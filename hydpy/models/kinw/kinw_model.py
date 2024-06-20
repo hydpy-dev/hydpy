@@ -12,15 +12,15 @@ from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core.typingtools import *
 from hydpy.cythons import smoothutils
-from hydpy.models.lstream import lstream_control
-from hydpy.models.lstream import lstream_derived
-from hydpy.models.lstream import lstream_fixed
-from hydpy.models.lstream import lstream_solver
-from hydpy.models.lstream import lstream_fluxes
-from hydpy.models.lstream import lstream_states
-from hydpy.models.lstream import lstream_aides
-from hydpy.models.lstream import lstream_inlets
-from hydpy.models.lstream import lstream_outlets
+from hydpy.models.kinw import kinw_control
+from hydpy.models.kinw import kinw_derived
+from hydpy.models.kinw import kinw_fixed
+from hydpy.models.kinw import kinw_solver
+from hydpy.models.kinw import kinw_fluxes
+from hydpy.models.kinw import kinw_states
+from hydpy.models.kinw import kinw_aides
+from hydpy.models.kinw import kinw_inlets
+from hydpy.models.kinw import kinw_outlets
 
 if TYPE_CHECKING:
     from matplotlib import pyplot
@@ -35,8 +35,8 @@ class Pick_Q_V1(modeltools.Method):
       :math:`QZ = \\sum Q`
     """
 
-    REQUIREDSEQUENCES = (lstream_inlets.Q,)
-    RESULTSEQUENCES = (lstream_fluxes.QZ,)
+    REQUIREDSEQUENCES = (kinw_inlets.Q,)
+    RESULTSEQUENCES = (kinw_fluxes.QZ,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -54,8 +54,8 @@ class Calc_QZA_V1(modeltools.Method):
       :math:`QZA = QZ`
     """
 
-    REQUIREDSEQUENCES = (lstream_fluxes.QZ,)
-    RESULTSEQUENCES = (lstream_fluxes.QZA,)
+    REQUIREDSEQUENCES = (kinw_fluxes.QZ,)
+    RESULTSEQUENCES = (kinw_fluxes.QZA,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -74,7 +74,7 @@ class Calc_RHM_V1(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(5)
         >>> states.h = -1.0, -0.1, 0.0, 0.1, 1.0
@@ -92,10 +92,10 @@ class Calc_RHM_V1(modeltools.Method):
         rhm(0.0, 0.01, 0.040983, 0.11, 1.0)
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS,)
-    DERIVEDPARAMETERS = (lstream_derived.HRP,)
-    REQUIREDSEQUENCES = (lstream_states.H,)
-    RESULTSEQUENCES = (lstream_aides.RHM,)
+    CONTROLPARAMETERS = (kinw_control.GTS,)
+    DERIVEDPARAMETERS = (kinw_derived.HRP,)
+    REQUIREDSEQUENCES = (kinw_states.H,)
+    RESULTSEQUENCES = (kinw_aides.RHM,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -122,7 +122,7 @@ class Calc_RHMDH_V1(modeltools.Method):
         We apply the class |NumericalDifferentiator| to validate the
         calculated derivatives:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(5)
         >>> states.h = -1.0, -0.1, 0.0, 0.1, 1.0
@@ -151,10 +151,10 @@ class Calc_RHMDH_V1(modeltools.Method):
         d_rhm/d_h: 0.0, 0.155602, 0.5, 0.844398, 1.0
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS,)
-    DERIVEDPARAMETERS = (lstream_derived.HRP,)
-    REQUIREDSEQUENCES = (lstream_states.H,)
-    RESULTSEQUENCES = (lstream_aides.RHMDH,)
+    CONTROLPARAMETERS = (kinw_control.GTS,)
+    DERIVEDPARAMETERS = (kinw_derived.HRP,)
+    REQUIREDSEQUENCES = (kinw_states.H,)
+    RESULTSEQUENCES = (kinw_aides.RHMDH,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -178,7 +178,7 @@ class Calc_RHV_V1(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(5)
         >>> hm(1.0)
@@ -190,10 +190,10 @@ class Calc_RHV_V1(modeltools.Method):
         rhv(0.0, 0.01, 0.040983, 0.11, 1.0)
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS, lstream_control.HM)
-    DERIVEDPARAMETERS = (lstream_derived.HRP,)
-    REQUIREDSEQUENCES = (lstream_states.H,)
-    RESULTSEQUENCES = (lstream_aides.RHV,)
+    CONTROLPARAMETERS = (kinw_control.GTS, kinw_control.HM)
+    DERIVEDPARAMETERS = (kinw_derived.HRP,)
+    REQUIREDSEQUENCES = (kinw_states.H,)
+    RESULTSEQUENCES = (kinw_aides.RHV,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -220,7 +220,7 @@ class Calc_RHVDH_V1(modeltools.Method):
         We apply the class |NumericalDifferentiator| to validate the
         calculated derivatives:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(5)
         >>> hm(1.0)
@@ -250,10 +250,10 @@ class Calc_RHVDH_V1(modeltools.Method):
         d_rhv/d_h: 0.0, 0.155602, 0.5, 0.844398, 1.0
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS, lstream_control.HM)
-    DERIVEDPARAMETERS = (lstream_derived.HRP,)
-    REQUIREDSEQUENCES = (lstream_states.H,)
-    RESULTSEQUENCES = (lstream_aides.RHVDH,)
+    CONTROLPARAMETERS = (kinw_control.GTS, kinw_control.HM)
+    DERIVEDPARAMETERS = (kinw_derived.HRP,)
+    REQUIREDSEQUENCES = (kinw_states.H,)
+    RESULTSEQUENCES = (kinw_aides.RHVDH,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -279,7 +279,7 @@ class Calc_RHLVR_RHRVR_V1(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(6)
         >>> hm(1.0)
@@ -294,10 +294,10 @@ class Calc_RHLVR_RHRVR_V1(modeltools.Method):
         rhrvr(0.0, 0.001974, 0.01, 0.040983, 0.11, 0.9)
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS, lstream_control.HM)
-    DERIVEDPARAMETERS = (lstream_derived.HV, lstream_derived.HRP)
-    REQUIREDSEQUENCES = (lstream_states.H,)
-    RESULTSEQUENCES = (lstream_aides.RHLVR, lstream_aides.RHRVR)
+    CONTROLPARAMETERS = (kinw_control.GTS, kinw_control.HM)
+    DERIVEDPARAMETERS = (kinw_derived.HV, kinw_derived.HRP)
+    REQUIREDSEQUENCES = (kinw_states.H,)
+    RESULTSEQUENCES = (kinw_aides.RHLVR, kinw_aides.RHRVR)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -329,7 +329,7 @@ class Calc_RHLVRDH_RHRVRDH_V1(modeltools.Method):
         We apply the class |NumericalDifferentiator| to validate the
         calculated derivatives:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(8)
         >>> hm(1.0)
@@ -366,10 +366,10 @@ class Calc_RHLVRDH_RHRVRDH_V1(modeltools.Method):
         d_rhrvr/d_h: 0.0, 0.0, 0.0, 0.0, 0.155602, 0.5, 0.844398, 1.0
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS, lstream_control.HM)
-    DERIVEDPARAMETERS = (lstream_derived.HRP, lstream_derived.HV)
-    REQUIREDSEQUENCES = (lstream_states.H,)
-    RESULTSEQUENCES = (lstream_aides.RHLVRDH, lstream_aides.RHRVRDH)
+    CONTROLPARAMETERS = (kinw_control.GTS, kinw_control.HM)
+    DERIVEDPARAMETERS = (kinw_derived.HRP, kinw_derived.HV)
+    REQUIREDSEQUENCES = (kinw_states.H,)
+    RESULTSEQUENCES = (kinw_aides.RHLVRDH, kinw_aides.RHRVRDH)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -400,7 +400,7 @@ class Calc_AM_UM_V1(modeltools.Method):
         smaller base (bottom) to a length of 2 meters, its legs to an inclination of
         1 meter per 4 meters, and its height (depths) to 1 meter:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(8)
         >>> bm(2.0)
@@ -467,10 +467,10 @@ class Calc_AM_UM_V1(modeltools.Method):
         um(2.081965, 2.22, 3.000025, 3.8, 4.0, 4.2, 5.0, 6.0)
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS, lstream_control.BM, lstream_control.BNM)
-    DERIVEDPARAMETERS = (lstream_derived.BNMF,)
-    REQUIREDSEQUENCES = (lstream_aides.RHM, lstream_aides.RHV)
-    RESULTSEQUENCES = (lstream_aides.AM, lstream_aides.UM)
+    CONTROLPARAMETERS = (kinw_control.GTS, kinw_control.BM, kinw_control.BNM)
+    DERIVEDPARAMETERS = (kinw_derived.BNMF,)
+    REQUIREDSEQUENCES = (kinw_aides.RHM, kinw_aides.RHV)
+    RESULTSEQUENCES = (kinw_aides.AM, kinw_aides.UM)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -495,7 +495,7 @@ class Calc_AMDH_UMDH_V1(modeltools.Method):
         |Calc_AM_UM_V1| and check the derivatives' correctness by comparing the
         results of class |NumericalDifferentiator|:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(8)
         >>> bm(2.0)
@@ -564,15 +564,15 @@ class Calc_AMDH_UMDH_V1(modeltools.Method):
 2.001327, 2.0
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS, lstream_control.BM, lstream_control.BNM)
-    DERIVEDPARAMETERS = (lstream_derived.BNMF,)
+    CONTROLPARAMETERS = (kinw_control.GTS, kinw_control.BM, kinw_control.BNM)
+    DERIVEDPARAMETERS = (kinw_derived.BNMF,)
     REQUIREDSEQUENCES = (
-        lstream_aides.RHM,
-        lstream_aides.RHMDH,
-        lstream_aides.RHV,
-        lstream_aides.RHVDH,
+        kinw_aides.RHM,
+        kinw_aides.RHMDH,
+        kinw_aides.RHV,
+        kinw_aides.RHVDH,
     )
-    RESULTSEQUENCES = (lstream_aides.AMDH, lstream_aides.UMDH)
+    RESULTSEQUENCES = (kinw_aides.AMDH, kinw_aides.UMDH)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -603,7 +603,7 @@ class Calc_ALV_ARV_ULV_URV_V1(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(14)
         >>> hm(1.0)
@@ -715,15 +715,10 @@ class Calc_ALV_ARV_ULV_URV_V1(modeltools.Method):
             3.9, 4.0, 4.1, 5.0)
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS, lstream_control.BV, lstream_control.BNV)
-    DERIVEDPARAMETERS = (lstream_derived.BNVF,)
-    REQUIREDSEQUENCES = (lstream_aides.RHV, lstream_aides.RHLVR, lstream_aides.RHRVR)
-    RESULTSEQUENCES = (
-        lstream_aides.ALV,
-        lstream_aides.ARV,
-        lstream_aides.ULV,
-        lstream_aides.URV,
-    )
+    CONTROLPARAMETERS = (kinw_control.GTS, kinw_control.BV, kinw_control.BNV)
+    DERIVEDPARAMETERS = (kinw_derived.BNVF,)
+    REQUIREDSEQUENCES = (kinw_aides.RHV, kinw_aides.RHLVR, kinw_aides.RHRVR)
+    RESULTSEQUENCES = (kinw_aides.ALV, kinw_aides.ARV, kinw_aides.ULV, kinw_aides.URV)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -753,7 +748,7 @@ class Calc_ALVDH_ARVDH_ULVDH_URVDH_V1(modeltools.Method):
         |Calc_ALV_ARV_ULV_URV_V1| and check the derivatives' correctness by comparing
         the results of class |NumericalDifferentiator|:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(13)
         >>> hm(1.0)
@@ -865,21 +860,21 @@ class Calc_ALVDH_ARVDH_ULVDH_URVDH_V1(modeltools.Method):
 3.04951, 1.000871, 1.000001, 1.0, 1.0, 1.0, 1.0
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS, lstream_control.BV, lstream_control.BNV)
-    DERIVEDPARAMETERS = (lstream_derived.BNVF,)
+    CONTROLPARAMETERS = (kinw_control.GTS, kinw_control.BV, kinw_control.BNV)
+    DERIVEDPARAMETERS = (kinw_derived.BNVF,)
     REQUIREDSEQUENCES = (
-        lstream_aides.RHV,
-        lstream_aides.RHVDH,
-        lstream_aides.RHLVR,
-        lstream_aides.RHLVRDH,
-        lstream_aides.RHRVR,
-        lstream_aides.RHRVRDH,
+        kinw_aides.RHV,
+        kinw_aides.RHVDH,
+        kinw_aides.RHLVR,
+        kinw_aides.RHLVRDH,
+        kinw_aides.RHRVR,
+        kinw_aides.RHRVRDH,
     )
     RESULTSEQUENCES = (
-        lstream_aides.ALVDH,
-        lstream_aides.ARVDH,
-        lstream_aides.ULVDH,
-        lstream_aides.URVDH,
+        kinw_aides.ALVDH,
+        kinw_aides.ARVDH,
+        kinw_aides.ULVDH,
+        kinw_aides.URVDH,
     )
 
     @staticmethod
@@ -918,7 +913,7 @@ class Calc_ALVR_ARVR_ULVR_URVR_V1(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(11)
         >>> hm(1.0)
@@ -1014,14 +1009,14 @@ class Calc_ALVR_ARVR_ULVR_URVR_V1(modeltools.Method):
              9.688137, 10.198039, 10.707941, 12.747549, 15.297059)
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS, lstream_control.BNVR)
-    DERIVEDPARAMETERS = (lstream_derived.BNVRF,)
-    REQUIREDSEQUENCES = (lstream_aides.RHLVR, lstream_aides.RHRVR)
+    CONTROLPARAMETERS = (kinw_control.GTS, kinw_control.BNVR)
+    DERIVEDPARAMETERS = (kinw_derived.BNVRF,)
+    REQUIREDSEQUENCES = (kinw_aides.RHLVR, kinw_aides.RHRVR)
     RESULTSEQUENCES = (
-        lstream_aides.ALVR,
-        lstream_aides.ARVR,
-        lstream_aides.ULVR,
-        lstream_aides.URVR,
+        kinw_aides.ALVR,
+        kinw_aides.ARVR,
+        kinw_aides.ULVR,
+        kinw_aides.URVR,
     )
 
     @staticmethod
@@ -1046,7 +1041,7 @@ class Calc_ALVRDH_ARVRDH_ULVRDH_URVRDH_V1(modeltools.Method):
         |Calc_ALVR_ARVR_ULVR_URVR_V1| and check the derivatives' correctness by
         comparing the results of class |NumericalDifferentiator|:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(11)
         >>> hm(1.0)
@@ -1140,19 +1135,19 @@ class Calc_ALVRDH_ARVRDH_ULVRDH_URVRDH_V1(modeltools.Method):
 2.54951, 4.305599, 5.097936, 5.099019
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS, lstream_control.BNVR)
-    DERIVEDPARAMETERS = (lstream_derived.BNVRF,)
+    CONTROLPARAMETERS = (kinw_control.GTS, kinw_control.BNVR)
+    DERIVEDPARAMETERS = (kinw_derived.BNVRF,)
     REQUIREDSEQUENCES = (
-        lstream_aides.RHLVR,
-        lstream_aides.RHLVRDH,
-        lstream_aides.RHRVR,
-        lstream_aides.RHRVRDH,
+        kinw_aides.RHLVR,
+        kinw_aides.RHLVRDH,
+        kinw_aides.RHRVR,
+        kinw_aides.RHRVRDH,
     )
     RESULTSEQUENCES = (
-        lstream_aides.ALVRDH,
-        lstream_aides.ARVRDH,
-        lstream_aides.ULVRDH,
-        lstream_aides.URVRDH,
+        kinw_aides.ALVRDH,
+        kinw_aides.ARVRDH,
+        kinw_aides.ULVRDH,
+        kinw_aides.URVRDH,
     )
 
     @staticmethod
@@ -1177,7 +1172,7 @@ class Calc_QM_V1(modeltools.Method):
 
         Note the handling of zero values for |UM| (in the third subsection):
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(3)
         >>> derived.mfm(10.0)
@@ -1188,10 +1183,10 @@ class Calc_QM_V1(modeltools.Method):
         qm(17.053102, 0.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS,)
-    DERIVEDPARAMETERS = (lstream_derived.MFM,)
-    REQUIREDSEQUENCES = (lstream_aides.AM, lstream_aides.UM)
-    RESULTSEQUENCES = (lstream_aides.QM,)
+    CONTROLPARAMETERS = (kinw_control.GTS,)
+    DERIVEDPARAMETERS = (kinw_derived.MFM,)
+    REQUIREDSEQUENCES = (kinw_aides.AM, kinw_aides.UM)
+    RESULTSEQUENCES = (kinw_aides.QM,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1218,7 +1213,7 @@ class Calc_QM_V2(modeltools.Method):
 
         Note the handling of zero values for |AMDH| (in the second subsection):
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(2)
         >>> aides.am = 4.0, 4.0
@@ -1229,9 +1224,9 @@ class Calc_QM_V2(modeltools.Method):
         qm(6.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS,)
-    REQUIREDSEQUENCES = (lstream_aides.AM, lstream_aides.QMDH, lstream_aides.AMDH)
-    RESULTSEQUENCES = (lstream_aides.QM,)
+    CONTROLPARAMETERS = (kinw_control.GTS,)
+    REQUIREDSEQUENCES = (kinw_aides.AM, kinw_aides.QMDH, kinw_aides.AMDH)
+    RESULTSEQUENCES = (kinw_aides.QM,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1258,7 +1253,7 @@ class Calc_QMDH_V1(modeltools.Method):
         First, we apply the class |NumericalDifferentiator| to validate the
         calculated derivatives:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(2)
         >>> bm(2.0)
@@ -1301,15 +1296,10 @@ class Calc_QMDH_V1(modeltools.Method):
         qmdh(0.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS,)
-    DERIVEDPARAMETERS = (lstream_derived.MFM,)
-    REQUIREDSEQUENCES = (
-        lstream_aides.AM,
-        lstream_aides.AMDH,
-        lstream_aides.UM,
-        lstream_aides.UMDH,
-    )
-    RESULTSEQUENCES = (lstream_aides.QMDH,)
+    CONTROLPARAMETERS = (kinw_control.GTS,)
+    DERIVEDPARAMETERS = (kinw_derived.MFM,)
+    REQUIREDSEQUENCES = (kinw_aides.AM, kinw_aides.AMDH, kinw_aides.UM, kinw_aides.UMDH)
+    RESULTSEQUENCES = (kinw_aides.QMDH,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1343,7 +1333,7 @@ class Calc_QLV_QRV_V1(modeltools.Method):
         Note the handling of zero values for |ULV| and |URV| (in the second
         subsection):
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(2)
         >>> derived.mfv(left=10.0, right=18.0)
@@ -1358,15 +1348,10 @@ class Calc_QLV_QRV_V1(modeltools.Method):
         qrv(45.357158, 0.0)
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS,)
-    DERIVEDPARAMETERS = (lstream_derived.MFV,)
-    REQUIREDSEQUENCES = (
-        lstream_aides.ALV,
-        lstream_aides.ARV,
-        lstream_aides.ULV,
-        lstream_aides.URV,
-    )
-    RESULTSEQUENCES = (lstream_aides.QLV, lstream_aides.QRV)
+    CONTROLPARAMETERS = (kinw_control.GTS,)
+    DERIVEDPARAMETERS = (kinw_derived.MFV,)
+    REQUIREDSEQUENCES = (kinw_aides.ALV, kinw_aides.ARV, kinw_aides.ULV, kinw_aides.URV)
+    RESULTSEQUENCES = (kinw_aides.QLV, kinw_aides.QRV)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1400,7 +1385,7 @@ class Calc_QLV_QRV_V2(modeltools.Method):
         Note the handling of zero values for |ALVDH| and |ARVDH| (in the
         second subsection):
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(2)
         >>> aides.alv = 3.0, 3.0
@@ -1416,16 +1401,16 @@ class Calc_QLV_QRV_V2(modeltools.Method):
         qrv(7.5, 0.0)
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS,)
+    CONTROLPARAMETERS = (kinw_control.GTS,)
     REQUIREDSEQUENCES = (
-        lstream_aides.ALV,
-        lstream_aides.ARV,
-        lstream_aides.ALVDH,
-        lstream_aides.ARVDH,
-        lstream_aides.QLVDH,
-        lstream_aides.QRVDH,
+        kinw_aides.ALV,
+        kinw_aides.ARV,
+        kinw_aides.ALVDH,
+        kinw_aides.ARVDH,
+        kinw_aides.QLVDH,
+        kinw_aides.QRVDH,
     )
-    RESULTSEQUENCES = (lstream_aides.QLV, lstream_aides.QRV)
+    RESULTSEQUENCES = (kinw_aides.QLV, kinw_aides.QRV)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1456,7 +1441,7 @@ class Calc_QLVDH_QRVDH_V1(modeltools.Method):
         First, we apply the class |NumericalDifferentiator| to validate the
         calculated derivatives:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(2)
         >>> hm(1.0)
@@ -1505,19 +1490,19 @@ class Calc_QLVDH_QRVDH_V1(modeltools.Method):
         qrvdh(0.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS,)
-    DERIVEDPARAMETERS = (lstream_derived.MFV,)
+    CONTROLPARAMETERS = (kinw_control.GTS,)
+    DERIVEDPARAMETERS = (kinw_derived.MFV,)
     REQUIREDSEQUENCES = (
-        lstream_aides.ALV,
-        lstream_aides.ALVDH,
-        lstream_aides.ARV,
-        lstream_aides.ARVDH,
-        lstream_aides.ULV,
-        lstream_aides.ULVDH,
-        lstream_aides.URV,
-        lstream_aides.URVDH,
+        kinw_aides.ALV,
+        kinw_aides.ALVDH,
+        kinw_aides.ARV,
+        kinw_aides.ARVDH,
+        kinw_aides.ULV,
+        kinw_aides.ULVDH,
+        kinw_aides.URV,
+        kinw_aides.URVDH,
     )
-    RESULTSEQUENCES = (lstream_aides.QLVDH, lstream_aides.QRVDH)
+    RESULTSEQUENCES = (kinw_aides.QLVDH, kinw_aides.QRVDH)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1565,7 +1550,7 @@ class Calc_QLVR_QRVR_V1(modeltools.Method):
         Note the handling of zero values for |ULVR| and |URVR| (in the second
         subsection):
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(2)
         >>> derived.mfv(left=10.0, right=1.2)
@@ -1580,15 +1565,15 @@ class Calc_QLVR_QRVR_V1(modeltools.Method):
         qrvr(3.023811, 0.0)
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS,)
-    DERIVEDPARAMETERS = (lstream_derived.MFV,)
+    CONTROLPARAMETERS = (kinw_control.GTS,)
+    DERIVEDPARAMETERS = (kinw_derived.MFV,)
     REQUIREDSEQUENCES = (
-        lstream_aides.ALVR,
-        lstream_aides.ARVR,
-        lstream_aides.ULVR,
-        lstream_aides.URVR,
+        kinw_aides.ALVR,
+        kinw_aides.ARVR,
+        kinw_aides.ULVR,
+        kinw_aides.URVR,
     )
-    RESULTSEQUENCES = (lstream_aides.QLVR, lstream_aides.QRVR)
+    RESULTSEQUENCES = (kinw_aides.QLVR, kinw_aides.QRVR)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1622,7 +1607,7 @@ class Calc_QLVR_QRVR_V2(modeltools.Method):
         Note the handling of zero values for |ALVRDH| and |ARVRDH| (in the
         second subsection):
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(2)
         >>> aides.alvr = 3.0, 3.0
@@ -1638,16 +1623,16 @@ class Calc_QLVR_QRVR_V2(modeltools.Method):
         qrvr(7.5, 0.0)
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS,)
+    CONTROLPARAMETERS = (kinw_control.GTS,)
     REQUIREDSEQUENCES = (
-        lstream_aides.ALVR,
-        lstream_aides.ARVR,
-        lstream_aides.QLVRDH,
-        lstream_aides.QRVRDH,
-        lstream_aides.ALVRDH,
-        lstream_aides.ARVRDH,
+        kinw_aides.ALVR,
+        kinw_aides.ARVR,
+        kinw_aides.QLVRDH,
+        kinw_aides.QRVRDH,
+        kinw_aides.ALVRDH,
+        kinw_aides.ARVRDH,
     )
-    RESULTSEQUENCES = (lstream_aides.QLVR, lstream_aides.QRVR)
+    RESULTSEQUENCES = (kinw_aides.QLVR, kinw_aides.QRVR)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1678,7 +1663,7 @@ class Calc_QLVRDH_QRVRDH_V1(modeltools.Method):
         First, we apply the class |NumericalDifferentiator| to validate the
         calculated derivatives:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(2)
         >>> hm(1.0)
@@ -1723,19 +1708,19 @@ class Calc_QLVRDH_QRVRDH_V1(modeltools.Method):
         qrvrdh(0.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS,)
-    DERIVEDPARAMETERS = (lstream_derived.MFV,)
+    CONTROLPARAMETERS = (kinw_control.GTS,)
+    DERIVEDPARAMETERS = (kinw_derived.MFV,)
     REQUIREDSEQUENCES = (
-        lstream_aides.ALVR,
-        lstream_aides.ALVRDH,
-        lstream_aides.ARVR,
-        lstream_aides.ARVRDH,
-        lstream_aides.ULVR,
-        lstream_aides.ULVRDH,
-        lstream_aides.URVR,
-        lstream_aides.URVRDH,
+        kinw_aides.ALVR,
+        kinw_aides.ALVRDH,
+        kinw_aides.ARVR,
+        kinw_aides.ARVRDH,
+        kinw_aides.ULVR,
+        kinw_aides.ULVRDH,
+        kinw_aides.URVR,
+        kinw_aides.URVRDH,
     )
-    RESULTSEQUENCES = (lstream_aides.QLVRDH, lstream_aides.QRVRDH)
+    RESULTSEQUENCES = (kinw_aides.QLVRDH, kinw_aides.QRVRDH)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1779,7 +1764,7 @@ class Calc_AG_V1(modeltools.Method):
 
     Example:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(2)
         >>> aides.am = 0.0, 1.0
@@ -1792,15 +1777,15 @@ class Calc_AG_V1(modeltools.Method):
         ag(18.0, 27.0)
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS,)
+    CONTROLPARAMETERS = (kinw_control.GTS,)
     REQUIREDSEQUENCES = (
-        lstream_aides.AM,
-        lstream_aides.ALV,
-        lstream_aides.ARV,
-        lstream_aides.ALVR,
-        lstream_aides.ARVR,
+        kinw_aides.AM,
+        kinw_aides.ALV,
+        kinw_aides.ARV,
+        kinw_aides.ALVR,
+        kinw_aides.ARVR,
     )
-    RESULTSEQUENCES = (lstream_aides.AG,)
+    RESULTSEQUENCES = (kinw_aides.AG,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1818,7 +1803,7 @@ class Calc_QG_V1(modeltools.Method):
 
     Example:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(2)
         >>> aides.qm = 0.0, 1.0
@@ -1831,15 +1816,15 @@ class Calc_QG_V1(modeltools.Method):
         qg(18.0, 27.0)
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS,)
+    CONTROLPARAMETERS = (kinw_control.GTS,)
     REQUIREDSEQUENCES = (
-        lstream_aides.QM,
-        lstream_aides.QLV,
-        lstream_aides.QRV,
-        lstream_aides.QLVR,
-        lstream_aides.QRVR,
+        kinw_aides.QM,
+        kinw_aides.QLV,
+        kinw_aides.QRV,
+        kinw_aides.QLVR,
+        kinw_aides.QRVR,
     )
-    RESULTSEQUENCES = (lstream_fluxes.QG,)
+    RESULTSEQUENCES = (kinw_fluxes.QG,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1861,7 +1846,7 @@ class Calc_QG_V2(modeltools.Method):
 
         For simplicity, we define a linear between flow velocity and water storage:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(2)
         >>> laen(10.0)
@@ -1892,13 +1877,13 @@ class Calc_QG_V2(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (
-        lstream_control.GTS,
-        lstream_control.Laen,
-        lstream_control.VG2FG,
-        lstream_control.EK,
+        kinw_control.GTS,
+        kinw_control.Laen,
+        kinw_control.VG2FG,
+        kinw_control.EK,
     )
-    REQUIREDSEQUENCES = (lstream_states.VG,)
-    RESULTSEQUENCES = (lstream_fluxes.QG,)
+    REQUIREDSEQUENCES = (kinw_states.VG,)
+    RESULTSEQUENCES = (kinw_fluxes.QG,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1921,7 +1906,7 @@ class Calc_WBM_V1(modeltools.Method):
         |NumericalDifferentiator| to validate the calculated water
         table widths:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(5)
         >>> bm(4.0)
@@ -1962,15 +1947,15 @@ class Calc_WBM_V1(modeltools.Method):
         d_am/d_h: 2.081965, 7.593774, 7.918034, 8.028465, 8.0
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS, lstream_control.BM, lstream_control.BNM)
-    FIXEDPARAMETERS = (lstream_fixed.WBMin, lstream_fixed.WBReg)
+    CONTROLPARAMETERS = (kinw_control.GTS, kinw_control.BM, kinw_control.BNM)
+    FIXEDPARAMETERS = (kinw_fixed.WBMin, kinw_fixed.WBReg)
     REQUIREDSEQUENCES = (
-        lstream_aides.RHM,
-        lstream_aides.RHMDH,
-        lstream_aides.RHV,
-        lstream_aides.RHVDH,
+        kinw_aides.RHM,
+        kinw_aides.RHMDH,
+        kinw_aides.RHV,
+        kinw_aides.RHVDH,
     )
-    RESULTSEQUENCES = (lstream_aides.WBM,)
+    RESULTSEQUENCES = (kinw_aides.WBM,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1998,7 +1983,7 @@ class Calc_WBLV_WBRV_V1(modeltools.Method):
         |NumericalDifferentiator| to validate the calculated water
         table widths:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(11)
         >>> bm(4.0)
@@ -2058,16 +2043,16 @@ class Calc_WBLV_WBRV_V1(modeltools.Method):
 40.96888, 42.590174, 43.142325, 43.001873, 43.000001
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS, lstream_control.BV, lstream_control.BNV)
+    CONTROLPARAMETERS = (kinw_control.GTS, kinw_control.BV, kinw_control.BNV)
     REQUIREDSEQUENCES = (
-        lstream_aides.RHV,
-        lstream_aides.RHVDH,
-        lstream_aides.RHLVR,
-        lstream_aides.RHLVRDH,
-        lstream_aides.RHRVR,
-        lstream_aides.RHRVRDH,
+        kinw_aides.RHV,
+        kinw_aides.RHVDH,
+        kinw_aides.RHLVR,
+        kinw_aides.RHLVRDH,
+        kinw_aides.RHRVR,
+        kinw_aides.RHRVRDH,
     )
-    RESULTSEQUENCES = (lstream_aides.WBLV, lstream_aides.WBRV)
+    RESULTSEQUENCES = (kinw_aides.WBLV, kinw_aides.WBRV)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -2101,7 +2086,7 @@ class Calc_WBLVR_WBRVR_V1(modeltools.Method):
         |NumericalDifferentiator| to validate the calculated water
         table widths:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(11)
         >>> hm(1.0)
@@ -2148,14 +2133,14 @@ class Calc_WBLVR_WBRVR_V1(modeltools.Method):
 0.464419, 2.499532, 5.0
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS, lstream_control.BNVR)
+    CONTROLPARAMETERS = (kinw_control.GTS, kinw_control.BNVR)
     REQUIREDSEQUENCES = (
-        lstream_aides.RHLVR,
-        lstream_aides.RHLVRDH,
-        lstream_aides.RHRVR,
-        lstream_aides.RHRVRDH,
+        kinw_aides.RHLVR,
+        kinw_aides.RHLVRDH,
+        kinw_aides.RHRVR,
+        kinw_aides.RHRVRDH,
     )
-    RESULTSEQUENCES = (lstream_aides.WBLVR, lstream_aides.WBRVR)
+    RESULTSEQUENCES = (kinw_aides.WBLVR, kinw_aides.WBRVR)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -2174,7 +2159,7 @@ class Calc_WBG_V1(modeltools.Method):
 
     Example:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(2)
         >>> aides.wbm = 0.0, 1.0
@@ -2187,15 +2172,15 @@ class Calc_WBG_V1(modeltools.Method):
         wbg(18.0, 27.0)
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS,)
+    CONTROLPARAMETERS = (kinw_control.GTS,)
     REQUIREDSEQUENCES = (
-        lstream_aides.WBM,
-        lstream_aides.WBLV,
-        lstream_aides.WBRV,
-        lstream_aides.WBLVR,
-        lstream_aides.WBRVR,
+        kinw_aides.WBM,
+        kinw_aides.WBLV,
+        kinw_aides.WBRV,
+        kinw_aides.WBLVR,
+        kinw_aides.WBRVR,
     )
-    RESULTSEQUENCES = (lstream_aides.WBG,)
+    RESULTSEQUENCES = (kinw_aides.WBG,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -2215,7 +2200,7 @@ class Calc_DH_V1(modeltools.Method):
 
     Example:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> laen(10.0)
         >>> gts(5)
@@ -2227,9 +2212,9 @@ class Calc_DH_V1(modeltools.Method):
         dh(-0.000167, -0.000143, -0.000125, 0.000143, 0.000167)
     """
 
-    CONTROLPARAMETERS = (lstream_control.Laen, lstream_control.GTS)
-    REQUIREDSEQUENCES = (lstream_fluxes.QZ, lstream_fluxes.QG, lstream_aides.WBG)
-    RESULTSEQUENCES = (lstream_fluxes.DH,)
+    CONTROLPARAMETERS = (kinw_control.Laen, kinw_control.GTS)
+    REQUIREDSEQUENCES = (kinw_fluxes.QZ, kinw_fluxes.QG, kinw_aides.WBG)
+    RESULTSEQUENCES = (kinw_fluxes.DH,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -2252,7 +2237,7 @@ class Update_H_V1(modeltools.Method):
 
     Example:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(5)
         >>> derived.sek(60*60)
@@ -2264,10 +2249,10 @@ class Update_H_V1(modeltools.Method):
         h(0.88, 1.1, 1.21, 1.3, 1.12)
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS,)
-    DERIVEDPARAMETERS = (lstream_derived.Sek,)
-    REQUIREDSEQUENCES = (lstream_fluxes.DH,)
-    UPDATEDSEQUENCES = (lstream_states.H,)
+    CONTROLPARAMETERS = (kinw_control.GTS,)
+    DERIVEDPARAMETERS = (kinw_derived.Sek,)
+    REQUIREDSEQUENCES = (kinw_fluxes.DH,)
+    UPDATEDSEQUENCES = (kinw_states.H,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -2288,7 +2273,7 @@ class Update_VG_V1(modeltools.Method):
 
     Example:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(5)
         >>> derived.sek(60*60)
@@ -2300,10 +2285,10 @@ class Update_VG_V1(modeltools.Method):
         vg(0.9928, 1.2036, 1.2928, 1.2036, 0.9928)
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS,)
-    DERIVEDPARAMETERS = (lstream_derived.Sek,)
-    REQUIREDSEQUENCES = (lstream_fluxes.QZA, lstream_fluxes.QG)
-    UPDATEDSEQUENCES = (lstream_states.VG,)
+    CONTROLPARAMETERS = (kinw_control.GTS,)
+    DERIVEDPARAMETERS = (kinw_derived.Sek,)
+    REQUIREDSEQUENCES = (kinw_fluxes.QZA, kinw_fluxes.QG)
+    UPDATEDSEQUENCES = (kinw_states.VG,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -2324,7 +2309,7 @@ class Calc_QA_V1(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep()
         >>> gts(3)
         >>> fluxes.qz = 1.0
@@ -2338,9 +2323,9 @@ class Calc_QA_V1(modeltools.Method):
         qa(1.0)
     """
 
-    CONTROLPARAMETERS = (lstream_control.GTS,)
-    REQUIREDSEQUENCES = (lstream_fluxes.QZ, lstream_fluxes.QG)
-    RESULTSEQUENCES = (lstream_fluxes.QA,)
+    CONTROLPARAMETERS = (kinw_control.GTS,)
+    REQUIREDSEQUENCES = (kinw_fluxes.QZ, kinw_fluxes.QG)
+    RESULTSEQUENCES = (kinw_fluxes.QA,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -2355,8 +2340,8 @@ class Calc_QA_V1(modeltools.Method):
 class Pass_Q_V1(modeltools.Method):
     """Pass the outflow to the outlet node."""
 
-    REQUIREDSEQUENCES = (lstream_fluxes.QA,)
-    RESULTSEQUENCES = (lstream_outlets.Q,)
+    REQUIREDSEQUENCES = (kinw_fluxes.QA,)
+    RESULTSEQUENCES = (kinw_outlets.Q,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -2374,8 +2359,8 @@ class Return_QF_V1(modeltools.Method):
 
     Method |Return_QF_V1| is a helper function not intended for performing
     simulation runs but for easing the implementation of method
-    |lstream_v001.Model.calculate_characteristiclength| of application model
-    |lstream_v001| (and similar functionalities).  More specifically, it
+    |kinw_williams.Model.calculate_characteristiclength| of application model
+    |kinw_williams| (and similar functionalities).  More specifically, it
     defines the target function for the iterative root search triggered by
     method |Return_H_V1|.
 
@@ -2383,14 +2368,13 @@ class Return_QF_V1(modeltools.Method):
     stream subsections, it evaluates only those of the first subsection.
     Accordingly, to avoid wasting computation time, one should not initialise
     more than one subsection before calling method |Return_QF_V1| (or methods
-    |Return_H_V1| or |lstream_v001.Model.calculate_characteristiclength|).
+    |Return_H_V1| or |kinw_williams.Model.calculate_characteristiclength|).
 
     Example:
 
-        We reuse the example given in the main documentation on module
-        |lstream_v001|:
+        We reuse the example given in the main documentation on module |kinw_williams|:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> parameterstep("1d")
         >>> simulationstep("30m")
 
@@ -2454,7 +2438,7 @@ class Return_QF_V1(modeltools.Method):
         mentioned sequences without resetting:
 
         >>> from hydpy.core.testtools import check_selectedvariables
-        >>> from hydpy.models.lstream.lstream_model import Return_QF_V1
+        >>> from hydpy.models.kinw.kinw_model import Return_QF_V1
         >>> print(check_selectedvariables(Return_QF_V1))
         Definitely missing: qg
         Possibly missing (REQUIREDSEQUENCES):
@@ -2493,49 +2477,49 @@ class Return_QF_V1(modeltools.Method):
         Calc_QG_V1,
     )
     CONTROLPARAMETERS = (
-        lstream_control.GTS,
-        lstream_control.HM,
-        lstream_control.BM,
-        lstream_control.BNM,
-        lstream_control.BV,
-        lstream_control.BNV,
-        lstream_control.BNVR,
+        kinw_control.GTS,
+        kinw_control.HM,
+        kinw_control.BM,
+        kinw_control.BNM,
+        kinw_control.BV,
+        kinw_control.BNV,
+        kinw_control.BNVR,
     )
     DERIVEDPARAMETERS = (
-        lstream_derived.HV,
-        lstream_derived.HRP,
-        lstream_derived.BNMF,
-        lstream_derived.BNVF,
-        lstream_derived.BNVRF,
-        lstream_derived.MFM,
-        lstream_derived.MFV,
+        kinw_derived.HV,
+        kinw_derived.HRP,
+        kinw_derived.BNMF,
+        kinw_derived.BNVF,
+        kinw_derived.BNVRF,
+        kinw_derived.MFM,
+        kinw_derived.MFV,
     )
     RESULTSEQUENCES = (
-        lstream_states.H,
-        lstream_aides.RHM,
-        lstream_aides.RHMDH,
-        lstream_aides.RHV,
-        lstream_aides.RHVDH,
-        lstream_aides.RHLVR,
-        lstream_aides.RHRVR,
-        lstream_aides.RHLVRDH,
-        lstream_aides.RHRVRDH,
-        lstream_aides.AM,
-        lstream_aides.UM,
-        lstream_aides.ALV,
-        lstream_aides.ARV,
-        lstream_aides.ULV,
-        lstream_aides.URV,
-        lstream_aides.ALVR,
-        lstream_aides.ARVR,
-        lstream_aides.ULVR,
-        lstream_aides.URVR,
-        lstream_aides.QM,
-        lstream_aides.QLV,
-        lstream_aides.QRV,
-        lstream_aides.QLVR,
-        lstream_aides.QRVR,
-        lstream_aides.AG,
+        kinw_states.H,
+        kinw_aides.RHM,
+        kinw_aides.RHMDH,
+        kinw_aides.RHV,
+        kinw_aides.RHVDH,
+        kinw_aides.RHLVR,
+        kinw_aides.RHRVR,
+        kinw_aides.RHLVRDH,
+        kinw_aides.RHRVRDH,
+        kinw_aides.AM,
+        kinw_aides.UM,
+        kinw_aides.ALV,
+        kinw_aides.ARV,
+        kinw_aides.ULV,
+        kinw_aides.URV,
+        kinw_aides.ALVR,
+        kinw_aides.ARVR,
+        kinw_aides.ULVR,
+        kinw_aides.URVR,
+        kinw_aides.QM,
+        kinw_aides.QLV,
+        kinw_aides.QRV,
+        kinw_aides.QLVR,
+        kinw_aides.QRVR,
+        kinw_aides.AG,
     )
 
     @staticmethod
@@ -2569,10 +2553,10 @@ class Return_H_V1(modeltools.Method):
 
     Method |Return_H_V1| is a helper function not for performing simulation runs but
     for easing the implementation of method
-    |lstream_v001.Model.calculate_characteristiclength| of application model
-    |lstream_v001| (or similar functionalities).  It performs a root search by applying
-    the |Pegasus| method implemented in module `rootutils` on the target method
-    |Return_QF_V1|.  Hence, please see the additional application notes in the
+    |kinw_williams.Model.calculate_characteristiclength| of application model
+    |kinw_williams| (or similar functionalities).  It performs a root search by
+    applying the |Pegasus| method implemented in module `rootutils` on the target
+    method |Return_QF_V1|.  Hence, please see the additional application notes in the
     documentation on method |Return_QF_V1|.
 
     Example:
@@ -2580,7 +2564,7 @@ class Return_H_V1(modeltools.Method):
         We recreate the exact parameterisation as in the example of the
         documentation on method |Return_QF_V1|:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> simulationstep("30m")
         >>> parameterstep()
 
@@ -2698,49 +2682,49 @@ class Return_H_V1(modeltools.Method):
 
     SUBMETHODS = (Return_QF_V1,)
     CONTROLPARAMETERS = (
-        lstream_control.GTS,
-        lstream_control.HM,
-        lstream_control.BM,
-        lstream_control.BNM,
-        lstream_control.BV,
-        lstream_control.BNV,
-        lstream_control.BNVR,
+        kinw_control.GTS,
+        kinw_control.HM,
+        kinw_control.BM,
+        kinw_control.BNM,
+        kinw_control.BV,
+        kinw_control.BNV,
+        kinw_control.BNVR,
     )
     DERIVEDPARAMETERS = (
-        lstream_derived.HV,
-        lstream_derived.HRP,
-        lstream_derived.BNMF,
-        lstream_derived.BNVF,
-        lstream_derived.BNVRF,
-        lstream_derived.MFM,
-        lstream_derived.MFV,
+        kinw_derived.HV,
+        kinw_derived.HRP,
+        kinw_derived.BNMF,
+        kinw_derived.BNVF,
+        kinw_derived.BNVRF,
+        kinw_derived.MFM,
+        kinw_derived.MFV,
     )
     RESULTSEQUENCES = (
-        lstream_states.H,
-        lstream_aides.RHM,
-        lstream_aides.RHMDH,
-        lstream_aides.RHV,
-        lstream_aides.RHVDH,
-        lstream_aides.RHLVR,
-        lstream_aides.RHRVR,
-        lstream_aides.RHLVRDH,
-        lstream_aides.RHRVRDH,
-        lstream_aides.AM,
-        lstream_aides.UM,
-        lstream_aides.ALV,
-        lstream_aides.ARV,
-        lstream_aides.ULV,
-        lstream_aides.URV,
-        lstream_aides.ALVR,
-        lstream_aides.ARVR,
-        lstream_aides.ULVR,
-        lstream_aides.URVR,
-        lstream_aides.QM,
-        lstream_aides.QLV,
-        lstream_aides.QRV,
-        lstream_aides.QLVR,
-        lstream_aides.QRVR,
-        lstream_aides.AG,
+        kinw_states.H,
+        kinw_aides.RHM,
+        kinw_aides.RHMDH,
+        kinw_aides.RHV,
+        kinw_aides.RHVDH,
+        kinw_aides.RHLVR,
+        kinw_aides.RHRVR,
+        kinw_aides.RHLVRDH,
+        kinw_aides.RHRVRDH,
+        kinw_aides.AM,
+        kinw_aides.UM,
+        kinw_aides.ALV,
+        kinw_aides.ARV,
+        kinw_aides.ULV,
+        kinw_aides.URV,
+        kinw_aides.ALVR,
+        kinw_aides.ARVR,
+        kinw_aides.ULVR,
+        kinw_aides.URVR,
+        kinw_aides.QM,
+        kinw_aides.QLV,
+        kinw_aides.QRV,
+        kinw_aides.QLVR,
+        kinw_aides.QRVR,
+        kinw_aides.AG,
     )
 
     @staticmethod
@@ -2756,13 +2740,15 @@ class PegasusH(roottools.Pegasus):
 
 
 class Model(modeltools.ELSModel):
-    """The HydPy-L-Stream model."""
+    """|kinw.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="KinW")
 
     SOLVERPARAMETERS = (
-        lstream_solver.AbsErrorMax,
-        lstream_solver.RelErrorMax,
-        lstream_solver.RelDTMin,
-        lstream_solver.RelDTMax,
+        kinw_solver.AbsErrorMax,
+        kinw_solver.RelErrorMax,
+        kinw_solver.RelDTMin,
+        kinw_solver.RelDTMax,
     )
     SOLVERSEQUENCES = ()
     INLET_METHODS = (Pick_Q_V1,)
@@ -2808,17 +2794,17 @@ class Model(modeltools.ELSModel):
 
 
 class BaseModelProfile(modeltools.ELSModel):
-    """Base class for L-Stream models performing discharge calculations based on a
-    triple trapezoid profile."""
+    """Base class for |kinw.DOCNAME.long| models performing discharge calculations
+    based on a triple trapezoid profile."""
 
     def plot_profile(self, labelformat: str = "%.1f"):
         """Plot the triple trapezoid profile and insert the discharge values at some
         distinct stages.
 
         We reuse the second example given in the main documentation on module
-        |lstream_v001|:
+        |kinw_williams|:
 
-        >>> from hydpy.models.lstream_v001 import *
+        >>> from hydpy.models.kinw_williams import *
         >>> parameterstep("1d")
         >>> simulationstep("30m")
         >>> laen(100.0)
@@ -2844,9 +2830,9 @@ class BaseModelProfile(modeltools.ELSModel):
 
         >>> model.plot_profile()
         >>> from hydpy.core.testtools import save_autofig
-        >>> save_autofig("lstream_plot_profile.png")
+        >>> save_autofig("kinw_plot_profile.png")
 
-        .. image:: lstream_plot_profile.png
+        .. image:: kinw_plot_profile.png
         """
 
         class _XYs:
@@ -2932,7 +2918,7 @@ class BaseModelProfile(modeltools.ELSModel):
         spacing (1.0 results in equidistant values), and `hmin` and `hmax` the lowest
         and highest water stage, respectively:
 
-        >>> from hydpy.models.lstream_v001 import *
+        >>> from hydpy.models.kinw_williams import *
         >>> parameterstep()
         >>> from hydpy import print_values
         >>> print_values(model.prepare_hvector(
@@ -2940,7 +2926,7 @@ class BaseModelProfile(modeltools.ELSModel):
         -1.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0
 
         When not specified by the user, method
-        |lstream_model.BaseModelProfile.prepare_hvector| determines `hmin` and `hmax`
+        |kinw_model.BaseModelProfile.prepare_hvector| determines `hmin` and `hmax`
         based on the current value of |HM| (-10 % and 300 %, respectively) and takes a
         higher sampling rate in the lower value range (by setting `exp` to two):
 
@@ -2964,11 +2950,11 @@ class BaseModelProfile(modeltools.ELSModel):
         given stage vector.
 
         We reuse the second example given in the main documentation on module
-        |lstream_v001| also show the results of the similar methods
-        |lstream_model.BaseModelProfile.calculate_agvector| and
-        |lstream_model.BaseModelProfile.calculate_vgvector|:
+        |kinw_williams| also show the results of the similar methods
+        |kinw_model.BaseModelProfile.calculate_agvector| and
+        |kinw_model.BaseModelProfile.calculate_vgvector|:
 
-        >>> from hydpy.models.lstream_v001 import *
+        >>> from hydpy.models.kinw_williams import *
         >>> parameterstep("1d")
         >>> simulationstep("30m")
         >>> laen(100.0)
@@ -3012,7 +2998,7 @@ class BaseModelProfile(modeltools.ELSModel):
         vector of stage values.
 
         See the documentation on method
-        |lstream_model.BaseModelProfile.calculate_qgvector| for an example.
+        |kinw_model.BaseModelProfile.calculate_qgvector| for an example.
         """
         h_ = self.sequences.states.h.values.copy()
         ag = []
@@ -3033,7 +3019,7 @@ class BaseModelProfile(modeltools.ELSModel):
         corresponding to the given vector of stage values.
 
         See the documentation on method
-        |lstream_model.BaseModelProfile.calculate_qgvector| for an example.
+        |kinw_model.BaseModelProfile.calculate_qgvector| for an example.
         """
         con = self.parameters.control
         ags = numpy.array(self.calculate_agvector(hvector))

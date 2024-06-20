@@ -5,7 +5,7 @@
 # ...from HydPy
 from hydpy.core import parametertools
 from hydpy.auxs import smoothtools
-from hydpy.models.lstream import lstream_control
+from hydpy.models.kinw import kinw_control
 
 
 class Sek(parametertools.SecondsParameter):
@@ -18,13 +18,13 @@ class HV(parametertools.LeftRightParameter):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (lstream_control.BBV, lstream_control.BNV)
+    CONTROLPARAMETERS = (kinw_control.BBV, kinw_control.BNV)
 
     def update(self):
         """Update based on :math:`HV=BBV/BNV`.
 
         Examples:
-            >>> from hydpy.models.lstream import *
+            >>> from hydpy.models.kinw import *
             >>> parameterstep("1d")
             >>> bbv(left=10., right=40.)
             >>> bnv(left=10., right=20.)
@@ -51,13 +51,13 @@ class MFM(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (lstream_control.EKM, lstream_control.SKM, lstream_control.Gef)
+    CONTROLPARAMETERS = (kinw_control.EKM, kinw_control.SKM, kinw_control.Gef)
 
     def update(self):
         """Update based on :math:`MFM=EKM \\cdot SKM \\cdot \\sqrt{Gef}`.
 
         Examples:
-            >>> from hydpy.models.lstream import *
+            >>> from hydpy.models.kinw import *
             >>> parameterstep("1d")
             >>> ekm(2.0)
             >>> skm(50.0)
@@ -77,13 +77,13 @@ class MFV(parametertools.LeftRightParameter):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (lstream_control.EKV, lstream_control.SKV, lstream_control.Gef)
+    CONTROLPARAMETERS = (kinw_control.EKV, kinw_control.SKV, kinw_control.Gef)
 
     def update(self):
         """Update based on :math:`MFV=EKV \\cdot SKV \\cdot \\sqrt{Gef}`.
 
         Examples:
-            >>> from hydpy.models.lstream import *
+            >>> from hydpy.models.kinw import *
             >>> parameterstep("1d")
             >>> ekv(left=2.0, right=4.0)
             >>> skv(left=25.0, right=50)
@@ -103,13 +103,13 @@ class BNMF(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (lstream_control.BNM,)
+    CONTROLPARAMETERS = (kinw_control.BNM,)
 
     def update(self):
         """Update based on :math:`BNMF= \\sqrt{1+BNM^2}`.
 
         Examples:
-            >>> from hydpy.models.lstream import *
+            >>> from hydpy.models.kinw import *
             >>> parameterstep("1d")
             >>> bnm(2.0)
             >>> derived.bnmf.update()
@@ -126,13 +126,13 @@ class BNVF(parametertools.LeftRightParameter):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (lstream_control.BNV,)
+    CONTROLPARAMETERS = (kinw_control.BNV,)
 
     def update(self):
         """Update based on :math:`BNVF= \\sqrt{1+BNV^2}`.
 
         Examples:
-            >>> from hydpy.models.lstream import *
+            >>> from hydpy.models.kinw import *
             >>> parameterstep("1d")
             >>> bnv(left=2.0, right=3.0)
             >>> derived.bnvf.update()
@@ -149,13 +149,13 @@ class BNVRF(parametertools.LeftRightParameter):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (lstream_control.BNVR,)
+    CONTROLPARAMETERS = (kinw_control.BNVR,)
 
     def update(self):
         """Update based on :math:`BNVRF= \\sqrt(1+BNVR^2)`.
 
         Examples:
-            >>> from hydpy.models.lstream import *
+            >>> from hydpy.models.kinw import *
             >>> parameterstep("1d")
             >>> bnvr(left=2.0, right=3.0)
             >>> derived.bnvrf.update()
@@ -173,7 +173,7 @@ class HRP(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (lstream_control.HR,)
+    CONTROLPARAMETERS = (kinw_control.HR,)
 
     def update(self):
         """Calculate the smoothing parameter value.
@@ -181,7 +181,7 @@ class HRP(parametertools.Parameter):
         The documentation on module |smoothtools| explains the following
         example in some detail:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.kinw import *
         >>> from hydpy.cythons.smoothutils import smooth_logistic2
         >>> from hydpy import round_
         >>> parameterstep()

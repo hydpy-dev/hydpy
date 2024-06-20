@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
-"""The L-Stream model provides features for implementing storage based routing methods
+"""The |kinw.DOCNAME.long| model family provides features for implementing storage
+based routing methods
 similar to those implemented by the water balance model `LARSIM`_.
 
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
 
-Conceptionally, application models derived from HydPy-L-Stream can be very similar to
-those of LARSIM.  However, while LARSIM uses approximate "ad hoc" solutions of the
-underlying ordinary differential equations, L-Stream defines the differential equations
+Conceptionally, application models of the |kinw.DOCNAME.long| model family can be very
+similar to those of LARSIM.  However, while LARSIM uses approximate "ad hoc" solutions of the
+underlying ordinary differential equations, |kinw.DOCNAME.long| defines the differential equations
 in their original form and leaves their solution to numerical integration algorithms.
 On the upside, this allows for more flexibility (regarding the coupling and extension
 of methodologies),  accuracy (the user can define the aimed accuracy), and correctness
@@ -27,8 +28,8 @@ from hydpy.exe.modelimports import *
 from hydpy.auxs.anntools import ANN
 from hydpy.auxs.ppolytools import Poly, PPoly
 
-# ...from lstream
-from hydpy.models.lstream.lstream_model import Model
+# ...from kinw
+from hydpy.models.kinw.kinw_model import Model
 
 tester = Tester()
 cythonizer = Cythonizer()

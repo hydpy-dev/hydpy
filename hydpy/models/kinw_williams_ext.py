@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Version 2 of HydPy-L-Stream is a computationally more efficient alternative to
-application model |lstream_v001|.  The higher efficiency is due to not calculating
+"""|kinw_williams_ext| is a computationally more efficient alternative to the
+application model |kinw_williams|.  The higher efficiency is due to not calculating
 discharges based on channel geometries but preprocessed relationships between velocity
 and storage, similar to the "V/Q-BEZIEHUNG EXTERN" option of `LARSIM`_.
 
-The "parameter" |VG2FG| describes this relationship.  You can configure it to either
-use a piecewise linear, a spline, or a neural network-based interpolation technique.
-See modules |anntools| and |ppolytools| for further information.  Principally, |VG2FG|
-can fit any relationship provided by |lstream_v001| very accurately.  However, high
+The "parameter" |VG2FG| describes this relationship.  You can configure it using a
+piecewise linear, a spline, or a neural network-based interpolation technique.  See
+modules |anntools| and |ppolytools| for further information.  Principally, |VG2FG| can
+fit any relationship provided by |kinw_williams| very accurately.  However, high
 accuracy might require a considerable number of polynomials or neurons.  At least the
 latter can come with a relevant performance cost.
 
 For simple use cases, one can assign a single value to parameter |VG2FG|, either a
-constant flow velocity or a constant delay time.  |lstream_v002| then works like the
-often-applied linear storage cascade.
+constant flow velocity or a constant delay time.  |kinw_williams_ext| then works like
+the often-applied linear storage cascade.
 
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
 
@@ -23,18 +23,18 @@ Integration tests
 
 .. how_to_understand_integration_tests::
 
-.. _lstream_v002_main_channel_flow:
+.. _kinw_williams_ext_main_channel_flow:
 
 main channel flow
 _________________
 
-The following integration test repeats the :ref:`lstream_v001_main_channel_flow`
-example of the documentation on application model |lstream_v001|.  The spatial and
+The following integration test repeats the :ref:`kinw_williams_main_channel_flow`
+example of the documentation on application model |kinw_williams|.  The spatial and
 temporal settings are identical:
 
 >>> from hydpy import ANN, pub, Nodes, Element
 >>> pub.timegrids = "2000-01-01", "2000-01-05", "30m"
->>> from hydpy.models.lstream_v002 import *
+>>> from hydpy.models.kinw_williams_ext import *
 >>> parameterstep("30m")
 >>> nodes = Nodes("input1", "input2", "output")
 >>> stream = Element("stream",
@@ -42,16 +42,16 @@ temporal settings are identical:
 ...                  outlets="output")
 >>> stream.model = model
 
-We again divide a channel of 100 km length into eight subsections:
+We again divide a channel of 100 km into eight subsections:
 
 >>> laen(100.0)
 >>> gts(8)
 >>> ek(1.0)
 
-Next, we define a relatively small neural network consisting of three neurons in a
-single hidden layer.  This network roughly approximates the flow velocity calculated by
-the Gauckler-Manning-Strickler equation on the triple trapezoid profile defined in the
-:ref:`lstream_v001_main_channel_flow` example:
+Next, we define a relatively small neural network of three neurons in a single hidden
+layer.  This network roughly approximates the flow velocity calculated by the
+Gauckler-Manning-Strickler equation on the triple trapezoid profile defined in the
+:ref:`kinw_williams_main_channel_flow` example:
 
 >>> vg2fg(ANN(nmb_neurons=(3,),
 ...           weights_input=[[1.239962, 8.434961, 0.116195]],
@@ -61,10 +61,10 @@ the Gauckler-Manning-Strickler equation on the triple trapezoid profile defined 
 ...           intercepts_hidden=[[4.346762, 4.553889, 4.197525]],
 ...           intercepts_output=[-134.031566]))
 
-In contrast to application model |lstream_v001|, |lstream_v002| uses the stored water
-volume (|VG|) as its state variable instead of the water stage (|H|).  Hence, we now
-must set |VG| to a value resulting in an initial outflow of 100 m³/s for the defined
-parameterisation of |VG2FG|, which holds for 1.55884384 million m³:
+In contrast to application model |kinw_williams|, |kinw_williams_ext| uses the stored
+water volume (|VG|) as its state variable instead of the water stage (|H|).  Hence, we
+now must set |VG| to a value resulting in an initial outflow of 100 m³/s for the
+defined parameterisation of |VG2FG|, which holds for 1.55884384 million m³:
 
 >>> from hydpy.core.testtools import IntegrationTest
 >>> IntegrationTest.plotting_options.activated = fluxes.qz, fluxes.qa
@@ -76,20 +76,20 @@ Finally, we define two identical inflow time series:
 >>> q_base = 100.0
 >>> q_peak = 900.0
 >>> t_peak = 24.0
->>> β = 16.0
+>>> beta = 16.0
 >>> ts = pub.timegrids.init.to_timepoints()
 >>> nodes.input1.sequences.sim.series = q_base
 >>> nodes.input2.sequences.sim.series = (
-...     (q_peak-q_base)*((ts/t_peak)*numpy.exp(1.0-ts/t_peak))**β)
+...     (q_peak-q_base)*((ts/t_peak)*numpy.exp(1.0-ts/t_peak))**beta)
 
-Our approximation of the velocity-storage relationship is far from perfect.  Still,
-it is, at least in the range relevant for the selected event, sufficient to reproduce
-the original results of application model |lstream_v001| with reasonable accuracy
-(for example, peak flow is 659.6 m³/s instead of 659.0 m³/s):
+Our approximation of the velocity-storage relationship is far from perfect.  Still, at
+least in the range relevant to the selected event, it is sufficient to reproduce the
+original results of application model |kinw_williams| with reasonable accuracy (for
+example, peak flow is 659.6 m³/s instead of 659.0 m³/s):
 
 .. integration-test::
 
-    >>> test("lstream_v002_main_channel_flow")
+    >>> test("kinw_williams_ext_main_channel_flow")
     |                date |         qz |        qza |                                                                                             qg |         qa |                                                                             vg | input1 |     input2 |     output |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2000-01-01 00:00:00 |      100.0 |      100.0 |      100.0       100.0       100.0       100.0       100.0       100.0       100.0       100.0 |      100.0 | 1.558844  1.558844  1.558844  1.558844  1.558844  1.558844  1.558844  1.558844 |  100.0 |        0.0 |      100.0 |
@@ -285,36 +285,36 @@ the original results of application model |lstream_v001| with reasonable accurac
     | 2000-01-04 23:00:00 |      100.0 |      100.0 | 100.000018   100.00025  100.001847  100.009476  100.037622   100.12258  100.340165  100.824996 | 100.824996 | 1.558844  1.558847  1.558864  1.558946   1.55925  1.560173  1.562546  1.567852 |  100.0 |        0.0 | 100.824996 |
     | 2000-01-04 23:30:00 |      100.0 |      100.0 | 100.000015  100.000216  100.001612   100.00835  100.033445  100.109907  100.307534   100.75186 |  100.75186 | 1.558844  1.558846  1.558861  1.558934  1.559205  1.560035   1.56219  1.567052 |  100.0 |        0.0 |  100.75186 |
 
-.. _lstream_v002_linear_storage_cascade:
+.. _kinw_williams_ext_linear_storage_cascade:
 
 linear storage cascade
 ______________________
 
-This example shows how to use |lstream_v002| like a simple linear storage cascade.
-Therefore, you need to assign a constant flow velocity to parameter |VG2FG| via the
-keyword argument `velocity` in m/s.  Alternatively, you can define the number of
-hours it takes for a flood wave to travel through the whole channel via the keyword
-argument `timedelay`.
+This example shows using |kinw_williams_ext| like a simple linear storage cascade.
+Therefore, you must assign a constant flow velocity to parameter |VG2FG| via the
+keyword argument `velocity` in m/s.  Alternatively, you can define the number of hours
+it takes for a flood wave to travel through the whole channel via the keyword argument
+`timedelay`.
 
 When defining a constant flow velocity, be aware that this is also the wave celerity
 due to the assumed linearity.  Hence, we set a velocity of 1.5 m/s, which is higher
-than the average flow velocity in the :ref:`lstream_v002_main_channel_flow` example
-but leads to comparable results.
+than the average flow velocity in the :ref:`kinw_williams_ext_main_channel_flow`
+example but leads to comparable results.
 
-Note that, even when used as a linear storage cascade, |lstream_v002| still relies
-on the numerical integration of its set of differential equations.  Hence, it is
+Note that, even when used as a linear storage cascade, |kinw_williams_ext| still relies
+on the numerical integration of its differential equations.  Hence, it is
 computationally less efficient than Unit Hydrograph based approaches like those
 implemented in application model |arma_rimorido|, especially for short channels and
-high numbers of channel subsections.  On the other hand, |lstream_v002| only requires
-the actual water volume stored in the subsections for describing its current state,
-which is more concise and understandable than the logged values of |arma_rimorido| and
-can simplify the coupling with data assimilation approaches.
+high numbers of channel subsections.  On the other hand, |kinw_williams_ext| only
+requires the actual water volume stored in the subsections to describe its current
+state, which is more concise and understandable than the logged values of
+|arma_rimorido| and can simplify the coupling with data assimilation approaches.
 
 .. integration-test::
 
     >>> vg2fg(velocity=1.5)
     >>> test.inits.vg = 0.83333333
-    >>> test("lstream_v002_linear_storage_cascade")
+    >>> test("kinw_williams_ext_linear_storage_cascade")
     |                date |         qz |        qza |                                                                                             qg |         qa |                                                                             vg | input1 |     input2 |     output |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2000-01-01 00:00:00 |      100.0 |      100.0 |      100.0       100.0       100.0       100.0       100.0       100.0       100.0       100.0 |      100.0 | 0.833333  0.833333  0.833333  0.833333  0.833333  0.833333  0.833333  0.833333 |  100.0 |        0.0 |      100.0 |
@@ -510,7 +510,7 @@ can simplify the coupling with data assimilation approaches.
     | 2000-01-04 23:00:00 |      100.0 |      100.0 |      100.0  100.000004  100.000031  100.000168   100.00075   100.00287  100.009647  100.029032 | 100.029032 | 0.833333  0.833333  0.833334  0.833335  0.833339  0.833356  0.833408  0.833559 |  100.0 |        0.0 | 100.029032 |
     | 2000-01-04 23:30:00 |      100.0 |      100.0 |      100.0  100.000003  100.000025  100.000141  100.000635  100.002448  100.008292  100.025139 | 100.025139 | 0.833333  0.833333  0.833334  0.833334  0.833338  0.833352  0.833398  0.833529 |  100.0 |        0.0 | 100.025139 |
 
-.. _lstream_v002_directly_forwarded_runoff:
+.. _kinw_williams_ext_directly_forwarded_runoff:
 
 directly forwarded runoff
 _________________________
@@ -522,7 +522,7 @@ set the number of subchannels to zero:
 
     >>> laen(0.0)
     >>> gts(0)
-    >>> test("lstream_v002_directly_forwarded_runoff")
+    >>> test("kinw_williams_ext_directly_forwarded_runoff")
     |                date |         qz |        qza | qg |         qa | vg | input1 |     input2 |     output |
     -----------------------------------------------------------------------------------------------------------
     | 2000-01-01 00:00:00 |      100.0 |      100.0 |  - |      100.0 |  - |  100.0 |        0.0 |      100.0 |
@@ -725,32 +725,40 @@ from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import
 from hydpy.auxs.ppolytools import Poly, PPoly  # pylint: disable=unused-import
 from hydpy.exe.modelimports import *
 
-# ...from lstream
-from hydpy.models.lstream import lstream_fluxes
-from hydpy.models.lstream import lstream_model
-from hydpy.models.lstream import lstream_solver
+# ...from kinw
+from hydpy.models.kinw import kinw_fluxes
+from hydpy.models.kinw import kinw_model
+from hydpy.models.kinw import kinw_solver
 
 
 class Model(modeltools.ELSModel):
-    """Version 2 of HydPy-L-Stream."""
+    """|kinw_williams_ext.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="KinW-Williams-Ext",
+        description=(
+            "Williams routing based on an externally calculated volume-discharge "
+            "relationship"
+        ),
+    )
 
     SOLVERPARAMETERS = (
-        lstream_solver.AbsErrorMax,
-        lstream_solver.RelErrorMax,
-        lstream_solver.RelDTMin,
-        lstream_solver.RelDTMax,
+        kinw_solver.AbsErrorMax,
+        kinw_solver.RelErrorMax,
+        kinw_solver.RelDTMin,
+        kinw_solver.RelDTMax,
     )
-    SOLVERSEQUENCES = (lstream_fluxes.QG,)
-    INLET_METHODS = (lstream_model.Pick_Q_V1,)
+    SOLVERSEQUENCES = (kinw_fluxes.QG,)
+    INLET_METHODS = (kinw_model.Pick_Q_V1,)
     RECEIVER_METHODS = ()
     ADD_METHODS = ()
     PART_ODE_METHODS = (
-        lstream_model.Calc_QZA_V1,
-        lstream_model.Calc_QG_V2,
-        lstream_model.Calc_QA_V1,
+        kinw_model.Calc_QZA_V1,
+        kinw_model.Calc_QG_V2,
+        kinw_model.Calc_QA_V1,
     )
-    FULL_ODE_METHODS = (lstream_model.Update_VG_V1,)
-    OUTLET_METHODS = (lstream_model.Pass_Q_V1,)
+    FULL_ODE_METHODS = (kinw_model.Update_VG_V1,)
+    OUTLET_METHODS = (kinw_model.Pass_Q_V1,)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()
     SUBMODELS = ()

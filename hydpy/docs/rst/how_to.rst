@@ -64,7 +64,7 @@ Next, we prepare an object of the respective |Model| subclass (here,
 object.  Through connecting these objects like in "real" projects, we check
 that |lland_dd| does not only calculate the correct outflow but passes it
 correctly to the downstream node (und thus potentially to other models
-downstream).  For routing models as |lstream_v001|, we need to define
+downstream).  For routing models as |kinw_williams|, we need to define
 additional upstream nodes, to make sure the model also receives its inflow
 correctly.
 
@@ -101,10 +101,10 @@ Finally, we define all model input series.  |lland_dd| receives external
 meteorological input only, which we make available via the |IOSequence.series|
 property of the relevant |InputSequence| objects (here we pass hard-coded
 values to, for example, the precipitation sequence |lland_inputs.Nied|).
-Routing models as |lstream_v001| usually do not receive external input
+Routing models as |kinw_williams| usually do not receive external input
 but inflow from upstream models.  More concretely, they pick data from the
 |Sim| sequence(s) of their inlet |Node| object(s) (in the documentation on
-|lstream_v001|, we calculate a design flood-wave on-the-fly and assign it
+|kinw_williams|, we calculate a design flood-wave on-the-fly and assign it
 the simulation sequences of two inlet nodes).  In a "real" *HydPy* project,
 we usually would not provide any time-series data via Python source code
 but use more conventional file formats like NetCDF-CF (see |netcdftools|).
@@ -131,11 +131,11 @@ information not relevant for the user) and |LogSequence| objects (that
 typically provide access to data previously handled by other sequences).
 Redundancy is often due to testing both the "internal" and the "external"
 simulation results.  See for example the tabulated data of the integration
-tests of |lstream_v001|, where the values of flux sequence
-|lstream_fluxes.QA| and the outlet node sequence `output` are
-identical. |lstream_v001| first calculates the outflow values and then
+tests of |kinw_williams|, where the values of flux sequence
+|kinw_fluxes.QA| and the outlet node sequence `output` are
+identical. |kinw_williams| first calculates the outflow values and then
 passes them to the downstream node.  Due to no other models being involved,
-the identity of both series gives us confidence  |lstream_v001| integrates
+the identity of both series gives us confidence  |kinw_williams| integrates
 correctly with all relevant *HydPy* functionalities.
 
 When passing a filename to our test object (in example

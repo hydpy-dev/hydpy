@@ -32,7 +32,7 @@ class GTS(parametertools.Parameter):
     sequences for which each entry corresponds to an individual channel
     subsection:
 
-    >>> from hydpy.models.lstream import *
+    >>> from hydpy.models.kinw import *
     >>> parameterstep()
     >>> gts(3)
     >>> states.h
@@ -133,7 +133,7 @@ class VG2FG(interptools.SimpleInterpolator):
     You can configure the velocity-storage relationship with all functionalities
     provided by classes |ANN| and |PPoly|.  Here, we define a small neural network:
 
-    >>> from hydpy.models.lstream import *
+    >>> from hydpy.models.kinw import *
     >>> parameterstep()
     >>> vg2fg(ANN(weights_input=-1.0, weights_output=0.4,
     ...           intercepts_hidden=0.0, intercepts_output=0.2))

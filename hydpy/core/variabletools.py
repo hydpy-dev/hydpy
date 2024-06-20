@@ -2227,11 +2227,11 @@ class MixinFixedShape:
         """Variables that mix in |MixinFixedShape| are generally initialised with a
         fixed shape.
 
-        We take parameter |lstream_control.BV| of base model |lstream| and sequence
+        We take parameter |kinw_control.BV| of base model |kinw| and sequence
         |exch_factors.WaterLevels| of base model |exch| as examples:
 
         >>> from hydpy import prepare_model
-        >>> prepare_model("lstream").parameters.control.bv.shape
+        >>> prepare_model("kinw").parameters.control.bv.shape
         (2,)
         >>> waterlevels = prepare_model("exch").sequences.factors.waterlevels
         >>> waterlevels.shape

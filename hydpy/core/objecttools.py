@@ -1477,10 +1477,10 @@ def flatten_repr(self: object) -> str:
 
     >>> Node.__str__ = __str__
 
-    The named tuple subclass |lstream_v001.Characteristics| of application model
-    |lstream_v001| relies on function |flatten_repr|:
+    The named tuple subclass |kinw_williams.Characteristics| of application model
+    |kinw_williams| relies on function |flatten_repr|:
 
-    >>> from hydpy.models.lstream_v001 import Characteristics
+    >>> from hydpy.models.kinw_williams import Characteristics
     >>> characteristics = Characteristics(
     ...     waterstage=1.0,
     ...     discharge=5.0,

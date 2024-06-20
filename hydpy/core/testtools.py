@@ -1422,35 +1422,33 @@ but for the given `datetime` object it is `999` instead.
 
 
 class NumericalDifferentiator:
-    """Approximate the derivatives of |ModelSequence| values based on
-    the finite difference approach.
+    """Approximate the derivatives of |ModelSequence| values based on the finite
+    difference approach.
 
     .. _`here`: https://en.wikipedia.org/wiki/Finite_difference_coefficient
 
-    Class |NumericalDifferentiator| is thought for testing purposes only.
-    See, for example, the documentation on method |lstream_model.Calc_RHMDH_V1|,
-    which uses a |NumericalDifferentiator| object to validate that this method
-    calculates the derivative of sequence |lstream_aides.RHM| (`ysequence`)
-    with respect to sequence |lstream_states.H| (`xsequence`) correctly.
-    Therefore, it must know the relationship between |lstream_aides.RHM| and
-    |lstream_states.H|, being defined by method |lstream_model.Calc_RHM_V1|.
+    Class |NumericalDifferentiator| is thought for testing purposes only.  See, for
+    example, the documentation on method |kinw_model.Calc_RHMDH_V1|, which uses a
+    |NumericalDifferentiator| object to validate that this method calculates the
+    derivative of sequence |kinw_aides.RHM| (`ysequence`) with respect to sequence
+    |kinw_states.H| (`xsequence`) correctly. Therefore, it must know the relationship
+    between |kinw_aides.RHM| and |kinw_states.H|, being defined by method
+    |kinw_model.Calc_RHM_V1|.
 
-    See also the documentation on method |lstream_model.Calc_AMDH_UMDH_V1|,
-    which explains how to apply class |NumericalDifferentiator| on multiple target
-    sequences (`ysequences`).  Note that, in order to calculate the correct
-    derivatives of sequences |lstream_aides.AM| and |lstream_aides.UM|, we
-    need not only to pass |lstream_model.Calc_AM_UM_V1|, but also methods
-    |lstream_model.Calc_RHM_V1| and |lstream_model.Calc_RHV_V1|, as sequences
-    |lstream_aides.RHM| and |lstream_aides.RHV|, which are required for
-    calculating |lstream_aides.AM| and |lstream_aides.UM|, depend on
-    |lstream_states.H| themselves.
+    See also the documentation on method |kinw_model.Calc_AMDH_UMDH_V1|, which explains
+    how to apply class |NumericalDifferentiator| on multiple target sequences
+    (`ysequences`).  Note that, in order to calculate the correct derivatives of
+    sequences |kinw_aides.AM| and |kinw_aides.UM|, we need not only to pass
+    |kinw_model.Calc_AM_UM_V1|, but also methods |kinw_model.Calc_RHM_V1| and
+    |kinw_model.Calc_RHV_V1|, as sequences |kinw_aides.RHM| and |kinw_aides.RHV|, which
+    are required for calculating |kinw_aides.AM| and |kinw_aides.UM|, depend on
+    |kinw_states.H| themselves.
 
     Numerical approximations of derivatives are of limited precision.
-    |NumericalDifferentiator| achieves the second order of accuracy due to
-    using the coefficients given `here`_.  If results are too inaccurate,
-    you might improve them by changing the finite difference method
-    (`backward` or `central` instead of `forward`) or by changing the
-    default interval width `dx`.
+    |NumericalDifferentiator| achieves the second order of accuracy due to using the
+    coefficients given `here`_.  If results are too inaccurate, you might improve them
+    by changing the finite difference method (`backward` or `central` instead of
+    `forward`) or by changing the default interval width `dx`.
     """
 
     __NMBNODES = 3

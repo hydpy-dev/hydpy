@@ -1249,6 +1249,8 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
         >>> var.value   # doctest: +ELLIPSIS
         array([], shape=(0, 0), dtype=int...)
         """
+        if (self.NDIM > 0) and not self.__shapeready:
+            self._get_shape()  # raise the proper error
         value = self._prepare_getvalue(
             self._valueready or not self.strict_valuehandling,
             getattr(self.fastaccess, self.name, None),
@@ -1256,8 +1258,8 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
         if value is None:
             substring = "values have" if self.NDIM else "value has"
             raise exceptiontools.AttributeNotReady(
-                f"For variable {objecttools.devicephrase(self)}, "
-                f"no {substring} been defined so far."
+                f"For variable {objecttools.devicephrase(self)}, no {substring} been "
+                f"defined so far."
             )
         return value
 

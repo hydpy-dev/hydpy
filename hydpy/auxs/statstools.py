@@ -13,6 +13,7 @@ import numpy
 
 # ...from HydPy
 import hydpy
+from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import devicetools
 from hydpy.core import objecttools
@@ -2065,7 +2066,7 @@ number of given alternative names being 1.
     formats = tuple(f"%.{d}f" for d in critdigits)
     node2values: collections.defaultdict[devicetools.Node, list[float]]
     node2values = collections.defaultdict(lambda: [])
-    data = numpy.empty((len(nodes), len(criteria)), dtype=float)
+    data = numpy.empty((len(nodes), len(criteria)), dtype=config.NP_FLOAT)
     for idx, node in enumerate(nodes):
         if stepsize is not None:
             sim = seriestools.aggregate_series(

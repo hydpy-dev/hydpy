@@ -1732,7 +1732,7 @@ during a simulation run is not supported but tried for sequence `p` of element \
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
-        >>> from hydpy import HydPy, pub, TestIO, xml_replace, XMLInterface
+        >>> from hydpy import HydPy, pub, round_, TestIO, xml_replace, XMLInterface
         >>> hp = HydPy("LahnH")
         >>> pub.timegrids = "1996-01-01", "1996-01-06", "1d"
         >>> with TestIO():
@@ -1754,8 +1754,8 @@ during a simulation run is not supported but tried for sequence `p` of element \
         ...     dirpath = "LahnH/series/default/"
         ...     os.path.exists(f"{dirpath}land_lahn_2_hland_96_flux_pc.npy")
         ...     os.path.exists(f"{dirpath}land_lahn_3_hland_96_flux_pc.npy")
-        ...     numpy.load(f"{dirpath}land_dill_hland_96_flux_pc.npy")[13+2, 3]
-        ...     numpy.load(f"{dirpath}lahn_2_sim_q_mean.npy")[13+4]
+        ...     round_(numpy.load(f"{dirpath}land_dill_hland_96_flux_pc.npy")[13+2, 3])
+        ...     round_(numpy.load(f"{dirpath}lahn_2_sim_q_mean.npy")[13+4])
         True
         False
         9.0

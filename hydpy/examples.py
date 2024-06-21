@@ -14,6 +14,7 @@ import numpy
 
 # ...from HydPy
 import hydpy
+from hydpy import config
 from hydpy import data
 from hydpy.core import devicetools
 from hydpy.core import importtools
@@ -209,7 +210,7 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
 
     def init_values(seq: TestIOSequence, value1_: float) -> float:
         value2_ = value1_ + len(seq.series.flatten())
-        values_ = numpy.arange(value1_, value2_, dtype=float)
+        values_ = numpy.arange(value1_, value2_, dtype=config.NP_FLOAT)
         seq.testarray = values_.reshape(seq.seriesshape)
         seq.series = seq.testarray.copy()
         return value2_

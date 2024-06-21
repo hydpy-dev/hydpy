@@ -9,6 +9,7 @@ import numpy
 
 # ...from HydPy
 import hydpy
+from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import propertytools
@@ -101,12 +102,11 @@ object, or make a proper Timegrids object available within the pub module.
 
     When assigning inadequate data, you get errors like the following:
 
-    >>> pub.indexer.monthofyear = "wrong"
+    >>> pub.indexer.monthofyear = 1
     Traceback (most recent call last):
     ...
-    ValueError: While trying to assign a new `monthofyear` index array \
-to an Indexer object, the following error occurred: invalid literal for \
-int() with base 10: 'wrong'
+    TypeError: While trying to assign a new `monthofyear` index array to an Indexer \
+object, the following error occurred: 'int' object is not subscriptable
 
     >>> pub.indexer.monthofyear = [[0, 1, 2, 3], [4, 5, 6, 7]]
     Traceback (most recent call last):
@@ -158,8 +158,8 @@ period is `5`.
     @staticmethod
     def _convertandtest(values, name):
         try:
-            type_ = float if isinstance(values[0], float) else int
-            array = numpy.array(values, dtype=type_)
+            type_ = type(values[0])
+            array = numpy.array(values, dtype=config.TYPES_PY2NP.get(type_, type_))
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to assign a new `{name}` "
@@ -188,7 +188,9 @@ period is `5`.
     def _calcidxs(func):
         timegrids = _get_timegrids(func)
         type_ = type(func(timegrids.init[0]))
-        idxs = numpy.empty(len(timegrids.init), dtype=type_)
+        idxs = numpy.empty(
+            len(timegrids.init), dtype=config.TYPES_PY2NP.get(type_, type_)
+        )
         with hydpy.pub.options.timestampleft(True):
             for jdx, date in enumerate(hydpy.pub.timegrids.init):
                 idxs[jdx] = func(date)

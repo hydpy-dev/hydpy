@@ -2605,9 +2605,10 @@ class Get_Infiltration_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbsoils(2)
         >>> fluxes.infiltration = 2.0, 4.0
-        >>> model.get_infiltration_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_infiltration_v1(0))
         2.0
-        >>> model.get_infiltration_v1(1)
+        >>> round_(model.get_infiltration_v1(1))
         4.0
     """
 
@@ -2629,9 +2630,10 @@ class Get_Percolation_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbsoils(2)
         >>> fluxes.percolation = 2.0, 4.0
-        >>> model.get_percolation_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_percolation_v1(0))
         2.0
-        >>> model.get_percolation_v1(1)
+        >>> round_(model.get_percolation_v1(1))
         4.0
     """
 
@@ -2653,9 +2655,10 @@ class Get_SoilWaterAddition_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbsoils(2)
         >>> fluxes.soilwateraddition = 2.0, 4.0
-        >>> model.get_soilwateraddition_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_soilwateraddition_v1(0))
         2.0
-        >>> model.get_soilwateraddition_v1(1)
+        >>> round_(model.get_soilwateraddition_v1(1))
         4.0
     """
 
@@ -2678,9 +2681,10 @@ class Get_SoilWaterRemoval_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbsoils(2)
         >>> fluxes.withdrawal = 2.0, 4.0
-        >>> model.get_soilwaterremoval_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_soilwaterremoval_v1(0))
         2.0
-        >>> model.get_soilwaterremoval_v1(1)
+        >>> round_(model.get_soilwaterremoval_v1(1))
         4.0
     """
 

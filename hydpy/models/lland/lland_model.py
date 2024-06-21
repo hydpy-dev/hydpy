@@ -6,6 +6,7 @@
 import numpy
 
 # ...from HydPy
+from hydpy import config
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
@@ -3380,7 +3381,8 @@ class Return_TempSSurface_V1(modeltools.Method):
         For the first, snow-free response unit, we cannot define a reasonable
         snow surface temperature, of course:
 
-        >>> fluxes.tempssurface[0]
+        >>> from hydpy import round_
+        >>> round_(fluxes.tempssurface[0])
         nan
 
         Comparing response units two and three shows that a moderate increase
@@ -6984,9 +6986,10 @@ class Get_Temperature_V1(modeltools.Method):
         >>> parameterstep()
         >>> nhru(2)
         >>> fluxes.tkor = 2.0, 4.0
-        >>> model.get_temperature_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_temperature_v1(0))
         2.0
-        >>> model.get_temperature_v1(1)
+        >>> round_(model.get_temperature_v1(1))
         4.0
     """
 
@@ -7030,9 +7033,10 @@ class Get_Precipitation_V1(modeltools.Method):
         >>> parameterstep()
         >>> nhru(2)
         >>> fluxes.nkor = 2.0, 4.0
-        >>> model.get_precipitation_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_precipitation_v1(0))
         2.0
-        >>> model.get_precipitation_v1(1)
+        >>> round_(model.get_precipitation_v1(1))
         4.0
     """
 
@@ -7054,9 +7058,10 @@ class Get_InterceptedWater_V1(modeltools.Method):
         >>> parameterstep()
         >>> nhru(2)
         >>> states.inzp = 2.0, 4.0
-        >>> model.get_interceptedwater_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_interceptedwater_v1(0))
         2.0
-        >>> model.get_interceptedwater_v1(1)
+        >>> round_(model.get_interceptedwater_v1(1))
         4.0
     """
 
@@ -7078,9 +7083,10 @@ class Get_SoilWater_V1(modeltools.Method):
         >>> parameterstep()
         >>> nhru(2)
         >>> states.bowa = 2.0, 4.0
-        >>> model.get_soilwater_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_soilwater_v1(0))
         2.0
-        >>> model.get_soilwater_v1(1)
+        >>> round_(model.get_soilwater_v1(1))
         4.0
     """
 
@@ -7162,9 +7168,10 @@ class Get_SnowAlbedo_V1(modeltools.Method):
         >>> parameterstep()
         >>> nhru(2)
         >>> fluxes.actualalbedo = 2.0, 4.0
-        >>> model.get_snowalbedo_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_snowalbedo_v1(0))
         2.0
-        >>> model.get_snowalbedo_v1(1)
+        >>> round_(model.get_snowalbedo_v1(1))
         4.0
     """
 
@@ -7428,7 +7435,7 @@ class _Main_AETModel_V1(modeltools.AdHocModel):
         aetmodel.prepare_subareas(control.fhru.values * control.ft.value)
         aetmodel.prepare_leafareaindex(control.lai.values)
         aetmodel.prepare_maxsoilwater(control.wmax.values)
-        sel = numpy.full(nhru, False, dtype=bool)
+        sel = numpy.full(nhru, False, dtype=config.NP_BOOL)
         sel[lnk == WASSER] = True
         sel[lnk == FLUSS] = True
         sel[lnk == SEE] = True
@@ -7439,7 +7446,7 @@ class _Main_AETModel_V1(modeltools.AdHocModel):
         sel[lnk == BODEN] = True
         sel[lnk == GLETS] = True
         aetmodel.prepare_plant(~sel)
-        sel = numpy.full(nhru, False, dtype=bool)
+        sel = numpy.full(nhru, False, dtype=config.NP_BOOL)
         sel[lnk == NADELW] = True
         aetmodel.prepare_conifer(sel)
         sel[lnk == LAUBW] = True

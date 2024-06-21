@@ -760,6 +760,10 @@ class _Repr:
                 if string == "-0.0":
                     return "0.0"
                 return string
+        if isinstance(value, config.NP_INT):
+            return str(int(value))
+        if isinstance(value, config.NP_BOOL):
+            return str(bool(value))
         return repr(value)
 
     @staticmethod
@@ -1887,12 +1891,13 @@ string=f"a {10*'very '}long test"))
         string="a very very very very very very very very very very long test",
     )
     """
-    arguments = ", ".join(
-        itertools.chain(
-            (repr(arg) for arg in args),
-            (f"{name}={repr(value)}" for name, value in kwargs.items()),
+    with repr_.preserve_strings(True):
+        arguments = ", ".join(
+            itertools.chain(
+                (repr_(arg) for arg in args),
+                (f"{name}={repr_(value)}" for name, value in kwargs.items()),
+            )
         )
-    )
     return black.format_str(f"{name}({arguments})", mode=_black_filemode)[:-1]
 
 

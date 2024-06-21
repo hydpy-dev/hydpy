@@ -377,7 +377,8 @@ at least one cycle: (1, 4), (4, 5), and (5, 1).
         if len(idxs):
             dg = networkx.DiGraph(zip(idxs, jdxs))
             try:
-                first_cycle = networkx.find_cycle(dg)
+                repr_tuple = objecttools.repr_tuple
+                first_cycle = (repr_tuple(c) for c in networkx.find_cycle(dg))
                 raise RuntimeError(
                     f"The weighting factors of parameter "
                     f"{objecttools.elementphrase(sred)} define at least one cycle: "

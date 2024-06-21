@@ -12,6 +12,7 @@ import warnings
 import numpy
 
 # ...from HydPy
+from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
@@ -475,7 +476,7 @@ arguments are given, which is ambiguous.
     @staticmethod
     @functools.lru_cache()
     def _lognormal(sclass, scale: float) -> VectorFloat:
-        values = numpy.ones(sclass, dtype=float)
+        values = numpy.ones(sclass, dtype=config.NP_FLOAT)
         if scale > 0.0:
             for idx in range(sclass):
                 values[idx] = integrate.quad(
@@ -884,7 +885,7 @@ arguments are given, which is ambiguous.
         types_ = self.subpars.zonetype.value
         zonez = self.subpars.zonez.value
         zonez_sorted = numpy.sort(numpy.unique(zonez))[::-1]
-        values = numpy.zeros((nmbzones, nmbzones), dtype=float)
+        values = numpy.zeros((nmbzones, nmbzones), dtype=config.NP_FLOAT)
         zonez_min = numpy.min(zonez)
         for idx, (z_upper, type_, nzone) in enumerate(zip(zonez, types_, nzones)):
             if (type_ != ILAKE) and (z_upper > zonez_min):

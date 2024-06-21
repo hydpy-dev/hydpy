@@ -256,7 +256,7 @@ sequence and connect it to the respective outlet nodes properly.
             names = self.subpars.pars.model.nodenames
             lines = []
             for idx, (name, values) in enumerate(zip(names, self._get_value())):
-                line = f"{name}={repr(list(values))},"
+                line = f"{name}={objecttools.repr_list(values)},"
                 if not idx:
                     lines.append(f"ypoints({line}")
                 else:

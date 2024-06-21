@@ -38,7 +38,8 @@ arr1 (2,), arr2 (1,), and arr3 (2,).
     shapes = numpy.array([numpy.array(array).shape for array in kwargs.values()])
     if any(shapes[:-1] != shapes[1:]):
         string = objecttools.enumeration(
-            f"{name} {tuple(shape)}" for (name, shape) in sorted(zip(names, shapes))
+            f"{name} {objecttools.repr_tuple(shape)}"
+            for (name, shape) in sorted(zip(names, shapes))
         )
         raise ValueError(
             f"The shapes of the following objects are not equal: {string}."

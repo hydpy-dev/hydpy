@@ -17,6 +17,7 @@ import numpy
 
 # ...from HydPy
 import hydpy
+from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import propertytools
@@ -258,7 +259,7 @@ class FastAccessLinkSequence(variabletools.FastAccess):
         |LinkSequence| object with the given name."""
         value = getattr(self, name)[:]
         if self._get_attribute(name, "ndim"):
-            return numpy.asarray(value, dtype=float)
+            return numpy.asarray(value, dtype=config.NP_FLOAT)
         return float(value)
 
     def set_value(self, name: str, value: Mayberable1[float]) -> None:
@@ -1867,7 +1868,9 @@ during a simulation run is not supported but tried for sequence `t` of element \
         if allocate_ram is not None:
             ramflag = self.ramflag
             if allocate_ram and not ramflag:
-                self.__set_array(numpy.full(self.seriesshape, numpy.nan, dtype=float))
+                self.__set_array(
+                    numpy.full(self.seriesshape, numpy.nan, dtype=config.NP_FLOAT)
+                )
             if ramflag and not allocate_ram:
                 del self.series
             self._set_fastaccessattribute("ramflag", allocate_ram)
@@ -1986,7 +1989,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
         )
 
     def __set_array(self, values):
-        values = numpy.array(values, dtype=float)
+        values = numpy.array(values, dtype=config.NP_FLOAT)
         self._set_fastaccessattribute("array", values)
 
     def _get_shape(self) -> tuple[int, ...]:
@@ -2003,7 +2006,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
     def _set_shape(self, shape: Union[int, tuple[int, ...]]):
         super()._set_shape(shape)
         if self.ramflag:
-            values = numpy.full(self.seriesshape, numpy.nan, dtype=float)
+            values = numpy.full(self.seriesshape, numpy.nan, dtype=config.NP_FLOAT)
             self.__set_array(values)
         self.update_fastaccess()
 
@@ -2031,7 +2034,9 @@ during a simulation run is not supported but tried for sequence `t` of element \
 
     def _set_series(self, values) -> None:
         if self.ramflag:
-            self.__set_array(numpy.full(self.seriesshape, values, dtype=float))
+            self.__set_array(
+                numpy.full(self.seriesshape, values, dtype=config.NP_FLOAT)
+            )
             self.check_completeness()
         else:
             raise exceptiontools.AttributeNotReady(
@@ -2174,14 +2179,14 @@ sequencemanager of module `pub` is not defined at the moment.
         >>> import numpy
         >>> with TestIO(), pub.options.checkseries(False):
         ...     obs.adjust_series(Timegrid("1996-01-01", "1996-01-05", "1d"),
-        ...                       numpy.arange(4, dtype=float))
+        ...                       numpy.arange(4, dtype=config.NP_FLOAT))
         array([0., 1., 2., 3.])
 
         For "too long" data, it only returns the relevant one:
 
         >>> with TestIO(), pub.options.checkseries(False):
         ...     obs.adjust_series(Timegrid("1995-12-31", "1996-01-07", "1d"),
-        ...                       numpy.arange(7, dtype=float))
+        ...                       numpy.arange(7, dtype=config.NP_FLOAT))
         array([1., 2., 3., 4.])
 
         For "too short" data, the behaviour differs depending on option
@@ -2578,14 +2583,13 @@ its series to a 2-dimensional matrix.
         InfoArray([nan, nan, nan])
 
         >>> maskvalues = [True, True]
-        >>> sm.average_series()
+        >>> sm.average_series()  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         IndexError: While trying to calculate the mean value of the internal time \
 series of sequence `soilmoisture`, the following error occurred: While trying to \
 access the value(s) of variable `area` with key `[ True  True]`, the following error \
-occurred: boolean index did not match indexed array along dimension 0; dimension is 3 \
-but corresponding boolean dimension is 2
+occurred: boolean index did not match indexed array ...
         """
         try:
             if not self.NDIM:
@@ -2598,7 +2602,9 @@ but corresponding boolean dimension is 2
                     series = self.seriesmatrix[:, mask]
                     array = numpy.sum(weights * series, axis=1)
                 else:
-                    array = numpy.full(len(self.series), numpy.nan, dtype=float)
+                    array = numpy.full(
+                        len(self.series), numpy.nan, dtype=config.NP_FLOAT
+                    )
             return InfoArray(array, aggregation="mean")
         except BaseException:
             objecttools.augment_excmessage(

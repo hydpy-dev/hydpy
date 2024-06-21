@@ -6,7 +6,9 @@
 import numpy
 
 # ...from HydPy
+from hydpy import config
 from hydpy.core import devicetools
+from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 
@@ -82,7 +84,7 @@ Node("in3", variable="Q"))
 
     def __call__(self, *args, **kwargs) -> None:
         nodes = []
-        coordinates = numpy.empty((len(kwargs), 2), dtype=float)
+        coordinates = numpy.empty((len(kwargs), 2), dtype=config.NP_FLOAT)
         for idx, (name, values) in enumerate(kwargs.items()):
             nodes.append(devicetools.Node(name))
             coordinates[idx, :] = values
@@ -96,7 +98,7 @@ Node("in3", variable="Q"))
         lines = []
         if self.nodes:
             for idx, node in enumerate(self.nodes):
-                entry = f"{node.name}={tuple(self.values[idx, :])}"
+                entry = f"{node.name}={objecttools.repr_tuple(self.values[idx, :])}"
                 if not idx:
                     lines.append(f"{prefix}{entry}")
                 else:
@@ -185,7 +187,7 @@ Node("in3", variable="Q"))
 
     def __call__(self, *args, **kwargs) -> None:
         nodes = []
-        heights = numpy.empty(len(kwargs), dtype=float)
+        heights = numpy.empty(len(kwargs), dtype=config.NP_FLOAT)
         for idx, (name, value) in enumerate(kwargs.items()):
             nodes.append(devicetools.Node(name))
             heights[idx] = value

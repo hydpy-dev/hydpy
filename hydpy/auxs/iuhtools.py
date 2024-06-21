@@ -17,6 +17,7 @@ import math
 import numpy
 
 # ...from Hydpy
+from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core.typingtools import *
@@ -529,7 +530,7 @@ class LinearStorageCascade(IUH):
                 - t / self._k
             )
         t = numpy.asarray(t)
-        values = numpy.zeros(t.shape, dtype=float)
+        values = numpy.zeros(t.shape, dtype=config.NP_FLOAT)
         idxs = t > 0.0
         t = t[idxs]
         values[idxs] = numpy.exp(

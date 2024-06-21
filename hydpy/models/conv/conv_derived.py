@@ -7,6 +7,7 @@
 import numpy
 
 # ...from HydPy
+from hydpy import config
 from hydpy.core import parametertools
 from hydpy.models.conv import conv_control
 from hydpy.models.conv import conv_fluxes
@@ -135,7 +136,7 @@ class Distances(parametertools.Parameter):
         control = self.subpars.pars.control
         incoords = control.inputcoordinates.values
         outcoords = control.outputcoordinates.values
-        distances = numpy.empty((len(outcoords), len(incoords)), dtype=float)
+        distances = numpy.empty((len(outcoords), len(incoords)), dtype=config.NP_FLOAT)
         for idx, outcoord in enumerate(outcoords):
             distances[idx, :] = numpy.sqrt(
                 numpy.sum((outcoord - incoords) ** 2, axis=1)
@@ -193,7 +194,7 @@ class ProximityOrder(parametertools.Parameter):
         control = self.subpars.pars.control
         nmbinputs = control.maxnmbinputs.value
         distances = self.subpars.distances.values
-        idxs = numpy.empty((len(distances), nmbinputs), dtype=int)
+        idxs = numpy.empty((len(distances), nmbinputs), dtype=config.NP_INT)
         for idx, distances_ in enumerate(distances):
             idxs[idx, :] = numpy.argsort(distances_)[:nmbinputs]
         self._set_shape(idxs.shape)
@@ -261,7 +262,7 @@ class Weights(parametertools.Parameter):
         power = control.power.value
         distances = self.subpars.distances.values
         proximityorder = self.subpars.proximityorder.values
-        weights = numpy.empty((len(distances), nmbinputs), dtype=float)
+        weights = numpy.empty((len(distances), nmbinputs), dtype=config.NP_FLOAT)
         for idx, distances_ in enumerate(distances):
             sorteddistances = distances_[proximityorder[idx, :]]
             jdxs = sorteddistances > 0.0

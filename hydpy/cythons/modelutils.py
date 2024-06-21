@@ -341,16 +341,16 @@ def get_dllextension() -> str:
 
 _dllextension = get_dllextension()
 
-_int = "numpy." + str(numpy.array([1]).dtype) + "_t"
+INT = "numpy.int64_t"
 
 TYPE2STR: dict[Union[type[Any], str, None], str] = {  # pylint: disable=duplicate-key
     bool: "numpy.npy_bool",
     "bool": "numpy.npy_bool",
-    int: _int,
-    "int": _int,
-    parametertools.IntConstant: _int,
-    "parametertools.IntConstant": _int,
-    "IntConstant": _int,
+    int: INT,
+    "int": INT,
+    parametertools.IntConstant: INT,
+    "parametertools.IntConstant": INT,
+    "IntConstant": INT,
     float: "double",
     "float": "double",
     str: "str",
@@ -448,7 +448,7 @@ def get_methodheader(
     if not config.FASTCYTHON:
         nogil = False
     nogil_ = " noexcept nogil" if nogil else ""
-    idxarg_ = f", {_int} idx" if idxarg else ""
+    idxarg_ = f", {INT} idx" if idxarg else ""
     inline_ = " inline" if inline else ""
     return f"cpdef{inline_} void {methodname}(self{idxarg_}){nogil_}:"
 
@@ -1005,14 +1005,14 @@ class PyxWriter:
                         pxd(1, f"cdef double *{seq.name}")
                     elif seq.NDIM == 1:
                         pxd(1, f"cdef double **{seq.name}")
-                        pxd(1, f"cdef public {_int} len_{seq.name}")
+                        pxd(1, f"cdef public {INT} len_{seq.name}")
                         pxd(1, f"cdef public {TYPE2STR[int]}[:] _{seq.name}_ready")
                 else:
                     pxd(1, f"cdef public {ctype} {seq.name}")
-                pxd(1, f"cdef public {_int} _{seq.name}_ndim")
-                pxd(1, f"cdef public {_int} _{seq.name}_length")
+                pxd(1, f"cdef public {INT} _{seq.name}_ndim")
+                pxd(1, f"cdef public {INT} _{seq.name}_length")
                 for idx in range(seq.NDIM):
-                    pxd(1, f"cdef public {_int} _{seq.name}_length_{idx}")
+                    pxd(1, f"cdef public {INT} _{seq.name}_length_{idx}")
                 if seq.NUMERIC:
                     ctype_numeric = "double" + NDIM2STR[seq.NDIM + 1]
                     pxd(1, f"cdef public {ctype_numeric} _{seq.name}_points")
@@ -1062,7 +1062,7 @@ class PyxWriter:
         maxndim = max(seq.NDIM for seq in subseqs)
         if maxndim:
             jdxs = ", ".join(f"jdx{ndim}" for ndim in range(maxndim))
-            lines.pyx.add(2, f"cdef {_int} {jdxs}")
+            lines.pyx.add(2, f"cdef {INT} {jdxs}")
 
     def reset_reuseflags(self, lines: PyxPxdLines) -> None:
         """Reset reuse flag statements."""
@@ -1085,9 +1085,9 @@ class PyxWriter:
         """Load data statements."""
         print("            . load_data")
         pyx, both = lines.pyx.add, lines.add
-        both(1, f"cpdef inline void load_data(self, {_int} idx) {_nogil}:")
+        both(1, f"cpdef inline void load_data(self, {INT} idx) {_nogil}:")
         cls._add_cdef_jdxs(lines, subseqs)
-        pyx(2, f"cdef {_int} k")
+        pyx(2, f"cdef {INT} k")
         for seq in subseqs:
             if isinstance(seq, sequencetools.InputSequence) and (seq.NDIM == 0):
                 pyx(2, f"if self._{seq.name}_inputflag:")
@@ -1133,9 +1133,9 @@ class PyxWriter:
         """Save data statements."""
         print("            . save_data")
         pyx, both = lines.pyx.add, lines.add
-        both(1, f"cpdef inline void save_data(self, {_int} idx) {_nogil}:")
+        both(1, f"cpdef inline void save_data(self, {INT} idx) {_nogil}:")
         cls._add_cdef_jdxs(lines, subseqs)
-        pyx(2, f"cdef {_int} k")
+        pyx(2, f"cdef {INT} k")
         for seq in subseqs:
             pyx(2, f"if self._{seq.name}_diskflag_writing:")
             if seq.NDIM == 0:
@@ -1213,7 +1213,7 @@ class PyxWriter:
         print("            . get_value")
         pyx, both = lines.pyx.add, lines.add
         both(1, "cpdef get_value(self, str name):")
-        pyx(2, f"cdef {_int} idx")
+        pyx(2, f"cdef {INT} idx")
         for seq in subseqs:
             pyx(2, f'if name == "{seq.name}":')
             if seq.NDIM == 0:
@@ -1290,7 +1290,7 @@ class PyxWriter:
         both(
             1,
             "cpdef inline set_pointer1d"
-            f"(self, str name, pointerutils.Double value, {_int} idx):",
+            f"(self, str name, pointerutils.Double value, {INT} idx):",
         )
         pyx(2, "cdef pointerutils.PDouble pointer = pointerutils.PDouble(value)")
         for seq in (seq for seq in subseqs if seq.NDIM == 1):
@@ -1433,7 +1433,7 @@ class PyxWriter:
             for name, member in vars(cls).items():
                 if isinstance(member, modeltools.IndexProperty):
                     if (name != "idx_sim") or not follows_interface:
-                        pxd(1, f"cdef public {_int} {name}")
+                        pxd(1, f"cdef public {INT} {name}")
         if isinstance(self.model, modeltools.SubstepModel):
             pxd(1, f"cdef public {TYPE2STR[float]} timeleft")
         if self.model.parameters:
@@ -1511,7 +1511,7 @@ class PyxWriter:
         """Simulation statements."""
         print("                . simulate")
         pyx, both = lines.pyx.add, lines.add
-        both(1, f"cpdef inline void simulate(self, {_int} idx) {_nogil}:")
+        both(1, f"cpdef inline void simulate(self, {INT} idx) {_nogil}:")
         pyx(2, "self.idx_sim = idx")
         if self.model.REUSABLE_METHODS or self.model.find_submodels(
             include_optional=True, include_subsubmodels=False, repeat_sharedmodels=True
@@ -1542,7 +1542,7 @@ class PyxWriter:
         )
         pyx = lines.pyx.add
         if any(name.endswith("_*") for name in name2submodel):
-            pyx(2, f"cdef {_int} i_submodel")
+            pyx(2, f"cdef {INT} i_submodel")
         for fullname in name2submodel:
             name = fullname.rpartition(".")[2]
             if name.endswith("_*"):
@@ -1962,9 +1962,9 @@ class PyxWriter:
         for seq in subseqs:
             maxdim = max(maxdim, seq.NDIM)
         if maxdim == 1:
-            yield f"cdef {_int} idx0"
+            yield f"cdef {INT} idx0"
         elif maxdim == 2:
-            yield f"cdef {_int} idx0, idx1"
+            yield f"cdef {INT} idx0, idx1"
 
     @decorate_method
     def get_point_states(self) -> Iterator[str]:
@@ -2039,11 +2039,11 @@ class PyxWriter:
         for seq in self.model.sequences.fluxes.numericsequences:
             max_ndim = max(max_ndim, seq.NDIM)
         if max_ndim == 0:
-            yield f"cdef {_int} jdx"
+            yield f"cdef {INT} jdx"
         elif max_ndim == 1:
-            yield f"cdef {_int} jdx, idx0"
+            yield f"cdef {INT} jdx, idx0"
         elif max_ndim == 2:
-            yield f"cdef {_int} jdx, idx0, idx1"
+            yield f"cdef {INT} jdx, idx0, idx1"
         for seq in self.model.sequences.fluxes.numericsequences:
             to_ = f"self.sequences.fluxes.{seq.name}"
             from_ = f"self.sequences.fluxes._{seq.name}_points"
@@ -2740,9 +2740,9 @@ get_partialdischargedownstream()
         code = inspect.getsource(self.realfunc)
         for name in self.untypedinternalvarnames:
             if (f" {name}: float" in code) or name.startswith("d_"):
-                cytype = "double"
+                cytype = TYPE2STR[float]
             else:
-                cytype = "int"
+                cytype = TYPE2STR[int]
             lines.insert(1, f"    cdef {cytype} {name}")
         for idx, line in enumerate(lines):
             if "cast(" in line:

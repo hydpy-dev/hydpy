@@ -14,9 +14,8 @@ import Cython.Build
 import numpy
 import setuptools
 
-# Determine the correct type string for integer values in Cython compatible with numpy
-# on the respective machine:
-INT = f"numpy.{numpy.array([1]).dtype}_t"
+
+INT = "numpy.int64_t"
 
 
 def _clear_autogendir() -> None:

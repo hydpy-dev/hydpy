@@ -6,6 +6,7 @@
 import numpy
 
 # ...from HydPy
+from hydpy import config
 from hydpy.core.typingtools import *
 from hydpy.models.musk import musk_sequences
 
@@ -58,7 +59,7 @@ class Discharge(musk_sequences.StateSequence1D):
         """
         nmbsegments = self.subseqs.seqs.model.parameters.control.nmbsegments.value
         if nmbsegments == 0:
-            return numpy.array([1.0], dtype=float)
-        weights = numpy.ones(nmbsegments + 1, dtype=float)
+            return numpy.array([1.0], dtype=config.NP_FLOAT)
+        weights = numpy.ones(nmbsegments + 1, dtype=config.NP_FLOAT)
         weights[1:-1] += 1.0
         return weights / numpy.sum(weights)

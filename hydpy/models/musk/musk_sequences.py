@@ -9,6 +9,7 @@ import warnings
 import numpy
 
 # ...from HydPy
+from hydpy import config
 from hydpy.core.typingtools import *
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
@@ -32,7 +33,7 @@ class MixinSequence1D:
         array([0.25, 0.25, 0.25, 0.25])
         """
         nmbsegments = self.subseqs.seqs.model.parameters.control.nmbsegments.values
-        return numpy.full(nmbsegments, 1.0 / nmbsegments, dtype=float)
+        return numpy.full(nmbsegments, 1.0 / nmbsegments, dtype=config.NP_FLOAT)
 
 
 class StateSequence1D(  # type: ignore[misc]

@@ -9,6 +9,7 @@ from __future__ import annotations
 import numpy
 
 # ...from HydPy
+from hydpy import config
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
@@ -416,13 +417,13 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
         "uh2".
         """
         if (x4 <= 0.5) or (left and x4 <= 1.0):
-            return 1, numpy.ones(1, dtype=float)
+            return 1, numpy.ones(1, dtype=config.NP_FLOAT)
 
         if left:
             ts = numpy.arange(1.0, x4)
         else:
             ts = numpy.arange(2.0 * x4 - numpy.ceil(x4), 0.0, -1.0)[::-1]
-        totals = numpy.empty(len(ts) + 2, dtype=float)
+        totals = numpy.empty(len(ts) + 2, dtype=config.NP_FLOAT)
         totals[1:-1] = (ts / x4) ** beta
         totals[0], totals[-1] = 0.0, 1.0
         deltas = numpy.diff(totals)

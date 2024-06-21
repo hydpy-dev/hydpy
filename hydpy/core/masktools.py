@@ -42,7 +42,7 @@ class BaseMask(NDArrayBool):
             return numpy.ndarray.__new__(cls, 0, **kwargs)
         return numpy.asarray(array, **kwargs).view(cls)
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> str:  # ToDo: required?
         return numpy.ndarray.__repr__(self).replace(", dtype=bool", "")
 
 
@@ -237,7 +237,7 @@ as long as parameter `zonetype` is not prepared properly.
             relevant = variable.relevant  # ToDo: add an hland evap_hbv example
         else:
             relevant = cls.relevant
-        mask = cls.array2mask(numpy.in1d(indices.values, relevant), **kwargs)
+        mask = cls.array2mask(numpy.isin(indices.values, relevant), **kwargs)
         if (refinement := cls.get_refinement(variable)) is not None:
             mask[~refinement.values] = False
         return mask

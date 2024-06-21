@@ -3,6 +3,7 @@
 
 # import...
 # ...from HydPy
+from hydpy.core import objecttools
 from hydpy.core import sequencetools
 
 
@@ -39,7 +40,7 @@ class Outputs(sequencetools.FluxSequence):
         names = self.subseqs.seqs.model.nodenames
         lines = []
         for idx, (name, values) in enumerate(zip(names, self.values)):
-            line = f"{name}={repr(values)},"
+            line = f"{name}={objecttools.repr_(values)},"
             if not idx:
                 lines.append(f"outputs({line}")
             else:

@@ -1990,7 +1990,8 @@ valid.
         else:
             values = [int(string)]
         get = self.constants.value2name.get
-        names = tuple(get(value, repr(value)) for value in values)
+        repr_ = objecttools.repr_
+        names = tuple(get(value, repr_(value)) for value in values)
         string = objecttools.assignrepr_values(
             values=names, prefix=f"{self.name}(", width=70
         )
@@ -2712,14 +2713,15 @@ broadcast input array from shape (2,) into shape (366,3)
 
         >>> par.values = 1.0
         >>> par.refresh()
-        >>> par.values[0]
+        >>> from hydpy import round_
+        >>> round_(par.values[0])
         0.0
 
         When there is only one toy-value pair, its values are relevant for all actual
         simulation values:
 
         >>> par.toy_1 = 2.0  # calls refresh automatically
-        >>> par.values[0]
+        >>> round_(par.values[0])
         2.0
 
         Method |SeasonalParameter.refresh| performs a linear interpolation for the
@@ -2727,12 +2729,11 @@ broadcast input array from shape (2,) into shape (366,3)
         example, the original values of the toy-value pairs do not show up:
 
         >>> par.toy_12_31 = 4.0
-        >>> from hydpy import round_
         >>> round_(par.values[0])
         2.00274
         >>> round_(par.values[-2])
         3.99726
-        >>> par.values[-1]
+        >>> round_(par.values[-1])
         3.0
 
         If one wants to preserve the original values in this example, one must set the
@@ -2742,13 +2743,13 @@ broadcast input array from shape (2,) into shape (366,3)
         >>> del par.toy_12_31
         >>> par.toy_1_1_12 = 2
         >>> par.toy_12_31_12 = 4.0
-        >>> par.values[0]
+        >>> round_(par.values[0])
         2.0
         >>> round_(par.values[1])
         2.005479
         >>> round_(par.values[-2])
         3.994521
-        >>> par.values[-1]
+        >>> round_(par.values[-1])
         4.0
 
         For short initialisation periods, method |SeasonalParameter.refresh| performs
@@ -3331,7 +3332,7 @@ for axis 0 with size 1
     def __getattr__(self, key):
         if key in self.entrynames:
             try:
-                return self.values[self.entrynames.index(key)]
+                return self.TYPE(self.values[self.entrynames.index(key)])
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to retrieve a value from parameter "
@@ -3788,7 +3789,7 @@ attribute nor a row or column related attribute named `wrong`.
         if key in self._rowcolumnmappings:
             idx, jdx = self._rowcolumnmappings[key]
             try:
-                return self.values[idx, jdx]
+                return self.TYPE(self.values[idx, jdx])
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to retrieve values from parameter "
@@ -3962,7 +3963,7 @@ parameter value must be given, but is not.
     @property
     def left(self) -> float:
         """The "left" value of the actual parameter object."""
-        return self.values[0]
+        return self.TYPE(self.values[0])
 
     @left.setter
     def left(self, value):
@@ -3971,7 +3972,7 @@ parameter value must be given, but is not.
     @property
     def right(self) -> float:
         """The "right" value of the actual parameter object."""
-        return self.values[1]
+        return self.TYPE(self.values[1])
 
     @right.setter
     def right(self, value):

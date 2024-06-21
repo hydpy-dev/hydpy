@@ -106,13 +106,14 @@ class Return_Mean_V1(modeltools.Method):
         >>> fluxes.outputs.shape = 3
         >>> fluxes.inputs = 0.0, 1.0, 5.0
         >>> fluxes.outputs = 9.9, 9.9, 9.9
-        >>> model.return_mean_v1(fluxes.inputs.values, fluxes.outputs.values, 3)
+        >>> from hydpy import round_
+        >>> round_(model.return_mean_v1(fluxes.inputs.values, fluxes.outputs.values, 3))
         2.0
         >>> fluxes.outputs = nan, 9.9, nan
-        >>> model.return_mean_v1(fluxes.inputs.values, fluxes.outputs.values, 3)
+        >>> round_(model.return_mean_v1(fluxes.inputs.values, fluxes.outputs.values, 3))
         1.0
         >>> fluxes.outputs = nan, nan, nan
-        >>> model.return_mean_v1(fluxes.inputs.values, fluxes.outputs.values, 3)
+        >>> round_(model.return_mean_v1(fluxes.inputs.values, fluxes.outputs.values, 3))
         nan
     """
 

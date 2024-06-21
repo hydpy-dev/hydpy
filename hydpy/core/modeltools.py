@@ -4442,7 +4442,7 @@ class ELSModel(SolverModel):
         >>> model.calculate_error()
         >>> round_(model.numvars.abserror)
         1.0
-        >>> model.numvars.relerror
+        >>> round_(model.numvars.relerror)
         inf
 
         >>> model.numvars.use_relerror = True
@@ -4463,7 +4463,7 @@ class ELSModel(SolverModel):
         >>> model.calculate_error()
         >>> round_(model.numvars.abserror)
         0.0
-        >>> model.numvars.relerror
+        >>> round_(model.numvars.relerror)
         inf
 
         >>> from hydpy import reverse_model_wildcard_import
@@ -4493,7 +4493,7 @@ class ELSModel(SolverModel):
         >>> model.calculate_error()
         >>> round_(model.numvars.abserror)
         0.0
-        >>> model.numvars.relerror
+        >>> round_(model.numvars.relerror)
         inf
         """
         self.numvars.abserror = 0.0

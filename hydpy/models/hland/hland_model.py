@@ -7,6 +7,7 @@
 import numpy
 
 # ...from HydPy
+from hydpy import config
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
@@ -1275,7 +1276,8 @@ class Calc_Refr_SP_WC_V1(modeltools.Method):
 
         >>> cfmax
         cfmax(4.0)
-        >>> cfmax.values[0]
+        >>> from hydpy import round_
+        >>> round_(cfmax.values[0])
         2.0
 
         When the actual temperature equals the threshold temperature for melting and
@@ -1868,7 +1870,8 @@ class Calc_CF_SM_V1(modeltools.Method):
 
         >>> cflux
         cflux(4.0)
-        >>> cflux.values[0]
+        >>> from hydpy import round_
+        >>> round_(cflux.values[0])
         2.0
 
         For fields and forests, the actual capillary return flow depends only on the
@@ -4267,9 +4270,10 @@ class Get_Temperature_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbzones(2)
         >>> factors.tc = 2.0, 4.0
-        >>> model.get_temperature_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_temperature_v1(0))
         2.0
-        >>> model.get_temperature_v1(1)
+        >>> round_(model.get_temperature_v1(1))
         4.0
     """
 
@@ -4313,9 +4317,10 @@ class Get_Precipitation_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbzones(2)
         >>> fluxes.pc = 2.0, 4.0
-        >>> model.get_precipitation_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_precipitation_v1(0))
         2.0
-        >>> model.get_precipitation_v1(1)
+        >>> round_(model.get_precipitation_v1(1))
         4.0
     """
 
@@ -4337,9 +4342,10 @@ class Get_InterceptedWater_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbzones(2)
         >>> states.ic = 2.0, 4.0
-        >>> model.get_interceptedwater_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_interceptedwater_v1(0))
         2.0
-        >>> model.get_interceptedwater_v1(1)
+        >>> round_(model.get_interceptedwater_v1(1))
         4.0
     """
 
@@ -4361,9 +4367,10 @@ class Get_SoilWater_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbzones(2)
         >>> states.sm = 2.0, 4.0
-        >>> model.get_soilwater_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_soilwater_v1(0))
         2.0
-        >>> model.get_soilwater_v1(1)
+        >>> round_(model.get_soilwater_v1(1))
         4.0
     """
 
@@ -4388,11 +4395,12 @@ class Get_SnowCover_V1(modeltools.Method):
         >>> nmbzones(3)
         >>> sclass(2)
         >>> states.sp = [[0.0, 0.0, 1.0], [0.0, 1.0, 1.0]]
-        >>> model.get_snowcover_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_snowcover_v1(0))
         0.0
-        >>> model.get_snowcover_v1(1)
+        >>> round_(model.get_snowcover_v1(1))
         0.5
-        >>> model.get_snowcover_v1(2)
+        >>> round_(model.get_snowcover_v1(2))
         1.0
     """
 
@@ -4579,7 +4587,7 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         aetmodel.prepare_subareas(control.zonearea.value)
         aetmodel.prepare_elevations(100.0 * control.zonez.values)
         aetmodel.prepare_maxsoilwater(control.fc.values)
-        sel = numpy.full(nmbzones, False, dtype=bool)
+        sel = numpy.full(nmbzones, False, dtype=config.NP_BOOL)
         sel[zonetype == ILAKE] = True
         aetmodel.prepare_water(sel)
         sel = ~sel

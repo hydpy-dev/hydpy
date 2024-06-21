@@ -15,6 +15,7 @@ import weakref
 import numpy
 
 # ...from HydPy
+from hydpy import config
 from hydpy.core import objecttools
 from hydpy.core import propertytools
 from hydpy.core.typingtools import *
@@ -58,9 +59,9 @@ class _ANNArrayProperty(propertytools.DependentProperty[T_contra, T_co]):
                 cann = self._obj2cann[obj]
                 shape = getattr(obj, self._shape)
                 if self.name == "activation":
-                    array = numpy.full(shape, value, dtype=int)
+                    array = numpy.full(shape, value, dtype=config.NP_INT)
                 else:
-                    array = numpy.full(shape, value, dtype=float)
+                    array = numpy.full(shape, value, dtype=config.NP_FLOAT)
                 setattr(cann, self.name, array)
             except BaseException:
                 descr = " ".join(reversed(self.name.split("_")))
@@ -72,9 +73,9 @@ class _ANNArrayProperty(propertytools.DependentProperty[T_contra, T_co]):
     def _fdel(self, obj: ANN) -> None:
         cann = self._obj2cann[obj]
         if self.name == "activation":
-            array = numpy.ones(getattr(obj, self._shape), dtype=int)
+            array = numpy.ones(getattr(obj, self._shape), dtype=config.NP_INT)
         else:
-            array = numpy.zeros(getattr(obj, self._shape), dtype=float)
+            array = numpy.zeros(getattr(obj, self._shape), dtype=config.NP_FLOAT)
         setattr(cann, self.name, array)
 
 
@@ -559,7 +560,7 @@ is not usable so far.  At least, you have to prepare attribute `nmb_outputs` fir
         >>> ann.nmb_inputs
         3
         """
-        return self._calgorithm.nmb_inputs
+        return int(self._calgorithm.nmb_inputs)
 
     def _set_nmb_inputs(self, value: int) -> None:
         self._calgorithm.nmb_inputs = int(value)
@@ -589,7 +590,7 @@ is not usable so far.  At least, you have to prepare attribute `nmb_outputs` fir
         hydpy.core.exceptiontools.AttributeNotReady: Attribute `nmb_outputs` of \
 object `ann` has not been prepared so far.
         """
-        return self._calgorithm.nmb_outputs
+        return int(self._calgorithm.nmb_outputs)
 
     def _set_nmb_outputs(self, value: int) -> None:
         self._calgorithm.nmb_outputs = int(value)
@@ -619,10 +620,10 @@ object `ann` has not been prepared so far.
         hydpy.core.exceptiontools.AttributeNotReady: Attribute `nmb_neurons` of \
 object `ann` has not been prepared so far.
         """
-        return tuple(numpy.asarray(self._calgorithm.nmb_neurons))
+        return tuple(int(n) for n in self._calgorithm.nmb_neurons)
 
     def _set_nmb_neurons(self, value: tuple[int, ...]) -> None:
-        self._calgorithm.nmb_neurons = numpy.array(value, dtype=int, ndmin=1)
+        self._calgorithm.nmb_neurons = numpy.array(value, dtype=config.NP_INT, ndmin=1)
         self._calgorithm.nmb_layers = len(value)
         self.__max_nmb_neurons = max(value)
         self.__update_shapes()

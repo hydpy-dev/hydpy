@@ -2487,9 +2487,10 @@ class Get_Temperature_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbhru(2)
         >>> factors.temperature = 2.0, 4.0
-        >>> model.get_temperature_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_temperature_v1(0))
         2.0
-        >>> model.get_temperature_v1(1)
+        >>> round_(model.get_temperature_v1(1))
         4.0
     """
 
@@ -2542,9 +2543,10 @@ class Get_Precipitation_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbhru(2)
         >>> fluxes.precipitation = 2.0, 4.0
-        >>> model.get_precipitation_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_precipitation_v1(0))
         2.0
-        >>> model.get_precipitation_v1(1)
+        >>> round_(model.get_precipitation_v1(1))
         4.0
     """
 

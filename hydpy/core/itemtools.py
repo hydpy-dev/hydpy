@@ -11,6 +11,7 @@ import numpy
 
 # ...from HydPy
 import hydpy
+from hydpy import config
 from hydpy.core import devicetools
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
@@ -470,7 +471,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
     def value(self, value: NDArrayFloat) -> None:
         try:
             shape = self.seriesshape if self.targetspecs.series else self.shape
-            self._value = numpy.full(shape, value, dtype=float)
+            self._value = numpy.full(shape, value, dtype=config.NP_FLOAT)
         except BaseException:
             objecttools.augment_excmessage(
                 f"When trying to convert the value(s) `{value}` assigned to "
@@ -1248,7 +1249,7 @@ has/have not been prepared so far.
         """
         series = self.targetspecs.series
         shape = self.seriesshape if series else self.shape
-        itemvalues: NDArrayFloat = numpy.empty(shape, dtype=float)
+        itemvalues: NDArrayFloat = numpy.empty(shape, dtype=config.NP_FLOAT)
         jdx0, jdx1 = hydpy.pub.timegrids.simindices
         if self.level == "device":
             for idx, variable in enumerate(self.device2target.values()):

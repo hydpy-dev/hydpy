@@ -34,7 +34,8 @@ class K1L(parametertools.FixedParameter):
     >>> simulationstep("1h")
     >>> parameterstep("1d")
     >>> from numpy import exp
-    >>> 2.0 * (1.0 - exp(-1.0/fixed.k1l))
+    >>> from hydpy import round_
+    >>> round_(2.0 * (1.0 - exp(-1.0/fixed.k1l)))
     1.0
     """
 

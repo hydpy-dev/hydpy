@@ -22,6 +22,7 @@ import numpy
 
 # ...from HydPy
 import hydpy
+from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
@@ -914,7 +915,9 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
         nmb_weights = timetools.Period("366d") / hydpy.pub.options.simulationstep
         nmb_weights = int(numpy.ceil(round(nmb_weights, 10)))
         shape = (nmb_weights, self._seasonalinterpolator.nmb_algorithms)
-        getattr(self.fastaccess, self.name).ratios = numpy.zeros(shape, dtype=float)
+        getattr(self.fastaccess, self.name).ratios = numpy.zeros(
+            shape, dtype=config.NP_FLOAT
+        )
 
     @property
     def toys(self) -> tuple[timetools.TOY, ...]:

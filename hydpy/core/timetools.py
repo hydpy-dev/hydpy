@@ -19,6 +19,7 @@ import numpy
 
 # ...from HydPy
 import hydpy
+from hydpy import config
 from hydpy.core import objecttools
 from hydpy.core import propertytools
 from hydpy.core.typingtools import *
@@ -476,7 +477,7 @@ base 10: '0X'
         """
         return numpy.array(
             [self.year, self.month, self.day, self.hour, self.minute, self.second],
-            dtype=float,
+            dtype=config.NP_FLOAT,
         )
 
     @classmethod
@@ -2098,7 +2099,7 @@ required, but the given array consist of 12 entries/rows only.
 
         See the documentation on method |Timegrid.from_array| for more information.
         """
-        values = numpy.empty(13, dtype=float)
+        values = numpy.empty(13, dtype=config.NP_FLOAT)
         values[:6] = self.firstdate.to_array()
         values[6:12] = self.lastdate.to_array()
         values[12] = self.stepsize.seconds
@@ -2320,7 +2321,7 @@ timegrid and the given array must be equal, but the length of the timegrid objec
 `4` and the length of the array object is `2`.
         """
         try:
-            array = numpy.array(array, dtype=float)
+            array = numpy.array(array, dtype=config.NP_FLOAT)
         except BaseException:
             objecttools.augment_excmessage(
                 "While trying to prefix timegrid information to the given array"
@@ -3429,7 +3430,7 @@ must not be the given value `4`, as the day has already been set to `31`.
         )
 
     @classmethod
-    def centred_timegrid(cls) -> tuple[Timegrid, NDArrayFloat]:
+    def centred_timegrid(cls) -> tuple[Timegrid, NDArrayBool]:
         """Return a |Timegrid| object defining the central time points of the year
         2000 and a boolean array describing its intersection with the current
         initialisation period, not taking the year information into account.
@@ -3455,17 +3456,18 @@ must not be the given value `4`, as the day has already been set to `31`.
         year information.  In our example, all centred dates are "relevant" due to the
         long initialisation period of ten years:
 
-        >>> sum(TOY.centred_timegrid()[1])
+        >>> from hydpy import round_
+        >>> round_(sum(TOY.centred_timegrid()[1]))
         366
 
         The boolean array contains only the value |True| for all initialisation periods
         covering at least a full year:
 
         >>> pub.timegrids = "2000-02-01", "2001-02-01", "1d"
-        >>> sum(TOY.centred_timegrid()[1])
+        >>> round_(sum(TOY.centred_timegrid()[1]))
         366
         >>> pub.timegrids = "2001-10-01", "2002-10-01", "1d"
-        >>> sum(TOY.centred_timegrid()[1])
+        >>> round_(sum(TOY.centred_timegrid()[1]))
         366
 
         In all other cases, only the values related to the intersection are |True|:
@@ -3494,12 +3496,12 @@ must not be the given value `4`, as the day has already been set to `31`.
         shift = init.stepsize / 2.0
         centred = Timegrid(cls._STARTDATE + shift, cls._ENDDATE + shift, init.stepsize)
         if (init.lastdate - init.firstdate) >= "365d":
-            return centred, numpy.ones(len(centred), dtype=bool)
+            return centred, numpy.ones(len(centred), dtype=config.NP_BOOL)
         date0 = copy.deepcopy(init.firstdate)
         date1 = copy.deepcopy(init.lastdate)
         date0.year = 2000
         date1.year = 2000
-        relevant = numpy.zeros(len(centred), dtype=bool)
+        relevant = numpy.zeros(len(centred), dtype=config.NP_BOOL)
         if date0 < date1:
             relevant[centred[date0 + shift] : centred[date1 + shift]] = True
         else:

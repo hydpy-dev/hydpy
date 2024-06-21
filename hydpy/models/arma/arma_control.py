@@ -6,6 +6,7 @@
 import numpy
 
 # ...from HydPy
+from hydpy import config
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
@@ -303,7 +304,7 @@ the same threshold value(s) twice.
     def thresholds(self) -> VectorFloat:
         """Threshold values of the response functions."""
         return numpy.array(
-            sorted(self._key2float(key) for key in self._coefs), dtype=float
+            sorted(self._key2float(key) for key in self._coefs), dtype=config.NP_FLOAT
         )
 
     @staticmethod

@@ -14,6 +14,7 @@ from __future__ import annotations
 import numpy
 
 # ...from HydPy
+from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import propertytools
@@ -122,14 +123,15 @@ class PPoly(interptools.InterpAlgorithm):
 
     >>> ppoly.inputs[0] = 2.5
     >>> ppoly.calculate_values()
-    >>> ppoly.outputs[0]
+    >>> from hydpy import round_
+    >>> round_(ppoly.outputs[0])
     1.5
 
     The same holds when calling method |PPoly.calculate_derivatives| for calculating
     first order derivatives:
 
     >>> ppoly.calculate_derivatives(0)
-    >>> ppoly.output_derivatives[0]
+    >>> round_(ppoly.output_derivatives[0])
     1.0
 
     Use method |InterpAlgorithm.print_table| or method |InterpAlgorithm.plot| to
@@ -232,9 +234,9 @@ polynomial function by passing at leas one `Poly` object.
         self._cready = False
         ca = ppolyutils.PPoly()
         self._calgorithm = ca
-        ca.inputs = numpy.zeros((1,), dtype=float)
-        ca.outputs = numpy.zeros((1,), dtype=float)
-        ca.output_derivatives = numpy.zeros((1,), dtype=float)
+        ca.inputs = numpy.zeros((1,), dtype=config.NP_FLOAT)
+        ca.outputs = numpy.zeros((1,), dtype=config.NP_FLOAT)
+        ca.output_derivatives = numpy.zeros((1,), dtype=config.NP_FLOAT)
         if polynomials:
             self(*polynomials)
 
@@ -245,8 +247,8 @@ polynomial function by passing at leas one `Poly` object.
                 "polynomial function by passing at leas one `Poly` object."
             )
         nmb_ps = len(polynomials)
-        nmb_cs = numpy.array([len(p.cs) for p in polynomials], dtype=int)
-        x0s = numpy.array([p.x0 for p in polynomials], dtype=float)
+        nmb_cs = numpy.array([len(p.cs) for p in polynomials], dtype=config.NP_INT)
+        x0s = numpy.array([p.x0 for p in polynomials], dtype=config.NP_FLOAT)
         cs = numpy.zeros((nmb_ps, max(nmb_cs)))
         for idx, (nmb, polynomial) in enumerate(zip(nmb_cs, polynomials)):
             cs[idx, :nmb] = polynomial.cs
@@ -413,19 +415,19 @@ vectors `x` (2) and `y` (3) must be identical.
             ppoly = cls()
             if (len(xs) == 2) or (method == "linear"):
                 nmb_ps = len(xs) - 1
-                nmb_cs = numpy.full((nmb_ps,), 2, dtype=int)
-                x0s = numpy.array(xs, dtype=float)[:-1]
-                cs = numpy.zeros((nmb_ps, numpy.max(nmb_cs)), dtype=float)
-                cs[:, 0] = numpy.array(ys, dtype=float)[:-1]
+                nmb_cs = numpy.full((nmb_ps,), 2, dtype=config.NP_INT)
+                x0s = numpy.array(xs, dtype=config.NP_FLOAT)[:-1]
+                cs = numpy.zeros((nmb_ps, numpy.max(nmb_cs)), dtype=config.NP_FLOAT)
+                cs[:, 0] = numpy.array(ys, dtype=config.NP_FLOAT)[:-1]
                 cs[:, 1] = numpy.diff(ys) / numpy.diff(xs)
             else:
                 interpolator = method(x=xs, y=ys)
-                x0s = numpy.array(xs, dtype=float)[:-1]
+                x0s = numpy.array(xs, dtype=config.NP_FLOAT)[:-1]
                 cs = interpolator.c[::-1].T
                 nmb_ps = len(x0s)
                 nmb_cs = numpy.array(
                     [numpy.max(numpy.nonzero(cs_), initial=0) + 1 for cs_ in cs],
-                    dtype=int,
+                    dtype=config.NP_INT,
                 )
             ppoly.nmb_ps, ppoly.nmb_cs, ppoly.x0s, ppoly.cs = nmb_ps, nmb_cs, x0s, cs
             return ppoly
@@ -560,7 +562,7 @@ vectors `x` (2) and `y` (3) must be identical.
         return numpy.asarray(self._calgorithm.nmb_cs)
 
     def _set_nmb_cs(self, value: VectorInputInt) -> None:
-        self._calgorithm.nmb_cs = numpy.asarray(value, dtype=int)
+        self._calgorithm.nmb_cs = numpy.asarray(value, dtype=config.NP_INT)
 
     def _del_nmb_cs(self) -> None:
         pass
@@ -591,7 +593,7 @@ vectors `x` (2) and `y` (3) must be identical.
         return numpy.asarray(self._calgorithm.x0s)
 
     def _set_x0s(self, value: VectorInputFloat) -> None:
-        self._calgorithm.x0s = numpy.asarray(value, dtype=float)
+        self._calgorithm.x0s = numpy.asarray(value, dtype=config.NP_FLOAT)
 
     def _del_x0s(self) -> None:
         pass
@@ -623,7 +625,7 @@ has not been prepared so far.
         return numpy.asarray(self._calgorithm.cs)
 
     def _set_cs(self, value: MatrixInputFloat) -> None:
-        self._calgorithm.cs = numpy.asarray(value, dtype=float)
+        self._calgorithm.cs = numpy.asarray(value, dtype=config.NP_FLOAT)
 
     def _del_cs(self) -> None:
         pass

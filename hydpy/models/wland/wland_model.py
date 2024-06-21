@@ -8,6 +8,7 @@
 import numpy
 
 # ...from HydPy
+from hydpy import config
 from hydpy.core import importtools
 from hydpy.core import exceptiontools
 from hydpy.core import modeltools
@@ -3591,7 +3592,7 @@ class Main_PETModel_V2(modeltools.ELSModel):
         petmodel.prepare_zonetypes(lt)
         petmodel.prepare_subareas(control.at.value * control.aur.values)
         petmodel.prepare_leafareaindex(control.lai.values)
-        sel = numpy.full(nu, False, dtype=bool)
+        sel = numpy.full(nu, False, dtype=config.NP_BOOL)
         sel[-1] = True
         petmodel.prepare_water(sel)
         sel = ~sel
@@ -3600,7 +3601,7 @@ class Main_PETModel_V2(modeltools.ELSModel):
         petmodel.prepare_soil(sel)
         sel[lt == SOIL] = False
         petmodel.prepare_plant(sel)
-        sel = numpy.full(nu, False, dtype=bool)
+        sel = numpy.full(nu, False, dtype=config.NP_BOOL)
         sel[lt == CONIFER] = True
         sel[lt == DECIDIOUS] = True
         sel[lt == MIXED] = True

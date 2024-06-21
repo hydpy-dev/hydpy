@@ -11,6 +11,7 @@ import numpy
 
 # ...from HydPy
 import hydpy
+from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import propertytools
@@ -209,7 +210,7 @@ check the calculated coefficients: 1.0.
         return coefs
 
     def _set_coefs(self, values: VectorInputFloat) -> None:
-        self._coefs = numpy.array(values, ndmin=1, dtype=float)
+        self._coefs = numpy.array(values, ndmin=1, dtype=config.NP_FLOAT)
 
     def _del_coefs(self) -> None:
         self._coefs = None
@@ -236,7 +237,7 @@ check the calculated coefficients: 1.0.
                 coef = integrate.quad(self._quad, 0.0, 1.0, args=(t,), points=points)[0]
             except integrate.IntegrationWarning:
                 idx = int(moment1)
-                coefs_ = numpy.zeros(idx + 2, dtype=float)
+                coefs_ = numpy.zeros(idx + 2, dtype=config.NP_FLOAT)
                 weight = moment1 - idx
                 coefs_[idx] = 1.0 - weight
                 coefs_[idx + 1] = weight
@@ -246,7 +247,7 @@ check the calculated coefficients: 1.0.
             sum_coefs += coef
             if (sum_coefs < 0.5) and (t > 10.0 * moment1):
                 if moment1 < 0.01:
-                    self.coefs = numpy.ones(1, dtype=float)
+                    self.coefs = numpy.ones(1, dtype=config.NP_FLOAT)
                     self._raise_integrationwarning(self.coefs)
                     break  # pragma: no cover
                 raise RuntimeError(
@@ -285,7 +286,7 @@ check the calculated coefficients: 1.0.
     @property
     def delays(self) -> VectorFloat:
         """Time delays related to the individual MA coefficients."""
-        return numpy.arange(self.order, dtype=float)
+        return numpy.arange(self.order, dtype=config.NP_FLOAT)
 
     @property
     def moments(self) -> tuple[float, float]:
@@ -588,7 +589,7 @@ far.
         return ar_coefs
 
     def _set_ar_coefs(self, values) -> None:
-        self._ar_coefs = numpy.array(values, ndmin=1, dtype=float)
+        self._ar_coefs = numpy.array(values, ndmin=1, dtype=config.NP_FLOAT)
 
     def _del_ar_coefs(self) -> None:
         self._ar_coefs = None
@@ -630,7 +631,7 @@ far.
         return ma_coefs
 
     def _set_ma_coefs(self, values: VectorInputFloat) -> None:
-        self._ma_coefs = numpy.array(values, ndmin=1, dtype=float)
+        self._ma_coefs = numpy.array(values, ndmin=1, dtype=config.NP_FLOAT)
 
     def _del_ma_coefs(self) -> None:
         self._ma_coefs = None
@@ -757,7 +758,7 @@ far.
         in method |ARMA.update_ar_coefs|.
         """
         m = len(values) - n
-        a = numpy.empty((m, n), dtype=float)
+        a = numpy.empty((m, n), dtype=config.NP_FLOAT)
         for i in range(m):
             i0 = i - 1 if i > 0 else None
             i1 = i + n - 1

@@ -7131,9 +7131,10 @@ class Get_PotentialEvapotranspiration_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbhru(2)
         >>> fluxes.referenceevapotranspiration = 2.0, 4.0
-        >>> model.get_potentialevapotranspiration_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_potentialevapotranspiration_v1(0))
         2.0
-        >>> model.get_potentialevapotranspiration_v1(1)
+        >>> round_(model.get_potentialevapotranspiration_v1(1))
         4.0
     """
 
@@ -7156,9 +7157,10 @@ class Get_PotentialEvapotranspiration_V2(modeltools.Method):
         >>> parameterstep()
         >>> nmbhru(2)
         >>> fluxes.potentialevapotranspiration = 2.0, 4.0
-        >>> model.get_potentialevapotranspiration_v2(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_potentialevapotranspiration_v2(0))
         2.0
-        >>> model.get_potentialevapotranspiration_v2(1)
+        >>> round_(model.get_potentialevapotranspiration_v2(1))
         4.0
     """
 
@@ -7721,9 +7723,10 @@ class Get_WaterEvaporation_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbhru(2)
         >>> fluxes.waterevaporation = 2.0, 4.0
-        >>> model.get_waterevaporation_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_waterevaporation_v1(0))
         2.0
-        >>> model.get_waterevaporation_v1(1)
+        >>> round_(model.get_waterevaporation_v1(1))
         4.0
     """
 
@@ -7748,9 +7751,10 @@ class Get_PotentialWaterEvaporation_V1(modeltools.Method):
         >>> nmbhru(2)
         >>> derived.days.update()
         >>> fluxes.dailywaterevaporation = 2.0, 4.0
-        >>> model.get_potentialwaterevaporation_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_potentialwaterevaporation_v1(0))
         1.0
-        >>> model.get_potentialwaterevaporation_v1(1)
+        >>> round_(model.get_potentialwaterevaporation_v1(1))
         2.0
     """
 
@@ -7775,9 +7779,10 @@ class Get_PotentialInterceptionEvaporation_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbhru(2)
         >>> fluxes.potentialinterceptionevaporation = 2.0, 4.0
-        >>> model.get_potentialinterceptionevaporation_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_potentialinterceptionevaporation_v1(0))
         2.0
-        >>> model.get_potentialinterceptionevaporation_v1(1)
+        >>> round_(model.get_potentialinterceptionevaporation_v1(1))
         4.0
     """
 
@@ -7800,9 +7805,10 @@ class Get_InterceptionEvaporation_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbhru(2)
         >>> fluxes.interceptionevaporation = 2.0, 4.0
-        >>> model.get_interceptionevaporation_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_interceptionevaporation_v1(0))
         2.0
-        >>> model.get_interceptionevaporation_v1(1)
+        >>> round_(model.get_interceptionevaporation_v1(1))
         4.0
     """
 
@@ -7825,9 +7831,10 @@ class Get_PotentialSoilEvapotranspiration_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbhru(2)
         >>> fluxes.potentialsoilevapotranspiration = 2.0, 4.0
-        >>> model.get_potentialsoilevapotranspiration_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_potentialsoilevapotranspiration_v1(0))
         2.0
-        >>> model.get_potentialsoilevapotranspiration_v1(1)
+        >>> round_(model.get_potentialsoilevapotranspiration_v1(1))
         4.0
     """
 
@@ -7850,9 +7857,10 @@ class Get_SoilEvapotranspiration_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbhru(2)
         >>> fluxes.soilevapotranspiration = 2.0, 4.0
-        >>> model.get_soilevapotranspiration_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_soilevapotranspiration_v1(0))
         2.0
-        >>> model.get_soilevapotranspiration_v1(1)
+        >>> round_(model.get_soilevapotranspiration_v1(1))
         4.0
     """
 

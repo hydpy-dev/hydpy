@@ -20,6 +20,7 @@ import numpy
 
 # ...from HydPy
 import hydpy
+from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import masktools
 from hydpy.core import objecttools
@@ -392,11 +393,11 @@ def _trim_float_nd(self, lower, upper) -> bool:
     shape = values.shape
     if lower is None:
         lower = -numpy.inf
-    lower = numpy.full(shape, lower, dtype=float)
+    lower = numpy.full(shape, lower, dtype=config.NP_FLOAT)
     lower[numpy.where(numpy.isnan(lower))] = -numpy.inf
     if upper is None:
         upper = numpy.inf
-    upper = numpy.full(shape, upper, dtype=float)
+    upper = numpy.full(shape, upper, dtype=config.NP_FLOAT)
     upper[numpy.where(numpy.isnan(upper))] = numpy.inf
     idxs = numpy.isnan(values)
     try:
@@ -431,10 +432,10 @@ def _trim_int_0d(self, lower, upper) -> bool:
 def _trim_int_nd(self, lower, upper) -> bool:
     if lower is None:
         lower = INT_NAN
-    lower = numpy.full(self.shape, lower, dtype=int)
+    lower = numpy.full(self.shape, lower, dtype=config.NP_INT)
     if upper is None:
         upper = -INT_NAN
-    upper = numpy.full(self.shape, upper, dtype=int)
+    upper = numpy.full(self.shape, upper, dtype=config.NP_INT)
     upper[upper == INT_NAN] = -INT_NAN
     idxs = numpy.where(self.values == INT_NAN)
     try:
@@ -671,7 +672,8 @@ For variable `var`, no value has been defined so far.
     >>> float(var)
     2.5
     >>> var.value = 1.67
-    >>> round(var, 1)
+    >>> from hydpy import round_
+    >>> round_(var.value, 1)
     1.7
 
     You can apply all the operations discussed above (except |float| and
@@ -801,9 +803,9 @@ with key `1`, the following error occurred: The only allowed keys for \
     >>> var = Var(None)
     >>> var.shape = (5,)
     >>> var.value = 2.0, 4.0, 6.0, 8.0, 10.0
-    >>> var[0]
+    >>> round_(var[0])
     2.0
-    >>> var[-1]
+    >>> round_(var[-1])
     10.0
     >>> var[1:-1:2] = 2.0 * var[1:-1:2]
     >>> var
@@ -1283,7 +1285,9 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
         if self.NDIM:
             value = getattr(value, "value", value)
             try:
-                value = numpy.full(self.shape, value, dtype=self.TYPE)
+                value = numpy.full(
+                    self.shape, value, dtype=config.TYPES_PY2NP[self.TYPE]
+                )
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to convert the value(s) `{value}` to a numpy "
@@ -1468,7 +1472,9 @@ as `var` can only be `()`, but `(2,)` is given.
         initvalue, initflag = self.initinfo
         if self.NDIM:
             try:
-                array = numpy.full(shape, initvalue, dtype=self.TYPE)
+                array = numpy.full(
+                    shape, initvalue, dtype=config.TYPES_PY2NP[self.TYPE]
+                )
             except BaseException:
                 setattr(self.fastaccess, self.name, None)
                 objecttools.augment_excmessage(
@@ -1839,7 +1845,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             if numpy.any(mask):
                 weights = self.refweights[mask]
                 values = self.valuevector[mask]
-                return numpy.sum(weights * values) / numpy.sum(weights)
+                return float(numpy.sum(weights * values) / numpy.sum(weights))
             return numpy.nan
         except BaseException:
             objecttools.augment_excmessage(
@@ -2068,14 +2074,14 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         try:
             return int(result)
         except TypeError:
-            return numpy.array(result, dtype=int)
+            return numpy.array(result, dtype=config.NP_INT)
 
     def __ceil__(self):
         result = numpy.ceil(self.value)
         try:
             return int(result)
         except TypeError:
-            return numpy.array(result, dtype=int)
+            return numpy.array(result, dtype=config.NP_INT)
 
     def _compare(
         self,

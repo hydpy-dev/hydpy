@@ -208,6 +208,7 @@ import numpy
 
 # ...from HydPy
 import hydpy
+from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import devicetools
 from hydpy.core import objecttools
@@ -1592,7 +1593,7 @@ class NetCDFVariableFlatWriter(MixinVariableWriter, NetCDFVariableFlat):
                [80., 81., 82., 83., 84., 85.],
                [86., 87., 88., 89., 90., 91.]])
         """
-        array = numpy.full(self.shape, fillvalue, dtype=float)
+        array = numpy.full(self.shape, fillvalue, dtype=config.NP_FLOAT)
         idx0 = 0
         idxs: list[Any] = [slice(None)]
         for seq, subarray in zip(
@@ -1722,7 +1723,7 @@ class NetCDFVariableAggregated(MixinVariableWriter, NetCDFVariable):
                [82.5],
                [88.5]])
         """
-        array = numpy.full(self.shape, fillvalue, dtype=float)
+        array = numpy.full(self.shape, fillvalue, dtype=config.NP_FLOAT)
         for idx, subarray in enumerate(self._descr2array.values()):
             if subarray is not None:
                 array[:, idx] = subarray
@@ -2415,7 +2416,9 @@ file `...hland_96_flux_pc.nc`.
                         assert ncfile is not None
                         get = variable.query_subdevice2index(ncfile).get_index
                         data: NDArrayFloat
-                        data = numpy.full(variable.shape[1], numpy.nan, dtype=float)
+                        data = numpy.full(
+                            variable.shape[1], numpy.nan, dtype=config.NP_FLOAT
+                        )
                         variable2infos[variable].append(
                             JITAccessInfo(
                                 ncvariable=(ncvariable := ncfile[variable.name]),
@@ -2432,8 +2435,7 @@ file `...hland_96_flux_pc.nc`.
                             if (descr_new := sequence.descr_device) != descr_old:
                                 descr_old = descr_new
                                 i0 += delta
-                                product = numpy.product  # type: ignore[attr-defined]
-                                delta = int(product(sequence.shape))
+                                delta = int(numpy.prod(sequence.shape))
                             sequence.connect_netcdf(ncarray=data[i0 : i0 + delta])
 
                     yield JITAccessHandler(

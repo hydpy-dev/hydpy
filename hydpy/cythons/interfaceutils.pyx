@@ -8,6 +8,8 @@ from cpython cimport Py_DECREF
 from libc.stdlib cimport free, malloc, realloc
 cimport cython
 
+from hydpy import config
+
 
 cdef class BaseInterface:
 
@@ -33,7 +35,7 @@ cdef class SubmodelsProperty:
         assert number >= 0
         free(self.submodels)
         self.number = number
-        self.typeids = numpy.zeros(number, dtype=int)
+        self.typeids = numpy.zeros(number, dtype=config.NP_INT)
         self.submodels = <PyObject **>malloc(
             number * cython.sizeof(cython.pointer(PyObject))
         )
@@ -59,7 +61,7 @@ cdef class SubmodelsProperty:
         self.number += 1
         if self.number > 1:
             typeids = numpy.asarray(self.typeids).copy()
-        self.typeids = numpy.zeros(self.number, dtype=int)
+        self.typeids = numpy.zeros(self.number, dtype=config.NP_INT)
         for i in range(self.number - 1):
             self.typeids[i] = typeids[i]
         self.typeids[self.number - 1] = typeid

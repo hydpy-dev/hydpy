@@ -1589,7 +1589,7 @@ def calc_weights(nodes: Collection[devicetools.Node]) -> dict[devicetools.Node, 
     """Calculate "statistical" weights for all given nodes based on the number of
     observations within the evaluation period.
 
-    >>> from hydpy import calc_weights, nan, Node, print_values, pub
+    >>> from hydpy import calc_weights, nan, Node, print_vector, pub
     >>> pub.timegrids = "01.01.2000", "04.01.2000", "1d"
     >>> test1, test2 = Node("test1"), Node("test2")
     >>> test1.prepare_obsseries()
@@ -1598,21 +1598,21 @@ def calc_weights(nodes: Collection[devicetools.Node]) -> dict[devicetools.Node, 
     >>> with pub.options.checkseries(False):
     ...     test2.sequences.obs.series = 3.0, nan, 1.0
 
-    >>> print_values(calc_weights((test1, test2)).values())
+    >>> print_vector(calc_weights((test1, test2)).values())
     0.6, 0.4
 
     >>> pub.timegrids.eval_.lastdate = "03.01.2000"
-    >>> print_values(calc_weights((test1, test2)).values())
+    >>> print_vector(calc_weights((test1, test2)).values())
     0.666667, 0.333333
 
     >>> pub.timegrids.eval_.firstdate = "02.01.2000"
-    >>> print_values(calc_weights((test1, test2)).values())
+    >>> print_vector(calc_weights((test1, test2)).values())
     1.0, 0.0
 
-    >>> print_values(calc_weights((test1,)).values())
+    >>> print_vector(calc_weights((test1,)).values())
     1.0
 
-    >>> print_values(calc_weights((test2,)).values())
+    >>> print_vector(calc_weights((test2,)).values())
     Traceback (most recent call last):
     ...
     RuntimeError: None of the given nodes (test2) provides any observation values for \
@@ -1644,7 +1644,7 @@ class SummaryRow(abc.ABC):
     (non-weighted) averages.  You only need to pass the name and the node objects
     relevant for the corresponding row for initialising:
 
-    >>> from hydpy import Nodes, print_values, SummaryRowSimple
+    >>> from hydpy import Nodes, print_vector, SummaryRowSimple
     >>> n1, n2, n3 = Nodes("n1", "n2", "n3")
     >>> s = SummaryRowSimple("s", (n1, n2))
 
@@ -1653,19 +1653,19 @@ class SummaryRow(abc.ABC):
     |print_evaluationtable| and the |SummaryRow| instance are identical,
     |SummaryRowSimple| just calculates the average for each criterion:
 
-    >>> print_values(s.summarise_criteria(2, {n1: [1.0, 2.0], n2: [3.0, 6.0]}))
+    >>> print_vector(s.summarise_criteria(2, {n1: [1.0, 2.0], n2: [3.0, 6.0]}))
     2.0, 4.0
 
     Nodes passed to |print_evaluationtable| but not to |SummaryRow| are considered
     irrelevant for the corresponding row and thus not taken into account for averaging:
 
-    >>> print_values(s.summarise_criteria(1, {n1: [1.0], n2: [3.0], n3: [5.0]}))
+    >>> print_vector(s.summarise_criteria(1, {n1: [1.0], n2: [3.0], n3: [5.0]}))
     2.0
 
     If the |SummaryRow| instance expects a node not passed to |print_evaluationtable|,
     it raises the following error:
 
-    >>> print_values(s.summarise_criteria(1, {n1: [1.0]}))
+    >>> print_vector(s.summarise_criteria(1, {n1: [1.0]}))
     Traceback (most recent call last):
     ...
     RuntimeError: While trying to calculate the values of row `s` based on class \
@@ -1742,7 +1742,7 @@ class SummaryRowWeighted(SummaryRow):
     First, we prepare two nodes.  `n1` provides a complete and `n2` provides an
     incomplete observation time series:
 
-    >>> from hydpy import print_values, pub, Node, nan
+    >>> from hydpy import print_vector, pub, Node, nan
     >>> pub.timegrids = "2000-01-01", "2000-01-04", "1d"
     >>> n1, n2 = Node("n1"), Node("n2")
     >>> n1.prepare_obsseries()
@@ -1755,7 +1755,7 @@ class SummaryRowWeighted(SummaryRow):
     completeness of the observation series is irrelevant:
 
     >>> sumrow = SummaryRowWeighted("sumrow", (n1, n2), (0.1, 0.9))
-    >>> print_values(sumrow.summarise_criteria(2, {n1: [-1.0, 2.0], n2: [1.0, 6.0]}))
+    >>> print_vector(sumrow.summarise_criteria(2, {n1: [-1.0, 2.0], n2: [1.0, 6.0]}))
     0.8, 5.6
 
     If we do not pass any weights, |SummaryRowWeighted| determines them automatically
@@ -1763,14 +1763,14 @@ class SummaryRowWeighted(SummaryRow):
     |calc_weights|:
 
     >>> sumrow = SummaryRowWeighted("sumrow", (n1, n2))
-    >>> print_values(sumrow.summarise_criteria(2, {n1: [-1.0, 2.0], n2: [1.0, 6.0]}))
+    >>> print_vector(sumrow.summarise_criteria(2, {n1: [-1.0, 2.0], n2: [1.0, 6.0]}))
     -0.2, 3.6
 
     |SummaryRowWeighted| reuses the internally calculated weights but updates them when
     the evaluation time grid changes in the meantime:
 
     >>> pub.timegrids.eval_.firstdate = "2000-01-02"
-    >>> print_values(sumrow.summarise_criteria(2, {n1: [-1.0, 2.0], n2: [1.0, 6.0]}))
+    >>> print_vector(sumrow.summarise_criteria(2, {n1: [-1.0, 2.0], n2: [1.0, 6.0]}))
     -0.333333, 3.333333
 
     |nan| values calculated for individual nodes due to completely missing observations
@@ -1779,7 +1779,7 @@ class SummaryRowWeighted(SummaryRow):
     should):
 
     >>> pub.timegrids.eval_.lastdate = "2000-01-03"
-    >>> print_values(sumrow.summarise_criteria(2, {n1: [-1.0, 2.0], n2: [nan, nan]}))
+    >>> print_vector(sumrow.summarise_criteria(2, {n1: [-1.0, 2.0], n2: [nan, nan]}))
     -1.0, 2.0
     """
 

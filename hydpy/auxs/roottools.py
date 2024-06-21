@@ -203,13 +203,13 @@ class Pegasus(modeltools.Submodel):
         Finally, we evaluate some additional snow layer temperatures
         to show that everything works consistently:
 
-        >>> from hydpy import print_values
+        >>> from hydpy import print_vector
         >>> for temps in [-500, -400, -300, -4, -2, 2, 2000, 3000, 4000]:
         ...    aides.temps = temps
         ...    tempssurface = model.pegasustempssurface.find_x(
         ...        -50.0, 5.0, -100.0, 100.0, 0.0, 1e-8, 10)
         ...    energygain = model.return_energygainsnowsurface_v1(tempssurface)
-        ...    print_values([temps, tempssurface, energygain])
+        ...    print_vector([temps, tempssurface, energygain])
         -500, -100.0, -1024.133374
         -400, -100.0, -524.133374
         -300, -100.0, -24.133374

@@ -184,14 +184,15 @@ the same threshold value(s) twice.
     The threshold values and AR coefficients and the MA coefficients can all be queried
     as numpy arrays:
 
-    >>> responses.thresholds
-    array([0., 1.])
-    >>> responses.ar_coefs
-    array([[ 1.,  2.],
-           [nan, nan]])
-    >>> responses.ma_coefs
-    array([[ 3.,  4.,  6.],
-           [ 7., nan, nan]])
+    >>> from hydpy import print_matrix, print_vector
+    >>> print_vector(responses.thresholds)
+    0.0, 1.0
+    >>> print_matrix(responses.ar_coefs)
+    | 1.0, 2.0 |
+    | nan, nan |
+    >>> print_matrix(responses.ma_coefs)
+    | 3.0, 4.0, 6.0 |
+    | 7.0, nan, nan |
 
     Technical notes:
 

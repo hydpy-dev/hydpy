@@ -2626,8 +2626,8 @@ class Calc_SoilHeatFlux_V2(modeltools.Method):
         with the actual value of |AverageSoilHeatFlux|, which we confirm by the
         following test calculation:
 
-        >>> from hydpy import print_values
-        >>> print_values(day * factors.dailypossiblesunshineduration +
+        >>> from hydpy import print_vector
+        >>> print_vector(day * factors.dailypossiblesunshineduration +
         ...              night * (24.0 - factors.dailypossiblesunshineduration))
         -10.0, -10.0, -10.0, -10.0, -10.0, 0.0
 
@@ -2977,12 +2977,12 @@ class Calc_AerodynamicResistance_V1(modeltools.Method):
         The last example shows the inverse relationship between resistance and wind
         speed.  For zero wind speed, resistance becomes infinite:
 
-        >>> from hydpy import print_values
+        >>> from hydpy import print_vector
         >>> cropheight(2.0)
         >>> for ws in (0.0, 0.1, 1.0, 10.0):
         ...     factors.windspeed10m = ws
         ...     model.calc_aerodynamicresistance_v1()
-        ...     print_values([ws, factors.aerodynamicresistance[0]])
+        ...     print_vector([ws, factors.aerodynamicresistance[0]])
         0.0, inf
         0.1, 706.026613
         1.0, 70.602661
@@ -3071,7 +3071,7 @@ class Calc_AerodynamicResistance_V2(modeltools.Method):
 
         For zero wind speed, resistance becomes infinite:
 
-        >>> from hydpy import print_values
+        >>> from hydpy import print_vector
         >>> factors.windspeed10m = 0.0
         >>> model.calc_aerodynamicresistance_v2()
         >>> factors.aerodynamicresistance
@@ -4427,14 +4427,14 @@ class Return_Evaporation_PenmanMonteith_V1(modeltools.Method):
         |Return_Evaporation_PenmanMonteith_V1| are more than twice as large as those
         of method |Calc_WaterEvaporation_V3|:
 
-        >>> from hydpy import print_values
+        >>> from hydpy import print_vector
         >>> for hru in range(7):
         ...     deficit = (factors.saturationvapourpressure[hru] -
         ...                factors.actualvapourpressure[hru])
         ...     evap = model.return_evaporation_penmanmonteith_v1(
         ...         hru, factors.actualsurfaceresistance[hru])
         ...     energygain = fluxes.netradiation[hru] - fluxes.soilheatflux[hru]
-        ...     print_values([energygain, deficit, evap])
+        ...     print_vector([energygain, deficit, evap])
         0.0, 0.0, 0.0
         40.0, 0.0, 0.648881
         90.0, 0.0, 1.459982
@@ -4455,7 +4455,7 @@ class Return_Evaporation_PenmanMonteith_V1(modeltools.Method):
         ...     evap = model.return_evaporation_penmanmonteith_v1(
         ...         hru, factors.actualsurfaceresistance[hru])
         ...     energygain = fluxes.netradiation[hru] - fluxes.soilheatflux[hru]
-        ...     print_values([energygain, deficit, evap])
+        ...     print_vector([energygain, deficit, evap])
         0.0, 0.0, 0.0
         40.0, 0.0, 0.364933
         90.0, 0.0, 0.8211
@@ -4473,7 +4473,7 @@ class Return_Evaporation_PenmanMonteith_V1(modeltools.Method):
         >>> factors.actualsurfaceresistance = (
         ...     0.0, 20.0, 50.0, 100.0, 200.0, 500.0, 1000.0)
         >>> for hru in range(7):
-        ...     print_values([factors.actualsurfaceresistance[hru],
+        ...     print_vector([factors.actualsurfaceresistance[hru],
         ...                   model.return_evaporation_penmanmonteith_v1(
         ...                       hru, factors.actualsurfaceresistance[hru])])
         0.0, 11.370311
@@ -4494,7 +4494,7 @@ class Return_Evaporation_PenmanMonteith_V1(modeltools.Method):
         >>> factors.actualsurfaceresistance = 80.0
         >>> factors.aerodynamicresistance = (0.0, 1e-6, 1e-3, 1.0, 1e3, 1e6, inf)
         >>> for hru in range(7):
-        ...     print_values([factors.aerodynamicresistance[hru],
+        ...     print_vector([factors.aerodynamicresistance[hru],
         ...                   model.return_evaporation_penmanmonteith_v1(
         ...                       hru, factors.actualsurfaceresistance[hru])])
         0.0, 5.00683
@@ -4520,7 +4520,7 @@ class Return_Evaporation_PenmanMonteith_V1(modeltools.Method):
         ...     evap = 24.0 * model.return_evaporation_penmanmonteith_v1(
         ...         hru, factors.actualsurfaceresistance[hru])
         ...     energygain = fluxes.netradiation[hru] - fluxes.soilheatflux[hru]
-        ...     print_values([energygain, deficit, evap])
+        ...     print_vector([energygain, deficit, evap])
         0.0, 0.0, 0.0
         40.0, 0.0, 0.648881
         90.0, 0.0, 1.459982
@@ -4624,14 +4624,14 @@ class Return_Evaporation_PenmanMonteith_V2(modeltools.Method):
         hydrological response units with pure energy forcing and smaller for response
         units four to six with pure dynamic forcing:
 
-        >>> from hydpy import print_values
+        >>> from hydpy import print_vector
         >>> for hru in range(7):
         ...     energygain = fluxes.netradiation[hru] - fluxes.soilheatflux[hru]
         ...     vapourdeficit = (factors.saturationvapourpressure[hru] -
         ...                      factors.actualvapourpressure[hru])
         ...     evap = model.return_evaporation_penmanmonteith_v2(
         ...         hru, factors.actualsurfaceresistance[hru])
-        ...     print_values([energygain, vapourdeficit, evap])
+        ...     print_vector([energygain, vapourdeficit, evap])
         0.0, 0.0, 0.0
         40.0, 0.0, 0.771689
         90.0, 0.0, 1.7363
@@ -4650,7 +4650,7 @@ class Return_Evaporation_PenmanMonteith_V2(modeltools.Method):
         ...                      factors.actualvapourpressure[hru])
         ...     evap = model.return_evaporation_penmanmonteith_v2(
         ...         hru, factors.actualsurfaceresistance[hru])
-        ...     print_values([energygain, vapourdeficit, evap])
+        ...     print_vector([energygain, vapourdeficit, evap])
         0.0, 0.0, 0.0
         40.0, 0.0, 0.406078
         90.0, 0.0, 0.913677
@@ -4669,7 +4669,7 @@ class Return_Evaporation_PenmanMonteith_V2(modeltools.Method):
         >>> factors.actualsurfaceresistance = 80.0
         >>> factors.aerodynamicresistance = (0.0, 1e-6, 1e-3, 1.0, 1e3, 1e6, inf)
         >>> for hru in range(7):
-        ...     print_values([factors.aerodynamicresistance[hru],
+        ...     print_vector([factors.aerodynamicresistance[hru],
         ...                   model.return_evaporation_penmanmonteith_v2(
         ...                       hru, factors.actualsurfaceresistance[hru])])
         0.0, 5.00683
@@ -4695,7 +4695,7 @@ class Return_Evaporation_PenmanMonteith_V2(modeltools.Method):
         ...                      factors.actualvapourpressure[hru])
         ...     evap = 24.0 * model.return_evaporation_penmanmonteith_v2(
         ...         hru, factors.actualsurfaceresistance[hru])
-        ...     print_values([energygain, vapourdeficit, evap])
+        ...     print_vector([energygain, vapourdeficit, evap])
         0.0, 0.0, 0.0
         40.0, 0.0, 0.771689
         90.0, 0.0, 1.7363

@@ -189,8 +189,9 @@ class ZoneType(parametertools.NameParameter):
     >>> parameterstep("1d")
     >>> nmbzones(6)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, FIELD)
-    >>> zonetype.values
-    array([1, 2, 3, 4, 4, 1])
+    >>> from hydpy import print_vector
+    >>> print_vector(zonetype.values)
+    1, 2, 3, 4, 4, 1
     >>> zonetype
     zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, FIELD)
     """
@@ -346,12 +347,12 @@ class SFDist(parametertools.Parameter):
     cases of one to five snow classes, and prints the respective snow class-specific
     factors:
 
-    >>> from hydpy import print_values
+    >>> from hydpy import print_vector
     >>> def test(**kwargs):
     ...     for nmb in range(1, 6):
     ...         sclass(nmb)
     ...         sfdist(**kwargs)
-    ...         print_values(sfdist.values)
+    ...         print_vector(sfdist.values)
 
     The first available keyword is `linear`.  Using it, |SFDist| calculates its factors
     in agreement with the original *HBV96* implementation.  For the lowest possible

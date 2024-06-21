@@ -1214,7 +1214,7 @@ class Infiltrate_WettingFrontBins_V1(modeltools.Method):
 
         >>> from hydpy.core.importtools import reverse_model_wildcard_import
         >>> reverse_model_wildcard_import()
-        >>> from hydpy import pub, print_values
+        >>> from hydpy import pub, print_vector
         >>> with pub.options.usecython(False):
         ...     from hydpy.models.ga import *
         ...     simulationstep("1h")
@@ -1250,7 +1250,7 @@ class Infiltrate_WettingFrontBins_V1(modeltools.Method):
         ...     for mock in (shift_front_v1, redistribute_front_v1, active_bin_v1):
         ...         if mock.called:
         ...             print(mock._extract_mock_name(), end=": ")
-        ...             print_values([str(call)[4:] for call in mock.mock_calls])
+        ...             print_vector([str(call)[4:] for call in mock.mock_calls])
 
         If the first (filled) bin is saturated, |Infiltrate_WettingFrontBins_V1| does
         nothing:
@@ -2865,8 +2865,8 @@ class BaseModel(modeltools.AdHocModel):
         ...                      [0.0, 150.0, nan],
         ...                      [0.0, 100.0, nan],
         ...                      [0.0, 50.0, nan]]
-        >>> from hydpy import print_values
-        >>> print_values(model.watercontents)
+        >>> from hydpy import print_vector
+        >>> print_vector(model.watercontents)
         30.0, 90.0, 0.0
         """
         states = self.sequences.states

@@ -1098,6 +1098,7 @@ keyword arguments are given, which is ambiguous.
     handles a (1-dimensional) vector of time-dependent values (indicated
     by setting the class attribute `TIME` to |True|):
 
+    >>> from hydpy import print_vector
     >>> class Par(Parameter):
     ...     NDIM = 1
     ...     TYPE = float
@@ -1127,20 +1128,20 @@ keyword arguments are given, which is ambiguous.
     >>> par(3.0)
     >>> par
     par(3.0)
-    >>> par.values
-    array([6., 6.])
+    >>> print_vector(par.values)
+    6.0, 6.0
 
     >>> par([0.0, 4.0])
     >>> par
     par(0.0, 4.0)
-    >>> par.values
-    array([0., 8.])
+    >>> print_vector(par.values)
+    0.0, 8.0
 
     >>> par(1.0, 2.0)
     >>> par
     par(1.0, 2.0)
-    >>> par.values
-    array([2., 4.])
+    >>> print_vector(par.values)
+    2.0, 4.0
 
     Using the `call` syntax to set parameter values triggers method
     |trim| automatically:
@@ -1151,8 +1152,8 @@ keyword arguments are given, which is ambiguous.
 The old and the new value(s) are `-2.0, 6.0` and `0.0, 6.0`, respectively.
     >>> par
     par(0.0, 3.0)
-    >>> par.values
-    array([0., 6.])
+    >>> print_vector(par.values)
+    0.0, 6.0
 
     You are free to change the parameter step size (temporarily) to change
     the string representation of |Parameter| handling time-dependent values
@@ -1160,13 +1161,13 @@ The old and the new value(s) are `-2.0, 6.0` and `0.0, 6.0`, respectively.
 
     >>> with pub.options.parameterstep("2d"):
     ...     print(par)
-    ...     print(repr(par.values))
+    ...     print_vector(par.values)
     par(0.0, 6.0)
-    array([0., 6.])
+    0.0, 6.0
     >>> par
     par(0.0, 3.0)
-    >>> par.values
-    array([0., 6.])
+    >>> print_vector(par.values)
+    0.0, 6.0
 
     The highest number of dimensions of |Parameter| subclasses supported
     is currently two.  The following examples repeat some examples from
@@ -1174,6 +1175,7 @@ The old and the new value(s) are `-2.0, 6.0` and `0.0, 6.0`, respectively.
     related to the simulation step size (indicated by setting the class
     attribute `TIME` to |False|):
 
+    >>> from hydpy import print_matrix
     >>> class Par(Parameter):
     ...     NDIM = 2
     ...     TYPE = float
@@ -1186,18 +1188,18 @@ The old and the new value(s) are `-2.0, 6.0` and `0.0, 6.0`, respectively.
     >>> par(9.0)
     >>> par
     par(9.0)
-    >>> par.values
-    array([[4.5, 4.5, 4.5],
-           [4.5, 4.5, 4.5]])
+    >>> print_matrix(par.values)
+    | 4.5, 4.5, 4.5 |
+    | 4.5, 4.5, 4.5 |
 
     >>> par([[1.0, 2.0, 3.0],
     ...      [4.0, 5.0, 6.0]])
-    >>> par
-    par([[1.0, 2.0, 3.0],
-         [4.0, 5.0, 6.0]])
-    >>> par.values
-    array([[0.5, 1. , 1.5],
-           [2. , 2.5, 3. ]])
+    >>> print_matrix(par)
+    | 0.5, 1.0, 1.5 |
+    | 2.0, 2.5, 3.0 |
+    >>> print_matrix(par.values)
+    | 0.5, 1.0, 1.5 |
+    | 2.0, 2.5, 3.0 |
 
     >>> par(1.0, 2.0)
     Traceback (most recent call last):
@@ -1667,15 +1669,15 @@ implement method `update`.
         Due to the time-dependence of the values of our test class, we need to specify
         a parameter and a simulation time step:
 
-        >>> from hydpy import pub
+        >>> from hydpy import print_vector, pub
         >>> pub.options.parameterstep = "1d"
         >>> pub.options.simulationstep = "8h"
 
         Compression succeeds when all required values are identical:
 
         >>> test(3.0, 3.0, 3.0, 3.0)
-        >>> test.values
-        array([1., 1., 1., 1.])
+        >>> print_vector(test.values)
+        1.0, 1.0, 1.0, 1.0
         >>> test.compress_repr()
         '3.0'
         >>> test
@@ -1748,9 +1750,8 @@ implement method `update`.
         test([[3, 3, -999999],
               [3, 3, 3]])
 
-        >>> Test.mask = numpy.array([
-        ...     [True, True, False],
-        ...     [True, True, True]])
+        >>> Test.mask = numpy.array([[True, True, False],
+        ...                          [True, True, True]])
         >>> test
         test(3)
 
@@ -2067,6 +2068,7 @@ class ZipParameter(_MixinModifiableParameter, Parameter):
     For parameters with zero-length or with unprepared or identical parameter values,
     the string representation looks as usual:
 
+    >>> from hydpy import print_vector
     >>> landtype.shape = 0
     >>> par.shape = 0
     >>> par
@@ -2079,8 +2081,8 @@ class ZipParameter(_MixinModifiableParameter, Parameter):
     >>> par(2.0)
     >>> par
     par(2.0)
-    >>> par.values
-    array([1., 1., 1., 1., 1.])
+    >>> print_vector(par.values)
+    1.0, 1.0, 1.0, 1.0, 1.0
 
     The extended feature of class |ZipParameter| is to allow passing values via
     keywords, each keyword corresponding to one of the relevant constants (in our
@@ -2089,8 +2091,8 @@ class ZipParameter(_MixinModifiableParameter, Parameter):
     >>> par(soil=4.0, glacier=6.0)
     >>> par
     par(glacier=6.0, soil=4.0)
-    >>> par.values
-    array([ 2., nan,  3., nan,  2.])
+    >>> print_vector(par.values)
+    2.0, nan, 3.0, nan, 2.0
 
     Use the `default` argument if you want to assign the same value to entries with
     different constants:
@@ -2098,8 +2100,8 @@ class ZipParameter(_MixinModifiableParameter, Parameter):
     >>> par(soil=2.0, default=8.0)
     >>> par
     par(glacier=8.0, soil=2.0)
-    >>> par.values
-    array([ 1., nan,  4., nan,  1.])
+    >>> print_vector(par.values)
+    1.0, nan, 4.0, nan, 1.0
 
     Using a keyword argument corresponding to an existing, but not relevant constant (in
     our example: `WATER`) is silently ignored:
@@ -2107,8 +2109,8 @@ class ZipParameter(_MixinModifiableParameter, Parameter):
     >>> par(soil=4.0, glacier=6.0, water=8.0)
     >>> par
     par(glacier=6.0, soil=4.0)
-    >>> par.values
-    array([ 2., nan,  3., nan,  2.])
+    >>> print_vector(par.values)
+    2.0, nan, 3.0, nan, 2.0
 
     However, using a keyword not corresponding to any constant raises an exception:
 
@@ -2139,8 +2141,8 @@ incomplete and no default value is available.
     For convenience, you can get or set all values related to a specific constant via
     attribute access:
 
-    >>> par.soil
-    array([0., 0.])
+    >>> print_vector(par.soil)
+    0.0, 0.0
     >>> par.soil = 2.5
     >>> par
     par(glacier=10.0, soil=5.0)
@@ -2761,13 +2763,14 @@ broadcast input array from shape (2,) into shape (366,3)
         >>> par.shape = (None, 3)
         >>> par.toy_1_2_12 = 2.0
         >>> par.toy_1_6_12 = 0.0, 2.0, 4.0
-        >>> par.values[:6]
-        array([[nan, nan, nan],
-               [2. , 2. , 2. ],
-               [1.5, 2. , 2.5],
-               [1. , 2. , 3. ],
-               [nan, nan, nan],
-               [nan, nan, nan]])
+        >>> from hydpy import print_matrix
+        >>> print_matrix(par.values[:6])
+        | nan, nan, nan |
+        | 2.0, 2.0, 2.0 |
+        | 1.5, 2.0, 2.5 |
+        | 1.0, 2.0, 3.0 |
+        | nan, nan, nan |
+        | nan, nan, nan |
 
         .. testsetup::
 
@@ -3149,11 +3152,12 @@ class KeywordParameter1D(_MixinModifiableParameter, Parameter):
     >>> ishot
     ishot(winter=False, summer=True)
 
+    >>> from hydpy import print_vector
     >>> ishot(winter=True, summer=False)
     >>> ishot
     ishot(winter=True, summer=False)
-    >>> ishot.values
-    array([ True, False])
+    >>> print_vector(ishot.values)
+    True, False
 
     We check the given keyword arguments for correctness and completeness:
 
@@ -3460,14 +3464,15 @@ class KeywordParameter2D(_MixinModifiableParameter, Parameter):
 
     |KeywordParameter2D| allows us to set the values of all rows via keyword arguments:
 
+    >>> from hydpy import print_matrix
     >>> iswarm(north=[True, False],
     ...        south=[False, True])
     >>> iswarm
     iswarm(north=[True, False],
            south=[False, True])
-    >>> iswarm.values
-    array([[ True, False],
-           [False,  True]])
+    >>> print_matrix(iswarm.values)
+    | True, False |
+    | False, True |
 
     If a keyword is missing, it raises a |ValueError|:
 
@@ -3480,15 +3485,16 @@ the following keywords are not: `south`.
 
     One can modify single rows via attribute access:
 
+    >>> from hydpy import print_vector
     >>> iswarm.north = False, False
-    >>> iswarm.north
-    array([False, False])
+    >>> print_vector(iswarm.north)
+    False, False
 
     The same holds for the columns:
 
     >>> iswarm.apr2sep = True, False
-    >>> iswarm.apr2sep
-    array([ True, False])
+    >>> print_vector(iswarm.apr2sep)
+    True, False
 
     Also, combined row-column access is possible:
 
@@ -3601,6 +3607,7 @@ attribute nor a row or column related attribute named `wrong`.
         implementation here.  Please read the documentation on method
         |KeywordParameter1D.modify_entries| for more information:
 
+        >>> from hydpy import print_vector
         >>> from hydpy.core.parametertools import KeywordParameter2D
         >>> class IsWarm(KeywordParameter2D):
         ...     TYPE = bool
@@ -3611,10 +3618,10 @@ attribute nor a row or column related attribute named `wrong`.
         >>> iswarm1.shape = (2, 2)
         >>> iswarm1(north=[True, False],
         ...         south=[False, True])
-        >>> iswarm1.north
-        array([ True, False])
-        >>> iswarm1.apr2sep
-        array([ True, False])
+        >>> print_vector(iswarm1.north)
+        True, False
+        >>> print_vector(iswarm1.apr2sep)
+        True, False
 
         >>> from hydpy.core.parametertools import Constants
         >>> consts_row = Constants(N=1, S=2)
@@ -3624,10 +3631,10 @@ attribute nor a row or column related attribute named `wrong`.
         ...     iswarm2.shape = (2, 4)
         ...     iswarm2(n=[True, True, False, False],
         ...             s=[False, False, True, True])
-        ...     iswarm2.n
-        ...     iswarm2.apr2jun
-        array([ True,  True, False, False])
-        array([ True, False])
+        ...     print_vector(iswarm2.n)
+        ...     print_vector(iswarm2.apr2jun)
+        True, True, False, False
+        True, False
 
         >>> iswarm1.rownames
         ('north', 'south')
@@ -3668,14 +3675,14 @@ attribute nor a row or column related attribute named `wrong`.
         ...     iswarm3(north=[True, False],
         ...             south=[False, True])
         ...     iswarm3
-        ...     iswarm1.north
+        ...     print_vector(iswarm1.north)
         ('north', 'south')
         2
         ('apr2sep', 'oct2mar')
         3
         iswarm(north=[True, False],
                south=[False, True])
-        array([ True, False])
+        True, False
         >>> IsWarm.rownames
         ('north', 'south')
         >>> IsWarm.columnnames
@@ -3687,8 +3694,8 @@ attribute nor a row or column related attribute named `wrong`.
         >>> iswarm3
         iswarm(north=[True, False],
                south=[False, True])
-        >>> iswarm1.north
-        array([ True, False])
+        >>> print_vector(iswarm1.north)
+        True, False
         """
         if constants is None:
             yield

@@ -924,8 +924,8 @@ results of the linear storage cascade with a single bucket:
 >>> lsc = LinearStorageCascade(n=1, k=1.0/0.054)
 >>> inflow = fluxes.adjustedprecipitation.series + inflow.sequences.sim.series
 >>> outflow = numpy.convolve(lsc.ma.coefs, inflow)
->>> from hydpy import print_values
->>> print_values(outflow[:20])
+>>> from hydpy import print_vector
+>>> print_vector(outflow[:20])
 0.0, 0.02652, 0.183776, 0.543037, 0.961081, 1.251541, 1.395548,
 1.453371, 1.455585, 1.405116, 1.331252, 1.261271, 1.194968, 1.132151,
 1.072636, 1.01625, 0.962828, 0.912214, 0.864261, 0.818829
@@ -1035,7 +1035,7 @@ The following comparative calculation shows that |dam_v001| reaches the desired
 numerical accuracy for this extreme parameterisation:
 
 >>> lsc.k = 1.0/5.4
->>> print_values(numpy.convolve(lsc.ma.coefs, inflow)[:20])
+>>> print_vector(numpy.convolve(lsc.ma.coefs, inflow)[:20])
 0.0, 0.815651, 4.261772, 8.259271, 8.181003, 5.553864, 3.371199,
 2.186025, 1.185189, 0.185185, 0.000836, 0.000004, 0.0, 0.0, 0.0, 0.0,
 0.0, 0.0, 0.0, 0.0

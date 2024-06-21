@@ -46,12 +46,12 @@ class UH(parametertools.Parameter):
     We generate the ordinates of a unit hydrograph in the form of an isosceles triangle
     with a base length of 10 days:
 
-    >>> from hydpy import print_values
+    >>> from hydpy import print_vector
     >>> from hydpy.models.rconc import *
     >>> uh("triangle", tb=10.0)
     >>> uh
     uh("triangle", tb=10.0)
-    >>> print_values(uh.values)
+    >>> print_vector(uh.values)
     0.02, 0.06, 0.1, 0.14, 0.18, 0.18, 0.14, 0.1, 0.06, 0.02
 
     The value of `tb` depends on the current parameter step size:
@@ -92,7 +92,7 @@ of floats but a value of `bool` is given.
     >>> uh("triangle", tb=10.0, tp=7.0)
     >>> uh
     uh("triangle", tb=10.0, tp=7.0)
-    >>> print_values(uh.values)
+    >>> print_vector(uh.values)
     0.014286, 0.042857, 0.071429, 0.1, 0.128571, 0.157143, 0.185714,
     0.166667, 0.1, 0.033333
 
@@ -101,7 +101,7 @@ of floats but a value of `bool` is given.
     >>> uh("triangle", tb=9.5, tp=6.7)
     >>> uh
     uh("triangle", tb=9.5, tp=6.7)
-    >>> print_values(uh.values)
+    >>> print_vector(uh.values)
     0.015711, 0.047133, 0.078555, 0.109976, 0.141398, 0.17282, 0.199445,
     0.150376, 0.075188, 0.009398
 
@@ -122,32 +122,32 @@ following error occurred: Parameter 'tp' must not be greater than 'tb'.
     >>> uh("gr_uh1", x4=6.3)
     >>> uh
     uh("gr_uh1", x4=6.3)
-    >>> print_values(uh.values)
+    >>> print_vector(uh.values)
     0.010038, 0.046746, 0.099694, 0.16474, 0.239926, 0.324027, 0.11483
 
     >>> uh("gr_uh1", x4=0.8)
-    >>> print_values(uh.values)
+    >>> print_vector(uh.values)
     1.0
 
     >>> uh("gr_uh2", x4=2.8)
     >>> uh
     uh("gr_uh2", x4=2.8)
-    >>> print_values(uh.values)
+    >>> print_vector(uh.values)
     0.038113, 0.177487, 0.368959, 0.292023, 0.112789, 0.010628
 
     >>> uh("gr_uh2", x4=0.8)
-    >>> print_values(uh.values)
+    >>> print_vector(uh.values)
     0.75643, 0.24357
 
     According to :cite:t:`ref-Perrin2007`, the exponent 'beta' is 2.5 by default but
     can be changed:
 
     >>> uh("gr_uh1", x4=6.3, beta=1.5)
-    >>> print_values(uh.values)
+    >>> print_vector(uh.values)
     0.06324, 0.115629, 0.149734, 0.177314, 0.201123, 0.222388, 0.070571
 
     >>> uh("gr_uh2", x4=2.8, beta=1.5)
-    >>> print_values(uh.values)
+    >>> print_vector(uh.values)
     0.106717, 0.195124, 0.250762, 0.231417, 0.166382, 0.049598
 
     The triangle unit hydrograph must not be called with the parameters for the
@@ -176,19 +176,19 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
     The following tests examine the correct calculation of ordinates in edge cases:
 
     >>> uh("gr_uh2", x4=0.4)
-    >>> print_values(uh.values)
+    >>> print_vector(uh.values)
     1.0
 
     >>> uh("gr_uh2", x4=0.0)
-    >>> print_values(uh.values)
+    >>> print_vector(uh.values)
     1.0
 
     >>> uh("gr_uh2", x4=1.0)
-    >>> print_values(uh.values)
+    >>> print_vector(uh.values)
     0.5, 0.5
 
     >>> uh("gr_uh2", x4=1.5)
-    >>> print_values(uh.values)
+    >>> print_vector(uh.values)
     0.181444, 0.637113, 0.181444
     """
 

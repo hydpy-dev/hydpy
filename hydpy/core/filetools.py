@@ -1386,9 +1386,10 @@ not allowed to overwrite the existing file `...`.
     thirteen entries:
 
     >>> path = os.path.join("project", "series", "default", "node2_sim_t.npy")
-    >>> from hydpy import numpy, print_values
+    >>> import numpy
+    >>> from hydpy import print_vector, print_matrix
     >>> with TestIO():
-    ...     print_values(numpy.load(path))
+    ...     print_vector(numpy.load(path))
     2000.0, 1.0, 1.0, 0.0, 0.0, 0.0, 2000.0, 1.0, 5.0, 0.0, 0.0, 0.0,
     86400.0, 64.0, 65.0, 66.0, 67.0
 
@@ -1399,23 +1400,24 @@ not allowed to overwrite the existing file `...`.
     >>> with TestIO():
     ...     sim.load_series()
     ...     nkor.load_series()
-    >>> sim.series
-    InfoArray([64., 65., 66., 67.])
-    >>> nkor.series
-    InfoArray([[16., 17.],
-               [18., 19.],
-               [20., 21.],
-               [22., 23.]])
+    >>> print_vector(sim.series)
+    64.0, 65.0, 66.0, 67.0
+    >>> print_matrix(nkor.series)
+    | 16.0, 17.0 |
+    | 18.0, 19.0 |
+    | 20.0, 21.0 |
+    | 22.0, 23.0 |
 
     Writing mean values into |numpy| binary files is also supported:
 
     >>> import numpy
+    >>> from hydpy import print_vector
     >>> path = os.path.join(
     ...     "project", "series", "default", "element2_lland_dd_flux_nkor_mean.npy")
     >>> with TestIO():
     ...     nkor.save_mean("wasser")
-    ...     numpy.load(path)[-4:]
-    array([17., 19., 21., 23.])
+    ...     print_vector(numpy.load(path)[-4:])
+    17.0, 19.0, 21.0, 23.0
 
     Generally, trying to load data for "deactivated" sequences results in the following
     error message:

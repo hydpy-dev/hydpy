@@ -218,8 +218,8 @@ class FactorAdaptor(Adaptor):
     However, inspecting the individual values of the respective response units reveals
     the multiplication was successful:
 
-    >>> from hydpy import print_values
-    >>> print_values(control.gmelt.values)
+    >>> from hydpy import print_vector
+    >>> print_vector(control.gmelt.values)
     9.11706, 5.470236, 9.11706, 5.470236, 9.11706, 5.470236, 9.11706,
     5.470236, 9.11706, 5.470236, 9.11706, 5.470236
 
@@ -259,7 +259,7 @@ class FactorAdaptor(Adaptor):
     intended behaviour allows calibrating, for example, hydrological response units of
     different types with different rule objects:
 
-    >>> print_values(control.gmelt.values)
+    >>> print_vector(control.gmelt.values)
     3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 9.11706, 5.470236, 9.11706, 5.470236,
     9.11706, 5.470236
     """
@@ -2971,7 +2971,7 @@ parameterstep="1d"),
 
     def __dir__(self) -> list[str]:
         """
-        >>> from hydpy import CalibSpec, CalibSpecs, print_values
+        >>> from hydpy import CalibSpec, CalibSpecs, print_vector
         >>> calibspecs = CalibSpecs(CalibSpec(name="first", default=1.0),
         ...                         CalibSpec(name="second",default=2.0))
         >>> sorted(set(dir(calibspecs)) - set(object.__dir__(calibspecs)))

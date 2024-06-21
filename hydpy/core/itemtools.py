@@ -423,7 +423,7 @@ class ChangeItem(ExchangeItem):
 
         The first example deals with "global" state values:
 
-        >>> from hydpy import SetItem
+        >>> from hydpy import print_matrix, round_, SetItem
         >>> item = SetItem("ic", "hland", "states.ic", None, "global")
         >>> item.collect_variables(pub.selections)
         >>> item.value
@@ -433,8 +433,8 @@ class ChangeItem(ExchangeItem):
 `ic` has/have not been prepared so far.
 
         >>> item.value = 1.0
-        >>> item.value
-        array(1.)
+        >>> round_(item.value)
+        1.0
 
         >>> item.value = 1.0, 2.0
         Traceback (most recent call last):
@@ -449,9 +449,9 @@ occurred: could not broadcast input array from shape (2,) into shape ()
         >>> item.collect_variables(pub.selections)
 
         >>> item.value = [1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]
-        >>> item.value
-        array([[1., 2., 3., 4.],
-               [5., 6., 7., 8.]])
+        >>> print_matrix(item.value)
+        | 1.0, 2.0, 3.0, 4.0 |
+        | 5.0, 6.0, 7.0, 8.0 |
 
         >>> item.value = 1.0, 2.0
         Traceback (most recent call last):
@@ -692,7 +692,7 @@ value `wrong` cannot be converted to type `float`.
         "Global" |SetItem| objects assign the same value to all chosen 0-dimensional
         target variables (we use parameter |hland_control.Alpha| as an example):
 
-        >>> from hydpy import SetItem
+        >>> from hydpy import print_vector, round_, SetItem
         >>> item = SetItem("alpha", "hland_96", "control.alpha", None, "global")
         >>> item
         SetItem("alpha", "hland_96", "control.alpha", None, "global")
@@ -701,8 +701,8 @@ value `wrong` cannot be converted to type `float`.
         >>> land_dill.model.parameters.control.alpha
         alpha(1.0)
         >>> item.value = 2.0
-        >>> item.value
-        array(2.)
+        >>> round_(item.value)
+        2.0
         >>> land_dill.model.parameters.control.alpha
         alpha(1.0)
         >>> item.update_variables()
@@ -721,10 +721,9 @@ value `wrong` cannot be converted to type `float`.
         >>> item.collect_variables(pub.selections)
         >>> item.value = 0.5, 1.0, 1.5, 2.0
         >>> item.update_variables()
-        >>> from hydpy import print_values
         >>> for element in hp.elements.catchment:
         ...     print(element, end=": ")
-        ...     print_values(element.model.sequences.inputs.t.series)
+        ...     print_vector(element.model.sequences.inputs.t.series)
         land_dill: 0.5, 1.0, 1.5, 2.0
         land_lahn_1: 0.5, 1.0, 1.5, 2.0
         land_lahn_2: 0.5, 1.0, 1.5, 2.0
@@ -743,8 +742,8 @@ value `wrong` cannot be converted to type `float`.
         >>> stream_lahn_1_lahn_2.model.parameters.control.nmbsegments
         nmbsegments(lag=0.583)
         >>> item.value = 2.0
-        >>> item.value
-        array(2.)
+        >>> round_(item.value)
+        2.0
         >>> stream_lahn_1_lahn_2.model.parameters.control.nmbsegments
         nmbsegments(lag=0.583)
         >>> item.update_variables()
@@ -815,7 +814,7 @@ value `wrong` cannot be converted to type `float`.
         >>> item.update_variables()
         >>> for element in hp.elements.catchment:
         ...     print(element, end=": ")
-        ...     print_values(element.model.sequences.inputs.t.series)
+        ...     print_vector(element.model.sequences.inputs.t.series)
         land_dill: 0.5, 1.0, 1.5, 2.0
         land_lahn_1: 0.5, 1.0, 1.5, 2.0
         land_lahn_2: 2.5, 3.0, 3.5, 4.0
@@ -855,7 +854,7 @@ value `wrong` cannot be converted to type `float`.
         >>> item.update_variables()
         >>> for element in hp.elements.catchment:
         ...     print(element, end=": ")
-        ...     print_values(element.model.sequences.inputs.t.series)
+        ...     print_vector(element.model.sequences.inputs.t.series)
         land_dill: 0.5, 1.0, 1.5, 2.0
         land_lahn_1: 2.5, 3.0, 3.5, 4.0
         land_lahn_2: 4.5, 5.0, 5.5, 6.0
@@ -970,7 +969,7 @@ class SetItem(ChangeItem):
         `sm` the 1-dimensional sequence |hland_states.SM|, and `sp` the 2-dimensional
         sequence |hland_states.SP|:
 
-        >>> from hydpy import print_values, round_, SetItem
+        >>> from hydpy import print_vector, round_, SetItem
         >>> lz = SetItem("lz", "hland_96", "states.lz", None, "to be defined")
         >>> sm = SetItem("sm", "hland_96", "states.sm", None, "to be defined")
         >>> sp = SetItem("sp", "hland_96", "states.sp", None, "to be defined")
@@ -1039,51 +1038,51 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         individual exchange item values:
 
         >>> test("device")
-        >>> print_values(lz.value)
+        >>> print_vector(lz.value)
         8.70695, 8.18711, 10.14007, 7.52648
         >>> dill.sequences.states.lz
         lz(8.70695)
-        >>> print_values(sm.value)
+        >>> print_vector(sm.value)
         211.47288, 115.77717, 147.057048, 114.733823
         >>> round_(dill.sequences.states.sm.average_values())
         211.47288
-        >>> print_values(sp.value)
+        >>> print_vector(sp.value)
         11.103987, 0.0, 0.0, 0.0
         >>> round_(dill.sequences.states.sp.average_values())
         11.103987
         >>> for series in uz.value:
-        ...     print_values(series)
+        ...     print_vector(series)
         0.0, 1.0, 2.0, 3.0
         nan, nan, nan, nan
         nan, nan, nan, nan
         nan, nan, nan, nan
-        >>> print_values(dill.sequences.states.uz.series)
+        >>> print_vector(dill.sequences.states.uz.series)
         0.0, 1.0, 2.0, 3.0
         >>> for series in ic.value:
-        ...     print_values(series)
+        ...     print_vector(series)
         5.103987, 17.103987, 29.103987, 41.103987
         nan, nan, nan, nan
         nan, nan, nan, nan
         nan, nan, nan, nan
-        >>> print_values(dill.sequences.states.ic.average_series())
+        >>> print_vector(dill.sequences.states.ic.average_series())
         5.103987, 17.103987, 29.103987, 41.103987
         >>> for series in wc.value:
-        ...     print_values(series)
+        ...     print_vector(series)
         11.103987, 35.103987, 59.103987, 83.103987
         nan, nan, nan, nan
         nan, nan, nan, nan
         nan, nan, nan, nan
-        >>> print_values(dill.sequences.states.wc.average_series())
+        >>> print_vector(dill.sequences.states.wc.average_series())
         11.103987, 35.103987, 59.103987, 83.103987
 
         For the `subunit` level, no aggregation is necessary:
 
         >>> test("subunit")
-        >>> print_values(lz.value)
+        >>> print_vector(lz.value)
         8.70695, 8.18711, 10.14007, 7.52648
         >>> dill.sequences.states.lz
         lz(8.70695)
-        >>> print_values(sm.value)  # doctest: +ELLIPSIS
+        >>> print_vector(sm.value)  # doctest: +ELLIPSIS
         185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
         222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427,
         99.27505, ... 164.63255, 101.31248,
@@ -1097,22 +1096,22 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         sm(101.31248, 97.225, 111.3861, 107.64977, 120.59559, 117.26499,
            129.01711, 126.0465, 136.66663, 134.01408, 143.59799, 141.24428,
            147.75786, 153.54053)
-        >>> print_values(sp.value)
+        >>> print_vector(sp.value)
         0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0,
         13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 0.0,
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
         >>> for series in uz.value:
-        ...     print_values(series)
+        ...     print_vector(series)
         0.0, 1.0, 2.0, 3.0
         nan, nan, nan, nan
         nan, nan, nan, nan
         nan, nan, nan, nan
-        >>> print_values(dill.sequences.states.uz.series)
+        >>> print_vector(dill.sequences.states.uz.series)
         0.0, 1.0, 2.0, 3.0
         >>> for series in ic.value:  # doctest: +ELLIPSIS
-        ...     print_values(series)
+        ...     print_vector(series)
         0.0, 12.0, 24.0, 36.0
         1.0, 13.0, 25.0, 37.0
         ...
@@ -1121,14 +1120,14 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         nan, nan, nan, nan
         ...
         >>> for idx in range(12):  # doctest: +ELLIPSIS
-        ...     print_values(dill.sequences.states.ic.series[:, idx])
+        ...     print_vector(dill.sequences.states.ic.series[:, idx])
         0.0, 12.0, 24.0, 36.0
         1.0, 13.0, 25.0, 37.0
         ...
         10.0, 22.0, 34.0, 46.0
         11.0, 23.0, 35.0, 47.0
         >>> for series in wc.value:  # doctest: +ELLIPSIS
-        ...     print_values(series)
+        ...     print_vector(series)
         0.0, 24.0, 48.0, 72.0
         12.0, 36.0, 60.0, 84.0
         1.0, 25.0, 49.0, 73.0
@@ -1142,7 +1141,7 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         ...
         >>> for jdx in range(12):  # doctest: +ELLIPSIS
         ...     for idx in range(2):
-        ...         print_values(dill.sequences.states.wc.series[:, idx, jdx])
+        ...         print_vector(dill.sequences.states.wc.series[:, idx, jdx])
         0.0, 24.0, 48.0, 72.0
         12.0, 36.0, 60.0, 84.0
         1.0, 25.0, 49.0, 73.0
@@ -1163,7 +1162,7 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         >>> cfmax.extract_values()
         >>> dill.parameters.control.cfmax
         cfmax(field=4.55853, forest=2.735118)
-        >>> print_values(cfmax.value)
+        >>> print_vector(cfmax.value)
         2.735118, 3.0, 2.1, 2.1
 
         Method |SetItem.extract_values| cannot extract its complete data if the time
@@ -1198,19 +1197,19 @@ occurred: Sequence `wc` of element `land_dill` is not requested to make any time
 series data available.
 
         >>> for series in uz.value:
-        ...     print_values(series)  # doctest: +ELLIPSIS
+        ...     print_vector(series)  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `uz` \
 has/have not been prepared so far.
         >>> for series in ic.value:
-        ...     print_values(series)  # doctest: +ELLIPSIS
+        ...     print_vector(series)  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `ic` \
 has/have not been prepared so far.
         >>> for series in wc.value:
-        ...     print_values(series)  # doctest: +ELLIPSIS
+        ...     print_vector(series)  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `wc` \
@@ -1229,19 +1228,19 @@ requested to make any time series data available.
 requested to make any time series data available.
 
         >>> for series in uz.value:
-        ...     print_values(series)  # doctest: +ELLIPSIS
+        ...     print_vector(series)  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `uz` \
 has/have not been prepared so far.
         >>> for series in ic.value:  # doctest: +ELLIPSIS
-        ...     print_values(series)
+        ...     print_vector(series)
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `ic` \
 has/have not been prepared so far.
         >>> for series in wc.value:  # doctest: +ELLIPSIS
-        ...     print_values(series)
+        ...     print_vector(series)
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `wc` \

@@ -296,9 +296,10 @@ class ANN(interptools.InterpAlgorithm):
     hidden neurons. As both inputs are `True`, both `H12` (upper left value) and `H22`
     (upper right value) are activated, but `H2` (lower left value) is not:
 
-    >>> ann.neurons
-    array([[1., 1.],
-           [0., 0.]])
+    >>> from hydpy import print_matrix
+    >>> print_matrix(ann.neurons)
+    | 1.0, 1.0 |
+    | 0.0, 0.0 |
 
     Due to the sharp response function, the derivatives with respect to both inputs are
     approximately zero:
@@ -675,11 +676,11 @@ object `ann` has not been prepared so far.
         The input nodes and the neurons vary on the first and second axes of the
          2-dimensional array, respectively (see property |ANN.shape_weights_input|):
 
-        >>> from hydpy import ANN
+        >>> from hydpy import ANN, print_matrix
         >>> ann = ANN(nmb_inputs=2, nmb_neurons=(3,))
-        >>> ann.weights_input
-        array([[0., 0., 0.],
-               [0., 0., 0.]])
+        >>> print_matrix(ann.weights_input)
+        | 0.0, 0.0, 0.0 |
+        | 0.0, 0.0, 0.0 |
         
         The following error occurs when either the number of input nodes or of hidden 
         neurons is unknown:
@@ -696,31 +697,31 @@ you have to prepare attribute `nmb_inputs` first.
         It is allowed to set values via slicing:
         
         >>> ann.weights_input[:, 0] = 1.
-        >>> ann.weights_input
-        array([[1., 0., 0.],
-               [1., 0., 0.]])
+        >>> print_matrix(ann.weights_input)
+        | 1.0, 0.0, 0.0 |
+        | 1.0, 0.0, 0.0 |
 
         If possible, property |ANN.weights_input| performs type conversions:
 
         >>> ann.weights_input = "2"
-        >>> ann.weights_input
-        array([[2., 2., 2.],
-               [2., 2., 2.]])
+        >>> print_matrix(ann.weights_input)
+        | 2.0, 2.0, 2.0 |
+        | 2.0, 2.0, 2.0 |
 
         One can assign whole matrices directly:
 
         >>> import numpy
         >>> ann.weights_input = numpy.eye(2, 3)
-        >>> ann.weights_input
-        array([[1., 0., 0.],
-               [0., 1., 0.]])
+        >>> print_matrix(ann.weights_input)
+        | 1.0, 0.0, 0.0 |
+        | 0.0, 1.0, 0.0 |
 
         One can also delete the values contained in the array:
 
         >>> del ann.weights_input
-        >>> ann.weights_input
-        array([[0., 0., 0.],
-               [0., 0., 0.]])
+        >>> print_matrix(ann.weights_input)
+        | 0.0, 0.0, 0.0 |
+        | 0.0, 0.0, 0.0 |
 
         Errors like wrong shapes (or unconvertible inputs) result in error messages:
 

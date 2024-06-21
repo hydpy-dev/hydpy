@@ -275,7 +275,7 @@ hydpy.models.hland.hland_control.ZoneType
 **********
                 1
                 items had failures:
-                   1 of   6 in hydpy.models.hland.hland_control.ZoneType
+                   1 of   7 in hydpy.models.hland.hland_control.ZoneType
                 ***Test Failed***
                 1
                 failures.
@@ -1517,7 +1517,7 @@ class NumericalDifferentiator:
     def __call__(self) -> None:
         for ysequence, derivatives in self._derivatives.items():
             print(f"d_{ysequence.name}/d_{self._xsequence.name}", end=": ")
-            objecttools.print_values(derivatives, width=1000)
+            objecttools.print_vector(derivatives, width=1000)
 
 
 def update_integrationtests(

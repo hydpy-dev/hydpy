@@ -140,20 +140,22 @@ relevant NetCDF files more directly using the underlying NetCDF4 library (note t
 averaging 1-dimensional time series as those of node sequence |Sim| is allowed for the
 sake of consistency):
 
->>> from hydpy.core.netcdftools import netcdf4
 >>> from numpy import array
+>>> from hydpy import print_matrix
+>>> from hydpy.core.netcdftools import netcdf4
 >>> filepath = "project/series/default/sim_q_mean.nc"
 >>> with TestIO(), netcdf4.Dataset(filepath) as ncfile:
-...     array(ncfile["sim_q_mean"][:])
-array([[60.],
-       [61.],
-       [62.],
-       [63.]])
+...     print_matrix(array(ncfile["sim_q_mean"][:]))
+| 60.0 |
+| 61.0 |
+| 62.0 |
+| 63.0 |
 
+>>> from hydpy import print_vector
 >>> filepath = "project/series/default/lland_dd_flux_nkor_mean.nc"
 >>> with TestIO(), netcdf4.Dataset(filepath) as ncfile:
-...         array(ncfile["lland_dd_flux_nkor_mean"][:])[:, 1]
-array([16.5, 18.5, 20.5, 22.5])
+...         print_vector(array(ncfile["lland_dd_flux_nkor_mean"][:])[:, 1])
+16.5, 18.5, 20.5, 22.5
 
 The previous examples relied on "model-specific" file names and variable names.  The
 documentation on class |HydPy| introduces the standard "HydPy" convention as an
@@ -163,22 +165,22 @@ store the time series of single sequence instances.  Here, we take the input seq
 |StandardInputNames.PRECIPITATION| to read and write more generally named NetCDF files
 and variables:
 
->>> elements.element2.model.sequences.inputs.nied.series
-InfoArray([4., 5., 6., 7.])
+>>> print_vector(elements.element2.model.sequences.inputs.nied.series)
+4.0, 5.0, 6.0, 7.0
 
 >>> pub.sequencemanager.convention = "HydPy"
 >>> with TestIO(), pub.sequencemanager.netcdfwriting():
 ...     elements.save_inputseries()
 >>> filepath = "project/series/default/precipitation.nc"
 >>> with TestIO(), netcdf4.Dataset(filepath) as ncfile:
-...         array(ncfile["precipitation"][:])[:, 1]
-array([4., 5., 6., 7.])
+...         print_vector(array(ncfile["precipitation"][:])[:, 1])
+4.0, 5.0, 6.0, 7.0
 
 >>> elements.element2.model.sequences.inputs.nied.series = 0.0
 >>> with TestIO(), pub.options.checkseries(False), pub.sequencemanager.netcdfreading():
 ...     elements.load_inputseries()
->>> elements.element2.model.sequences.inputs.nied.series
-InfoArray([4., 5., 6., 7.])
+>>> print_vector(elements.element2.model.sequences.inputs.nied.series)
+4.0, 5.0, 6.0, 7.0
 
 Besides the testing-related specialities, the described workflow is more or less
 standard but allows for different modifications.  We illustrate them in the
@@ -381,8 +383,9 @@ to the NetCDF file `test.nc`, the following error occurred: ...
     >>> create_dimension(ncfile, "dim1", 5)
     >>> create_variable(ncfile, "var1", "f8", ("dim1",))
     >>> import numpy
-    >>> numpy.array(ncfile["var1"][:])
-    array([nan, nan, nan, nan, nan])
+    >>> from hydpy import print_vector
+    >>> print_vector(numpy.array(ncfile["var1"][:]))
+    nan, nan, nan, nan, nan
 
     >>> ncfile.close()
     """
@@ -636,7 +639,7 @@ def query_array(ncfile: netcdf4.Dataset, name: str) -> NDArrayFloat:
     representing missing values even when the respective NetCDF variable defines a
     different fill value:
 
-    >>> from hydpy import TestIO
+    >>> from hydpy import print_matrix, TestIO
     >>> from hydpy.core import netcdftools
     >>> from hydpy.core.netcdftools import netcdf4, create_dimension, create_variable
     >>> import numpy
@@ -649,12 +652,12 @@ def query_array(ncfile: netcdf4.Dataset, name: str) -> NDArrayFloat:
     ...         netcdftools.fillvalue = numpy.nan
     ...     ncfile = netcdf4.Dataset("test.nc", "r")
     >>> from hydpy.core.netcdftools import query_variable, query_array
-    >>> query_variable(ncfile, "var")[:].data
-    array([[-999., -999., -999.],
-           [-999., -999., -999.]])
-    >>> query_array(ncfile, "var")
-    array([[nan, nan, nan],
-           [nan, nan, nan]])
+    >>> print_matrix(query_variable(ncfile, "var")[:].data)
+    | -999.0, -999.0, -999.0 |
+    | -999.0, -999.0, -999.0 |
+    >>> print_matrix(query_array(ncfile, "var"))
+    | nan, nan, nan |
+    | nan, nan, nan |
     >>> ncfile.close()
 
     Usually, *HydPy* expects all data variables in NetCDF files to be 2-dimensional,
@@ -679,9 +682,9 @@ def query_array(ncfile: netcdf4.Dataset, name: str) -> NDArrayFloat:
     (2, 1, 3)
     >>> query_array(ncfile, "var").shape
     (2, 3)
-    >>> query_array(ncfile, "var")
-    array([[1.1, 1.2, 1.3],
-           [2.1, 2.2, 2.3]])
+    >>> print_matrix(query_array(ncfile, "var"))
+    | 1.1, 1.2, 1.3 |
+    | 2.1, 2.2, 2.3 |
     >>> ncfile.close()
 
     |query_array| raises errors if dimensionality is smaller than two or larger than
@@ -727,9 +730,9 @@ def query_array(ncfile: netcdf4.Dataset, name: str) -> NDArrayFloat:
     ...         var = create_variable(ncfile, "var", "f8",
     ...                               ("time", "realisation", "stations"))
     ...     with netcdf4.Dataset("test.nc", "r") as ncfile, warn_later():
-    ...         query_array(ncfile, "var")
-    array([[nan, nan, nan],
-           [nan, nan, nan]])
+    ...         print_matrix(query_array(ncfile, "var"))
+    | nan, nan, nan |
+    | nan, nan, nan |
     UserWarning: Variable `var` of NetCDF file `test.nc` is 3-dimensional and the \
 length of the second dimension is one, but its name is `realisation` instead of \
 `realization`.
@@ -1558,11 +1561,12 @@ class NetCDFVariableFlatWriter(MixinVariableWriter, NetCDFVariableFlat):
         ...     if element.model.name.startswith("lland"):
         ...         nied1 = element.model.sequences.inputs.nied
         ...         var.log(nied1, nied1.series)
-        >>> var.array
-        array([[ 0.,  4.,  8.],
-               [ 1.,  5.,  9.],
-               [ 2.,  6., 10.],
-               [ 3.,  7., 11.]])
+        >>> from hydpy import print_matrix
+        >>> print_matrix(var.array)
+        | 0.0, 4.0, 8.0 |
+        | 1.0, 5.0, 9.0 |
+        | 2.0, 6.0, 10.0 |
+        | 3.0, 7.0, 11.0 |
 
         The flattening of higher-dimensional sequences spreads the time series of
         individual "subdevices" over the array's columns.  For the 1-dimensional
@@ -1574,11 +1578,11 @@ class NetCDFVariableFlatWriter(MixinVariableWriter, NetCDFVariableFlat):
         ...     if element.model.name.startswith("lland"):
         ...         nkor = element.model.sequences.fluxes.nkor
         ...         var.log(nkor, nkor.series)
-        >>> var.array[:, 1:3]
-        array([[16., 17.],
-               [18., 19.],
-               [20., 21.],
-               [22., 23.]])
+        >>> print_matrix(var.array[:, 1:3])
+        | 16.0, 17.0 |
+        | 18.0, 19.0 |
+        | 20.0, 21.0 |
+        | 22.0, 23.0 |
 
         The above statements also hold for 2-dimensional sequences like
         |hland_states.SP|.  In this specific case, each column contains the time series
@@ -1587,11 +1591,11 @@ class NetCDFVariableFlatWriter(MixinVariableWriter, NetCDFVariableFlat):
         >>> var = NetCDFVariableFlatWriter("filename.nc")
         >>> sp = elements.element4.model.sequences.states.sp
         >>> var.log(sp, sp.series)
-        >>> var.array
-        array([[68., 69., 70., 71., 72., 73.],
-               [74., 75., 76., 77., 78., 79.],
-               [80., 81., 82., 83., 84., 85.],
-               [86., 87., 88., 89., 90., 91.]])
+        >>> print_matrix(var.array)
+        | 68.0, 69.0, 70.0, 71.0, 72.0, 73.0 |
+        | 74.0, 75.0, 76.0, 77.0, 78.0, 79.0 |
+        | 80.0, 81.0, 82.0, 83.0, 84.0, 85.0 |
+        | 86.0, 87.0, 88.0, 89.0, 90.0, 91.0 |
         """
         array = numpy.full(self.shape, fillvalue, dtype=config.NP_FLOAT)
         idx0 = 0
@@ -1638,26 +1642,27 @@ class NetCDFVariableAggregated(MixinVariableWriter, NetCDFVariable):
     aggregated values are readily available using the external NetCDF4 library:
 
     >>> import numpy
+    >>> from hydpy import print_matrix
     >>> with TestIO(), netcdf4.Dataset("nied.nc", "r") as ncfile:
-    ...     numpy.array(ncfile["nied"][:])
-    array([[0., 4.],
-           [1., 5.],
-           [2., 6.],
-           [3., 7.]])
+    ...     print_matrix(numpy.array(ncfile["nied"][:]))
+    | 0.0, 4.0 |
+    | 1.0, 5.0 |
+    | 2.0, 6.0 |
+    | 3.0, 7.0 |
 
     >>> with TestIO(), netcdf4.Dataset("nkor.nc", "r") as ncfile:
-    ...     numpy.array(ncfile["nkor"][:])
-    array([[12. , 16.5],
-           [13. , 18.5],
-           [14. , 20.5],
-           [15. , 22.5]])
+    ...     print_matrix(numpy.array(ncfile["nkor"][:]))
+    | 12.0, 16.5 |
+    | 13.0, 18.5 |
+    | 14.0, 20.5 |
+    | 15.0, 22.5 |
 
     >>> with TestIO(), netcdf4.Dataset("sp.nc", "r") as ncfile:
-    ...     numpy.array(ncfile["sp"][:])
-    array([[70.5],
-           [76.5],
-           [82.5],
-           [88.5]])
+    ...     print_matrix(numpy.array(ncfile["sp"][:]))
+    | 70.5 |
+    | 76.5 |
+    | 82.5 |
+    | 88.5 |
     """
 
     @property
@@ -1705,11 +1710,12 @@ class NetCDFVariableAggregated(MixinVariableWriter, NetCDFVariable):
         ...     if element.model.name.startswith("lland"):
         ...         nkor = element.model.sequences.fluxes.nkor
         ...         var.log(nkor, nkor.average_series())
-        >>> var.array
-        array([[12. , 16.5, 25. ],
-               [13. , 18.5, 28. ],
-               [14. , 20.5, 31. ],
-               [15. , 22.5, 34. ]])
+        >>> from hydpy import print_matrix
+        >>> print_matrix(var.array)
+        | 12.0, 16.5, 25.0 |
+        | 13.0, 18.5, 28.0 |
+        | 14.0, 20.5, 31.0 |
+        | 15.0, 22.5, 34.0 |
 
         There is no difference for 2-dimensional sequences as aggregating their time
         series also results in 1-dimensional data:
@@ -1717,11 +1723,11 @@ class NetCDFVariableAggregated(MixinVariableWriter, NetCDFVariable):
         >>> var = NetCDFVariableAggregated("filename.nc")
         >>> sp = elements.element4.model.sequences.states.sp
         >>> var.log(sp, sp.average_series())
-        >>> var.array
-        array([[70.5],
-               [76.5],
-               [82.5],
-               [88.5]])
+        >>> print_matrix(var.array)
+        | 70.5 |
+        | 76.5 |
+        | 82.5 |
+        | 88.5 |
         """
         array = numpy.full(self.shape, fillvalue, dtype=config.NP_FLOAT)
         for idx, subarray in enumerate(self._descr2array.values()):
@@ -1801,10 +1807,10 @@ class NetCDFInterfaceBase(Generic[TypeNetCDFVariable]):
     You can query all relevant folder names and filenames via properties
     |NetCDFInterfaceBase.foldernames| and |NetCDFInterfaceBase.filenames|:
 
-    >>> from hydpy import print_values
-    >>> print_values(writer.foldernames)
+    >>> from hydpy import print_vector
+    >>> print_vector(writer.foldernames)
     default, test
-    >>> print_values(writer.filenames)
+    >>> print_vector(writer.filenames)
     hland_96_state_sp, hland_96_state_sp_mean, lland_dd_flux_nkor,
     lland_dd_flux_nkor_mean, lland_dd_input_nied,
     lland_dd_input_nied_mean, lland_knauf_flux_nkor,
@@ -1816,7 +1822,7 @@ class NetCDFInterfaceBase(Generic[TypeNetCDFVariable]):
     filenames:
 
     >>> assert writer.sim_q is writer.default_sim_q
-    >>> print_values(sorted(set(dir(writer)) - set(object.__dir__(writer))))
+    >>> print_vector(sorted(set(dir(writer)) - set(object.__dir__(writer))))
     default_hland_96_state_sp, default_hland_96_state_sp_mean,
     default_lland_dd_flux_nkor, default_lland_dd_flux_nkor_mean,
     default_lland_dd_input_nied, default_lland_dd_input_nied_mean,
@@ -2091,7 +2097,7 @@ class NetCDFInterfaceJIT(NetCDFInterfaceBase[FlatUnion]):
 
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
-        >>> from hydpy import HydPy, print_values, pub, TestIO
+        >>> from hydpy import HydPy, print_vector, pub, TestIO
         >>> with TestIO():
         ...     hp = HydPy("LahnH")
         ...     pub.timegrids = "1996-01-01", "1996-01-05", "1d"
@@ -2147,13 +2153,13 @@ cover the current simulation period \
         ...     pub.timegrids.sim.firstdate = "1996-01-03"
         ...     pub.timegrids.sim.lastdate = "1996-01-05"
         ...     hp.simulate()
-        >>> print_values(
+        >>> print_vector(
         ...     hp.elements["land_dill"].model.sequences.factors.contriarea.series)
         0.495925, 0.493672, 0.492156, 0.49015
         >>> from hydpy.core.netcdftools import netcdf4
         >>> filepath = "LahnH/series/default/hland_96_factor_contriarea.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath, "r") as ncfile:
-        ...     print_values(ncfile["hland_96_factor_contriarea"][:, 0])
+        ...     print_vector(ncfile["hland_96_factor_contriarea"][:, 0])
         0.495925, 0.493672, 0.492156, 0.49015
 
         Under particular circumstances, the data variable of a NetCDF file can be
@@ -2181,7 +2187,7 @@ cover the current simulation period \
         ...     pub.timegrids = "1996-01-01", "1996-01-05", "1d"
         ...     hp.simulate()
         >>> with TestIO(), netcdf4.Dataset(filepath, "r") as ncfile:
-        ...     print_values(ncfile["hland_96_factor_contriarea"][:, 0, 0])
+        ...     print_vector(ncfile["hland_96_factor_contriarea"][:, 0, 0])
         0.488731, 0.48651, 0.485016, 0.483039
 
         If we try to write the output of a simulation run beyond the original
@@ -2235,7 +2241,7 @@ file `...hland_96_flux_pc.nc`.
         ...     hp.load_conditions()
         ...     hp.simulate()
         >>> for element in hp.elements.search_keywords("catchment"):
-        ...     print_values(element.model.sequences.fluxes.qt.series)
+        ...     print_vector(element.model.sequences.fluxes.qt.series)
         11.78144, 8.902735, 7.132279, 6.018681
         9.648145, 8.518256, 7.78162, 7.345017
         20.590398, 8.663089, 7.282551, 6.403193
@@ -2243,7 +2249,7 @@ file `...hland_96_flux_pc.nc`.
         >>> filepath_qt = "LahnH/series/default/hland_96_flux_qt.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath_qt, "r") as ncfile:
         ...     for jdx in range(4):
-        ...         print_values(ncfile["hland_96_flux_qt"][:, jdx])
+        ...         print_vector(ncfile["hland_96_flux_qt"][:, jdx])
         11.78144, 8.902735, 7.132279, 6.018681
         9.648145, 8.518256, 7.78162, 7.345017
         0.0, 0.0, 0.0, 0.0
@@ -2255,7 +2261,7 @@ file `...hland_96_flux_pc.nc`.
         ...     hp.simulate()
         >>> with TestIO(), netcdf4.Dataset(filepath_qt, "r") as ncfile:  #
         ...         for jdx in range(4):
-        ...             print_values(ncfile["hland_96_flux_qt"][:, jdx])
+        ...             print_vector(ncfile["hland_96_flux_qt"][:, jdx])
         11.78144, 8.902735, 7.132279, 6.018681
         9.648145, 8.518256, 7.78162, 7.345017
         20.590398, 8.663089, 7.282551, 6.403193
@@ -2279,13 +2285,13 @@ file `...hland_96_flux_pc.nc`.
         ...     hp.load_conditions()
         ...     hp.simulate()
         >>> for node in hp.nodes:
-        ...     print_values(node.sequences.sim.series)
+        ...     print_vector(node.sequences.sim.series)
         11.78144, 8.902735, 7.132279, 6.018681
         9.648145, 8.518256, 7.78162, 7.345017
         42.371838, 27.213969, 22.933086, 20.203494
         54.046428, 37.32527, 31.925872, 28.416456
         >>> for node in hp.nodes:
-        ...     print_values(node.sequences.obs.series)
+        ...     print_vector(node.sequences.obs.series)
         11.78144, 8.902735, 7.132279, 6.018681
         9.648145, 8.518256, 7.78162, 7.345017
         42.371838, 27.213969, 22.933086, 20.203494
@@ -2293,7 +2299,7 @@ file `...hland_96_flux_pc.nc`.
         >>> filepath_sim = "LahnH/series/default/sim_q.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath_sim, "r") as ncfile:
         ...     for jdx in range(4):
-        ...         print_values(ncfile["sim_q"][:, jdx])
+        ...         print_vector(ncfile["sim_q"][:, jdx])
         11.78144, 8.902735, 7.132279, 6.018681
         9.648145, 8.518256, 7.78162, 7.345017
         42.371838, 27.213969, 22.933086, 20.203494
@@ -2301,7 +2307,7 @@ file `...hland_96_flux_pc.nc`.
         >>> filepath_obs = "LahnH/series/default/obs_q.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath_obs, "r") as ncfile:
         ...     for jdx in range(4):
-        ...         print_values(ncfile["obs_q"][:, jdx])
+        ...         print_vector(ncfile["obs_q"][:, jdx])
         11.78144, 8.902735, 7.132279, 6.018681
         9.648145, 8.518256, 7.78162, 7.345017
         42.371838, 27.213969, 22.933086, 20.203494
@@ -2320,7 +2326,7 @@ file `...hland_96_flux_pc.nc`.
         ...     hp.load_conditions()
         ...     hp.simulate()
         >>> for node in hp.nodes:
-        ...     print_values(node.sequences.sim.series)
+        ...     print_vector(node.sequences.sim.series)
         0.0, 0.0, 0.0, 0.0
         0.0, 0.0, 0.0, 0.0
         30.590398, 8.663089, 7.282551, 6.403193
@@ -2339,7 +2345,7 @@ file `...hland_96_flux_pc.nc`.
         ...     hp.load_conditions()
         ...     hp.simulate()
         >>> for node in hp.nodes:
-        ...     print_values(node.sequences.sim.series)
+        ...     print_vector(node.sequences.sim.series)
         11.78144, 8.902735, 7.132279, 6.018681
         0.0, 0.0, 0.0, 0.0
         42.371838, 27.213969, 22.933086, 20.203494

@@ -29,8 +29,9 @@ class MixinSequence1D:
         >>> from hydpy.models.musk import *
         >>> parameterstep()
         >>> nmbsegments(4)
-        >>> fluxes.referencedischarge.refweights
-        array([0.25, 0.25, 0.25, 0.25])
+        >>> from hydpy import print_vector
+        >>> print_vector(fluxes.referencedischarge.refweights)
+        0.25, 0.25, 0.25, 0.25
         """
         nmbsegments = self.subseqs.seqs.model.parameters.control.nmbsegments.values
         return numpy.full(nmbsegments, 1.0 / nmbsegments, dtype=config.NP_FLOAT)

@@ -2061,13 +2061,13 @@ during a simulation run is not supported but tried for sequence `t` of element \
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> t = hp.elements.land_lahn_1.model.sequences.inputs.t
         >>> pub.timegrids.sim.dates = "1996-01-02", "1996-01-04"
-        >>> from hydpy import print_values
-        >>> print_values(t.series)
+        >>> from hydpy import print_vector
+        >>> print_vector(t.series)
         -0.705395, -1.505553, -4.221268, -7.446349
-        >>> print_values(t.simseries)
+        >>> print_vector(t.simseries)
         -1.505553, -4.221268
         >>> t.simseries = 1.0, 2.0
-        >>> print_values(t.series)
+        >>> print_vector(t.series)
         -0.705395, 1.0, 2.0, -7.446349
 
         .. testsetup::
@@ -2095,13 +2095,13 @@ during a simulation run is not supported but tried for sequence `t` of element \
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> t = hp.elements.land_lahn_1.model.sequences.inputs.t
         >>> pub.timegrids.eval_.dates = "1996-01-02", "1996-01-04"
-        >>> from hydpy import print_values
-        >>> print_values(t.series)
+        >>> from hydpy import print_vector
+        >>> print_vector(t.series)
         -0.705395, -1.505553, -4.221268, -7.446349
-        >>> print_values(t.evalseries)
+        >>> print_vector(t.evalseries)
         -1.505553, -4.221268
         >>> t.evalseries = 1.0, 2.0
-        >>> print_values(t.series)
+        >>> print_vector(t.series)
         -0.705395, 1.0, 2.0, -7.446349
 
         .. testsetup::
@@ -2175,19 +2175,21 @@ sequencemanager of module `pub` is not defined at the moment.
         With identical initialisation and data time grids, method
         |IOSequence.adjust_series| returns the given data completely:
 
-        >>> from hydpy import Timegrid
+        >>> from hydpy import print_vector, Timegrid
         >>> import numpy
         >>> with TestIO(), pub.options.checkseries(False):
-        ...     obs.adjust_series(Timegrid("1996-01-01", "1996-01-05", "1d"),
-        ...                       numpy.arange(4, dtype=config.NP_FLOAT))
-        array([0., 1., 2., 3.])
+        ...     print_vector(obs.adjust_series(
+        ...         Timegrid("1996-01-01", "1996-01-05", "1d"),
+        ...         numpy.arange(4, dtype=float)))
+        0.0, 1.0, 2.0, 3.0
 
         For "too long" data, it only returns the relevant one:
 
         >>> with TestIO(), pub.options.checkseries(False):
-        ...     obs.adjust_series(Timegrid("1995-12-31", "1996-01-07", "1d"),
-        ...                       numpy.arange(7, dtype=config.NP_FLOAT))
-        array([1., 2., 3., 4.])
+        ...     print_vector(obs.adjust_series(
+        ...         Timegrid("1995-12-31", "1996-01-07", "1d"),
+        ...         numpy.arange(7, dtype=float)))
+        1.0, 2.0, 3.0, 4.0
 
         For "too short" data, the behaviour differs depending on option
         |Options.checkseries|.  With |Options.checkseries| being enabled, method
@@ -2206,9 +2208,9 @@ subset of the time grid of the data file `...dill_obs_q.asc` \
 (Timegrid("1996-01-02 00:00:00", "1996-01-04 00:00:00", "1d")).
 
         >>> with TestIO(), pub.options.checkseries(False):
-        ...     obs.adjust_series(Timegrid("1996-01-02", "1996-01-04", "1d"),
-        ...                       numpy.zeros((2,)))
-        array([nan,  0.,  0., nan])
+        ...     print_vector(obs.adjust_series(
+        ...         Timegrid("1996-01-02", "1996-01-04", "1d"), numpy.zeros((2,))))
+        nan, 0.0, 0.0, nan
 
         Additional checks raise errors in case of non-matching shapes or time
         information:
@@ -2296,34 +2298,34 @@ of sequence `obs` of node `dill` is `1h` but the actual simulation time step is 
         The following calls to the test function show the arrays returned for different
         kinds of misalignments:
 
-        >>> from hydpy import Timegrid
-        >>> test(Timegrid("2000.01.05", "2000.01.20", "1d"))
-        array([1., 1., 1., 1., 1.])
-        >>> test(Timegrid("2000.01.12", "2000.01.15", "1d"))
-        array([nan, nan,  1.,  1.,  1.])
-        >>> test(Timegrid("2000.01.12", "2000.01.17", "1d"))
-        array([nan, nan,  1.,  1.,  1.])
-        >>> test(Timegrid("2000.01.10", "2000.01.13", "1d"))
-        array([ 1.,  1.,  1., nan, nan])
-        >>> test(Timegrid("2000.01.08", "2000.01.13", "1d"))
-        array([ 1.,  1.,  1., nan, nan])
-        >>> test(Timegrid("2000.01.12", "2000.01.13", "1d"))
-        array([nan, nan,  1., nan, nan])
-        >>> test(Timegrid("2000.01.05", "2000.01.10", "1d"))
-        array([nan, nan, nan, nan, nan])
-        >>> test(Timegrid("2000.01.05", "2000.01.08", "1d"))
-        array([nan, nan, nan, nan, nan])
-        >>> test(Timegrid("2000.01.15", "2000.01.18", "1d"))
-        array([nan, nan, nan, nan, nan])
-        >>> test(Timegrid("2000.01.16", "2000.01.18", "1d"))
-        array([nan, nan, nan, nan, nan])
+        >>> from hydpy import print_vector, Timegrid
+        >>> print_vector(test(Timegrid("2000.01.05", "2000.01.20", "1d")))
+        1.0, 1.0, 1.0, 1.0, 1.0
+        >>> print_vector(test(Timegrid("2000.01.12", "2000.01.15", "1d")))
+        nan, nan, 1.0, 1.0, 1.0
+        >>> print_vector(test(Timegrid("2000.01.12", "2000.01.17", "1d")))
+        nan, nan, 1.0, 1.0, 1.0
+        >>> print_vector(test(Timegrid("2000.01.10", "2000.01.13", "1d")))
+        1.0, 1.0, 1.0, nan, nan
+        >>> print_vector(test(Timegrid("2000.01.08", "2000.01.13", "1d")))
+        1.0, 1.0, 1.0, nan, nan
+        >>> print_vector(test(Timegrid("2000.01.12", "2000.01.13", "1d")))
+        nan, nan, 1.0, nan, nan
+        >>> print_vector(test(Timegrid("2000.01.05", "2000.01.10", "1d")))
+        nan, nan, nan, nan, nan
+        >>> print_vector(test(Timegrid("2000.01.05", "2000.01.08", "1d")))
+        nan, nan, nan, nan, nan
+        >>> print_vector(test(Timegrid("2000.01.15", "2000.01.18", "1d")))
+        nan, nan, nan, nan, nan
+        >>> print_vector(test(Timegrid("2000.01.16", "2000.01.18", "1d")))
+        nan, nan, nan, nan, nan
 
         After enabling option |Options.usedefaultvalues|, the missing values are
         initialised with zero instead of nan:
 
         >>> with pub.options.usedefaultvalues(True):
-        ...     test(Timegrid("2000.01.12", "2000.01.17", "1d"))
-        array([0., 0., 1., 1., 1.])
+        ...     print_vector(test(Timegrid("2000.01.12", "2000.01.17", "1d")))
+        0.0, 0.0, 1.0, 1.0, 1.0
         """
         idxs = [
             timegrid[hydpy.pub.timegrids.init.firstdate],
@@ -2490,9 +2492,9 @@ sequencemanager of module `pub` is not defined at the moment.
         >>> nmbzones(2)
         >>> fluxes.pc.prepare_series()
         >>> fluxes.pc.series = [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]
-        >>> from hydpy import print_values
+        >>> from hydpy import print_vector
         >>> for values in fluxes.pc.seriesmatrix:
-        ...     print_values(values)
+        ...     print_vector(values)
         1.0, 2.0
         3.0, 4.0
         5.0, 6.0
@@ -2849,7 +2851,7 @@ class InputSequence(ModelIOSequence):
     sources at the same time works well and that the different |Node.deploymode|
     options are supported:
 
-    >>> from hydpy import Element, FusedVariable, HydPy, Node, print_values, pub, TestIO
+    >>> from hydpy import Element, FusedVariable, HydPy, Node, print_vector, pub, TestIO
     >>> from hydpy.aliases import  hland_inputs_T, hland_inputs_P
     >>> hp = HydPy("LahnH")
     >>> pub.timegrids = "1996-01-01", "1996-01-06", "1d"
@@ -2893,17 +2895,17 @@ class InputSequence(ModelIOSequence):
 
     >>> hp.simulate()
 
-    >>> print_values(model.sequences.inputs.t.series)
+    >>> print_vector(model.sequences.inputs.t.series)
     1.0, 2.0, 3.0, 4.0, 5.0
-    >>> print_values(model.sequences.factors.tc.series[:, 0])
+    >>> print_vector(model.sequences.factors.tc.series[:, 0])
     2.323207, 3.323207, 4.323207, 5.323207, 6.323207
-    >>> print_values(model.sequences.inputs.p.series)
+    >>> print_vector(model.sequences.inputs.p.series)
     0.0, 4.0, 0.0, 8.0, 0.0
-    >>> print_values(model.sequences.fluxes.pc.series[:, 0])
+    >>> print_vector(model.sequences.fluxes.pc.series[:, 0])
     0.0, 3.2514, 0.0, 6.5028, 0.0
-    >>> print_values(petmodel.sequences.inputs.normalevapotranspiration.series)
+    >>> print_vector(petmodel.sequences.inputs.normalevapotranspiration.series)
     0.285483, 0.448182, 0.302786, 0.401946, 0.315023
-    >>> print_values(
+    >>> print_vector(
     ...     aetmodel.sequences.fluxes.potentialsoilevapotranspiration.series[:, 0])
     0.322562, 0.53804, 0.469133, 0.704755, 0.630047
 
@@ -2999,7 +3001,7 @@ class OutputSequence(ModelIOSequence):
     prominently.  In short, it shows that everything works well for the different
     |Node.deploymode| options:
 
-    >>> from hydpy import Element, HydPy, Node, print_values, pub, Selection, TestIO
+    >>> from hydpy import Element, HydPy, Node, print_vector, pub, Selection, TestIO
     >>> from hydpy.aliases import (
     ...     hland_fluxes_Perc, hland_fluxes_Q0, hland_fluxes_Q1, hland_states_UZ)
     >>> hp = HydPy("LahnH")
@@ -3059,30 +3061,30 @@ class OutputSequence(ModelIOSequence):
 
     >>> hp.simulate()
 
-    >>> print_values(node_q0.sequences.sim.series)
+    >>> print_vector(node_q0.sequences.sim.series)
     1.0, 1.0, 1.0, 1.0, 1.0
-    >>> print_values(node_q0.sequences.obs.series)
+    >>> print_vector(node_q0.sequences.obs.series)
     2.0, 2.0, 2.0, 2.0, 2.0
 
-    >>> print_values(model.sequences.fluxes.q1.series)
+    >>> print_vector(model.sequences.fluxes.q1.series)
     0.530692, 0.53965, 0.547982, 0.555686, 0.562831
-    >>> print_values(node_q1.sequences.sim.series)
+    >>> print_vector(node_q1.sequences.sim.series)
     0.530692, 0.53965, 0.547982, 0.555686, 0.562831
-    >>> print_values(node_q1.sequences.obs.series)
+    >>> print_vector(node_q1.sequences.obs.series)
     3.0, 3.0, 3.0, 3.0, 3.0
 
-    >>> print_values(model.sequences.fluxes.perc.series)
+    >>> print_vector(model.sequences.fluxes.perc.series)
     0.69249, 0.689344, 0.687227, 0.684426, 0.682239
-    >>> print_values(node_perc.sequences.sim.series)
+    >>> print_vector(node_perc.sequences.sim.series)
     0.69249, 0.689344, 0.687227, 0.684426, 0.682239
-    >>> print_values(node_perc.sequences.obs.series)
+    >>> print_vector(node_perc.sequences.obs.series)
     4.0, 4.0, 4.0, 4.0, 4.0
 
-    >>> print_values(model.sequences.states.uz.series)
+    >>> print_vector(model.sequences.states.uz.series)
     5.620142, 4.359374, 3.330011, 2.450131, 1.667571
-    >>> print_values(node_uz.sequences.sim.series)
+    >>> print_vector(node_uz.sequences.sim.series)
     5.620142, 4.359374, 3.330011, 2.450131, 1.667571
-    >>> print_values(node_uz.sequences.obs.series)
+    >>> print_vector(node_uz.sequences.obs.series)
     5.0, 5.0, 5.0, 5.0, 5.0
 
     .. testsetup::
@@ -3148,9 +3150,9 @@ class DependentSequence(OutputSequence):
         shown in the following example for the 0-dimensional flux sequence
         |wland_fluxes.RH| of the |wland_wag| model:
 
-        >>> from hydpy import prepare_model, print_values, pub
+        >>> from hydpy import prepare_model, print_vector, pub
         >>> model = prepare_model("wland_wag")
-        >>> print_values(model.sequences.fluxes.rh.fastaccess._rh_results)
+        >>> print_vector(model.sequences.fluxes.rh.fastaccess._rh_results)
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
         For 1-dimensional numerical factor and flux sequences, the `results` attribute
@@ -3292,7 +3294,7 @@ class StateSequence(OutputSequence, ConditionSequence):
     We demonstrate the above explanations using state sequence |hland_states.SM| of the
     base model |hland_96| with a shape of two:
 
-    >>> from hydpy import prepare_model
+    >>> from hydpy import prepare_model, print_vector
     >>> model = prepare_model("hland", "1d")
     >>> model.parameters.control.fc.shape = (2,)
     >>> model.parameters.control.fc = 100.0
@@ -3303,24 +3305,24 @@ class StateSequence(OutputSequence, ConditionSequence):
 
     >>> sm
     sm(nan, nan)
-    >>> sm.values
-    array([nan, nan])
-    >>> sm.new
-    array([nan, nan])
-    >>> sm.old
-    array([nan, nan])
+    >>> print_vector(sm.values)
+    nan, nan
+    >>> print_vector(sm.new)
+    nan, nan
+    >>> print_vector(sm.old)
+    nan, nan
 
     The typical way to define state values, especially within condition files, is to
     "call" state sequence objects, which sets both the "old" and the "new" states to
     the given value(s):
 
     >>> sm(1.0)
-    >>> sm.values
-    array([1., 1.])
-    >>> sm.new
-    array([1., 1.])
-    >>> sm.old
-    array([1., 1.])
+    >>> print_vector(sm.values)
+    1.0, 1.0
+    >>> print_vector(sm.new)
+    1.0, 1.0
+    >>> print_vector(sm.old)
+    1.0, 1.0
 
     Alternatively, one can assign values to property |StateSequence.new| or property
     |StateSequence.old| (note that using |StateSequence.new|  is identical with using
@@ -3329,22 +3331,22 @@ class StateSequence(OutputSequence, ConditionSequence):
     >>> sm.new = 2.0, 3.0
     >>> sm
     sm(2.0, 3.0)
-    >>> sm.values
-    array([2., 3.])
-    >>> sm.new
-    array([2., 3.])
-    >>> sm.old
-    array([1., 1.])
+    >>> print_vector(sm.values)
+    2.0, 3.0
+    >>> print_vector(sm.new)
+    2.0, 3.0
+    >>> print_vector(sm.old)
+    1.0, 1.0
 
     >>> sm.old = 200.0
     >>> sm
     sm(2.0, 3.0)
-    >>> sm.values
-    array([2., 3.])
-    >>> sm.new
-    array([2., 3.])
-    >>> sm.old
-    array([200., 200.])
+    >>> print_vector(sm.values)
+    2.0, 3.0
+    >>> print_vector(sm.new)
+    2.0, 3.0
+    >>> print_vector(sm.old)
+    200.0, 200.0
 
     If you assign problematic values to property |StateSequence.old|, it raises similar
     error messages as property |Variable.value|:
@@ -3364,12 +3366,12 @@ not broadcast input array from shape (3,) into shape (2,)
     when working in Cython mode):
 
     >>> sm.new2old()
-    >>> sm.values
-    array([2., 3.])
-    >>> sm.new
-    array([2., 3.])
-    >>> sm.old
-    array([2., 3.])
+    >>> print_vector(sm.values)
+    2.0, 3.0
+    >>> print_vector(sm.new)
+    2.0, 3.0
+    >>> print_vector(sm.old)
+    2.0, 3.0
     """
 
     subvars: StateSequences
@@ -3407,9 +3409,9 @@ not broadcast input array from shape (3,) into shape (2,)
         results for state sequence, as shown in the following example for the
         0-dimensional sequence |wland_states.HS| of the |wland_wag| model:
 
-        >>> from hydpy import prepare_model, print_values, pub
+        >>> from hydpy import prepare_model, print_vector, pub
         >>> model = prepare_model("wland_wag")
-        >>> print_values(model.sequences.states.hs.fastaccess._hs_results)
+        >>> print_vector(model.sequences.states.hs.fastaccess._hs_results)
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
         For 1-dimensional numerical state sequences, the `results` attribute is |None|
@@ -3690,10 +3692,11 @@ please be careful).
         0-dimensional outlet sequence is scalar, of course, and that the value of the
         1-dimensional inlet sequence is one entry of a vector:
 
-        >>> model.sequences.outlets.q.value
+        >>> from hydpy import print_vector, round_
+        >>> round_(model.sequences.outlets.q.value)
         2.0
-        >>> model.sequences.inlets.q.values
-        array([2.])
+        >>> print_vector(model.sequences.inlets.q.values)
+        2.0
 
         Assigning incorrect data leads to the usual error messages:
 

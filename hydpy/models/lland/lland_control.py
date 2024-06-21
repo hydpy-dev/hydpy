@@ -12,6 +12,7 @@ import numpy
 
 # ...from HydPy
 import hydpy
+from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
@@ -90,8 +91,9 @@ class Lnk(parametertools.NameParameter):
     lnk(?)
     >>> nhru(4)
     >>> lnk(ACKER, ACKER, WASSER, MISCHW)
-    >>> lnk.values
-    array([ 4,  4, 16, 15])
+    >>> from hydpy import print_vector
+    >>> print_vector(lnk.values)
+    4, 4, 16, 15
     >>> lnk
     lnk(ACKER, ACKER, WASSER, MISCHW)
     >>> lnk(ACKER)
@@ -613,8 +615,9 @@ class DMin(lland_parameters.ParameterSoil):
         >>> dmin(r_dmin=10.0)
         >>> dmin
         dmin(0.01008)
-        >>> dmin.values
-        array([0.24192])
+        >>> from hydpy import print_vector
+        >>> print_vector(dmin.values)
+        0.24192
 
         A wrong keyword results in the right answer:
 
@@ -679,7 +682,7 @@ class DMax(lland_parameters.ParameterSoil):
 
     Example:
 
-        >>> from hydpy import pub
+        >>> from hydpy import print_vector, pub
         >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
         >>> from hydpy.models.lland import *
         >>> parameterstep("1h")
@@ -688,8 +691,8 @@ class DMax(lland_parameters.ParameterSoil):
         >>> dmax(r_dmax=10.0)
         >>> dmax
         dmax(1.008)
-        >>> dmax.values
-        array([24.192])
+        >>> print_vector(dmax.values)
+        24.192
 
         A wrong keyword results in the right answer:
 
@@ -717,7 +720,9 @@ Keyword `rdmax` is not among the available model constants.
         except TypeError:
             if (r := kwargs.get("r_dmax")) is not None:
                 self.value = (
-                    0.1008 * hydpy.pub.timegrids.init.stepsize.hours * numpy.array(r)
+                    0.1008
+                    * hydpy.pub.timegrids.init.stepsize.hours
+                    * numpy.array(r, config.NP_FLOAT)
                 )
                 self.trim()
             else:
@@ -828,10 +833,11 @@ class KapGrenz(parametertools.Parameter):
     >>> kapgrenz(option="FK")
     >>> kapgrenz
     kapgrenz(option="FK")
-    >>> kapgrenz.value
-    array([[ 60.,  60.],
-           [120., 120.],
-           [180., 180.]])
+    >>> from hydpy import print_matrix
+    >>> print_matrix(kapgrenz.value)
+    | 60.0, 60.0 |
+    | 120.0, 120.0 |
+    | 180.0, 180.0 |
 
     The second possible string is `0_WMax/10`, which corresponds to the
     LARSIM option `KOPPELUNG BODEN/GRUNDWASSER`, where the lower and upper
@@ -842,10 +848,10 @@ class KapGrenz(parametertools.Parameter):
     >>> kapgrenz(option="0_WMax/10")
     >>> kapgrenz
     kapgrenz(option="0_WMax/10")
-    >>> kapgrenz.values
-    array([[ 0., 10.],
-           [ 0., 15.],
-           [ 0., 20.]])
+    >>> print_matrix(kapgrenz.values)
+    | 0.0, 10.0 |
+    | 0.0, 15.0 |
+    | 0.0, 20.0 |
 
     The third possible string is `FK/2_FK` where the lower and the upper
     threshold are 50 % and 100 % of the value of parameter |FK|, which does
@@ -854,10 +860,10 @@ class KapGrenz(parametertools.Parameter):
     >>> kapgrenz(option="FK/2_FK")
     >>> kapgrenz
     kapgrenz(option="FK/2_FK")
-    >>> kapgrenz.values
-    array([[ 30.,  60.],
-           [ 60., 120.],
-           [ 90., 180.]])
+    >>> print_matrix(kapgrenz.values)
+    | 30.0, 60.0 |
+    | 60.0, 120.0 |
+    | 90.0, 180.0 |
 
     If we set the values directly and they comply with the previously set option,
     the string representation will show the previously set option:
@@ -880,10 +886,10 @@ class KapGrenz(parametertools.Parameter):
     >>> kapgrenz(option="FK/2_FK")
     >>> kapgrenz
     kapgrenz(option="FK/2_FK")
-    >>> kapgrenz.values
-    array([[ 30.,  60.],
-           [ 60., 120.],
-           [ 90., 180.]])
+    >>> print_matrix(kapgrenz.values)
+    | 30.0, 60.0 |
+    | 60.0, 120.0 |
+    | 90.0, 180.0 |
     >>> fk(100)
     >>> kapgrenz
     kapgrenz([[30.0, 60.0],

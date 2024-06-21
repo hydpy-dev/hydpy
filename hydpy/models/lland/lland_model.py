@@ -1970,8 +1970,8 @@ class Calc_WGTF_V1(modeltools.Method):
 
         >>> gtf
         gtf(5.0)
-        >>> from hydpy import print_values
-        >>> print_values(gtf.values)
+        >>> from hydpy import print_vector
+        >>> print_vector(gtf.values)
         2.5, 2.5, 2.5, 2.5, 2.5, 2.5
 
         The results of the first four hydrological response units show
@@ -2294,16 +2294,16 @@ class Return_NetLongwaveRadiationInz_V1(modeltools.Method):
         >>> aides.rlatm = 100.0
 
         >>> model.idx_sim = pub.timegrids.init["2000-01-31"]
-        >>> from hydpy import print_values
+        >>> from hydpy import print_vector
         >>> for hru in range(2):
-        ...     print_values([hru, model.return_netlongwaveradiationinz_v1(hru)])
+        ...     print_vector([hru, model.return_netlongwaveradiationinz_v1(hru)])
         0, 126.624073
         1, 84.416049
 
         >>> model.idx_sim = pub.timegrids.init["2000-02-01"]
-        >>> from hydpy import print_values
+        >>> from hydpy import print_vector
         >>> for hru in range(2):
-        ...     print_values([hru, model.return_netlongwaveradiationinz_v1(hru)])
+        ...     print_vector([hru, model.return_netlongwaveradiationinz_v1(hru)])
         0, 105.520061
         1, 63.312037
 
@@ -2365,9 +2365,9 @@ class Return_NetLongwaveRadiationSnow_V1(modeltools.Method):
         >>> fluxes.tempssurface = -5.0
         >>> fluxes.tkor = 0.0
         >>> aides.rlatm = 235.207154
-        >>> from hydpy import print_values
+        >>> from hydpy import print_vector
         >>> for hru in range(2):
-        ...     print_values([hru, model.return_netlongwaveradiationsnow_v1(hru)])
+        ...     print_vector([hru, model.return_netlongwaveradiationsnow_v1(hru)])
         0, 57.945793
         1, 8.273292
     """
@@ -3389,8 +3389,8 @@ class Return_TempSSurface_V1(modeltools.Method):
         in short wave radiation is compensated by a moderate increase in snow
         surface temperature:
 
-        >>> from hydpy import print_values
-        >>> print_values(fluxes.tempssurface[1:3])
+        >>> from hydpy import print_vector
+        >>> print_vector(fluxes.tempssurface[1:3])
         -8.307868, -7.828995
 
         To demonstrate the robustness of the implemented approach, response
@@ -3398,7 +3398,7 @@ class Return_TempSSurface_V1(modeltools.Method):
         due to an even more extrem decrease in the bulk temperature of the
         snow layer:
 
-        >>> print_values(fluxes.tempssurface[2:5])
+        >>> print_vector(fluxes.tempssurface[2:5])
         -7.828995, -20.191197, -66.644357
 
         The sixths response unit comes with a very high net radiation
@@ -3410,13 +3410,13 @@ class Return_TempSSurface_V1(modeltools.Method):
         layers and thus add the potential energy excess at the snow surface to
         |WSurf|:
 
-        >>> print_values(fluxes.tempssurface[5:])
+        >>> print_vector(fluxes.tempssurface[5:])
         0.0
 
         As to be expected, the energy fluxes of the snow surface neutralise
         each other (within the defined numerical accuracy):
 
-        >>> print_values(fluxes.netradiationsnow -
+        >>> print_vector(fluxes.netradiationsnow -
         ...              fluxes.wsenssnow -
         ...              fluxes.wlatsnow +
         ...              fluxes.wsurf)
@@ -3435,7 +3435,7 @@ class Return_TempSSurface_V1(modeltools.Method):
         tempssurface(nan, -2.0, -2.0, -50.0, -200.0, -2.0)
         >>> fluxes.wsurf
         wsurf(0.0, 137.892846, 127.892846, -495.403823, -1835.208545, -52.107154)
-        >>> print_values(fluxes.netradiationsnow -
+        >>> print_vector(fluxes.netradiationsnow -
         ...              fluxes.wsenssnow -
         ...              fluxes.wlatsnow +
         ...              fluxes.wsurf)
@@ -3965,8 +3965,8 @@ class Update_ESnowInz_V1(modeltools.Method):
         >>> for hru in range(8):
         ...     model.idx_hru = hru
         ...     errors.append(model.return_backwardeulererrorinz_v1(esnowinz[hru]))
-        >>> from hydpy import print_values
-        >>> print_values(errors)
+        >>> from hydpy import print_vector
+        >>> print_vector(errors)
         nan, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
     Technical checks:
@@ -4126,8 +4126,8 @@ class Update_ESnow_V1(modeltools.Method):
         >>> for hru in range(8):
         ...     model.idx_hru = hru
         ...     errors.append(model.return_backwardeulererror_v1(esnow[hru]))
-        >>> from hydpy import print_values
-        >>> print_values(errors)
+        >>> from hydpy import print_vector
+        >>> print_vector(errors)
         nan, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
         The following example repeats the above one, but enables the
@@ -4155,7 +4155,7 @@ class Update_ESnow_V1(modeltools.Method):
         >>> for hru in range(8):
         ...     model.idx_hru = hru
         ...     errors.append(model.return_backwardeulererror_v1(esnow[hru]))
-        >>> print_values(errors)
+        >>> print_vector(errors)
         nan, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
     """
 
@@ -5045,10 +5045,11 @@ class Calc_QBB_V1(modeltools.Method):
 
         Note the time dependence of parameter |Beta|:
 
+        >>> from hydpy import print_vector
         >>> beta
         beta(0.04)
-        >>> beta.values
-        array([0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02])
+        >>> print_vector(beta.values)
+        0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02
 
         In the first example, the actual soil water content |BoWa| is set
         to low values.  For values below the threshold |PWP|, no percolation
@@ -5164,8 +5165,9 @@ class Calc_QIB1_V1(modeltools.Method):
 
         >>> dmin
         dmin(4.0)
-        >>> dmin.values
-        array([2., 2., 2., 2., 2., 2., 2., 2.])
+        >>> from hydpy import print_vector
+        >>> print_vector(dmin.values)
+        2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0
 
         Compared to the calculation of |QBB|, the following results show
         some relevant differences:
@@ -5237,8 +5239,9 @@ class Calc_QIB2_V1(modeltools.Method):
 
         >>> dmax
         dmax(10.0)
-        >>> dmax.values
-        array([5., 5., 5., 5., 5., 5., 5., 5.])
+        >>> from hydpy import print_vector
+        >>> print_vector(dmax.values)
+        5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0
 
         The following results show that he calculation of |QIB2| both
         resembles those of |QBB| and |QIB1| in some regards:
@@ -7138,11 +7141,11 @@ class Get_SnowyCanopy_V1(modeltools.Method):
         >>> nhru(4)
         >>> lnk(LAUBW, MISCHW, NADELW, ACKER)
         >>> states.stinz = 0.0
-        >>> from hydpy import print_values
-        >>> print_values(model.get_snowycanopy_v1(i) for i in range(4))
+        >>> from hydpy import print_vector
+        >>> print_vector(model.get_snowycanopy_v1(i) for i in range(4))
         0.0, 0.0, 0.0, nan
         >>> states.stinz = 0.1
-        >>> print_values(model.get_snowycanopy_v1(i) for i in range(4))
+        >>> print_vector(model.get_snowycanopy_v1(i) for i in range(4))
         1.0, 1.0, 1.0, nan
     """
 

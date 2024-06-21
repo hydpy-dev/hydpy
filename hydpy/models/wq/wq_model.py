@@ -159,7 +159,7 @@ class Calc_WaterDepth_V2(modeltools.Method):
         convenience function allows the creation of examples that are directly
         comparable to those on method |Calc_WettedAreas_V1|:
 
-        >>> from hydpy import print_values, round_
+        >>> from hydpy import print_vector, round_
         >>> def test(*wettedareas):
         ...     derived.trapezeheights.update()
         ...     derived.slopewidths.update()
@@ -167,7 +167,7 @@ class Calc_WaterDepth_V2(modeltools.Method):
         ...     for a in wettedareas:
         ...         factors.wettedarea = a
         ...         model.calc_waterdepth_v2()
-        ...         print_values([a, factors.waterdepth.value])
+        ...         print_vector([a, factors.waterdepth.value])
 
         The first example deals with identical rectangular trapezes.  We pass different
         wetted areas to the test function.  These are the sums of the wetted areas of
@@ -342,7 +342,7 @@ class Calc_WettedAreas_V1(modeltools.Method):
         The following convenience function executes |Calc_WettedAreas_V1| for different
         water depths and prints the resulting wetted areas:
 
-        >>> from hydpy import print_values, round_
+        >>> from hydpy import print_vector, round_
         >>> def test():
         ...     derived.bottomdepths.update()
         ...     derived.trapezeheights.update()
@@ -351,7 +351,7 @@ class Calc_WettedAreas_V1(modeltools.Method):
         ...         factors.waterdepth = d
         ...         model.calc_wettedareas_v1()
         ...         round_(d, end=": ")
-        ...         print_values(factors.wettedareas.values)
+        ...         print_vector(factors.wettedareas.values)
 
         The first example deals with identical rectangular trapezes.  There are no
         differences except those due to the different bottom levels:
@@ -511,7 +511,7 @@ class Calc_WettedPerimeters_V1(modeltools.Method):
         The following convenience function executes |Calc_WettedPerimeters_V1| for
         different water depths and prints the resulting wetted perimeters:
 
-        >>> from hydpy import print_values, round_
+        >>> from hydpy import print_vector, round_
         >>> def test():
         ...     derived.bottomdepths.update()
         ...     derived.trapezeheights.update()
@@ -519,7 +519,7 @@ class Calc_WettedPerimeters_V1(modeltools.Method):
         ...         factors.waterdepth = d
         ...         model.calc_wettedperimeters_v1()
         ...         round_(d, end=": ")
-        ...         print_values(factors.wettedperimeters.values)
+        ...         print_vector(factors.wettedperimeters.values)
 
         The first example deals with identical rectangular trapezes.  Note that method
         |Calc_WettedPerimeters_V1| adds the contact surface between two adjacent trapeze
@@ -677,7 +677,7 @@ class Calc_WettedPerimeterDerivatives_V1(modeltools.Method):
         The following convenience function executes |Calc_WettedPerimeterDerivatives_V1|
         for different water depths and prints the resulting wetted perimeters:
 
-        >>> from hydpy import print_values, round_
+        >>> from hydpy import print_vector, round_
         >>> def test():
         ...     derived.bottomdepths.update()
         ...     derived.trapezeheights.update()
@@ -686,7 +686,7 @@ class Calc_WettedPerimeterDerivatives_V1(modeltools.Method):
         ...         factors.waterdepth = d
         ...         model.calc_wettedperimeterderivatives_v1()
         ...         round_(d, end=": ")
-        ...         print_values(factors.wettedperimeterderivatives.values)
+        ...         print_vector(factors.wettedperimeterderivatives.values)
 
         The first example deals with identical rectangular trapezes.  Note that method
         |Calc_WettedPerimeterDerivatives_V1| adds the contact surface increase between
@@ -809,7 +809,7 @@ class Calc_SurfaceWidths_V1(modeltools.Method):
         The following convenience function executes |Calc_SurfaceWidths_V1| for
         different water depths and prints the surface widths:
 
-        >>> from hydpy import print_values, round_
+        >>> from hydpy import print_vector, round_
         >>> def test():
         ...     derived.bottomdepths.update()
         ...     derived.trapezeheights.update()
@@ -818,7 +818,7 @@ class Calc_SurfaceWidths_V1(modeltools.Method):
         ...         factors.waterdepth = d
         ...         model.calc_surfacewidths_v1()
         ...         round_(d, end=": ")
-        ...         print_values(factors.surfacewidths.values)
+        ...         print_vector(factors.surfacewidths.values)
 
         The first example deals with identical rectangular trapezes.  There are no
         differences except those due to the different bottom levels:

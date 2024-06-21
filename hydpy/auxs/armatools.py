@@ -330,10 +330,11 @@ class ARMA:
 
     One can set all ARMA coefficients manually:
 
-    >>> from hydpy import MA, ARMA
+    >>> from hydpy import MA, ARMA, print_matrix
     >>> arma = ARMA(ar_coefs=(0.5,), ma_coefs=(0.3, 0.2))
-    >>> arma.coefs
-    (array([0.5]), array([0.3, 0.2]))
+    >>> print_matrix(arma.coefs)
+    | 0.5 |
+    | 0.3, 0.2 |
     >>> arma
     ARMA(ar_coefs=(0.5,),
          ma_coefs=(0.3, 0.2))
@@ -445,8 +446,8 @@ determined ARMA model is negative (`-0.000336`).
                    0.060797, 0.027226))
     >>> arma.order
     (2, 7)
-    >>> from hydpy import print_values
-    >>> print_values(arma.response)
+    >>> from hydpy import print_vector
+    >>> print_vector(arma.response)
     0.01946, 0.068521, 0.125062, 0.1795, 0.202761, 0.180343, 0.12638,
     0.063117, 0.025477, 0.008269, 0.001853, -0.000011, -0.000316,
     -0.000231, -0.000118, -0.000048, -0.000016
@@ -563,18 +564,18 @@ far.
         |property| |ARMA.ar_coefs| does not recalculate already defined coefficients
         automatically for efficiency:
 
-        >>> from hydpy import MA, ARMA, print_values
+        >>> from hydpy import MA, ARMA, print_vector
         >>> arma = ARMA(ar_coefs=(0.5,), ma_coefs=(0.3, 0.2))
         >>> from scipy import stats
         >>> arma.ma = MA(iuh=lambda x: 1.02328 * stats.norm.pdf(x, 4.0, 2.0))
         >>> arma.ma.iuh.moment1 = 3.94
-        >>> print_values(arma.ar_coefs)
+        >>> print_vector(arma.ar_coefs)
         0.5
 
         You can trigger the recalculation by removing the available coefficients first:
 
         >>> del arma.ar_coefs
-        >>> print_values(arma.ar_coefs)
+        >>> print_vector(arma.ar_coefs)
         0.680483, -0.228511, 0.047283, -0.006022, 0.000377
         >>> arma
         ARMA(ar_coefs=(0.680483, -0.228511, 0.047283, -0.006022, 0.000377),
@@ -604,18 +605,18 @@ far.
         |property| |ARMA.ma_coefs| does not recalculate already defined coefficients
         automatically for efficiency:
 
-        >>> from hydpy import MA, ARMA, print_values
+        >>> from hydpy import MA, ARMA, print_vector
         >>> arma = ARMA(ar_coefs=(0.5,), ma_coefs=(0.3, 0.2))
         >>> from scipy import stats
         >>> arma.ma = MA(iuh=lambda x: 1.02328 * stats.norm.pdf(x, 4.0, 2.0))
         >>> arma.ma.iuh.moment1 = 3.94
-        >>> print_values(arma.ma_coefs)
+        >>> print_vector(arma.ma_coefs)
         0.3, 0.2
 
         You can trigger the recalculation by removing the available coefficients first:
 
         >>> del arma.ma_coefs
-        >>> print_values(arma.ma_coefs)
+        >>> print_vector(arma.ma_coefs)
         0.019322, 0.054783, 0.08195, 0.107757, 0.104458, 0.07637, 0.041095,
         0.01581, 0.004132, 0.000663, 0.00005
         >>> arma

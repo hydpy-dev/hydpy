@@ -68,7 +68,8 @@ shape (4...) into shape (3...)
         >>> from hydpy.models.rconc import *
         >>> parameterstep()
         >>> logs.quh.shape = 3
-        >>> logs.quh.refweights
-        array([1., 1., 1.])
+        >>> from hydpy import print_vector
+        >>> print_vector(logs.quh.refweights)
+        1.0, 1.0, 1.0
         """
         return numpy.ones(self.shape, dtype=config.NP_FLOAT)

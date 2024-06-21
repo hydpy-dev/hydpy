@@ -208,12 +208,13 @@ and the new value(s) are `2.0, 3.0, 4.0` and `2.0, 3.0, 3.0`, respectively.
     >>> var
     var(2.0, 3.0, 3.0)
 
+    >>> from hydpy import print_matrix
     >>> var.values = 1.0-1e-15, 2.0, 3.0+1e-15
-    >>> var.values == (1.0, 2.0, 3.0)
-    array([[False,  True, False]])
+    >>> print_matrix(var.values == (1.0, 2.0, 3.0))
+    | False, True, False |
     >>> assert var.trim() is False
-    >>> var.values == (1.0, 2.0, 3.0)
-    array([[ True,  True,  True]])
+    >>> print_matrix(var.values == (1.0, 2.0, 3.0))
+    | True, True, True |
 
     >>> var.values = 0.0, 2.0, 4.0
     >>> assert var.trim(lower=numpy.nan, upper=numpy.nan) is False
@@ -679,98 +680,101 @@ For variable `var`, no value has been defined so far.
     You can apply all the operations discussed above (except |float| and
     |int|) on |Variable| objects of arbitrary dimensionality:
 
+    >>> from hydpy import print_matrix, print_vector
     >>> Var.NDIM = 1
     >>> Var.TYPE = float
     >>> var.shape = (2,)
     >>> var.values = 2.0
-    >>> var + var
-    array([4., 4.])
-    >>> var + 3.0
-    array([5., 5.])
-    >>> [4.0, 0.0] + var
-    array([6., 2.])
+    >>> print_vector(var + var)
+    4.0, 4.0
+    >>> print_vector(var + 3.0)
+    5.0, 5.0
+    >>> print_vector([4.0, 0.0] + var)
+    6.0, 2.0
     >>> var += 1
     >>> var
     var(3.0, 3.0)
 
     >>> var.values = 3.0
-    >>> var - [1.0, 0.0]
-    array([2., 3.])
-    >>> [7.0, 0.0] - var
-    array([ 4., -3.])
+    >>> print_vector(var - [1.0, 0.0])
+    2.0, 3.0
+    >>> print_vector([7.0, 0.0] - var)
+    4.0, -3.0
     >>> var -= [2.0, 0.0]
     >>> var
     var(1.0, 3.0)
 
     >>> var.values = 2.0
-    >>> var * [3.0, 1.0]
-    array([6., 2.])
-    >>> [4.0, 1.0] * var
-    array([8., 2.])
+    >>> print_vector(var * [3.0, 1.0])
+    6.0, 2.0
+    >>> print_vector([4.0, 1.0] * var)
+    8.0, 2.0
     >>> var *= [0.5, 1.0]
     >>> var
     var(1.0, 2.0)
 
     >>> var.values = 3.0
-    >>> var / [2.0, 1.0]
-    array([1.5, 3. ])
-    >>> [7.5, 3.0] / var
-    array([2.5, 1. ])
+    >>> print_vector(var / [2.0, 1.0])
+    1.5, 3.0
+    >>> print_vector([7.5, 3.0] / var)
+    2.5, 1.0
     >>> var /= [6.0, 1.]
     >>> var
     var(0.5, 3.0)
 
     >>> var.values = 3.0
-    >>> var // [2.0, 1.0]
-    array([1., 3.])
-    >>> [7.5, 3.0] // var
-    array([2., 1.])
+    >>> print_vector(var // [2.0, 1.0])
+    1.0, 3.0
+    >>> print_vector([7.5, 3.0] // var)
+    2.0, 1.0
     >>> var //= [0.9, 1.0]
     >>> var
     var(3.0, 3.0)
 
     >>> var.values = 5.0
-    >>> var % [2.0, 5.0]
-    array([1., 0.])
-    >>> [7.5, 5.0] % var
-    array([2.5, 0. ])
+    >>> print_vector(var % [2.0, 5.0])
+    1.0, 0.0
+    >>> print_vector([7.5, 5.0] % var)
+    2.5, 0.0
     >>> var %= [3.0, 5.0]
     >>> var
     var(2.0, 0.0)
 
     >>> var.values = 2.0
-    >>> var**[3.0, 1.0]
-    array([8., 2.])
-    >>> [3.0, 1.0]**var
-    array([9., 1.])
+    >>> print_vector(var**[3.0, 1.0])
+    8.0, 2.0
+    >>> print_vector([3.0, 1.0]**var)
+    9.0, 1.0
     >>> var **= [4.0, 1.0]
     >>> var
     var(16.0, 2.0)
 
     >>> var.value = 5.0
-    >>> divmod(var, [3.0, 5.0])
-    (array([1., 1.]), array([2., 0.]))
-    >>> divmod([13.0, 5.0], var)
-    (array([2., 1.]), array([3., 0.]))
+    >>> print_matrix(divmod(var, [3.0, 5.0]))
+    | 1.0, 1.0 |
+    | 2.0, 0.0 |
+    >>> print_matrix(divmod([13.0, 5.0], var))
+    | 2.0, 1.0 |
+    | 3.0, 0.0 |
 
     >>> var.values = -5.0
-    >>> +var
-    array([-5., -5.])
-    >>> -var
-    array([5., 5.])
-    >>> abs(var)
-    array([5., 5.])
-    >>> ~var
-    array([-0.2, -0.2])
+    >>> print_vector(+var)
+    -5.0, -5.0
+    >>> print_vector(-var)
+    5.0, 5.0
+    >>> print_vector(abs(var))
+    5.0, 5.0
+    >>> print_vector(~var)
+    -0.2, -0.2
     >>> var.value = 2.5
     >>> import math
-    >>> math.floor(var)
-    array([2, 2])
-    >>> math.ceil(var)
-    array([3, 3])
+    >>> print_vector(math.floor(var))
+    2, 2
+    >>> print_vector(math.ceil(var))
+    3, 3
     >>> var.values = 1.67
-    >>> round(var, 1)
-    array([1.7, 1.7])
+    >>> print_vector(round(var, 1))
+    1.7, 1.7
     >>> bool(var)
     True
     >>> int(var)
@@ -1227,10 +1231,11 @@ for variable `var` can only be retrieved after it has been defined.
         hydpy.core.exceptiontools.AttributeNotReady: For variable `var`, \
 no values have been defined so far.
 
+        >>> from hydpy import print_matrix
         >>> var.value = 2
-        >>> var.value
-        array([[2, 2, 2],
-               [2, 2, 2]])
+        >>> print_matrix(var.value)
+        | 2, 2, 2 |
+        | 2, 2, 2 |
 
         >>> var.value = 1, 2
         Traceback (most recent call last):
@@ -1239,15 +1244,15 @@ no values have been defined so far.
 the following error occurred: While trying to convert the value(s) `(1, 2)` \
 to a numpy ndarray with shape `(2, 3)` and type `int`, the following error \
 occurred: could not broadcast input array from shape (2,) into shape (2,3)
-        >>> var.value
-        array([[2, 2, 2],
-               [2, 2, 2]])
+        >>> print_matrix(var.value)
+        | 2, 2, 2 |
+        | 2, 2, 2 |
 
         >>> var.shape = (0, 0)
         >>> var.shape
         (0, 0)
         >>> var.value   # doctest: +ELLIPSIS
-        array([], shape=(0, 0), dtype=int...)
+        array([], shape=(0, 0), dtype=...)
         """
         if (self.NDIM > 0) and not self.__shapeready:
             self._get_shape()  # raise the proper error
@@ -1352,11 +1357,12 @@ variable `var` can only be retrieved after it has been defined.
         Due to the |Variable.initinfo| surrogate of our test class,
         the entries of this array are `3.0`:
 
+        >>> from hydpy import print_vector
         >>> var.shape = (3,)
         >>> var.shape
         (3,)
-        >>> var.values
-        array([3., 3., 3.])
+        >>> print_vector(var.values)
+        3.0, 3.0, 3.0
 
         For the |Variable.initinfo| flag (second |tuple| entry) being
         |False|, the array is still prepared but not directly accessible
@@ -1375,8 +1381,8 @@ variable `var` can only be retrieved after it has been defined.
         hydpy.core.exceptiontools.AttributeNotReady: For variable `var`, no \
 values have been defined so far.
 
-        >>> var.fastaccess.var
-        array([nan, nan, nan])
+        >>> print_vector(var.fastaccess.var)
+        nan, nan, nan
 
         Property |Variable.shape| tries to normalise assigned values and
         raises errors like the following, if not possible:
@@ -1640,8 +1646,8 @@ var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
         >>> nmbzones(3)
         >>> sclass(2)
         >>> states.sm.values = 1.0, 2.0, 3.0
-        >>> from hydpy import print_values
-        >>> print_values(states.sm.valuevector)
+        >>> from hydpy import print_vector
+        >>> print_vector(states.sm.valuevector)
         1.0, 2.0, 3.0
 
         For all other variables, |Variable.valuevector| raises the following error by
@@ -1663,7 +1669,7 @@ its values to a 1-dimensional vector.
         vector agrees with the contents of most 1-dimensional sequences of |hland|:
 
         >>> states.sp = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
-        >>> print_values(states.sp.valuevector)
+        >>> print_vector(states.sp.valuevector)
         2.5, 3.5, 4.5
         """
         if self.NDIM == 1:

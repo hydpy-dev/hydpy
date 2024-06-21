@@ -83,15 +83,15 @@ class Factor2DSequence(sequencetools.FactorSequence):
         >>> zonetype(FIELD)
         >>> zonearea.values = 1.0, 1.0, 1.0
         >>> factors.swe = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
-        >>> from hydpy import print_values
-        >>> print_values(factors.swe.valuevector)
+        >>> from hydpy import print_vector
+        >>> print_vector(factors.swe.valuevector)
         2.5, 3.5, 4.5
 
         The definition of |Factor2DSequence.valuevector| of |Factor2DSequence| allows
         applying method |Variable.average_values| like for the 1-dimensional
         zone-related sequences of |hland|:
 
-        >>> print_values([factors.swe.average_values()])
+        >>> print_vector([factors.swe.average_values()])
         3.5
         """
         return numpy.mean(self.value, axis=0)
@@ -116,9 +116,9 @@ class Factor2DSequence(sequencetools.FactorSequence):
         ...                     [[2.0, 3.0, 4.0], [5.0, 6.0, 7.0]],
         ...                     [[3.0, 4.0, 5.0], [6.0, 7.0, 8.0]],
         ...                     [[4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]]
-        >>> from hydpy import print_values
+        >>> from hydpy import print_vector
         >>> for values in factors.swe.seriesmatrix:
-        ...     print_values(values)
+        ...     print_vector(values)
         2.5, 3.5, 4.5
         3.5, 4.5, 5.5
         4.5, 5.5, 6.5
@@ -128,7 +128,7 @@ class Factor2DSequence(sequencetools.FactorSequence):
         applying method |IOSequence.average_series| like for the 1-dimensional
         zone-related sequences of |hland|:
 
-        >>> print_values(factors.swe.average_series())
+        >>> print_vector(factors.swe.average_series())
         3.5, 4.5, 5.5, 6.5
         """
         return numpy.mean(self.series, axis=1)
@@ -207,15 +207,15 @@ class Flux2DSequence(sequencetools.FluxSequence):
         >>> zonetype(FIELD)
         >>> zonearea.values = 1.0, 1.0, 1.0
         >>> fluxes.melt = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
-        >>> from hydpy import print_values
-        >>> print_values(fluxes.melt.valuevector)
+        >>> from hydpy import print_vector
+        >>> print_vector(fluxes.melt.valuevector)
         2.5, 3.5, 4.5
 
         The definition of |Flux2DSequence.valuevector| of |Flux2DSequence| allows
         applying method |Variable.average_values| like for the 1-dimensional
         zone-related sequences of |hland|:
 
-        >>> print_values([fluxes.melt.average_values()])
+        >>> print_vector([fluxes.melt.average_values()])
         3.5
         """
         return numpy.mean(self.value, axis=0)
@@ -240,9 +240,9 @@ class Flux2DSequence(sequencetools.FluxSequence):
         ...                     [[2.0, 3.0, 4.0], [5.0, 6.0, 7.0]],
         ...                     [[3.0, 4.0, 5.0], [6.0, 7.0, 8.0]],
         ...                     [[4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]]
-        >>> from hydpy import print_values
+        >>> from hydpy import print_vector
         >>> for values in fluxes.melt.seriesmatrix:
-        ...     print_values(values)
+        ...     print_vector(values)
         2.5, 3.5, 4.5
         3.5, 4.5, 5.5
         4.5, 5.5, 6.5
@@ -252,7 +252,7 @@ class Flux2DSequence(sequencetools.FluxSequence):
         applying method |IOSequence.average_series| like for the 1-dimensional
         zone-related sequences of |hland|:
 
-        >>> print_values(fluxes.melt.average_series())
+        >>> print_vector(fluxes.melt.average_series())
         3.5, 4.5, 5.5, 6.5
         """
         return numpy.mean(self.series, axis=1)
@@ -332,15 +332,15 @@ class State2DSequence(sequencetools.StateSequence):
         >>> zonetype(FIELD)
         >>> zonearea.values = 1.0, 1.0, 1.0
         >>> states.sp = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
-        >>> from hydpy import print_values
-        >>> print_values(states.sp.valuevector)
+        >>> from hydpy import print_vector
+        >>> print_vector(states.sp.valuevector)
         2.5, 3.5, 4.5
 
         The definition of |State2DSequence.valuevector| of |State2DSequence| allows
         applying method |Variable.average_values| like for the 1-dimensional
         zone-related sequences of |hland|:
 
-        >>> print_values([states.sp.average_values()])
+        >>> print_vector([states.sp.average_values()])
         3.5
         """
         return numpy.mean(self.value, axis=0)
@@ -365,9 +365,9 @@ class State2DSequence(sequencetools.StateSequence):
         ...                     [[2.0, 3.0, 4.0], [5.0, 6.0, 7.0]],
         ...                     [[3.0, 4.0, 5.0], [6.0, 7.0, 8.0]],
         ...                     [[4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]]
-        >>> from hydpy import print_values
+        >>> from hydpy import print_vector
         >>> for values in states.sp.seriesmatrix:
-        ...     print_values(values)
+        ...     print_vector(values)
         2.5, 3.5, 4.5
         3.5, 4.5, 5.5
         4.5, 5.5, 6.5
@@ -377,7 +377,7 @@ class State2DSequence(sequencetools.StateSequence):
         applying method |IOSequence.average_series| like for the 1-dimensional
         zone-related sequences of |hland|:
 
-        >>> print_values(states.sp.average_series())
+        >>> print_vector(states.sp.average_series())
         3.5, 4.5, 5.5, 6.5
         """
         return numpy.mean(self.series, axis=1)

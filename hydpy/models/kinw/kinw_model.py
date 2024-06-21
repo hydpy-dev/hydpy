@@ -2590,7 +2590,7 @@ class Return_H_V1(modeltools.Method):
         the water stage of 1 m:
 
         >>> fluxes.qg = 7.745345
-        >>> from hydpy import print_values, round_
+        >>> from hydpy import print_vector, round_
         >>> round_(model.return_h_v1())
         1.0
 
@@ -2618,7 +2618,7 @@ class Return_H_V1(modeltools.Method):
         ...     model.calc_ag_v1()
         ...     model.calc_qg_v1()
         ...     error = fluxes.qg[0]-q
-        ...     print_values([q, h, error])
+        ...     print_vector([q, h, error])
         0.0, -10.0, 0.0
         0.000001, -0.390737, 0.0
         0.00001, -0.308934, 0.0
@@ -2663,7 +2663,7 @@ class Return_H_V1(modeltools.Method):
         ...     model.calc_ag_v1()
         ...     model.calc_qg_v1()
         ...     error = fluxes.qg[0]-q
-        ...     print_values([q, h, error])
+        ...     print_vector([q, h, error])
         0.0, 0.0, 0.0
         0.000001, 0.00008, 0.0
         0.00001, 0.000317, 0.0
@@ -2920,8 +2920,8 @@ class BaseModelProfile(modeltools.ELSModel):
 
         >>> from hydpy.models.kinw_williams import *
         >>> parameterstep()
-        >>> from hydpy import print_values
-        >>> print_values(model.prepare_hvector(
+        >>> from hydpy import print_vector
+        >>> print_vector(model.prepare_hvector(
         ...     nmb=10, hmin=-1.0, hmax=8, exp=1.0))
         -1.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0
 
@@ -2931,7 +2931,7 @@ class BaseModelProfile(modeltools.ELSModel):
         higher sampling rate in the lower value range (by setting `exp` to two):
 
         >>> hm(6.0)
-        >>> print_values(model.prepare_hvector(nmb=10))
+        >>> print_vector(model.prepare_hvector(nmb=10))
         -0.6, -0.37037, 0.318519, 1.466667, 3.074074, 5.140741, 7.666667,
         10.651852, 14.096296, 18.0
         """
@@ -2974,12 +2974,12 @@ class BaseModelProfile(modeltools.ELSModel):
         >>> gts(2)
         >>> parameters.update()
 
-        >>> from hydpy import print_values
-        >>> print_values(model.calculate_qgvector([0.0, 1.0, 2.0]))
+        >>> from hydpy import print_vector
+        >>> print_vector(model.calculate_qgvector([0.0, 1.0, 2.0]))
         0.033153, 7.745345, 28.436875
-        >>> print_values(model.calculate_agvector([0.0, 1.0, 2.0]))
+        >>> print_vector(model.calculate_agvector([0.0, 1.0, 2.0]))
         0.623138, 20.0, 50.0
-        >>> print_values(model.calculate_vgvector([0.0, 1.0, 2.0]))
+        >>> print_vector(model.calculate_vgvector([0.0, 1.0, 2.0]))
         0.031157, 1.0, 2.5
         """
         h_ = self.sequences.states.h.values.copy()

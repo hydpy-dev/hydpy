@@ -113,7 +113,7 @@ Function `print_itemvalues` also wraps only GET methods and prints the current v
 parameter |hland_control.Alpha| as well as the lastly simulated discharge values
 corresponding to the given `id` value:
 
->>> from hydpy import print_values
+>>> from hydpy import print_vector
 >>> def print_itemvalues(id_):
 ...     methods = ",".join(("GET_query_simulationdates",
 ...                         "GET_query_parameteritemvalues",
@@ -127,7 +127,7 @@ corresponding to the given `id` value:
 ...         if line.startswith("dill"):
 ...             discharge = eval(line.split("=")[1])
 ...     print(f"{alpha}: ", end="")
-...     print_values(discharge)
+...     print_vector(discharge)
 
 For the sake of brevity, we also define `do_everything` for calling the other functions
 at once:
@@ -282,7 +282,7 @@ class ServerState:
 
     >>> from hydpy.examples import prepare_full_example_1
     >>> prepare_full_example_1()
-    >>> from hydpy import print_values, TestIO
+    >>> from hydpy import print_vector, TestIO
     >>> from hydpy.exe.servertools import ServerState
     >>> with TestIO():  # doctest: +ELLIPSIS
     ...     state = ServerState("LahnH", "multiple_runs.xml")
@@ -339,7 +339,7 @@ class ServerState:
     The initialisation also prepares all selected series arrays and reads the
     required input data:
 
-    >>> print_values(state.hp.elements.land_dill.model.sequences.inputs.t.series)
+    >>> print_vector(state.hp.elements.land_dill.model.sequences.inputs.t.series)
     -0.298846, -0.811539, -2.493848, -5.968849, -6.999618
     >>> state.hp.nodes.dill.sequences.sim.series
     InfoArray([nan, nan, nan, nan, nan])
@@ -1260,10 +1260,10 @@ registered under the id `0`.  There is nothing registered, so far.
     directory `mean_sm`:
 
     >>> import netCDF4
-    >>> from hydpy import print_values
+    >>> from hydpy import print_vector
     >>> filepath = "LahnH/series/mean_sm/hland_96_state_sm_mean.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
-    ...     print_values(ncfile["hland_96_state_sm_mean"][:, 0])
+    ...     print_vector(ncfile["hland_96_state_sm_mean"][:, 0])
     211.231585, 0.0, 0.0, 0.0, 0.0
 
     To save the results of subsequent simulations without overwriting the previous
@@ -1276,7 +1276,7 @@ registered under the id `0`.  There is nothing registered, so far.
     <BLANKLINE>
     >>> filepath = "LahnH/series/sm_averaged/hland_96_state_sm_mean.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
-    ...     print_values(ncfile["hland_96_state_sm_mean"][:, 0])
+    ...     print_vector(ncfile["hland_96_state_sm_mean"][:, 0])
     211.231585, 0.0, 0.0, 0.0, 0.0
 
     |HydPyServer.GET_deregister_serieswriterdir| removes the currently set directory
@@ -1302,7 +1302,7 @@ under the id `0`.  There is nothing registered, so far.
 
     >>> filepath = "LahnH/series/temperature/hland_96_input_t.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
-    ...     print_values(ncfile["hland_96_input_t"][:, 0])
+    ...     print_vector(ncfile["hland_96_input_t"][:, 0])
     -0.298846, 0.0, 0.0, 0.0, 0.0
 
     The input sequences |hland_inputs.P| and |evap_inputs.NormalEvapotranspiration| are
@@ -1326,7 +1326,7 @@ under the id `0`.  There is nothing registered, so far.
     <BLANKLINE>
     >>> filepath = "LahnH/series/temp/hland_96_input_t.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
-    ...     print_values(ncfile["hland_96_input_t"][:, 0])
+    ...     print_vector(ncfile["hland_96_input_t"][:, 0])
     -0.298846, 0.0, 0.0, 0.0, 0.0
 
     The "just in time" reading of the series of |hland_inputs.P| and

@@ -254,7 +254,7 @@ class SimpleInterpolator(BaseInterpolator):
     >>> simpleinterpolator
     simpleinterpolator(?)
 
-    >>> from hydpy import ANN, PPoly
+    >>> from hydpy import ANN, PPoly, print_vector
     >>> simpleinterpolator(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 2.0]))
     >>> simpleinterpolator
     simpleinterpolator(
@@ -278,14 +278,14 @@ class SimpleInterpolator(BaseInterpolator):
     >>> simpleinterpolator.nmb_outputs
     3
     >>> simpleinterpolator.algorithm.inputs = 1.0, 2.0
-    >>> simpleinterpolator.inputs
-    array([1., 2.])
+    >>> print_vector(simpleinterpolator.inputs)
+    1.0, 2.0
     >>> simpleinterpolator.algorithm.outputs = 3.0, 4.0, 5.0
-    >>> simpleinterpolator.outputs
-    array([3., 4., 5.])
+    >>> print_vector(simpleinterpolator.outputs)
+    3.0, 4.0, 5.0
     >>> simpleinterpolator.algorithm.output_derivatives = 6.0, 7.0, 8.0
-    >>> simpleinterpolator.output_derivatives
-    array([6., 7., 8.])
+    >>> print_vector(simpleinterpolator.output_derivatives)
+    6.0, 7.0, 8.0
     >>> from unittest.mock import patch
     >>> with patch.object(ANN, "verify") as mock:
     ...     assert simpleinterpolator.verify() is None
@@ -517,15 +517,15 @@ class SeasonalInterpolator(BaseInterpolator):
     For example, on July 1 (which is the 183rd day of a leap year), only the output of
     the third interpolator is relevant:
 
-    >>> from hydpy import print_values
-    >>> print_values(seasonalinterpolator.ratios[182])
+    >>> from hydpy import print_vector
+    >>> print_vector(seasonalinterpolator.ratios[182])
     0.0, 0.0, 1.0
 
     On June 30 and July 2, the second and the first interpolators are also relevant:
 
-    >>> print_values(seasonalinterpolator.ratios[181])
+    >>> print_vector(seasonalinterpolator.ratios[181])
     0.0, 0.008197, 0.991803
-    >>> print_values(seasonalinterpolator.ratios[183])
+    >>> print_vector(seasonalinterpolator.ratios[183])
     0.005435, 0.0, 0.994565
 
     Inserting data, processing this data, and fetching the output works as explained
@@ -553,7 +553,7 @@ class SeasonalInterpolator(BaseInterpolator):
     For this day of the year, the first and the second interpolator have ratios of 0.8
     and 0.2, respectively:
 
-    >>> print_values(seasonalinterpolator.ratios[12])
+    >>> print_vector(seasonalinterpolator.ratios[12])
     0.8, 0.2, 0.0
 
     Both interpolators calculate constant values.  The sum of the outputs of the first

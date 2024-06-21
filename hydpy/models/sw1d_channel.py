@@ -1121,8 +1121,8 @@ Also, there is no indication of an error in the water balance:
 However, looking into the details, one finds the final water volumes of the third
 segment to be slightly negative:
 
->>> from hydpy import print_values
->>> print_values(s.sequences.states.watervolume.value for s in model.storagemodels)
+>>> from hydpy import print_vector
+>>> print_vector(s.sequences.states.watervolume.value for s in model.storagemodels)
 0.0, 2.553539, 1.698536, -0.003351, 1.529698, 2.414455, 1.807123, 0.0
 
 This deficit is due to the limitation of method |Update_Discharge_V1| only to consider
@@ -1255,8 +1255,8 @@ Again, there seems to be no error in the water balance:
 However, the first and the last segments "bookmark" the impossible subtractions as
 negative water volumes:
 
->>> from hydpy import print_values
->>> print_values((s.sequences.states.watervolume.value for s in model.storagemodels), width=80)
+>>> from hydpy import print_vector
+>>> print_vector((s.sequences.states.watervolume.value for s in model.storagemodels), width=80)
 -10.126869, 6.272359, 4.206635, 6.17089, 4.101102, 6.057642, 3.526298, -6.208057
 
 Hence, when applying external time series that extract water from channels, one has to

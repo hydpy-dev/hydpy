@@ -38,7 +38,7 @@ from hydpy.core.exceptiontools import HydPyDeprecationWarning
 from hydpy.core.hydpytools import HydPy
 from hydpy.core.importtools import prepare_model, reverse_model_wildcard_import
 from hydpy.core.itemtools import AddItem, GetItem, MultiplyItem, SetItem
-from hydpy.core.objecttools import classname, print_values, round_, repr_
+from hydpy.core.objecttools import classname, print_matrix, print_vector, round_, repr_
 from hydpy.core.parametertools import KeywordArguments
 from hydpy.core.selectiontools import Selection, Selections
 from hydpy.core.seriestools import aggregate_series
@@ -152,7 +152,8 @@ __all__ = [
     "GetItem",
     "MultiplyItem",
     "SetItem",
-    "print_values",
+    "print_matrix",
+    "print_vector",
     "classname",
     "repr_",
     "round_",

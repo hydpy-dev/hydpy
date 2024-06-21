@@ -905,20 +905,20 @@ def repr_numbers(values: ReprArg) -> str:
     return "; ".join(result)
 
 
-def print_values(values: VectorInputObject, width: int = 70) -> None:
-    """Print the given values in multiple lines with a certain maximum width.
+def print_vector(values: VectorInputObject, width: int = 70) -> None:
+    """Print the given vector in multiple lines with a certain maximum width.
 
     By default, each line contains at most 70 characters:
 
-    >>> from hydpy import print_values
-    >>> print_values(range(21))
+    >>> from hydpy import print_vector
+    >>> print_vector(range(21))
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
     20
 
     You can change this default behaviour by passing an alternative number of
     characters:
 
-    >>> print_values(range(21), width=30)
+    >>> print_vector(range(21), width=30)
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
     10, 11, 12, 13, 14, 15, 16,
     17, 18, 19, 20
@@ -927,6 +927,37 @@ def print_values(values: VectorInputObject, width: int = 70) -> None:
         text=repr_values(values), width=width, break_long_words=False
     ):
         print(line)
+
+
+def print_matrix(values: MatrixInputObject, width: int = 70) -> None:
+    """Print the given matrix in multiple lines with a certain maximum width.
+
+    By default, each line contains at most 70 characters:
+
+    >>> from hydpy import print_matrix
+    >>> print_matrix([range(5), range(20), range(10)])
+    | 0, 1, 2, 3, 4 |
+    | 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, >
+    > 19 |
+    | 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 |
+
+    You can change this default behaviour by passing an alternative number of
+    characters:
+
+    >>> print_matrix([range(5), range(20), range(10)], width=30)
+    | 0, 1, 2, 3, 4 |
+    | 0, 1, 2, 3, 4, 5, 6, 7, 8, >
+    > 9, 10, 11, 12, 13, 14, 15, >
+    > 16, 17, 18, 19 |
+    | 0, 1, 2, 3, 4, 5, 6, 7, 8, >
+    > 9 |
+    """
+    for subvalues in values:
+        lines = textwrap.wrap(
+            text=repr_values(subvalues), width=width - 4, break_long_words=False
+        )
+        for i, line in enumerate(lines):
+            print("|" if i == 0 else ">", line, "|" if i == len(lines) - 1 else ">")
 
 
 def repr_tuple(values: VectorInputObject) -> str:

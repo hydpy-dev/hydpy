@@ -465,9 +465,9 @@ base 10: '0X'
         """Return a 1-dimensional |numpy| |numpy.ndarray|  with six entries defining
         the actual date (year, month, day, hour, minute, second).
 
-        >>> from hydpy import Date
-        >>> Date("1992-10-8 15:15:42").to_array()
-        array([1992.,   10.,    8.,   15.,   15.,   42.])
+        >>> from hydpy import Date, print_vector
+        >>> print_vector(Date("1992-10-8 15:15:42").to_array())
+        1992.0, 10.0, 8.0, 15.0, 15.0, 42.0
 
         .. note::
 
@@ -2187,26 +2187,26 @@ required, but the given array consist of 12 entries/rows only.
         By default, method |Timegrid.to_timepoints| returns the time elapsed since the
         |Timegrid.firstdate| in hours:
 
-        >>> from hydpy import Timegrid
+        >>> from hydpy import print_vector, Timegrid
         >>> timegrid = Timegrid("2000-01-01", "2000-01-02", "6h")
-        >>> timegrid.to_timepoints()
-        array([ 0.,  6., 12., 18.])
+        >>> print_vector(timegrid.to_timepoints())
+        0.0, 6.0, 12.0, 18.0
 
         You can define other time units (`days` or `min`) (only the first character
         counts):
 
-        >>> timegrid.to_timepoints(unit="d")
-        array([0.  , 0.25, 0.5 , 0.75])
+        >>> print_vector(timegrid.to_timepoints(unit="d"))
+        0.0, 0.25, 0.5, 0.75
 
         Additionally, one can pass an `offset` that must be of type |int| or a valid
         |Period| initialisation argument:
 
-        >>> timegrid.to_timepoints(offset=24)
-        array([24., 30., 36., 42.])
-        >>> timegrid.to_timepoints(offset="1d")
-        array([24., 30., 36., 42.])
-        >>> timegrid.to_timepoints(unit="days", offset="1d")
-        array([1.  , 1.25, 1.5 , 1.75])
+        >>> print_vector(timegrid.to_timepoints(offset=24))
+        24.0, 30.0, 36.0, 42.0
+        >>> print_vector(timegrid.to_timepoints(offset="1d"))
+        24.0, 30.0, 36.0, 42.0
+        >>> print_vector(timegrid.to_timepoints(unit="days", offset="1d"))
+        1.0, 1.25, 1.5, 1.75
 
         When setting the |Options.timestampleft| option to |False|,
         |Timegrid.to_timepoints| assumes each time point to define the right side
@@ -2216,20 +2216,20 @@ required, but the given array consist of 12 entries/rows only.
 
         >>> from hydpy import pub
         >>> with pub.options.timestampleft(False):
-        ...     timegrid.to_timepoints()
-        array([ 6., 12., 18., 24.])
+        ...     print_vector(timegrid.to_timepoints())
+        6.0, 12.0, 18.0, 24.0
         >>> with pub.options.timestampleft(False):
-        ...     timegrid.to_timepoints(unit="d")
-        array([0.25, 0.5 , 0.75, 1.  ])
+        ...     print_vector(timegrid.to_timepoints(unit="d"))
+        0.25, 0.5, 0.75, 1.0
         >>> with pub.options.timestampleft(False):
-        ...     timegrid.to_timepoints(offset=24)
-        array([30., 36., 42., 48.])
+        ...     print_vector(timegrid.to_timepoints(offset=24))
+        30.0, 36.0, 42.0, 48.0
         >>> with pub.options.timestampleft(False):
-        ...     timegrid.to_timepoints(offset="1d")
-        array([30., 36., 42., 48.])
+        ...     print_vector(timegrid.to_timepoints(offset="1d"))
+        30.0, 36.0, 42.0, 48.0
         >>> with pub.options.timestampleft(False):
-        ...     timegrid.to_timepoints(unit="days", offset="1d")
-        array([1.25, 1.5 , 1.75, 2.  ])
+        ...     print_vector(timegrid.to_timepoints(unit="days", offset="1d"))
+        1.25, 1.5, 1.75, 2.0
         """
         period = Period.from_cfunits(unit)
         if not isinstance(offset, (float, int)):
@@ -3456,7 +3456,7 @@ must not be the given value `4`, as the day has already been set to `31`.
         year information.  In our example, all centred dates are "relevant" due to the
         long initialisation period of ten years:
 
-        >>> from hydpy import round_
+        >>> from hydpy import print_vector, round_
         >>> round_(sum(TOY.centred_timegrid()[1]))
         366
 
@@ -3473,24 +3473,24 @@ must not be the given value `4`, as the day has already been set to `31`.
         In all other cases, only the values related to the intersection are |True|:
 
         >>> pub.timegrids = "2001-01-03", "2001-01-05", "1d"
-        >>> TOY.centred_timegrid()[1][:5]
-        array([False, False,  True,  True, False])
+        >>> print_vector(TOY.centred_timegrid()[1][:5])
+        False, False, True, True, False
 
         >>> pub.timegrids = "2001-12-30", "2002-01-04", "1d"
-        >>> TOY.centred_timegrid()[1][:5]
-        array([ True,  True,  True, False, False])
-        >>> TOY.centred_timegrid()[1][-5:]
-        array([False, False, False,  True,  True])
+        >>> print_vector(TOY.centred_timegrid()[1][:5])
+        True, True, True, False, False
+        >>> print_vector(TOY.centred_timegrid()[1][-5:])
+        False, False, False, True, True
 
         It makes no difference whether initialisation periods not spanning an entire
         year contain the 29th of February:
 
         >>> pub.timegrids = "2001-02-27", "2001-03-01", "1d"
-        >>> TOY.centred_timegrid()[1][31+28-3-1:31+28+3-1]
-        array([False, False,  True,  True,  True, False])
+        >>> print_vector(TOY.centred_timegrid()[1][31+28-3-1:31+28+3-1])
+        False, False, True, True, True, False
         >>> pub.timegrids = "2000-02-27", "2000-03-01", "1d"
-        >>> TOY.centred_timegrid()[1][31+28-3-1:31+28+3-1]
-        array([False, False,  True,  True,  True, False])
+        >>> print_vector(TOY.centred_timegrid()[1][31+28-3-1:31+28+3-1])
+        False, False, True, True, True, False
         """
         init = hydpy.pub.timegrids.init
         shift = init.stepsize / 2.0

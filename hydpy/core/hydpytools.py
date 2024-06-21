@@ -1884,15 +1884,15 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> hp.simulate()
-        >>> from hydpy import print_values
-        >>> print_values(hp.nodes.lahn_3.sequences.sim.series)
+        >>> from hydpy import print_vector
+        >>> print_vector(hp.nodes.lahn_3.sequences.sim.series)
         54.046428, 37.32527, 31.925872, 28.416456
 
         Just repeating the simulation gives different results due to applying the final
         states of the first simulation run as the initial states of the second run:
 
         >>> hp.simulate()
-        >>> print_values(hp.nodes.lahn_3.sequences.sim.series)
+        >>> print_vector(hp.nodes.lahn_3.sequences.sim.series)
         26.219675, 25.039466, 24.204271, 23.295696
 
         Calling |HydPy.reset_conditions| first allows repeating the first simulation
@@ -1900,11 +1900,11 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
 
         >>> hp.reset_conditions()
         >>> hp.simulate()
-        >>> print_values(hp.nodes.lahn_3.sequences.sim.series)
+        >>> print_vector(hp.nodes.lahn_3.sequences.sim.series)
         54.046428, 37.32527, 31.925872, 28.416456
         >>> hp.reset_conditions()
         >>> hp.simulate()
-        >>> print_values(hp.nodes.lahn_3.sequences.sim.series)
+        >>> print_vector(hp.nodes.lahn_3.sequences.sim.series)
         54.046428, 37.32527, 31.925872, 28.416456
         """
         self.elements.reset_conditions()
@@ -1926,14 +1926,14 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
 
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
-        >>> from hydpy import HydPy, pub, TestIO, print_values
+        >>> from hydpy import HydPy, pub, TestIO, print_vector
         >>> with TestIO():
         ...     hp = HydPy("LahnH")
         ...     pub.timegrids = "1996-01-01", "1996-04-01", "1d"
         ...     hp.prepare_everything()
         >>> pub.timegrids.sim.lastdate = "1996-02-20"
         >>> hp.simulate()
-        >>> print_values(hp.nodes.lahn_3.sequences.sim.series[48:52])
+        >>> print_vector(hp.nodes.lahn_3.sequences.sim.series[48:52])
         73.451853, 97.836463, nan, nan
 
         At the end of the preparation run, a snow layer is covering the Lahn catchment.
@@ -1941,9 +1941,9 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         and 1.1 mm of liquid water:
 
         >>> lahn1_states = hp.elements.land_lahn_1.model.sequences.states
-        >>> print_values([lahn1_states.sp.average_values()])
+        >>> print_vector([lahn1_states.sp.average_values()])
         12.128892
-        >>> print_values([lahn1_states.wc.average_values()])
+        >>> print_vector([lahn1_states.wc.average_values()])
         1.080883
 
         Now, we save the current conditions and perform the first simulation run from
@@ -1955,16 +1955,16 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         >>> pub.timegrids.sim.lastdate = "1996-04-01"
         >>> hp.simulate()
         >>> first = hp.nodes.lahn_3.sequences.sim.series.copy()
-        >>> print_values(first[48:52])
+        >>> print_vector(first[48:52])
         0.0, 0.0, 89.228779, 66.966665
 
         To exactly repeat the last simulation run, we assign the memorised conditions
         to property |HydPy.conditions|:
 
         >>> hp.conditions = conditions
-        >>> print_values([lahn1_states.sp.average_values()])
+        >>> print_vector([lahn1_states.sp.average_values()])
         12.128892
-        >>> print_values([lahn1_states.wc.average_values()])
+        >>> print_vector([lahn1_states.wc.average_values()])
         1.080883
 
         All discharge values of the second simulation run are identical to the ones of
@@ -1975,7 +1975,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         >>> pub.timegrids.sim.lastdate = "1996-04-01"
         >>> hp.simulate()
         >>> second = hp.nodes.lahn_3.sequences.sim.series.copy()
-        >>> print_values(second[48:52])
+        >>> print_vector(second[48:52])
         0.0, 0.0, 89.228779, 66.966665
         >>> all(first == second)
         True
@@ -1999,9 +1999,9 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         Without any water-holding capacity of the snow layer, its water content is zero
         despite the actual memorised value of 1.1 mm:
 
-        >>> print_values([lahn1_states.sp.average_values()])
+        >>> print_vector([lahn1_states.sp.average_values()])
         12.128892
-        >>> print_values([lahn1_states.wc.average_values()])
+        >>> print_vector([lahn1_states.wc.average_values()])
         0.0
 
         What happens in such conflicts depends on the implementation of the respective

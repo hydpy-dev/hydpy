@@ -69,12 +69,12 @@ The intermediate soil moisture values have been stored in a NetCDF file called
 `hland_96_state_sm.nc`:
 
 >>> import numpy
->>> from hydpy import print_values
+>>> from hydpy import print_vector
 >>> from hydpy.core.netcdftools import netcdf4, chars2str, query_variable
 >>> with TestIO():
 ...     ncfile = netcdf4.Dataset("LahnH/series/soildata/hland_96_state_sm.nc")
 ...     chars2str(query_variable(ncfile, "station_id")[:].data)[:3]
-...     print_values(query_variable(ncfile, "hland_96_state_sm")[:, 0])
+...     print_vector(query_variable(ncfile, "hland_96_state_sm")[:, 0])
 ['land_dill_0', 'land_dill_1', 'land_dill_2']
 184.920402, 184.589155, 184.365769, 184.069586, 183.837826
 >>> ncfile.close()
@@ -86,7 +86,7 @@ Spatially averaged time series values have been stored in files ending with the 
 >>> time.sleep(10)
 
 >>> with TestIO(clear_all=True):
-...     print_values((numpy.load("LahnH/series/averages/lahn_1_sim_q_mean.npy")[13:]))
+...     print_vector((numpy.load("LahnH/series/averages/lahn_1_sim_q_mean.npy")[13:]))
 9.648145, 8.518256, 7.78162, 7.345017, 7.152906
 """
 # import...
@@ -1714,8 +1714,8 @@ during a simulation run is not supported but tried for sequence `p` of element \
         ...     series_io = interface.series_io
         ...     series_io.prepare_series()
         ...     series_io.load_series()
-        >>> from hydpy import print_values
-        >>> print_values(hp.elements.land_dill.model.sequences.inputs.t.series[:3])
+        >>> from hydpy import print_vector
+        >>> print_vector(hp.elements.land_dill.model.sequences.inputs.t.series[:3])
         -0.298846, -0.811539, -2.493848
         """
         if self._is_reader:
@@ -2079,7 +2079,8 @@ class XMLVar(XMLSelector):
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
-        >>> from hydpy import HydPy, round_, pub, TestIO, XMLInterface
+        >>> from hydpy import (HydPy, round_, print_matrix, print_vector, pub, TestIO,
+        ...                    XMLInterface)
         >>> hp = HydPy("LahnH")
         >>> pub.timegrids = "1996-01-01", "1996-01-06", "1d"
         >>> with TestIO():
@@ -2093,8 +2094,8 @@ class XMLVar(XMLSelector):
 
         >>> var = interface.exchange.itemgroups[0].models[0].subvars[0].vars[0]
         >>> item = var.item
-        >>> item.value
-        array(2.)
+        >>> round_(item.value)
+        2.0
         >>> hp.elements.land_dill.model.parameters.control.alpha
         alpha(1.0)
         >>> item.update_variables()
@@ -2107,8 +2108,8 @@ class XMLVar(XMLSelector):
 
         >>> var = interface.exchange.itemgroups[0].models[2].subvars[0].vars[0]
         >>> item = var.item
-        >>> item.value
-        array(5.)
+        >>> round_(item.value)
+        5.0
         >>> hp.elements.stream_dill_lahn_2.model.parameters.control.nmbsegments
         nmbsegments(lag=0.0)
         >>> item.update_variables()
@@ -2123,8 +2124,8 @@ class XMLVar(XMLSelector):
         >>> item = var.item
         >>> item.name
         'sm_lahn_2'
-        >>> item.value
-        array([123.])
+        >>> print_vector(item.value)
+        123.0
         >>> hp.elements.land_lahn_2.model.sequences.states.sm
         sm(138.31396, 135.71124, 147.54968, 145.47142, 154.96405, 153.32805,
            160.91917, 159.62434, 165.65575, 164.63255)
@@ -2140,9 +2141,9 @@ class XMLVar(XMLSelector):
         >>> item = var.item
         >>> item.name
         'sm_lahn_1'
-        >>> item.value
-        array([110., 120., 130., 140., 150., 160., 170., 180., 190., 200., 210.,
-               220., 230.])
+        >>> print_vector(item.value)
+        110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0, 190.0, 200.0,
+        210.0, 220.0, 230.0
         >>> hp.elements.land_lahn_1.model.sequences.states.sm
         sm(99.27505, 96.17726, 109.16576, 106.39745, 117.97304, 115.56252,
            125.81523, 123.73198, 132.80035, 130.91684, 138.95523, 137.25983,
@@ -2169,9 +2170,9 @@ class XMLVar(XMLSelector):
         >>> item = var.item
         >>> item.name
         'ic_lahn_1'
-        >>> item.value
-        array([0.96404, 1.36332, 0.96458, 1.46458, 0.96512, 1.46512, 0.96565,
-               1.46569, 0.96617, 1.46617, 0.96668, 1.46668, 1.46719])
+        >>> print_vector(item.value)
+        0.96404, 1.36332, 0.96458, 1.46458, 0.96512, 1.46512, 0.96565,
+        1.46569, 0.96617, 1.46617, 0.96668, 1.46668, 1.46719
         >>> hp.elements.land_lahn_1.model.sequences.states.ic
         ic(0.96404, 1.36332, 0.96458, 1.46458, 0.96512, 1.46512, 0.96565,
            1.46569, 0.96617, 1.46617, 0.96668, 1.46668, 1.46719)
@@ -2183,21 +2184,19 @@ class XMLVar(XMLSelector):
 
         >>> var = interface.exchange.itemgroups[2].models[0].subvars[0].vars[0]
         >>> item = var.item
-        >>> item.value
-        array([[-0.29884643, -0.81153886, -2.49384849, -5.96884868, -6.9996175 ],
-               [-0.70539496, -1.50555283, -4.22126769, -7.44634946, -8.11936591]])
-        >>> hp.elements.land_dill.model.sequences.inputs.t.series
-        InfoArray([-0.29884643, -0.81153886, -2.49384849, -5.96884868,
-                   -6.9996175 ])
-        >>> hp.elements.land_lahn_1.model.sequences.inputs.t.series
-        InfoArray([-0.70539496, -1.50555283, -4.22126769, -7.44634946,
-                   -8.11936591])
+        >>> print_matrix(item.value)
+        | -0.298846, -0.811539, -2.493848, -5.968849, -6.999618 |
+        | -0.705395, -1.505553, -4.221268, -7.446349, -8.119366 |
+        >>> print_vector(hp.elements.land_dill.model.sequences.inputs.t.series)
+        -0.298846, -0.811539, -2.493848, -5.968849, -6.999618
+        >>> print_vector(hp.elements.land_lahn_1.model.sequences.inputs.t.series)
+        -0.705395, -1.505553, -4.221268, -7.446349, -8.119366
         >>> item.value = [0.0, 1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0, 9.0]
         >>> item.update_variables()
-        >>> hp.elements.land_dill.model.sequences.inputs.t.series
-        InfoArray([0., 1., 2., 3., 4.])
-        >>> hp.elements.land_lahn_1.model.sequences.inputs.t.series
-        InfoArray([5., 6., 7., 8., 9.])
+        >>> print_vector(hp.elements.land_dill.model.sequences.inputs.t.series)
+        0.0, 1.0, 2.0, 3.0, 4.0
+        >>> print_vector(hp.elements.land_lahn_1.model.sequences.inputs.t.series)
+        5.0, 6.0, 7.0, 8.0, 9.0
 
         |AddItem| `sfcf_1`, `sfcf_2`, and `sfcf_3` serve to demonstrate how a scalar
         value (`sfcf_1` and `sfcf_2`) or a vector of values can be used to change the

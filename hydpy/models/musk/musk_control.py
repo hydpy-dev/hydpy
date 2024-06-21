@@ -144,11 +144,11 @@ class Coefficients(variabletools.MixinFixedShape, parametertools.Parameter):
     flood wave travels one segment per simulation step without modification of its
     shape:
 
-    >>> from hydpy import print_values
+    >>> from hydpy import print_vector
     >>> coefficients(damp=0.0)
     >>> coefficients
     coefficients(damp=0.0)
-    >>> print_values(coefficients.values)
+    >>> print_vector(coefficients.values)
     0.0, 1.0, 0.0
 
     Negative `damp` values are trimmed to zero:
@@ -165,7 +165,7 @@ class Coefficients(variabletools.MixinFixedShape, parametertools.Parameter):
     >>> coefficients(damp=1.0)
     >>> coefficients
     coefficients(damp=1.0)
-    >>> print_values(coefficients.values)
+    >>> print_vector(coefficients.values)
     0.5, 0.0, 0.5
 
     Higher values are allowed but result in highly skewed responses that are usually
@@ -174,7 +174,7 @@ class Coefficients(variabletools.MixinFixedShape, parametertools.Parameter):
     >>> coefficients(damp=3.0)
     >>> coefficients
     coefficients(damp=3.0)
-    >>> print_values(coefficients.values)
+    >>> print_vector(coefficients.values)
     0.75, -0.5, 0.75
 
     The third option follows the original Muskingum method :cite:p:`ref-McCarthy1940`
@@ -197,7 +197,7 @@ class Coefficients(variabletools.MixinFixedShape, parametertools.Parameter):
     >>> coefficients(k=0.0, x=0.0)
     >>> coefficients
     coefficients(k=0.0, x=0.0)
-    >>> print_values(coefficients.values)
+    >>> print_vector(coefficients.values)
     1.0, 1.0, -1.0
 
     Negative `k` values are trimmed:
@@ -208,7 +208,7 @@ class Coefficients(variabletools.MixinFixedShape, parametertools.Parameter):
 with value `-1.0` needed to be trimmed to `0.0`.
     >>> coefficients
     coefficients(k=0.0, x=0.0)
-    >>> print_values(coefficients.values)
+    >>> print_vector(coefficients.values)
     1.0, 1.0, -1.0
 
     The usual lowest value for `x` is zero:
@@ -216,7 +216,7 @@ with value `-1.0` needed to be trimmed to `0.0`.
     >>> coefficients(k=0.5, x=0.0)
     >>> coefficients
     coefficients(k=0.5, x=0.0)
-    >>> print_values(coefficients.values)
+    >>> print_vector(coefficients.values)
     0.333333, 0.333333, 0.333333
 
     However, negative `x` values do not always result in problematic wave
@@ -225,7 +225,7 @@ with value `-1.0` needed to be trimmed to `0.0`.
     >>> coefficients(k=0.5, x=-1.0)
     >>> coefficients
     coefficients(k=0.5, x=-1.0)
-    >>> print_values(coefficients.values)
+    >>> print_vector(coefficients.values)
     0.6, -0.2, 0.6
 
     As mentioned above, the value of `k` depends on the current parameter step size:
@@ -248,7 +248,7 @@ with value `-1.0` needed to be trimmed to `0.0`.
 with value `1.0` needed to be trimmed to `0.5`.
     >>> coefficients
     coefficients(k=0.5, x=0.5)
-    >>> print_values(coefficients.values)
+    >>> print_vector(coefficients.values)
     0.0, 1.0, 0.0
 
     >>> with warn_later():
@@ -257,7 +257,7 @@ with value `1.0` needed to be trimmed to `0.5`.
 with value `1.0` needed to be trimmed to `0.25`.
     >>> coefficients
     coefficients(k=1.0, x=0.25)
-    >>> print_values(coefficients.values)
+    >>> print_vector(coefficients.values)
     0.0, 0.5, 0.5
 
     >>> with warn_later():
@@ -266,7 +266,7 @@ with value `1.0` needed to be trimmed to `0.25`.
 with value `1.0` needed to be trimmed to `0.0`.
     >>> coefficients
     coefficients(k=0.25, x=0.0)
-    >>> print_values(coefficients.values)
+    >>> print_vector(coefficients.values)
     0.5, 0.5, 0.0
     """
 

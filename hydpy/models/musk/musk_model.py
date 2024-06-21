@@ -608,14 +608,14 @@ class Calc_Coefficient1_Coefficient2_Coefficient3_V1(modeltools.Method):
         coefficient2(1.0, 0.948905, 0.96563, 0.979228, 1.0)
         >>> factors.coefficient3
         coefficient3(1.0, 0.024331, 0.343699, 0.603363, 1.0)
-        >>> from hydpy import print_values
-        >>> print_values(
+        >>> from hydpy import print_vector
+        >>> print_vector(
         ...     factors.coefficient1 + factors.coefficient2 + factors.coefficient3)
         1.0, 1.0, 1.0, 1.0, 1.0
 
         Note that the "old" Courant numbers of the first and the last segment are zero.
 
-        >>> print_values(states.courantnumber.old)
+        >>> print_vector(states.courantnumber.old)
         0.0, 1.0, 0.5, 0.25, 0.0
 
         To prevent zero divisions, |Calc_Coefficient1_Coefficient2_Coefficient3_V1|

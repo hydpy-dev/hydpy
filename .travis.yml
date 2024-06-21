@@ -16,7 +16,7 @@ install:
 script:
   - python prepare_build.py
   - python -m build
-  - if [ $TRAVIS_PYTHON_VERSION == "3.9" ] ; then nox -s doctest; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.9" ] ; then nox -s "doctest(numpy='1')"; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.12" ] ; then pip install ghp-import; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.12" ] ; then nox -s sphinx; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.12" ] ; then nox -s black; fi

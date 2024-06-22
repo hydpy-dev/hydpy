@@ -4475,7 +4475,7 @@ class CallbackParameter(Parameter):
     are free to modify the model in any way you like, but the expected behaviour is
     to set the considered parameter's value only:
 
-    >>> def adjust_gateheight(model) -> None:
+    >>> def adjust(model) -> None:
     ...     con = model.parameters.control.fastaccess
     ...     my_gateheight: float = 2.0 + 3.0
     ...     con.gateheight = my_gateheight
@@ -4493,17 +4493,17 @@ class CallbackParameter(Parameter):
     little strangely between the creation of two tuples for hiding potential
     information printed by Cython or the used C compiler:
 
-    >>> ();gateheight(callback=adjust_gateheight);()  # doctest: +ELLIPSIS
+    >>> ();gateheight(callback=adjust);()  # doctest: +ELLIPSIS
     (...)
 
     The string representation now includes the callback's source code:
 
     >>> gateheight
-    def adjust_gateheight(model) -> None:
+    def adjust(model) -> None:
         con = model.parameters.control.fastaccess
         my_gateheight: float = 2.0 + 3.0
         con.gateheight = my_gateheight
-    gateheight(callback=adjust_gateheight)
+    gateheight(callback=adjust)
 
     When interested in the parameter's value, request it via the
     |CallbackParameter.value| property.  Note that this property applies the callback
@@ -4523,13 +4523,13 @@ class CallbackParameter(Parameter):
     property.  We do not need to hide potential compiler output this time because the
     Python function has already been converted to a reusable Cython function:
 
-    >>> gateheight.callback = adjust_gateheight
+    >>> gateheight.callback = adjust
     >>> gateheight
-    def adjust_gateheight(model) -> None:
+    def adjust(model) -> None:
         con = model.parameters.control.fastaccess
         my_gateheight: float = 2.0 + 3.0
         con.gateheight = my_gateheight
-    gateheight(callback=adjust_gateheight)
+    gateheight(callback=adjust)
     >>> round_(gateheight.value)
     5.0
 
@@ -4550,13 +4550,13 @@ class CallbackParameter(Parameter):
 
     Failing attempts to pass a callback function might result in the following errors:
 
-    >>> gateheight(Callback=adjust_gateheight)
+    >>> gateheight(Callback=adjust)
     Traceback (most recent call last):
     ...
     ValueError: When trying to prepare parameter `gateheight` of element `?` via a \
 keyword argument, it must be `callback`, and you need to pass a callback function.
 
-    >>> gateheight(value=1.0, callback=adjust_gateheight)
+    >>> gateheight(value=1.0, callback=adjust)
     Traceback (most recent call last):
     ...
     ValueError: Parameter `gateheight` of element `?` does not allow to combine the \
@@ -4566,20 +4566,20 @@ keyword argument, it must be `callback`, and you need to pass a callback functio
     in an indentated block:
 
     >>> try:
-    ...     def adjust_gateheight_indented(model) -> None:
+    ...     def adjust_2(model) -> None:
     ...         con = model.parameters.control.fastaccess
     ...         my_gateheight: float = 2.0 * 3.0
     ...         con.gateheight = my_gateheight
     ... finally:
-    ...     ();gateheight(callback=adjust_gateheight_indented);()  # doctest: +ELLIPSIS
+    ...     ();gateheight(callback=adjust_2);()  # doctest: +ELLIPSIS
     (...)
-    >>> gateheight.callback = adjust_gateheight_indented
+    >>> gateheight.callback = adjust_2
     >>> gateheight
-    def adjust_gateheight_indented(model) -> None:
+    def adjust_2(model) -> None:
         con = model.parameters.control.fastaccess
         my_gateheight: float = 2.0 * 3.0
         con.gateheight = my_gateheight
-    gateheight(callback=adjust_gateheight_indented)
+    gateheight(callback=adjust_2)
     >>> round_(gateheight.value)
     6.0
     """

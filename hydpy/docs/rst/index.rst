@@ -115,13 +115,13 @@ Sections :ref:`core` covers the basic functionalities of the
    :hidden:
 
    installation
+   example_projects
    quickstart
    how_to
    framework
    modelcollection
    interfaces
    development
-   Example Projects <examples>
    Bibliography <zbibliography>
 
 

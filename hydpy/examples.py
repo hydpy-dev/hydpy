@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-"""This module provides functions for preparing tutorial projects and other test data.
-
-.. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN
+"""
+This module provides functions for preparing tutorial projects and other test data.
 """
 # import...
 # ...from standard library
@@ -235,16 +234,6 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
 
 def prepare_full_example_1(dirpath: Optional[str] = None) -> None:
     """Prepare the `LahnH` example project on disk.
-
-    *HydPy* comes with a complete project data set for the German river Lahn, provided
-    by the `German Federal Institute of Hydrology (BfG)`_.  The Lahn is a medium-sized
-    tributary to the Rhine.  The given project configuration agrees with the BfG's
-    forecasting model, using HBV96 to simulate the inflow of the Rhine's tributaries.
-    The catchment consists of four sub-catchments, each one with a river gauge (Marburg,
-    Asslar, Leun, Kalkofen) at its outlet.  The sub-catchments consists of a different
-    number of zones.
-
-    .. image:: LahnH.png
 
     By default, function |prepare_full_example_1| copies the original project data into
     the `iotesting` directory, thought for performing automated tests on real-world

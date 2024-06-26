@@ -14,6 +14,7 @@ import inspect
 import os
 import shutil
 import sys
+import zipfile
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.abspath(os.path.join("..", "..")))
@@ -24,6 +25,7 @@ import hydpy
 from hydpy import auxs
 from hydpy import core
 from hydpy import cythons
+from hydpy import data
 from hydpy import docs
 from hydpy import exe
 from hydpy import interfaces
@@ -176,3 +178,18 @@ themespathdest = os.path.join(AUTOPATH, "_themes")
 if not os.path.isdir(themespath):
     raise RuntimeError("Cannot find path `_themes` in sphinx subpackage")
 shutil.copytree(themespath, themespathdest)
+
+# Collect all example projects in individual zip archives
+datadirpath = data.__path__[0]
+for projectname in os.listdir(datadirpath):
+    projectpath = os.path.join(datadirpath, projectname)
+    if os.path.isdir(projectpath) and not projectname.startswith("_"):
+        zipfilename = os.path.join(AUTOPATH, f"{projectname}.zip")
+        with zipfile.ZipFile(zipfilename, "w") as zipfile_:
+            for subdirpath, _, filenames in os.walk(projectpath):
+                zipdirpath = os.path.relpath(subdirpath, datadirpath)
+                for filename in filenames:
+                    zipfile_.write(
+                        filename=os.path.join(subdirpath, filename),
+                        arcname=os.path.join(zipdirpath, filename),
+                    )

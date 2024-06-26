@@ -965,7 +965,9 @@ standard library for for further information.
         )
 
         docspath = docs.__path__[0]
-        fig.write_html(os.path.join(docspath, "html_", filename))
+        fig.write_html(
+            os.path.join(docspath, "html_", filename), include_plotlyjs="directory"
+        )
 
 
 class UnitTest(Test):

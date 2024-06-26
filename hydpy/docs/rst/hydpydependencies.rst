@@ -16,7 +16,7 @@
 Dependencies
 ____________
 
-As mentioned at the beginning of the :ref:`development` section, using
+As mentioned at the beginning of the :ref:`developer_guide` section, using
 multiple Python libraries without questioning their maturity and
 long-term stability can be a huge time-saver when compiling Python scripts
 as ad-hoc solutions for complex problems.  However, we have to be more

@@ -105,7 +105,7 @@ files to prove that something goes wrong and offer it via a
 
 We hope to have made clear that the design of *HydPy* focusses
 on open collaboration in order to improve existing and to develop
-better models.  The :ref:`development` section offers more information
+better models.  The :ref:`developer_guide` section offers more information
 on how to actually participate in the further development of *HydPy*.
 Section :ref:`model_families` lists all models implemented so far.
 Sections :ref:`core` covers the basic functionalities of the
@@ -118,7 +118,7 @@ Sections :ref:`core` covers the basic functionalities of the
    example_projects
    quickstart
    user_guide
-   development
+   developer_guide
    reference_manual
    Bibliography <zbibliography>
 

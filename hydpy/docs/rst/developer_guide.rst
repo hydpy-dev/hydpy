@@ -4,10 +4,10 @@
 .. _GitHub: https://github.com
 .. _pandas: http://pandas-docs.github.io/pandas-docs-travis/contributing.html
 
-.. _development:
+.. _developer_guide:
 
-Development
-===========
+Developer Guide
+===============
 
 When applying *HydPy*, you can download it from the `hydpy package`_
 available on the `Python package index`_ and install it with little effort.
@@ -43,6 +43,7 @@ adopted many concepts from non-hydrological open source projects like
 welcome!
 
 .. toctree::
+   :hidden:
 
    required_tools
    version_control

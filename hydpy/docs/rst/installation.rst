@@ -65,7 +65,7 @@ Selecting a HydPy distribution
 ------------------------------
 
 If you want to contribute to the development of  *HydPy* or implement new models,
-please see the :ref:`development` section.  If you want to apply *HydPy* only, you
+please see the :ref:`developer_guide` section.  If you want to apply *HydPy* only, you
 should start with a stable version available under `releases`_.
 
 You are probably interested in using the latest version of *HydPy*, which has the

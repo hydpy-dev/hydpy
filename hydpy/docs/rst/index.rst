@@ -117,7 +117,7 @@ Sections :ref:`core` covers the basic functionalities of the
    installation
    example_projects
    quickstart
-   how_to
+   user_guide
    framework
    modelcollection
    interfaces

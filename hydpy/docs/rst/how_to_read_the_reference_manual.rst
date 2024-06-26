@@ -1,25 +1,22 @@
 
-.. _`GitHub issue page`: https://github.com/hydpy-dev/hydpy/issues
+.. _how_to_read_the_reference_manual:
 
-.. _how_to:
+How to read the Reference Manual
+================================
 
-How to...
-=========
+When developing HydPy, we prefer flexibility over simplicity, and when writing the
+:ref:`reference_manual`, we prefer transparency over graphicness.  In both cases, we
+follow some software standards not regularly used within the hydrological community.
+Therefore, it may take some time before you profit from the full strengths of HydPy.
+This section offers some guides to ease navigation through the :ref:`reference_manual`
+and use its numerous Python code examples to understand the implemented models and
+improve your workflows.
 
-When developing *HydPy*, we tend to prefer flexibility over simplicity.
-And when writing this documentation, we tend to prefer transparency over
-graphicness.  Additionally, we follow some software standards not regularly
-used within the hydrological community.  Therefore, it may take some time
-before you profit from the strengths of *HydPy*.  As a little guidance,
-our :ref:`how_to` help page tries to answer the most common questions of
-new *HydPy* users.  We are going to extend it on demand, so please tell
-us if a proper answer to your questions is missing (possibly on our
-`GitHub issue page`_).
 
-.. _understand_integration_tests:
+.. _integration_tests:
 
-...understand integration tests?
-________________________________
+Integration Tests
+_________________
 
 Nowdadays, most software developers test their basic source code via other
 source code.  Writing and maintaining this additional code is much work,

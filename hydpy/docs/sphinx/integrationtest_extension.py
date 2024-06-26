@@ -41,9 +41,9 @@ class IntegrationTestBlock(code.CodeBlock):
 
 
 def visit_html(self, node):
-    """Modify the already generated HTML code.  Add the JavaScript code
-    defined of `CODE_SHOWHIDE` between the `test()` call and the result
-    table and include the generated HTML file at the bottom."""
+    """Modify the already generated HTML code.  Add the JavaScript code defined of
+    `CODE_SHOWHIDE` between the `test()` call and the result table and include the
+    generated HTML file at the bottom."""
     global counter
     counter += 1
 

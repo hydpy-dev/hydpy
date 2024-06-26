@@ -107,7 +107,7 @@ We hope to have made clear that the design of *HydPy* focusses
 on open collaboration in order to improve existing and to develop
 better models.  The :ref:`development` section offers more information
 on how to actually participate in the further development of *HydPy*.
-Section :ref:`modelcollection` lists all models implemented so far.
+Section :ref:`model_families` lists all models implemented so far.
 Sections :ref:`core` covers the basic functionalities of the
 *HydPy* framework.
 
@@ -118,10 +118,8 @@ Sections :ref:`core` covers the basic functionalities of the
    example_projects
    quickstart
    user_guide
-   framework
-   modelcollection
-   interfaces
    development
+   reference_manual
    Bibliography <zbibliography>
 
 

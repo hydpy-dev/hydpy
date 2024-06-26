@@ -1,10 +1,10 @@
 
 .. _LARSIM: http://www.larsim.info/1/the-model/
 
-.. _modelcollection:
+.. _model_families:
 
-Model Collection
-================
+Model Families
+==============
 
 In *HydPy*, we divide all models into "families" as :ref:`HydPy-L`.  Each model family
 consists of one base model (e.g. |lland|) and several application models (e.g.

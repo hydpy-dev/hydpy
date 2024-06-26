@@ -1,5 +1,5 @@
 
-.. _interfaces:
+.. _submodel_interfaces:
 
 Submodel Interfaces
 ===================

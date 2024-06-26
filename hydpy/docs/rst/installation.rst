@@ -16,10 +16,10 @@
 .. _Windows Compilers page: https://wiki.python.org/moin/WindowsCompilers
 
 
-.. _install:
+.. _installation:
 
-Installation Instructions
-=========================
+Installation
+============
 
 Starting with version 3.0, *HydPy* is available on the `Python Package Index`_.  With
 `Python 3.9, 3.10, 3.11, or 3.12`_ on your computer and having access to the internet,

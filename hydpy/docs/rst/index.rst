@@ -114,7 +114,7 @@ Sections :ref:`core` covers the basic functionalities of the
 .. toctree::
    :hidden:
 
-   install
+   installation
    quickstart
    how_to
    framework

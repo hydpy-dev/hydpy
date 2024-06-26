@@ -60,18 +60,14 @@ for filename in sorted(os.listdir(modelspath)):
         importlib.import_module(f"{models.__name__}.{filename}")
 hydpy.substituter.update_slaves()
 
-# Write one rst file for each module (including the ones defining application
-# models) and each base model defining a base model.  Each rst file should
-# contain commands to trigger the autodoc mechanism of Sphinx as well as
-# the substitution replacement commands relevant for the respective module
-# or package.
+# Write one rst file for each module (including the ones defining application models)
+# and each base model defining a base model.  Each rst file should contain commands to
+# trigger the autodoc mechanism of Sphinx as well as the substitution replacement
+# commands relevant for the respective module or package.
 path2source = {}
-for subpackage in (auxs, core, cythons, exe, interfaces, models, hydpy):
+for subpackage in (auxs, core, cythons, exe, interfaces, models):
     subpackagepath: str = subpackage.__path__[0]
-    if subpackage is hydpy:
-        filenames = ["examples.py"]
-    else:
-        filenames = sorted(os.listdir(subpackagepath))
+    filenames = sorted(os.listdir(subpackagepath))
     substituter = hydpy.substituter
     for filename in filenames:
         is_module = (filename.endswith("py") or filename.endswith("pyx")) and (

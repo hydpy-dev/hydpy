@@ -2268,7 +2268,7 @@ of type `evap_aet_hbv96`.
         the state sequence |hland_states.SM| if the `land_dill` |Element| object of the
         `LahnH` example project:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> dill = hp.elements.land_dill.model
         >>> dill.sequences.states.sm
@@ -3060,7 +3060,7 @@ but the value `1` of type `int` is given.
         We use the combination of |hland_96|, |evap_aet_hbv96|, and |evap_pet_hbv96|
         used by the `LahnH` project for modelling the Dill catchment as an example:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp = prepare_full_example_2()[0]
         >>> model = hp.elements.land_dill.model
 
@@ -3312,7 +3312,7 @@ class RunModel(Model):
         nor |Model.update_senders|.  Also, one would have to reset the
         related node sequences, as done in the following example:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> model = hp.elements.land_dill.model
         >>> for idx in range(4):

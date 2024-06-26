@@ -1866,7 +1866,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         """For |ModelSequence| objects, a |Masks| object provided by the corresponding
         |Model| object; for |NodeSequence| object, a suitable |DefaultMask|.
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
         >>> hp.elements["land_dill"].model.parameters.control.fc.availablemasks

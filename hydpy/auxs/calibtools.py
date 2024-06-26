@@ -103,7 +103,7 @@ class SumAdaptor(Adaptor):
     model |hland_96| (assuming the nonlinearity parameter |hland_control.Alpha| to be
     zero):
 
-    >>> from hydpy.examples import prepare_full_example_2
+    >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
     >>> from hydpy import Replace, SumAdaptor
     >>> k = Replace(name="k",
@@ -167,7 +167,7 @@ class FactorAdaptor(Adaptor):
     To show how class |FactorAdaptor| works, we select another use-case based on the
     `Lahn` example project prepared by function |prepare_full_example_2|:
 
-    >>> from hydpy.examples import prepare_full_example_2
+    >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
 
     |hland_96| calculates the "normal" potential snow-melt with the degree-day factor
@@ -296,7 +296,7 @@ class Rule(abc.ABC, Generic[TypeParameter]):
     and use the `Lahn` example project, which we prepare by calling function
     |prepare_full_example_2|:
 
-    >>> from hydpy.examples import prepare_full_example_2
+    >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
 
     We define a |Rule| object supposed to replace the values of parameter
@@ -707,7 +707,7 @@ following error occurred: Parameter types are inconsistent: \
         and upper boundaries:
 
         >>> from hydpy import Replace
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> rule = Replace(name="fc",
         ...                parameter="fc",
@@ -772,7 +772,7 @@ value `200.0` instead.
     def reset_parameters(self) -> None:
         """Reset all relevant parameter objects to their original states.
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import Replace
         >>> rule = Replace(name="fc",
@@ -902,7 +902,7 @@ class Add(Rule[parametertools.Parameter]):
     The following |Add| object adds its current value to the parameter's original
     values:
 
-    >>> from hydpy.examples import prepare_full_example_2
+    >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
     >>> from hydpy import Add
     >>> rule = Add(name="fc",
@@ -994,7 +994,7 @@ class Multiply(Rule[parametertools.Parameter]):
     The following |Multiply| object multiplies the parameter's original values by its
     current calibration factor:
 
-    >>> from hydpy.examples import prepare_full_example_2
+    >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
     >>> from hydpy import Add
     >>> rule = Multiply(name="fc",
@@ -1087,7 +1087,7 @@ class CalibrationInterface(Generic[TypeRule1]):
 
     We work with the `Lahn` example project again:
 
-    >>> from hydpy.examples import prepare_full_example_2
+    >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
 
     First, we create a |CalibrationInterface| object.  Initially, it needs to know the
@@ -1568,7 +1568,7 @@ does not agree with the one documentated in log file `example_calibration.log` (
     def add_rules(self, *rules: TypeRule1) -> None:
         """Add some |Rule| objects to the actual |CalibrationInterface| object.
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import CalibrationInterface
         >>> ci = CalibrationInterface(hp=hp, targetfunction=lambda: None)
@@ -1616,7 +1616,7 @@ does not agree with the one documentated in log file `example_calibration.log` (
         subclass to convince your IDE (and yourself) that the returned rule follows
         this more specific type:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import Add, CalibrationInterface, make_rules, nse, Replace
         >>> ci = CalibrationInterface(
@@ -1667,7 +1667,7 @@ named `fc` of type `Add`.
     def remove_rules(self, *rules: Union[str, TypeRule1]) -> None:
         """Remove some |Rule| objects from the actual |CalibrationInterface| object.
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import CalibrationInterface
         >>> ci = CalibrationInterface(hp=hp, targetfunction=lambda: None)
@@ -2035,7 +2035,7 @@ object named `fc`.
         instances with those of application model |arma_rimorido|, which allows
         discussing some special cases concerning the handling of |RuleIUH|:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import prepare_model
         >>> for element in hp.elements.river:
@@ -2245,7 +2245,7 @@ parameterstep="1d"))
 
     def __dir__(self) -> list[str]:
         """
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import CalibrationInterface, make_rules, Replace
         >>> ci = CalibrationInterface[Replace](hp=hp, targetfunction=lambda: None)
@@ -3065,7 +3065,7 @@ def make_rules(
     Please see the main documentation on class |CalibrationInterface| first, from
     which we borrow the general setup:
 
-    >>> from hydpy.examples import prepare_full_example_2
+    >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
     >>> from hydpy import CalibrationInterface, make_rules, nse
     >>> ci = CalibrationInterface(

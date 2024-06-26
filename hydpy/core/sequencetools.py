@@ -451,7 +451,7 @@ class Sequences:
     |Sequences| objects handle nine sequence subgroups as attributes such as the
     `inlets` and  the `receivers` subsequences:
 
-    >>> from hydpy.examples import prepare_full_example_2
+    >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
     >>> sequences = hp.elements.land_dill.model.sequences
     >>> bool(sequences.inlets)
@@ -1268,7 +1268,7 @@ class IOSequence(Sequence_):
     We use the `LahnH` example project and focus on the `input`, `factor`, `fluxes`,
     and `state` sequences:
 
-    >>> from hydpy.examples import prepare_full_example_2
+    >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
     >>> inputs = hp.elements.land_lahn_1.model.sequences.inputs
     >>> factors = hp.elements.land_lahn_1.model.sequences.factors
@@ -1816,7 +1816,7 @@ correctly.
         When leaving out certain arguments, |IOSequence.prepare_series| takes their
         boolean defaults.  That means subsequent calls overwrite previous ones:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> t = hp.elements.land_lahn_1.model.sequences.inputs.t
         >>> t.prepare_series(allocate_ram=False, read_jit=True)
@@ -1954,7 +1954,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
         |IOSequence.seriesmode| allows querying and changing all mentioned properties in
         one step:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> t = hp.elements.land_lahn_1.model.sequences.inputs.t
         >>> t.prepare_series(read_jit=True)
@@ -2057,7 +2057,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
         |Timegrids.sim| |Timegrid| of the global |Timegrids| object available in module
         |pub|).
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> t = hp.elements.land_lahn_1.model.sequences.inputs.t
         >>> pub.timegrids.sim.dates = "1996-01-02", "1996-01-04"
@@ -2091,7 +2091,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
         |Timegrids.eval_| |Timegrid| of the global |Timegrids| object available in
         module |pub|).
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> t = hp.elements.land_lahn_1.model.sequences.inputs.t
         >>> pub.timegrids.eval_.dates = "1996-01-02", "1996-01-04"
@@ -2168,7 +2168,7 @@ sequencemanager of module `pub` is not defined at the moment.
         behaviour by using the `LahnH` example project and focussing on the |Obs|
         sequence of |Node| `dill`:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> obs = hp.nodes.dill.sequences.obs
 
@@ -2360,7 +2360,7 @@ of sequence `obs` of node `dill` is `1h` but the actual simulation time step is 
         available data.  We demonstrate this using the NetCDF data provided by function
         |prepare_full_example_2| but shifting the initialisation period by two days:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> pub.timegrids.init.firstdate -= "2d"
         >>> pub.timegrids.init.lastdate -= "2d"
@@ -2622,7 +2622,7 @@ occurred: boolean index did not match indexed array ...
         |prepare_io_example_1| and select a 1-dimensional flux sequence of type
         |lland_fluxes.NKor|:
 
-        >>> from hydpy.examples import prepare_io_example_1
+        >>> from hydpy.core.testtools import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> seq = elements.element3.model.sequences.fluxes.nkor
 
@@ -2860,7 +2860,7 @@ class InputSequence(ModelIOSequence):
     >>> node_q = Node("node_q")
     >>> land_dill = Element("land_dill", inputs=[node_t, node_p], outlets=node_q)
 
-    >>> from hydpy.examples import prepare_full_example_1
+    >>> from hydpy.core.testtools import prepare_full_example_1
     >>> prepare_full_example_1()
     >>> import os
     >>> with TestIO():
@@ -3015,7 +3015,7 @@ class OutputSequence(ModelIOSequence):
     ...                     outlets=node_q,
     ...                     outputs=[node_q0, node_q1, node_perc, node_uz])
 
-    >>> from hydpy.examples import prepare_full_example_1
+    >>> from hydpy.core.testtools import prepare_full_example_1
     >>> prepare_full_example_1()
     >>> import os
     >>> with TestIO():
@@ -3656,7 +3656,7 @@ please be careful).
         demonstrate this by using the `LahnH` example project through invoking function
         |prepare_full_example_2|:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
         We focus on the |musk_classic| application model `stream_lahn_1_lahn_2` routing
@@ -3793,7 +3793,7 @@ convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and type 
         examples, which are, again, based on the `LahnH` example project and
         application model |musk_classic|:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> model = hp.elements.stream_lahn_1_lahn_2.model
 
@@ -4079,7 +4079,7 @@ the following error occurred: ...attribute name must be string...
 
         We use the observation series of node `dill` of the `LahnH` project:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> obs = hp.nodes.dill.sequences.obs
 
@@ -4136,7 +4136,7 @@ class Sim(NodeSequence):
         |IOSequence.memoryflag| and uses the option |Options.warnmissingsimfile|
         instead of |Options.warnmissingobsfile|:
 
-        >>> from hydpy.examples import prepare_full_example_1
+        >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, TestIO
         >>> hp = HydPy("LahnH")
@@ -4220,7 +4220,7 @@ class Obs(NodeSequence):
         the |Obs| sequence of node `dill`, which is ready for handling time series data
         at the end of the following steps:
 
-        >>> from hydpy.examples import prepare_full_example_1
+        >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, TestIO
         >>> hp = HydPy("LahnH")

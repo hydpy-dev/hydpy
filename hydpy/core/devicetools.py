@@ -1529,7 +1529,7 @@ a function for coupling models that belong to the same collective.
         prepares the |Model| objects of all elements, including building the required
         connections and updating the derived parameters:
 
-        >>> from hydpy.examples import prepare_full_example_1
+        >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import attrready, HydPy, pub, TestIO
         >>> with TestIO():
@@ -2376,7 +2376,7 @@ group name `test`.
         We demonstrate the functionalities of method |Node.plot_allseries| based on the
         `Lahn` example project:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, _ = prepare_full_example_2(lastdate="1997-01-01")
 
         We perform a simulation run and calculate "observed" values for node `dill`:
@@ -3492,7 +3492,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         We demonstrate the functionalities of method |Element.plot_inputseries| based
         on the `Lahn` example project:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, _ = prepare_full_example_2(lastdate="1997-01-01")
 
         Without any arguments, |Element.plot_inputseries| prints the time series of all

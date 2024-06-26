@@ -257,7 +257,6 @@ if config.USEAUTODOC:
                         f"{subpackage.__name__}.{filename[:-3]}"
                     )
                     autodoctools.autodoc_module(module)
-        autodoctools.autodoc_module(importlib.import_module("hydpy.examples"))
         modelpath: str = models.__path__[0]
         for filename in sorted(os.listdir(modelpath)):
             path = os.path.join(modelpath, filename)

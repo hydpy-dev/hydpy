@@ -36,7 +36,7 @@ The following real code examples show how to perform these three steps both for 
 and writing data, based on the example configuration defined by function
 |prepare_io_example_1|:
 
->>> from hydpy.examples import prepare_io_example_1
+>>> from hydpy.core.testtools import prepare_io_example_1
 >>> nodes, elements = prepare_io_example_1()
 
 We prepare a |NetCDFInterfaceWriter| object for writing data via method
@@ -440,7 +440,7 @@ def query_timegrid(
     necessary.  The NetCDF files of the `LahnH` example project (and all other NetCDF
     files written by *HydPy*) include such information:
 
-    >>> from hydpy.examples import prepare_full_example_2
+    >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
     >>> from netCDF4 import Dataset
     >>> filepath = "LahnH/series/default/hland_96_input_p.nc"
@@ -1029,7 +1029,7 @@ class NetCDFVariableFlat(NetCDFVariable, abc.ABC):
     |prepare_io_example_1|.  We limit our attention to the returned elements, which
     handle the more diverse sequences:
 
-    >>> from hydpy.examples import prepare_io_example_1
+    >>> from hydpy.core.testtools import prepare_io_example_1
     >>> nodes, (element1, element2, element3, element4) = prepare_io_example_1()
 
     We define three |NetCDFVariableFlatWriter| instances with different
@@ -1158,7 +1158,7 @@ error occurred: No data for (sub)device `element2` is available in NetCDF file \
         |lland_inputs.Nied|, we require no subdivision.  Hence, it returns the original
         device names:
 
-        >>> from hydpy.examples import prepare_io_example_1
+        >>> from hydpy.core.testtools import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableFlatReader
         >>> var = NetCDFVariableFlatReader("filename.nc")
@@ -1207,7 +1207,7 @@ error occurred: No data for (sub)device `element2` is available in NetCDF file \
         corresponds to the number of timesteps and the second axis to the number of
         devices:
 
-        >>> from hydpy.examples import prepare_io_example_1
+        >>> from hydpy.core.testtools import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableFlatReader
         >>> var = NetCDFVariableFlatReader("filename.nc")
@@ -1294,7 +1294,7 @@ class NetCDFVariableFlatReader(NetCDFVariableFlat):
         >>> class Var(NetCDFVariableFlatReader):
         ...     pass
         >>> var = Var("filepath.nc")
-        >>> from hydpy.examples import prepare_io_example_1
+        >>> from hydpy.core.testtools import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> nkor = elements.element1.model.sequences.fluxes.nkor
         >>> var.log(nkor)
@@ -1442,7 +1442,7 @@ class MixinVariableWriter(NetCDFVariable, abc.ABC):
         >>> class Var(NetCDFVariableFlatWriter):
         ...     pass
         >>> var = Var("filepath.nc")
-        >>> from hydpy.examples import prepare_io_example_1
+        >>> from hydpy.core.testtools import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> nkor = elements.element1.model.sequences.fluxes.nkor
         >>> var.log(nkor, nkor.series)
@@ -1553,7 +1553,7 @@ class NetCDFVariableFlatWriter(MixinVariableWriter, NetCDFVariableFlat):
         |NetCDFVariableFlatWriter.array|.  The first example confirms that the first
         axis corresponds to time while the second corresponds to the location:
 
-        >>> from hydpy.examples import prepare_io_example_1
+        >>> from hydpy.core.testtools import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableFlatWriter
         >>> var = NetCDFVariableFlatWriter("filename.nc")
@@ -1619,7 +1619,7 @@ class NetCDFVariableAggregated(MixinVariableWriter, NetCDFVariable):
     |NetCDFVariableFlatWriter|. The following is a selection of the more thoroughly
     explained examples of the documentation on class |NetCDFVariableFlat|:
 
-    >>> from hydpy.examples import prepare_io_example_1
+    >>> from hydpy.core.testtools import prepare_io_example_1
     >>> nodes, (element1, element2, element3, element4) = prepare_io_example_1()
     >>> from hydpy.core.netcdftools import NetCDFVariableAggregated
     >>> var_nied = NetCDFVariableAggregated("nied.nc")
@@ -1673,7 +1673,7 @@ class NetCDFVariableAggregated(MixinVariableWriter, NetCDFVariable):
         the number of devices.  We show this for the 1-dimensional input sequence
         |lland_fluxes.NKor|:
 
-        >>> from hydpy.examples import prepare_io_example_1
+        >>> from hydpy.core.testtools import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableAggregated
         >>> var = NetCDFVariableAggregated("filename.nc")
@@ -1702,7 +1702,7 @@ class NetCDFVariableAggregated(MixinVariableWriter, NetCDFVariable):
         |NetCDFVariableAggregated.array|.  This first example confirms that the first
         axis corresponds to time while the second corresponds to the location:
 
-        >>> from hydpy.examples import prepare_io_example_1
+        >>> from hydpy.core.testtools import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableAggregated
         >>> var = NetCDFVariableAggregated("filename.nc")
@@ -1753,7 +1753,7 @@ class NetCDFInterfaceBase(Generic[TypeNetCDFVariable]):
     We prepare a |SequenceManager| object and some devices handling different sequences
     by applying function |prepare_io_example_1|:
 
-    >>> from hydpy.examples import prepare_io_example_1
+    >>> from hydpy.core.testtools import prepare_io_example_1
     >>> nodes, elements = prepare_io_example_1()
 
     We collect all sequences used in the following examples except |lland_fluxes.NKor|
@@ -2095,7 +2095,7 @@ class NetCDFInterfaceJIT(NetCDFInterfaceBase[FlatUnion]):
         specific NetCDF files but defines zero input values for all "non-headwater"
         catchments and tries to write them into the same files:
 
-        >>> from hydpy.examples import prepare_full_example_1
+        >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, print_vector, pub, TestIO
         >>> with TestIO():

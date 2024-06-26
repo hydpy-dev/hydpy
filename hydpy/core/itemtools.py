@@ -192,7 +192,7 @@ class ExchangeItem:
         We prepare the `LahnH` example project to be able to use its |Selections|
         object:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
         We change the type of a specific application model to the type of its base
@@ -368,7 +368,7 @@ class ChangeItem(ExchangeItem):
         |ChangeItem.seriesshape| extends the |ChangeItem.shape| tuple by the length of
         the current simulation period:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> del pub.selections["complete"]
         >>> from hydpy import SetItem
@@ -417,7 +417,7 @@ class ChangeItem(ExchangeItem):
         """The item value(s) changing the values of target variables through applying
         method |ChangeItem.update_variables| of class |ChangeItem|.
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> del pub.selections["complete"]
 
@@ -487,7 +487,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         For the following examples, we prepare the `LahnH` example project and remove
         the "complete" selection from the |Selections| object available in module |pub|:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> del pub.selections["complete"]
 
@@ -641,7 +641,7 @@ keyword for an exchange item, its aggregation level cannot be `subunit`.
         If the assignment fails, |ChangeItem.update_variable| raises an error like the
         following:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy.core.itemtools import ChangeItem, ExchangeSpecification
         >>> item = ChangeItem()
@@ -685,7 +685,7 @@ value `wrong` cannot be converted to type `float`.
         For the following examples, we prepare the `LahnH` example project and remove
         the "complete" selection from the |Selections| object available in module |pub|:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> del pub.selections["complete"]
 
@@ -961,7 +961,7 @@ class SetItem(ChangeItem):
 
         For the following examples, we prepare the `LahnH` example project:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, _ = prepare_full_example_2()
 
         We define three |SetItem| objects, which handle states of different
@@ -1361,7 +1361,7 @@ class MathItem(ChangeItem):
         and also prepare the dictionary |MathItem.target2base|, which maps each target
         variable object to its base variable object.
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import AddItem
         >>> item = AddItem(name="alpha", master="hland_96", target="control.sfcf",
@@ -1406,7 +1406,7 @@ class AddItem(MathItem):
     We prepare the `LahnH` example project and remove the "complete" selection from
     the |Selections| object available in module |pub|:
 
-    >>> from hydpy.examples import prepare_full_example_2
+    >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
     >>> del pub.selections["complete"]
 
@@ -1488,7 +1488,7 @@ class AddItem(MathItem):
         If the addition fails, |AddItem.update_variable| raises an error like the
         following:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy.core.itemtools import AddItem
         >>> item = AddItem(name="sfcf", master="hland_96", target="control.sfcf",
@@ -1522,7 +1522,7 @@ class MultiplyItem(MathItem):
     behaves exactly like class |AddItem|.  We adopt a single example of the
     documentation on class |AddItem| to demonstrate this difference:
 
-    >>> from hydpy.examples import prepare_full_example_2
+    >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
     >>> del pub.selections["complete"]
 
@@ -1561,7 +1561,7 @@ class MultiplyItem(MathItem):
         If the multiplication fails, |MultiplyItem.update_variable| raises an error
         like the following:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy.core.itemtools import MultiplyItem
         >>> item = MultiplyItem(name="sfcf", master="hland_96", target="control.sfcf",
@@ -1634,7 +1634,7 @@ class GetItem(ExchangeItem):
         The value of |GetItem.ndim| depends on whether the target variable's values or
         time series are of interest:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy.core.itemtools import GetItem
         >>> for target in ("states.lz", "states.lz.series",
@@ -1675,7 +1675,7 @@ class GetItem(ExchangeItem):
         For 0-dimensional variables, there is only one sub-name that is identical to
         the device name:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import SetItem
         >>> item = GetItem("lz", "hland_96", "states.lz")
@@ -1733,7 +1733,7 @@ class GetItem(ExchangeItem):
         The item names are automatically generated and contain both the name of the
         |Device| of the respective |Variable| object and the target description:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import SetItem
         >>> item = GetItem("lz", "hland_96", "states.lz")

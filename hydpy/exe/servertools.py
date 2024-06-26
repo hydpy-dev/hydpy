@@ -36,7 +36,7 @@ an XML file.  As an example, we prepare the `LahnH` project by calling function
 |prepare_full_example_1|, which contains the XML configuration file
 `multiple_runs_alpha.xml`:
 
->>> from hydpy.examples import prepare_full_example_1
+>>> from hydpy.core.testtools import prepare_full_example_1
 >>> prepare_full_example_1()
 
 To start the server in a new process, open a command-line tool and insert the following
@@ -280,7 +280,7 @@ class ServerState:
     `multiple_runs.xml` as an example (module |xmltools| provides information on
     interpreting this file):
 
-    >>> from hydpy.examples import prepare_full_example_1
+    >>> from hydpy.core.testtools import prepare_full_example_1
     >>> prepare_full_example_1()
     >>> from hydpy import print_vector, TestIO
     >>> from hydpy.exe.servertools import ServerState
@@ -462,7 +462,7 @@ class HydPyServer(http.server.BaseHTTPRequestHandler):
     we select the more complex XML configuration file `multiple_runs.xml`, covering a
     higher number of cases:
 
-    >>> from hydpy.examples import prepare_full_example_1
+    >>> from hydpy.core.testtools import prepare_full_example_1
     >>> prepare_full_example_1()
     >>> from hydpy import run_subprocess, TestIO
     >>> with TestIO():
@@ -1565,7 +1565,7 @@ under the id `0`.  There is nothing registered, so far.
         examples of the main documentation on class |HydPyServer|.  When not working in
         debug mode, invoking this method results in the following error message:
 
-        >>> from hydpy.examples import prepare_full_example_1
+        >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import run_subprocess, TestIO
         >>> with TestIO():
@@ -2231,7 +2231,7 @@ def start_server(
     number (which might be necessary when parallelising optimisation or data
     assimilation):
 
-    >>> from hydpy.examples import prepare_full_example_1
+    >>> from hydpy.core.testtools import prepare_full_example_1
     >>> prepare_full_example_1()
     >>> command = (
     ...     "hyd.py start_server 8080 LahnH multiple_runs_alpha.xml "
@@ -2310,7 +2310,7 @@ following error:
     <urlopen error Waited for 0.1 seconds without response on port 8080.>
     ...
 
-    >>> from hydpy.examples import prepare_full_example_1
+    >>> from hydpy.core.testtools import prepare_full_example_1
     >>> prepare_full_example_1()
     >>> with TestIO():
     ...     process = run_subprocess(

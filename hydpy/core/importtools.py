@@ -1120,7 +1120,7 @@ def controlcheck(
     defined in control file `land_dill.py`, verifies that this works within a separate
     Python process:
 
-    >>> from hydpy.examples import prepare_full_example_1
+    >>> from hydpy.core.testtools import prepare_full_example_1
     >>> prepare_full_example_1()
 
     >>> import os

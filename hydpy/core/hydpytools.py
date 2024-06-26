@@ -48,7 +48,7 @@ class HydPy:
     you can copy the `LahnH` example project, which can be found in subpackage `data`,
     into a working directory of your choice):
 
-    >>> from hydpy.examples import prepare_full_example_1
+    >>> from hydpy.core.testtools import prepare_full_example_1
     >>> prepare_full_example_1()
 
     At first, the |HydPy| instance needs to know the name of the relevant project,
@@ -817,7 +817,7 @@ directory: '...land_dill_hland_96p_input_p.asc'
 
         You are allowed to get, set and delete the currently handled nodes:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> hp.nodes
         Nodes("dill", "lahn_1", "lahn_2", "lahn_3")
@@ -862,7 +862,7 @@ not handle any nodes at the moment.
 
         You are allowed to get, set and delete the currently handled elements:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> hp.elements
         Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3",
@@ -938,7 +938,7 @@ first.
         first need to prepare the example project via function |prepare_full_example_1|
         and change the current working directory via class |TestIO|):
 
-        >>> from hydpy.examples import prepare_full_example_1
+        >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, round_, TestIO
         >>> with TestIO():
@@ -979,7 +979,7 @@ first.
         project, including its network files `headwaters.py`, `nonheadwaters.py`, and
         `streams.py`:
 
-        >>> from hydpy.examples import prepare_full_example_1
+        >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
 
         Directly after initialising class |HydPy|, neither the resulting object nor
@@ -1037,7 +1037,7 @@ first.
         First, we call function |prepare_full_example_1| to prepare the `LahnH` example
         project:
 
-        >>> from hydpy.examples import prepare_full_example_1
+        >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
 
         Now, we can initialise a |HydPy| instance accordingly and call its methods
@@ -1163,7 +1163,7 @@ deprecated.  Use method `prepare_models` instead.
         seven |Element| objects controlling four |hland_96| and three |musk_classic|
         application models:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
         At first, there is only one control subfolder named "default", containing the
@@ -1570,7 +1570,7 @@ deprecated.  Use method `prepare_models` instead.
         |HydPy.load_conditions| and |HydPy.save_conditions| based on the `LahnH`
         project, which we prepare via function |prepare_full_example_2|:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
         Our |HydPy| instance `hp` is ready for the first simulation run, meaning the
@@ -1837,7 +1837,7 @@ deprecated.  Use method `prepare_models` instead.
         |HydPy.trim_conditions|, which gives no response when all conditions are
         correctly set:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> with pub.options.warntrim(True):
         ...     hp.trim_conditions()
@@ -1881,7 +1881,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         For demonstration, we perform a simulation for the `LahnH` example project
         spanning four days:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> hp.simulate()
         >>> from hydpy import print_vector
@@ -1924,7 +1924,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         spanning the first three months of 1996.  We begin with a preparation run
         beginning on January 1 and ending on February 20:
 
-        >>> from hydpy.examples import prepare_full_example_1
+        >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, TestIO, print_vector
         >>> with TestIO():
@@ -2045,7 +2045,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         The `LahnH` example project defines a small, single network, with all
         catchments ultimately discharging to node `lahn_3`:
 
-        >>> from hydpy.examples import prepare_full_example_1
+        >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, TestIO
         >>> pub.timegrids = "1996-01-01", "1996-01-05", "1d"
@@ -2079,7 +2079,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         The `LahnH` example project defines a small, single network, with all
         catchments ultimately discharging to node `lahn_3`:
 
-        >>> from hydpy.examples import prepare_full_example_1
+        >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, TestIO
         >>> with TestIO():
@@ -2133,7 +2133,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         `LahnH` example project defining only a single end node, there can be only one
         segregated network, accordingly:
 
-        >>> from hydpy.examples import prepare_full_example_1
+        >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, TestIO
         >>> with TestIO():
@@ -2267,7 +2267,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         """Summary of all |Node.variable| properties of the currently relevant |Node|
         objects.
 
-        >>> from hydpy.examples import prepare_full_example_1
+        >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, TestIO
         >>> with TestIO():
@@ -2309,7 +2309,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         """Summary of all |Model| subclasses of the currently relevant |Element|
         objects.
 
-        >>> from hydpy.examples import prepare_full_example_1
+        >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, TestIO
         >>> with TestIO():
@@ -2368,7 +2368,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         |HydPy| object usually starts with the "complete" network of the considered
         project:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
         The safest approach to "activate" another selection is to use the method
@@ -2655,7 +2655,7 @@ actual HydPy instance does not handle any elements at the moment.
         We let function |prepare_full_example_2| prepare a runnable |HydPy| object
         related to the `LahnH` example project:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
         First, we execute a default simulation run covering the whole simulation period

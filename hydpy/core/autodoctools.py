@@ -43,7 +43,6 @@ from hydpy import cythons
 from hydpy import exe
 from hydpy import interfaces
 from hydpy import models
-from hydpy import examples
 from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
@@ -1123,7 +1122,6 @@ def prepare_mainsubstituter() -> Substituter:
         for _, name, _ in pkgutil.iter_modules(subpackage.__path__):
             full_name = subpackage.__name__ + "." + name
             substituter.add_module(importlib.import_module(full_name))
-    substituter.add_module(examples)
     substituter.add_modules(models)
     for cymodule in (
         annutils,

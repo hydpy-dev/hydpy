@@ -534,7 +534,7 @@ class Selection:
     basic usage with the help of the `LahnH` example project prepared by function
     |prepare_full_example_2|:
 
-    >>> from hydpy.examples import prepare_full_example_2
+    >>> from hydpy.core.testtools import prepare_full_example_2
     >>> _, pub, _ = prepare_full_example_2()
 
     For example, `LahnH` defines a `headwaters` selection:
@@ -671,7 +671,7 @@ type `str`, the following error occurred: 'str' object has no attribute 'nodes'
         """Return the network upstream of the given starting point, including the
         starting point itself.
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, _ = prepare_full_example_2()
 
         You can pass both |Node| and |Element| objects and, optionally, the name of the
@@ -825,7 +825,7 @@ the "outlet device", but the given `device` value is of type `int`.
         """Return the network downstream of the given starting point, including the
         starting point itself.
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, _ = prepare_full_example_2()
 
         You can pass both |Node| and |Element| objects and, optionally, the name of the
@@ -970,7 +970,7 @@ required as the "inlet device", but the given `device` value is of type `int`.
         """Return a |Selection| object containing only the elements currently handling
         models of the given types.
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, _ = prepare_full_example_2()
 
         You can pass both |Model| objects and names and, as a keyword argument, the
@@ -1068,7 +1068,7 @@ following error occurred: No module named 'hydpy.models.wrong'
         """Return a new selection containing all nodes of the current selection with a
         name containing at least one of the given substrings.
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, _ = prepare_full_example_2()
 
         Pass the (sub)strings as positional arguments and, optionally, the name of the
@@ -1152,7 +1152,7 @@ error occurred: 'in <string>' requires string as left operand, not list
         """Return a new selection containing all elements of the current selection with
         a name containing at least one of the given substrings.
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, _ = prepare_full_example_2()
 
         Pass the (sub)strings as positional arguments and, optionally, the name of the
@@ -1271,7 +1271,7 @@ following error occurred: 'in <string>' requires string as left operand, not lis
     ) -> None:
         """Save the selection as a network file.
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> _, pub, TestIO = prepare_full_example_2()
 
         In most cases, one should conveniently write network files via method

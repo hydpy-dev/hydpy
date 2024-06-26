@@ -96,7 +96,7 @@ we introduce you to *HydPy*.  *HydPy* is a so-called "site-package",
 supplementing the standard Python features.  Make these objects available
 by importing them.  For example, write:
 
->>> from hydpy.examples import prepare_full_example_2
+>>> from hydpy.core.testtools import prepare_full_example_2
 
 Now the additional function |prepare_full_example_2| lives in your shell.
 Executing this function prepares the `LahnH` example project and returns

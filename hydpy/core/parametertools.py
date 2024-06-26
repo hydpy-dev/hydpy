@@ -760,7 +760,7 @@ the unequal argument `1` under the keyword `one`.
         method |KeywordArguments.extend| can help in such cases, we make use of
         the `LahnH` example project:
         
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
         First, we prepare an empty |KeywordArguments| object:

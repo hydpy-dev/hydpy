@@ -1,11 +1,14 @@
 # pylint: disable=missing-docstring, unused-argument
 
-from typing import Sequence, Tuple, Union
-
 from hydpy.auxs.interptools import InterpAlgorithm
 from hydpy.core.typingtools import *
-from hydpy.cythons.autogen.annutils import ANN
-from hydpy.cythons.autogen.ppolyutils import PPoly
+
+if TYPE_CHECKING:
+    from hydpy.cythons.annutils import ANN
+    from hydpy.cythons.ppolyutils import PPoly
+else:
+    from hydpy.cythons.autogen.annutils import ANN
+    from hydpy.cythons.autogen.ppolyutils import PPoly
 
 class SimpleInterpolator:
     nmb_inputs: int
@@ -21,7 +24,7 @@ class SeasonalInterpolator:
     nmb_inputs: int
     nmb_outputs: int
     nmb_algorithms: int
-    algorithms: Tuple[Union[ANN, PPoly], ...]
+    algorithms: tuple[Union[ANN, PPoly], ...]
     ratios: MatrixFloat
     inputs: VectorFloat
     outputs: VectorFloat

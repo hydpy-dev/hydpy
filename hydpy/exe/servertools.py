@@ -32,7 +32,7 @@ Using the *HydPy* server, you are much more restricted to what was anticipated b
 framework developers.
 
 Commonly but not mandatory, one configures the initial state of a *HydPy* server with
-an XML file.  As an example, we prepare the `LahnH` project by calling function
+an XML file.  As an example, we prepare the `HydPy-H-Lahn` project by calling function
 |prepare_full_example_1|, which contains the XML configuration file
 `multiple_runs_alpha.xml`:
 
@@ -43,7 +43,7 @@ To start the server in a new process, open a command-line tool and insert the fo
 command (see module |hyd| for general information on how to use *HydPy* via the command
 line):
 
->>> command = "hyd.py start_server 8080 LahnH multiple_runs_alpha.xml"
+>>> command = "hyd.py start_server 8080 HydPy-H-Lahn multiple_runs_alpha.xml"
 >>> from hydpy import run_subprocess, TestIO
 >>> with TestIO():
 ...     process = run_subprocess(command, blocking=False, verbose=False)
@@ -276,7 +276,7 @@ class ServerState:
     The primary purpose of this instance is to store information between successive
     initialisations of class |HydPyServer|.
 
-    We use the `LahnH` project and its (complicated) XML configuration file
+    We use the `HydPy-H-Lahn` project and its (complicated) XML configuration file
     `multiple_runs.xml` as an example (module |xmltools| provides information on
     interpreting this file):
 
@@ -285,8 +285,8 @@ class ServerState:
     >>> from hydpy import print_vector, TestIO
     >>> from hydpy.exe.servertools import ServerState
     >>> with TestIO():  # doctest: +ELLIPSIS
-    ...     state = ServerState("LahnH", "multiple_runs.xml")
-    Start HydPy project `LahnH` (...).
+    ...     state = ServerState("HydPy-H-Lahn", "multiple_runs.xml")
+    Start HydPy project `HydPy-H-Lahn` (...).
     Read configuration file `multiple_runs.xml` (...).
     Interpret the defined options (...).
     Interpret the defined period (...).
@@ -458,17 +458,20 @@ class HydPyServer(http.server.BaseHTTPRequestHandler):
     |HydPyServer| starting with "GET" or "POST" are accessible via HTTP.
 
     In the main documentation on module |servertools|, we use the
-    `multiple_runs_alpha.xml` file of the `LahnH` project as an example.  However, now
-    we select the more complex XML configuration file `multiple_runs.xml`, covering a
-    higher number of cases:
+    `multiple_runs_alpha.xml` file of the `HydPy-H-Lahn` project as an example.
+    However, now we select the more complex XML configuration file `multiple_runs.xml`,
+    covering a higher number of cases:
 
     >>> from hydpy.core.testtools import prepare_full_example_1
     >>> prepare_full_example_1()
     >>> from hydpy import run_subprocess, TestIO
     >>> with TestIO():
     ...     process = run_subprocess(
-    ...         "hyd.py start_server 8080 LahnH multiple_runs.xml debugging=enable",
-    ...         blocking=False, verbose=False)
+    ...         "hyd.py start_server 8080 HydPy-H-Lahn multiple_runs.xml "
+    ...         "debugging=enable",
+    ...         blocking=False,
+    ...         verbose=False,
+    ...     )
     ...     result = run_subprocess("hyd.py await_server 8080 10", verbose=False)
 
     We define a test function that simplifies sending the following requests and offers
@@ -1261,7 +1264,7 @@ registered under the id `0`.  There is nothing registered, so far.
 
     >>> import netCDF4
     >>> from hydpy import print_vector
-    >>> filepath = "LahnH/series/mean_sm/hland_96_state_sm_mean.nc"
+    >>> filepath = "HydPy-H-Lahn/series/mean_sm/hland_96_state_sm_mean.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
     ...     print_vector(ncfile["hland_96_state_sm_mean"][:, 0])
     211.231585, 0.0, 0.0, 0.0, 0.0
@@ -1274,7 +1277,7 @@ registered under the id `0`.  There is nothing registered, so far.
     <BLANKLINE>
     >>> test("save_allseries", id_="0")
     <BLANKLINE>
-    >>> filepath = "LahnH/series/sm_averaged/hland_96_state_sm_mean.nc"
+    >>> filepath = "HydPy-H-Lahn/series/sm_averaged/hland_96_state_sm_mean.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
     ...     print_vector(ncfile["hland_96_state_sm_mean"][:, 0])
     211.231585, 0.0, 0.0, 0.0, 0.0
@@ -1300,7 +1303,7 @@ under the id `0`.  There is nothing registered, so far.
     |hland_inputs.T| and |evap_inputs.NormalAirTemperature| to the directory
     `temperature` during the last simulation:
 
-    >>> filepath = "LahnH/series/temperature/hland_96_input_t.nc"
+    >>> filepath = "HydPy-H-Lahn/series/temperature/hland_96_input_t.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
     ...     print_vector(ncfile["hland_96_input_t"][:, 0])
     -0.298846, 0.0, 0.0, 0.0, 0.0
@@ -1324,7 +1327,7 @@ under the id `0`.  There is nothing registered, so far.
     <BLANKLINE>
     >>> test("simulate", id_="0")
     <BLANKLINE>
-    >>> filepath = "LahnH/series/temp/hland_96_input_t.nc"
+    >>> filepath = "HydPy-H-Lahn/series/temp/hland_96_input_t.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
     ...     print_vector(ncfile["hland_96_input_t"][:, 0])
     -0.298846, 0.0, 0.0, 0.0, 0.0
@@ -1389,7 +1392,7 @@ under the id `0`.  There is nothing registered, so far.
 
     >>> test("save_controls", id_="0")
     <BLANKLINE>
-    >>> with TestIO(), open("LahnH/control/calibrated/land_dill.py") as file_:
+    >>> with TestIO(), open("HydPy-H-Lahn/control/calibrated/land_dill.py") as file_:
     ...     print(file_.read())  # doctest: +ELLIPSIS
     # -*- coding: utf-8 -*-
     <BLANKLINE>
@@ -1570,7 +1573,7 @@ under the id `0`.  There is nothing registered, so far.
         >>> from hydpy import run_subprocess, TestIO
         >>> with TestIO():
         ...     process = run_subprocess(
-        ...         "hyd.py start_server 8080 LahnH multiple_runs_alpha.xml",
+        ...         "hyd.py start_server 8080 HydPy-H-Lahn multiple_runs_alpha.xml",
         ...         blocking=False, verbose=False)
         ...     _ = run_subprocess("hyd.py await_server 8080 10", verbose=False)
         >>> from urllib import request
@@ -2234,7 +2237,7 @@ def start_server(
     >>> from hydpy.core.testtools import prepare_full_example_1
     >>> prepare_full_example_1()
     >>> command = (
-    ...     "hyd.py start_server 8080 LahnH multiple_runs_alpha.xml "
+    ...     "hyd.py start_server 8080 HydPy-H-Lahn multiple_runs_alpha.xml "
     ...     "debugging=enable maxrequests=100")
     >>> from hydpy import run_subprocess, TestIO
     >>> with TestIO():
@@ -2314,7 +2317,7 @@ following error:
     >>> prepare_full_example_1()
     >>> with TestIO():
     ...     process = run_subprocess(
-    ...         "hyd.py start_server 8080 LahnH multiple_runs.xml",
+    ...         "hyd.py start_server 8080 HydPy-H-Lahn multiple_runs.xml",
     ...         blocking=False, verbose=False)
     ...     result = run_subprocess("hyd.py await_server 8080 10", verbose=False)
 

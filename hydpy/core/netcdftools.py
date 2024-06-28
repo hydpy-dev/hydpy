@@ -437,13 +437,13 @@ def query_timegrid(
 
     |query_timegrid| relies on the `timereference` attribute of the given NetCDF file,
     if available, and falls back to the global |Options.timestampleft| option when
-    necessary.  The NetCDF files of the `LahnH` example project (and all other NetCDF
-    files written by *HydPy*) include such information:
+    necessary.  The NetCDF files of the `HydPy-H-Lahn` example project (and all other
+    NetCDF files written by *HydPy*) include such information:
 
     >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
     >>> from netCDF4 import Dataset
-    >>> filepath = "LahnH/series/default/hland_96_input_p.nc"
+    >>> filepath = "HydPy-H-Lahn/series/default/hland_96_input_p.nc"
     >>> with TestIO(), Dataset(filepath) as ncfile:
     ...     ncfile.timereference
     'left interval boundary'
@@ -2099,7 +2099,7 @@ class NetCDFInterfaceJIT(NetCDFInterfaceBase[FlatUnion]):
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, print_vector, pub, TestIO
         >>> with TestIO():
-        ...     hp = HydPy("LahnH")
+        ...     hp = HydPy("HydPy-H-Lahn")
         ...     pub.timegrids = "1996-01-01", "1996-01-05", "1d"
         ...     hp.prepare_network()
         ...     hp.prepare_models()
@@ -2157,7 +2157,7 @@ cover the current simulation period \
         ...     hp.elements["land_dill"].model.sequences.factors.contriarea.series)
         0.495925, 0.493672, 0.492156, 0.49015
         >>> from hydpy.core.netcdftools import netcdf4
-        >>> filepath = "LahnH/series/default/hland_96_factor_contriarea.nc"
+        >>> filepath = "HydPy-H-Lahn/series/default/hland_96_factor_contriarea.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath, "r") as ncfile:
         ...     print_vector(ncfile["hland_96_factor_contriarea"][:, 0])
         0.495925, 0.493672, 0.492156, 0.49015
@@ -2174,7 +2174,7 @@ cover the current simulation period \
 
         >>> with TestIO():
         ...     for name in ("hland_96_input_t", "hland_96_factor_contriarea"):
-        ...         filepath = f"LahnH/series/default/{name}.nc"
+        ...         filepath = f"HydPy-H-Lahn/series/default/{name}.nc"
         ...         with netcdf4.Dataset(filepath, "r+") as ncfile:
         ...             ncfile.renameVariable(name, "old")
         ...             _ = ncfile.createDimension("realization", 1)
@@ -2246,7 +2246,7 @@ file `...hland_96_flux_pc.nc`.
         9.648145, 8.518256, 7.78162, 7.345017
         20.590398, 8.663089, 7.282551, 6.403193
         11.67459, 10.111301, 8.992786, 8.212961
-        >>> filepath_qt = "LahnH/series/default/hland_96_flux_qt.nc"
+        >>> filepath_qt = "HydPy-H-Lahn/series/default/hland_96_flux_qt.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath_qt, "r") as ncfile:
         ...     for jdx in range(4):
         ...         print_vector(ncfile["hland_96_flux_qt"][:, jdx])
@@ -2296,7 +2296,7 @@ file `...hland_96_flux_pc.nc`.
         9.648145, 8.518256, 7.78162, 7.345017
         42.371838, 27.213969, 22.933086, 20.203494
         54.046428, 37.32527, 31.925872, 28.416456
-        >>> filepath_sim = "LahnH/series/default/sim_q.nc"
+        >>> filepath_sim = "HydPy-H-Lahn/series/default/sim_q.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath_sim, "r") as ncfile:
         ...     for jdx in range(4):
         ...         print_vector(ncfile["sim_q"][:, jdx])
@@ -2304,7 +2304,7 @@ file `...hland_96_flux_pc.nc`.
         9.648145, 8.518256, 7.78162, 7.345017
         42.371838, 27.213969, 22.933086, 20.203494
         54.046428, 37.32527, 31.925872, 28.416456
-        >>> filepath_obs = "LahnH/series/default/obs_q.nc"
+        >>> filepath_obs = "HydPy-H-Lahn/series/default/obs_q.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath_obs, "r") as ncfile:
         ...     for jdx in range(4):
         ...         print_vector(ncfile["obs_q"][:, jdx])

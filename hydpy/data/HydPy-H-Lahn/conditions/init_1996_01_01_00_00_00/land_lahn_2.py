@@ -2,7 +2,7 @@
 
 from hydpy.models.hland_96 import *
 
-controlcheck(projectdir=r"LahnH", controldir="default", firstdate="1996-01-01", stepsize="1d")
+controlcheck(projectdir=r"HydPy-H-Lahn", controldir="default", firstdate="1996-01-01", stepsize="1d")
 
 ic(0.96159, 1.46159, 0.96219,
    1.46219, 0.96278, 1.46278, 0.96336,

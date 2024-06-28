@@ -1112,7 +1112,7 @@ def controlcheck(
 
     Function |controlcheck| serves similar purposes as function |parameterstep|.  It is
     why one can interactively access the state and the log sequences within condition
-    files as `land_dill.py` of the example project `LahnH`.  It is called
+    files as `land_dill.py` of the example project `HydPy-H-Lahn`.  It is called
     `controlcheck` due to its feature to check for possible inconsistencies between
     control and condition files.  The following test, where we write several soil
     moisture values (|hland_states.SM|) into condition file `land_dill.py`, which does
@@ -1125,7 +1125,7 @@ def controlcheck(
 
     >>> import os
     >>> from hydpy import run_subprocess, TestIO
-    >>> cwd = os.path.join("LahnH", "conditions", "init_1996_01_01_00_00_00")
+    >>> cwd = os.path.join("HydPy-H-Lahn", "conditions", "init_1996_01_01_00_00_00")
     >>> with TestIO():   # doctest: +ELLIPSIS
     ...     os.chdir(cwd)
     ...     with open("land_dill.py") as file_:
@@ -1189,7 +1189,7 @@ the following error occurred: ...
     >>> from hydpy.models.lland_dd import ACKER
     >>> pub.timegrids = "2000-06-01", "2000-07-01", "1d"
     >>> with TestIO():
-    ...     hp = HydPy("LahnH")
+    ...     hp = HydPy("HydPy-H-Lahn")
     ...     hp.prepare_network()
     ...     land_dill = hp.elements["land_dill"]
     ...     with pub.options.usedefaultvalues(True):
@@ -1212,7 +1212,7 @@ the following error occurred: ...
     function within the `land_dill.py` condition file (and modify some warning settings
     in favour of the next examples):
 
-    >>> cwd = os.path.join("LahnH", "conditions", "init_2000_07_01_00_00_00")
+    >>> cwd = os.path.join("HydPy-H-Lahn", "conditions", "init_2000_07_01_00_00_00")
     >>> with TestIO():
     ...     os.chdir(cwd)
     ...     with open("land_dill.py") as file_:
@@ -1244,7 +1244,7 @@ the following error occurred: ...
     instead of July 2000, we correctly get the following warning:
 
     >>> cwd_old = cwd
-    >>> cwd_new = os.path.join("LahnH", "conditions", "init_2000_01_01")
+    >>> cwd_new = os.path.join("HydPy-H-Lahn", "conditions", "init_2000_01_01")
     >>> with TestIO():   # doctest: +ELLIPSIS
     ...     os.rename(cwd_old, cwd_new)
     ...     os.chdir(cwd_new)
@@ -1257,9 +1257,9 @@ value(s) are `1.0, 1.0` and `0.1, 0.1`, respectively.
 
     One can define an alternative initialisation date via argument `firstdate`:
 
-    >>> text_old = ('controlcheck(projectdir=r"LahnH", '
+    >>> text_old = ('controlcheck(projectdir=r"HydPy-H-Lahn", '
     ...             'controldir="default", stepsize="1d")')
-    >>> text_new = ('controlcheck(projectdir=r"LahnH", controldir="default", '
+    >>> text_new = ('controlcheck(projectdir=r"HydPy-H-Lahn", controldir="default", '
     ...             'firstdate="2100-07-15", stepsize="1d")')
     >>> with TestIO():
     ...     os.chdir(cwd_new)
@@ -1294,7 +1294,7 @@ information (`stepsize` and eventually `firstdate`) as function arguments.
     directory name:
 
     >>> cwd_old = cwd_new
-    >>> cwd_new = os.path.join("LahnH", "conditions", "init")
+    >>> cwd_new = os.path.join("HydPy-H-Lahn", "conditions", "init")
     >>> with TestIO():   # doctest: +ELLIPSIS
     ...     os.rename(cwd_old, cwd_new)
     ...     os.chdir(cwd_new)

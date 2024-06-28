@@ -99,7 +99,7 @@ by importing them.  For example, write:
 >>> from hydpy.core.testtools import prepare_full_example_2
 
 Now the additional function |prepare_full_example_2| lives in your shell.
-Executing this function prepares the `LahnH` example project and returns
+Executing this function prepares the `HydPy-H-Lahn` example project and returns
 three further *HydPy* objects:
 
 >>> hp, pub, TestIO = prepare_full_example_2()
@@ -116,7 +116,7 @@ The start and end date and the simulation step size are:
 1d
 
 
-The catchment outlet of the `LahnH` example project is named "lahn_3".
+The catchment outlet of the `HydPy-H-Lahn` example project is named "lahn_3".
 The following example demonstrates how to query the discharge values
 simulated for this outlet:
 

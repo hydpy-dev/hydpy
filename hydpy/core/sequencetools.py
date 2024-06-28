@@ -1265,8 +1265,8 @@ class IOSequence(Sequence_):
     Typically, you call methods like |HydPy.prepare_inputseries| of class |HydPy|.
     Here, we instead use the related features of the |IOSequence| class itself.
 
-    We use the `LahnH` example project and focus on the `input`, `factor`, `fluxes`,
-    and `state` sequences:
+    We use the `HydPy-H-Lahn` example project and focus on the `input`, `factor`,
+    `fluxes`, and `state` sequences:
 
     >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
@@ -2165,8 +2165,8 @@ sequencemanager of module `pub` is not defined at the moment.
         required for an actual simulation run.  Method |IOSequence.adjust_series|
         selects the relevant data by comparing the initialisation |Timegrid| available
         in module |pub| and the given "data" |Timegrid| object.  We explain this
-        behaviour by using the `LahnH` example project and focussing on the |Obs|
-        sequence of |Node| `dill`:
+        behaviour by using the `HydPy-H-Lahn` example project and focussing on the
+        |Obs| sequence of |Node| `dill`:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -2853,7 +2853,7 @@ class InputSequence(ModelIOSequence):
 
     >>> from hydpy import Element, FusedVariable, HydPy, Node, print_vector, pub, TestIO
     >>> from hydpy.aliases import  hland_inputs_T, hland_inputs_P
-    >>> hp = HydPy("LahnH")
+    >>> hp = HydPy("HydPy-H-Lahn")
     >>> pub.timegrids = "1996-01-01", "1996-01-06", "1d"
     >>> node_t = Node("node_t", variable=hland_inputs_T)
     >>> node_p = Node("node_p", variable=FusedVariable("Precip", hland_inputs_P))
@@ -2864,7 +2864,7 @@ class InputSequence(ModelIOSequence):
     >>> prepare_full_example_1()
     >>> import os
     >>> with TestIO():
-    ...     os.chdir("LahnH/control/default")
+    ...     os.chdir("HydPy-H-Lahn/control/default")
     ...     with open("land_dill.py") as controlfile:
     ...         exec(controlfile.read(), {}, locals())
     ...     parameters.update()
@@ -3004,7 +3004,7 @@ class OutputSequence(ModelIOSequence):
     >>> from hydpy import Element, HydPy, Node, print_vector, pub, Selection, TestIO
     >>> from hydpy.aliases import (
     ...     hland_fluxes_Perc, hland_fluxes_Q0, hland_fluxes_Q1, hland_states_UZ)
-    >>> hp = HydPy("LahnH")
+    >>> hp = HydPy("HydPy-H-Lahn")
     >>> pub.timegrids = "1996-01-01", "1996-01-06", "1d"
     >>> node_q0 = Node("node_q0", variable=hland_fluxes_Q0)
     >>> node_q1 = Node("node_q1", variable=hland_fluxes_Q1)
@@ -3019,7 +3019,7 @@ class OutputSequence(ModelIOSequence):
     >>> prepare_full_example_1()
     >>> import os
     >>> with TestIO():
-    ...     os.chdir("LahnH/control/default")
+    ...     os.chdir("HydPy-H-Lahn/control/default")
     ...     with open("land_dill.py") as controlfile:
     ...         exec(controlfile.read(), {}, locals())
     ...     parameters.update()
@@ -3653,8 +3653,8 @@ please be careful).
         Changing a |LinkSequence.value| of a |LinkSequence| object seems very much like
         changing a |LinkSequence.value| of any other |Variable| object.  However, be
         aware that you are changing a value handled by a |NodeSequence| object.  We
-        demonstrate this by using the `LahnH` example project through invoking function
-        |prepare_full_example_2|:
+        demonstrate this by using the `HydPy-H-Lahn` example project through invoking
+        function |prepare_full_example_2|:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -3790,7 +3790,7 @@ convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and type 
         extra careful due to the pointer mechanism underlying class |LinkSequence|.
         Change the shape of a link sequence for good reasons only.  Please read the
         documentation on property |LinkSequence.value| first and then see the following
-        examples, which are, again, based on the `LahnH` example project and
+        examples, which are, again, based on the `HydPy-H-Lahn` example project and
         application model |musk_classic|:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
@@ -4077,7 +4077,7 @@ the following error occurred: ...attribute name must be string...
         """True/False flag indicating whether simulated or observed data is fully
         available or not.
 
-        We use the observation series of node `dill` of the `LahnH` project:
+        We use the observation series of node `dill` of the `HydPy-H-Lahn` project:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -4139,7 +4139,7 @@ class Sim(NodeSequence):
         >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, TestIO
-        >>> hp = HydPy("LahnH")
+        >>> hp = HydPy("HydPy-H-Lahn")
         >>> pub.timegrids = "1996-01-01", "1996-01-06", "1d"
         >>> with TestIO():
         ...     hp.prepare_network()
@@ -4216,14 +4216,14 @@ class Obs(NodeSequence):
 
         According to this reasoning, *HydPy* raises (at most) a |UserWarning| in case
         of missing or incomplete external time series data of |Obs| sequences.  The
-        following examples show this based on the `LahnH` project, mainly focussing on
-        the |Obs| sequence of node `dill`, which is ready for handling time series data
-        at the end of the following steps:
+        following examples show this based on the `HydPy-H-Lahn` project, mainly
+        focussing on the |Obs| sequence of node `dill`, which is ready for handling
+        time series data at the end of the following steps:
 
         >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, TestIO
-        >>> hp = HydPy("LahnH")
+        >>> hp = HydPy("HydPy-H-Lahn")
         >>> pub.timegrids = "1996-01-01", "1996-01-06", "1d"
         >>> with TestIO():
         ...     hp.prepare_network()

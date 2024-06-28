@@ -173,10 +173,10 @@ class FileManager:
     def _get_projectdir(self) -> str:
         """The name of the main folder of a project.
 
-        For the `LahnH` example project, |FileManager.projectdir| is (not surprisingly)
-        `LahnH` and is queried from the |pub| module.  However, you can define or
-        change |FileManager.projectdir| interactively, which can be useful for more
-        complex tasks like copying (parts of) projects:
+        For the `HydPy-H-Lahn` example project, |FileManager.projectdir| is (not
+        surprisingly) `HydPy-H-Lahn` and is queried from the |pub| module.  However,
+        you can define or change |FileManager.projectdir| interactively, which can be
+        useful for more complex tasks like copying (parts of) projects:
 
         >>> from hydpy.core.filetools import FileManager
         >>> from hydpy import pub
@@ -624,8 +624,8 @@ class NetworkManager(FileManager):
     The documentation of base class |FileManager| explains most aspects of using
     |NetworkManager| objects.  The following examples deal with the extended features
     of class |NetworkManager|: reading, writing, and removing network files.  For this
-    purpose, we prepare the example project `LahnH` in the `iotesting` directory by
-    calling function |prepare_full_example_1|:
+    purpose, we prepare the example project `HydPy-H-Lahn` in the `iotesting` directory
+    by calling function |prepare_full_example_1|:
 
     >>> from hydpy.core.testtools import prepare_full_example_1
     >>> prepare_full_example_1()
@@ -641,7 +641,7 @@ class NetworkManager(FileManager):
     >>> networkmanager = NetworkManager()
     >>> from hydpy import TestIO
     >>> with TestIO():
-    ...     networkmanager.projectdir = "LahnH"
+    ...     networkmanager.projectdir = "HydPy-H-Lahn"
     ...     selections = networkmanager.load_files()
 
     Method |NetworkManager.load_files| takes file names as selection names (without
@@ -669,7 +669,7 @@ class NetworkManager(FileManager):
     >>> with TestIO():
     ...     networkmanager.currentdir = "testdir"
     ...     networkmanager.save_files(selections)
-    ...     sorted(os.listdir("LahnH/network/testdir"))
+    ...     sorted(os.listdir("HydPy-H-Lahn/network/testdir"))
     ['headwaters.py', 'nonheadwaters.py', 'streams.py']
 
     Reloading and comparing with the still available |Selection| objects proves that
@@ -685,7 +685,7 @@ class NetworkManager(FileManager):
     >>> selections -= selections.streams
     >>> with TestIO():
     ...     networkmanager.delete_files(selections)
-    ...     sorted(os.listdir("LahnH/network/testdir"))
+    ...     sorted(os.listdir("HydPy-H-Lahn/network/testdir"))
     ['streams.py']
 
     When defining network files, many things can go wrong.  In the following, we list
@@ -700,7 +700,7 @@ class NetworkManager(FileManager):
 `['headwaters']`, the following error occurred: ...
 
     >>> with TestIO():
-    ...     with open("LahnH/network/testdir/streams.py", "w") as wrongfile:
+    ...     with open("HydPy-H-Lahn/network/testdir/streams.py", "w") as wrongfile:
     ...         _ = wrongfile.write("x = y")
     ...     networkmanager.load_files()   # doctest: +ELLIPSIS
     Traceback (most recent call last):
@@ -709,7 +709,7 @@ class NetworkManager(FileManager):
 error occurred: name 'y' is not defined
 
     >>> with TestIO():
-    ...     with open("LahnH/network/testdir/streams.py", "w") as wrongfile:
+    ...     with open("HydPy-H-Lahn/network/testdir/streams.py", "w") as wrongfile:
     ...         _ = wrongfile.write("from hydpy import Node")
     ...     networkmanager.load_files()   # doctest: +ELLIPSIS
     Traceback (most recent call last):
@@ -718,16 +718,17 @@ error occurred: name 'y' is not defined
 `...streams.py`.
 
     >>> with TestIO():
-    ...     with open("LahnH/network/testdir/streams.py", "w") as wrongfile:
+    ...     with open("HydPy-H-Lahn/network/testdir/streams.py", "w") as wrongfile:
     ...         _ = wrongfile.write("from hydpy import Element")
     ...     networkmanager.load_files()   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    RuntimeError: The class Node cannot be loaded from the network file `...streams.py`.
+    RuntimeError: The class Node cannot be loaded from the network file \
+`...streams.py`.
 
     >>> import shutil
     >>> with TestIO():
-    ...     shutil.rmtree("LahnH/network/testdir")
+    ...     shutil.rmtree("HydPy-H-Lahn/network/testdir")
     ...     networkmanager.save_files(selections)   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
@@ -872,7 +873,7 @@ class ControlManager(FileManager):
         >>> from hydpy import pub, round_, TestIO
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "12h"
         >>> with TestIO():
-        ...     controlmanager.projectdir = "LahnH"
+        ...     controlmanager.projectdir = "HydPy-H-Lahn"
         ...     results = controlmanager.load_file(filename="land_dill")
 
 
@@ -1003,7 +1004,7 @@ class ConditionManager(FileManager):
     'conditions'
 
     Class |ConditionManager| generally works like class |FileManager|.  The following
-    examples, based on the `LahnH` example project, explain the additional
+    examples, based on the `HydPy-H-Lahn` example project, explain the additional
     functionalities of the |ConditionManager| specific properties
     |ConditionManager.inputpath| and |ConditionManager.outputpath|:
 
@@ -1017,8 +1018,8 @@ class ConditionManager(FileManager):
     >>> with TestIO():    # doctest: +ELLIPSIS
     ...     repr_(pub.conditionmanager.inputpath)
     ...     repr_(pub.conditionmanager.outputpath)
-    '.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_01_00_00_00'
-    '.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_05_00_00_00'
+    '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/init_1996_01_01_00_00_00'
+    '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/init_1996_01_05_00_00_00'
 
     >>> pub.timegrids.sim.firstdate += "1d"
     >>> pub.timegrids.sim.lastdate -= "1d"
@@ -1036,8 +1037,8 @@ class ConditionManager(FileManager):
     >>> with TestIO():    # doctest: +ELLIPSIS
     ...     repr_(pub.conditionmanager.inputpath)
     ...     repr_(pub.conditionmanager.outputpath)
-    '.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_02_00_00_00'
-    '.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_04_00_00_00'
+    '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/init_1996_01_02_00_00_00'
+    '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/init_1996_01_04_00_00_00'
 
     Use the property |FileManager.currentdir| to change the values of both properties:
 
@@ -1045,8 +1046,8 @@ class ConditionManager(FileManager):
     ...     pub.conditionmanager.currentdir = "test"
     ...     repr_(pub.conditionmanager.inputpath)
     ...     repr_(pub.conditionmanager.outputpath)
-    '.../hydpy/tests/iotesting/LahnH/conditions/test'
-    '.../hydpy/tests/iotesting/LahnH/conditions/test'
+    '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/test'
+    '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/test'
 
     After deleting the custom value of property |FileManager.currentdir|, both
     properties |ConditionManager.inputpath| and |ConditionManager.outputpath| work as
@@ -1056,8 +1057,8 @@ class ConditionManager(FileManager):
     ...     del pub.conditionmanager.currentdir
     ...     repr_(pub.conditionmanager.inputpath)
     ...     repr_(pub.conditionmanager.outputpath)
-    '.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_02_00_00_00'
-    '.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_04_00_00_00'
+    '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/init_1996_01_02_00_00_00'
+    '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/init_1996_01_04_00_00_00'
 
     The date-based construction of directory names requires a |Timegrids| object
     available in module |pub|:

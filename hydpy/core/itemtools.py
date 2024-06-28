@@ -189,8 +189,8 @@ class ExchangeItem:
         """Collect the relevant target variables handled by the devices of the given
         |Selections| object.
 
-        We prepare the `LahnH` example project to be able to use its |Selections|
-        object:
+        We prepare the `HydPy-H-Lahn` example project to be able to use its
+        |Selections| object:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -484,8 +484,9 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         |ExchangeItem| and determine the |ChangeItem.shape| of the current |ChangeItem|
         object afterwards.
 
-        For the following examples, we prepare the `LahnH` example project and remove
-        the "complete" selection from the |Selections| object available in module |pub|:
+        For the following examples, we prepare the `HydPy-H-Lahn` example project and
+        remove the "complete" selection from the |Selections| object available in
+        module |pub|:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -682,8 +683,9 @@ value `wrong` cannot be converted to type `float`.
         """Assign the current |ChangeItem.value| to the values or time series of the
         target variables.
 
-        For the following examples, we prepare the `LahnH` example project and remove
-        the "complete" selection from the |Selections| object available in module |pub|:
+        For the following examples, we prepare the `HydPy-H-Lahn` example project and
+        remove the "complete" selection from the |Selections| object available in
+        module |pub|:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -959,7 +961,7 @@ class SetItem(ChangeItem):
         object.  Please read the documentation on method |ChangeItem.update_variables|
         first, explaining the "aggregation level" concept.
 
-        For the following examples, we prepare the `LahnH` example project:
+        For the following examples, we prepare the `HydPy-H-Lahn` example project:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, _ = prepare_full_example_2()
@@ -1403,8 +1405,8 @@ class AddItem(MathItem):
     value(s) and the value(s) of the related base variable to update the value(s) of
     the target variable.
 
-    We prepare the `LahnH` example project and remove the "complete" selection from
-    the |Selections| object available in module |pub|:
+    We prepare the `HydPy-H-Lahn` example project and remove the "complete" selection
+    from the |Selections| object available in module |pub|:
 
     >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()

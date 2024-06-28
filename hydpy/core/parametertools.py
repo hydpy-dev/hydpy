@@ -758,7 +758,7 @@ the unequal argument `1` under the keyword `one`.
         interested in a superset of all keyword arguments related to a specific
         |Parameter| type relevant for certain |Element| objects.  To show how
         method |KeywordArguments.extend| can help in such cases, we make use of
-        the `LahnH` example project:
+        the `HydPy-H-Lahn` example project:
         
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()

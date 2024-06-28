@@ -531,13 +531,13 @@ class Selection:
     respectively).  However, class |Selection| also provides features for creating
     combinations of |Node| and |Element| objects suitable for different tasks, as
     explained in the documentation of the respective methods.  Here we only show its
-    basic usage with the help of the `LahnH` example project prepared by function
-    |prepare_full_example_2|:
+    basic usage with the help of the `HydPy-H-Lahn` example project prepared by
+    function |prepare_full_example_2|:
 
     >>> from hydpy.core.testtools import prepare_full_example_2
     >>> _, pub, _ = prepare_full_example_2()
 
-    For example, `LahnH` defines a `headwaters` selection:
+    For example, `HydPy-H-Lahn` defines a `headwaters` selection:
 
     >>> pub.selections.headwaters
     Selection("headwaters",

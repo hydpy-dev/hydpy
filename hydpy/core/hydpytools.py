@@ -42,21 +42,21 @@ class HydPy:
     Additionally, it serves as a root to access most details of a *HydPy* project,
     allowing for more granular control over the framework features.
 
-    We elaborate on these short explanations by using the `LahnH` example project.
-    Calling function |prepare_full_example_1| copies the complete example project
-    `LahnH` into the `iotesting` directory of the *HydPy* site package (alternatively,
-    you can copy the `LahnH` example project, which can be found in subpackage `data`,
-    into a working directory of your choice):
+    We elaborate on these short explanations by using the `HydPy-H-Lahn` example
+    project.  Calling function |prepare_full_example_1| copies the complete example
+    project `HydPy-H-Lahn` into the `iotesting` directory of the *HydPy* site package
+    (alternatively, you can copy the `HydPy-H-Lahn` example project, which can be found
+    in subpackage `data`, into a working directory of your choice):
 
     >>> from hydpy.core.testtools import prepare_full_example_1
     >>> prepare_full_example_1()
 
     At first, the |HydPy| instance needs to know the name of the relevant project,
-    which is identical to the name of the project's root directory.  Pass `LahnH` to
-    the constructor of class |HydPy|:
+    which is identical to the name of the project's root directory.  Pass
+    `HydPy-H-Lahn` to the constructor of class |HydPy|:
 
     >>> from hydpy import HydPy
-    >>> hp = HydPy("LahnH")
+    >>> hp = HydPy("HydPy-H-Lahn")
 
     So far, our |HydPy| instance does not know any project configurations except its
     name.  Most of this information would be available via properties |HydPy.nodes| and
@@ -92,10 +92,10 @@ handle any elements at the moment.
     (Using the "with" statement in combination with class |TestIO| makes sure we are
     reading the network files from a subdirectory of the `iotesting` directory.  Here
     and in the following, you must omit such "with blocks" in case you copied the
-    `LahnH` example project into your current working directory.)
+    `HydPy-H-Lahn` example project into your current working directory.)
 
     Now, our |HydPy| instance offers access to all |Node| objects defined within the
-    `LahnH` example project, which are grouped by a |Nodes| object:
+    `HydPy-H-Lahn` example project, which are grouped by a |Nodes| object:
 
     >>> hp.nodes
     Nodes("dill", "lahn_1", "lahn_2", "lahn_3")
@@ -342,10 +342,10 @@ is not requested to make any time series data available.
     >>> hp.nodes.dill.sequences.sim.series
     InfoArray([nan, nan, nan, nan])
 
-    So far, each time series array is empty.  The `LahnH` example project provides
-    time series files for the input sequences only, which is the minimum requirement
-    for starting a simulation run.  We use method |HydPy.load_inputseries| to load this
-    data:
+    So far, each time series array is empty.  The `HydPy-H-Lahn` example project
+    provides time series files for the input sequences only, which is the minimum
+    requirement for starting a simulation run.  We use method |HydPy.load_inputseries|
+    to load this data:
 
     >>> with TestIO():
     ...     hp.load_inputseries()
@@ -444,12 +444,12 @@ is not requested to make any time series data available.
 
     Now, we can reload the time series of all relevant sequences.  However, doing so
     would result in a warning due to incomplete data (for example, of the observation
-    data handled by the |Obs| sequence objects, which is not available in the `LahnH`
-    example project).  To circumvent this problem, we disable the |Options.checkseries|
-    option, which is one of the public options handled by the instance of class
-    |Options| available as another attribute of module |pub|.  We again use "with
-    blocks", making sure the option (and the current working directory) changes only
-    temporarily while loading the time series:
+    data handled by the |Obs| sequence objects, which is not available in the
+    `HydPy-H-Lahn` example project).  To circumvent this problem, we disable the
+    |Options.checkseries| option, which is one of the public options handled by the
+    instance of class |Options| available as another attribute of module |pub|.  We
+    again use "with blocks", making sure the option (and the current working directory)
+    changes only temporarily while loading the time series:
 
     >>> with TestIO(), pub.options.checkseries(False):
     ...     hp.load_inputseries()
@@ -623,9 +623,9 @@ is not requested to make any time series data available.
 
     >>> import os
     >>> with TestIO():
-    ...     for filename in os.listdir(f"LahnH/series/default"):
+    ...     for filename in os.listdir(f"HydPy-H-Lahn/series/default"):
     ...         if "input" not in filename:
-    ...             os.remove(f"LahnH/series/default/{filename}")
+    ...             os.remove(f"HydPy-H-Lahn/series/default/{filename}")
 
     We again call method |HydPy.prepare_allseries|, but now, by assigning |True| to the
     arguments `allocate_ram` and `jit`:
@@ -678,11 +678,11 @@ is not requested to make any time series data available.
     >>> round_(hp.nodes.dill.sequences.sim.series)
     11.78144, 8.902735, 7.132279, 6.018681
 
-    All filenames of meteorological input time series provided by the `LahnH` example
-    follow a "model-specific" pattern.  Each filename contains not only the name of the
-    corresponding |InputSequence| subclass (e.g., "t") in lowercase letters but also
-    the sequence's group (e.g., "input") and the responsible model's name (e.g.,
-    "hland_96"):
+    All filenames of meteorological input time series provided by the `HydPy-H-Lahn`
+    example follow a "model-specific" pattern.  Each filename contains not only the
+    name of the corresponding |InputSequence| subclass (e.g., "t") in lowercase letters
+    but also the sequence's group (e.g., "input") and the responsible model's name
+    (e.g., "hland_96"):
 
     >>> old_model = hp.elements.land_dill.model
     >>> old_model.sequences.inputs.t.filename
@@ -942,7 +942,7 @@ first.
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, round_, TestIO
         >>> with TestIO():
-        ...     hp = HydPy("LahnH")
+        ...     hp = HydPy("HydPy-H-Lahn")
         ...     pub.timegrids = "1996-01-01", "1996-01-05", "1d"
         ...     hp.prepare_everything()
 
@@ -975,9 +975,9 @@ first.
             >>> from hydpy import pub
             >>> del pub.selections
 
-        First, we call function |prepare_full_example_1| to prepare the `LahnH` example
-        project, including its network files `headwaters.py`, `nonheadwaters.py`, and
-        `streams.py`:
+        First, we call function |prepare_full_example_1| to prepare the `HydPy-H-Lahn`
+        example project, including its network files `headwaters.py`,
+        `nonheadwaters.py`, and `streams.py`:
 
         >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -986,7 +986,7 @@ first.
         module |pub| contain any information stemming from the network files:
 
         >>> from hydpy import HydPy, pub, TestIO
-        >>> hp = HydPy("LahnH")
+        >>> hp = HydPy("HydPy-H-Lahn")
         >>> pub.selections
         Traceback (most recent call last):
         ...
@@ -1034,8 +1034,8 @@ first.
             >>> from hydpy import pub
             >>> del pub.options.parameterstep
 
-        First, we call function |prepare_full_example_1| to prepare the `LahnH` example
-        project:
+        First, we call function |prepare_full_example_1| to prepare the `HydPy-H-Lahn`
+        example project:
 
         >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -1046,7 +1046,7 @@ first.
         >>> from hydpy import HydPy, pub, round_, TestIO
         >>> with TestIO():
         ...     pub.timegrids = "1996-01-01", "1996-01-05", "1d"
-        ...     hp = HydPy("LahnH")
+        ...     hp = HydPy("HydPy-H-Lahn")
         ...     hp.prepare_network()
         ...     hp.prepare_models()
 
@@ -1062,11 +1062,11 @@ first.
         >>> hp.elements.stream_lahn_1_lahn_2.model.parameters.control.nmbsegments
         nmbsegments(lag=0.583)
 
-        The `LahnH` example project comes with one auxiliary file, named `land.py`.
-        This file defines general parameter values, valid for all single parameter
-        objects of the different model instances referencing this file via the `auxfile`
-        keyword argument.  The following examples use the `land_dill` element to show
-        that the affected parameters are also correctly prepared:
+        The `HydPy-H-Lahn` example project comes with one auxiliary file, named
+        `land.py`.  This file defines general parameter values, valid for all single
+        parameter objects of the different model instances referencing this file via
+        the `auxfile` keyword argument.  The following examples use the `land_dill`
+        element to show that the affected parameters are also correctly prepared:
 
         >>> control = hp.elements.land_dill.model.parameters.control
         >>> control.alpha
@@ -1093,7 +1093,7 @@ first.
         Missing parameter information in auxiliary files results in errors like the
         following:
 
-        >>> filepath = "LahnH/control/default/land.py"
+        >>> filepath = "HydPy-H-Lahn/control/default/land.py"
         >>> with TestIO():
         ...     with open(filepath) as infile:
         ...         text = infile.read().replace("alpha(1.0)", "")
@@ -1111,7 +1111,7 @@ auxiliary file does not define value(s) for parameter `alpha`.
         Completely wrong control files result in the following error:
 
         >>> with TestIO():
-        ...     with open("LahnH/control/default/land_dill.py", "w"):
+        ...     with open("HydPy-H-Lahn/control/default/land_dill.py", "w"):
         ...         pass
         ...     hp.prepare_models()   # doctest: +ELLIPSIS
         Traceback (most recent call last):
@@ -1157,8 +1157,8 @@ deprecated.  Use method `prepare_models` instead.
             >>> from hydpy import pub
             >>> del pub.options.parameterstep
 
-        We use the `LahnH` example project to demonstrate how to write a complete set
-        of parameter control files.  For convenience, we let function
+        We use the `HydPy-H-Lahn` example project to demonstrate how to write a
+        complete set of parameter control files.  For convenience, we let function
         |prepare_full_example_2| prepare a fully functional |HydPy| object, handling
         seven |Element| objects controlling four |hland_96| and three |musk_classic|
         application models:
@@ -1171,7 +1171,7 @@ deprecated.  Use method `prepare_models` instead.
 
         >>> import os
         >>> with TestIO():
-        ...     os.listdir("LahnH/control")
+        ...     os.listdir("HydPy-H-Lahn/control")
         ['default']
 
         Next, we use the |ControlManager| to create a new directory and write analogue
@@ -1180,7 +1180,7 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     pub.controlmanager.currentdir = "newdir"
         ...     hp.save_controls()
-        ...     sorted(os.listdir("LahnH/control"))
+        ...     sorted(os.listdir("HydPy-H-Lahn/control"))
         ['default', 'newdir']
 
         First, we focus our examples on the (shorter) control files of the application
@@ -1197,7 +1197,7 @@ deprecated.  Use method `prepare_models` instead.
 
         Its control file's name equals the element's name:
 
-        >>> dir_ = "LahnH/control/newdir/"
+        >>> dir_ = "HydPy-H-Lahn/control/newdir/"
         >>> with TestIO():
         ...     with open(dir_ + "stream_lahn_1_lahn_2.py") as controlfile:
         ...         print(controlfile.read())
@@ -1335,7 +1335,7 @@ deprecated.  Use method `prepare_models` instead.
         coefficients(auxfile="stream")
         <BLANKLINE>
 
-        In the `LahnH` example project, all |hland_96| instances use an
+        In the `HydPy-H-Lahn` example project, all |hland_96| instances use an
         |evap_pet_hbv96| submodel for calculating potential evapotranspiration.  The
         discussed writing mechanisms include such submodels automatically.  The written
         files rely on the preferred "with" block syntax for adding submodels and
@@ -1419,8 +1419,8 @@ deprecated.  Use method `prepare_models` instead.
         >>> control.airtemperaturefactor
         airtemperaturefactor(field=0.2, forest=0.1)
 
-        The `LahnH` example project relies only upon "scalar" submodels (handled by
-        |SubmodelProperty| instances) and not on "vectorial" submodels (handled by
+        The `HydPy-H-Lahn` example project relies only upon "scalar" submodels (handled
+        by |SubmodelProperty| instances) and not on "vectorial" submodels (handled by
         |SubmodelsProperty| instances).  Therefore, we now prepare an instance of model
         |sw1d_channel| and add, for a start, two |sw1d_storage| models to it, assign it
         to a new |Element| object, and show how method |HydPy.save_controls| writes the
@@ -1567,7 +1567,7 @@ deprecated.  Use method `prepare_models` instead.
             >>> del pub.options.parameterstep
 
         The following examples demonstrate both the functionality of method
-        |HydPy.load_conditions| and |HydPy.save_conditions| based on the `LahnH`
+        |HydPy.load_conditions| and |HydPy.save_conditions| based on the `HydPy-H-Lahn`
         project, which we prepare via function |prepare_full_example_2|:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
@@ -1597,7 +1597,7 @@ deprecated.  Use method `prepare_models` instead.
         sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 
-        >>> path = "LahnH/conditions/init_1996_01_01_00_00_00/land_dill.py"
+        >>> path = "HydPy-H-Lahn/conditions/init_1996_01_01_00_00_00/land_dill.py"
         >>> with TestIO():
         ...     with open(path, "r") as file_:
         ...         lines = file_.read().split("\\n")
@@ -1640,7 +1640,7 @@ deprecated.  Use method `prepare_models` instead.
         sm(184.589155, 180.656622, 199.21884, 195.98291, 211.418845, 208.874732,
            221.470275, 219.48168, 229.632697, 228.037615, 236.225193, 234.953769)
 
-        >>> path = "LahnH/conditions/init_1996_01_03_00_00_00/land_dill.py"
+        >>> path = "HydPy-H-Lahn/conditions/init_1996_01_03_00_00_00/land_dill.py"
         >>> with TestIO():
         ...     with open(path, "r") as file_:
         ...         lines = file_.read().split("\\n")
@@ -1656,7 +1656,7 @@ deprecated.  Use method `prepare_models` instead.
         ...     pub.conditionmanager.currentdir = "test"
         ...     hp.save_conditions()
 
-        >>> path = "LahnH/conditions/test/land_dill.py"
+        >>> path = "HydPy-H-Lahn/conditions/test/land_dill.py"
         >>> with TestIO():
         ...     with open(path, "r") as file_:
         ...         lines = file_.read().split("\\n")
@@ -1682,8 +1682,8 @@ deprecated.  Use method `prepare_models` instead.
         sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 
-        The `LahnH` example project relies only upon "scalar" submodels (handled by
-        |SubmodelProperty| instances) and not on "vectorial" submodels (handled by
+        The `HydPy-H-Lahn` example project relies only upon "scalar" submodels (handled
+        by |SubmodelProperty| instances) and not on "vectorial" submodels (handled by
         |SubmodelsProperty| instances).  Therefore, we now prepare an instance of model
         |sw1d_channel| and add, for a start, two |sw1d_storage| models to it, assign it
         to a new |Element| object, and show how method |HydPy.save_conditions| writes
@@ -1700,7 +1700,7 @@ deprecated.  Use method `prepare_models` instead.
         >>> my_channel.model = channel
         >>> hp.update_devices(elements=my_channel)
         >>> pub.timegrids.sim.lastdate = "1996-01-03"
-        >>> path = "LahnH/conditions/init_1996_01_03_00_00_00/my_channel.py"
+        >>> path = "HydPy-H-Lahn/conditions/init_1996_01_03_00_00_00/my_channel.py"
         >>> with TestIO():
         ...     hp.save_conditions()
         ...     with open(path) as conditionfile:
@@ -1710,7 +1710,7 @@ deprecated.  Use method `prepare_models` instead.
         from hydpy.models.sw1d_channel import *
         from hydpy.models import sw1d_storage
         <BLANKLINE>
-        controlcheck(projectdir=r"LahnH", controldir="default", stepsize="1d")
+        controlcheck(projectdir=r"HydPy-H-Lahn", controldir="default", stepsize="1d")
         <BLANKLINE>
         with model.storagemodels[0].define_conditions(sw1d_storage):
             watervolume(10.0)
@@ -1749,7 +1749,7 @@ deprecated.  Use method `prepare_models` instead.
         from hydpy.models import sw1d_lias
         from hydpy.models import sw1d_storage
         <BLANKLINE>
-        controlcheck(projectdir=r"LahnH", controldir="default", stepsize="1d")
+        controlcheck(projectdir=r"HydPy-H-Lahn", controldir="default", stepsize="1d")
         <BLANKLINE>
         with model.routingmodels[1].define_conditions(sw1d_lias):
             discharge(1.1)
@@ -1789,7 +1789,7 @@ deprecated.  Use method `prepare_models` instead.
         from hydpy.models import sw1d_storage
         from hydpy.models import sw1d_weir_out
         <BLANKLINE>
-        controlcheck(projectdir=r"LahnH", controldir="default", stepsize="1d")
+        controlcheck(projectdir=r"HydPy-H-Lahn", controldir="default", stepsize="1d")
         <BLANKLINE>
         with model.routingmodels[0].define_conditions(sw1d_q_in):
             discharge(1.0)
@@ -1833,8 +1833,8 @@ deprecated.  Use method `prepare_models` instead.
         """Check all values of the condition sequences (|StateSequence| and
         |LogSequence| objects) for boundary violations and fix them if necessary.
 
-        We use the `LahnH` example project to explain the functionality of the method
-        |HydPy.trim_conditions|, which gives no response when all conditions are
+        We use the `HydPy-H-Lahn` example project to explain the functionality of the
+        method |HydPy.trim_conditions|, which gives no response when all conditions are
         correctly set:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
@@ -1878,8 +1878,8 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         |LogSequence| object remembers the last assigned values and can reactivate them
         for the mentioned purpose.
 
-        For demonstration, we perform a simulation for the `LahnH` example project
-        spanning four days:
+        For demonstration, we perform a simulation for the `HydPy-H-Lahn` example
+        project spanning four days:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -1920,15 +1920,15 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         flexible when to handling multiple conditions, which can, for example, be
         useful for applying ensemble-based assimilation algorithms.
 
-        For demonstration, we perform simulations for the `LahnH` example project
-        spanning the first three months of 1996.  We begin with a preparation run
-        beginning on January 1 and ending on February 20:
+        For demonstration, we perform simulations for the `HydPy-H-Lahn` example
+        project spanning the first three months of 1996.  We begin with a preparation
+        run beginning on January 1 and ending on February 20:
 
         >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, TestIO, print_vector
         >>> with TestIO():
-        ...     hp = HydPy("LahnH")
+        ...     hp = HydPy("HydPy-H-Lahn")
         ...     pub.timegrids = "1996-01-01", "1996-04-01", "1d"
         ...     hp.prepare_everything()
         >>> pub.timegrids.sim.lastdate = "1996-02-20"
@@ -2042,7 +2042,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         |HydPy.print_networkproperties| is for convenience to summarise specific
         network measures like |HydPy.segregatednetworks|.
 
-        The `LahnH` example project defines a small, single network, with all
+        The `HydPy-H-Lahn` example project defines a small, single network, with all
         catchments ultimately discharging to node `lahn_3`:
 
         >>> from hydpy.core.testtools import prepare_full_example_1
@@ -2050,7 +2050,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         >>> from hydpy import HydPy, pub, TestIO
         >>> pub.timegrids = "1996-01-01", "1996-01-05", "1d"
         >>> with TestIO():
-        ...     hp = HydPy("LahnH")
+        ...     hp = HydPy("HydPy-H-Lahn")
         ...     hp.prepare_network()
         ...     hp.prepare_models()
         >>> hp.print_networkproperties()
@@ -2076,14 +2076,14 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         """All currently relevant |Node| objects that define a downstream endpoint of
         the network.
 
-        The `LahnH` example project defines a small, single network, with all
+        The `HydPy-H-Lahn` example project defines a small, single network, with all
         catchments ultimately discharging to node `lahn_3`:
 
         >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, TestIO
         >>> with TestIO():
-        ...     hp = HydPy("LahnH")
+        ...     hp = HydPy("HydPy-H-Lahn")
         ...     hp.prepare_network()
         >>> hp.endnodes
         Nodes("lahn_3")
@@ -2130,14 +2130,14 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
 
         Each end node (as defined by property |HydPy.endnodes|) eventually defines a
         single network, segregated from the networks of other end nodes.  Due to the
-        `LahnH` example project defining only a single end node, there can be only one
-        segregated network, accordingly:
+        `HydPy-H-Lahn` example project defining only a single end node, there can be
+        only one segregated network, accordingly:
 
         >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, TestIO
         >>> with TestIO():
-        ...     hp = HydPy("LahnH")
+        ...     hp = HydPy("HydPy-H-Lahn")
         ...     hp.prepare_network()
         >>> hp.segregatednetworks
         Selections("lahn_3")
@@ -2218,7 +2218,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         `stream_lahn_1_nowhere`, which we connect to node `lahn_1`:
 
         >>> with TestIO():
-        ...     hp = HydPy("LahnH")
+        ...     hp = HydPy("HydPy-H-Lahn")
         ...     hp.prepare_network()
         >>> from hydpy import Element
         >>> _ = Element("stream_lahn_2_lahn_3", outlets="nowhere")
@@ -2271,7 +2271,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, TestIO
         >>> with TestIO():
-        ...     hp = HydPy("LahnH")
+        ...     hp = HydPy("HydPy-H-Lahn")
         ...     hp.prepare_network()
         >>> hp.variables
         {'Q': 4}
@@ -2313,7 +2313,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, TestIO
         >>> with TestIO():
-        ...     hp = HydPy("LahnH")
+        ...     hp = HydPy("HydPy-H-Lahn")
         ...     hp.prepare_network()
         >>> hp.modeltypes
         {'unprepared': 7}
@@ -2653,7 +2653,7 @@ actual HydPy instance does not handle any elements at the moment.
         |Timegrids| object stored in module |pub|.
 
         We let function |prepare_full_example_2| prepare a runnable |HydPy| object
-        related to the `LahnH` example project:
+        related to the `HydPy-H-Lahn` example project:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()

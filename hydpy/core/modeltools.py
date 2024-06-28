@@ -2266,7 +2266,7 @@ of type `evap_aet_hbv96`.
         |Model.load_conditions| and |Model.save_conditions| directly offers the
         advantage of specifying alternative filenames.  We demonstrate this by using
         the state sequence |hland_states.SM| if the `land_dill` |Element| object of the
-        `LahnH` example project:
+        `HydPy-H-Lahn` example project:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -2323,7 +2323,7 @@ it is usally assumed to be consistent with the name of the element handling the 
 model.  Actually, neither a filename is given nor does the model know its master \
 element.
 
-        The submodels selected in the `LahnH` example project do not require any
+        The submodels selected in the `HydPy-H-Lahn` example project do not require any
         condition sequences.  Hence, we replace the combination of |evap_aet_hbv96| and
         |evap_pet_hbv96| with a plain |evap_aet_morsim| instance, which relies on some
         log sequences:
@@ -3058,7 +3058,8 @@ but the value `1` of type `int` is given.
         derived parameters and the control and derived parameters of all its submodels.
 
         We use the combination of |hland_96|, |evap_aet_hbv96|, and |evap_pet_hbv96|
-        used by the `LahnH` project for modelling the Dill catchment as an example:
+        used by the `HydPy-H-Lahn` project for modelling the Dill catchment as an
+        example:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp = prepare_full_example_2()[0]

@@ -2345,7 +2345,7 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
 
 
 def prepare_full_example_1(dirpath: Optional[str] = None) -> None:
-    """Prepare the `LahnH` example project on disk.
+    """Prepare the `HydPy-H-Lahn` example project on disk.
 
     By default, function |prepare_full_example_1| copies the original project data into
     the `iotesting` directory, thought for performing automated tests on real-world
@@ -2358,43 +2358,45 @@ def prepare_full_example_1(dirpath: Optional[str] = None) -> None:
     >>> with TestIO():
     ...     print("root:", *sorted(os.listdir(".")))
     ...     for folder in ("control", "conditions", "series"):
-    ...         print(f"LahnH/{folder}:",
-    ...               *sorted(os.listdir(f"LahnH/{folder}")))
-    root: LahnH __init__.py
-    LahnH/control: default
-    LahnH/conditions: init_1996_01_01_00_00_00
-    LahnH/series: default
+    ...         print(f"HydPy-H-Lahn/{folder}:",
+    ...               *sorted(os.listdir(f"HydPy-H-Lahn/{folder}")))
+    root: HydPy-H-Lahn __init__.py
+    HydPy-H-Lahn/control: default
+    HydPy-H-Lahn/conditions: init_1996_01_01_00_00_00
+    HydPy-H-Lahn/series: default
 
     Pass an alternative path if you prefer to work in another directory:
 
     .. testsetup::
 
-        >>> "LahnH" in os.listdir(".")
+        >>> "HydPy-H-Lahn" in os.listdir(".")
         False
 
     >>> prepare_full_example_1(dirpath=".")
 
     .. testsetup::
 
-        >>> "LahnH" in os.listdir(".")
+        >>> "HydPy-H-Lahn" in os.listdir(".")
         True
         >>> import shutil
-        >>> shutil.rmtree("LahnH")
+        >>> shutil.rmtree("HydPy-H-Lahn")
     """
     if dirpath is None:
         TestIO.clear()
         dirpath = iotesting.__path__[0]
     datapath: str = data.__path__[0]
-    shutil.copytree(os.path.join(datapath, "LahnH"), os.path.join(dirpath, "LahnH"))
+    shutil.copytree(
+        os.path.join(datapath, "HydPy-H-Lahn"), os.path.join(dirpath, "HydPy-H-Lahn")
+    )
 
 
 def prepare_full_example_2(
     lastdate: timetools.DateConstrArg = "1996-01-05",
 ) -> tuple[hydpytools.HydPy, pubtools.Pub, type[TestIO]]:
-    """Prepare the `LahnH` project on disk and in RAM.
+    """Prepare the `HydPy-H-Lahn` project on disk and in RAM.
 
     Function |prepare_full_example_2| is an extensions of function
-    |prepare_full_example_1|.  Besides preparing the project data of the `LahnH`
+    |prepare_full_example_1|.  Besides preparing the project data of the `HydPy-H-Lahn`
     example project, it performs all necessary steps to start a simulation run.
     Therefore, it returns a readily prepared |HydPy| instance, as well as, for
     convenience, module |pub| and class |TestIO|:
@@ -2427,7 +2429,7 @@ def prepare_full_example_2(
     """
     prepare_full_example_1()
     with TestIO():
-        hp = hydpytools.HydPy("LahnH")
+        hp = hydpytools.HydPy("HydPy-H-Lahn")
         hydpy.pub.timegrids = "1996-01-01", lastdate, "1d"
         hp.prepare_everything()
     return hp, hydpy.pub, TestIO

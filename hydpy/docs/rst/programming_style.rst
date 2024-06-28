@@ -14,7 +14,7 @@
 .. _autogen: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/cythons/autogen
 .. _conf: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/conf
 .. _data: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/data
-.. _LahnH example project: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/data/LahnH
+.. _HydPy-H-Lahn example project: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/data/HydPy-H-Lahn
 .. _docs: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/docs
 .. _reStructuredText: _http://docutils.sourceforge.net/rst.html
 .. _sphinx: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/docs/sphinx
@@ -156,7 +156,7 @@ files and coefficients for numerical integration algorithms), which
 might be generated automatically during *HydPy's* build process.
 
 Subpackage `data`_ provides example data usable within doctests,
-currently only the `LahnH example project`_.
+currently only the `HydPy-H-Lahn example project`_.
 
 Subpackage `docs`_ contains different subpackages.  `sphinx`_
 controls the automatic generation of the HTML documentation. `rst`_

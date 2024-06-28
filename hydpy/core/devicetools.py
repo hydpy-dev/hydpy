@@ -1525,15 +1525,15 @@ a function for coupling models that belong to the same collective.
     def prepare_models(self) -> None:
         """Call method |Element.prepare_model| of all handle |Element| objects.
 
-        We show, based on the `LahnH` example project, that method |Element.init_model|
-        prepares the |Model| objects of all elements, including building the required
-        connections and updating the derived parameters:
+        We show, based on the `HydPy-H-Lahn` example project, that method
+        |Element.init_model| prepares the |Model| objects of all elements, including
+        building the required connections and updating the derived parameters:
 
         >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import attrready, HydPy, pub, TestIO
         >>> with TestIO():
-        ...     hp = HydPy("LahnH")
+        ...     hp = HydPy("HydPy-H-Lahn")
         ...     pub.timegrids = "1996-01-01", "1996-02-01", "1d"
         ...     hp.prepare_network()
         ...     hp.prepare_models()
@@ -1543,7 +1543,7 @@ a function for coupling models that belong to the same collective.
         Wrong control files result in error messages like the following:
 
         >>> with TestIO():
-        ...     with open("LahnH/control/default/land_dill.py", "a") as file_:
+        ...     with open("HydPy-H-Lahn/control/default/land_dill.py", "a") as file_:
         ...         _ = file_.write("zonetype(-1)")
         ...     hp.prepare_models()   # doctest: +ELLIPSIS
         Traceback (most recent call last):
@@ -1558,7 +1558,7 @@ a function for coupling models that belong to the same collective.
         >>> del hp.elements.land_dill.model
         >>> import os
         >>> with TestIO():
-        ...     os.remove("LahnH/control/default/land_dill.py")
+        ...     os.remove("HydPy-H-Lahn/control/default/land_dill.py")
         ...     hp.prepare_models()   # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
@@ -1569,8 +1569,8 @@ a function for coupling models that belong to the same collective.
         False
 
         When building new, still incomplete *HydPy* projects, this behaviour can be
-        annoying.  After setting the option |Options.warnmissingcontrolfile| to |False|,
-        missing control files result in a warning only:
+        annoying.  After setting the option |Options.warnmissingcontrolfile| to
+        |False|, missing control files result in a warning only:
 
         >>> with TestIO():
         ...     with pub.options.warnmissingcontrolfile(True):

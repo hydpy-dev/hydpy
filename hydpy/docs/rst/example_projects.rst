@@ -12,19 +12,20 @@ advanced features.  Note that all example projects are also included in each Hyd
 release.  We use them to explain and test HydPy in several documentation sections.
 
 
-.. _LahnH:
+.. _HydPy-H-Lahn:
 
-LahnH
-______
+HydPy-H-Lahn
+____________
 
-LahnH is a complete project data set for the German river Lahn, provided by the `German
-Federal Institute of Hydrology (BfG)`_.  The Lahn is a medium-sized tributary to the
-Rhine.  The given project configuration agrees with the BfG's forecasting model, using
-HBV96 to simulate the inflow of the Rhine's tributaries.  The catchment consists of
-four sub-catchments, each with a river gauge (Marburg, Asslar, Leun, Kalkofen) at its
-outlet.  The sub-catchments consist of a different number of zones.
+`HydPy-H-Lahn` is a complete project data set for the German river Lahn, provided by
+the `German Federal Institute of Hydrology (BfG)`_.  The Lahn is a medium-sized
+tributary to the Rhine.  The given project configuration agrees with the BfG's
+forecasting model, using HBV96 to simulate the inflow of the Rhine's tributaries.  The
+catchment consists of four sub-catchments, each with a river gauge (Marburg, Asslar,
+Leun, Kalkofen) at its outlet.  The sub-catchments consist of a different number of
+zones.
 
-Click :download:`here <LahnH.zip>` to download LahnH.
+Click :download:`here <HydPy-H-Lahn.zip>` to download `HydPy-H-Lahn`.
 
-.. image:: LahnH.png
+.. image:: HydPy-H-Lahn.png
    :width: 800

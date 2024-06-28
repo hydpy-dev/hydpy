@@ -74,6 +74,6 @@ Available models:
    dam_llake
    dam_lretention
    dam_lreservoir
-   Pumping station <dam_pump>
-   Sluice <dam_sluice>
-   Pump with Sluice <dam_pump_sluice>
+   dam_pump
+   dam_sluice
+   dam_pump_sluice

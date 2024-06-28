@@ -1,0 +1,21 @@
+.. |Calc_Discharge_V3| replace:: :class:`~hydpy.models.sw1d.sw1d_model.Calc_Discharge_V3`
+.. |DampingRadius| replace:: :class:`~hydpy.models.sw1d.sw1d_control.DampingRadius`
+.. |GateHeight| replace:: :class:`~hydpy.models.sw1d.sw1d_control.GateHeight`
+.. |StorageModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.StorageModel_V1`
+.. |sw1d.DOCNAME.long| replace:: HydPy-SW1D
+.. |sw1d_channel| replace:: :mod:`~hydpy.models.sw1d_channel`
+.. |sw1d_gate_out.DOCNAME.complete| replace:: HydPy-SW1D-Gate-Out (submodel for calculating flow under a submerged gate at a channel outlet)
+.. |sw1d_gate_out| replace:: :mod:`~hydpy.models.sw1d_gate_out`
+.. |sw1d_weir_out| replace:: :mod:`~hydpy.models.sw1d_weir_out`
+.. |sw1d_outlets.LongQ| replace:: :class:`~hydpy.models.sw1d.sw1d_outlets.LongQ`
+.. |sw1d_receivers.WaterLevel| replace:: :class:`~hydpy.models.sw1d.sw1d_receivers.WaterLevel`
+
+.. _sw1d_gate_out:
+
+sw1d_gate_out
+=============
+
+.. automodule:: hydpy.models.sw1d_gate_out
+    :members:
+    :show-inheritance:
+    :exclude-members: AbstractSet, Protocol, MutableMapping, SupportsIndex, BinaryIO, AsyncContextManager, is_protocol, Annotated, ClassVar, subvars, runtime_checkable, Mapping, ADD_METHODS, SupportsComplex, get_origin, TypeIs, NamedTuple, ParamSpecKwargs, Dict, AsyncIterator, AsyncGenerator, SUBMETHODS, Optional, InputSequences, Iterator, Self, TYPE_CHECKING, TypeGuard, Text, FIXEDPARAMETERS, INTERFACE_METHODS, TextIO, runtime, RUN_METHODS, fastaccess_old, ValuesView, INLET_METHODS, SUBMODELS, CapsuleType, TypeVar, Generic, List, Sequence, Match, Container, SOLVERSEQUENCES, pars, LiteralString, MutableSequence, Final, ParamSpecArgs, fastaccess_new, RESULTSEQUENCES, Concatenate, reveal_type, TypeVarTuple, SUBMODELINTERFACES, FrozenSet, Pattern, no_type_check, CONTROLPARAMETERS, ByteString, NoDefault, SOLVERPARAMETERS, SupportsFloat, SupportsInt, override, SenderSequences, get_type_hints, ChainMap, ReadOnly, subpars, seqs, is_typeddict, Any, SENDER_METHODS, MappingView, ContextManager, Required, deprecated, Counter, Tuple, Deque, Buffer, Literal, Collection, DefaultDict, final, TypeAliasType, NoReturn, Union, Type, no_type_check_decorator, Doc, clear_overloads, FULL_ODE_METHODS, PART_ODE_METHODS, Unpack, fastaccess, SupportsBytes, assert_never, Coroutine, AideSequences, assert_type, AsyncIterable, LogSequences, REQUIREDSEQUENCES, ParamSpec, RECEIVER_METHODS, IO, OrderedDict, MutableSet, Hashable, get_overloads, ForwardRef, Reversible, Never, SupportsAbs, subseqs, AnyStr, Generator, Callable, dataclass_transform, OUTLET_METHODS, get_args, TypeAlias, overload, Set, get_original_bases, Sized, get_protocol_members, KeysView, Iterable, IntVar, NewType, DERIVEDPARAMETERS, ItemsView, SupportsRound, NotRequired, cast, TypedDict, CLASSES, UPDATEDSEQUENCES, Awaitable

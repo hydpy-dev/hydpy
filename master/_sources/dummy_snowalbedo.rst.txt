@@ -1,0 +1,14 @@
+.. |dummy_snowalbedo.DOCNAME.complete| replace:: HydPy-Dummy-SnowAlbedo (dummy model supplying main models with snow albedo states)
+.. |dummy_snowalbedo| replace:: :mod:`~hydpy.models.dummy_snowalbedo`
+.. |evap_aet_morsim| replace:: :mod:`~hydpy.models.evap_aet_morsim`
+.. |lland_knauf| replace:: :mod:`~hydpy.models.lland_knauf`
+
+.. _dummy_snowalbedo:
+
+dummy_snowalbedo
+================
+
+.. automodule:: hydpy.models.dummy_snowalbedo
+    :members:
+    :show-inheritance:
+    :exclude-members: AbstractSet, Protocol, MutableMapping, SupportsIndex, BinaryIO, AsyncContextManager, is_protocol, Annotated, ClassVar, subvars, runtime_checkable, Mapping, ADD_METHODS, SupportsComplex, get_origin, TypeIs, NamedTuple, ParamSpecKwargs, Dict, StateSequences, AsyncIterator, AsyncGenerator, SUBMETHODS, Optional, Iterator, Self, TYPE_CHECKING, TypeGuard, Text, FIXEDPARAMETERS, INTERFACE_METHODS, TextIO, runtime, RUN_METHODS, fastaccess_old, ValuesView, INLET_METHODS, SUBMODELS, CapsuleType, TypeVar, Generic, List, Sequence, Match, Container, SOLVERSEQUENCES, pars, LiteralString, MutableSequence, Final, ParamSpecArgs, fastaccess_new, RESULTSEQUENCES, Concatenate, reveal_type, TypeVarTuple, SUBMODELINTERFACES, FrozenSet, Pattern, no_type_check, CONTROLPARAMETERS, ByteString, NoDefault, SOLVERPARAMETERS, SupportsFloat, SupportsInt, override, SenderSequences, get_type_hints, ChainMap, ReadOnly, subpars, seqs, is_typeddict, Any, SENDER_METHODS, MappingView, ContextManager, Required, deprecated, Counter, Tuple, Deque, Buffer, Literal, Collection, DefaultDict, final, TypeAliasType, NoReturn, Union, Type, no_type_check_decorator, FactorSequences, OutletSequences, Doc, clear_overloads, FULL_ODE_METHODS, PART_ODE_METHODS, Unpack, fastaccess, FluxSequences, SupportsBytes, assert_never, Coroutine, AideSequences, assert_type, AsyncIterable, LogSequences, REQUIREDSEQUENCES, ParamSpec, RECEIVER_METHODS, IO, OrderedDict, MutableSet, Hashable, get_overloads, InletSequences, ForwardRef, Reversible, Never, SupportsAbs, subseqs, AnyStr, Generator, Callable, dataclass_transform, OUTLET_METHODS, get_args, TypeAlias, overload, Set, ReceiverSequences, get_original_bases, Sized, get_protocol_members, KeysView, Iterable, IntVar, NewType, DERIVEDPARAMETERS, ItemsView, SupportsRound, NotRequired, cast, TypedDict, CLASSES, UPDATEDSEQUENCES, Awaitable

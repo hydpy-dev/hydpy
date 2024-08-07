@@ -8,3 +8,4 @@ User Guide
    :hidden:
 
    how_to_read_the_reference_manual
+   definitions

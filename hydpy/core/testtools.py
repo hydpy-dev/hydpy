@@ -86,8 +86,8 @@ class StdOutErr:
     def __enter__(self) -> None:
         self.encoding = sys.stdout.encoding
         # just for testing:
-        sys.stdout = self  # type: ignore[assignment]
-        sys.stderr = self  # type: ignore[assignment]
+        sys.stdout = self
+        sys.stderr = self
 
     def __exit__(
         self,

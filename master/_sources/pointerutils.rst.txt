@@ -1,0 +1,23 @@
+.. |DoubleBase| replace:: :class:`~hydpy.cythons.autogen.pointerutils.DoubleBase`
+.. |Double| replace:: :class:`~hydpy.cythons.autogen.pointerutils.Double`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |LinkSequence| replace:: :class:`~hydpy.core.sequencetools.LinkSequence`
+.. |Model| replace:: :class:`~hydpy.core.modeltools.Model`
+.. |NodeSequence| replace:: :class:`~hydpy.core.sequencetools.NodeSequence`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |PDouble| replace:: :class:`~hydpy.cythons.autogen.pointerutils.PDouble`
+.. |PPDouble| replace:: :class:`~hydpy.cythons.autogen.pointerutils.PPDouble`
+.. |float| replace:: :class:`float`
+.. |numpy| replace:: :mod:`~numpy`
+.. |pointerutils| replace:: :mod:`~hydpy.cythons.autogen.pointerutils`
+.. |numpy.ndarray| replace:: :class:`~numpy.ndarray`
+
+.. _pointerutils:
+
+pointerutils
+============
+
+.. automodule:: hydpy.cythons.pointerutils
+    :members:
+    :show-inheritance:
+    :exclude-members: Generic, runtime_checkable, Any, no_type_check, seqs, INLET_METHODS, Optional, MappingView, Collection, KeysView, Generator, INTERFACE_METHODS, AsyncIterable, TypeIs, TypeVar, Match, SOLVERSEQUENCES, subpars, IO, CLASSES, Doc, assert_never, deprecated, Pattern, SupportsAbs, DefaultDict, get_protocol_members, no_type_check_decorator, Tuple, FULL_ODE_METHODS, clear_overloads, get_type_hints, SUBMETHODS, pars, TypeGuard, SupportsIndex, MutableMapping, ReadOnly, Protocol, REQUIREDSEQUENCES, MutableSequence, FrozenSet, Required, TypeAliasType, CapsuleType, Hashable, Awaitable, Annotated, FIXEDPARAMETERS, get_args, Self, MutableSet, Text, Sequence, OUTLET_METHODS, Buffer, Unpack, ClassVar, RECEIVER_METHODS, Deque, final, AnyStr, AsyncContextManager, AsyncIterator, ADD_METHODS, Concatenate, DERIVEDPARAMETERS, TYPE_CHECKING, RUN_METHODS, overload, Final, ByteString, NewType, SUBMODELS, SupportsInt, dataclass_transform, Literal, Type, Never, reveal_type, ParamSpec, Mapping, Iterable, SENDER_METHODS, subvars, assert_type, fastaccess, LiteralString, UPDATEDSEQUENCES, Reversible, ValuesView, Callable, Sized, ForwardRef, Union, SupportsComplex, ParamSpecKwargs, Counter, Coroutine, NamedTuple, SupportsFloat, AbstractSet, BinaryIO, subseqs, SOLVERPARAMETERS, runtime, SupportsBytes, OrderedDict, ChainMap, List, SupportsRound, NoReturn, override, IntVar, AsyncGenerator, is_typeddict, RESULTSEQUENCES, CONTROLPARAMETERS, cast, ItemsView, ParamSpecArgs, NoDefault, Iterator, fastaccess_old, TypedDict, get_origin, TypeAlias, fastaccess_new, is_protocol, Dict, SUBMODELINTERFACES, get_overloads, get_original_bases, NotRequired, ContextManager, TypeVarTuple, Set, Container, TextIO, PART_ODE_METHODS

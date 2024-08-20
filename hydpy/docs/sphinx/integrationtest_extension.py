@@ -6,7 +6,9 @@ from typing import Any
 
 # ...from site-packages
 from docutils import nodes
-from sphinx.directives import code
+from sphinx.application import Sphinx
+from sphinx.directives.code import CodeBlock
+from sphinx.writers.html5 import HTML5Translator
 
 
 counter = 0
@@ -29,7 +31,7 @@ class IntegrationTestNode(nodes.General, nodes.FixedTextElement):
     """The docutils node for the integration test directive."""
 
 
-class IntegrationTestBlock(code.CodeBlock):
+class IntegrationTestBlock(CodeBlock):
     """A sphinx directive specialised for integration test code blocks."""
 
     def run(self) -> list[Any]:  # ToDo: should we subclass from Node?
@@ -40,7 +42,7 @@ class IntegrationTestBlock(code.CodeBlock):
         return [integrationtestnode]
 
 
-def visit_html(self, node):
+def visit_html(self: HTML5Translator, node: IntegrationTestNode) -> None:
     """Modify the already generated HTML code.  Add the JavaScript code defined of
     `CODE_SHOWHIDE` between the `test()` call and the result table and include the
     generated HTML file at the bottom."""
@@ -95,13 +97,8 @@ def visit_html(self, node):
     raise nodes.SkipNode
 
 
-# noinspection PyUnusedLocal
-def depart_html(self, node):  # pylint: disable=unused-argument
-    """No need to implement anything."""
-
-
-def setup(app):
-    """Add the defined node `IntegrationTestNode` and directive `IntegrationTestBlock`
-    to the sphinx application."""
+def setup(app: Sphinx) -> None:
+    """Add the node `IntegrationTestNode` and directive `IntegrationTestBlock` to the
+    sphinx application."""
     app.add_directive("integration-test", IntegrationTestBlock)
-    app.add_node(IntegrationTestNode, html=(visit_html, depart_html))
+    app.add_node(IntegrationTestNode, html=(visit_html, None))

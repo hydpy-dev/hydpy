@@ -60,6 +60,7 @@ extensions = [
     "sphinxcontrib.fulltoc",
     "integrationtest_extension",
     "defaultlinks_extension",
+    "projectstructure_extension",
 ]
 
 autoclass_content = "class"

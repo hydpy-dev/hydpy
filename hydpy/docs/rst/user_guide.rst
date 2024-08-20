@@ -10,3 +10,4 @@ User Guide
    how_to_read_the_reference_manual
    definitions
    model_overview
+   project_structure

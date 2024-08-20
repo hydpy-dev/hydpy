@@ -69,6 +69,8 @@ floating-point values.  As you can see in the documentation on |hland_control.Ar
 :ref:`HydPy-H` (unsurprisingly) expects the subbasin area to be defined by
 floating-point values.
 
+.. _instance:
+
 instance
 ________
 

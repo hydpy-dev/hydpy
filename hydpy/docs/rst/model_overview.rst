@@ -28,6 +28,8 @@ ___________
 In HydPy, many main models represent hydrological processes, but there are also those
 serving more technical tasks.
 
+.. _land_models:
+
 Land models
 -----------
 
@@ -56,6 +58,8 @@ simulate surface water fluxes in lowland catchments influenced by near-surface
 groundwater.  Application model |wland_wag| extends the original WALRUS concept by
 providing additional options regarding the spatial distribution of processes and the
 handling of mildly hilly terrain.
+
+.. _stream_models:
 
 Stream models
 -------------
@@ -100,6 +104,8 @@ geometries and |kinw_williams_ext| using preprocessed storage-discharge relation
 Before deciding to use any of its members, please read the current development status
 of :ref:`HydPy-KinW`, as we are likely to introduce some breaking changes soon.
 
+.. _lake_models:
+
 Lake models
 -----------
 
@@ -116,6 +122,8 @@ to simulate the drainage of lowlands via active pumping and sluice-controlled fr
 flow.  The applications models |dam_v001| to |dam_v005| (which we might replace with a
 single, more flexible model type in the future) cover more complex dam and reservoir
 functionalities, including water transfers between model instances.
+
+.. _exchange_models:
 
 Exchange models
 ---------------
@@ -135,6 +143,8 @@ current water level gradient.
 
 Note that :ref:`HydPy-Exch` also provides submodels like
 |exch_waterlevel| (see below).
+
+.. _interpolation_models:
 
 Interpolation models
 --------------------

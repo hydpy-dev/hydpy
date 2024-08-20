@@ -11,6 +11,7 @@ import copy
 import datetime
 import doctest
 import enum
+import functools
 import importlib
 import inspect
 import itertools
@@ -1269,3 +1270,118 @@ def autodoc_tuple2doc(module: types.ModuleType) -> None:
                         )
                     doc = getattr(member, "__doc__")
                     member.__doc__ = doc + "\n".join(l for l in lst)
+
+
+class Directory(TypedDict):
+    """Helper for representing directory structures."""
+
+    subdirectories: dict[str, Directory]
+    """Mapping between the subdirectory names and the subdirectories of a directory."""
+
+    files: list[str]
+    """The names of all files of a directory."""
+
+
+class ProjectStructure:
+    """Analyser and visualiser of the file structure of HydPy projects."""
+
+    _dirpath: str
+    """Directory path to the HydPy project."""
+    _projectname: str
+    """Directory name of the HydPy project."""
+
+    def __init__(self, *, projectpath: str) -> None:
+        self._dirpath = projectpath
+        self._projectname = os.path.split(projectpath)[-1]
+
+    @functools.cached_property
+    def directories(self) -> Directory:
+        """A representation of the project's file structure based on nested |Directory|
+        dictionaries.
+
+        >>> import os
+        >>> from hydpy import data
+        >>> dirpath = os.path.join(data.__path__[0], "HydPy-H-Lahn")
+        >>> from hydpy.core.autodoctools import ProjectStructure
+        >>> pj = ProjectStructure(projectpath=dirpath)
+        >>> from pprint import pprint
+        >>> pprint(pj.directories["files"])
+        ['multiple_runs.xml',
+         'multiple_runs_alpha.xml',
+         'single_run.xml',
+         'single_run.xmlt']
+        >>> list(pj.directories["subdirectories"])
+        ['conditions', 'control', 'network', 'series']
+        >>> control = pj.directories["subdirectories"]["control"]
+        >>> pprint(control["subdirectories"]["default"]["files"])
+        ['land.py',
+         'land_dill.py',
+         'land_lahn_1.py',
+         'land_lahn_2.py',
+         'land_lahn_3.py',
+         'stream_dill_lahn_2.py',
+         'stream_lahn_1_lahn_2.py',
+         'stream_lahn_2_lahn_3.py']
+        >>> pprint(control["subdirectories"]["default"]["subdirectories"])
+        {}
+        """
+
+        def _make_directory(dirpath: str) -> Directory:
+            subdir: Directory = {"subdirectories": {}, "files": []}
+            for name in sorted(os.listdir(dirpath)):
+                if name.startswith("_"):
+                    continue
+                path = os.path.join(dirpath, name)
+                if os.path.isfile(path):
+                    subdir["files"].append(name)
+                else:
+                    subdirpath = os.path.join(dirpath, name)
+                    subdir["subdirectories"][name] = _make_directory(subdirpath)
+            return subdir
+
+        return _make_directory(self._dirpath)
+
+    @property
+    def html(self) -> str:
+        """A representation of the project's file structure based on nested HTML
+        `describe` elements, including incline CSS instructions.
+
+        >>> import os
+        >>> from hydpy import data
+        >>> projectpath = os.path.join(data.__path__[0], "HydPy-H-Lahn")
+        >>> from hydpy.core.autodoctools import ProjectStructure
+        >>> pj = ProjectStructure(projectpath=projectpath)
+        >>> print(pj.html)  # doctest: +ELLIPSIS
+        <details style="margin-left:1em; color:#20435c; font-family:'Trebuchet MS'">
+          <summary><b>HydPy-H-Lahn</b></summary>
+          ...
+          <details style="margin-left:1em">
+            <summary><b>control</b></summary>
+            <details style="margin-left:1em">
+              <summary><b>default</b></summary>
+              <h style="margin-left:1em">land.py</h><br/>
+              ...
+              <h style="margin-left:1em">stream_lahn_2_lahn_3.py</h><br/>
+            </details>
+          </details>
+          ...
+        </details>
+        """
+
+        def _make_html(name: str, dir_: Directory, indent: int) -> list[str]:
+            style = 'style="margin-left:1em'
+            if indent == 0:
+                style = f"{style}; color:#20435c; font-family:'Trebuchet MS'"
+            style = f'{style}"'
+            prefix = indent * "  "
+            lines = []
+            lines.append(f"{prefix}<details {style}>")
+            lines.append(f"{prefix}  <summary><b>{name}</b></summary>")
+            for subdirname, subdir in dir_["subdirectories"].items():
+                lines.extend(_make_html(subdirname, subdir, indent + 1))
+            for filename in dir_["files"]:
+                lines.append(f"{prefix}  <h {style}>{filename}</h><br/>")
+            lines.append(f"{prefix}</details>")
+            return lines
+
+        return "\n".join(_make_html(self._projectname, self.directories, 0))

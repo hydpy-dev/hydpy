@@ -42,8 +42,10 @@ class ProjectStructureBlock(CodeBlock):
 def visit_html(self: HTML5Translator, node: ProjectStructureNode) -> None:
     """Generate and insert the HTML code of the selected example project."""
 
-    projectpath = os.path.join(data.__path__[0], node.projectname)
-    projectstructure = autodoctools.ProjectStructure(projectpath=projectpath)
+    projectstructure = autodoctools.ProjectStructure(
+        projectpath=os.path.join(data.__path__[0], node.projectname),
+        branch=os.environ.get("TRAVIS_BRANCH", "master"),
+    )
     self.body[-1] = projectstructure.html
 
     raise nodes.SkipNode

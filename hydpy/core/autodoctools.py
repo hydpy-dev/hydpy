@@ -1289,10 +1289,40 @@ class ProjectStructure:
     """Directory path to the HydPy project."""
     _projectname: str
     """Directory name of the HydPy project."""
+    _branch: str
+    """The relevant git branch (required to build stable references to the correct 
+    project files on GitHub)."""
 
-    def __init__(self, *, projectpath: str) -> None:
+    def __init__(self, *, projectpath: str, branch: str) -> None:
         self._dirpath = projectpath
         self._projectname = os.path.split(projectpath)[-1]
+        self._branch = branch
+
+    @functools.cached_property
+    def url_prefix(self) -> str:
+        """The base GitHub URL that is common to all project files of the relevant
+        branch.
+
+        >>> import os
+        >>> from hydpy import data
+        >>> projectpath = os.path.join(data.__path__[0], "HydPy-H-Lahn")
+        >>> from hydpy.core.autodoctools import ProjectStructure
+        >>> ProjectStructure(projectpath=projectpath, branch="master").url_prefix
+        'https://github.com/hydpy-dev/hydpy/blob/master/hydpy/data'
+        >>> ProjectStructure(projectpath=projectpath, branch="release/v6.0").url_prefix
+        'https://github.com/hydpy-dev/hydpy/blob/release/v6.0/hydpy/data'
+        """
+
+        return f"https://github.com/hydpy-dev/hydpy/blob/{self._branch}/hydpy/data"
+
+    def _get_filereference(self, url_dirpath: str, filename: str) -> str:
+        url_suffix = "/".join([url_dirpath, filename])
+        return (
+            f"<a "
+            f'class="reference external" '
+            f'href="{self.url_prefix}/{url_suffix}">{filename}'
+            f"</a>"
+        )
 
     @functools.cached_property
     def directories(self) -> Directory:
@@ -1350,7 +1380,7 @@ class ProjectStructure:
         >>> from hydpy import data
         >>> projectpath = os.path.join(data.__path__[0], "HydPy-H-Lahn")
         >>> from hydpy.core.autodoctools import ProjectStructure
-        >>> pj = ProjectStructure(projectpath=projectpath)
+        >>> pj = ProjectStructure(projectpath=projectpath, branch="master")
         >>> print(pj.html)  # doctest: +ELLIPSIS
         <details style="margin-left:1em; color:#20435c; font-family:'Trebuchet MS'">
           <summary><b>HydPy-H-Lahn</b></summary>
@@ -1359,16 +1389,22 @@ class ProjectStructure:
             <summary><b>control</b></summary>
             <details style="margin-left:1em">
               <summary><b>default</b></summary>
-              <h style="margin-left:1em">land.py</h><br/>
+              <h style="margin-left:1em"><a class="reference external" \
+href="https://github.com/hydpy-dev/hydpy/blob/master/hydpy/data/HydPy-H-Lahn/control\
+/default/land.py">land.py</a></h><br/>
               ...
-              <h style="margin-left:1em">stream_lahn_2_lahn_3.py</h><br/>
+              <h style="margin-left:1em"><a class="reference external" \
+href="https://github.com/hydpy-dev/hydpy/blob/master/hydpy/data/HydPy-H-Lahn/control\
+/default/stream_lahn_2_lahn_3.py">stream_lahn_2_lahn_3.py</a></h><br/>
             </details>
           </details>
           ...
         </details>
         """
 
-        def _make_html(name: str, dir_: Directory, indent: int) -> list[str]:
+        def _make_html(
+            dirname: str, dir_: Directory, url: str, indent: int
+        ) -> list[str]:
             style = 'style="margin-left:1em'
             if indent == 0:
                 style = f"{style}; color:#20435c; font-family:'Trebuchet MS'"
@@ -1376,12 +1412,25 @@ class ProjectStructure:
             prefix = indent * "  "
             lines = []
             lines.append(f"{prefix}<details {style}>")
-            lines.append(f"{prefix}  <summary><b>{name}</b></summary>")
+            lines.append(f"{prefix}  <summary><b>{dirname}</b></summary>")
             for subdirname, subdir in dir_["subdirectories"].items():
-                lines.extend(_make_html(subdirname, subdir, indent + 1))
+                html_ = _make_html(
+                    dirname=subdirname,
+                    dir_=subdir,
+                    url="/".join([url, subdirname]),
+                    indent=indent + 1,
+                )
+                lines.extend(html_)
             for filename in dir_["files"]:
-                lines.append(f"{prefix}  <h {style}>{filename}</h><br/>")
+                ref = self._get_filereference(url_dirpath=url, filename=filename)
+                lines.append(f"{prefix}  <h {style}>{ref}</h><br/>")
             lines.append(f"{prefix}</details>")
             return lines
 
-        return "\n".join(_make_html(self._projectname, self.directories, 0))
+        html = _make_html(
+            dirname=self._projectname,
+            dir_=self.directories,
+            url=self._projectname,
+            indent=0,
+        )
+        return "\n".join(html)

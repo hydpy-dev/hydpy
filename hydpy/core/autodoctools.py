@@ -1333,7 +1333,7 @@ class ProjectStructure:
         >>> from hydpy import data
         >>> dirpath = os.path.join(data.__path__[0], "HydPy-H-Lahn")
         >>> from hydpy.core.autodoctools import ProjectStructure
-        >>> pj = ProjectStructure(projectpath=dirpath)
+        >>> pj = ProjectStructure(projectpath=dirpath, branch="master")
         >>> from pprint import pprint
         >>> pprint(pj.directories["files"])
         ['multiple_runs.xml',
@@ -1371,10 +1371,10 @@ class ProjectStructure:
 
         return _make_directory(self._dirpath)
 
-    @property
+    @functools.cached_property
     def html(self) -> str:
         """A representation of the project's file structure based on nested HTML
-        `describe` elements, including incline CSS instructions.
+        `describe` elements, including inline CSS instructions.
 
         >>> import os
         >>> from hydpy import data
@@ -1434,3 +1434,13 @@ href="https://github.com/hydpy-dev/hydpy/blob/master/hydpy/data/HydPy-H-Lahn/con
             indent=0,
         )
         return "\n".join(html)
+
+
+# ToDo: remove when stopping supporting Python 3.12
+#       (see https://github.com/python/cpython/issues/107995)
+__test__ = {
+    f"ProjectStructure.{name}": member
+    for name, member in inspect.getmembers(ProjectStructure)
+    if isinstance(member, functools.cached_property)
+}
+

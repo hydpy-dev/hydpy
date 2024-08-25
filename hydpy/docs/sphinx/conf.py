@@ -61,6 +61,7 @@ extensions = [
     "integrationtest_extension",
     "defaultlinks_extension",
     "projectstructure_extension",
+    "submodelgraph_extension",
 ]
 
 autoclass_content = "class"

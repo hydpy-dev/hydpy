@@ -16,9 +16,10 @@ their purpose and briefly outline exemplary :ref:`application models
 <application_model>`.  For a thorough explanation of all available models, see the
 reference guide's :ref:`model_families` section.
 
-When planning the first more complex HydPy projects, we advise looking at the
-`submodel graph <../build/submodelgraph.html>`_, which attempts to list all sensible
-main and submodel combinations.
+When planning the first more complex HydPy projects, we advise looking at the submodel
+graph which attempts to list all sensible main and submodel combinations:
+
+.. submodel_graph::
 
 .. _main_models:
 

@@ -801,6 +801,7 @@ class Model(
             "extended version of the WALRUS model with modified groundwater dynamics"
         ),
     )
+    __HYDPY_ROOTMODEL__ = True
 
     SOLVERPARAMETERS = (
         wland_solver.AbsErrorMax,

@@ -216,6 +216,7 @@ class Model(
         short="Evap-RET-FAO56",
         description="FAO-56 Penman-Monteith reference evapotranspiration",
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

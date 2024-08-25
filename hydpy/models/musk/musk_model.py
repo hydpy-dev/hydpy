@@ -797,6 +797,7 @@ class Model(modeltools.SegmentModel):
     """|musk.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(short="Musk")
+    __HYDPY_ROOTMODEL__ = None
 
     SOLVERPARAMETERS = (
         musk_solver.NmbRuns,

@@ -238,6 +238,7 @@ class Model(modeltools.AdHocModel):
     """|rconc.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(short="Rconc")
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

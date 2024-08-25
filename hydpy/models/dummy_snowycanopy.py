@@ -58,6 +58,7 @@ class Model(modeltools.AdHocModel, stateinterfaces.SnowyCanopyModel_V1):
             "dummy model supplying main models with snow cover degrees in canopies"
         ),
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

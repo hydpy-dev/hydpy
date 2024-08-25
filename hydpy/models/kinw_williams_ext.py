@@ -741,6 +741,7 @@ class Model(modeltools.ELSModel):
             "relationship"
         ),
     )
+    __HYDPY_ROOTMODEL__ = True
 
     SOLVERPARAMETERS = (
         kinw_solver.AbsErrorMax,

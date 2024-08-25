@@ -1745,6 +1745,7 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
     """|wq.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(short="WQ")
+    __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

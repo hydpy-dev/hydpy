@@ -200,6 +200,7 @@ class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
     """|dam_pump.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(short="Dam-Pump", description="pumping station model")
+    __HYDPY_ROOTMODEL__ = True
 
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,

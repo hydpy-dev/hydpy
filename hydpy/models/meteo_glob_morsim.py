@@ -406,6 +406,7 @@ class Model(modeltools.AdHocModel, radiationinterfaces.RadiationModel_V1):
         short="Meteo-Glob-MORSIM",
         description="global radiation estimation adopted from MORECS/LARSIM",
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

@@ -4829,6 +4829,7 @@ class Model(modeltools.ELSModel):
     """|dam.DOCNAME.complete|"""
 
     DOCNAME = modeltools.DocName(short="Dam")
+    __HYDPY_ROOTMODEL__ = None
 
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,

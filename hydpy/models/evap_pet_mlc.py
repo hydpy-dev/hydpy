@@ -80,6 +80,7 @@ class Model(
         short="Evap-PET-M-LC",
         description="month-based land cover adjustment of reference evapotranspiration",
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

@@ -397,6 +397,7 @@ class Model(
         short="Evap-PET-AMBAV-1.0",
         description="potential evapotranspiration based on AMBAV 1.0",
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

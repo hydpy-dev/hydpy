@@ -41,6 +41,7 @@ class Model(modeltools.AdHocModel, wq_model.Base_DischargeModel_V2):
         short="WQ-WALRUS",
         description="WALRUS default function for calculating catchment outflow",
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

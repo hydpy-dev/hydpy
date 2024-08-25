@@ -25,6 +25,7 @@ class Model(modeltools.AdHocModel, routinginterfaces.RoutingModel_V3):
         short="SW1D-Weir-Out",
         description="submodel for calculating free weir flow at a channel outlet",
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

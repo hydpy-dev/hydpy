@@ -517,6 +517,7 @@ class Model(
         short="Evap-AET-MORSIM ",
         description="actual evapotranspiration based on MORECS/LARSIM",
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

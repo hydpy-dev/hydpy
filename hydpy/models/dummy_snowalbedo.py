@@ -56,6 +56,7 @@ class Model(modeltools.AdHocModel, stateinterfaces.SnowAlbedoModel_V1):
         short="Dummy-SnowAlbedo",
         description="dummy model supplying main models with snow albedo states",
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

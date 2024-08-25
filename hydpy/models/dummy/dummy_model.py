@@ -178,6 +178,7 @@ class Model(modeltools.AdHocModel):
     """|dummy.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(short="Dummy")
+    __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = (Pick_Q_V1,)
     RECEIVER_METHODS = ()

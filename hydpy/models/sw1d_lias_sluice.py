@@ -455,6 +455,7 @@ class Model(sw1d_model.Main_CrossSectionModel_V2, routinginterfaces.RoutingModel
             "submodel that extends HydPy-SW1D-LIAS with sluice functionalities"
         ),
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

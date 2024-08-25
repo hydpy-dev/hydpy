@@ -1592,6 +1592,7 @@ class Model(modeltools.SubstepModel, routinginterfaces.ChannelModel_V1):
             "solved by HydPy-SW1D-Network"
         ),
     )
+    __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = (sw1d_model.Trigger_Preprocessing_V1,)
     RECEIVER_METHODS = ()

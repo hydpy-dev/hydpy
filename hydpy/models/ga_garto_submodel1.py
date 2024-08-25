@@ -35,6 +35,7 @@ class Model(ga_model.Base_SoilModel_V1):
             "redistribution"
         ),
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

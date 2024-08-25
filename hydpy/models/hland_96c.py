@@ -1051,6 +1051,7 @@ class Model(
     DOCNAME = modeltools.DocName(
         short="H-HBV96-COSERO", description="fusion of SMHI-IHMS-HBV96 and COSERO"
     )
+    __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

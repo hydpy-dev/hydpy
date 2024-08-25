@@ -52,6 +52,7 @@ class Model(meteo_model.Sub_BaseModel, precipinterfaces.PrecipModel_V2):
     DOCNAME = modeltools.DocName(
         short="Meteo-Precip-IO", description="external precipitation  data"
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

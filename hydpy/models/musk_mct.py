@@ -1047,6 +1047,7 @@ class Model(modeltools.SegmentModel):
     DOCNAME = modeltools.DocName(
         short="Musk-MCT", description="Muskingum-Cunge-Todini routing"
     )
+    __HYDPY_ROOTMODEL__ = True
 
     SOLVERPARAMETERS = (
         NmbRuns,

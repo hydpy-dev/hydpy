@@ -1140,6 +1140,14 @@ class Model:
     owned by elements belonging to the same |Element.collective| (see method 
     |Elements.unite_collectives|)."""
 
+    DOCNAME: DocName
+
+    __HYDPY_ROOTMODEL__: Optional[bool]
+    """Flag telling whether a submodel should be considered as a submodel graph root.
+    
+    `None` is reserved for base and special-purpose models likely irrelevant to users. 
+    """
+
     def __init__(self) -> None:
         self.cymodel = None
         self.__hydpy_element__ = None

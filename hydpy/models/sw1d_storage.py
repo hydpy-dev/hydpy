@@ -26,6 +26,7 @@ class Model(sw1d_model.Main_CrossSectionModel_V2, routinginterfaces.StorageModel
         short="SW1D-Storage",
         description="submodel for calculating a single channel segment's water balance",
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

@@ -20,6 +20,7 @@ class Model(rconc_model.Sub_RConcModel, rconcinterfaces.RConcModel_V1):
     DOCNAME = modeltools.DocName(
         short="Rconc-Nash", description=("Nash-Cascade runoff concentration")
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

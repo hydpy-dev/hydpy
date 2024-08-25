@@ -206,6 +206,7 @@ class Model(modeltools.SegmentModel):
         short="Musk-Classic",
         description="classic Muskingum routing, compatible with SMHI-IHMS-HBV96",
     )
+    __HYDPY_ROOTMODEL__ = True
 
     SOLVERPARAMETERS = (NmbRuns,)
     INLET_METHODS = (musk_model.Pick_Inflow_V1, musk_model.Update_Discharge_V1)

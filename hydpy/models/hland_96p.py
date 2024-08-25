@@ -1056,6 +1056,7 @@ class Model(
     DOCNAME = modeltools.DocName(
         short="H-HBV96-PREVAH", description="fusion of SMHI-IHMS-HBV96 and PREVAH"
     )
+    __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

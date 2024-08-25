@@ -3263,6 +3263,7 @@ class Model(modeltools.SubstepModel):
     """|sw1d.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(short="SW1D")
+    __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = (
         Pick_Inflow_V1,

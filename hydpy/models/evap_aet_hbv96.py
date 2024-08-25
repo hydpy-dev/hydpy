@@ -311,6 +311,7 @@ class Model(
     DOCNAME = modeltools.DocName(
         short="Evap-AET-HBV96", description="actual evapotranspiration after HBV96"
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

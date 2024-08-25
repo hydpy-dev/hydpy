@@ -30,6 +30,7 @@ class Model(sw1d_model.Main_CrossSectionModel_V2, routinginterfaces.RoutingModel
             "based on Bates et al. (2010) and Almeida et al. (2012)"
         ),
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

@@ -4422,6 +4422,7 @@ class Model(modeltools.AdHocModel):
     """|hland.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(short="H")
+    __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

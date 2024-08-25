@@ -58,6 +58,7 @@ class Model(modeltools.AdHocModel, radiationinterfaces.RadiationModel_V3):
         short="Meteo-Clear-Glob-IO",
         description="external clear sky and global radiation data",
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

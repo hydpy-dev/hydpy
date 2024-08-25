@@ -276,6 +276,7 @@ class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
     DOCNAME = modeltools.DocName(
         short="Dam-L-RB", description="retention basin model adopted from LARSIM"
     )
+    __HYDPY_ROOTMODEL__ = True
 
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,

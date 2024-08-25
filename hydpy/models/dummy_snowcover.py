@@ -56,6 +56,7 @@ class Model(modeltools.AdHocModel, stateinterfaces.SnowCoverModel_V1):
         short="Dummy-SnowCover",
         description="dummy model supplying main models with snow cover states",
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

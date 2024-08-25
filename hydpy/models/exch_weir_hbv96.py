@@ -551,6 +551,7 @@ overflow2, and waterlevel2.
     DOCNAME = modeltools.DocName(
         short="Exch-Weir-HBV96", description="weir model adopted from IHMS-HBV96"
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = (exch_model.Pic_LoggedWaterLevels_V1,)

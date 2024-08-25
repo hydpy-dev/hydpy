@@ -26,6 +26,7 @@ class Model(sw1d_model.Main_CrossSectionModel_V2, routinginterfaces.RoutingModel
         short="SW1D-Q-In",
         description="submodel for adding pre-determined discharge to a channel inlet",
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

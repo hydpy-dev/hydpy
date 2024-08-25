@@ -23,6 +23,7 @@ class Model(modeltools.ELSModel):
     DOCNAME = modeltools.DocName(
         short="Test-Discontinuous", description="test model for discontinuous ODEs"
     )
+    __HYDPY_ROOTMODEL__ = None
 
     SOLVERPARAMETERS = (
         test_solver.AbsErrorMax,

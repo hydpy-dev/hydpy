@@ -57,6 +57,7 @@ class Model(modeltools.AdHocModel, stateinterfaces.IntercModel_V1):
         short="Dummy-InterceptedWater",
         description="dummy model supplying main models with intercepted water states",
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

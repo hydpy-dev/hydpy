@@ -50,8 +50,9 @@ class Model(meteo_model.Sub_BaseModel, tempinterfaces.TempModel_V2):
     """|meteo_temp_io.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(
-        short="Meteo-Temp-IO", description="external temperature  data"
+        short="Meteo-Temp-IO", description="external temperature data"
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

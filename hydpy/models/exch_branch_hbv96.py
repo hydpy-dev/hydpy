@@ -96,6 +96,7 @@ class Model(modeltools.AdHocModel):
     DOCNAME = modeltools.DocName(
         short="Exch-Branch-HBV96", description="branch model adopted from IHMS-HBV96"
     )
+    __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = (exch_model.Pick_OriginalInput_V1,)
     RECEIVER_METHODS = ()

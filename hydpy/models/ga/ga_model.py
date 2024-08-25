@@ -2754,6 +2754,7 @@ class Model(modeltools.AdHocModel):
     """|ga.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(short="GA")
+    __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

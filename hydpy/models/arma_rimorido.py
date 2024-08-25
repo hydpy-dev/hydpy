@@ -358,6 +358,7 @@ class Model(modeltools.AdHocModel):
         short="ARMA-RIMO/RIDO",
         description="nonlinear routing by multiple ARMA processes",
     )
+    __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = (arma_model.Pick_Q_V1,)
     RECEIVER_METHODS = ()

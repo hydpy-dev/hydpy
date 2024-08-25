@@ -63,6 +63,7 @@ class Model(modeltools.AdHocModel, radiationinterfaces.RadiationModel_V4):
             "external possible and actual sunshine duration and global radiation data"
         ),
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

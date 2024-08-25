@@ -132,6 +132,7 @@ class Model(wq_model.TrapezeModel, routinginterfaces.CrossSectionModel_V2):
     DOCNAME = modeltools.DocName(
         short="WQ-Trapeze", description="multi-trapeze river profile submodel"
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

@@ -19,6 +19,7 @@ class Model(modeltools.ELSModel):
         short="Test-Stiff-1D",
         description="test model for stiff ODEs and 1-dimensional sequences",
     )
+    __HYDPY_ROOTMODEL__ = None
 
     SOLVERPARAMETERS = (
         test_solver.AbsErrorMax,

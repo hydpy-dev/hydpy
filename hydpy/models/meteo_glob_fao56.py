@@ -186,6 +186,7 @@ class Model(modeltools.AdHocModel, radiationinterfaces.RadiationModel_V1):
         short="Meteo-Glob-FAO56",
         description="global radiation estimation adopted from FAO56",
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

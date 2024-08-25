@@ -67,6 +67,7 @@ class Model(
         short="Evap-PET-M",
         description="month-based adjustment of reference evapotranspiration",
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

@@ -7877,6 +7877,7 @@ class Model(modeltools.AdHocModel):
     """|evap.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(short="Evap")
+    __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

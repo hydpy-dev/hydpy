@@ -961,6 +961,7 @@ class Model(ga_model.BaseModel):
             "with redistribution"
         ),
     )
+    __HYDPY_ROOTMODEL__ = False  # ToDo: merge `ga_garto` and `ga_garto_submodel1`
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

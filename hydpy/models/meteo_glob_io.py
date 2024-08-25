@@ -52,6 +52,7 @@ class Model(modeltools.AdHocModel, radiationinterfaces.RadiationModel_V2):
     DOCNAME = modeltools.DocName(
         short="Meteo-Glob-IO", description="external global radiation data"
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

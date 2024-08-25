@@ -68,6 +68,7 @@ class Model(modeltools.AdHocModel):
         short="Dummy-Node2Node",
         description="dummy model passing data from inlet to outlet nodes",
     )
+    __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = (dummy_model.Pick_Q_V1,)
     RECEIVER_METHODS = ()

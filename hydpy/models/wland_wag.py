@@ -1161,6 +1161,7 @@ class Model(
         short="W-Wag",
         description="extended version of the original Wageningen WALRUS model",
     )
+    __HYDPY_ROOTMODEL__ = True
 
     SOLVERPARAMETERS = (
         wland_solver.AbsErrorMax,

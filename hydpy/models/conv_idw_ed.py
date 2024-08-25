@@ -162,6 +162,7 @@ class Model(conv_model.BaseModel):
         short="Conv-IDW-ED",
         description="inverse distance weighted interpolation with external drift",
     )
+    __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = (conv_model.Pick_Inputs_V1,)
     RECEIVER_METHODS = ()

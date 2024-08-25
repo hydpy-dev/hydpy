@@ -57,6 +57,7 @@ class Model(modeltools.AdHocModel, stateinterfaces.SoilWaterModel_V1):
         short="Dummy-SoilWater",
         description="dummy model supplying main models with soil water states",
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

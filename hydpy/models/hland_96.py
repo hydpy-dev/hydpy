@@ -1671,6 +1671,7 @@ class Model(
     DOCNAME = modeltools.DocName(
         short="H-HBV96", description="adoption of SMHI-IHMS-HBV96"
     )
+    __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

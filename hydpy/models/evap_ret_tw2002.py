@@ -124,6 +124,7 @@ class Model(
         short="Evap-RET-TW2002",
         description="Turc-Wendling reference evapotranspiration, 2002",
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

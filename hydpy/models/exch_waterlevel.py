@@ -57,6 +57,7 @@ class Model(modeltools.AdHocModel, stateinterfaces.WaterLevelModel_V1):
         short="Exch-WL",
         description="submodel for querying the water level from a remote node",
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = (exch_model.Get_WaterLevel_V1,)

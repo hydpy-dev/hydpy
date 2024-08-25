@@ -50,6 +50,7 @@ class Model(evap_model.Sub_ETModel, petinterfaces.PETModel_V1):
     """|evap_ret_io.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(short="Evap-RET-IO", description="external data")
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

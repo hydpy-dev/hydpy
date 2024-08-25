@@ -280,6 +280,7 @@ class Model(
         short="Evap-AET-Minhas",
         description="actual evapotranspiration based on the Minhas equation",
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

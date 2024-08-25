@@ -568,6 +568,7 @@ class Model(modeltools.AdHocModel):
     """|conv.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(short="Conv")
+    __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = (Pick_Inputs_V1,)
     RECEIVER_METHODS = ()

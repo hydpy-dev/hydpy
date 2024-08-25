@@ -3270,6 +3270,7 @@ class Model(modeltools.ELSModel):
     """|wland.DOCNAME.complete|"""
 
     DOCNAME = modeltools.DocName(short="W")
+    __HYDPY_ROOTMODEL__ = None
 
     SOLVERPARAMETERS = (
         wland_solver.AbsErrorMax,

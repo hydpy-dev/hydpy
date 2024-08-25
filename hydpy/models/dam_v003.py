@@ -373,6 +373,7 @@ class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
     """|dam_v003.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(short="Dam-V3", description="dam model, version 3")
+    __HYDPY_ROOTMODEL__ = True
 
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,

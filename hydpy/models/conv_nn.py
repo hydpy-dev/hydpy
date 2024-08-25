@@ -97,6 +97,7 @@ class Model(conv_model.BaseModel):
     DOCNAME = modeltools.DocName(
         short="Conv-NN", description="nearest neighbour interpolation"
     )
+    __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = (conv_model.Pick_Inputs_V1,)
     RECEIVER_METHODS = ()

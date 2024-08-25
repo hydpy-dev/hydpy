@@ -7210,6 +7210,7 @@ class Model(modeltools.AdHocModel):
     """|lland.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(short="L")
+    __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = (Pick_QZ_V1,)
     RECEIVER_METHODS = ()

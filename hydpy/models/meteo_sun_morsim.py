@@ -428,6 +428,7 @@ class Model(modeltools.AdHocModel, radiationinterfaces.RadiationModel_V1):
         short="Meteo-Sun-MORSIM",
         description="sunshine duration estimation adopted from MORECS/LARSIM",
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

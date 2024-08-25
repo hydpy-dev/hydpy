@@ -666,6 +666,7 @@ class Model(modeltools.SubstepModel):
             "in channel networks"
         ),
     )
+    __HYDPY_ROOTMODEL__ = None
 
     COMPOSITE = True
     """|sw1d_network| is a composite model.  (One usually only works with it 

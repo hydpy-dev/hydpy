@@ -2743,6 +2743,7 @@ class Model(modeltools.ELSModel):
     """|kinw.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(short="KinW")
+    __HYDPY_ROOTMODEL__ = None
 
     SOLVERPARAMETERS = (
         kinw_solver.AbsErrorMax,

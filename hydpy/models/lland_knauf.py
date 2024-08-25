@@ -1979,6 +1979,7 @@ class Model(
         short="L-Knauf",
         description="adoption of LARSIM with Knauf-based snow modelling",
     )
+    __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = (lland_model.Pick_QZ_V1,)
     RECEIVER_METHODS = ()

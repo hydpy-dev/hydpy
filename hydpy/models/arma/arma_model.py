@@ -442,6 +442,7 @@ class Model(modeltools.AdHocModel):
     """|arma.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(short="ARMA")
+    __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = (Pick_Q_V1,)
     RECEIVER_METHODS = ()

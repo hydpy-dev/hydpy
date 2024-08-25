@@ -2762,6 +2762,7 @@ class Model(modeltools.AdHocModel):
     """|meteo.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(short="Meteo")
+    __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

@@ -377,6 +377,7 @@ class Model(sw1d_model.Main_CrossSectionModel_V2, routinginterfaces.RoutingModel
         short="SW1D-Pump",
         description="submodel for pumping water between two channel segments",
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

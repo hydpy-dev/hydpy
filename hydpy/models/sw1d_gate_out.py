@@ -548,6 +548,7 @@ class Model(modeltools.AdHocModel, routinginterfaces.RoutingModel_V3):
             "submodel for calculating flow under a submerged gate at a channel outlet"
         ),
     )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

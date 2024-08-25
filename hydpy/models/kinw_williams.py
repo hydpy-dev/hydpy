@@ -1061,6 +1061,7 @@ class Model(kinw_model.BaseModelProfile):
             "equation"
         ),
     )
+    __HYDPY_ROOTMODEL__ = True
 
     SOLVERPARAMETERS = (
         kinw_solver.AbsErrorMax,

@@ -3180,6 +3180,8 @@ but the value `1` of type `int` is given.
 
     def __init_subclass__(cls) -> None:
         modulename = cls.__module__
+        if modulename.startswith("hydpy.interfaces."):
+            cls.__HYDPY_NAME__ = cls.__name__
         if not modulename.startswith("hydpy.models."):
             return
         if modulename.count(".") > 2:

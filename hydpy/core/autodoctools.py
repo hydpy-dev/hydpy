@@ -1435,10 +1435,12 @@ href="https://github.com/hydpy-dev/hydpy/blob/master/hydpy/data/HydPy-H-Lahn/con
         def _make_html(
             dirname: str, dir_: Directory, url: str, indent: int
         ) -> list[str]:
-            style = 'style="margin-left:1em'
             if indent == 0:
-                style = f"{style}; color:#20435c; font-family:'Trebuchet MS'"
-            style = f'{style}"'
+                style = _make_cssstyle(
+                    marginleft="1em", colour="#20435c", fontfamily="'Trebuchet MS'"
+                )
+            else:
+                style = _make_cssstyle(marginleft="1em")
             prefix = indent * "  "
             lines = []
             lines.append(f"{prefix}<details {style}>")

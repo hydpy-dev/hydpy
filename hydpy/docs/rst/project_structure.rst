@@ -413,8 +413,9 @@ recommend if if one requires a more efficient alternative to the ASCII format an
 less complex alternative to the NetCDF format.
 
 All time series files can specify dates with or without time zone information.  Without
-time zone information, HydPy assumes the currently selected |Options.utcoffset|, which
-defaults to +60 minutes.
+time zone information, HydPy usually assumes the currently selected
+|Options.utcoffset|, which defaults to +60 minutes.  The only exception is for NetCDF
+files, where it always assumes UTC+00 in compliance with the NetCDF-CF conventions.
 
 A new HydPy feature, applicable for all file formats but only realised for the group of
 input sequences so far, is the alternative usage of standard names.  Class

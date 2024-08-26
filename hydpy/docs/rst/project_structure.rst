@@ -284,7 +284,9 @@ _______________
 They are usually written at the end of a simulation run and later read before
 simulating another period that starts where the old one has ended.  Instead, their
 names usually include the prefix  `init` (for initial conditions) and a suffix
-indicating the relevant date, using underscores as separators.
+indicating the relevant date, using underscores as separators.  Each :ref:`element`
+defined in the :ref:`network files <network_files>` requires one condition file, and so
+each condition file corresponds to one main model and one control file.
 
 Condition files are similar to control files but almost always shorter and simpler.  We
 take the condition file of the Dill subbasin for 1 January 1996 as an example, which,

@@ -11,3 +11,4 @@ User Guide
    definitions
    model_overview
    project_structure
+   options

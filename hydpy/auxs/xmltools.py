@@ -586,23 +586,23 @@ correctly refer to one of the available XML schema files \
         >>> interface.update_options()
         >>> pub.options
         Options(
-            checkseries -> 1
+            checkseries -> TRUE
             ellipsis -> 0
             parameterstep -> Period("1d")
-            printprogress -> 0
+            printprogress -> FALSE
             reprdigits -> 6
             simulationstep -> Period()
-            timestampleft -> 1
-            trimvariables -> 1
-            usecython -> 1
-            usedefaultvalues -> 0
+            timestampleft -> TRUE
+            trimvariables -> TRUE
+            usecython -> TRUE
+            usedefaultvalues -> FALSE
             utclongitude -> 15
             utcoffset -> 60
-            warnmissingcontrolfile -> 0
-            warnmissingobsfile -> 1
-            warnmissingsimfile -> 1
-            warnsimulationstep -> 0
-            warntrim -> 1
+            warnmissingcontrolfile -> FALSE
+            warnmissingobsfile -> TRUE
+            warnmissingsimfile -> TRUE
+            warnsimulationstep -> FALSE
+            warntrim -> TRUE
         )
         >>> pub.options.printprogress = False
         >>> pub.options.reprdigits = 6
@@ -1382,7 +1382,7 @@ class XMLSubseries(XMLSelector):
         >>> pub.sequencemanager.filetype
         'asc'
         >>> pub.sequencemanager.overwrite
-        1
+        TRUE
         >>> pub.sequencemanager.aggregation
         'none'
         >>> pub.sequencemanager.convention
@@ -1394,7 +1394,7 @@ class XMLSubseries(XMLSelector):
         >>> pub.sequencemanager.filetype
         'nc'
         >>> pub.sequencemanager.overwrite
-        0
+        FALSE
         >>> pub.sequencemanager.aggregation
         'none'
         >>> pub.sequencemanager.convention
@@ -1408,7 +1408,7 @@ class XMLSubseries(XMLSelector):
         >>> pub.sequencemanager.aggregation
         'mean'
         >>> pub.sequencemanager.overwrite
-        1
+        TRUE
         >>> pub.sequencemanager.aggregation
         'mean'
         >>> pub.sequencemanager.convention

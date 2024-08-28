@@ -79,6 +79,9 @@ class OptionContextBool(int, OptionContextBase[bool]):
     ) -> OptionContextBool:
         return super().__new__(cls, value)
 
+    def __repr__(self) -> str:
+        return "TRUE" if self else "FALSE"
+
 
 class OptionContextInt(int, OptionContextBase[int]):
     """Context manager required by |OptionPropertyInt|."""
@@ -188,9 +191,9 @@ class OptionPropertyBase(
 
 
 class OptionPropertyBool(OptionPropertyBase[bool, OptionContextBool]):
-    """Descriptor for defining options of type |bool|.
+    """Descriptor for defining bool-like options.
 
-    Framework or model developers should implement options of type |bool| as follows:
+    Framework developers should implement bool-like options as follows:
 
     >>> from hydpy.core.optiontools import OptionPropertyBool
     >>> class T:
@@ -249,9 +252,9 @@ class OptionPropertyBool(OptionPropertyBase[bool, OptionContextBool]):
 
 
 class OptionPropertyInt(OptionPropertyBase[int, OptionContextInt]):
-    """Descriptor for defining options of type |int|.
+    """Descriptor for defining integer-like options.
 
-    Framework or model developers should implement options of type |int| as follows:
+    Framework developers should implement integer-like options as follows:
 
     >>> from hydpy.core.optiontools import OptionPropertyInt
     >>> class T:
@@ -365,9 +368,9 @@ class _OptionPropertyEllipsis(OptionPropertyBase[int, _OptionContextEllipsis]):
 
 
 class OptionPropertyStr(OptionPropertyBase[str, OptionContextStr]):
-    """Descriptor for defining options of type |str|.
+    """Descriptor for defining string-like options.
 
-    Framework or model developers should implement options of type |str| as follows:
+    Framework developers should implement string-like options as follows:
 
     >>> from hydpy.core.optiontools import OptionPropertyStr
     >>> class T:
@@ -714,7 +717,7 @@ Please choose one of the following modes: model-specific and HydPy.
 class Options:
     """Singleton class for the general options available in the global |pub| module.
 
-    Most options are simple True/False or 0/1 flags.
+    Most options are simple bool-like flags.
 
     You can change all options in two ways.  First, using the `with` statement makes
     sure the change is reverted after leaving the corresponding code block (even if an
@@ -723,49 +726,44 @@ class Options:
     >>> from hydpy import pub
     >>> pub.options.printprogress = 0
     >>> pub.options.printprogress
-    0
+    FALSE
     >>> with pub.options.printprogress(True):
     ...     print(pub.options.printprogress)
-    1
+    TRUE
     >>> pub.options.printprogress
-    0
+    FALSE
 
     Alternatively, you can change all options via simple assignments:
 
     >>> pub.options.printprogress = True
-    >>> pub.options.printprogress
-    1
+    >>> assert pub.options.printprogress
 
     But then you might have to keep in mind to undo the change later:
 
-    >>> pub.options.printprogress
-    1
+    >>> assert pub.options.printprogress
     >>> pub.options.printprogress = False
-    >>> pub.options.printprogress
-    0
+    >>> assert not pub.options.printprogress
 
     When using the `with` statement, you can pass nothing or |None|, which does not
     change the original setting and resets it after leaving the `with` block:
 
     >>> with pub.options.printprogress(None):
-    ...     print(pub.options.printprogress)
+    ...     assert not pub.options.printprogress
     ...     pub.options.printprogress = True
-    ...     print(pub.options.printprogress)
-    0
-    1
-    >>> pub.options.printprogress
-    0
+    ...     assert pub.options.printprogress
+    >>> assert not pub.options.printprogress
 
     The delete statement restores the respective default setting:
 
     >>> del pub.options.printprogress
-    >>> pub.options.printprogress
-    1
+    >>> assert pub.options.printprogress
+
+    >>> pub.options.printprogress = False
     """
 
     checkseries = OptionPropertyBool(
         True,
-        """True/False flag for raising an error when loading an input time series that 
+        """A bool-like flag for raising an error when loading an input time series that 
         does not cover the whole initialisation period or contains |numpy.nan| 
         values.""",
     )
@@ -790,7 +788,7 @@ class Options:
     )
     printprogress = OptionPropertyBool(
         True,
-        """A True/False flag for printing information about the progress of some 
+        """A bool-like flag for printing information about the progress of some 
         processes to the standard output.""",
     )
     reprdigits = OptionPropertyInt(
@@ -836,7 +834,7 @@ class Options:
     )
     timestampleft = OptionPropertyBool(
         True,
-        """A True/False flag telling if assigning interval data (like hourly 
+        """A bool-like flag telling if assigning interval data (like hourly 
         precipitation) to single time points relies on the start (True, default) or the 
         end (False) of the respective interval.  
 
@@ -848,16 +846,16 @@ class Options:
     )
     trimvariables = OptionPropertyBool(
         True,
-        """A True/False flag for enabling/disabling function |trim|.  Set it to |False| 
+        """A bool-like flag for enabling/disabling function |trim|.  Set it to |False| 
         only for good reasons.""",
     )
     usecython = OptionPropertyBool(
         True,
-        """A True/False flag for applying cythonized models if possible, which are much 
+        """A bool-like flag for applying cythonized models if possible, which are much 
         faster than pure Python models. """,
     )
     usedefaultvalues = OptionPropertyBool(
-        False, """A True/False flag for initialising parameters with standard values."""
+        False, """A bool-like flag for initialising parameters with standard values."""
     )
     utclongitude = OptionPropertyInt(
         15,
@@ -872,27 +870,27 @@ class Options:
     )
     warnmissingcontrolfile = OptionPropertyBool(
         False,
-        """A True/False flag for only raising a warning instead of an exception when a 
+        """A bool-like flag for only raising a warning instead of an exception when a 
         necessary control file is missing.""",
     )
     warnmissingobsfile = OptionPropertyBool(
         True,
-        """A True/False flag for raising a warning when a requested observation
-        sequence demanded by a node instance is missing.""",
+        """A bool-like flag for raising a warning when a requested observation sequence 
+        demanded by a node instance is missing.""",
     )
     warnmissingsimfile = OptionPropertyBool(
         True,
-        """A True/False flag for raising a warning when a requested simulation sequence 
+        """A bool-like flag for raising a warning when a requested simulation sequence 
         demanded by a node instance is missing.""",
     )
     warnsimulationstep = OptionPropertyBool(
         True,
-        """A True/False flag for raising a warning when function |simulationstep| is
+        """A bool-like flag for raising a warning when function |simulationstep| is
         called for the first time directly by the user.""",
     )
     warntrim = OptionPropertyBool(
         True,
-        """A True/False flag for raising a warning when a |Variable| object trims its 
+        """A bool-like flag for raising a warning when a |Variable| object trims its 
         value(s) not to violate certain boundaries.  To cope with the limited precision 
         of floating-point numbers, only those violations beyond a small tolerance value 
         are reported (see function |trim|).""",

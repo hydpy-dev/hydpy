@@ -765,51 +765,88 @@ class Options:
         True,
         """A bool-like flag for raising an error when loading an input time series that 
         does not cover the whole initialisation period or contains |numpy.nan| 
-        values.""",
+        values.
+        
+        Defaults to true:
+        
+        >>> from hydpy import pub
+        >>> assert pub.options.checkseries
+        >>> del pub.options.checkseries
+        >>> assert pub.options.checkseries
+        """,
     )
     ellipsis = _OptionPropertyEllipsis(
         -999,
-        """Ellipsis points serve to shorten the string representations of iterable 
-        HydPy objects containing many entries.  Set a value to define the maximum 
-        number of entries before and behind ellipsis points.  Set it to zero to avoid 
-        any ellipsis points.  Set it to -999 to rely on the default values of the 
-        respective iterable objects.""",
+        """The maximum number of collection members shown in string representations 
+        before and behind ellipsis points.
+        
+        Ellipsis points serve to shorten the string representations of iterable HydPy 
+        objects that contain many entries.  Set this option to -999 to rely on the 
+        default values of the respective iterable objects or zero to avoid any 
+        ellipsis points.  -999 is the default value, but zero is the preferred value 
+        during testing:
+        
+        >>> from hydpy import pub
+        >>> assert pub.options.ellipsis == 0
+        >>> del pub.options.ellipsis
+        >>> assert pub.options.ellipsis == -999
+        """,
     )
     parameterstep = OptionPropertyPeriod(
         timetools.Period("1d"),
         """The actual parameter time step size.  Change it by passing a |Period| object 
-        or any valid |Period| constructor argument.  The default parameter step is one 
-        day.
+        or any valid |Period| constructor argument.  
+        
+        Defaults to one day:
         
         >>> from hydpy import pub
-        >>> pub.options.parameterstep
-        Period("1d")
+        >>> assert pub.options.parameterstep == "1d"
+        >>> del pub.options.parameterstep
+        >>> assert pub.options.parameterstep == "1d"
         """,
     )
     printprogress = OptionPropertyBool(
         True,
         """A bool-like flag for printing information about the progress of some 
-        processes to the standard output.""",
+        processes to the standard output.
+        
+        Defaults usually to true but during test to false:
+         
+        >>> from hydpy import pub
+        >>> assert not pub.options.printprogress
+        >>> del pub.options.printprogress
+        >>> assert pub.options.printprogress
+        """,
     )
     reprdigits = OptionPropertyInt(
         -1,
-        """Required precision of string representations of floating point numbers, 
-        defined as the minimum number of digits to be reproduced by the string 
-        representation (see function |repr_|).""",
+        """The maximum number of decimal places for floating point numbers that are 
+        part of HydPy's string representations (see function |repr_|).
+        
+        -1 means printing with the highest available precision.  Defaults usually to 
+        -1 but during testing to 6:
+        
+        >>> from hydpy import pub
+        >>> assert pub.options.reprdigits == 6   
+        >>> del pub.options.reprdigits
+        >>> assert pub.options.reprdigits == -1
+        """,
     )
     simulationstep = _OptionPropertySimulationstep(
         timetools.Period(),
-        """The actual simulation time step size.  Change it by passing a |Period| 
-        object or any valid |Period| constructor argument.  *HydPy* does not define a 
-        default simulation step (indicated by an empty |Period| object).  
+        """The actual simulation time step size.  
         
-        Note that you cannot manually define the |Options.simulationstep| whenever it 
-        is already available via attribute |Timegrids.stepsize| of the global  
-        |Timegrids| object in module |pub| (`pub.timegrids`):
+        HydPy does not define a default simulation step, which is indicated by an empty 
+        |Period| object).  
         
         >>> from hydpy import pub
         >>> pub.options.simulationstep
         Period()
+        
+        Change it by passing a |Period| object or any valid |Period| constructor 
+        argument, but note that you cannot manually define the |Options.simulationstep| 
+        whenever it is already available via attribute |Timegrids.stepsize| of the 
+        global |Timegrids| object in module |pub| (`pub.timegrids`):
         
         >>> pub.options.simulationstep = "1h"
         >>> pub.options.simulationstep
@@ -838,62 +875,153 @@ class Options:
         precipitation) to single time points relies on the start (True, default) or the 
         end (False) of the respective interval.  
 
-        *HydPy*-internally, we usually prevent such potentially problematic assignments 
+        HydPy-internally, we usually prevent such potentially problematic assignments 
         by using |Timegrid| objects that define grids of intervals instead of time 
-        points.  However, some exceptions cannot be avoided, for example, when reading 
-        or writing NetCDF files.
+        points.  However, exceptions cannot be avoided, such as when reading or writing 
+        NetCDF files.
+        
+        Defaults to true:
+        
+        >>> from hydpy import pub
+        >>> assert pub.options.timestampleft
+        >>> del pub.options.timestampleft
+        >>> assert pub.options.timestampleft
         """,
     )
     trimvariables = OptionPropertyBool(
         True,
         """A bool-like flag for enabling/disabling function |trim|.  Set it to |False| 
-        only for good reasons.""",
+        only for good reasons.
+        
+        Defaults to true:
+        
+        >>> from hydpy import pub
+        >>> assert pub.options.trimvariables
+        >>> del pub.options.trimvariables
+        >>> assert pub.options.trimvariables
+        """,
     )
     usecython = OptionPropertyBool(
         True,
-        """A bool-like flag for applying cythonized models if possible, which are much 
-        faster than pure Python models. """,
+        """A bool-like flag for applying cythonized models, which are much faster than 
+        pure Python models.
+        
+        The benefit of using pure Python models is they simplify debugging a lot.  
+        Hence, setting this option to false makes sense when implementing a new model
+        or when trying to discover why a model does not work as expected.
+              
+        Defaults to true, but note that all tests work with this flag being enabled and
+        disabled.
+
+        >>> from hydpy import pub
+        >>> del pub.options.usecython
+        >>> assert pub.options.usecython
+        """,
     )
     usedefaultvalues = OptionPropertyBool(
-        False, """A bool-like flag for initialising parameters with standard values."""
+        False,
+        """A bool-like flag for initialising parameters with standard values.        
+        
+        Defaults to false:
+        
+        >>> from hydpy import pub
+        >>> assert not pub.options.usedefaultvalues
+        >>> del pub.options.usedefaultvalues
+        >>> assert not pub.options.usedefaultvalues
+        """,
     )
     utclongitude = OptionPropertyInt(
         15,
         """Longitude of the centre of the local time zone (see option
-        |Options.utcoffset|).  Defaults to 15,  which corresponds to the central 
-        meridian of UTC+01:00.""",
+        |Options.utcoffset|).  
+        
+        Defaults to 15, which corresponds to the central meridian of UTC+01:00:
+        
+        >>> from hydpy import pub
+        >>> assert pub.options.utclongitude == 15
+        >>> del pub.options.utclongitude
+        >>> assert pub.options.utclongitude == 15
+        """,
     )
     utcoffset = OptionPropertyInt(
         60,
         """Local time offset from UTC in minutes (see option |Options.utclongitude|.  
-        Defaults to 60, which corresponds to  UTC+01:00.""",
+        
+        Defaults to 60, which corresponds to UTC+01:00.
+
+        >>> from hydpy import pub
+        >>> assert pub.options.utcoffset == 60
+        >>> del pub.options.utcoffset
+        >>> assert pub.options.utcoffset == 60
+        """,
     )
     warnmissingcontrolfile = OptionPropertyBool(
         False,
         """A bool-like flag for only raising a warning instead of an exception when a 
-        necessary control file is missing.""",
+        necessary control file is missing.
+
+        Defaults to false:
+        
+        >>> from hydpy import pub
+        >>> assert not pub.options.warnmissingcontrolfile
+        >>> del pub.options.warnmissingcontrolfile
+        >>> assert not pub.options.warnmissingcontrolfile
+        """,
     )
     warnmissingobsfile = OptionPropertyBool(
         True,
         """A bool-like flag for raising a warning when a requested observation sequence 
-        demanded by a node instance is missing.""",
+        demanded by a node instance is missing.
+
+        Defaults to true:
+        
+        >>> from hydpy import pub
+        >>> assert pub.options.warnmissingobsfile
+        >>> del pub.options.warnmissingobsfile
+        >>> assert pub.options.warnmissingobsfile
+        """,
     )
     warnmissingsimfile = OptionPropertyBool(
         True,
         """A bool-like flag for raising a warning when a requested simulation sequence 
-        demanded by a node instance is missing.""",
+        demanded by a node instance is missing.
+
+        Defaults to true:
+        
+        >>> from hydpy import pub
+        >>> assert pub.options.warnmissingsimfile
+        >>> del pub.options.warnmissingsimfile
+        >>> assert pub.options.warnmissingsimfile
+        """,
     )
     warnsimulationstep = OptionPropertyBool(
         True,
         """A bool-like flag for raising a warning when function |simulationstep| is
-        called for the first time directly by the user.""",
+        called for the first time directly by the user.
+
+        Defaults usually to true but during test to false:
+        
+        >>> from hydpy import pub
+        >>> assert not pub.options.warnsimulationstep
+        >>> del pub.options.warnsimulationstep
+        >>> assert pub.options.warnsimulationstep
+        """,
     )
     warntrim = OptionPropertyBool(
         True,
-        """A bool-like flag for raising a warning when a |Variable| object trims its 
-        value(s) not to violate certain boundaries.  To cope with the limited precision 
-        of floating-point numbers, only those violations beyond a small tolerance value 
-        are reported (see function |trim|).""",
+        """A bool-like flag for raising a warning when a |Variable| object trims its
+        value(s) not to violate certain boundaries.  
+        
+        To cope with the limited precision of floating-point numbers, only those 
+        violations beyond a small tolerance value are reported (see function |trim|).
+
+        Defaults usually to true but during test to false:
+        
+        >>> from hydpy import pub
+        >>> assert not pub.options.warntrim
+        >>> del pub.options.warntrim
+        >>> assert pub.options.warntrim
+        """,
     )
 
     def __repr__(self) -> str:

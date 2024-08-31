@@ -101,7 +101,7 @@ _____________
 
 The :ref:`HydPy-H-Lahn` project relies on two main model types: the :ref:`land model
 <land_models>` |hland_96| and the :ref:`stream model <stream_models>` |musk_classic|.
-The control file "stream_dill_lahn2.py", for example, selects the latter for routing
+The control file "stream_dill_assl_lahn2.py", for example, selects the latter for routing
 the outflow of the subbasin Dill to a location in the river Lahn.  The control file is
 short because |musk_classic| is relatively simple.  The first (Python-code) line
 selects the model type by a so-called "wildcard import", making all relevant
@@ -150,7 +150,7 @@ one hour:
 >>> nmbsegments.value == round(24.0 * 0.417)
 True
 
-Due to the higher complexity of |hland_96|, the control file "land_dill.py" is much
+Due to the higher complexity of |hland_96|, the control file "land_dill_assl.py" is much
 longer.  We focus on a few aspects not relevant to |musk_mct|.  Therefore, we must
 first clear the local namespace (one could also just start a fresh Python process):
 
@@ -305,7 +305,7 @@ artifacts but also fake to be "inside" a condition file by taking its name on):
 
 >>> reverse_model_wildcard_import()
 >>> temp = __file__
->>> __file__ = "land_dill.py"
+>>> __file__ = "land_dill_assl.py"
 >>> controlcheck(projectdir=r"HydPy-H-Lahn", controldir="default", firstdate="1996-01-01", stepsize="1d")
 >>> __file__ = temp
 
@@ -347,7 +347,7 @@ and the NetCDF-CF format should be the right choice in almost all applications.
 
 HydPy's ASCII format (file ending ".asc") is simpler but less efficient.  Each file
 stores the time series of one sequence type for one element.  By default, the filename
-follows a strict pattern.  "land_dill_hland_96_input_p.asc", for example, starts with
+follows a strict pattern.  "land_dill_assl_hland_96_input_p.asc", for example, starts with
 the element's name, continues with the relevant model type, and ends with the sequences
 group and name.
 
@@ -379,7 +379,7 @@ and is, for example, compatible with `Delft-FEWS
 The time series of all sequences of the same type are stored in one file.  So, by
 default, a NetCDF filename is shorter than an ASCII filename as it does not need a
 device-specific prefix (for example, "hland_96_input_p.nc" instead of
-"land_dill_hland_96_input_p.asc").  The device names are instead managed by a
+"land_dill_assl_hland_96_input_p.asc").  The device names are instead managed by a
 file-internal NetCDF variable named `station_id`, whose shape is determined by the
 NetCDF dimensions `stations` (usually the number of devices, but see below) and
 `char_leng_name` (usually the longest device name, but see below).
@@ -422,7 +422,7 @@ input sequences so far, is the alternative usage of standard names.  Class
 |StandardInputNames| lists these standard names, and the input sequences of all model
 types reference one of them.  When switching the time series naming
 |SequenceManager.convention| from `model-specific` to `HydPy`, the filename
-"land_dill_hland_96_input_p.asc" becomes "land_dill_precipitation.asc" and
+"land_dill_assl_hland_96_input_p.asc" becomes "land_dill_assl_precipitation.asc" and
 "hland_96_input_p.nc" becomes "precipitation.nc".  Such a standardisation often means a
 relevant simplification when dealing with multiple model types.
 

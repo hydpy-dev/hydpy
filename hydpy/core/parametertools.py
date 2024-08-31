@@ -790,7 +790,7 @@ the unequal argument `1` under the keyword `one`.
 
         Next, we change the interception capacity of forests in one subcatchment:
 
-        >>> icmax = hp.elements.land_lahn_2.model.parameters.control.icmax
+        >>> icmax = hp.elements.land_lahn_leun.model.parameters.control.icmax
         >>> icmax(field=1.0, forest=2.0)
 
         Re-applying method |KeywordArguments.extend| now raises the following error:
@@ -800,7 +800,7 @@ the unequal argument `1` under the keyword `one`.
         ...
         hydpy.core.parametertools.KeywordArgumentsError: While trying to extend the \
 keyword arguments based on the available `IcMax` parameter objects, the following \
-error occurred: While trying to add the keyword arguments for element `land_lahn_2`, \
+error occurred: While trying to add the keyword arguments for element `land_lahn_leun`, \
 the following error occurred: Cannot add argument value `2.0` of type `float64` to \
 the current `KeywordArguments` object as it already handles the unequal argument \
 `1.5` under the keyword `forest`.
@@ -822,7 +822,7 @@ the current `KeywordArguments` object as it already handles the unequal argument
         ...
         hydpy.core.parametertools.KeywordArgumentsError: While trying to extend the \
 keyword arguments based on the available `IcMax` parameter objects, the following \
-error occurred: While trying to add the keyword arguments for element `land_lahn_2`, \
+error occurred: While trying to add the keyword arguments for element `land_lahn_leun`, \
 the following error occurred: Cannot iterate an invalid `KeywordArguments` object.
 
         When setting the `raise_exception` argument to |False|, method

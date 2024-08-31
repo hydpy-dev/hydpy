@@ -116,12 +116,12 @@ The start and end date and the simulation step size are:
 1d
 
 
-The catchment outlet of the `HydPy-H-Lahn` example project is named "lahn_3".
+The catchment outlet of the `HydPy-H-Lahn` example project is named "lahn_kalk".
 The following example demonstrates how to query the discharge values
 simulated for this outlet:
 
 >>> from hydpy import round_
->>> round_(hp.nodes.lahn_3.sequences.sim.series)
+>>> round_(hp.nodes.lahn_kalk.sequences.sim.series)
 nan, nan, nan, nan
 
 |numpy.nan| stands for "not a number", which we use to indicate missing
@@ -132,7 +132,7 @@ run so far.  We catch up on this by calling the method |HydPy.simulate|:
 
 Now, we can inspect the freshly calculated discharge values:
 
->>> round_(hp.nodes.lahn_3.sequences.sim.series)
+>>> round_(hp.nodes.lahn_kalk.sequences.sim.series)
 54.046428, 37.32527, 31.925872, 28.416456
 
 You could now write the results to file, print them into a figure,

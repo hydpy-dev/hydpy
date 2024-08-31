@@ -3,11 +3,11 @@
 from hydpy import Node, Element
 
 
-Node("lahn_2", variable="Q", keywords=["gauge"])
+Node("lahn_leun", variable="Q", keywords=["gauge"])
 
-Node("lahn_3", variable="Q", keywords=["gauge"])
+Node("lahn_kalk", variable="Q", keywords=["gauge"])
 
 
-Element("land_lahn_2", outlets="lahn_2", keywords=["catchment"])
+Element("land_lahn_leun", outlets="lahn_leun", keywords=["catchment"])
 
-Element("land_lahn_3", outlets="lahn_3", keywords=["catchment"])
+Element("land_lahn_kalk", outlets="lahn_kalk", keywords=["catchment"])

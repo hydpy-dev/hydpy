@@ -131,7 +131,7 @@ class SumAdaptor(Adaptor):
     Calling method |Replace.apply_value| of the |Replace| objects makes our
     |SumAdaptor| object apply the sum of the values of all of its |Rule| objects:
 
-    >>> control = hp.elements.land_dill.model.parameters.control
+    >>> control = hp.elements.land_dill_assl.model.parameters.control
     >>> k.apply_value()
     >>> with pub.options.parameterstep("1d"):
     ...     control.k
@@ -192,12 +192,12 @@ class FactorAdaptor(Adaptor):
 
     >>> gmelt.adaptor = FactorAdaptor(gmelt, "cfmax")
 
-    The `Dill` subcatchment, like the whole `Lahn` basin, does not contain any
+    The `dill_assl` subcatchment, like the whole `Lahn` basin, does not contain any
     glaciers.  Hence it defines (identical) |hland_control.CFMax| values for the zones
     of type |hland_constants.FIELD| and |hland_constants.FOREST| but must not specify
     any value for |hland_control.GMelt|:
 
-    >>> control = hp.elements.land_dill.model.parameters.control
+    >>> control = hp.elements.land_dill_assl.model.parameters.control
     >>> control.cfmax
     cfmax(field=4.55853, forest=2.735118)
     >>> control.gmelt
@@ -327,7 +327,7 @@ class Rule(abc.ABC, Generic[TypeParameter]):
 
     The initial value of parameter |hland_control.FC| is 206 mm:
 
-    >>> fc = hp.elements.land_lahn_1.model.parameters.control.fc
+    >>> fc = hp.elements.land_lahn_marb.model.parameters.control.fc
     >>> fc
     fc(206.0)
 
@@ -432,7 +432,7 @@ class Rule(abc.ABC, Generic[TypeParameter]):
         selections=("complete",),
     )
     >>> rule.apply_value()
-    >>> percmax = hp.elements.land_lahn_1.model.parameters.control.percmax
+    >>> percmax = hp.elements.land_lahn_marb.model.parameters.control.percmax
     >>> with pub.options.parameterstep("1d"):
     ...     percmax
     percmax(5.0)
@@ -470,7 +470,8 @@ via option `parameterstep`.
     ...                value=100.0,
     ...                model="hland_96")
     >>> rule.elements
-    Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
+    Elements("land_dill_assl", "land_lahn_kalk", "land_lahn_leun",
+             "land_lahn_marb")
 
     Alternatively, you can specify selections by passing themselves or their names (the
     latter requires them to be a member of `pub.selections`):
@@ -480,7 +481,8 @@ via option `parameterstep`.
     ...                value=100.0,
     ...                selections=[pub.selections.headwaters, "nonheadwaters"])
     >>> rule.elements
-    Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
+    Elements("land_dill_assl", "land_lahn_kalk", "land_lahn_leun",
+             "land_lahn_marb")
 
     When not using the model argument, you must ensure the selected elements handle the
     correct model instance:
@@ -491,8 +493,8 @@ via option `parameterstep`.
     Traceback (most recent call last):
     ...
     RuntimeError: While trying to initialise the `Replace` rule object `fc`, the \
-following error occurred: No (sub)model of element `stream_dill_lahn_2` defines a \
-control parameter named `fc`.
+following error occurred: No (sub)model of element `stream_dill_assl_lahn_leun` \
+defines a control parameter named `fc`.
 
     "Empty" rule objects are always considered erroneous:
 
@@ -513,7 +515,7 @@ handle any `musk_classic` model instances.
     ...                parameter="soilmoisturelimit",
     ...                value=0.8,
     ...                model="evap_aet_hbv96")
-    >>> submodel = hp.elements.land_lahn_1.model.aetmodel
+    >>> submodel = hp.elements.land_lahn_marb.model.aetmodel
     >>> soilmoisturelimit = submodel.parameters.control.soilmoisturelimit
     >>> soilmoisturelimit
     soilmoisturelimit(0.9)
@@ -532,13 +534,13 @@ handle any `musk_classic` model instances.
     Traceback (most recent call last):
     ...
     RuntimeError: While trying to initialise the `Replace` rule object `fc`, the \
-following error occurred: Model `evap_aet_hbv96` of element `land_dill` does not \
+following error occurred: Model `evap_aet_hbv96` of element `land_dill_assl` does not \
 define a control parameter named `fc`.
 
     We consider name clashes like the following made-up example unlikely but still
     carry out additional runtime type checks as a precaution:
 
-    >>> control = hp.elements.land_lahn_1.model.parameters.control
+    >>> control = hp.elements.land_lahn_marb.model.parameters.control
     >>> control.soilmoisturelimit = control.fc
     >>> rule = Replace(name="?",
     ...                parameter="soilmoisturelimit",
@@ -779,7 +781,7 @@ value `200.0` instead.
         ...                parameter="fc",
         ...                value=100.0,
         ...                model="hland_96")
-        >>> fc = hp.elements.land_lahn_1.model.parameters.control.fc
+        >>> fc = hp.elements.land_lahn_marb.model.parameters.control.fc
         >>> fc
         fc(206.0)
         >>> fc(100.0)
@@ -909,7 +911,7 @@ class Add(Rule[parametertools.Parameter]):
     ...            parameter="fc",
     ...            value=100.0,
     ...            model="hland_96")
-    >>> fc = hp.elements.land_lahn_1.model.parameters.control.fc
+    >>> fc = hp.elements.land_lahn_marb.model.parameters.control.fc
     >>> fc
     fc(206.0)
     >>> rule.apply_value()
@@ -938,7 +940,7 @@ class Add(Rule[parametertools.Parameter]):
     ...            value=2.0,
     ...            model="hland_96",
     ...            parameterstep="2d")
-    >>> cfmax = hp.elements.land_lahn_1.model.parameters.control.cfmax
+    >>> cfmax = hp.elements.land_lahn_marb.model.parameters.control.cfmax
     >>> cfmax
     cfmax(field=5.0, forest=3.0)
     >>> rule.apply_value()
@@ -968,7 +970,7 @@ class Add(Rule[parametertools.Parameter]):
     ...            model="musk_classic",
     ...            parameterstep="2d")
     >>> nmbsegments = \
-hp.elements.stream_lahn_1_lahn_2.model.parameters.control.nmbsegments
+hp.elements.stream_lahn_marb_lahn_leun.model.parameters.control.nmbsegments
     >>> nmbsegments
     nmbsegments(lag=0.583)
     >>> rule.apply_value()
@@ -1001,7 +1003,7 @@ class Multiply(Rule[parametertools.Parameter]):
     ...                 parameter="fc",
     ...                 value=2.0,
     ...                 model="hland_96")
-    >>> fc = hp.elements.land_lahn_1.model.parameters.control.fc
+    >>> fc = hp.elements.land_lahn_marb.model.parameters.control.fc
     >>> fc
     fc(206.0)
     >>> rule.apply_value()
@@ -1030,7 +1032,7 @@ class Multiply(Rule[parametertools.Parameter]):
     ...                 value=2.0,
     ...                 model="hland_96",
     ...                 parameterstep="2d")
-    >>> cfmax = hp.elements.land_lahn_1.model.parameters.control.cfmax
+    >>> cfmax = hp.elements.land_lahn_marb.model.parameters.control.cfmax
     >>> cfmax
     cfmax(field=5.0, forest=3.0)
     >>> rule.apply_value()
@@ -1062,7 +1064,7 @@ class Multiply(Rule[parametertools.Parameter]):
     ...            model="musk_classic",
     ...            parameterstep="2d")
     >>> nmbsegments = \
-hp.elements.stream_lahn_1_lahn_2.model.parameters.control.nmbsegments
+hp.elements.stream_lahn_marb_lahn_leun.model.parameters.control.nmbsegments
     >>> nmbsegments
     nmbsegments(lag=0.583)
     >>> rule.apply_value()
@@ -1245,11 +1247,11 @@ attribute nor a rule object named `FC`.
     |CalibrationInterface.apply_values|.  To explain how it works, we first show the
     values of the relevant parameters of some randomly selected model instances:
 
-    >>> stream = hp.elements.stream_lahn_1_lahn_2.model
+    >>> stream = hp.elements.stream_lahn_marb_lahn_leun.model
     >>> stream.parameters.control
     nmbsegments(lag=0.583)
     coefficients(damp=0.0)
-    >>> land = hp.elements.land_lahn_1.model
+    >>> land = hp.elements.land_lahn_marb.model
     >>> land.parameters.control.fc
     fc(206.0)
     >>> land.parameters.control.percmax
@@ -1274,7 +1276,7 @@ attribute nor a rule object named `FC`.
     anymore:
 
     >>> round_(ci.result)
-    1.603574
+    1.639374
 
     Use method |CalibrationInterface.reset_parameters| to restore the initial states of
     all affected parameters:
@@ -1283,7 +1285,7 @@ attribute nor a rule object named `FC`.
     >>> stream.parameters.control
     nmbsegments(lag=0.583)
     coefficients(damp=0.0)
-    >>> land = hp.elements.land_lahn_1.model
+    >>> land = hp.elements.land_lahn_marb.model
     >>> land.parameters.control.fc
     fc(206.0)
     >>> land.parameters.control.percmax
@@ -1317,7 +1319,7 @@ attribute nor a rule object named `FC`.
     |CalibrationInterface.apply_values|:
 
     >>> round_(ci.perform_calibrationstep([100.0, 5.0, 0.3]))
-    1.603574
+    1.639374
 
     >>> stream.parameters.control
     nmbsegments(lag=0.583)
@@ -1349,7 +1351,7 @@ attribute nor a rule object named `FC`.
     <BLANKLINE>
     NSE	fc	percmax	damp
     parameterstep	None	1d	None
-    1.603574	100.0	5.0	0.3
+    1.639374	100.0	5.0	0.3
     <BLANKLINE>
 
     To prevent (automatic) calibration runs from crashing due to IO problems, method
@@ -1371,8 +1373,8 @@ following problem occured: [Errno 2] No such file or directory: 'dirname1/filena
     ...     ci.update_logfile()
     ...     with open("dirname1/filename.log") as file_:
     ...         print(file_.read())
-    1.603574	100.0	5.0	0.3
-    1.603574	100.0	5.0	0.3
+    1.639374	100.0	5.0	0.3
+    1.639374	100.0	5.0	0.3
     <BLANKLINE>
 
     Call method |CalibrationInterface.finalise_logfile| to ensure the
@@ -1409,7 +1411,7 @@ following problem occured: [Errno 2] No such file or directory: 'dirname2/filena
     ...     ci.finalise_logfile()
     ...     with open("dirname2/filename.log") as file_:
     ...         print(file_.read())
-    1.603574	100.0	5.0	0.3
+    1.639374	100.0	5.0	0.3
     <BLANKLINE>
 
     >>> ci._logfilepath = "example_calibration.log"
@@ -1449,10 +1451,10 @@ following problem occured: [Errno 2] No such file or directory: 'dirname2/filena
     <BLANKLINE>
     NSE	fc	percmax	damp
     parameterstep	None	1d	None
-    1.603574	100.0	5.0	0.3
-    -0.709987	50.0	1.0	0.0
-    2.312553	200.0	10.0	0.5
-    1.603574	100.0	5.0	0.3
+    1.639374	100.0	5.0	0.3
+    -0.722094	50.0	1.0	0.0
+    2.347895	200.0	10.0	0.5
+    1.639374	100.0	5.0	0.3
     <BLANKLINE>
 
     Class |CalibrationInterface| also provides method
@@ -1469,9 +1471,9 @@ following problem occured: [Errno 2] No such file or directory: 'dirname2/filena
     >>> ci.damp.value
     0.5
     >>> round_(ci.result)
-    2.312553
+    2.347895
     >>> round_(ci.apply_values())
-    2.312553
+    2.347895
 
     On the contrary, if we set argument `maximisation` to |False|, method
     |CalibrationInterface.read_logfile| returns the worst result in our example:
@@ -1485,9 +1487,9 @@ following problem occured: [Errno 2] No such file or directory: 'dirname2/filena
     >>> ci.damp.value
     0.0
     >>> round_(ci.result)
-    -0.709987
+    -0.722094
     >>> round_(ci.apply_values())
-    -0.709987
+    -0.722094
 
     To prevent errors due to different parameter step-sizes, method
     |CalibrationInterface.read_logfile| raises the following error whenever it detects

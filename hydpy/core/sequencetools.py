@@ -453,7 +453,7 @@ class Sequences:
 
     >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
-    >>> sequences = hp.elements.land_dill.model.sequences
+    >>> sequences = hp.elements.land_dill_assl.model.sequences
     >>> bool(sequences.inlets)
     False
     >>> bool(sequences.fluxes)
@@ -1270,10 +1270,10 @@ class IOSequence(Sequence_):
 
     >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
-    >>> inputs = hp.elements.land_lahn_1.model.sequences.inputs
-    >>> factors = hp.elements.land_lahn_1.model.sequences.factors
-    >>> fluxes = hp.elements.land_lahn_1.model.sequences.fluxes
-    >>> states = hp.elements.land_lahn_1.model.sequences.states
+    >>> inputs = hp.elements.land_lahn_marb.model.sequences.inputs
+    >>> factors = hp.elements.land_lahn_marb.model.sequences.factors
+    >>> fluxes = hp.elements.land_lahn_marb.model.sequences.fluxes
+    >>> states = hp.elements.land_lahn_marb.model.sequences.states
 
     Each |IOSequence| object comes four flags, answering the following questions:
 
@@ -1301,7 +1301,7 @@ class IOSequence(Sequence_):
     False
     >>> from hydpy import round_
     >>> round_(inputs.t.series)
-    -0.705395, -1.505553, -4.221268, -7.446349
+    -0.7, -1.5, -4.6, -8.2
 
     |prepare_full_example_2| also activated the |IOSequence.ramflag| of all factor,
     flux, and state sequences, which is unnecessary to perform a successful simulation.
@@ -1358,7 +1358,7 @@ class IOSequence(Sequence_):
     Traceback (most recent call last):
     ...
     hydpy.core.exceptiontools.AttributeNotReady: Sequence `contriarea` of element \
-`land_lahn_1` is not requested to make any time series data available.
+`land_lahn_marb` is not requested to make any time series data available.
 
     >>> states.sm.ramflag
     True
@@ -1383,9 +1383,9 @@ class IOSequence(Sequence_):
     activated |IOSequence.ramflag| are directly available:
 
     >>> round_(inputs.t.series)
-    -0.705395, -1.505553, -4.221268, -7.446349
+    -0.7, -1.5, -4.6, -8.2
     >>> round_(states.sm.series[:, 0])
-    99.130873, 98.90942, 98.748643, 98.554071
+    98.992689, 98.695237, 98.395643, 98.134571
     >>> round_(states.sp.series[:, 0, 0])
     0.0, 0.0, 0.0, 0.0
 
@@ -1404,7 +1404,7 @@ class IOSequence(Sequence_):
     ...     factors.tc.load_series()
     ...     pub.sequencemanager.close_netcdfreader()
     >>> round_(factors.contriarea.series)
-    0.431273, 0.429876, 0.428864, 0.427639
+    0.430401, 0.428528, 0.426643, 0.425003
     >>> round_(factors.tc.series[:, 0])
     0.447691, -0.352466, -3.068181, -6.293263
 
@@ -1431,7 +1431,7 @@ class IOSequence(Sequence_):
     ...
     ValueError: Reading from and writing into the same NetCDF file "just in time" \
 during a simulation run is not supported but tried for sequence `t` of element \
-`land_lahn_1`.
+`land_lahn_marb`.
 
     For simplifying the following examples, we now handle all model time series in RAM:
 
@@ -1497,7 +1497,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
     Traceback (most recent call last):
     ...
     hydpy.core.exceptiontools.AttributeNotReady: Sequence `pc` of element \
-`land_lahn_1` is not requested to make any time series data available.
+`land_lahn_marb` is not requested to make any time series data available.
 
     >>> fluxes.pc.shape = (2,)
     >>> fluxes.pc.seriesshape
@@ -1508,7 +1508,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
     Traceback (most recent call last):
     ...
     hydpy.core.exceptiontools.AttributeNotReady: Sequence `pc` of element \
-`land_lahn_1` is not requested to make any time series data available.
+`land_lahn_marb` is not requested to make any time series data available.
 
     .. testsetup::
 
@@ -1818,7 +1818,7 @@ correctly.
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> t = hp.elements.land_lahn_1.model.sequences.inputs.t
+        >>> t = hp.elements.land_lahn_marb.model.sequences.inputs.t
         >>> t.prepare_series(allocate_ram=False, read_jit=True)
         >>> t.ramflag, t.diskflag_reading, t.diskflag_writing
         (False, True, False)
@@ -1847,7 +1847,7 @@ correctly.
         ...
         ValueError: Reading from and writing into the same NetCDF file "just in time" \
 during a simulation run is not supported but tried for sequence `t` of element \
-`land_lahn_1`.
+`land_lahn_marb`.
 
         >>> t.prepare_series(read_jit=False, write_jit=True)
         >>> t.prepare_series(read_jit=True, write_jit=None)
@@ -1855,7 +1855,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
         ...
         ValueError: Reading from and writing into the same NetCDF file "just in time" \
 during a simulation run is not supported but tried for sequence `t` of element \
-`land_lahn_1`.
+`land_lahn_marb`.
         """
         readflag = read_jit or ((read_jit is None) and self.diskflag_reading)
         writeflag = write_jit or ((write_jit is None) and self.diskflag_writing)
@@ -1956,12 +1956,12 @@ during a simulation run is not supported but tried for sequence `t` of element \
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> t = hp.elements.land_lahn_1.model.sequences.inputs.t
+        >>> t = hp.elements.land_lahn_marb.model.sequences.inputs.t
         >>> t.prepare_series(read_jit=True)
         >>> sm_t = t.seriesmode
         >>> sm_t
         SeriesMode(ramflag=True, diskflag_reading=True, diskflag_writing=False)
-        >>> p = hp.elements.land_lahn_1.model.sequences.inputs.p
+        >>> p = hp.elements.land_lahn_marb.model.sequences.inputs.p
         >>> p.prepare_series(allocate_ram=False, write_jit=True)
         >>> sm_p = p.seriesmode
         >>> sm_p
@@ -2059,16 +2059,16 @@ during a simulation run is not supported but tried for sequence `t` of element \
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> t = hp.elements.land_lahn_1.model.sequences.inputs.t
+        >>> t = hp.elements.land_lahn_marb.model.sequences.inputs.t
         >>> pub.timegrids.sim.dates = "1996-01-02", "1996-01-04"
         >>> from hydpy import print_vector
         >>> print_vector(t.series)
-        -0.705395, -1.505553, -4.221268, -7.446349
+        -0.7, -1.5, -4.6, -8.2
         >>> print_vector(t.simseries)
-        -1.505553, -4.221268
+        -1.5, -4.6
         >>> t.simseries = 1.0, 2.0
         >>> print_vector(t.series)
-        -0.705395, 1.0, 2.0, -7.446349
+        -0.7, 1.0, 2.0, -8.2
 
         .. testsetup::
 
@@ -2093,16 +2093,16 @@ during a simulation run is not supported but tried for sequence `t` of element \
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> t = hp.elements.land_lahn_1.model.sequences.inputs.t
+        >>> t = hp.elements.land_lahn_marb.model.sequences.inputs.t
         >>> pub.timegrids.eval_.dates = "1996-01-02", "1996-01-04"
         >>> from hydpy import print_vector
         >>> print_vector(t.series)
-        -0.705395, -1.505553, -4.221268, -7.446349
+        -0.7, -1.5, -4.6, -8.2
         >>> print_vector(t.evalseries)
-        -1.505553, -4.221268
+        -1.5, -4.6
         >>> t.evalseries = 1.0, 2.0
         >>> print_vector(t.series)
-        -0.705395, 1.0, 2.0, -7.446349
+        -0.7, 1.0, 2.0, -8.2
 
         .. testsetup::
 
@@ -2166,11 +2166,11 @@ sequencemanager of module `pub` is not defined at the moment.
         selects the relevant data by comparing the initialisation |Timegrid| available
         in module |pub| and the given "data" |Timegrid| object.  We explain this
         behaviour by using the `HydPy-H-Lahn` example project and focussing on the
-        |Obs| sequence of |Node| `dill`:
+        |Obs| sequence of |Node| `dill_assl`:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> obs = hp.nodes.dill.sequences.obs
+        >>> obs = hp.nodes.dill_assl.sequences.obs
 
         With identical initialisation and data time grids, method
         |IOSequence.adjust_series| returns the given data completely:
@@ -2202,9 +2202,9 @@ sequencemanager of module `pub` is not defined at the moment.
         ...                       numpy.zeros((3,)))  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        RuntimeError: For sequence `obs` of node `dill` the initialisation time grid \
+        RuntimeError: For sequence `obs` of node `dill_assl` the initialisation time grid \
 (Timegrid("1996-01-01 00:00:00", "1996-01-05 00:00:00", "1d")) does not define a \
-subset of the time grid of the data file `...dill_obs_q.asc` \
+subset of the time grid of the data file `...dill_assl_obs_q.asc` \
 (Timegrid("1996-01-02 00:00:00", "1996-01-04 00:00:00", "1d")).
 
         >>> with TestIO(), pub.options.checkseries(False):
@@ -2220,16 +2220,16 @@ subset of the time grid of the data file `...dill_obs_q.asc` \
         ...                       numpy.zeros((5, 2)))  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        RuntimeError: The shape of sequence `obs` of node `dill` is `()` but \
-according to the data file `...dill_obs_q.asc` it should be `(2,)`.
+        RuntimeError: The shape of sequence `obs` of node `dill_assl` is `()` but \
+according to the data file `...dill_assl_obs_q.asc` it should be `(2,)`.
 
         >>> with TestIO():
         ...     obs.adjust_series(Timegrid("1996-01-01", "1996-01-05", "1h"),
         ...                       numpy.zeros((24*5,)))  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        RuntimeError: According to data file `...dill_obs_q.asc`, the date time step \
-of sequence `obs` of node `dill` is `1h` but the actual simulation time step is `1d`.
+        RuntimeError: According to data file `...dill_assl_obs_q.asc`, the date time step \
+of sequence `obs` of node `dill_assl` is `1h` but the actual simulation time step is `1d`.
 
         .. testsetup::
 
@@ -2364,7 +2364,7 @@ of sequence `obs` of node `dill` is `1h` but the actual simulation time step is 
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> pub.timegrids.init.firstdate -= "2d"
         >>> pub.timegrids.init.lastdate -= "2d"
-        >>> t = hp.elements.land_dill.model.sequences.inputs.t
+        >>> t = hp.elements.land_dill_assl.model.sequences.inputs.t
         >>> t.series = -99.9
         >>> opt = pub.options
         >>> sm = pub.sequencemanager
@@ -2858,14 +2858,14 @@ class InputSequence(ModelIOSequence):
     >>> node_t = Node("node_t", variable=hland_inputs_T)
     >>> node_p = Node("node_p", variable=FusedVariable("Precip", hland_inputs_P))
     >>> node_q = Node("node_q")
-    >>> land_dill = Element("land_dill", inputs=[node_t, node_p], outlets=node_q)
+    >>> land_dill_assl = Element("land_dill_assl", inputs=[node_t, node_p], outlets=node_q)
 
     >>> from hydpy.core.testtools import prepare_full_example_1
     >>> prepare_full_example_1()
     >>> import os
     >>> with TestIO():
     ...     os.chdir("HydPy-H-Lahn/control/default")
-    ...     with open("land_dill.py") as controlfile:
+    ...     with open("land_dill_assl.py") as controlfile:
     ...         exec(controlfile.read(), {}, locals())
     ...     parameters.update()
     ...     land_dill.model = model
@@ -3020,7 +3020,7 @@ class OutputSequence(ModelIOSequence):
     >>> import os
     >>> with TestIO():
     ...     os.chdir("HydPy-H-Lahn/control/default")
-    ...     with open("land_dill.py") as controlfile:
+    ...     with open("land_dill_assl.py") as controlfile:
     ...         exec(controlfile.read(), {}, locals())
     ...     parameters.update()
     ...     land_dill.model = model
@@ -3659,33 +3659,33 @@ please be careful).
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
-        We focus on the |musk_classic| application model `stream_lahn_1_lahn_2` routing
-        inflow from node `lahn_1` to node `lahn_2`:
+        We focus on the |musk_classic| application model `stream_lahn_marb_lahn_leun` routing
+        inflow from node `lahn_marb` to node `lahn_leun`:
 
-        >>> model = hp.elements.stream_lahn_1_lahn_2.model
+        >>> model = hp.elements.stream_lahn_marb_lahn_leun.model
 
         The first example shows that the 0-dimensional outlet sequence |musk_outlets.Q|
-        points to the |Sim| sequence of node `lahn_2`:
+        points to the |Sim| sequence of node `lahn_leun`:
 
         >>> model.sequences.outlets.q
         q(0.0)
-        >>> hp.nodes.lahn_2.sequences.sim = 1.0
+        >>> hp.nodes.lahn_leun.sequences.sim = 1.0
         >>> model.sequences.outlets.q
         q(1.0)
         >>> model.sequences.outlets.q(2.0)
-        >>> hp.nodes.lahn_2.sequences.sim
+        >>> hp.nodes.lahn_leun.sequences.sim
         sim(2.0)
 
         The second example shows that the 1-dimensional inlet sequence |musk_inlets.Q|
-        points to the |Sim| sequence of node `lahn_1`:
+        points to the |Sim| sequence of node `lahn_marb`:
 
         >>> model.sequences.inlets.q
         q(0.0)
-        >>> hp.nodes.lahn_1.sequences.sim = 1.0
+        >>> hp.nodes.lahn_marb.sequences.sim = 1.0
         >>> model.sequences.inlets.q
         q(1.0)
         >>> model.sequences.inlets.q(2.0)
-        >>> hp.nodes.lahn_1.sequences.sim
+        >>> hp.nodes.lahn_marb.sequences.sim
         sim(2.0)
 
         Direct querying the values of both link sequences shows that the value of the
@@ -3704,13 +3704,13 @@ please be careful).
         Traceback (most recent call last):
         ...
         ValueError: While trying to assign the value(s) (1.0, 2.0) to link sequence \
-`q` of element `stream_lahn_1_lahn_2`, the following error occurred: 2 values are \
-assigned to the scalar variable `q` of element `stream_lahn_1_lahn_2`.
+`q` of element `stream_lahn_marb_lahn_leun`, the following error occurred: 2 values are \
+assigned to the scalar variable `q` of element `stream_lahn_marb_lahn_leun`.
         >>> model.sequences.inlets.q.values = 1.0, 2.0
         Traceback (most recent call last):
         ...
         ValueError: While trying to assign the value(s) (1.0, 2.0) to link sequence \
-`q` of element `stream_lahn_1_lahn_2`, the following error occurred: While trying to \
+`q` of element `stream_lahn_marb_lahn_leun`, the following error occurred: While trying to \
 convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and type \
 `float`, the following error occurred: could not broadcast input array from shape \
 (2,) into shape (1,)
@@ -3795,7 +3795,7 @@ convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and type 
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> model = hp.elements.stream_lahn_1_lahn_2.model
+        >>> model = hp.elements.stream_lahn_marb_lahn_leun.model
 
         The default mechanisms of *HydPy* prepare both 0-dimensional and 1-dimensional
         link sequences with a proper shape (which, for inlet sequence |
@@ -3814,8 +3814,8 @@ convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and type 
         Traceback (most recent call last):
         ...
         ValueError: While trying to set the shape of link sequence`q` of element \
-`stream_lahn_1_lahn_2`, the following error occurred: The shape information of \
-0-dimensional variables as `q` of element `stream_lahn_1_lahn_2` can only be `()`, \
+`stream_lahn_marb_lahn_leun`, the following error occurred: The shape information of \
+0-dimensional variables as `q` of element `stream_lahn_marb_lahn_leun` can only be `()`, \
 but `(1,)` is given.
 
         Changing the shape of 1-dimensional link sequences is supported but destroys
@@ -3833,7 +3833,7 @@ but `(1,)` is given.
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to query the value(s) of link sequence `q` of \
-element `stream_lahn_1_lahn_2`, the following error occurred: The pointer of the \
+element `stream_lahn_marb_lahn_leun`, the following error occurred: The pointer of the \
 actual `PPDouble` instance at index `0` requested, but not prepared yet via \
 `set_pointer`.
 
@@ -3841,7 +3841,7 @@ actual `PPDouble` instance at index `0` requested, but not prepared yet via \
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to assign the value(s) 1.0 to link sequence `q` of \
-element `stream_lahn_1_lahn_2`, the following error occurred: The pointer of the \
+element `stream_lahn_marb_lahn_leun`, the following error occurred: The pointer of the \
 actual `PPDouble` instance at index `0` requested, but not prepared yet via \
 `set_pointer`.
 
@@ -3854,7 +3854,7 @@ actual `PPDouble` instance at index `0` requested, but not prepared yet via \
         Traceback (most recent call last):
         ...
         AttributeError: While trying to query the shape of link sequence`q` of \
-element `stream_lahn_1_lahn_2`, the following error occurred: 'Q' object has no \
+element `stream_lahn_marb_lahn_leun`, the following error occurred: 'Q' object has no \
 attribute 'fastaccess'
 
         .. testsetup::
@@ -4285,7 +4285,7 @@ node `dill`, the following error occurred: The series array of sequence `obs` of
         ...         hp.load_obsseries()
         >>> obs.series
         InfoArray([ 1.,  1., nan,  1.,  1.])
-        >>> hp.nodes.lahn_1.sequences.obs.memoryflag
+        >>> hp.nodes.lahn_marb.sequences.obs.memoryflag
         False
 
         .. testsetup::

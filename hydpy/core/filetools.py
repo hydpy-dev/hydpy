@@ -652,14 +652,16 @@ class NetworkManager(FileManager):
     Selections("complete", "headwaters", "nonheadwaters", "streams")
     >>> selections.headwaters
     Selection("headwaters",
-              nodes=("dill", "lahn_1"),
-              elements=("land_dill", "land_lahn_1"))
+              nodes=("dill_assl", "lahn_marb"),
+              elements=("land_dill_assl", "land_lahn_marb"))
     >>> selections.complete
     Selection("complete",
-              nodes=("dill", "lahn_1", "lahn_2", "lahn_3"),
-              elements=("land_dill", "land_lahn_1", "land_lahn_2",
-                        "land_lahn_3", "stream_dill_lahn_2",
-                        "stream_lahn_1_lahn_2", "stream_lahn_2_lahn_3"))
+              nodes=("dill_assl", "lahn_kalk", "lahn_leun", "lahn_marb"),
+              elements=("land_dill_assl", "land_lahn_kalk",
+                        "land_lahn_leun", "land_lahn_marb",
+                        "stream_dill_assl_lahn_leun",
+                        "stream_lahn_leun_lahn_kalk",
+                        "stream_lahn_marb_lahn_leun"))
 
     Method |NetworkManager.save_files| writes all |Selection| objects into separate
     files.  We first change the current working directory to ensure we do not overwrite
@@ -874,7 +876,7 @@ class ControlManager(FileManager):
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "12h"
         >>> with TestIO():
         ...     controlmanager.projectdir = "HydPy-H-Lahn"
-        ...     results = controlmanager.load_file(filename="land_dill")
+        ...     results = controlmanager.load_file(filename="land_dill_assl")
 
 
         >>> results["control"]

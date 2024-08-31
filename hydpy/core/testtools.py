@@ -2404,11 +2404,11 @@ def prepare_full_example_2(
     >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
     >>> hp.nodes
-    Nodes("dill", "lahn_1", "lahn_2", "lahn_3")
+    Nodes("dill_assl", "lahn_kalk", "lahn_leun", "lahn_marb")
     >>> hp.elements
-    Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3",
-             "stream_dill_lahn_2", "stream_lahn_1_lahn_2",
-             "stream_lahn_2_lahn_3")
+    Elements("land_dill_assl", "land_lahn_kalk", "land_lahn_leun",
+             "land_lahn_marb", "stream_dill_assl_lahn_leun",
+             "stream_lahn_leun_lahn_kalk", "stream_lahn_marb_lahn_leun")
     >>> pub.timegrids
     Timegrids("1996-01-01 00:00:00",
               "1996-01-05 00:00:00",

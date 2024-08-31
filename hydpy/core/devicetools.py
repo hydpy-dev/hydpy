@@ -1537,35 +1537,35 @@ a function for coupling models that belong to the same collective.
         ...     pub.timegrids = "1996-01-01", "1996-02-01", "1d"
         ...     hp.prepare_network()
         ...     hp.prepare_models()
-        >>> hp.elements.land_dill.model.parameters.derived.dt
+        >>> hp.elements.land_dill_assl.model.parameters.derived.dt
         dt(0.000833)
 
         Wrong control files result in error messages like the following:
 
         >>> with TestIO():
-        ...     with open("HydPy-H-Lahn/control/default/land_dill.py", "a") as file_:
+        ...     with open("HydPy-H-Lahn/control/default/land_dill_assl.py", "a") as file_:
         ...         _ = file_.write("zonetype(-1)")
         ...     hp.prepare_models()   # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         ValueError: While trying to initialise the model object of element \
-`land_dill`, the following error occurred: While trying to load the control file \
-`...land_dill.py`, the following error occurred: At least one value of parameter \
+`land_dill_assl`, the following error occurred: While trying to load the control file \
+`...land_dill_assl.py`, the following error occurred: At least one value of parameter \
 `zonetype` of element `?` is not valid.
 
         By default, missing control files result in exceptions:
 
-        >>> del hp.elements.land_dill.model
+        >>> del hp.elements.land_dill_assl.model
         >>> import os
         >>> with TestIO():
-        ...     os.remove("HydPy-H-Lahn/control/default/land_dill.py")
+        ...     os.remove("HydPy-H-Lahn/control/default/land_dill_assl.py")
         ...     hp.prepare_models()   # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         FileNotFoundError: While trying to initialise the model object of element \
-`land_dill`, the following error occurred: While trying to load the control file \
-`...land_dill.py`, the following error occurred: ...
-        >>> attrready(hp.elements.land_dill, "model")
+`land_dill_assl`, the following error occurred: While trying to load the control file \
+`...land_dill_assl.py`, the following error occurred: ...
+        >>> attrready(hp.elements.land_dill_assl, "model")
         False
 
         When building new, still incomplete *HydPy* projects, this behaviour can be
@@ -1578,8 +1578,8 @@ a function for coupling models that belong to the same collective.
         Traceback (most recent call last):
         ...
         UserWarning: Due to a missing or no accessible control file, no model could \
-be initialised for element `land_dill`
-        >>> attrready(hp.elements.land_dill, "model")
+be initialised for element `land_dill_assl`
+        >>> attrready(hp.elements.land_dill_assl, "model")
         False
         """
         try:
@@ -2379,29 +2379,29 @@ group name `test`.
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, _ = prepare_full_example_2(lastdate="1997-01-01")
 
-        We perform a simulation run and calculate "observed" values for node `dill`:
+        We perform a simulation run and calculate "observed" values for node `dill_assl`:
 
         >>> hp.simulate()
-        >>> dill = hp.nodes.dill
-        >>> dill.sequences.obs.series = dill.sequences.sim.series + 10.0
+        >>> dill_assl = hp.nodes.dill_assl
+        >>> dill_assl.sequences.obs.series = dill_assl.sequences.sim.series + 10.0
 
         A call to method |Node.plot_allseries| prints the time series of both sequences
         to the screen immediately (if not, you need to activate the interactive mode of
         `matplotlib` first):
 
-        >>> figure = dill.plot_allseries()
+        >>> figure = dill_assl.plot_allseries()
 
         Subsequent calls to |Node.plot_allseries| or the related methods
         |Node.plot_simseries| and |Node.plot_obsseries| of nodes add further time
         series data to the existing plot:
 
-        >>> lahn_1 = hp.nodes.lahn_1
-        >>> figure = lahn_1.plot_simseries()
+        >>> lahn_marb = hp.nodes.lahn_marb
+        >>> figure = lahn_marb.plot_simseries()
 
         You can modify the appearance of the lines by passing different arguments:
 
-        >>> lahn_1.sequences.obs.series = lahn_1.sequences.sim.series + 10.0
-        >>> figure = lahn_1.plot_obsseries(color="black", linestyle="dashed")
+        >>> lahn_marb.sequences.obs.series = lahn_marb.sequences.sim.series + 10.0
+        >>> figure = lahn_marb.plot_obsseries(color="black", linestyle="dashed")
 
         All mentioned plotting functions return a |matplotlib| |figure.Figure| object.
         Use it for further plot handling, e.g. adding a title and saving the current
@@ -2416,7 +2416,7 @@ group name `test`.
         You can plot the data in an aggregated manner (see the documentation on the
         function |aggregate_series| for the supported step sizes and further details):
 
-        >>> figure = dill.plot_allseries(stepsize="monthly")
+        >>> figure = dill_assl.plot_allseries(stepsize="monthly")
         >>> text = figure.axes[0].set_title('monthly')
         >>> save_autofig("Node_plot_allseries_2.png", figure)
 
@@ -2428,7 +2428,7 @@ group name `test`.
         to the observation and the second one to the simulation results:
 
         >>> pub.timegrids.eval_.dates = "1996-10-01", "1996-11-01"
-        >>> figure = lahn_1.plot_allseries(labels=("measured", "calculated"),
+        >>> figure = lahn_marb.plot_allseries(labels=("measured", "calculated"),
         ...                                colors=("blue", "red"),
         ...                                linewidths=2,
         ...                                linestyles=("--", ":"),
@@ -2439,22 +2439,22 @@ group name `test`.
 
         When necessary, all plotting methods raise errors like the following:
 
-        >>> figure = lahn_1.plot_allseries(stepsize="quaterly")
+        >>> figure = lahn_marb.plot_allseries(stepsize="quaterly")
         Traceback (most recent call last):
         ...
         ValueError: While trying to plot the time series of sequence(s) obs and sim \
-of node `lahn_1` for the period `1996-10-01 00:00:00` to `1996-11-01 00:00:00`, the \
+of node `lahn_marb` for the period `1996-10-01 00:00:00` to `1996-11-01 00:00:00`, the \
 following error occurred: While trying to aggregate the given series, the following \
 error occurred: Argument `stepsize` received value `quaterly`, but only the following \
 ones are supported: `monthly` (default) and `daily`.
 
         >>> from hydpy import pub
         >>> del pub.timegrids
-        >>> figure = lahn_1.plot_allseries()
+        >>> figure = lahn_marb.plot_allseries()
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: While trying to plot the time \
-series of sequence(s) obs and sim of node `lahn_1` , the following error occurred: \
+series of sequence(s) obs and sim of node `lahn_marb` , the following error occurred: \
 Attribute timegrids of module `pub` is not defined at the moment.
         """
 
@@ -3501,7 +3501,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         |evap_inputs.NormalAirTemperature| and |evap_inputs.NormalEvapotranspiration|
         of |evap_pet_hbv96|):
 
-        >>> land = hp.elements.land_dill
+        >>> land = hp.elements.land_dill_assl
         >>> figure = land.plot_inputseries()
 
         You can use the `pyplot` API of `matplotlib` to modify the returned figure or
@@ -3527,7 +3527,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         >>> figure = land.plot_inputseries("xy")
         Traceback (most recent call last):
         ...
-        ValueError: No (sub)model handled by element `land_dill` has an input sequence \
+        ValueError: No (sub)model handled by element `land_dill_assl` has an input sequence \
 named `xy`.
 
         Methods |Element.plot_factorseries|, |Element.plot_fluxseries|, and

@@ -1,8 +1,13 @@
 
 .. _doctest: https://docs.python.org/library/doctest.html
-.. _Interactive Python Interpreter: https://docs.python.org/tutorial/interpreter.html
+.. _Python Interpreter: https://docs.python.org/tutorial/interpreter.html
+.. _Python Launcher: https://docs.python.org/3/using/windows.html#launcher
+.. _IDLE: https://docs.python.org/3/library/idle.html
 .. _IPython: https://ipython.org/
-.. _Spyder: https://www.spyder-ide.org/
+.. _PyCharm: https://www.jetbrains.com/pycharm
+
+.. role:: raw-html(raw)
+   :format: html
 
 
 .. _quickstart:
@@ -10,55 +15,103 @@
 Quick Start
 ===========
 
-This documentation includes a considerable number of `doctest`_ examples,
-which you can easily repeat via copy-paste, and thus serves you as a very
-comprehensive tutorial.  At first, it might be a little overwhelming,
-so you might need to spend some time to get adjusted and to find the
-relevant starting points, matching your skills and aims.  If you are
-already familiar with Python, we recommend to start with reading and
-repeating the examples of the documentation on the central |HydPy| class,
-and then to follow the links mentioned therein pointing to more detailed
-explanations.  Without Python knowledge, you should work through the
-following paragraphs beforehand. If you are primarily interested in
-executing standard workflows, for example in the context of flood
-forecasting, you might prefer reading the documentation on modules
-|hyd|, |commandtools|, and |xmltools| first.
+This documentation includes countless `doctest`_  examples, which you can easily repeat
+via copy-paste to gain insights into all the details of HydPy.  At first, it may be
+overwhelming, so you need to get adjusted and find the relevant starting points that
+match your skills and aims.  If you want to take advantage of HydPy's full flexibility
+by using it as a Python library and are already familiar with Python, go to the
+:ref:`Simulation > Python <simulation_python>` subsection.  Without Python experience,
+you should review the following paragraphs beforehand.  If you are, in contrast,
+primarily interested in executing standard workflows, for example, in the context of
+flood forecasting, you might prefer starting with the :ref:`Simulation > Console
+<simulation_console>` subsection.
 
 
 Starting Python
 _______________
 
-Best first experience comes with using *HydPy* interactively.  Therefore,
-we first need to start the `Interactive Python Interpreter`_ or similar
-tools like `IPython`_.  Such tools come with complete integrated
-development environments like `Spyder`_.  Additionally, any *HydPy*
-installation allows you to start an interactive shell by typing the
-following line in your command-line prompt::
+The best first experience comes with using HydPy interactively.  Therefore, one first
+must start a Python shell.  The most basic choice is the `Python Interpreter`_.  With a
+default installation on Windows, you can type `py` into a console like the command
+prompt (cmd), which tells the `Python Launcher`_ to search for the interpreter of the
+currently preferable Python version installed on your computer (usually, the most
+recent one) and start it::
+
+  C:\>py
+  Python 3.12.0
+  Type "help", "copyright", "credits" or "license" for more information.
+  >>>
+
+To start learning Python (and HydPy), a good choice is Python's Integrated Development
+and Learning Environment `IDLE`_, which also comes with regular Python distributions.
+Open its shell via the Windows menu or by writing::
+
+  py -m idlelib
+
+.. image:: IDLE-shell.png
+   :width: 700
+
+The two mentioned options require a regular Python installation on your computer. The
+following command also works with HydPy installed independently from a regular Python
+distribution via its Windows installer::
 
   hyd.py start_shell
+  >>>
+
+You may want to save modified or freshly created examples in Python scripts.  For a
+start, `IDLE`_ does not only provide the (initially opened) shell window but can also
+open multiple editor windows (click on File :raw-html:`&rarr;` New File):
+
+.. image:: IDLE-editor.png
+   :width: 700
+
+When seriously starting to work with Python, consider using more capable shells like
+`IPython`_ or complex Integrated Development Environments like `Pycharm`_.
 
 
 Using Python
 ____________
 
-The `>>>` symbol tells you that Python is expecting your first statement.
-First, try to do some math and see if you get the correct result:
+Understanding the functioning of HydPy requires only basic Python knowledge, to which
+this subsection offers a brief introduction.
 
->>> 1+2
+In the shell, the `>>>` symbol tells you that Python is expecting your first action.
+First, do some math and see if you get the correct result:
+
+>>> 1 + 2
 3
 
-Understanding the functioning of *HydPy* requires only basic Python
-knowledge.  For example, you should be able to use functions like
-|print| both with positional and keyword arguments:
+Assignments work with `=`:
 
->>> print(1, "<", 2)
+>>> x = 4
+>>> x
+4
+
+Checks for equality and identity rely on `==` and `is`:
+
+>>> y = 4.0
+>>> x == y
+True
+>>> x is y
+False
+
+`!=` and `is not` are their counterparts:
+
+>>> x != y
+False
+>>> x is not y
+True
+
+Many functions like |print| accept both positional and keyword arguments:
+
+>>> print(1, "<", 2)  # three positional arguments
 1 < 2
 
->>> print(1, "<", 2, end=" is True")
+>>> print(1, "<", 2, end=" is True")  # three positional and one keyword argument
 1 < 2 is True
 
-Realise that Python uses colons and indentations instead of brackets for
-defining control flow structures like if-else clauses and loops:
+Python uses colons and indentations instead of brackets to define control flow
+structures, such as if-else clauses:
 
 >>> if 1 < 2:
 ...     print("yes")
@@ -66,82 +119,141 @@ defining control flow structures like if-else clauses and loops:
 ...     print("no")
 yes
 
->>> for i in [1, 2, 3]:
-...     j = i**2
-...     print(j)
-1
+The most common way of defining loops is using `for ... in ...` expressions:
+
+>>> for i in [1, 3, 2]:
+...     (2 * i) ** 2
 4
-9
+36
+16
 
-In Python, everything is an object, and every object allows you to inspect
-it interactively to find out about its features:
+Write `import ...` to import another library completely or `import ... from ...` to
+load one or more of its members:
 
->>> obj = "test"
+>>> import hydpy
+>>> from hydpy import HydPy, pub
 
->>> type(obj) is str
+`.` serves for member access:
+
+>>> hydpy.pub is pub
 True
 
->>> dir(obj)  # doctest: +ELLIPSIS
-[..., 'title', 'translate', 'upper', 'zfill']
->>> print(obj.upper())
-TEST
->>> print(obj.title())
-Test
+In `assert ...`, `assert` checks if `...` is true:
 
-Using HydPy
-___________
+>>> assert pub.options.utcoffset == 60  # right, so nothing happens
+>>> assert pub.options.utcoffset == -60  # wrong, hence an AssertionError
+Traceback (most recent call last):
+...
+AssertionError
 
-Now that you are familiar with nearly all details of Python (just kidding),
-we introduce you to *HydPy*.  *HydPy* is a so-called "site-package",
-supplementing the standard Python features.  Make these objects available
-by importing them.  For example, write:
+The `with` statement usually starts something and undoes it after finishing the
+following indented block:
 
->>> from hydpy.core.testtools import prepare_full_example_2
+>>> with pub.options.utcoffset(-60):
+...     assert pub.options.utcoffset == -60
+>>> assert pub.options.utcoffset == 60
 
-Now the additional function |prepare_full_example_2| lives in your shell.
-Executing this function prepares the `HydPy-H-Lahn` example project and returns
-three further *HydPy* objects:
+In Python, everything is an object, and every object allows you to inspect it to find
+out about its features:
 
->>> hp, pub, TestIO = prepare_full_example_2()
-
-Module |pub|, for example, keeps among other things the information about
-the simulation period defined by function |prepare_full_example_2|.
-The start and end date and the simulation step size are:
-
->>> print(pub.timegrids.sim.firstdate)
-1996-01-01 00:00:00
->>> print(pub.timegrids.sim.lastdate)
-1996-01-05 00:00:00
->>> print(pub.timegrids.sim.stepsize)
-1d
+>>> obj = "test"
+>>> assert type(obj) is str  # What type has `obj`?
+>>> dir(obj)[-4:]  # What are it's members?
+['title', 'translate', 'upper', 'zfill']
+>>> obj.upper()  # What does its method `upper` do?
+'TEST'
 
 
-The catchment outlet of the `HydPy-H-Lahn` example project is named "lahn_3".
-The following example demonstrates how to query the discharge values
-simulated for this outlet:
+Run HydPy
+_________
 
->>> from hydpy import round_
->>> round_(hp.nodes.lahn_3.sequences.sim.series)
+After this first dive into Python's syntax, we introduce you to HydPy.  For an easy
+start, please download and unzip the :ref:`HydPy-H-Lahn` example project into a
+working directory of your choice.
+
+Now open, for example, the `IDLE` shell as explained above and activate the selected
+directory.  Let us, therefore, first define the working directory's path as a string.
+We take "C:/temp" as an example, but you can specify any other directory (on Windows,
+you could also write r"C:\\temp" for "C:\\\\temp"):
+
+>>> workingdir = "C:/temp"
+
+.. testsetup::
+
+    >>> from hydpy.core.testtools import prepare_full_example_1
+    >>> prepare_full_example_1()
+    >>> import os
+    >>> cwd = os.getcwd()
+    >>> from hydpy.tests import iotesting
+    >>> workingdir = iotesting.__path__[0]
+    >>> os.chdir(workingdir)
+
+Now, import Python's |os| module and use its `chdir` function to activate the
+preferred working directory:
+
+>>> import os
+>>> os.chdir(workingdir)
+
+The now-activated directory should contain a subdirectory named `HydPy-H-Lahn`
+containing, for example, the sub-subdirectory `network`.  The following code line
+checks this:
+
+>>> assert os.path.exists(os.path.join(workingdir, "HydPy-H-Lahn", "network"))
+
+After these preparatory steps, we finally get started with HydPy.  HydPy is a so-called
+"site package", and, in Python, site package names are by convention lowercase:
+
+>>> import hydpy
+
+The entry point to each project is the central |HydPy| class.  Initialise it by passing
+the project's name to it:
+
+>>> hp = hydpy.HydPy("HydPy-H-Lahn")
+
+Equally prominent throughout this documentation is the |pub| module, which allows for
+the specification of general information.  Here, we use it to define the first date,
+the last date, and the time step size of the considered simulation period in the
+simplest possible manner:
+
+>>> hydpy.pub.timegrids = "1996-01-01", "1996-01-05", "1d"
+
+Now, there are numerous ways to proceed.  We choose the most straightforward one
+(without deviating from a single default) and call method  |HydPy.prepare_everything|
+of class |HydPy|, which "prepares everything" so far as to leave the |HydPy| instance
+in a simulation-ready state:
+
+>>> hp.prepare_everything()
+
+The catchment outlet of the :ref:`HydPy-H-Lahn` example project is named "l" .  The
+following example demonstrates how to query the discharge values simulated for this
+outlet:
+
+>>> from hydpy import print_vector
+>>> print_vector(hp.nodes.lahn_3.sequences.sim.series)
 nan, nan, nan, nan
 
-|numpy.nan| stands for "not a number", which we use to indicate missing
-values.  Here, the |numpy.nan| values tell us we did not perform a simulation
-run so far.  We catch up on this by calling the method |HydPy.simulate|:
+|numpy.nan| means "not a number", indicating missing values.  In this example, the
+|numpy.nan| values tell us we have not performed a simulation run.  We catch up on this
+by calling method |HydPy.simulate|:
 
 >>> hp.simulate()
 
 Now, we can inspect the freshly calculated discharge values:
 
->>> round_(hp.nodes.lahn_3.sequences.sim.series)
+>>> print_vector(hp.nodes.lahn_3.sequences.sim.series)
 54.046428, 37.32527, 31.925872, 28.416456
 
-You could now write the results to file, print them into a figure,
-evaluate them statistically, or -- if you don't like them -- change
-some configurations and calculate different ones.
+You could now write the results to file, print them into a figure, evaluate them
+statistically, or - if you don't like them - change some configurations and calculate
+different results.
 
-As you can see, a few lines of code are often enough to let *HydPy* execute
-complex tasks in a standard-manner.  However, *HydPy* offers a fine level
-of control, allowing you to define specific workflows solving individual
-problems.  Take your time to understand these first examples fully and
-then follow the more detailed explanations in the documentation on the
-|HydPy| class.
+As you can see, a few lines of code are often enough to let HydPy execute complex tasks
+in a standard manner.  However, HydPy offers fine-grained control, allowing you to
+define specific workflows to solve individual problems.  Take your time to understand
+these first examples fully and then follow the more detailed explanations in the
+:ref:`Simulation > Python <simulation_python>` and :ref:`Simulation > Console
+<simulation_console>` sections.
+
+.. testsetup::
+
+    >>> os.chdir(cwd)

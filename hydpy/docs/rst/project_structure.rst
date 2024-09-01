@@ -378,7 +378,7 @@ and is, for example, compatible with `Delft-FEWS
 
 You can use function |summarise_ncfile| to gain insights into HydPy-compatible NetCDF
 files. Here, we let it show the structure of the NetCDF precipitation input file of
-the :ref:`HydPy-L-Lahn` example project:
+the :ref:`HydPy-H-Lahn` example project:
 
 >>> filepath = os.path.join(
 ...     data.__path__[0], "HydPy-H-Lahn", "series", "default", "hland_96_input_p.nc"

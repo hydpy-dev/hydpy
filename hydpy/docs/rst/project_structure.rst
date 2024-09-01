@@ -376,10 +376,48 @@ binary form.  It follows the `NetCDF Climate and Forecast (CF) Metadata Conventi
 and is, for example, compatible with `Delft-FEWS
 <https://oss.deltares.nl/web/delft-fews>`_.
 
+You can use function |summarise_ncfile| to gain insights into HydPy-compatible NetCDF
+files. Here, we let it show the structure of the NetCDF precipitation input file of
+the :ref:`HydPy-L-Lahn` example project:
+
+>>> filepath = os.path.join(
+...     data.__path__[0], "HydPy-H-Lahn", "series", "default", "hland_96_input_p.nc"
+... )
+>>> from hydpy import repr_, summarise_ncfile
+>>> print(repr_(summarise_ncfile(filepath)))  # doctest: +ELLIPSIS
+GENERAL
+    file path = ...data/HydPy-H-Lahn/series/default/hland_96_input_p.nc
+    file format = NETCDF4
+    disk format = HDF5
+    Attributes
+        timereference = left interval boundary
+DIMENSIONS
+    time = 4018
+    stations = 4
+    char_leng_name = 11
+VARIABLES
+    time
+        dimensions = time
+        shape = 4018
+        data type = float64
+        Attributes
+            _FillValue = -999.0
+            units = hours since 1996-01-01 00:00:00 +01:00
+    station_id
+        dimensions = stations, char_leng_name
+        shape = 4, 11
+        data type = |S1
+    hland_96_input_p
+        dimensions = time, stations
+        shape = 4018, 4
+        data type = float64
+        Attributes
+            _FillValue = -999.0
+
 The time series of all sequences of the same type are stored in one file.  So, by
 default, a NetCDF filename is shorter than an ASCII filename as it does not need a
-device-specific prefix (for example, "hland_96_input_p.nc" instead of
-"land_dill_assl_hland_96_input_p.asc").  The device names are instead managed by a
+device-specific prefix (for example, `hland_96_input_p.nc` instead of
+`land_dill_assl_hland_96_input_p.asc`).  The device names are instead managed by a
 file-internal NetCDF variable named `station_id`, whose shape is determined by the
 NetCDF dimensions `stations` (usually the number of devices, but see below) and
 `char_leng_name` (usually the longest device name, but see below).

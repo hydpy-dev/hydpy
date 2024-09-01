@@ -2868,7 +2868,7 @@ class InputSequence(ModelIOSequence):
     ...     with open("land_dill_assl.py") as controlfile:
     ...         exec(controlfile.read(), {}, locals())
     ...     parameters.update()
-    ...     land_dill.model = model
+    ...     land_dill_assl.model = model
 
     >>> aetmodel = model.aetmodel
     >>> petmodel = model.aetmodel.petmodel
@@ -2880,7 +2880,7 @@ class InputSequence(ModelIOSequence):
     >>> petmodel.sequences.inputs.normalevapotranspiration.inputflag
     False
 
-    >>> hp.update_devices(nodes=[node_t, node_p, node_q], elements=land_dill)
+    >>> hp.update_devices(nodes=[node_t, node_p, node_q], elements=land_dill_assl)
     >>> hp.prepare_inputseries()
     >>> hp.prepare_factorseries()
     >>> hp.prepare_fluxseries()
@@ -2904,10 +2904,10 @@ class InputSequence(ModelIOSequence):
     >>> print_vector(model.sequences.fluxes.pc.series[:, 0])
     0.0, 3.2514, 0.0, 6.5028, 0.0
     >>> print_vector(petmodel.sequences.inputs.normalevapotranspiration.series)
-    0.285483, 0.448182, 0.302786, 0.401946, 0.315023
+    0.279191, 0.281605, 0.284201, 0.286977, 0.289932
     >>> print_vector(
     ...     aetmodel.sequences.fluxes.potentialsoilevapotranspiration.series[:, 0])
-    0.322562, 0.53804, 0.469133, 0.704755, 0.630047
+    0.287632, 0.298761, 0.350738, 0.336645, 0.416885
 
     .. testsetup::
 
@@ -3011,7 +3011,7 @@ class OutputSequence(ModelIOSequence):
     >>> node_perc = Node("node_perc", variable=hland_fluxes_Perc)
     >>> node_uz = Node("node_uz", variable=hland_states_UZ)
     >>> node_q = Node("node_q")
-    >>> land_dill = Element("land_dill",
+    >>> land_dill_assl = Element("land_dill_assl",
     ...                     outlets=node_q,
     ...                     outputs=[node_q0, node_q1, node_perc, node_uz])
 
@@ -3023,7 +3023,7 @@ class OutputSequence(ModelIOSequence):
     ...     with open("land_dill_assl.py") as controlfile:
     ...         exec(controlfile.read(), {}, locals())
     ...     parameters.update()
-    ...     land_dill.model = model
+    ...     land_dill_assl.model = model
 
     >>> model.sequences.fluxes.q0.outputflag
     True
@@ -3039,7 +3039,7 @@ class OutputSequence(ModelIOSequence):
     False
 
     >>> hp.update_devices(nodes=[node_q0, node_q1, node_perc, node_uz],
-    ...                   elements=land_dill)
+    ...                   elements=land_dill_assl)
     >>> with TestIO():
     ...     hp.load_conditions()
 
@@ -3067,23 +3067,23 @@ class OutputSequence(ModelIOSequence):
     2.0, 2.0, 2.0, 2.0, 2.0
 
     >>> print_vector(model.sequences.fluxes.q1.series)
-    0.530692, 0.53965, 0.547982, 0.555686, 0.562831
+    0.530784, 0.539981, 0.548638, 0.5568, 0.564495
     >>> print_vector(node_q1.sequences.sim.series)
-    0.530692, 0.53965, 0.547982, 0.555686, 0.562831
+    0.530784, 0.539981, 0.548638, 0.5568, 0.564495
     >>> print_vector(node_q1.sequences.obs.series)
     3.0, 3.0, 3.0, 3.0, 3.0
 
     >>> print_vector(model.sequences.fluxes.perc.series)
-    0.69249, 0.689344, 0.687227, 0.684426, 0.682239
+    0.694119, 0.693673, 0.693319, 0.693187, 0.693104
     >>> print_vector(node_perc.sequences.sim.series)
-    0.69249, 0.689344, 0.687227, 0.684426, 0.682239
+    0.694119, 0.693673, 0.693319, 0.693187, 0.693104
     >>> print_vector(node_perc.sequences.obs.series)
     4.0, 4.0, 4.0, 4.0, 4.0
 
     >>> print_vector(model.sequences.states.uz.series)
-    5.620142, 4.359374, 3.330011, 2.450131, 1.667571
+    5.628328, 4.368344, 3.337403, 2.452962, 1.662716
     >>> print_vector(node_uz.sequences.sim.series)
-    5.620142, 4.359374, 3.330011, 2.450131, 1.667571
+    5.628328, 4.368344, 3.337403, 2.452962, 1.662716
     >>> print_vector(node_uz.sequences.obs.series)
     5.0, 5.0, 5.0, 5.0, 5.0
 
@@ -3815,8 +3815,8 @@ convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and type 
         ...
         ValueError: While trying to set the shape of link sequence`q` of element \
 `stream_lahn_marb_lahn_leun`, the following error occurred: The shape information of \
-0-dimensional variables as `q` of element `stream_lahn_marb_lahn_leun` can only be `()`, \
-but `(1,)` is given.
+0-dimensional variables as `q` of element `stream_lahn_marb_lahn_leun` can only \
+be `()`, but `(1,)` is given.
 
         Changing the shape of 1-dimensional link sequences is supported but destroys
         the connection to the |NodeSequence| values of the respective nodes.
@@ -3833,16 +3833,16 @@ but `(1,)` is given.
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to query the value(s) of link sequence `q` of \
-element `stream_lahn_marb_lahn_leun`, the following error occurred: The pointer of the \
-actual `PPDouble` instance at index `0` requested, but not prepared yet via \
+element `stream_lahn_marb_lahn_leun`, the following error occurred: The pointer of \
+the actual `PPDouble` instance at index `0` requested, but not prepared yet via \
 `set_pointer`.
 
         >>> model.sequences.inlets.q(1.0)
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to assign the value(s) 1.0 to link sequence `q` of \
-element `stream_lahn_marb_lahn_leun`, the following error occurred: The pointer of the \
-actual `PPDouble` instance at index `0` requested, but not prepared yet via \
+element `stream_lahn_marb_lahn_leun`, the following error occurred: The pointer of \
+the actual `PPDouble` instance at index `0` requested, but not prepared yet via \
 `set_pointer`.
 
         Querying the shape of a link sequence should rarely result in errors.  However,
@@ -4077,11 +4077,11 @@ the following error occurred: ...attribute name must be string...
         """True/False flag indicating whether simulated or observed data is fully
         available or not.
 
-        We use the observation series of node `dill` of the `HydPy-H-Lahn` project:
+        We use the observation series of node `dill_assl` of the `HydPy-H-Lahn` project:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> obs = hp.nodes.dill.sequences.obs
+        >>> obs = hp.nodes.dill_assl.sequences.obs
 
         When the sequence does not handle any time series data,
         |NodeSequence.seriescomplete| is |False|:
@@ -4090,8 +4090,8 @@ the following error occurred: ...attribute name must be string...
         >>> obs.series
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: Sequence `obs` of node `dill` is \
-not requested to make any time series data available.
+        hydpy.core.exceptiontools.AttributeNotReady: Sequence `obs` of node \
+`dill_assl` is not requested to make any time series data available.
         >>> obs.seriescomplete
         False
 
@@ -4145,14 +4145,14 @@ class Sim(NodeSequence):
         ...     hp.prepare_network()
         ...     hp.prepare_models()
         ...     hp.prepare_simseries()
-        >>> sim = hp.nodes.dill.sequences.sim
+        >>> sim = hp.nodes.dill_assl.sequences.sim
         >>> with TestIO():
         ...     sim.load_series()  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         UserWarning: While trying to load the time series data of sequence `sim` of \
-node `dill`, the following error occurred: [Errno 2] No such file or directory: \
-'...dill_sim_q.asc'
+node `dill_assl`, the following error occurred: [Errno 2] No such file or directory: \
+'...dill_assl_sim_q.asc'
         >>> sim.series
         InfoArray([nan, nan, nan, nan, nan])
 
@@ -4174,8 +4174,8 @@ node `dill`, the following error occurred: [Errno 2] No such file or directory: 
         Traceback (most recent call last):
         ...
         UserWarning: While trying to load the time series data of sequence `sim` of \
-node `dill`, the following error occurred: The series array of sequence `sim` of node \
-`dill` contains 1 nan value.
+node `dill_assl`, the following error occurred: The series array of sequence `sim` of \
+node `dill_assl` contains 1 nan value.
         >>> sim.series
         InfoArray([ 1.,  1., nan,  1.,  1.])
 
@@ -4217,7 +4217,7 @@ class Obs(NodeSequence):
         According to this reasoning, *HydPy* raises (at most) a |UserWarning| in case
         of missing or incomplete external time series data of |Obs| sequences.  The
         following examples show this based on the `HydPy-H-Lahn` project, mainly
-        focussing on the |Obs| sequence of node `dill`, which is ready for handling
+        focussing on the |Obs| sequence of node `dill_assl`, which is ready for handling
         time series data at the end of the following steps:
 
         >>> from hydpy.core.testtools import prepare_full_example_1
@@ -4229,7 +4229,7 @@ class Obs(NodeSequence):
         ...     hp.prepare_network()
         ...     hp.prepare_models()
         ...     hp.prepare_obsseries()
-        >>> obs = hp.nodes.dill.sequences.obs
+        >>> obs = hp.nodes.dill_assl.sequences.obs
         >>> obs.ramflag
         True
 
@@ -4240,10 +4240,11 @@ class Obs(NodeSequence):
         ...     hp.load_obsseries()  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        UserWarning: The `memory flag` of sequence `obs` of node `dill` had to be set \
-to `False` due to the following problem: While trying to load the time series data of \
-sequence `obs` of node `dill`, the following error occurred: [Errno 2] No such file \
-or directory: '...dill_obs_q.asc'
+        UserWarning: The `memory flag` of sequence `obs` of node `dill_assl` had to \
+be set to `False` due to the following problem: While trying to load the time series \
+data of sequence `obs` of node `dill_assl`, the following error occurred: [Errno 2] \
+No such file or directory: '...dill_assl_obs_q.asc'
+
         >>> obs.ramflag
         False
 
@@ -4271,8 +4272,8 @@ or directory: '...dill_obs_q.asc'
         Traceback (most recent call last):
         ...
         UserWarning: While trying to load the time series data of sequence `obs` of \
-node `dill`, the following error occurred: The series array of sequence `obs` of node \
-`dill` contains 1 nan value.
+node `dill_assl`, the following error occurred: The series array of sequence `obs` of \
+node `dill_assl` contains 1 nan value.
         >>> obs.memoryflag
         True
 

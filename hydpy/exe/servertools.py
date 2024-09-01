@@ -141,29 +141,29 @@ In the simplest example, we perform a simulation throughout five days for an
 |hland_control.Alpha| value of 2:
 
 >>> do_everything("1a", "1996-01-01", "1996-01-06", 2.0)
-2.0: 35.5403, 7.741818, 5.019103, 4.50156, 4.238698
+2.0: 35.492798, 7.729968, 5.017829, 4.508877, 4.244717
 
 The following example shows interlocked simulation runs.  The first call only triggers
 a simulation run for the first initialised day:
 
 >>> do_everything("1b", "1996-01-01", "1996-01-02", 2.0)
-2.0: 35.5403
+2.0: 35.492798
 
 The second call repeats the first one with a different `id` value:
 
 >>> do_everything("2", "1996-01-01", "1996-01-02", 2.0)
-2.0: 35.5403
+2.0: 35.492798
 
 The third call covers the first three initialisation days:
 
 >>> do_everything("3", "1996-01-01", "1996-01-04", 2.0)
-2.0: 35.5403, 7.741818, 5.019103
+2.0: 35.492798, 7.729968, 5.017829
 
 The fourth call continues the simulation of the first call, covering the last four
 initialised days:
 
 >>> do_everything("1b", "1996-01-02", "1996-01-06", 2.0)
-2.0: 7.741818, 5.019103, 4.50156, 4.238698
+2.0: 7.729968, 5.017829, 4.508877, 4.244717
 
 The results of the very first call of function `do_everything` (with`id=1`) are
 identical with the pulled-together discharge values of the calls with `id=1b`, made
@@ -173,15 +173,15 @@ numbers, but any other strings are valid `id` values.
 This example extends the last one by applying different parameter values:
 
 >>> do_everything("4", "1996-01-01", "1996-01-04", 2.0)
-2.0: 35.5403, 7.741818, 5.019103
+2.0: 35.492798, 7.729968, 5.017829
 >>> do_everything("5", "1996-01-01", "1996-01-04", 1.0)
-1.0: 11.78144, 8.902735, 7.132279
+1.0: 11.75686, 8.864424, 7.101367
 >>> do_everything("4", "1996-01-04", "1996-01-06", 2.0)
-2.0: 4.50156, 4.238698
+2.0: 4.508877, 4.244717
 >>> do_everything("5", "1996-01-04", "1996-01-06", 1.0)
-1.0: 6.018681, 5.313657
+1.0: 5.993961, 5.301515
 >>> do_everything("5", "1996-01-01", "1996-01-06", 1.0)
-1.0: 11.78144, 8.902735, 7.132279, 6.018681, 5.313657
+1.0: 11.75686, 8.864424, 7.101367, 5.993961, 5.301515
 
 The order in which function `do_everything` calls its subfunctions seems quite natural,
 but some tools might require do deviate from it.  For example, `OpenDA`_ offers
@@ -194,9 +194,9 @@ methods support such an execution sequence:
 >>> set_itemvalues("7", "1996-01-01", "1996-01-03", 1.0)
 >>> simulate("7")
 >>> print_itemvalues("6")
-2.0: 35.5403, 7.741818
+2.0: 35.492798, 7.729968
 >>> print_itemvalues("7")
-1.0: 11.78144, 8.902735
+1.0: 11.75686, 8.864424
 
 When working in parallel mode, `OpenDA`_ might not always call the functions
 `set_itemvalues` and `simulate` for the same `id` directly one after another, which
@@ -207,9 +207,9 @@ also causes no problem:
 >>> simulate("6")
 >>> simulate("7")
 >>> print_itemvalues("6")
-2.0: 5.019103, 4.50156, 4.238698
+2.0: 5.017829, 4.508877, 4.244717
 >>> print_itemvalues("7")
-1.0: 7.132279, 6.018681, 5.313657
+1.0: 7.101367, 5.993961, 5.301515
 
 Finally, we close the server and kill its process (just closing your command-line tool
 works likewise):
@@ -329,18 +329,18 @@ class ServerState:
     >>> for element in state.init_conditions:
     ...     print(element)
     land_dill_assl
-    land_lahn_marb
-    land_lahn_leun
     land_lahn_kalk
+    land_lahn_leun
+    land_lahn_marb
     stream_dill_assl_lahn_leun
-    stream_lahn_marb_lahn_leun
     stream_lahn_leun_lahn_kalk
+    stream_lahn_marb_lahn_leun
 
     The initialisation also prepares all selected series arrays and reads the
     required input data:
 
     >>> print_vector(state.hp.elements.land_dill_assl.model.sequences.inputs.t.series)
-    -0.298846, -0.811539, -2.493848, -5.968849, -6.999618
+    0.0, -0.5, -2.4, -6.8, -7.8
     >>> state.hp.nodes.dill_assl.sequences.sim.series
     InfoArray([nan, nan, nan, nan, nan])
     """
@@ -560,7 +560,7 @@ been extracted but cannot be further processed: `x == y`.
     >>> test("evaluate",
     ...      data=("nodes = HydPyServer.state.hp.nodes\\n"
     ...            "elements = HydPyServer.state.hp.elements.land_dill_assl"))
-    nodes = Nodes("dill_assl", "lahn_marb", "lahn_leun", "lahn_kalk")
+    nodes = Nodes("dill_assl", "lahn_kalk", "lahn_leun", "lahn_marb")
     elements = Element("land_dill_assl", outlets="dill_assl", keywords="catchment")
 
     Method |HydPyServer.GET_query_itemtypes|, already described in the main
@@ -597,9 +597,9 @@ been extracted but cannot be further processed: `x == y`.
     land_dill_assl_fluxes_qt = Double0D
     land_dill_assl_fluxes_qt_series = TimeSeries0D
     land_dill_assl_states_sm = Double1D
-    land_lahn_marb_states_sm = Double1D
-    land_lahn_leun_states_sm = Double1D
     land_lahn_kalk_states_sm = Double1D
+    land_lahn_leun_states_sm = Double1D
+    land_lahn_marb_states_sm = Double1D
     land_lahn_kalk_states_sm_series = TimeSeries1D
     dill_assl_nodes_sim_series = TimeSeries0D
 
@@ -636,8 +636,7 @@ been extracted but cannot be further processed: `x == y`.
 210.0, 220.0, 230.0]
     quh = [10.0]
     >>> test("query_initialinputitemvalues")
-    t_headwaters = [[-0.298846, -0.811539, -2.493848, -5.968849, -6.999618], \
-[-0.705395, -1.505553, -4.221268, -7.446349, -8.119366]]
+    t_headwaters = [[0.0, -0.5, -2.4, -6.8, -7.8], [-0.7, -1.5, -4.6, -8.2, -8.7]]
     >>> test("query_initialoutputitemvalues")
     swe_headwaters = [[nan, nan, nan, nan, nan], [nan, nan, nan, nan, nan]]
     >>> test("query_initialgetitemvalues")  # doctest: +ELLIPSIS
@@ -645,9 +644,9 @@ been extracted but cannot be further processed: `x == y`.
     land_dill_assl_fluxes_qt = nan
     land_dill_assl_fluxes_qt_series = [nan, nan, nan, nan, nan]
     land_dill_assl_states_sm = [185.13164...]
-    land_lahn_marb_states_sm = [99.27505...]
-    land_lahn_leun_states_sm = [138.31396...]
     land_lahn_kalk_states_sm = [101.31248...]
+    land_lahn_leun_states_sm = [138.31396...]
+    land_lahn_marb_states_sm = [99.27505...]
     land_lahn_kalk_states_sm_series = [[nan, ...], [nan, ...], ..., [nan, ...]]
     dill_assl_nodes_sim_series = [nan, nan, nan, nan, nan]
 
@@ -681,9 +680,9 @@ been extracted but cannot be further processed: `x == y`.
     land_dill_assl_fluxes_qt = land_dill_assl
     land_dill_assl_fluxes_qt_series = land_dill_assl
     land_dill_assl_states_sm = ('land_dill_assl_0', ..., 'land_dill_assl_11')
-    land_lahn_marb_states_sm = ('land_lahn_marb_0', ..., 'land_lahn_marb_12')
-    land_lahn_leun_states_sm = ('land_lahn_leun_0', ..., 'land_lahn_leun_9')
     land_lahn_kalk_states_sm = ('land_lahn_kalk_0', ..., 'land_lahn_kalk_13')
+    land_lahn_leun_states_sm = ('land_lahn_leun_0', ..., 'land_lahn_leun_9')
+    land_lahn_marb_states_sm = ('land_lahn_marb_0', ..., 'land_lahn_marb_12')
     land_lahn_kalk_states_sm_series = ('land_lahn_kalk_0', ..., 'land_lahn_kalk_13')
     dill_assl_nodes_sim_series = dill_assl
 
@@ -857,13 +856,12 @@ parameter item `lag` is missing.
     >>> test("update_inputitemvalues", id_="0")
     <BLANKLINE>
     >>> test("query_inputitemvalues", id_="0")
-    t_headwaters = [[-0.298846], [-0.705395]]
+    t_headwaters = [[0.0], [-0.7]]
     >>> t = "HydPyServer.state.hp.elements.land_lahn_marb.model.sequences.inputs.t"
     >>> test("evaluate", data=(f"t_series = {t}.series\\n"
     ...                        f"t_simseries = {t}.simseries\\n"))
-    t_series = InfoArray([-0.70539496, -1.50555283, -4.22126769, -7.44634946, \
--8.11936591])
-    t_simseries = InfoArray([-0.70539496])
+    t_series = InfoArray([-0.7, -1.5, -4.6, -8.2, -8.7])
+    t_simseries = InfoArray([-0.7])
 
     >>> test("register_inputitemvalues", id_="0",
     ...      data="t_headwaters = [[1.0], [2.0]]\\n")
@@ -872,8 +870,7 @@ parameter item `lag` is missing.
     <BLANKLINE>
     >>> test("evaluate", data=(f"t_series = {t}.series\\n"
     ...                        f"t_simseries = {t}.simseries\\n"))
-    t_series = InfoArray([ 2.        , -1.50555283, -4.22126769, -7.44634946, \
--8.11936591])
+    t_series = InfoArray([ 2. , -1.5, -4.6, -8.2, -8.7])
     t_simseries = InfoArray([2.])
 
     The "official" way to gain information on modified parameters or conditions is to
@@ -899,9 +896,9 @@ under the id `0`.  There is nothing registered, so far.
     land_dill_assl_fluxes_qt = nan
     land_dill_assl_fluxes_qt_series = [nan]
     land_dill_assl_states_sm = [185.13164, ...]
-    land_lahn_marb_states_sm = [1.0, 2.0, ..., 12.0, 13.0]
-    land_lahn_leun_states_sm = [197.0, ..., 197.0]
     land_lahn_kalk_states_sm = [101.31248, ...]
+    land_lahn_leun_states_sm = [197.0, ..., 197.0]
+    land_lahn_marb_states_sm = [1.0, 2.0, ..., 12.0, 13.0]
     land_lahn_kalk_states_sm_series = [[nan, ..., nan]]
     dill_assl_nodes_sim_series = [nan]
 
@@ -974,16 +971,16 @@ under the id `0`.  There is nothing registered, so far.
     >>> test("update_getitemvalues", id_="0")
     <BLANKLINE>
     >>> test("query_getitemvalues", id_="0")  # doctest: +ELLIPSIS
-    land_dill_assl_factors_contriarea = 0.758735
-    land_dill_assl_fluxes_qt = 5.515523
+    land_dill_assl_factors_contriarea = 0.759578
+    land_dill_assl_fluxes_qt = 5.515351
     ...
-    land_lahn_leun_states_sm = [100.33562, ..., 100.0]
+    land_lahn_leun_states_sm = [100.398959, ..., 100.0]
     ...
-    dill_assl_nodes_sim_series = [5.515523]
+    dill_assl_nodes_sim_series = [5.515351]
     >>> test("update_outputitemvalues", id_="0")
     <BLANKLINE>
     >>> test("query_outputitemvalues", id_="0")
-    swe_headwaters = [[0.0], [0.0]]
+    swe_headwaters = [[0.263315], [0.236538]]
 
     So far, we have explained how the *HydPy* server memorises different exchange item
     values for different values of query parameter `id`.  Complicating matters,
@@ -998,7 +995,7 @@ under the id `0`.  There is nothing registered, so far.
     lastdate_sim = 1996-01-02T00:00:00+01:00
     >>> test("evaluate",
     ...      data=f"sm_lahn2 = {path_sequences_model}.states.sm")  # doctest: +ELLIPSIS
-    sm_lahn2 = sm(100.33562, ..., 100.0)
+    sm_lahn2 = sm(100.398959, ..., 100.0)
     >>> test("save_internalconditions", id_="0")
     <BLANKLINE>
 
@@ -1026,7 +1023,7 @@ under the id `0`.  There is nothing registered, so far.
     <BLANKLINE>
     >>> test("evaluate",
     ...      data=f"sm_lahn2 = {path_sequences_model}.states.sm")  # doctest: +ELLIPSIS
-    sm_lahn2 = sm(100.33562, ..., 100.0)
+    sm_lahn2 = sm(100.398959, ..., 100.0)
 
     Loading condition values for a specific time point requires saving them before:
 
@@ -1061,8 +1058,8 @@ calculated so far.
     <BLANKLINE>
     >>> conditions = test("query_internalconditions", id_="0",
     ...                   return_result=True)[13:]  # doctest: +ELLIPSIS
-    conditions = {'land_dill_assl': {'model': {'states': {'ic': array([0.6839174, \
-1.1839174, 0.6850974...
+    conditions = {'land_dill_assl': {'model': {'states': {'ic': array([0.47123886, \
+0.97123886, 0.4715696...
 
     Due to the steps above, the returned dictionary agrees with the current state of
     the |HydPy| instance:
@@ -1070,7 +1067,7 @@ calculated so far.
     >>> sequences = f"HydPyServer.state.hp.elements.land_dill_assl.model.sequences"
     >>> test("evaluate",
     ...      data=f"ic_dill_assl = {sequences}.states.ic")  # doctest: +ELLIPSIS
-    ic_dill_assl = ic(0.683917, 1.183917, 0.685097,...
+    ic_dill_assl = ic(0.471239, 0.971239, 0.47157,...
 
     To show that registering new internal conditions also works, we first convert the
     string representation of the data to actual Python objects by using Python's |eval|
@@ -1095,7 +1092,7 @@ calculated so far.
     >>> ic_dill_assl = "self.state.conditions['0'][0]['land_dill_assl']['model']['states']['ic']"
     >>> test("evaluate",
     ...      data=f"ic_dill_assl = {ic_dill_assl}")  # doctest: +ELLIPSIS
-    ic_dill_assl = array([0.5      , 2.       , 0.6850974,...
+    ic_dill_assl = array([0.5       , 2.        , 0.4715696...
 
     After calling method |HydPyServer.GET_load_internalconditions|, the freshly
     registered states are ready to be used by the next simulation run:
@@ -1104,14 +1101,14 @@ calculated so far.
     <BLANKLINE>
     >>> test("evaluate",
     ...      data=f"ic_dill_assl = {sequences}.states.ic")  # doctest: +ELLIPSIS
-    ic_dill_assl = ic(0.5, 2.0, 0.685097,...
+    ic_dill_assl = ic(0.5, 2.0, 0.47157,...
 
     Keeping the internal conditions for multiple time points can use plenty of RAM.
     Use the GET method |HydPyServer.GET_deregister_internalconditions| to remove all
     conditions data available under the given `id` to avoid that:
 
     >>> test("query_internalconditions", id_="0")  # doctest: +ELLIPSIS
-    conditions = {'land_dill_assl': {'model': {'states': {'ic': array([0.6839...
+    conditions = {'land_dill_assl': {'model': {'states': {'ic': array([0.4712...
     >>> test("deregister_internalconditions", id_="0")
     <BLANKLINE>
     >>> test("query_internalconditions", id_="0")
@@ -1133,11 +1130,11 @@ conditions registered under the id `0` for `1996-01-02 00:00:00`.
     >>> test("update_conditionitemvalues", id_="0")
     <BLANKLINE>
     >>> test("query_conditionitemvalues", id_="0")  # doctest: +ELLIPSIS
-    ic_lahn_leun = [0.94611...]
-    ic_lahn_marb = [0.73074...]
-    sm_lahn_leun = [100.22389...]
-    sm_lahn_marb = [49.92738...]
-    quh = [0.00039...]
+    ic_lahn_leun = [0.6849...]
+    ic_lahn_marb = [0.5037...]
+    sm_lahn_leun = [100.4212...]
+    sm_lahn_marb = [50.0696...]
+    quh = [0.00040...]
 
     The second option for handling multiple "simultaneous" initial conditions is
     telling the *HydPy* server to read them from and write them to disk, which is
@@ -1168,7 +1165,7 @@ load the initial conditions of element `land_dill_assl`, the following error occ
 
     >>> lz_dill_assl = "self.state.hp.elements.land_dill_assl.model.sequences.states.lz"
     >>> test("evaluate", data=f"lz_dill_assl = {lz_dill_assl}")  # doctest: +ELLIPSIS
-    lz_dill_assl = lz(9.492...)
+    lz_dill_assl = lz(9.493...)
 
     To prove reading and writing conditions works, we first set the current value of
     sequence |hland_states.LZ| of catchment "Dill" to zero:
@@ -1184,7 +1181,7 @@ load the initial conditions of element `land_dill_assl`, the following error occ
     >>> test("load_conditions", id_="0")
     <BLANKLINE>
     >>> test("evaluate", data=f"lz_dill_assl = {lz_dill_assl}")  # doctest: +ELLIPSIS
-    lz_dill_assl = lz(9.492...)
+    lz_dill_assl = lz(9.493...)
 
     Use the GET methods |HydPyServer.GET_query_inputconditiondir| and
     |HydPyServer.GET_deregister_inputconditiondir| to query or remove the currently
@@ -1233,7 +1230,7 @@ registered under the id `0`.  There is nothing registered, so far.
     sfcf_2 = 0.2
     sfcf_3 = [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 0.2]
     k4 = 10.0
-    t_headwaters = [[-0.29884...], [-0.70539...]]
+    t_headwaters = [[0.0, -0.5, -2.4, -6.8, -7.8], [-0.7, -1.5, -4.6, -8.2, -8.7]]
     ic_lahn_leun = [1.18494...]
     ic_lahn_marb = [0.96404...]
     sm_lahn_leun = [123.0]
@@ -1245,9 +1242,9 @@ registered under the id `0`.  There is nothing registered, so far.
     land_dill_assl_fluxes_qt = nan
     land_dill_assl_fluxes_qt_series = [nan, nan, nan, nan, nan]
     land_dill_assl_states_sm = [185.13164...]
-    land_lahn_marb_states_sm = [99.27505...]
-    land_lahn_leun_states_sm = [138.31396...]
     land_lahn_kalk_states_sm = [101.31248...]
+    land_lahn_leun_states_sm = [138.31396...]
+    land_lahn_marb_states_sm = [99.27505...]
     land_lahn_kalk_states_sm_series = [[nan, ...], [nan, ...], ..., [nan, ...]]
     dill_assl_nodes_sim_series = [nan, nan, nan, nan, nan]
 
@@ -1267,7 +1264,7 @@ registered under the id `0`.  There is nothing registered, so far.
     >>> filepath = "HydPy-H-Lahn/series/mean_sm/hland_96_state_sm_mean.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
     ...     print_vector(ncfile["hland_96_state_sm_mean"][:, 0])
-    211.231585, 0.0, 0.0, 0.0, 0.0
+    211.467344, 0.0, 0.0, 0.0, 0.0
 
     To save the results of subsequent simulations without overwriting the previous
     ones, change the current series writer directory by the GET method
@@ -1280,7 +1277,7 @@ registered under the id `0`.  There is nothing registered, so far.
     >>> filepath = "HydPy-H-Lahn/series/sm_averaged/hland_96_state_sm_mean.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
     ...     print_vector(ncfile["hland_96_state_sm_mean"][:, 0])
-    211.231585, 0.0, 0.0, 0.0, 0.0
+    211.467344, 0.0, 0.0, 0.0, 0.0
 
     |HydPyServer.GET_deregister_serieswriterdir| removes the currently set directory
     from the registry so that the HydPy server falls back to the
@@ -1316,7 +1313,7 @@ under the id `0`.  There is nothing registered, so far.
     >>> submodel = "HydPyServer.state.hp.elements.land_dill_assl.model.aetmodel.petmodel"
     >>> net = f"{submodel}.sequences.inputs.normalevapotranspiration"
     >>> test("evaluate", data=f"net_dill_assl = {net}")  # doctest: +ELLIPSIS
-    net_dill_assl = normalevapotranspiration(0.2854...)
+    net_dill_assl = normalevapotranspiration(0.5901...)
 
     We can change the series writer directory before starting another simulation run to
     write the time series of |hland_inputs.T| and |evap_inputs.NormalAirTemperature| to
@@ -1337,7 +1334,7 @@ under the id `0`.  There is nothing registered, so far.
     directory "temp" only applied for writing data:
 
     >>> test("evaluate", data=f"net_dill_assl = {net}")  # doctest: +ELLIPSIS
-    net_dill_assl = normalevapotranspiration(0.2854...)
+    net_dill_assl = normalevapotranspiration(0.5901...)
 
     Changing the series reader directory works as explained for the series writer
     directory.  After setting it to an empty folder, |HydPyServer.GET_load_allseries|
@@ -1353,8 +1350,9 @@ under the id `0`.  There is nothing registered, so far.
     ...
     urllib.error.HTTPError: HTTP Error 500: FileNotFoundError: While trying to \
 execute method `GET_load_allseries`, the following error occurred: While trying to \
-load the time series data of sequence `t` of element `land_dill_assl`, the following error \
-occurred: [Errno 2] No such file or directory: ...land_dill_assl_hland_96_input_t.asc'
+load the time series data of sequence `t` of element `land_dill_assl`, the following \
+error occurred: [Errno 2] No such file or directory: \
+...land_dill_assl_hland_96_input_t.asc'
 
     >>> test("simulate", id_="0")  # doctest: +ELLIPSIS
     Traceback (most recent call last):

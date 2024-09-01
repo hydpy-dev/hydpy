@@ -265,6 +265,98 @@ TypeNetCDFVariable = TypeVar("TypeNetCDFVariable", bound="NetCDFVariable")
 FlatUnion: TypeAlias = Union["NetCDFVariableFlatReader", "NetCDFVariableFlatWriter"]
 
 
+def summarise_ncfile(ncfile: Union[netcdf4.Dataset, str], /) -> str:
+    """Give a summary describing (a HydPy-compatible) NetCDF file.
+
+    You can pass the file path:
+
+    >>> import os
+    >>> from hydpy import data, repr_, summarise_ncfile
+    >>> filepath = os.path.join(
+    ...     data.__path__[0], "HydPy-H-Lahn", "series", "default", "hland_96_input_p.nc"
+    ... )
+    >>> print(repr_(summarise_ncfile(filepath)))  # doctest: +ELLIPSIS
+    GENERAL
+        file path = ...data/HydPy-H-Lahn/series/default/hland_96_input_p.nc
+        file format = NETCDF4
+        disk format = HDF5
+        Attributes
+            timereference = left interval boundary
+    DIMENSIONS
+        time = 4018
+        stations = 4
+        char_leng_name = 11
+    VARIABLES
+        time
+            dimensions = time
+            shape = 4018
+            data type = float64
+            Attributes
+                _FillValue = -999.0
+                units = hours since 1996-01-01 00:00:00 +01:00
+        station_id
+            dimensions = stations, char_leng_name
+            shape = 4, 11
+            data type = |S1
+        hland_96_input_p
+            dimensions = time, stations
+            shape = 4018, 4
+            data type = float64
+            Attributes
+                _FillValue = -999.0
+
+    Alternatively, you can pass a NetCDF4 `Dataset` object:
+
+    >>> from netCDF4 import Dataset
+    >>> with Dataset(filepath, "r") as ncfile:
+    ...     print(repr_(summarise_ncfile(ncfile)))  # doctest: +ELLIPSIS
+    GENERAL
+        file path = ...data/HydPy-H-Lahn/series/default/hland_96_input_p.nc
+    ...
+                _FillValue = -999.0
+    """
+
+    def _summarize(nc: netcdf4.Dataset) -> str:
+
+        i1, i2, i3 = 4 * " ", 8 * " ", 12 * " "
+
+        lines: list[str] = []
+        append = lines.append
+
+        append("GENERAL")
+        append(f"{i1}file path = {nc.filepath()}")
+        append(f"{i1}file format = {nc.file_format}")
+        append(f"{i1}disk format = {nc.disk_format}")
+        if attrs_file := nc.ncattrs():
+            append(f"{i1}Attributes")
+            for attr_file in attrs_file:
+                append(f"{i2}{attr_file} = {nc.getncattr(attr_file)}")
+
+        if dims := nc.dimensions:
+            append("DIMENSIONS")
+            for name, dim in dims.items():
+                append(f"{i1}{name} = {dim.size}")
+
+        if vars_ := nc.variables:
+            append("VARIABLES")
+            for name, var in vars_.items():
+                append(f"{i1}{name}")
+                append(f"{i2}dimensions = {', '.join(var.dimensions)}")
+                append(f"{i2}shape = {', '.join(str(s) for s in var.shape)}")
+                append(f"{i2}data type = {var.datatype}")
+                if attrs_var := var.ncattrs():
+                    append(f"{i2}Attributes")
+                    for attr_var in attrs_var:
+                        append(f"{i3}{attr_var} = {var.getncattr(attr_var)}")
+
+        return "\n".join(lines)
+
+    if isinstance(ncfile, str):
+        with netcdf4.Dataset(ncfile, "r") as ncfile_:
+            return _summarize(ncfile_)
+    return _summarize(ncfile)
+
+
 def str2chars(strings: Sequence[str]) -> MatrixBytes:
     """Return a |numpy.ndarray| object containing the byte characters (second axis) of
     all given strings (first axis).

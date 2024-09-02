@@ -2420,14 +2420,14 @@ def prepare_full_example_2(
     'TestIO'
 
     Function |prepare_full_example_2| is primarily thought for testing and thus does
-    not allow for many configurations except changing the end date of the
-    initialisation period:
+    not allow for many configurations except changing the start date and end date of
+    the initialisation period:
 
-    >>> hp, pub, TestIO = prepare_full_example_2(firstdate="1990-01-01",
-    ...                                          lastdate="1990-01-05")
+    >>> hp, pub, TestIO = prepare_full_example_2(firstdate="1996-01-01",
+    ...                                          lastdate="1996-01-05")
     >>> pub.timegrids
-    Timegrids("1990-01-01 00:00:00",
-              "1990-01-05 00:00:00",
+    Timegrids("1996-01-01 00:00:00",
+              "1996-01-05 00:00:00",
               "1d")
     """
     prepare_full_example_1()

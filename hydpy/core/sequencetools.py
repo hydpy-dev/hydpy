@@ -2202,8 +2202,8 @@ sequencemanager of module `pub` is not defined at the moment.
         ...                       numpy.zeros((3,)))  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        RuntimeError: For sequence `obs` of node `dill_assl` the initialisation time grid \
-(Timegrid("1996-01-01 00:00:00", "1996-01-05 00:00:00", "1d")) does not define a \
+        RuntimeError: For sequence `obs` of node `dill_assl` the initialisation time \
+grid (Timegrid("1996-01-01 00:00:00", "1996-01-05 00:00:00", "1d")) does not define a \
 subset of the time grid of the data file `...dill_assl_obs_q.asc` \
 (Timegrid("1996-01-02 00:00:00", "1996-01-04 00:00:00", "1d")).
 
@@ -2228,8 +2228,9 @@ according to the data file `...dill_assl_obs_q.asc` it should be `(2,)`.
         ...                       numpy.zeros((24*5,)))  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        RuntimeError: According to data file `...dill_assl_obs_q.asc`, the date time step \
-of sequence `obs` of node `dill_assl` is `1h` but the actual simulation time step is `1d`.
+        RuntimeError: According to data file `...dill_assl_obs_q.asc`, the date time \
+step of sequence `obs` of node `dill_assl` is `1h` but the actual simulation time \
+step is `1d`.
 
         .. testsetup::
 
@@ -2358,13 +2359,13 @@ of sequence `obs` of node `dill_assl` is `1h` but the actual simulation time ste
         |SequenceManager.reset|.  By default, "resetting" is enabled, meaning that
         |numpy.nan| values due to incomplete time series files overwrite previously
         available data.  We demonstrate this using the NetCDF data provided by function
-        |prepare_full_example_2| but changing the initialisation period:
+        |prepare_full_example_2| but changing the initialisation period (only advised
+        for testing purposes):
 
         >>> from hydpy.core.testtools import prepare_full_example_2
-        >>> hp, pub, TestIO = prepare_full_example_2(firstdate="1989-10-30",
-        ...                                          lastdate="1989-11-02")
-        >>> pub.timegrids.init.firstdate -= "2d"
-        >>> pub.timegrids.init.lastdate -= "2d"
+        >>> hp, pub, TestIO = prepare_full_example_2()
+        >>> pub.timegrids.init.firstdate = "1989-10-30"
+        >>> pub.timegrids.init.lastdate = "1989-11-03"
         >>> t = hp.elements.land_dill_assl.model.sequences.inputs.t
         >>> t.series = -99.9
         >>> opt = pub.options
@@ -2374,7 +2375,7 @@ of sequence `obs` of node `dill_assl` is `1h` but the actual simulation time ste
         ...         t.load_series()
         >>> from hydpy import round_
         >>> round_(t.series)
-        nan, nan, -0.298846, -0.811539
+        nan, nan, 10.1, 10.0
 
         With option |SequenceManager.reset| disabled, method
         |IOSequence.apply_adjusted_series| keeps the already available data:
@@ -2385,7 +2386,7 @@ of sequence `obs` of node `dill_assl` is `1h` but the actual simulation time ste
         ...         t.load_series()
         >>> from hydpy import round_
         >>> round_(t.series)
-        99.9, 99.9, -0.298846, -0.811539
+        99.9, 99.9, 10.1, 10.0
         """
         if hydpy.pub.sequencemanager.reset:
             self.series = series
@@ -3660,8 +3661,8 @@ please be careful).
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
-        We focus on the |musk_classic| application model `stream_lahn_marb_lahn_leun` routing
-        inflow from node `lahn_marb` to node `lahn_leun`:
+        We focus on the |musk_classic| application model `stream_lahn_marb_lahn_leun`
+        routing inflow from node `lahn_marb` to node `lahn_leun`:
 
         >>> model = hp.elements.stream_lahn_marb_lahn_leun.model
 
@@ -3705,16 +3706,16 @@ please be careful).
         Traceback (most recent call last):
         ...
         ValueError: While trying to assign the value(s) (1.0, 2.0) to link sequence \
-`q` of element `stream_lahn_marb_lahn_leun`, the following error occurred: 2 values are \
-assigned to the scalar variable `q` of element `stream_lahn_marb_lahn_leun`.
+`q` of element `stream_lahn_marb_lahn_leun`, the following error occurred: 2 values \
+are assigned to the scalar variable `q` of element `stream_lahn_marb_lahn_leun`.
         >>> model.sequences.inlets.q.values = 1.0, 2.0
         Traceback (most recent call last):
         ...
         ValueError: While trying to assign the value(s) (1.0, 2.0) to link sequence \
-`q` of element `stream_lahn_marb_lahn_leun`, the following error occurred: While trying to \
-convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and type \
-`float`, the following error occurred: could not broadcast input array from shape \
-(2,) into shape (1,)
+`q` of element `stream_lahn_marb_lahn_leun`, the following error occurred: While \
+trying to convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and \
+type `float`, the following error occurred: could not broadcast input array from \
+shape (2,) into shape (1,)
 
         In the example above, the 1-dimensional inlet sequence |musk_inlets.Q| only
         points a single |NodeSequence| value.  We now prepare a |exch_branch_hbv96|

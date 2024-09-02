@@ -386,33 +386,98 @@ the :ref:`HydPy-L-Lahn` example project:
 >>> from hydpy import repr_, summarise_ncfile
 >>> print(repr_(summarise_ncfile(filepath)))  # doctest: +ELLIPSIS
 GENERAL
-    file path = ...data/HydPy-H-Lahn/series/default/hland_96_input_p.nc
+    file path = C:/projects/hydpy/.nox/sphinx/lib/site-packages/hydpy/data/HydPy-H-Lahn/series/default/hland_96_input_p.nc
     file format = NETCDF4
     disk format = HDF5
     Attributes
+        hydts_timeRef = begin
+        title = Daily total precipitation sum HydPy-H-HBV96 model river Lahn (1990-2020)
+        project = Open Source Project HydPy - A Python framework for the development and application of hydrological models
+        version = v5.0
+        institution = HydPy Developers
+        author = Bastian Klein (klein@bafg.de)
+        contact = Bastian Klein (klein@bafg.de), Dennis Meissner (meissner@bafg.de)
+        source = Deutscher Wetterdienst, gridded_precipitation_dataset_(HYRAS-DE PRE) v5.0 spatially averaged over HydPy-H-HBV96 subbasins
+        conditions_of_use = The use of the data is free of charge. The data is licensed under GNU Lesser General Public License, Version 3 (LGPL-3.0).
+        citation = Klein, B. & D. Meissner (2024): Daily total precipitation sum HydPy-H-HBV96 model river Lahn (1990-2020). HydPy Developers [Data set]. Database Deutscher Wetterdienst gridded_precipitation_dataset_(HYRAS-DE PRE) v5.0 spatially averaged over HydPy-H-HBV96 subbasins
+        url = https://github.com/hydpy-dev
+        Conventions = CF-1.8
         timereference = left interval boundary
+        history = 2024-08-28 08:08:05 UTC: created by R-package hydts using ncdf4 package
+        date_created = 2024-08-28 08:08:05 UTC
+        created_by = R version 4.4.0 Patched (2024-05-13 r86547 ucrt), packages hydts (version 1.15.0), ncdf4 (version 1.22)
 DIMENSIONS
-    time = 4018
     stations = 4
-    char_leng_name = 11
+    time = 11384
+    str_len = 40
 VARIABLES
     time
         dimensions = time
-        shape = 4018
+        shape = 11384
         data type = float64
         Attributes
-            _FillValue = -999.0
-            units = hours since 1996-01-01 00:00:00 +01:00
-    station_id
-        dimensions = stations, char_leng_name
-        shape = 4, 11
-        data type = |S1
+            units = days since 1900-01-01 00:00:00 +0100
+            long_name = time
+            axis = T
+            calendar = gregorian
     hland_96_input_p
         dimensions = time, stations
-        shape = 4018, 4
-        data type = float64
+        shape = 11384, 4
+        data type = float32
         Attributes
-            _FillValue = -999.0
+            _FillValue = -9999.0
+            long_name = Daily Precipitation Sum
+            coordinates = y x
+    station_id
+        dimensions = stations, str_len
+        shape = 4, 40
+        data type = |S1
+        Attributes
+            long_name = station or node identification code
+    station_names
+        dimensions = stations, str_len
+        shape = 4, 40
+        data type = |S1
+        Attributes
+            long_name = station or node name
+    river_names
+        dimensions = stations, str_len
+        shape = 4, 40
+        data type = |S1
+        Attributes
+            long_name = river name
+    area
+        dimensions = stations
+        shape = 4
+        data type = float32
+        Attributes
+            units = km2
+            long_name = station area
+    elevation
+        dimensions = stations
+        shape = 4
+        data type = float32
+        Attributes
+            units = m
+            long_name = height above mean sea level
+    lon
+        dimensions = stations
+        shape = 4
+        data type = float32
+        Attributes
+            units = degrees_east
+            long_name = longitude coordinate
+            standard_name = longitude
+            axis = X
+    lat
+        dimensions = stations
+        shape = 4
+        data type = float32
+        Attributes
+            units = degrees_north
+            long_name = latitude coordinate
+            standard_name = latitude
+            axis = Y
 
 The time series of all sequences of the same type are stored in one file.  So, by
 default, a NetCDF filename is shorter than an ASCII filename as it does not need a

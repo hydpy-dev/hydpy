@@ -240,7 +240,7 @@ by calling method |HydPy.simulate|:
 
 Now, we can inspect the freshly calculated discharge values:
 
->>> round_(hp.nodes.lahn_kalk.sequences.sim.series)
+>>> print_vector(hp.nodes.lahn_kalk.sequences.sim.series)
 54.018074, 37.255732, 31.863983, 28.358949
 
 You could now write the results to file, print them into a figure, evaluate them

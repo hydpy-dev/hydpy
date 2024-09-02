@@ -2860,7 +2860,8 @@ class InputSequence(ModelIOSequence):
     >>> node_t = Node("node_t", variable=hland_inputs_T)
     >>> node_p = Node("node_p", variable=FusedVariable("Precip", hland_inputs_P))
     >>> node_q = Node("node_q")
-    >>> land_dill_assl = Element("land_dill_assl", inputs=[node_t, node_p], outlets=node_q)
+    >>> land_dill_assl = Element("land_dill_assl", inputs=[node_t, node_p],
+    ...                          outlets=node_q)
 
     >>> from hydpy.core.testtools import prepare_full_example_1
     >>> prepare_full_example_1()

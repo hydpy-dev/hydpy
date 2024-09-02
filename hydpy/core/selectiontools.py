@@ -602,8 +602,8 @@ class Selection:
     >>> test -= pub.selections.complete.nodes.dill_assl
     Traceback (most recent call last):
     ...
-    AttributeError: While trying to subtract selection `test` with object `dill_assl` of \
-type `Node`, the following error occurred: 'Node' object has no attribute 'nodes'
+    AttributeError: While trying to subtract selection `test` with object `dill_assl` \
+of type `Node`, the following error occurred: 'Node' object has no attribute 'nodes'
     >>> test < "wrong"
     Traceback (most recent call last):
     ...
@@ -693,7 +693,8 @@ type `str`, the following error occurred: 'str' object has no attribute 'nodes'
         directly connected to any upstream |Element| object.  Set the `inclusive`
         argument to |False| to circumvent this:
 
-        >>> test.search_upstream(hp.elements.stream_lahn_marb_lahn_leun, "UPSTREAM", False)
+        >>> test.search_upstream(hp.elements.stream_lahn_marb_lahn_leun, "UPSTREAM",
+        ...                      False)
         Selection("UPSTREAM",
                   nodes="lahn_marb",
                   elements=("land_lahn_marb", "stream_lahn_marb_lahn_leun"))

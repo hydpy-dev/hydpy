@@ -282,7 +282,8 @@ def summarise_ncfile(ncfile: Union[netcdf4.Dataset, str], /) -> str:
         disk format = HDF5
         Attributes
             hydts_timeRef = begin
-            title = Daily total precipitation sum HydPy-H-HBV96 model river Lahn (1990-2020)
+            title = Daily total precipitation sum HydPy-H-HBV96 model river Lahn \
+(1990-2020)
             ...
     DIMENSIONS
         stations = 4
@@ -2483,14 +2484,16 @@ file `...hland_96_flux_pc.nc`.
         0.0, 0.0, 0.0, 0.0
 
         Finally, we set the |Node.deploymode| of the headwater nodes `dill_assl` and
-        `lahn_marb` to `oldsim` and `obs`, respectively, and read their previously written
-        time series "just in time".  As expected, the values of the two non-headwater
-        nodes are identical to those of our initial example:
+        `lahn_marb` to `oldsim` and `obs`, respectively, and read their previously
+        written time series "just in time".  As expected, the values of the two
+        non-headwater nodes are identical to those of our initial example:
 
         >>> with TestIO():
-        ...     hp.nodes["dill_assl"].prepare_simseries(allocate_ram=True, read_jit=True)
+        ...     hp.nodes["dill_assl"].prepare_simseries(allocate_ram=True,
+        ...                                             read_jit=True)
         ...     hp.nodes["dill_assl"].deploymode = "oldsim"
-        ...     hp.nodes["lahn_marb"].prepare_obsseries(allocate_ram=True, read_jit=True)
+        ...     hp.nodes["lahn_marb"].prepare_obsseries(allocate_ram=True,
+        ...                                             read_jit=True)
         ...     hp.nodes["lahn_marb"].deploymode = "obs"
         ...     hp.load_conditions()
         ...     hp.simulate()

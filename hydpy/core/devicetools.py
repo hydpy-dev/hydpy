@@ -1543,7 +1543,8 @@ a function for coupling models that belong to the same collective.
         Wrong control files result in error messages like the following:
 
         >>> with TestIO():
-        ...     with open("HydPy-H-Lahn/control/default/land_dill_assl.py", "a") as file_:
+        ...     with open("HydPy-H-Lahn/control/default/land_dill_assl.py",
+        ...               "a") as file_:
         ...         _ = file_.write("zonetype(-1)")
         ...     hp.prepare_models()   # doctest: +ELLIPSIS
         Traceback (most recent call last):
@@ -2379,7 +2380,8 @@ group name `test`.
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, _ = prepare_full_example_2(lastdate="1997-01-01")
 
-        We perform a simulation run and calculate "observed" values for node `dill_assl`:
+        We perform a simulation run and calculate "observed" values for node
+        `dill_assl`:
 
         >>> hp.simulate()
         >>> dill_assl = hp.nodes.dill_assl
@@ -3527,8 +3529,8 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         >>> figure = land.plot_inputseries("xy")
         Traceback (most recent call last):
         ...
-        ValueError: No (sub)model handled by element `land_dill_assl` has an input sequence \
-named `xy`.
+        ValueError: No (sub)model handled by element `land_dill_assl` has an input \
+sequence named `xy`.
 
         Methods |Element.plot_factorseries|, |Element.plot_fluxseries|, and
         |Element.plot_stateseries| work in the same manner.  Before applying them, one

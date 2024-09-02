@@ -2273,8 +2273,8 @@ of type `evap_aet_hbv96`.
         most convenient manner.  However, using the underlying methods
         |Model.load_conditions| and |Model.save_conditions| directly offers the
         advantage of specifying alternative filenames.  We demonstrate this by using
-        the state sequence |hland_states.SM| if the `land_dill_assl` |Element| object of the
-        `HydPy-H-Lahn` example project:
+        the state sequence |hland_states.SM| if the `land_dill_assl` |Element| object
+        of the `HydPy-H-Lahn` example project:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()

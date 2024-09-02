@@ -1758,7 +1758,8 @@ during a simulation run is not supported but tried for sequence `p` of element \
         ...     dirpath = "HydPy-H-Lahn/series/default/"
         ...     os.path.exists(f"{dirpath}land_lahn_leun_hland_96_flux_pc.npy")
         ...     os.path.exists(f"{dirpath}land_lahn_kalk_hland_96_flux_pc.npy")
-        ...     round_(numpy.load(f"{dirpath}land_dill_assl_hland_96_flux_pc.npy")[13+2, 3])
+        ...     round_(numpy.load(f"{dirpath}land_dill_assl_hland_96"
+        ...                       f"_flux_pc.npy")[13+2, 3])
         ...     round_(numpy.load(f"{dirpath}lahn_leun_sim_q_mean.npy")[13+4])
         True
         False
@@ -2168,7 +2169,8 @@ class XMLVar(XMLSelector):
         'ic_lahn_leun'
         >>> round_(item.value)
         1.184948
-        >>> round_(hp.elements.land_lahn_leun.model.sequences.states.ic.average_values())
+        >>> ic_states = hp.elements.land_lahn_leun.model.sequences.states.ic
+        >>> round_(ic_states.average_values())
         1.184948
         >>> var = interface.exchange.itemgroups[1].models[0].subvars[0].vars[1]
         >>> item = var.item
@@ -2246,10 +2248,13 @@ class XMLVar(XMLSelector):
         >>> hp.elements.land_dill_assl.model.sequences.states.sm = 1.0
         >>> for name, target in var.item.yield_name2value():
         ...     print(name, target)  # doctest: +ELLIPSIS
-        land_dill_assl_states_sm [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+        land_dill_assl_states_sm [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, \
+1.0, 1.0]
         land_lahn_kalk_states_sm [101.3124...]
-        land_lahn_leun_states_sm [123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0]
-        land_lahn_marb_states_sm [110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0, 190.0, 200.0, 206.0, 206.0, 206.0]
+        land_lahn_leun_states_sm [123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0, \
+123.0, 123.0, 123.0]
+        land_lahn_marb_states_sm [110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, \
+180.0, 190.0, 200.0, 206.0, 206.0, 206.0]
 
         Another |GetItem| object queries the actual value of the
         |hland_factors.ContriArea| factor sequence of element `land_dill_assl`:

@@ -949,7 +949,8 @@ first.
         Now, you can start a simulation run and inspect the calculated time series of
         all relevant sequences.  We take the discharge values of the flux sequence
         |hland_fluxes.QT| of |Element| object `land_dill_assl` and of the node sequence
-        |Sim| of |Node| object `dill_assl` as examples, which provide the same information:
+        |Sim| of |Node| object `dill_assl` as examples, which provide the same
+        information:
 
         >>> hp.simulate()
         >>> round_(hp.elements.land_dill_assl.model.sequences.fluxes.qt.series)
@@ -1229,8 +1230,8 @@ deprecated.  Use method `prepare_models` instead.
         ...     model.parameters.control.coefficients, filename="stream")
 
         When passing the |Auxfiler| object to the method |HydPy.save_controls|, the
-        control file of element `stream_lahn_marb_lahn_leun` does not define the values of
-        both parameters on its own but references the auxiliary file `stream.py`
+        control file of element `stream_lahn_marb_lahn_leun` does not define the values
+        of both parameters on its own but references the auxiliary file `stream.py`
         instead:
 
         >>> with TestIO():
@@ -1265,8 +1266,8 @@ deprecated.  Use method `prepare_models` instead.
         coefficients(damp=0.0)
         <BLANKLINE>
 
-        The |musk_classic| model of element `stream_lahn_leun_lahn_kalk` defines the same
-        value for parameter |musk_control.Coefficients| but a different one for
+        The |musk_classic| model of element `stream_lahn_leun_lahn_kalk` defines the
+        same value for parameter |musk_control.Coefficients| but a different one for
         parameter |musk_control.NmbSegments|.  Hence, only |musk_control.Coefficients|
         can reference the control file `stream.py`:
 
@@ -1415,7 +1416,8 @@ deprecated.  Use method `prepare_models` instead.
 
         >>> with TestIO():
         ...     hp.prepare_models()
-        >>> control = hp.elements.land_dill_assl.model.aetmodel.petmodel.parameters.control
+        >>> parameters = hp.elements.land_dill_assl.model.aetmodel.petmodel.parameters
+        >>> control = parameters.control
         >>> control.airtemperaturefactor
         airtemperaturefactor(field=0.2, forest=0.1)
 
@@ -1576,8 +1578,8 @@ deprecated.  Use method `prepare_models` instead.
         Our |HydPy| instance `hp` is ready for the first simulation run, meaning the
         required initial conditions are available already.  First, we start a
         simulation run covering the whole initialisation period and inspect the
-        resulting soil moisture values of |Element| `land_dill_assl`, handled by a sequence
-        object of type |hland_states.SM|:
+        resulting soil moisture values of |Element| `land_dill_assl`, handled by a
+        sequence object of type |hland_states.SM|:
 
         >>> hp.simulate()
         >>> sm = hp.elements.land_dill_assl.model.sequences.states.sm
@@ -1935,8 +1937,8 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         74.67783, 97.859041, nan, nan
 
         At the end of the preparation run, a snow layer is covering the Lahn catchment.
-        In the `lahn_marb` subcatchment, this snow layer contains 13.7 mm of frozen water
-        and 1.3 mm of liquid water:
+        In the `lahn_marb` subcatchment, this snow layer contains 13.7 mm of frozen
+        water and 1.3 mm of liquid water:
 
         >>> lahn1_states = hp.elements.land_lahn_marb.model.sequences.states
         >>> print_vector([lahn1_states.sp.average_values()])
@@ -2089,8 +2091,10 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         After breaking the connection between node `lahn_marb` and its downstream river
         channel element `stream_lahn_marb_lahn2`, `lahn_marb` also becomes an end node:
 
-        >>> hp.nodes.lahn_marb.exits.remove_device("stream_lahn_marb_lahn_leun", force=True)
-        >>> hp.elements.stream_lahn_marb_lahn_leun.inlets.remove_device("lahn_marb", force=True)
+        >>> hp.nodes.lahn_marb.exits.remove_device("stream_lahn_marb_lahn_leun",
+        ...                                        force=True)
+        >>> hp.elements.stream_lahn_marb_lahn_leun.inlets.remove_device("lahn_marb",
+        ...                                                              force=True)
         >>> hp.endnodes
         Nodes("lahn_kalk", "lahn_marb")
 
@@ -2707,8 +2711,8 @@ actual HydPy instance does not handle any elements at the moment.
         passes its simulated values via a |Node| object to its downstream |Model|
         object.  There are four ways to deviate from this default behaviour that can be
         selected for each node individually via the property |Node.deploymode|.  We
-        focus on node `lahn_leun` as the upstream neighbour of node `lahn_kalk`.  So far, its
-        deploy mode is `newsim`, meaning that the node passes newly calculated
+        focus on node `lahn_leun` as the upstream neighbour of node `lahn_kalk`.  So
+        far, its deploy mode is `newsim`, meaning that the node passes newly calculated
         simulation values to the downstream element `stream_lahn_leun_lahn_kalk`:
 
         >>> hp.nodes.lahn_leun.deploymode

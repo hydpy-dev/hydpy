@@ -1115,10 +1115,10 @@ def controlcheck(
     files as `land_dill_assl.py` of the example project `HydPy-H-Lahn`.  It is called
     `controlcheck` due to its feature to check for possible inconsistencies between
     control and condition files.  The following test, where we write several soil
-    moisture values (|hland_states.SM|) into condition file `land_dill_assl.py`, which does
-    not agree with the number of hydrological response units (|hland_control.NmbZones|)
-    defined in control file `land_dill_assl.py`, verifies that this works within a separate
-    Python process:
+    moisture values (|hland_states.SM|) into condition file `land_dill_assl.py`, which
+    does not agree with the number of hydrological response units
+    (|hland_control.NmbZones|) defined in control file `land_dill_assl.py`, verifies
+    that this works within a separate Python process:
 
     >>> from hydpy.core.testtools import prepare_full_example_1
     >>> prepare_full_example_1()
@@ -1209,8 +1209,8 @@ the following error occurred: ...
     Unfortunately, state |lland_states.Inzp| does not define a |trim| method taking the
     actual value of parameter |lland_derived.KInz| into account (due to compatibility
     with the original LARSIM model).  As an auxiliary solution, we define such a
-    function within the `land_dill_assl.py` condition file (and modify some warning settings
-    in favour of the next examples):
+    function within the `land_dill_assl.py` condition file (and modify some warning
+    settings in favour of the next examples):
 
     >>> cwd = os.path.join("HydPy-H-Lahn", "conditions", "init_2000_07_01_00_00_00")
     >>> with TestIO():

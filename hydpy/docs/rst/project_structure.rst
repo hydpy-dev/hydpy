@@ -386,7 +386,7 @@ the :ref:`HydPy-L-Lahn` example project:
 >>> from hydpy import repr_, summarise_ncfile
 >>> print(repr_(summarise_ncfile(filepath)))  # doctest: +ELLIPSIS
 GENERAL
-    file path = C:/projects/hydpy/.nox/sphinx/lib/site-packages/hydpy/data/HydPy-H-Lahn/series/default/hland_96_input_p.nc
+    file path = ...hland_96_input_p.nc
     file format = NETCDF4
     disk format = HDF5
     Attributes

@@ -2391,8 +2391,6 @@ def prepare_full_example_1(dirpath: Optional[str] = None) -> None:
 
 
 def prepare_full_example_2(
-    *,
-    firstdate: timetools.DateConstrArg = "1996-01-01",
     lastdate: timetools.DateConstrArg = "1996-01-05",
 ) -> tuple[hydpytools.HydPy, pubtools.Pub, type[TestIO]]:
     """Prepare the `HydPy-H-Lahn` project on disk and in RAM.
@@ -2420,19 +2418,18 @@ def prepare_full_example_2(
     'TestIO'
 
     Function |prepare_full_example_2| is primarily thought for testing and thus does
-    not allow for many configurations except changing the start date and end date of
-    the initialisation period:
+    not allow for many configurations except changing the end date of the
+    initialisation period:
 
-    >>> hp, pub, TestIO = prepare_full_example_2(firstdate="1996-01-01",
-    ...                                          lastdate="1996-01-05")
+    >>> hp, pub, TestIO = prepare_full_example_2(lastdate="1996-01-02")
     >>> pub.timegrids
     Timegrids("1996-01-01 00:00:00",
-              "1996-01-05 00:00:00",
+              "1996-01-02 00:00:00",
               "1d")
     """
     prepare_full_example_1()
     with TestIO():
         hp = hydpytools.HydPy("HydPy-H-Lahn")
-        hydpy.pub.timegrids = firstdate, lastdate, "1d"
+        hydpy.pub.timegrids = "1996-01-01", lastdate, "1d"
         hp.prepare_everything()
     return hp, hydpy.pub, TestIO

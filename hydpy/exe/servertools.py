@@ -611,8 +611,8 @@ been extracted but cannot be further processed: `x == y`.
     |HydPyServer.GET_query_initialoutputitemvalues|, and
     (|HydPyServer.GET_query_initialgetitemvalues| return the relevant subgroup only.
     Note that for the exchange items related to state sequence |hland_states.SM|
-    (`sm_lahn_marb` and `sm_lahn_leun`), the initial values stem from the XML file.  For the
-    items related to state sequence |hland_states.Ic| and input sequence
+    (`sm_lahn_marb` and `sm_lahn_leun`), the initial values stem from the XML file.
+    For the items related to state sequence |hland_states.Ic| and input sequence
     |hland_inputs.T|, the XML file does not provide such information.  Thus, the
     initial values of `ic_lahn_marb`, `ic_lahn_leun`, and `t_headwaters` stem from the
     corresponding sequences themselves (and thus, indirectly, from the respective
@@ -632,8 +632,8 @@ been extracted but cannot be further processed: `x == y`.
     ic_lahn_marb = [0.96404, 1.36332, 0.96458, 1.46458, 0.96512, 1.46512, 0.96565, \
 1.46569, 0.96617, 1.46617, 0.96668, 1.46668, 1.46719]
     sm_lahn_leun = [123.0]
-    sm_lahn_marb = [110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0, 190.0, 200.0, \
-210.0, 220.0, 230.0]
+    sm_lahn_marb = [110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0, 190.0, \
+200.0, 210.0, 220.0, 230.0]
     quh = [10.0]
     >>> test("query_initialinputitemvalues")
     t_headwaters = [[0.0, -0.5, -2.4, -6.8, -7.8], [-0.7, -1.5, -4.6, -8.2, -8.7]]
@@ -761,7 +761,8 @@ registered under the id `1`.  The available ids are: 0.
     ...            "sfcf_3 = 0.1\\n"
     ...            "k4 = 10.0\\n"))
     <BLANKLINE>
-    >>> control = "HydPyServer.state.hp.elements.land_dill_assl.model.parameters.control"
+    >>> control = ("HydPyServer.state.hp.elements.land_dill_assl.model.parameters."
+    ...            "control")
     >>> test("evaluate",
     ...      data=(f"alpha = {control}.alpha\\n"
     ...            f"sfcf = {control}.sfcf"))
@@ -1089,7 +1090,8 @@ calculated so far.
 
     >>> test("register_internalconditions", id_="0", data=f"conditions = {conditions}")
     <BLANKLINE>
-    >>> ic_dill_assl = "self.state.conditions['0'][0]['land_dill_assl']['model']['states']['ic']"
+    >>> ic_dill_assl = ("self.state.conditions['0'][0]['land_dill_assl']['model']"
+    ...                 "['states']['ic']")
     >>> test("evaluate",
     ...      data=f"ic_dill_assl = {ic_dill_assl}")  # doctest: +ELLIPSIS
     ic_dill_assl = array([0.5       , 2.        , 0.74909105...
@@ -1310,7 +1312,8 @@ under the id `0`.  There is nothing registered, so far.
     same |IOSequence| object is not supported).  We query the last read value of
     |evap_inputs.NormalEvapotranspiration| for the Dill catchment:
 
-    >>> submodel = "HydPyServer.state.hp.elements.land_dill_assl.model.aetmodel.petmodel"
+    >>> submodel = ("HydPyServer.state.hp.elements.land_dill_assl.model.aetmodel."
+    ...             "petmodel")
     >>> net = f"{submodel}.sequences.inputs.normalevapotranspiration"
     >>> test("evaluate", data=f"net_dill_assl = {net}")  # doctest: +ELLIPSIS
     net_dill_assl = normalevapotranspiration(0.279191)
@@ -1390,7 +1393,8 @@ under the id `0`.  There is nothing registered, so far.
 
     >>> test("save_controls", id_="0")
     <BLANKLINE>
-    >>> with TestIO(), open("HydPy-H-Lahn/control/calibrated/land_dill_assl.py") as file_:
+    >>> with TestIO(), open("HydPy-H-Lahn/control/calibrated/"
+    ...                     "land_dill_assl.py") as file_:
     ...     print(file_.read())  # doctest: +ELLIPSIS
     # -*- coding: utf-8 -*-
     <BLANKLINE>
@@ -1407,7 +1411,8 @@ under the id `0`.  There is nothing registered, so far.
 
     >>> parameterstep = "hydpy.pub.options.parameterstep"
     >>> simulationstep = "hydpy.pub.options.simulationstep"
-    >>> beta = "HydPyServer.state.hp.elements.land_dill_assl.model.parameters.control.beta"
+    >>> beta = ("HydPyServer.state.hp.elements.land_dill_assl.model.parameters."
+    ...         "control.beta")
     >>> test("evaluate", data=(f"simulationstep = {simulationstep}\\n"
     ...                        f"parameterstep = {parameterstep}\\n"
     ...                        f"beta = {beta}"))

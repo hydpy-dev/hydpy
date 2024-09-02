@@ -226,7 +226,8 @@ class ExchangeItem:
         land_lahn_kalk
         land_lahn_leun
         land_lahn_marb
-        >>> item.device2target[land_dill_assl] is land_dill_assl.model.sequences.states.ic
+        >>> ic_states = land_dill_assl.model.sequences.states.ic
+        >>> item.device2target[land_dill_assl] is ic_states
         True
 
         Asking for |hland_states.Ic| objects corresponding to application model
@@ -241,7 +242,8 @@ class ExchangeItem:
         land_dill_assl
         land_lahn_leun
         land_lahn_marb
-        >>> item.device2target[land_dill_assl] is land_dill_assl.model.sequences.states.ic
+        >>> ic_states = land_dill_assl.model.sequences.states.ic
+        >>> item.device2target[land_dill_assl] is ic_states
         True
 
         The value of sub-attribute |ExchangeSpecification.series| of attribute
@@ -250,7 +252,8 @@ class ExchangeItem:
 
         >>> item.targetspecs.series = True
         >>> item.collect_variables(pub.selections)
-        >>> item.device2target[land_dill_assl] is land_dill_assl.model.sequences.states.ic
+        >>> ic_states = land_dill_assl.model.sequences.states.ic
+        >>> item.device2target[land_dill_assl] is ic_states
         True
 
         An ill-defined subgroup name results in the following error:
@@ -259,8 +262,8 @@ class ExchangeItem:
         >>> item.collect_variables(pub.selections)
         Traceback (most recent call last):
         ...
-        RuntimeError: No model of element `land_dill_assl` handles a parameter or sequence \
-named `ic` in subgroup `wrong_group`.
+        RuntimeError: No model of element `land_dill_assl` handles a parameter or \
+sequence named `ic` in subgroup `wrong_group`.
 
         Collecting the |Sim| or |Obs| sequences of |Node| objects works similarly:
 
@@ -659,8 +662,8 @@ keyword for an exchange item, its aggregation level cannot be `subunit`.
         ...
         TypeError: When trying to update a target variable of ChangeItem `alpha` with \
 the value(s) `wrong`, the following error occurred: While trying to set the value(s) \
-of variable `alpha` of element `land_dill_assl`, the following error occurred: The given \
-value `wrong` cannot be converted to type `float`.
+of variable `alpha` of element `land_dill_assl`, the following error occurred: The \
+given value `wrong` cannot be converted to type `float`.
         """
         try:
             if self.targetspecs.series:
@@ -891,11 +894,11 @@ value `wrong` cannot be converted to type `float`.
         land_lahn_leun ic(0.39, 0.4, ..., 0.47, 0.48)
         land_lahn_marb ic(0.12, 0.13, ... 0.23, 0.24)
 
-        We increased the number of snow classes per zone to two for element `land_dill_assl`.
-        Hence, its snow-related |hland_states.SP| object handles 22 instead of 11
-        values, and we need to assign 61 instead of 49 values to the |SetItem|
-        object.  Each item value relates to a specific matrix entry of a specific
-        target variable:
+        We increased the number of snow classes per zone to two for element
+        `land_dill_assl`.  Hence, its snow-related |hland_states.SP| object handles 22
+        instead of 11 values, and we need to assign 61 instead of 49 values to the
+        |SetItem| object.  Each item value relates to a specific matrix entry of a
+        specific target variable:
 
         >>> item = SetItem("sp", "hland_96", "states.sp", None, "subunit")
         >>> item.collect_variables(pub.selections)
@@ -1015,7 +1018,8 @@ class SetItem(ChangeItem):
 
         >>> dill_assl.sequences.states.uz.series = numpy.arange(4).reshape(4)
         >>> dill_assl.sequences.states.ic.series = numpy.arange(4*12).reshape(4, 12)
-        >>> dill_assl.sequences.states.wc.series = numpy.arange(4*2*12).reshape(4, 2, 12)
+        >>> dill_assl.sequences.states.wc.series = numpy.arange(4*2*12).reshape(4,
+        ...                                                                     2, 12)
 
         For all aggregation levels except `subunit`, |SetItem.extract_values| relies on
         the (spatial) aggregation of data, which is not possible beyond the `device`
@@ -1505,9 +1509,9 @@ class AddItem(MathItem):
         Traceback (most recent call last):
         ...
         ValueError: When trying to add the value(s) `(0.1, 0.2)` of AddItem `sfcf` \
-and the value(s) `[1.04283 ... 1.04283]` of variable `rfcf` of element `land_dill_assl`, \
-the following error occurred: operands could not be broadcast together with shapes \
-(12,) (2,)...
+and the value(s) `[1.04283 ... 1.04283]` of variable `rfcf` of element \
+`land_dill_assl`, the following error occurred: operands could not be broadcast \
+together with shapes (12,) (2,)...
         """
         base = self.target2base[variable]
         try:
@@ -1579,8 +1583,8 @@ class MultiplyItem(MathItem):
         ...
         ValueError: When trying to multiply the value(s) `(0.1, 0.2)` of AddItem \
 `sfcf` and the value(s) `[1.04283 ... 1.04283]` of variable `rfcf` of element \
-`land_dill_assl`, the following error occurred: operands could not be broadcast together \
-with shapes (12,) (2,)...
+`land_dill_assl`, the following error occurred: operands could not be broadcast \
+together with shapes (12,) (2,)...
         """
         base = self.target2base[variable]
         try:

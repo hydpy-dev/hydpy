@@ -2362,7 +2362,7 @@ of sequence `obs` of node `dill_assl` is `1h` but the actual simulation time ste
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2(firstdate="1989-10-30",
-            ...                                      lastdate="1989-11-02")
+        ...                                          lastdate="1989-11-02")
         >>> pub.timegrids.init.firstdate -= "2d"
         >>> pub.timegrids.init.lastdate -= "2d"
         >>> t = hp.elements.land_dill_assl.model.sequences.inputs.t

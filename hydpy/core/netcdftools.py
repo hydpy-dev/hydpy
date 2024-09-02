@@ -2511,7 +2511,7 @@ file `...hland_96_flux_pc.nc`.
                                 f"does not correctly cover the current simulation "
                                 f"period ({tg_sim})."
                             )
-                        variable2timedelta[variable] = tg_init[tg_variable.firstdate]
+                        variable2timedelta[variable] = tg_variable[tg_init.firstdate]
 
                     # make information for reading and writing temporarily available:
                     for variable, sequences in variable2sequences.items():

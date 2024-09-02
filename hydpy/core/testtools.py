@@ -2424,7 +2424,7 @@ def prepare_full_example_2(
     initialisation period:
 
     >>> hp, pub, TestIO = prepare_full_example_2(firstdate="1990-01-01",
-        ...                                      lastdate="1990-01-05")
+    ...                                          lastdate="1990-01-05")
     >>> pub.timegrids
     Timegrids("1990-01-01 00:00:00",
               "1990-01-05 00:00:00",

@@ -305,13 +305,13 @@ required to prepare the model properly.
     >>> model.sequences.inputs.t.series
     Traceback (most recent call last):
     ...
-    hydpy.core.exceptiontools.AttributeNotReady: Sequence `t` of element `land_dill_assl` \
-is not requested to make any time series data available.
+    hydpy.core.exceptiontools.AttributeNotReady: Sequence `t` of element \
+`land_dill_assl` is not requested to make any time series data available.
 
     Before loading time series data, we need to reserve the required memory storage.
     We do this for all sequences at once (not only the |ModelSequence| objects but also
-    the |NodeSequence| objects as the |Sim| instance handled by node `dill_assl`) by calling
-    the method |HydPy.prepare_allseries|:
+    the |NodeSequence| objects as the |Sim| instance handled by node `dill_assl`) by
+    calling the method |HydPy.prepare_allseries|:
 
     >>> hp.prepare_allseries()
 
@@ -585,16 +585,14 @@ is not requested to make any time series data available.
     ...     hp.load_modelseries()
     ...     hp.load_simseries()
 
-    >>> import time
-    >>> time.sleep(60*60)
     >>> round_(model.sequences.inputs.t.series)
     0.0, -0.5, -2.4, -6.8
 
     >>> round_(model.sequences.factors.tc.series[:, 0])
-    1.02436, 0.511668, -1.170642, -4.645642
+    1.323207, 0.823207, -1.076793, -5.476793
 
     >>> round_(model.sequences.states.sm.series[:, 0])
-    184.920402, 184.589155, 184.365769, 184.069586
+    184.972725, 184.789363, 184.643666, 184.589448
 
     >>> round_(model.sequences.fluxes.qt.series)
     11.75686, 8.864424, 7.101367, 5.993961
@@ -642,19 +640,19 @@ is not requested to make any time series data available.
     ...     hp.simulate()
 
     >>> round_(model.sequences.inputs.t.series)
-    -0.298846, -0.811539, -2.493848, -5.968849
+    0.0, -0.5, -2.4, -6.8
 
     >>> round_(model.sequences.factors.tc.series[:, 0])
-    1.02436, 0.511668, -1.170642, -4.645642
+    1.323207, 0.823207, -1.076793, -5.476793
 
     >>> round_(model.sequences.states.sm.series[:, 0])
-    184.920402, 184.589155, 184.365769, 184.069586
+    184.972725, 184.789363, 184.643666, 184.589448
 
     >>> round_(model.sequences.fluxes.qt.series)
-    11.78144, 8.902735, 7.132279, 6.018681
+    11.75686, 8.864424, 7.101367, 5.993961
 
     >>> round_(hp.nodes.dill_assl.sequences.sim.series)
-    11.78144, 8.902735, 7.132279, 6.018681
+    11.75686, 8.864424, 7.101367, 5.993961
 
     After subsequent deallocation and allocation for refreshing RAM, reading the
     previously written NetCDF files makes the same data available:
@@ -666,19 +664,19 @@ is not requested to make any time series data available.
     ...     hp.load_simseries()
 
     >>> round_(model.sequences.inputs.t.series)
-    -0.298846, -0.811539, -2.493848, -5.968849
+    0.0, -0.5, -2.4, -6.8
 
     >>> round_(model.sequences.factors.tc.series[:, 0])
-    1.02436, 0.511668, -1.170642, -4.645642
+    1.323207, 0.823207, -1.076793, -5.476793
 
     >>> round_(model.sequences.states.sm.series[:, 0])
-    184.920402, 184.589155, 184.365769, 184.069586
+    184.972725, 184.789363, 184.643666, 184.589448
 
     >>> round_(model.sequences.fluxes.qt.series)
-    11.78144, 8.902735, 7.132279, 6.018681
+    11.75686, 8.864424, 7.101367, 5.993961
 
     >>> round_(hp.nodes.dill_assl.sequences.sim.series)
-    11.78144, 8.902735, 7.132279, 6.018681
+    11.75686, 8.864424, 7.101367, 5.993961
 
     All filenames of meteorological input time series provided by the `HydPy-H-Lahn`
     example follow a "model-specific" pattern.  Each filename contains not only the
@@ -699,8 +697,8 @@ is not requested to make any time series data available.
     'land_dill_assl_hland_96_input_t.asc'
 
     This naming pattern is exact but not always convenient.  For example, assume we
-    want to simulate the `dill_assl` subcatchment with application model |hland_96p| instead
-    of |hland_96|:
+    want to simulate the `dill_assl` subcatchment with application model |hland_96p|
+    instead of |hland_96|:
 
     >>> from hydpy import prepare_model
     >>> hp.elements.land_dill_assl.model = new_model = prepare_model("hland_96p")
@@ -748,9 +746,9 @@ directory: '...land_dill_assl_hland_96p_input_p.asc'
     ...     hp.elements.land_dill_assl.model = new_model
     ...     hp.load_inputseries()
     >>> round_(old_model.sequences.inputs.t.series)
-    -0.298846, -0.811539, -2.493848, -5.968849
+    0.0, -0.5, -2.4, -6.8
     >>> round_(new_model.sequences.inputs.t.series)
-    -0.298846, -0.811539, -2.493848, -5.968849
+    0.0, -0.5, -2.4, -6.8
 
     The standard "HydPy" naming convention is compatible with reading data
     "just-in-time" from NetCDF files, even if main models and submodels come with
@@ -786,11 +784,11 @@ directory: '...land_dill_assl_hland_96p_input_p.asc'
     ...     hp.prepare_fluxseries()
     ...     hp.simulate()
     >>> round_(hland.sequences.inputs.t.series)
-    -0.298846, -0.811539, -2.493848, -5.968849
+    0.0, -0.5, -2.4, -6.8
     >>> round_(hland.aetmodel.petmodel.tempmodel.sequences.inputs.temperature.series)
-    -0.298846, -0.811539, -2.493848, -5.968849
+    0.0, -0.5, -2.4, -6.8
     >>> round_(hland.sequences.fluxes.qt.series)
-    11.78144, 8.902735, 7.132279, 6.018681
+    11.75686, 8.864424, 7.101367, 5.993961
     """
 
     _deviceorder: Optional[tuple[Union[devicetools.Node, devicetools.Element], ...]]
@@ -1106,9 +1104,9 @@ first.
         ...
         RuntimeError: While trying to initialise the model object of element \
 `land_dill_assl`, the following error occurred: While trying to load the control file \
-`...land_dill_assl.py`, the following error occurred: While trying to extract information \
-for parameter `alpha` from file `land`, the following error occurred: The selected \
-auxiliary file does not define value(s) for parameter `alpha`.
+`...land_dill_assl.py`, the following error occurred: While trying to extract \
+information for parameter `alpha` from file `land`, the following error occurred: The \
+selected auxiliary file does not define value(s) for parameter `alpha`.
 
         Completely wrong control files result in the following error:
 
@@ -1120,8 +1118,8 @@ auxiliary file does not define value(s) for parameter `alpha`.
         ...
         RuntimeError: While trying to initialise the model object of element \
 `land_dill_assl`, the following error occurred: Model parameters cannot be loaded from \
-control file `...land_dill_assl.py`.  Please refer to the HydPy documentation on how to \
-prepare control files properly.
+control file `...land_dill_assl.py`.  Please refer to the HydPy documentation on how \
+to prepare control files properly.
         """
         self.elements.prepare_models()
 
@@ -2155,8 +2153,10 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         |Selection| objects that do not overlap each other (meaning, no |Node| or
         |Element| object occurs more than one time):
 
-        >>> hp.nodes.lahn_marb.exits.remove_device("stream_lahn_marb_lahn_leun", force=True)
-        >>> hp.elements.stream_lahn_marb_lahn_leun.inlets.remove_device("lahn_marb", force=True)
+        >>> hp.nodes.lahn_marb.exits.remove_device("stream_lahn_marb_lahn_leun",
+        ...                                        force=True)
+        >>> hp.elements.stream_lahn_marb_lahn_leun.inlets.remove_device("lahn_marb",
+        ...                                                             force=True)
         >>> hp.segregatednetworks
         Selections("lahn_kalk", "lahn_marb")
         >>> hp.segregatednetworks.lahn_marb
@@ -2218,8 +2218,8 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         segregated networks are identical, which is not the case when two or more
         networks share the same network.  We restore our original network and add two
         additional end nodes, `nowhere` and `somewhere`,  linking the first one with
-        element `stream_lahn_leun_lahn_kalk` and the second one with the additional element
-        `stream_lahn_marb_nowhere`, which we connect to node `lahn_marb`:
+        element `stream_lahn_leun_lahn_kalk` and the second one with the additional
+        element `stream_lahn_marb_nowhere`, which we connect to node `lahn_marb`:
 
         >>> with TestIO():
         ...     hp = HydPy("HydPy-H-Lahn")
@@ -2428,7 +2428,8 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
 
         Fourth, you can pass nodes and elements at the same time:
 
-        >>> hp.update_devices(nodes="dill_assl",  elements=["land_lahn_marb", "land_dill_assl"])
+        >>> hp.update_devices(nodes="dill_assl",  elements=["land_lahn_marb",
+        ...                                                 "land_dill_assl"])
         >>> hp.nodes
         Nodes("dill_assl")
         >>> hp.elements
@@ -2728,10 +2729,10 @@ actual HydPy instance does not handle any elements at the moment.
 
         After performing another simulation run (over the whole initialisation period,
         again), the modified discharge values of node `lahn_leun` are unchanged.  The
-        simulated values of node `lahn_kalk` are, compared to the `newsim` runs, decreased
-        by 10 m³/s (there is no time delay or dampening of the discharge values between
-        both nodes due to the lag time of application model |musk_classic| being
-        shorter than the simulation time step):
+        simulated values of node `lahn_kalk` are, compared to the `newsim` runs,
+        decreased by 10 m³/s (there is no time delay or dampening of the discharge
+        values between both nodes due to the lag time of application model
+        |musk_classic| being shorter than the simulation time step):
 
         >>> hp.reset_conditions()
         >>> pub.timegrids.sim.firstdate = "1996-01-01"
@@ -2852,8 +2853,8 @@ method `simulate` instead.
         """
         self.simulate()
         warnings.warn(
-            "Method `doit` of class `HydPy` is deprecated.  Use method `simulate` "
-            "instead.",
+            "Method `doit` of class `HydPy` is deprecated.  Use method "
+            "`simulate` instead.",
             exceptiontools.HydPyDeprecationWarning,
         )
 

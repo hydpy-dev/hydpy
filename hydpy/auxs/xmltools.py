@@ -57,13 +57,12 @@ conditions and the written final conditions of sequence |hland_states.SM| for th
 ...         print("".join(file_.readlines()[10:12]))
 ...     filepath = "HydPy-H-Lahn/conditions/init_1996_01_06/land_dill_assl.py"
 ...     with open(filepath) as file_:
-...         print("".join(file_.readlines()[10:13]))
+...         print("".join(file_.readlines()[12:14]))
 sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
    222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 <BLANKLINE>
-sm(191.065482, 187.420409, 205.624741, 202.683004, 217.592014,
-   215.326441, 227.312224, 225.578811, 235.104658, 233.744139,
-   241.326832, 240.265835)
+sm(184.555679, 180.625527, 199.183781, 195.950142, 212.04018, 209.48859,
+   222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 <BLANKLINE>
 
 The intermediate soil moisture values have been stored in a NetCDF file called

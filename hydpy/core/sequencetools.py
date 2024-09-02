@@ -1385,7 +1385,7 @@ class IOSequence(Sequence_):
     >>> round_(inputs.t.series)
     -0.7, -1.5, -4.6, -8.2
     >>> round_(states.sm.series[:, 0])
-    98.992689, 98.695237, 98.395643, 98.134571
+    99.148246, 99.032441, 98.961805, 98.944842
     >>> round_(states.sp.series[:, 0, 0])
     0.0, 0.0, 0.0, 0.0
 
@@ -1404,9 +1404,9 @@ class IOSequence(Sequence_):
     ...     factors.tc.load_series()
     ...     pub.sequencemanager.close_netcdfreader()
     >>> round_(factors.contriarea.series)
-    0.430401, 0.428528, 0.426643, 0.425003
+    0.431382, 0.430652, 0.430207, 0.4301
     >>> round_(factors.tc.series[:, 0])
-    0.447691, -0.352466, -3.068181, -6.293263
+    0.453086, -0.346914, -3.446914, -7.046913
 
     We also load time series of |hland_states.SM| and |hland_states.SP| to demonstrate
     that the data written to the respective NetCDF files are identical with the data
@@ -1418,7 +1418,7 @@ class IOSequence(Sequence_):
     ...     states.sp.load_series()
     ...     pub.sequencemanager.close_netcdfreader()
     >>> round_(states.sm.series[:, 0])
-    99.130873, 98.90942, 98.748643, 98.554071
+    99.148246, 99.032441, 98.961805, 98.944842
     >>> round_(states.sp.series[:, 0, 0])
     0.0, 0.0, 0.0, 0.0
 
@@ -1446,7 +1446,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
     values of input sequence |hland_inputs.P| (given precipitation) are also zero:
 
     >>> round_(fluxes.pc.series[:, 0])
-    0.0, 0.0, 0.0, 0.0
+    0.0, 0.105611, 0.0, 0.0
 
     We can assign different values to attribute |IOSequence.series| of sequence
     |hland_inputs.P|, perform a new simulation run, and see that the newly calculated
@@ -1455,7 +1455,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
     >>> inputs.p.series = 10.0
     >>> hp.simulate()
     >>> round_(fluxes.pc.series[:, 0])
-    9.164043, 10.570894, 10.665633, 10.665633
+    9.154557, 10.561131, 10.665633, 10.665633
 
     Another convenience property is |IOSequence.seriesshape|, which combines the length
     of the simulation period with the shape of the individual |IOSequence| object:
@@ -1474,7 +1474,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
     >>> factors.fastaccess._tc_length
     13
     >>> round_(factors.tc.series[:, 0], 1)
-    0.4, -0.4, -3.1, -6.3
+    0.5, -0.3, -3.4, -7.0
 
     >>> factors.tc.shape = 2,
     >>> factors.tc.seriesshape
@@ -2358,10 +2358,11 @@ of sequence `obs` of node `dill_assl` is `1h` but the actual simulation time ste
         |SequenceManager.reset|.  By default, "resetting" is enabled, meaning that
         |numpy.nan| values due to incomplete time series files overwrite previously
         available data.  We demonstrate this using the NetCDF data provided by function
-        |prepare_full_example_2| but shifting the initialisation period by two days:
+        |prepare_full_example_2| but changing the initialisation period:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
-        >>> hp, pub, TestIO = prepare_full_example_2()
+        >>> hp, pub, TestIO = prepare_full_example_2(firstdate="1989-10-30",
+            ...                                      lastdate="1989-11-02")
         >>> pub.timegrids.init.firstdate -= "2d"
         >>> pub.timegrids.init.lastdate -= "2d"
         >>> t = hp.elements.land_dill_assl.model.sequences.inputs.t

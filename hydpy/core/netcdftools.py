@@ -2305,12 +2305,12 @@ The data of the NetCDF `...hland_96_input_p.nc` (Timegrid("1989-11-01 00:00:00",
         ...     hp.simulate()
         >>> print_vector(
         ...     hp.elements["land_dill_assl"].model.sequences.factors.contriarea.series)
-        0.494278, 0.52565, 0.537978, 0.534571
+        0.497092, 0.496772, 0.496519, 0.496424
         >>> from hydpy.core.netcdftools import netcdf4
         >>> filepath = "HydPy-H-Lahn/series/default/hland_96_factor_contriarea.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath, "r") as ncfile:
         ...     print_vector(ncfile["hland_96_factor_contriarea"][:, 0])
-        0.494278, 0.52565, 0.537978, 0.534571
+        0.497092, 0.496772, 0.496519, 0.496424
 
         Under particular circumstances, the data variable of a NetCDF file can be
         3-dimensional.  The documentation on function |query_array| explains this in
@@ -2338,7 +2338,7 @@ The data of the NetCDF `...hland_96_input_p.nc` (Timegrid("1989-11-01 00:00:00",
         ...     hp.simulate()
         >>> with TestIO(), netcdf4.Dataset(filepath, "r") as ncfile:
         ...     print_vector(ncfile["hland_96_factor_contriarea"][:, 0, 0])
-        0.530359, 0.5586, 0.570114, 0.566503
+        0.496091, 0.495772, 0.495518, 0.495424
 
         If we try to write the output of a simulation run beyond the original
         initial initialisation period into the same files,
@@ -2392,18 +2392,18 @@ file `...hland_96_flux_pc.nc`.
         ...     hp.simulate()
         >>> for element in hp.elements.search_keywords("catchment"):
         ...     print_vector(element.model.sequences.fluxes.qt.series)
-        11.976313, 14.447739, 19.482023, 16.795888
-        11.764739, 12.694953, 15.770976, 15.493237
-        20.914069, 13.657076, 18.589567, 16.834133
-        9.863194, 12.538947, 17.996259, 17.534
+        11.75686, 8.864424, 7.101367, 5.993961
+        11.673076, 10.100501, 8.984721, 8.203005
+        20.588138, 8.64403, 7.265147, 6.384859
+        9.646776, 8.512748, 7.777124, 7.343268
         >>> filepath_qt = "HydPy-H-Lahn/series/default/hland_96_flux_qt.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath_qt, "r") as ncfile:
         ...     for jdx in range(4):
         ...         print_vector(ncfile["hland_96_flux_qt"][:, jdx])
-        11.976313, 14.447739, 19.482023, 16.795888
+        11.75686, 8.864424, 7.101367, 5.993961
         0.0, 0.0, 0.0, 0.0
         0.0, 0.0, 0.0, 0.0
-        9.863194, 12.538947, 17.996259, 17.534
+        9.646776, 8.512748, 7.777124, 7.343268
         >>> with TestIO():
         ...     headwaters.prepare_fluxseries(allocate_ram=True, write_jit=False)
         ...     nonheadwaters.prepare_fluxseries(allocate_ram=True, write_jit=True)
@@ -2412,10 +2412,10 @@ file `...hland_96_flux_pc.nc`.
         >>> with TestIO(), netcdf4.Dataset(filepath_qt, "r") as ncfile:  #
         ...         for jdx in range(4):
         ...             print_vector(ncfile["hland_96_flux_qt"][:, jdx])
-        11.976313, 14.447739, 19.482023, 16.795888
-        11.764739, 12.694953, 15.770976, 15.493237
-        20.914069, 13.657076, 18.589567, 16.834133
-        9.863194, 12.538947, 17.996259, 17.534
+        11.75686, 8.864424, 7.101367, 5.993961
+        11.673076, 10.100501, 8.984721, 8.203005
+        20.588138, 8.64403, 7.265147, 6.384859
+        9.646776, 8.512748, 7.777124, 7.343268
 
         >>> hp.prepare_fluxseries(allocate_ram=False, write_jit=False)
 
@@ -2436,32 +2436,32 @@ file `...hland_96_flux_pc.nc`.
         ...     hp.simulate()
         >>> for node in hp.nodes:
         ...     print_vector(node.sequences.sim.series)
-        11.976313, 14.447739, 19.482023, 16.795888
-        54.655121, 50.662962, 66.381512, 67.119517
-        42.890382, 37.968009, 50.610536, 51.62628
-        9.863194, 12.538947, 17.996259, 17.534
+        11.75686, 8.864424, 7.101367, 5.993961
+        54.018074, 37.255732, 31.863983, 28.358949
+        42.344998, 27.155231, 22.879262, 20.155944
+        9.646776, 8.512748, 7.777124, 7.343268
         >>> for node in hp.nodes:
         ...     print_vector(node.sequences.obs.series)
-        11.976313, 14.447739, 19.482023, 16.795888
-        54.655121, 50.662962, 66.381512, 67.119517
-        42.890382, 37.968009, 50.610536, 51.62628
-        9.863194, 12.538947, 17.996259, 17.534
+        11.75686, 8.864424, 7.101367, 5.993961
+        54.018074, 37.255732, 31.863983, 28.358949
+        42.344998, 27.155231, 22.879262, 20.155944
+        9.646776, 8.512748, 7.777124, 7.343268
         >>> filepath_sim = "HydPy-H-Lahn/series/default/sim_q.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath_sim, "r") as ncfile:
         ...     for jdx in range(4):
         ...         print_vector(ncfile["sim_q"][:, jdx])
-        11.976313, 14.447739, 19.482023, 16.795888
-        9.863194, 12.538947, 17.996259, 17.534
-        42.890382, 37.968009, 50.610536, 51.62628
-        54.655121, 50.662962, 66.381512, 67.119517
+        11.75686, 8.864424, 7.101367, 5.993961
+        9.646776, 8.512748, 7.777124, 7.343268
+        42.344998, 27.155231, 22.879262, 20.155944
+        54.018074, 37.255732, 31.863983, 28.358949
         >>> filepath_obs = "HydPy-H-Lahn/series/default/obs_q.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath_obs, "r") as ncfile:
         ...     for jdx in range(4):
         ...         print_vector(ncfile["obs_q"][:, jdx])
-        11.976313, 14.447739, 19.482023, 16.795888
-        9.863194, 12.538947, 17.996259, 17.534
-        42.890382, 37.968009, 50.610536, 51.62628
-        54.655121, 50.662962, 66.381512, 67.119517
+        11.75686, 8.864424, 7.101367, 5.993961
+        9.646776, 8.512748, 7.777124, 7.343268
+        42.344998, 27.155231, 22.879262, 20.155944
+        54.018074, 37.255732, 31.863983, 28.358949
 
         Now we stop all sequences from writing to NetCDF files, remove the two
         headwater elements from the currently active selection, and start another

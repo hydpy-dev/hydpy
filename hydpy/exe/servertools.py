@@ -971,16 +971,16 @@ under the id `0`.  There is nothing registered, so far.
     >>> test("update_getitemvalues", id_="0")
     <BLANKLINE>
     >>> test("query_getitemvalues", id_="0")  # doctest: +ELLIPSIS
-    land_dill_assl_factors_contriarea = 0.759578
-    land_dill_assl_fluxes_qt = 5.515351
+    land_dill_assl_factors_contriarea = 0.759581
+    land_dill_assl_fluxes_qt = 5.508937
     ...
-    land_lahn_leun_states_sm = [100.398959, ..., 100.0]
+    land_lahn_leun_states_sm = [100.344094, ..., 100.0]
     ...
-    dill_assl_nodes_sim_series = [5.515351]
+    dill_assl_nodes_sim_series = [5.508937]
     >>> test("update_outputitemvalues", id_="0")
     <BLANKLINE>
     >>> test("query_outputitemvalues", id_="0")
-    swe_headwaters = [[0.263315], [0.236538]]
+    swe_headwaters = [[0.074231], [0.0]]
 
     So far, we have explained how the *HydPy* server memorises different exchange item
     values for different values of query parameter `id`.  Complicating matters,
@@ -995,7 +995,7 @@ under the id `0`.  There is nothing registered, so far.
     lastdate_sim = 1996-01-02T00:00:00+01:00
     >>> test("evaluate",
     ...      data=f"sm_lahn2 = {path_sequences_model}.states.sm")  # doctest: +ELLIPSIS
-    sm_lahn2 = sm(100.398959, ..., 100.0)
+    sm_lahn2 = sm(100.344094, ..., 100.0)
     >>> test("save_internalconditions", id_="0")
     <BLANKLINE>
 
@@ -1023,7 +1023,7 @@ under the id `0`.  There is nothing registered, so far.
     <BLANKLINE>
     >>> test("evaluate",
     ...      data=f"sm_lahn2 = {path_sequences_model}.states.sm")  # doctest: +ELLIPSIS
-    sm_lahn2 = sm(100.398959, ..., 100.0)
+    sm_lahn2 = sm(100.344094, ..., 100.0)
 
     Loading condition values for a specific time point requires saving them before:
 
@@ -1058,8 +1058,8 @@ calculated so far.
     <BLANKLINE>
     >>> conditions = test("query_internalconditions", id_="0",
     ...                   return_result=True)[13:]  # doctest: +ELLIPSIS
-    conditions = {'land_dill_assl': {'model': {'states': {'ic': array([0.47123886, \
-0.97123886, 0.4715696...
+    conditions = {'land_dill_assl': {'model': {'states': {'ic': array([0.74903872, \
+1.24903872, 0.74909105...
 
     Due to the steps above, the returned dictionary agrees with the current state of
     the |HydPy| instance:
@@ -1067,7 +1067,7 @@ calculated so far.
     >>> sequences = f"HydPyServer.state.hp.elements.land_dill_assl.model.sequences"
     >>> test("evaluate",
     ...      data=f"ic_dill_assl = {sequences}.states.ic")  # doctest: +ELLIPSIS
-    ic_dill_assl = ic(0.471239, 0.971239, 0.47157,...
+    ic_dill_assl = ic(0.749039, 1.249039, 0.749091,...
 
     To show that registering new internal conditions also works, we first convert the
     string representation of the data to actual Python objects by using Python's |eval|
@@ -1092,7 +1092,7 @@ calculated so far.
     >>> ic_dill_assl = "self.state.conditions['0'][0]['land_dill_assl']['model']['states']['ic']"
     >>> test("evaluate",
     ...      data=f"ic_dill_assl = {ic_dill_assl}")  # doctest: +ELLIPSIS
-    ic_dill_assl = array([0.5       , 2.        , 0.4715696...
+    ic_dill_assl = array([0.5       , 2.        , 0.74909105...
 
     After calling method |HydPyServer.GET_load_internalconditions|, the freshly
     registered states are ready to be used by the next simulation run:
@@ -1101,14 +1101,14 @@ calculated so far.
     <BLANKLINE>
     >>> test("evaluate",
     ...      data=f"ic_dill_assl = {sequences}.states.ic")  # doctest: +ELLIPSIS
-    ic_dill_assl = ic(0.5, 2.0, 0.47157,...
+    ic_dill_assl = ic(0.5, 2.0, 0.749091,...
 
     Keeping the internal conditions for multiple time points can use plenty of RAM.
     Use the GET method |HydPyServer.GET_deregister_internalconditions| to remove all
     conditions data available under the given `id` to avoid that:
 
     >>> test("query_internalconditions", id_="0")  # doctest: +ELLIPSIS
-    conditions = {'land_dill_assl': {'model': {'states': {'ic': array([0.4712...
+    conditions = {'land_dill_assl': {'model': {'states': {'ic': array([0.7490...
     >>> test("deregister_internalconditions", id_="0")
     <BLANKLINE>
     >>> test("query_internalconditions", id_="0")
@@ -1130,11 +1130,11 @@ conditions registered under the id `0` for `1996-01-02 00:00:00`.
     >>> test("update_conditionitemvalues", id_="0")
     <BLANKLINE>
     >>> test("query_conditionitemvalues", id_="0")  # doctest: +ELLIPSIS
-    ic_lahn_leun = [0.6849...]
-    ic_lahn_marb = [0.5037...]
-    sm_lahn_leun = [100.4212...]
-    sm_lahn_marb = [50.0696...]
-    quh = [0.00040...]
+    ic_lahn_leun = [0.961068]
+    ic_lahn_marb = [0.7633...]
+    sm_lahn_leun = [100.2006...]
+    sm_lahn_marb = [49.9361...]
+    quh = [0.000395]
 
     The second option for handling multiple "simultaneous" initial conditions is
     telling the *HydPy* server to read them from and write them to disk, which is
@@ -1264,7 +1264,7 @@ registered under the id `0`.  There is nothing registered, so far.
     >>> filepath = "HydPy-H-Lahn/series/mean_sm/hland_96_state_sm_mean.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
     ...     print_vector(ncfile["hland_96_state_sm_mean"][:, 0])
-    211.467344, 0.0, 0.0, 0.0, 0.0
+    211.467811, 0.0, 0.0, 0.0, 0.0
 
     To save the results of subsequent simulations without overwriting the previous
     ones, change the current series writer directory by the GET method
@@ -1277,7 +1277,7 @@ registered under the id `0`.  There is nothing registered, so far.
     >>> filepath = "HydPy-H-Lahn/series/sm_averaged/hland_96_state_sm_mean.nc"
     >>> with TestIO(), netCDF4.Dataset(filepath) as ncfile:
     ...     print_vector(ncfile["hland_96_state_sm_mean"][:, 0])
-    211.467344, 0.0, 0.0, 0.0, 0.0
+    211.467811, 0.0, 0.0, 0.0, 0.0
 
     |HydPyServer.GET_deregister_serieswriterdir| removes the currently set directory
     from the registry so that the HydPy server falls back to the
@@ -1313,7 +1313,7 @@ under the id `0`.  There is nothing registered, so far.
     >>> submodel = "HydPyServer.state.hp.elements.land_dill_assl.model.aetmodel.petmodel"
     >>> net = f"{submodel}.sequences.inputs.normalevapotranspiration"
     >>> test("evaluate", data=f"net_dill_assl = {net}")  # doctest: +ELLIPSIS
-    net_dill_assl = normalevapotranspiration(0.5901...)
+    net_dill_assl = normalevapotranspiration(0.279191)
 
     We can change the series writer directory before starting another simulation run to
     write the time series of |hland_inputs.T| and |evap_inputs.NormalAirTemperature| to
@@ -1334,7 +1334,7 @@ under the id `0`.  There is nothing registered, so far.
     directory "temp" only applied for writing data:
 
     >>> test("evaluate", data=f"net_dill_assl = {net}")  # doctest: +ELLIPSIS
-    net_dill_assl = normalevapotranspiration(0.5901...)
+    net_dill_assl = normalevapotranspiration(0.279191)
 
     Changing the series reader directory works as explained for the series writer
     directory.  After setting it to an empty folder, |HydPyServer.GET_load_allseries|

@@ -2391,9 +2391,9 @@ def prepare_full_example_1(dirpath: Optional[str] = None) -> None:
 
 
 def prepare_full_example_2(
+    *,
     firstdate: timetools.DateConstrArg = "1996-01-01",
     lastdate: timetools.DateConstrArg = "1996-01-05",
-    /,
 ) -> tuple[hydpytools.HydPy, pubtools.Pub, type[TestIO]]:
     """Prepare the `HydPy-H-Lahn` project on disk and in RAM.
 

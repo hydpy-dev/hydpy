@@ -77,7 +77,7 @@ The intermediate soil moisture values have been stored in a NetCDF file called
 ...     chars2str(query_variable(ncfile, "station_id")[:].data)[:3]
 ...     print_vector(query_variable(ncfile, "hland_96_state_sm")[:, 0])
 ['land_dill_assl_0', 'land_dill_assl_1', 'land_dill_assl_2']
-184.692176, 189.887226, 191.919177, 191.439738, 191.065482
+184.972725, 184.789363, 184.643666, 184.589448, 184.555679
 >>> ncfile.close()
 
 Spatially averaged time series values have been stored in files ending with the suffix
@@ -90,7 +90,7 @@ Spatially averaged time series values have been stored in files ending with the 
 ...     print_vector(
 ...         numpy.load("HydPy-H-Lahn/series/averages/lahn_marb_sim_q_mean.npy")[13:]
 ...     )
-9.863194, 12.538947, 17.996259, 17.534, 13.948004
+9.646776, 8.512748, 7.777124, 7.343268, 7.156948
 """
 # import...
 # ...from standard library

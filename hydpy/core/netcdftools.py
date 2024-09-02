@@ -277,33 +277,85 @@ def summarise_ncfile(ncfile: Union[netcdf4.Dataset, str], /) -> str:
     ... )
     >>> print(repr_(summarise_ncfile(filepath)))  # doctest: +ELLIPSIS
     GENERAL
-        file path = ...data/HydPy-H-Lahn/series/default/hland_96_input_p.nc
+        file path = ...hland_96_input_p.nc
         file format = NETCDF4
         disk format = HDF5
         Attributes
-            timereference = left interval boundary
+            hydts_timeRef = begin
+            title = Daily total precipitation sum HydPy-H-HBV96 model river Lahn (1990-2020)
+            ...
     DIMENSIONS
-        time = 4018
         stations = 4
-        char_leng_name = 11
+        time = 11384
+        str_len = 40
     VARIABLES
         time
             dimensions = time
-            shape = 4018
+            shape = 11384
             data type = float64
             Attributes
-                _FillValue = -999.0
-                units = hours since 1996-01-01 00:00:00 +01:00
-        station_id
-            dimensions = stations, char_leng_name
-            shape = 4, 11
-            data type = |S1
+                units = days since 1900-01-01 00:00:00 +0100
+                long_name = time
+                axis = T
+                calendar = gregorian
         hland_96_input_p
             dimensions = time, stations
-            shape = 4018, 4
-            data type = float64
+            shape = 11384, 4
+            data type = float32
             Attributes
-                _FillValue = -999.0
+                _FillValue = -9999.0
+                long_name = Daily Precipitation Sum
+                coordinates = y x
+        station_id
+            dimensions = stations, str_len
+            shape = 4, 40
+            data type = |S1
+            Attributes
+                long_name = station or node identification code
+        station_names
+            dimensions = stations, str_len
+            shape = 4, 40
+            data type = |S1
+            Attributes
+                long_name = station or node name
+        river_names
+            dimensions = stations, str_len
+            shape = 4, 40
+            data type = |S1
+            Attributes
+                long_name = river name
+        area
+            dimensions = stations
+            shape = 4
+            data type = float32
+            Attributes
+                units = km2
+                long_name = station area
+        elevation
+            dimensions = stations
+            shape = 4
+            data type = float32
+            Attributes
+                units = m
+                long_name = height above mean sea level
+        lon
+            dimensions = stations
+            shape = 4
+            data type = float32
+            Attributes
+                units = degrees_east
+                long_name = longitude coordinate
+                standard_name = longitude
+                axis = X
+        lat
+            dimensions = stations
+            shape = 4
+            data type = float32
+            Attributes
+                units = degrees_north
+                long_name = latitude coordinate
+                standard_name = latitude
+                axis = Y
 
     Alternatively, you can pass a NetCDF4 `Dataset` object:
 
@@ -313,7 +365,8 @@ def summarise_ncfile(ncfile: Union[netcdf4.Dataset, str], /) -> str:
     GENERAL
         file path = ...data/HydPy-H-Lahn/series/default/hland_96_input_p.nc
     ...
-                _FillValue = -999.0
+                _FillValue = -9999.0
+    ...
     """
 
     def _summarize(nc: netcdf4.Dataset) -> str:

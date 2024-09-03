@@ -1869,7 +1869,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
-        >>> hp.elements["land_dill"].model.parameters.control.fc.availablemasks
+        >>> hp.elements["land_dill_assl"].model.parameters.control.fc.availablemasks
         complete of module hydpy.models.hland.hland_masks
         land of module hydpy.models.hland.hland_masks
         upperzone of module hydpy.models.hland.hland_masks
@@ -1882,7 +1882,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         sealed of module hydpy.models.hland.hland_masks
         noglacier of module hydpy.models.hland.hland_masks
 
-        >>> hp.nodes.dill.sequences.sim.availablemasks
+        >>> hp.nodes.dill_assl.sequences.sim.availablemasks
         defaultmask of module hydpy.core.masktools
         """
         model = getattr(self.subvars.vars, "model", None)

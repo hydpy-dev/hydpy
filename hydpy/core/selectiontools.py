@@ -541,8 +541,8 @@ class Selection:
 
     >>> pub.selections.headwaters
     Selection("headwaters",
-              nodes=("dill", "lahn_1"),
-              elements=("land_dill", "land_lahn_1"))
+              nodes=("dill_assl", "lahn_marb"),
+              elements=("land_dill_assl", "land_lahn_marb"))
 
     You can compare this selection with other new or already available selections, with
     "headwaters < complete" returning |True| meaning that all nodes and elements of the
@@ -550,8 +550,8 @@ class Selection:
 
     >>> from hydpy import Selection
     >>> test = Selection("test",
-    ...                  elements=("land_dill", "land_lahn_1"),
-    ...                  nodes=("dill", "lahn_1"))
+    ...                  elements=("land_dill_assl", "land_lahn_marb"),
+    ...                  nodes=("dill_assl", "lahn_marb"))
     >>> pub.selections.headwaters < test
     False
     >>> pub.selections.headwaters <= test
@@ -599,11 +599,11 @@ class Selection:
     ...
     AttributeError: While trying to add selection `test` with object `1` of type \
 `int`, the following error occurred: 'int' object has no attribute 'nodes'
-    >>> test -= pub.selections.complete.nodes.dill
+    >>> test -= pub.selections.complete.nodes.dill_assl
     Traceback (most recent call last):
     ...
-    AttributeError: While trying to subtract selection `test` with object `dill` of \
-type `Node`, the following error occurred: 'Node' object has no attribute 'nodes'
+    AttributeError: While trying to subtract selection `test` with object `dill_assl` \
+of type `Node`, the following error occurred: 'Node' object has no attribute 'nodes'
     >>> test < "wrong"
     Traceback (most recent call last):
     ...
@@ -678,24 +678,26 @@ type `str`, the following error occurred: 'str' object has no attribute 'nodes'
         newly created |Selection| object:
 
         >>> test = pub.selections.complete.copy("test")
-        >>> test.search_upstream(hp.nodes.lahn_2)
+        >>> test.search_upstream(hp.nodes.lahn_leun)
         Selection("upstream",
-                  nodes=("dill", "lahn_1", "lahn_2"),
-                  elements=("land_dill", "land_lahn_1", "land_lahn_2",
-                            "stream_dill_lahn_2", "stream_lahn_1_lahn_2"))
-        >>> test.search_upstream(hp.elements.stream_lahn_1_lahn_2, "UPSTREAM")
+                  nodes=("dill_assl", "lahn_leun", "lahn_marb"),
+                  elements=("land_dill_assl", "land_lahn_leun",
+                            "land_lahn_marb", "stream_dill_assl_lahn_leun",
+                            "stream_lahn_marb_lahn_leun"))
+        >>> test.search_upstream(hp.elements.stream_lahn_marb_lahn_leun, "UPSTREAM")
         Selection("UPSTREAM",
-                  nodes=("lahn_1", "lahn_2"),
-                  elements=("land_lahn_1", "stream_lahn_1_lahn_2"))
+                  nodes=("lahn_leun", "lahn_marb"),
+                  elements=("land_lahn_marb", "stream_lahn_marb_lahn_leun"))
 
         Method |Selection.search_upstream| generally selects all |Node| objects
         directly connected to any upstream |Element| object.  Set the `inclusive`
         argument to |False| to circumvent this:
 
-        >>> test.search_upstream(hp.elements.stream_lahn_1_lahn_2, "UPSTREAM", False)
+        >>> test.search_upstream(hp.elements.stream_lahn_marb_lahn_leun, "UPSTREAM",
+        ...                      False)
         Selection("UPSTREAM",
-                  nodes="lahn_1",
-                  elements=("land_lahn_1", "stream_lahn_1_lahn_2"))
+                  nodes="lahn_marb",
+                  elements=("land_lahn_marb", "stream_lahn_marb_lahn_leun"))
 
         Wrong device specifications result in errors like the following:
 
@@ -706,37 +708,38 @@ type `str`, the following error occurred: 'str' object has no attribute 'nodes'
 the following error occurred: Either a `Node` or an `Element` object is required as \
 the "outlet device", but the given `device` value is of type `int`.
 
-        >>> pub.selections.headwaters.search_upstream(hp.nodes.lahn_3)
+        >>> pub.selections.headwaters.search_upstream(hp.nodes.lahn_kalk)
         Traceback (most recent call last):
         ...
         KeyError: "While trying to determine an upstream network of selection \
-`headwaters`, the following error occurred: 'No node named `lahn_3` available.'"
+`headwaters`, the following error occurred: 'No node named `lahn_kalk` available.'"
 
         Method |Selection.select_upstream| restricts the current selection to the one
         determined with the method |Selection.search_upstream|:
 
-        >>> test.select_upstream(hp.nodes.lahn_2)
+        >>> test.select_upstream(hp.nodes.lahn_leun)
         Selection("test",
-                  nodes=("dill", "lahn_1", "lahn_2"),
-                  elements=("land_dill", "land_lahn_1", "land_lahn_2",
-                            "stream_dill_lahn_2", "stream_lahn_1_lahn_2"))
+                  nodes=("dill_assl", "lahn_leun", "lahn_marb"),
+                  elements=("land_dill_assl", "land_lahn_leun",
+                            "land_lahn_marb", "stream_dill_assl_lahn_leun",
+                            "stream_lahn_marb_lahn_leun"))
 
         On the contrary, the method |Selection.deselect_upstream| restricts the current
         selection to all devices not determined by method |Selection.search_upstream|:
 
-        >>> complete = pub.selections.complete.deselect_upstream(hp.nodes.lahn_2)
+        >>> complete = pub.selections.complete.deselect_upstream(hp.nodes.lahn_leun)
         >>> complete
         Selection("complete",
-                  nodes="lahn_3",
-                  elements=("land_lahn_3", "stream_lahn_2_lahn_3"))
+                  nodes="lahn_kalk",
+                  elements=("land_lahn_kalk", "stream_lahn_leun_lahn_kalk"))
 
         If necessary, include the "outlet device" manually afterwards:
 
-        >>> complete.nodes.add_device(hp.nodes.lahn_2)
+        >>> complete.nodes.add_device(hp.nodes.lahn_leun)
         >>> complete
         Selection("complete",
-                  nodes=("lahn_2", "lahn_3"),
-                  elements=("land_lahn_3", "stream_lahn_2_lahn_3"))
+                  nodes=("lahn_kalk", "lahn_leun"),
+                  elements=("land_lahn_kalk", "stream_lahn_leun_lahn_kalk"))
 
         Method |Selection.search_downstream| generally selects all |Node| objects
         directly connected to any upstream |Element| object.  Set the `inclusive`
@@ -832,15 +835,16 @@ the "outlet device", but the given `device` value is of type `int`.
         newly created |Selection| object:
 
         >>> test = pub.selections.complete.copy("test")
-        >>> test.search_downstream(hp.nodes.lahn_1)
+        >>> test.search_downstream(hp.nodes.lahn_marb)
         Selection("downstream",
-                  nodes=("lahn_1", "lahn_2", "lahn_3"),
-                  elements=("stream_lahn_1_lahn_2", "stream_lahn_2_lahn_3"))
-        >>> test.search_downstream(hp.elements.land_lahn_1, "DOWNSTREAM")
+                  nodes=("lahn_kalk", "lahn_leun", "lahn_marb"),
+                  elements=("stream_lahn_leun_lahn_kalk",
+                            "stream_lahn_marb_lahn_leun"))
+        >>> test.search_downstream(hp.elements.land_lahn_marb, "DOWNSTREAM")
         Selection("DOWNSTREAM",
-                  nodes=("lahn_1", "lahn_2", "lahn_3"),
-                  elements=("land_lahn_1", "stream_lahn_1_lahn_2",
-                            "stream_lahn_2_lahn_3"))
+                  nodes=("lahn_kalk", "lahn_leun", "lahn_marb"),
+                  elements=("land_lahn_marb", "stream_lahn_leun_lahn_kalk",
+                            "stream_lahn_marb_lahn_leun"))
 
         Wrong device specifications result in errors like the following:
 
@@ -851,40 +855,43 @@ the "outlet device", but the given `device` value is of type `int`.
 `test`, the following error occurred: Either a `Node` or an `Element` object is \
 required as the "inlet device", but the given `device` value is of type `int`.
 
-        >>> pub.selections.headwaters.search_downstream(hp.nodes.lahn_3)
+        >>> pub.selections.headwaters.search_downstream(hp.nodes.lahn_kalk)
         Traceback (most recent call last):
         ...
         KeyError: "While trying to determine a downstream network of selection \
-`headwaters`, the following error occurred: 'No node named `lahn_3` available.'"
+`headwaters`, the following error occurred: 'No node named `lahn_kalk` available.'"
 
         Method |Selection.select_downstream| restricts the current selection to the one
         determined with the method |Selection.search_upstream|:
 
-        >>> test.select_downstream(hp.nodes.lahn_1)
+        >>> test.select_downstream(hp.nodes.lahn_marb)
         Selection("test",
-                  nodes=("lahn_1", "lahn_2", "lahn_3"),
-                  elements=("stream_lahn_1_lahn_2", "stream_lahn_2_lahn_3"))
+                  nodes=("lahn_kalk", "lahn_leun", "lahn_marb"),
+                  elements=("stream_lahn_leun_lahn_kalk",
+                            "stream_lahn_marb_lahn_leun"))
 
         On the contrary, the method |Selection.deselect_downstream| restricts the
         current selection to all devices not determined by method
         |Selection.search_downstream|:
 
         >>> complete = pub.selections.complete.deselect_downstream(
-        ...     hp.nodes.lahn_1)
+        ...     hp.nodes.lahn_marb)
         >>> complete
         Selection("complete",
-                  nodes="dill",
-                  elements=("land_dill", "land_lahn_1", "land_lahn_2",
-                            "land_lahn_3", "stream_dill_lahn_2"))
+                  nodes="dill_assl",
+                  elements=("land_dill_assl", "land_lahn_kalk",
+                            "land_lahn_leun", "land_lahn_marb",
+                            "stream_dill_assl_lahn_leun"))
 
         If necessary, include the "inlet device" manually afterwards:
 
-        >>> complete.nodes.add_device(hp.nodes.lahn_1)
+        >>> complete.nodes.add_device(hp.nodes.lahn_marb)
         >>> complete
         Selection("complete",
-                  nodes=("dill", "lahn_1"),
-                  elements=("land_dill", "land_lahn_1", "land_lahn_2",
-                            "land_lahn_3", "stream_dill_lahn_2"))
+                  nodes=("dill_assl", "lahn_marb"),
+                  elements=("land_dill_assl", "land_lahn_kalk",
+                            "land_lahn_leun", "land_lahn_marb",
+                            "stream_dill_assl_lahn_leun"))
 
         Method |Selection.search_downstream| generally selects all |Node| objects
         directly connected to any upstream |Element| object.  Set the `inclusive`
@@ -983,15 +990,17 @@ required as the "inlet device", but the given `device` value is of type `int`.
         >>> test.search_modeltypes(hland_96)
         Selection("modeltypes",
                   nodes=(),
-                  elements=("land_dill", "land_lahn_1", "land_lahn_2",
-                            "land_lahn_3"))
+                  elements=("land_dill_assl", "land_lahn_kalk",
+                            "land_lahn_leun", "land_lahn_marb"))
         >>> test.search_modeltypes(
         ...     hland_96, "musk_classic", "lland_dd", name="MODELTYPES")
         Selection("MODELTYPES",
                   nodes=(),
-                  elements=("land_dill", "land_lahn_1", "land_lahn_2",
-                            "land_lahn_3", "stream_dill_lahn_2",
-                            "stream_lahn_1_lahn_2", "stream_lahn_2_lahn_3"))
+                  elements=("land_dill_assl", "land_lahn_kalk",
+                            "land_lahn_leun", "land_lahn_marb",
+                            "stream_dill_assl_lahn_leun",
+                            "stream_lahn_leun_lahn_kalk",
+                            "stream_lahn_marb_lahn_leun"))
 
         Wrong model specifications result in errors like the following:
 
@@ -1008,8 +1017,8 @@ following error occurred: No module named 'hydpy.models.wrong'
         >>> test.select_modeltypes(hland_96)
         Selection("test",
                   nodes=(),
-                  elements=("land_dill", "land_lahn_1", "land_lahn_2",
-                            "land_lahn_3"))
+                  elements=("land_dill_assl", "land_lahn_kalk",
+                            "land_lahn_leun", "land_lahn_marb"))
 
         On the contrary, the method |Selection.deselect_upstream| restricts the current
         selection to all devices not determined by method the
@@ -1018,8 +1027,9 @@ following error occurred: No module named 'hydpy.models.wrong'
         >>> pub.selections.complete.deselect_modeltypes(hland_96)
         Selection("complete",
                   nodes=(),
-                  elements=("stream_dill_lahn_2", "stream_lahn_1_lahn_2",
-                            "stream_lahn_2_lahn_3"))
+                  elements=("stream_dill_assl_lahn_leun",
+                            "stream_lahn_leun_lahn_kalk",
+                            "stream_lahn_marb_lahn_leun"))
         """
         try:
             typelist = []
@@ -1076,40 +1086,44 @@ following error occurred: No module named 'hydpy.models.wrong'
 
         >>> test = pub.selections.complete.copy("test")
         >>> from hydpy import prepare_model
-        >>> test.search_nodenames("dill", "lahn_1")
+        >>> test.search_nodenames("dill_assl", "lahn_marb")
         Selection("nodenames",
-                  nodes=("dill", "lahn_1"),
+                  nodes=("dill_assl", "lahn_marb"),
                   elements=())
 
         Wrong string specifications result in errors like the following:
 
-        >>> test.search_nodenames(["dill", "lahn_1"])
+        >>> test.search_nodenames(["dill_assl", "lahn_marb"])
         Traceback (most recent call last):
         ...
         TypeError: While trying to determine the nodes of selection `test` with names \
-containing at least one of the given substrings `['dill', 'lahn_1']`, the following \
-error occurred: 'in <string>' requires string as left operand, not list
+containing at least one of the given substrings `['dill_assl', 'lahn_marb']`, the \
+following error occurred: 'in <string>' requires string as left operand, not list
 
         Method |Selection.select_nodenames| restricts the current selection to the one
         determined with the the method |Selection.search_nodenames|:
 
-        >>> test.select_nodenames("dill", "lahn_1")
+        >>> test.select_nodenames("dill_assl", "lahn_marb")
         Selection("test",
-                  nodes=("dill", "lahn_1"),
-                  elements=("land_dill", "land_lahn_1", "land_lahn_2",
-                            "land_lahn_3", "stream_dill_lahn_2",
-                            "stream_lahn_1_lahn_2", "stream_lahn_2_lahn_3"))
+                  nodes=("dill_assl", "lahn_marb"),
+                  elements=("land_dill_assl", "land_lahn_kalk",
+                            "land_lahn_leun", "land_lahn_marb",
+                            "stream_dill_assl_lahn_leun",
+                            "stream_lahn_leun_lahn_kalk",
+                            "stream_lahn_marb_lahn_leun"))
 
         On the contrary, the method |Selection.deselect_nodenames| restricts the
         current selection to all devices not determined by the method
         |Selection.search_nodenames|:
 
-        >>> pub.selections.complete.deselect_nodenames("dill", "lahn_1")
+        >>> pub.selections.complete.deselect_nodenames("dill_assl", "lahn_marb")
         Selection("complete",
-                  nodes=("lahn_2", "lahn_3"),
-                  elements=("land_dill", "land_lahn_1", "land_lahn_2",
-                            "land_lahn_3", "stream_dill_lahn_2",
-                            "stream_lahn_1_lahn_2", "stream_lahn_2_lahn_3"))
+                  nodes=("lahn_kalk", "lahn_leun"),
+                  elements=("land_dill_assl", "land_lahn_kalk",
+                            "land_lahn_leun", "land_lahn_marb",
+                            "stream_dill_assl_lahn_leun",
+                            "stream_lahn_leun_lahn_kalk",
+                            "stream_lahn_marb_lahn_leun"))
         """
         try:
             selection = Selection(name)
@@ -1160,39 +1174,41 @@ error occurred: 'in <string>' requires string as left operand, not list
 
         >>> test = pub.selections.complete.copy("test")
         >>> from hydpy import prepare_model
-        >>> test.search_elementnames("dill", "lahn_1")
+        >>> test.search_elementnames("dill", "lahn_marb")
         Selection("elementnames",
                   nodes=(),
-                  elements=("land_dill", "land_lahn_1", "stream_dill_lahn_2",
-                            "stream_lahn_1_lahn_2"))
+                  elements=("land_dill_assl", "land_lahn_marb",
+                            "stream_dill_assl_lahn_leun",
+                            "stream_lahn_marb_lahn_leun"))
 
         Wrong string specifications result in errors like the following:
 
-        >>> test.search_elementnames(["dill", "lahn_1"])
+        >>> test.search_elementnames(["dill", "lahn_marb"])
         Traceback (most recent call last):
         ...
         TypeError: While trying to determine the elements of selection `test` with \
-names containing at least one of the given substrings `['dill', 'lahn_1']`, the \
+names containing at least one of the given substrings `['dill', 'lahn_marb']`, the \
 following error occurred: 'in <string>' requires string as left operand, not list
 
         Method |Selection.select_elementnames| restricts the current selection to the
         one determined with the method |Selection.search_elementnames|:
 
-        >>> test.select_elementnames("dill", "lahn_1")
+        >>> test.select_elementnames("dill", "lahn_marb")
         Selection("test",
-                  nodes=("dill", "lahn_1", "lahn_2", "lahn_3"),
-                  elements=("land_dill", "land_lahn_1", "stream_dill_lahn_2",
-                            "stream_lahn_1_lahn_2"))
+                  nodes=("dill_assl", "lahn_kalk", "lahn_leun", "lahn_marb"),
+                  elements=("land_dill_assl", "land_lahn_marb",
+                            "stream_dill_assl_lahn_leun",
+                            "stream_lahn_marb_lahn_leun"))
 
         On the contrary, the method |Selection.deselect_elementnames| restricts the
         current selection to all devices not determined by the method
         |Selection.search_elementnames|:
 
-        >>> pub.selections.complete.deselect_elementnames("dill", "lahn_1")
+        >>> pub.selections.complete.deselect_elementnames("dill", "lahn_marb")
         Selection("complete",
-                  nodes=("dill", "lahn_1", "lahn_2", "lahn_3"),
-                  elements=("land_lahn_2", "land_lahn_3",
-                            "stream_lahn_2_lahn_3"))
+                  nodes=("dill_assl", "lahn_kalk", "lahn_leun", "lahn_marb"),
+                  elements=("land_lahn_kalk", "land_lahn_leun",
+                            "stream_lahn_leun_lahn_kalk"))
         """
         try:
             selection = Selection(name)
@@ -1288,19 +1304,19 @@ following error occurred: 'in <string>' requires string as left operand, not lis
         from hydpy import Element, Node
         <BLANKLINE>
         <BLANKLINE>
-        Node("dill", variable="Q",
+        Node("dill_assl", variable="Q",
              keywords="gauge")
         <BLANKLINE>
-        Node("lahn_1", variable="Q",
+        Node("lahn_marb", variable="Q",
              keywords="gauge")
         <BLANKLINE>
         <BLANKLINE>
-        Element("land_dill",
-                outlets="dill",
+        Element("land_dill_assl",
+                outlets="dill_assl",
                 keywords="catchment")
         <BLANKLINE>
-        Element("land_lahn_1",
-                outlets="lahn_1",
+        Element("land_lahn_marb",
+                outlets="lahn_marb",
                 keywords="catchment")
         <BLANKLINE>
 
@@ -1314,12 +1330,12 @@ following error occurred: 'in <string>' requires string as left operand, not lis
         from hydpy import Element, Node
         <BLANKLINE>
         <BLANKLINE>
-        Element("land_dill",
-                outlets="dill",
+        Element("land_dill_assl",
+                outlets="dill_assl",
                 keywords="catchment")
         <BLANKLINE>
-        Element("land_lahn_1",
-                outlets="lahn_1",
+        Element("land_lahn_marb",
+                outlets="lahn_marb",
                 keywords="catchment")
         <BLANKLINE>
 
@@ -1379,12 +1395,12 @@ following error occurred: 'in <string>' requires string as left operand, not lis
         Node("test6", variable=Level)
         <BLANKLINE>
         <BLANKLINE>
-        Element("land_dill",
-                outlets="dill",
+        Element("land_dill_assl",
+                outlets="dill_assl",
                 keywords="catchment")
         <BLANKLINE>
-        Element("land_lahn_1",
-                outlets="lahn_1",
+        Element("land_lahn_marb",
+                outlets="lahn_marb",
                 keywords="catchment")
         <BLANKLINE>
         """

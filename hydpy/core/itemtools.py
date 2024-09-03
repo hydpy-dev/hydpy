@@ -199,7 +199,7 @@ class ExchangeItem:
         model for reasons explained later:
 
         >>> from hydpy.models.hland import Model
-        >>> hp.elements.land_lahn_3.model.__class__ = Model
+        >>> hp.elements.land_lahn_kalk.model.__class__ = Model
 
         We prepare an |ExchangeItem| as an example, handling all |hland_states.Ic|
         sequences corresponding to any application models derived from |hland|:
@@ -219,18 +219,19 @@ class ExchangeItem:
         object with all four relevant |hland_states.Ic| objects:
 
         >>> item.collect_variables(pub.selections)
-        >>> land_dill = hp.elements.land_dill
+        >>> land_dill_assl = hp.elements.land_dill_assl
         >>> for element in sorted(item.device2target, key=lambda x: x.name):
         ...     print(element)
-        land_dill
-        land_lahn_1
-        land_lahn_2
-        land_lahn_3
-        >>> item.device2target[land_dill] is land_dill.model.sequences.states.ic
+        land_dill_assl
+        land_lahn_kalk
+        land_lahn_leun
+        land_lahn_marb
+        >>> ic_states = land_dill_assl.model.sequences.states.ic
+        >>> item.device2target[land_dill_assl] is ic_states
         True
 
         Asking for |hland_states.Ic| objects corresponding to application model
-        |hland_96| only results in skipping the |Element| `land_lahn_3` (handling
+        |hland_96| only results in skipping the |Element| `land_lahn_kalk` (handling
         the |hland| base model due to the hack above):
 
         >>> item.targetspecs.master = "hland_96"
@@ -238,10 +239,11 @@ class ExchangeItem:
         >>> item.collect_variables(pub.selections)
         >>> for element in sorted(item.device2target, key=lambda x: x.name):
         ...     print(element)
-        land_dill
-        land_lahn_1
-        land_lahn_2
-        >>> item.device2target[land_dill] is land_dill.model.sequences.states.ic
+        land_dill_assl
+        land_lahn_leun
+        land_lahn_marb
+        >>> ic_states = land_dill_assl.model.sequences.states.ic
+        >>> item.device2target[land_dill_assl] is ic_states
         True
 
         The value of sub-attribute |ExchangeSpecification.series| of attribute
@@ -250,7 +252,8 @@ class ExchangeItem:
 
         >>> item.targetspecs.series = True
         >>> item.collect_variables(pub.selections)
-        >>> item.device2target[land_dill] is land_dill.model.sequences.states.ic
+        >>> ic_states = land_dill_assl.model.sequences.states.ic
+        >>> item.device2target[land_dill_assl] is ic_states
         True
 
         An ill-defined subgroup name results in the following error:
@@ -259,8 +262,8 @@ class ExchangeItem:
         >>> item.collect_variables(pub.selections)
         Traceback (most recent call last):
         ...
-        RuntimeError: No model of element `land_dill` handles a parameter or sequence \
-named `ic` in subgroup `wrong_group`.
+        RuntimeError: No model of element `land_dill_assl` handles a parameter or \
+sequence named `ic` in subgroup `wrong_group`.
 
         Collecting the |Sim| or |Obs| sequences of |Node| objects works similarly:
 
@@ -270,14 +273,14 @@ named `ic` in subgroup `wrong_group`.
         >>> item.targetspecs.series = False
         >>> item.device2target.clear()
         >>> item.collect_variables(pub.selections)
-        >>> dill = hp.nodes.dill
+        >>> dill_assl = hp.nodes.dill_assl
         >>> for node in sorted(item.device2target, key=lambda x: x.name):
         ...  print(node)
-        dill
-        lahn_1
-        lahn_2
-        lahn_3
-        >>> item.device2target[dill] is dill.sequences.sim
+        dill_assl
+        lahn_kalk
+        lahn_leun
+        lahn_marb
+        >>> item.device2target[dill_assl] is dill_assl.sequences.sim
         True
         """
         variable: variabletools.Variable
@@ -501,10 +504,10 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         >>> item.collect_variables(pub.selections)
         >>> for device, target in item.device2target.items():
         ...     print(device, target)  # doctest: +ELLIPSIS
-        land_dill ic(0.9694, ..., 1.47487)
-        land_lahn_1 ic(0.96404, ..., 1.46719)
-        land_lahn_2 ic(0.96159, ..., 1.46393)
-        land_lahn_3 ic(0.96064, ..., 1.46444)
+        land_dill_assl ic(0.9694, ..., 1.47487)
+        land_lahn_marb ic(0.96404, ..., 1.46719)
+        land_lahn_kalk ic(0.96064, ..., 1.46444)
+        land_lahn_leun ic(0.96159, ..., 1.46393)
 
         Similarly, attribute |ExchangeItem.selection2targets| maps all relevant
         selections to the chosen target variables:
@@ -512,7 +515,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         >>> for selection, targets in item.selection2targets.items():
         ...     print(selection, targets)  # doctest: +ELLIPSIS
         headwaters (ic(0.9694, ..., 1.47487), ic(0.96404, ..., 1.46719))
-        nonheadwaters (ic(0.96159, ..., 1.46393), ic(0.96064, ..., 1.46444))
+        nonheadwaters (ic(0.96064, ..., 1.46444), ic(0.96159, ..., 1.46393))
 
         The properties |ChangeItem.shape| and |ChangeItem.subnames| of a |ChangeItem|
         object depend on the intended aggregation |ChangeItem.level|.  For the "global"
@@ -542,7 +545,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         >>> item.shape
         (4,)
         >>> item.subnames
-        ('land_dill', 'land_lahn_1', 'land_lahn_2', 'land_lahn_3')
+        ('land_dill_assl', 'land_lahn_marb', 'land_lahn_kalk', 'land_lahn_leun')
 
         For the "subunit" level, we need one value for each vector entry of all target
         variables. When using the 1-dimensional parameter |hland_states.IC| of the base
@@ -556,21 +559,21 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         >>> item.shape
         (49,)
         >>> item.subnames  # doctest: +ELLIPSIS
-        ('land_dill_0', 'land_dill_1', ..., 'land_lahn_3_12', 'land_lahn_3_13')
+        ('land_dill_assl_0', 'land_dill_assl_1', ..., 'land_lahn_leun_9')
 
         For 2-dimensional sequences, |ChangeItem.shape| returns the total number of
         matrix entries, and each sub-name indicates the row and the column of a specific
         matrix entry:
 
-        >>> dill = hp.elements.land_dill.model
-        >>> dill.parameters.control.sclass(2)
+        >>> dill_assl = hp.elements.land_dill_assl.model
+        >>> dill_assl.parameters.control.sclass(2)
         >>> item = SetItem("sp", "hland", "states.sp", None, "subunit")
         >>> item.collect_variables(pub.selections)
         >>> item.shape
         (61,)
         >>> item.subnames  # doctest: +ELLIPSIS
-        ('land_dill_0_0', 'land_dill_0_1', ..., \
-'land_dill_1_10', 'land_dill_1_11', ..., 'land_lahn_3_0_12', 'land_lahn_3_0_13')
+        ('land_dill_assl_0_0', 'land_dill_assl_0_1', ..., \
+'land_dill_assl_1_10', 'land_dill_assl_1_11', ..., 'land_lahn_leun_0_9')
 
         For 0-dimensional sequences, |ChangeItem.shape| equals their number, and all
         sub-names are identical to the corresponding device names:
@@ -580,7 +583,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         >>> item.shape
         (4,)
         >>> item.subnames  # doctest: +ELLIPSIS
-        ('land_dill', 'land_lahn_1', 'land_lahn_2', 'land_lahn_3')
+        ('land_dill_assl', 'land_lahn_marb', 'land_lahn_kalk', 'land_lahn_leun')
 
         Everything works as explained above when specifying a keyword argument for
         defining values, except there is no support for the `subunit` level.  We show
@@ -605,7 +608,8 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         >>> item.shape
         (3,)
         >>> item.subnames
-        ('stream_dill_lahn_2', 'stream_lahn_1_lahn_2', 'stream_lahn_2_lahn_3')
+        ('stream_dill_assl_lahn_leun', 'stream_lahn_leun_lahn_kalk', \
+'stream_lahn_marb_lahn_leun')
 
         >>> item = SetItem("lag", "musk", "control.nmbsegments", "lag", "subunit")
         >>> item.collect_variables(pub.selections)
@@ -658,8 +662,8 @@ keyword for an exchange item, its aggregation level cannot be `subunit`.
         ...
         TypeError: When trying to update a target variable of ChangeItem `alpha` with \
 the value(s) `wrong`, the following error occurred: While trying to set the value(s) \
-of variable `alpha` of element `land_dill`, the following error occurred: The given \
-value `wrong` cannot be converted to type `float`.
+of variable `alpha` of element `land_dill_assl`, the following error occurred: The \
+given value `wrong` cannot be converted to type `float`.
         """
         try:
             if self.targetspecs.series:
@@ -699,21 +703,21 @@ value `wrong` cannot be converted to type `float`.
         >>> item
         SetItem("alpha", "hland_96", "control.alpha", None, "global")
         >>> item.collect_variables(pub.selections)
-        >>> land_dill = hp.elements.land_dill
-        >>> land_dill.model.parameters.control.alpha
+        >>> land_dill_assl = hp.elements.land_dill_assl
+        >>> land_dill_assl.model.parameters.control.alpha
         alpha(1.0)
         >>> item.value = 2.0
         >>> round_(item.value)
         2.0
-        >>> land_dill.model.parameters.control.alpha
+        >>> land_dill_assl.model.parameters.control.alpha
         alpha(1.0)
         >>> item.update_variables()
         >>> for element in hp.elements.catchment:
         ...     print(element, element.model.parameters.control.alpha)
-        land_dill alpha(2.0)
-        land_lahn_1 alpha(2.0)
-        land_lahn_2 alpha(2.0)
-        land_lahn_3 alpha(2.0)
+        land_dill_assl alpha(2.0)
+        land_lahn_kalk alpha(2.0)
+        land_lahn_leun alpha(2.0)
+        land_lahn_marb alpha(2.0)
 
         Similar holds for "Global" |SetItem| objects that modify the time series of
         their target variables, which we demonstrate for the input time series
@@ -726,10 +730,10 @@ value `wrong` cannot be converted to type `float`.
         >>> for element in hp.elements.catchment:
         ...     print(element, end=": ")
         ...     print_vector(element.model.sequences.inputs.t.series)
-        land_dill: 0.5, 1.0, 1.5, 2.0
-        land_lahn_1: 0.5, 1.0, 1.5, 2.0
-        land_lahn_2: 0.5, 1.0, 1.5, 2.0
-        land_lahn_3: 0.5, 1.0, 1.5, 2.0
+        land_dill_assl: 0.5, 1.0, 1.5, 2.0
+        land_lahn_kalk: 0.5, 1.0, 1.5, 2.0
+        land_lahn_leun: 0.5, 1.0, 1.5, 2.0
+        land_lahn_marb: 0.5, 1.0, 1.5, 2.0
 
         Some |Parameter| subclasses support setting their values via custom keyword
         arguments.  "Global" |SetItem| objects can use such keyword arguments.  We show
@@ -740,20 +744,20 @@ value `wrong` cannot be converted to type `float`.
         >>> item
         SetItem("lag", "musk", "control.nmbsegments", "lag", "global")
         >>> item.collect_variables(pub.selections)
-        >>> stream_lahn_1_lahn_2 = hp.elements.stream_lahn_1_lahn_2
-        >>> stream_lahn_1_lahn_2.model.parameters.control.nmbsegments
+        >>> stream_lahn_marb_lahn_leun = hp.elements.stream_lahn_marb_lahn_leun
+        >>> stream_lahn_marb_lahn_leun.model.parameters.control.nmbsegments
         nmbsegments(lag=0.583)
         >>> item.value = 2.0
         >>> round_(item.value)
         2.0
-        >>> stream_lahn_1_lahn_2.model.parameters.control.nmbsegments
+        >>> stream_lahn_marb_lahn_leun.model.parameters.control.nmbsegments
         nmbsegments(lag=0.583)
         >>> item.update_variables()
         >>> for element in hp.elements.river:
         ...     print(element, element.model.parameters.control.nmbsegments)
-        stream_dill_lahn_2 nmbsegments(lag=2.0)
-        stream_lahn_1_lahn_2 nmbsegments(lag=2.0)
-        stream_lahn_2_lahn_3 nmbsegments(lag=2.0)
+        stream_dill_assl_lahn_leun nmbsegments(lag=2.0)
+        stream_lahn_leun_lahn_kalk nmbsegments(lag=2.0)
+        stream_lahn_marb_lahn_leun nmbsegments(lag=2.0)
 
         For 1-dimensional target variables like the parameter |hland_control.FC|, a
         "global" |SetItem| assigns the same value to each vector entry or the selected
@@ -762,34 +766,34 @@ value `wrong` cannot be converted to type `float`.
         >>> item = SetItem("fc", "hland_96", "control.fc", None, "global")
         >>> item.collect_variables(pub.selections)
         >>> item.value = 200.0
-        >>> land_dill.model.parameters.control.fc
+        >>> land_dill_assl.model.parameters.control.fc
         fc(278.0)
         >>> item.update_variables()
-        >>> land_dill.model.parameters.control.fc
+        >>> land_dill_assl.model.parameters.control.fc
         fc(200.0)
 
         >>> item = SetItem("fc", "hland_96", "control.fc", "forest", "global")
         >>> item.collect_variables(pub.selections)
         >>> item.value = 300.0
-        >>> land_dill.model.parameters.control.fc
+        >>> land_dill_assl.model.parameters.control.fc
         fc(200.0)
         >>> item.update_variables()
-        >>> land_dill.model.parameters.control.fc
+        >>> land_dill_assl.model.parameters.control.fc
         fc(field=200.0, forest=300.0)
 
         The same holds for 2-dimensional target variables like the sequence
         |hland_states.SP| (we increase the number of snow classes and thus the length
         of the first axis for demonstration purposes):
 
-        >>> land_dill.model.parameters.control.sclass(2)
+        >>> land_dill_assl.model.parameters.control.sclass(2)
         >>> item = SetItem("sp", "hland_96", "states.sp", None, "global")
         >>> item.collect_variables(pub.selections)
         >>> item.value = 5.0
-        >>> land_dill.model.sequences.states.sp
+        >>> land_dill_assl.model.sequences.states.sp
         sp([[nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan],
             [nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan]])
         >>> item.update_variables()
-        >>> land_dill.model.sequences.states.sp
+        >>> land_dill_assl.model.sequences.states.sp
         sp([[5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0],
             [5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0]])
 
@@ -799,16 +803,16 @@ value `wrong` cannot be converted to type `float`.
 
         >>> item = SetItem("ic", "hland_96", "states.ic", None, "selection")
         >>> item.collect_variables(pub.selections)
-        >>> land_dill.model.sequences.states.ic  # doctest: +ELLIPSIS
+        >>> land_dill_assl.model.sequences.states.ic  # doctest: +ELLIPSIS
         ic(0.9694, ..., 1.47487)
         >>> item.value = 0.5, 1.0
         >>> item.update_variables()
         >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
         ...     print(element, element.model.sequences.states.ic)
-        land_dill ic(0.5, 0.5, ..., 0.5, 0.5)
-        land_lahn_1 ic(0.5, 0.5, ..., 0.5, 0.5)
-        land_lahn_2 ic(1.0, 1.0, ..., 1.0, 1.0)
-        land_lahn_3 ic(1.0, 1.0, ..., 1.0, 1.0)
+        land_dill_assl ic(0.5, 0.5, ..., 0.5, 0.5)
+        land_lahn_kalk ic(1.0, 1.0, ..., 1.0, 1.0)
+        land_lahn_leun ic(1.0, 1.0, ..., 1.0, 1.0)
+        land_lahn_marb ic(0.5, 0.5, ..., 0.5, 0.5)
 
         >>> item = SetItem("t", "hland_96", "inputs.t.series", None, "selection")
         >>> item.collect_variables(pub.selections)
@@ -817,23 +821,23 @@ value `wrong` cannot be converted to type `float`.
         >>> for element in hp.elements.catchment:
         ...     print(element, end=": ")
         ...     print_vector(element.model.sequences.inputs.t.series)
-        land_dill: 0.5, 1.0, 1.5, 2.0
-        land_lahn_1: 0.5, 1.0, 1.5, 2.0
-        land_lahn_2: 2.5, 3.0, 3.5, 4.0
-        land_lahn_3: 2.5, 3.0, 3.5, 4.0
+        land_dill_assl: 0.5, 1.0, 1.5, 2.0
+        land_lahn_kalk: 2.5, 3.0, 3.5, 4.0
+        land_lahn_leun: 2.5, 3.0, 3.5, 4.0
+        land_lahn_marb: 0.5, 1.0, 1.5, 2.0
 
         >>> item = SetItem("tt", "hland_96", "control.tt", "field", "selection")
         >>> item.collect_variables(pub.selections)
         >>> item.value = [0.0, 1.0]
-        >>> land_dill.model.parameters.control.tt
+        >>> land_dill_assl.model.parameters.control.tt
         tt(0.55824)
         >>> item.update_variables()
         >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
         ...     print(element, element.model.parameters.control.tt)
-        land_dill tt(field=0.0, forest=0.55824)
-        land_lahn_1 tt(field=0.0, forest=0.59365)
-        land_lahn_2 tt(field=1.0, forest=0.0)
-        land_lahn_3 tt(field=1.0, forest=0.0)
+        land_dill_assl tt(field=0.0, forest=0.55824)
+        land_lahn_kalk tt(field=1.0, forest=0.0)
+        land_lahn_leun tt(field=1.0, forest=0.0)
+        land_lahn_marb tt(field=0.0, forest=0.59365)
 
         In contrast, each device receives one specific value when working on the
         "device" level:
@@ -844,10 +848,10 @@ value `wrong` cannot be converted to type `float`.
         >>> item.update_variables()
         >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
         ...     print(element, element.model.sequences.states.ic)
-        land_dill ic(0.5, 0.5, ..., 0.5, 0.5)
-        land_lahn_1 ic(1.0, 1.0, ... 1.0, 1.0)
-        land_lahn_2 ic(1.5, 1.5, ..., 1.5, 1.5)
-        land_lahn_3 ic(2.0, 2.0, ..., 2.0, 2.0)
+        land_dill_assl ic(0.5, 0.5, ..., 0.5, 0.5)
+        land_lahn_kalk ic(1.5, 1.5, ..., 1.5, 1.5)
+        land_lahn_leun ic(2.0, 2.0, ..., 2.0, 2.0)
+        land_lahn_marb ic(1.0, 1.0, ... 1.0, 1.0)
 
         >>> item = SetItem("t", "hland_96", "inputs.t.series", None, "device")
         >>> item.collect_variables(pub.selections)
@@ -857,23 +861,23 @@ value `wrong` cannot be converted to type `float`.
         >>> for element in hp.elements.catchment:
         ...     print(element, end=": ")
         ...     print_vector(element.model.sequences.inputs.t.series)
-        land_dill: 0.5, 1.0, 1.5, 2.0
-        land_lahn_1: 2.5, 3.0, 3.5, 4.0
-        land_lahn_2: 4.5, 5.0, 5.5, 6.0
-        land_lahn_3: 6.5, 7.0, 7.5, 8.0
+        land_dill_assl: 0.5, 1.0, 1.5, 2.0
+        land_lahn_kalk: 4.5, 5.0, 5.5, 6.0
+        land_lahn_leun: 6.5, 7.0, 7.5, 8.0
+        land_lahn_marb: 2.5, 3.0, 3.5, 4.0
 
         >>> item = SetItem("beta", "hland_96", "control.beta", "forest", "device")
         >>> item.collect_variables(pub.selections)
         >>> item.value = [1.0, 2.0, 3.0, 4.0]
-        >>> land_dill.model.parameters.control.beta
+        >>> land_dill_assl.model.parameters.control.beta
         beta(2.54011)
         >>> item.update_variables()
         >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
         ...     print(element, element.model.parameters.control.beta)
-        land_dill beta(field=2.54011, forest=1.0)
-        land_lahn_1 beta(field=1.45001, forest=2.0)
-        land_lahn_2 beta(field=2.5118, forest=3.0)
-        land_lahn_3 beta(field=1.51551, forest=4.0)
+        land_dill_assl beta(field=2.54011, forest=1.0)
+        land_lahn_kalk beta(field=1.51551, forest=3.0)
+        land_lahn_leun beta(field=2.5118, forest=4.0)
+        land_lahn_marb beta(field=1.45001, forest=2.0)
 
         For the most detailed "subunit" level and 1-dimensional variables as
         |hland_states.IC|, the |SetItem| object handles one value for each of the 49
@@ -885,16 +889,16 @@ value `wrong` cannot be converted to type `float`.
         >>> item.update_variables()
         >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
         ...     print(element, element.model.sequences.states.ic)
-        land_dill ic(0.0, 0.01, ..., 0.1, 0.11)
-        land_lahn_1 ic(0.12, 0.13, ... 0.23, 0.24)
-        land_lahn_2 ic(0.25, 0.26, ..., 0.33, 0.34)
-        land_lahn_3 ic(0.35, 0.36, ..., 0.47, 0.48)
+        land_dill_assl ic(0.0, 0.01, ..., 0.1, 0.11)
+        land_lahn_kalk ic(0.25, 0.26, ..., 0.37, 0.38)
+        land_lahn_leun ic(0.39, 0.4, ..., 0.47, 0.48)
+        land_lahn_marb ic(0.12, 0.13, ... 0.23, 0.24)
 
-        We increased the number of snow classes per zone to two for element `land_dill`.
-        Hence, its snow-related |hland_states.SP| object handles 22 instead of 11
-        values, and we need to assign 61 instead of 49 values to the |SetItem|
-        object.  Each item value relates to a specific matrix entry of a specific
-        target variable:
+        We increased the number of snow classes per zone to two for element
+        `land_dill_assl`.  Hence, its snow-related |hland_states.SP| object handles 22
+        instead of 11 values, and we need to assign 61 instead of 49 values to the
+        |SetItem| object.  Each item value relates to a specific matrix entry of a
+        specific target variable:
 
         >>> item = SetItem("sp", "hland_96", "states.sp", None, "subunit")
         >>> item.collect_variables(pub.selections)
@@ -902,11 +906,11 @@ value `wrong` cannot be converted to type `float`.
         >>> item.update_variables()
         >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
         ...     print(element, element.model.sequences.states.sp)
-        land_dill sp([[0.0, ...0.11],
+        land_dill_assl sp([[0.0, ...0.11],
             [0.12, ...0.23]])
-        land_lahn_1 sp(0.24, ...0.36)
-        land_lahn_2 sp(0.37, ...0.46)
-        land_lahn_3 sp(0.47, ...0.6)
+        land_lahn_kalk sp(0.37, ...0.5)
+        land_lahn_leun sp(0.51, ...0.6)
+        land_lahn_marb sp(0.24, ...0.36)
         """
         values = self.value
         if self.level == "global":
@@ -994,27 +998,28 @@ class SetItem(ChangeItem):
         ...         item.extract_values()
 
         We mainly focus on the sequences of the application model of element
-        `land_dill` when comparing results:
+        `land_dill_assl` when comparing results:
 
-        >>> dill = hp.elements.land_dill.model
+        >>> dill_assl = hp.elements.land_dill_assl.model
 
         For rigorous testing, we increase the number of snow classes of this model
         instance and, thus, the length of the first axis of its |hland_states.SP| and
         its |hland_states.WC| object:
 
         >>> import numpy
-        >>> dill.parameters.control.sclass(2)
+        >>> dill_assl.parameters.control.sclass(2)
 
         After this change, we must define new test data for the current state of the
-        |hland_states.SP| object of element `land_dill`:
+        |hland_states.SP| object of element `land_dill_assl`:
 
-        >>> dill.sequences.states.sp = numpy.arange(2*12).reshape(2, 12)
+        >>> dill_assl.sequences.states.sp = numpy.arange(2*12).reshape(2, 12)
 
         Also, we must prepare test data for all considered time series:
 
-        >>> dill.sequences.states.uz.series = numpy.arange(4).reshape(4)
-        >>> dill.sequences.states.ic.series = numpy.arange(4*12).reshape(4, 12)
-        >>> dill.sequences.states.wc.series = numpy.arange(4*2*12).reshape(4, 2, 12)
+        >>> dill_assl.sequences.states.uz.series = numpy.arange(4).reshape(4)
+        >>> dill_assl.sequences.states.ic.series = numpy.arange(4*12).reshape(4, 12)
+        >>> dill_assl.sequences.states.wc.series = numpy.arange(4*2*12).reshape(4,
+        ...                                                                     2, 12)
 
         For all aggregation levels except `subunit`, |SetItem.extract_values| relies on
         the (spatial) aggregation of data, which is not possible beyond the `device`
@@ -1041,16 +1046,16 @@ elements so far.  So, it is not possible to aggregate to the selection level.
 
         >>> test("device")
         >>> print_vector(lz.value)
-        8.70695, 8.18711, 10.14007, 7.52648
-        >>> dill.sequences.states.lz
+        8.70695, 8.18711, 7.52648, 10.14007
+        >>> dill_assl.sequences.states.lz
         lz(8.70695)
         >>> print_vector(sm.value)
-        211.47288, 115.77717, 147.057048, 114.733823
-        >>> round_(dill.sequences.states.sm.average_values())
+        211.47288, 115.77717, 114.733823, 147.057048
+        >>> round_(dill_assl.sequences.states.sm.average_values())
         211.47288
         >>> print_vector(sp.value)
         11.103987, 0.0, 0.0, 0.0
-        >>> round_(dill.sequences.states.sp.average_values())
+        >>> round_(dill_assl.sequences.states.sp.average_values())
         11.103987
         >>> for series in uz.value:
         ...     print_vector(series)
@@ -1058,7 +1063,7 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         nan, nan, nan, nan
         nan, nan, nan, nan
         nan, nan, nan, nan
-        >>> print_vector(dill.sequences.states.uz.series)
+        >>> print_vector(dill_assl.sequences.states.uz.series)
         0.0, 1.0, 2.0, 3.0
         >>> for series in ic.value:
         ...     print_vector(series)
@@ -1066,7 +1071,7 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         nan, nan, nan, nan
         nan, nan, nan, nan
         nan, nan, nan, nan
-        >>> print_vector(dill.sequences.states.ic.average_series())
+        >>> print_vector(dill_assl.sequences.states.ic.average_series())
         5.103987, 17.103987, 29.103987, 41.103987
         >>> for series in wc.value:
         ...     print_vector(series)
@@ -1074,27 +1079,30 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         nan, nan, nan, nan
         nan, nan, nan, nan
         nan, nan, nan, nan
-        >>> print_vector(dill.sequences.states.wc.average_series())
+        >>> print_vector(dill_assl.sequences.states.wc.average_series())
         11.103987, 35.103987, 59.103987, 83.103987
 
         For the `subunit` level, no aggregation is necessary:
 
         >>> test("subunit")
         >>> print_vector(lz.value)
-        8.70695, 8.18711, 10.14007, 7.52648
-        >>> dill.sequences.states.lz
+        8.70695, 8.18711, 7.52648, 10.14007
+        >>> dill_assl.sequences.states.lz
         lz(8.70695)
         >>> print_vector(sm.value)  # doctest: +ELLIPSIS
         185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
         222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427,
-        99.27505, ... 164.63255, 101.31248,
-        97.225, 111.3861, 107.64977, 120.59559, 117.26499, 129.01711,
-        126.0465, 136.66663, 134.01408, 143.59799, 141.24428, 147.75786,
-        153.54053
-        >>> dill.sequences.states.sm
+        99.27505, 96.17726, 109.16576, 106.39745, 117.97304, 115.56252,
+        125.81523, 123.73198, 132.80035, 130.91684, 138.95523, 137.25983,
+        142.84148, 101.31248, 97.225, 111.3861, 107.64977, 120.59559,
+        117.26499, 129.01711, 126.0465, 136.66663, 134.01408, 143.59799,
+        141.24428, 147.75786, 153.54053, 138.31396, 135.71124, 147.54968,
+        145.47142, 154.96405, 153.32805, 160.91917, 159.62434, 165.65575,
+        164.63255
+        >>> dill_assl.sequences.states.sm
         sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
-        >>> hp.elements.land_lahn_3.model.sequences.states.sm
+        >>> hp.elements.land_lahn_kalk.model.sequences.states.sm
         sm(101.31248, 97.225, 111.3861, 107.64977, 120.59559, 117.26499,
            129.01711, 126.0465, 136.66663, 134.01408, 143.59799, 141.24428,
            147.75786, 153.54053)
@@ -1110,7 +1118,7 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         nan, nan, nan, nan
         nan, nan, nan, nan
         nan, nan, nan, nan
-        >>> print_vector(dill.sequences.states.uz.series)
+        >>> print_vector(dill_assl.sequences.states.uz.series)
         0.0, 1.0, 2.0, 3.0
         >>> for series in ic.value:  # doctest: +ELLIPSIS
         ...     print_vector(series)
@@ -1122,7 +1130,7 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         nan, nan, nan, nan
         ...
         >>> for idx in range(12):  # doctest: +ELLIPSIS
-        ...     print_vector(dill.sequences.states.ic.series[:, idx])
+        ...     print_vector(dill_assl.sequences.states.ic.series[:, idx])
         0.0, 12.0, 24.0, 36.0
         1.0, 13.0, 25.0, 37.0
         ...
@@ -1143,7 +1151,7 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         ...
         >>> for jdx in range(12):  # doctest: +ELLIPSIS
         ...     for idx in range(2):
-        ...         print_vector(dill.sequences.states.wc.series[:, idx, jdx])
+        ...         print_vector(dill_assl.sequences.states.wc.series[:, idx, jdx])
         0.0, 24.0, 48.0, 72.0
         12.0, 36.0, 60.0, 84.0
         1.0, 25.0, 49.0, 73.0
@@ -1162,7 +1170,7 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         >>> cfmax = SetItem("lag", "hland_96", "control.cfmax", "forest", "device")
         >>> cfmax.collect_variables(pub.selections)
         >>> cfmax.extract_values()
-        >>> dill.parameters.control.cfmax
+        >>> dill_assl.parameters.control.cfmax
         cfmax(field=4.55853, forest=2.735118)
         >>> print_vector(cfmax.value)
         2.735118, 3.0, 2.1, 2.1
@@ -1171,9 +1179,9 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         series of any relevant variable is missing.  We disable the |IOSequence.series|
         attribute of the considered sequences to show how things work then:
 
-        >>> dill.sequences.states.uz.prepare_series(False)
-        >>> dill.sequences.states.ic.prepare_series(False)
-        >>> dill.sequences.states.wc.prepare_series(False)
+        >>> dill_assl.sequences.states.uz.prepare_series(False)
+        >>> dill_assl.sequences.states.ic.prepare_series(False)
+        >>> dill_assl.sequences.states.wc.prepare_series(False)
 
         Method |SetItem.extract_values| emits a warning when encountering the first
         unprepared |IOSequence.series| attribute and, if existing, deletes already
@@ -1184,18 +1192,18 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         ...     test("device")
         AttributeNotReadyWarning: While trying to query the values of exchange item \
 `uz`, the following error occured: While trying to calculate the mean value of the \
-internal time series of sequence `uz` of element `land_dill`, the following error \
-occurred: Sequence `uz` of element `land_dill` is not requested to make any time \
+internal time series of sequence `uz` of element `land_dill_assl`, the following error \
+occurred: Sequence `uz` of element `land_dill_assl` is not requested to make any time \
 series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
 `ic`, the following error occured: While trying to calculate the mean value of the \
-internal time series of sequence `ic` of element `land_dill`, the following error \
-occurred: Sequence `ic` of element `land_dill` is not requested to make any time \
+internal time series of sequence `ic` of element `land_dill_assl`, the following error \
+occurred: Sequence `ic` of element `land_dill_assl` is not requested to make any time \
 series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
 `wc`, the following error occured: While trying to calculate the mean value of the \
-internal time series of sequence `wc` of element `land_dill`, the following error \
-occurred: Sequence `wc` of element `land_dill` is not requested to make any time \
+internal time series of sequence `wc` of element `land_dill_assl`, the following error \
+occurred: Sequence `wc` of element `land_dill_assl` is not requested to make any time \
 series data available.
 
         >>> for series in uz.value:
@@ -1220,13 +1228,13 @@ has/have not been prepared so far.
         >>> with warn_later():
         ...     test("subunit")
         AttributeNotReadyWarning: While trying to query the values of exchange item \
-`uz`, the following error occured: Sequence `uz` of element `land_dill` is not \
+`uz`, the following error occured: Sequence `uz` of element `land_dill_assl` is not \
 requested to make any time series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
-`ic`, the following error occured: Sequence `ic` of element `land_dill` is not \
+`ic`, the following error occured: Sequence `ic` of element `land_dill_assl` is not \
 requested to make any time series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
-`wc`, the following error occured: Sequence `wc` of element `land_dill` is not \
+`wc`, the following error occured: Sequence `wc` of element `land_dill_assl` is not \
 requested to make any time series data available.
 
         >>> for series in uz.value:
@@ -1369,9 +1377,9 @@ class MathItem(ChangeItem):
         >>> item = AddItem(name="alpha", master="hland_96", target="control.sfcf",
         ...                base="control.rfcf", level="global")
         >>> item.collect_variables(pub.selections)
-        >>> land_dill = hp.elements.land_dill
-        >>> control = land_dill.model.parameters.control
-        >>> item.device2target[land_dill] is control.sfcf
+        >>> land_dill_assl = hp.elements.land_dill_assl
+        >>> control = land_dill_assl.model.parameters.control
+        >>> item.device2target[land_dill_assl] is control.sfcf
         True
         >>> item.target2base[control.sfcf] is control.rfcf
         True
@@ -1423,10 +1431,10 @@ class AddItem(MathItem):
     ...         rfcf[idx] = value
     ...         value += 0.01
     ...     print(element, rfcf)  # doctest: +ELLIPSIS
-    land_dill rfcf(0.8, ... 0.91)
-    land_lahn_1 rfcf(0.92, ... 1.04)
-    land_lahn_2 rfcf(1.05, ... 1.14)
-    land_lahn_3 rfcf(1.15, ... 1.28)
+    land_dill_assl rfcf(0.8, ... 0.91)
+    land_lahn_kalk rfcf(0.92, ... 1.05)
+    land_lahn_leun rfcf(1.06, ... 1.15)
+    land_lahn_marb rfcf(1.16, ... 1.28)
 
     We choose the snowfall correction parameter (|hland_control.SfCF|) as the target
     variable.  The following test calculations show the expected results for all
@@ -1440,10 +1448,10 @@ class AddItem(MathItem):
     >>> item.update_variables()
     >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
     ...     print(element, element.model.parameters.control.sfcf)
-    land_dill sfcf(0.9, ... 1.01)
-    land_lahn_1 sfcf(1.02, ... 1.14)
-    land_lahn_2 sfcf(1.15, ... 1.24)
-    land_lahn_3 sfcf(1.25, ... 1.38)
+    land_dill_assl sfcf(0.9, ... 1.01)
+    land_lahn_kalk sfcf(1.02, ... 1.15)
+    land_lahn_leun sfcf(1.16, ... 1.25)
+    land_lahn_marb sfcf(1.26, ... 1.38)
 
     >>> item.level = "selection"
     >>> item.collect_variables(pub.selections)
@@ -1451,10 +1459,10 @@ class AddItem(MathItem):
     >>> item.update_variables()
     >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
     ...     print(element, element.model.parameters.control.sfcf)
-    land_dill sfcf(0.7, ... 0.81)
-    land_lahn_1 sfcf(0.82, ... 0.94)
-    land_lahn_2 sfcf(1.05, ... 1.14)
-    land_lahn_3 sfcf(1.15, ... 1.28)
+    land_dill_assl sfcf(0.7, ... 0.81)
+    land_lahn_kalk sfcf(0.92, ... 1.05)
+    land_lahn_leun sfcf(1.06, ... 1.15)
+    land_lahn_marb sfcf(1.06, ... 1.18)
 
     >>> item = AddItem(name="sfcf", master="hland_96", target="control.sfcf",
     ...                base="control.rfcf", level="device")
@@ -1463,10 +1471,10 @@ class AddItem(MathItem):
     >>> item.update_variables()
     >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
     ...     print(element, element.model.parameters.control.sfcf)
-    land_dill sfcf(0.7, ... 0.81)
-    land_lahn_1 sfcf(0.92, ... 1.04)
-    land_lahn_2 sfcf(1.15, ... 1.24)
-    land_lahn_3 sfcf(1.35, ... 1.48)
+    land_dill_assl sfcf(0.7, ... 0.81)
+    land_lahn_kalk sfcf(1.02, ... 1.15)
+    land_lahn_leun sfcf(1.26, ... 1.35)
+    land_lahn_marb sfcf(1.16, ... 1.28)
 
     >>> item = AddItem(name="sfcf", master="hland_96", target="control.sfcf",
     ...                base="control.rfcf", level="subunit")
@@ -1475,10 +1483,10 @@ class AddItem(MathItem):
     >>> item.update_variables()
     >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
     ...     print(element, element.model.parameters.control.sfcf)
-    land_dill sfcf(0.6, ... 0.82)
-    land_lahn_1 sfcf(0.84, ... 1.08)
-    land_lahn_2 sfcf(1.1, ... 1.28)
-    land_lahn_3 sfcf(1.3, ... 1.56)
+    land_dill_assl sfcf(0.6, ... 0.82)
+    land_lahn_kalk sfcf(0.97, ... 1.23)
+    land_lahn_leun sfcf(1.25, ... 1.43)
+    land_lahn_marb sfcf(1.08, ... 1.32)
     """
 
     def update_variable(
@@ -1501,9 +1509,9 @@ class AddItem(MathItem):
         Traceback (most recent call last):
         ...
         ValueError: When trying to add the value(s) `(0.1, 0.2)` of AddItem `sfcf` \
-and the value(s) `[1.04283 ... 1.04283]` of variable `rfcf` of element `land_dill`, \
-the following error occurred: operands could not be broadcast together with shapes \
-(12,) (2,)...
+and the value(s) `[1.04283 ... 1.04283]` of variable `rfcf` of element \
+`land_dill_assl`, the following error occurred: operands could not be broadcast \
+together with shapes (12,) (2,)...
         """
         base = self.target2base[variable]
         try:
@@ -1535,10 +1543,10 @@ class MultiplyItem(MathItem):
     ...         rfcf[idx] = value
     ...         value += 0.01
     ...     print(element, rfcf)  # doctest: +ELLIPSIS
-    land_dill rfcf(0.8, ... 0.91)
-    land_lahn_1 rfcf(0.92, ... 1.04)
-    land_lahn_2 rfcf(1.05, ... 1.14)
-    land_lahn_3 rfcf(1.15, ... 1.28)
+    land_dill_assl rfcf(0.8, ... 0.91)
+    land_lahn_kalk rfcf(0.92, ... 1.05)
+    land_lahn_leun rfcf(1.06, ... 1.15)
+    land_lahn_marb rfcf(1.16, ... 1.28)
 
     >>> from hydpy.core.itemtools import MultiplyItem
     >>> item = MultiplyItem(name="sfcf", master="hland_96", target="control.sfcf",
@@ -1548,10 +1556,10 @@ class MultiplyItem(MathItem):
     >>> item.update_variables()
     >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
     ...     print(element, element.model.parameters.control.sfcf)
-    land_dill sfcf(1.6, ... 1.82)
-    land_lahn_1 sfcf(1.84, ... 2.08)
-    land_lahn_2 sfcf(2.1, ... 2.28)
-    land_lahn_3 sfcf(2.3, ... 2.56)
+    land_dill_assl sfcf(1.6, ... 1.82)
+    land_lahn_kalk sfcf(1.84, ... 2.1)
+    land_lahn_leun sfcf(2.12, ... 2.3)
+    land_lahn_marb sfcf(2.32, ... 2.56)
     """
 
     def update_variable(
@@ -1575,8 +1583,8 @@ class MultiplyItem(MathItem):
         ...
         ValueError: When trying to multiply the value(s) `(0.1, 0.2)` of AddItem \
 `sfcf` and the value(s) `[1.04283 ... 1.04283]` of variable `rfcf` of element \
-`land_dill`, the following error occurred: operands could not be broadcast together \
-with shapes (12,) (2,)...
+`land_dill_assl`, the following error occurred: operands could not be broadcast \
+together with shapes (12,) (2,)...
         """
         base = self.target2base[variable]
         try:
@@ -1684,19 +1692,19 @@ class GetItem(ExchangeItem):
         >>> item.collect_variables(pub.selections)
         >>> for name, subnames in item.yield_name2subnames():
         ...     print(name, subnames)
-        land_dill_states_lz land_dill
-        land_lahn_1_states_lz land_lahn_1
-        land_lahn_2_states_lz land_lahn_2
-        land_lahn_3_states_lz land_lahn_3
+        land_dill_assl_states_lz land_dill_assl
+        land_lahn_kalk_states_lz land_lahn_kalk
+        land_lahn_leun_states_lz land_lahn_leun
+        land_lahn_marb_states_lz land_lahn_marb
 
         >>> item = GetItem("sim", "nodes", "sim.series")
         >>> item.collect_variables(pub.selections)
         >>> for name, subnames in item.yield_name2subnames():
         ...     print(name, subnames)
-        dill_sim_series dill
-        lahn_1_sim_series lahn_1
-        lahn_2_sim_series lahn_2
-        lahn_3_sim_series lahn_3
+        dill_assl_sim_series dill_assl
+        lahn_kalk_sim_series lahn_kalk
+        lahn_leun_sim_series lahn_leun
+        lahn_marb_sim_series lahn_marb
 
         For non-scalar variables, the sub-names combine the device name and all
         possible index combinations for the current shape of the target variable:
@@ -1705,19 +1713,19 @@ class GetItem(ExchangeItem):
         >>> item.collect_variables(pub.selections)
         >>> for name, subnames in item.yield_name2subnames():
         ...     print(name, subnames)  # doctest: +ELLIPSIS
-        land_dill_states_sm ('land_dill_0', ..., 'land_dill_11')
-        land_lahn_1_states_sm ('land_lahn_1_0', ..., 'land_lahn_1_12')
-        land_lahn_2_states_sm ('land_lahn_2_0', ..., 'land_lahn_2_9')
-        land_lahn_3_states_sm ('land_lahn_3_0', ..., 'land_lahn_3_13')
+        land_dill_assl_states_sm ('land_dill_assl_0', ..., 'land_dill_assl_11')
+        land_lahn_kalk_states_sm ('land_lahn_kalk_0', ..., 'land_lahn_kalk_13')
+        land_lahn_leun_states_sm ('land_lahn_leun_0', ..., 'land_lahn_leun_9')
+        land_lahn_marb_states_sm ('land_lahn_marb_0', ..., 'land_lahn_marb_12')
 
         >>> item = GetItem("sp", "hland_96", "states.sp")
         >>> item.collect_variables(pub.selections)
         >>> for name, subnames in item.yield_name2subnames():
         ...     print(name, subnames)  # doctest: +ELLIPSIS
-        land_dill_states_sp ('land_dill_0_0', ..., 'land_dill_0_11')
-        land_lahn_1_states_sp ('land_lahn_1_0_0', ..., 'land_lahn_1_0_12')
-        land_lahn_2_states_sp ('land_lahn_2_0_0', ..., 'land_lahn_2_0_9')
-        land_lahn_3_states_sp ('land_lahn_3_0_0', ..., 'land_lahn_3_0_13')
+        land_dill_assl_states_sp ('land_dill_assl_0_0', ..., 'land_dill_assl_0_11')
+        land_lahn_kalk_states_sp ('land_lahn_kalk_0_0', ..., 'land_lahn_kalk_0_13')
+        land_lahn_leun_states_sp ('land_lahn_leun_0_0', ..., 'land_lahn_leun_0_9')
+        land_lahn_marb_states_sp ('land_lahn_marb_0_0', ..., 'land_lahn_marb_0_12')
         """
         for device, name in self._device2name.items():
             subnames = _make_subunit_name(device, self.device2target[device])
@@ -1740,21 +1748,21 @@ class GetItem(ExchangeItem):
         >>> from hydpy import SetItem
         >>> item = GetItem("lz", "hland_96", "states.lz")
         >>> item.collect_variables(pub.selections)
-        >>> hp.elements.land_dill.model.sequences.states.lz = 100.0
+        >>> hp.elements.land_dill_assl.model.sequences.states.lz = 100.0
         >>> for name, value in item.yield_name2value():
         ...     print(name, value)
-        land_dill_states_lz 100.0
-        land_lahn_1_states_lz 8.18711
-        land_lahn_2_states_lz 10.14007
-        land_lahn_3_states_lz 7.52648
+        land_dill_assl_states_lz 100.0
+        land_lahn_kalk_states_lz 7.52648
+        land_lahn_leun_states_lz 10.14007
+        land_lahn_marb_states_lz 8.18711
         >>> item = GetItem("sm", "hland_96", "states.sm")
         >>> item.collect_variables(pub.selections)
-        >>> hp.elements.land_dill.model.sequences.states.sm = 2.0
+        >>> hp.elements.land_dill_assl.model.sequences.states.sm = 2.0
         >>> for name, value in item.yield_name2value():
         ...     print(name, value)  # doctest: +ELLIPSIS
-        land_dill_states_sm [2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, \
+        land_dill_assl_states_sm [2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, \
 2.0, 2.0, 2.0, 2.0]
-        land_lahn_1_states_sm [99.27505, ..., 142.84148]
+        land_lahn_kalk_states_sm [101.31248, ..., 153.54053]
         ...
 
         When querying time series, one can restrict the span of interest by passing
@@ -1762,16 +1770,16 @@ class GetItem(ExchangeItem):
 
         >>> item = GetItem("sim", "nodes", "sim.series")
         >>> item.collect_variables(pub.selections)
-        >>> hp.nodes.dill.sequences.sim.series = 1.0, 2.0, 3.0, 4.0
+        >>> hp.nodes.dill_assl.sequences.sim.series = 1.0, 2.0, 3.0, 4.0
         >>> for name, value in item.yield_name2value():
         ...     print(name, value)  # doctest: +ELLIPSIS
-        dill_sim_series [1.0, 2.0, 3.0, 4.0]
-        lahn_1_sim_series [nan, ...
+        dill_assl_sim_series [1.0, 2.0, 3.0, 4.0]
+        lahn_kalk_sim_series [nan, ...
         ...
         >>> for name, value in item.yield_name2value(2, 3):
         ...     print(name, value)  # doctest: +ELLIPSIS
-        dill_sim_series [3.0]
-        lahn_1_sim_series [nan]
+        dill_assl_sim_series [3.0]
+        lahn_kalk_sim_series [nan]
         ...
         """
         for device, name in self._device2name.items():

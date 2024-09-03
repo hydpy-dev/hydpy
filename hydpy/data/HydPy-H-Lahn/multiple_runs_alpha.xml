@@ -10,11 +10,11 @@
     <add_selections>
         <add_selection>
             <name>gauge</name>
-            <devices>dill</devices>
+            <devices>dill_assl</devices>
         </add_selection>
         <add_selection>
             <name>catchment</name>
-            <devices>land_dill</devices>
+            <devices>land_dill_assl</devices>
         </add_selection>
     </add_selections>
     <selections>

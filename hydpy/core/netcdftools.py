@@ -277,33 +277,86 @@ def summarise_ncfile(ncfile: Union[netcdf4.Dataset, str], /) -> str:
     ... )
     >>> print(repr_(summarise_ncfile(filepath)))  # doctest: +ELLIPSIS
     GENERAL
-        file path = ...data/HydPy-H-Lahn/series/default/hland_96_input_p.nc
+        file path = ...hland_96_input_p.nc
         file format = NETCDF4
         disk format = HDF5
         Attributes
-            timereference = left interval boundary
+            hydts_timeRef = begin
+            title = Daily total precipitation sum HydPy-H-HBV96 model river Lahn \
+(1990-2020)
+            ...
     DIMENSIONS
-        time = 4018
         stations = 4
-        char_leng_name = 11
+        time = 11384
+        str_len = 40
     VARIABLES
         time
             dimensions = time
-            shape = 4018
+            shape = 11384
             data type = float64
             Attributes
-                _FillValue = -999.0
-                units = hours since 1996-01-01 00:00:00 +01:00
-        station_id
-            dimensions = stations, char_leng_name
-            shape = 4, 11
-            data type = |S1
+                units = days since 1900-01-01 00:00:00 +0100
+                long_name = time
+                axis = T
+                calendar = gregorian
         hland_96_input_p
             dimensions = time, stations
-            shape = 4018, 4
-            data type = float64
+            shape = 11384, 4
+            data type = float32
             Attributes
-                _FillValue = -999.0
+                _FillValue = -9999.0
+                long_name = Daily Precipitation Sum
+                coordinates = y x
+        station_id
+            dimensions = stations, str_len
+            shape = 4, 40
+            data type = |S1
+            Attributes
+                long_name = station or node identification code
+        station_names
+            dimensions = stations, str_len
+            shape = 4, 40
+            data type = |S1
+            Attributes
+                long_name = station or node name
+        river_names
+            dimensions = stations, str_len
+            shape = 4, 40
+            data type = |S1
+            Attributes
+                long_name = river name
+        area
+            dimensions = stations
+            shape = 4
+            data type = float32
+            Attributes
+                units = km2
+                long_name = station area
+        elevation
+            dimensions = stations
+            shape = 4
+            data type = float32
+            Attributes
+                units = m
+                long_name = height above mean sea level
+        lon
+            dimensions = stations
+            shape = 4
+            data type = float32
+            Attributes
+                units = degrees_east
+                long_name = longitude coordinate
+                standard_name = longitude
+                axis = X
+        lat
+            dimensions = stations
+            shape = 4
+            data type = float32
+            Attributes
+                units = degrees_north
+                long_name = latitude coordinate
+                standard_name = latitude
+                axis = Y
 
     Alternatively, you can pass a NetCDF4 `Dataset` object:
 
@@ -313,7 +366,8 @@ def summarise_ncfile(ncfile: Union[netcdf4.Dataset, str], /) -> str:
     GENERAL
         file path = ...data/HydPy-H-Lahn/series/default/hland_96_input_p.nc
     ...
-                _FillValue = -999.0
+                _FillValue = -9999.0
+    ...
     """
 
     def _summarize(nc: netcdf4.Dataset) -> str:
@@ -545,7 +599,7 @@ def query_timegrid(
     |hland_inputs.P| to determine that each value of the time series of the NetCDF file
     references a time interval and not a time point:
 
-    >>> p = hp.elements.land_dill.model.sequences.inputs.p
+    >>> p = hp.elements.land_dill_assl.model.sequences.inputs.p
 
     If the file-specific setting does not conflict with the current value of
     |Options.timestampleft|, |query_timegrid| works silently:
@@ -553,8 +607,8 @@ def query_timegrid(
     >>> from hydpy.core.netcdftools import query_timegrid
     >>> with TestIO(), Dataset(filepath) as ncfile:
     ...     query_timegrid(ncfile, p)
-    Timegrid("1996-01-01 00:00:00",
-             "2007-01-01 00:00:00",
+    Timegrid("1989-11-01 00:00:00",
+             "2021-01-01 00:00:00",
              "1d")
 
     If a file-specific setting is missing, |query_timegrid| applies the current
@@ -565,14 +619,14 @@ def query_timegrid(
     >>> from hydpy.core.testtools import warn_later
     >>> with TestIO(), Dataset(filepath) as ncfile:
     ...     query_timegrid(ncfile, p)
-    Timegrid("1996-01-01 00:00:00",
-             "2007-01-01 00:00:00",
+    Timegrid("1989-11-01 00:00:00",
+             "2021-01-01 00:00:00",
              "1d")
 
     >>> with TestIO(), Dataset(filepath) as ncfile, pub.options.timestampleft(False):
     ...     query_timegrid(ncfile, p)
-    Timegrid("1995-12-31 00:00:00",
-             "2006-12-31 00:00:00",
+    Timegrid("1989-10-31 00:00:00",
+             "2020-12-31 00:00:00",
              "1d")
 
     If the file-specific setting and |Options.timestampleft| conflict, |query_timegrid|
@@ -582,12 +636,14 @@ def query_timegrid(
     ...     ncfile.timereference = "right interval boundary"
     >>> with TestIO(), warn_later(), Dataset(filepath) as ncfile:
     ...     query_timegrid(ncfile, p)  # doctest: +ELLIPSIS
-    Timegrid("1995-12-31 00:00:00",
-             "2006-12-31 00:00:00",
+    Timegrid("1989-10-31 00:00:00",
+             "2020-12-31 00:00:00",
              "1d")
     UserWarning: The `timereference` attribute (`right interval boundary`) of the \
-NetCDF file `...hland_96_input_p.nc` conflicts with the current value of the global \
-`timestampleft` option (`True`).  The file-specific information is prioritised.
+NetCDF file `HydPy-H-Lahn/series/default/hland_96_input_p.nc` conflicts with the \
+current value of the global `timestampleft` option (`True`).  The file-specific \
+information is prioritised.
+
 
     State sequences like |hland_states.SM| handle data for specific time points instead
     of time intervals.  Their |IOSequence.series| vector contains the calculated values
@@ -595,13 +651,13 @@ NetCDF file `...hland_96_input_p.nc` conflicts with the current value of the glo
     |query_timegrid| ignores the |Options.timestampleft| option and follows the `right
     interval boundary` convention:
 
-    >>> sm = hp.elements.land_dill.model.sequences.states.sm
+    >>> sm = hp.elements.land_dill_assl.model.sequences.states.sm
     >>> with TestIO(), Dataset(filepath, "r+") as ncfile:
     ...     del ncfile.timereference
     >>> with TestIO(), Dataset(filepath) as ncfile:
     ...     query_timegrid(ncfile, sm)
-    Timegrid("1995-12-31 00:00:00",
-             "2006-12-31 00:00:00",
+    Timegrid("1989-10-31 00:00:00",
+             "2020-12-31 00:00:00",
              "1d")
 
     Add a `timereference` attribute with the value `current time` to explicitly include
@@ -611,8 +667,8 @@ NetCDF file `...hland_96_input_p.nc` conflicts with the current value of the glo
     ...     ncfile.timereference = "current time"
     >>> with TestIO(), Dataset(filepath) as ncfile:
     ...     query_timegrid(ncfile, sm)
-    Timegrid("1995-12-31 00:00:00",
-             "2006-12-31 00:00:00",
+    Timegrid("1989-10-31 00:00:00",
+             "2020-12-31 00:00:00",
              "1d")
 
     |query_timegrid| raises special warnings when a NetCDF file's `timereference`
@@ -621,23 +677,25 @@ NetCDF file `...hland_96_input_p.nc` conflicts with the current value of the glo
 
     >>> with TestIO(), warn_later(), Dataset(filepath) as ncfile:
     ...     query_timegrid(ncfile, p)  # doctest: +ELLIPSIS
-    Timegrid("1995-12-31 00:00:00",
-             "2006-12-31 00:00:00",
+    Timegrid("1989-10-31 00:00:00",
+             "2020-12-31 00:00:00",
              "1d")
     UserWarning: The `timereference` attribute (`current time`) of the NetCDF file \
-`...hland_96_input_p.nc` conflicts with the type of the relevant sequence (`P`).  The \
-file-specific information is prioritised.
+`HydPy-H-Lahn/series/default/hland_96_input_p.nc` conflicts with the type of the \
+relevant sequence (`P`).  The file-specific information is prioritised.
+
 
     >>> with TestIO(), Dataset(filepath, "r+") as ncfile:
     ...     ncfile.timereference = "left interval boundary"
     >>> with TestIO(), warn_later(), Dataset(filepath) as ncfile:
     ...     query_timegrid(ncfile, sm)  # doctest: +ELLIPSIS
-    Timegrid("1996-01-01 00:00:00",
-             "2007-01-01 00:00:00",
+    Timegrid("1989-11-01 00:00:00",
+             "2021-01-01 00:00:00",
              "1d")
     UserWarning: The `timereference` attribute (`left interval boundary`) of the \
-NetCDF file `...hland_96_input_p.nc` conflicts with the type of the relevant sequence \
-(`SM`).  The file-specific information is prioritised.
+NetCDF file `HydPy-H-Lahn/series/default/hland_96_input_p.nc` conflicts with the type \
+of the relevant sequence (`SM`).  The file-specific information is prioritised.
+
 
     |query_timegrid| also raises specific warnings for misstated `timereference`
     attributes describing the different fallbacks for data related to time intervals
@@ -647,23 +705,25 @@ NetCDF file `...hland_96_input_p.nc` conflicts with the type of the relevant seq
     ...     ncfile.timereference = "wrong"
     >>> with TestIO(), warn_later(), Dataset(filepath) as ncfile:
     ...     query_timegrid(ncfile, p)  # doctest: +ELLIPSIS
-    Timegrid("1996-01-01 00:00:00",
-             "2007-01-01 00:00:00",
+    Timegrid("1989-11-01 00:00:00",
+             "2021-01-01 00:00:00",
              "1d")
     UserWarning: The value of the `timereference` attribute (`wrong`) of the NetCDF \
-file `...hland_96_input_p.nc` is not among the accepted values (`left...`, \
-`right...`, `current...`).  Assuming `left interval boundary` according to the \
-current value of the global `timestampleft` option.
+file `HydPy-H-Lahn/series/default/hland_96_input_p.nc` is not among the accepted \
+values (`left...`, `right...`, `current...`).  Assuming `left interval boundary` \
+according to the current value of the global `timestampleft` option.
+
+
 
     >>> with TestIO(), warn_later(), Dataset(filepath) as ncfile:
     ...     query_timegrid(ncfile, sm)  # doctest: +ELLIPSIS
-    Timegrid("1995-12-31 00:00:00",
-             "2006-12-31 00:00:00",
+    Timegrid("1989-10-31 00:00:00",
+             "2020-12-31 00:00:00",
              "1d")
     UserWarning: The value of the `timereference` attribute (`wrong`) of the NetCDF \
-file `...hland_96_input_p.nc` is not among the accepted values (`left...`, \
-`right...`, `current...`).  Assuming `current time` according to the type of the \
-relevant sequence (`SM`).
+file `...hland_96_input_p.nc` is not among the accepted values (`left...`, `right...`, \
+`current...`).  Assuming `current time` according to the type of the relevant \
+sequence (`SM`).
     """
     currenttime = _timereference_currenttime(sequence)
     opts = hydpy.pub.options
@@ -2215,18 +2275,17 @@ but for file `...hland_96_input_p.nc` both is requested.
         simulation period:
 
         >>> with TestIO():
-        ...     pub.timegrids.init.firstdate = "1990-01-01"
-        ...     pub.timegrids.sim.firstdate = "1995-01-01"
+        ...     pub.timegrids.init.firstdate = "1987-01-01"
+        ...     pub.timegrids.sim.firstdate = "1988-01-01"
         ...     hp.prepare_inputseries(allocate_ram=False, read_jit=True)
         ...     hp.simulate()  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to prepare NetCDF files for reading or writing \
 data "just in time" during the current simulation run, the following error occurred: \
-The data of the NetCDF `...hland_96_input_p.nc` \
-(Timegrid("1996-01-01 00:00:00", "2007-01-01 00:00:00", "1d")) does not correctly \
-cover the current simulation period \
-(Timegrid("1995-01-01 00:00:00", "1996-01-05 00:00:00", "1d")).
+The data of the NetCDF `...hland_96_input_p.nc` (Timegrid("1989-11-01 00:00:00", \
+"2021-01-01 00:00:00", "1d")) does not correctly cover the current simulation period \
+(Timegrid("1988-01-01 00:00:00", "1996-01-05 00:00:00", "1d")).
 
         However, each NetCDF file selected for writing must also cover the complete
         initialisation period.  If there is no adequately named NetCDF file,
@@ -2246,13 +2305,13 @@ cover the current simulation period \
         ...     pub.timegrids.sim.lastdate = "1996-01-05"
         ...     hp.simulate()
         >>> print_vector(
-        ...     hp.elements["land_dill"].model.sequences.factors.contriarea.series)
-        0.495925, 0.493672, 0.492156, 0.49015
+        ...     hp.elements["land_dill_assl"].model.sequences.factors.contriarea.series)
+        0.497092, 0.496772, 0.496519, 0.496424
         >>> from hydpy.core.netcdftools import netcdf4
         >>> filepath = "HydPy-H-Lahn/series/default/hland_96_factor_contriarea.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath, "r") as ncfile:
         ...     print_vector(ncfile["hland_96_factor_contriarea"][:, 0])
-        0.495925, 0.493672, 0.492156, 0.49015
+        0.497092, 0.496772, 0.496519, 0.496424
 
         Under particular circumstances, the data variable of a NetCDF file can be
         3-dimensional.  The documentation on function |query_array| explains this in
@@ -2280,7 +2339,7 @@ cover the current simulation period \
         ...     hp.simulate()
         >>> with TestIO(), netcdf4.Dataset(filepath, "r") as ncfile:
         ...     print_vector(ncfile["hland_96_factor_contriarea"][:, 0, 0])
-        0.488731, 0.48651, 0.485016, 0.483039
+        0.496091, 0.495772, 0.495518, 0.495424
 
         If we try to write the output of a simulation run beyond the original
         initial initialisation period into the same files,
@@ -2318,7 +2377,7 @@ The data of the NetCDF `...hland_96_factor_tc.nc` (Timegrid("1996-01-01 00:00:00
         ...
         RuntimeError: While trying to prepare NetCDF files for reading or writing \
 data "just in time" during the current simulation run, the following error occurred: \
-No data for (sub)device `land_lahn_2_0` is available in NetCDF \
+No data for (sub)device `land_lahn_kalk_0` is available in NetCDF \
 file `...hland_96_flux_pc.nc`.
 
         One way to prepare complete NetCDF files that are *HydPy* compatible is to work
@@ -2334,18 +2393,18 @@ file `...hland_96_flux_pc.nc`.
         ...     hp.simulate()
         >>> for element in hp.elements.search_keywords("catchment"):
         ...     print_vector(element.model.sequences.fluxes.qt.series)
-        11.78144, 8.902735, 7.132279, 6.018681
-        9.648145, 8.518256, 7.78162, 7.345017
-        20.590398, 8.663089, 7.282551, 6.403193
-        11.67459, 10.111301, 8.992786, 8.212961
+        11.75686, 8.864424, 7.101367, 5.993961
+        11.673076, 10.100501, 8.984721, 8.203005
+        20.588138, 8.64403, 7.265147, 6.384859
+        9.646776, 8.512748, 7.777124, 7.343268
         >>> filepath_qt = "HydPy-H-Lahn/series/default/hland_96_flux_qt.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath_qt, "r") as ncfile:
         ...     for jdx in range(4):
         ...         print_vector(ncfile["hland_96_flux_qt"][:, jdx])
-        11.78144, 8.902735, 7.132279, 6.018681
-        9.648145, 8.518256, 7.78162, 7.345017
+        11.75686, 8.864424, 7.101367, 5.993961
         0.0, 0.0, 0.0, 0.0
         0.0, 0.0, 0.0, 0.0
+        9.646776, 8.512748, 7.777124, 7.343268
         >>> with TestIO():
         ...     headwaters.prepare_fluxseries(allocate_ram=True, write_jit=False)
         ...     nonheadwaters.prepare_fluxseries(allocate_ram=True, write_jit=True)
@@ -2354,10 +2413,10 @@ file `...hland_96_flux_pc.nc`.
         >>> with TestIO(), netcdf4.Dataset(filepath_qt, "r") as ncfile:  #
         ...         for jdx in range(4):
         ...             print_vector(ncfile["hland_96_flux_qt"][:, jdx])
-        11.78144, 8.902735, 7.132279, 6.018681
-        9.648145, 8.518256, 7.78162, 7.345017
-        20.590398, 8.663089, 7.282551, 6.403193
-        11.67459, 10.111301, 8.992786, 8.212961
+        11.75686, 8.864424, 7.101367, 5.993961
+        11.673076, 10.100501, 8.984721, 8.203005
+        20.588138, 8.64403, 7.265147, 6.384859
+        9.646776, 8.512748, 7.777124, 7.343268
 
         >>> hp.prepare_fluxseries(allocate_ram=False, write_jit=False)
 
@@ -2378,32 +2437,32 @@ file `...hland_96_flux_pc.nc`.
         ...     hp.simulate()
         >>> for node in hp.nodes:
         ...     print_vector(node.sequences.sim.series)
-        11.78144, 8.902735, 7.132279, 6.018681
-        9.648145, 8.518256, 7.78162, 7.345017
-        42.371838, 27.213969, 22.933086, 20.203494
-        54.046428, 37.32527, 31.925872, 28.416456
+        11.75686, 8.864424, 7.101367, 5.993961
+        54.018074, 37.255732, 31.863983, 28.358949
+        42.344998, 27.155231, 22.879262, 20.155944
+        9.646776, 8.512748, 7.777124, 7.343268
         >>> for node in hp.nodes:
         ...     print_vector(node.sequences.obs.series)
-        11.78144, 8.902735, 7.132279, 6.018681
-        9.648145, 8.518256, 7.78162, 7.345017
-        42.371838, 27.213969, 22.933086, 20.203494
-        54.046428, 37.32527, 31.925872, 28.416456
+        11.75686, 8.864424, 7.101367, 5.993961
+        54.018074, 37.255732, 31.863983, 28.358949
+        42.344998, 27.155231, 22.879262, 20.155944
+        9.646776, 8.512748, 7.777124, 7.343268
         >>> filepath_sim = "HydPy-H-Lahn/series/default/sim_q.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath_sim, "r") as ncfile:
         ...     for jdx in range(4):
         ...         print_vector(ncfile["sim_q"][:, jdx])
-        11.78144, 8.902735, 7.132279, 6.018681
-        9.648145, 8.518256, 7.78162, 7.345017
-        42.371838, 27.213969, 22.933086, 20.203494
-        54.046428, 37.32527, 31.925872, 28.416456
+        11.75686, 8.864424, 7.101367, 5.993961
+        9.646776, 8.512748, 7.777124, 7.343268
+        42.344998, 27.155231, 22.879262, 20.155944
+        54.018074, 37.255732, 31.863983, 28.358949
         >>> filepath_obs = "HydPy-H-Lahn/series/default/obs_q.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath_obs, "r") as ncfile:
         ...     for jdx in range(4):
         ...         print_vector(ncfile["obs_q"][:, jdx])
-        11.78144, 8.902735, 7.132279, 6.018681
-        9.648145, 8.518256, 7.78162, 7.345017
-        42.371838, 27.213969, 22.933086, 20.203494
-        54.046428, 37.32527, 31.925872, 28.416456
+        11.75686, 8.864424, 7.101367, 5.993961
+        9.646776, 8.512748, 7.777124, 7.343268
+        42.344998, 27.155231, 22.879262, 20.155944
+        54.018074, 37.255732, 31.863983, 28.358949
 
         Now we stop all sequences from writing to NetCDF files, remove the two
         headwater elements from the currently active selection, and start another
@@ -2420,28 +2479,30 @@ file `...hland_96_flux_pc.nc`.
         >>> for node in hp.nodes:
         ...     print_vector(node.sequences.sim.series)
         0.0, 0.0, 0.0, 0.0
+        42.261214, 18.744531, 16.249868, 14.587864
+        30.588138, 8.64403, 7.265147, 6.384859
         0.0, 0.0, 0.0, 0.0
-        30.590398, 8.663089, 7.282551, 6.403193
-        42.264987, 18.774389, 16.275337, 14.616154
 
-        Finally, we set the |Node.deploymode| of the headwater nodes `dill` and
-        `lahn_1` to `oldsim` and `obs`, respectively, and read their previously written
-        time series "just in time".  As expected, the values of the two non-headwater
-        nodes are identical to those of our initial example:
+        Finally, we set the |Node.deploymode| of the headwater nodes `dill_assl` and
+        `lahn_marb` to `oldsim` and `obs`, respectively, and read their previously
+        written time series "just in time".  As expected, the values of the two
+        non-headwater nodes are identical to those of our initial example:
 
         >>> with TestIO():
-        ...     hp.nodes["dill"].prepare_simseries(allocate_ram=True, read_jit=True)
-        ...     hp.nodes["dill"].deploymode = "oldsim"
-        ...     hp.nodes["lahn_1"].prepare_obsseries(allocate_ram=True, read_jit=True)
-        ...     hp.nodes["lahn_1"].deploymode = "obs"
+        ...     hp.nodes["dill_assl"].prepare_simseries(allocate_ram=True,
+        ...                                             read_jit=True)
+        ...     hp.nodes["dill_assl"].deploymode = "oldsim"
+        ...     hp.nodes["lahn_marb"].prepare_obsseries(allocate_ram=True,
+        ...                                             read_jit=True)
+        ...     hp.nodes["lahn_marb"].deploymode = "obs"
         ...     hp.load_conditions()
         ...     hp.simulate()
         >>> for node in hp.nodes:
         ...     print_vector(node.sequences.sim.series)
-        11.78144, 8.902735, 7.132279, 6.018681
+        11.75686, 8.864424, 7.101367, 5.993961
+        54.018074, 37.255732, 31.863983, 28.358949
+        42.344998, 27.155231, 22.879262, 20.155944
         0.0, 0.0, 0.0, 0.0
-        42.371838, 27.213969, 22.933086, 20.203494
-        54.046428, 37.32527, 31.925872, 28.416456
         """
 
         readers: list[JITAccessInfo] = []

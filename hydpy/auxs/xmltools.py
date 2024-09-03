@@ -49,21 +49,20 @@ Write the desired time series files (...).
 As defined by the XML configuration file, the simulation started on the first and
 ended on the sixth of January 1996.  The following example shows the read initial
 conditions and the written final conditions of sequence |hland_states.SM| for the
-12 hydrological response units of the subcatchment `land_dill`:
+12 hydrological response units of the subcatchment `land_dill_assl`:
 
 >>> with TestIO():
-...     filepath = "HydPy-H-Lahn/conditions/init_1996_01_01_00_00_00/land_dill.py"
+...     filepath = "HydPy-H-Lahn/conditions/init_1996_01_01_00_00_00/land_dill_assl.py"
 ...     with open(filepath) as file_:
 ...         print("".join(file_.readlines()[10:12]))
-...     filepath = "HydPy-H-Lahn/conditions/init_1996_01_06/land_dill.py"
+...     filepath = "HydPy-H-Lahn/conditions/init_1996_01_06/land_dill_assl.py"
 ...     with open(filepath) as file_:
-...         print("".join(file_.readlines()[10:13]))
+...         print("".join(file_.readlines()[12:14]))
 sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
    222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 <BLANKLINE>
-sm(183.837826, 179.9213, 198.407964, 195.185205, 210.558313, 208.024555,
-   220.568831, 218.588329, 228.698029, 227.109439, 235.263691,
-   233.997443)
+sm(184.555679, 180.625527, 199.183781, 195.950142, 212.04018, 209.48859,
+   222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 <BLANKLINE>
 
 The intermediate soil moisture values have been stored in a NetCDF file called
@@ -76,8 +75,8 @@ The intermediate soil moisture values have been stored in a NetCDF file called
 ...     ncfile = netcdf4.Dataset("HydPy-H-Lahn/series/soildata/hland_96_state_sm.nc")
 ...     chars2str(query_variable(ncfile, "station_id")[:].data)[:3]
 ...     print_vector(query_variable(ncfile, "hland_96_state_sm")[:, 0])
-['land_dill_0', 'land_dill_1', 'land_dill_2']
-184.920402, 184.589155, 184.365769, 184.069586, 183.837826
+['land_dill_assl_0', 'land_dill_assl_1', 'land_dill_assl_2']
+184.972725, 184.789363, 184.643666, 184.589448, 184.555679
 >>> ncfile.close()
 
 Spatially averaged time series values have been stored in files ending with the suffix
@@ -88,9 +87,9 @@ Spatially averaged time series values have been stored in files ending with the 
 
 >>> with TestIO(clear_all=True):
 ...     print_vector(
-...         numpy.load("HydPy-H-Lahn/series/averages/lahn_1_sim_q_mean.npy")[13:]
+...         numpy.load("HydPy-H-Lahn/series/averages/lahn_marb_sim_q_mean.npy")[13:]
 ...     )
-9.648145, 8.518256, 7.78162, 7.345017, 7.152906
+9.646776, 8.512748, 7.777124, 7.343268, 7.156948
 """
 # import...
 # ...from standard library
@@ -670,18 +669,20 @@ correctly refer to one of the available XML schema files \
         >>> pub.selections.from_devices
         Selection("from_devices",
                   nodes=(),
-                  elements=("land_lahn_1", "land_lahn_2"))
+                  elements=("land_lahn_leun", "land_lahn_marb"))
         >>> pub.selections.from_keywords
         Selection("from_keywords",
                   nodes=(),
-                  elements=("land_dill", "land_lahn_1", "land_lahn_2",
-                            "land_lahn_3"))
+                  elements=("land_dill_assl", "land_lahn_kalk",
+                            "land_lahn_leun", "land_lahn_marb"))
         >>> pub.selections.from_selections
         Selection("from_selections",
-                  nodes=("dill", "lahn_1", "lahn_2", "lahn_3"),
-                  elements=("land_dill", "land_lahn_1", "land_lahn_2",
-                            "land_lahn_3", "stream_dill_lahn_2",
-                            "stream_lahn_1_lahn_2", "stream_lahn_2_lahn_3"))
+                  nodes=("dill_assl", "lahn_kalk", "lahn_leun", "lahn_marb"),
+                  elements=("land_dill_assl", "land_lahn_kalk",
+                            "land_lahn_leun", "land_lahn_marb",
+                            "stream_dill_assl_lahn_leun",
+                            "stream_lahn_leun_lahn_kalk",
+                            "stream_lahn_marb_lahn_leun"))
 
         Defining wrong device names, keywords, or selection names results in error
         messages:
@@ -703,7 +704,7 @@ of the available selections has this name.
 based on the keyword `no_keyword` to the custom selection `from_keywords` but none \
 of the available devices has this keyword.
 
-        >>> add_selections[0][1].text = "dill no_device"
+        >>> add_selections[0][1].text = "dill_assl no_device"
         >>> interface.update_selections()
         Traceback (most recent call last):
         ...
@@ -785,8 +786,8 @@ devices has this name.
         streams
         >>> selections.headwaters
         Selection("headwaters",
-                  nodes=("dill", "lahn_1"),
-                  elements=("land_dill", "land_lahn_1"))
+                  nodes=("dill_assl", "lahn_marb"),
+                  elements=("land_dill_assl", "land_lahn_marb"))
         >>> interface.find("selections").text = "head_waters"
         >>> interface.selections
         Traceback (most recent call last):
@@ -814,11 +815,11 @@ text `head_waters`, but the actual project does not handle such a `Selection` ob
         >>> interface.find("selections").text = "headwaters streams"
         >>> for element in interface.elements:
         ...      print(element.name)
-        land_dill
-        land_lahn_1
-        stream_dill_lahn_2
-        stream_lahn_1_lahn_2
-        stream_lahn_2_lahn_3
+        land_dill_assl
+        land_lahn_marb
+        stream_dill_assl_lahn_leun
+        stream_lahn_leun_lahn_kalk
+        stream_lahn_marb_lahn_leun
         """
         selections = copy.copy(self.selections)
         elements: set[devicetools.Element] = set()
@@ -845,14 +846,14 @@ text `head_waters`, but the actual project does not handle such a `Selection` ob
         >>> interface.find("selections").text = "nonheadwaters"
         >>> interface.fullselection
         Selection("fullselection",
-                  nodes=("lahn_2", "lahn_3"),
-                  elements=("land_lahn_2", "land_lahn_3"))
+                  nodes=("lahn_kalk", "lahn_leun"),
+                  elements=("land_lahn_kalk", "land_lahn_leun"))
         >>> interface.find("selections").text = "from_keywords"
         >>> interface.fullselection
         Selection("fullselection",
                   nodes=(),
-                  elements=("land_dill", "land_lahn_1", "land_lahn_2",
-                            "land_lahn_3"))
+                  elements=("land_dill_assl", "land_lahn_kalk",
+                            "land_lahn_leun", "land_lahn_marb"))
         """
         fullselection = selectiontools.Selection("fullselection")
         for selection in self.selections:
@@ -1012,9 +1013,9 @@ class XMLControlBase:
         ...     interface.find("selections").text = "headwaters"
         ...     interface.control_io.prepare_models()
         >>> interface.update_timegrids()
-        >>> hp.elements.land_lahn_1.model.parameters.control.alpha
+        >>> hp.elements.land_lahn_marb.model.parameters.control.alpha
         alpha(1.0)
-        >>> attrready(hp.elements.land_lahn_2, "model")
+        >>> attrready(hp.elements.land_lahn_leun, "model")
         False
         """
         if self.text:
@@ -1070,9 +1071,9 @@ class XMLConditions(XMLBase):
         ...     interface.find("selections").text = "headwaters"
         ...     interface.conditions_io.load_conditions()
         >>> interface.update_timegrids()
-        >>> hp.elements.land_lahn_1.model.sequences.states.lz
+        >>> hp.elements.land_lahn_marb.model.sequences.states.lz
         lz(8.18711)
-        >>> hp.elements.land_lahn_2.model.sequences.states.lz
+        >>> hp.elements.land_lahn_leun.model.sequences.states.lz
         lz(nan)
         """
         if currentdir is None:
@@ -1095,16 +1096,16 @@ class XMLConditions(XMLBase):
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.prepare_models()
-        ...     hp.elements.land_dill.model.sequences.states.lz = 999.0
+        ...     hp.elements.land_dill_assl.model.sequences.states.lz = 999.0
         ...     interface = XMLInterface("single_run.xml")
         ...     interface.update_timegrids()
         ...     interface.update_selections()
         ...     interface.find("selections").text = "headwaters"
         ...     interface.conditions_io.save_conditions()
         ...     dirpath = "HydPy-H-Lahn/conditions/init_1996_01_06"
-        ...     with open(os.path.join(dirpath, "land_dill.py")) as file_:
+        ...     with open(os.path.join(dirpath, "land_dill_assl.py")) as file_:
         ...         print(file_.readlines()[12].strip())
-        ...     os.path.exists(os.path.join(dirpath, "land_lahn_2.py"))
+        ...     os.path.exists(os.path.join(dirpath, "land_lahn_leun.py"))
         lz(999.0)
         False
         >>> from hydpy import xml_replace
@@ -1302,9 +1303,9 @@ sure your XML file follows the relevant XML schema.
         >>> interface.update_selections()
         >>> for element in interface.series_io.writers[0].elements:
         ...     print(element.name)
-        land_dill
-        land_lahn_1
-        land_lahn_2
+        land_dill_assl
+        land_lahn_marb
+        land_lahn_leun
         """
         return self._get_devices("elements")
 
@@ -1324,8 +1325,8 @@ sure your XML file follows the relevant XML schema.
         >>> interface.update_selections()
         >>> for node in interface.series_io.writers[0].nodes:
         ...     print(node.name)
-        dill
-        lahn_1
+        dill_assl
+        lahn_marb
         """
         return self._get_devices("nodes")
 
@@ -1566,10 +1567,10 @@ class XMLSubseries(XMLSelector):
         ...     writer.prepare_series()
 
         The following test function prints the options of the specified sequence of
-        element "Dill":
+        element "Dill_assl":
 
         >>> def print_io_options(groupname, sequencename):
-        ...     sequences = hp.elements.land_dill.model.sequences
+        ...     sequences = hp.elements.land_dill_assl.model.sequences
         ...     sequence = sequences[groupname][sequencename]
         ...     print(f"ramflag={sequence.ramflag}")
         ...     print(f"diskflag_reading={sequence.diskflag_reading}")
@@ -1621,7 +1622,7 @@ class XMLSubseries(XMLSelector):
         ...
         ValueError: Reading from and writing into the same NetCDF file "just in time" \
 during a simulation run is not supported but tried for sequence `p` of element \
-`land_dill`.
+`land_dill_assl`.
 
         After resetting all |InputSequence| objects and re-applying
         |XMLSubseries.prepare_series|, both |IOSequence.ramflag| and
@@ -1718,8 +1719,8 @@ during a simulation run is not supported but tried for sequence `p` of element \
         ...     series_io.prepare_series()
         ...     series_io.load_series()
         >>> from hydpy import print_vector
-        >>> print_vector(hp.elements.land_dill.model.sequences.inputs.t.series[:3])
-        -0.298846, -0.811539, -2.493848
+        >>> print_vector(hp.elements.land_dill_assl.model.sequences.inputs.t.series[:3])
+        0.0, -0.5, -2.4
         """
         if self._is_reader:
             hydpy.pub.sequencemanager.open_netcdfreader()
@@ -1748,17 +1749,18 @@ during a simulation run is not supported but tried for sequence `p` of element \
         >>> interface.update_selections()
         >>> series_io = interface.series_io
         >>> series_io.prepare_series()
-        >>> hp.elements.land_dill.model.sequences.fluxes.pc.series[2, 3] = 9.0
-        >>> hp.nodes.lahn_2.sequences.sim.series[4] = 7.0
+        >>> hp.elements.land_dill_assl.model.sequences.fluxes.pc.series[2, 3] = 9.0
+        >>> hp.nodes.lahn_leun.sequences.sim.series[4] = 7.0
         >>> with TestIO():
         ...     series_io.save_series()
         >>> import numpy
         >>> with TestIO():
         ...     dirpath = "HydPy-H-Lahn/series/default/"
-        ...     os.path.exists(f"{dirpath}land_lahn_2_hland_96_flux_pc.npy")
-        ...     os.path.exists(f"{dirpath}land_lahn_3_hland_96_flux_pc.npy")
-        ...     round_(numpy.load(f"{dirpath}land_dill_hland_96_flux_pc.npy")[13+2, 3])
-        ...     round_(numpy.load(f"{dirpath}lahn_2_sim_q_mean.npy")[13+4])
+        ...     os.path.exists(f"{dirpath}land_lahn_leun_hland_96_flux_pc.npy")
+        ...     os.path.exists(f"{dirpath}land_lahn_kalk_hland_96_flux_pc.npy")
+        ...     round_(numpy.load(f"{dirpath}land_dill_assl_hland_96"
+        ...                       f"_flux_pc.npy")[13+2, 3])
+        ...     round_(numpy.load(f"{dirpath}lahn_leun_sim_q_mean.npy")[13+4])
         True
         False
         9.0
@@ -1899,10 +1901,10 @@ class XMLExchange(XMLBase):
         >>> interface.update_selections()
         >>> for item in interface.exchange.conditionitems:
         ...     print(item.name)
-        ic_lahn_2
-        ic_lahn_1
-        sm_lahn_2
-        sm_lahn_1
+        ic_lahn_leun
+        ic_lahn_marb
+        sm_lahn_leun
+        sm_lahn_marb
         quh
         """
         return self._get_items_of_certain_item_types(
@@ -2093,16 +2095,16 @@ class XMLVar(XMLSelector):
 
         One of the defined |SetItem| objects modifies the values of all
         |hland_control.Alpha| objects of application model |hland_96|.  We demonstrate
-        this for the control parameter object handled by the `land_dill` element:
+        this for the control parameter object handled by the `land_dill_assl` element:
 
         >>> var = interface.exchange.itemgroups[0].models[0].subvars[0].vars[0]
         >>> item = var.item
         >>> round_(item.value)
         2.0
-        >>> hp.elements.land_dill.model.parameters.control.alpha
+        >>> hp.elements.land_dill_assl.model.parameters.control.alpha
         alpha(1.0)
         >>> item.update_variables()
-        >>> hp.elements.land_dill.model.parameters.control.alpha
+        >>> hp.elements.land_dill_assl.model.parameters.control.alpha
         alpha(2.0)
 
         The second example is comparable but focuses on a |SetItem| modifying control
@@ -2113,70 +2115,71 @@ class XMLVar(XMLSelector):
         >>> item = var.item
         >>> round_(item.value)
         5.0
-        >>> hp.elements.stream_dill_lahn_2.model.parameters.control.nmbsegments
+        >>> hp.elements.stream_dill_assl_lahn_leun.model.parameters.control.nmbsegments
         nmbsegments(lag=0.0)
         >>> item.update_variables()
-        >>> hp.elements.stream_dill_lahn_2.model.parameters.control.nmbsegments
+        >>> hp.elements.stream_dill_assl_lahn_leun.model.parameters.control.nmbsegments
         nmbsegments(lag=5.0)
 
         The third discussed |SetItem| assigns the same value to all entries of state
         sequence |hland_states.SM|, resulting in the same soil moisture for all
-        individual hydrological response units of element `land_lahn_2`:
+        individual hydrological response units of element `land_lahn_leun`:
 
         >>> var = interface.exchange.itemgroups[1].models[0].subvars[0].vars[2]
         >>> item = var.item
         >>> item.name
-        'sm_lahn_2'
+        'sm_lahn_leun'
         >>> print_vector(item.value)
         123.0
-        >>> hp.elements.land_lahn_2.model.sequences.states.sm
+        >>> hp.elements.land_lahn_leun.model.sequences.states.sm
         sm(138.31396, 135.71124, 147.54968, 145.47142, 154.96405, 153.32805,
            160.91917, 159.62434, 165.65575, 164.63255)
         >>> item.update_variables()
-        >>> hp.elements.land_lahn_2.model.sequences.states.sm
+        >>> hp.elements.land_lahn_leun.model.sequences.states.sm
         sm(123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0)
 
         In contrast to the last example, the fourth |SetItem| is 1-dimensional and thus
         allows to assign different values to the individual hydrological response units
-        of element `land_lahn_1`:
+        of element `land_lahn_marb`:
 
         >>> var = interface.exchange.itemgroups[1].models[0].subvars[0].vars[3]
         >>> item = var.item
         >>> item.name
-        'sm_lahn_1'
+        'sm_lahn_marb'
         >>> print_vector(item.value)
         110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0, 190.0, 200.0,
         210.0, 220.0, 230.0
-        >>> hp.elements.land_lahn_1.model.sequences.states.sm
+        >>> hp.elements.land_lahn_marb.model.sequences.states.sm
         sm(99.27505, 96.17726, 109.16576, 106.39745, 117.97304, 115.56252,
            125.81523, 123.73198, 132.80035, 130.91684, 138.95523, 137.25983,
            142.84148)
         >>> with pub.options.warntrim(False):
         ...     item.update_variables()
-        >>> hp.elements.land_lahn_1.model.sequences.states.sm
+        >>> hp.elements.land_lahn_marb.model.sequences.states.sm
         sm(110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0, 190.0, 200.0,
            206.0, 206.0, 206.0)
 
         Without defining initial values in the XML file, the |ChangeItem.value|
-        property of each |SetItem| starts with the averaged (see item `ic_lahn_2`) or
-        original (see item `ic_lahn_1`) values of the corresponding sequences:
+        property of each |SetItem| starts with the averaged (see item `ic_lahn_leun`) or
+        original (see item `ic_lahn_marb`) values of the corresponding sequences:
 
         >>> var = interface.exchange.itemgroups[1].models[0].subvars[0].vars[0]
         >>> item = var.item
         >>> item.name
-        'ic_lahn_2'
+        'ic_lahn_leun'
         >>> round_(item.value)
         1.184948
-        >>> round_(hp.elements.land_lahn_2.model.sequences.states.ic.average_values())
+        >>> ic_states = hp.elements.land_lahn_leun.model.sequences.states.ic
+        >>> round_(ic_states.average_values())
         1.184948
         >>> var = interface.exchange.itemgroups[1].models[0].subvars[0].vars[1]
         >>> item = var.item
         >>> item.name
-        'ic_lahn_1'
+        'ic_lahn_marb'
         >>> print_vector(item.value)
         0.96404, 1.36332, 0.96458, 1.46458, 0.96512, 1.46512, 0.96565,
         1.46569, 0.96617, 1.46617, 0.96668, 1.46668, 1.46719
-        >>> hp.elements.land_lahn_1.model.sequences.states.ic
+        >>> hp.elements.land_lahn_marb.model.sequences.states.ic
         ic(0.96404, 1.36332, 0.96458, 1.46458, 0.96512, 1.46512, 0.96565,
            1.46569, 0.96617, 1.46617, 0.96668, 1.46668, 1.46719)
 
@@ -2188,17 +2191,17 @@ class XMLVar(XMLSelector):
         >>> var = interface.exchange.itemgroups[2].models[0].subvars[0].vars[0]
         >>> item = var.item
         >>> print_matrix(item.value)
-        | -0.298846, -0.811539, -2.493848, -5.968849, -6.999618 |
-        | -0.705395, -1.505553, -4.221268, -7.446349, -8.119366 |
-        >>> print_vector(hp.elements.land_dill.model.sequences.inputs.t.series)
-        -0.298846, -0.811539, -2.493848, -5.968849, -6.999618
-        >>> print_vector(hp.elements.land_lahn_1.model.sequences.inputs.t.series)
-        -0.705395, -1.505553, -4.221268, -7.446349, -8.119366
+        | 0.0, -0.5, -2.4, -6.8, -7.8 |
+        | -0.7, -1.5, -4.6, -8.2, -8.7 |
+        >>> print_vector(hp.elements.land_dill_assl.model.sequences.inputs.t.series)
+        0.0, -0.5, -2.4, -6.8, -7.8
+        >>> print_vector(hp.elements.land_lahn_marb.model.sequences.inputs.t.series)
+        -0.7, -1.5, -4.6, -8.2, -8.7
         >>> item.value = [0.0, 1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0, 9.0]
         >>> item.update_variables()
-        >>> print_vector(hp.elements.land_dill.model.sequences.inputs.t.series)
+        >>> print_vector(hp.elements.land_dill_assl.model.sequences.inputs.t.series)
         0.0, 1.0, 2.0, 3.0, 4.0
-        >>> print_vector(hp.elements.land_lahn_1.model.sequences.inputs.t.series)
+        >>> print_vector(hp.elements.land_lahn_marb.model.sequences.inputs.t.series)
         5.0, 6.0, 7.0, 8.0, 9.0
 
         |AddItem| `sfcf_1`, `sfcf_2`, and `sfcf_3` serve to demonstrate how a scalar
@@ -2216,10 +2219,10 @@ class XMLVar(XMLSelector):
         ...         var.item.update_variables()
         >>> for element in hp.elements.catchment:
         ...     print(element, repr(element.model.parameters.control.sfcf))
-        land_dill sfcf(1.4)
-        land_lahn_1 sfcf(1.4)
-        land_lahn_2 sfcf(1.2)
-        land_lahn_3 sfcf(field=1.1, forest=1.2)
+        land_dill_assl sfcf(1.4)
+        land_lahn_kalk sfcf(field=1.1, forest=1.2)
+        land_lahn_leun sfcf(1.2)
+        land_lahn_marb sfcf(1.4)
 
         |MultiplyItem| `k4` works similar to the described add items but multiplies
         the current values of the base parameter objects of type |hland_control.K|
@@ -2232,58 +2235,59 @@ class XMLVar(XMLSelector):
         >>> for element in hp.elements.catchment:
         ...     control = element.model.parameters.control
         ...     print(element, repr(control.k), repr(control.k4))
-        land_dill k(0.005618) k4(0.056177)
-        land_lahn_1 k(0.005325) k4(0.053247)
-        land_lahn_2 k(0.005948) k4(0.059481)
-        land_lahn_3 k(0.002571) k4(0.025712)
+        land_dill_assl k(0.005618) k4(0.056177)
+        land_lahn_kalk k(0.002571) k4(0.025712)
+        land_lahn_leun k(0.005948) k4(0.059481)
+        land_lahn_marb k(0.005325) k4(0.053247)
 
         The final three examples focus on |GetItem| objects.  One |GetItem| object
         queries the actual values of the |hland_states.SM| states of all relevant
         elements:
 
         >>> var = interface.exchange.itemgroups[5].models[0].subvars[2].vars[0]
-        >>> hp.elements.land_dill.model.sequences.states.sm = 1.0
+        >>> hp.elements.land_dill_assl.model.sequences.states.sm = 1.0
         >>> for name, target in var.item.yield_name2value():
         ...     print(name, target)  # doctest: +ELLIPSIS
-        land_dill_states_sm [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
-        land_lahn_1_states_sm [110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0, \
-190.0, 200.0, 206.0, 206.0, 206.0]
-        land_lahn_2_states_sm [123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0, \
-123.0, 123.0]
-        land_lahn_3_states_sm [101.3124...]
+        land_dill_assl_states_sm [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, \
+1.0, 1.0]
+        land_lahn_kalk_states_sm [101.3124...]
+        land_lahn_leun_states_sm [123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0, \
+123.0, 123.0, 123.0]
+        land_lahn_marb_states_sm [110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, \
+180.0, 190.0, 200.0, 206.0, 206.0, 206.0]
 
         Another |GetItem| object queries the actual value of the
-        |hland_factors.ContriArea| factor sequence of element `land_dill`:
+        |hland_factors.ContriArea| factor sequence of element `land_dill_assl`:
 
-        >>> hp.elements.land_dill.model.sequences.factors.contriarea(1.0)
+        >>> hp.elements.land_dill_assl.model.sequences.factors.contriarea(1.0)
         >>> for var in interface.exchange.itemgroups[5].models[0].subvars[0].vars:
         ...     for name, target in var.item.yield_name2value():
         ...         print(name, target)
-        land_dill_factors_contriarea 1.0
+        land_dill_assl_factors_contriarea 1.0
 
         Another |GetItem| object queries both the actual and the time series values of
-        the |hland_fluxes.QT| flux sequence of element `land_dill`:
+        the |hland_fluxes.QT| flux sequence of element `land_dill_assl`:
 
-        >>> qt = hp.elements.land_dill.model.sequences.fluxes.qt
+        >>> qt = hp.elements.land_dill_assl.model.sequences.fluxes.qt
         >>> qt(1.0)
         >>> qt.series = 2.0
         >>> for var in interface.exchange.itemgroups[5].models[0].subvars[1].vars:
         ...     for name, target in var.item.yield_name2value():
         ...         print(name, target)
-        land_dill_fluxes_qt 1.0
-        land_dill_fluxes_qt_series [2.0, 2.0, 2.0, 2.0, 2.0]
+        land_dill_assl_fluxes_qt 1.0
+        land_dill_assl_fluxes_qt_series [2.0, 2.0, 2.0, 2.0, 2.0]
 
         Last but not least, one |GetItem| queries the simulated time series values
-        available through node `dill`:
+        available through node `dill_assl`:
 
         >>> var = interface.exchange.itemgroups[5].nodes[0].vars[0]
-        >>> hp.nodes.dill.sequences.sim.series = range(5)
+        >>> hp.nodes.dill_assl.sequences.sim.series = range(5)
         >>> for name, target in var.item.yield_name2value():
         ...     print(name, target)
-        dill_nodes_sim_series [0.0, 1.0, 2.0, 3.0, 4.0]
+        dill_assl_nodes_sim_series [0.0, 1.0, 2.0, 3.0, 4.0]
         >>> for name, target in var.item.yield_name2value(2, 4):
         ...     print(name, target)
-        dill_nodes_sim_series [2.0, 3.0]
+        dill_assl_nodes_sim_series [2.0, 3.0]
         """
         target = f"{self.master.name}.{self.name}"
         if self.master.name == "nodes":

@@ -2273,13 +2273,13 @@ of type `evap_aet_hbv96`.
         most convenient manner.  However, using the underlying methods
         |Model.load_conditions| and |Model.save_conditions| directly offers the
         advantage of specifying alternative filenames.  We demonstrate this by using
-        the state sequence |hland_states.SM| if the `land_dill` |Element| object of the
-        `HydPy-H-Lahn` example project:
+        the state sequence |hland_states.SM| if the `land_dill_assl` |Element| object
+        of the `HydPy-H-Lahn` example project:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> dill = hp.elements.land_dill.model
-        >>> dill.sequences.states.sm
+        >>> dill_assl = hp.elements.land_dill_assl.model
+        >>> dill_assl.sequences.states.sm
         sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 
@@ -2291,36 +2291,36 @@ of type `evap_aet_hbv96`.
         We set all soil moisture values to zero and write the updated values to file
         `cold_start.py`:
 
-        >>> dill.sequences.states.sm(0.0)
+        >>> dill_assl.sequences.states.sm(0.0)
         >>> with TestIO():
-        ...     dill.save_conditions("cold_start.py")
+        ...     dill_assl.save_conditions("cold_start.py")
 
         Trying to reload from the written file (after changing the soil moisture values
         again) without passing the file name fails due to the wrong assumption that the
         element's name serves as the file name base:
 
-        >>> dill.sequences.states.sm(100.0)
+        >>> dill_assl.sequences.states.sm(100.0)
         >>> with TestIO():   # doctest: +ELLIPSIS
-        ...     dill.load_conditions()
+        ...     dill_assl.load_conditions()
         Traceback (most recent call last):
         ...
         FileNotFoundError: While trying to load the initial conditions of element \
-`land_dill`, the following error occurred: [Errno 2] No such file or directory: \
-'...land_dill.py'
+`land_dill_assl`, the following error occurred: [Errno 2] No such file or directory: \
+'...land_dill_assl.py'
 
         One does not need to explicitly state the file extensions (`.py`):
 
         >>> with TestIO():
-        ...     dill.load_conditions("cold_start")
-        >>> dill.sequences.states.sm
+        ...     dill_assl.load_conditions("cold_start")
+        >>> dill_assl.sequences.states.sm
         sm(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
         Automatically determining the file name requires a proper reference to the
         related |Element| object:
 
-        >>> del dill.element
+        >>> del dill_assl.element
         >>> with TestIO():
-        ...     dill.save_conditions()
+        ...     dill_assl.save_conditions()
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to save the actual conditions of element `?`, the \
@@ -2336,21 +2336,21 @@ element.
         |evap_pet_hbv96| with a plain |evap_aet_morsim| instance, which relies on some
         log sequences:
 
-        >>> with dill.add_aetmodel_v1("evap_aet_morsim"):
+        >>> with dill_assl.add_aetmodel_v1("evap_aet_morsim"):
         ...     pass
 
         The following code demonstrates that reading and writing of condition sequences
         also works for submodels:
 
-        >>> logs = dill.aetmodel.sequences.logs
+        >>> logs = dill_assl.aetmodel.sequences.logs
         >>> logs.loggedairtemperature = 20.0
         >>> logs.loggedwindspeed2m = 2.0
         >>> with TestIO():   # doctest: +ELLIPSIS
-        ...     dill.save_conditions("submodel_conditions.py")
+        ...     dill_assl.save_conditions("submodel_conditions.py")
         >>> logs.loggedairtemperature = 10.0
         >>> logs.loggedwindspeed2m = 1.0
         >>> with TestIO():   # doctest: +ELLIPSIS
-        ...     dill.load_conditions("submodel_conditions.py")
+        ...     dill_assl.load_conditions("submodel_conditions.py")
         >>> logs.loggedairtemperature
         loggedairtemperature(20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0,
                              20.0, 20.0, 20.0, 20.0)
@@ -3071,7 +3071,7 @@ but the value `1` of type `int` is given.
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp = prepare_full_example_2()[0]
-        >>> model = hp.elements.land_dill.model
+        >>> model = hp.elements.land_dill_assl.model
 
         First, all zones of the Dill catchment are either of type
         |hland_constants.FIELD| or |hland_constants.FOREST|:
@@ -3325,16 +3325,16 @@ class RunModel(Model):
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> model = hp.elements.land_dill.model
+        >>> model = hp.elements.land_dill_assl.model
         >>> for idx in range(4):
         ...     model.simulate(idx)
-        ...     print(hp.nodes.dill.sequences.sim)
-        ...     hp.nodes.dill.sequences.sim = 0.0
-        sim(11.78144)
-        sim(8.902735)
-        sim(7.132279)
-        sim(6.018681)
-        >>> hp.nodes.dill.sequences.sim.series
+        ...     print(hp.nodes.dill_assl.sequences.sim)
+        ...     hp.nodes.dill_assl.sequences.sim = 0.0
+        sim(11.75686)
+        sim(8.864424)
+        sim(7.101367)
+        sim(5.993961)
+        >>> hp.nodes.dill_assl.sequences.sim.series
         InfoArray([nan, nan, nan, nan])
 
         The results above are identical to those of method |HydPy.simulate|
@@ -3346,8 +3346,8 @@ class RunModel(Model):
         >>> from hydpy import round_
         >>> hp.reset_conditions()
         >>> hp.simulate()
-        >>> round_(hp.nodes.dill.sequences.sim.series)
-        11.78144, 8.902735, 7.132279, 6.018681
+        >>> round_(hp.nodes.dill_assl.sequences.sim.series)
+        11.75686, 8.864424, 7.101367, 5.993961
 
         When working in Cython mode, the standard model import overrides
         this generic Python version with a model-specific Cython version.

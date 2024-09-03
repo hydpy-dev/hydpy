@@ -1112,13 +1112,13 @@ def controlcheck(
 
     Function |controlcheck| serves similar purposes as function |parameterstep|.  It is
     why one can interactively access the state and the log sequences within condition
-    files as `land_dill.py` of the example project `HydPy-H-Lahn`.  It is called
+    files as `land_dill_assl.py` of the example project `HydPy-H-Lahn`.  It is called
     `controlcheck` due to its feature to check for possible inconsistencies between
     control and condition files.  The following test, where we write several soil
-    moisture values (|hland_states.SM|) into condition file `land_dill.py`, which does
-    not agree with the number of hydrological response units (|hland_control.NmbZones|)
-    defined in control file `land_dill.py`, verifies that this works within a separate
-    Python process:
+    moisture values (|hland_states.SM|) into condition file `land_dill_assl.py`, which
+    does not agree with the number of hydrological response units
+    (|hland_control.NmbZones|) defined in control file `land_dill_assl.py`, verifies
+    that this works within a separate Python process:
 
     >>> from hydpy.core.testtools import prepare_full_example_1
     >>> prepare_full_example_1()
@@ -1128,13 +1128,13 @@ def controlcheck(
     >>> cwd = os.path.join("HydPy-H-Lahn", "conditions", "init_1996_01_01_00_00_00")
     >>> with TestIO():   # doctest: +ELLIPSIS
     ...     os.chdir(cwd)
-    ...     with open("land_dill.py") as file_:
+    ...     with open("land_dill_assl.py") as file_:
     ...         lines = file_.readlines()
     ...     lines[10:12] = "sm(185.13164, 181.18755)", ""
-    ...     with open("land_dill.py", "w") as file_:
+    ...     with open("land_dill_assl.py", "w") as file_:
     ...         _ = file_.write("\\n".join(lines))
     ...     print()
-    ...     result = run_subprocess("hyd.py exec_script land_dill.py")
+    ...     result = run_subprocess("hyd.py exec_script land_dill_assl.py")
     <BLANKLINE>
     ...
     While trying to set the value(s) of variable `sm`, the following error occurred: \
@@ -1143,13 +1143,13 @@ shape `(12,)` and type `float`, the following error occurred: could not broadcas
 input array from shape (2...) into shape (12...)
     ...
 
-    With a little trick, we can fake to be "inside" condition file `land_dill.py`.
+    With a little trick, we can fake to be "inside" condition file `land_dill_assl.py`.
     Calling |controlcheck| then, for example, prepares the shape of sequence
     |hland_states.Ic| as specified by the value of parameter |hland_control.NmbZones|
     given in the corresponding control file:
 
     >>> from hydpy.models.hland_96 import *
-    >>> __file__ = "land_dill.py"
+    >>> __file__ = "land_dill_assl.py"
     >>> with TestIO():
     ...     os.chdir(cwd)
     ...     controlcheck(firstdate="1996-01-01", stepsize="1d")
@@ -1166,7 +1166,7 @@ input array from shape (2...) into shape (12...)
     ...     controlcheck(projectdir="somewhere", controldir="nowhere")
     Traceback (most recent call last):
     ...
-    FileNotFoundError: While trying to load the control file `land_dill.py` \
+    FileNotFoundError: While trying to load the control file `land_dill_assl.py` \
 from directory `...hydpy/tests/iotesting/somewhere/control/nowhere`, \
 the following error occurred: ...
 
@@ -1180,7 +1180,7 @@ the following error occurred: ...
     with small leaf area indices.
 
     To show the related functionalities, we first replace the |hland_96| application
-    model of element `land_dill` with a |lland_dd| model object, define some of its
+    model of element `land_dill_assl` with a |lland_dd| model object, define some of its
     parameter values, and write its control and condition files.  Note that the
     |lland_control.LAI| value of the only relevant land use the
     (|lland_constants.ACKER|) is 0.5 during January and 5.0 during July:
@@ -1191,33 +1191,33 @@ the following error occurred: ...
     >>> with TestIO():
     ...     hp = HydPy("HydPy-H-Lahn")
     ...     hp.prepare_network()
-    ...     land_dill = hp.elements["land_dill"]
+    ...     land_dill_assl = hp.elements["land_dill_assl"]
     ...     with pub.options.usedefaultvalues(True):
-    ...         land_dill.model = prepare_model("lland_dd")
-    ...         control = land_dill.model.parameters.control
+    ...         land_dill_assl.model = prepare_model("lland_dd")
+    ...         control = land_dill_assl.model.parameters.control
     ...         control.nhru(2)
     ...         control.ft(1.0)
     ...         control.fhru(0.5)
     ...         control.lnk(ACKER)
     ...         control.lai.acker_jan = 0.5
     ...         control.lai.acker_jul = 5.0
-    ...         land_dill.model.parameters.update()
-    ...         land_dill.model.sequences.states.inzp(1.0)
-    ...     land_dill.model.save_controls()
-    ...     land_dill.model.save_conditions()
+    ...         land_dill_assl.model.parameters.update()
+    ...         land_dill_assl.model.sequences.states.inzp(1.0)
+    ...     land_dill_assl.model.save_controls()
+    ...     land_dill_assl.model.save_conditions()
 
     Unfortunately, state |lland_states.Inzp| does not define a |trim| method taking the
     actual value of parameter |lland_derived.KInz| into account (due to compatibility
     with the original LARSIM model).  As an auxiliary solution, we define such a
-    function within the `land_dill.py` condition file (and modify some warning settings
-    in favour of the next examples):
+    function within the `land_dill_assl.py` condition file (and modify some warning
+    settings in favour of the next examples):
 
     >>> cwd = os.path.join("HydPy-H-Lahn", "conditions", "init_2000_07_01_00_00_00")
     >>> with TestIO():
     ...     os.chdir(cwd)
-    ...     with open("land_dill.py") as file_:
+    ...     with open("land_dill_assl.py") as file_:
     ...         lines = file_.readlines()
-    ...     with open("land_dill.py", "w") as file_:
+    ...     with open("land_dill_assl.py", "w") as file_:
     ...         file_.writelines([
     ...             "from hydpy import pub\\n",
     ...             "pub.options.warnsimulationstep = False\\n",
@@ -1238,7 +1238,7 @@ the following error occurred: ...
 
     >>> with TestIO():
     ...     os.chdir(cwd)
-    ...     result = run_subprocess("hyd.py exec_script land_dill.py")
+    ...     result = run_subprocess("hyd.py exec_script land_dill_assl.py")
 
     If the directory name does imply the initialisation date to be within January 2000
     instead of July 2000, we correctly get the following warning:
@@ -1248,8 +1248,8 @@ the following error occurred: ...
     >>> with TestIO():   # doctest: +ELLIPSIS
     ...     os.rename(cwd_old, cwd_new)
     ...     os.chdir(cwd_new)
-    ...     result = run_subprocess("hyd.py exec_script land_dill.py")
-    Invoking hyd.py with arguments `exec_script, land_dill.py` resulted in the \
+    ...     result = run_subprocess("hyd.py exec_script land_dill_assl.py")
+    Invoking hyd.py with arguments `exec_script, land_dill_assl.py` resulted in the \
 following error:
     For variable `inzp` at least one value needed to be trimmed.  The old and the new \
 value(s) are `1.0, 1.0` and `0.1, 0.1`, respectively.
@@ -1263,12 +1263,12 @@ value(s) are `1.0, 1.0` and `0.1, 0.1`, respectively.
     ...             'firstdate="2100-07-15", stepsize="1d")')
     >>> with TestIO():
     ...     os.chdir(cwd_new)
-    ...     with open("land_dill.py") as file_:
+    ...     with open("land_dill_assl.py") as file_:
     ...         text = file_.read()
     ...     text = text.replace(text_old, text_new)
-    ...     with open("land_dill.py", "w") as file_:
+    ...     with open("land_dill_assl.py", "w") as file_:
     ...         _ = file_.write(text)
-    ...     result = run_subprocess("hyd.py exec_script land_dill.py")
+    ...     result = run_subprocess("hyd.py exec_script land_dill_assl.py")
 
     Default condition directory names do not contain information about the simulation
     step size.  Hence, one needs to define it explicitly for all application models
@@ -1276,13 +1276,13 @@ value(s) are `1.0, 1.0` and `0.1, 0.1`, respectively.
 
     >>> with TestIO():   # doctest: +ELLIPSIS
     ...     os.chdir(cwd_new)
-    ...     with open("land_dill.py") as file_:
+    ...     with open("land_dill_assl.py") as file_:
     ...         text = file_.read()
     ...     text = text.replace('stepsize="1d"', "")
-    ...     with open("land_dill.py", "w") as file_:
+    ...     with open("land_dill_assl.py", "w") as file_:
     ...         _ = file_.write(text)
-    ...     result = run_subprocess("hyd.py exec_script land_dill.py")
-    Invoking hyd.py with arguments `exec_script, land_dill.py` resulted in the \
+    ...     result = run_subprocess("hyd.py exec_script land_dill_assl.py")
+    Invoking hyd.py with arguments `exec_script, land_dill_assl.py` resulted in the \
 following error:
     To apply function `controlcheck` requires time information for some model types.  \
 Please define the `Timegrids` object of module `pub` manually or pass the required \
@@ -1298,13 +1298,13 @@ information (`stepsize` and eventually `firstdate`) as function arguments.
     >>> with TestIO():   # doctest: +ELLIPSIS
     ...     os.rename(cwd_old, cwd_new)
     ...     os.chdir(cwd_new)
-    ...     with open("land_dill.py") as file_:
+    ...     with open("land_dill_assl.py") as file_:
     ...         text = file_.read()
     ...     text = text.replace('firstdate="2100-07-15"', 'stepsize="1d"')
-    ...     with open("land_dill.py", "w") as file_:
+    ...     with open("land_dill_assl.py", "w") as file_:
     ...         _ = file_.write(text)
-    ...     result = run_subprocess("hyd.py exec_script land_dill.py")
-    Invoking hyd.py with arguments `exec_script, land_dill.py` resulted in the \
+    ...     result = run_subprocess("hyd.py exec_script land_dill_assl.py")
+    Invoking hyd.py with arguments `exec_script, land_dill_assl.py` resulted in the \
 following error:
     To apply function `controlcheck` requires time information for some model types.  \
 Please define the `Timegrids` object of module `pub` manually or pass the required \

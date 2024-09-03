@@ -1375,13 +1375,13 @@ class ProjectStructure:
         >>> control = pj.directories["subdirectories"]["control"]
         >>> pprint(control["subdirectories"]["default"]["files"])
         ['land.py',
-         'land_dill.py',
-         'land_lahn_1.py',
-         'land_lahn_2.py',
-         'land_lahn_3.py',
-         'stream_dill_lahn_2.py',
-         'stream_lahn_1_lahn_2.py',
-         'stream_lahn_2_lahn_3.py']
+         'land_dill_assl.py',
+         'land_lahn_kalk.py',
+         'land_lahn_leun.py',
+         'land_lahn_marb.py',
+         'stream_dill_assl_lahn_leun.py',
+         'stream_lahn_leun_lahn_kalk.py',
+         'stream_lahn_marb_lahn_leun.py']
         >>> pprint(control["subdirectories"]["default"]["subdirectories"])
         {}
         """
@@ -1425,7 +1425,7 @@ href="https://github.com/hydpy-dev/hydpy/blob/master/hydpy/data/HydPy-H-Lahn/con
               ...
               <h style="margin-left:1em"><a class="reference external" \
 href="https://github.com/hydpy-dev/hydpy/blob/master/hydpy/data/HydPy-H-Lahn/control\
-/default/stream_lahn_2_lahn_3.py">stream_lahn_2_lahn_3.py</a></h><br/>
+/default/stream_lahn_marb_lahn_leun.py">stream_lahn_marb_lahn_leun.py</a></h><br/>
             </details>
           </details>
           ...

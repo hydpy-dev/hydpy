@@ -229,7 +229,7 @@ following example demonstrates how to query the discharge values simulated for t
 outlet:
 
 >>> from hydpy import print_vector
->>> print_vector(hp.nodes.lahn_3.sequences.sim.series)
+>>> print_vector(hp.nodes.lahn_kalk.sequences.sim.series)
 nan, nan, nan, nan
 
 |numpy.nan| means "not a number", indicating missing values.  In this example, the
@@ -240,8 +240,8 @@ by calling method |HydPy.simulate|:
 
 Now, we can inspect the freshly calculated discharge values:
 
->>> print_vector(hp.nodes.lahn_3.sequences.sim.series)
-54.046428, 37.32527, 31.925872, 28.416456
+>>> print_vector(hp.nodes.lahn_kalk.sequences.sim.series)
+54.018074, 37.255732, 31.863983, 28.358949
 
 You could now write the results to file, print them into a figure, evaluate them
 statistically, or - if you don't like them - change some configurations and calculate

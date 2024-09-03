@@ -11,10 +11,10 @@ via a command line (see the documentation on script |hyd| for further informatio
 your current working directory and contains an XML configuration file (as
 `single_run.xml` in the example project folder `HydPy-H-Lahn`).  This configuration
 file must agree with the XML schema `HydPyConfigSingleRun.xsd`, which is available in
-the :ref:`configuration` subpackage and separately downloadable for each `HydPy
-release`_.  If you did implement new or changed existing models, you have to update
-this schema file.  *HydPy* does this automatically through its setup mechanism (see the
-documentation on class |XSDWriter|).
+the `conf` subpackage and separately downloadable for each `HydPy release`_.  If you
+did implement new or changed existing models, you have to update this schema file.
+*HydPy* does this automatically through its setup mechanism (see the documentation on
+class |XSDWriter|).
 
 To show how to apply |run_simulation| via a command line, we first copy the
 `HydPy-H-Lahn` project into the `iotesting` folder by calling the function

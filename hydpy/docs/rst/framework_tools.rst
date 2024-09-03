@@ -4,54 +4,48 @@
 Framework Tools
 ===============
 
-The *HydPy* framework provides many functionalities for programming,
-documenting, and using different hydrological models.  This section tries
-to give a short overview and focusses on the on those aspects, you will
-be most interested in when getting used to *HydPy*.
+The HydPy framework provides many general functionalities for programming, documenting,
+and using hydrological models in more or less complex workflows.  This section explains
+these general functionalities in multiple subsections, each corresponding to another
+subpackage of the hydpy package.
 
-The most basic features are explained in some detail in subsection
-:ref:`core`.  Subsection :ref:`cythons` deals mainly with programming
-details related to computational efficiency and should be of importance
-for framework developers (and eventually some model developers) only.
-Subsection :ref:`cythons` covers some additional features, which are
-not required when using *HydPy* in general but can be helpful
-for programming new models or for writing new workflow scripts.
+>>> from hydpy import core
 
-The mentioned subsections are related to different `subpackages` of
-*HydPy*.  But users do not need to know exactly what kind of feature
-is implemented where and why.  All features that are intended to be
-actually applied by users are directly accessible via imports from
-the *HydPy* package itself.  It is no good programming practice,
-but in small scripts perfectly ok to make a "wildcard import" to load
-all relevant features:
+The `core` subpackage, documented by the :ref:`core` subsection, is HydPy's backbone.
+It contains features for creating networks, defining models, reading time series, and
+much more.
 
->>> from hydpy import *
+>>> from hydpy import cythons
 
-After such an import, features like the |Date| class can be used and
-learned interactively:
+The `cythons` subpackage, documented by the :ref:`cythons` subsection, deals mainly
+with programming details related to computational efficiency and is only for framework
+developers (and eventually some model developers) important.
 
->>> date = Date("01.01.2000")
->>> date
-Date("01.01.2000 00:00:00")
->>> date += "1d"
->>> date
-Date("02.01.2000 00:00:00")
+>>> from hydpy import auxs
 
-The cleaner approach would be to import the required features explicitly,
-e.g. class |Period|:
+The `auxs` subpackage, documented by the :ref:`auxiliaries` subsection, covers
+additional features which are not required when using HydPy in general but can help
+program new models or write elaborated workflow scripts.
 
->>> from hydpy import Period
->>> date += 2*Period("1d")
->>> date
-Date("04.01.2000 00:00:00")
+>>> from hydpy import exe
 
-The above examples try to give a first impression on that, albeit
-one has the use the programming language Python to control *HydPy*,
-one can often write simple commands that are even understandable for
-people not familiar with Python at all.
+The `exe` subpackage, documented by the "Execution Tools" subsection, mainly enables
+HydPy to be used from the command line and in server mode.
 
-To learn what can be done else with classes |Date| and |Period|, see the
-detailed examples of the documentation on module |timetools|.
+Nearly all names of these subpackages' modules end with "tools".  The exceptions are
+the modules of the `cythons` subpackage, whose names end with "utils".  We adhere to
+this convention to avoid potential name conflicts and to make these modules easily
+distinguishable from other HydPy objects within Python scripts and doctests.
+
+We do not try to prevent you from importing highly specialised functionality from any
+module.  In contrast, we even encourage it for learning and testing HydPy.  However,
+when writing stable workflow scripts, you are well advised to rely only on the
+available top-level imports to avoid the risk of needing to rework your scripts after
+we refactored some HydPy modules:
+
+>>> from hydpy.core.timetools import Date  # bad
+>>> from hydpy import Date  # good
+
 
 .. toctree::
    :hidden:
@@ -60,4 +54,3 @@ detailed examples of the documentation on module |timetools|.
    execution
    cythons
    auxiliaries
-   configuration

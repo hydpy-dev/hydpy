@@ -6,60 +6,54 @@
 Model Families
 ==============
 
-In *HydPy*, we divide all models into "families" as :ref:`HydPy-L`.  Each model family
-consists of one base model (e.g. |lland|) and several application models (e.g.
-|lland_dd|).  The base models offer basic features like model parameter classes (e.g.
+HydPy divides all models into "families" as :ref:`HydPy-L`.  Each model family consists
+of one base model (e.g. |lland|) and several application models (e.g. |lland_dd|).  The
+base models offer basic features like model parameter classes (e.g.
 |lland_control.KG|), sequence classes (e.g. |lland_fluxes.NKor|) and process equation
 methods (e.g. |lland_model.Calc_NKor_V1|) but cannot perform an actual simulation run.
 This is the task of the application models, which select different parameters,
 sequences, and process equations in a meaningful combination and order.
 
-If not stated otherwise, all models can be freely combined and applied
-on arbitrary simulation time steps.  It is, for example, possible to
-simulate the "land processes" with |hland_96|, the "stream processes"
-with |arma_rimorido|, the "dam processes" with |dam_v001| in either a
-daily or hourly time step.
 
-Often base models offer different versions of a method to calculate the
-value of the same variable.  For example, base model |dam| offers two
-methods for picking its |dam_fluxes.Inflow|: |dam_model.Pic_Inflow_V1|
-and |dam_model.Pic_Inflow_V2|.  Each application model has to select a
-specific version of the method.  Exemples here are application model
-|dam_v001| selecting |dam_model.Pic_Inflow_V1| and application model
-|dam_v005| selecting |dam_model.Pic_Inflow_V2|.  The following example
-shows this for application model |dam_v005|:
+Unless otherwise stated, you can freely combine all models and apply them with
+arbitrary simulation time steps.  It is, for example, possible to simulate "land
+processes" with |hland_96|, "stream processes" with |musk_mct|, and "lake processes"
+with |dam_llake| in either a daily or hourly time step.
 
->>> from hydpy.models.dam_v005 import *
->>> parameterstep('1d')
->>> hasattr(model, 'pic_inflow_v2')
-True
->>> hasattr(model, 'pic_inflow_v1')
-False
+Base models often offer different versions of a method to calculate the value of the
+same variable.  For example, base model |evap| has two methods for estimating reference
+evapotranspiration: |evap_model.Calc_ReferenceEvapotranspiration_V1| and
+|evap_model.Calc_ReferenceEvapotranspiration_V2|.  Each application model that wants to
+calculate reference evapotranspiration has to choose. In this case, |evap_ret_fao56|
+selects |evap_model.Calc_ReferenceEvapotranspiration_V1| to follow
+:cite:t:`ref-Allen1998` and  |evap_ret_tw2002| selects
+|evap_model.Calc_ReferenceEvapotranspiration_V2| to follow :cite:t:`ref-DVWK`:
 
-For simplicity, you can skip the version number when trying to access
-a certain method of an application model:
+>>> from hydpy.models.evap_ret_tw2002 import *
+>>> parameterstep("1d")
+>>> assert hasattr(model, "calc_referenceevapotranspiration_v2")
+>>> assert not hasattr(model, "calc_referenceevapotranspiration_v1")
 
->>> hasattr(model, 'pic_inflow')
-True
+For simplicity, the selected method is also accessible without the version suffix (as
+long as the model does not choose multiple versions of the same method, which is a
+HydPy convention only seldom broken by application models):
 
-Note that this way to construct different application models is very
-different from the usual design of hydrological models, where only
-one model exists.  Here it is the responsibility of the user to combine
-different possible methods in a meaningful combination, usually via
-setting some options in configuration files.
+>>> assert hasattr(model, 'calc_referenceevapotranspiration_v2')
 
-In the light of experience that model users are often overstrained with
-such decisions when using complex models and that it is often very hard to
-communicate (and remember) all selected settings, we favour the more
-reliable "application model" approach.  This allows the model developer to
-carefully check the combination of methods he selected by himself
-in thorough integration tests.  And it allows him to document how he
-thinks the application model should actually be used.  On the downside,
-eventually many application models must be compiled in order to support
-different combinations of methods.  To keep this problem small, newly
-implemented models should be kept small.  But this also depends on
-other design decisions (e.g. how process equations are numerically solved)
-and will have to be discussed later.
+Methods define their parameter and sequence requirements.  Due to choosing
+|evap_model.Calc_ReferenceEvapotranspiration_V2|, application model |evap_ret_tw2002|
+possesses, for example, the flux sequence |evap_fluxes.ReferenceEvapotranspiration|:
+
+>>> assert hasattr(model.sequences.fluxes, 'referenceevapotranspiration')
+
+Due to this selection mechanism, it is relatively easy to compose new models based on
+existing or alternative methods.  However, such compositions are restricted to using
+methods of only one base model or model family.  To overcome this limitation, HydPy
+also implements the so-called "submodel concept", which brings another kind of
+flexibility by coupling main models (of one model family) with submodels (of the same
+or another model family).  This section describes both the main and the submodels.  See
+the :ref:`model_overview` section, which clarifies this distinction more clearly.
+
 
 .. toctree::
    :hidden:

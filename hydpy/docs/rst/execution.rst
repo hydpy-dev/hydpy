@@ -4,9 +4,11 @@
 Execution Tools
 ===============
 
-The `exec` subpackage provides features supporting the execution of
-of different *HydPy* functionalities from the command line (|hyd|)
-or with the help of configuration files (|modelimports|).
+The `exec` subpackage provides features supporting the execution of different HydPy
+functionalities.  Most importantly, they address HydPy's usage via the command line
+(see, for example, the entry script |hyd|) and in server mode (see module
+|servertools|).
+
 
 .. toctree::
    :hidden:

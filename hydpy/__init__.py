@@ -117,7 +117,7 @@ from hydpy.exe.replacetools import xml_replace
 from hydpy.exe.servertools import await_server, start_server
 
 
-__version__ = "6.0a1"
+__version__ = "6.0.0"
 
 pub.options = optiontools.Options()
 pub.indexer = indextools.Indexer()

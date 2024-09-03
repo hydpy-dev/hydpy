@@ -224,8 +224,8 @@ in a simulation-ready state:
 
 >>> hp.prepare_everything()
 
-The catchment outlet of the :ref:`HydPy-H-Lahn` example project is named "l" .  The
-following example demonstrates how to query the discharge values simulated for this
+The catchment outlet of the :ref:`HydPy-H-Lahn` example project is named `lahn_kalk`.
+The following example demonstrates how to query the discharge values simulated for this
 outlet:
 
 >>> from hydpy import print_vector

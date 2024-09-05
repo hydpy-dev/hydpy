@@ -215,7 +215,7 @@ the specification of general information.  Here, we use it to define the first d
 the last date, and the time step size of the considered simulation period in the
 simplest possible manner:
 
->>> hydpy.pub.timegrids = "1996-01-01", "1996-01-05", "1d"
+>>> hydpy.pub.timegrids = "1996-01-01", "1997-01-01", "1d"
 
 Now, there are numerous ways to proceed.  We choose the most straightforward one
 (without deviating from a single default) and call method  |HydPy.prepare_everything|
@@ -229,8 +229,8 @@ The following example demonstrates how to query the discharge values simulated f
 outlet:
 
 >>> from hydpy import print_vector
->>> print_vector(hp.nodes.lahn_kalk.sequences.sim.series)
-nan, nan, nan, nan
+>>> print_vector(hp.nodes.lahn_kalk.sequences.sim.series[:6])
+nan, nan, nan, nan, nan, nan
 
 |numpy.nan| means "not a number", indicating missing values.  In this example, the
 |numpy.nan| values tell us we have not performed a simulation run.  We catch up on this
@@ -240,12 +240,30 @@ by calling method |HydPy.simulate|:
 
 Now, we can inspect the freshly calculated discharge values:
 
->>> print_vector(hp.nodes.lahn_kalk.sequences.sim.series)
-54.018074, 37.255732, 31.863983, 28.358949
+>>> print_vector(hp.nodes.lahn_kalk.sequences.sim.series[:6])
+54.018074, 37.255732, 31.863983, 28.358949, 26.19142, 25.047584
 
 You could now write the results to file, print them into a figure, evaluate them
-statistically, or - if you don't like them - change some configurations and calculate
-different results.
+statistically, or change some configurations and repeat the simulation if you don't
+like them.  As a last example, we compare the  complete simulated discharge time series
+with the available measurements of gauge Kalkofen by plotting them:
+
+>>> figure = hp.nodes.lahn_kalk.plot_allseries()
+
+.. testsetup::
+
+    >>> from hydpy.core.testtools import save_autofig
+    >>> save_autofig("Kalkofen_Qsim_vs_Qobs.png", figure)
+
+.. image:: Kalkofen_Qsim_vs_Qobs.png
+
+.. tip::
+
+    If the desired time series plot does not appear automatically (which depends on
+    your configuration of the |matplotlib| library), type the following commands:
+
+    >>> from matplotlib import pyplot  # doctest: +SKIP
+    >>> pyplot.show()  # doctest: +SKIP
 
 As you can see, a few lines of code are often enough to let HydPy execute complex tasks
 in a standard manner.  However, HydPy offers fine-grained control, allowing you to

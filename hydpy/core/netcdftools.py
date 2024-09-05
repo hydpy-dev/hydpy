@@ -2234,10 +2234,10 @@ class NetCDFInterfaceJIT(NetCDFInterfaceBase[FlatUnion]):
         data to NetCDF files "just in time" during simulation runs.
 
         We consider it unlikely users need ever to call the method
-        |NetCDFInterfaceJIT.provide_jitaccess| directly.  See the documentation on class
-        |HydPy| on applying it indirectly.  However, the following explanations might
-        give some additional insights into the options and limitations of the related
-        functionalities.
+        |NetCDFInterfaceJIT.provide_jitaccess| directly.  See the documentation on
+        class |HydPy| on applying it indirectly.  However, the following explanations
+        might give some additional insights into the options and limitations of the
+        related functionalities.
 
         You can only either read from or write to each NetCDF file.  We think this
         should rarely be a limitation for the anticipated workflows.  One particular
@@ -2456,11 +2456,15 @@ file `...hland_96_flux_pc.nc`.
         42.344998, 27.155231, 22.879262, 20.155944
         54.018074, 37.255732, 31.863983, 28.358949
         >>> filepath_obs = "HydPy-H-Lahn/series/default/obs_q.nc"
+        >>> from hydpy.core.netcdftools import query_timegrid
         >>> with TestIO(), netcdf4.Dataset(filepath_obs, "r") as ncfile:
+        ...     tg = query_timegrid(ncfile, hp.nodes.dill_assl.sequences.obs)
+        ...     i0 = tg[pub.timegrids.sim.firstdate]
+        ...     i1 = tg[pub.timegrids.sim.lastdate]
         ...     for jdx in range(4):
-        ...         print_vector(ncfile["obs_q"][:, jdx])
-        11.75686, 8.864424, 7.101367, 5.993961
+        ...         print_vector(ncfile["obs_q"][i0:i1, jdx])
         9.646776, 8.512748, 7.777124, 7.343268
+        11.75686, 8.864424, 7.101367, 5.993961
         42.344998, 27.155231, 22.879262, 20.155944
         54.018074, 37.255732, 31.863983, 28.358949
 

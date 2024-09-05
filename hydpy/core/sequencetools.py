@@ -4239,7 +4239,9 @@ class Obs(NodeSequence):
         Trying to read non-existing data raises the following warning and disables the
         sequence's ability to handle time series data:
 
+        >>> import os
         >>> with TestIO():
+        ...     os.remove(hp.nodes.dill_assl.sequences.obs.filepath)
         ...     hp.load_obsseries()  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
@@ -4285,6 +4287,7 @@ node `dill_assl` contains 1 nan value.
 
         >>> hp.prepare_obsseries()
         >>> with TestIO():
+        ...     os.remove(hp.nodes.lahn_marb.sequences.obs.filepath)
         ...     with pub.options.warnmissingobsfile(False):
         ...         hp.load_obsseries()
         >>> obs.series

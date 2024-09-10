@@ -3331,10 +3331,10 @@ class RunModel(Model):
         ...     model.simulate(idx)
         ...     print(hp.nodes.dill_assl.sequences.sim)
         ...     hp.nodes.dill_assl.sequences.sim = 0.0
-        sim(11.75686)
-        sim(8.864424)
-        sim(7.101367)
-        sim(5.993961)
+        sim(11.757526)
+        sim(8.865079)
+        sim(7.101815)
+        sim(5.994195)
         >>> hp.nodes.dill_assl.sequences.sim.series
         InfoArray([nan, nan, nan, nan])
 
@@ -3348,7 +3348,7 @@ class RunModel(Model):
         >>> hp.reset_conditions()
         >>> hp.simulate()
         >>> round_(hp.nodes.dill_assl.sequences.sim.series)
-        11.75686, 8.864424, 7.101367, 5.993961
+        11.757526, 8.865079, 7.101815, 5.994195
 
         When working in Cython mode, the standard model import overrides
         this generic Python version with a model-specific Cython version.

@@ -386,26 +386,26 @@ the :ref:`HydPy-H-Lahn` example project:
 >>> from hydpy import repr_, summarise_ncfile
 >>> print(repr_(summarise_ncfile(filepath)))  # doctest: +ELLIPSIS
 GENERAL
-    file path = ...hland_96_input_p.nc
+    file path = .../hydpy/data/HydPy-H-Lahn/series/default/hland_96_input_p.nc
     file format = NETCDF4
     disk format = HDF5
     Attributes
         hydts_timeRef = begin
-        title = Daily total precipitation sum HydPy-H-HBV96 model river Lahn (1990-2020)
+        title = Daily total precipitation sum HydPy-H-HBV96 model river Lahn
         project = Open Source Project HydPy - A Python framework for the development and application of hydrological models
         version = v5.0
         institution = HydPy Developers
         author = Bastian Klein (klein@bafg.de)
         contact = Bastian Klein (klein@bafg.de), Dennis Meissner (meissner@bafg.de)
         source = Deutscher Wetterdienst, gridded_precipitation_dataset_(HYRAS-DE PRE) v5.0 spatially averaged over HydPy-H-HBV96 subbasins
-        conditions_of_use = The use of the data is free of charge. The data is licensed under GNU Lesser General Public License, Version 3 (LGPL-3.0).
-        citation = Klein, B. & D. Meissner (2024): Daily total precipitation sum HydPy-H-HBV96 model river Lahn (1990-2020). HydPy Developers [Data set]. Database Deutscher Wetterdienst gridded_precipitation_dataset_(HYRAS-DE PRE) v5.0 spatially averaged over HydPy-H-HBV96 subbasins
+        conditions_of_use = The use of the data is free of charge. The data is licensed under Attribution-NonCommercial-ShareAlike International 4.0 (CC BY-NC-SA 4.0).
+        citation = Klein, B. & D. Meissner (2024): Daily total precipitation sum HydPy-H-HBV96 model river Lahn. HydPy Developers [Data set]. Database Deutscher Wetterdienst gridded_precipitation_dataset_(HYRAS-DE PRE) v5.0 spatially averaged over HydPy-H-HBV96 subbasins
         url = https://github.com/hydpy-dev
         Conventions = CF-1.8
         timereference = left interval boundary
-        history = 2024-08-28 08:08:05 UTC: created by R-package hydts using ncdf4 package
-        date_created = 2024-08-28 08:08:05 UTC
-        created_by = R version 4.4.0 Patched (2024-05-13 r86547 ucrt), packages hydts (version 1.15.0), ncdf4 (version 1.22)
+        history = 2024-09-12 10:08:29 UTC: created by R-package hydts using ncdf4 package
+        date_created = 2024-09-12 10:08:29 UTC
+        created_by = R version 4.4.0 Patched (2024-05-13 r86547 ucrt), packages hydts (version 1.15.1), ncdf4 (version 1.22)
 DIMENSIONS
     stations = 4
     time = 11384
@@ -419,15 +419,15 @@ VARIABLES
             units = days since 1900-01-01 00:00:00 +0100
             long_name = time
             axis = T
-            calendar = gregorian
+            calendar = standard
     hland_96_input_p
         dimensions = time, stations
         shape = 11384, 4
-        data type = float32
+        data type = float64
         Attributes
+            units = mm
             _FillValue = -9999.0
             long_name = Daily Precipitation Sum
-            coordinates = y x
     station_id
         dimensions = stations, str_len
         shape = 4, 40
@@ -446,38 +446,7 @@ VARIABLES
         data type = |S1
         Attributes
             long_name = river name
-    area
-        dimensions = stations
-        shape = 4
-        data type = float32
-        Attributes
-            units = km2
-            long_name = station area
-    elevation
-        dimensions = stations
-        shape = 4
-        data type = float32
-        Attributes
-            units = m
-            long_name = height above mean sea level
-    lon
-        dimensions = stations
-        shape = 4
-        data type = float32
-        Attributes
-            units = degrees_east
-            long_name = longitude coordinate
-            standard_name = longitude
-            axis = X
-    lat
-        dimensions = stations
-        shape = 4
-        data type = float32
-        Attributes
-            units = degrees_north
-            long_name = latitude coordinate
-            standard_name = latitude
-            axis = Y
+
 
 The time series of all sequences of the same type are stored in one file.  So, by
 default, a NetCDF filename is shorter than an ASCII filename as it does not need a
@@ -506,6 +475,10 @@ the time and the second axis reflecting the location.  There are additional colu
 multi-dimensional sequences that address sublocations (for example, hydrological
 response units).  The `station_id` variable distinguishes them by suffixing their
 indexes to the device name.
+
+HydPy writes all floating-point data with a precision of 64 bits.  It is not strictly
+required but, in some situations, might prove beneficial to design externally prepared
+NetCDF files with the same accuracy.
 
 See the documentation on module |netcdftools|, which uses many examples to explain the
 NetCDF-CF format in more detail.

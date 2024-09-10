@@ -371,13 +371,13 @@ required to prepare the model properly.
     1.323207, 0.823207, -1.076793, -5.476793
 
     >>> round_(model.sequences.states.sm.series[:, 0])
-    184.972725, 184.789363, 184.643666, 184.589448
+    184.958475, 184.763638, 184.610776, 184.553224
 
     >>> round_(model.sequences.fluxes.qt.series)
-    11.75686, 8.864424, 7.101367, 5.993961
+    11.757526, 8.865079, 7.101815, 5.994195
 
     >>> round_(hp.nodes.dill_assl.sequences.sim.series)
-    11.75686, 8.864424, 7.101367, 5.993961
+    11.757526, 8.865079, 7.101815, 5.994195
 
     By comparison, you see that the lastly calculated (or read) time series value is
     the actual one for each |Sequence_| object.  This mechanism allows, for example, to
@@ -388,14 +388,14 @@ required to prepare the model properly.
     t(-6.8)
 
     >>> model.sequences.states.sm
-    sm(184.589448, 180.658577, 199.220226, 195.985996, 212.04018, 209.48859,
+    sm(184.553224, 180.623124, 199.181137, 195.947542, 212.04018, 209.48859,
        222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 
     >>> model.sequences.fluxes.qt
-    qt(5.993961)
+    qt(5.994195)
 
     >>> hp.nodes.dill_assl.sequences.sim
-    sim(5.993961)
+    sim(5.994195)
 
     In many applications, the simulated time series is the result we are interested in.
     Hence, we close our explanations with some detailed examples on this topic that
@@ -474,13 +474,13 @@ required to prepare the model properly.
     1.323207, 0.823207, -1.076793, -5.476793
 
     >>> round_(model.sequences.states.sm.series[:, 0])
-    184.972725, 184.789363, 184.643666, 184.589448
+    184.958475, 184.763638, 184.610776, 184.553224
 
     >>> round_(model.sequences.fluxes.qt.series)
-    11.75686, 8.864424, 7.101367, 5.993961
+    11.757526, 8.865079, 7.101815, 5.994195
 
     >>> round_(hp.nodes.dill_assl.sequences.sim.series)
-    11.75686, 8.864424, 7.101367, 5.993961
+    11.757526, 8.865079, 7.101815, 5.994195
 
     We mentioned the possibility for more granular control of *HydPy* by using the
     different objects handled by the |HydPy| object instead of using its convenience
@@ -490,7 +490,7 @@ required to prepare the model properly.
 
     >>> model.sequences.states.load_data(1)
     >>> model.sequences.states.sm
-    sm(184.789363, 180.854235, 199.435987, 196.198254, 212.04018, 209.48859,
+    sm(184.763638, 180.829058, 199.40823, 196.170947, 212.04018, 209.48859,
        222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 
     Using the node sequence |Sim| as an example, we also show the inverse functionality
@@ -499,11 +499,11 @@ required to prepare the model properly.
     >>> hp.nodes.dill_assl.sequences.sim = 0.0
     >>> hp.nodes.dill_assl.sequences.save_data(2)
     >>> round_(hp.nodes.dill_assl.sequences.sim.series)
-    11.75686, 8.864424, 0.0, 5.993961
+    11.757526, 8.865079, 0.0, 5.994195
 
     >>> hp.nodes.dill_assl.sequences.load_data(1)
     >>> hp.nodes.dill_assl.sequences.sim
-    sim(8.864424)
+    sim(8.865079)
 
     In the examples above, we keep all data in rapid access memory, which can be
     problematic when handling long time series in huge *HydPy* projects.  When in
@@ -591,13 +591,13 @@ required to prepare the model properly.
     1.323207, 0.823207, -1.076793, -5.476793
 
     >>> round_(model.sequences.states.sm.series[:, 0])
-    184.972725, 184.789363, 184.643666, 184.589448
+    184.958475, 184.763638, 184.610776, 184.553224
 
     >>> round_(model.sequences.fluxes.qt.series)
-    11.75686, 8.864424, 7.101367, 5.993961
+    11.757526, 8.865079, 7.101815, 5.994195
 
     >>> round_(hp.nodes.dill_assl.sequences.sim.series)
-    11.75686, 8.864424, 7.101367, 5.993961
+    11.757526, 8.865079, 7.101815, 5.994195
 
     You can handle time series in RAM and allow just-in-time NetCDF file access at the
     same time.  Before showing how this works, we first disable both functionalities
@@ -645,20 +645,20 @@ required to prepare the model properly.
     1.323207, 0.823207, -1.076793, -5.476793
 
     >>> round_(model.sequences.states.sm.series[:, 0])
-    184.972725, 184.789363, 184.643666, 184.589448
+    184.958475, 184.763638, 184.610776, 184.553224
 
     >>> round_(model.sequences.fluxes.qt.series)
-    11.75686, 8.864424, 7.101367, 5.993961
+    11.757526, 8.865079, 7.101815, 5.994195
 
     >>> round_(hp.nodes.dill_assl.sequences.sim.series)
-    11.75686, 8.864424, 7.101367, 5.993961
+    11.757526, 8.865079, 7.101815, 5.994195
 
     After subsequent deallocation and allocation for refreshing RAM, reading the
     previously written NetCDF files makes the same data available:
 
     >>> hp.prepare_allseries(allocate_ram=False)
     >>> hp.prepare_allseries(allocate_ram=True)
-    >>> with TestIO(), pub.sequencemanager.netcdfreading():
+    >>> with TestIO():
     ...     hp.load_modelseries()
     ...     hp.load_simseries()
 
@@ -669,13 +669,13 @@ required to prepare the model properly.
     1.323207, 0.823207, -1.076793, -5.476793
 
     >>> round_(model.sequences.states.sm.series[:, 0])
-    184.972725, 184.789363, 184.643666, 184.589448
+    184.958475, 184.763638, 184.610776, 184.553224
 
     >>> round_(model.sequences.fluxes.qt.series)
-    11.75686, 8.864424, 7.101367, 5.993961
+    11.757526, 8.865079, 7.101815, 5.994195
 
     >>> round_(hp.nodes.dill_assl.sequences.sim.series)
-    11.75686, 8.864424, 7.101367, 5.993961
+    11.757526, 8.865079, 7.101815, 5.994195
 
     All filenames of meteorological input time series provided by the
     :ref:`HydPy-H-Lahn` example follow a "model-specific" pattern.  Each filename
@@ -787,7 +787,7 @@ directory: '...land_dill_assl_hland_96p_input_p.asc'
     >>> round_(hland.aetmodel.petmodel.tempmodel.sequences.inputs.temperature.series)
     0.0, -0.5, -2.4, -6.8
     >>> round_(hland.sequences.fluxes.qt.series)
-    11.75686, 8.864424, 7.101367, 5.993961
+    11.757526, 8.865079, 7.101815, 5.994195
     """
 
     _deviceorder: Optional[tuple[Union[devicetools.Node, devicetools.Element], ...]]
@@ -953,9 +953,9 @@ first.
 
         >>> hp.simulate()
         >>> print_vector(hp.elements.land_dill_assl.model.sequences.fluxes.qt.series)
-        11.75686, 8.864424, 7.101367, 5.993961
+        11.757526, 8.865079, 7.101815, 5.994195
         >>> print_vector(hp.nodes.dill_assl.sequences.sim.series)
-        11.75686, 8.864424, 7.101367, 5.993961
+        11.757526, 8.865079, 7.101815, 5.994195
 
         The observed discharge values are also directly available via the node sequence
         |Obs|:
@@ -1591,7 +1591,7 @@ deprecated.  Use method `prepare_models` instead.
         >>> hp.simulate()
         >>> sm = hp.elements.land_dill_assl.model.sequences.states.sm
         >>> sm
-        sm(184.589448, 180.658577, 199.220226, 195.985996, 212.04018, 209.48859,
+        sm(184.553224, 180.623124, 199.181137, 195.947542, 212.04018, 209.48859,
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 
         By default, method |HydPy.load_conditions| always (re)loads the initial
@@ -1621,7 +1621,7 @@ deprecated.  Use method `prepare_models` instead.
         >>> pub.timegrids.sim.lastdate = "1996-01-03"
         >>> hp.simulate()
         >>> sm
-        sm(184.789363, 180.854235, 199.435987, 196.198254, 212.04018, 209.48859,
+        sm(184.763638, 180.829058, 199.40823, 196.170947, 212.04018, 209.48859,
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
         >>> with TestIO():
         ...     hp.save_conditions()
@@ -1632,7 +1632,7 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     hp.save_conditions()
         >>> sm
-        sm(184.589448, 180.658577, 199.220226, 195.985996, 212.04018, 209.48859,
+        sm(184.553224, 180.623124, 199.181137, 195.947542, 212.04018, 209.48859,
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 
         Analogous to method |HydPy.load_conditions|, method |HydPy.save_conditions|
@@ -1644,7 +1644,7 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     hp.load_conditions()
         >>> sm
-        sm(184.789363, 180.854235, 199.435987, 196.198254, 212.04018, 209.48859,
+        sm(184.763638, 180.829058, 199.40823, 196.170947, 212.04018, 209.48859,
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 
         >>> path = "HydPy-H-Lahn/conditions/init_1996_01_03_00_00_00/land_dill_assl.py"
@@ -1653,7 +1653,7 @@ deprecated.  Use method `prepare_models` instead.
         ...         lines = file_.read().split("\\n")
         ...         print(lines[12])
         ...         print(lines[13])
-        sm(184.789363, 180.854235, 199.435987, 196.198254, 212.04018, 209.48859,
+        sm(184.763638, 180.829058, 199.40823, 196.170947, 212.04018, 209.48859,
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 
         You can define another directory by assigning a different name to the attribute
@@ -1669,7 +1669,7 @@ deprecated.  Use method `prepare_models` instead.
         ...         lines = file_.read().split("\\n")
         ...         print(lines[12])
         ...         print(lines[13])
-        sm(184.789363, 180.854235, 199.435987, 196.198254, 212.04018, 209.48859,
+        sm(184.763638, 180.829058, 199.40823, 196.170947, 212.04018, 209.48859,
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 
         This change remains permanent until you undo it manually:
@@ -1679,7 +1679,7 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     hp.load_conditions()
         >>> sm
-        sm(184.789363, 180.854235, 199.435987, 196.198254, 212.04018, 209.48859,
+        sm(184.763638, 180.829058, 199.40823, 196.170947, 212.04018, 209.48859,
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 
         >>> with TestIO():
@@ -1893,14 +1893,14 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         >>> hp.simulate()
         >>> from hydpy import print_vector
         >>> print_vector(hp.nodes.lahn_kalk.sequences.sim.series)
-        54.018074, 37.255732, 31.863983, 28.358949
+        54.019337, 37.257561, 31.865308, 28.359542
 
         Just repeating the simulation gives different results due to applying the final
         states of the first simulation run as the initial states of the second run:
 
         >>> hp.simulate()
         >>> print_vector(hp.nodes.lahn_kalk.sequences.sim.series)
-        26.196053, 25.047957, 24.227989, 23.307812
+        26.196165, 25.047469, 24.227865, 23.307609
 
         Calling |HydPy.reset_conditions| first allows repeating the first simulation
         run exactly multiple times:
@@ -1908,11 +1908,11 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         >>> hp.reset_conditions()
         >>> hp.simulate()
         >>> print_vector(hp.nodes.lahn_kalk.sequences.sim.series)
-        54.018074, 37.255732, 31.863983, 28.358949
+        54.019337, 37.257561, 31.865308, 28.359542
         >>> hp.reset_conditions()
         >>> hp.simulate()
         >>> print_vector(hp.nodes.lahn_kalk.sequences.sim.series)
-        54.018074, 37.255732, 31.863983, 28.358949
+        54.019337, 37.257561, 31.865308, 28.359542
         """
         self.elements.reset_conditions()
 
@@ -1921,11 +1921,11 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         """A nested dictionary that contains the values of all condition sequences of
         all currently handled models.
 
-        The primary  purpose of property |HydPy.conditions| is similar to method
-        |HydPy.reset_conditions|, to allow to perform repeated calculations starting
-        from the same initial conditions.  Nevertheless, |HydPy.conditions| is more
-        flexible when to handling multiple conditions, which can, for example, be
-        useful for applying ensemble-based assimilation algorithms.
+        The primary purpose of property |HydPy.conditions| is, similar to method
+        |HydPy.reset_conditions|, to allow repeated calculations starting from the same
+        initial conditions.  Nevertheless, |HydPy.conditions| is more flexible when
+        handling multiple conditions, which can, for example, help apply ensemble-based
+        assimilation algorithms.
 
         For demonstration, we perform simulations for the :ref:`HydPy-H-Lahn` example
         project spanning the first three months of 1996.  We begin with a preparation
@@ -1941,7 +1941,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         >>> pub.timegrids.sim.lastdate = "1996-02-20"
         >>> hp.simulate()
         >>> print_vector(hp.nodes.lahn_kalk.sequences.sim.series[48:52])
-        74.67783, 97.859041, nan, nan
+        74.80616, 97.932993, nan, nan
 
         At the end of the preparation run, a snow layer is covering the Lahn catchment.
         In the `lahn_marb` subcatchment, this snow layer contains 13.7 mm of frozen
@@ -1949,9 +1949,9 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
 
         >>> lahn1_states = hp.elements.land_lahn_marb.model.sequences.states
         >>> print_vector([lahn1_states.sp.average_values()])
-        13.727392
+        13.727031
         >>> print_vector([lahn1_states.wc.average_values()])
-        1.250621
+        1.250427
 
         Now, we save the current conditions and perform the first simulation run from
         the 20th day of February until the end of March:
@@ -1963,16 +1963,16 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         >>> hp.simulate()
         >>> first = hp.nodes.lahn_kalk.sequences.sim.series.copy()
         >>> print_vector(first[48:52])
-        0.0, 0.0, 88.161268, 66.599638
+        0.0, 0.0, 88.226976, 66.667346
 
         To exactly repeat the last simulation run, we assign the memorised conditions
         to property |HydPy.conditions|:
 
         >>> hp.conditions = conditions
         >>> print_vector([lahn1_states.sp.average_values()])
-        13.727392
+        13.727031
         >>> print_vector([lahn1_states.wc.average_values()])
-        1.250621
+        1.250427
 
         All discharge values of the second simulation run are identical to the ones of
         the first simulation run:
@@ -1983,9 +1983,9 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         >>> hp.simulate()
         >>> second = hp.nodes.lahn_kalk.sequences.sim.series.copy()
         >>> print_vector(second[48:52])
-        0.0, 0.0, 88.161268, 66.599638
-        >>> all(first == second)
-        True
+        0.0, 0.0, 88.226976, 66.667346
+        >>> from numpy import isclose
+        >>> assert all(isclose(first, second, rtol=0.0, atol=1e-12))
 
         We selected the snow period as an example due to potential problems with the
         limited water-holding capacity of the snow layer, which depends on the ice
@@ -2007,7 +2007,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         despite the actual memorised value of 1.1 mm:
 
         >>> print_vector([lahn1_states.sp.average_values()])
-        13.727392
+        13.727031
         >>> print_vector([lahn1_states.wc.average_values()])
         0.0
 
@@ -2681,7 +2681,7 @@ actual HydPy instance does not handle any elements at the moment.
         >>> hp.simulate()
         >>> from hydpy import round_
         >>> round_(hp.nodes.lahn_kalk.sequences.sim.series)
-        54.018074, 37.255732, 31.863983, 28.358949
+        54.019337, 37.257561, 31.865308, 28.359542
 
         After resetting the initial conditions via method |HydPy.reset_conditions|, we
         repeat the simulation run and get the same results:
@@ -2689,7 +2689,7 @@ actual HydPy instance does not handle any elements at the moment.
         >>> hp.reset_conditions()
         >>> hp.simulate()
         >>> round_(hp.nodes.lahn_kalk.sequences.sim.series)
-        54.018074, 37.255732, 31.863983, 28.358949
+        54.019337, 37.257561, 31.865308, 28.359542
 
         Simulation runs do not need to cover the whole initialisation period at once.
         After setting the |Timegrid.lastdate| property of the `sim` |Timegrid| of the
@@ -2702,7 +2702,7 @@ actual HydPy instance does not handle any elements at the moment.
         >>> pub.timegrids.sim.lastdate = "1996-01-03"
         >>> hp.simulate()
         >>> round_(hp.nodes.lahn_kalk.sequences.sim.series)
-        54.018074, 37.255732, 0.0, 0.0
+        54.019337, 37.257561, 0.0, 0.0
 
         After adjusting both the |Timegrid.firstdate| and |Timegrid.lastdate| of the
         `sim` |Timegrid| to the second half of the initialisation period,
@@ -2712,7 +2712,7 @@ actual HydPy instance does not handle any elements at the moment.
         >>> pub.timegrids.sim.lastdate = "1996-01-05"
         >>> hp.simulate()
         >>> round_(hp.nodes.lahn_kalk.sequences.sim.series)
-        54.018074, 37.255732, 31.863983, 28.358949
+        54.019337, 37.257561, 31.865308, 28.359542
 
         In the above examples, each |Model| object (handled by an |Element| object)
         passes its simulated values via a |Node| object to its downstream |Model|
@@ -2734,7 +2734,7 @@ actual HydPy instance does not handle any elements at the moment.
         values of the "old" simulated series of node `lahn_leun` by 10 m³/s:
 
         >>> round_(hp.nodes.lahn_leun.sequences.sim.series)
-        42.344998, 27.155231, 22.879262, 20.155944
+        42.346475, 27.157472, 22.88099, 20.156836
         >>> hp.nodes.lahn_leun.deploymode = "oldsim"
         >>> hp.nodes.lahn_leun.sequences.sim.series -= 10.0
 
@@ -2750,9 +2750,9 @@ actual HydPy instance does not handle any elements at the moment.
         >>> pub.timegrids.sim.lastdate = "1996-01-05"
         >>> hp.simulate()
         >>> round_(hp.nodes.lahn_leun.sequences.sim.series)
-        32.344998, 17.155231, 12.879262, 10.155944
+        32.346475, 17.157472, 12.88099, 10.156836
         >>> round_(hp.nodes.lahn_kalk.sequences.sim.series)
-        44.018074, 27.255732, 21.863983, 18.358949
+        44.019337, 27.257561, 21.865308, 18.359542
 
         The third option is `obs`, where node `lahn_leun` receives and stores the values
         from its upstream models but passes other, observed values, handled by sequence
@@ -2773,9 +2773,9 @@ actual HydPy instance does not handle any elements at the moment.
         >>> round_(hp.nodes.lahn_leun.sequences.obs.series)
         0.0, 0.0, 0.0, 0.0
         >>> round_(hp.nodes.lahn_leun.sequences.sim.series)
-        42.344998, 27.155231, 22.879262, 20.155944
+        42.346475, 27.157472, 22.88099, 20.156836
         >>> round_(hp.nodes.lahn_kalk.sequences.sim.series)
-        11.673076, 10.100501, 8.984721, 8.203005
+        11.672862, 10.100089, 8.984317, 8.202706
 
         Unfortunately, observation time series are often incomplete.  *HydPy* generally
         uses |numpy| |numpy.nan| to represent missing values.  Passing |numpy.nan|
@@ -2793,9 +2793,9 @@ actual HydPy instance does not handle any elements at the moment.
         >>> round_(hp.nodes.lahn_leun.sequences.obs.series)
         0.0, nan, 0.0, nan
         >>> round_(hp.nodes.lahn_leun.sequences.sim.series)
-        42.344998, 27.155231, 22.879262, 20.155944
+        42.346475, 27.157472, 22.88099, 20.156836
         >>> round_(hp.nodes.lahn_kalk.sequences.sim.series)
-        11.673076, nan, 8.984721, nan
+        11.672862, nan, 8.984317, nan
 
         To avoid calculating |numpy.nan| values, one can select the fourth option,
         `obs_newsim`.  Now, the priority for node `lahn_leun` is to deploy its observed
@@ -2808,9 +2808,9 @@ actual HydPy instance does not handle any elements at the moment.
         >>> round_(hp.nodes.lahn_leun.sequences.obs.series)
         0.0, nan, 0.0, nan
         >>> round_(hp.nodes.lahn_leun.sequences.sim.series)
-        42.344998, 27.155231, 22.879262, 20.155944
+        42.346475, 27.157472, 22.88099, 20.156836
         >>> round_(hp.nodes.lahn_kalk.sequences.sim.series)
-        11.673076, 37.255732, 8.984721, 28.358949
+        11.672862, 37.257561, 8.984317, 28.359542
 
         The fifth option, `obs_oldsim`, serves the same purpose as option `obs_newsim`
         but uses already available "old" simulation results as substitutes:
@@ -2825,7 +2825,7 @@ actual HydPy instance does not handle any elements at the moment.
         >>> round_(hp.nodes.lahn_leun.sequences.sim.series)
         32.3697, 17.210443, 12.930066, 10.20133
         >>> round_(hp.nodes.lahn_kalk.sequences.sim.series)
-        11.673076, 27.310944, 8.984721, 18.404335
+        11.672862, 27.310532, 8.984317, 18.404036
 
         The last example shows that resetting option |Node.deploymode| to `newsim`
         results in the default behaviour of the method |HydPy.simulate| again:
@@ -2834,9 +2834,9 @@ actual HydPy instance does not handle any elements at the moment.
         >>> hp.reset_conditions()
         >>> hp.simulate()
         >>> round_(hp.nodes.lahn_leun.sequences.sim.series)
-        42.344998, 27.155231, 22.879262, 20.155944
+        42.346475, 27.157472, 22.88099, 20.156836
         >>> round_(hp.nodes.lahn_kalk.sequences.sim.series)
-        54.018074, 37.255732, 31.863983, 28.358949
+        54.019337, 37.257561, 31.865308, 28.359542
         """
         idx_start, idx_end = hydpy.pub.timegrids.simindices
         methodorder = self.methodorder

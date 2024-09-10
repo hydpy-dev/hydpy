@@ -61,7 +61,7 @@ conditions and the written final conditions of sequence |hland_states.SM| for th
 sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
    222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 <BLANKLINE>
-sm(184.555679, 180.625527, 199.183781, 195.950142, 212.04018, 209.48859,
+sm(184.517818, 180.588472, 199.142925, 195.90995, 212.04018, 209.48859,
    222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 <BLANKLINE>
 
@@ -76,7 +76,7 @@ The intermediate soil moisture values have been stored in a NetCDF file called
 ...     chars2str(query_variable(ncfile, "station_id")[:].data)[:3]
 ...     print_vector(query_variable(ncfile, "hland_96_state_sm")[:, 0])
 ['land_dill_assl_0', 'land_dill_assl_1', 'land_dill_assl_2']
-184.972725, 184.789363, 184.643666, 184.589448, 184.555679
+184.958475, 184.763638, 184.610776, 184.553224, 184.517818
 >>> ncfile.close()
 
 Spatially averaged time series values have been stored in files ending with the suffix
@@ -89,7 +89,7 @@ Spatially averaged time series values have been stored in files ending with the 
 ...     print_vector(
 ...         numpy.load("HydPy-H-Lahn/series/averages/lahn_marb_sim_q_mean.npy")[13:]
 ...     )
-9.646776, 8.512748, 7.777124, 7.343268, 7.156948
+9.64767, 8.513649, 7.777628, 7.343314, 7.156591
 """
 # import...
 # ...from standard library

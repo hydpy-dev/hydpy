@@ -1385,7 +1385,7 @@ class IOSequence(Sequence_):
     >>> round_(inputs.t.series)
     -0.7, -1.5, -4.6, -8.2
     >>> round_(states.sm.series[:, 0])
-    99.148246, 99.032441, 98.961805, 98.944842
+    99.1369, 99.01204, 98.93674, 98.91913
     >>> round_(states.sp.series[:, 0, 0])
     0.0, 0.0, 0.0, 0.0
 
@@ -1404,9 +1404,9 @@ class IOSequence(Sequence_):
     ...     factors.tc.load_series()
     ...     pub.sequencemanager.close_netcdfreader()
     >>> round_(factors.contriarea.series)
-    0.431382, 0.430652, 0.430207, 0.4301
+    0.431311, 0.430524, 0.430049, 0.429938
     >>> round_(factors.tc.series[:, 0])
-    0.453086, -0.346914, -3.446914, -7.046913
+    0.453086, -0.346914, -3.446914, -7.046914
 
     We also load time series of |hland_states.SM| and |hland_states.SP| to demonstrate
     that the data written to the respective NetCDF files are identical with the data
@@ -1418,7 +1418,7 @@ class IOSequence(Sequence_):
     ...     states.sp.load_series()
     ...     pub.sequencemanager.close_netcdfreader()
     >>> round_(states.sm.series[:, 0])
-    99.148246, 99.032441, 98.961805, 98.944842
+    99.1369, 99.01204, 98.93674, 98.91913
     >>> round_(states.sp.series[:, 0, 0])
     0.0, 0.0, 0.0, 0.0
 
@@ -2907,10 +2907,10 @@ class InputSequence(ModelIOSequence):
     >>> print_vector(model.sequences.fluxes.pc.series[:, 0])
     0.0, 3.2514, 0.0, 6.5028, 0.0
     >>> print_vector(petmodel.sequences.inputs.normalevapotranspiration.series)
-    0.279191, 0.281605, 0.284201, 0.286977, 0.289932
+    0.3, 0.3, 0.3, 0.3, 0.3
     >>> print_vector(
     ...     aetmodel.sequences.fluxes.potentialsoilevapotranspiration.series[:, 0])
-    0.287632, 0.298761, 0.350738, 0.336645, 0.416885
+    0.309, 0.317657, 0.369, 0.352975, 0.432
 
     .. testsetup::
 
@@ -3070,23 +3070,23 @@ class OutputSequence(ModelIOSequence):
     2.0, 2.0, 2.0, 2.0, 2.0
 
     >>> print_vector(model.sequences.fluxes.q1.series)
-    0.530784, 0.539981, 0.548638, 0.5568, 0.564495
+    0.530782, 0.539976, 0.548629, 0.556786, 0.564477
     >>> print_vector(node_q1.sequences.sim.series)
-    0.530784, 0.539981, 0.548638, 0.5568, 0.564495
+    0.530782, 0.539976, 0.548629, 0.556786, 0.564477
     >>> print_vector(node_q1.sequences.obs.series)
     3.0, 3.0, 3.0, 3.0, 3.0
 
     >>> print_vector(model.sequences.fluxes.perc.series)
-    0.694119, 0.693673, 0.693319, 0.693187, 0.693104
+    0.694084, 0.693611, 0.693239, 0.693098, 0.693012
     >>> print_vector(node_perc.sequences.sim.series)
-    0.694119, 0.693673, 0.693319, 0.693187, 0.693104
+    0.694084, 0.693611, 0.693239, 0.693098, 0.693012
     >>> print_vector(node_perc.sequences.obs.series)
     4.0, 4.0, 4.0, 4.0, 4.0
 
     >>> print_vector(model.sequences.states.uz.series)
-    5.628328, 4.368344, 3.337403, 2.452962, 1.662716
+    5.628278, 4.368269, 3.337343, 2.452946, 1.662766
     >>> print_vector(node_uz.sequences.sim.series)
-    5.628328, 4.368344, 3.337403, 2.452962, 1.662716
+    5.628278, 4.368269, 3.337343, 2.452946, 1.662766
     >>> print_vector(node_uz.sequences.obs.series)
     5.0, 5.0, 5.0, 5.0, 5.0
 

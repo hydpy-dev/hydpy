@@ -2794,8 +2794,8 @@ element.
 
         The `include_mainmodel` parameter allows the addition of the main model:
 
-        >>> model.find_submodels(include_mainmodel=True)  # doctest: +ELLIPSIS
-        {'model': <hydpy.models.lland_knauf.Model ...>}
+        >>> model.find_submodels(include_mainmodel=True)
+        {'model': lland_knauf}
 
         The `include_optional` parameter allows considering prepared and unprepared
         submodels:
@@ -2807,10 +2807,10 @@ element.
         >>> model.aetmodel.petmodel.retmodel = prepare_model("evap_ret_tw2002")
         >>> from pprint import pprint
         >>> pprint(model.find_submodels(include_optional=True))  # doctest: +ELLIPSIS
-        {'model.aetmodel': <hydpy.models.evap_aet_minhas.Model ...>,
+        {'model.aetmodel': evap_aet_minhas...,
          'model.aetmodel.intercmodel': None,
-         'model.aetmodel.petmodel': <hydpy.models.evap_pet_mlc.Model ...>,
-         'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_ret_tw2002.Model ...>,
+         'model.aetmodel.petmodel': evap_pet_mlc...,
+         'model.aetmodel.petmodel.retmodel': evap_ret_tw2002,
          'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
          'model.aetmodel.soilwatermodel': None,
@@ -2823,10 +2823,10 @@ element.
         >>> model.aetmodel.soilwatermodel = model
         >>> model.aetmodel.soilwatermodel_is_mainmodel = True
         >>> pprint(model.find_submodels(include_optional=True))  # doctest: +ELLIPSIS
-        {'model.aetmodel': <hydpy.models.evap_aet_minhas.Model object ...>,
+        {'model.aetmodel': evap_aet_minhas...,
          'model.aetmodel.intercmodel': None,
-         'model.aetmodel.petmodel': <hydpy.models.evap_pet_mlc.Model ...>,
-         'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_ret_tw2002.Model ...>,
+         'model.aetmodel.petmodel': evap_pet_mlc...,
+         'model.aetmodel.petmodel.retmodel': evap_ret_tw2002,
          'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
          'model.radiationmodel': None,
@@ -2837,14 +2837,14 @@ element.
 
         >>> pprint(model.find_submodels(include_mainmodel=True,
         ...     include_optional=True, include_feedbacks=True))  # doctest: +ELLIPSIS
-        {'model': <hydpy.models.lland_knauf.Model ...>,
-         'model.aetmodel': <hydpy.models.evap_aet_minhas.Model ...>,
+        {'model': lland_knauf...,
+         'model.aetmodel': evap_aet_minhas...,
          'model.aetmodel.intercmodel': None,
-         'model.aetmodel.petmodel': <hydpy.models.evap_pet_mlc.Model ...>,
-         'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_ret_tw2002.Model ...>,
+         'model.aetmodel.petmodel': evap_pet_mlc...,
+         'model.aetmodel.petmodel.retmodel': evap_ret_tw2002,
          'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
-         'model.aetmodel.soilwatermodel': <hydpy.models.lland_knauf.Model object ...>,
+         'model.aetmodel.soilwatermodel': lland_knauf...,
          'model.radiationmodel': None,
          'model.soilmodel': None}
 
@@ -2855,29 +2855,29 @@ element.
         >>> model.aetmodel = prepare_model("evap_aet_morsim")
         >>> model.aetmodel.radiationmodel = model.radiationmodel
         >>> pprint(model.find_submodels(include_optional=True))  # doctest: +ELLIPSIS
-        {'model.aetmodel': <hydpy.models.evap_aet_morsim.Model ...>,
+        {'model.aetmodel': evap_aet_morsim...,
          'model.aetmodel.intercmodel': None,
          'model.aetmodel.snowalbedomodel': None,
          'model.aetmodel.snowcovermodel': None,
          'model.aetmodel.snowycanopymodel': None,
          'model.aetmodel.soilwatermodel': None,
          'model.aetmodel.tempmodel': None,
-         'model.radiationmodel': <hydpy.models.meteo_glob_fao56.Model ...>,
+         'model.radiationmodel': meteo_glob_fao56,
          'model.soilmodel': None}
 
         Use the `repeat_sharedmodels` parameter to change this behaviour:
 
         >>> pprint(model.find_submodels(
         ...     repeat_sharedmodels=True, include_optional=True))  # doctest: +ELLIPSIS
-        {'model.aetmodel': <hydpy.models.evap_aet_morsim.Model ...>,
+        {'model.aetmodel': evap_aet_morsim...,
          'model.aetmodel.intercmodel': None,
-         'model.aetmodel.radiationmodel': <hydpy.models.meteo_glob_fao56.Model ...>,
+         'model.aetmodel.radiationmodel': meteo_glob_fao56,
          'model.aetmodel.snowalbedomodel': None,
          'model.aetmodel.snowcovermodel': None,
          'model.aetmodel.snowycanopymodel': None,
          'model.aetmodel.soilwatermodel': None,
          'model.aetmodel.tempmodel': None,
-         'model.radiationmodel': <hydpy.models.meteo_glob_fao56.Model object at ...>,
+         'model.radiationmodel': meteo_glob_fao56,
          'model.soilmodel': None}
 
         All previous examples dealt with scalar submodel references handled by
@@ -2919,19 +2919,19 @@ element.
 
         Method |Model.find_submodels| associates them with the correct positions:
 
-        >>> pprint(channel.find_submodels())  # doctest: +ELLIPSIS
-        {'model.routingmodels_0': <hydpy.models.sw1d_q_in.Model object at ...>,
-         'model.routingmodels_1': <hydpy.models.sw1d_lias.Model object at ...>,
-         'model.routingmodels_2': <hydpy.models.sw1d_weir_out.Model object at ...>,
-         'model.storagemodels_0': <hydpy.models.sw1d_storage.Model object at ...>,
-         'model.storagemodels_1': <hydpy.models.sw1d_storage.Model object at ...>}
+        >>> pprint(channel.find_submodels())
+        {'model.routingmodels_0': sw1d_q_in,
+         'model.routingmodels_1': sw1d_lias,
+         'model.routingmodels_2': sw1d_weir_out,
+         'model.storagemodels_0': sw1d_storage,
+         'model.storagemodels_1': sw1d_storage}
 
         One can use the `aggregate_vectors` parameter to gain a better overview.
         Then, |Model.find_submodels| reports only the names of the respective
         |SubmodelsProperty| instances with a suffixed wildcard to distinguish them
         from |SubmodelProperty| instances:
 
-        >>> channel.find_submodels(aggregate_vectors=True)  # doctest: +ELLIPSIS
+        >>> channel.find_submodels(aggregate_vectors=True)
         {'model.routingmodels_*': None, 'model.storagemodels_*': None}
 
         Another option is to include side models.  However, this does not work in
@@ -2945,32 +2945,27 @@ element.
 
         So, one needs to apply it to the respective submodels directly:
 
-        >>> pprint(channel.storagemodels[0].find_submodels(  # doctest: +ELLIPSIS
+        >>> pprint(channel.storagemodels[0].find_submodels(
         ...     include_subsubmodels=False, include_sidemodels=True))
-        {'model.routingmodelsdownstream_0': \
-<hydpy.models.sw1d_lias.Model object at ...>,
-         'model.routingmodelsupstream_0': <hydpy.models.sw1d_q_in.Model object at ...>}
+        {'model.routingmodelsdownstream_0': sw1d_lias,
+         'model.routingmodelsupstream_0': sw1d_q_in}
 
-        >>> pprint(channel.routingmodels[1].find_submodels(  # doctest: +ELLIPSIS
+        >>> pprint(channel.routingmodels[1].find_submodels(
         ...     include_subsubmodels=False, include_sidemodels=True))
-        {'model.routingmodelsdownstream_0': <hydpy.models.sw1d_weir_out.Model object \
-at ...>,
-         'model.routingmodelsupstream_0': <hydpy.models.sw1d_q_in.Model object at ...>,
-         'model.storagemodeldownstream': <hydpy.models.sw1d_storage.Model object at \
-...>,
-         'model.storagemodelupstream': <hydpy.models.sw1d_storage.Model object at ...>}
+        {'model.routingmodelsdownstream_0': sw1d_weir_out,
+         'model.routingmodelsupstream_0': sw1d_q_in,
+         'model.storagemodeldownstream': sw1d_storage,
+         'model.storagemodelupstream': sw1d_storage}
 
         When dealing with submodel arrays handled by |SubmodelsProperty| instances, one
         might be interested in only querying the first or the last model, which is
         supported by the `position` parameter:
 
-        >>> pprint(channel.find_submodels(position=0))  # doctest: +ELLIPSIS
-        {'model.routingmodels_0': <hydpy.models.sw1d_q_in.Model object at ...>,
-         'model.storagemodels_0': <hydpy.models.sw1d_storage.Model object at ...>}
-        >>> pprint(channel.find_submodels(position=-1))  # doctest: +ELLIPSIS
-        {'model.routingmodels_2': <hydpy.models.sw1d_weir_out.Model object at ...>,
-         'model.storagemodels_1': <hydpy.models.sw1d_storage.Model object at ...>}
-        >>> pprint(channel.find_submodels(position=1))  # doctest: +ELLIPSIS
+        >>> pprint(channel.find_submodels(position=0))
+        {'model.routingmodels_0': sw1d_q_in, 'model.storagemodels_0': sw1d_storage}
+        >>> pprint(channel.find_submodels(position=-1))
+        {'model.routingmodels_2': sw1d_weir_out, 'model.storagemodels_1': sw1d_storage}
+        >>> pprint(channel.find_submodels(position=1))
         Traceback (most recent call last):
         ...
         ValueError: The `position` argument requires the integer value `0´ or `-1`, \
@@ -3036,25 +3031,24 @@ but the value `1` of type `int` is given.
     def query_submodels(self, name: Union[types.ModuleType, str], /) -> list[Model]:
         """Use |Model.find_submodels| to query all (sub)models of the given type.
 
-       >>> from hydpy import prepare_model
+        >>> from hydpy import prepare_model
         >>> model = prepare_model("lland_knauf")
         >>> model.query_submodels("meteo_glob_fao56")
         []
 
         >>> model.radiationmodel = prepare_model("meteo_glob_fao56")
-        >>> model.query_submodels("meteo_glob_fao56")  # doctest: +ELLIPSIS
-        [<hydpy.models.meteo_glob_fao56.Model object at ...>]
+        >>> model.query_submodels("meteo_glob_fao56")
+        [meteo_glob_fao56]
 
         >>> model.aetmodel = prepare_model("evap_aet_morsim")
         >>> model.aetmodel.radiationmodel = model.radiationmodel
-        >>> model.query_submodels("meteo_glob_fao56")  # doctest: +ELLIPSIS
-        [<hydpy.models.meteo_glob_fao56.Model object at ...>]
+        >>> model.query_submodels("meteo_glob_fao56")
+        [meteo_glob_fao56]
 
         >>> from hydpy.models import meteo_glob_fao56
         >>> model.aetmodel.radiationmodel = prepare_model(meteo_glob_fao56)
-        >>> model.query_submodels(meteo_glob_fao56)  # doctest: +ELLIPSIS
-        [<hydpy.models.meteo_glob_fao56.Model object at ...>, \
-<hydpy.models.meteo_glob_fao56.Model object at ...0>]
+        >>> model.query_submodels(meteo_glob_fao56)
+        [meteo_glob_fao56, meteo_glob_fao56]
         """
         if isinstance(name, types.ModuleType):
             name = importtools.load_modelmodule(name).Model.__HYDPY_NAME__
@@ -3289,6 +3283,13 @@ but the value `1` of type `int` is given.
         cls.REUSABLE_METHODS = tuple(
             method for method in cls.get_methods() if issubclass(method, ReusableMethod)
         )
+
+    def __repr__(self) -> str:
+        lines = [self.name]
+        for port, model in self.find_submodels().items():
+            prefix = port.count(".") * "    "
+            lines.append(f"{prefix}{port.rsplit('.')[-1]}: {model.name}")
+        return "\n".join(lines)
 
 
 class RunModel(Model):

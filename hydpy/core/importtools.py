@@ -981,7 +981,7 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
     They also memorise the passed data and resulting parameter values:
 
     >>> model.prepare_nmbzones.values_orig  # doctest: +ELLIPSIS
-    {<hydpy.models.evap_ret_tw2002.Model object at ...>: (((3,), {}), 3)}
+    {evap_ret_tw2002: (((3,), {}), 3)}
 
     With |TargetParameterUpdater.testmode| enabled, |TargetParameterUpdater| instances
     do not pass the given data to the wrapped method but memorise it together with the
@@ -992,7 +992,7 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
     >>> model.parameters.control.nmbhru
     nmbhru(3)
     >>> model.prepare_nmbzones.values_test  # doctest: +ELLIPSIS
-    {<hydpy.models.evap_ret_tw2002.Model object at ...>: (((4,), {}), 3)}
+    {evap_ret_tw2002: (((4,), {}), 3)}
 
     .. testsetup::
 

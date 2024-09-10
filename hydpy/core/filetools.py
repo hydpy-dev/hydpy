@@ -282,7 +282,7 @@ class FileManager:
         >>> filemanager.DEFAULTDIR = None
         >>> filemanager.projectdir = "projectname"
         >>> import os
-        >>> from hydpy import repr_, TestIO
+        >>> from hydpy import pub, repr_, TestIO
         >>> TestIO.clear()
         >>> with TestIO():
         ...     os.makedirs("projectname/basename")
@@ -305,20 +305,18 @@ been defined manually and cannot be determined automatically: \
 
         >>> with TestIO():
         ...     os.mkdir("projectname/basename/dir1")
-        ...     filemanager.currentdir
-        'dir1'
+        ...     assert filemanager.currentdir == "dir1"
 
         |property| |FileManager.currentdir| memorises the name of the current working
         directory, even if another directory is added later to the base path:
 
         >>> with TestIO():
         ...     os.mkdir("projectname/basename/dir2")
-        ...     filemanager.currentdir
-        'dir1'
+        ...     assert filemanager.currentdir == "dir1"
 
         Set the value of |FileManager.currentdir| to |None| to let it forget the
         memorised directory.  After that, trying to query the current working directory
-        results in another error, as it is not clear which directory to select:
+        results in another error, as it is unclear which directory to select:
 
         >>> with TestIO():
         ...     filemanager.currentdir = None
@@ -334,20 +332,19 @@ dir2).
 
         >>> with TestIO():
         ...     filemanager.currentdir = "dir1"
-        ...     filemanager.currentdir
-        'dir1'
+        ...     assert filemanager.currentdir == "dir1"
 
         Remove the current working directory `dir1` with the `del` statement:
 
-        >>> with TestIO():
+        >>> with TestIO(), pub.options.printprogress(True):  # doctest: +ELLIPSIS
         ...     del filemanager.currentdir
-        ...     os.path.exists("projectname/basename/dir1")
-        False
+        ...     assert not os.path.exists("projectname/basename/dir1")
+        Directory ...dir1 has been removed.
 
         |FileManager| subclasses can define a default directory name.  When many
         directories exist, and none is selected manually, the default directory is
-        selected automatically.  The following example shows an error message due to
-        multiple directories without any having the default name:
+        chosen automatically.  The following example shows an error message due to
+        multiple directories without any default name:
 
         >>> with TestIO():
         ...     os.mkdir("projectname/basename/dir1")
@@ -360,23 +357,22 @@ dir2).
 been defined manually and cannot be determined automatically: The default directory \
 (dir3) is not among the available directories (dir1 and dir2).
 
-        We can fix this by adding the required default directory manually:
+        We can fix this by manually  adding the required default directory:
 
         >>> with TestIO():
         ...     os.mkdir("projectname/basename/dir3")
-        ...     filemanager.currentdir
-        'dir3'
+        ...     assert filemanager.currentdir == "dir3"
 
         Setting the |FileManager.currentdir| to `dir4` not only overwrites the default
         name but also creates the required folder:
 
-        >>> with TestIO():
+        >>> with TestIO(), pub.options.printprogress(True):
         ...     filemanager.currentdir = "dir4"
-        ...     filemanager.currentdir
-        'dir4'
+        ...     assert filemanager.currentdir == "dir4"  # doctest: +ELLIPSIS
+        Directory ...dir4 has been created.
         >>> with TestIO():
-        ...     sorted(os.listdir("projectname/basename"))
-        ['dir1', 'dir2', 'dir3', 'dir4']
+        ...     dirs = os.listdir("projectname/basename")
+        ...     assert sorted(dirs) == ["dir1", "dir2", "dir3", "dir4"]
 
         Failed attempts to remove directories result in error messages like the
         following one:
@@ -396,11 +392,10 @@ occurred: ...
         |FileManager.currentdir|:
 
         >>> with TestIO():
-        ...     filemanager.currentdir
-        'dir4'
+        ...     assert filemanager.currentdir == "dir4"
         >>> with TestIO():
-        ...     sorted(os.listdir("projectname/basename"))
-        ['dir1', 'dir2', 'dir3', 'dir4']
+        ...     dirs =os.listdir("projectname/basename")
+        ...     assert sorted(dirs) == ["dir1", "dir2", "dir3", "dir4"]
 
         Assign the folder's absolute path if you need to work outside the current
         project directory (for example, to archive simulated data):
@@ -408,10 +403,9 @@ occurred: ...
         >>> with TestIO():  # doctest: +ELLIPSIS
         ...     os.mkdir("differentproject")
         ...     filemanager.currentdir = os.path.abspath("differentproject/dir1")
-        ...     repr_(filemanager.currentpath)
-        ...     os.listdir("differentproject")
-        '...hydpy/tests/iotesting/differentproject/dir1'
-        ['dir1']
+        ...     path = repr_(filemanager.currentpath)
+        ...     assert path.endswith("hydpy/tests/iotesting/differentproject/dir1")
+        ...     assert os.listdir("differentproject") == ["dir1"]
         """
         currentdir = self._currentdir
         if currentdir is None:
@@ -454,13 +448,18 @@ occurred: ...
             zippath = f"{dirpath}.zip"
             if os.path.exists(zippath):
                 shutil.unpack_archive(
-                    filename=zippath,
-                    extract_dir=os.path.join(self.basepath, directory),
-                    format="zip",
+                    filename=zippath, extract_dir=dirpath, format="zip"
                 )
                 os.remove(zippath)
+                if hydpy.pub.options.printprogress:
+                    print(
+                        f"The zip file {zippath} has been extracted to directory "
+                        f"{dirpath} and removed."
+                    )
             elif not os.path.exists(dirpath):
                 os.makedirs(dirpath)
+                if hydpy.pub.options.printprogress:
+                    print(f"Directory {dirpath} has been created.")
             self._currentdir = str(directory)
 
     @currentdir.deleter
@@ -469,6 +468,8 @@ occurred: ...
         if os.path.exists(path):
             try:
                 shutil.rmtree(path)
+                if hydpy.pub.options.printprogress:
+                    print(f"Directory {path} has been removed.")
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to delete the current working directory "
@@ -542,8 +543,8 @@ occurred: ...
 
         |FileManager| subclasses allow for manual packing and automatic unpacking of
         working directories.  The only supported format is "zip".  The original
-        directories and zip files are removed after packing or unpacking, respectively,
-        to avoid possible inconsistencies.
+        directories and zip files are removed after packing or unpacking to avoid
+        possible inconsistencies.
 
         As an example scenario, we prepare a |FileManager| object with the current
         working directory `folder` containing the files `test1.txt` and `text2.txt`:
@@ -554,7 +555,7 @@ occurred: ...
         >>> filemanager.DEFAULTDIR = None
         >>> filemanager.projectdir = "projectname"
         >>> import os
-        >>> from hydpy import repr_, TestIO
+        >>> from hydpy import pub, repr_, TestIO
         >>> TestIO.clear()
         >>> basepath = "projectname/basename"
         >>> with TestIO():
@@ -565,44 +566,42 @@ occurred: ...
         ...     filemanager.filenames
         ['file1.txt', 'file2.txt']
 
-        The directories existing under the base path are identical to the ones returned
-        by property |FileManager.availabledirs|:
+        The directories under the base path are identical to the ones returned by
+        property |FileManager.availabledirs|:
 
         >>> with TestIO():
-        ...     sorted(os.listdir(basepath))
+        ...     assert os.listdir(basepath) == ["folder"]
         ...     filemanager.availabledirs    # doctest: +ELLIPSIS
-        ['folder']
         Folder2Path(folder=.../projectname/basename/folder)
 
-        After packing the current working directory manually, it still counts as an
+        After manually packing the current working directory, it still counts as an
         available directory:
 
-        >>> with TestIO():
+        >>> with TestIO(), pub.options.printprogress(True):
         ...     filemanager.zip_currentdir()
-        ...     sorted(os.listdir(basepath))
+        ...     assert os.listdir(basepath) == ["folder.zip"]
         ...     filemanager.availabledirs    # doctest: +ELLIPSIS
-        ['folder.zip']
+        Directory ...folder has been removed.
         Folder2Path(folder=.../projectname/basename/folder.zip)
 
-        Instead of the complete directory, only the contained files are packed:
+        Instead of the complete directory, only its files are packed:
 
         >>> from zipfile import ZipFile
         >>> with TestIO():
         ...     with ZipFile("projectname/basename/folder.zip", "r") as zp:
-        ...         sorted(zp.namelist())
-        ['file1.txt', 'file2.txt']
+        ...         assert sorted(zp.namelist()) == ["file1.txt", "file2.txt"]
 
-        The zip file is unpacked again as soon as `folder` becomes the current working
+        The zip file is unpacked again when `folder` becomes the current working
         directory:
 
-        >>> with TestIO():
+        >>> with TestIO(), pub.options.printprogress(True):  # doctest: +ELLIPSIS
         ...     filemanager.currentdir = "folder"
-        ...     sorted(os.listdir(basepath))
+        ...     assert os.listdir(basepath) == ["folder"]
+        ...     assert sorted(filemanager.filenames) == ["file1.txt", "file2.txt"]
         ...     filemanager.availabledirs
-        ...     filemanager.filenames    # doctest: +ELLIPSIS
-        ['folder']
+        The zip file ...folder.zip has been extracted to directory ...folder and \
+removed.
         Folder2Path(folder=.../projectname/basename/folder)
-        ['file1.txt', 'file2.txt']
         """
         with zipfile.ZipFile(f"{self.currentpath}.zip", "w") as zipfile_:
             for filepath, filename in zip(self.filepaths, self.filenames):

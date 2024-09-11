@@ -468,11 +468,8 @@ HydPyConfigMultipleRuns.xsd}config'
         template file: HydPy-H-Lahn/single_run.xmlt
         target file: HydPy-H-Lahn/single_run.xml
         replacements:
-          config_start --> <...HydPyConfigBase.xsd"
-                      ...HydPyConfigSingleRun.xsd"> (default argument)
           firstdate --> 1996-01-32T00:00:00 (given argument)
           zip_ --> false (default argument)
-          config_end --> </hpcsr:config> (default argument)
         >>> with TestIO():
         ...     interface = XMLInterface("single_run.xml", "HydPy-H-Lahn")
         >>> interface.validate_xml()  # doctest: +ELLIPSIS
@@ -502,28 +499,20 @@ download/your-hydpy-version/HydPyConfigBase.xsd">1996-01-32T00:00:00</firstdate>
         template file: HydPy-H-Lahn/single_run.xmlt
         target file: HydPy-H-Lahn/single_run.xml
         replacements:
-          config_start --> <...HydPyConfigBase.xsd"
-                      ...HydPyConfigSingleRun.xsd"> (default argument)
           firstdate --> 1996-01-01T00:00:00 (default argument)
           zip_ --> false (default argument)
-          config_end --> </hpcsr:config> (default argument)
         >>> interface.validate_xml()
 
         The XML configuration file must correctly refer to the corresponding schema
         file:
 
         >>> with TestIO():
-        ...     xml_replace("HydPy-H-Lahn/single_run",
-        ...                 config_start="<config>",
-        ...                 config_end="</config>")
+        ...     with open("HydPy-H-Lahn/single_run.xml") as xmlfile:
+        ...         text = xmlfile.read()
+        ...     text = text.replace("HydPyConfigSingleRun.xsd", "wrong.xsd")
+        ...     with open("HydPy-H-Lahn/single_run.xml", "w") as xmlfile:
+        ...         _ = xmlfile.write(text)
         ...     interface = XMLInterface("single_run.xml", "HydPy-H-Lahn")
-        template file: HydPy-H-Lahn/single_run.xmlt
-        target file: HydPy-H-Lahn/single_run.xml
-        replacements:
-          config_start --> <config> (given argument)
-          firstdate --> 1996-01-01T00:00:00 (default argument)
-          zip_ --> false (default argument)
-          config_end --> </config> (given argument)
         >>> interface.validate_xml()  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...

@@ -454,8 +454,6 @@ HydPyConfigMultipleRuns.xsd}config'
         """Raise an error if the actual XML does not agree with one of the available
         schema files.
 
-        # ToDo: should it be accompanied by a script function?
-
         The first example relies on a distorted version of the configuration file
         `single_run.xml`:
 
@@ -3234,3 +3232,22 @@ class XSDWriter:
             ]
         )
         return "\n".join(subs)
+
+
+def xml_validate(xmlpath: str) -> int:
+    """Check if an XML file complies with its XSD Schema file.
+
+    |xml_validate| relies on method |XMLInterface.validate_xml| of class
+    |XMLInterface|.  It is primarily designed for command line usage, as explained in
+    the :ref:`User Guide'a <user_guide>` :ref:`Simulation > XML <simulation_xml>`
+    section.
+    """
+    dirpath, filename = os.path.split(xmlpath)
+    interface = XMLInterface(filename=filename, directory=dirpath)
+    try:
+        interface.validate_xml()
+    except BaseException as exc:
+        print(str(exc).rpartition("the following error occurred:")[2].strip())
+        return 999
+    print(f"{xmlpath} successfully validated")
+    return 0

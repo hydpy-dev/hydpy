@@ -103,7 +103,7 @@ from hydpy.auxs.statstools import (
     SummaryRowWeighted,
     var_ratio,
 )
-from hydpy.auxs.xmltools import XMLInterface, run_simulation
+from hydpy.auxs.xmltools import XMLInterface, run_simulation, xml_validate
 from hydpy.exe.commandtools import (
     exec_commands,
     exec_script,
@@ -131,6 +131,7 @@ pub.scriptfunctions["run_simulation"] = run_simulation
 pub.scriptfunctions["start_shell"] = start_shell
 pub.scriptfunctions["start_server"] = start_server
 pub.scriptfunctions["xml_replace"] = xml_replace
+pub.scriptfunctions["xml_validate"] = xml_validate
 
 __all__ = [
     "config",
@@ -226,6 +227,7 @@ __all__ = [
     "var_ratio",
     "XMLInterface",
     "run_simulation",
+    "xml_validate",
     "exec_commands",
     "exec_script",
     "execute_scriptfunction",

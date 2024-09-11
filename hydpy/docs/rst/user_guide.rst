@@ -21,6 +21,10 @@ It covers the following topics:
    reference guide's :ref:`model_families` section.
  * The :ref:`project_structure` section describes the typical directory and file
    structure of HydPy projects.
+ * The :ref:`options` section explains how to set the most user-relevant general HydPy
+   options and where to find their documentation.
+ * The :ref:`simulation` section summarises the basic steps to perform a simulation run
+   via Python skripts or XML files.
 
 
 .. toctree::
@@ -31,3 +35,4 @@ It covers the following topics:
    model_overview
    project_structure
    options
+   simulation

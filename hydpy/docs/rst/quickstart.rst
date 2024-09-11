@@ -23,8 +23,8 @@ by using it as a Python library and are already familiar with Python, go to the
 :ref:`Simulation > Python <simulation_python>` subsection.  Without Python experience,
 you should review the following paragraphs beforehand.  If you are, in contrast,
 primarily interested in executing standard workflows, for example, in the context of
-flood forecasting, you might prefer starting with the :ref:`Simulation > Console
-<simulation_console>` subsection.
+flood forecasting, you might prefer starting with the :ref:`Simulation > XML
+<simulation_xml>` subsection.
 
 
 Starting Python
@@ -164,6 +164,8 @@ out about its features:
 'TEST'
 
 
+.. _run_hydpy:
+
 Run HydPy
 _________
 
@@ -269,8 +271,8 @@ As you can see, a few lines of code are often enough to let HydPy execute comple
 in a standard manner.  However, HydPy offers fine-grained control, allowing you to
 define specific workflows to solve individual problems.  Take your time to understand
 these first examples fully and then follow the more detailed explanations in the
-:ref:`Simulation > Python <simulation_python>` and :ref:`Simulation > Console
-<simulation_console>` sections.
+:ref:`Simulation > Python <simulation_python>` and :ref:`Simulation > XML
+<simulation_xml>` sections.
 
 .. testsetup::
 

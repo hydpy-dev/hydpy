@@ -2714,6 +2714,19 @@ occurred: There is a conflict between the given positional and keyword arguments
     False
     >>> timegrids == Date("2000-01-01")
     False
+
+    .. role:: raw-html(raw)
+       :format: html
+
+    |Timegrids| objects are iterable and yield their |Timegrid| objects in the order
+    |Timegrids.init| :raw-html:`&rarr;` |Timegrids.sim| :raw-html:`&rarr;`
+    |Timegrids.eval_|:
+
+    >>> for timegrid in timegrids:
+    ...     print(timegrid)
+    Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d")
+    Timegrid("2000-01-01 00:00:00", "2000-07-01 00:00:00", "1d")
+    Timegrid("2000-06-01 00:00:00", "2000-07-01 00:00:00", "1d")
     """
 
     init: Timegrid
@@ -3074,6 +3087,7 @@ size `3d`.
     def __iter__(self) -> Iterator[Timegrid]:
         yield self.init
         yield self.sim
+        yield self.eval_
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, Timegrids):

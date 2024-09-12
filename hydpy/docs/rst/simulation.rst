@@ -229,7 +229,7 @@ Class |SequenceManager| provides more options than just the directory-related on
 For example, you can use option |SequenceManager.filetype| to read discharge
 measurement data from the NetCDF file `obs_q.nc`:
 
->>> with pub.sequencemanager.netcdfreading(), pub.sequencemanager.filetype("nc"):
+>>> with pub.sequencemanager.filetype("nc"):
 ...     hp.load_obsseries()
 >>> assert_exists("HydPy-H-Lahn", "series", "default", "obs_q.nc")
 >>> node = hp.nodes.dill_assl

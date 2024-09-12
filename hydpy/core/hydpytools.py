@@ -580,7 +580,7 @@ required to prepare the model properly.
     We can load the previously written results into RAM (see the documentation on
     module |netcdftools| for further information) and inspect the results:
 
-    >>> with TestIO(), pub.sequencemanager.netcdfreading():
+    >>> with TestIO():
     ...     hp.load_modelseries()
     ...     hp.load_simseries()
 
@@ -761,8 +761,7 @@ directory: '...land_dill_assl_hland_96p_input_p.asc'
     ...     hp.elements.land_dill_assl.prepare_inputseries()
     ...     hp.elements.land_dill_assl.load_inputseries()
     ...     with pub.sequencemanager.filetype("nc"):
-    ...         with pub.sequencemanager.netcdfwriting():
-    ...             hp.save_inputseries()
+    ...         hp.save_inputseries()
 
     Now, instead of letting the |evap_pet_hbv96| sub-submodel query the air temperature
     from the |hland_96| main model, we add a |meteo_temp_io| sub-sub-submodel that

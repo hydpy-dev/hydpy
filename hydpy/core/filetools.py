@@ -1213,7 +1213,6 @@ class SequenceManager(FileManager):
                [20., 21.],
                [22., 23.]])
 
-
     We now write two files that do not span the initialisation period.
 
     >>> with TestIO():
@@ -1375,6 +1374,35 @@ not allowed to overwrite the existing file `...`.
     18.0
     20.0
     22.0
+
+    All numbers are written in scientific notation under the default setting of option
+    |Options.reprdigits| (-1):
+
+    >>> nodes.node1.sequences.sim.series = 0.12345678
+    >>> with TestIO(), pub.options.reprdigits(-1):
+    ...     nodes.node1.sequences.sim.save_series()
+    >>> print_file("node1_sim_q.asc")
+    Timegrid("2000-01-01 00:00:00+01:00",
+             "2000-01-05 00:00:00+01:00",
+             "1d")
+    0.123457
+    0.123457
+    0.123457
+    0.123457
+
+    If you set this option to two, for example, all numbers are written in the decimal
+    form with at most two decimal places:
+
+    >>> with TestIO(), pub.options.reprdigits(2):
+    ...     nodes.node1.sequences.sim.save_series()
+    >>> print_file("node1_sim_q.asc")
+    Timegrid("2000-01-01 00:00:00+01:00",
+             "2000-01-05 00:00:00+01:00",
+             "1d")
+    0.12
+    0.12
+    0.12
+    0.12
 
     Another option is storing data using |numpy| binary files, which is good for saving
     computation times but possibly problematic for sharing data with colleagues:
@@ -1583,7 +1611,9 @@ not allowed to overwrite the existing file `...`.
         if array.ndim == 3:
             array = array.reshape(array.shape[0], -1)
         with open(filepath, "a", encoding=config.ENCODING) as file_:
-            numpy.savetxt(file_, array, delimiter="\t")
+            digits = hydpy.pub.options.reprdigits
+            format_ = "%.14e" if digits == -1 else f"%.{digits}f"
+            numpy.savetxt(file_, array, fmt=format_, delimiter="\t")
 
     def _save_nc(
         self, sequence: sequencetools.IOSequence, array: sequencetools.InfoArray

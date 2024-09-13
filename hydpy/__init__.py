@@ -103,7 +103,6 @@ from hydpy.auxs.statstools import (
     SummaryRowWeighted,
     var_ratio,
 )
-from hydpy.auxs.xmltools import XMLInterface, run_simulation, xml_validate
 from hydpy.exe.commandtools import (
     exec_commands,
     exec_script,
@@ -115,6 +114,7 @@ from hydpy.exe.commandtools import (
 )
 from hydpy.exe.replacetools import xml_replace
 from hydpy.exe.servertools import await_server, start_server
+from hydpy.exe.xmltools import XMLInterface, run_simulation, xml_validate
 
 
 __version__ = "6.1a0"

@@ -244,12 +244,12 @@ import numpy
 import hydpy
 from hydpy import conf
 from hydpy import config
-from hydpy.auxs import xmltools
 from hydpy.core import hydpytools
 from hydpy.core import itemtools
 from hydpy.core import objecttools
 from hydpy.core import timetools
 from hydpy.exe import commandtools
+from hydpy.exe import xmltools
 from hydpy.core.typingtools import *
 
 

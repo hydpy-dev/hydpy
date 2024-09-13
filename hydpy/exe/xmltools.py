@@ -171,7 +171,7 @@ def find(
 ) -> Optional[ElementTree.Element]:
     """Return the first XML element with the given name found in the given XML root.
 
-    >>> from hydpy.auxs.xmltools import find, XMLInterface
+    >>> from hydpy.exe.xmltools import find, XMLInterface
     >>> from hydpy.data import make_filepath
     >>> interface = XMLInterface("single_run.xml", make_filepath("HydPy-H-Lahn"))
     >>> find(interface.root, "timegrid").tag.endswith("timegrid")
@@ -218,7 +218,7 @@ def _query_selections(xmlelement: ElementTree.Element) -> selectiontools.Selecti
 def strip(name: str) -> str:
     """Remove the XML namespace from the given string and return it.
 
-    >>> from hydpy.auxs.xmltools import strip
+    >>> from hydpy.exe.xmltools import strip
     >>> strip("{https://github.com/something.xsd}something")
     'something'
     """
@@ -246,7 +246,7 @@ class PrepareSeriesArguments(NamedTuple):
          * prefer_ram: prefer to handle time series data in RAM (or read and write it
            just in time)?
 
-        >>> from hydpy.auxs.xmltools import PrepareSeriesArguments
+        >>> from hydpy.exe.xmltools import PrepareSeriesArguments
         >>> from_xmldata = PrepareSeriesArguments.from_xmldata
 
         Test cases for reading input data:
@@ -348,7 +348,7 @@ class XMLBase:
     Subclasses of |XMLBase| support iterating XML subelements while skipping those
     named `selections`:
 
-    >>> from hydpy.auxs.xmltools import XMLInterface
+    >>> from hydpy.exe.xmltools import XMLInterface
     >>> from hydpy.data import make_filepath
     >>> interface = XMLInterface("multiple_runs.xml", make_filepath("HydPy-H-Lahn"))
     >>> itemgroup = interface.exchange.itemgroups[1]
@@ -368,7 +368,7 @@ class XMLBase:
     def name(self) -> str:
         """Apply function |strip| to the root of the object of the |XMLBase| subclass.
 
-        >>> from hydpy.auxs.xmltools import XMLInterface
+        >>> from hydpy.exe.xmltools import XMLInterface
         >>> from hydpy.data import make_filepath
         >>> interface = XMLInterface("single_run.xml", make_filepath("HydPy-H-Lahn"))
         >>> interface.name
@@ -393,7 +393,7 @@ class XMLBase:
     ) -> Optional[ElementTree.Element]:
         """Apply function |find| to the root of the object of the |XMLBase| subclass.
 
-        >>> from hydpy.auxs.xmltools import XMLInterface
+        >>> from hydpy.exe.xmltools import XMLInterface
         >>> from hydpy.data import make_filepath
         >>> interface = XMLInterface("single_run.xml", make_filepath("HydPy-H-Lahn"))
         >>> interface.find("timegrid").tag.endswith("timegrid")
@@ -421,7 +421,7 @@ class XMLInterface(XMLBase):
     """An interface to XML configuration files that are valid concerning schema file
     `HydPyConfigSingleRun.xsd` or `HydPyConfigMultipleRuns.xsd`.
 
-    >>> from hydpy.auxs.xmltools import XMLInterface
+    >>> from hydpy.exe.xmltools import XMLInterface
     >>> from hydpy.data import make_filepath
     >>> interface = XMLInterface("single_run.xml", make_filepath("HydPy-H-Lahn"))
     >>> interface.root.tag
@@ -460,7 +460,7 @@ HydPyConfigMultipleRuns.xsd}config'
         >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import TestIO, xml_replace
-        >>> from hydpy.auxs.xmltools import XMLInterface
+        >>> from hydpy.exe.xmltools import XMLInterface
         >>> import os
         >>> with TestIO():  # doctest: +ELLIPSIS
         ...     xml_replace("HydPy-H-Lahn/single_run",
@@ -558,7 +558,7 @@ correctly refer to one of the available XML schema files \
             >>> del pub.timegrids
             >>> del pub.options.simulationstep
 
-        >>> from hydpy.auxs.xmltools import XMLInterface
+        >>> from hydpy.exe.xmltools import XMLInterface
         >>> from hydpy import pub
         >>> from hydpy.data import make_filepath
         >>> interface = XMLInterface("single_run.xml", make_filepath("HydPy-H-Lahn"))
@@ -609,7 +609,7 @@ correctly refer to one of the available XML schema files \
         >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, TestIO
-        >>> from hydpy.auxs.xmltools import XMLInterface
+        >>> from hydpy.exe.xmltools import XMLInterface
         >>> hp = HydPy("HydPy-H-Lahn")
         >>> with TestIO():
         ...     XMLInterface("single_run.xml").update_timegrids()
@@ -636,7 +636,7 @@ correctly refer to one of the available XML schema files \
         >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, TestIO
-        >>> from hydpy.auxs.xmltools import find, XMLInterface
+        >>> from hydpy.exe.xmltools import find, XMLInterface
         >>> hp = HydPy("HydPy-H-Lahn")
         >>> with TestIO():
         ...     hp.prepare_network()
@@ -851,7 +851,7 @@ text `head_waters`, but the actual project does not handle such a `Selection` ob
     def network_io(self) -> Union[XMLNetworkDefault, XMLNetworkUserDefined]:
         """The `network_io` element defined in the actual XML file.
 
-        >>> from hydpy.auxs.xmltools import XMLInterface, strip
+        >>> from hydpy.exe.xmltools import XMLInterface, strip
         >>> from hydpy.data import make_filepath
         >>> interface = XMLInterface("single_run.xml", make_filepath("HydPy-H-Lahn"))
         >>> interface.network_io.text
@@ -869,7 +869,7 @@ text `head_waters`, but the actual project does not handle such a `Selection` ob
     def control_io(self) -> Union[XMLControlDefault, XMLControlUserDefined]:
         """The `control_io` element defined in the actual XML file.
 
-        >>> from hydpy.auxs.xmltools import XMLInterface, strip
+        >>> from hydpy.exe.xmltools import XMLInterface, strip
         >>> from hydpy.data import make_filepath
         >>> interface = XMLInterface("single_run.xml", make_filepath("HydPy-H-Lahn"))
         >>> interface.control_io.text
@@ -887,7 +887,7 @@ text `head_waters`, but the actual project does not handle such a `Selection` ob
     def conditions_io(self) -> XMLConditions:
         """The `condition_io` element defined in the actual XML file.
 
-        >>> from hydpy.auxs.xmltools import XMLInterface, strip
+        >>> from hydpy.exe.xmltools import XMLInterface, strip
         >>> from hydpy.data import make_filepath
         >>> interface = XMLInterface("single_run.xml", make_filepath("HydPy-H-Lahn"))
         >>> strip(interface.series_io.root.tag)
@@ -899,7 +899,7 @@ text `head_waters`, but the actual project does not handle such a `Selection` ob
     def series_io(self) -> XMLSeries:
         """The `series_io` element defined in the actual XML file.
 
-        >>> from hydpy.auxs.xmltools import XMLInterface, strip
+        >>> from hydpy.exe.xmltools import XMLInterface, strip
         >>> from hydpy.data import make_filepath
         >>> interface = XMLInterface("single_run.xml", make_filepath("HydPy-H-Lahn"))
         >>> strip(interface.series_io.root.tag)
@@ -911,7 +911,7 @@ text `head_waters`, but the actual project does not handle such a `Selection` ob
     def exchange(self) -> XMLExchange:
         """The `exchange` element defined in the actual XML file.
 
-        >>> from hydpy.auxs.xmltools import XMLInterface, strip
+        >>> from hydpy.exe.xmltools import XMLInterface, strip
         >>> from hydpy.data import make_filepath
         >>> interface = XMLInterface(
         ...     "multiple_runs.xml", make_filepath("HydPy-H-Lahn"))
@@ -1127,7 +1127,7 @@ class XMLSeries(XMLBase):
     def readers(self) -> list[XMLSubseries]:
         """The reader XML elements defined in the actual XML file.
 
-        >>> from hydpy.auxs.xmltools import XMLInterface
+        >>> from hydpy.exe.xmltools import XMLInterface
         >>> from hydpy.data import make_filepath
         >>> interface = XMLInterface("single_run.xml", make_filepath("HydPy-H-Lahn"))
         >>> for reader in interface.series_io.readers:
@@ -1140,7 +1140,7 @@ class XMLSeries(XMLBase):
     def writers(self) -> list[XMLSubseries]:
         """The writer XML elements defined in the actual XML file.
 
-        >>> from hydpy.auxs.xmltools import XMLInterface
+        >>> from hydpy.exe.xmltools import XMLInterface
         >>> from hydpy.data import make_filepath
         >>> interface = XMLInterface("single_run.xml", make_filepath("HydPy-H-Lahn"))
         >>> for writer in interface.series_io.writers:
@@ -1444,7 +1444,7 @@ class XMLSubseries(XMLSelector):
         """A nested |collections.defaultdict| containing the model-specific information
         provided by the XML `sequences` element.
 
-        >>> from hydpy.auxs.xmltools import XMLInterface
+        >>> from hydpy.exe.xmltools import XMLInterface
         >>> from hydpy.data import make_filepath
         >>> interface = XMLInterface("single_run.xml", make_filepath("HydPy-H-Lahn"))
         >>> series_io = interface.series_io
@@ -1476,7 +1476,7 @@ class XMLSubseries(XMLSelector):
         """A |collections.defaultdict| containing the node-specific information
         provided by XML `sequences` element.
 
-        >>> from hydpy.auxs.xmltools import XMLInterface
+        >>> from hydpy.exe.xmltools import XMLInterface
         >>> from hydpy.data import make_filepath
         >>> interface = XMLInterface("single_run.xml", make_filepath("HydPy-H-Lahn"))
         >>> series_io = interface.series_io
@@ -2371,7 +2371,7 @@ class XSDWriter:
         `HydPy-H-Lahn` example project:
 
         >>> import os
-        >>> from hydpy.auxs.xmltools import XSDWriter, XMLInterface
+        >>> from hydpy.exe.xmltools import XSDWriter, XMLInterface
         >>> if os.path.exists(XSDWriter.filepath_target):
         ...     os.remove(XSDWriter.filepath_target)
         >>> os.path.exists(XSDWriter.filepath_target)
@@ -2399,7 +2399,7 @@ class XSDWriter:
     def get_basemodelnames() -> list[str]:
         """Return a sorted |list| containing all base model names.
 
-        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> from hydpy.exe.xmltools import XSDWriter
         >>> print(XSDWriter.get_basemodelnames())  # doctest: +ELLIPSIS
         ['arma', 'conv', ..., 'wland', 'wq']
         """
@@ -2415,7 +2415,7 @@ class XSDWriter:
     def get_applicationmodelnames() -> list[str]:
         """Return a sorted |list| containing all application model names.
 
-        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> from hydpy.exe.xmltools import XSDWriter
         >>> print(XSDWriter.get_applicationmodelnames())  # doctest: +ELLIPSIS
         [...'dam_v001', 'dam_v002', 'dam_v003', 'dam_v004', 'dam_v005',...]
         """
@@ -2431,7 +2431,7 @@ class XSDWriter:
         """Return the complete string to be inserted into the string of the template
         file.
 
-        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> from hydpy.exe.xmltools import XSDWriter
         >>> print(XSDWriter.get_insertion())  # doctest: +ELLIPSIS
             <complexType name="dummy_interceptedwater_readerType">
                 <sequence>
@@ -2528,7 +2528,7 @@ class XSDWriter:
     ) -> Optional[str]:
         """Return the insertion string required for the given application model.
 
-        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> from hydpy.exe.xmltools import XSDWriter
         >>> from hydpy import prepare_model
         >>> model = prepare_model("hland_96")
         >>> print(XSDWriter.get_modelinsertion(
@@ -2604,7 +2604,7 @@ class XSDWriter:
     ) -> str:
         """Return the insertion string required for the given group of sequences.
 
-        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> from hydpy.exe.xmltools import XSDWriter
         >>> from hydpy import prepare_model
         >>> model = prepare_model("hland_96")
         >>> print(XSDWriter.get_subsequencesinsertion(
@@ -2650,7 +2650,7 @@ class XSDWriter:
     def get_sequenceinsertion(sequence: sequencetools.Sequence_, indent: int) -> str:
         """Return the insertion string required for the given sequence.
 
-        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> from hydpy.exe.xmltools import XSDWriter
         >>> from hydpy import prepare_model
         >>> model = prepare_model("hland_96")
         >>> print(XSDWriter.get_sequenceinsertion(model.sequences.fluxes.pc, 1))
@@ -2672,7 +2672,7 @@ class XSDWriter:
         """Return the insertion all sequences relevant for reading or writing
         time series data.
 
-        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> from hydpy.exe.xmltools import XSDWriter
         >>> print(XSDWriter.get_readerwriterinsertion("reader", 1)) # doctest: +ELLIPSIS
             <complexType name="readerType">
                 <sequence>
@@ -2734,7 +2734,7 @@ class XSDWriter:
         """Return the complete string related to the definition of exchange items to
         be inserted into the string of the template file.
 
-        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> from hydpy.exe.xmltools import XSDWriter
         >>> print(XSDWriter.get_exchangeinsertion())  # doctest: +ELLIPSIS
             <complexType name="arma_rimorido_mathitemType">
         ...
@@ -2763,7 +2763,7 @@ class XSDWriter:
     def get_mathitemsinsertion(cls, indent: int) -> str:
         """Return a string defining a model-specific XML type extending `ItemType`.
 
-        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> from hydpy.exe.xmltools import XSDWriter
         >>> print(XSDWriter.get_mathitemsinsertion(1))  # doctest: +ELLIPSIS
             <complexType name="arma_rimorido_mathitemType">
                 <complexContent>
@@ -2814,7 +2814,7 @@ class XSDWriter:
         """Return a string defining additional types that support modifying parameter
         values by specific keyword arguments.
 
-        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> from hydpy.exe.xmltools import XSDWriter
         >>> print(XSDWriter.get_keyworditemsinsertion(1))  # doctest: +ELLIPSIS
             <simpleType name="lland_control_kapgrenz_keywordType">
                 <restriction base="string">
@@ -2883,7 +2883,7 @@ class XSDWriter:
     def get_itemsinsertion(cls, itemgroup: str, indent: int) -> str:
         """Return a string defining the XML element for the given exchange item group.
 
-        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> from hydpy.exe.xmltools import XSDWriter
         >>> print(XSDWriter.get_itemsinsertion("setitems", 1))  # doctest: +ELLIPSIS
             <element name="setitems">
                 <complexType>
@@ -2945,7 +2945,7 @@ class XSDWriter:
         """Return a string defining the required types for the given exchange item
         group.
 
-        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> from hydpy.exe.xmltools import XSDWriter
         >>> print(XSDWriter.get_itemtypesinsertion(
         ...     "setitems", 1))  # doctest: +ELLIPSIS
             <complexType name="arma_rimorido_setitemsType">
@@ -2968,7 +2968,7 @@ class XSDWriter:
         """Return a string defining the required types for the given combination of
         an exchange item group and an application model.
 
-        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> from hydpy.exe.xmltools import XSDWriter
         >>> print(XSDWriter.get_itemtypeinsertion(
         ...     "setitems", "hland_96", 1))  # doctest: +ELLIPSIS
             <complexType name="hland_96_setitemsType">
@@ -3002,7 +3002,7 @@ class XSDWriter:
         """Return a string defining the required types for the given combination of
         an exchange item group and |Node| objects.
 
-        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> from hydpy.exe.xmltools import XSDWriter
         >>> print(XSDWriter.get_nodesitemtypeinsertion(
         ...     "setitems", 1))  # doctest: +ELLIPSIS
             <complexType name="nodes_setitemsType">
@@ -3056,7 +3056,7 @@ class XSDWriter:
         """Return a string defining the required types for the given combination of an
         exchange item group and an application model.
 
-        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> from hydpy.exe.xmltools import XSDWriter
         >>> print(XSDWriter.get_subgroupsiteminsertion(
         ...     "setitems", "hland_96", 1))  # doctest: +ELLIPSIS
             <element name="control"
@@ -3112,7 +3112,7 @@ class XSDWriter:
 
         >>> from hydpy import prepare_model
         >>> model = prepare_model("hland_96")
-        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> from hydpy.exe.xmltools import XSDWriter
         >>> print(XSDWriter.get_subgroupiteminsertion(  # doctest: +ELLIPSIS
         ...     "setitems", model, model.parameters.control, 1))
             <element name="control"

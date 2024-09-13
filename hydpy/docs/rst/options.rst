@@ -87,9 +87,9 @@ initialising class |HydPy|:
 
 All these file managers offer the |FileManager.currentdir| property (which so far does
 not support the `with` syntax) to change the directory selected for reading or writing
-data.  The only file manager providing other user-relevant options (which do support
-the `with` syntax) is |SequenceManager|.  One example is |SequenceManager.filetype| for
-choosing between the ASCII, NetCDF, and Numpy file
+data.  The only file managers providing other user-relevant options (which do support
+the `with` syntax) are |ConditionManager| and |SequenceManager|.  One example is option
+|SequenceManager.filetype| for choosing between the ASCII, NetCDF, and Numpy file
 formats.
 
 When working with XML files, HydPy offers more flexibility for the file managers'

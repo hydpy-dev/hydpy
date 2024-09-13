@@ -488,7 +488,7 @@ occurred: ...
         >>> from hydpy import repr_, TestIO
         >>> with TestIO():
         ...     filemanager.currentdir = "testdir"
-        ...     repr_(filemanager.currentpath)    # doctest: +ELLIPSIS
+        ...     repr_(filemanager.currentpath)  # doctest: +ELLIPSIS
         '...hydpy/tests/iotesting/projectname/basename/testdir'
         """
         return os.path.join(self.basepath, self.currentdir)
@@ -531,7 +531,7 @@ occurred: ...
         ...     open("projectname/basename/testdir/file2.npy", "w").close()
         ...     open("projectname/basename/testdir/_file1.nc", "w").close()
         ...     for filepath in filemanager.filepaths:
-        ...         repr_(filepath)    # doctest: +ELLIPSIS
+        ...         repr_(filepath)  # doctest: +ELLIPSIS
         '...hydpy/tests/iotesting/projectname/basename/testdir/file1.txt'
         '...hydpy/tests/iotesting/projectname/basename/testdir/file2.npy'
         """
@@ -571,7 +571,7 @@ occurred: ...
 
         >>> with TestIO():
         ...     assert os.listdir(basepath) == ["folder"]
-        ...     filemanager.availabledirs    # doctest: +ELLIPSIS
+        ...     filemanager.availabledirs  # doctest: +ELLIPSIS
         Folder2Path(folder=.../projectname/basename/folder)
 
         After manually packing the current working directory, it still counts as an
@@ -580,7 +580,7 @@ occurred: ...
         >>> with TestIO(), pub.options.printprogress(True):
         ...     filemanager.zip_currentdir()
         ...     assert os.listdir(basepath) == ["folder.zip"]
-        ...     filemanager.availabledirs    # doctest: +ELLIPSIS
+        ...     filemanager.availabledirs  # doctest: +ELLIPSIS
         Directory ...folder has been removed.
         Folder2Path(folder=.../projectname/basename/folder.zip)
 
@@ -1016,7 +1016,7 @@ class ConditionManager(FileManager):
     it following the actual simulation start or end date, respectively:
 
     >>> from hydpy import repr_
-    >>> with TestIO():    # doctest: +ELLIPSIS
+    >>> with TestIO():  # doctest: +ELLIPSIS
     ...     repr_(pub.conditionmanager.inputpath)
     ...     repr_(pub.conditionmanager.outputpath)
     '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/init_1996_01_01_00_00_00'
@@ -1035,7 +1035,7 @@ class ConditionManager(FileManager):
                              "1996-01-05 00:00:00",
                              "1d"))
 
-    >>> with TestIO():    # doctest: +ELLIPSIS
+    >>> with TestIO():  # doctest: +ELLIPSIS
     ...     repr_(pub.conditionmanager.inputpath)
     ...     repr_(pub.conditionmanager.outputpath)
     '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/init_1996_01_02_00_00_00'
@@ -1043,29 +1043,38 @@ class ConditionManager(FileManager):
 
     Use the property |FileManager.currentdir| to change the values of both properties:
 
-    >>> with TestIO():    # doctest: +ELLIPSIS
+    >>> with TestIO():  # doctest: +ELLIPSIS
     ...     pub.conditionmanager.currentdir = "test"
     ...     repr_(pub.conditionmanager.inputpath)
     ...     repr_(pub.conditionmanager.outputpath)
     '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/test'
     '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/test'
 
-    After deleting the custom value of property |FileManager.currentdir|, both
+    After deleting the custom value of property |FileManager.currentdir|, the
     properties |ConditionManager.inputpath| and |ConditionManager.outputpath| work as
     before:
 
-    >>> with TestIO():    # doctest: +ELLIPSIS
+    >>> with TestIO():  # doctest: +ELLIPSIS
     ...     del pub.conditionmanager.currentdir
     ...     repr_(pub.conditionmanager.inputpath)
     ...     repr_(pub.conditionmanager.outputpath)
     '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/init_1996_01_02_00_00_00'
     '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/init_1996_01_04_00_00_00'
 
+    Use the |ConditionManager.prefix| option to configure the automatically determined
+    folder names:
+
+    >>> with TestIO(), pub.conditionmanager.prefix("condi"):  # doctest: +ELLIPSIS
+    ...     repr_(pub.conditionmanager.inputpath)
+    ...     repr_(pub.conditionmanager.outputpath)
+    '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/condi_1996_01_02_00_00_00'
+    '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/condi_1996_01_04_00_00_00'
+
     The date-based construction of directory names requires a |Timegrids| object
     available in module |pub|:
 
     >>> del pub.timegrids
-    >>> with TestIO():    # doctest: +ELLIPSIS
+    >>> with TestIO():  # doctest: +ELLIPSIS
     ...     repr_(pub.conditionmanager.inputpath)
     Traceback (most recent call last):
     ...
@@ -1074,7 +1083,7 @@ currently relevant input path for loading conditions file, the following error \
 occurred: Attribute timegrids of module `pub` is not defined at the moment.
 
     >>> del pub.timegrids
-    >>> with TestIO():    # doctest: +ELLIPSIS
+    >>> with TestIO():  # doctest: +ELLIPSIS
     ...     repr_(pub.conditionmanager.outputpath)
     Traceback (most recent call last):
     ...
@@ -1086,17 +1095,41 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
     BASEDIR = "conditions"
     DEFAULTDIR = None
 
+    prefix = optiontools.OptionPropertyStr(
+        "init",
+        """The prefix of the automatically determined, time-dependent condition 
+        directory names.
+        
+        The default prefix is `init`:
+        
+        >>> from hydpy.core.testtools import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
+        >>> cm =  pub.conditionmanager
+        >>> with TestIO():
+        ...     assert cm.inputpath.endswith("init_1996_01_01_00_00_00")
+        ...     assert cm.outputpath.endswith("init_1996_01_05_00_00_00")
+
+        For example, you can vary the prefix to store the conditions of different 
+        ensemble members in separate directories:
+        
+        >>> with TestIO(), cm.prefix("member_01"):
+        ...     assert cm.inputpath.endswith("member_01_1996_01_01_00_00_00")
+        ...     assert cm.outputpath.endswith("member_01_1996_01_05_00_00_00")         
+        """,
+    )
+
     @property
     def inputpath(self) -> str:
         """The directory path for loading initial conditions.
 
-        See the main documentation on class |ConditionManager| for further information.
+        See the main documentation on class |ConditionManager| and its option
+        |ConditionManager.prefix| for further information.
         """
         currentdir = self._currentdir
         try:
             if not currentdir:
                 to_string = hydpy.pub.timegrids.sim.firstdate.to_string
-                self.currentdir = f"init_{to_string('os')}"
+                self.currentdir = f"{self.prefix}_{to_string('os')}"
             return self.currentpath
         except BaseException:
             objecttools.augment_excmessage(
@@ -1110,13 +1143,14 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
     def outputpath(self) -> str:
         """The directory path for saving (final) conditions.
 
-        See the main documentation on class |ConditionManager| for further information.
+        See the main documentation on class |ConditionManager| and its option
+        |ConditionManager.prefix| for further information.
         """
         currentdir = self._currentdir
         try:
             if not currentdir:
                 to_string = hydpy.pub.timegrids.sim.lastdate.to_string
-                self.currentdir = f"init_{to_string('os')}"
+                self.currentdir = f"{self.prefix}_{to_string('os')}"
             return self.currentpath
         except BaseException:
             objecttools.augment_excmessage(

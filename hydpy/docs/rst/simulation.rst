@@ -169,7 +169,8 @@ The |ConditionManager| is unique as it differentiates between initial and final
 conditions, which correspond to the start and end of the currently selected simulation
 period.  If not overwritten by |FileManager.currentdir| (see below), property
 |ConditionManager.inputpath| creates the expected path to the input conditions based on
-the current simulation start date:
+the set |ConditionManager.prefix| (defaults to `init`) and the current simulation start
+date:
 
 >>> from hydpy import repr_
 >>> repr_(pub.conditionmanager.inputpath)  # doctest: +ELLIPSIS

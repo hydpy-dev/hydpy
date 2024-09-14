@@ -469,6 +469,7 @@ HydPyConfigMultipleRuns.xsd}config'
         target file: HydPy-H-Lahn/single_run.xml
         replacements:
           firstdate --> 1996-01-32T00:00:00 (given argument)
+          prefix --> init (default argument)
           zip_ --> false (default argument)
         >>> with TestIO():
         ...     interface = XMLInterface("single_run.xml", "HydPy-H-Lahn")
@@ -500,6 +501,7 @@ download/your-hydpy-version/HydPyConfigBase.xsd">1996-01-32T00:00:00</firstdate>
         target file: HydPy-H-Lahn/single_run.xml
         replacements:
           firstdate --> 1996-01-01T00:00:00 (default argument)
+          prefix --> init (default argument)
           zip_ --> false (default argument)
         >>> interface.validate_xml()
 
@@ -1040,6 +1042,18 @@ class XMLConditions(XMLBase):
         self.master: XMLInterface = master
         self.root: ElementTree.Element = root
 
+    def _determine_currentdir(
+        self, currentdir: Optional[str], type_: Literal["input", "output"], /
+    ) -> str:
+        if currentdir is not None:
+            return currentdir
+        if (inputdir := self.find(f"{type_}dir")) is not None:
+            return str(inputdir.text)
+        conditionmanager = hydpy.pub.conditionmanager
+        prefix = None if (p := self.find("prefix")) is None else str(p.text)
+        with conditionmanager.prefix(prefix):
+            return getattr(conditionmanager, f"{type_}path")
+
     def load_conditions(self, currentdir: Optional[str] = None) -> None:
         """Load the condition files of the |Model| objects of all |Element| objects
         returned by |XMLInterface.elements|:
@@ -1057,17 +1071,30 @@ class XMLConditions(XMLBase):
         ...     interface.update_selections()
         ...     interface.find("selections").text = "headwaters"
         ...     interface.conditions_io.load_conditions()
-        >>> interface.update_timegrids()
         >>> hp.elements.land_lahn_marb.model.sequences.states.lz
         lz(8.18711)
         >>> hp.elements.land_lahn_leun.model.sequences.states.lz
         lz(nan)
+
+        >>> from hydpy import xml_replace
+        >>> with TestIO():
+        ...     xml_replace("HydPy-H-Lahn/single_run", printflag=False, prefix="condi")
+        ...     interface = XMLInterface("single_run.xml")
+        ...     interface.update_selections()
+        ...     interface.conditions_io.load_conditions()  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        FileNotFoundError: While trying to load the initial conditions of element \
+`land_dill_assl`, the following error occurred: [Errno 2] No such file or directory: \
+'...condi_1996_01_01_00_00_00...land_dill_assl.py'
         """
-        if currentdir is None:
-            currentdir = str(self.find("inputdir", optional=False).text)
-        hydpy.pub.conditionmanager.currentdir = currentdir
-        for element in self.master.elements:
-            element.model.load_conditions()
+        cm = hydpy.pub.conditionmanager
+        try:
+            cm.currentdir = self._determine_currentdir(currentdir, "input")
+            for element in self.master.elements:
+                element.model.load_conditions()
+        finally:
+            cm.currentdir = None  # type: ignore[assignment]
 
     def save_conditions(self, currentdir: Optional[str] = None) -> None:
         """Save the condition files of the |Model| objects of all |Element| objects
@@ -1085,7 +1112,6 @@ class XMLConditions(XMLBase):
         ...     hp.prepare_models()
         ...     hp.elements.land_dill_assl.model.sequences.states.lz = 999.0
         ...     interface = XMLInterface("single_run.xml")
-        ...     interface.update_timegrids()
         ...     interface.update_selections()
         ...     interface.find("selections").text = "headwaters"
         ...     interface.conditions_io.save_conditions()
@@ -1106,13 +1132,17 @@ class XMLConditions(XMLBase):
         False
         True
         """
-        if currentdir is None:
-            currentdir = str(self.find("outputdir", optional=False).text)
-        hydpy.pub.conditionmanager.currentdir = currentdir
-        for element in self.master.elements:
-            element.model.save_conditions()
-        if self.find("zip", optional=False).text == "true":
-            hydpy.pub.conditionmanager.zip_currentdir()
+        cm = hydpy.pub.conditionmanager
+        try:
+            cm.currentdir = self._determine_currentdir(currentdir, "output")
+            for element in self.master.elements:
+                element.model.save_conditions()
+            if (zip_ := self.find("zip")) is not None:
+                zip__ = str(zip_.text)
+                if objecttools.value2bool(zip__, zip__):
+                    cm.zip_currentdir()
+        finally:
+            cm.currentdir = None  # type: ignore[assignment]
 
 
 class XMLSeries(XMLBase):

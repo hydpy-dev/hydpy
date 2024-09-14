@@ -463,11 +463,11 @@ project contains one example of an XML template file:
 
 >>> assert_exists("HydPy-H-Lahn", "single_run.xmlt")
 
-This template contains two special XML comments in lines
-`<firstdate><!--|firstdate=1996-01-01T00:00:00|--></firstdate>` and
-`<zip><!--|zip_=false|--></zip>`.  The parts `<!--` and `-->` define a usual XML
-comment. As such comments count as nothing, |xml_validate| reports the following error
-when checking `single_run.xmlt`:
+This template contains three special XML comments in lines
+`<firstdate><!--|firstdate=1996-01-01T00:00:00|--></firstdate>`,
+`<prefix><!--|prefix=init|--></prefix>`, and `<zip><!--|zip_=false|--></zip>`.  The
+parts `<!--` and `-->` define a usual XML comment. As such comments count as nothing,
+|xml_validate| reports the following error when checking `single_run.xmlt`:
 
 >>> subprocess = run_subprocess("hyd.py xml_validate HydPy-H-Lahn/single_run.xmlt")  # doctest: +ELLIPSIS
 failed validating '' with XsdAtomicBuiltin(name='xs:dateTime'):
@@ -476,21 +476,23 @@ Reason: Invalid datetime string '' for <class 'elementpath.datatypes.datetime.Da
 ...
 Path: /hpcsr:config/timegrid/firstdate
 
-The HydPy-specific parts, `|firstdate=1996-01-01T00:00:00|` and `|zip_=false|`,
-indicate that |xml_replace| is supposed to replace the respective whole XML comment.
-In the following example, we pass only data to the argument `zip_`:
+The HydPy-specific parts, `|firstdate=1996-01-01T00:00:00|`, `|prefix=init|`, and
+`|zip_=false|`, indicate that |xml_replace| is supposed to replace the respective whole
+XML comment.  In the following example, we pass only data to the argument `zip_`:
 
 >>> subprocess = run_subprocess("hyd.py xml_replace HydPy-H-Lahn/single_run zip_=wrong")
 template file: HydPy-H-Lahn/single_run.xmlt
 target file: HydPy-H-Lahn/single_run.xml
 replacements:
   firstdate --> 1996-01-01T00:00:00 (default argument)
+  prefix --> init (default argument)
   zip_ --> wrong (given argument)
 
 Following the printed summary, |xml_replace| used the given value `wrong` for the
-argument `zip_` and the default value `1996-01-01T00:00:00` for the argument
-`firstdate` (one must not define such default values; with a line like
-`<zip><!--|zip_|--></zip>` one would always have to pass data for the argument `zip_`).
+argument `zip_` and the default values `1996-01-01T00:00:00` and `init` for the
+arguments `firstdate` and `prefix` (one must not define such default values; with a
+line like `<zip><!--|zip_|--></zip>` one would always have to pass data for the
+argument `zip_`).
 
 Although technically successful, the replacement was flawed because, as |xml_validate|
 can tell us, `wrong` is not a boolean value, as would be required:

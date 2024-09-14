@@ -123,12 +123,18 @@
     <element name="conditions_io">
         <complexType>
             <sequence>
+                <element name="prefix"
+                         type="string"
+                         minOccurs="0"/>
                 <element name="inputdir"
-                         type="anyURI"/>
+                         type="anyURI"
+                         minOccurs="0"/>
                 <element name="outputdir"
-                         type="anyURI"/>
+                         type="anyURI"
+                         minOccurs="0"/>
                 <element name="zip"
-                         type="boolean"/>
+                         type="boolean"
+                         minOccurs="0"/>
             </sequence>
         </complexType>
     </element>

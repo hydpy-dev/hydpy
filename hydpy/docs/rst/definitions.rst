@@ -429,9 +429,25 @@ identical but target different properties. `Factor sequences` (derived from
 sequences (derived from |FluxSequence|) deal with fluxes like global radiation or
 discharge.
 
-`Inlet, outlet, receiver, and sender sequences` usually serve to exchange data with
-other models.  We often subsume them as "link sequences".  See the :ref:`element`
-subsection for more information.
+`Link sequences` (derived from |LinkSequence|) do not carry data of their own but point
+to the data handled by the `node sequences` (derived from |NodeSequence|) of node
+instances.   They enable models to query data from and manipulate the data of node
+instances, which is the standard way of data exchange between model instances over the
+network.
+
+`Inlet and outlet` sequences are the two most relevant `link sequence` types.  They
+serve to pass fluxes downstream.  `Inlet sequences` (derived from |InletSequence|)
+enable, for example, routing models to get inflow from upstream models, while `outlet
+sequences` (derived from |OutletSequences| enable them to pass it in modified form to
+downstream models.
+
+`Receiver and sender sequences` are also `link sequences`. They allow the distribution
+of different kinds of information to arbitrary locations in the network.  For example,
+a downstream routing model could use a `sender sequence` (derived from
+|SenderSequence|) to pass its water level to a "remote node", and an upstream pumping
+station model could query this information from the "remote node" via a `receiver
+sequence` (derived from |ReceiverSequence|) to stop its pumping as soon the actual
+water level exceeds a critical threshold.
 
 `Aide sequences` (derived from |AideSequence|) only store temporary information and are
 of little importance to users.

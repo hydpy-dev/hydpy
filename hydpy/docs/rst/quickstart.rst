@@ -163,6 +163,31 @@ out about its features:
 >>> obj.upper()  # What does its method `upper` do?
 'TEST'
 
+Assigning an object to a variable does not involve copying it.  One merely gets another
+reference (or pointer) to the same object:
+
+>>> list1 = [1, 2]
+>>> list2 = list1
+>>> assert list1 is list2
+>>> list2.append(3)
+>>> assert list1 == [1, 2, 3]
+
+The same holds for passing objects to functions:
+
+>>> def append_value(list_, value):
+...     list_.append(value)
+...
+>>> append_value(list2, 4)
+>>> assert list1 == [1, 2, 3, 4]
+
+.. caution::
+
+    Python provides functions for making flat and deep copies of objects.  "Deep
+    copying" means that an object **and** its subobjects are copied.  This effort is
+    favourable in some situations but results in additional memory usage and
+    computation time.  HydPy's Cython-based extension classes, and thus HydPy in
+    general, do **not** support deep copying.
+
 
 .. _run_hydpy:
 

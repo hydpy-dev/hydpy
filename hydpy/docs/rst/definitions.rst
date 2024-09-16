@@ -479,3 +479,28 @@ Second, HydPy allows connecting an `output sequence` of one model instance to an
 `input sequence` of another model instance.  (This feature is unhandy, so we added the
 submodel concept to HydPy 6.0.  Only a few cases are left where the input-output
 sequence mechanism is still required.)
+
+.. _time_grid:
+
+time grid
+_________
+
+In HydPy, a `time grid` is a set of equally long time intervals defined by an instance
+of the |Timegrid| class.  Due to the intervals' equal length, a `time grid` instance is
+outright specified by the starting point of its first interval (|Timegrid.firstdate|),
+the endpoint of its last interval (|Timegrid.lastdate|), and the size of a single
+interval (|Timegrid.stepsize|).
+
+When working on a :ref:`project`, one usually deals with three different `time grids`,
+which are handled by an instance of class |Timegrids|:
+
+ * The `initialisation time grid` (|Timegrids.init|) covers the relevant period
+   completely.  For example, when HydPy prepares to read time series data from disk, it
+   allocates just enough RAM as indicated by |Timegrids.init|.
+ * The `simulation time grid` (|Timegrids.sim|) defines the period of the next
+   simulation run.  By default, it equals |Timegrids.init|), but one can truncate it to
+   a subperiod of the initialisation period, which helps, for example, implementing
+   data assimilation methods efficiently.
+ * The `evaluation time grid` (|Timegrids.eval_|) defines the period of the next
+   statistical or graphical evaluation of simulation results.  Functions like |nse|
+   respect |Timegrids.eval_| automatically if not instructed otherwise.

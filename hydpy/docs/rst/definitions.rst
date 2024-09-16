@@ -1,4 +1,8 @@
 
+.. role:: raw-html(raw)
+   :format: html
+
+
 .. _definitions:
 
 Definitions
@@ -201,6 +205,23 @@ an :ref:`application_model` like |hland_96| claims it can consider additional ru
 concentration processes by using a submodel that follows the |RConcModel_V1| interface,
 they can use, for example, |rconc_uh| for this purpose, as it one of the submodels
 following the |RConcModel_V1| interface.
+
+.. _submodel_port:
+
+submodel port
+_____________
+
+A :ref:`main_model` instance requires connections to all its direct submodel instances
+(but not to its sub-submodel instances).  These attribute-like connections are named
+`submodel port` or just `port`.  To continue the above example, |hland_96| has the
+`rconcmodel` port to keep a |rconc_uh| submodel accessible.  Technically, such a `port`
+is implemented via an instance of the class |SubmodelProperty| (for managing a single
+submodel instance as an attribute) or |SubmodelsProperty| (for managing a submodel
+vector as an attribute).
+
+Submodel graphs like the one shown in the :ref:`model_overview` section alternate
+between model and port names (main model :raw-html:`&rarr;` port :raw-html:`&rarr;`
+submodel :raw-html:`&rarr;` port :raw-html:`&rarr;` sub-submodel...).
 
 .. _stand_alone_model:
 

@@ -446,7 +446,10 @@ VARIABLES
         data type = |S1
         Attributes
             long_name = river name
-
+TIME GRID
+    first date = 1989-11-01 00:00:00+01:00
+    last date = 2021-01-01 00:00:00+01:00
+    step size = 1d
 
 The time series of all sequences of the same type are stored in one file.  So, by
 default, a NetCDF filename is shorter than an ASCII filename as it does not need a

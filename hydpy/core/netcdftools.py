@@ -367,7 +367,10 @@ def summarise_ncfile(ncfile: Union[netcdf4.Dataset, str], /) -> str:
             data type = |S1
             Attributes
                 long_name = river name
-
+    TIME GRID
+        first date = 1989-11-01 00:00:00+01:00
+        last date = 2021-01-01 00:00:00+01:00
+        step size = 1d
 
     Alternatively, you can pass a NetCDF4 `Dataset` object:
 
@@ -413,6 +416,17 @@ def summarise_ncfile(ncfile: Union[netcdf4.Dataset, str], /) -> str:
                     append(f"{i2}Attributes")
                     for attr_var in attrs_var:
                         append(f"{i3}{attr_var} = {var.getncattr(attr_var)}")
+
+        timereference: Optional[str] = getattr(nc, "timereference", None)
+        if timereference is not None:
+            append("TIME GRID")
+            tg = _query_timegrid(ncfile=nc, left=timereference.startswith("left"))
+            opts = hydpy.pub.options
+            firstdate = tg.firstdate.to_string(style="iso2", utcoffset=opts.utcoffset)
+            append(f"{i1}first date = {firstdate}")
+            lastdate = tg.lastdate.to_string(style="iso2", utcoffset=opts.utcoffset)
+            append(f"{i1}last date = {lastdate}")
+            append(f"{i1}step size = {tg.stepsize}")
 
         return "\n".join(lines)
 
@@ -785,7 +799,11 @@ sequence (`SM`).
             f"interval boundary` according to the current value of the global "
             f"`timestampleft` option."
         )
-    with opts.timestampleft(left):
+    return _query_timegrid(ncfile=ncfile, left=left)
+
+
+def _query_timegrid(ncfile: netcdf4.Dataset, left: bool) -> timetools.Timegrid:
+    with hydpy.pub.options.timestampleft(left):
         timepoints = ncfile[varmapping["timepoints"]]
         refdate = timetools.Date.from_cfunits(timepoints.units)
         return timetools.Timegrid.from_timepoints(

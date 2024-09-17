@@ -100,7 +100,10 @@ process happens.  After that, the interface object is no longer available:
 Traceback (most recent call last):
 ...
 hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager currently \
-handles no NetCDF writer object.
+handles no NetCDF writer object. Consider applying the \
+`pub.sequencemanager.netcdfwriting` context manager first (search in the \
+documentation for help).
+
 
 We set the time series values of two test sequences to zero to demonstrate that
 reading the data back in actually works:
@@ -131,7 +134,10 @@ InfoArray([[16., 17.],
 >>> pub.sequencemanager.netcdfreader
 Traceback (most recent call last):
 ...
-RuntimeError: The sequence file manager currently handles no NetCDF reader object.
+hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager currently \
+handles no NetCDF reader object. Consider applying the \
+`pub.sequencemanager.netcdfreading` context manager first (search in the \
+documentation for help).
 
 We cannot invert spatial aggregation.  Hence reading averaged time series is left for
 postprocessing tools.  To show that writing the averaged series worked, we access both

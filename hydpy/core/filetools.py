@@ -1665,8 +1665,10 @@ not allowed to overwrite the existing file `...`.
         >>> sm.netcdfreader
         Traceback (most recent call last):
         ...
-        RuntimeError: The sequence file manager currently handles no NetCDF reader \
-object.
+        hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager \
+currently handles no NetCDF reader object. Consider applying the \
+`pub.sequencemanager.netcdfreading` context manager first (search in the \
+documentation for help).
 
         >>> sm.open_netcdfreader()
         >>> from hydpy import classname
@@ -1677,12 +1679,16 @@ object.
         >>> sm.netcdfreader
         Traceback (most recent call last):
         ...
-        RuntimeError: The sequence file manager currently handles no NetCDF reader \
-object.
+        hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager \
+currently handles no NetCDF reader object. Consider applying the \
+`pub.sequencemanager.netcdfreading` context manager first (search in the \
+documentation for help).
         """
         if self._netcdfreader is None:
-            raise RuntimeError(
-                "The sequence file manager currently handles no NetCDF reader object."
+            raise exceptiontools.AttributeNotReady(
+                "The sequence file manager currently handles no NetCDF reader object. "
+                "Consider applying the `pub.sequencemanager.netcdfreading` context "
+                "manager first (search in the documentation for help)."
             )
         return self._netcdfreader
 
@@ -1717,7 +1723,9 @@ object.
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager \
-currently handles no NetCDF writer object.
+currently handles no NetCDF writer object. Consider applying the \
+`pub.sequencemanager.netcdfwriting` context manager first (search in the \
+documentation for help).
 
         >>> sm.open_netcdfwriter()
         >>> from hydpy import classname
@@ -1729,11 +1737,15 @@ currently handles no NetCDF writer object.
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager \
-currently handles no NetCDF writer object.
+currently handles no NetCDF writer object. Consider applying the \
+`pub.sequencemanager.netcdfwriting` context manager first (search in the \
+documentation for help).
         """
         if self._netcdfwriter is None:
             raise exceptiontools.AttributeNotReady(
-                "The sequence file manager currently handles no NetCDF writer object."
+                "The sequence file manager currently handles no NetCDF writer object. "
+                "Consider applying the `pub.sequencemanager.netcdfwriting` context "
+                "manager first (search in the documentation for help)."
             )
         return self._netcdfwriter
 

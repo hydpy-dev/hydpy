@@ -87,8 +87,16 @@ initialising class |HydPy|:
 
 All these file managers offer the |FileManager.currentdir| property (which so far does
 not support the `with` syntax) to change the directory selected for reading or writing
-data.  The only file managers providing other user-relevant options (which do support
-the `with` syntax) are |ConditionManager| and |SequenceManager|.  One example is option
+data.  By default, the |FileManager.currentdir| is within the base directory defined by
+the respective file manager:
+
+>>> assert pub.networkmanager.BASEDIR == "network"
+>>> assert pub.controlmanager.BASEDIR == "control"
+>>> assert pub.conditionmanager.BASEDIR == "conditions"
+>>> assert pub.sequencemanager.BASEDIR == "series"
+
+The only file managers providing other user-relevant options (which do support the
+`with` syntax) are |ConditionManager| and |SequenceManager|.  One example is option
 |SequenceManager.filetype| for choosing between the ASCII, NetCDF, and Numpy file
 formats.
 

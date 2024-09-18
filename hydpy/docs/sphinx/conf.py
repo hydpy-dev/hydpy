@@ -15,6 +15,7 @@
 
 from collections.abc import Callable
 import dataclasses
+import datetime
 import os
 import sys
 from typing import Any
@@ -192,7 +193,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "HydPy"
-copyright = "2023, HydPy Developers"
+copyright = f"2013-{datetime.datetime.now().year}, HydPy Developers"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

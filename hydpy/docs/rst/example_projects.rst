@@ -1,5 +1,6 @@
 
 .. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN
+.. _`Attribution-NonCommercial-ShareAlike International 4.0 (CC BY-NC-SA 4.0)`: https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.en
 
 .. _example_projects:
 
@@ -30,7 +31,7 @@ Federal Insitute of Hydrology.  The Hessian Agency for Nature Conservation, Envi
 and Geology (HLNUG) kindly provides the measurement data for the gauges Marburg and
 Asslar, and the Federal Waterways and Shipping Administration (WSV) those of Kalkofen
 and Leun.  All this time series data is licensed under
-Attribution-NonCommercial-ShareAlike International 4.0 (CC BY-NC-SA 4.0).
+`Attribution-NonCommercial-ShareAlike International 4.0 (CC BY-NC-SA 4.0)`_.
 
 Click :download:`here <HydPy-H-Lahn.zip>` to download `HydPy-H-Lahn`.
 

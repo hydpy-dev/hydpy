@@ -9,11 +9,13 @@ documentation.
 
 # import...
 # ...from standard library
+import datetime
 import importlib
 import inspect
 import os
 import shutil
 import sys
+import textwrap
 import zipfile
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -176,6 +178,26 @@ if not os.path.isdir(themespath):
 shutil.copytree(themespath, themespathdest)
 
 # Collect all example projects in individual zip archives
+
+header = (
+    f"This README describes a Hydpy {hydpy.__version__} example project.\n"
+    f"© 2013-{datetime.datetime.now().year} HydPy Developers\n"
+    f"https://github.com/hydpy-dev/hydpy/\n"
+)
+
+filepath = os.path.join(rst.__path__[0], "example_projects.rst")
+with open(filepath, encoding="utf-8") as rstfile:
+    descriptions = rstfile.read()
+
+for line in descriptions.splitlines():
+    if line.startswith(".. _example_projects:"):
+        break
+    if line.startswith(".. _`"):
+        assert line.count("`: ") == 1
+        link, url = line[5:].split("`: ")
+        descriptions = descriptions.replace(f"`{link}`_", f"{link} [{url}]")
+
+mark2 = "Click :download:"
 datadirpath = data.__path__[0]
 for projectname in os.listdir(datadirpath):
     projectpath = os.path.join(datadirpath, projectname)
@@ -189,3 +211,15 @@ for projectname in os.listdir(datadirpath):
                         filename=os.path.join(subdirpath, filename),
                         arcname=os.path.join(zipdirpath, filename),
                     )
+            mark1 = f".. _{projectname}:\n"
+            assert mark1 in descriptions, f"{mark1} not in project description"
+            description = descriptions.split(mark1)[1]
+            assert mark2 in descriptions, f"{mark2} not in project description"
+            description = description.split(mark2)[0]
+            paragraphs = (
+                "\n".join(textwrap.wrap(text=p, width=90, break_long_words=False))
+                for p in description.split("\n\n")[1:]
+            )
+            description = "\n\n".join(paragraphs)
+            description = "\n".join([header, description])
+            zipfile_.writestr(zinfo_or_arcname="README.txt", data=description)

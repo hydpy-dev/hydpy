@@ -25,12 +25,13 @@ river gauge (Marburg, Asslar, Leun, Kalkofen) at its outlet.  The sub-catchments
 consist of a different number of zones.
 
 The meteorological input data stems from the gridded precipitation data set HYRAS-DE
-PRE v5.0 and the gridded_temperature dataset HYRAS-DE TAS v5.0 of the German Weather
-Service (DWD), which was spatially averaged over HydPy-H-HBV96 subbasins by the German
-Federal Insitute of Hydrology.  The Hessian Agency for Nature Conservation, Environment
-and Geology (HLNUG) kindly provides the measurement data for the gauges Marburg and
-Asslar, and the Federal Waterways and Shipping Administration (WSV) those of Kalkofen
-and Leun.  All this time series data is licensed under
+PRE v5.0, the gridded temperature dataset HYRAS-DE TAS v5.0, and the gridded global
+shortwave radiation dataset HYRAS-DE RSDS v3.0 of the German Weather Service (DWD),
+which was spatially averaged over HydPy-H-HBV96 subbasins by the German Federal
+Insitute of Hydrology.  The Hessian Agency for Nature Conservation, Environment and
+Geology (HLNUG) kindly provides the measurement data for the gauges Marburg and Asslar,
+and the Federal Waterways and Shipping Administration (WSV) those of Kalkofen and Leun.
+All this time series data is licensed under
 `Attribution-NonCommercial-ShareAlike International 4.0 (CC BY-NC-SA 4.0)`_.
 
 Click :download:`here <HydPy-H-Lahn.zip>` to download `HydPy-H-Lahn`.

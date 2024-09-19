@@ -662,7 +662,7 @@ patch(template % "StateSequences") as states:
         `states`.
 
         >>> from hydpy import prepare_model
-        >>> model = prepare_model("hland_96", "1d")
+        >>> model = prepare_model("hland_96")
         >>> for subseqs in model.sequences.iosubsequences:
         ...     print(subseqs.name)
         inputs
@@ -674,7 +674,7 @@ patch(template % "StateSequences") as states:
         the |Sequences.iosubsequences| property only yields those subgroups which are
         non-empty:
 
-        >>> model = prepare_model("musk_classic", "1d")
+        >>> model = prepare_model("musk_classic")
         >>> for subseqs in model.sequences.iosubsequences:
         ...     print(subseqs.name)
         fluxes
@@ -786,7 +786,7 @@ patch(template % "StateSequences") as states:
         >>> from hydpy import prepare_model, pub
         >>> pub.timegrids = "2000-01-01", "2000-01-10", "1d"
         >>> with pub.options.usedefaultvalues(True):
-        ...     model = prepare_model("lland_dd", "1d")
+        ...     model = prepare_model("lland_dd")
         ...     model.parameters.control.nhru(2)
         >>> model.sequences.states.bowa = -100.0
         >>> model.sequences.trim_conditions()
@@ -1125,7 +1125,7 @@ class Sequence_(variabletools.Variable):
     shape:
 
     >>> from hydpy import prepare_model
-    >>> model = prepare_model("lland_dd", "1d")
+    >>> model = prepare_model("lland_dd")
     >>> model.sequences.fluxes.qa.shape
     ()
     >>> nkor = model.sequences.fluxes.nkor
@@ -3298,7 +3298,7 @@ class StateSequence(OutputSequence, ConditionSequence):
     base model |hland_96| with a shape of two:
 
     >>> from hydpy import prepare_model, print_vector
-    >>> model = prepare_model("hland", "1d")
+    >>> model = prepare_model("hland")
     >>> model.parameters.control.fc.shape = (2,)
     >>> model.parameters.control.fc = 100.0
     >>> sm = model.sequences.states.sm

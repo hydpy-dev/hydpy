@@ -281,10 +281,7 @@ def load_modelmodule(module: Union[types.ModuleType, str], /) -> types.ModuleTyp
     return module
 
 
-def prepare_model(
-    module: Union[types.ModuleType, str],
-    timestep: Optional[timetools.PeriodConstrArg] = None,
-) -> modeltools.Model:
+def prepare_model(module: Union[types.ModuleType, str]) -> modeltools.Model:
     """Prepare and return the model of the given module.
 
     In usual *HydPy* projects, each control file only prepares an individual model
@@ -299,8 +296,6 @@ def prepare_model(
     See the documentation of |dam_v001| on how to apply function |prepare_model|
     properly.
     """
-    if timestep is not None:
-        hydpy.pub.options.parameterstep = timetools.Period(timestep)
     module = load_modelmodule(module)
     model = module.Model()
     assert isinstance(model, modeltools.Model)

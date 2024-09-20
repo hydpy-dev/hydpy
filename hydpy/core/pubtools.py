@@ -45,15 +45,15 @@ class TimegridsProperty(
 ):
     """|DefaultProperty| specialised for |Timegrids| objects.
 
-    For convenience, property |TimegridsProperty| can create a |Timegrids|
-    object from a combination of a first and a last date (of type |str| or
-    |Date|) and a step size (of type |str| or |Period|):
+    For convenience, property |TimegridsProperty| can create a |Timegrids| object from
+    a combination of a first and last date (of type |str| or |Date|) and a step size
+    (of type |str| or |Period|):
 
     >>> from hydpy import pub, Timegrid, Timegrids
     >>> pub.timegrids = "2000-01-01", "2010-01-01", "1d"
 
-    The given date and period information applies for the |Timegrids.init|,
-    the |Timegrids.sim|, and the |Timegrids.eval_| attribute, as well:
+    The given date and period information applies for the |Timegrids.init|, the
+    |Timegrids.sim|, and the |Timegrids.eval_| attribute:
 
     >>> pub.timegrids.init
     Timegrid("2000-01-01 00:00:00",
@@ -108,13 +108,9 @@ class TimegridsProperty(
 
 
 class Pub(types.ModuleType):
-    """Base class/module of module |pub|.
+    """Base class of the singleton module instance |pub|.
 
-    After initialisation |pub| takes over |Pub| as its new base class.  The reason for
-    this complicated trick is that it makes the attribute handling of |pub| easier for
-    users.
-
-    You can import |pub| like other modules:
+    You can import |pub| like "normal" modules:
 
     >>> from hydpy import pub
 
@@ -146,7 +142,7 @@ or `str`), but objects of the types `None, None, and None` are given.
               "2001-01-01 00:00:00",
               "1d")
 
-    After deleting, the attribute is not accessible anymore:
+    After deleting it, the attribute is no longer accessible:
 
     >>> del pub.timegrids
     >>> pub.timegrids

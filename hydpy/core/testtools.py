@@ -2147,6 +2147,57 @@ def warn_later() -> Iterator[None]:
         print(record.category.__name__, record.message, sep=": ")
 
 
+def print_filestructure(dirpath: str) -> None:
+    """Print the file structure of the given directory path in alphabetical order.
+
+    >>> import os
+    >>> dirpath = os.path.join(data.__path__[0], "HydPy-H-Lahn")
+    >>> from hydpy import data
+    >>> from hydpy.core.testtools import print_filestructure
+    >>> print_filestructure(dirpath)  # doctest: +ELLIPSIS
+    * ...hydpy/data/HydPy-H-Lahn
+        - conditions
+            - init_1996_01_01_00_00_00
+                + land_dill_assl.py
+                ...
+                + stream_lahn_marb_lahn_leun.py
+        - control
+            - default
+                + land.py
+                ...
+                + stream_lahn_marb_lahn_leun.py
+        + multiple_runs.xml
+        + multiple_runs_alpha.xml
+        - network
+            - default
+                + headwaters.py
+                + nonheadwaters.py
+                + streams.py
+        - series
+            - default
+                + dill_assl_obs_q.asc
+                ...
+                + obs_q.nc
+        + single_run.xml
+        + single_run.xmlt
+    """
+
+    def _print_filestructure(dirpath: str, indent: int, /) -> None:
+        prefix = indent * " "
+        for name in sorted(os.listdir(dirpath)):
+            if name != "__pycache__":
+                subpath = os.path.join(dirpath, name)
+                if os.path.isdir(subpath):
+                    print(f"{prefix}- {name}")
+                    _print_filestructure(subpath, indent + 4)
+                else:
+                    print(f"{prefix}+ {name}")
+
+    dirpath = os.path.abspath(dirpath)
+    print(objecttools.repr_(f"* {dirpath}"))
+    _print_filestructure(dirpath, 4)
+
+
 def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     """Prepare an IO example configuration for testing purposes.
 

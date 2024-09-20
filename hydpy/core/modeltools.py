@@ -2357,6 +2357,25 @@ element.
         >>> logs.loggedwindspeed2m
         loggedwindspeed2m(2.0)
 
+        Method |Model.save_conditions| writes lines that use function |controlcheck|.
+        It, therefore, must know the control directory related to the written
+        conditions, for which it relies on the |ControlManager.currentdir| property of
+        the |ControlManager| instance of module |pub|.  So, make sure this property
+        points to the correct directory.  Otherwise, errors like the following might
+        occur:
+
+        >>> with TestIO():  # doctest: +ELLIPSIS
+        ...     del pub.controlmanager.currentdir
+        ...     dill_assl.save_conditions("submodel_conditions.py")
+        Traceback (most recent call last):
+        ...
+        RuntimeError: While trying to save the actual conditions of element `?`, the \
+following error occurred: While trying to determine the related control file \
+directory for configuring the `controlcheck` function, the following error occurred: \
+The current working directory of the ControlManager object has not been defined \
+manually and cannot be determined automatically: `...control` does not contain any \
+available directories.
+
         .. testsetup::
 
             >>> from hydpy import Element, Node, pub
@@ -2409,9 +2428,16 @@ element.
                         submodelnames.add(model.name)
                 for submodelname in sorted(submodelnames):
                     lines.append(f"from hydpy.models import {submodelname}\n")
+                try:
+                    controldir = con.currentdir
+                except BaseException:
+                    objecttools.augment_excmessage(
+                        "While trying to determine the related control file directory "
+                        "for configuring the `controlcheck` function"
+                    )
                 lines.append(
                     f'\ncontrolcheck(projectdir=r"{con.projectdir}", '
-                    f'controldir="{con.currentdir}", '
+                    f'controldir="{controldir}", '
                     f'stepsize="{hydpy.pub.timegrids.stepsize}")\n\n'
                 )
                 for seq in self.sequences.conditionsequences:

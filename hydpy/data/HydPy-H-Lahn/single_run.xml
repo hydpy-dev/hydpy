@@ -3,6 +3,7 @@
               xmlns:hpcsr="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/HydPyConfigSingleRun.xsd">
 
     <options>
+        <checkprojectstructure>true</checkprojectstructure>
         <checkseries>true</checkseries>
         <parameterstep>1d</parameterstep>
         <reprdigits>6</reprdigits>

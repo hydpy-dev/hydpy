@@ -8,8 +8,9 @@ import contextlib
 import os
 import runpy
 import shutil
-import zipfile
 import types
+import warnings
+import zipfile
 
 # ...from site-packages
 import numpy
@@ -34,7 +35,7 @@ class Folder2Path:
 
     You can pass positional or keyword arguments when initialising |Folder2Path|.  For
     positional arguments, the folder and its path are assumed to be identical.  For
-    keyword arguments, the keyword corresponds to the folder name and its value to the
+    keyword arguments, the keyword corresponds to the folder name, and its value is the
     pathname:
 
     >>> from hydpy.core.filetools import Folder2Path
@@ -1807,3 +1808,62 @@ documentation for help).
         handler = self._jitaccesshandler
         if handler is not None:
             handler.write_slices(idx)
+
+
+_FILEMANAGERS = (NetworkManager, ControlManager, ConditionManager, SequenceManager)
+
+
+def check_projectstructure(projectpath: str) -> None:
+    """Raise a warning if the given project root directory does not exist or does not
+    contain all relevant base directories.
+
+    First, |check_projectstructure| checks if the root directory exists:
+
+    >>> from hydpy import check_projectstructure, HydPy, pub, TestIO
+    >>> TestIO.clear()
+    >>> with TestIO():
+    ...     check_projectstructure("my_project")  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    UserWarning: The project root directory `...my_project` does not exists.
+
+    Second, it lists all missing base directories:
+
+    >>> import os
+    >>> from hydpy.core.testtools import warn_later
+    >>> with TestIO(), warn_later(), pub.options.checkprojectstructure(True):
+    ...     os.makedirs(os.path.join("my_project", "control"))
+    ...     hp = HydPy("my_project")  # doctest: +ELLIPSIS
+    UserWarning: The project root directory ...my_project has no base directory \
+named `network` as required by the network manager.
+    UserWarning: The project root directory ...my_project has no base directory \
+named `conditions` as required by the condition manager.
+    UserWarning: The project root directory ...my_project has no base directory \
+named `series` as required by the sequence manager.
+
+    Note that class |HydPy| calls function |check_projectstructure| automatically if
+    option |Options.checkprojectstructure| is enabled:
+
+    >>> TestIO.clear()
+    >>> with TestIO(), pub.options.checkprojectstructure(False):
+    ...     hp = HydPy("my_project")
+
+    >>> with TestIO(), pub.options.checkprojectstructure(True):
+    ...     hp = HydPy("my_project")  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    UserWarning: The project root directory `...my_project` does not exists.
+    """
+
+    projectpath = os.path.abspath(projectpath)
+    if os.path.exists(projectpath):
+        for filemanager in _FILEMANAGERS:
+            basepath = os.path.join(projectpath, filemanager.BASEDIR)
+            if not os.path.exists(basepath):
+                warnings.warn(
+                    f"The project root directory {projectpath} has no base directory "
+                    f"named `{filemanager.BASEDIR}` as required by the "
+                    f"{filemanager.__name__[:-7].lower()} manager."
+                )
+    else:
+        warnings.warn(f"The project root directory `{projectpath}` does not exists.")

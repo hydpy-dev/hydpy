@@ -214,7 +214,7 @@ required to prepare the model properly.
 
     The values of the derived parameters, which need to be calculated before starting a
     simulation run based on the control parameters and eventually based on some other
-    settings (e.g. the initialisation period), are also ready.  Here we show the value
+    settings (e.g. the initialisation period), are also ready.  Here, we show the value
     of the derived parameter  |hland_derived.Z|, representing the average (reference)
     subbasin elevation:
 
@@ -379,7 +379,7 @@ required to prepare the model properly.
     >>> round_(hp.nodes.dill_assl.sequences.sim.series)
     11.757526, 8.865079, 7.101815, 5.994195
 
-    By comparison, you see that the lastly calculated (or read) time series value is
+    By comparison, you see that the last calculated (or read) time series value is
     the actual one for each |Sequence_| object.  This mechanism allows, for example, to
     write the final states of soil moisture sequence |hland_states.SM| and use them as
     initial conditions later, even if its complete time series were not available:
@@ -801,6 +801,8 @@ directory: '...land_dill_assl_hland_96p_input_p.asc'
         self._collectives = None
         self._deviceorder = None
         if projectname is not None:
+            if hydpy.pub.options.checkprojectstructure:
+                filetools.check_projectstructure(projectname)
             hydpy.pub.projectname = projectname
             hydpy.pub.networkmanager = filetools.NetworkManager()
             hydpy.pub.controlmanager = filetools.ControlManager()

@@ -21,6 +21,9 @@
     <element name="options">
         <complexType>
             <choice maxOccurs="unbounded">
+                <element name="checkprojectstructure"
+                         type="boolean"
+                         minOccurs="0"/>
                 <element name="checkseries"
                          type="boolean"
                          minOccurs="0"/>

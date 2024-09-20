@@ -574,6 +574,7 @@ correctly refer to one of the available XML schema files \
         >>> interface.update_options()
         >>> pub.options
         Options(
+            checkprojectstructure -> TRUE
             checkseries -> TRUE
             ellipsis -> 0
             parameterstep -> Period("1d")
@@ -592,6 +593,7 @@ correctly refer to one of the available XML schema files \
             warnsimulationstep -> FALSE
             warntrim -> TRUE
         )
+        >>> pub.options.checkprojectstructure = False
         >>> pub.options.printprogress = False
         >>> pub.options.reprdigits = 6
         """

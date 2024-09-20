@@ -149,6 +149,7 @@ def main(  # pylint: disable=too-many-branches
                     del pub.projectname
                     del pub.timegrids
                     options = pub.options
+                    options.checkprojectstructure = False
                     del options.checkseries
                     options.ellipsis = 0
                     del pub.options.parameterstep

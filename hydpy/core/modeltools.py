@@ -2360,10 +2360,9 @@ element.
 
         Method |Model.save_conditions| writes lines that use function |controlcheck|.
         It, therefore, must know the control directory related to the written
-        conditions, for which it relies on the |ControlManager.currentdir| property of
-        the |ControlManager| instance of module |pub|.  So, make sure this property
-        points to the correct directory.  Otherwise, errors like the following might
-        occur:
+        conditions, for which it relies on the |FileManager.currentdir| property of the
+        control manager instance of module |pub|.  So, make sure this property points
+        to the correct directory.  Otherwise, errors like the following might occur:
 
         >>> with TestIO():  # doctest: +ELLIPSIS
         ...     del pub.controlmanager.currentdir
@@ -2398,7 +2397,11 @@ available directories.
                     hydpy.pub.conditionmanager.inputpath,
                     self.__prepare_conditionfilename(filename),
                 )
-                runpy.run_path(filepath, init_globals=dict_)
+                with hydpy.pub.options.trimvariables(False):
+                    runpy.run_path(filepath, init_globals=dict_)
+                for model in self.find_submodels(include_mainmodel=True).values():
+                    for seq in reversed(tuple(model.sequences.conditionsequences)):
+                        seq.trim()
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to load the initial conditions of element "

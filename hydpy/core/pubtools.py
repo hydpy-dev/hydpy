@@ -173,3 +173,21 @@ is not defined at the moment.
         super().__init__(name=name, doc=doc)
         self.options = optiontools.Options()
         self.scriptfunctions = {}
+
+    @property
+    def filemanagers(self) -> Iterator[filetools.FileManager]:
+        """Yield all file managers.
+
+        >>> from hydpy import HydPy, pub
+        >>> hp = HydPy("test")
+        >>> for filemanager in pub.filemanagers:
+        ...     type(filemanager).__name__
+        'NetworkManager'
+        'ControlManager'
+        'ConditionManager'
+        'SequenceManager'
+        """
+        yield self.networkmanager
+        yield self.controlmanager
+        yield self.conditionmanager
+        yield self.sequencemanager

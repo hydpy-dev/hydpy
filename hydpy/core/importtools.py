@@ -619,6 +619,7 @@ following error occurred: The given `lland_knauf` instance is not considered sha
     @overload
     def __init__(
         self: SubmodelAdder[Literal[0], TM_contra, TI_contra],
+        *,
         wrapped: PrepSub0D[TM_contra, TI_contra],
         submodelname: str,
         submodelinterface: type[TI_contra],
@@ -634,6 +635,7 @@ following error occurred: The given `lland_knauf` instance is not considered sha
     @overload
     def __init__(
         self: SubmodelAdder[Literal[1], TM_contra, TI_contra],
+        *,
         wrapped: PrepSub1D[TM_contra, TI_contra],
         submodelname: str,
         submodelinterface: type[TI_contra],
@@ -648,6 +650,7 @@ following error occurred: The given `lland_knauf` instance is not considered sha
 
     def __init__(
         self,
+        *,
         wrapped: Union[
             PrepSub0D[TM_contra, TI_contra], PrepSub1D[TM_contra, TI_contra]
         ],
@@ -842,7 +845,6 @@ following error occurred: The given `lland_knauf` instance is not considered sha
             self._tidy_up()
 
     def _check_submodelinterface(self, submodeltype: type[modeltools.Model]) -> None:
-        # pylint: disable=protected-access
         if not issubclass(submodeltype, self.submodelinterface):
             raise TypeError(
                 f"Submodel `{submodeltype.__HYDPY_NAME__}` does not comply with the "

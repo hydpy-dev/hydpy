@@ -2328,7 +2328,7 @@ class XMLVar(XMLSelector):
             name = cast(Name, "?")
         else:
             name = cast(Name, xmlelement.text)
-        item = itemtype(name, master, target)
+        item = itemtype(name=name, master=master, target=target)
         self._collect_variables(item)
         return item
 

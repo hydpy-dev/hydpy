@@ -25,8 +25,9 @@ class Quad(modeltools.Submodel):
     PYTHONCLASS = quadutils.QuadPython
     _cysubmodel: quadutils.QuadBase
 
-    def integrate(
-        self, x0: float, x1: float, nmin: int, nmax: int, tol: float
+    # positional arguments required for consistency with the cythonized extension class:
+    def integrate(  # pylint: disable=too-many-positional-arguments
+        self, x0: float, x1: float, nmin: int, nmax: int, tol: float, /
     ) -> float:
         """Repeatedly integrate the target function within the interval
         :math:`x0 \\leq x \\leq x1` until the estimated accuracy is smaller than
@@ -39,7 +40,7 @@ class Quad(modeltools.Submodel):
         """
         return self._cysubmodel.integrate(x0, x1, nmin, nmax, tol)
 
-    def apply_method0(self, value: float) -> float:
+    def apply_method0(self, value: float, /) -> float:
         """Apply the model method to be integrated.
 
         For example, submodel |wland_model.QuadDVEq_V1| integrates method

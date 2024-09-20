@@ -2505,7 +2505,7 @@ Attribute timegrids of module `pub` is not defined at the moment.
         See method |Node.plot_allseries| for further information.
         """
         return self._plot_series(
-            [self.sequences.sim],
+            sequences=[self.sequences.sim],
             labels=(label,),
             colors=(color,),
             linestyles=(linestyle,),
@@ -2529,7 +2529,7 @@ Attribute timegrids of module `pub` is not defined at the moment.
         See method |Node.plot_allseries| for further information.
         """
         return self._plot_series(
-            [self.sequences.obs],
+            sequences=[self.sequences.obs],
             labels=(label,),
             colors=(color,),
             linestyles=(linestyle,),
@@ -2540,6 +2540,7 @@ Attribute timegrids of module `pub` is not defined at the moment.
 
     def _plot_series(
         self,
+        *,
         sequences: Sequence[sequencetools.IOSequence],
         labels: Iterable[Optional[str]],
         colors: Iterable[Optional[str]],

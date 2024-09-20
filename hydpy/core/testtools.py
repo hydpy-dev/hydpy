@@ -1000,7 +1000,7 @@ class UnitTest(Test):
     """Stores arrays with the resulting values of parameters and/or
     sequences of each new experiment."""
 
-    def __init__(self, model, method, first_example=1, last_example=1, parseqs=None):
+    def __init__(self, model, method, *, first_example=1, last_example=1, parseqs=None):
         del self.inits
         del self.nexts
         del self.results
@@ -1483,6 +1483,7 @@ class NumericalDifferentiator:
 
     def __init__(
         self,
+        *,
         xsequence: sequencetools.ModelSequence,
         ysequences: Iterable[sequencetools.ModelSequence],
         methods: Iterable["modeltools.Method"],

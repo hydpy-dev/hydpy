@@ -595,6 +595,7 @@ patch(template % "StateSequences") as states:
     def __init__(
         self,
         model: modeltools.Model,
+        *,
         cls_inlets: Optional[type[InletSequences]] = None,
         cls_receivers: Optional[type[ReceiverSequences]] = None,
         cls_inputs: Optional[type[InputSequences]] = None,

@@ -300,29 +300,36 @@ class ServerState:
 
     >>> for item in state.parameteritems:
     ...     print(item)
-    SetItem("alpha", "hland_96", "control.alpha", None, "global")
-    SetItem("beta", "hland_96", "control.beta", None, "global")
-    SetItem("lag", "musk_classic", "control.nmbsegments", "lag", "global")
-    SetItem("damp", "musk_classic", "control.coefficients", "damp", "global")
-    AddItem("sfcf_1", "hland_96", "control.sfcf", "control.rfcf", "global")
-    AddItem("sfcf_2", "hland_96", "control.sfcf", "control.rfcf", "global")
-    AddItem("sfcf_3", "hland_96", "control.sfcf", "control.rfcf", "subunit")
-    MultiplyItem("k4", "hland_96", "control.k4", "control.k", "global")
+    SetItem(name="alpha", master="hland_96", target="control.alpha", level="global")
+    SetItem(name="beta", master="hland_96", target="control.beta", level="global")
+    SetItem(name="lag", master="musk_classic", target="control.nmbsegments", \
+keyword="lag", level="global")
+    SetItem(name="damp", master="musk_classic", target="control.coefficients", \
+keyword="damp", level="global")
+    AddItem(name="sfcf_1", master="hland_96", target="control.sfcf", \
+base="control.rfcf", level="global")
+    AddItem(name="sfcf_2", master="hland_96", target="control.sfcf", \
+base="control.rfcf", level="global")
+    AddItem(name="sfcf_3", master="hland_96", target="control.sfcf", \
+base="control.rfcf", level="subunit")
+    MultiplyItem(name="k4", master="hland_96", target="control.k4", base="control.k", \
+level="global")
     >>> for item in state.conditionitems:
     ...     print(item)
-    SetItem("ic_lahn_leun", "hland_96", "states.ic", None, "device")
-    SetItem("ic_lahn_marb", "hland_96", "states.ic", None, "subunit")
-    SetItem("sm_lahn_leun", "hland_96", "states.sm", None, "device")
-    SetItem("sm_lahn_marb", "hland_96", "states.sm", None, "subunit")
-    SetItem("quh", "rconc_uh", "logs.quh", None, "device")
+    SetItem(name="ic_lahn_leun", master="hland_96", target="states.ic", level="device")
+    SetItem(name="ic_lahn_marb", master="hland_96", target="states.ic", level="subunit")
+    SetItem(name="sm_lahn_leun", master="hland_96", target="states.sm", level="device")
+    SetItem(name="sm_lahn_marb", master="hland_96", target="states.sm", level="subunit")
+    SetItem(name="quh", master="rconc_uh", target="logs.quh", level="device")
     >>> for item in state.getitems:
     ...     print(item)
-    GetItem("?", "hland_96", "factors.contriarea")
-    GetItem("current_discharge", "hland_96", "fluxes.qt")
-    GetItem("entire_discharge_series", "hland_96", "fluxes.qt.series")
-    GetItem("?", "hland_96", "states.sm")
-    GetItem("?", "hland_96", "states.sm.series")
-    GetItem("?", "nodes", "nodes.sim.series")
+    GetItem(name="?", master="hland_96", target="factors.contriarea")
+    GetItem(name="current_discharge", master="hland_96", target="fluxes.qt")
+    GetItem(name="entire_discharge_series", master="hland_96", \
+target="fluxes.qt.series")
+    GetItem(name="?", master="hland_96", target="states.sm")
+    GetItem(name="?", master="hland_96", target="states.sm.series")
+    GetItem(name="?", master="nodes", target="nodes.sim.series")
 
     The initialisation also memorises the initial conditions of all elements:
 
@@ -2219,6 +2226,7 @@ def start_server(
     socket: Union[int, str],
     projectname: str,
     xmlfilename: str,
+    *,
     load_conditions: Union[bool, str] = True,
     load_series: Union[bool, str] = True,
     maxrequests: Union[int, str] = 5,

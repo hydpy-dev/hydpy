@@ -2013,6 +2013,7 @@ object named `fc`.
 
     def print_table(
         self,
+        *,
         parametertypes: Optional[
             Sequence[
                 Union[

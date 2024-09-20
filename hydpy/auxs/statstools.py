@@ -1213,6 +1213,7 @@ def hsepd_pdf(
 
 
 def _hsepd_manual(
+    *,
     sigma1: float,
     sigma2: float,
     xi: float,
@@ -1487,7 +1488,14 @@ def hsepd(
     )
     constrained_values = constrain(*original_values)
     result = _hsepd_manual(
-        *constrained_values, sim=sim_, obs=obs_, skip_nan=False, subperiod=False
+        sigma1=constrained_values[0],
+        sigma2=constrained_values[1],
+        xi=constrained_values[2],
+        beta=constrained_values[3],
+        sim=sim_,
+        obs=obs_,
+        skip_nan=False,
+        subperiod=False,
     )
     if return_pars:
         return result, constrained_values

@@ -8730,11 +8730,7 @@ class Main_RadiationModel_V1(modeltools.AdHocModel):
         "radiationmodel", radiationinterfaces.RadiationModel_V1
     )
     def add_radiationmodel_v1(
-        self,
-        radiationmodel: radiationinterfaces.RadiationModel_V1,
-        /,
-        *,
-        refresh: bool,  # pylint: disable=unused-argument
+        self, radiationmodel: radiationinterfaces.RadiationModel_V1, /, *, refresh: bool
     ) -> None:
         """Initialise the given radiation model that follows the |RadiationModel_V1|
         interface.
@@ -8763,11 +8759,7 @@ class Main_RadiationModel_V2(modeltools.AdHocModel):
         "radiationmodel", radiationinterfaces.RadiationModel_V2
     )
     def add_radiationmodel_v2(
-        self,
-        radiationmodel: radiationinterfaces.RadiationModel_V2,
-        /,
-        *,
-        refresh: bool,  # pylint: disable=unused-argument
+        self, radiationmodel: radiationinterfaces.RadiationModel_V2, /, *, refresh: bool
     ) -> None:
         """Initialise the given radiation model that follows the |RadiationModel_V2|
         interface.
@@ -8795,11 +8787,7 @@ class Main_RadiationModel_V3(modeltools.AdHocModel):
         "radiationmodel", radiationinterfaces.RadiationModel_V3
     )
     def add_radiationmodel_v3(
-        self,
-        radiationmodel: radiationinterfaces.RadiationModel_V3,
-        /,
-        *,
-        refresh: bool,  # pylint: disable=unused-argument
+        self, radiationmodel: radiationinterfaces.RadiationModel_V3, /, *, refresh: bool
     ) -> None:
         """Initialise the given radiation model that follows the |RadiationModel_V3|
         interface.
@@ -8830,11 +8818,7 @@ class Main_RadiationModel_V4(modeltools.AdHocModel):
         "radiationmodel", radiationinterfaces.RadiationModel_V4
     )
     def add_radiationmodel_v4(
-        self,
-        radiationmodel: radiationinterfaces.RadiationModel_V4,
-        /,
-        *,
-        refresh: bool,  # pylint: disable=unused-argument
+        self, radiationmodel: radiationinterfaces.RadiationModel_V4, /, *, refresh: bool
     ) -> None:
         """Initialise the given radiation model that follows the |RadiationModel_V4|
         interface.

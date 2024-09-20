@@ -7371,11 +7371,7 @@ class Main_RadiationModel_V1(modeltools.AdHocModel):
         "radiationmodel", radiationinterfaces.RadiationModel_V1
     )
     def add_radiationmodel_v1(
-        self,
-        radiationmodel: radiationinterfaces.RadiationModel_V1,
-        /,
-        *,
-        refresh: bool,  # pylint: disable=unused-argument
+        self, radiationmodel: radiationinterfaces.RadiationModel_V1, /, *, refresh: bool
     ) -> None:
         """Add the given radiation model that follows the |RadiationModel_V1|
         interface.
@@ -7403,11 +7399,7 @@ class Main_RadiationModel_V4(modeltools.AdHocModel):
         "radiationmodel", radiationinterfaces.RadiationModel_V4
     )
     def add_radiationmodel_v4(
-        self,
-        radiationmodel: radiationinterfaces.RadiationModel_V4,
-        /,
-        *,
-        refresh: bool,  # pylint: disable=unused-argument
+        self, radiationmodel: radiationinterfaces.RadiationModel_V4, /, *, refresh: bool
     ) -> None:
         """Add the given radiation model that follows the |RadiationModel_V4|
         interface.

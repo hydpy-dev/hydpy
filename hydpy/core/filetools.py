@@ -1563,11 +1563,8 @@ not allowed to overwrite the existing file `...`.
                 elif sequence.filetype == "asc":
                     timegrid, series = self._load_asc(sequence)
                 else:
-                    assert_never(sequence.filetype)  # pylint does not understand this
-                series = sequence.adjust_series(
-                    timegrid,  # pylint: disable=possibly-used-before-assignment
-                    series,  # pylint: disable=used-before-assignment
-                )
+                    assert_never(sequence.filetype)
+                series = sequence.adjust_series(timegrid, series)
                 sequence.apply_adjusted_series(timegrid, series)
         except BaseException:
             objecttools.augment_excmessage(

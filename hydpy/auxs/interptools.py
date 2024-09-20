@@ -68,7 +68,7 @@ class InterpAlgorithm(_Labeled):
         """Calculate the output values based on the input values defined previously."""
 
     @abc.abstractmethod
-    def calculate_derivatives(self, idx: int) -> None:
+    def calculate_derivatives(self, idx: int, /) -> None:
         """Calculate the derivatives of the output values with respect to the input
         value of the given index."""
 
@@ -187,6 +187,7 @@ dy1/dx3   dy2/dx3
         self,
         xmin: float,
         xmax: float,
+        *,
         idx_input: int = 0,
         idx_output: int = 0,
         points: int = 100,
@@ -386,7 +387,7 @@ interpolator has been defined so far.
         """Calculate the output values based on the input values defined previously."""
         self.algorithm.calculate_values()
 
-    def calculate_derivatives(self, idx: int) -> None:
+    def calculate_derivatives(self, idx: int, /) -> None:
         """Calculate the derivatives of the output values with respect to the input
         value of the given index."""
         self.algorithm.calculate_derivatives(idx)
@@ -400,6 +401,7 @@ interpolator has been defined so far.
         self,
         xmin: float,
         xmax: float,
+        *,
         idx_input: int = 0,
         idx_output: int = 0,
         points: int = 100,
@@ -964,15 +966,16 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
         """The weighted output of the interpolators."""
         return numpy.asarray(self._seasonalinterpolator.outputs)
 
-    def calculate_values(self, idx_toy: int) -> None:
+    def calculate_values(self, idx: int, /) -> None:
         """Calculate the weighted output values based on the input values defined
         previously for the given index referencing the actual time of year."""
-        self._seasonalinterpolator.calculate_values(idx_toy)
+        self._seasonalinterpolator.calculate_values(idx)
 
     def plot(
         self,
         xmin: float,
         xmax: float,
+        *,
         idx_input: int = 0,
         idx_output: int = 0,
         points: int = 100,
@@ -983,8 +986,8 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
         |InterpAlgorithm| objects."""
         for toy, seasonalinterpolator in self:
             figure = seasonalinterpolator.plot(
-                xmin,
-                xmax,
+                xmin=xmin,
+                xmax=xmax,
                 idx_input=idx_input,
                 idx_output=idx_output,
                 points=points,

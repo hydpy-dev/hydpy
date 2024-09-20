@@ -1855,6 +1855,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
 
     def _get_controllines(
         self,
+        *,
         parameterstep: Optional[timetools.PeriodConstrArg] = None,
         simulationstep: Optional[timetools.PeriodConstrArg] = None,
         auxfiler: Optional[auxfiletools.Auxfiler] = None,

@@ -1189,7 +1189,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """
         self._calgorithm.calculate_values()
 
-    def calculate_derivatives(self, idx: int) -> None:
+    def calculate_derivatives(self, idx: int, /) -> None:
         """Calculate the derivatives of the network output values with respect to the
         input value of the given index.
 

@@ -3705,11 +3705,7 @@ class Main_WaterLevelModel_V1(modeltools.ELSModel):
 
     @importtools.prepare_submodel("waterlevelmodel", stateinterfaces.WaterLevelModel_V1)
     def add_waterlevelmodel_v1(
-        self,
-        waterlevelmodel: stateinterfaces.WaterLevelModel_V1,
-        /,
-        *,
-        refresh: bool,  # pylint: disable=unused-argument
+        self, waterlevelmodel: stateinterfaces.WaterLevelModel_V1, /, *, refresh: bool
     ) -> None:
         """Initialise the given `waterlevelmodel` that follows the |WaterLevelModel_V1|
         interface.

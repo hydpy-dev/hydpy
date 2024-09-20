@@ -35,7 +35,7 @@ from hydpy.core.auxfiletools import Auxfiler
 from hydpy.core.devicetools import Element, Elements, FusedVariable, Node, Nodes
 from hydpy.core.exceptiontools import AttributeNotReady, attrready, getattr_, hasattr_
 from hydpy.core.exceptiontools import HydPyDeprecationWarning
-from hydpy.core.filetools import check_projectstructure
+from hydpy.core.filetools import check_projectstructure, create_projectstructure
 from hydpy.core.hydpytools import HydPy
 from hydpy.core.importtools import prepare_model, reverse_model_wildcard_import
 from hydpy.core.itemtools import AddItem, GetItem, MultiplyItem, SetItem
@@ -149,6 +149,7 @@ __all__ = [
     "hasattr_",
     "HydPyDeprecationWarning",
     "check_projectstructure",
+    "create_projectstructure",
     "HydPy",
     "prepare_model",
     "reverse_model_wildcard_import",

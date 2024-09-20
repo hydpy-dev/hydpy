@@ -1867,3 +1867,72 @@ named `series` as required by the sequence manager.
                 )
     else:
         warnings.warn(f"The project root directory `{projectpath}` does not exists.")
+
+
+def create_projectstructure(projectpath: str, overwrite: bool = False) -> None:
+    """Make the given project root directory and its base directories.
+
+    If everything works well, function |create_projectstructure| creates the required
+    directories silently:
+
+    >>> from hydpy import create_projectstructure, TestIO
+    >>> from hydpy.core.testtools import print_filestructure
+    >>> TestIO.clear()
+    >>> with TestIO():
+    ...     create_projectstructure("my_project")
+    ...     print_filestructure("my_project")  # doctest: +ELLIPSIS
+    * ...my_project
+        - conditions
+        - control
+        - network
+        - series
+
+    If the root directory already exists, it does not make any changes and instead
+    raises the following error by default:
+
+    >>> with TestIO():
+    ...     os.makedirs(os.path.join("my_project", "zap"))
+    ...     create_projectstructure("my_project")  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    FileExistsError: While trying to create the basic directory structure for project \
+`my_project`the directory ...iotesting, the following error occurred: The root \
+directory already exists and overwriting is not allowed.
+    >>> with TestIO():
+    ...     print_filestructure("my_project")  # doctest: +ELLIPSIS
+    * ...my_project
+        - conditions
+        - control
+        - network
+        - series
+        - zap
+
+    Use the `overwrite` flag to let function |create_projectstructure| remove the
+    existing directory and make a new one:
+
+    >>> with TestIO():
+    ...     create_projectstructure("my_project", overwrite=True)
+    ...     print_filestructure("my_project")  # doctest: +ELLIPSIS
+    * ...my_project
+        - conditions
+        - control
+        - network
+        - series
+    """
+    projectpath = os.path.abspath(projectpath)
+    try:
+        if os.path.exists(projectpath):
+            if overwrite:
+                shutil.rmtree(projectpath)
+            else:
+                raise FileExistsError(
+                    "The root directory already exists and overwriting is not allowed."
+                )
+        for filenmanager in _FILEMANAGERS:
+            os.makedirs(os.path.join(projectpath, filenmanager.BASEDIR))
+    except BaseException:
+        dirpath, projectname = os.path.split(projectpath)
+        objecttools.augment_excmessage(
+            f"While trying to create the basic directory structure for project "
+            f"`{projectname}`the directory {dirpath}"
+        )

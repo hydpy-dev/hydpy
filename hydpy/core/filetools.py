@@ -8,8 +8,9 @@ import contextlib
 import os
 import runpy
 import shutil
-import zipfile
 import types
+import warnings
+import zipfile
 
 # ...from site-packages
 import numpy
@@ -34,7 +35,7 @@ class Folder2Path:
 
     You can pass positional or keyword arguments when initialising |Folder2Path|.  For
     positional arguments, the folder and its path are assumed to be identical.  For
-    keyword arguments, the keyword corresponds to the folder name and its value to the
+    keyword arguments, the keyword corresponds to the folder name, and its value is the
     pathname:
 
     >>> from hydpy.core.filetools import Folder2Path
@@ -282,7 +283,7 @@ class FileManager:
         >>> filemanager.DEFAULTDIR = None
         >>> filemanager.projectdir = "projectname"
         >>> import os
-        >>> from hydpy import repr_, TestIO
+        >>> from hydpy import pub, repr_, TestIO
         >>> TestIO.clear()
         >>> with TestIO():
         ...     os.makedirs("projectname/basename")
@@ -305,20 +306,18 @@ been defined manually and cannot be determined automatically: \
 
         >>> with TestIO():
         ...     os.mkdir("projectname/basename/dir1")
-        ...     filemanager.currentdir
-        'dir1'
+        ...     assert filemanager.currentdir == "dir1"
 
         |property| |FileManager.currentdir| memorises the name of the current working
         directory, even if another directory is added later to the base path:
 
         >>> with TestIO():
         ...     os.mkdir("projectname/basename/dir2")
-        ...     filemanager.currentdir
-        'dir1'
+        ...     assert filemanager.currentdir == "dir1"
 
         Set the value of |FileManager.currentdir| to |None| to let it forget the
         memorised directory.  After that, trying to query the current working directory
-        results in another error, as it is not clear which directory to select:
+        results in another error, as it is unclear which directory to select:
 
         >>> with TestIO():
         ...     filemanager.currentdir = None
@@ -334,20 +333,19 @@ dir2).
 
         >>> with TestIO():
         ...     filemanager.currentdir = "dir1"
-        ...     filemanager.currentdir
-        'dir1'
+        ...     assert filemanager.currentdir == "dir1"
 
         Remove the current working directory `dir1` with the `del` statement:
 
-        >>> with TestIO():
+        >>> with TestIO(), pub.options.printprogress(True):  # doctest: +ELLIPSIS
         ...     del filemanager.currentdir
-        ...     os.path.exists("projectname/basename/dir1")
-        False
+        ...     assert not os.path.exists("projectname/basename/dir1")
+        Directory ...dir1 has been removed.
 
         |FileManager| subclasses can define a default directory name.  When many
         directories exist, and none is selected manually, the default directory is
-        selected automatically.  The following example shows an error message due to
-        multiple directories without any having the default name:
+        chosen automatically.  The following example shows an error message due to
+        multiple directories without any default name:
 
         >>> with TestIO():
         ...     os.mkdir("projectname/basename/dir1")
@@ -360,23 +358,22 @@ dir2).
 been defined manually and cannot be determined automatically: The default directory \
 (dir3) is not among the available directories (dir1 and dir2).
 
-        We can fix this by adding the required default directory manually:
+        We can fix this by manually  adding the required default directory:
 
         >>> with TestIO():
         ...     os.mkdir("projectname/basename/dir3")
-        ...     filemanager.currentdir
-        'dir3'
+        ...     assert filemanager.currentdir == "dir3"
 
         Setting the |FileManager.currentdir| to `dir4` not only overwrites the default
         name but also creates the required folder:
 
-        >>> with TestIO():
+        >>> with TestIO(), pub.options.printprogress(True):
         ...     filemanager.currentdir = "dir4"
-        ...     filemanager.currentdir
-        'dir4'
+        ...     assert filemanager.currentdir == "dir4"  # doctest: +ELLIPSIS
+        Directory ...dir4 has been created.
         >>> with TestIO():
-        ...     sorted(os.listdir("projectname/basename"))
-        ['dir1', 'dir2', 'dir3', 'dir4']
+        ...     dirs = os.listdir("projectname/basename")
+        ...     assert sorted(dirs) == ["dir1", "dir2", "dir3", "dir4"]
 
         Failed attempts to remove directories result in error messages like the
         following one:
@@ -396,11 +393,10 @@ occurred: ...
         |FileManager.currentdir|:
 
         >>> with TestIO():
-        ...     filemanager.currentdir
-        'dir4'
+        ...     assert filemanager.currentdir == "dir4"
         >>> with TestIO():
-        ...     sorted(os.listdir("projectname/basename"))
-        ['dir1', 'dir2', 'dir3', 'dir4']
+        ...     dirs =os.listdir("projectname/basename")
+        ...     assert sorted(dirs) == ["dir1", "dir2", "dir3", "dir4"]
 
         Assign the folder's absolute path if you need to work outside the current
         project directory (for example, to archive simulated data):
@@ -408,10 +404,9 @@ occurred: ...
         >>> with TestIO():  # doctest: +ELLIPSIS
         ...     os.mkdir("differentproject")
         ...     filemanager.currentdir = os.path.abspath("differentproject/dir1")
-        ...     repr_(filemanager.currentpath)
-        ...     os.listdir("differentproject")
-        '...hydpy/tests/iotesting/differentproject/dir1'
-        ['dir1']
+        ...     path = repr_(filemanager.currentpath)
+        ...     assert path.endswith("hydpy/tests/iotesting/differentproject/dir1")
+        ...     assert os.listdir("differentproject") == ["dir1"]
         """
         currentdir = self._currentdir
         if currentdir is None:
@@ -454,13 +449,18 @@ occurred: ...
             zippath = f"{dirpath}.zip"
             if os.path.exists(zippath):
                 shutil.unpack_archive(
-                    filename=zippath,
-                    extract_dir=os.path.join(self.basepath, directory),
-                    format="zip",
+                    filename=zippath, extract_dir=dirpath, format="zip"
                 )
                 os.remove(zippath)
+                if hydpy.pub.options.printprogress:
+                    print(
+                        f"The zip file {zippath} has been extracted to directory "
+                        f"{dirpath} and removed."
+                    )
             elif not os.path.exists(dirpath):
                 os.makedirs(dirpath)
+                if hydpy.pub.options.printprogress:
+                    print(f"Directory {dirpath} has been created.")
             self._currentdir = str(directory)
 
     @currentdir.deleter
@@ -469,6 +469,8 @@ occurred: ...
         if os.path.exists(path):
             try:
                 shutil.rmtree(path)
+                if hydpy.pub.options.printprogress:
+                    print(f"Directory {path} has been removed.")
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to delete the current working directory "
@@ -487,7 +489,7 @@ occurred: ...
         >>> from hydpy import repr_, TestIO
         >>> with TestIO():
         ...     filemanager.currentdir = "testdir"
-        ...     repr_(filemanager.currentpath)    # doctest: +ELLIPSIS
+        ...     repr_(filemanager.currentpath)  # doctest: +ELLIPSIS
         '...hydpy/tests/iotesting/projectname/basename/testdir'
         """
         return os.path.join(self.basepath, self.currentdir)
@@ -530,7 +532,7 @@ occurred: ...
         ...     open("projectname/basename/testdir/file2.npy", "w").close()
         ...     open("projectname/basename/testdir/_file1.nc", "w").close()
         ...     for filepath in filemanager.filepaths:
-        ...         repr_(filepath)    # doctest: +ELLIPSIS
+        ...         repr_(filepath)  # doctest: +ELLIPSIS
         '...hydpy/tests/iotesting/projectname/basename/testdir/file1.txt'
         '...hydpy/tests/iotesting/projectname/basename/testdir/file2.npy'
         """
@@ -542,8 +544,8 @@ occurred: ...
 
         |FileManager| subclasses allow for manual packing and automatic unpacking of
         working directories.  The only supported format is "zip".  The original
-        directories and zip files are removed after packing or unpacking, respectively,
-        to avoid possible inconsistencies.
+        directories and zip files are removed after packing or unpacking to avoid
+        possible inconsistencies.
 
         As an example scenario, we prepare a |FileManager| object with the current
         working directory `folder` containing the files `test1.txt` and `text2.txt`:
@@ -554,7 +556,7 @@ occurred: ...
         >>> filemanager.DEFAULTDIR = None
         >>> filemanager.projectdir = "projectname"
         >>> import os
-        >>> from hydpy import repr_, TestIO
+        >>> from hydpy import pub, repr_, TestIO
         >>> TestIO.clear()
         >>> basepath = "projectname/basename"
         >>> with TestIO():
@@ -565,44 +567,42 @@ occurred: ...
         ...     filemanager.filenames
         ['file1.txt', 'file2.txt']
 
-        The directories existing under the base path are identical to the ones returned
-        by property |FileManager.availabledirs|:
+        The directories under the base path are identical to the ones returned by
+        property |FileManager.availabledirs|:
 
         >>> with TestIO():
-        ...     sorted(os.listdir(basepath))
-        ...     filemanager.availabledirs    # doctest: +ELLIPSIS
-        ['folder']
+        ...     assert os.listdir(basepath) == ["folder"]
+        ...     filemanager.availabledirs  # doctest: +ELLIPSIS
         Folder2Path(folder=.../projectname/basename/folder)
 
-        After packing the current working directory manually, it still counts as an
+        After manually packing the current working directory, it still counts as an
         available directory:
 
-        >>> with TestIO():
+        >>> with TestIO(), pub.options.printprogress(True):
         ...     filemanager.zip_currentdir()
-        ...     sorted(os.listdir(basepath))
-        ...     filemanager.availabledirs    # doctest: +ELLIPSIS
-        ['folder.zip']
+        ...     assert os.listdir(basepath) == ["folder.zip"]
+        ...     filemanager.availabledirs  # doctest: +ELLIPSIS
+        Directory ...folder has been removed.
         Folder2Path(folder=.../projectname/basename/folder.zip)
 
-        Instead of the complete directory, only the contained files are packed:
+        Instead of the complete directory, only its files are packed:
 
         >>> from zipfile import ZipFile
         >>> with TestIO():
         ...     with ZipFile("projectname/basename/folder.zip", "r") as zp:
-        ...         sorted(zp.namelist())
-        ['file1.txt', 'file2.txt']
+        ...         assert sorted(zp.namelist()) == ["file1.txt", "file2.txt"]
 
-        The zip file is unpacked again as soon as `folder` becomes the current working
+        The zip file is unpacked again when `folder` becomes the current working
         directory:
 
-        >>> with TestIO():
+        >>> with TestIO(), pub.options.printprogress(True):  # doctest: +ELLIPSIS
         ...     filemanager.currentdir = "folder"
-        ...     sorted(os.listdir(basepath))
+        ...     assert os.listdir(basepath) == ["folder"]
+        ...     assert sorted(filemanager.filenames) == ["file1.txt", "file2.txt"]
         ...     filemanager.availabledirs
-        ...     filemanager.filenames    # doctest: +ELLIPSIS
-        ['folder']
+        The zip file ...folder.zip has been extracted to directory ...folder and \
+removed.
         Folder2Path(folder=.../projectname/basename/folder)
-        ['file1.txt', 'file2.txt']
         """
         with zipfile.ZipFile(f"{self.currentpath}.zip", "w") as zipfile_:
             for filepath, filename in zip(self.filepaths, self.filenames):
@@ -1017,7 +1017,7 @@ class ConditionManager(FileManager):
     it following the actual simulation start or end date, respectively:
 
     >>> from hydpy import repr_
-    >>> with TestIO():    # doctest: +ELLIPSIS
+    >>> with TestIO():  # doctest: +ELLIPSIS
     ...     repr_(pub.conditionmanager.inputpath)
     ...     repr_(pub.conditionmanager.outputpath)
     '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/init_1996_01_01_00_00_00'
@@ -1036,7 +1036,7 @@ class ConditionManager(FileManager):
                              "1996-01-05 00:00:00",
                              "1d"))
 
-    >>> with TestIO():    # doctest: +ELLIPSIS
+    >>> with TestIO():  # doctest: +ELLIPSIS
     ...     repr_(pub.conditionmanager.inputpath)
     ...     repr_(pub.conditionmanager.outputpath)
     '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/init_1996_01_02_00_00_00'
@@ -1044,29 +1044,38 @@ class ConditionManager(FileManager):
 
     Use the property |FileManager.currentdir| to change the values of both properties:
 
-    >>> with TestIO():    # doctest: +ELLIPSIS
+    >>> with TestIO():  # doctest: +ELLIPSIS
     ...     pub.conditionmanager.currentdir = "test"
     ...     repr_(pub.conditionmanager.inputpath)
     ...     repr_(pub.conditionmanager.outputpath)
     '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/test'
     '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/test'
 
-    After deleting the custom value of property |FileManager.currentdir|, both
+    After deleting the custom value of property |FileManager.currentdir|, the
     properties |ConditionManager.inputpath| and |ConditionManager.outputpath| work as
     before:
 
-    >>> with TestIO():    # doctest: +ELLIPSIS
+    >>> with TestIO():  # doctest: +ELLIPSIS
     ...     del pub.conditionmanager.currentdir
     ...     repr_(pub.conditionmanager.inputpath)
     ...     repr_(pub.conditionmanager.outputpath)
     '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/init_1996_01_02_00_00_00'
     '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/init_1996_01_04_00_00_00'
 
+    Use the |ConditionManager.prefix| option to configure the automatically determined
+    folder names:
+
+    >>> with TestIO(), pub.conditionmanager.prefix("condi"):  # doctest: +ELLIPSIS
+    ...     repr_(pub.conditionmanager.inputpath)
+    ...     repr_(pub.conditionmanager.outputpath)
+    '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/condi_1996_01_02_00_00_00'
+    '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/condi_1996_01_04_00_00_00'
+
     The date-based construction of directory names requires a |Timegrids| object
     available in module |pub|:
 
     >>> del pub.timegrids
-    >>> with TestIO():    # doctest: +ELLIPSIS
+    >>> with TestIO():  # doctest: +ELLIPSIS
     ...     repr_(pub.conditionmanager.inputpath)
     Traceback (most recent call last):
     ...
@@ -1075,7 +1084,7 @@ currently relevant input path for loading conditions file, the following error \
 occurred: Attribute timegrids of module `pub` is not defined at the moment.
 
     >>> del pub.timegrids
-    >>> with TestIO():    # doctest: +ELLIPSIS
+    >>> with TestIO():  # doctest: +ELLIPSIS
     ...     repr_(pub.conditionmanager.outputpath)
     Traceback (most recent call last):
     ...
@@ -1087,17 +1096,41 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
     BASEDIR = "conditions"
     DEFAULTDIR = None
 
+    prefix = optiontools.OptionPropertyStr(
+        "init",
+        """The prefix of the automatically determined, time-dependent condition 
+        directory names.
+        
+        The default prefix is `init`:
+        
+        >>> from hydpy.core.testtools import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
+        >>> cm =  pub.conditionmanager
+        >>> with TestIO():
+        ...     assert cm.inputpath.endswith("init_1996_01_01_00_00_00")
+        ...     assert cm.outputpath.endswith("init_1996_01_05_00_00_00")
+
+        For example, you can vary the prefix to store the conditions of different 
+        ensemble members in separate directories:
+        
+        >>> with TestIO(), cm.prefix("member_01"):
+        ...     assert cm.inputpath.endswith("member_01_1996_01_01_00_00_00")
+        ...     assert cm.outputpath.endswith("member_01_1996_01_05_00_00_00")         
+        """,
+    )
+
     @property
     def inputpath(self) -> str:
         """The directory path for loading initial conditions.
 
-        See the main documentation on class |ConditionManager| for further information.
+        See the main documentation on class |ConditionManager| and its option
+        |ConditionManager.prefix| for further information.
         """
         currentdir = self._currentdir
         try:
             if not currentdir:
                 to_string = hydpy.pub.timegrids.sim.firstdate.to_string
-                self.currentdir = f"init_{to_string('os')}"
+                self.currentdir = f"{self.prefix}_{to_string('os')}"
             return self.currentpath
         except BaseException:
             objecttools.augment_excmessage(
@@ -1111,13 +1144,14 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
     def outputpath(self) -> str:
         """The directory path for saving (final) conditions.
 
-        See the main documentation on class |ConditionManager| for further information.
+        See the main documentation on class |ConditionManager| and its option
+        |ConditionManager.prefix| for further information.
         """
         currentdir = self._currentdir
         try:
             if not currentdir:
                 to_string = hydpy.pub.timegrids.sim.lastdate.to_string
-                self.currentdir = f"init_{to_string('os')}"
+                self.currentdir = f"{self.prefix}_{to_string('os')}"
             return self.currentpath
         except BaseException:
             objecttools.augment_excmessage(
@@ -1213,7 +1247,6 @@ class SequenceManager(FileManager):
                [18., 19.],
                [20., 21.],
                [22., 23.]])
-
 
     We now write two files that do not span the initialisation period.
 
@@ -1377,6 +1410,35 @@ not allowed to overwrite the existing file `...`.
     20.0
     22.0
 
+    All numbers are written in scientific notation under the default setting of option
+    |Options.reprdigits| (-1):
+
+    >>> nodes.node1.sequences.sim.series = 0.12345678
+    >>> with TestIO(), pub.options.reprdigits(-1):
+    ...     nodes.node1.sequences.sim.save_series()
+    >>> print_file("node1_sim_q.asc")
+    Timegrid("2000-01-01 00:00:00+01:00",
+             "2000-01-05 00:00:00+01:00",
+             "1d")
+    0.123457
+    0.123457
+    0.123457
+    0.123457
+
+    If you set this option to two, for example, all numbers are written in the decimal
+    form with at most two decimal places:
+
+    >>> with TestIO(), pub.options.reprdigits(2):
+    ...     nodes.node1.sequences.sim.save_series()
+    >>> print_file("node1_sim_q.asc")
+    Timegrid("2000-01-01 00:00:00+01:00",
+             "2000-01-05 00:00:00+01:00",
+             "1d")
+    0.12
+    0.12
+    0.12
+    0.12
+
     Another option is storing data using |numpy| binary files, which is good for saving
     computation times but possibly problematic for sharing data with colleagues:
 
@@ -1501,11 +1563,8 @@ not allowed to overwrite the existing file `...`.
                 elif sequence.filetype == "asc":
                     timegrid, series = self._load_asc(sequence)
                 else:
-                    assert_never(sequence.filetype)  # pylint does not understand this
-                series = sequence.adjust_series(
-                    timegrid,  # pylint: disable=possibly-used-before-assignment
-                    series,  # pylint: disable=used-before-assignment
-                )
+                    assert_never(sequence.filetype)
+                series = sequence.adjust_series(timegrid, series)
                 sequence.apply_adjusted_series(timegrid, series)
         except BaseException:
             objecttools.augment_excmessage(
@@ -1584,7 +1643,9 @@ not allowed to overwrite the existing file `...`.
         if array.ndim == 3:
             array = array.reshape(array.shape[0], -1)
         with open(filepath, "a", encoding=config.ENCODING) as file_:
-            numpy.savetxt(file_, array, delimiter="\t")
+            digits = hydpy.pub.options.reprdigits
+            format_ = "%.14e" if digits == -1 else f"%.{digits}f"
+            numpy.savetxt(file_, array, fmt=format_, delimiter="\t")
 
     def _save_nc(
         self, sequence: sequencetools.IOSequence, array: sequencetools.InfoArray
@@ -1602,8 +1663,10 @@ not allowed to overwrite the existing file `...`.
         >>> sm.netcdfreader
         Traceback (most recent call last):
         ...
-        RuntimeError: The sequence file manager currently handles no NetCDF reader \
-object.
+        hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager \
+currently handles no NetCDF reader object. Consider applying the \
+`pub.sequencemanager.netcdfreading` context manager first (search in the \
+documentation for help).
 
         >>> sm.open_netcdfreader()
         >>> from hydpy import classname
@@ -1614,12 +1677,16 @@ object.
         >>> sm.netcdfreader
         Traceback (most recent call last):
         ...
-        RuntimeError: The sequence file manager currently handles no NetCDF reader \
-object.
+        hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager \
+currently handles no NetCDF reader object. Consider applying the \
+`pub.sequencemanager.netcdfreading` context manager first (search in the \
+documentation for help).
         """
         if self._netcdfreader is None:
-            raise RuntimeError(
-                "The sequence file manager currently handles no NetCDF reader object."
+            raise exceptiontools.AttributeNotReady(
+                "The sequence file manager currently handles no NetCDF reader object. "
+                "Consider applying the `pub.sequencemanager.netcdfreading` context "
+                "manager first (search in the documentation for help)."
             )
         return self._netcdfreader
 
@@ -1654,7 +1721,9 @@ object.
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager \
-currently handles no NetCDF writer object.
+currently handles no NetCDF writer object. Consider applying the \
+`pub.sequencemanager.netcdfwriting` context manager first (search in the \
+documentation for help).
 
         >>> sm.open_netcdfwriter()
         >>> from hydpy import classname
@@ -1666,11 +1735,15 @@ currently handles no NetCDF writer object.
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager \
-currently handles no NetCDF writer object.
+currently handles no NetCDF writer object. Consider applying the \
+`pub.sequencemanager.netcdfwriting` context manager first (search in the \
+documentation for help).
         """
         if self._netcdfwriter is None:
             raise exceptiontools.AttributeNotReady(
-                "The sequence file manager currently handles no NetCDF writer object."
+                "The sequence file manager currently handles no NetCDF writer object. "
+                "Consider applying the `pub.sequencemanager.netcdfwriting` context "
+                "manager first (search in the documentation for help)."
             )
         return self._netcdfwriter
 
@@ -1732,3 +1805,131 @@ currently handles no NetCDF writer object.
         handler = self._jitaccesshandler
         if handler is not None:
             handler.write_slices(idx)
+
+
+_FILEMANAGERS = (NetworkManager, ControlManager, ConditionManager, SequenceManager)
+
+
+def check_projectstructure(projectpath: str) -> None:
+    """Raise a warning if the given project root directory does not exist or does not
+    contain all relevant base directories.
+
+    First, |check_projectstructure| checks if the root directory exists:
+
+    >>> from hydpy import check_projectstructure, HydPy, pub, TestIO
+    >>> TestIO.clear()
+    >>> with TestIO():
+    ...     check_projectstructure("my_project")  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    UserWarning: The project root directory `...my_project` does not exists.
+
+    Second, it lists all missing base directories:
+
+    >>> import os
+    >>> from hydpy.core.testtools import warn_later
+    >>> with TestIO(), warn_later(), pub.options.checkprojectstructure(True):
+    ...     os.makedirs(os.path.join("my_project", "control"))
+    ...     hp = HydPy("my_project")  # doctest: +ELLIPSIS
+    UserWarning: The project root directory ...my_project has no base directory \
+named `network` as required by the network manager.
+    UserWarning: The project root directory ...my_project has no base directory \
+named `conditions` as required by the condition manager.
+    UserWarning: The project root directory ...my_project has no base directory \
+named `series` as required by the sequence manager.
+
+    Note that class |HydPy| calls function |check_projectstructure| automatically if
+    option |Options.checkprojectstructure| is enabled:
+
+    >>> TestIO.clear()
+    >>> with TestIO(), pub.options.checkprojectstructure(False):
+    ...     hp = HydPy("my_project")
+
+    >>> with TestIO(), pub.options.checkprojectstructure(True):
+    ...     hp = HydPy("my_project")  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    UserWarning: The project root directory `...my_project` does not exists.
+    """
+
+    projectpath = os.path.abspath(projectpath)
+    if os.path.exists(projectpath):
+        for filemanager in _FILEMANAGERS:
+            basepath = os.path.join(projectpath, filemanager.BASEDIR)
+            if not os.path.exists(basepath):
+                warnings.warn(
+                    f"The project root directory {projectpath} has no base directory "
+                    f"named `{filemanager.BASEDIR}` as required by the "
+                    f"{filemanager.__name__[:-7].lower()} manager."
+                )
+    else:
+        warnings.warn(f"The project root directory `{projectpath}` does not exists.")
+
+
+def create_projectstructure(projectpath: str, overwrite: bool = False) -> None:
+    """Make the given project root directory and its base directories.
+
+    If everything works well, function |create_projectstructure| creates the required
+    directories silently:
+
+    >>> from hydpy import create_projectstructure, TestIO
+    >>> from hydpy.core.testtools import print_filestructure
+    >>> TestIO.clear()
+    >>> with TestIO():
+    ...     create_projectstructure("my_project")
+    ...     print_filestructure("my_project")  # doctest: +ELLIPSIS
+    * ...my_project
+        - conditions
+        - control
+        - network
+        - series
+
+    If the root directory already exists, it does not make any changes and instead
+    raises the following error by default:
+
+    >>> with TestIO():
+    ...     os.makedirs(os.path.join("my_project", "zap"))
+    ...     create_projectstructure("my_project")  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    FileExistsError: While trying to create the basic directory structure for project \
+`my_project`the directory ...iotesting, the following error occurred: The root \
+directory already exists and overwriting is not allowed.
+    >>> with TestIO():
+    ...     print_filestructure("my_project")  # doctest: +ELLIPSIS
+    * ...my_project
+        - conditions
+        - control
+        - network
+        - series
+        - zap
+
+    Use the `overwrite` flag to let function |create_projectstructure| remove the
+    existing directory and make a new one:
+
+    >>> with TestIO():
+    ...     create_projectstructure("my_project", overwrite=True)
+    ...     print_filestructure("my_project")  # doctest: +ELLIPSIS
+    * ...my_project
+        - conditions
+        - control
+        - network
+        - series
+    """
+    projectpath = os.path.abspath(projectpath)
+    try:
+        if os.path.exists(projectpath):
+            if overwrite:
+                shutil.rmtree(projectpath)
+            else:
+                raise FileExistsError(
+                    "The root directory already exists and overwriting is not allowed."
+                )
+        for filenmanager in _FILEMANAGERS:
+            os.makedirs(os.path.join(projectpath, filenmanager.BASEDIR))
+    except BaseException:
+        dirpath, projectname = os.path.split(projectpath)
+        objecttools.augment_excmessage(
+            f"While trying to create the basic directory structure for project "
+            f"`{projectname}`the directory {dirpath}"
+        )

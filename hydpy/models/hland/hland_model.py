@@ -2597,8 +2597,9 @@ class Calc_QAb_QVs_BW_V1(modeltools.Method):
     information.
     """
 
+    # positional arguments required for consistency with the cythonized extension class:
     @staticmethod
-    def __call__(
+    def __call__(  # pylint: disable=too-many-positional-arguments
         model: modeltools.Model,
         k: int,
         h: VectorFloat,
@@ -2609,6 +2610,7 @@ class Calc_QAb_QVs_BW_V1(modeltools.Method):
         qa1: VectorFloat,
         qa2: VectorFloat,
         t0: float,
+        /,
     ) -> None:
         d_h = h[k]
         d_k1 = k1[k]

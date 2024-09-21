@@ -179,8 +179,8 @@ def _prepare_modelspecifics(fast_cython: bool, profile_cython: bool) -> None:
     from hydpy import pub
     from hydpy import models
     from hydpy.core import aliastools
-    from hydpy.auxs import xmltools
     from hydpy.cythons import modelutils
+    from hydpy.exe import xmltools
 
     config.FASTCYTHON = fast_cython
     config.PROFILECYTHON = profile_cython

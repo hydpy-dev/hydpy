@@ -3413,11 +3413,7 @@ class Main_CrossSectionModel_V2(modeltools.AdHocModel):
         "crosssection", routinginterfaces.CrossSectionModel_V2
     )
     def add_crosssection_v2(
-        self,
-        crosssection: routinginterfaces.CrossSectionModel_V2,
-        /,
-        *,
-        refresh: bool,  # pylint: disable=unused-argument
+        self, crosssection: routinginterfaces.CrossSectionModel_V2, /, *, refresh: bool
     ) -> None:
         """Initialise the given submodel that follows the |CrossSectionModel_V1|
         interface and is responsible for calculating discharge and related properties.

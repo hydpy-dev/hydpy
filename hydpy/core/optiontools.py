@@ -761,6 +761,20 @@ class Options:
     >>> pub.options.printprogress = False
     """
 
+    checkprojectstructure = OptionPropertyBool(
+        True,
+        """A bool-like flag for raising a warning when creating a |HydPy| instance for
+        a project without the basic project structure on disk.
+
+         Defaults usually to true but during testing to false:
+         
+        >>> from hydpy import HydPy, pub
+        >>> assert not pub.options.checkprojectstructure
+        >>> del pub.options.checkprojectstructure
+        >>> assert pub.options.checkprojectstructure
+        """,
+    )
+
     checkseries = OptionPropertyBool(
         True,
         """A bool-like flag for raising an error when loading an input time series that 
@@ -810,7 +824,7 @@ class Options:
         """A bool-like flag for printing information about the progress of some 
         processes to the standard output.
         
-        Defaults usually to true but during test to false:
+        Defaults usually to true but during testing to false:
          
         >>> from hydpy import pub
         >>> assert not pub.options.printprogress
@@ -945,7 +959,7 @@ class Options:
     )
     utcoffset = OptionPropertyInt(
         60,
-        """Local time offset from UTC in minutes (see option |Options.utclongitude|.  
+        """Local time offset from UTC in minutes s(see option |Options.utclongitude|.  
         
         Defaults to 60, which corresponds to UTC+01:00.
 
@@ -999,7 +1013,7 @@ class Options:
         """A bool-like flag for raising a warning when function |simulationstep| is
         called for the first time directly by the user.
 
-        Defaults usually to true but during test to false:
+        Defaults usually to true but during testing to false:
         
         >>> from hydpy import pub
         >>> assert not pub.options.warnsimulationstep
@@ -1015,7 +1029,7 @@ class Options:
         To cope with the limited precision of floating-point numbers, only those 
         violations beyond a small tolerance value are reported (see function |trim|).
 
-        Defaults usually to true but during test to false:
+        Defaults usually to true but during testing to false:
         
         >>> from hydpy import pub
         >>> assert not pub.options.warntrim

@@ -87,6 +87,7 @@ import numpy
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import masktools
+from hydpy.core import netcdftools
 from hydpy.core import objecttools
 from hydpy.core import printtools
 from hydpy.core import propertytools
@@ -1244,6 +1245,7 @@ class Nodes(Devices["Node"]):
         |IOSequence.memoryflag|."""
         self.__load_nodeseries("obs")
 
+    @netcdftools.add_netcdfreading
     def __load_nodeseries(self, seqname: str) -> None:
         for node in printtools.progressbar(self):
             node.sequences[seqname].load_series()
@@ -1266,6 +1268,7 @@ class Nodes(Devices["Node"]):
         |IOSequence.memoryflag|."""
         self.__save_nodeseries("obs")
 
+    @netcdftools.add_netcdfwriting
     def __save_nodeseries(self, seqname: str) -> None:
         for node in printtools.progressbar(self):
             seq = node.sequences[seqname]
@@ -1714,60 +1717,70 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
             element.prepare_stateseries(allocate_ram=allocate_ram, write_jit=write_jit)
 
     @printtools.print_progress
+    @netcdftools.add_netcdfreading
     def load_allseries(self) -> None:
         """Call method |Element.load_inputseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
             element.load_allseries()
 
     @printtools.print_progress
+    @netcdftools.add_netcdfreading
     def load_inputseries(self) -> None:
         """Call method |Element.load_inputseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
             element.load_inputseries()
 
     @printtools.print_progress
+    @netcdftools.add_netcdfreading
     def load_factorseries(self) -> None:
         """Call method |Element.load_factorseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
             element.load_factorseries()
 
     @printtools.print_progress
+    @netcdftools.add_netcdfreading
     def load_fluxseries(self) -> None:
         """Call method |Element.load_fluxseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
             element.load_fluxseries()
 
     @printtools.print_progress
+    @netcdftools.add_netcdfreading
     def load_stateseries(self) -> None:
         """Call method |Element.load_stateseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
             element.load_stateseries()
 
     @printtools.print_progress
+    @netcdftools.add_netcdfwriting
     def save_allseries(self) -> None:
         """Call method |Element.save_allseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
             element.save_allseries()
 
     @printtools.print_progress
+    @netcdftools.add_netcdfwriting
     def save_inputseries(self) -> None:
         """Call method |Element.save_inputseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
             element.save_inputseries()
 
     @printtools.print_progress
+    @netcdftools.add_netcdfwriting
     def save_factorseries(self) -> None:
         """Call method |Element.save_factorseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
             element.save_factorseries()
 
     @printtools.print_progress
+    @netcdftools.add_netcdfwriting
     def save_fluxseries(self) -> None:
         """Call method |Element.save_fluxseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
             element.save_fluxseries()
 
     @printtools.print_progress
+    @netcdftools.add_netcdfwriting
     def save_stateseries(self) -> None:
         """Call method |Element.save_stateseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
@@ -2492,7 +2505,7 @@ Attribute timegrids of module `pub` is not defined at the moment.
         See method |Node.plot_allseries| for further information.
         """
         return self._plot_series(
-            [self.sequences.sim],
+            sequences=[self.sequences.sim],
             labels=(label,),
             colors=(color,),
             linestyles=(linestyle,),
@@ -2516,7 +2529,7 @@ Attribute timegrids of module `pub` is not defined at the moment.
         See method |Node.plot_allseries| for further information.
         """
         return self._plot_series(
-            [self.sequences.obs],
+            sequences=[self.sequences.obs],
             labels=(label,),
             colors=(color,),
             linestyles=(linestyle,),
@@ -2527,6 +2540,7 @@ Attribute timegrids of module `pub` is not defined at the moment.
 
     def _plot_series(
         self,
+        *,
         sequences: Sequence[sequencetools.IOSequence],
         labels: Iterable[Optional[str]],
         colors: Iterable[Optional[str]],

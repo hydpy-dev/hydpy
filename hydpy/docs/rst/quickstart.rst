@@ -23,8 +23,8 @@ by using it as a Python library and are already familiar with Python, go to the
 :ref:`Simulation > Python <simulation_python>` subsection.  Without Python experience,
 you should review the following paragraphs beforehand.  If you are, in contrast,
 primarily interested in executing standard workflows, for example, in the context of
-flood forecasting, you might prefer starting with the :ref:`Simulation > Console
-<simulation_console>` subsection.
+flood forecasting, you might prefer starting with the :ref:`Simulation > XML
+<simulation_xml>` subsection.
 
 
 Starting Python
@@ -163,6 +163,33 @@ out about its features:
 >>> obj.upper()  # What does its method `upper` do?
 'TEST'
 
+Assigning an object to a variable does not involve copying it.  One merely gets another
+reference (or pointer) to the same object:
+
+>>> list1 = [1, 2]
+>>> list2 = list1
+>>> assert list1 is list2
+>>> list2.append(3)
+>>> assert list1 == [1, 2, 3]
+
+The same holds for passing objects to functions:
+
+>>> def append_value(list_, value):
+...     list_.append(value)
+...
+>>> append_value(list2, 4)
+>>> assert list1 == [1, 2, 3, 4]
+
+.. caution::
+
+    Python provides functions for making flat and deep copies of objects.  "Deep
+    copying" means that an object **and** its subobjects are copied.  This effort is
+    favourable in some situations but results in additional memory usage and
+    computation time.  HydPy's Cython-based extension classes, and thus HydPy in
+    general, do **not** support deep copying.
+
+
+.. _run_hydpy:
 
 Run HydPy
 _________
@@ -215,7 +242,7 @@ the specification of general information.  Here, we use it to define the first d
 the last date, and the time step size of the considered simulation period in the
 simplest possible manner:
 
->>> hydpy.pub.timegrids = "1996-01-01", "1996-01-05", "1d"
+>>> hydpy.pub.timegrids = "1996-01-01", "1997-01-01", "1d"
 
 Now, there are numerous ways to proceed.  We choose the most straightforward one
 (without deviating from a single default) and call method  |HydPy.prepare_everything|
@@ -229,8 +256,8 @@ The following example demonstrates how to query the discharge values simulated f
 outlet:
 
 >>> from hydpy import print_vector
->>> print_vector(hp.nodes.lahn_kalk.sequences.sim.series)
-nan, nan, nan, nan
+>>> print_vector(hp.nodes.lahn_kalk.sequences.sim.series[:6])
+nan, nan, nan, nan, nan, nan
 
 |numpy.nan| means "not a number", indicating missing values.  In this example, the
 |numpy.nan| values tell us we have not performed a simulation run.  We catch up on this
@@ -240,19 +267,37 @@ by calling method |HydPy.simulate|:
 
 Now, we can inspect the freshly calculated discharge values:
 
->>> print_vector(hp.nodes.lahn_kalk.sequences.sim.series)
-54.018074, 37.255732, 31.863983, 28.358949
+>>> print_vector(hp.nodes.lahn_kalk.sequences.sim.series[:6])
+54.019337, 37.257561, 31.865308, 28.359542, 26.191386, 25.047099
 
 You could now write the results to file, print them into a figure, evaluate them
-statistically, or - if you don't like them - change some configurations and calculate
-different results.
+statistically, or change some configurations and repeat the simulation if you don't
+like them.  As a last example, we compare the  complete simulated discharge time series
+with the available measurements of gauge Kalkofen by plotting them:
+
+>>> figure = hp.nodes.lahn_kalk.plot_allseries()
+
+.. testsetup::
+
+    >>> from hydpy.core.testtools import save_autofig
+    >>> save_autofig("Kalkofen_Qsim_vs_Qobs.png", figure)
+
+.. image:: Kalkofen_Qsim_vs_Qobs.png
+
+.. tip::
+
+    If the desired time series plot does not appear automatically (which depends on
+    your configuration of the |matplotlib| library), type the following commands:
+
+    >>> from matplotlib import pyplot  # doctest: +SKIP
+    >>> pyplot.show()  # doctest: +SKIP
 
 As you can see, a few lines of code are often enough to let HydPy execute complex tasks
 in a standard manner.  However, HydPy offers fine-grained control, allowing you to
 define specific workflows to solve individual problems.  Take your time to understand
 these first examples fully and then follow the more detailed explanations in the
-:ref:`Simulation > Python <simulation_python>` and :ref:`Simulation > Console
-<simulation_console>` sections.
+:ref:`Simulation > Python <simulation_python>` and :ref:`Simulation > XML
+<simulation_xml>` sections.
 
 .. testsetup::
 

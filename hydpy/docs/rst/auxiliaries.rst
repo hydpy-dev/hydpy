@@ -9,8 +9,8 @@ HydPy in general, but possibly help when implementing new models or writing work
 scripts.
 
 The available `auxs` modules cover diverse topics, ranging from hydrological approaches
-like calculating Unit Hydrograph ordinates (|iuhtools|) to technical issues like
-parsing XML workflow files (|xmltools|). A short look into each module's general
+like calculating Unit Hydrograph ordinates (|iuhtools|) to pure mathematical issues
+like numerical integration (|quadtools|). A short look into each module's general
 description should help determine its purpose.
 
 
@@ -29,4 +29,3 @@ description should help determine its purpose.
    smoothtools
    statstools
    validtools
-   xmltools

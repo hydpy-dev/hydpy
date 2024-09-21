@@ -7,10 +7,9 @@ cf-conventions.html>`_.
 
 .. _`Delft-FEWS`: https://oss.deltares.nl/web/delft-fews
 
-Usually, we apply the features implemented in this module only indirectly by using
-the context managers |SequenceManager.netcdfreading| and
-|SequenceManager.netcdfwriting|.  Here, we demonstrate the underlying functionalities,
-which can be subsumed by following three steps:
+Usually, we only indirectly apply the features implemented in this module.  Here, we
+demonstrate the underlying functionalities, which can be subsumed by following three
+steps:
 
   1. Call either method |SequenceManager.open_netcdfreader| or method
      |SequenceManager.open_netcdfwriter| of the |SequenceManager| object available in
@@ -101,7 +100,10 @@ process happens.  After that, the interface object is no longer available:
 Traceback (most recent call last):
 ...
 hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager currently \
-handles no NetCDF writer object.
+handles no NetCDF writer object. Consider applying the \
+`pub.sequencemanager.netcdfwriting` context manager first (search in the \
+documentation for help).
+
 
 We set the time series values of two test sequences to zero to demonstrate that
 reading the data back in actually works:
@@ -132,7 +134,10 @@ InfoArray([[16., 17.],
 >>> pub.sequencemanager.netcdfreader
 Traceback (most recent call last):
 ...
-RuntimeError: The sequence file manager currently handles no NetCDF reader object.
+hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager currently \
+handles no NetCDF reader object. Consider applying the \
+`pub.sequencemanager.netcdfreading` context manager first (search in the \
+documentation for help).
 
 We cannot invert spatial aggregation.  Hence reading averaged time series is left for
 postprocessing tools.  To show that writing the averaged series worked, we access both
@@ -169,7 +174,7 @@ and variables:
 4.0, 5.0, 6.0, 7.0
 
 >>> pub.sequencemanager.convention = "HydPy"
->>> with TestIO(), pub.sequencemanager.netcdfwriting():
+>>> with TestIO():
 ...     elements.save_inputseries()
 >>> filepath = "project/series/default/precipitation.nc"
 >>> with TestIO(), netcdf4.Dataset(filepath) as ncfile:
@@ -177,10 +182,47 @@ and variables:
 4.0, 5.0, 6.0, 7.0
 
 >>> elements.element2.model.sequences.inputs.nied.series = 0.0
->>> with TestIO(), pub.options.checkseries(False), pub.sequencemanager.netcdfreading():
+>>> with TestIO(), pub.options.checkseries(False):
 ...     elements.load_inputseries()
 >>> print_vector(elements.element2.model.sequences.inputs.nied.series)
 4.0, 5.0, 6.0, 7.0
+
+In the last example, the methods |Elements.load_inputseries| and
+|Elements.save_inputseries| of class |Elements| opened and closed the required NetCDF
+reader and writer objects automatically by using the context managers
+|SequenceManager.netcdfreading| and |SequenceManager.netcdfwriting|.  Such comfort is
+only available for these and the similar methods of the classes |HydPy|, |Elements|,
+and |Nodes|.  If you, for example, apply the |IOSequence.load_series| or the
+|IOSequence.save_series| method of individual |IOSequence| instances, you must activate
+|SequenceManager.netcdfreading| or |SequenceManager.netcdfwriting| manually.  This
+discomfort is intentional and should help prevent accidentally opening and closing
+the same NetCDF file repeatedly, which could result in an immense waste of computation
+time.  The following example shows how to apply these context managers manually and
+that this does not conflict with using methods that could automatically open and close
+NetCDF reader and writer objects:
+
+>>> sequences = elements.element2.model.sequences
+>>> sequences.inputs.nied.series = 1.0, 3.0, 5.0, 7.0
+>>> sequences.fluxes.qah.series = 2.0, 4.0, 6.0, 8.0
+>>> sequences.fluxes.qa.series = 3.0, 5.0, 7.0, 9.0
+>>> with TestIO(), pub.sequencemanager.netcdfwriting():
+...     sequences.fluxes.qa.save_series()
+...     elements.save_inputseries()
+...     sequences.fluxes.qah.save_series()
+
+>>> sequences.inputs.nied.series = 0.0
+>>> sequences.fluxes.qah.series = 0.0
+>>> sequences.fluxes.qa.series = 0.0
+>>> with TestIO(), pub.options.checkseries(False), pub.sequencemanager.netcdfreading():
+...     sequences.fluxes.qah.load_series()
+...     elements.load_inputseries()
+...     sequences.fluxes.qa.load_series()
+>>> print_vector(sequences.inputs.nied.series)
+1.0, 3.0, 5.0, 7.0
+>>> print_vector(sequences.fluxes.qah.series)
+2.0, 4.0, 6.0, 8.0
+>>> print_vector(sequences.fluxes.qa.series)
+3.0, 5.0, 7.0, 9.0
 
 Besides the testing-related specialities, the described workflow is more or less
 standard but allows for different modifications.  We illustrate them in the
@@ -199,6 +241,7 @@ information.
 from __future__ import annotations
 import abc
 import collections
+import functools
 import contextlib
 import itertools
 import os
@@ -277,13 +320,12 @@ def summarise_ncfile(ncfile: Union[netcdf4.Dataset, str], /) -> str:
     ... )
     >>> print(repr_(summarise_ncfile(filepath)))  # doctest: +ELLIPSIS
     GENERAL
-        file path = ...hland_96_input_p.nc
+        file path = .../hydpy/data/HydPy-H-Lahn/series/default/hland_96_input_p.nc
         file format = NETCDF4
         disk format = HDF5
         Attributes
             hydts_timeRef = begin
-            title = Daily total precipitation sum HydPy-H-HBV96 model river Lahn \
-(1990-2020)
+            title = Daily total precipitation sum HydPy-H-HBV96 model river Lahn
             ...
     DIMENSIONS
         stations = 4
@@ -298,15 +340,15 @@ def summarise_ncfile(ncfile: Union[netcdf4.Dataset, str], /) -> str:
                 units = days since 1900-01-01 00:00:00 +0100
                 long_name = time
                 axis = T
-                calendar = gregorian
+                calendar = standard
         hland_96_input_p
             dimensions = time, stations
             shape = 11384, 4
-            data type = float32
+            data type = float64
             Attributes
+                units = mm
                 _FillValue = -9999.0
                 long_name = Daily Precipitation Sum
-                coordinates = y x
         station_id
             dimensions = stations, str_len
             shape = 4, 40
@@ -325,38 +367,10 @@ def summarise_ncfile(ncfile: Union[netcdf4.Dataset, str], /) -> str:
             data type = |S1
             Attributes
                 long_name = river name
-        area
-            dimensions = stations
-            shape = 4
-            data type = float32
-            Attributes
-                units = km2
-                long_name = station area
-        elevation
-            dimensions = stations
-            shape = 4
-            data type = float32
-            Attributes
-                units = m
-                long_name = height above mean sea level
-        lon
-            dimensions = stations
-            shape = 4
-            data type = float32
-            Attributes
-                units = degrees_east
-                long_name = longitude coordinate
-                standard_name = longitude
-                axis = X
-        lat
-            dimensions = stations
-            shape = 4
-            data type = float32
-            Attributes
-                units = degrees_north
-                long_name = latitude coordinate
-                standard_name = latitude
-                axis = Y
+    TIME GRID
+        first date = 1989-11-01 00:00:00+01:00
+        last date = 2021-01-01 00:00:00+01:00
+        step size = 1d
 
     Alternatively, you can pass a NetCDF4 `Dataset` object:
 
@@ -402,6 +416,17 @@ def summarise_ncfile(ncfile: Union[netcdf4.Dataset, str], /) -> str:
                     append(f"{i2}Attributes")
                     for attr_var in attrs_var:
                         append(f"{i3}{attr_var} = {var.getncattr(attr_var)}")
+
+        timereference: Optional[str] = getattr(nc, "timereference", None)
+        if timereference is not None:
+            append("TIME GRID")
+            tg = _query_timegrid(ncfile=nc, left=timereference.startswith("left"))
+            opts = hydpy.pub.options
+            firstdate = tg.firstdate.to_string(style="iso2", utcoffset=opts.utcoffset)
+            append(f"{i1}first date = {firstdate}")
+            lastdate = tg.lastdate.to_string(style="iso2", utcoffset=opts.utcoffset)
+            append(f"{i1}last date = {lastdate}")
+            append(f"{i1}step size = {tg.stepsize}")
 
         return "\n".join(lines)
 
@@ -774,7 +799,11 @@ sequence (`SM`).
             f"interval boundary` according to the current value of the global "
             f"`timestampleft` option."
         )
-    with opts.timestampleft(left):
+    return _query_timegrid(ncfile=ncfile, left=left)
+
+
+def _query_timegrid(ncfile: netcdf4.Dataset, left: bool) -> timetools.Timegrid:
+    with hydpy.pub.options.timestampleft(left):
         timepoints = ncfile[varmapping["timepoints"]]
         refdate = timetools.Date.from_cfunits(timepoints.units)
         return timetools.Timegrid.from_timepoints(
@@ -2234,10 +2263,10 @@ class NetCDFInterfaceJIT(NetCDFInterfaceBase[FlatUnion]):
         data to NetCDF files "just in time" during simulation runs.
 
         We consider it unlikely users need ever to call the method
-        |NetCDFInterfaceJIT.provide_jitaccess| directly.  See the documentation on class
-        |HydPy| on applying it indirectly.  However, the following explanations might
-        give some additional insights into the options and limitations of the related
-        functionalities.
+        |NetCDFInterfaceJIT.provide_jitaccess| directly.  See the documentation on
+        class |HydPy| on applying it indirectly.  However, the following explanations
+        might give some additional insights into the options and limitations of the
+        related functionalities.
 
         You can only either read from or write to each NetCDF file.  We think this
         should rarely be a limitation for the anticipated workflows.  One particular
@@ -2306,12 +2335,12 @@ The data of the NetCDF `...hland_96_input_p.nc` (Timegrid("1989-11-01 00:00:00",
         ...     hp.simulate()
         >>> print_vector(
         ...     hp.elements["land_dill_assl"].model.sequences.factors.contriarea.series)
-        0.497092, 0.496772, 0.496519, 0.496424
+        0.497067, 0.496728, 0.496461, 0.496361
         >>> from hydpy.core.netcdftools import netcdf4
         >>> filepath = "HydPy-H-Lahn/series/default/hland_96_factor_contriarea.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath, "r") as ncfile:
         ...     print_vector(ncfile["hland_96_factor_contriarea"][:, 0])
-        0.497092, 0.496772, 0.496519, 0.496424
+        0.497067, 0.496728, 0.496461, 0.496361
 
         Under particular circumstances, the data variable of a NetCDF file can be
         3-dimensional.  The documentation on function |query_array| explains this in
@@ -2339,7 +2368,7 @@ The data of the NetCDF `...hland_96_input_p.nc` (Timegrid("1989-11-01 00:00:00",
         ...     hp.simulate()
         >>> with TestIO(), netcdf4.Dataset(filepath, "r") as ncfile:
         ...     print_vector(ncfile["hland_96_factor_contriarea"][:, 0, 0])
-        0.496091, 0.495772, 0.495518, 0.495424
+        0.496003, 0.495664, 0.495398, 0.495298
 
         If we try to write the output of a simulation run beyond the original
         initial initialisation period into the same files,
@@ -2380,31 +2409,30 @@ data "just in time" during the current simulation run, the following error occur
 No data for (sub)device `land_lahn_kalk_0` is available in NetCDF \
 file `...hland_96_flux_pc.nc`.
 
-        One way to prepare complete NetCDF files that are *HydPy* compatible is to work
-        with an ordinary NetCDF writer object via |SequenceManager.netcdfwriting|:
+        Of course, one way to prepare complete HydPy-compatible NetCDF files is to let
+        HydPy do it:
 
         >>> with TestIO(), pub.sequencemanager.filetype("nc"):
         ...     hp.prepare_fluxseries(allocate_ram=False, write_jit=False)
         ...     hp.prepare_fluxseries(allocate_ram=True, write_jit=False)
-        ...     with pub.sequencemanager.netcdfwriting():
-        ...         hp.save_fluxseries()
+        ...     hp.save_fluxseries()
         ...     headwaters.prepare_fluxseries(allocate_ram=True, write_jit=True)
         ...     hp.load_conditions()
         ...     hp.simulate()
         >>> for element in hp.elements.search_keywords("catchment"):
         ...     print_vector(element.model.sequences.fluxes.qt.series)
-        11.75686, 8.864424, 7.101367, 5.993961
-        11.673076, 10.100501, 8.984721, 8.203005
-        20.588138, 8.64403, 7.265147, 6.384859
-        9.646776, 8.512748, 7.777124, 7.343268
+        11.757526, 8.865079, 7.101815, 5.994195
+        11.672862, 10.100089, 8.984317, 8.202706
+        20.588949, 8.644722, 7.265526, 6.385012
+        9.64767, 8.513649, 7.777628, 7.343314
         >>> filepath_qt = "HydPy-H-Lahn/series/default/hland_96_flux_qt.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath_qt, "r") as ncfile:
         ...     for jdx in range(4):
         ...         print_vector(ncfile["hland_96_flux_qt"][:, jdx])
-        11.75686, 8.864424, 7.101367, 5.993961
+        11.757526, 8.865079, 7.101815, 5.994195
         0.0, 0.0, 0.0, 0.0
         0.0, 0.0, 0.0, 0.0
-        9.646776, 8.512748, 7.777124, 7.343268
+        9.64767, 8.513649, 7.777628, 7.343314
         >>> with TestIO():
         ...     headwaters.prepare_fluxseries(allocate_ram=True, write_jit=False)
         ...     nonheadwaters.prepare_fluxseries(allocate_ram=True, write_jit=True)
@@ -2413,10 +2441,10 @@ file `...hland_96_flux_pc.nc`.
         >>> with TestIO(), netcdf4.Dataset(filepath_qt, "r") as ncfile:  #
         ...         for jdx in range(4):
         ...             print_vector(ncfile["hland_96_flux_qt"][:, jdx])
-        11.75686, 8.864424, 7.101367, 5.993961
-        11.673076, 10.100501, 8.984721, 8.203005
-        20.588138, 8.64403, 7.265147, 6.384859
-        9.646776, 8.512748, 7.777124, 7.343268
+        11.757526, 8.865079, 7.101815, 5.994195
+        11.672862, 10.100089, 8.984317, 8.202706
+        20.588949, 8.644722, 7.265526, 6.385012
+        9.64767, 8.513649, 7.777628, 7.343314
 
         >>> hp.prepare_fluxseries(allocate_ram=False, write_jit=False)
 
@@ -2437,32 +2465,36 @@ file `...hland_96_flux_pc.nc`.
         ...     hp.simulate()
         >>> for node in hp.nodes:
         ...     print_vector(node.sequences.sim.series)
-        11.75686, 8.864424, 7.101367, 5.993961
-        54.018074, 37.255732, 31.863983, 28.358949
-        42.344998, 27.155231, 22.879262, 20.155944
-        9.646776, 8.512748, 7.777124, 7.343268
+        11.757526, 8.865079, 7.101815, 5.994195
+        54.019337, 37.257561, 31.865308, 28.359542
+        42.346475, 27.157472, 22.88099, 20.156836
+        9.64767, 8.513649, 7.777628, 7.343314
         >>> for node in hp.nodes:
         ...     print_vector(node.sequences.obs.series)
-        11.75686, 8.864424, 7.101367, 5.993961
-        54.018074, 37.255732, 31.863983, 28.358949
-        42.344998, 27.155231, 22.879262, 20.155944
-        9.646776, 8.512748, 7.777124, 7.343268
+        11.757526, 8.865079, 7.101815, 5.994195
+        54.019337, 37.257561, 31.865308, 28.359542
+        42.346475, 27.157472, 22.88099, 20.156836
+        9.64767, 8.513649, 7.777628, 7.343314
         >>> filepath_sim = "HydPy-H-Lahn/series/default/sim_q.nc"
         >>> with TestIO(), netcdf4.Dataset(filepath_sim, "r") as ncfile:
         ...     for jdx in range(4):
         ...         print_vector(ncfile["sim_q"][:, jdx])
-        11.75686, 8.864424, 7.101367, 5.993961
-        9.646776, 8.512748, 7.777124, 7.343268
-        42.344998, 27.155231, 22.879262, 20.155944
-        54.018074, 37.255732, 31.863983, 28.358949
+        11.757526, 8.865079, 7.101815, 5.994195
+        9.64767, 8.513649, 7.777628, 7.343314
+        42.346475, 27.157472, 22.88099, 20.156836
+        54.019337, 37.257561, 31.865308, 28.359542
         >>> filepath_obs = "HydPy-H-Lahn/series/default/obs_q.nc"
+        >>> from hydpy.core.netcdftools import query_timegrid
         >>> with TestIO(), netcdf4.Dataset(filepath_obs, "r") as ncfile:
+        ...     tg = query_timegrid(ncfile, hp.nodes.dill_assl.sequences.obs)
+        ...     i0 = tg[pub.timegrids.sim.firstdate]
+        ...     i1 = tg[pub.timegrids.sim.lastdate]
         ...     for jdx in range(4):
-        ...         print_vector(ncfile["obs_q"][:, jdx])
-        11.75686, 8.864424, 7.101367, 5.993961
-        9.646776, 8.512748, 7.777124, 7.343268
-        42.344998, 27.155231, 22.879262, 20.155944
-        54.018074, 37.255732, 31.863983, 28.358949
+        ...         print_vector(ncfile["obs_q"][i0:i1, jdx])
+        9.64767, 8.513649, 7.777628, 7.343314
+        11.757526, 8.865079, 7.101815, 5.994195
+        42.346475, 27.157472, 22.88099, 20.156836
+        54.019337, 37.257561, 31.865308, 28.359542
 
         Now we stop all sequences from writing to NetCDF files, remove the two
         headwater elements from the currently active selection, and start another
@@ -2479,8 +2511,8 @@ file `...hland_96_flux_pc.nc`.
         >>> for node in hp.nodes:
         ...     print_vector(node.sequences.sim.series)
         0.0, 0.0, 0.0, 0.0
-        42.261214, 18.744531, 16.249868, 14.587864
-        30.588138, 8.64403, 7.265147, 6.384859
+        42.261811, 18.744811, 16.249844, 14.587718
+        30.588949, 8.644722, 7.265526, 6.385012
         0.0, 0.0, 0.0, 0.0
 
         Finally, we set the |Node.deploymode| of the headwater nodes `dill_assl` and
@@ -2499,9 +2531,9 @@ file `...hland_96_flux_pc.nc`.
         ...     hp.simulate()
         >>> for node in hp.nodes:
         ...     print_vector(node.sequences.sim.series)
-        11.75686, 8.864424, 7.101367, 5.993961
-        54.018074, 37.255732, 31.863983, 28.358949
-        42.344998, 27.155231, 22.879262, 20.155944
+        11.757526, 8.865079, 7.101815, 5.994195
+        54.019337, 37.257561, 31.865308, 28.359542
+        42.346475, 27.157472, 22.88099, 20.156836
         0.0, 0.0, 0.0, 0.0
         """
 
@@ -2615,3 +2647,37 @@ file `...hland_96_flux_pc.nc`.
                 sequence.seriesmode = seriesmode
             for ncfile in variable2ncfile.values():
                 ncfile.close()
+
+
+def add_netcdfreading(wrapped: Callable[P, None]) -> Callable[P, None]:
+    """Enable a function or method that can read time series from NetCDF files to
+    automatically activate the |SequenceManager.netcdfreading| mode if not already
+    done."""
+
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> None:
+        sm = hydpy.pub.sequencemanager
+        if sm._netcdfreader is None:  # pylint: disable=protected-access
+            with sm.netcdfreading():
+                wrapped(*args, **kwargs)
+        else:
+            wrapped(*args, **kwargs)
+
+    functools.update_wrapper(wrapper=wrapper, wrapped=wrapped)
+    return wrapper
+
+
+def add_netcdfwriting(wrapped: Callable[P, None]) -> Callable[P, None]:
+    """Enable a function or method that can write time series to NetCDF files to
+    automatically activate the |SequenceManager.netcdfwriting| mode if not already
+    done."""
+
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> None:
+        sm = hydpy.pub.sequencemanager
+        if sm._netcdfwriter is None:  # pylint: disable=protected-access
+            with sm.netcdfwriting():
+                wrapped(*args, **kwargs)
+        else:
+            wrapped(*args, **kwargs)
+
+    functools.update_wrapper(wrapper=wrapper, wrapped=wrapped)
+    return wrapper

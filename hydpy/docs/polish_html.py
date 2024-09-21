@@ -7,7 +7,7 @@ import os
 import click
 
 from hydpy.core import modeltools
-from hydpy.auxs import xmltools
+from hydpy.exe import xmltools
 
 
 def _replace_toc(dirpath: str, name: str, docname: modeltools.DocName) -> None:

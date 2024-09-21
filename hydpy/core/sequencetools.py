@@ -595,6 +595,7 @@ patch(template % "StateSequences") as states:
     def __init__(
         self,
         model: modeltools.Model,
+        *,
         cls_inlets: Optional[type[InletSequences]] = None,
         cls_receivers: Optional[type[ReceiverSequences]] = None,
         cls_inputs: Optional[type[InputSequences]] = None,
@@ -662,7 +663,7 @@ patch(template % "StateSequences") as states:
         `states`.
 
         >>> from hydpy import prepare_model
-        >>> model = prepare_model("hland_96", "1d")
+        >>> model = prepare_model("hland_96")
         >>> for subseqs in model.sequences.iosubsequences:
         ...     print(subseqs.name)
         inputs
@@ -674,7 +675,7 @@ patch(template % "StateSequences") as states:
         the |Sequences.iosubsequences| property only yields those subgroups which are
         non-empty:
 
-        >>> model = prepare_model("musk_classic", "1d")
+        >>> model = prepare_model("musk_classic")
         >>> for subseqs in model.sequences.iosubsequences:
         ...     print(subseqs.name)
         fluxes
@@ -786,7 +787,7 @@ patch(template % "StateSequences") as states:
         >>> from hydpy import prepare_model, pub
         >>> pub.timegrids = "2000-01-01", "2000-01-10", "1d"
         >>> with pub.options.usedefaultvalues(True):
-        ...     model = prepare_model("lland_dd", "1d")
+        ...     model = prepare_model("lland_dd")
         ...     model.parameters.control.nhru(2)
         >>> model.sequences.states.bowa = -100.0
         >>> model.sequences.trim_conditions()
@@ -1125,7 +1126,7 @@ class Sequence_(variabletools.Variable):
     shape:
 
     >>> from hydpy import prepare_model
-    >>> model = prepare_model("lland_dd", "1d")
+    >>> model = prepare_model("lland_dd")
     >>> model.sequences.fluxes.qa.shape
     ()
     >>> nkor = model.sequences.fluxes.nkor
@@ -1385,7 +1386,7 @@ class IOSequence(Sequence_):
     >>> round_(inputs.t.series)
     -0.7, -1.5, -4.6, -8.2
     >>> round_(states.sm.series[:, 0])
-    99.148246, 99.032441, 98.961805, 98.944842
+    99.1369, 99.01204, 98.93674, 98.91913
     >>> round_(states.sp.series[:, 0, 0])
     0.0, 0.0, 0.0, 0.0
 
@@ -1404,9 +1405,9 @@ class IOSequence(Sequence_):
     ...     factors.tc.load_series()
     ...     pub.sequencemanager.close_netcdfreader()
     >>> round_(factors.contriarea.series)
-    0.431382, 0.430652, 0.430207, 0.4301
+    0.431311, 0.430524, 0.430049, 0.429938
     >>> round_(factors.tc.series[:, 0])
-    0.453086, -0.346914, -3.446914, -7.046913
+    0.453086, -0.346914, -3.446914, -7.046914
 
     We also load time series of |hland_states.SM| and |hland_states.SP| to demonstrate
     that the data written to the respective NetCDF files are identical with the data
@@ -1418,7 +1419,7 @@ class IOSequence(Sequence_):
     ...     states.sp.load_series()
     ...     pub.sequencemanager.close_netcdfreader()
     >>> round_(states.sm.series[:, 0])
-    99.148246, 99.032441, 98.961805, 98.944842
+    99.1369, 99.01204, 98.93674, 98.91913
     >>> round_(states.sp.series[:, 0, 0])
     0.0, 0.0, 0.0, 0.0
 
@@ -2907,10 +2908,10 @@ class InputSequence(ModelIOSequence):
     >>> print_vector(model.sequences.fluxes.pc.series[:, 0])
     0.0, 3.2514, 0.0, 6.5028, 0.0
     >>> print_vector(petmodel.sequences.inputs.normalevapotranspiration.series)
-    0.279191, 0.281605, 0.284201, 0.286977, 0.289932
+    0.3, 0.3, 0.3, 0.3, 0.3
     >>> print_vector(
     ...     aetmodel.sequences.fluxes.potentialsoilevapotranspiration.series[:, 0])
-    0.287632, 0.298761, 0.350738, 0.336645, 0.416885
+    0.309, 0.317657, 0.369, 0.352975, 0.432
 
     .. testsetup::
 
@@ -3070,23 +3071,23 @@ class OutputSequence(ModelIOSequence):
     2.0, 2.0, 2.0, 2.0, 2.0
 
     >>> print_vector(model.sequences.fluxes.q1.series)
-    0.530784, 0.539981, 0.548638, 0.5568, 0.564495
+    0.530782, 0.539976, 0.548629, 0.556786, 0.564477
     >>> print_vector(node_q1.sequences.sim.series)
-    0.530784, 0.539981, 0.548638, 0.5568, 0.564495
+    0.530782, 0.539976, 0.548629, 0.556786, 0.564477
     >>> print_vector(node_q1.sequences.obs.series)
     3.0, 3.0, 3.0, 3.0, 3.0
 
     >>> print_vector(model.sequences.fluxes.perc.series)
-    0.694119, 0.693673, 0.693319, 0.693187, 0.693104
+    0.694084, 0.693611, 0.693239, 0.693098, 0.693012
     >>> print_vector(node_perc.sequences.sim.series)
-    0.694119, 0.693673, 0.693319, 0.693187, 0.693104
+    0.694084, 0.693611, 0.693239, 0.693098, 0.693012
     >>> print_vector(node_perc.sequences.obs.series)
     4.0, 4.0, 4.0, 4.0, 4.0
 
     >>> print_vector(model.sequences.states.uz.series)
-    5.628328, 4.368344, 3.337403, 2.452962, 1.662716
+    5.628278, 4.368269, 3.337343, 2.452946, 1.662766
     >>> print_vector(node_uz.sequences.sim.series)
-    5.628328, 4.368344, 3.337403, 2.452962, 1.662716
+    5.628278, 4.368269, 3.337343, 2.452946, 1.662766
     >>> print_vector(node_uz.sequences.obs.series)
     5.0, 5.0, 5.0, 5.0, 5.0
 
@@ -3298,7 +3299,7 @@ class StateSequence(OutputSequence, ConditionSequence):
     base model |hland_96| with a shape of two:
 
     >>> from hydpy import prepare_model, print_vector
-    >>> model = prepare_model("hland", "1d")
+    >>> model = prepare_model("hland")
     >>> model.parameters.control.fc.shape = (2,)
     >>> model.parameters.control.fc = 100.0
     >>> sm = model.sequences.states.sm
@@ -4239,7 +4240,9 @@ class Obs(NodeSequence):
         Trying to read non-existing data raises the following warning and disables the
         sequence's ability to handle time series data:
 
+        >>> import os
         >>> with TestIO():
+        ...     os.remove(hp.nodes.dill_assl.sequences.obs.filepath)
         ...     hp.load_obsseries()  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
@@ -4285,6 +4288,7 @@ node `dill_assl` contains 1 nan value.
 
         >>> hp.prepare_obsseries()
         >>> with TestIO():
+        ...     os.remove(hp.nodes.lahn_marb.sequences.obs.filepath)
         ...     with pub.options.warnmissingobsfile(False):
         ...         hp.load_obsseries()
         >>> obs.series

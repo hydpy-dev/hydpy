@@ -10,10 +10,10 @@
 .. _IDLE: https://docs.python.org/3/library/idle.html
 .. _Spyder: https://www.spyder-ide.org/
 .. _pip: https://pip.pypa.io/en/stable/
-.. _releases: https://github.com/hydpy-dev/hydpy/releases
-.. _issue: https://github.com/hydpy-dev/hydpy/issues
-.. _GNU Compiler Collection: https://gcc.gnu.org/
+.. _Virtual Environments: https://docs.python.org/3/tutorial/venv.html
+.. _Python Launcher: https://docs.python.org/3/using/windows.html#launcher
 .. _Windows Compilers page: https://wiki.python.org/moin/WindowsCompilers
+.. _GNU Compiler Collection: https://gcc.gnu.org/
 
 
 .. _installation:
@@ -21,37 +21,36 @@
 Installation
 ============
 
-Starting with version 3.0, *HydPy* is available on the `Python Package Index`_.  With
-`Python 3.9, 3.10, 3.11, or 3.12`_ on your computer and having access to the internet,
-you only have to type::
+HydPy is available on the `Python Package Index`_.  With `Python 3.9, 3.10, 3.11, or
+3.12`_ on your computer and having access to the internet, you only have to type::
 
   pip install hydpy
 
-into your command-line tool to install the latest version of *HydPy* on your computer.
+into your command-line tool to install the latest version of HydPy on your computer.
 `pip` then installs necessary site packages like `numpy`_ on the fly.
 
-For 64 bit Windows, the `Python Package Index`_ provides so-called "wheels", which
+For 64-bit Windows, the `Python Package Index`_ provides so-called "wheels", which
 include pre-compiled binaries and simplify installing a lot.  On Linux systems, you
 have to install "from source" at the moment, as explained below.
 
-Starting with version 4.0, *HydPy* also comes as an installer for Windows, including
+Starting with version 4.0, HydPy also comes as an installer for Windows, including
 Python itself and all required and optional dependencies.  You may find it useful if
-you are new to Python and want to check out *HydPy* before installing a complete Python
+you are new to Python and want to check out HydPy before installing a complete Python
 distribution or if you are afraid to mess up your current Python installation (but then
 you should probably prefer to work in a virtual environment).  Additionally, the
-closedness of the installer might be preferable when coupling *HydPy* to other software
+closedness of the installer might be preferable when coupling HydPy to other software
 systems such as `Kalypso`_ or `Delft-FEWS`_.  See `releases`_ for the latest version of
-the *HydPy* installer.
+the HydPy installer.
 
 
 Selecting a Python distribution
 --------------------------------
 
-Using *HydPy* requires installing `Python 3.9, 3.10, 3.11, or 3.12`_ first.  You should
-favour the latest Python version unless you plan to use other libraries still only
-available for earlier versions.  Alternatively, consider installing a more
-comprehensive Python distribution like `Anaconda`_, already containing many scientific
-and mathematical tools.
+Using HydPy requires installing `Python 3.9, 3.10, 3.11, or 3.12`_ first.  You should
+favour the latest Python version unless you plan to use other libraries only available
+for earlier versions.  Alternatively, consider installing a more comprehensive Python
+distribution like `Anaconda`_, already containing many scientific and mathematical
+tools.
 
 Note that these Python distributions do not include the most powerful integrated
 development environments.  For simple tasks, the lightweight IDE `IDLE`_ of the
@@ -64,27 +63,27 @@ configuration effort required should quickly pay for itself.
 Selecting a HydPy distribution
 ------------------------------
 
-If you want to contribute to the development of  *HydPy* or implement new models,
-please see the :ref:`developer_guide` section.  If you want to apply *HydPy* only, you
-should start with a stable version available under `releases`_.
+If you want to contribute to the development of  HydPy or implement new models, please
+see the :ref:`developer_guide` section.  If you want to apply HydPy only, you should
+start with a stable version available under `releases`_.
 
-You are probably interested in using the latest version of *HydPy*, which has the
-highest version number.  HydPy's version numbers consist of three separate digits.  In
-"X.Y.Z.", "X" is the major number.  There can be substantial differences between
-*HydPy* versions with different major numbers, possibly resulting in incompatibility
-issues with interfacing systems.  "Y" is the minor revision number, indicating some
-improvements, but no potentially problematic changes, e. g. the implementation of
+You are probably interested in using the latest version of HydPy, which has the highest
+version number.  HydPy's version numbers consist of three separate digits.  In
+"X.Y.Z.", "X" is the major number.  There can be substantial differences between HydPy
+versions with different major numbers, possibly resulting in incompatibility issues
+with interfacing systems.  "Y" is the minor revision number, indicating some
+improvements but no potentially problematic changes, e. g. the implementation of
 additional models.  "Z" is the revision number, indicating some necessary corrections
 to the framework or its implemented models.  You should make sure to select the highest
 revision number available, meaning you should prefer using "X.Y.1" over "X.Y.0".
 
-Each release is available in different compressed archives, corresponding to different
-environments.  Currently, we distribute pre-compiled binaries for 64-bit Windows only
-(see above).  You have to build binaries yourself for all other operating systems and
-Python versions yourself.   Principally, this should be simple, but Windows users might
-need to install the suitable compiler first (see below).  Download and uncompress the
+Each release is available in different compressed archives suitable for different
+systems.  Currently, we distribute pre-compiled binaries for 64-bit Windows only (see
+above).  You have to build binaries yourself for all other operating systems and Python
+versions yourself.   Principally, this should be simple, but Windows users might need
+to install the suitable compiler first (see below).  Download and uncompress the
 `source code` archive in an arbitrary folder and open the command line interface within
-the uncompressed `hydpy` folder. Then write the following commands::
+the uncompressed `hydpy` folder. Then, write the following commands::
 
     python prepare_build.py
     python -m build
@@ -95,18 +94,59 @@ the original and the autogenerated sources to build a compressed source distribu
 and a wheel distribution in a folder named "dist".  The wheel distribution contains the
 content of the source distribution plus pre-compiled binaries for your specific system
 and `Python` version.  The third command installs the wheel into the currently active
-site-packages folder.  After that, you are ready to go.
+site packages folder.  After that, you are ready to go.
+
+
+Creating an Environment
+-----------------------
+
+Refraining from adding site packages like HydPy into the basic Python installation is
+always advisable.  Otherwise, with time, the number of additional packages grows larger
+and larger, and it will not take long until the first incompatibilities emerge.
+
+To avoid such problems, the Python community developed many "environment mechanisms".
+An `environment` is a kind of project- or purpose-specific Python subinstallation that
+is, more or less, independent of other `environments`.
+
+Integrated development environments (IDEs) provide convenient ways to manage multiple
+environments connected to different projects.  But even without a capable IDE, the
+basic steps are straightforward.  For example, each Python installation has tools for
+creating and using `Virtual Environments`_.
+
+With the `Python Launcher`_ installed, the following command creates a virtual
+environment named `venv_hydpy_5` in your current working directory::
+
+    py -m venv venv_hydpy_5
+
+You can activate this virtual environment on Windows by executing the batch file
+`activate.bat`::
+
+    venv_hydpy_5\Scripts\activate
+
+You can now execute the following command to let `pip`_  install the latest release of
+HydPy 5 into the `venv_hydpy_5` environment::
+
+    pip install "hydpy < 6"
+
+After following these steps, you have an outdated HydPy version on your computer.  But
+this does not need to bother you, because you can just as easily install, for example,
+HydPy 6 in a separate environment without the risk of any conflicts::
+
+    deactivate
+    py -m venv venv_hydpy_6
+    venv_hydpy6\Scripts\activate
+    pip install "hydpy < 7"
 
 
 Selecting a C Compiler
 ----------------------
 
 You only need to care about selecting a C compiler if no pre-compiled binaries are
-available for your system or if you want to implement new models into the *HydPy*
+available for your system or if you want to implement new models into the HydPy
 framework.  Also, Linux users should have no trouble, as the `GNU Compiler Collection`_
 is ready for use on standard Linux distributions.  Unfortunately, Windows does not
-include compilers by default.  Search the `Windows Compilers page`_ on selecting and
-installing the correct compiler.
+include compilers by default.  Search the `Windows Compilers page`_  to learn how to
+select and install the correct compiler.
 
 After installing the required compiler on Windows, you might eventually have to deal
 with the **unable to find vcvarsall.bat** problem.  `vcvarsall` is a batch file Python

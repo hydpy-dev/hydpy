@@ -37,20 +37,23 @@ class ExchangeSpecification:
     following tests list the expected cases:
 
     >>> from hydpy.core.itemtools import ExchangeSpecification
-    >>> ExchangeSpecification("musk_classic", "control.nmbsequences", "lag")
-    ExchangeSpecification("musk_classic", "control.nmbsequences", "lag")
-    >>> ExchangeSpecification("hland_96", "fluxes.qt", None)
-    ExchangeSpecification("hland_96", "fluxes.qt", None)
-    >>> ExchangeSpecification("hland_96", "fluxes.qt.series", None)
-    ExchangeSpecification("hland_96", "fluxes.qt.series", None)
-    >>> ExchangeSpecification("node", "sim", None)
-    ExchangeSpecification("node", "sim", None)
-    >>> ExchangeSpecification("node", "sim.series", None)
-    ExchangeSpecification("node", "sim.series", None)
+    >>> ExchangeSpecification(master="musk_classic", variable="control.nmbsequences",
+    ...                       keyword="lag")
+    ExchangeSpecification(master="musk_classic", variable="control.nmbsequences", \
+keyword="lag")
+    >>> ExchangeSpecification(master="hland_96", variable="fluxes.qt")
+    ExchangeSpecification(master="hland_96", variable="fluxes.qt")
+    >>> ExchangeSpecification(master="hland_96", variable="fluxes.qt.series")
+    ExchangeSpecification(master="hland_96", variable="fluxes.qt.series")
+    >>> ExchangeSpecification(master="node", variable="sim")
+    ExchangeSpecification(master="node", variable="sim")
+    >>> ExchangeSpecification(master="node", variable="sim.series")
+    ExchangeSpecification(master="node", variable="sim.series")
 
     The following attributes are accessible:
 
-    >>> spec = ExchangeSpecification("musk_classic", "control.nmbsequences", "lag")
+    >>> spec = ExchangeSpecification(master="musk_classic",
+    ...                              variable="control.nmbsequences", keyword="lag")
     >>> spec.master
     'musk_classic'
     >>> spec.subgroup
@@ -77,7 +80,9 @@ class ExchangeSpecification:
     """For model variables, the name of the parameter or sequence subgroup of the
     target or base variable; for node sequences, |None|."""
 
-    def __init__(self, master: str, variable: str, keyword: Optional[str]) -> None:
+    def __init__(
+        self, *, master: str, variable: str, keyword: Optional[str] = None
+    ) -> None:
         self.master = master
         entries = variable.split(".")
         self.series = entries[-1] == "series"
@@ -95,7 +100,7 @@ class ExchangeSpecification:
         `variable`.
 
         >>> from hydpy.core.itemtools import ExchangeSpecification
-        >>> spec = ExchangeSpecification("hland_96", "fluxes.qt", None)
+        >>> spec = ExchangeSpecification(master="hland_96", variable="fluxes.qt")
         >>> spec.specstring
         'fluxes.qt'
         >>> spec.series = True
@@ -114,8 +119,11 @@ class ExchangeSpecification:
         return variable
 
     def __repr__(self) -> str:
-        keyword = "None" if self.keyword is None else f'"{self.keyword}"'
-        return f'ExchangeSpecification("{self.master}", "{self.specstring}", {keyword})'
+        keyword = "" if self.keyword is None else f', keyword="{self.keyword}"'
+        return (
+            f'ExchangeSpecification(master="{self.master}", '
+            f'variable="{self.specstring}"{keyword})'
+        )
 
 
 class ExchangeItem:
@@ -210,7 +218,8 @@ class ExchangeItem:
         |ExchangeItem| is only a base class.  Hence we need to prepare some missing
         attributes manually:
 
-        >>> item.targetspecs = ExchangeSpecification("hland", "states.ic", None)
+        >>> item.targetspecs = ExchangeSpecification(master="hland",
+        ...                                          variable="states.ic")
         >>> item.level = "global"
         >>> item.device2target = {}
         >>> item.selection2targets = {}
@@ -350,7 +359,7 @@ class ChangeItem(ExchangeItem):
         |ChangeItem.collect_variables| results in the following error:
 
         >>> from hydpy import SetItem
-        >>> SetItem("name", "master", "target", None, "global").shape
+        >>> SetItem(name="name", master="master", target="target", level="global").shape
         Traceback (most recent call last):
         ...
         RuntimeError: The shape of SetItem `name` has not been determined so far.
@@ -376,7 +385,8 @@ class ChangeItem(ExchangeItem):
         >>> del pub.selections["complete"]
         >>> from hydpy import SetItem
         >>> for level in ("global", "selection", "device",  "subunit"):
-        ...     item = SetItem("t", "hland", "inputs.t.series", None, level)
+        ...     item = SetItem(name="t", master="hland", target="inputs.t.series",
+        ...                    level=level)
         ...     item.collect_variables(pub.selections)
         ...     print(level, item.shape, item.seriesshape)
         global () (4,)
@@ -389,9 +399,7 @@ class ChangeItem(ExchangeItem):
         return (len(hydpy.pub.timegrids.sim),)
 
     @property
-    def subnames(  # pylint: disable=inconsistent-return-statements
-        self,
-    ) -> Optional[Union[tuple[()], tuple[str, ...]]]:
+    def subnames(self) -> Optional[Union[tuple[()], tuple[str, ...]]]:
         """Artificial subnames of all values of all target variables.
 
         Property |ChangeItem.subnames| offers a way to identify specific entries of the
@@ -427,7 +435,8 @@ class ChangeItem(ExchangeItem):
         The first example deals with "global" state values:
 
         >>> from hydpy import print_matrix, round_, SetItem
-        >>> item = SetItem("ic", "hland", "states.ic", None, "global")
+        >>> item = SetItem(name="ic", master="hland", target="states.ic",
+        ...                level="global")
         >>> item.collect_variables(pub.selections)
         >>> item.value
         Traceback (most recent call last):
@@ -448,7 +457,8 @@ occurred: could not broadcast input array from shape (2,) into shape ()
 
         The second example deals with "selection-wide" input time series values:
 
-        >>> item = SetItem("t", "hland", "inputs.t.series", None, "selection")
+        >>> item = SetItem(name="t", master="hland", target="inputs.t.series",
+        ...                level="selection")
         >>> item.collect_variables(pub.selections)
 
         >>> item.value = [1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]
@@ -500,7 +510,8 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         variables:
 
         >>> from hydpy import SetItem
-        >>> item = SetItem("ic", "hland", "states.ic", None, "global")
+        >>> item = SetItem(name="ic", master="hland", target="states.ic",
+        ...                level="global")
         >>> item.collect_variables(pub.selections)
         >>> for device, target in item.device2target.items():
         ...     print(device, target)  # doctest: +ELLIPSIS
@@ -530,7 +541,8 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         For the "selection" level, we need one value for each relevant selection.
         Therefore, we use the plain selection names as sub-names:
 
-        >>> item = SetItem("ic", "hland", "states.ic", None, "selection")
+        >>> item = SetItem(name="ic", master="hland", target="states.ic",
+        ...                level="selection")
         >>> item.collect_variables(pub.selections)
         >>> item.shape
         (2,)
@@ -540,7 +552,8 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         For the "device" level, we need one value for each relevant device.  Therefore,
         we use the plain device names as sub-names:
 
-        >>> item = SetItem("ic", "hland", "states.ic", None, "device")
+        >>> item = SetItem(name="ic", master="hland", target="states.ic",
+        ...                level="device")
         >>> item.collect_variables(pub.selections)
         >>> item.shape
         (4,)
@@ -554,7 +567,8 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         the device names with the zero-based index numbers of the vector entries of the
         respective target variables:
 
-        >>> item = SetItem("ic", "hland", "states.ic", None, "subunit")
+        >>> item = SetItem(name="ic", master="hland", target="states.ic",
+        ...                level="subunit")
         >>> item.collect_variables(pub.selections)
         >>> item.shape
         (49,)
@@ -567,7 +581,8 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
 
         >>> dill_assl = hp.elements.land_dill_assl.model
         >>> dill_assl.parameters.control.sclass(2)
-        >>> item = SetItem("sp", "hland", "states.sp", None, "subunit")
+        >>> item = SetItem(name="sp", master="hland", target="states.sp",
+        ...                level="subunit")
         >>> item.collect_variables(pub.selections)
         >>> item.shape
         (61,)
@@ -578,7 +593,8 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         For 0-dimensional sequences, |ChangeItem.shape| equals their number, and all
         sub-names are identical to the corresponding device names:
 
-        >>> item = SetItem("lz", "hland", "states.lz", None, "subunit")
+        >>> item = SetItem(name="lz", master="hland", target="states.lz",
+        ...                level="subunit")
         >>> item.collect_variables(pub.selections)
         >>> item.shape
         (4,)
@@ -590,20 +606,23 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         this for the parameter |musk_control.NmbSegments| of base model |musk|, which
         accepts a custom keyword argument named `lag`:
 
-        >>> item = SetItem("lag", "musk", "control.nmbsegments", "lag", "global")
+        >>> item = SetItem(name="lag", master="musk", target="control.nmbsegments",
+        ...                keyword="lag", level="global")
         >>> item.collect_variables(pub.selections)
         >>> item.shape
         ()
         >>> item.subnames
 
-        >>> item = SetItem("lag", "musk", "control.nmbsegments", "lag", "selection")
+        >>> item = SetItem(name="lag", master="musk", target="control.nmbsegments",
+        ...                keyword="lag", level="selection")
         >>> item.collect_variables(pub.selections)
         >>> item.shape
         (1,)
         >>> item.subnames
         ('streams',)
 
-        >>> item = SetItem("lag", "musk", "control.nmbsegments", "lag", "device")
+        >>> item = SetItem(name="lag", master="musk", target="control.nmbsegments",
+        ...                keyword="lag", level="device")
         >>> item.collect_variables(pub.selections)
         >>> item.shape
         (3,)
@@ -611,7 +630,8 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         ('stream_dill_assl_lahn_leun', 'stream_lahn_leun_lahn_kalk', \
 'stream_lahn_marb_lahn_leun')
 
-        >>> item = SetItem("lag", "musk", "control.nmbsegments", "lag", "subunit")
+        >>> item = SetItem(name="lag", master="musk", target="control.nmbsegments",
+        ...                keyword="lag", level="subunit")
         >>> item.collect_variables(pub.selections)
         Traceback (most recent call last):
         ...
@@ -651,7 +671,8 @@ keyword for an exchange item, its aggregation level cannot be `subunit`.
         >>> from hydpy.core.itemtools import ChangeItem, ExchangeSpecification
         >>> item = ChangeItem()
         >>> item.name = "alpha"
-        >>> item.targetspecs = ExchangeSpecification("hland_96", "control.alpha", None)
+        >>> item.targetspecs = ExchangeSpecification(master="hland_96",
+        ...                                          variable="control.alpha")
         >>> item.level = "global"
         >>> item.device2target = {}
         >>> item.selection2targets = {}
@@ -699,9 +720,10 @@ given value `wrong` cannot be converted to type `float`.
         target variables (we use parameter |hland_control.Alpha| as an example):
 
         >>> from hydpy import print_vector, round_, SetItem
-        >>> item = SetItem("alpha", "hland_96", "control.alpha", None, "global")
+        >>> item = SetItem(name="alpha", master="hland_96", target="control.alpha",
+        ...                level="global")
         >>> item
-        SetItem("alpha", "hland_96", "control.alpha", None, "global")
+        SetItem(name="alpha", master="hland_96", target="control.alpha", level="global")
         >>> item.collect_variables(pub.selections)
         >>> land_dill_assl = hp.elements.land_dill_assl
         >>> land_dill_assl.model.parameters.control.alpha
@@ -723,7 +745,8 @@ given value `wrong` cannot be converted to type `float`.
         their target variables, which we demonstrate for the input time series
         |hland_inputs.T|:
 
-        >>> item = SetItem("t", "hland_96", "inputs.t.series", None, "global")
+        >>> item = SetItem(name="t", master="hland_96", target="inputs.t.series",
+        ...                level="global")
         >>> item.collect_variables(pub.selections)
         >>> item.value = 0.5, 1.0, 1.5, 2.0
         >>> item.update_variables()
@@ -740,9 +763,11 @@ given value `wrong` cannot be converted to type `float`.
         this for the parameter |musk_control.NmbSegments| of base model |musk|, which
         accepts a custom keyword argument named `lag`:
 
-        >>> item = SetItem("lag", "musk", "control.nmbsegments", "lag", "global")
+        >>> item = SetItem(name="lag", master="musk", target="control.nmbsegments",
+        ...                keyword="lag", level="global")
         >>> item
-        SetItem("lag", "musk", "control.nmbsegments", "lag", "global")
+        SetItem(name="lag", master="musk", target="control.nmbsegments", \
+keyword="lag", level="global")
         >>> item.collect_variables(pub.selections)
         >>> stream_lahn_marb_lahn_leun = hp.elements.stream_lahn_marb_lahn_leun
         >>> stream_lahn_marb_lahn_leun.model.parameters.control.nmbsegments
@@ -763,7 +788,8 @@ given value `wrong` cannot be converted to type `float`.
         "global" |SetItem| assigns the same value to each vector entry or the selected
         keyword argument:
 
-        >>> item = SetItem("fc", "hland_96", "control.fc", None, "global")
+        >>> item = SetItem(name="fc", master="hland_96", target="control.fc",
+        ...                level="global")
         >>> item.collect_variables(pub.selections)
         >>> item.value = 200.0
         >>> land_dill_assl.model.parameters.control.fc
@@ -772,7 +798,8 @@ given value `wrong` cannot be converted to type `float`.
         >>> land_dill_assl.model.parameters.control.fc
         fc(200.0)
 
-        >>> item = SetItem("fc", "hland_96", "control.fc", "forest", "global")
+        >>> item = SetItem(name="fc", master="hland_96", target="control.fc",
+        ...                keyword="forest", level="global")
         >>> item.collect_variables(pub.selections)
         >>> item.value = 300.0
         >>> land_dill_assl.model.parameters.control.fc
@@ -786,7 +813,8 @@ given value `wrong` cannot be converted to type `float`.
         of the first axis for demonstration purposes):
 
         >>> land_dill_assl.model.parameters.control.sclass(2)
-        >>> item = SetItem("sp", "hland_96", "states.sp", None, "global")
+        >>> item = SetItem(name="sp", master="hland_96", target="states.sp",
+        ...                level="global")
         >>> item.collect_variables(pub.selections)
         >>> item.value = 5.0
         >>> land_dill_assl.model.sequences.states.sp
@@ -801,7 +829,8 @@ given value `wrong` cannot be converted to type `float`.
         value to the target variables of each relevant selection, regardless of target
         variable's dimensionality:
 
-        >>> item = SetItem("ic", "hland_96", "states.ic", None, "selection")
+        >>> item = SetItem(name="ic", master="hland_96", target="states.ic",
+        ...                level="selection")
         >>> item.collect_variables(pub.selections)
         >>> land_dill_assl.model.sequences.states.ic  # doctest: +ELLIPSIS
         ic(0.9694, ..., 1.47487)
@@ -814,7 +843,8 @@ given value `wrong` cannot be converted to type `float`.
         land_lahn_leun ic(1.0, 1.0, ..., 1.0, 1.0)
         land_lahn_marb ic(0.5, 0.5, ..., 0.5, 0.5)
 
-        >>> item = SetItem("t", "hland_96", "inputs.t.series", None, "selection")
+        >>> item = SetItem(name="t", master="hland_96", target="inputs.t.series",
+        ...                level="selection")
         >>> item.collect_variables(pub.selections)
         >>> item.value = [0.5, 1.0, 1.5, 2.0], [2.5, 3.0, 3.5, 4.0]
         >>> item.update_variables()
@@ -826,7 +856,8 @@ given value `wrong` cannot be converted to type `float`.
         land_lahn_leun: 2.5, 3.0, 3.5, 4.0
         land_lahn_marb: 0.5, 1.0, 1.5, 2.0
 
-        >>> item = SetItem("tt", "hland_96", "control.tt", "field", "selection")
+        >>> item = SetItem(name="tt", master="hland_96", target="control.tt",
+        ...                keyword="field", level="selection")
         >>> item.collect_variables(pub.selections)
         >>> item.value = [0.0, 1.0]
         >>> land_dill_assl.model.parameters.control.tt
@@ -842,7 +873,8 @@ given value `wrong` cannot be converted to type `float`.
         In contrast, each device receives one specific value when working on the
         "device" level:
 
-        >>> item = SetItem("ic", "hland_96", "states.ic", None, "device")
+        >>> item = SetItem(name="ic", master="hland_96", target="states.ic",
+        ...                level="device")
         >>> item.collect_variables(pub.selections)
         >>> item.value = 0.5, 1.0, 1.5, 2.0
         >>> item.update_variables()
@@ -853,7 +885,8 @@ given value `wrong` cannot be converted to type `float`.
         land_lahn_leun ic(2.0, 2.0, ..., 2.0, 2.0)
         land_lahn_marb ic(1.0, 1.0, ... 1.0, 1.0)
 
-        >>> item = SetItem("t", "hland_96", "inputs.t.series", None, "device")
+        >>> item = SetItem(name="t", master="hland_96", target="inputs.t.series",
+        ...                level="device")
         >>> item.collect_variables(pub.selections)
         >>> item.value = [[0.5, 1.0, 1.5, 2.0], [2.5, 3.0, 3.5, 4.0],
         ...               [4.5, 5.0, 5.5, 6.0], [6.5, 7.0, 7.5, 8.0]]
@@ -866,7 +899,8 @@ given value `wrong` cannot be converted to type `float`.
         land_lahn_leun: 6.5, 7.0, 7.5, 8.0
         land_lahn_marb: 2.5, 3.0, 3.5, 4.0
 
-        >>> item = SetItem("beta", "hland_96", "control.beta", "forest", "device")
+        >>> item = SetItem(name="beta", master="hland_96", target="control.beta",
+        ...                keyword="forest", level="device")
         >>> item.collect_variables(pub.selections)
         >>> item.value = [1.0, 2.0, 3.0, 4.0]
         >>> land_dill_assl.model.parameters.control.beta
@@ -883,7 +917,8 @@ given value `wrong` cannot be converted to type `float`.
         |hland_states.IC|, the |SetItem| object handles one value for each of the 49
         hydrological response units of the complete `Lahn` river basin:
 
-        >>> item = SetItem("ic", "hland_96", "states.ic", None, "subunit")
+        >>> item = SetItem(name="ic", master="hland_96", target="states.ic",
+        ...                level="subunit")
         >>> item.collect_variables(pub.selections)
         >>> item.value = [value/100 for value in range(49)]
         >>> item.update_variables()
@@ -900,7 +935,8 @@ given value `wrong` cannot be converted to type `float`.
         |SetItem| object.  Each item value relates to a specific matrix entry of a
         specific target variable:
 
-        >>> item = SetItem("sp", "hland_96", "states.sp", None, "subunit")
+        >>> item = SetItem(name="sp", master="hland_96", target="states.sp",
+        ...                level="subunit")
         >>> item.collect_variables(pub.selections)
         >>> item.value = [value/100 for value in range(61)]
         >>> item.update_variables()
@@ -942,14 +978,17 @@ class SetItem(ChangeItem):
 
     def __init__(
         self,
+        *,
         name: str,
         master: str,
         target: str,
-        keyword: Optional[str],
         level: LevelType,
+        keyword: Optional[str] = None,
     ) -> None:
         self.name = Name(name)
-        self.targetspecs = ExchangeSpecification(master, target, keyword)
+        self.targetspecs = ExchangeSpecification(
+            master=master, variable=target, keyword=keyword
+        )
         self.level = level
         self._value = None
         self._shape = None
@@ -976,17 +1015,23 @@ class SetItem(ChangeItem):
         sequence |hland_states.SP|:
 
         >>> from hydpy import print_vector, round_, SetItem
-        >>> lz = SetItem("lz", "hland_96", "states.lz", None, "to be defined")
-        >>> sm = SetItem("sm", "hland_96", "states.sm", None, "to be defined")
-        >>> sp = SetItem("sp", "hland_96", "states.sp", None, "to be defined")
+        >>> lz = SetItem(name="lz", master="hland_96", target="states.lz",
+        ...              level="to be defined")
+        >>> sm = SetItem(name="sm", master="hland_96", target="states.sm",
+        ...              level="to be defined")
+        >>> sp = SetItem(name="sp", master="hland_96", target="states.sp",
+        ...              level="to be defined")
 
         The additional |SetItem| objects `uz`, `ic`, and `wc` address the time series
         of the 0-dimensional sequence |hland_states.UZ|, the 1-dimensional sequence
         |hland_states.Ic|, and the 2-dimensional sequence |hland_states.WC|:
 
-        >>> uz = SetItem("uz", "hland_96", "states.uz.series", None, "to be defined")
-        >>> ic = SetItem("ic", "hland_96", "states.ic.series", None, "to be defined")
-        >>> wc = SetItem("wc", "hland_96", "states.wc.series", None, "to be defined")
+        >>> uz = SetItem(name="uz", master="hland_96", target="states.uz.series",
+        ...              level="to be defined")
+        >>> ic = SetItem(name="ic", master="hland_96", target="states.ic.series",
+        ...              level="to be defined")
+        >>> wc = SetItem(name="wc", master="hland_96", target="states.wc.series",
+        ...              level="to be defined")
 
         The following test function updates the aggregation level and calls
         |SetItem.extract_values| for all six items:
@@ -1167,7 +1212,8 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         resolve the `subunit` level, extracting the values of keyword arguments works
         only for the `device` level:
 
-        >>> cfmax = SetItem("lag", "hland_96", "control.cfmax", "forest", "device")
+        >>> cfmax = SetItem(name="lag", master="hland_96", target="control.cfmax",
+        ...                 keyword="forest", level="device")
         >>> cfmax.collect_variables(pub.selections)
         >>> cfmax.extract_values()
         >>> dill_assl.parameters.control.cfmax
@@ -1320,10 +1366,14 @@ has/have not been prepared so far.
 
     def __repr__(self) -> str:
         ts = self.targetspecs
-        keyword = "None" if ts.keyword is None else f'"{ts.keyword}"'
+        keyword = "" if ts.keyword is None else f'keyword="{ts.keyword}", '
         return (
-            f'{type(self).__name__}("{self.name}", "{ts.master}", "{ts.specstring}", '
-            f'{keyword}, "{self.level}")'
+            f"{type(self).__name__}("
+            f'name="{self.name}", '
+            f'master="{ts.master}", '
+            f'target="{ts.specstring}", '
+            f"{keyword}"
+            f'level="{self.level}")'
         )
 
 
@@ -1335,13 +1385,15 @@ class MathItem(ChangeItem):
     base variables:
 
     >>> from hydpy.core.itemtools import MathItem
-    >>> item = MathItem("sfcf", "hland_96", "control.sfcf", "control.rfcf", "global")
+    >>> item = MathItem(name="sfcf", master="hland_96", target="control.sfcf",
+    ...                 base="control.rfcf", level="global")
     >>> item
-    MathItem("sfcf", "hland_96", "control.sfcf", "control.rfcf", "global")
+    MathItem(name="sfcf", master="hland_96", target="control.sfcf", \
+base="control.rfcf", level="global")
     >>> item.targetspecs
-    ExchangeSpecification("hland_96", "control.sfcf", None)
+    ExchangeSpecification(master="hland_96", variable="control.sfcf")
     >>> item.basespecs
-    ExchangeSpecification("hland_96", "control.rfcf", None)
+    ExchangeSpecification(master="hland_96", variable="control.rfcf")
 
     Generally, each |MathItem| object calculates the value of the target variable of
     a |Device| object by using its current |ChangeItem.value| and the value(s) of the
@@ -1354,11 +1406,11 @@ class MathItem(ChangeItem):
     """All target variable objects and their related base variable objects."""
 
     def __init__(
-        self, name: str, master: str, target: str, base: str, level: LevelType
+        self, *, name: str, master: str, target: str, base: str, level: LevelType
     ) -> None:
         self.name = Name(name)
-        self.targetspecs = ExchangeSpecification(master, target, None)
-        self.basespecs = ExchangeSpecification(master, base, None)
+        self.targetspecs = ExchangeSpecification(master=master, variable=target)
+        self.basespecs = ExchangeSpecification(master=master, variable=base)
         self.level = level
         self._value = None
         self._shape = None
@@ -1398,9 +1450,12 @@ class MathItem(ChangeItem):
 
     def __repr__(self) -> str:
         return (
-            f'{type(self).__name__}("{self.name}", '
-            f'"{self.targetspecs.master}", "{self.targetspecs.specstring}", '
-            f'"{self.basespecs.specstring}", "{self.level}")'
+            f"{type(self).__name__}("
+            f'name="{self.name}", '
+            f'master="{self.targetspecs.master}", '
+            f'target="{self.targetspecs.specstring}", '
+            f'base="{self.basespecs.specstring}", '
+            f'level="{self.level}")'
         )
 
 
@@ -1605,10 +1660,10 @@ class GetItem(ExchangeItem):
     _device2name: dict[Union[devicetools.Node, devicetools.Element], Name]
     _ndim: Optional[int] = None
 
-    def __init__(self, name: Name, master: str, target: str) -> None:
+    def __init__(self, *, name: Name, master: str, target: str) -> None:
         self.name = name
         self.target = target.replace(".", "_")
-        self.targetspecs = ExchangeSpecification(master, target, None)
+        self.targetspecs = ExchangeSpecification(master=master, variable=target)
         self.device2target = {}
         self.selection2targets = {}
         self._device2name = {}
@@ -1621,7 +1676,7 @@ class GetItem(ExchangeItem):
         |GetItem.collect_variables| results in the following error message:
 
         >>> from hydpy.core.itemtools import GetItem
-        >>> GetItem("temp", "hland_96", "states.lz").ndim
+        >>> GetItem(name="temp", master="hland_96", target="states.lz").ndim
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: Attribute `ndim` of GetItem \
@@ -1649,13 +1704,13 @@ class GetItem(ExchangeItem):
         >>> from hydpy.core.itemtools import GetItem
         >>> for target in ("states.lz", "states.lz.series",
         ...                "states.sm", "states.sm.series"):
-        ...     item = GetItem("temp", "hland_96", target)
+        ...     item = GetItem(name="temp", master="hland_96", target=target)
         ...     item.collect_variables(pub.selections)
         ...     print(item, item.ndim)
-        GetItem("temp", "hland_96", "states.lz") 0
-        GetItem("temp", "hland_96", "states.lz.series") 1
-        GetItem("temp", "hland_96", "states.sm") 1
-        GetItem("temp", "hland_96", "states.sm.series") 2
+        GetItem(name="temp", master="hland_96", target="states.lz") 0
+        GetItem(name="temp", master="hland_96", target="states.lz.series") 1
+        GetItem(name="temp", master="hland_96", target="states.sm") 1
+        GetItem(name="temp", master="hland_96", target="states.sm.series") 2
         """
         super().collect_variables(selections)
         for device in sorted(self.device2target.keys(), key=lambda x: x.name):
@@ -1688,7 +1743,7 @@ class GetItem(ExchangeItem):
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import SetItem
-        >>> item = GetItem("lz", "hland_96", "states.lz")
+        >>> item = GetItem(name="lz", master="hland_96", target="states.lz")
         >>> item.collect_variables(pub.selections)
         >>> for name, subnames in item.yield_name2subnames():
         ...     print(name, subnames)
@@ -1697,7 +1752,7 @@ class GetItem(ExchangeItem):
         land_lahn_leun_states_lz land_lahn_leun
         land_lahn_marb_states_lz land_lahn_marb
 
-        >>> item = GetItem("sim", "nodes", "sim.series")
+        >>> item = GetItem(name="sim", master="nodes", target="sim.series")
         >>> item.collect_variables(pub.selections)
         >>> for name, subnames in item.yield_name2subnames():
         ...     print(name, subnames)
@@ -1709,7 +1764,7 @@ class GetItem(ExchangeItem):
         For non-scalar variables, the sub-names combine the device name and all
         possible index combinations for the current shape of the target variable:
 
-        >>> item = GetItem("sm", "hland_96", "states.sm")
+        >>> item = GetItem(name="sm", master="hland_96", target="states.sm")
         >>> item.collect_variables(pub.selections)
         >>> for name, subnames in item.yield_name2subnames():
         ...     print(name, subnames)  # doctest: +ELLIPSIS
@@ -1718,7 +1773,7 @@ class GetItem(ExchangeItem):
         land_lahn_leun_states_sm ('land_lahn_leun_0', ..., 'land_lahn_leun_9')
         land_lahn_marb_states_sm ('land_lahn_marb_0', ..., 'land_lahn_marb_12')
 
-        >>> item = GetItem("sp", "hland_96", "states.sp")
+        >>> item = GetItem(name="sp", master="hland_96", target="states.sp")
         >>> item.collect_variables(pub.selections)
         >>> for name, subnames in item.yield_name2subnames():
         ...     print(name, subnames)  # doctest: +ELLIPSIS
@@ -1746,7 +1801,7 @@ class GetItem(ExchangeItem):
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import SetItem
-        >>> item = GetItem("lz", "hland_96", "states.lz")
+        >>> item = GetItem(name="lz", master="hland_96", target="states.lz")
         >>> item.collect_variables(pub.selections)
         >>> hp.elements.land_dill_assl.model.sequences.states.lz = 100.0
         >>> for name, value in item.yield_name2value():
@@ -1755,7 +1810,7 @@ class GetItem(ExchangeItem):
         land_lahn_kalk_states_lz 7.52648
         land_lahn_leun_states_lz 10.14007
         land_lahn_marb_states_lz 8.18711
-        >>> item = GetItem("sm", "hland_96", "states.sm")
+        >>> item = GetItem(name="sm", master="hland_96", target="states.sm")
         >>> item.collect_variables(pub.selections)
         >>> hp.elements.land_dill_assl.model.sequences.states.sm = 2.0
         >>> for name, value in item.yield_name2value():
@@ -1768,7 +1823,7 @@ class GetItem(ExchangeItem):
         When querying time series, one can restrict the span of interest by passing
         index values:
 
-        >>> item = GetItem("sim", "nodes", "sim.series")
+        >>> item = GetItem(name="sim", master="nodes", target="sim.series")
         >>> item.collect_variables(pub.selections)
         >>> hp.nodes.dill_assl.sequences.sim.series = 1.0, 2.0, 3.0, 4.0
         >>> for name, value in item.yield_name2value():
@@ -1798,7 +1853,7 @@ class GetItem(ExchangeItem):
     def __repr__(self) -> str:
         return (
             f"{type(self).__name__}("
-            f'"{self.name}", '
-            f'"{self.targetspecs.master}", '
-            f'"{self.targetspecs.specstring}")'
+            f'name="{self.name}", '
+            f'master="{self.targetspecs.master}", '
+            f'target="{self.targetspecs.specstring}")'
         )

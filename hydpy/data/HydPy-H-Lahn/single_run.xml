@@ -3,6 +3,7 @@
               xmlns:hpcsr="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/HydPyConfigSingleRun.xsd">
 
     <options>
+        <checkprojectstructure>true</checkprojectstructure>
         <checkseries>true</checkseries>
         <parameterstep>1d</parameterstep>
         <reprdigits>6</reprdigits>
@@ -52,9 +53,7 @@
     <control_io>default</control_io>
 
     <conditions_io>
-        <inputdir>init_1996_01_01_00_00_00</inputdir>
         <outputdir>init_1996_01_06</outputdir>
-        <zip>false</zip>
     </conditions_io>
     
     <series_io>

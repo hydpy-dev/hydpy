@@ -643,7 +643,7 @@ has not been prepared so far.
         """
         self._calgorithm.calculate_values()
 
-    def calculate_derivatives(self, idx: int = 0) -> None:
+    def calculate_derivatives(self, idx: int = 0, /) -> None:
         """Calculate the derivative of the output value with respect to the input value.
 
         For more information, see the documentation on class |ppolytools.PPoly|.

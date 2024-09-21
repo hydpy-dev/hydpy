@@ -1916,6 +1916,7 @@ class PyxWriter:
     @classmethod
     def _assign_seqvalues(
         cls,
+        *,
         subseqs: Iterable[sequencetools.IOSequence],
         subseqs_name: str,
         target: str,

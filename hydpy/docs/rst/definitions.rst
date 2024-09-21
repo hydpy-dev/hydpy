@@ -1,4 +1,8 @@
 
+.. role:: raw-html(raw)
+   :format: html
+
+
 .. _definitions:
 
 Definitions
@@ -201,6 +205,23 @@ an :ref:`application_model` like |hland_96| claims it can consider additional ru
 concentration processes by using a submodel that follows the |RConcModel_V1| interface,
 they can use, for example, |rconc_uh| for this purpose, as it one of the submodels
 following the |RConcModel_V1| interface.
+
+.. _submodel_port:
+
+submodel port
+_____________
+
+A :ref:`main_model` instance requires connections to all its direct submodel instances
+(but not to its sub-submodel instances).  These attribute-like connections are named
+`submodel port` or just `port`.  To continue the above example, |hland_96| has the
+`rconcmodel` port to keep a |rconc_uh| submodel accessible.  Technically, such a `port`
+is implemented via an instance of the class |SubmodelProperty| (for managing a single
+submodel instance as an attribute) or |SubmodelsProperty| (for managing a submodel
+vector as an attribute).
+
+Submodel graphs like the one shown in the :ref:`model_overview` section alternate
+between model and port names (main model :raw-html:`&rarr;` port :raw-html:`&rarr;`
+submodel :raw-html:`&rarr;` port :raw-html:`&rarr;` sub-submodel...).
 
 .. _stand_alone_model:
 
@@ -429,9 +450,25 @@ identical but target different properties. `Factor sequences` (derived from
 sequences (derived from |FluxSequence|) deal with fluxes like global radiation or
 discharge.
 
-`Inlet, outlet, receiver, and sender sequences` usually serve to exchange data with
-other models.  We often subsume them as "link sequences".  See the :ref:`element`
-subsection for more information.
+`Link sequences` (derived from |LinkSequence|) do not carry data of their own but point
+to the data handled by the `node sequences` (derived from |NodeSequence|) of node
+instances.   They enable models to query data from and manipulate the data of node
+instances, which is the standard way of data exchange between model instances over the
+network.
+
+`Inlet and outlet` sequences are the two most relevant `link sequence` types.  They
+serve to pass fluxes downstream.  `Inlet sequences` (derived from |InletSequence|)
+enable, for example, routing models to get inflow from upstream models, while `outlet
+sequences` (derived from |OutletSequences| enable them to pass it in modified form to
+downstream models.
+
+`Receiver and sender sequences` are also `link sequences`. They allow the distribution
+of different kinds of information to arbitrary locations in the network.  For example,
+a downstream routing model could use a `sender sequence` (derived from
+|SenderSequence|) to pass its water level to a "remote node", and an upstream pumping
+station model could query this information from the "remote node" via a `receiver
+sequence` (derived from |ReceiverSequence|) to stop its pumping as soon the actual
+water level exceeds a critical threshold.
 
 `Aide sequences` (derived from |AideSequence|) only store temporary information and are
 of little importance to users.
@@ -442,3 +479,28 @@ Second, HydPy allows connecting an `output sequence` of one model instance to an
 `input sequence` of another model instance.  (This feature is unhandy, so we added the
 submodel concept to HydPy 6.0.  Only a few cases are left where the input-output
 sequence mechanism is still required.)
+
+.. _time_grid:
+
+time grid
+_________
+
+In HydPy, a `time grid` is a set of equally long time intervals defined by an instance
+of the |Timegrid| class.  Due to the intervals' equal length, a `time grid` instance is
+outright specified by the starting point of its first interval (|Timegrid.firstdate|),
+the endpoint of its last interval (|Timegrid.lastdate|), and the size of a single
+interval (|Timegrid.stepsize|).
+
+When working on a :ref:`project`, one usually deals with three different `time grids`,
+which are handled by an instance of class |Timegrids|:
+
+ * The `initialisation time grid` (|Timegrids.init|) covers the relevant period
+   completely.  For example, when HydPy prepares to read time series data from disk, it
+   allocates just enough RAM as indicated by |Timegrids.init|.
+ * The `simulation time grid` (|Timegrids.sim|) defines the period of the next
+   simulation run.  By default, it equals |Timegrids.init|), but one can truncate it to
+   a subperiod of the initialisation period, which helps, for example, implementing
+   data assimilation methods efficiently.
+ * The `evaluation time grid` (|Timegrids.eval_|) defines the period of the next
+   statistical or graphical evaluation of simulation results.  Functions like |nse|
+   respect |Timegrids.eval_| automatically if not instructed otherwise.

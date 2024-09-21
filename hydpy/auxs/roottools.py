@@ -39,7 +39,8 @@ class Pegasus(modeltools.Submodel):
     PYTHONCLASS = rootutils.PegasusPython
     _cysubmodel: rootutils.PegasusBase
 
-    def find_x(
+    # positional arguments required for consistency with the cythonized extension class:
+    def find_x(  # pylint: disable=too-many-positional-arguments
         self,
         x0: float,
         x1: float,
@@ -48,6 +49,7 @@ class Pegasus(modeltools.Submodel):
         xtol: float,
         ytol: float,
         itermax: int,
+        /,
     ) -> float:
         """Find the relevant root within the interval
         :math:`x0 \\leq x \\leq x1` with an accuracy meeting at least

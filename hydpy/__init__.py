@@ -35,6 +35,7 @@ from hydpy.core.auxfiletools import Auxfiler
 from hydpy.core.devicetools import Element, Elements, FusedVariable, Node, Nodes
 from hydpy.core.exceptiontools import AttributeNotReady, attrready, getattr_, hasattr_
 from hydpy.core.exceptiontools import HydPyDeprecationWarning
+from hydpy.core.filetools import check_projectstructure, create_projectstructure
 from hydpy.core.hydpytools import HydPy
 from hydpy.core.importtools import prepare_model, reverse_model_wildcard_import
 from hydpy.core.itemtools import AddItem, GetItem, MultiplyItem, SetItem
@@ -103,7 +104,6 @@ from hydpy.auxs.statstools import (
     SummaryRowWeighted,
     var_ratio,
 )
-from hydpy.auxs.xmltools import XMLInterface, run_simulation
 from hydpy.exe.commandtools import (
     exec_commands,
     exec_script,
@@ -115,9 +115,10 @@ from hydpy.exe.commandtools import (
 )
 from hydpy.exe.replacetools import xml_replace
 from hydpy.exe.servertools import await_server, start_server
+from hydpy.exe.xmltools import XMLInterface, run_simulation, xml_validate
 
 
-__version__ = "6.0.1"
+__version__ = "6.1.0"
 
 pub.options = optiontools.Options()
 pub.indexer = indextools.Indexer()
@@ -131,6 +132,7 @@ pub.scriptfunctions["run_simulation"] = run_simulation
 pub.scriptfunctions["start_shell"] = start_shell
 pub.scriptfunctions["start_server"] = start_server
 pub.scriptfunctions["xml_replace"] = xml_replace
+pub.scriptfunctions["xml_validate"] = xml_validate
 
 __all__ = [
     "config",
@@ -146,6 +148,8 @@ __all__ = [
     "getattr_",
     "hasattr_",
     "HydPyDeprecationWarning",
+    "check_projectstructure",
+    "create_projectstructure",
     "HydPy",
     "prepare_model",
     "reverse_model_wildcard_import",
@@ -226,6 +230,7 @@ __all__ = [
     "var_ratio",
     "XMLInterface",
     "run_simulation",
+    "xml_validate",
     "exec_commands",
     "exec_script",
     "execute_scriptfunction",

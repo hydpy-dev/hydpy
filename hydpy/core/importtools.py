@@ -281,10 +281,7 @@ def load_modelmodule(module: Union[types.ModuleType, str], /) -> types.ModuleTyp
     return module
 
 
-def prepare_model(
-    module: Union[types.ModuleType, str],
-    timestep: Optional[timetools.PeriodConstrArg] = None,
-) -> modeltools.Model:
+def prepare_model(module: Union[types.ModuleType, str]) -> modeltools.Model:
     """Prepare and return the model of the given module.
 
     In usual *HydPy* projects, each control file only prepares an individual model
@@ -299,8 +296,6 @@ def prepare_model(
     See the documentation of |dam_v001| on how to apply function |prepare_model|
     properly.
     """
-    if timestep is not None:
-        hydpy.pub.options.parameterstep = timetools.Period(timestep)
     module = load_modelmodule(module)
     model = module.Model()
     assert isinstance(model, modeltools.Model)
@@ -624,6 +619,7 @@ following error occurred: The given `lland_knauf` instance is not considered sha
     @overload
     def __init__(
         self: SubmodelAdder[Literal[0], TM_contra, TI_contra],
+        *,
         wrapped: PrepSub0D[TM_contra, TI_contra],
         submodelname: str,
         submodelinterface: type[TI_contra],
@@ -639,6 +635,7 @@ following error occurred: The given `lland_knauf` instance is not considered sha
     @overload
     def __init__(
         self: SubmodelAdder[Literal[1], TM_contra, TI_contra],
+        *,
         wrapped: PrepSub1D[TM_contra, TI_contra],
         submodelname: str,
         submodelinterface: type[TI_contra],
@@ -653,6 +650,7 @@ following error occurred: The given `lland_knauf` instance is not considered sha
 
     def __init__(
         self,
+        *,
         wrapped: Union[
             PrepSub0D[TM_contra, TI_contra], PrepSub1D[TM_contra, TI_contra]
         ],
@@ -847,7 +845,6 @@ following error occurred: The given `lland_knauf` instance is not considered sha
             self._tidy_up()
 
     def _check_submodelinterface(self, submodeltype: type[modeltools.Model]) -> None:
-        # pylint: disable=protected-access
         if not issubclass(submodeltype, self.submodelinterface):
             raise TypeError(
                 f"Submodel `{submodeltype.__HYDPY_NAME__}` does not comply with the "
@@ -981,7 +978,7 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
     They also memorise the passed data and resulting parameter values:
 
     >>> model.prepare_nmbzones.values_orig  # doctest: +ELLIPSIS
-    {<hydpy.models.evap_ret_tw2002.Model object at ...>: (((3,), {}), 3)}
+    {evap_ret_tw2002: (((3,), {}), 3)}
 
     With |TargetParameterUpdater.testmode| enabled, |TargetParameterUpdater| instances
     do not pass the given data to the wrapped method but memorise it together with the
@@ -992,7 +989,7 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
     >>> model.parameters.control.nmbhru
     nmbhru(3)
     >>> model.prepare_nmbzones.values_test  # doctest: +ELLIPSIS
-    {<hydpy.models.evap_ret_tw2002.Model object at ...>: (((4,), {}), 3)}
+    {evap_ret_tw2002: (((4,), {}), 3)}
 
     .. testsetup::
 

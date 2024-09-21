@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--|config_start=<hpcsr:config xmlns="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/HydPyConfigBase.xsd"
-              xmlns:hpcsr="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/HydPyConfigSingleRun.xsd">|-->
+<hpcsr:config xmlns="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/HydPyConfigBase.xsd"
+              xmlns:hpcsr="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/HydPyConfigSingleRun.xsd">
     <options>
         <reprdigits>6</reprdigits>
         <usecython>true</usecython>
@@ -46,7 +46,7 @@
     <control_io>default</control_io>
 
     <conditions_io>
-        <inputdir>init_1996_01_01_00_00_00</inputdir>
+        <prefix><!--|prefix=init|--></prefix>
         <outputdir>init_1996_01_06</outputdir>
         <zip><!--|zip_=false|--></zip>
     </conditions_io>
@@ -140,5 +140,4 @@
 
     </series_io>
 
-<!--|config_end=</hpcsr:config>|-->
-
+</hpcsr:config>

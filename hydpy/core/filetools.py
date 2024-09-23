@@ -275,7 +275,8 @@ class FileManager:
         To show most of the functionality of |property| |FileManager.currentdir| (we
         explain unpacking zipped files on the fly in the documentation on function
         |FileManager.zip_currentdir|), we first prepare a |FileManager| object with the
-        default |FileManager.basepath| `projectname/basename`:
+        default |FileManager.basepath| `projectname/basename` and no
+        |FileManager.DEFAULTDIR| defined:
 
         >>> from hydpy.core.filetools import FileManager
         >>> filemanager = FileManager()
@@ -407,35 +408,48 @@ occurred: ...
         ...     path = repr_(filemanager.currentpath)
         ...     assert path.endswith("hydpy/tests/iotesting/differentproject/dir1")
         ...     assert os.listdir("differentproject") == ["dir1"]
+
+        If a |FileManager| subclass defines its |FileManager.DEFAULTDIR| class
+        attribute, the above behaviour differs in the case of an initially empty base
+        directory.  Then, |FileManager.currentdir| creates and activates an accordingly
+        named directory automatically:
+
+        >>> filemanager.currentdir = None
+        >>> filemanager.DEFAULTDIR = "default"
+        >>> TestIO.clear()
+        >>> with TestIO(), pub.options.printprogress(True):  # doctest: +ELLIPSIS
+        ...     os.makedirs("projectname/basename")
+        ...     assert filemanager.currentdir == "default"
+        ...     assert os.path.exists("projectname/basename/default")
+        Directory ...default has been created.
         """
         currentdir = self._currentdir
         if currentdir is None:
-            directories = self.availabledirs.folders
-            if len(directories) == 1:
-                currentdir = directories[0]
-            elif self.DEFAULTDIR in directories:
-                currentdir = self.DEFAULTDIR
+            dirs = self.availabledirs.folders
+            if len(dirs) == 1:
+                currentdir = dirs[0]
+            elif (default := self.DEFAULTDIR) and (default in dirs or not dirs):
+                currentdir = default
             else:
                 prefix = (
                     f"The current working directory of the {type(self).__name__} "
                     f"object has not been defined manually and cannot be determined "
                     f"automatically:"
                 )
-                if not directories:
+                if not dirs:
                     raise RuntimeError(
                         f"{prefix} `{objecttools.repr_(self.basepath)}` does not "
                         f"contain any available directories."
                     )
-                if self.DEFAULTDIR is None:
+                if default is None:
                     raise RuntimeError(
                         f"{prefix} `{objecttools.repr_(self.basepath)}` does contain "
                         f"multiple available directories "
-                        f"({objecttools.enumeration(directories)})."
+                        f"({objecttools.enumeration(dirs)})."
                     )
                 raise RuntimeError(
-                    f"{prefix} The default directory ({self.DEFAULTDIR}) is not among "
-                    f"the available directories "
-                    f"({objecttools.enumeration(directories)})."
+                    f"{prefix} The default directory ({default}) is not among the "
+                    f"available directories ({objecttools.enumeration(dirs)})."
                 )
             self.currentdir = currentdir
         return currentdir
@@ -496,7 +510,7 @@ occurred: ...
 
     @property
     def filenames(self) -> list[str]:
-        """The names of the files placed in the current working directory, except those
+        """The names of the files in the current working directory, except those
         starting with an underscore.
 
         >>> from hydpy.core.filetools import FileManager

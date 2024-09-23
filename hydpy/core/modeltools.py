@@ -2366,6 +2366,9 @@ element.
 
         >>> with TestIO():  # doctest: +ELLIPSIS
         ...     del pub.controlmanager.currentdir
+        ...     pub.controlmanager.currentdir = "calib_1"
+        ...     pub.controlmanager.currentdir = "calib_2"
+        ...     pub.controlmanager.currentdir = None
         ...     dill_assl.save_conditions("submodel_conditions.py")
         Traceback (most recent call last):
         ...
@@ -2373,8 +2376,8 @@ element.
 following error occurred: While trying to determine the related control file \
 directory for configuring the `controlcheck` function, the following error occurred: \
 The current working directory of the ControlManager object has not been defined \
-manually and cannot be determined automatically: `...control` does not contain any \
-available directories.
+manually and cannot be determined automatically: The default directory (default) is \
+not among the available directories (calib_1 and calib_2).
 
         .. testsetup::
 

@@ -219,11 +219,7 @@ sequence and connect it to the respective outlet nodes properly.
         self.values = numpy.nan
         for idx, (key, value) in enumerate(sorted(kwargs.items())):
             if key not in devicetools.Node.query_all():
-                try:
-                    hydpy.pub.projectname
-                except RuntimeError:
-                    pass
-                else:
+                if exceptiontools.attrready(hydpy.pub, "projectname"):
                     raise RuntimeError(
                         f"Parameter {objecttools.elementphrase(self)} is supposed to "
                         f"branch to node `{key}`, but such a node is not available."

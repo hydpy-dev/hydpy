@@ -23,7 +23,6 @@ from hydpy.core import devicetools
 from hydpy.core import netcdftools
 from hydpy.core import objecttools
 from hydpy.core import optiontools
-from hydpy.core import propertytools
 from hydpy.core import selectiontools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
@@ -165,16 +164,13 @@ class FileManager:
 
     def __init__(self) -> None:
         self._projectdir = None
-        try:
-            self.projectdir = hydpy.pub.projectname
-        except RuntimeError:
-            pass
         self._currentdir = None
 
-    def _get_projectdir(self) -> str:
-        """The name of the main folder of a project.
+    @property
+    def projectdir(self) -> str:
+        """The folder name of a project's root directory.
 
-        For the `HydPy-H-Lahn` example project, |FileManager.projectdir| is (not
+        For the :ref:`HydPy-H-Lahn` example project, |FileManager.projectdir| is (not
         surprisingly) `HydPy-H-Lahn` and is queried from the |pub| module.  However,
         you can define or change |FileManager.projectdir| interactively, which can be
         useful for more complex tasks like copying (parts of) projects:
@@ -186,35 +182,43 @@ class FileManager:
         >>> filemanager.projectdir
         'project_A'
 
-        >>> del filemanager.projectdir
-        >>> filemanager.projectdir
-        Traceback (most recent call last):
-        ...
-        hydpy.core.exceptiontools.AttributeNotReady: Attribute `projectdir` of object \
-`filemanager` has not been prepared so far.
         >>> filemanager.projectdir = "project_B"
         >>> filemanager.projectdir
         'project_B'
 
+        >>> pub.projectname = "project_C"
+        >>> filemanager.projectdir
+        'project_B'
+
+        >>> del filemanager.projectdir
+        >>> filemanager.projectdir
+        'project_C'
+
         >>> del pub.projectname
-        >>> FileManager().projectdir
+        >>> filemanager.projectdir
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: Attribute `projectdir` of object \
-`filemanager` has not been prepared so far.
+        hydpy.core.exceptiontools.AttributeNotReady: While trying to automatically \
+determine the file manager's project root directory, the following error occurred: \
+Attribute projectname of module `pub` is not defined at the moment.
         """
-        assert (projectdir := self._projectdir) is not None
+        if (projectdir := self._projectdir) is None:
+            try:
+                return hydpy.pub.projectname
+            except BaseException:
+                objecttools.augment_excmessage(
+                    f"While trying to automatically determine the {self._docname}'s "
+                    f"project root directory"
+                )
         return projectdir
 
-    def _set_projectdir(self, name: str) -> None:
+    @projectdir.setter
+    def projectdir(self, name: str) -> None:
         self._projectdir = name
 
-    def _del_projectdir(self) -> None:
+    @projectdir.deleter
+    def projectdir(self) -> None:
         self._projectdir = None
-
-    projectdir = propertytools.ProtectedPropertyStr(
-        _get_projectdir, _set_projectdir, _del_projectdir
-    )
 
     @property
     def basepath(self) -> str:

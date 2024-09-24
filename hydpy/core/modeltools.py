@@ -2375,9 +2375,9 @@ element.
         RuntimeError: While trying to save the actual conditions of element `?`, the \
 following error occurred: While trying to determine the related control file \
 directory for configuring the `controlcheck` function, the following error occurred: \
-The current working directory of the ControlManager object has not been defined \
-manually and cannot be determined automatically: The default directory (default) is \
-not among the available directories (calib_1 and calib_2).
+The current working directory of the control manager has not been defined manually \
+and cannot be determined automatically: The default directory (default) is not among \
+the available directories (calib_1 and calib_2).
 
         .. testsetup::
 

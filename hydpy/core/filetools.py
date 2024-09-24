@@ -298,16 +298,18 @@ class FileManager:
         ...     filemanager.currentdir  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        RuntimeError: The current working directory of the FileManager object has not \
-been defined manually and cannot be determined automatically: \
-`.../projectname/basename` does not contain any available directories.
+        RuntimeError: The current working directory of the file manager has not been \
+defined manually and cannot be determined automatically: `.../projectname/basename` \
+does not contain any available directories.
 
         If only one directory exists, it is considered the current working directory
         automatically:
 
-        >>> with TestIO():
+        >>> with TestIO(), pub.options.printprogress(True):
         ...     os.mkdir("projectname/basename/dir1")
         ...     assert filemanager.currentdir == "dir1"
+        The name of the file manager's current working directory has not been \
+previously defined and is hence set to `dir1`.
 
         |property| |FileManager.currentdir| memorises the name of the current working
         directory, even if another directory is added later to the base path:
@@ -325,10 +327,9 @@ been defined manually and cannot be determined automatically: \
         ...     filemanager.currentdir  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        RuntimeError: The current working directory of the FileManager object has not \
-been defined manually and cannot be determined automatically: \
-`....../projectname/basename` does contain multiple available directories (dir1 and \
-dir2).
+        RuntimeError: The current working directory of the file manager has not been \
+defined manually and cannot be determined automatically: `.../projectname/basename` \
+does contain multiple available directories (dir1 and dir2).
 
         Setting |FileManager.currentdir| manually solves the problem:
 
@@ -355,15 +356,17 @@ dir2).
         ...     filemanager.currentdir  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        RuntimeError: The current working directory of the FileManager object has not \
-been defined manually and cannot be determined automatically: The default directory \
-(dir3) is not among the available directories (dir1 and dir2).
+        RuntimeError: The current working directory of the file manager has not been \
+defined manually and cannot be determined automatically: The default directory (dir3) \
+is not among the available directories (dir1 and dir2).
 
-        We can fix this by manually  adding the required default directory:
+        We can fix this by manually adding the required default directory:
 
-        >>> with TestIO():
+        >>> with TestIO(), pub.options.printprogress(True):
         ...     os.mkdir("projectname/basename/dir3")
         ...     assert filemanager.currentdir == "dir3"
+        The name of the file manager's current working directory has not been \
+previously defined and is hence set to `dir3`.
 
         Setting the |FileManager.currentdir| to `dir4` not only overwrites the default
         name but also creates the required folder:
@@ -387,8 +390,7 @@ been defined manually and cannot be determined automatically: The default direct
         Traceback (most recent call last):
         ...
         AttributeError: While trying to delete the current working directory \
-`.../projectname/basename/dir4` of the FileManager object, the following error \
-occurred: ...
+`.../projectname/basename/dir4` of the file manager, the following error occurred: ...
 
         Then, the current working directory still exists and is remembered by property
         |FileManager.currentdir|:
@@ -411,7 +413,7 @@ occurred: ...
 
         If a |FileManager| subclass defines its |FileManager.DEFAULTDIR| class
         attribute, the above behaviour differs in the case of an initially empty base
-        directory.  Then, |FileManager.currentdir| creates and activates an accordingly
+        directory.  Then, |FileManager.currentdir| activates and creates an accordingly
         named directory automatically:
 
         >>> filemanager.currentdir = None
@@ -421,20 +423,32 @@ occurred: ...
         ...     os.makedirs("projectname/basename")
         ...     assert filemanager.currentdir == "default"
         ...     assert os.path.exists("projectname/basename/default")
+        The name of the file manager's current working directory has not been \
+previously defined and is hence set to `default`.
         Directory ...default has been created.
         """
+
+        def _print_info(dirname: str, /) -> None:
+            if hydpy.pub.options.printprogress:
+                print(
+                    f"The name of the {self._docname}'s current working directory "
+                    f"has not been previously defined and is hence set to "
+                    f"`{dirname}`."
+                )
+
         currentdir = self._currentdir
         if currentdir is None:
             dirs = self.availabledirs.folders
             if len(dirs) == 1:
+                _print_info(dirs[0])
                 currentdir = dirs[0]
             elif (default := self.DEFAULTDIR) and (default in dirs or not dirs):
+                _print_info(default)
                 currentdir = default
             else:
                 prefix = (
-                    f"The current working directory of the {type(self).__name__} "
-                    f"object has not been defined manually and cannot be determined "
-                    f"automatically:"
+                    f"The current working directory of the {self._docname} has not "
+                    f"been defined manually and cannot be determined automatically:"
                 )
                 if not dirs:
                     raise RuntimeError(
@@ -488,7 +502,7 @@ occurred: ...
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to delete the current working directory "
-                    f"`{objecttools.repr_(path)}` of the {type(self).__name__} object"
+                    f"`{objecttools.repr_(path)}` of the {self._docname}"
                 )
         self._currentdir = None
 
@@ -622,6 +636,10 @@ removed.
             for filepath, filename in zip(self.filepaths, self.filenames):
                 zipfile_.write(filename=filepath, arcname=filename)
         del self.currentdir
+
+    @property
+    def _docname(self) -> str:
+        return f"{type(self).__name__[:-7].lower()} manager"
 
 
 class NetworkManager(FileManager):
@@ -1031,10 +1049,17 @@ class ConditionManager(FileManager):
     it following the actual simulation start or end date, respectively:
 
     >>> from hydpy import repr_
-    >>> with TestIO():  # doctest: +ELLIPSIS
+    >>> with TestIO(), pub.options.printprogress(True):  # doctest: +ELLIPSIS
     ...     repr_(pub.conditionmanager.inputpath)
     ...     repr_(pub.conditionmanager.outputpath)
+    The condition manager's current working directory is not defined explicitly.  \
+Hence, the condition manager reads its data from a directory named \
+`init_1996_01_01_00_00_00`.
     '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/init_1996_01_01_00_00_00'
+    The condition manager's current working directory is not defined explicitly.  \
+Hence, the condition manager writes its data to a directory named \
+`init_1996_01_05_00_00_00`.
+    Directory ...init_1996_01_05_00_00_00 has been created.
     '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/init_1996_01_05_00_00_00'
 
     >>> pub.timegrids.sim.firstdate += "1d"
@@ -1133,6 +1158,14 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
         """,
     )
 
+    def _print_info(self, dirname, task) -> None:
+        if hydpy.pub.options.printprogress:
+            print(
+                f"The {self._docname}'s current working directory is not defined "
+                f"explicitly.  Hence, the {self._docname} {task} a directory named "
+                f"`{dirname}`."
+            )
+
     @property
     def inputpath(self) -> str:
         """The directory path for loading initial conditions.
@@ -1144,7 +1177,9 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
         try:
             if not currentdir:
                 to_string = hydpy.pub.timegrids.sim.firstdate.to_string
-                self.currentdir = f"{self.prefix}_{to_string('os')}"
+                autodir = f"{self.prefix}_{to_string('os')}"
+                self._print_info(dirname=autodir, task="reads its data from")
+                self.currentdir = autodir
             return self.currentpath
         except BaseException:
             objecttools.augment_excmessage(
@@ -1165,7 +1200,9 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
         try:
             if not currentdir:
                 to_string = hydpy.pub.timegrids.sim.lastdate.to_string
-                self.currentdir = f"{self.prefix}_{to_string('os')}"
+                autodir = f"{self.prefix}_{to_string('os')}"
+                self._print_info(dirname=autodir, task="writes its data to")
+                self.currentdir = autodir
             return self.currentpath
         except BaseException:
             objecttools.augment_excmessage(

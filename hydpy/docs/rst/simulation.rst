@@ -31,6 +31,8 @@ section:
 
 .. testsetup::
 
+    >>> from hydpy import TestIO
+    >>> TestIO.clear()
     >>> from hydpy.core.testtools import prepare_full_example_1
     >>> prepare_full_example_1()
     >>> import os
@@ -302,6 +304,7 @@ you about this action:
 
 >>> with pub.options.printprogress(True):
 ...     path = pub.conditionmanager.outputpath  # doctest: +ELLIPSIS
+The condition manager's current working directory is not defined explicitly.  Hence, the condition manager writes its data to a directory named `init_1997_01_01_00_00_00`.
 Directory ...init_1997_01_01_00_00_00 has been created.
 >>> pub.conditionmanager.availabledirs  # doctest: +ELLIPSIS
 Folder2Path(init_1996_01_01_00_00_00=.../HydPy-H-Lahn/conditions/init_1996_01_01_00_00_00,

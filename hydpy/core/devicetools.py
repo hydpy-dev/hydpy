@@ -1633,8 +1633,15 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
             )
 
     @printtools.print_progress
+    def update_parameters(self) -> None:
+        """Update the derived parameters of all models managed by the respective
+        elements."""
+        for element in printtools.progressbar(self):
+            element.model.update_parameters()
+
+    @printtools.print_progress
     def load_conditions(self) -> None:
-        """Save the initial conditions of the |Model| object handled by each |Element|
+        """Load the initial conditions of the |Model| object handled by each |Element|
         object."""
         for element in printtools.progressbar(self):
             element.model.load_conditions()

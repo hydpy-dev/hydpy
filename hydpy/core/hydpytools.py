@@ -1569,6 +1569,64 @@ deprecated.  Use method `prepare_models` instead.
             auxfiler=auxfiler,
         )
 
+    def update_parameters(self) -> None:
+        """Update the derived parameters of all models managed by the respective
+        elements.
+
+        The following examples demonstrate method |HydPy.update_parameters| based on
+        the :ref:`HydPy-H-Lahn` project:
+
+        >>> from hydpy.core.testtools import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
+
+        We focus on the Dill subcatchment represented by element `land_dill_assl` and
+        an application model instance of type |hland_96|:
+
+        >>> parameters = hp.elements.land_dill_assl.model.parameters
+
+        |hland_96| has the parameter |hland_derived.QFactor|, which serves as a factor
+        for converting runoff height (mm/T) to runoff volume (m³/s):
+
+        >>> parameters.derived.qfactor
+        qfactor(8.012731)
+
+        Such a factor factor obviously depends on the subcatchment's area.  Hence,
+        |hland_derived.QFactor| is implemented as a derived parameter with an
+        |hland_derived.QFactor.update| method that relies on the current value of the
+        control parameter |hland_control.Area|:
+
+        >>> parameters.control.area
+        area(692.3)
+
+        Assume we made an error when transferring the original subcatchment size to our
+        :ref:`HydPy-H-Lahn` project and now want to fix it:
+
+        >>> parameters.control.area(329.6)
+
+        Despite fixing the value of |hland_control.Area|, the value of the
+        |hland_derived.QFactor| instance stays the same:
+
+        >>> parameters.derived.qfactor
+        qfactor(8.012731)
+
+        One now could call method |Model.update_parameters| of the |hland_96| instance
+        to achieve an update of all its derived parameters.  However, if one has
+        changed the control parameter values of multiple models, one might find it more
+        convenient to call the |HydPy.update_parameters| of the |HydPy| instance, which
+        then invokes the |Model.update_parameters| of all handled models:
+
+        >>> hp.update_parameters()
+        >>> parameters.derived.qfactor
+        qfactor(3.814815)
+
+        .. warning::
+
+            Updating derived parameters sometimes requires further action to restore
+            runnable models.  For example, it might cause a reshaping of condition
+            sequences, which makes defining new initial conditions necessary.
+        """
+        self.elements.update_parameters()
+
     def load_conditions(self) -> None:
         """Load all currently relevant initial conditions.
 

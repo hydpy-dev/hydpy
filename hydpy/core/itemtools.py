@@ -382,7 +382,6 @@ class ChangeItem(ExchangeItem):
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> del pub.selections["complete"]
         >>> from hydpy import SetItem
         >>> for level in ("global", "selection", "device",  "subunit"):
         ...     item = SetItem(name="t", master="hland", target="inputs.t.series",
@@ -430,7 +429,6 @@ class ChangeItem(ExchangeItem):
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> del pub.selections["complete"]
 
         The first example deals with "global" state values:
 
@@ -497,13 +495,10 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         |ExchangeItem| and determine the |ChangeItem.shape| of the current |ChangeItem|
         object afterwards.
 
-        For the following examples, we prepare the `HydPy-H-Lahn` example project and
-        remove the "complete" selection from the |Selections| object available in
-        module |pub|:
+        For the following examples, we prepare the `HydPy-H-Lahn` example project:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> del pub.selections["complete"]
 
         After calling method |ChangeItem.collect_variables|, attribute
         |ExchangeItem.device2target| assigns all relevant devices to the chosen target
@@ -708,13 +703,10 @@ given value `wrong` cannot be converted to type `float`.
         """Assign the current |ChangeItem.value| to the values or time series of the
         target variables.
 
-        For the following examples, we prepare the `HydPy-H-Lahn` example project and
-        remove the "complete" selection from the |Selections| object available in
-        module |pub|:
+        For the following examples, we prepare the `HydPy-H-Lahn` example project:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> del pub.selections["complete"]
 
         "Global" |SetItem| objects assign the same value to all chosen 0-dimensional
         target variables (we use parameter |hland_control.Alpha| as an example):
@@ -1468,12 +1460,10 @@ class AddItem(MathItem):
     value(s) and the value(s) of the related base variable to update the value(s) of
     the target variable.
 
-    We prepare the `HydPy-H-Lahn` example project and remove the "complete" selection
-    from the |Selections| object available in module |pub|:
+    We prepare the `HydPy-H-Lahn` example project:
 
     >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
-    >>> del pub.selections["complete"]
 
     We use the rainfall correction parameter (|hland_control.RfCF|) of the application
     model |hland_96| as the base variable.  Defining a different correction factor for
@@ -1589,7 +1579,6 @@ class MultiplyItem(MathItem):
 
     >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
-    >>> del pub.selections["complete"]
 
     >>> value = 0.8
     >>> for element in hp.elements.catchment:

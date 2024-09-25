@@ -203,15 +203,23 @@ def _query_selections(xmlelement: ElementTree.Element) -> selectiontools.Selecti
     selections = []
     text = xmlelement.text
     assert text is not None
+    sels = hydpy.pub.selections
     for name in text.split():
-        try:
-            selections.append(getattr(hydpy.pub.selections, name))
-        except AttributeError:
-            raise NameError(
-                f"The XML configuration file tries to define a selection using the "
-                f"text `{name}`, but the actual project does not handle such a "
-                f"`Selection` object."
-            ) from None
+        if name == "complete":
+            selections.append(
+                selectiontools.Selection(
+                    "__complete__", nodes=sels.nodes, elements=sels.elements
+                )
+            )
+        else:
+            try:
+                selections.append(getattr(sels, name))
+            except AttributeError:
+                raise NameError(
+                    f"The XML configuration file tries to define a selection using "
+                    f"the text `{name}`, but the actual project does not handle such "
+                    f"a `Selection` object."
+                ) from None
     return selectiontools.Selections(*selections)
 
 
@@ -635,7 +643,7 @@ correctly refer to one of the available XML schema files \
         """Create |Selection| objects based on the `add_selections` XML element and
         add them to the |Selections| object available in module |pub|.
 
-        The `Lahn` example project comes with four selections:
+        The `Lahn` example project comes with three selections:
 
         >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -646,7 +654,7 @@ correctly refer to one of the available XML schema files \
         ...     hp.prepare_network()
         ...     interface = XMLInterface("single_run.xml")
         >>> pub.selections
-        Selections("complete", "headwaters", "nonheadwaters", "streams")
+        Selections("headwaters", "nonheadwaters", "streams")
 
         Following the definitions of the `add_selections` element of the configuration
         file `single_run.xml`, method |XMLInterface.update_selections| creates three
@@ -655,8 +663,8 @@ correctly refer to one of the available XML schema files \
 
         >>> interface.update_selections()
         >>> pub.selections
-        Selections("complete", "from_devices", "from_keywords",
-                   "from_selections", "headwaters", "nonheadwaters", "streams")
+        Selections("from_devices", "from_keywords", "from_selections",
+                   "headwaters", "nonheadwaters", "streams")
         >>> pub.selections.from_devices
         Selection("from_devices",
                   nodes=(),
@@ -953,7 +961,7 @@ class XMLNetworkBase:
         ...     interface.find("network_io").text = "default"
         ...     interface.network_io.prepare_network()  # doctest: +ELLIPSIS
         >>> pub.selections
-        Selections("complete", "headwaters", "nonheadwaters", "streams")
+        Selections("headwaters", "nonheadwaters", "streams")
         """
         if self.text:
             hydpy.pub.networkmanager.currentdir = str(self.text)
@@ -1259,7 +1267,7 @@ class XMLSelector(XMLBase):
         ...     print(seq.info, seq.selections.names)
         all input data ('from_keywords',)
         precipitation ('headwaters', 'from_devices')
-        soilmoisture ('complete',)
+        soilmoisture ('__complete__',)
         averaged ('from_selections',)
 
         If property |XMLSelector.selections| does not find any definitions, it raises

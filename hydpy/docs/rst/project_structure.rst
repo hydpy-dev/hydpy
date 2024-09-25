@@ -69,7 +69,7 @@ Each network file corresponds to one :ref:`selection`.  The :ref:`HydPy-H-Lahn` 
 defines three selections: one for all :ref:`stream models <stream_models>` and two for
 the :ref:`land models <land_models>` in the headwater and non-headwater subbasins.  The
 combination of all individual selections gives a selection named "complete", which is
-always available and activated after loading a network.
+automatically creatable by property |Selections.complete| of class |Selections|.
 
 The described "name as identifier" mechanism allows us to define the same device in
 multiple network files of the same project.  So, one can create an arbitrary number of

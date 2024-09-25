@@ -2314,6 +2314,8 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     from hydpy.models import lland  # pylint: disable=import-outside-toplevel
 
     TestIO.clear()
+    devicetools.Node.clear_all()
+    devicetools.Element.clear_all()
 
     hydpy.pub.projectname = "project"
     hydpy.pub.sequencemanager = filetools.SequenceManager()
@@ -2433,6 +2435,8 @@ def prepare_full_example_1(dirpath: Optional[str] = None) -> None:
         >>> import shutil
         >>> shutil.rmtree("HydPy-H-Lahn")
     """
+    devicetools.Node.clear_all()
+    devicetools.Element.clear_all()
     if dirpath is None:
         TestIO.clear()
         dirpath = iotesting.__path__[0]

@@ -667,12 +667,12 @@ class NetworkManager(FileManager):
     >>> prepare_full_example_1()
 
     You can define the complete network structure of an `HydPy` project by an arbitrary
-    number of "network files".  These are valid Python files which define certain |Node|
-    and |Element| as well as their connections.  Network files are allowed to overlap,
-    meaning two or more files can define the same objects (in a consistent manner only,
-    of course).  The primary purpose of class |NetworkManager| is to execute each
-    network file individually and pass its content to a |Selection| object, which is
-    done by method |NetworkManager.load_files|:
+    number of "network files".  These valid Python files define |Node| and |Element|
+    objects and their connections.  Network files are allowed to overlap, meaning two
+    or more files can define the same objects (in a consistent manner only, of course).
+    The primary purpose of class |NetworkManager| is to execute each network file
+    individually and pass its content to a |Selection| object, which is done by method
+    |NetworkManager.load_files|:
 
     >>> networkmanager = NetworkManager()
     >>> from hydpy import TestIO
@@ -681,15 +681,18 @@ class NetworkManager(FileManager):
     ...     selections = networkmanager.load_files()
 
     Method |NetworkManager.load_files| takes file names as selection names (without
-    file endings).  Additionally, it creates a "complete" selection, including the
-    whole set of |Node| and |Element| objects of the file-specific selections:
+    file endings):
 
     >>> selections
-    Selections("complete", "headwaters", "nonheadwaters", "streams")
+    Selections("headwaters", "nonheadwaters", "streams")
     >>> selections.headwaters
     Selection("headwaters",
               nodes=("dill_assl", "lahn_marb"),
               elements=("land_dill_assl", "land_lahn_marb"))
+
+    The whole set of |Node| and |Element| objects is accessible via the property
+    |Selections.complete|:
+
     >>> selections.complete
     Selection("complete",
               nodes=("dill_assl", "lahn_kalk", "lahn_leun", "lahn_marb"),
@@ -699,9 +702,9 @@ class NetworkManager(FileManager):
                         "stream_lahn_leun_lahn_kalk",
                         "stream_lahn_marb_lahn_leun"))
 
-    Method |NetworkManager.save_files| writes all |Selection| objects into separate
-    files.  We first change the current working directory to ensure we do not overwrite
-    already existing files:
+    Method |NetworkManager.save_files| writes all user-defined selections into separate
+    files.  First, we change the current working directory to ensure we do not
+    overwrite already existing files:
 
     >>> import os
     >>> with TestIO():
@@ -783,8 +786,6 @@ nonheadwaters` into network files, the following error occurred: ...
 
         See the main documentation of class |NetworkManager| for further information.
         """
-        devicetools.Node.clear_all()
-        devicetools.Element.clear_all()
         selections = selectiontools.Selections()
         if not self.filenames:
             raise RuntimeError(
@@ -812,9 +813,6 @@ nonheadwaters` into network files, the following error occurred: ...
                     f"The class {exc.args[0]} cannot be loaded from the network file "
                     f"`{path}`."
                 ) from None
-        selections += selectiontools.Selection(
-            "complete", info["Node"].query_all(), info["Element"].query_all()
-        )
         return selections
 
     def save_files(self, selections: Iterable[selectiontools.Selection]) -> None:
@@ -827,8 +825,6 @@ nonheadwaters` into network files, the following error occurred: ...
         try:
             currentpath = self.currentpath
             for selection in selections:
-                if selection.name == "complete":
-                    continue
                 path = os.path.join(currentpath, selection.name + ".py")
                 selection.save_networkfile(filepath=path)
         except BaseException:
@@ -848,8 +844,6 @@ nonheadwaters` into network files, the following error occurred: ...
             currentpath = self.currentpath
             for selection in selections:
                 name = str(selection)
-                if name == "complete":
-                    continue
                 if not name.endswith(".py"):
                     name += ".py"
                 path = os.path.join(currentpath, name)

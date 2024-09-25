@@ -92,23 +92,24 @@ Elements("land_dill_assl", "land_lahn_kalk", "land_lahn_leun",
          "land_lahn_marb", "stream_dill_assl_lahn_leun",
          "stream_lahn_leun_lahn_kalk", "stream_lahn_marb_lahn_leun")
 
-Besides this, the |Selections| instance of |pub| now contains four |Selection|
-instances:
+Besides this, the |Selections| instance of |pub| now contains three user-defined
+|Selection| instances:
 
 >>> pub.selections
-Selections("complete", "headwaters", "nonheadwaters", "streams")
+Selections("headwaters", "nonheadwaters", "streams")
 
-Three selections correspond directly to the individual files, meaning they have the
-same name and contain the same nodes and elements:
+Each user-defined selection corresponds to one network file, meaning it has the same
+name and comprises the same nodes and elements:
 
 >>> pub.selections.headwaters
 Selection("headwaters",
           nodes=("dill_assl", "lahn_marb"),
           elements=("land_dill_assl", "land_lahn_marb"))
 
-The fourth selection, named `complete`, is always there and combines the contents of
-all other selections.  Right after calling |HydPy.prepare_network|, the |HydPy|
-instance and the `complete` selection have the same nodes and elements:
+A fourth selection, named "complete", is also accessible.  The property
+|Selections.complete| creates it automatically upon request by combining the contents
+of the user-defined selections.  Right after calling |HydPy.prepare_network|, the
+|HydPy| instance and |Selections.complete| have the same nodes and elements:
 
 >>> assert hp == pub.selections.complete
 

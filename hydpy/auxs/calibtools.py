@@ -635,19 +635,25 @@ following error occurred: Parameter types are inconsistent: \
             else:
                 self._model = model.__name__.rpartition(".")[-1]
 
-            st = selectiontools
             if selections is None:
-                selections = hydpy.pub.selections
-                if "complete" in selections:
-                    selections = st.Selections(selections.complete)
-            else:
-                selections = st.Selections(
-                    *(
-                        (s if isinstance(s, st.Selection) else hydpy.pub.selections[s])
-                        for s in selections
-                    )
-                )
-            self.selections = selections.names
+                selections = (hydpy.pub.selections.complete,)
+
+            names, sels = [], []
+            for sel in selections:
+                if isinstance(sel, str):
+                    name_ = sel
+                    if sel == "complete":
+                        sel = hydpy.pub.selections.complete.copy("__complete__")
+                    else:
+                        sel = hydpy.pub.selections[name_]
+                else:
+                    name_ = sel.name
+                    if name_ == "complete":
+                        sel = sel.copy("__complete__")
+                names.append(name_)
+                sels.append(sel)
+            selections = selectiontools.Selections(*sels)
+            self.selections = tuple(names)
 
             parname = self.parametername
             self.element2parameters = {}

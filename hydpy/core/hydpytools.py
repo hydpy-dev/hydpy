@@ -976,7 +976,7 @@ first.
     @printtools.print_progress
     def prepare_network(self) -> None:
         """Load all network files as |Selections| (stored in module |pub|) and assign
-        the "complete" selection to the |HydPy| object.
+        the |Selections.complete| selection to the |HydPy| object.
 
         .. testsetup::
 
@@ -991,7 +991,7 @@ first.
         >>> prepare_full_example_1()
 
         Directly after initialising class |HydPy|, neither the resulting object nor
-        module |pub| contain any information stemming from the network files:
+        module |pub| contains any information from the network files:
 
         >>> from hydpy import HydPy, pub, TestIO
         >>> hp = HydPy("HydPy-H-Lahn")
@@ -1003,19 +1003,21 @@ first.
 
         By calling the method |HydPy.prepare_network|, one loads all three network
         files into separate |Selection| objects, all handled by the |Selections| object
-        of module |pub|.  Additionally, there is a |Selection| object named `complete`,
-        covering all |Node| and |Element| objects of the other |Selection| objects:
+        of module |pub|:
 
         >>> with TestIO():
         ...     hp.prepare_network()
         >>> pub.selections
-        Selections("complete", "headwaters", "nonheadwaters", "streams")
+        Selections("headwaters", "nonheadwaters", "streams")
 
-        >>> pub.selections.headwaters <= pub.selections.complete
-        True
-        >>> pub.selections.nonheadwaters <= pub.selections.complete
-        True
-        >>> pub.selections.streams <= pub.selections.complete
+        Additionally, a |Selection| object named "complete" that covers all |Node| and
+        |Element| objects of the user-defined selections is automatically creatable
+        by property |Selections.complete| of class |Selections|:
+
+        >>> whole = pub.selections.headwaters.copy("whole")
+        >>> whole += pub.selections.nonheadwaters
+        >>> whole += pub.selections.streams
+        >>> whole == pub.selections.complete
         True
 
         Initially, the |HydPy| object is aware of the complete set of |Node| and
@@ -1030,7 +1032,7 @@ first.
         another selection in the safest manner.
         """
         hydpy.pub.selections = selectiontools.Selections()
-        hydpy.pub.selections += hydpy.pub.networkmanager.load_files()
+        hydpy.pub.selections.add_selections(*hydpy.pub.networkmanager.load_files())
         self.update_devices(selection=hydpy.pub.selections.complete, silent=True)
 
     def prepare_models(self) -> None:
@@ -2233,6 +2235,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         element `stream_lahn_leun_lahn_kalk` and the second one with the additional
         element `stream_lahn_marb_nowhere`, which we connect to node `lahn_marb`:
 
+        >>> prepare_full_example_1()
         >>> with TestIO():
         ...     hp = HydPy("HydPy-H-Lahn")
         ...     hp.prepare_network()
@@ -2265,9 +2268,9 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
                   elements="stream_lahn_marb_nowhere")
         """
         sels1, sels2 = selectiontools.Selections(), selectiontools.Selections()
-        complete = selectiontools.Selection("complete", self.nodes, self.elements)
+        whole = selectiontools.Selection("whole", self.nodes, self.elements)
         for node in self.endnodes:
-            sel = complete.search_upstream(device=node, name=node.name, inclusive=False)
+            sel = whole.search_upstream(device=node, name=node.name, inclusive=False)
             sels1.add_selections(sel)
             sels2.add_selections(sel.copy(node.name))
         for sel1, sel2 in itertools.product(sels1, sels2):
@@ -2381,15 +2384,14 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         |Selection| object) replace existing ones.
 
         As described in the documentation on the method |HydPy.prepare_network|, a
-        |HydPy| object usually starts with the "complete" network of the considered
+        |HydPy| object usually starts with the complete network of the considered
         project:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
         The safest approach to "activate" another selection is to use the method
-        |HydPy.update_devices|.  The first option is to pass a complete |Selection|
-        object:
+        |HydPy.update_devices|.  The first option is to pass a |Selection| object:
 
         >>> pub.selections.headwaters
         Selection("headwaters",

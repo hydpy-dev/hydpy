@@ -2854,6 +2854,9 @@ class InputSequence(ModelIOSequence):
     sources at the same time works well and that the different |Node.deploymode|
     options are supported:
 
+    >>> from hydpy.core.testtools import prepare_full_example_1
+    >>> prepare_full_example_1()
+
     >>> from hydpy import Element, FusedVariable, HydPy, Node, print_vector, pub, TestIO
     >>> from hydpy.aliases import  hland_inputs_T, hland_inputs_P
     >>> hp = HydPy("HydPy-H-Lahn")
@@ -2864,8 +2867,6 @@ class InputSequence(ModelIOSequence):
     >>> land_dill_assl = Element("land_dill_assl", inputs=[node_t, node_p],
     ...                          outlets=node_q)
 
-    >>> from hydpy.core.testtools import prepare_full_example_1
-    >>> prepare_full_example_1()
     >>> import os
     >>> with TestIO():
     ...     os.chdir("HydPy-H-Lahn/control/default")
@@ -3005,6 +3006,9 @@ class OutputSequence(ModelIOSequence):
     prominently.  In short, it shows that everything works well for the different
     |Node.deploymode| options:
 
+    >>> from hydpy.core.testtools import prepare_full_example_1
+    >>> prepare_full_example_1()
+
     >>> from hydpy import Element, HydPy, Node, print_vector, pub, Selection, TestIO
     >>> from hydpy.aliases import (
     ...     hland_fluxes_Perc, hland_fluxes_Q0, hland_fluxes_Q1, hland_states_UZ)
@@ -3019,8 +3023,6 @@ class OutputSequence(ModelIOSequence):
     ...                     outlets=node_q,
     ...                     outputs=[node_q0, node_q1, node_perc, node_uz])
 
-    >>> from hydpy.core.testtools import prepare_full_example_1
-    >>> prepare_full_example_1()
     >>> import os
     >>> with TestIO():
     ...     os.chdir("HydPy-H-Lahn/control/default")

@@ -139,7 +139,7 @@ identical.  However,  for selection `sel3` the given attribute name is `sel4`.
     >>> smaller - (sel1, sel2, sel3)
     Selections()
 
-    The binary operators do not support other types than the mentioned ones:
+    The binary operators do not support types other than the mentioned ones:
 
     >>> smaller -= "sel3"
     Traceback (most recent call last):
@@ -211,6 +211,51 @@ objects, but the type of the given argument is `str`.
             elements += selection.elements
         return elements
 
+    @property
+    def complete(self) -> Selection:
+        """An automatically created selection that comprises the nodes and elements of
+        all currently available, user-defined selections.
+
+        >>> from hydpy import Selection, Selections
+        >>> selections = Selections(
+        ...     Selection("sel1", ["node1"], ["element1"]),
+        ...     Selection("sel2", ["node1"], ["element2", "element3"]))
+        >>> selections.complete
+        Selection("complete",
+                  nodes="node1",
+                  elements=("element1", "element2", "element3"))
+
+        The selection |Selections.complete| is always freshly created and so reflects
+        the current state |Selections| instance:
+
+        >>> selections.sel1.nodes.add_device("node2")
+        >>> selections.complete
+        Selection("complete",
+                  nodes=("node1", "node2"),
+                  elements=("element1", "element2", "element3"))
+
+        Therefore, changing the |Selection| object returned by property
+        |Selections.complete| does neither change the |Selections| object nor
+        subsequentially returned |Selections.complete| selections:
+
+        >>> selections.complete.nodes.add_device("node3")
+        >>> assert "node3" not in selections.nodes
+        >>> selections.complete
+        Selection("complete",
+                  nodes=("node1", "node2"),
+                  elements=("element1", "element2", "element3"))
+
+        Item access is provided:
+
+        >>> assert selections["complete"] == selections.complete
+
+        Selection |Selections.complete| is ignored when iterating through the
+        user-defined selections:
+
+        >>> assert len(selections) == 2
+        """
+        return Selection("complete", nodes=self.nodes, elements=self.elements)
+
     def add_selections(self, *selections: Selection) -> None:
         """Add the given |Selection| object(s) to the current |Selections| object.
 
@@ -225,9 +270,25 @@ objects, but the type of the given argument is `str`.
         Nodes("node1", "node2")
         >>> selections.elements
         Elements("element1", "element2", "element3")
+
+        |Selections| rejects any |Selection| objects named `complete` to avoid conflicts
+        with the automatically created |Selections.complete| selection:
+
+        >>> selections.add_selections(Selection("complete"))
+        Traceback (most recent call last):
+        ...
+        ValueError: You cannot assign a selection with the name `complete` to a \
+`Selections` object because it would conflict with the selection automatically \
+created by its property `Selections.complete`.
         """
         for selection in selections:
-            self[selection.name] = selection
+            if selection.name == "complete":
+                raise ValueError(
+                    "You cannot assign a selection with the name `complete` to a "
+                    "`Selections` object because it would conflict with the selection "
+                    "automatically created by its property `Selections.complete`."
+                )
+            self.__selections[selection.name] = selection
 
     def remove_selections(self, *selections: Selection) -> None:
         """Remove the given |Selection| object(s) from the current |Selections| object.
@@ -401,6 +462,8 @@ objects, but the type of the given argument is `str`.
             ) from None
 
     def __getitem__(self, key: str) -> Selection:
+        if key == "complete":
+            return self.complete
         try:
             return self.__selections[key]
         except KeyError:
@@ -417,7 +480,7 @@ objects, but the type of the given argument is `str`.
                 f"name must be identical.  However,  for selection `{value.name}` the "
                 f"given attribute name is `{key}`."
             )
-        self.__selections[key] = value
+        self.add_selections(value)
 
     def __delitem__(self, key: str) -> None:
         try:
@@ -454,16 +517,12 @@ objects, but the type of the given argument is `str`.
             ) from None
 
     def __add__(self, other: Mayberable1[Selection]) -> Selections:
-        selections = self.__getiterable(other)
         new = copy.copy(self)
-        for selection in selections:
-            new[selection.name] = selection
+        new.add_selections(*self.__getiterable(other))
         return new
 
     def __iadd__(self, other: Mayberable1[Selection]) -> Selections:
-        selections = self.__getiterable(other)
-        for selection in selections:
-            self[selection.name] = selection
+        self.add_selections(*self.__getiterable(other))
         return self
 
     def __sub__(self, other: Mayberable1[Selection]) -> Selections:

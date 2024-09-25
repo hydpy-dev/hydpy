@@ -734,8 +734,8 @@ class NetworkManager(FileManager):
     ...     networkmanager.delete_files(["headwaters"])   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    FileNotFoundError: While trying to remove the network files of selections \
-`['headwaters']`, the following error occurred: ...
+    FileNotFoundError: While trying to remove the network files of the selection(s) \
+`headwaters`, the following error occurred: ...
 
     >>> with TestIO():
     ...     with open("HydPy-H-Lahn/network/testdir/streams.py", "w") as wrongfile:
@@ -770,8 +770,8 @@ error occurred: name 'y' is not defined
     ...     networkmanager.save_files(selections)   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    FileNotFoundError: While trying to save the selections `Selections("complete", \
-"headwaters", "nonheadwaters")` into network files, the following error occurred: ...
+    FileNotFoundError: While trying to save the selection(s) `headwaters and \
+nonheadwaters` into network files, the following error occurred: ...
     """
 
     BASEDIR = "network"
@@ -823,6 +823,7 @@ error occurred: name 'y' is not defined
 
         See the main documentation on class |NetworkManager| for further information.
         """
+        selections = tuple(selections)
         try:
             currentpath = self.currentpath
             for selection in selections:
@@ -832,8 +833,8 @@ error occurred: name 'y' is not defined
                 selection.save_networkfile(filepath=path)
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to save the selections `{selections}` "
-                f"into network files"
+                f"While trying to save the selection(s) "
+                f"`{objecttools.enumeration(selections)}` into network files"
             )
 
     def delete_files(self, selections: Iterable[selectiontools.Selection]) -> None:
@@ -842,6 +843,7 @@ error occurred: name 'y' is not defined
 
         See the main documentation on class |NetworkManager| for further information.
         """
+        selections = tuple(selections)
         try:
             currentpath = self.currentpath
             for selection in selections:
@@ -854,7 +856,8 @@ error occurred: name 'y' is not defined
                 os.remove(path)
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to remove the network files of selections `{selections}`"
+                f"While trying to remove the network files of the selection(s) "
+                f"`{objecttools.enumeration(selections)}`"
             )
 
 

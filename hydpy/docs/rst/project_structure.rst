@@ -343,13 +343,21 @@ Series files
 ____________
 
 HydPy currently supports three different time `series file` formats, of which the ASCII
-and the NetCDF-CF format should be the right choice in almost all applications.
+and the NetCDF-CF format should be the right choice in most applications.
 
 HydPy's ASCII format (file ending ".asc") is simpler but less efficient.  Each file
-stores the time series of one sequence type for one element.  By default, the filename
-follows a strict pattern.  "land_dill_assl_hland_96_input_p.asc", for example, starts with
-the element's name, continues with the relevant model type, and ends with the sequences
-group and name.
+stores the time series of one sequence type for one element or node.  By default, the
+filename follows a strict pattern, defined by the |IOSequence.filename| property of
+class |IOSequence|.  `land_dill_assl_hland_96_input_p.asc` is an example filename of a
+time series managed by an element (or, more precisely, an element's model) and
+`dill_ass_obs_q.asc` is an example filename of a time series managed by a node.  Both
+start with the respective device names (`land_dill_assl` and `dill_assl`), defined by
+the properties |ModelSequence.descr_device| of class |ModelSequence| and
+|NodeSequence.descr_device| of class |NodeSequence|.  The rest of the files' basenames
+are defined by property |ModelSequence.descr_sequence| of class |ModelSequence|, which
+combines the model type (`hland_96`), the sequence group (`input`) and the sequence
+type (`p`), and property |NodeSequence.descr_sequence| of class |NodeSequence|, which
+combines the sequence type (`obs`) and the handled variable (`q`).
 
 Internally, each ASCII file starts with information about the covered data period and
 the temporal resolution, described via a |Timegrid| instance.  Consider the following
@@ -454,10 +462,12 @@ TIME GRID
 The time series of all sequences of the same type are stored in one file.  So, by
 default, a NetCDF filename is shorter than an ASCII filename as it does not need a
 device-specific prefix (for example, `hland_96_input_p.nc` instead of
-`land_dill_assl_hland_96_input_p.asc`).  The device names are instead managed by a
-file-internal NetCDF variable named `station_id`, whose shape is determined by the
-NetCDF dimensions `stations` (usually the number of devices, but see below) and
-`char_leng_name` (usually the longest device name, but see below).
+`land_dill_assl_hland_96_input_p.asc` and `obs_q.asc` instead of
+`dill_assl_obs_q.asc`).  The device names are instead managed by a file-internal NetCDF
+variable named `station_id`, whose shape is determined by the NetCDF dimensions
+`stations` (usually the number of devices, but see below) and `char_leng_name` (usually
+the longest device name, but see below).  The name of the data variable agrees with the
+respective file basename (in the given examples, `hland_96_input_p` and `obs_q`).
 
 The second NetCDF variable used for describing the data layout is named `time`, whose
 shape is determined by a NetCDF dimension also named `time`.  This variable contains

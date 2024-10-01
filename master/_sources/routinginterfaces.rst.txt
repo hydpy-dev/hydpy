@@ -1,0 +1,31 @@
+.. |ChannelModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.ChannelModel_V1`
+.. |CrossSectionModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.CrossSectionModel_V1`
+.. |CrossSectionModel_V2| replace:: :class:`~hydpy.interfaces.routinginterfaces.CrossSectionModel_V2`
+.. |RoutingModelBase.determine_discharge| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.determine_discharge`
+.. |RoutingModelBase.determine_maxtimestep| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.determine_maxtimestep`
+.. |RoutingModelBase.get_discharge| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.get_discharge`
+.. |RoutingModelBase.perform_postprocessing| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.perform_postprocessing`
+.. |RoutingModelBase.perform_preprocessing| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.perform_preprocessing`
+.. |RoutingModelBase.set_timestep| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.set_timestep`
+.. |RoutingModel_V1.get_partialdischargeupstream| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModel_V1.get_partialdischargeupstream`
+.. |RoutingModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.RoutingModel_V1`
+.. |RoutingModel_V2.get_partialdischargedownstream| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModel_V2.get_partialdischargedownstream`
+.. |RoutingModel_V2| replace:: :class:`~hydpy.interfaces.routinginterfaces.RoutingModel_V2`
+.. |RoutingModel_V3.get_partialdischargedownstream| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModel_V3.get_partialdischargedownstream`
+.. |RoutingModel_V3| replace:: :class:`~hydpy.interfaces.routinginterfaces.RoutingModel_V3`
+.. |StorageModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.StorageModel_V1`
+.. |sw1d_channel| replace:: :mod:`~hydpy.models.sw1d_channel`
+.. |sw1d_lias| replace:: :mod:`~hydpy.models.sw1d_lias`
+.. |sw1d_network| replace:: :mod:`~hydpy.models.sw1d_network`
+.. |sw1d_q_in| replace:: :mod:`~hydpy.models.sw1d_q_in`
+.. |sw1d_weir_out| replace:: :mod:`~hydpy.models.sw1d_weir_out`
+
+.. _routinginterfaces:
+
+routinginterfaces
+=================
+
+.. automodule:: hydpy.interfaces.routinginterfaces
+    :members:
+    :show-inheritance:
+    :exclude-members: SUBMODELINTERFACES, SOLVERSEQUENCES, subpars, NoDefault, Callable, Doc, SupportsRound, assert_never, NamedTuple, INLET_METHODS, get_original_bases, AsyncIterable, Type, UPDATEDSEQUENCES, SupportsComplex, override, ClassVar, ChainMap, IntVar, Mapping, Deque, reveal_type, final, AbstractSet, KeysView, Coroutine, seqs, ADD_METHODS, AsyncIterator, NewType, AsyncContextManager, OrderedDict, fastaccess, get_type_hints, ParamSpecArgs, Sequence, ParamSpecKwargs, is_protocol, DefaultDict, DERIVEDPARAMETERS, Iterable, CapsuleType, dataclass_transform, Counter, MappingView, List, TextIO, ValuesView, ForwardRef, Any, TypeAliasType, NoReturn, TypeVarTuple, Reversible, assert_type, SupportsAbs, get_origin, runtime, IO, Iterator, clear_overloads, RUN_METHODS, MutableSet, SUBMETHODS, ByteString, Unpack, AsyncGenerator, AnyStr, Required, ReadOnly, Final, Optional, Tuple, TYPE_CHECKING, Container, Self, is_typeddict, RECEIVER_METHODS, NotRequired, Generic, LiteralString, Buffer, CONTROLPARAMETERS, Set, Concatenate, cast, subseqs, pars, INTERFACE_METHODS, SENDER_METHODS, get_protocol_members, get_args, ParamSpec, MutableSequence, Awaitable, TypeIs, TypeAlias, Never, Text, ItemsView, PART_ODE_METHODS, SUBMODELS, TypeGuard, Collection, SupportsIndex, deprecated, SOLVERPARAMETERS, FrozenSet, OUTLET_METHODS, TypeVar, MutableMapping, Union, Annotated, REQUIREDSEQUENCES, BinaryIO, Literal, get_overloads, SupportsFloat, Dict, no_type_check, SupportsBytes, FULL_ODE_METHODS, ContextManager, fastaccess_new, overload, CLASSES, Pattern, Protocol, subvars, FIXEDPARAMETERS, SupportsInt, Match, runtime_checkable, TypedDict, Sized, Hashable, RESULTSEQUENCES, fastaccess_old, Generator, no_type_check_decorator

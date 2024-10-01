@@ -1,0 +1,56 @@
+.. |BottomHighWaterThreshold| replace:: :class:`~hydpy.models.sw1d.sw1d_control.BottomHighWaterThreshold`
+.. |BottomLowWaterThreshold| replace:: :class:`~hydpy.models.sw1d.sw1d_control.BottomLowWaterThreshold`
+.. |Calc_DischargeDownstream_V1| replace:: :class:`~hydpy.models.sw1d.sw1d_model.Calc_DischargeDownstream_V1`
+.. |Calc_DischargeUpstream_V1| replace:: :class:`~hydpy.models.sw1d.sw1d_model.Calc_DischargeUpstream_V1`
+.. |Calc_Discharge_V1| replace:: :class:`~hydpy.models.sw1d.sw1d_model.Calc_Discharge_V1`
+.. |Calc_Discharge_V3| replace:: :class:`~hydpy.models.sw1d.sw1d_model.Calc_Discharge_V3`
+.. |Calc_Discharge_V4| replace:: :class:`~hydpy.models.sw1d.sw1d_model.Calc_Discharge_V4`
+.. |Calc_MaxTimeStep_V1| replace:: :class:`~hydpy.models.sw1d.sw1d_model.Calc_MaxTimeStep_V1`
+.. |Calc_MaxTimeStep_V2| replace:: :class:`~hydpy.models.sw1d.sw1d_model.Calc_MaxTimeStep_V2`
+.. |Calc_MaxTimeStep_V3| replace:: :class:`~hydpy.models.sw1d.sw1d_model.Calc_MaxTimeStep_V3`
+.. |Calc_MaxTimeStep_V4| replace:: :class:`~hydpy.models.sw1d.sw1d_model.Calc_MaxTimeStep_V4`
+.. |Calc_NetInflow_V1| replace:: :class:`~hydpy.models.sw1d.sw1d_model.Calc_NetInflow_V1`
+.. |Calc_TimeStep_V1| replace:: :class:`~hydpy.models.sw1d.sw1d_model.Calc_TimeStep_V1`
+.. |CrossSectionModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.CrossSectionModel_V1`
+.. |CrossSectionModel_V2| replace:: :class:`~hydpy.interfaces.routinginterfaces.CrossSectionModel_V2`
+.. |DampingRadius| replace:: :class:`~hydpy.models.sw1d.sw1d_control.DampingRadius`
+.. |DischargeDownstream| replace:: :class:`~hydpy.models.sw1d.sw1d_fluxes.DischargeDownstream`
+.. |DischargeUpstream| replace:: :class:`~hydpy.models.sw1d.sw1d_fluxes.DischargeUpstream`
+.. |Discharge| replace:: :class:`~hydpy.models.sw1d.sw1d_states.Discharge`
+.. |GateHeight| replace:: :class:`~hydpy.models.sw1d.sw1d_control.GateHeight`
+.. |Get_PartialDischargeDownstream_V1| replace:: :class:`~hydpy.models.sw1d.sw1d_model.Get_PartialDischargeDownstream_V1`
+.. |Get_PartialDischargeUpstream_V1| replace:: :class:`~hydpy.models.sw1d.sw1d_model.Get_PartialDischargeUpstream_V1`
+.. |Indexer.timeofyear| replace:: :const:`~hydpy.core.indextools.Indexer.timeofyear`
+.. |Indexer| replace:: :class:`~hydpy.core.indextools.Indexer`
+.. |Inflow| replace:: :class:`~hydpy.models.sw1d.sw1d_fluxes.Inflow`
+.. |LengthDownstream| replace:: :class:`~hydpy.models.sw1d.sw1d_control.LengthDownstream`
+.. |LengthUpstream| replace:: :class:`~hydpy.models.sw1d.sw1d_control.LengthUpstream`
+.. |MaxTimeStep| replace:: :class:`~hydpy.models.sw1d.sw1d_factors.MaxTimeStep`
+.. |Outflow| replace:: :class:`~hydpy.models.sw1d.sw1d_fluxes.Outflow`
+.. |Pass_Discharge_V1| replace:: :class:`~hydpy.models.sw1d.sw1d_model.Pass_Discharge_V1`
+.. |RoutingModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.RoutingModel_V1`
+.. |RoutingModel_V2| replace:: :class:`~hydpy.interfaces.routinginterfaces.RoutingModel_V2`
+.. |RoutingModel_V3| replace:: :class:`~hydpy.interfaces.routinginterfaces.RoutingModel_V3`
+.. |SeasonalParameter| replace:: :class:`~hydpy.core.parametertools.SeasonalParameter`
+.. |StorageModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.StorageModel_V1`
+.. |TargetWaterLevel1| replace:: :class:`~hydpy.models.sw1d.sw1d_control.TargetWaterLevel1`
+.. |TargetWaterLevel2| replace:: :class:`~hydpy.models.sw1d.sw1d_control.TargetWaterLevel2`
+.. |UnitTest| replace:: :class:`~hydpy.core.testtools.UnitTest`
+.. |Update_Discharge_V1| replace:: :class:`~hydpy.models.sw1d.sw1d_model.Update_Discharge_V1`
+.. |Update_Discharge_V2| replace:: :class:`~hydpy.models.sw1d.sw1d_model.Update_Discharge_V2`
+.. |UpperHighWaterThreshold| replace:: :class:`~hydpy.models.sw1d.sw1d_control.UpperHighWaterThreshold`
+.. |UpperLowWaterThreshold| replace:: :class:`~hydpy.models.sw1d.sw1d_control.UpperLowWaterThreshold`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |sw1d.DOCNAME.complete| replace:: HydPy-SW1D (base model)
+.. |sw1d.DOCNAME.long| replace:: HydPy-SW1D
+.. |wq_trapeze| replace:: :mod:`~hydpy.models.wq_trapeze`
+
+.. _sw1d:
+
+sw1d
+====
+
+.. automodule:: hydpy.models.sw1d
+    :members:
+    :show-inheritance:
+    :exclude-members: deprecated, FIXEDPARAMETERS, Buffer, Counter, Deque, MutableSequence, reveal_type, IO, ParamSpecKwargs, seqs, OUTLET_METHODS, SOLVERSEQUENCES, Mapping, Optional, Required, NotRequired, SUBMODELINTERFACES, CONTROLPARAMETERS, Text, runtime_checkable, TYPE_CHECKING, Reversible, no_type_check_decorator, AnyStr, no_type_check, Callable, Never, subpars, Generic, ReadOnly, RESULTSEQUENCES, RECEIVER_METHODS, assert_type, is_typeddict, Sequence, get_args, OrderedDict, SOLVERPARAMETERS, SupportsIndex, LogSequences, ChainMap, ValuesView, Annotated, REQUIREDSEQUENCES, TypeVarTuple, INLET_METHODS, Type, SupportsComplex, Set, get_overloads, ParamSpecArgs, NamedTuple, DERIVEDPARAMETERS, Container, TypeVar, SupportsRound, TypeAliasType, NewType, AsyncIterator, Concatenate, fastaccess_new, Dict, subseqs, Hashable, TypeGuard, MutableSet, MutableMapping, overload, TextIO, SupportsInt, dataclass_transform, BinaryIO, Literal, IntVar, FrozenSet, get_protocol_members, ClassVar, Sized, ContextManager, SupportsBytes, SupportsAbs, fastaccess, AsyncContextManager, ForwardRef, KeysView, TypeIs, UPDATEDSEQUENCES, PART_ODE_METHODS, get_origin, AideSequences, SUBMODELS, ItemsView, AsyncGenerator, Generator, CLASSES, assert_never, Iterator, SupportsFloat, AbstractSet, cast, is_protocol, INTERFACE_METHODS, clear_overloads, Coroutine, Self, Tuple, TypedDict, runtime, SENDER_METHODS, final, override, InputSequences, subvars, MappingView, LiteralString, Union, ADD_METHODS, Awaitable, DefaultDict, Match, ParamSpec, TypeAlias, List, Collection, ByteString, NoReturn, Iterable, AsyncIterable, get_original_bases, Any, FULL_ODE_METHODS, Final, pars, SUBMETHODS, NoDefault, Doc, RUN_METHODS, Protocol, fastaccess_old, get_type_hints, Unpack, CapsuleType, Pattern

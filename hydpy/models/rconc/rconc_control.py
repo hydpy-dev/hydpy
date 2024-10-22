@@ -247,9 +247,7 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
                 return None
 
             idx = self._find_kwargscombination(
-                args,
-                dict(kwargs),
-                (set(("tb",)), set(("tb", "tp")), set(("x4",)), set(("x4", "beta"))),
+                args, dict(kwargs), ({"tb"}, {"tb", "tp"}, {"x4"}, {"x4", "beta"})
             )
 
             if option == "triangle":

@@ -2109,10 +2109,10 @@ submodel_meteo_glob_fao56:
         )
 
         submodels = tuple(self.find_submodels(repeat_sharedmodels=True).values())
-        sharable_submodels = set(
+        sharable_submodels = {
             m for m in submodels if isinstance(m, SharableSubmodelInterface)
-        )
-        shared_submodels = set(m for m in sharable_submodels if submodels.count(m) > 1)
+        }
+        shared_submodels = {m for m in sharable_submodels if submodels.count(m) > 1}
         visited_shared_submodels: set[SharableSubmodelInterface] = set()
 
         # ToDo: needs refactoring
@@ -3042,7 +3042,7 @@ but the value `1` of type `int` is given.
                         seen.add(submodel)
                         _find_submodels(subname, submodel)
 
-        seen: set[Model] = set([self])
+        seen: set[Model] = {self}
         sharables: set[SharableSubmodelInterface] = set()
         name2submodel = {"model": self} if include_mainmodel else {}
         _find_submodels("model", self)

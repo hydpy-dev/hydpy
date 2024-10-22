@@ -1835,8 +1835,8 @@ class PyxWriter:
     def interfacemethods(self) -> set[str]:
         """The full and abbreviated names of the selected model's interface methods."""
         if hasattr(self.model, "INTERFACE_METHODS"):
-            interfaces = set(m.__name__.lower() for m in self.model.INTERFACE_METHODS)
-            interfaces.update(set(i.rpartition("_")[0] for i in interfaces))
+            interfaces = {m.__name__.lower() for m in self.model.INTERFACE_METHODS}
+            interfaces.update({i.rpartition("_")[0] for i in interfaces})
             return interfaces
         return set()
 

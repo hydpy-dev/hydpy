@@ -1796,9 +1796,9 @@ class TrapezeModel(modeltools.AdHocModel):
     def plot(
         self,
         *,
-        ymax: Optional[float] = None,
-        color: Optional[str] = None,
-        label: Union[bool, str] = False
+        ymax: float | None = None,
+        color: str | None = None,
+        label: bool | str = False
     ) -> pyplot.Figure:
         """Plot the channel profile.
 

@@ -1103,8 +1103,8 @@ class Model(kinw_model.BaseModelProfile):
     def calculate_characteristiclength(
         self,
         *,
-        h: Optional[float] = None,
-        q: Optional[float] = None,
+        h: float | None = None,
+        q: float | None = None,
         dx: float = 1e-6,
         lenmin: float = 0.1,
         nmbmax: int = 50,

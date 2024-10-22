@@ -462,14 +462,14 @@ class SubParameters(
     '''
 
     pars: Parameters
-    _cymodel: Optional[CyModelProtocol]
+    _cymodel: CyModelProtocol | None
     _CLS_FASTACCESS_PYTHON = FastAccessParameter
 
     def __init__(
         self,
         master: Parameters,
-        cls_fastaccess: Optional[type[FastAccessParameter]] = None,
-        cymodel: Optional[CyModelProtocol] = None,
+        cls_fastaccess: type[FastAccessParameter] | None = None,
+        cymodel: CyModelProtocol | None = None,
     ):
         self.pars = master
         self._cymodel = cymodel
@@ -500,14 +500,14 @@ class Keyword(NamedTuple):
 
     name: str
     """The keyword argument's name."""
-    type_: type[Union[float, int]] = float
+    type_: type[float | int] = float
     """The keyword argument's type (equivalent to the |Variable.TYPE| attribute of 
     class |Variable|)."""
-    time: Optional[bool] = None
+    time: bool | None = None
     """Type of the keyword argument's time dependency (equivalent to the 
     |Parameter.TIME| attribute of class |Parameter|).
     """
-    span: tuple[Optional[float], Optional[float]] = (None, None)
+    span: tuple[float | None, float | None] = (None, None)
     """The keyword argument's lower and upper boundary (equivalent to the 
     |Variable.SPAN| attribute of class |Variable|).
     """
@@ -1211,7 +1211,7 @@ with shape `(2, 3)` and type `float`, the following error occurred: could not \
 broadcast input array from shape (2,) into shape (2,3)
     """
 
-    TIME: Optional[bool]
+    TIME: bool | None
     KEYWORDS: Mapping[str, Keyword] = {}
 
     subvars: SubParameters
@@ -1318,7 +1318,7 @@ broadcast input array from shape (2,) into shape (2,3)
         given_args: Sequence[Any],
         given_kwargs: dict[str, Any],
         allowed_combinations: tuple[set[str], ...],
-    ) -> Optional[int]:
+    ) -> int | None:
         if given_kwargs and ("auxfile" not in given_kwargs):
             if given_args:
                 self._raise_args_and_kwargs_error()
@@ -1343,7 +1343,7 @@ broadcast input array from shape (2,) into shape (2,3)
         return
 
     @property
-    def initinfo(self) -> tuple[Union[float, int, bool], bool]:
+    def initinfo(self) -> tuple[float | int | bool, bool]:
         """A |tuple| containing the initial value and |True| or a missing
         value and |False|, depending on the actual |Parameter| subclass and
         the actual value of option |Options.usedefaultvalues|.
@@ -1641,7 +1641,7 @@ implement method `update`.
                     keywordarguments[name] = value * self.get_timefactor()
         return keywordarguments
 
-    def compress_repr(self) -> Optional[str]:
+    def compress_repr(self) -> str | None:
         """Try to find a compressed parameter value representation and return it.
 
         |Parameter.compress_repr| raises a |NotImplementedError| when failing to find a
@@ -1794,7 +1794,7 @@ implement method `update`.
 
 class _MixinModifiableParameter(Parameter):
     @classmethod
-    def _reset_after_modification(cls, name: str, value: Optional[object]) -> None:
+    def _reset_after_modification(cls, name: str, value: object | None) -> None:
         if value is None:
             delattr(cls, name)
         else:
@@ -1874,7 +1874,7 @@ class NameParameter(_MixinModifiableParameter, Parameter):
     @classmethod
     @contextlib.contextmanager
     def modify_constants(
-        cls, constants: Optional[Constants]
+        cls, constants: Constants | None
     ) -> Generator[None, None, None]:
         """Modify the relevant constants temporarily.
 
@@ -2167,16 +2167,16 @@ convert string to float: 'test'
     NDIM = 1
     constants: dict[str, int]
     """Mapping of the constants' names and values."""
-    refindices: Optional[NameParameter] = None
+    refindices: NameParameter | None = None
     """Optional reference to the relevant index parameter."""
-    relevant: Optional[tuple[int, ...]] = None
+    relevant: tuple[int, ...] | None = None
     """The values of all (potentially) relevant constants."""
     mask: masktools.IndexMask
 
     @classmethod
     @contextlib.contextmanager
     def modify_refindices(
-        cls, refindices: Optional[NameParameter]
+        cls, refindices: NameParameter | None
     ) -> Generator[None, None, None]:
         """Eventually, set or modify the reference to the required index parameter.
 
@@ -2379,7 +2379,7 @@ index parameter.
         else:
             refindices = mask.refindices.values.copy()
             refindices[~refinement.values] = variabletools.INT_NAN
-        name2unique = KeywordArguments[Union[float]]()
+        name2unique = KeywordArguments[float]()
         if (relevant := self.relevant) is None:
             relevant = mask.relevant
         for key, value in self.constants.items():
@@ -2616,7 +2616,7 @@ broadcast input array from shape (2,) into shape (366,3)
 
     strict_valuehandling: bool = False
 
-    _toy2values_unprotected: list[tuple[timetools.TOY, Union[float, NDArrayFloat]]]
+    _toy2values_unprotected: list[tuple[timetools.TOY, float | NDArrayFloat]]
     _trimmed_insufficiently: bool
     _trimming_disabled: bool
 
@@ -2627,9 +2627,7 @@ broadcast input array from shape (2,) into shape (366,3)
         self._trimmed_insufficiently = False
 
     @property
-    def _toy2values_protected(
-        self,
-    ) -> list[tuple[timetools.TOY, Union[float, NDArrayFloat]]]:
+    def _toy2values_protected(self) -> list[tuple[timetools.TOY, float | NDArrayFloat]]:
         if self._trimmed_insufficiently and hydpy.pub.options.warntrim:
             warnings.warn(
                 f'The "background values" of parameter '
@@ -2664,7 +2662,7 @@ broadcast input array from shape (2,) into shape (366,3)
                     )
             self.refresh()
 
-    def _add_toyvaluepair(self, name: str, value: Union[float, NDArrayFloat]) -> None:
+    def _add_toyvaluepair(self, name: str, value: float | NDArrayFloat) -> None:
         if self.NDIM == 1:
             value = float(value)
         else:
@@ -2947,7 +2945,7 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
         """
         return super()._get_shape()
 
-    def _set_shape(self, shape: Union[int, tuple[int, ...]]) -> None:
+    def _set_shape(self, shape: int | tuple[int, ...]) -> None:
         if isinstance(shape, tuple):
             shape_ = list(shape)
         else:
@@ -3035,7 +3033,7 @@ Using the latter without modification might result in inconsistencies.
     def __iter__(self) -> Iterator[tuple[timetools.TOY, Any]]:
         return iter(self._toy2values_protected)
 
-    def __getattr__(self, name: str) -> Union[float, NDArrayFloat]:
+    def __getattr__(self, name: str) -> float | NDArrayFloat:
         selected = timetools.TOY(name)
         for available, value in self._toy2values_protected:
             if selected == available:
@@ -3045,7 +3043,7 @@ Using the latter without modification might result in inconsistencies.
             f'normal attribute nor does it handle a "time of year" named `{name}`.'
         )
 
-    def __setattr__(self, name: str, value: Union[float, NDArrayFloat]) -> None:
+    def __setattr__(self, name: str, value: float | NDArrayFloat) -> None:
         if name.startswith("toy_"):
             try:
                 self._add_toyvaluepair(name, value)
@@ -3218,9 +3216,7 @@ for axis 0 with size 1
 
     @classmethod
     @contextlib.contextmanager
-    def modify_entries(
-        cls, constants: Optional[Constants]
-    ) -> Generator[None, None, None]:
+    def modify_entries(cls, constants: Constants | None) -> Generator[None, None, None]:
         """Modify the relevant entry names temporarily.
 
         The entry names for defining properties like land-use types are fixed for
@@ -3598,7 +3594,7 @@ attribute nor a row or column related attribute named `wrong`.
 
     @classmethod
     @contextlib.contextmanager
-    def modify_rows(cls, constants: Optional[Constants]) -> Generator[None, None, None]:
+    def modify_rows(cls, constants: Constants | None) -> Generator[None, None, None]:
         """Modify the relevant row names temporarily.
 
         Methods |KeywordParameter2D.modify_rows| and |KeywordParameter2D.modify_columns|
@@ -3714,9 +3710,7 @@ attribute nor a row or column related attribute named `wrong`.
 
     @classmethod
     @contextlib.contextmanager
-    def modify_columns(
-        cls, constants: Optional[Constants]
-    ) -> Generator[None, None, None]:
+    def modify_columns(cls, constants: Constants | None) -> Generator[None, None, None]:
         """Modify the relevant column names temporarily.
 
         Please see the documentation on method |KeywordParameter2D.modify_rows| for
@@ -4001,10 +3995,10 @@ class FixedParameter(Parameter):
     whenever possible, even when option |Options.usedefaultvalues| is disabled.
     """
 
-    INIT: Union[int, float, bool]
+    INIT: int | float | bool
 
     @property
-    def initinfo(self) -> tuple[Union[float, int, bool], bool]:
+    def initinfo(self) -> tuple[float | int | bool, bool]:
         """A |tuple| always containing the fixed value and |True|, except
         for time-dependent parameters and incomplete time-information.
 
@@ -4166,8 +4160,8 @@ solver parameter `tol` of element `?` has been defined so far.
     modtol(0.01)
     """
 
-    INIT: Union[int, float, bool]
-    _alternative_initvalue: Optional[float]
+    INIT: int | float | bool
+    _alternative_initvalue: float | None
 
     def __init__(self, subvars):
         super().__init__(subvars)
@@ -4189,7 +4183,7 @@ solver parameter `tol` of element `?` has been defined so far.
         else:
             self.value = self.modify_init()
 
-    def modify_init(self) -> Union[bool, int, float]:
+    def modify_init(self) -> bool | int | float:
         """Return the value of class constant `INIT`.
 
         Override this method to support project-specific solver parameters.
@@ -4199,7 +4193,7 @@ solver parameter `tol` of element `?` has been defined so far.
         return self.INIT
 
     @property
-    def alternative_initvalue(self) -> Union[bool, int, float]:
+    def alternative_initvalue(self) -> bool | int | float:
         """A user-defined value to be used instead of the value of class
         constant `INIT`.
 
@@ -4615,7 +4609,7 @@ keyword argument, it must be `callback`, and you need to pass a callback functio
         self._init_callback()
 
     @property
-    def callback(self) -> Optional[Callable[[modeltools.Model], None]]:
+    def callback(self) -> Callable[[modeltools.Model], None] | None:
         """The currently handled callback function for updating the parameter value."""
         if self._has_callback:
             if get := getattr(self.fastaccess, f"get_{self.name}_callback", None):

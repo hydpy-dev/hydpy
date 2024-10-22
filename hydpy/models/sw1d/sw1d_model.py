@@ -22,6 +22,18 @@ from hydpy.models.sw1d import sw1d_senders
 
 # pick data from and pass data to link sequences
 
+RoutingModels_V1_V2: TypeAlias = Union[
+    "routinginterfaces.RoutingModel_V1", "routinginterfaces.RoutingModel_V2"
+]
+RoutingModels_V1_V2_V3: TypeAlias = Union[
+    "routinginterfaces.RoutingModel_V1",
+    "routinginterfaces.RoutingModel_V2",
+    "routinginterfaces.RoutingModel_V3",
+]
+RoutingModels_V2_V3: TypeAlias = Union[
+    "routinginterfaces.RoutingModel_V2", "routinginterfaces.RoutingModel_V3"
+]
+
 
 class Pick_Inflow_V1(modeltools.Method):
     """Pick the longitudinal inflow from an arbitrary number of inlet sequences."""
@@ -207,12 +219,7 @@ class Trigger_Preprocessing_V1(modeltools.Method):
         for i in range(model.routingmodels.number):
             if model.routingmodels.typeids[i] in (1, 2, 3):
                 cast(
-                    Union[
-                        routinginterfaces.RoutingModel_V1,
-                        routinginterfaces.RoutingModel_V2,
-                        routinginterfaces.RoutingModel_V3,
-                    ],
-                    model.routingmodels.submodels[i],
+                    RoutingModels_V1_V2_V3, model.routingmodels.submodels[i]
                 ).perform_preprocessing()
         for i in range(model.storagemodels.number):
             if model.storagemodels.typeids[i] == 1:
@@ -263,12 +270,7 @@ class Trigger_Postprocessing_V1(modeltools.Method):
         for i in range(model.routingmodels.number):
             if model.routingmodels.typeids[i] in (1, 2, 3):
                 cast(
-                    Union[
-                        routinginterfaces.RoutingModel_V1,
-                        routinginterfaces.RoutingModel_V2,
-                        routinginterfaces.RoutingModel_V3,
-                    ],
-                    model.routingmodels.submodels[i],
+                    RoutingModels_V1_V2_V3, model.routingmodels.submodels[i]
                 ).perform_postprocessing()
         for i in range(model.storagemodels.number):
             if model.storagemodels.typeids[i] == 1:
@@ -697,12 +699,7 @@ class Calc_MaxTimeSteps_V1(modeltools.Method):
         for i in range(model.routingmodels.number):
             if model.routingmodels.typeids[i] in (1, 2, 3):
                 cast(
-                    Union[
-                        routinginterfaces.RoutingModel_V1,
-                        routinginterfaces.RoutingModel_V2,
-                        routinginterfaces.RoutingModel_V3,
-                    ],
-                    model.routingmodels.submodels[i],
+                    RoutingModels_V1_V2_V3, model.routingmodels.submodels[i]
                 ).determine_maxtimestep()
 
 
@@ -756,12 +753,7 @@ class Calc_TimeStep_V1(modeltools.Method):
         for i in range(model.routingmodels.number):
             if model.routingmodels.typeids[i] in (1, 2, 3):
                 timestep: float = cast(
-                    Union[
-                        routinginterfaces.RoutingModel_V1,
-                        routinginterfaces.RoutingModel_V2,
-                        routinginterfaces.RoutingModel_V3,
-                    ],
-                    model.routingmodels.submodels[i],
+                    RoutingModels_V1_V2_V3, model.routingmodels.submodels[i]
                 ).get_maxtimestep()
                 fac.timestep = min(fac.timestep, timestep)
         if fac.timestep < model.timeleft:
@@ -808,12 +800,7 @@ class Send_TimeStep_V1(modeltools.Method):
         for i in range(model.routingmodels.number):
             if model.routingmodels.typeids[i] in (1, 2, 3):
                 cast(
-                    Union[
-                        routinginterfaces.RoutingModel_V1,
-                        routinginterfaces.RoutingModel_V2,
-                        routinginterfaces.RoutingModel_V3,
-                    ],
-                    model.routingmodels.submodels[i],
+                    RoutingModels_V1_V2_V3, model.routingmodels.submodels[i]
                 ).set_timestep(fac.timestep)
         for i in range(model.storagemodels.number):
             if model.storagemodels.typeids[i] == 1:
@@ -1295,11 +1282,7 @@ class Calc_DischargeUpstream_V1(modeltools.Method):
         for i in range(model.routingmodelsupstream.number):
             if model.routingmodelsupstream.typeids[i] in (1, 2):
                 flu.dischargeupstream += cast(
-                    Union[
-                        routinginterfaces.RoutingModel_V1,
-                        routinginterfaces.RoutingModel_V2,
-                    ],
-                    model.routingmodelsupstream.submodels[i],
+                    RoutingModels_V1_V2, model.routingmodelsupstream.submodels[i]
                 ).get_partialdischargeupstream(sta.discharge)
 
 
@@ -1365,11 +1348,7 @@ class Calc_DischargeDownstream_V1(modeltools.Method):
         for i in range(model.routingmodelsdownstream.number):
             if model.routingmodelsdownstream.typeids[i] in (2, 3):
                 flu.dischargedownstream += cast(
-                    Union[
-                        routinginterfaces.RoutingModel_V2,
-                        routinginterfaces.RoutingModel_V3,
-                    ],
-                    model.routingmodelsdownstream.submodels[i],
+                    RoutingModels_V2_V3, model.routingmodelsdownstream.submodels[i]
                 ).get_partialdischargedownstream(sta.discharge)
 
 
@@ -2376,12 +2355,7 @@ class Calc_Discharges_V1(modeltools.Method):
         for i in range(model.routingmodels.number):
             if model.routingmodels.typeids[i] in (1, 2, 3):
                 cast(
-                    Union[
-                        routinginterfaces.RoutingModel_V1,
-                        routinginterfaces.RoutingModel_V2,
-                        routinginterfaces.RoutingModel_V3,
-                    ],
-                    model.routingmodels.submodels[i],
+                    RoutingModels_V1_V2_V3, model.routingmodels.submodels[i]
                 ).determine_discharge()
 
 
@@ -2423,12 +2397,7 @@ class Calc_Discharges_V2(modeltools.Method):
             if model.routingmodels.typeids[i] in (1, 2, 3):
                 flu.discharges[i] = (
                     cast(
-                        Union[
-                            routinginterfaces.RoutingModel_V1,
-                            routinginterfaces.RoutingModel_V2,
-                            routinginterfaces.RoutingModel_V3,
-                        ],
-                        model.routingmodels.submodels[i],
+                        RoutingModels_V1_V2_V3, model.routingmodels.submodels[i]
                     ).get_dischargevolume()
                     / der.seconds
                 )
@@ -2499,20 +2468,12 @@ class Calc_NetInflow_V1(modeltools.Method):
         for i in range(model.routingmodelsupstream.number):
             if model.routingmodelsupstream.typeids[i] in (1, 2):
                 flu.netinflow += cast(
-                    Union[
-                        routinginterfaces.RoutingModel_V1,
-                        routinginterfaces.RoutingModel_V2,
-                    ],
-                    model.routingmodelsupstream.submodels[i],
+                    RoutingModels_V1_V2, model.routingmodelsupstream.submodels[i]
                 ).get_discharge()
         for i in range(model.routingmodelsdownstream.number):
             if model.routingmodelsdownstream.typeids[i] in (2, 3):
                 flu.netinflow -= cast(
-                    Union[
-                        routinginterfaces.RoutingModel_V2,
-                        routinginterfaces.RoutingModel_V3,
-                    ],
-                    model.routingmodelsdownstream.submodels[i],
+                    RoutingModels_V2_V3, model.routingmodelsdownstream.submodels[i]
                 ).get_discharge()
         flu.netinflow *= fac.timestep / 1e3
 
@@ -3133,11 +3094,7 @@ class Get_PartialDischargeUpstream_V1(modeltools.Method):
             if model.routingmodelsdownstream.typeids[i] in (2, 3):
                 dischargedownstream += modelutils.fabs(
                     cast(
-                        Union[
-                            routinginterfaces.RoutingModel_V2,
-                            routinginterfaces.RoutingModel_V3,
-                        ],
-                        model.routingmodelsdownstream.submodels[i],
+                        RoutingModels_V2_V3, model.routingmodelsdownstream.submodels[i]
                     ).get_discharge()
                 )
         if dischargedownstream == 0.0:
@@ -3228,11 +3185,7 @@ class Get_PartialDischargeDownstream_V1(modeltools.Method):
             if model.routingmodelsupstream.typeids[i] in (1, 2):
                 dischargeupstream += modelutils.fabs(
                     cast(
-                        Union[
-                            routinginterfaces.RoutingModel_V1,
-                            routinginterfaces.RoutingModel_V2,
-                        ],
-                        model.routingmodelsupstream.submodels[i],
+                        RoutingModels_V1_V2, model.routingmodelsupstream.submodels[i]
                     ).get_discharge()
                 )
         if dischargeupstream == 0.0:

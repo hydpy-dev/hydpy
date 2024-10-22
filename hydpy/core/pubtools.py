@@ -92,15 +92,15 @@ previously defined and is hence set to `default`.
 
 class TimegridsProperty(
     _PubProperty[
-        Union[
-            timetools.Timegrids,
-            timetools.Timegrid,
-            tuple[
+        (
+            timetools.Timegrids
+            | timetools.Timegrid
+            | tuple[
                 timetools.DateConstrArg,
                 timetools.DateConstrArg,
                 timetools.PeriodConstrArg,
-            ],
-        ],
+            ]
+        ),
         timetools.Timegrids,
     ]
 ):
@@ -148,15 +148,15 @@ class TimegridsProperty(
     def call_fset(
         self,
         obj: Any,
-        value: Union[
-            timetools.Timegrids,
-            timetools.Timegrid,
-            tuple[
+        value: (
+            timetools.Timegrids
+            | timetools.Timegrid
+            | tuple[
                 timetools.DateConstrArg,
                 timetools.DateConstrArg,
                 timetools.PeriodConstrArg,
-            ],
-        ],
+            ]
+        ),
     ) -> None:
         """Try to convert the given input value(s)."""
         try:
@@ -215,7 +215,7 @@ is not defined at the moment.
 
     options: optiontools.Options
     config: configutils.Config
-    scriptfunctions: dict[str, Callable[..., Optional[int]]]
+    scriptfunctions: dict[str, Callable[..., int | None]]
 
     projectname = _ProjectnameProperty()
     indexer = _PubProperty[indextools.Indexer, indextools.Indexer]()
@@ -230,7 +230,7 @@ is not defined at the moment.
     timegrids = TimegridsProperty()
     selections = _PubProperty[selectiontools.Selections, selectiontools.Selections]()
 
-    def __init__(self, name: str, doc: Optional[str] = None) -> None:
+    def __init__(self, name: str, doc: str | None = None) -> None:
         super().__init__(name=name, doc=doc)
         self.options = optiontools.Options()
         self.scriptfunctions = {}

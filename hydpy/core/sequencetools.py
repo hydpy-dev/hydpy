@@ -67,7 +67,7 @@ TypeFastAccessIOSequence_co = TypeVar(
     "TypeFastAccessIOSequence_co", bound="FastAccessIOSequence", covariant=True
 )
 
-ModelSequencesSubypes = Union[
+ModelSequencesSubypes: TypeAlias = Union[
     "InputSequences",
     "FactorSequences",
     "FluxSequences",
@@ -79,11 +79,11 @@ ModelSequencesSubypes = Union[
     "ReceiverSequences",
     "SenderSequences",
 ]
-ModelIOSequencesSubtypes = Union[
+ModelIOSequencesSubtypes: TypeAlias = Union[
     "InputSequences", "FactorSequences", "FluxSequences", "StateSequences"
 ]
 
-InOutSequence = Union[
+InOutSequence: TypeAlias = Union[
     "InputSequence",
     "InletSequence",
     "ReceiverSequence",
@@ -91,7 +91,7 @@ InOutSequence = Union[
     "OutletSequence",
     "SenderSequence",
 ]
-InOutSequenceTypes = Union[
+InOutSequenceTypes: TypeAlias = Union[
     type["InputSequence"],
     type["InletSequence"],
     type["ReceiverSequence"],
@@ -100,7 +100,7 @@ InOutSequenceTypes = Union[
     type["SenderSequence"],
 ]
 
-Aggregation = Optional[Literal["unmodified", "mean"]]
+Aggregation: TypeAlias = Optional[Literal["unmodified", "mean"]]
 
 
 class FastAccessIOSequence(variabletools.FastAccess):
@@ -254,7 +254,7 @@ class FastAccessLinkSequence(variabletools.FastAccess):
         ppdouble: pointerutils.PPDouble = getattr(self, name)
         ppdouble.set_pointer(value, idx)
 
-    def get_value(self, name: str) -> Union[float, NDArrayFloat]:
+    def get_value(self, name: str) -> float | NDArrayFloat:
         """Return the actual value(s) referenced by the pointer(s) of the
         |LinkSequence| object with the given name."""
         value = getattr(self, name)[:]
@@ -383,7 +383,7 @@ class InfoArray(NDArrayFloat):
         obj.aggregation = aggregation
         return obj
 
-    def __array_finalize__(self, obj: Optional[NDArray]) -> None:
+    def __array_finalize__(self, obj: NDArray | None) -> None:
         if isinstance(obj, InfoArray):
             self.aggregation = obj.aggregation
         else:
@@ -596,18 +596,18 @@ patch(template % "StateSequences") as states:
         self,
         model: modeltools.Model,
         *,
-        cls_inlets: Optional[type[InletSequences]] = None,
-        cls_receivers: Optional[type[ReceiverSequences]] = None,
-        cls_inputs: Optional[type[InputSequences]] = None,
-        cls_factors: Optional[type[FactorSequences]] = None,
-        cls_fluxes: Optional[type[FluxSequences]] = None,
-        cls_states: Optional[type[StateSequences]] = None,
-        cls_logs: Optional[type[LogSequences]] = None,
-        cls_aides: Optional[type[AideSequences]] = None,
-        cls_outlets: Optional[type[OutletSequences]] = None,
-        cls_senders: Optional[type[SenderSequences]] = None,
-        cymodel: Optional[CyModelProtocol] = None,
-        cythonmodule: Optional[types.ModuleType] = None,
+        cls_inlets: type[InletSequences] | None = None,
+        cls_receivers: type[ReceiverSequences] | None = None,
+        cls_inputs: type[InputSequences] | None = None,
+        cls_factors: type[FactorSequences] | None = None,
+        cls_fluxes: type[FluxSequences] | None = None,
+        cls_states: type[StateSequences] | None = None,
+        cls_logs: type[LogSequences] | None = None,
+        cls_aides: type[AideSequences] | None = None,
+        cls_outlets: type[OutletSequences] | None = None,
+        cls_senders: type[SenderSequences] | None = None,
+        cymodel: CyModelProtocol | None = None,
+        cythonmodule: types.ModuleType | None = None,
     ) -> None:
         self.model = model
         self.inlets = self.__prepare_subseqs(
@@ -644,7 +644,7 @@ patch(template % "StateSequences") as states:
     def __prepare_subseqs(
         self,
         default: type[TypeModelSequences],
-        class_: Optional[type[TypeModelSequences]],
+        class_: type[TypeModelSequences] | None,
         cymodel,
         cythonmodule,
     ) -> TypeModelSequences:
@@ -757,7 +757,7 @@ patch(template % "StateSequences") as states:
 
         See the documentation on property |HydPy.conditions| for further information.
         """
-        conditions: dict[str, dict[str, Union[float, NDArrayFloat]]] = {}
+        conditions: dict[str, dict[str, float | NDArrayFloat]] = {}
         for seq in self.conditionsequences:
             subconditions = conditions.get(seq.subseqs.name, {})
             subconditions[seq.name] = copy.deepcopy(seq.values)
@@ -908,13 +908,13 @@ class ModelSequences(
     """Base class for handling model-related subgroups of sequences."""
 
     seqs: Sequences
-    _cymodel: Optional[CyModelProtocol]
+    _cymodel: CyModelProtocol | None
 
     def __init__(
         self,
         master: Sequences,
-        cls_fastaccess: Optional[type[variabletools.TypeFastAccess_co]] = None,
-        cymodel: Optional[CyModelProtocol] = None,
+        cls_fastaccess: type[variabletools.TypeFastAccess_co] | None = None,
+        cymodel: CyModelProtocol | None = None,
     ) -> None:
         self.seqs = master
         self._cymodel = cymodel
@@ -1165,15 +1165,15 @@ class Sequence_(variabletools.Variable):
     INIT: float = 0.0
     NUMERIC: bool
 
-    subvars: Union[
-        SubSequences[Sequences, Sequence_, variabletools.FastAccess],
-        SubSequences[devicetools.Node, Sequence_, variabletools.FastAccess],
-    ]
+    subvars: (
+        SubSequences[Sequences, Sequence_, variabletools.FastAccess]
+        | SubSequences[devicetools.Node, Sequence_, variabletools.FastAccess]
+    )
     """The subgroup to which the sequence belongs."""
-    subseqs: Union[
-        SubSequences[Sequences, Sequence_, variabletools.FastAccess],
-        SubSequences[devicetools.Node, Sequence_, variabletools.FastAccess],
-    ]
+    subseqs: (
+        SubSequences[Sequences, Sequence_, variabletools.FastAccess]
+        | SubSequences[devicetools.Node, Sequence_, variabletools.FastAccess]
+    )
     """Alias for |Sequence_.subvars|."""
     strict_valuehandling: bool = False
 
@@ -1198,7 +1198,7 @@ class Sequence_(variabletools.Variable):
             self.shape = ()
 
     @property
-    def initinfo(self) -> tuple[Union[float, pointerutils.Double], bool]:
+    def initinfo(self) -> tuple[float | pointerutils.Double, bool]:
         """A |tuple| containing the initial value and |True| or a missing value and
         |False|, depending on the actual |Sequence_| subclass and the actual value of
         option |Options.usedefaultvalues|.
@@ -1518,15 +1518,15 @@ during a simulation run is not supported but tried for sequence `t` of element \
         >>> Element.clear_all()
     """
 
-    subvars: Union[
-        IOSequences[Sequences, IOSequence, FastAccessIOSequence],
-        IOSequences[devicetools.Node, IOSequence, FastAccessIOSequence],
-    ]
+    subvars: (
+        IOSequences[Sequences, IOSequence, FastAccessIOSequence]
+        | IOSequences[devicetools.Node, IOSequence, FastAccessIOSequence]
+    )
     """The subgroup to which the IO sequence belongs."""
-    subseqs: Union[
-        IOSequences[Sequences, IOSequence, FastAccessIOSequence],
-        IOSequences[devicetools.Node, IOSequence, FastAccessIOSequence],
-    ]
+    subseqs: (
+        IOSequences[Sequences, IOSequence, FastAccessIOSequence]
+        | IOSequences[devicetools.Node, IOSequence, FastAccessIOSequence]
+    )
     """Alias for |IOSequence.subvars|."""
     fastaccess: FastAccessIOSequence
     """Object for accessing the IO sequence's data with little overhead."""
@@ -1804,9 +1804,9 @@ correctly.
 
     def prepare_series(
         self,
-        allocate_ram: Optional[bool] = True,
-        read_jit: Optional[bool] = False,
-        write_jit: Optional[bool] = False,
+        allocate_ram: bool | None = True,
+        read_jit: bool | None = False,
+        write_jit: bool | None = False,
     ) -> None:
         """Define how to handle the time series data of the current |IOSequence| object.
 
@@ -2004,7 +2004,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
         """
         return super()._get_shape()
 
-    def _set_shape(self, shape: Union[int, tuple[int, ...]]):
+    def _set_shape(self, shape: int | tuple[int, ...]):
         super()._set_shape(shape)
         if self.ramflag:
             values = numpy.full(self.seriesshape, numpy.nan, dtype=config.NP_FLOAT)
@@ -3178,7 +3178,7 @@ class DependentSequence(OutputSequence):
         """
         return super()._get_shape()
 
-    def _set_shape(self, shape: Union[int, tuple[int, ...]]) -> None:
+    def _set_shape(self, shape: int | tuple[int, ...]) -> None:
         super()._set_shape(shape)
         if self.NDIM and self.NUMERIC:
             self._set_fastaccessattribute("points", numpy.zeros(self.numericshape))
@@ -3217,7 +3217,7 @@ class ConditionSequence(ModelSequence):
     Inherit from |StateSequence| or |LogSequence| instead.
     """
 
-    _oldargs: Optional[tuple[Any, ...]] = None
+    _oldargs: tuple[Any, ...] | None = None
 
     def __call__(self, *args) -> None:
         """The prefered way to pass values to |Sequence_| instances within initial
@@ -3437,7 +3437,7 @@ not broadcast input array from shape (3,) into shape (2,)
         """
         return super()._get_shape()
 
-    def _set_shape(self, shape: Union[int, tuple[int, ...]]):
+    def _set_shape(self, shape: int | tuple[int, ...]):
         super()._set_shape(shape)
         if self.NDIM:
             setattr(self.fastaccess_old, self.name, self.new.copy())
@@ -3882,7 +3882,7 @@ attribute 'fastaccess'
                 f"{objecttools.elementphrase(self)}"
             )
 
-    def _set_shape(self, shape: Union[int, tuple[int, ...]]):
+    def _set_shape(self, shape: int | tuple[int, ...]):
         try:
             if (self.NDIM == 0) and shape:
                 self._raise_wrongshape(shape)
@@ -4350,14 +4350,14 @@ class NodeSequences(
     node: devicetools.Node
     sim: Sim
     obs: Obs
-    _cymodel: Optional[CyModelProtocol]
+    _cymodel: CyModelProtocol | None
     _CLS_FASTACCESS_PYTHON = FastAccessNodeSequence
 
     def __init__(
         self,
         master: devicetools.Node,
-        cls_fastaccess: Optional[type[FastAccessNodeSequence]] = None,
-        cymodel: Optional[CyModelProtocol] = None,
+        cls_fastaccess: type[FastAccessNodeSequence] | None = None,
+        cymodel: CyModelProtocol | None = None,
     ) -> None:
         self.node = master
         self._cls_fastaccess = cls_fastaccess

@@ -487,15 +487,15 @@ def _warn_trim(self, oldvalue, newvalue):
 
 
 def combine_arrays_to_lower_or_upper_bound(
-    *arrays: Optional[NDArrayFloat], lower: bool
-) -> Optional[NDArrayFloat]:
+    *arrays: NDArrayFloat | None, lower: bool
+) -> NDArrayFloat | None:
     """Helper function for parameter-specific trimming functions that collects all
     available lower or upper bound values.
 
     See function |sw1d_control.BottomLowWaterThreshold.trim| of class
     |sw1d_control.BottomLowWaterThreshold| for an example.
     """
-    result: Optional[NDArrayFloat] = None
+    result: NDArrayFloat | None = None
     for array in arrays:
         if (array is not None) and (array.ndim > 0):
             if result is None:
@@ -1007,13 +1007,10 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
 
     # Subclasses need to define...
     NDIM: int
-    TYPE: type[Union[float, int, bool]]  # ToDo: is still `str` in some cases
+    TYPE: type[float | int | bool]  # ToDo: is still `str` in some cases
     # ...and optionally...
-    SPAN: tuple[Union[int, float, bool, None], Union[int, float, bool, None]] = (
-        None,
-        None,
-    )
-    INIT: Union[int, float, bool, None] = None
+    SPAN: tuple[int | float | bool | None, int | float | bool | None] = (None, None)
+    INIT: int | float | bool | None = None
 
     _NOT_DEEPCOPYABLE_MEMBERS: Final[frozenset[str]] = frozenset(
         (
@@ -1040,7 +1037,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     subvars: SubVariables
     """The subgroup to which the variable belongs."""
 
-    _refweights: Optional[Union[parametertools.Parameter, VectorFloat]] = None
+    _refweights: parametertools.Parameter | VectorFloat | None = None
 
     mask = masktools.DefaultMask(
         doc="The standard mask used by all variables (if not overwritten)."
@@ -1049,7 +1046,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     @classmethod
     @contextlib.contextmanager
     def modify_refweights(
-        cls, refweights: Optional[parametertools.Parameter]
+        cls, refweights: parametertools.Parameter | None
     ) -> Generator[None, None, None]:
         """Eventually, set or modify the reference to a parameter defining the
         weighting coefficients required for aggregating values.
@@ -1139,7 +1136,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
 
     @property
     @abc.abstractmethod
-    def initinfo(self) -> tuple[Union[float, int, bool, pointerutils.Double], bool]:
+    def initinfo(self) -> tuple[float | int | bool | pointerutils.Double, bool]:
         """To be overridden."""
 
     def __call__(self, *args) -> None:
@@ -1474,7 +1471,7 @@ as `var` can only be `()`, but `(2,)` is given.
             )
         return ()
 
-    def _set_shape(self, shape: Union[int, tuple[int, ...]]) -> None:
+    def _set_shape(self, shape: int | tuple[int, ...]) -> None:
         self._valueready = False
         self.__shapeready = False
         initvalue, initflag = self.initinfo
@@ -1680,7 +1677,7 @@ its values to a 1-dimensional vector.
         )
 
     @property
-    def refweights(self) -> Union[parametertools.Parameter, VectorFloat]:
+    def refweights(self) -> parametertools.Parameter | VectorFloat:
         """Reference to a |Parameter| object or a simple vector that defines weighting
         coefficients (e.g. fractional areas) for applying function
         |Variable.average_values|.
@@ -1892,7 +1889,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
     def get_submask(
         self, *args, **kwargs
-    ) -> Union[masktools.CustomMask, masktools.DefaultMask]:
+    ) -> masktools.CustomMask | masktools.DefaultMask:
         """Get a sub-mask of the mask handled by the actual |Variable| object based on
         the given arguments.
 
@@ -2128,7 +2125,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                 f"with object `{other}` of type `{type(other).__name__}`"
             )
 
-    def __lt__(self, other: Union[Variable, float]) -> bool:
+    def __lt__(self, other: Variable | float) -> bool:
         return bool(
             numpy.all(
                 self._compare(
@@ -2139,7 +2136,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             )
         )
 
-    def __le__(self, other: Union[Variable, float]) -> bool:
+    def __le__(self, other: Variable | float) -> bool:
         return bool(
             numpy.all(
                 self._compare(
@@ -2174,7 +2171,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             )
         )
 
-    def __ge__(self, other: Union[Variable, float]) -> bool:
+    def __ge__(self, other: Variable | float) -> bool:
         return bool(
             numpy.all(
                 self._compare(
@@ -2185,7 +2182,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             )
         )
 
-    def __gt__(self, other: Union[Variable, float]) -> bool:
+    def __gt__(self, other: Variable | float) -> bool:
         return bool(
             numpy.all(
                 self._compare(
@@ -2230,7 +2227,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 class MixinFixedShape:
     """Mixin class for defining variables with a fixed shape."""
 
-    SHAPE: Union[tuple[int, ...]]
+    SHAPE: tuple[int, ...]
     name: str
 
     def _finalise_connections(self) -> None:
@@ -2265,7 +2262,7 @@ this was attempted for element `?`.
         """
         return super()._get_shape()  # type: ignore[misc]
 
-    def _set_shape(self, shape: Union[int, tuple[int, ...]]) -> None:
+    def _set_shape(self, shape: int | tuple[int, ...]) -> None:
         oldshape = exceptiontools.getattr_(self, "shape", None)
         if oldshape is None:
             super()._set_shape(shape)  # type: ignore[misc]
@@ -2291,8 +2288,8 @@ def sort_variables(
 
 
 def sort_variables(
-    values: Iterable[Union[type[TypeVariable], tuple[type[TypeVariable], T]]]
-) -> tuple[Union[type[TypeVariable], tuple[type[TypeVariable], T]], ...]:
+    values: Iterable[type[TypeVariable] | tuple[type[TypeVariable], T]]
+) -> tuple[type[TypeVariable] | tuple[type[TypeVariable], T], ...]:
     """Sort the given |Variable| subclasses by their initialisation order.
 
     When defined in one module, the initialisation order corresponds to the order
@@ -2447,13 +2444,13 @@ error occurred: 5 values are assigned to the scalar variable `testvar`.
     vars: TypeGroup_co
     _name2variable: dict[str, TypeVariable_co] = {}
     fastaccess: TypeFastAccess_co
-    _cls_fastaccess: Optional[type[TypeFastAccess_co]] = None
+    _cls_fastaccess: type[TypeFastAccess_co] | None = None
     _CLS_FASTACCESS_PYTHON: ClassVar[type[TypeFastAccess_co]]  # type: ignore[misc]
 
     def __init__(
         self,
         master: TypeGroup_co,
-        cls_fastaccess: Optional[type[TypeFastAccess_co]] = None,
+        cls_fastaccess: type[TypeFastAccess_co] | None = None,
     ):
         self.vars = master
         if cls_fastaccess:

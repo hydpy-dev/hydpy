@@ -28,14 +28,13 @@ from hydpy.core.typingtools import *
 # `strptime` is supposed to prevent possible problems arising from this bug.
 time.strptime("1999", "%Y")
 
-
-DateConstrArg = Union["Date", datetime_.datetime, str]
-PeriodConstrArg = Union["Period", datetime_.timedelta, str]
+DateConstrArg: TypeAlias = Union[datetime_.datetime, str, "Date"]
+PeriodConstrArg: TypeAlias = Union[datetime_.timedelta, str, "Period"]
 TypeDate = TypeVar("TypeDate", bound="Date")
 TypePeriod = TypeVar("TypePeriod", bound="Period")
 TypeTimegrid = TypeVar("TypeTimegrid", bound="Timegrid")
 TypeTOY = TypeVar("TypeTOY", bound="TOY")  # pylint: disable=invalid-name
-TypeUnit = Literal["days", "d", "hours", "h", "minutes", "m", "seconds", "s"]
+TypeUnit: TypeAlias = Literal["days", "d", "hours", "h", "minutes", "m", "seconds", "s"]
 
 
 class Date:
@@ -363,7 +362,7 @@ base 10: '0X'
         return self
 
     @staticmethod
-    def _extract_offset(string: str) -> tuple[str, Optional[str]]:
+    def _extract_offset(string: str) -> tuple[str, str | None]:
         if "Z" in string:
             return string.split("Z")[0].strip(), "+0000"
         if "+" in string:
@@ -410,7 +409,7 @@ base 10: '0X'
 
     @staticmethod
     def _modify_date(
-        date: datetime_.datetime, offset: Optional[str], string: str
+        date: datetime_.datetime, offset: str | None, string: str
     ) -> datetime_.datetime:
         try:
             if offset is None:
@@ -548,7 +547,7 @@ decimal fraction of a second than "0" allowed.
                 f"`{units}`"
             )
 
-    def to_cfunits(self, unit: str = "hours", utcoffset: Optional[int] = None) -> str:
+    def to_cfunits(self, unit: str = "hours", utcoffset: int | None = None) -> str:
         """Return a `units` string agreeing with the NetCDF-CF conventions.
 
         By default, method |Date.to_cfunits| uses `hours` as the time unit and takes
@@ -795,7 +794,7 @@ twelve (December) but `0` is given
         """
         return type(self)._firstmonth_wateryear
 
-    def _set_refmonth(self, value: Union[int, str]) -> None:
+    def _set_refmonth(self, value: int | str) -> None:
         try:
             refmonth = int(value)
         except ValueError:
@@ -828,7 +827,7 @@ twelve (December) but `0` is given
             )
         type(self)._firstmonth_wateryear = refmonth
 
-    refmonth = propertytools.Property[Union[int, str], int](
+    refmonth = propertytools.Property[int | str, int](
         fget=_get_refmonth, fset=_set_refmonth
     )
 
@@ -928,21 +927,21 @@ twelve (December) but `0` is given
         return self
 
     @overload
-    def __sub__(self, other: Union[Date, datetime_.datetime]) -> Period:
+    def __sub__(self, other: Date | datetime_.datetime) -> Period:
         """Determine the period between two dates."""
 
     @overload
-    def __sub__(self: TypeDate, other: Union[Period, datetime_.timedelta]) -> TypeDate:
+    def __sub__(self: TypeDate, other: Period | datetime_.timedelta) -> TypeDate:
         """Subtract a period from the actual date."""
 
     @overload
-    def __sub__(self: TypeDate, other: str) -> Union[TypeDate, Period]:
+    def __sub__(self: TypeDate, other: str) -> TypeDate | Period:
         """Result depends on the string."""
 
     def __sub__(
         self: TypeDate,
-        other: Union[Date, datetime_.datetime, datetime_.timedelta, Period, str],
-    ) -> Union[TypeDate, Period]:
+        other: Date | datetime_.datetime | datetime_.timedelta | Period | str,
+    ) -> TypeDate | Period:
         if isinstance(other, (Date, datetime_.datetime, str)):
             try:
                 return Period(self.datetime - type(self)(other).datetime)
@@ -999,9 +998,7 @@ twelve (December) but `0` is given
         new.datetime = copy.deepcopy(self.datetime)
         return new
 
-    def to_string(
-        self, style: Optional[str] = None, utcoffset: Optional[int] = None
-    ) -> str:
+    def to_string(self, style: str | None = None, utcoffset: int | None = None) -> str:
         """Return a |str| object representing the actual date following the given style
         and the eventually given UTC offset (in minutes).
 
@@ -1049,9 +1046,7 @@ twelve (December) but `0` is given
             date = self.datetime + datetime_.timedelta(minutes=offset)
         return date.strftime(self.formatstrings[style]) + string
 
-    def to_repr(
-        self, style: Optional[str] = None, utcoffset: Optional[int] = None
-    ) -> str:
+    def to_repr(self, style: str | None = None, utcoffset: int | None = None) -> str:
         """Similar to method |Date.to_string|, but returns a proper string
         representation instead.
 
@@ -1216,7 +1211,7 @@ following error occurred: The supplied argument must be either an instance of \
     """
 
     def __new__(
-        cls: type[TypePeriod], period: Optional[PeriodConstrArg] = None
+        cls: type[TypePeriod], period: PeriodConstrArg | None = None
     ) -> TypePeriod:
         try:
             if isinstance(period, Period):
@@ -1431,14 +1426,14 @@ moment.
         TypeError: The supplied argument must be either an instance of `Period´, \
 `datetime.timedelta` or `str`.  The given argument's type is `int`.
         """
-        timedelta = cast(Optional[datetime_.timedelta], vars(self).get("timedelta"))
+        timedelta = cast(datetime_.timedelta | None, vars(self).get("timedelta"))
         if timedelta is None:
             raise AttributeError(
                 "The Period object does not handle a timedelta object at the moment."
             )
         return timedelta
 
-    def _set_timedelta(self, period: Optional[PeriodConstrArg]) -> None:
+    def _set_timedelta(self, period: PeriodConstrArg | None) -> None:
         if isinstance(period, Period):
             vars(self)["timedelta"] = vars(period).get("timedelta")
         elif isinstance(period, datetime_.timedelta):
@@ -1455,7 +1450,7 @@ moment.
     def _del_timedelta(self) -> None:
         vars(self)["timedelta"] = None
 
-    timedelta = propertytools.Property[Optional[PeriodConstrArg], datetime_.timedelta](
+    timedelta = propertytools.Property[PeriodConstrArg | None, datetime_.timedelta](
         fget=_get_timedelta, fset=_set_timedelta, fdel=_del_timedelta
     )
 
@@ -1542,23 +1537,21 @@ moment.
         return bool(getattr(self, "timedelta", None))
 
     @overload
-    def __add__(self: TypePeriod, other: Union[Date, datetime_.datetime]) -> Date:
+    def __add__(self: TypePeriod, other: Date | datetime_.datetime) -> Date:
         """Add the |Period| object to a |Date| object."""
 
     @overload
-    def __add__(
-        self: TypePeriod, other: Union[Period, datetime_.timedelta]
-    ) -> TypePeriod:
+    def __add__(self: TypePeriod, other: Period | datetime_.timedelta) -> TypePeriod:
         """Add the |Period| object to another |Period| object."""
 
     @overload
-    def __add__(self: TypePeriod, other: str) -> Union[Date, TypePeriod]:
+    def __add__(self: TypePeriod, other: str) -> Date | TypePeriod:
         """Result depends on the actual string."""
 
     def __add__(
         self: TypePeriod,
-        other: Union[Date, datetime_.datetime, Period, datetime_.timedelta, str],
-    ) -> Union[Date, TypePeriod]:
+        other: Date | datetime_.datetime | Period | datetime_.timedelta | str,
+    ) -> Date | TypePeriod:
         if isinstance(other, (Date, datetime_.datetime, str)):
             try:
                 other = Date(other)
@@ -1579,23 +1572,21 @@ moment.
         )
 
     @overload
-    def __radd__(self, other: Union[Date, datetime_.datetime]) -> Date:
+    def __radd__(self, other: Date | datetime_.datetime) -> Date:
         """Add the |Period| object to a |Date| object."""
 
     @overload
-    def __radd__(
-        self: TypePeriod, other: Union[Period, datetime_.timedelta]
-    ) -> TypePeriod:
+    def __radd__(self: TypePeriod, other: Period | datetime_.timedelta) -> TypePeriod:
         """Add the |Period| object to another |Period| object."""
 
     @overload
-    def __radd__(self: TypePeriod, other: str) -> Union[Date, TypePeriod]:
+    def __radd__(self: TypePeriod, other: str) -> Date | TypePeriod:
         """Result depends on the string."""
 
     def __radd__(  # type: ignore
         self: TypePeriod,
-        other: Union[Date, datetime_.datetime, Period, datetime_.timedelta, str],
-    ) -> Union[Date, TypePeriod]:
+        other: Date | datetime_.datetime | Period | datetime_.timedelta | str,
+    ) -> Date | TypePeriod:
         # without more flexible ways to relate types to string patterns, there is
         # nothing we can do about it (except providing a less flexible interface, of
         # course)
@@ -1615,7 +1606,7 @@ moment.
 
     @overload
     def __rsub__(  # type: ignore
-        self: TypePeriod, other: Union[Date, datetime_.datetime]
+        self: TypePeriod, other: Date | datetime_.datetime
     ) -> TypePeriod:
         # without more flexible ways to relate types to string patterns, there is
         # nothing we can do about it (except providing a less flexible interface, of
@@ -1623,22 +1614,20 @@ moment.
         """Subtract the |Period| object from a |Date| object."""
 
     @overload
-    def __rsub__(  # type: ignore
-        self, other: Union[Period, datetime_.timedelta]
-    ) -> Date:
+    def __rsub__(self, other: Period | datetime_.timedelta) -> Date:  # type: ignore
         # without more flexible ways to relate types to string patterns, there is
         # nothing we can do about it (except providing a less flexible interface, of
         # course)
         """Subtract the |Period| object from another |Period| object."""
 
     @overload
-    def __rsub__(self: TypePeriod, other: str) -> Union[Date, TypePeriod]:
+    def __rsub__(self: TypePeriod, other: str) -> Date | TypePeriod:
         """Result depends on string."""
 
     def __rsub__(
         self: TypePeriod,
-        other: Union[Date, datetime_.datetime, Period, datetime_.timedelta, str],
-    ) -> Union[Date, TypePeriod]:
+        other: Date | datetime_.datetime | Period | datetime_.timedelta | str,
+    ) -> Date | TypePeriod:
         if isinstance(other, (Date, datetime_.datetime, str)):
             try:
                 other = Date(other)
@@ -1681,8 +1670,8 @@ moment.
         """Divide the |Period| object through a number object."""
 
     def __truediv__(
-        self: TypePeriod, other: Union[PeriodConstrArg, float]
-    ) -> Union[TypePeriod, float]:
+        self: TypePeriod, other: PeriodConstrArg | float
+    ) -> TypePeriod | float:
         if isinstance(other, (float, int)):
             return type(self).from_timedelta(self.timedelta / other)
         return self.seconds / type(self)(other).seconds
@@ -1706,9 +1695,7 @@ moment.
     def __mod__(self: TypePeriod, other: PeriodConstrArg) -> TypePeriod:
         return type(self).from_timedelta(self.timedelta % type(self)(other).timedelta)
 
-    def __rmod__(
-        self: TypePeriod, other: Union[Period, datetime_.timedelta]
-    ) -> TypePeriod:
+    def __rmod__(self: TypePeriod, other: Period | datetime_.timedelta) -> TypePeriod:
         return type(self).from_timedelta(type(self)(other).timedelta % self.timedelta)
 
     def __pos__(self: TypePeriod) -> TypePeriod:
@@ -2179,7 +2166,7 @@ required, but the given array consist of 12 entries/rows only.
         return cls(firstdate, lastdate, stepsize)
 
     def to_timepoints(
-        self, unit: TypeUnit = "hours", offset: Union[float, PeriodConstrArg] = 0.0
+        self, unit: TypeUnit = "hours", offset: float | PeriodConstrArg = 0.0
     ) -> numpy.ndarray:
         """Return a |numpy.ndarray| representing the starting time points of the
         |Timegrid| object.
@@ -2390,9 +2377,9 @@ the step size `4d`.
 
     def modify(
         self,
-        firstdate: Optional[DateConstrArg] = None,
-        lastdate: Optional[DateConstrArg] = None,
-        stepsize: Optional[PeriodConstrArg] = None,
+        firstdate: DateConstrArg | None = None,
+        lastdate: DateConstrArg | None = None,
+        stepsize: PeriodConstrArg | None = None,
     ) -> None:
         """Modify one or more |Timegrid| attributes in one step.
 
@@ -2427,9 +2414,9 @@ the step size `4d`.
     @contextlib.contextmanager
     def __call__(
         self,
-        firstdate: Optional[DateConstrArg] = None,
-        lastdate: Optional[DateConstrArg] = None,
-        stepsize: Optional[PeriodConstrArg] = None,
+        firstdate: DateConstrArg | None = None,
+        lastdate: DateConstrArg | None = None,
+        stepsize: PeriodConstrArg | None = None,
     ) -> Iterator[Timegrid]:
         firstdate_copy = self.firstdate
         lastdate_copy = self.lastdate
@@ -2453,7 +2440,7 @@ the step size `4d`.
     def __getitem__(self, key: DateConstrArg) -> int:
         """Get the index value corresponding to the given date."""
 
-    def __getitem__(self, key: Union[int, DateConstrArg]) -> Union[Date, int]:
+    def __getitem__(self, key: int | DateConstrArg) -> Date | int:
         if isinstance(key, (int, float)):
             return Date(self.firstdate + key * self.stepsize)
         key = Date(key)
@@ -2489,7 +2476,7 @@ the step size `4d`.
             and (timegrid.stepsize == self.stepsize)
         )
 
-    def __contains__(self, other: Union[DateConstrArg, Timegrid]) -> bool:
+    def __contains__(self, other: DateConstrArg | Timegrid) -> bool:
         if isinstance(other, Timegrid):
             return self._containstimegrid(other)
         return self._containsdate(Date(other))
@@ -2510,7 +2497,7 @@ the step size `4d`.
         return objecttools.flatten_repr(self)
 
     def assignrepr(
-        self, prefix: str, style: Optional[str] = None, utcoffset: Optional[int] = None
+        self, prefix: str, style: str | None = None, utcoffset: int | None = None
     ) -> str:
         """Return a |repr| string with a prefixed assignment.
 
@@ -2738,10 +2725,7 @@ occurred: There is a conflict between the given positional and keyword arguments
 
     @overload
     def __init__(
-        self,
-        init: Timegrid,
-        sim: Optional[Timegrid] = ...,
-        eval_: Optional[Timegrid] = ...,
+        self, init: Timegrid, sim: Timegrid | None = ..., eval_: Timegrid | None = ...
     ) -> None:
         """from timegrids"""
 
@@ -2756,8 +2740,8 @@ occurred: There is a conflict between the given positional and keyword arguments
 
     def __init__(
         self,
-        *args: Union[None, Timegrid, DateConstrArg, PeriodConstrArg],
-        **kwargs: Union[None, Timegrid, DateConstrArg, PeriodConstrArg],
+        *args: None | Timegrid | DateConstrArg | PeriodConstrArg,
+        **kwargs: None | Timegrid | DateConstrArg | PeriodConstrArg,
     ) -> None:
         values = list(args) + list(kwargs.values())
         try:
@@ -2766,7 +2750,7 @@ occurred: There is a conflict between the given positional and keyword arguments
                     f"Initialising `Timegrids` objects requires one, two, or three "
                     f"arguments but `{len(values)}` are given."
                 )
-            arguments: list[Union[None, Timegrid, DateConstrArg, PeriodConstrArg]] = [
+            arguments: list[None | Timegrid | DateConstrArg | PeriodConstrArg] = [
                 None,
                 None,
                 None,
@@ -3295,7 +3279,7 @@ must not be the given value `4`, as the day has already been set to `31`.
     second: int
     """The second of the current the actual time of the year."""
 
-    def __init__(self, value: Union[str, Date] = "") -> None:
+    def __init__(self, value: str | Date = "") -> None:
         try:
             if isinstance(value, Date):
                 datetime = value.datetime
@@ -3398,7 +3382,7 @@ must not be the given value `4`, as the day has already been set to `31`.
         >>> TOY("3").seconds_passed
         5184000
         """
-        seconds_passed = cast(Optional[int], vars(self)["seconds_passed"])
+        seconds_passed = cast(int | None, vars(self)["seconds_passed"])
         if seconds_passed is None:
             seconds_passed = int(
                 (self._datetime - self._STARTDATE.datetime).total_seconds()
@@ -3429,7 +3413,7 @@ must not be the given value `4`, as the day has already been set to `31`.
         >>> TOY("2").seconds_left
         28944000
         """
-        seconds_left = cast(Optional[int], vars(self)["seconds_left"])
+        seconds_left = cast(int | None, vars(self)["seconds_left"])
         if seconds_left is None:
             seconds_left = int(
                 (self._ENDDATE.datetime - self._datetime).total_seconds()

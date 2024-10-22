@@ -2909,8 +2909,8 @@ class BaseModelProfile(modeltools.ELSModel):
         self,
         nmb: int = 1000,
         exp: float = 2.0,
-        hmin: Optional[float] = None,
-        hmax: Optional[float] = None,
+        hmin: float | None = None,
+        hmax: float | None = None,
     ) -> tuple[float, ...]:
         """Prepare a vector of the stage values.
 

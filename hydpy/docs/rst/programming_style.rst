@@ -532,8 +532,8 @@ and modify the code more efficiently. We are going to increase our efforts
 in this direction, but do not have a "HydPy Typing Style Guide" at hand,
 so far.  So please add the typing annotations you find useful.  The minimum
 requirement for Python core modules is to declare the return type (or, when
-necessary, to declare the |typing.Union| of possible return types) of
-each new function or method:
+necessary, to declare the union of possible return types) of each new
+function or method:
 
 >>> def test(nmb) -> list[int]:
 ...     return list(range(nmb))

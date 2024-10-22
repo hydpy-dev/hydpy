@@ -260,9 +260,7 @@ polynomial function by passing at leas one `Poly` object.
         cls,
         xs: VectorFloat,
         ys: VectorFloat,
-        method: Union[
-            Literal["linear"], type[interpolate.CubicHermiteSpline]
-        ] = "linear",
+        method: Literal["linear"] | type[interpolate.CubicHermiteSpline] = "linear",
     ) -> PPoly:
         """Prepare a |PPoly| object based on x-y data.
 

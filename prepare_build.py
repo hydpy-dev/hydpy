@@ -187,7 +187,7 @@ def _prepare_modelspecifics(fast_cython: bool, profile_cython: bool) -> None:
         for name in [fn.split(".")[0] for fn in sorted(os.listdir(path_))]:
             if not name.startswith("_"):
                 module = importlib.import_module(f"hydpy.models.{name}")
-                cythonizer: Optional[modelutils.Cythonizer]
+                cythonizer: modelutils.Cythonizer | None
                 cythonizer = getattr(module, "cythonizer", None)
                 if cythonizer:
                     cythonizer.pyxwriter.write()

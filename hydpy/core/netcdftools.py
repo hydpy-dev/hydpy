@@ -308,7 +308,7 @@ TypeNetCDFVariable = TypeVar("TypeNetCDFVariable", bound="NetCDFVariable")
 FlatUnion: TypeAlias = Union["NetCDFVariableFlatReader", "NetCDFVariableFlatWriter"]
 
 
-def summarise_ncfile(ncfile: Union[netcdf4.Dataset, str], /) -> str:
+def summarise_ncfile(ncfile: netcdf4.Dataset | str, /) -> str:
     """Give a summary describing (a HydPy-compatible) NetCDF file.
 
     You can pass the file path:
@@ -417,7 +417,7 @@ def summarise_ncfile(ncfile: Union[netcdf4.Dataset, str], /) -> str:
                     for attr_var in attrs_var:
                         append(f"{i3}{attr_var} = {var.getncattr(attr_var)}")
 
-        timereference: Optional[str] = getattr(nc, "timereference", None)
+        timereference: str | None = getattr(nc, "timereference", None)
         if timereference is not None:
             append("TIME GRID")
             tg = _query_timegrid(ncfile=nc, left=timereference.startswith("left"))
@@ -752,7 +752,7 @@ sequence (`SM`).
     """
     currenttime = _timereference_currenttime(sequence)
     opts = hydpy.pub.options
-    ref: Optional[str] = getattr(ncfile, "timereference", None)
+    ref: str | None = getattr(ncfile, "timereference", None)
     if ref is None:
         left = bool(opts.timestampleft and not currenttime)
     elif ref.startswith("left") or ref.startswith("right"):
@@ -1047,7 +1047,7 @@ class NetCDFVariableInfo(NamedTuple):
     querying logged data via attribute access."""
 
     sequence: sequencetools.IOSequence
-    array: Optional[sequencetools.InfoArray]
+    array: sequencetools.InfoArray | None
 
 
 class NetCDFVariable(abc.ABC):
@@ -1505,7 +1505,7 @@ handle a sequence for the (sub)device `element2` nor define a member named \
                 array = query_array(ncfile, self.name)
                 idxs: tuple[Any] = (slice(None),)
                 subdev2index = self.query_subdevice2index(ncfile)
-                first_exception: Optional[RuntimeError] = None
+                first_exception: RuntimeError | None = None
                 for devicename, seqs in self._descr2sequences.items():
                     for seq in seqs:
                         try:
@@ -1551,7 +1551,7 @@ class MixinVariableWriter(NetCDFVariable, abc.ABC):
     """Mixin class for |NetCDFVariableFlatWriter| and |NetCDFVariableAggregated|."""
 
     _descr2sequence: dict[str, sequencetools.IOSequence]
-    _descr2array: dict[str, Optional[sequencetools.InfoArray]]
+    _descr2array: dict[str, sequencetools.InfoArray | None]
 
     def __init__(self, filepath: str) -> None:
         assert isinstance(self, NetCDFVariable)
@@ -1608,7 +1608,7 @@ class MixinVariableWriter(NetCDFVariable, abc.ABC):
     def log(
         self,
         sequence: sequencetools.IOSequence,
-        infoarray: Optional[sequencetools.InfoArray] = None,
+        infoarray: sequencetools.InfoArray | None = None,
     ) -> None:
         """Log the given |IOSequence| object for writing data.
 
@@ -2096,7 +2096,7 @@ named `lland_dd` nor does it define a member named `lland_dd`.
 
     @staticmethod
     def _yield_disksequences(
-        deviceorder: Iterable[Union[devicetools.Node, devicetools.Element]]
+        deviceorder: Iterable[devicetools.Node | devicetools.Element],
     ) -> Iterator[sequencetools.IOSequence]:
         for device in deviceorder:
             if isinstance(device, devicetools.Node):
@@ -2194,7 +2194,7 @@ class NetCDFInterfaceReader(NetCDFInterfaceBase[NetCDFVariableFlatReader]):
 
 
 class NetCDFInterfaceWriter(
-    NetCDFInterfaceBase[Union[NetCDFVariableAggregated, NetCDFVariableFlatWriter]]
+    NetCDFInterfaceBase[NetCDFVariableAggregated | NetCDFVariableFlatWriter]
 ):
     """Interface between |SequenceManager| and multiple |NetCDFVariableFlatWriter| or
     |NetCDFVariableAggregated| instances for writing data in one step.
@@ -2206,8 +2206,8 @@ class NetCDFInterfaceWriter(
     def log(
         self,
         sequence: sequencetools.IOSequence,
-        infoarray: Optional[sequencetools.InfoArray] = None,
-    ) -> Union[NetCDFVariableAggregated, NetCDFVariableFlatWriter]:
+        infoarray: sequencetools.InfoArray | None = None,
+    ) -> NetCDFVariableAggregated | NetCDFVariableFlatWriter:
         """Pass the given |IOSequence| to the log method of an already existing or, if
         necessary, freshly created |NetCDFVariableFlatWriter| or
         |NetCDFVariableAggregated| object (depending on the currently active
@@ -2257,7 +2257,7 @@ class NetCDFInterfaceJIT(NetCDFInterfaceBase[FlatUnion]):
 
     @contextlib.contextmanager
     def provide_jitaccess(
-        self, deviceorder: Iterable[Union[devicetools.Node, devicetools.Element]]
+        self, deviceorder: Iterable[devicetools.Node | devicetools.Element]
     ) -> Iterator[JITAccessHandler]:
         """Allow method |HydPy.simulate| of class |HydPy| to read data from or write
         data to NetCDF files "just in time" during simulation runs.

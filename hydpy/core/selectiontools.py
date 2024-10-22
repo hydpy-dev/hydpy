@@ -22,7 +22,7 @@ from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core.typingtools import *
 
-ModelTypesArg = Union[modeltools.Model, types.ModuleType, str]
+ModelTypesArg: TypeAlias = Union[modeltools.Model, types.ModuleType, str]
 
 
 class Selections:
@@ -351,10 +351,10 @@ created by its property `Selections.complete`.
 
     def query_intersections(
         self, selection2element: bool = True
-    ) -> Union[
-        dict[Selection, dict[Selection, devicetools.Elements]],
-        dict[devicetools.Element, Selections],
-    ]:
+    ) -> (
+        dict[Selection, dict[Selection, devicetools.Elements]]
+        | dict[devicetools.Element, Selections]
+    ):
         """A dictionary covering all cases where one |Element| object is a member of
         multiple |Selection| objects.
 
@@ -491,7 +491,7 @@ created by its property `Selections.complete`.
                 f"called `{key}` that could be deleted."
             ) from None
 
-    def __contains__(self, value: Union[str, Selection]) -> bool:
+    def __contains__(self, value: str | Selection) -> bool:
         if isinstance(value, str):
             return value in self.names
         return value in self.__selections.values()
@@ -1342,7 +1342,7 @@ following error occurred: 'in <string>' requires string as left operand, not lis
                 nodes.add_device(node)
 
     def save_networkfile(
-        self, filepath: Union[str, None] = None, write_defaultnodes: bool = True
+        self, filepath: str | None = None, write_defaultnodes: bool = True
     ) -> None:
         """Save the selection as a network file.
 

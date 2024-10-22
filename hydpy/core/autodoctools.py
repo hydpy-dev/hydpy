@@ -510,13 +510,13 @@ def insert_docname_substitutions(
 class Substituter:
     """Implements a HydPy specific docstring substitution mechanism."""
 
-    master: Optional[Substituter]
+    master: Substituter | None
     slaves: list[Substituter]
     short2long: dict[str, str]
     short2priority: dict[str, Priority]
     medium2long: dict[str, str]
 
-    def __init__(self, master: Optional[Substituter] = None) -> None:
+    def __init__(self, master: Substituter | None = None) -> None:
         self.master = master
         self.slaves = []
         if master:
@@ -534,8 +534,8 @@ class Substituter:
         name_member: str,
         member: Any,
         module: types.ModuleType,
-        class_: Optional[type[object]] = None,
-        ignore: Optional[dict[str, object]] = None,
+        class_: type[object] | None = None,
+        ignore: dict[str, object] | None = None,
     ) -> bool:
         """Return |True| if the given member should be added to the substitutions.  If
         not, return |False|.
@@ -1027,7 +1027,7 @@ class Substituter:
             slave.medium2long.update(self.medium2long)
             slave.update_slaves()
 
-    def get_commands(self, source: Optional[str] = None) -> str:
+    def get_commands(self, source: str | None = None) -> str:
         """Return a string containing multiple `reStructuredText` replacements with the
         substitutions currently defined.
 
@@ -1274,13 +1274,13 @@ def autodoc_tuple2doc(module: types.ModuleType) -> None:
 
 def _make_cssstyle(
     *,
-    marginleft: Optional[str] = None,
-    marginbottom: Optional[str] = None,
-    margintop: Optional[str] = None,
-    colour: Optional[str] = None,
-    fontfamily: Optional[str] = None,
-    fontstyle: Optional[str] = None,
-    fontsize: Optional[str] = None,
+    marginleft: str | None = None,
+    marginbottom: str | None = None,
+    margintop: str | None = None,
+    colour: str | None = None,
+    fontfamily: str | None = None,
+    fontstyle: str | None = None,
+    fontsize: str | None = None,
 ) -> str:
 
     styles = []
@@ -1515,7 +1515,7 @@ title="hydpy.interfaces.aetinterfaces.AETModel_V1">\
     )
 
 
-Port: TypeAlias = Union[modeltools.SubmodelProperty, modeltools.SubmodelsProperty]
+Port: TypeAlias = modeltools.SubmodelProperty | modeltools.SubmodelsProperty
 
 Subgraphs: TypeAlias = dict[
     type[modeltools.Model], dict[Port, list[type[modeltools.Model]]]
@@ -1530,9 +1530,9 @@ class SubmodelGraph:
     """Analyser and visualiser of the advisable connections between main models and
     submodels."""
 
-    _modelname: Optional[str]
+    _modelname: str | None
 
-    def __init__(self, *, modelname: Optional[str] = None) -> None:
+    def __init__(self, *, modelname: str | None = None) -> None:
         self._modelname = modelname
 
     @functools.cached_property

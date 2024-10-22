@@ -81,7 +81,7 @@ class InterpAlgorithm(_Labeled):
         """Return a string representation of the actual |InterpAlgorithm| object
         prefixed with the given string."""
 
-    def print_table(self, xs: Union[VectorFloat, MatrixFloat]) -> None:
+    def print_table(self, xs: VectorFloat | MatrixFloat) -> None:
         """Process the given input data and print the interpolated output values as
         well as all partial first-order derivatives.
 
@@ -160,7 +160,7 @@ dy1/dx3   dy2/dx3
         table[0, nt:] = [f"d{yn}/d{xn}" for xn, yn in itertools.product(xns, yns)]
 
         # Mypy problem? See issue https://github.com/python/mypy/issues/8586:
-        xs_: Union[float, Iterable[float]]
+        xs_: float | Iterable[float]
         for ri, xs_ in enumerate(xs):
             ri += 1
             if isinstance(xs_, float):
@@ -308,9 +308,9 @@ class SimpleInterpolator(BaseInterpolator):
 
     TYPE = "interputils.SimpleInterpolator"
 
-    _algorithm: Optional[InterpAlgorithm]
+    _algorithm: InterpAlgorithm | None
 
-    __simpleinterpolator: Optional[interputils.SimpleInterpolator]
+    __simpleinterpolator: interputils.SimpleInterpolator | None
 
     def __init__(self, subvars: parametertools.SubParameters) -> None:
         self.subvars = subvars
@@ -391,7 +391,7 @@ interpolator has been defined so far.
         value of the given index."""
         self.algorithm.calculate_derivatives(idx)
 
-    def print_table(self, xs: Union[VectorFloat, MatrixFloat]) -> None:
+    def print_table(self, xs: VectorFloat | MatrixFloat) -> None:
         """Process the given input data and print the interpolated output values as
         well as all partial first-order derivatives."""
         self.algorithm.print_table(xs=xs)
@@ -404,7 +404,7 @@ interpolator has been defined so far.
         idx_input: int = 0,
         idx_output: int = 0,
         points: int = 100,
-        **kwargs: Optional[Union[float, str]],
+        **kwargs: float | str | None,
     ) -> pyplot.Figure:
         """Plot the relationship between particular input (`idx_input`) and output
         (`idx_output`) values defined by the actual |InterpAlgorithm| object."""
@@ -694,7 +694,7 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
 
     _toy2algorithm: list[tuple[timetools.TOY, InterpAlgorithm]]
     _do_refresh: bool
-    __seasonalinterpolator: Optional[interputils.SeasonalInterpolator]
+    __seasonalinterpolator: interputils.SeasonalInterpolator | None
 
     def __init__(self, subvars: parametertools.SubParameters) -> None:
         self.subvars = subvars
@@ -979,7 +979,7 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
         idx_output: int = 0,
         points: int = 100,
         legend: bool = True,
-        **kwargs: Optional[Union[float, str]],
+        **kwargs: float | str | None,
     ) -> pyplot.Figure:
         """Call method |InterpAlgorithm.plot| of all currently handled
         |InterpAlgorithm| objects."""

@@ -147,7 +147,7 @@ class RoutingModel_V1(RoutingModelBase):
     """Type identifier for |RoutingModel_V1| submodels."""
 
     routingmodelsdownstream: modeltools.SubmodelsProperty[
-        Union[RoutingModel_V2, RoutingModel_V3]
+        RoutingModel_V2 | RoutingModel_V3
     ]
     """References to the neighbour routing models lying downstream."""
     storagemodeldownstream: modeltools.SubmodelProperty[StorageModel_V1]
@@ -174,11 +174,11 @@ class RoutingModel_V2(RoutingModelBase):
     """Type identifier for |RoutingModel_V2| submodels."""
 
     routingmodelsupstream: modeltools.SubmodelsProperty[
-        Union[RoutingModel_V1, RoutingModel_V2]
+        RoutingModel_V1 | RoutingModel_V2
     ]
     """References to the neighbour routing models lying upstream."""
     routingmodelsdownstream: modeltools.SubmodelsProperty[
-        Union[RoutingModel_V2, RoutingModel_V3]
+        RoutingModel_V2 | RoutingModel_V3
     ]
     """References to the neighbour routing models lying downstream."""
     storagemodelupstream: modeltools.SubmodelProperty[StorageModel_V1]
@@ -216,7 +216,7 @@ class RoutingModel_V3(RoutingModelBase):
     """Type identifier for |RoutingModel_V3| submodels."""
 
     routingmodelsupstream: modeltools.SubmodelsProperty[
-        Union[RoutingModel_V1, RoutingModel_V2]
+        RoutingModel_V1 | RoutingModel_V2
     ]
     """References to the neighbour routing models lying upstream."""
     storagemodelupstream: modeltools.SubmodelProperty[StorageModel_V1]
@@ -239,11 +239,11 @@ class StorageModel_V1(modeltools.SubmodelInterface):
     """Type identifier for |StorageModel_V1| submodels."""
 
     routingmodelsupstream: modeltools.SubmodelsProperty[
-        Union[RoutingModel_V1, RoutingModel_V2, RoutingModel_V3]
+        RoutingModel_V1 | RoutingModel_V2 | RoutingModel_V3
     ]
     """Optional reference to the neighbour routing model upstream."""
     routingmodelsdownstream: modeltools.SubmodelsProperty[
-        Union[RoutingModel_V1, RoutingModel_V2, RoutingModel_V3]
+        RoutingModel_V1 | RoutingModel_V2 | RoutingModel_V3
     ]
     """Optional reference to the neighbour routing model downstream."""
 
@@ -298,7 +298,7 @@ class ChannelModel_V1(modeltools.SubmodelInterface):
     There must be one storage model for each channel segment.
     """
     routingmodels: modeltools.SubmodelsProperty[
-        Union[RoutingModel_V1, RoutingModel_V2, RoutingModel_V3]
+        RoutingModel_V1 | RoutingModel_V2 | RoutingModel_V3
     ]
     """References to the routing submodels.
 

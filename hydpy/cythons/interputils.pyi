@@ -13,7 +13,7 @@ else:
 class SimpleInterpolator:
     nmb_inputs: int
     nmb_outputs: int
-    algorithm: Union[ANN, PPoly]
+    algorithm: ANN | PPoly
     inputs: VectorFloat
     outputs: VectorFloat
     def __init__(self, algorithm: InterpAlgorithm) -> None: ...
@@ -24,7 +24,7 @@ class SeasonalInterpolator:
     nmb_inputs: int
     nmb_outputs: int
     nmb_algorithms: int
-    algorithms: tuple[Union[ANN, PPoly], ...]
+    algorithms: tuple[ANN | PPoly, ...]
     ratios: MatrixFloat
     inputs: VectorFloat
     outputs: VectorFloat

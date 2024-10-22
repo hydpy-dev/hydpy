@@ -2155,7 +2155,7 @@ named `lland_dd` nor does it define a member named `lland_dd`.
 
     def __dir__(self) -> list[str]:
         adds_long = []
-        counter: collections.defaultdict[str, int] = collections.defaultdict(lambda: 0)
+        counter: collections.defaultdict[str, int] = collections.defaultdict(int)
         for dirpath, file2var in self._dir2file2var.items():
             dirname = os.path.split(dirpath)[-1]
             for filename in file2var.keys():
@@ -2544,7 +2544,7 @@ file `...hland_96_flux_pc.nc`.
         variable2infos: dict[FlatUnion, list[JITAccessInfo]] = {}
         variable2sequences: collections.defaultdict[
             FlatUnion, list[sequencetools.IOSequence]
-        ] = collections.defaultdict(lambda: [])
+        ] = collections.defaultdict(list)
         disabled: dict[sequencetools.IOSequence, sequencetools.SeriesMode] = {}
 
         try:  # pylint: disable=too-many-nested-blocks

@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module implements so-called exchange items that simplify modifying the values
 of |Parameter| and |Sequence_| objects."""
+
 # import...
 # ...from standard library
 import itertools

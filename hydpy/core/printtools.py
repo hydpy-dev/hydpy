@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module implements features for printing additional information and for
 modifying how information is printed."""
+
 # import...
 # ...from standard library
 from __future__ import annotations

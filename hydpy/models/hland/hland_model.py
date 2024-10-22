@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 .. _`issue 68`: https://github.com/hydpy-dev/hydpy/issues/68
 """
+
 # imports...
 # ...from site-packages
 import numpy

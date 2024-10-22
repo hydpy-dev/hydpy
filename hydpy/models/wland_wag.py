@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 r"""|wland_wag| is a slightly modified and extended version of the `WALRUS`_ model,
 specifically designed to simulate surface water fluxes in lowland catchments influenced

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """|meteo_sun_fao56| is nearly identical to |meteo_glob_fao56|, except that it expects
 |meteo_inputs.GlobalRadiation| as input and estimates |meteo_factors.SunshineDuration|,

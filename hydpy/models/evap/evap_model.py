@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 .. _`issue 118`: https://github.com/hydpy-dev/hydpy/issues/118
 """
+
 # imports...
 # ...from standard library
 import contextlib

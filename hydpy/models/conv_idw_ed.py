@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 |conv_idw_ed| extends |conv_idw| by taking an additional statistical relationship

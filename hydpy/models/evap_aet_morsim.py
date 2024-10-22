@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 |evap_aet_morsim| is a submodel that supplies its main model with estimates of

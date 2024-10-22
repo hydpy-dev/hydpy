@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """|kinw_williams_ext| is a computationally more efficient alternative to the
 application model |kinw_williams|.  The higher efficiency is due to not calculating

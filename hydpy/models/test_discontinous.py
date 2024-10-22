@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """|test_discontinous| serves to test numerical integration strategies only.  It can be
 seen from two perspectives.  On the one hand, it implements a simple discontinuous

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module implements features for defining local or global *HydPy* options."""
 
 # import...

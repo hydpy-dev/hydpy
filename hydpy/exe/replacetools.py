@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module implements tools for file related string substitutions."""
 
 # import...

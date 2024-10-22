@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module provides features for executing *HydPy* workflows based on XML
 configuration files.
 
@@ -54,10 +53,10 @@ conditions and the written final conditions of sequence |hland_states.SM| for th
 >>> with TestIO():
 ...     filepath = "HydPy-H-Lahn/conditions/init_1996_01_01_00_00_00/land_dill_assl.py"
 ...     with open(filepath) as file_:
-...         print("".join(file_.readlines()[10:12]))
+...         print("".join(file_.readlines()[8:10]))
 ...     filepath = "HydPy-H-Lahn/conditions/init_1996_01_06/land_dill_assl.py"
 ...     with open(filepath) as file_:
-...         print("".join(file_.readlines()[12:14]))
+...         print("".join(file_.readlines()[10:12]))
 sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
    222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 <BLANKLINE>
@@ -91,6 +90,7 @@ Spatially averaged time series values have been stored in files ending with the 
 ...     )
 9.64767, 8.513649, 7.777628, 7.343314, 7.156591
 """
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -1127,7 +1127,7 @@ class XMLConditions(XMLBase):
         ...     interface.conditions_io.save_conditions()
         ...     dirpath = "HydPy-H-Lahn/conditions/init_1996_01_06"
         ...     with open(os.path.join(dirpath, "land_dill_assl.py")) as file_:
-        ...         print(file_.readlines()[12].strip())
+        ...         print(file_.readlines()[10].strip())
         ...     os.path.exists(os.path.join(dirpath, "land_lahn_leun.py"))
         lz(999.0)
         False

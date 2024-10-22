@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """|lland.DOCNAME.long| allows for the subdivision of subbasins into hydrological
 response units.  Some processes, e.g. interception, are calculated separately for each
 response unit.  This is why some parameters (e.g. the field capacity |FK|) and some
@@ -24,6 +23,7 @@ these are available in your local namespace:
 ...  FEUCHT, GRUE_E, BAUMB, NADELW, LAUBW, MISCHW, WASSER, FLUSS, SEE)
 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18)
 """
+
 from hydpy.core import parametertools
 
 SIED_D = parametertools.IntConstant(1)

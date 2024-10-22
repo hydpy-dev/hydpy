@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=wrong-import-position
 # due to using the HydPy class `OptionalImports` for importing site-packages
 """

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 |dam_v003| is quite similar to |dam_v002|.  Both application models provide the same

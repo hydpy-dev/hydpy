@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module implements tools to help to standardize the functionality of the
 different objects defined by the HydPy framework."""
+
 # import...
 # ...from standard library
 from __future__ import annotations

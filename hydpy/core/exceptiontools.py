@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module implements some exception classes and related features."""
 
 # import...

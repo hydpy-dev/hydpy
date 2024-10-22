@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """Use |meteo_psun_sun_glob_io| as a submodel to supply (relative) main models like
 |evap_pet_ambav1| with externally available clear-sky solar radiation and global

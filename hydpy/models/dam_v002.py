@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 Application model |dam_v002| is a simplification of |dam_v001|.  While most

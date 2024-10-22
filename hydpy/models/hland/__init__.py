@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 The H-Land model is the core of the HydPy implementation of the
 the frequently applied HBV96 model.  It consists of some routines
@@ -7,6 +6,7 @@ routines related to interception, snow, soil moisture, upper
 groundwater, lower groundwater (including lakes), and runoff
 concentration.
 """
+
 # import..
 # ...from HydPy
 from hydpy.exe.modelimports import *

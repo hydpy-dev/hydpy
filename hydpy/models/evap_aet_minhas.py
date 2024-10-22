@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """|evap_aet_minhas| serves as a submodel that supplies its main model with estimates
 of evapotranspiration from soils and evaporation from interception storages and water

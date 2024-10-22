@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module implements rudimentary artificial neural network tools required for some
 models implemented in the *HydPy* framework.
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """
 |dummy_snowcover| merely serves testing purposes.  We use it, for example, to perform

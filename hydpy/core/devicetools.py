@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This modules implements the fundamental features for structuring *HydPy* projects.
 
 Module |devicetools| provides two |Device| subclasses, |Node| and |Element|.  In this
@@ -69,6 +68,7 @@ True
 >>> nodes.test3 is node3b
 False
 """
+
 # import...
 # ...from standard library
 from __future__ import annotations

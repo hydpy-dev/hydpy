@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """|exch_waterlevel| informs its main model about the current water level simulated by
 another model or passed in as a time series by the user.  Use it, for example, to

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 This module extends the features of module |filetools| for loading data from and
 storing data to netCDF4 files, consistent with the `NetCDF Climate and Forecast (CF)
@@ -236,6 +235,7 @@ runs.  The documentation of class "HydPy" explains how to select and set the rel
 |NetCDFInterfaceJIT.provide_jitaccess| of class |NetCDFInterfaceJIT| for more in-depth
 information.
 """
+
 # import...
 # ...from standard library
 from __future__ import annotations

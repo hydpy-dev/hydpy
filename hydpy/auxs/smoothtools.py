@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module implements features which help to regularize discontinuous
 process equations.
 

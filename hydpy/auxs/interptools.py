@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module enables model developers to easily include linear and nonlinear
 interpolation techniques into their model methods.
 

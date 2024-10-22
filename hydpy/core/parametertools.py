@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module provides tools for defining and handling different kinds of parameters
 of hydrological models."""
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -151,7 +151,7 @@ class Constants(dict[str, int]):
         if config.USEAUTODOC:
             assert (filename := inspect.getsourcefile(frame)) is not None
             with open(filename, encoding=config.ENCODING) as file_:
-                sources = file_.read().split('"""')
+                sources = file_.read().split('"""')[2:]
             for code, doc in zip(sources[::2], sources[1::2]):
                 code = code.strip()
                 key = code.split("\n")[-1].split()[0]

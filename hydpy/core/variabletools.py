@@ -1,10 +1,10 @@
-# -*- coding: utf-8 -*-
 """This module implements general features for defining and working with model
 parameters and sequences.
 
 Features more specific to either parameters or sequences are implemented in modules
 |parametertools| and |sequencetools|, respectively.
 """
+
 # import...
 # ...from standard library
 from __future__ import annotations

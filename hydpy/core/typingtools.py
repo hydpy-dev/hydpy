@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module implements some "types" to be used for static (and eventually dynamical)
 typing."""
+
 # import...
 # ...from standard library
 from __future__ import annotations

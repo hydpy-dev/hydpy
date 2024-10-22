@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """
 |wq_trapeze| is a stateless "two-way" submodel.  It supports calculating properties

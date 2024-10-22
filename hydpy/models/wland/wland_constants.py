@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """|wland.DOCNAME.long| provides two types of constants: those associated with the
 average soil character of a sub-catchment and those associated with the land-use type
 of the different hydrological response units of a sub-catchment.  They are all

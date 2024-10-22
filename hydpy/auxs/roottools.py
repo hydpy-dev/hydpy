@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module specialises class |Submodel| for root-finding problems.
 
 Module |roottools| provides Python interfaces only.  See the

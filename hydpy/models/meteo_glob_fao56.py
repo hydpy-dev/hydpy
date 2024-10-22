@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """|meteo_glob_fao56| follows the guideline provided by :cite:t:`ref-Allen1998`.  There
 are a few differences, but, at least for the following example calculations, they seem

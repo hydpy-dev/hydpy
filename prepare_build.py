@@ -30,7 +30,6 @@ def _prepare_cythonoptions(fast_cython: bool, profile_cython: bool) -> list[str]
     # ToDo: do not share code with PyxWriter.cythondistutilsoptions
 
     cythonoptions = [
-        "# -*- coding: utf-8 -*-",
         "# !python",
         "# distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION",
         "# cython: language_level=3",

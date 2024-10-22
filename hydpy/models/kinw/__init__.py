@@ -1,10 +1,10 @@
-# -*- coding: utf-8 -*-
 """
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
 
 The |kinw.DOCNAME.long| model family provides features for implementing storage based
 routing methods similar to those implemented by the water balance model `LARSIM`_.
 """
+
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *

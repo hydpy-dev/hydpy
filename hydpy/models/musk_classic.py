@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 The |musk.DOCNAME.long| family member |musk_classic| realises the well-known Muskingum

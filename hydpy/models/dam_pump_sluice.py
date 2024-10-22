@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """|dam_pump_sluice| combines the "forced discharge" component of |dam_pump| with the
 "free discharge" component of |dam_sluice|.

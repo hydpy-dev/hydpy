@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 The |sw1d.DOCNAME.long| model family member |sw1d_storage| is a storage submodel for
 keeping track of the water amount stored in a channel segment and calculating the water
@@ -8,6 +7,7 @@ Please refer to the documentation of the "user model" |sw1d_channel| and the
 "composite model" |sw1d_network|, where we demonstrate and discuss |sw1d_storage| in
 detail.
 """
+
 # pylint: disable=unused-wildcard-import
 # import...
 # ...from HydPy

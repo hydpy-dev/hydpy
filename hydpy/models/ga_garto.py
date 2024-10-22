@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 .. _`issue 89`: https://github.com/hydpy-dev/hydpy/issues/89

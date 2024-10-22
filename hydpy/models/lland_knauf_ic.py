@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 |lland_knauf_ic| is still under development and likely to change in the future.  Its

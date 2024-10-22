@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module specialises class |Submodel| for quadrature problems.
 
 Module |quadtools| provides Python interfaces only.  See the Cython extension module

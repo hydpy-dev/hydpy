@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """|dam_sluice| is similar to |dam_pump| but is thought for modelling free flow through
 sluices driven by differences between inner and outer water levels.  Principally, users

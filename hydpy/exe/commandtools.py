@@ -71,8 +71,7 @@ def run_subprocess(
     if blocking:
         result1 = subprocess.run(
             command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             encoding="utf-8",
             shell=True,
             check=False,

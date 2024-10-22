@@ -2771,7 +2771,7 @@ def get_callbackcymodule(
 
     refresh = True
     if os.path.exists(pyfilepath):
-        with open(pyfilepath, "r", encoding=config.ENCODING) as sf:
+        with open(pyfilepath, encoding=config.ENCODING) as sf:
             refresh = pycode != sf.read()
 
     if refresh:

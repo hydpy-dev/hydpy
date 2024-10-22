@@ -2371,9 +2371,10 @@ step is `1d`.
         >>> t.series = -99.9
         >>> opt = pub.options
         >>> sm = pub.sequencemanager
-        >>> with TestIO(), sm.filetype("nc"), opt.checkseries(False):
-        ...     with sm.netcdfreading():
-        ...         t.load_series()
+        >>> with (
+        ...     TestIO(), sm.filetype("nc"), opt.checkseries(False), sm.netcdfreading()
+        ... ):
+        ...     t.load_series()
         >>> from hydpy import round_
         >>> round_(t.series)
         nan, nan, 10.1, 10.0

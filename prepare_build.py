@@ -6,8 +6,7 @@ import importlib
 import inspect
 import os
 import sys
-from typing import *
-from typing_extensions import Literal  # type: ignore[misc]
+from typing import get_type_hints, Literal
 
 import click
 import Cython.Build
@@ -26,7 +25,7 @@ def _clear_autogendir() -> None:
             os.remove(filepath)
 
 
-def _prepare_cythonoptions(fast_cython: bool, profile_cython: bool) -> List[str]:
+def _prepare_cythonoptions(fast_cython: bool, profile_cython: bool) -> list[str]:
 
     # ToDo: do not share code with PyxWriter.cythondistutilsoptions
 
@@ -107,7 +106,7 @@ def _convert_interfaces(fast_cython: bool, profile_cython: bool) -> None:
     modulenames = (n[:-3] for n in pyfilenames if n != "__init__.py")
     pxdpath = os.path.join(cydirpath, f"masterinterface.pxd")
     pyxpath = os.path.join(cydirpath, f"masterinterface.pyx")
-    funcname2signature: Dict[str, str] = {}
+    funcname2signature: dict[str, str] = {}
     with open(pxdpath, "w", encoding="utf-8") as pxdfile, open(
         pyxpath, "w", encoding="utf-8"
     ) as pyxfile:

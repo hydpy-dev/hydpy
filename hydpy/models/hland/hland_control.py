@@ -462,7 +462,7 @@ arguments are given, which is ambiguous.
         self.value /= sum(self.value) / sclass
 
     @staticmethod
-    @functools.lru_cache()
+    @functools.lru_cache
     def _linear(factor, sclass):
         if sclass == 1:
             values = (1.0,)
@@ -473,7 +473,7 @@ arguments are given, which is ambiguous.
         return values
 
     @staticmethod
-    @functools.lru_cache()
+    @functools.lru_cache
     def _lognormal(sclass, scale: float) -> VectorFloat:
         values = numpy.ones(sclass, dtype=config.NP_FLOAT)
         if scale > 0.0:

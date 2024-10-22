@@ -2341,7 +2341,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
                 devicetools.FusedVariable,
             ],
             int,
-        ] = collections.defaultdict(lambda: 0)
+        ] = collections.defaultdict(int)
         for node in self.nodes:
             variables[node.variable] += 1
         return dict(
@@ -2372,7 +2372,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         {'hland_96': 4, 'musk_classic': 3}
         """
         modeltypes: collections.defaultdict[str, int]
-        modeltypes = collections.defaultdict(lambda: 0)
+        modeltypes = collections.defaultdict(int)
         for element in self.elements:
             model = exceptiontools.getattr_(
                 element,

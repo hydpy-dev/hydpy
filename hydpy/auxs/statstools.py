@@ -2073,7 +2073,7 @@ number of given alternative names being 1.
         critdigits = len(criteria) * (critdigits,)
     formats = tuple(f"%.{d}f" for d in critdigits)
     node2values: collections.defaultdict[devicetools.Node, list[float]]
-    node2values = collections.defaultdict(lambda: [])
+    node2values = collections.defaultdict(list)
     data = numpy.empty((len(nodes), len(criteria)), dtype=config.NP_FLOAT)
     for idx, node in enumerate(nodes):
         if stepsize is not None:

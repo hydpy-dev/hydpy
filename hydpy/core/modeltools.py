@@ -278,7 +278,7 @@ instance of any of the following supported interfaces: SoilModel_V1.
 
     __hydpy_modeltype2instance__: ClassVar[
         collections.defaultdict[type[Model], list[SubmodelProperty[Any]]]
-    ] = collections.defaultdict(lambda: [])
+    ] = collections.defaultdict(list)
 
     def __init__(
         self,
@@ -381,7 +381,7 @@ class SubmodelsProperty(_SubmodelPropertyBase[TypeSubmodelInterface]):
 
     __hydpy_modeltype2instance__: ClassVar[
         collections.defaultdict[type[Model], list[SubmodelsProperty[Any]]]
-    ] = collections.defaultdict(lambda: [])
+    ] = collections.defaultdict(list)
     __hydpy_mainmodel2submodels__: collections.defaultdict[
         Model, list[Optional[TypeSubmodelInterface]]
     ]
@@ -399,9 +399,9 @@ class SubmodelsProperty(_SubmodelPropertyBase[TypeSubmodelInterface]):
     ) -> None:
         self.interfaces = tuple(interfaces)
         self.sidemodels = sidemodels
-        self.__hydpy_mainmodel2submodels__ = collections.defaultdict(lambda: [])
-        self._mainmodel2numbersubmodels = collections.defaultdict(lambda: 0)
-        self._mainmodel2submodeltypeids = collections.defaultdict(lambda: [])
+        self.__hydpy_mainmodel2submodels__ = collections.defaultdict(list)
+        self._mainmodel2numbersubmodels = collections.defaultdict(int)
+        self._mainmodel2submodeltypeids = collections.defaultdict(list)
         interfacenames = (i.__name__ for i in self.interfaces)
         suffix = "s" if len(interfaces) > 1 else ""
         self.__doc__ = (

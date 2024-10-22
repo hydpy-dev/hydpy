@@ -1320,7 +1320,7 @@ class Elements(Devices["Element"]):
         b ['b1', 'b2']
         d ['d1']
         """
-        collectives = collections.defaultdict(lambda: [])
+        collectives = collections.defaultdict(list)
         for element in self:
             collectives[element.collective].append(element)
         return {c: tuple(e) for c, e in collectives.items()}

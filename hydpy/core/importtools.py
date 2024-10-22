@@ -602,7 +602,7 @@ following error occurred: The given `lland_knauf` instance is not considered sha
 
     __hydpy_maintype2subname2adders__: collections.defaultdict[
         type[modeltools.Model], collections.defaultdict[str, list[SubmodelAdder]]
-    ] = collections.defaultdict(lambda: collections.defaultdict(lambda: []))
+    ] = collections.defaultdict(lambda: collections.defaultdict(list))
 
     _methodnames: frozenset[str]
     _wrapped: Union[PrepSub0D[TM_contra, TI_contra], PrepSub1D[TM_contra, TI_contra]]

@@ -1,9 +1,6 @@
 """Sphinx extension introducing `.. submodel_graph:: (e.g.) hland_96` directives."""
 
 # import...
-# from standard library
-from typing import Any
-
 # ...from site-packages
 from docutils import nodes
 from sphinx.application import Sphinx
@@ -12,12 +9,13 @@ from sphinx.writers.html5 import HTML5Translator
 
 # ...from HydPy
 from hydpy.core import autodoctools
+from hydpy.core.typingtools import *
 
 
 class SubmodelGraphNode(nodes.General, nodes.FixedTextElement):
     """The docutils node for the submodel graph directive."""
 
-    modelname: str
+    modelname: str | None
 
 
 class SubmodelGraphBlock(CodeBlock):

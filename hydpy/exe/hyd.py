@@ -45,9 +45,8 @@ You are free to redirect output to a log file:
 >>> TestIO.clear()
 >>> with TestIO():
 ...     result = run_subprocess("hyd.py logfile=my_log_file.txt")
->>> with TestIO():
-...     with open("my_log_file.txt") as logfile:
-...         print(logfile.read())  # doctest: +ELLIPSIS
+>>> with TestIO(), open("my_log_file.txt") as logfile:
+...     print(logfile.read())  # doctest: +ELLIPSIS
 Invoking hyd.py with argument `logfile=my_log_file.txt` resulted in the following \
 error:
 The first positional argument defining the function to be called is missing.
@@ -248,20 +247,25 @@ def execute() -> None:
 
     >>> from hydpy.exe import hyd
     >>> from unittest import mock
-    >>> with mock.patch("hydpy.exe.commandtools.execute_scriptfunction") as fun:
-    ...     with mock.patch("sys.exit") as exit_:
-    ...         with mock.patch.object(hyd, "__name__", "__not_main__"):
-    ...             hyd.execute()
-    ...             exit_.called
+    >>> with (
+    ...     mock.patch("hydpy.exe.commandtools.execute_scriptfunction") as fun,
+    ...     mock.patch("sys.exit") as exit_,
+    ...     mock.patch.object(hyd, "__name__", "__not_main__"),
+    ... ):
+    ...     hyd.execute()
+    ...     exit_.called
     False
     >>> for return_value in (None, 0, 2):
-    ...     with mock.patch(
+    ...     with (
+    ...         mock.patch(
     ...             "hydpy.exe.commandtools.execute_scriptfunction",
-    ...             return_value=return_value) as fun:
-    ...         with mock.patch("sys.exit") as exit_:
-    ...             with mock.patch.object(hyd, "__name__", "__main__"):
-    ...                 hyd.execute()
-    ...                 exit_.call_args
+    ...              return_value=return_value
+    ...         ),
+    ...         mock.patch("sys.exit") as exit_,
+    ...         mock.patch.object(hyd, "__name__", "__main__"),
+    ... ):
+    ...         hyd.execute()
+    ...         exit_.call_args
     call(False)
     call(False)
     call(True)

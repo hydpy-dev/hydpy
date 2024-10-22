@@ -1860,24 +1860,23 @@ def get_printtarget(file_: TextIO | str | None) -> Generator[TextIO, None, None]
     It passes already opened file objects, flushing but not closing them:
 
     >>> from hydpy import TestIO
-    >>> with TestIO():
-    ...     with open("testfile1.txt", "w") as testfile1:
-    ...         with get_printtarget(testfile1) as printtarget:
-    ...             print("printtarget = testfile1", file=printtarget, end="")
-    >>> with TestIO():
-    ...     with open("testfile1.txt", "r") as testfile1:
-    ...         print(testfile1.read())
+    >>> with (
+    ...     TestIO(),
+    ...     open("testfile1.txt", "w") as testfile1,
+    ...     get_printtarget(testfile1) as printtarget
+    ... ):
+    ...     print("printtarget = testfile1", file=printtarget, end="")
+    >>> with TestIO(), open("testfile1.txt", "r") as testfile1:
+    ...     print(testfile1.read())
     printtarget = testfile1
 
     It creates a new file and closes it after leaving the `with` block when receiving a
     file name:
 
-    >>> with TestIO():
-    ...     with get_printtarget("testfile2.txt") as printtarget:
-    ...         print("printtarget = testfile2", file=printtarget, end="")
-    >>> with TestIO():
-    ...     with open("testfile2.txt", "r") as testfile2:
-    ...         print(testfile2.read())
+    >>> with TestIO(), get_printtarget("testfile2.txt") as printtarget:
+    ...     print("printtarget = testfile2", file=printtarget, end="")
+    >>> with TestIO(), open("testfile2.txt", "r") as testfile2:
+    ...     print(testfile2.read())
     printtarget = testfile2
     """
     if file_ is None:

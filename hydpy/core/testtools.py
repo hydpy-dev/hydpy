@@ -316,23 +316,21 @@ hydpy.models.hland.hland_control.ZoneType
         )
         for name in self.modulenames:
             print(f"    * {name}:")
-            with StdOutErr(indent=8), opt.ellipsis(0), opt.printprogress(
-                False
-            ), opt.reprdigits(6), opt.usedefaultvalues(False), opt.utclongitude(
-                15
-            ), opt.utcoffset(
-                60
-            ), opt.timestampleft(
-                True
-            ), opt.warnsimulationstep(
-                False
-            ), opt.warntrim(
-                False
-            ), opt.parameterstep(
-                timetools.Period("1d")
-            ), opt.simulationstep(
-                timetools.Period()
-            ), devicetools.clear_registries_temporarily():
+            with (
+                StdOutErr(indent=8),
+                opt.ellipsis(0),
+                opt.printprogress(False),
+                opt.reprdigits(6),
+                opt.usedefaultvalues(False),
+                opt.utclongitude(15),
+                opt.utcoffset(60),
+                opt.timestampleft(True),
+                opt.warnsimulationstep(False),
+                opt.warntrim(False),
+                opt.parameterstep(timetools.Period("1d")),
+                opt.simulationstep(timetools.Period()),
+                devicetools.clear_registries_temporarily(),
+            ):
                 projectname = exceptiontools.getattr_(
                     hydpy.pub, "projectname", None, str
                 )

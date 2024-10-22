@@ -387,9 +387,8 @@ previously defined and is hence set to `dir3`.
 
         >>> import shutil
         >>> from unittest.mock import patch
-        >>> with patch.object(shutil, "rmtree", side_effect=AttributeError):
-        ...     with TestIO():
-        ...         del filemanager.currentdir  # doctest: +ELLIPSIS
+        >>> with TestIO(), patch.object(shutil, "rmtree", side_effect=AttributeError):
+        ...     del filemanager.currentdir  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         AttributeError: While trying to delete the current working directory \

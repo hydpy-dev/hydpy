@@ -883,12 +883,12 @@ allowed.
         >>> sorted(newgroup.keywords)
         ['group_1', 'group_a', 'group_b']
         """
-        return set(
+        return {
             keyword
             for device in self
             for keyword in device.keywords
             if keyword not in self._shadowed_keywords
-        )
+        }
 
     def search_keywords(self: TypeDevices, *keywords: str) -> TypeDevices:
         """Search for all devices handling at least one of the given keywords and
@@ -1474,28 +1474,28 @@ a function for coupling models that belong to the same collective.
                 elements.extend(subelements)
             else:
                 try:
-                    outlets = set(
+                    outlets = {
                         outlet
                         for subelement in subelements
                         for outlet in subelement.outlets
-                    )
-                    inlets = set(
+                    }
+                    inlets = {
                         inlet
                         for subelement in subelements
                         for inlet in subelement.inlets
                         if inlet not in outlets
-                    )
-                    outputs = set(
+                    }
+                    outputs = {
                         output
                         for subelement in subelements
                         for output in subelement.outputs
-                    )
-                    inputs = set(
+                    }
+                    inputs = {
                         input_
                         for subelement in subelements
                         for input_ in subelement.inputs
                         if input_ not in outputs
-                    )
+                    }
                     _registry[Element].pop(collective, None)
                     newelement = Element(
                         collective,

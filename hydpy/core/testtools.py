@@ -1716,9 +1716,9 @@ result sequences of any of its predecessors: TKor and TZ
     )
     methods = tuple(model.get_methods(skip=("ADD_METHODS", "INTERFACE_METHODS")))
     for idx, method1 in enumerate(methods):
-        required = set(
+        required = {
             seq for seq in method1.REQUIREDSEQUENCES if not issubclass(seq, excluded)
-        )
+        }
         for method0 in methods[:idx]:
             for seq in itertools.chain(
                 method0.RESULTSEQUENCES, method0.UPDATEDSEQUENCES

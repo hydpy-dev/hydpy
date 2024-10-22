@@ -452,9 +452,7 @@ arguments are given, which is ambiguous.
 
     def __call__(self, *args, **kwargs) -> None:
         sclass = self.shape[0]
-        idx = self._find_kwargscombination(
-            args, kwargs, (set(("linear",)), set(("lognormal",)))
-        )
+        idx = self._find_kwargscombination(args, kwargs, ({"linear"}, {"lognormal"}))
         if idx is None:
             super().__call__(*args, **kwargs)
         elif idx == 0:

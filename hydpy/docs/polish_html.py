@@ -12,7 +12,7 @@ from hydpy.exe import xmltools
 
 def _replace_toc(dirpath: str, name: str, docname: modeltools.DocName) -> None:
     html = os.path.join(dirpath, f"{docname.family}.html")
-    with open(html, "r", encoding="utf-8") as file_:
+    with open(html, encoding="utf-8") as file_:
         text = file_.read()
     template = '"toctree-l1"><a class="reference internal" href="%s.html">%s</a><'
     old = template % (name, name)
@@ -24,7 +24,7 @@ def _replace_toc(dirpath: str, name: str, docname: modeltools.DocName) -> None:
 
 def _replace_header(dirpath: str, name: str, docname: modeltools.DocName) -> None:
     html = os.path.join(dirpath, f"{name}.html")
-    with open(html, "r", encoding="utf-8") as file_:
+    with open(html, encoding="utf-8") as file_:
         text = file_.read()
     template = '<h1>%s<a class="headerlink"'
     text = text.replace(template % name, template % docname.complete)

@@ -110,16 +110,20 @@ else:
 
 TypeDevice = TypeVar("TypeDevice", bound="Device")
 TypeDevices = TypeVar("TypeDevices", bound="Devices[Any]")
-NodeOrElement = Union["Node", "Element"]
+NodeOrElement: TypeAlias = Union["Node", "Element"]
 TypeNodeElement = TypeVar("TypeNodeElement", "Node", "Element", NodeOrElement)
 
-NodesConstrArg = MayNonerable2["Node", str]
-ElementsConstrArg = MayNonerable2["Element", str]
-NodeConstrArg = Union["Node", str]
-ElementConstrArg = Union["Element", str]
-IOSequenceArg = Union[str, sequencetools.IOSequence, type[sequencetools.IOSequence]]
+NodesConstrArg: TypeAlias = MayNonerable2["Node", str]
+ElementsConstrArg: TypeAlias = MayNonerable2["Element", str]
+NodeConstrArg: TypeAlias = Union["Node", str]
+ElementConstrArg: TypeAlias = Union["Element", str]
+IOSequenceArg: TypeAlias = Union[
+    sequencetools.IOSequence, type[sequencetools.IOSequence], str
+]
 
-NodeVariableType = Union[str, sequencetools.InOutSequenceTypes, "FusedVariable"]
+NodeVariableType: TypeAlias = Union[
+    sequencetools.InOutSequenceTypes, "FusedVariable", str
+]
 
 _default_variable: NodeVariableType = "Q"
 
@@ -128,7 +132,7 @@ class Keywords(set[str]):
     """Set of keyword arguments used to describe and search for |Element| and |Node|
     objects."""
 
-    device: Optional[Device]
+    device: Device | None
 
     def __init__(self, *names: str):
         self.device = None
@@ -696,7 +700,7 @@ classes: Node and str.
     def get_contentclass() -> type[TypeDevice]:
         """To be overridden."""
 
-    def add_device(self, device: Union[TypeDevice, str], force: bool = False) -> None:
+    def add_device(self, device: TypeDevice | str, force: bool = False) -> None:
         """Add the given |Node| or |Element| object to the actual |Nodes| or |Elements|
         object.
 
@@ -743,9 +747,7 @@ the following error occurred: Adding devices to immutable Nodes objects is not a
                 f"{type(self).__name__} object"
             )
 
-    def remove_device(
-        self, device: Union[TypeDevice, str], force: bool = False
-    ) -> None:
+    def remove_device(self, device: TypeDevice | str, force: bool = False) -> None:
         """Remove the given |Node| or |Element| object from the actual |Nodes| or
         |Elements| object.
 
@@ -994,7 +996,7 @@ conflict with using their names as identifiers.
         devices._shadowed_keywords.add(name)
         return devices
 
-    def __getattr__(self: TypeDevices, name: str) -> Union[TypeDevice, TypeDevices]:
+    def __getattr__(self: TypeDevices, name: str) -> TypeDevice | TypeDevices:
         if name in self._name2device:
             return cast(TypeDevice, self._name2device[name])  # ToDo
         _devices = self.__select_devices_by_keyword(name)
@@ -1030,7 +1032,7 @@ conflict with using their names as identifiers.
                 f"could be removed, and deleting other attributes is not supported."
             ) from None
 
-    def __getitem__(self, name: Union[Literal[0], str]) -> TypeDevice:
+    def __getitem__(self, name: Literal[0] | str) -> TypeDevice:
         if name == 0:
             devices = tuple(self._name2device.values())
             if len(devices) == 1:
@@ -1302,7 +1304,7 @@ class Elements(Devices["Element"]):
         return Element
 
     @property
-    def collectives(self) -> dict[Optional[str], tuple[Element, ...]]:
+    def collectives(self) -> dict[str | None, tuple[Element, ...]]:
         """The names and members of all currently relevant collectives.
 
         Note that all |Element| instances not belonging to any |Element.collective| are
@@ -1617,9 +1619,9 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
     @printtools.print_progress
     def save_controls(
         self,
-        parameterstep: Optional[timetools.PeriodConstrArg] = None,
-        simulationstep: Optional[timetools.PeriodConstrArg] = None,
-        auxfiler: Optional[auxfiletools.Auxfiler] = None,
+        parameterstep: timetools.PeriodConstrArg | None = None,
+        simulationstep: timetools.PeriodConstrArg | None = None,
+        auxfiler: auxfiletools.Auxfiler | None = None,
     ) -> None:
         """Save the control parameters of the |Model| object handled by each |Element|
         object and eventually the ones handled by the given |Auxfiler| object."""
@@ -1800,9 +1802,7 @@ class Device:
     _name: str
     _keywords: Keywords
 
-    def __new__(
-        cls, value: Union[Device, str], *args: object, **kwargs: object
-    ) -> Device:
+    def __new__(cls, value: Device | str, *args: object, **kwargs: object) -> Device:
         # pylint: disable=unused-argument
         # required for consistincy with __init__
         name = str(value)
@@ -2016,7 +2016,7 @@ following error occurred: Adding devices to immutable Elements objects is not al
     def __init__(
         self,
         value: NodeConstrArg,
-        variable: Optional[NodeVariableType] = None,
+        variable: NodeVariableType | None = None,
         keywords: MayNonerable1[str] = None,
     ) -> None:
         # pylint: disable=unused-argument
@@ -2219,7 +2219,7 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
             _assert_never(value)
         self._deploymode = value
         for element in itertools.chain(self.entries, self.exits):
-            model: Optional[modeltools.Model]
+            model: modeltools.Model | None
             model = exceptiontools.getattr_(element, "model", None)
             if model and not model.COMPOSITE:
                 model.connect()
@@ -2384,12 +2384,12 @@ group name `test`.
     def plot_allseries(
         self,
         *,
-        labels: Optional[tuple[str, str]] = None,
-        colors: Optional[Union[str, tuple[str, str]]] = None,
-        linestyles: Optional[Union[LineStyle, tuple[LineStyle, LineStyle]]] = None,
-        linewidths: Optional[Union[int, tuple[int, int]]] = None,
+        labels: tuple[str, str] | None = None,
+        colors: str | tuple[str, str] | None = None,
+        linestyles: LineStyle | tuple[LineStyle, LineStyle] | None = None,
+        linewidths: int | tuple[int, int] | None = None,
         focus: bool = False,
-        stepsize: Optional[StepSize] = None,
+        stepsize: StepSize | None = None,
     ) -> pyplot.Figure:
         """Plot the |IOSequence.series| data of both the |Sim| and the |Obs| sequence
         object.
@@ -2483,8 +2483,8 @@ Attribute timegrids of module `pub` is not defined at the moment.
         t = TypeVar("t", str, int)
 
         def _make_tuple(
-            x: Union[Optional[t], tuple[Optional[t], Optional[t]]]
-        ) -> tuple[Optional[t], Optional[t]]:
+            x: t | None | tuple[t | None, t | None]
+        ) -> tuple[t | None, t | None]:
             return (x, x) if ((x is None) or isinstance(x, (str, int))) else x
 
         return self._plot_series(
@@ -2500,12 +2500,12 @@ Attribute timegrids of module `pub` is not defined at the moment.
     def plot_simseries(
         self,
         *,
-        label: Optional[str] = None,
-        color: Optional[str] = None,
-        linestyle: Optional[LineStyle] = None,
-        linewidth: Optional[int] = None,
+        label: str | None = None,
+        color: str | None = None,
+        linestyle: LineStyle | None = None,
+        linewidth: int | None = None,
         focus: bool = False,
-        stepsize: Optional[StepSize] = None,
+        stepsize: StepSize | None = None,
     ) -> pyplot.Figure:
         """Plot the |IOSequence.series| of the |Sim| sequence object.
 
@@ -2524,12 +2524,12 @@ Attribute timegrids of module `pub` is not defined at the moment.
     def plot_obsseries(
         self,
         *,
-        label: Optional[str] = None,
-        color: Optional[str] = None,
-        linestyle: Optional[LineStyle] = None,
-        linewidth: Optional[int] = None,
+        label: str | None = None,
+        color: str | None = None,
+        linestyle: LineStyle | None = None,
+        linewidth: int | None = None,
         focus: bool = False,
-        stepsize: Optional[StepSize] = None,
+        stepsize: StepSize | None = None,
     ) -> pyplot.Figure:
         """Plot the |IOSequence.series| of the |Obs| sequence object.
 
@@ -2549,12 +2549,12 @@ Attribute timegrids of module `pub` is not defined at the moment.
         self,
         *,
         sequences: Sequence[sequencetools.IOSequence],
-        labels: Iterable[Optional[str]],
-        colors: Iterable[Optional[str]],
-        linestyles: Iterable[Optional[str]],
-        linewidths: Iterable[Optional[int]],
+        labels: Iterable[str | None],
+        colors: Iterable[str | None],
+        linestyles: Iterable[str | None],
+        linewidths: Iterable[int | None],
         focus: bool = False,
-        stepsize: Optional[StepSize] = None,
+        stepsize: StepSize | None = None,
     ) -> pyplot.Figure:
         try:
             idx0, idx1 = hydpy.pub.timegrids.evalindices
@@ -2892,7 +2892,7 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
 already a collective `NileRiver` member.
     """
 
-    collective: Optional[str] = None
+    collective: str | None = None
     """The collective the actual |Element| instance belongs to."""
 
     _inlets: Nodes
@@ -2901,7 +2901,7 @@ already a collective `NileRiver` member.
     _senders: Nodes
     _inputs: Nodes
     _outputs: Nodes
-    _model: Optional[modeltools.Model]
+    _model: modeltools.Model | None
 
     def __init__(
         self,
@@ -2913,7 +2913,7 @@ already a collective `NileRiver` member.
         senders: NodesConstrArg = None,
         inputs: NodesConstrArg = None,
         outputs: NodesConstrArg = None,
-        collective: Optional[str] = None,
+        collective: str | None = None,
         keywords: MayNonerable1[str] = None,
     ) -> None:
         # pylint: disable=unused-argument
@@ -3386,15 +3386,15 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         ],
         sequences: tuple[IOSequenceArg, ...],
         average: bool,
-        labels: Optional[tuple[str, ...]],
-        colors: Optional[Union[str, tuple[str, ...]]],
-        linestyles: Optional[Union[LineStyle, tuple[LineStyle, ...]]],
-        linewidths: Optional[Union[int, tuple[int, ...]]],
+        labels: tuple[str, ...] | None,
+        colors: str | tuple[str, ...] | None,
+        linestyles: LineStyle | tuple[LineStyle, ...] | None,
+        linewidths: int | tuple[int, ...] | None,
         focus: bool,
     ) -> pyplot.Figure:
         def _prepare_tuple(
-            input_: Optional[Union[T, tuple[T, ...]]], nmb_entries: int
-        ) -> tuple[Optional[T], ...]:
+            input_: T | tuple[T, ...] | None, nmb_entries: int
+        ) -> tuple[T | None, ...]:
             if isinstance(input_, tuple):
                 return input_
             return nmb_entries * (input_,)
@@ -3412,7 +3412,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         index = _get_pandasindex()[idx0:idx1]
         selseqs = self._query_iosequences(subseqs, sequences)
         nmb_sequences = len(selseqs)
-        labels_: tuple[Optional[str], ...]
+        labels_: tuple[str | None, ...]
         if isinstance(labels, tuple):
             labels_ = labels
         else:
@@ -3472,7 +3472,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         if sequences:
             selseqs = []
             for sequence in sequences:
-                typ: Optional[type[sequencetools.IOSequence]]
+                typ: type[sequencetools.IOSequence] | None
                 if isinstance(sequence, str):
                     name = sequence
                     typ = None
@@ -3504,10 +3504,10 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         self,
         *sequences: IOSequenceArg,
         average: bool = False,
-        labels: Optional[tuple[str, ...]] = None,
-        colors: Optional[Union[str, tuple[str, ...]]] = None,
-        linestyles: Optional[Union[LineStyle, tuple[LineStyle, ...]]] = None,
-        linewidths: Optional[Union[int, tuple[int, ...]]] = None,
+        labels: tuple[str, ...] | None = None,
+        colors: str | tuple[str, ...] | None = None,
+        linestyles: LineStyle | tuple[LineStyle, ...] | None = None,
+        linewidths: int | tuple[int, ...] | None = None,
         focus: bool = True,
     ) -> pyplot.Figure:
         """Plot (the selected) |InputSequence| |IOSequence.series| values.
@@ -3608,10 +3608,10 @@ sequence named `xy`.
         self,
         *sequences: IOSequenceArg,
         average: bool = False,
-        labels: Optional[tuple[str, ...]] = None,
-        colors: Optional[Union[str, tuple[str, ...]]] = None,
-        linestyles: Optional[Union[LineStyle, tuple[LineStyle, ...]]] = None,
-        linewidths: Optional[Union[int, tuple[int, ...]]] = None,
+        labels: tuple[str, ...] | None = None,
+        colors: str | tuple[str, ...] | None = None,
+        linestyles: LineStyle | tuple[LineStyle, ...] | None = None,
+        linewidths: int | tuple[int, ...] | None = None,
         focus: bool = True,
     ) -> pyplot.Figure:
         """Plot the `factor` series of the handled model.
@@ -3634,10 +3634,10 @@ sequence named `xy`.
         self,
         *sequences: IOSequenceArg,
         average: bool = False,
-        labels: Optional[tuple[str, ...]] = None,
-        colors: Optional[Union[str, tuple[str, ...]]] = None,
-        linestyles: Optional[Union[LineStyle, tuple[LineStyle, ...]]] = None,
-        linewidths: Optional[Union[int, tuple[int, ...]]] = None,
+        labels: tuple[str, ...] | None = None,
+        colors: str | tuple[str, ...] | None = None,
+        linestyles: LineStyle | tuple[LineStyle, ...] | None = None,
+        linewidths: int | tuple[int, ...] | None = None,
         focus: bool = True,
     ) -> pyplot.Figure:
         """Plot the `flux` series of the handled model.
@@ -3660,10 +3660,10 @@ sequence named `xy`.
         self,
         *sequences: IOSequenceArg,
         average: bool = False,
-        labels: Optional[tuple[str, ...]] = None,
-        colors: Optional[Union[str, tuple[str, ...]]] = None,
-        linestyles: Optional[Union[LineStyle, tuple[LineStyle, ...]]] = None,
-        linewidths: Optional[Union[int, tuple[int, ...]]] = None,
+        labels: tuple[str, ...] | None = None,
+        colors: str | tuple[str, ...] | None = None,
+        linestyles: LineStyle | tuple[LineStyle, ...] | None = None,
+        linewidths: int | tuple[int, ...] | None = None,
         focus: bool = True,
     ) -> pyplot.Figure:
         """Plot the `state` series of the handled model.

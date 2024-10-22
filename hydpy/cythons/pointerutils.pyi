@@ -2,7 +2,7 @@
 
 from hydpy.core.typingtools import *
 
-Input: TypeAlias = float | Double | PDouble
+Input: TypeAlias = Union[float, Double, PDouble]
 
 class DoubleBase:
     def __neg__(self) -> Double: ...

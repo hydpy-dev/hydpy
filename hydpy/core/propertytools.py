@@ -18,11 +18,11 @@ class BaseDescriptor:
     """Base class for defining descriptors."""
 
     objtype: type[Any]
-    module: Optional[types.ModuleType]
+    module: types.ModuleType | None
     name: str
-    __doc__: Optional[str]
+    __doc__: str | None
 
-    def set_doc(self, doc: Optional[str]) -> None:
+    def set_doc(self, doc: str | None) -> None:
         """Assign the given docstring to the property instance and, if possible,
         to the `__test__` dictionary of the module of its owner class."""
         if doc is not None:
@@ -114,7 +114,7 @@ class BaseProperty(Generic[T_contra, T_co], BaseDescriptor):
     @overload
     def __get__(self, obj: Any, objtype: type[Any]) -> T_co: ...
 
-    def __get__(self, obj: Optional[Any], objtype: type[Any]) -> Union[Self, T_co]:
+    def __get__(self, obj: Any | None, objtype: type[Any]) -> Self | T_co:
         if obj is None:
             return self
         if self.fget is self._fgetdummy:
@@ -603,7 +603,7 @@ class DefaultProperty(BaseProperty[T_contra, T_co]):
     def call_fget(self, obj: Any) -> T_co:
         """If available, return the predefined custom value; otherwise, return
         the value defined by the getter function."""
-        value = cast(Optional[T_co], vars(obj).get(self.name))
+        value = cast(T_co | None, vars(obj).get(self.name))
         if value is None:
             return self.fget(obj)
         return value

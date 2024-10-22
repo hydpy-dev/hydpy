@@ -1,13 +1,14 @@
 # pylint: disable=import-outside-toplevel
 # due to importing hydpy after eventually changing its source path
 """Evaluate all doctests defined in the different modules and documentation files."""
+
 from __future__ import annotations
 from collections.abc import Iterable, Sequence
 import os
 import sys
 import importlib
 import time
-from typing import NamedTuple, Optional, NoReturn
+from typing import NamedTuple, NoReturn
 import unittest
 import doctest
 import warnings
@@ -76,7 +77,7 @@ class DocTests(NamedTuple):
     help="Execute all tests in Cython-mode.",
 )
 def main(  # pylint: disable=too-many-branches
-    hydpy_path: Optional[str],
+    hydpy_path: str | None,
     file_doctests: list[str],
     python_mode: bool,
     cython_mode: bool,

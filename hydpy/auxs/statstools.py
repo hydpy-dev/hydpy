@@ -74,13 +74,13 @@ def filter_series(*, node: devicetools.Node, months: Iterable[int]) -> SimObs:
 @objecttools.excmessage_decorator("filter the given series")
 def filter_series(
     *,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
-    date_ranges: Optional[
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
+    date_ranges: None | (
         Iterable[tuple[timetools.DateConstrArg, timetools.DateConstrArg]]
-    ] = None,
-    months: Optional[Iterable[int]] = None,
+    ) = None,
+    months: Iterable[int] | None = None,
 ) -> SimObs:
     """Filter time series for the given date ranges or months.
 
@@ -300,11 +300,11 @@ given.
 
 def prepare_arrays(
     *,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
+    subperiod: bool | None = None,
 ) -> SimObs:
     """Prepare and return two |numpy| arrays based on the given arguments.
 
@@ -507,11 +507,11 @@ def rmse(
 @objecttools.excmessage_decorator("calculate the root-mean-square error")
 def rmse(
     *,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
+    subperiod: bool | None = None,
 ) -> float:
     """Calculate the root-mean-square error.
 
@@ -552,11 +552,11 @@ def nse(
 @objecttools.excmessage_decorator("calculate the Nash-Sutcliffe efficiency")
 def nse(
     *,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
+    subperiod: bool | None = None,
 ) -> float:
     """Calculate the efficiency criteria after Nash & Sutcliffe.
 
@@ -615,11 +615,11 @@ def nse_log(
 @objecttools.excmessage_decorator("calculate the log-Nash-Sutcliffe efficiency")
 def nse_log(
     *,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
+    subperiod: bool | None = None,
 ) -> float:
     """Calculate the efficiency criteria after Nash & Sutcliffe for logarithmic values.
 
@@ -678,11 +678,11 @@ def corr2(
 @objecttools.excmessage_decorator("calculate the R²-Error")
 def corr2(
     *,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
+    subperiod: bool | None = None,
 ) -> float:
     """Calculate the coefficient of determination via the square of the coefficient of
     correlation according to Bravais-Pearson.
@@ -744,11 +744,11 @@ def kge(
 @objecttools.excmessage_decorator("calculate the Kling-Gupta-Efficiency")
 def kge(
     *,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
+    subperiod: bool | None = None,
 ) -> float:
     """Calculate the Kling-Gupta efficiency according to :cite:t:`ref-Kling2012`.
 
@@ -809,11 +809,11 @@ def bias_abs(
 @objecttools.excmessage_decorator("calculate the absolute bias")
 def bias_abs(
     *,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
+    subperiod: bool | None = None,
 ) -> float:
     """Calculate the absolute difference between the means of the simulated and the
     observed values.
@@ -857,11 +857,11 @@ def bias_rel(
 @objecttools.excmessage_decorator("calculate the relative bias")
 def bias_rel(
     *,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
+    subperiod: bool | None = None,
 ) -> float:
     """Calculate the relative difference between the means of the simulated and the
     observed values.
@@ -905,11 +905,11 @@ def std_ratio(
 @objecttools.excmessage_decorator("calculate the standard deviation ratio")
 def std_ratio(
     *,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
+    subperiod: bool | None = None,
 ) -> float:
     """Calculate the ratio between the standard deviation of the simulated and the
     observed values.
@@ -953,11 +953,11 @@ def var_ratio(
 @objecttools.excmessage_decorator("calculate the variation coefficient ratio")
 def var_ratio(
     *,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
+    subperiod: bool | None = None,
 ) -> float:
     """Calculate the ratio between the variation coefficients of the simulated and the
     observed values.
@@ -1003,11 +1003,11 @@ def corr(
 @objecttools.excmessage_decorator("calculate the Pearson correlation coefficient")
 def corr(
     *,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
+    subperiod: bool | None = None,
 ) -> float:
     """Calculate the product-moment correlation coefficient after Pearson.
 
@@ -1092,11 +1092,11 @@ def hsepd_pdf(
     sigma2: float,
     xi: float,
     beta: float,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
+    subperiod: bool | None = None,
 ) -> VectorFloat:
     """Calculate the probability densities based on the heteroskedastic skewed
     exponential power distribution.
@@ -1275,11 +1275,11 @@ def hsepd_manual(
     sigma2: float,
     xi: float,
     beta: float,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
+    subperiod: bool | None = None,
 ) -> float:
     """Calculate the mean of the logarithmic probability densities of the
     heteroskedastic skewed exponential power distribution.
@@ -1331,7 +1331,7 @@ def hsepd(
     obs: VectorInputFloat,
     skip_nan: bool = False,
     subperiod: bool = False,
-    inits: Optional[Iterable[float]] = None,
+    inits: Iterable[float] | None = None,
     return_pars: Literal[False] = ...,
     silent: bool = True,
 ) -> float:
@@ -1345,7 +1345,7 @@ def hsepd(
     obs: VectorInputFloat,
     skip_nan: bool = False,
     subperiod: bool = False,
-    inits: Optional[Iterable[float]] = None,
+    inits: Iterable[float] | None = None,
     return_pars: Literal[True],
     silent: bool = True,
 ) -> tuple[float, tuple[float, float, float, float]]:
@@ -1358,7 +1358,7 @@ def hsepd(
     node: devicetools.Node,
     skip_nan: bool = False,
     subperiod: bool = True,
-    inits: Optional[Iterable[float]] = None,
+    inits: Iterable[float] | None = None,
     return_pars: Literal[False] = ...,
     silent: bool = True,
 ) -> float:
@@ -1371,7 +1371,7 @@ def hsepd(
     node: devicetools.Node,
     skip_nan: bool = False,
     subperiod: bool = True,
-    inits: Optional[Iterable[float]] = None,
+    inits: Iterable[float] | None = None,
     return_pars: Literal[True],
     silent: bool = True,
 ) -> tuple[float, tuple[float, float, float, float]]:
@@ -1383,15 +1383,15 @@ def hsepd(
 )
 def hsepd(
     *,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
-    inits: Optional[Iterable[float]] = None,
+    subperiod: bool | None = None,
+    inits: Iterable[float] | None = None,
     return_pars: bool = False,
     silent: bool = True,
-) -> Union[float, tuple[float, tuple[float, float, float, float]]]:
+) -> float | tuple[float, tuple[float, float, float, float]]:
     """Calculate the mean of the logarithmic probability densities of the
     heteroskedastic skewed exponential power distribution.
 
@@ -1543,7 +1543,7 @@ occurred: For the following objects, at least one value is negative: weights.
 def calc_mean_time_deviation(
     timepoints: VectorInputFloat,
     weights: VectorInputFloat,
-    mean_time: Optional[float] = None,
+    mean_time: float | None = None,
 ) -> float:
     """Return the weighted deviation of the given timepoints from their mean time.
 
@@ -1799,7 +1799,7 @@ class SummaryRowWeighted(SummaryRow):
         self,
         name: str,
         nodes: Collection[devicetools.Node],
-        weights: Optional[Collection[float]] = None,
+        weights: Collection[float] | None = None,
     ) -> None:
         super().__init__(name=name, nodes=nodes)
         self._nodes = tuple(nodes)
@@ -1828,8 +1828,8 @@ def print_evaluationtable(
     *,
     nodes: Collection[devicetools.Node],
     criteria: Collection[Criterion],
-    nodenames: Optional[Collection[str]] = None,
-    critnames: Optional[Collection[str]] = None,
+    nodenames: Collection[str] | None = None,
+    critnames: Collection[str] | None = None,
     critfactors: Collection1[float] = 1.0,
     critdigits: Collection1[int] = 2,
     subperiod: bool = True,
@@ -1839,7 +1839,7 @@ def print_evaluationtable(
     filter_: float = 0.0,
     missingvalue: str = "-",
     decimalseperator: str = ".",
-    file_: Optional[Union[str, TextIO]] = None,
+    file_: str | TextIO | None = None,
 ) -> None: ...
 
 
@@ -1848,8 +1848,8 @@ def print_evaluationtable(
     *,
     nodes: Collection[devicetools.Node],
     criteria: Collection[Criterion],
-    nodenames: Optional[Collection[str]] = None,
-    critnames: Optional[Collection[str]] = None,
+    nodenames: Collection[str] | None = None,
+    critnames: Collection[str] | None = None,
     critfactors: Collection1[float] = 1.0,
     critdigits: Collection1[int] = 2,
     subperiod: bool = True,
@@ -1858,10 +1858,10 @@ def print_evaluationtable(
     summaryrows: Collection[SummaryRow] = (),
     filter_: float = 0.0,
     stepsize: Literal["daily", "d", "monthly", "m"] = "daily",
-    aggregator: Union[str, Callable[[VectorInputFloat], float]] = "mean",
+    aggregator: str | Callable[[VectorInputFloat], float] = "mean",
     missingvalue: str = "-",
     decimalseperator: str = ".",
-    file_: Optional[Union[str, TextIO]] = None,
+    file_: str | TextIO | None = None,
 ) -> None: ...
 
 
@@ -1872,8 +1872,8 @@ def print_evaluationtable(
     *,
     nodes: Collection[devicetools.Node],
     criteria: Collection[Criterion],
-    nodenames: Optional[Collection[str]] = None,
-    critnames: Optional[Collection[str]] = None,
+    nodenames: Collection[str] | None = None,
+    critnames: Collection[str] | None = None,
     critfactors: Collection1[float] = 1.0,
     critdigits: Collection1[int] = 2,
     subperiod: bool = True,
@@ -1881,11 +1881,11 @@ def print_evaluationtable(
     averagename: str = "mean",
     summaryrows: Collection[SummaryRow] = (),
     filter_: float = 0.0,
-    stepsize: Optional[Literal["daily", "d", "monthly", "m"]] = None,
-    aggregator: Union[str, Callable[[VectorInputFloat], float]] = "mean",
+    stepsize: Literal["daily", "d", "monthly", "m"] | None = None,
+    aggregator: str | Callable[[VectorInputFloat], float] = "mean",
     missingvalue: str = "-",
     decimalseperator: str = ".",
-    file_: Optional[Union[str, TextIO]] = None,
+    file_: str | TextIO | None = None,
 ) -> None:
     """Print a table containing the results of the given evaluation criteria for the
     given |Node| objects.

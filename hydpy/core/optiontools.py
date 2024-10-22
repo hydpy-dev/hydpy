@@ -34,13 +34,13 @@ class OptionContextBase(Generic[TypeOption]):
     |OptionPropertyBase| subclasses."""
 
     _old_value: TypeOption
-    _new_value: Optional[TypeOption]
-    _set_value: Optional[tuple[Callable[[Optional[TypeOption]], None]]]
+    _new_value: TypeOption | None
+    _set_value: tuple[Callable[[TypeOption | None], None]] | None
 
     def __init__(
         self,
         value: TypeOption,
-        set_value: Optional[Callable[[Optional[TypeOption]], None]] = None,
+        set_value: Callable[[TypeOption | None], None] | None = None,
     ) -> None:
         self._old_value = value
         self._new_value = None
@@ -50,7 +50,7 @@ class OptionContextBase(Generic[TypeOption]):
             self._set_value = (set_value,)
 
     def __call__(
-        self: TypeOptionContextBase, new_value: Optional[TypeOption] = None
+        self: TypeOptionContextBase, new_value: TypeOption | None = None
     ) -> TypeOptionContextBase:
         self._new_value = new_value
         return self
@@ -74,7 +74,7 @@ class OptionContextBool(int, OptionContextBase[bool]):
     """Context manager required by |OptionPropertyBool|."""
 
     def __new__(  # pylint: disable=unused-argument
-        cls, value: bool, set_value: Optional[Callable[[bool], None]] = None
+        cls, value: bool, set_value: Callable[[bool], None] | None = None
     ) -> OptionContextBool:
         return super().__new__(cls, value)
 
@@ -86,7 +86,7 @@ class OptionContextInt(int, OptionContextBase[int]):
     """Context manager required by |OptionPropertyInt|."""
 
     def __new__(  # pylint: disable=unused-argument
-        cls, value: int, set_value: Optional[Callable[[int], None]] = None
+        cls, value: int, set_value: Callable[[int], None] | None = None
     ) -> OptionContextInt:
         return super().__new__(cls, value)
 
@@ -95,14 +95,14 @@ class _OptionContextEllipsis(int, OptionContextBase[int]):
     def __new__(  # pylint: disable=unused-argument
         cls,
         value: int,
-        set_value: Optional[Callable[[int], None]] = None,
+        set_value: Callable[[int], None] | None = None,
         optional: bool = False,
     ) -> _OptionContextEllipsis:
         return super().__new__(cls, value)
 
     def __call__(
         self: TypeOptionContextBase,
-        new_value: Optional[int] = None,
+        new_value: int | None = None,
         optional: bool = False,
     ) -> TypeOptionContextBase:
         if optional and (self._old_value != -999):
@@ -116,7 +116,7 @@ class OptionContextStr(str, OptionContextBase[TypeOption]):
     """Context manager required by |OptionPropertyStr|."""
 
     def __new__(  # pylint: disable=unused-argument
-        cls, value: TypeOption, set_value: Optional[Callable[[TypeOption], None]] = None
+        cls, value: TypeOption, set_value: Callable[[TypeOption], None] | None = None
     ) -> Self:
         return super().__new__(cls, value)
 
@@ -124,20 +124,17 @@ class OptionContextStr(str, OptionContextBase[TypeOption]):
 class OptionContextPeriod(timetools.Period, OptionContextBase[timetools.Period]):
     """Context manager required by |OptionPropertyPeriod|."""
 
-    _set_value: tuple[Callable[[Optional[timetools.PeriodConstrArg]], None]]
+    _set_value: tuple[Callable[[timetools.PeriodConstrArg | None], None]]
 
     def __new__(  # pylint: disable=unused-argument
         cls,
         value: timetools.PeriodConstrArg,
-        set_value: Optional[
-            Callable[[Optional[timetools.PeriodConstrArg]], None]
-        ] = None,
+        set_value: None | (Callable[[timetools.PeriodConstrArg | None], None]) = None,
     ) -> OptionContextPeriod:
         return super().__new__(cls, value)
 
     def __call__(
-        self: TypeOptionContextBase,
-        new_value: Optional[timetools.PeriodConstrArg] = None,
+        self: TypeOptionContextBase, new_value: timetools.PeriodConstrArg | None = None
     ) -> TypeOptionContextBase:
         self._new_value = new_value
         return self
@@ -166,8 +163,8 @@ class OptionPropertyBase(
     def __get__(self, obj: Hashable, typ: type[Hashable]) -> TypeOptionContextBase: ...
 
     def __get__(
-        self, obj: Optional[Hashable], typ: type[Hashable]
-    ) -> Union[Self, TypeOptionContextBase]:
+        self, obj: Hashable | None, typ: type[Hashable]
+    ) -> Self | TypeOptionContextBase:
         if obj is None:
             return self
         return self._CONTEXT(
@@ -184,7 +181,7 @@ class OptionPropertyBase(
     def _get_value(self, obj: Hashable) -> TypeOption:
         return self._obj2value.get(obj, self._default)
 
-    def _set_value(self, obj: Hashable, value: Optional[TypeOption] = None) -> None:
+    def _set_value(self, obj: Hashable, value: TypeOption | None = None) -> None:
         if value is not None:
             self._obj2value[obj] = self._CONVERTER[0](value)
 
@@ -493,7 +490,7 @@ class OptionPropertyPeriod(OptionPropertyBase[timetools.Period, OptionContextPer
         self._obj2value[obj] = self._CONVERTER[0](value)
 
     def _set_value(
-        self, obj: Hashable, value: Optional[timetools.PeriodConstrArg] = None
+        self, obj: Hashable, value: timetools.PeriodConstrArg | None = None
     ) -> None:
         if value is not None:
             self._obj2value[obj] = self._CONVERTER[0](value)

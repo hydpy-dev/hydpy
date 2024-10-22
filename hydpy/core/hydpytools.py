@@ -789,13 +789,13 @@ directory: '...land_dill_assl_hland_96p_input_p.asc'
     11.757526, 8.865079, 7.101815, 5.994195
     """
 
-    _deviceorder: Optional[tuple[Union[devicetools.Node, devicetools.Element], ...]]
+    _deviceorder: tuple[devicetools.Node | devicetools.Element, ...] | None
 
-    _nodes: Optional[devicetools.Nodes]
-    _elements: Optional[devicetools.Elements]
-    _collectives: Optional[devicetools.Elements]
+    _nodes: devicetools.Nodes | None
+    _elements: devicetools.Elements | None
+    _collectives: devicetools.Elements | None
 
-    def __init__(self, projectname: Optional[str] = None) -> None:
+    def __init__(self, projectname: str | None = None) -> None:
         self._nodes = None
         self._elements = None
         self._collectives = None
@@ -1156,9 +1156,9 @@ deprecated.  Use method `prepare_models` instead.
 
     def save_controls(
         self,
-        parameterstep: Optional[timetools.PeriodConstrArg] = None,
-        simulationstep: Optional[timetools.PeriodConstrArg] = None,
-        auxfiler: Optional[auxfiletools.Auxfiler] = None,
+        parameterstep: timetools.PeriodConstrArg | None = None,
+        simulationstep: timetools.PeriodConstrArg | None = None,
+        auxfiler: auxfiletools.Auxfiler | None = None,
     ) -> None:
         """Write the control files of all current |Element| objects.
 
@@ -2055,9 +2055,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
     @property
     def networkproperties(
         self,
-    ) -> dict[
-        str, Union[int, Union[dict[str, int], dict[devicetools.NodeVariableType, int]]]
-    ]:
+    ) -> dict[str, int | dict[str, int] | dict[devicetools.NodeVariableType, int]]:
         """Some properties of the network defined by the currently relevant |Node| and
         |Element| objects.
 
@@ -2099,9 +2097,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         Applied node variables: Q (4)
         Applied model types: hland_96 (4) and musk_classic (3)
         """
-        value: Union[
-            str, int, Union[dict[str, int], dict[devicetools.NodeVariableType, int]]
-        ]
+        value: str | int | dict[str, int] | dict[devicetools.NodeVariableType, int]
         for key, value in self.networkproperties.items():
             if isinstance(value, dict):
                 value = objecttools.enumeration(
@@ -2330,16 +2326,16 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         {'Q': 4, FusedVariable("T", hland_inputs_T): 1}
         """
         variables: collections.defaultdict[
-            Union[
-                str,
-                type[sequencetools.InputSequence],
-                type[sequencetools.InletSequence],
-                type[sequencetools.ReceiverSequence],
-                type[sequencetools.OutputSequence],
-                type[sequencetools.OutletSequence],
-                type[sequencetools.SenderSequence],
-                devicetools.FusedVariable,
-            ],
+            (
+                str
+                | type[sequencetools.InputSequence]
+                | type[sequencetools.InletSequence]
+                | type[sequencetools.ReceiverSequence]
+                | type[sequencetools.OutputSequence]
+                | type[sequencetools.OutletSequence]
+                | type[sequencetools.SenderSequence]
+                | devicetools.FusedVariable
+            ),
             int,
         ] = collections.defaultdict(int)
         for node in self.nodes:
@@ -2392,17 +2388,17 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
     def update_devices(
         self,
         *,
-        nodes: Optional[devicetools.NodesConstrArg] = None,
-        elements: Optional[devicetools.ElementsConstrArg] = None,
+        nodes: devicetools.NodesConstrArg | None = None,
+        elements: devicetools.ElementsConstrArg | None = None,
         silent: bool = False,
     ) -> None: ...
 
     def update_devices(
         self,
         *,
-        selection: Optional[selectiontools.Selection] = None,
-        nodes: Optional[devicetools.NodesConstrArg] = None,
-        elements: Optional[devicetools.ElementsConstrArg] = None,
+        selection: selectiontools.Selection | None = None,
+        nodes: devicetools.NodesConstrArg | None = None,
+        elements: devicetools.ElementsConstrArg | None = None,
         silent: bool = False,
     ) -> None:
         """Determine the order in which method |HydPy.simulate| processes the currently
@@ -2595,7 +2591,7 @@ prepared so far.
             self._deviceorder = tuple(d for d in devices if d.name in names)
 
     @property
-    def deviceorder(self) -> tuple[Union[devicetools.Node, devicetools.Element], ...]:
+    def deviceorder(self) -> tuple[devicetools.Node | devicetools.Element, ...]:
         """The simulation order of the currently selected devices.
 
         |HydPy| needs to know the devices before determining their order:

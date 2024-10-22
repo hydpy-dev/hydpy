@@ -343,7 +343,7 @@ _dllextension = get_dllextension()
 
 INT = "numpy.int64_t"
 
-TYPE2STR: dict[Union[type[Any], str, None], str] = {  # pylint: disable=duplicate-key
+TYPE2STR: dict[type[Any] | str | None, str] = {  # pylint: disable=duplicate-key
     bool: "numpy.npy_bool",
     "bool": "numpy.npy_bool",
     int: INT,
@@ -587,7 +587,7 @@ class Cythonizer:
     Sequences: type[sequencetools.Sequences]
     tester: testtools.Tester
     pymodule: str
-    _cymodule: Optional[types.ModuleType]
+    _cymodule: types.ModuleType | None
 
     def __init__(self) -> None:
         self._cymodule = None
@@ -1171,11 +1171,11 @@ class PyxWriter:
     def set_pointer(
         self,
         lines: PyxPxdLines,
-        subseqs: Union[
-            sequencetools.InputSequences,
-            sequencetools.OutputSequences[Any],
-            sequencetools.LinkSequences[Any],
-        ],
+        subseqs: (
+            sequencetools.InputSequences
+            | sequencetools.OutputSequences[Any]
+            | sequencetools.LinkSequences[Any]
+        ),
     ) -> None:
         """Set pointer statements for all input, output, and link sequences."""
         if isinstance(subseqs, sequencetools.InputSequences):
@@ -1465,7 +1465,7 @@ class PyxWriter:
                     pyx(2, f"self.{name}_is_mainmodel = False")
             for submodel in submodeltypes_old:
                 pyx(2, f"self.{submodel.name} = {submodel.__name__}(self)")
-        baseinterface = "Optional[masterinterface.MasterInterface]"
+        baseinterface = "masterinterface.MasterInterface | None"
         for name in submodelnames_new:
             if not name.endswith("_*"):
                 pyx(1, f"def get_{name}(self) -> {baseinterface}:")
@@ -1920,7 +1920,7 @@ class PyxWriter:
         subseqs: Iterable[sequencetools.IOSequence],
         subseqs_name: str,
         target: str,
-        index: Optional[str],
+        index: str | None,
         load: bool,
     ) -> Iterator[str]:
         subseqs = list(subseqs)
@@ -2358,14 +2358,14 @@ class FuncConverter:
 
     model: modeltools.Model
     funcname: str
-    func: Union[types.MethodType, Callable[[modeltools.Model], None]]
+    func: types.MethodType | Callable[[modeltools.Model], None]
     inline: bool
 
     def __init__(
         self,
         model: modeltools.Model,
         funcname: str,
-        func: Union[types.MethodType, Callable[[modeltools.Model], None]],
+        func: types.MethodType | Callable[[modeltools.Model], None],
         inline: bool = True,
     ) -> None:
         self.model = model
@@ -2509,7 +2509,7 @@ class FuncConverter:
         ]
 
     @property
-    def reusablemethod(self) -> Optional[type[modeltools.ReusableMethod]]:
+    def reusablemethod(self) -> type[modeltools.ReusableMethod] | None:
         """If the currently handled function object is a reusable method, return the
         corresponding subclass of |ReusableMethod|."""
         if isinstance(method_of_model := self.func, types.MethodType):
@@ -2699,11 +2699,9 @@ nogil:
         ...     @staticmethod
         ...     def __call__(model: Model) -> None:
         ...         cast(
-        ...             Union[
-        ...                 routinginterfaces.RoutingModel_V1,
-        ...                 routinginterfaces.RoutingModel_V2,
-        ...             ],
-        ...             model.routingmodels[0],
+        ...              routinginterfaces.RoutingModel_V1
+        ...              | routinginterfaces.RoutingModel_V2,
+        ...              model.routingmodels[0],
         ...         ).get_partialdischargedownstream()
         >>> model.calc_test_v4 = MethodType(Calc_Test_V4.__call__, model)
         >>> FuncConverter(model, "calc_test_v4", model.calc_test_v4).pyxlines

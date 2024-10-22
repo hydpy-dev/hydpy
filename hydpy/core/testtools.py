@@ -374,9 +374,9 @@ class ArrayDescriptor:
     def __set__(
         self,
         obj: Test,
-        sequence2value: Optional[
+        sequence2value: (
             Sequence[tuple[sequencetools.ConditionSequence, ArrayFloat]]
-        ],
+        ) | None,
     ) -> None:
         self.__delete__(obj)
         if sequence2value is not None:
@@ -392,7 +392,7 @@ class ArrayDescriptor:
             for name, (_, value) in zip(names, sequence2value):
                 setattr(self.values, name, value)
 
-    def __get__(self, obj: Test, type_: Optional[type[Test]] = None) -> Array:
+    def __get__(self, obj: Test, type_: type[Test] | None = None) -> Array:
         return self.values
 
     def __delete__(self, obj: Test) -> None:
@@ -513,7 +513,7 @@ class Test:
         lst.append(separators[-1])
         return "".join(lst)
 
-    def make_table(self, idx1: Optional[int] = None, idx2: Optional[int] = None) -> str:
+    def make_table(self, idx1: int | None = None, idx2: int | None = None) -> str:
         """Return the result table between the given indices."""
         lines = []
         col_widths = self.col_widths
@@ -526,9 +526,7 @@ class Test:
             lines.append(self._interleave(col_separators, strings_in_line, col_widths))
         return "\n".join(lines)
 
-    def print_table(
-        self, idx1: Optional[int] = None, idx2: Optional[int] = None
-    ) -> None:
+    def print_table(self, idx1: int | None = None, idx2: int | None = None) -> None:
         """Print the result table between the given indices."""
         print(self.make_table(idx1=idx1, idx2=idx2))
 
@@ -540,7 +538,7 @@ class PlottingOptions:
     height: int
     axis1: typingtools.MayNonerable1[sequencetools.IOSequence]
     axis2: typingtools.MayNonerable1[sequencetools.IOSequence]
-    activated: Optional[tuple[sequencetools.IOSequence, ...]]
+    activated: tuple[sequencetools.IOSequence, ...] | None
 
     def __init__(self) -> None:
         self.width = 600
@@ -575,8 +573,8 @@ class IntegrationTest(Test):
 
     def __init__(
         self,
-        element: Optional[devicetools.Element] = None,
-        seqs: Optional[tuple[sequencetools.IOSequence, ...]] = None,
+        element: devicetools.Element | None = None,
+        seqs: tuple[sequencetools.IOSequence, ...] | None = None,
         inits=None,
     ) -> None:
         """Prepare the element and its nodes, put them into a HydPy object, and make
@@ -600,39 +598,39 @@ class IntegrationTest(Test):
     @overload
     def __call__(
         self,
-        filename: Optional[str] = None,
+        filename: str | None = None,
         *,
         axis1: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         update_parameters: bool = True,
         get_conditions: Literal[None] = ...,
-        use_conditions: Optional[ConditionsModel] = None,
+        use_conditions: ConditionsModel | None = None,
     ) -> None:
         """do not return conditions"""
 
     @overload
     def __call__(
         self,
-        filename: Optional[str] = None,
+        filename: str | None = None,
         *,
         axis1: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         update_parameters: bool = True,
         get_conditions: timetools.DateConstrArg,
-        use_conditions: Optional[ConditionsModel],
+        use_conditions: ConditionsModel | None,
     ) -> ConditionsModel:
         """do return conditions"""
 
     def __call__(
         self,
-        filename: Optional[str] = None,
+        filename: str | None = None,
         *,
         axis1: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         update_parameters: bool = True,
-        get_conditions: Optional[timetools.DateConstrArg] = None,
-        use_conditions: Optional[ConditionsModel] = None,
-    ) -> Optional[ConditionsModel]:
+        get_conditions: timetools.DateConstrArg | None = None,
+        use_conditions: ConditionsModel | None = None,
+    ) -> ConditionsModel | None:
         """Prepare and perform an integration test and print and eventually plot its
         results.
 
@@ -649,8 +647,8 @@ class IntegrationTest(Test):
         return seq2value
 
     def _perform_simulation(
-        self, get_conditions: Optional[timetools.DateConstrArg]
-    ) -> Optional[ConditionsModel]:
+        self, get_conditions: timetools.DateConstrArg | None
+    ) -> ConditionsModel | None:
         if get_conditions:
             sim = copy.deepcopy(hydpy.pub.timegrids.sim)
             date = timetools.Date(get_conditions)
@@ -759,7 +757,7 @@ standard library for for further information.
         return tuple(seqs)
 
     def prepare_model(
-        self, update_parameters: bool, use_conditions: Optional[ConditionsModel]
+        self, update_parameters: bool, use_conditions: ConditionsModel | None
     ) -> None:
         """Derive the secondary parameter values, prepare all required time series and
         set the initial conditions."""
@@ -932,7 +930,7 @@ standard library for for further information.
             ("remove all", (False, False)),
             ("add all to y-axis 2", (False, True)),
         ):
-            subbuttons: list[dict[str, Union[str, list[Any]]]] = [
+            subbuttons: list[dict[str, str | list[Any]]] = [
                 {
                     "label": label,
                     "method": "restyle",
@@ -1305,8 +1303,8 @@ class TestIO:
 
     _clear_own: bool
     _clear_all: bool
-    _path: Optional[str]
-    _olds: Optional[list[str]]
+    _path: str | None
+    _olds: list[str] | None
 
     def __init__(self, clear_own: bool = False, clear_all: bool = False) -> None:
         self._clear_own = clear_own
@@ -1486,7 +1484,7 @@ class NumericalDifferentiator:
         *,
         xsequence: sequencetools.ModelSequence,
         ysequences: Iterable[sequencetools.ModelSequence],
-        methods: Iterable["modeltools.Method"],
+        methods: Iterable[modeltools.Method],
         dx: float = 1e-6,
         method: Literal["forward", "central", "backward"] = "forward",
     ):
@@ -1540,7 +1538,7 @@ class NumericalDifferentiator:
 
 
 def update_integrationtests(
-    applicationmodel: Union[types.ModuleType, str],
+    applicationmodel: types.ModuleType | str,
     resultfilepath: str = "update_integrationtests.txt",
 ) -> None:
     """Write the docstring of the given application model, updated with the current
@@ -2030,7 +2028,7 @@ PotentialInterceptionEvaporation
 
 
 def perform_consistencychecks(
-    applicationmodel=Union[types.ModuleType, str], indent: int = 0
+    applicationmodel: types.ModuleType | str, indent: int = 0
 ) -> str:
     """Perform all available consistency checks for the given application model.
 
@@ -2103,7 +2101,7 @@ result sequences of any of its predecessors: NKor
     return "\n".join(results)
 
 
-def save_autofig(filename: str, figure: Optional[pyplot.Figure] = None) -> None:
+def save_autofig(filename: str, figure: pyplot.Figure | None = None) -> None:
     """Save a figure automatically generated during testing in the special `autofig`
     sub-package so that Sphinx can include it into the documentation later.
 
@@ -2398,7 +2396,7 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     return nodes, elements
 
 
-def prepare_full_example_1(dirpath: Optional[str] = None) -> None:
+def prepare_full_example_1(dirpath: str | None = None) -> None:
     """Prepare the `HydPy-H-Lahn` example project on disk.
 
     By default, function |prepare_full_example_1| copies the original project data into

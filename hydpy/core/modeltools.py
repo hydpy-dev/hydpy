@@ -58,7 +58,7 @@ class Method:
     SUBMODELINTERFACES: ClassVar[tuple[type[SubmodelInterface], ...]]
     SUBMETHODS: tuple[type[Method], ...] = ()
     CONTROLPARAMETERS: tuple[
-        type[Union[parametertools.Parameter, interptools.BaseInterpolator]], ...
+        type[parametertools.Parameter | interptools.BaseInterpolator], ...
     ] = ()
     DERIVEDPARAMETERS: tuple[type[parametertools.Parameter], ...] = ()
     FIXEDPARAMETERS: tuple[type[parametertools.Parameter], ...] = ()
@@ -306,21 +306,21 @@ instance of any of the following supported interfaces: SoilModel_V1.
         self.__hydpy_modeltype2instance__[owner].append(self)
 
     @overload
-    def __get__(self, obj: None, objtype: Optional[type[Model]]) -> Self: ...
+    def __get__(self, obj: None, objtype: type[Model] | None) -> Self: ...
 
     @overload
     def __get__(
-        self, obj: Model, objtype: Optional[type[Model]]
-    ) -> Optional[TypeSubmodelInterface]: ...
+        self, obj: Model, objtype: type[Model] | None
+    ) -> TypeSubmodelInterface | None: ...
 
     def __get__(
-        self, obj: Optional[Model], objtype: Optional[type[Model]] = None
-    ) -> Union[Self, Optional[TypeSubmodelInterface]]:
+        self, obj: Model | None, objtype: type[Model] | None = None
+    ) -> Self | TypeSubmodelInterface | None:
         if obj is None:
             return self
         return vars(obj).get(self.name, None)
 
-    def __set__(self, obj: Model, value: Optional[TypeSubmodelInterface]) -> None:
+    def __set__(self, obj: Model, value: TypeSubmodelInterface | None) -> None:
         try:
             if value is None:
                 self.__delete__(obj)
@@ -383,10 +383,10 @@ class SubmodelsProperty(_SubmodelPropertyBase[TypeSubmodelInterface]):
         collections.defaultdict[type[Model], list[SubmodelsProperty[Any]]]
     ] = collections.defaultdict(list)
     __hydpy_mainmodel2submodels__: collections.defaultdict[
-        Model, list[Optional[TypeSubmodelInterface]]
+        Model, list[TypeSubmodelInterface | None]
     ]
 
-    _mainmodel: Optional[Model]
+    _mainmodel: Model | None
     _mainmodel2numbersubmodels: collections.defaultdict[Model, int]
     _mainmodel2submodeltypeids: collections.defaultdict[Model, list[int]]
 
@@ -409,9 +409,7 @@ class SubmodelsProperty(_SubmodelPropertyBase[TypeSubmodelInterface]):
             f"{objecttools.enumeration(interfacenames, conjunction='or')}."
         )
 
-    def __get__(
-        self, obj: Optional[Model], objtype: Optional[type[Model]] = None
-    ) -> Self:
+    def __get__(self, obj: Model | None, objtype: type[Model] | None = None) -> Self:
         if obj is None:
             return self
         try:
@@ -665,7 +663,7 @@ assignment index out of range
             )
 
     def append_submodel(
-        self, submodel: TypeSubmodelInterface, typeid: Optional[int] = None
+        self, submodel: TypeSubmodelInterface, typeid: int | None = None
     ) -> None:
         """Append a submodel and its relevant type ID to the already available ones.
 
@@ -790,7 +788,7 @@ interfaces: RoutingModel_V1 and RoutingModel_V2.
             )
 
     @property
-    def submodels(self) -> tuple[Optional[TypeSubmodelInterface], ...]:
+    def submodels(self) -> tuple[TypeSubmodelInterface | None, ...]:
         """The currently handled submodels.
 
         >>> from hydpy import prepare_model
@@ -819,11 +817,11 @@ interfaces: RoutingModel_V1 and RoutingModel_V2.
         assert (mainmodel := self._mainmodel) is not None
         return tuple(self._mainmodel2submodeltypeids[mainmodel])
 
-    def __getitem__(self, value: int) -> Optional[TypeSubmodelInterface]:
+    def __getitem__(self, value: int) -> TypeSubmodelInterface | None:
         assert (mainmodel := self._mainmodel) is not None
         return self.__hydpy_mainmodel2submodels__[mainmodel][value]
 
-    def __iter__(self) -> Iterator[Optional[TypeSubmodelInterface]]:
+    def __iter__(self) -> Iterator[TypeSubmodelInterface | None]:
         assert (mainmodel := self._mainmodel) is not None
         yield from self.__hydpy_mainmodel2submodels__[mainmodel]
 
@@ -857,7 +855,7 @@ class SubmodelIsMainmodelProperty:
     _owner2value: dict[Model, bool]
     _name: Final[str]  # type: ignore[misc]
 
-    def __init__(self, doc: Optional[str] = None) -> None:
+    def __init__(self, doc: str | None = None) -> None:
         self._owner2value = {}
         self.__doc__ = doc
 
@@ -865,14 +863,14 @@ class SubmodelIsMainmodelProperty:
         self._name = name  # type: ignore[misc]
 
     @overload
-    def __get__(self, obj: None, objtype: Optional[type[Model]]) -> Self: ...
+    def __get__(self, obj: None, objtype: type[Model] | None) -> Self: ...
 
     @overload
-    def __get__(self, obj: Model, objtype: Optional[type[Model]]) -> bool: ...
+    def __get__(self, obj: Model, objtype: type[Model] | None) -> bool: ...
 
     def __get__(
-        self, obj: Optional[Model], objtype: Optional[type[Model]] = None
-    ) -> Union[Self, bool]:
+        self, obj: Model | None, objtype: type[Model] | None = None
+    ) -> Self | bool:
         if obj is None:
             return self
         return self._owner2value.get(obj, False)
@@ -909,7 +907,7 @@ class SubmodelTypeIDProperty:
     _owner2value: dict[Model, int]
     _name: Final[str]  # type: ignore[misc]
 
-    def __init__(self, doc: Optional[str] = None) -> None:
+    def __init__(self, doc: str | None = None) -> None:
         self._owner2value = {}
         self.__doc__ = doc
 
@@ -917,14 +915,14 @@ class SubmodelTypeIDProperty:
         self._name = name  # type: ignore[misc]
 
     @overload
-    def __get__(self, obj: None, objtype: Optional[type[Model]]) -> Self: ...
+    def __get__(self, obj: None, objtype: type[Model] | None) -> Self: ...
 
     @overload
-    def __get__(self, obj: Model, objtype: Optional[type[Model]]) -> int: ...
+    def __get__(self, obj: Model, objtype: type[Model] | None) -> int: ...
 
     def __get__(
-        self, obj: Optional[Model], objtype: Optional[type[Model]] = None
-    ) -> Union[Self, int]:
+        self, obj: Model | None, objtype: type[Model] | None = None
+    ) -> Self | int:
         if obj is None:
             return self
         return self._owner2value.get(obj, 0)
@@ -949,7 +947,7 @@ class IndexProperty:
     @overload
     def __get__(self, obj: None, objtype: type[Model]) -> Self: ...
 
-    def __get__(self, obj: Optional[Model], objtype: type[Model]) -> Union[Self, int]:
+    def __get__(self, obj: Model | None, objtype: type[Model]) -> Self | int:
         if obj is None:
             return self
         if obj.cymodel:
@@ -1112,13 +1110,13 @@ class Model:
     3.0
     """
 
-    cymodel: Optional[CyModelProtocol]
+    cymodel: CyModelProtocol | None
     parameters: parametertools.Parameters
     sequences: sequencetools.Sequences
     masks: masktools.Masks
     idx_sim = Idx_Sim()
 
-    __hydpy_element__: Optional[devicetools.Element]
+    __hydpy_element__: devicetools.Element | None
     __HYDPY_NAME__: ClassVar[str]
 
     INLET_METHODS: ClassVar[tuple[type[Method], ...]]
@@ -1142,7 +1140,7 @@ class Model:
 
     DOCNAME: DocName
 
-    __HYDPY_ROOTMODEL__: Optional[bool]
+    __HYDPY_ROOTMODEL__: bool | None
     """Flag telling whether a submodel should be considered as a submodel graph root.
     
     `None` is reserved for base and special-purpose models likely irrelevant to users. 
@@ -1592,7 +1590,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                     )
                 _set_pointer(sequence_, node)
 
-    def _determine_name(self, var: Union[str, sequencetools.InOutSequenceTypes]) -> str:
+    def _determine_name(self, var: str | sequencetools.InOutSequenceTypes) -> str:
         if isinstance(var, str):
             return var.lower()
         return var.__name__.lower()
@@ -1610,10 +1608,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         self._connect_subgroup("senders", report_noconnect, 0)
 
     def _connect_subgroup(
-        self,
-        group: str,
-        report_noconnect: bool,
-        position: Optional[Literal[0, -1]] = None,
+        self, group: str, report_noconnect: bool, position: Literal[0, -1] | None = None
     ) -> None:
         st = sequencetools
         available_nodes = getattr(self.element, group)
@@ -1794,8 +1789,8 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
     def get_controlfileheader(
         self,
         import_submodels: bool = True,
-        parameterstep: Optional[timetools.PeriodConstrArg] = None,
-        simulationstep: Optional[timetools.PeriodConstrArg] = None,
+        parameterstep: timetools.PeriodConstrArg | None = None,
+        simulationstep: timetools.PeriodConstrArg | None = None,
     ) -> str:
         """Return the header of a parameter control file.
 
@@ -1852,11 +1847,11 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
     def _get_controllines(
         self,
         *,
-        parameterstep: Optional[timetools.PeriodConstrArg] = None,
-        simulationstep: Optional[timetools.PeriodConstrArg] = None,
-        auxfiler: Optional[auxfiletools.Auxfiler] = None,
+        parameterstep: timetools.PeriodConstrArg | None = None,
+        simulationstep: timetools.PeriodConstrArg | None = None,
+        auxfiler: auxfiletools.Auxfiler | None = None,
         sublevel: int = 0,
-        ignore: Optional[tuple[type[parametertools.Parameter], ...]] = None,
+        ignore: tuple[type[parametertools.Parameter], ...] | None = None,
     ) -> list[str]:
         parameter2auxfile = None if auxfiler is None else auxfiler.get(self)
         lines = []
@@ -1883,10 +1878,10 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
 
     def save_controls(
         self,
-        parameterstep: Optional[timetools.PeriodConstrArg] = None,
-        simulationstep: Optional[timetools.PeriodConstrArg] = None,
-        auxfiler: Optional[auxfiletools.Auxfiler] = None,
-        filepath: Optional[str] = None,
+        parameterstep: timetools.PeriodConstrArg | None = None,
+        simulationstep: timetools.PeriodConstrArg | None = None,
+        auxfiler: auxfiletools.Auxfiler | None = None,
+        filepath: str | None = None,
     ) -> None:
         """Write the control parameters (and eventually some solver parameters) to a
         control file.
@@ -2017,7 +2012,7 @@ submodel_meteo_glob_fao56:
             model: Model, sublevel: int, preparemethods: set[str]
         ) -> None:
             def _find_adder_and_position() -> (
-                tuple[importtools.SubmodelAdder, Optional[str]]
+                tuple[importtools.SubmodelAdder, str | None]
             ):
                 mt2sn2as = importtools.SubmodelAdder.__hydpy_maintype2subname2adders__
                 subname, position = name.rpartition(".")[2], None
@@ -2143,7 +2138,7 @@ submodel_meteo_glob_fao56:
 
     @contextlib.contextmanager
     def define_conditions(
-        self, module: Optional[Union[types.ModuleType, str]] = None
+        self, module: types.ModuleType | str | None = None
     ) -> Generator[None, None, None]:
         """Allow defining the values of condition sequences in condition files
         conveniently.
@@ -2238,7 +2233,7 @@ of type `evap_aet_hbv96`.
                 f"While trying to define the conditions of (sub)model `{self.name}`"
             )
 
-    def __prepare_conditionfilename(self, filename: Optional[str]) -> str:
+    def __prepare_conditionfilename(self, filename: str | None) -> str:
         if filename is None:
             filename = objecttools.devicename(self)
             if filename == "?":
@@ -2255,7 +2250,7 @@ of type `evap_aet_hbv96`.
             filename += ".py"
         return filename
 
-    def load_conditions(self, filename: Optional[str] = None) -> None:
+    def load_conditions(self, filename: str | None = None) -> None:
         """Read the initial conditions from a file and assign them to the respective
         |StateSequence| and |LogSequence| objects.
 
@@ -2401,7 +2396,7 @@ the available directories (calib_1 and calib_2).
                     f"`{objecttools.devicename(self)}`"
                 )
 
-    def save_conditions(self, filename: Optional[str] = None) -> None:
+    def save_conditions(self, filename: str | None = None) -> None:
         """Query the actual conditions of the |StateSequence| and |LogSequence| objects
         and write them into an initial condition file.
 
@@ -2693,7 +2688,7 @@ the available directories (calib_1 and calib_2).
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
-        position: Optional[Literal[0, -1]] = None,
+        position: Literal[0, -1] | None = None,
     ) -> dict[str, Model]: ...
 
     @overload
@@ -2707,8 +2702,8 @@ the available directories (calib_1 and calib_2).
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
-        position: Optional[Literal[0, -1]] = None,
-    ) -> dict[str, Optional[Model]]: ...
+        position: Literal[0, -1] | None = None,
+    ) -> dict[str, Model | None]: ...
 
     @overload
     def find_submodels(
@@ -2721,7 +2716,7 @@ the available directories (calib_1 and calib_2).
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[True],
         repeat_sharedmodels: bool = False,
-    ) -> dict[str, Optional[Model]]: ...
+    ) -> dict[str, Model | None]: ...
 
     @overload
     def find_submodels(
@@ -2734,7 +2729,7 @@ the available directories (calib_1 and calib_2).
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[True],
         repeat_sharedmodels: bool = False,
-    ) -> dict[str, Optional[Model]]: ...
+    ) -> dict[str, Model | None]: ...
 
     @overload
     def find_submodels(
@@ -2747,7 +2742,7 @@ the available directories (calib_1 and calib_2).
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
-        position: Optional[Literal[0, -1]] = None,
+        position: Literal[0, -1] | None = None,
     ) -> dict[str, Model]: ...
 
     @overload
@@ -2761,8 +2756,8 @@ the available directories (calib_1 and calib_2).
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
-        position: Optional[Literal[0, -1]] = None,
-    ) -> dict[str, Optional[Model]]: ...
+        position: Literal[0, -1] | None = None,
+    ) -> dict[str, Model | None]: ...
 
     @overload
     def find_submodels(
@@ -2775,7 +2770,7 @@ the available directories (calib_1 and calib_2).
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[True],
         repeat_sharedmodels: bool = False,
-    ) -> dict[str, Optional[Model]]: ...
+    ) -> dict[str, Model | None]: ...
 
     @overload
     def find_submodels(
@@ -2788,7 +2783,7 @@ the available directories (calib_1 and calib_2).
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[True],
         repeat_sharedmodels: bool = False,
-    ) -> dict[str, Optional[Model]]: ...
+    ) -> dict[str, Model | None]: ...
 
     def find_submodels(
         self,
@@ -2800,8 +2795,8 @@ the available directories (calib_1 and calib_2).
         include_feedbacks: bool = False,
         aggregate_vectors: bool = False,
         repeat_sharedmodels: bool = False,
-        position: Optional[Literal[0, -1]] = None,
-    ) -> Union[dict[str, Model], dict[str, Optional[Model]]]:
+        position: Literal[0, -1] | None = None,
+    ) -> dict[str, Model] | dict[str, Model | None]:
         """Find the (sub)submodel instances of the current main model instance.
 
         Method |Model.find_submodels| returns an empty dictionary by default if no
@@ -3048,7 +3043,7 @@ but the value `1` of type `int` is given.
         _find_submodels("model", self)
         return dict(sorted(name2submodel.items()))
 
-    def query_submodels(self, name: Union[types.ModuleType, str], /) -> list[Model]:
+    def query_submodels(self, name: types.ModuleType | str, /) -> list[Model]:
         """Use |Model.find_submodels| to query all (sub)models of the given type.
 
         >>> from hydpy import prepare_model
@@ -3180,7 +3175,7 @@ but the value `1` of type `int` is given.
             model.sequences.conditions = conditions[name]
 
     @property
-    def couple_models(self) -> Optional[ModelCoupler]:
+    def couple_models(self) -> ModelCoupler | None:
         """If available, return a function object for coupling models to a composite
         model suitable at least for the actual model subclass (see method
         |Elements.unite_collectives|)."""
@@ -3481,7 +3476,7 @@ class SubstepModel(RunModel):
     stability requirements.
     """
 
-    cymodel: Optional[CySubstepModelProtocol]
+    cymodel: CySubstepModelProtocol | None
 
     _timeleft: float = 0.0
 
@@ -4644,7 +4639,7 @@ class SubmodelInterface(Model, abc.ABC):
     """Base class for defining interfaces for submodels."""
 
     INTERFACE_METHODS: ClassVar[tuple[type[Method], ...]]
-    _submodeladder: Optional[importtools.SubmodelAdder]
+    _submodeladder: importtools.SubmodelAdder | None
     preparemethod2arguments: dict[str, tuple[tuple[Any, ...], dict[str, Any]]]
 
     typeid: ClassVar[int]
@@ -4845,9 +4840,9 @@ sw1d_channel.
     def __call__(
         self,
         *,
-        nodes: Optional[devicetools.Nodes] = None,
-        elements: Optional[devicetools.Elements] = None,
-        selection: Optional[selectiontools.Selection] = None,
+        nodes: devicetools.Nodes | None = None,
+        elements: devicetools.Elements | None = None,
+        selection: selectiontools.Selection | None = None,
     ) -> TypeModel_co:
         try:
             if selection is None:

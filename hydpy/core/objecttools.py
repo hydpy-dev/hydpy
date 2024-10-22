@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 
 _builtinnames = set(dir(builtins))
 
-ReprArg = Union[
+ReprArg: TypeAlias = Union[
     numbers.Number, Iterable[numbers.Number], Iterable[Iterable[numbers.Number]]
 ]
 
@@ -78,9 +78,7 @@ def modulename(self: object) -> str:
     return self.__module__.split(".")[-1]
 
 
-def _search_device(
-    self: object,
-) -> Optional[Union[devicetools.Node, devicetools.Element]]:
+def _search_device(self: object) -> devicetools.Node | devicetools.Element | None:
     # pylint: disable=import-outside-toplevel
     from hydpy.core import devicetools as dt
     from hydpy.core import modeltools as mt
@@ -126,7 +124,7 @@ def devicename(self: object) -> str:
     return device.name
 
 
-def _devicephrase(self: object, objname: Optional[str] = None) -> str:
+def _devicephrase(self: object, objname: str | None = None) -> str:
     name_ = getattr(self, "name", type(self).__name__.lower())
     device = _search_device(self)
     if device and objname:
@@ -273,7 +271,7 @@ not start with numbers, cannot be mistaken with Python built-ins like `for`...)
 
 
 def augment_excmessage(
-    prefix: Optional[str] = None, suffix: Optional[str] = None
+    prefix: str | None = None, suffix: str | None = None
 ) -> NoReturn:
     """Augment an exception message with additional information while keeping the
     original traceback.
@@ -614,7 +612,7 @@ def copy_(self: T) -> T:
         return copy.copy(self)
 
 
-def deepcopy_(self: T, memo: Optional[dict[int, object]]) -> T:
+def deepcopy_(self: T, memo: dict[int, object] | None) -> T:
     """Deepcopy function for classes with modified attribute functions.
 
     See the documentation on class |ResetAttrFuncs| for further information.
@@ -738,7 +736,7 @@ class _Repr:
     def __init__(self) -> None:
         self._preserve_strings = False
 
-    def __call__(self, value: object, decimals: Optional[int] = None) -> str:
+    def __call__(self, value: object, decimals: int | None = None) -> str:
         if decimals is None:
             decimals = hydpy.pub.options.reprdigits
         if isinstance(value, str):
@@ -1007,10 +1005,7 @@ def assignrepr_value(value: object, prefix: str) -> str:
 
 
 def assignrepr_values(
-    values: VectorInputObject,
-    prefix: str,
-    width: Optional[int] = None,
-    _fakeend: int = 0,
+    values: VectorInputObject, prefix: str, width: int | None = None, _fakeend: int = 0
 ) -> str:
     """Return a prefixed, wrapped and properly aligned string representation of the
     given values using function |repr|.
@@ -1107,7 +1102,7 @@ class _AssignReprBracketed:
         self._brackets = brackets
 
     def __call__(
-        self, values: VectorInputObject, prefix: str, width: Optional[int] = None
+        self, values: VectorInputObject, prefix: str, width: int | None = None
     ) -> str:
         nmb_values = len(values)
         if (nmb_values == 1) and not self._always_bracketed:
@@ -1210,7 +1205,7 @@ test = [10,]
 
 
 def assignrepr_values2(
-    values: MatrixInputObject, prefix: str, width: Optional[int] = None
+    values: MatrixInputObject, prefix: str, width: int | None = None
 ) -> str:
     """Return a prefixed and properly aligned string representation of the given
     2-dimensional value matrix using function |repr|.
@@ -1242,7 +1237,7 @@ def _assignrepr_bracketed2(
     assignrepr_bracketed1: _AssignReprBracketed,
     values: MatrixInputObject,
     prefix: str,
-    width: Optional[int] = None,
+    width: int | None = None,
 ) -> str:
     """Return a prefixed, wrapped and properly aligned bracketed string representation
     of the given 2-dimensional value matrix using function |repr|."""
@@ -1266,7 +1261,7 @@ def _assignrepr_bracketed2(
 
 
 def assignrepr_tuple2(
-    values: MatrixInputObject, prefix: str, width: Optional[int] = None
+    values: MatrixInputObject, prefix: str, width: int | None = None
 ) -> str:
     """Return a prefixed, wrapped and properly aligned tuple string representation of
     the given 2-dimensional value matrix using function |repr|.
@@ -1303,7 +1298,7 @@ def assignrepr_tuple2(
 
 
 def assignrepr_list2(
-    values: MatrixInputObject, prefix: str, width: Optional[int] = None
+    values: MatrixInputObject, prefix: str, width: int | None = None
 ) -> str:
     """Return a prefixed, wrapped and properly aligned list string representation of
     the given 2-dimensional value matrix using function |repr|.
@@ -1342,7 +1337,7 @@ def _assignrepr_bracketed3(
     assignrepr_bracketed1: _AssignReprBracketed,
     values: TensorInputObject,
     prefix: str,
-    width: Optional[int] = None,
+    width: int | None = None,
 ) -> str:
     """Return a prefixed, wrapped and properly aligned bracketed string representation
     of the given 3-dimensional value matrix using function |repr|."""
@@ -1370,7 +1365,7 @@ def _assignrepr_bracketed3(
 
 
 def assignrepr_tuple3(
-    values: TensorInputObject, prefix: str, width: Optional[int] = None
+    values: TensorInputObject, prefix: str, width: int | None = None
 ) -> str:
     """Return a prefixed, wrapped and properly aligned tuple string representation of
     the given 3-dimensional value matrix using function |repr|.
@@ -1425,7 +1420,7 @@ def assignrepr_tuple3(
 
 
 def assignrepr_list3(
-    values: TensorInputObject, prefix: str, width: Optional[int] = None
+    values: TensorInputObject, prefix: str, width: int | None = None
 ) -> str:
     """Return a prefixed, wrapped and properly aligned list string representation of
     the given 3-dimensional value matrix using function |repr|.
@@ -1561,51 +1556,51 @@ nmb_subsections=4, length_adj=2.0)
 
 @overload
 def round_(
-    values: Union[object, Iterable[object]],
-    decimals: Optional[int] = None,
+    values: object | Iterable[object],
+    decimals: int | None = None,
     *,
     sep: str = " ",
     end: str = "\n",
-    file_: Optional[TextIO] = None,
+    file_: TextIO | None = None,
 ) -> None: ...
 
 
 @overload
 def round_(
-    values: Union[object, Iterable[object]],
-    decimals: Optional[int] = None,
+    values: object | Iterable[object],
+    decimals: int | None = None,
     *,
     width: int = 0,
-    lfill: Optional[str] = None,
+    lfill: str | None = None,
     sep: str = " ",
     end: str = "\n",
-    file_: Optional[TextIO] = None,
+    file_: TextIO | None = None,
 ) -> None: ...
 
 
 @overload
 def round_(
-    values: Union[object, Iterable[object]],
-    decimals: Optional[int] = None,
+    values: object | Iterable[object],
+    decimals: int | None = None,
     *,
     width: int = 0,
-    rfill: Optional[str] = None,
+    rfill: str | None = None,
     sep: str = " ",
     end: str = "\n",
-    file_: Optional[TextIO] = None,
+    file_: TextIO | None = None,
 ) -> None: ...
 
 
 def round_(
-    values: Union[object, VectorInputObject],
-    decimals: Optional[int] = None,
+    values: object | VectorInputObject,
+    decimals: int | None = None,
     *,
     width: int = 0,
-    lfill: Optional[str] = None,
-    rfill: Optional[str] = None,
+    lfill: str | None = None,
+    rfill: str | None = None,
     sep: str = " ",
     end: str = "\n",
-    file_: Optional[TextIO] = None,
+    file_: TextIO | None = None,
 ) -> None:
     """Prints values with a maximum number of digits in doctests.
 
@@ -1672,36 +1667,38 @@ and `rfill`.  This is not allowed.
 
 @overload
 def extract(
-    values: Union[Iterable[object], object], types_: tuple[type[T1]], skip: bool = False
+    values: Iterable[object] | object, types_: tuple[type[T1]], skip: bool = False
 ) -> Iterator[T1]:
     """Extract all objects of one defined type."""
 
 
 @overload
 def extract(
-    values: Union[Iterable[object], object],
+    values: Iterable[object] | object,
     types_: tuple[type[T1], type[T2]],
     skip: bool = False,
-) -> Iterator[Union[T1, T2]]:
+) -> Iterator[T1 | T2]:
     """Extract all objects of two defined types."""
 
 
 @overload
 def extract(
-    values: Union[Iterable[object], object],
+    values: Iterable[object] | object,
     types_: tuple[type[T1], type[T2], type[T3]],
     skip: bool = False,
-) -> Iterator[Union[T1, T2, T3]]:
+) -> Iterator[T1 | T2 | T3]:
     """Extract all objects of three defined types."""
 
 
 def extract(
-    values: Union[Iterable[object], object],
-    types_: Union[
-        tuple[type[T1]], tuple[type[T1], type[T2]], tuple[type[T1], type[T2], type[T3]]
-    ],
+    values: Iterable[object] | object,
+    types_: (
+        tuple[type[T1]]
+        | tuple[type[T1], type[T2]]
+        | tuple[type[T1], type[T2], type[T3]]
+    ),
     skip: bool = False,
-) -> Iterator[Union[T1, T2, T3]]:
+) -> Iterator[T1 | T2 | T3]:
     """Return a generator that extracts certain objects from `values`.
 
     This function is thought for supporting the definition of functions with arguments,
@@ -1847,7 +1844,7 @@ the original traceback.'
 
 
 @contextlib.contextmanager
-def get_printtarget(file_: Union[TextIO, str, None]) -> Generator[TextIO, None, None]:
+def get_printtarget(file_: TextIO | str | None) -> Generator[TextIO, None, None]:
     """Get a suitable file object reading for writing text useable as the `file`
     argument of the standard |print| function.
 
@@ -1932,7 +1929,7 @@ string=f"a {10*'very '}long test"))
     return black.format_str(f"{name}({arguments})", mode=_black_filemode)[:-1]
 
 
-def value2bool(argument: str, value: Union[str, int]) -> bool:
+def value2bool(argument: str, value: str | int) -> bool:
     """Convert the given string or integer value to a boolean and return it.
 
     >>> from hydpy.core.objecttools import value2bool

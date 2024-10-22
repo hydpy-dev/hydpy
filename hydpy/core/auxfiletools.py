@@ -42,7 +42,7 @@ if TYPE_CHECKING:
     from hydpy.core import timetools
 
 
-Reference = Union[parametertools.Parameter, parametertools.KeywordArguments]
+Reference: TypeAlias = Union[parametertools.Parameter, parametertools.KeywordArguments]
 
 
 class Auxfiler:
@@ -147,13 +147,11 @@ nor does it handle a model named `lland_dd`...
 
     _model2subauxfiler: dict[str, SubAuxfiler]
 
-    def __init__(self, *models: Union[str, types.ModuleType, modeltools.Model]) -> None:
+    def __init__(self, *models: str | types.ModuleType | modeltools.Model) -> None:
         self._model2subauxfiler = {}
         self.add_models(*models)
 
-    def add_models(
-        self, *models: Union[str, types.ModuleType, modeltools.Model]
-    ) -> None:
+    def add_models(self, *models: str | types.ModuleType | modeltools.Model) -> None:
         """Register an arbitrary number of |Model| types.
 
         For further information, see the main documentation on class |Auxfiler|.
@@ -170,9 +168,7 @@ nor does it handle a model named `lland_dd`...
                 f"`{type(self).__name__}` object"
             )
 
-    def remove_models(
-        self, *models: Union[str, types.ModuleType, modeltools.Model]
-    ) -> None:
+    def remove_models(self, *models: str | types.ModuleType | modeltools.Model) -> None:
         """Unregister an arbitrary number of |Model| classes.
 
         For further information, see the main documentation on class |Auxfiler|.
@@ -194,13 +190,13 @@ nor does it handle a model named `lland_dd`...
 
     @staticmethod
     def _get_model(
-        value: Union[str, types.ModuleType, modeltools.Model]
+        value: str | types.ModuleType | modeltools.Model,
     ) -> modeltools.Model:
         if isinstance(value, modeltools.Model):
             return value
         return importtools.prepare_model(value)
 
-    def get(self, model: Union[str, modeltools.Model]) -> Optional[SubAuxfiler]:
+    def get(self, model: str | modeltools.Model) -> SubAuxfiler | None:
         """Get the |SubAuxfiler| object related to the given |Model| type.
 
         In contrast to attribute and keyword access, method |Auxfiler.get| returns
@@ -235,8 +231,8 @@ nor does it handle a model named `lland_dd`...
 
     def write(
         self,
-        parameterstep: Optional[timetools.PeriodConstrArg] = None,
-        simulationstep: Optional[timetools.PeriodConstrArg] = None,
+        parameterstep: timetools.PeriodConstrArg | None = None,
+        simulationstep: timetools.PeriodConstrArg | None = None,
     ) -> None:
         """Write all defined auxiliary control files.
 
@@ -379,14 +375,12 @@ class SubAuxfiler:
     method |SubAuxfiler.add_parameter| for further information.
     """
 
-    _master: Optional[Auxfiler]
-    _model: Optional[modeltools.Model]
+    _master: Auxfiler | None
+    _model: modeltools.Model | None
     _type2filename2reference: dict[type[parametertools.Parameter], dict[str, Reference]]
 
     def __init__(
-        self,
-        master: Optional[Auxfiler] = None,
-        model: Optional[modeltools.Model] = None,
+        self, master: Auxfiler | None = None, model: modeltools.Model | None = None
     ) -> None:
         self._master = master
         self._model = model
@@ -396,7 +390,7 @@ class SubAuxfiler:
         self,
         parameter: parametertools.Parameter,
         filename: str,
-        keywordarguments: Optional[parametertools.KeywordArguments[T]] = None,
+        keywordarguments: parametertools.KeywordArguments[T] | None = None,
     ) -> None:
         """Add a single |Parameter| to the actual |SubAuxfiler| object.
 
@@ -593,7 +587,7 @@ handled by the actual `SubAuxfiler` object.
         filename2reference: dict[str, Reference],
         parameter: parametertools.Parameter,
         filename: str,
-        keywordarguments: Optional[parametertools.KeywordArguments[T]],
+        keywordarguments: parametertools.KeywordArguments[T] | None,
     ) -> None:
         for fn, ref in filename2reference.items():
             if fn != filename:
@@ -628,8 +622,8 @@ handled by the actual `SubAuxfiler` object.
 
     def remove_parameters(
         self,
-        parametertype: Optional[type[parametertools.Parameter]] = None,
-        filename: Optional[str] = None,
+        parametertype: type[parametertools.Parameter] | None = None,
+        filename: str | None = None,
     ) -> None:
         """Remove the registered |Parameter| objects of the given type related to the
         given filename.
@@ -762,7 +756,7 @@ error occurred: 'NoneType' object has no attribute 'items'
             )
 
     def get_filenames(
-        self, parametertype: Optional[type[parametertools.Parameter]] = None
+        self, parametertype: type[parametertools.Parameter] | None = None
     ) -> tuple[str, ...]:
         """Return a |tuple| of all or a selection of the handled auxiliary file names.
 
@@ -806,7 +800,7 @@ error occurred: 'NoneType' object has no attribute 'items'
         return tuple(sorted(filenames))
 
     def get_parametertypes(
-        self, filename: Optional[str] = None
+        self, filename: str | None = None
     ) -> tuple[type[parametertools.Parameter], ...]:
         """Return a |tuple| of all or a selection of the handled parameter types.
 
@@ -858,8 +852,8 @@ error occurred: 'NoneType' object has no attribute 'items'
 
     def get_parameterstrings(
         self,
-        filename: Optional[str] = None,
-        parametertype: Optional[type[parametertools.Parameter]] = None,
+        filename: str | None = None,
+        parametertype: type[parametertools.Parameter] | None = None,
     ) -> tuple[str, ...]:
         """Return a |tuple| of string representations of all or a selection of the
         handled parameter objects.
@@ -938,8 +932,8 @@ error occurred: 'NoneType' object has no attribute 'items'
 
     def get_references(
         self,
-        filename: Optional[str] = None,
-        parametertype: Optional[type[parametertools.Parameter]] = None,
+        filename: str | None = None,
+        parametertype: type[parametertools.Parameter] | None = None,
     ) -> tuple[Reference, ...]:
         """Return a |tuple| of all or a selection of the reference parameter objects
         or their related reference keyword arguments.
@@ -1000,7 +994,7 @@ error occurred: 'NoneType' object has no attribute 'items'
                     references.append(ref)
         return tuple(references)
 
-    def get_filename(self, parameter: parametertools.Parameter) -> Optional[str]:
+    def get_filename(self, parameter: parametertools.Parameter) -> str | None:
         """If possible, return an auxiliary filename suitable for the given parameter
         object.
 

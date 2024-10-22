@@ -207,7 +207,7 @@ class VG2FG(interptools.SimpleInterpolator):
         intercepts_hidden=[[0.0]],
         intercepts_output=[0.0],
     )
-    _keyword: Optional[Literal["velocity", "timedelay"]] = None
+    _keyword: Literal["velocity", "timedelay"] | None = None
 
     @overload
     def __call__(self, *, velocity: float) -> None: ...
@@ -220,9 +220,9 @@ class VG2FG(interptools.SimpleInterpolator):
 
     def __call__(
         self,
-        algorithm: Optional[interptools.InterpAlgorithm] = None,
-        velocity: Optional[float] = None,
-        timedelay: Optional[float] = None,
+        algorithm: interptools.InterpAlgorithm | None = None,
+        velocity: float | None = None,
+        timedelay: float | None = None,
     ) -> None:
         nmb = (algorithm is not None) + (velocity is not None) + (timedelay is not None)
         if nmb != 1:

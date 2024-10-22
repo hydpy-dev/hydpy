@@ -110,7 +110,7 @@ not start with numbers, cannot be mistaken with Python built-ins like `for`...)
         for key, value in kwargs.items():
             self.add(key, value)
 
-    def add(self, directory: str, path: Optional[str] = None) -> None:
+    def add(self, directory: str, path: str | None = None) -> None:
         """Add a directory and, optionally, its path."""
         objecttools.valid_variable_identifier(directory)
         if path is None:
@@ -156,10 +156,10 @@ class FileManager:
     |SequenceManager|."""
 
     BASEDIR: str
-    DEFAULTDIR: Optional[str]
+    DEFAULTDIR: str | None
 
-    _projectdir: Optional[str]
-    _currentdir: Optional[str]
+    _projectdir: str | None
+    _currentdir: str | None
 
     def __init__(self) -> None:
         self._projectdir = None
@@ -472,7 +472,7 @@ previously defined and is hence set to `default`.
         return currentdir
 
     @currentdir.setter
-    def currentdir(self, directory: Optional[str]) -> None:
+    def currentdir(self, directory: str | None) -> None:
         if directory is None:
             self._currentdir = None
         else:
@@ -881,8 +881,8 @@ class ControlManager(FileManager):
 
     def load_file(
         self,
-        element: Optional[devicetools.Element] = None,
-        filename: Optional[str] = None,
+        element: devicetools.Element | None = None,
+        filename: str | None = None,
         clear_registry: bool = True,
     ) -> dict[str, Any]:
         """Return the namespace of the given file (and eventually of its corresponding
@@ -1599,9 +1599,9 @@ not allowed to overwrite the existing file `...`.
         """,
     )
 
-    _netcdfreader: Optional[netcdftools.NetCDFInterfaceReader] = None
-    _netcdfwriter: Optional[netcdftools.NetCDFInterfaceWriter] = None
-    _jitaccesshandler: Optional[netcdftools.JITAccessHandler] = None
+    _netcdfreader: netcdftools.NetCDFInterfaceReader | None = None
+    _netcdfwriter: netcdftools.NetCDFInterfaceWriter | None = None
+    _jitaccesshandler: netcdftools.JITAccessHandler | None = None
 
     def load_file(self, sequence: sequencetools.IOSequence) -> None:
         """Load data from a data file and pass it to the given |IOSequence|."""
@@ -1652,7 +1652,7 @@ not allowed to overwrite the existing file `...`.
     def save_file(
         self,
         sequence: sequencetools.IOSequence,
-        array: Optional[sequencetools.InfoArray] = None,
+        array: sequencetools.InfoArray | None = None,
     ) -> None:
         """Write the data stored in the |IOSequence.series| property of the given
         |IOSequence| into a data file."""
@@ -1819,7 +1819,7 @@ documentation for help).
 
     @contextlib.contextmanager
     def provide_netcdfjitaccess(
-        self, deviceorder: Iterable[Union[devicetools.Node, devicetools.Element]]
+        self, deviceorder: Iterable[devicetools.Node | devicetools.Element]
     ) -> Iterator[None]:
         """Open all required internal NetCDF time series files.
 

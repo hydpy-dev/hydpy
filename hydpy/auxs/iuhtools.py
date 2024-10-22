@@ -47,9 +47,7 @@ class ParameterIUH:
 
     _name: str
 
-    def __init__(
-        self, name: str, type_: type[Any] = float, doc: Optional[object] = None
-    ):
+    def __init__(self, name: str, type_: type[Any] = float, doc: object | None = None):
         self.name = name
         self._name = "_" + name
         self.type_ = type_
@@ -59,14 +57,14 @@ class ParameterIUH:
         )
 
     @overload
-    def __get__(self, obj: None, type_: Optional[type[IUH]] = None) -> Self: ...
+    def __get__(self, obj: None, type_: type[IUH] | None = None) -> Self: ...
 
     @overload
-    def __get__(self, obj: IUH, type_: Optional[type[IUH]] = None) -> float: ...
+    def __get__(self, obj: IUH, type_: type[IUH] | None = None) -> float: ...
 
     def __get__(
-        self, obj: Optional[IUH], type_: Optional[type[IUH]] = None
-    ) -> Union[ParameterIUH, float]:
+        self, obj: IUH | None, type_: type[IUH] | None = None
+    ) -> ParameterIUH | float:
         return self if obj is None else getattr(obj, self._name)
 
     def _convert_type(self, value: float) -> float:
@@ -232,7 +230,7 @@ class IUH(metaclass=MetaIUH):
                 break
         return numpy.array(delays), numpy.array(responses)
 
-    def plot(self, threshold: Optional[float] = None, **kwargs) -> None:
+    def plot(self, threshold: float | None = None, **kwargs) -> None:
         """Plot the instanteneous unit hydrograph.
 
         The optional argument allows for defining a threshold of the cumulative sum of
@@ -435,7 +433,7 @@ keywords were given: d and u.
     @overload
     def __call__(self, t: VectorFloat) -> VectorFloat: ...
 
-    def __call__(self, t: Union[float, VectorFloat]) -> Union[float, VectorFloat]:
+    def __call__(self, t: float | VectorFloat) -> float | VectorFloat:
         # float-handling optimised for fast numerical integration
         if isinstance(t, float):
             if t < 1e-10:  # pylint: disable=consider-using-max-builtin
@@ -519,7 +517,7 @@ class LinearStorageCascade(IUH):
     @overload
     def __call__(self, t: VectorFloat) -> VectorFloat: ...
 
-    def __call__(self, t: Union[float, VectorFloat]) -> Union[float, VectorFloat]:
+    def __call__(self, t: float | VectorFloat) -> float | VectorFloat:
         # float-handling optimised for fast numerical integration
         if isinstance(t, float):
             if t == 0.0:

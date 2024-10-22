@@ -61,7 +61,7 @@ class PrepSub1D(Protocol[TM_contra, TI_contra]):
 __HYDPY_MODEL_LOCALS__ = "__hydpy_model_locals__"
 
 
-def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
+def parameterstep(timestep: timetools.PeriodConstrArg | None = None) -> None:
     """Define a parameter time step size within a parameter control file.
 
     Function |parameterstep| should usually be applied in a line immediately behind the
@@ -268,7 +268,7 @@ def reverse_model_wildcard_import() -> None:
         namespace[__HYDPY_MODEL_LOCALS__] = {}
 
 
-def load_modelmodule(module: Union[types.ModuleType, str], /) -> types.ModuleType:
+def load_modelmodule(module: types.ModuleType | str, /) -> types.ModuleType:
     """Load the given model module (if necessary) and return it.
 
     >>> from hydpy.core.importtools import load_modelmodule
@@ -281,7 +281,7 @@ def load_modelmodule(module: Union[types.ModuleType, str], /) -> types.ModuleTyp
     return module
 
 
-def prepare_model(module: Union[types.ModuleType, str]) -> modeltools.Model:
+def prepare_model(module: types.ModuleType | str) -> modeltools.Model:
     """Prepare and return the model of the given module.
 
     In usual *HydPy* projects, each control file only prepares an individual model
@@ -356,11 +356,11 @@ def prepare_submodel(
     submodelinterface: type[TI_contra],
     *methods: Callable[[NoReturn, NoReturn], None],
     dimensionality: Literal[0] = ...,
-    landtype_constants: Optional[parametertools.Constants] = None,
-    soiltype_constants: Optional[parametertools.Constants] = None,
-    landtype_refindices: Optional[type[parametertools.NameParameter]] = None,
-    soiltype_refindices: Optional[type[parametertools.NameParameter]] = None,
-    refweights: Optional[type[parametertools.Parameter]] = None,
+    landtype_constants: parametertools.Constants | None = None,
+    soiltype_constants: parametertools.Constants | None = None,
+    landtype_refindices: type[parametertools.NameParameter] | None = None,
+    soiltype_refindices: type[parametertools.NameParameter] | None = None,
+    refweights: type[parametertools.Parameter] | None = None,
 ) -> Callable[
     [PrepSub0D[TM_contra, TI_contra]], SubmodelAdder[Literal[0], TM_contra, TI_contra]
 ]: ...
@@ -372,11 +372,11 @@ def prepare_submodel(
     submodelinterface: type[TI_contra],
     *methods: Callable[[NoReturn, NoReturn], None],
     dimensionality: Literal[1],
-    landtype_constants: Optional[parametertools.Constants] = None,
-    soiltype_constants: Optional[parametertools.Constants] = None,
-    landtype_refindices: Optional[type[parametertools.NameParameter]] = None,
-    soiltype_refindices: Optional[type[parametertools.NameParameter]] = None,
-    refweights: Optional[type[parametertools.Parameter]] = None,
+    landtype_constants: parametertools.Constants | None = None,
+    soiltype_constants: parametertools.Constants | None = None,
+    landtype_refindices: type[parametertools.NameParameter] | None = None,
+    soiltype_refindices: type[parametertools.NameParameter] | None = None,
+    refweights: type[parametertools.Parameter] | None = None,
 ) -> Callable[
     [PrepSub1D[TM_contra, TI_contra]], SubmodelAdder[Literal[1], TM_contra, TI_contra]
 ]: ...
@@ -387,20 +387,20 @@ def prepare_submodel(
     submodelinterface: type[TI_contra],
     *methods: Callable[[NoReturn, NoReturn], None],
     dimensionality: TD = 0,  # type: ignore[assignment]
-    landtype_constants: Optional[parametertools.Constants] = None,
-    soiltype_constants: Optional[parametertools.Constants] = None,
-    landtype_refindices: Optional[type[parametertools.NameParameter]] = None,
-    soiltype_refindices: Optional[type[parametertools.NameParameter]] = None,
-    refweights: Optional[type[parametertools.Parameter]] = None,
+    landtype_constants: parametertools.Constants | None = None,
+    soiltype_constants: parametertools.Constants | None = None,
+    landtype_refindices: type[parametertools.NameParameter] | None = None,
+    soiltype_refindices: type[parametertools.NameParameter] | None = None,
+    refweights: type[parametertools.Parameter] | None = None,
 ) -> Callable[
-    [Union[PrepSub0D[TM_contra, TI_contra], PrepSub1D[TM_contra, TI_contra]]],
+    [PrepSub0D[TM_contra, TI_contra] | PrepSub1D[TM_contra, TI_contra]],
     SubmodelAdder[TD, TM_contra, TI_contra],
 ]:
     """Wrap a model-specific method for preparing a submodel into a |SubmodelAdder|
     instance."""
 
     def _prepare_submodel(
-        wrapped: Union[PrepSub0D[TM_contra, TI_contra], PrepSub1D[TM_contra, TI_contra]]
+        wrapped: PrepSub0D[TM_contra, TI_contra] | PrepSub1D[TM_contra, TI_contra]
     ) -> SubmodelAdder[TD, TM_contra, TI_contra]:
         return SubmodelAdder[TD, TM_contra, TI_contra](
             wrapped=cast(Any, wrapped),
@@ -593,11 +593,11 @@ following error occurred: The given `lland_knauf` instance is not considered sha
     """The dimensionality of the handled submodel reference(s) (either zero or one)."""
     methods: tuple[Callable[[NoReturn, NoReturn], None], ...]
     """The submodel interface methods the wrapped method uses."""
-    landtype_refindices: Optional[type[parametertools.NameParameter]]
+    landtype_refindices: type[parametertools.NameParameter] | None
     """Reference to a land cover type-related index parameter."""
-    soiltype_refindices: Optional[type[parametertools.NameParameter]]
+    soiltype_refindices: type[parametertools.NameParameter] | None
     """Reference to a soil type-related index parameter."""
-    refweights: Optional[type[parametertools.Parameter]]
+    refweights: type[parametertools.Parameter] | None
     """Reference to a weighting parameter."""
 
     __hydpy_maintype2subname2adders__: collections.defaultdict[
@@ -605,7 +605,7 @@ following error occurred: The given `lland_knauf` instance is not considered sha
     ] = collections.defaultdict(lambda: collections.defaultdict(list))
 
     _methodnames: frozenset[str]
-    _wrapped: Union[PrepSub0D[TM_contra, TI_contra], PrepSub1D[TM_contra, TI_contra]]
+    _wrapped: PrepSub0D[TM_contra, TI_contra] | PrepSub1D[TM_contra, TI_contra]
     _sharable_configuration: SharableConfiguration
     _mainmodelstack: ClassVar[list[modeltools.Model]] = []
 
@@ -625,11 +625,11 @@ following error occurred: The given `lland_knauf` instance is not considered sha
         submodelinterface: type[TI_contra],
         methods: Iterable[Callable[[NoReturn, NoReturn], None]],
         dimensionality: TD,
-        landtype_constants: Optional[parametertools.Constants],
-        soiltype_constants: Optional[parametertools.Constants],
-        landtype_refindices: Optional[type[parametertools.NameParameter]],
-        soiltype_refindices: Optional[type[parametertools.NameParameter]],
-        refweights: Optional[type[parametertools.Parameter]],
+        landtype_constants: parametertools.Constants | None,
+        soiltype_constants: parametertools.Constants | None,
+        landtype_refindices: type[parametertools.NameParameter] | None,
+        soiltype_refindices: type[parametertools.NameParameter] | None,
+        refweights: type[parametertools.Parameter] | None,
     ) -> None: ...
 
     @overload
@@ -641,28 +641,26 @@ following error occurred: The given `lland_knauf` instance is not considered sha
         submodelinterface: type[TI_contra],
         methods: Iterable[Callable[[NoReturn, NoReturn], None]],
         dimensionality: TD,
-        landtype_constants: Optional[parametertools.Constants],
-        soiltype_constants: Optional[parametertools.Constants],
-        landtype_refindices: Optional[type[parametertools.NameParameter]],
-        soiltype_refindices: Optional[type[parametertools.NameParameter]],
-        refweights: Optional[type[parametertools.Parameter]],
+        landtype_constants: parametertools.Constants | None,
+        soiltype_constants: parametertools.Constants | None,
+        landtype_refindices: type[parametertools.NameParameter] | None,
+        soiltype_refindices: type[parametertools.NameParameter] | None,
+        refweights: type[parametertools.Parameter] | None,
     ) -> None: ...
 
     def __init__(
         self,
         *,
-        wrapped: Union[
-            PrepSub0D[TM_contra, TI_contra], PrepSub1D[TM_contra, TI_contra]
-        ],
+        wrapped: PrepSub0D[TM_contra, TI_contra] | PrepSub1D[TM_contra, TI_contra],
         submodelname: str,
         submodelinterface: type[TI_contra],
         methods: Iterable[Callable[[NoReturn, NoReturn], None]],
         dimensionality: TD,
-        landtype_constants: Optional[parametertools.Constants],
-        soiltype_constants: Optional[parametertools.Constants],
-        landtype_refindices: Optional[type[parametertools.NameParameter]],
-        soiltype_refindices: Optional[type[parametertools.NameParameter]],
-        refweights: Optional[type[parametertools.Parameter]],
+        landtype_constants: parametertools.Constants | None,
+        soiltype_constants: parametertools.Constants | None,
+        landtype_refindices: type[parametertools.NameParameter] | None,
+        soiltype_refindices: type[parametertools.NameParameter] | None,
+        refweights: type[parametertools.Parameter] | None,
     ) -> None:
         self._wrapped = wrapped
         self.submodelname = submodelname
@@ -694,13 +692,13 @@ following error occurred: The given `lland_knauf` instance is not considered sha
 
     def get_wrapped(
         self: SubmodelAdder[TD, TM_contra, TI_contra]
-    ) -> Union[PrepSub0D[TM_contra, TI_contra], PrepSub1D[TM_contra, TI_contra]]:
+    ) -> PrepSub0D[TM_contra, TI_contra] | PrepSub1D[TM_contra, TI_contra]:
         """Return the wrapped, model-specific method for automatically preparing some
         control parameters."""
         return self._wrapped
 
     def __get__(
-        self, obj: Optional[TM_contra], type_: type[modeltools.Model]
+        self, obj: TM_contra | None, type_: type[modeltools.Model]
     ) -> SubmodelAdder[TD, TM_contra, TI_contra]:
         if obj is not None:
             self._model = obj
@@ -714,7 +712,7 @@ following error occurred: The given `lland_knauf` instance is not considered sha
     @overload
     def __call__(
         self: SubmodelAdder[Literal[0], TM_contra, TI_contra],
-        submodel: Union[types.ModuleType, str],
+        submodel: types.ModuleType | str,
         *,
         update: bool = True,
     ) -> SubmodelAdder[Literal[0], TM_contra, TI_contra]: ...
@@ -722,7 +720,7 @@ following error occurred: The given `lland_knauf` instance is not considered sha
     @overload
     def __call__(
         self: SubmodelAdder[Literal[1], TM_contra, TI_contra],
-        submodel: Union[types.ModuleType, str],
+        submodel: types.ModuleType | str,
         *,
         position: int,
         update: bool = True,
@@ -747,11 +745,11 @@ following error occurred: The given `lland_knauf` instance is not considered sha
 
     def __call__(
         self,
-        submodel: Union[types.ModuleType, str, modeltools.SharableSubmodelInterface],
+        submodel: types.ModuleType | str | modeltools.SharableSubmodelInterface,
         *,
-        position: Optional[int] = None,
+        position: int | None = None,
         update: bool = True,
-    ) -> Optional[Self]:
+    ) -> Self | None:
         try:
             assert (model := self._model) is not None
 
@@ -821,9 +819,9 @@ following error occurred: The given `lland_knauf` instance is not considered sha
 
     def __exit__(
         self,
-        exception_type: Optional[type[BaseException]],
-        exception_value: Optional[BaseException],
-        traceback: Optional[types.TracebackType],
+        exception_type: type[BaseException] | None,
+        exception_value: BaseException | None,
+        traceback: types.TracebackType | None,
     ) -> None:
         try:
             self._mainmodelstack.pop(-1)
@@ -855,7 +853,7 @@ following error occurred: The given `lland_knauf` instance is not considered sha
         self,
         model: modeltools.Model,
         submodel: modeltools.SubmodelInterface,
-        position: Optional[int],
+        position: int | None,
     ) -> None:
         submodel.__hydpy_element__ = model.__hydpy_element__
         typeid = self.submodelinterface.typeid
@@ -909,7 +907,7 @@ following error occurred: The given `lland_knauf` instance is not considered sha
         /,
         *,
         refresh: bool,
-        position: Optional[int] = None,
+        position: int | None = None,
     ) -> None:
         """Update the connections between the given main model and its submodel, which
         can become necessary after disruptive configuration changes.
@@ -1021,7 +1019,7 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
     _wrapped: Callable[Concatenate[TM_contra, P], None]
     """The wrapped, submodel-specific method for setting the value of a single control 
     parameter."""
-    _model: Optional[TM_contra]
+    _model: TM_contra | None
 
     def __init__(
         self,
@@ -1035,7 +1033,7 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
         self.__doc__ = wrapped.__doc__
 
     def __get__(
-        self, obj: Optional[TM_contra], type_: type[modeltools.Model]
+        self, obj: TM_contra | None, type_: type[modeltools.Model]
     ) -> TargetParameterUpdater[TM_contra, P]:
         if obj is not None:
             self._model = obj
@@ -1100,10 +1098,10 @@ initialised based on the actual simulation time step as defined under \
 
 def controlcheck(
     controldir: str = "default",
-    projectdir: Optional[str] = None,
-    controlfile: Optional[str] = None,
-    firstdate: Optional[timetools.DateConstrArg] = None,
-    stepsize: Optional[timetools.PeriodConstrArg] = None,
+    projectdir: str | None = None,
+    controlfile: str | None = None,
+    firstdate: timetools.DateConstrArg | None = None,
+    stepsize: timetools.PeriodConstrArg | None = None,
 ) -> None:
     """Define the corresponding control file within a condition file.
 

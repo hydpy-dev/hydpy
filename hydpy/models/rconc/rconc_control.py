@@ -19,7 +19,7 @@ class _AllowedKeywordArgsOfClassUH(TypedDict, total=False):
     of class |UH|."""
 
     tb: float
-    tp: Optional[float]
+    tp: float | None
     x4: float
     beta: float
     auxfile: str
@@ -206,7 +206,7 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
 
     @overload
     def __call__(
-        self, option: Literal["triangle"], /, *, tb: float, tp: Optional[float] = None
+        self, option: Literal["triangle"], /, *, tb: float, tp: float | None = None
     ) -> None: ...
 
     @overload
@@ -216,7 +216,7 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
 
     def __call__(
         self,
-        *args: Union[VectorInputFloat, str],
+        *args: VectorInputFloat | str,
         **kwargs: Unpack[_AllowedKeywordArgsOfClassUH],
     ) -> None:
         self._keywordarguments = parametertools.KeywordArguments(False)
@@ -311,7 +311,7 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
 
         return None
 
-    def _validate_args(self, args: tuple[Union[VectorInputFloat, str], ...]) -> None:
+    def _validate_args(self, args: tuple[VectorInputFloat | str, ...]) -> None:
         if len(args) != 1:
             raise ValueError(
                 "Exactly one positional argument is expected, but none or more "
@@ -331,7 +331,7 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
             return f"{self.name}({', '.join(strings)})"
         return super().__repr__()
 
-    def _set_triangle_uh(self, tb: float, tp: Optional[float] = None) -> None:
+    def _set_triangle_uh(self, tb: float, tp: float | None = None) -> None:
         """Calculate and set the ordinates of a triangle unit hydrograph."""
 
         quh = self.subpars.pars.model.sequences.logs.quh

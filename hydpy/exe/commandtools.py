@@ -38,7 +38,7 @@ def run_subprocess(
 
 def run_subprocess(
     command: str, *, verbose: bool = True, blocking: bool = True
-) -> Union[subprocess.CompletedProcess[str], subprocess.Popen[str]]:
+) -> subprocess.CompletedProcess[str] | subprocess.Popen[str]:
     """Execute the given command in a new process.
 
     Only when both `verbose` and `blocking` are |True|, |run_subprocess| prints all
@@ -413,7 +413,7 @@ def _activate_logfile(
         sys.stderr = sys.__stderr__
 
 
-def execute_scriptfunction() -> Optional[int]:
+def execute_scriptfunction() -> int | None:
     """Execute a HydPy script function.
 
     Function |execute_scriptfunction| is indirectly applied and explained in the
@@ -600,7 +600,7 @@ class LogFileInterface:
         return getattr(self.logfile, name)
 
 
-def parse_argument(string: str) -> Union[str, tuple[str, str]]:
+def parse_argument(string: str) -> str | tuple[str, str]:
     """Return a single value for a string understood as a positional argument or a
     |tuple| containing a keyword and its value for a string understood as a keyword
     argument.

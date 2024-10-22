@@ -194,7 +194,7 @@ check the calculated coefficients: 1.0.
     smallest_coeff: float = 1e-9
     """Smalles MA coefficient to be determined at the end of the response."""
 
-    _coefs: Optional[VectorFloat] = None
+    _coefs: VectorFloat | None = None
 
     def __init__(self, iuh=None, coefs=None) -> None:
         self.iuh = iuh
@@ -528,9 +528,9 @@ by the MA coefficients `1.0, 1.0, 1.0`.
     """Maximum deviation of the sum of all coefficents from one to be accepted by 
     method |ARMA.update_coefs|."""
 
-    _ma_coefs: Optional[VectorFloat] = None
-    _ar_coefs: Optional[VectorFloat] = None
-    _rel_rmse: Optional[float]
+    _ma_coefs: VectorFloat | None = None
+    _ar_coefs: VectorFloat | None = None
+    _rel_rmse: float | None
 
     def __init__(self, ma_model=None, ar_coefs=None, ma_coefs=None) -> None:
         self.ma = ma_model

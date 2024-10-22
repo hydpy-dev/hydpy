@@ -570,7 +570,7 @@ Python processes and restart the cythonization afterwards.
                     f"cythonization afterwards.",
                 )
     else:
-        raise IOError(
+        raise OSError(
             f"After trying to cythonize `{pyname}`, the resulting file "
             f"`{cyname}{_dllextension}` could not be found in directory "
             f"`{objecttools.repr_(buildpath)}` nor any of its subdirectories.  The "

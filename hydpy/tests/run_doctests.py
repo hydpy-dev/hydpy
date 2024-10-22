@@ -187,13 +187,13 @@ def main(  # pylint: disable=too-many-branches
                             message="datetime.datetime.utcfromtimestamp",
                         )
                         runner = unittest.TextTestRunner(stream=file_)
-                        testresult = runner.run(suite)
-                        nmbproblems = len(testresult.errors) + len(testresult.failures)
+                        result = runner.run(suite)
+                        nmbproblems = len(result.errors) + len(result.failures)
                         if nmbproblems:
-                            doctests.failing[name] = (testresult, nmbproblems)
+                            doctests.failing[name] = (result, nmbproblems)
                         else:
-                            doctests.successfull[name] = (testresult, nmbproblems)
-                    problems = testresult.errors + testresult.failures
+                            doctests.successfull[name] = (result, nmbproblems)
+                    problems = result.errors + result.failures
                     if problems:
                         pingtime = time.perf_counter()
                         print_(f"\nDetailed error information on module {name}:")
@@ -215,7 +215,7 @@ def main(  # pylint: disable=too-many-branches
                 f"\nAt least one doc test failed in each of the following modules in "
                 f"{mode} mode:"
             )
-            for name, (testresult, nmbproblems) in sorted(doctests.failing.items()):
+            for name, (_, nmbproblems) in sorted(doctests.failing.items()):
                 print_(f"    {name} ({nmbproblems} failures/errors)")
 
     # Return the exit code.

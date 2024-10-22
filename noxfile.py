@@ -14,7 +14,7 @@ options.
 import contextlib
 import os
 import shutil
-from typing import *
+from typing import Iterator
 from typing_extensions import assert_never
 
 import nox
@@ -48,7 +48,7 @@ def _get_sitepackagepath(session: nox.Session) -> str:
 
 
 @contextlib.contextmanager
-def _clean_environment(session: nox.Session) -> Iterator[Dict[str, str]]:
+def _clean_environment(session: nox.Session) -> Iterator[dict[str, str]]:
     temp = {}
     for key in ("HTTP_PROXY", "HTTPS_PROXY"):
         if key in session.env:

@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 """This module implements tools for testing *HydPy* and its models."""
+
 # import...
 # ...from standard library
 from __future__ import annotations

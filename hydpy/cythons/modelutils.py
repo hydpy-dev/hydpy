@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """ This module provides utilities to build Cython models based on Python models
 automatically.
 
@@ -271,6 +270,7 @@ Traceback (most recent call last):
 ...
 NotImplementedError: NDIM of sequence `q` is higher than expected.
 """
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -2269,7 +2269,6 @@ class PyxWriter:
         base = ".".join(self.model.__module__.split(".")[:3])
         with open(filepath, "w", encoding=config.ENCODING) as stubfile:
             stubfile.write(
-                f"# -*- coding: utf-8 -*-\n\n"
                 f"import hydpy\n"
                 f"from {base} import *\n"
                 f"from hydpy.core.parametertools import (\n"

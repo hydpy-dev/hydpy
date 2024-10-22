@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 """This module provides features for applying and implementing hydrological models."""
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -1807,8 +1807,6 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         >>> model.aetmodel = prepare_model("evap_aet_hbv96")
         >>> pub.timegrids = "2000.01.01", "2001.01.01", "1h"
         >>> print(model.get_controlfileheader())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.hland_96 import *
         from hydpy.models import evap_aet_hbv96
         <BLANKLINE>
@@ -1822,8 +1820,6 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
 
         >>> print(model.get_controlfileheader(
         ...     import_submodels=False, parameterstep="2d", simulationstep="3d"))
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.hland_96 import *
         <BLANKLINE>
         simulationstep("3d")
@@ -1835,7 +1831,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
 
             >>> del pub.timegrids
         """
-        lines = ["# -*- coding: utf-8 -*-\n", f"from hydpy.models.{self} import *"]
+        lines = [f"from hydpy.models.{self} import *"]
         if import_submodels:
             names = []
             for submodel in self.find_submodels().values():
@@ -1918,8 +1914,6 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         otherdir/otherfile.py
         ---------------------------------------
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.test_stiff1d import *
         <BLANKLINE>
         simulationstep("1h")
@@ -1939,8 +1933,6 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         otherdir/otherfile.py
         ---------------------------------------
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.test_stiff1d import *
         <BLANKLINE>
         simulationstep("1h")
@@ -1998,8 +1990,6 @@ to be consistent with the name of the element handling the model.
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
         otherdir/otherfile.py
         ----------------------------------------------------------------------------...
-        # -*- coding: utf-8 -*-
-        ...
         from hydpy.models.lland_knauf import *
         from hydpy.models import evap_aet_morsim
         from hydpy.models import meteo_glob_fao56
@@ -2425,10 +2415,7 @@ the available directories (calib_1 and calib_2).
                 model2hasconditions[model] = seqs.states or seqs.logs
             if any(model2hasconditions.values()):
                 con = hydpy.pub.controlmanager
-                lines = [
-                    "# -*- coding: utf-8 -*-\n\n",
-                    f"from hydpy.models.{self} import *\n",
-                ]
+                lines = [f"from hydpy.models.{self} import *\n"]
                 submodelnames = set()
                 for model, hasconditions in model2hasconditions.items():
                     if hasconditions and (model is not self):

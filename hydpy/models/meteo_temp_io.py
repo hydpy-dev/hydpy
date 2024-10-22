@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """Use |meteo_temp_io| as a submodel tp supply (relative) main models like
 |evap_pet_hbv96| with externally available temperature time series.

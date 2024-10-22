@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module implements interpolation approaches based on piecewise polynomials
 required for some models implemented in the *HydPy* framework.
 

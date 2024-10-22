@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
 """This module specifies the handling of dates and periods in *HydPy* projects.
 
 .. _`Time Coordinate`: http://cfconventions.org/Data/cf-conventions/\
 cf-conventions-1.7/cf-conventions.html#time-coordinate
 """
+
 # import...
 # ...from standard library
 from __future__ import annotations

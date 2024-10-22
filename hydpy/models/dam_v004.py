@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 Application model |dam_v004| extends |dam_v003|.  Both models discharge water into the

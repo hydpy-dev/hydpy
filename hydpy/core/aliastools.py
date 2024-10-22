@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module provides tools for the efficient handling of input and output
 sequence aliases."""
+
 # import...
 # ...from standard library
 import importlib

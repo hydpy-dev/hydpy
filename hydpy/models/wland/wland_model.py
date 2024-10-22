@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 .. _`Pegasus method`: https://link.springer.com/article/10.1007/BF01932959
 """

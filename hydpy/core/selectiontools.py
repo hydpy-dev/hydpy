@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module implements tools for defining subsets of |Node| and |Element| objects of
 large *HydPy* projects, called "selections"."""
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -1358,8 +1358,6 @@ following error occurred: 'in <string>' requires string as left operand, not lis
         ...     pub.selections.headwaters.save_networkfile()
         ...     with open("headwaters.py") as networkfile:
         ...         print(networkfile.read())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy import Element, Node
         <BLANKLINE>
         <BLANKLINE>
@@ -1384,8 +1382,6 @@ following error occurred: 'in <string>' requires string as left operand, not lis
         ...         "test.py", write_defaultnodes=False)
         ...     with open("test.py") as networkfile:
         ...         print(networkfile.read())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy import Element, Node
         <BLANKLINE>
         <BLANKLINE>
@@ -1421,8 +1417,6 @@ following error occurred: 'in <string>' requires string as left operand, not lis
         ...         "test.py", write_defaultnodes=False)
         ...     with open("test.py") as networkfile:
         ...         print(networkfile.read())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy import Element, FusedVariable, Node
         from hydpy.aliases import (
             dam_factors_WaterLevel,
@@ -1478,11 +1472,10 @@ following error occurred: 'in <string>' requires string as left operand, not lis
         if filepath is None:
             filepath = self.name + ".py"
         with open(filepath, "w", encoding="utf-8") as file_:
-            file_.write("# -*- coding: utf-8 -*-\n")
             if fusedvariables:
-                file_.write("\nfrom hydpy import Element, FusedVariable, Node")
+                file_.write("from hydpy import Element, FusedVariable, Node")
             else:
-                file_.write("\nfrom hydpy import Element, Node")
+                file_.write("from hydpy import Element, Node")
             if aliases:
                 import_aliases = ", ".join(sorted(aliases))
                 import_aliases = f"from hydpy.aliases import {import_aliases}"

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """
 |wq_trapeze_strickler| is a stateless submodel that requires information on the current

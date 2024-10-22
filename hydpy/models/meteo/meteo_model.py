@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 .. _`solar time`: https://en.wikipedia.org/wiki/Solar_time
 """
+
 # imports...
 # ...from standard library
 import contextlib

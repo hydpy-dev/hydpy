@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from hydpy.models.hland_96 import *
 from hydpy.models import evap_aet_hbv96
 from hydpy.models import evap_pet_hbv96

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """|dam_pump| is a simple model for modelling pumping stations draining low-land areas.
 Users can define a relationship between the highest possible pumping rate and the

@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
 """This module implements features related to importing models.
 
 The implemented tools are primarily designed for hiding model initialisation routines
 from model users and for allowing writing readable doctests.
 """
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -1218,16 +1218,17 @@ the following error occurred: ...
     ...         file_.writelines([
     ...             "from hydpy import pub\\n",
     ...             "pub.options.warnsimulationstep = False\\n",
+    ...             "pub.options.warntrim = True\\n",
     ...             "import warnings\\n",
     ...             'warnings.filterwarnings("error", message="For variable")\\n'])
-    ...         file_.writelines(lines[:5])
+    ...         file_.writelines(lines[:4])
     ...         file_.writelines([
     ...             "from hydpy.core.variabletools import trim as trim_\\n",
     ...             "def trim(self, lower=None, upper=None):\\n",
     ...             "    der = self.subseqs.seqs.model.parameters.derived\\n",
     ...             "    trim_(self, 0.0, der.kinz.acker[der.moy[0]])\\n",
-    ...             "type(inzp).trim = trim\\n"])
-    ...         file_.writelines(lines[5:])
+    ...             "type(inzp).trim = trim\\n\\n"])
+    ...         file_.writelines(lines[4:])
 
     Now, executing the condition file (and thereby calling function |controlcheck|)
     does not raise any warnings due to extracting the initialisation date from the name

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module implements |property| like classes with similar or additional
 behaviour."""
 

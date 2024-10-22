@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 r"""|wland_gd| is still under development and is likely to change in the future.
 

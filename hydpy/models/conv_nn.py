@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 |conv_nn| performs simple nearest-neighbour interpolations between an arbitrary number

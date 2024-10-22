@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """Use |meteo_precip_io| as a submodel to supply (relative) main models like
 |evap_pet_hbv96| with externally available precipitation time series.

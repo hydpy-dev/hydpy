@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module supports writing auxiliary files.
 
 In *HydPy*, parameter values are usually not shared between different model objects
@@ -21,6 +20,7 @@ implemented in module |auxfiletools| are a means to perform such actions in a
 semi-automated manner (other means are the selection mechanism implemented in module
 |selectiontools|).
 """
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -284,8 +284,6 @@ nor does it handle a model named `lland_dd`...
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         test_directory/file1.py
         -----------------------------------
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.lland_dd import *
         <BLANKLINE>
         simulationstep("12h")
@@ -298,8 +296,6 @@ nor does it handle a model named `lland_dd`...
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         test_directory/file2.py
         --------------------------------------
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.lland_knauf import *
         <BLANKLINE>
         simulationstep("12h")

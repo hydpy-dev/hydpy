@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """|test_stiff0d| is a simple test model that serves to test numerical integration
 strategies.  It can be seen from two perspectives.  On the one hand, it implements the

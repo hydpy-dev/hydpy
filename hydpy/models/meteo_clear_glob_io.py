@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """Use |meteo_clear_glob_io| as a submodel to supply (relative) main models like
 |evap_ret_fao56| with externally available clear-sky solar radiation and global

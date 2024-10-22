@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 .. _`issue 67`: https://github.com/hydpy-dev/hydpy/issues/67
 """
+
 # import...
 # from standard library
 from __future__ import annotations

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """
 The |sw1d.DOCNAME.long| model family member |sw1d_q_out| is a simple routing submodel,

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module supports modelling based on instantaneous unit hydrographs.
 
 This module implements some abstract descriptor classes, metaclasses and base classes.
@@ -6,6 +5,7 @@ If you are just interested in applying a certain instantaneous unit hydrograph (
 function or if you want to implement an additional iuh, see the examples or the source
 code of class |TranslationDiffusionEquation|.
 """
+
 # import...
 # ...from standard library
 from __future__ import annotations

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module implements features for calibrating model parameters.
 
 .. _`NLopt`: https://nlopt.readthedocs.io/en/latest/

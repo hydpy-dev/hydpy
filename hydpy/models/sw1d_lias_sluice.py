@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 The |sw1d.DOCNAME.long| model family member |sw1d_lias_sluice| extends the routing

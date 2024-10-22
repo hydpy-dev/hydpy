@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 """This module implements tools to determine time-related indices."""
+
 # import...
 # ...from standard library
 import copy

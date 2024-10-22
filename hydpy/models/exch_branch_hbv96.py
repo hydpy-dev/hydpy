@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 |exch_branch_hbv96| allows branching the summed input from some inlet nodes to an

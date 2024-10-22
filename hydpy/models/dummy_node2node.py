@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """
 .. _`LARSIM`: http://www.larsim.de/en/the-model/

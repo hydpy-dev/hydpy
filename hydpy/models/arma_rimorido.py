@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 |arma_rimorido| relies on the RIMO/RIDO method, which is based on the `translation
 diffusion equation`, which is a linear approximation of the Saint-Venant equations

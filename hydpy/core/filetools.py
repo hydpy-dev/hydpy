@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module provides features for handling the folder structure of *HydPy*  projects
 as well as loading data from and storing data to files."""
+
 # import...
 # ...from standard library
 from __future__ import annotations

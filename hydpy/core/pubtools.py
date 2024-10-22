@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 """This module provides features for handling public (global) project data."""
+
 # import...
 # ...from standard library
 from __future__ import annotations

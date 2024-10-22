@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from hydpy.models.hland_96 import *
 
 controlcheck(projectdir=r"HydPy-H-Lahn", controldir="default", firstdate="1996-01-01", stepsize="1d")

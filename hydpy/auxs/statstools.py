@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module implements statistical functionalities frequently used in hydrological
 modelling."""
+
 # import...
 # ...from standard library
 import abc

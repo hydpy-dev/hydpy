@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module provides additional features for module |iuhtools|, related to
 Autoregressive-Moving Average (ARMA) models."""
+
 # import...
 # ...from standard library
 import itertools

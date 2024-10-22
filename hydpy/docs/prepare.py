@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Move, create and modify documentation files before applying `Sphinx`.
 
 Sphinx is to be executed in a freshly created folder named `auto`.  If this folder

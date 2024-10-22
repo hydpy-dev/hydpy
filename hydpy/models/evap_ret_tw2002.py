@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """The primary purpose of |evap_ret_tw2002| is to serve as a submodel that provides
 estimates of potential grass reference evapotranspiration following :cite:t:`ref-DVWK`,

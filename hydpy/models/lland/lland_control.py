@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
 """
+
 # import...
 # ...from standard library
 from __future__ import annotations

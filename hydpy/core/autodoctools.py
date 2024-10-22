@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module implements tools for increasing the level of automation and
 standardisation of the online documentation generated with Sphinx."""
+
 # import...
 # ...from standard library
 from __future__ import annotations

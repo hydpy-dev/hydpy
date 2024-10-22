@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """|musk.DOCNAME.long| provides features for implementing Muskingum-like routing
 methods, which are finite difference solutions of the routing problem."""
+
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *

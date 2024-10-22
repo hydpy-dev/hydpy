@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module implements masking features to define which entries of |Parameter| or
 |Sequence_| arrays are relevant and which are not."""
+
 # import...
 # ...from standard library
 from __future__ import annotations

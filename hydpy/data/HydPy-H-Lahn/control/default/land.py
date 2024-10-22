@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from hydpy.models.hland_96 import *
 
 simulationstep("1h")

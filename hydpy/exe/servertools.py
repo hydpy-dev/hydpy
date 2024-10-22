@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module facilitates using *HydPy* as an HTTP server application.
 
 .. _`OpenDA`: https://www.openda.org/
@@ -222,6 +221,7 @@ The above description focussed on coupling *HydPy* to `OpenDA`_.  However, the a
 atomic submethods of class |HydPyServer| also allow coupling *HydPy*  with other
 software products. See the documentation on class |HydPyServer| for further information.
 """
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -1403,8 +1403,6 @@ under the id `0`.  There is nothing registered, so far.
     >>> with TestIO(), open("HydPy-H-Lahn/control/calibrated/"
     ...                     "land_dill_assl.py") as file_:
     ...     print(file_.read())  # doctest: +ELLIPSIS
-    # -*- coding: utf-8 -*-
-    <BLANKLINE>
     from hydpy.models.hland_96 import *
     from hydpy.models import evap_aet_hbv96
     from hydpy.models import evap_pet_hbv96

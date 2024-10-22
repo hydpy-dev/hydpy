@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """Use |meteo_glob_io| as a submodel to supply (relative) main models like
 |evap_ret_tw2002| with externally available global radiation time series.

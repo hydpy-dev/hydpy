@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
 """This module implements the main features for managing *HydPy* projects.
 
 .. _`NetCDF Climate and Forecast (CF) Metadata Conventions`: http://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/cf-conventions.html  # pylint: disable=line-too-long
 """
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -1211,8 +1211,6 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     with open(dir_ + "stream_lahn_marb_lahn_leun.py") as controlfile:
         ...         print(controlfile.read())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.musk_classic import *
         <BLANKLINE>
         simulationstep("1d")
@@ -1248,8 +1246,6 @@ deprecated.  Use method `prepare_models` instead.
         ...     hp.save_controls(auxfiler=auxfiler)
         ...     with open(dir_ + "stream_lahn_marb_lahn_leun.py") as controlfile:
         ...         print(controlfile.read())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.musk_classic import *
         <BLANKLINE>
         simulationstep("1d")
@@ -1264,8 +1260,6 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     with open(dir_ + "stream.py") as controlfile:
         ...         print(controlfile.read())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.musk_classic import *
         <BLANKLINE>
         simulationstep("1d")
@@ -1283,8 +1277,6 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     with open(dir_ + "stream_lahn_leun_lahn_kalk.py") as controlfile:
         ...         print(controlfile.read())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.musk_classic import *
         <BLANKLINE>
         simulationstep("1d")
@@ -1306,8 +1298,6 @@ deprecated.  Use method `prepare_models` instead.
         ...         auxfiler=auxfiler, parameterstep="2d", simulationstep="1h")
         ...     with open(dir_ + "stream_lahn_marb_lahn_leun.py") as controlfile:
         ...         print(controlfile.read())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.musk_classic import *
         <BLANKLINE>
         simulationstep("1h")
@@ -1320,8 +1310,6 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     with open(dir_ + "stream.py") as controlfile:
         ...         print(controlfile.read())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.musk_classic import *
         <BLANKLINE>
         simulationstep("1h")
@@ -1334,8 +1322,6 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     with open(dir_ + "stream_lahn_leun_lahn_kalk.py") as controlfile:
         ...         print(controlfile.read())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.musk_classic import *
         <BLANKLINE>
         simulationstep("1h")
@@ -1354,8 +1340,6 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     with open(dir_ + "land_dill_assl.py") as controlfile:
         ...         print(controlfile.read())  # doctest: +ELLIPSIS
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.hland_96 import *
         from hydpy.models import evap_aet_hbv96
         from hydpy.models import evap_pet_hbv96
@@ -1395,8 +1379,6 @@ deprecated.  Use method `prepare_models` instead.
         ...         auxfiler=auxfiler, parameterstep="2d", simulationstep="1h")
         ...     with open(dir_ + "evap.py") as controlfile:
         ...         print(controlfile.read())  # doctest: +ELLIPSIS
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.evap_pet_hbv96 import *
         <BLANKLINE>
         simulationstep("1h")
@@ -1407,7 +1389,7 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     with open(dir_ + "land_dill_assl.py") as controlfile:
         ...         print(controlfile.read())  # doctest: +ELLIPSIS
-        # -*- coding: utf-8 -*-
+        from hydpy.models.hland_96 import *
         ...
         gamma(0.0)
         with model.add_aetmodel_v1(evap_aet_hbv96):
@@ -1462,8 +1444,6 @@ deprecated.  Use method `prepare_models` instead.
         ...     hp.save_controls()
         ...     with open(dir_ + "my_channel.py") as controlfile:
         ...         print(controlfile.read())  # doctest: +ELLIPSIS
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.sw1d_channel import *
         from hydpy.models import sw1d_storage
         from hydpy.models import wq_trapeze
@@ -1499,8 +1479,6 @@ deprecated.  Use method `prepare_models` instead.
         ...     hp.save_controls()
         ...     with open(dir_ + "my_channel.py") as controlfile:
         ...         print(controlfile.read())  # doctest: +ELLIPSIS
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.sw1d_channel import *
         from hydpy.models import sw1d_lias
         from hydpy.models import sw1d_storage
@@ -1532,8 +1510,6 @@ deprecated.  Use method `prepare_models` instead.
         ...     hp.save_controls()
         ...     with open(dir_ + "my_channel.py") as controlfile:
         ...         print(controlfile.read())  # doctest: +ELLIPSIS
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.sw1d_channel import *
         from hydpy.models import sw1d_lias
         from hydpy.models import sw1d_q_in
@@ -1670,8 +1646,8 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     with open(path, "r") as file_:
         ...         lines = file_.read().split("\\n")
-        ...         print(lines[10])
-        ...         print(lines[11])
+        ...         print(lines[8])
+        ...         print(lines[9])
         sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 
@@ -1712,8 +1688,8 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     with open(path, "r") as file_:
         ...         lines = file_.read().split("\\n")
-        ...         print(lines[12])
-        ...         print(lines[13])
+        ...         print(lines[10])
+        ...         print(lines[11])
         sm(184.763638, 180.829058, 199.40823, 196.170947, 212.04018, 209.48859,
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 
@@ -1728,8 +1704,8 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     with open(path, "r") as file_:
         ...         lines = file_.read().split("\\n")
-        ...         print(lines[12])
-        ...         print(lines[13])
+        ...         print(lines[10])
+        ...         print(lines[11])
         sm(184.763638, 180.829058, 199.40823, 196.170947, 212.04018, 209.48859,
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 
@@ -1773,8 +1749,6 @@ deprecated.  Use method `prepare_models` instead.
         ...     hp.save_conditions()
         ...     with open(path) as conditionfile:
         ...         print(conditionfile.read())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.sw1d_channel import *
         from hydpy.models import sw1d_storage
         <BLANKLINE>
@@ -1811,8 +1785,6 @@ deprecated.  Use method `prepare_models` instead.
         ...     hp.save_conditions()
         ...     with open(path) as conditionfile:
         ...         print(conditionfile.read())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.sw1d_channel import *
         from hydpy.models import sw1d_lias
         from hydpy.models import sw1d_storage
@@ -1849,8 +1821,6 @@ deprecated.  Use method `prepare_models` instead.
         ...     hp.save_conditions()
         ...     with open(path) as conditionfile:
         ...         print(conditionfile.read())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.sw1d_channel import *
         from hydpy.models import sw1d_lias
         from hydpy.models import sw1d_q_in

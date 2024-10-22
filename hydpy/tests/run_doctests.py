@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=import-outside-toplevel
 # due to importing hydpy after eventually changing its source path
 """Evaluate all doctests defined in the different modules and documentation files."""

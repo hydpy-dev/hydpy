@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module implements some main features for using *HydPy* from your command line
 tools via script |hyd|."""
+
 # import...
 # ...from standard library
 from __future__ import annotations

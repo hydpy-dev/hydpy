@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module implements tools for defining and handling different kinds of
 hydrological model sequences (time series)."""
+
 # import...
 # ...from standard library
 from __future__ import annotations

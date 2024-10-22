@@ -498,7 +498,7 @@ class Test:
     @property
     def row_nmb_characters(self) -> int:
         """The number of characters of a single row of the table."""
-        return sum(self.col_widths) + sum((len(sep) for sep in self.col_separators))
+        return sum(self.col_widths) + sum(len(sep) for sep in self.col_separators)
 
     @staticmethod
     def _interleave(

@@ -3802,7 +3802,7 @@ class Calc_ActualSurfaceResistance_V1(modeltools.Method):
                 invsrnight: float = lai / 2500.0 + 1.0 / fac.soilsurfaceresistance[k]
                 w: float = fac.possiblesunshineduration / der.hours
                 fac.actualsurfaceresistance[k] = 1.0 / (
-                    (w * invsrday + (1.0 - w) * invsrnight)
+                    w * invsrday + (1.0 - w) * invsrnight
                 )
             else:
                 fac.actualsurfaceresistance[k] = fac.landusesurfaceresistance[k]
@@ -4002,7 +4002,7 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
                 r_night_inv: float = 1.0 / r_soil + lai / r_leaf_night
                 w_day: float = fac.possiblesunshineduration / der.hours
                 fac.actualsurfaceresistance[k] = 1.0 / (
-                    (w_day * r_day_inv + (1.0 - w_day) * r_night_inv)
+                    w_day * r_day_inv + (1.0 - w_day) * r_night_inv
                 )
             elif con.soil[k]:
                 fac.actualsurfaceresistance[k] = sta.soilresistance[k]

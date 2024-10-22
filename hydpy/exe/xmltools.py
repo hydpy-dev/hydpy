@@ -2757,7 +2757,7 @@ class XSDWriter:
         for name in cls.get_applicationmodelnames():
             seqs = importtools.prepare_model(name).sequences
             if seqs.inputs or (
-                ((type_ == "writer") and (seqs.factors or seqs.fluxes or seqs.states))
+                (type_ == "writer") and (seqs.factors or seqs.fluxes or seqs.states)
             ):
                 subs.extend(
                     [

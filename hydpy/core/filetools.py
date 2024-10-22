@@ -128,8 +128,7 @@ not start with numbers, cannot be mistaken with Python built-ins like `for`...)
         return [path for folder, path in self]
 
     def __iter__(self) -> Iterator[tuple[str, str]]:
-        for key, value in sorted(vars(self).items()):
-            yield key, value
+        yield from sorted(vars(self).items())
 
     def __len__(self) -> int:
         return len(vars(self))

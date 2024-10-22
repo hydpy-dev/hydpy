@@ -535,8 +535,7 @@ requirement for Python core modules is to declare the return type (or, when
 necessary, to declare the |typing.Union| of possible return types) of
 each new function or method:
 
->>> from typing import List
->>> def test(nmb) -> List[int]:
+>>> def test(nmb) -> list[int]:
 ...     return list(range(nmb))
 
 For `Cython`_ extension files, adding type information understandable

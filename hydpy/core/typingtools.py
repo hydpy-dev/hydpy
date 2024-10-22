@@ -20,6 +20,7 @@ from typing import (
     Any,
     cast,
     ClassVar,
+    Concatenate,
     Final,
     Generic,
     get_type_hints,
@@ -31,20 +32,13 @@ from typing import (
     overload,
     Protocol,
     TextIO,
+    TypeAlias,
     TypedDict,
     TypeVar,
     TYPE_CHECKING,
     Union,
 )
-from typing_extensions import (
-    assert_never,
-    Concatenate,
-    Never,
-    ParamSpec,
-    Self,
-    TypeAlias,
-    Unpack,
-)
+from typing_extensions import assert_never, Never, ParamSpec, Self, Unpack
 
 # ...from site-packages
 import numpy

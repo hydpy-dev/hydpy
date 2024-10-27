@@ -687,7 +687,7 @@ following error occurred: Parameter types are inconsistent: \
                     f"instances."
                 )
 
-            self.parameterstep = parameterstep
+            self._parameterstep = parameterstep
             self._original_parameter_values = self._get_original_parameter_values()
         except BaseException:
             objecttools.augment_excmessage(

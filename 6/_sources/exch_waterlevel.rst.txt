@@ -1,0 +1,14 @@
+.. |dam_pump| replace:: :mod:`~hydpy.models.dam_pump`
+.. |exch_waterlevel.DOCNAME.complete| replace:: HydPy-Exch-WL (submodel for querying the water level from a remote node)
+.. |exch_waterlevel| replace:: :mod:`~hydpy.models.exch_waterlevel`
+.. |wland_wag| replace:: :mod:`~hydpy.models.wland_wag`
+
+.. _exch_waterlevel:
+
+exch_waterlevel
+===============
+
+.. automodule:: hydpy.models.exch_waterlevel
+    :members:
+    :show-inheritance:
+    :exclude-members: deprecated, FIXEDPARAMETERS, Buffer, Counter, Deque, MutableSequence, reveal_type, IO, ParamSpecKwargs, seqs, OUTLET_METHODS, StateSequences, SOLVERSEQUENCES, Mapping, Optional, Required, NotRequired, SUBMODELINTERFACES, CONTROLPARAMETERS, Text, runtime_checkable, TYPE_CHECKING, Reversible, no_type_check_decorator, AnyStr, no_type_check, Callable, Never, subpars, Generic, ReadOnly, RESULTSEQUENCES, RECEIVER_METHODS, assert_type, is_typeddict, Sequence, get_args, OrderedDict, SOLVERPARAMETERS, SupportsIndex, LogSequences, ChainMap, ValuesView, Annotated, REQUIREDSEQUENCES, TypeVarTuple, INLET_METHODS, Type, SupportsComplex, Set, get_overloads, ParamSpecArgs, NamedTuple, DERIVEDPARAMETERS, Container, TypeVar, SupportsRound, TypeAliasType, NewType, AsyncIterator, Concatenate, fastaccess_new, Dict, FluxSequences, subseqs, Hashable, TypeGuard, MutableSet, MutableMapping, overload, TextIO, OutletSequences, SupportsInt, dataclass_transform, BinaryIO, Literal, IntVar, InletSequences, FrozenSet, get_protocol_members, ClassVar, Sized, ContextManager, SupportsBytes, SupportsAbs, fastaccess, AsyncContextManager, ForwardRef, KeysView, TypeIs, UPDATEDSEQUENCES, PART_ODE_METHODS, get_origin, AideSequences, SUBMODELS, ItemsView, AsyncGenerator, Generator, CLASSES, assert_never, FactorSequences, Iterator, SupportsFloat, AbstractSet, cast, is_protocol, INTERFACE_METHODS, clear_overloads, Coroutine, Self, Tuple, TypedDict, SenderSequences, runtime, SENDER_METHODS, final, override, InputSequences, subvars, MappingView, LiteralString, Union, ADD_METHODS, Awaitable, DefaultDict, Match, ParamSpec, TypeAlias, List, Collection, ByteString, NoReturn, Iterable, AsyncIterable, get_original_bases, Any, FULL_ODE_METHODS, Final, pars, SUBMETHODS, NoDefault, Doc, RUN_METHODS, Protocol, fastaccess_old, get_type_hints, Unpack, CapsuleType, Pattern

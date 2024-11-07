@@ -1,0 +1,13 @@
+.. |evap_ret_io.DOCNAME.complete| replace:: HydPy-Evap-RET-IO (external data)
+.. |evap_ret_io| replace:: :mod:`~hydpy.models.evap_ret_io`
+.. |lland_dd| replace:: :mod:`~hydpy.models.lland_dd`
+
+.. _evap_ret_io:
+
+evap_ret_io
+===========
+
+.. automodule:: hydpy.models.evap_ret_io
+    :members:
+    :show-inheritance:
+    :exclude-members: deprecated, FIXEDPARAMETERS, Buffer, Counter, Deque, MutableSequence, reveal_type, IO, ParamSpecKwargs, seqs, OUTLET_METHODS, StateSequences, SOLVERSEQUENCES, Mapping, Optional, ReceiverSequences, Required, NotRequired, SUBMODELINTERFACES, CONTROLPARAMETERS, Text, runtime_checkable, TYPE_CHECKING, Reversible, no_type_check_decorator, AnyStr, no_type_check, Callable, Never, subpars, Generic, ReadOnly, RESULTSEQUENCES, RECEIVER_METHODS, assert_type, is_typeddict, Sequence, get_args, OrderedDict, SOLVERPARAMETERS, SupportsIndex, LogSequences, ChainMap, ValuesView, Annotated, REQUIREDSEQUENCES, TypeVarTuple, INLET_METHODS, Type, SupportsComplex, Set, get_overloads, ParamSpecArgs, NamedTuple, DERIVEDPARAMETERS, Container, TypeVar, SupportsRound, TypeAliasType, NewType, AsyncIterator, Concatenate, fastaccess_new, Dict, subseqs, Hashable, TypeGuard, MutableSet, MutableMapping, overload, TextIO, OutletSequences, SupportsInt, dataclass_transform, BinaryIO, Literal, IntVar, InletSequences, FrozenSet, get_protocol_members, ClassVar, Sized, ContextManager, SupportsBytes, SupportsAbs, fastaccess, AsyncContextManager, ForwardRef, KeysView, TypeIs, UPDATEDSEQUENCES, PART_ODE_METHODS, get_origin, AideSequences, SUBMODELS, ItemsView, AsyncGenerator, Generator, CLASSES, assert_never, FactorSequences, Iterator, SupportsFloat, AbstractSet, cast, is_protocol, INTERFACE_METHODS, clear_overloads, Coroutine, Self, Tuple, TypedDict, SenderSequences, runtime, SENDER_METHODS, final, override, subvars, MappingView, LiteralString, Union, ADD_METHODS, Awaitable, DefaultDict, Match, ParamSpec, TypeAlias, List, Collection, ByteString, NoReturn, Iterable, AsyncIterable, get_original_bases, Any, FULL_ODE_METHODS, Final, pars, SUBMETHODS, NoDefault, Doc, RUN_METHODS, Protocol, fastaccess_old, get_type_hints, Unpack, CapsuleType, Pattern

@@ -1,0 +1,11 @@
+
+
+.. _smoothutils:
+
+smoothutils
+===========
+
+.. automodule:: hydpy.cythons.smoothutils
+    :members:
+    :show-inheritance:
+    :exclude-members: BinaryIO, Never, Sized, NewType, AsyncGenerator, TypeGuard, no_type_check, FIXEDPARAMETERS, ADD_METHODS, SupportsInt, MutableSequence, subvars, deprecated, ParamSpecArgs, LiteralString, CLASSES, NotRequired, Match, UPDATEDSEQUENCES, RECEIVER_METHODS, AsyncIterator, Awaitable, IntVar, seqs, CapsuleType, Optional, DefaultDict, ItemsView, NamedTuple, AsyncContextManager, REQUIREDSEQUENCES, SupportsFloat, SUBMODELS, Any, AbstractSet, ClassVar, ContextManager, KeysView, TypeIs, INTERFACE_METHODS, fastaccess_old, Sequence, SupportsIndex, subseqs, Reversible, AnyStr, pars, SUBMETHODS, TypeAliasType, Doc, no_type_check_decorator, get_original_bases, reveal_type, dataclass_transform, IO, ByteString, SupportsRound, Concatenate, MutableMapping, fastaccess, Collection, SupportsBytes, ParamSpec, Generator, assert_never, assert_type, TypeAlias, Protocol, Literal, SupportsComplex, Set, TypeVarTuple, DERIVEDPARAMETERS, final, get_type_hints, runtime, Container, RUN_METHODS, Callable, NoDefault, Final, runtime_checkable, get_origin, override, SupportsAbs, TextIO, SOLVERSEQUENCES, Coroutine, Counter, OUTLET_METHODS, List, MappingView, Text, ForwardRef, AsyncIterable, ValuesView, ParamSpecKwargs, TypedDict, cast, is_typeddict, FULL_ODE_METHODS, SENDER_METHODS, CONTROLPARAMETERS, get_overloads, Tuple, get_protocol_members, Union, Required, clear_overloads, TYPE_CHECKING, Buffer, Annotated, Type, get_args, Unpack, Iterator, PART_ODE_METHODS, MutableSet, Generic, NoReturn, ReadOnly, TypeVar, Dict, FrozenSet, SOLVERPARAMETERS, overload, Hashable, fastaccess_new, SUBMODELINTERFACES, RESULTSEQUENCES, OrderedDict, Mapping, subpars, ChainMap, Pattern, INLET_METHODS, Self, is_protocol, Deque, Iterable

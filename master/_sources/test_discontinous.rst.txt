@@ -1,0 +1,14 @@
+.. |Q| replace:: :class:`~hydpy.models.test.test_fluxes.Q`
+.. |S| replace:: :class:`~hydpy.models.test.test_states.S`
+.. |test_discontinous.DOCNAME.complete| replace:: HydPy-Test-Discontinuous (test model for discontinuous ODEs)
+.. |test_discontinous| replace:: :mod:`~hydpy.models.test_discontinous`
+
+.. _test_discontinous:
+
+test_discontinous
+=================
+
+.. automodule:: hydpy.models.test_discontinous
+    :members:
+    :show-inheritance:
+    :exclude-members: BinaryIO, Never, Sized, NewType, AideSequences, AsyncGenerator, TypeGuard, no_type_check, FIXEDPARAMETERS, ADD_METHODS, SupportsInt, MutableSequence, subvars, deprecated, ParamSpecArgs, LiteralString, CLASSES, NotRequired, Match, UPDATEDSEQUENCES, RECEIVER_METHODS, AsyncIterator, Awaitable, IntVar, seqs, CapsuleType, Optional, DefaultDict, ItemsView, NamedTuple, AsyncContextManager, REQUIREDSEQUENCES, SupportsFloat, SUBMODELS, OutletSequences, Any, SenderSequences, AbstractSet, ClassVar, ContextManager, KeysView, TypeIs, INTERFACE_METHODS, fastaccess_old, Sequence, SupportsIndex, subseqs, Reversible, AnyStr, pars, SUBMETHODS, TypeAliasType, LogSequences, Doc, no_type_check_decorator, get_original_bases, reveal_type, dataclass_transform, IO, ByteString, SupportsRound, Concatenate, MutableMapping, fastaccess, Collection, SupportsBytes, ParamSpec, Generator, assert_never, assert_type, InputSequences, TypeAlias, Protocol, Literal, SupportsComplex, Set, TypeVarTuple, DERIVEDPARAMETERS, final, get_type_hints, runtime, Container, RUN_METHODS, Callable, NoDefault, Final, runtime_checkable, get_origin, override, SupportsAbs, FactorSequences, TextIO, SOLVERSEQUENCES, Coroutine, Counter, OUTLET_METHODS, List, MappingView, Text, ForwardRef, AsyncIterable, ValuesView, ParamSpecKwargs, TypedDict, cast, is_typeddict, FULL_ODE_METHODS, SENDER_METHODS, CONTROLPARAMETERS, get_overloads, Tuple, get_protocol_members, Union, Required, clear_overloads, TYPE_CHECKING, Buffer, Annotated, Type, get_args, Unpack, Iterator, ReceiverSequences, PART_ODE_METHODS, MutableSet, Generic, NoReturn, ReadOnly, TypeVar, Dict, FrozenSet, SOLVERPARAMETERS, overload, Hashable, fastaccess_new, SUBMODELINTERFACES, RESULTSEQUENCES, OrderedDict, InletSequences, Mapping, subpars, ChainMap, Pattern, INLET_METHODS, Self, is_protocol, Deque, Iterable

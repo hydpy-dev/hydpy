@@ -71,7 +71,7 @@ deploy:
   description: 'This is a draft.'
   provider: GitHub
   auth_token:
-    secure: BKozZWjmaqIKC53W7MyzhwOzQYR+PcVvhEtpDxDAAVuDV77SpW+sF9WWIFPRMcNxOXNpSyn5thTA4F5Bl/KD2GnnCqOvJ/5bVBDikBgQBW3WJA8GuezaQcj8tBextjD5
+    secure: BKozZWjmaqIKC53W7Myzh6hT61IvfRTMc2WObLEVZipDV+TrPpnwmgOcKuMv8CaekZ7I6QA24o3Z0PiT+1/lTF0l5LalHVCcAwusW96e21p5II0dx+1KJjYx1lSb8NNR
   artifact: Packages,Installer,XSDs
   draft: true
   prerelease: false

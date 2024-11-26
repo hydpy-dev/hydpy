@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 .. _`Wikipedia page on latent heat`: https://en.wikipedia.org/wiki/Latent_heat
 """
+
 # import...
 # ...from HydPy
 from hydpy.core import parametertools

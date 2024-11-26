@@ -1,14 +1,14 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=import-outside-toplevel
 # due to importing hydpy after eventually changing its source path
 """Evaluate all doctests defined in the different modules and documentation files."""
+
 from __future__ import annotations
 from collections.abc import Iterable, Sequence
 import os
 import sys
 import importlib
 import time
-from typing import NamedTuple, Optional, NoReturn
+from typing import NamedTuple, NoReturn
 import unittest
 import doctest
 import warnings
@@ -77,7 +77,7 @@ class DocTests(NamedTuple):
     help="Execute all tests in Cython-mode.",
 )
 def main(  # pylint: disable=too-many-branches
-    hydpy_path: Optional[str],
+    hydpy_path: str | None,
     file_doctests: list[str],
     python_mode: bool,
     cython_mode: bool,
@@ -135,16 +135,12 @@ def main(  # pylint: disable=too-many-branches
                 if time.perf_counter() > pingtime + 5 * 60:
                     print_("`run_doctests` still running...")
                     pingtime = time.perf_counter()
-                if name.split(".")[-1] in ("apidoc", "prepare"):
-                    continue
-                if not name[-4:] in (".rst", ".pyx"):
-                    module = importlib.import_module(name)
                 suite = unittest.TestSuite()
                 try:
                     if name[-4:] in (".rst", ".pyx"):
                         test = doctest.DocFileSuite(name, module_relative=False)
                     else:
-                        test = doctest.DocTestSuite(module)
+                        test = doctest.DocTestSuite(importlib.import_module(name))
                     suite.addTest(test)
                 except ValueError as exc:
                     if exc.args[-1] != "has no docstrings":
@@ -153,6 +149,7 @@ def main(  # pylint: disable=too-many-branches
                     del pub.projectname
                     del pub.timegrids
                     options = pub.options
+                    options.checkprojectstructure = False
                     del options.checkseries
                     options.ellipsis = 0
                     del pub.options.parameterstep
@@ -190,13 +187,13 @@ def main(  # pylint: disable=too-many-branches
                             message="datetime.datetime.utcfromtimestamp",
                         )
                         runner = unittest.TextTestRunner(stream=file_)
-                        testresult = runner.run(suite)
-                        nmbproblems = len(testresult.errors) + len(testresult.failures)
+                        result = runner.run(suite)
+                        nmbproblems = len(result.errors) + len(result.failures)
                         if nmbproblems:
-                            doctests.failing[name] = (testresult, nmbproblems)
+                            doctests.failing[name] = (result, nmbproblems)
                         else:
-                            doctests.successfull[name] = (testresult, nmbproblems)
-                    problems = testresult.errors + testresult.failures
+                            doctests.successfull[name] = (result, nmbproblems)
+                    problems = result.errors + result.failures
                     if problems:
                         pingtime = time.perf_counter()
                         print_(f"\nDetailed error information on module {name}:")
@@ -218,7 +215,7 @@ def main(  # pylint: disable=too-many-branches
                 f"\nAt least one doc test failed in each of the following modules in "
                 f"{mode} mode:"
             )
-            for name, (testresult, nmbproblems) in sorted(doctests.failing.items()):
+            for name, (_, nmbproblems) in sorted(doctests.failing.items()):
                 print_(f"    {name} ({nmbproblems} failures/errors)")
 
     # Return the exit code.

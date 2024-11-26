@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 """This module provides features for working with time series."""
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -25,7 +25,7 @@ def aggregate_series(
     *,
     series: NDArrayFloat,
     stepsize: Literal["daily", "d"],
-    aggregator: Union[str, Callable[[NDArrayFloat], float]] = "mean",
+    aggregator: str | Callable[[NDArrayFloat], float] = "mean",
     subperiod: bool = True,
     basetime: str = "00:00",
 ) -> pandas.DataFrame:
@@ -37,7 +37,7 @@ def aggregate_series(
     *,
     series: NDArrayFloat,
     stepsize: Literal["monthly", "m", "yearly", "y"],
-    aggregator: Union[str, Callable[[NDArrayFloat], float]] = "mean",
+    aggregator: str | Callable[[NDArrayFloat], float] = "mean",
     subperiod: bool = True,
 ) -> pandas.DataFrame:
     """sim and obs as arguments, monthly aggregation"""
@@ -47,7 +47,7 @@ def aggregate_series(
 def aggregate_series(
     series: NDArrayFloat,
     stepsize: StepSize = "monthly",
-    aggregator: Union[str, Callable[[NDArrayFloat], float]] = "mean",
+    aggregator: str | Callable[[NDArrayFloat], float] = "mean",
     subperiod: bool = True,
     basetime: str = "00:00",
 ) -> pandas.DataFrame:

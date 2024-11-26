@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
 """
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -12,6 +12,7 @@ import numpy
 
 # ...from HydPy
 import hydpy
+from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
@@ -36,7 +37,7 @@ class FT(parametertools.Parameter):
 class NHRU(parametertools.Parameter):
     """Anzahl der Hydrotope (number of hydrological response units) [-].
 
-    Note that |NHRU| determines the length of most 1-dimensional HydPy-L-Land
+    Note that |NHRU| determines the length of most 1-dimensional |lland.DOCNAME.long|
     parameters and sequences.  This requires that the value of the respective |NHRU|
     instance is set before any of the values of these 1-dimensional parameters or
     sequences are set.  Changing the value of the |NHRU| instance necessitates setting
@@ -81,7 +82,7 @@ class NHRU(parametertools.Parameter):
 class Lnk(parametertools.NameParameter):
     """Landnutzungsklasse (land use class) [-].
 
-    For increasing legibility, the HydPy-L-Land constants are used for string
+    For increasing legibility, |lland.DOCNAME.long| constants are used for string
     representions of |Lnk| objects:
 
     >>> from hydpy.models.lland import *
@@ -90,8 +91,9 @@ class Lnk(parametertools.NameParameter):
     lnk(?)
     >>> nhru(4)
     >>> lnk(ACKER, ACKER, WASSER, MISCHW)
-    >>> lnk.values
-    array([ 4,  4, 16, 15])
+    >>> from hydpy import print_vector
+    >>> print_vector(lnk.values)
+    4, 4, 16, 15
     >>> lnk
     lnk(ACKER, ACKER, WASSER, MISCHW)
     >>> lnk(ACKER)
@@ -431,13 +433,12 @@ class KTSchnee(parametertools.Parameter):
     """Effektive Wärmeleitfähigkeit der obersten Schneeschicht (effective
     thermal conductivity of the top snow layer) [W/m²/K].
 
-    Note that, at least for application model |lland_v3|, it is fine to
-    set the value of parameter |KTSchnee| to |numpy.inf| to disable the
-    explicite modelling of the top snow layer.  As a result, the top
-    layer does not dampen the effects of atmospheric influences like
-    radiative heating.  Another aspect is that the snow surface temperature
-    does not need to be determined iteratively, as it is always identical
-    with the the snow bulk temperature, which decreases computation times.
+    Note that, at least for application model |lland_knauf|, it is fine to set the
+    value of parameter |KTSchnee| to |numpy.inf| to disable the explicit modelling of
+    the top snow layer.  As a result, the top layer does not dampen the effects of
+    atmospheric influences like radiative heating.  Another aspect is that the snow
+    surface temperature does not need to be determined iteratively, as it is always
+    identical with the the snow bulk temperature, which decreases computation times.
     """
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, numpy.inf)
@@ -464,7 +465,7 @@ class WMax(lland_parameters.ParameterSoil):
     # defined at the bottom of the file:
     CONTROLPARAMETERS: ClassVar[tuple[type[PWP], type[FK]]]
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         """Trim values in accordance with :math:`PWP \\leq FK \\leq WMax`.
 
         >>> from hydpy.models.lland import *
@@ -478,7 +479,7 @@ class WMax(lland_parameters.ParameterSoil):
         wmax(20.0, 50.0, 90.0)
 
         >>> fk.values = 60.0
-        >>> wmax.trim()
+        >>> assert wmax.trim() is True
         >>> wmax
         wmax(60.0, 60.0, 90.0)
         """
@@ -486,7 +487,7 @@ class WMax(lland_parameters.ParameterSoil):
             lower = exceptiontools.getattr_(self.subpars.fk, "value", None)
             if lower is None:
                 lower = exceptiontools.getattr_(self.subpars.pwp, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class FK(lland_parameters.ParameterSoilThreshold):
@@ -504,7 +505,7 @@ class FK(lland_parameters.ParameterSoilThreshold):
     # defined at the bottom of the file:
     CONTROLPARAMETERS: ClassVar[tuple[type[PWP], type[WMax]]]
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         """Trim upper values in accordance with :math:`PWP \\leq FK \\leq WMax`.
 
         >>> from hydpy.models.lland import *
@@ -521,7 +522,7 @@ class FK(lland_parameters.ParameterSoilThreshold):
             lower = exceptiontools.getattr_(self.subpars.pwp, "value", None)
         if upper is None:
             upper = exceptiontools.getattr_(self.subpars.wmax, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class PWP(lland_parameters.ParameterSoilThreshold):
@@ -539,7 +540,7 @@ class PWP(lland_parameters.ParameterSoilThreshold):
 
     CONTROLPARAMETERS = (WMax, FK)
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         """Trim values in accordance with :math:`PWP \\leq FK \\leq WMax`.
 
         >>> from hydpy.models.lland import *
@@ -552,7 +553,7 @@ class PWP(lland_parameters.ParameterSoilThreshold):
         pwp(0.0, 50.0, 100.0)
 
         >>> fk.values = 80.0
-        >>> pwp.trim()
+        >>> assert pwp.trim() is True
         >>> pwp
         pwp(0.0, 50.0, 80.0)
         """
@@ -560,7 +561,7 @@ class PWP(lland_parameters.ParameterSoilThreshold):
             upper = exceptiontools.getattr_(self.subpars.fk, "value", None)
             if upper is None:
                 upper = exceptiontools.getattr_(self.subpars.wmax, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 # runoff generation
@@ -614,8 +615,9 @@ class DMin(lland_parameters.ParameterSoil):
         >>> dmin(r_dmin=10.0)
         >>> dmin
         dmin(0.01008)
-        >>> dmin.values
-        array([0.24192])
+        >>> from hydpy import print_vector
+        >>> print_vector(dmin.values)
+        0.24192
 
         A wrong keyword results in the right answer:
 
@@ -648,7 +650,7 @@ Keyword `rdmin` is not among the available model constants.
             else:
                 objecttools.augment_excmessage()
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         """Trim upper values in accordance with :math:`DMin \\leq DMax`.
 
         >>> from hydpy.models.lland import *
@@ -663,7 +665,7 @@ Keyword `rdmin` is not among the available model constants.
         """
         if upper is None:
             upper = exceptiontools.getattr_(self.subpars.dmax, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class DMax(lland_parameters.ParameterSoil):
@@ -680,7 +682,7 @@ class DMax(lland_parameters.ParameterSoil):
 
     Example:
 
-        >>> from hydpy import pub
+        >>> from hydpy import print_vector, pub
         >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
         >>> from hydpy.models.lland import *
         >>> parameterstep("1h")
@@ -689,8 +691,8 @@ class DMax(lland_parameters.ParameterSoil):
         >>> dmax(r_dmax=10.0)
         >>> dmax
         dmax(1.008)
-        >>> dmax.values
-        array([24.192])
+        >>> print_vector(dmax.values)
+        24.192
 
         A wrong keyword results in the right answer:
 
@@ -718,13 +720,15 @@ Keyword `rdmax` is not among the available model constants.
         except TypeError:
             if (r := kwargs.get("r_dmax")) is not None:
                 self.value = (
-                    0.1008 * hydpy.pub.timegrids.init.stepsize.hours * numpy.array(r)
+                    0.1008
+                    * hydpy.pub.timegrids.init.stepsize.hours
+                    * numpy.array(r, config.NP_FLOAT)
                 )
                 self.trim()
             else:
                 objecttools.augment_excmessage()
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         """Trim upper values in accordance with :math:`DMax \\geq DMin`.
 
         >>> from hydpy.models.lland import *
@@ -739,7 +743,7 @@ Keyword `rdmax` is not among the available model constants.
         """
         if lower is None:
             lower = exceptiontools.getattr_(self.subpars.dmin, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class Beta(lland_parameters.ParameterSoil):
@@ -828,9 +832,12 @@ class KapGrenz(parametertools.Parameter):
     >>> fk(60.0, 120.0, 180.0)
     >>> kapgrenz(option="FK")
     >>> kapgrenz
-    kapgrenz([[60.0, 60.0],
-              [120.0, 120.0],
-              [180.0, 180.0]])
+    kapgrenz(option="FK")
+    >>> from hydpy import print_matrix
+    >>> print_matrix(kapgrenz.value)
+    | 60.0, 60.0 |
+    | 120.0, 120.0 |
+    | 180.0, 180.0 |
 
     The second possible string is `0_WMax/10`, which corresponds to the
     LARSIM option `KOPPELUNG BODEN/GRUNDWASSER`, where the lower and upper
@@ -840,9 +847,11 @@ class KapGrenz(parametertools.Parameter):
     >>> wmax(100.0, 150.0, 200.0)
     >>> kapgrenz(option="0_WMax/10")
     >>> kapgrenz
-    kapgrenz([[0.0, 10.0],
-              [0.0, 15.0],
-              [0.0, 20.0]])
+    kapgrenz(option="0_WMax/10")
+    >>> print_matrix(kapgrenz.values)
+    | 0.0, 10.0 |
+    | 0.0, 15.0 |
+    | 0.0, 20.0 |
 
     The third possible string is `FK/2_FK` where the lower and the upper
     threshold are 50 % and 100 % of the value of parameter |FK|, which does
@@ -850,25 +859,63 @@ class KapGrenz(parametertools.Parameter):
 
     >>> kapgrenz(option="FK/2_FK")
     >>> kapgrenz
+    kapgrenz(option="FK/2_FK")
+    >>> print_matrix(kapgrenz.values)
+    | 30.0, 60.0 |
+    | 60.0, 120.0 |
+    | 90.0, 180.0 |
+
+    If we set the values directly and they comply with the previously set option,
+    the string representation will show the previously set option:
+
+    >>> kapgrenz.values = [[30.0, 60.0], [60.0, 120.0], [90.0, 180.0]]
+    >>> kapgrenz
+    kapgrenz(option="FK/2_FK")
+
+    If we change the values and they do not comply with the option, the string
+    representation will show the modified values instead of the outdated option:
+
+    >>> kapgrenz.values = 100.0
+    >>> kapgrenz
+    kapgrenz(100.0)
+
+    If we change the parameter |FK|, on which |KapGrenz| depends, |KapGrenz| will not
+    be updated, but will remain at its old values. The option is no longer printed
+    because it is not valid anymore:
+
+    >>> kapgrenz(option="FK/2_FK")
+    >>> kapgrenz
+    kapgrenz(option="FK/2_FK")
+    >>> print_matrix(kapgrenz.values)
+    | 30.0, 60.0 |
+    | 60.0, 120.0 |
+    | 90.0, 180.0 |
+    >>> fk(100)
+    >>> kapgrenz
     kapgrenz([[30.0, 60.0],
               [60.0, 120.0],
               [90.0, 180.0]])
 
-    Wrong keyword arguments result in errors like the following:
+    The option will also not be printed if it leads to |numpy.nan| values:
 
+    >>> fk(numpy.nan)
+    >>> kapgrenz(option="FK/2_FK")
+    >>> kapgrenz
+    kapgrenz(nan)
+
+    Wrong keyword arguments result in errors like the following:
 
     >>> kapgrenz(option1="FK", option2="0_WMax/10")
     Traceback (most recent call last):
     ...
-    ValueError: Parameter `kapgrenz` of element `?` does not accept multiple \
-keyword arguments, but the following are given: option1 and option2
+    NotImplementedError: The value(s) of parameter `kapgrenz` of element `?` \
+could not be set based on the given keyword arguments.
 
     >>> kapgrenz(option1="FK")
     Traceback (most recent call last):
     ...
-    ValueError: Besides the standard keyword arguments, parameter `kapgrenz` \
-of element `?` does only support the keyword argument `option`, but `option1` \
-is given.
+    NotImplementedError: The value(s) of parameter `kapgrenz` of element `?` \
+could not be set based on the given keyword arguments.
 
     >>> kapgrenz(option="NFk")
     Traceback (most recent call last):
@@ -880,41 +927,50 @@ is given.
     CONTROLPARAMETERS = (WMax, FK)
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
     INIT = 0.0
+    KEYWORDS = {"option": parametertools.Keyword(name="option")}
 
     def __call__(self, *args, **kwargs) -> None:
-        try:
+        self._keywordarguments = parametertools.KeywordArguments(False)
+        idx = self._find_kwargscombination(args, kwargs, ({"option"},))
+        if idx is None:
             super().__call__(*args, **kwargs)
-        except NotImplementedError:
-            if len(kwargs) > 1:
-                raise ValueError(
-                    f"Parameter {objecttools.elementphrase(self)} does not "
-                    f"accept multiple keyword arguments, but the following "
-                    f"are given: {objecttools.enumeration(kwargs.keys())}"
-                ) from None
-            if "option" not in kwargs:
-                raise ValueError(
-                    f"Besides the standard keyword arguments, parameter "
-                    f"{objecttools.elementphrase(self)} does only support "
-                    f"the keyword argument `option`, but `{tuple(kwargs)[0]}` "
-                    f"is given."
-                ) from None
-            con = self.subpars
-            self.values = 0.0
-            if kwargs["option"] == "FK/2_FK":
-                self.values[:, 0] = 0.5 * con.fk  # type: ignore[index]
-                self.values[:, 1] = con.fk  # type: ignore[index]
-            elif kwargs["option"] == "0_WMax/10":
-                self.values[:, 0] = 0.0  # type: ignore[index]
-                self.values[:, 1] = 0.1 * con.wmax  # type: ignore[index]
-            elif kwargs["option"] == "FK":
-                self.values[:, 0] = con.fk  # type: ignore[index]
-                self.values[:, 1] = con.fk  # type: ignore[index]
-            else:
-                raise ValueError(
-                    f"Parameter {objecttools.elementphrase(self)} supports "
-                    f"the options `FK`, `0_WMax/10`, and `FK/2_FK`, but "
-                    f"`{kwargs['option']}` is given."
-                ) from None
+        else:
+            self._keywordarguments = parametertools.KeywordArguments(
+                option=kwargs["option"]
+            )
+            self.values = self._get_values_according_to_option()
+
+    def _get_values_according_to_option(self) -> MatrixFloat:
+        con = self.subpars
+        values = numpy.zeros(self.shape)
+        kwargs = self._keywordarguments
+        if kwargs["option"] == "FK/2_FK":
+            values[:, 0] = 0.5 * con.fk
+            values[:, 1] = con.fk
+        elif kwargs["option"] == "0_WMax/10":
+            values[:, 0] = 0.0
+            values[:, 1] = 0.1 * con.wmax
+        elif kwargs["option"] == "FK":
+            values[:, 0] = con.fk
+            values[:, 1] = con.fk
+        else:
+            raise ValueError(
+                f"Parameter {objecttools.elementphrase(self)} supports "
+                f"the options `FK`, `0_WMax/10`, and `FK/2_FK`, but "
+                f"`{kwargs['option']}` is given."
+            ) from None
+        return values
+
+    def __repr__(self) -> str:
+        if self._keywordarguments.valid:
+            values = self._get_values_according_to_option()
+            if (values == self.values).all():
+                strings = []
+                for name, value in self._keywordarguments:
+                    strings.append(f'{name}="{objecttools.repr_(value)}"')
+                return f"{self.name}({', '.join(strings)})"
+
+        return super().__repr__()
 
 
 class RBeta(parametertools.Parameter):
@@ -949,7 +1005,7 @@ class GSBGrad1(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, True, (None, None)
     INIT = numpy.inf
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim upper values in accordance with :math:`GSBGrad1 \leq GSBGrad2`.
 
         >>> from hydpy.models.lland import *
@@ -968,7 +1024,7 @@ class GSBGrad1(parametertools.Parameter):
         """
         if upper is None:
             upper = exceptiontools.getattr_(self.subpars.gsbgrad2, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class GSBGrad2(parametertools.Parameter):
@@ -978,7 +1034,7 @@ class GSBGrad2(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, True, (None, None)
     INIT = numpy.inf
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim upper values in accordance with :math:`GSBGrad1 \leq GSBGrad2`.
 
         >>> from hydpy.models.lland import *
@@ -997,7 +1053,7 @@ class GSBGrad2(parametertools.Parameter):
         """
         if lower is None:
             lower = exceptiontools.getattr_(self.subpars.gsbgrad1, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 # runoff concentration
@@ -1153,7 +1209,7 @@ class EQI1(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
     INIT = 2000.0
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         """Trim upper values in accordance with :math:`EQI2 \\leq EQI1`.
 
         >>> from hydpy.models.lland import *
@@ -1171,7 +1227,7 @@ class EQI1(parametertools.Parameter):
         """
         if lower is None:
             lower = exceptiontools.getattr_(self.subpars.eqi2, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class EQI2(parametertools.Parameter):
@@ -1182,7 +1238,7 @@ class EQI2(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
     INIT = 1000.0
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         """Trim upper values in accordance with :math:`EQI2 \\leq EQI1`.
 
         >>> from hydpy.models.lland import *
@@ -1200,7 +1256,7 @@ class EQI2(parametertools.Parameter):
         """
         if upper is None:
             upper = exceptiontools.getattr_(self.subpars.eqi1, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class EQD1(parametertools.Parameter):
@@ -1211,7 +1267,7 @@ class EQD1(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
     INIT = 100.0
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         """Trim upper values in accordance with :math:`EQD2 \\leq EQD1`.
 
         >>> from hydpy.models.lland import *
@@ -1229,7 +1285,7 @@ class EQD1(parametertools.Parameter):
         """
         if lower is None:
             lower = exceptiontools.getattr_(self.subpars.eqd2, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class EQD2(parametertools.Parameter):
@@ -1240,7 +1296,7 @@ class EQD2(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
     INIT = 50.0
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         """Trim upper values in accordance with :math:`EQD2 \\leq EQD1`.
 
         >>> from hydpy.models.lland import *
@@ -1258,7 +1314,7 @@ class EQD2(parametertools.Parameter):
         """
         if upper is None:
             upper = exceptiontools.getattr_(self.subpars.eqd1, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class NegQ(parametertools.Parameter):

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -29,8 +28,9 @@ class ParameterComplete(parametertools.ZipParameter):
     >>> kg(acker=2.0, vers=1.0, glets=4.0, see=3.0)
     >>> kg
     kg(acker=2.0, glets=4.0, see=3.0, vers=1.0)
-    >>> kg.values
-    array([2., 1., 4., 3., 2.])
+    >>> from hydpy import print_vector
+    >>> print_vector(kg.values)
+    2.0, 1.0, 4.0, 3.0, 2.0
     >>> kg(5.0, 4.0, 3.0, 2.0, 1.0)
     >>> derived.absfhru(0.0, 0.1, 0.2, 0.3, 0.4)
     >>> from hydpy import round_

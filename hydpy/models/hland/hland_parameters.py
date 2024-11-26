@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -33,6 +32,7 @@ class ParameterComplete(ParameterBase):
     After preparing the parameter |ZoneType|, |PCorr| allows setting its values using
     the relevant land-use types as keywords:
 
+    >>> from hydpy import print_vector, round_
     >>> from hydpy.models.hland import *
     >>> parameterstep("1d")
     >>> nmbzones(6)
@@ -40,14 +40,13 @@ class ParameterComplete(ParameterBase):
     >>> pcorr(field=2.0, forest=1.0, glacier=4.0, ilake=3.0, sealed=5.0)
     >>> pcorr
     pcorr(field=2.0, forest=1.0, glacier=4.0, ilake=3.0, sealed=5.0)
-    >>> pcorr.values
-    array([2., 1., 4., 3., 2., 5.])
+    >>> print_vector(pcorr.values)
+    2.0, 1.0, 4.0, 3.0, 2.0, 5.0
 
     Parameter |ZoneArea| serves for calculating areal means (see the documentation on
     |property| |ParameterBase.refweights|):
 
     >>> zonearea.values = 0.0, 1.0, 2.0, 3.0, 4.0, 5.0
-    >>> from hydpy import round_
     >>> round_(pcorr.average_values())
     3.4
 

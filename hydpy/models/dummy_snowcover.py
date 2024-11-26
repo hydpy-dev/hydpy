@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
-"""Submodel for reading the current snow cover degree.
-
+"""
 |dummy_snowcover| merely serves testing purposes.  We use it, for example, to perform
 the integration tests for submodels like |evap_aet_hbv96| without the need to couple
-them to complex main models like |hland_v1| for providing snow cover data.
+them to complex main models like |hland_96| for providing snow cover data.
 
 Integration test
 ================
@@ -51,7 +49,13 @@ ADDITIONAL_CONTROLPARAMETERS = (dummy_control.NmbZones,)
 
 
 class Model(modeltools.AdHocModel, stateinterfaces.SnowCoverModel_V1):
-    """Model for reading the snow cover degree from files."""
+    """|dummy_snowcover.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Dummy-SnowCover",
+        description="dummy model supplying main models with snow cover states",
+    )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

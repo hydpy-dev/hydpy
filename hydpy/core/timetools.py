@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
 """This module specifies the handling of dates and periods in *HydPy* projects.
 
 .. _`Time Coordinate`: http://cfconventions.org/Data/cf-conventions/\
 cf-conventions-1.7/cf-conventions.html#time-coordinate
 """
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -19,6 +19,7 @@ import numpy
 
 # ...from HydPy
 import hydpy
+from hydpy import config
 from hydpy.core import objecttools
 from hydpy.core import propertytools
 from hydpy.core.typingtools import *
@@ -27,14 +28,13 @@ from hydpy.core.typingtools import *
 # `strptime` is supposed to prevent possible problems arising from this bug.
 time.strptime("1999", "%Y")
 
-
-DateConstrArg = Union["Date", datetime_.datetime, str]
-PeriodConstrArg = Union["Period", datetime_.timedelta, str]
+DateConstrArg: TypeAlias = Union[datetime_.datetime, str, "Date"]
+PeriodConstrArg: TypeAlias = Union[datetime_.timedelta, str, "Period"]
 TypeDate = TypeVar("TypeDate", bound="Date")
 TypePeriod = TypeVar("TypePeriod", bound="Period")
 TypeTimegrid = TypeVar("TypeTimegrid", bound="Timegrid")
 TypeTOY = TypeVar("TypeTOY", bound="TOY")  # pylint: disable=invalid-name
-TypeUnit = Literal["days", "d", "hours", "h", "minutes", "m", "seconds", "s"]
+TypeUnit: TypeAlias = Literal["days", "d", "hours", "h", "minutes", "m", "seconds", "s"]
 
 
 class Date:
@@ -362,7 +362,7 @@ base 10: '0X'
         return self
 
     @staticmethod
-    def _extract_offset(string: str) -> tuple[str, Optional[str]]:
+    def _extract_offset(string: str) -> tuple[str, str | None]:
         if "Z" in string:
             return string.split("Z")[0].strip(), "+0000"
         if "+" in string:
@@ -409,7 +409,7 @@ base 10: '0X'
 
     @staticmethod
     def _modify_date(
-        date: datetime_.datetime, offset: Optional[str], string: str
+        date: datetime_.datetime, offset: str | None, string: str
     ) -> datetime_.datetime:
         try:
             if offset is None:
@@ -464,9 +464,9 @@ base 10: '0X'
         """Return a 1-dimensional |numpy| |numpy.ndarray|  with six entries defining
         the actual date (year, month, day, hour, minute, second).
 
-        >>> from hydpy import Date
-        >>> Date("1992-10-8 15:15:42").to_array()
-        array([1992.,   10.,    8.,   15.,   15.,   42.])
+        >>> from hydpy import Date, print_vector
+        >>> print_vector(Date("1992-10-8 15:15:42").to_array())
+        1992.0, 10.0, 8.0, 15.0, 15.0, 42.0
 
         .. note::
 
@@ -476,7 +476,7 @@ base 10: '0X'
         """
         return numpy.array(
             [self.year, self.month, self.day, self.hour, self.minute, self.second],
-            dtype=float,
+            dtype=config.NP_FLOAT,
         )
 
     @classmethod
@@ -547,7 +547,7 @@ decimal fraction of a second than "0" allowed.
                 f"`{units}`"
             )
 
-    def to_cfunits(self, unit: str = "hours", utcoffset: Optional[int] = None) -> str:
+    def to_cfunits(self, unit: str = "hours", utcoffset: int | None = None) -> str:
         """Return a `units` string agreeing with the NetCDF-CF conventions.
 
         By default, method |Date.to_cfunits| uses `hours` as the time unit and takes
@@ -794,7 +794,7 @@ twelve (December) but `0` is given
         """
         return type(self)._firstmonth_wateryear
 
-    def _set_refmonth(self, value: Union[int, str]) -> None:
+    def _set_refmonth(self, value: int | str) -> None:
         try:
             refmonth = int(value)
         except ValueError:
@@ -827,7 +827,7 @@ twelve (December) but `0` is given
             )
         type(self)._firstmonth_wateryear = refmonth
 
-    refmonth = propertytools.Property[Union[int, str], int](
+    refmonth = propertytools.Property[int | str, int](
         fget=_get_refmonth, fset=_set_refmonth
     )
 
@@ -951,21 +951,21 @@ twelve (December) but `0` is given
         return self
 
     @overload
-    def __sub__(self, other: Union[Date, datetime_.datetime]) -> Period:
+    def __sub__(self, other: Date | datetime_.datetime) -> Period:
         """Determine the period between two dates."""
 
     @overload
-    def __sub__(self: TypeDate, other: Union[Period, datetime_.timedelta]) -> TypeDate:
+    def __sub__(self: TypeDate, other: Period | datetime_.timedelta) -> TypeDate:
         """Subtract a period from the actual date."""
 
     @overload
-    def __sub__(self: TypeDate, other: str) -> Union[TypeDate, Period]:
+    def __sub__(self: TypeDate, other: str) -> TypeDate | Period:
         """Result depends on the string."""
 
     def __sub__(
         self: TypeDate,
-        other: Union[Date, datetime_.datetime, datetime_.timedelta, Period, str],
-    ) -> Union[TypeDate, Period]:
+        other: Date | datetime_.datetime | datetime_.timedelta | Period | str,
+    ) -> TypeDate | Period:
         if isinstance(other, (Date, datetime_.datetime, str)):
             try:
                 return Period(self.datetime - type(self)(other).datetime)
@@ -1022,9 +1022,7 @@ twelve (December) but `0` is given
         new.datetime = copy.deepcopy(self.datetime)
         return new
 
-    def to_string(
-        self, style: Optional[str] = None, utcoffset: Optional[int] = None
-    ) -> str:
+    def to_string(self, style: str | None = None, utcoffset: int | None = None) -> str:
         """Return a |str| object representing the actual date following the given style
         and the eventually given UTC offset (in minutes).
 
@@ -1072,9 +1070,7 @@ twelve (December) but `0` is given
             date = self.datetime + datetime_.timedelta(minutes=offset)
         return date.strftime(self.formatstrings[style]) + string
 
-    def to_repr(
-        self, style: Optional[str] = None, utcoffset: Optional[int] = None
-    ) -> str:
+    def to_repr(self, style: str | None = None, utcoffset: int | None = None) -> str:
         """Similar to method |Date.to_string|, but returns a proper string
         representation instead.
 
@@ -1239,7 +1235,7 @@ following error occurred: The supplied argument must be either an instance of \
     """
 
     def __new__(
-        cls: type[TypePeriod], period: Optional[PeriodConstrArg] = None
+        cls: type[TypePeriod], period: PeriodConstrArg | None = None
     ) -> TypePeriod:
         try:
             if isinstance(period, Period):
@@ -1454,14 +1450,14 @@ moment.
         TypeError: The supplied argument must be either an instance of `Period´, \
 `datetime.timedelta` or `str`.  The given argument's type is `int`.
         """
-        timedelta = cast(Optional[datetime_.timedelta], vars(self).get("timedelta"))
+        timedelta = cast(datetime_.timedelta | None, vars(self).get("timedelta"))
         if timedelta is None:
             raise AttributeError(
                 "The Period object does not handle a timedelta object at the moment."
             )
         return timedelta
 
-    def _set_timedelta(self, period: Optional[PeriodConstrArg]) -> None:
+    def _set_timedelta(self, period: PeriodConstrArg | None) -> None:
         if isinstance(period, Period):
             vars(self)["timedelta"] = vars(period).get("timedelta")
         elif isinstance(period, datetime_.timedelta):
@@ -1478,7 +1474,7 @@ moment.
     def _del_timedelta(self) -> None:
         vars(self)["timedelta"] = None
 
-    timedelta = propertytools.Property[Optional[PeriodConstrArg], datetime_.timedelta](
+    timedelta = propertytools.Property[PeriodConstrArg | None, datetime_.timedelta](
         fget=_get_timedelta, fset=_set_timedelta, fdel=_del_timedelta
     )
 
@@ -1565,23 +1561,21 @@ moment.
         return bool(getattr(self, "timedelta", None))
 
     @overload
-    def __add__(self: TypePeriod, other: Union[Date, datetime_.datetime]) -> Date:
+    def __add__(self: TypePeriod, other: Date | datetime_.datetime) -> Date:
         """Add the |Period| object to a |Date| object."""
 
     @overload
-    def __add__(
-        self: TypePeriod, other: Union[Period, datetime_.timedelta]
-    ) -> TypePeriod:
+    def __add__(self: TypePeriod, other: Period | datetime_.timedelta) -> TypePeriod:
         """Add the |Period| object to another |Period| object."""
 
     @overload
-    def __add__(self: TypePeriod, other: str) -> Union[Date, TypePeriod]:
+    def __add__(self: TypePeriod, other: str) -> Date | TypePeriod:
         """Result depends on the actual string."""
 
     def __add__(
         self: TypePeriod,
-        other: Union[Date, datetime_.datetime, Period, datetime_.timedelta, str],
-    ) -> Union[Date, TypePeriod]:
+        other: Date | datetime_.datetime | Period | datetime_.timedelta | str,
+    ) -> Date | TypePeriod:
         if isinstance(other, (Date, datetime_.datetime, str)):
             try:
                 other = Date(other)
@@ -1602,23 +1596,21 @@ moment.
         )
 
     @overload
-    def __radd__(self, other: Union[Date, datetime_.datetime]) -> Date:
+    def __radd__(self, other: Date | datetime_.datetime) -> Date:
         """Add the |Period| object to a |Date| object."""
 
     @overload
-    def __radd__(
-        self: TypePeriod, other: Union[Period, datetime_.timedelta]
-    ) -> TypePeriod:
+    def __radd__(self: TypePeriod, other: Period | datetime_.timedelta) -> TypePeriod:
         """Add the |Period| object to another |Period| object."""
 
     @overload
-    def __radd__(self: TypePeriod, other: str) -> Union[Date, TypePeriod]:
+    def __radd__(self: TypePeriod, other: str) -> Date | TypePeriod:
         """Result depends on the string."""
 
     def __radd__(  # type: ignore
         self: TypePeriod,
-        other: Union[Date, datetime_.datetime, Period, datetime_.timedelta, str],
-    ) -> Union[Date, TypePeriod]:
+        other: Date | datetime_.datetime | Period | datetime_.timedelta | str,
+    ) -> Date | TypePeriod:
         # without more flexible ways to relate types to string patterns, there is
         # nothing we can do about it (except providing a less flexible interface, of
         # course)
@@ -1638,7 +1630,7 @@ moment.
 
     @overload
     def __rsub__(  # type: ignore
-        self: TypePeriod, other: Union[Date, datetime_.datetime]
+        self: TypePeriod, other: Date | datetime_.datetime
     ) -> TypePeriod:
         # without more flexible ways to relate types to string patterns, there is
         # nothing we can do about it (except providing a less flexible interface, of
@@ -1646,22 +1638,20 @@ moment.
         """Subtract the |Period| object from a |Date| object."""
 
     @overload
-    def __rsub__(  # type: ignore
-        self, other: Union[Period, datetime_.timedelta]
-    ) -> Date:
+    def __rsub__(self, other: Period | datetime_.timedelta) -> Date:  # type: ignore
         # without more flexible ways to relate types to string patterns, there is
         # nothing we can do about it (except providing a less flexible interface, of
         # course)
         """Subtract the |Period| object from another |Period| object."""
 
     @overload
-    def __rsub__(self: TypePeriod, other: str) -> Union[Date, TypePeriod]:
+    def __rsub__(self: TypePeriod, other: str) -> Date | TypePeriod:
         """Result depends on string."""
 
     def __rsub__(
         self: TypePeriod,
-        other: Union[Date, datetime_.datetime, Period, datetime_.timedelta, str],
-    ) -> Union[Date, TypePeriod]:
+        other: Date | datetime_.datetime | Period | datetime_.timedelta | str,
+    ) -> Date | TypePeriod:
         if isinstance(other, (Date, datetime_.datetime, str)):
             try:
                 other = Date(other)
@@ -1704,8 +1694,8 @@ moment.
         """Divide the |Period| object through a number object."""
 
     def __truediv__(
-        self: TypePeriod, other: Union[PeriodConstrArg, float]
-    ) -> Union[TypePeriod, float]:
+        self: TypePeriod, other: PeriodConstrArg | float
+    ) -> TypePeriod | float:
         if isinstance(other, (float, int)):
             return type(self).from_timedelta(self.timedelta / other)
         return self.seconds / type(self)(other).seconds
@@ -1729,9 +1719,7 @@ moment.
     def __mod__(self: TypePeriod, other: PeriodConstrArg) -> TypePeriod:
         return type(self).from_timedelta(self.timedelta % type(self)(other).timedelta)
 
-    def __rmod__(
-        self: TypePeriod, other: Union[Period, datetime_.timedelta]
-    ) -> TypePeriod:
+    def __rmod__(self: TypePeriod, other: Period | datetime_.timedelta) -> TypePeriod:
         return type(self).from_timedelta(type(self)(other).timedelta % self.timedelta)
 
     def __pos__(self: TypePeriod) -> TypePeriod:
@@ -2122,7 +2110,7 @@ required, but the given array consist of 12 entries/rows only.
 
         See the documentation on method |Timegrid.from_array| for more information.
         """
-        values = numpy.empty(13, dtype=float)
+        values = numpy.empty(13, dtype=config.NP_FLOAT)
         values[:6] = self.firstdate.to_array()
         values[6:12] = self.lastdate.to_array()
         values[12] = self.stepsize.seconds
@@ -2202,7 +2190,7 @@ required, but the given array consist of 12 entries/rows only.
         return cls(firstdate, lastdate, stepsize)
 
     def to_timepoints(
-        self, unit: TypeUnit = "hours", offset: Union[float, PeriodConstrArg] = 0.0
+        self, unit: TypeUnit = "hours", offset: float | PeriodConstrArg = 0.0
     ) -> numpy.ndarray:
         """Return a |numpy.ndarray| representing the starting time points of the
         |Timegrid| object.
@@ -2210,26 +2198,26 @@ required, but the given array consist of 12 entries/rows only.
         By default, method |Timegrid.to_timepoints| returns the time elapsed since the
         |Timegrid.firstdate| in hours:
 
-        >>> from hydpy import Timegrid
+        >>> from hydpy import print_vector, Timegrid
         >>> timegrid = Timegrid("2000-01-01", "2000-01-02", "6h")
-        >>> timegrid.to_timepoints()
-        array([ 0.,  6., 12., 18.])
+        >>> print_vector(timegrid.to_timepoints())
+        0.0, 6.0, 12.0, 18.0
 
         You can define other time units (`days` or `min`) (only the first character
         counts):
 
-        >>> timegrid.to_timepoints(unit="d")
-        array([0.  , 0.25, 0.5 , 0.75])
+        >>> print_vector(timegrid.to_timepoints(unit="d"))
+        0.0, 0.25, 0.5, 0.75
 
         Additionally, one can pass an `offset` that must be of type |int| or a valid
         |Period| initialisation argument:
 
-        >>> timegrid.to_timepoints(offset=24)
-        array([24., 30., 36., 42.])
-        >>> timegrid.to_timepoints(offset="1d")
-        array([24., 30., 36., 42.])
-        >>> timegrid.to_timepoints(unit="days", offset="1d")
-        array([1.  , 1.25, 1.5 , 1.75])
+        >>> print_vector(timegrid.to_timepoints(offset=24))
+        24.0, 30.0, 36.0, 42.0
+        >>> print_vector(timegrid.to_timepoints(offset="1d"))
+        24.0, 30.0, 36.0, 42.0
+        >>> print_vector(timegrid.to_timepoints(unit="days", offset="1d"))
+        1.0, 1.25, 1.5, 1.75
 
         When setting the |Options.timestampleft| option to |False|,
         |Timegrid.to_timepoints| assumes each time point to define the right side
@@ -2239,20 +2227,20 @@ required, but the given array consist of 12 entries/rows only.
 
         >>> from hydpy import pub
         >>> with pub.options.timestampleft(False):
-        ...     timegrid.to_timepoints()
-        array([ 6., 12., 18., 24.])
+        ...     print_vector(timegrid.to_timepoints())
+        6.0, 12.0, 18.0, 24.0
         >>> with pub.options.timestampleft(False):
-        ...     timegrid.to_timepoints(unit="d")
-        array([0.25, 0.5 , 0.75, 1.  ])
+        ...     print_vector(timegrid.to_timepoints(unit="d"))
+        0.25, 0.5, 0.75, 1.0
         >>> with pub.options.timestampleft(False):
-        ...     timegrid.to_timepoints(offset=24)
-        array([30., 36., 42., 48.])
+        ...     print_vector(timegrid.to_timepoints(offset=24))
+        30.0, 36.0, 42.0, 48.0
         >>> with pub.options.timestampleft(False):
-        ...     timegrid.to_timepoints(offset="1d")
-        array([30., 36., 42., 48.])
+        ...     print_vector(timegrid.to_timepoints(offset="1d"))
+        30.0, 36.0, 42.0, 48.0
         >>> with pub.options.timestampleft(False):
-        ...     timegrid.to_timepoints(unit="days", offset="1d")
-        array([1.25, 1.5 , 1.75, 2.  ])
+        ...     print_vector(timegrid.to_timepoints(unit="days", offset="1d"))
+        1.25, 1.5, 1.75, 2.0
         """
         period = Period.from_cfunits(unit)
         if not isinstance(offset, (float, int)):
@@ -2344,7 +2332,7 @@ timegrid and the given array must be equal, but the length of the timegrid objec
 `4` and the length of the array object is `2`.
         """
         try:
-            array = numpy.array(array, dtype=float)
+            array = numpy.array(array, dtype=config.NP_FLOAT)
         except BaseException:
             objecttools.augment_excmessage(
                 "While trying to prefix timegrid information to the given array"
@@ -2413,9 +2401,9 @@ the step size `4d`.
 
     def modify(
         self,
-        firstdate: Optional[DateConstrArg] = None,
-        lastdate: Optional[DateConstrArg] = None,
-        stepsize: Optional[PeriodConstrArg] = None,
+        firstdate: DateConstrArg | None = None,
+        lastdate: DateConstrArg | None = None,
+        stepsize: PeriodConstrArg | None = None,
     ) -> None:
         """Modify one or more |Timegrid| attributes in one step.
 
@@ -2450,9 +2438,9 @@ the step size `4d`.
     @contextlib.contextmanager
     def __call__(
         self,
-        firstdate: Optional[DateConstrArg] = None,
-        lastdate: Optional[DateConstrArg] = None,
-        stepsize: Optional[PeriodConstrArg] = None,
+        firstdate: DateConstrArg | None = None,
+        lastdate: DateConstrArg | None = None,
+        stepsize: PeriodConstrArg | None = None,
     ) -> Iterator[Timegrid]:
         firstdate_copy = self.firstdate
         lastdate_copy = self.lastdate
@@ -2476,7 +2464,7 @@ the step size `4d`.
     def __getitem__(self, key: DateConstrArg) -> int:
         """Get the index value corresponding to the given date."""
 
-    def __getitem__(self, key: Union[int, DateConstrArg]) -> Union[Date, int]:
+    def __getitem__(self, key: int | DateConstrArg) -> Date | int:
         if isinstance(key, (int, float)):
             return Date(self.firstdate + key * self.stepsize)
         key = Date(key)
@@ -2512,7 +2500,7 @@ the step size `4d`.
             and (timegrid.stepsize == self.stepsize)
         )
 
-    def __contains__(self, other: Union[DateConstrArg, Timegrid]) -> bool:
+    def __contains__(self, other: DateConstrArg | Timegrid) -> bool:
         if isinstance(other, Timegrid):
             return self._containstimegrid(other)
         return self._containsdate(Date(other))
@@ -2533,7 +2521,7 @@ the step size `4d`.
         return objecttools.flatten_repr(self)
 
     def assignrepr(
-        self, prefix: str, style: Optional[str] = None, utcoffset: Optional[int] = None
+        self, prefix: str, style: str | None = None, utcoffset: int | None = None
     ) -> str:
         """Return a |repr| string with a prefixed assignment.
 
@@ -2737,6 +2725,19 @@ occurred: There is a conflict between the given positional and keyword arguments
     False
     >>> timegrids == Date("2000-01-01")
     False
+
+    .. role:: raw-html(raw)
+       :format: html
+
+    |Timegrids| objects are iterable and yield their |Timegrid| objects in the order
+    |Timegrids.init| :raw-html:`&rarr;` |Timegrids.sim| :raw-html:`&rarr;`
+    |Timegrids.eval_|:
+
+    >>> for timegrid in timegrids:
+    ...     print(timegrid)
+    Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d")
+    Timegrid("2000-01-01 00:00:00", "2000-07-01 00:00:00", "1d")
+    Timegrid("2000-06-01 00:00:00", "2000-07-01 00:00:00", "1d")
     """
 
     init: Timegrid
@@ -2748,10 +2749,7 @@ occurred: There is a conflict between the given positional and keyword arguments
 
     @overload
     def __init__(
-        self,
-        init: Timegrid,
-        sim: Optional[Timegrid] = ...,
-        eval_: Optional[Timegrid] = ...,
+        self, init: Timegrid, sim: Timegrid | None = ..., eval_: Timegrid | None = ...
     ) -> None:
         """from timegrids"""
 
@@ -2766,8 +2764,8 @@ occurred: There is a conflict between the given positional and keyword arguments
 
     def __init__(
         self,
-        *args: Union[None, Timegrid, DateConstrArg, PeriodConstrArg],
-        **kwargs: Union[None, Timegrid, DateConstrArg, PeriodConstrArg],
+        *args: None | Timegrid | DateConstrArg | PeriodConstrArg,
+        **kwargs: None | Timegrid | DateConstrArg | PeriodConstrArg,
     ) -> None:
         values = list(args) + list(kwargs.values())
         try:
@@ -2776,7 +2774,7 @@ occurred: There is a conflict between the given positional and keyword arguments
                     f"Initialising `Timegrids` objects requires one, two, or three "
                     f"arguments but `{len(values)}` are given."
                 )
-            arguments: list[Union[None, Timegrid, DateConstrArg, PeriodConstrArg]] = [
+            arguments: list[None | Timegrid | DateConstrArg | PeriodConstrArg] = [
                 None,
                 None,
                 None,
@@ -3097,6 +3095,7 @@ size `3d`.
     def __iter__(self) -> Iterator[Timegrid]:
         yield self.init
         yield self.sim
+        yield self.eval_
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, Timegrids):
@@ -3304,7 +3303,7 @@ must not be the given value `4`, as the day has already been set to `31`.
     second: int
     """The second of the current the actual time of the year."""
 
-    def __init__(self, value: Union[str, Date] = "") -> None:
+    def __init__(self, value: str | Date = "") -> None:
         try:
             if isinstance(value, Date):
                 datetime = value.datetime
@@ -3407,7 +3406,7 @@ must not be the given value `4`, as the day has already been set to `31`.
         >>> TOY("3").seconds_passed
         5184000
         """
-        seconds_passed = cast(Optional[int], vars(self)["seconds_passed"])
+        seconds_passed = cast(int | None, vars(self)["seconds_passed"])
         if seconds_passed is None:
             seconds_passed = int(
                 (self._datetime - self._STARTDATE.datetime).total_seconds()
@@ -3438,7 +3437,7 @@ must not be the given value `4`, as the day has already been set to `31`.
         >>> TOY("2").seconds_left
         28944000
         """
-        seconds_left = cast(Optional[int], vars(self)["seconds_left"])
+        seconds_left = cast(int | None, vars(self)["seconds_left"])
         if seconds_left is None:
             seconds_left = int(
                 (self._ENDDATE.datetime - self._datetime).total_seconds()
@@ -3453,7 +3452,7 @@ must not be the given value `4`, as the day has already been set to `31`.
         )
 
     @classmethod
-    def centred_timegrid(cls) -> tuple[Timegrid, NDArrayFloat]:
+    def centred_timegrid(cls) -> tuple[Timegrid, NDArrayBool]:
         """Return a |Timegrid| object defining the central time points of the year
         2000 and a boolean array describing its intersection with the current
         initialisation period, not taking the year information into account.
@@ -3479,51 +3478,52 @@ must not be the given value `4`, as the day has already been set to `31`.
         year information.  In our example, all centred dates are "relevant" due to the
         long initialisation period of ten years:
 
-        >>> sum(TOY.centred_timegrid()[1])
+        >>> from hydpy import print_vector, round_
+        >>> round_(sum(TOY.centred_timegrid()[1]))
         366
 
         The boolean array contains only the value |True| for all initialisation periods
         covering at least a full year:
 
         >>> pub.timegrids = "2000-02-01", "2001-02-01", "1d"
-        >>> sum(TOY.centred_timegrid()[1])
+        >>> round_(sum(TOY.centred_timegrid()[1]))
         366
         >>> pub.timegrids = "2001-10-01", "2002-10-01", "1d"
-        >>> sum(TOY.centred_timegrid()[1])
+        >>> round_(sum(TOY.centred_timegrid()[1]))
         366
 
         In all other cases, only the values related to the intersection are |True|:
 
         >>> pub.timegrids = "2001-01-03", "2001-01-05", "1d"
-        >>> TOY.centred_timegrid()[1][:5]
-        array([False, False,  True,  True, False])
+        >>> print_vector(TOY.centred_timegrid()[1][:5])
+        False, False, True, True, False
 
         >>> pub.timegrids = "2001-12-30", "2002-01-04", "1d"
-        >>> TOY.centred_timegrid()[1][:5]
-        array([ True,  True,  True, False, False])
-        >>> TOY.centred_timegrid()[1][-5:]
-        array([False, False, False,  True,  True])
+        >>> print_vector(TOY.centred_timegrid()[1][:5])
+        True, True, True, False, False
+        >>> print_vector(TOY.centred_timegrid()[1][-5:])
+        False, False, False, True, True
 
         It makes no difference whether initialisation periods not spanning an entire
         year contain the 29th of February:
 
         >>> pub.timegrids = "2001-02-27", "2001-03-01", "1d"
-        >>> TOY.centred_timegrid()[1][31+28-3-1:31+28+3-1]
-        array([False, False,  True,  True,  True, False])
+        >>> print_vector(TOY.centred_timegrid()[1][31+28-3-1:31+28+3-1])
+        False, False, True, True, True, False
         >>> pub.timegrids = "2000-02-27", "2000-03-01", "1d"
-        >>> TOY.centred_timegrid()[1][31+28-3-1:31+28+3-1]
-        array([False, False,  True,  True,  True, False])
+        >>> print_vector(TOY.centred_timegrid()[1][31+28-3-1:31+28+3-1])
+        False, False, True, True, True, False
         """
         init = hydpy.pub.timegrids.init
         shift = init.stepsize / 2.0
         centred = Timegrid(cls._STARTDATE + shift, cls._ENDDATE + shift, init.stepsize)
         if (init.lastdate - init.firstdate) >= "365d":
-            return centred, numpy.ones(len(centred), dtype=bool)
+            return centred, numpy.ones(len(centred), dtype=config.NP_BOOL)
         date0 = copy.deepcopy(init.firstdate)
         date1 = copy.deepcopy(init.lastdate)
         date0.year = 2000
         date1.year = 2000
-        relevant = numpy.zeros(len(centred), dtype=bool)
+        relevant = numpy.zeros(len(centred), dtype=config.NP_BOOL)
         if date0 < date1:
             relevant[centred[date0 + shift] : centred[date1 + shift]] = True
         else:

@@ -1,8 +1,5 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""A submodel that implements the AMBAV 1.0 equations :cite:p:`ref-Löpmeier2014` for
-calculating potential evapotranspiration.
-
+"""
 .. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN
 .. _`German Meteorological Service (DWD)`: https://www.dwd.de/EN/specialusers/agriculture/agriculture_node.html
 .. _`MORSIM/AMBAV issue`: https://github.com/hydpy-dev/hydpy/issues/118
@@ -36,7 +33,7 @@ Integration tests
 .. how_to_understand_integration_tests::
 
 The design of the following integration tests is similar to the one chosen for
-|evap_morsim| to ease the comparison of both models.
+|evap_aet_morsim| to ease the comparison of both models.
 
 We prepare a simulation period of three days for the first examples:
 
@@ -53,7 +50,8 @@ instance is sufficient:
 >>> element = Element("element")
 >>> element.model = model
 
-The following parameter settings are comparable to the ones selected for |evap_morsim|:
+The following parameter settings are comparable to the ones selected for
+|evap_aet_morsim|:
 
 >>> nmbhru(1)
 >>> hrutype(0)
@@ -66,7 +64,7 @@ The following parameter settings are comparable to the ones selected for |evap_m
 >>> cropheight(10.0)
 >>> leafresistance(40.0)
 
-The following parameters have no direct equivalents in |evap_morsim|:
+The following parameters have no direct equivalents in |evap_aet_morsim|:
 
 >>> wetsoilresistance(100.0)
 >>> soilresistanceincrease(1.0)
@@ -96,7 +94,7 @@ Now, we can initialise an |IntegrationTest| object:
 >>> test.dateformat = "%d/%m"
 
 The following meteorological input and snow cover data also agree with the first
-|evap_morsim| examples:
+|evap_aet_morsim| examples:
 
 >>> inputs.windspeed.series = 2.0
 >>> inputs.relativehumidity.series = 80.0
@@ -113,7 +111,7 @@ precipitation to occur on the second day:
 
 >>> model.precipmodel.sequences.inputs.precipitation.series = 0.0, 10.0, 0.0
 
-In contrast to |evap_morsim|, |evap_pet_ambav1| even requires logged values when
+In contrast to |evap_aet_morsim|, |evap_pet_ambav1| even requires logged values when
 applied on daily timesteps to keep track of the temporal persistency of the topmost
 soil layer's wetness:
 
@@ -126,22 +124,22 @@ soil layer's wetness:
 vegetation
 __________
 
-The following configuration corresponds to the :ref:`evap_morsim_non_tree_vegetation`,
-:ref:`evap_morsim_deciduous_trees`, and :ref:`evap_morsim_conifers` examples of
-|evap_morsim| because |evap_pet_ambav1| does not handle different kinds of vegetation
-distinctly:
+The following configuration corresponds to the
+:ref:`evap_aet_morsim_non_tree_vegetation`, :ref:`evap_aet_morsim_deciduous_trees`,
+and :ref:`evap_aet_morsim_conifers` examples of |evap_aet_morsim| because
+|evap_pet_ambav1| does not handle different kinds of vegetation distinctly:
 
 >>> interception(True)
 >>> soil(True)
 >>> plant(True)
 >>> water(False)
 
-In the |evap_morsim| examples, the resulting soil evapotranspiration values differ due
-to different amounts of intercepted water.  In contrast, |evap_pet_ambav1| calculates
-only potential values and thus does not consider storage contents.  The differences
-between the individual days stem from the changing topmost soil layer's wetness.  In
-this context, note that the precipitation event of the second day only affects the
-results of the third day and later:
+In the |evap_aet_morsim| examples, the resulting soil evapotranspiration values differ
+due to different amounts of intercepted water.  In contrast, |evap_pet_ambav1|
+calculates only potential values and thus does not consider storage contents.  The
+differences between the individual days stem from the changing topmost soil layer's
+wetness.  In this context, note that the precipitation event of the second day only
+affects the results of the third day and later:
 
 .. integration-test::
 
@@ -166,7 +164,7 @@ zero:
 >>> water(True)
 >>> cropheight(0.0)
 
-While |evap_morsim| estimates an evaporation rate of 3.2 mm/day in the
+While |evap_aet_morsim| estimates an evaporation rate of 3.2 mm/day in the
 :ref:`evap_water_area` example, |evap_pet_ambav1| estimates only 1.9 mm/day:
 
 .. integration-test::
@@ -199,8 +197,8 @@ cover:
 >>> model.precipmodel.sequences.inputs.precipitation.series = 10.0
 >>> test.inits.loggedprecipitation = 10.0
 
-In contrast to |evap_morsim|, as discussed in the
-:ref:`evap_morsim_snow_on_non_tree_vegetation` example, |evap_pet_ambav1| never
+In contrast to |evap_aet_morsim|, as discussed in the
+:ref:`evap_aet_morsim_snow_on_non_tree_vegetation` example, |evap_pet_ambav1| never
 suppresses evapotranspiration completely but adjusts the current albedo to the given
 snow-specific values, which are usually larger than those of the leaf and soil surfaces
 and so usually reduces evapotranspiration:
@@ -228,10 +226,11 @@ We need to restore the values of all time-dependent parameters:
 >>> for parameter in model.parameters.fixed:
 ...     parameter.restore()
 
-As in the :ref:`evap_morsim_hourly_simulation_land` example, we switch to using
-|meteo_v003| instead of |meteo_psun_sun_glob_io| to gain the radiation-related data:
+As in the :ref:`evap_aet_morsim_hourly_simulation_land` example, we switch to using
+|meteo_glob_morsim| instead of |meteo_psun_sun_glob_io| to gain the radiation-related
+data:
 
->>> with model.add_radiationmodel_v1("meteo_v003"):
+>>> with model.add_radiationmodel_v1("meteo_glob_morsim"):
 ...     latitude(54.1)
 ...     longitude(9.7)
 ...     angstromconstant(0.25)
@@ -240,7 +239,7 @@ As in the :ref:`evap_morsim_hourly_simulation_land` example, we switch to using
 >>> test = IntegrationTest(element)
 
 The following meteorological input data also agree with the
-:ref:`evap_morsim_hourly_simulation_land` example of |evap_morsim|:
+:ref:`evap_aet_morsim_hourly_simulation_land` example of |evap_aet_morsim|:
 
 >>> inputs.atmosphericpressure.series = (
 ...     1015.0, 1015.0, 1015.0, 1015.0, 1015.0, 1015.0, 1015.0, 1015.0, 1016.0, 1016.0,
@@ -256,11 +255,11 @@ The following meteorological input data also agree with the
 ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.5, 0.7, 0.8, 0.5, 0.4, 0.5,
 ...     0.5, 0.3, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0)
 
-In contrast to |evap_morsim|, |evap_pet_ambav1| does not require "daily" averages or
-sums of meteorological input data but calculates, e.g., hourly water area evaporation
-values and aggregates them to daily values later.  But it needs to remember the last
-determined cloud coverage degree (which is only estimateable at daytime) and other
-factors related to the topmost soil layer's wetness calculations:
+In contrast to |evap_aet_morsim|, |evap_pet_ambav1| does not require "daily" averages
+or sums of meteorological input data but calculates, e.g., hourly water area
+evaporation values and aggregates them to daily values later.  But it needs to remember
+the last determined cloud coverage degree (which is only estimateable at daytime) and
+other factors related to the topmost soil layer's wetness calculations:
 
 >>> test.inits = (
 ...     (states.soilresistance, 100.0),
@@ -285,10 +284,10 @@ The contrived day is warm, free of snow and rain:
 >>> model.snowcovermodel.sequences.inputs.snowcover.series = 0.0
 >>> model.precipmodel.sequences.inputs.precipitation.series = 0.0
 
-Considering the :ref:`evap_morsim_hourly_simulation_land` example, |evap_pet_ambav1|
-estimates higher potential interception evaporation rates and potential soil
-evapotranspiration rates that are (as to be expected) higher but roughly comparable to
-the actual soil evapotranspiration rates of |evap_morsim|:
+Considering the :ref:`evap_aet_morsim_hourly_simulation_land` example,
+|evap_pet_ambav1| estimates higher potential interception evaporation rates and
+potential soil evapotranspiration rates that are (as to be expected) higher but roughly
+comparable to the actual soil evapotranspiration rates of |evap_aet_morsim|:
 
 .. integration-test::
 
@@ -329,7 +328,7 @@ ________________________
 
 |evap_pet_ambav1| also calculates hourly water evaporation values, which show a clear
 diurnal pattern not apparent in the generally aggregated water evaporation values of
-|evap_morsim| in example :ref:`evap_morsim_hourly_simulation_water`:
+|evap_aet_morsim| in example :ref:`evap_aet_morsim_hourly_simulation_water`:
 
 .. integration-test::
 
@@ -391,8 +390,13 @@ class Model(
     evap_model.Sub_ETModel,
     petinterfaces.PETModel_V2,
 ):
-    """An AMBAV 1.0 version of HydPy-Evap for calculating potential
-    evapotranspiration."""
+    """|evap_pet_ambav1.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Evap-PET-AMBAV-1.0",
+        description="potential evapotranspiration based on AMBAV 1.0",
+    )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

@@ -1,10 +1,12 @@
-# -*- coding: utf-8 -*-
 """This module provides features for preparing *HydPy* networks based on different
 data.
 
 .. _`guideline of the German organisation LAWA`: https://www.lawa.de/documents/richtlinie_fuer_die_gebietsbezeichnung_und_die_verschluesselung_von_fliessgewaessern_1552305779.pdf    # pylint: disable=line-too-long
 """
+
 # import...
+# ...from standard library
+from __future__ import annotations
 
 # ...from HydPy
 from hydpy.core import devicetools
@@ -69,7 +71,7 @@ basin number.
     False
     """
 
-    def __new__(cls, value: Union[int, str]):
+    def __new__(cls, value: int | str):
         try:
             # PyCharm bug, see https://stackoverflow.com/questions/49465166/
             # noinspection PyArgumentList
@@ -228,7 +230,7 @@ class RiverBasinNumbers(tuple):
     False
     """
 
-    def __new__(cls, values: Iterable[Union[int, str]]):
+    def __new__(cls, values: Iterable[int | str]):
         _values = tuple(RiverBasinNumber(value) for value in values)
         obj = tuple.__new__(RiverBasinNumbers, sorted(_values))
         vars(obj)["_tree"] = None
@@ -250,7 +252,7 @@ class RiverBasinNumbers(tuple):
             vars(self)["_tree"] = tree
         return vars(self)["_tree"]
 
-    def select(self, number: Union[int, str]) -> "RiverBasinNumbers":
+    def select(self, number: int | str) -> RiverBasinNumbers:
         """Select and return all river basin numbers starting with the given number.
 
         >>> from hydpy import RiverBasinNumbers
@@ -287,7 +289,7 @@ class RiverBasinNumbers(tuple):
         riverbasinnumbers = {prefix}
         return RiverBasinNumbers(_walk(prefix, tree, riverbasinnumbers))
 
-    def _get_next_number(self, number: Union[int, str]) -> Optional[RiverBasinNumber]:
+    def _get_next_number(self, number: int | str) -> RiverBasinNumber | None:
         number = RiverBasinNumber(number)
         for pdn1 in number.possible_next_initial_digits:
             neighbours = self.select(pdn1)
@@ -296,7 +298,7 @@ class RiverBasinNumbers(tuple):
         return None
 
     @property
-    def next_numbers(self) -> tuple[Optional[RiverBasinNumber], ...]:
+    def next_numbers(self) -> tuple[RiverBasinNumber | None, ...]:
         """A tuple of the next downstream river basin numbers.
 
         The order of the returned numbers corresponds to the order of the numbers
@@ -392,9 +394,9 @@ class RiverBasinNumbers2Selection:
     node_prefix: str
     last_node: str
     selection_name: str
-    _up2down: dict[RiverBasinNumber, Optional[RiverBasinNumber]]
+    _up2down: dict[RiverBasinNumber, RiverBasinNumber | None]
 
-    def __init__(self, numbers: Iterable[Union[int, str]]):
+    def __init__(self, numbers: Iterable[int | str]):
         self.supplier_prefix = "land_"
         self.router_prefix = "stream_"
         self.node_prefix = "node_"

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This Cython module implements the performance-critical features of the
 Python module |quadtools|."""
 

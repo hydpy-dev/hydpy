@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This modules implements the fundamental features for structuring *HydPy* projects.
 
 Module |devicetools| provides two |Device| subclasses, |Node| and |Element|.  In this
@@ -69,6 +68,7 @@ True
 >>> nodes.test3 is node3b
 False
 """
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -87,6 +87,7 @@ import numpy
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import masktools
+from hydpy.core import netcdftools
 from hydpy.core import objecttools
 from hydpy.core import printtools
 from hydpy.core import propertytools
@@ -109,15 +110,20 @@ else:
 
 TypeDevice = TypeVar("TypeDevice", bound="Device")
 TypeDevices = TypeVar("TypeDevices", bound="Devices[Any]")
-NodeOrElement = Union["Node", "Element"]
+NodeOrElement: TypeAlias = Union["Node", "Element"]
 TypeNodeElement = TypeVar("TypeNodeElement", "Node", "Element", NodeOrElement)
 
-NodesConstrArg = MayNonerable2["Node", str]
-ElementsConstrArg = MayNonerable2["Element", str]
-NodeConstrArg = Union["Node", str]
-ElementConstrArg = Union["Element", str]
+NodesConstrArg: TypeAlias = MayNonerable2["Node", str]
+ElementsConstrArg: TypeAlias = MayNonerable2["Element", str]
+NodeConstrArg: TypeAlias = Union["Node", str]
+ElementConstrArg: TypeAlias = Union["Element", str]
+IOSequenceArg: TypeAlias = Union[
+    sequencetools.IOSequence, type[sequencetools.IOSequence], str
+]
 
-NodeVariableType = Union[str, sequencetools.InOutSequenceTypes, "FusedVariable"]
+NodeVariableType: TypeAlias = Union[
+    sequencetools.InOutSequenceTypes, "FusedVariable", str
+]
 
 _default_variable: NodeVariableType = "Q"
 
@@ -126,7 +132,7 @@ class Keywords(set[str]):
     """Set of keyword arguments used to describe and search for |Element| and |Node|
     objects."""
 
-    device: Optional[Device]
+    device: Device | None
 
     def __init__(self, *names: str):
         self.device = None
@@ -262,25 +268,25 @@ class FusedVariable:
     connectable.
 
     Using class |FusedVariable| is easiest to explain by a concrete example.  Assume we
-    use |conv_v001| to interpolate the air temperature for a specific location.  We use
+    use |conv_nn| to interpolate the air temperature for a specific location.  We use
     this temperature as input to an |meteo_temp_io| model, which passes it to an
-    |evap_fao56| model, which requires this and other meteorological data to calculate
-    potential evapotranspiration.  Further, we pass the estimated potential
-    evapotranspiration as input to |lland_v1| for calculating the actual
-    evapotranspiration, which receives it through a submodel instance of |evap_io|.
+    |evap_ret_fao56| model, which requires this and other meteorological data to
+    calculate potential evapotranspiration.  Further, we pass the estimated potential
+    evapotranspiration as input to |lland_dd| for calculating the actual
+    evapotranspiration, which receives it through a submodel instance of |evap_ret_io|.
     Hence, we need to connect the output sequence
-    |evap_fluxes.MeanReferenceEvapotranspiration| of |evap_fao56| with the input
-    sequence |evap_inputs.ReferenceEvapotranspiration| of |evap_io|.
+    |evap_fluxes.MeanReferenceEvapotranspiration| of |evap_ret_fao56| with the input
+    sequence |evap_inputs.ReferenceEvapotranspiration| of |evap_ret_io|.
 
-    ToDo: This example needs to be updated.  Today one could directly use |evap_fao56|
-          as a submodel of |lland_v1|.  However, it still demonstrates the relevant
-          connection mechanisms correctly.
+    ToDo: This example needs to be updated.  Today one could directly use
+          |evap_ret_fao56| as a submodel of |lland_dd|.  However, it still demonstrates
+          the relevant connection mechanisms correctly.
 
-    Additionally, |lland_v1| requires temperature data itself for modelling snow
+    Additionally, |lland_dd| requires temperature data itself for modelling snow
     processes, introducing the problem that we need to use the same data (the output of
-    |conv_v001|) as the input of two differently named input sequences
+    |conv_nn|) as the input of two differently named input sequences
     (|meteo_inputs.Temperature| and |lland_inputs.TemL| for |meteo_temp_io| and
-    |lland_v1|, respectively).
+    |lland_dd|, respectively).
 
     We need to create two |FusedVariable| objects, for our concrete example.  `E`
     combines |evap_fluxes.MeanReferenceEvapotranspiration| and
@@ -317,39 +323,38 @@ class FusedVariable:
 
     Now we can prepare the different model objects and assign them to their
     corresponding elements (note that parameters |conv_control.InputCoordinates| and
-    |conv_control.OutputCoordinates| of |conv_v001| first require information on the
+    |conv_control.OutputCoordinates| of |conv_nn| first require information on the
     location of the relevant nodes):
 
     >>> from hydpy import prepare_model
-    >>> model_conv = prepare_model("conv_v001")
+    >>> model_conv = prepare_model("conv_nn")
     >>> model_conv.parameters.control.inputcoordinates(t1=(0, 0))
     >>> model_conv.parameters.control.outputcoordinates(t2=(1, 1))
     >>> model_conv.parameters.control.maxnmbinputs(1)
     >>> model_conv.parameters.update()
     >>> conv.model = model_conv
-    >>> model = prepare_model("evap_fao56")
+    >>> model = prepare_model("evap_ret_fao56")
     >>> model.tempmodel = prepare_model("meteo_temp_io")
     >>> evap.model = model
-    >>> model = prepare_model("lland_v1")
-    >>> model.aetmodel = prepare_model("evap_minhas")
-    >>> model.aetmodel.petmodel = prepare_model("evap_io")
+    >>> model = prepare_model("lland_dd")
+    >>> model.aetmodel = prepare_model("evap_aet_minhas")
+    >>> model.aetmodel.petmodel = prepare_model("evap_ret_io")
     >>> lland.model = model
 
     We assign a temperature value to node `t1`:
 
     >>> t1.sequences.sim = -273.15
 
-    Model |conv_v001| can now perform a simulation step and pass its output to node
-    `t2`:
+    Model |conv_nn| can now perform a simulation step and pass its output to node `t2`:
 
     >>> conv.model.simulate(0)
     >>> t2.sequences.sim
     sim(-273.15)
 
-    Without further configuration, |evap_fao56| cannot perform any simulation steps.
-    Hence, we just call its |Model.load_data| method to show that the input sequence
-    |meteo_inputs.Temperature| of its submodel is well connected to the |Sim| sequence
-    of node `t2` and receives the correct data:
+    Without further configuration, |evap_ret_fao56| cannot perform any simulation
+    steps.  Hence, we just call its |Model.load_data| method to show that the input
+    sequence |meteo_inputs.Temperature| of its submodel is well connected to the |Sim|
+    sequence of node `t2` and receives the correct data:
 
     >>> evap.model.load_data(0)
     >>> evap.model.tempmodel.sequences.inputs.temperature
@@ -695,7 +700,7 @@ classes: Node and str.
     def get_contentclass() -> type[TypeDevice]:
         """To be overridden."""
 
-    def add_device(self, device: Union[TypeDevice, str], force: bool = False) -> None:
+    def add_device(self, device: TypeDevice | str, force: bool = False) -> None:
         """Add the given |Node| or |Element| object to the actual |Nodes| or |Elements|
         object.
 
@@ -742,9 +747,7 @@ the following error occurred: Adding devices to immutable Nodes objects is not a
                 f"{type(self).__name__} object"
             )
 
-    def remove_device(
-        self, device: Union[TypeDevice, str], force: bool = False
-    ) -> None:
+    def remove_device(self, device: TypeDevice | str, force: bool = False) -> None:
         """Remove the given |Node| or |Element| object from the actual |Nodes| or
         |Elements| object.
 
@@ -882,12 +885,12 @@ allowed.
         >>> sorted(newgroup.keywords)
         ['group_1', 'group_a', 'group_b']
         """
-        return set(
+        return {
             keyword
             for device in self
             for keyword in device.keywords
             if keyword not in self._shadowed_keywords
-        )
+        }
 
     def search_keywords(self: TypeDevices, *keywords: str) -> TypeDevices:
         """Search for all devices handling at least one of the given keywords and
@@ -993,7 +996,7 @@ conflict with using their names as identifiers.
         devices._shadowed_keywords.add(name)
         return devices
 
-    def __getattr__(self: TypeDevices, name: str) -> Union[TypeDevice, TypeDevices]:
+    def __getattr__(self: TypeDevices, name: str) -> TypeDevice | TypeDevices:
         if name in self._name2device:
             return cast(TypeDevice, self._name2device[name])  # ToDo
         _devices = self.__select_devices_by_keyword(name)
@@ -1029,7 +1032,7 @@ conflict with using their names as identifiers.
                 f"could be removed, and deleting other attributes is not supported."
             ) from None
 
-    def __getitem__(self, name: Union[Literal[0], str]) -> TypeDevice:
+    def __getitem__(self, name: Literal[0] | str) -> TypeDevice:
         if name == 0:
             devices = tuple(self._name2device.values())
             if len(devices) == 1:
@@ -1244,6 +1247,7 @@ class Nodes(Devices["Node"]):
         |IOSequence.memoryflag|."""
         self.__load_nodeseries("obs")
 
+    @netcdftools.add_netcdfreading
     def __load_nodeseries(self, seqname: str) -> None:
         for node in printtools.progressbar(self):
             node.sequences[seqname].load_series()
@@ -1266,6 +1270,7 @@ class Nodes(Devices["Node"]):
         |IOSequence.memoryflag|."""
         self.__save_nodeseries("obs")
 
+    @netcdftools.add_netcdfwriting
     def __save_nodeseries(self, seqname: str) -> None:
         for node in printtools.progressbar(self):
             seq = node.sequences[seqname]
@@ -1299,7 +1304,7 @@ class Elements(Devices["Element"]):
         return Element
 
     @property
-    def collectives(self) -> dict[Optional[str], tuple[Element, ...]]:
+    def collectives(self) -> dict[str | None, tuple[Element, ...]]:
         """The names and members of all currently relevant collectives.
 
         Note that all |Element| instances not belonging to any |Element.collective| are
@@ -1317,7 +1322,7 @@ class Elements(Devices["Element"]):
         b ['b1', 'b2']
         d ['d1']
         """
-        collectives = collections.defaultdict(lambda: [])
+        collectives = collections.defaultdict(list)
         for element in self:
             collectives[element.collective].append(element)
         return {c: tuple(e) for c, e in collectives.items()}
@@ -1471,28 +1476,28 @@ a function for coupling models that belong to the same collective.
                 elements.extend(subelements)
             else:
                 try:
-                    outlets = set(
+                    outlets = {
                         outlet
                         for subelement in subelements
                         for outlet in subelement.outlets
-                    )
-                    inlets = set(
+                    }
+                    inlets = {
                         inlet
                         for subelement in subelements
                         for inlet in subelement.inlets
                         if inlet not in outlets
-                    )
-                    outputs = set(
+                    }
+                    outputs = {
                         output
                         for subelement in subelements
                         for output in subelement.outputs
-                    )
-                    inputs = set(
+                    }
+                    inputs = {
                         input_
                         for subelement in subelements
                         for input_ in subelement.inputs
                         if input_ not in outputs
-                    )
+                    }
                     _registry[Element].pop(collective, None)
                     newelement = Element(
                         collective,
@@ -1525,52 +1530,53 @@ a function for coupling models that belong to the same collective.
     def prepare_models(self) -> None:
         """Call method |Element.prepare_model| of all handle |Element| objects.
 
-        We show, based on the `LahnH` example project, that method |Element.init_model|
-        prepares the |Model| objects of all elements, including building the required
-        connections and updating the derived parameters:
+        We show, based on the `HydPy-H-Lahn` example project, that method
+        |Element.init_model| prepares the |Model| objects of all elements, including
+        building the required connections and updating the derived parameters:
 
-        >>> from hydpy.examples import prepare_full_example_1
+        >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import attrready, HydPy, pub, TestIO
         >>> with TestIO():
-        ...     hp = HydPy("LahnH")
+        ...     hp = HydPy("HydPy-H-Lahn")
         ...     pub.timegrids = "1996-01-01", "1996-02-01", "1d"
         ...     hp.prepare_network()
         ...     hp.prepare_models()
-        >>> hp.elements.land_dill.model.parameters.derived.dt
+        >>> hp.elements.land_dill_assl.model.parameters.derived.dt
         dt(0.000833)
 
         Wrong control files result in error messages like the following:
 
         >>> with TestIO():
-        ...     with open("LahnH/control/default/land_dill.py", "a") as file_:
+        ...     with open("HydPy-H-Lahn/control/default/land_dill_assl.py",
+        ...               "a") as file_:
         ...         _ = file_.write("zonetype(-1)")
         ...     hp.prepare_models()   # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         ValueError: While trying to initialise the model object of element \
-`land_dill`, the following error occurred: While trying to load the control file \
-`...land_dill.py`, the following error occurred: At least one value of parameter \
+`land_dill_assl`, the following error occurred: While trying to load the control file \
+`...land_dill_assl.py`, the following error occurred: At least one value of parameter \
 `zonetype` of element `?` is not valid.
 
         By default, missing control files result in exceptions:
 
-        >>> del hp.elements.land_dill.model
+        >>> del hp.elements.land_dill_assl.model
         >>> import os
         >>> with TestIO():
-        ...     os.remove("LahnH/control/default/land_dill.py")
+        ...     os.remove("HydPy-H-Lahn/control/default/land_dill_assl.py")
         ...     hp.prepare_models()   # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         FileNotFoundError: While trying to initialise the model object of element \
-`land_dill`, the following error occurred: While trying to load the control file \
-`...land_dill.py`, the following error occurred: ...
-        >>> attrready(hp.elements.land_dill, "model")
+`land_dill_assl`, the following error occurred: While trying to load the control file \
+`...land_dill_assl.py`, the following error occurred: ...
+        >>> attrready(hp.elements.land_dill_assl, "model")
         False
 
         When building new, still incomplete *HydPy* projects, this behaviour can be
-        annoying.  After setting the option |Options.warnmissingcontrolfile| to |False|,
-        missing control files result in a warning only:
+        annoying.  After setting the option |Options.warnmissingcontrolfile| to
+        |False|, missing control files result in a warning only:
 
         >>> with TestIO():
         ...     with pub.options.warnmissingcontrolfile(True):
@@ -1578,8 +1584,8 @@ a function for coupling models that belong to the same collective.
         Traceback (most recent call last):
         ...
         UserWarning: Due to a missing or no accessible control file, no model could \
-be initialised for element `land_dill`
-        >>> attrready(hp.elements.land_dill, "model")
+be initialised for element `land_dill_assl`
+        >>> attrready(hp.elements.land_dill_assl, "model")
         False
         """
         try:
@@ -1613,9 +1619,9 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
     @printtools.print_progress
     def save_controls(
         self,
-        parameterstep: Optional[timetools.PeriodConstrArg] = None,
-        simulationstep: Optional[timetools.PeriodConstrArg] = None,
-        auxfiler: Optional[auxfiletools.Auxfiler] = None,
+        parameterstep: timetools.PeriodConstrArg | None = None,
+        simulationstep: timetools.PeriodConstrArg | None = None,
+        auxfiler: auxfiletools.Auxfiler | None = None,
     ) -> None:
         """Save the control parameters of the |Model| object handled by each |Element|
         object and eventually the ones handled by the given |Auxfiler| object."""
@@ -1629,8 +1635,15 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
             )
 
     @printtools.print_progress
+    def update_parameters(self) -> None:
+        """Update the derived parameters of all models managed by the respective
+        elements."""
+        for element in printtools.progressbar(self):
+            element.model.update_parameters()
+
+    @printtools.print_progress
     def load_conditions(self) -> None:
-        """Save the initial conditions of the |Model| object handled by each |Element|
+        """Load the initial conditions of the |Model| object handled by each |Element|
         object."""
         for element in printtools.progressbar(self):
             element.model.load_conditions()
@@ -1643,16 +1656,16 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
             element.model.save_conditions()
 
     def trim_conditions(self) -> None:
-        """Call method |Sequences.trim_conditions| of the |Sequences| object handled
-        (indirectly) by each |Element| object."""
+        """Call method |Model.trim_conditions| of the |Model| object handled by each
+        |Element| object."""
         for element in self:
-            element.model.sequences.trim_conditions()
+            element.model.trim_conditions()
 
     def reset_conditions(self) -> None:
-        """Call method |Sequences.reset| of the |Sequences| object handled (indirectly)
-        by each |Element| object."""
+        """Call method |Model.reset_conditions| of the |Model| object handled by each
+        |Element| object."""
         for element in self:
-            element.model.sequences.reset()
+            element.model.reset_conditions()
 
     @property
     def conditions(self) -> Conditions:
@@ -1713,60 +1726,70 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
             element.prepare_stateseries(allocate_ram=allocate_ram, write_jit=write_jit)
 
     @printtools.print_progress
+    @netcdftools.add_netcdfreading
     def load_allseries(self) -> None:
         """Call method |Element.load_inputseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
             element.load_allseries()
 
     @printtools.print_progress
+    @netcdftools.add_netcdfreading
     def load_inputseries(self) -> None:
         """Call method |Element.load_inputseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
             element.load_inputseries()
 
     @printtools.print_progress
+    @netcdftools.add_netcdfreading
     def load_factorseries(self) -> None:
         """Call method |Element.load_factorseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
             element.load_factorseries()
 
     @printtools.print_progress
+    @netcdftools.add_netcdfreading
     def load_fluxseries(self) -> None:
         """Call method |Element.load_fluxseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
             element.load_fluxseries()
 
     @printtools.print_progress
+    @netcdftools.add_netcdfreading
     def load_stateseries(self) -> None:
         """Call method |Element.load_stateseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
             element.load_stateseries()
 
     @printtools.print_progress
+    @netcdftools.add_netcdfwriting
     def save_allseries(self) -> None:
         """Call method |Element.save_allseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
             element.save_allseries()
 
     @printtools.print_progress
+    @netcdftools.add_netcdfwriting
     def save_inputseries(self) -> None:
         """Call method |Element.save_inputseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
             element.save_inputseries()
 
     @printtools.print_progress
+    @netcdftools.add_netcdfwriting
     def save_factorseries(self) -> None:
         """Call method |Element.save_factorseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
             element.save_factorseries()
 
     @printtools.print_progress
+    @netcdftools.add_netcdfwriting
     def save_fluxseries(self) -> None:
         """Call method |Element.save_fluxseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
             element.save_fluxseries()
 
     @printtools.print_progress
+    @netcdftools.add_netcdfwriting
     def save_stateseries(self) -> None:
         """Call method |Element.save_stateseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
@@ -1779,9 +1802,7 @@ class Device:
     _name: str
     _keywords: Keywords
 
-    def __new__(
-        cls, value: Union[Device, str], *args: object, **kwargs: object
-    ) -> Device:
+    def __new__(cls, value: Device | str, *args: object, **kwargs: object) -> Device:
         # pylint: disable=unused-argument
         # required for consistincy with __init__
         name = str(value)
@@ -1995,7 +2016,7 @@ following error occurred: Adding devices to immutable Elements objects is not al
     def __init__(
         self,
         value: NodeConstrArg,
-        variable: Optional[NodeVariableType] = None,
+        variable: NodeVariableType | None = None,
         keywords: MayNonerable1[str] = None,
     ) -> None:
         # pylint: disable=unused-argument
@@ -2198,7 +2219,7 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
             _assert_never(value)
         self._deploymode = value
         for element in itertools.chain(self.entries, self.exits):
-            model: Optional[modeltools.Model]
+            model: modeltools.Model | None
             model = exceptiontools.getattr_(element, "model", None)
             if model and not model.COMPOSITE:
                 model.connect()
@@ -2363,12 +2384,12 @@ group name `test`.
     def plot_allseries(
         self,
         *,
-        labels: Optional[tuple[str, str]] = None,
-        colors: Optional[Union[str, tuple[str, str]]] = None,
-        linestyles: Optional[Union[LineStyle, tuple[LineStyle, LineStyle]]] = None,
-        linewidths: Optional[Union[int, tuple[int, int]]] = None,
+        labels: tuple[str, str] | None = None,
+        colors: str | tuple[str, str] | None = None,
+        linestyles: LineStyle | tuple[LineStyle, LineStyle] | None = None,
+        linewidths: int | tuple[int, int] | None = None,
         focus: bool = False,
-        stepsize: Optional[StepSize] = None,
+        stepsize: StepSize | None = None,
     ) -> pyplot.Figure:
         """Plot the |IOSequence.series| data of both the |Sim| and the |Obs| sequence
         object.
@@ -2376,32 +2397,33 @@ group name `test`.
         We demonstrate the functionalities of method |Node.plot_allseries| based on the
         `Lahn` example project:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, _ = prepare_full_example_2(lastdate="1997-01-01")
 
-        We perform a simulation run and calculate "observed" values for node `dill`:
+        We perform a simulation run and calculate "observed" values for node
+        `dill_assl`:
 
         >>> hp.simulate()
-        >>> dill = hp.nodes.dill
-        >>> dill.sequences.obs.series = dill.sequences.sim.series + 10.0
+        >>> dill_assl = hp.nodes.dill_assl
+        >>> dill_assl.sequences.obs.series = dill_assl.sequences.sim.series + 10.0
 
         A call to method |Node.plot_allseries| prints the time series of both sequences
         to the screen immediately (if not, you need to activate the interactive mode of
         `matplotlib` first):
 
-        >>> figure = dill.plot_allseries()
+        >>> figure = dill_assl.plot_allseries()
 
         Subsequent calls to |Node.plot_allseries| or the related methods
         |Node.plot_simseries| and |Node.plot_obsseries| of nodes add further time
         series data to the existing plot:
 
-        >>> lahn_1 = hp.nodes.lahn_1
-        >>> figure = lahn_1.plot_simseries()
+        >>> lahn_marb = hp.nodes.lahn_marb
+        >>> figure = lahn_marb.plot_simseries()
 
         You can modify the appearance of the lines by passing different arguments:
 
-        >>> lahn_1.sequences.obs.series = lahn_1.sequences.sim.series + 10.0
-        >>> figure = lahn_1.plot_obsseries(color="black", linestyle="dashed")
+        >>> lahn_marb.sequences.obs.series = lahn_marb.sequences.sim.series + 10.0
+        >>> figure = lahn_marb.plot_obsseries(color="black", linestyle="dashed")
 
         All mentioned plotting functions return a |matplotlib| |figure.Figure| object.
         Use it for further plot handling, e.g. adding a title and saving the current
@@ -2416,7 +2438,7 @@ group name `test`.
         You can plot the data in an aggregated manner (see the documentation on the
         function |aggregate_series| for the supported step sizes and further details):
 
-        >>> figure = dill.plot_allseries(stepsize="monthly")
+        >>> figure = dill_assl.plot_allseries(stepsize="monthly")
         >>> text = figure.axes[0].set_title('monthly')
         >>> save_autofig("Node_plot_allseries_2.png", figure)
 
@@ -2428,7 +2450,7 @@ group name `test`.
         to the observation and the second one to the simulation results:
 
         >>> pub.timegrids.eval_.dates = "1996-10-01", "1996-11-01"
-        >>> figure = lahn_1.plot_allseries(labels=("measured", "calculated"),
+        >>> figure = lahn_marb.plot_allseries(labels=("measured", "calculated"),
         ...                                colors=("blue", "red"),
         ...                                linewidths=2,
         ...                                linestyles=("--", ":"),
@@ -2439,29 +2461,29 @@ group name `test`.
 
         When necessary, all plotting methods raise errors like the following:
 
-        >>> figure = lahn_1.plot_allseries(stepsize="quaterly")
+        >>> figure = lahn_marb.plot_allseries(stepsize="quaterly")
         Traceback (most recent call last):
         ...
-        ValueError: While trying to plot the time series of sequence(s) obs and sim of \
-node `lahn_1` for the period `1996-10-01 00:00:00` to `1996-11-01 00:00:00`, the \
+        ValueError: While trying to plot the time series of sequence(s) obs and sim \
+of node `lahn_marb` for the period `1996-10-01 00:00:00` to `1996-11-01 00:00:00`, the \
 following error occurred: While trying to aggregate the given series, the following \
 error occurred: Argument `stepsize` received value `quaterly`, but only the following \
 ones are supported: `monthly` (default), `daily` and `yearly`.
         >>> from hydpy import pub
         >>> del pub.timegrids
-        >>> figure = lahn_1.plot_allseries()
+        >>> figure = lahn_marb.plot_allseries()
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: While trying to plot the time \
-series of sequence(s) obs and sim of node `lahn_1` , the following error occurred: \
+series of sequence(s) obs and sim of node `lahn_marb` , the following error occurred: \
 Attribute timegrids of module `pub` is not defined at the moment.
         """
 
         t = TypeVar("t", str, int)
 
         def _make_tuple(
-            x: Union[Optional[t], tuple[Optional[t], Optional[t]]]
-        ) -> tuple[Optional[t], Optional[t]]:
+            x: t | None | tuple[t | None, t | None]
+        ) -> tuple[t | None, t | None]:
             return (x, x) if ((x is None) or isinstance(x, (str, int))) else x
 
         return self._plot_series(
@@ -2477,19 +2499,19 @@ Attribute timegrids of module `pub` is not defined at the moment.
     def plot_simseries(
         self,
         *,
-        label: Optional[str] = None,
-        color: Optional[str] = None,
-        linestyle: Optional[LineStyle] = None,
-        linewidth: Optional[int] = None,
+        label: str | None = None,
+        color: str | None = None,
+        linestyle: LineStyle | None = None,
+        linewidth: int | None = None,
         focus: bool = False,
-        stepsize: Optional[StepSize] = None,
+        stepsize: StepSize | None = None,
     ) -> pyplot.Figure:
         """Plot the |IOSequence.series| of the |Sim| sequence object.
 
         See method |Node.plot_allseries| for further information.
         """
         return self._plot_series(
-            [self.sequences.sim],
+            sequences=[self.sequences.sim],
             labels=(label,),
             colors=(color,),
             linestyles=(linestyle,),
@@ -2501,19 +2523,19 @@ Attribute timegrids of module `pub` is not defined at the moment.
     def plot_obsseries(
         self,
         *,
-        label: Optional[str] = None,
-        color: Optional[str] = None,
-        linestyle: Optional[LineStyle] = None,
-        linewidth: Optional[int] = None,
+        label: str | None = None,
+        color: str | None = None,
+        linestyle: LineStyle | None = None,
+        linewidth: int | None = None,
         focus: bool = False,
-        stepsize: Optional[StepSize] = None,
+        stepsize: StepSize | None = None,
     ) -> pyplot.Figure:
         """Plot the |IOSequence.series| of the |Obs| sequence object.
 
         See method |Node.plot_allseries| for further information.
         """
         return self._plot_series(
-            [self.sequences.obs],
+            sequences=[self.sequences.obs],
             labels=(label,),
             colors=(color,),
             linestyles=(linestyle,),
@@ -2524,13 +2546,14 @@ Attribute timegrids of module `pub` is not defined at the moment.
 
     def _plot_series(
         self,
+        *,
         sequences: Sequence[sequencetools.IOSequence],
-        labels: Iterable[Optional[str]],
-        colors: Iterable[Optional[str]],
-        linestyles: Iterable[Optional[str]],
-        linewidths: Iterable[Optional[int]],
+        labels: Iterable[str | None],
+        colors: Iterable[str | None],
+        linestyles: Iterable[str | None],
+        linewidths: Iterable[int | None],
         focus: bool = False,
-        stepsize: Optional[StepSize] = None,
+        stepsize: StepSize | None = None,
     ) -> pyplot.Figure:
         try:
             idx0, idx1 = hydpy.pub.timegrids.evalindices
@@ -2868,7 +2891,7 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
 already a collective `NileRiver` member.
     """
 
-    collective: Optional[str] = None
+    collective: str | None = None
     """The collective the actual |Element| instance belongs to."""
 
     _inlets: Nodes
@@ -2877,7 +2900,7 @@ already a collective `NileRiver` member.
     _senders: Nodes
     _inputs: Nodes
     _outputs: Nodes
-    _model: Optional[modeltools.Model]
+    _model: modeltools.Model | None
 
     def __init__(
         self,
@@ -2889,7 +2912,7 @@ already a collective `NileRiver` member.
         senders: NodesConstrArg = None,
         inputs: NodesConstrArg = None,
         outputs: NodesConstrArg = None,
-        collective: Optional[str] = None,
+        collective: str | None = None,
         keywords: MayNonerable1[str] = None,
     ) -> None:
         # pylint: disable=unused-argument
@@ -3082,11 +3105,11 @@ already a collective `NileRiver` member.
         During scripting and when working interactively in the Python shell, it is
         often convenient to assign a |model| directly.
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> parameterstep("1d")
         >>> hland.model = model
         >>> hland.model.name
-        'hland_v1'
+        'hland_96'
 
         >>> del hland.model
         >>> attrready(hland, "model")
@@ -3099,8 +3122,8 @@ already a collective `NileRiver` member.
         |Element.model| creates some connection required by the respective model type
         automatically.  These examples should be relevant for developers only.
 
-        The following |hbranch| model branches a single input value (from to node
-        `inp`) to multiple outputs (nodes `out1` and `out2`):
+        The following |exch_branch_hbv96| model branches a single input value (from to
+        node `inp`) to multiple outputs (nodes `out1` and `out2`):
 
         >>> from hydpy import Element, Node, reverse_model_wildcard_import, pub
         >>> reverse_model_wildcard_import()
@@ -3110,7 +3133,7 @@ already a collective `NileRiver` member.
         ...                   outlets=("branch_output_1", "branch_output_2"))
         >>> inp = element.inlets.branch_input
         >>> out1, out2 = element.outlets
-        >>> from hydpy.models.hbranch import *
+        >>> from hydpy.models.exch_branch_hbv96 import *
         >>> parameterstep()
         >>> delta(0.0)
         >>> minimum(0.0)
@@ -3360,17 +3383,17 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
             sequencetools.IOSequence,
             sequencetools.FastAccessIOSequence,
         ],
-        names: Optional[Sequence[str]],
+        sequences: tuple[IOSequenceArg, ...],
         average: bool,
-        labels: Optional[tuple[str, ...]],
-        colors: Optional[Union[str, tuple[str, ...]]],
-        linestyles: Optional[Union[LineStyle, tuple[LineStyle, ...]]],
-        linewidths: Optional[Union[int, tuple[int, ...]]],
+        labels: tuple[str, ...] | None,
+        colors: str | tuple[str, ...] | None,
+        linestyles: LineStyle | tuple[LineStyle, ...] | None,
+        linewidths: int | tuple[int, ...] | None,
         focus: bool,
     ) -> pyplot.Figure:
         def _prepare_tuple(
-            input_: Optional[Union[T, tuple[T, ...]]], nmb_entries: int
-        ) -> tuple[Optional[T], ...]:
+            input_: T | tuple[T, ...] | None, nmb_entries: int
+        ) -> tuple[T | None, ...]:
             if isinstance(input_, tuple):
                 return input_
             return nmb_entries * (input_,)
@@ -3386,13 +3409,9 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
 
         idx0, idx1 = hydpy.pub.timegrids.evalindices
         index = _get_pandasindex()[idx0:idx1]
-        selseqs: Iterable[sequencetools.IOSequence]
-        if names:
-            selseqs = (getattr(subseqs, name.lower()) for name in names)
-        else:
-            selseqs = subseqs
-        nmb_sequences = len(subseqs)
-        labels_: tuple[Optional[str], ...]
+        selseqs = self._query_iosequences(subseqs, sequences)
+        nmb_sequences = len(selseqs)
+        labels_: tuple[str | None, ...]
         if isinstance(labels, tuple):
             labels_ = labels
         else:
@@ -3439,15 +3458,55 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
             pyplot.ylim((0.0, None))
         return pyplot.gcf()
 
+    def _query_iosequences(
+        self,
+        subseqs: sequencetools.IOSequences[
+            sequencetools.Sequences,
+            sequencetools.IOSequence,
+            sequencetools.FastAccessIOSequence,
+        ],
+        sequences: tuple[IOSequenceArg, ...],
+    ) -> list[sequencetools.IOSequence]:
+        models = tuple(self.model.find_submodels(include_mainmodel=True).values())
+        if sequences:
+            selseqs = []
+            for sequence in sequences:
+                typ: type[sequencetools.IOSequence] | None
+                if isinstance(sequence, str):
+                    name = sequence
+                    typ = None
+                else:
+                    name = sequence.name
+                    if isinstance(sequence, sequencetools.IOSequence):
+                        typ = type(sequence)
+                    else:
+                        typ = sequence
+                for model in models:
+                    seq = getattr(model.sequences[subseqs.name], name, None)
+                    if (seq is not None) and ((typ is None) or isinstance(seq, typ)):
+                        selseqs.append(seq)
+                        break
+                else:
+                    raise ValueError(
+                        f"No (sub)model handled by element `{self.name}` has "
+                        f"{'an' if subseqs.name == 'inputs' else 'a'} "
+                        f"{'flux' if subseqs.name == 'fluxes' else subseqs.name[:-1]} "
+                        f"sequence named `{name}`"
+                        f"{'' if typ is None else f' of type `{typ.__name__}'}."
+                    )
+            return selseqs
+        return list(
+            itertools.chain(*(getattr(m.sequences, subseqs.name) for m in models))
+        )
+
     def plot_inputseries(
         self,
-        names: Optional[Sequence[str]] = None,
-        *,
+        *sequences: IOSequenceArg,
         average: bool = False,
-        labels: Optional[tuple[str, ...]] = None,
-        colors: Optional[Union[str, tuple[str, ...]]] = None,
-        linestyles: Optional[Union[LineStyle, tuple[LineStyle, ...]]] = None,
-        linewidths: Optional[Union[int, tuple[int, ...]]] = None,
+        labels: tuple[str, ...] | None = None,
+        colors: str | tuple[str, ...] | None = None,
+        linestyles: LineStyle | tuple[LineStyle, ...] | None = None,
+        linewidths: int | tuple[int, ...] | None = None,
         focus: bool = True,
     ) -> pyplot.Figure:
         """Plot (the selected) |InputSequence| |IOSequence.series| values.
@@ -3455,15 +3514,16 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         We demonstrate the functionalities of method |Element.plot_inputseries| based
         on the `Lahn` example project:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, _ = prepare_full_example_2(lastdate="1997-01-01")
 
         Without any arguments, |Element.plot_inputseries| prints the time series of all
-        input sequences handled by its |Model| object directly to the screen (in our
-        example, |hland_inputs.P|, |hland_inputs.T|, |evap_inputs.NormalAirTemperature|,
-        and |evap_inputs.NormalEvapotranspiration| of application model |hland_v1|):
+        input sequences handled by its (sub)models directly to the screen (in our
+        example, |hland_inputs.P| and |hland_inputs.T| of |hland_96| and
+        |evap_inputs.NormalAirTemperature| and |evap_inputs.NormalEvapotranspiration|
+        of |evap_pet_hbv96|):
 
-        >>> land = hp.elements.land_dill
+        >>> land = hp.elements.land_dill_assl
         >>> figure = land.plot_inputseries()
 
         You can use the `pyplot` API of `matplotlib` to modify the returned figure or
@@ -3471,9 +3531,26 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         `matplotlib` is disabled):
 
         >>> from hydpy.core.testtools import save_autofig
-        >>> save_autofig("Element_plot_inputseries.png", figure)
+        >>> save_autofig("Element_plot_inputseries_complete.png", figure)
 
-        .. image:: Element_plot_inputseries.png
+        .. image:: Element_plot_inputseries_complete.png
+
+        Select specific sequences by passing their names, types, or example objects:
+
+        >>> from hydpy.models.hland.hland_inputs import T
+        >>> net = land.model.aetmodel.petmodel.sequences.inputs.normalevapotranspiration
+        >>> figure = land.plot_inputseries("p", T, net)
+        >>> save_autofig("Element_plot_inputseries_selection.png", figure)
+
+        .. image:: Element_plot_inputseries_selection.png
+
+        Misleading sequence specifiers result in the following error:
+
+        >>> figure = land.plot_inputseries("xy")
+        Traceback (most recent call last):
+        ...
+        ValueError: No (sub)model handled by element `land_dill_assl` has an input \
+sequence named `xy`.
 
         Methods |Element.plot_factorseries|, |Element.plot_fluxseries|, and
         |Element.plot_stateseries| work in the same manner.  Before applying them, one
@@ -3482,13 +3559,11 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
 
         >>> hp.simulate()
 
-        All three methods allow selecting specific sequences by passing their names
-        (here, flux sequences |hland_fluxes.Q0| and |hland_fluxes.Q1| of |hland_v1|).
-        Additionally, you can pass general or individual values to the arguments
-        `labels`, `colors`, `linestyles`, and `linewidths`:
+        The arguments "labels," "colours," "line styles," and "line widths" can accept
+        general or individual values:
 
         >>> figure = land.plot_fluxseries(
-        ...     ["q0", "q1"], labels=("direct runoff", "base flow"),
+        ...     "q0", "q1", labels=("direct runoff", "base flow"),
         ...     colors=("red", "green"), linestyles="--", linewidths=2)
         >>> save_autofig("Element_plot_fluxseries.png", figure)
 
@@ -3501,7 +3576,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         the shown period to February and March via the |Timegrids.eval_| time grid:
 
         >>> with pub.timegrids.eval_(firstdate="1996-02-01", lastdate="1996-04-01"):
-        ...     figure = land.plot_stateseries(["sp", "wc"])
+        ...     figure = land.plot_stateseries("sp", "wc")
         >>> save_autofig("Element_plot_stateseries.png", figure)
 
         .. image:: Element_plot_stateseries.png
@@ -3510,16 +3585,16 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         argument `average`.  We demonstrate this functionality for the factor sequence
         |hland_factors.TC| (this time, without focusing on the time-series y-extent):
 
-        >>> figure = land.plot_factorseries(["tc"], colors=("grey",))
+        >>> figure = land.plot_factorseries("tc", colors=("grey",))
         >>> figure = land.plot_factorseries(
-        ...     ["tc"], average=True, focus=False, colors="black", linewidths=3)
+        ...     "tc", average=True, focus=False, colors="black", linewidths=3)
         >>> save_autofig("Element_plot_factorseries.png", figure)
 
         .. image:: Element_plot_factorseries.png
         """
         return self._plot_series(
             subseqs=self.model.sequences.inputs,
-            names=names,
+            sequences=sequences,
             average=average,
             labels=labels,
             colors=colors,
@@ -3530,13 +3605,12 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
 
     def plot_factorseries(
         self,
-        names: Optional[Sequence[str]] = None,
-        *,
+        *sequences: IOSequenceArg,
         average: bool = False,
-        labels: Optional[tuple[str, ...]] = None,
-        colors: Optional[Union[str, tuple[str, ...]]] = None,
-        linestyles: Optional[Union[LineStyle, tuple[LineStyle, ...]]] = None,
-        linewidths: Optional[Union[int, tuple[int, ...]]] = None,
+        labels: tuple[str, ...] | None = None,
+        colors: str | tuple[str, ...] | None = None,
+        linestyles: LineStyle | tuple[LineStyle, ...] | None = None,
+        linewidths: int | tuple[int, ...] | None = None,
         focus: bool = True,
     ) -> pyplot.Figure:
         """Plot the `factor` series of the handled model.
@@ -3546,7 +3620,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         """
         return self._plot_series(
             subseqs=self.model.sequences.factors,
-            names=names,
+            sequences=sequences,
             average=average,
             labels=labels,
             colors=colors,
@@ -3557,13 +3631,12 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
 
     def plot_fluxseries(
         self,
-        names: Optional[Sequence[str]] = None,
-        *,
+        *sequences: IOSequenceArg,
         average: bool = False,
-        labels: Optional[tuple[str, ...]] = None,
-        colors: Optional[Union[str, tuple[str, ...]]] = None,
-        linestyles: Optional[Union[LineStyle, tuple[LineStyle, ...]]] = None,
-        linewidths: Optional[Union[int, tuple[int, ...]]] = None,
+        labels: tuple[str, ...] | None = None,
+        colors: str | tuple[str, ...] | None = None,
+        linestyles: LineStyle | tuple[LineStyle, ...] | None = None,
+        linewidths: int | tuple[int, ...] | None = None,
         focus: bool = True,
     ) -> pyplot.Figure:
         """Plot the `flux` series of the handled model.
@@ -3573,7 +3646,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         """
         return self._plot_series(
             subseqs=self.model.sequences.fluxes,
-            names=names,
+            sequences=sequences,
             average=average,
             labels=labels,
             colors=colors,
@@ -3584,13 +3657,12 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
 
     def plot_stateseries(
         self,
-        names: Optional[Sequence[str]] = None,
-        *,
+        *sequences: IOSequenceArg,
         average: bool = False,
-        labels: Optional[tuple[str, ...]] = None,
-        colors: Optional[Union[str, tuple[str, ...]]] = None,
-        linestyles: Optional[Union[LineStyle, tuple[LineStyle, ...]]] = None,
-        linewidths: Optional[Union[int, tuple[int, ...]]] = None,
+        labels: tuple[str, ...] | None = None,
+        colors: str | tuple[str, ...] | None = None,
+        linestyles: LineStyle | tuple[LineStyle, ...] | None = None,
+        linewidths: int | tuple[int, ...] | None = None,
         focus: bool = True,
     ) -> pyplot.Figure:
         """Plot the `state` series of the handled model.
@@ -3600,7 +3672,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         """
         return self._plot_series(
             subseqs=self.model.sequences.states,
-            names=names,
+            sequences=sequences,
             average=average,
             labels=labels,
             colors=colors,

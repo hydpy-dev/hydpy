@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 """This module provides features for applying and implementing hydrological models."""
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -58,7 +58,7 @@ class Method:
     SUBMODELINTERFACES: ClassVar[tuple[type[SubmodelInterface], ...]]
     SUBMETHODS: tuple[type[Method], ...] = ()
     CONTROLPARAMETERS: tuple[
-        type[Union[parametertools.Parameter, interptools.BaseInterpolator]], ...
+        type[parametertools.Parameter | interptools.BaseInterpolator], ...
     ] = ()
     DERIVEDPARAMETERS: tuple[type[parametertools.Parameter], ...] = ()
     FIXEDPARAMETERS: tuple[type[parametertools.Parameter], ...] = ()
@@ -82,6 +82,24 @@ class AutoMethod(Method):
     @classmethod
     def __call__(cls, model: Model) -> None:
         for method in cls.SUBMETHODS:
+            method.__call__(model)
+
+
+class SetAutoMethod(Method):
+    """Base class for defining setter methods that also use the given data to calculate
+    other properties.
+
+    |SetAutoMethod| calls its submethods in the specified order.  If, for example, the
+    first two submethods are setters, it requires precisely two parameter values.  It
+    passes the first value to the first setter and the second value to the second
+    setter. After that, it executes the remaining methods without exchanging any data.
+    """
+
+    @classmethod
+    def __call__(cls, model: Model, *values) -> None:
+        for method, value in zip(cls.SUBMETHODS, values):
+            method.__call__(model, value)
+        for method in cls.SUBMETHODS[len(values) :]:
             method.__call__(model)
 
 
@@ -260,7 +278,7 @@ instance of any of the following supported interfaces: SoilModel_V1.
 
     __hydpy_modeltype2instance__: ClassVar[
         collections.defaultdict[type[Model], list[SubmodelProperty[Any]]]
-    ] = collections.defaultdict(lambda: [])
+    ] = collections.defaultdict(list)
 
     def __init__(
         self,
@@ -288,21 +306,21 @@ instance of any of the following supported interfaces: SoilModel_V1.
         self.__hydpy_modeltype2instance__[owner].append(self)
 
     @overload
-    def __get__(self, obj: None, objtype: Optional[type[Model]]) -> Self: ...
+    def __get__(self, obj: None, objtype: type[Model] | None) -> Self: ...
 
     @overload
     def __get__(
-        self, obj: Model, objtype: Optional[type[Model]]
-    ) -> Optional[TypeSubmodelInterface]: ...
+        self, obj: Model, objtype: type[Model] | None
+    ) -> TypeSubmodelInterface | None: ...
 
     def __get__(
-        self, obj: Optional[Model], objtype: Optional[type[Model]] = None
-    ) -> Union[Self, Optional[TypeSubmodelInterface]]:
+        self, obj: Model | None, objtype: type[Model] | None = None
+    ) -> Self | TypeSubmodelInterface | None:
         if obj is None:
             return self
         return vars(obj).get(self.name, None)
 
-    def __set__(self, obj: Model, value: Optional[TypeSubmodelInterface]) -> None:
+    def __set__(self, obj: Model, value: TypeSubmodelInterface | None) -> None:
         try:
             if value is None:
                 self.__delete__(obj)
@@ -363,12 +381,12 @@ class SubmodelsProperty(_SubmodelPropertyBase[TypeSubmodelInterface]):
 
     __hydpy_modeltype2instance__: ClassVar[
         collections.defaultdict[type[Model], list[SubmodelsProperty[Any]]]
-    ] = collections.defaultdict(lambda: [])
+    ] = collections.defaultdict(list)
     __hydpy_mainmodel2submodels__: collections.defaultdict[
-        Model, list[Optional[TypeSubmodelInterface]]
+        Model, list[TypeSubmodelInterface | None]
     ]
 
-    _mainmodel: Optional[Model]
+    _mainmodel: Model | None
     _mainmodel2numbersubmodels: collections.defaultdict[Model, int]
     _mainmodel2submodeltypeids: collections.defaultdict[Model, list[int]]
 
@@ -381,9 +399,9 @@ class SubmodelsProperty(_SubmodelPropertyBase[TypeSubmodelInterface]):
     ) -> None:
         self.interfaces = tuple(interfaces)
         self.sidemodels = sidemodels
-        self.__hydpy_mainmodel2submodels__ = collections.defaultdict(lambda: [])
-        self._mainmodel2numbersubmodels = collections.defaultdict(lambda: 0)
-        self._mainmodel2submodeltypeids = collections.defaultdict(lambda: [])
+        self.__hydpy_mainmodel2submodels__ = collections.defaultdict(list)
+        self._mainmodel2numbersubmodels = collections.defaultdict(int)
+        self._mainmodel2submodeltypeids = collections.defaultdict(list)
         interfacenames = (i.__name__ for i in self.interfaces)
         suffix = "s" if len(interfaces) > 1 else ""
         self.__doc__ = (
@@ -391,9 +409,7 @@ class SubmodelsProperty(_SubmodelPropertyBase[TypeSubmodelInterface]):
             f"{objecttools.enumeration(interfacenames, conjunction='or')}."
         )
 
-    def __get__(
-        self, obj: Optional[Model], objtype: Optional[type[Model]] = None
-    ) -> Self:
+    def __get__(self, obj: Model | None, objtype: type[Model] | None = None) -> Self:
         if obj is None:
             return self
         try:
@@ -647,7 +663,7 @@ assignment index out of range
             )
 
     def append_submodel(
-        self, submodel: TypeSubmodelInterface, typeid: Optional[int] = None
+        self, submodel: TypeSubmodelInterface, typeid: int | None = None
     ) -> None:
         """Append a submodel and its relevant type ID to the already available ones.
 
@@ -772,7 +788,7 @@ interfaces: RoutingModel_V1 and RoutingModel_V2.
             )
 
     @property
-    def submodels(self) -> tuple[Optional[TypeSubmodelInterface], ...]:
+    def submodels(self) -> tuple[TypeSubmodelInterface | None, ...]:
         """The currently handled submodels.
 
         >>> from hydpy import prepare_model
@@ -801,11 +817,11 @@ interfaces: RoutingModel_V1 and RoutingModel_V2.
         assert (mainmodel := self._mainmodel) is not None
         return tuple(self._mainmodel2submodeltypeids[mainmodel])
 
-    def __getitem__(self, value: int) -> Optional[TypeSubmodelInterface]:
+    def __getitem__(self, value: int) -> TypeSubmodelInterface | None:
         assert (mainmodel := self._mainmodel) is not None
         return self.__hydpy_mainmodel2submodels__[mainmodel][value]
 
-    def __iter__(self) -> Iterator[Optional[TypeSubmodelInterface]]:
+    def __iter__(self) -> Iterator[TypeSubmodelInterface | None]:
         assert (mainmodel := self._mainmodel) is not None
         yield from self.__hydpy_mainmodel2submodels__[mainmodel]
 
@@ -822,7 +838,7 @@ class SubmodelIsMainmodelProperty:
 
     >>> from hydpy import prepare_model, pub
     >>> with pub.options.usecython(True):
-    ...     model = prepare_model("hland_v1")
+    ...     model = prepare_model("hland_96")
     >>> type(model).aetmodel_is_mainmodel._name
     'aetmodel_is_mainmodel'
     >>> model.aetmodel_is_mainmodel
@@ -839,7 +855,7 @@ class SubmodelIsMainmodelProperty:
     _owner2value: dict[Model, bool]
     _name: Final[str]  # type: ignore[misc]
 
-    def __init__(self, doc: Optional[str] = None) -> None:
+    def __init__(self, doc: str | None = None) -> None:
         self._owner2value = {}
         self.__doc__ = doc
 
@@ -847,14 +863,14 @@ class SubmodelIsMainmodelProperty:
         self._name = name  # type: ignore[misc]
 
     @overload
-    def __get__(self, obj: None, objtype: Optional[type[Model]]) -> Self: ...
+    def __get__(self, obj: None, objtype: type[Model] | None) -> Self: ...
 
     @overload
-    def __get__(self, obj: Model, objtype: Optional[type[Model]]) -> bool: ...
+    def __get__(self, obj: Model, objtype: type[Model] | None) -> bool: ...
 
     def __get__(
-        self, obj: Optional[Model], objtype: Optional[type[Model]] = None
-    ) -> Union[Self, bool]:
+        self, obj: Model | None, objtype: type[Model] | None = None
+    ) -> Self | bool:
         if obj is None:
             return self
         return self._owner2value.get(obj, False)
@@ -874,7 +890,7 @@ class SubmodelTypeIDProperty:
 
     >>> from hydpy import prepare_model, pub
     >>> with pub.options.usecython(True):
-    ...     model = prepare_model("hland_v1")
+    ...     model = prepare_model("hland_96")
     >>> type(model).aetmodel_typeid._name
     'aetmodel_typeid'
     >>> model.aetmodel_typeid
@@ -891,7 +907,7 @@ class SubmodelTypeIDProperty:
     _owner2value: dict[Model, int]
     _name: Final[str]  # type: ignore[misc]
 
-    def __init__(self, doc: Optional[str] = None) -> None:
+    def __init__(self, doc: str | None = None) -> None:
         self._owner2value = {}
         self.__doc__ = doc
 
@@ -899,14 +915,14 @@ class SubmodelTypeIDProperty:
         self._name = name  # type: ignore[misc]
 
     @overload
-    def __get__(self, obj: None, objtype: Optional[type[Model]]) -> Self: ...
+    def __get__(self, obj: None, objtype: type[Model] | None) -> Self: ...
 
     @overload
-    def __get__(self, obj: Model, objtype: Optional[type[Model]]) -> int: ...
+    def __get__(self, obj: Model, objtype: type[Model] | None) -> int: ...
 
     def __get__(
-        self, obj: Optional[Model], objtype: Optional[type[Model]] = None
-    ) -> Union[Self, int]:
+        self, obj: Model | None, objtype: type[Model] | None = None
+    ) -> Self | int:
         if obj is None:
             return self
         return self._owner2value.get(obj, 0)
@@ -931,7 +947,7 @@ class IndexProperty:
     @overload
     def __get__(self, obj: None, objtype: type[Model]) -> Self: ...
 
-    def __get__(self, obj: Optional[Model], objtype: type[Model]) -> Union[Self, int]:
+    def __get__(self, obj: Model | None, objtype: type[Model]) -> Self | int:
         if obj is None:
             return self
         if obj.cymodel:
@@ -953,7 +969,7 @@ class Idx_Sim(IndexProperty):
     |Model.simulate|.  However, you can change it manually via the |modeltools.Idx_Sim|
     descriptor, which is often beneficial during testing:
 
-    >>> from hydpy.models.hland_v1 import *
+    >>> from hydpy.models.hland_96 import *
     >>> parameterstep("1d")
     >>> model.idx_sim
     0
@@ -1005,6 +1021,48 @@ class Idx_Run(IndexProperty):
         self.__doc__ = "The run index."
 
 
+class DocName(NamedTuple):
+    """Definitions for the documentation names of specific base or application
+    models."""
+
+    short: str
+    """Short name of a model, e.g. "W-Wag"."""
+
+    description: str = "base model"
+    """Description of a model, e.g. "extended version of the original Wageningen WALRUS 
+    model"."""
+
+    @property
+    def long(self):
+        """Long name of a model.
+
+        >>> from hydpy.models.wland_wag import Model
+        >>> Model.DOCNAME.long
+        'HydPy-W-Wag'
+        """
+        return f"HydPy-{self.short}"
+
+    @property
+    def complete(self) -> str:
+        """Complete presentation of a model.
+
+        >>> from hydpy.models.wland_wag import Model
+        >>> Model.DOCNAME.complete
+        'HydPy-W-Wag (extended version of the original Wageningen WALRUS model)'
+        """
+        return f"{self.long} ({self.description})"
+
+    @property
+    def family(self) -> str:
+        """Family name of a model.
+
+        >>> from hydpy.models.wland_wag import Model
+        >>> Model.DOCNAME.family
+        'HydPy-W'
+        """
+        return "-".join(self.long.split("-")[:2])
+
+
 class Model:
     """Base class for all hydrological models.
 
@@ -1021,7 +1079,7 @@ class Model:
     attribute, making all predefined masks of the actual model type available within a
     |Masks| object:
 
-    >>> from hydpy.models.hland_v1 import *
+    >>> from hydpy.models.hland_96 import *
     >>> parameterstep("1d")
     >>> model.masks
     complete of module hydpy.models.hland.hland_masks
@@ -1052,14 +1110,14 @@ class Model:
     3.0
     """
 
-    cymodel: Optional[CyModelProtocol]
+    cymodel: CyModelProtocol | None
     parameters: parametertools.Parameters
     sequences: sequencetools.Sequences
     masks: masktools.Masks
     idx_sim = Idx_Sim()
 
-    __hydpy_element__: Optional[devicetools.Element]
-    _NAME: ClassVar[str]
+    __hydpy_element__: devicetools.Element | None
+    __HYDPY_NAME__: ClassVar[str]
 
     INLET_METHODS: ClassVar[tuple[type[Method], ...]]
     OUTLET_METHODS: ClassVar[tuple[type[Method], ...]]
@@ -1079,6 +1137,14 @@ class Model:
     directly applied by model users but behind the scenes for compositing all models 
     owned by elements belonging to the same |Element.collective| (see method 
     |Elements.unite_collectives|)."""
+
+    DOCNAME: DocName
+
+    __HYDPY_ROOTMODEL__: bool | None
+    """Flag telling whether a submodel should be considered as a submodel graph root.
+    
+    `None` is reserved for base and special-purpose models likely irrelevant to users. 
+    """
 
     def __init__(self) -> None:
         self.cymodel = None
@@ -1295,7 +1361,7 @@ The following nodes have not been connected to any sequences: in2.
 
         We demonstrate this functionality by focussing on the input sequences
         |hland_inputs.T| and |hland_inputs.P| and the output sequences |hland_fluxes.Q0|
-        and |hland_states.UZ| of application model |hland_v1|.  |hland_inputs.T| uses
+        and |hland_states.UZ| of application model |hland_96|.  |hland_inputs.T| uses
         its own data (which we define manually, but we could read it from a file as
         well), whereas |hland_inputs.P| gets its data from node `inp1`.  Flux sequence
         |hland_fluxes.Q0| and state sequence |hland_states.UZ| pass their data to two
@@ -1314,7 +1380,7 @@ The following nodes have not been connected to any sequences: in2.
         >>> outp2 = Node("outp2", variable=hland_states_UZ)
         >>> element8 = Element("element8", outlets=out1, inputs=inp1,
         ...                    outputs=[outp1, outp2])
-        >>> element8.model = prepare_model("hland_v1")
+        >>> element8.model = prepare_model("hland_96")
         >>> element8.prepare_inputseries()
         >>> element8.model.sequences.inputs.t.series = 1.0, 2.0, 3.0, 4.0, 5.0
         >>> inp1.sequences.sim(9.0)
@@ -1343,7 +1409,7 @@ The following nodes have not been connected to any sequences: in2.
         >>> FastRunoff = FusedVariable("FastRunoff", hland_fluxes_Q0, lland_fluxes_QDGZ)
         >>> outp3 = Node("outp3", variable=FastRunoff)
         >>> element9 = Element("element9", outlets=out1, inputs=inp2, outputs=outp3)
-        >>> element9.model = prepare_model("hland_v1")
+        >>> element9.model = prepare_model("hland_96")
         >>> inp2.sequences.sim(9.0)
         >>> element9.model.load_data(0)
         >>> element9.model.sequences.inputs.p
@@ -1360,7 +1426,7 @@ The following nodes have not been connected to any sequences: in2.
         >>> Wrong = FusedVariable("Wrong", lland_inputs_Nied, lland_inputs_TemL)
         >>> inp3 = Node("inp3", variable=Wrong)
         >>> element10 = Element("element10", outlets=out1, inputs=inp3)
-        >>> element10.model = prepare_model("hland_v1")
+        >>> element10.model = prepare_model("hland_96")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to build the node connection of the `input` \
@@ -1369,19 +1435,19 @@ The following nodes have not been connected to any sequences: inp3.
 
         >>> outp4 = Node("outp4", variable=Wrong)
         >>> element11 = Element("element11", outlets=out1, outputs=outp4)
-        >>> element11.model = prepare_model("hland_v1")
+        >>> element11.model = prepare_model("hland_96")
         Traceback (most recent call last):
         ...
         TypeError: While trying to build the node connection of the `output` \
 sequences of the model handled by element `element11`, the following error occurred: \
-None of the output sequences of model `hland_v1` is among the sequences of the fused \
+None of the output sequences of model `hland_96` is among the sequences of the fused \
 variable `Wrong` of node `outp4`.
 
         Selecting the wrong sequences results in the following error messages:
 
         >>> outp5 = Node("outp5", variable=hland_fluxes_Q0)
         >>> element12 = Element("element12", outlets=out1, inputs=outp5)
-        >>> element12.model = prepare_model("hland_v1")
+        >>> element12.model = prepare_model("hland_96")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to build the node connection of the `input` \
@@ -1390,19 +1456,19 @@ The following nodes have not been connected to any sequences: outp5.
 
         >>> inp5 = Node("inp5", variable="P")
         >>> element13 = Element("element13", outlets=out1, outputs=inp5)
-        >>> element13.model = prepare_model("hland_v1")
+        >>> element13.model = prepare_model("hland_96")
         Traceback (most recent call last):
         ...
         TypeError: While trying to build the node connection of the `output` sequences \
 of the model handled by element `element13`, the following error occurred: No factor, \
-flux, or state sequence of model `hland_v1` is named `p`.
+flux, or state sequence of model `hland_96` is named `p`.
 
         So far, you can build connections to 0-dimensional output sequences only:
 
         >>> from hydpy.models.hland.hland_fluxes import PC
         >>> outp6 = Node("outp6", variable=PC)
         >>> element14 = Element("element14", outlets=out1, outputs=outp6)
-        >>> element14.model = prepare_model("hland_v1")
+        >>> element14.model = prepare_model("hland_96")
         Traceback (most recent call last):
         ...
         TypeError: While trying to build the node connection of the `output` sequences \
@@ -1524,7 +1590,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                     )
                 _set_pointer(sequence_, node)
 
-    def _determine_name(self, var: Union[str, sequencetools.InOutSequenceTypes]) -> str:
+    def _determine_name(self, var: str | sequencetools.InOutSequenceTypes) -> str:
         if isinstance(var, str):
             return var.lower()
         return var.__name__.lower()
@@ -1542,10 +1608,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         self._connect_subgroup("senders", report_noconnect, 0)
 
     def _connect_subgroup(
-        self,
-        group: str,
-        report_noconnect: bool,
-        position: Optional[Literal[0, -1]] = None,
+        self, group: str, report_noconnect: bool, position: Literal[0, -1] | None = None
     ) -> None:
         st = sequencetools
         available_nodes = getattr(self.element, group)
@@ -1611,16 +1674,16 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
 
         For application models, |Model.name| to corresponds the module name:
 
-        >>> hland_v1 = prepare_model("hland_v1")
-        >>> hland_v1.name
-        'hland_v1'
+        >>> hland_96 = prepare_model("hland_96")
+        >>> hland_96.name
+        'hland_96'
 
         This last example has only technical reasons:
 
         >>> hland.name
         'hland'
         """
-        return self._NAME
+        return self.__HYDPY_NAME__
 
     def prepare_allseries(self, allocate_ram: bool = True, jit: bool = False) -> None:
         """Call method |Model.prepare_inputseries| with `read_jit=jit` and methods
@@ -1726,8 +1789,8 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
     def get_controlfileheader(
         self,
         import_submodels: bool = True,
-        parameterstep: Optional[timetools.PeriodConstrArg] = None,
-        simulationstep: Optional[timetools.PeriodConstrArg] = None,
+        parameterstep: timetools.PeriodConstrArg | None = None,
+        simulationstep: timetools.PeriodConstrArg | None = None,
     ) -> str:
         """Return the header of a parameter control file.
 
@@ -1735,13 +1798,11 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         and the actual parameter and simulation step sizes:
 
         >>> from hydpy import prepare_model, pub
-        >>> model = prepare_model("hland_v1")
+        >>> model = prepare_model("hland_96")
         >>> model.aetmodel = prepare_model("evap_aet_hbv96")
         >>> pub.timegrids = "2000.01.01", "2001.01.01", "1h"
         >>> print(model.get_controlfileheader())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
-        from hydpy.models.hland_v1 import *
+        from hydpy.models.hland_96 import *
         from hydpy.models import evap_aet_hbv96
         <BLANKLINE>
         simulationstep("1h")
@@ -1754,9 +1815,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
 
         >>> print(model.get_controlfileheader(
         ...     import_submodels=False, parameterstep="2d", simulationstep="3d"))
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
-        from hydpy.models.hland_v1 import *
+        from hydpy.models.hland_96 import *
         <BLANKLINE>
         simulationstep("3d")
         parameterstep("2d")
@@ -1767,7 +1826,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
 
             >>> del pub.timegrids
         """
-        lines = ["# -*- coding: utf-8 -*-\n", f"from hydpy.models.{self} import *"]
+        lines = [f"from hydpy.models.{self} import *"]
         if import_submodels:
             names = []
             for submodel in self.find_submodels().values():
@@ -1787,11 +1846,12 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
 
     def _get_controllines(
         self,
-        parameterstep: Optional[timetools.PeriodConstrArg] = None,
-        simulationstep: Optional[timetools.PeriodConstrArg] = None,
-        auxfiler: Optional[auxfiletools.Auxfiler] = None,
+        *,
+        parameterstep: timetools.PeriodConstrArg | None = None,
+        simulationstep: timetools.PeriodConstrArg | None = None,
+        auxfiler: auxfiletools.Auxfiler | None = None,
         sublevel: int = 0,
-        ignore: Optional[tuple[type[parametertools.Parameter], ...]] = None,
+        ignore: tuple[type[parametertools.Parameter], ...] | None = None,
     ) -> list[str]:
         parameter2auxfile = None if auxfiler is None else auxfiler.get(self)
         lines = []
@@ -1818,10 +1878,10 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
 
     def save_controls(
         self,
-        parameterstep: Optional[timetools.PeriodConstrArg] = None,
-        simulationstep: Optional[timetools.PeriodConstrArg] = None,
-        auxfiler: Optional[auxfiletools.Auxfiler] = None,
-        filepath: Optional[str] = None,
+        parameterstep: timetools.PeriodConstrArg | None = None,
+        simulationstep: timetools.PeriodConstrArg | None = None,
+        auxfiler: auxfiletools.Auxfiler | None = None,
+        filepath: str | None = None,
     ) -> None:
         """Write the control parameters (and eventually some solver parameters) to a
         control file.
@@ -1837,7 +1897,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         advantage of choosing an arbitrary file path, as shown in the following
         example:
 
-        >>> from hydpy.models.test_v3 import *
+        >>> from hydpy.models.test_stiff1d import *
         >>> parameterstep("1d")
         >>> simulationstep("1h")
         >>> k(0.1)
@@ -1846,12 +1906,10 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         >>> from hydpy import Open
         >>> with Open():
         ...     model.save_controls(filepath="otherdir/otherfile.py")
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         otherdir/otherfile.py
-        ----------------------------------
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
-        from hydpy.models.test_v3 import *
+        ---------------------------------------
+        from hydpy.models.test_stiff1d import *
         <BLANKLINE>
         simulationstep("1h")
         parameterstep("1d")
@@ -1859,7 +1917,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         k(0.1)
         n(3)
         <BLANKLINE>
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         Method |Model.save_controls| also writes the string representations of all
         |SolverParameter| objects with non-default values into the control file:
@@ -1867,12 +1925,10 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         >>> solver.abserrormax(1e-6)
         >>> with Open():
         ...     model.save_controls(filepath="otherdir/otherfile.py")
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         otherdir/otherfile.py
-        ----------------------------------
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
-        from hydpy.models.test_v3 import *
+        ---------------------------------------
+        from hydpy.models.test_stiff1d import *
         <BLANKLINE>
         simulationstep("1h")
         parameterstep("1d")
@@ -1882,7 +1938,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         <BLANKLINE>
         solver.abserrormax(0.000001)
         <BLANKLINE>
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         Without a given file path and a proper project configuration, method
         |Model.save_controls| raises the following error:
@@ -1895,17 +1951,17 @@ filename must be known.  This can be done, by passing a filename to function \
 `save_controls` directly.  But in complete HydPy applications, it is usally assumed \
 to be consistent with the name of the element handling the model.
 
-        Submodels like |meteo_v001| allow using their instances by multiple main
+        Submodels like |meteo_glob_fao56| allow using their instances by multiple main
         models.  We prepare such a case by selecting such an instance as the submodel
-        of the absolute main model |lland_v3| and the the relative submodel
-        |evap_morsim|:
+        of the absolute main model |lland_knauf| and the the relative submodel
+        |evap_aet_morsim|:
 
         >>> from hydpy.core.importtools import reverse_model_wildcard_import
         >>> reverse_model_wildcard_import()
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2001-01-02", "1d"
-        >>> from hydpy.models.lland_v3 import *
+        >>> from hydpy.models.lland_knauf import *
         >>> parameterstep()
         >>> nhru(1)
         >>> ft(1.0)
@@ -1914,11 +1970,11 @@ to be consistent with the name of the element handling the model.
         >>> measuringheightwindspeed(10.0)
         >>> lai(3.0)
         >>> wmax(300.0)
-        >>> with model.add_radiationmodel_v1("meteo_v001") as meteo_v001:
+        >>> with model.add_radiationmodel_v1("meteo_glob_fao56") as meteo_glob_fao56:
         ...     latitude(50.0)
-        >>> with model.add_aetmodel_v1("evap_morsim"):
+        >>> with model.add_aetmodel_v1("evap_aet_morsim"):
         ...     measuringheightwindspeed(2.0)
-        ...     model.add_radiationmodel_v1(meteo_v001)
+        ...     model.add_radiationmodel_v1(meteo_glob_fao56)
 
         To avoid name collisions, |Model.save_controls| prefixes the string `submodel_`
         to the submodel name (which is identical to the submodel module's name) to
@@ -1926,14 +1982,12 @@ to be consistent with the name of the element handling the model.
 
         >>> with Open():  # doctest: +ELLIPSIS
         ...     model.save_controls(filepath="otherdir/otherfile.py")
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
         otherdir/otherfile.py
-        --------------------------------------------------------------------------------
-        # -*- coding: utf-8 -*-
-        ...
-        from hydpy.models.lland_v3 import *
-        from hydpy.models import evap_morsim
-        from hydpy.models import meteo_v001
+        ----------------------------------------------------------------------------...
+        from hydpy.models.lland_knauf import *
+        from hydpy.models import evap_aet_morsim
+        from hydpy.models import meteo_glob_fao56
         ...
         simulationstep("1d")
         parameterstep("1d")
@@ -1942,22 +1996,23 @@ to be consistent with the name of the element handling the model.
         ...
         measuringheightwindspeed(10.0)
         ...
-        with model.add_aetmodel_v1(evap_morsim):
+        with model.add_aetmodel_v1(evap_aet_morsim):
             measuringheightwindspeed(2.0)
             ...
-            with model.add_radiationmodel_v1(meteo_v001) as submodel_meteo_v001:
+            with model.add_radiationmodel_v1(meteo_glob_fao56) as \
+submodel_meteo_glob_fao56:
                 latitude(50.0)
                 ...
-        model.add_radiationmodel_v1(submodel_meteo_v001)
+        model.add_radiationmodel_v1(submodel_meteo_glob_fao56)
         ...
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
         """
 
         def _extend_lines_submodel(
             model: Model, sublevel: int, preparemethods: set[str]
         ) -> None:
             def _find_adder_and_position() -> (
-                tuple[importtools.SubmodelAdder, Optional[str]]
+                tuple[importtools.SubmodelAdder, str | None]
             ):
                 mt2sn2as = importtools.SubmodelAdder.__hydpy_maintype2subname2adders__
                 subname, position = name.rpartition(".")[2], None
@@ -2049,10 +2104,10 @@ to be consistent with the name of the element handling the model.
         )
 
         submodels = tuple(self.find_submodels(repeat_sharedmodels=True).values())
-        sharable_submodels = set(
+        sharable_submodels = {
             m for m in submodels if isinstance(m, SharableSubmodelInterface)
-        )
-        shared_submodels = set(m for m in sharable_submodels if submodels.count(m) > 1)
+        }
+        shared_submodels = {m for m in sharable_submodels if submodels.count(m) > 1}
         visited_shared_submodels: set[SharableSubmodelInterface] = set()
 
         # ToDo: needs refactoring
@@ -2083,7 +2138,7 @@ to be consistent with the name of the element handling the model.
 
     @contextlib.contextmanager
     def define_conditions(
-        self, module: Optional[Union[types.ModuleType, str]] = None
+        self, module: types.ModuleType | str | None = None
     ) -> Generator[None, None, None]:
         """Allow defining the values of condition sequences in condition files
         conveniently.
@@ -2095,7 +2150,7 @@ to be consistent with the name of the element handling the model.
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "6h"
-        >>> from hydpy.models.lland_v3 import *
+        >>> from hydpy.models.lland_knauf import *
         >>> parameterstep()
         >>> nhru(2)
         >>> ft(10.0)
@@ -2103,7 +2158,7 @@ to be consistent with the name of the element handling the model.
         >>> lnk(ACKER, MISCHW)
         >>> wmax(acker=100.0, mischw=200.0)
         >>> measuringheightwindspeed(10.0)
-        >>> with model.add_aetmodel_v1("evap_morsim"):
+        >>> with model.add_aetmodel_v1("evap_aet_morsim"):
         ...     pass
         >>> with model.aetmodel.define_conditions():
         ...     loggedwindspeed2m(1.0, 3.0, 2.0, 4.0)
@@ -2116,7 +2171,7 @@ to be consistent with the name of the element handling the model.
 
         One can pass the submodel's module or name for documentation purposes:
 
-        >>> with model.aetmodel.define_conditions("evap_morsim"):
+        >>> with model.aetmodel.define_conditions("evap_aet_morsim"):
         ...     loggedwindspeed2m(4.0, 2.0, 3.0, 1.0)
         >>> loggedwindspeed2m
         Traceback (most recent call last):
@@ -2132,8 +2187,9 @@ to be consistent with the name of the element handling the model.
         ...     loggedwindspeed2m(1.0, 3.0, 2.0, 4.0)
         Traceback (most recent call last):
         ...
-        TypeError: While trying to define the conditions of (sub)model `evap_morsim`, \
-the following error occurred: (Sub)model `evap_morsim` is not of type `evap_aet_hbv96`.
+        TypeError: While trying to define the conditions of (sub)model \
+`evap_aet_morsim`, the following error occurred: (Sub)model `evap_aet_morsim` is not \
+of type `evap_aet_hbv96`.
         >>> loggedwindspeed2m
         Traceback (most recent call last):
         ...
@@ -2147,8 +2203,7 @@ the following error occurred: (Sub)model `evap_morsim` is not of type `evap_aet_
         """
         try:
             if module is not None:
-                if isinstance(module, str):
-                    module = importlib.import_module(f"hydpy.models.{module}")
+                module = importtools.load_modelmodule(module)
                 if self.__module__ != module.__name__:
                     raise TypeError(
                         f"(Sub)model `{self.name}` is not of type "
@@ -2178,7 +2233,7 @@ the following error occurred: (Sub)model `evap_morsim` is not of type `evap_aet_
                 f"While trying to define the conditions of (sub)model `{self.name}`"
             )
 
-    def __prepare_conditionfilename(self, filename: Optional[str]) -> str:
+    def __prepare_conditionfilename(self, filename: str | None) -> str:
         if filename is None:
             filename = objecttools.devicename(self)
             if filename == "?":
@@ -2195,7 +2250,7 @@ the following error occurred: (Sub)model `evap_morsim` is not of type `evap_aet_
             filename += ".py"
         return filename
 
-    def load_conditions(self, filename: Optional[str] = None) -> None:
+    def load_conditions(self, filename: str | None = None) -> None:
         """Read the initial conditions from a file and assign them to the respective
         |StateSequence| and |LogSequence| objects.
 
@@ -2204,13 +2259,13 @@ the following error occurred: (Sub)model `evap_morsim` is not of type `evap_aet_
         most convenient manner.  However, using the underlying methods
         |Model.load_conditions| and |Model.save_conditions| directly offers the
         advantage of specifying alternative filenames.  We demonstrate this by using
-        the state sequence |hland_states.SM| if the `land_dill` |Element| object of the
-        `LahnH` example project:
+        the state sequence |hland_states.SM| if the `land_dill_assl` |Element| object
+        of the `HydPy-H-Lahn` example project:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> dill = hp.elements.land_dill.model
-        >>> dill.sequences.states.sm
+        >>> dill_assl = hp.elements.land_dill_assl.model
+        >>> dill_assl.sequences.states.sm
         sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 
@@ -2222,36 +2277,36 @@ the following error occurred: (Sub)model `evap_morsim` is not of type `evap_aet_
         We set all soil moisture values to zero and write the updated values to file
         `cold_start.py`:
 
-        >>> dill.sequences.states.sm(0.0)
+        >>> dill_assl.sequences.states.sm(0.0)
         >>> with TestIO():
-        ...     dill.save_conditions("cold_start.py")
+        ...     dill_assl.save_conditions("cold_start.py")
 
         Trying to reload from the written file (after changing the soil moisture values
         again) without passing the file name fails due to the wrong assumption that the
         element's name serves as the file name base:
 
-        >>> dill.sequences.states.sm(100.0)
+        >>> dill_assl.sequences.states.sm(100.0)
         >>> with TestIO():   # doctest: +ELLIPSIS
-        ...     dill.load_conditions()
+        ...     dill_assl.load_conditions()
         Traceback (most recent call last):
         ...
         FileNotFoundError: While trying to load the initial conditions of element \
-`land_dill`, the following error occurred: [Errno 2] No such file or directory: \
-'...land_dill.py'
+`land_dill_assl`, the following error occurred: [Errno 2] No such file or directory: \
+'...land_dill_assl.py'
 
         One does not need to explicitly state the file extensions (`.py`):
 
         >>> with TestIO():
-        ...     dill.load_conditions("cold_start")
-        >>> dill.sequences.states.sm
+        ...     dill_assl.load_conditions("cold_start")
+        >>> dill_assl.sequences.states.sm
         sm(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
         Automatically determining the file name requires a proper reference to the
         related |Element| object:
 
-        >>> del dill.element
+        >>> del dill_assl.element
         >>> with TestIO():
-        ...     dill.save_conditions()
+        ...     dill_assl.save_conditions()
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to save the actual conditions of element `?`, the \
@@ -2262,31 +2317,52 @@ it is usally assumed to be consistent with the name of the element handling the 
 model.  Actually, neither a filename is given nor does the model know its master \
 element.
 
-        The submodels selected in the `LahnH` example project do not require any
+        The submodels selected in the `HydPy-H-Lahn` example project do not require any
         condition sequences.  Hence, we replace the combination of |evap_aet_hbv96| and
-        |evap_pet_hbv96| with a plain |evap_morsim| instance, which relies on some log
-        sequences:
+        |evap_pet_hbv96| with a plain |evap_aet_morsim| instance, which relies on some
+        log sequences:
 
-        >>> with dill.add_aetmodel_v1("evap_morsim"):
+        >>> with dill_assl.add_aetmodel_v1("evap_aet_morsim"):
         ...     pass
 
         The following code demonstrates that reading and writing of condition sequences
         also works for submodels:
 
-        >>> logs = dill.aetmodel.sequences.logs
+        >>> logs = dill_assl.aetmodel.sequences.logs
         >>> logs.loggedairtemperature = 20.0
         >>> logs.loggedwindspeed2m = 2.0
         >>> with TestIO():   # doctest: +ELLIPSIS
-        ...     dill.save_conditions("submodel_conditions.py")
+        ...     dill_assl.save_conditions("submodel_conditions.py")
         >>> logs.loggedairtemperature = 10.0
         >>> logs.loggedwindspeed2m = 1.0
         >>> with TestIO():   # doctest: +ELLIPSIS
-        ...     dill.load_conditions("submodel_conditions.py")
+        ...     dill_assl.load_conditions("submodel_conditions.py")
         >>> logs.loggedairtemperature
         loggedairtemperature(20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0,
                              20.0, 20.0, 20.0, 20.0)
         >>> logs.loggedwindspeed2m
         loggedwindspeed2m(2.0)
+
+        Method |Model.save_conditions| writes lines that use function |controlcheck|.
+        It, therefore, must know the control directory related to the written
+        conditions, for which it relies on the |FileManager.currentdir| property of the
+        control manager instance of module |pub|.  So, make sure this property points
+        to the correct directory.  Otherwise, errors like the following might occur:
+
+        >>> with TestIO():  # doctest: +ELLIPSIS
+        ...     del pub.controlmanager.currentdir
+        ...     pub.controlmanager.currentdir = "calib_1"
+        ...     pub.controlmanager.currentdir = "calib_2"
+        ...     pub.controlmanager.currentdir = None
+        ...     dill_assl.save_conditions("submodel_conditions.py")
+        Traceback (most recent call last):
+        ...
+        RuntimeError: While trying to save the actual conditions of element `?`, the \
+following error occurred: While trying to determine the related control file \
+directory for configuring the `controlcheck` function, the following error occurred: \
+The current working directory of the control manager has not been defined manually \
+and cannot be determined automatically: The default directory (default) is not among \
+the available directories (calib_1 and calib_2).
 
         .. testsetup::
 
@@ -2309,14 +2385,18 @@ element.
                     hydpy.pub.conditionmanager.inputpath,
                     self.__prepare_conditionfilename(filename),
                 )
-                runpy.run_path(filepath, init_globals=dict_)
+                with hydpy.pub.options.trimvariables(False):
+                    runpy.run_path(filepath, init_globals=dict_)
+                for model in self.find_submodels(include_mainmodel=True).values():
+                    for seq in reversed(tuple(model.sequences.conditionsequences)):
+                        seq.trim()
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to load the initial conditions of element "
                     f"`{objecttools.devicename(self)}`"
                 )
 
-    def save_conditions(self, filename: Optional[str] = None) -> None:
+    def save_conditions(self, filename: str | None = None) -> None:
         """Query the actual conditions of the |StateSequence| and |LogSequence| objects
         and write them into an initial condition file.
 
@@ -2330,19 +2410,23 @@ element.
                 model2hasconditions[model] = seqs.states or seqs.logs
             if any(model2hasconditions.values()):
                 con = hydpy.pub.controlmanager
-                lines = [
-                    "# -*- coding: utf-8 -*-\n\n",
-                    f"from hydpy.models.{self} import *\n",
-                ]
+                lines = [f"from hydpy.models.{self} import *\n"]
                 submodelnames = set()
                 for model, hasconditions in model2hasconditions.items():
                     if hasconditions and (model is not self):
                         submodelnames.add(model.name)
                 for submodelname in sorted(submodelnames):
                     lines.append(f"from hydpy.models import {submodelname}\n")
+                try:
+                    controldir = con.currentdir
+                except BaseException:
+                    objecttools.augment_excmessage(
+                        "While trying to determine the related control file directory "
+                        "for configuring the `controlcheck` function"
+                    )
                 lines.append(
                     f'\ncontrolcheck(projectdir=r"{con.projectdir}", '
-                    f'controldir="{con.currentdir}", '
+                    f'controldir="{controldir}", '
                     f'stepsize="{hydpy.pub.timegrids.stepsize}")\n\n'
                 )
                 for seq in self.sequences.conditionsequences:
@@ -2366,6 +2450,16 @@ element.
                 f"While trying to save the actual conditions of element "
                 f"`{objecttools.devicename(self)}`"
             )
+
+    def trim_conditions(self) -> None:
+        """Call method |Sequences.trim_conditions| of the handled |Sequences| object."""
+        for model in self.find_submodels(include_mainmodel=True).values():
+            model.sequences.trim_conditions()
+
+    def reset_conditions(self) -> None:
+        """Call method |Sequences.reset| of the handled |Sequences| object."""
+        for model in self.find_submodels(include_mainmodel=True).values():
+            model.sequences.reset()
 
     @abc.abstractmethod
     def simulate(self, idx: int) -> None:
@@ -2534,8 +2628,8 @@ element.
         """Convenience method for iterating through all methods selected by a |Model|
         subclass.
 
-        >>> from hydpy.models import hland_v1, ga_garto_submodel1
-        >>> for method in hland_v1.Model.get_methods():
+        >>> from hydpy.models import hland_96, ga_garto_submodel1
+        >>> for method in hland_96.Model.get_methods():
         ...     print(method.__name__)   # doctest: +ELLIPSIS
         Calc_TC_V1
         ...
@@ -2552,13 +2646,13 @@ element.
 
         One can skip all methods that belong to specific groups:
 
-        >>> for method in hland_v1.Model.get_methods(skip=("OUTLET_METHODS",)):
+        >>> for method in hland_96.Model.get_methods(skip=("OUTLET_METHODS",)):
         ...     print(method.__name__)   # doctest: +ELLIPSIS
         Calc_TC_V1
         ...
-        Calc_EL_LZ_AETModel_V1
+        Calc_OutRC_RConcModel_V1
 
-        >>> for method in hland_v1.Model.get_methods(("OUTLET_METHODS", "ADD_METHODS")):
+        >>> for method in hland_96.Model.get_methods(("OUTLET_METHODS", "ADD_METHODS")):
         ...     print(method.__name__)   # doctest: +ELLIPSIS
         Calc_TC_V1
         ...
@@ -2594,7 +2688,7 @@ element.
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
-        position: Optional[Literal[0, -1]] = None,
+        position: Literal[0, -1] | None = None,
     ) -> dict[str, Model]: ...
 
     @overload
@@ -2608,8 +2702,8 @@ element.
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
-        position: Optional[Literal[0, -1]] = None,
-    ) -> dict[str, Optional[Model]]: ...
+        position: Literal[0, -1] | None = None,
+    ) -> dict[str, Model | None]: ...
 
     @overload
     def find_submodels(
@@ -2622,7 +2716,7 @@ element.
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[True],
         repeat_sharedmodels: bool = False,
-    ) -> dict[str, Optional[Model]]: ...
+    ) -> dict[str, Model | None]: ...
 
     @overload
     def find_submodels(
@@ -2635,7 +2729,7 @@ element.
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[True],
         repeat_sharedmodels: bool = False,
-    ) -> dict[str, Optional[Model]]: ...
+    ) -> dict[str, Model | None]: ...
 
     @overload
     def find_submodels(
@@ -2648,7 +2742,7 @@ element.
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
-        position: Optional[Literal[0, -1]] = None,
+        position: Literal[0, -1] | None = None,
     ) -> dict[str, Model]: ...
 
     @overload
@@ -2662,8 +2756,8 @@ element.
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
-        position: Optional[Literal[0, -1]] = None,
-    ) -> dict[str, Optional[Model]]: ...
+        position: Literal[0, -1] | None = None,
+    ) -> dict[str, Model | None]: ...
 
     @overload
     def find_submodels(
@@ -2676,7 +2770,7 @@ element.
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[True],
         repeat_sharedmodels: bool = False,
-    ) -> dict[str, Optional[Model]]: ...
+    ) -> dict[str, Model | None]: ...
 
     @overload
     def find_submodels(
@@ -2689,7 +2783,7 @@ element.
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[True],
         repeat_sharedmodels: bool = False,
-    ) -> dict[str, Optional[Model]]: ...
+    ) -> dict[str, Model | None]: ...
 
     def find_submodels(
         self,
@@ -2701,37 +2795,37 @@ element.
         include_feedbacks: bool = False,
         aggregate_vectors: bool = False,
         repeat_sharedmodels: bool = False,
-        position: Optional[Literal[0, -1]] = None,
-    ) -> Union[dict[str, Model], dict[str, Optional[Model]]]:
+        position: Literal[0, -1] | None = None,
+    ) -> dict[str, Model] | dict[str, Model | None]:
         """Find the (sub)submodel instances of the current main model instance.
 
-        Method |Model.find_submodels| returns by default an empty dictionary if no
+        Method |Model.find_submodels| returns an empty dictionary by default if no
         submodel is available:
 
         >>> from hydpy import prepare_model
-        >>> model = prepare_model("lland_v3")
+        >>> model = prepare_model("lland_knauf")
         >>> model.find_submodels()
         {}
 
         The `include_mainmodel` parameter allows the addition of the main model:
 
-        >>> model.find_submodels(include_mainmodel=True)  # doctest: +ELLIPSIS
-        {'model': <hydpy.models.lland_v3.Model ...>}
+        >>> model.find_submodels(include_mainmodel=True)
+        {'model': lland_knauf}
 
         The `include_optional` parameter allows considering prepared and unprepared
         submodels:
 
         >>> model.find_submodels(include_optional=True)
         {'model.aetmodel': None, 'model.radiationmodel': None, 'model.soilmodel': None}
-        >>> model.aetmodel = prepare_model("evap_minhas")
-        >>> model.aetmodel.petmodel = prepare_model("evap_mlc")
-        >>> model.aetmodel.petmodel.retmodel = prepare_model("evap_tw2002")
+        >>> model.aetmodel = prepare_model("evap_aet_minhas")
+        >>> model.aetmodel.petmodel = prepare_model("evap_pet_mlc")
+        >>> model.aetmodel.petmodel.retmodel = prepare_model("evap_ret_tw2002")
         >>> from pprint import pprint
         >>> pprint(model.find_submodels(include_optional=True))  # doctest: +ELLIPSIS
-        {'model.aetmodel': <hydpy.models.evap_minhas.Model ...>,
+        {'model.aetmodel': evap_aet_minhas...,
          'model.aetmodel.intercmodel': None,
-         'model.aetmodel.petmodel': <hydpy.models.evap_mlc.Model ...>,
-         'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_tw2002.Model ...>,
+         'model.aetmodel.petmodel': evap_pet_mlc...,
+         'model.aetmodel.petmodel.retmodel': evap_ret_tw2002,
          'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
          'model.aetmodel.soilwatermodel': None,
@@ -2744,10 +2838,10 @@ element.
         >>> model.aetmodel.soilwatermodel = model
         >>> model.aetmodel.soilwatermodel_is_mainmodel = True
         >>> pprint(model.find_submodels(include_optional=True))  # doctest: +ELLIPSIS
-        {'model.aetmodel': <hydpy.models.evap_minhas.Model object ...>,
+        {'model.aetmodel': evap_aet_minhas...,
          'model.aetmodel.intercmodel': None,
-         'model.aetmodel.petmodel': <hydpy.models.evap_mlc.Model ...>,
-         'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_tw2002.Model ...>,
+         'model.aetmodel.petmodel': evap_pet_mlc...,
+         'model.aetmodel.petmodel.retmodel': evap_ret_tw2002,
          'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
          'model.radiationmodel': None,
@@ -2758,47 +2852,47 @@ element.
 
         >>> pprint(model.find_submodels(include_mainmodel=True,
         ...     include_optional=True, include_feedbacks=True))  # doctest: +ELLIPSIS
-        {'model': <hydpy.models.lland_v3.Model ...>,
-         'model.aetmodel': <hydpy.models.evap_minhas.Model ...>,
+        {'model': lland_knauf...,
+         'model.aetmodel': evap_aet_minhas...,
          'model.aetmodel.intercmodel': None,
-         'model.aetmodel.petmodel': <hydpy.models.evap_mlc.Model ...>,
-         'model.aetmodel.petmodel.retmodel': <hydpy.models.evap_tw2002.Model ...>,
+         'model.aetmodel.petmodel': evap_pet_mlc...,
+         'model.aetmodel.petmodel.retmodel': evap_ret_tw2002,
          'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
-         'model.aetmodel.soilwatermodel': <hydpy.models.lland_v3.Model object ...>,
+         'model.aetmodel.soilwatermodel': lland_knauf...,
          'model.radiationmodel': None,
          'model.soilmodel': None}
 
         |Model.find_submodels| includes only one reference to shared model instances by
         default:
 
-        >>> model.radiationmodel = prepare_model("meteo_v001")
-        >>> model.aetmodel = prepare_model("evap_morsim")
+        >>> model.radiationmodel = prepare_model("meteo_glob_fao56")
+        >>> model.aetmodel = prepare_model("evap_aet_morsim")
         >>> model.aetmodel.radiationmodel = model.radiationmodel
         >>> pprint(model.find_submodels(include_optional=True))  # doctest: +ELLIPSIS
-        {'model.aetmodel': <hydpy.models.evap_morsim.Model ...>,
+        {'model.aetmodel': evap_aet_morsim...,
          'model.aetmodel.intercmodel': None,
          'model.aetmodel.snowalbedomodel': None,
          'model.aetmodel.snowcovermodel': None,
          'model.aetmodel.snowycanopymodel': None,
          'model.aetmodel.soilwatermodel': None,
          'model.aetmodel.tempmodel': None,
-         'model.radiationmodel': <hydpy.models.meteo_v001.Model ...>,
+         'model.radiationmodel': meteo_glob_fao56,
          'model.soilmodel': None}
 
         Use the `repeat_sharedmodels` parameter to change this behaviour:
 
         >>> pprint(model.find_submodels(
         ...     repeat_sharedmodels=True, include_optional=True))  # doctest: +ELLIPSIS
-        {'model.aetmodel': <hydpy.models.evap_morsim.Model ...>,
+        {'model.aetmodel': evap_aet_morsim...,
          'model.aetmodel.intercmodel': None,
-         'model.aetmodel.radiationmodel': <hydpy.models.meteo_v001.Model ...>,
+         'model.aetmodel.radiationmodel': meteo_glob_fao56,
          'model.aetmodel.snowalbedomodel': None,
          'model.aetmodel.snowcovermodel': None,
          'model.aetmodel.snowycanopymodel': None,
          'model.aetmodel.soilwatermodel': None,
          'model.aetmodel.tempmodel': None,
-         'model.radiationmodel': <hydpy.models.meteo_v001.Model object at ...>,
+         'model.radiationmodel': meteo_glob_fao56,
          'model.soilmodel': None}
 
         All previous examples dealt with scalar submodel references handled by
@@ -2840,19 +2934,19 @@ element.
 
         Method |Model.find_submodels| associates them with the correct positions:
 
-        >>> pprint(channel.find_submodels())  # doctest: +ELLIPSIS
-        {'model.routingmodels_0': <hydpy.models.sw1d_q_in.Model object at ...>,
-         'model.routingmodels_1': <hydpy.models.sw1d_lias.Model object at ...>,
-         'model.routingmodels_2': <hydpy.models.sw1d_weir_out.Model object at ...>,
-         'model.storagemodels_0': <hydpy.models.sw1d_storage.Model object at ...>,
-         'model.storagemodels_1': <hydpy.models.sw1d_storage.Model object at ...>}
+        >>> pprint(channel.find_submodels())
+        {'model.routingmodels_0': sw1d_q_in,
+         'model.routingmodels_1': sw1d_lias,
+         'model.routingmodels_2': sw1d_weir_out,
+         'model.storagemodels_0': sw1d_storage,
+         'model.storagemodels_1': sw1d_storage}
 
         One can use the `aggregate_vectors` parameter to gain a better overview.
         Then, |Model.find_submodels| reports only the names of the respective
         |SubmodelsProperty| instances with a suffixed wildcard to distinguish them
         from |SubmodelProperty| instances:
 
-        >>> channel.find_submodels(aggregate_vectors=True)  # doctest: +ELLIPSIS
+        >>> channel.find_submodels(aggregate_vectors=True)
         {'model.routingmodels_*': None, 'model.storagemodels_*': None}
 
         Another option is to include side models.  However, this does not work in
@@ -2866,32 +2960,27 @@ element.
 
         So, one needs to apply it to the respective submodels directly:
 
-        >>> pprint(channel.storagemodels[0].find_submodels(  # doctest: +ELLIPSIS
+        >>> pprint(channel.storagemodels[0].find_submodels(
         ...     include_subsubmodels=False, include_sidemodels=True))
-        {'model.routingmodelsdownstream_0': \
-<hydpy.models.sw1d_lias.Model object at ...>,
-         'model.routingmodelsupstream_0': <hydpy.models.sw1d_q_in.Model object at ...>}
+        {'model.routingmodelsdownstream_0': sw1d_lias,
+         'model.routingmodelsupstream_0': sw1d_q_in}
 
-        >>> pprint(channel.routingmodels[1].find_submodels(  # doctest: +ELLIPSIS
+        >>> pprint(channel.routingmodels[1].find_submodels(
         ...     include_subsubmodels=False, include_sidemodels=True))
-        {'model.routingmodelsdownstream_0': <hydpy.models.sw1d_weir_out.Model object \
-at ...>,
-         'model.routingmodelsupstream_0': <hydpy.models.sw1d_q_in.Model object at ...>,
-         'model.storagemodeldownstream': <hydpy.models.sw1d_storage.Model object at \
-...>,
-         'model.storagemodelupstream': <hydpy.models.sw1d_storage.Model object at ...>}
+        {'model.routingmodelsdownstream_0': sw1d_weir_out,
+         'model.routingmodelsupstream_0': sw1d_q_in,
+         'model.storagemodeldownstream': sw1d_storage,
+         'model.storagemodelupstream': sw1d_storage}
 
         When dealing with submodel arrays handled by |SubmodelsProperty| instances, one
         might be interested in only querying the first or the last model, which is
         supported by the `position` parameter:
 
-        >>> pprint(channel.find_submodels(position=0))  # doctest: +ELLIPSIS
-        {'model.routingmodels_0': <hydpy.models.sw1d_q_in.Model object at ...>,
-         'model.storagemodels_0': <hydpy.models.sw1d_storage.Model object at ...>}
-        >>> pprint(channel.find_submodels(position=-1))  # doctest: +ELLIPSIS
-        {'model.routingmodels_2': <hydpy.models.sw1d_weir_out.Model object at ...>,
-         'model.storagemodels_1': <hydpy.models.sw1d_storage.Model object at ...>}
-        >>> pprint(channel.find_submodels(position=1))  # doctest: +ELLIPSIS
+        >>> pprint(channel.find_submodels(position=0))
+        {'model.routingmodels_0': sw1d_q_in, 'model.storagemodels_0': sw1d_storage}
+        >>> pprint(channel.find_submodels(position=-1))
+        {'model.routingmodels_2': sw1d_weir_out, 'model.storagemodels_1': sw1d_storage}
+        >>> pprint(channel.find_submodels(position=1))
         Traceback (most recent call last):
         ...
         ValueError: The `position` argument requires the integer value `0´ or `-1`, \
@@ -2931,8 +3020,8 @@ but the value `1` of type `int` is given.
                     if aggregate_vectors:
                         name2submodel_new[f"{submodelsname}_*"] = None
                     elif submodels := subsprop.__hydpy_mainmodel2submodels__[model]:
+                        i_last = len(submodels) - 1
                         if position is not None:
-                            i_last = len(submodels) - 1
                             submodels = [submodels[position]]
                         for i, submodel in enumerate(submodels):
                             # implement when required:
@@ -2948,22 +3037,50 @@ but the value `1` of type `int` is given.
                         seen.add(submodel)
                         _find_submodels(subname, submodel)
 
-        seen: set[Model] = set([self])
+        seen: set[Model] = {self}
         sharables: set[SharableSubmodelInterface] = set()
         name2submodel = {"model": self} if include_mainmodel else {}
         _find_submodels("model", self)
         return dict(sorted(name2submodel.items()))
 
+    def query_submodels(self, name: types.ModuleType | str, /) -> list[Model]:
+        """Use |Model.find_submodels| to query all (sub)models of the given type.
+
+        >>> from hydpy import prepare_model
+        >>> model = prepare_model("lland_knauf")
+        >>> model.query_submodels("meteo_glob_fao56")
+        []
+
+        >>> model.radiationmodel = prepare_model("meteo_glob_fao56")
+        >>> model.query_submodels("meteo_glob_fao56")
+        [meteo_glob_fao56]
+
+        >>> model.aetmodel = prepare_model("evap_aet_morsim")
+        >>> model.aetmodel.radiationmodel = model.radiationmodel
+        >>> model.query_submodels("meteo_glob_fao56")
+        [meteo_glob_fao56]
+
+        >>> from hydpy.models import meteo_glob_fao56
+        >>> model.aetmodel.radiationmodel = prepare_model(meteo_glob_fao56)
+        >>> model.query_submodels(meteo_glob_fao56)
+        [meteo_glob_fao56, meteo_glob_fao56]
+        """
+        if isinstance(name, types.ModuleType):
+            name = importtools.load_modelmodule(name).Model.__HYDPY_NAME__
+        submodels = self.find_submodels(include_mainmodel=True)
+        return [s for s in submodels.values() if s.name == name]
+
     def update_parameters(self, ignore_errors: bool = False) -> None:
         """Use the control parameter values of the current model for updating its
         derived parameters and the control and derived parameters of all its submodels.
 
-        We use the combination of |hland_v1|, |evap_aet_hbv96|, and |evap_pet_hbv96|
-        used by the `LahnH` project for modelling the Dill catchment as an example:
+        We use the combination of |hland_96|, |evap_aet_hbv96|, and |evap_pet_hbv96|
+        used by the `HydPy-H-Lahn` project for modelling the Dill catchment as an
+        example:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp = prepare_full_example_2()[0]
-        >>> model = hp.elements.land_dill.model
+        >>> model = hp.elements.land_dill_assl.model
 
         First, all zones of the Dill catchment are either of type
         |hland_constants.FIELD| or |hland_constants.FOREST|:
@@ -2979,7 +3096,7 @@ but the value `1` of type `int` is given.
         >>> model.aetmodel.parameters.control.soil
         soil(True)
 
-        Second, |hland_v1| requires definitions for the zones' altitude
+        Second, |hland_96| requires definitions for the zones' altitude
         (|hland_control.ZoneZ|) and determines the average basin altitude
         (|hland_derived.Z|) automatically:
 
@@ -3000,7 +3117,7 @@ but the value `1` of type `int` is given.
         We now set the first zone to type |hland_constants.ILAKE| and the altitude of
         all zones to 400 m:
 
-        >>> from hydpy.models.hland_v1 import ILAKE
+        >>> from hydpy.models.hland_96 import ILAKE
         >>> model.parameters.control.zonetype[0] = ILAKE
         >>> model.parameters.control.zonez(4.0)
 
@@ -3016,7 +3133,7 @@ but the value `1` of type `int` is given.
 
         Additionally, |Model.update_parameters| uses method |Parameters.update| of
         class |Parameters| for updating the derived parameters |hland_derived.Z| of the
-        |hland_v1| main model and |evap_derived.Altitude| of the |evap_pet_hbv96|
+        |hland_96| main model and |evap_derived.Altitude| of the |evap_pet_hbv96|
         submodel:
 
         >>> model.parameters.derived.z
@@ -3058,7 +3175,7 @@ but the value `1` of type `int` is given.
             model.sequences.conditions = conditions[name]
 
     @property
-    def couple_models(self) -> Optional[ModelCoupler]:
+    def couple_models(self) -> ModelCoupler | None:
         """If available, return a function object for coupling models to a composite
         model suitable at least for the actual model subclass (see method
         |Elements.unite_collectives|)."""
@@ -3080,13 +3197,15 @@ but the value `1` of type `int` is given.
 
     def __init_subclass__(cls) -> None:
         modulename = cls.__module__
+        if modulename.startswith("hydpy.interfaces."):
+            cls.__HYDPY_NAME__ = cls.__name__
         if not modulename.startswith("hydpy.models."):
             return
         if modulename.count(".") > 2:
             modulename = modulename.rpartition(".")[0]
         module = cast(_ModelModule, importlib.import_module(modulename))
         modelname = modulename.split(".")[-1]
-        cls._NAME = modelname
+        cls.__HYDPY_NAME__ = modelname
 
         allsequences = set()
         st = sequencetools
@@ -3180,6 +3299,13 @@ but the value `1` of type `int` is given.
             method for method in cls.get_methods() if issubclass(method, ReusableMethod)
         )
 
+    def __repr__(self) -> str:
+        lines = [self.name]
+        for port, model in self.find_submodels().items():
+            prefix = port.count(".") * "    "
+            lines.append(f"{prefix}{port.rsplit('.')[-1]}: {model.name}")
+        return "\n".join(lines)
+
 
 class RunModel(Model):
     """Base class for |AdHocModel| and |SegmentModel| that introduces so-called "run
@@ -3213,18 +3339,18 @@ class RunModel(Model):
         nor |Model.update_senders|.  Also, one would have to reset the
         related node sequences, as done in the following example:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> model = hp.elements.land_dill.model
+        >>> model = hp.elements.land_dill_assl.model
         >>> for idx in range(4):
         ...     model.simulate(idx)
-        ...     print(hp.nodes.dill.sequences.sim)
-        ...     hp.nodes.dill.sequences.sim = 0.0
-        sim(11.78144)
-        sim(8.902735)
-        sim(7.132279)
-        sim(6.018681)
-        >>> hp.nodes.dill.sequences.sim.series
+        ...     print(hp.nodes.dill_assl.sequences.sim)
+        ...     hp.nodes.dill_assl.sequences.sim = 0.0
+        sim(11.757526)
+        sim(8.865079)
+        sim(7.101815)
+        sim(5.994195)
+        >>> hp.nodes.dill_assl.sequences.sim.series
         InfoArray([nan, nan, nan, nan])
 
         The results above are identical to those of method |HydPy.simulate|
@@ -3236,8 +3362,8 @@ class RunModel(Model):
         >>> from hydpy import round_
         >>> hp.reset_conditions()
         >>> hp.simulate()
-        >>> round_(hp.nodes.dill.sequences.sim.series)
-        11.78144, 8.902735, 7.132279, 6.018681
+        >>> round_(hp.nodes.dill_assl.sequences.sim.series)
+        11.757526, 8.865079, 7.101815, 5.994195
 
         When working in Cython mode, the standard model import overrides
         this generic Python version with a model-specific Cython version.
@@ -3350,7 +3476,7 @@ class SubstepModel(RunModel):
     stability requirements.
     """
 
-    cymodel: Optional[CySubstepModelProtocol]
+    cymodel: CySubstepModelProtocol | None
 
     _timeleft: float = 0.0
 
@@ -3555,13 +3681,13 @@ class ELSModel(SolverModel):
         Implementing numerical integration algorithms that (hopefully) always work well
         in practice is a tricky task.  The following exhaustive examples show how well
         our "Explicit Lobatto Sequence" algorithm performs for the numerical test
-        models |test_v1| and |test_v2|.  We hope to cover all possible corner cases.
-        Please tell us if you find one we missed.
+        models |test_stiff0d| and |test_discontinous|.  We hope to cover all possible
+        corner cases.  Please tell us if you find one we missed.
 
         First, we set the value of parameter |test_control.K| to zero, resulting in no
         changes at all and thus defining the simplest test case possible:
 
-        >>> from hydpy.models.test_v1 import *
+        >>> from hydpy.models.test_stiff0d import *
         >>> parameterstep()
         >>> k(0.0)
 
@@ -3847,12 +3973,12 @@ class ELSModel(SolverModel):
         q(0.9815)
 
         Besides its weaknesses with stiff problems, |ELSModel| cannot solve
-        discontinuous problems well.  We use the |test_v1| example model to demonstrate
-        how |ELSModel| behaves when confronted with such a problem.
+        discontinuous problems well.  We use the |test_stiff0d| example model to
+        demonstrate how |ELSModel| behaves when confronted with such a problem.
 
         >>> from hydpy import reverse_model_wildcard_import
         >>> reverse_model_wildcard_import()
-        >>> from hydpy.models.test_v2 import *
+        >>> from hydpy.models.test_discontinous import *
         >>> parameterstep()
 
         Everything works fine as long as the discontinuity does not affect the
@@ -3982,7 +4108,7 @@ class ELSModel(SolverModel):
     def calculate_single_terms(self) -> None:
         """Apply all methods stored in the `PART_ODE_METHODS` tuple.
 
-        >>> from hydpy.models.test_v1 import *
+        >>> from hydpy.models.test_stiff0d import *
         >>> parameterstep()
         >>> k(0.25)
         >>> states.s = 1.0
@@ -3997,7 +4123,7 @@ class ELSModel(SolverModel):
     def calculate_full_terms(self) -> None:
         """Apply all methods stored in the `FULL_ODE_METHODS` tuple.
 
-        >>> from hydpy.models.test_v1 import *
+        >>> from hydpy.models.test_stiff0d import *
         >>> parameterstep()
         >>> k(0.25)
         >>> states.s.old = 1.0
@@ -4015,7 +4141,7 @@ class ELSModel(SolverModel):
         """Load the states corresponding to the actual stage.
 
         >>> from hydpy import round_
-        >>> from hydpy.models.test_v1 import *
+        >>> from hydpy.models.test_stiff0d import *
         >>> parameterstep()
         >>> states.s.old = 2.0
         >>> states.s.new = 2.0
@@ -4028,9 +4154,9 @@ class ELSModel(SolverModel):
         >>> round_(states.s.new)
         1.0
 
-        >>> from hydpy import reverse_model_wildcard_import, print_values
+        >>> from hydpy import reverse_model_wildcard_import, print_vector
         >>> reverse_model_wildcard_import()
-        >>> from hydpy.models.test_v3 import *
+        >>> from hydpy.models.test_stiff1d import *
         >>> parameterstep()
         >>> n(2)
         >>> states.sv.old = 3.0, 3.0
@@ -4040,9 +4166,9 @@ class ELSModel(SolverModel):
         >>> points[:4, 0] = 0.0, 0.0, 1.0, 0.0
         >>> points[:4, 1] = 0.0, 0.0, 2.0, 0.0
         >>> model.get_point_states()
-        >>> print_values(states.sv.old)
+        >>> print_vector(states.sv.old)
         3.0, 3.0
-        >>> print_values(states.sv.new)
+        >>> print_vector(states.sv.new)
         1.0, 2.0
         """
         self._get_states(self.numvars.idx_stage, "points")
@@ -4056,8 +4182,8 @@ class ELSModel(SolverModel):
     def set_point_states(self) -> None:
         """Save the states corresponding to the actual stage.
 
-        >>> from hydpy import print_values
-        >>> from hydpy.models.test_v1 import *
+        >>> from hydpy import print_vector
+        >>> from hydpy.models.test_stiff0d import *
         >>> parameterstep()
         >>> states.s.old = 2.0
         >>> states.s.new = 1.0
@@ -4065,12 +4191,12 @@ class ELSModel(SolverModel):
         >>> points = numpy.asarray(states.fastaccess._s_points)
         >>> points[:] = 0.
         >>> model.set_point_states()
-        >>> print_values(points[:4])
+        >>> print_vector(points[:4])
         0.0, 0.0, 1.0, 0.0
 
         >>> from hydpy import reverse_model_wildcard_import
         >>> reverse_model_wildcard_import()
-        >>> from hydpy.models.test_v3 import *
+        >>> from hydpy.models.test_stiff1d import *
         >>> parameterstep()
         >>> n(2)
         >>> states.sv.old = 3.0, 3.0
@@ -4079,9 +4205,9 @@ class ELSModel(SolverModel):
         >>> points = numpy.asarray(states.fastaccess._sv_points)
         >>> points[:] = 0.
         >>> model.set_point_states()
-        >>> print_values(points[:4, 0])
+        >>> print_vector(points[:4, 0])
         0.0, 0.0, 1.0, 0.0
-        >>> print_values(points[:4, 1])
+        >>> print_vector(points[:4, 1])
         0.0, 0.0, 2.0, 0.0
         """
         self._set_states(self.numvars.idx_stage, "points")
@@ -4089,8 +4215,8 @@ class ELSModel(SolverModel):
     def set_result_states(self) -> None:
         """Save the final states of the actual method.
 
-        >>> from hydpy import print_values
-        >>> from hydpy.models.test_v1 import *
+        >>> from hydpy import print_vector
+        >>> from hydpy.models.test_stiff0d import *
         >>> parameterstep()
         >>> states.s.old = 2.0
         >>> states.s.new = 1.0
@@ -4098,12 +4224,12 @@ class ELSModel(SolverModel):
         >>> results = numpy.asarray(states.fastaccess._s_results)
         >>> results[:] = 0.0
         >>> model.set_result_states()
-        >>> print_values(results[:4])
+        >>> print_vector(results[:4])
         0.0, 0.0, 1.0, 0.0
 
         >>> from hydpy import reverse_model_wildcard_import
         >>> reverse_model_wildcard_import()
-        >>> from hydpy.models.test_v3 import *
+        >>> from hydpy.models.test_stiff1d import *
         >>> parameterstep()
         >>> n(2)
         >>> states.sv.old = 3.0, 3.0
@@ -4112,9 +4238,9 @@ class ELSModel(SolverModel):
         >>> results = numpy.asarray(states.fastaccess._sv_results)
         >>> results[:] = 0.0
         >>> model.set_result_states()
-        >>> print_values(results[:4, 0])
+        >>> print_vector(results[:4, 0])
         0.0, 0.0, 1.0, 0.0
-        >>> print_values(results[:4, 1])
+        >>> print_vector(results[:4, 1])
         0.0, 0.0, 2.0, 0.0
         """
         self._set_states(self.numvars.idx_method, "results")
@@ -4128,7 +4254,7 @@ class ELSModel(SolverModel):
     def get_sum_fluxes(self) -> None:
         """Get the sum of the fluxes calculated so far.
 
-        >>> from hydpy.models.test_v1 import *
+        >>> from hydpy.models.test_stiff0d import *
         >>> parameterstep()
         >>> fluxes.q = 0.0
         >>> fluxes.fastaccess._q_sum = 1.0
@@ -4136,9 +4262,9 @@ class ELSModel(SolverModel):
         >>> fluxes.q
         q(1.0)
 
-        >>> from hydpy import reverse_model_wildcard_import, print_values
+        >>> from hydpy import reverse_model_wildcard_import, print_vector
         >>> reverse_model_wildcard_import()
-        >>> from hydpy.models.test_v3 import *
+        >>> from hydpy.models.test_stiff1d import *
         >>> parameterstep()
         >>> n(2)
         >>> fluxes.qv = 0.0, 0.0
@@ -4154,20 +4280,20 @@ class ELSModel(SolverModel):
     def set_point_fluxes(self) -> None:
         """Save the fluxes corresponding to the actual stage.
 
-        >>> from hydpy import print_values
-        >>> from hydpy.models.test_v1 import *
+        >>> from hydpy import print_vector
+        >>> from hydpy.models.test_stiff0d import *
         >>> parameterstep()
         >>> fluxes.q = 1.0
         >>> model.numvars.idx_stage = 2
         >>> points = numpy.asarray(fluxes.fastaccess._q_points)
         >>> points[:] = 0.0
         >>> model.set_point_fluxes()
-        >>> print_values(points[:4])
+        >>> print_vector(points[:4])
         0.0, 0.0, 1.0, 0.0
 
         >>> from hydpy import reverse_model_wildcard_import
         >>> reverse_model_wildcard_import()
-        >>> from hydpy.models.test_v3 import *
+        >>> from hydpy.models.test_stiff1d import *
         >>> parameterstep()
         >>> n(2)
         >>> fluxes.qv = 1.0, 2.0
@@ -4175,9 +4301,9 @@ class ELSModel(SolverModel):
         >>> points = numpy.asarray(fluxes.fastaccess._qv_points)
         >>> points[:] = 0.0
         >>> model.set_point_fluxes()
-        >>> print_values(points[:4, 0])
+        >>> print_vector(points[:4, 0])
         0.0, 0.0, 1.0, 0.0
-        >>> print_values(points[:4, 1])
+        >>> print_vector(points[:4, 1])
         0.0, 0.0, 2.0, 0.0
         """
         self._set_fluxes(self.numvars.idx_stage, "points")
@@ -4185,8 +4311,8 @@ class ELSModel(SolverModel):
     def set_result_fluxes(self) -> None:
         """Save the final fluxes of the actual method.
 
-        >>> from hydpy import print_values
-        >>> from hydpy.models.test_v1 import *
+        >>> from hydpy import print_vector
+        >>> from hydpy.models.test_stiff0d import *
         >>> parameterstep()
         >>> fluxes.q = 1.0
         >>> model.numvars.idx_method = 2
@@ -4194,12 +4320,12 @@ class ELSModel(SolverModel):
         >>> results[:] = 0.0
         >>> model.set_result_fluxes()
         >>> from hydpy import round_
-        >>> print_values(results[:4])
+        >>> print_vector(results[:4])
         0.0, 0.0, 1.0, 0.0
 
         >>> from hydpy import reverse_model_wildcard_import
         >>> reverse_model_wildcard_import()
-        >>> from hydpy.models.test_v3 import *
+        >>> from hydpy.models.test_stiff1d import *
         >>> parameterstep()
         >>> n(2)
         >>> fluxes.qv = 1.0, 2.0
@@ -4207,9 +4333,9 @@ class ELSModel(SolverModel):
         >>> results = numpy.asarray(fluxes.fastaccess._qv_results)
         >>> results[:] = 0.0
         >>> model.set_result_fluxes()
-        >>> print_values(results[:4, 0])
+        >>> print_vector(results[:4, 0])
         0.0, 0.0, 1.0, 0.0
-        >>> print_values(results[:4, 1])
+        >>> print_vector(results[:4, 1])
         0.0, 0.0, 2.0, 0.0
         """
         self._set_fluxes(self.numvars.idx_method, "results")
@@ -4224,8 +4350,8 @@ class ELSModel(SolverModel):
         """Perform a dot multiplication between the fluxes and the A coefficients
         associated with the different stages of the actual method.
 
-        >>> from hydpy import print_values
-        >>> from hydpy.models.test_v1 import *
+        >>> from hydpy import print_vector
+        >>> from hydpy.models.test_stiff0d import *
         >>> parameterstep()
         >>> model.numvars.idx_method = 2
         >>> model.numvars.idx_stage = 1
@@ -4235,14 +4361,14 @@ class ELSModel(SolverModel):
         >>> model.integrate_fluxes()
         >>> from hydpy import round_
         >>> from hydpy import pub
-        >>> print_values(numpy.asarray(model.numconsts.a_coefs)[1, 1, :2])
+        >>> print_vector(numpy.asarray(model.numconsts.a_coefs)[1, 1, :2])
         0.375, 0.125
         >>> fluxes.q
         q(2.9375)
 
         >>> from hydpy import reverse_model_wildcard_import
         >>> reverse_model_wildcard_import()
-        >>> from hydpy.models.test_v3 import *
+        >>> from hydpy.models.test_stiff1d import *
         >>> parameterstep()
         >>> n(2)
         >>> model.numvars.idx_method = 2
@@ -4252,7 +4378,7 @@ class ELSModel(SolverModel):
         >>> points[:4, 0] = 1.0, 1.0, -999.0, 0.0
         >>> points[:4, 1] = 15.0, 2.0, -999.0, 0.0
         >>> model.integrate_fluxes()
-        >>> print_values(numpy.asarray(model.numconsts.a_coefs)[1, 1, :2])
+        >>> print_vector(numpy.asarray(model.numconsts.a_coefs)[1, 1, :2])
         0.375, 0.125
         >>> fluxes.qv
         qv(0.25, 2.9375)
@@ -4270,23 +4396,23 @@ class ELSModel(SolverModel):
     def reset_sum_fluxes(self) -> None:
         """Set the sum of the fluxes calculated so far to zero.
 
-        >>> from hydpy.models.test_v1 import *
+        >>> from hydpy.models.test_stiff0d import *
         >>> parameterstep()
         >>> fluxes.fastaccess._q_sum = 5.0
         >>> model.reset_sum_fluxes()
         >>> fluxes.fastaccess._q_sum
         0.0
 
-        >>> from hydpy import reverse_model_wildcard_import, print_values
+        >>> from hydpy import reverse_model_wildcard_import, print_vector
         >>> reverse_model_wildcard_import()
-        >>> from hydpy.models.test_v3 import *
+        >>> from hydpy.models.test_stiff1d import *
         >>> parameterstep()
         >>> n(2)
         >>> import numpy
         >>> sums = numpy.asarray(fluxes.fastaccess._qv_sum)
         >>> sums[:] = 5.0, 5.0
         >>> model.reset_sum_fluxes()
-        >>> print_values(fluxes.fastaccess._qv_sum)
+        >>> print_vector(fluxes.fastaccess._qv_sum)
         0.0, 0.0
         """
         fluxes = self.sequences.fluxes
@@ -4299,7 +4425,7 @@ class ELSModel(SolverModel):
     def addup_fluxes(self) -> None:
         """Add up the sum of the fluxes calculated so far.
 
-        >>> from hydpy.models.test_v1 import *
+        >>> from hydpy.models.test_stiff0d import *
         >>> parameterstep()
         >>> fluxes.fastaccess._q_sum = 1.0
         >>> fluxes.q(2.0)
@@ -4307,16 +4433,16 @@ class ELSModel(SolverModel):
         >>> fluxes.fastaccess._q_sum
         3.0
 
-        >>> from hydpy import reverse_model_wildcard_import, print_values
+        >>> from hydpy import reverse_model_wildcard_import, print_vector
         >>> reverse_model_wildcard_import()
-        >>> from hydpy.models.test_v3 import *
+        >>> from hydpy.models.test_stiff1d import *
         >>> parameterstep()
         >>> n(2)
         >>> sums = numpy.asarray(fluxes.fastaccess._qv_sum)
         >>> sums[:] = 1.0, 2.0
         >>> fluxes.qv(3.0, 4.0)
         >>> model.addup_fluxes()
-        >>> print_values(sums)
+        >>> print_vector(sums)
         4.0, 6.0
         """
         fluxes = self.sequences.fluxes
@@ -4334,7 +4460,7 @@ class ELSModel(SolverModel):
         sequences of the respective model with a |True| `NUMERIC` attribute.
 
         >>> from hydpy import round_
-        >>> from hydpy.models.test_v1 import *
+        >>> from hydpy.models.test_stiff0d import *
         >>> parameterstep()
         >>> results = numpy.asarray(fluxes.fastaccess._q_results)
         >>> results[:5] = 0.0, 0.0, 3.0, 4.0, 4.0
@@ -4343,7 +4469,7 @@ class ELSModel(SolverModel):
         >>> model.calculate_error()
         >>> round_(model.numvars.abserror)
         1.0
-        >>> model.numvars.relerror
+        >>> round_(model.numvars.relerror)
         inf
 
         >>> model.numvars.use_relerror = True
@@ -4364,12 +4490,12 @@ class ELSModel(SolverModel):
         >>> model.calculate_error()
         >>> round_(model.numvars.abserror)
         0.0
-        >>> model.numvars.relerror
+        >>> round_(model.numvars.relerror)
         inf
 
         >>> from hydpy import reverse_model_wildcard_import
         >>> reverse_model_wildcard_import()
-        >>> from hydpy.models.test_v3 import *
+        >>> from hydpy.models.test_stiff1d import *
         >>> parameterstep()
         >>> n(2)
         >>> model.numvars.use_relerror = True
@@ -4394,7 +4520,7 @@ class ELSModel(SolverModel):
         >>> model.calculate_error()
         >>> round_(model.numvars.abserror)
         0.0
-        >>> model.numvars.relerror
+        >>> round_(model.numvars.relerror)
         inf
         """
         self.numvars.abserror = 0.0
@@ -4434,7 +4560,7 @@ class ELSModel(SolverModel):
         the current method is the first one, method |ELSModel.extrapolate_error|
         returns `-999.9`:
 
-         >>> from hydpy.models.test_v1 import *
+         >>> from hydpy.models.test_stiff0d import *
          >>> parameterstep()
          >>> model.numvars.use_relerror = False
          >>> model.numvars.abserror = 0.01
@@ -4513,7 +4639,7 @@ class SubmodelInterface(Model, abc.ABC):
     """Base class for defining interfaces for submodels."""
 
     INTERFACE_METHODS: ClassVar[tuple[type[Method], ...]]
-    _submodeladder: Optional[importtools.SubmodelAdder]
+    _submodeladder: importtools.SubmodelAdder | None
     preparemethod2arguments: dict[str, tuple[tuple[Any, ...], dict[str, Any]]]
 
     typeid: ClassVar[int]
@@ -4714,9 +4840,9 @@ sw1d_channel.
     def __call__(
         self,
         *,
-        nodes: Optional[devicetools.Nodes] = None,
-        elements: Optional[devicetools.Elements] = None,
-        selection: Optional[selectiontools.Selection] = None,
+        nodes: devicetools.Nodes | None = None,
+        elements: devicetools.Elements | None = None,
+        selection: selectiontools.Selection | None = None,
     ) -> TypeModel_co:
         try:
             if selection is None:
@@ -4727,15 +4853,16 @@ sw1d_channel.
                 elements = selection.elements
             for element in elements:
                 if not isinstance(element.model, self._inputtypes):
+                    modeltypes = (m.__HYDPY_NAME__ for m in self._inputtypes)
                     raise TypeError(
                         f"{objecttools.elementphrase(element.model)} is not among the "
                         f"supported model types: "
-                        f"{objecttools.enumeration(m._NAME for m in self._inputtypes)}."
+                        f"{objecttools.enumeration(modeltypes)}."
                     )
             return self._wrapped(nodes=nodes, elements=elements)
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to couple the given model instances to a composite "
-                f"model of type `{self._outputtype._NAME}` based on function "
+                f"model of type `{self._outputtype.__HYDPY_NAME__}` based on function "
                 f"`{self._wrapped.__name__}`"
             )

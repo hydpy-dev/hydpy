@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -57,9 +56,10 @@ class Get_InterceptedWater_V1(modeltools.Method):
         >>> parameterstep()
         >>> inputs.interceptedwater.shape = 2
         >>> inputs.interceptedwater = 2.0, 4.0
-        >>> model.get_interceptedwater_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_interceptedwater_v1(0))
         2.0
-        >>> model.get_interceptedwater_v1(1)
+        >>> round_(model.get_interceptedwater_v1(1))
         4.0
     """
 
@@ -81,9 +81,10 @@ class Get_SoilWater_V1(modeltools.Method):
         >>> parameterstep()
         >>> inputs.soilwater.shape = 2
         >>> inputs.soilwater = 2.0, 4.0
-        >>> model.get_soilwater_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_soilwater_v1(0))
         2.0
-        >>> model.get_soilwater_v1(1)
+        >>> round_(model.get_soilwater_v1(1))
         4.0
     """
 
@@ -105,9 +106,10 @@ class Get_SnowCover_V1(modeltools.Method):
         >>> parameterstep()
         >>> inputs.snowcover.shape = 2
         >>> inputs.snowcover = 2.0, 4.0
-        >>> model.get_snowcover_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_snowcover_v1(0))
         2.0
-        >>> model.get_snowcover_v1(1)
+        >>> round_(model.get_snowcover_v1(1))
         4.0
     """
 
@@ -130,9 +132,10 @@ class Get_SnowyCanopy_V1(modeltools.Method):
         >>> parameterstep()
         >>> inputs.snowycanopy.shape = 2
         >>> inputs.snowycanopy = 2.0, 4.0
-        >>> model.get_snowycanopy_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_snowycanopy_v1(0))
         2.0
-        >>> model.get_snowycanopy_v1(1)
+        >>> round_(model.get_snowycanopy_v1(1))
         4.0
     """
 
@@ -154,9 +157,10 @@ class Get_SnowAlbedo_V1(modeltools.Method):
         >>> parameterstep()
         >>> inputs.snowalbedo.shape = 2
         >>> inputs.snowalbedo = 2.0, 4.0
-        >>> model.get_snowalbedo_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_snowalbedo_v1(0))
         2.0
-        >>> model.get_snowalbedo_v1(1)
+        >>> round_(model.get_snowalbedo_v1(1))
         4.0
     """
 
@@ -170,7 +174,10 @@ class Get_SnowAlbedo_V1(modeltools.Method):
 
 
 class Model(modeltools.AdHocModel):
-    """The HydPy-Dummy base model."""
+    """|dummy.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="Dummy")
+    __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = (Pick_Q_V1,)
     RECEIVER_METHODS = ()

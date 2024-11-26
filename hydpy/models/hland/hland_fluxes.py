@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -238,15 +237,15 @@ class RG3(sequencetools.FluxSequence):
     NUMERIC = False
 
 
-class InUH(sequencetools.FluxSequence):
-    """Input of the triangle unit hydrograph  [mm/T]."""
+class InRC(sequencetools.FluxSequence):
+    """Input of the runoff concentration submodel [mm/T]."""
 
     NDIM = 0
     NUMERIC = False
 
 
-class OutUH(sequencetools.FluxSequence):
-    """Output of the triangle unit hydrograph  [mm/T]."""
+class OutRC(sequencetools.FluxSequence):
+    """Output of the runoff concentration submodel [mm/T]."""
 
     NDIM = 0
     NUMERIC = False

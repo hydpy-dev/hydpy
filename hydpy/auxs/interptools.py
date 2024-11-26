@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module enables model developers to easily include linear and nonlinear
 interpolation techniques into their model methods.
 
@@ -22,6 +21,7 @@ import numpy
 
 # ...from HydPy
 import hydpy
+from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
@@ -67,7 +67,7 @@ class InterpAlgorithm(_Labeled):
         """Calculate the output values based on the input values defined previously."""
 
     @abc.abstractmethod
-    def calculate_derivatives(self, idx: int) -> None:
+    def calculate_derivatives(self, idx: int, /) -> None:
         """Calculate the derivatives of the output values with respect to the input
         value of the given index."""
 
@@ -81,7 +81,7 @@ class InterpAlgorithm(_Labeled):
         """Return a string representation of the actual |InterpAlgorithm| object
         prefixed with the given string."""
 
-    def print_table(self, xs: Union[VectorFloat, MatrixFloat]) -> None:
+    def print_table(self, xs: VectorFloat | MatrixFloat) -> None:
         """Process the given input data and print the interpolated output values as
         well as all partial first-order derivatives.
 
@@ -160,7 +160,7 @@ dy1/dx3   dy2/dx3
         table[0, nt:] = [f"d{yn}/d{xn}" for xn, yn in itertools.product(xns, yns)]
 
         # Mypy problem? See issue https://github.com/python/mypy/issues/8586:
-        xs_: Union[float, Iterable[float]]
+        xs_: float | Iterable[float]
         for ri, xs_ in enumerate(xs):
             ri += 1
             if isinstance(xs_, float):
@@ -186,6 +186,7 @@ dy1/dx3   dy2/dx3
         self,
         xmin: float,
         xmax: float,
+        *,
         idx_input: int = 0,
         idx_output: int = 0,
         points: int = 100,
@@ -253,7 +254,7 @@ class SimpleInterpolator(BaseInterpolator):
     >>> simpleinterpolator
     simpleinterpolator(?)
 
-    >>> from hydpy import ANN, PPoly
+    >>> from hydpy import ANN, PPoly, print_vector
     >>> simpleinterpolator(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 2.0]))
     >>> simpleinterpolator
     simpleinterpolator(
@@ -277,14 +278,14 @@ class SimpleInterpolator(BaseInterpolator):
     >>> simpleinterpolator.nmb_outputs
     3
     >>> simpleinterpolator.algorithm.inputs = 1.0, 2.0
-    >>> simpleinterpolator.inputs
-    array([1., 2.])
+    >>> print_vector(simpleinterpolator.inputs)
+    1.0, 2.0
     >>> simpleinterpolator.algorithm.outputs = 3.0, 4.0, 5.0
-    >>> simpleinterpolator.outputs
-    array([3., 4., 5.])
+    >>> print_vector(simpleinterpolator.outputs)
+    3.0, 4.0, 5.0
     >>> simpleinterpolator.algorithm.output_derivatives = 6.0, 7.0, 8.0
-    >>> simpleinterpolator.output_derivatives
-    array([6., 7., 8.])
+    >>> print_vector(simpleinterpolator.output_derivatives)
+    6.0, 7.0, 8.0
     >>> from unittest.mock import patch
     >>> with patch.object(ANN, "verify") as mock:
     ...     assert simpleinterpolator.verify() is None
@@ -307,9 +308,9 @@ class SimpleInterpolator(BaseInterpolator):
 
     TYPE = "interputils.SimpleInterpolator"
 
-    _algorithm: Optional[InterpAlgorithm]
+    _algorithm: InterpAlgorithm | None
 
-    __simpleinterpolator: Optional[interputils.SimpleInterpolator]
+    __simpleinterpolator: interputils.SimpleInterpolator | None
 
     def __init__(self, subvars: parametertools.SubParameters) -> None:
         self.subvars = subvars
@@ -385,12 +386,12 @@ interpolator has been defined so far.
         """Calculate the output values based on the input values defined previously."""
         self.algorithm.calculate_values()
 
-    def calculate_derivatives(self, idx: int) -> None:
+    def calculate_derivatives(self, idx: int, /) -> None:
         """Calculate the derivatives of the output values with respect to the input
         value of the given index."""
         self.algorithm.calculate_derivatives(idx)
 
-    def print_table(self, xs: Union[VectorFloat, MatrixFloat]) -> None:
+    def print_table(self, xs: VectorFloat | MatrixFloat) -> None:
         """Process the given input data and print the interpolated output values as
         well as all partial first-order derivatives."""
         self.algorithm.print_table(xs=xs)
@@ -399,10 +400,11 @@ interpolator has been defined so far.
         self,
         xmin: float,
         xmax: float,
+        *,
         idx_input: int = 0,
         idx_output: int = 0,
         points: int = 100,
-        **kwargs: Optional[Union[float, str]],
+        **kwargs: float | str | None,
     ) -> pyplot.Figure:
         """Plot the relationship between particular input (`idx_input`) and output
         (`idx_output`) values defined by the actual |InterpAlgorithm| object."""
@@ -516,15 +518,15 @@ class SeasonalInterpolator(BaseInterpolator):
     For example, on July 1 (which is the 183rd day of a leap year), only the output of
     the third interpolator is relevant:
 
-    >>> from hydpy import print_values
-    >>> print_values(seasonalinterpolator.ratios[182])
+    >>> from hydpy import print_vector
+    >>> print_vector(seasonalinterpolator.ratios[182])
     0.0, 0.0, 1.0
 
     On June 30 and July 2, the second and the first interpolators are also relevant:
 
-    >>> print_values(seasonalinterpolator.ratios[181])
+    >>> print_vector(seasonalinterpolator.ratios[181])
     0.0, 0.008197, 0.991803
-    >>> print_values(seasonalinterpolator.ratios[183])
+    >>> print_vector(seasonalinterpolator.ratios[183])
     0.005435, 0.0, 0.994565
 
     Inserting data, processing this data, and fetching the output works as explained
@@ -552,7 +554,7 @@ class SeasonalInterpolator(BaseInterpolator):
     For this day of the year, the first and the second interpolator have ratios of 0.8
     and 0.2, respectively:
 
-    >>> print_values(seasonalinterpolator.ratios[12])
+    >>> print_vector(seasonalinterpolator.ratios[12])
     0.8, 0.2, 0.0
 
     Both interpolators calculate constant values.  The sum of the outputs of the first
@@ -692,7 +694,7 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
 
     _toy2algorithm: list[tuple[timetools.TOY, InterpAlgorithm]]
     _do_refresh: bool
-    __seasonalinterpolator: Optional[interputils.SeasonalInterpolator]
+    __seasonalinterpolator: interputils.SeasonalInterpolator | None
 
     def __init__(self, subvars: parametertools.SubParameters) -> None:
         self.subvars = subvars
@@ -914,7 +916,9 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
         nmb_weights = timetools.Period("366d") / hydpy.pub.options.simulationstep
         nmb_weights = int(numpy.ceil(round(nmb_weights, 10)))
         shape = (nmb_weights, self._seasonalinterpolator.nmb_algorithms)
-        getattr(self.fastaccess, self.name).ratios = numpy.zeros(shape, dtype=float)
+        getattr(self.fastaccess, self.name).ratios = numpy.zeros(
+            shape, dtype=config.NP_FLOAT
+        )
 
     @property
     def toys(self) -> tuple[timetools.TOY, ...]:
@@ -961,27 +965,28 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
         """The weighted output of the interpolators."""
         return numpy.asarray(self._seasonalinterpolator.outputs)
 
-    def calculate_values(self, idx_toy: int) -> None:
+    def calculate_values(self, idx: int, /) -> None:
         """Calculate the weighted output values based on the input values defined
         previously for the given index referencing the actual time of year."""
-        self._seasonalinterpolator.calculate_values(idx_toy)
+        self._seasonalinterpolator.calculate_values(idx)
 
     def plot(
         self,
         xmin: float,
         xmax: float,
+        *,
         idx_input: int = 0,
         idx_output: int = 0,
         points: int = 100,
         legend: bool = True,
-        **kwargs: Optional[Union[float, str]],
+        **kwargs: float | str | None,
     ) -> pyplot.Figure:
         """Call method |InterpAlgorithm.plot| of all currently handled
         |InterpAlgorithm| objects."""
         for toy, seasonalinterpolator in self:
             figure = seasonalinterpolator.plot(
-                xmin,
-                xmax,
+                xmin=xmin,
+                xmax=xmax,
                 idx_input=idx_input,
                 idx_output=idx_output,
                 points=points,

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 # import...
 # ...from HydPy
@@ -20,7 +19,7 @@ class NU(parametertools.Parameter):
     """Number of hydrological response units [-].
 
     Parameter |NU| automatically sets the length of most 1-dimensional parameters and
-    sequences of *HydPy-W-Land*:
+    sequences of |wland.DOCNAME.long|:
 
     >>> from hydpy.models.wland import *
     >>> parameterstep()
@@ -132,6 +131,13 @@ unit, but 2 units are defined as such.
             )
 
 
+class ER(wland_parameters.LanduseParameterLand):
+    """Elevated region [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, bool, None, (None, None)
+    INIT = False
+
+
 class AUR(parametertools.Parameter):
     """Relative area of each hydrological response unit [-]."""
 
@@ -139,11 +145,11 @@ class AUR(parametertools.Parameter):
 
 
 class GL(parametertools.Parameter):
-    """Ground level [m]."""
+    """The lowland region's average ground level [m]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Ensure |GL| is above |BL|.
 
         >>> from hydpy.models.wland import *
@@ -160,7 +166,7 @@ class GL(parametertools.Parameter):
         """
         if lower is None:
             lower = exceptiontools.getattr_(self.subpars.bl, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class BL(parametertools.Parameter):
@@ -168,7 +174,7 @@ class BL(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Ensure |BL| is below |GL|.
 
         >>> from hydpy.models.wland import *
@@ -188,7 +194,7 @@ class BL(parametertools.Parameter):
         """
         if upper is None:
             upper = exceptiontools.getattr_(self.subpars.gl, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class CP(parametertools.Parameter):
@@ -233,20 +239,32 @@ class DDT(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
 
+class CWE(parametertools.Parameter):
+    """Wetness index parameter for the elevated region [mm]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (1.0, None)
+
+
 class CW(parametertools.Parameter):
-    """Wetness index parameter [mm]."""
+    """Wetness index parameter for the lowland region [mm]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (1.0, None)
 
 
 class CV(parametertools.Parameter):
-    """Vadose zone relaxation time constant [T]."""
+    """Vadose zone relaxation time constant for the lowland region [T]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
+
+
+class CGE(parametertools.Parameter):
+    """Groundwater reservoir constant for the elevated region [mm T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
 
 class CG(parametertools.Parameter):
-    """Groundwater reservoir constant [mm T]."""
+    """Groundwater reservoir constant for the lowland region [mm T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
@@ -394,7 +412,7 @@ class ThetaS(wland_parameters.SoilParameter):
         CLAY: 0.482,
     }
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |ThetaS| following :math:`1e^{-6} \leq ThetaS \leq 1.0` and,
         if |ThetaR| exists for the relevant application model, also following
         :math:`ThetaR \leq ThetaS`.
@@ -424,7 +442,7 @@ class ThetaS(wland_parameters.SoilParameter):
                 lower = exceptiontools.getattr_(self.subpars.thetar, "value", 1e-6)
             else:
                 lower = 1e-6
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class ThetaR(parametertools.Parameter):
@@ -433,7 +451,7 @@ class ThetaR(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (1e-6, None)
     INIT = 0.01
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |ThetaR| following :math:`1e^{-6} \leq ThetaR \leq ThetaS`.
 
         >>> from hydpy.models.wland import *
@@ -448,7 +466,20 @@ class ThetaR(parametertools.Parameter):
         """
         if upper is None:
             upper = exceptiontools.getattr_(self.subpars.thetas, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
+
+
+class AC(parametertools.Parameter):
+    """Air capacity for the elevated region [mm].
+
+    ToDo: We should principally derive |AC| from |SoilParameter|, but
+          :cite:t:`ref-Brauer2014` provides no soil-specific default values for it
+          because it is not part of the original WALRUS model.  Do we want to determine
+          consistent ones by ourselves?
+    """
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    INIT = 200.0
 
 
 class Zeta1(parametertools.Parameter):

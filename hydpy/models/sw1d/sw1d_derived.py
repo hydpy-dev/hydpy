@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -9,6 +8,11 @@ from hydpy.models.sw1d import sw1d_control
 
 class Seconds(parametertools.SecondsParameter):
     """The length of the actual simulation step size in seconds [s]."""
+
+
+class TOY(parametertools.TOYParameter):
+    """References the |Indexer.timeofyear| index array provided by the instance of
+    class |Indexer| available in module |pub| [-]."""
 
 
 class WeightUpstream(parametertools.Parameter):

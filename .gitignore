@@ -48,3 +48,4 @@ make_hydpy_installer.cfg
 lib/*
 temp/*
 hydpy/docs/bibliography/refs.bib.bak
+hydpy/docs/html_/plotly.min.js

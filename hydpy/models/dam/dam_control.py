@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -179,7 +178,7 @@ class ThresholdEvaporation(parametertools.Parameter):
     """The water level at which actual evaporation is 50 % of potential evaporation
     [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
 
 class ToleranceEvaporation(parametertools.Parameter):

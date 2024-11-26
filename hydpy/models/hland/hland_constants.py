@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Base model |hland| allows dividing subbasins into zones (hydrological response
 units).  It applies the equations related to some processes (for example, interception)
 separately for each zone.  Consequently, parameters such as the interception capacity
@@ -18,6 +17,7 @@ become available in your local namespace:
 >>> FIELD, FOREST, GLACIER, ILAKE, SEALED
 (1, 2, 3, 4, 5)
 """
+
 from hydpy.core import parametertools
 
 FIELD = parametertools.IntConstant(1)
@@ -32,6 +32,6 @@ SEALED = parametertools.IntConstant(5)
 """Constant for the zone type `sealed surface`."""
 
 CONSTANTS = parametertools.Constants()
-"""Dictionary containing all constants defined by HydPy-H-Land."""
+"""Dictionary containing all constants defined by |hland.DOCNAME.long|."""
 
 __all__ = ["FIELD", "FOREST", "GLACIER", "ILAKE", "SEALED"]

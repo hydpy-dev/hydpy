@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
 """This module supports writing auxiliary files.
 
 In *HydPy*, parameter values are usually not shared between different model objects
 handled by different elements, even if the model objects are of the same type (e.g.
-|lland_v1|).  This approach offers flexibility in applying different parameterisation
+|lland_dd|).  This approach offers flexibility in applying different parameterisation
 schemes.  However, often modellers prefer to use a minimal amount of values for
 specific parameters  (at least within hydrologically homogeneous regions).  Hence, the
 downside of this flexibility is that the same parameter values might appear in hundreds
@@ -21,6 +20,7 @@ implemented in module |auxfiletools| are a means to perform such actions in a
 semi-automated manner (other means are the selection mechanism implemented in module
 |selectiontools|).
 """
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -42,7 +42,7 @@ if TYPE_CHECKING:
     from hydpy.core import timetools
 
 
-Reference = Union[parametertools.Parameter, parametertools.KeywordArguments]
+Reference: TypeAlias = Union[parametertools.Parameter, parametertools.KeywordArguments]
 
 
 class Auxfiler:
@@ -57,27 +57,27 @@ class Auxfiler:
     Each |Auxfiler| object is capable of handling parameter information for different
     kinds of models and performs some plausibility checks on added data.  Assume we
     want to store the control files of a "LARSIM type" HydPy project involving the
-    application models |lland_v1|, |lland_v3| and |lstream_v001|.  The following
+    application models |lland_dd|, |lland_knauf| and |kinw_williams|.  The following
     example shows how we add these models to the |Auxfiler| object by passing through
-    module (|lland_v1|), a working model object (|lland_v3|) or their name
-    (|lstream_v001|):
+    module (|lland_dd|), a working model object (|lland_knauf|) or their name
+    (|kinw_williams|):
 
     >>> from hydpy import prepare_model
-    >>> from hydpy.models import lland_v1 as module
-    >>> model = prepare_model("lland_v3")
-    >>> string = "lstream_v001"
+    >>> from hydpy.models import lland_dd as module
+    >>> model = prepare_model("lland_knauf")
+    >>> string = "kinw_williams"
 
     You can add all model types individually or in groups:
 
     >>> auxfiler.add_models(module)
     >>> auxfiler.add_models(model, string)
     >>> auxfiler
-    Auxfiler("lland_v1", "lland_v3", "lstream_v001")
+    Auxfiler("kinw_williams", "lland_dd", "lland_knauf")
 
     Alternatively, you can pass the models directly to the constructor:
 
     >>> Auxfiler(model, string, module)
-    Auxfiler("lland_v1", "lland_v3", "lstream_v001")
+    Auxfiler("kinw_williams", "lland_dd", "lland_knauf")
 
     Wrong model specifications result in errors like the following:
 
@@ -90,21 +90,21 @@ class Auxfiler:
     The |Auxfiler| object allocates a separate |SubAuxfiler| object to each model type.
     These are available via keyword and attribute access:
 
-    >>> auxfiler["lland_v1"]
+    >>> auxfiler["lland_dd"]
     SubAuxfiler()
-    >>> auxfiler.lland_v3
+    >>> auxfiler.lland_knauf
     SubAuxfiler()
 
     Adding new and deleting existing |SubAuxfiler| objects via attribute access is
     disabled for safety purposes:
 
-    >>> auxfiler.lland_v3 = auxfiler.lland_v1
+    >>> auxfiler.lland_knauf = auxfiler.lland_dd
     Traceback (most recent call last):
     ...
     AttributeError: Class `Auxfiler` does not support adding `SubAuxfiler` objects \
 via attribute access.  Use method `add_models` to register additional models.
 
-    >>> del auxfiler.lland_v1
+    >>> del auxfiler.lland_dd
     Traceback (most recent call last):
     ...
     AttributeError: Class `Auxfiler` does not support deleting `SubAuxfiler` objects \
@@ -115,25 +115,25 @@ via attribute access.  Use method `remove_models` to remove registered models.
 
     >>> auxfiler.remove_models(module, string)
     >>> auxfiler
-    Auxfiler("lland_v3")
+    Auxfiler("lland_knauf")
 
     >>> auxfiler.remove_models(module, string)
     Traceback (most recent call last):
     ...
     RuntimeError: While trying to remove one or more models from the actual \
-`Auxfiler` object, the following error occurred: Model `lland_v1` is currently not \
+`Auxfiler` object, the following error occurred: Model `lland_dd` is currently not \
 registered.
 
-    >>> auxfiler.lland_v1  # doctest: +ELLIPSIS
+    >>> auxfiler.lland_dd  # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
     AttributeError: The actual `Auxfiler` object does neither have a normal attribute \
-nor does it handle a model named `lland_v1`...
+nor does it handle a model named `lland_dd`...
 
-    >>> auxfiler["lland_v1"]
+    >>> auxfiler["lland_dd"]
     Traceback (most recent call last):
     ...
-    KeyError: 'The actual `Auxfiler` object does not handle a model named `lland_v1`.'
+    KeyError: 'The actual `Auxfiler` object does not handle a model named `lland_dd`.'
 
     For other types, attribute access works as usual:
 
@@ -147,13 +147,11 @@ nor does it handle a model named `lland_v1`...
 
     _model2subauxfiler: dict[str, SubAuxfiler]
 
-    def __init__(self, *models: Union[str, types.ModuleType, modeltools.Model]) -> None:
+    def __init__(self, *models: str | types.ModuleType | modeltools.Model) -> None:
         self._model2subauxfiler = {}
         self.add_models(*models)
 
-    def add_models(
-        self, *models: Union[str, types.ModuleType, modeltools.Model]
-    ) -> None:
+    def add_models(self, *models: str | types.ModuleType | modeltools.Model) -> None:
         """Register an arbitrary number of |Model| types.
 
         For further information, see the main documentation on class |Auxfiler|.
@@ -170,9 +168,7 @@ nor does it handle a model named `lland_v1`...
                 f"`{type(self).__name__}` object"
             )
 
-    def remove_models(
-        self, *models: Union[str, types.ModuleType, modeltools.Model]
-    ) -> None:
+    def remove_models(self, *models: str | types.ModuleType | modeltools.Model) -> None:
         """Unregister an arbitrary number of |Model| classes.
 
         For further information, see the main documentation on class |Auxfiler|.
@@ -194,23 +190,23 @@ nor does it handle a model named `lland_v1`...
 
     @staticmethod
     def _get_model(
-        value: Union[str, types.ModuleType, modeltools.Model]
+        value: str | types.ModuleType | modeltools.Model,
     ) -> modeltools.Model:
         if isinstance(value, modeltools.Model):
             return value
         return importtools.prepare_model(value)
 
-    def get(self, model: Union[str, modeltools.Model]) -> Optional[SubAuxfiler]:
+    def get(self, model: str | modeltools.Model) -> SubAuxfiler | None:
         """Get the |SubAuxfiler| object related to the given |Model| type.
 
         In contrast to attribute and keyword access, method |Auxfiler.get| returns
         |None| when it does not handle the requested |SubAuxfiler| object:
 
         >>> from hydpy import Auxfiler
-        >>> auxfiler = Auxfiler("lland_v1")
-        >>> auxfiler.get("lland_v1")
+        >>> auxfiler = Auxfiler("lland_dd")
+        >>> auxfiler.get("lland_dd")
         SubAuxfiler()
-        >>> auxfiler.get("lland_v3")
+        >>> auxfiler.get("lland_knauf")
         """
         return self._model2subauxfiler.get(str(model))
 
@@ -228,15 +224,15 @@ nor does it handle a model named `lland_v1`...
         """A sorted |tuple| of all names of the handled models.
 
         >>> from hydpy import Auxfiler
-        >>> Auxfiler("lland_v3", "lstream_v001", "lland_v1").modelnames
-        ('lland_v1', 'lland_v3', 'lstream_v001')
+        >>> Auxfiler("lland_knauf", "kinw_williams", "lland_dd").modelnames
+        ('kinw_williams', 'lland_dd', 'lland_knauf')
         """
         return tuple(sorted(self._model2subauxfiler.keys()))
 
     def write(
         self,
-        parameterstep: Optional[timetools.PeriodConstrArg] = None,
-        simulationstep: Optional[timetools.PeriodConstrArg] = None,
+        parameterstep: timetools.PeriodConstrArg | None = None,
+        simulationstep: timetools.PeriodConstrArg | None = None,
     ) -> None:
         """Write all defined auxiliary control files.
 
@@ -255,12 +251,12 @@ nor does it handle a model named `lland_v1`...
         >>> eqd2(100.0)
 
         >>> from hydpy import Auxfiler
-        >>> auxfiler = Auxfiler("lland_v1", "lland_v3")
-        >>> auxfiler.lland_v1.add_parameter(eqd1, filename="file1")
-        >>> auxfiler.lland_v1.add_parameter(parameter=tgr,
+        >>> auxfiler = Auxfiler("lland_dd", "lland_knauf")
+        >>> auxfiler.lland_dd.add_parameter(eqd1, filename="file1")
+        >>> auxfiler.lland_dd.add_parameter(parameter=tgr,
         ...                                 filename="file1",
         ...                                 keywordarguments=tgr.keywordarguments)
-        >>> auxfiler.lland_v3.add_parameters(eqd1, eqd2, filename="file2")
+        >>> auxfiler.lland_knauf.add_parameters(eqd1, eqd2, filename="file2")
 
         Class |Auxfiler| takes the target path from the |ControlManager| object stored
         in the global |pub| object.  For testing, we initialise one and override its
@@ -284,9 +280,7 @@ nor does it handle a model named `lland_v1`...
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         test_directory/file1.py
         -----------------------------------
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
-        from hydpy.models.lland_v1 import *
+        from hydpy.models.lland_dd import *
         <BLANKLINE>
         simulationstep("12h")
         parameterstep("1d")
@@ -295,12 +289,10 @@ nor does it handle a model named `lland_v1`...
         eqd1(200.0)
         <BLANKLINE>
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         test_directory/file2.py
-        -----------------------------------
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
-        from hydpy.models.lland_v3 import *
+        --------------------------------------
+        from hydpy.models.lland_knauf import *
         <BLANKLINE>
         simulationstep("12h")
         parameterstep("1d")
@@ -308,7 +300,7 @@ nor does it handle a model named `lland_v1`...
         eqd1(200.0)
         eqd2(100.0)
         <BLANKLINE>
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         """
         options = hydpy.pub.options
         for modelname, subauxfiler in self:
@@ -367,9 +359,9 @@ nor does it handle a model named `lland_v1`...
     def __dir__(self) -> list[str]:
         """
         >>> aux = Auxfiler()
-        >>> aux.add_models("llake_v1", "lland_v1", "lstream_v001")
+        >>> aux.add_models("lland_knauf", "lland_dd", "hland_96")
         >>> sorted(set(dir(aux)) - set(object.__dir__(aux)))
-        ['llake_v1', 'lland_v1', 'lstream_v001']
+        ['hland_96', 'lland_dd', 'lland_knauf']
         """
         return cast(list[str], super().__dir__()) + list(self.modelnames)
 
@@ -383,14 +375,12 @@ class SubAuxfiler:
     method |SubAuxfiler.add_parameter| for further information.
     """
 
-    _master: Optional[Auxfiler]
-    _model: Optional[modeltools.Model]
+    _master: Auxfiler | None
+    _model: modeltools.Model | None
     _type2filename2reference: dict[type[parametertools.Parameter], dict[str, Reference]]
 
     def __init__(
-        self,
-        master: Optional[Auxfiler] = None,
-        model: Optional[modeltools.Model] = None,
+        self, master: Auxfiler | None = None, model: modeltools.Model | None = None
     ) -> None:
         self._master = master
         self._model = model
@@ -400,14 +390,14 @@ class SubAuxfiler:
         self,
         parameter: parametertools.Parameter,
         filename: str,
-        keywordarguments: Optional[parametertools.KeywordArguments[T]] = None,
+        keywordarguments: parametertools.KeywordArguments[T] | None = None,
     ) -> None:
         """Add a single |Parameter| to the actual |SubAuxfiler| object.
 
         To show how |SubAuxfiler| works, we first prepare an instance of application
-        model |lland_v1| and define the values of some of its parameters:
+        model |lland_dd| and define the values of some of its parameters:
 
-        >>> from hydpy.models.lland_v1 import *
+        >>> from hydpy.models.lland_dd import *
         >>> parameterstep()
         >>> nhru(4)
         >>> lnk(ACKER, LAUBW, WASSER, ACKER)
@@ -428,16 +418,16 @@ class SubAuxfiler:
         Auxiliary file `file1` shall contain the actual values of parameters
         |lland_control.EQB|, |lland_control.EQI1|, and |lland_control.EQI2|:
 
-        >>> auxfiler.lland_v1.add_parameters(eqb, eqi1, eqi2, filename="file1")
-        >>> auxfiler.lland_v1.file1
+        >>> auxfiler.lland_dd.add_parameters(eqb, eqi1, eqi2, filename="file1")
+        >>> auxfiler.lland_dd.file1
         (eqb(5000.0), eqi1(2000.0), eqi2(1000.0))
 
         Auxiliary file `file2` shall contain the actual values of parameters
         |lland_control.EQD1|, |lland_control.EQD2|, and (also!) of parameter
         |lland_control.EQB|:
 
-        >>> auxfiler.lland_v1.add_parameters(eqd1, eqd2, filename="file2")
-        >>> auxfiler.lland_v1.add_parameter(eqb, filename="file2")
+        >>> auxfiler.lland_dd.add_parameters(eqd1, eqd2, filename="file2")
+        >>> auxfiler.lland_dd.add_parameter(eqb, filename="file2")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to extend the range of parameters handled by the \
@@ -445,7 +435,7 @@ actual `SubAuxfiler` object, the following error occurred: You tried to allocate
 parameter `eqb(5000.0)` to filename `file2`, but an equal `EQB` object has already \
 been allocated to filename `file1`.
 
-        >>> auxfiler.lland_v1.file2
+        >>> auxfiler.lland_dd.file2
         (eqd1(100.0), eqd2(50.0))
 
         As explained by the error message, allocating the same parameter type with
@@ -454,8 +444,8 @@ been allocated to filename `file1`.
         to filename `file2`:
 
         >>> eqb *= 2
-        >>> auxfiler.lland_v1.add_parameter(eqb, filename="file2")
-        >>> auxfiler.lland_v1.file2
+        >>> auxfiler.lland_dd.add_parameter(eqb, filename="file2")
+        >>> auxfiler.lland_dd.file2
         (eqb(10000.0), eqd1(100.0), eqd2(50.0))
 
         The following example shows that parameter |lland_control.EQB| already
@@ -463,15 +453,15 @@ been allocated to filename `file1`.
         mechanism via deep copying) and that one can view all registered parameters by
         using their names as attribute names:
 
-        >>> auxfiler.lland_v1.eqb
+        >>> auxfiler.lland_dd.eqb
         (eqb(10000.0), eqb(5000.0))
 
         During adding parameters method |SubAuxfiler.add_parameter| performs some
         additional plausibility checks.  First, it prevents from using the same
         filename twice:
 
-        >>> auxfiler.add_models("lstream_v001")
-        >>> auxfiler.lstream_v001.add_parameter(tgr, filename="file1")
+        >>> auxfiler.add_models("kinw_williams")
+        >>> auxfiler.kinw_williams.add_parameter(tgr, filename="file1")
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to extend the range of parameters handled by the \
@@ -481,12 +471,12 @@ already allocated to another `SubAuxfiler` object.
         Second, it checks that an assigned parameter belongs to the corresponding
         model:
 
-        >>> auxfiler.lstream_v001.add_parameter(tgr, filename="file3")
+        >>> auxfiler.kinw_williams.add_parameter(tgr, filename="file3")
         Traceback (most recent call last):
         ...
         TypeError: While trying to extend the range of parameters handled by the \
 actual `SubAuxfiler` object, the following error occurred: Variable type `TGr` is not \
-handled by model `lstream_v001`.
+handled by model `kinw_williams`.
 
         The examples above deal with simple 0-dimensional |Parameter| subclasses where
         there is no question in how to define equality.  However, for multidimensional
@@ -501,16 +491,16 @@ handled by model `lstream_v001`.
         |ZipParameter| subclass |lland_control.TGr|, we need to additionally pass a
         |KeywordArguments| object to method |SubAuxfiler.add_parameter|:
 
-        >>> auxfiler.lland_v1.add_parameter(
+        >>> auxfiler.lland_dd.add_parameter(
         ...     tgr, filename="file1", keywordarguments=tgr.keywordarguments)
-        >>> auxfiler.lland_v1.tgr
+        >>> auxfiler.lland_dd.tgr
         (KeywordArguments(acker=2.0, laubw=1.0),)
 
         Alternatively, we can also pass a manually defined |KeywordArguments| object
         (for which we perform similar plausibility checks as discussed above):
 
         >>> from hydpy import KeywordArguments
-        >>> auxfiler.lland_v1.add_parameter(
+        >>> auxfiler.lland_dd.add_parameter(
         ...     tgr, filename="file2",
         ...     keywordarguments=KeywordArguments(acker=2.0, laubw=1.0))
         Traceback (most recent call last):
@@ -524,10 +514,10 @@ keyword arguments has already been allocated to filename `file1`.
         Often, we want such a manually defined |KeywordArguments| object to be more
         general so that it covers as many actual parameter objects as possible:
 
-        >>> auxfiler.lland_v1.add_parameter(
+        >>> auxfiler.lland_dd.add_parameter(
         ...     tgr, filename="file2",
         ...     keywordarguments=KeywordArguments(acker=2.0, laubw=1.0, nadelw=0.0))
-        >>> auxfiler.lland_v1.tgr
+        >>> auxfiler.lland_dd.tgr
         (KeywordArguments(acker=2.0, laubw=1.0), \
 KeywordArguments(acker=2.0, laubw=1.0, nadelw=0.0))
 
@@ -541,12 +531,12 @@ KeywordArguments(acker=2.0, laubw=1.0, nadelw=0.0))
         Unfortunately, the string representations of |SubAuxfiler| objects are not
         executable at the moment:
 
-        >>> auxfiler.lland_v1
+        >>> auxfiler.lland_dd
         SubAuxfiler(file1, file2)
 
         Erroneous attribute access results in the following error:
 
-        >>> auxfiler.lland_v1.wrong
+        >>> auxfiler.lland_dd.wrong
         Traceback (most recent call last):
         ...
         AttributeError: `wrong` is neither a filename nor a name of a parameter \
@@ -597,7 +587,7 @@ handled by the actual `SubAuxfiler` object.
         filename2reference: dict[str, Reference],
         parameter: parametertools.Parameter,
         filename: str,
-        keywordarguments: Optional[parametertools.KeywordArguments[T]],
+        keywordarguments: parametertools.KeywordArguments[T] | None,
     ) -> None:
         for fn, ref in filename2reference.items():
             if fn != filename:
@@ -632,8 +622,8 @@ handled by the actual `SubAuxfiler` object.
 
     def remove_parameters(
         self,
-        parametertype: Optional[type[parametertools.Parameter]] = None,
-        filename: Optional[str] = None,
+        parametertype: type[parametertools.Parameter] | None = None,
+        filename: str | None = None,
     ) -> None:
         """Remove the registered |Parameter| objects of the given type related to the
         given filename.
@@ -641,7 +631,7 @@ handled by the actual `SubAuxfiler` object.
         The following (slightly modified) test-setting stems from the documentation
         on method |SubAuxfiler.add_parameter|:
 
-        >>> from hydpy.models.lland_v1 import *
+        >>> from hydpy.models.lland_dd import *
         >>> parameterstep()
         >>> nhru(4)
         >>> lnk(ACKER, LAUBW, WASSER, ACKER)
@@ -652,7 +642,7 @@ handled by the actual `SubAuxfiler` object.
 
         >>> from hydpy import Auxfiler
         >>> auxfiler = Auxfiler(model)
-        >>> subauxfiler = auxfiler.lland_v1
+        >>> subauxfiler = auxfiler.lland_dd
         >>> subauxfiler.add_parameters(eqb, eqi1, filename="file1")
         >>> subauxfiler.add_parameter(
         ...     tgr, filename="file1", keywordarguments=tgr.keywordarguments)
@@ -766,14 +756,14 @@ error occurred: 'NoneType' object has no attribute 'items'
             )
 
     def get_filenames(
-        self, parametertype: Optional[type[parametertools.Parameter]] = None
+        self, parametertype: type[parametertools.Parameter] | None = None
     ) -> tuple[str, ...]:
         """Return a |tuple| of all or a selection of the handled auxiliary file names.
 
         The following (slightly modified) test-setting stems from the documentation on
         method |SubAuxfiler.add_parameter|:
 
-        >>> from hydpy.models.lland_v1 import *
+        >>> from hydpy.models.lland_dd import *
         >>> parameterstep()
         >>> nhru(4)
         >>> lnk(ACKER, LAUBW, WASSER, ACKER)
@@ -784,7 +774,7 @@ error occurred: 'NoneType' object has no attribute 'items'
 
         >>> from hydpy import Auxfiler
         >>> auxfiler = Auxfiler(model)
-        >>> subauxfiler = auxfiler.lland_v1
+        >>> subauxfiler = auxfiler.lland_dd
         >>> subauxfiler.add_parameters(eqb, eqi1, filename="file1")
         >>> subauxfiler.add_parameter(
         ...     tgr, filename="file1", keywordarguments=tgr.keywordarguments)
@@ -810,14 +800,14 @@ error occurred: 'NoneType' object has no attribute 'items'
         return tuple(sorted(filenames))
 
     def get_parametertypes(
-        self, filename: Optional[str] = None
+        self, filename: str | None = None
     ) -> tuple[type[parametertools.Parameter], ...]:
         """Return a |tuple| of all or a selection of the handled parameter types.
 
         The following (slightly modified) test-setting stems from the documentation on
         method |SubAuxfiler.add_parameter|:
 
-        >>> from hydpy.models.lland_v1 import *
+        >>> from hydpy.models.lland_dd import *
         >>> parameterstep()
         >>> nhru(4)
         >>> lnk(ACKER, LAUBW, WASSER, ACKER)
@@ -828,7 +818,7 @@ error occurred: 'NoneType' object has no attribute 'items'
 
         >>> from hydpy import Auxfiler
         >>> auxfiler = Auxfiler(model)
-        >>> subauxfiler = auxfiler.lland_v1
+        >>> subauxfiler = auxfiler.lland_dd
         >>> subauxfiler.add_parameters(eqb, eqi1, filename="file1")
         >>> subauxfiler.add_parameter(
         ...     tgr, filename="file1", keywordarguments=tgr.keywordarguments)
@@ -862,8 +852,8 @@ error occurred: 'NoneType' object has no attribute 'items'
 
     def get_parameterstrings(
         self,
-        filename: Optional[str] = None,
-        parametertype: Optional[type[parametertools.Parameter]] = None,
+        filename: str | None = None,
+        parametertype: type[parametertools.Parameter] | None = None,
     ) -> tuple[str, ...]:
         """Return a |tuple| of string representations of all or a selection of the
         handled parameter objects.
@@ -871,7 +861,7 @@ error occurred: 'NoneType' object has no attribute 'items'
         The following (slightly modified) test-setting stems from the documentation on
         method |SubAuxfiler.add_parameter|:
 
-        >>> from hydpy.models.lland_v1 import *
+        >>> from hydpy.models.lland_dd import *
         >>> parameterstep()
         >>> nhru(4)
         >>> lnk(ACKER, LAUBW, WASSER, ACKER)
@@ -882,7 +872,7 @@ error occurred: 'NoneType' object has no attribute 'items'
 
         >>> from hydpy import Auxfiler
         >>> auxfiler = Auxfiler(model)
-        >>> subauxfiler = auxfiler.lland_v1
+        >>> subauxfiler = auxfiler.lland_dd
         >>> subauxfiler.add_parameters(eqb, eqi1, filename="file1")
         >>> subauxfiler.add_parameter(
         ...     tgr, filename="file1", keywordarguments=tgr.keywordarguments)
@@ -942,8 +932,8 @@ error occurred: 'NoneType' object has no attribute 'items'
 
     def get_references(
         self,
-        filename: Optional[str] = None,
-        parametertype: Optional[type[parametertools.Parameter]] = None,
+        filename: str | None = None,
+        parametertype: type[parametertools.Parameter] | None = None,
     ) -> tuple[Reference, ...]:
         """Return a |tuple| of all or a selection of the reference parameter objects
         or their related reference keyword arguments.
@@ -951,7 +941,7 @@ error occurred: 'NoneType' object has no attribute 'items'
         The following (slightly modified) test-setting stems from the documentation on
         method |SubAuxfiler.add_parameter|:
 
-        >>> from hydpy.models.lland_v1 import *
+        >>> from hydpy.models.lland_dd import *
         >>> parameterstep()
         >>> nhru(4)
         >>> lnk(ACKER, LAUBW, WASSER, ACKER)
@@ -962,7 +952,7 @@ error occurred: 'NoneType' object has no attribute 'items'
 
         >>> from hydpy import Auxfiler
         >>> auxfiler = Auxfiler(model)
-        >>> subauxfiler = auxfiler.lland_v1
+        >>> subauxfiler = auxfiler.lland_dd
         >>> subauxfiler.add_parameters(eqb, eqi1, filename="file1")
         >>> subauxfiler.add_parameter(
         ...     tgr, filename="file1", keywordarguments=tgr.keywordarguments)
@@ -1004,14 +994,14 @@ error occurred: 'NoneType' object has no attribute 'items'
                     references.append(ref)
         return tuple(references)
 
-    def get_filename(self, parameter: parametertools.Parameter) -> Optional[str]:
+    def get_filename(self, parameter: parametertools.Parameter) -> str | None:
         """If possible, return an auxiliary filename suitable for the given parameter
         object.
 
         The following (slightly modified) test-setting stems from the documentation on
         method |SubAuxfiler.add_parameter|:
 
-        >>> from hydpy.models.lland_v1 import *
+        >>> from hydpy.models.lland_dd import *
         >>> parameterstep()
         >>> nhru(4)
         >>> lnk(ACKER, LAUBW, WASSER, ACKER)
@@ -1022,7 +1012,7 @@ error occurred: 'NoneType' object has no attribute 'items'
 
         >>> from hydpy import Auxfiler
         >>> auxfiler = Auxfiler(model)
-        >>> subauxfiler = auxfiler.lland_v1
+        >>> subauxfiler = auxfiler.lland_dd
         >>> subauxfiler.add_parameters(eqb, eqi1, filename="file1")
         >>> subauxfiler.add_parameter(
         ...     tgr, filename="file1", keywordarguments=tgr.keywordarguments)
@@ -1150,7 +1140,7 @@ file2
 
     def __dir__(self) -> list[str]:
         """
-        >>> from hydpy.models.lland_v1 import *
+        >>> from hydpy.models.lland_dd import *
         >>> parameterstep()
         >>> nhru(4)
         >>> lnk(ACKER, LAUBW, WASSER, ACKER)
@@ -1161,7 +1151,7 @@ file2
 
         >>> from hydpy import Auxfiler
         >>> auxfiler = Auxfiler(model)
-        >>> subauxfiler = auxfiler.lland_v1
+        >>> subauxfiler = auxfiler.lland_dd
         >>> subauxfiler.add_parameters(eqb, eqi1, filename="file1")
         >>> subauxfiler.add_parameter(
         ...     tgr, filename="file1", keywordarguments=tgr.keywordarguments)

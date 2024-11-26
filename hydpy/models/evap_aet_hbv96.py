@@ -1,13 +1,10 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Implementation of the actual evapotranspiration routines of HBV96
-:cite:p:`ref-Lindstrom1997HBV96`.
-
+"""
 |evap_aet_hbv96| serves as a submodel that supplies its main model with estimates of
 actual evapotranspiration from soils and actual evaporation from interception storages
 and water areas.  Therefore, it requires potential evapotranspiration data calculated
-by a sub-submodel.  If you long to emulate HBV96 as closely as possible, select
-|evap_pet_hbv96|.
+by a sub-submodel.  If you long to emulate HBV96 :cite:p:`ref-Lindstrom1997HBV96` as
+closely as possible, select |evap_pet_hbv96|.
 
 Additionally, |evap_aet_hbv96| requires information about the current air temperature,
 the initial water contents of the interception and soil storages, and the current
@@ -35,13 +32,13 @@ sufficient:
 
 We perform the integration test for two simulation steps.  We will configure the first
 step identical to the first hour of the second day of the simulation period selected
-for the integration tests of |hland_v1|:
+for the integration tests of |hland_96|:
 
 >>> from hydpy import IntegrationTest, pub
 >>> pub.timegrids = "2000-01-01", "2000-01-03", "1d"
 
-We set all parameter values identical to the ones defined in the :ref:`hland_v1_field`
-example of |hland_v1|:
+We set all parameter values identical to the ones defined in the :ref:`hland_96_field`
+example of |hland_96|:
 
 >>> nmbhru(1)
 >>> maxsoilwater(200.0)
@@ -49,12 +46,12 @@ example of |hland_v1|:
 >>> excessreduction(0.5)
 >>> temperaturethresholdice(0.0)
 
-We add submodels of type |evap_io|, |meteo_temp_io|, |dummy_interceptedwater|,
+We add submodels of type |evap_ret_io|, |meteo_temp_io|, |dummy_interceptedwater|,
 |dummy_soilwater|, and |dummy_snowcover| for providing pre-defined values of potential
 evapotranspiration (identical values for potential interception evaporation and soil
 evapotranspiration), air temperature, intercepted water, soil water, and snow cover:
 
->>> with model.add_petmodel_v1("evap_io"):
+>>> with model.add_petmodel_v1("evap_ret_io"):
 ...     hruarea(1.0)
 ...     evapotranspirationfactor(1.0)
 >>> with model.add_tempmodel_v2("meteo_temp_io"):
@@ -72,26 +69,26 @@ Now, we can initialise an |IntegrationTest| object:
 >>> test = IntegrationTest(element)
 >>> test.dateformat = "%d/%m"
 
-The first temperature input also stems from the input data of the :ref:`hland_v1_field`
+The first temperature input also stems from the input data of the :ref:`hland_96_field`
 example, while the second represents winter conditions:
 
 >>> model.tempmodel.sequences.inputs.temperature.series = 19.2, 0.0
 
 The (constant) potential evapotranspiration value stems from the output of the
 integration test of |evap_pet_hbv96|, which is also consistent with the
-:ref:`hland_v1_field` example:
+:ref:`hland_96_field` example:
 
 >>> model.petmodel.sequences.inputs.referenceevapotranspiration.series = 0.06896
 
 The following interception and soil water contents are intermediate values of the
-:ref:`hland_v1_field` example that occur after adding precipitation but before removing
+:ref:`hland_96_field` example that occur after adding precipitation but before removing
 evapotranspiration:
 
 >>> model.intercmodel.sequences.inputs.interceptedwater.series = 2.0
 >>> model.soilwatermodel.sequences.inputs.soilwater.series = 99.622389
 
 The first snow cover value represents summer conditions (like in the
-:ref:`hland_v1_field` example), while the second represents winter conditions:
+:ref:`hland_96_field` example), while the second represents winter conditions:
 
 >>> model.snowcovermodel.sequences.inputs.snowcover.series = [[0.0], [1.0]]
 
@@ -190,7 +187,7 @@ evaporation:
 unequal potential values, soil
 ______________________________
 
-The previous examples relied on the |evap_io| submodel, which complies with the
+The previous examples relied on the |evap_ret_io| submodel, which complies with the
 |PETModel_V1| interface that provides only a single potential evapotranspiration value
 per time step.  |evap_aet_hbv96| is also compatible with submodels that follow
 |PETModel_V2|, which offers separate potential values for interception evaporation,
@@ -308,7 +305,12 @@ class Model(
     evap_model.Sub_ETModel,
     aetinterfaces.AETModel_V1,
 ):
-    """The HBV96 version of HydPy-Evap for calculating actual evapotranspiration."""
+    """|evap_aet_hbv96.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Evap-AET-HBV96", description="actual evapotranspiration after HBV96"
+    )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

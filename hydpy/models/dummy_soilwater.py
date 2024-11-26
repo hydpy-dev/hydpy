@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
-"""Submodel for reading the current soil water content.
-
+"""
 |dummy_soilwater| merely serves testing purposes.  We use it, for example, to perform
 the integration tests for submodels like |evap_aet_hbv96| without the need to couple
-them to complex main models like |hland_v1| for providing soil water data.
+them to complex main models like |hland_96| for providing soil water data.
 
 Integration test
 ================
@@ -52,7 +50,13 @@ ADDITIONAL_CONTROLPARAMETERS = (dummy_control.NmbZones,)
 
 
 class Model(modeltools.AdHocModel, stateinterfaces.SoilWaterModel_V1):
-    """Model for reading the soil water content from files."""
+    """|dummy_soilwater.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Dummy-SoilWater",
+        description="dummy model supplying main models with soil water states",
+    )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -8,7 +7,6 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
-from hydpy.models.musk import musk_parameters
 
 
 class CatchmentArea(parametertools.Parameter):
@@ -32,11 +30,7 @@ class NmbSegments(parametertools.Parameter):
     |NmbSegments| prepares the shape of most 1-dimensional parameters and sequences
     automatically:
 
-    >>> length.shape
-    (2,)
-    >>> derived.perimeterincrease.shape
-    (2,)
-    >>> factors.referencewaterlevel.shape
+    >>> factors.referencewaterdepth.shape
     (2,)
     >>> fluxes.referencedischarge.shape
     (2,)
@@ -90,7 +84,7 @@ class NmbSegments(parametertools.Parameter):
 
     def __call__(self, *args, **kwargs) -> None:
         self._keywordarguments = parametertools.KeywordArguments(False)
-        idx = self._find_kwargscombination(args, kwargs, (set(("lag",)),))
+        idx = self._find_kwargscombination(args, kwargs, ({"lag"},))
         if idx is None:
             super().__call__(*args, **kwargs)
         else:
@@ -149,11 +143,11 @@ class Coefficients(variabletools.MixinFixedShape, parametertools.Parameter):
     flood wave travels one segment per simulation step without modification of its
     shape:
 
-    >>> from hydpy import print_values
+    >>> from hydpy import print_vector
     >>> coefficients(damp=0.0)
     >>> coefficients
     coefficients(damp=0.0)
-    >>> print_values(coefficients.values)
+    >>> print_vector(coefficients.values)
     0.0, 1.0, 0.0
 
     Negative `damp` values are trimmed to zero:
@@ -170,7 +164,7 @@ class Coefficients(variabletools.MixinFixedShape, parametertools.Parameter):
     >>> coefficients(damp=1.0)
     >>> coefficients
     coefficients(damp=1.0)
-    >>> print_values(coefficients.values)
+    >>> print_vector(coefficients.values)
     0.5, 0.0, 0.5
 
     Higher values are allowed but result in highly skewed responses that are usually
@@ -179,7 +173,7 @@ class Coefficients(variabletools.MixinFixedShape, parametertools.Parameter):
     >>> coefficients(damp=3.0)
     >>> coefficients
     coefficients(damp=3.0)
-    >>> print_values(coefficients.values)
+    >>> print_vector(coefficients.values)
     0.75, -0.5, 0.75
 
     The third option follows the original Muskingum method :cite:p:`ref-McCarthy1940`
@@ -202,7 +196,7 @@ class Coefficients(variabletools.MixinFixedShape, parametertools.Parameter):
     >>> coefficients(k=0.0, x=0.0)
     >>> coefficients
     coefficients(k=0.0, x=0.0)
-    >>> print_values(coefficients.values)
+    >>> print_vector(coefficients.values)
     1.0, 1.0, -1.0
 
     Negative `k` values are trimmed:
@@ -213,7 +207,7 @@ class Coefficients(variabletools.MixinFixedShape, parametertools.Parameter):
 with value `-1.0` needed to be trimmed to `0.0`.
     >>> coefficients
     coefficients(k=0.0, x=0.0)
-    >>> print_values(coefficients.values)
+    >>> print_vector(coefficients.values)
     1.0, 1.0, -1.0
 
     The usual lowest value for `x` is zero:
@@ -221,7 +215,7 @@ with value `-1.0` needed to be trimmed to `0.0`.
     >>> coefficients(k=0.5, x=0.0)
     >>> coefficients
     coefficients(k=0.5, x=0.0)
-    >>> print_values(coefficients.values)
+    >>> print_vector(coefficients.values)
     0.333333, 0.333333, 0.333333
 
     However, negative `x` values do not always result in problematic wave
@@ -230,7 +224,7 @@ with value `-1.0` needed to be trimmed to `0.0`.
     >>> coefficients(k=0.5, x=-1.0)
     >>> coefficients
     coefficients(k=0.5, x=-1.0)
-    >>> print_values(coefficients.values)
+    >>> print_vector(coefficients.values)
     0.6, -0.2, 0.6
 
     As mentioned above, the value of `k` depends on the current parameter step size:
@@ -253,7 +247,7 @@ with value `-1.0` needed to be trimmed to `0.0`.
 with value `1.0` needed to be trimmed to `0.5`.
     >>> coefficients
     coefficients(k=0.5, x=0.5)
-    >>> print_values(coefficients.values)
+    >>> print_vector(coefficients.values)
     0.0, 1.0, 0.0
 
     >>> with warn_later():
@@ -262,7 +256,7 @@ with value `1.0` needed to be trimmed to `0.5`.
 with value `1.0` needed to be trimmed to `0.25`.
     >>> coefficients
     coefficients(k=1.0, x=0.25)
-    >>> print_values(coefficients.values)
+    >>> print_vector(coefficients.values)
     0.0, 0.5, 0.5
 
     >>> with warn_later():
@@ -271,7 +265,7 @@ with value `1.0` needed to be trimmed to `0.25`.
 with value `1.0` needed to be trimmed to `0.0`.
     >>> coefficients
     coefficients(k=0.25, x=0.0)
-    >>> print_values(coefficients.values)
+    >>> print_vector(coefficients.values)
     0.5, 0.5, 0.0
     """
 
@@ -285,9 +279,7 @@ with value `1.0` needed to be trimmed to `0.0`.
 
     def __call__(self, *args, **kwargs) -> None:
         self._keywordarguments = parametertools.KeywordArguments(False)
-        idx = self._find_kwargscombination(
-            args, kwargs, (set(("damp",)), set(("k", "x")))
-        )
+        idx = self._find_kwargscombination(args, kwargs, ({"damp"}, {"k", "x"}))
         if idx is None:
             super().__call__(*args, **kwargs)
         elif idx == 0:
@@ -322,42 +314,15 @@ with value `1.0` needed to be trimmed to `0.0`.
 
 
 class Length(parametertools.Parameter):
-    """Segment length [km]."""
+    """The total length of channel [km]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
 
-class BottomSlope(musk_parameters.Parameter1D):
+class BottomSlope(parametertools.Parameter):
     r"""Bottom slope [-].
 
     :math:`BottomSlope = \frac{elevation_{start} - elevation_{end}}{Length}`
     """
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
-
-
-class BottomWidth(musk_parameters.Parameter1D):
-    """Bottom width [m]."""
-
-    TYPE, TIME, SPAN = float, None, (0.0, None)
-
-
-class SideSlope(musk_parameters.Parameter1D):
-    """Side slope [-].
-
-    A value of zero corresponds to a rectangular channel shape.  A value of two
-    corresponds to an increase of a half meter elevation for each additional meter
-    distance from the channel.
-    """
-
-    TYPE, TIME, SPAN = float, None, (0.0, None)
-
-
-class StricklerCoefficient(musk_parameters.Parameter1D):
-    """Gauckler-Manning-Strickler coefficient [m^(1/3)/s].
-
-    The higher the coefficient's value, the higher the calculated discharge.  Typical
-    values range from 20 to 80.
-    """
-
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)

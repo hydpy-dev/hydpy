@@ -17,30 +17,37 @@ def print_(*message: str) -> None:
     sys.stdout.flush()
 
 
-actual_branch = os.environ["TRAVIS_BRANCH"]
-with open("relevant_branches.txt", encoding="utf-8") as file_:
-    lines = file_.readlines()[1:]
+def main() -> None:
+    """Push when appropriate."""
 
-token = os.environ["GH_TOKEN"]
-repo = os.environ["TRAVIS_REPO_SLUG"]
-remote = f"https://{token}@github.com/{repo}.git"
-for line in lines:
-    try:
-        branch = line.split()[0]
-    except IndexError:
-        continue
-    if branch == actual_branch:
-        print_("Push to GitHub-Pages:")
-        ghp_import.ghp_import(
-            srcdir="result",
-            remote=remote,
-            branch="gh-pages",
-            mesg="update documentation",
-            push=True,
-            prefix=None,
-            force=True,
-            nojekyll=True,
-        )
-        break
-else:
+    if (token := os.environ.get("GH_TOKEN")) is not None:
+        repo = os.environ["TRAVIS_REPO_SLUG"]
+        remote = f"https://{token}@github.com/{repo}.git"
+        actual_branch = os.environ["TRAVIS_BRANCH"]
+
+        with open("relevant_branches.txt", encoding="utf-8") as file_:
+            lines = file_.readlines()[1:]
+
+        for line in lines:
+            try:
+                branch = line.split()[0]
+            except IndexError:
+                continue
+            if branch == actual_branch:
+                print_("Push to GitHub-Pages:")
+                ghp_import.ghp_import(
+                    srcdir="result",
+                    remote=remote,
+                    branch="gh-pages",
+                    mesg="update documentation",
+                    push=True,
+                    prefix=None,
+                    force=True,
+                    nojekyll=True,
+                )
+                break
+
     print_("No push to GitHub-Pages.")
+
+
+main()

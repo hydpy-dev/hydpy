@@ -4,24 +4,18 @@
 HydPy-Dummy
 ===========
 
-`HydPy-Dummy` models do not apply any process equations.  Instead, they serve as simple
+HydPy-Dummy models do not apply any process equations.  Instead, they serve as simple
 placeholders which forward their input without modifications.
 
-Base model:
+Available models:
 
 .. toctree::
    :maxdepth: 1
 
    dummy
-
-Application model:
-
-.. toctree::
-   :maxdepth: 1
-
-   Dummy-V1 <dummy_v1>
-   Dummy-Intercepted Water <dummy_interceptedwater>
-   Dummy-Soil Water <dummy_soilwater>
-   Dummy-Snow Cover <dummy_snowcover>
-   Dummy-Snowy Canopy <dummy_snowycanopy>
-   Dummy-Snow Albedo <dummy_snowalbedo>
+   dummy_node2node
+   dummy_interceptedwater
+   dummy_soilwater
+   dummy_snowcover
+   dummy_snowycanopy
+   dummy_snowalbedo

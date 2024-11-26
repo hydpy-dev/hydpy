@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -6,20 +5,14 @@
 from hydpy.models.musk import musk_sequences
 
 
-class ReferenceWaterLevel(musk_sequences.FactorSequence1D):
-    """Reference water level [m]."""
+class ReferenceWaterDepth(musk_sequences.FactorSequence1D):
+    """Reference water depth [m]."""
 
     SPAN = (0.0, None)
 
 
 class WettedArea(musk_sequences.FactorSequence1D):
     """Wetted area [m²]."""
-
-    SPAN = (0.0, None)
-
-
-class WettedPerimeter(musk_sequences.FactorSequence1D):
-    """Wetted perimeter [m]."""
 
     SPAN = (0.0, None)
 

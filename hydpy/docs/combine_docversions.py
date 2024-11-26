@@ -68,18 +68,19 @@ else:
     raise RuntimeError("Cannot find Sphinx's build path.")
 shutil.move(buildpath, actual_version)
 
-token = os.environ["GH_TOKEN"]
-repo = os.environ["TRAVIS_REPO_SLUG"]
-remote = f"https://{token}@github.com/{repo}.git"
-
 print_("Update and squash the remote `available_doc_versions` branch:")
 call(f"git add {actual_version}")
 call(f'git commit -m "update branch {actual_branch}"')
 call("git checkout 57c347f3c01818777aeea4e71c4f5bb884e48216 -b temp")
 call("git merge --squash available_doc_versions")
 call('git commit -m "update docs"')
-call(f"git push {remote} temp:available_doc_versions -f")
 
+if (token := os.environ.get("GH_TOKEN")) is None:
+    print_("Not authorised to push to branch `available_doc_versions`")
+else:
+    repo = os.environ["TRAVIS_REPO_SLUG"]
+    remote = f"https://{token}@github.com/{repo}.git"
+    call(f"git push {remote} temp:available_doc_versions -f")
 
 print_("Move everything relevant to the final results folder:")
 os.makedirs("result")

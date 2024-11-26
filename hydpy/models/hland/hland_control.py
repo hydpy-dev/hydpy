@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 .. _`issue 67`: https://github.com/hydpy-dev/hydpy/issues/67
 """
+
 # import...
 # from standard library
 from __future__ import annotations
@@ -12,6 +12,7 @@ import warnings
 import numpy
 
 # ...from HydPy
+from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
@@ -188,8 +189,9 @@ class ZoneType(parametertools.NameParameter):
     >>> parameterstep("1d")
     >>> nmbzones(6)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, FIELD)
-    >>> zonetype.values
-    array([1, 2, 3, 4, 4, 1])
+    >>> from hydpy import print_vector
+    >>> print_vector(zonetype.values)
+    1, 2, 3, 4, 4, 1
     >>> zonetype
     zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, FIELD)
     """
@@ -202,7 +204,7 @@ class ZoneArea(hland_parameters.ParameterComplete):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |ZoneArea| so that :math:`\Sigma ZoneArea = Area` holds and each zone
         area is non-negative.
 
@@ -251,7 +253,7 @@ class ZoneArea(hland_parameters.ParameterComplete):
             lower = areas
         if upper is None:
             upper = areas
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class Psi(parametertools.Parameter):
@@ -345,12 +347,12 @@ class SFDist(parametertools.Parameter):
     cases of one to five snow classes, and prints the respective snow class-specific
     factors:
 
-    >>> from hydpy import print_values
+    >>> from hydpy import print_vector
     >>> def test(**kwargs):
     ...     for nmb in range(1, 6):
     ...         sclass(nmb)
     ...         sfdist(**kwargs)
-    ...         print_values(sfdist.values)
+    ...         print_vector(sfdist.values)
 
     The first available keyword is `linear`.  Using it, |SFDist| calculates its factors
     in agreement with the original *HBV96* implementation.  For the lowest possible
@@ -450,9 +452,7 @@ arguments are given, which is ambiguous.
 
     def __call__(self, *args, **kwargs) -> None:
         sclass = self.shape[0]
-        idx = self._find_kwargscombination(
-            args, kwargs, (set(("linear",)), set(("lognormal",)))
-        )
+        idx = self._find_kwargscombination(args, kwargs, ({"linear"}, {"lognormal"}))
         if idx is None:
             super().__call__(*args, **kwargs)
         elif idx == 0:
@@ -462,7 +462,7 @@ arguments are given, which is ambiguous.
         self.value /= sum(self.value) / sclass
 
     @staticmethod
-    @functools.lru_cache()
+    @functools.lru_cache
     def _linear(factor, sclass):
         if sclass == 1:
             values = (1.0,)
@@ -473,9 +473,9 @@ arguments are given, which is ambiguous.
         return values
 
     @staticmethod
-    @functools.lru_cache()
+    @functools.lru_cache
     def _lognormal(sclass, scale: float) -> VectorFloat:
-        values = numpy.ones(sclass, dtype=float)
+        values = numpy.ones(sclass, dtype=config.NP_FLOAT)
         if scale > 0.0:
             for idx in range(sclass):
                 values[idx] = integrate.quad(
@@ -884,7 +884,7 @@ arguments are given, which is ambiguous.
         types_ = self.subpars.zonetype.value
         zonez = self.subpars.zonez.value
         zonez_sorted = numpy.sort(numpy.unique(zonez))[::-1]
-        values = numpy.zeros((nmbzones, nmbzones), dtype=float)
+        values = numpy.zeros((nmbzones, nmbzones), dtype=config.NP_FLOAT)
         zonez_min = numpy.min(zonez)
         for idx, (z_upper, type_, nzone) in enumerate(zip(zonez, types_, nzones)):
             if (type_ != ILAKE) and (z_upper > zonez_min):
@@ -1302,7 +1302,7 @@ class K0(hland_parameters.ParameterUpperZone):
     # defined at the bottom of the file:
     CONTROLPARAMETERS: tuple[type[K1]]
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |K0| following :math:`K^* \leq K0 \leq K1` with
         :math:`K^* = -1/ln \left( 1 - e^{-1 / k1} \right)`.
 
@@ -1326,7 +1326,7 @@ class K0(hland_parameters.ParameterUpperZone):
                 lower = 0.0
         if upper is None:
             upper = exceptiontools.getattr_(self.subpars.k1, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class H1(hland_parameters.ParameterUpperZone):
@@ -1357,7 +1357,7 @@ class K1(hland_parameters.ParameterUpperZone):
     CONTROLPARAMETERS: tuple[type[K0], type[K2]]
     FIXEDPARAMETERS = (hland_fixed.K1L,)
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |K1| following :math:`max (K0, K^*) \leq K1 \leq K2` with
         :math:`K^* = max \left( -1/ln \left( 1 - e^{-1 / k0} \right), K1L \right)`.
 
@@ -1394,7 +1394,7 @@ class K1(hland_parameters.ParameterUpperZone):
                 lower[numpy.isnan(lower)] = k1l
         if upper is None:
             upper = exceptiontools.getattr_(self.subpars.k2, "values", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class SG1Max(hland_parameters.ParameterUpperZone):
@@ -1438,7 +1438,7 @@ class K2(hland_parameters.ParameterUpperZone):
     CONTROLPARAMETERS: tuple[type[K1], type[K3]]
     FIXEDPARAMETERS = (hland_fixed.K1L,)
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |K2| following :math:`max(K1, K1L) \leq K2 \leq K3`.
 
         >>> from hydpy.models.hland import *
@@ -1467,7 +1467,7 @@ class K2(hland_parameters.ParameterUpperZone):
                 lower = numpy.clip(lower, k1l, numpy.inf)
         if upper is None:
             upper = exceptiontools.getattr_(self.subpars.k3, "value", None)
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class K3(parametertools.Parameter):
@@ -1478,7 +1478,7 @@ class K3(parametertools.Parameter):
     CONTROLPARAMETERS = (K2,)
     FIXEDPARAMETERS = (hland_fixed.K1L,)
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |K3| in accordance with :math:`max(K2, K1L) \leq K3`.
 
         >>> from hydpy.models.hland import *
@@ -1510,7 +1510,7 @@ class K3(parametertools.Parameter):
             else:
                 if not k1l < lower:
                     lower = k1l
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class Gamma(parametertools.Parameter):
@@ -1523,26 +1523,6 @@ class MaxBaz(parametertools.Parameter):
     """Base length of the triangle unit hydrograph [T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
-
-
-class NmbStorages(parametertools.Parameter):
-    """Number of storages of the linear storage cascade [-].
-
-    Defining a value for parameter |NmbStorages| automatically sets the shape of state
-    sequence |SC|:
-
-    >>> from hydpy.models.hland import *
-    >>> parameterstep()
-    >>> nmbstorages(5)
-    >>> states.sc.shape
-    (5,)
-    """
-
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
-
-    def __call__(self, *args, **kwargs) -> None:
-        super().__call__(*args, **kwargs)
-        self.subpars.pars.model.sequences.states.sc.shape = self.value
 
 
 K0.CONTROLPARAMETERS = (K1,)

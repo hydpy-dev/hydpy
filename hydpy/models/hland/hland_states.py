@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -28,7 +27,7 @@ class SP(hland_sequences.State2DSequence):
 
     CONTROLPARAMETERS = (hland_control.WHC,)
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |SP| following :math:`WC \leq WHC \cdot SP`.
 
         >>> from hydpy.models.hland import *
@@ -64,7 +63,7 @@ class SP(hland_sequences.State2DSequence):
             with numpy.errstate(divide="ignore", invalid="ignore"):
                 lower = numpy.clip(wc_values / whc.values, 0.0, numpy.inf)
                 lower[:, whc.values == 0.0] = 0.0
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class WC(hland_sequences.State2DSequence):
@@ -75,7 +74,7 @@ class WC(hland_sequences.State2DSequence):
 
     CONTROLPARAMETERS = (hland_control.WHC,)
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         """Trim |WC| following :math:`WC \\leq WHC \\cdot SP`.
 
         >>> from hydpy.models.hland import *
@@ -95,7 +94,7 @@ class WC(hland_sequences.State2DSequence):
         sp = self.subseqs.sp
         if upper is None:
             upper = whc * sp
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class SM(hland_sequences.State1DSequence):
@@ -110,7 +109,7 @@ class SM(hland_sequences.State1DSequence):
 
     CONTROLPARAMETERS = (hland_control.FC,)
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |SM| following :math:`0 \leq SM \leq FC`.
 
         >>> from hydpy.models.hland import *
@@ -123,7 +122,7 @@ class SM(hland_sequences.State1DSequence):
         """
         if upper is None:
             upper = self.subseqs.seqs.model.parameters.control.fc
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class UZ(sequencetools.StateSequence):
@@ -169,7 +168,7 @@ class LZ(sequencetools.StateSequence):
 
     CONTROLPARAMETERS = (hland_control.ZoneType,)
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         """Trim negative values if the actual subbasin does not contain an internal
         lake.
 
@@ -192,7 +191,7 @@ class LZ(sequencetools.StateSequence):
             control = self.subseqs.seqs.model.parameters.control
             if not any(control.zonetype.values == ILAKE):
                 lower = 0.0
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class SG1(hland_sequences.State1DSequence):
@@ -203,7 +202,7 @@ class SG1(hland_sequences.State1DSequence):
     CONTROLPARAMETERS = (hland_control.SG1Max,)
     mask = hland_masks.UpperZone()
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |SG1| following :math:`0  \leq SG1 \leq SG1Max`.
 
         >>> from hydpy.models.hland import *
@@ -216,7 +215,7 @@ class SG1(hland_sequences.State1DSequence):
         """
         if upper is None:
             upper = self.subseqs.seqs.model.parameters.control.sg1max
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class SG2(sequencetools.StateSequence):

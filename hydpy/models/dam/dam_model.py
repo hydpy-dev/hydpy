@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # imports...
@@ -130,7 +129,7 @@ class Calc_PotentialEvaporation_V1(modeltools.Method):
         the available submodel:
 
         >>> surfacearea(2.0)
-        >>> with model.add_pemodel_v1("evap_io"):
+        >>> with model.add_pemodel_v1("evap_ret_io"):
         ...     evapotranspirationfactor(1.1)
         ...     inputs.referenceevapotranspiration = 3.0
         >>> model.calc_potentialevaporation_v1()
@@ -1133,9 +1132,10 @@ class Calc_RemoteDemand_V1(modeltools.Method):
         Low water elevation is often restricted to specific months of the year.
         Sometimes the pursued lowest discharge value varies over the year to allow for
         a low flow variability in some agreement with the natural flow regime.  The
-        HydPy-Dam model supports such variations.  Hence we define a short simulation
-        period first, allowing us to show how we can define the corresponding parameter
-        values and how calculating the `remote` water demand throughout the year works:
+        |dam.DOCNAME.long| model supports such variations.  Hence we define a short
+        simulation period first, allowing us to show how we can define the
+        corresponding parameter values and how calculating the `remote` water demand
+        throughout the year works:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2001.03.30", "2001.04.03", "1d"
@@ -2447,11 +2447,11 @@ class Calc_ActualRelease_V3(modeltools.Method):
 
     Examples:
 
-        Method |Calc_ActualRelease_V3| is quite complex.  As it is the key
-        component of application model |dam_v008|, we advise to read its
-        documentation including some introductory examples first, and to
-        inspect the following detailled examples afterwards, which hopefully
-        cover all of the mentioned corner cases.
+        Method |Calc_ActualRelease_V3| is quite complex.  As it is the key component of
+        application model |dam_lreservoir|, we advise to read its documentation
+        including some introductory examples first, and to inspect the following
+        detailled examples afterwards, which hopefully cover all of the mentioned
+        corner cases.
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2001-03-30", "2001-04-03", "1d"
@@ -4825,7 +4825,10 @@ class Update_LoggedOutflow_V1(modeltools.Method):
 
 
 class Model(modeltools.ELSModel):
-    """Dam base model."""
+    """|dam.DOCNAME.complete|"""
+
+    DOCNAME = modeltools.DocName(short="Dam")
+    __HYDPY_ROOTMODEL__ = None
 
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,
@@ -4927,7 +4930,7 @@ class Model(modeltools.ELSModel):
 
 
 class Main_PrecipModel_V2(modeltools.ELSModel):
-    """Base class for HydPy-Dam models that use submodels that comply with the
+    """Base class for |dam.DOCNAME.long| models that use submodels that comply with the
     |PrecipModel_V2| interface."""
 
     precipmodel: modeltools.SubmodelProperty
@@ -4968,7 +4971,7 @@ class Main_PrecipModel_V2(modeltools.ELSModel):
 
 
 class Main_PEModel_V1(modeltools.ELSModel):
-    """Base class for HydPy-Dam models that use submodels that comply with the
+    """Base class for |dam.DOCNAME.long| models that use submodels that comply with the
     |PETModel_V1| interface."""
 
     pemodel: modeltools.SubmodelProperty
@@ -4993,7 +4996,7 @@ class Main_PEModel_V1(modeltools.ELSModel):
         >>> from hydpy.models.dam_v001 import *
         >>> parameterstep()
         >>> surfacearea(2.0)
-        >>> with model.add_pemodel_v1("evap_tw2002"):
+        >>> with model.add_pemodel_v1("evap_ret_tw2002"):
         ...     nmbhru
         ...     hruarea
         ...     evapotranspirationfactor(1.5)

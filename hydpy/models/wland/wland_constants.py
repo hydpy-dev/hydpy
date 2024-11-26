@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
-"""*HydPy-W-Land* provides two types of constants: those associated with the average
-soil character of a sub-catchment and those associated with the land-use type of the
-different hydrological response units of a sub-catchment.  They are all available via
-wildcard-imports:
+"""|wland.DOCNAME.long| provides two types of constants: those associated with the
+average soil character of a sub-catchment and those associated with the land-use type
+of the different hydrological response units of a sub-catchment.  They are all
+available via wildcard-imports:
 
 >>> from hydpy.models.wland import *
 >>> (SAND, LOAMY_SAND, SANDY_LOAM, SILT_LOAM, LOAM, SANDY_CLAY_LOAM,
@@ -67,15 +66,15 @@ WATER = parametertools.IntConstant(23)
 
 
 CONSTANTS = parametertools.Constants()
-"""All constants defined by *HydPy-W-Land*."""
+"""All constants defined by |wland.DOCNAME.long|."""
 SOIL_CONSTANTS = parametertools.Constants(
     **{key: value for key, value in CONSTANTS.items() if value <= CLAY}
 )
-"""All soil character constants of *HydPy-W-Land*."""
+"""All soil character constants of |wland.DOCNAME.long|."""
 LANDUSE_CONSTANTS = parametertools.Constants(
     **{key: value for key, value in CONSTANTS.items() if value >= SEALED}
 )
-"""All landuse type constants of *HydPy-W-Land*."""
+"""All landuse type constants of |wland.DOCNAME.long|."""
 
 __all__ = [
     "SAND",

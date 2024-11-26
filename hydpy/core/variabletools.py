@@ -1,10 +1,10 @@
-# -*- coding: utf-8 -*-
 """This module implements general features for defining and working with model
 parameters and sequences.
 
 Features more specific to either parameters or sequences are implemented in modules
 |parametertools| and |sequencetools|, respectively.
 """
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -20,6 +20,7 @@ import numpy
 
 # ...from HydPy
 import hydpy
+from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import masktools
 from hydpy.core import objecttools
@@ -52,8 +53,10 @@ integer values."""
 TYPE2MISSINGVALUE = {float: numpy.nan, int: INT_NAN, bool: False}
 
 
-def trim(self: Variable, lower=None, upper=None) -> None:
+def trim(self: Variable, lower=None, upper=None) -> bool:
     """Trim the value(s) of a |Variable| instance.
+
+    The returned boolean indicates whether at least one value has been trimmed.
 
     Usually, users do not need to apply the |trim| function directly. Instead, some
     |Variable| subclasses implement their own `trim` methods relying on function |trim|.
@@ -87,23 +90,22 @@ def trim(self: Variable, lower=None, upper=None) -> None:
 
     >>> var = Var(None)
     >>> var.value = 2.0
-    >>> var.trim()
+    >>> assert var.trim() is False
     >>> var
     var(2.0)
 
     >>> var.value = 0.0
-    >>> var.trim()
-    Traceback (most recent call last):
-    ...
+    >>> from hydpy.core.testtools import warn_later
+    >>> with warn_later():
+    ...     assert var.trim() is True
     UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
 and the new value(s) are `0.0` and `1.0`, respectively.
     >>> var
     var(1.0)
 
     >>> var.value = 4.0
-    >>> var.trim()
-    Traceback (most recent call last):
-    ...
+    >>> with warn_later():
+    ...     assert var.trim() is True
     UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
 and the new value(s) are `4.0` and `3.0`, respectively.
     >>> var
@@ -117,29 +119,27 @@ and the new value(s) are `4.0` and `3.0`, respectively.
     >>> var.value = 1.0 - 1e-15
     >>> var == 1.0
     False
-    >>> trim(var)
+    >>> assert trim(var) is False
     >>> var == 1.0
     True
 
     >>> var.value = 3.0 + 1e-15
     >>> var == 3.0
     False
-    >>> var.trim()
+    >>> assert var.trim() is False
     >>> var == 3.0
     True
 
     Use arguments `lower` and `upper` to override the (eventually) available `SPAN`
     entries:
 
-    >>> var.trim(lower=4.0)
-    Traceback (most recent call last):
-    ...
+    >>> with warn_later():
+    ...     assert var.trim(lower=4.0) is True
     UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
 and the new value(s) are `3.0` and `4.0`, respectively.
 
-    >>> var.trim(upper=3.0)
-    Traceback (most recent call last):
-    ...
+    >>> with warn_later():
+    ...     assert var.trim(lower=3.0) is True
     UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
 and the new value(s) are `4.0` and `3.0`, respectively.
 
@@ -148,23 +148,24 @@ and the new value(s) are `4.0` and `3.0`, respectively.
 
     >>> import numpy
     >>> var.value = 0.0
-    >>> var.trim(lower=numpy.nan)
+    >>> assert var.trim(lower=numpy.nan) is False
     >>> var.value = 5.0
-    >>> var.trim(upper=numpy.nan)
+    >>> assert var.trim(upper=numpy.nan) is False
 
     You can disable function |trim| via option |Options.trimvariables|:
 
     >>> with pub.options.trimvariables(False):
     ...     var.value = 5.0
-    ...     var.trim()
+    ...     assert var.trim() is False
     >>> var
     var(5.0)
 
-    Alternatively, you can omit the warning messages only:
+    Alternatively, you can omit the warning messages only without modifying the return
+    value:
 
     >>> with pub.options.warntrim(False):
     ...     var.value = 5.0
-    ...     var.trim()
+    ...     assert var.trim() is True
     >>> var
     var(3.0)
 
@@ -173,12 +174,12 @@ and the new value(s) are `4.0` and `3.0`, respectively.
 
     >>> del Var.SPAN
     >>> var.value = 5.0
-    >>> var.trim()
+    >>> assert var.trim() is False
     >>> var
     var(5.0)
 
     >>> Var.SPAN = (None, None)
-    >>> var.trim()
+    >>> assert var.trim() is False
     >>> var
     var(5.0)
 
@@ -189,48 +190,45 @@ and the new value(s) are `4.0` and `3.0`, respectively.
     >>> Var.NDIM = 2
     >>> var.shape = 1, 3
     >>> var.values = 2.0
-    >>> var.trim()
+    >>> assert var.trim() is False
 
     >>> var.values = 0.0, 1.0, 2.0
-    >>> var.trim()
-    Traceback (most recent call last):
-    ...
+    >>> with warn_later():
+    ...     assert var.trim() is True
     UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
 and the new value(s) are `0.0, 1.0, 2.0` and `1.0, 1.0, 2.0`, respectively.
     >>> var
     var(1.0, 1.0, 2.0)
 
     >>> var.values = 2.0, 3.0, 4.0
-    >>> var.trim()
-    Traceback (most recent call last):
-    ...
+    >>> with warn_later():
+    ...     assert var.trim() is True
     UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
 and the new value(s) are `2.0, 3.0, 4.0` and `2.0, 3.0, 3.0`, respectively.
     >>> var
     var(2.0, 3.0, 3.0)
 
+    >>> from hydpy import print_matrix
     >>> var.values = 1.0-1e-15, 2.0, 3.0+1e-15
-    >>> var.values == (1.0, 2.0, 3.0)
-    array([[False,  True, False]])
-    >>> var.trim()
-    >>> var.values == (1.0, 2.0, 3.0)
-    array([[ True,  True,  True]])
+    >>> print_matrix(var.values == (1.0, 2.0, 3.0))
+    | False, True, False |
+    >>> assert var.trim() is False
+    >>> print_matrix(var.values == (1.0, 2.0, 3.0))
+    | True, True, True |
 
     >>> var.values = 0.0, 2.0, 4.0
-    >>> var.trim(lower=numpy.nan, upper=numpy.nan)
+    >>> assert var.trim(lower=numpy.nan, upper=numpy.nan) is False
     >>> var
     var(0.0, 2.0, 4.0)
 
-    >>> var.trim(lower=[numpy.nan, 3.0, 3.0])
-    Traceback (most recent call last):
-    ...
+    >>> with warn_later():
+    ...     assert var.trim(lower=[numpy.nan, 3.0, 3.0]) is True
     UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
 and the new value(s) are `0.0, 2.0, 4.0` and `0.0, 3.0, 3.0`, respectively.
 
     >>> var.values = 0.0, 2.0, 4.0
-    >>> var.trim(upper=[numpy.nan, 1.0, numpy.nan])
-    Traceback (most recent call last):
-    ...
+    >>> with warn_later():
+    ...     assert var.trim(upper=[numpy.nan, 1.0, numpy.nan]) is True
     UserWarning: For variable `var` at least one value needed to be trimmed.  The old \
 and the new value(s) are `0.0, 2.0, 4.0` and `1.0, 1.0, 4.0`, respectively.
 
@@ -246,7 +244,7 @@ and the new value(s) are `0.0, 2.0, 4.0` and `1.0, 1.0, 4.0`, respectively.
     >>> Var.SPAN = 1, 3
 
     >>> var.value = 2
-    >>> var.trim()
+    >>> assert var.trim() is False
     >>> var
     var(2)
 
@@ -267,12 +265,12 @@ and the new value(s) are `0.0, 2.0, 4.0` and `1.0, 1.0, 4.0`, respectively.
 
     >>> from hydpy import INT_NAN
     >>> var.value = 0
-    >>> var.trim(lower=0)
-    >>> var.trim(lower=INT_NAN)
+    >>> assert var.trim(lower=0) is False
+    >>> assert var.trim(lower=INT_NAN) is False
 
     >>> var.value = 4
-    >>> var.trim(upper=4)
-    >>> var.trim(upper=INT_NAN)
+    >>> assert var.trim(upper=4) is False
+    >>> assert var.trim(upper=INT_NAN) is False
 
     >>> Var.SPAN = 1, None
     >>> var.value = 0
@@ -285,7 +283,7 @@ and the new value(s) are `0.0, 2.0, 4.0` and `1.0, 1.0, 4.0`, respectively.
 
     >>> Var.SPAN = None, 3
     >>> var.value = 0
-    >>> var.trim()
+    >>> assert var.trim() is False
     >>> var.value = 4
     >>> var.trim()
     Traceback (most recent call last):
@@ -294,15 +292,15 @@ and the new value(s) are `0.0, 2.0, 4.0` and `1.0, 1.0, 4.0`, respectively.
 
     >>> del Var.SPAN
     >>> var.value = 0
-    >>> var.trim()
+    >>> assert var.trim() is False
     >>> var.value = 4
-    >>> var.trim()
+    >>> assert var.trim() is False
 
     >>> Var.SPAN = 1, 3
     >>> Var.NDIM = 2
     >>> var.shape = (1, 3)
     >>> var.values = 2
-    >>> var.trim()
+    >>> assert var.trim() is False
 
     >>> var.values = 0, 1, 2
     >>> var.trim()
@@ -321,16 +319,16 @@ and the new value(s) are `0.0, 2.0, 4.0` and `1.0, 1.0, 4.0`, respectively.
 
 
     >>> var.values = 0, 0, 2
-    >>> var.trim(lower=[0, INT_NAN, 2])
+    >>> assert var.trim(lower=[0, INT_NAN, 2]) is False
 
     >>> var.values = 2, 4, 4
-    >>> var.trim(upper=[2, INT_NAN, 4])
+    >>> assert var.trim(upper=[2, INT_NAN, 4]) is False
 
     For |bool| values, defining outliers does not make much sense, which is why
     function |trim| does nothing when applied to variables handling |bool| values:
 
     >>> Var.TYPE = bool
-    >>> var.trim()
+    >>> assert var.trim() is False
 
     If function |trim| encounters an unmanageable type, it raises an exception like the
     following:
@@ -353,27 +351,25 @@ is `str`.
         type_ = getattr(self, "TYPE", float)
         if type_ is float:
             if self.NDIM == 0:
-                _trim_float_0d(self, lower, upper)
-            else:
-                _trim_float_nd(self, lower, upper)
-        elif type_ is int:
+                return _trim_float_0d(self, lower, upper)
+            return _trim_float_nd(self, lower, upper)
+        if type_ is int:
             if self.NDIM == 0:
-                _trim_int_0d(self, lower, upper)
-            else:
-                _trim_int_nd(self, lower, upper)
-        elif type_ is bool:
-            pass
-        else:
-            raise NotImplementedError(
-                f"Method `trim` can only be applied on parameters handling "
-                f'floating-point, integer, or boolean values, but the "value type" of '
-                f"parameter `{self.name}` is `{self.TYPE.__name__}`."
-            )
+                return _trim_int_0d(self, lower, upper)
+            return _trim_int_nd(self, lower, upper)
+        if type_ is bool:
+            return False
+        raise NotImplementedError(
+            f"Method `trim` can only be applied on parameters handling "
+            f'floating-point, integer, or boolean values, but the "value type" of '
+            f"parameter `{self.name}` is `{self.TYPE.__name__}`."
+        )
+    return False
 
 
-def _trim_float_0d(self, lower, upper):
+def _trim_float_0d(self, lower, upper) -> bool:
     if numpy.isnan(self.value):
-        return
+        return False
     if (lower is None) or numpy.isnan(lower):
         lower = -numpy.inf
     if (upper is None) or numpy.isnan(upper):
@@ -383,38 +379,45 @@ def _trim_float_0d(self, lower, upper):
         self.value = lower
         if (old + get_tolerance(old)) < (lower - get_tolerance(lower)):
             _warn_trim(self, oldvalue=old, newvalue=lower)
+            return True
     elif self > upper:
         old = self.value
         self.value = upper
         if (old - get_tolerance(old)) > (upper + get_tolerance(upper)):
             _warn_trim(self, oldvalue=old, newvalue=upper)
+            return True
+    return False
 
 
-def _trim_float_nd(self, lower, upper):
+def _trim_float_nd(self, lower, upper) -> bool:
     values = self.values
     shape = values.shape
     if lower is None:
         lower = -numpy.inf
-    lower = numpy.full(shape, lower, dtype=float)
+    lower = numpy.full(shape, lower, dtype=config.NP_FLOAT)
     lower[numpy.where(numpy.isnan(lower))] = -numpy.inf
     if upper is None:
         upper = numpy.inf
-    upper = numpy.full(shape, upper, dtype=float)
+    upper = numpy.full(shape, upper, dtype=config.NP_FLOAT)
     upper[numpy.where(numpy.isnan(upper))] = numpy.inf
     idxs = numpy.isnan(values)
-    values[idxs] = lower[idxs]
-    if numpy.any(values < lower) or numpy.any(values > upper):
-        old = values.copy()
-        trimmed = numpy.clip(values, lower, upper)
-        values[:] = trimmed
-        if numpy.any(
-            (old + get_tolerance(old)) < (lower - get_tolerance(lower))
-        ) or numpy.any((old - get_tolerance(old)) > (upper + get_tolerance(upper))):
-            _warn_trim(self, oldvalue=old, newvalue=trimmed)
-    values[idxs] = numpy.nan
+    try:
+        values[idxs] = lower[idxs]
+        if numpy.any(values < lower) or numpy.any(values > upper):
+            old = values.copy()
+            trimmed = numpy.clip(values, lower, upper)
+            values[:] = trimmed
+            if numpy.any(
+                (old + get_tolerance(old)) < (lower - get_tolerance(lower))
+            ) or numpy.any((old - get_tolerance(old)) > (upper + get_tolerance(upper))):
+                _warn_trim(self, oldvalue=old, newvalue=trimmed)
+                return True
+        return False
+    finally:
+        values[idxs] = numpy.nan
 
 
-def _trim_int_0d(self, lower, upper):
+def _trim_int_0d(self, lower, upper) -> bool:
     if lower is None:
         lower = INT_NAN
     if (upper is None) or (upper == INT_NAN):
@@ -424,24 +427,28 @@ def _trim_int_0d(self, lower, upper):
             f"The value `{self.value}` of parameter "
             f"{objecttools.elementphrase(self)} is not valid."
         )
+    return False
 
 
-def _trim_int_nd(self, lower, upper):
+def _trim_int_nd(self, lower, upper) -> bool:
     if lower is None:
         lower = INT_NAN
-    lower = numpy.full(self.shape, lower, dtype=int)
+    lower = numpy.full(self.shape, lower, dtype=config.NP_INT)
     if upper is None:
         upper = -INT_NAN
-    upper = numpy.full(self.shape, upper, dtype=int)
+    upper = numpy.full(self.shape, upper, dtype=config.NP_INT)
     upper[upper == INT_NAN] = -INT_NAN
     idxs = numpy.where(self.values == INT_NAN)
-    self[idxs] = lower[idxs]
-    if numpy.any(self.values < lower) or numpy.any(self.values > upper):
-        raise ValueError(
-            f"At least one value of parameter "
-            f"{objecttools.elementphrase(self)} is not valid."
-        )
-    self[idxs] = INT_NAN
+    try:
+        self[idxs] = lower[idxs]
+        if numpy.any(self.values < lower) or numpy.any(self.values > upper):
+            raise ValueError(
+                f"At least one value of parameter {objecttools.elementphrase(self)} "
+                f"is not valid."
+            )
+        return False
+    finally:
+        self[idxs] = INT_NAN
 
 
 def get_tolerance(values):
@@ -477,6 +484,27 @@ def _warn_trim(self, oldvalue, newvalue):
             f"`{objecttools.repr_numbers(oldvalue)}` and "
             f"`{objecttools.repr_numbers(newvalue)}`, respectively."
         )
+
+
+def combine_arrays_to_lower_or_upper_bound(
+    *arrays: NDArrayFloat | None, lower: bool
+) -> NDArrayFloat | None:
+    """Helper function for parameter-specific trimming functions that collects all
+    available lower or upper bound values.
+
+    See function |sw1d_control.BottomLowWaterThreshold.trim| of class
+    |sw1d_control.BottomLowWaterThreshold| for an example.
+    """
+    result: NDArrayFloat | None = None
+    for array in arrays:
+        if (array is not None) and (array.ndim > 0):
+            if result is None:
+                result = array
+            elif lower:
+                result = numpy.maximum(result, array)
+            else:
+                result = numpy.minimum(result, array)
+    return result
 
 
 class FastAccess:
@@ -548,8 +576,7 @@ class Variable:
     >>> var
     var(2.0)
 
-    In case something went wrong, all math operations return errors
-    like the following:
+    If something goes wrong, all math operations return errors like the following:
 
     >>> var = Var(None)
     >>> var + 1.0
@@ -646,104 +673,108 @@ For variable `var`, no value has been defined so far.
     >>> float(var)
     2.5
     >>> var.value = 1.67
-    >>> round(var, 1)
+    >>> from hydpy import round_
+    >>> round_(var.value, 1)
     1.7
 
     You can apply all the operations discussed above (except |float| and
     |int|) on |Variable| objects of arbitrary dimensionality:
 
+    >>> from hydpy import print_matrix, print_vector
     >>> Var.NDIM = 1
     >>> Var.TYPE = float
     >>> var.shape = (2,)
     >>> var.values = 2.0
-    >>> var + var
-    array([4., 4.])
-    >>> var + 3.0
-    array([5., 5.])
-    >>> [4.0, 0.0] + var
-    array([6., 2.])
+    >>> print_vector(var + var)
+    4.0, 4.0
+    >>> print_vector(var + 3.0)
+    5.0, 5.0
+    >>> print_vector([4.0, 0.0] + var)
+    6.0, 2.0
     >>> var += 1
     >>> var
     var(3.0, 3.0)
 
     >>> var.values = 3.0
-    >>> var - [1.0, 0.0]
-    array([2., 3.])
-    >>> [7.0, 0.0] - var
-    array([ 4., -3.])
+    >>> print_vector(var - [1.0, 0.0])
+    2.0, 3.0
+    >>> print_vector([7.0, 0.0] - var)
+    4.0, -3.0
     >>> var -= [2.0, 0.0]
     >>> var
     var(1.0, 3.0)
 
     >>> var.values = 2.0
-    >>> var * [3.0, 1.0]
-    array([6., 2.])
-    >>> [4.0, 1.0] * var
-    array([8., 2.])
+    >>> print_vector(var * [3.0, 1.0])
+    6.0, 2.0
+    >>> print_vector([4.0, 1.0] * var)
+    8.0, 2.0
     >>> var *= [0.5, 1.0]
     >>> var
     var(1.0, 2.0)
 
     >>> var.values = 3.0
-    >>> var / [2.0, 1.0]
-    array([1.5, 3. ])
-    >>> [7.5, 3.0] / var
-    array([2.5, 1. ])
+    >>> print_vector(var / [2.0, 1.0])
+    1.5, 3.0
+    >>> print_vector([7.5, 3.0] / var)
+    2.5, 1.0
     >>> var /= [6.0, 1.]
     >>> var
     var(0.5, 3.0)
 
     >>> var.values = 3.0
-    >>> var // [2.0, 1.0]
-    array([1., 3.])
-    >>> [7.5, 3.0] // var
-    array([2., 1.])
+    >>> print_vector(var // [2.0, 1.0])
+    1.0, 3.0
+    >>> print_vector([7.5, 3.0] // var)
+    2.0, 1.0
     >>> var //= [0.9, 1.0]
     >>> var
     var(3.0, 3.0)
 
     >>> var.values = 5.0
-    >>> var % [2.0, 5.0]
-    array([1., 0.])
-    >>> [7.5, 5.0] % var
-    array([2.5, 0. ])
+    >>> print_vector(var % [2.0, 5.0])
+    1.0, 0.0
+    >>> print_vector([7.5, 5.0] % var)
+    2.5, 0.0
     >>> var %= [3.0, 5.0]
     >>> var
     var(2.0, 0.0)
 
     >>> var.values = 2.0
-    >>> var**[3.0, 1.0]
-    array([8., 2.])
-    >>> [3.0, 1.0]**var
-    array([9., 1.])
+    >>> print_vector(var**[3.0, 1.0])
+    8.0, 2.0
+    >>> print_vector([3.0, 1.0]**var)
+    9.0, 1.0
     >>> var **= [4.0, 1.0]
     >>> var
     var(16.0, 2.0)
 
     >>> var.value = 5.0
-    >>> divmod(var, [3.0, 5.0])
-    (array([1., 1.]), array([2., 0.]))
-    >>> divmod([13.0, 5.0], var)
-    (array([2., 1.]), array([3., 0.]))
+    >>> print_matrix(divmod(var, [3.0, 5.0]))
+    | 1.0, 1.0 |
+    | 2.0, 0.0 |
+    >>> print_matrix(divmod([13.0, 5.0], var))
+    | 2.0, 1.0 |
+    | 3.0, 0.0 |
 
     >>> var.values = -5.0
-    >>> +var
-    array([-5., -5.])
-    >>> -var
-    array([5., 5.])
-    >>> abs(var)
-    array([5., 5.])
-    >>> ~var
-    array([-0.2, -0.2])
+    >>> print_vector(+var)
+    -5.0, -5.0
+    >>> print_vector(-var)
+    5.0, 5.0
+    >>> print_vector(abs(var))
+    5.0, 5.0
+    >>> print_vector(~var)
+    -0.2, -0.2
     >>> var.value = 2.5
     >>> import math
-    >>> math.floor(var)
-    array([2, 2])
-    >>> math.ceil(var)
-    array([3, 3])
+    >>> print_vector(math.floor(var))
+    2, 2
+    >>> print_vector(math.ceil(var))
+    3, 3
     >>> var.values = 1.67
-    >>> round(var, 1)
-    array([1.7, 1.7])
+    >>> print_vector(round(var, 1))
+    1.7, 1.7
     >>> bool(var)
     True
     >>> int(var)
@@ -776,9 +807,9 @@ with key `1`, the following error occurred: The only allowed keys for \
     >>> var = Var(None)
     >>> var.shape = (5,)
     >>> var.value = 2.0, 4.0, 6.0, 8.0, 10.0
-    >>> var[0]
+    >>> round_(var[0])
     2.0
-    >>> var[-1]
+    >>> round_(var[-1])
     10.0
     >>> var[1:-1:2] = 2.0 * var[1:-1:2]
     >>> var
@@ -976,13 +1007,10 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
 
     # Subclasses need to define...
     NDIM: int
-    TYPE: type[Union[float, int, bool]]  # ToDo: is still `str` in some cases
+    TYPE: type[float | int | bool]  # ToDo: is still `str` in some cases
     # ...and optionally...
-    SPAN: tuple[Union[int, float, bool, None], Union[int, float, bool, None]] = (
-        None,
-        None,
-    )
-    INIT: Union[int, float, bool, None] = None
+    SPAN: tuple[int | float | bool | None, int | float | bool | None] = (None, None)
+    INIT: int | float | bool | None = None
 
     _NOT_DEEPCOPYABLE_MEMBERS: Final[frozenset[str]] = frozenset(
         (
@@ -1001,7 +1029,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     __hydpy__subclasscounter__ = 1
 
     name: str
-    """Name of the variable in lower case letters."""
+    """Name of the variable in lowercase letters."""
     unit: str
     """Unit of the variable."""
     fastaccess: FastAccess
@@ -1009,7 +1037,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     subvars: SubVariables
     """The subgroup to which the variable belongs."""
 
-    _refweights: Optional[Union[parametertools.Parameter, VectorFloat]] = None
+    _refweights: parametertools.Parameter | VectorFloat | None = None
 
     mask = masktools.DefaultMask(
         doc="The standard mask used by all variables (if not overwritten)."
@@ -1018,7 +1046,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     @classmethod
     @contextlib.contextmanager
     def modify_refweights(
-        cls, refweights: Optional[parametertools.Parameter]
+        cls, refweights: parametertools.Parameter | None
     ) -> Generator[None, None, None]:
         """Eventually, set or modify the reference to a parameter defining the
         weighting coefficients required for aggregating values.
@@ -1108,7 +1136,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
 
     @property
     @abc.abstractmethod
-    def initinfo(self) -> tuple[Union[float, int, bool, pointerutils.Double], bool]:
+    def initinfo(self) -> tuple[float | int | bool | pointerutils.Double, bool]:
         """To be overridden."""
 
     def __call__(self, *args) -> None:
@@ -1200,10 +1228,11 @@ for variable `var` can only be retrieved after it has been defined.
         hydpy.core.exceptiontools.AttributeNotReady: For variable `var`, \
 no values have been defined so far.
 
+        >>> from hydpy import print_matrix
         >>> var.value = 2
-        >>> var.value
-        array([[2, 2, 2],
-               [2, 2, 2]])
+        >>> print_matrix(var.value)
+        | 2, 2, 2 |
+        | 2, 2, 2 |
 
         >>> var.value = 1, 2
         Traceback (most recent call last):
@@ -1212,16 +1241,18 @@ no values have been defined so far.
 the following error occurred: While trying to convert the value(s) `(1, 2)` \
 to a numpy ndarray with shape `(2, 3)` and type `int`, the following error \
 occurred: could not broadcast input array from shape (2,) into shape (2,3)
-        >>> var.value
-        array([[2, 2, 2],
-               [2, 2, 2]])
+        >>> print_matrix(var.value)
+        | 2, 2, 2 |
+        | 2, 2, 2 |
 
         >>> var.shape = (0, 0)
         >>> var.shape
         (0, 0)
         >>> var.value   # doctest: +ELLIPSIS
-        array([], shape=(0, 0), dtype=int...)
+        array([], shape=(0, 0), dtype=...)
         """
+        if (self.NDIM > 0) and not self.__shapeready:
+            self._get_shape()  # raise the proper error
         value = self._prepare_getvalue(
             self._valueready or not self.strict_valuehandling,
             getattr(self.fastaccess, self.name, None),
@@ -1229,8 +1260,8 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
         if value is None:
             substring = "values have" if self.NDIM else "value has"
             raise exceptiontools.AttributeNotReady(
-                f"For variable {objecttools.devicephrase(self)}, "
-                f"no {substring} been defined so far."
+                f"For variable {objecttools.devicephrase(self)}, no {substring} been "
+                f"defined so far."
             )
         return value
 
@@ -1258,7 +1289,9 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
         if self.NDIM:
             value = getattr(value, "value", value)
             try:
-                value = numpy.full(self.shape, value, dtype=self.TYPE)
+                value = numpy.full(
+                    self.shape, value, dtype=config.TYPES_PY2NP[self.TYPE]
+                )
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to convert the value(s) `{value}` to a numpy "
@@ -1321,11 +1354,12 @@ variable `var` can only be retrieved after it has been defined.
         Due to the |Variable.initinfo| surrogate of our test class,
         the entries of this array are `3.0`:
 
+        >>> from hydpy import print_vector
         >>> var.shape = (3,)
         >>> var.shape
         (3,)
-        >>> var.values
-        array([3., 3., 3.])
+        >>> print_vector(var.values)
+        3.0, 3.0, 3.0
 
         For the |Variable.initinfo| flag (second |tuple| entry) being
         |False|, the array is still prepared but not directly accessible
@@ -1344,8 +1378,8 @@ variable `var` can only be retrieved after it has been defined.
         hydpy.core.exceptiontools.AttributeNotReady: For variable `var`, no \
 values have been defined so far.
 
-        >>> var.fastaccess.var
-        array([nan, nan, nan])
+        >>> print_vector(var.fastaccess.var)
+        nan, nan, nan
 
         Property |Variable.shape| tries to normalise assigned values and
         raises errors like the following, if not possible:
@@ -1437,13 +1471,15 @@ as `var` can only be `()`, but `(2,)` is given.
             )
         return ()
 
-    def _set_shape(self, shape: Union[int, tuple[int, ...]]) -> None:
+    def _set_shape(self, shape: int | tuple[int, ...]) -> None:
         self._valueready = False
         self.__shapeready = False
         initvalue, initflag = self.initinfo
         if self.NDIM:
             try:
-                array = numpy.full(shape, initvalue, dtype=self.TYPE)
+                array = numpy.full(
+                    shape, initvalue, dtype=config.TYPES_PY2NP[self.TYPE]
+                )
             except BaseException:
                 setattr(self.fastaccess, self.name, None)
                 objecttools.augment_excmessage(
@@ -1478,7 +1514,7 @@ as `var` can only be `()`, but `(2,)` is given.
 
     @property
     def numberofvalues(self) -> int:
-        """The total number of values handles by the variable according to the current
+        """The total number of values handled by the variable according to the current
         shape.
 
         We create an incomplete |Variable| subclass for testing:
@@ -1607,8 +1643,8 @@ var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
         >>> nmbzones(3)
         >>> sclass(2)
         >>> states.sm.values = 1.0, 2.0, 3.0
-        >>> from hydpy import print_values
-        >>> print_values(states.sm.valuevector)
+        >>> from hydpy import print_vector
+        >>> print_vector(states.sm.valuevector)
         1.0, 2.0, 3.0
 
         For all other variables, |Variable.valuevector| raises the following error by
@@ -1630,7 +1666,7 @@ its values to a 1-dimensional vector.
         vector agrees with the contents of most 1-dimensional sequences of |hland|:
 
         >>> states.sp = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
-        >>> print_values(states.sp.valuevector)
+        >>> print_vector(states.sp.valuevector)
         2.5, 3.5, 4.5
         """
         if self.NDIM == 1:
@@ -1641,7 +1677,7 @@ its values to a 1-dimensional vector.
         )
 
     @property
-    def refweights(self) -> Union[parametertools.Parameter, VectorFloat]:
+    def refweights(self) -> parametertools.Parameter | VectorFloat:
         """Reference to a |Parameter| object or a simple vector that defines weighting
         coefficients (e.g. fractional areas) for applying function
         |Variable.average_values|.
@@ -1814,7 +1850,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             if numpy.any(mask):
                 weights = self.refweights[mask]
                 values = self.valuevector[mask]
-                return numpy.sum(weights * values) / numpy.sum(weights)
+                return float(numpy.sum(weights * values) / numpy.sum(weights))
             return numpy.nan
         except BaseException:
             objecttools.augment_excmessage(
@@ -1827,10 +1863,10 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         """For |ModelSequence| objects, a |Masks| object provided by the corresponding
         |Model| object; for |NodeSequence| object, a suitable |DefaultMask|.
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
-        >>> hp.elements["land_dill"].model.parameters.control.fc.availablemasks
+        >>> hp.elements["land_dill_assl"].model.parameters.control.fc.availablemasks
         complete of module hydpy.models.hland.hland_masks
         land of module hydpy.models.hland.hland_masks
         upperzone of module hydpy.models.hland.hland_masks
@@ -1843,7 +1879,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         sealed of module hydpy.models.hland.hland_masks
         noglacier of module hydpy.models.hland.hland_masks
 
-        >>> hp.nodes.dill.sequences.sim.availablemasks
+        >>> hp.nodes.dill_assl.sequences.sim.availablemasks
         defaultmask of module hydpy.core.masktools
         """
         model = getattr(self.subvars.vars, "model", None)
@@ -1853,7 +1889,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
     def get_submask(
         self, *args, **kwargs
-    ) -> Union[masktools.CustomMask, masktools.DefaultMask]:
+    ) -> masktools.CustomMask | masktools.DefaultMask:
         """Get a sub-mask of the mask handled by the actual |Variable| object based on
         the given arguments.
 
@@ -2043,14 +2079,14 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         try:
             return int(result)
         except TypeError:
-            return numpy.array(result, dtype=int)
+            return numpy.array(result, dtype=config.NP_INT)
 
     def __ceil__(self):
         result = numpy.ceil(self.value)
         try:
             return int(result)
         except TypeError:
-            return numpy.array(result, dtype=int)
+            return numpy.array(result, dtype=config.NP_INT)
 
     def _compare(
         self,
@@ -2089,7 +2125,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                 f"with object `{other}` of type `{type(other).__name__}`"
             )
 
-    def __lt__(self, other: Union[Variable, float]) -> bool:
+    def __lt__(self, other: Variable | float) -> bool:
         return bool(
             numpy.all(
                 self._compare(
@@ -2100,7 +2136,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             )
         )
 
-    def __le__(self, other: Union[Variable, float]) -> bool:
+    def __le__(self, other: Variable | float) -> bool:
         return bool(
             numpy.all(
                 self._compare(
@@ -2135,7 +2171,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             )
         )
 
-    def __ge__(self, other: Union[Variable, float]) -> bool:
+    def __ge__(self, other: Variable | float) -> bool:
         return bool(
             numpy.all(
                 self._compare(
@@ -2146,7 +2182,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             )
         )
 
-    def __gt__(self, other: Union[Variable, float]) -> bool:
+    def __gt__(self, other: Variable | float) -> bool:
         return bool(
             numpy.all(
                 self._compare(
@@ -2191,7 +2227,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 class MixinFixedShape:
     """Mixin class for defining variables with a fixed shape."""
 
-    SHAPE: Union[tuple[int, ...]]
+    SHAPE: tuple[int, ...]
     name: str
 
     def _finalise_connections(self) -> None:
@@ -2202,11 +2238,11 @@ class MixinFixedShape:
         """Variables that mix in |MixinFixedShape| are generally initialised with a
         fixed shape.
 
-        We take parameter |lstream_control.BV| of base model |lstream| and sequence
+        We take parameter |kinw_control.BV| of base model |kinw| and sequence
         |exch_factors.WaterLevels| of base model |exch| as examples:
 
         >>> from hydpy import prepare_model
-        >>> prepare_model("lstream").parameters.control.bv.shape
+        >>> prepare_model("kinw").parameters.control.bv.shape
         (2,)
         >>> waterlevels = prepare_model("exch").sequences.factors.waterlevels
         >>> waterlevels.shape
@@ -2226,7 +2262,7 @@ this was attempted for element `?`.
         """
         return super()._get_shape()  # type: ignore[misc]
 
-    def _set_shape(self, shape: Union[int, tuple[int, ...]]) -> None:
+    def _set_shape(self, shape: int | tuple[int, ...]) -> None:
         oldshape = exceptiontools.getattr_(self, "shape", None)
         if oldshape is None:
             super()._set_shape(shape)  # type: ignore[misc]
@@ -2252,8 +2288,8 @@ def sort_variables(
 
 
 def sort_variables(
-    values: Iterable[Union[type[TypeVariable], tuple[type[TypeVariable], T]]]
-) -> tuple[Union[type[TypeVariable], tuple[type[TypeVariable], T]], ...]:
+    values: Iterable[type[TypeVariable] | tuple[type[TypeVariable], T]]
+) -> tuple[type[TypeVariable] | tuple[type[TypeVariable], T], ...]:
     """Sort the given |Variable| subclasses by their initialisation order.
 
     When defined in one module, the initialisation order corresponds to the order
@@ -2408,13 +2444,13 @@ error occurred: 5 values are assigned to the scalar variable `testvar`.
     vars: TypeGroup_co
     _name2variable: dict[str, TypeVariable_co] = {}
     fastaccess: TypeFastAccess_co
-    _cls_fastaccess: Optional[type[TypeFastAccess_co]] = None
+    _cls_fastaccess: type[TypeFastAccess_co] | None = None
     _CLS_FASTACCESS_PYTHON: ClassVar[type[TypeFastAccess_co]]  # type: ignore[misc]
 
     def __init__(
         self,
         master: TypeGroup_co,
-        cls_fastaccess: Optional[type[TypeFastAccess_co]] = None,
+        cls_fastaccess: type[TypeFastAccess_co] | None = None,
     ):
         self.vars = master
         if cls_fastaccess:

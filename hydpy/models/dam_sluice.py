@@ -1,8 +1,5 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Sluice version of HydPy-Dam.
-
-|dam_sluice| is similar to |dam_pump| but is thought for modelling free flow through
+"""|dam_sluice| is similar to |dam_pump| but is thought for modelling free flow through
 sluices driven by differences between inner and outer water levels.  Principally, users
 can define arbitrary relationships via |WaterLevelDifference2MaxFreeDischarge|,
 including ones that allow for "negative outflow" so that |dam_sluice| takes water from
@@ -49,7 +46,7 @@ We take all of the following settings from the documentation on the application 
 
 >>> with model.add_precipmodel_v2("meteo_precip_io"):
 ...     precipitationfactor(1.0)
->>> with model.add_pemodel_v1("evap_io"):
+>>> with model.add_pemodel_v1("evap_ret_io"):
 ...     evapotranspirationfactor(1.0)
 
 >>> test = IntegrationTest(dam)
@@ -240,7 +237,10 @@ from hydpy.models.dam import dam_solver
 
 
 class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
-    """Sluice version of HydPy-Dam."""
+    """|dam_sluice.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="Dam-Sluice", description="sluice model")
+    __HYDPY_ROOTMODEL__ = True
 
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,
@@ -302,7 +302,7 @@ class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
 
         Pick the required initial conditions before starting the simulation run via
         property |Sequences.conditions|.  See the integration tests of the application
-        model |dam_v008| for some examples.
+        model |dam_lreservoir| for some examples.
         """
         fluxes = self.sequences.fluxes
         first = initial_conditions["model"]["states"]

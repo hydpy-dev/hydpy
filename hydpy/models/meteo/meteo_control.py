@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -83,7 +82,7 @@ class AngstromConstant(parametertools.MonthParameter):
     TYPE, TIME, SPAN = float, None, (0.0, 1.0)
     INIT = 0.25
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim values following :math:`AngstromConstant \leq  1 - AngstromFactor` or
         at least following :math:`AngstromConstant \leq  1`.
 
@@ -102,7 +101,7 @@ class AngstromConstant(parametertools.MonthParameter):
             idxs = numpy.isnan(upper)
             upper[idxs] = 1.0
             upper[~idxs] = 1.0 - upper[~idxs]
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class AngstromFactor(parametertools.MonthParameter):
@@ -111,7 +110,7 @@ class AngstromFactor(parametertools.MonthParameter):
     TYPE, TIME, SPAN = float, None, (0.0, 1.0)
     INIT = 0.5
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower=None, upper=None) -> bool:
         r"""Trim values in accordance with :math:`AngstromFactor \leq  1 -
         AngstromConstant` or at least in accordance with :math:`AngstromFactor \leq 1`.
 
@@ -130,7 +129,7 @@ class AngstromFactor(parametertools.MonthParameter):
             idxs = numpy.isnan(upper)
             upper[idxs] = 1.0
             upper[~idxs] = 1.0 - upper[~idxs]
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class AngstromAlternative(parametertools.MonthParameter):

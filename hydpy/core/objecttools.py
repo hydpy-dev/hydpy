@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module implements tools to help to standardize the functionality of the
 different objects defined by the HydPy framework."""
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 
 _builtinnames = set(dir(builtins))
 
-ReprArg = Union[
+ReprArg: TypeAlias = Union[
     numbers.Number, Iterable[numbers.Number], Iterable[Iterable[numbers.Number]]
 ]
 
@@ -78,9 +78,7 @@ def modulename(self: object) -> str:
     return self.__module__.split(".")[-1]
 
 
-def _search_device(
-    self: object,
-) -> Optional[Union[devicetools.Node, devicetools.Element]]:
+def _search_device(self: object) -> devicetools.Node | devicetools.Element | None:
     # pylint: disable=import-outside-toplevel
     from hydpy.core import devicetools as dt
     from hydpy.core import modeltools as mt
@@ -107,7 +105,7 @@ def devicename(self: object) -> str:
     not possible return `?`.
 
     >>> from hydpy import prepare_model
-    >>> model = prepare_model("hland_v1")
+    >>> model = prepare_model("hland_96")
     >>> from hydpy.core.objecttools import devicename
     >>> devicename(model)
     '?'
@@ -126,7 +124,7 @@ def devicename(self: object) -> str:
     return device.name
 
 
-def _devicephrase(self: object, objname: Optional[str] = None) -> str:
+def _devicephrase(self: object, objname: str | None = None) -> str:
     name_ = getattr(self, "name", type(self).__name__.lower())
     device = _search_device(self)
     if device and objname:
@@ -214,17 +212,17 @@ def submodelphrase(model: modeltools.Model, include_subsubmodels: bool = True) -
 
     >>> from hydpy import prepare_model
     >>> from hydpy.core.objecttools import submodelphrase
-    >>> model = prepare_model("lland_v1")
+    >>> model = prepare_model("lland_dd")
     >>> submodelphrase(model)
-    'model `lland_v1`'
+    'model `lland_dd`'
 
-    >>> model.aetmodel = prepare_model("evap_minhas")
+    >>> model.aetmodel = prepare_model("evap_aet_minhas")
     >>> submodelphrase(model)
-    'model `lland_v1` and its submodel (`aetmodel/evap_minhas`)'
+    'model `lland_dd` and its submodel (`aetmodel/evap_aet_minhas`)'
 
     >>> model.soilmodel = prepare_model("ga_garto_submodel1")
     >>> submodelphrase(model)
-    'model `lland_v1` and its submodels (`aetmodel/evap_minhas` and \
+    'model `lland_dd` and its submodels (`aetmodel/evap_aet_minhas` and \
 `soilmodel/ga_garto_submodel1`)'
     """
     submodels = model.find_submodels(include_subsubmodels=include_subsubmodels)
@@ -273,7 +271,7 @@ not start with numbers, cannot be mistaken with Python built-ins like `for`...)
 
 
 def augment_excmessage(
-    prefix: Optional[str] = None, suffix: Optional[str] = None
+    prefix: str | None = None, suffix: str | None = None
 ) -> NoReturn:
     """Augment an exception message with additional information while keeping the
     original traceback.
@@ -614,7 +612,7 @@ def copy_(self: T) -> T:
         return copy.copy(self)
 
 
-def deepcopy_(self: T, memo: Optional[dict[int, object]]) -> T:
+def deepcopy_(self: T, memo: dict[int, object] | None) -> T:
     """Deepcopy function for classes with modified attribute functions.
 
     See the documentation on class |ResetAttrFuncs| for further information.
@@ -738,7 +736,7 @@ class _Repr:
     def __init__(self) -> None:
         self._preserve_strings = False
 
-    def __call__(self, value: object, decimals: Optional[int] = None) -> str:
+    def __call__(self, value: object, decimals: int | None = None) -> str:
         if decimals is None:
             decimals = hydpy.pub.options.reprdigits
         if isinstance(value, str):
@@ -760,6 +758,10 @@ class _Repr:
                 if string == "-0.0":
                     return "0.0"
                 return string
+        if isinstance(value, config.NP_INT):
+            return str(int(value))
+        if isinstance(value, config.NP_BOOL):
+            return str(bool(value))
         return repr(value)
 
     @staticmethod
@@ -901,20 +903,20 @@ def repr_numbers(values: ReprArg) -> str:
     return "; ".join(result)
 
 
-def print_values(values: VectorInputObject, width: int = 70) -> None:
-    """Print the given values in multiple lines with a certain maximum width.
+def print_vector(values: VectorInputObject, width: int = 70) -> None:
+    """Print the given vector in multiple lines with a certain maximum width.
 
     By default, each line contains at most 70 characters:
 
-    >>> from hydpy import print_values
-    >>> print_values(range(21))
+    >>> from hydpy import print_vector
+    >>> print_vector(range(21))
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
     20
 
     You can change this default behaviour by passing an alternative number of
     characters:
 
-    >>> print_values(range(21), width=30)
+    >>> print_vector(range(21), width=30)
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
     10, 11, 12, 13, 14, 15, 16,
     17, 18, 19, 20
@@ -923,6 +925,37 @@ def print_values(values: VectorInputObject, width: int = 70) -> None:
         text=repr_values(values), width=width, break_long_words=False
     ):
         print(line)
+
+
+def print_matrix(values: MatrixInputObject, width: int = 70) -> None:
+    """Print the given matrix in multiple lines with a certain maximum width.
+
+    By default, each line contains at most 70 characters:
+
+    >>> from hydpy import print_matrix
+    >>> print_matrix([range(5), range(20), range(10)])
+    | 0, 1, 2, 3, 4 |
+    | 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, >
+    > 19 |
+    | 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 |
+
+    You can change this default behaviour by passing an alternative number of
+    characters:
+
+    >>> print_matrix([range(5), range(20), range(10)], width=30)
+    | 0, 1, 2, 3, 4 |
+    | 0, 1, 2, 3, 4, 5, 6, 7, 8, >
+    > 9, 10, 11, 12, 13, 14, 15, >
+    > 16, 17, 18, 19 |
+    | 0, 1, 2, 3, 4, 5, 6, 7, 8, >
+    > 9 |
+    """
+    for subvalues in values:
+        lines = textwrap.wrap(
+            text=repr_values(subvalues), width=width - 4, break_long_words=False
+        )
+        for i, line in enumerate(lines):
+            print("|" if i == 0 else ">", line, "|" if i == len(lines) - 1 else ">")
 
 
 def repr_tuple(values: VectorInputObject) -> str:
@@ -972,10 +1005,7 @@ def assignrepr_value(value: object, prefix: str) -> str:
 
 
 def assignrepr_values(
-    values: VectorInputObject,
-    prefix: str,
-    width: Optional[int] = None,
-    _fakeend: int = 0,
+    values: VectorInputObject, prefix: str, width: int | None = None, _fakeend: int = 0
 ) -> str:
     """Return a prefixed, wrapped and properly aligned string representation of the
     given values using function |repr|.
@@ -1072,7 +1102,7 @@ class _AssignReprBracketed:
         self._brackets = brackets
 
     def __call__(
-        self, values: VectorInputObject, prefix: str, width: Optional[int] = None
+        self, values: VectorInputObject, prefix: str, width: int | None = None
     ) -> str:
         nmb_values = len(values)
         if (nmb_values == 1) and not self._always_bracketed:
@@ -1175,7 +1205,7 @@ test = [10,]
 
 
 def assignrepr_values2(
-    values: MatrixInputObject, prefix: str, width: Optional[int] = None
+    values: MatrixInputObject, prefix: str, width: int | None = None
 ) -> str:
     """Return a prefixed and properly aligned string representation of the given
     2-dimensional value matrix using function |repr|.
@@ -1207,7 +1237,7 @@ def _assignrepr_bracketed2(
     assignrepr_bracketed1: _AssignReprBracketed,
     values: MatrixInputObject,
     prefix: str,
-    width: Optional[int] = None,
+    width: int | None = None,
 ) -> str:
     """Return a prefixed, wrapped and properly aligned bracketed string representation
     of the given 2-dimensional value matrix using function |repr|."""
@@ -1221,14 +1251,17 @@ def _assignrepr_bracketed2(
         else:
             lines.append(assignrepr_bracketed1(subvalues, blanks, width))
         lines[-1] += ","
-    if (len(values) > 1) or (brackets != "()"):
-        lines[-1] = lines[-1][:-1]
-    lines[-1] += brackets[1]
+    if lines:
+        if (len(values) > 1) or (brackets != "()"):
+            lines[-1] = lines[-1][:-1]
+        lines[-1] += brackets[1]
+    else:
+        lines.append(prefix + brackets[1])
     return "\n".join(lines)
 
 
 def assignrepr_tuple2(
-    values: MatrixInputObject, prefix: str, width: Optional[int] = None
+    values: MatrixInputObject, prefix: str, width: int | None = None
 ) -> str:
     """Return a prefixed, wrapped and properly aligned tuple string representation of
     the given 2-dimensional value matrix using function |repr|.
@@ -1255,6 +1288,8 @@ def assignrepr_tuple2(
 
     >>> print(assignrepr_tuple2([[]], "test = "))
     test = ((),)
+    >>> print(assignrepr_tuple2([], "test = "))
+    test = ()
     >>> print(assignrepr_tuple2([[], [1]], "test = "))
     test = ((),
             (1,))
@@ -1263,7 +1298,7 @@ def assignrepr_tuple2(
 
 
 def assignrepr_list2(
-    values: MatrixInputObject, prefix: str, width: Optional[int] = None
+    values: MatrixInputObject, prefix: str, width: int | None = None
 ) -> str:
     """Return a prefixed, wrapped and properly aligned list string representation of
     the given 2-dimensional value matrix using function |repr|.
@@ -1289,6 +1324,8 @@ def assignrepr_list2(
 
     >>> print(assignrepr_list2([[]], "test = "))
     test = [[]]
+    >>> print(assignrepr_list2([], "test = "))
+    test = []
     >>> print(assignrepr_list2([[], [1]], "test = "))
     test = [[],
             [1]]
@@ -1300,7 +1337,7 @@ def _assignrepr_bracketed3(
     assignrepr_bracketed1: _AssignReprBracketed,
     values: TensorInputObject,
     prefix: str,
-    width: Optional[int] = None,
+    width: int | None = None,
 ) -> str:
     """Return a prefixed, wrapped and properly aligned bracketed string representation
     of the given 3-dimensional value matrix using function |repr|."""
@@ -1318,14 +1355,17 @@ def _assignrepr_bracketed3(
                 _assignrepr_bracketed2(assignrepr_bracketed1, subvalues, blanks, width)
             )
         lines[-1] += ","
-    if (len(values) > 1) or (brackets != "()"):
-        lines[-1] = lines[-1][:-1]
-    lines[-1] += brackets[1]
+    if lines:
+        if (len(values) > 1) or (brackets != "()"):
+            lines[-1] = lines[-1][:-1]
+        lines[-1] += brackets[1]
+    else:
+        lines.append(prefix + brackets[1])
     return "\n".join(lines)
 
 
 def assignrepr_tuple3(
-    values: TensorInputObject, prefix: str, width: Optional[int] = None
+    values: TensorInputObject, prefix: str, width: int | None = None
 ) -> str:
     """Return a prefixed, wrapped and properly aligned tuple string representation of
     the given 3-dimensional value matrix using function |repr|.
@@ -1368,6 +1408,10 @@ def assignrepr_tuple3(
 
     >>> print(assignrepr_tuple3([[[]]], "test = "))
     test = (((),),)
+    >>> print(assignrepr_tuple3([[]], "test = "))
+    test = ((),)
+    >>> print(assignrepr_tuple3([], "test = "))
+    test = ()
     >>> print(assignrepr_tuple3([[[], [1]]], "test = "))
     test = (((),
              (1,)),)
@@ -1376,7 +1420,7 @@ def assignrepr_tuple3(
 
 
 def assignrepr_list3(
-    values: TensorInputObject, prefix: str, width: Optional[int] = None
+    values: TensorInputObject, prefix: str, width: int | None = None
 ) -> str:
     """Return a prefixed, wrapped and properly aligned list string representation of
     the given 3-dimensional value matrix using function |repr|.
@@ -1419,6 +1463,10 @@ def assignrepr_list3(
 
     >>> print(assignrepr_list3([[[]]], "test = "))
     test = [[[]]]
+    >>> print(assignrepr_list3([[]], "test = "))
+    test = [[]]
+    >>> print(assignrepr_list3([], "test = "))
+    test = []
     >>> print(assignrepr_list3([[[], [1]]], "test = "))
     test = [[[],
              [1]]]
@@ -1459,10 +1507,10 @@ def flatten_repr(self: object) -> str:
 
     >>> Node.__str__ = __str__
 
-    The named tuple subclass |lstream_v001.Characteristics| of application model
-    |lstream_v001| relies on function |flatten_repr|:
+    The named tuple subclass |kinw_williams.Characteristics| of application model
+    |kinw_williams| relies on function |flatten_repr|:
 
-    >>> from hydpy.models.lstream_v001 import Characteristics
+    >>> from hydpy.models.kinw_williams import Characteristics
     >>> characteristics = Characteristics(
     ...     waterstage=1.0,
     ...     discharge=5.0,
@@ -1508,51 +1556,51 @@ nmb_subsections=4, length_adj=2.0)
 
 @overload
 def round_(
-    values: Union[object, Iterable[object]],
-    decimals: Optional[int] = None,
+    values: object | Iterable[object],
+    decimals: int | None = None,
     *,
     sep: str = " ",
     end: str = "\n",
-    file_: Optional[TextIO] = None,
+    file_: TextIO | None = None,
 ) -> None: ...
 
 
 @overload
 def round_(
-    values: Union[object, Iterable[object]],
-    decimals: Optional[int] = None,
+    values: object | Iterable[object],
+    decimals: int | None = None,
     *,
     width: int = 0,
-    lfill: Optional[str] = None,
+    lfill: str | None = None,
     sep: str = " ",
     end: str = "\n",
-    file_: Optional[TextIO] = None,
+    file_: TextIO | None = None,
 ) -> None: ...
 
 
 @overload
 def round_(
-    values: Union[object, Iterable[object]],
-    decimals: Optional[int] = None,
+    values: object | Iterable[object],
+    decimals: int | None = None,
     *,
     width: int = 0,
-    rfill: Optional[str] = None,
+    rfill: str | None = None,
     sep: str = " ",
     end: str = "\n",
-    file_: Optional[TextIO] = None,
+    file_: TextIO | None = None,
 ) -> None: ...
 
 
 def round_(
-    values: Union[object, VectorInputObject],
-    decimals: Optional[int] = None,
+    values: object | VectorInputObject,
+    decimals: int | None = None,
     *,
     width: int = 0,
-    lfill: Optional[str] = None,
-    rfill: Optional[str] = None,
+    lfill: str | None = None,
+    rfill: str | None = None,
     sep: str = " ",
     end: str = "\n",
-    file_: Optional[TextIO] = None,
+    file_: TextIO | None = None,
 ) -> None:
     """Prints values with a maximum number of digits in doctests.
 
@@ -1619,36 +1667,38 @@ and `rfill`.  This is not allowed.
 
 @overload
 def extract(
-    values: Union[Iterable[object], object], types_: tuple[type[T1]], skip: bool = False
+    values: Iterable[object] | object, types_: tuple[type[T1]], skip: bool = False
 ) -> Iterator[T1]:
     """Extract all objects of one defined type."""
 
 
 @overload
 def extract(
-    values: Union[Iterable[object], object],
+    values: Iterable[object] | object,
     types_: tuple[type[T1], type[T2]],
     skip: bool = False,
-) -> Iterator[Union[T1, T2]]:
+) -> Iterator[T1 | T2]:
     """Extract all objects of two defined types."""
 
 
 @overload
 def extract(
-    values: Union[Iterable[object], object],
+    values: Iterable[object] | object,
     types_: tuple[type[T1], type[T2], type[T3]],
     skip: bool = False,
-) -> Iterator[Union[T1, T2, T3]]:
+) -> Iterator[T1 | T2 | T3]:
     """Extract all objects of three defined types."""
 
 
 def extract(
-    values: Union[Iterable[object], object],
-    types_: Union[
-        tuple[type[T1]], tuple[type[T1], type[T2]], tuple[type[T1], type[T2], type[T3]]
-    ],
+    values: Iterable[object] | object,
+    types_: (
+        tuple[type[T1]]
+        | tuple[type[T1], type[T2]]
+        | tuple[type[T1], type[T2], type[T3]]
+    ),
     skip: bool = False,
-) -> Iterator[Union[T1, T2, T3]]:
+) -> Iterator[T1 | T2 | T3]:
     """Return a generator that extracts certain objects from `values`.
 
     This function is thought for supporting the definition of functions with arguments,
@@ -1794,7 +1844,7 @@ the original traceback.'
 
 
 @contextlib.contextmanager
-def get_printtarget(file_: Union[TextIO, str, None]) -> Generator[TextIO, None, None]:
+def get_printtarget(file_: TextIO | str | None) -> Generator[TextIO, None, None]:
     """Get a suitable file object reading for writing text useable as the `file`
     argument of the standard |print| function.
 
@@ -1810,24 +1860,23 @@ def get_printtarget(file_: Union[TextIO, str, None]) -> Generator[TextIO, None, 
     It passes already opened file objects, flushing but not closing them:
 
     >>> from hydpy import TestIO
-    >>> with TestIO():
-    ...     with open("testfile1.txt", "w") as testfile1:
-    ...         with get_printtarget(testfile1) as printtarget:
-    ...             print("printtarget = testfile1", file=printtarget, end="")
-    >>> with TestIO():
-    ...     with open("testfile1.txt", "r") as testfile1:
-    ...         print(testfile1.read())
+    >>> with (
+    ...     TestIO(),
+    ...     open("testfile1.txt", "w") as testfile1,
+    ...     get_printtarget(testfile1) as printtarget
+    ... ):
+    ...     print("printtarget = testfile1", file=printtarget, end="")
+    >>> with TestIO(), open("testfile1.txt", "r") as testfile1:
+    ...     print(testfile1.read())
     printtarget = testfile1
 
     It creates a new file and closes it after leaving the `with` block when receiving a
     file name:
 
-    >>> with TestIO():
-    ...     with get_printtarget("testfile2.txt") as printtarget:
-    ...         print("printtarget = testfile2", file=printtarget, end="")
-    >>> with TestIO():
-    ...     with open("testfile2.txt", "r") as testfile2:
-    ...         print(testfile2.read())
+    >>> with TestIO(), get_printtarget("testfile2.txt") as printtarget:
+    ...     print("printtarget = testfile2", file=printtarget, end="")
+    >>> with TestIO(), open("testfile2.txt", "r") as testfile2:
+    ...     print(testfile2.read())
     printtarget = testfile2
     """
     if file_ is None:
@@ -1869,16 +1918,17 @@ string=f"a {10*'very '}long test"))
         string="a very very very very very very very very very very long test",
     )
     """
-    arguments = ", ".join(
-        itertools.chain(
-            (repr(arg) for arg in args),
-            (f"{name}={repr(value)}" for name, value in kwargs.items()),
+    with repr_.preserve_strings(True):
+        arguments = ", ".join(
+            itertools.chain(
+                (repr_(arg) for arg in args),
+                (f"{name}={repr_(value)}" for name, value in kwargs.items()),
+            )
         )
-    )
     return black.format_str(f"{name}({arguments})", mode=_black_filemode)[:-1]
 
 
-def value2bool(argument: str, value: Union[str, int]) -> bool:
+def value2bool(argument: str, value: str | int) -> bool:
     """Convert the given string or integer value to a boolean and return it.
 
     >>> from hydpy.core.objecttools import value2bool

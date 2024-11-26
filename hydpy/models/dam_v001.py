@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Version 1 application model of HydPy-Dam.
-
+"""
 |dam_v001| is supposed to represent a dam with an "active" low water control scheme and
 a "passive" high water control scheme.
 
@@ -46,10 +44,10 @@ We perform all of the following examples over 20 days:
 
 The first examples demonstrate how |dam_v001| reduces drought events at a cross-section
 far downstream under different configurations.  In real cases, this requires taking the
-travel time of the released water into account.  Therefore, we will use the |arma_v1|
-application model to route the dam's outflow to the cross-section under investigation.
-Furthermore, we add some "natural" discharge to the cross-section, reflecting the
-influence of the subcatchment between the dam and the cross-section.
+travel time of the released water into account.  Therefore, we will use the
+|arma_rimorido| application model to route the dam's outflow to the cross-section under
+investigation.  Furthermore, we add some "natural" discharge to the cross-section,
+reflecting the influence of the subcatchment between the dam and the cross-section.
 
 We define four |Node| objects:
 
@@ -68,10 +66,10 @@ We define four |Node| objects:
 We use these nodes to connect the following three elements:
 
  * Element `dam` handles the tested |dam_v001| model instance.
- * Element `stream1` uses one |arma_v1| model instance to route the dam's outflow with
-   significant delay.
- * Element `stream2` uses another |arma_v1| model instance to pass the subcatchment's
-   additional discharge without delay.
+ * Element `stream1` uses one |arma_rimorido| model instance to route the dam's outflow
+   with significant delay.
+ * Element `stream2` uses another |arma_rimorido| model instance to pass the
+   subcatchment's additional discharge without delay.
 
 >>> from hydpy import Element
 >>> dam = Element("dam", inlets=inflow, outlets=outflow, receivers=remote)
@@ -83,14 +81,14 @@ Setting the |arma_control.Responses| parameter in the following manner defines a
 Moving Average model that neither results in translation nor retention:
 
 >>> from hydpy import prepare_model
->>> stream2.model = prepare_model("arma_v1")
+>>> stream2.model = prepare_model("arma_rimorido")
 >>> stream2.model.parameters.control.responses(((), (1.0,)))
 >>> stream2.model.parameters.update()
 
 `stream2` also works like a pure Moving Average model but causes a time delay of
 1.8 days:
 
->>> stream1.model = prepare_model("arma_v1")
+>>> stream1.model = prepare_model("arma_rimorido")
 >>> stream1.model.parameters.control.responses(((), (0.2, 0.4, 0.3, 0.1)))
 >>> stream1.model.parameters.update()
 
@@ -154,7 +152,7 @@ possible input values:
 
 The exact values of the following parameters are relevant only for those examples where
 we take precipitation or evaporation into account.  Please see the documentation on the
-simple lake model |dam_v006|, which discusses these parameters in detail:
+simple lake model |dam_llake|, which discusses these parameters in detail:
 
 >>> surfacearea(1.44)
 >>> correctionprecipitation(1.2)
@@ -670,11 +668,11 @@ increasing computation times too much.
 evaporation
 ___________
 
-In agreement with the :ref:`evaporation example <dam_v006_evaporation>` of application
-model |dam_v006|, we add an |evap_io| submodel and set the (unadjusted) potential
+In agreement with the :ref:`evaporation example <dam_llake_evaporation>` of application
+model |dam_llake|, we add an |evap_ret_io| submodel and set the (unadjusted) potential
 evaporation to 1 mm/d for the first ten days and 5 mm/d for the last ten days:
 
->>> with model.add_pemodel_v1("evap_io") as pemodel:
+>>> with model.add_pemodel_v1("evap_ret_io") as pemodel:
 ...     evapotranspirationfactor(1.0)
 >>> pemodel.prepare_inputseries()
 >>> pemodel.sequences.inputs.referenceevapotranspiration.series = 10 * [1.0] + 10 * [5.0]
@@ -925,8 +923,8 @@ results of the linear storage cascade with a single bucket:
 >>> lsc = LinearStorageCascade(n=1, k=1.0/0.054)
 >>> inflow = fluxes.adjustedprecipitation.series + inflow.sequences.sim.series
 >>> outflow = numpy.convolve(lsc.ma.coefs, inflow)
->>> from hydpy import print_values
->>> print_values(outflow[:20])
+>>> from hydpy import print_vector
+>>> print_vector(outflow[:20])
 0.0, 0.02652, 0.183776, 0.543037, 0.961081, 1.251541, 1.395548,
 1.453371, 1.455585, 1.405116, 1.331252, 1.261271, 1.194968, 1.132151,
 1.072636, 1.01625, 0.962828, 0.912214, 0.864261, 0.818829
@@ -1036,7 +1034,7 @@ The following comparative calculation shows that |dam_v001| reaches the desired
 numerical accuracy for this extreme parameterisation:
 
 >>> lsc.k = 1.0/5.4
->>> print_values(numpy.convolve(lsc.ma.coefs, inflow)[:20])
+>>> print_vector(numpy.convolve(lsc.ma.coefs, inflow)[:20])
 0.0, 0.815651, 4.261772, 8.259271, 8.181003, 5.553864, 3.371199,
 2.186025, 1.185189, 0.185185, 0.000836, 0.000004, 0.0, 0.0, 0.0, 0.0,
 0.0, 0.0, 0.0, 0.0
@@ -1071,7 +1069,10 @@ from hydpy.models.dam import dam_solver
 
 
 class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
-    """Version 1 of HydPy-Dam."""
+    """|dam_v001.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="Dam-V1", description="dam model, version 1")
+    __HYDPY_ROOTMODEL__ = True
 
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,

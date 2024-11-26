@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Version 2 of HydPy-Dam.
-
+"""
 Application model |dam_v002| is a simplification of |dam_v001|.  While most
 functionalities are identical, |dam_v002| does not calculate |RequiredRemoteRelease| on
 its own but picks this information from the simulation results of another model.
@@ -224,10 +222,10 @@ evaporation
 ___________
 
 This example repeats the :ref:`dam_v001_evaporation` example of application model
-|dam_v001|.  We add an |evap_io| submodel and update the time series of the required
-remote release time series accordingly:
+|dam_v001|.  We add an |evap_ret_io| submodel and update the time series of the
+required remote release time series accordingly:
 
->>> with model.add_pemodel_v1("evap_io") as pemodel:
+>>> with model.add_pemodel_v1("evap_ret_io") as pemodel:
 ...     evapotranspirationfactor(1.0)
 >>> pemodel.prepare_inputseries()
 >>> pemodel.sequences.inputs.referenceevapotranspiration.series = 10 * [1.0] + 10 * [5.0]
@@ -335,7 +333,10 @@ from hydpy.models.dam import dam_solver
 
 
 class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
-    """Version 2 of HydPy-Dam."""
+    """|dam_v002.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="Dam-V2", description="dam model, version 2")
+    __HYDPY_ROOTMODEL__ = True
 
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,

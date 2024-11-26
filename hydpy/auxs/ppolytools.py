@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module implements interpolation approaches based on piecewise polynomials
 required for some models implemented in the *HydPy* framework.
 
@@ -14,6 +13,7 @@ from __future__ import annotations
 import numpy
 
 # ...from HydPy
+from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import propertytools
@@ -122,14 +122,15 @@ class PPoly(interptools.InterpAlgorithm):
 
     >>> ppoly.inputs[0] = 2.5
     >>> ppoly.calculate_values()
-    >>> ppoly.outputs[0]
+    >>> from hydpy import round_
+    >>> round_(ppoly.outputs[0])
     1.5
 
     The same holds when calling method |PPoly.calculate_derivatives| for calculating
     first order derivatives:
 
     >>> ppoly.calculate_derivatives(0)
-    >>> ppoly.output_derivatives[0]
+    >>> round_(ppoly.output_derivatives[0])
     1.0
 
     Use method |InterpAlgorithm.print_table| or method |InterpAlgorithm.plot| to
@@ -154,12 +155,14 @@ class PPoly(interptools.InterpAlgorithm):
     |PPoly| collects all constants and coefficients and provides access to them via
     properties |PPoly.x0s| and |PPoly.cs| available:
 
-    >>> ppoly.x0s
-    array([1., 2., 3.])
-    >>> ppoly.cs
-    array([[1., 0.],
-           [1., 1.],
-           [2., 3.]])
+    >>> from hydpy import print_matrix, print_vector
+    >>> print_vector(ppoly.x0s)
+    1.0, 2.0, 3.0
+    >>> print_matrix(ppoly.cs)
+    | 1.0, 0.0 |
+    | 1.0, 1.0 |
+    | 2.0, 3.0 |
+
 
     Property |PPoly.nmb_ps| reflects the total number of polynomials:
 
@@ -169,8 +172,8 @@ class PPoly(interptools.InterpAlgorithm):
     Property |PPoly.nmb_cs| informs about the number of relevant coefficients for each
     polynomial (the last non-negative coefficient is the last relevant one):
 
-    >>> ppoly.nmb_cs
-    array([1, 2, 2])
+    >>> print_vector(ppoly.nmb_cs)
+    1, 2, 2
 
     You are free to manipulate both the breakpoints and the coefficients:
 
@@ -232,9 +235,9 @@ polynomial function by passing at leas one `Poly` object.
         self._cready = False
         ca = ppolyutils.PPoly()
         self._calgorithm = ca
-        ca.inputs = numpy.zeros((1,), dtype=float)
-        ca.outputs = numpy.zeros((1,), dtype=float)
-        ca.output_derivatives = numpy.zeros((1,), dtype=float)
+        ca.inputs = numpy.zeros((1,), dtype=config.NP_FLOAT)
+        ca.outputs = numpy.zeros((1,), dtype=config.NP_FLOAT)
+        ca.output_derivatives = numpy.zeros((1,), dtype=config.NP_FLOAT)
         if polynomials:
             self(*polynomials)
 
@@ -245,8 +248,8 @@ polynomial function by passing at leas one `Poly` object.
                 "polynomial function by passing at leas one `Poly` object."
             )
         nmb_ps = len(polynomials)
-        nmb_cs = numpy.array([len(p.cs) for p in polynomials], dtype=int)
-        x0s = numpy.array([p.x0 for p in polynomials], dtype=float)
+        nmb_cs = numpy.array([len(p.cs) for p in polynomials], dtype=config.NP_INT)
+        x0s = numpy.array([p.x0 for p in polynomials], dtype=config.NP_FLOAT)
         cs = numpy.zeros((nmb_ps, max(nmb_cs)))
         for idx, (nmb, polynomial) in enumerate(zip(nmb_cs, polynomials)):
             cs[idx, :nmb] = polynomial.cs
@@ -257,9 +260,7 @@ polynomial function by passing at leas one `Poly` object.
         cls,
         xs: VectorFloat,
         ys: VectorFloat,
-        method: Union[
-            Literal["linear"], type[interpolate.CubicHermiteSpline]
-        ] = "linear",
+        method: Literal["linear"] | type[interpolate.CubicHermiteSpline] = "linear",
     ) -> PPoly:
         """Prepare a |PPoly| object based on x-y data.
 
@@ -413,19 +414,19 @@ vectors `x` (2) and `y` (3) must be identical.
             ppoly = cls()
             if (len(xs) == 2) or (method == "linear"):
                 nmb_ps = len(xs) - 1
-                nmb_cs = numpy.full((nmb_ps,), 2, dtype=int)
-                x0s = numpy.array(xs, dtype=float)[:-1]
-                cs = numpy.zeros((nmb_ps, numpy.max(nmb_cs)), dtype=float)
-                cs[:, 0] = numpy.array(ys, dtype=float)[:-1]
+                nmb_cs = numpy.full((nmb_ps,), 2, dtype=config.NP_INT)
+                x0s = numpy.array(xs, dtype=config.NP_FLOAT)[:-1]
+                cs = numpy.zeros((nmb_ps, numpy.max(nmb_cs)), dtype=config.NP_FLOAT)
+                cs[:, 0] = numpy.array(ys, dtype=config.NP_FLOAT)[:-1]
                 cs[:, 1] = numpy.diff(ys) / numpy.diff(xs)
             else:
                 interpolator = method(x=xs, y=ys)
-                x0s = numpy.array(xs, dtype=float)[:-1]
+                x0s = numpy.array(xs, dtype=config.NP_FLOAT)[:-1]
                 cs = interpolator.c[::-1].T
                 nmb_ps = len(x0s)
                 nmb_cs = numpy.array(
                     [numpy.max(numpy.nonzero(cs_), initial=0) + 1 for cs_ in cs],
-                    dtype=int,
+                    dtype=config.NP_INT,
                 )
             ppoly.nmb_ps, ppoly.nmb_cs, ppoly.x0s, ppoly.cs = nmb_ps, nmb_cs, x0s, cs
             return ppoly
@@ -455,9 +456,9 @@ vectors `x` (2) and `y` (3) must be identical.
         |PPoly| is a univariate interpolator.  Hence, |PPoly.inputs| always returns a
         vector with a single entry:
 
-        >>> from hydpy import PPoly
-        >>> PPoly().inputs
-        array([0.])
+        >>> from hydpy import PPoly, print_vector
+        >>> print_vector(PPoly().inputs)
+        0.0
         """
         return numpy.asarray(self._calgorithm.inputs)
 
@@ -483,9 +484,9 @@ vectors `x` (2) and `y` (3) must be identical.
         |PPoly| is a univariate interpolator.  Hence, |PPoly.outputs| always returns a
         vector with a single entry:
 
-        >>> from hydpy import PPoly
-        >>> PPoly().outputs
-        array([0.])
+        >>> from hydpy import PPoly, print_vector
+        >>> print_vector(PPoly().outputs)
+        0.0
         """
         return numpy.asarray(self._calgorithm.outputs)
 
@@ -497,9 +498,9 @@ vectors `x` (2) and `y` (3) must be identical.
         |PPoly| is a univariate interpolator.  Hence, |PPoly.output_derivatives|
         always returns a vector with a single entry:
 
-        >>> from hydpy import PPoly
-        >>> PPoly().output_derivatives
-        array([0.])
+        >>> from hydpy import PPoly, print_vector
+        >>> print_vector(PPoly().output_derivatives)
+        0.0
         """
         return numpy.asarray(self._calgorithm.output_derivatives)
 
@@ -545,11 +546,11 @@ vectors `x` (2) and `y` (3) must be identical.
         of preventing segmentation faults when trying to access the related data from
         the underlying Cython extension class before allocation:
 
-        >>> from hydpy import PPoly
+        >>> from hydpy import PPoly, print_vector
         >>> ppoly = PPoly()
         >>> ppoly.nmb_cs = 1, 2
-        >>> ppoly.nmb_cs
-        array([1, 2])
+        >>> print_vector(ppoly.nmb_cs)
+        1, 2
         >>> del ppoly.nmb_cs
         >>> ppoly.nmb_cs
         Traceback (most recent call last):
@@ -560,7 +561,7 @@ vectors `x` (2) and `y` (3) must be identical.
         return numpy.asarray(self._calgorithm.nmb_cs)
 
     def _set_nmb_cs(self, value: VectorInputInt) -> None:
-        self._calgorithm.nmb_cs = numpy.asarray(value, dtype=int)
+        self._calgorithm.nmb_cs = numpy.asarray(value, dtype=config.NP_INT)
 
     def _del_nmb_cs(self) -> None:
         pass
@@ -576,11 +577,11 @@ vectors `x` (2) and `y` (3) must be identical.
         preventing segmentation faults when trying to access the related data from the
         underlying Cython extension class before allocation:
 
-        >>> from hydpy import PPoly
+        >>> from hydpy import PPoly, print_vector
         >>> ppoly = PPoly()
         >>> ppoly.x0s = 1.0, 2.0
-        >>> ppoly.x0s
-        array([1., 2.])
+        >>> print_vector(ppoly.x0s)
+        1.0, 2.0
         >>> del ppoly.x0s
         >>> ppoly.x0s
         Traceback (most recent call last):
@@ -591,7 +592,7 @@ vectors `x` (2) and `y` (3) must be identical.
         return numpy.asarray(self._calgorithm.x0s)
 
     def _set_x0s(self, value: VectorInputFloat) -> None:
-        self._calgorithm.x0s = numpy.asarray(value, dtype=float)
+        self._calgorithm.x0s = numpy.asarray(value, dtype=config.NP_FLOAT)
 
     def _del_x0s(self) -> None:
         pass
@@ -607,12 +608,12 @@ vectors `x` (2) and `y` (3) must be identical.
         preventing segmentation faults when trying to access the related data from the
         underlying Cython extension class before allocation:
 
-        >>> from hydpy import PPoly
+        >>> from hydpy import PPoly, print_matrix
         >>> ppoly = PPoly()
         >>> ppoly.cs = [[1.0, 2.0], [3.0, 4.0]]
-        >>> ppoly.cs
-        array([[1., 2.],
-               [3., 4.]])
+        >>> print_matrix(ppoly.cs)
+        | 1.0, 2.0 |
+        | 3.0, 4.0 |
         >>> del ppoly.cs
         >>> ppoly.cs
         Traceback (most recent call last):
@@ -623,7 +624,7 @@ has not been prepared so far.
         return numpy.asarray(self._calgorithm.cs)
 
     def _set_cs(self, value: MatrixInputFloat) -> None:
-        self._calgorithm.cs = numpy.asarray(value, dtype=float)
+        self._calgorithm.cs = numpy.asarray(value, dtype=config.NP_FLOAT)
 
     def _del_cs(self) -> None:
         pass
@@ -639,7 +640,7 @@ has not been prepared so far.
         """
         self._calgorithm.calculate_values()
 
-    def calculate_derivatives(self, idx: int = 0) -> None:
+    def calculate_derivatives(self, idx: int = 0, /) -> None:
         """Calculate the derivative of the output value with respect to the input value.
 
         For more information, see the documentation on class |ppolytools.PPoly|.
@@ -671,17 +672,17 @@ has not been prepared so far.
 
         In the following example, we hand over two wrongly-ordered |Poly| objects:
 
-        >>> from hydpy import Poly, PPoly
+        >>> from hydpy import Poly, PPoly, print_matrix, print_vector
         >>> ppoly = PPoly(Poly(x0=2.0, cs=(1.0, 1.0)), Poly(x0=1.0, cs=(1.0,)))
         >>> ppoly.polynomials
         (Poly(x0=2.0, cs=(1.0, 1.0)), Poly(x0=1.0, cs=(1.0,)))
-        >>> ppoly.x0s
-        array([2., 1.])
-        >>> ppoly.nmb_cs
-        array([2, 1])
-        >>> ppoly.cs
-        array([[1., 1.],
-               [1., 0.]])
+        >>> print_vector(ppoly.x0s)
+        2.0, 1.0
+        >>> print_vector(ppoly.nmb_cs)
+        2, 1
+        >>> print_matrix(ppoly.cs)
+        | 1.0, 1.0 |
+        | 1.0, 0.0 |
 
         Method |ppolytools.PPoly.sort| sorts |ppolytools.PPoly.x0s| and the related
         arrays |ppolytools.PPoly.nmb_cs| and |ppolytools.PPoly.cs|:
@@ -689,13 +690,13 @@ has not been prepared so far.
         >>> ppoly.sort()
         >>> ppoly.polynomials
         (Poly(x0=1.0, cs=(1.0,)), Poly(x0=2.0, cs=(1.0, 1.0)))
-        >>> ppoly.x0s
-        array([1., 2.])
-        >>> ppoly.nmb_cs
-        array([1, 2])
-        >>> ppoly.cs
-        array([[1., 0.],
-               [1., 1.]])
+        >>> print_vector(ppoly.x0s)
+        1.0, 2.0
+        >>> print_vector(ppoly.nmb_cs)
+        1, 2
+        >>> print_matrix(ppoly.cs)
+        | 1.0, 0.0 |
+        | 1.0, 1.0 |
         """
         idxs: VectorInt = numpy.argsort(self.x0s)
         self.x0s = self.x0s[idxs]

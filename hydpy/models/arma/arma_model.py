@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # imports...
@@ -439,7 +438,10 @@ class Pass_Q_V1(modeltools.Method):
 
 
 class Model(modeltools.AdHocModel):
-    """Base model ARMA."""
+    """|arma.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="ARMA")
+    __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = (Pick_Q_V1,)
     RECEIVER_METHODS = ()

@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module provides additional features for module |iuhtools|, related to
 Autoregressive-Moving Average (ARMA) models."""
+
 # import...
 # ...from standard library
 import itertools
@@ -11,6 +11,7 @@ import numpy
 
 # ...from HydPy
 import hydpy
+from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import propertytools
@@ -193,7 +194,7 @@ check the calculated coefficients: 1.0.
     smallest_coeff: float = 1e-9
     """Smalles MA coefficient to be determined at the end of the response."""
 
-    _coefs: Optional[VectorFloat] = None
+    _coefs: VectorFloat | None = None
 
     def __init__(self, iuh=None, coefs=None) -> None:
         self.iuh = iuh
@@ -209,7 +210,7 @@ check the calculated coefficients: 1.0.
         return coefs
 
     def _set_coefs(self, values: VectorInputFloat) -> None:
-        self._coefs = numpy.array(values, ndmin=1, dtype=float)
+        self._coefs = numpy.array(values, ndmin=1, dtype=config.NP_FLOAT)
 
     def _del_coefs(self) -> None:
         self._coefs = None
@@ -236,7 +237,7 @@ check the calculated coefficients: 1.0.
                 coef = integrate.quad(self._quad, 0.0, 1.0, args=(t,), points=points)[0]
             except integrate.IntegrationWarning:
                 idx = int(moment1)
-                coefs_ = numpy.zeros(idx + 2, dtype=float)
+                coefs_ = numpy.zeros(idx + 2, dtype=config.NP_FLOAT)
                 weight = moment1 - idx
                 coefs_[idx] = 1.0 - weight
                 coefs_[idx + 1] = weight
@@ -246,7 +247,7 @@ check the calculated coefficients: 1.0.
             sum_coefs += coef
             if (sum_coefs < 0.5) and (t > 10.0 * moment1):
                 if moment1 < 0.01:
-                    self.coefs = numpy.ones(1, dtype=float)
+                    self.coefs = numpy.ones(1, dtype=config.NP_FLOAT)
                     self._raise_integrationwarning(self.coefs)
                     break  # pragma: no cover
                 raise RuntimeError(
@@ -285,7 +286,7 @@ check the calculated coefficients: 1.0.
     @property
     def delays(self) -> VectorFloat:
         """Time delays related to the individual MA coefficients."""
-        return numpy.arange(self.order, dtype=float)
+        return numpy.arange(self.order, dtype=config.NP_FLOAT)
 
     @property
     def moments(self) -> tuple[float, float]:
@@ -329,10 +330,11 @@ class ARMA:
 
     One can set all ARMA coefficients manually:
 
-    >>> from hydpy import MA, ARMA
+    >>> from hydpy import MA, ARMA, print_matrix
     >>> arma = ARMA(ar_coefs=(0.5,), ma_coefs=(0.3, 0.2))
-    >>> arma.coefs
-    (array([0.5]), array([0.3, 0.2]))
+    >>> print_matrix(arma.coefs)
+    | 0.5 |
+    | 0.3, 0.2 |
     >>> arma
     ARMA(ar_coefs=(0.5,),
          ma_coefs=(0.3, 0.2))
@@ -444,8 +446,8 @@ determined ARMA model is negative (`-0.000336`).
                    0.060797, 0.027226))
     >>> arma.order
     (2, 7)
-    >>> from hydpy import print_values
-    >>> print_values(arma.response)
+    >>> from hydpy import print_vector
+    >>> print_vector(arma.response)
     0.01946, 0.068521, 0.125062, 0.1795, 0.202761, 0.180343, 0.12638,
     0.063117, 0.025477, 0.008269, 0.001853, -0.000011, -0.000316,
     -0.000231, -0.000118, -0.000048, -0.000016
@@ -526,9 +528,9 @@ by the MA coefficients `1.0, 1.0, 1.0`.
     """Maximum deviation of the sum of all coefficents from one to be accepted by 
     method |ARMA.update_coefs|."""
 
-    _ma_coefs: Optional[VectorFloat] = None
-    _ar_coefs: Optional[VectorFloat] = None
-    _rel_rmse: Optional[float]
+    _ma_coefs: VectorFloat | None = None
+    _ar_coefs: VectorFloat | None = None
+    _rel_rmse: float | None
 
     def __init__(self, ma_model=None, ar_coefs=None, ma_coefs=None) -> None:
         self.ma = ma_model
@@ -562,18 +564,18 @@ far.
         |property| |ARMA.ar_coefs| does not recalculate already defined coefficients
         automatically for efficiency:
 
-        >>> from hydpy import MA, ARMA, print_values
+        >>> from hydpy import MA, ARMA, print_vector
         >>> arma = ARMA(ar_coefs=(0.5,), ma_coefs=(0.3, 0.2))
         >>> from scipy import stats
         >>> arma.ma = MA(iuh=lambda x: 1.02328 * stats.norm.pdf(x, 4.0, 2.0))
         >>> arma.ma.iuh.moment1 = 3.94
-        >>> print_values(arma.ar_coefs)
+        >>> print_vector(arma.ar_coefs)
         0.5
 
         You can trigger the recalculation by removing the available coefficients first:
 
         >>> del arma.ar_coefs
-        >>> print_values(arma.ar_coefs)
+        >>> print_vector(arma.ar_coefs)
         0.680483, -0.228511, 0.047283, -0.006022, 0.000377
         >>> arma
         ARMA(ar_coefs=(0.680483, -0.228511, 0.047283, -0.006022, 0.000377),
@@ -588,7 +590,7 @@ far.
         return ar_coefs
 
     def _set_ar_coefs(self, values) -> None:
-        self._ar_coefs = numpy.array(values, ndmin=1, dtype=float)
+        self._ar_coefs = numpy.array(values, ndmin=1, dtype=config.NP_FLOAT)
 
     def _del_ar_coefs(self) -> None:
         self._ar_coefs = None
@@ -603,18 +605,18 @@ far.
         |property| |ARMA.ma_coefs| does not recalculate already defined coefficients
         automatically for efficiency:
 
-        >>> from hydpy import MA, ARMA, print_values
+        >>> from hydpy import MA, ARMA, print_vector
         >>> arma = ARMA(ar_coefs=(0.5,), ma_coefs=(0.3, 0.2))
         >>> from scipy import stats
         >>> arma.ma = MA(iuh=lambda x: 1.02328 * stats.norm.pdf(x, 4.0, 2.0))
         >>> arma.ma.iuh.moment1 = 3.94
-        >>> print_values(arma.ma_coefs)
+        >>> print_vector(arma.ma_coefs)
         0.3, 0.2
 
         You can trigger the recalculation by removing the available coefficients first:
 
         >>> del arma.ma_coefs
-        >>> print_values(arma.ma_coefs)
+        >>> print_vector(arma.ma_coefs)
         0.019322, 0.054783, 0.08195, 0.107757, 0.104458, 0.07637, 0.041095,
         0.01581, 0.004132, 0.000663, 0.00005
         >>> arma
@@ -630,7 +632,7 @@ far.
         return ma_coefs
 
     def _set_ma_coefs(self, values: VectorInputFloat) -> None:
-        self._ma_coefs = numpy.array(values, ndmin=1, dtype=float)
+        self._ma_coefs = numpy.array(values, ndmin=1, dtype=config.NP_FLOAT)
 
     def _del_ma_coefs(self) -> None:
         self._ma_coefs = None
@@ -757,7 +759,7 @@ far.
         in method |ARMA.update_ar_coefs|.
         """
         m = len(values) - n
-        a = numpy.empty((m, n), dtype=float)
+        a = numpy.empty((m, n), dtype=config.NP_FLOAT)
         for i in range(m):
             i0 = i - 1 if i > 0 else None
             i1 = i + n - 1

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
 .. _`Bremicker`: \
@@ -10,6 +9,7 @@ preparation of meteorological input, the calculation of potential
 evaporation, the simulation of water stored on plants, in the snow
 layer and the soil, as well as runoff concentration.
 """
+
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *

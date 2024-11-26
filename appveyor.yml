@@ -1,31 +1,35 @@
 
-version: 6.0a0.{build}
+version: 6.2dev0.{build}
 
 image: Visual Studio 2019
 
 environment:
   TokenPyPI:
-    secure: kkjz662y19aSdDHa+tqlBLsUfJ6VUSNlU4zKumcZYBwCV2RS3CTK9FtxQKGm/OveW0PCY4i80ctDmWH0mCr5TstHTyr0JRs2p61X0skiqRFYj6l0PoR8n2GaMKntWPwILRKUvueYCzDLTIDGGHa2GNWHTAznrYs+nNSu+95zsLmroY1RY4NnhTPrL9RgiPNPT2EbMVmb7dLYAaMgEHqXveU3yRcpNsguuESChBSJOQROQE77JktPpykzSLJGP23c
+    secure: kkjz662y19aSdDHa+tqlBJ8fu3Rvamt13Mhvhm/If3qW7QzNkmrvz4RjJ9mbk5OewxMY5VhGmD51ykbqAGlMPeCZpMx3kpeOoWGE1H4buEAZKg7eyQBafaFF2EfvI5PJLUyDDyeRXNlzoh2yqTMs73s619Yl2/oDUV0IXPgqAPvmW6TGc6bgWoy2R3leSJDH2fjhTiphQ6M0JlItmq9dsJIIgoJcNt/82i/WbzAcuB6HJIrLUSSZQpNUpZZHjlFeu3UDxwvOHl9IDRljqzm/Ag==
   matrix:
     - PYTHON: "C:\\Python39-x64"
       make_exe: false
       python_mode: false
       cython_mode: true
+      numpy_version: 2
     - PYTHON: "C:\\Python310-x64"
       make_exe: false
       python_mode: true
       cython_mode: false
+      numpy_version: 2
     - PYTHON: "C:\\Python311-x64"
       make_exe: false
       python_mode: false
       cython_mode: true
+      numpy_version: 1
     - PYTHON: "C:\\Python312-x64"
       make_exe: true
       python_mode: false
       cython_mode: false
+      numpy_version: 2
 
 install:
-  - cinst nsis
+  - choco install nsis
   - set PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
   - python -m pip install --upgrade pip
   - python -m pip install -r requirements.txt
@@ -43,7 +47,7 @@ before_test:
   - if %make_exe%==true pynsist make_hydpy_installer.cfg
 
 test_script:
-  - if %make_exe%==false nox -s doctest -- --python-mode=%python_mode% --cython-mode=%cython_mode%
+  - if %make_exe%==false nox -s "doctest(numpy='%numpy_version%')" -- --python-mode=%python_mode% --cython-mode=%cython_mode%
   - if %make_exe%==true rename hydpy _hydpy
   - if %make_exe%==true python call_installer.py
   - if %make_exe%==true set PATH=C:/Users\appveyor\AppData\Local\Programs\HydPy\bin;%PATH%
@@ -67,7 +71,7 @@ deploy:
   description: 'This is a draft.'
   provider: GitHub
   auth_token:
-    secure: R1ZLCAs2FkBKs+ZVRJ/8TQo30IbmZcHnsaC355bqQ8lZS3yBwzrQptG42zGE8Zl8
+    secure: BKozZWjmaqIKC53W7MyzhwOzQYR+PcVvhEtpDxDAAVuDV77SpW+sF9WWIFPRMcNxOXNpSyn5thTA4F5Bl/KD2GnnCqOvJ/5bVBDikBgQBW3WJA8GuezaQcj8tBextjD5
   artifact: Packages,Installer,XSDs
   draft: true
   prerelease: false

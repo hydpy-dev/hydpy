@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 .. _`solar time`: https://en.wikipedia.org/wiki/Solar_time
 """
+
 # imports...
 # ...from standard library
 import contextlib
@@ -2487,9 +2487,10 @@ class Get_Temperature_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbhru(2)
         >>> factors.temperature = 2.0, 4.0
-        >>> model.get_temperature_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_temperature_v1(0))
         2.0
-        >>> model.get_temperature_v1(1)
+        >>> round_(model.get_temperature_v1(1))
         4.0
     """
 
@@ -2542,9 +2543,10 @@ class Get_Precipitation_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbhru(2)
         >>> fluxes.precipitation = 2.0, 4.0
-        >>> model.get_precipitation_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_precipitation_v1(0))
         2.0
-        >>> model.get_precipitation_v1(1)
+        >>> round_(model.get_precipitation_v1(1))
         4.0
     """
 
@@ -2757,7 +2759,10 @@ class Get_GlobalRadiation_V2(modeltools.Method):
 
 
 class Model(modeltools.AdHocModel):
-    """The Meteo base model."""
+    """|meteo.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="Meteo")
+    __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
@@ -2822,7 +2827,7 @@ class Model(modeltools.AdHocModel):
 
 
 class Sub_BaseModel(modeltools.AdHocModel):
-    """Base class for HydPy-Meteo submodels."""
+    """Base class for |meteo.DOCNAME.long| submodels."""
 
     @staticmethod
     @contextlib.contextmanager

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module specialises class |Submodel| for root-finding problems.
 
 Module |roottools| provides Python interfaces only.  See the
@@ -39,7 +38,8 @@ class Pegasus(modeltools.Submodel):
     PYTHONCLASS = rootutils.PegasusPython
     _cysubmodel: rootutils.PegasusBase
 
-    def find_x(
+    # positional arguments required for consistency with the cythonized extension class:
+    def find_x(  # pylint: disable=too-many-positional-arguments
         self,
         x0: float,
         x1: float,
@@ -48,6 +48,7 @@ class Pegasus(modeltools.Submodel):
         xtol: float,
         ytol: float,
         itermax: int,
+        /,
     ) -> float:
         """Find the relevant root within the interval
         :math:`x0 \\leq x \\leq x1` with an accuracy meeting at least
@@ -65,7 +66,7 @@ class Pegasus(modeltools.Submodel):
         by using method |lland_model.Return_TempSSurface_V1|.
 
         Method |lland_model.Return_TempSSurface_V1| (used by application model
-        |lland_v3|) implements the Pegasus iteration to determine the surface
+        |lland_knauf|) implements the Pegasus iteration to determine the surface
         temperature of the snow layer with the help of the Pegasus subclass
         |lland_model.PegasusTempSSurface|.  For the correct surface
         temperature, the net energy gain of the surface (defined by method
@@ -203,13 +204,13 @@ class Pegasus(modeltools.Submodel):
         Finally, we evaluate some additional snow layer temperatures
         to show that everything works consistently:
 
-        >>> from hydpy import print_values
+        >>> from hydpy import print_vector
         >>> for temps in [-500, -400, -300, -4, -2, 2, 2000, 3000, 4000]:
         ...    aides.temps = temps
         ...    tempssurface = model.pegasustempssurface.find_x(
         ...        -50.0, 5.0, -100.0, 100.0, 0.0, 1e-8, 10)
         ...    energygain = model.return_energygainsnowsurface_v1(tempssurface)
-        ...    print_values([temps, tempssurface, energygain])
+        ...    print_vector([temps, tempssurface, energygain])
         -500, -100.0, -1024.133374
         -400, -100.0, -524.133374
         -300, -100.0, -24.133374

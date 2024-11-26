@@ -1,8 +1,5 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Pumping station version of HydPy-Dam.
-
-|dam_pump| is a simple model for modelling pumping stations draining low-land areas.
+"""|dam_pump| is a simple model for modelling pumping stations draining low-land areas.
 Users can define a relationship between the highest possible pumping rate and the
 difference between current inner and outer water levels
 (|WaterLevelDifference2MaxForcedDischarge|).  Actual pumping happens when the inner
@@ -65,12 +62,12 @@ help understand the following settings:
 >>> thresholdevaporation(0.0)
 >>> toleranceevaporation(0.001)
 
-We add |meteo_precip_io| and |evap_io| submodels that can supply predefined time series
-of precipitation and potential evaporation:
+We add |meteo_precip_io| and |evap_ret_io| submodels that can supply predefined time
+series of precipitation and potential evaporation:
 
 >>> with model.add_precipmodel_v2("meteo_precip_io"):
 ...     precipitationfactor(1.0)
->>> with model.add_pemodel_v1("evap_io"):
+>>> with model.add_pemodel_v1("evap_ret_io"):
 ...     evapotranspirationfactor(1.0)
 
 Now, we prepare an |IntegrationTest| object and register zero initial conditions for
@@ -199,7 +196,10 @@ from hydpy.models.dam import dam_solver
 
 
 class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
-    """Pumping station version of HydPy-Dam."""
+    """|dam_pump.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="Dam-Pump", description="pumping station model")
+    __HYDPY_ROOTMODEL__ = True
 
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,

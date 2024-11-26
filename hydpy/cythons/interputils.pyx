@@ -8,6 +8,7 @@ cimport cython
 from libc.math cimport NAN as nan
 from libc.stdlib cimport malloc, free
 
+from hydpy import config
 from hydpy.cythons.autogen cimport annutils
 from hydpy.cythons.autogen cimport ppolyutils
 
@@ -27,10 +28,10 @@ cdef class SimpleInterpolator:
     def __init__(self, algorithm):
         self.nmb_inputs = algorithm.nmb_inputs
         self.nmb_outputs = algorithm.nmb_outputs
-        self.inputs = numpy.zeros(self.nmb_inputs, dtype=float)
-        self.outputs = numpy.zeros(self.nmb_outputs, dtype=float)
-        self.output_derivatives = numpy.zeros(self.nmb_outputs, dtype=float)
-        t2n = _type2number()
+        float_ = config.NP_FLOAT
+        self.inputs = numpy.zeros(self.nmb_inputs, dtype=float_)
+        self.outputs = numpy.zeros(self.nmb_outputs, dtype=float_)
+        self.output_derivatives = numpy.zeros(self.nmb_outputs, dtype=float_)
         self.algorithm_type = _type2number()[type(algorithm)]
         self.algorithm = <PyObject*>algorithm._calgorithm
 
@@ -68,10 +69,13 @@ cdef class SeasonalInterpolator:
         self.nmb_inputs = len(algorithms[0].inputs)
         self.nmb_outputs = len(algorithms[0].outputs)
         self.nmb_algorithms = len(algorithms)
-        self.inputs = numpy.zeros(self.nmb_inputs, dtype=float)
-        self.outputs = numpy.zeros(self.nmb_outputs, dtype=float)
+        float_ = config.NP_FLOAT
+        self.inputs = numpy.zeros(self.nmb_inputs, dtype=float_)
+        self.outputs = numpy.zeros(self.nmb_outputs, dtype=float_)
         t2n = _type2number()
-        self.algorithm_types = numpy.array([t2n[type(alg)] for alg in algorithms])
+        self.algorithm_types = numpy.array(
+            [t2n[type(alg)] for alg in algorithms], dtype=config.NP_INT
+        )
         self.algorithms = <PyObject **>malloc(
             self.nmb_algorithms * cython.sizeof(cython.pointer(PyObject))
         )

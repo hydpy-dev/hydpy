@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Version 3 of HydPy-Dam.
-
+"""
 |dam_v003| is quite similar to |dam_v002|.  Both application models provide the same
 flood retention functionalities.  Also, both try to meet the water demand at a remote
 location.  The difference is that |dam_v002| expects this demand to occur in the
@@ -253,10 +251,10 @@ ___________
 
 This example corresponds to the :ref:`dam_v001_evaporation` example of application model
 |dam_v001| and the :ref:`dam_v002_evaporation` example of application model |dam_v002|.
-We add an |evap_io| submodel and update the required remote release time series
+We add an |evap_ret_io| submodel and update the required remote release time series
 accordingly:
 
->>> with model.add_pemodel_v1("evap_io") as pemodel:
+>>> with model.add_pemodel_v1("evap_ret_io") as pemodel:
 ...     evapotranspirationfactor(1.0)
 >>> pemodel.prepare_inputseries()
 >>> pemodel.sequences.inputs.referenceevapotranspiration.series = 10 * [1.0] + 10 * [5.0]
@@ -371,7 +369,10 @@ from hydpy.models.dam import dam_solver
 
 
 class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
-    """Version 3 of HydPy-Dam."""
+    """|dam_v003.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="Dam-V3", description="dam model, version 3")
+    __HYDPY_ROOTMODEL__ = True
 
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,

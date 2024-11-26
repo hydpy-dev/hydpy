@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # imports...
@@ -180,7 +179,9 @@ class Calc_SV_V1(modeltools.Method):
 
 
 class Model(modeltools.ELSModel):
-    """Test model."""
+    """|test.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="Test")
 
     SOLVERPARAMETERS = (
         test_solver.AbsErrorMax,

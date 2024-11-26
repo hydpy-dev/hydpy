@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-"""This module defines the Cython declarations related to module
-|smoothtools|.
-"""
+"""This module defines the Cython declarations related to module |smoothtools|."""
 
 cpdef double smooth_logistic1(double value, double parameter) noexcept nogil
 cpdef double smooth_logistic2(double value, double parameter) noexcept nogil

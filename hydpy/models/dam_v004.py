@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
-"""Version 4 of HydPy-Dam.
-
+"""
 Application model |dam_v004| extends |dam_v003|.  Both models discharge water into the
 channel downstream and to "remote locations".  The difference is that |dam_v003|
 releases water only to a single remote location (for example, to a drinking water
@@ -415,10 +413,10 @@ evaporation
 ___________
 
 This example repeats the :ref:`dam_v003_evaporation` example of application model
-|dam_v003|. We add an |evap_io| submodel and update the required remote release time
-series accordingly:
+|dam_v003|. We add an |evap_ret_io| submodel and update the required remote release
+time series accordingly:
 
->>> with model.add_pemodel_v1("evap_io") as pemodel:
+>>> with model.add_pemodel_v1("evap_ret_io") as pemodel:
 ...     evapotranspirationfactor(1.0)
 >>> pemodel.prepare_inputseries()
 >>> pemodel.sequences.inputs.referenceevapotranspiration.series = 10 * [1.0] + 10 * [5.0]
@@ -605,7 +603,10 @@ from hydpy.models.dam import dam_solver
 
 
 class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
-    """Version 4 of HydPy-Dam."""
+    """|dam_v004.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="Dam-V4", description="dam model, version 4")
+    __HYDPY_ROOTMODEL__ = True
 
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,

@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 .. _`issue 89`: https://github.com/hydpy-dev/hydpy/issues/89
 """
+
 # imports...
 # ...from site-packages
 import numpy
@@ -1214,7 +1214,7 @@ class Infiltrate_WettingFrontBins_V1(modeltools.Method):
 
         >>> from hydpy.core.importtools import reverse_model_wildcard_import
         >>> reverse_model_wildcard_import()
-        >>> from hydpy import pub, print_values
+        >>> from hydpy import pub, print_vector
         >>> with pub.options.usecython(False):
         ...     from hydpy.models.ga import *
         ...     simulationstep("1h")
@@ -1250,7 +1250,7 @@ class Infiltrate_WettingFrontBins_V1(modeltools.Method):
         ...     for mock in (shift_front_v1, redistribute_front_v1, active_bin_v1):
         ...         if mock.called:
         ...             print(mock._extract_mock_name(), end=": ")
-        ...             print_values([str(call)[4:] for call in mock.mock_calls])
+        ...             print_vector([str(call)[4:] for call in mock.mock_calls])
 
         If the first (filled) bin is saturated, |Infiltrate_WettingFrontBins_V1| does
         nothing:
@@ -2605,9 +2605,10 @@ class Get_Infiltration_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbsoils(2)
         >>> fluxes.infiltration = 2.0, 4.0
-        >>> model.get_infiltration_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_infiltration_v1(0))
         2.0
-        >>> model.get_infiltration_v1(1)
+        >>> round_(model.get_infiltration_v1(1))
         4.0
     """
 
@@ -2629,9 +2630,10 @@ class Get_Percolation_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbsoils(2)
         >>> fluxes.percolation = 2.0, 4.0
-        >>> model.get_percolation_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_percolation_v1(0))
         2.0
-        >>> model.get_percolation_v1(1)
+        >>> round_(model.get_percolation_v1(1))
         4.0
     """
 
@@ -2653,9 +2655,10 @@ class Get_SoilWaterAddition_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbsoils(2)
         >>> fluxes.soilwateraddition = 2.0, 4.0
-        >>> model.get_soilwateraddition_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_soilwateraddition_v1(0))
         2.0
-        >>> model.get_soilwateraddition_v1(1)
+        >>> round_(model.get_soilwateraddition_v1(1))
         4.0
     """
 
@@ -2678,9 +2681,10 @@ class Get_SoilWaterRemoval_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbsoils(2)
         >>> fluxes.withdrawal = 2.0, 4.0
-        >>> model.get_soilwaterremoval_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_soilwaterremoval_v1(0))
         2.0
-        >>> model.get_soilwaterremoval_v1(1)
+        >>> round_(model.get_soilwaterremoval_v1(1))
         4.0
     """
 
@@ -2747,7 +2751,10 @@ class Get_SoilWaterContent_V1(modeltools.Method):
 
 
 class Model(modeltools.AdHocModel):
-    r"""The Green-Ampt base model."""
+    """|ga.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="GA")
+    __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
@@ -2859,8 +2866,8 @@ class BaseModel(modeltools.AdHocModel):
         ...                      [0.0, 150.0, nan],
         ...                      [0.0, 100.0, nan],
         ...                      [0.0, 50.0, nan]]
-        >>> from hydpy import print_values
-        >>> print_values(model.watercontents)
+        >>> from hydpy import print_vector
+        >>> print_vector(model.watercontents)
         30.0, 90.0, 0.0
         """
         states = self.sequences.states
@@ -2929,8 +2936,8 @@ class BaseModel(modeltools.AdHocModel):
 
 
 class Base_SoilModel_V1(BaseModel, soilinterfaces.SoilModel_V1):
-    """Base class for HydPy-GA models that comply with the |SoilModel_V1| submodel
-    interface."""
+    """Base class for |ga.DOCNAME.long| models that comply with the |SoilModel_V1|
+    submodel interface."""
 
     @importtools.define_targetparameter(ga_control.NmbSoils)
     def prepare_nmbzones(self, nmbzones: int) -> None:

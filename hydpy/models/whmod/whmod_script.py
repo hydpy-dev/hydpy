@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 WHMod is a deterministic groundwater recharge model and accounts for all main water
 fluxes in the water cycle. It is similar to the model GWN-BW, which is widely used in

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """Haude-Dommermuth-Trumpf version of WHMod.
 

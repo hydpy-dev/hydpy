@@ -56,7 +56,7 @@ import hydpy
 from hydpy.core import devicetools
 from hydpy.core import objecttools
 from hydpy.exe import commandtools
-from hydpy.models import whmod_pet
+from hydpy.models import conv_nn, conv_idw, evap_ret_fao56, meteo_glob_fao56, meteo_temp_io, whmod_pet
 from hydpy.models.whmod import whmod_constants
 from hydpy.core.typingtools import *
 
@@ -690,7 +690,8 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     prec_selection_stat = hydpy.Selection("prec_stat")
     prec_selection_raster = hydpy.Selection("prec_raster")
 
-    hp = hydpy.HydPy("run_WHMod")
+    with hydpy.pub.options.checkprojectstructure(False):
+        hp = hydpy.HydPy("run_WHMod")
     hydpy.pub.sequencemanager.filetype = "asc"
 
     node2xy: dict[hydpy.Node, _XY] = {}
@@ -759,11 +760,8 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     for element in hp.elements:
         element.model.parameters.update()
 
-    hydpy.pub.selections += hydpy.Selection(
-        name="complete", nodes=hp.nodes, elements=hp.elements
-    )
     whm_elements = (
-        hydpy.pub.selections["complete"].search_modeltypes("whmod_pet").elements
+        hydpy.pub.selections.complete.search_modeltypes(whmod_pet).elements
     )
 
     seriesdir = os.path.join(whmod_main["OUTPUTDIR"], "series")
@@ -1346,7 +1344,7 @@ def _initialize_whmod_models(
             node2xy[node] = xy
 
         # temporary WHMod-Model
-        whmod = hydpy.prepare_model(whmod_pet, "1d")
+        whmod = hydpy.prepare_model(whmod_pet)
         raster.model = whmod
 
         # add Parameters to model (control)
@@ -1530,7 +1528,7 @@ def _initialize_weather_stations(
 
         # Evap-Element
         evap_element = hydpy.Element(f"Evap_{stat}", outputs=(evap_node))
-        evap = hydpy.prepare_model("evap_fao56", "1d")
+        evap = hydpy.prepare_model(evap_ret_fao56)
 
         # Control Evap-Element
         con_evap = evap.parameters.control
@@ -1538,11 +1536,11 @@ def _initialize_weather_stations(
         con_evap.hruarea(1.0)  # tatsächliche Fläche hier irrelevant
         con_evap.measuringheightwindspeed(10.0)
         con_evap.evapotranspirationfactor(1.0)
-        with evap.add_tempmodel_v2("meteo_temp_io") as tempmodel:
+        with evap.add_tempmodel_v2(meteo_temp_io) as tempmodel:
             tempmodel.parameters.control.temperatureaddend(0.0)
         evap.update_parameters()
 
-        with evap.add_radiationmodel_v1("meteo_v001") as meteo:
+        with evap.add_radiationmodel_v1(meteo_glob_fao56) as meteo:
             con_meteo = meteo.parameters.control
             # Control Meteo-Element
             con_meteo.latitude(lat)
@@ -1741,9 +1739,9 @@ def _initialize_conv_models(
 
     # Conv-Modell PET
     if interpolation_method == "IDW":
-        conv_pet = hydpy.prepare_model("conv_v002")
+        conv_pet = hydpy.prepare_model(conv_idw)
     elif interpolation_method == "NN":
-        conv_pet = hydpy.prepare_model("conv_v001")
+        conv_pet = hydpy.prepare_model(conv_nn)
     else:
         assert_never(interpolation_method)
     conv_pet.parameters.control.inputcoordinates(
@@ -1763,12 +1761,12 @@ def _initialize_conv_models(
 
     # Conv-Modell Temperature
     if interpolation_method == "IDW":
-        conv_modelname = "conv_v002"
+        conv_module = conv_idw
     elif interpolation_method == "NN":
-        conv_modelname = "conv_v001"
+        conv_module = conv_nn
     else:
         assert_never(interpolation_method)
-    conv_temp = hydpy.prepare_model(conv_modelname)
+    conv_temp = hydpy.prepare_model(conv_module)
     conv_temp.parameters.control.inputcoordinates(
         **_get_coordinatedict(temp_selection_stat.nodes)
     )
@@ -1789,9 +1787,9 @@ def _initialize_conv_models(
 
     # Conv-Modell Precipitation
     if interpolation_method == "IDW":
-        conv_prec = hydpy.prepare_model("conv_v002")
+        conv_prec = hydpy.prepare_model(conv_idw)
     elif interpolation_method == "NN":
-        conv_prec = hydpy.prepare_model("conv_v001")
+        conv_prec = hydpy.prepare_model(conv_nn)
     else:
         assert_never(interpolation_method)
     conv_prec.parameters.control.inputcoordinates(
@@ -2950,7 +2948,8 @@ def _conv_models_temperature(
     temperature_in = stammdaten_in[stammdaten_in["Messungsart"] == "Lufttemperatur"]
     temperature_out = stammdaten_in[stammdaten_in["Messungsart"] == "Niederschlag"]
 
-    hp_temperature = hydpy.HydPy("temperature")
+    with hydpy.pub.options.checkprojectstructure(False):
+        hp_temperature = hydpy.HydPy("temperature")
     in_coords_dict: dict[str, tuple[float, float]] = {}
     out_coords_dict: dict[str, tuple[float, float]] = {}
     e = hydpy.Element("conv_temperature_richter")
@@ -2984,9 +2983,9 @@ def _conv_models_temperature(
     e.outlets = outlet_nodes
     # Conv-Modell Temperature
     if interpolation_method == "IDW":
-        model_t = hydpy.prepare_model("conv_v002")
+        model_t = hydpy.prepare_model(conv_idw)
     elif interpolation_method == "NN":
-        model_t = hydpy.prepare_model("conv_v001")
+        model_t = hydpy.prepare_model(conv_nn)
     else:
         assert_never(interpolation_method)
     model_t.parameters.control.inputcoordinates(**in_coords_dict)

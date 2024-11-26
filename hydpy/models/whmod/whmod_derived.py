@@ -113,9 +113,9 @@ class Beta(whmod_parameters.NutzBodenParameter):
         >>> nutz_nr(GRAS)
         >>> derived.nfkwe(range(0, 260, 10))
         >>> derived.beta.update()
-        >>> from hydpy import print_values
+        >>> from hydpy import print_vector
         >>> for values in zip(derived.nfkwe, derived.beta):
-        ...     print_values(values)
+        ...     print_vector(values)
         0.0, 1.0
         10.0, 1.000001
         20.0, 1.000058
@@ -169,9 +169,9 @@ class Beta(whmod_parameters.NutzBodenParameter):
         >>> nutz_nr(GRAS)
         >>> derived.nfkwe(range(0, 260, 10))
         >>> derived.beta.update_old()
-        >>> from hydpy import print_values
+        >>> from hydpy import print_vector
         >>> for values in zip(derived.nfkwe, derived.beta):
-        ...     print_values(values)
+        ...     print_vector(values)
         0.0, 1.0
         10.0, 1.000001
         20.0, 1.000058

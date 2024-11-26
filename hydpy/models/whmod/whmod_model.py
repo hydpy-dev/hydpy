@@ -906,8 +906,8 @@ class Corr_Bodenverdunstung_V1(modeltools.Method):
     >>> model.corr_bodenverdunstung_v1()
     >>> fluxes.bodenverdunstung
     bodenverdunstung(1.0, 0.75, 0.5, 0.25, 0.0, 0.0, 0.0)
-    >>> from hydpy import print_values
-    >>> print_values(fluxes.interzeptionsverdunstung[:5] + fluxes.bodenverdunstung[:5])
+    >>> from hydpy import print_vector
+    >>> print_vector(fluxes.interzeptionsverdunstung[:5] + fluxes.bodenverdunstung[:5])
     1.0, 1.25, 1.5, 1.75, 2.0
 
     >>> fluxes.interzeptionsverdunstung = 1.0
@@ -915,7 +915,7 @@ class Corr_Bodenverdunstung_V1(modeltools.Method):
     >>> model.corr_bodenverdunstung_v1()
     >>> fluxes.bodenverdunstung
     bodenverdunstung(0.0, 0.25, 0.5, 0.75, 1.0, 0.0, 0.0)
-    >>> print_values(fluxes.interzeptionsverdunstung[:5] + fluxes.bodenverdunstung[:5])
+    >>> print_vector(fluxes.interzeptionsverdunstung[:5] + fluxes.bodenverdunstung[:5])
     1.0, 1.25, 1.5, 1.75, 2.0
     """
 
@@ -1386,13 +1386,13 @@ class Calc_VerzGrundwasserneubildung_Zwischenspeicher_V1(modeltools.Method):
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> from numpy import arange
-    >>> from hydpy import print_values
+    >>> from hydpy import print_vector
     >>> for k in numpy.arange(0., 5.5, .5):
     ...     schwerpunktlaufzeit.value = k
     ...     states.zwischenspeicher = 2.0
     ...     fluxes.aktgrundwasserneubildung = 1.0
     ...     model.calc_verzgrundwasserneubildung_zwischenspeicher_v1()
-    ...     print_values(
+    ...     print_vector(
     ...         [k,
     ...          fluxes.verzgrundwasserneubildung.value,
     ...          states.zwischenspeicher.value])

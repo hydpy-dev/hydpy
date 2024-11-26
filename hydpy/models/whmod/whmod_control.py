@@ -173,13 +173,13 @@ class Schwerpunktlaufzeit(parametertools.Parameter):
         """
         Vergleiche Abbildung 7 in WHM_TipsTricks_5:
 
-        >>> from hydpy import pub, print_values
+        >>> from hydpy import pub, print_vector
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
         >>> from hydpy.models.whmod import *
         >>> parameterstep("1d")
         >>> for h in range(-1, 11):
         ...     schwerpunktlaufzeit(flurab_probst=h)
-        ...     print_values([h, schwerpunktlaufzeit.value])
+        ...     print_vector([h, schwerpunktlaufzeit.value])
         -1, 0.0
         0, 0.00006
         1, 15.5028

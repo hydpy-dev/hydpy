@@ -38,7 +38,7 @@ currently preferable Python version installed on your computer (usually, the mos
 recent one) and start it::
 
   C:\>py
-  Python 3.12.0
+  Python 3.13.1
   Type "help", "copyright", "credits" or "license" for more information.
   >>>
 

@@ -1,6 +1,6 @@
 
 .. _Python Package Index: https://pypi.org/project/HydPy/
-.. _Python 3.9, 3.10, 3.11, or 3.12: https://www.python.org/downloads/
+.. _Python 3.10, 3.11, 3.12, or 3.13: https://www.python.org/downloads/
 .. _numpy: http://www.numpy.org/
 .. _Kalypso: https://kalypso.bjoernsen.de/index.php?id=382&L=1
 .. _Delft-FEWS: https://oss.deltares.nl/web/delft-fews
@@ -21,8 +21,8 @@
 Installation
 ============
 
-HydPy is available on the `Python Package Index`_.  With `Python 3.9, 3.10, 3.11, or
-3.12`_ on your computer and having access to the internet, you only have to type::
+HydPy is available on the `Python Package Index`_.  With `Python 3.10, 3.11, 3.12, or
+3.13`_ on your computer and having access to the internet, you only have to type::
 
   pip install hydpy
 
@@ -46,7 +46,7 @@ the HydPy installer.
 Selecting a Python distribution
 --------------------------------
 
-Using HydPy requires installing `Python 3.9, 3.10, 3.11, or 3.12`_ first.  You should
+Using HydPy requires installing `Python 3.10, 3.11, 3.12, or 3.13`_ first.  You should
 favour the latest Python version unless you plan to use other libraries only available
 for earlier versions.  Alternatively, consider installing a more comprehensive Python
 distribution like `Anaconda`_, already containing many scientific and mathematical

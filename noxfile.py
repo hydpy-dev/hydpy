@@ -91,13 +91,13 @@ def doctest(session: nox.Session, numpy: Literal["1", "2"]) -> None:
         shutil.copy(
             "hydpy/tests/hydpydoctestcustomize.pth", "hydpydoctestcustomize.pth"
         )
+    if numpy == "1":
+        session.run("pip", "install", "numpy<2")
+    elif numpy == "2":
+        session.run("pip", "install", "numpy>1,<3")
+    else:
+        assert_never(numpy)
     with _clean_environment(session):
-        if numpy == "1":
-            session.run("pip", "install", "numpy<2")
-        elif numpy == "2":
-            session.run("pip", "install", "numpy>1,<3")
-        else:
-            assert_never(numpy)
         session.run("python", "hydpy/tests/run_doctests.py", *session.posargs)
     if not session.posargs:
         session.run("coverage", "combine")

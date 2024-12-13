@@ -1,4 +1,5 @@
 venv*
+.venv*
 extra_python_sources/*
 extra_wheel_sources/*
 .nox*

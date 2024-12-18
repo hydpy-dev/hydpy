@@ -58,6 +58,7 @@ class PrepSub1D(Protocol[TM_contra, TI_contra]):
     ) -> None: ...
 
 
+__HYDPY_AVAILABLE_LOCALS__ = "__hydpy_available_locals__"
 __HYDPY_MODEL_LOCALS__ = "__hydpy_model_locals__"
 
 
@@ -265,7 +266,10 @@ def reverse_model_wildcard_import() -> None:
                     del namespace[key]
             except AttributeError:
                 pass
-        namespace[__HYDPY_MODEL_LOCALS__] = {}
+        if __HYDPY_AVAILABLE_LOCALS__ in namespace:
+            del namespace[__HYDPY_AVAILABLE_LOCALS__]
+        if __HYDPY_MODEL_LOCALS__ in namespace:
+            del namespace[__HYDPY_MODEL_LOCALS__]
 
 
 def load_modelmodule(module: types.ModuleType | str, /) -> types.ModuleType:
@@ -793,6 +797,8 @@ following error occurred: The given `lland_knauf` instance is not considered sha
                     (frame2 := frame1.f_back) is not None
                 )
                 self._namespace = frame2.f_locals
+                if __HYDPY_AVAILABLE_LOCALS__ not in self._namespace:
+                    self._namespace[__HYDPY_AVAILABLE_LOCALS__] = dict(self._namespace)
                 self._old_locals = self._namespace.get(__HYDPY_MODEL_LOCALS__, {})
                 self._submodel = submodel_
                 self._update = update
@@ -833,11 +839,28 @@ following error occurred: The given `lland_knauf` instance is not considered sha
                 f"`{self._model}`"
             )
         finally:
+            available_locals = self._namespace[__HYDPY_AVAILABLE_LOCALS__]
             new_locals = self._namespace[__HYDPY_MODEL_LOCALS__]
             for name in new_locals:
-                self._namespace.pop(name, None)
-            self._namespace.update(self._old_locals)
-            self._namespace[__HYDPY_MODEL_LOCALS__] = self._old_locals
+                if name in self._old_locals:
+                    self._namespace[name] = self._old_locals[name]
+                elif name in available_locals:
+                    self._namespace[name] = available_locals[name]
+                else:
+                    try:
+                        del self._namespace[name]
+                    except ValueError:  # pragma: no cover
+                        # Maybe the best we can do for optimised scopes because we
+                        # "cannot remove local variables from FrameLocalsProxy"
+                        self._namespace[name] = None
+            for name, value in self._old_locals.items():
+                if name not in new_locals:
+                    self._namespace[name] = value
+            if self._old_locals:
+                self._namespace[__HYDPY_MODEL_LOCALS__] = self._old_locals
+            else:
+                del self._namespace[__HYDPY_MODEL_LOCALS__]
+                del self._namespace[__HYDPY_AVAILABLE_LOCALS__]
             if isinstance(self._model, modeltools.SubmodelInterface):
                 self._model.preparemethod2arguments.clear()
             self._tidy_up()

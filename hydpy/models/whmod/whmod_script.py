@@ -676,7 +676,7 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     hydpy.pub.options.parameterstep = whmod_main["FREQUENCE"]
 
     df_knoteneigenschaften = read_nodeproperties(
-        basedir=basedir, filename_node_data=whmod_main["FILENAME_NODE_DATA"]
+        basedir=basedir, filename=whmod_main["FILENAME_NODE_DATA"]
     )
     # Define Loggers according to OUTPUTCONFIG
     loggers = []
@@ -971,10 +971,64 @@ Richterklasse ist jedoch wald
     return df_stammdaten
 
 
-def read_nodeproperties(basedir: str, filename_node_data: str) -> pandas.DataFrame:
-    """Read the node property file"""
-    # Read Node Data
-    dtype_knoteneigenschaften = {
+def read_nodeproperties(basedir: str, filename: str) -> pandas.DataFrame:
+    """Read the node property file.
+
+    >>> from hydpy import print_vector, TestIO
+    >>> TestIO.clear()
+    >>> basedir = TestIO.copy_dir_from_data_to_iotesting("WHMod")
+    >>> from hydpy.models.whmod.whmod_script import read_nodeproperties
+    >>> np = read_nodeproperties(basedir=basedir, filename="Node_Data.csv")
+    >>> print_vector(np["bfi"][:3])
+    0.283961, 0.283069, 0.275907
+
+    Prepare manipulating the file to check if the most relevant errors are properly
+    handled:
+
+    >>> import os
+    >>> filepath = os.path.join(basedir, "Node_Data.csv")
+    >>> with open(filepath) as file_:
+    ...     text = file_.read()
+
+    >>> def check(old: str, new: str) -> None:
+    ...     with open(filepath, "w") as file_:
+    ...         file_.write(text.replace(old, new))
+    ...     read_nodeproperties(basedir=basedir, filename="Node_Data.csv")
+
+    Wrong column name:
+
+    >>> check("bfi", "Bfi")  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to read the file `...Node_Data.csv`, the following error \
+occurred: Usecols do not match columns, columns expected but not found: ['bfi']
+
+    Empty float cell:
+
+    >>> check("0.2839615", "")  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to read the file `...Node_Data.csv`, the following error \
+occurred: `1` missing value(s) in column `bfi`
+
+    Empty integer cell:
+
+    >>> check("11;13;", "11;;")  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to read the file `...Node_Data.csv`, the following error \
+occurred: Integer column has NA values in column 1
+
+    Empty string cell:
+
+    >>> check("TON", "")  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to read the file `...Node_Data.csv`, the following error \
+occurred: `7` missing value(s) in column `bodentyp`
+    """
+
+    name2dtype = {
         "id": numpy.int64,
         "f_id": numpy.int64,
         "row": numpy.int64,
@@ -994,15 +1048,27 @@ def read_nodeproperties(basedir: str, filename_node_data: str) -> pandas.DataFra
         "init_boden": numpy.float64,
         "init_gwn": numpy.float64,
     }
-    df_knoteneigenschaften = pandas.read_csv(
-        os.path.join(basedir, filename_node_data),
-        skiprows=[1],
-        sep=";",
-        comment="#",
-        decimal=".",
-        dtype=dtype_knoteneigenschaften,
-    )
-    return df_knoteneigenschaften
+    filepath = os.path.join(basedir, filename)
+    try:
+        df = pandas.read_csv(
+            filepath,
+            skiprows=[1],
+            sep=";",
+            comment="#",
+            decimal=".",
+            usecols=tuple(name2dtype.keys()),
+            dtype=name2dtype,
+        )
+        # check for missing values (missing integers already reported by `read_csv`):
+        for name, dtype in name2dtype.items():
+            vs = df[name][:]
+            if ((dtype is numpy.float64) and (nmb := numpy.sum(numpy.isnan(vs)))) or (
+                (dtype is str) and (nmb := numpy.sum(isinstance(v, float) for v in vs))
+            ):
+                raise ValueError(f"`{nmb}` missing value(s) in column `{name}`")
+        return df
+    except BaseException:
+        objecttools.augment_excmessage(f"While trying to read the file `{filepath}`")
 
 
 def read_whmod_main(basedir: str) -> dict[str, Any]:
@@ -1015,7 +1081,7 @@ def read_whmod_main(basedir: str) -> dict[str, Any]:
     >>> pandas.set_option('display.expand_frame_repr', False)
 
     >>> from pprint import pprint
-    >>> pprint(read_whmod_main(basedir=basedir)) # doctest: +ELLIPSIS
+    >>> pprint(read_whmod_main(basedir=basedir))  # doctest: +ELLIPSIS
     {'AREA_PRECISION': 1e-06,
      'DEGREE_DAY_FACTOR': 4.5,
      'EVAPORATION_MODE': 'FAO',

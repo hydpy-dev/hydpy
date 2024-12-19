@@ -4,6 +4,7 @@
 # import...
 # ...from HydPy
 from hydpy.core import masktools
+from hydpy.core import parametertools
 
 # ...from hland
 from hydpy.models.whmod.whmod_constants import *
@@ -20,7 +21,7 @@ class NutzBase(masktools.IndexMask):
 class NutzComplete(NutzBase):
     """Alle Nutzungsklassen"""
 
-    relevant = (
+    relevant: tuple[parametertools.IntConstant, ...] = (
         GRAS,
         LAUBWALD,
         MAIS,
@@ -36,7 +37,7 @@ class NutzComplete(NutzBase):
 class NutzLand(NutzBase):
     """Land Nutzungsklassen"""
 
-    relevant = (
+    relevant: tuple[parametertools.IntConstant, ...] = (
         GRAS,
         LAUBWALD,
         MAIS,
@@ -51,7 +52,7 @@ class NutzLand(NutzBase):
 class NutzBoden(NutzBase):
     """Boden Nutzungsklassen"""
 
-    relevant = (
+    relevant: tuple[parametertools.IntConstant, ...] = (
         GRAS,
         LAUBWALD,
         MAIS,

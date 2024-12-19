@@ -27,11 +27,11 @@ SCHLUFF = parametertools.IntConstant(14)
 TORF = parametertools.IntConstant(15)
 
 
-CONSTANTS = parametertools.Constants()
-LANDUSE_CONSTANTS = parametertools.Constants(
+CONSTANTS: parametertools.Constants = parametertools.Constants()
+LANDUSE_CONSTANTS: parametertools.Constants = parametertools.Constants(
     **{key: value for key, value in CONSTANTS.items() if value <= WASSER}
 )
-SOIL_CONSTANTS = parametertools.Constants(
+SOIL_CONSTANTS: parametertools.Constants = parametertools.Constants(
     **{key: value for key, value in CONSTANTS.items() if value >= SAND}
 )
 

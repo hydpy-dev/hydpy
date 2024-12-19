@@ -187,23 +187,36 @@ def _collect_hrus(
     >>> TestIO.clear()
     >>> basedir = TestIO.copy_dir_from_data_to_iotesting("WHMod")
     >>> df_knoteneigenschaften = read_nodeproperties(basedir, "Node_Data.csv")
-    >>> landuse_dict = read_landuse(filepath_landuse=os.path.join(basedir,
-    ... "nutzung.txt"))
-    >>> _collect_hrus(table=df_knoteneigenschaften, idx_=2, landuse_dict=landuse_dict)
-    {'nested_dict_nr-0': {'id': 2, 'f_id': 2, 'row': 1, 'col': 3, 'x': 3455723.97, \
-'y': 5567807.03, 'area': 10000.0, 'f_area': 10000.0, 'nutz_nr': 'NADELWALD', \
-'bodentyp': 'LEHM', 'nfk100_mittel': 90.6, 'nfk_faktor': 1.0, 'nfk_offset': 0.0, \
-'flurab': 2.9, 'bfi': 0.2759066, 'verzoegerung': 'flurab_probst', 'init_boden': 30.0, \
-'init_gwn': 0.0}}
+    >>> landuse = read_landuse(filepath_landuse=os.path.join(basedir, "nutzung.txt"))
+    >>> from pprint import pprint
+    >>> pprint(_collect_hrus(table=df_knoteneigenschaften, idx_=2, landuse_dict=landuse))
+    {'nested_dict_nr-0': {'area': np.float64(10000.0),
+                          'bfi': np.float64(0.2759066),
+                          'bodentyp': 'LEHM',
+                          'col': np.int64(3),
+                          'f_area': np.float64(10000.0),
+                          'f_id': np.int64(2),
+                          'flurab': np.float64(2.9),
+                          'id': np.int64(2),
+                          'init_boden': np.float64(30.0),
+                          'init_gwn': np.float64(0.0),
+                          'nfk100_mittel': np.float64(90.6),
+                          'nfk_faktor': np.float64(1.0),
+                          'nfk_offset': np.float64(0.0),
+                          'nutz_nr': 'NADELWALD',
+                          'row': np.int64(1),
+                          'verzoegerung': 'flurab_probst',
+                          'x': np.float64(3455723.97),
+                          'y': np.float64(5567807.03)}}
 
     >>> df_knoteneigenschaften = read_nodeproperties(basedir, "Node_Data_wrong1.csv")
-    >>> _collect_hrus(table=df_knoteneigenschaften, idx_=4, landuse_dict=landuse_dict)
+    >>> _collect_hrus(table=df_knoteneigenschaften, idx_=4, landuse_dict=landuse)
     Traceback (most recent call last):
     ...
     KeyError: "Die Landnutzungsklasse 'NADELLWALD', die für die Rasterzelle mit der \
 id 4 angesetzt wird ist nicht definiert"
     >>> df_knoteneigenschaften = read_nodeproperties(basedir, "Node_Data_wrong2.csv")
-    >>> _collect_hrus(table=df_knoteneigenschaften, idx_=2, landuse_dict=landuse_dict)
+    >>> _collect_hrus(table=df_knoteneigenschaften, idx_=2, landuse_dict=landuse)
     Traceback (most recent call last):
     ...
     ValueError: 'verzoegerung' muss den Datentyp float enthalten oder die Option \
@@ -962,24 +975,24 @@ def read_nodeproperties(basedir: str, filename_node_data: str) -> pandas.DataFra
     """Read the node property file"""
     # Read Node Data
     dtype_knoteneigenschaften = {
-        "id": int,
-        "f_id": int,
-        "row": int,
-        "col": int,
-        "x": float,
-        "y": float,
-        "area": float,
-        "f_area": float,
+        "id": numpy.int64,
+        "f_id": numpy.int64,
+        "row": numpy.int64,
+        "col": numpy.int64,
+        "x": numpy.float64,
+        "y": numpy.float64,
+        "area": numpy.float64,
+        "f_area": numpy.float64,
         "nutz_nr": str,
         "bodentyp": str,
-        "nfk100_mittel": float,
-        "nfk_faktor": float,
-        "nfk_offset": float,
-        "flurab": float,
-        "bfi": float,
+        "nfk100_mittel": numpy.float64,
+        "nfk_faktor": numpy.float64,
+        "nfk_offset": numpy.float64,
+        "flurab": numpy.float64,
+        "bfi": numpy.float64,
         "verzoegerung": str,
-        "init_boden": float,
-        "init_gwn": float,
+        "init_boden": numpy.float64,
+        "init_gwn": numpy.float64,
     }
     df_knoteneigenschaften = pandas.read_csv(
         os.path.join(basedir, filename_node_data),
@@ -1001,19 +1014,27 @@ def read_whmod_main(basedir: str) -> dict[str, Any]:
     >>> basedir = TestIO.copy_dir_from_data_to_iotesting("WHMod")
     >>> pandas.set_option('display.expand_frame_repr', False)
 
-    # pylint: disable=line-too-long
-    >>> read_whmod_main(basedir=basedir) # doctest: +ELLIPSIS
-    {'PERSON_IN_CHARGE': 'Max Mustermann', 'HYDPY_VERSION': '6.0a0', 'OUTPUTDIR': \
-'...Results', 'FILENAME_NODE_DATA': 'Node_Data.csv', 'FILENAME_TIMESERIES': \
-'Timeseries', 'FILENAME_STATION_DATA': 'Station_Data.txt', 'FILENAME_LANDUSE': \
-'nutzung.txt', 'ROOT_DEPTH_OPTION': 'max_root_depth.txt', 'SIMULATION_START': \
-'1990-01-01', 'SIMULATION_END': '1992-01-01', 'FREQUENCE': '1d', \
-'WITH_CAPPILARY_RISE': True, 'DEGREE_DAY_FACTOR': 4.5, 'PRECIP_RICHTER_CORRECTION': \
-True, 'EVAPORATION_MODE': 'FAO', 'INTERPOLATION_MODE': \
-'IDW', 'NODATA_OUTPUT_VALUE': '-9999.0', 'OUTPUTCONFIG': ['Tageswerte.txt', \
-'Monatswerte.txt', 'Variablewerte.txt'], 'AREA_PRECISION': 1e-06}
-
-    # pylint: enable=line-too-long
+    >>> from pprint import pprint
+    >>> pprint(read_whmod_main(basedir=basedir)) # doctest: +ELLIPSIS
+    {'AREA_PRECISION': 1e-06,
+     'DEGREE_DAY_FACTOR': 4.5,
+     'EVAPORATION_MODE': 'FAO',
+     'FILENAME_LANDUSE': 'nutzung.txt',
+     'FILENAME_NODE_DATA': 'Node_Data.csv',
+     'FILENAME_STATION_DATA': 'Station_Data.txt',
+     'FILENAME_TIMESERIES': 'Timeseries',
+     'FREQUENCE': '1d',
+     'HYDPY_VERSION': '6.2dev0',
+     'INTERPOLATION_MODE': 'IDW',
+     'NODATA_OUTPUT_VALUE': '-9999.0',
+     'OUTPUTCONFIG': ['Tageswerte.txt', 'Monatswerte.txt', 'Variablewerte.txt'],
+     'OUTPUTDIR': '...Results',
+     'PERSON_IN_CHARGE': 'Max Mustermann',
+     'PRECIP_RICHTER_CORRECTION': True,
+     'ROOT_DEPTH_OPTION': 'max_root_depth.txt',
+     'SIMULATION_END': '1992-01-01',
+     'SIMULATION_START': '1990-01-01',
+     'WITH_CAPPILARY_RISE': True}
     """
     dtype_whmod_main = {
         "PERSON_IN_CHARGE": str,
@@ -1101,13 +1122,25 @@ def read_root_depth(root_depth_option: str, basedir: str) -> dict[str, float]:
     >>> from hydpy import TestIO
     >>> TestIO.clear()
     >>> basedir = TestIO.copy_dir_from_data_to_iotesting("WHMod")
-    >>> read_root_depth(root_depth_option="WABOA", basedir=basedir)
-    {'gras': 0.6, 'laubwald': 1.5, 'nadelwald': 1.9, 'mais': 1.0, 'sommerweizen': 1.0, \
-'winterweizen': 1.0, 'zuckerrueben': 1.0}
+    >>> from pprint import pprint
+    >>> pprint(read_root_depth(root_depth_option="WABOA", basedir=basedir))
+    {'gras': np.float64(0.6),
+     'laubwald': np.float64(1.5),
+     'mais': np.float64(1.0),
+     'nadelwald': np.float64(1.9),
+     'sommerweizen': np.float64(1.0),
+     'winterweizen': np.float64(1.0),
+     'zuckerrueben': np.float64(1.0)}
 
-    >>> read_root_depth(root_depth_option="max_root_depth.txt", basedir=basedir)
-    {'gras': 0.6, 'laubwald': 1.5, 'nadelwald': 1.5, 'mais': 1.0, 'sommerweizen': 1.0, \
-'winterweizen': 1.0, 'zuckerrueben': 0.8}
+
+    >>> pprint(read_root_depth(root_depth_option="max_root_depth.txt", basedir=basedir))
+    {'gras': np.float64(0.6),
+     'laubwald': np.float64(1.5),
+     'mais': np.float64(1.0),
+     'nadelwald': np.float64(1.5),
+     'sommerweizen': np.float64(1.0),
+     'winterweizen': np.float64(1.0),
+     'zuckerrueben': np.float64(0.8)}
 
     >>> read_root_depth(root_depth_option="max_root_depth_wrong1.txt", basedir=basedir)
     Traceback (most recent call last):
@@ -2680,8 +2713,9 @@ def get_richter_factors(
     """
     Gibt den Richterkorrekturwert zurück
 
-    >>> get_richter_factors(richterklasse="frei", ns_art="Sommerregen")
-    (0.345, 0.38)
+    >>> from hydpy import print_vector
+    >>> print_vector(get_richter_factors(richterklasse="frei", ns_art="Sommerregen"))
+    0.345, 0.38
     >>> get_richter_factors(richterklasse="test", ns_art="Sommerregen")
     Traceback (most recent call last):
     ...
@@ -2704,9 +2738,14 @@ def calc_richter(
 
     >>> ns_art = numpy.array(["Sommerregen", "Winterregen", "Mischniederschlag",
     ...                       "Schnee"])
-    >>> precipitation = numpy.array([0., 2., 1., 3.])
-    >>> calc_richter(ns_art=ns_art, precipitation=precipitation, richterklasse="frei")
-    [0.0, 2.4676842181675127, 1.5350000000000001, 4.772441562190775]
+    >>> precipitation = numpy.array([0.0, 2.0, 1.0, 3.0])
+    >>> from hydpy import print_vector
+    >>> print_vector(
+    ...     calc_richter(
+    ...         ns_art=ns_art, precipitation=precipitation, richterklasse="frei"
+    ...     )
+    ... )
+    0.0, 2.467684, 1.535, 4.772442
     """
     corr_precipitation = []
     for art, p in zip(ns_art, precipitation):
@@ -2750,14 +2789,16 @@ def check_raster(
     >>> TestIO.clear()
     >>> basedir = TestIO.copy_dir_from_data_to_iotesting("WHMod")
     >>> df_knoteneigenschaften_orig = read_nodeproperties(basedir, "Node_Data.csv")
-    >>> check_raster(df_knoteneigenschaften=df_knoteneigenschaften_orig,
-    ...     check_regular_grid=True)
-    100.0
+    >>> check_raster(
+    ...     df_knoteneigenschaften=df_knoteneigenschaften_orig, check_regular_grid=True
+    ... )
+    np.float64(100.0)
     >>> df_knoteneigenschaften = df_knoteneigenschaften_orig.copy()
     >>> df_knoteneigenschaften.loc[df_knoteneigenschaften["f_id"] == 13,
     ...     "f_area"] = 7050
-    >>> check_raster(df_knoteneigenschaften=df_knoteneigenschaften,
-    ...     check_regular_grid=True)
+    >>> check_raster(
+    ...     df_knoteneigenschaften=df_knoteneigenschaften, check_regular_grid=True
+    ... )
     Traceback (most recent call last):
     ...
     ValueError: Summe der HRU-Flächen entspricht nicht der Gesamtfläche (Zeile=4 \

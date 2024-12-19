@@ -287,9 +287,24 @@ id `4` angesetzt wird ist nicht definiert.
                     ) from None
     return result
 
-def _return_con_hru(hrus: list[dict[str, T]], con: str) -> list[T]:
-    """Returns a list of the condition (con) of a hru."""
-    return [hru[con] for hru in hrus]
+
+def _query_vector_from_hrus(hrus: list[dict[str, T]], name: str, /) -> list[T]:
+    """Extract the vector of potentially different values of the given property from the
+    given hydrological response units."""
+    return [hru[name] for hru in hrus]
+
+
+def _query_scalar_from_hrus(hrus: list[dict[str, T]], name: str, /) -> T:
+    """Extract the (hopefully) identical value of the given property from the given
+    hydrological response units."""
+    values = set(_query_vector_from_hrus(hrus, name))
+    if (nmb := len(values)) > 1:
+        raise ValueError(
+            f"The values of property `{name}` must be identical for all hydrological "
+            f"response units of the same element but `{nmb}` different values are "
+            f"given ({objecttools.enumeration(values)}). "
+        )
+    return values.pop()
 
 
 def _init_gwn_to_zwischenspeicher(
@@ -1463,9 +1478,9 @@ def _initialize_whmod_models(
         )
 
         # Coordinates
-        rechts = _return_con_hru(hrus, "x")[0]
+        rechts = _query_scalar_from_hrus(hrus, "x")
         assert isinstance(rechts, float)
-        hoch = _return_con_hru(hrus, "y")[0]
+        hoch = _query_scalar_from_hrus(hrus, "y")
         assert isinstance(hoch, float)
         xy = _XY(rechts=rechts, hoch=hoch)
 
@@ -1480,14 +1495,13 @@ def _initialize_whmod_models(
         # add Parameters to model (control)
         con = whmod.parameters.control
 
-        con.area(sum(_return_con_hru(hrus, "f_area")))
+        con.area(sum(_query_vector_from_hrus(hrus, "f_area")))
         con.nmb_cells(len(hrus))
         con.mitfunktion_kapillareraufstieg(with_capillary_rise)
 
         # iterate over all hrus and create a list with the land use
         temp_list = []
-        for i in range(len(_return_con_hru(hrus, "nutz_nr"))):
-            nutz_nr = _return_con_hru(hrus, "nutz_nr")[i]
+        for i, nutz_nr in enumerate(_query_vector_from_hrus(hrus, "nutz_nr")):
             assert isinstance(nutz_nr, str)
             temp_list.append(whmod_constants.LANDUSE_CONSTANTS[nutz_nr])
         con.nutz_nr(temp_list)
@@ -1508,8 +1522,7 @@ def _initialize_whmod_models(
 
         # iterate over all hrus and create a list with the soil type
         temp_list = []
-        for i in range(len(_return_con_hru(hrus, "bodentyp"))):
-            bodentyp = _return_con_hru(hrus, "bodentyp")[i]
+        for i, bodentyp in enumerate(_query_vector_from_hrus(hrus, "bodentyp")):
             assert isinstance(bodentyp, str)
             temp_list.append(whmod_constants.SOIL_CONSTANTS[bodentyp.upper()])
         con.bodentyp(temp_list)
@@ -1530,18 +1543,14 @@ def _initialize_whmod_models(
         )  # DWA-M 504
         # fmt: on
 
-        con.f_area(_return_con_hru(hrus, "f_area"))
+        con.f_area(_query_vector_from_hrus(hrus, "f_area"))
         con.gradfaktor(float(day_degree_factor))
-        nfk100_mittel = _return_con_hru(hrus, "nfk100_mittel")[0]
-        assert isinstance(nfk100_mittel, float)
-        nfk_faktor = _return_con_hru(hrus, "nfk_faktor")[0]
-        assert isinstance(nfk_faktor, float)
-        nfk_offset = _return_con_hru(hrus, "nfk_offset")[0]
-        assert isinstance(nfk_offset, float)
-        nfk = (nfk100_mittel * nfk_faktor) + nfk_offset
-        con.nfk100_mittel(nfk)
+        nfk100_mittel = numpy.asarray(_query_vector_from_hrus(hrus, "nfk100_mittel"))
+        nfk_faktor = numpy.asarray(_query_vector_from_hrus(hrus, "nfk_faktor"))
+        nfk_offset = numpy.asarray(_query_vector_from_hrus(hrus, "nfk_offset"))
+        con.nfk100_mittel((nfk100_mittel * nfk_faktor) + nfk_offset)
 
-        con.flurab(_return_con_hru(hrus, "flurab"))
+        con.flurab(_query_vector_from_hrus(hrus, "flurab"))
         con.maxwurzeltiefe(**root_depth)
         con.minhasr(
             gras=4.0,
@@ -1558,27 +1567,26 @@ def _initialize_whmod_models(
         con.kapilgrenzwert(
             sand=0.4, sand_bindig=0.85, lehm=0.45, ton=0.25, schluff=0.75, torf=0.55
         )
-        con.bfi(_return_con_hru(hrus, "bfi")[0])
+        con.bfi(_query_vector_from_hrus(hrus, "bfi"))
 
-        verzoegerung = _return_con_hru(hrus, "verzoegerung")[0]
+        verzoegerung = _query_scalar_from_hrus(hrus, "verzoegerung")
         if verzoegerung == "flurab_probst":
-            flurab = _return_con_hru(hrus, "flurab")[0]
-            assert isinstance(flurab, float)
-            con.schwerpunktlaufzeit(flurab_probst=flurab)
+            con.schwerpunktlaufzeit(flurab_probst=con.flurab.value)
         else:
             con.schwerpunktlaufzeit(verzoegerung)
 
         whmod.sequences.states.interzeptionsspeicher(0.0)
         whmod.sequences.states.schneespeicher(0.0)
         whmod.sequences.states.aktbodenwassergehalt(
-            _return_con_hru(hrus, "init_boden")[0]
+            _query_vector_from_hrus(hrus, "init_boden")
         )
-        init_gwn = _return_con_hru(hrus, "init_gwn")[0]
+        init_gwn = _query_scalar_from_hrus(hrus, "init_gwn")
         assert isinstance(init_gwn, float)
-        init_zwischenspeicher = _init_gwn_to_zwischenspeicher(
-            init_gwn=init_gwn, time_of_concentration=con.schwerpunktlaufzeit.value
+        whmod.sequences.states.zwischenspeicher(
+            _init_gwn_to_zwischenspeicher(
+                init_gwn=init_gwn, time_of_concentration=con.schwerpunktlaufzeit.value
+            )
         )
-        whmod.sequences.states.zwischenspeicher(init_zwischenspeicher)
 
 
 def _initialize_weather_stations(

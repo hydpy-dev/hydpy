@@ -179,9 +179,10 @@ class _XY(NamedTuple):
 
 
 def _collect_hrus(
-    table: pandas.DataFrame, idx_: int, landuse_dict: dict[str, dict[str, int]]
-) -> dict[str, dict[str, object]]:
-    """Collect the hrus of the respective raster-cell. Returns dictionary.
+    table: pandas.DataFrame, idx: int, landuse: dict[str, dict[str, int]]
+) -> list[dict[str, object]]:
+    """Collect the HRUs of the respective raster cell and eventually divide some of them
+    according to the landuse definitions.
 
     >>> from hydpy import TestIO
     >>> TestIO.clear()
@@ -189,53 +190,91 @@ def _collect_hrus(
     >>> df_knoteneigenschaften = read_nodeproperties(basedir, "Node_Data.csv")
     >>> landuse = read_landuse(filepath_landuse=os.path.join(basedir, "nutzung.txt"))
     >>> from pprint import pprint
-    >>> pprint(_collect_hrus(table=df_knoteneigenschaften, idx_=2, landuse_dict=landuse))
-    {'nested_dict_nr-0': {'area': np.float64(10000.0),
-                          'bfi': np.float64(0.2759066),
-                          'bodentyp': 'LEHM',
-                          'col': np.int64(3),
-                          'f_area': np.float64(10000.0),
-                          'f_id': np.int64(2),
-                          'flurab': np.float64(2.9),
-                          'id': np.int64(2),
-                          'init_boden': np.float64(30.0),
-                          'init_gwn': np.float64(0.0),
-                          'nfk100_mittel': np.float64(90.6),
-                          'nfk_faktor': np.float64(1.0),
-                          'nfk_offset': np.float64(0.0),
-                          'nutz_nr': 'NADELWALD',
-                          'row': np.int64(1),
-                          'verzoegerung': 'flurab_probst',
-                          'x': np.float64(3455723.97),
-                          'y': np.float64(5567807.03)}}
+    >>> pprint(_collect_hrus(table=df_knoteneigenschaften, idx=2, landuse=landuse))
+    [{'area': np.float64(10000.0),
+      'bfi': np.float64(0.2759066),
+      'bodentyp': 'LEHM',
+      'col': np.int64(3),
+      'f_area': np.float64(10000.0),
+      'f_id': np.int64(2),
+      'flurab': np.float64(2.9),
+      'id': np.int64(2),
+      'init_boden': np.float64(30.0),
+      'init_gwn': np.float64(0.0),
+      'nfk100_mittel': np.float64(90.6),
+      'nfk_faktor': np.float64(1.0),
+      'nfk_offset': np.float64(0.0),
+      'nutz_nr': 'NADELWALD',
+      'row': np.int64(1),
+      'verzoegerung': 'flurab_probst',
+      'x': np.float64(3455723.97),
+      'y': np.float64(5567807.03)}]
+
+    >>> pprint(_collect_hrus(table=df_knoteneigenschaften, idx=0, landuse=landuse))
+    [{'area': np.float64(10000.0),
+      'bfi': np.float64(0.2839615),
+      'bodentyp': 'TON',
+      'col': np.int64(1),
+      'f_area': np.float64(5000.0),
+      'f_id': np.int64(0),
+      'flurab': np.float64(2.9),
+      'id': np.int64(0),
+      'init_boden': np.float64(50.0),
+      'init_gwn': np.float64(0.0),
+      'nfk100_mittel': np.float64(90.6),
+      'nfk_faktor': np.float64(1.0),
+      'nfk_offset': np.float64(0.0),
+      'nutz_nr': 'NADELWALD',
+      'row': np.int64(1),
+      'verzoegerung': np.float64(5.0),
+      'x': np.float64(3455523.97),
+      'y': np.float64(5567807.03)},
+     {'area': 10000.0,
+      'bfi': 0.2839615,
+      'bodentyp': 'TON',
+      'col': 1,
+      'f_area': 5000.0,
+      'f_id': 0,
+      'flurab': 2.9,
+      'id': 0,
+      'init_boden': 50.0,
+      'init_gwn': 0.0,
+      'nfk100_mittel': 90.6,
+      'nfk_faktor': 1.0,
+      'nfk_offset': 0.0,
+      'nutz_nr': 'LAUBWALD',
+      'row': 1,
+      'verzoegerung': np.float64(5.0),
+      'x': 3455523.97,
+      'y': 5567807.03}]
 
     >>> df_knoteneigenschaften = read_nodeproperties(basedir, "Node_Data_wrong1.csv")
-    >>> _collect_hrus(table=df_knoteneigenschaften, idx_=4, landuse_dict=landuse)
+    >>> _collect_hrus(table=df_knoteneigenschaften, idx=4, landuse=landuse)
     Traceback (most recent call last):
     ...
     KeyError: "Die Landnutzungsklasse 'NADELLWALD', die für die Rasterzelle mit der \
 id 4 angesetzt wird ist nicht definiert"
     >>> df_knoteneigenschaften = read_nodeproperties(basedir, "Node_Data_wrong2.csv")
-    >>> _collect_hrus(table=df_knoteneigenschaften, idx_=2, landuse_dict=landuse)
+    >>> _collect_hrus(table=df_knoteneigenschaften, idx=2, landuse=landuse)
     Traceback (most recent call last):
     ...
     ValueError: 'verzoegerung' muss den Datentyp float enthalten oder die Option \
 'flurab_probst'
     """
-    result: dict[str, dict[str, object]] = {}
-    hrus = table[table["id"] == idx_]
+
+    hrus = table[table["id"] == idx]
     extended_hrus = pandas.DataFrame(columns=hrus.columns)
     n_hrus = 0
     for i, hru in hrus.iterrows():
         try:
-            landuse = landuse_dict[hru["nutz_nr"]]
+            landuse_ = landuse[hru["nutz_nr"]]
         except KeyError as exc:
             raise KeyError(
                 f"Die Landnutzungsklasse '{hru['nutz_nr']}', die für die "
-                f"Rasterzelle mit der id {idx_} angesetzt wird ist nicht "
+                f"Rasterzelle mit der id {idx} angesetzt wird ist nicht "
                 f"definiert"
             ) from exc
-        for luse, area_perc in landuse.items():
+        for luse, area_perc in landuse_.items():
             extended_hrus.loc[n_hrus] = hrus.loc[i].copy()
             extended_hrus.loc[n_hrus, "nutz_nr"] = luse.upper()
             extended_hrus.loc[n_hrus, "f_area"] *= area_perc / 100
@@ -252,19 +291,16 @@ id 4 angesetzt wird ist nicht definiert"
         ) from None
 
     # hru in nutzungstabelle prüfen, wenn ja: aufteilen ansonsten Fehler
+    result: list[dict[str, object]] = []
+    extended_hrus = extended_hrus.reset_index()  # ToDo: unnecessary?
     for i in range(len(extended_hrus)):
-        result[f"nested_dict_nr-{i}"] = {}
-        for key in table.columns:
-            result[f"nested_dict_nr-{i}"][key] = extended_hrus.reset_index().loc[i, key]
+        result.append({key: extended_hrus.loc[i, key] for key in table.columns})
     return result
 
 
-def _return_con_hru(hrus: dict[str, dict[str, T]], con: str) -> list[T]:
+def _return_con_hru(hrus: list[dict[str, T]], con: str) -> list[T]:
     """Returns a list of the condition (con) of a hru."""
-    temp_list = []
-    for hru in hrus:
-        temp_list.append(hrus[hru][con])
-    return temp_list
+    return [hru[con] for hru in hrus]
 
 
 def _init_gwn_to_zwischenspeicher(
@@ -1062,8 +1098,8 @@ occurred: `7` missing value(s) in column `bodentyp`
         # check for missing values (missing integers already reported by `read_csv`):
         for name, dtype in name2dtype.items():
             vs = df[name][:]
-            if ((dtype is numpy.float64) and (nmb := numpy.sum(numpy.isnan(vs)))) or (
-                (dtype is str) and (nmb := numpy.sum(isinstance(v, float) for v in vs))
+            if ((dtype is numpy.float64) and (nmb := sum(numpy.isnan(vs)))) or (
+                (dtype is str) and (nmb := sum(isinstance(v, float) for v in vs))
             ):
                 raise ValueError(f"`{nmb}` missing value(s) in column `{name}`")
         return df
@@ -1434,7 +1470,7 @@ def _initialize_whmod_models(
 
         # find number of hrus in element
         hrus = _collect_hrus(
-            table=df_knoteneigenschaften, idx_=idx, landuse_dict=landuse_dict
+            table=df_knoteneigenschaften, idx=idx, landuse=landuse_dict
         )
 
         # Coordinates

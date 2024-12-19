@@ -181,8 +181,8 @@ class _XY(NamedTuple):
 def _collect_hrus(
     table: pandas.DataFrame, idx: int, landuse: dict[str, dict[str, int]]
 ) -> list[dict[str, object]]:
-    """Collect the HRUs of the respective raster cell and eventually divide some of them
-    according to the landuse definitions.
+    """Collect the HRUs of the respective raster cell and eventually divide (some of)
+    them according to the landuse definitions.
 
     >>> from hydpy import TestIO
     >>> TestIO.clear()
@@ -229,74 +229,63 @@ def _collect_hrus(
       'verzoegerung': np.float64(5.0),
       'x': np.float64(3455523.97),
       'y': np.float64(5567807.03)},
-     {'area': 10000.0,
-      'bfi': 0.2839615,
+     {'area': np.float64(10000.0),
+      'bfi': np.float64(0.2839615),
       'bodentyp': 'TON',
-      'col': 1,
-      'f_area': 5000.0,
-      'f_id': 0,
-      'flurab': 2.9,
-      'id': 0,
-      'init_boden': 50.0,
-      'init_gwn': 0.0,
-      'nfk100_mittel': 90.6,
-      'nfk_faktor': 1.0,
-      'nfk_offset': 0.0,
+      'col': np.int64(1),
+      'f_area': np.float64(5000.0),
+      'f_id': np.int64(0),
+      'flurab': np.float64(2.9),
+      'id': np.int64(0),
+      'init_boden': np.float64(50.0),
+      'init_gwn': np.float64(0.0),
+      'nfk100_mittel': np.float64(90.6),
+      'nfk_faktor': np.float64(1.0),
+      'nfk_offset': np.float64(0.0),
       'nutz_nr': 'LAUBWALD',
-      'row': 1,
+      'row': np.int64(1),
       'verzoegerung': np.float64(5.0),
-      'x': 3455523.97,
-      'y': 5567807.03}]
+      'x': np.float64(3455523.97),
+      'y': np.float64(5567807.03)}]
 
     >>> df_knoteneigenschaften = read_nodeproperties(basedir, "Node_Data_wrong1.csv")
     >>> _collect_hrus(table=df_knoteneigenschaften, idx=4, landuse=landuse)
     Traceback (most recent call last):
     ...
-    KeyError: "Die Landnutzungsklasse 'NADELLWALD', die für die Rasterzelle mit der \
-id 4 angesetzt wird ist nicht definiert"
+    ValueError: Die Landnutzungsklasse 'NADELLWALD', die für die Rasterzelle mit der \
+id `4` angesetzt wird ist nicht definiert.
+
     >>> df_knoteneigenschaften = read_nodeproperties(basedir, "Node_Data_wrong2.csv")
     >>> _collect_hrus(table=df_knoteneigenschaften, idx=2, landuse=landuse)
     Traceback (most recent call last):
     ...
-    ValueError: 'verzoegerung' muss den Datentyp float enthalten oder die Option \
-'flurab_probst'
+    ValueError: `verzoegerung` muss den Datentyp float enthalten oder die Option \
+`flurab_probst`.
     """
-
+    result: list[dict[str, object]] = []
     hrus = table[table["id"] == idx]
-    extended_hrus = pandas.DataFrame(columns=hrus.columns)
-    n_hrus = 0
     for i, hru in hrus.iterrows():
         try:
             landuse_ = landuse[hru["nutz_nr"]]
         except KeyError as exc:
-            raise KeyError(
-                f"Die Landnutzungsklasse '{hru['nutz_nr']}', die für die "
-                f"Rasterzelle mit der id {idx} angesetzt wird ist nicht "
-                f"definiert"
-            ) from exc
+            raise ValueError(
+                f"Die Landnutzungsklasse '{hru['nutz_nr']}', die für die Rasterzelle "
+                f"mit der id `{idx}` angesetzt wird ist nicht definiert."
+            ) from None
         for luse, area_perc in landuse_.items():
-            extended_hrus.loc[n_hrus] = hrus.loc[i].copy()
-            extended_hrus.loc[n_hrus, "nutz_nr"] = luse.upper()
-            extended_hrus.loc[n_hrus, "f_area"] *= area_perc / 100
-            n_hrus += 1
-
-    try:
-        extended_hrus["verzoegerung"] = extended_hrus["verzoegerung"].apply(
-            lambda x: x if x == "flurab_probst" else float(x)
-        )
-    except ValueError:
-        raise ValueError(
-            "'verzoegerung' muss den Datentyp float enthalten "
-            "oder die Option 'flurab_probst'"
-        ) from None
-
-    # hru in nutzungstabelle prüfen, wenn ja: aufteilen ansonsten Fehler
-    result: list[dict[str, object]] = []
-    extended_hrus = extended_hrus.reset_index()  # ToDo: unnecessary?
-    for i in range(len(extended_hrus)):
-        result.append({key: extended_hrus.loc[i, key] for key in table.columns})
+            sub = {key: hrus.loc[i, key] for key in table.columns}
+            result.append(sub)
+            sub["nutz_nr"] = luse.upper()
+            sub["f_area"] *= area_perc / 100.0
+            if (v := sub["verzoegerung"]) != "flurab_probst":
+                try:
+                    sub["verzoegerung"] = numpy.float64(v)
+                except ValueError:
+                    raise ValueError(
+                        "`verzoegerung` muss den Datentyp float enthalten oder die "
+                        "Option `flurab_probst`."
+                    ) from None
     return result
-
 
 def _return_con_hru(hrus: list[dict[str, T]], con: str) -> list[T]:
     """Returns a list of the condition (con) of a hru."""

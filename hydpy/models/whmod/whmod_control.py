@@ -91,16 +91,13 @@ class MaxInterz(whmod_parameters.LanduseMonthParameter):
     """[mm]"""
 
 
-class Faktor(whmod_parameters.LanduseMonthParameter):
-    ...
+class Faktor(whmod_parameters.LanduseMonthParameter): ...
 
 
-class FactorC(whmod_parameters.ForestMonthParameter):
-    ...
+class FactorC(whmod_parameters.ForestMonthParameter): ...
 
 
-class FaktorWald(whmod_parameters.ForestMonthParameter):
-    ...
+class FaktorWald(whmod_parameters.ForestMonthParameter): ...
 
 
 class FLN(whmod_parameters.LanduseMonthParameter):

@@ -1,5 +1,3 @@
-
-
 from hydpy.core import parametertools
 
 GRAS = parametertools.IntConstant(1)

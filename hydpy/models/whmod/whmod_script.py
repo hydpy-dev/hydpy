@@ -39,6 +39,7 @@ the simulation.  The model can be run with the following command in the terminal
 The last argument defines the output-mode. When True the progess of the simulation is
 printed in the terminal.
 """
+
 from __future__ import annotations
 import csv
 import datetime
@@ -56,7 +57,14 @@ import hydpy
 from hydpy.core import devicetools
 from hydpy.core import objecttools
 from hydpy.exe import commandtools
-from hydpy.models import conv_nn, conv_idw, evap_ret_fao56, meteo_glob_fao56, meteo_temp_io, whmod_pet
+from hydpy.models import (
+    conv_nn,
+    conv_idw,
+    evap_ret_fao56,
+    meteo_glob_fao56,
+    meteo_temp_io,
+    whmod_pet,
+)
 from hydpy.models.whmod import whmod_constants
 from hydpy.core.typingtools import *
 
@@ -760,9 +768,7 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     for element in hp.elements:
         element.model.parameters.update()
 
-    whm_elements = (
-        hydpy.pub.selections.complete.search_modeltypes(whmod_pet).elements
-    )
+    whm_elements = hydpy.pub.selections.complete.search_modeltypes(whmod_pet).elements
 
     seriesdir = os.path.join(whmod_main["OUTPUTDIR"], "series")
     if os.path.exists(seriesdir):
@@ -1761,12 +1767,11 @@ def _initialize_conv_models(
 
     # Conv-Modell Temperature
     if interpolation_method == "IDW":
-        conv_module = conv_idw
+        conv_temp = hydpy.prepare_model(conv_idw)
     elif interpolation_method == "NN":
-        conv_module = conv_nn
+        conv_temp = hydpy.prepare_model(conv_nn)
     else:
         assert_never(interpolation_method)
-    conv_temp = hydpy.prepare_model(conv_module)
     conv_temp.parameters.control.inputcoordinates(
         **_get_coordinatedict(temp_selection_stat.nodes)
     )

@@ -1,4 +1,3 @@
-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 External (FAO) reference evaporation version of WHMod.

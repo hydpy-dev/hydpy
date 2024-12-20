@@ -21,6 +21,8 @@ from hydpy.models.whmod.whmod_constants import *
 class Model(modeltools.AdHocModel):
     """Haude-Dommermuth-Trumpf version of WHMod."""
 
+    DOCNAME = modeltools.DocName(short="WHMod-Haude", description="Haude-Dommermuth-Trumpf evapotranspiration")
+
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (

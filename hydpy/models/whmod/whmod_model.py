@@ -1437,6 +1437,8 @@ class Calc_VerzGrundwasserneubildung_Zwischenspeicher_V1(modeltools.Method):
 class Model(modeltools.AdHocModel):
     """The *WHMod* base model."""
 
+    DOCNAME = modeltools.DocName(short="WHMod")
+
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (

@@ -1438,6 +1438,7 @@ class Model(modeltools.AdHocModel):
     """The *WHMod* base model."""
 
     DOCNAME = modeltools.DocName(short="WHMod")
+    __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

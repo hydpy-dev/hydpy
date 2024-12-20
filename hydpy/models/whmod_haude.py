@@ -22,6 +22,7 @@ class Model(modeltools.AdHocModel):
     """Haude-Dommermuth-Trumpf version of WHMod."""
 
     DOCNAME = modeltools.DocName(short="WHMod-Haude", description="Haude-Dommermuth-Trumpf evapotranspiration")
+    __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

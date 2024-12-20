@@ -1610,7 +1610,7 @@ class SubmodelGraph:
         arma_rimorido
         conv_idw
         ...
-        sw1d_channel
+        whmod_pet
         wland_gd
         wland_wag
 

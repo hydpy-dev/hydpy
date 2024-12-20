@@ -473,6 +473,7 @@ class Model(modeltools.AdHocModel):
     """External PET version of WHMod."""
 
     DOCNAME = modeltools.DocName(short="WHMod-PET", description="externel potential evapotranspiration")
+    __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

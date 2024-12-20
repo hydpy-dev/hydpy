@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
-The *HydPy-SW1D* model family member |sw1d_lias_sluice| extends the routing submodel
-|sw1d_lias| with simple sluice functionalities.
+The |sw1d.DOCNAME.long| model family member |sw1d_lias_sluice| extends the routing
+submodel |sw1d_lias| with simple sluice functionalities.
 
 The main model |sw1d_channel| documentation explains |sw1d_lias| depth.  Here, we limit
 the discussion to some of the additional features of |sw1d_lias_sluice|.  Please also
@@ -30,18 +29,17 @@ except replacing the |sw1d_lias| submodel at the central location with a
 >>> for i, length_ in enumerate(lengths):
 ...     with model.add_storagemodel_v1("sw1d_storage", position=i):
 ...         length(length_)
-...         bottomlevel(5.0)
-...         bottomwidth(5.0)
-...         sideslope(0.0)
+...         with model.add_crosssection_v2("wq_trapeze"):
+...             nmbtrapezes(1)
+...             bottomlevels(5.0)
+...             bottomwidths(5.0)
+...             sideslopes(0.0)
 
 >>> for i in range(1, nmbsegments.value):
 ...     lias = "sw1d_lias_sluice" if i == 4 else "sw1d_lias"
 ...     with model.add_routingmodel_v2(lias, position=i):
 ...         lengthupstream(2.0 if i % 2 else 3.0)
 ...         lengthdownstream(3.0 if i % 2 else 2.0)
-...         bottomlevel(5.0)
-...         bottomwidth(5.0)
-...         sideslope(0.0)
 ...         stricklercoefficient(1.0/0.03)
 ...         timestepfactor(0.7)
 ...         diffusionfactor(0.2)
@@ -50,6 +48,11 @@ except replacing the |sw1d_lias| submodel at the central location with a
 ...             upperlowwaterthreshold(0.0)
 ...             bottomhighwaterthreshold(5.0)
 ...             upperhighwaterthreshold(5.0)
+...         with model.add_crosssection_v2("wq_trapeze"):
+...             nmbtrapezes(1)
+...             bottomlevels(5.0)
+...             bottomwidths(5.0)
+...             sideslopes(0.0)
 
 >>> from hydpy import Element
 >>> channel = Element("channel")
@@ -64,8 +67,9 @@ except replacing the |sw1d_lias| submodel at the central location with a
 ...         hs = nmbsegments.value * [hs]
 ...     inits = []
 ...     for h, s in zip(hs, model.storagemodels):
-...         c = s.parameters.control
-...         v = h * (c.bottomwidth + h * c.sideslope) * c.length
+...         length = s.parameters.control.length
+...         c = s.crosssection.parameters.control
+...         v = h * (c.bottomwidths[0] + h * c.sideslopes[0]) * length
 ...         inits.append((s.sequences.states.watervolume, v))
 ...     for r in model.routingmodels[1:-1]:
 ...         inits.append((r.sequences.states.discharge, 0.0))
@@ -435,16 +439,22 @@ There is no indication of an error in the water balance:
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
-from hydpy.interfaces import channelinterfaces
+from hydpy.interfaces import routinginterfaces
 
 # ...from musk
 from hydpy.models.sw1d import sw1d_model
 
 
-class Model(modeltools.AdHocModel, channelinterfaces.RoutingModel_V2):
-    """A routing submodel combining the "local inertial approximation of the shallow
-    water equations" introduced by :cite:t:`ref-Bates2010` and "stabilised" by
-    :cite:t:`ref-Almeida2012` with simple sluice functionalities."""
+class Model(sw1d_model.Main_CrossSectionModel_V2, routinginterfaces.RoutingModel_V2):
+    """|sw1d_lias_sluice.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="SW1D-LIAS/Sluice",
+        description=(
+            "submodel that extends HydPy-SW1D-LIAS with sluice functionalities"
+        ),
+    )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
@@ -467,11 +477,10 @@ class Model(modeltools.AdHocModel, channelinterfaces.RoutingModel_V2):
         sw1d_model.Calc_WaterVolumeDownstream_V1,
         sw1d_model.Calc_WaterLevelUpstream_V1,
         sw1d_model.Calc_WaterLevelDownstream_V1,
-        sw1d_model.Calc_WaterLevel_V2,
-        sw1d_model.Calc_WaterDepth_V2,
+        sw1d_model.Calc_WaterLevel_V1,
+        sw1d_model.Calc_WaterDepth_WettedArea_WettedPerimeter_CrossSectionModel_V2,
+        sw1d_model.Calc_WaterDepth_WettedArea_WettedPerimeter_V1,
         sw1d_model.Calc_MaxTimeStep_V1,
-        sw1d_model.Calc_WettedArea_V1,
-        sw1d_model.Calc_WettedPerimeter_V1,
         sw1d_model.Calc_DischargeUpstream_V1,
         sw1d_model.Calc_DischargeDownstream_V1,
         sw1d_model.Calc_Discharge_V1,
@@ -483,34 +492,37 @@ class Model(modeltools.AdHocModel, channelinterfaces.RoutingModel_V2):
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (
-        channelinterfaces.RoutingModel_V1,
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.RoutingModel_V3,
-        channelinterfaces.StorageModel_V1,
+        routinginterfaces.CrossSectionModel_V2,
+        routinginterfaces.RoutingModel_V1,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V3,
+        routinginterfaces.StorageModel_V1,
     )
     SUBMODELS = ()
 
+    crosssection = modeltools.SubmodelProperty(routinginterfaces.CrossSectionModel_V2)
+
     storagemodelupstream = modeltools.SubmodelProperty(
-        channelinterfaces.StorageModel_V1, sidemodel=True
+        routinginterfaces.StorageModel_V1, sidemodel=True
     )
     storagemodelupstream_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     storagemodelupstream_typeid = modeltools.SubmodelTypeIDProperty()
 
     storagemodeldownstream = modeltools.SubmodelProperty(
-        channelinterfaces.StorageModel_V1, sidemodel=True
+        routinginterfaces.StorageModel_V1, sidemodel=True
     )
     storagemodeldownstream_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     storagemodeldownstream_typeid = modeltools.SubmodelTypeIDProperty()
 
     routingmodelsupstream = modeltools.SubmodelsProperty(
-        channelinterfaces.RoutingModel_V1,
-        channelinterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V1,
+        routinginterfaces.RoutingModel_V2,
         sidemodels=True,
     )
 
     routingmodelsdownstream = modeltools.SubmodelsProperty(
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.RoutingModel_V3,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V3,
         sidemodels=True,
     )
 

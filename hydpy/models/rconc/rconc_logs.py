@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -8,6 +7,7 @@ import warnings
 import numpy
 
 # ...from HydPy
+from hydpy import config
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
@@ -67,7 +67,8 @@ shape (4...) into shape (3...)
         >>> from hydpy.models.rconc import *
         >>> parameterstep()
         >>> logs.quh.shape = 3
-        >>> logs.quh.refweights
-        array([1., 1., 1.])
+        >>> from hydpy import print_vector
+        >>> print_vector(logs.quh.refweights)
+        1.0, 1.0, 1.0
         """
-        return numpy.ones(self.shape, dtype=float)
+        return numpy.ones(self.shape, dtype=config.NP_FLOAT)

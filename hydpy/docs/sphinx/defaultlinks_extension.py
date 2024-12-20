@@ -14,14 +14,12 @@ class HowToUnderstandIntegrationTests(rst.Directive):
     """Directive the "How to understand integration tests?" section."""
 
     def run(self):
-        """Include the text in a `note` block and add a reference via
-        nested parsing."""
+        """Include the text in a `note` block and add a reference via nested parsing."""
         viewlist = statemachine.ViewList()
         viewlist.append(
             ".. note:: "
             "When new to *HydPy*, consider reading section "
-            ":ref:`How to understand integration tests? "
-            "<understand_integration_tests>` first.",
+            ":ref:`Integration Tests <integration_tests>` first.",
             "fakefile.rst",
             1,
         )

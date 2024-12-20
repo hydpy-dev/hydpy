@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module provides tools for defining and handling different kinds of parameters
 of hydrological models."""
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -151,7 +151,7 @@ class Constants(dict[str, int]):
         if config.USEAUTODOC:
             assert (filename := inspect.getsourcefile(frame)) is not None
             with open(filename, encoding=config.ENCODING) as file_:
-                sources = file_.read().split('"""')
+                sources = file_.read().split('"""')[2:]
             for code, doc in zip(sources[::2], sources[1::2]):
                 code = code.strip()
                 key = code.split("\n")[-1].split()[0]
@@ -177,7 +177,7 @@ class Parameters:
     subparameters, the `derived` subparameters, the `fixed` subparameters and the
     `solver` subparameters:
 
-    >>> from hydpy.models.meteo_v001 import *
+    >>> from hydpy.models.meteo_glob_fao56 import *
     >>> parameterstep("1d")
     >>> assert model.parameters
     >>> assert model.parameters.control
@@ -235,10 +235,10 @@ class Parameters:
         """Call method |Parameter.update| of all "secondary" parameters.
 
         Directly after initialisation, neither the primary (`control`) parameters nor
-        the secondary (`derived`)  parameters of application model |meteo_v001| are
-        ready for usage:
+        the secondary (`derived`)  parameters of application model |meteo_glob_fao56|
+        are ready for usage:
 
-        >>> from hydpy.models.meteo_v001 import *
+        >>> from hydpy.models.meteo_glob_fao56 import *
         >>> parameterstep("1d")
         >>> simulationstep("1d")
         >>> derived
@@ -309,10 +309,10 @@ For variable `latitude`, no value has been defined so far.
         actual model.
 
         When calling method |Parameters.verify| directly after initialising model
-        |meteo_v001| (without using default values), it raises a |RuntimeError| due to
-        the undefined value of control parameter |meteo_control.Latitude|:
+        |meteo_glob_fao56| (without using default values), it raises a |RuntimeError|
+        due to the undefined value of control parameter |meteo_control.Latitude|:
 
-        >>> from hydpy.models.meteo_v001 import *
+        >>> from hydpy.models.meteo_glob_fao56 import *
         >>> parameterstep("1d")
         >>> simulationstep("1d")
         >>> model.parameters.verify()
@@ -365,7 +365,7 @@ yet: longitude(?).
         These secondary parameter subgroups are the `derived` parameters and the
         `solver` parameters at the moment:
 
-        >>> from hydpy.models.meteo_v001 import *
+        >>> from hydpy.models.meteo_glob_fao56 import *
         >>> parameterstep("1d")
         >>> for subpars in model.parameters.secondary_subpars:
         ...     print(subpars.name)
@@ -447,7 +447,7 @@ class SubParameters(
 
     >>> from hydpy import classname, prepare_model, pub
     >>> with pub.options.usecython(False):
-    ...     model = prepare_model("lland_v1")
+    ...     model = prepare_model("lland_dd")
     >>> classname(model.parameters.control.fastaccess)
     'FastAccessParameter'
 
@@ -456,20 +456,20 @@ class SubParameters(
     specialised for the respective model and sequence group:
 
     >>> with pub.options.usecython(True):
-    ...     model = prepare_model("lland_v1")
+    ...     model = prepare_model("lland_dd")
     >>> classname(model.parameters.control.fastaccess)
     'ControlParameters'
     '''
 
     pars: Parameters
-    _cymodel: Optional[CyModelProtocol]
+    _cymodel: CyModelProtocol | None
     _CLS_FASTACCESS_PYTHON = FastAccessParameter
 
     def __init__(
         self,
         master: Parameters,
-        cls_fastaccess: Optional[type[FastAccessParameter]] = None,
-        cymodel: Optional[CyModelProtocol] = None,
+        cls_fastaccess: type[FastAccessParameter] | None = None,
+        cymodel: CyModelProtocol | None = None,
     ):
         self.pars = master
         self._cymodel = cymodel
@@ -500,14 +500,14 @@ class Keyword(NamedTuple):
 
     name: str
     """The keyword argument's name."""
-    type_: type[Union[float, int]] = float
+    type_: type[float | int] = float
     """The keyword argument's type (equivalent to the |Variable.TYPE| attribute of 
     class |Variable|)."""
-    time: Optional[bool] = None
+    time: bool | None = None
     """Type of the keyword argument's time dependency (equivalent to the 
     |Parameter.TIME| attribute of class |Parameter|).
     """
-    span: tuple[Optional[float], Optional[float]] = (None, None)
+    span: tuple[float | None, float | None] = (None, None)
     """The keyword argument's lower and upper boundary (equivalent to the 
     |Variable.SPAN| attribute of class |Variable|).
     """
@@ -533,11 +533,11 @@ class KeywordArguments(Generic[T]):
     This object should contain the keyword arguments that, when passed to the same
     parameter instance or another parameter instance of the same type, sets it into
     an equal state.  This is best explained by the following example based on
-    parameter |lland_control.TRefT| of application model |lland_v1| (see the
+    parameter |lland_control.TRefT| of application model |lland_dd| (see the
     documentation on property |ZipParameter.keywordarguments| of class |ZipParameter|
     for additional information):
 
-    >>> from hydpy.models.lland_v1 import *
+    >>> from hydpy.models.lland_dd import *
     >>> parameterstep()
     >>> nhru(4)
     >>> lnk(ACKER, LAUBW, WASSER, ACKER)
@@ -758,9 +758,9 @@ the unequal argument `1` under the keyword `one`.
         interested in a superset of all keyword arguments related to a specific
         |Parameter| type relevant for certain |Element| objects.  To show how
         method |KeywordArguments.extend| can help in such cases, we make use of
-        the `LahnH` example project:
+        the `HydPy-H-Lahn` example project:
         
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
         First, we prepare an empty |KeywordArguments| object:
@@ -772,7 +772,7 @@ the unequal argument `1` under the keyword `one`.
 
         When passing a |Parameter| subclass (in our example
         |hland_control.IcMax|) and some |Element| objects (at first the headwater
-        elements, which handle instances of application model |hland_v1|), method
+        elements, which handle instances of application model |hland_96|), method
         |KeywordArguments.extend| collects their relevant keyword arguments:
 
         >>> from hydpy.models.hland.hland_control import IcMax
@@ -790,7 +790,7 @@ the unequal argument `1` under the keyword `one`.
 
         Next, we change the interception capacity of forests in one subcatchment:
 
-        >>> icmax = hp.elements.land_lahn_2.model.parameters.control.icmax
+        >>> icmax = hp.elements.land_lahn_leun.model.parameters.control.icmax
         >>> icmax(field=1.0, forest=2.0)
 
         Re-applying method |KeywordArguments.extend| now raises the following error:
@@ -800,10 +800,10 @@ the unequal argument `1` under the keyword `one`.
         ...
         hydpy.core.parametertools.KeywordArgumentsError: While trying to extend the \
 keyword arguments based on the available `IcMax` parameter objects, the following \
-error occurred: While trying to add the keyword arguments for element `land_lahn_2`, \
-the following error occurred: Cannot add argument value `2.0` of type `float64` to \
-the current `KeywordArguments` object as it already handles the unequal argument \
-`1.5` under the keyword `forest`.
+error occurred: While trying to add the keyword arguments for element \
+`land_lahn_leun`, the following error occurred: Cannot add argument value `2.0` of \
+type `float64` to the current `KeywordArguments` object as it already handles the \
+unequal argument `1.5` under the keyword `forest`.
 
         The old keywords arguments and the validity status remain unchanged:
 
@@ -822,8 +822,9 @@ the current `KeywordArguments` object as it already handles the unequal argument
         ...
         hydpy.core.parametertools.KeywordArgumentsError: While trying to extend the \
 keyword arguments based on the available `IcMax` parameter objects, the following \
-error occurred: While trying to add the keyword arguments for element `land_lahn_2`, \
-the following error occurred: Cannot iterate an invalid `KeywordArguments` object.
+error occurred: While trying to add the keyword arguments for element \
+`land_lahn_leun`, the following error occurred: Cannot iterate an invalid \
+`KeywordArguments` object.
 
         When setting the `raise_exception` argument to |False|, method
         |KeywordArguments.extend| handles such errors internally and, instead of
@@ -1098,6 +1099,7 @@ keyword arguments are given, which is ambiguous.
     handles a (1-dimensional) vector of time-dependent values (indicated
     by setting the class attribute `TIME` to |True|):
 
+    >>> from hydpy import print_vector
     >>> class Par(Parameter):
     ...     NDIM = 1
     ...     TYPE = float
@@ -1127,20 +1129,20 @@ keyword arguments are given, which is ambiguous.
     >>> par(3.0)
     >>> par
     par(3.0)
-    >>> par.values
-    array([6., 6.])
+    >>> print_vector(par.values)
+    6.0, 6.0
 
     >>> par([0.0, 4.0])
     >>> par
     par(0.0, 4.0)
-    >>> par.values
-    array([0., 8.])
+    >>> print_vector(par.values)
+    0.0, 8.0
 
     >>> par(1.0, 2.0)
     >>> par
     par(1.0, 2.0)
-    >>> par.values
-    array([2., 4.])
+    >>> print_vector(par.values)
+    2.0, 4.0
 
     Using the `call` syntax to set parameter values triggers method
     |trim| automatically:
@@ -1151,8 +1153,8 @@ keyword arguments are given, which is ambiguous.
 The old and the new value(s) are `-2.0, 6.0` and `0.0, 6.0`, respectively.
     >>> par
     par(0.0, 3.0)
-    >>> par.values
-    array([0., 6.])
+    >>> print_vector(par.values)
+    0.0, 6.0
 
     You are free to change the parameter step size (temporarily) to change
     the string representation of |Parameter| handling time-dependent values
@@ -1160,13 +1162,13 @@ The old and the new value(s) are `-2.0, 6.0` and `0.0, 6.0`, respectively.
 
     >>> with pub.options.parameterstep("2d"):
     ...     print(par)
-    ...     print(repr(par.values))
+    ...     print_vector(par.values)
     par(0.0, 6.0)
-    array([0., 6.])
+    0.0, 6.0
     >>> par
     par(0.0, 3.0)
-    >>> par.values
-    array([0., 6.])
+    >>> print_vector(par.values)
+    0.0, 6.0
 
     The highest number of dimensions of |Parameter| subclasses supported
     is currently two.  The following examples repeat some examples from
@@ -1174,6 +1176,7 @@ The old and the new value(s) are `-2.0, 6.0` and `0.0, 6.0`, respectively.
     related to the simulation step size (indicated by setting the class
     attribute `TIME` to |False|):
 
+    >>> from hydpy import print_matrix
     >>> class Par(Parameter):
     ...     NDIM = 2
     ...     TYPE = float
@@ -1186,18 +1189,18 @@ The old and the new value(s) are `-2.0, 6.0` and `0.0, 6.0`, respectively.
     >>> par(9.0)
     >>> par
     par(9.0)
-    >>> par.values
-    array([[4.5, 4.5, 4.5],
-           [4.5, 4.5, 4.5]])
+    >>> print_matrix(par.values)
+    | 4.5, 4.5, 4.5 |
+    | 4.5, 4.5, 4.5 |
 
     >>> par([[1.0, 2.0, 3.0],
     ...      [4.0, 5.0, 6.0]])
-    >>> par
-    par([[1.0, 2.0, 3.0],
-         [4.0, 5.0, 6.0]])
-    >>> par.values
-    array([[0.5, 1. , 1.5],
-           [2. , 2.5, 3. ]])
+    >>> print_matrix(par)
+    | 0.5, 1.0, 1.5 |
+    | 2.0, 2.5, 3.0 |
+    >>> print_matrix(par.values)
+    | 0.5, 1.0, 1.5 |
+    | 2.0, 2.5, 3.0 |
 
     >>> par(1.0, 2.0)
     Traceback (most recent call last):
@@ -1208,7 +1211,7 @@ with shape `(2, 3)` and type `float`, the following error occurred: could not \
 broadcast input array from shape (2,) into shape (2,3)
     """
 
-    TIME: Optional[bool]
+    TIME: bool | None
     KEYWORDS: Mapping[str, Keyword] = {}
 
     subvars: SubParameters
@@ -1315,7 +1318,7 @@ broadcast input array from shape (2,) into shape (2,3)
         given_args: Sequence[Any],
         given_kwargs: dict[str, Any],
         allowed_combinations: tuple[set[str], ...],
-    ) -> Optional[int]:
+    ) -> int | None:
         if given_kwargs and ("auxfile" not in given_kwargs):
             if given_args:
                 self._raise_args_and_kwargs_error()
@@ -1340,7 +1343,7 @@ broadcast input array from shape (2,) into shape (2,3)
         return
 
     @property
-    def initinfo(self) -> tuple[Union[float, int, bool], bool]:
+    def initinfo(self) -> tuple[float | int | bool, bool]:
         """A |tuple| containing the initial value and |True| or a missing
         value and |False|, depending on the actual |Parameter| subclass and
         the actual value of option |Options.usedefaultvalues|.
@@ -1638,7 +1641,7 @@ implement method `update`.
                     keywordarguments[name] = value * self.get_timefactor()
         return keywordarguments
 
-    def compress_repr(self) -> Optional[str]:
+    def compress_repr(self) -> str | None:
         """Try to find a compressed parameter value representation and return it.
 
         |Parameter.compress_repr| raises a |NotImplementedError| when failing to find a
@@ -1667,15 +1670,15 @@ implement method `update`.
         Due to the time-dependence of the values of our test class, we need to specify
         a parameter and a simulation time step:
 
-        >>> from hydpy import pub
+        >>> from hydpy import print_vector, pub
         >>> pub.options.parameterstep = "1d"
         >>> pub.options.simulationstep = "8h"
 
         Compression succeeds when all required values are identical:
 
         >>> test(3.0, 3.0, 3.0, 3.0)
-        >>> test.values
-        array([1., 1., 1., 1.])
+        >>> print_vector(test.values)
+        1.0, 1.0, 1.0, 1.0
         >>> test.compress_repr()
         '3.0'
         >>> test
@@ -1748,9 +1751,8 @@ implement method `update`.
         test([[3, 3, -999999],
               [3, 3, 3]])
 
-        >>> Test.mask = numpy.array([
-        ...     [True, True, False],
-        ...     [True, True, True]])
+        >>> Test.mask = numpy.array([[True, True, False],
+        ...                          [True, True, True]])
         >>> test
         test(3)
 
@@ -1792,7 +1794,7 @@ implement method `update`.
 
 class _MixinModifiableParameter(Parameter):
     @classmethod
-    def _reset_after_modification(cls, name: str, value: Optional[object]) -> None:
+    def _reset_after_modification(cls, name: str, value: object | None) -> None:
         if value is None:
             delattr(cls, name)
         else:
@@ -1872,7 +1874,7 @@ class NameParameter(_MixinModifiableParameter, Parameter):
     @classmethod
     @contextlib.contextmanager
     def modify_constants(
-        cls, constants: Optional[Constants]
+        cls, constants: Constants | None
     ) -> Generator[None, None, None]:
         """Modify the relevant constants temporarily.
 
@@ -1990,7 +1992,8 @@ valid.
         else:
             values = [int(string)]
         get = self.constants.value2name.get
-        names = tuple(get(value, repr(value)) for value in values)
+        repr_ = objecttools.repr_
+        names = tuple(get(value, repr_(value)) for value in values)
         string = objecttools.assignrepr_values(
             values=names, prefix=f"{self.name}(", width=70
         )
@@ -2066,6 +2069,7 @@ class ZipParameter(_MixinModifiableParameter, Parameter):
     For parameters with zero-length or with unprepared or identical parameter values,
     the string representation looks as usual:
 
+    >>> from hydpy import print_vector
     >>> landtype.shape = 0
     >>> par.shape = 0
     >>> par
@@ -2078,8 +2082,8 @@ class ZipParameter(_MixinModifiableParameter, Parameter):
     >>> par(2.0)
     >>> par
     par(2.0)
-    >>> par.values
-    array([1., 1., 1., 1., 1.])
+    >>> print_vector(par.values)
+    1.0, 1.0, 1.0, 1.0, 1.0
 
     The extended feature of class |ZipParameter| is to allow passing values via
     keywords, each keyword corresponding to one of the relevant constants (in our
@@ -2088,8 +2092,8 @@ class ZipParameter(_MixinModifiableParameter, Parameter):
     >>> par(soil=4.0, glacier=6.0)
     >>> par
     par(glacier=6.0, soil=4.0)
-    >>> par.values
-    array([ 2., nan,  3., nan,  2.])
+    >>> print_vector(par.values)
+    2.0, nan, 3.0, nan, 2.0
 
     Use the `default` argument if you want to assign the same value to entries with
     different constants:
@@ -2097,8 +2101,8 @@ class ZipParameter(_MixinModifiableParameter, Parameter):
     >>> par(soil=2.0, default=8.0)
     >>> par
     par(glacier=8.0, soil=2.0)
-    >>> par.values
-    array([ 1., nan,  4., nan,  1.])
+    >>> print_vector(par.values)
+    1.0, nan, 4.0, nan, 1.0
 
     Using a keyword argument corresponding to an existing, but not relevant constant (in
     our example: `WATER`) is silently ignored:
@@ -2106,8 +2110,8 @@ class ZipParameter(_MixinModifiableParameter, Parameter):
     >>> par(soil=4.0, glacier=6.0, water=8.0)
     >>> par
     par(glacier=6.0, soil=4.0)
-    >>> par.values
-    array([ 2., nan,  3., nan,  2.])
+    >>> print_vector(par.values)
+    2.0, nan, 3.0, nan, 2.0
 
     However, using a keyword not corresponding to any constant raises an exception:
 
@@ -2138,8 +2142,8 @@ incomplete and no default value is available.
     For convenience, you can get or set all values related to a specific constant via
     attribute access:
 
-    >>> par.soil
-    array([0., 0.])
+    >>> print_vector(par.soil)
+    0.0, 0.0
     >>> par.soil = 2.5
     >>> par
     par(glacier=10.0, soil=5.0)
@@ -2163,16 +2167,16 @@ convert string to float: 'test'
     NDIM = 1
     constants: dict[str, int]
     """Mapping of the constants' names and values."""
-    refindices: Optional[NameParameter] = None
+    refindices: NameParameter | None = None
     """Optional reference to the relevant index parameter."""
-    relevant: Optional[tuple[int, ...]] = None
+    relevant: tuple[int, ...] | None = None
     """The values of all (potentially) relevant constants."""
     mask: masktools.IndexMask
 
     @classmethod
     @contextlib.contextmanager
     def modify_refindices(
-        cls, refindices: Optional[NameParameter]
+        cls, refindices: NameParameter | None
     ) -> Generator[None, None, None]:
         """Eventually, set or modify the reference to the required index parameter.
 
@@ -2320,13 +2324,13 @@ index parameter.
     def keywordarguments(self) -> KeywordArguments[float]:
         """A |KeywordArguments| object providing the currently valid keyword arguments.
 
-        We take parameter |lland_control.TRefT| of application model |lland_v1| as an
+        We take parameter |lland_control.TRefT| of application model |lland_dd| as an
         example and set its shape (the number of hydrological response units defined by
         parameter |lland_control.NHRU|) to four and prepare the land use types
         |lland_constants.ACKER| (acre), |lland_constants.LAUBW| (deciduous forest), and
         |lland_constants.WASSER| (water) via parameter |lland_control.Lnk|:
 
-        >>> from hydpy.models.lland_v1 import *
+        >>> from hydpy.models.lland_dd import *
         >>> parameterstep()
         >>> nhru(4)
         >>> lnk(ACKER, LAUBW, WASSER, ACKER)
@@ -2364,7 +2368,7 @@ index parameter.
         >>> treft.keywordarguments.valid
         True
 
-        ToDo: document "refinement" asa lland_v1 uses the AETModel_V1 interface
+        ToDo: document "refinement" asa lland_dd uses the AETModel_V1 interface
         """
         try:
             mask = self.mask
@@ -2375,7 +2379,7 @@ index parameter.
         else:
             refindices = mask.refindices.values.copy()
             refindices[~refinement.values] = variabletools.INT_NAN
-        name2unique = KeywordArguments[Union[float]]()
+        name2unique = KeywordArguments[float]()
         if (relevant := self.relevant) is None:
             relevant = mask.relevant
         for key, value in self.constants.items():
@@ -2437,7 +2441,7 @@ index parameter.
 
     def __dir__(self) -> list[str]:
         """
-        >>> from hydpy.models.lland_v1 import *
+        >>> from hydpy.models.lland_dd import *
         >>> parameterstep()
         >>> sorted(set(dir(treft)) - set(object.__dir__(treft)))
         ['acker', 'baumb', 'boden', 'feucht', 'fluss', 'glets', 'grue_e', 'grue_i', \
@@ -2612,7 +2616,7 @@ broadcast input array from shape (2,) into shape (366,3)
 
     strict_valuehandling: bool = False
 
-    _toy2values_unprotected: list[tuple[timetools.TOY, Union[float, NDArrayFloat]]]
+    _toy2values_unprotected: list[tuple[timetools.TOY, float | NDArrayFloat]]
     _trimmed_insufficiently: bool
     _trimming_disabled: bool
 
@@ -2623,9 +2627,7 @@ broadcast input array from shape (2,) into shape (366,3)
         self._trimmed_insufficiently = False
 
     @property
-    def _toy2values_protected(
-        self,
-    ) -> list[tuple[timetools.TOY, Union[float, NDArrayFloat]]]:
+    def _toy2values_protected(self) -> list[tuple[timetools.TOY, float | NDArrayFloat]]:
         if self._trimmed_insufficiently and hydpy.pub.options.warntrim:
             warnings.warn(
                 f'The "background values" of parameter '
@@ -2660,7 +2662,7 @@ broadcast input array from shape (2,) into shape (366,3)
                     )
             self.refresh()
 
-    def _add_toyvaluepair(self, name: str, value: Union[float, NDArrayFloat]) -> None:
+    def _add_toyvaluepair(self, name: str, value: float | NDArrayFloat) -> None:
         if self.NDIM == 1:
             value = float(value)
         else:
@@ -2712,14 +2714,15 @@ broadcast input array from shape (2,) into shape (366,3)
 
         >>> par.values = 1.0
         >>> par.refresh()
-        >>> par.values[0]
+        >>> from hydpy import round_
+        >>> round_(par.values[0])
         0.0
 
         When there is only one toy-value pair, its values are relevant for all actual
         simulation values:
 
         >>> par.toy_1 = 2.0  # calls refresh automatically
-        >>> par.values[0]
+        >>> round_(par.values[0])
         2.0
 
         Method |SeasonalParameter.refresh| performs a linear interpolation for the
@@ -2727,12 +2730,11 @@ broadcast input array from shape (2,) into shape (366,3)
         example, the original values of the toy-value pairs do not show up:
 
         >>> par.toy_12_31 = 4.0
-        >>> from hydpy import round_
         >>> round_(par.values[0])
         2.00274
         >>> round_(par.values[-2])
         3.99726
-        >>> par.values[-1]
+        >>> round_(par.values[-1])
         3.0
 
         If one wants to preserve the original values in this example, one must set the
@@ -2742,13 +2744,13 @@ broadcast input array from shape (2,) into shape (366,3)
         >>> del par.toy_12_31
         >>> par.toy_1_1_12 = 2
         >>> par.toy_12_31_12 = 4.0
-        >>> par.values[0]
+        >>> round_(par.values[0])
         2.0
         >>> round_(par.values[1])
         2.005479
         >>> round_(par.values[-2])
         3.994521
-        >>> par.values[-1]
+        >>> round_(par.values[-1])
         4.0
 
         For short initialisation periods, method |SeasonalParameter.refresh| performs
@@ -2760,13 +2762,14 @@ broadcast input array from shape (2,) into shape (366,3)
         >>> par.shape = (None, 3)
         >>> par.toy_1_2_12 = 2.0
         >>> par.toy_1_6_12 = 0.0, 2.0, 4.0
-        >>> par.values[:6]
-        array([[nan, nan, nan],
-               [2. , 2. , 2. ],
-               [1.5, 2. , 2.5],
-               [1. , 2. , 3. ],
-               [nan, nan, nan],
-               [nan, nan, nan]])
+        >>> from hydpy import print_matrix
+        >>> print_matrix(par.values[:6])
+        | nan, nan, nan |
+        | 2.0, 2.0, 2.0 |
+        | 1.5, 2.0, 2.5 |
+        | 1.0, 2.0, 3.0 |
+        | nan, nan, nan |
+        | nan, nan, nan |
 
         .. testsetup::
 
@@ -2942,7 +2945,7 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
         """
         return super()._get_shape()
 
-    def _set_shape(self, shape: Union[int, tuple[int, ...]]) -> None:
+    def _set_shape(self, shape: int | tuple[int, ...]) -> None:
         if isinstance(shape, tuple):
             shape_ = list(shape)
         else:
@@ -3030,7 +3033,7 @@ Using the latter without modification might result in inconsistencies.
     def __iter__(self) -> Iterator[tuple[timetools.TOY, Any]]:
         return iter(self._toy2values_protected)
 
-    def __getattr__(self, name: str) -> Union[float, NDArrayFloat]:
+    def __getattr__(self, name: str) -> float | NDArrayFloat:
         selected = timetools.TOY(name)
         for available, value in self._toy2values_protected:
             if selected == available:
@@ -3040,7 +3043,7 @@ Using the latter without modification might result in inconsistencies.
             f'normal attribute nor does it handle a "time of year" named `{name}`.'
         )
 
-    def __setattr__(self, name: str, value: Union[float, NDArrayFloat]) -> None:
+    def __setattr__(self, name: str, value: float | NDArrayFloat) -> None:
         if name.startswith("toy_"):
             try:
                 self._add_toyvaluepair(name, value)
@@ -3148,11 +3151,12 @@ class KeywordParameter1D(_MixinModifiableParameter, Parameter):
     >>> ishot
     ishot(winter=False, summer=True)
 
+    >>> from hydpy import print_vector
     >>> ishot(winter=True, summer=False)
     >>> ishot
     ishot(winter=True, summer=False)
-    >>> ishot.values
-    array([ True, False])
+    >>> print_vector(ishot.values)
+    True, False
 
     We check the given keyword arguments for correctness and completeness:
 
@@ -3212,9 +3216,7 @@ for axis 0 with size 1
 
     @classmethod
     @contextlib.contextmanager
-    def modify_entries(
-        cls, constants: Optional[Constants]
-    ) -> Generator[None, None, None]:
+    def modify_entries(cls, constants: Constants | None) -> Generator[None, None, None]:
         """Modify the relevant entry names temporarily.
 
         The entry names for defining properties like land-use types are fixed for
@@ -3331,7 +3333,7 @@ for axis 0 with size 1
     def __getattr__(self, key):
         if key in self.entrynames:
             try:
-                return self.values[self.entrynames.index(key)]
+                return self.TYPE(self.values[self.entrynames.index(key)])
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to retrieve a value from parameter "
@@ -3459,14 +3461,15 @@ class KeywordParameter2D(_MixinModifiableParameter, Parameter):
 
     |KeywordParameter2D| allows us to set the values of all rows via keyword arguments:
 
+    >>> from hydpy import print_matrix
     >>> iswarm(north=[True, False],
     ...        south=[False, True])
     >>> iswarm
     iswarm(north=[True, False],
            south=[False, True])
-    >>> iswarm.values
-    array([[ True, False],
-           [False,  True]])
+    >>> print_matrix(iswarm.values)
+    | True, False |
+    | False, True |
 
     If a keyword is missing, it raises a |ValueError|:
 
@@ -3479,15 +3482,16 @@ the following keywords are not: `south`.
 
     One can modify single rows via attribute access:
 
+    >>> from hydpy import print_vector
     >>> iswarm.north = False, False
-    >>> iswarm.north
-    array([False, False])
+    >>> print_vector(iswarm.north)
+    False, False
 
     The same holds for the columns:
 
     >>> iswarm.apr2sep = True, False
-    >>> iswarm.apr2sep
-    array([ True, False])
+    >>> print_vector(iswarm.apr2sep)
+    True, False
 
     Also, combined row-column access is possible:
 
@@ -3590,7 +3594,7 @@ attribute nor a row or column related attribute named `wrong`.
 
     @classmethod
     @contextlib.contextmanager
-    def modify_rows(cls, constants: Optional[Constants]) -> Generator[None, None, None]:
+    def modify_rows(cls, constants: Constants | None) -> Generator[None, None, None]:
         """Modify the relevant row names temporarily.
 
         Methods |KeywordParameter2D.modify_rows| and |KeywordParameter2D.modify_columns|
@@ -3600,6 +3604,7 @@ attribute nor a row or column related attribute named `wrong`.
         implementation here.  Please read the documentation on method
         |KeywordParameter1D.modify_entries| for more information:
 
+        >>> from hydpy import print_vector
         >>> from hydpy.core.parametertools import KeywordParameter2D
         >>> class IsWarm(KeywordParameter2D):
         ...     TYPE = bool
@@ -3610,10 +3615,10 @@ attribute nor a row or column related attribute named `wrong`.
         >>> iswarm1.shape = (2, 2)
         >>> iswarm1(north=[True, False],
         ...         south=[False, True])
-        >>> iswarm1.north
-        array([ True, False])
-        >>> iswarm1.apr2sep
-        array([ True, False])
+        >>> print_vector(iswarm1.north)
+        True, False
+        >>> print_vector(iswarm1.apr2sep)
+        True, False
 
         >>> from hydpy.core.parametertools import Constants
         >>> consts_row = Constants(N=1, S=2)
@@ -3623,10 +3628,10 @@ attribute nor a row or column related attribute named `wrong`.
         ...     iswarm2.shape = (2, 4)
         ...     iswarm2(n=[True, True, False, False],
         ...             s=[False, False, True, True])
-        ...     iswarm2.n
-        ...     iswarm2.apr2jun
-        array([ True,  True, False, False])
-        array([ True, False])
+        ...     print_vector(iswarm2.n)
+        ...     print_vector(iswarm2.apr2jun)
+        True, True, False, False
+        True, False
 
         >>> iswarm1.rownames
         ('north', 'south')
@@ -3667,14 +3672,14 @@ attribute nor a row or column related attribute named `wrong`.
         ...     iswarm3(north=[True, False],
         ...             south=[False, True])
         ...     iswarm3
-        ...     iswarm1.north
+        ...     print_vector(iswarm1.north)
         ('north', 'south')
         2
         ('apr2sep', 'oct2mar')
         3
         iswarm(north=[True, False],
                south=[False, True])
-        array([ True, False])
+        True, False
         >>> IsWarm.rownames
         ('north', 'south')
         >>> IsWarm.columnnames
@@ -3686,8 +3691,8 @@ attribute nor a row or column related attribute named `wrong`.
         >>> iswarm3
         iswarm(north=[True, False],
                south=[False, True])
-        >>> iswarm1.north
-        array([ True, False])
+        >>> print_vector(iswarm1.north)
+        True, False
         """
         if constants is None:
             yield
@@ -3705,9 +3710,7 @@ attribute nor a row or column related attribute named `wrong`.
 
     @classmethod
     @contextlib.contextmanager
-    def modify_columns(
-        cls, constants: Optional[Constants]
-    ) -> Generator[None, None, None]:
+    def modify_columns(cls, constants: Constants | None) -> Generator[None, None, None]:
         """Modify the relevant column names temporarily.
 
         Please see the documentation on method |KeywordParameter2D.modify_rows| for
@@ -3788,7 +3791,7 @@ attribute nor a row or column related attribute named `wrong`.
         if key in self._rowcolumnmappings:
             idx, jdx = self._rowcolumnmappings[key]
             try:
-                return self.values[idx, jdx]
+                return self.TYPE(self.values[idx, jdx])
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to retrieve values from parameter "
@@ -3962,7 +3965,7 @@ parameter value must be given, but is not.
     @property
     def left(self) -> float:
         """The "left" value of the actual parameter object."""
-        return self.values[0]
+        return self.TYPE(self.values[0])
 
     @left.setter
     def left(self, value):
@@ -3971,7 +3974,7 @@ parameter value must be given, but is not.
     @property
     def right(self) -> float:
         """The "right" value of the actual parameter object."""
-        return self.values[1]
+        return self.TYPE(self.values[1])
 
     @right.setter
     def right(self, value):
@@ -3992,10 +3995,10 @@ class FixedParameter(Parameter):
     whenever possible, even when option |Options.usedefaultvalues| is disabled.
     """
 
-    INIT: Union[int, float, bool]
+    INIT: int | float | bool
 
     @property
-    def initinfo(self) -> tuple[Union[float, int, bool], bool]:
+    def initinfo(self) -> tuple[float | int | bool, bool]:
         """A |tuple| always containing the fixed value and |True|, except
         for time-dependent parameters and incomplete time-information.
 
@@ -4157,8 +4160,8 @@ solver parameter `tol` of element `?` has been defined so far.
     modtol(0.01)
     """
 
-    INIT: Union[int, float, bool]
-    _alternative_initvalue: Optional[float]
+    INIT: int | float | bool
+    _alternative_initvalue: float | None
 
     def __init__(self, subvars):
         super().__init__(subvars)
@@ -4180,7 +4183,7 @@ solver parameter `tol` of element `?` has been defined so far.
         else:
             self.value = self.modify_init()
 
-    def modify_init(self) -> Union[bool, int, float]:
+    def modify_init(self) -> bool | int | float:
         """Return the value of class constant `INIT`.
 
         Override this method to support project-specific solver parameters.
@@ -4190,7 +4193,7 @@ solver parameter `tol` of element `?` has been defined so far.
         return self.INIT
 
     @property
-    def alternative_initvalue(self) -> Union[bool, int, float]:
+    def alternative_initvalue(self) -> bool | int | float:
         """A user-defined value to be used instead of the value of class
         constant `INIT`.
 
@@ -4467,7 +4470,7 @@ class CallbackParameter(Parameter):
     are free to modify the model in any way you like, but the expected behaviour is
     to set the considered parameter's value only:
 
-    >>> def adjust_gateheight(model) -> None:
+    >>> def adjust(model) -> None:
     ...     con = model.parameters.control.fastaccess
     ...     my_gateheight: float = 2.0 + 3.0
     ...     con.gateheight = my_gateheight
@@ -4485,17 +4488,17 @@ class CallbackParameter(Parameter):
     little strangely between the creation of two tuples for hiding potential
     information printed by Cython or the used C compiler:
 
-    >>> ();gateheight(callback=adjust_gateheight);()  # doctest: +ELLIPSIS
+    >>> ();gateheight(callback=adjust);()  # doctest: +ELLIPSIS
     (...)
 
     The string representation now includes the callback's source code:
 
     >>> gateheight
-    def adjust_gateheight(model) -> None:
+    def adjust(model) -> None:
         con = model.parameters.control.fastaccess
         my_gateheight: float = 2.0 + 3.0
         con.gateheight = my_gateheight
-    gateheight(callback=adjust_gateheight)
+    gateheight(callback=adjust)
 
     When interested in the parameter's value, request it via the
     |CallbackParameter.value| property.  Note that this property applies the callback
@@ -4515,13 +4518,13 @@ class CallbackParameter(Parameter):
     property.  We do not need to hide potential compiler output this time because the
     Python function has already been converted to a reusable Cython function:
 
-    >>> gateheight.callback = adjust_gateheight
+    >>> gateheight.callback = adjust
     >>> gateheight
-    def adjust_gateheight(model) -> None:
+    def adjust(model) -> None:
         con = model.parameters.control.fastaccess
         my_gateheight: float = 2.0 + 3.0
         con.gateheight = my_gateheight
-    gateheight(callback=adjust_gateheight)
+    gateheight(callback=adjust)
     >>> round_(gateheight.value)
     5.0
 
@@ -4542,13 +4545,13 @@ class CallbackParameter(Parameter):
 
     Failing attempts to pass a callback function might result in the following errors:
 
-    >>> gateheight(Callback=adjust_gateheight)
+    >>> gateheight(Callback=adjust)
     Traceback (most recent call last):
     ...
     ValueError: When trying to prepare parameter `gateheight` of element `?` via a \
 keyword argument, it must be `callback`, and you need to pass a callback function.
 
-    >>> gateheight(value=1.0, callback=adjust_gateheight)
+    >>> gateheight(value=1.0, callback=adjust)
     Traceback (most recent call last):
     ...
     ValueError: Parameter `gateheight` of element `?` does not allow to combine the \
@@ -4558,20 +4561,20 @@ keyword argument, it must be `callback`, and you need to pass a callback functio
     in an indentated block:
 
     >>> try:
-    ...     def adjust_gateheight_indented(model) -> None:
+    ...     def adjust_2(model) -> None:
     ...         con = model.parameters.control.fastaccess
     ...         my_gateheight: float = 2.0 * 3.0
     ...         con.gateheight = my_gateheight
     ... finally:
-    ...     ();gateheight(callback=adjust_gateheight_indented);()  # doctest: +ELLIPSIS
+    ...     ();gateheight(callback=adjust_2);()  # doctest: +ELLIPSIS
     (...)
-    >>> gateheight.callback = adjust_gateheight_indented
+    >>> gateheight.callback = adjust_2
     >>> gateheight
-    def adjust_gateheight_indented(model) -> None:
+    def adjust_2(model) -> None:
         con = model.parameters.control.fastaccess
         my_gateheight: float = 2.0 * 3.0
         con.gateheight = my_gateheight
-    gateheight(callback=adjust_gateheight_indented)
+    gateheight(callback=adjust_2)
     >>> round_(gateheight.value)
     6.0
     """
@@ -4606,7 +4609,7 @@ keyword argument, it must be `callback`, and you need to pass a callback functio
         self._init_callback()
 
     @property
-    def callback(self) -> Optional[Callable[[modeltools.Model], None]]:
+    def callback(self) -> Callable[[modeltools.Model], None] | None:
         """The currently handled callback function for updating the parameter value."""
         if self._has_callback:
             if get := getattr(self.fastaccess, f"get_{self.name}_callback", None):

@@ -30,7 +30,7 @@ forecasting in large river basins.  Now it is being maintained by
 on the programming language `Python`_, commonly used in many scientific
 fields.  Through using different well-established `Python`_ libraries
 and design principles, we target high quality and transparency standards.
-To avoid writing model cores (like |lland_v1|) in a more native
+To avoid writing model cores (like |lland_dd|) in a more native
 programming language, *HydPy* includes a `Cython`_ based mechanism
 to automatically translate Python code to C code and to compile it.
 
@@ -105,23 +105,21 @@ files to prove that something goes wrong and offer it via a
 
 We hope to have made clear that the design of *HydPy* focusses
 on open collaboration in order to improve existing and to develop
-better models.  The :ref:`development` section offers more information
+better models.  The :ref:`developer_guide` section offers more information
 on how to actually participate in the further development of *HydPy*.
-Section :ref:`modelcollection` lists all models implemented so far.
+Section :ref:`model_families` lists all models implemented so far.
 Sections :ref:`core` covers the basic functionalities of the
 *HydPy* framework.
 
 .. toctree::
    :hidden:
 
-   install
+   installation
+   example_projects
    quickstart
-   how_to
-   framework
-   modelcollection
-   interfaces
-   development
-   Example Projects <examples>
+   user_guide
+   developer_guide
+   reference_manual
    Bibliography <zbibliography>
 
 

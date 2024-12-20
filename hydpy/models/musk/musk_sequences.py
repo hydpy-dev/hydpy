@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -9,6 +8,7 @@ import warnings
 import numpy
 
 # ...from HydPy
+from hydpy import config
 from hydpy.core.typingtools import *
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
@@ -27,13 +27,13 @@ class MixinSequence1D:
 
         >>> from hydpy.models.musk import *
         >>> parameterstep()
-        >>> nmbsegments(3)
-        >>> length(4.0, 1.0, 3.0)
-        >>> fluxes.referencedischarge.refweights
-        array([0.5  , 0.125, 0.375])
+        >>> nmbsegments(4)
+        >>> from hydpy import print_vector
+        >>> print_vector(fluxes.referencedischarge.refweights)
+        0.25, 0.25, 0.25, 0.25
         """
-        length = self.subseqs.seqs.model.parameters.control.length.values
-        return length / numpy.sum(length)
+        nmbsegments = self.subseqs.seqs.model.parameters.control.nmbsegments.values
+        return numpy.full(nmbsegments, 1.0 / nmbsegments, dtype=config.NP_FLOAT)
 
 
 class StateSequence1D(  # type: ignore[misc]

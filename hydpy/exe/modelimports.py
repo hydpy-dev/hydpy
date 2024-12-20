@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module bundles imports generally required for implementing new models.
 
 Module |modelimports| is supposed to shorten the import section
@@ -15,6 +14,7 @@ Thereafter, the following objects are available:
  * class |Cythonizer| of module |modelutils|
 
 """
+
 # import...
 # ...from site-packages
 import numpy

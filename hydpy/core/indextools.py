@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 """This module implements tools to determine time-related indices."""
+
 # import...
 # ...from standard library
 import copy
@@ -9,6 +9,7 @@ import numpy
 
 # ...from HydPy
 import hydpy
+from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import propertytools
@@ -34,7 +35,7 @@ def _get_timegrids(func):
 class IndexerProperty(propertytools.BaseProperty):
     """A property for handling time-related indices.
 
-    Some models (e.g. |lland_v1|) require time related index values.
+    Some models (e.g. |lland_dd|) require time related index values.
     |IndexerProperty| provides some caching functionalities to avoid
     recalculating the same indices for different model instances over
     and over again.  We illustrate this by taking property
@@ -46,7 +47,7 @@ class IndexerProperty(propertytools.BaseProperty):
     message:
 
 
-    >>> from hydpy import pub
+    >>> from hydpy import print_vector, pub
     >>> pub.indexer.monthofyear
     Traceback (most recent call last):
     ...
@@ -61,10 +62,10 @@ object, or make a proper Timegrids object available within the pub module.
 
     >>> pub.timegrids = "27.02.2004", "3.03.2004", "1d"
     >>> monthofyear = pub.indexer.monthofyear
-    >>> monthofyear
-    array([1, 1, 1, 2, 2])
-    >>> pub.indexer.monthofyear
-    array([1, 1, 1, 2, 2])
+    >>> print_vector(monthofyear)
+    1, 1, 1, 2, 2
+    >>> print_vector(pub.indexer.monthofyear)
+    1, 1, 1, 2, 2
     >>> pub.indexer.monthofyear is monthofyear
     True
 
@@ -72,8 +73,8 @@ object, or make a proper Timegrids object available within the pub module.
     |IndexerProperty| calculates and returns a new index array:
 
     >>> pub.timegrids.init.firstdate += "1d"
-    >>> pub.indexer.monthofyear
-    array([1, 1, 2, 2])
+    >>> print_vector(pub.indexer.monthofyear)
+    1, 1, 2, 2
     >>> pub.indexer.monthofyear is monthofyear
     False
 
@@ -84,8 +85,8 @@ object, or make a proper Timegrids object available within the pub module.
     >>> pub.indexer.monthofyear is monthofyear
     True
     >>> del pub.indexer.monthofyear
-    >>> pub.indexer.monthofyear
-    array([1, 1, 2, 2])
+    >>> print_vector(pub.indexer.monthofyear)
+    1, 1, 2, 2
     >>> pub.indexer.monthofyear is monthofyear
     False
 
@@ -93,20 +94,19 @@ object, or make a proper Timegrids object available within the pub module.
     seems advisable only for testing purposes:
 
     >>> pub.indexer.monthofyear = 0, 1, 2, 3
-    >>> pub.indexer.monthofyear
-    array([0, 1, 2, 3])
+    >>> print_vector(pub.indexer.monthofyear)
+    0, 1, 2, 3
     >>> pub.timegrids.init.firstdate -= "1d"
-    >>> pub.indexer.monthofyear
-    array([1, 1, 1, 2, 2])
+    >>> print_vector(pub.indexer.monthofyear)
+    1, 1, 1, 2, 2
 
     When assigning inadequate data, you get errors like the following:
 
-    >>> pub.indexer.monthofyear = "wrong"
+    >>> pub.indexer.monthofyear = 1
     Traceback (most recent call last):
     ...
-    ValueError: While trying to assign a new `monthofyear` index array \
-to an Indexer object, the following error occurred: invalid literal for \
-int() with base 10: 'wrong'
+    TypeError: While trying to assign a new `monthofyear` index array to an Indexer \
+object, the following error occurred: 'int' object is not subscriptable
 
     >>> pub.indexer.monthofyear = [[0, 1, 2, 3], [4, 5, 6, 7]]
     Traceback (most recent call last):
@@ -158,8 +158,8 @@ period is `5`.
     @staticmethod
     def _convertandtest(values, name):
         try:
-            type_ = float if isinstance(values[0], float) else int
-            array = numpy.array(values, dtype=type_)
+            type_ = type(values[0])
+            array = numpy.array(values, dtype=config.TYPES_PY2NP.get(type_, type_))
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to assign a new `{name}` "
@@ -188,7 +188,9 @@ period is `5`.
     def _calcidxs(func):
         timegrids = _get_timegrids(func)
         type_ = type(func(timegrids.init[0]))
-        idxs = numpy.empty(len(timegrids.init), dtype=type_)
+        idxs = numpy.empty(
+            len(timegrids.init), dtype=config.TYPES_PY2NP.get(type_, type_)
+        )
         with hydpy.pub.options.timestampleft(True):
             for jdx, date in enumerate(hydpy.pub.timegrids.init):
                 idxs[jdx] = func(date)
@@ -219,11 +221,11 @@ class Indexer:
         The following example shows the month indices of the last days of
         February and the first days of March for a leap year:
 
-        >>> from hydpy import pub
+        >>> from hydpy import print_vector, pub
         >>> pub.timegrids = "27.02.2004", "3.03.2004", "1d"
         >>> monthofyear = pub.indexer.monthofyear
-        >>> monthofyear
-        array([1, 1, 1, 2, 2])
+        >>> print_vector(monthofyear)
+        1, 1, 1, 2, 2
         """
 
         def _monthofyear(date):
@@ -239,14 +241,14 @@ class Indexer:
         assuming a daily time step, index 59 is always associated with the
         29th of February.  Hence, it is missing in non-leap years:
 
-        >>> from hydpy import pub
+        >>> from hydpy import print_vector, pub
         >>> from hydpy.core.indextools import Indexer
         >>> pub.timegrids = "27.02.2004", "3.03.2004", "1d"
-        >>> Indexer().dayofyear
-        array([57, 58, 59, 60, 61])
+        >>> print_vector(Indexer().dayofyear)
+        57, 58, 59, 60, 61
         >>> pub.timegrids = "27.02.2005", "3.03.2005", "1d"
-        >>> Indexer().dayofyear
-        array([57, 58, 60, 61])
+        >>> print_vector(Indexer().dayofyear)
+        57, 58, 60, 61
         """
 
         def _dayofyear(date):
@@ -261,8 +263,7 @@ class Indexer:
         Let us reconsider one of the examples of the documentation on
         property |Indexer.dayofyear|:
 
-        >>> from hydpy import pub
-        >>> from hydpy import Timegrids, Timegrid
+        >>> from hydpy import print_vector, pub, Timegrids, Timegrid
         >>> from hydpy.core.indextools import Indexer
         >>> pub.timegrids = "27.02.2005", "3.03.2005", "1d"
 
@@ -270,10 +271,10 @@ class Indexer:
         calculated by properties |Indexer.dayofyear| and |Indexer.timeofyear|
         are identical:
 
-        >>> Indexer().dayofyear
-        array([57, 58, 60, 61])
-        >>> Indexer().timeofyear
-        array([57, 58, 60, 61])
+        >>> print_vector(Indexer().dayofyear)
+        57, 58, 60, 61
+        >>> print_vector(Indexer().timeofyear)
+        57, 58, 60, 61
 
         In the next example, we halve the step size:
 
@@ -281,14 +282,14 @@ class Indexer:
 
         Now two subsequent simulation steps associated are with the same day:
 
-        >>> Indexer().dayofyear
-        array([57, 57, 58, 58, 60, 60, 61, 61])
+        >>> print_vector(Indexer().dayofyear)
+        57, 57, 58, 58, 60, 60, 61, 61
 
         However, the `timeofyear` array gives the index of the
         respective simulation steps of the actual year:
 
-        >>> Indexer().timeofyear
-        array([114, 115, 116, 117, 120, 121, 122, 123])
+        >>> print_vector(Indexer().timeofyear)
+        114, 115, 116, 117, 120, 121, 122, 123
 
         Note the gap in the returned index array due to 2005 being not a
         leap year.
@@ -319,21 +320,21 @@ class Indexer:
         clock time for simulation step sizes of one day, one hour, one minute,
         and one second, respectively:
 
-        >>> from hydpy import pub, print_values
+        >>> from hydpy import pub, print_vector
         >>> pub.timegrids = "27.02.2004", "3.03.2004", "1d"
-        >>> print_values(pub.indexer.standardclocktime)
+        >>> print_vector(pub.indexer.standardclocktime)
         12.0, 12.0, 12.0, 12.0, 12.0
 
         >>> pub.timegrids = "27.02.2004 21:00", "28.02.2004 03:00", "1h"
-        >>> print_values(pub.indexer.standardclocktime)
+        >>> print_vector(pub.indexer.standardclocktime)
         21.5, 22.5, 23.5, 0.5, 1.5, 2.5
 
         >>> pub.timegrids = "27.02.2004 23:57:0", "28.02.2004 00:03:00", "1m"
-        >>> print_values(pub.indexer.standardclocktime)
+        >>> print_vector(pub.indexer.standardclocktime)
         23.958333, 23.975, 23.991667, 0.008333, 0.025, 0.041667
 
         >>> pub.timegrids = "27.02.2004 23:59:57", "28.02.2004 00:00:03", "1s"
-        >>> print_values(pub.indexer.standardclocktime)
+        >>> print_vector(pub.indexer.standardclocktime)
         23.999306, 23.999583, 23.999861, 0.000139, 0.000417, 0.000694
         """
 

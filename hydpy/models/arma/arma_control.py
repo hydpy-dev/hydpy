@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -6,6 +5,7 @@
 import numpy
 
 # ...from HydPy
+from hydpy import config
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
@@ -183,14 +183,15 @@ the same threshold value(s) twice.
     The threshold values and AR coefficients and the MA coefficients can all be queried
     as numpy arrays:
 
-    >>> responses.thresholds
-    array([0., 1.])
-    >>> responses.ar_coefs
-    array([[ 1.,  2.],
-           [nan, nan]])
-    >>> responses.ma_coefs
-    array([[ 3.,  4.,  6.],
-           [ 7., nan, nan]])
+    >>> from hydpy import print_matrix, print_vector
+    >>> print_vector(responses.thresholds)
+    0.0, 1.0
+    >>> print_matrix(responses.ar_coefs)
+    | 1.0, 2.0 |
+    | nan, nan |
+    >>> print_matrix(responses.ma_coefs)
+    | 3.0, 4.0, 6.0 |
+    | 7.0, nan, nan |
 
     Technical notes:
 
@@ -303,7 +304,7 @@ the same threshold value(s) twice.
     def thresholds(self) -> VectorFloat:
         """Threshold values of the response functions."""
         return numpy.array(
-            sorted(self._key2float(key) for key in self._coefs), dtype=float
+            sorted(self._key2float(key) for key in self._coefs), dtype=config.NP_FLOAT
         )
 
     @staticmethod

@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 """This module implements tools for testing *HydPy* and its models."""
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -24,14 +24,18 @@ import numpy
 
 # ...from HydPy
 import hydpy
+from hydpy import config
+from hydpy import data
 from hydpy import docs
 from hydpy.docs import autofigs
 from hydpy.core import devicetools
 from hydpy.core import exceptiontools
+from hydpy.core import filetools
 from hydpy.core import hydpytools
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
+from hydpy.core import pubtools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
 from hydpy.core import typingtools
@@ -39,12 +43,24 @@ from hydpy.core import variabletools
 from hydpy.core.typingtools import *
 from hydpy.tests import iotesting
 
+# from hydpy.models import hland  actual import below
+# from hydpy.models import lland  actual import below
+
+
 if TYPE_CHECKING:
     import matplotlib
     from matplotlib import pyplot
     import pandas
     import plotly
     from plotly import subplots
+
+    class TestIOSequence(sequencetools.IOSequence):
+        """|IOSequence| subclass for testing purposes."""
+
+        testarray: NDArrayFloat
+        descr_device = "just_for_testing"
+        descr_sequence = "just_for_testing"
+
 else:
     matplotlib = exceptiontools.OptionalImport("matplotlib", ["matplotlib"], locals())
     pyplot = exceptiontools.OptionalImport("pyplot", ["matplotlib.pyplot"], locals())
@@ -70,8 +86,8 @@ class StdOutErr:
     def __enter__(self) -> None:
         self.encoding = sys.stdout.encoding
         # just for testing:
-        sys.stdout = self  # type: ignore[assignment]
-        sys.stderr = self  # type: ignore[assignment]
+        sys.stdout = self
+        sys.stderr = self
 
     def __exit__(
         self,
@@ -106,11 +122,11 @@ class Tester:
     Usually, a |Tester| object is initialised at the end of the `__init__`
     file of its base model or the end of the module of an application model.
 
-    >>> from hydpy.models import hland, hland_v1
+    >>> from hydpy.models import hland, hland_96
 
     >>> hland.tester.package
     'hydpy.models.hland'
-    >>> hland_v1.tester.package
+    >>> hland_96.tester.package
     'hydpy.models'
     """
 
@@ -131,7 +147,7 @@ class Tester:
     def filenames(self) -> list[str]:
         """The filenames which define the considered base or application model.
 
-        >>> from hydpy.models import hland, hland_v1
+        >>> from hydpy.models import hland, hland_96
         >>> from pprint import pprint
         >>> pprint(hland.tester.filenames)
         ['__init__.py',
@@ -149,8 +165,8 @@ class Tester:
          'hland_parameters.py',
          'hland_sequences.py',
          'hland_states.py']
-        >>> hland_v1.tester.filenames
-        ['hland_v1.py']
+        >>> hland_96.tester.filenames
+        ['hland_96.py']
         """
         if self.ispackage:
             filenames = os.listdir(os.path.dirname(self.filepath))
@@ -161,7 +177,7 @@ class Tester:
     def modulenames(self) -> list[str]:
         """The module names to be taken into account for testing.
 
-        >>> from hydpy.models import hland, hland_v1
+        >>> from hydpy.models import hland, hland_96
         >>> from pprint import pprint
         >>> pprint(hland.tester.modulenames)
         ['hland_aides',
@@ -178,8 +194,8 @@ class Tester:
          'hland_parameters',
          'hland_sequences',
          'hland_states']
-        >>> hland_v1.tester.modulenames
-        ['hland_v1']
+        >>> hland_96.tester.modulenames
+        ['hland_96']
         """
         return [
             os.path.split(fn)[-1].split(".")[0]
@@ -204,7 +220,7 @@ class Tester:
         >>> pub.projectname = "test"
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
 
-        >>> from hydpy.models import hland, hland_v1
+        >>> from hydpy.models import hland, hland_96
         >>> hland.tester.perform_tests()  # doctest: +ELLIPSIS
         Test package hydpy.models.hland in ...ython mode.
             * hland_aides:
@@ -236,9 +252,9 @@ class Tester:
             * hland_states:
                 no failures occurred
 
-        >>> hland_v1.tester.perform_tests()  # doctest: +ELLIPSIS
-        Test module hland_v1 in ...ython mode.
-            * hland_v1:
+        >>> hland_96.tester.perform_tests()  # doctest: +ELLIPSIS
+        Test module hland_96 in ...ython mode.
+            * hland_96:
                 no failures occurred
 
         >>> pub.projectname
@@ -275,7 +291,7 @@ hydpy.models.hland.hland_control.ZoneType
 **********
                 1
                 items had failures:
-                   1 of   6 in hydpy.models.hland.hland_control.ZoneType
+                   1 of   7 in hydpy.models.hland.hland_control.ZoneType
                 ***Test Failed***
                 1
                 failures.
@@ -300,23 +316,21 @@ hydpy.models.hland.hland_control.ZoneType
         )
         for name in self.modulenames:
             print(f"    * {name}:")
-            with StdOutErr(indent=8), opt.ellipsis(0), opt.printprogress(
-                False
-            ), opt.reprdigits(6), opt.usedefaultvalues(False), opt.utclongitude(
-                15
-            ), opt.utcoffset(
-                60
-            ), opt.timestampleft(
-                True
-            ), opt.warnsimulationstep(
-                False
-            ), opt.warntrim(
-                False
-            ), opt.parameterstep(
-                timetools.Period("1d")
-            ), opt.simulationstep(
-                timetools.Period()
-            ), devicetools.clear_registries_temporarily():
+            with (
+                StdOutErr(indent=8),
+                opt.ellipsis(0),
+                opt.printprogress(False),
+                opt.reprdigits(6),
+                opt.usedefaultvalues(False),
+                opt.utclongitude(15),
+                opt.utcoffset(60),
+                opt.timestampleft(True),
+                opt.warnsimulationstep(False),
+                opt.warntrim(False),
+                opt.parameterstep(timetools.Period("1d")),
+                opt.simulationstep(timetools.Period()),
+                devicetools.clear_registries_temporarily(),
+            ):
                 projectname = exceptiontools.getattr_(
                     hydpy.pub, "projectname", None, str
                 )
@@ -358,9 +372,9 @@ class ArrayDescriptor:
     def __set__(
         self,
         obj: Test,
-        sequence2value: Optional[
+        sequence2value: (
             Sequence[tuple[sequencetools.ConditionSequence, ArrayFloat]]
-        ],
+        ) | None,
     ) -> None:
         self.__delete__(obj)
         if sequence2value is not None:
@@ -376,7 +390,7 @@ class ArrayDescriptor:
             for name, (_, value) in zip(names, sequence2value):
                 setattr(self.values, name, value)
 
-    def __get__(self, obj: Test, type_: Optional[type[Test]] = None) -> Array:
+    def __get__(self, obj: Test, type_: type[Test] | None = None) -> Array:
         return self.values
 
     def __delete__(self, obj: Test) -> None:
@@ -482,7 +496,7 @@ class Test:
     @property
     def row_nmb_characters(self) -> int:
         """The number of characters of a single row of the table."""
-        return sum(self.col_widths) + sum((len(sep) for sep in self.col_separators))
+        return sum(self.col_widths) + sum(len(sep) for sep in self.col_separators)
 
     @staticmethod
     def _interleave(
@@ -497,7 +511,7 @@ class Test:
         lst.append(separators[-1])
         return "".join(lst)
 
-    def make_table(self, idx1: Optional[int] = None, idx2: Optional[int] = None) -> str:
+    def make_table(self, idx1: int | None = None, idx2: int | None = None) -> str:
         """Return the result table between the given indices."""
         lines = []
         col_widths = self.col_widths
@@ -510,9 +524,7 @@ class Test:
             lines.append(self._interleave(col_separators, strings_in_line, col_widths))
         return "\n".join(lines)
 
-    def print_table(
-        self, idx1: Optional[int] = None, idx2: Optional[int] = None
-    ) -> None:
+    def print_table(self, idx1: int | None = None, idx2: int | None = None) -> None:
         """Print the result table between the given indices."""
         print(self.make_table(idx1=idx1, idx2=idx2))
 
@@ -524,7 +536,7 @@ class PlottingOptions:
     height: int
     axis1: typingtools.MayNonerable1[sequencetools.IOSequence]
     axis2: typingtools.MayNonerable1[sequencetools.IOSequence]
-    activated: Optional[tuple[sequencetools.IOSequence, ...]]
+    activated: tuple[sequencetools.IOSequence, ...] | None
 
     def __init__(self) -> None:
         self.width = 600
@@ -539,7 +551,7 @@ class IntegrationTest(Test):
     """Defines model integration doctests.
 
     The functionality of |IntegrationTest| is easiest to understand by inspecting
-    doctests like the ones of modules |arma_v1|.
+    doctests like the ones of modules |arma_rimorido|.
 
     Note that all condition sequences (state and logging sequences) are initialised in
     accordance with the values are given as `inits` values.  The values of the
@@ -559,8 +571,8 @@ class IntegrationTest(Test):
 
     def __init__(
         self,
-        element: Optional[devicetools.Element] = None,
-        seqs: Optional[tuple[sequencetools.IOSequence, ...]] = None,
+        element: devicetools.Element | None = None,
+        seqs: tuple[sequencetools.IOSequence, ...] | None = None,
         inits=None,
     ) -> None:
         """Prepare the element and its nodes, put them into a HydPy object, and make
@@ -584,39 +596,39 @@ class IntegrationTest(Test):
     @overload
     def __call__(
         self,
-        filename: Optional[str] = None,
+        filename: str | None = None,
         *,
         axis1: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         update_parameters: bool = True,
         get_conditions: Literal[None] = ...,
-        use_conditions: Optional[ConditionsModel] = None,
+        use_conditions: ConditionsModel | None = None,
     ) -> None:
         """do not return conditions"""
 
     @overload
     def __call__(
         self,
-        filename: Optional[str] = None,
+        filename: str | None = None,
         *,
         axis1: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         update_parameters: bool = True,
         get_conditions: timetools.DateConstrArg,
-        use_conditions: Optional[ConditionsModel],
+        use_conditions: ConditionsModel | None,
     ) -> ConditionsModel:
         """do return conditions"""
 
     def __call__(
         self,
-        filename: Optional[str] = None,
+        filename: str | None = None,
         *,
         axis1: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         update_parameters: bool = True,
-        get_conditions: Optional[timetools.DateConstrArg] = None,
-        use_conditions: Optional[ConditionsModel] = None,
-    ) -> Optional[ConditionsModel]:
+        get_conditions: timetools.DateConstrArg | None = None,
+        use_conditions: ConditionsModel | None = None,
+    ) -> ConditionsModel | None:
         """Prepare and perform an integration test and print and eventually plot its
         results.
 
@@ -633,8 +645,8 @@ class IntegrationTest(Test):
         return seq2value
 
     def _perform_simulation(
-        self, get_conditions: Optional[timetools.DateConstrArg]
-    ) -> Optional[ConditionsModel]:
+        self, get_conditions: timetools.DateConstrArg | None
+    ) -> ConditionsModel | None:
         if get_conditions:
             sim = copy.deepcopy(hydpy.pub.timegrids.sim)
             date = timetools.Date(get_conditions)
@@ -670,7 +682,7 @@ class IntegrationTest(Test):
         >>> from hydpy import Element, IntegrationTest, prepare_model, pub
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
         >>> element = Element("element", outlets="node")
-        >>> element.model = prepare_model("hland_v1")
+        >>> element.model = prepare_model("hland_96")
         >>> __package__ = "testpackage"
         >>> tester = IntegrationTest(element)
         >>> tester.dateformat
@@ -743,7 +755,7 @@ standard library for for further information.
         return tuple(seqs)
 
     def prepare_model(
-        self, update_parameters: bool, use_conditions: Optional[ConditionsModel]
+        self, update_parameters: bool, use_conditions: ConditionsModel | None
     ) -> None:
         """Derive the secondary parameter values, prepare all required time series and
         set the initial conditions."""
@@ -916,7 +928,7 @@ standard library for for further information.
             ("remove all", (False, False)),
             ("add all to y-axis 2", (False, True)),
         ):
-            subbuttons: list[dict[str, Union[str, list[Any]]]] = [
+            subbuttons: list[dict[str, str | list[Any]]] = [
                 {
                     "label": label,
                     "method": "restyle",
@@ -965,7 +977,9 @@ standard library for for further information.
         )
 
         docspath = docs.__path__[0]
-        fig.write_html(os.path.join(docspath, "html_", filename))
+        fig.write_html(
+            os.path.join(docspath, "html_", filename), include_plotlyjs="directory"
+        )
 
 
 class UnitTest(Test):
@@ -982,7 +996,7 @@ class UnitTest(Test):
     """Stores arrays with the resulting values of parameters and/or
     sequences of each new experiment."""
 
-    def __init__(self, model, method, first_example=1, last_example=1, parseqs=None):
+    def __init__(self, model, method, *, first_example=1, last_example=1, parseqs=None):
         del self.inits
         del self.nexts
         del self.results
@@ -1287,8 +1301,8 @@ class TestIO:
 
     _clear_own: bool
     _clear_all: bool
-    _path: Optional[str]
-    _olds: Optional[list[str]]
+    _path: str | None
+    _olds: list[str] | None
 
     def __init__(self, clear_own: bool = False, clear_all: bool = False) -> None:
         self._clear_own = clear_own
@@ -1422,35 +1436,33 @@ but for the given `datetime` object it is `999` instead.
 
 
 class NumericalDifferentiator:
-    """Approximate the derivatives of |ModelSequence| values based on
-    the finite difference approach.
+    """Approximate the derivatives of |ModelSequence| values based on the finite
+    difference approach.
 
     .. _`here`: https://en.wikipedia.org/wiki/Finite_difference_coefficient
 
-    Class |NumericalDifferentiator| is thought for testing purposes only.
-    See, for example, the documentation on method |lstream_model.Calc_RHMDH_V1|,
-    which uses a |NumericalDifferentiator| object to validate that this method
-    calculates the derivative of sequence |lstream_aides.RHM| (`ysequence`)
-    with respect to sequence |lstream_states.H| (`xsequence`) correctly.
-    Therefore, it must know the relationship between |lstream_aides.RHM| and
-    |lstream_states.H|, being defined by method |lstream_model.Calc_RHM_V1|.
+    Class |NumericalDifferentiator| is thought for testing purposes only.  See, for
+    example, the documentation on method |kinw_model.Calc_RHMDH_V1|, which uses a
+    |NumericalDifferentiator| object to validate that this method calculates the
+    derivative of sequence |kinw_aides.RHM| (`ysequence`) with respect to sequence
+    |kinw_states.H| (`xsequence`) correctly. Therefore, it must know the relationship
+    between |kinw_aides.RHM| and |kinw_states.H|, being defined by method
+    |kinw_model.Calc_RHM_V1|.
 
-    See also the documentation on method |lstream_model.Calc_AMDH_UMDH_V1|,
-    which explains how to apply class |NumericalDifferentiator| on multiple target
-    sequences (`ysequences`).  Note that, in order to calculate the correct
-    derivatives of sequences |lstream_aides.AM| and |lstream_aides.UM|, we
-    need not only to pass |lstream_model.Calc_AM_UM_V1|, but also methods
-    |lstream_model.Calc_RHM_V1| and |lstream_model.Calc_RHV_V1|, as sequences
-    |lstream_aides.RHM| and |lstream_aides.RHV|, which are required for
-    calculating |lstream_aides.AM| and |lstream_aides.UM|, depend on
-    |lstream_states.H| themselves.
+    See also the documentation on method |kinw_model.Calc_AMDH_UMDH_V1|, which explains
+    how to apply class |NumericalDifferentiator| on multiple target sequences
+    (`ysequences`).  Note that, in order to calculate the correct derivatives of
+    sequences |kinw_aides.AM| and |kinw_aides.UM|, we need not only to pass
+    |kinw_model.Calc_AM_UM_V1|, but also methods |kinw_model.Calc_RHM_V1| and
+    |kinw_model.Calc_RHV_V1|, as sequences |kinw_aides.RHM| and |kinw_aides.RHV|, which
+    are required for calculating |kinw_aides.AM| and |kinw_aides.UM|, depend on
+    |kinw_states.H| themselves.
 
     Numerical approximations of derivatives are of limited precision.
-    |NumericalDifferentiator| achieves the second order of accuracy due to
-    using the coefficients given `here`_.  If results are too inaccurate,
-    you might improve them by changing the finite difference method
-    (`backward` or `central` instead of `forward`) or by changing the
-    default interval width `dx`.
+    |NumericalDifferentiator| achieves the second order of accuracy due to using the
+    coefficients given `here`_.  If results are too inaccurate, you might improve them
+    by changing the finite difference method (`backward` or `central` instead of
+    `forward`) or by changing the default interval width `dx`.
     """
 
     __NMBNODES = 3
@@ -1467,9 +1479,10 @@ class NumericalDifferentiator:
 
     def __init__(
         self,
+        *,
         xsequence: sequencetools.ModelSequence,
         ysequences: Iterable[sequencetools.ModelSequence],
-        methods: Iterable["modeltools.Method"],
+        methods: Iterable[modeltools.Method],
         dx: float = 1e-6,
         method: Literal["forward", "central", "backward"] = "forward",
     ):
@@ -1490,10 +1503,10 @@ class NumericalDifferentiator:
     @property
     def _yvalues(self) -> dict[sequencetools.ModelSequence, NDArrayFloat]:
         xvalues = copy.deepcopy(self._xsequence.values)
-        if not self._xsequence.NDIM:
-            nmb = 1
-        else:
-            nmb = len(xvalues)
+        ndim = self._ysequences[0].NDIM
+        assert all(ndim == seq.NDIM for seq in self._ysequences)
+        nmb = self._ysequences[0].numberofvalues
+        assert all(nmb == seq.numberofvalues for seq in self._ysequences)
         yvalues = {
             ysequence: numpy.empty((nmb, self.__NMBNODES))
             for ysequence in self._ysequences
@@ -1519,45 +1532,43 @@ class NumericalDifferentiator:
     def __call__(self) -> None:
         for ysequence, derivatives in self._derivatives.items():
             print(f"d_{ysequence.name}/d_{self._xsequence.name}", end=": ")
-            objecttools.print_values(derivatives, width=1000)
+            objecttools.print_vector(derivatives, width=1000)
 
 
 def update_integrationtests(
-    applicationmodel: Union[types.ModuleType, str],
+    applicationmodel: types.ModuleType | str,
     resultfilepath: str = "update_integrationtests.txt",
 ) -> None:
-    """Write the docstring of the given application model, updated with
-    the current simulation results, to file.
+    """Write the docstring of the given application model, updated with the current
+    simulation results, to file.
 
-    Sometimes, even tiny model-related changes bring a great deal of work
-    concerning *HydPy's* integration test strategy.  For example, if you
-    modify the value of a fixed parameter, the results of possibly dozens
-    of integration tests of your application model might become wrong.
-    In such situations, function |update_integrationtests| helps you in
-    replacing all integration tests results at once.  Therefore, it
-    calculates the new results, updates the old module docstring and
-    writes it.  You only need to copy-paste the printed result into the
-    affected module.  But be aware that function |update_integrationtests|
-    cannot guarantee the correctness of the new results.  Whenever in doubt
-    if the new results are really correct under all possible conditions,
-    you should inspect and replace each integration test result manually.
+    Sometimes, even tiny model-related changes bring a great deal of work concerning
+    *HydPy's* integration test strategy.  For example, if you modify the value of a
+    fixed parameter, the results of possibly dozens of integration tests of your
+    application model might become wrong.  In such situations, function
+    |update_integrationtests| helps you in replacing all integration tests results at
+    once.  Therefore, it calculates the new results, updates the old module docstring
+    and writes it.  You only need to copy-paste the printed result into the affected
+    module.  But be aware that function |update_integrationtests| cannot guarantee the
+    correctness of the new results.  Whenever in doubt if the new results are really
+    correct under all possible conditions, you should inspect and replace each
+    integration test result manually.
 
     In the following example, we disable method |conv_model.Pass_Outputs_V1|
-    temporarily.  Accordingly, application model |conv_v001| does not pass
-    any output to its outlet nodes, which is why the last four columns of
-    both integration test tables now contain zero value only (we can perform
-    this mocking-based test in Python-mode only):
+    temporarily.  Accordingly, application model |conv_nn| does not pass any output to
+    its outlet nodes, which is why the last four columns of both integration test
+    tables now contain zero value only (we can perform this mocking-based test in
+    Python-mode only):
 
     >>> from hydpy import pub, TestIO, update_integrationtests
     >>> from unittest import mock
     >>> pass_output = "hydpy.models.conv.conv_model.Pass_Outputs_V1.__call__"
     >>> with TestIO(), pub.options.usecython(False), mock.patch(pass_output):
-    ...     update_integrationtests("conv_v001", "temp.txt")
+    ...     update_integrationtests("conv_nn", "temp.txt")
     ...     with open("temp.txt") as resultfile:
     ...         print(resultfile.read())  # doctest: +ELLIPSIS
     Number of replacements: 2
     <BLANKLINE>
-    Nearest-neighbour interpolation.
     ... test()
     |       date |      inputs |                outputs | in1 | in2 | out1 \
 | out2 | out3 | out4 |
@@ -1649,11 +1660,11 @@ def check_methodorder(model: modeltools.Model, indent: int = 0) -> str:
     completeness of the sequence's values, were called after the first but before the
     second method.
 
-    We use the quite complex model |lland_v3| as an example.  |check_methodorder| does
-    not report any problems:
+    We use the quite complex model |lland_knauf| as an example.  |check_methodorder|
+    does not report any problems:
 
     >>> from hydpy.core.testtools import check_methodorder
-    >>> from hydpy.models.lland_v3 import Model
+    >>> from hydpy.models.lland_knauf import Model
     >>> print(check_methodorder(Model))
     <BLANKLINE>
 
@@ -1701,9 +1712,9 @@ result sequences of any of its predecessors: TKor and TZ
     )
     methods = tuple(model.get_methods(skip=("ADD_METHODS", "INTERFACE_METHODS")))
     for idx, method1 in enumerate(methods):
-        required = set(
+        required = {
             seq for seq in method1.REQUIREDSEQUENCES if not issubclass(seq, excluded)
-        )
+        }
         for method0 in methods[:idx]:
             for seq in itertools.chain(
                 method0.RESULTSEQUENCES, method0.UPDATEDSEQUENCES
@@ -1956,7 +1967,9 @@ PotentialInterceptionEvaporation
                         submethod.REQUIREDSEQUENCES
                     )
                 )
-                if issubclass(method, modeltools.AutoMethod):
+                if issubclass(
+                    method, (modeltools.AutoMethod, modeltools.SetAutoMethod)
+                ):
                     for previous in method.SUBMETHODS[:idx_submethod]:
                         vars_submethods.difference_update(previous.RESULTSEQUENCES)
             diff = vars_submethods - vars_method
@@ -2013,7 +2026,7 @@ PotentialInterceptionEvaporation
 
 
 def perform_consistencychecks(
-    applicationmodel=Union[types.ModuleType, str], indent: int = 0
+    applicationmodel: types.ModuleType | str, indent: int = 0
 ) -> str:
     """Perform all available consistency checks for the given application model.
 
@@ -2027,11 +2040,11 @@ def perform_consistencychecks(
     documentation.
 
     As an example, we apply |perform_consistencychecks| on the application model
-    |lland_v3|.  It does not report any potential problems (not already discussed in
+    |lland_knauf|.  It does not report any potential problems (not already discussed in
     the documentation on the individual model methods):
 
     >>> from hydpy.core.testtools import perform_consistencychecks
-    >>> print(perform_consistencychecks("lland_v3"))
+    >>> print(perform_consistencychecks("lland_knauf"))
     <BLANKLINE>
 
     To show how |perform_consistencychecks| reports errors, we modify the
@@ -2040,7 +2053,7 @@ def perform_consistencychecks(
     >>> from hydpy.models.lland.lland_model import Calc_NKor_V1
     >>> resultsequences = Calc_NKor_V1.RESULTSEQUENCES
     >>> Calc_NKor_V1.RESULTSEQUENCES = ()
-    >>> print(perform_consistencychecks("lland_v3"))
+    >>> print(perform_consistencychecks("lland_knauf"))
     Potential consistency problems for individual methods:
        Method Calc_NKor_V1:
             Definitely missing: nkor
@@ -2057,7 +2070,7 @@ result sequences of any of its predecessors: NKor
     To tidy up, we need to revert the above changes:
 
     >>> Calc_NKor_V1.RESULTSEQUENCES = resultsequences
-    >>> print(perform_consistencychecks("lland_v3"))
+    >>> print(perform_consistencychecks("lland_knauf"))
     <BLANKLINE>
     """
     blanks = " " * indent
@@ -2086,7 +2099,7 @@ result sequences of any of its predecessors: NKor
     return "\n".join(results)
 
 
-def save_autofig(filename: str, figure: Optional[pyplot.Figure] = None) -> None:
+def save_autofig(filename: str, figure: pyplot.Figure | None = None) -> None:
     """Save a figure automatically generated during testing in the special `autofig`
     sub-package so that Sphinx can include it into the documentation later.
 
@@ -2129,3 +2142,346 @@ def warn_later() -> Iterator[None]:
         yield
     for record in records:
         print(record.category.__name__, record.message, sep=": ")
+
+
+def print_filestructure(dirpath: str) -> None:
+    """Print the file structure of the given directory path in alphabetical order.
+
+    >>> import os
+    >>> dirpath = os.path.join(data.__path__[0], "HydPy-H-Lahn")
+    >>> from hydpy import data
+    >>> from hydpy.core.testtools import print_filestructure
+    >>> print_filestructure(dirpath)  # doctest: +ELLIPSIS
+    * ...hydpy/data/HydPy-H-Lahn
+        - conditions
+            - init_1996_01_01_00_00_00
+                + land_dill_assl.py
+                ...
+                + stream_lahn_marb_lahn_leun.py
+        - control
+            - default
+                + land.py
+                ...
+                + stream_lahn_marb_lahn_leun.py
+        + multiple_runs.xml
+        + multiple_runs_alpha.xml
+        - network
+            - default
+                + headwaters.py
+                + nonheadwaters.py
+                + streams.py
+        - series
+            - default
+                + dill_assl_obs_q.asc
+                ...
+                + obs_q.nc
+        + single_run.xml
+        + single_run.xmlt
+    """
+
+    def _print_filestructure(dirpath: str, indent: int, /) -> None:
+        prefix = indent * " "
+        for name in sorted(os.listdir(dirpath)):
+            if name != "__pycache__":
+                subpath = os.path.join(dirpath, name)
+                if os.path.isdir(subpath):
+                    print(f"{prefix}- {name}")
+                    _print_filestructure(subpath, indent + 4)
+                else:
+                    print(f"{prefix}+ {name}")
+
+    dirpath = os.path.abspath(dirpath)
+    print(objecttools.repr_(f"* {dirpath}"))
+    _print_filestructure(dirpath, 4)
+
+
+def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
+    """Prepare an IO example configuration for testing purposes.
+
+    Function |prepare_io_example_1| is thought for testing the functioning of *HydPy*
+    and thus should be of interest for framework developers only.  It uses the main
+    models |lland_dd|, |lland_knauf|, and |hland_96| and the submodel
+    |evap_aet_morsim|.  Here, we apply |prepare_io_example_1| and shortly discuss
+    different aspects of its generated data:
+
+    >>> from hydpy.core.testtools import prepare_io_example_1
+    >>> nodes, elements = prepare_io_example_1()
+
+    It defines a short initialisation period of five days:
+
+    >>> from hydpy import pub
+    >>> pub.timegrids
+    Timegrids("2000-01-01 00:00:00",
+              "2000-01-05 00:00:00",
+              "1d")
+
+    It prepares an empty directory for IO testing:
+
+    >>> import os
+    >>> from hydpy import repr_, TestIO
+    >>> with TestIO():  # doctest: +ELLIPSIS
+    ...     repr_(pub.sequencemanager.currentpath)
+    ...     os.listdir("project/series/default")
+    '...iotesting/project/series/default'
+    []
+
+    It returns four |Element| objects handling either application model |lland_dd|
+    |lland_knauf|, or |hland_96|:
+
+    >>> for element in elements:
+    ...     print(element.name, element.model)
+    element1 lland_dd
+    element2 lland_dd
+    element3 lland_knauf
+    element4 hland_96
+
+    The |lland_knauf| instance has a submodel of type |evap_aet_morsim|:
+
+    >>> print(elements.element3.model.aetmodel.name)
+    evap_aet_morsim
+
+    Two |Node| objects handling variables `Q` and `T`:
+
+    >>> for node in nodes:
+    ...     print(node.name, node.variable)
+    node1 Q
+    node2 T
+
+    It generates artificial time series data for the input sequence
+    |lland_inputs.Nied|, the flux sequence |lland_fluxes.NKor|, and the state sequence
+    |lland_states.BoWa| of each |lland| model instance, the equally named wind speed
+    sequences of |lland_knauf| and |evap_aet_morsim|, the state sequence
+    |hland_states.SP| of the |hland_96| model instance, and the |Sim| sequence of each
+    node instance.  For precise test results, all generated values are unique:
+
+    >>> nied1 = elements.element1.model.sequences.inputs.nied
+    >>> nied1.series
+    InfoArray([0., 1., 2., 3.])
+    >>> nkor1 = elements.element1.model.sequences.fluxes.nkor
+    >>> nkor1.series
+    InfoArray([[12.],
+               [13.],
+               [14.],
+               [15.]])
+    >>> bowa3 = elements.element3.model.sequences.states.bowa
+    >>> bowa3.series
+    InfoArray([[48., 49., 50.],
+               [51., 52., 53.],
+               [54., 55., 56.],
+               [57., 58., 59.]])
+    >>> sim2 = nodes.node2.sequences.sim
+    >>> sim2.series
+    InfoArray([64., 65., 66., 67.])
+    >>> sp4 = elements.element4.model.sequences.states.sp
+    >>> sp4.series
+    InfoArray([[[68., 69., 70.],
+                [71., 72., 73.]],
+    <BLANKLINE>
+               [[74., 75., 76.],
+                [77., 78., 79.]],
+    <BLANKLINE>
+               [[80., 81., 82.],
+                [83., 84., 85.]],
+    <BLANKLINE>
+               [[86., 87., 88.],
+                [89., 90., 91.]]])
+    >>> v_l = elements.element3.model.sequences.inputs.windspeed
+    >>> v_l.series
+    InfoArray([68., 69., 70., 71.])
+    >>> v_e = elements.element3.model.aetmodel.sequences.inputs.windspeed
+    >>> v_e.series
+    InfoArray([68., 69., 70., 71.])
+
+    All sequences carry |numpy.ndarray| objects with (deep) copies of the time
+    series data for testing:
+
+    >>> import numpy
+    >>> assert numpy.all(nied1.series == nied1.testarray)
+    >>> assert numpy.all(nkor1.series == nkor1.testarray)
+    >>> assert numpy.all(bowa3.series == bowa3.testarray)
+    >>> assert numpy.all(sim2.series == sim2.testarray)
+    >>> assert numpy.all(sp4.series == sp4.testarray)
+    >>> assert numpy.all(v_l.series == v_l.testarray)
+    >>> assert numpy.all(v_e.series == v_e.testarray)
+    >>> bowa3.series[1, 2] = -999.0
+    >>> assert not numpy.all(bowa3.series == bowa3.testarray)
+    """
+    from hydpy.models import hland  # pylint: disable=import-outside-toplevel
+    from hydpy.models import lland  # pylint: disable=import-outside-toplevel
+
+    TestIO.clear()
+    devicetools.Node.clear_all()
+    devicetools.Element.clear_all()
+
+    hydpy.pub.projectname = "project"
+    hydpy.pub.sequencemanager = filetools.SequenceManager()
+    with TestIO():
+        os.makedirs("project/series/default")
+
+    hydpy.pub.timegrids = "2000-01-01", "2000-01-05", "1d"
+
+    node1 = devicetools.Node("node1")
+    node2 = devicetools.Node("node2", variable="T")
+    nodes = devicetools.Nodes(node1, node2)
+    element1 = devicetools.Element("element1", outlets=node1)
+    element2 = devicetools.Element("element2", outlets=node1)
+    element3 = devicetools.Element("element3", outlets=node1)
+    element4 = devicetools.Element("element4", outlets=node1)
+    elements_lland = devicetools.Elements(element1, element2, element3)
+    elements = elements_lland + element4
+
+    element1.model = importtools.prepare_model("lland_dd")
+    element2.model = importtools.prepare_model("lland_dd")
+    element3.model = importtools.prepare_model("lland_knauf")
+    element4.model = importtools.prepare_model("hland_96")
+
+    control3 = element3.model.parameters.control
+    control3.nhru(1)
+    control3.ft(1.0)
+    control3.fhru(1.0)
+    control3.lnk(lland.ACKER)
+    control3.measuringheightwindspeed(10.0)
+    control3.lai(3.0)
+    control3.wmax(300.0)
+    with element3.model.add_aetmodel_v1("evap_aet_morsim"):
+        pass
+
+    for idx, element in enumerate(elements_lland):
+        parameters = element.model.parameters
+        parameters.control.nhru(idx + 1)
+        parameters.control.lnk(lland.ACKER)
+        parameters.derived.absfhru(10.0)
+    control4 = element4.model.parameters.control
+    control4.nmbzones(3)
+    control4.sclass(2)
+    control4.zonetype(hland.FIELD)
+    control4.zonearea.values = 10.0
+
+    with hydpy.pub.options.printprogress(False):
+        nodes.prepare_simseries(allocate_ram=False)  # ToDo: add option "reset"
+        nodes.prepare_simseries(allocate_ram=True)
+        elements.prepare_inputseries(allocate_ram=False)
+        elements.prepare_inputseries(allocate_ram=True)
+        elements.prepare_factorseries(allocate_ram=False)
+        elements.prepare_factorseries(allocate_ram=True)
+        elements.prepare_fluxseries(allocate_ram=False)
+        elements.prepare_fluxseries(allocate_ram=True)
+        elements.prepare_stateseries(allocate_ram=False)
+        elements.prepare_stateseries(allocate_ram=True)
+
+    def init_values(seq: TestIOSequence, value1_: float) -> float:
+        value2_ = value1_ + len(seq.series.flatten())
+        values_ = numpy.arange(value1_, value2_, dtype=config.NP_FLOAT)
+        seq.testarray = values_.reshape(seq.seriesshape)
+        seq.series = seq.testarray.copy()
+        return value2_
+
+    value1 = 0.0
+    for subname, seqname in zip(
+        ["inputs", "fluxes", "states"], ["nied", "nkor", "bowa"]
+    ):
+        for element in elements_lland:
+            subseqs = getattr(element.model.sequences, subname)
+            value1 = init_values(getattr(subseqs, seqname), value1)
+    for node in nodes:
+        value1 = init_values(node.sequences.sim, value1)  # type: ignore[arg-type]
+    init_values(element4.model.sequences.states.sp, value1)  # type: ignore[arg-type]
+    init_values(
+        element3.model.sequences.inputs.windspeed, value1  # type: ignore[arg-type]
+    )
+    init_values(element3.model.aetmodel.sequences.inputs.windspeed, value1)
+
+    return nodes, elements
+
+
+def prepare_full_example_1(dirpath: str | None = None) -> None:
+    """Prepare the `HydPy-H-Lahn` example project on disk.
+
+    By default, function |prepare_full_example_1| copies the original project data into
+    the `iotesting` directory, thought for performing automated tests on real-world
+    data.  The following doctest shows the generated folder structure:
+
+    >>> from hydpy.core.testtools import prepare_full_example_1
+    >>> prepare_full_example_1()
+    >>> from hydpy import TestIO
+    >>> import os
+    >>> with TestIO():
+    ...     print("root:", *sorted(os.listdir(".")))
+    ...     for folder in ("control", "conditions", "series"):
+    ...         print(f"HydPy-H-Lahn/{folder}:",
+    ...               *sorted(os.listdir(f"HydPy-H-Lahn/{folder}")))
+    root: HydPy-H-Lahn __init__.py
+    HydPy-H-Lahn/control: default
+    HydPy-H-Lahn/conditions: init_1996_01_01_00_00_00
+    HydPy-H-Lahn/series: default
+
+    Pass an alternative path if you prefer to work in another directory:
+
+    .. testsetup::
+
+        >>> "HydPy-H-Lahn" in os.listdir(".")
+        False
+
+    >>> prepare_full_example_1(dirpath=".")
+
+    .. testsetup::
+
+        >>> "HydPy-H-Lahn" in os.listdir(".")
+        True
+        >>> import shutil
+        >>> shutil.rmtree("HydPy-H-Lahn")
+    """
+    devicetools.Node.clear_all()
+    devicetools.Element.clear_all()
+    if dirpath is None:
+        TestIO.clear()
+        dirpath = iotesting.__path__[0]
+    datapath: str = data.__path__[0]
+    shutil.copytree(
+        os.path.join(datapath, "HydPy-H-Lahn"), os.path.join(dirpath, "HydPy-H-Lahn")
+    )
+
+
+def prepare_full_example_2(
+    lastdate: timetools.DateConstrArg = "1996-01-05",
+) -> tuple[hydpytools.HydPy, pubtools.Pub, type[TestIO]]:
+    """Prepare the `HydPy-H-Lahn` project on disk and in RAM.
+
+    Function |prepare_full_example_2| is an extensions of function
+    |prepare_full_example_1|.  Besides preparing the project data of the `HydPy-H-Lahn`
+    example project, it performs all necessary steps to start a simulation run.
+    Therefore, it returns a readily prepared |HydPy| instance, as well as, for
+    convenience, module |pub| and class |TestIO|:
+
+    >>> from hydpy.core.testtools import prepare_full_example_2
+    >>> hp, pub, TestIO = prepare_full_example_2()
+    >>> hp.nodes
+    Nodes("dill_assl", "lahn_kalk", "lahn_leun", "lahn_marb")
+    >>> hp.elements
+    Elements("land_dill_assl", "land_lahn_kalk", "land_lahn_leun",
+             "land_lahn_marb", "stream_dill_assl_lahn_leun",
+             "stream_lahn_leun_lahn_kalk", "stream_lahn_marb_lahn_leun")
+    >>> pub.timegrids
+    Timegrids("1996-01-01 00:00:00",
+              "1996-01-05 00:00:00",
+              "1d")
+    >>> from hydpy import classname
+    >>> classname(TestIO)
+    'TestIO'
+
+    Function |prepare_full_example_2| is primarily thought for testing and thus does
+    not allow for many configurations except changing the end date of the
+    initialisation period:
+
+    >>> hp, pub, TestIO = prepare_full_example_2(lastdate="1996-01-02")
+    >>> pub.timegrids
+    Timegrids("1996-01-01 00:00:00",
+              "1996-01-02 00:00:00",
+              "1d")
+    """
+    prepare_full_example_1()
+    with TestIO():
+        hp = hydpytools.HydPy("HydPy-H-Lahn")
+        hydpy.pub.timegrids = "1996-01-01", lastdate, "1d"
+        hp.prepare_everything()
+    return hp, hydpy.pub, TestIO

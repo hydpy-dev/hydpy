@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # imports...
@@ -106,13 +105,14 @@ class Return_Mean_V1(modeltools.Method):
         >>> fluxes.outputs.shape = 3
         >>> fluxes.inputs = 0.0, 1.0, 5.0
         >>> fluxes.outputs = 9.9, 9.9, 9.9
-        >>> model.return_mean_v1(fluxes.inputs.values, fluxes.outputs.values, 3)
+        >>> from hydpy import round_
+        >>> round_(model.return_mean_v1(fluxes.inputs.values, fluxes.outputs.values, 3))
         2.0
         >>> fluxes.outputs = nan, 9.9, nan
-        >>> model.return_mean_v1(fluxes.inputs.values, fluxes.outputs.values, 3)
+        >>> round_(model.return_mean_v1(fluxes.inputs.values, fluxes.outputs.values, 3))
         1.0
         >>> fluxes.outputs = nan, nan, nan
-        >>> model.return_mean_v1(fluxes.inputs.values, fluxes.outputs.values, 3)
+        >>> round_(model.return_mean_v1(fluxes.inputs.values, fluxes.outputs.values, 3))
         nan
     """
 
@@ -564,7 +564,10 @@ class Pass_Outputs_V1(modeltools.Method):
 
 
 class Model(modeltools.AdHocModel):
-    """The HydPy-Conv model."""
+    """|conv.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="Conv")
+    __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = (Pick_Inputs_V1,)
     RECEIVER_METHODS = ()
@@ -586,7 +589,7 @@ class Model(modeltools.AdHocModel):
 
 
 class BaseModel(modeltools.AdHocModel):
-    """Base class for all HydPy-Conv application models."""
+    """Base class for all |conv.DOCNAME.complete| application models."""
 
     def connect(self):
         """Connect the |InletSequence| and |OutletSequence| objects of the actual model
@@ -606,7 +609,7 @@ class BaseModel(modeltools.AdHocModel):
         the names of the |Node| objects as keyword arguments to pass the corresponding
         coordinates:
 
-        >>> from hydpy.models.conv_v001 import *
+        >>> from hydpy.models.conv_nn import *
         >>> parameterstep()
         >>> inputcoordinates(
         ...     in1=(0.0, 3.0),
@@ -645,8 +648,8 @@ class BaseModel(modeltools.AdHocModel):
         >>> conv.model = model
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to connect model `conv_v001` of element `conv`, \
-the following error occurred: The node handled by control parameter outputcoordinates \
+        RuntimeError: While trying to connect model `conv_nn` of element `conv`, the \
+following error occurred: The node handled by control parameter outputcoordinates \
 (out1 and out2) are not the same as the outlet nodes handled by element conv (out1, \
 out2, and out3).
         """

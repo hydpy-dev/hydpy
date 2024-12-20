@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 .. _`issue 118`: https://github.com/hydpy-dev/hydpy/issues/118
 """
+
 # imports...
 # ...from standard library
 import contextlib
@@ -34,9 +34,9 @@ class Calc_AirTemperature_TempModel_V1(modeltools.Method):
 
     Example:
 
-        We use the combination of |hland_v1| and |evap_tw2002| as an example:
+        We use the combination of |hland_96| and |evap_ret_tw2002| as an example:
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> parameterstep()
         >>> area(10.0)
         >>> nmbzones(3)
@@ -71,9 +71,9 @@ class Calc_AirTemperature_TempModel_V2(modeltools.Method):
 
     Example:
 
-        We use the combination of |evap_tw2002| and |meteo_temp_io| as an example:
+        We use the combination of |evap_ret_tw2002| and |meteo_temp_io| as an example:
 
-        >>> from hydpy.models.evap_tw2002 import *
+        >>> from hydpy.models.evap_ret_tw2002 import *
         >>> parameterstep()
         >>> nmbhru(3)
         >>> hruarea(0.5, 0.3, 0.2)
@@ -215,9 +215,9 @@ class Calc_MeanAirTemperature_TempModel_V1(modeltools.Method):
 
     Example:
 
-        We use the combination of |hland_v1| and |evap_pet_hbv96| as an example:
+        We use the combination of |hland_96| and |evap_pet_hbv96| as an example:
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> parameterstep()
         >>> area(10.0)
         >>> nmbzones(3)
@@ -1012,13 +1012,14 @@ class Process_RadiationModel_V1(modeltools.Method):
 
     Example:
 
-        We use the combination of |evap_fao56| and |meteo_v001| as an example:
+        We use the combination of |evap_ret_fao56| and |meteo_glob_fao56| as an
+        example:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-07-06", "2000-07-07", "1d"
-        >>> from hydpy.models.evap_fao56 import *
+        >>> from hydpy.models.evap_ret_fao56 import *
         >>> parameterstep()
-        >>> with model.add_radiationmodel_v1("meteo_v001"):
+        >>> with model.add_radiationmodel_v1("meteo_glob_fao56"):
         ...     latitude(50.8)
         ...     angstromconstant(0.25)
         ...     angstromfactor(0.5)
@@ -1053,11 +1054,12 @@ class Calc_PossibleSunshineDuration_V1(modeltools.Method):
     Examples:
 
         We combine |evap_pet_ambav1| with submodels that comply with different
-        interfaces.  First, with |meteo_v001|, which complies with |RadiationModel_V1|:
+        interfaces.  First, with |meteo_glob_fao56|, which complies with
+        |RadiationModel_V1|:
 
         >>> from hydpy.models.evap_pet_ambav1 import *
         >>> parameterstep()
-        >>> with model.add_radiationmodel_v1("meteo_v001", update=False):
+        >>> with model.add_radiationmodel_v1("meteo_glob_fao56", update=False):
         ...     factors.possiblesunshineduration = 10.0
         >>> model.calc_possiblesunshineduration()
         >>> factors.possiblesunshineduration
@@ -1103,11 +1105,12 @@ class Calc_SunshineDuration_V1(modeltools.Method):
     Examples:
 
         We combine |evap_pet_ambav1| with submodels that comply with different
-        interfaces.  First, with |meteo_v001|, which complies with |RadiationModel_V1|:
+        interfaces.  First, with |meteo_glob_fao56|, which complies with
+        |RadiationModel_V1|:
 
         >>> from hydpy.models.evap_pet_ambav1 import *
         >>> parameterstep()
-        >>> with model.add_radiationmodel_v1("meteo_v001", update=False):
+        >>> with model.add_radiationmodel_v1("meteo_glob_fao56", update=False):
         ...     inputs.sunshineduration = 10.0
         >>> model.calc_sunshineduration()
         >>> factors.sunshineduration
@@ -1152,12 +1155,13 @@ class Calc_ClearSkySolarRadiation_V1(modeltools.Method):
 
     Examples:
 
-        We combine |evap_fao56| with submodels that comply with different
-        interfaces.  First, with |meteo_v001|, which complies with |RadiationModel_V1|:
+        We combine |evap_ret_fao56| with submodels that comply with different
+        interfaces.  First, with |meteo_glob_fao56|, which complies with
+        |RadiationModel_V1|:
 
-        >>> from hydpy.models.evap_fao56 import *
+        >>> from hydpy.models.evap_ret_fao56 import *
         >>> parameterstep()
-        >>> with model.add_radiationmodel_v1("meteo_v001", update=False):
+        >>> with model.add_radiationmodel_v1("meteo_glob_fao56", update=False):
         ...     fluxes.clearskysolarradiation = 100.0
         >>> model.calc_clearskysolarradiation()
         >>> fluxes.clearskysolarradiation
@@ -1204,23 +1208,23 @@ class Calc_GlobalRadiation_V1(modeltools.Method):
     Examples:
 
         We combine three main models with submodels that comply with the four
-        radiation-related interfaces.  First, |evap_fao56| with |meteo_v001|, which
-        complies with |RadiationModel_V1|:
+        radiation-related interfaces.  First, |evap_ret_fao56| with |meteo_glob_fao56|,
+        which complies with |RadiationModel_V1|:
 
-        >>> from hydpy.models.evap_fao56 import *
+        >>> from hydpy.models.evap_ret_fao56 import *
         >>> parameterstep()
-        >>> with model.add_radiationmodel_v1("meteo_v001", update=False):
+        >>> with model.add_radiationmodel_v1("meteo_glob_fao56", update=False):
         ...     fluxes.globalradiation = 100.0
         >>> model.calc_globalradiation()
         >>> fluxes.globalradiation
         globalradiation(100.0)
 
-        Second, |evap_tw2002| with |meteo_glob_io|, which complies with
+        Second, |evap_ret_tw2002| with |meteo_glob_io|, which complies with
         |RadiationModel_V2|:
 
         >>> from hydpy.core.importtools import reverse_model_wildcard_import
         >>> reverse_model_wildcard_import()
-        >>> from hydpy.models.evap_tw2002 import *
+        >>> from hydpy.models.evap_ret_tw2002 import *
         >>> parameterstep()
         >>> with model.add_radiationmodel_v2("meteo_glob_io", update=False):
         ...     inputs.globalradiation = 200.0
@@ -1228,11 +1232,11 @@ class Calc_GlobalRadiation_V1(modeltools.Method):
         >>> fluxes.globalradiation
         globalradiation(200.0)
 
-        Third, |evap_fao56| with |meteo_clear_glob_io|, which complies with
+        Third, |evap_ret_fao56| with |meteo_clear_glob_io|, which complies with
         |RadiationModel_V3|:
 
         >>> reverse_model_wildcard_import()
-        >>> from hydpy.models.evap_fao56 import *
+        >>> from hydpy.models.evap_ret_fao56 import *
         >>> parameterstep()
         >>> with model.add_radiationmodel_v3("meteo_clear_glob_io", update=False):
         ...     inputs.globalradiation = 300.0
@@ -1587,13 +1591,13 @@ class Calc_CurrentAlbedo_V1(modeltools.Method):
 
     Examples:
 
-        We use the combination of |lland_v3| and |evap_morsim| as an example and set
-        different albedo values for the land types |lland_constants.ACKER| and
+        We use the combination of |lland_knauf| and |evap_aet_morsim| as an example and
+        set different albedo values for the land types |lland_constants.ACKER| and
         |lland_constants.VERS| for January and February:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-30", "2000-02-03", "1d"
-        >>> from hydpy.models.lland_v3 import *
+        >>> from hydpy.models.lland_knauf import *
         >>> parameterstep()
         >>> ft(10.0)
         >>> nhru(3)
@@ -1602,7 +1606,7 @@ class Calc_CurrentAlbedo_V1(modeltools.Method):
         >>> measuringheightwindspeed(10.0)
         >>> lai(3.0)
         >>> wmax(100.0)
-        >>> with model.add_aetmodel_v1("evap_morsim"):
+        >>> with model.add_aetmodel_v1("evap_aet_morsim"):
         ...     albedo.acker_jan = 0.2
         ...     albedo.vers_jan = 0.3
         ...     albedo.acker_feb = 0.4
@@ -1682,10 +1686,10 @@ class Calc_CurrentAlbedo_V2(modeltools.Method):
 
     Examples:
 
-        We use |lland_v3| and |evap_minhas| as main models to prepare an applicable
-        |evap| instance (more precisely, an |evap_pet_ambav1| instance):
+        We use |lland_knauf| and |evap_aet_minhas| as main models to prepare an
+        applicable |evap| instance (more precisely, an |evap_pet_ambav1| instance):
 
-        >>> from hydpy.models.lland_v3 import *
+        >>> from hydpy.models.lland_knauf import *
         >>> parameterstep()
         >>> nhru(5)
         >>> lnk(WASSER, BODEN, ACKER, BAUMB, LAUBW)
@@ -1699,7 +1703,7 @@ class Calc_CurrentAlbedo_V2(modeltools.Method):
         >>> lai.jun_laubw = 5.0
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-05-30", "2000-06-03", "1d"
-        >>> with model.add_aetmodel_v1("evap_minhas"):
+        >>> with model.add_aetmodel_v1("evap_aet_minhas"):
         ...     with model.add_petmodel_v2("evap_pet_ambav1") as ambav:
         ...         groundalbedo(wasser=0.1, boden=0.2, acker=0.2, baumb=0.2, laubw=0.2)
         ...         groundalbedosnow(0.8)
@@ -2622,8 +2626,8 @@ class Calc_SoilHeatFlux_V2(modeltools.Method):
         with the actual value of |AverageSoilHeatFlux|, which we confirm by the
         following test calculation:
 
-        >>> from hydpy import print_values
-        >>> print_values(day * factors.dailypossiblesunshineduration +
+        >>> from hydpy import print_vector
+        >>> print_vector(day * factors.dailypossiblesunshineduration +
         ...              night * (24.0 - factors.dailypossiblesunshineduration))
         -10.0, -10.0, -10.0, -10.0, -10.0, 0.0
 
@@ -2973,12 +2977,12 @@ class Calc_AerodynamicResistance_V1(modeltools.Method):
         The last example shows the inverse relationship between resistance and wind
         speed.  For zero wind speed, resistance becomes infinite:
 
-        >>> from hydpy import print_values
+        >>> from hydpy import print_vector
         >>> cropheight(2.0)
         >>> for ws in (0.0, 0.1, 1.0, 10.0):
         ...     factors.windspeed10m = ws
         ...     model.calc_aerodynamicresistance_v1()
-        ...     print_values([ws, factors.aerodynamicresistance[0]])
+        ...     print_vector([ws, factors.aerodynamicresistance[0]])
         0.0, inf
         0.1, 706.026613
         1.0, 70.602661
@@ -3067,7 +3071,7 @@ class Calc_AerodynamicResistance_V2(modeltools.Method):
 
         For zero wind speed, resistance becomes infinite:
 
-        >>> from hydpy import print_values
+        >>> from hydpy import print_vector
         >>> factors.windspeed10m = 0.0
         >>> model.calc_aerodynamicresistance_v2()
         >>> factors.aerodynamicresistance
@@ -3798,7 +3802,7 @@ class Calc_ActualSurfaceResistance_V1(modeltools.Method):
                 invsrnight: float = lai / 2500.0 + 1.0 / fac.soilsurfaceresistance[k]
                 w: float = fac.possiblesunshineduration / der.hours
                 fac.actualsurfaceresistance[k] = 1.0 / (
-                    (w * invsrday + (1.0 - w) * invsrnight)
+                    w * invsrday + (1.0 - w) * invsrnight
                 )
             else:
                 fac.actualsurfaceresistance[k] = fac.landusesurfaceresistance[k]
@@ -3829,10 +3833,10 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
 
         |Calc_ActualSurfaceResistance_V2| works similarly to method
         |Calc_ActualSurfaceResistance_V1|.  We build up a comparable setting but use
-        |lland_v1| and |evap_minhas| as main models to prepare an applicable |evap|
+        |lland_dd| and |evap_aet_minhas| as main models to prepare an applicable |evap|
         instance (more precisely, an |evap_pet_ambav1| instance) more easily:
 
-        >>> from hydpy.models.lland_v1 import *
+        >>> from hydpy.models.lland_dd import *
         >>> parameterstep()
         >>> nhru(5)
         >>> lnk(WASSER, FLUSS, SEE, BODEN, BODEN)
@@ -3841,7 +3845,7 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
         >>> wmax(200.0)
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-05-30", "2000-06-03", "1d"
-        >>> with model.add_aetmodel_v1("evap_minhas"):
+        >>> with model.add_aetmodel_v1("evap_aet_minhas"):
         ...     with model.add_petmodel_v2("evap_pet_ambav1") as ambav:
         ...         pass
         >>> control = ambav.parameters.control
@@ -3998,7 +4002,7 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
                 r_night_inv: float = 1.0 / r_soil + lai / r_leaf_night
                 w_day: float = fac.possiblesunshineduration / der.hours
                 fac.actualsurfaceresistance[k] = 1.0 / (
-                    (w_day * r_day_inv + (1.0 - w_day) * r_night_inv)
+                    w_day * r_day_inv + (1.0 - w_day) * r_night_inv
                 )
             elif con.soil[k]:
                 fac.actualsurfaceresistance[k] = sta.soilresistance[k]
@@ -4012,9 +4016,9 @@ class Calc_Precipitation_PrecipModel_V1(modeltools.Method):
 
     Example:
 
-        We use the combination of |hland_v1| and |evap_pet_hbv96| as an example:
+        We use the combination of |hland_96| and |evap_pet_hbv96| as an example:
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> parameterstep()
         >>> area(10.0)
         >>> nmbzones(3)
@@ -4111,9 +4115,9 @@ class Calc_InterceptedWater_IntercModel_V1(modeltools.Method):
 
     Example:
 
-        We use the combination of |hland_v1| and |evap_aet_hbv96| as an example:
+        We use the combination of |hland_96| and |evap_aet_hbv96| as an example:
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> parameterstep()
         >>> area(10.0)
         >>> nmbzones(3)
@@ -4186,11 +4190,11 @@ class Calc_SnowyCanopy_V1(modeltools.Method):
 
     Examples:
 
-        We use the combination of |lland_v4| and |evap_morsim| as an example:
+        We use the combination of |lland_knauf_ic| and |evap_aet_morsim| as an example:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
-        >>> from hydpy.models.lland_v4 import *
+        >>> from hydpy.models.lland_knauf_ic import *
         >>> parameterstep()
         >>> ft(10.0)
         >>> nhru(3)
@@ -4200,7 +4204,7 @@ class Calc_SnowyCanopy_V1(modeltools.Method):
         >>> lai(3.0)
         >>> wmax(100.0)
         >>> states.stinz = 0.0, 0.1, 0.1
-        >>> with model.add_aetmodel_v1("evap_morsim"):
+        >>> with model.add_aetmodel_v1("evap_aet_morsim"):
         ...     pass
         >>> model.aetmodel.calc_snowycanopy_v1()
         >>> model.aetmodel.sequences.factors.snowycanopy
@@ -4247,9 +4251,9 @@ class Calc_SoilWater_SoilWaterModel_V1(modeltools.Method):
 
     Example:
 
-        We use the combination of |hland_v1| and |evap_aet_hbv96| as an example:
+        We use the combination of |hland_96| and |evap_aet_hbv96| as an example:
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> parameterstep()
         >>> area(10.0)
         >>> nmbzones(3)
@@ -4304,9 +4308,9 @@ class Calc_SnowCover_SnowCoverModel_V1(modeltools.Method):
 
     Example:
 
-        We use the combination of |hland_v1| and |evap_aet_hbv96| as an example:
+        We use the combination of |hland_96| and |evap_aet_hbv96| as an example:
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> parameterstep()
         >>> area(10.0)
         >>> nmbzones(3)
@@ -4423,14 +4427,14 @@ class Return_Evaporation_PenmanMonteith_V1(modeltools.Method):
         |Return_Evaporation_PenmanMonteith_V1| are more than twice as large as those
         of method |Calc_WaterEvaporation_V3|:
 
-        >>> from hydpy import print_values
+        >>> from hydpy import print_vector
         >>> for hru in range(7):
         ...     deficit = (factors.saturationvapourpressure[hru] -
         ...                factors.actualvapourpressure[hru])
         ...     evap = model.return_evaporation_penmanmonteith_v1(
         ...         hru, factors.actualsurfaceresistance[hru])
         ...     energygain = fluxes.netradiation[hru] - fluxes.soilheatflux[hru]
-        ...     print_values([energygain, deficit, evap])
+        ...     print_vector([energygain, deficit, evap])
         0.0, 0.0, 0.0
         40.0, 0.0, 0.648881
         90.0, 0.0, 1.459982
@@ -4451,7 +4455,7 @@ class Return_Evaporation_PenmanMonteith_V1(modeltools.Method):
         ...     evap = model.return_evaporation_penmanmonteith_v1(
         ...         hru, factors.actualsurfaceresistance[hru])
         ...     energygain = fluxes.netradiation[hru] - fluxes.soilheatflux[hru]
-        ...     print_values([energygain, deficit, evap])
+        ...     print_vector([energygain, deficit, evap])
         0.0, 0.0, 0.0
         40.0, 0.0, 0.364933
         90.0, 0.0, 0.8211
@@ -4469,7 +4473,7 @@ class Return_Evaporation_PenmanMonteith_V1(modeltools.Method):
         >>> factors.actualsurfaceresistance = (
         ...     0.0, 20.0, 50.0, 100.0, 200.0, 500.0, 1000.0)
         >>> for hru in range(7):
-        ...     print_values([factors.actualsurfaceresistance[hru],
+        ...     print_vector([factors.actualsurfaceresistance[hru],
         ...                   model.return_evaporation_penmanmonteith_v1(
         ...                       hru, factors.actualsurfaceresistance[hru])])
         0.0, 11.370311
@@ -4490,7 +4494,7 @@ class Return_Evaporation_PenmanMonteith_V1(modeltools.Method):
         >>> factors.actualsurfaceresistance = 80.0
         >>> factors.aerodynamicresistance = (0.0, 1e-6, 1e-3, 1.0, 1e3, 1e6, inf)
         >>> for hru in range(7):
-        ...     print_values([factors.aerodynamicresistance[hru],
+        ...     print_vector([factors.aerodynamicresistance[hru],
         ...                   model.return_evaporation_penmanmonteith_v1(
         ...                       hru, factors.actualsurfaceresistance[hru])])
         0.0, 5.00683
@@ -4516,7 +4520,7 @@ class Return_Evaporation_PenmanMonteith_V1(modeltools.Method):
         ...     evap = 24.0 * model.return_evaporation_penmanmonteith_v1(
         ...         hru, factors.actualsurfaceresistance[hru])
         ...     energygain = fluxes.netradiation[hru] - fluxes.soilheatflux[hru]
-        ...     print_values([energygain, deficit, evap])
+        ...     print_vector([energygain, deficit, evap])
         0.0, 0.0, 0.0
         40.0, 0.0, 0.648881
         90.0, 0.0, 1.459982
@@ -4620,14 +4624,14 @@ class Return_Evaporation_PenmanMonteith_V2(modeltools.Method):
         hydrological response units with pure energy forcing and smaller for response
         units four to six with pure dynamic forcing:
 
-        >>> from hydpy import print_values
+        >>> from hydpy import print_vector
         >>> for hru in range(7):
         ...     energygain = fluxes.netradiation[hru] - fluxes.soilheatflux[hru]
         ...     vapourdeficit = (factors.saturationvapourpressure[hru] -
         ...                      factors.actualvapourpressure[hru])
         ...     evap = model.return_evaporation_penmanmonteith_v2(
         ...         hru, factors.actualsurfaceresistance[hru])
-        ...     print_values([energygain, vapourdeficit, evap])
+        ...     print_vector([energygain, vapourdeficit, evap])
         0.0, 0.0, 0.0
         40.0, 0.0, 0.771689
         90.0, 0.0, 1.7363
@@ -4646,7 +4650,7 @@ class Return_Evaporation_PenmanMonteith_V2(modeltools.Method):
         ...                      factors.actualvapourpressure[hru])
         ...     evap = model.return_evaporation_penmanmonteith_v2(
         ...         hru, factors.actualsurfaceresistance[hru])
-        ...     print_values([energygain, vapourdeficit, evap])
+        ...     print_vector([energygain, vapourdeficit, evap])
         0.0, 0.0, 0.0
         40.0, 0.0, 0.406078
         90.0, 0.0, 0.913677
@@ -4665,7 +4669,7 @@ class Return_Evaporation_PenmanMonteith_V2(modeltools.Method):
         >>> factors.actualsurfaceresistance = 80.0
         >>> factors.aerodynamicresistance = (0.0, 1e-6, 1e-3, 1.0, 1e3, 1e6, inf)
         >>> for hru in range(7):
-        ...     print_values([factors.aerodynamicresistance[hru],
+        ...     print_vector([factors.aerodynamicresistance[hru],
         ...                   model.return_evaporation_penmanmonteith_v2(
         ...                       hru, factors.actualsurfaceresistance[hru])])
         0.0, 5.00683
@@ -4691,7 +4695,7 @@ class Return_Evaporation_PenmanMonteith_V2(modeltools.Method):
         ...                      factors.actualvapourpressure[hru])
         ...     evap = 24.0 * model.return_evaporation_penmanmonteith_v2(
         ...         hru, factors.actualsurfaceresistance[hru])
-        ...     print_values([energygain, vapourdeficit, evap])
+        ...     print_vector([energygain, vapourdeficit, evap])
         0.0, 0.0, 0.0
         40.0, 0.0, 0.771689
         90.0, 0.0, 1.7363
@@ -4925,13 +4929,13 @@ class Calc_ReferenceEvapotranspiration_PETModel_V1(modeltools.Method):
 
     Example:
 
-        We use |evap_tw2002| as an example:
+        We use |evap_ret_tw2002| as an example:
 
-        >>> from hydpy.models.evap_mlc import *
+        >>> from hydpy.models.evap_pet_mlc import *
         >>> parameterstep()
         >>> nmbhru(3)
         >>> hruarea(0.5, 0.3, 0.2)
-        >>> with model.add_retmodel_v1("evap_tw2002"):
+        >>> with model.add_retmodel_v1("evap_ret_tw2002"):
         ...     hrualtitude(200.0, 600.0, 1000.0)
         ...     coastfactor(0.6)
         ...     evapotranspirationfactor(1.1)
@@ -5428,12 +5432,12 @@ class Calc_PotentialWaterEvaporation_PETModel_V1(modeltools.Method):
 
     Example:
 
-        We use |evap_minhas| and |evap_io| as an example:
+        We use |evap_aet_minhas| and |evap_ret_io| as an example:
 
-        >>> from hydpy.models.evap_minhas import *
+        >>> from hydpy.models.evap_aet_minhas import *
         >>> parameterstep()
         >>> nmbhru(3)
-        >>> with model.add_petmodel_v1("evap_io"):
+        >>> with model.add_petmodel_v1("evap_ret_io"):
         ...     hruarea(1.0, 3.0, 2.0)
         ...     fluxes.referenceevapotranspiration = 1.0, 2.0, 4.0
         >>> model.calc_potentialwaterevaporation_v1()
@@ -5460,11 +5464,11 @@ class Calc_PotentialWaterEvaporation_PETModel_V2(modeltools.Method):
 
     Example:
 
-        We use |evap_minhas| and |evap_pet_ambav1| as an example:
+        We use |evap_aet_minhas| and |evap_pet_ambav1| as an example:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
-        >>> from hydpy.models.evap_minhas import *
+        >>> from hydpy.models.evap_aet_minhas import *
         >>> parameterstep()
         >>> nmbhru(3)
         >>> interception(False, False, True)
@@ -6114,12 +6118,12 @@ class Calc_PotentialInterceptionEvaporation_PETModel_V1(modeltools.Method):
 
     Example:
 
-        We use |evap_minhas| and |evap_io| as an example:
+        We use |evap_aet_minhas| and |evap_ret_io| as an example:
 
-        >>> from hydpy.models.evap_minhas import *
+        >>> from hydpy.models.evap_aet_minhas import *
         >>> parameterstep()
         >>> nmbhru(3)
-        >>> with model.add_petmodel_v1("evap_io"):
+        >>> with model.add_petmodel_v1("evap_ret_io"):
         ...     hruarea(1.0, 3.0, 2.0)
         ...     evapotranspirationfactor(0.5, 1.0, 2.0)
         ...     inputs.referenceevapotranspiration = 2.0
@@ -6148,11 +6152,11 @@ class Calc_PotentialInterceptionEvaporation_PETModel_V2(modeltools.Method):
 
     Example:
 
-        We use |evap_minhas| and |evap_pet_ambav1| as an example:
+        We use |evap_aet_minhas| and |evap_pet_ambav1| as an example:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
-        >>> from hydpy.models.evap_minhas import *
+        >>> from hydpy.models.evap_aet_minhas import *
         >>> parameterstep()
         >>> nmbhru(3)
         >>> interception(False, True, True)
@@ -6415,12 +6419,12 @@ class Calc_PotentialSoilEvapotranspiration_PETModel_V1(modeltools.Method):
 
     Example:
 
-        We use |evap_minhas| and |evap_io| as an example:
+        We use |evap_aet_minhas| and |evap_ret_io| as an example:
 
-        >>> from hydpy.models.evap_minhas import *
+        >>> from hydpy.models.evap_aet_minhas import *
         >>> parameterstep()
         >>> nmbhru(3)
-        >>> with model.add_petmodel_v1("evap_io"):
+        >>> with model.add_petmodel_v1("evap_ret_io"):
         ...     hruarea(1.0, 3.0, 2.0)
         ...     fluxes.referenceevapotranspiration = 1.0, 2.0, 4.0
         >>> model.calc_potentialsoilevapotranspiration_v2()
@@ -6447,11 +6451,11 @@ class Calc_PotentialSoilEvapotranspiration_PETModel_V2(modeltools.Method):
 
     Example:
 
-        We use |evap_minhas| and |evap_pet_ambav1| as an example:
+        We use |evap_aet_minhas| and |evap_pet_ambav1| as an example:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
-        >>> from hydpy.models.evap_minhas import *
+        >>> from hydpy.models.evap_aet_minhas import *
         >>> parameterstep()
         >>> nmbhru(3)
         >>> interception(False, True, True)
@@ -7127,9 +7131,10 @@ class Get_PotentialEvapotranspiration_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbhru(2)
         >>> fluxes.referenceevapotranspiration = 2.0, 4.0
-        >>> model.get_potentialevapotranspiration_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_potentialevapotranspiration_v1(0))
         2.0
-        >>> model.get_potentialevapotranspiration_v1(1)
+        >>> round_(model.get_potentialevapotranspiration_v1(1))
         4.0
     """
 
@@ -7152,9 +7157,10 @@ class Get_PotentialEvapotranspiration_V2(modeltools.Method):
         >>> parameterstep()
         >>> nmbhru(2)
         >>> fluxes.potentialevapotranspiration = 2.0, 4.0
-        >>> model.get_potentialevapotranspiration_v2(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_potentialevapotranspiration_v2(0))
         2.0
-        >>> model.get_potentialevapotranspiration_v2(1)
+        >>> round_(model.get_potentialevapotranspiration_v2(1))
         4.0
     """
 
@@ -7717,9 +7723,10 @@ class Get_WaterEvaporation_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbhru(2)
         >>> fluxes.waterevaporation = 2.0, 4.0
-        >>> model.get_waterevaporation_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_waterevaporation_v1(0))
         2.0
-        >>> model.get_waterevaporation_v1(1)
+        >>> round_(model.get_waterevaporation_v1(1))
         4.0
     """
 
@@ -7744,9 +7751,10 @@ class Get_PotentialWaterEvaporation_V1(modeltools.Method):
         >>> nmbhru(2)
         >>> derived.days.update()
         >>> fluxes.dailywaterevaporation = 2.0, 4.0
-        >>> model.get_potentialwaterevaporation_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_potentialwaterevaporation_v1(0))
         1.0
-        >>> model.get_potentialwaterevaporation_v1(1)
+        >>> round_(model.get_potentialwaterevaporation_v1(1))
         2.0
     """
 
@@ -7771,9 +7779,10 @@ class Get_PotentialInterceptionEvaporation_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbhru(2)
         >>> fluxes.potentialinterceptionevaporation = 2.0, 4.0
-        >>> model.get_potentialinterceptionevaporation_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_potentialinterceptionevaporation_v1(0))
         2.0
-        >>> model.get_potentialinterceptionevaporation_v1(1)
+        >>> round_(model.get_potentialinterceptionevaporation_v1(1))
         4.0
     """
 
@@ -7796,9 +7805,10 @@ class Get_InterceptionEvaporation_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbhru(2)
         >>> fluxes.interceptionevaporation = 2.0, 4.0
-        >>> model.get_interceptionevaporation_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_interceptionevaporation_v1(0))
         2.0
-        >>> model.get_interceptionevaporation_v1(1)
+        >>> round_(model.get_interceptionevaporation_v1(1))
         4.0
     """
 
@@ -7821,9 +7831,10 @@ class Get_PotentialSoilEvapotranspiration_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbhru(2)
         >>> fluxes.potentialsoilevapotranspiration = 2.0, 4.0
-        >>> model.get_potentialsoilevapotranspiration_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_potentialsoilevapotranspiration_v1(0))
         2.0
-        >>> model.get_potentialsoilevapotranspiration_v1(1)
+        >>> round_(model.get_potentialsoilevapotranspiration_v1(1))
         4.0
     """
 
@@ -7846,9 +7857,10 @@ class Get_SoilEvapotranspiration_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbhru(2)
         >>> fluxes.soilevapotranspiration = 2.0, 4.0
-        >>> model.get_soilevapotranspiration_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_soilevapotranspiration_v1(0))
         2.0
-        >>> model.get_soilevapotranspiration_v1(1)
+        >>> round_(model.get_soilevapotranspiration_v1(1))
         4.0
     """
 
@@ -7862,7 +7874,10 @@ class Get_SoilEvapotranspiration_V1(modeltools.Method):
 
 
 class Model(modeltools.AdHocModel):
-    """The HydPy-Evap base model."""
+    """|evap.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="Evap")
+    __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
@@ -8150,7 +8165,7 @@ FluxSequence1D
     def prepare_nmbzones(self, nmbzones: int) -> None:
         """Set the number of hydrological response units.
 
-        >>> from hydpy.models.evap_tw2002 import *
+        >>> from hydpy.models.evap_ret_tw2002 import *
         >>> parameterstep()
         >>> model.prepare_nmbzones(2)
         >>> nmbhru
@@ -8162,7 +8177,7 @@ FluxSequence1D
     def prepare_subareas(self, subareas: VectorInputFloat) -> None:
         """Set the area of all hydrological response units in km².
 
-        >>> from hydpy.models.evap_tw2002 import *
+        >>> from hydpy.models.evap_ret_tw2002 import *
         >>> parameterstep()
         >>> nmbhru(2)
         >>> model.prepare_subareas([1.0, 3.0])
@@ -8194,7 +8209,7 @@ FluxSequence1D
         >>> constants = Constants(GRASS=GRASS, TREES=TREES, WATER=WATER)
         >>> from hydpy.models.evap.evap_control import HRUType
         >>> with HRUType.modify_constants(constants):
-        ...     from hydpy.models.evap_mlc import *
+        ...     from hydpy.models.evap_pet_mlc import *
         ...     parameterstep()
         >>> nmbhru(2)
         >>> model.prepare_zonetypes([TREES, WATER])
@@ -8264,7 +8279,7 @@ FluxSequence1D
         """Set the flag indicating whether or not the respective hydrological response
         units contain tree-like vegetation.
 
-        >>> from hydpy.models.evap_morsim import *
+        >>> from hydpy.models.evap_aet_morsim import *
         >>> parameterstep()
         >>> nmbhru(2)
         >>> model.prepare_tree([True, False])
@@ -8278,7 +8293,7 @@ FluxSequence1D
         """Set the flag indicating whether or not the respective hydrological response
         units contain conifer-like vegetation.
 
-        >>> from hydpy.models.evap_morsim import *
+        >>> from hydpy.models.evap_aet_morsim import *
         >>> parameterstep()
         >>> nmbhru(2)
         >>> model.prepare_conifer([True, False])
@@ -8291,7 +8306,7 @@ FluxSequence1D
     def prepare_leafareaindex(self, leafareaindex: MatrixInputFloat) -> None:
         """Set the leaf area index in m²/m².
 
-        >>> from hydpy.models.evap_morsim import *
+        >>> from hydpy.models.evap_aet_morsim import *
         >>> parameterstep()
         >>> model.prepare_leafareaindex(10.0)
         >>> leafareaindex
@@ -8304,7 +8319,7 @@ FluxSequence1D
     def prepare_measuringheightwindspeed(self, measuringheightwindspeed: float) -> None:
         """Set the height above the ground of the wind speed measurements in m.
 
-        >>> from hydpy.models.evap_morsim import *
+        >>> from hydpy.models.evap_aet_morsim import *
         >>> parameterstep()
         >>> model.prepare_measuringheightwindspeed(10.0)
         >>> measuringheightwindspeed
@@ -8327,8 +8342,8 @@ FluxSequence1D
 
 
 class Main_RET_PETModel_V1(modeltools.AdHocModel):
-    """Base class for HydPy-Evap models that use submodels named `retmodel` and comply
-    with the |PETModel_V1| interface."""
+    """Base class for |evap.DOCNAME.long| models that use submodels named `retmodel`
+    and comply with the |PETModel_V1| interface."""
 
     retmodel: modeltools.SubmodelProperty
     retmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -8352,11 +8367,11 @@ class Main_RET_PETModel_V1(modeltools.AdHocModel):
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
-        >>> from hydpy.models.evap_m import *
+        >>> from hydpy.models.evap_pet_m import *
         >>> parameterstep()
         >>> nmbhru(2)
         >>> hruarea(2.0, 8.0)
-        >>> with model.add_retmodel_v1("evap_io"):
+        >>> with model.add_retmodel_v1("evap_ret_io"):
         ...     nmbhru
         nmbhru(2)
         >>> model.retmodel.parameters.control.hruarea
@@ -8368,8 +8383,8 @@ class Main_RET_PETModel_V1(modeltools.AdHocModel):
 
 
 class Main_PET_PETModel_V1(modeltools.AdHocModel):
-    """Base class for HydPy-Evap models that use submodels named `petmodel` and comply
-    with the |PETModel_V1| interface."""
+    """Base class for |evap.DOCNAME.long| models that use submodels named `petmodel`
+    and comply with the |PETModel_V1| interface."""
 
     petmodel: modeltools.SubmodelProperty
     petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -8395,7 +8410,7 @@ class Main_PET_PETModel_V1(modeltools.AdHocModel):
         >>> from hydpy.models.evap_aet_hbv96 import *
         >>> parameterstep()
         >>> nmbhru(2)
-        >>> with model.add_petmodel_v1("evap_io"):
+        >>> with model.add_petmodel_v1("evap_ret_io"):
         ...     hruarea(8.0, 2.0)
         ...     nmbhru
         nmbhru(2)
@@ -8405,8 +8420,8 @@ class Main_PET_PETModel_V1(modeltools.AdHocModel):
 
 
 class Main_PET_PETModel_V2(modeltools.AdHocModel):
-    """Base class for HydPy-Evap models that use submodels named `petmodel` and comply
-    with the |PETModel_V2| interface."""
+    """Base class for |evap.DOCNAME.long| models that use submodels named `petmodel`
+    and comply with the |PETModel_V2| interface."""
 
     petmodel: modeltools.SubmodelProperty
     petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -8456,8 +8471,8 @@ class Main_PET_PETModel_V2(modeltools.AdHocModel):
 
 
 class Main_TempModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
-    """Base class for HydPy-Evap models that can use main models as their sub-submodels
-    if they comply with the |TempModel_V1| interface."""
+    """Base class for |evap.DOCNAME.long| models that can use main models as their
+    sub-submodels if they comply with the |TempModel_V1| interface."""
 
     tempmodel: modeltools.SubmodelProperty
     tempmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -8469,7 +8484,7 @@ class Main_TempModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
 
         >>> from hydpy import prepare_model
         >>> evap = prepare_model("evap_pet_hbv96")
-        >>> evap.add_mainmodel_as_subsubmodel(prepare_model("evap_io"))
+        >>> evap.add_mainmodel_as_subsubmodel(prepare_model("evap_ret_io"))
         False
         >>> evap.tempmodel
         >>> evap.tempmodel_is_mainmodel
@@ -8477,7 +8492,7 @@ class Main_TempModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
         >>> evap.tempmodel_typeid
         0
 
-        >>> hland = prepare_model("hland_v1")
+        >>> hland = prepare_model("hland_96")
         >>> evap.add_mainmodel_as_subsubmodel(hland)
         True
         >>> evap.tempmodel is hland
@@ -8497,8 +8512,8 @@ class Main_TempModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
 
 
 class Main_TempModel_V2A(modeltools.AdHocModel):
-    """Base class for HydPy-Evap models that support submodels that comply with the
-    |TempModel_V2| interface and provide subarea size information."""
+    """Base class for |evap.DOCNAME.long| models that support submodels that comply
+    with the |TempModel_V2| interface and provide subarea size information."""
 
     tempmodel: modeltools.SubmodelProperty
     tempmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -8540,8 +8555,8 @@ class Main_TempModel_V2A(modeltools.AdHocModel):
 
 
 class Main_TempModel_V2B(modeltools.AdHocModel):
-    """Base class for HydPy-Evap models that support submodels that comply with the
-    |TempModel_V2| interface and do not provide subarea size information."""
+    """Base class for |evap.DOCNAME.long| models that support submodels that comply
+    with the |TempModel_V2| interface and do not provide subarea size information."""
 
     tempmodel: modeltools.SubmodelProperty
     tempmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -8581,8 +8596,8 @@ class Main_TempModel_V2B(modeltools.AdHocModel):
 
 
 class Main_PrecipModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
-    """Base class for HydPy-Evap models that can use main models as their sub-submodels
-    if they comply with the |PrecipModel_V1| interface."""
+    """Base class for |evap.DOCNAME.long| models that can use main models as their
+    sub-submodels if they comply with the |PrecipModel_V1| interface."""
 
     precipmodel: modeltools.SubmodelProperty
     precipmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -8594,7 +8609,7 @@ class Main_PrecipModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
 
         >>> from hydpy import prepare_model
         >>> evap = prepare_model("evap_pet_hbv96")
-        >>> evap.add_mainmodel_as_subsubmodel(prepare_model("evap_io"))
+        >>> evap.add_mainmodel_as_subsubmodel(prepare_model("evap_ret_io"))
         False
         >>> evap.precipmodel
         >>> evap.precipmodel_is_mainmodel
@@ -8602,7 +8617,7 @@ class Main_PrecipModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
         >>> evap.precipmodel_typeid
         0
 
-        >>> hland = prepare_model("hland_v1")
+        >>> hland = prepare_model("hland_96")
         >>> evap.add_mainmodel_as_subsubmodel(hland)
         True
         >>> evap.precipmodel is hland
@@ -8622,8 +8637,8 @@ class Main_PrecipModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
 
 
 class Main_PrecipModel_V2A(modeltools.AdHocModel):
-    """Base class for HydPy-Evap models that support submodels that comply with the
-    |PrecipModel_V2| interface."""
+    """Base class for |evap.DOCNAME.long| models that support submodels that comply
+    with the |PrecipModel_V2| interface."""
 
     precipmodel: modeltools.SubmodelProperty
     precipmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -8664,8 +8679,8 @@ class Main_PrecipModel_V2A(modeltools.AdHocModel):
 
 
 class Main_PrecipModel_V2B(modeltools.AdHocModel):
-    """Base class for HydPy-Evap models that support submodels that comply with the
-    |PrecipModel_V2| interface."""
+    """Base class for |evap.DOCNAME.long| models that support submodels that comply
+    with the |PrecipModel_V2| interface."""
 
     precipmodel: modeltools.SubmodelProperty
     precipmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -8704,8 +8719,8 @@ class Main_PrecipModel_V2B(modeltools.AdHocModel):
 
 
 class Main_RadiationModel_V1(modeltools.AdHocModel):
-    """Base class for HydPy-Evap models that support submodels that comply with the
-    |RadiationModel_V1| interface."""
+    """Base class for |evap.DOCNAME.long| models that support submodels that comply
+    with the |RadiationModel_V1| interface."""
 
     radiationmodel: modeltools.SubmodelProperty
     radiationmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -8715,20 +8730,16 @@ class Main_RadiationModel_V1(modeltools.AdHocModel):
         "radiationmodel", radiationinterfaces.RadiationModel_V1
     )
     def add_radiationmodel_v1(
-        self,
-        radiationmodel: radiationinterfaces.RadiationModel_V1,
-        /,
-        *,
-        refresh: bool,  # pylint: disable=unused-argument
+        self, radiationmodel: radiationinterfaces.RadiationModel_V1, /, *, refresh: bool
     ) -> None:
         """Initialise the given radiation model that follows the |RadiationModel_V1|
         interface.
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
-        >>> from hydpy.models.evap_tw2002 import *
+        >>> from hydpy.models.evap_ret_tw2002 import *
         >>> parameterstep()
-        >>> with model.add_radiationmodel_v1("meteo_v001"):
+        >>> with model.add_radiationmodel_v1("meteo_glob_fao56"):
         ...     latitude(50.0)
         ...     longitude(5.0)
         >>> model.radiationmodel.parameters.control.latitude
@@ -8737,8 +8748,8 @@ class Main_RadiationModel_V1(modeltools.AdHocModel):
 
 
 class Main_RadiationModel_V2(modeltools.AdHocModel):
-    """Base class for HydPy-Evap models that support submodels that comply with the
-    |RadiationModel_V2| interface."""
+    """Base class for |evap.DOCNAME.long| models that support submodels that comply
+    with the |RadiationModel_V2| interface."""
 
     radiationmodel: modeltools.SubmodelProperty
     radiationmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -8748,18 +8759,14 @@ class Main_RadiationModel_V2(modeltools.AdHocModel):
         "radiationmodel", radiationinterfaces.RadiationModel_V2
     )
     def add_radiationmodel_v2(
-        self,
-        radiationmodel: radiationinterfaces.RadiationModel_V2,
-        /,
-        *,
-        refresh: bool,  # pylint: disable=unused-argument
+        self, radiationmodel: radiationinterfaces.RadiationModel_V2, /, *, refresh: bool
     ) -> None:
         """Initialise the given radiation model that follows the |RadiationModel_V2|
         interface.
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
-        >>> from hydpy.models.evap_tw2002 import *
+        >>> from hydpy.models.evap_ret_tw2002 import *
         >>> parameterstep()
         >>> with model.add_radiationmodel_v2("meteo_glob_io"):
         ...     inputs.globalradiation = 100.0
@@ -8769,8 +8776,8 @@ class Main_RadiationModel_V2(modeltools.AdHocModel):
 
 
 class Main_RadiationModel_V3(modeltools.AdHocModel):
-    """Base class for HydPy-Evap models that support submodels that comply with the
-    |RadiationModel_V3| interface."""
+    """Base class for |evap.DOCNAME.long| models that support submodels that comply
+    with the |RadiationModel_V3| interface."""
 
     radiationmodel: modeltools.SubmodelProperty
     radiationmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -8780,18 +8787,14 @@ class Main_RadiationModel_V3(modeltools.AdHocModel):
         "radiationmodel", radiationinterfaces.RadiationModel_V3
     )
     def add_radiationmodel_v3(
-        self,
-        radiationmodel: radiationinterfaces.RadiationModel_V3,
-        /,
-        *,
-        refresh: bool,  # pylint: disable=unused-argument
+        self, radiationmodel: radiationinterfaces.RadiationModel_V3, /, *, refresh: bool
     ) -> None:
         """Initialise the given radiation model that follows the |RadiationModel_V3|
         interface.
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
-        >>> from hydpy.models.evap_fao56 import *
+        >>> from hydpy.models.evap_ret_fao56 import *
         >>> parameterstep()
         >>> with model.add_radiationmodel_v3("meteo_clear_glob_io"):
         ...     inputs.clearskysolarradiation = 200.0
@@ -8804,8 +8807,8 @@ class Main_RadiationModel_V3(modeltools.AdHocModel):
 
 
 class Main_RadiationModel_V4(modeltools.AdHocModel):
-    """Base class for HydPy-Evap models that support submodels that comply with the
-    |RadiationModel_V4| interface."""
+    """Base class for |evap.DOCNAME.long| models that support submodels that comply
+    with the |RadiationModel_V4| interface."""
 
     radiationmodel: modeltools.SubmodelProperty
     radiationmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -8815,11 +8818,7 @@ class Main_RadiationModel_V4(modeltools.AdHocModel):
         "radiationmodel", radiationinterfaces.RadiationModel_V4
     )
     def add_radiationmodel_v4(
-        self,
-        radiationmodel: radiationinterfaces.RadiationModel_V4,
-        /,
-        *,
-        refresh: bool,  # pylint: disable=unused-argument
+        self, radiationmodel: radiationinterfaces.RadiationModel_V4, /, *, refresh: bool
     ) -> None:
         """Initialise the given radiation model that follows the |RadiationModel_V4|
         interface.
@@ -8842,8 +8841,8 @@ class Main_RadiationModel_V4(modeltools.AdHocModel):
 
 
 class Main_IntercModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
-    """Base class for HydPy-Evap models that can use main models as their sub-submodels
-    if they comply with the |IntercModel_V1| interface."""
+    """Base class for |evap.DOCNAME.long| models that can use main models as their
+    sub-submodels if they comply with the |IntercModel_V1| interface."""
 
     intercmodel: modeltools.SubmodelProperty
     intercmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -8855,7 +8854,7 @@ class Main_IntercModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
 
         >>> from hydpy import prepare_model
         >>> evap = prepare_model("evap_aet_hbv96")
-        >>> evap.add_mainmodel_as_subsubmodel(prepare_model("evap_io"))
+        >>> evap.add_mainmodel_as_subsubmodel(prepare_model("evap_ret_io"))
         False
         >>> evap.intercmodel
         >>> evap.intercmodel_is_mainmodel
@@ -8863,7 +8862,7 @@ class Main_IntercModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
         >>> evap.intercmodel_typeid
         0
 
-        >>> hland = prepare_model("hland_v1")
+        >>> hland = prepare_model("hland_96")
         >>> evap.add_mainmodel_as_subsubmodel(hland)
         True
         >>> evap.intercmodel is hland
@@ -8908,8 +8907,8 @@ class Main_IntercModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
 
 
 class Main_SoilWaterModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
-    """Base class for HydPy-Evap models that can use main models as their sub-submodels
-    if they comply with the |SoilWaterModel_V1| interface."""
+    """Base class for |evap.DOCNAME.long| models that can use main models as their
+    sub-submodels if they comply with the |SoilWaterModel_V1| interface."""
 
     soilwatermodel: modeltools.SubmodelProperty
     soilwatermodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -8921,7 +8920,7 @@ class Main_SoilWaterModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface
 
         >>> from hydpy import prepare_model
         >>> evap = prepare_model("evap_aet_hbv96")
-        >>> evap.add_mainmodel_as_subsubmodel(prepare_model("evap_io"))
+        >>> evap.add_mainmodel_as_subsubmodel(prepare_model("evap_ret_io"))
         False
         >>> evap.soilwatermodel
         >>> evap.soilwatermodel_is_mainmodel
@@ -8929,7 +8928,7 @@ class Main_SoilWaterModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface
         >>> evap.soilwatermodel_typeid
         0
 
-        >>> hland = prepare_model("hland_v1")
+        >>> hland = prepare_model("hland_96")
         >>> evap.add_mainmodel_as_subsubmodel(hland)
         True
         >>> evap.soilwatermodel is hland
@@ -8974,8 +8973,8 @@ class Main_SoilWaterModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface
 
 
 class Main_SnowCoverModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
-    """Base class for HydPy-Evap models that can use main models as their sub-submodels
-    if they comply with the |SnowCoverModel_V1| interface."""
+    """Base class for |evap.DOCNAME.long| models that can use main models as their
+    sub-submodels if they comply with the |SnowCoverModel_V1| interface."""
 
     snowcovermodel: modeltools.SubmodelProperty
     snowcovermodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -8987,7 +8986,7 @@ class Main_SnowCoverModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface
 
         >>> from hydpy import prepare_model
         >>> evap = prepare_model("evap_aet_hbv96")
-        >>> evap.add_mainmodel_as_subsubmodel(prepare_model("evap_io"))
+        >>> evap.add_mainmodel_as_subsubmodel(prepare_model("evap_ret_io"))
         False
         >>> evap.snowcovermodel
         >>> evap.snowcovermodel_is_mainmodel
@@ -8995,7 +8994,7 @@ class Main_SnowCoverModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface
         >>> evap.snowcovermodel_typeid
         0
 
-        >>> hland = prepare_model("hland_v1")
+        >>> hland = prepare_model("hland_96")
         >>> evap.add_mainmodel_as_subsubmodel(hland)
         True
         >>> evap.snowcovermodel is hland
@@ -9040,8 +9039,8 @@ class Main_SnowCoverModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface
 
 
 class Main_SnowyCanopyModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
-    """Base class for HydPy-Evap models that can use main models as their sub-submodels
-    if they comply with the |SnowyCanopyModel_V1| interface."""
+    """Base class for |evap.DOCNAME.long| models that can use main models as their
+    sub-submodels if they comply with the |SnowyCanopyModel_V1| interface."""
 
     snowycanopymodel: modeltools.SubmodelProperty
     snowycanopymodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -9052,8 +9051,8 @@ class Main_SnowyCanopyModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterfa
         |SnowyCanopyModel_V1| interface.
 
         >>> from hydpy import prepare_model
-        >>> evap = prepare_model("evap_morsim")
-        >>> evap.add_mainmodel_as_subsubmodel(prepare_model("evap_io"))
+        >>> evap = prepare_model("evap_aet_morsim")
+        >>> evap.add_mainmodel_as_subsubmodel(prepare_model("evap_ret_io"))
         False
         >>> evap.snowycanopymodel
         >>> evap.snowycanopymodel_is_mainmodel
@@ -9061,7 +9060,7 @@ class Main_SnowyCanopyModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterfa
         >>> evap.snowycanopymodel_typeid
         0
 
-        >>> lland = prepare_model("lland_v4")
+        >>> lland = prepare_model("lland_knauf_ic")
         >>> evap.add_mainmodel_as_subsubmodel(lland)
         True
         >>> evap.snowycanopymodel is lland
@@ -9094,7 +9093,7 @@ class Main_SnowyCanopyModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterfa
         """Initialise the given snow cover model that follows the
         |SnowyCanopyModel_V1| interface and set the number of its zones.
 
-        >>> from hydpy.models.evap_morsim import *
+        >>> from hydpy.models.evap_aet_morsim import *
         >>> parameterstep()
         >>> nmbhru(2)
         >>> with model.add_snowycanopymodel_v1("dummy_snowycanopy"):
@@ -9106,8 +9105,8 @@ class Main_SnowyCanopyModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterfa
 
 
 class Main_SnowAlbedoModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface):
-    """Base class for HydPy-Evap models that can use main models as their sub-submodels
-    if they comply with the |SnowAlbedoModel_V1| interface."""
+    """Base class for |evap.DOCNAME.long| models that can use main models as their
+    sub-submodels if they comply with the |SnowAlbedoModel_V1| interface."""
 
     snowalbedomodel: modeltools.SubmodelProperty
     snowalbedomodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -9118,8 +9117,8 @@ class Main_SnowAlbedoModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterfac
         |SnowAlbedoModel_V1| interface.
 
         >>> from hydpy import prepare_model
-        >>> evap = prepare_model("evap_morsim")
-        >>> evap.add_mainmodel_as_subsubmodel(prepare_model("evap_io"))
+        >>> evap = prepare_model("evap_aet_morsim")
+        >>> evap.add_mainmodel_as_subsubmodel(prepare_model("evap_ret_io"))
         False
         >>> evap.snowalbedomodel
         >>> evap.snowalbedomodel_is_mainmodel
@@ -9127,7 +9126,7 @@ class Main_SnowAlbedoModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterfac
         >>> evap.snowalbedomodel_typeid
         0
 
-        >>> lland = prepare_model("lland_v3")
+        >>> lland = prepare_model("lland_knauf")
         >>> evap.add_mainmodel_as_subsubmodel(lland)
         True
         >>> evap.snowalbedomodel is lland
@@ -9160,7 +9159,7 @@ class Main_SnowAlbedoModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterfac
         """Initialise the given albedo model that follows the |SnowAlbedoModel_V1|
         interface and set the number of its zones.
 
-        >>> from hydpy.models.evap_morsim import *
+        >>> from hydpy.models.evap_aet_morsim import *
         >>> parameterstep()
         >>> nmbhru(2)
         >>> with model.add_snowalbedomodel_v1("dummy_snowalbedo"):

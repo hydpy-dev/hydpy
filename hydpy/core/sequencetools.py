@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module implements tools for defining and handling different kinds of
 hydrological model sequences (time series)."""
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -17,6 +17,7 @@ import numpy
 
 # ...from HydPy
 import hydpy
+from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import propertytools
@@ -66,7 +67,7 @@ TypeFastAccessIOSequence_co = TypeVar(
     "TypeFastAccessIOSequence_co", bound="FastAccessIOSequence", covariant=True
 )
 
-ModelSequencesSubypes = Union[
+ModelSequencesSubypes: TypeAlias = Union[
     "InputSequences",
     "FactorSequences",
     "FluxSequences",
@@ -78,11 +79,11 @@ ModelSequencesSubypes = Union[
     "ReceiverSequences",
     "SenderSequences",
 ]
-ModelIOSequencesSubtypes = Union[
+ModelIOSequencesSubtypes: TypeAlias = Union[
     "InputSequences", "FactorSequences", "FluxSequences", "StateSequences"
 ]
 
-InOutSequence = Union[
+InOutSequence: TypeAlias = Union[
     "InputSequence",
     "InletSequence",
     "ReceiverSequence",
@@ -90,7 +91,7 @@ InOutSequence = Union[
     "OutletSequence",
     "SenderSequence",
 ]
-InOutSequenceTypes = Union[
+InOutSequenceTypes: TypeAlias = Union[
     type["InputSequence"],
     type["InletSequence"],
     type["ReceiverSequence"],
@@ -99,7 +100,7 @@ InOutSequenceTypes = Union[
     type["SenderSequence"],
 ]
 
-Aggregation = Optional[Literal["unmodified", "mean"]]
+Aggregation: TypeAlias = Optional[Literal["unmodified", "mean"]]
 
 
 class FastAccessIOSequence(variabletools.FastAccess):
@@ -253,12 +254,12 @@ class FastAccessLinkSequence(variabletools.FastAccess):
         ppdouble: pointerutils.PPDouble = getattr(self, name)
         ppdouble.set_pointer(value, idx)
 
-    def get_value(self, name: str) -> Union[float, NDArrayFloat]:
+    def get_value(self, name: str) -> float | NDArrayFloat:
         """Return the actual value(s) referenced by the pointer(s) of the
         |LinkSequence| object with the given name."""
         value = getattr(self, name)[:]
         if self._get_attribute(name, "ndim"):
-            return numpy.asarray(value, dtype=float)
+            return numpy.asarray(value, dtype=config.NP_FLOAT)
         return float(value)
 
     def set_value(self, name: str, value: Mayberable1[float]) -> None:
@@ -382,7 +383,7 @@ class InfoArray(NDArrayFloat):
         obj.aggregation = aggregation
         return obj
 
-    def __array_finalize__(self, obj: Optional[NDArray]) -> None:
+    def __array_finalize__(self, obj: NDArray | None) -> None:
         if isinstance(obj, InfoArray):
             self.aggregation = obj.aggregation
         else:
@@ -454,9 +455,9 @@ class Sequences:
     |Sequences| objects handle nine sequence subgroups as attributes such as the
     `inlets` and  the `receivers` subsequences:
 
-    >>> from hydpy.examples import prepare_full_example_2
+    >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
-    >>> sequences = hp.elements.land_dill.model.sequences
+    >>> sequences = hp.elements.land_dill_assl.model.sequences
     >>> bool(sequences.inlets)
     False
     >>> bool(sequences.fluxes)
@@ -598,18 +599,19 @@ patch(template % "StateSequences") as states:
     def __init__(
         self,
         model: modeltools.Model,
-        cls_inlets: Optional[type[InletSequences]] = None,
-        cls_receivers: Optional[type[ReceiverSequences]] = None,
-        cls_inputs: Optional[type[InputSequences]] = None,
-        cls_factors: Optional[type[FactorSequences]] = None,
-        cls_fluxes: Optional[type[FluxSequences]] = None,
-        cls_states: Optional[type[StateSequences]] = None,
-        cls_logs: Optional[type[LogSequences]] = None,
-        cls_aides: Optional[type[AideSequences]] = None,
-        cls_outlets: Optional[type[OutletSequences]] = None,
-        cls_senders: Optional[type[SenderSequences]] = None,
-        cymodel: Optional[CyModelProtocol] = None,
-        cythonmodule: Optional[types.ModuleType] = None,
+        *,
+        cls_inlets: type[InletSequences] | None = None,
+        cls_receivers: type[ReceiverSequences] | None = None,
+        cls_inputs: type[InputSequences] | None = None,
+        cls_factors: type[FactorSequences] | None = None,
+        cls_fluxes: type[FluxSequences] | None = None,
+        cls_states: type[StateSequences] | None = None,
+        cls_logs: type[LogSequences] | None = None,
+        cls_aides: type[AideSequences] | None = None,
+        cls_outlets: type[OutletSequences] | None = None,
+        cls_senders: type[SenderSequences] | None = None,
+        cymodel: CyModelProtocol | None = None,
+        cythonmodule: types.ModuleType | None = None,
     ) -> None:
         self.model = model
         self.inlets = self.__prepare_subseqs(
@@ -646,7 +648,7 @@ patch(template % "StateSequences") as states:
     def __prepare_subseqs(
         self,
         default: type[TypeModelSequences],
-        class_: Optional[type[TypeModelSequences]],
+        class_: type[TypeModelSequences] | None,
         cymodel,
         cythonmodule,
     ) -> TypeModelSequences:
@@ -665,7 +667,7 @@ patch(template % "StateSequences") as states:
         `states`.
 
         >>> from hydpy import prepare_model
-        >>> model = prepare_model("hland_v1", "1d")
+        >>> model = prepare_model("hland_96")
         >>> for subseqs in model.sequences.iosubsequences:
         ...     print(subseqs.name)
         inputs
@@ -677,7 +679,7 @@ patch(template % "StateSequences") as states:
         the |Sequences.iosubsequences| property only yields those subgroups which are
         non-empty:
 
-        >>> model = prepare_model("musk_classic", "1d")
+        >>> model = prepare_model("musk_classic")
         >>> for subseqs in model.sequences.iosubsequences:
         ...     print(subseqs.name)
         fluxes
@@ -759,7 +761,7 @@ patch(template % "StateSequences") as states:
 
         See the documentation on property |HydPy.conditions| for further information.
         """
-        conditions: dict[str, dict[str, Union[float, NDArrayFloat]]] = {}
+        conditions: dict[str, dict[str, float | NDArrayFloat]] = {}
         for seq in self.conditionsequences:
             subconditions = conditions.get(seq.subseqs.name, {})
             subconditions[seq.name] = copy.deepcopy(seq.values)
@@ -782,14 +784,14 @@ patch(template % "StateSequences") as states:
         |Sequences.trim_conditions| is just a convenience function for calling method
         |trim| of all |StateSequence| and |LogSequence| objects returned by property
         |Sequences.conditionsequences|.  We demonstrate its functionality by preparing
-        an instance of application model |lland_v1|, using its available default
+        an instance of application model |lland_dd|, using its available default
         values, and defining out-of-bound values of the soil moisture state sequence
         |lland_states.BoWa|:
 
         >>> from hydpy import prepare_model, pub
         >>> pub.timegrids = "2000-01-01", "2000-01-10", "1d"
         >>> with pub.options.usedefaultvalues(True):
-        ...     model = prepare_model("lland_v1", "1d")
+        ...     model = prepare_model("lland_dd")
         ...     model.parameters.control.nhru(2)
         >>> model.sequences.states.bowa = -100.0
         >>> model.sequences.trim_conditions()
@@ -854,7 +856,7 @@ class SubSequences(
 
     >>> from hydpy import classname, Node, prepare_model, pub
     >>> with pub.options.usecython(False):
-    ...     model = prepare_model("lland_v1")
+    ...     model = prepare_model("lland_dd")
     >>> classname(model.sequences.logs.fastaccess)
     'FastAccess'
     >>> classname(model.sequences.inputs.fastaccess)
@@ -871,7 +873,7 @@ class SubSequences(
     model and sequence group:
 
     >>> with pub.options.usecython(True):
-    ...     model = prepare_model("lland_v1")
+    ...     model = prepare_model("lland_dd")
     >>> classname(model.sequences.inputs.fastaccess)
     'InputSequences'
     >>> from hydpy.cythons.sequenceutils import FastAccessNodeSequence
@@ -910,13 +912,13 @@ class ModelSequences(
     """Base class for handling model-related subgroups of sequences."""
 
     seqs: Sequences
-    _cymodel: Optional[CyModelProtocol]
+    _cymodel: CyModelProtocol | None
 
     def __init__(
         self,
         master: Sequences,
-        cls_fastaccess: Optional[type[variabletools.TypeFastAccess_co]] = None,
-        cymodel: Optional[CyModelProtocol] = None,
+        cls_fastaccess: type[variabletools.TypeFastAccess_co] | None = None,
+        cymodel: CyModelProtocol | None = None,
     ) -> None:
         self.seqs = master
         self._cymodel = cymodel
@@ -1128,7 +1130,7 @@ class Sequence_(variabletools.Variable):
     shape:
 
     >>> from hydpy import prepare_model
-    >>> model = prepare_model("lland_v1", "1d")
+    >>> model = prepare_model("lland_dd")
     >>> model.sequences.fluxes.qa.shape
     ()
     >>> nkor = model.sequences.fluxes.nkor
@@ -1167,15 +1169,15 @@ class Sequence_(variabletools.Variable):
     INIT: float = 0.0
     NUMERIC: bool
 
-    subvars: Union[
-        SubSequences[Sequences, Sequence_, variabletools.FastAccess],
-        SubSequences[devicetools.Node, Sequence_, variabletools.FastAccess],
-    ]
+    subvars: (
+        SubSequences[Sequences, Sequence_, variabletools.FastAccess]
+        | SubSequences[devicetools.Node, Sequence_, variabletools.FastAccess]
+    )
     """The subgroup to which the sequence belongs."""
-    subseqs: Union[
-        SubSequences[Sequences, Sequence_, variabletools.FastAccess],
-        SubSequences[devicetools.Node, Sequence_, variabletools.FastAccess],
-    ]
+    subseqs: (
+        SubSequences[Sequences, Sequence_, variabletools.FastAccess]
+        | SubSequences[devicetools.Node, Sequence_, variabletools.FastAccess]
+    )
     """Alias for |Sequence_.subvars|."""
     strict_valuehandling: bool = False
 
@@ -1200,7 +1202,7 @@ class Sequence_(variabletools.Variable):
             self.shape = ()
 
     @property
-    def initinfo(self) -> tuple[Union[float, pointerutils.Double], bool]:
+    def initinfo(self) -> tuple[float | pointerutils.Double, bool]:
         """A |tuple| containing the initial value and |True| or a missing value and
         |False|, depending on the actual |Sequence_| subclass and the actual value of
         option |Options.usedefaultvalues|.
@@ -1268,15 +1270,15 @@ class IOSequence(Sequence_):
     Typically, you call methods like |HydPy.prepare_inputseries| of class |HydPy|.
     Here, we instead use the related features of the |IOSequence| class itself.
 
-    We use the `LahnH` example project and focus on the `input`, `factor`, `fluxes`,
-    and `state` sequences:
+    We use the `HydPy-H-Lahn` example project and focus on the `input`, `factor`,
+    `fluxes`, and `state` sequences:
 
-    >>> from hydpy.examples import prepare_full_example_2
+    >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
-    >>> inputs = hp.elements.land_lahn_1.model.sequences.inputs
-    >>> factors = hp.elements.land_lahn_1.model.sequences.factors
-    >>> fluxes = hp.elements.land_lahn_1.model.sequences.fluxes
-    >>> states = hp.elements.land_lahn_1.model.sequences.states
+    >>> inputs = hp.elements.land_lahn_marb.model.sequences.inputs
+    >>> factors = hp.elements.land_lahn_marb.model.sequences.factors
+    >>> fluxes = hp.elements.land_lahn_marb.model.sequences.fluxes
+    >>> states = hp.elements.land_lahn_marb.model.sequences.states
 
     Each |IOSequence| object comes four flags, answering the following questions:
 
@@ -1304,7 +1306,7 @@ class IOSequence(Sequence_):
     False
     >>> from hydpy import round_
     >>> round_(inputs.t.series)
-    -0.705395, -1.505553, -4.221268, -7.446349
+    -0.7, -1.5, -4.6, -8.2
 
     |prepare_full_example_2| also activated the |IOSequence.ramflag| of all factor,
     flux, and state sequences, which is unnecessary to perform a successful simulation.
@@ -1361,7 +1363,7 @@ class IOSequence(Sequence_):
     Traceback (most recent call last):
     ...
     hydpy.core.exceptiontools.AttributeNotReady: Sequence `contriarea` of element \
-`land_lahn_1` is not requested to make any time series data available.
+`land_lahn_marb` is not requested to make any time series data available.
 
     >>> states.sm.ramflag
     True
@@ -1386,9 +1388,9 @@ class IOSequence(Sequence_):
     activated |IOSequence.ramflag| are directly available:
 
     >>> round_(inputs.t.series)
-    -0.705395, -1.505553, -4.221268, -7.446349
+    -0.7, -1.5, -4.6, -8.2
     >>> round_(states.sm.series[:, 0])
-    99.130873, 98.90942, 98.748643, 98.554071
+    99.1369, 99.01204, 98.93674, 98.91913
     >>> round_(states.sp.series[:, 0, 0])
     0.0, 0.0, 0.0, 0.0
 
@@ -1407,9 +1409,9 @@ class IOSequence(Sequence_):
     ...     factors.tc.load_series()
     ...     pub.sequencemanager.close_netcdfreader()
     >>> round_(factors.contriarea.series)
-    0.431273, 0.429876, 0.428864, 0.427639
+    0.431311, 0.430524, 0.430049, 0.429938
     >>> round_(factors.tc.series[:, 0])
-    0.447691, -0.352466, -3.068181, -6.293263
+    0.453086, -0.346914, -3.446914, -7.046914
 
     We also load time series of |hland_states.SM| and |hland_states.SP| to demonstrate
     that the data written to the respective NetCDF files are identical with the data
@@ -1421,7 +1423,7 @@ class IOSequence(Sequence_):
     ...     states.sp.load_series()
     ...     pub.sequencemanager.close_netcdfreader()
     >>> round_(states.sm.series[:, 0])
-    99.130873, 98.90942, 98.748643, 98.554071
+    99.1369, 99.01204, 98.93674, 98.91913
     >>> round_(states.sp.series[:, 0, 0])
     0.0, 0.0, 0.0, 0.0
 
@@ -1434,7 +1436,7 @@ class IOSequence(Sequence_):
     ...
     ValueError: Reading from and writing into the same NetCDF file "just in time" \
 during a simulation run is not supported but tried for sequence `t` of element \
-`land_lahn_1`.
+`land_lahn_marb`.
 
     For simplifying the following examples, we now handle all model time series in RAM:
 
@@ -1449,7 +1451,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
     values of input sequence |hland_inputs.P| (given precipitation) are also zero:
 
     >>> round_(fluxes.pc.series[:, 0])
-    0.0, 0.0, 0.0, 0.0
+    0.0, 0.105611, 0.0, 0.0
 
     We can assign different values to attribute |IOSequence.series| of sequence
     |hland_inputs.P|, perform a new simulation run, and see that the newly calculated
@@ -1458,7 +1460,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
     >>> inputs.p.series = 10.0
     >>> hp.simulate()
     >>> round_(fluxes.pc.series[:, 0])
-    9.164043, 10.570894, 10.665633, 10.665633
+    9.154557, 10.561131, 10.665633, 10.665633
 
     Another convenience property is |IOSequence.seriesshape|, which combines the length
     of the simulation period with the shape of the individual |IOSequence| object:
@@ -1477,7 +1479,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
     >>> factors.fastaccess._tc_length
     13
     >>> round_(factors.tc.series[:, 0], 1)
-    0.4, -0.4, -3.1, -6.3
+    0.5, -0.3, -3.4, -7.0
 
     >>> factors.tc.shape = 2,
     >>> factors.tc.seriesshape
@@ -1500,7 +1502,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
     Traceback (most recent call last):
     ...
     hydpy.core.exceptiontools.AttributeNotReady: Sequence `pc` of element \
-`land_lahn_1` is not requested to make any time series data available.
+`land_lahn_marb` is not requested to make any time series data available.
 
     >>> fluxes.pc.shape = (2,)
     >>> fluxes.pc.seriesshape
@@ -1511,7 +1513,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
     Traceback (most recent call last):
     ...
     hydpy.core.exceptiontools.AttributeNotReady: Sequence `pc` of element \
-`land_lahn_1` is not requested to make any time series data available.
+`land_lahn_marb` is not requested to make any time series data available.
 
     .. testsetup::
 
@@ -1520,15 +1522,15 @@ during a simulation run is not supported but tried for sequence `t` of element \
         >>> Element.clear_all()
     """
 
-    subvars: Union[
-        IOSequences[Sequences, IOSequence, FastAccessIOSequence],
-        IOSequences[devicetools.Node, IOSequence, FastAccessIOSequence],
-    ]
+    subvars: (
+        IOSequences[Sequences, IOSequence, FastAccessIOSequence]
+        | IOSequences[devicetools.Node, IOSequence, FastAccessIOSequence]
+    )
     """The subgroup to which the IO sequence belongs."""
-    subseqs: Union[
-        IOSequences[Sequences, IOSequence, FastAccessIOSequence],
-        IOSequences[devicetools.Node, IOSequence, FastAccessIOSequence],
-    ]
+    subseqs: (
+        IOSequences[Sequences, IOSequence, FastAccessIOSequence]
+        | IOSequences[devicetools.Node, IOSequence, FastAccessIOSequence]
+    )
     """Alias for |IOSequence.subvars|."""
     fastaccess: FastAccessIOSequence
     """Object for accessing the IO sequence's data with little overhead."""
@@ -1785,7 +1787,7 @@ correctly.
         subclasses as |lland_fluxes.NKor|:
 
         >>> from hydpy import prepare_model
-        >>> model = prepare_model("lland_v1")
+        >>> model = prepare_model("lland_dd")
         >>> nkor = model.sequences.fluxes.nkor
         >>> nkor.fastaccess._nkor_length
         0
@@ -1806,9 +1808,9 @@ correctly.
 
     def prepare_series(
         self,
-        allocate_ram: Optional[bool] = True,
-        read_jit: Optional[bool] = False,
-        write_jit: Optional[bool] = False,
+        allocate_ram: bool | None = True,
+        read_jit: bool | None = False,
+        write_jit: bool | None = False,
     ) -> None:
         """Define how to handle the time series data of the current |IOSequence| object.
 
@@ -1819,9 +1821,9 @@ correctly.
         When leaving out certain arguments, |IOSequence.prepare_series| takes their
         boolean defaults.  That means subsequent calls overwrite previous ones:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> t = hp.elements.land_lahn_1.model.sequences.inputs.t
+        >>> t = hp.elements.land_lahn_marb.model.sequences.inputs.t
         >>> t.prepare_series(allocate_ram=False, read_jit=True)
         >>> t.ramflag, t.diskflag_reading, t.diskflag_writing
         (False, True, False)
@@ -1850,7 +1852,7 @@ correctly.
         ...
         ValueError: Reading from and writing into the same NetCDF file "just in time" \
 during a simulation run is not supported but tried for sequence `t` of element \
-`land_lahn_1`.
+`land_lahn_marb`.
 
         >>> t.prepare_series(read_jit=False, write_jit=True)
         >>> t.prepare_series(read_jit=True, write_jit=None)
@@ -1858,7 +1860,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
         ...
         ValueError: Reading from and writing into the same NetCDF file "just in time" \
 during a simulation run is not supported but tried for sequence `t` of element \
-`land_lahn_1`.
+`land_lahn_marb`.
         """
         readflag = read_jit or ((read_jit is None) and self.diskflag_reading)
         writeflag = write_jit or ((write_jit is None) and self.diskflag_writing)
@@ -1871,7 +1873,9 @@ during a simulation run is not supported but tried for sequence `t` of element \
         if allocate_ram is not None:
             ramflag = self.ramflag
             if allocate_ram and not ramflag:
-                self.__set_array(numpy.full(self.seriesshape, numpy.nan, dtype=float))
+                self.__set_array(
+                    numpy.full(self.seriesshape, numpy.nan, dtype=config.NP_FLOAT)
+                )
             if ramflag and not allocate_ram:
                 del self.series
             self._set_fastaccessattribute("ramflag", allocate_ram)
@@ -1955,14 +1959,14 @@ during a simulation run is not supported but tried for sequence `t` of element \
         |IOSequence.seriesmode| allows querying and changing all mentioned properties in
         one step:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> t = hp.elements.land_lahn_1.model.sequences.inputs.t
+        >>> t = hp.elements.land_lahn_marb.model.sequences.inputs.t
         >>> t.prepare_series(read_jit=True)
         >>> sm_t = t.seriesmode
         >>> sm_t
         SeriesMode(ramflag=True, diskflag_reading=True, diskflag_writing=False)
-        >>> p = hp.elements.land_lahn_1.model.sequences.inputs.p
+        >>> p = hp.elements.land_lahn_marb.model.sequences.inputs.p
         >>> p.prepare_series(allocate_ram=False, write_jit=True)
         >>> sm_p = p.seriesmode
         >>> sm_p
@@ -1990,7 +1994,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
         )
 
     def __set_array(self, values):
-        values = numpy.array(values, dtype=float)
+        values = numpy.array(values, dtype=config.NP_FLOAT)
         self._set_fastaccessattribute("array", values)
 
     def _get_shape(self) -> tuple[int, ...]:
@@ -2004,10 +2008,10 @@ during a simulation run is not supported but tried for sequence `t` of element \
         """
         return super()._get_shape()
 
-    def _set_shape(self, shape: Union[int, tuple[int, ...]]):
+    def _set_shape(self, shape: int | tuple[int, ...]):
         super()._set_shape(shape)
         if self.ramflag:
-            values = numpy.full(self.seriesshape, numpy.nan, dtype=float)
+            values = numpy.full(self.seriesshape, numpy.nan, dtype=config.NP_FLOAT)
             self.__set_array(values)
         self.update_fastaccess()
 
@@ -2035,7 +2039,9 @@ during a simulation run is not supported but tried for sequence `t` of element \
 
     def _set_series(self, values) -> None:
         if self.ramflag:
-            self.__set_array(numpy.full(self.seriesshape, values, dtype=float))
+            self.__set_array(
+                numpy.full(self.seriesshape, values, dtype=config.NP_FLOAT)
+            )
             self.check_completeness()
         else:
             raise exceptiontools.AttributeNotReady(
@@ -2056,18 +2062,18 @@ during a simulation run is not supported but tried for sequence `t` of element \
         |Timegrids.sim| |Timegrid| of the global |Timegrids| object available in module
         |pub|).
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> t = hp.elements.land_lahn_1.model.sequences.inputs.t
+        >>> t = hp.elements.land_lahn_marb.model.sequences.inputs.t
         >>> pub.timegrids.sim.dates = "1996-01-02", "1996-01-04"
-        >>> from hydpy import print_values
-        >>> print_values(t.series)
-        -0.705395, -1.505553, -4.221268, -7.446349
-        >>> print_values(t.simseries)
-        -1.505553, -4.221268
+        >>> from hydpy import print_vector
+        >>> print_vector(t.series)
+        -0.7, -1.5, -4.6, -8.2
+        >>> print_vector(t.simseries)
+        -1.5, -4.6
         >>> t.simseries = 1.0, 2.0
-        >>> print_values(t.series)
-        -0.705395, 1.0, 2.0, -7.446349
+        >>> print_vector(t.series)
+        -0.7, 1.0, 2.0, -8.2
 
         .. testsetup::
 
@@ -2090,18 +2096,18 @@ during a simulation run is not supported but tried for sequence `t` of element \
         |Timegrids.eval_| |Timegrid| of the global |Timegrids| object available in
         module |pub|).
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> t = hp.elements.land_lahn_1.model.sequences.inputs.t
+        >>> t = hp.elements.land_lahn_marb.model.sequences.inputs.t
         >>> pub.timegrids.eval_.dates = "1996-01-02", "1996-01-04"
-        >>> from hydpy import print_values
-        >>> print_values(t.series)
-        -0.705395, -1.505553, -4.221268, -7.446349
-        >>> print_values(t.evalseries)
-        -1.505553, -4.221268
+        >>> from hydpy import print_vector
+        >>> print_vector(t.series)
+        -0.7, -1.5, -4.6, -8.2
+        >>> print_vector(t.evalseries)
+        -1.5, -4.6
         >>> t.evalseries = 1.0, 2.0
-        >>> print_values(t.series)
-        -0.705395, 1.0, 2.0, -7.446349
+        >>> print_vector(t.series)
+        -0.7, 1.0, 2.0, -8.2
 
         .. testsetup::
 
@@ -2164,29 +2170,31 @@ sequencemanager of module `pub` is not defined at the moment.
         required for an actual simulation run.  Method |IOSequence.adjust_series|
         selects the relevant data by comparing the initialisation |Timegrid| available
         in module |pub| and the given "data" |Timegrid| object.  We explain this
-        behaviour by using the `LahnH` example project and focussing on the |Obs|
-        sequence of |Node| `dill`:
+        behaviour by using the `HydPy-H-Lahn` example project and focussing on the
+        |Obs| sequence of |Node| `dill_assl`:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> obs = hp.nodes.dill.sequences.obs
+        >>> obs = hp.nodes.dill_assl.sequences.obs
 
         With identical initialisation and data time grids, method
         |IOSequence.adjust_series| returns the given data completely:
 
-        >>> from hydpy import Timegrid
+        >>> from hydpy import print_vector, Timegrid
         >>> import numpy
         >>> with TestIO(), pub.options.checkseries(False):
-        ...     obs.adjust_series(Timegrid("1996-01-01", "1996-01-05", "1d"),
-        ...                       numpy.arange(4, dtype=float))
-        array([0., 1., 2., 3.])
+        ...     print_vector(obs.adjust_series(
+        ...         Timegrid("1996-01-01", "1996-01-05", "1d"),
+        ...         numpy.arange(4, dtype=float)))
+        0.0, 1.0, 2.0, 3.0
 
         For "too long" data, it only returns the relevant one:
 
         >>> with TestIO(), pub.options.checkseries(False):
-        ...     obs.adjust_series(Timegrid("1995-12-31", "1996-01-07", "1d"),
-        ...                       numpy.arange(7, dtype=float))
-        array([1., 2., 3., 4.])
+        ...     print_vector(obs.adjust_series(
+        ...         Timegrid("1995-12-31", "1996-01-07", "1d"),
+        ...         numpy.arange(7, dtype=float)))
+        1.0, 2.0, 3.0, 4.0
 
         For "too short" data, the behaviour differs depending on option
         |Options.checkseries|.  With |Options.checkseries| being enabled, method
@@ -2199,15 +2207,15 @@ sequencemanager of module `pub` is not defined at the moment.
         ...                       numpy.zeros((3,)))  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        RuntimeError: For sequence `obs` of node `dill` the initialisation time grid \
-(Timegrid("1996-01-01 00:00:00", "1996-01-05 00:00:00", "1d")) does not define a \
-subset of the time grid of the data file `...dill_obs_q.asc` \
+        RuntimeError: For sequence `obs` of node `dill_assl` the initialisation time \
+grid (Timegrid("1996-01-01 00:00:00", "1996-01-05 00:00:00", "1d")) does not define a \
+subset of the time grid of the data file `...dill_assl_obs_q.asc` \
 (Timegrid("1996-01-02 00:00:00", "1996-01-04 00:00:00", "1d")).
 
         >>> with TestIO(), pub.options.checkseries(False):
-        ...     obs.adjust_series(Timegrid("1996-01-02", "1996-01-04", "1d"),
-        ...                       numpy.zeros((2,)))
-        array([nan,  0.,  0., nan])
+        ...     print_vector(obs.adjust_series(
+        ...         Timegrid("1996-01-02", "1996-01-04", "1d"), numpy.zeros((2,))))
+        nan, 0.0, 0.0, nan
 
         Additional checks raise errors in case of non-matching shapes or time
         information:
@@ -2217,16 +2225,17 @@ subset of the time grid of the data file `...dill_obs_q.asc` \
         ...                       numpy.zeros((5, 2)))  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        RuntimeError: The shape of sequence `obs` of node `dill` is `()` but \
-according to the data file `...dill_obs_q.asc` it should be `(2,)`.
+        RuntimeError: The shape of sequence `obs` of node `dill_assl` is `()` but \
+according to the data file `...dill_assl_obs_q.asc` it should be `(2,)`.
 
         >>> with TestIO():
         ...     obs.adjust_series(Timegrid("1996-01-01", "1996-01-05", "1h"),
         ...                       numpy.zeros((24*5,)))  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        RuntimeError: According to data file `...dill_obs_q.asc`, the date time step \
-of sequence `obs` of node `dill` is `1h` but the actual simulation time step is `1d`.
+        RuntimeError: According to data file `...dill_assl_obs_q.asc`, the date time \
+step of sequence `obs` of node `dill_assl` is `1h` but the actual simulation time \
+step is `1d`.
 
         .. testsetup::
 
@@ -2295,34 +2304,34 @@ of sequence `obs` of node `dill` is `1h` but the actual simulation time step is 
         The following calls to the test function show the arrays returned for different
         kinds of misalignments:
 
-        >>> from hydpy import Timegrid
-        >>> test(Timegrid("2000.01.05", "2000.01.20", "1d"))
-        array([1., 1., 1., 1., 1.])
-        >>> test(Timegrid("2000.01.12", "2000.01.15", "1d"))
-        array([nan, nan,  1.,  1.,  1.])
-        >>> test(Timegrid("2000.01.12", "2000.01.17", "1d"))
-        array([nan, nan,  1.,  1.,  1.])
-        >>> test(Timegrid("2000.01.10", "2000.01.13", "1d"))
-        array([ 1.,  1.,  1., nan, nan])
-        >>> test(Timegrid("2000.01.08", "2000.01.13", "1d"))
-        array([ 1.,  1.,  1., nan, nan])
-        >>> test(Timegrid("2000.01.12", "2000.01.13", "1d"))
-        array([nan, nan,  1., nan, nan])
-        >>> test(Timegrid("2000.01.05", "2000.01.10", "1d"))
-        array([nan, nan, nan, nan, nan])
-        >>> test(Timegrid("2000.01.05", "2000.01.08", "1d"))
-        array([nan, nan, nan, nan, nan])
-        >>> test(Timegrid("2000.01.15", "2000.01.18", "1d"))
-        array([nan, nan, nan, nan, nan])
-        >>> test(Timegrid("2000.01.16", "2000.01.18", "1d"))
-        array([nan, nan, nan, nan, nan])
+        >>> from hydpy import print_vector, Timegrid
+        >>> print_vector(test(Timegrid("2000.01.05", "2000.01.20", "1d")))
+        1.0, 1.0, 1.0, 1.0, 1.0
+        >>> print_vector(test(Timegrid("2000.01.12", "2000.01.15", "1d")))
+        nan, nan, 1.0, 1.0, 1.0
+        >>> print_vector(test(Timegrid("2000.01.12", "2000.01.17", "1d")))
+        nan, nan, 1.0, 1.0, 1.0
+        >>> print_vector(test(Timegrid("2000.01.10", "2000.01.13", "1d")))
+        1.0, 1.0, 1.0, nan, nan
+        >>> print_vector(test(Timegrid("2000.01.08", "2000.01.13", "1d")))
+        1.0, 1.0, 1.0, nan, nan
+        >>> print_vector(test(Timegrid("2000.01.12", "2000.01.13", "1d")))
+        nan, nan, 1.0, nan, nan
+        >>> print_vector(test(Timegrid("2000.01.05", "2000.01.10", "1d")))
+        nan, nan, nan, nan, nan
+        >>> print_vector(test(Timegrid("2000.01.05", "2000.01.08", "1d")))
+        nan, nan, nan, nan, nan
+        >>> print_vector(test(Timegrid("2000.01.15", "2000.01.18", "1d")))
+        nan, nan, nan, nan, nan
+        >>> print_vector(test(Timegrid("2000.01.16", "2000.01.18", "1d")))
+        nan, nan, nan, nan, nan
 
         After enabling option |Options.usedefaultvalues|, the missing values are
         initialised with zero instead of nan:
 
         >>> with pub.options.usedefaultvalues(True):
-        ...     test(Timegrid("2000.01.12", "2000.01.17", "1d"))
-        array([0., 0., 1., 1., 1.])
+        ...     print_vector(test(Timegrid("2000.01.12", "2000.01.17", "1d")))
+        0.0, 0.0, 1.0, 1.0, 1.0
         """
         idxs = [
             timegrid[hydpy.pub.timegrids.init.firstdate],
@@ -2355,22 +2364,24 @@ of sequence `obs` of node `dill` is `1h` but the actual simulation time step is 
         |SequenceManager.reset|.  By default, "resetting" is enabled, meaning that
         |numpy.nan| values due to incomplete time series files overwrite previously
         available data.  We demonstrate this using the NetCDF data provided by function
-        |prepare_full_example_2| but shifting the initialisation period by two days:
+        |prepare_full_example_2| but changing the initialisation period (only advised
+        for testing purposes):
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> pub.timegrids.init.firstdate -= "2d"
-        >>> pub.timegrids.init.lastdate -= "2d"
-        >>> t = hp.elements.land_dill.model.sequences.inputs.t
+        >>> pub.timegrids.init.firstdate = "1989-10-30"
+        >>> pub.timegrids.init.lastdate = "1989-11-03"
+        >>> t = hp.elements.land_dill_assl.model.sequences.inputs.t
         >>> t.series = -99.9
         >>> opt = pub.options
         >>> sm = pub.sequencemanager
-        >>> with TestIO(), sm.filetype("nc"), opt.checkseries(False):
-        ...     with sm.netcdfreading():
-        ...         t.load_series()
+        >>> with (
+        ...     TestIO(), sm.filetype("nc"), opt.checkseries(False), sm.netcdfreading()
+        ... ):
+        ...     t.load_series()
         >>> from hydpy import round_
         >>> round_(t.series)
-        nan, nan, -0.298846, -0.811539
+        nan, nan, 10.1, 10.0
 
         With option |SequenceManager.reset| disabled, method
         |IOSequence.apply_adjusted_series| keeps the already available data:
@@ -2381,7 +2392,7 @@ of sequence `obs` of node `dill` is `1h` but the actual simulation time step is 
         ...         t.load_series()
         >>> from hydpy import round_
         >>> round_(t.series)
-        99.9, 99.9, -0.298846, -0.811539
+        99.9, 99.9, 10.1, 10.0
         """
         if hydpy.pub.sequencemanager.reset:
             self.series = series
@@ -2489,9 +2500,9 @@ sequencemanager of module `pub` is not defined at the moment.
         >>> nmbzones(2)
         >>> fluxes.pc.prepare_series()
         >>> fluxes.pc.series = [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]
-        >>> from hydpy import print_values
+        >>> from hydpy import print_vector
         >>> for values in fluxes.pc.seriesmatrix:
-        ...     print_values(values)
+        ...     print_vector(values)
         1.0, 2.0
         3.0, 4.0
         5.0, 6.0
@@ -2582,14 +2593,13 @@ its series to a 2-dimensional matrix.
         InfoArray([nan, nan, nan])
 
         >>> maskvalues = [True, True]
-        >>> sm.average_series()
+        >>> sm.average_series()  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         IndexError: While trying to calculate the mean value of the internal time \
 series of sequence `soilmoisture`, the following error occurred: While trying to \
 access the value(s) of variable `area` with key `[ True  True]`, the following error \
-occurred: boolean index did not match indexed array along dimension 0; dimension is 3 \
-but corresponding boolean dimension is 2
+occurred: boolean index did not match indexed array ...
         """
         try:
             if not self.NDIM:
@@ -2602,7 +2612,9 @@ but corresponding boolean dimension is 2
                     series = self.seriesmatrix[:, mask]
                     array = numpy.sum(weights * series, axis=1)
                 else:
-                    array = numpy.full(len(self.series), numpy.nan, dtype=float)
+                    array = numpy.full(
+                        len(self.series), numpy.nan, dtype=config.NP_FLOAT
+                    )
             return InfoArray(array, aggregation="mean")
         except BaseException:
             objecttools.augment_excmessage(
@@ -2618,7 +2630,7 @@ but corresponding boolean dimension is 2
         |prepare_io_example_1| and select a 1-dimensional flux sequence of type
         |lland_fluxes.NKor|:
 
-        >>> from hydpy.examples import prepare_io_example_1
+        >>> from hydpy.core.testtools import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> seq = elements.element3.model.sequences.fluxes.nkor
 
@@ -2699,10 +2711,10 @@ class ModelSequence(Sequence_):
         |SubSequences| group it belongs to.
 
         >>> from hydpy import prepare_model
-        >>> from hydpy.models import test_v1
-        >>> model = prepare_model(test_v1)
+        >>> from hydpy.models import test_stiff0d
+        >>> model = prepare_model(test_stiff0d)
         >>> model.sequences.fluxes.q.descr_sequence
-        'test_v1_flux_q'
+        'test_stiff0d_flux_q'
         """
         return (
             f"{self.subseqs.seqs.model}_"
@@ -2715,13 +2727,13 @@ class ModelSequence(Sequence_):
         """Description of the |Model| the |ModelSequence| object belongs to.
 
         >>> from hydpy import prepare_model
-        >>> from hydpy.models import test, test_v1
+        >>> from hydpy.models import test, test_stiff0d
         >>> model = prepare_model(test)
         >>> model.sequences.fluxes.q.descr_model
         'test'
-        >>> model = prepare_model(test_v1)
+        >>> model = prepare_model(test_stiff0d)
         >>> model.sequences.fluxes.q.descr_model
-        'test_v1'
+        'test_stiff0d'
         """
         return self.subseqs.seqs.model.__module__.split(".")[2]
 
@@ -2731,7 +2743,7 @@ class ModelSequence(Sequence_):
 
         >>> from hydpy import prepare_model, pub, Element
         >>> element = Element("my_element", outlets="outlet")
-        >>> from hydpy.models.lland_v3 import *
+        >>> from hydpy.models.lland_knauf import *
         >>> parameterstep()
         >>> model.sequences.inputs.windspeed.descr_device
         '?'
@@ -2748,7 +2760,7 @@ class ModelSequence(Sequence_):
         >>> measuringheightwindspeed(10.0)
         >>> lai(10.0)
         >>> wmax(300.0)
-        >>> with model.add_aetmodel_v1("evap_morsim"):
+        >>> with model.add_aetmodel_v1("evap_aet_morsim"):
         ...     pass
         >>> model.aetmodel.sequences.inputs.windspeed.descr_device
         'my_element'
@@ -2835,9 +2847,9 @@ class InputSequence(ModelIOSequence):
     |InputSequence| objects provide their master model with input data, which is
     possible in two ways: either by providing their individually managed data (usually
     read from a file) or data shared with an input node (usually calculated by another
-    model).  This flexibility allows, for example, to let application model |hland_v1|
+    model).  This flexibility allows, for example, to let application model |hland_96|
     read already preprocessed precipitation time series or to couple it with
-    application models like |conv_v001|, which interpolates precipitation during the
+    application models like |conv_nn|, which interpolates precipitation during the
     simulation run.
 
     The second mechanism (coupling |InputSequence| objects with input nodes) is
@@ -2847,24 +2859,26 @@ class InputSequence(ModelIOSequence):
     sources at the same time works well and that the different |Node.deploymode|
     options are supported:
 
-    >>> from hydpy import Element, FusedVariable, HydPy, Node, print_values, pub, TestIO
+    >>> from hydpy.core.testtools import prepare_full_example_1
+    >>> prepare_full_example_1()
+
+    >>> from hydpy import Element, FusedVariable, HydPy, Node, print_vector, pub, TestIO
     >>> from hydpy.aliases import  hland_inputs_T, hland_inputs_P
-    >>> hp = HydPy("LahnH")
+    >>> hp = HydPy("HydPy-H-Lahn")
     >>> pub.timegrids = "1996-01-01", "1996-01-06", "1d"
     >>> node_t = Node("node_t", variable=hland_inputs_T)
     >>> node_p = Node("node_p", variable=FusedVariable("Precip", hland_inputs_P))
     >>> node_q = Node("node_q")
-    >>> land_dill = Element("land_dill", inputs=[node_t, node_p], outlets=node_q)
+    >>> land_dill_assl = Element("land_dill_assl", inputs=[node_t, node_p],
+    ...                          outlets=node_q)
 
-    >>> from hydpy.examples import prepare_full_example_1
-    >>> prepare_full_example_1()
     >>> import os
     >>> with TestIO():
-    ...     os.chdir("LahnH/control/default")
-    ...     with open("land_dill.py") as controlfile:
+    ...     os.chdir("HydPy-H-Lahn/control/default")
+    ...     with open("land_dill_assl.py") as controlfile:
     ...         exec(controlfile.read(), {}, locals())
     ...     parameters.update()
-    ...     land_dill.model = model
+    ...     land_dill_assl.model = model
 
     >>> aetmodel = model.aetmodel
     >>> petmodel = model.aetmodel.petmodel
@@ -2876,7 +2890,7 @@ class InputSequence(ModelIOSequence):
     >>> petmodel.sequences.inputs.normalevapotranspiration.inputflag
     False
 
-    >>> hp.update_devices(nodes=[node_t, node_p, node_q], elements=land_dill)
+    >>> hp.update_devices(nodes=[node_t, node_p, node_q], elements=land_dill_assl)
     >>> hp.prepare_inputseries()
     >>> hp.prepare_factorseries()
     >>> hp.prepare_fluxseries()
@@ -2891,19 +2905,19 @@ class InputSequence(ModelIOSequence):
 
     >>> hp.simulate()
 
-    >>> print_values(model.sequences.inputs.t.series)
+    >>> print_vector(model.sequences.inputs.t.series)
     1.0, 2.0, 3.0, 4.0, 5.0
-    >>> print_values(model.sequences.factors.tc.series[:, 0])
+    >>> print_vector(model.sequences.factors.tc.series[:, 0])
     2.323207, 3.323207, 4.323207, 5.323207, 6.323207
-    >>> print_values(model.sequences.inputs.p.series)
+    >>> print_vector(model.sequences.inputs.p.series)
     0.0, 4.0, 0.0, 8.0, 0.0
-    >>> print_values(model.sequences.fluxes.pc.series[:, 0])
+    >>> print_vector(model.sequences.fluxes.pc.series[:, 0])
     0.0, 3.2514, 0.0, 6.5028, 0.0
-    >>> print_values(petmodel.sequences.inputs.normalevapotranspiration.series)
-    0.285483, 0.448182, 0.302786, 0.401946, 0.315023
-    >>> print_values(
+    >>> print_vector(petmodel.sequences.inputs.normalevapotranspiration.series)
+    0.3, 0.3, 0.3, 0.3, 0.3
+    >>> print_vector(
     ...     aetmodel.sequences.fluxes.potentialsoilevapotranspiration.series[:, 0])
-    0.322562, 0.53804, 0.469133, 0.704755, 0.630047
+    0.309, 0.317657, 0.369, 0.352975, 0.432
 
     .. testsetup::
 
@@ -2940,10 +2954,10 @@ class InputSequence(ModelIOSequence):
         >>> from hydpy.core.filetools import SequenceManager
         >>> pub.sequencemanager = SequenceManager()
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> parameterstep()
         >>> inputs.t.descr_sequence
-        'hland_v1_input_t'
+        'hland_96_input_t'
 
         When activating the standard "HydPy" convention instead of the "model-specific"
         convention, |InputSequence.descr_sequence| returns the standard name selected
@@ -2997,29 +3011,30 @@ class OutputSequence(ModelIOSequence):
     prominently.  In short, it shows that everything works well for the different
     |Node.deploymode| options:
 
-    >>> from hydpy import Element, HydPy, Node, print_values, pub, Selection, TestIO
+    >>> from hydpy.core.testtools import prepare_full_example_1
+    >>> prepare_full_example_1()
+
+    >>> from hydpy import Element, HydPy, Node, print_vector, pub, Selection, TestIO
     >>> from hydpy.aliases import (
     ...     hland_fluxes_Perc, hland_fluxes_Q0, hland_fluxes_Q1, hland_states_UZ)
-    >>> hp = HydPy("LahnH")
+    >>> hp = HydPy("HydPy-H-Lahn")
     >>> pub.timegrids = "1996-01-01", "1996-01-06", "1d"
     >>> node_q0 = Node("node_q0", variable=hland_fluxes_Q0)
     >>> node_q1 = Node("node_q1", variable=hland_fluxes_Q1)
     >>> node_perc = Node("node_perc", variable=hland_fluxes_Perc)
     >>> node_uz = Node("node_uz", variable=hland_states_UZ)
     >>> node_q = Node("node_q")
-    >>> land_dill = Element("land_dill",
+    >>> land_dill_assl = Element("land_dill_assl",
     ...                     outlets=node_q,
     ...                     outputs=[node_q0, node_q1, node_perc, node_uz])
 
-    >>> from hydpy.examples import prepare_full_example_1
-    >>> prepare_full_example_1()
     >>> import os
     >>> with TestIO():
-    ...     os.chdir("LahnH/control/default")
-    ...     with open("land_dill.py") as controlfile:
+    ...     os.chdir("HydPy-H-Lahn/control/default")
+    ...     with open("land_dill_assl.py") as controlfile:
     ...         exec(controlfile.read(), {}, locals())
     ...     parameters.update()
-    ...     land_dill.model = model
+    ...     land_dill_assl.model = model
 
     >>> model.sequences.fluxes.q0.outputflag
     True
@@ -3035,7 +3050,7 @@ class OutputSequence(ModelIOSequence):
     False
 
     >>> hp.update_devices(nodes=[node_q0, node_q1, node_perc, node_uz],
-    ...                   elements=land_dill)
+    ...                   elements=land_dill_assl)
     >>> with TestIO():
     ...     hp.load_conditions()
 
@@ -3057,30 +3072,30 @@ class OutputSequence(ModelIOSequence):
 
     >>> hp.simulate()
 
-    >>> print_values(node_q0.sequences.sim.series)
+    >>> print_vector(node_q0.sequences.sim.series)
     1.0, 1.0, 1.0, 1.0, 1.0
-    >>> print_values(node_q0.sequences.obs.series)
+    >>> print_vector(node_q0.sequences.obs.series)
     2.0, 2.0, 2.0, 2.0, 2.0
 
-    >>> print_values(model.sequences.fluxes.q1.series)
-    0.530692, 0.53965, 0.547982, 0.555686, 0.562831
-    >>> print_values(node_q1.sequences.sim.series)
-    0.530692, 0.53965, 0.547982, 0.555686, 0.562831
-    >>> print_values(node_q1.sequences.obs.series)
+    >>> print_vector(model.sequences.fluxes.q1.series)
+    0.530782, 0.539976, 0.548629, 0.556786, 0.564477
+    >>> print_vector(node_q1.sequences.sim.series)
+    0.530782, 0.539976, 0.548629, 0.556786, 0.564477
+    >>> print_vector(node_q1.sequences.obs.series)
     3.0, 3.0, 3.0, 3.0, 3.0
 
-    >>> print_values(model.sequences.fluxes.perc.series)
-    0.69249, 0.689344, 0.687227, 0.684426, 0.682239
-    >>> print_values(node_perc.sequences.sim.series)
-    0.69249, 0.689344, 0.687227, 0.684426, 0.682239
-    >>> print_values(node_perc.sequences.obs.series)
+    >>> print_vector(model.sequences.fluxes.perc.series)
+    0.694084, 0.693611, 0.693239, 0.693098, 0.693012
+    >>> print_vector(node_perc.sequences.sim.series)
+    0.694084, 0.693611, 0.693239, 0.693098, 0.693012
+    >>> print_vector(node_perc.sequences.obs.series)
     4.0, 4.0, 4.0, 4.0, 4.0
 
-    >>> print_values(model.sequences.states.uz.series)
-    5.620142, 4.359374, 3.330011, 2.450131, 1.667571
-    >>> print_values(node_uz.sequences.sim.series)
-    5.620142, 4.359374, 3.330011, 2.450131, 1.667571
-    >>> print_values(node_uz.sequences.obs.series)
+    >>> print_vector(model.sequences.states.uz.series)
+    5.628278, 4.368269, 3.337343, 2.452946, 1.662766
+    >>> print_vector(node_uz.sequences.sim.series)
+    5.628278, 4.368269, 3.337343, 2.452946, 1.662766
+    >>> print_vector(node_uz.sequences.obs.series)
     5.0, 5.0, 5.0, 5.0, 5.0
 
     .. testsetup::
@@ -3144,11 +3159,11 @@ class DependentSequence(OutputSequence):
         developers.  One such attribute is the `results` array, handling the
         (intermediate or final) calculation results for factor and flux sequences, as
         shown in the following example for the 0-dimensional flux sequence
-        |wland_fluxes.RH| of the |wland| model:
+        |wland_fluxes.RH| of the |wland_wag| model:
 
-        >>> from hydpy import prepare_model, print_values, pub
-        >>> model = prepare_model("wland_v001")
-        >>> print_values(model.sequences.fluxes.rh.fastaccess._rh_results)
+        >>> from hydpy import prepare_model, print_vector, pub
+        >>> model = prepare_model("wland_wag")
+        >>> print_vector(model.sequences.fluxes.rh.fastaccess._rh_results)
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
         For 1-dimensional numerical factor and flux sequences, the `results` attribute
@@ -3168,7 +3183,7 @@ class DependentSequence(OutputSequence):
         """
         return super()._get_shape()
 
-    def _set_shape(self, shape: Union[int, tuple[int, ...]]) -> None:
+    def _set_shape(self, shape: int | tuple[int, ...]) -> None:
         super()._set_shape(shape)
         if self.NDIM and self.NUMERIC:
             self._set_fastaccessattribute("points", numpy.zeros(self.numericshape))
@@ -3207,7 +3222,7 @@ class ConditionSequence(ModelSequence):
     Inherit from |StateSequence| or |LogSequence| instead.
     """
 
-    _oldargs: Optional[tuple[Any, ...]] = None
+    _oldargs: tuple[Any, ...] | None = None
 
     def __call__(self, *args) -> None:
         """The prefered way to pass values to |Sequence_| instances within initial
@@ -3224,12 +3239,12 @@ class ConditionSequence(ModelSequence):
         """Reset the value of the actual |StateSequence| or |LogSequence| object to the
         last value defined by "calling" the object.
 
-        We use the |lland_v3| application model, which handles sequences derived from
-        |StateSequence| (taking |lland_states.Inzp| as an example) and from
+        We use the |lland_knauf| application model, which handles sequences derived
+        from |StateSequence| (taking |lland_states.Inzp| as an example) and from
         |LogSequence| (taking |lland_logs.LoggedSunshineDuration| as an example):
 
         >>> from hydpy import prepare_model, pub
-        >>> model = prepare_model("lland_v3")
+        >>> model = prepare_model("lland_knauf")
 
         After defining their shapes, both sequences contain |numpy.nan| values:
 
@@ -3288,10 +3303,10 @@ class StateSequence(OutputSequence, ConditionSequence):
     is an additional feature for keeping the supplemental information.
 
     We demonstrate the above explanations using state sequence |hland_states.SM| of the
-    base model |hland_v1| with a shape of two:
+    base model |hland_96| with a shape of two:
 
-    >>> from hydpy import prepare_model
-    >>> model = prepare_model("hland", "1d")
+    >>> from hydpy import prepare_model, print_vector
+    >>> model = prepare_model("hland")
     >>> model.parameters.control.fc.shape = (2,)
     >>> model.parameters.control.fc = 100.0
     >>> sm = model.sequences.states.sm
@@ -3301,24 +3316,24 @@ class StateSequence(OutputSequence, ConditionSequence):
 
     >>> sm
     sm(nan, nan)
-    >>> sm.values
-    array([nan, nan])
-    >>> sm.new
-    array([nan, nan])
-    >>> sm.old
-    array([nan, nan])
+    >>> print_vector(sm.values)
+    nan, nan
+    >>> print_vector(sm.new)
+    nan, nan
+    >>> print_vector(sm.old)
+    nan, nan
 
     The typical way to define state values, especially within condition files, is to
     "call" state sequence objects, which sets both the "old" and the "new" states to
     the given value(s):
 
     >>> sm(1.0)
-    >>> sm.values
-    array([1., 1.])
-    >>> sm.new
-    array([1., 1.])
-    >>> sm.old
-    array([1., 1.])
+    >>> print_vector(sm.values)
+    1.0, 1.0
+    >>> print_vector(sm.new)
+    1.0, 1.0
+    >>> print_vector(sm.old)
+    1.0, 1.0
 
     Alternatively, one can assign values to property |StateSequence.new| or property
     |StateSequence.old| (note that using |StateSequence.new|  is identical with using
@@ -3327,22 +3342,22 @@ class StateSequence(OutputSequence, ConditionSequence):
     >>> sm.new = 2.0, 3.0
     >>> sm
     sm(2.0, 3.0)
-    >>> sm.values
-    array([2., 3.])
-    >>> sm.new
-    array([2., 3.])
-    >>> sm.old
-    array([1., 1.])
+    >>> print_vector(sm.values)
+    2.0, 3.0
+    >>> print_vector(sm.new)
+    2.0, 3.0
+    >>> print_vector(sm.old)
+    1.0, 1.0
 
     >>> sm.old = 200.0
     >>> sm
     sm(2.0, 3.0)
-    >>> sm.values
-    array([2., 3.])
-    >>> sm.new
-    array([2., 3.])
-    >>> sm.old
-    array([200., 200.])
+    >>> print_vector(sm.values)
+    2.0, 3.0
+    >>> print_vector(sm.new)
+    2.0, 3.0
+    >>> print_vector(sm.old)
+    200.0, 200.0
 
     If you assign problematic values to property |StateSequence.old|, it raises similar
     error messages as property |Variable.value|:
@@ -3362,12 +3377,12 @@ not broadcast input array from shape (3,) into shape (2,)
     when working in Cython mode):
 
     >>> sm.new2old()
-    >>> sm.values
-    array([2., 3.])
-    >>> sm.new
-    array([2., 3.])
-    >>> sm.old
-    array([2., 3.])
+    >>> print_vector(sm.values)
+    2.0, 3.0
+    >>> print_vector(sm.new)
+    2.0, 3.0
+    >>> print_vector(sm.old)
+    2.0, 3.0
     """
 
     subvars: StateSequences
@@ -3403,11 +3418,11 @@ not broadcast input array from shape (3,) into shape (2,)
         which should only be of interest to framework developers.  One such attribute
         is the `results` array, handling the (intermediate or final) calculation
         results for state sequence, as shown in the following example for the
-        0-dimensional sequence |wland_states.HS| of the |wland| model:
+        0-dimensional sequence |wland_states.HS| of the |wland_wag| model:
 
-        >>> from hydpy import prepare_model, print_values, pub
-        >>> model = prepare_model("wland_v001")
-        >>> print_values(model.sequences.states.hs.fastaccess._hs_results)
+        >>> from hydpy import prepare_model, print_vector, pub
+        >>> model = prepare_model("wland_wag")
+        >>> print_vector(model.sequences.states.hs.fastaccess._hs_results)
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
         For 1-dimensional numerical state sequences, the `results` attribute is |None|
@@ -3427,7 +3442,7 @@ not broadcast input array from shape (3,) into shape (2,)
         """
         return super()._get_shape()
 
-    def _set_shape(self, shape: Union[int, tuple[int, ...]]):
+    def _set_shape(self, shape: int | tuple[int, ...]):
         super()._set_shape(shape)
         if self.NDIM:
             setattr(self.fastaccess_old, self.name, self.new.copy())
@@ -3649,49 +3664,50 @@ please be careful).
         Changing a |LinkSequence.value| of a |LinkSequence| object seems very much like
         changing a |LinkSequence.value| of any other |Variable| object.  However, be
         aware that you are changing a value handled by a |NodeSequence| object.  We
-        demonstrate this by using the `LahnH` example project through invoking function
-        |prepare_full_example_2|:
+        demonstrate this by using the `HydPy-H-Lahn` example project through invoking
+        function |prepare_full_example_2|:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
-        We focus on the |musk_classic| application model `stream_lahn_1_lahn_2` routing
-        inflow from node `lahn_1` to node `lahn_2`:
+        We focus on the |musk_classic| application model `stream_lahn_marb_lahn_leun`
+        routing inflow from node `lahn_marb` to node `lahn_leun`:
 
-        >>> model = hp.elements.stream_lahn_1_lahn_2.model
+        >>> model = hp.elements.stream_lahn_marb_lahn_leun.model
 
         The first example shows that the 0-dimensional outlet sequence |musk_outlets.Q|
-        points to the |Sim| sequence of node `lahn_2`:
+        points to the |Sim| sequence of node `lahn_leun`:
 
         >>> model.sequences.outlets.q
         q(0.0)
-        >>> hp.nodes.lahn_2.sequences.sim = 1.0
+        >>> hp.nodes.lahn_leun.sequences.sim = 1.0
         >>> model.sequences.outlets.q
         q(1.0)
         >>> model.sequences.outlets.q(2.0)
-        >>> hp.nodes.lahn_2.sequences.sim
+        >>> hp.nodes.lahn_leun.sequences.sim
         sim(2.0)
 
         The second example shows that the 1-dimensional inlet sequence |musk_inlets.Q|
-        points to the |Sim| sequence of node `lahn_1`:
+        points to the |Sim| sequence of node `lahn_marb`:
 
         >>> model.sequences.inlets.q
         q(0.0)
-        >>> hp.nodes.lahn_1.sequences.sim = 1.0
+        >>> hp.nodes.lahn_marb.sequences.sim = 1.0
         >>> model.sequences.inlets.q
         q(1.0)
         >>> model.sequences.inlets.q(2.0)
-        >>> hp.nodes.lahn_1.sequences.sim
+        >>> hp.nodes.lahn_marb.sequences.sim
         sim(2.0)
 
         Direct querying the values of both link sequences shows that the value of the
         0-dimensional outlet sequence is scalar, of course, and that the value of the
         1-dimensional inlet sequence is one entry of a vector:
 
-        >>> model.sequences.outlets.q.value
+        >>> from hydpy import print_vector, round_
+        >>> round_(model.sequences.outlets.q.value)
         2.0
-        >>> model.sequences.inlets.q.values
-        array([2.])
+        >>> print_vector(model.sequences.inlets.q.values)
+        2.0
 
         Assigning incorrect data leads to the usual error messages:
 
@@ -3699,26 +3715,26 @@ please be careful).
         Traceback (most recent call last):
         ...
         ValueError: While trying to assign the value(s) (1.0, 2.0) to link sequence \
-`q` of element `stream_lahn_1_lahn_2`, the following error occurred: 2 values are \
-assigned to the scalar variable `q` of element `stream_lahn_1_lahn_2`.
+`q` of element `stream_lahn_marb_lahn_leun`, the following error occurred: 2 values \
+are assigned to the scalar variable `q` of element `stream_lahn_marb_lahn_leun`.
         >>> model.sequences.inlets.q.values = 1.0, 2.0
         Traceback (most recent call last):
         ...
         ValueError: While trying to assign the value(s) (1.0, 2.0) to link sequence \
-`q` of element `stream_lahn_1_lahn_2`, the following error occurred: While trying to \
-convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and type \
-`float`, the following error occurred: could not broadcast input array from shape \
-(2,) into shape (1,)
+`q` of element `stream_lahn_marb_lahn_leun`, the following error occurred: While \
+trying to convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and \
+type `float`, the following error occurred: could not broadcast input array from \
+shape (2,) into shape (1,)
 
         In the example above, the 1-dimensional inlet sequence |musk_inlets.Q| only
-        points a single |NodeSequence| value.  We now prepare a |hbranch_v1|
+        points a single |NodeSequence| value.  We now prepare a |exch_branch_hbv96|
         application model instance to show what happens when connecting a 1-dimensional
-        |LinkSequence| object (|hbranch_outlets.Branched|) with three |NodeSequence|
-        objects (see the documentation of application model |hbranch_v1| for more
-        details):
+        |LinkSequence| object (|exch_outlets.Branched|) with three |NodeSequence|
+        objects (see the documentation of application model |exch_branch_hbv96| for
+        more details):
 
         >>> from hydpy import Element, Nodes, prepare_model
-        >>> model = prepare_model("hbranch_v1")
+        >>> model = prepare_model("exch_branch_hbv96")
         >>> nodes = Nodes("input1", "input2", "output1", "output2", "output3")
         >>> branch = Element("branch",
         ...                  inlets=["input1", "input2"],
@@ -3785,12 +3801,12 @@ convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and type 
         extra careful due to the pointer mechanism underlying class |LinkSequence|.
         Change the shape of a link sequence for good reasons only.  Please read the
         documentation on property |LinkSequence.value| first and then see the following
-        examples, which are, again, based on the `LahnH` example project and
+        examples, which are, again, based on the `HydPy-H-Lahn` example project and
         application model |musk_classic|:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> model = hp.elements.stream_lahn_1_lahn_2.model
+        >>> model = hp.elements.stream_lahn_marb_lahn_leun.model
 
         The default mechanisms of *HydPy* prepare both 0-dimensional and 1-dimensional
         link sequences with a proper shape (which, for inlet sequence |
@@ -3809,9 +3825,9 @@ convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and type 
         Traceback (most recent call last):
         ...
         ValueError: While trying to set the shape of link sequence`q` of element \
-`stream_lahn_1_lahn_2`, the following error occurred: The shape information of \
-0-dimensional variables as `q` of element `stream_lahn_1_lahn_2` can only be `()`, \
-but `(1,)` is given.
+`stream_lahn_marb_lahn_leun`, the following error occurred: The shape information of \
+0-dimensional variables as `q` of element `stream_lahn_marb_lahn_leun` can only \
+be `()`, but `(1,)` is given.
 
         Changing the shape of 1-dimensional link sequences is supported but destroys
         the connection to the |NodeSequence| values of the respective nodes.
@@ -3828,16 +3844,16 @@ but `(1,)` is given.
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to query the value(s) of link sequence `q` of \
-element `stream_lahn_1_lahn_2`, the following error occurred: The pointer of the \
-actual `PPDouble` instance at index `0` requested, but not prepared yet via \
+element `stream_lahn_marb_lahn_leun`, the following error occurred: The pointer of \
+the actual `PPDouble` instance at index `0` requested, but not prepared yet via \
 `set_pointer`.
 
         >>> model.sequences.inlets.q(1.0)
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to assign the value(s) 1.0 to link sequence `q` of \
-element `stream_lahn_1_lahn_2`, the following error occurred: The pointer of the \
-actual `PPDouble` instance at index `0` requested, but not prepared yet via \
+element `stream_lahn_marb_lahn_leun`, the following error occurred: The pointer of \
+the actual `PPDouble` instance at index `0` requested, but not prepared yet via \
 `set_pointer`.
 
         Querying the shape of a link sequence should rarely result in errors.  However,
@@ -3849,7 +3865,7 @@ actual `PPDouble` instance at index `0` requested, but not prepared yet via \
         Traceback (most recent call last):
         ...
         AttributeError: While trying to query the shape of link sequence`q` of \
-element `stream_lahn_1_lahn_2`, the following error occurred: 'Q' object has no \
+element `stream_lahn_marb_lahn_leun`, the following error occurred: 'Q' object has no \
 attribute 'fastaccess'
 
         .. testsetup::
@@ -3871,7 +3887,7 @@ attribute 'fastaccess'
                 f"{objecttools.elementphrase(self)}"
             )
 
-    def _set_shape(self, shape: Union[int, tuple[int, ...]]):
+    def _set_shape(self, shape: int | tuple[int, ...]):
         try:
             if (self.NDIM == 0) and shape:
                 self._raise_wrongshape(shape)
@@ -4072,11 +4088,11 @@ the following error occurred: ...attribute name must be string...
         """True/False flag indicating whether simulated or observed data is fully
         available or not.
 
-        We use the observation series of node `dill` of the `LahnH` project:
+        We use the observation series of node `dill_assl` of the `HydPy-H-Lahn` project:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> obs = hp.nodes.dill.sequences.obs
+        >>> obs = hp.nodes.dill_assl.sequences.obs
 
         When the sequence does not handle any time series data,
         |NodeSequence.seriescomplete| is |False|:
@@ -4085,8 +4101,8 @@ the following error occurred: ...attribute name must be string...
         >>> obs.series
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: Sequence `obs` of node `dill` is \
-not requested to make any time series data available.
+        hydpy.core.exceptiontools.AttributeNotReady: Sequence `obs` of node \
+`dill_assl` is not requested to make any time series data available.
         >>> obs.seriescomplete
         False
 
@@ -4131,23 +4147,23 @@ class Sim(NodeSequence):
         |IOSequence.memoryflag| and uses the option |Options.warnmissingsimfile|
         instead of |Options.warnmissingobsfile|:
 
-        >>> from hydpy.examples import prepare_full_example_1
+        >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, TestIO
-        >>> hp = HydPy("LahnH")
+        >>> hp = HydPy("HydPy-H-Lahn")
         >>> pub.timegrids = "1996-01-01", "1996-01-06", "1d"
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.prepare_models()
         ...     hp.prepare_simseries()
-        >>> sim = hp.nodes.dill.sequences.sim
+        >>> sim = hp.nodes.dill_assl.sequences.sim
         >>> with TestIO():
         ...     sim.load_series()  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         UserWarning: While trying to load the time series data of sequence `sim` of \
-node `dill`, the following error occurred: [Errno 2] No such file or directory: \
-'...dill_sim_q.asc'
+node `dill_assl`, the following error occurred: [Errno 2] No such file or directory: \
+'...dill_assl_sim_q.asc'
         >>> sim.series
         InfoArray([nan, nan, nan, nan, nan])
 
@@ -4169,8 +4185,8 @@ node `dill`, the following error occurred: [Errno 2] No such file or directory: 
         Traceback (most recent call last):
         ...
         UserWarning: While trying to load the time series data of sequence `sim` of \
-node `dill`, the following error occurred: The series array of sequence `sim` of node \
-`dill` contains 1 nan value.
+node `dill_assl`, the following error occurred: The series array of sequence `sim` of \
+node `dill_assl` contains 1 nan value.
         >>> sim.series
         InfoArray([ 1.,  1., nan,  1.,  1.])
 
@@ -4211,34 +4227,37 @@ class Obs(NodeSequence):
 
         According to this reasoning, *HydPy* raises (at most) a |UserWarning| in case
         of missing or incomplete external time series data of |Obs| sequences.  The
-        following examples show this based on the `LahnH` project, mainly focussing on
-        the |Obs| sequence of node `dill`, which is ready for handling time series data
-        at the end of the following steps:
+        following examples show this based on the `HydPy-H-Lahn` project, mainly
+        focussing on the |Obs| sequence of node `dill_assl`, which is ready for handling
+        time series data at the end of the following steps:
 
-        >>> from hydpy.examples import prepare_full_example_1
+        >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, TestIO
-        >>> hp = HydPy("LahnH")
+        >>> hp = HydPy("HydPy-H-Lahn")
         >>> pub.timegrids = "1996-01-01", "1996-01-06", "1d"
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.prepare_models()
         ...     hp.prepare_obsseries()
-        >>> obs = hp.nodes.dill.sequences.obs
+        >>> obs = hp.nodes.dill_assl.sequences.obs
         >>> obs.ramflag
         True
 
         Trying to read non-existing data raises the following warning and disables the
         sequence's ability to handle time series data:
 
+        >>> import os
         >>> with TestIO():
+        ...     os.remove(hp.nodes.dill_assl.sequences.obs.filepath)
         ...     hp.load_obsseries()  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        UserWarning: The `memory flag` of sequence `obs` of node `dill` had to be set \
-to `False` due to the following problem: While trying to load the time series data of \
-sequence `obs` of node `dill`, the following error occurred: [Errno 2] No such file \
-or directory: '...dill_obs_q.asc'
+        UserWarning: The `memory flag` of sequence `obs` of node `dill_assl` had to \
+be set to `False` due to the following problem: While trying to load the time series \
+data of sequence `obs` of node `dill_assl`, the following error occurred: [Errno 2] \
+No such file or directory: '...dill_assl_obs_q.asc'
+
         >>> obs.ramflag
         False
 
@@ -4266,8 +4285,8 @@ or directory: '...dill_obs_q.asc'
         Traceback (most recent call last):
         ...
         UserWarning: While trying to load the time series data of sequence `obs` of \
-node `dill`, the following error occurred: The series array of sequence `obs` of node \
-`dill` contains 1 nan value.
+node `dill_assl`, the following error occurred: The series array of sequence `obs` of \
+node `dill_assl` contains 1 nan value.
         >>> obs.memoryflag
         True
 
@@ -4276,11 +4295,12 @@ node `dill`, the following error occurred: The series array of sequence `obs` of
 
         >>> hp.prepare_obsseries()
         >>> with TestIO():
+        ...     os.remove(hp.nodes.lahn_marb.sequences.obs.filepath)
         ...     with pub.options.warnmissingobsfile(False):
         ...         hp.load_obsseries()
         >>> obs.series
         InfoArray([ 1.,  1., nan,  1.,  1.])
-        >>> hp.nodes.lahn_1.sequences.obs.memoryflag
+        >>> hp.nodes.lahn_marb.sequences.obs.memoryflag
         False
 
         .. testsetup::
@@ -4335,14 +4355,14 @@ class NodeSequences(
     node: devicetools.Node
     sim: Sim
     obs: Obs
-    _cymodel: Optional[CyModelProtocol]
+    _cymodel: CyModelProtocol | None
     _CLS_FASTACCESS_PYTHON = FastAccessNodeSequence
 
     def __init__(
         self,
         master: devicetools.Node,
-        cls_fastaccess: Optional[type[FastAccessNodeSequence]] = None,
-        cymodel: Optional[CyModelProtocol] = None,
+        cls_fastaccess: type[FastAccessNodeSequence] | None = None,
+        cymodel: CyModelProtocol | None = None,
     ) -> None:
         self.node = master
         self._cls_fastaccess = cls_fastaccess

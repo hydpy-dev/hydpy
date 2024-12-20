@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -9,6 +8,7 @@ from __future__ import annotations
 import numpy
 
 # ...from HydPy
+from hydpy import config
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
@@ -19,7 +19,7 @@ class _AllowedKeywordArgsOfClassUH(TypedDict, total=False):
     of class |UH|."""
 
     tb: float
-    tp: Optional[float]
+    tp: float | None
     x4: float
     beta: float
     auxfile: str
@@ -35,6 +35,7 @@ class UH(parametertools.Parameter):
     >>> simulationstep("1d")
     >>> parameterstep("1d")
     >>> uh([0.1,0.2,0.4,0.2,0.1])
+    >>> logs.quh = 0.0, 0.0, 0.0, 0.0, 0.0
     >>> uh
     uh(0.1, 0.2, 0.4, 0.2, 0.1)
 
@@ -44,12 +45,12 @@ class UH(parametertools.Parameter):
     We generate the ordinates of a unit hydrograph in the form of an isosceles triangle
     with a base length of 10 days:
 
-    >>> from hydpy import print_values
+    >>> from hydpy import print_vector
     >>> from hydpy.models.rconc import *
     >>> uh("triangle", tb=10.0)
     >>> uh
     uh("triangle", tb=10.0)
-    >>> print_values(uh.values)
+    >>> print_vector(uh.values)
     0.02, 0.06, 0.1, 0.14, 0.18, 0.18, 0.14, 0.1, 0.06, 0.02
 
     The value of `tb` depends on the current parameter step size:
@@ -90,7 +91,7 @@ of floats but a value of `bool` is given.
     >>> uh("triangle", tb=10.0, tp=7.0)
     >>> uh
     uh("triangle", tb=10.0, tp=7.0)
-    >>> print_values(uh.values)
+    >>> print_vector(uh.values)
     0.014286, 0.042857, 0.071429, 0.1, 0.128571, 0.157143, 0.185714,
     0.166667, 0.1, 0.033333
 
@@ -99,7 +100,7 @@ of floats but a value of `bool` is given.
     >>> uh("triangle", tb=9.5, tp=6.7)
     >>> uh
     uh("triangle", tb=9.5, tp=6.7)
-    >>> print_values(uh.values)
+    >>> print_vector(uh.values)
     0.015711, 0.047133, 0.078555, 0.109976, 0.141398, 0.17282, 0.199445,
     0.150376, 0.075188, 0.009398
 
@@ -120,32 +121,32 @@ following error occurred: Parameter 'tp' must not be greater than 'tb'.
     >>> uh("gr_uh1", x4=6.3)
     >>> uh
     uh("gr_uh1", x4=6.3)
-    >>> print_values(uh.values)
+    >>> print_vector(uh.values)
     0.010038, 0.046746, 0.099694, 0.16474, 0.239926, 0.324027, 0.11483
 
     >>> uh("gr_uh1", x4=0.8)
-    >>> print_values(uh.values)
+    >>> print_vector(uh.values)
     1.0
 
     >>> uh("gr_uh2", x4=2.8)
     >>> uh
     uh("gr_uh2", x4=2.8)
-    >>> print_values(uh.values)
+    >>> print_vector(uh.values)
     0.038113, 0.177487, 0.368959, 0.292023, 0.112789, 0.010628
 
     >>> uh("gr_uh2", x4=0.8)
-    >>> print_values(uh.values)
+    >>> print_vector(uh.values)
     0.75643, 0.24357
 
     According to :cite:t:`ref-Perrin2007`, the exponent 'beta' is 2.5 by default but
     can be changed:
 
     >>> uh("gr_uh1", x4=6.3, beta=1.5)
-    >>> print_values(uh.values)
+    >>> print_vector(uh.values)
     0.06324, 0.115629, 0.149734, 0.177314, 0.201123, 0.222388, 0.070571
 
     >>> uh("gr_uh2", x4=2.8, beta=1.5)
-    >>> print_values(uh.values)
+    >>> print_vector(uh.values)
     0.106717, 0.195124, 0.250762, 0.231417, 0.166382, 0.049598
 
     The triangle unit hydrograph must not be called with the parameters for the
@@ -174,19 +175,19 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
     The following tests examine the correct calculation of ordinates in edge cases:
 
     >>> uh("gr_uh2", x4=0.4)
-    >>> print_values(uh.values)
+    >>> print_vector(uh.values)
     1.0
 
     >>> uh("gr_uh2", x4=0.0)
-    >>> print_values(uh.values)
+    >>> print_vector(uh.values)
     1.0
 
     >>> uh("gr_uh2", x4=1.0)
-    >>> print_values(uh.values)
+    >>> print_vector(uh.values)
     0.5, 0.5
 
     >>> uh("gr_uh2", x4=1.5)
-    >>> print_values(uh.values)
+    >>> print_vector(uh.values)
     0.181444, 0.637113, 0.181444
     """
 
@@ -205,7 +206,7 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
 
     @overload
     def __call__(
-        self, option: Literal["triangle"], /, *, tb: float, tp: Optional[float] = None
+        self, option: Literal["triangle"], /, *, tb: float, tp: float | None = None
     ) -> None: ...
 
     @overload
@@ -215,7 +216,7 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
 
     def __call__(
         self,
-        *args: Union[VectorInputFloat, str],
+        *args: VectorInputFloat | str,
         **kwargs: Unpack[_AllowedKeywordArgsOfClassUH],
     ) -> None:
         self._keywordarguments = parametertools.KeywordArguments(False)
@@ -235,6 +236,7 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
             else:
                 try:
                     self.shape = len(args[0])
+                    self.subpars.pars.model.sequences.logs.quh.shape = self.shape
                 except TypeError:
                     raise TypeError(
                         f"The expected type of the positional argument is a "
@@ -245,9 +247,7 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
                 return None
 
             idx = self._find_kwargscombination(
-                args,
-                dict(kwargs),
-                (set(("tb",)), set(("tb", "tp")), set(("x4",)), set(("x4", "beta"))),
+                args, dict(kwargs), ({"tb"}, {"tb", "tp"}, {"x4"}, {"x4", "beta"})
             )
 
             if option == "triangle":
@@ -311,7 +311,7 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
 
         return None
 
-    def _validate_args(self, args: tuple[Union[VectorInputFloat, str], ...]) -> None:
+    def _validate_args(self, args: tuple[VectorInputFloat | str, ...]) -> None:
         if len(args) != 1:
             raise ValueError(
                 "Exactly one positional argument is expected, but none or more "
@@ -331,7 +331,7 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
             return f"{self.name}({', '.join(strings)})"
         return super().__repr__()
 
-    def _set_triangle_uh(self, tb: float, tp: Optional[float] = None) -> None:
+    def _set_triangle_uh(self, tb: float, tp: float | None = None) -> None:
         """Calculate and set the ordinates of a triangle unit hydrograph."""
 
         quh = self.subpars.pars.model.sequences.logs.quh
@@ -414,13 +414,13 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
         "uh2".
         """
         if (x4 <= 0.5) or (left and x4 <= 1.0):
-            return 1, numpy.ones(1, dtype=float)
+            return 1, numpy.ones(1, dtype=config.NP_FLOAT)
 
         if left:
             ts = numpy.arange(1.0, x4)
         else:
             ts = numpy.arange(2.0 * x4 - numpy.ceil(x4), 0.0, -1.0)[::-1]
-        totals = numpy.empty(len(ts) + 2, dtype=float)
+        totals = numpy.empty(len(ts) + 2, dtype=config.NP_FLOAT)
         totals[1:-1] = (ts / x4) ** beta
         totals[0], totals[-1] = 0.0, 1.0
         deltas = numpy.diff(totals)

@@ -307,10 +307,14 @@ via our |PPDouble| object:
 # ...from standard library
 import numbers
 import cython
+
 # ...from site-packages
 import numpy
 # cimport...
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
+
+# ...from HydPy
+from hydpy import config
 
 
 cdef inline double conv2double(value):
@@ -586,7 +590,7 @@ cdef class PPDouble:
     def __setitem__(self, idxs, values):
         cdef float value
         idxs = self._prepare_indices(idxs)
-        values = numpy.full(len(idxs), values, dtype=float)
+        values = numpy.full(len(idxs), values, dtype=config.NP_FLOAT)
         check0(self.length)
         for idx, value in zip(idxs, values):
             check1(self.length, idx)
@@ -606,7 +610,7 @@ cdef class PPDouble:
             PyMem_Free(self.pp_value)
         self._allocated = True
         self.length = length
-        self.ready = numpy.full(length, False, dtype=bool)
+        self.ready = numpy.full(length, False, dtype=config.NP_BOOL)
         self.pp_value = <double**> PyMem_Malloc(length * sizeof(double*))
         self._allocated = True
 

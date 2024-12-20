@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This subpackage provides tools for cythonizing hydrological models as
 well as the resulting Cython extension files (in subpackage `autogen`)."""
 

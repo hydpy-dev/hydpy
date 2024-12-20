@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # imports...
@@ -6,6 +5,7 @@
 import numpy
 
 # ...from HydPy
+from hydpy import config
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
@@ -97,13 +97,13 @@ class Process_RadiationModel_V1(modeltools.Method):
 
     Example:
 
-        We use the combination of |lland_v1| and |meteo_v003| as an example:
+        We use the combination of |lland_dd| and |meteo_glob_morsim| as an example:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "1997-08-01", "1997-08-02", "1d"
-        >>> from hydpy.models.lland_v3 import *
+        >>> from hydpy.models.lland_knauf import *
         >>> parameterstep()
-        >>> with model.add_radiationmodel_v1("meteo_v003"):
+        >>> with model.add_radiationmodel_v1("meteo_glob_morsim"):
         ...     latitude(54.1)
         ...     longitude(9.7)
         ...     angstromconstant(0.25)
@@ -139,12 +139,12 @@ class Calc_PossibleSunshineDuration_V1(modeltools.Method):
 
     Examples:
 
-        We combine |lland_v3| with submodels that comply with different interfaces.
-        First, with |meteo_v003|, which complies with |RadiationModel_V1|:
+        We combine |lland_knauf| with submodels that comply with different interfaces.
+        First, with |meteo_glob_morsim|, which complies with |RadiationModel_V1|:
 
-        >>> from hydpy.models.lland_v3 import *
+        >>> from hydpy.models.lland_knauf import *
         >>> parameterstep()
-        >>> with model.add_radiationmodel_v1("meteo_v003", update=False):
+        >>> with model.add_radiationmodel_v1("meteo_glob_morsim", update=False):
         ...     factors.possiblesunshineduration = 10.0
         >>> model.calc_possiblesunshineduration()
         >>> factors.possiblesunshineduration
@@ -187,12 +187,12 @@ class Calc_SunshineDuration_V1(modeltools.Method):
     """Query the actual sunshine duration from a submodel that complies with the
     |RadiationModel_V1| or |RadiationModel_V4| interface.
 
-        We combine |lland_v3| with submodels that comply with different interfaces.
-        First, with |meteo_v001|, which complies with |RadiationModel_V1|:
+        We combine |lland_knauf| with submodels that comply with different interfaces.
+        First, with |meteo_glob_fao56|, which complies with |RadiationModel_V1|:
 
-        >>> from hydpy.models.lland_v3 import *
+        >>> from hydpy.models.lland_knauf import *
         >>> parameterstep()
-        >>> with model.add_radiationmodel_v1("meteo_v003", update=False):
+        >>> with model.add_radiationmodel_v1("meteo_glob_morsim", update=False):
         ...     inputs.sunshineduration = 10.0
         >>> model.calc_sunshineduration()
         >>> factors.sunshineduration
@@ -237,12 +237,12 @@ class Calc_GlobalRadiation_V1(modeltools.Method):
 
     Examples:
 
-        We combine |lland_v3| with submodels that comply with different interfaces.
-        First, with |meteo_v003|, which complies with |RadiationModel_V1|:
+        We combine |lland_knauf| with submodels that comply with different interfaces.
+        First, with |meteo_glob_morsim|, which complies with |RadiationModel_V1|:
 
-        >>> from hydpy.models.lland_v3 import *
+        >>> from hydpy.models.lland_knauf import *
         >>> parameterstep()
-        >>> with model.add_radiationmodel_v1("meteo_v003", update=False):
+        >>> with model.add_radiationmodel_v1("meteo_glob_morsim", update=False):
         ...     fluxes.globalradiation = 100.0
         >>> model.calc_globalradiation()
         >>> fluxes.globalradiation
@@ -1969,8 +1969,8 @@ class Calc_WGTF_V1(modeltools.Method):
 
         >>> gtf
         gtf(5.0)
-        >>> from hydpy import print_values
-        >>> print_values(gtf.values)
+        >>> from hydpy import print_vector
+        >>> print_vector(gtf.values)
         2.5, 2.5, 2.5, 2.5, 2.5, 2.5
 
         The results of the first four hydrological response units show
@@ -2293,16 +2293,16 @@ class Return_NetLongwaveRadiationInz_V1(modeltools.Method):
         >>> aides.rlatm = 100.0
 
         >>> model.idx_sim = pub.timegrids.init["2000-01-31"]
-        >>> from hydpy import print_values
+        >>> from hydpy import print_vector
         >>> for hru in range(2):
-        ...     print_values([hru, model.return_netlongwaveradiationinz_v1(hru)])
+        ...     print_vector([hru, model.return_netlongwaveradiationinz_v1(hru)])
         0, 126.624073
         1, 84.416049
 
         >>> model.idx_sim = pub.timegrids.init["2000-02-01"]
-        >>> from hydpy import print_values
+        >>> from hydpy import print_vector
         >>> for hru in range(2):
-        ...     print_values([hru, model.return_netlongwaveradiationinz_v1(hru)])
+        ...     print_vector([hru, model.return_netlongwaveradiationinz_v1(hru)])
         0, 105.520061
         1, 63.312037
 
@@ -2364,9 +2364,9 @@ class Return_NetLongwaveRadiationSnow_V1(modeltools.Method):
         >>> fluxes.tempssurface = -5.0
         >>> fluxes.tkor = 0.0
         >>> aides.rlatm = 235.207154
-        >>> from hydpy import print_values
+        >>> from hydpy import print_vector
         >>> for hru in range(2):
-        ...     print_values([hru, model.return_netlongwaveradiationsnow_v1(hru)])
+        ...     print_vector([hru, model.return_netlongwaveradiationsnow_v1(hru)])
         0, 57.945793
         1, 8.273292
     """
@@ -3380,15 +3380,16 @@ class Return_TempSSurface_V1(modeltools.Method):
         For the first, snow-free response unit, we cannot define a reasonable
         snow surface temperature, of course:
 
-        >>> fluxes.tempssurface[0]
+        >>> from hydpy import round_
+        >>> round_(fluxes.tempssurface[0])
         nan
 
         Comparing response units two and three shows that a moderate increase
         in short wave radiation is compensated by a moderate increase in snow
         surface temperature:
 
-        >>> from hydpy import print_values
-        >>> print_values(fluxes.tempssurface[1:3])
+        >>> from hydpy import print_vector
+        >>> print_vector(fluxes.tempssurface[1:3])
         -8.307868, -7.828995
 
         To demonstrate the robustness of the implemented approach, response
@@ -3396,7 +3397,7 @@ class Return_TempSSurface_V1(modeltools.Method):
         due to an even more extrem decrease in the bulk temperature of the
         snow layer:
 
-        >>> print_values(fluxes.tempssurface[2:5])
+        >>> print_vector(fluxes.tempssurface[2:5])
         -7.828995, -20.191197, -66.644357
 
         The sixths response unit comes with a very high net radiation
@@ -3408,13 +3409,13 @@ class Return_TempSSurface_V1(modeltools.Method):
         layers and thus add the potential energy excess at the snow surface to
         |WSurf|:
 
-        >>> print_values(fluxes.tempssurface[5:])
+        >>> print_vector(fluxes.tempssurface[5:])
         0.0
 
         As to be expected, the energy fluxes of the snow surface neutralise
         each other (within the defined numerical accuracy):
 
-        >>> print_values(fluxes.netradiationsnow -
+        >>> print_vector(fluxes.netradiationsnow -
         ...              fluxes.wsenssnow -
         ...              fluxes.wlatsnow +
         ...              fluxes.wsurf)
@@ -3433,7 +3434,7 @@ class Return_TempSSurface_V1(modeltools.Method):
         tempssurface(nan, -2.0, -2.0, -50.0, -200.0, -2.0)
         >>> fluxes.wsurf
         wsurf(0.0, 137.892846, 127.892846, -495.403823, -1835.208545, -52.107154)
-        >>> print_values(fluxes.netradiationsnow -
+        >>> print_vector(fluxes.netradiationsnow -
         ...              fluxes.wsenssnow -
         ...              fluxes.wlatsnow +
         ...              fluxes.wsurf)
@@ -3963,8 +3964,8 @@ class Update_ESnowInz_V1(modeltools.Method):
         >>> for hru in range(8):
         ...     model.idx_hru = hru
         ...     errors.append(model.return_backwardeulererrorinz_v1(esnowinz[hru]))
-        >>> from hydpy import print_values
-        >>> print_values(errors)
+        >>> from hydpy import print_vector
+        >>> print_vector(errors)
         nan, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
     Technical checks:
@@ -4124,8 +4125,8 @@ class Update_ESnow_V1(modeltools.Method):
         >>> for hru in range(8):
         ...     model.idx_hru = hru
         ...     errors.append(model.return_backwardeulererror_v1(esnow[hru]))
-        >>> from hydpy import print_values
-        >>> print_values(errors)
+        >>> from hydpy import print_vector
+        >>> print_vector(errors)
         nan, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
         The following example repeats the above one, but enables the
@@ -4153,7 +4154,7 @@ class Update_ESnow_V1(modeltools.Method):
         >>> for hru in range(8):
         ...     model.idx_hru = hru
         ...     errors.append(model.return_backwardeulererror_v1(esnow[hru]))
-        >>> print_values(errors)
+        >>> print_vector(errors)
         nan, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
     """
 
@@ -4672,16 +4673,16 @@ class Calc_EvB_AETModel_V1(modeltools.Method):
 
     Examples:
 
-        We build an example based on |evap_minhas|:
+        We build an example based on |evap_aet_minhas|:
 
-        >>> from hydpy.models.lland_v1 import *
+        >>> from hydpy.models.lland_dd import *
         >>> parameterstep("1h")
         >>> nhru(5)
         >>> lnk(VERS, ACKER, ACKER, MISCHW, WASSER)
         >>> ft(1.0)
         >>> fhru(0.05, 0.1, 0.2, 0.3, 0.35)
         >>> wmax(100.0)
-        >>> with model.add_aetmodel_v1("evap_minhas"):
+        >>> with model.add_aetmodel_v1("evap_aet_minhas"):
         ...     dissefactor(5.0)
 
         |Calc_EvB_AETModel_V1| stores the flux returned by the submodel without any
@@ -4807,10 +4808,11 @@ class Calc_EvI_Inzp_AETModel_V1(modeltools.Method):
 
     Examples:
 
-        We build an example based on |evap_minhas| for calculating interception
-        evaporation, which uses |evap_io| for querying potential evapotranspiration:
+        We build an example based on |evap_aet_minhas| for calculating interception
+        evaporation, which uses |evap_ret_io| for querying potential
+        evapotranspiration:
 
-        >>> from hydpy.models.lland_v1 import *
+        >>> from hydpy.models.lland_dd import *
         >>> parameterstep("1h")
         >>> nhru(5)
         >>> lnk(VERS, ACKER, ACKER, MISCHW, WASSER)
@@ -4821,8 +4823,8 @@ class Calc_EvI_Inzp_AETModel_V1(modeltools.Method):
         >>> derived.moy.shape = 1
         >>> derived.moy(5)
         >>> fluxes.nbes = 0.5
-        >>> with model.add_aetmodel_v1("evap_minhas"):
-        ...     with model.add_petmodel_v1("evap_io"):
+        >>> with model.add_aetmodel_v1("evap_aet_minhas"):
+        ...     with model.add_petmodel_v1("evap_ret_io"):
         ...         evapotranspirationfactor(0.6, 0.8, 1.0, 1.2, 1.4)
         ...         inputs.referenceevapotranspiration = 1.0
 
@@ -5042,10 +5044,11 @@ class Calc_QBB_V1(modeltools.Method):
 
         Note the time dependence of parameter |Beta|:
 
+        >>> from hydpy import print_vector
         >>> beta
         beta(0.04)
-        >>> beta.values
-        array([0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02])
+        >>> print_vector(beta.values)
+        0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02
 
         In the first example, the actual soil water content |BoWa| is set
         to low values.  For values below the threshold |PWP|, no percolation
@@ -5161,8 +5164,9 @@ class Calc_QIB1_V1(modeltools.Method):
 
         >>> dmin
         dmin(4.0)
-        >>> dmin.values
-        array([2., 2., 2., 2., 2., 2., 2., 2.])
+        >>> from hydpy import print_vector
+        >>> print_vector(dmin.values)
+        2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0
 
         Compared to the calculation of |QBB|, the following results show
         some relevant differences:
@@ -5234,8 +5238,9 @@ class Calc_QIB2_V1(modeltools.Method):
 
         >>> dmax
         dmax(10.0)
-        >>> dmax.values
-        array([5., 5., 5., 5., 5., 5., 5., 5.])
+        >>> from hydpy import print_vector
+        >>> print_vector(dmax.values)
+        5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0
 
         The following results show that he calculation of |QIB2| both
         resembles those of |QBB| and |QIB1| in some regards:
@@ -5568,7 +5573,7 @@ class Calc_BoWa_SoilModel_V1(modeltools.Method):
         We prepare a |lland| model instance consisting of four hydrological response
         units, which will serve as the main model:
 
-        >>> from hydpy.models.lland_v1 import *
+        >>> from hydpy.models.lland_dd import *
         >>> simulationstep("1h")
         >>> parameterstep("1h")
         >>> nhru(4)
@@ -6983,9 +6988,10 @@ class Get_Temperature_V1(modeltools.Method):
         >>> parameterstep()
         >>> nhru(2)
         >>> fluxes.tkor = 2.0, 4.0
-        >>> model.get_temperature_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_temperature_v1(0))
         2.0
-        >>> model.get_temperature_v1(1)
+        >>> round_(model.get_temperature_v1(1))
         4.0
     """
 
@@ -7029,9 +7035,10 @@ class Get_Precipitation_V1(modeltools.Method):
         >>> parameterstep()
         >>> nhru(2)
         >>> fluxes.nkor = 2.0, 4.0
-        >>> model.get_precipitation_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_precipitation_v1(0))
         2.0
-        >>> model.get_precipitation_v1(1)
+        >>> round_(model.get_precipitation_v1(1))
         4.0
     """
 
@@ -7053,9 +7060,10 @@ class Get_InterceptedWater_V1(modeltools.Method):
         >>> parameterstep()
         >>> nhru(2)
         >>> states.inzp = 2.0, 4.0
-        >>> model.get_interceptedwater_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_interceptedwater_v1(0))
         2.0
-        >>> model.get_interceptedwater_v1(1)
+        >>> round_(model.get_interceptedwater_v1(1))
         4.0
     """
 
@@ -7077,9 +7085,10 @@ class Get_SoilWater_V1(modeltools.Method):
         >>> parameterstep()
         >>> nhru(2)
         >>> states.bowa = 2.0, 4.0
-        >>> model.get_soilwater_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_soilwater_v1(0))
         2.0
-        >>> model.get_soilwater_v1(1)
+        >>> round_(model.get_soilwater_v1(1))
         4.0
     """
 
@@ -7131,11 +7140,11 @@ class Get_SnowyCanopy_V1(modeltools.Method):
         >>> nhru(4)
         >>> lnk(LAUBW, MISCHW, NADELW, ACKER)
         >>> states.stinz = 0.0
-        >>> from hydpy import print_values
-        >>> print_values(model.get_snowycanopy_v1(i) for i in range(4))
+        >>> from hydpy import print_vector
+        >>> print_vector(model.get_snowycanopy_v1(i) for i in range(4))
         0.0, 0.0, 0.0, nan
         >>> states.stinz = 0.1
-        >>> print_values(model.get_snowycanopy_v1(i) for i in range(4))
+        >>> print_vector(model.get_snowycanopy_v1(i) for i in range(4))
         1.0, 1.0, 1.0, nan
     """
 
@@ -7161,9 +7170,10 @@ class Get_SnowAlbedo_V1(modeltools.Method):
         >>> parameterstep()
         >>> nhru(2)
         >>> fluxes.actualalbedo = 2.0, 4.0
-        >>> model.get_snowalbedo_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_snowalbedo_v1(0))
         2.0
-        >>> model.get_snowalbedo_v1(1)
+        >>> round_(model.get_snowalbedo_v1(1))
         4.0
     """
 
@@ -7196,7 +7206,10 @@ class PegasusTempSSurface(roottools.Pegasus):
 
 
 class Model(modeltools.AdHocModel):
-    """Base model for HydPy-L-Land."""
+    """|lland.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="L")
+    __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = (Pick_QZ_V1,)
     RECEIVER_METHODS = ()
@@ -7346,8 +7359,8 @@ class Model(modeltools.AdHocModel):
 
 
 class Main_RadiationModel_V1(modeltools.AdHocModel):
-    """Base class for HydPy-L models that support submodels that comply with the
-    |RadiationModel_V1| interface."""
+    """Base class for |lland.DOCNAME.long| models that support submodels that comply
+    with the |RadiationModel_V1| interface."""
 
     radiationmodel: modeltools.SubmodelProperty
     radiationmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -7357,20 +7370,16 @@ class Main_RadiationModel_V1(modeltools.AdHocModel):
         "radiationmodel", radiationinterfaces.RadiationModel_V1
     )
     def add_radiationmodel_v1(
-        self,
-        radiationmodel: radiationinterfaces.RadiationModel_V1,
-        /,
-        *,
-        refresh: bool,  # pylint: disable=unused-argument
+        self, radiationmodel: radiationinterfaces.RadiationModel_V1, /, *, refresh: bool
     ) -> None:
         """Add the given radiation model that follows the |RadiationModel_V1|
         interface.
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
-        >>> from hydpy.models.lland_v3 import *
+        >>> from hydpy.models.lland_knauf import *
         >>> parameterstep()
-        >>> with model.add_radiationmodel_v1("meteo_v004"):
+        >>> with model.add_radiationmodel_v1("meteo_sun_morsim"):
         ...     latitude(50.0)
         >>> model.radiationmodel.parameters.control.latitude
         latitude(50.0)
@@ -7378,8 +7387,8 @@ class Main_RadiationModel_V1(modeltools.AdHocModel):
 
 
 class Main_RadiationModel_V4(modeltools.AdHocModel):
-    """Base class for HydPy-Evap models that support submodels that comply with the
-    |RadiationModel_V4| interface."""
+    """Base class for |lland.DOCNAME.long| models that support submodels that comply
+    with the |RadiationModel_V4| interface."""
 
     radiationmodel: modeltools.SubmodelProperty
     radiationmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -7389,18 +7398,14 @@ class Main_RadiationModel_V4(modeltools.AdHocModel):
         "radiationmodel", radiationinterfaces.RadiationModel_V4
     )
     def add_radiationmodel_v4(
-        self,
-        radiationmodel: radiationinterfaces.RadiationModel_V4,
-        /,
-        *,
-        refresh: bool,  # pylint: disable=unused-argument
+        self, radiationmodel: radiationinterfaces.RadiationModel_V4, /, *, refresh: bool
     ) -> None:
         """Add the given radiation model that follows the |RadiationModel_V4|
         interface.
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
-        >>> from hydpy.models.lland_v3 import *
+        >>> from hydpy.models.lland_knauf import *
         >>> parameterstep()
         >>> with model.add_radiationmodel_v4("meteo_psun_sun_glob_io"):
         ...     inputs.globalradiation = 100.0
@@ -7425,7 +7430,7 @@ class _Main_AETModel_V1(modeltools.AdHocModel):
         aetmodel.prepare_subareas(control.fhru.values * control.ft.value)
         aetmodel.prepare_leafareaindex(control.lai.values)
         aetmodel.prepare_maxsoilwater(control.wmax.values)
-        sel = numpy.full(nhru, False, dtype=bool)
+        sel = numpy.full(nhru, False, dtype=config.NP_BOOL)
         sel[lnk == WASSER] = True
         sel[lnk == FLUSS] = True
         sel[lnk == SEE] = True
@@ -7436,7 +7441,7 @@ class _Main_AETModel_V1(modeltools.AdHocModel):
         sel[lnk == BODEN] = True
         sel[lnk == GLETS] = True
         aetmodel.prepare_plant(~sel)
-        sel = numpy.full(nhru, False, dtype=bool)
+        sel = numpy.full(nhru, False, dtype=config.NP_BOOL)
         sel[lnk == NADELW] = True
         aetmodel.prepare_conifer(sel)
         sel[lnk == LAUBW] = True
@@ -7445,9 +7450,9 @@ class _Main_AETModel_V1(modeltools.AdHocModel):
 
 
 class Main_AETModel_V1A(_Main_AETModel_V1):
-    """Base class for HydPy-L models that support submodels that comply with the
-    |AETModel_V1| interface and cannot provide information on the measuring height of
-    wind speed."""
+    """Base class for |lland.DOCNAME.long| models that support submodels that comply
+    with the |AETModel_V1| interface and cannot provide information on the measuring
+    height of wind speed."""
 
     @importtools.prepare_submodel(
         "aetmodel",
@@ -7480,7 +7485,7 @@ class Main_AETModel_V1A(_Main_AETModel_V1):
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
-        >>> from hydpy.models.lland_v1 import *
+        >>> from hydpy.models.lland_dd import *
         >>> parameterstep()
         >>> nhru(9)
         >>> ft(10.0)
@@ -7490,7 +7495,7 @@ class Main_AETModel_V1A(_Main_AETModel_V1):
         >>> lai.acker_jan = 2.0
         >>> lai.laubw_dec = 3.0
         >>> wmax(50.0)
-        >>> with model.add_aetmodel_v1("evap_morsim"):
+        >>> with model.add_aetmodel_v1("evap_aet_morsim"):
         ...     nmbhru
         ...     hrutype
         ...     water
@@ -7552,9 +7557,9 @@ glets=1.1)
 
 
 class Main_AETModel_V1B(_Main_AETModel_V1):
-    """Base class for HydPy-L models that support submodels that comply with the
-    |AETModel_V1| interface and can provide information on the measuring height of
-    wind speed."""
+    """Base class for |lland.DOCNAME.long| models that support submodels that comply
+    with the |AETModel_V1| interface and can provide information on the measuring
+    height of wind speed."""
 
     @importtools.prepare_submodel(
         "aetmodel",
@@ -7588,7 +7593,7 @@ class Main_AETModel_V1B(_Main_AETModel_V1):
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
-        >>> from hydpy.models.lland_v3 import *
+        >>> from hydpy.models.lland_knauf import *
         >>> parameterstep()
         >>> nhru(2)
         >>> ft(10.0)
@@ -7597,7 +7602,7 @@ class Main_AETModel_V1B(_Main_AETModel_V1):
         >>> measuringheightwindspeed(10.0)
         >>> lai(1.0)
         >>> wmax(50.0)
-        >>> with model.add_aetmodel_v1("evap_morsim"):
+        >>> with model.add_aetmodel_v1("evap_aet_morsim"):
         ...     nmbhru
         ...     hrutype
         ...     measuringheightwindspeed
@@ -7612,8 +7617,8 @@ class Main_AETModel_V1B(_Main_AETModel_V1):
 
 
 class Main_SoilModel_V1(modeltools.AdHocModel):
-    """Base class for HydPy-L models that support submodels that comply with the
-    |SoilModel_V1| interface."""
+    """Base class for |lland.DOCNAME.long| models that support submodels that comply
+    with the |SoilModel_V1| interface."""
 
     soilmodel: modeltools.SubmodelProperty
     soilmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -7633,7 +7638,7 @@ class Main_SoilModel_V1(modeltools.AdHocModel):
     ) -> None:
         """Initialise the given soil model that follows the |SoilModel_V1| interface.
 
-        >>> from hydpy.models.lland_v1 import *
+        >>> from hydpy.models.lland_dd import *
         >>> parameterstep()
         >>> nhru(2)
         >>> ft(10.0)
@@ -7649,37 +7654,37 @@ class Main_SoilModel_V1(modeltools.AdHocModel):
 
 
 class Sub_TempModel_V1(modeltools.AdHocModel, tempinterfaces.TempModel_V1):
-    """Base class for HydPy-L models that comply with the |TempModel_V1| submodel
-    interface."""
+    """Base class for |lland.DOCNAME.long| models that comply with the |TempModel_V1|
+    submodel interface."""
 
 
 class Sub_PrecipModel_V1(modeltools.AdHocModel, precipinterfaces.PrecipModel_V1):
-    """Base class for HydPy-L models that comply with the |PrecipModel_V1| submodel
-    interface."""
+    """Base class for |lland.DOCNAME.long| models that comply with the |PrecipModel_V1|
+    submodel interface."""
 
 
 class Sub_IntercModel_V1(modeltools.AdHocModel, stateinterfaces.IntercModel_V1):
-    """Base class for HydPy-L models that comply with the |IntercModel_V1| submodel
-    interface."""
+    """Base class for |lland.DOCNAME.long| models that comply with the |IntercModel_V1|
+    submodel interface."""
 
 
 class Sub_SoilWaterModel_V1(modeltools.AdHocModel, stateinterfaces.SoilWaterModel_V1):
-    """Base class for HydPy-L models that comply with the |SoilWaterModel_V1| submodel
-    interface."""
+    """Base class for |lland.DOCNAME.long| models that comply with the
+    |SoilWaterModel_V1| submodel interface."""
 
 
 class Sub_SnowCoverModel_V1(modeltools.AdHocModel, stateinterfaces.SnowCoverModel_V1):
-    """Base class for HydPy-L models that comply with the |SnowCoverModel_V1| submodel
-    interface."""
+    """Base class for |lland.DOCNAME.long| models that comply with the
+    |SnowCoverModel_V1| submodel interface."""
 
 
 class Sub_SnowyCanopyModel_V1(
     modeltools.AdHocModel, stateinterfaces.SnowyCanopyModel_V1
 ):
-    """Base class for HydPy-L models that comply with the |SnowyCanopyModel_V1|
-    submodel interface."""
+    """Base class for |lland.DOCNAME.long| models that comply with the
+    |SnowyCanopyModel_V1| submodel interface."""
 
 
 class Sub_SnowAlbedoModel_V1(modeltools.AdHocModel, stateinterfaces.SnowAlbedoModel_V1):
-    """Base class for HydPy-L models that comply with the |SnowAlbedoModel_V1| submodel
-    interface."""
+    """Base class for |lland.DOCNAME.long| models that comply with the
+    |SnowAlbedoModel_V1| submodel interface."""

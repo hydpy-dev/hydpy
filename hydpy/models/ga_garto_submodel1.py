@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """
 .. _`issue 91`: https://github.com/hydpy-dev/hydpy/issues/91
@@ -9,11 +8,12 @@ how the main model calls the different interface methods.  |ga_garto_submodel1| 
 first submodel implemented into the *HydPy* framework.  Hence, we discussed its
 development extensively in `issue 91`.  For concrete application examples and further
 information, see the documentation of method |lland_model.Calc_BoWa_SoilModel_V1| and
-the integration tests :ref:`lland_v1_acker_garto` of application model |lland_v1| and
-:ref:`lland_v3_acker_heavy_garto_daily` of application model |lland_v3|.
+the integration tests :ref:`lland_dd_acker_garto` of application model |lland_dd| and
+:ref:`lland_knauf_acker_heavy_garto_daily` of application model |lland_knauf|.
 """
 # import...
 # ...from HydPy
+from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 
 # ...from ga
@@ -25,8 +25,16 @@ ADDITIONAL_CONTROLPARAMETERS = (ga_control.NmbSoils,)
 
 
 class Model(ga_model.Base_SoilModel_V1):
-    """The GARTO algorithm (assuming a hydrostatic groundwater table), implemented as
-    a submodel meeting the requirements of the |SoilModel_V1| interface."""
+    """|ga_garto_submodel1.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="GA-GARTO-Sub1",
+        description=(
+            "submodel for calculating the Green-Ampt / Talbot-Ogden infiltration with "
+            "redistribution"
+        ),
+    )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

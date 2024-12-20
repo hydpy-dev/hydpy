@@ -27,29 +27,15 @@ Baden-Württemberg) and the HYDRON GmbH.  Some other parts of *HydPy-L* have bee
 programmed more independently and were incorporated into the original LARSIM
 implementation later.
 
-
-*HydPy-L* includes two different base models:
-
-.. toctree::
-   :maxdepth: 1
-
-   lland (L-Land) <lland>
-   lstream (L-Stream) <lstream>
-
-
-So far, we compiled the following application models:
+Available models:
 
 .. toctree::
    :maxdepth: 1
 
-   lland_v1 (degree day) <lland_v1>
-   lland_v3 (Knauf) <lland_v3>
-   lland_v4 (Knauf, snow interception) <lland_v4>
-   lstream_v001 (kinematic wave, Manning-Strickler) <lstream_v001>
-   lstream_v002 (kinematic wave, external rating curve) <lstream_v002>
-
-These application models are stand-alone models.  You can combine them freely with all
-other models implemented in *HydPy*.
+   lland
+   lland_dd
+   lland_knauf
+   lland_knauf_ic
 
 For reasons of consistency with the original LARSIM implementation, the names of all
 parameter and sequence classes are German terms and abbreviations.  Additionally, the

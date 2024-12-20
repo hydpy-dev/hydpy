@@ -1,4 +1,5 @@
 venv*
+.venv*
 extra_python_sources/*
 extra_wheel_sources/*
 .nox*
@@ -48,3 +49,4 @@ make_hydpy_installer.cfg
 lib/*
 temp/*
 hydpy/docs/bibliography/refs.bib.bak
+hydpy/docs/html_/plotly.min.js

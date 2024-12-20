@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -377,7 +376,8 @@ at least one cycle: (1, 4), (4, 5), and (5, 1).
         if len(idxs):
             dg = networkx.DiGraph(zip(idxs, jdxs))
             try:
-                first_cycle = networkx.find_cycle(dg)
+                repr_tuple = objecttools.repr_tuple
+                first_cycle = (repr_tuple(c) for c in networkx.find_cycle(dg))
                 raise RuntimeError(
                     f"The weighting factors of parameter "
                     f"{objecttools.elementphrase(sred)} define at least one cycle: "
@@ -400,7 +400,7 @@ class SRedEnd(parametertools.Parameter):
     def update(self) -> None:
         """Update the dead-end flags based on parameter |SRedOrder|.
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> parameterstep("1d")
         >>> nmbzones(6)
         >>> derived.sredorder.shape = 9, 2

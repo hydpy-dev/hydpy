@@ -10,7 +10,9 @@ class ANN:
     outputs: VectorFloat
     output_derivatives: VectorFloat
     def calculate_values(self) -> None: ...
-    def calculate_derivatives(self, __idx_input: int) -> None: ...
+    def calculate_derivatives(  # pylint: disable=unused-argument
+        self, idx: int, /
+    ) -> None: ...
     # algorithm-specific requirements:
     nmb_layers: int
     nmb_neurons: VectorInt

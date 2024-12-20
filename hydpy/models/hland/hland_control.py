@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 .. _`issue 67`: https://github.com/hydpy-dev/hydpy/issues/67
 """
+
 # import...
 # from standard library
 from __future__ import annotations
@@ -12,6 +12,7 @@ import warnings
 import numpy
 
 # ...from HydPy
+from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
@@ -188,8 +189,9 @@ class ZoneType(parametertools.NameParameter):
     >>> parameterstep("1d")
     >>> nmbzones(6)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, FIELD)
-    >>> zonetype.values
-    array([1, 2, 3, 4, 4, 1])
+    >>> from hydpy import print_vector
+    >>> print_vector(zonetype.values)
+    1, 2, 3, 4, 4, 1
     >>> zonetype
     zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, FIELD)
     """
@@ -345,12 +347,12 @@ class SFDist(parametertools.Parameter):
     cases of one to five snow classes, and prints the respective snow class-specific
     factors:
 
-    >>> from hydpy import print_values
+    >>> from hydpy import print_vector
     >>> def test(**kwargs):
     ...     for nmb in range(1, 6):
     ...         sclass(nmb)
     ...         sfdist(**kwargs)
-    ...         print_values(sfdist.values)
+    ...         print_vector(sfdist.values)
 
     The first available keyword is `linear`.  Using it, |SFDist| calculates its factors
     in agreement with the original *HBV96* implementation.  For the lowest possible
@@ -450,9 +452,7 @@ arguments are given, which is ambiguous.
 
     def __call__(self, *args, **kwargs) -> None:
         sclass = self.shape[0]
-        idx = self._find_kwargscombination(
-            args, kwargs, (set(("linear",)), set(("lognormal",)))
-        )
+        idx = self._find_kwargscombination(args, kwargs, ({"linear"}, {"lognormal"}))
         if idx is None:
             super().__call__(*args, **kwargs)
         elif idx == 0:
@@ -462,7 +462,7 @@ arguments are given, which is ambiguous.
         self.value /= sum(self.value) / sclass
 
     @staticmethod
-    @functools.lru_cache()
+    @functools.lru_cache
     def _linear(factor, sclass):
         if sclass == 1:
             values = (1.0,)
@@ -473,9 +473,9 @@ arguments are given, which is ambiguous.
         return values
 
     @staticmethod
-    @functools.lru_cache()
+    @functools.lru_cache
     def _lognormal(sclass, scale: float) -> VectorFloat:
-        values = numpy.ones(sclass, dtype=float)
+        values = numpy.ones(sclass, dtype=config.NP_FLOAT)
         if scale > 0.0:
             for idx in range(sclass):
                 values[idx] = integrate.quad(
@@ -884,7 +884,7 @@ arguments are given, which is ambiguous.
         types_ = self.subpars.zonetype.value
         zonez = self.subpars.zonez.value
         zonez_sorted = numpy.sort(numpy.unique(zonez))[::-1]
-        values = numpy.zeros((nmbzones, nmbzones), dtype=float)
+        values = numpy.zeros((nmbzones, nmbzones), dtype=config.NP_FLOAT)
         zonez_min = numpy.min(zonez)
         for idx, (z_upper, type_, nzone) in enumerate(zip(zonez, types_, nzones)):
             if (type_ != ILAKE) and (z_upper > zonez_min):

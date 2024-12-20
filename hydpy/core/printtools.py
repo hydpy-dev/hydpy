@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module implements features for printing additional information and for
 modifying how information is printed."""
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -215,7 +215,7 @@ def progressbar(iterable: Iterable[T], length: int = 23) -> Iterator[T]:
             temp_stdout.close()
             sys.stdout = real_stdout
             print()
-            with open(temp_name, "r", encoding=config.ENCODING) as temp_stdout:
+            with open(temp_name, encoding=config.ENCODING) as temp_stdout:
                 sys.stdout.write(temp_stdout.read())
             sys.stdout.flush()
     else:

@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module implements statistical functionalities frequently used in hydrological
 modelling."""
+
 # import...
 # ...from standard library
 import abc
@@ -13,6 +13,7 @@ import numpy
 
 # ...from HydPy
 import hydpy
+from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import devicetools
 from hydpy.core import objecttools
@@ -73,13 +74,13 @@ def filter_series(*, node: devicetools.Node, months: Iterable[int]) -> SimObs:
 @objecttools.excmessage_decorator("filter the given series")
 def filter_series(
     *,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
-    date_ranges: Optional[
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
+    date_ranges: None | (
         Iterable[tuple[timetools.DateConstrArg, timetools.DateConstrArg]]
-    ] = None,
-    months: Optional[Iterable[int]] = None,
+    ) = None,
+    months: Iterable[int] | None = None,
 ) -> SimObs:
     """Filter time series for the given date ranges or months.
 
@@ -299,11 +300,11 @@ given.
 
 def prepare_arrays(
     *,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
+    subperiod: bool | None = None,
 ) -> SimObs:
     """Prepare and return two |numpy| arrays based on the given arguments.
 
@@ -506,11 +507,11 @@ def rmse(
 @objecttools.excmessage_decorator("calculate the root-mean-square error")
 def rmse(
     *,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
+    subperiod: bool | None = None,
 ) -> float:
     """Calculate the root-mean-square error.
 
@@ -551,11 +552,11 @@ def nse(
 @objecttools.excmessage_decorator("calculate the Nash-Sutcliffe efficiency")
 def nse(
     *,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
+    subperiod: bool | None = None,
 ) -> float:
     """Calculate the efficiency criteria after Nash & Sutcliffe.
 
@@ -614,11 +615,11 @@ def nse_log(
 @objecttools.excmessage_decorator("calculate the log-Nash-Sutcliffe efficiency")
 def nse_log(
     *,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
+    subperiod: bool | None = None,
 ) -> float:
     """Calculate the efficiency criteria after Nash & Sutcliffe for logarithmic values.
 
@@ -677,11 +678,11 @@ def corr2(
 @objecttools.excmessage_decorator("calculate the R²-Error")
 def corr2(
     *,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
+    subperiod: bool | None = None,
 ) -> float:
     """Calculate the coefficient of determination via the square of the coefficient of
     correlation according to Bravais-Pearson.
@@ -743,11 +744,11 @@ def kge(
 @objecttools.excmessage_decorator("calculate the Kling-Gupta-Efficiency")
 def kge(
     *,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
+    subperiod: bool | None = None,
 ) -> float:
     """Calculate the Kling-Gupta efficiency according to :cite:t:`ref-Kling2012`.
 
@@ -808,11 +809,11 @@ def bias_abs(
 @objecttools.excmessage_decorator("calculate the absolute bias")
 def bias_abs(
     *,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
+    subperiod: bool | None = None,
 ) -> float:
     """Calculate the absolute difference between the means of the simulated and the
     observed values.
@@ -856,11 +857,11 @@ def bias_rel(
 @objecttools.excmessage_decorator("calculate the relative bias")
 def bias_rel(
     *,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
+    subperiod: bool | None = None,
 ) -> float:
     """Calculate the relative difference between the means of the simulated and the
     observed values.
@@ -904,11 +905,11 @@ def std_ratio(
 @objecttools.excmessage_decorator("calculate the standard deviation ratio")
 def std_ratio(
     *,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
+    subperiod: bool | None = None,
 ) -> float:
     """Calculate the ratio between the standard deviation of the simulated and the
     observed values.
@@ -952,11 +953,11 @@ def var_ratio(
 @objecttools.excmessage_decorator("calculate the variation coefficient ratio")
 def var_ratio(
     *,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
+    subperiod: bool | None = None,
 ) -> float:
     """Calculate the ratio between the variation coefficients of the simulated and the
     observed values.
@@ -1002,11 +1003,11 @@ def corr(
 @objecttools.excmessage_decorator("calculate the Pearson correlation coefficient")
 def corr(
     *,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
+    subperiod: bool | None = None,
 ) -> float:
     """Calculate the product-moment correlation coefficient after Pearson.
 
@@ -1091,11 +1092,11 @@ def hsepd_pdf(
     sigma2: float,
     xi: float,
     beta: float,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
+    subperiod: bool | None = None,
 ) -> VectorFloat:
     """Calculate the probability densities based on the heteroskedastic skewed
     exponential power distribution.
@@ -1212,6 +1213,7 @@ def hsepd_pdf(
 
 
 def _hsepd_manual(
+    *,
     sigma1: float,
     sigma2: float,
     xi: float,
@@ -1273,11 +1275,11 @@ def hsepd_manual(
     sigma2: float,
     xi: float,
     beta: float,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
+    subperiod: bool | None = None,
 ) -> float:
     """Calculate the mean of the logarithmic probability densities of the
     heteroskedastic skewed exponential power distribution.
@@ -1329,7 +1331,7 @@ def hsepd(
     obs: VectorInputFloat,
     skip_nan: bool = False,
     subperiod: bool = False,
-    inits: Optional[Iterable[float]] = None,
+    inits: Iterable[float] | None = None,
     return_pars: Literal[False] = ...,
     silent: bool = True,
 ) -> float:
@@ -1343,7 +1345,7 @@ def hsepd(
     obs: VectorInputFloat,
     skip_nan: bool = False,
     subperiod: bool = False,
-    inits: Optional[Iterable[float]] = None,
+    inits: Iterable[float] | None = None,
     return_pars: Literal[True],
     silent: bool = True,
 ) -> tuple[float, tuple[float, float, float, float]]:
@@ -1356,7 +1358,7 @@ def hsepd(
     node: devicetools.Node,
     skip_nan: bool = False,
     subperiod: bool = True,
-    inits: Optional[Iterable[float]] = None,
+    inits: Iterable[float] | None = None,
     return_pars: Literal[False] = ...,
     silent: bool = True,
 ) -> float:
@@ -1369,7 +1371,7 @@ def hsepd(
     node: devicetools.Node,
     skip_nan: bool = False,
     subperiod: bool = True,
-    inits: Optional[Iterable[float]] = None,
+    inits: Iterable[float] | None = None,
     return_pars: Literal[True],
     silent: bool = True,
 ) -> tuple[float, tuple[float, float, float, float]]:
@@ -1381,15 +1383,15 @@ def hsepd(
 )
 def hsepd(
     *,
-    sim: Optional[VectorInputFloat] = None,
-    obs: Optional[VectorInputFloat] = None,
-    node: Optional[devicetools.Node] = None,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
     skip_nan: bool = False,
-    subperiod: Optional[bool] = None,
-    inits: Optional[Iterable[float]] = None,
+    subperiod: bool | None = None,
+    inits: Iterable[float] | None = None,
     return_pars: bool = False,
     silent: bool = True,
-) -> Union[float, tuple[float, tuple[float, float, float, float]]]:
+) -> float | tuple[float, tuple[float, float, float, float]]:
     """Calculate the mean of the logarithmic probability densities of the
     heteroskedastic skewed exponential power distribution.
 
@@ -1486,7 +1488,14 @@ def hsepd(
     )
     constrained_values = constrain(*original_values)
     result = _hsepd_manual(
-        *constrained_values, sim=sim_, obs=obs_, skip_nan=False, subperiod=False
+        sigma1=constrained_values[0],
+        sigma2=constrained_values[1],
+        xi=constrained_values[2],
+        beta=constrained_values[3],
+        sim=sim_,
+        obs=obs_,
+        skip_nan=False,
+        subperiod=False,
     )
     if return_pars:
         return result, constrained_values
@@ -1534,7 +1543,7 @@ occurred: For the following objects, at least one value is negative: weights.
 def calc_mean_time_deviation(
     timepoints: VectorInputFloat,
     weights: VectorInputFloat,
-    mean_time: Optional[float] = None,
+    mean_time: float | None = None,
 ) -> float:
     """Return the weighted deviation of the given timepoints from their mean time.
 
@@ -1588,7 +1597,7 @@ def calc_weights(nodes: Collection[devicetools.Node]) -> dict[devicetools.Node, 
     """Calculate "statistical" weights for all given nodes based on the number of
     observations within the evaluation period.
 
-    >>> from hydpy import calc_weights, nan, Node, print_values, pub
+    >>> from hydpy import calc_weights, nan, Node, print_vector, pub
     >>> pub.timegrids = "01.01.2000", "04.01.2000", "1d"
     >>> test1, test2 = Node("test1"), Node("test2")
     >>> test1.prepare_obsseries()
@@ -1597,21 +1606,21 @@ def calc_weights(nodes: Collection[devicetools.Node]) -> dict[devicetools.Node, 
     >>> with pub.options.checkseries(False):
     ...     test2.sequences.obs.series = 3.0, nan, 1.0
 
-    >>> print_values(calc_weights((test1, test2)).values())
+    >>> print_vector(calc_weights((test1, test2)).values())
     0.6, 0.4
 
     >>> pub.timegrids.eval_.lastdate = "03.01.2000"
-    >>> print_values(calc_weights((test1, test2)).values())
+    >>> print_vector(calc_weights((test1, test2)).values())
     0.666667, 0.333333
 
     >>> pub.timegrids.eval_.firstdate = "02.01.2000"
-    >>> print_values(calc_weights((test1, test2)).values())
+    >>> print_vector(calc_weights((test1, test2)).values())
     1.0, 0.0
 
-    >>> print_values(calc_weights((test1,)).values())
+    >>> print_vector(calc_weights((test1,)).values())
     1.0
 
-    >>> print_values(calc_weights((test2,)).values())
+    >>> print_vector(calc_weights((test2,)).values())
     Traceback (most recent call last):
     ...
     RuntimeError: None of the given nodes (test2) provides any observation values for \
@@ -1643,7 +1652,7 @@ class SummaryRow(abc.ABC):
     (non-weighted) averages.  You only need to pass the name and the node objects
     relevant for the corresponding row for initialising:
 
-    >>> from hydpy import Nodes, print_values, SummaryRowSimple
+    >>> from hydpy import Nodes, print_vector, SummaryRowSimple
     >>> n1, n2, n3 = Nodes("n1", "n2", "n3")
     >>> s = SummaryRowSimple("s", (n1, n2))
 
@@ -1652,19 +1661,19 @@ class SummaryRow(abc.ABC):
     |print_evaluationtable| and the |SummaryRow| instance are identical,
     |SummaryRowSimple| just calculates the average for each criterion:
 
-    >>> print_values(s.summarise_criteria(2, {n1: [1.0, 2.0], n2: [3.0, 6.0]}))
+    >>> print_vector(s.summarise_criteria(2, {n1: [1.0, 2.0], n2: [3.0, 6.0]}))
     2.0, 4.0
 
     Nodes passed to |print_evaluationtable| but not to |SummaryRow| are considered
     irrelevant for the corresponding row and thus not taken into account for averaging:
 
-    >>> print_values(s.summarise_criteria(1, {n1: [1.0], n2: [3.0], n3: [5.0]}))
+    >>> print_vector(s.summarise_criteria(1, {n1: [1.0], n2: [3.0], n3: [5.0]}))
     2.0
 
     If the |SummaryRow| instance expects a node not passed to |print_evaluationtable|,
     it raises the following error:
 
-    >>> print_values(s.summarise_criteria(1, {n1: [1.0]}))
+    >>> print_vector(s.summarise_criteria(1, {n1: [1.0]}))
     Traceback (most recent call last):
     ...
     RuntimeError: While trying to calculate the values of row `s` based on class \
@@ -1741,7 +1750,7 @@ class SummaryRowWeighted(SummaryRow):
     First, we prepare two nodes.  `n1` provides a complete and `n2` provides an
     incomplete observation time series:
 
-    >>> from hydpy import print_values, pub, Node, nan
+    >>> from hydpy import print_vector, pub, Node, nan
     >>> pub.timegrids = "2000-01-01", "2000-01-04", "1d"
     >>> n1, n2 = Node("n1"), Node("n2")
     >>> n1.prepare_obsseries()
@@ -1754,7 +1763,7 @@ class SummaryRowWeighted(SummaryRow):
     completeness of the observation series is irrelevant:
 
     >>> sumrow = SummaryRowWeighted("sumrow", (n1, n2), (0.1, 0.9))
-    >>> print_values(sumrow.summarise_criteria(2, {n1: [-1.0, 2.0], n2: [1.0, 6.0]}))
+    >>> print_vector(sumrow.summarise_criteria(2, {n1: [-1.0, 2.0], n2: [1.0, 6.0]}))
     0.8, 5.6
 
     If we do not pass any weights, |SummaryRowWeighted| determines them automatically
@@ -1762,14 +1771,14 @@ class SummaryRowWeighted(SummaryRow):
     |calc_weights|:
 
     >>> sumrow = SummaryRowWeighted("sumrow", (n1, n2))
-    >>> print_values(sumrow.summarise_criteria(2, {n1: [-1.0, 2.0], n2: [1.0, 6.0]}))
+    >>> print_vector(sumrow.summarise_criteria(2, {n1: [-1.0, 2.0], n2: [1.0, 6.0]}))
     -0.2, 3.6
 
     |SummaryRowWeighted| reuses the internally calculated weights but updates them when
     the evaluation time grid changes in the meantime:
 
     >>> pub.timegrids.eval_.firstdate = "2000-01-02"
-    >>> print_values(sumrow.summarise_criteria(2, {n1: [-1.0, 2.0], n2: [1.0, 6.0]}))
+    >>> print_vector(sumrow.summarise_criteria(2, {n1: [-1.0, 2.0], n2: [1.0, 6.0]}))
     -0.333333, 3.333333
 
     |nan| values calculated for individual nodes due to completely missing observations
@@ -1778,7 +1787,7 @@ class SummaryRowWeighted(SummaryRow):
     should):
 
     >>> pub.timegrids.eval_.lastdate = "2000-01-03"
-    >>> print_values(sumrow.summarise_criteria(2, {n1: [-1.0, 2.0], n2: [nan, nan]}))
+    >>> print_vector(sumrow.summarise_criteria(2, {n1: [-1.0, 2.0], n2: [nan, nan]}))
     -1.0, 2.0
     """
 
@@ -1790,7 +1799,7 @@ class SummaryRowWeighted(SummaryRow):
         self,
         name: str,
         nodes: Collection[devicetools.Node],
-        weights: Optional[Collection[float]] = None,
+        weights: Collection[float] | None = None,
     ) -> None:
         super().__init__(name=name, nodes=nodes)
         self._nodes = tuple(nodes)
@@ -1819,8 +1828,8 @@ def print_evaluationtable(
     *,
     nodes: Collection[devicetools.Node],
     criteria: Collection[Criterion],
-    nodenames: Optional[Collection[str]] = None,
-    critnames: Optional[Collection[str]] = None,
+    nodenames: Collection[str] | None = None,
+    critnames: Collection[str] | None = None,
     critfactors: Collection1[float] = 1.0,
     critdigits: Collection1[int] = 2,
     subperiod: bool = True,
@@ -1830,7 +1839,7 @@ def print_evaluationtable(
     filter_: float = 0.0,
     missingvalue: str = "-",
     decimalseperator: str = ".",
-    file_: Optional[Union[str, TextIO]] = None,
+    file_: str | TextIO | None = None,
 ) -> None: ...
 
 
@@ -1839,8 +1848,8 @@ def print_evaluationtable(
     *,
     nodes: Collection[devicetools.Node],
     criteria: Collection[Criterion],
-    nodenames: Optional[Collection[str]] = None,
-    critnames: Optional[Collection[str]] = None,
+    nodenames: Collection[str] | None = None,
+    critnames: Collection[str] | None = None,
     critfactors: Collection1[float] = 1.0,
     critdigits: Collection1[int] = 2,
     subperiod: bool = True,
@@ -1849,10 +1858,10 @@ def print_evaluationtable(
     summaryrows: Collection[SummaryRow] = (),
     filter_: float = 0.0,
     stepsize: Literal["daily", "d", "monthly", "m"] = "daily",
-    aggregator: Union[str, Callable[[VectorInputFloat], float]] = "mean",
+    aggregator: str | Callable[[VectorInputFloat], float] = "mean",
     missingvalue: str = "-",
     decimalseperator: str = ".",
-    file_: Optional[Union[str, TextIO]] = None,
+    file_: str | TextIO | None = None,
 ) -> None: ...
 
 
@@ -1863,8 +1872,8 @@ def print_evaluationtable(
     *,
     nodes: Collection[devicetools.Node],
     criteria: Collection[Criterion],
-    nodenames: Optional[Collection[str]] = None,
-    critnames: Optional[Collection[str]] = None,
+    nodenames: Collection[str] | None = None,
+    critnames: Collection[str] | None = None,
     critfactors: Collection1[float] = 1.0,
     critdigits: Collection1[int] = 2,
     subperiod: bool = True,
@@ -1872,11 +1881,11 @@ def print_evaluationtable(
     averagename: str = "mean",
     summaryrows: Collection[SummaryRow] = (),
     filter_: float = 0.0,
-    stepsize: Optional[Literal["daily", "d", "monthly", "m"]] = None,
-    aggregator: Union[str, Callable[[VectorInputFloat], float]] = "mean",
+    stepsize: Literal["daily", "d", "monthly", "m"] | None = None,
+    aggregator: str | Callable[[VectorInputFloat], float] = "mean",
     missingvalue: str = "-",
     decimalseperator: str = ".",
-    file_: Optional[Union[str, TextIO]] = None,
+    file_: str | TextIO | None = None,
 ) -> None:
     """Print a table containing the results of the given evaluation criteria for the
     given |Node| objects.
@@ -2064,8 +2073,8 @@ number of given alternative names being 1.
         critdigits = len(criteria) * (critdigits,)
     formats = tuple(f"%.{d}f" for d in critdigits)
     node2values: collections.defaultdict[devicetools.Node, list[float]]
-    node2values = collections.defaultdict(lambda: [])
-    data = numpy.empty((len(nodes), len(criteria)), dtype=float)
+    node2values = collections.defaultdict(list)
+    data = numpy.empty((len(nodes), len(criteria)), dtype=config.NP_FLOAT)
     for idx, node in enumerate(nodes):
         if stepsize is not None:
             sim = seriestools.aggregate_series(

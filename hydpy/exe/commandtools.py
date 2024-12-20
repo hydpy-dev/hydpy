@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module implements some main features for using *HydPy* from your command line
 tools via script |hyd|."""
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -38,7 +38,7 @@ def run_subprocess(
 
 def run_subprocess(
     command: str, *, verbose: bool = True, blocking: bool = True
-) -> Union[subprocess.CompletedProcess[str], subprocess.Popen[str]]:
+) -> subprocess.CompletedProcess[str] | subprocess.Popen[str]:
     """Execute the given command in a new process.
 
     Only when both `verbose` and `blocking` are |True|, |run_subprocess| prints all
@@ -71,8 +71,7 @@ def run_subprocess(
     if blocking:
         result1 = subprocess.run(
             command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             encoding="utf-8",
             shell=True,
             check=False,
@@ -414,7 +413,7 @@ def _activate_logfile(
         sys.stderr = sys.__stderr__
 
 
-def execute_scriptfunction() -> Optional[int]:
+def execute_scriptfunction() -> int | None:
     """Execute a HydPy script function.
 
     Function |execute_scriptfunction| is indirectly applied and explained in the
@@ -422,6 +421,7 @@ def execute_scriptfunction() -> Optional[int]:
     """
     logstyle = "plain"
     logfilepath = prepare_logfile("stdout")
+    errorstyle = "multiline"
     try:
         args_given = []
         kwargs_given = {}
@@ -436,6 +436,14 @@ def execute_scriptfunction() -> Optional[int]:
                     kwargs_given[result[0]] = result[1]
         logfilepath = prepare_logfile(kwargs_given.pop("logfile", "stdout"))
         logstyle = kwargs_given.pop("logstyle", "plain")
+        errorstyle = kwargs_given.pop("errorstyle", "multiline")
+        if errorstyle not in ("multiline", "single_line", "splittable"):
+            errorstyle, errorstyle_ = "multiline", errorstyle
+            raise ValueError(
+                f"The given error message style `{errorstyle_}` is not available.  "
+                f"Please choose one of the following: `multiline`, `single_line`, "
+                f"and `splittable`."
+            ) from None
         try:
             funcname = str(args_given.pop(0))
         except IndexError:
@@ -485,24 +493,48 @@ def execute_scriptfunction() -> Optional[int]:
         with _activate_logfile(logfilepath, logstyle, "info", "warning"):
             return func(*args_given, **kwargs_given)
     except BaseException as exc:
-        if logstyle not in LogFileInterface.style2infotype2string:
-            logstyle = "plain"
-        with _activate_logfile(logfilepath, logstyle, "exception", "exception"):
-            args = sys.argv[1:]
-            nmb = len(args)
-            if nmb > 1:
-                argphrase = f"with arguments `{', '.join(args)}`"
-            elif nmb == 1:
-                argphrase = f"with argument `{args[0]}`"
-            else:
-                argphrase = "without arguments"
-            print(
-                f"Invoking hyd.py {argphrase} resulted in the following error:\n"
-                f"{str(exc)}\n\nSee the following stack traceback for debugging:\n",
-                file=sys.stderr,
-            )
-            traceback.print_tb(sys.exc_info()[2])
+        _print_error(
+            exc=exc, logfilepath=logfilepath, logstyle=logstyle, errorstyle=errorstyle
+        )
         return 1
+
+
+def _print_error(
+    *, exc: BaseException, logfilepath: str, logstyle: str, errorstyle: str
+) -> None:
+
+    if logstyle not in LogFileInterface.style2infotype2string:
+        logstyle = "plain"
+
+    with _activate_logfile(logfilepath, logstyle, "exception", "exception"):
+
+        args = sys.argv[1:]
+        if (nmb := len(args)) > 1:
+            argphrase = f"with arguments `{', '.join(args)}`"
+        elif nmb == 1:
+            argphrase = f"with argument `{args[0]}`"
+        else:
+            argphrase = "without arguments"
+
+        sep = "\n" if errorstyle == "multiline" else "__hydpy_newline__"
+        message = (
+            f"Invoking hyd.py {argphrase} resulted in the following error:"
+            f"{' ' if errorstyle == 'single_line' else sep}"
+            f"{str(exc)}"
+        )
+        if errorstyle != "single_line":
+            traceback_ = "".join(traceback.format_tb(sys.exc_info()[2]))
+            if errorstyle == "splittable":
+                traceback_ = traceback_.replace("\n", sep)
+            message = (
+                f"{message}{sep}{sep}"
+                f"See the following stack traceback for debugging:{sep}"
+                f"{traceback_}"
+            )
+        if errorstyle == "splittable":
+            message = message.replace("\n", "__hydpy_newline__")
+
+        print(message, file=sys.stderr)
 
 
 class LogFileInterface:
@@ -568,7 +600,7 @@ class LogFileInterface:
         return getattr(self.logfile, name)
 
 
-def parse_argument(string: str) -> Union[str, tuple[str, str]]:
+def parse_argument(string: str) -> str | tuple[str, str]:
     """Return a single value for a string understood as a positional argument or a
     |tuple| containing a keyword and its value for a string understood as a keyword
     argument.

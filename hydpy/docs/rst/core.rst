@@ -4,57 +4,45 @@
 Core Tools
 ==========
 
-The core subpackage of *HydPy* essentially defines how models can
-and should be programmed, documented and applied.  As can be seen in
-the side-bar, the list of modules contained in the core subpackage
-is quite large.  The following paragraphs try to give some hints to
-novices, which basic aspects of using *HydPy* are related with
-which module.
+The `core` subpackage of HydPy essentially defines how models can and should be
+programmed, documented and applied.  As can be seen in the sidebar, the list of modules
+contained in the core subpackage is quite extensive.  The following paragraphs explain
+which central aspects of using HydPy are related to which module.
 
-Module |hydpytools| provides the |HydPy| class.  The main purpose
-of this class is to help users accomplish possibly complex things via
-a simple interface.  Very often, you will only need to initialize an
-|HydPy| object and to call its methods in order to e.g. load all input
-data, perform a simulation run, and to store the relevant results.
-So trying to get an overview of the methods of class |HydPy| is generally
-a good idea.
+Module |hydpytools| provides the |HydPy| class.  This class aims to help users
+accomplish complex things via a simple interface.  Very often, you will only need to
+initialise an |HydPy| object and call its methods to, for example, load all input data,
+perform a simulation run, and store the relevant results.  So, getting an overview of
+the methods of class |HydPy| is generally a good idea.
 
-The documentation on module |filetools| describes the standard
-directory structure of *HydPy* projects.  Module |filetools|
-offers some flexibility in adjusting this project structure to your
-needs.  Also, it is responsible for many aspects of loading data from
-files and storing data to files.  It is supplemented by module
-|netcdftools| for reading data from and storing data to NetCDF files.
+Module |filetools| defines the standard directory structure of HydPy projects and its
+possible modifications.  Also, it is responsible for many aspects of loading data from
+files and storing data in files.  It is supplemented by module |netcdftools| for
+reading data from and storing data to NetCDF files.
 
-*HydPy* represents the network of a river basin via connected
-objects of the classes |Node| and |Element|.  These are defined in module
-|devicetools|. It is often helpful to define subsets of networks, which
-is provided by module |selectiontools|.  In this context, reading the
-documentation on module |networktools| could also be of interest, as it
-implements strategies to define *HydPy* networks in large basins.
+HydPy represents the network of a river basin via connected objects of the classes
+|Node| and |Element|, defined in module |devicetools|.  It is often helpful to create
+subsets of networks named "selections", for which module |selectiontools| provides some
+convenient features.  (In this context, reading the documentation on module
+|networktools| might also be interesting, as this module implements strategies to
+derive networks for large basins.)
 
-The actual data to run a certain model is handled in `control files`
-(containing parameter values), `condition files` (containing state
-conditions) and `sequence files` (containing input or output time
-series).  Modules |parametertools| and |sequencetools| provide
-features to handle these different kinds of data.
+The modules |modeltools|, |parametertools|, and |sequencetools| form the basis for
+programming models.  While |modeltools| focuses on the more general aspects,
+|parametertools|, and |sequencetools| cover the more specific topics of implementing
+model parameters and sequences.
 
-Module |timetools| provides the |Timegrids| class, of which an object
-needs to be stored in the "global information" module |pub|.  Use this
-|Timegrids| object to define the time period for  which data shall be
-initialized and the time period for which one simulation (or multiple
-simulations) shall be performed.
 
-The other modules serve more special purposes.  If you are thinking
-about adding new code to *HydPy* or changing existing one, you
-should read the documentation of some other modules as well.
-|autodoctools| provides features for automatically generating this
-online documentation.  Modules |testtools| provides features for
-testing new code (or old code, that has not been covered by the
-existing tests so far).  Module |objecttools| (need to be refactored)
-provides very different kinds of features to simplify and standardize
-writing *HydPy* code.
+Module |timetools| provides multiple classes that wrap the "date and time"
+functionalities of the Python standard library to simplify and standardise the related
+operations (which are prone to hard-to-detect errors) in workflow scripts.
 
+If you are thinking about contributing to HydPy's source code, you should also read the
+documentation of some other modules.  Then, essential are |autodoctools| (deals with
+automatised generation of this online documentation), |testtools| (provides features
+for automatised testing via doctests), |objecttools| (contains different kinds of
+features to simplify and standardise writing HydPy code), and |typingtools| (makes
+general and HydPy-specific type hint features available).
 
 .. toctree::
    :hidden:

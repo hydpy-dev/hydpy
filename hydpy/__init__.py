@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=wrong-import-position
 # due to using the HydPy class `OptionalImports` for importing site-packages
 """
@@ -35,10 +34,12 @@ from hydpy.core.auxfiletools import Auxfiler
 from hydpy.core.devicetools import Element, Elements, FusedVariable, Node, Nodes
 from hydpy.core.exceptiontools import AttributeNotReady, attrready, getattr_, hasattr_
 from hydpy.core.exceptiontools import HydPyDeprecationWarning
+from hydpy.core.filetools import check_projectstructure, create_projectstructure
 from hydpy.core.hydpytools import HydPy
 from hydpy.core.importtools import prepare_model, reverse_model_wildcard_import
 from hydpy.core.itemtools import AddItem, GetItem, MultiplyItem, SetItem
-from hydpy.core.objecttools import classname, print_values, round_, repr_
+from hydpy.core.netcdftools import summarise_ncfile
+from hydpy.core.objecttools import classname, print_matrix, print_vector, round_, repr_
 from hydpy.core.parametertools import KeywordArguments
 from hydpy.core.selectiontools import Selection, Selections
 from hydpy.core.seriestools import aggregate_series
@@ -102,7 +103,6 @@ from hydpy.auxs.statstools import (
     SummaryRowWeighted,
     var_ratio,
 )
-from hydpy.auxs.xmltools import XMLInterface, run_simulation
 from hydpy.exe.commandtools import (
     exec_commands,
     exec_script,
@@ -114,9 +114,10 @@ from hydpy.exe.commandtools import (
 )
 from hydpy.exe.replacetools import xml_replace
 from hydpy.exe.servertools import await_server, start_server
+from hydpy.exe.xmltools import XMLInterface, run_simulation, xml_validate
 
 
-__version__ = "6.0a0"
+__version__ = "6.2dev0"
 
 pub.options = optiontools.Options()
 pub.indexer = indextools.Indexer()
@@ -130,6 +131,7 @@ pub.scriptfunctions["run_simulation"] = run_simulation
 pub.scriptfunctions["start_shell"] = start_shell
 pub.scriptfunctions["start_server"] = start_server
 pub.scriptfunctions["xml_replace"] = xml_replace
+pub.scriptfunctions["xml_validate"] = xml_validate
 
 __all__ = [
     "config",
@@ -145,6 +147,8 @@ __all__ = [
     "getattr_",
     "hasattr_",
     "HydPyDeprecationWarning",
+    "check_projectstructure",
+    "create_projectstructure",
     "HydPy",
     "prepare_model",
     "reverse_model_wildcard_import",
@@ -152,8 +156,10 @@ __all__ = [
     "GetItem",
     "MultiplyItem",
     "SetItem",
-    "print_values",
+    "summarise_ncfile",
     "classname",
+    "print_matrix",
+    "print_vector",
     "repr_",
     "round_",
     "KeywordArguments",
@@ -223,6 +229,7 @@ __all__ = [
     "var_ratio",
     "XMLInterface",
     "run_simulation",
+    "xml_validate",
     "exec_commands",
     "exec_script",
     "execute_scriptfunction",
@@ -256,7 +263,6 @@ if config.USEAUTODOC:
                         f"{subpackage.__name__}.{filename[:-3]}"
                     )
                     autodoctools.autodoc_module(module)
-        autodoctools.autodoc_module(importlib.import_module("hydpy.examples"))
         modelpath: str = models.__path__[0]
         for filename in sorted(os.listdir(modelpath)):
             path = os.path.join(modelpath, filename)

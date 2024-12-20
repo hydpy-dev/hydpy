@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
-"""Submodel for reading the current snow albedo.
-
+"""
 |dummy_snowalbedo| merely serves testing purposes.  We use it, for example, to perform
-the integration tests for submodels like |evap_morsim| without the need to couple them
-to complex main models like |lland_v3| for providing snow albedo data.
+the integration tests for submodels like |evap_aet_morsim| without the need to couple
+them to complex main models like |lland_knauf| for providing snow albedo data.
 
 Integration test
 ================
@@ -51,7 +49,13 @@ ADDITIONAL_CONTROLPARAMETERS = (dummy_control.NmbZones,)
 
 
 class Model(modeltools.AdHocModel, stateinterfaces.SnowAlbedoModel_V1):
-    """Model for reading the current snow albedo from files."""
+    """|dummy_snowalbedo.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Dummy-SnowAlbedo",
+        description="dummy model supplying main models with snow albedo states",
+    )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

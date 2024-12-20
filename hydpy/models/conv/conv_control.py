@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -6,7 +5,9 @@
 import numpy
 
 # ...from HydPy
+from hydpy import config
 from hydpy.core import devicetools
+from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 
@@ -34,11 +35,12 @@ variable `inputcoordinates` can only be retrieved after it has been defined.
     values.  Use keyword arguments to define the names of the relevant
     input nodes as well as their coordinates:
 
+    >>> from hydpy import print_matrix
     >>> inputcoordinates(in1=(1.0, 3.0))
     >>> inputcoordinates
     inputcoordinates(in1=(1.0, 3.0))
-    >>> inputcoordinates.values
-    array([[1., 3.]])
+    >>> print_matrix(inputcoordinates.values)
+    | 1.0, 3.0 |
 
     Defining new coordinates removes the old ones:
 
@@ -49,10 +51,10 @@ variable `inputcoordinates` can only be retrieved after it has been defined.
     inputcoordinates(in2=(2.0, 4.0),
                      in0=(3.0, 5.0),
                      in3=(4.0, 6.0))
-    >>> inputcoordinates.values
-    array([[2., 4.],
-           [3., 5.],
-           [4., 6.]])
+    >>> print_matrix(inputcoordinates.values)
+    | 2.0, 4.0 |
+    | 3.0, 5.0 |
+    | 4.0, 6.0 |
 
     You are free to change individual coordinate values (the rows of the
     data array contain the different value pairs; the row order
@@ -82,7 +84,7 @@ Node("in3", variable="Q"))
 
     def __call__(self, *args, **kwargs) -> None:
         nodes = []
-        coordinates = numpy.empty((len(kwargs), 2), dtype=float)
+        coordinates = numpy.empty((len(kwargs), 2), dtype=config.NP_FLOAT)
         for idx, (name, values) in enumerate(kwargs.items()):
             nodes.append(devicetools.Node(name))
             coordinates[idx, :] = values
@@ -96,7 +98,7 @@ Node("in3", variable="Q"))
         lines = []
         if self.nodes:
             for idx, node in enumerate(self.nodes):
-                entry = f"{node.name}={tuple(self.values[idx, :])}"
+                entry = f"{node.name}={objecttools.repr_tuple(self.values[idx, :])}"
                 if not idx:
                     lines.append(f"{prefix}{entry}")
                 else:
@@ -140,11 +142,12 @@ variable `inputheights` can only be retrieved after it has been defined.
     Use keyword arguments to define the names of the relevant input nodes
     as well as their heights:
 
+    >>> from hydpy import print_vector
     >>> inputheights(in1=1.0)
     >>> inputheights
     inputheights(in1=1.0)
-    >>> inputheights.values
-    array([1.])
+    >>> print_vector(inputheights.values)
+    1.0
 
     Defining new heights removes the old ones:
 
@@ -155,8 +158,8 @@ variable `inputheights` can only be retrieved after it has been defined.
     inputheights(in2=2.0,
                  in0=3.0,
                  in3=4.0)
-    >>> inputheights.values
-    array([2., 3., 4.])
+    >>> print_vector(inputheights.values)
+    2.0, 3.0, 4.0
 
     You are free to change individual height values (the row order corresponds
     to the definition order when "calling" the parameter):
@@ -185,7 +188,7 @@ Node("in3", variable="Q"))
 
     def __call__(self, *args, **kwargs) -> None:
         nodes = []
-        heights = numpy.empty(len(kwargs), dtype=float)
+        heights = numpy.empty(len(kwargs), dtype=config.NP_FLOAT)
         for idx, (name, value) in enumerate(kwargs.items()):
             nodes.append(devicetools.Node(name))
             heights[idx] = value

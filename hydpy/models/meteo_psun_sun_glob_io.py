@@ -1,9 +1,5 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
-"""Submodel for reading possible sunshine duration, sunshine duration, and global
-radiation data.
-
-Use |meteo_psun_sun_glob_io| as a submodel for supplying (relative) main models like
+"""Use |meteo_psun_sun_glob_io| as a submodel to supply (relative) main models like
 |evap_pet_ambav1| with externally available clear-sky solar radiation and global
 radiation time series.
 
@@ -58,8 +54,15 @@ from hydpy.models.meteo import meteo_model
 
 
 class Model(modeltools.AdHocModel, radiationinterfaces.RadiationModel_V4):
-    """Possible sunshine duration, actual sunshine duration, and global radiation
-    reader version of HydPy-Meteo."""
+    """|meteo_psun_sun_glob_io.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="Meteo-PSun-Sun-Glob-IO",
+        description=(
+            "external possible and actual sunshine duration and global radiation data"
+        ),
+    )
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

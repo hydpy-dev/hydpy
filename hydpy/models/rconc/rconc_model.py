@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 # imports...
 # ...from standard library
@@ -235,7 +234,10 @@ class Get_Outflow_V1(modeltools.Method):
 
 
 class Model(modeltools.AdHocModel):
-    """The HydPy-Rconc base model."""
+    """|rconc.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="Rconc")
+    __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

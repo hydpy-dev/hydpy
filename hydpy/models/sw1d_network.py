@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
-The *HydPy-SW1D* model family member |sw1d_network| allows combining different
+The |sw1d.DOCNAME.long| model family member |sw1d_network| allows combining different
 storage and routing submodels for representing the 1-dimensional flow processes within
 a complete channel network.
 
@@ -63,19 +62,23 @@ elements:
 ...     for i, length_ in enumerate(lengths):
 ...         with channel.add_storagemodel_v1(sw1d_storage, position=i):
 ...             length(length_)
-...             bottomlevel(5.0)
-...             bottomwidth(5.0)
-...             sideslope(0.0)
+...             with model.add_crosssection_v2("wq_trapeze"):
+...                 nmbtrapezes(1)
+...                 bottomlevels(5.0)
+...                 bottomwidths(5.0)
+...                 sideslopes(0.0)
 ...     for i in range(1, 5 if element is channel1a else 4):
 ...         with channel.add_routingmodel_v2(sw1d_lias, position=i):
 ...             lengthupstream(2.0 if i % 2 else 3.0)
 ...             lengthdownstream(3.0 if i % 2 else 2.0)
-...             bottomlevel(5.0)
-...             bottomwidth(5.0)
-...             sideslope(0.0)
 ...             stricklercoefficient(1.0/0.03)
 ...             timestepfactor(0.7)
 ...             diffusionfactor(0.2)
+...             with model.add_crosssection_v2("wq_trapeze"):
+...                 nmbtrapezes(1)
+...                 bottomlevels(5.0)
+...                 bottomwidths(5.0)
+...                 sideslopes(0.0)
 ...     element.model = channel
 
 The following test function object finds all nodes and elements automatically upon
@@ -93,8 +96,9 @@ discharge to zero:
 ...     for name, h in name2depth.items():
 ...         e = Element(name)
 ...         for s in e.model.storagemodels:
-...             c = s.parameters.control
-...             v = h * c.bottomwidth * c.length
+...             length = s.parameters.control.length
+...             c = s.crosssection.parameters.control
+...             v = h * (c.bottomwidths[0] + h * c.sideslopes[0]) * length
 ...             inits.append((s.sequences.states.watervolume, v))
 ...         for r in e.model.routingmodels:
 ...             if r is not None:
@@ -208,10 +212,12 @@ model:
 >>> from hydpy.models import sw1d_q_in
 >>> with channel1a.model.add_routingmodel_v1(sw1d_q_in, position=0):
 ...     lengthdownstream(2.0)
-...     bottomlevel(5.0)
-...     bottomwidth(5.0)
-...     sideslope(0.0)
 ...     timestepfactor(0.7)
+...     with model.add_crosssection_v2("wq_trapeze"):
+...         nmbtrapezes(1)
+...         bottomlevels(5.0)
+...         bottomwidths(5.0)
+...         sideslopes(0.0)
 >>> channel1a.model.connect()
 
 And we add an identical |sw1d_weir_out| submodel at the outflow position of the lower
@@ -323,10 +329,10 @@ the junction (`channel2`) has a width of 10 m:
 
 >>> for element, width in ([channel1a, 8.0], [channel2, 10.0]):
 ...     for storagemodel in element.model.storagemodels:
-...         storagemodel.parameters.control.bottomwidth(width)
+...         storagemodel.crosssection.parameters.control.bottomwidths(width)
 ...     for routingmodel in element.model.routingmodels:
 ...         if isinstance(routingmodel, (sw1d_lias.Model, sw1d_q_in.Model)):
-...             routingmodel.parameters.control.bottomwidth(width)
+...             routingmodel.crosssection.parameters.control.bottomwidths(width)
 
 The new 10 km long side channel also consists of four segments but is only 2 m wide:
 
@@ -335,18 +341,22 @@ The new 10 km long side channel also consists of four segments but is only 2 m w
 >>> for i, length_ in enumerate(lengths[:4]):
 ...     with channel.add_storagemodel_v1(sw1d_storage, position=i):
 ...         length(length_)
-...         bottomlevel(5.0)
-...         bottomwidth(2.0)
-...         sideslope(0.0)
+...         with model.add_crosssection_v2("wq_trapeze"):
+...             nmbtrapezes(1)
+...             bottomlevels(5.0)
+...             bottomwidths(2.0)
+...             sideslopes(0.0)
 
 It receives a separate inflow via another |sw1d_q_in| instance:
 
 >>> with channel.add_routingmodel_v1(sw1d_q_in, position=0):
 ...     lengthdownstream(2.0)
-...     bottomlevel(5.0)
-...     bottomwidth(2.0)
-...     sideslope(0.0)
 ...     timestepfactor(0.7)
+...     with model.add_crosssection_v2("wq_trapeze"):
+...         nmbtrapezes(1)
+...         bottomlevels(5.0)
+...         bottomwidths(2.0)
+...         sideslopes(0.0)
 
 We add |sw1d_lias| models for all other possible positions, including the last one:
 
@@ -354,12 +364,14 @@ We add |sw1d_lias| models for all other possible positions, including the last o
 ...     with channel.add_routingmodel_v2(sw1d_lias, position=i):
 ...         lengthupstream(2.0 if i % 2 else 3.0)
 ...         lengthdownstream(3.0 if i % 2 else 2.0)
-...         bottomlevel(5.0)
-...         bottomwidth(2.0)
-...         sideslope(0.0)
 ...         stricklercoefficient(1.0/0.03)
 ...         timestepfactor(0.7)
 ...         diffusionfactor(0.2)
+...         with model.add_crosssection_v2("wq_trapeze"):
+...             nmbtrapezes(1)
+...             bottomlevels(5.0)
+...             bottomwidths(2.0)
+...             sideslopes(0.0)
 
 So, now the |sw1d_channel| models of the elements `channel1a` and `channel1b` have
 routing models at their outflow locations, and the one of element `channel2` does not
@@ -512,10 +524,13 @@ functionally nearly identical to |sw1d_q_in| but to be placed at outlet location
 >>> from hydpy.models import sw1d_q_out
 >>> with channel2.model.add_routingmodel_v3(sw1d_q_out, position=4):
 ...     lengthupstream(2.0)
-...     bottomlevel(5.0)
-...     bottomwidth(5.0)
-...     sideslope(0.0)
 ...     timestepfactor(0.7)
+...     with model.add_crosssection_v2("wq_trapeze"):
+...         nmbtrapezes(1)
+...         bottomlevels(5.0)
+...         bottomwidths(5.0)
+...         sideslopes(0.0)
+
 >>> channel2.model.connect()
 
 We set the initial conditions as in the :ref:`sw1d_network_confluences` example:
@@ -630,7 +645,7 @@ from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core.typingtools import *
 from hydpy.exe.modelimports import *
-from hydpy.interfaces import channelinterfaces
+from hydpy.interfaces import routinginterfaces
 
 # ...from sw1d
 from hydpy.models.sw1d import sw1d_model
@@ -641,8 +656,16 @@ ADDITIONAL_DERIVEDPARAMETERS = (sw1d_derived.Seconds,)
 
 
 class Model(modeltools.SubstepModel):
-    """A "composite model" for solving the 1-dimensional shallow water equations in
-    complex channel networks."""
+    """|sw1d_network.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="SW1D-Network",
+        description=(
+            '"composite model" for solving the 1-dimensional shallow water equations '
+            "in channel networks"
+        ),
+    )
+    __HYDPY_ROOTMODEL__ = None
 
     COMPOSITE = True
     """|sw1d_network| is a composite model.  (One usually only works with it 
@@ -662,20 +685,20 @@ class Model(modeltools.SubstepModel):
     OUTLET_METHODS = (sw1d_model.Trigger_Postprocessing_V1,)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (
-        channelinterfaces.RoutingModel_V1,
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.RoutingModel_V3,
-        channelinterfaces.StorageModel_V1,
-        channelinterfaces.ChannelModel_V1,
+        routinginterfaces.RoutingModel_V1,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V3,
+        routinginterfaces.StorageModel_V1,
+        routinginterfaces.ChannelModel_V1,
     )
     SUBMODELS = ()
 
-    channelmodels = modeltools.SubmodelsProperty(channelinterfaces.ChannelModel_V1)
-    storagemodels = modeltools.SubmodelsProperty(channelinterfaces.StorageModel_V1)
+    channelmodels = modeltools.SubmodelsProperty(routinginterfaces.ChannelModel_V1)
+    storagemodels = modeltools.SubmodelsProperty(routinginterfaces.StorageModel_V1)
     routingmodels = modeltools.SubmodelsProperty(
-        channelinterfaces.RoutingModel_V1,
-        channelinterfaces.RoutingModel_V2,
-        channelinterfaces.RoutingModel_V3,
+        routinginterfaces.RoutingModel_V1,
+        routinginterfaces.RoutingModel_V2,
+        routinginterfaces.RoutingModel_V3,
     )
 
     def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
@@ -710,16 +733,16 @@ class Model(modeltools.SubstepModel):
               more general solution when we implement incompatible models.
         """
 
-        r1 = channelinterfaces.RoutingModel_V1
-        r3 = channelinterfaces.RoutingModel_V3
-        r2 = channelinterfaces.RoutingModel_V2
-        v2 = channelinterfaces.ChannelModel_V1
+        r1 = routinginterfaces.RoutingModel_V1
+        r3 = routinginterfaces.RoutingModel_V3
+        r2 = routinginterfaces.RoutingModel_V2
+        v2 = routinginterfaces.ChannelModel_V1
 
         secs = self.parameters.derived.seconds.value
         volume_old, volume_new, latflow = 0.0, 0.0, 0.0
         inflow, outflow = 0.0, 0.0
-        for name, model in self.find_submodels().items():
-            if isinstance(model, channelinterfaces.StorageModel_V1):
+        for name, model in self.find_submodels(include_subsubmodels=False).items():
+            if isinstance(model, routinginterfaces.StorageModel_V1):
                 wv = initial_conditions[name]["states"]["watervolume"]
                 assert isinstance(wv, float)
                 volume_old += 1000.0 * wv
@@ -1013,10 +1036,10 @@ connected to `sw1d_storage` of element `e3a` and `sw1d_storage` of element `e3b`
     """
     # pylint: disable=too-many-nested-blocks,too-many-branches,too-many-statements
 
-    c1 = channelinterfaces.ChannelModel_V1
-    r1 = channelinterfaces.RoutingModel_V1
-    r2 = channelinterfaces.RoutingModel_V2
-    r3 = channelinterfaces.RoutingModel_V3
+    c1 = routinginterfaces.ChannelModel_V1
+    r1 = routinginterfaces.RoutingModel_V1
+    r2 = routinginterfaces.RoutingModel_V2
+    r3 = routinginterfaces.RoutingModel_V3
     network = importtools.prepare_model("sw1d_network")
     assert isinstance(network, Model)
     channelmodels = network.channelmodels

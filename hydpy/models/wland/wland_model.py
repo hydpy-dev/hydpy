@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 .. _`Pegasus method`: https://link.springer.com/article/10.1007/BF01932959
 """
@@ -8,6 +7,7 @@
 import numpy
 
 # ...from HydPy
+from hydpy import config
 from hydpy.core import importtools
 from hydpy.core import exceptiontools
 from hydpy.core import modeltools
@@ -47,7 +47,7 @@ class Pick_HS_V1(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.wland_v001 import *
+        >>> from hydpy.models.wland_wag import *
         >>> parameterstep()
 
         Without an available submodel, |Pick_HS_V1| does not change the current value
@@ -241,9 +241,9 @@ class Calc_PE_PET_PETModel_V1(modeltools.Method):
 
     Example:
 
-        We use |evap_tw2002| as an example:
+        We use |evap_ret_tw2002| as an example:
 
-        >>> from hydpy.models.wland_v001 import *
+        >>> from hydpy.models.wland_wag import *
         >>> parameterstep()
         >>> nu(4)
         >>> at(1.0)
@@ -251,7 +251,7 @@ class Calc_PE_PET_PETModel_V1(modeltools.Method):
         >>> lt(FIELD, FIELD, FIELD, WATER)
         >>> derived.nul.update()
         >>> from hydpy import prepare_model
-        >>> with model.add_petmodel_v1("evap_tw2002"):
+        >>> with model.add_petmodel_v1("evap_ret_tw2002"):
         ...     hrualtitude(200.0, 600.0, 1000.0, 100.0)
         ...     coastfactor(0.6)
         ...     evapotranspirationfactor(1.1)
@@ -294,7 +294,7 @@ class Calc_PE_PET_PETModel_V2(modeltools.Method):
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-08-01", "2000-08-02", "1d"
-        >>> from hydpy.models.wland_v001 import *
+        >>> from hydpy.models.wland_wag import *
         >>> parameterstep("1h")
         >>> nu(3)
         >>> at(1.0)
@@ -2712,7 +2712,7 @@ class Calc_RH_V1(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.wland_v001 import *
+        >>> from hydpy.models.wland_wag import *
         >>> simulationstep("12h")
         >>> parameterstep("1d")
 
@@ -2730,14 +2730,14 @@ class Calc_RH_V1(modeltools.Method):
         >>> fluxes.rh
         rh(0.92)
 
-        We use |q_walrus|, which implements WALRUS' standard approach for calculating
+        We use |wq_walrus|, which implements WALRUS' standard approach for calculating
         |RH|, to demonstrate that |Calc_RH_V1| correctly uses submodels that follow the
         |DischargeModel_V2| interface:
 
         >>> sh(0.1)
         >>> states.hs(3000.0)
         >>> derived.cd(5000.0)
-        >>> with model.add_dischargemodel_v2("q_walrus"):
+        >>> with model.add_dischargemodel_v2("wq_walrus"):
         ...     crestheight(2.0)
         ...     bankfulldischarge(2.0)
         ...     dischargeexponent(2.0)
@@ -3266,7 +3266,10 @@ class QuadDVEq_V2(quadtools.Quad):
 
 
 class Model(modeltools.ELSModel):
-    """The *HydPy-W-Land* model."""
+    """|wland.DOCNAME.complete|"""
+
+    DOCNAME = modeltools.DocName(short="W")
+    __HYDPY_ROOTMODEL__ = None
 
     SOLVERPARAMETERS = (
         wland_solver.AbsErrorMax,
@@ -3356,7 +3359,7 @@ class Model(modeltools.ELSModel):
 
 
 class BaseModel(modeltools.ELSModel):
-    """Base model for |wland_v001| and |wland_v002|."""
+    """Base model for |wland_wag| and |wland_gd|."""
 
     def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
         r"""Determine the water balance error of the previous simulation run in mm.
@@ -3390,7 +3393,7 @@ class BaseModel(modeltools.ELSModel):
 
         Pick the required initial conditions before starting the simulation via
         property |Sequences.conditions|.  See the integration tests of the application
-        model |wland_v001| for some examples.
+        model |wland_wag| for some examples.
         """
         control = self.parameters.control
         derived = self.parameters.derived
@@ -3427,8 +3430,8 @@ class BaseModel(modeltools.ELSModel):
 
 
 class Main_PETModel_V1(modeltools.ELSModel):
-    """Base class for HydPy-W models that use submodels that comply with the
-    |PETModel_V1| interface."""
+    """Base class for |wland.DOCNAME.long| models that use submodels that comply with
+    the |PETModel_V1| interface."""
 
     petmodel: modeltools.SubmodelProperty
     petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -3453,13 +3456,13 @@ class Main_PETModel_V1(modeltools.ELSModel):
     ) -> None:
         """Initialise the given `petmodel` that follows the |PETModel_V1| interface.
 
-        >>> from hydpy.models.wland_v001 import *
+        >>> from hydpy.models.wland_wag import *
         >>> parameterstep()
         >>> nu(3)
         >>> at(10.0)
         >>> aur(0.5, 0.3, 0.2)
         >>> lt(FIELD, TREES, WATER)
-        >>> with model.add_petmodel_v1("evap_tw2002"):
+        >>> with model.add_petmodel_v1("evap_ret_tw2002"):
         ...     nmbhru
         ...     hruarea
         ...     evapotranspirationfactor(field=1.0, trees=2.0, water=1.5)
@@ -3483,8 +3486,8 @@ class Main_PETModel_V1(modeltools.ELSModel):
 
 
 class Main_PETModel_V2(modeltools.ELSModel):
-    """Base class for HydPy-W models that use submodels that comply with the
-    |PETModel_V2| interface."""
+    """Base class for |wland.DOCNAME.long| models that use submodels that comply with
+    the |PETModel_V2| interface."""
 
     petmodel: modeltools.SubmodelProperty
     petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -3517,7 +3520,7 @@ class Main_PETModel_V2(modeltools.ELSModel):
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
-        >>> from hydpy.models.wland_v001 import *
+        >>> from hydpy.models.wland_wag import *
         >>> parameterstep()
         >>> nu(12)
         >>> at(10.0)
@@ -3589,7 +3592,7 @@ class Main_PETModel_V2(modeltools.ELSModel):
         petmodel.prepare_zonetypes(lt)
         petmodel.prepare_subareas(control.at.value * control.aur.values)
         petmodel.prepare_leafareaindex(control.lai.values)
-        sel = numpy.full(nu, False, dtype=bool)
+        sel = numpy.full(nu, False, dtype=config.NP_BOOL)
         sel[-1] = True
         petmodel.prepare_water(sel)
         sel = ~sel
@@ -3598,7 +3601,7 @@ class Main_PETModel_V2(modeltools.ELSModel):
         petmodel.prepare_soil(sel)
         sel[lt == SOIL] = False
         petmodel.prepare_plant(sel)
-        sel = numpy.full(nu, False, dtype=bool)
+        sel = numpy.full(nu, False, dtype=config.NP_BOOL)
         sel[lt == CONIFER] = True
         sel[lt == DECIDIOUS] = True
         sel[lt == MIXED] = True
@@ -3606,8 +3609,8 @@ class Main_PETModel_V2(modeltools.ELSModel):
 
 
 class Main_DischargeModel_V2(modeltools.ELSModel):
-    """Base class for HydPy-W models that use submodels that comply with the
-    |DischargeModel_V2| interface."""
+    """Base class for |wland.DOCNAME.long| models that use submodels that comply with
+    the |DischargeModel_V2| interface."""
 
     dischargemodel: modeltools.SubmodelProperty
     dischargemodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -3631,15 +3634,15 @@ class Main_DischargeModel_V2(modeltools.ELSModel):
 
         Note the dependency on the derived parameter |CD|:
 
-        >>> from hydpy.models.wland_v001 import *
+        >>> from hydpy.models.wland_wag import *
         >>> parameterstep()
         >>> sh(10.0)
-        >>> with model.add_dischargemodel_v2("q_walrus", update=False):
+        >>> with model.add_dischargemodel_v2("wq_walrus", update=False):
         ...     pass
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: While trying to add a submodel \
-to the main model `wland_v001`, the following error occurred: While trying to \
+to the main model `wland_wag`, the following error occurred: While trying to \
 determine the missing value of the derived parameter `cd` of element `?`, the \
 following error occurred: While trying to subtract variable `gl` and `BL` instance \
 `bl(?)`, the following error occurred: For variable `bl`, no value has been defined \
@@ -3648,7 +3651,7 @@ so far.
         You can define its value manually for testing:
 
         >>> derived.cd(2000.0)
-        >>> with model.add_dischargemodel_v2("q_walrus", update=False):
+        >>> with model.add_dischargemodel_v2("wq_walrus", update=False):
         ...     channeldepth
         ...     crestheighttolerance
         channeldepth(2.0)
@@ -3665,7 +3668,7 @@ so far.
 
         >>> gl(4.0)
         >>> bl(3.0)
-        >>> with model.add_dischargemodel_v2("q_walrus", update=False):
+        >>> with model.add_dischargemodel_v2("wq_walrus", update=False):
         ...     channeldepth
         ...     crestheighttolerance
         channeldepth(1.0)
@@ -3692,8 +3695,8 @@ so far.
 
 
 class Main_WaterLevelModel_V1(modeltools.ELSModel):
-    """Base class for HydPy-W models that use submodels that comply with the
-    |WaterLevelModel_V1| interface."""
+    """Base class for |wland.DOCNAME.long| models that use submodels that comply with
+    the |WaterLevelModel_V1| interface."""
 
     waterlevelmodel: modeltools.SubmodelProperty
     waterlevelmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -3701,16 +3704,12 @@ class Main_WaterLevelModel_V1(modeltools.ELSModel):
 
     @importtools.prepare_submodel("waterlevelmodel", stateinterfaces.WaterLevelModel_V1)
     def add_waterlevelmodel_v1(
-        self,
-        waterlevelmodel: stateinterfaces.WaterLevelModel_V1,
-        /,
-        *,
-        refresh: bool,  # pylint: disable=unused-argument
+        self, waterlevelmodel: stateinterfaces.WaterLevelModel_V1, /, *, refresh: bool
     ) -> None:
         """Initialise the given `waterlevelmodel` that follows the |WaterLevelModel_V1|
         interface.
 
-        >>> from hydpy.models.wland_v001 import *
+        >>> from hydpy.models.wland_wag import *
         >>> parameterstep()
         >>> from hydpy.models import exch_waterlevel
         >>> with model.add_waterlevelmodel_v1(exch_waterlevel):
@@ -3720,15 +3719,15 @@ class Main_WaterLevelModel_V1(modeltools.ELSModel):
 
 
 class Sub_TempModel_V1(modeltools.ELSModel, tempinterfaces.TempModel_V1):
-    """Base class for HydPy-W models that comply with the |TempModel_V1| submodel
-    interface."""
+    """Base class for |wland.DOCNAME.long| models that comply with the |TempModel_V1|
+    submodel interface."""
 
 
 class Sub_PrecipModel_V1(modeltools.ELSModel, precipinterfaces.PrecipModel_V1):
-    """Base class for HydPy-W models that comply with the |PrecipModel_V1| submodel
-    interface."""
+    """Base class for |wland.DOCNAME.long| models that comply with the |PrecipModel_V1|
+    submodel interface."""
 
 
 class Sub_SnowCoverModel_V1(modeltools.ELSModel, stateinterfaces.SnowCoverModel_V1):
-    """Base class for HydPy-W models that comply with the |SnowCoverModel_V1| submodel
-    interface."""
+    """Base class for |wland.DOCNAME.long| models that comply with the
+    |SnowCoverModel_V1| submodel interface."""

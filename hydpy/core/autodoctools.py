@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module implements tools for increasing the level of automation and
 standardisation of the online documentation generated with Sphinx."""
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -11,6 +11,7 @@ import copy
 import datetime
 import doctest
 import enum
+import functools
 import importlib
 import inspect
 import itertools
@@ -43,7 +44,6 @@ from hydpy import cythons
 from hydpy import exe
 from hydpy import interfaces
 from hydpy import models
-from hydpy import examples
 from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
@@ -307,6 +307,11 @@ def autodoc_basemodel(module: types.ModuleType) -> None:
     namespace["__doc__"] = moduledoc
     basemodule = importlib.import_module(namespace["__name__"])
     substituter.add_module(basemodule)
+    insert_docname_substitutions(
+        module=modules[f"{basemodulename}_model"],
+        name=basemodulename,
+        substituter=substituter,
+    )
     substituter.update_masters()
     namespace["substituter"] = substituter
 
@@ -438,25 +443,80 @@ def autodoc_applicationmodel(module: types.ModuleType) -> None:
     application model and its base model are defined in the conventional way.
     """
     autodoc_tuple2doc(module)
-    name_applicationmodel = module.__name__
-    name_basemodel = name_applicationmodel.split("_")[0]
-    module_basemodel = importlib.import_module(name_basemodel)
+    path_applicationmodel = module.__name__
+    path_basemodel = path_applicationmodel.split("_")[0]
+    module_basemodel = importlib.import_module(path_basemodel)
     substituter = Substituter(module_basemodel.substituter)
     substituter.add_module(module)
+    insert_docname_substitutions(
+        module=module,
+        name=path_applicationmodel.split(".")[-1],
+        substituter=substituter,
+    )
     substituter.update_masters()
     module.substituter = substituter  # type: ignore[attr-defined]
+
+
+def insert_docname_substitutions(
+    module: types.ModuleType, name: str, substituter: Substituter
+) -> None:
+    r"""Insert model-specific substitutions based on the definitions provided by the
+    available |DocName| member.
+
+    >>> from hydpy.core.autodoctools import insert_docname_substitutions, Substituter
+    >>> from hydpy.models import wland_wag
+    >>> substituter = Substituter()
+    >>> insert_docname_substitutions(wland_wag, "wland_wag", substituter)
+    >>> for command in substituter.get_commands().split("\n"):
+    ...     print(command)  # doctest: +ELLIPSIS
+    .. |wland_wag.DOCNAME.complete| replace:: HydPy-W-Wag (extended version ...
+    .. |wland_wag.DOCNAME.description| replace:: extended version ...
+    .. |wland_wag.DOCNAME.family| replace:: HydPy-W
+    .. |wland_wag.DOCNAME.long| replace:: HydPy-W-Wag
+    .. |wland_wag.DOCNAME.short| replace:: W-Wag
+    .. |wland_wag.Model.DOCNAME.complete| replace:: HydPy-W-Wag (extended version ...
+    .. |wland_wag.Model.DOCNAME.description| replace:: extended version ...
+    .. |wland_wag.Model.DOCNAME.family| replace:: HydPy-W
+    .. |wland_wag.Model.DOCNAME.long| replace:: HydPy-W-Wag
+    .. |wland_wag.Model.DOCNAME.short| replace:: W-Wag
+
+    >>> from hydpy.models.wland import wland_model
+    >>> substituter = Substituter()
+    >>> insert_docname_substitutions(wland_model, "wland", substituter)
+    >>> for command in substituter.get_commands().split("\n"):
+    ...     print(command)   # doctest: +ELLIPSIS
+    .. |wland.DOCNAME.complete| replace:: HydPy-W (base model)
+    .. |wland.DOCNAME.description| replace:: base model
+    .. |wland.DOCNAME.family| replace:: HydPy-W
+    .. |wland.DOCNAME.long| replace:: HydPy-W
+    .. |wland.DOCNAME.short| replace:: W
+    .. |wland.Model.DOCNAME.complete| replace:: HydPy-W (base model)
+    .. |wland.Model.DOCNAME.description| replace:: base model
+    .. |wland.Model.DOCNAME.family| replace:: HydPy-W
+    .. |wland.Model.DOCNAME.long| replace:: HydPy-W
+    .. |wland.Model.DOCNAME.short| replace:: W
+    """
+    docname = module.Model.DOCNAME
+    for member in dir(docname):
+        if not (member.startswith("_") or hasattr(tuple, member)):
+            substituter.add_substitution(
+                short=f"|{name}.DOCNAME.{member}|",
+                medium=f"|{name}.Model.DOCNAME.{member}|",
+                long=getattr(docname, member),
+                module=module,
+            )
 
 
 class Substituter:
     """Implements a HydPy specific docstring substitution mechanism."""
 
-    master: Optional[Substituter]
+    master: Substituter | None
     slaves: list[Substituter]
     short2long: dict[str, str]
     short2priority: dict[str, Priority]
     medium2long: dict[str, str]
 
-    def __init__(self, master: Optional[Substituter] = None) -> None:
+    def __init__(self, master: Substituter | None = None) -> None:
         self.master = master
         self.slaves = []
         if master:
@@ -474,8 +534,8 @@ class Substituter:
         name_member: str,
         member: Any,
         module: types.ModuleType,
-        class_: Optional[type[object]] = None,
-        ignore: Optional[dict[str, object]] = None,
+        class_: type[object] | None = None,
+        ignore: dict[str, object] | None = None,
     ) -> bool:
         """Return |True| if the given member should be added to the substitutions.  If
         not, return |False|.
@@ -967,7 +1027,7 @@ class Substituter:
             slave.medium2long.update(self.medium2long)
             slave.update_slaves()
 
-    def get_commands(self, source: Optional[str] = None) -> str:
+    def get_commands(self, source: str | None = None) -> str:
         """Return a string containing multiple `reStructuredText` replacements with the
         substitutions currently defined.
 
@@ -1063,7 +1123,6 @@ def prepare_mainsubstituter() -> Substituter:
         for _, name, _ in pkgutil.iter_modules(subpackage.__path__):
             full_name = subpackage.__name__ + "." + name
             substituter.add_module(importlib.import_module(full_name))
-    substituter.add_module(examples)
     substituter.add_modules(models)
     for cymodule in (
         annutils,
@@ -1211,3 +1270,678 @@ def autodoc_tuple2doc(module: types.ModuleType) -> None:
                         )
                     doc = getattr(member, "__doc__")
                     member.__doc__ = doc + "\n".join(l for l in lst)
+
+
+def _make_cssstyle(
+    *,
+    marginleft: str | None = None,
+    marginbottom: str | None = None,
+    margintop: str | None = None,
+    colour: str | None = None,
+    fontfamily: str | None = None,
+    fontstyle: str | None = None,
+    fontsize: str | None = None,
+) -> str:
+
+    styles = []
+    if marginleft is not None:
+        styles.append(f"margin-left:{marginleft}")
+    if marginbottom is not None:
+        styles.append(f"margin-bottom:{marginbottom}")
+    if margintop is not None:
+        styles.append(f"margin-top:{margintop}")
+    if colour is not None:
+        styles.append(f"color:{colour}")
+    if fontfamily is not None:
+        styles.append(f"font-family:{fontfamily}")
+    if fontstyle is not None:
+        styles.append(f"font-style:{fontstyle}")
+    if fontsize is not None:
+        styles.append(f"font-size:{fontsize}")
+    style = "; ".join(styles)
+    return f'style="{style}"'
+
+
+class Directory(TypedDict):
+    """Helper for representing directory structures."""
+
+    subdirectories: dict[str, Directory]
+    """Mapping between the subdirectory names and the subdirectories of a directory."""
+
+    files: list[str]
+    """The names of all files of a directory."""
+
+
+class ProjectStructure:
+    """Analyser and visualiser of the file structure of HydPy projects."""
+
+    _dirpath: str
+    """Directory path to the HydPy project."""
+    _projectname: str
+    """Directory name of the HydPy project."""
+    _branch: str
+    """The relevant git branch (required to build stable references to the correct 
+    project files on GitHub)."""
+
+    def __init__(self, *, projectpath: str, branch: str) -> None:
+        self._dirpath = projectpath
+        self._projectname = os.path.split(projectpath)[-1]
+        self._branch = branch
+
+    @functools.cached_property
+    def url_prefix(self) -> str:
+        """The base GitHub URL that is common to all project files of the relevant
+        branch.
+
+        >>> import os
+        >>> from hydpy import data
+        >>> projectpath = os.path.join(data.__path__[0], "HydPy-H-Lahn")
+        >>> from hydpy.core.autodoctools import ProjectStructure
+        >>> ProjectStructure(projectpath=projectpath, branch="master").url_prefix
+        'https://github.com/hydpy-dev/hydpy/blob/master/hydpy/data'
+        >>> ProjectStructure(projectpath=projectpath, branch="release/v6.0").url_prefix
+        'https://github.com/hydpy-dev/hydpy/blob/release/v6.0/hydpy/data'
+        """
+
+        return f"https://github.com/hydpy-dev/hydpy/blob/{self._branch}/hydpy/data"
+
+    def _get_filereference(self, url_dirpath: str, filename: str) -> str:
+        url_suffix = "/".join([url_dirpath, filename])
+        return (
+            f"<a "
+            f'class="reference external" '
+            f'href="{self.url_prefix}/{url_suffix}">{filename}'
+            f"</a>"
+        )
+
+    @functools.cached_property
+    def directories(self) -> Directory:
+        """A representation of the project's file structure based on nested |Directory|
+        dictionaries.
+
+        >>> import os
+        >>> from hydpy import data
+        >>> dirpath = os.path.join(data.__path__[0], "HydPy-H-Lahn")
+        >>> from hydpy.core.autodoctools import ProjectStructure
+        >>> pj = ProjectStructure(projectpath=dirpath, branch="master")
+        >>> from pprint import pprint
+        >>> pprint(pj.directories["files"])
+        ['multiple_runs.xml',
+         'multiple_runs_alpha.xml',
+         'single_run.xml',
+         'single_run.xmlt']
+        >>> list(pj.directories["subdirectories"])
+        ['conditions', 'control', 'network', 'series']
+        >>> control = pj.directories["subdirectories"]["control"]
+        >>> pprint(control["subdirectories"]["default"]["files"])
+        ['land.py',
+         'land_dill_assl.py',
+         'land_lahn_kalk.py',
+         'land_lahn_leun.py',
+         'land_lahn_marb.py',
+         'stream_dill_assl_lahn_leun.py',
+         'stream_lahn_leun_lahn_kalk.py',
+         'stream_lahn_marb_lahn_leun.py']
+        >>> pprint(control["subdirectories"]["default"]["subdirectories"])
+        {}
+        """
+
+        def _make_directory(dirpath: str) -> Directory:
+            subdir: Directory = {"subdirectories": {}, "files": []}
+            for name in sorted(os.listdir(dirpath)):
+                if name.startswith("_"):
+                    continue
+                path = os.path.join(dirpath, name)
+                if os.path.isfile(path):
+                    subdir["files"].append(name)
+                else:
+                    subdirpath = os.path.join(dirpath, name)
+                    subdir["subdirectories"][name] = _make_directory(subdirpath)
+            return subdir
+
+        return _make_directory(self._dirpath)
+
+    @functools.cached_property
+    def html(self) -> str:
+        """A representation of the project's file structure based on nested HTML
+        `describe` elements, including inline CSS instructions.
+
+        >>> import os
+        >>> from hydpy import data
+        >>> projectpath = os.path.join(data.__path__[0], "HydPy-H-Lahn")
+        >>> from hydpy.core.autodoctools import ProjectStructure
+        >>> pj = ProjectStructure(projectpath=projectpath, branch="master")
+        >>> print(pj.html)  # doctest: +ELLIPSIS
+        <details style="margin-left:1em; color:#20435c; font-family:'Trebuchet MS'">
+          <summary><b>HydPy-H-Lahn</b></summary>
+          ...
+          <details style="margin-left:1em">
+            <summary><b>control</b></summary>
+            <details style="margin-left:1em">
+              <summary><b>default</b></summary>
+              <h style="margin-left:1em"><a class="reference external" \
+href="https://github.com/hydpy-dev/hydpy/blob/master/hydpy/data/HydPy-H-Lahn/control\
+/default/land.py">land.py</a></h><br/>
+              ...
+              <h style="margin-left:1em"><a class="reference external" \
+href="https://github.com/hydpy-dev/hydpy/blob/master/hydpy/data/HydPy-H-Lahn/control\
+/default/stream_lahn_marb_lahn_leun.py">stream_lahn_marb_lahn_leun.py</a></h><br/>
+            </details>
+          </details>
+          ...
+        </details>
+        """
+
+        def _make_html(
+            dirname: str, dir_: Directory, url: str, indent: int
+        ) -> list[str]:
+            if indent == 0:
+                style = _make_cssstyle(
+                    marginleft="1em", colour="#20435c", fontfamily="'Trebuchet MS'"
+                )
+            else:
+                style = _make_cssstyle(marginleft="1em")
+            prefix = indent * "  "
+            lines = []
+            lines.append(f"{prefix}<details {style}>")
+            lines.append(f"{prefix}  <summary><b>{dirname}</b></summary>")
+            for subdirname, subdir in dir_["subdirectories"].items():
+                html_ = _make_html(
+                    dirname=subdirname,
+                    dir_=subdir,
+                    url="/".join([url, subdirname]),
+                    indent=indent + 1,
+                )
+                lines.extend(html_)
+            for filename in dir_["files"]:
+                ref = self._get_filereference(url_dirpath=url, filename=filename)
+                lines.append(f"{prefix}  <h {style}>{ref}</h><br/>")
+            lines.append(f"{prefix}</details>")
+            return lines
+
+        html = _make_html(
+            dirname=self._projectname,
+            dir_=self.directories,
+            url=self._projectname,
+            indent=0,
+        )
+        return "\n".join(html)
+
+
+def make_modellink(model: type[modeltools.Model]) -> str:
+    """Create an internal HTML reference pointing to an application model.
+
+    >>> from hydpy.core.autodoctools import make_modellink
+    >>> from hydpy.models import hland_96
+    >>> make_modellink(hland_96.Model)
+    '<a class="reference internal" \
+href="hland_96.html#module-hydpy.models.hland_96" \
+title="HydPy-H-HBV96 (adoption of SMHI-IHMS-HBV96)">\
+<code class="xref py py-mod docutils literal notranslate">\
+<span class="pre">hland_96</span></code></a>'
+    """
+    name = model.__HYDPY_NAME__
+    return (
+        '<a class="reference internal" '
+        f'href="{name}.html#module-hydpy.models.{name}" '
+        f'title="{model.DOCNAME.complete}">'
+        '<code class="xref py py-mod docutils literal notranslate">'
+        f'<span class="pre">{name}</span></code></a>'
+    )
+
+
+def make_interfacelink(interface: type[modeltools.SubmodelInterface]) -> str:
+    """Create an internal HTML reference pointing to a submodel interface.
+
+    >>> from hydpy.core.autodoctools import make_interfacelink
+    >>> from hydpy.interfaces.aetinterfaces import AETModel_V1
+    >>> make_interfacelink(AETModel_V1)
+    '<a class="reference internal" \
+href="aetinterfaces.html#hydpy.interfaces.aetinterfaces.AETModel_V1" \
+title="hydpy.interfaces.aetinterfaces.AETModel_V1">\
+<code class="xref py py-class docutils literal notranslate">\
+<span class="pre">AETModel_V1</span></code></a>'
+    """
+    classname = interface.__name__
+    modulepath = interface.__module__
+    modulename = modulepath.split(".")[-1]
+    classpath = f"{modulepath}.{classname}"
+    return (
+        f'<a class="reference internal" '
+        f'href="{modulename}.html#{classpath}" '
+        f'title="{classpath}"><code '
+        f'class="xref py py-class docutils literal notranslate"><span '
+        f'class="pre">{classname}</span></code></a>'
+    )
+
+
+Port: TypeAlias = modeltools.SubmodelProperty | modeltools.SubmodelsProperty
+
+Subgraphs: TypeAlias = dict[
+    type[modeltools.Model], dict[Port, list[type[modeltools.Model]]]
+]
+
+Graph: TypeAlias = dict[
+    type[modeltools.Model], dict[Port, tuple["Graph", list[type[modeltools.Model]]]]
+]
+
+
+class SubmodelGraph:
+    """Analyser and visualiser of the advisable connections between main models and
+    submodels."""
+
+    _modelname: str | None
+
+    def __init__(self, *, modelname: str | None = None) -> None:
+        self._modelname = modelname
+
+    @functools.cached_property
+    def interfaces(self) -> tuple[type[modeltools.SubmodelInterface], ...]:
+        """All available submodel interfaces.
+
+        >>> from hydpy.core.autodoctools import SubmodelGraph
+        >>> for interface in SubmodelGraph().interfaces:
+        ...     print(interface.__HYDPY_NAME__)  # doctest: +ELLIPSIS
+        AETModel_V1
+        ChannelModel_V1
+        ...
+        TempModel_V1
+        TempModel_V2
+        WaterLevelModel_V1
+        """
+        dirpath = interfaces.__path__[0]
+        filenames = (n for n in os.listdir(dirpath) if n.endswith(".py"))
+        modulenames = (n[:-3] for n in filenames if n != "__init__.py")
+        classes = []
+        for modulename in modulenames:
+            module = importlib.import_module(f"hydpy.interfaces.{modulename}")
+            for _, member in inspect.getmembers(module):
+                if (
+                    inspect.isclass(member)
+                    and (inspect.getmodule(member) is module)
+                    and issubclass(member, modeltools.SubmodelInterface)
+                ):
+                    classes.append(member)
+        return tuple(sorted(classes, key=lambda c: c.__name__))
+
+    @functools.cached_property
+    def models(self) -> tuple[type[modeltools.Model], ...]:
+        """All available application models.
+
+        >>> from hydpy.core.autodoctools import SubmodelGraph
+        >>> for model in SubmodelGraph().models:
+        ...     print(model.__HYDPY_NAME__)  # doctest: +ELLIPSIS
+        arma_rimorido
+        conv_idw
+        ...
+        wland_wag
+        wq_trapeze
+        wq_trapeze_strickler
+        wq_walrus
+        """
+        dirpath = models.__path__[0]
+        filenames = (n for n in os.listdir(dirpath) if n.endswith(".py"))
+        modulenames = (n[:-3] for n in filenames if n != "__init__.py")
+        classes = []
+        for modulename in modulenames:
+            module = importlib.import_module(f"hydpy.models.{modulename}")
+            for _, member in inspect.getmembers(module):
+                if (
+                    inspect.isclass(member)
+                    and issubclass(member, modeltools.Model)
+                    and (inspect.getmodule(member) is module)
+                    and member.__name__ == "Model"
+                ):
+                    classes.append(member)
+        return tuple(sorted(classes, key=lambda c: c.__HYDPY_NAME__))
+
+    @functools.cached_property
+    def rootmodels(self) -> tuple[type[modeltools.Model], ...]:
+        """The models that build the roots of the submodel graph.
+
+        By default, all documentation-relevant main models:
+
+        >>> from hydpy.core.autodoctools import SubmodelGraph
+        >>> for model in SubmodelGraph().rootmodels:
+        ...     print(model.__HYDPY_NAME__)  # doctest: +ELLIPSIS
+        arma_rimorido
+        conv_idw
+        ...
+        sw1d_channel
+        wland_gd
+        wland_wag
+
+        Or only the selected model:
+
+        >>> for model in SubmodelGraph(modelname="wland_gd").rootmodels:
+        ...     print(model.__HYDPY_NAME__)
+        wland_gd
+        """
+        rootmodels = []
+        for model in self.models:
+            if (model.__HYDPY_ROOTMODEL__ is True) and (
+                ((name := self._modelname) is None) or (name == model.__HYDPY_NAME__)
+            ):
+                rootmodels.append(model)
+        assert rootmodels
+        return tuple(rootmodels)
+
+    @functools.cached_property
+    def subgraphs(self) -> Subgraphs:
+        """Mappings from all models over their ports to their potential submodels.
+
+        >>> from hydpy.core.autodoctools import SubmodelGraph
+        >>> subgraphs = SubmodelGraph().subgraphs
+        >>> from hydpy.models import exch_branch_hbv96, hland_96
+        >>> subgraphs[exch_branch_hbv96.Model]
+        {}
+        >>> for port, models in subgraphs[hland_96.Model].items():
+        ...     print(port.name, *(model.__HYDPY_NAME__ for model in models))
+        aetmodel evap_aet_hbv96 evap_aet_minhas evap_aet_morsim
+        rconcmodel rconc_nash rconc_uh
+        """
+        main2port2subs: Subgraphs = {}
+        for main in self.models:
+            main2port2subs[main] = {}
+            for _, port in inspect.getmembers(main):
+                if isinstance(
+                    port, (modeltools.SubmodelProperty, modeltools.SubmodelsProperty)
+                ):
+                    main2port2subs[main][port] = [
+                        m for m in self.models if issubclass(m, port.interfaces)
+                    ]
+        return main2port2subs
+
+    @functools.cached_property
+    def graph(self) -> Graph:
+        """The complete (recursive) graph for all or the selected root models.
+
+        Example for a main model without any submodels:
+
+        >>> from hydpy.core.autodoctools import SubmodelGraph
+        >>> graph = SubmodelGraph(modelname="exch_branch_hbv96").graph
+        >>> for model, subgraph in graph.items():
+        ...     print(model.__HYDPY_NAME__, subgraph)
+        exch_branch_hbv96 {}
+
+        Complex example that covers two important cases: (1) main models used as
+        sub-submodels; (2) PET models are not suggested as submodel candidates for
+        other PET models due to special-casing:
+
+        >>> graph = SubmodelGraph(modelname="hland_96").graph
+        >>> for model, subgraph in graph.items():
+        ...     print(model.__HYDPY_NAME__, *(port.name for port in subgraph))
+        hland_96 aetmodel rconcmodel
+
+        >>> selected = tuple(graph.values())[0]
+        >>> for port, (subgraphs, mainsubmodels) in selected.items():
+        ...     print(port.name)
+        ...     print("main-submodels:", *(m.__HYDPY_NAME__ for m in mainsubmodels))
+        ...     print("sub-submodels:", *(m.__HYDPY_NAME__ for m in subgraphs))
+        aetmodel
+        main-submodels:
+        sub-submodels: evap_aet_hbv96 evap_aet_minhas evap_aet_morsim
+        rconcmodel
+        main-submodels:
+        sub-submodels: rconc_nash rconc_uh
+
+        >>> selected = tuple(selected.values())[0][0]
+        >>> for model, subgraph in selected.items():
+        ...     print(model.__HYDPY_NAME__, *(port.name for port in subgraph))
+        evap_aet_hbv96 intercmodel petmodel snowcovermodel soilwatermodel tempmodel
+        evap_aet_minhas intercmodel petmodel soilwatermodel
+        evap_aet_morsim intercmodel radiationmodel snowalbedomodel snowcovermodel \
+snowycanopymodel soilwatermodel tempmodel
+
+        >>> selected = tuple(tuple(selected.values())[0].items())[:2]
+        >>> for port, (subgraphs, mainsubmodels) in selected:
+        ...     print(port.name)
+        ...     print("main-submodels:", *(m.__HYDPY_NAME__ for m in mainsubmodels))
+        ...     print("sub-submodels:", *(m.__HYDPY_NAME__ for m in subgraphs))
+        intercmodel
+        main-submodels: hland_96
+        sub-submodels: dummy_interceptedwater
+        petmodel
+        main-submodels:
+        sub-submodels: evap_pet_ambav1 evap_pet_hbv96 evap_pet_m evap_pet_mlc \
+evap_ret_fao56 evap_ret_io evap_ret_tw2002
+
+        >>> selected = selected[1][1][0]
+        >>> for model, subgraph in selected.items():
+        ...     print(model.__HYDPY_NAME__, *(port.name for port in subgraph))
+        evap_pet_ambav1 precipmodel radiationmodel snowcovermodel tempmodel
+        evap_pet_hbv96 precipmodel tempmodel
+        evap_pet_m retmodel
+        evap_pet_mlc retmodel
+        evap_ret_fao56 radiationmodel tempmodel
+        evap_ret_io
+        evap_ret_tw2002 radiationmodel tempmodel
+
+        >>> selected = tuple(selected.values())[2]
+        >>> for port, (subgraphs, mainsubmodels) in selected.items():
+        ...     print(port.name)
+        ...     print("main-submodels:", *(m.__HYDPY_NAME__ for m in mainsubmodels))
+        ...     print("sub-submodels:", *(m.__HYDPY_NAME__ for m in subgraphs))
+        retmodel
+        main-submodels:
+        sub-submodels: evap_ret_fao56 evap_ret_io evap_ret_tw2002
+
+        Example showing that "side-model" ports are ignored:
+
+        >>> graph = SubmodelGraph(modelname="sw1d_channel").graph
+        >>> for model, subgraph in graph.items():
+        ...     print(model.__HYDPY_NAME__, *(port.name for port in subgraph))
+        sw1d_channel routingmodels storagemodels
+
+        >>> selected = tuple(graph.values())[0]
+        >>> for port, (subgraphs, mainsubmodels) in selected.items():
+        ...     print(port.name)
+        ...     print("main-submodels:", *(m.__HYDPY_NAME__ for m in mainsubmodels))
+        ...     print("sub-submodels:", *(m.__HYDPY_NAME__ for m in subgraphs))
+        routingmodels
+        main-submodels:
+        sub-submodels: sw1d_gate_out sw1d_lias sw1d_lias_sluice sw1d_pump sw1d_q_in \
+sw1d_q_out sw1d_weir_out
+        storagemodels
+        main-submodels:
+        sub-submodels: sw1d_storage
+
+        >>> selected = tuple(selected.values())[0][0]
+        >>> for model, subgraph in selected.items():
+        ...     print(model.__HYDPY_NAME__, *(port.name for port in subgraph))
+        sw1d_gate_out
+        sw1d_lias crosssection
+        sw1d_lias_sluice crosssection
+        sw1d_pump crosssection
+        sw1d_q_in crosssection
+        sw1d_q_out crosssection
+        sw1d_weir_out
+        """
+
+        def _exclude(
+            mainmodel: type[modeltools.Model], submodel: type[modeltools.Model]
+        ) -> bool:
+            name_main = mainmodel.__HYDPY_NAME__
+            name_sub = submodel.__HYDPY_NAME__
+            main_comps = name_main.split("_")
+            sub_comps = name_sub.split("_")
+            if "evap" == main_comps[0] == sub_comps[0]:
+                if (main_comps[1] == "pet") and (sub_comps[1] != "ret"):
+                    return True
+            return False
+
+        def _get_subgraph(
+            model: type[modeltools.Model], visited: set[type[modeltools.Model]]
+        ) -> Graph:
+
+            visited.add(model)
+
+            graph: Graph = {model: {}}
+
+            for port, submodels in self.subgraphs[model].items():
+
+                if isinstance(port, modeltools.SubmodelProperty):
+                    if port.sidemodel:
+                        continue
+                elif port.sidemodels:
+                    continue
+
+                mainsubmodels = []
+                subgraph: Graph = {}
+                for submodel in submodels:
+                    if _exclude(model, submodel):
+                        continue
+                    if (
+                        (submodel in visited)
+                        and issubclass(model, modeltools.SubmodelInterface)
+                        and model().add_mainmodel_as_subsubmodel(submodel())
+                    ):
+                        mainsubmodels.append(submodel)
+                        continue
+                    if submodel.__HYDPY_ROOTMODEL__:
+                        continue
+                    subgraph |= _get_subgraph(submodel, visited.copy())
+                graph[model][port] = (subgraph, mainsubmodels)
+
+            return graph
+
+        complete: Graph = {}
+        for root in self.rootmodels:
+            complete[root] = _get_subgraph(model=root, visited=set())[root]
+        return complete
+
+    @staticmethod
+    def make_portinfo(port: Port, mainsubmodels: list[type[modeltools.Model]]) -> str:
+        """Create an informative sentence about the given port (if available, in the
+        context of the given main models usable as sub-submodels).
+
+        >>> from hydpy.core.autodoctools import SubmodelGraph
+        >>> from hydpy.models.hland_96 import Model as h
+        >>> SubmodelGraph.make_portinfo(h.rconcmodel, [])  # doctest: +ELLIPSIS
+        'Allows one submodel that follows the <a ...RConcModel_V1...</a> interface.'
+        >>> SubmodelGraph.make_portinfo(h.aetmodel, [])  # doctest: +ELLIPSIS
+        'Requires one submodel that follows the <a ...AETModel_V1...</a> interface \
+(no default available).'
+        >>> from hydpy.models.evap_aet_hbv96 import Model as e
+        >>> SubmodelGraph.make_portinfo(e.tempmodel, [h])  # doctest: +ELLIPSIS
+        'Requires one submodel that follows the <a ...TempModel_V1...</a> or \
+<a ...TempModel_V2...</a> interface (default is <a ...HydPy-H-HBV96...</a>).'
+        >>> from hydpy.models.sw1d_channel import Model as s
+        >>> SubmodelGraph.make_portinfo(s.storagemodels, [])  # doctest: +ELLIPSIS
+        'Allows multiple submodels that follow the <a ...StorageModel_V1...</a> \
+interface.'
+        """
+        if isinstance(port, modeltools.SubmodelProperty):
+            nmb_models = "one submodel that follows"
+            if port.optional:
+                necessity = "Allows"
+                default = ""
+            else:
+                necessity = "Requires"
+                if mainsubmodels:
+                    assert len(mainsubmodels) == 1
+                    default = f" (default is {make_modellink(mainsubmodels[0])})"
+                else:
+                    default = " (no default available)"
+        else:
+            nmb_models = "multiple submodels that follow"
+            necessity = "Allows"
+            default = ""
+        links = objecttools.enumeration(
+            [make_interfacelink(i) for i in port.interfaces], conjunction="or"
+        )
+        return f"{necessity} {nmb_models} the {links} interface{default}."
+
+    @functools.cached_property
+    def html(self) -> str:
+        """A representation of the complete or selected part of the submodel graph
+        based on nested HTML `describe` elements, including inline CSS instructions.
+
+        >>> from hydpy.core.autodoctools import SubmodelGraph
+        >>> print(SubmodelGraph().html)  # doctest: +ELLIPSIS
+        <details style="margin-left:1.0em; color:#20435c; font-family:'Trebuchet MS'">
+          <summary><b>Complete Submodel Graph</b></summary>
+          <h style="margin-left:1.9em"><a ...HydPy-ARMA-RIMO/RIDO...</a></h></br>
+          ...
+        </details>
+
+        >>> print(SubmodelGraph(modelname="hland_96").html)  # doctest: +ELLIPSIS
+        <details style="margin-left:1.0em; color:#20435c; font-family:'Trebuchet MS'">
+          <summary><b>Submodel Graph of HydPy-H-HBV96 (adoption of ...)</b></summary>
+          <details style="margin-left:1.0em">
+            <summary><a ...HydPy-H-HBV96...</a></summary>
+            <details style="margin-left:1.0em">
+              <summary>aetmodel</summary>
+              <p style="margin-left:1.2em; margin-bottom:0.0em; margin-top:0.2em; \
+font-style:italic; font-size:80%">Requires one submodel ...</p>
+              <details style="margin-left:1.0em">
+                <summary><a ...HydPy-Evap-AET-HBV96...</a></summary>
+                <details style="margin-left:1.0em">
+                  <summary>intercmodel</summary>
+                  <p style="margin-left:1.2em; margin-bottom:0.0em; margin-top:0.2em; \
+font-style:italic; font-size:80%">Requires one submodel ...</p>
+                  <h style="margin-left:1.9em"><a ...HydPy-H-HBV96...</a><br/></h>
+                  <h style="margin-left:1.9em"><a ...HydPy-Dummy-InterceptedWater ...\
+</a></h></br>
+        ...
+          </details>
+        </details>
+        """
+        style_main = _make_cssstyle(
+            marginleft="1.0em", colour="#20435c", fontfamily="'Trebuchet MS'"
+        )
+        style_10em = _make_cssstyle(marginleft="1.0em")
+        style_19em = _make_cssstyle(marginleft="1.9em")
+        style_descr = _make_cssstyle(
+            marginleft="1.2em",
+            margintop="0.2em",
+            marginbottom="0.0em",
+            fontstyle="italic",
+            fontsize="80%",
+        )
+
+        def _make_html(graph: Graph, indent: int) -> list[str]:
+            prefix = indent * " "
+            lines = []
+            for model, port2subgraph_mainsubs in graph.items():
+                modellink = make_modellink(model)
+                if not port2subgraph_mainsubs:
+                    lines.append(f"{prefix}<h {style_19em}>{modellink}</h></br>")
+                    continue
+                lines.append(f"{prefix}<details {style_10em}>")
+                lines.append(f"{prefix}  <summary>{modellink}</summary>")
+                for port, (subgraph, mainsubmodels) in port2subgraph_mainsubs.items():
+                    lines.append(f"{prefix}  <details {style_10em}>")
+                    lines.append(f"{prefix}    <summary>{port.name}</summary>")
+                    info = self.make_portinfo(port, mainsubmodels)
+                    lines.append(f"{prefix}    <p {style_descr}>{info}</p>")
+                    for mainsubmodel in mainsubmodels:
+                        link = make_modellink(mainsubmodel)
+                        lines.append(f"{prefix}    <h {style_19em}>{link}<br/></h>")
+                    lines.extend(_make_html(subgraph, indent + 4))
+                    lines.append(f"{prefix}  </details>")
+                lines.append(f"{prefix}</details>")
+            return lines
+
+        lines_ = [f"<details {style_main}>"]
+        if self._modelname is None:
+            lines_.append("  <summary><b>Complete Submodel Graph</b></summary>")
+        else:
+            docname = tuple(self.graph)[0].DOCNAME.complete
+            lines_.append(f"  <summary><b>Submodel Graph of {docname}</b></summary>")
+        lines_.extend(_make_html(self.graph, 2))
+        lines_.append("</details>")
+        return "\n".join(lines_)
+
+
+# ToDo: remove when stopping supporting Python 3.12
+#       (see https://github.com/python/cpython/issues/107995)
+__test__ = {
+    f"ProjectStructure.{name}": member
+    for name, member in inspect.getmembers(ProjectStructure)
+    if isinstance(member, functools.cached_property)
+} | {
+    f"SubmodelGraph.{name}": member
+    for name, member in inspect.getmembers(SubmodelGraph)
+    if isinstance(member, functools.cached_property)
+}

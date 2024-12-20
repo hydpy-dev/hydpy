@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -18,13 +17,13 @@ class LandMonthParameter(parametertools.KeywordParameter2D):
 
     >>> from hydpy import pub
     >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
-    >>> from hydpy.models.wland_v001 import *
+    >>> from hydpy.models.wland_wag import *
     >>> parameterstep()
     >>> nu(2)
     >>> at(10.0)
     >>> aur(0.2, 0.8)
     >>> lt(FIELD, WATER)
-    >>> with model.add_petmodel_v1("evap_mlc"):
+    >>> with model.add_petmodel_v1("evap_pet_mlc"):
     ...     pass
     >>> model.petmodel.parameters.control.landmonthfactor  # doctest: +ELLIPSIS
     landmonthfactor(sealed=[nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
@@ -54,7 +53,7 @@ class ZipParameter1D(parametertools.ZipParameter):
     """Base class for 1-dimensional parameters that provide additional keyword-based
     zipping functionalities.
 
-    >>> from hydpy.models.hland_v1 import *
+    >>> from hydpy.models.hland_96 import *
     >>> parameterstep()
     >>> nmbzones(5)
     >>> area(10.0)
@@ -79,7 +78,7 @@ class ZipParameter1D(parametertools.ZipParameter):
 class SoilParameter1D(ZipParameter1D):
     """Base class for soil-related 1-dimensional parameters.
 
-    >>> from hydpy.models.hland_v1 import *
+    >>> from hydpy.models.hland_96 import *
     >>> parameterstep()
     >>> nmbzones(6)
     >>> area(9.0)
@@ -101,7 +100,7 @@ class SoilParameter1D(ZipParameter1D):
 class PlantParameter1D(ZipParameter1D):
     """Base class for plant-related 1-dimensional parameters.
 
-    >>> from hydpy.models.lland_v1 import *
+    >>> from hydpy.models.lland_dd import *
     >>> parameterstep()
     >>> nhru(6)
     >>> lnk(WASSER, GLETS, BODEN, ACKER, BAUMB, MISCHW)
@@ -110,7 +109,7 @@ class PlantParameter1D(ZipParameter1D):
     >>> wmax(200.0)
     >>> from hydpy import pub
     >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
-    >>> with model.add_aetmodel_v1("evap_minhas"):
+    >>> with model.add_aetmodel_v1("evap_aet_minhas"):
     ...     with model.add_petmodel_v2("evap_pet_ambav1"):
     ...         leafresistance(acker=30.0, baumb=40.0, mischw=50.0)
     >>> r = model.aetmodel.petmodel.parameters.control.leafresistance
@@ -131,7 +130,7 @@ class PlantParameter1D(ZipParameter1D):
 class WaterParameter1D(ZipParameter1D):
     """Base class for water area-related 1-dimensional parameters.
 
-    >>> from hydpy.models.hland_v1 import *
+    >>> from hydpy.models.hland_96 import *
     >>> parameterstep()
     >>> nmbzones(5)
     >>> area(6.0)

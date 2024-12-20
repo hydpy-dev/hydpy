@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """ This module provides utilities to build Cython models based on Python models
 automatically.
 
@@ -7,7 +6,7 @@ automatically.
 Most model developers do not need to be aware of the features implemented in module
 |modelutils|, except that they need to initialise class |Cythonizer| within the main
 modules of their base and application models (see, for example, the source code of base
-model |hland| and application model |hland_v1|).
+model |hland| and application model |hland_96|).
 
 However, when implementing models with functionalities not envisaged so far, problems
 might arise.  Please contact the *HydPy* developer team then, preferably by opening an
@@ -271,6 +270,7 @@ Traceback (most recent call last):
 ...
 NotImplementedError: NDIM of sequence `q` is higher than expected.
 """
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -341,16 +341,16 @@ def get_dllextension() -> str:
 
 _dllextension = get_dllextension()
 
-_int = "numpy." + str(numpy.array([1]).dtype) + "_t"
+INT = "numpy.int64_t"
 
-TYPE2STR: dict[Union[type[Any], str, None], str] = {  # pylint: disable=duplicate-key
+TYPE2STR: dict[type[Any] | str | None, str] = {  # pylint: disable=duplicate-key
     bool: "numpy.npy_bool",
     "bool": "numpy.npy_bool",
-    int: _int,
-    "int": _int,
-    parametertools.IntConstant: _int,
-    "parametertools.IntConstant": _int,
-    "IntConstant": _int,
+    int: INT,
+    "int": INT,
+    parametertools.IntConstant: INT,
+    "parametertools.IntConstant": INT,
+    "IntConstant": INT,
     float: "double",
     "float": "double",
     str: "str",
@@ -448,7 +448,7 @@ def get_methodheader(
     if not config.FASTCYTHON:
         nogil = False
     nogil_ = " noexcept nogil" if nogil else ""
-    idxarg_ = f", {_int} idx" if idxarg else ""
+    idxarg_ = f", {INT} idx" if idxarg else ""
     inline_ = " inline" if inline else ""
     return f"cpdef{inline_} void {methodname}(self{idxarg_}){nogil_}:"
 
@@ -507,12 +507,12 @@ def move_dll(pyname: str, cyname: str, cydirpath: str, buildpath: str) -> None:
     time:
 
     >>> from hydpy.cythons.modelutils import move_dll
-    >>> from hydpy.models.hland_v1 import cythonizer as c
+    >>> from hydpy.models.hland_96 import cythonizer as c
     >>> move_dll(pyname=c.pyname, cyname=c.cyname,
     ...          cydirpath=c.cydirpath, buildpath=c.buildpath)  # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    OSError: After trying to cythonize `hland_v1`, the resulting file `c_hland_v1...` \
+    OSError: After trying to cythonize `hland_96`, the resulting file `c_hland_96...` \
 could not be found in directory `.../hydpy/cythons/autogen/_build` nor any of its \
 subdirectories.  The distutil report should tell whether the file has been stored \
 somewhere else, is named somehow else, or could not be build at all.
@@ -526,7 +526,7 @@ somewhere else, is named somehow else, or could not be build at all.
     ...     ) as mocked_buildpath:
     ...         mocked_buildpath.return_value = "_build"
     ...         os.makedirs("_build/subdir", exist_ok=True)
-    ...         filepath = f"_build/subdir/c_hland_v1{get_dllextension()}"
+    ...         filepath = f"_build/subdir/c_hland_96{get_dllextension()}"
     ...         with open(filepath, "w"):
     ...             pass
     ...         with mock.patch(
@@ -536,10 +536,10 @@ somewhere else, is named somehow else, or could not be build at all.
     ...                      cydirpath=c.cydirpath, buildpath=c.buildpath)
     Traceback (most recent call last):
     ...
-    PermissionError: After trying to cythonize `hland_v1`, when trying to move the \
-final cython module `c_hland_v1...` from directory `_build` to directory \
+    PermissionError: After trying to cythonize `hland_96`, when trying to move the \
+final cython module `c_hland_96...` from directory `_build` to directory \
 `.../hydpy/cythons/autogen`, the following error occurred: Denied! A likely error \
-cause is that the cython module `c_hland_v1...` does already exist in this directory \
+cause is that the cython module `c_hland_96...` does already exist in this directory \
 and is currently blocked by another Python process.  Maybe it helps to close all \
 Python processes and restart the cythonization afterwards.
     """
@@ -570,7 +570,7 @@ Python processes and restart the cythonization afterwards.
                     f"cythonization afterwards.",
                 )
     else:
-        raise IOError(
+        raise OSError(
             f"After trying to cythonize `{pyname}`, the resulting file "
             f"`{cyname}{_dllextension}` could not be found in directory "
             f"`{objecttools.repr_(buildpath)}` nor any of its subdirectories.  The "
@@ -587,7 +587,7 @@ class Cythonizer:
     Sequences: type[sequencetools.Sequences]
     tester: testtools.Tester
     pymodule: str
-    _cymodule: Optional[types.ModuleType]
+    _cymodule: types.ModuleType | None
 
     def __init__(self) -> None:
         self._cymodule = None
@@ -623,9 +623,9 @@ class Cythonizer:
         >>> from hydpy.models.hland import cythonizer
         >>> cythonizer.pyname
         'hland'
-        >>> from hydpy.models.hland_v1 import cythonizer
+        >>> from hydpy.models.hland_96 import cythonizer
         >>> cythonizer.pyname
-        'hland_v1'
+        'hland_96'
         """
         return self.pymodule.split(".")[-1]
 
@@ -636,9 +636,9 @@ class Cythonizer:
         >>> from hydpy.models.hland import cythonizer
         >>> cythonizer.cyname
         'c_hland'
-        >>> from hydpy.models.hland_v1 import cythonizer
+        >>> from hydpy.models.hland_96 import cythonizer
         >>> cythonizer.cyname
-        'c_hland_v1'
+        'c_hland_96'
         """
         return "c_" + self.pyname
 
@@ -662,9 +662,9 @@ class Cythonizer:
 
         Property |Cythonizer.cymodule| returns the relevant DLL module:
 
-        >>> from hydpy.models.hland_v1 import cythonizer
-        >>> from hydpy.cythons.autogen import c_hland_v1
-        >>> c_hland_v1 is cythonizer.cymodule
+        >>> from hydpy.models.hland_96 import cythonizer
+        >>> from hydpy.cythons.autogen import c_hland_96
+        >>> c_hland_96 is cythonizer.cymodule
         True
 
         However, if this module is missing for some reasons, it tries to create the
@@ -701,10 +701,10 @@ class Cythonizer:
     def pyxfilepath(self) -> str:
         """The absolute path of the compiled module.
 
-        >>> from hydpy.models.hland_v1 import cythonizer
+        >>> from hydpy.models.hland_96 import cythonizer
         >>> from hydpy import repr_
         >>> repr_(cythonizer.pyxfilepath)   # doctest: +ELLIPSIS
-        '.../hydpy/cythons/autogen/c_hland_v1.pyx'
+        '.../hydpy/cythons/autogen/c_hland_96.pyx'
         >>> import os
         >>> os.path.exists(cythonizer.pyxfilepath)
         True
@@ -715,10 +715,10 @@ class Cythonizer:
     def dllfilepath(self) -> str:
         """The absolute path of the compiled module.
 
-        >>> from hydpy.models.hland_v1 import cythonizer
+        >>> from hydpy.models.hland_96 import cythonizer
         >>> from hydpy import repr_
         >>> repr_(cythonizer.dllfilepath)   # doctest: +ELLIPSIS
-        '.../hydpy/cythons/autogen/c_hland_v1...'
+        '.../hydpy/cythons/autogen/c_hland_96...'
         >>> import os
         >>> os.path.exists(os.path.split(cythonizer.dllfilepath)[0])
         True
@@ -729,7 +729,7 @@ class Cythonizer:
     def buildpath(self) -> str:
         """The absolute path for temporarily build files.
 
-        >>> from hydpy.models.hland_v1 import cythonizer
+        >>> from hydpy.models.hland_96 import cythonizer
         >>> from hydpy import repr_
         >>> repr_(cythonizer.buildpath)   # doctest: +ELLIPSIS
         '.../hydpy/cythons/autogen/_build'
@@ -740,7 +740,7 @@ class Cythonizer:
     def pyxwriter(self) -> PyxWriter:
         """A new |PyxWriter| instance.
 
-        >>> from hydpy.models.hland_v1 import cythonizer
+        >>> from hydpy.models.hland_96 import cythonizer
         >>> pyxwriter = cythonizer.pyxwriter
         >>> from hydpy import classname
         >>> classname(pyxwriter)
@@ -1005,14 +1005,14 @@ class PyxWriter:
                         pxd(1, f"cdef double *{seq.name}")
                     elif seq.NDIM == 1:
                         pxd(1, f"cdef double **{seq.name}")
-                        pxd(1, f"cdef public {_int} len_{seq.name}")
+                        pxd(1, f"cdef public {INT} len_{seq.name}")
                         pxd(1, f"cdef public {TYPE2STR[int]}[:] _{seq.name}_ready")
                 else:
                     pxd(1, f"cdef public {ctype} {seq.name}")
-                pxd(1, f"cdef public {_int} _{seq.name}_ndim")
-                pxd(1, f"cdef public {_int} _{seq.name}_length")
+                pxd(1, f"cdef public {INT} _{seq.name}_ndim")
+                pxd(1, f"cdef public {INT} _{seq.name}_length")
                 for idx in range(seq.NDIM):
-                    pxd(1, f"cdef public {_int} _{seq.name}_length_{idx}")
+                    pxd(1, f"cdef public {INT} _{seq.name}_length_{idx}")
                 if seq.NUMERIC:
                     ctype_numeric = "double" + NDIM2STR[seq.NDIM + 1]
                     pxd(1, f"cdef public {ctype_numeric} _{seq.name}_points")
@@ -1062,7 +1062,7 @@ class PyxWriter:
         maxndim = max(seq.NDIM for seq in subseqs)
         if maxndim:
             jdxs = ", ".join(f"jdx{ndim}" for ndim in range(maxndim))
-            lines.pyx.add(2, f"cdef {_int} {jdxs}")
+            lines.pyx.add(2, f"cdef {INT} {jdxs}")
 
     def reset_reuseflags(self, lines: PyxPxdLines) -> None:
         """Reset reuse flag statements."""
@@ -1085,9 +1085,9 @@ class PyxWriter:
         """Load data statements."""
         print("            . load_data")
         pyx, both = lines.pyx.add, lines.add
-        both(1, f"cpdef inline void load_data(self, {_int} idx) {_nogil}:")
+        both(1, f"cpdef inline void load_data(self, {INT} idx) {_nogil}:")
         cls._add_cdef_jdxs(lines, subseqs)
-        pyx(2, f"cdef {_int} k")
+        pyx(2, f"cdef {INT} k")
         for seq in subseqs:
             if isinstance(seq, sequencetools.InputSequence) and (seq.NDIM == 0):
                 pyx(2, f"if self._{seq.name}_inputflag:")
@@ -1133,9 +1133,9 @@ class PyxWriter:
         """Save data statements."""
         print("            . save_data")
         pyx, both = lines.pyx.add, lines.add
-        both(1, f"cpdef inline void save_data(self, {_int} idx) {_nogil}:")
+        both(1, f"cpdef inline void save_data(self, {INT} idx) {_nogil}:")
         cls._add_cdef_jdxs(lines, subseqs)
-        pyx(2, f"cdef {_int} k")
+        pyx(2, f"cdef {INT} k")
         for seq in subseqs:
             pyx(2, f"if self._{seq.name}_diskflag_writing:")
             if seq.NDIM == 0:
@@ -1171,11 +1171,11 @@ class PyxWriter:
     def set_pointer(
         self,
         lines: PyxPxdLines,
-        subseqs: Union[
-            sequencetools.InputSequences,
-            sequencetools.OutputSequences[Any],
-            sequencetools.LinkSequences[Any],
-        ],
+        subseqs: (
+            sequencetools.InputSequences
+            | sequencetools.OutputSequences[Any]
+            | sequencetools.LinkSequences[Any]
+        ),
     ) -> None:
         """Set pointer statements for all input, output, and link sequences."""
         if isinstance(subseqs, sequencetools.InputSequences):
@@ -1213,7 +1213,7 @@ class PyxWriter:
         print("            . get_value")
         pyx, both = lines.pyx.add, lines.add
         both(1, "cpdef get_value(self, str name):")
-        pyx(2, f"cdef {_int} idx")
+        pyx(2, f"cdef {INT} idx")
         for seq in subseqs:
             pyx(2, f'if name == "{seq.name}":')
             if seq.NDIM == 0:
@@ -1290,7 +1290,7 @@ class PyxWriter:
         both(
             1,
             "cpdef inline set_pointer1d"
-            f"(self, str name, pointerutils.Double value, {_int} idx):",
+            f"(self, str name, pointerutils.Double value, {INT} idx):",
         )
         pyx(2, "cdef pointerutils.PDouble pointer = pointerutils.PDouble(value)")
         for seq in (seq for seq in subseqs if seq.NDIM == 1):
@@ -1433,7 +1433,7 @@ class PyxWriter:
             for name, member in vars(cls).items():
                 if isinstance(member, modeltools.IndexProperty):
                     if (name != "idx_sim") or not follows_interface:
-                        pxd(1, f"cdef public {_int} {name}")
+                        pxd(1, f"cdef public {INT} {name}")
         if isinstance(self.model, modeltools.SubstepModel):
             pxd(1, f"cdef public {TYPE2STR[float]} timeleft")
         if self.model.parameters:
@@ -1465,7 +1465,7 @@ class PyxWriter:
                     pyx(2, f"self.{name}_is_mainmodel = False")
             for submodel in submodeltypes_old:
                 pyx(2, f"self.{submodel.name} = {submodel.__name__}(self)")
-        baseinterface = "Optional[masterinterface.MasterInterface]"
+        baseinterface = "masterinterface.MasterInterface | None"
         for name in submodelnames_new:
             if not name.endswith("_*"):
                 pyx(1, f"def get_{name}(self) -> {baseinterface}:")
@@ -1511,7 +1511,7 @@ class PyxWriter:
         """Simulation statements."""
         print("                . simulate")
         pyx, both = lines.pyx.add, lines.add
-        both(1, f"cpdef inline void simulate(self, {_int} idx) {_nogil}:")
+        both(1, f"cpdef inline void simulate(self, {INT} idx) {_nogil}:")
         pyx(2, "self.idx_sim = idx")
         if self.model.REUSABLE_METHODS or self.model.find_submodels(
             include_optional=True, include_subsubmodels=False, repeat_sharedmodels=True
@@ -1542,7 +1542,7 @@ class PyxWriter:
         )
         pyx = lines.pyx.add
         if any(name.endswith("_*") for name in name2submodel):
-            pyx(2, f"cdef {_int} i_submodel")
+            pyx(2, f"cdef {INT} i_submodel")
         for fullname in name2submodel:
             name = fullname.rpartition(".")[2]
             if name.endswith("_*"):
@@ -1565,10 +1565,10 @@ class PyxWriter:
 
         The result of property |PyxWriter.iofunctions| depends on the availability of
         different types of sequences.  So far, the models implemented in *HydPy* do not
-        reflect all possible combinations, which is why we modify the |hland_v1|
+        reflect all possible combinations, which is why we modify the |hland_96|
         application model in the following examples:
 
-        >>> from hydpy.models.hland_v1 import cythonizer
+        >>> from hydpy.models.hland_96 import cythonizer
         >>> pyxwriter = cythonizer.pyxwriter
         >>> from hydpy.cythons.modelutils import PyxPxdLines
         >>> lines = PyxPxdLines()
@@ -1815,28 +1815,28 @@ class PyxWriter:
         return name2function
 
     @property
-    def name2submethodnames_automethod(
-        self,
-    ) -> dict[str, tuple[type[modeltools.Method], ...]]:
-        """Submethods selected by |AutoMethod| subclasses."""
-        # see https://github.com/python/typeshed/issues/11200
-        name2submethods: dict[str, tuple[type[modeltools.Method], ...]] = {}
+    def automethod2name(self) -> dict[str, tuple[type[modeltools.Method], ...]]:
+        """Submethods selected by |AutoMethod| and |SetAutoMethod| subclasses."""
+        automethod2name: dict[str, tuple[type[modeltools.Method], ...]] = {}
         for name, member in vars(self.model).items():
             if (
                 isinstance(member, types.MethodType)
                 and isinstance(call := member.__func__, types.MethodType)
                 and inspect.isclass(method := call.__self__)
-                and issubclass(automethod := method, modeltools.AutoMethod)
+                and issubclass(
+                    automethod := method,
+                    (modeltools.AutoMethod, modeltools.SetAutoMethod),
+                )
             ):
-                name2submethods[name] = automethod.SUBMETHODS
-        return name2submethods
+                automethod2name[name] = automethod.SUBMETHODS
+        return automethod2name
 
     @property
     def interfacemethods(self) -> set[str]:
         """The full and abbreviated names of the selected model's interface methods."""
         if hasattr(self.model, "INTERFACE_METHODS"):
-            interfaces = set(m.__name__.lower() for m in self.model.INTERFACE_METHODS)
-            interfaces.update(set(i.rpartition("_")[0] for i in interfaces))
+            interfaces = {m.__name__.lower() for m in self.model.INTERFACE_METHODS}
+            interfaces.update({i.rpartition("_")[0] for i in interfaces})
             return interfaces
         return set()
 
@@ -1851,7 +1851,7 @@ class PyxWriter:
             pyxlines = tuple(f"    {line}" for line in funcconverter.pyxlines)
             lines.pyx.extend(pyxlines)
             lines.pxd.append(pyxlines[0][:-1])
-        for name, submethods in self.name2submethodnames_automethod.items():
+        for name, submethods in self.automethod2name.items():
             print(f"            . {name}")
             self.automethod(lines, name=name, submethods=submethods)
 
@@ -1880,12 +1880,29 @@ class PyxWriter:
         name: str,
         submethods: tuple[type[modeltools.Method], ...],
     ) -> None:
-        """Lines of a method defined by a |AutoMethod| subclass."""
+        """Lines of a method defined by a |AutoMethod| or |SetAutoMethod| subclass."""
         pyx, both = lines.pyx.add, lines.add
         inline = name not in self.interfacemethods
-        both(1, get_methodheader(methodname=name, nogil=True, inline=inline))
+
+        submethod2arg, subsignatures = {}, []
         for submethod in submethods:
-            pyx(2, f"self.{submethod.__name__.lower()}()")
+            if len(args := inspect.getargs(submethod.__call__.__code__).args) == 2:
+                submethod2arg[submethod] = args[1]
+                type_ = get_type_hints(submethod.__call__)[args[1]]
+                subsignatures.append(f"{TYPE2STR[type_]} {args[1]}")
+            else:
+                assert len(args) == 1
+
+        header = get_methodheader(methodname=name, nogil=True, inline=inline)
+        if subsignatures:
+            subheaders = list(header.partition(")"))
+            subheaders.insert(1, ", ".join([""] + subsignatures))
+            header = "".join(subheaders)
+        both(1, header)
+
+        for submethod in submethods:
+            arg = submethod2arg.get(submethod, "")
+            pyx(2, f"self.{submethod.__name__.lower()}({arg})")
 
     def solve(self, lines: PyxPxdLines) -> None:
         """Lines of the model method with the same name."""
@@ -1899,10 +1916,11 @@ class PyxWriter:
     @classmethod
     def _assign_seqvalues(
         cls,
+        *,
         subseqs: Iterable[sequencetools.IOSequence],
         subseqs_name: str,
         target: str,
-        index: Optional[str],
+        index: str | None,
         load: bool,
     ) -> Iterator[str]:
         subseqs = list(subseqs)
@@ -1945,9 +1963,9 @@ class PyxWriter:
         for seq in subseqs:
             maxdim = max(maxdim, seq.NDIM)
         if maxdim == 1:
-            yield f"cdef {_int} idx0"
+            yield f"cdef {INT} idx0"
         elif maxdim == 2:
-            yield f"cdef {_int} idx0, idx1"
+            yield f"cdef {INT} idx0, idx1"
 
     @decorate_method
     def get_point_states(self) -> Iterator[str]:
@@ -2022,11 +2040,11 @@ class PyxWriter:
         for seq in self.model.sequences.fluxes.numericsequences:
             max_ndim = max(max_ndim, seq.NDIM)
         if max_ndim == 0:
-            yield f"cdef {_int} jdx"
+            yield f"cdef {INT} jdx"
         elif max_ndim == 1:
-            yield f"cdef {_int} jdx, idx0"
+            yield f"cdef {INT} jdx, idx0"
         elif max_ndim == 2:
-            yield f"cdef {_int} jdx, idx0, idx1"
+            yield f"cdef {INT} jdx, idx0, idx1"
         for seq in self.model.sequences.fluxes.numericsequences:
             to_ = f"self.sequences.fluxes.{seq.name}"
             from_ = f"self.sequences.fluxes._{seq.name}_points"
@@ -2251,7 +2269,6 @@ class PyxWriter:
         base = ".".join(self.model.__module__.split(".")[:3])
         with open(filepath, "w", encoding=config.ENCODING) as stubfile:
             stubfile.write(
-                f"# -*- coding: utf-8 -*-\n\n"
                 f"import hydpy\n"
                 f"from {base} import *\n"
                 f"from hydpy.core.parametertools import (\n"
@@ -2341,14 +2358,14 @@ class FuncConverter:
 
     model: modeltools.Model
     funcname: str
-    func: Union[types.MethodType, Callable[[modeltools.Model], None]]
+    func: types.MethodType | Callable[[modeltools.Model], None]
     inline: bool
 
     def __init__(
         self,
         model: modeltools.Model,
         funcname: str,
-        func: Union[types.MethodType, Callable[[modeltools.Model], None]],
+        func: types.MethodType | Callable[[modeltools.Model], None],
         inline: bool = True,
     ) -> None:
         self.model = model
@@ -2370,7 +2387,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model("hland_v1")
+        ...     model = prepare_model("hland_96")
         >>> FuncConverter(model, None, model.calc_tc_v1).argnames
         ['model']
         """
@@ -2383,7 +2400,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model("hland_v1")
+        ...     model = prepare_model("hland_96")
         >>> FuncConverter(model, None, model.calc_tc_v1).varnames
         ('self', 'con', 'der', 'inp', 'fac', 'k')
         """
@@ -2398,7 +2415,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model("hland_v1")
+        ...     model = prepare_model("hland_96")
         >>> FuncConverter(model, None, model.calc_tc_v1).locnames
         ['self', 'con', 'der', 'inp', 'fac', 'k']
         """
@@ -2411,7 +2428,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model("hland_v1")
+        ...     model = prepare_model("hland_96")
         >>> FuncConverter(model, None, model.calc_tc_v1).subgroupnames
         ['parameters.control', 'parameters.derived', 'sequences.inputs', \
 'sequences.factors']
@@ -2434,7 +2451,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model("hland_v1")
+        ...     model = prepare_model("hland_96")
         >>> FuncConverter(model, None, model.calc_tc_v1).subgroupshortcuts
         ['con', 'der', 'inp', 'fac']
         """
@@ -2447,7 +2464,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model("hland_v1")
+        ...     model = prepare_model("hland_96")
         >>> FuncConverter(model, None, model.calc_tc_v1).untypedvarnames
         ['k']
         """
@@ -2464,7 +2481,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model("hland_v1")
+        ...     model = prepare_model("hland_96")
         >>> FuncConverter(model, None, model.calc_tc_v1).untypedarguments
         []
         """
@@ -2483,7 +2500,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model("hland_v1")
+        ...     model = prepare_model("hland_96")
         >>> FuncConverter(model, None, model.calc_tc_v1).untypedinternalvarnames
         ['k']
         """
@@ -2492,7 +2509,7 @@ class FuncConverter:
         ]
 
     @property
-    def reusablemethod(self) -> Optional[type[modeltools.ReusableMethod]]:
+    def reusablemethod(self) -> type[modeltools.ReusableMethod] | None:
         """If the currently handled function object is a reusable method, return the
         corresponding subclass of |ReusableMethod|."""
         if isinstance(method_of_model := self.func, types.MethodType):
@@ -2613,7 +2630,7 @@ class FuncConverter:
           * Identical type names in Python and Cython when casting.
 
         We import some classes and prepare a pure-Python instance of application model
-        |hland_v1|:
+        |hland_96|:
 
         >>> from types import MethodType
         >>> from hydpy.core.modeltools import Method, Model
@@ -2621,7 +2638,7 @@ class FuncConverter:
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
-        ...     model = prepare_model("hland_v1")
+        ...     model = prepare_model("hland_96")
 
         First, we show an example of a standard method without additional arguments and
         returning nothing but requiring two local variables:
@@ -2636,8 +2653,9 @@ class FuncConverter:
         ...             d_pc = con.kg[k]*inp.p[k]
         ...             flu.pc[k] = d_pc
         >>> model.calc_test_v1 = MethodType(Calc_Test_V1.__call__, model)
-        >>> lines = FuncConverter(model, "calc_test_v1", model.calc_test_v1).pyxlines
-        >>> lines  # doctest: +ELLIPSIS
+        >>> FuncConverter(
+        ...     model, "calc_test_v1", model.calc_test_v1
+        ... ).pyxlines   # doctest: +ELLIPSIS
         cpdef inline void calc_test_v1(self) noexcept nogil:
             cdef double d_pc
             cdef ...int... k
@@ -2654,23 +2672,26 @@ class FuncConverter:
         ...     def __call__(model: Model, value: float, values: Vector) -> float:
         ...         con = model.parameters.control.fastaccess
         ...         return con.kg[0]*value*values[1]
-        >>> model.calc_test_v2 = MethodType(Calc_Test_V2.__call__, model)
-        >>> FuncConverter(model, "calc_test_v2", model.calc_test_v2).pyxlines
-        cpdef inline double calc_test_v2(self, double value, double[:] values) \
-noexcept nogil:
+        >>> model.calc_test_discontinous = MethodType(Calc_Test_V2.__call__, model)
+        >>> FuncConverter(
+        ...     model, "calc_test_discontinous", model.calc_test_discontinous
+        ... ).pyxlines
+        cpdef inline double calc_test_discontinous(self, double value, double[:] \
+values) noexcept nogil:
             return self.parameters.control.kg[0]*value*values[1]
         <BLANKLINE>
 
         Third, Python's standard cast function translates into Cython's cast syntax:
 
-        >>> from hydpy.interfaces import channelinterfaces
+        >>> from hydpy.interfaces import routinginterfaces
         >>> class Calc_Test_V3(Method):
         ...     @staticmethod
-        ...     def __call__(model: Model) -> channelinterfaces.StorageModel_V1:
-        ...         return cast(channelinterfaces.StorageModel_V1, model.soilmodel)
-        >>> model.calc_test_v3 = MethodType(Calc_Test_V3.__call__, model)
-        >>> FuncConverter(model, "calc_test_v3", model.calc_test_v3).pyxlines
-        cpdef inline masterinterface.MasterInterface calc_test_v3(self) noexcept nogil:
+        ...     def __call__(model: Model) -> routinginterfaces.StorageModel_V1:
+        ...         return cast(routinginterfaces.StorageModel_V1, model.soilmodel)
+        >>> model.calc_test_stiff1d = MethodType(Calc_Test_V3.__call__, model)
+        >>> FuncConverter(model, "calc_test_stiff1d", model.calc_test_stiff1d).pyxlines
+        cpdef inline masterinterface.MasterInterface calc_test_stiff1d(self) noexcept \
+nogil:
             return (<masterinterface.MasterInterface>self.soilmodel)
         <BLANKLINE>
 
@@ -2678,11 +2699,9 @@ noexcept nogil:
         ...     @staticmethod
         ...     def __call__(model: Model) -> None:
         ...         cast(
-        ...             Union[
-        ...                 channelinterfaces.RoutingModel_V1,
-        ...                 channelinterfaces.RoutingModel_V2,
-        ...             ],
-        ...             model.routingmodels[0],
+        ...              routinginterfaces.RoutingModel_V1
+        ...              | routinginterfaces.RoutingModel_V2,
+        ...              model.routingmodels[0],
         ...         ).get_partialdischargedownstream()
         >>> model.calc_test_v4 = MethodType(Calc_Test_V4.__call__, model)
         >>> FuncConverter(model, "calc_test_v4", model.calc_test_v4).pyxlines
@@ -2719,9 +2738,9 @@ get_partialdischargedownstream()
         code = inspect.getsource(self.realfunc)
         for name in self.untypedinternalvarnames:
             if (f" {name}: float" in code) or name.startswith("d_"):
-                cytype = "double"
+                cytype = TYPE2STR[float]
             else:
-                cytype = "int"
+                cytype = TYPE2STR[int]
             lines.insert(1, f"    cdef {cytype} {name}")
         for idx, line in enumerate(lines):
             if "cast(" in line:
@@ -2750,7 +2769,7 @@ def get_callbackcymodule(
 
     refresh = True
     if os.path.exists(pyfilepath):
-        with open(pyfilepath, "r", encoding=config.ENCODING) as sf:
+        with open(pyfilepath, encoding=config.ENCODING) as sf:
             refresh = pycode != sf.read()
 
     if refresh:

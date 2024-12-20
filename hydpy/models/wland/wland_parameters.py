@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -16,9 +15,9 @@ if TYPE_CHECKING:
 class SoilParameter(parametertools.Parameter):
     """Base class for parameters related to the soil character.
 
-    Some parameters of *HydPy-W-Land* are strongly related to the soil character and
-    come with default values. To apply these default values, use the `soil` keyword in
-    combination with one of the available soil constants.
+    Some parameters of |wland.DOCNAME.long| are strongly related to the soil character
+    and come with default values. To apply these default values, use the `soil` keyword
+    in combination with one of the available soil constants.
 
     We take parameter |B| and the soil character |SAND| as an example, which has the
     default value `4.05`:
@@ -76,7 +75,7 @@ not be set based on the given keyword arguments.
     """
 
     _SOIL2VALUE: dict[int, float]
-    _soil: Optional[int]
+    _soil: int | None
 
     def __init__(self, subvars: parametertools.SubParameters):
         super().__init__(subvars)
@@ -143,6 +142,7 @@ class LanduseParameterLand(parametertools.ZipParameter):
     We take the parameter |DDT| as an example.  You can define its values by using the
     names of all land use-related constants in lower-case as keywords:
 
+    >>> from hydpy import print_vector, round_
     >>> from hydpy.models.wland import *
     >>> simulationstep("1d")
     >>> parameterstep("1d")
@@ -155,22 +155,21 @@ class LanduseParameterLand(parametertools.ZipParameter):
     ddf(conifer=8.0, decidious=9.0, field=1.0, mixed=10.0, orchard=3.0,
         pasture=5.0, sealed=0.0, soil=4.0, trees=7.0, wetland=6.0,
         wine=2.0)
-    >>> ddf.values
-    array([ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9., 10.,  0., nan])
+    >>> print_vector(ddf.values)
+    0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 0.0, nan
 
     You can average the current values with regard to the hydrological response area
     fractions, defined via parameter |AUR|:
 
     >>> aur(0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.11, 0.12, 0.22)
-    >>> from hydpy import round_
     >>> round_(ddf.average_values())
     5.641026
 
     You can query or change the values related to specific land use types via attribute
     access:
 
-    >>> ddf.sealed
-    array([0., 0.])
+    >>> print_vector(ddf.sealed)
+    0.0, 0.0
     >>> ddf.sealed = 11.0, 12.0
     >>> ddf
     ddf(11.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 12.0, nan)

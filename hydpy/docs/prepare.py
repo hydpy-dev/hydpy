@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Move, create and modify documentation files before applying `Sphinx`.
 
 Sphinx is to be executed in a freshly created folder named `auto`.  If this folder
@@ -9,11 +8,14 @@ documentation.
 
 # import...
 # ...from standard library
+import datetime
 import importlib
 import inspect
 import os
 import shutil
 import sys
+import textwrap
+import zipfile
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.abspath(os.path.join("..", "..")))
@@ -24,6 +26,7 @@ import hydpy
 from hydpy import auxs
 from hydpy import core
 from hydpy import cythons
+from hydpy import data
 from hydpy import docs
 from hydpy import exe
 from hydpy import interfaces
@@ -58,18 +61,14 @@ for filename in sorted(os.listdir(modelspath)):
         importlib.import_module(f"{models.__name__}.{filename}")
 hydpy.substituter.update_slaves()
 
-# Write one rst file for each module (including the ones defining application
-# models) and each base model defining a base model.  Each rst file should
-# contain commands to trigger the autodoc mechanism of Sphinx as well as
-# the substitution replacement commands relevant for the respective module
-# or package.
+# Write one rst file for each module (including the ones defining application models)
+# and each base model defining a base model.  Each rst file should contain commands to
+# trigger the autodoc mechanism of Sphinx as well as the substitution replacement
+# commands relevant for the respective module or package.
 path2source = {}
-for subpackage in (auxs, core, cythons, exe, interfaces, models, hydpy):
+for subpackage in (auxs, core, cythons, exe, interfaces, models):
     subpackagepath: str = subpackage.__path__[0]
-    if subpackage is hydpy:
-        filenames = ["examples.py"]
-    else:
-        filenames = sorted(os.listdir(subpackagepath))
+    filenames = sorted(os.listdir(subpackagepath))
     substituter = hydpy.substituter
     for filename in filenames:
         is_module = (filename.endswith("py") or filename.endswith("pyx")) and (
@@ -81,7 +80,7 @@ for subpackage in (auxs, core, cythons, exe, interfaces, models, hydpy):
             and (filename not in ("build", "__pycache__"))
         )
         assert not (is_module and is_package)
-        source: Optional[str] = None
+        source: str | None = None
         if is_module:
             path = os.path.join(subpackagepath, filename)
             with open(path, encoding="utf-8") as file_:
@@ -176,3 +175,50 @@ themespathdest = os.path.join(AUTOPATH, "_themes")
 if not os.path.isdir(themespath):
     raise RuntimeError("Cannot find path `_themes` in sphinx subpackage")
 shutil.copytree(themespath, themespathdest)
+
+# Collect all example projects in individual zip archives
+
+header = (
+    f"This README describes a Hydpy {hydpy.__version__} example project.\n"
+    f"© 2013-{datetime.datetime.now().year} HydPy Developers\n"
+    f"https://github.com/hydpy-dev/hydpy/\n"
+)
+
+filepath = os.path.join(rst.__path__[0], "example_projects.rst")
+with open(filepath, encoding="utf-8") as rstfile:
+    descriptions = rstfile.read()
+
+for line in descriptions.splitlines():
+    if line.startswith(".. _example_projects:"):
+        break
+    if line.startswith(".. _`"):
+        assert line.count("`: ") == 1
+        link, url = line[5:].split("`: ")
+        descriptions = descriptions.replace(f"`{link}`_", f"{link} [{url}]")
+
+mark2 = "Click :download:"
+datadirpath = data.__path__[0]
+for projectname in os.listdir(datadirpath):
+    projectpath = os.path.join(datadirpath, projectname)
+    if os.path.isdir(projectpath) and not projectname.startswith("_"):
+        zipfilename = os.path.join(AUTOPATH, f"{projectname}.zip")
+        with zipfile.ZipFile(zipfilename, "w") as zipfile_:
+            for subdirpath, _, filenames in os.walk(projectpath):
+                zipdirpath = os.path.relpath(subdirpath, datadirpath)
+                for filename in filenames:
+                    zipfile_.write(
+                        filename=os.path.join(subdirpath, filename),
+                        arcname=os.path.join(zipdirpath, filename),
+                    )
+            mark1 = f".. _{projectname}:\n"
+            assert mark1 in descriptions, f"{mark1} not in project description"
+            description = descriptions.split(mark1)[1]
+            assert mark2 in descriptions, f"{mark2} not in project description"
+            description = description.split(mark2)[0]
+            paragraphs = (
+                "\n".join(textwrap.wrap(text=p, width=90, break_long_words=False))
+                for p in description.split("\n\n")[1:]
+            )
+            description = "\n\n".join(paragraphs)
+            description = "\n".join([header, description])
+            zipfile_.writestr(zinfo_or_arcname="README.txt", data=description)

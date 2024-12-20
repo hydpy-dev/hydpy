@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
 """This module implements features related to importing models.
 
 The implemented tools are primarily designed for hiding model initialisation routines
 from model users and for allowing writing readable doctests.
 """
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -58,10 +58,11 @@ class PrepSub1D(Protocol[TM_contra, TI_contra]):
     ) -> None: ...
 
 
+__HYDPY_AVAILABLE_LOCALS__ = "__hydpy_available_locals__"
 __HYDPY_MODEL_LOCALS__ = "__hydpy_model_locals__"
 
 
-def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
+def parameterstep(timestep: timetools.PeriodConstrArg | None = None) -> None:
     """Define a parameter time step size within a parameter control file.
 
     Function |parameterstep| should usually be applied in a line immediately behind the
@@ -182,12 +183,12 @@ def reverse_model_wildcard_import() -> None:
 
     >>> from hydpy import reverse_model_wildcard_import
 
-    Assume you import the first version of HydPy-L-Land (|lland_v1|):
+    Assume you import |lland_dd|:
 
-    >>> from hydpy.models.lland_v1 import *
+    >>> from hydpy.models.lland_dd import *
 
     This import adds, for example, the collection class for handling control parameters
-    of `lland_v1` into the local namespace:
+    of `lland_dd` into the local namespace:
 
     >>> print(ControlParameters(None).name)
     control
@@ -203,7 +204,7 @@ def reverse_model_wildcard_import() -> None:
     from unexpected classes like the one we define now):
 
     >>> class Test:
-    ...     __module__ = "hydpy.models.lland_v1"
+    ...     __module__ = "hydpy.models.lland_dd"
     >>> test = Test()
 
     >>> reverse_model_wildcard_import()
@@ -265,10 +266,13 @@ def reverse_model_wildcard_import() -> None:
                     del namespace[key]
             except AttributeError:
                 pass
-        namespace[__HYDPY_MODEL_LOCALS__] = {}
+        if __HYDPY_AVAILABLE_LOCALS__ in namespace:
+            del namespace[__HYDPY_AVAILABLE_LOCALS__]
+        if __HYDPY_MODEL_LOCALS__ in namespace:
+            del namespace[__HYDPY_MODEL_LOCALS__]
 
 
-def load_modelmodule(module: Union[types.ModuleType, str], /) -> types.ModuleType:
+def load_modelmodule(module: types.ModuleType | str, /) -> types.ModuleType:
     """Load the given model module (if necessary) and return it.
 
     >>> from hydpy.core.importtools import load_modelmodule
@@ -281,10 +285,7 @@ def load_modelmodule(module: Union[types.ModuleType, str], /) -> types.ModuleTyp
     return module
 
 
-def prepare_model(
-    module: Union[types.ModuleType, str],
-    timestep: Optional[timetools.PeriodConstrArg] = None,
-) -> modeltools.Model:
+def prepare_model(module: types.ModuleType | str) -> modeltools.Model:
     """Prepare and return the model of the given module.
 
     In usual *HydPy* projects, each control file only prepares an individual model
@@ -299,8 +300,6 @@ def prepare_model(
     See the documentation of |dam_v001| on how to apply function |prepare_model|
     properly.
     """
-    if timestep is not None:
-        hydpy.pub.options.parameterstep = timetools.Period(timestep)
     module = load_modelmodule(module)
     model = module.Model()
     assert isinstance(model, modeltools.Model)
@@ -361,11 +360,11 @@ def prepare_submodel(
     submodelinterface: type[TI_contra],
     *methods: Callable[[NoReturn, NoReturn], None],
     dimensionality: Literal[0] = ...,
-    landtype_constants: Optional[parametertools.Constants] = None,
-    soiltype_constants: Optional[parametertools.Constants] = None,
-    landtype_refindices: Optional[type[parametertools.NameParameter]] = None,
-    soiltype_refindices: Optional[type[parametertools.NameParameter]] = None,
-    refweights: Optional[type[parametertools.Parameter]] = None,
+    landtype_constants: parametertools.Constants | None = None,
+    soiltype_constants: parametertools.Constants | None = None,
+    landtype_refindices: type[parametertools.NameParameter] | None = None,
+    soiltype_refindices: type[parametertools.NameParameter] | None = None,
+    refweights: type[parametertools.Parameter] | None = None,
 ) -> Callable[
     [PrepSub0D[TM_contra, TI_contra]], SubmodelAdder[Literal[0], TM_contra, TI_contra]
 ]: ...
@@ -377,11 +376,11 @@ def prepare_submodel(
     submodelinterface: type[TI_contra],
     *methods: Callable[[NoReturn, NoReturn], None],
     dimensionality: Literal[1],
-    landtype_constants: Optional[parametertools.Constants] = None,
-    soiltype_constants: Optional[parametertools.Constants] = None,
-    landtype_refindices: Optional[type[parametertools.NameParameter]] = None,
-    soiltype_refindices: Optional[type[parametertools.NameParameter]] = None,
-    refweights: Optional[type[parametertools.Parameter]] = None,
+    landtype_constants: parametertools.Constants | None = None,
+    soiltype_constants: parametertools.Constants | None = None,
+    landtype_refindices: type[parametertools.NameParameter] | None = None,
+    soiltype_refindices: type[parametertools.NameParameter] | None = None,
+    refweights: type[parametertools.Parameter] | None = None,
 ) -> Callable[
     [PrepSub1D[TM_contra, TI_contra]], SubmodelAdder[Literal[1], TM_contra, TI_contra]
 ]: ...
@@ -392,20 +391,20 @@ def prepare_submodel(
     submodelinterface: type[TI_contra],
     *methods: Callable[[NoReturn, NoReturn], None],
     dimensionality: TD = 0,  # type: ignore[assignment]
-    landtype_constants: Optional[parametertools.Constants] = None,
-    soiltype_constants: Optional[parametertools.Constants] = None,
-    landtype_refindices: Optional[type[parametertools.NameParameter]] = None,
-    soiltype_refindices: Optional[type[parametertools.NameParameter]] = None,
-    refweights: Optional[type[parametertools.Parameter]] = None,
+    landtype_constants: parametertools.Constants | None = None,
+    soiltype_constants: parametertools.Constants | None = None,
+    landtype_refindices: type[parametertools.NameParameter] | None = None,
+    soiltype_refindices: type[parametertools.NameParameter] | None = None,
+    refweights: type[parametertools.Parameter] | None = None,
 ) -> Callable[
-    [Union[PrepSub0D[TM_contra, TI_contra], PrepSub1D[TM_contra, TI_contra]]],
+    [PrepSub0D[TM_contra, TI_contra] | PrepSub1D[TM_contra, TI_contra]],
     SubmodelAdder[TD, TM_contra, TI_contra],
 ]:
     """Wrap a model-specific method for preparing a submodel into a |SubmodelAdder|
     instance."""
 
     def _prepare_submodel(
-        wrapped: Union[PrepSub0D[TM_contra, TI_contra], PrepSub1D[TM_contra, TI_contra]]
+        wrapped: PrepSub0D[TM_contra, TI_contra] | PrepSub1D[TM_contra, TI_contra]
     ) -> SubmodelAdder[TD, TM_contra, TI_contra]:
         return SubmodelAdder[TD, TM_contra, TI_contra](
             wrapped=cast(Any, wrapped),
@@ -437,7 +436,7 @@ class SubmodelAdder(_DoctestAdder, Generic[TD, TM_contra, TI_contra]):
     as the ones of the main model.  As long as no name conflicts occur, all main model
     parameter instances are also accessible:
 
-    >>> from hydpy.models.lland_v3 import *
+    >>> from hydpy.models.lland_knauf import *
     >>> parameterstep()
     >>> nhru(2)
     >>> ft(10.0)
@@ -481,7 +480,7 @@ class SubmodelAdder(_DoctestAdder, Generic[TD, TM_contra, TI_contra]):
     ...     ...
     Traceback (most recent call last):
     ...
-    TypeError: While trying to add a submodel to the main model `lland_v3`, the \
+    TypeError: While trying to add a submodel to the main model `lland_knauf`, the \
 following error occurred: Submodel `ga_garto_submodel1` does not comply with the \
 `AETModel_V1` interface.
 
@@ -509,9 +508,9 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
     |SubmodelAdder| supports arbitrarily deep submodel nesting.  It conveniently moves
     some information from main models to sub-submodels or the other way round if the
     intermediate submodel does not consume or provide the corresponding data.
-    The following example shows that the main model of type |lland_v3| shares some of
-    its class-level configurations with the sub-submodel of type |evap_pet_hbv96| and
-    that the sub-submodel knows about the zone areas of its main model (which the
+    The following example shows that the main model of type |lland_knauf| shares some
+    of its class-level configurations with the sub-submodel of type |evap_pet_hbv96|
+    and that the sub-submodel knows about the zone areas of its main model (which the
     submodel is not aware of) and uses it for querying air temperature data:
 
     >>> lnk(ACKER, WASSER)
@@ -544,29 +543,32 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
 
     >>> from hydpy import pub
     >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
-    >>> with model.add_radiationmodel_v1("meteo_v003"):
+    >>> with model.add_radiationmodel_v1("meteo_glob_morsim"):
     ...     pass
     Traceback (most recent call last):
     ...
     hydpy.core.exceptiontools.AttributeNotReady: While trying to add submodel \
-`meteo_v003` to the main model `lland_v3`, the following error occurred: While trying \
-to update parameter `latituderad` of element `?`, the following error occurred: While \
-trying to multiply variable `latitude` and `float` instance `0.017453`, the following \
-error occurred: For variable `latitude`, no value has been defined so far.
+`meteo_glob_morsim` to the main model `lland_knauf`, the following error occurred: \
+While trying to update parameter `latituderad` of element `?`, the following error \
+occurred: While trying to multiply variable `latitude` and `float` instance \
+`0.017453`, the following error occurred: For variable `latitude`, no value has been \
+defined so far.
 
     You can turn off this behaviour by setting `update` to |False|:
 
-    >>> with model.add_radiationmodel_v1("meteo_v003", update=False) as meteo_v003:
+    >>> with model.add_radiationmodel_v1("meteo_glob_morsim", update=False) as \
+meteo_glob_morsim:
     ...     pass
 
-    |meteo_v003| is a "sharable" submodel, meaning one of its instances can be used by
-    multiple main models.  We demonstrate this by selecting |evap_morsim| as the
-    evaporation submodel, which requires the same radiation-related data as |lland_v3|.
-    We reuse the |meteo_v003| instance prepared above, which is already a submodel of
-    |lland_v3|, and make it also a submodel of the |evap_morsim| instance:
+    |meteo_glob_morsim| is a "sharable" submodel, meaning one of its instances can be
+    used by multiple main models.  We demonstrate this by selecting |evap_aet_morsim|
+    as the evaporation submodel, which requires the same radiation-related data as
+    |lland_knauf|.  We reuse the |meteo_glob_morsim| instance prepared above, which is
+    already a submodel of |lland_knauf|, and make it also a submodel of the
+    |evap_aet_morsim| instance:
 
-    >>> with model.add_aetmodel_v1("evap_morsim"):
-    ...     model.add_radiationmodel_v1(meteo_v003)
+    >>> with model.add_aetmodel_v1("evap_aet_morsim"):
+    ...     model.add_radiationmodel_v1(meteo_glob_morsim)
     >>> model.radiationmodel is model.aetmodel.radiationmodel
     True
 
@@ -583,8 +585,8 @@ error occurred: For variable `latitude`, no value has been defined so far.
     >>> model.add_radiationmodel_v1(model)
     Traceback (most recent call last):
     ...
-    TypeError: While trying to add a submodel to the main model `lland_v3`, the \
-following error occurred: The given `lland_v3` instance is not considered sharable.
+    TypeError: While trying to add a submodel to the main model `lland_knauf`, the \
+following error occurred: The given `lland_knauf` instance is not considered sharable.
     """
 
     submodelname: str
@@ -595,19 +597,19 @@ following error occurred: The given `lland_v3` instance is not considered sharab
     """The dimensionality of the handled submodel reference(s) (either zero or one)."""
     methods: tuple[Callable[[NoReturn, NoReturn], None], ...]
     """The submodel interface methods the wrapped method uses."""
-    landtype_refindices: Optional[type[parametertools.NameParameter]]
+    landtype_refindices: type[parametertools.NameParameter] | None
     """Reference to a land cover type-related index parameter."""
-    soiltype_refindices: Optional[type[parametertools.NameParameter]]
+    soiltype_refindices: type[parametertools.NameParameter] | None
     """Reference to a soil type-related index parameter."""
-    refweights: Optional[type[parametertools.Parameter]]
+    refweights: type[parametertools.Parameter] | None
     """Reference to a weighting parameter."""
 
     __hydpy_maintype2subname2adders__: collections.defaultdict[
         type[modeltools.Model], collections.defaultdict[str, list[SubmodelAdder]]
-    ] = collections.defaultdict(lambda: collections.defaultdict(lambda: []))
+    ] = collections.defaultdict(lambda: collections.defaultdict(list))
 
     _methodnames: frozenset[str]
-    _wrapped: Union[PrepSub0D[TM_contra, TI_contra], PrepSub1D[TM_contra, TI_contra]]
+    _wrapped: PrepSub0D[TM_contra, TI_contra] | PrepSub1D[TM_contra, TI_contra]
     _sharable_configuration: SharableConfiguration
     _mainmodelstack: ClassVar[list[modeltools.Model]] = []
 
@@ -621,47 +623,48 @@ following error occurred: The given `lland_v3` instance is not considered sharab
     @overload
     def __init__(
         self: SubmodelAdder[Literal[0], TM_contra, TI_contra],
+        *,
         wrapped: PrepSub0D[TM_contra, TI_contra],
         submodelname: str,
         submodelinterface: type[TI_contra],
         methods: Iterable[Callable[[NoReturn, NoReturn], None]],
         dimensionality: TD,
-        landtype_constants: Optional[parametertools.Constants],
-        soiltype_constants: Optional[parametertools.Constants],
-        landtype_refindices: Optional[type[parametertools.NameParameter]],
-        soiltype_refindices: Optional[type[parametertools.NameParameter]],
-        refweights: Optional[type[parametertools.Parameter]],
+        landtype_constants: parametertools.Constants | None,
+        soiltype_constants: parametertools.Constants | None,
+        landtype_refindices: type[parametertools.NameParameter] | None,
+        soiltype_refindices: type[parametertools.NameParameter] | None,
+        refweights: type[parametertools.Parameter] | None,
     ) -> None: ...
 
     @overload
     def __init__(
         self: SubmodelAdder[Literal[1], TM_contra, TI_contra],
+        *,
         wrapped: PrepSub1D[TM_contra, TI_contra],
         submodelname: str,
         submodelinterface: type[TI_contra],
         methods: Iterable[Callable[[NoReturn, NoReturn], None]],
         dimensionality: TD,
-        landtype_constants: Optional[parametertools.Constants],
-        soiltype_constants: Optional[parametertools.Constants],
-        landtype_refindices: Optional[type[parametertools.NameParameter]],
-        soiltype_refindices: Optional[type[parametertools.NameParameter]],
-        refweights: Optional[type[parametertools.Parameter]],
+        landtype_constants: parametertools.Constants | None,
+        soiltype_constants: parametertools.Constants | None,
+        landtype_refindices: type[parametertools.NameParameter] | None,
+        soiltype_refindices: type[parametertools.NameParameter] | None,
+        refweights: type[parametertools.Parameter] | None,
     ) -> None: ...
 
     def __init__(
         self,
-        wrapped: Union[
-            PrepSub0D[TM_contra, TI_contra], PrepSub1D[TM_contra, TI_contra]
-        ],
+        *,
+        wrapped: PrepSub0D[TM_contra, TI_contra] | PrepSub1D[TM_contra, TI_contra],
         submodelname: str,
         submodelinterface: type[TI_contra],
         methods: Iterable[Callable[[NoReturn, NoReturn], None]],
         dimensionality: TD,
-        landtype_constants: Optional[parametertools.Constants],
-        soiltype_constants: Optional[parametertools.Constants],
-        landtype_refindices: Optional[type[parametertools.NameParameter]],
-        soiltype_refindices: Optional[type[parametertools.NameParameter]],
-        refweights: Optional[type[parametertools.Parameter]],
+        landtype_constants: parametertools.Constants | None,
+        soiltype_constants: parametertools.Constants | None,
+        landtype_refindices: type[parametertools.NameParameter] | None,
+        soiltype_refindices: type[parametertools.NameParameter] | None,
+        refweights: type[parametertools.Parameter] | None,
     ) -> None:
         self._wrapped = wrapped
         self.submodelname = submodelname
@@ -693,13 +696,13 @@ following error occurred: The given `lland_v3` instance is not considered sharab
 
     def get_wrapped(
         self: SubmodelAdder[TD, TM_contra, TI_contra]
-    ) -> Union[PrepSub0D[TM_contra, TI_contra], PrepSub1D[TM_contra, TI_contra]]:
+    ) -> PrepSub0D[TM_contra, TI_contra] | PrepSub1D[TM_contra, TI_contra]:
         """Return the wrapped, model-specific method for automatically preparing some
         control parameters."""
         return self._wrapped
 
     def __get__(
-        self, obj: Optional[TM_contra], type_: type[modeltools.Model]
+        self, obj: TM_contra | None, type_: type[modeltools.Model]
     ) -> SubmodelAdder[TD, TM_contra, TI_contra]:
         if obj is not None:
             self._model = obj
@@ -713,7 +716,7 @@ following error occurred: The given `lland_v3` instance is not considered sharab
     @overload
     def __call__(
         self: SubmodelAdder[Literal[0], TM_contra, TI_contra],
-        submodel: Union[types.ModuleType, str],
+        submodel: types.ModuleType | str,
         *,
         update: bool = True,
     ) -> SubmodelAdder[Literal[0], TM_contra, TI_contra]: ...
@@ -721,7 +724,7 @@ following error occurred: The given `lland_v3` instance is not considered sharab
     @overload
     def __call__(
         self: SubmodelAdder[Literal[1], TM_contra, TI_contra],
-        submodel: Union[types.ModuleType, str],
+        submodel: types.ModuleType | str,
         *,
         position: int,
         update: bool = True,
@@ -746,11 +749,11 @@ following error occurred: The given `lland_v3` instance is not considered sharab
 
     def __call__(
         self,
-        submodel: Union[types.ModuleType, str, modeltools.SharableSubmodelInterface],
+        submodel: types.ModuleType | str | modeltools.SharableSubmodelInterface,
         *,
-        position: Optional[int] = None,
+        position: int | None = None,
         update: bool = True,
-    ) -> Optional[Self]:
+    ) -> Self | None:
         try:
             assert (model := self._model) is not None
 
@@ -794,6 +797,8 @@ following error occurred: The given `lland_v3` instance is not considered sharab
                     (frame2 := frame1.f_back) is not None
                 )
                 self._namespace = frame2.f_locals
+                if __HYDPY_AVAILABLE_LOCALS__ not in self._namespace:
+                    self._namespace[__HYDPY_AVAILABLE_LOCALS__] = dict(self._namespace)
                 self._old_locals = self._namespace.get(__HYDPY_MODEL_LOCALS__, {})
                 self._submodel = submodel_
                 self._update = update
@@ -820,9 +825,9 @@ following error occurred: The given `lland_v3` instance is not considered sharab
 
     def __exit__(
         self,
-        exception_type: Optional[type[BaseException]],
-        exception_value: Optional[BaseException],
-        traceback: Optional[types.TracebackType],
+        exception_type: type[BaseException] | None,
+        exception_value: BaseException | None,
+        traceback: types.TracebackType | None,
     ) -> None:
         try:
             self._mainmodelstack.pop(-1)
@@ -834,17 +839,33 @@ following error occurred: The given `lland_v3` instance is not considered sharab
                 f"`{self._model}`"
             )
         finally:
+            available_locals = self._namespace[__HYDPY_AVAILABLE_LOCALS__]
             new_locals = self._namespace[__HYDPY_MODEL_LOCALS__]
             for name in new_locals:
-                self._namespace.pop(name, None)
-            self._namespace.update(self._old_locals)
-            self._namespace[__HYDPY_MODEL_LOCALS__] = self._old_locals
+                if name in self._old_locals:
+                    self._namespace[name] = self._old_locals[name]
+                elif name in available_locals:
+                    self._namespace[name] = available_locals[name]
+                else:
+                    try:
+                        del self._namespace[name]
+                    except ValueError:  # pragma: no cover
+                        # Maybe the best we can do for optimised scopes because we
+                        # "cannot remove local variables from FrameLocalsProxy"
+                        self._namespace[name] = None
+            for name, value in self._old_locals.items():
+                if name not in new_locals:
+                    self._namespace[name] = value
+            if self._old_locals:
+                self._namespace[__HYDPY_MODEL_LOCALS__] = self._old_locals
+            else:
+                del self._namespace[__HYDPY_MODEL_LOCALS__]
+                del self._namespace[__HYDPY_AVAILABLE_LOCALS__]
             if isinstance(self._model, modeltools.SubmodelInterface):
                 self._model.preparemethod2arguments.clear()
             self._tidy_up()
 
     def _check_submodelinterface(self, submodeltype: type[modeltools.Model]) -> None:
-        # pylint: disable=protected-access
         if not issubclass(submodeltype, self.submodelinterface):
             raise TypeError(
                 f"Submodel `{submodeltype.__HYDPY_NAME__}` does not comply with the "
@@ -855,7 +876,7 @@ following error occurred: The given `lland_v3` instance is not considered sharab
         self,
         model: modeltools.Model,
         submodel: modeltools.SubmodelInterface,
-        position: Optional[int],
+        position: int | None,
     ) -> None:
         submodel.__hydpy_element__ = model.__hydpy_element__
         typeid = self.submodelinterface.typeid
@@ -909,7 +930,7 @@ following error occurred: The given `lland_v3` instance is not considered sharab
         /,
         *,
         refresh: bool,
-        position: Optional[int] = None,
+        position: int | None = None,
     ) -> None:
         """Update the connections between the given main model and its submodel, which
         can become necessary after disruptive configuration changes.
@@ -959,12 +980,12 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
 
     .. testsetup::
 
-        >>> from hydpy.models.evap_tw2002 import Model
+        >>> from hydpy.models.evap_ret_tw2002 import Model
         >>> Model.prepare_nmbzones.values_orig = {}
         >>> Model.prepare_nmbzones.values_test = {}
 
     >>> from hydpy import prepare_model
-    >>> model = prepare_model("evap_tw2002")
+    >>> model = prepare_model("evap_ret_tw2002")
     >>> model.prepare_nmbzones(3)
     >>> model.parameters.control.nmbhru
     nmbhru(3)
@@ -978,7 +999,7 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
     They also memorise the passed data and resulting parameter values:
 
     >>> model.prepare_nmbzones.values_orig  # doctest: +ELLIPSIS
-    {<hydpy.models.evap_tw2002.Model object at ...>: (((3,), {}), 3)}
+    {evap_ret_tw2002: (((3,), {}), 3)}
 
     With |TargetParameterUpdater.testmode| enabled, |TargetParameterUpdater| instances
     do not pass the given data to the wrapped method but memorise it together with the
@@ -989,7 +1010,7 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
     >>> model.parameters.control.nmbhru
     nmbhru(3)
     >>> model.prepare_nmbzones.values_test  # doctest: +ELLIPSIS
-    {<hydpy.models.evap_tw2002.Model object at ...>: (((4,), {}), 3)}
+    {evap_ret_tw2002: (((4,), {}), 3)}
 
     .. testsetup::
 
@@ -1021,7 +1042,7 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
     _wrapped: Callable[Concatenate[TM_contra, P], None]
     """The wrapped, submodel-specific method for setting the value of a single control 
     parameter."""
-    _model: Optional[TM_contra]
+    _model: TM_contra | None
 
     def __init__(
         self,
@@ -1035,7 +1056,7 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
         self.__doc__ = wrapped.__doc__
 
     def __get__(
-        self, obj: Optional[TM_contra], type_: type[modeltools.Model]
+        self, obj: TM_contra | None, type_: type[modeltools.Model]
     ) -> TargetParameterUpdater[TM_contra, P]:
         if obj is not None:
             self._model = obj
@@ -1076,7 +1097,7 @@ def simulationstep(timestep: timetools.PeriodConstrArg) -> None:
     >>> from hydpy.core.testtools import warn_later
     >>> from hydpy import pub
     >>> with warn_later(), pub.options.warnsimulationstep(True):
-    ...     from hydpy.models.hland_v1 import *
+    ...     from hydpy.models.hland_96 import *
     ...     simulationstep("1h")
     ...     parameterstep("1d")
     UserWarning: Note that the applied function `simulationstep` is intended for \
@@ -1100,38 +1121,38 @@ initialised based on the actual simulation time step as defined under \
 
 def controlcheck(
     controldir: str = "default",
-    projectdir: Optional[str] = None,
-    controlfile: Optional[str] = None,
-    firstdate: Optional[timetools.DateConstrArg] = None,
-    stepsize: Optional[timetools.PeriodConstrArg] = None,
+    projectdir: str | None = None,
+    controlfile: str | None = None,
+    firstdate: timetools.DateConstrArg | None = None,
+    stepsize: timetools.PeriodConstrArg | None = None,
 ) -> None:
     """Define the corresponding control file within a condition file.
 
     Function |controlcheck| serves similar purposes as function |parameterstep|.  It is
     why one can interactively access the state and the log sequences within condition
-    files as `land_dill.py` of the example project `LahnH`.  It is called
+    files as `land_dill_assl.py` of the example project `HydPy-H-Lahn`.  It is called
     `controlcheck` due to its feature to check for possible inconsistencies between
     control and condition files.  The following test, where we write several soil
-    moisture values (|hland_states.SM|) into condition file `land_dill.py`, which does
-    not agree with the number of hydrological response units (|hland_control.NmbZones|)
-    defined in control file `land_dill.py`, verifies that this works within a separate
-    Python process:
+    moisture values (|hland_states.SM|) into condition file `land_dill_assl.py`, which
+    does not agree with the number of hydrological response units
+    (|hland_control.NmbZones|) defined in control file `land_dill_assl.py`, verifies
+    that this works within a separate Python process:
 
-    >>> from hydpy.examples import prepare_full_example_1
+    >>> from hydpy.core.testtools import prepare_full_example_1
     >>> prepare_full_example_1()
 
     >>> import os
     >>> from hydpy import run_subprocess, TestIO
-    >>> cwd = os.path.join("LahnH", "conditions", "init_1996_01_01_00_00_00")
+    >>> cwd = os.path.join("HydPy-H-Lahn", "conditions", "init_1996_01_01_00_00_00")
     >>> with TestIO():   # doctest: +ELLIPSIS
     ...     os.chdir(cwd)
-    ...     with open("land_dill.py") as file_:
+    ...     with open("land_dill_assl.py") as file_:
     ...         lines = file_.readlines()
     ...     lines[10:12] = "sm(185.13164, 181.18755)", ""
-    ...     with open("land_dill.py", "w") as file_:
+    ...     with open("land_dill_assl.py", "w") as file_:
     ...         _ = file_.write("\\n".join(lines))
     ...     print()
-    ...     result = run_subprocess("hyd.py exec_script land_dill.py")
+    ...     result = run_subprocess("hyd.py exec_script land_dill_assl.py")
     <BLANKLINE>
     ...
     While trying to set the value(s) of variable `sm`, the following error occurred: \
@@ -1140,13 +1161,13 @@ shape `(12,)` and type `float`, the following error occurred: could not broadcas
 input array from shape (2...) into shape (12...)
     ...
 
-    With a little trick, we can fake to be "inside" condition file `land_dill.py`.
+    With a little trick, we can fake to be "inside" condition file `land_dill_assl.py`.
     Calling |controlcheck| then, for example, prepares the shape of sequence
     |hland_states.Ic| as specified by the value of parameter |hland_control.NmbZones|
     given in the corresponding control file:
 
-    >>> from hydpy.models.hland_v1 import *
-    >>> __file__ = "land_dill.py"
+    >>> from hydpy.models.hland_96 import *
+    >>> __file__ = "land_dill_assl.py"
     >>> with TestIO():
     ...     os.chdir(cwd)
     ...     controlcheck(firstdate="1996-01-01", stepsize="1d")
@@ -1163,71 +1184,72 @@ input array from shape (2...) into shape (12...)
     ...     controlcheck(projectdir="somewhere", controldir="nowhere")
     Traceback (most recent call last):
     ...
-    FileNotFoundError: While trying to load the control file `land_dill.py` \
+    FileNotFoundError: While trying to load the control file `land_dill_assl.py` \
 from directory `...hydpy/tests/iotesting/somewhere/control/nowhere`, \
 the following error occurred: ...
 
     For some models, the appropriate states may depend on the initialisation date.  One
     example is the interception storage (|lland_states.Inzp|) of application model
-    |lland_v1|, which should not exceed the interception capacity
+    |lland_dd|, which should not exceed the interception capacity
     (|lland_derived.KInz|).  However, |lland_derived.KInz| depends on the leaf
     area index parameter |lland_control.LAI|, which offers different values depending
     on land-use type and month.  Hence, one can assign higher values to state
     |lland_states.Inzp| during periods with high leaf area indices than during periods
     with small leaf area indices.
 
-    To show the related functionalities, we first replace the |hland_v1| application
-    model of element `land_dill` with a |lland_v1| model object, define some of its
+    To show the related functionalities, we first replace the |hland_96| application
+    model of element `land_dill_assl` with a |lland_dd| model object, define some of its
     parameter values, and write its control and condition files.  Note that the
     |lland_control.LAI| value of the only relevant land use the
     (|lland_constants.ACKER|) is 0.5 during January and 5.0 during July:
 
     >>> from hydpy import HydPy, prepare_model, pub
-    >>> from hydpy.models.lland_v1 import ACKER
+    >>> from hydpy.models.lland_dd import ACKER
     >>> pub.timegrids = "2000-06-01", "2000-07-01", "1d"
     >>> with TestIO():
-    ...     hp = HydPy("LahnH")
+    ...     hp = HydPy("HydPy-H-Lahn")
     ...     hp.prepare_network()
-    ...     land_dill = hp.elements["land_dill"]
+    ...     land_dill_assl = hp.elements["land_dill_assl"]
     ...     with pub.options.usedefaultvalues(True):
-    ...         land_dill.model = prepare_model("lland_v1")
-    ...         control = land_dill.model.parameters.control
+    ...         land_dill_assl.model = prepare_model("lland_dd")
+    ...         control = land_dill_assl.model.parameters.control
     ...         control.nhru(2)
     ...         control.ft(1.0)
     ...         control.fhru(0.5)
     ...         control.lnk(ACKER)
     ...         control.lai.acker_jan = 0.5
     ...         control.lai.acker_jul = 5.0
-    ...         land_dill.model.parameters.update()
-    ...         land_dill.model.sequences.states.inzp(1.0)
-    ...     land_dill.model.save_controls()
-    ...     land_dill.model.save_conditions()
+    ...         land_dill_assl.model.parameters.update()
+    ...         land_dill_assl.model.sequences.states.inzp(1.0)
+    ...     land_dill_assl.model.save_controls()
+    ...     land_dill_assl.model.save_conditions()
 
     Unfortunately, state |lland_states.Inzp| does not define a |trim| method taking the
     actual value of parameter |lland_derived.KInz| into account (due to compatibility
     with the original LARSIM model).  As an auxiliary solution, we define such a
-    function within the `land_dill.py` condition file (and modify some warning settings
-    in favour of the next examples):
+    function within the `land_dill_assl.py` condition file (and modify some warning
+    settings in favour of the next examples):
 
-    >>> cwd = os.path.join("LahnH", "conditions", "init_2000_07_01_00_00_00")
+    >>> cwd = os.path.join("HydPy-H-Lahn", "conditions", "init_2000_07_01_00_00_00")
     >>> with TestIO():
     ...     os.chdir(cwd)
-    ...     with open("land_dill.py") as file_:
+    ...     with open("land_dill_assl.py") as file_:
     ...         lines = file_.readlines()
-    ...     with open("land_dill.py", "w") as file_:
+    ...     with open("land_dill_assl.py", "w") as file_:
     ...         file_.writelines([
     ...             "from hydpy import pub\\n",
     ...             "pub.options.warnsimulationstep = False\\n",
+    ...             "pub.options.warntrim = True\\n",
     ...             "import warnings\\n",
     ...             'warnings.filterwarnings("error", message="For variable")\\n'])
-    ...         file_.writelines(lines[:5])
+    ...         file_.writelines(lines[:4])
     ...         file_.writelines([
     ...             "from hydpy.core.variabletools import trim as trim_\\n",
     ...             "def trim(self, lower=None, upper=None):\\n",
     ...             "    der = self.subseqs.seqs.model.parameters.derived\\n",
     ...             "    trim_(self, 0.0, der.kinz.acker[der.moy[0]])\\n",
-    ...             "type(inzp).trim = trim\\n"])
-    ...         file_.writelines(lines[5:])
+    ...             "type(inzp).trim = trim\\n\\n"])
+    ...         file_.writelines(lines[4:])
 
     Now, executing the condition file (and thereby calling function |controlcheck|)
     does not raise any warnings due to extracting the initialisation date from the name
@@ -1235,18 +1257,18 @@ the following error occurred: ...
 
     >>> with TestIO():
     ...     os.chdir(cwd)
-    ...     result = run_subprocess("hyd.py exec_script land_dill.py")
+    ...     result = run_subprocess("hyd.py exec_script land_dill_assl.py")
 
     If the directory name does imply the initialisation date to be within January 2000
     instead of July 2000, we correctly get the following warning:
 
     >>> cwd_old = cwd
-    >>> cwd_new = os.path.join("LahnH", "conditions", "init_2000_01_01")
+    >>> cwd_new = os.path.join("HydPy-H-Lahn", "conditions", "init_2000_01_01")
     >>> with TestIO():   # doctest: +ELLIPSIS
     ...     os.rename(cwd_old, cwd_new)
     ...     os.chdir(cwd_new)
-    ...     result = run_subprocess("hyd.py exec_script land_dill.py")
-    Invoking hyd.py with arguments `exec_script, land_dill.py` resulted in the \
+    ...     result = run_subprocess("hyd.py exec_script land_dill_assl.py")
+    Invoking hyd.py with arguments `exec_script, land_dill_assl.py` resulted in the \
 following error:
     For variable `inzp` at least one value needed to be trimmed.  The old and the new \
 value(s) are `1.0, 1.0` and `0.1, 0.1`, respectively.
@@ -1254,18 +1276,18 @@ value(s) are `1.0, 1.0` and `0.1, 0.1`, respectively.
 
     One can define an alternative initialisation date via argument `firstdate`:
 
-    >>> text_old = ('controlcheck(projectdir=r"LahnH", '
+    >>> text_old = ('controlcheck(projectdir=r"HydPy-H-Lahn", '
     ...             'controldir="default", stepsize="1d")')
-    >>> text_new = ('controlcheck(projectdir=r"LahnH", controldir="default", '
+    >>> text_new = ('controlcheck(projectdir=r"HydPy-H-Lahn", controldir="default", '
     ...             'firstdate="2100-07-15", stepsize="1d")')
     >>> with TestIO():
     ...     os.chdir(cwd_new)
-    ...     with open("land_dill.py") as file_:
+    ...     with open("land_dill_assl.py") as file_:
     ...         text = file_.read()
     ...     text = text.replace(text_old, text_new)
-    ...     with open("land_dill.py", "w") as file_:
+    ...     with open("land_dill_assl.py", "w") as file_:
     ...         _ = file_.write(text)
-    ...     result = run_subprocess("hyd.py exec_script land_dill.py")
+    ...     result = run_subprocess("hyd.py exec_script land_dill_assl.py")
 
     Default condition directory names do not contain information about the simulation
     step size.  Hence, one needs to define it explicitly for all application models
@@ -1273,13 +1295,13 @@ value(s) are `1.0, 1.0` and `0.1, 0.1`, respectively.
 
     >>> with TestIO():   # doctest: +ELLIPSIS
     ...     os.chdir(cwd_new)
-    ...     with open("land_dill.py") as file_:
+    ...     with open("land_dill_assl.py") as file_:
     ...         text = file_.read()
     ...     text = text.replace('stepsize="1d"', "")
-    ...     with open("land_dill.py", "w") as file_:
+    ...     with open("land_dill_assl.py", "w") as file_:
     ...         _ = file_.write(text)
-    ...     result = run_subprocess("hyd.py exec_script land_dill.py")
-    Invoking hyd.py with arguments `exec_script, land_dill.py` resulted in the \
+    ...     result = run_subprocess("hyd.py exec_script land_dill_assl.py")
+    Invoking hyd.py with arguments `exec_script, land_dill_assl.py` resulted in the \
 following error:
     To apply function `controlcheck` requires time information for some model types.  \
 Please define the `Timegrids` object of module `pub` manually or pass the required \
@@ -1291,17 +1313,17 @@ information (`stepsize` and eventually `firstdate`) as function arguments.
     directory name:
 
     >>> cwd_old = cwd_new
-    >>> cwd_new = os.path.join("LahnH", "conditions", "init")
+    >>> cwd_new = os.path.join("HydPy-H-Lahn", "conditions", "init")
     >>> with TestIO():   # doctest: +ELLIPSIS
     ...     os.rename(cwd_old, cwd_new)
     ...     os.chdir(cwd_new)
-    ...     with open("land_dill.py") as file_:
+    ...     with open("land_dill_assl.py") as file_:
     ...         text = file_.read()
     ...     text = text.replace('firstdate="2100-07-15"', 'stepsize="1d"')
-    ...     with open("land_dill.py", "w") as file_:
+    ...     with open("land_dill_assl.py", "w") as file_:
     ...         _ = file_.write(text)
-    ...     result = run_subprocess("hyd.py exec_script land_dill.py")
-    Invoking hyd.py with arguments `exec_script, land_dill.py` resulted in the \
+    ...     result = run_subprocess("hyd.py exec_script land_dill_assl.py")
+    Invoking hyd.py with arguments `exec_script, land_dill_assl.py` resulted in the \
 following error:
     To apply function `controlcheck` requires time information for some model types.  \
 Please define the `Timegrids` object of module `pub` manually or pass the required \

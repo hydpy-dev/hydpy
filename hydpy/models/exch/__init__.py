@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
 """
-The `HydPy-Exch` base model provides features to implement helper models that enable
-other models to exchange data more freely.
+The |exch.DOCNAME.complete| base model provides features to implement helper models
+that enable other models to exchange data more freely.
 """
+
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *

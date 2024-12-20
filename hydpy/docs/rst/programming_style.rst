@@ -14,7 +14,7 @@
 .. _autogen: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/cythons/autogen
 .. _conf: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/conf
 .. _data: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/data
-.. _LahnH example project: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/data/LahnH
+.. _HydPy-H-Lahn example project: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/data/HydPy-H-Lahn
 .. _docs: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/docs
 .. _reStructuredText: _http://docutils.sourceforge.net/rst.html
 .. _sphinx: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/docs/sphinx
@@ -156,7 +156,7 @@ files and coefficients for numerical integration algorithms), which
 might be generated automatically during *HydPy's* build process.
 
 Subpackage `data`_ provides example data usable within doctests,
-currently only the `LahnH example project`_.
+currently only the `HydPy-H-Lahn example project`_.
 
 Subpackage `docs`_ contains different subpackages.  `sphinx`_
 controls the automatic generation of the HTML documentation. `rst`_
@@ -532,11 +532,10 @@ and modify the code more efficiently. We are going to increase our efforts
 in this direction, but do not have a "HydPy Typing Style Guide" at hand,
 so far.  So please add the typing annotations you find useful.  The minimum
 requirement for Python core modules is to declare the return type (or, when
-necessary, to declare the |typing.Union| of possible return types) of
-each new function or method:
+necessary, to declare the union of possible return types) of each new
+function or method:
 
->>> from typing import List
->>> def test(nmb) -> List[int]:
+>>> def test(nmb) -> list[int]:
 ...     return list(range(nmb))
 
 For `Cython`_ extension files, adding type information understandable
@@ -553,7 +552,7 @@ models in detail to understand how to implement new ones correctly.
 *HydPy* provides many standard features, allowing you to write straightforward
 model source code in many cases.  However, you are free to implement any
 functionalities you find missing (see, for example, the complex "connect"
-method defined by the |hbranch| model). If those functionalities might
+method defined by the |exch_branch_hbv96| model). If those functionalities might
 be of importance to other models as well, consider generalising them and
 adding them to the suitable subpackage.
 

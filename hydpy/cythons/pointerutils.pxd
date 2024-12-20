@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 cimport numpy
 
 cdef class DoubleBase:

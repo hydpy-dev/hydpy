@@ -4,31 +4,31 @@
 Cython Tools
 ============
 
-The modules of subpackage `cythons` should be of interest for framework
-developers (and eventually some model developers) only.
+The modules of the `cythons` subpackage should only be of interest to framework
+developers (and eventually some model developers).
 
-The most important module (and so far the only one which is actually a
-Python module) is |modelutils|, which implements the routines to translate
-Python code into Cython code, to translate Cython code into C code, to
-compile C code, and to embed the compilation into a "Python dll"
-(a "pyd" file on Windows and a "so" file on Linux systems).
+The most crucial module (and so far the only one which is a Python module) is
+|modelutils|, which implements the routines to translate Python code into Cython code,
+to translate Cython code into C code, to compile C code, and to embed the compilation
+into a "Python dll" (a "pyd" file on Windows and a "so" file on Linux systems).
 
-The other modules are Cython extension files.  Often they are named
-similar to the Python modules of other packages (see for example |anntools|
-and :ref:`annutils`).  The respective Cython extension file then implements
-the performance critical part of the the required functionality.
+The other modules are Cython extension modules.  Often, they are named similar to the
+Python modules of other packages (for example, |anntools| and :ref:`annutils`).  The
+respective Cython extension module then implements the performance-critical part of the
+required functionality.
 
-The required dll files are automatically generated when *HydPy*
-is installed and stored in the `cythons` subpackage `autogen`.  The
-dll files of the different hydrological models are also stored in
-`autogen`.  But they are automatically updated each time class
-|Cythonizer| of module |modelutils| detects a change in the code base
-of the model or of *HydPy* that could affect the models functionality.
+The required dll files are shipped with the available HydPy wheels or automatically
+generated when building HydPy locally.  You can find them in the `cythons` subpackage
+`autogen`.  The same holds for the dll files of the "cythonized"  hydrological models.
 
-Note that it is always harder to maintain Cython code than it is to
-maintain Python code.  So please refrain from writing Cython code
-when the expected computational time gain is small or when Python
-offers other strategies to decrease computation times.
+If you want to change a model in Python (for example, for testing) and also want to
+update its cythonized counterpart, use the responsible |Cythonizer| instance, which is
+a member of the subpackage (in case of a base model) or module (in case of an
+application model).
+
+Note that it is more effort to maintain Cython code than to maintain Python code.  So
+please refrain from writing Cython code when the expected computational time gain is
+small or when Python offers other strategies to decrease computation times.
 
 
 .. toctree::

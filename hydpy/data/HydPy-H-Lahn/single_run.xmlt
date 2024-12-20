@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hpcsr:config xmlns="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/HydPyConfigBase.xsd"
+              xmlns:hpcsr="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/HydPyConfigSingleRun.xsd">
+    <options>
+        <reprdigits>6</reprdigits>
+        <usecython>true</usecython>
+        <usedefaultvalues>false</usedefaultvalues>
+        <utcoffset>60</utcoffset>
+        <warnmissingobsfile>true</warnmissingobsfile>
+        <warnmissingsimfile>true</warnmissingsimfile>
+        <warntrim>true</warntrim>
+    </options>
+
+    <timegrid>
+        <firstdate><!--|firstdate=1996-01-01T00:00:00|--></firstdate>
+        <lastdate>1996-01-06T00:00:00</lastdate>
+        <stepsize>1d</stepsize>
+    </timegrid>
+
+    <add_selections>
+        <add_selection>
+            <name>from_devices</name>
+            <devices>
+                land_lahn_marb
+                land_lahn_leun
+            </devices>
+        </add_selection>
+        <add_selection>
+            <name>from_keywords</name>
+            <keywords>catchment</keywords>
+        </add_selection>
+        <add_selection>
+            <name>from_selections</name>
+            <selections>
+                headwaters
+                nonheadwaters
+                streams
+            </selections>
+        </add_selection>
+    </add_selections>
+
+    <selections>
+        from_selections
+    </selections>
+
+    <control_io>default</control_io>
+
+    <conditions_io>
+        <prefix><!--|prefix=init|--></prefix>
+        <outputdir>init_1996_01_06</outputdir>
+        <zip><!--|zip_=false|--></zip>
+    </conditions_io>
+
+    <series_io>
+
+        <filetype>npy</filetype>
+        <overwrite>true</overwrite>
+        <aggregation>none</aggregation>
+
+        <readers>
+            <reader info="all input data">
+                <selections>from_keywords</selections>
+                <sequences>
+                    <evap_pet_hbv96>
+                        <inputs>
+                            <normalairtemperature/>
+                            <normalevapotranspiration/>
+                        </inputs>
+                    </evap_pet_hbv96>
+                    <hland_96>
+                        <inputs>
+                            <p/>
+                            <t/>
+                        </inputs>
+                    </hland_96>
+                </sequences>
+                <filetype>nc</filetype>
+            </reader>
+        </readers>
+
+        <writers>
+
+            <writer info="precipitation">
+                <selections>
+                    headwaters
+                    from_devices
+                </selections>
+                <sequences>
+                    <hland_96>
+                        <inputs>
+                            <p/>
+                        </inputs>
+                        <fluxes>
+                            <pc/>
+                            <tf/>
+                        </fluxes>
+                    </hland_96>
+                </sequences>
+                <filetype>npy</filetype>
+            </writer>
+
+            <writer info="soilmoisture">
+                <selections>complete</selections>
+                <sequences>
+                    <hland_96>
+                        <states>
+                            <sm/>
+                        </states>
+                    </hland_96>
+                </sequences>
+                <filetype>nc</filetype>
+                <overwrite>false</overwrite>
+            </writer>
+
+            <writer info="averaged">
+                <sequences>
+                    <node>
+                        <sim/>
+                        <obs/>
+                    </node>
+                    <hland_96>
+                        <fluxes>
+                            <pc/>
+                            <tf/>
+                        </fluxes>
+                        <states>
+                            <sm/>
+                        </states>
+                    </hland_96>
+                    <musk_classic>
+                        <states>
+                            <discharge/>
+                        </states>
+                    </musk_classic>
+                </sequences>
+                <aggregation>mean</aggregation>
+            </writer>
+
+        </writers>
+
+    </series_io>
+
+</hpcsr:config>

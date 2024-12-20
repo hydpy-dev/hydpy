@@ -1,12 +1,13 @@
-# -*- coding: utf-8 -*-
 """
 .. _`issue 68`: https://github.com/hydpy-dev/hydpy/issues/68
 """
+
 # imports...
 # ...from site-packages
 import numpy
 
 # ...from HydPy
+from hydpy import config
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
@@ -358,9 +359,10 @@ class Calc_EI_Ic_AETModel_V1(modeltools.Method):
     Examples:
 
         We build an example based on |evap_aet_hbv96| for calculating interception
-        evaporation, which uses |evap_io| for querying potential evapotranspiration:
+        evaporation, which uses |evap_ret_io| for querying potential
+        evapotranspiration:
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> parameterstep("1h")
         >>> nmbzones(5)
         >>> zonetype(GLACIER, SEALED, FIELD, FOREST, ILAKE)
@@ -371,7 +373,7 @@ class Calc_EI_Ic_AETModel_V1(modeltools.Method):
         >>> fc(50.0)
         >>> fluxes.tf = 0.5
         >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
-        ...     with model.add_petmodel_v1("evap_io"):
+        ...     with model.add_petmodel_v1("evap_ret_io"):
         ...         evapotranspirationfactor(0.6, 0.8, 1.0, 1.2, 1.4)
         ...         inputs.referenceevapotranspiration = 1.0
 
@@ -1274,7 +1276,8 @@ class Calc_Refr_SP_WC_V1(modeltools.Method):
 
         >>> cfmax
         cfmax(4.0)
-        >>> cfmax.values[0]
+        >>> from hydpy import round_
+        >>> round_(cfmax.values[0])
         2.0
 
         When the actual temperature equals the threshold temperature for melting and
@@ -1867,7 +1870,8 @@ class Calc_CF_SM_V1(modeltools.Method):
 
         >>> cflux
         cflux(4.0)
-        >>> cflux.values[0]
+        >>> from hydpy import round_
+        >>> round_(cflux.values[0])
         2.0
 
         For fields and forests, the actual capillary return flow depends only on the
@@ -1981,7 +1985,7 @@ class Calc_EA_SM_AETModel_V1(modeltools.Method):
         We build an example based on |evap_aet_hbv96| for calculating soil
         evapotranspiration:
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> parameterstep("1h")
         >>> nmbzones(5)
         >>> zonetype(GLACIER, SEALED, FIELD, FOREST, ILAKE)
@@ -2593,8 +2597,9 @@ class Calc_QAb_QVs_BW_V1(modeltools.Method):
     information.
     """
 
+    # positional arguments required for consistency with the cythonized extension class:
     @staticmethod
-    def __call__(
+    def __call__(  # pylint: disable=too-many-positional-arguments
         model: modeltools.Model,
         k: int,
         h: VectorFloat,
@@ -2605,6 +2610,7 @@ class Calc_QAb_QVs_BW_V1(modeltools.Method):
         qa1: VectorFloat,
         qa2: VectorFloat,
         t0: float,
+        /,
     ) -> None:
         d_h = h[k]
         d_k1 = k1[k]
@@ -3435,7 +3441,7 @@ class Calc_EL_SG2_SG3_AETModel_V1(modeltools.Method):
 
         We build an example based on |evap_aet_hbv96| for calculating lake evaporation:
 
-        >>> from hydpy.models.hland_v3 import *
+        >>> from hydpy.models.hland_96p import *
         >>> parameterstep("1h")
         >>> nmbzones(5)
         >>> zonetype(GLACIER, SEALED, FIELD, FOREST, ILAKE)
@@ -3722,7 +3728,7 @@ class Calc_EL_LZ_AETModel_V1(modeltools.Method):
 
         We build an example based on |evap_aet_hbv96| for calculating lake evaporation:
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> parameterstep("1h")
         >>> nmbzones(5)
         >>> zonetype(GLACIER, SEALED, FIELD, FOREST, ILAKE)
@@ -3884,19 +3890,24 @@ class Calc_Q1_LZ_V1(modeltools.Method):
         sta.lz -= flu.q1
 
 
-class Calc_InUH_V1(modeltools.Method):
-    r"""Calculate the unit hydrograph or linear storage cascade input.
+class Calc_InRC_V1(modeltools.Method):
+    r"""Calculate the input of the runoff concentration submodel.
 
     Basic equation:
-        :math:`InUH = RelUpperZoneArea \cdot Q0 + RelLowerZoneArea \cdot Q1`
-
       .. math::
-        InUH = RelUpperZoneArea \cdot Q0 + RelLowerZoneArea \cdot Q1 +
-        \sum_{k=1}^{NmbZones}  RelZoneAreas_k \cdot \begin{cases}
-        R &|\ ZoneType_k = SEALED
+        InRC = A_U \cdot Q0 + A_L \cdot Q1 +
+        \sum_{k=1}^{N}  A_Z^k \cdot \begin{cases}
+        R &|\ T_Z^k = S
         \\
-        0 &|\ ZoneType_k \neq SEALED
+        0 &|\ T_Z^k \neq S
         \end{cases}
+        \\ \\
+        N = NmbZones \\
+        A_U = RelUpperZoneArea \\
+        A_L = RelLowerZoneArea \\
+        A_Z = RelZoneAreas  \\
+        T_Z = ZoneType \\
+        S = SEALED
 
     Example:
 
@@ -3918,17 +3929,17 @@ class Calc_InUH_V1(modeltools.Method):
         >>> derived.relupperzonearea.update()
         >>> derived.rellowerzonearea.update()
 
-        The unit hydrograph receives freshly generated runoff (|R|) directly from the
-        sealed zone (0.5 mm), direct runoff (|Q0|) indirectly from the field, forest,
-        and glacier zones (0.6 mm) and base flow (|Q1|) indirectly from the field,
-        forest, glacier and internal lake zones (3.0 mm):
+        The runoff concentration submodel receives freshly generated runoff (|R|)
+        directly from the sealed zone (0.5 mm), direct runoff (|Q0|) indirectly from
+        the field, forest, and glacier zones (0.6 mm) and base flow (|Q1|) indirectly
+        from the field, forest, glacier and internal lake zones (3.0 mm):
 
         >>> fluxes.r = 2.0
         >>> fluxes.q0 = 1.0
         >>> fluxes.q1 = 4.0
-        >>> model.calc_inuh_v1()
-        >>> fluxes.inuh
-        inuh(4.1)
+        >>> model.calc_inrc_v1()
+        >>> fluxes.inrc
+        inrc(4.1)
     """
 
     CONTROLPARAMETERS = (hland_control.NmbZones, hland_control.ZoneType)
@@ -3938,37 +3949,46 @@ class Calc_InUH_V1(modeltools.Method):
         hland_derived.RelLowerZoneArea,
     )
     REQUIREDSEQUENCES = (hland_fluxes.R, hland_fluxes.Q0, hland_fluxes.Q1)
-    RESULTSEQUENCES = (hland_fluxes.InUH,)
+    RESULTSEQUENCES = (hland_fluxes.InRC,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.inuh = der.relupperzonearea * flu.q0 + der.rellowerzonearea * flu.q1
+        flu.inrc = der.relupperzonearea * flu.q0 + der.rellowerzonearea * flu.q1
         for k in range(con.nmbzones):
             if con.zonetype[k] == SEALED:
-                flu.inuh += der.relzoneareas[k] * flu.r[k]
+                flu.inrc += der.relzoneareas[k] * flu.r[k]
 
 
-class Calc_InUH_V2(modeltools.Method):
-    r"""Calculate linear storage cascade input.
+class Calc_InRC_V2(modeltools.Method):
+    r"""Calculate the input of the runoff concentration submodel.
 
     Basic equation:
       .. math::
-        InUH = RelLowerZoneArea \cdot (RG2 + RG3) +
-        \sum_{k=1}^{NmbZones}
+        InRC = A_L \cdot (RG2 + RG3) +
+        \sum_{k=1}^{N}
         \begin{cases}
-        RS + RI + RG1 &|\ ZoneType_k \in \{FIELD, FOREST, GLACIER \}
+        RS + RI + RG1 &|\ T_Z^k \in \{FI, FO, G \}
         \\
-        R &|\ ZoneType_k = SEALED
+        R &|\ T_Z^k = S
         \\
-        0 &|\ ZoneType_k = ILAKE
+        0 &|\ T_Z^k = L
         \end{cases}
+        \\ \\
+        N = NmbZones \\
+        A_L = RelLowerZoneArea \\
+        Z_T = ZoneType \\
+        FI = FIELD \\
+        FO = FOREST \\
+        G = GLACIER \\
+        S = SEALED \\
+        L = ILAKE
 
     Example:
 
-        Besides adding all components, method |Calc_InUH_V2| needs to aggregate the HRU
+        Besides adding all components, method |Calc_InRC_V2| needs to aggregate the HRU
         level values of |RS|, |RI|, |RG1|, and |R| to the subbasin level:
 
         >>> from hydpy.models.hland import *
@@ -3984,9 +4004,9 @@ class Calc_InUH_V2(modeltools.Method):
         >>> fluxes.r = nan, nan, nan, nan, 2.0
         >>> fluxes.rg2 = 3.0
         >>> fluxes.rg3 = 4.0
-        >>> model.calc_inuh_v2()
-        >>> fluxes.inuh
-        inuh(7.53)
+        >>> model.calc_inrc_v2()
+        >>> fluxes.inrc
+        inrc(7.53)
     """
 
     CONTROLPARAMETERS = (hland_control.NmbZones, hland_control.ZoneType)
@@ -3999,41 +4019,51 @@ class Calc_InUH_V2(modeltools.Method):
         hland_fluxes.RG2,
         hland_fluxes.RG3,
     )
-    RESULTSEQUENCES = (hland_fluxes.InUH,)
+    RESULTSEQUENCES = (hland_fluxes.InRC,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.inuh = der.rellowerzonearea * (flu.rg2 + flu.rg3)
+        flu.inrc = der.rellowerzonearea * (flu.rg2 + flu.rg3)
         for k in range(con.nmbzones):
             if con.zonetype[k] in (FIELD, FOREST, GLACIER):
-                flu.inuh += der.relzoneareas[k] * (flu.rs[k] + flu.ri[k] + flu.rg1[k])
+                flu.inrc += der.relzoneareas[k] * (flu.rs[k] + flu.ri[k] + flu.rg1[k])
             elif con.zonetype[k] == SEALED:
-                flu.inuh += der.relzoneareas[k] * flu.r[k]
+                flu.inrc += der.relzoneareas[k] * flu.r[k]
 
 
-class Calc_InUH_V3(modeltools.Method):
-    r"""Calculate linear storage cascade input.
+class Calc_InRC_V3(modeltools.Method):
+    r"""Calculate the input of the runoff concentration submodel.
 
     Basic equation:
       .. math::
-        InUH = \sum_{k=1}^{NmbZones} \frac{RelZoneAreas_k}{RelLandArea} \cdot
+        InRC = \sum_{k=1}^{N} \frac{A_Z^k}{A_L} \cdot
         \begin{cases}
-        QAb1 + QAb2 &|\ ZoneType_k \in \{FIELD, FOREST, GLACIER \}
+        QAb1 + QAb2 &|\ T_Z^k \in \{FI, FO, G \}
         \\
-        R &|\ ZoneType_k = SEALED
+        R &|\ T_Z^k = S
         \\
-        0 &|\ ZoneType_k = ILAKE
+        0 &|\ T_Z^k = L
         \end{cases}
+        \\ \\
+        N = NmbZones \\
+        A_Z = RelZoneAreas \\
+        A_L = RelLandArea \\
+        T_Z = ZoneType \\
+        FI = FIELD \\
+        FO = FOREST \\
+        G = GLACIER \\
+        S = SEALED \\
+        L = ILAKE
 
     Example:
 
-        The unit hydrograph receives surface flow (|QAb1| and |QAb2|) from the first
-        three zones of type |FIELD|, |FOREST|, and |GLACIER|, receives directly
-        generated runoff from the fifth zone of type |SEALED|, and receives nothing
-        from the fourth zone of type |ILAKE|:
+        The runoff concentration submodel receives surface flow (|QAb1| and |QAb2|)
+        from the first three zones of type |FIELD|, |FOREST|, and |GLACIER|, receives
+        directly generated runoff from the fifth zone of type |SEALED|, and receives
+        nothing from the fourth zone of type |ILAKE|:
 
         >>> from hydpy.models.hland import *
         >>> simulationstep("12h")
@@ -4045,50 +4075,50 @@ class Calc_InUH_V3(modeltools.Method):
         >>> fluxes.qab1 = 1.0, 2.0, 3.0, nan, nan
         >>> fluxes.qab2 = 3.0, 6.0, 9.0, nan, nan
         >>> fluxes.r = nan, nan, nan, nan, 8.0
-        >>> model.calc_inuh_v3()
-        >>> fluxes.inuh
-        inuh(7.0)
+        >>> model.calc_inrc_v3()
+        >>> fluxes.inrc
+        inrc(7.0)
     """
 
     CONTROLPARAMETERS = (hland_control.NmbZones, hland_control.ZoneType)
     DERIVEDPARAMETERS = (hland_derived.RelZoneAreas, hland_derived.RelLandArea)
     REQUIREDSEQUENCES = (hland_fluxes.R, hland_fluxes.QAb1, hland_fluxes.QAb2)
-    RESULTSEQUENCES = (hland_fluxes.InUH,)
+    RESULTSEQUENCES = (hland_fluxes.InRC,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.inuh = 0.0
+        flu.inrc = 0.0
         for k in range(con.nmbzones):
             if con.zonetype[k] == ILAKE:
                 continue
             d_weight = der.relzoneareas[k] / der.rellandarea
             if con.zonetype[k] == SEALED:
-                flu.inuh += d_weight * flu.r[k]
+                flu.inrc += d_weight * flu.r[k]
             else:
-                flu.inuh += d_weight * (flu.qab1[k] + flu.qab2[k])
+                flu.inrc += d_weight * (flu.qab1[k] + flu.qab2[k])
 
 
-class Calc_OutUH_RConcModel_V1(modeltools.Method):
+class Calc_OutRC_RConcModel_V1(modeltools.Method):
     """Let a submodel that follows the |RConcModel_V1| submodel interface calculate
     runoff concentration."""
 
-    REQUIREDSEQUENCES = (hland_fluxes.InUH,)
-    RESULTSEQUENCES = (hland_fluxes.OutUH,)
+    REQUIREDSEQUENCES = (hland_fluxes.InRC,)
+    RESULTSEQUENCES = (hland_fluxes.OutRC,)
 
     @staticmethod
     def __call__(
         model: modeltools.Model, submodel: rconcinterfaces.RConcModel_V1
     ) -> None:
         flu = model.sequences.fluxes.fastaccess
-        submodel.set_inflow(flu.inuh)
+        submodel.set_inflow(flu.inrc)
         submodel.determine_outflow()
-        flu.outuh = submodel.get_outflow()
+        flu.outrc = submodel.get_outflow()
 
 
-class Calc_OutUH_V1(modeltools.Method):
+class Calc_OutRC_V1(modeltools.Method):
     """If the model has a submodel that follows the |RConcModel_V1| submodel interface,
     calculate runoff concentration. If not, set the output equal to the input.
 
@@ -4097,42 +4127,41 @@ class Calc_OutUH_V1(modeltools.Method):
         A model without a submodel for runoff concentration directs the input directly
         to the output:
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> simulationstep("1h")
         >>> parameterstep("1d")
-        >>> fluxes.inuh = 1.0
-        >>> model.calc_outuh_v1()
-        >>> fluxes.outuh
-        outuh(1.0)
+        >>> fluxes.inrc = 1.0
+        >>> model.calc_outrc_v1()
+        >>> fluxes.outrc
+        outrc(1.0)
 
         If a submodel for runoff concentration is added (in this case, a unit
         hydrograph with three ordinates), the output for the first time step
         corresponds to the portion of the input specified by the first ordinate (since
         the initial conditions of the logging sequence |rconc_logs.QUH| were set to
         zero, and thus no additional runoff portions from previous time steps are
-        included).
+        included):
 
         >>> with model.add_rconcmodel_v1("rconc_uh"):
         ...     uh([0.3,0.4,0.3])
-        ...     logs.quh.shape = 3
         ...     logs.quh = 0.0, 0.0, 0.0
-        >>> model.calc_outuh_v1()
-        >>> fluxes.outuh
-        outuh(0.3)
+        >>> model.calc_outrc_v1()
+        >>> fluxes.outrc
+        outrc(0.3)
     """
 
     SUBMODELINTERFACES = (rconcinterfaces.RConcModel_V1,)
-    SUBMETHODS = (Calc_OutUH_RConcModel_V1,)
-    REQUIREDSEQUENCES = (hland_fluxes.InUH,)
-    RESULTSEQUENCES = (hland_fluxes.OutUH,)
+    SUBMETHODS = (Calc_OutRC_RConcModel_V1,)
+    REQUIREDSEQUENCES = (hland_fluxes.InRC,)
+    RESULTSEQUENCES = (hland_fluxes.OutRC,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         if model.rconcmodel is None:
-            flu.outuh = flu.inuh
+            flu.outrc = flu.inrc
         elif model.rconcmodel_typeid == 1:
-            model.calc_outuh_rconcmodel_v1(
+            model.calc_outrc_rconcmodel_v1(
                 cast(rconcinterfaces.RConcModel_V1, model.rconcmodel)
             )
 
@@ -4141,32 +4170,32 @@ class Calc_RT_V1(modeltools.Method):
     r"""Calculate the total discharge in mm.
 
     Basic equation:
-        :math:`RT = OutUH`
+        :math:`RT = OutRC`
 
     Examples:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep()
-        >>> fluxes.outuh = 3.0
+        >>> fluxes.outrc = 3.0
         >>> model.calc_rt_v1()
         >>> fluxes.rt
         rt(3.0)
     """
 
-    REQUIREDSEQUENCES = (hland_fluxes.OutUH,)
+    REQUIREDSEQUENCES = (hland_fluxes.OutRC,)
     RESULTSEQUENCES = (hland_fluxes.RT,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
-        flu.rt = flu.outuh
+        flu.rt = flu.outrc
 
 
 class Calc_RT_V2(modeltools.Method):
     r"""Calculate the total discharge in mm.
 
     Basic equation:
-        :math:`RT = RelUpperZoneArea \cdot OutUH + RelLowerZoneArea \cdot Q1`
+        :math:`RT = RelUpperZoneArea \cdot OutRC + RelLowerZoneArea \cdot Q1`
 
     Example:
 
@@ -4174,7 +4203,7 @@ class Calc_RT_V2(modeltools.Method):
         >>> parameterstep()
         >>> derived.rellandarea(0.8)
         >>> derived.rellowerzonearea(0.6)
-        >>> fluxes.outuh = 2.5
+        >>> fluxes.outrc = 2.5
         >>> fluxes.q1 = 1.0
         >>> model.calc_rt_v2()
         >>> fluxes.rt
@@ -4182,14 +4211,14 @@ class Calc_RT_V2(modeltools.Method):
     """
 
     DERIVEDPARAMETERS = (hland_derived.RelLandArea, hland_derived.RelLowerZoneArea)
-    REQUIREDSEQUENCES = (hland_fluxes.OutUH, hland_fluxes.Q1)
+    REQUIREDSEQUENCES = (hland_fluxes.OutRC, hland_fluxes.Q1)
     RESULTSEQUENCES = (hland_fluxes.RT,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.rt = der.rellandarea * flu.outuh + der.rellowerzonearea * flu.q1
+        flu.rt = der.rellandarea * flu.outrc + der.rellowerzonearea * flu.q1
 
 
 class Calc_QT_V1(modeltools.Method):
@@ -4243,9 +4272,10 @@ class Get_Temperature_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbzones(2)
         >>> factors.tc = 2.0, 4.0
-        >>> model.get_temperature_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_temperature_v1(0))
         2.0
-        >>> model.get_temperature_v1(1)
+        >>> round_(model.get_temperature_v1(1))
         4.0
     """
 
@@ -4289,9 +4319,10 @@ class Get_Precipitation_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbzones(2)
         >>> fluxes.pc = 2.0, 4.0
-        >>> model.get_precipitation_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_precipitation_v1(0))
         2.0
-        >>> model.get_precipitation_v1(1)
+        >>> round_(model.get_precipitation_v1(1))
         4.0
     """
 
@@ -4313,9 +4344,10 @@ class Get_InterceptedWater_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbzones(2)
         >>> states.ic = 2.0, 4.0
-        >>> model.get_interceptedwater_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_interceptedwater_v1(0))
         2.0
-        >>> model.get_interceptedwater_v1(1)
+        >>> round_(model.get_interceptedwater_v1(1))
         4.0
     """
 
@@ -4337,9 +4369,10 @@ class Get_SoilWater_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbzones(2)
         >>> states.sm = 2.0, 4.0
-        >>> model.get_soilwater_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_soilwater_v1(0))
         2.0
-        >>> model.get_soilwater_v1(1)
+        >>> round_(model.get_soilwater_v1(1))
         4.0
     """
 
@@ -4364,11 +4397,12 @@ class Get_SnowCover_V1(modeltools.Method):
         >>> nmbzones(3)
         >>> sclass(2)
         >>> states.sp = [[0.0, 0.0, 1.0], [0.0, 1.0, 1.0]]
-        >>> model.get_snowcover_v1(0)
+        >>> from hydpy import round_
+        >>> round_(model.get_snowcover_v1(0))
         0.0
-        >>> model.get_snowcover_v1(1)
+        >>> round_(model.get_snowcover_v1(1))
         0.5
-        >>> model.get_snowcover_v1(2)
+        >>> round_(model.get_snowcover_v1(2))
         1.0
     """
 
@@ -4387,7 +4421,10 @@ class Get_SnowCover_V1(modeltools.Method):
 
 
 class Model(modeltools.AdHocModel):
-    r"""The HydPy-H-Land base model."""
+    """|hland.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="H")
+    __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
@@ -4430,10 +4467,10 @@ class Model(modeltools.AdHocModel):
         Calc_EL_SG2_SG3_V1,
         Calc_EL_LZ_V1,
         Calc_Q1_LZ_V1,
-        Calc_InUH_V1,
-        Calc_InUH_V3,
-        Calc_OutUH_V1,
-        Calc_InUH_V2,
+        Calc_InRC_V1,
+        Calc_InRC_V3,
+        Calc_OutRC_V1,
+        Calc_InRC_V2,
         Calc_RT_V1,
         Calc_RT_V2,
         Calc_QT_V1,
@@ -4452,7 +4489,7 @@ class Model(modeltools.AdHocModel):
         Calc_EL_LZ_AETModel_V1,
         Calc_EL_SG2_SG3_AETModel_V1,
         Calc_QAb_QVs_BW_V1,
-        Calc_OutUH_RConcModel_V1,
+        Calc_OutRC_RConcModel_V1,
     )
     OUTLET_METHODS = (Pass_Q_V1,)
     SENDER_METHODS = ()
@@ -4469,8 +4506,8 @@ class Model(modeltools.AdHocModel):
 
 
 class Main_AETModel_V1(modeltools.AdHocModel):
-    """Base class for HydPy-H models that use submodels that comply with the
-    |AETModel_V1| interface."""
+    """Base class for |hland.DOCNAME.long| models that use submodels that comply with
+    the |AETModel_V1| interface."""
 
     aetmodel: modeltools.SubmodelProperty
     aetmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -4502,7 +4539,7 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         is responsible for calculating the different kinds of actual
         evapotranspiration.
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> parameterstep()
         >>> nmbzones(5)
         >>> area(10.0)
@@ -4553,7 +4590,7 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         aetmodel.prepare_subareas(control.zonearea.value)
         aetmodel.prepare_elevations(100.0 * control.zonez.values)
         aetmodel.prepare_maxsoilwater(control.fc.values)
-        sel = numpy.full(nmbzones, False, dtype=bool)
+        sel = numpy.full(nmbzones, False, dtype=config.NP_BOOL)
         sel[zonetype == ILAKE] = True
         aetmodel.prepare_water(sel)
         sel = ~sel
@@ -4565,8 +4602,8 @@ class Main_AETModel_V1(modeltools.AdHocModel):
 
 
 class Main_RConcModel_V1(modeltools.AdHocModel):
-    """Base class for HydPy-H models that use submodels that comply with the
-    |RConcModel_V1| interface."""
+    """Base class for |hland.DOCNAME.long| models that use submodels that comply with
+    the |RConcModel_V1| interface."""
 
     rconcmodel: modeltools.SubmodelProperty
     rconcmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
@@ -4579,48 +4616,49 @@ class Main_RConcModel_V1(modeltools.AdHocModel):
         """Initialise the given submodel that follows the |RConcModel_V1| interface and
         is responsible for calculating the runoff concentration.
 
-        >>> from hydpy.models.hland_v1 import *
+        >>> from hydpy.models.hland_96 import *
         >>> simulationstep("12h")
         >>> parameterstep("1d")
         >>> with model.add_rconcmodel_v1("rconc_uh"):
         ...     uh([0.3, 0.5, 0.2])
         ...     logs.quh.shape = 3
         ...     logs.quh = 1.0, 3.0, 0.0
-        >>> model.sequences.fluxes.inuh = 0.0
-        >>> model.calc_outuh_v1()
-        >>> fluxes.outuh
-        outuh(1.0)
+        >>> model.sequences.fluxes.inrc = 0.0
+        >>> model.calc_outrc_v1()
+        >>> fluxes.outrc
+        outrc(1.0)
         """
 
     def _get_rconcmodel_waterbalance(
-        self, rconcmodel_conditions: ConditionsSubmodel
+        self, initial_conditions: ConditionsModel
     ) -> float:
         r"""Get the water balance of the rconc submodel if used."""
-        if self.rconcmodel is None:
-            return 0.0
-        return self.rconcmodel.get_waterbalance(rconcmodel_conditions)
+        if self.rconcmodel:
+            rconcmodel_conditions = initial_conditions["model.rconcmodel"]
+            return self.rconcmodel.get_waterbalance(rconcmodel_conditions)
+        return 0.0
 
 
 class Sub_TempModel_V1(modeltools.AdHocModel, tempinterfaces.TempModel_V1):
-    """Base class for HydPy-H models that comply with the |TempModel_V1| submodel
-    interface."""
+    """Base class for |hland.DOCNAME.long| models that comply with the |TempModel_V1|
+    submodel interface."""
 
 
 class Sub_PrecipModel_V1(modeltools.AdHocModel, precipinterfaces.PrecipModel_V1):
-    """Base class for HydPy-H models that comply with the |PrecipModel_V1| submodel
-    interface."""
+    """Base class for |hland.DOCNAME.long| models that comply with the |PrecipModel_V1|
+    submodel interface."""
 
 
 class Sub_IntercModel_V1(modeltools.AdHocModel, stateinterfaces.IntercModel_V1):
-    """Base class for HydPy-H models that comply with the |IntercModel_V1| submodel
-    interface."""
+    """Base class for |hland.DOCNAME.long| models that comply with the |IntercModel_V1|
+    submodel interface."""
 
 
 class Sub_SoilWaterModel_V1(modeltools.AdHocModel, stateinterfaces.SoilWaterModel_V1):
-    """Base class for HydPy-H models that comply with the |SoilWaterModel_V1| submodel
-    interface."""
+    """Base class for |hland.DOCNAME.long| models that comply with the
+    |SoilWaterModel_V1| submodel interface."""
 
 
 class Sub_SnowCoverModel_V1(modeltools.AdHocModel, stateinterfaces.SnowCoverModel_V1):
-    """Base class for HydPy-H models that comply with the |SnowCoverModel_V1| submodel
-    interface."""
+    """Base class for |hland.DOCNAME.long| models that comply with the
+    |SnowCoverModel_V1| submodel interface."""

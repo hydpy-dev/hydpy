@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
 """This module implements so-called exchange items that simplify modifying the values
 of |Parameter| and |Sequence_| objects."""
+
 # import...
 # ...from standard library
+from __future__ import annotations
 import itertools
 import warnings
 
@@ -11,6 +12,7 @@ import numpy
 
 # ...from HydPy
 import hydpy
+from hydpy import config
 from hydpy.core import devicetools
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
@@ -20,11 +22,11 @@ from hydpy.core import sequencetools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
 
-Device2Target = dict[
-    Union[devicetools.Node, devicetools.Element], variabletools.Variable
+Device2Target: TypeAlias = dict[
+    devicetools.Node | devicetools.Element, variabletools.Variable
 ]
-Selection2Targets = dict[str, tuple[variabletools.Variable, ...]]
-LevelType = Literal["global", "selection", "device", "subunit"]
+Selection2Targets: TypeAlias = dict[str, tuple[variabletools.Variable, ...]]
+LevelType: TypeAlias = Literal["global", "selection", "device", "subunit"]
 
 
 class ExchangeSpecification:
@@ -36,20 +38,23 @@ class ExchangeSpecification:
     following tests list the expected cases:
 
     >>> from hydpy.core.itemtools import ExchangeSpecification
-    >>> ExchangeSpecification("musk_classic", "control.nmbsequences", "lag")
-    ExchangeSpecification("musk_classic", "control.nmbsequences", "lag")
-    >>> ExchangeSpecification("hland_v1", "fluxes.qt", None)
-    ExchangeSpecification("hland_v1", "fluxes.qt", None)
-    >>> ExchangeSpecification("hland_v1", "fluxes.qt.series", None)
-    ExchangeSpecification("hland_v1", "fluxes.qt.series", None)
-    >>> ExchangeSpecification("node", "sim", None)
-    ExchangeSpecification("node", "sim", None)
-    >>> ExchangeSpecification("node", "sim.series", None)
-    ExchangeSpecification("node", "sim.series", None)
+    >>> ExchangeSpecification(master="musk_classic", variable="control.nmbsequences",
+    ...                       keyword="lag")
+    ExchangeSpecification(master="musk_classic", variable="control.nmbsequences", \
+keyword="lag")
+    >>> ExchangeSpecification(master="hland_96", variable="fluxes.qt")
+    ExchangeSpecification(master="hland_96", variable="fluxes.qt")
+    >>> ExchangeSpecification(master="hland_96", variable="fluxes.qt.series")
+    ExchangeSpecification(master="hland_96", variable="fluxes.qt.series")
+    >>> ExchangeSpecification(master="node", variable="sim")
+    ExchangeSpecification(master="node", variable="sim")
+    >>> ExchangeSpecification(master="node", variable="sim.series")
+    ExchangeSpecification(master="node", variable="sim.series")
 
     The following attributes are accessible:
 
-    >>> spec = ExchangeSpecification("musk_classic", "control.nmbsequences", "lag")
+    >>> spec = ExchangeSpecification(master="musk_classic",
+    ...                              variable="control.nmbsequences", keyword="lag")
     >>> spec.master
     'musk_classic'
     >>> spec.subgroup
@@ -64,19 +69,21 @@ class ExchangeSpecification:
 
     master: str
     """Either "node" or the name of the relevant base or application model (e. g. 
-    "hland_v1")."""
+    "hland_96")."""
     variable: str
     """Name of the target or base variable."""
-    keyword: Optional[str]
+    keyword: str | None
     """(Optional) name of the target keyword argument of the target or base variable."""
     series: bool
     """Flag indicating whether to tackle the target variable's actual values (|False|)
     or complete time series (|True|)."""
-    subgroup: Optional[str]
+    subgroup: str | None
     """For model variables, the name of the parameter or sequence subgroup of the
     target or base variable; for node sequences, |None|."""
 
-    def __init__(self, master: str, variable: str, keyword: Optional[str]) -> None:
+    def __init__(
+        self, *, master: str, variable: str, keyword: str | None = None
+    ) -> None:
         self.master = master
         entries = variable.split(".")
         self.series = entries[-1] == "series"
@@ -94,7 +101,7 @@ class ExchangeSpecification:
         `variable`.
 
         >>> from hydpy.core.itemtools import ExchangeSpecification
-        >>> spec = ExchangeSpecification("hland_v1", "fluxes.qt", None)
+        >>> spec = ExchangeSpecification(master="hland_96", variable="fluxes.qt")
         >>> spec.specstring
         'fluxes.qt'
         >>> spec.series = True
@@ -113,8 +120,11 @@ class ExchangeSpecification:
         return variable
 
     def __repr__(self) -> str:
-        keyword = "None" if self.keyword is None else f'"{self.keyword}"'
-        return f'ExchangeSpecification("{self.master}", "{self.specstring}", {keyword})'
+        keyword = "" if self.keyword is None else f', keyword="{self.keyword}"'
+        return (
+            f'ExchangeSpecification(master="{self.master}", '
+            f'variable="{self.specstring}"{keyword})'
+        )
 
 
 class ExchangeItem:
@@ -188,17 +198,17 @@ class ExchangeItem:
         """Collect the relevant target variables handled by the devices of the given
         |Selections| object.
 
-        We prepare the `LahnH` example project to be able to use its |Selections|
-        object:
+        We prepare the `HydPy-H-Lahn` example project to be able to use its
+        |Selections| object:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
         We change the type of a specific application model to the type of its base
         model for reasons explained later:
 
         >>> from hydpy.models.hland import Model
-        >>> hp.elements.land_lahn_3.model.__class__ = Model
+        >>> hp.elements.land_lahn_kalk.model.__class__ = Model
 
         We prepare an |ExchangeItem| as an example, handling all |hland_states.Ic|
         sequences corresponding to any application models derived from |hland|:
@@ -209,7 +219,8 @@ class ExchangeItem:
         |ExchangeItem| is only a base class.  Hence we need to prepare some missing
         attributes manually:
 
-        >>> item.targetspecs = ExchangeSpecification("hland", "states.ic", None)
+        >>> item.targetspecs = ExchangeSpecification(master="hland",
+        ...                                          variable="states.ic")
         >>> item.level = "global"
         >>> item.device2target = {}
         >>> item.selection2targets = {}
@@ -218,29 +229,31 @@ class ExchangeItem:
         object with all four relevant |hland_states.Ic| objects:
 
         >>> item.collect_variables(pub.selections)
-        >>> land_dill = hp.elements.land_dill
+        >>> land_dill_assl = hp.elements.land_dill_assl
         >>> for element in sorted(item.device2target, key=lambda x: x.name):
         ...     print(element)
-        land_dill
-        land_lahn_1
-        land_lahn_2
-        land_lahn_3
-        >>> item.device2target[land_dill] is land_dill.model.sequences.states.ic
+        land_dill_assl
+        land_lahn_kalk
+        land_lahn_leun
+        land_lahn_marb
+        >>> ic_states = land_dill_assl.model.sequences.states.ic
+        >>> item.device2target[land_dill_assl] is ic_states
         True
 
         Asking for |hland_states.Ic| objects corresponding to application model
-        |hland_v1| only results in skipping the |Element| `land_lahn_3` (handling
+        |hland_96| only results in skipping the |Element| `land_lahn_kalk` (handling
         the |hland| base model due to the hack above):
 
-        >>> item.targetspecs.master = "hland_v1"
+        >>> item.targetspecs.master = "hland_96"
         >>> item.device2target.clear()
         >>> item.collect_variables(pub.selections)
         >>> for element in sorted(item.device2target, key=lambda x: x.name):
         ...     print(element)
-        land_dill
-        land_lahn_1
-        land_lahn_2
-        >>> item.device2target[land_dill] is land_dill.model.sequences.states.ic
+        land_dill_assl
+        land_lahn_leun
+        land_lahn_marb
+        >>> ic_states = land_dill_assl.model.sequences.states.ic
+        >>> item.device2target[land_dill_assl] is ic_states
         True
 
         The value of sub-attribute |ExchangeSpecification.series| of attribute
@@ -249,7 +262,8 @@ class ExchangeItem:
 
         >>> item.targetspecs.series = True
         >>> item.collect_variables(pub.selections)
-        >>> item.device2target[land_dill] is land_dill.model.sequences.states.ic
+        >>> ic_states = land_dill_assl.model.sequences.states.ic
+        >>> item.device2target[land_dill_assl] is ic_states
         True
 
         An ill-defined subgroup name results in the following error:
@@ -258,8 +272,8 @@ class ExchangeItem:
         >>> item.collect_variables(pub.selections)
         Traceback (most recent call last):
         ...
-        RuntimeError: No model of element `land_dill` handles a parameter or sequence \
-named `ic` in subgroup `wrong_group`.
+        RuntimeError: No model of element `land_dill_assl` handles a parameter or \
+sequence named `ic` in subgroup `wrong_group`.
 
         Collecting the |Sim| or |Obs| sequences of |Node| objects works similarly:
 
@@ -269,14 +283,14 @@ named `ic` in subgroup `wrong_group`.
         >>> item.targetspecs.series = False
         >>> item.device2target.clear()
         >>> item.collect_variables(pub.selections)
-        >>> dill = hp.nodes.dill
+        >>> dill_assl = hp.nodes.dill_assl
         >>> for node in sorted(item.device2target, key=lambda x: x.name):
         ...  print(node)
-        dill
-        lahn_1
-        lahn_2
-        lahn_3
-        >>> item.device2target[dill] is dill.sequences.sim
+        dill_assl
+        lahn_kalk
+        lahn_leun
+        lahn_marb
+        >>> item.device2target[dill_assl] is dill_assl.sequences.sim
         True
         """
         variable: variabletools.Variable
@@ -330,8 +344,8 @@ class ChangeItem(ExchangeItem):
 
     level: LevelType
     """The level at which the values of the change item are valid."""
-    _shape: Optional[Union[tuple[()], tuple[int]]]
-    _value: Optional[NDArrayFloat]
+    _shape: tuple[()] | tuple[int] | None
+    _value: NDArrayFloat | None
 
     @property
     def ndim(self) -> int:
@@ -339,14 +353,14 @@ class ChangeItem(ExchangeItem):
         return (self.level != "global") + self.targetspecs.series
 
     @property
-    def shape(self) -> Union[tuple[()], tuple[int]]:
+    def shape(self) -> tuple[()] | tuple[int]:
         """The shape of the target variables.
 
         Trying to access property |ChangeItem.shape| before calling method
         |ChangeItem.collect_variables| results in the following error:
 
         >>> from hydpy import SetItem
-        >>> SetItem("name", "master", "target", None, "global").shape
+        >>> SetItem(name="name", master="master", target="target", level="global").shape
         Traceback (most recent call last):
         ...
         RuntimeError: The shape of SetItem `name` has not been determined so far.
@@ -361,18 +375,18 @@ class ChangeItem(ExchangeItem):
         )
 
     @property
-    def seriesshape(self) -> Union[tuple[int], tuple[int, int]]:
+    def seriesshape(self) -> tuple[int] | tuple[int, int]:
         """The shape of the target variables' whole time series.
 
         |ChangeItem.seriesshape| extends the |ChangeItem.shape| tuple by the length of
         the current simulation period:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> del pub.selections["complete"]
         >>> from hydpy import SetItem
         >>> for level in ("global", "selection", "device",  "subunit"):
-        ...     item = SetItem("t", "hland", "inputs.t.series", None, level)
+        ...     item = SetItem(name="t", master="hland", target="inputs.t.series",
+        ...                    level=level)
         ...     item.collect_variables(pub.selections)
         ...     print(level, item.shape, item.seriesshape)
         global () (4,)
@@ -385,9 +399,7 @@ class ChangeItem(ExchangeItem):
         return (len(hydpy.pub.timegrids.sim),)
 
     @property
-    def subnames(  # pylint: disable=inconsistent-return-statements
-        self,
-    ) -> Optional[Union[tuple[()], tuple[str, ...]]]:
+    def subnames(self) -> tuple[()] | tuple[str, ...] | None:
         """Artificial subnames of all values of all target variables.
 
         Property |ChangeItem.subnames| offers a way to identify specific entries of the
@@ -416,14 +428,14 @@ class ChangeItem(ExchangeItem):
         """The item value(s) changing the values of target variables through applying
         method |ChangeItem.update_variables| of class |ChangeItem|.
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> del pub.selections["complete"]
 
         The first example deals with "global" state values:
 
-        >>> from hydpy import SetItem
-        >>> item = SetItem("ic", "hland", "states.ic", None, "global")
+        >>> from hydpy import print_matrix, round_, SetItem
+        >>> item = SetItem(name="ic", master="hland", target="states.ic",
+        ...                level="global")
         >>> item.collect_variables(pub.selections)
         >>> item.value
         Traceback (most recent call last):
@@ -432,8 +444,8 @@ class ChangeItem(ExchangeItem):
 `ic` has/have not been prepared so far.
 
         >>> item.value = 1.0
-        >>> item.value
-        array(1.)
+        >>> round_(item.value)
+        1.0
 
         >>> item.value = 1.0, 2.0
         Traceback (most recent call last):
@@ -444,13 +456,14 @@ occurred: could not broadcast input array from shape (2,) into shape ()
 
         The second example deals with "selection-wide" input time series values:
 
-        >>> item = SetItem("t", "hland", "inputs.t.series", None, "selection")
+        >>> item = SetItem(name="t", master="hland", target="inputs.t.series",
+        ...                level="selection")
         >>> item.collect_variables(pub.selections)
 
         >>> item.value = [1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]
-        >>> item.value
-        array([[1., 2., 3., 4.],
-               [5., 6., 7., 8.]])
+        >>> print_matrix(item.value)
+        | 1.0, 2.0, 3.0, 4.0 |
+        | 5.0, 6.0, 7.0, 8.0 |
 
         >>> item.value = 1.0, 2.0
         Traceback (most recent call last):
@@ -470,7 +483,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
     def value(self, value: NDArrayFloat) -> None:
         try:
             shape = self.seriesshape if self.targetspecs.series else self.shape
-            self._value = numpy.full(shape, value, dtype=float)
+            self._value = numpy.full(shape, value, dtype=config.NP_FLOAT)
         except BaseException:
             objecttools.augment_excmessage(
                 f"When trying to convert the value(s) `{value}` assigned to "
@@ -483,26 +496,25 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         |ExchangeItem| and determine the |ChangeItem.shape| of the current |ChangeItem|
         object afterwards.
 
-        For the following examples, we prepare the `LahnH` example project and remove
-        the "complete" selection from the |Selections| object available in module |pub|:
+        For the following examples, we prepare the `HydPy-H-Lahn` example project:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> del pub.selections["complete"]
 
         After calling method |ChangeItem.collect_variables|, attribute
         |ExchangeItem.device2target| assigns all relevant devices to the chosen target
         variables:
 
         >>> from hydpy import SetItem
-        >>> item = SetItem("ic", "hland", "states.ic", None, "global")
+        >>> item = SetItem(name="ic", master="hland", target="states.ic",
+        ...                level="global")
         >>> item.collect_variables(pub.selections)
         >>> for device, target in item.device2target.items():
         ...     print(device, target)  # doctest: +ELLIPSIS
-        land_dill ic(0.9694, ..., 1.47487)
-        land_lahn_1 ic(0.96404, ..., 1.46719)
-        land_lahn_2 ic(0.96159, ..., 1.46393)
-        land_lahn_3 ic(0.96064, ..., 1.46444)
+        land_dill_assl ic(0.9694, ..., 1.47487)
+        land_lahn_marb ic(0.96404, ..., 1.46719)
+        land_lahn_kalk ic(0.96064, ..., 1.46444)
+        land_lahn_leun ic(0.96159, ..., 1.46393)
 
         Similarly, attribute |ExchangeItem.selection2targets| maps all relevant
         selections to the chosen target variables:
@@ -510,7 +522,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         >>> for selection, targets in item.selection2targets.items():
         ...     print(selection, targets)  # doctest: +ELLIPSIS
         headwaters (ic(0.9694, ..., 1.47487), ic(0.96404, ..., 1.46719))
-        nonheadwaters (ic(0.96159, ..., 1.46393), ic(0.96064, ..., 1.46444))
+        nonheadwaters (ic(0.96064, ..., 1.46444), ic(0.96159, ..., 1.46393))
 
         The properties |ChangeItem.shape| and |ChangeItem.subnames| of a |ChangeItem|
         object depend on the intended aggregation |ChangeItem.level|.  For the "global"
@@ -525,7 +537,8 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         For the "selection" level, we need one value for each relevant selection.
         Therefore, we use the plain selection names as sub-names:
 
-        >>> item = SetItem("ic", "hland", "states.ic", None, "selection")
+        >>> item = SetItem(name="ic", master="hland", target="states.ic",
+        ...                level="selection")
         >>> item.collect_variables(pub.selections)
         >>> item.shape
         (2,)
@@ -535,12 +548,13 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         For the "device" level, we need one value for each relevant device.  Therefore,
         we use the plain device names as sub-names:
 
-        >>> item = SetItem("ic", "hland", "states.ic", None, "device")
+        >>> item = SetItem(name="ic", master="hland", target="states.ic",
+        ...                level="device")
         >>> item.collect_variables(pub.selections)
         >>> item.shape
         (4,)
         >>> item.subnames
-        ('land_dill', 'land_lahn_1', 'land_lahn_2', 'land_lahn_3')
+        ('land_dill_assl', 'land_lahn_marb', 'land_lahn_kalk', 'land_lahn_leun')
 
         For the "subunit" level, we need one value for each vector entry of all target
         variables. When using the 1-dimensional parameter |hland_states.IC| of the base
@@ -549,63 +563,71 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         the device names with the zero-based index numbers of the vector entries of the
         respective target variables:
 
-        >>> item = SetItem("ic", "hland", "states.ic", None, "subunit")
+        >>> item = SetItem(name="ic", master="hland", target="states.ic",
+        ...                level="subunit")
         >>> item.collect_variables(pub.selections)
         >>> item.shape
         (49,)
         >>> item.subnames  # doctest: +ELLIPSIS
-        ('land_dill_0', 'land_dill_1', ..., 'land_lahn_3_12', 'land_lahn_3_13')
+        ('land_dill_assl_0', 'land_dill_assl_1', ..., 'land_lahn_leun_9')
 
         For 2-dimensional sequences, |ChangeItem.shape| returns the total number of
         matrix entries, and each sub-name indicates the row and the column of a specific
         matrix entry:
 
-        >>> dill = hp.elements.land_dill.model
-        >>> dill.parameters.control.sclass(2)
-        >>> item = SetItem("sp", "hland", "states.sp", None, "subunit")
+        >>> dill_assl = hp.elements.land_dill_assl.model
+        >>> dill_assl.parameters.control.sclass(2)
+        >>> item = SetItem(name="sp", master="hland", target="states.sp",
+        ...                level="subunit")
         >>> item.collect_variables(pub.selections)
         >>> item.shape
         (61,)
         >>> item.subnames  # doctest: +ELLIPSIS
-        ('land_dill_0_0', 'land_dill_0_1', ..., \
-'land_dill_1_10', 'land_dill_1_11', ..., 'land_lahn_3_0_12', 'land_lahn_3_0_13')
+        ('land_dill_assl_0_0', 'land_dill_assl_0_1', ..., \
+'land_dill_assl_1_10', 'land_dill_assl_1_11', ..., 'land_lahn_leun_0_9')
 
         For 0-dimensional sequences, |ChangeItem.shape| equals their number, and all
         sub-names are identical to the corresponding device names:
 
-        >>> item = SetItem("lz", "hland", "states.lz", None, "subunit")
+        >>> item = SetItem(name="lz", master="hland", target="states.lz",
+        ...                level="subunit")
         >>> item.collect_variables(pub.selections)
         >>> item.shape
         (4,)
         >>> item.subnames  # doctest: +ELLIPSIS
-        ('land_dill', 'land_lahn_1', 'land_lahn_2', 'land_lahn_3')
+        ('land_dill_assl', 'land_lahn_marb', 'land_lahn_kalk', 'land_lahn_leun')
 
         Everything works as explained above when specifying a keyword argument for
         defining values, except there is no support for the `subunit` level.  We show
         this for the parameter |musk_control.NmbSegments| of base model |musk|, which
         accepts a custom keyword argument named `lag`:
 
-        >>> item = SetItem("lag", "musk", "control.nmbsegments", "lag", "global")
+        >>> item = SetItem(name="lag", master="musk", target="control.nmbsegments",
+        ...                keyword="lag", level="global")
         >>> item.collect_variables(pub.selections)
         >>> item.shape
         ()
         >>> item.subnames
 
-        >>> item = SetItem("lag", "musk", "control.nmbsegments", "lag", "selection")
+        >>> item = SetItem(name="lag", master="musk", target="control.nmbsegments",
+        ...                keyword="lag", level="selection")
         >>> item.collect_variables(pub.selections)
         >>> item.shape
         (1,)
         >>> item.subnames
         ('streams',)
 
-        >>> item = SetItem("lag", "musk", "control.nmbsegments", "lag", "device")
+        >>> item = SetItem(name="lag", master="musk", target="control.nmbsegments",
+        ...                keyword="lag", level="device")
         >>> item.collect_variables(pub.selections)
         >>> item.shape
         (3,)
         >>> item.subnames
-        ('stream_dill_lahn_2', 'stream_lahn_1_lahn_2', 'stream_lahn_2_lahn_3')
+        ('stream_dill_assl_lahn_leun', 'stream_lahn_leun_lahn_kalk', \
+'stream_lahn_marb_lahn_leun')
 
-        >>> item = SetItem("lag", "musk", "control.nmbsegments", "lag", "subunit")
+        >>> item = SetItem(name="lag", master="musk", target="control.nmbsegments",
+        ...                keyword="lag", level="subunit")
         >>> item.collect_variables(pub.selections)
         Traceback (most recent call last):
         ...
@@ -640,12 +662,13 @@ keyword for an exchange item, its aggregation level cannot be `subunit`.
         If the assignment fails, |ChangeItem.update_variable| raises an error like the
         following:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy.core.itemtools import ChangeItem, ExchangeSpecification
         >>> item = ChangeItem()
         >>> item.name = "alpha"
-        >>> item.targetspecs = ExchangeSpecification("hland_v1", "control.alpha", None)
+        >>> item.targetspecs = ExchangeSpecification(master="hland_96",
+        ...                                          variable="control.alpha")
         >>> item.level = "global"
         >>> item.device2target = {}
         >>> item.selection2targets = {}
@@ -656,8 +679,8 @@ keyword for an exchange item, its aggregation level cannot be `subunit`.
         ...
         TypeError: When trying to update a target variable of ChangeItem `alpha` with \
 the value(s) `wrong`, the following error occurred: While trying to set the value(s) \
-of variable `alpha` of element `land_dill`, the following error occurred: The given \
-value `wrong` cannot be converted to type `float`.
+of variable `alpha` of element `land_dill_assl`, the following error occurred: The \
+given value `wrong` cannot be converted to type `float`.
         """
         try:
             if self.targetspecs.series:
@@ -681,113 +704,117 @@ value `wrong` cannot be converted to type `float`.
         """Assign the current |ChangeItem.value| to the values or time series of the
         target variables.
 
-        For the following examples, we prepare the `LahnH` example project and remove
-        the "complete" selection from the |Selections| object available in module |pub|:
+        For the following examples, we prepare the `HydPy-H-Lahn` example project:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> del pub.selections["complete"]
 
         "Global" |SetItem| objects assign the same value to all chosen 0-dimensional
         target variables (we use parameter |hland_control.Alpha| as an example):
 
-        >>> from hydpy import SetItem
-        >>> item = SetItem("alpha", "hland_v1", "control.alpha", None, "global")
+        >>> from hydpy import print_vector, round_, SetItem
+        >>> item = SetItem(name="alpha", master="hland_96", target="control.alpha",
+        ...                level="global")
         >>> item
-        SetItem("alpha", "hland_v1", "control.alpha", None, "global")
+        SetItem(name="alpha", master="hland_96", target="control.alpha", level="global")
         >>> item.collect_variables(pub.selections)
-        >>> land_dill = hp.elements.land_dill
-        >>> land_dill.model.parameters.control.alpha
+        >>> land_dill_assl = hp.elements.land_dill_assl
+        >>> land_dill_assl.model.parameters.control.alpha
         alpha(1.0)
         >>> item.value = 2.0
-        >>> item.value
-        array(2.)
-        >>> land_dill.model.parameters.control.alpha
+        >>> round_(item.value)
+        2.0
+        >>> land_dill_assl.model.parameters.control.alpha
         alpha(1.0)
         >>> item.update_variables()
         >>> for element in hp.elements.catchment:
         ...     print(element, element.model.parameters.control.alpha)
-        land_dill alpha(2.0)
-        land_lahn_1 alpha(2.0)
-        land_lahn_2 alpha(2.0)
-        land_lahn_3 alpha(2.0)
+        land_dill_assl alpha(2.0)
+        land_lahn_kalk alpha(2.0)
+        land_lahn_leun alpha(2.0)
+        land_lahn_marb alpha(2.0)
 
         Similar holds for "Global" |SetItem| objects that modify the time series of
         their target variables, which we demonstrate for the input time series
         |hland_inputs.T|:
 
-        >>> item = SetItem("t", "hland_v1", "inputs.t.series", None, "global")
+        >>> item = SetItem(name="t", master="hland_96", target="inputs.t.series",
+        ...                level="global")
         >>> item.collect_variables(pub.selections)
         >>> item.value = 0.5, 1.0, 1.5, 2.0
         >>> item.update_variables()
-        >>> from hydpy import print_values
         >>> for element in hp.elements.catchment:
         ...     print(element, end=": ")
-        ...     print_values(element.model.sequences.inputs.t.series)
-        land_dill: 0.5, 1.0, 1.5, 2.0
-        land_lahn_1: 0.5, 1.0, 1.5, 2.0
-        land_lahn_2: 0.5, 1.0, 1.5, 2.0
-        land_lahn_3: 0.5, 1.0, 1.5, 2.0
+        ...     print_vector(element.model.sequences.inputs.t.series)
+        land_dill_assl: 0.5, 1.0, 1.5, 2.0
+        land_lahn_kalk: 0.5, 1.0, 1.5, 2.0
+        land_lahn_leun: 0.5, 1.0, 1.5, 2.0
+        land_lahn_marb: 0.5, 1.0, 1.5, 2.0
 
         Some |Parameter| subclasses support setting their values via custom keyword
         arguments.  "Global" |SetItem| objects can use such keyword arguments.  We show
         this for the parameter |musk_control.NmbSegments| of base model |musk|, which
         accepts a custom keyword argument named `lag`:
 
-        >>> item = SetItem("lag", "musk", "control.nmbsegments", "lag", "global")
+        >>> item = SetItem(name="lag", master="musk", target="control.nmbsegments",
+        ...                keyword="lag", level="global")
         >>> item
-        SetItem("lag", "musk", "control.nmbsegments", "lag", "global")
+        SetItem(name="lag", master="musk", target="control.nmbsegments", \
+keyword="lag", level="global")
         >>> item.collect_variables(pub.selections)
-        >>> stream_lahn_1_lahn_2 = hp.elements.stream_lahn_1_lahn_2
-        >>> stream_lahn_1_lahn_2.model.parameters.control.nmbsegments
+        >>> stream_lahn_marb_lahn_leun = hp.elements.stream_lahn_marb_lahn_leun
+        >>> stream_lahn_marb_lahn_leun.model.parameters.control.nmbsegments
         nmbsegments(lag=0.583)
         >>> item.value = 2.0
-        >>> item.value
-        array(2.)
-        >>> stream_lahn_1_lahn_2.model.parameters.control.nmbsegments
+        >>> round_(item.value)
+        2.0
+        >>> stream_lahn_marb_lahn_leun.model.parameters.control.nmbsegments
         nmbsegments(lag=0.583)
         >>> item.update_variables()
         >>> for element in hp.elements.river:
         ...     print(element, element.model.parameters.control.nmbsegments)
-        stream_dill_lahn_2 nmbsegments(lag=2.0)
-        stream_lahn_1_lahn_2 nmbsegments(lag=2.0)
-        stream_lahn_2_lahn_3 nmbsegments(lag=2.0)
+        stream_dill_assl_lahn_leun nmbsegments(lag=2.0)
+        stream_lahn_leun_lahn_kalk nmbsegments(lag=2.0)
+        stream_lahn_marb_lahn_leun nmbsegments(lag=2.0)
 
         For 1-dimensional target variables like the parameter |hland_control.FC|, a
         "global" |SetItem| assigns the same value to each vector entry or the selected
         keyword argument:
 
-        >>> item = SetItem("fc", "hland_v1", "control.fc", None, "global")
+        >>> item = SetItem(name="fc", master="hland_96", target="control.fc",
+        ...                level="global")
         >>> item.collect_variables(pub.selections)
         >>> item.value = 200.0
-        >>> land_dill.model.parameters.control.fc
+        >>> land_dill_assl.model.parameters.control.fc
         fc(278.0)
         >>> item.update_variables()
-        >>> land_dill.model.parameters.control.fc
+        >>> land_dill_assl.model.parameters.control.fc
         fc(200.0)
 
-        >>> item = SetItem("fc", "hland_v1", "control.fc", "forest", "global")
+        >>> item = SetItem(name="fc", master="hland_96", target="control.fc",
+        ...                keyword="forest", level="global")
         >>> item.collect_variables(pub.selections)
         >>> item.value = 300.0
-        >>> land_dill.model.parameters.control.fc
+        >>> land_dill_assl.model.parameters.control.fc
         fc(200.0)
         >>> item.update_variables()
-        >>> land_dill.model.parameters.control.fc
+        >>> land_dill_assl.model.parameters.control.fc
         fc(field=200.0, forest=300.0)
 
         The same holds for 2-dimensional target variables like the sequence
         |hland_states.SP| (we increase the number of snow classes and thus the length
         of the first axis for demonstration purposes):
 
-        >>> land_dill.model.parameters.control.sclass(2)
-        >>> item = SetItem("sp", "hland_v1", "states.sp", None, "global")
+        >>> land_dill_assl.model.parameters.control.sclass(2)
+        >>> item = SetItem(name="sp", master="hland_96", target="states.sp",
+        ...                level="global")
         >>> item.collect_variables(pub.selections)
         >>> item.value = 5.0
-        >>> land_dill.model.sequences.states.sp
+        >>> land_dill_assl.model.sequences.states.sp
         sp([[nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan],
             [nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan]])
         >>> item.update_variables()
-        >>> land_dill.model.sequences.states.sp
+        >>> land_dill_assl.model.sequences.states.sp
         sp([[5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0],
             [5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0]])
 
@@ -795,116 +822,124 @@ value `wrong` cannot be converted to type `float`.
         value to the target variables of each relevant selection, regardless of target
         variable's dimensionality:
 
-        >>> item = SetItem("ic", "hland_v1", "states.ic", None, "selection")
+        >>> item = SetItem(name="ic", master="hland_96", target="states.ic",
+        ...                level="selection")
         >>> item.collect_variables(pub.selections)
-        >>> land_dill.model.sequences.states.ic  # doctest: +ELLIPSIS
+        >>> land_dill_assl.model.sequences.states.ic  # doctest: +ELLIPSIS
         ic(0.9694, ..., 1.47487)
         >>> item.value = 0.5, 1.0
         >>> item.update_variables()
         >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
         ...     print(element, element.model.sequences.states.ic)
-        land_dill ic(0.5, 0.5, ..., 0.5, 0.5)
-        land_lahn_1 ic(0.5, 0.5, ..., 0.5, 0.5)
-        land_lahn_2 ic(1.0, 1.0, ..., 1.0, 1.0)
-        land_lahn_3 ic(1.0, 1.0, ..., 1.0, 1.0)
+        land_dill_assl ic(0.5, 0.5, ..., 0.5, 0.5)
+        land_lahn_kalk ic(1.0, 1.0, ..., 1.0, 1.0)
+        land_lahn_leun ic(1.0, 1.0, ..., 1.0, 1.0)
+        land_lahn_marb ic(0.5, 0.5, ..., 0.5, 0.5)
 
-        >>> item = SetItem("t", "hland_v1", "inputs.t.series", None, "selection")
+        >>> item = SetItem(name="t", master="hland_96", target="inputs.t.series",
+        ...                level="selection")
         >>> item.collect_variables(pub.selections)
         >>> item.value = [0.5, 1.0, 1.5, 2.0], [2.5, 3.0, 3.5, 4.0]
         >>> item.update_variables()
         >>> for element in hp.elements.catchment:
         ...     print(element, end=": ")
-        ...     print_values(element.model.sequences.inputs.t.series)
-        land_dill: 0.5, 1.0, 1.5, 2.0
-        land_lahn_1: 0.5, 1.0, 1.5, 2.0
-        land_lahn_2: 2.5, 3.0, 3.5, 4.0
-        land_lahn_3: 2.5, 3.0, 3.5, 4.0
+        ...     print_vector(element.model.sequences.inputs.t.series)
+        land_dill_assl: 0.5, 1.0, 1.5, 2.0
+        land_lahn_kalk: 2.5, 3.0, 3.5, 4.0
+        land_lahn_leun: 2.5, 3.0, 3.5, 4.0
+        land_lahn_marb: 0.5, 1.0, 1.5, 2.0
 
-        >>> item = SetItem("tt", "hland_v1", "control.tt", "field", "selection")
+        >>> item = SetItem(name="tt", master="hland_96", target="control.tt",
+        ...                keyword="field", level="selection")
         >>> item.collect_variables(pub.selections)
         >>> item.value = [0.0, 1.0]
-        >>> land_dill.model.parameters.control.tt
+        >>> land_dill_assl.model.parameters.control.tt
         tt(0.55824)
         >>> item.update_variables()
         >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
         ...     print(element, element.model.parameters.control.tt)
-        land_dill tt(field=0.0, forest=0.55824)
-        land_lahn_1 tt(field=0.0, forest=0.59365)
-        land_lahn_2 tt(field=1.0, forest=0.0)
-        land_lahn_3 tt(field=1.0, forest=0.0)
+        land_dill_assl tt(field=0.0, forest=0.55824)
+        land_lahn_kalk tt(field=1.0, forest=0.0)
+        land_lahn_leun tt(field=1.0, forest=0.0)
+        land_lahn_marb tt(field=0.0, forest=0.59365)
 
         In contrast, each device receives one specific value when working on the
         "device" level:
 
-        >>> item = SetItem("ic", "hland_v1", "states.ic", None, "device")
+        >>> item = SetItem(name="ic", master="hland_96", target="states.ic",
+        ...                level="device")
         >>> item.collect_variables(pub.selections)
         >>> item.value = 0.5, 1.0, 1.5, 2.0
         >>> item.update_variables()
         >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
         ...     print(element, element.model.sequences.states.ic)
-        land_dill ic(0.5, 0.5, ..., 0.5, 0.5)
-        land_lahn_1 ic(1.0, 1.0, ... 1.0, 1.0)
-        land_lahn_2 ic(1.5, 1.5, ..., 1.5, 1.5)
-        land_lahn_3 ic(2.0, 2.0, ..., 2.0, 2.0)
+        land_dill_assl ic(0.5, 0.5, ..., 0.5, 0.5)
+        land_lahn_kalk ic(1.5, 1.5, ..., 1.5, 1.5)
+        land_lahn_leun ic(2.0, 2.0, ..., 2.0, 2.0)
+        land_lahn_marb ic(1.0, 1.0, ... 1.0, 1.0)
 
-        >>> item = SetItem("t", "hland_v1", "inputs.t.series", None, "device")
+        >>> item = SetItem(name="t", master="hland_96", target="inputs.t.series",
+        ...                level="device")
         >>> item.collect_variables(pub.selections)
         >>> item.value = [[0.5, 1.0, 1.5, 2.0], [2.5, 3.0, 3.5, 4.0],
         ...               [4.5, 5.0, 5.5, 6.0], [6.5, 7.0, 7.5, 8.0]]
         >>> item.update_variables()
         >>> for element in hp.elements.catchment:
         ...     print(element, end=": ")
-        ...     print_values(element.model.sequences.inputs.t.series)
-        land_dill: 0.5, 1.0, 1.5, 2.0
-        land_lahn_1: 2.5, 3.0, 3.5, 4.0
-        land_lahn_2: 4.5, 5.0, 5.5, 6.0
-        land_lahn_3: 6.5, 7.0, 7.5, 8.0
+        ...     print_vector(element.model.sequences.inputs.t.series)
+        land_dill_assl: 0.5, 1.0, 1.5, 2.0
+        land_lahn_kalk: 4.5, 5.0, 5.5, 6.0
+        land_lahn_leun: 6.5, 7.0, 7.5, 8.0
+        land_lahn_marb: 2.5, 3.0, 3.5, 4.0
 
-        >>> item = SetItem("beta", "hland_v1", "control.beta", "forest", "device")
+        >>> item = SetItem(name="beta", master="hland_96", target="control.beta",
+        ...                keyword="forest", level="device")
         >>> item.collect_variables(pub.selections)
         >>> item.value = [1.0, 2.0, 3.0, 4.0]
-        >>> land_dill.model.parameters.control.beta
+        >>> land_dill_assl.model.parameters.control.beta
         beta(2.54011)
         >>> item.update_variables()
         >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
         ...     print(element, element.model.parameters.control.beta)
-        land_dill beta(field=2.54011, forest=1.0)
-        land_lahn_1 beta(field=1.45001, forest=2.0)
-        land_lahn_2 beta(field=2.5118, forest=3.0)
-        land_lahn_3 beta(field=1.51551, forest=4.0)
+        land_dill_assl beta(field=2.54011, forest=1.0)
+        land_lahn_kalk beta(field=1.51551, forest=3.0)
+        land_lahn_leun beta(field=2.5118, forest=4.0)
+        land_lahn_marb beta(field=1.45001, forest=2.0)
 
         For the most detailed "subunit" level and 1-dimensional variables as
         |hland_states.IC|, the |SetItem| object handles one value for each of the 49
         hydrological response units of the complete `Lahn` river basin:
 
-        >>> item = SetItem("ic", "hland_v1", "states.ic", None, "subunit")
+        >>> item = SetItem(name="ic", master="hland_96", target="states.ic",
+        ...                level="subunit")
         >>> item.collect_variables(pub.selections)
         >>> item.value = [value/100 for value in range(49)]
         >>> item.update_variables()
         >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
         ...     print(element, element.model.sequences.states.ic)
-        land_dill ic(0.0, 0.01, ..., 0.1, 0.11)
-        land_lahn_1 ic(0.12, 0.13, ... 0.23, 0.24)
-        land_lahn_2 ic(0.25, 0.26, ..., 0.33, 0.34)
-        land_lahn_3 ic(0.35, 0.36, ..., 0.47, 0.48)
+        land_dill_assl ic(0.0, 0.01, ..., 0.1, 0.11)
+        land_lahn_kalk ic(0.25, 0.26, ..., 0.37, 0.38)
+        land_lahn_leun ic(0.39, 0.4, ..., 0.47, 0.48)
+        land_lahn_marb ic(0.12, 0.13, ... 0.23, 0.24)
 
-        We increased the number of snow classes per zone to two for element `land_dill`.
-        Hence, its snow-related |hland_states.SP| object handles 22 instead of 11
-        values, and we need to assign 61 instead of 49 values to the |SetItem|
-        object.  Each item value relates to a specific matrix entry of a specific
-        target variable:
+        We increased the number of snow classes per zone to two for element
+        `land_dill_assl`.  Hence, its snow-related |hland_states.SP| object handles 22
+        instead of 11 values, and we need to assign 61 instead of 49 values to the
+        |SetItem| object.  Each item value relates to a specific matrix entry of a
+        specific target variable:
 
-        >>> item = SetItem("sp", "hland_v1", "states.sp", None, "subunit")
+        >>> item = SetItem(name="sp", master="hland_96", target="states.sp",
+        ...                level="subunit")
         >>> item.collect_variables(pub.selections)
         >>> item.value = [value/100 for value in range(61)]
         >>> item.update_variables()
         >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
         ...     print(element, element.model.sequences.states.sp)
-        land_dill sp([[0.0, ...0.11],
+        land_dill_assl sp([[0.0, ...0.11],
             [0.12, ...0.23]])
-        land_lahn_1 sp(0.24, ...0.36)
-        land_lahn_2 sp(0.37, ...0.46)
-        land_lahn_3 sp(0.47, ...0.6)
+        land_lahn_kalk sp(0.37, ...0.5)
+        land_lahn_leun sp(0.51, ...0.6)
+        land_lahn_marb sp(0.24, ...0.36)
         """
         values = self.value
         if self.level == "global":
@@ -936,14 +971,17 @@ class SetItem(ChangeItem):
 
     def __init__(
         self,
+        *,
         name: str,
         master: str,
         target: str,
-        keyword: Optional[str],
         level: LevelType,
+        keyword: str | None = None,
     ) -> None:
         self.name = Name(name)
-        self.targetspecs = ExchangeSpecification(master, target, keyword)
+        self.targetspecs = ExchangeSpecification(
+            master=master, variable=target, keyword=keyword
+        )
         self.level = level
         self._value = None
         self._shape = None
@@ -959,9 +997,9 @@ class SetItem(ChangeItem):
         object.  Please read the documentation on method |ChangeItem.update_variables|
         first, explaining the "aggregation level" concept.
 
-        For the following examples, we prepare the `LahnH` example project:
+        For the following examples, we prepare the `HydPy-H-Lahn` example project:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, _ = prepare_full_example_2()
 
         We define three |SetItem| objects, which handle states of different
@@ -969,18 +1007,24 @@ class SetItem(ChangeItem):
         `sm` the 1-dimensional sequence |hland_states.SM|, and `sp` the 2-dimensional
         sequence |hland_states.SP|:
 
-        >>> from hydpy import print_values, round_, SetItem
-        >>> lz = SetItem("lz", "hland_v1", "states.lz", None, "to be defined")
-        >>> sm = SetItem("sm", "hland_v1", "states.sm", None, "to be defined")
-        >>> sp = SetItem("sp", "hland_v1", "states.sp", None, "to be defined")
+        >>> from hydpy import print_vector, round_, SetItem
+        >>> lz = SetItem(name="lz", master="hland_96", target="states.lz",
+        ...              level="to be defined")
+        >>> sm = SetItem(name="sm", master="hland_96", target="states.sm",
+        ...              level="to be defined")
+        >>> sp = SetItem(name="sp", master="hland_96", target="states.sp",
+        ...              level="to be defined")
 
         The additional |SetItem| objects `uz`, `ic`, and `wc` address the time series
         of the 0-dimensional sequence |hland_states.UZ|, the 1-dimensional sequence
         |hland_states.Ic|, and the 2-dimensional sequence |hland_states.WC|:
 
-        >>> uz = SetItem("uz", "hland_v1", "states.uz.series", None, "to be defined")
-        >>> ic = SetItem("ic", "hland_v1", "states.ic.series", None, "to be defined")
-        >>> wc = SetItem("wc", "hland_v1", "states.wc.series", None, "to be defined")
+        >>> uz = SetItem(name="uz", master="hland_96", target="states.uz.series",
+        ...              level="to be defined")
+        >>> ic = SetItem(name="ic", master="hland_96", target="states.ic.series",
+        ...              level="to be defined")
+        >>> wc = SetItem(name="wc", master="hland_96", target="states.wc.series",
+        ...              level="to be defined")
 
         The following test function updates the aggregation level and calls
         |SetItem.extract_values| for all six items:
@@ -992,27 +1036,28 @@ class SetItem(ChangeItem):
         ...         item.extract_values()
 
         We mainly focus on the sequences of the application model of element
-        `land_dill` when comparing results:
+        `land_dill_assl` when comparing results:
 
-        >>> dill = hp.elements.land_dill.model
+        >>> dill_assl = hp.elements.land_dill_assl.model
 
         For rigorous testing, we increase the number of snow classes of this model
         instance and, thus, the length of the first axis of its |hland_states.SP| and
         its |hland_states.WC| object:
 
         >>> import numpy
-        >>> dill.parameters.control.sclass(2)
+        >>> dill_assl.parameters.control.sclass(2)
 
         After this change, we must define new test data for the current state of the
-        |hland_states.SP| object of element `land_dill`:
+        |hland_states.SP| object of element `land_dill_assl`:
 
-        >>> dill.sequences.states.sp = numpy.arange(2*12).reshape(2, 12)
+        >>> dill_assl.sequences.states.sp = numpy.arange(2*12).reshape(2, 12)
 
         Also, we must prepare test data for all considered time series:
 
-        >>> dill.sequences.states.uz.series = numpy.arange(4).reshape(4)
-        >>> dill.sequences.states.ic.series = numpy.arange(4*12).reshape(4, 12)
-        >>> dill.sequences.states.wc.series = numpy.arange(4*2*12).reshape(4, 2, 12)
+        >>> dill_assl.sequences.states.uz.series = numpy.arange(4).reshape(4)
+        >>> dill_assl.sequences.states.ic.series = numpy.arange(4*12).reshape(4, 12)
+        >>> dill_assl.sequences.states.wc.series = numpy.arange(4*2*12).reshape(4,
+        ...                                                                     2, 12)
 
         For all aggregation levels except `subunit`, |SetItem.extract_values| relies on
         the (spatial) aggregation of data, which is not possible beyond the `device`
@@ -1038,80 +1083,83 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         individual exchange item values:
 
         >>> test("device")
-        >>> print_values(lz.value)
-        8.70695, 8.18711, 10.14007, 7.52648
-        >>> dill.sequences.states.lz
+        >>> print_vector(lz.value)
+        8.70695, 8.18711, 7.52648, 10.14007
+        >>> dill_assl.sequences.states.lz
         lz(8.70695)
-        >>> print_values(sm.value)
-        211.47288, 115.77717, 147.057048, 114.733823
-        >>> round_(dill.sequences.states.sm.average_values())
+        >>> print_vector(sm.value)
+        211.47288, 115.77717, 114.733823, 147.057048
+        >>> round_(dill_assl.sequences.states.sm.average_values())
         211.47288
-        >>> print_values(sp.value)
+        >>> print_vector(sp.value)
         11.103987, 0.0, 0.0, 0.0
-        >>> round_(dill.sequences.states.sp.average_values())
+        >>> round_(dill_assl.sequences.states.sp.average_values())
         11.103987
         >>> for series in uz.value:
-        ...     print_values(series)
+        ...     print_vector(series)
         0.0, 1.0, 2.0, 3.0
         nan, nan, nan, nan
         nan, nan, nan, nan
         nan, nan, nan, nan
-        >>> print_values(dill.sequences.states.uz.series)
+        >>> print_vector(dill_assl.sequences.states.uz.series)
         0.0, 1.0, 2.0, 3.0
         >>> for series in ic.value:
-        ...     print_values(series)
+        ...     print_vector(series)
         5.103987, 17.103987, 29.103987, 41.103987
         nan, nan, nan, nan
         nan, nan, nan, nan
         nan, nan, nan, nan
-        >>> print_values(dill.sequences.states.ic.average_series())
+        >>> print_vector(dill_assl.sequences.states.ic.average_series())
         5.103987, 17.103987, 29.103987, 41.103987
         >>> for series in wc.value:
-        ...     print_values(series)
+        ...     print_vector(series)
         11.103987, 35.103987, 59.103987, 83.103987
         nan, nan, nan, nan
         nan, nan, nan, nan
         nan, nan, nan, nan
-        >>> print_values(dill.sequences.states.wc.average_series())
+        >>> print_vector(dill_assl.sequences.states.wc.average_series())
         11.103987, 35.103987, 59.103987, 83.103987
 
         For the `subunit` level, no aggregation is necessary:
 
         >>> test("subunit")
-        >>> print_values(lz.value)
-        8.70695, 8.18711, 10.14007, 7.52648
-        >>> dill.sequences.states.lz
+        >>> print_vector(lz.value)
+        8.70695, 8.18711, 7.52648, 10.14007
+        >>> dill_assl.sequences.states.lz
         lz(8.70695)
-        >>> print_values(sm.value)  # doctest: +ELLIPSIS
+        >>> print_vector(sm.value)  # doctest: +ELLIPSIS
         185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
         222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427,
-        99.27505, ... 164.63255, 101.31248,
-        97.225, 111.3861, 107.64977, 120.59559, 117.26499, 129.01711,
-        126.0465, 136.66663, 134.01408, 143.59799, 141.24428, 147.75786,
-        153.54053
-        >>> dill.sequences.states.sm
+        99.27505, 96.17726, 109.16576, 106.39745, 117.97304, 115.56252,
+        125.81523, 123.73198, 132.80035, 130.91684, 138.95523, 137.25983,
+        142.84148, 101.31248, 97.225, 111.3861, 107.64977, 120.59559,
+        117.26499, 129.01711, 126.0465, 136.66663, 134.01408, 143.59799,
+        141.24428, 147.75786, 153.54053, 138.31396, 135.71124, 147.54968,
+        145.47142, 154.96405, 153.32805, 160.91917, 159.62434, 165.65575,
+        164.63255
+        >>> dill_assl.sequences.states.sm
         sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
-        >>> hp.elements.land_lahn_3.model.sequences.states.sm
+        >>> hp.elements.land_lahn_kalk.model.sequences.states.sm
         sm(101.31248, 97.225, 111.3861, 107.64977, 120.59559, 117.26499,
            129.01711, 126.0465, 136.66663, 134.01408, 143.59799, 141.24428,
            147.75786, 153.54053)
-        >>> print_values(sp.value)
+        >>> print_vector(sp.value)
         0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0,
         13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 0.0,
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
         >>> for series in uz.value:
-        ...     print_values(series)
+        ...     print_vector(series)
         0.0, 1.0, 2.0, 3.0
         nan, nan, nan, nan
         nan, nan, nan, nan
         nan, nan, nan, nan
-        >>> print_values(dill.sequences.states.uz.series)
+        >>> print_vector(dill_assl.sequences.states.uz.series)
         0.0, 1.0, 2.0, 3.0
         >>> for series in ic.value:  # doctest: +ELLIPSIS
-        ...     print_values(series)
+        ...     print_vector(series)
         0.0, 12.0, 24.0, 36.0
         1.0, 13.0, 25.0, 37.0
         ...
@@ -1120,14 +1168,14 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         nan, nan, nan, nan
         ...
         >>> for idx in range(12):  # doctest: +ELLIPSIS
-        ...     print_values(dill.sequences.states.ic.series[:, idx])
+        ...     print_vector(dill_assl.sequences.states.ic.series[:, idx])
         0.0, 12.0, 24.0, 36.0
         1.0, 13.0, 25.0, 37.0
         ...
         10.0, 22.0, 34.0, 46.0
         11.0, 23.0, 35.0, 47.0
         >>> for series in wc.value:  # doctest: +ELLIPSIS
-        ...     print_values(series)
+        ...     print_vector(series)
         0.0, 24.0, 48.0, 72.0
         12.0, 36.0, 60.0, 84.0
         1.0, 25.0, 49.0, 73.0
@@ -1141,7 +1189,7 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         ...
         >>> for jdx in range(12):  # doctest: +ELLIPSIS
         ...     for idx in range(2):
-        ...         print_values(dill.sequences.states.wc.series[:, idx, jdx])
+        ...         print_vector(dill_assl.sequences.states.wc.series[:, idx, jdx])
         0.0, 24.0, 48.0, 72.0
         12.0, 36.0, 60.0, 84.0
         1.0, 25.0, 49.0, 73.0
@@ -1157,21 +1205,22 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         resolve the `subunit` level, extracting the values of keyword arguments works
         only for the `device` level:
 
-        >>> cfmax = SetItem("lag", "hland_v1", "control.cfmax", "forest", "device")
+        >>> cfmax = SetItem(name="lag", master="hland_96", target="control.cfmax",
+        ...                 keyword="forest", level="device")
         >>> cfmax.collect_variables(pub.selections)
         >>> cfmax.extract_values()
-        >>> dill.parameters.control.cfmax
+        >>> dill_assl.parameters.control.cfmax
         cfmax(field=4.55853, forest=2.735118)
-        >>> print_values(cfmax.value)
+        >>> print_vector(cfmax.value)
         2.735118, 3.0, 2.1, 2.1
 
         Method |SetItem.extract_values| cannot extract its complete data if the time
         series of any relevant variable is missing.  We disable the |IOSequence.series|
         attribute of the considered sequences to show how things work then:
 
-        >>> dill.sequences.states.uz.prepare_series(False)
-        >>> dill.sequences.states.ic.prepare_series(False)
-        >>> dill.sequences.states.wc.prepare_series(False)
+        >>> dill_assl.sequences.states.uz.prepare_series(False)
+        >>> dill_assl.sequences.states.ic.prepare_series(False)
+        >>> dill_assl.sequences.states.wc.prepare_series(False)
 
         Method |SetItem.extract_values| emits a warning when encountering the first
         unprepared |IOSequence.series| attribute and, if existing, deletes already
@@ -1182,34 +1231,34 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         ...     test("device")
         AttributeNotReadyWarning: While trying to query the values of exchange item \
 `uz`, the following error occured: While trying to calculate the mean value of the \
-internal time series of sequence `uz` of element `land_dill`, the following error \
-occurred: Sequence `uz` of element `land_dill` is not requested to make any time \
+internal time series of sequence `uz` of element `land_dill_assl`, the following error \
+occurred: Sequence `uz` of element `land_dill_assl` is not requested to make any time \
 series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
 `ic`, the following error occured: While trying to calculate the mean value of the \
-internal time series of sequence `ic` of element `land_dill`, the following error \
-occurred: Sequence `ic` of element `land_dill` is not requested to make any time \
+internal time series of sequence `ic` of element `land_dill_assl`, the following error \
+occurred: Sequence `ic` of element `land_dill_assl` is not requested to make any time \
 series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
 `wc`, the following error occured: While trying to calculate the mean value of the \
-internal time series of sequence `wc` of element `land_dill`, the following error \
-occurred: Sequence `wc` of element `land_dill` is not requested to make any time \
+internal time series of sequence `wc` of element `land_dill_assl`, the following error \
+occurred: Sequence `wc` of element `land_dill_assl` is not requested to make any time \
 series data available.
 
         >>> for series in uz.value:
-        ...     print_values(series)  # doctest: +ELLIPSIS
+        ...     print_vector(series)  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `uz` \
 has/have not been prepared so far.
         >>> for series in ic.value:
-        ...     print_values(series)  # doctest: +ELLIPSIS
+        ...     print_vector(series)  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `ic` \
 has/have not been prepared so far.
         >>> for series in wc.value:
-        ...     print_values(series)  # doctest: +ELLIPSIS
+        ...     print_vector(series)  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `wc` \
@@ -1218,29 +1267,29 @@ has/have not been prepared so far.
         >>> with warn_later():
         ...     test("subunit")
         AttributeNotReadyWarning: While trying to query the values of exchange item \
-`uz`, the following error occured: Sequence `uz` of element `land_dill` is not \
+`uz`, the following error occured: Sequence `uz` of element `land_dill_assl` is not \
 requested to make any time series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
-`ic`, the following error occured: Sequence `ic` of element `land_dill` is not \
+`ic`, the following error occured: Sequence `ic` of element `land_dill_assl` is not \
 requested to make any time series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
-`wc`, the following error occured: Sequence `wc` of element `land_dill` is not \
+`wc`, the following error occured: Sequence `wc` of element `land_dill_assl` is not \
 requested to make any time series data available.
 
         >>> for series in uz.value:
-        ...     print_values(series)  # doctest: +ELLIPSIS
+        ...     print_vector(series)  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `uz` \
 has/have not been prepared so far.
         >>> for series in ic.value:  # doctest: +ELLIPSIS
-        ...     print_values(series)
+        ...     print_vector(series)
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `ic` \
 has/have not been prepared so far.
         >>> for series in wc.value:  # doctest: +ELLIPSIS
-        ...     print_values(series)
+        ...     print_vector(series)
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `wc` \
@@ -1248,7 +1297,7 @@ has/have not been prepared so far.
         """
         series = self.targetspecs.series
         shape = self.seriesshape if series else self.shape
-        itemvalues: NDArrayFloat = numpy.empty(shape, dtype=float)
+        itemvalues: NDArrayFloat = numpy.empty(shape, dtype=config.NP_FLOAT)
         jdx0, jdx1 = hydpy.pub.timegrids.simindices
         if self.level == "device":
             for idx, variable in enumerate(self.device2target.values()):
@@ -1310,10 +1359,14 @@ has/have not been prepared so far.
 
     def __repr__(self) -> str:
         ts = self.targetspecs
-        keyword = "None" if ts.keyword is None else f'"{ts.keyword}"'
+        keyword = "" if ts.keyword is None else f'keyword="{ts.keyword}", '
         return (
-            f'{type(self).__name__}("{self.name}", "{ts.master}", "{ts.specstring}", '
-            f'{keyword}, "{self.level}")'
+            f"{type(self).__name__}("
+            f'name="{self.name}", '
+            f'master="{ts.master}", '
+            f'target="{ts.specstring}", '
+            f"{keyword}"
+            f'level="{self.level}")'
         )
 
 
@@ -1325,13 +1378,15 @@ class MathItem(ChangeItem):
     base variables:
 
     >>> from hydpy.core.itemtools import MathItem
-    >>> item = MathItem("sfcf", "hland_v1", "control.sfcf", "control.rfcf", "global")
+    >>> item = MathItem(name="sfcf", master="hland_96", target="control.sfcf",
+    ...                 base="control.rfcf", level="global")
     >>> item
-    MathItem("sfcf", "hland_v1", "control.sfcf", "control.rfcf", "global")
+    MathItem(name="sfcf", master="hland_96", target="control.sfcf", \
+base="control.rfcf", level="global")
     >>> item.targetspecs
-    ExchangeSpecification("hland_v1", "control.sfcf", None)
+    ExchangeSpecification(master="hland_96", variable="control.sfcf")
     >>> item.basespecs
-    ExchangeSpecification("hland_v1", "control.rfcf", None)
+    ExchangeSpecification(master="hland_96", variable="control.rfcf")
 
     Generally, each |MathItem| object calculates the value of the target variable of
     a |Device| object by using its current |ChangeItem.value| and the value(s) of the
@@ -1344,11 +1399,11 @@ class MathItem(ChangeItem):
     """All target variable objects and their related base variable objects."""
 
     def __init__(
-        self, name: str, master: str, target: str, base: str, level: LevelType
+        self, *, name: str, master: str, target: str, base: str, level: LevelType
     ) -> None:
         self.name = Name(name)
-        self.targetspecs = ExchangeSpecification(master, target, None)
-        self.basespecs = ExchangeSpecification(master, base, None)
+        self.targetspecs = ExchangeSpecification(master=master, variable=target)
+        self.basespecs = ExchangeSpecification(master=master, variable=base)
         self.level = level
         self._value = None
         self._shape = None
@@ -1361,15 +1416,15 @@ class MathItem(ChangeItem):
         and also prepare the dictionary |MathItem.target2base|, which maps each target
         variable object to its base variable object.
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import AddItem
-        >>> item = AddItem(name="alpha", master="hland_v1", target="control.sfcf",
+        >>> item = AddItem(name="alpha", master="hland_96", target="control.sfcf",
         ...                base="control.rfcf", level="global")
         >>> item.collect_variables(pub.selections)
-        >>> land_dill = hp.elements.land_dill
-        >>> control = land_dill.model.parameters.control
-        >>> item.device2target[land_dill] is control.sfcf
+        >>> land_dill_assl = hp.elements.land_dill_assl
+        >>> control = land_dill_assl.model.parameters.control
+        >>> item.device2target[land_dill_assl] is control.sfcf
         True
         >>> item.target2base[control.sfcf] is control.rfcf
         True
@@ -1388,9 +1443,12 @@ class MathItem(ChangeItem):
 
     def __repr__(self) -> str:
         return (
-            f'{type(self).__name__}("{self.name}", '
-            f'"{self.targetspecs.master}", "{self.targetspecs.specstring}", '
-            f'"{self.basespecs.specstring}", "{self.level}")'
+            f"{type(self).__name__}("
+            f'name="{self.name}", '
+            f'master="{self.targetspecs.master}", '
+            f'target="{self.targetspecs.specstring}", '
+            f'base="{self.basespecs.specstring}", '
+            f'level="{self.level}")'
         )
 
 
@@ -1403,15 +1461,13 @@ class AddItem(MathItem):
     value(s) and the value(s) of the related base variable to update the value(s) of
     the target variable.
 
-    We prepare the `LahnH` example project and remove the "complete" selection from
-    the |Selections| object available in module |pub|:
+    We prepare the `HydPy-H-Lahn` example project:
 
-    >>> from hydpy.examples import prepare_full_example_2
+    >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
-    >>> del pub.selections["complete"]
 
     We use the rainfall correction parameter (|hland_control.RfCF|) of the application
-    model |hland_v1| as the base variable.  Defining a different correction factor for
+    model |hland_96| as the base variable.  Defining a different correction factor for
     each of the 49 hydrological response units allows strict testing:
 
     >>> value = 0.8
@@ -1421,27 +1477,27 @@ class AddItem(MathItem):
     ...         rfcf[idx] = value
     ...         value += 0.01
     ...     print(element, rfcf)  # doctest: +ELLIPSIS
-    land_dill rfcf(0.8, ... 0.91)
-    land_lahn_1 rfcf(0.92, ... 1.04)
-    land_lahn_2 rfcf(1.05, ... 1.14)
-    land_lahn_3 rfcf(1.15, ... 1.28)
+    land_dill_assl rfcf(0.8, ... 0.91)
+    land_lahn_kalk rfcf(0.92, ... 1.05)
+    land_lahn_leun rfcf(1.06, ... 1.15)
+    land_lahn_marb rfcf(1.16, ... 1.28)
 
     We choose the snowfall correction parameter (|hland_control.SfCF|) as the target
     variable.  The following test calculations show the expected results for all
     available aggregation levels:
 
     >>> from hydpy.core.itemtools import AddItem
-    >>> item = AddItem(name="sfcf", master="hland_v1", target="control.sfcf",
+    >>> item = AddItem(name="sfcf", master="hland_96", target="control.sfcf",
     ...                base="control.rfcf", level="global")
     >>> item.collect_variables(pub.selections)
     >>> item.value = 0.1
     >>> item.update_variables()
     >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
     ...     print(element, element.model.parameters.control.sfcf)
-    land_dill sfcf(0.9, ... 1.01)
-    land_lahn_1 sfcf(1.02, ... 1.14)
-    land_lahn_2 sfcf(1.15, ... 1.24)
-    land_lahn_3 sfcf(1.25, ... 1.38)
+    land_dill_assl sfcf(0.9, ... 1.01)
+    land_lahn_kalk sfcf(1.02, ... 1.15)
+    land_lahn_leun sfcf(1.16, ... 1.25)
+    land_lahn_marb sfcf(1.26, ... 1.38)
 
     >>> item.level = "selection"
     >>> item.collect_variables(pub.selections)
@@ -1449,34 +1505,34 @@ class AddItem(MathItem):
     >>> item.update_variables()
     >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
     ...     print(element, element.model.parameters.control.sfcf)
-    land_dill sfcf(0.7, ... 0.81)
-    land_lahn_1 sfcf(0.82, ... 0.94)
-    land_lahn_2 sfcf(1.05, ... 1.14)
-    land_lahn_3 sfcf(1.15, ... 1.28)
+    land_dill_assl sfcf(0.7, ... 0.81)
+    land_lahn_kalk sfcf(0.92, ... 1.05)
+    land_lahn_leun sfcf(1.06, ... 1.15)
+    land_lahn_marb sfcf(1.06, ... 1.18)
 
-    >>> item = AddItem(name="sfcf", master="hland_v1", target="control.sfcf",
+    >>> item = AddItem(name="sfcf", master="hland_96", target="control.sfcf",
     ...                base="control.rfcf", level="device")
     >>> item.collect_variables(pub.selections)
     >>> item.value = -0.1, 0.0, 0.1, 0.2
     >>> item.update_variables()
     >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
     ...     print(element, element.model.parameters.control.sfcf)
-    land_dill sfcf(0.7, ... 0.81)
-    land_lahn_1 sfcf(0.92, ... 1.04)
-    land_lahn_2 sfcf(1.15, ... 1.24)
-    land_lahn_3 sfcf(1.35, ... 1.48)
+    land_dill_assl sfcf(0.7, ... 0.81)
+    land_lahn_kalk sfcf(1.02, ... 1.15)
+    land_lahn_leun sfcf(1.26, ... 1.35)
+    land_lahn_marb sfcf(1.16, ... 1.28)
 
-    >>> item = AddItem(name="sfcf", master="hland_v1", target="control.sfcf",
+    >>> item = AddItem(name="sfcf", master="hland_96", target="control.sfcf",
     ...                base="control.rfcf", level="subunit")
     >>> item.collect_variables(pub.selections)
     >>> item.value = [idx/100 for idx in range(-20, 29)]
     >>> item.update_variables()
     >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
     ...     print(element, element.model.parameters.control.sfcf)
-    land_dill sfcf(0.6, ... 0.82)
-    land_lahn_1 sfcf(0.84, ... 1.08)
-    land_lahn_2 sfcf(1.1, ... 1.28)
-    land_lahn_3 sfcf(1.3, ... 1.56)
+    land_dill_assl sfcf(0.6, ... 0.82)
+    land_lahn_kalk sfcf(0.97, ... 1.23)
+    land_lahn_leun sfcf(1.25, ... 1.43)
+    land_lahn_marb sfcf(1.08, ... 1.32)
     """
 
     def update_variable(
@@ -1488,10 +1544,10 @@ class AddItem(MathItem):
         If the addition fails, |AddItem.update_variable| raises an error like the
         following:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy.core.itemtools import AddItem
-        >>> item = AddItem(name="sfcf", master="hland_v1", target="control.sfcf",
+        >>> item = AddItem(name="sfcf", master="hland_96", target="control.sfcf",
         ...                base="control.rfcf", level="global")
         >>> item.collect_variables(pub.selections)
         >>> item._value = 0.1, 0.2
@@ -1499,9 +1555,9 @@ class AddItem(MathItem):
         Traceback (most recent call last):
         ...
         ValueError: When trying to add the value(s) `(0.1, 0.2)` of AddItem `sfcf` \
-and the value(s) `[1.04283 ... 1.04283]` of variable `rfcf` of element `land_dill`, \
-the following error occurred: operands could not be broadcast together with shapes \
-(12,) (2,)...
+and the value(s) `[1.04283 ... 1.04283]` of variable `rfcf` of element \
+`land_dill_assl`, the following error occurred: operands could not be broadcast \
+together with shapes (12,) (2,)...
         """
         base = self.target2base[variable]
         try:
@@ -1522,9 +1578,8 @@ class MultiplyItem(MathItem):
     behaves exactly like class |AddItem|.  We adopt a single example of the
     documentation on class |AddItem| to demonstrate this difference:
 
-    >>> from hydpy.examples import prepare_full_example_2
+    >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
-    >>> del pub.selections["complete"]
 
     >>> value = 0.8
     >>> for element in hp.elements.catchment:
@@ -1533,23 +1588,23 @@ class MultiplyItem(MathItem):
     ...         rfcf[idx] = value
     ...         value += 0.01
     ...     print(element, rfcf)  # doctest: +ELLIPSIS
-    land_dill rfcf(0.8, ... 0.91)
-    land_lahn_1 rfcf(0.92, ... 1.04)
-    land_lahn_2 rfcf(1.05, ... 1.14)
-    land_lahn_3 rfcf(1.15, ... 1.28)
+    land_dill_assl rfcf(0.8, ... 0.91)
+    land_lahn_kalk rfcf(0.92, ... 1.05)
+    land_lahn_leun rfcf(1.06, ... 1.15)
+    land_lahn_marb rfcf(1.16, ... 1.28)
 
     >>> from hydpy.core.itemtools import MultiplyItem
-    >>> item = MultiplyItem(name="sfcf", master="hland_v1", target="control.sfcf",
+    >>> item = MultiplyItem(name="sfcf", master="hland_96", target="control.sfcf",
     ...                     base="control.rfcf", level="global")
     >>> item.collect_variables(pub.selections)
     >>> item.value = 2.0
     >>> item.update_variables()
     >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
     ...     print(element, element.model.parameters.control.sfcf)
-    land_dill sfcf(1.6, ... 1.82)
-    land_lahn_1 sfcf(1.84, ... 2.08)
-    land_lahn_2 sfcf(2.1, ... 2.28)
-    land_lahn_3 sfcf(2.3, ... 2.56)
+    land_dill_assl sfcf(1.6, ... 1.82)
+    land_lahn_kalk sfcf(1.84, ... 2.1)
+    land_lahn_leun sfcf(2.12, ... 2.3)
+    land_lahn_marb sfcf(2.32, ... 2.56)
     """
 
     def update_variable(
@@ -1561,10 +1616,10 @@ class MultiplyItem(MathItem):
         If the multiplication fails, |MultiplyItem.update_variable| raises an error
         like the following:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy.core.itemtools import MultiplyItem
-        >>> item = MultiplyItem(name="sfcf", master="hland_v1", target="control.sfcf",
+        >>> item = MultiplyItem(name="sfcf", master="hland_96", target="control.sfcf",
         ...                     base="control.rfcf", level="global")
         >>> item.collect_variables(pub.selections)
         >>> item._value = 0.1, 0.2
@@ -1573,8 +1628,8 @@ class MultiplyItem(MathItem):
         ...
         ValueError: When trying to multiply the value(s) `(0.1, 0.2)` of AddItem \
 `sfcf` and the value(s) `[1.04283 ... 1.04283]` of variable `rfcf` of element \
-`land_dill`, the following error occurred: operands could not be broadcast together \
-with shapes (12,) (2,)...
+`land_dill_assl`, the following error occurred: operands could not be broadcast \
+together with shapes (12,) (2,)...
         """
         base = self.target2base[variable]
         try:
@@ -1592,13 +1647,13 @@ class GetItem(ExchangeItem):
     """Base class for querying the values of multiple |Parameter| or |Sequence_|
     objects of a specific type."""
 
-    _device2name: dict[Union[devicetools.Node, devicetools.Element], Name]
-    _ndim: Optional[int] = None
+    _device2name: dict[devicetools.Node | devicetools.Element, Name]
+    _ndim: int | None = None
 
-    def __init__(self, name: Name, master: str, target: str) -> None:
+    def __init__(self, *, name: Name, master: str, target: str) -> None:
         self.name = name
         self.target = target.replace(".", "_")
-        self.targetspecs = ExchangeSpecification(master, target, None)
+        self.targetspecs = ExchangeSpecification(master=master, variable=target)
         self.device2target = {}
         self.selection2targets = {}
         self._device2name = {}
@@ -1611,7 +1666,7 @@ class GetItem(ExchangeItem):
         |GetItem.collect_variables| results in the following error message:
 
         >>> from hydpy.core.itemtools import GetItem
-        >>> GetItem("temp", "hland_v1", "states.lz").ndim
+        >>> GetItem(name="temp", master="hland_96", target="states.lz").ndim
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: Attribute `ndim` of GetItem \
@@ -1634,18 +1689,18 @@ class GetItem(ExchangeItem):
         The value of |GetItem.ndim| depends on whether the target variable's values or
         time series are of interest:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy.core.itemtools import GetItem
         >>> for target in ("states.lz", "states.lz.series",
         ...                "states.sm", "states.sm.series"):
-        ...     item = GetItem("temp", "hland_v1", target)
+        ...     item = GetItem(name="temp", master="hland_96", target=target)
         ...     item.collect_variables(pub.selections)
         ...     print(item, item.ndim)
-        GetItem("temp", "hland_v1", "states.lz") 0
-        GetItem("temp", "hland_v1", "states.lz.series") 1
-        GetItem("temp", "hland_v1", "states.sm") 1
-        GetItem("temp", "hland_v1", "states.sm.series") 2
+        GetItem(name="temp", master="hland_96", target="states.lz") 0
+        GetItem(name="temp", master="hland_96", target="states.lz.series") 1
+        GetItem(name="temp", master="hland_96", target="states.sm") 1
+        GetItem(name="temp", master="hland_96", target="states.sm.series") 2
         """
         super().collect_variables(selections)
         for device in sorted(self.device2target.keys(), key=lambda x: x.name):
@@ -1658,7 +1713,7 @@ class GetItem(ExchangeItem):
 
     def yield_name2subnames(
         self,
-    ) -> Iterator[tuple[Name, Union[str, tuple[()], tuple[str, ...]]]]:
+    ) -> Iterator[tuple[Name, str | tuple[()] | tuple[str, ...]]]:
         """Sequentially return pairs of the item name and its artificial sub-names.
 
         The purpose and definition of the sub-names are similar to those returned by
@@ -1675,47 +1730,47 @@ class GetItem(ExchangeItem):
         For 0-dimensional variables, there is only one sub-name that is identical to
         the device name:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import SetItem
-        >>> item = GetItem("lz", "hland_v1", "states.lz")
+        >>> item = GetItem(name="lz", master="hland_96", target="states.lz")
         >>> item.collect_variables(pub.selections)
         >>> for name, subnames in item.yield_name2subnames():
         ...     print(name, subnames)
-        land_dill_states_lz land_dill
-        land_lahn_1_states_lz land_lahn_1
-        land_lahn_2_states_lz land_lahn_2
-        land_lahn_3_states_lz land_lahn_3
+        land_dill_assl_states_lz land_dill_assl
+        land_lahn_kalk_states_lz land_lahn_kalk
+        land_lahn_leun_states_lz land_lahn_leun
+        land_lahn_marb_states_lz land_lahn_marb
 
-        >>> item = GetItem("sim", "nodes", "sim.series")
+        >>> item = GetItem(name="sim", master="nodes", target="sim.series")
         >>> item.collect_variables(pub.selections)
         >>> for name, subnames in item.yield_name2subnames():
         ...     print(name, subnames)
-        dill_sim_series dill
-        lahn_1_sim_series lahn_1
-        lahn_2_sim_series lahn_2
-        lahn_3_sim_series lahn_3
+        dill_assl_sim_series dill_assl
+        lahn_kalk_sim_series lahn_kalk
+        lahn_leun_sim_series lahn_leun
+        lahn_marb_sim_series lahn_marb
 
         For non-scalar variables, the sub-names combine the device name and all
         possible index combinations for the current shape of the target variable:
 
-        >>> item = GetItem("sm", "hland_v1", "states.sm")
+        >>> item = GetItem(name="sm", master="hland_96", target="states.sm")
         >>> item.collect_variables(pub.selections)
         >>> for name, subnames in item.yield_name2subnames():
         ...     print(name, subnames)  # doctest: +ELLIPSIS
-        land_dill_states_sm ('land_dill_0', ..., 'land_dill_11')
-        land_lahn_1_states_sm ('land_lahn_1_0', ..., 'land_lahn_1_12')
-        land_lahn_2_states_sm ('land_lahn_2_0', ..., 'land_lahn_2_9')
-        land_lahn_3_states_sm ('land_lahn_3_0', ..., 'land_lahn_3_13')
+        land_dill_assl_states_sm ('land_dill_assl_0', ..., 'land_dill_assl_11')
+        land_lahn_kalk_states_sm ('land_lahn_kalk_0', ..., 'land_lahn_kalk_13')
+        land_lahn_leun_states_sm ('land_lahn_leun_0', ..., 'land_lahn_leun_9')
+        land_lahn_marb_states_sm ('land_lahn_marb_0', ..., 'land_lahn_marb_12')
 
-        >>> item = GetItem("sp", "hland_v1", "states.sp")
+        >>> item = GetItem(name="sp", master="hland_96", target="states.sp")
         >>> item.collect_variables(pub.selections)
         >>> for name, subnames in item.yield_name2subnames():
         ...     print(name, subnames)  # doctest: +ELLIPSIS
-        land_dill_states_sp ('land_dill_0_0', ..., 'land_dill_0_11')
-        land_lahn_1_states_sp ('land_lahn_1_0_0', ..., 'land_lahn_1_0_12')
-        land_lahn_2_states_sp ('land_lahn_2_0_0', ..., 'land_lahn_2_0_9')
-        land_lahn_3_states_sp ('land_lahn_3_0_0', ..., 'land_lahn_3_0_13')
+        land_dill_assl_states_sp ('land_dill_assl_0_0', ..., 'land_dill_assl_0_11')
+        land_lahn_kalk_states_sp ('land_lahn_kalk_0_0', ..., 'land_lahn_kalk_0_13')
+        land_lahn_leun_states_sp ('land_lahn_leun_0_0', ..., 'land_lahn_leun_0_9')
+        land_lahn_marb_states_sp ('land_lahn_marb_0_0', ..., 'land_lahn_marb_0_12')
         """
         for device, name in self._device2name.items():
             subnames = _make_subunit_name(device, self.device2target[device])
@@ -1725,7 +1780,7 @@ class GetItem(ExchangeItem):
                 yield name, tuple(subnames)
 
     def yield_name2value(
-        self, idx1: Optional[int] = None, idx2: Optional[int] = None
+        self, idx1: int | None = None, idx2: int | None = None
     ) -> Iterator[tuple[Name, str]]:
         """Sequentially return name-value pairs describing the current state of the
         target variables.
@@ -1733,43 +1788,43 @@ class GetItem(ExchangeItem):
         The item names are automatically generated and contain both the name of the
         |Device| of the respective |Variable| object and the target description:
 
-        >>> from hydpy.examples import prepare_full_example_2
+        >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import SetItem
-        >>> item = GetItem("lz", "hland_v1", "states.lz")
+        >>> item = GetItem(name="lz", master="hland_96", target="states.lz")
         >>> item.collect_variables(pub.selections)
-        >>> hp.elements.land_dill.model.sequences.states.lz = 100.0
+        >>> hp.elements.land_dill_assl.model.sequences.states.lz = 100.0
         >>> for name, value in item.yield_name2value():
         ...     print(name, value)
-        land_dill_states_lz 100.0
-        land_lahn_1_states_lz 8.18711
-        land_lahn_2_states_lz 10.14007
-        land_lahn_3_states_lz 7.52648
-        >>> item = GetItem("sm", "hland_v1", "states.sm")
+        land_dill_assl_states_lz 100.0
+        land_lahn_kalk_states_lz 7.52648
+        land_lahn_leun_states_lz 10.14007
+        land_lahn_marb_states_lz 8.18711
+        >>> item = GetItem(name="sm", master="hland_96", target="states.sm")
         >>> item.collect_variables(pub.selections)
-        >>> hp.elements.land_dill.model.sequences.states.sm = 2.0
+        >>> hp.elements.land_dill_assl.model.sequences.states.sm = 2.0
         >>> for name, value in item.yield_name2value():
         ...     print(name, value)  # doctest: +ELLIPSIS
-        land_dill_states_sm [2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, \
+        land_dill_assl_states_sm [2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, \
 2.0, 2.0, 2.0, 2.0]
-        land_lahn_1_states_sm [99.27505, ..., 142.84148]
+        land_lahn_kalk_states_sm [101.31248, ..., 153.54053]
         ...
 
         When querying time series, one can restrict the span of interest by passing
         index values:
 
-        >>> item = GetItem("sim", "nodes", "sim.series")
+        >>> item = GetItem(name="sim", master="nodes", target="sim.series")
         >>> item.collect_variables(pub.selections)
-        >>> hp.nodes.dill.sequences.sim.series = 1.0, 2.0, 3.0, 4.0
+        >>> hp.nodes.dill_assl.sequences.sim.series = 1.0, 2.0, 3.0, 4.0
         >>> for name, value in item.yield_name2value():
         ...     print(name, value)  # doctest: +ELLIPSIS
-        dill_sim_series [1.0, 2.0, 3.0, 4.0]
-        lahn_1_sim_series [nan, ...
+        dill_assl_sim_series [1.0, 2.0, 3.0, 4.0]
+        lahn_kalk_sim_series [nan, ...
         ...
         >>> for name, value in item.yield_name2value(2, 3):
         ...     print(name, value)  # doctest: +ELLIPSIS
-        dill_sim_series [3.0]
-        lahn_1_sim_series [nan]
+        dill_assl_sim_series [3.0]
+        lahn_kalk_sim_series [nan]
         ...
         """
         for device, name in self._device2name.items():
@@ -1788,7 +1843,7 @@ class GetItem(ExchangeItem):
     def __repr__(self) -> str:
         return (
             f"{type(self).__name__}("
-            f'"{self.name}", '
-            f'"{self.targetspecs.master}", '
-            f'"{self.targetspecs.specstring}")'
+            f'name="{self.name}", '
+            f'master="{self.targetspecs.master}", '
+            f'target="{self.targetspecs.specstring}")'
         )

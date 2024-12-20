@@ -6,17 +6,15 @@ import importlib
 import inspect
 import os
 import sys
-from typing import *
-from typing_extensions import Literal  # type: ignore[misc]
+from typing import get_type_hints, Literal
 
 import click
 import Cython.Build
 import numpy
 import setuptools
 
-# Determine the correct type string for integer values in Cython compatible with numpy
-# on the respective machine:
-INT = f"numpy.{numpy.array([1]).dtype}_t"
+
+INT = "numpy.int64_t"
 
 
 def _clear_autogendir() -> None:
@@ -27,12 +25,11 @@ def _clear_autogendir() -> None:
             os.remove(filepath)
 
 
-def _prepare_cythonoptions(fast_cython: bool, profile_cython: bool) -> List[str]:
+def _prepare_cythonoptions(fast_cython: bool, profile_cython: bool) -> list[str]:
 
     # ToDo: do not share code with PyxWriter.cythondistutilsoptions
 
     cythonoptions = [
-        "# -*- coding: utf-8 -*-",
         "# !python",
         "# distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION",
         "# cython: language_level=3",
@@ -108,7 +105,7 @@ def _convert_interfaces(fast_cython: bool, profile_cython: bool) -> None:
     modulenames = (n[:-3] for n in pyfilenames if n != "__init__.py")
     pxdpath = os.path.join(cydirpath, f"masterinterface.pxd")
     pyxpath = os.path.join(cydirpath, f"masterinterface.pyx")
-    funcname2signature: Dict[str, str] = {}
+    funcname2signature: dict[str, str] = {}
     with open(pxdpath, "w", encoding="utf-8") as pxdfile, open(
         pyxpath, "w", encoding="utf-8"
     ) as pyxfile:
@@ -180,8 +177,8 @@ def _prepare_modelspecifics(fast_cython: bool, profile_cython: bool) -> None:
     from hydpy import pub
     from hydpy import models
     from hydpy.core import aliastools
-    from hydpy.auxs import xmltools
     from hydpy.cythons import modelutils
+    from hydpy.exe import xmltools
 
     config.FASTCYTHON = fast_cython
     config.PROFILECYTHON = profile_cython
@@ -190,7 +187,7 @@ def _prepare_modelspecifics(fast_cython: bool, profile_cython: bool) -> None:
         for name in [fn.split(".")[0] for fn in sorted(os.listdir(path_))]:
             if not name.startswith("_"):
                 module = importlib.import_module(f"hydpy.models.{name}")
-                cythonizer: Optional[modelutils.Cythonizer]
+                cythonizer: modelutils.Cythonizer | None
                 cythonizer = getattr(module, "cythonizer", None)
                 if cythonizer:
                     cythonizer.pyxwriter.write()

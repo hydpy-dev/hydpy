@@ -374,9 +374,6 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     Apply the Richter correction (...).
     Interpolate Temperature data to precipitation station (Richter correction) (...).
     method HydPy.simulate started at ...
-        |---------------------|
-        ***********************
-        seconds elapsed: ...
     Write Output in ...Results (...).
     Mean AktGrundwasserneubildung [mm/a]: 53.124526
     Mean VerzGrundwasserneubildung [mm/a]: 50.302012
@@ -678,14 +675,8 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     Apply the Richter correction (...).
     Interpolate Temperature data to precipitation station (Richter correction) (...).
     method HydPy.simulate started at ...
-        |---------------------|
-        ***********************
-        seconds elapsed: ...
     Start WHMOD simulation (...).
     method HydPy.simulate started at ...
-        |---------------------|
-        ***********************
-        seconds elapsed: ...
     Write Output in ...Results (...).
     Mean AktGrundwasserneubildung [mm/a]: 48.044942
     Mean VerzGrundwasserneubildung [mm/a]: 45.514301
@@ -1571,7 +1562,10 @@ def _initialize_whmod_models(
 
         verzoegerung = _query_scalar_from_hrus(hrus, "verzoegerung")
         if verzoegerung == "flurab_probst":
-            con.schwerpunktlaufzeit(flurab_probst=con.flurab.value)
+            if numpy.isnan(flurab := con.flurab.average_values()):
+                con.schwerpunktlaufzeit(0.0)
+            else:
+                con.schwerpunktlaufzeit(flurab_probst=flurab)
         else:
             con.schwerpunktlaufzeit(verzoegerung)
 

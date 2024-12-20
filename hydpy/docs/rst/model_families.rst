@@ -64,6 +64,7 @@ the :ref:`model_overview` section, which clarifies this distinction more clearly
    HydPy-Evap
    HydPy-Dam
    HydPy-Dummy
+   HydPy-G
    HydPy-GA
    HydPy-H
    HydPy-KinW
@@ -71,6 +72,7 @@ the :ref:`model_overview` section, which clarifies this distinction more clearly
    HydPy-Meteo
    HydPy-Musk
    HydPy-Rconc
+   HydPy-Snow
    HydPy-SW1D
    HydPy-Test
    HydPy-W

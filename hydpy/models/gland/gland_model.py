@@ -361,45 +361,45 @@ class Calc_Perc_V1(modeltools.Method):
 
     Basic equations:
 
-      :math:`Perc = S \cdot \left( 1-\left(1+\left(\frac{4 \cdot S}
-      {9 \cdot X1}\right )^{4}\right )^{-1/4}\right )`
+      :math:`Perc = S \cdot \left(
+      1 - \left(1 + \left(\frac{S}{Beta \cdot X1} \right)^4 \right)^{-1/4} \right)`
 
     Examples:
 
         >>> from hydpy.models.gland import *
-        >>> from hydpy import pub
-        >>> parameterstep('1d')
+        >>> simulationstep("1d")
+        >>> parameterstep()
 
         Producion store is almost full:
 
-        >>> x1(300.)
-        >>> states.s = 268.
+        >>> x1(300.0)
+        >>> derived.beta.update()
+        >>> states.s = 268.0
         >>> model.calc_perc_v1()
         >>> fluxes.perc
         perc(1.639555)
 
         Producion store is almost empty:
 
-        >>> x1(300.)
-        >>> states.s = 50.
+        >>> states.s = 50.0
         >>> model.calc_perc_v1()
         >>> fluxes.perc
         perc(0.000376)
     """
 
     CONTROLPARAMETERS = (gland_control.X1,)
-
+    DERIVEDPARAMETERS = (gland_derived.Beta,)
     UPDATEDSEQUENCES = (gland_states.S,)
-
     RESULTSEQUENCES = (gland_fluxes.Perc,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        con = model.parameters.control.fastaccess
         flu.perc = sta.s * (
-            1.0 - (1.0 + (4.0 / 9.0 * sta.s / con.x1) ** 4.0) ** (-0.25)
+            1.0 - (1.0 + (sta.s / con.x1 / der.beta) ** 4.0) ** (-0.25)
         )
 
 

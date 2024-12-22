@@ -41,7 +41,7 @@ good impression of the functional differences of both models.
 >>> land = Element('land', outlets=outlet)
 >>> land.model = model
 >>> area(360.0)
->>> with model.add_petmodel_v1("evap_io"):
+>>> with model.add_petmodel_v1("evap_ret_io"):
 ...     evapotranspirationfactor(1.0)
 
 Initialize a test function object, which prepares and runs the tests

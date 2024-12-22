@@ -50,10 +50,10 @@ All tests are performed using a lumped basin with a size of 360 km²:
 
 >>> area(360.0)
 
-We add the |evap_io| submodel, which can provide predefined time series of potential
-evaporation:
+We add the |evap_ret_io| submodel, which can provide predefined time series of
+potential evaporation:
 
->>> with model.add_petmodel_v1("evap_io"):
+>>> with model.add_petmodel_v1("evap_ret_io"):
 ...     evapotranspirationfactor(1.0)
 
 Initialize a test function object, which prepares and runs the tests and prints their

@@ -398,9 +398,7 @@ class Calc_Perc_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        flu.perc = sta.s * (
-            1.0 - (1.0 + (sta.s / con.x1 / der.beta) ** 4.0) ** (-0.25)
-        )
+        flu.perc = sta.s * (1.0 - (1.0 + (sta.s / con.x1 / der.beta) ** 4.0) ** (-0.25))
 
 
 class Update_S_V2(modeltools.Method):
@@ -1400,7 +1398,10 @@ class Pass_Q_V1(modeltools.Method):
 
 
 class Model(modeltools.AdHocModel):
-    """The G-Land base model."""
+    """|gland.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="G")
+    __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = (Calc_E_V1,)
     RECEIVER_METHODS = ()

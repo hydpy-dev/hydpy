@@ -1181,7 +1181,10 @@ class Calc_PNet_V1(modeltools.Method):
 
 
 class Model(modeltools.AdHocModel):
-    """The snow base model."""
+    """|snow.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="Snow")
+    __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

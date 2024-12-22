@@ -414,7 +414,12 @@ from hydpy.models.gland import gland_model
 
 
 class Model(gland_model.Main_PETModel_V1, gland_model.Main_RConcModel_V2):
-    """GR6 version of G-Land (|gland_gr6|)."""
+    """|gland_gr6.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="HydPy-G-GR6", description="Génie Rural model with 6 parameters"
+    )
+    __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = (gland_model.Calc_E_V1,)
     RECEIVER_METHODS = ()

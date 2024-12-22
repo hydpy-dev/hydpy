@@ -286,6 +286,7 @@ with snow and add some more snow after some time steps.
 
 # import...
 # ...from HydPy
+from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 
 # ...from  snow
@@ -293,7 +294,13 @@ from hydpy.models.snow import snow_model
 
 
 class Model(snow_model.BaseModel):
-    """The Cema-Neige version of the HydPy-Snow."""
+    """|snow_cn.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="HydPy-Snow-Cema-Neige-Tmean",
+        description="Cema-Neige model with mean air temperature as input",
+    )
+    __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

@@ -289,12 +289,7 @@ hydpy.models.hland.hland_control.ZoneType
                     damaged
                 ************************************************************\
 **********
-                1
-                items had failures:
-                   1 of   7 in hydpy.models.hland.hland_control.ZoneType
-                ***Test Failed***
-                1
-                failures.
+                ...
             * hland_derived:
                 no failures occurred
             ...

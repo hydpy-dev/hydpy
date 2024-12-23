@@ -1924,11 +1924,11 @@ PotentialInterceptionEvaporation
     # variables:
     source = inspect.getsource(method.__call__)
     varnames_source: set[str] = set()
-    unbound_vars: set[str] = set(inspect.getclosurevars(method.__call__).unbound)
-    for varname in tuple(unbound_vars):
+    varnames_candidates: set[str] = set(method.__call__.__code__.co_names)
+    for varname in tuple(varnames_candidates):
         if f"modelutils.{varname}" in source:
-            unbound_vars.remove(varname)
-    for varname, prefix in itertools.product(unbound_vars, prefixes):
+            varnames_candidates.remove(varname)
+    for varname, prefix in itertools.product(varnames_candidates, prefixes):
         if f"{prefix}.{varname}" in source:
             if varname.startswith("len_"):
                 varname = varname[4:]

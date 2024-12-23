@@ -31,7 +31,7 @@ class Calc_E_PETModel_V1(modeltools.Method):
         >>> parameterstep()
         >>> from hydpy import prepare_model
         >>> area(50.)
-        >>> with model.add_petmodel_v1("evap_tw2002"):
+        >>> with model.add_petmodel_v1("evap_ret_tw2002"):
         ...     hrualtitude(200.0)
         ...     coastfactor(0.6)
         ...     evapotranspirationfactor(1.1)
@@ -1488,7 +1488,7 @@ class Main_PETModel_V1(modeltools.AdHocModel):
         >>> from hydpy.models.gland_gr4 import *
         >>> parameterstep()
         >>> area(50.)
-        >>> with model.add_petmodel_v1("evap_tw2002"):
+        >>> with model.add_petmodel_v1("evap_ret_tw2002"):
         ...     evapotranspirationfactor(1.5)
 
         >>> etf = model.petmodel.parameters.control.evapotranspirationfactor

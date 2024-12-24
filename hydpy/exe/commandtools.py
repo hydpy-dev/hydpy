@@ -99,11 +99,12 @@ def exec_commands(commands: str, **parameters: Any) -> None:
     """Execute the given Python commands.
 
     Function |exec_commands| is thought for testing purposes only (see the main
-    documentation on module |hyd|).  Separate individual commands by semicolons and
-    replaced whitespaces with underscores:
+    documentation on module |hyd|).
+
+    Separate individual commands by semicolons and replaced whitespaces with
+    underscores:
 
     >>> from hydpy.exe.commandtools import exec_commands
-    >>> import sys
     >>> exec_commands("x_=_1+1;print(x)")
     Start to execute the commands ['x_=_1+1', 'print(x)'] for testing purposes.
     2
@@ -124,13 +125,14 @@ for testing purposes.
     """
     cmdlist = commands.split(";")
     print(f"Start to execute the commands {cmdlist} for testing purposes.")
+    locals_: dict[str, Any] = {}
     for par, value in parameters.items():
-        exec(f"{par} = {value}")
+        exec(f"{par} = {value}", {}, locals_)
     for command in cmdlist:
         command = command.replace("__", "temptemptemp")
         command = command.replace("_", " ")
         command = command.replace("temptemptemp", "_")
-        exec(command)
+        exec(command, {}, locals_)
 
 
 def run_doctests() -> int:  # pylint: disable=inconsistent-return-statements

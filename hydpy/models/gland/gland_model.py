@@ -882,7 +882,7 @@ class Calc_FR_V1(modeltools.Method):
 
     Basic equations:
 
-      :math:`FR = X2 \cdot \left (\frac{R}{X3}\right )^{7/2}`
+      :math:`FR = X2 \cdot \left( \frac{R}{X3} \right)^{7/2}`
 
     Examples:
 
@@ -1050,7 +1050,7 @@ class Calc_QR_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         con = model.parameters.control.fastaccess
-        flu.qr = sta.r * (1 - (1 + (sta.r / con.x3) ** 4) ** (-0.25))
+        flu.qr = sta.r * (1.0 - (1.0 + (sta.r / con.x3) ** 4) ** -0.25)
 
 
 class Update_R_V3(modeltools.Method):

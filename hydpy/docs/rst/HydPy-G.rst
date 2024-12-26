@@ -19,6 +19,6 @@ Application models:
 .. toctree::
    :maxdepth: 1
 
-   Gr4 <gland_gr4>
-   Gr5 <gland_gr5>
-   Gr6 <gland_gr6>
+   gland_gr4
+   gland_gr5
+   gland_gr6

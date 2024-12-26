@@ -435,7 +435,7 @@ class Model(gland_model.Main_PETModel_V1, gland_model.Main_RConcModel_V2):
     """|gland_gr4.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(
-        short="HydPy-G-GR4", description="Génie Rural model with 4 parameters"
+        short="G-GR4", description="Génie Rural model with 4 parameters"
     )
     __HYDPY_ROOTMODEL__ = True
 

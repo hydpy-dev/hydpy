@@ -297,7 +297,7 @@ class Model(snow_model.BaseModel):
     """|snow_cn.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(
-        short="HydPy-Snow-Cema-Neige-Tmean",
+        short="Snow-Cema-Neige-Tmean",
         description="Cema-Neige model with mean air temperature as input",
     )
     __HYDPY_ROOTMODEL__ = True

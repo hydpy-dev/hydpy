@@ -25,7 +25,7 @@ class Calc_E_PETModel_V1(modeltools.Method):
 
     Example:
 
-        We use |evap_tw2002| as an example:
+        We use |evap_ret_tw2002| as an example:
 
         >>> from hydpy.models.gland_gr4 import *
         >>> parameterstep()

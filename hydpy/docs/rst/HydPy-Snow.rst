@@ -20,7 +20,5 @@ Application models:
 .. toctree::
    :maxdepth: 1
 
-   snow_cn (Cema-Neige) <snow_cn>
-   snow_cn_minmax (Cema-Neige with Tmin/Tmax) <snow_cn_minmax>
-<snow_cnhyst_minmax>
-
+   snow_cn
+   snow_cn_minmax

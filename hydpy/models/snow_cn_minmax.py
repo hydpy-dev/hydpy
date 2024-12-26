@@ -373,8 +373,10 @@ class Model(snow_model.BaseModel):
     """|snow_cn_minmax.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(
-        short="HydPy-Snow-Cema-Neige-Tminmax",
-        description="Cema-Neige model with minimum and maximum air temperature as input",
+        short="Snow-Cema-Neige-Tminmax",
+        description=(
+            "Cema-Neige model with minimum and maximum air temperature as input"
+        ),
     )
     __HYDPY_ROOTMODEL__ = True
 

@@ -6,7 +6,7 @@
 import hydpy
 from hydpy.core import parametertools
 
-# ...from snow
+# ...from gland
 from hydpy.models.gland import gland_control
 
 
@@ -15,13 +15,13 @@ class DOY(parametertools.DOYParameter):
 
 
 class Beta(parametertools.Parameter):
-    """Percolation factor [T]"""
+    """Percolation factor [T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
     def update(self) -> None:
         r"""Update |Beta| based on the equation
-        :math:`5.25 \cdot (3600 / \Delta t)^{1/4}` :cite:p:`ref-Ficchí2017`.
+        :math:`5.25 \cdot (3600 / \Delta t)^{0.25}` :cite:p:`ref-Ficchí2017`.
 
         >>> from hydpy.models.gland import *
         >>> from hydpy import pub
@@ -36,8 +36,7 @@ class Beta(parametertools.Parameter):
         beta(21/4)
 
         For a daily simulation step, the given equation does not precisely result in
-        the usual GR4J ratio.  To accomplish this, the nominater is rounded to an
-        integer value:
+        the usual GR4J ratio.  Hence, the nominator is rounded to an integer value:
 
         >>> simulationstep("1d")
         >>> derived.beta.update()
@@ -57,8 +56,8 @@ class Beta(parametertools.Parameter):
         >>> derived.beta
         beta(30/4)
 
-        You can set arbitrary values that are not affected by rounding for testing
-        purposes:
+        For testing purposes, you can set arbitrary values that are not affected by
+        rounding:
 
         >>> derived.beta(8.0)
         >>> derived.beta
@@ -109,7 +108,7 @@ class QFactor(parametertools.Parameter):
 
         """
         self(
-            self.subpars.pars.control.area
+            self.subpars.pars.control.area.value
             * 1000.0
             / hydpy.pub.options.simulationstep.seconds
         )

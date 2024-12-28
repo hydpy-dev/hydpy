@@ -2,12 +2,8 @@
 # pylint: disable=missing-module-docstring
 
 # import...
-# from site-packages
-
 # ...from HydPy
 from hydpy.core import parametertools
-
-# ...from gland
 
 
 class Area(parametertools.Parameter):
@@ -16,15 +12,21 @@ class Area(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (1e-10, None)
 
 
+class IMax(parametertools.Parameter):
+    """Interception store capacity [mm]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+
 class X1(parametertools.Parameter):
     """Maximum capacity of the production storage [mm]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
 
 class X2(parametertools.Parameter):
     """Groundwater exchange coefficient (positive for water imports, negative for
-    exports) [mm]."""
+    exports) [mm/T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, True, (None, None)
 
@@ -84,12 +86,6 @@ class X5(parametertools.Parameter):
 
 
 class X6(parametertools.Parameter):
-    """coefficient for emptying exponential store [mm]."""
+    """Coefficient for emptying the exponential store [mm]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
-
-
-class IMax(parametertools.Parameter):
-    """Interception store capacity [mm]."""
-
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)

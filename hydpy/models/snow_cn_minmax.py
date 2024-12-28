@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 The only difference between |snow_cn_minmax| and |snow_cn| is the way the solid

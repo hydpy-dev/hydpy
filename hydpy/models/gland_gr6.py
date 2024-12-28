@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 The GR6J model (modèle du Génie Rural à 6 parametres Journalier) is a daily

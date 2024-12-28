@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 The GR4 model (modèle du Génie Rural à 4 parametres Journalier) is a daily

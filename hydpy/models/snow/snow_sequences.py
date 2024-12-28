@@ -1,9 +1,6 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
-# ...from site-packages
-
 # ...from HydPy
 from hydpy.core import sequencetools
 

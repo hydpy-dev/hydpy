@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 The GR5 model (modèle du Génie Rural à 5 parametres Journalier) is a daily

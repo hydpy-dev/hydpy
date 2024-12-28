@@ -1,137 +1,137 @@
 # pylint: disable=missing-module-docstring
 
+# import...
+# ...from HydPy
 from hydpy.core import sequencetools
-
-# ...from gland
 
 
 class E(sequencetools.FluxSequence):
-    """Potential Evapotranspiration [mm]."""
+    """Potential evapotranspiration [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class EN(sequencetools.FluxSequence):
-    """Net evapotranspiration capacity [mm]."""
+    """Net evapotranspiration capacity [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class PN(sequencetools.FluxSequence):
-    """Net rainfall [mm]."""
+    """Net precipitation [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class PS(sequencetools.FluxSequence):
-    """Part of |Pn| filling the production store [mm]."""
+    """Part of |PN| filling the production store [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class EI(sequencetools.FluxSequence):
-    """Evaporation rate from interception store [mm]."""
+    """Actual evaporation from the interception store [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class ES(sequencetools.FluxSequence):
-    """Actual evaporation rate from production store [mm]."""
+    """Actual evapotranspiration from the production store [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class AE(sequencetools.FluxSequence):
-    """Total actual evaporation rate [mm]."""
+    """Total actual evapotranspiration [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class PR(sequencetools.FluxSequence):
-    """Total quantity of water reaching unit hydrograph [mm]."""
+    """Total inflow into the runoff concentration module [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class PR9(sequencetools.FluxSequence):
-    """90% of |PR| [mm]."""
+    """90% of |PR| [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class PR1(sequencetools.FluxSequence):
-    """10% of |PR|  [mm]."""
+    """10% of |PR| [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class Q10(sequencetools.FluxSequence):
-    """Outlet of runoff concentration [mm]."""
+    """Total outflow of runoff concentration module [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class Perc(sequencetools.FluxSequence):
-    """Percolation [mm]."""
+    """Percolation [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class Q9(sequencetools.FluxSequence):
-    """Output of unit hydrograph UH1 [mm]."""
+    """Outflow of runoff concentration submodel receiving |PR9| [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class Q1(sequencetools.FluxSequence):
-    """Output of unit hydrograph UH2 [mm]."""
+    """Outflow of runoff concentration submodel receiving |PR1| [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class FD(sequencetools.FluxSequence):
-    """Groundwater exchange term direct runoff [mm]."""
+    """Groundwater exchange affecting the direct runoff [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class FR(sequencetools.FluxSequence):
-    """Groundwater exchange term routing store [mm]."""
+    """Groundwater exchange affecting the routing store [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class FR2(sequencetools.FluxSequence):
-    """Groundwater exchange term exponential routing store [mm]."""
+    """Groundwater exchange affecting the exponential routing store [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class QR(sequencetools.FluxSequence):
-    """Outflow of the routing storage [mm]."""
+    """Outflow of the routing store [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class QR2(sequencetools.FluxSequence):
-    """Outflow of the exponential storage [mm]."""
+    """Outflow of the exponential store [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class QD(sequencetools.FluxSequence):
-    """Flow component direct flow [mm]."""
+    """Direct runoff [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class QH(sequencetools.FluxSequence):
-    """Total streamflow [mm]."""
+    """Total runoff [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class QV(sequencetools.FluxSequence):
-    """Total streamflow [m³/s]."""
+    """Total discharge [m³/s]."""
 
     NDIM, NUMERIC = 0, False

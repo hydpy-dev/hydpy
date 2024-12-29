@@ -460,15 +460,14 @@ class Model(gland_model.Main_PETModel_V1, gland_model.Main_RConcModel_V2):
         gland_model.Calc_QR_V1,
         gland_model.Update_R_V3,
         gland_model.Calc_FD_V1,
-        gland_model.Calc_Qd_V1,
+        gland_model.Calc_QD_V1,
         gland_model.Calc_QH_V1,
         gland_model.Calc_QV_V1,
     )
     INTERFACE_METHODS = ()
     ADD_METHODS = (
         gland_model.Calc_E_PETModel_V1,
-        gland_model.Calc_Q1_RConcModel_V1,
-        gland_model.Calc_Q9_RConcModel_V1,
+        gland_model.Calc_Q_RConcModel_V1,
     )
     OUTLET_METHODS = (gland_model.Pass_Q_V1,)
     SENDER_METHODS = ()

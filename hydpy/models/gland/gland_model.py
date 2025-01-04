@@ -767,16 +767,32 @@ class Update_R_V1(modeltools.Method):
 
       :math:`R_{new} = R_{old} + Q9 + FR`
 
-    Example:
+    Examples:
 
         >>> from hydpy.models.gland import *
         >>> parameterstep()
-        >>> fluxes.q9 = 20.0
-        >>> fluxes.fr = -0.137898
-        >>> states.r = 95.0
+
+        In case of sufficient content of the routing store, the basic equation applies
+        without modification:
+
+        >>> states.r = 4.0
+        >>> fluxes.q9 = 1.0
+        >>> fluxes.fr = -2.0
         >>> model.update_r_v1()
         >>> states.r
-        r(114.862102)
+        r(3.0)
+        >>> fluxes.fr
+        fr(-2.0)
+
+        For insufficient content, groundwater loss (negative groundwater exchange)
+        becomes restricted:
+
+        >>> fluxes.fr = -5.0
+        >>> model.update_r_v1()
+        >>> states.r
+        r(0.0)
+        >>> fluxes.fr
+        fr(-4.0)
     """
 
     REQUIREDSEQUENCES = (gland_fluxes.Q9, gland_fluxes.FR)
@@ -786,7 +802,10 @@ class Update_R_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        sta.r = max(sta.r + flu.q9 + flu.fr, 0.0)  # ToDo: adjust fr if necessary???
+        sta.r += flu.q9 + flu.fr
+        if sta.r < 0.0:
+            flu.fr -= sta.r
+            sta.r = 0.0
 
 
 class Update_R_V2(modeltools.Method):
@@ -802,12 +821,28 @@ class Update_R_V2(modeltools.Method):
         >>> from hydpy.models.gland import *
         >>> from hydpy import pub
         >>> parameterstep()
-        >>> fluxes.q9 = 20.0
-        >>> fluxes.fr = -0.137898
-        >>> states.r = 95.0
+
+        In case of sufficient content of the routing store, the basic equation applies
+        without modification:
+
+        >>> states.r = 4.0
+        >>> fluxes.q9 = 1.0 / 0.6
+        >>> fluxes.fr = -2.0
         >>> model.update_r_v2()
         >>> states.r
-        r(106.862102)
+        r(3.0)
+        >>> fluxes.fr
+        fr(-2.0)
+
+        For insufficient content, groundwater loss (negative groundwater exchange)
+        becomes restricted:
+
+        >>> fluxes.fr = -5.0
+        >>> model.update_r_v2()
+        >>> states.r
+        r(0.0)
+        >>> fluxes.fr
+        fr(-4.0)
     """
 
     REQUIREDSEQUENCES = (gland_fluxes.Q9, gland_fluxes.FR)
@@ -817,7 +852,11 @@ class Update_R_V2(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        sta.r = max(sta.r + 0.6 * flu.q9 + flu.fr, 0.0)  # ToDo: see above
+        sta.r += 0.6 * flu.q9 + flu.fr
+        if sta.r < 0.0:
+            flu.fr -= sta.r
+            sta.r = 0.0
+
 
 
 class Calc_QR_V1(modeltools.Method):
@@ -1044,7 +1083,7 @@ class Calc_FD_V1(modeltools.Method):
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
-        if (flu.q1 + flu.fr) <= 0:
+        if (flu.q1 + flu.fr) <= 0.0:
             flu.fd = -flu.q1
         else:
             flu.fd = flu.fr

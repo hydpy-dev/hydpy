@@ -858,7 +858,6 @@ class Update_R_V2(modeltools.Method):
             sta.r = 0.0
 
 
-
 class Calc_QR_V1(modeltools.Method):
     r"""Calculate the outflow of the routing store.
 
@@ -1090,7 +1089,7 @@ class Calc_FD_V1(modeltools.Method):
 
 
 class Calc_QD_V1(modeltools.Method):
-    """Calculate the direct runoff.
+    r"""Calculate the direct runoff.
 
     Basic equation:
 

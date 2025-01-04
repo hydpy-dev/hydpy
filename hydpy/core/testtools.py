@@ -1925,8 +1925,9 @@ PotentialInterceptionEvaporation
     source = inspect.getsource(method.__call__)
     varnames_source: set[str] = set()
     varnames_candidates: set[str] = set(method.__call__.__code__.co_names)
+    names_builtin = set(dir(builtins))
     for varname in tuple(varnames_candidates):
-        if f"modelutils.{varname}" in source:
+        if (varname in names_builtin) or (f"modelutils.{varname}" in source):
             varnames_candidates.remove(varname)
     for varname, prefix in itertools.product(varnames_candidates, prefixes):
         if f"{prefix}.{varname}" in source:

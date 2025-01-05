@@ -12,7 +12,7 @@ routing store, which introduces a new parameter.
 The following figure :cite:p:`ref-airGRManual` shows the general structure of HydPy
 G-Land Version GR6:
 
-.. image:: HydPy-G-Land_Version-Gr6.png
+.. image:: HydPy-G-GR6.png
 
 .. _gland_gr6_integration_tests:
 

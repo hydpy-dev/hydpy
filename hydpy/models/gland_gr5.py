@@ -13,7 +13,7 @@ calculated differently using an additional parameter.
 The following figure :cite:p:`ref-airGRManual` shows the general structure of HydPy
 G-Land Version GR5:
 
-.. image:: HydPy-G-Land_Version-Gr5.png
+.. image:: HydPy-G-GR5.png
 
 .. _gland_gr5_integration_tests:
 

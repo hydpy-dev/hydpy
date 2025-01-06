@@ -893,8 +893,8 @@ class PyxWriter:
         add(0, "cimport numpy")
         add(
             0,
-            "from libc.math cimport exp, fabs, log, sin, cos, tan, asin, acos, atan, "
-            "isnan, isinf",
+            "from libc.math cimport exp, fabs, log, sin, cos, tan, tanh, asin, acos, "
+            "atan, isnan, isinf",
         )
         add(0, "from libc.math cimport NAN as nan")
         add(0, "from libc.math cimport INFINITY as inf")
@@ -2851,7 +2851,7 @@ def log(double: float) -> float:
 
 
 def fabs(double: float) -> float:
-    """Cython wrapper for the |math.exp| function of module |math| applied on a single
+    """Cython wrapper for the |math.fabs| function of module |math| applied on a single
     |float| object.
 
     >>> from hydpy.cythons.modelutils import fabs
@@ -2946,6 +2946,20 @@ def atan(double: float) -> float:
     call(123.4)
     """
     return numpy.arctan(double)
+
+
+def tanh(double: float) -> float:
+    """Cython wrapper for the |numpy.tanh| function of module |numpy| applied
+    on a single |float| object.
+
+    >>> from hydpy.cythons.modelutils import tanh
+    >>> from unittest import mock
+    >>> with mock.patch('numpy.tanh') as func:
+    ...     _ = tanh(123.4)
+    >>> func.call_args
+    call(123.4)
+    """
+    return numpy.tanh(double)
 
 
 def isnan(double: float) -> float:

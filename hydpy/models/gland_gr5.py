@@ -1,109 +1,95 @@
 # pylint: disable=line-too-long, unused-wildcard-import
 """
-The GR5 model (modèle du Génie Rural à 5 parametres Journalier) is a daily
-lumped five-parameter rainfall-runoff model and belongs to the family of soil moisture
-accounting models. It was published by :cite:t:`ref-Moine2008` and is a modification
-of GR4 (|gland_gr4|). Here it is implemented according to :cite:t:`ref-airGR2017`.
-The model contains two stores and has five parameters. Instead of splitting the
-direct flow component and the inflow to the routing storage before applying the unit
-hydrograph, as is the case in Gr4, in GR5 only one unit hydrograph is applied
-and the components are split afterwards. In addition, the groundwater exchange |F| is
-calculated differently using an additional parameter.
+The GR5 model (modèle du Génie Rural à 5 parametres Journalier) is a daily lumped
+five-parameter rainfall-runoff model and belongs to the family of soil moisture
+accounting models. It was initially published by :cite:t:`ref-Moine2008` and is a
+modification of GR4J.  Our implementation, |gland_gr5|, follows the one of the R
+package airGR :cite:p:`ref-airGR2017` but with a few extensions that we explain in the
+documentation of |gland_gr4|, which implements and extends GR4J.
 
-The following figure :cite:p:`ref-airGRManual` shows the general structure of HydPy
-G-Land Version GR5:
+The main differences between GR5 and GR4 are that GR5 only applies a single Unit
+Hydrograph and uses a fifth parameter, `X5`, to allow for a more flexible configuration
+of the groundwater exchange term.  In |gland_gr5|, one can choose between different
+types of runoff concentration submodels, as explained for |gland_gr4|.
+
+The following figure :cite:p:`ref-airGRManual` shows the general structure of
+|gland_gr5|:
 
 .. image:: HydPy-G-GR5.png
-
-.. _gland_gr5_integration_tests:
 
 Integration tests
 =================
 
 .. how_to_understand_integration_tests::
 
-As integration test we use the example dataset L0123001 of the R-package airGR.
+The settings of the following tests are similar to the ones of application model
+|gland_gr4|. Hence, comparing the test results gives a good impression of the
+functional differences between both models.
 
-The settings of the following test are similar to the ones of
-application model |gland_gr4| as possible. Hence, comparing the test results gives a
-good impression of the functional differences of both models.
+The following settings are identical:
 
 >>> from hydpy import pub
->>> pub.timegrids = '01.01.1990', '20.02.1990', '1d'
+>>> pub.timegrids = "1990-01-01", "1990-02-20", "1d"
+
 >>> from hydpy.models.gland_gr5 import *
->>> from hydpy import pub
->>> pub.options.reprdigits = 6
->>> ret = pub.options.printprogress(False)
->>> parameterstep('1d')
->>> from hydpy import Node, Element
->>> outlet = Node('outlet')
->>> land = Element('land', outlets=outlet)
+>>> parameterstep("1d")
+>>> from hydpy import Element
+>>> land = Element("land", outlets="outlet")
 >>> land.model = model
+
 >>> area(360.0)
+
 >>> with model.add_petmodel_v1("evap_ret_io"):
 ...     evapotranspirationfactor(1.0)
 
-Initialize a test function object, which prepares and runs the tests
-and prints their results for the given sequences:
-
 >>> from hydpy import IntegrationTest
->>> IntegrationTest.plotting_options.height = 900
->>> IntegrationTest.plotting_options.activated=(
-...     fluxes.e, inputs.p, fluxes.qh)
 >>> test = IntegrationTest(land)
->>> test.dateformat = '%d.%m.'
+>>> test.plotting_options.axis1 = inputs.p, fluxes.e, fluxes.qh
+>>> test.dateformat = "%d.%m."
 
-.. _gland_gr5_ex1:
+>>> inputs.p.series = (
+...     0.0, 9.3, 3.2, 7.3, 0.0, 0.0, 0.0, 0.0, 0.1, 0.2, 2.9, 0.2, 0.0, 0.0, 0.0, 3.3,
+...     4.6, 0.8, 1.8, 1.1, 0.0, 5.0, 13.1, 14.6, 4.0, 0.8, 0.1, 3.3, 7.7, 10.3, 3.7,
+...     15.3, 3.2, 2.7, 2.2, 8.0, 14.3, 6.3, 0.0, 5.9, 9.2, 6.1, 0.1, 0.0, 2.8, 10.6,
+...     8.8, 7.2, 4.9, 1.8
+... )
+>>> model.petmodel.sequences.inputs.referenceevapotranspiration.series = (
+...     0.3, 0.4, 0.4, 0.3, 0.1, 0.1, 0.1, 0.2, 0.2, 0.3, 0.3, 0.2, 0.2, 0.2, 0.2, 0.3,
+...     0.3, 0.2, 0.2, 0.3, 0.2, 0.2, 0.3, 0.6, 0.4, 0.4, 0.4, 0.5, 0.4, 0.3, 0.3, 0.5,
+...     0.5, 0.3, 0.3, 0.4, 0.4, 0.3, 0.2, 0.1, 0.1, 0.0, 0.1, 0.1, 0.0, 0.2, 0.9, 0.9,
+...     0.5, 0.9
+... )
 
-Example 1
-_____________
+.. _gland_gr5_base_example:
 
-We compared the results of gland_gr5 with the results of the GR5J implementation of
-the airGR package. Therefore we used the parametrization of the example given in the
-air GR manual.
+base example
+____________
 
-Set control parameters:
+The following parameter values do not agree with the ones of the
+:ref:`gland_gr4_base_example` on application model |gland_gr4| but with the ones of
+the example given by :cite:t:`ref-airGRManual`:
 
+>>> imax(0.0)
 >>> x1(245.918)
 >>> x2(1.027)
 >>> x3(90.017)
 >>> x5(0.434)
->>> imax(0.0)
-
-In comparison to |gland_gr4|, |gland_gr5| only needs one runoff concentration
-submodel, because in contrast to |gland_gr4| direct flow and inflow to the routing
-storage are split after calculation of runoff concentration. In order to comply with
-the version of the gr5j of the R-package airGR we use the unit hydrograph options
-"gr_uh2".
-The Parameter X4 (time base of unit hydrograph) is set to 2.198 and for beta
-(exponent of unit hydrograph) the default value of 2.5 is used (for hourly simulations
-this value may need to be adjusted for better results):
 
 >>> with model.add_rconcmodel_v1("rconc_uh"):
 ...     uh("gr_uh2", x4=2.198)
 
-Set initial storage levels: production store 30% filled, routing store 50% filled. log.sequences empty
+>>> test.inits = (
+...     (states.i, 0.0),
+...     (states.s, 0.3 * x1),
+...     (states.r, 0.5 * x3),
+...     (model.rconcmodel.sequences.logs.quh, 0.0),
+... )
 
->>> test.inits = ((states.s, 0.3 * x1),
-...               (states.r, 0.5 * x3),
-...               (states.i, 0.0),
-...               (model.rconcmodel.sequences.logs.quh, [0.0, 0.0, 0.0, 0.0, 0.0]))
-
-The input data shows high precipitation and low evapotranspiration:
-
->>> inputs.p.series = (
-...     0.0,  9.3,  3.2,  7.3,  0.0,  0.0,  0.0,  0.0,  0.1,  0.2,  2.9,  0.2,  0.0,  0.0,  0.0,
-...     3.3,  4.6,  0.8,  1.8,  1.1,  0.0,  5.0, 13.1, 14.6,  4.0,  0.8,  0.1,  3.3,  7.7, 10.3,
-...     3.7, 15.3,  3.2,  2.7,  2.2,  8.0, 14.3,  6.3,  0.0,  5.9,  9.2,  6.1,  0.1,  0.0,  2.8,
-...     10.6,  8.8,  7.2,  4.9,  1.8)
->>> model.petmodel.sequences.inputs.referenceevapotranspiration.series = (
-...     0.3, 0.4, 0.4, 0.3, 0.1, 0.1, 0.1, 0.2, 0.2, 0.3, 0.3, 0.2, 0.2, 0.2, 0.2, 0.3, 0.3, 0.2, 0.2,
-...     0.3, 0.2, 0.2, 0.3, 0.6, 0.4, 0.4, 0.4, 0.5, 0.4, 0.3, 0.3, 0.5, 0.5, 0.3, 0.3, 0.4, 0.4, 0.3,
-...     0.2, 0.1, 0.1, 0.0, 0.1, 0.1, 0.0, 0.2, 0.9, 0.9, 0.5, 0.9)
+The following simulation results agree with those of the GR5J airGR implementation:
 
 .. integration-test::
 
-    >>> conditions = test("gland_gr5_ex1", get_conditions="1990-01-01")
+    >>> conditions = test("gland_gr5_base_example", get_conditions="1990-01-01")
     |   date |    p |   e |  en |   pn |        ps |  ei |       es |       ae |       pr |      q10 |     perc |       q9 |       q1 |        fd |        fr |       qr |       qd |       qh |        qv |   i |          s |         r |    outlet |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |  0.0 | 0.3 | 0.3 |  0.0 |       0.0 | 0.0 | 0.152869 | 0.152869 | 0.005768 | 0.000403 | 0.005768 | 0.000362 |  0.00004 |  0.067782 |  0.067782 |    0.682 | 0.067822 | 0.749822 |  3.124258 | 0.0 |  73.616763 | 44.394645 |  3.124258 |
@@ -163,28 +149,21 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _gland_gr5_ex2:
+.. _gland_gr5_groundwater_loss:
 
-Example 2
-_____________
+groundwater loss
+________________
 
-As in example 2 of |gland_gr4| we start in the second example from empty storages and
-use a negative groundwater exchange coefficient |X2|.
-
-Set negative control parameters |X2|:
+This integration test corresponds to the :ref:`gland_gr4_groundwater_loss` example on
+|gland_gr4|:
 
 >>> x2(-1.027)
-
->>> test.inits = ((states.s, 0.0),
-...               (states.r, 0.0),
-...               (states.i, 0.0),
-...               (model.rconcmodel.sequences.logs.quh, [0.0, 0.0, 0.0, 0.0, 0.0]))
-
-Run Integration test
+>>> test.inits.s = 0.0
+>>> test.inits.r = 0.0
 
 .. integration-test::
 
-    >>> conditions = test("gland_gr5_ex2", get_conditions="1990-01-01")
+    >>> conditions = test("gland_gr5_groundwater_loss", get_conditions="1990-01-01")
     |   date |    p |   e |  en |   pn |        ps |  ei |       es |       ae |       pr |      q10 |     perc |       q9 |       q1 |        fd |        fr |       qr |       qd |       qh |       qv |   i |          s |         r |   outlet |
     -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |  0.0 | 0.3 | 0.3 |  0.0 |       0.0 | 0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |  0.445718 |  0.445718 |      0.0 | 0.445718 | 0.445718 | 1.857158 | 0.0 |        0.0 |  0.445718 | 1.857158 |
@@ -243,26 +222,22 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _gland_gr5_ex3:
+.. _gland_gr5_interception:
 
-Example 3
-_____________
+interception
+____________
 
-As in example 3 of |gland_gr4| we repeat example 1 but activate the interception
-storage:
+This integration test corresponds to the :ref:`gland_gr4_interception` example on
+|gland_gr4|:
 
->>> x2(1.027)
 >>> imax(10.0)
->>> test.inits = ((states.s, 0.3 * x1),
-...               (states.r, 0.5 * x3),
-...               (states.i, 0.0),
-...               (model.rconcmodel.sequences.logs.quh, [0.0, 0.0, 0.0, 0.0, 0.0]))
-
-Run Integration test
+>>> x2(1.027)
+>>> test.inits.s = 0.3 * x1
+>>> test.inits.r = 0.5 * x3
 
 .. integration-test::
 
-    >>> conditions = test("gland_gr5_ex3", get_conditions="1990-01-01")
+    >>> conditions = test("gland_gr5_interception", get_conditions="1990-01-01")
     |   date |    p |   e |  en |   pn |        ps |  ei |       es |       ae |       pr |      q10 |     perc |       q9 |       q1 |        fd |        fr |       qr |       qd |       qh |        qv |    i |          s |         r |    outlet |
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |  0.0 | 0.3 | 0.3 |  0.0 |       0.0 | 0.0 | 0.152869 | 0.152869 | 0.005768 | 0.000403 | 0.005768 | 0.000362 |  0.00004 |  0.067782 |  0.067782 |    0.682 | 0.067822 | 0.749822 |  3.124258 |  0.0 |  73.616763 | 44.394645 |  3.124258 |
@@ -321,21 +296,19 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _gland_gr5_ex4:
+.. _gland_gr5_no_rconc_submodels:
 
-Example 4
-_____________
+no rconc submodels
+__________________
 
-In the last example we repeat example 3 but remove the unit hydrographs, resulting in
-an earlier peak in outflow:
+This integration test corresponds to the :ref:`gland_gr4_no_rconc_submodels` example on
+|gland_gr4|:
 
 >>> model.rconcmodel = None
 
-Run Integration test
-
 .. integration-test::
 
-    >>> conditions = test("gland_gr5_ex4", get_conditions="1990-01-01")
+    >>> conditions = test("gland_gr5_no_rconc_submodels", get_conditions="1990-01-01")
     |   date |    p |   e |  en |   pn |        ps |  ei |       es |       ae |       pr |      q10 |     perc |       q9 |       q1 |        fd |        fr |       qr |       qd |       qh |        qv |    i |          s |         r |    outlet |
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |  0.0 | 0.3 | 0.3 |  0.0 |       0.0 | 0.0 | 0.152869 | 0.152869 | 0.005768 | 0.005768 | 0.005768 | 0.005191 | 0.000577 |  0.067782 |  0.067782 | 0.682354 | 0.068359 | 0.750713 |  3.127971 |  0.0 |  73.616763 | 44.399119 |  3.127971 |
@@ -414,9 +387,11 @@ class Model(gland_model.Main_PETModel_V1, gland_model.Main_RConcModel_V1):
         short="G-GR5", description="Génie Rural model with 5 parameters"
     )
     __HYDPY_ROOTMODEL__ = True
-    INLET_METHODS = (gland_model.Calc_E_V1,)
+
+    INLET_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
+        gland_model.Calc_E_V1,
         gland_model.Calc_EI_V1,
         gland_model.Calc_PN_V1,
         gland_model.Calc_EN_V1,
@@ -458,34 +433,28 @@ class Model(gland_model.Main_PETModel_V1, gland_model.Main_RConcModel_V1):
         Method |Model.check_waterbalance| calculates the balance error as follows:
 
           .. math::
-            \sum_{t=t0}^{t1} \left(
-            P_t
-            + FR_t
-            + FD_t
-            - Qt_t
-            - AE_t
-            \right)
-            -
-            \left(
-            \left( I_{t1} - I_{t0} \right)
-            + \left( R_{t1} - R_{t0} \right)
-            + \left( S_{t1} - S_{t0} \right)
-            \right)
+            Error = \Sigma InOut - \Delta Vol - \Delta Rconc
+            \\ \\
+            \Sigma InOut = \sum_{t=t0}^{t1} P_t - AE_t + FR_t + FD_t - QH_t
+            \\
+            \Delta Vol  =  \left( I_{t1} - I_{t0} \right)
+            + \left( S_{t1} - S_{t0} \right) + \left( R_{t1} - R_{t0} \right)
+            \\
+            \Delta Rconc  = get\_waterbalance_{runof\!f \ concentration}(*)
         """
         fluxes = self.sequences.fluxes
         inputs = self.sequences.inputs
         last = self.sequences.states
         first = initial_conditions["model"]["states"]
-
         return (
             numpy.sum(inputs.p.evalseries)
             - numpy.sum(fluxes.ae.evalseries)
-            - numpy.sum(fluxes.qh.evalseries)
             + numpy.sum(fluxes.fr.evalseries)
             + numpy.sum(fluxes.fd.evalseries)
+            - numpy.sum(fluxes.qh.evalseries)
+            - (last.i - first["i"])
             - (last.s - first["s"])
             - (last.r - first["r"])
-            - (last.i - first["i"])
             - self._get_rconcmodel_waterbalance(initial_conditions)
         )
 

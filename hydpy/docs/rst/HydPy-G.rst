@@ -1,7 +1,7 @@
 .. _HydPy-G:
 
-HydPy-G
-=======
+HydPy-G (GR)
+============
 
 The HydPy-G model family (modèle due Génie Rural) comprises daily lumped hydrological
 models that differ in their amount of parameters, in their calculation of groundwater

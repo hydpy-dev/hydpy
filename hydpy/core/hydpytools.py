@@ -2870,10 +2870,18 @@ actual HydPy instance does not handle any elements at the moment.
         cm: AbstractContextManager[None] = contextlib.nullcontext()
         if exceptiontools.attrready(hydpy.pub, "sequencemanager"):
             cm = hydpy.pub.sequencemanager.provide_netcdfjitaccess(self.deviceorder)
-        with cm:
-            for idx in printtools.progressbar(range(idx_start, idx_end)):
-                for func in methodorder:
-                    func(idx)
+        if False:
+            with cm:
+                for idx in printtools.progressbar(range(idx_start, idx_end)):
+                    for func in methodorder:
+                        func(idx)
+        else:
+            from concurrent.futures import as_completed, ThreadPoolExecutor
+            with cm, ThreadPoolExecutor(max_workers=4) as executor:
+                for idx in printtools.progressbar(range(idx_start, idx_end)):
+                    futures = [executor.submit(func, idx) for func in methodorder]
+                    for future in as_completed(futures):
+                        pass
 
     def doit(self) -> None:
         """Deprecated! Use method |HydPy.simulate| instead.

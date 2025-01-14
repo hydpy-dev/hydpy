@@ -1512,26 +1512,27 @@ class PyxWriter:
         print("                . simulate")
         pyx, both = lines.pyx.add, lines.add
         both(1, f"cpdef inline void simulate(self, {INT} idx) {_nogil}:")
-        pyx(2, "self.idx_sim = idx")
+        pyx(2, "with nogil:")
+        pyx(3, "self.idx_sim = idx")
         if self.model.REUSABLE_METHODS or self.model.find_submodels(
             include_optional=True, include_subsubmodels=False, repeat_sharedmodels=True
         ):
-            pyx(2, "self.reset_reuseflags()")
+            pyx(3, "self.reset_reuseflags()")
         seqs = self.model.sequences
         if seqs.inputs or self.model.SUBMODELINTERFACES:
-            pyx(2, "self.load_data(idx)")
+            pyx(3, "self.load_data(idx)")
         if self.model.INLET_METHODS:
-            pyx(2, "self.update_inlets()")
+            pyx(3, "self.update_inlets()")
         if isinstance(self.model, modeltools.SolverModel):
-            pyx(2, "self.solve()")
+            pyx(3, "self.solve()")
         else:
-            pyx(2, "self.run()")
+            pyx(3, "self.run()")
             if seqs.states:
-                pyx(2, "self.new2old()")
+                pyx(3, "self.new2old()")
         if self.model.OUTLET_METHODS:
-            pyx(2, "self.update_outlets()")
+            pyx(3, "self.update_outlets()")
         if seqs.factors or seqs.fluxes or seqs.states:
-            pyx(2, "self.update_outputs()")
+            pyx(3, "self.update_outputs()")
 
     def _call_submodel_method(self, lines: PyxPxdLines, methodcall: str) -> None:
         name2submodel = self.model.find_submodels(

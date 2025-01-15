@@ -1,0 +1,41 @@
+.. |Area| replace:: :class:`~hydpy.models.gland.gland_control.Area`
+.. |Beta| replace:: :class:`~hydpy.models.gland.gland_derived.Beta`
+.. |Calc_Q10_V1| replace:: :class:`~hydpy.models.gland.gland_model.Calc_Q10_V1`
+.. |Calc_Q1_V1| replace:: :class:`~hydpy.models.gland.gland_model.Calc_Q1_V1`
+.. |Calc_Q9_V1| replace:: :class:`~hydpy.models.gland.gland_model.Calc_Q9_V1`
+.. |I| replace:: :class:`~hydpy.models.gland.gland_states.I`
+.. |PETModel_V1| replace:: :class:`~hydpy.interfaces.petinterfaces.PETModel_V1`
+.. |PN| replace:: :class:`~hydpy.models.gland.gland_fluxes.PN`
+.. |PR1| replace:: :class:`~hydpy.models.gland.gland_fluxes.PR1`
+.. |PR9| replace:: :class:`~hydpy.models.gland.gland_fluxes.PR9`
+.. |PR| replace:: :class:`~hydpy.models.gland.gland_fluxes.PR`
+.. |Parameter.get_timefactor| replace:: :func:`~hydpy.core.parametertools.Parameter.get_timefactor`
+.. |Parameter| replace:: :class:`~hydpy.core.parametertools.Parameter`
+.. |Q10| replace:: :class:`~hydpy.models.gland.gland_fluxes.Q10`
+.. |Q1| replace:: :class:`~hydpy.models.gland.gland_fluxes.Q1`
+.. |Q9| replace:: :class:`~hydpy.models.gland.gland_fluxes.Q9`
+.. |QFactor| replace:: :class:`~hydpy.models.gland.gland_derived.QFactor`
+.. |RConcModel_V1| replace:: :class:`~hydpy.interfaces.rconcinterfaces.RConcModel_V1`
+.. |R| replace:: :class:`~hydpy.models.gland.gland_states.R`
+.. |S| replace:: :class:`~hydpy.models.gland.gland_states.S`
+.. |X2.get_timefactor| replace:: :func:`~hydpy.models.gland.gland_control.X2.get_timefactor`
+.. |X2| replace:: :class:`~hydpy.models.gland.gland_control.X2`
+.. |X3.get_timefactor| replace:: :func:`~hydpy.models.gland.gland_control.X3.get_timefactor`
+.. |X3| replace:: :class:`~hydpy.models.gland.gland_control.X3`
+.. |evap_ret_tw2002| replace:: :mod:`~hydpy.models.evap_ret_tw2002`
+.. |gland.DOCNAME.complete| replace:: HydPy-G (base model)
+.. |gland.DOCNAME.long| replace:: HydPy-G
+.. |gland| replace:: :mod:`~hydpy.models.gland`
+.. |parameterstep| replace:: :func:`~hydpy.core.importtools.parameterstep`
+.. |rconc_uh| replace:: :mod:`~hydpy.models.rconc_uh`
+.. |simulationstep| replace:: :func:`~hydpy.core.importtools.simulationstep`
+
+.. _gland:
+
+gland
+=====
+
+.. automodule:: hydpy.models.gland
+    :members:
+    :show-inheritance:
+    :exclude-members: SOLVERSEQUENCES, dataclass_transform, NewType, overload, Protocol, assert_type, fastaccess_new, is_protocol, Mapping, INTERFACE_METHODS, SupportsIndex, TypeIs, ParamSpecKwargs, AideSequences, ForwardRef, TextIO, ADD_METHODS, ReceiverSequences, get_origin, ParamSpecArgs, get_type_hints, deprecated, SupportsAbs, NoReturn, subpars, SOLVERPARAMETERS, RESULTSEQUENCES, Iterator, ClassVar, Concatenate, AnyStr, assert_never, Text, pars, Type, RUN_METHODS, Reversible, fastaccess, INLET_METHODS, Required, CapsuleType, Pattern, runtime, is_typeddict, get_args, SenderSequences, get_protocol_members, KeysView, Collection, TypeAliasType, LiteralString, InletSequences, clear_overloads, MappingView, Generic, NotRequired, AbstractSet, FULL_ODE_METHODS, DERIVEDPARAMETERS, IO, Match, Sequence, SUBMETHODS, override, TypeAlias, SupportsFloat, ParamSpec, SupportsBytes, SENDER_METHODS, ReadOnly, TypeGuard, subseqs, Tuple, Optional, SUBMODELINTERFACES, ContextManager, AsyncContextManager, LogSequences, no_type_check, fastaccess_old, Counter, Deque, Self, FactorSequences, subvars, Dict, NamedTuple, OrderedDict, UPDATEDSEQUENCES, Callable, get_overloads, Hashable, REQUIREDSEQUENCES, final, Doc, get_original_bases, FrozenSet, Union, AsyncGenerator, MutableSet, Any, Set, AsyncIterator, Literal, TypeVar, MutableSequence, DefaultDict, ByteString, cast, FIXEDPARAMETERS, Annotated, SupportsInt, MutableMapping, seqs, TypeVarTuple, reveal_type, SupportsComplex, Buffer, Sized, Generator, Final, Coroutine, BinaryIO, List, runtime_checkable, SupportsRound, TYPE_CHECKING, RECEIVER_METHODS, AsyncIterable, Awaitable, CLASSES, ChainMap, ItemsView, no_type_check_decorator, Unpack, IntVar, ValuesView, TypedDict, Container, Iterable, SUBMODELS, Never, CONTROLPARAMETERS, NoDefault, OUTLET_METHODS, PART_ODE_METHODS

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>pubtools &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="selectiontools" href="selectiontools.html" />
+    <link rel="prev" title="propertytools" href="propertytools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="selectiontools.html" title="selectiontools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="propertytools.html" title="propertytools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" accesskey="U">Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pubtools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="core.html">Core Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="aliastools.html">aliastools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="autodoctools.html">autodoctools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auxfiletools.html">auxfiletools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="devicetools.html">devicetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exceptiontools.html">exceptiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filetools.html">filetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydpytools.html">hydpytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="importtools.html">importtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="indextools.html">indextools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="itemtools.html">itemtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="masktools.html">masktools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modeltools.html">modeltools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="netcdftools.html">netcdftools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="objecttools.html">objecttools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optiontools.html">optiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parametertools.html">parametertools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="printtools.html">printtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="propertytools.html">propertytools</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">pubtools</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.core.pubtools.TimegridsProperty"><code class="docutils literal notranslate"><span class="pre">TimegridsProperty</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.pubtools.TimegridsProperty.call_fset"><code class="docutils literal notranslate"><span class="pre">TimegridsProperty.call_fset()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.core.pubtools.Pub"><code class="docutils literal notranslate"><span class="pre">Pub</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.pubtools.Pub.config"><code class="docutils literal notranslate"><span class="pre">Pub.config</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.pubtools.Pub.projectname"><code class="docutils literal notranslate"><span class="pre">Pub.projectname</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.pubtools.Pub.indexer"><code class="docutils literal notranslate"><span class="pre">Pub.indexer</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.pubtools.Pub.networkmanager"><code class="docutils literal notranslate"><span class="pre">Pub.networkmanager</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.pubtools.Pub.controlmanager"><code class="docutils literal notranslate"><span class="pre">Pub.controlmanager</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.pubtools.Pub.conditionmanager"><code class="docutils literal notranslate"><span class="pre">Pub.conditionmanager</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.pubtools.Pub.sequencemanager"><code class="docutils literal notranslate"><span class="pre">Pub.sequencemanager</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.pubtools.Pub.timegrids"><code class="docutils literal notranslate"><span class="pre">Pub.timegrids</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.pubtools.Pub.selections"><code class="docutils literal notranslate"><span class="pre">Pub.selections</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.pubtools.Pub.options"><code class="docutils literal notranslate"><span class="pre">Pub.options</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.pubtools.Pub.scriptfunctions"><code class="docutils literal notranslate"><span class="pre">Pub.scriptfunctions</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="selectiontools.html">selectiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequencetools.html">sequencetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seriestools.html">seriestools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testtools.html">testtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="timetools.html">timetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="typingtools.html">typingtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="variabletools.html">variabletools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="propertytools.html"
+                          title="previous chapter">propertytools</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="selectiontools.html"
+                          title="next chapter">selectiontools</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/pubtools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="pubtools">
+<span id="id1"></span><h1>pubtools<a class="headerlink" href="#pubtools" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.core.pubtools">This module provides features for handling public (global) project data.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.core.pubtools" title="hydpy.core.pubtools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pubtools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.core.pubtools.TimegridsProperty" title="hydpy.core.pubtools.TimegridsProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">TimegridsProperty</span></code></a> <a class="reference internal" href="propertytools.html#hydpy.core.propertytools.DefaultProperty" title="hydpy.core.propertytools.DefaultProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">DefaultProperty</span></code></a> specialised for <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrids</span></code></a> objects.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.pubtools.Pub" title="hydpy.core.pubtools.Pub"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pub</span></code></a> Base class/module of module <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code>.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.pubtools.TimegridsProperty">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.core.pubtools.</span></span><span class="sig-name descname"><span class="pre">TimegridsProperty</span></span><a class="reference internal" href="_modules/hydpy/core/pubtools.html#TimegridsProperty"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.pubtools.TimegridsProperty" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_PubProperty</span></code>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Union</span></code></a>[<a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrids</span></code></a>, <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrid" title="hydpy.core.timetools.Timegrid"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrid</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Union</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Date</span></code>, <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Union</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Date</span></code>, <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Union</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Period</span></code>, <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.timedelta" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">timedelta</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]], <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrids</span></code></a>]</p>
+<p><a class="reference internal" href="propertytools.html#hydpy.core.propertytools.DefaultProperty" title="hydpy.core.propertytools.DefaultProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">DefaultProperty</span></code></a> specialised for <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrids</span></code></a> objects.</p>
+<p>For convenience, property <a class="reference internal" href="#hydpy.core.pubtools.TimegridsProperty" title="hydpy.core.pubtools.TimegridsProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">TimegridsProperty</span></code></a> can create a <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrids</span></code></a>
+object from a combination of a first and a last date (of type <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> or
+<a class="reference internal" href="timetools.html#hydpy.core.timetools.Date" title="hydpy.core.timetools.Date"><code class="xref py py-class docutils literal notranslate"><span class="pre">Date</span></code></a>) and a step size (of type <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> or <a class="reference internal" href="timetools.html#hydpy.core.timetools.Period" title="hydpy.core.timetools.Period"><code class="xref py py-class docutils literal notranslate"><span class="pre">Period</span></code></a>):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">pub</span><span class="p">,</span> <span class="n">Timegrid</span><span class="p">,</span> <span class="n">Timegrids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;2000-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2010-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+</pre></div>
+</div>
+<p>The given date and period information applies for the <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids.init" title="hydpy.core.timetools.Timegrids.init"><code class="xref py py-attr docutils literal notranslate"><span class="pre">init</span></code></a>,
+the <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids.sim" title="hydpy.core.timetools.Timegrids.sim"><code class="xref py py-attr docutils literal notranslate"><span class="pre">sim</span></code></a>, and the <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids.eval_" title="hydpy.core.timetools.Timegrids.eval_"><code class="xref py py-attr docutils literal notranslate"><span class="pre">eval_</span></code></a> attribute, as well:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">init</span>
+<span class="go">Timegrid(&quot;2000-01-01 00:00:00&quot;,</span>
+<span class="go">         &quot;2010-01-01 00:00:00&quot;,</span>
+<span class="go">         &quot;1d&quot;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">sim</span>
+<span class="go">Timegrid(&quot;2000-01-01 00:00:00&quot;,</span>
+<span class="go">         &quot;2010-01-01 00:00:00&quot;,</span>
+<span class="go">         &quot;1d&quot;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">eval_</span>
+<span class="go">Timegrid(&quot;2000-01-01 00:00:00&quot;,</span>
+<span class="go">         &quot;2010-01-01 00:00:00&quot;,</span>
+<span class="go">         &quot;1d&quot;)</span>
+</pre></div>
+</div>
+<p>Alternatively, you can assign a ready <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrids</span></code></a> object directly:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="n">Timegrids</span><span class="p">(</span><span class="n">Timegrid</span><span class="p">(</span><span class="s2">&quot;2000-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2010-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span><span class="p">),</span>
+<span class="gp">... </span>                          <span class="n">Timegrid</span><span class="p">(</span><span class="s2">&quot;2000-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2001-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span>
+<span class="go">Timegrids(init=Timegrid(&quot;2000-01-01 00:00:00&quot;,</span>
+<span class="go">                        &quot;2010-01-01 00:00:00&quot;,</span>
+<span class="go">                        &quot;1d&quot;),</span>
+<span class="go">          sim=Timegrid(&quot;2000-01-01 00:00:00&quot;,</span>
+<span class="go">                       &quot;2001-01-01 00:00:00&quot;,</span>
+<span class="go">                       &quot;1d&quot;),</span>
+<span class="go">          eval_=Timegrid(&quot;2000-01-01 00:00:00&quot;,</span>
+<span class="go">                         &quot;2001-01-01 00:00:00&quot;,</span>
+<span class="go">                         &quot;1d&quot;))</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.pubtools.TimegridsProperty.call_fset">
+<span class="sig-name descname"><span class="pre">call_fset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><span class="pre">timetools.Timegrids</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">timetools.DateConstrArg</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">timetools.DateConstrArg</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">timetools.PeriodConstrArg</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/pubtools.html#TimegridsProperty.call_fset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.pubtools.TimegridsProperty.call_fset" title="Link to this definition">¶</a></dt>
+<dd><p>Try to convert the given input value(s).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.pubtools.Pub">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.core.pubtools.</span></span><span class="sig-name descname"><span class="pre">Pub</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/pubtools.html#Pub"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.pubtools.Pub" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">module</span></code></p>
+<p>Base class/module of module <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code>.</p>
+<p>After initialisation <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code> takes over <a class="reference internal" href="#hydpy.core.pubtools.Pub" title="hydpy.core.pubtools.Pub"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pub</span></code></a> as its new base class.
+The reason for this complicated trick is that it makes the attribute
+handling of <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code> easier for users.</p>
+<p>You can import <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code> like other modules:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">pub</span>
+</pre></div>
+</div>
+<p>However, if you try to access unprepared attributes, <a class="reference internal" href="#hydpy.core.pubtools.Pub" title="hydpy.core.pubtools.Pub"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pub</span></code></a> returns
+the following error message:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">hydpy.core.exceptiontools.AttributeNotReady</span>: <span class="n">Attribute timegrids of module `pub` is not defined at the moment.</span>
+</pre></div>
+</div>
+<p>After setting an attribute value successfully, it is accessible (we
+select the <cite>timegrids</cite> attribute here, as its setter supplies a little
+magic to make defining new <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrids</span></code></a> objects more convenient:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">While trying to define a new `Timegrids` object based on the arguments `None`, the following error occurred: Initialising a `Timegrids` object either requires one, two, or three `Timegrid` objects or two dates objects (of type `Date`, `datetime`, or `str`) and one period object (of type `Period`, `timedelta`, or `str`), but objects of the types `None, None, and None` are given.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;2000-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2001-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span>
+<span class="go">Timegrids(&quot;2000-01-01 00:00:00&quot;,</span>
+<span class="go">          &quot;2001-01-01 00:00:00&quot;,</span>
+<span class="go">          &quot;1d&quot;)</span>
+</pre></div>
+</div>
+<p>After deleting, the attribute is not accessible anymore:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">hydpy.core.exceptiontools.AttributeNotReady</span>: <span class="n">Attribute timegrids of module `pub` is not defined at the moment.</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.pubtools.Pub.config">
+<span class="sig-name descname"><span class="pre">config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">configutils.Config</span></em><a class="headerlink" href="#hydpy.core.pubtools.Pub.config" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.pubtools.Pub.projectname">
+<span class="sig-name descname"><span class="pre">projectname</span></span><a class="headerlink" href="#hydpy.core.pubtools.Pub.projectname" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.pubtools.Pub.indexer">
+<span class="sig-name descname"><span class="pre">indexer</span></span><a class="headerlink" href="#hydpy.core.pubtools.Pub.indexer" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.pubtools.Pub.networkmanager">
+<span class="sig-name descname"><span class="pre">networkmanager</span></span><a class="headerlink" href="#hydpy.core.pubtools.Pub.networkmanager" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.pubtools.Pub.controlmanager">
+<span class="sig-name descname"><span class="pre">controlmanager</span></span><a class="headerlink" href="#hydpy.core.pubtools.Pub.controlmanager" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.pubtools.Pub.conditionmanager">
+<span class="sig-name descname"><span class="pre">conditionmanager</span></span><a class="headerlink" href="#hydpy.core.pubtools.Pub.conditionmanager" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.pubtools.Pub.sequencemanager">
+<span class="sig-name descname"><span class="pre">sequencemanager</span></span><a class="headerlink" href="#hydpy.core.pubtools.Pub.sequencemanager" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.pubtools.Pub.timegrids">
+<span class="sig-name descname"><span class="pre">timegrids</span></span><a class="headerlink" href="#hydpy.core.pubtools.Pub.timegrids" title="Link to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="propertytools.html#hydpy.core.propertytools.DefaultProperty" title="hydpy.core.propertytools.DefaultProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">DefaultProperty</span></code></a> specialised for <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrids</span></code></a> objects.</p>
+<p>For convenience, property <a class="reference internal" href="#hydpy.core.pubtools.TimegridsProperty" title="hydpy.core.pubtools.TimegridsProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">TimegridsProperty</span></code></a> can create a <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrids</span></code></a>
+object from a combination of a first and a last date (of type <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> or
+<a class="reference internal" href="timetools.html#hydpy.core.timetools.Date" title="hydpy.core.timetools.Date"><code class="xref py py-class docutils literal notranslate"><span class="pre">Date</span></code></a>) and a step size (of type <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> or <a class="reference internal" href="timetools.html#hydpy.core.timetools.Period" title="hydpy.core.timetools.Period"><code class="xref py py-class docutils literal notranslate"><span class="pre">Period</span></code></a>):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">pub</span><span class="p">,</span> <span class="n">Timegrid</span><span class="p">,</span> <span class="n">Timegrids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;2000-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2010-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+</pre></div>
+</div>
+<p>The given date and period information applies for the <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids.init" title="hydpy.core.timetools.Timegrids.init"><code class="xref py py-attr docutils literal notranslate"><span class="pre">init</span></code></a>,
+the <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids.sim" title="hydpy.core.timetools.Timegrids.sim"><code class="xref py py-attr docutils literal notranslate"><span class="pre">sim</span></code></a>, and the <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids.eval_" title="hydpy.core.timetools.Timegrids.eval_"><code class="xref py py-attr docutils literal notranslate"><span class="pre">eval_</span></code></a> attribute, as well:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">init</span>
+<span class="go">Timegrid(&quot;2000-01-01 00:00:00&quot;,</span>
+<span class="go">         &quot;2010-01-01 00:00:00&quot;,</span>
+<span class="go">         &quot;1d&quot;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">sim</span>
+<span class="go">Timegrid(&quot;2000-01-01 00:00:00&quot;,</span>
+<span class="go">         &quot;2010-01-01 00:00:00&quot;,</span>
+<span class="go">         &quot;1d&quot;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">eval_</span>
+<span class="go">Timegrid(&quot;2000-01-01 00:00:00&quot;,</span>
+<span class="go">         &quot;2010-01-01 00:00:00&quot;,</span>
+<span class="go">         &quot;1d&quot;)</span>
+</pre></div>
+</div>
+<p>Alternatively, you can assign a ready <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrids</span></code></a> object directly:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="n">Timegrids</span><span class="p">(</span><span class="n">Timegrid</span><span class="p">(</span><span class="s2">&quot;2000-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2010-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span><span class="p">),</span>
+<span class="gp">... </span>                          <span class="n">Timegrid</span><span class="p">(</span><span class="s2">&quot;2000-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2001-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span>
+<span class="go">Timegrids(init=Timegrid(&quot;2000-01-01 00:00:00&quot;,</span>
+<span class="go">                        &quot;2010-01-01 00:00:00&quot;,</span>
+<span class="go">                        &quot;1d&quot;),</span>
+<span class="go">          sim=Timegrid(&quot;2000-01-01 00:00:00&quot;,</span>
+<span class="go">                       &quot;2001-01-01 00:00:00&quot;,</span>
+<span class="go">                       &quot;1d&quot;),</span>
+<span class="go">          eval_=Timegrid(&quot;2000-01-01 00:00:00&quot;,</span>
+<span class="go">                         &quot;2001-01-01 00:00:00&quot;,</span>
+<span class="go">                         &quot;1d&quot;))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.pubtools.Pub.selections">
+<span class="sig-name descname"><span class="pre">selections</span></span><a class="headerlink" href="#hydpy.core.pubtools.Pub.selections" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.pubtools.Pub.options">
+<span class="sig-name descname"><span class="pre">options</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="optiontools.html#hydpy.core.optiontools.Options" title="hydpy.core.optiontools.Options"><span class="pre">optiontools.Options</span></a></em><a class="headerlink" href="#hydpy.core.pubtools.Pub.options" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.pubtools.Pub.scriptfunctions">
+<span class="sig-name descname"><span class="pre">scriptfunctions</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.ScriptFunction" title="hydpy.core.typingtools.ScriptFunction"><span class="pre">ScriptFunction</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#hydpy.core.pubtools.Pub.scriptfunctions" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="selectiontools.html" title="selectiontools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="propertytools.html" title="propertytools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" >Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">pubtools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

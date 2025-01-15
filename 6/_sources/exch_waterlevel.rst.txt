@@ -1,0 +1,14 @@
+.. |dam_pump| replace:: :mod:`~hydpy.models.dam_pump`
+.. |exch_waterlevel.DOCNAME.complete| replace:: HydPy-Exch-WL (submodel for querying the water level from a remote node)
+.. |exch_waterlevel| replace:: :mod:`~hydpy.models.exch_waterlevel`
+.. |wland_wag| replace:: :mod:`~hydpy.models.wland_wag`
+
+.. _exch_waterlevel:
+
+exch_waterlevel
+===============
+
+.. automodule:: hydpy.models.exch_waterlevel
+    :members:
+    :show-inheritance:
+    :exclude-members: get_args, fastaccess_old, SupportsInt, SUBMODELS, DERIVEDPARAMETERS, override, Reversible, Concatenate, OrderedDict, get_overloads, Collection, is_typeddict, Required, REQUIREDSEQUENCES, ADD_METHODS, MutableMapping, SOLVERPARAMETERS, Annotated, CLASSES, ReadOnly, RESULTSEQUENCES, Counter, Never, seqs, subpars, Iterable, runtime_checkable, FactorSequences, SOLVERSEQUENCES, AbstractSet, IO, Any, SupportsComplex, AnyStr, KeysView, Coroutine, MutableSet, List, Match, SenderSequences, TypedDict, SupportsFloat, subseqs, no_type_check_decorator, PART_ODE_METHODS, pars, IntVar, ParamSpecArgs, INTERFACE_METHODS, is_protocol, LogSequences, fastaccess, ContextManager, Hashable, Generic, Sequence, Awaitable, Iterator, fastaccess_new, ParamSpecKwargs, CONTROLPARAMETERS, Buffer, Self, NoReturn, ParamSpec, TypeIs, FIXEDPARAMETERS, FULL_ODE_METHODS, AsyncGenerator, AsyncIterator, Callable, CapsuleType, Text, DefaultDict, runtime, no_type_check, Type, ForwardRef, Unpack, final, RECEIVER_METHODS, get_original_bases, subvars, NoDefault, TypeVarTuple, overload, NewType, StateSequences, FluxSequences, Protocol, AsyncContextManager, Sized, OutletSequences, MappingView, ChainMap, Pattern, NamedTuple, SENDER_METHODS, SupportsBytes, TextIO, Set, get_type_hints, Doc, TypeVar, cast, deprecated, ByteString, Final, MutableSequence, RUN_METHODS, SUBMETHODS, NotRequired, ClassVar, Container, Tuple, SUBMODELINTERFACES, dataclass_transform, INLET_METHODS, TypeGuard, Generator, Deque, assert_never, ValuesView, get_protocol_members, Optional, TypeAliasType, OUTLET_METHODS, Dict, SupportsIndex, ItemsView, AsyncIterable, InletSequences, SupportsAbs, InputSequences, Union, LiteralString, SupportsRound, UPDATEDSEQUENCES, FrozenSet, Mapping, assert_type, reveal_type, BinaryIO, get_origin, AideSequences, Literal, TYPE_CHECKING, TypeAlias, clear_overloads

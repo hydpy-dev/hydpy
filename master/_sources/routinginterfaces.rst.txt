@@ -1,0 +1,31 @@
+.. |ChannelModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.ChannelModel_V1`
+.. |CrossSectionModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.CrossSectionModel_V1`
+.. |CrossSectionModel_V2| replace:: :class:`~hydpy.interfaces.routinginterfaces.CrossSectionModel_V2`
+.. |RoutingModelBase.determine_discharge| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.determine_discharge`
+.. |RoutingModelBase.determine_maxtimestep| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.determine_maxtimestep`
+.. |RoutingModelBase.get_discharge| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.get_discharge`
+.. |RoutingModelBase.perform_postprocessing| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.perform_postprocessing`
+.. |RoutingModelBase.perform_preprocessing| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.perform_preprocessing`
+.. |RoutingModelBase.set_timestep| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.set_timestep`
+.. |RoutingModel_V1.get_partialdischargeupstream| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModel_V1.get_partialdischargeupstream`
+.. |RoutingModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.RoutingModel_V1`
+.. |RoutingModel_V2.get_partialdischargedownstream| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModel_V2.get_partialdischargedownstream`
+.. |RoutingModel_V2| replace:: :class:`~hydpy.interfaces.routinginterfaces.RoutingModel_V2`
+.. |RoutingModel_V3.get_partialdischargedownstream| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModel_V3.get_partialdischargedownstream`
+.. |RoutingModel_V3| replace:: :class:`~hydpy.interfaces.routinginterfaces.RoutingModel_V3`
+.. |StorageModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.StorageModel_V1`
+.. |sw1d_channel| replace:: :mod:`~hydpy.models.sw1d_channel`
+.. |sw1d_lias| replace:: :mod:`~hydpy.models.sw1d_lias`
+.. |sw1d_network| replace:: :mod:`~hydpy.models.sw1d_network`
+.. |sw1d_q_in| replace:: :mod:`~hydpy.models.sw1d_q_in`
+.. |sw1d_weir_out| replace:: :mod:`~hydpy.models.sw1d_weir_out`
+
+.. _routinginterfaces:
+
+routinginterfaces
+=================
+
+.. automodule:: hydpy.interfaces.routinginterfaces
+    :members:
+    :show-inheritance:
+    :exclude-members: SOLVERSEQUENCES, dataclass_transform, NewType, overload, Protocol, assert_type, fastaccess_new, is_protocol, Mapping, INTERFACE_METHODS, SupportsIndex, TypeIs, ParamSpecKwargs, ForwardRef, TextIO, ADD_METHODS, get_origin, ParamSpecArgs, get_type_hints, deprecated, SupportsAbs, NoReturn, subpars, SOLVERPARAMETERS, RESULTSEQUENCES, Iterator, ClassVar, Concatenate, AnyStr, assert_never, Text, pars, Type, RUN_METHODS, Reversible, fastaccess, INLET_METHODS, Required, CapsuleType, Pattern, runtime, is_typeddict, get_args, get_protocol_members, KeysView, Collection, TypeAliasType, LiteralString, clear_overloads, MappingView, Generic, NotRequired, AbstractSet, FULL_ODE_METHODS, DERIVEDPARAMETERS, IO, Match, Sequence, SUBMETHODS, override, TypeAlias, SupportsFloat, ParamSpec, SupportsBytes, SENDER_METHODS, ReadOnly, TypeGuard, subseqs, Tuple, Optional, SUBMODELINTERFACES, ContextManager, AsyncContextManager, no_type_check, fastaccess_old, Counter, Deque, Self, subvars, Dict, NamedTuple, OrderedDict, UPDATEDSEQUENCES, Callable, get_overloads, Hashable, REQUIREDSEQUENCES, final, Doc, get_original_bases, FrozenSet, Union, AsyncGenerator, MutableSet, Any, Set, AsyncIterator, Literal, TypeVar, MutableSequence, DefaultDict, ByteString, cast, FIXEDPARAMETERS, Annotated, SupportsInt, MutableMapping, seqs, TypeVarTuple, reveal_type, SupportsComplex, Buffer, Sized, Generator, Final, Coroutine, BinaryIO, List, runtime_checkable, SupportsRound, TYPE_CHECKING, RECEIVER_METHODS, AsyncIterable, Awaitable, CLASSES, ChainMap, ItemsView, no_type_check_decorator, Unpack, IntVar, ValuesView, TypedDict, Container, Iterable, SUBMODELS, Never, CONTROLPARAMETERS, NoDefault, OUTLET_METHODS, PART_ODE_METHODS

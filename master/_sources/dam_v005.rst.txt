@@ -1,0 +1,50 @@
+.. |ActualRelease| replace:: :class:`~hydpy.models.dam.dam_fluxes.ActualRelease`
+.. |AllowedRemoteRelief| replace:: :class:`~hydpy.models.dam.dam_fluxes.AllowedRemoteRelief`
+.. |HighestRemoteRelief| replace:: :class:`~hydpy.models.dam.dam_control.HighestRemoteRelief`
+.. |HighestRemoteSupply| replace:: :class:`~hydpy.models.dam.dam_control.HighestRemoteSupply`
+.. |Indexer.timeofyear| replace:: :const:`~hydpy.core.indextools.Indexer.timeofyear`
+.. |Indexer| replace:: :class:`~hydpy.core.indextools.Indexer`
+.. |Inflow| replace:: :class:`~hydpy.models.dam.dam_fluxes.Inflow`
+.. |IntegrationTest| replace:: :class:`~hydpy.core.testtools.IntegrationTest`
+.. |MissingRemoteRelease| replace:: :class:`~hydpy.models.dam.dam_fluxes.MissingRemoteRelease`
+.. |Model.connect| replace:: :func:`~hydpy.core.modeltools.Model.connect`
+.. |NearDischargeMinimumThreshold| replace:: :class:`~hydpy.models.dam.dam_control.NearDischargeMinimumThreshold`
+.. |Node.variable| replace:: :const:`~hydpy.core.devicetools.Node.variable`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |PETModel_V1| replace:: :class:`~hydpy.interfaces.petinterfaces.PETModel_V1`
+.. |PrecipModel_V2| replace:: :class:`~hydpy.interfaces.precipinterfaces.PrecipModel_V2`
+.. |RemoteDischargeSafety| replace:: :class:`~hydpy.models.dam.dam_control.RemoteDischargeSafety`
+.. |RequiredRemoteRelease| replace:: :class:`~hydpy.models.dam.dam_fluxes.RequiredRemoteRelease`
+.. |RequiredRemoteSupply| replace:: :class:`~hydpy.models.dam.dam_fluxes.RequiredRemoteSupply`
+.. |ToleranceEvaporation| replace:: :class:`~hydpy.models.dam.dam_control.ToleranceEvaporation`
+.. |TotalRemoteDischarge| replace:: :class:`~hydpy.models.dam.dam_fluxes.TotalRemoteDischarge`
+.. |WaterLevelMinimumThreshold| replace:: :class:`~hydpy.models.dam.dam_control.WaterLevelMinimumThreshold`
+.. |WaterLevelMinimumTolerance| replace:: :class:`~hydpy.models.dam.dam_control.WaterLevelMinimumTolerance`
+.. |WaterLevelReliefThreshold| replace:: :class:`~hydpy.models.dam.dam_control.WaterLevelReliefThreshold`
+.. |WaterLevelReliefTolerance| replace:: :class:`~hydpy.models.dam.dam_control.WaterLevelReliefTolerance`
+.. |WaterLevelSupplyThreshold| replace:: :class:`~hydpy.models.dam.dam_control.WaterLevelSupplyThreshold`
+.. |WaterLevelSupplyTolerance| replace:: :class:`~hydpy.models.dam.dam_control.WaterLevelSupplyTolerance`
+.. |arma_rimorido| replace:: :mod:`~hydpy.models.arma_rimorido`
+.. |dam_v001| replace:: :mod:`~hydpy.models.dam_v001`
+.. |dam_v002| replace:: :mod:`~hydpy.models.dam_v002`
+.. |dam_v004| replace:: :mod:`~hydpy.models.dam_v004`
+.. |dam_v005.DOCNAME.complete| replace:: HydPy-Dam-V5 (dam model, version 5)
+.. |dam_v005| replace:: :mod:`~hydpy.models.dam_v005`
+.. |evap_ret_io| replace:: :mod:`~hydpy.models.evap_ret_io`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |smooth_logistic1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic1`
+.. |smooth_logistic2| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic2`
+.. |dam_outlets.Q| replace:: :class:`~hydpy.models.dam.dam_outlets.Q`
+.. |dam_outlets.R| replace:: :class:`~hydpy.models.dam.dam_outlets.R`
+.. |dam_outlets.S| replace:: :class:`~hydpy.models.dam.dam_outlets.S`
+.. |dam_senders.D| replace:: :class:`~hydpy.models.dam.dam_senders.D`
+
+.. _dam_v005:
+
+dam_v005
+========
+
+.. automodule:: hydpy.models.dam_v005
+    :members:
+    :show-inheritance:
+    :exclude-members: SOLVERSEQUENCES, dataclass_transform, NewType, overload, Protocol, assert_type, fastaccess_new, is_protocol, Mapping, INTERFACE_METHODS, SupportsIndex, TypeIs, ParamSpecKwargs, AideSequences, ForwardRef, TextIO, ADD_METHODS, get_origin, ParamSpecArgs, get_type_hints, deprecated, SupportsAbs, NoReturn, subpars, SOLVERPARAMETERS, RESULTSEQUENCES, Iterator, ClassVar, Concatenate, AnyStr, assert_never, Text, pars, Type, RUN_METHODS, Reversible, fastaccess, INLET_METHODS, Required, CapsuleType, Pattern, runtime, is_typeddict, get_args, get_protocol_members, KeysView, Collection, TypeAliasType, LiteralString, clear_overloads, MappingView, Generic, NotRequired, AbstractSet, FULL_ODE_METHODS, DERIVEDPARAMETERS, IO, Match, Sequence, SUBMETHODS, override, TypeAlias, SupportsFloat, ParamSpec, SupportsBytes, SENDER_METHODS, ReadOnly, TypeGuard, subseqs, Tuple, Optional, SUBMODELINTERFACES, ContextManager, AsyncContextManager, no_type_check, InputSequences, fastaccess_old, Counter, Deque, Self, subvars, Dict, NamedTuple, OrderedDict, UPDATEDSEQUENCES, Callable, get_overloads, Hashable, REQUIREDSEQUENCES, final, Doc, get_original_bases, FrozenSet, Union, AsyncGenerator, MutableSet, Any, Set, AsyncIterator, Literal, TypeVar, MutableSequence, DefaultDict, ByteString, cast, FIXEDPARAMETERS, Annotated, SupportsInt, MutableMapping, seqs, TypeVarTuple, reveal_type, SupportsComplex, Buffer, Sized, Generator, Final, Coroutine, BinaryIO, List, runtime_checkable, SupportsRound, TYPE_CHECKING, RECEIVER_METHODS, AsyncIterable, Awaitable, CLASSES, ChainMap, ItemsView, no_type_check_decorator, Unpack, IntVar, ValuesView, TypedDict, Container, Iterable, SUBMODELS, Never, CONTROLPARAMETERS, NoDefault, OUTLET_METHODS, PART_ODE_METHODS

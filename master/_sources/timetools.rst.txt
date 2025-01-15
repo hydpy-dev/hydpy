@@ -1,0 +1,58 @@
+.. |Date.from_cfunits| replace:: :func:`~hydpy.core.timetools.Date.from_cfunits`
+.. |Date.from_string| replace:: :func:`~hydpy.core.timetools.Date.from_string`
+.. |Date.hour| replace:: :const:`~hydpy.core.timetools.Date.hour`
+.. |Date.refmonth| replace:: :const:`~hydpy.core.timetools.Date.refmonth`
+.. |Date.style| replace:: :const:`~hydpy.core.timetools.Date.style`
+.. |Date.to_cfunits| replace:: :func:`~hydpy.core.timetools.Date.to_cfunits`
+.. |Date.to_string| replace:: :func:`~hydpy.core.timetools.Date.to_string`
+.. |Date| replace:: :class:`~hydpy.core.timetools.Date`
+.. |False| replace:: :const:`False`
+.. |None| replace:: :const:`None`
+.. |Options.timestampleft| replace:: :const:`~hydpy.core.optiontools.Options.timestampleft`
+.. |Options.utcoffset| replace:: :const:`~hydpy.core.optiontools.Options.utcoffset`
+.. |Period.from_timedelta| replace:: :func:`~hydpy.core.timetools.Period.from_timedelta`
+.. |Period.timedelta| replace:: :const:`~hydpy.core.timetools.Period.timedelta`
+.. |Period.unit| replace:: :const:`~hydpy.core.timetools.Period.unit`
+.. |Period| replace:: :class:`~hydpy.core.timetools.Period`
+.. |RuntimeError| replace:: :class:`RuntimeError`
+.. |TOY.seconds_passed| replace:: :const:`~hydpy.core.timetools.TOY.seconds_passed`
+.. |TOY| replace:: :class:`~hydpy.core.timetools.TOY`
+.. |Timegrid.array2series| replace:: :func:`~hydpy.core.timetools.Timegrid.array2series`
+.. |Timegrid.firstdate| replace:: :const:`~hydpy.core.timetools.Timegrid.firstdate`
+.. |Timegrid.from_array| replace:: :func:`~hydpy.core.timetools.Timegrid.from_array`
+.. |Timegrid.from_timepoints| replace:: :func:`~hydpy.core.timetools.Timegrid.from_timepoints`
+.. |Timegrid.lastdate| replace:: :const:`~hydpy.core.timetools.Timegrid.lastdate`
+.. |Timegrid.modify| replace:: :func:`~hydpy.core.timetools.Timegrid.modify`
+.. |Timegrid.stepsize| replace:: :const:`~hydpy.core.timetools.Timegrid.stepsize`
+.. |Timegrid.to_array| replace:: :func:`~hydpy.core.timetools.Timegrid.to_array`
+.. |Timegrid.to_timepoints| replace:: :func:`~hydpy.core.timetools.Timegrid.to_timepoints`
+.. |Timegrid.verify| replace:: :func:`~hydpy.core.timetools.Timegrid.verify`
+.. |Timegrids.eval_| replace:: :attr:`~hydpy.core.timetools.Timegrids.eval_`
+.. |Timegrids.init| replace:: :attr:`~hydpy.core.timetools.Timegrids.init`
+.. |Timegrids.sim| replace:: :attr:`~hydpy.core.timetools.Timegrids.sim`
+.. |Timegrids.verify| replace:: :func:`~hydpy.core.timetools.Timegrids.verify`
+.. |Timegrids| replace:: :class:`~hydpy.core.timetools.Timegrids`
+.. |Timegrid| replace:: :class:`~hydpy.core.timetools.Timegrid`
+.. |True| replace:: :const:`True`
+.. |ValueError| replace:: :class:`ValueError`
+.. |datetime| replace:: :mod:`~datetime`
+.. |int| replace:: :class:`int`
+.. |numpy| replace:: :mod:`~numpy`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |repr| replace:: :func:`repr`
+.. |str| replace:: :class:`str`
+.. |timetools| replace:: :mod:`~hydpy.core.timetools`
+.. |datetime.datetime| replace:: :class:`~datetime.datetime`
+.. |datetime.timedelta| replace:: :class:`~datetime.timedelta`
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+.. |numpy.ndarray| replace:: :class:`~numpy.ndarray`
+
+.. _timetools:
+
+timetools
+=========
+
+.. automodule:: hydpy.core.timetools
+    :members:
+    :show-inheritance:
+    :exclude-members: FIXEDPARAMETERS, REQUIREDSEQUENCES, is_typeddict, ClassVar, Doc, no_type_check_decorator, Tuple, Generic, fastaccess_old, Self, fastaccess_new, Never, seqs, AbstractSet, runtime, ReadOnly, pars, Unpack, SUBMETHODS, AsyncIterable, TypeAlias, subpars, TypeVarTuple, get_origin, NewType, CapsuleType, MutableSequence, SupportsAbs, SupportsInt, FrozenSet, overload, TypeVar, Required, Set, Final, BinaryIO, NotRequired, SOLVERSEQUENCES, SOLVERPARAMETERS, Protocol, SupportsRound, Match, NoDefault, ValuesView, IntVar, get_protocol_members, OUTLET_METHODS, Hashable, SUBMODELS, runtime_checkable, subvars, NoReturn, CONTROLPARAMETERS, SupportsIndex, Callable, AsyncIterator, AnyStr, override, no_type_check, assert_never, Any, Coroutine, TypeIs, PART_ODE_METHODS, cast, Container, final, INLET_METHODS, Concatenate, TypeGuard, MutableSet, TextIO, IO, RUN_METHODS, reveal_type, Optional, SupportsComplex, FULL_ODE_METHODS, ItemsView, TypedDict, Text, UPDATEDSEQUENCES, SUBMODELINTERFACES, INTERFACE_METHODS, subseqs, AsyncGenerator, Generator, Type, Dict, DERIVEDPARAMETERS, is_protocol, KeysView, Sized, Sequence, get_type_hints, CLASSES, Iterable, MappingView, dataclass_transform, Mapping, RESULTSEQUENCES, ParamSpecKwargs, TYPE_CHECKING, get_original_bases, ChainMap, ByteString, OrderedDict, clear_overloads, get_args, Counter, fastaccess, SENDER_METHODS, ContextManager, TypeAliasType, ParamSpec, Union, get_overloads, ParamSpecArgs, SupportsFloat, AsyncContextManager, ForwardRef, Iterator, LiteralString, Annotated, ADD_METHODS, Literal, Reversible, MutableMapping, NamedTuple, Awaitable, Deque, List, RECEIVER_METHODS, assert_type, Collection, DefaultDict, deprecated, Buffer, Pattern, SupportsBytes

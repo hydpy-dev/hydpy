@@ -1,0 +1,23 @@
+.. |AngstromConstant| replace:: :class:`~hydpy.models.meteo.meteo_control.AngstromConstant`
+.. |Calc_GlobalRadiation_V2| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_GlobalRadiation_V2`
+.. |IntegrationTest| replace:: :class:`~hydpy.core.testtools.IntegrationTest`
+.. |LoggedSunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_logs.LoggedSunshineDuration`
+.. |LoggedUnadjustedGlobalRadiation| replace:: :class:`~hydpy.models.meteo.meteo_logs.LoggedUnadjustedGlobalRadiation`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |RadiationModel_V1| replace:: :class:`~hydpy.interfaces.radiationinterfaces.RadiationModel_V1`
+.. |lland_knauf| replace:: :mod:`~hydpy.models.lland_knauf`
+.. |meteo_glob_fao56| replace:: :mod:`~hydpy.models.meteo_glob_fao56`
+.. |meteo_glob_morsim.DOCNAME.complete| replace:: HydPy-Meteo-Glob-MORSIM (global radiation estimation adopted from MORECS/LARSIM)
+.. |meteo_glob_morsim| replace:: :mod:`~hydpy.models.meteo_glob_morsim`
+.. |meteo_factors.PossibleSunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_factors.PossibleSunshineDuration`
+.. |meteo_fluxes.GlobalRadiation| replace:: :class:`~hydpy.models.meteo.meteo_fluxes.GlobalRadiation`
+
+.. _meteo_glob_morsim:
+
+meteo_glob_morsim
+=================
+
+.. automodule:: hydpy.models.meteo_glob_morsim
+    :members:
+    :show-inheritance:
+    :exclude-members: get_args, fastaccess_old, SupportsInt, SUBMODELS, DERIVEDPARAMETERS, override, Reversible, Concatenate, OrderedDict, get_overloads, Collection, is_typeddict, Required, REQUIREDSEQUENCES, ReceiverSequences, ADD_METHODS, MutableMapping, SOLVERPARAMETERS, Annotated, CLASSES, ReadOnly, RESULTSEQUENCES, Counter, Never, seqs, subpars, Iterable, runtime_checkable, SOLVERSEQUENCES, AbstractSet, IO, Any, SupportsComplex, AnyStr, KeysView, Coroutine, MutableSet, List, Match, SenderSequences, TypedDict, SupportsFloat, subseqs, no_type_check_decorator, PART_ODE_METHODS, pars, IntVar, ParamSpecArgs, INTERFACE_METHODS, is_protocol, fastaccess, ContextManager, Hashable, Generic, Sequence, Awaitable, Iterator, fastaccess_new, ParamSpecKwargs, CONTROLPARAMETERS, Buffer, Self, NoReturn, ParamSpec, TypeIs, FIXEDPARAMETERS, FULL_ODE_METHODS, AsyncGenerator, AsyncIterator, Callable, CapsuleType, Text, DefaultDict, runtime, no_type_check, Type, ForwardRef, Unpack, final, RECEIVER_METHODS, get_original_bases, subvars, NoDefault, TypeVarTuple, overload, NewType, StateSequences, Protocol, AsyncContextManager, Sized, OutletSequences, MappingView, ChainMap, Pattern, NamedTuple, SENDER_METHODS, SupportsBytes, TextIO, Set, get_type_hints, Doc, TypeVar, cast, deprecated, ByteString, Final, MutableSequence, RUN_METHODS, SUBMETHODS, NotRequired, ClassVar, Container, Tuple, SUBMODELINTERFACES, dataclass_transform, INLET_METHODS, TypeGuard, Generator, Deque, assert_never, ValuesView, get_protocol_members, Optional, TypeAliasType, OUTLET_METHODS, Dict, SupportsIndex, ItemsView, AsyncIterable, InletSequences, SupportsAbs, Union, LiteralString, SupportsRound, UPDATEDSEQUENCES, FrozenSet, Mapping, assert_type, reveal_type, BinaryIO, get_origin, AideSequences, Literal, TYPE_CHECKING, TypeAlias, clear_overloads

@@ -1,0 +1,31 @@
+.. |ChannelModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.ChannelModel_V1`
+.. |CrossSectionModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.CrossSectionModel_V1`
+.. |CrossSectionModel_V2| replace:: :class:`~hydpy.interfaces.routinginterfaces.CrossSectionModel_V2`
+.. |RoutingModelBase.determine_discharge| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.determine_discharge`
+.. |RoutingModelBase.determine_maxtimestep| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.determine_maxtimestep`
+.. |RoutingModelBase.get_discharge| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.get_discharge`
+.. |RoutingModelBase.perform_postprocessing| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.perform_postprocessing`
+.. |RoutingModelBase.perform_preprocessing| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.perform_preprocessing`
+.. |RoutingModelBase.set_timestep| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.set_timestep`
+.. |RoutingModel_V1.get_partialdischargeupstream| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModel_V1.get_partialdischargeupstream`
+.. |RoutingModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.RoutingModel_V1`
+.. |RoutingModel_V2.get_partialdischargedownstream| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModel_V2.get_partialdischargedownstream`
+.. |RoutingModel_V2| replace:: :class:`~hydpy.interfaces.routinginterfaces.RoutingModel_V2`
+.. |RoutingModel_V3.get_partialdischargedownstream| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModel_V3.get_partialdischargedownstream`
+.. |RoutingModel_V3| replace:: :class:`~hydpy.interfaces.routinginterfaces.RoutingModel_V3`
+.. |StorageModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.StorageModel_V1`
+.. |sw1d_channel| replace:: :mod:`~hydpy.models.sw1d_channel`
+.. |sw1d_lias| replace:: :mod:`~hydpy.models.sw1d_lias`
+.. |sw1d_network| replace:: :mod:`~hydpy.models.sw1d_network`
+.. |sw1d_q_in| replace:: :mod:`~hydpy.models.sw1d_q_in`
+.. |sw1d_weir_out| replace:: :mod:`~hydpy.models.sw1d_weir_out`
+
+.. _routinginterfaces:
+
+routinginterfaces
+=================
+
+.. automodule:: hydpy.interfaces.routinginterfaces
+    :members:
+    :show-inheritance:
+    :exclude-members: FIXEDPARAMETERS, REQUIREDSEQUENCES, is_typeddict, ClassVar, Doc, no_type_check_decorator, Tuple, Generic, fastaccess_old, Self, fastaccess_new, Never, seqs, AbstractSet, runtime, ReadOnly, pars, Unpack, SUBMETHODS, AsyncIterable, TypeAlias, subpars, TypeVarTuple, get_origin, NewType, CapsuleType, MutableSequence, SupportsAbs, SupportsInt, FrozenSet, overload, TypeVar, Required, Set, Final, BinaryIO, NotRequired, SOLVERSEQUENCES, SOLVERPARAMETERS, Protocol, SupportsRound, Match, NoDefault, ValuesView, IntVar, get_protocol_members, OUTLET_METHODS, Hashable, SUBMODELS, runtime_checkable, subvars, NoReturn, CONTROLPARAMETERS, SupportsIndex, Callable, AsyncIterator, AnyStr, override, no_type_check, assert_never, Any, Coroutine, TypeIs, PART_ODE_METHODS, cast, Container, final, INLET_METHODS, Concatenate, TypeGuard, MutableSet, TextIO, IO, RUN_METHODS, reveal_type, Optional, SupportsComplex, FULL_ODE_METHODS, ItemsView, TypedDict, Text, UPDATEDSEQUENCES, SUBMODELINTERFACES, INTERFACE_METHODS, subseqs, AsyncGenerator, Generator, Type, Dict, DERIVEDPARAMETERS, is_protocol, KeysView, Sized, Sequence, get_type_hints, CLASSES, Iterable, MappingView, dataclass_transform, Mapping, RESULTSEQUENCES, ParamSpecKwargs, TYPE_CHECKING, get_original_bases, ChainMap, ByteString, OrderedDict, clear_overloads, get_args, Counter, fastaccess, SENDER_METHODS, ContextManager, TypeAliasType, ParamSpec, Union, get_overloads, ParamSpecArgs, SupportsFloat, AsyncContextManager, ForwardRef, Iterator, LiteralString, Annotated, ADD_METHODS, Literal, Reversible, MutableMapping, NamedTuple, Awaitable, Deque, List, RECEIVER_METHODS, assert_type, Collection, DefaultDict, deprecated, Buffer, Pattern, SupportsBytes

@@ -14,7 +14,7 @@ options.
 import contextlib
 import os
 import shutil
-from typing import Iterator
+from typing import Iterator, Literal
 from typing_extensions import assert_never
 
 import nox

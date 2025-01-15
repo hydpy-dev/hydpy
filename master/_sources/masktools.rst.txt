@@ -1,0 +1,39 @@
+.. |CustomMask| replace:: :class:`~hydpy.core.masktools.CustomMask`
+.. |DefaultMask| replace:: :class:`~hydpy.core.masktools.DefaultMask`
+.. |False| replace:: :const:`False`
+.. |IndexMask.refindices| replace:: :const:`~hydpy.core.masktools.IndexMask.refindices`
+.. |IndexMask.relevant| replace:: :attr:`~hydpy.core.masktools.IndexMask.relevant`
+.. |IndexMask| replace:: :class:`~hydpy.core.masktools.IndexMask`
+.. |Masks| replace:: :class:`~hydpy.core.masktools.Masks`
+.. |ModelSequence| replace:: :class:`~hydpy.core.sequencetools.ModelSequence`
+.. |NodeMasks| replace:: :class:`~hydpy.core.masktools.NodeMasks`
+.. |NodeSequence| replace:: :class:`~hydpy.core.sequencetools.NodeSequence`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |Parameter| replace:: :class:`~hydpy.core.parametertools.Parameter`
+.. |Sequence_| replace:: :class:`~hydpy.core.sequencetools.Sequence_`
+.. |SubParameters| replace:: :class:`~hydpy.core.parametertools.SubParameters`
+.. |SubSequences| replace:: :class:`~hydpy.core.sequencetools.SubSequences`
+.. |SubmodelIndexMask| replace:: :class:`~hydpy.core.masktools.SubmodelIndexMask`
+.. |True| replace:: :const:`True`
+.. |Variable| replace:: :class:`~hydpy.core.variabletools.Variable`
+.. |ZipParameter.refindices| replace:: :attr:`~hydpy.core.parametertools.ZipParameter.refindices`
+.. |ZipParameter| replace:: :class:`~hydpy.core.parametertools.ZipParameter`
+.. |bool| replace:: :class:`bool`
+.. |hland| replace:: :mod:`~hydpy.models.hland`
+.. |property| replace:: :class:`property`
+.. |set| replace:: :class:`set`
+.. |hland_masks.Complete| replace:: :class:`~hydpy.models.hland.hland_masks.Complete`
+.. |hland_masks.Soil| replace:: :class:`~hydpy.models.hland.hland_masks.Soil`
+.. |hland_parameters.ParameterComplete| replace:: :class:`~hydpy.models.hland.hland_parameters.ParameterComplete`
+.. |hland_parameters.ParameterSoil| replace:: :class:`~hydpy.models.hland.hland_parameters.ParameterSoil`
+.. |numpy.ndarray| replace:: :class:`~numpy.ndarray`
+
+.. _masktools:
+
+masktools
+=========
+
+.. automodule:: hydpy.core.masktools
+    :members:
+    :show-inheritance:
+    :exclude-members: FIXEDPARAMETERS, REQUIREDSEQUENCES, is_typeddict, ClassVar, Doc, no_type_check_decorator, Tuple, Generic, fastaccess_old, Self, fastaccess_new, Never, seqs, AbstractSet, runtime, ReadOnly, pars, Unpack, SUBMETHODS, AsyncIterable, TypeAlias, subpars, TypeVarTuple, get_origin, NewType, CapsuleType, MutableSequence, SupportsAbs, SupportsInt, FrozenSet, overload, TypeVar, Required, Set, Final, BinaryIO, NotRequired, SOLVERSEQUENCES, SOLVERPARAMETERS, Protocol, SupportsRound, Match, NoDefault, ValuesView, IntVar, get_protocol_members, OUTLET_METHODS, Hashable, SUBMODELS, runtime_checkable, subvars, NoReturn, CONTROLPARAMETERS, SupportsIndex, Callable, AsyncIterator, AnyStr, override, no_type_check, assert_never, Any, Coroutine, TypeIs, PART_ODE_METHODS, cast, Container, final, INLET_METHODS, Concatenate, TypeGuard, MutableSet, TextIO, IO, RUN_METHODS, reveal_type, Optional, SupportsComplex, FULL_ODE_METHODS, ItemsView, TypedDict, Text, UPDATEDSEQUENCES, SUBMODELINTERFACES, INTERFACE_METHODS, subseqs, AsyncGenerator, Generator, Type, Dict, DERIVEDPARAMETERS, is_protocol, KeysView, Sized, Sequence, get_type_hints, CLASSES, Iterable, MappingView, dataclass_transform, Mapping, RESULTSEQUENCES, ParamSpecKwargs, TYPE_CHECKING, get_original_bases, ChainMap, ByteString, OrderedDict, clear_overloads, get_args, Counter, fastaccess, SENDER_METHODS, ContextManager, TypeAliasType, ParamSpec, Union, get_overloads, ParamSpecArgs, SupportsFloat, AsyncContextManager, ForwardRef, Iterator, LiteralString, Annotated, ADD_METHODS, Literal, Reversible, MutableMapping, NamedTuple, Awaitable, Deque, List, RECEIVER_METHODS, assert_type, Collection, DefaultDict, deprecated, Buffer, Pattern, SupportsBytes

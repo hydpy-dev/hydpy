@@ -1693,18 +1693,24 @@ class PyxWriter:
         name: str,
         methods: tuple[type[modeltools.Method], ...],
         idx_as_arg: bool = False,
+        reacquire_gil: bool = False,
     ) -> None:
         if hasattr(self.model, name):
             pyx, both = lines.pyx.add, lines.add
             both(1, get_methodheader(name, nogil=True, idxarg=idx_as_arg))
+            if reacquire_gil:
+                pyx(2, "with gil:")
+                indent = 3
+            else:
+                indent = 2
             if idx_as_arg:
-                pyx(2, "self.idx_sim = idx")
+                pyx(indent, "self.idx_sim = idx")
             anything = False
             for method in methods:
-                pyx(2, f"self.{method.__name__.lower()}()")
+                pyx(indent, f"self.{method.__name__.lower()}()")
                 anything = True
             if not anything:
-                pyx(2, "pass")
+                pyx(indent, "pass")
 
     def _call_runmethods_segmentwise(
         self, lines: PyxPxdLines, methods: tuple[type[modeltools.Method], ...]
@@ -1750,13 +1756,13 @@ class PyxWriter:
 
     def update_outlets(self, lines: PyxPxdLines) -> None:
         """Lines of the model method with the same name."""
-        self._call_methods(lines, "update_outlets", self.model.OUTLET_METHODS)
+        self._call_methods(lines, "update_outlets", self.model.OUTLET_METHODS, reacquire_gil=True)
 
-    def update_senders(self, lines: PyxPxdLines) -> None:
+    def update_senders(self, lines: PyxPxdLines) -> None:  # ToDo: reacquire gil
         """Lines of the model method with the same name."""
         self._call_methods(lines, "update_senders", self.model.SENDER_METHODS, True)
 
-    def update_outputs_model(self, lines: PyxPxdLines) -> None:
+    def update_outputs_model(self, lines: PyxPxdLines) -> None:  # ToDo: reacquire gil
         """Lines of the model method with the same name (except the `_model` suffix)."""
         pyx, both = lines.pyx.add, lines.add
         both(1, get_methodheader("update_outputs", nogil=True, idxarg=False))

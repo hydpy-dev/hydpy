@@ -2620,6 +2620,92 @@ actual HydPy instance does not handle any elements at the moment.
                 "relevant devices"
             )
 
+    def _determine_methodorder_part1(self) -> list[Callable[[int], None]]:
+        methods: list[Callable[[int], None]] = []
+        if exceptiontools.attrready(hydpy.pub, "sequencemanager"):
+            methods.append(hydpy.pub.sequencemanager.read_netcdfslices)
+        for node in self.nodes:
+            if (
+                (dm := node.deploymode) == "oldsim"
+                or dm == "obs_oldsim"
+                or dm == "oldsim_bi"
+                or dm == "obs_oldsim_bi"
+            ):
+                methods.append(node.sequences.fastaccess.load_simdata)
+            elif dm == "newsim" or dm == "obs" or dm == "obs_newsim" or dm == "obs_bi":
+                methods.append(node.sequences.fastaccess.reset)
+            else:
+                assert_never(dm)
+            methods.append(node.sequences.fastaccess.load_obsdata)
+        return methods
+
+    @overload
+    def _determine_methodorder_part2(
+        self, *, multithreading: Literal[False]
+    ) -> list[Callable[[int], None]]: ...
+
+    @overload
+    def _determine_methodorder_part2(
+        self, *, multithreading: Literal[True]
+    ) -> list[tuple[Callable[[int], None], str]]: ...
+
+    def _determine_methodorder_part2(
+        self, *, multithreading: bool
+    ) -> list[Callable[[int], None]] | list[tuple[Callable[[int], None], str]]:
+        methods = []
+        for device in self.deviceorder:
+            if isinstance(device, devicetools.Element):
+                methods.append((device.model.simulate, device.name))
+            elif (
+                (dm := device.deploymode) == "obs_newsim"
+                or dm == "obs_oldsim"
+                or dm == "obs_oldsim_bi"
+            ):
+                methods.append((device.sequences.fastaccess.fill_obsdata, device.name))
+            elif not (
+                dm == "newsim"
+                or dm == "oldsim"
+                or dm == "obs"
+                or dm == "oldsim_bi"
+                or dm == "obs_bi"
+            ):
+                assert_never(dm)
+        if multithreading:
+            return methods
+        return [p[0] for p in methods]
+
+    def _determine_methodorder_part3(self) -> list[Callable[[int], None]]:
+        # due to https://github.com/python/mypy/issues/9718:
+        # pylint: disable=consider-using-in
+        methods: list[Callable[[int], None]] = []
+        elements = self.collectives
+        for element in elements:
+            methods.append(element.model.update_senders)
+        for element in elements:
+            methods.append(element.model.update_receivers)
+        for element in elements:
+            methods.append(element.model.save_data)
+        for node in self.nodes:
+            if (
+                (dm := node.deploymode) == "obs_newsim"
+                or dm == "obs_oldsim"
+                or dm == "obs_oldsim_bi"
+            ):
+                methods.append(node.sequences.fastaccess.reset_obsdata)
+            elif not (
+                dm == "newsim"
+                or dm == "oldsim"
+                or dm == "obs"
+                or dm == "oldsim_bi"
+                or dm == "obs_bi"
+            ):
+                assert_never(dm)
+            methods.append(node.sequences.fastaccess.save_simdata)
+            methods.append(node.sequences.fastaccess.save_obsdata)
+        if exceptiontools.attrready(hydpy.pub, "sequencemanager"):
+            methods.append(hydpy.pub.sequencemanager.write_netcdfslices)
+        return methods
+
     @property
     def methodorder(self) -> list[Callable[[int], None]]:
         """All methods of the currently relevant |Node| and |Element| objects, which
@@ -2628,74 +2714,25 @@ actual HydPy instance does not handle any elements at the moment.
 
         Property |HydPy.methodorder| should be of interest to framework developers only.
         """
-        # due to https://github.com/python/mypy/issues/9718:
-        # pylint: disable=consider-using-in
+        return (
+            self._determine_methodorder_part1()
+            + self._determine_methodorder_part2(multithreading=False)
+            + self._determine_methodorder_part3()
+        )
 
-        funcs: list[Callable[[int], None]] = []
-        if exceptiontools.attrready(hydpy.pub, "sequencemanager"):
-            funcs.append(hydpy.pub.sequencemanager.read_netcdfslices)
-        for node in self.nodes:
-            if (
-                (dm := node.deploymode) == "oldsim"
-                or dm == "obs_oldsim"
-                or dm == "oldsim_bi"
-                or dm == "obs_oldsim_bi"
-            ):
-                funcs.append(node.sequences.fastaccess.load_simdata)
-            elif dm == "newsim" or dm == "obs" or dm == "obs_newsim" or dm == "obs_bi":
-                funcs.append(node.sequences.fastaccess.reset)
-            else:
-                assert_never(dm)
-            funcs.append(node.sequences.fastaccess.load_obsdata)
-        parallel = []
-        for device in self.deviceorder:
-            if isinstance(device, devicetools.Element):
-                parallel.append((device.model.simulate, device.name))
-            elif (
-                (dm := device.deploymode) == "obs_newsim"
-                or dm == "obs_oldsim"
-                or dm == "obs_oldsim_bi"
-            ):
-                parallel.append((device.sequences.fastaccess.fill_obsdata, device.name))
-            elif not (
-                dm == "newsim"
-                or dm == "oldsim"
-                or dm == "obs"
-                or dm == "oldsim_bi"
-                or dm == "obs_bi"
-            ):
-                assert_never(dm)
-        if hydpy.pub.options.threads == 0:
-            funcs.extend([p[0] for p in parallel])
-        else:
-            funcs.append(parallel)
-        elements = self.collectives
-        for element in elements:
-            funcs.append(element.model.update_senders)
-        for element in elements:
-            funcs.append(element.model.update_receivers)
-        for element in elements:
-            funcs.append(element.model.save_data)
-        for node in self.nodes:
-            if (
-                (dm := node.deploymode) == "obs_newsim"
-                or dm == "obs_oldsim"
-                or dm == "obs_oldsim_bi"
-            ):
-                funcs.append(node.sequences.fastaccess.reset_obsdata)
-            elif not (
-                dm == "newsim"
-                or dm == "oldsim"
-                or dm == "obs"
-                or dm == "oldsim_bi"
-                or dm == "obs_bi"
-            ):
-                assert_never(dm)
-            funcs.append(node.sequences.fastaccess.save_simdata)
-            funcs.append(node.sequences.fastaccess.save_obsdata)
-        if exceptiontools.attrready(hydpy.pub, "sequencemanager"):
-            funcs.append(hydpy.pub.sequencemanager.write_netcdfslices)
-        return funcs
+    @property
+    def methodorder_multithreading(
+        self,
+    ) -> tuple[
+        list[Callable[[int], None]],
+        list[tuple[Callable[[int], None], str]],
+        list[Callable[[int], None]],
+    ]:
+        return (
+            self._determine_methodorder_part1(),
+            self._determine_methodorder_part2(multithreading=True),
+            self._determine_methodorder_part3(),
+        )
 
     @printtools.print_progress
     def simulate(self) -> None:
@@ -2873,34 +2910,36 @@ actual HydPy instance does not handle any elements at the moment.
         54.019337, 37.257561, 31.865308, 28.359542
         """
         idx_start, idx_end = hydpy.pub.timegrids.simindices
-        methodorder = self.methodorder
         cm: AbstractContextManager[None] = contextlib.nullcontext()
         if exceptiontools.attrready(hydpy.pub, "sequencemanager"):
             cm = hydpy.pub.sequencemanager.provide_netcdfjitaccess(self.deviceorder)
 
         if hydpy.pub.options.threads == 0:
 
+            methods = self.methodorder
             with cm:
                 for idx in printtools.progressbar(range(idx_start, idx_end)):
-                    for method_or_methods in methodorder:
-                        method_or_methods(idx)
+                    for method in methods:
+                        method(idx)
 
         else:
 
-            for method_or_methods in methodorder:
-                if isinstance(method_or_methods, list):
-                    ordered_names = tuple(name for _, name in method_or_methods)
-            queue_ = Queue(elements=self.elements, ordered_names=ordered_names)
-            for _ in range(4):
+            methods1, methods_names2, methods3 = self.methodorder_multithreading
+
+            queue_ = Queue(
+                elements=self.elements,
+                ordered_names=tuple(name for _, name in methods_names2),
+            )
+            for _ in range(hydpy.pub.options.threads):
                 Worker(queue_=queue_).start()
 
             for idx in printtools.progressbar(range(idx_start, idx_end)):
-                for method_or_methods in methodorder:
-                    if isinstance(method_or_methods, list):
-                        queue_.register(method_or_methods, idx)
-                        queue_.join()
-                    else:
-                        method_or_methods(idx)
+                for method in methods1:
+                        method(idx)
+                queue_.register(methods_names2, idx)
+                queue_.join()
+                for method in methods3:
+                        method(idx)
 
             queue_.shutdown()
 
@@ -3148,7 +3187,7 @@ class Queue(queue.Queue):
                     self.upstream2downstream[name].append(exit_.name)
 
     def register(
-        self, method_name: tuple[tuple[Callable[[int], None], str]], idx: int
+        self, method_name: Sequence[tuple[Callable[[int], None], str]], idx: int
     ) -> None:
         self.idx = idx
         self.waiting = {}

@@ -802,6 +802,18 @@ class Options:
         >>> assert pub.options.ellipsis == -999
         """,
     )
+    threads = OptionPropertyInt(
+        0,
+        """The number of additional threads to be opened during a simulation run.
+
+        Defaults to zero (no multi-threading):
+        
+        >>> from hydpy import pub
+        >>> assert pub.options.threads == 0
+        >>> del pub.options.threads
+        >>> assert pub.options.threads == 0
+        """,
+    )
     parameterstep = OptionPropertyPeriod(
         timetools.Period("1d"),
         """The actual parameter time step size.  Change it by passing a |Period| object 

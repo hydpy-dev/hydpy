@@ -2665,9 +2665,9 @@ actual HydPy instance does not handle any elements at the moment.
                 or dm == "obs_bi"
             ):
                 assert_never(dm)
-        if self.version in (1, 2):  # type: ignore[attr-defined]
+        if hydpy.pub.options.threads == 0:
             funcs.extend([p[0] for p in parallel])
-        elif self.version in (3,):  # type: ignore[attr-defined]
+        else:
             funcs.append(parallel)
         elements = self.collectives
         for element in elements:
@@ -2878,27 +2878,14 @@ actual HydPy instance does not handle any elements at the moment.
         if exceptiontools.attrready(hydpy.pub, "sequencemanager"):
             cm = hydpy.pub.sequencemanager.provide_netcdfjitaccess(self.deviceorder)
 
-        if self.version == 1:  # type: ignore[attr-defined]
+        if hydpy.pub.options.threads == 0:
 
             with cm:
                 for idx in printtools.progressbar(range(idx_start, idx_end)):
                     for method_or_methods in methodorder:
                         method_or_methods(idx)
 
-        elif self.version == 2:  # type: ignore[attr-defined]
-
-            from concurrent.futures import as_completed, ThreadPoolExecutor
-
-            with cm:
-                with ThreadPoolExecutor(max_workers=4) as executor:
-                    for idx in printtools.progressbar(range(idx_start, idx_end)):
-                        futures = [
-                            executor.submit(method, idx) for method in methodorder
-                        ]
-                        for future in as_completed(futures):
-                            pass
-
-        elif self.version == 3:  # type: ignore[attr-defined]
+        else:
 
             for method_or_methods in methodorder:
                 if isinstance(method_or_methods, list):
@@ -2916,9 +2903,6 @@ actual HydPy instance does not handle any elements at the moment.
                         method_or_methods(idx)
 
             queue_.shutdown()
-
-        else:
-            asdf  # type: ignore[name-defined]
 
     def doit(self) -> None:
         """Deprecated! Use method |HydPy.simulate| instead.

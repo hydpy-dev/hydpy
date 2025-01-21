@@ -9,6 +9,8 @@ from __future__ import annotations
 import collections
 import contextlib
 import itertools
+import queue
+import threading
 import warnings
 
 # ...from site-packages
@@ -2645,15 +2647,16 @@ actual HydPy instance does not handle any elements at the moment.
             else:
                 assert_never(dm)
             funcs.append(node.sequences.fastaccess.load_obsdata)
+        parallel = []
         for device in self.deviceorder:
             if isinstance(device, devicetools.Element):
-                funcs.append(device.model.simulate)
+                parallel.append((device.model.simulate, device.name))
             elif (
                 (dm := device.deploymode) == "obs_newsim"
                 or dm == "obs_oldsim"
                 or dm == "obs_oldsim_bi"
             ):
-                funcs.append(device.sequences.fastaccess.fill_obsdata)
+                parallel.append((device.sequences.fastaccess.fill_obsdata, device.name))
             elif not (
                 dm == "newsim"
                 or dm == "oldsim"
@@ -2662,6 +2665,10 @@ actual HydPy instance does not handle any elements at the moment.
                 or dm == "obs_bi"
             ):
                 assert_never(dm)
+        if self.version in (1, 2):  # type: ignore[attr-defined]
+            funcs.extend([p[0] for p in parallel])
+        elif self.version in (3,):  # type: ignore[attr-defined]
+            funcs.append(parallel)
         elements = self.collectives
         for element in elements:
             funcs.append(element.model.update_senders)
@@ -2870,18 +2877,48 @@ actual HydPy instance does not handle any elements at the moment.
         cm: AbstractContextManager[None] = contextlib.nullcontext()
         if exceptiontools.attrready(hydpy.pub, "sequencemanager"):
             cm = hydpy.pub.sequencemanager.provide_netcdfjitaccess(self.deviceorder)
-        if False:
+
+        if self.version == 1:  # type: ignore[attr-defined]
+
             with cm:
                 for idx in printtools.progressbar(range(idx_start, idx_end)):
-                    for func in methodorder:
-                        func(idx)
-        else:
+                    for method_or_methods in methodorder:
+                        method_or_methods(idx)
+
+        elif self.version == 2:  # type: ignore[attr-defined]
+
             from concurrent.futures import as_completed, ThreadPoolExecutor
-            with cm, ThreadPoolExecutor(max_workers=4) as executor:
-                for idx in printtools.progressbar(range(idx_start, idx_end)):
-                    futures = [executor.submit(func, idx) for func in methodorder]
-                    for future in as_completed(futures):
-                        pass
+
+            with cm:
+                with ThreadPoolExecutor(max_workers=4) as executor:
+                    for idx in printtools.progressbar(range(idx_start, idx_end)):
+                        futures = [
+                            executor.submit(method, idx) for method in methodorder
+                        ]
+                        for future in as_completed(futures):
+                            pass
+
+        elif self.version == 3:  # type: ignore[attr-defined]
+
+            for method_or_methods in methodorder:
+                if isinstance(method_or_methods, list):
+                    ordered_names = tuple(name for _, name in method_or_methods)
+            queue_ = Queue(elements=self.elements, ordered_names=ordered_names)
+            for _ in range(4):
+                Worker(queue_=queue_).start()
+
+            for idx in printtools.progressbar(range(idx_start, idx_end)):
+                for method_or_methods in methodorder:
+                    if isinstance(method_or_methods, list):
+                        queue_.register(method_or_methods, idx)
+                        queue_.join()
+                    else:
+                        method_or_methods(idx)
+
+            queue_.shutdown()
+
+        else:
+            asdf  # type: ignore[name-defined]
 
     def doit(self) -> None:
         """Deprecated! Use method |HydPy.simulate| instead.
@@ -3095,3 +3132,72 @@ def create_directedgraph(
         for node in itertools.chain(element.outlets, element.outputs):
             digraph.add_edge(element, node)
     return digraph
+
+
+class Queue(queue.Queue):
+
+    upstream2downstream: dict[str, list[str]]
+    starters: set[str]
+    dependencies: dict[str, int]
+    waiting: dict[str, tuple[Callable[[int], None], int]]
+
+    def __init__(
+        self, elements: devicetools.Elements, ordered_names: tuple[str, ...]
+    ) -> None:
+
+        super().__init__()
+
+        self.upstream2downstream = {}
+        self.starters = set()
+        self.dependencies = {}
+
+        for name in ordered_names:
+            element = elements[name]
+            if inlets := element.inlets:
+                self.dependencies[name] = sum([len(inlet.entries) for inlet in inlets])
+            else:
+                self.starters.add(name)
+            for outlet in element.outlets:
+                for exit_ in outlet.exits:
+                    if name not in self.upstream2downstream:
+                        self.upstream2downstream[name] = []
+                    self.upstream2downstream[name].append(exit_.name)
+
+    def register(
+        self, method_name: tuple[tuple[Callable[[int], None], str]], idx: int
+    ) -> None:
+        self.idx = idx
+        self.waiting = {}
+        for method, name in method_name:
+            if name in self.starters:
+                self.put((method, name, idx))
+            else:
+                self.waiting[name] = (method, self.dependencies[name])
+
+    # This incorrect override is on purpose (wrapping instead of sublassing `Queue`
+    # seems like unnecessary overhead and we want `task_done` only used this way):
+    def task_done(self, name_upstream: str) -> None:  # type: ignore[override]
+        for name_downstream in self.upstream2downstream.get(name_upstream, ()):
+            method, nmb = self.waiting[name_downstream]
+            if nmb == 1:
+                self.put((method, name_downstream, self.idx))
+            else:
+                self.waiting[name_downstream] = (method, nmb - 1)
+        super().task_done()
+
+
+class Worker(threading.Thread):
+    _queue: Queue
+
+    def __init__(self, queue_: Queue) -> None:
+        super().__init__()
+        self._queue = queue_
+
+    def run(self) -> None:
+        while True:
+            try:
+                method, name, idx = self._queue.get()
+            except queue.ShutDown:
+                return
+            method(idx)
+            self._queue.task_done(name)

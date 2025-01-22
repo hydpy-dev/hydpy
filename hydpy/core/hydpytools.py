@@ -2935,11 +2935,11 @@ actual HydPy instance does not handle any elements at the moment.
 
             for idx in printtools.progressbar(range(idx_start, idx_end)):
                 for method in methods1:
-                        method(idx)
+                    method(idx)
                 queue_.register(methods_names2, idx)
                 queue_.join()
                 for method in methods3:
-                        method(idx)
+                    method(idx)
 
             queue_.shutdown()
 
@@ -3191,11 +3191,14 @@ class Queue(queue.Queue):
     ) -> None:
         self.idx = idx
         self.waiting = {}
+        starters = set()
         for method, name in method_name:
             if name in self.starters:
-                self.put((method, name, idx))
+                starters.add((method, name, idx))
             else:
                 self.waiting[name] = (method, self.dependencies[name])
+        for starter in starters:
+            self.put(starter)
 
     # This incorrect override is on purpose (wrapping instead of sublassing `Queue`
     # seems like unnecessary overhead and we want `task_done` only used this way):

@@ -2621,8 +2621,8 @@ actual HydPy instance does not handle any elements at the moment.
                 "relevant devices"
             )
 
-    def _determine_methodorder_part1(self) -> list[Callable[[int], None]]:
-        methods: list[Callable[[int], None]] = []
+    def _determine_methodorder_part1(self) -> list[BoundMethod]:
+        methods: list[BoundMethod] = []
         if exceptiontools.attrready(hydpy.pub, "sequencemanager"):
             methods.append(hydpy.pub.sequencemanager.read_netcdfslices)
         for node in self.nodes:
@@ -2643,16 +2643,16 @@ actual HydPy instance does not handle any elements at the moment.
     @overload
     def _determine_methodorder_part2(
         self, *, multithreading: Literal[False]
-    ) -> list[Callable[[int], None]]: ...
+    ) -> list[BoundMethod]: ...
 
     @overload
     def _determine_methodorder_part2(
         self, *, multithreading: Literal[True]
-    ) -> list[tuple[Callable[[int], None], str]]: ...
+    ) -> list[tuple[BoundMethod, str]]: ...
 
     def _determine_methodorder_part2(
         self, *, multithreading: bool
-    ) -> list[Callable[[int], None]] | list[tuple[Callable[[int], None], str]]:
+    ) -> list[BoundMethod] | list[tuple[BoundMethod, str]]:
         methods = []
         for device in self.deviceorder:
             if isinstance(device, devicetools.Element):
@@ -2675,10 +2675,10 @@ actual HydPy instance does not handle any elements at the moment.
             return methods
         return [p[0] for p in methods]
 
-    def _determine_methodorder_part3(self) -> list[Callable[[int], None]]:
+    def _determine_methodorder_part3(self) -> list[BoundMethod]:
         # due to https://github.com/python/mypy/issues/9718:
         # pylint: disable=consider-using-in
-        methods: list[Callable[[int], None]] = []
+        methods: list[BoundMethod] = []
         elements = self.collectives
         for element in elements:
             methods.append(element.model.update_senders)
@@ -2708,7 +2708,7 @@ actual HydPy instance does not handle any elements at the moment.
         return methods
 
     @property
-    def methodorder(self) -> list[Callable[[int], None]]:
+    def methodorder(self) -> list[BoundMethod]:
         """All methods of the currently relevant |Node| and |Element| objects, which
         are to be processed by method |HydPy.simulate| during a simulation time step,
         in a working execution order.
@@ -2724,11 +2724,7 @@ actual HydPy instance does not handle any elements at the moment.
     @property
     def methodorder_multithreading(
         self,
-    ) -> tuple[
-        list[Callable[[int], None]],
-        list[tuple[Callable[[int], None], str]],
-        list[Callable[[int], None]],
-    ]:
+    ) -> tuple[list[BoundMethod], list[tuple[BoundMethod, str]], list[BoundMethod]]:
         return (
             self._determine_methodorder_part1(),
             self._determine_methodorder_part2(multithreading=True),
@@ -3163,7 +3159,7 @@ class Queue(queue.Queue):
     upstream2downstream: dict[str, list[str]]
     starters: set[str]
     dependencies: dict[str, int]
-    waiting: dict[str, tuple[Callable[[int], None], int]]
+    waiting: dict[str, tuple[BoundMethod, int]]
 
     def __init__(
         self, elements: devicetools.Elements, ordered_names: tuple[str, ...]
@@ -3188,7 +3184,7 @@ class Queue(queue.Queue):
                     self.upstream2downstream[name].append(exit_.name)
 
     def register(
-        self, method_name: Sequence[tuple[Callable[[int], None], str]], idx: int
+        self, method_name: Sequence[tuple[BoundMethod, str]], idx: int
     ) -> None:
         self.idx = idx
         self.waiting = {}

@@ -134,6 +134,8 @@ ConditionsSubmodel: TypeAlias = dict[str, dict[str, float | NDArrayFloat]]
 ConditionsModel: TypeAlias = dict[str, ConditionsSubmodel]
 Conditions: TypeAlias = dict[str, ConditionsModel]
 
+BoundMethod: TypeAlias = Callable[[int], None]
+
 
 class SharableConfiguration(TypedDict):
     """Specification of the configuration data that main models can share with their
@@ -230,6 +232,7 @@ __all__ = [
     "Any",
     "ArrayFloat",
     "assert_never",
+    "BoundMethod",
     "Callable",
     "cast",
     "Concatenate",

@@ -10,6 +10,7 @@ import collections
 import contextlib
 import itertools
 import queue
+import sys
 import threading
 import warnings
 
@@ -3211,6 +3212,12 @@ class Queue(queue.Queue):
                 self.waiting[name_downstream] = (method, nmb - 1)
         super().task_done()
 
+    if sys.version_info < (3, 13):
+
+        def shutdown(self) -> None:
+            for _ in range(hydpy.pub.options.threads):
+                self.put(None)
+
 
 class Worker(threading.Thread):
     _queue: Queue
@@ -3220,10 +3227,11 @@ class Worker(threading.Thread):
         self._queue = queue_
 
     def run(self) -> None:
+        stop = TypeError if sys.version_info < (3, 13) else queue.ShutDown
         while True:
             try:
                 method, name, idx = self._queue.get()
-            except queue.ShutDown:
+            except stop:
                 return
             method(idx)
             self._queue.task_done(name)

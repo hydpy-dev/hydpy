@@ -2731,6 +2731,44 @@ actual HydPy instance does not handle any elements at the moment.
             self._determine_methodorder_part3(),
         )
 
+    def aggregate_methods(
+        self, elements: devicetools.Elements, method2name: list[tuple[BoundMethod, str]]
+    ) -> list[list[tuple[Chunk, str]]]:
+        name2method = {}
+        name2number = {}
+        max_number = 0
+        for method, name in method2name:
+            name2method[name] = method
+            element = elements[name]
+            name2number[name] = sum([len(inlet.entries) for inlet in element.inlets])
+            max_number = max(name2number[name], max_number)
+
+        nmb_chunks = 12
+        chunks: list[list[tuple[Chunk, str]]] = []
+        upstreams: list[str] = []
+        for step, number in enumerate(range(max_number + 1)):
+
+            methods = []
+            for name, number_ in name2number.items():
+                if number_ == number:
+                    methods.append(name2method[name])
+
+            nmb_methods = len(methods)
+            if nmb_methods > 0:
+                subchunks: list[tuple[Chunk, str]] = []
+                nmb_chunks_adjusted = min(nmb_chunks, nmb_methods)
+                size_chunk = int(nmb_methods / nmb_chunks_adjusted)
+                for i0 in range(0, nmb_chunks_adjusted):
+                    if i0 < nmb_chunks_adjusted - 1:
+                        i1 = i0 + size_chunk
+                    else:
+                        i1 = nmb_methods
+                    chunk = Chunk(methods[i0:i1], upstreams)
+                    subchunks.append((chunk, f"chunk_{step}_{i0}"))
+                chunks.append(subchunks)
+                upstreams = [name for _, name in subchunks]
+        return chunks
+
     @printtools.print_progress
     def simulate(self) -> None:
         """Perform a simulation run over the actual simulation period defined by the
@@ -2923,10 +2961,20 @@ actual HydPy instance does not handle any elements at the moment.
 
             methods1, methods_names2, methods3 = self.methodorder_multithreading
 
-            queue_ = Queue(
-                elements=self.elements,
-                ordered_names=tuple(name for _, name in methods_names2),
-            )
+            if hydpy.pub.options.threads > 0:
+                temp = self.aggregate_methods(
+                    elements=self.elements, method2name=methods_names2
+                )
+                queue_ = Queue.from_chunks(temp)
+                methods_names2 = []
+                for t in temp:
+                    methods_names2.extend(t)
+            else:
+                queue_ = Queue.from_methods(
+                    elements=self.elements,
+                    ordered_names=tuple(name for _, name in methods_names2),
+                )
+
             for _ in range(hydpy.pub.options.threads):
                 Worker(queue_=queue_).start()
 
@@ -3162,26 +3210,77 @@ class Queue(queue.Queue):
     waiting: dict[str, tuple[BoundMethod, int]]
 
     def __init__(
-        self, elements: devicetools.Elements, ordered_names: tuple[str, ...]
+        self,
+        upstream2downstream: dict[str, list[str]],
+        starters: set[str],
+        dependencies: dict[str, int],
     ) -> None:
-
         super().__init__()
+        self.upstream2downstream = upstream2downstream
+        self.starters = starters
+        self.dependencies = dependencies
 
-        self.upstream2downstream = {}
-        self.starters = set()
-        self.dependencies = {}
+        # ToDo: remove:
+        # import os
+        # os.chdir(r"G:\hdp2415809\04_Modelle\02_HydPy-L-Rhein\04_Variante-4")
+        # with open("dependencies.temp", "w") as file_:
+        #     for name, value in dependencies.items():
+        #         file_.write(f"{name}: {value}\n")
+        # with open("starters.temp", "w") as file_:
+        #     for value in starters:
+        #         file_.write(f"{value}\n")
+        # with open("upstream2downstream.temp", "w") as file_:
+        #     for name, value in upstream2downstream.items():
+        #         file_.write(f"{name}: {value}\n")
+
+    @classmethod
+    def from_methods(
+        cls, elements: devicetools.Elements, ordered_names: tuple[str, ...]
+    ) -> Self:
+
+        upstream2downstream: dict[str, list[str]] = {}
+        starters = set()
+        dependencies = {}
 
         for name in ordered_names:
             element = elements[name]
             if inlets := element.inlets:
-                self.dependencies[name] = sum([len(inlet.entries) for inlet in inlets])
+                dependencies[name] = sum([len(inlet.entries) for inlet in inlets])
             else:
-                self.starters.add(name)
+                starters.add(name)
             for outlet in element.outlets:
                 for exit_ in outlet.exits:
-                    if name not in self.upstream2downstream:
-                        self.upstream2downstream[name] = []
-                    self.upstream2downstream[name].append(exit_.name)
+                    if name not in upstream2downstream:
+                        upstream2downstream[name] = []
+                    upstream2downstream[name].append(exit_.name)
+        return cls(
+            upstream2downstream=upstream2downstream,
+            starters=starters,
+            dependencies=dependencies,
+        )
+
+    @classmethod
+    def from_chunks(cls, chunks: list[list[tuple[Chunk, str]]]) -> Self:
+
+        upstream2downstream: dict[str, list[str]] = {}
+        starters = set()
+        dependencies = {}
+
+        for chunk, name in chunks[0]:
+            starters.add(name)
+        for subchunks in chunks[1:]:
+            for chunk, name in subchunks:
+                dependencies[name] = len(chunk.upstreams)
+                for upstream in chunk.upstreams:
+                    if upstream not in upstream2downstream:
+                        upstream2downstream[upstream] = []
+                    upstream2downstream[upstream].append(name)
+
+        return cls(
+            upstream2downstream=upstream2downstream,
+            starters=starters,
+            dependencies=dependencies,
+        )
 
     def register(
         self, method_name: Sequence[tuple[BoundMethod, str]], idx: int
@@ -3231,3 +3330,17 @@ class Worker(threading.Thread):
                 return
             method(idx)
             self._queue.task_done(name)
+
+
+class Chunk:
+
+    methods: list[BoundMethod]
+    upstreams: list[str]
+
+    def __init__(self, methods: list[BoundMethod], upstreams: list[str]) -> None:
+        self.methods = methods
+        self.upstreams = upstreams
+
+    def __call__(self, idx: int) -> None:
+        for method in self.methods:
+            method(idx)

@@ -30,6 +30,7 @@ from hydpy.core import selectiontools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
 from hydpy.core.typingtools import *
+from hydpy.cythons import threadingutils
 
 if TYPE_CHECKING:
     from hydpy.core import auxfiletools
@@ -2656,7 +2657,7 @@ actual HydPy instance does not handle any elements at the moment.
         methods = []
         for device in self.deviceorder:
             if isinstance(device, devicetools.Element):
-                methods.append((device.model.simulate, device.name))
+                methods.append((device.model.simulate, device.name, device.model))
             elif (
                 (dm := device.deploymode) == "obs_newsim"
                 or dm == "obs_oldsim"
@@ -2737,8 +2738,8 @@ actual HydPy instance does not handle any elements at the moment.
         name2method = {}
         name2number = {}
         max_number = 0
-        for method, name in method2name:
-            name2method[name] = method
+        for method, name, model in method2name:
+            name2method[name] = model
             element = elements[name]
             name2number[name] = sum([len(inlet.entries) for inlet in element.inlets])
             max_number = max(name2number[name], max_number)
@@ -3334,13 +3335,13 @@ class Worker(threading.Thread):
 
 class Chunk:
 
-    methods: list[BoundMethod]
+    _chunk: threadingutils.Chunk
     upstreams: list[str]
 
+
     def __init__(self, methods: list[BoundMethod], upstreams: list[str]) -> None:
-        self.methods = methods
+        self._chunk = threadingutils.Chunk(methods)
         self.upstreams = upstreams
 
     def __call__(self, idx: int) -> None:
-        for method in self.methods:
-            method(idx)
+        self._chunk.simulate(idx)

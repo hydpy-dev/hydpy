@@ -1478,6 +1478,7 @@ class PyxWriter:
     def modelstandardfunctions(self, lines: PyxPxdLines) -> None:
         """The standard functions of the model class."""
         self.simulate(lines)
+        self.simulate_period(lines)
         self.reset_reuseflags(lines)
         self.iofunctions(lines)
         self.new2old(lines)
@@ -1512,27 +1513,42 @@ class PyxWriter:
         print("                . simulate")
         pyx, both = lines.pyx.add, lines.add
         both(1, f"cpdef inline void simulate(self, {INT} idx) {_nogil}:")
-        pyx(2, "with nogil:")
-        pyx(3, "self.idx_sim = idx")
+        if False:
+            pyx(2, "with nogil:")
+            indent = 3
+        else:
+            indent = 2
+        pyx(indent, "self.idx_sim = idx")
         if self.model.REUSABLE_METHODS or self.model.find_submodels(
             include_optional=True, include_subsubmodels=False, repeat_sharedmodels=True
         ):
-            pyx(3, "self.reset_reuseflags()")
+            pyx(indent, "self.reset_reuseflags()")
         seqs = self.model.sequences
         if seqs.inputs or self.model.SUBMODELINTERFACES:
-            pyx(3, "self.load_data(idx)")
+            pyx(indent, "self.load_data(idx)")
         if self.model.INLET_METHODS:
-            pyx(3, "self.update_inlets()")
+            pyx(indent, "self.update_inlets()")
         if isinstance(self.model, modeltools.SolverModel):
-            pyx(3, "self.solve()")
+            pyx(indent, "self.solve()")
         else:
-            pyx(3, "self.run()")
+            pyx(indent, "self.run()")
             if seqs.states:
-                pyx(3, "self.new2old()")
+                pyx(indent, "self.new2old()")
         if self.model.OUTLET_METHODS:
-            pyx(3, "self.update_outlets()")
+            pyx(indent, "self.update_outlets()")
         if seqs.factors or seqs.fluxes or seqs.states:
-            pyx(3, "self.update_outputs()")
+            pyx(indent, "self.update_outputs()")
+
+    def simulate_period(self, lines: PyxPxdLines) -> None:
+        pyx, both = lines.pyx.add, lines.add
+        both(
+            1,
+            f"cpdef inline void simulate_period(self, {INT} idx0, {INT} idx1) {_nogil}:",
+        )
+        pyx(2, f"cdef {INT} idx")
+        pyx(2, "with nogil:")
+        pyx(3, "for idx in range(idx0, idx1):")
+        pyx(4, "self.simulate(idx)")
 
     def _call_submodel_method(self, lines: PyxPxdLines, methodcall: str) -> None:
         name2submodel = self.model.find_submodels(
@@ -1698,7 +1714,7 @@ class PyxWriter:
         if hasattr(self.model, name):
             pyx, both = lines.pyx.add, lines.add
             both(1, get_methodheader(name, nogil=True, idxarg=idx_as_arg))
-            if reacquire_gil:
+            if False and reacquire_gil:
                 pyx(2, "with gil:")
                 indent = 3
             else:
@@ -1756,7 +1772,9 @@ class PyxWriter:
 
     def update_outlets(self, lines: PyxPxdLines) -> None:
         """Lines of the model method with the same name."""
-        self._call_methods(lines, "update_outlets", self.model.OUTLET_METHODS, reacquire_gil=True)
+        self._call_methods(
+            lines, "update_outlets", self.model.OUTLET_METHODS, reacquire_gil=True
+        )
 
     def update_senders(self, lines: PyxPxdLines) -> None:  # ToDo: reacquire gil
         """Lines of the model method with the same name."""

@@ -2657,7 +2657,9 @@ actual HydPy instance does not handle any elements at the moment.
         methods = []
         for device in self.deviceorder:
             if isinstance(device, devicetools.Element):
-                methods.append((device.model.simulate, device.name, device.model))
+                methods.append(
+                    (device.model.simulate_period, device.name, device.model)
+                )
             elif (
                 (dm := device.deploymode) == "obs_newsim"
                 or dm == "obs_oldsim"
@@ -2989,6 +2991,24 @@ actual HydPy instance does not handle any elements at the moment.
 
             queue_.shutdown()
 
+    @printtools.print_progress
+    def simulate_period(self) -> None:
+        idx_start, idx_end = hydpy.pub.timegrids.simindices
+        if hydpy.pub.options.threads == 0:
+            for method in self._determine_methodorder_part2(multithreading=False):
+                method(idx_start, idx_end)
+        else:
+            methods_names2 = self._determine_methodorder_part2(multithreading=True)
+            queue_ = Queue.from_methods(
+                elements=self.elements,
+                ordered_names=tuple(name for _, name, _ in methods_names2),
+            )
+            for _ in range(hydpy.pub.options.threads):
+                Worker(queue_=queue_).start()
+            queue_.register(methods_names2, idx_start, idx_end)
+            queue_.join()
+            queue_.shutdown()
+
     def doit(self) -> None:
         """Deprecated! Use method |HydPy.simulate| instead.
 
@@ -3284,14 +3304,18 @@ class Queue(queue.Queue):
         )
 
     def register(
-        self, method_name: Sequence[tuple[BoundMethod, str]], idx: int
+        self,
+        method_name: Sequence[tuple[BoundMethod, str]],
+        idx_start: int,
+        idx_end: int,
     ) -> None:
-        self.idx = idx
+        self.idx_start = idx_start
+        self.idx_end = idx_end
         self.waiting = {}
         starters = set()
-        for method, name in method_name:
+        for method, name, _ in method_name:
             if name in self.starters:
-                starters.add((method, name, idx))
+                starters.add((method, name, idx_start, idx_end))
             else:
                 self.waiting[name] = (method, self.dependencies[name])
         for starter in starters:
@@ -3303,7 +3327,7 @@ class Queue(queue.Queue):
         for name_downstream in self.upstream2downstream.get(name_upstream, ()):
             method, nmb = self.waiting[name_downstream]
             if nmb == 1:
-                self.put((method, name_downstream, self.idx))
+                self.put((method, name_downstream, self.idx_start, self.idx_end))
             else:
                 self.waiting[name_downstream] = (method, nmb - 1)
         super().task_done()
@@ -3326,10 +3350,10 @@ class Worker(threading.Thread):
         stop = TypeError if sys.version_info < (3, 13) else queue.ShutDown
         while True:
             try:
-                method, name, idx = self._queue.get()
+                method, name, idx_start, idx_end = self._queue.get()
             except stop:
                 return
-            method(idx)
+            method(idx_start, idx_end)
             self._queue.task_done(name)
 
 
@@ -3337,7 +3361,6 @@ class Chunk:
 
     _chunk: threadingutils.Chunk
     upstreams: list[str]
-
 
     def __init__(self, methods: list[BoundMethod], upstreams: list[str]) -> None:
         self._chunk = threadingutils.Chunk(methods)

@@ -2465,6 +2465,10 @@ the available directories (calib_1 and calib_2).
     def simulate(self, idx: int) -> None:
         """Perform a simulation run over a single simulation time step."""
 
+    @abc.abstractmethod
+    def simulate_period(self, idx0: int, idx1: int) -> None:
+        pass
+
     def reset_reuseflags(self) -> None:
         """Reset all |ReusableMethod.REUSEMARKER| attributes of the current model
         instance and its submodels (usually at the beginning of a simulation step).
@@ -3381,6 +3385,10 @@ class RunModel(Model):
         self.new2old()
         self.update_outlets()
         self.update_outputs()
+
+    def simulate_period(self, i0: int, i1: int) -> None:
+        for i in range(i0, i1):
+            self.simulate(i)
 
 
 class AdHocModel(RunModel):

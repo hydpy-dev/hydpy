@@ -34,8 +34,7 @@ cdef class Chunk:
         cdef int i, j
         with nogil:
             for i in range(idx_start, idx_end):
-                for j in prange(
-                    self.number, nogil=True):
+                for j in prange(self.number):
                     (<BaseInterface>self.models[j]).simulate(i)
 
     def __dealloc__(self) -> None:

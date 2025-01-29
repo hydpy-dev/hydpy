@@ -32,9 +32,11 @@ cdef class Chunk:
 
     cpdef void simulate_period_stepwise(self, int idx_start, int idx_end):
         cdef int i, j
-        for i in range(idx_start, idx_end):
-            for j in prange(self.number, nogil=True):
-                (<BaseInterface>self.models[j]).simulate(i)
+        with nogil:
+            for i in range(idx_start, idx_end):
+                for j in prange(
+                    self.number, nogil=True):
+                    (<BaseInterface>self.models[j]).simulate(i)
 
     def __dealloc__(self) -> None:
         free(self.models)

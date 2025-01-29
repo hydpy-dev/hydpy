@@ -14,7 +14,7 @@ extension_modules = [
     setuptools.Extension(
         name=f"hydpy.cythons.autogen.{name[:-4]}",
         sources=[os.path.join(extension_dir, name)],
-        extra_compile_args=["-O2"],
+        extra_compile_args=["-O2", '/openmp'],
     )
     for name in os.listdir(extension_dir)
     if name.endswith(".pyx")

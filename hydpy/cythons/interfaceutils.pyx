@@ -15,6 +15,9 @@ cdef class BaseInterface:
     cdef void simulate(self, int idx) noexcept nogil:
         pass
 
+    cdef void simulate_period(self, int idx_start, int idx_end) noexcept nogil:
+        pass
+
     cdef void reset_reuseflags(self) noexcept nogil:
         pass
 

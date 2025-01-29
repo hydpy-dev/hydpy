@@ -2999,15 +2999,20 @@ actual HydPy instance does not handle any elements at the moment.
                 method(idx_start, idx_end)
         else:
             methods_names2 = self._determine_methodorder_part2(multithreading=True)
-            queue_ = Queue.from_methods(
-                elements=self.elements,
-                ordered_names=tuple(name for _, name, _ in methods_names2),
-            )
-            for _ in range(hydpy.pub.options.threads):
-                Worker(queue_=queue_).start()
-            queue_.register(methods_names2, idx_start, idx_end)
-            queue_.join()
-            queue_.shutdown()
+            if False:
+                queue_ = Queue.from_methods(
+                    elements=self.elements,
+                    ordered_names=tuple(name for _, name, _ in methods_names2),
+                )
+                for _ in range(hydpy.pub.options.threads):
+                    Worker(queue_=queue_).start()
+                queue_.register(methods_names2, idx_start, idx_end)
+                queue_.join()
+                queue_.shutdown()
+            else:
+                chunk = threadingutils.Chunk([model for _, _, model in methods_names2])
+                # chunk.simulate_period(idx_start, idx_end)
+                chunk.simulate_period_stepwise(idx_start, idx_end)
 
     def doit(self) -> None:
         """Deprecated! Use method |HydPy.simulate| instead.

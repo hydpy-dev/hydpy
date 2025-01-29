@@ -10,3 +10,5 @@ cdef class Chunk:
     cdef PyObject** models
 
     cpdef void simulate(self, int idx)
+    cpdef void simulate_period(self, int idx_start, int idx_end)
+    cpdef void simulate_period_stepwise(self, int idx_start, int idx_end)

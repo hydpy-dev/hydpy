@@ -3010,7 +3010,11 @@ actual HydPy instance does not handle any elements at the moment.
                 queue_.join()
                 queue_.shutdown()
             else:
-                chunk = threadingutils.Chunk([model for _, _, model in methods_names2])
+                chunk = threadingutils.Chunk(
+                    [model for _, _, model in methods_names2],
+                    num_threads=None,
+                    chunksize=None,
+                )
                 # chunk.simulate_period(idx_start, idx_end)
                 chunk.simulate_period_stepwise(idx_start, idx_end)
 

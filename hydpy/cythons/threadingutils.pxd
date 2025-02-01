@@ -8,6 +8,9 @@ cdef class Chunk:
 
     cdef int number
     cdef PyObject** models
+    cdef str schedule
+    cdef int num_threads
+    cdef int chunksize
 
     cpdef void simulate(self, int idx)
     cpdef void simulate_period(self, int idx_start, int idx_end)

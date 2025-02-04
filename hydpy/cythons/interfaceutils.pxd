@@ -11,7 +11,6 @@ cdef class BaseInterface:
     cdef public int idx_sim
 
     cdef void simulate(self, int idx) noexcept nogil
-    cdef void simulate_period(self, int idx_start, int idx_end) noexcept nogil
     cdef void reset_reuseflags(self) noexcept nogil
     cdef void load_data(self, int idx) noexcept nogil
     cdef void save_data(self, int idx) noexcept nogil

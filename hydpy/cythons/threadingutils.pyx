@@ -2,6 +2,7 @@
 from typing import Sequence, TYPE_CHECKING
 if TYPE_CHECKING:
     from hydpy.core.modeltools import Model
+    from hydpy.core.typingtools import BoundMethod
 
 from cpython cimport PyObject
 from libc.stdlib cimport free, malloc
@@ -9,74 +10,74 @@ cimport cython
 from cython.parallel import prange
 from hydpy.cythons.autogen.interfaceutils cimport BaseInterface
 
-cdef class Chunk:
+cdef class Simulator:
 
     def __init__(
     self,
+    premethods: Sequence[BoundMethod],
     models: Sequence[Model],
-    schedule: str = "dynamic",
-    num_threads: int | None = None,
-    chunksize: int | None = None,
+    breaks: Sequence[int],
+    postmethods: Sequence[BoundMethod],
+    schedule: str,
+    threads: int,
+    chunksize: int,
     ) -> None:
-        self.schedule = schedule
-        self.num_threads = num_threads
-        self.chunksize = chunksize
+        self.premethods = premethods
         free(self.models)
-        self.number = len(models)
-        size = self.number * cython.sizeof(cython.pointer(PyObject))
+        size = len(models) * cython.sizeof(cython.pointer(PyObject))
         self.models = <PyObject**>malloc(size)
         for i, model in enumerate(models):
             self.models[i] = <PyObject*>model.cymodel
+        self.breaks = breaks
+        self.layers = len(breaks) - 1
+        self.postmethods = postmethods
+        self.schedule = schedule
+        self.threads = threads
+        self.chunksize = chunksize
 
-    cpdef void simulate(self, int idx):
-        cdef int j
-        with nogil:
-            for j in range(self.number):
-                (<BaseInterface>self.models[j]).simulate(idx)
+    cpdef void simulate(self, int idx_start, int idx_end):
 
-    cpdef void simulate_period(self, int idx_start, int idx_end):
-        cdef int j
+        cdef int threads = self.threads
+        cdef int chunksize = self.chunksize
+        cdef int layers = self.layers
+        cdef int i, j, l, b0, b1
+
         if self.schedule == "dynamic":
-            for j in prange(
-                self.number,
-                schedule="dynamic",
-                num_threads=self.num_threads,
-                chunksize=self.chunksize,
-                nogil=True,
-            ):
-                (<BaseInterface>self.models[j]).simulate_period(idx_start, idx_end)
-        else:
-            for j in prange(
-                self.number,
-                schedule="static",
-                num_threads=self.num_threads,
-                chunksize=self.chunksize,
-                nogil=True,
-            ):
-                (<BaseInterface>self.models[j]).simulate_period(idx_start, idx_end)
-
-    cpdef void simulate_period_stepwise(self, int idx_start, int idx_end):
-        cdef int i, j
-        if self.schedule == "dynamic":
-            with nogil:
-                for i in range(idx_start, idx_end):
-                    for j in prange(
-                            self.number,
+            for i in range(idx_start, idx_end):
+                for premethod in self.premethods:
+                    premethod(i)
+                with nogil:
+                    for l in range(layers):
+                        b0 = self.breaks[l]
+                        b1 = self.breaks[l + 1]
+                        for j in prange(
+                            b0,
+                            b1,
                             schedule="dynamic",
-                            num_threads=self.num_threads,
-                            chunksize=self.chunksize,
-                    ):
-                        (< BaseInterface > self.models[j]).simulate(i)
+                            chunksize=chunksize,
+                            num_threads=threads,
+                        ):
+                            (<BaseInterface>self.models[j]).simulate(i)
+                for postmethod in self.postmethods:
+                    postmethod(i)
         else:
-            with nogil:
-                for i in range(idx_start, idx_end):
-                    for j in prange(
-                        self.number,
-                        schedule="static",
-                        num_threads=self.num_threads,
-                        chunksize=self.chunksize,
-                    ):
-                        (<BaseInterface>self.models[j]).simulate(i)
+            for i in range(idx_start, idx_end):
+                for premethod in self.premethods:
+                    premethod(i)
+                with nogil:
+                    for l in range(layers):
+                        b0 = self.breaks[l]
+                        b1 = self.breaks[l + 1]
+                        for j in prange(
+                            b0,
+                            b1,
+                            schedule="static",
+                            chunksize=chunksize,
+                            num_threads=threads,
+                        ):
+                            (<BaseInterface>self.models[j]).simulate(i)
+                for postmethod in self.postmethods:
+                    postmethod(i)
 
     def __dealloc__(self) -> None:
         free(self.models)

@@ -1714,7 +1714,7 @@ class PyxWriter:
         if hasattr(self.model, name):
             pyx, both = lines.pyx.add, lines.add
             both(1, get_methodheader(name, nogil=True, idxarg=idx_as_arg))
-            if False and reacquire_gil:
+            if reacquire_gil:
                 pyx(2, "with gil:")
                 indent = 3
             else:

@@ -4,14 +4,15 @@ specific subclasses in Cython."""
 from cpython cimport PyObject
 cimport numpy
 
-cdef class Chunk:
+cdef class Simulator:
 
-    cdef int number
+    cdef object[:] premethods
     cdef PyObject** models
+    cdef int[:] breaks
+    cdef int layers
+    cdef object[:] postmethods
+    cdef int threads
     cdef str schedule
-    cdef int num_threads
     cdef int chunksize
 
-    cpdef void simulate(self, int idx)
-    cpdef void simulate_period(self, int idx_start, int idx_end)
-    cpdef void simulate_period_stepwise(self, int idx_start, int idx_end)
+    cpdef void simulate(self, int idx_start, int idx_end)

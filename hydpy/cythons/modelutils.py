@@ -1512,7 +1512,7 @@ class PyxWriter:
         """Simulation statements."""
         print("                . simulate")
         pyx, both = lines.pyx.add, lines.add
-        both(1, f"cpdef inline void simulate(self, {INT} idx) {_nogil}:")
+        both(1, f"cpdef void simulate(self, {INT} idx) {_nogil}:")
         if False:
             pyx(2, "with nogil:")
             indent = 3
@@ -1543,7 +1543,7 @@ class PyxWriter:
         pyx, both = lines.pyx.add, lines.add
         both(
             1,
-            f"cpdef inline void simulate_period(self, {INT} idx0, {INT} idx1) {_nogil}:",
+            f"cpdef void simulate_period(self, {INT} idx0, {INT} idx1) {_nogil}:",
         )
         pyx(2, f"cdef {INT} idx")
         pyx(2, "with nogil:")

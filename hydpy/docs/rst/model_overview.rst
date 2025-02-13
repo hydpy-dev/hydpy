@@ -40,7 +40,7 @@ approximate the processes of large catchments that extend over several natural a
 Usually, land models support the further distribution of a subbasin in hydrological
 response units, snow classes, or the like.
 
-There are currently three land model families.
+There are currently four land model families.
 
 :ref:`HydPy-H` follows the ideas and terminology of the wordwide applied HBV model.
 Besides |hland_96|, which implements the original HBV96 model
@@ -59,6 +59,13 @@ simulate surface water fluxes in lowland catchments influenced by near-surface
 groundwater.  Application model |wland_wag| extends the original WALRUS concept by
 providing additional options regarding the spatial distribution of processes and the
 handling of mildly hilly terrain.
+
+:ref:`HydPy-G` provides members of the very simple and handy `modèle due Génie Rural`
+model series, of which GR4J is likely the most prominent.  Our application models
+|gland_gr4|, |gland_gr5|, and |gland_gr6| closely emulate and slightly extend the GR4J
+:cite:p:`ref-Perrin2003`, GR5J :cite:p:`ref-Moine2008`, and GR6J
+:cite:t:`ref-Pushpalatha2011` implementations of the R package airGR
+:cite:p:`ref-airGR2017`.
 
 .. _stream_models:
 

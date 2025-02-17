@@ -13,19 +13,18 @@ import numpy
 # ...from HydPy
 import hydpy
 from hydpy.core import modeltools
+from hydpy.interfaces import aetinterfaces
 from hydpy.cythons import modelutils
 
 # ...from whmod
 from hydpy.models.whmod.whmod_constants import *
+from hydpy.models.whmod import whmod_constants
 from hydpy.models.whmod import whmod_control
 from hydpy.models.whmod import whmod_derived
 from hydpy.models.whmod import whmod_inputs
 from hydpy.models.whmod import whmod_factors
 from hydpy.models.whmod import whmod_fluxes
 from hydpy.models.whmod import whmod_states
-
-if TYPE_CHECKING:
-    from hydpy.core import timetools
 
 
 class Calc_NiederschlagRichter_V1(modeltools.Method):
@@ -1440,6 +1439,10 @@ class Model(modeltools.AdHocModel):
     DOCNAME = modeltools.DocName(short="WHMod")
     __HYDPY_ROOTMODEL__ = None
 
+    aetmodel = modeltools.SubmodelProperty(aetinterfaces.AETModel_V1)
+    aetmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    aetmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
@@ -1472,5 +1475,101 @@ class Model(modeltools.AdHocModel):
     ADD_METHODS = ()
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
-    SUBMODELINTERFACES = ()
+    SUBMODELINTERFACES = (aetinterfaces.AETModel_V1,)
     SUBMODELS = ()
+
+
+
+class Main_AETModel_V1(modeltools.AdHocModel):
+    """Base class for |whmod.DOCNAME.long| models that use submodels that comply with
+    the |AETModel_V1| interface."""
+
+    aetmodel: modeltools.SubmodelProperty
+    aetmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    aetmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel(
+        "aetmodel",
+        aetinterfaces.AETModel_V1,
+        aetinterfaces.AETModel_V1.prepare_nmbzones,
+        aetinterfaces.AETModel_V1.prepare_subareas,
+        aetinterfaces.AETModel_V1.prepare_maxsoilwater,
+        aetinterfaces.AETModel_V1.prepare_water,
+        aetinterfaces.AETModel_V1.prepare_interception,
+        aetinterfaces.AETModel_V1.prepare_soil,
+        aetinterfaces.AETModel_V1.prepare_plant,
+        landtype_constants=whmod_constants.LANDUSE_CONSTANTS,
+        landtype_refindices=whmod_control.LT,
+        refweights=whmod_control.AUR,
+    )
+    def add_aetmodel_v1(
+        self,
+        aetmodel: aetinterfaces.AETModel_V1,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
+        """Initialise the given submodel that follows the |AETModel_V1| interface and
+        is responsible for calculating the different kinds of actual
+        evapotranspiration.
+
+        >>> from hydpy.models.whmod_pet import *
+        >>> parameterstep()
+        >>> nu(5)
+        >>> at(10.0)
+        >>> lt(GRAS, LAUBWALD, WASSER, WASSER, VERSIEGELT)
+        >>> zonearea(2.0)
+        >>> zonez(3.0)
+        >>> fc(200.0)
+        >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
+        ...     nmbhru
+        ...     water
+        ...     interception
+        ...     soil
+        ...     excessreduction(field=1.0, forest=0.5, default=nan)
+        ...     for method, arguments in model.preparemethod2arguments.items():
+        ...         print(method, arguments[0][0], sep=": ")
+        nmbhru(5)
+        water(field=False, forest=False, glacier=False, ilake=True,
+              sealed=False)
+        interception(field=True, forest=True, glacier=False, ilake=False,
+                     sealed=True)
+        soil(field=True, forest=True, glacier=False, ilake=False, sealed=False)
+        prepare_nmbzones: 5
+        prepare_zonetypes: [1 2 4 3 5]
+        prepare_subareas: [2. 2. 2. 2. 2.]
+        prepare_elevations: [300. 300. 300. 300. 300.]
+        prepare_maxsoilwater: [200. 200. 200. 200. 200.]
+        prepare_water: [False False  True False False]
+        prepare_interception: [ True  True False False False]
+        prepare_plant: [ True  True False False False]
+        prepare_soil: [ True  True False False False]
+
+        >>> ered = model.aetmodel.parameters.control.excessreduction
+        >>> ered
+        excessreduction(field=1.0, forest=0.5)
+        >>> zonetype(FOREST, FIELD, ILAKE, GLACIER, SEALED)
+        >>> ered
+        excessreduction(field=0.5, forest=1.0)
+        >>> from hydpy import round_
+        >>> round_(ered.average_values())
+        0.75
+        """
+        control = self.parameters.control
+        nmbzones = control.nmbzones.value
+        zonetype = control.zonetype.values
+
+        aetmodel.prepare_nmbzones(nmbzones)
+        aetmodel.prepare_zonetypes(zonetype)
+        aetmodel.prepare_subareas(control.zonearea.value)
+        aetmodel.prepare_elevations(100.0 * control.zonez.values)
+        aetmodel.prepare_maxsoilwater(control.fc.values)
+        sel = numpy.full(nmbzones, False, dtype=config.NP_BOOL)
+        sel[zonetype == ILAKE] = True
+        aetmodel.prepare_water(sel)
+        sel = ~sel
+        sel[zonetype == GLACIER] = False
+        aetmodel.prepare_interception(sel)
+        aetmodel.prepare_plant(sel)
+        sel[zonetype == SEALED] = False
+        aetmodel.prepare_soil(sel)

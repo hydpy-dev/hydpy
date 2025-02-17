@@ -469,8 +469,8 @@ from hydpy.models.whmod import whmod_model
 from hydpy.models.whmod.whmod_constants import *
 
 
-class Model(modeltools.AdHocModel):
-    """External PET version of WHMod."""
+class Model(whmod_model.Main_AETModel_V1):
+    """|whmod_pet.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(short="WHMod-PET", description="externel potential evapotranspiration")
     __HYDPY_ROOTMODEL__ = True

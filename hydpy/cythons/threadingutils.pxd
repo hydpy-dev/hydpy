@@ -16,3 +16,5 @@ cdef class Simulator:
     cdef int chunksize
 
     cpdef void simulate(self, int idx_start, int idx_end)
+    cdef inline void _simulate_dynamic(self, int idx_start, int idx_end) noexcept nogil
+    cdef inline void _simulate_static(self, int idx_start, int idx_end) noexcept nogil

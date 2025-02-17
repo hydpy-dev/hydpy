@@ -36,48 +36,61 @@ cdef class Simulator:
         self.chunksize = chunksize
 
     cpdef void simulate(self, int idx_start, int idx_end):
+        if self.schedule == "dynamic":
+            with nogil:
+                self._simulate_dynamic(idx_start, idx_end)
+        else:
+            with nogil:
+                self._simulate_static(idx_start, idx_end)
+
+    cdef inline void _simulate_dynamic(self, int idx_start, int idx_end) noexcept nogil:
 
         cdef int threads = self.threads
         cdef int chunksize = self.chunksize
         cdef int layers = self.layers
         cdef int i, j, l, b0, b1
 
-        if self.schedule == "dynamic":
-            for i in range(idx_start, idx_end):
-                for premethod in self.premethods:
-                    premethod(i)
-                with nogil:
-                    for l in range(layers):
-                        b0 = self.breaks[l]
-                        b1 = self.breaks[l + 1]
-                        for j in prange(
-                            b0,
-                            b1,
-                            schedule="dynamic",
-                            chunksize=chunksize,
-                            num_threads=threads,
-                        ):
-                            (<BaseInterface>self.models[j]).simulate(i)
-                for postmethod in self.postmethods:
-                    postmethod(i)
-        else:
-            for i in range(idx_start, idx_end):
-                for premethod in self.premethods:
-                    premethod(i)
-                with nogil:
-                    for l in range(layers):
-                        b0 = self.breaks[l]
-                        b1 = self.breaks[l + 1]
-                        for j in prange(
-                            b0,
-                            b1,
-                            schedule="static",
-                            chunksize=chunksize,
-                            num_threads=threads,
-                        ):
-                            (<BaseInterface>self.models[j]).simulate(i)
-                for postmethod in self.postmethods:
-                    postmethod(i)
+        for i in range(idx_start, idx_end):
+        # for premethod in self.premethods:
+        #     premethod(i)
+            for l in range(layers):
+                b0 = self.breaks[l]
+                b1 = self.breaks[l + 1]
+                for j in prange(
+                    b0,
+                    b1,
+                    schedule="dynamic",
+                    chunksize=chunksize,
+                    num_threads=threads,
+                ):
+                    (<BaseInterface>self.models[j]).simulate(i)
+        # for i in self.postmethods:
+        #     postmethod(i)
+
+
+    cdef inline void _simulate_static(self, int idx_start, int idx_end) noexcept nogil:
+
+        cdef int threads = self.threads
+        cdef int chunksize = self.chunksize
+        cdef int layers = self.layers
+        cdef int i, j, l, b0, b1
+
+        for i in range(idx_start, idx_end):
+        # for premethod in self.premethods:
+        #     premethod(i)
+            for l in range(layers):
+                b0 = self.breaks[l]
+                b1 = self.breaks[l + 1]
+                for j in prange(
+                    b0,
+                    b1,
+                    schedule="static",
+                    chunksize=chunksize,
+                    num_threads=threads,
+                ):
+                    (<BaseInterface>self.models[j]).simulate(i)
+        # for postmethod in self.postmethods:
+        #     postmethod(i)
 
     def __dealloc__(self) -> None:
         free(self.models)

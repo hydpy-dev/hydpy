@@ -2743,21 +2743,29 @@ actual HydPy instance does not handle any elements at the moment.
         self, devices: Sequence[devicetools.Node | devicetools.Element]
     ) -> tuple[list[int], list[devicetools.Node | devicetools.Element]]:
 
-        number2layer: dict[int, list[devicetools.Node | devicetools.Element]] = (
-            collections.defaultdict(list)
-        )
-        for device in devices:
-            if isinstance(device, devicetools.Node):
-                number = sum([len(entry.inlets) for entry in device.entries])
-            else:
-                number = sum([len(inlet.entries) for inlet in device.inlets])
-            number2layer[number].append(device)
+        layers_nested: list[set[devicetools.Node | devicetools.Element]] = []
+
+        remaining: set[devicetools.Node | devicetools.Element] = set(devices)
+        ready: set[devicetools.Node | devicetools.Element] = set()
+
+        while remaining:
+            next_layer: set[devicetools.Node | devicetools.Element] = set()
+            for device in remaining:
+                if isinstance(device, devicetools.Node):
+                    if all(entry in ready for entry in  device.entries):
+                        next_layer.add(device)
+                else:
+                    if all(all(entry in ready for entry in inlet.entries) for inlet in device.inlets):
+                        next_layer.add(device)
+            layers_nested.append(next_layer)
+            ready.update(next_layer)
+            remaining.difference_update(next_layer)
 
         breaks = [0]
         layers = []
-        for _, layer in sorted(number2layer.items()):
+        for layer in layers_nested:
             breaks.append(breaks[-1] + len(layer))
-            layers.extend(layer)
+            layers.extend(sorted(layer, key=lambda d: str(d)))
         return breaks, layers
 
     # def aggregate_methods(

@@ -874,6 +874,7 @@ class PyxWriter:
             both(0, "# cython: wraparound=False")
             both(0, "# cython: initializedcheck=False")
             both(0, "# cython: cdivision=True")
+            both(0, "# cython: nonecheck=False")
         else:
             both(0, "# cython: boundscheck=True")
             both(0, "# cython: wraparound=True")

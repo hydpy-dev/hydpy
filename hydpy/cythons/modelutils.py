@@ -900,6 +900,7 @@ class PyxWriter:
         add(0, "from libc.math cimport NAN as nan")
         add(0, "from libc.math cimport INFINITY as inf")
         add(0, "import cython")
+        add(0, "from cpython cimport PyObject")
         add(0, "from cpython.mem cimport PyMem_Malloc")
         add(0, "from cpython.mem cimport PyMem_Realloc")
         add(0, "from cpython.mem cimport PyMem_Free")
@@ -1542,10 +1543,7 @@ class PyxWriter:
 
     def simulate_period(self, lines: PyxPxdLines) -> None:
         pyx, both = lines.pyx.add, lines.add
-        both(
-            1,
-            f"cpdef void simulate_period(self, {INT} idx0, {INT} idx1) {_nogil}:",
-        )
+        both(1, f"cpdef void simulate_period(self, {INT} idx0, {INT} idx1) {_nogil}:")
         pyx(2, f"cdef {INT} idx")
         pyx(2, "with nogil:")
         pyx(3, "for idx in range(idx0, idx1):")
@@ -1679,28 +1677,30 @@ class PyxWriter:
             print("                . new2old")
             both(1, get_methodheader("new2old", nogil=True, inline=False))
         if self.model.sequences.states:
+            pyx(2, "cdef PyObject* old_states = <PyObject*>self.sequences.old_states")
+            pyx(2, "cdef PyObject* new_states = <PyObject*>self.sequences.new_states")
             self._add_cdef_jdxs(lines, self.model.sequences.states)
             for seq in self.model.sequences.states:
                 if seq.NDIM == 0:
                     pyx(
                         2,
-                        f"self.sequences.old_states.{seq.name} = "
-                        f"self.sequences.new_states.{seq.name}",
+                        f"(<StateSequences>old_states).{seq.name} = "
+                        f"(<StateSequences>new_states).{seq.name}",
                     )
                 else:
                     indexing = ""
                     for idx in range(seq.NDIM):
                         pyx(
                             2 + idx,
-                            f"for jdx{idx} in range(self.sequences.states."
+                            f"for jdx{idx} in range((<StateSequences>new_states)."
                             f"_{seq.name}_length_{idx}):",
                         )
                         indexing += f"jdx{idx},"
                     indexing = indexing[:-1]
                     pyx(
                         2 + seq.NDIM,
-                        f"self.sequences.old_states.{seq.name}[{indexing}] = "
-                        f"self.sequences.new_states.{seq.name}[{indexing}]",
+                        f"(<StateSequences>old_states).{seq.name}[{indexing}] = "
+                        f"(<StateSequences>new_states).{seq.name}[{indexing}]",
                     )
         self._call_submodel_method(lines, "new2old()")
 

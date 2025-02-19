@@ -2752,10 +2752,13 @@ actual HydPy instance does not handle any elements at the moment.
             next_layer: set[devicetools.Node | devicetools.Element] = set()
             for device in remaining:
                 if isinstance(device, devicetools.Node):
-                    if all(entry in ready for entry in  device.entries):
+                    if all(entry in ready for entry in device.entries):
                         next_layer.add(device)
                 else:
-                    if all(all(entry in ready for entry in inlet.entries) for inlet in device.inlets):
+                    if all(
+                        all(entry in ready for entry in inlet.entries)
+                        for inlet in device.inlets
+                    ):
                         next_layer.add(device)
             layers_nested.append(next_layer)
             ready.update(next_layer)
@@ -2823,6 +2826,7 @@ actual HydPy instance does not handle any elements at the moment.
         self,
         *,
         threads: int,
+        parallel_layers: int,
         schedule: Literal["dynamic", "static"] = "dynamic",
         chunksize: int = 1,
     ) -> None:
@@ -2838,6 +2842,7 @@ actual HydPy instance does not handle any elements at the moment.
             postmethods=numpy.asarray(
                 self._determine_methodorder_part3(), dtype=object
             ),
+            parallel_layers=parallel_layers,
             threads=threads,
             schedule=schedule,
             chunksize=chunksize,

@@ -7,10 +7,12 @@ from hydpy.core.typingtools import *
 class Simulator:
     def __init__(
         self,
+        *,
         premethods: Vector[numpy.generic],
         models: Sequence[modeltools.Model],
         breaks: VectorInt,
         postmethods: Vector[numpy.generic],
+        parallel_layers: int,
         threads: int,
         schedule: str,
         chunksize: int,

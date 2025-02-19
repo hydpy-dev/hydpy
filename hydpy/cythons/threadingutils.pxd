@@ -10,11 +10,12 @@ cdef class Simulator:
     cdef PyObject** models
     cdef int[:] breaks
     cdef int layers
+    cdef int parallel_layers
     cdef object[:] postmethods
     cdef int threads
     cdef str schedule
     cdef int chunksize
 
     cpdef void simulate(self, int idx_start, int idx_end)
-    cdef inline void _simulate_dynamic(self, int idx_start, int idx_end) noexcept nogil
-    cdef inline void _simulate_static(self, int idx_start, int idx_end) noexcept nogil
+    cdef void _simulate_dynamic(self, int idx_start, int idx_end)
+    cdef void _simulate_static(self, int idx_start, int idx_end)

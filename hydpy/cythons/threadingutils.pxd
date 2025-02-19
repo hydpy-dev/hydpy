@@ -4,6 +4,13 @@ specific subclasses in Cython."""
 from cpython cimport PyObject
 cimport numpy
 
+cdef class SimpleSimulator:
+
+    cdef int nmb_models
+    cdef PyObject** models
+    cpdef void simulate(self, int idx_start, int idx_end)
+
+
 cdef class Simulator:
 
     cdef object[:] premethods

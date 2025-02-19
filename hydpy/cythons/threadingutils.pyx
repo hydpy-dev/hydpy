@@ -10,6 +10,23 @@ cimport cython
 from cython.parallel import prange
 from hydpy.cythons.autogen.interfaceutils cimport BaseInterface
 
+cdef class SimpleSimulator:
+
+    def __init__(self, models: Sequence[Model]) -> None:
+        self.nmb_models = len(models)
+        free(self.models)
+        size = self.nmb_models * cython.sizeof(cython.pointer(PyObject))
+        self.models = <PyObject**>malloc(size)
+        for i, model in enumerate(models):
+            self.models[i] = <PyObject*>model.cymodel
+
+    cpdef void simulate(self, int idx_start, int idx_end):
+        cdef int nmb_models = self.nmb_models
+        for i in range(idx_start, idx_end):
+            for j in range(nmb_models):
+                (<BaseInterface>self.models[j]).simulate(i)
+
+
 cdef class Simulator:
 
     def __init__(

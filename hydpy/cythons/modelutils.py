@@ -454,7 +454,7 @@ def get_methodheader(
 
 
 def decorate_method(
-    wrapped: Callable[[PyxWriter], Iterator[str]]
+    wrapped: Callable[[PyxWriter], Iterator[str]],
 ) -> Callable[[PyxWriter, PyxPxdLines], None]:
     """The decorated method returns a |Lines| object including a method header.
     However, the |Lines| object is empty if the respective model does not implement a

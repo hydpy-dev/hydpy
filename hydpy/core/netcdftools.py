@@ -2096,7 +2096,7 @@ named `lland_dd` nor does it define a member named `lland_dd`.
 
     @staticmethod
     def _yield_disksequences(
-        deviceorder: Iterable[Union[devicetools.Node, devicetools.Element]]
+        deviceorder: Iterable[Union[devicetools.Node, devicetools.Element]],
     ) -> Iterator[sequencetools.IOSequence]:
         for device in deviceorder:
             if isinstance(device, devicetools.Node):

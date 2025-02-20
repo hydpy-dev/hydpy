@@ -2286,12 +2286,12 @@ def sort_variables(
 
 @overload
 def sort_variables(
-    values: Iterable[tuple[type[TypeVariable_co], T]]
+    values: Iterable[tuple[type[TypeVariable_co], T]],
 ) -> tuple[tuple[type[TypeVariable_co], T], ...]: ...
 
 
 def sort_variables(
-    values: Iterable[Union[type[TypeVariable], tuple[type[TypeVariable], T]]]
+    values: Iterable[Union[type[TypeVariable], tuple[type[TypeVariable], T]]],
 ) -> tuple[Union[type[TypeVariable], tuple[type[TypeVariable], T]], ...]:
     """Sort the given |Variable| subclasses by their initialisation order.
 

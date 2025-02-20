@@ -194,7 +194,7 @@ nor does it handle a model named `lland_dd`...
 
     @staticmethod
     def _get_model(
-        value: Union[str, types.ModuleType, modeltools.Model]
+        value: Union[str, types.ModuleType, modeltools.Model],
     ) -> modeltools.Model:
         if isinstance(value, modeltools.Model):
             return value

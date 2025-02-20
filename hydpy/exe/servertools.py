@@ -1769,7 +1769,7 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
 
     @staticmethod
     def _array2output(
-        values: Union[float, VectorInputObject, MatrixInputObject]
+        values: Union[float, VectorInputObject, MatrixInputObject],
     ) -> str:
         # duck-typing for simplicity:
         try:

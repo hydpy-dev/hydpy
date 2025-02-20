@@ -2476,7 +2476,7 @@ Attribute timegrids of module `pub` is not defined at the moment.
         t = TypeVar("t", str, int)
 
         def _make_tuple(
-            x: Union[Optional[t], tuple[Optional[t], Optional[t]]]
+            x: Union[Optional[t], tuple[Optional[t], Optional[t]]],
         ) -> tuple[Optional[t], Optional[t]]:
             return (x, x) if ((x is None) or isinstance(x, (str, int))) else x
 

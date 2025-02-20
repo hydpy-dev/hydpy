@@ -43,8 +43,8 @@ connected to the prepared nodes:
 daily simulation
 ________________
 
-The first example deals with a daily simulation time step.  We calculate the radiation 
-terms on 6 July in Uccle (Brussels, Belgium) and take all input data from example 18 of 
+The first example deals with a daily simulation time step.  We calculate the radiation
+terms on 6 July in Uccle (Brussels, Belgium) and take all input data from example 18 of
 :cite:t:`ref-Allen1998`:
 
 >>> from hydpy import IntegrationTest, pub, round_
@@ -86,8 +86,8 @@ All getters specified by the |RadiationModel_V1| interface return the correct da
 hourly simulation
 _________________
 
-The second example deals with an hourly simulation over multiple time steps.  We 
-calculate the different radiation terms from 30 September to 1 October in N'Diaye 
+The second example deals with an hourly simulation over multiple time steps.  We
+calculate the different radiation terms from 30 September to 1 October in N'Diaye
 (Senegal) and take (or try to derive as well as possible) all parameter and input
 values from example 19 of :cite:t:`ref-Allen1998`.
 

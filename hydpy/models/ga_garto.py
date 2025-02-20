@@ -541,7 +541,7 @@ There is no indication of an error in the water balance:
 ________________________
 
 In this and the following subsection, we deal with more complex series of rainfall
-events spanning 24 hours: 
+events spanning 24 hours:
 
 >>> pub.timegrids = pub.timegrids.init
 

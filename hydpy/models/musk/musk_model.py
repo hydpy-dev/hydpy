@@ -28,9 +28,12 @@ class Pick_Inflow_V1(modeltools.Method):
     def __call__(model: modeltools.SegmentModel) -> None:
         inl = model.sequences.inlets.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.inflow = 0.0
-        for idx in range(inl.len_q):
-            flu.inflow += inl.q[idx][0]
+        if flu._inflow_ramflag:
+            flu.inflow = flu._inflow_array[model.idx_sim]
+        else:
+            flu.inflow = 0.0
+            for idx in range(inl.len_q):
+                flu.inflow += inl.q[idx][0]
 
 
 class Update_Discharge_V1(modeltools.Method):

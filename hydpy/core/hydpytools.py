@@ -2824,42 +2824,47 @@ actual HydPy instance does not handle any elements at the moment.
                 for method in methods:
                     method(idx)
 
-    @printtools.print_progress
-    def simulate_multithread(
-        self,
-        *,
-        threads: int,
-        parallel_layers: int,
-        schedule: Literal["dynamic", "static"] = "dynamic",
-        chunksize: int = 1,
-    ) -> None:
-        idx_start, idx_end = hydpy.pub.timegrids.simindices
-        breaks, devices = self.layer_devices(
-            self._determine_methodorder_part2(multithreading=True)
-        )
-
-        simulator = threadingutils.Simulator(
-            premethods=numpy.asarray(self._determine_methodorder_part1(), dtype=object),
-            models=[d.model for d in devices],
-            breaks=numpy.asarray(breaks, dtype=config.NP_INT),
-            postmethods=numpy.asarray(
-                self._determine_methodorder_part3(), dtype=object
-            ),
-            parallel_layers=parallel_layers,
-            threads=threads,
-            schedule=schedule,
-            chunksize=chunksize,
-        )
-        simulator.simulate(idx_start, idx_end)
+    # @printtools.print_progress
+    # def simulate_multithread(
+    #     self,
+    #     *,
+    #     threads: int,
+    #     parallel_layers: int,
+    #     schedule: Literal["dynamic", "static"] = "dynamic",
+    #     chunksize: int = 1,
+    # ) -> None:
+    #     idx_start, idx_end = hydpy.pub.timegrids.simindices
+    #     breaks, devices = self.layer_devices(
+    #         self._determine_methodorder_part2(multithreading=True)
+    #     )
+    #
+    #     simulator = threadingutils.Simulator(
+    #         premethods=numpy.asarray(self._determine_methodorder_part1(), dtype=object),
+    #         models=[d.model for d in devices],
+    #         breaks=numpy.asarray(breaks, dtype=config.NP_INT),
+    #         postmethods=numpy.asarray(
+    #             self._determine_methodorder_part3(), dtype=object
+    #         ),
+    #         parallel_layers=parallel_layers,
+    #         threads=threads,
+    #         schedule=schedule,
+    #         chunksize=chunksize,
+    #     )
+    #     simulator.simulate(idx_start, idx_end)
 
     @printtools.print_progress
     def simulate_temporalchunking(self) -> None:
 
+        for node in self.nodes:
+            node.sequences.sim.series[:] = 0.0
+        for element in self.elements.search_keywords("river"):
+            element.model.sequences.fluxes.inflow.series[:] = 0.0
         queue_ = Queue(self.elements)
         for _ in range(hydpy.pub.options.threads):
             Worker(queue_=queue_).start()
         queue_.register()
         queue_.join()
+        queue_.shutdown()
 
     #     if hydpy.pub.options.threads == 0:
     #
@@ -3376,7 +3381,7 @@ class Queue(queue.Queue[devicetools.Element]):
 
         def shutdown(self) -> None:
             for _ in range(hydpy.pub.options.threads):
-                self.put(None)
+                self.put(None)  # type: ignore[arg-type]
 
 
 class Worker(threading.Thread):
@@ -3390,11 +3395,15 @@ class Worker(threading.Thread):
         self._idx_start, self._idx_end = hydpy.pub.timegrids.simindices
 
     def run(self) -> None:
-        stop = TypeError if sys.version_info < (3, 13) else queue.ShutDown
+        if sys.version_info < (3, 13):
+            stop = AttributeError
+        else:
+            stop = queue.ShutDown
         while True:
             try:
                 element = self._queue.get()
-            except BaseException:
+                element.name
+            except stop:
                 return
             for inlet in element.inlets:
                 series = element.model.sequences.fluxes.inflow.series
@@ -3408,16 +3417,3 @@ class Worker(threading.Thread):
                 outlet.sequences.sim.series[:] += series
 
             self._queue.task_done(element)
-
-
-# class Chunk:
-#
-#     _chunk: threadingutils.Chunk
-#     upstreams: list[str]
-#
-#     def __init__(self, methods: list[BoundMethod], upstreams: list[str]) -> None:
-#         self._chunk = threadingutils.Chunk(methods)
-#         self.upstreams = upstreams
-#
-#     def __call__(self, idx: int) -> None:
-#         self._chunk.simulate(idx)

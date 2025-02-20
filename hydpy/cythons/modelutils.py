@@ -1515,31 +1515,26 @@ class PyxWriter:
         print("                . simulate")
         pyx, both = lines.pyx.add, lines.add
         both(1, f"cpdef void simulate(self, {INT} idx) {_nogil}:")
-        if False:
-            pyx(2, "with nogil:")
-            indent = 3
-        else:
-            indent = 2
-        pyx(indent, "self.idx_sim = idx")
+        pyx(2, "self.idx_sim = idx")
         if self.model.REUSABLE_METHODS or self.model.find_submodels(
             include_optional=True, include_subsubmodels=False, repeat_sharedmodels=True
         ):
-            pyx(indent, "self.reset_reuseflags()")
+            pyx(2, "self.reset_reuseflags()")
         seqs = self.model.sequences
         if seqs.inputs or self.model.SUBMODELINTERFACES:
-            pyx(indent, "self.load_data(idx)")
+            pyx(2, "self.load_data(idx)")
         if self.model.INLET_METHODS:
-            pyx(indent, "self.update_inlets()")
+            pyx(2, "self.update_inlets()")
         if isinstance(self.model, modeltools.SolverModel):
-            pyx(indent, "self.solve()")
+            pyx(2, "self.solve()")
         else:
-            pyx(indent, "self.run()")
+            pyx(2, "self.run()")
             if seqs.states:
-                pyx(indent, "self.new2old()")
+                pyx(2, "self.new2old()")
         if self.model.OUTLET_METHODS:
-            pyx(indent, "self.update_outlets()")
+            pyx(2, "self.update_outlets()")
         if seqs.factors or seqs.fluxes or seqs.states:
-            pyx(indent, "self.update_outputs()")
+            pyx(2, "self.update_outputs()")
 
     def simulate_period(self, lines: PyxPxdLines) -> None:
         pyx, both = lines.pyx.add, lines.add
@@ -1548,6 +1543,7 @@ class PyxWriter:
         pyx(2, "with nogil:")
         pyx(3, "for idx in range(idx0, idx1):")
         pyx(4, "self.simulate(idx)")
+        pyx(4, "self.save_data(idx)")
 
     def _call_submodel_method(self, lines: PyxPxdLines, methodcall: str) -> None:
         name2submodel = self.model.find_submodels(
@@ -1774,7 +1770,7 @@ class PyxWriter:
     def update_outlets(self, lines: PyxPxdLines) -> None:
         """Lines of the model method with the same name."""
         self._call_methods(
-            lines, "update_outlets", self.model.OUTLET_METHODS, reacquire_gil=True
+            lines, "update_outlets", self.model.OUTLET_METHODS, reacquire_gil=False
         )
 
     def update_senders(self, lines: PyxPxdLines) -> None:  # ToDo: reacquire gil

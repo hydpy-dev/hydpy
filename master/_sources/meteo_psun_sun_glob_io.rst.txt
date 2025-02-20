@@ -1,0 +1,13 @@
+.. |evap_pet_ambav1| replace:: :mod:`~hydpy.models.evap_pet_ambav1`
+.. |meteo_psun_sun_glob_io.DOCNAME.complete| replace:: HydPy-Meteo-PSun-Sun-Glob-IO (external possible and actual sunshine duration and global radiation data)
+.. |meteo_psun_sun_glob_io| replace:: :mod:`~hydpy.models.meteo_psun_sun_glob_io`
+
+.. _meteo_psun_sun_glob_io:
+
+meteo_psun_sun_glob_io
+======================
+
+.. automodule:: hydpy.models.meteo_psun_sun_glob_io
+    :members:
+    :show-inheritance:
+    :exclude-members: no_type_check, ValuesView, Concatenate, IO, Iterator, ReceiverSequences, get_args, Never, Dict, get_type_hints, LiteralString, TypeAliasType, overload, Callable, Union, OutletSequences, Iterable, FactorSequences, DERIVEDPARAMETERS, get_original_bases, is_protocol, MutableSequence, OrderedDict, TypeAlias, NamedTuple, MappingView, NoReturn, cast, fastaccess, SupportsBytes, RUN_METHODS, SUBMODELINTERFACES, AideSequences, Literal, Match, Generator, SOLVERSEQUENCES, CLASSES, SupportsRound, reveal_type, Annotated, RESULTSEQUENCES, SenderSequences, Awaitable, SupportsComplex, Optional, MutableMapping, BinaryIO, Sequence, IntVar, FluxSequences, StateSequences, Pattern, ParamSpecArgs, PART_ODE_METHODS, is_typeddict, clear_overloads, fastaccess_new, SupportsFloat, Sized, InletSequences, NewType, Hashable, get_protocol_members, REQUIREDSEQUENCES, subpars, Unpack, Counter, SupportsIndex, ParamSpec, TypeIs, Generic, Self, Coroutine, get_overloads, SUBMODELS, ReadOnly, seqs, CONTROLPARAMETERS, assert_type, Protocol, ItemsView, ByteString, final, DefaultDict, AbstractSet, subseqs, override, assert_never, deprecated, SUBMETHODS, ForwardRef, RECEIVER_METHODS, INTERFACE_METHODS, NoDefault, NotRequired, TypedDict, LogSequences, ClassVar, KeysView, AsyncIterable, ChainMap, Reversible, Doc, dataclass_transform, Type, runtime, TypeVar, AsyncGenerator, SENDER_METHODS, Tuple, get_origin, ADD_METHODS, no_type_check_decorator, UPDATEDSEQUENCES, Required, Any, Mapping, subvars, TypeGuard, FULL_ODE_METHODS, runtime_checkable, AnyStr, MutableSet, FIXEDPARAMETERS, INLET_METHODS, Final, Collection, FrozenSet, CapsuleType, SupportsInt, ParamSpecKwargs, SupportsAbs, OUTLET_METHODS, Set, TypeVarTuple, List, AsyncIterator, TYPE_CHECKING, fastaccess_old, SOLVERPARAMETERS, ContextManager, pars, Container, Deque, Buffer, Text, TextIO, AsyncContextManager

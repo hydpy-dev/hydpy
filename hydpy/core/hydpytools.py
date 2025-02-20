@@ -2887,7 +2887,7 @@ actual HydPy instance does not handle any elements at the moment.
 
         for node in self.nodes:
             node.sequences.sim.series[:] = 0.0
-        for element in self.elements.search_keywords("river"):
+        for element in self.elements.search_keywords("stream"):
             element.model.sequences.fluxes.inflow.series[:] = 0.0
         queue_ = Queue(self.elements)
         for _ in range(hydpy.pub.options.threads):
@@ -3135,6 +3135,16 @@ class Queue(queue.Queue[devicetools.Element]):
                         upstream2downstream[element] = []
                     upstream2downstream[element].append(exit_)
 
+        def sorter(e: devicetools.Element) -> float:
+            _, x_, y_ = e.name.split("_")
+            x1, y1 = int(x_), int(y_)
+            x0, y0 = 4151250, 3023750
+            return ((x1 - x0) ** 2 + (y1 - y0) ** 2) ** 0.5
+        try:
+            self.starters = sorted(starters, key=sorter)
+        except:
+            warnings.warn("DANGER DANGER DANGER")
+
 
     def register(self) -> None:
         self.waiting = self.dependencies.copy()
@@ -3188,7 +3198,7 @@ class Worker(threading.Thread):
             element.model.simulate_period(self._idx_start, self._idx_end)
             for outlet in element.outlets:
                 try:
-                    series = element.model.sequences.fluxes.qt.series
+                    series = element.model.sequences.fluxes.qa.series
                 except:
                     series = element.model.sequences.fluxes.outflow.series
                 outlet.sequences.sim.series[:] += series

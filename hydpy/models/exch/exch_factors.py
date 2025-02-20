@@ -5,9 +5,7 @@ from hydpy.core import sequencetools
 from hydpy.core import variabletools
 
 
-class WaterLevels(  # type: ignore[misc]
-    variabletools.MixinFixedShape, sequencetools.FactorSequence
-):
+class WaterLevels(variabletools.MixinFixedShape, sequencetools.FactorSequence):
     """The water level at two locations [m].
 
     After each simulation step, the value of |exch_factors.WaterLevels| corresponds to

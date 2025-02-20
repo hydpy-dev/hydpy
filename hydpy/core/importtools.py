@@ -1030,11 +1030,11 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
     already available parameter values in the |TargetParameterUpdater.values_test|
     dictionary.
     """
-    values_orig: dict[modeltools.Model, tuple[tuple[P.args, P.kwargs], Any]]
+    values_orig: dict[modeltools.Model, tuple[tuple[Any, Any], Any]]
     """Deep copies of the input data (separated by positional and keyword arguments) 
     and the resulting values of the target parameters of the respective model 
     instances."""
-    values_test: dict[modeltools.Model, tuple[tuple[P.args, P.kwargs], Any]]
+    values_test: dict[modeltools.Model, tuple[tuple[Any, Any], Any]]
     """Deep copies of the input data (separated by positional and keyword arguments) 
     and the already available values of the target parameters of the respective model 
     instances."""

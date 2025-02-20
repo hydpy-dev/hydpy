@@ -12,9 +12,6 @@ from hydpy import config
 
 cdef class BaseInterface:
 
-    cdef void simulate(self, int idx) noexcept nogil:
-        pass
-
     cdef void reset_reuseflags(self) noexcept nogil:
         pass
 

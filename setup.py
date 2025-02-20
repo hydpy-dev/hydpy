@@ -1,7 +1,6 @@
 """Please execute `prepare_build.py` before starting the build process."""
 
 import os
-import platform
 
 import Cython.Distutils
 import numpy
@@ -11,13 +10,11 @@ with open("README.rst", "r", encoding="utf-8") as readmefile:
     long_description = readmefile.read()
 
 extension_dir = os.path.join("hydpy", "cythons", "autogen")
-windows = platform.system().lower() == "windows"
 extension_modules = [
     setuptools.Extension(
         name=f"hydpy.cythons.autogen.{name[:-4]}",
         sources=[os.path.join(extension_dir, name)],
-        extra_compile_args=["-O2"] + ["/openmp"] if windows else ["-fopenmp"],
-        extra_link_args=[] if windows else ["-fopenmp"],
+        extra_compile_args=["-O2"],
     )
     for name in os.listdir(extension_dir)
     if name.endswith(".pyx")

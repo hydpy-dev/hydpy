@@ -16,11 +16,9 @@ import warnings
 
 # ...from site-packages
 import networkx
-import numpy
 
 # ...from HydPy
 import hydpy
-from hydpy import config
 from hydpy.core import devicetools
 from hydpy.core import exceptiontools
 from hydpy.core import filetools
@@ -32,7 +30,6 @@ from hydpy.core import selectiontools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
 from hydpy.core.typingtools import *
-from hydpy.cythons import threadingutils
 
 if TYPE_CHECKING:
     from hydpy.core import auxfiletools
@@ -2624,96 +2621,6 @@ actual HydPy instance does not handle any elements at the moment.
                 "relevant devices"
             )
 
-    def _determine_methodorder_part1(self) -> list[BoundMethod]:
-        methods: list[BoundMethod] = []
-        if exceptiontools.attrready(hydpy.pub, "sequencemanager"):
-            methods.append(hydpy.pub.sequencemanager.read_netcdfslices)
-        for node in self.nodes:
-            if (
-                (dm := node.deploymode) == "oldsim"
-                or dm == "obs_oldsim"
-                or dm == "oldsim_bi"
-                or dm == "obs_oldsim_bi"
-            ):
-                methods.append(node.sequences.fastaccess.load_simdata)
-            elif dm == "newsim" or dm == "obs" or dm == "obs_newsim" or dm == "obs_bi":
-                methods.append(node.sequences.fastaccess.reset)
-            else:
-                assert_never(dm)
-            methods.append(node.sequences.fastaccess.load_obsdata)
-        return methods
-
-    @overload
-    def _determine_methodorder_part2(
-        self, *, multithreading: Literal[False]
-    ) -> list[BoundMethod]: ...
-
-    @overload
-    def _determine_methodorder_part2(
-        self, *, multithreading: Literal[True]
-    ) -> list[devicetools.Node | devicetools.Element]: ...
-
-    def _determine_methodorder_part2(
-        self, *, multithreading: bool
-    ) -> list[BoundMethod] | list[devicetools.Node | devicetools.Element]:
-        methods_and_devices: list[
-            tuple[BoundMethod, devicetools.Node | devicetools.Element]
-        ] = []
-        for device in self.deviceorder:
-            if isinstance(device, devicetools.Element):
-                methods_and_devices.append((device.model.simulate, device))
-            elif (
-                (dm := device.deploymode) == "obs_newsim"
-                or dm == "obs_oldsim"
-                or dm == "obs_oldsim_bi"
-            ):
-                methods_and_devices.append(
-                    (device.sequences.fastaccess.fill_obsdata, device)
-                )
-            elif not (
-                dm == "newsim"
-                or dm == "oldsim"
-                or dm == "obs"
-                or dm == "oldsim_bi"
-                or dm == "obs_bi"
-            ):
-                assert_never(dm)
-        if multithreading:
-            return [device for method, device in methods_and_devices]
-        return [method for method, device in methods_and_devices]
-
-    def _determine_methodorder_part3(self) -> list[BoundMethod]:
-        # due to https://github.com/python/mypy/issues/9718:
-        # pylint: disable=consider-using-in
-        methods: list[BoundMethod] = []
-        elements = self.collectives
-        for element in elements:
-            methods.append(element.model.update_senders)
-        for element in elements:
-            methods.append(element.model.update_receivers)
-        for element in elements:
-            methods.append(element.model.save_data)
-        for node in self.nodes:
-            if (
-                (dm := node.deploymode) == "obs_newsim"
-                or dm == "obs_oldsim"
-                or dm == "obs_oldsim_bi"
-            ):
-                methods.append(node.sequences.fastaccess.reset_obsdata)
-            elif not (
-                dm == "newsim"
-                or dm == "oldsim"
-                or dm == "obs"
-                or dm == "oldsim_bi"
-                or dm == "obs_bi"
-            ):
-                assert_never(dm)
-            methods.append(node.sequences.fastaccess.save_simdata)
-            methods.append(node.sequences.fastaccess.save_obsdata)
-        if exceptiontools.attrready(hydpy.pub, "sequencemanager"):
-            methods.append(hydpy.pub.sequencemanager.write_netcdfslices)
-        return methods
-
     @property
     def methodorder(self) -> list[BoundMethod]:
         """All methods of the currently relevant |Node| and |Element| objects, which
@@ -2722,215 +2629,69 @@ actual HydPy instance does not handle any elements at the moment.
 
         Property |HydPy.methodorder| should be of interest to framework developers only.
         """
-        return (
-            self._determine_methodorder_part1()
-            + self._determine_methodorder_part2(multithreading=False)
-            + self._determine_methodorder_part3()
-        )
+        # due to https://github.com/python/mypy/issues/9718:
+        # pylint: disable=consider-using-in
 
-    @property
-    def methodorder_multithreading(
-        self,
-    ) -> tuple[
-        list[BoundMethod],
-        list[devicetools.Node | devicetools.Element],
-        list[BoundMethod],
-    ]:
-        return (
-            self._determine_methodorder_part1(),
-            self._determine_methodorder_part2(multithreading=True),
-            self._determine_methodorder_part3(),
-        )
-
-    def layer_devices(
-        self, devices: Sequence[devicetools.Node | devicetools.Element]
-    ) -> tuple[list[int], list[devicetools.Node | devicetools.Element]]:
-
-        layers_nested: list[set[devicetools.Node | devicetools.Element]] = []
-
-        remaining: set[devicetools.Node | devicetools.Element] = set(devices)
-        ready: set[devicetools.Node | devicetools.Element] = set()
-
-        while remaining:
-            next_layer: set[devicetools.Node | devicetools.Element] = set()
-            for device in remaining:
-                if isinstance(device, devicetools.Node):
-                    if all(entry in ready for entry in device.entries):
-                        next_layer.add(device)
-                else:
-                    if all(
-                        all(entry in ready for entry in inlet.entries)
-                        for inlet in device.inlets
-                    ):
-                        next_layer.add(device)
-            layers_nested.append(next_layer)
-            ready.update(next_layer)
-            remaining.difference_update(next_layer)
-
-        breaks = [0]
-        layers = []
-        for layer in layers_nested:
-            breaks.append(breaks[-1] + len(layer))
-            layers.extend(sorted(layer, key=lambda d: str(d)))
-        return breaks, layers
-
-    # def aggregate_methods(
-    #     self, elements: devicetools.Elements, method2name: list[tuple[BoundMethod, str]]
-    # ) -> list[list[tuple[Chunk, str]]]:
-    #     name2method = {}
-    #     name2number = {}
-    #     max_number = 0
-    #     for method, name, model in method2name:
-    #         name2method[name] = model
-    #         element = elements[name]
-    #         name2number[name] = sum([len(inlet.entries) for inlet in element.inlets])
-    #         max_number = max(name2number[name], max_number)
-    #
-    #     nmb_chunks = 12
-    #     chunks: list[list[tuple[Chunk, str]]] = []
-    #     upstreams: list[str] = []
-    #     for step, number in enumerate(range(max_number + 1)):
-    #
-    #         methods = []
-    #         for name, number_ in name2number.items():
-    #             if number_ == number:
-    #                 methods.append(name2method[name])
-    #
-    #         nmb_methods = len(methods)
-    #         if nmb_methods > 0:
-    #             subchunks: list[tuple[Chunk, str]] = []
-    #             nmb_chunks_adjusted = min(nmb_chunks, nmb_methods)
-    #             size_chunk = int(nmb_methods / nmb_chunks_adjusted)
-    #             for i0 in range(0, nmb_chunks_adjusted):
-    #                 if i0 < nmb_chunks_adjusted - 1:
-    #                     i1 = i0 + size_chunk
-    #                 else:
-    #                     i1 = nmb_methods
-    #                 chunk = Chunk(methods[i0:i1], upstreams)
-    #                 subchunks.append((chunk, f"chunk_{step}_{i0}"))
-    #             chunks.append(subchunks)
-    #             upstreams = [name for _, name in subchunks]
-    #     return chunks
-
-    @printtools.print_progress
-    def simulate_singlethread(self) -> None:
-        idx_start, idx_end = hydpy.pub.timegrids.simindices
-        cm: AbstractContextManager[None] = contextlib.nullcontext()
+        funcs: list[BoundMethod] = []
         if exceptiontools.attrready(hydpy.pub, "sequencemanager"):
-            cm = hydpy.pub.sequencemanager.provide_netcdfjitaccess(self.deviceorder)
-        methods = self.methodorder
-        with cm:
-            for idx in printtools.progressbar(range(idx_start, idx_end)):
-                for method in methods:
-                    method(idx)
-
-    # @printtools.print_progress
-    # def simulate_multithread(
-    #     self,
-    #     *,
-    #     threads: int,
-    #     parallel_layers: int,
-    #     schedule: Literal["dynamic", "static"] = "dynamic",
-    #     chunksize: int = 1,
-    # ) -> None:
-    #     idx_start, idx_end = hydpy.pub.timegrids.simindices
-    #     breaks, devices = self.layer_devices(
-    #         self._determine_methodorder_part2(multithreading=True)
-    #     )
-    #
-    #     simulator = threadingutils.Simulator(
-    #         premethods=numpy.asarray(self._determine_methodorder_part1(), dtype=object),
-    #         models=[d.model for d in devices],
-    #         breaks=numpy.asarray(breaks, dtype=config.NP_INT),
-    #         postmethods=numpy.asarray(
-    #             self._determine_methodorder_part3(), dtype=object
-    #         ),
-    #         parallel_layers=parallel_layers,
-    #         threads=threads,
-    #         schedule=schedule,
-    #         chunksize=chunksize,
-    #     )
-    #     simulator.simulate(idx_start, idx_end)
-
-    @printtools.print_progress
-    def simulate_temporalchunking(self) -> None:
-
+            funcs.append(hydpy.pub.sequencemanager.read_netcdfslices)
         for node in self.nodes:
-            node.sequences.sim.series[:] = 0.0
-        for element in self.elements.search_keywords("river"):
-            element.model.sequences.fluxes.inflow.series[:] = 0.0
-        queue_ = Queue(self.elements)
-        for _ in range(hydpy.pub.options.threads):
-            Worker(queue_=queue_).start()
-        queue_.register()
-        queue_.join()
-        queue_.shutdown()
-
-    #     if hydpy.pub.options.threads == 0:
-    #
-    #         methods = self.methodorder
-    #         with cm:
-    #             for idx in printtools.progressbar(range(idx_start, idx_end)):
-    #                 for method in methods:
-    #                     method(idx)
-    #
-    #     else:
-    #
-    #         methods1, methods_names2, methods3 = self.methodorder_multithreading
-    #
-    #         if hydpy.pub.options.threads > 0:
-    #             temp = self.aggregate_methods(
-    #                 elements=self.elements, method2name=methods_names2
-    #             )
-    #             queue_ = Queue.from_chunks(temp)
-    #             methods_names2 = []
-    #             for t in temp:
-    #                 methods_names2.extend(t)
-    #         else:
-    #             queue_ = Queue.from_methods(
-    #                 elements=self.elements,
-    #                 ordered_names=tuple(name for _, name in methods_names2),
-    #             )
-    #
-    #         for _ in range(hydpy.pub.options.threads):
-    #             Worker(queue_=queue_).start()
-    #
-    #         for idx in printtools.progressbar(range(idx_start, idx_end)):
-    #             for method in methods1:
-    #                 method(idx)
-    #             queue_.register(methods_names2, idx)
-    #             queue_.join()
-    #             for method in methods3:
-    #                 method(idx)
-    #
-    #         queue_.shutdown()
-    #
-    # @printtools.print_progress
-    # def simulate_period(self) -> None:
-    #     idx_start, idx_end = hydpy.pub.timegrids.simindices
-    #     if hydpy.pub.options.threads == 0:
-    #         for method in self._determine_methodorder_part2(multithreading=False):
-    #             method(idx_start, idx_end)
-    #     else:
-    #         methods_names2 = self._determine_methodorder_part2(multithreading=True)
-    #         if False:
-    #             queue_ = Queue.from_methods(
-    #                 elements=self.elements,
-    #                 ordered_names=tuple(name for _, name, _ in methods_names2),
-    #             )
-    #             for _ in range(hydpy.pub.options.threads):
-    #                 Worker(queue_=queue_).start()
-    #             queue_.register(methods_names2, idx_start, idx_end)
-    #             queue_.join()
-    #             queue_.shutdown()
-    #         else:
-    #             chunk = threadingutils.Chunk(
-    #                 [model for _, _, model in methods_names2],
-    #                 num_threads=None,
-    #                 chunksize=None,
-    #             )
-    #             # chunk.simulate_period(idx_start, idx_end)
-    #             chunk.simulate_period_stepwise(idx_start, idx_end)
+            if (
+                (dm := node.deploymode) == "oldsim"
+                or dm == "obs_oldsim"
+                or dm == "oldsim_bi"
+                or dm == "obs_oldsim_bi"
+            ):
+                funcs.append(node.sequences.fastaccess.load_simdata)
+            elif dm == "newsim" or dm == "obs" or dm == "obs_newsim" or dm == "obs_bi":
+                funcs.append(node.sequences.fastaccess.reset)
+            else:
+                assert_never(dm)
+            funcs.append(node.sequences.fastaccess.load_obsdata)
+        for device in self.deviceorder:
+            if isinstance(device, devicetools.Element):
+                funcs.append(device.model.simulate)
+            elif (
+                (dm := device.deploymode) == "obs_newsim"
+                or dm == "obs_oldsim"
+                or dm == "obs_oldsim_bi"
+            ):
+                funcs.append(device.sequences.fastaccess.fill_obsdata)
+            elif not (
+                dm == "newsim"
+                or dm == "oldsim"
+                or dm == "obs"
+                or dm == "oldsim_bi"
+                or dm == "obs_bi"
+            ):
+                assert_never(dm)
+        elements = self.collectives
+        for element in elements:
+            funcs.append(element.model.update_senders)
+        for element in elements:
+            funcs.append(element.model.update_receivers)
+        for element in elements:
+            funcs.append(element.model.save_data)
+        for node in self.nodes:
+            if (
+                (dm := node.deploymode) == "obs_newsim"
+                or dm == "obs_oldsim"
+                or dm == "obs_oldsim_bi"
+            ):
+                funcs.append(node.sequences.fastaccess.reset_obsdata)
+            elif not (
+                dm == "newsim"
+                or dm == "oldsim"
+                or dm == "obs"
+                or dm == "oldsim_bi"
+                or dm == "obs_bi"
+            ):
+                assert_never(dm)
+            funcs.append(node.sequences.fastaccess.save_simdata)
+            funcs.append(node.sequences.fastaccess.save_obsdata)
+        if exceptiontools.attrready(hydpy.pub, "sequencemanager"):
+            funcs.append(hydpy.pub.sequencemanager.write_netcdfslices)
+        return funcs
 
     # toDo: deprecation warning
     def simulate(self) -> None:
@@ -3108,6 +2869,32 @@ actual HydPy instance does not handle any elements at the moment.
         54.019337, 37.257561, 31.865308, 28.359542
         """
         self.simulate_singlethread()
+
+    @printtools.print_progress
+    def simulate_singlethread(self) -> None:
+        idx_start, idx_end = hydpy.pub.timegrids.simindices
+        methodorder = self.methodorder
+        cm: AbstractContextManager[None] = contextlib.nullcontext()
+        if exceptiontools.attrready(hydpy.pub, "sequencemanager"):
+            cm = hydpy.pub.sequencemanager.provide_netcdfjitaccess(self.deviceorder)
+        with cm:
+            for idx in printtools.progressbar(range(idx_start, idx_end)):
+                for func in methodorder:
+                    func(idx)
+
+    @printtools.print_progress
+    def simulate_temporalchunking(self) -> None:
+
+        for node in self.nodes:
+            node.sequences.sim.series[:] = 0.0
+        for element in self.elements.search_keywords("river"):
+            element.model.sequences.fluxes.inflow.series[:] = 0.0
+        queue_ = Queue(self.elements)
+        for _ in range(hydpy.pub.options.threads):
+            Worker(queue_=queue_).start()
+        queue_.register()
+        queue_.join()
+        queue_.shutdown()
 
     def doit(self) -> None:
         """Deprecated! Use method |HydPy.simulate| instead.
@@ -3348,18 +3135,6 @@ class Queue(queue.Queue[devicetools.Element]):
                         upstream2downstream[element] = []
                     upstream2downstream[element].append(exit_)
 
-        # ToDo: remove:
-        # import os
-        # os.chdir(r"G:\hdp2415809\04_Modelle\02_HydPy-L-Rhein\04_Variante-4")
-        # with open("dependencies.temp", "w") as file_:
-        #     for name, value in dependencies.items():
-        #         file_.write(f"{name}: {value}\n")
-        # with open("starters.temp", "w") as file_:
-        #     for value in starters:
-        #         file_.write(f"{value}\n")
-        # with open("upstream2downstream.temp", "w") as file_:
-        #     for name, value in upstream2downstream.items():
-        #         file_.write(f"{name}: {value}\n")
 
     def register(self) -> None:
         self.waiting = self.dependencies.copy()
@@ -3395,10 +3170,12 @@ class Worker(threading.Thread):
         self._idx_start, self._idx_end = hydpy.pub.timegrids.simindices
 
     def run(self) -> None:
+
         if sys.version_info < (3, 13):
             stop = AttributeError
         else:
             stop = queue.ShutDown
+
         while True:
             try:
                 element = self._queue.get()
@@ -3408,7 +3185,7 @@ class Worker(threading.Thread):
             for inlet in element.inlets:
                 series = element.model.sequences.fluxes.inflow.series
                 series[:] += inlet.sequences.sim.series
-            element.model.cymodel.simulate_period(self._idx_start, self._idx_end)
+            element.model.simulate_period(self._idx_start, self._idx_end)
             for outlet in element.outlets:
                 try:
                     series = element.model.sequences.fluxes.qt.series

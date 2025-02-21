@@ -80,7 +80,6 @@ class MaxInterz(whmod_parameters.LanduseMonthParameter):
     """[mm]"""
 
 
-
 class FLN(whmod_parameters.LanduseMonthParameter):
     """[-]"""
 

@@ -60,7 +60,7 @@ class Calc_NiedNachInterz_V1(modeltools.Method):
     >>> nmb_cells(2)
     >>> from hydpy import UnitTest
     >>> test = UnitTest(
-    ...     model, model.calc_niednachinterz_v2,
+    ...     model, model.calc_niednachinterz_v1,
     ...     last_example=11,
     ...     parseqs=(fluxes.niederschlagrichter, fluxes.niednachinterz))
     >>> test.nexts.niederschlagrichter = range(0, 11, 1)
@@ -413,12 +413,12 @@ class Calc_MaxVerdunstung_V1(modeltools.Method):
     >>> inputs.et0 = 5.0
 
     >>> model.idx_sim = pub.timegrids.init["2001-06-30"]
-    >>> model.calc_maxverdunstung_v2()
+    >>> model.calc_maxverdunstung_v1()
     >>> fluxes.maxverdunstung
     maxverdunstung(6.135, 6.605, 5.28, 6.48, 0.0)
 
     >>> model.idx_sim = pub.timegrids.init["2001-07-01"]
-    >>> model.calc_maxverdunstung_v2()
+    >>> model.calc_maxverdunstung_v1()
     >>> fluxes.maxverdunstung
     maxverdunstung(6.205, 6.675, 5.19, 6.415, 0.0)
     """
@@ -1044,8 +1044,6 @@ class Model(modeltools.AdHocModel):
     RUN_METHODS = (
         Calc_NiederschlagRichter_V1,
         Calc_MaxVerdunstung_V1,
-        Calc_MaxVerdunstung_V1,
-        Calc_NiedNachInterz_V1,
         Calc_NiedNachInterz_V1,
         Calc_Interzeptionsspeicher_V1,
         Calc_Seeniederschlag_V1,
@@ -1053,7 +1051,6 @@ class Model(modeltools.AdHocModel):
         Calc_ZuflussBoden_V1,
         Calc_RelBodenfeuchte_V1,
         Calc_Sickerwasser_V1,
-        Calc_Bodenverdunstung_V1,
         Corr_Bodenverdunstung_V1,
         Calc_Seeverdunstung_V1,
         Calc_AktVerdunstung_V1,
@@ -1072,7 +1069,6 @@ class Model(modeltools.AdHocModel):
     SUBMODELS = ()
 
 
-
 class Main_AETModel_V1(modeltools.AdHocModel):
     """Base class for |whmod.DOCNAME.long| models that use submodels that comply with
     the |AETModel_V1| interface."""
@@ -1086,13 +1082,18 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         aetinterfaces.AETModel_V1,
         aetinterfaces.AETModel_V1.prepare_nmbzones,
         aetinterfaces.AETModel_V1.prepare_subareas,
-        aetinterfaces.AETModel_V1.prepare_maxsoilwater,
+        aetinterfaces.AETModel_V1.prepare_zonetypes,
         aetinterfaces.AETModel_V1.prepare_water,
         aetinterfaces.AETModel_V1.prepare_interception,
         aetinterfaces.AETModel_V1.prepare_soil,
         aetinterfaces.AETModel_V1.prepare_plant,
+        aetinterfaces.AETModel_V1.prepare_tree,
+        aetinterfaces.AETModel_V1.prepare_conifer,
+        aetinterfaces.AETModel_V1.prepare_maxsoilwater,
         landtype_constants=whmod_constants.LANDUSE_CONSTANTS,
         landtype_refindices=whmod_control.Nutz_Nr,
+        soiltype_constants=whmod_constants.SOIL_CONSTANTS,
+        soiltype_refindices=whmod_control.BodenTyp,
         refweights=whmod_control.F_AREA,
     )
     def add_aetmodel_v1(
@@ -1110,57 +1111,68 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         >>> parameterstep()
         >>> nmb_cells(5)
         >>> area(10.0)
-        >>> nutz_nr(GRAS, LAUBWALD, WASSER, WASSER, VERSIEGELT)
-        >>> f_area(2.0)
-        >>> nfk100_mittel(200.0)
-        >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
+        >>> nutz_nr(GRAS, LAUBWALD, NADELWALD, WASSER, VERSIEGELT)
+        >>> f_area(4.0, 1.0, 1.0, 1.0, 3.0)
+        >>> derived.nfkwe(200.0)
+        >>> with model.add_aetmodel_v1("evap_aet_minhas"):
         ...     nmbhru
+        ...     area
         ...     water
         ...     interception
         ...     soil
-        ...     excessreduction(field=1.0, forest=0.5, default=nan)
+        ...     dissefactor(gras=1.0, laubwald=2.0, default=3.0)
         ...     for method, arguments in model.preparemethod2arguments.items():
         ...         print(method, arguments[0][0], sep=": ")
         nmbhru(5)
-        water(field=False, forest=False, glacier=False, ilake=True,
-              sealed=False)
-        interception(field=True, forest=True, glacier=False, ilake=False,
-                     sealed=True)
-        soil(field=True, forest=True, glacier=False, ilake=False, sealed=False)
+        area(10.0)
+        water(gras=False, laubwald=False, nadelwald=False, versiegelt=False,
+              wasser=True)
+        interception(gras=True, laubwald=True, nadelwald=True,
+                     versiegelt=False, wasser=False)
+        soil(gras=True, laubwald=True, nadelwald=True, versiegelt=False,
+             wasser=False)
         prepare_nmbzones: 5
-        prepare_zonetypes: [1 2 4 3 5]
-        prepare_subareas: [2. 2. 2. 2. 2.]
-        prepare_elevations: [300. 300. 300. 300. 300.]
+        prepare_zonetypes: [1 2 4 9 8]
+        prepare_subareas: [4. 1. 1. 1. 3.]
+        prepare_water: [False False False  True False]
+        prepare_interception: [ True  True  True False False]
+        prepare_soil: [ True  True  True False False]
+        prepare_plant: [ True  True  True False False]
+        prepare_conifer: [False False  True False False]
+        prepare_tree: [False  True  True False False]
         prepare_maxsoilwater: [200. 200. 200. 200. 200.]
-        prepare_water: [False False  True False False]
-        prepare_interception: [ True  True False False False]
-        prepare_plant: [ True  True False False False]
-        prepare_soil: [ True  True False False False]
 
-        >>> ered = model.aetmodel.parameters.control.excessreduction
-        >>> ered
-        excessreduction(field=1.0, forest=0.5)
-        >>> zonetype(FOREST, FIELD, ILAKE, GLACIER, SEALED)
-        >>> ered
-        excessreduction(field=0.5, forest=1.0)
+        >>> df = model.aetmodel.parameters.control.dissefactor
+        >>> df
+        dissefactor(gras=1.0, laubwald=2.0, nadelwald=3.0)
+        >>> nutz_nr(LAUBWALD, GRAS, NADELWALD, WASSER, VERSIEGELT)
+        >>> df
+        dissefactor(gras=2.0, laubwald=1.0, nadelwald=3.0)
         >>> from hydpy import round_
-        >>> round_(ered.average_values())
-        0.75
+        >>> round_(df.average_values())
+        1.5
         """
         control = self.parameters.control
+        derived = self.parameters.derived
+
         hydrotopes = control.nmb_cells.value
         landuse = control.nutz_nr.values
 
         aetmodel.prepare_nmbzones(hydrotopes)
         aetmodel.prepare_zonetypes(landuse)
         aetmodel.prepare_subareas(control.f_area.value)
-        aetmodel.prepare_maxsoilwater(control.fc.values)
         sel = numpy.full(hydrotopes, False, dtype=config.NP_BOOL)
-        sel[zonetype == WASSER] = True
+        sel[landuse == WASSER] = True
         aetmodel.prepare_water(sel)
         sel = ~sel
-        sel[zonetype == GLACIER] = False
+        sel[landuse == VERSIEGELT] = False
         aetmodel.prepare_interception(sel)
-        aetmodel.prepare_plant(sel)
-        sel[landuse == SEALED] = False
         aetmodel.prepare_soil(sel)
+        aetmodel.prepare_plant(sel)
+        sel[:] = False
+        sel[landuse == NADELWALD] = True
+        aetmodel.prepare_conifer(sel)
+        sel[landuse == LAUBWALD] = True
+        aetmodel.prepare_tree(sel)
+
+        aetmodel.prepare_maxsoilwater(derived.nfkwe.values)

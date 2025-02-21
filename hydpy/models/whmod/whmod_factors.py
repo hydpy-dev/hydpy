@@ -10,5 +10,3 @@ from hydpy.models.whmod import whmod_sequences
 
 class RelBodenfeuchte(whmod_sequences.Factor1DSequence):
     """[-]"""
-
-

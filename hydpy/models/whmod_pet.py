@@ -472,7 +472,9 @@ from hydpy.models.whmod.whmod_constants import *
 class Model(whmod_model.Main_AETModel_V1):
     """|whmod_pet.DOCNAME.complete|."""
 
-    DOCNAME = modeltools.DocName(short="WHMod-PET", description="externel potential evapotranspiration")
+    DOCNAME = modeltools.DocName(
+        short="WHMod-PET", description="externel potential evapotranspiration"
+    )
     __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = ()

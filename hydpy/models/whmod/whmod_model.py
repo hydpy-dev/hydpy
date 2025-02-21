@@ -12,6 +12,8 @@ import numpy
 
 # ...from HydPy
 import hydpy
+from hydpy import config
+from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.interfaces import aetinterfaces
 from hydpy.cythons import modelutils
@@ -1434,7 +1436,7 @@ class Calc_VerzGrundwasserneubildung_Zwischenspeicher_V1(modeltools.Method):
 
 
 class Model(modeltools.AdHocModel):
-    """The *WHMod* base model."""
+    """|whmod.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(short="WHMod")
     __HYDPY_ROOTMODEL__ = None
@@ -1499,8 +1501,8 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         aetinterfaces.AETModel_V1.prepare_soil,
         aetinterfaces.AETModel_V1.prepare_plant,
         landtype_constants=whmod_constants.LANDUSE_CONSTANTS,
-        landtype_refindices=whmod_control.LT,
-        refweights=whmod_control.AUR,
+        landtype_refindices=whmod_control.Nutz_Nr,
+        refweights=whmod_control.F_AREA,
     )
     def add_aetmodel_v1(
         self,
@@ -1515,12 +1517,11 @@ class Main_AETModel_V1(modeltools.AdHocModel):
 
         >>> from hydpy.models.whmod_pet import *
         >>> parameterstep()
-        >>> nu(5)
-        >>> at(10.0)
-        >>> lt(GRAS, LAUBWALD, WASSER, WASSER, VERSIEGELT)
-        >>> zonearea(2.0)
-        >>> zonez(3.0)
-        >>> fc(200.0)
+        >>> nmb_cells(5)
+        >>> area(10.0)
+        >>> nutz_nr(GRAS, LAUBWALD, WASSER, WASSER, VERSIEGELT)
+        >>> f_area(2.0)
+        >>> nfk100_mittel(200.0)
         >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
         ...     nmbhru
         ...     water
@@ -1556,20 +1557,19 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         0.75
         """
         control = self.parameters.control
-        nmbzones = control.nmbzones.value
-        zonetype = control.zonetype.values
+        hydrotopes = control.nmb_cells.value
+        landuse = control.nutz_nr.values
 
-        aetmodel.prepare_nmbzones(nmbzones)
-        aetmodel.prepare_zonetypes(zonetype)
-        aetmodel.prepare_subareas(control.zonearea.value)
-        aetmodel.prepare_elevations(100.0 * control.zonez.values)
+        aetmodel.prepare_nmbzones(hydrotopes)
+        aetmodel.prepare_zonetypes(landuse)
+        aetmodel.prepare_subareas(control.f_area.value)
         aetmodel.prepare_maxsoilwater(control.fc.values)
-        sel = numpy.full(nmbzones, False, dtype=config.NP_BOOL)
-        sel[zonetype == ILAKE] = True
+        sel = numpy.full(hydrotopes, False, dtype=config.NP_BOOL)
+        sel[zonetype == WASSER] = True
         aetmodel.prepare_water(sel)
         sel = ~sel
         sel[zonetype == GLACIER] = False
         aetmodel.prepare_interception(sel)
         aetmodel.prepare_plant(sel)
-        sel[zonetype == SEALED] = False
+        sel[landuse == SEALED] = False
         aetmodel.prepare_soil(sel)

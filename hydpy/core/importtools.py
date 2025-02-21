@@ -404,7 +404,7 @@ def prepare_submodel(
     instance."""
 
     def _prepare_submodel(
-        wrapped: PrepSub0D[TM_contra, TI_contra] | PrepSub1D[TM_contra, TI_contra]
+        wrapped: PrepSub0D[TM_contra, TI_contra] | PrepSub1D[TM_contra, TI_contra],
     ) -> SubmodelAdder[TD, TM_contra, TI_contra]:
         return SubmodelAdder[TD, TM_contra, TI_contra](
             wrapped=cast(Any, wrapped),
@@ -686,16 +686,16 @@ following error occurred: The given `lland_knauf` instance is not considered sha
 
     @overload
     def get_wrapped(
-        self: SubmodelAdder[Literal[0], TM_contra, TI_contra]
+        self: SubmodelAdder[Literal[0], TM_contra, TI_contra],
     ) -> PrepSub0D[TM_contra, TI_contra]: ...
 
     @overload
     def get_wrapped(
-        self: SubmodelAdder[Literal[1], TM_contra, TI_contra]
+        self: SubmodelAdder[Literal[1], TM_contra, TI_contra],
     ) -> PrepSub1D[TM_contra, TI_contra]: ...
 
     def get_wrapped(
-        self: SubmodelAdder[TD, TM_contra, TI_contra]
+        self: SubmodelAdder[TD, TM_contra, TI_contra],
     ) -> PrepSub0D[TM_contra, TI_contra] | PrepSub1D[TM_contra, TI_contra]:
         """Return the wrapped, model-specific method for automatically preparing some
         control parameters."""
@@ -963,7 +963,7 @@ def define_targetparameter(
     instance."""
 
     def _select_parameter(
-        wrapped: Callable[Concatenate[TM_contra, P], None]
+        wrapped: Callable[Concatenate[TM_contra, P], None],
     ) -> TargetParameterUpdater[TM_contra, P]:
         return TargetParameterUpdater[TM_contra, P](wrapped, parameter)
 
@@ -1030,11 +1030,11 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
     already available parameter values in the |TargetParameterUpdater.values_test|
     dictionary.
     """
-    values_orig: dict[modeltools.Model, tuple[tuple[P.args, P.kwargs], Any]]
+    values_orig: dict[modeltools.Model, tuple[tuple[Any, Any], Any]]
     """Deep copies of the input data (separated by positional and keyword arguments) 
     and the resulting values of the target parameters of the respective model 
     instances."""
-    values_test: dict[modeltools.Model, tuple[tuple[P.args, P.kwargs], Any]]
+    values_test: dict[modeltools.Model, tuple[tuple[Any, Any], Any]]
     """Deep copies of the input data (separated by positional and keyword arguments) 
     and the already available values of the target parameters of the respective model 
     instances."""

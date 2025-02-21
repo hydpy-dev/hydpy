@@ -540,7 +540,7 @@ class Glacier(Element):
         )
         self.draw_text(
             frame=frame,
-            text="\u221E",
+            text="\u221e",
             point=Point(0.5, TOL),
             properties=TextProperties(),
         )

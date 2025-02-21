@@ -49,17 +49,6 @@ class KorrNiedNachRichter(parametertools.Parameter):
         super().__call__(*args, **kwargs)
 
 
-class InterzeptionNach_Dommermuth_Trampf(parametertools.Parameter):
-    """[-]"""
-
-    NDIM, TYPE, TIME = 0, bool, None
-
-    def __call__(self, *args, **kwargs):
-        if not args[0]:
-            raise NotImplementedError("Bislang nur Dommermuth-Trampf möglich")
-        super().__call__(*args, **kwargs)
-
-
 class MitFunktion_KapillarerAufstieg(parametertools.Parameter):
     """[-]"""
 
@@ -90,14 +79,6 @@ class F_AREA(whmod_parameters.NutzCompleteParameter):
 class MaxInterz(whmod_parameters.LanduseMonthParameter):
     """[mm]"""
 
-
-class Faktor(whmod_parameters.LanduseMonthParameter): ...
-
-
-class FactorC(whmod_parameters.ForestMonthParameter): ...
-
-
-class FaktorWald(whmod_parameters.ForestMonthParameter): ...
 
 
 class FLN(whmod_parameters.LanduseMonthParameter):

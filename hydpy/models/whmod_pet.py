@@ -479,7 +479,7 @@ class Model(whmod_model.Main_AETModel_V1):
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         whmod_model.Calc_NiederschlagRichter_V1,
-        whmod_model.Calc_MaxVerdunstung_V2,
+        whmod_model.Calc_MaxVerdunstung_V1,
         whmod_model.Calc_Interzeptionsspeicher_V1,
         whmod_model.Calc_Seeniederschlag_V1,
         whmod_model.Calc_Oberflaechenabfluss_V1,

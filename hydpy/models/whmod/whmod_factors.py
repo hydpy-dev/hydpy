@@ -12,7 +12,3 @@ class RelBodenfeuchte(whmod_sequences.Factor1DSequence):
     """[-]"""
 
 
-class Saettigungsdampfdruckdefizit(sequencetools.FactorSequence):
-    """[mbar]"""
-
-    NDIM, NUMERIC = 0, False

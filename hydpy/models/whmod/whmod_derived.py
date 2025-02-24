@@ -52,7 +52,7 @@ class Wurzeltiefe(whmod_parameters.NutzBodenParameter):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (whmod_control.MaxWurzeltiefe, whmod_control.Flurab)
+    CONTROLPARAMETERS = (whmod_control.RootingDepth, whmod_control.GroundwaterDepth)
 
     def update(self):
         """
@@ -61,14 +61,14 @@ class Wurzeltiefe(whmod_parameters.NutzBodenParameter):
         >>> parameterstep()
         >>> nmbzones(5)
         >>> landtype(GRAS, LAUBWALD, NADELWALD, WASSER, VERSIEGELT)
-        >>> flurab(1.0)
-        >>> maxwurzeltiefe(0.5, 1.0, 1.5, 2.0, 2.0)
+        >>> groundwaterdepth(1.0)
+        >>> rootingdepth(0.5, 1.0, 1.5, 2.0, 2.0)
         >>> derived.wurzeltiefe.update()
         >>> derived.wurzeltiefe
         wurzeltiefe(gras=0.5, laubwald=1.0, nadelwald=1.0)
         """
         control = self.subpars.pars.control
-        self(numpy.clip(control.maxwurzeltiefe, None, control.flurab.values))
+        self(numpy.clip(control.rootingdepth, None, control.groundwaterdepth.values))
 
 
 class nFKwe(whmod_parameters.NutzBodenParameter):
@@ -76,7 +76,7 @@ class nFKwe(whmod_parameters.NutzBodenParameter):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (whmod_control.NFK100_Mittel,)
+    CONTROLPARAMETERS = (whmod_control.AvailableFieldCapacity,)
     DERIVEDPARAMETERS = (Wurzeltiefe,)
 
     def update(self):
@@ -86,16 +86,16 @@ class nFKwe(whmod_parameters.NutzBodenParameter):
         >>> parameterstep()
         >>> nmbzones(7)
         >>> landtype(GRAS, MAIS, LAUBWALD, NADELWALD, SOMMERWEIZEN, WASSER, VERSIEGELT)
-        >>> nfk100_mittel(200.0)
+        >>> availablefieldcapacity(200.0)
         >>> derived.wurzeltiefe(0.0, 0.2, 0.3, 0.4, 1.0, 1.0, 1.0)
         >>> derived.nfkwe.update()
         >>> derived.nfkwe
         nfkwe(gras=60.0, laubwald=60.0, mais=60.0, nadelwald=80.0,
               sommerweizen=200.0)
         """
-        nfk100_mittel = self.subpars.pars.control.nfk100_mittel
+        availablefieldcapacity = self.subpars.pars.control.availablefieldcapacity
         wurzeltiefe = self.subpars.wurzeltiefe
-        self(nfk100_mittel * numpy.clip(wurzeltiefe, 0.3, None))
+        self(availablefieldcapacity * numpy.clip(wurzeltiefe, 0.3, None))
 
 
 class Beta(whmod_parameters.NutzBodenParameter):

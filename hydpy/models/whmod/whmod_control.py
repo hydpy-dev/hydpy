@@ -62,6 +62,26 @@ class DegreeFactor(whmod_parameters.NutzBodenParameter):
     SPAN = (0.0, None)
 
 
+class AvailableFieldCapacity(whmod_parameters.NutzBodenParameter):
+    """[mm/m]"""
+
+    SPAN = (0.0, None)
+
+
+class RootingDepth(whmod_parameters.NutzBodenParameter):
+    """Maximale Wurzeltiefe [m]
+
+    >>> from hydpy.models.whmod import *
+    >>> parameterstep("1d")
+    >>> nmbzones(1)
+    >>> landtype(1)
+    >>> rootingdepth(gras=5.0)
+    >>> rootingdepth
+    rootingdepth(5.0)
+    """
+
+    SPAN = (0.0, None)
+
 class CapillaryRise(parametertools.Parameter):
     """[-]"""
 
@@ -81,31 +101,12 @@ class FLN(whmod_parameters.LanduseMonthParameter):  # ToDo
 whmod_parameters.BodenCompleteParameter.CONTROLPARAMETERS = (NmbZones, SoilType)  # ToDo
 
 
-class NFK100_Mittel(whmod_parameters.NutzBodenParameter):
-    """[mm/m]"""
 
-    SPAN = (0.0, None)
-
-
-class Flurab(whmod_parameters.NutzBodenParameter):
+class GroundwaterDepth(whmod_parameters.NutzBodenParameter):
     """[m]"""
 
     SPAN = (0.0, None)
 
-
-class MaxWurzeltiefe(whmod_parameters.NutzBodenParameter):
-    """Maximale Wurzeltiefe [m]
-
-    >>> from hydpy.models.whmod import *
-    >>> parameterstep("1d")
-    >>> nmbzones(1)
-    >>> landtype(1)
-    >>> maxwurzeltiefe(gras=5.)
-    >>> maxwurzeltiefe
-    maxwurzeltiefe(5.0)
-    """
-
-    SPAN = (0.0, None)
 
 
 class MinhasR(whmod_parameters.NutzBodenParameter):

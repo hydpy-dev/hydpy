@@ -192,15 +192,15 @@ def _collect_hrus(
     >>> from pprint import pprint
     >>> pprint(_collect_hrus(table=df_knoteneigenschaften, idx=2, landuse=landuse))
     [{'area': np.float64(10000.0),
+      'availablefieldcapacity': np.float64(90.6),
       'bfi': np.float64(0.2759066),
       'col': np.int64(3),
       'f_id': np.int64(2),
-      'flurab': np.float64(2.9),
+      'groundwaterdepth': np.float64(2.9),
       'id': np.int64(2),
       'init_boden': np.float64(30.0),
       'init_gwn': np.float64(0.0),
       'landtype': 'NADELWALD',
-      'nfk100_mittel': np.float64(90.6),
       'nfk_faktor': np.float64(1.0),
       'nfk_offset': np.float64(0.0),
       'row': np.int64(1),
@@ -212,15 +212,15 @@ def _collect_hrus(
 
     >>> pprint(_collect_hrus(table=df_knoteneigenschaften, idx=0, landuse=landuse))
     [{'area': np.float64(10000.0),
+      'availablefieldcapacity': np.float64(90.6),
       'bfi': np.float64(0.2839615),
       'col': np.int64(1),
       'f_id': np.int64(0),
-      'flurab': np.float64(2.9),
+      'groundwaterdepth': np.float64(2.9),
       'id': np.int64(0),
       'init_boden': np.float64(50.0),
       'init_gwn': np.float64(0.0),
       'landtype': 'NADELWALD',
-      'nfk100_mittel': np.float64(90.6),
       'nfk_faktor': np.float64(1.0),
       'nfk_offset': np.float64(0.0),
       'row': np.int64(1),
@@ -230,15 +230,15 @@ def _collect_hrus(
       'y': np.float64(5567807.03),
       'zonearea': np.float64(5000.0)},
      {'area': np.float64(10000.0),
+      'availablefieldcapacity': np.float64(90.6),
       'bfi': np.float64(0.2839615),
       'col': np.int64(1),
       'f_id': np.int64(0),
-      'flurab': np.float64(2.9),
+      'groundwaterdepth': np.float64(2.9),
       'id': np.int64(0),
       'init_boden': np.float64(50.0),
       'init_gwn': np.float64(0.0),
       'landtype': 'LAUBWALD',
-      'nfk100_mittel': np.float64(90.6),
       'nfk_faktor': np.float64(1.0),
       'nfk_offset': np.float64(0.0),
       'row': np.int64(1),
@@ -1070,10 +1070,10 @@ occurred: `7` missing value(s) in column `soiltype`
         "zonearea": numpy.float64,
         "landtype": str,
         "soiltype": str,
-        "nfk100_mittel": numpy.float64,
+        "availablefieldcapacity": numpy.float64,
         "nfk_faktor": numpy.float64,
         "nfk_offset": numpy.float64,
-        "flurab": numpy.float64,
+        "groundwaterdepth": numpy.float64,
         "bfi": numpy.float64,
         "verzoegerung": str,
         "init_boden": numpy.float64,
@@ -1536,13 +1536,13 @@ def _initialize_whmod_models(
 
         con.zonearea(_query_vector_from_hrus(hrus, "zonearea"))
         con.degreefactor(float(day_degree_factor))
-        nfk100_mittel = numpy.asarray(_query_vector_from_hrus(hrus, "nfk100_mittel"))
+        availablefieldcapacity = numpy.asarray(_query_vector_from_hrus(hrus, "availablefieldcapacity"))
         nfk_faktor = numpy.asarray(_query_vector_from_hrus(hrus, "nfk_faktor"))
         nfk_offset = numpy.asarray(_query_vector_from_hrus(hrus, "nfk_offset"))
-        con.nfk100_mittel((nfk100_mittel * nfk_faktor) + nfk_offset)
+        con.availablefieldcapacity((availablefieldcapacity * nfk_faktor) + nfk_offset)
 
-        con.flurab(_query_vector_from_hrus(hrus, "flurab"))
-        con.maxwurzeltiefe(**root_depth)
+        con.groundwaterdepth(_query_vector_from_hrus(hrus, "groundwaterdepth"))
+        con.rootingdepth(**root_depth)
         con.minhasr(
             gras=4.0,
             laubwald=6.0,
@@ -1562,10 +1562,10 @@ def _initialize_whmod_models(
 
         verzoegerung = _query_scalar_from_hrus(hrus, "verzoegerung")
         if verzoegerung == "flurab_probst":
-            if numpy.isnan(flurab := con.flurab.average_values()):
+            if numpy.isnan(gwd := con.groundwaterdepth.average_values()):
                 con.schwerpunktlaufzeit(0.0)
             else:
-                con.schwerpunktlaufzeit(flurab_probst=flurab)
+                con.schwerpunktlaufzeit(flurab_probst=gwd)
         else:
             con.schwerpunktlaufzeit(verzoegerung)
 

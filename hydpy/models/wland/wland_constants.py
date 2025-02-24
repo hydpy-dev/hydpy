@@ -58,7 +58,7 @@ TREES = parametertools.IntConstant(19)
 CONIFER = parametertools.IntConstant(20)
 """Land type constant for coniferous forests."""
 DECIDIOUS = parametertools.IntConstant(21)
-"""Land type constant for deciduous forests."""
+"""Land type constant for decidious forests."""
 MIXED = parametertools.IntConstant(22)
 """Land type constant for mixed forests."""
 WATER = parametertools.IntConstant(23)

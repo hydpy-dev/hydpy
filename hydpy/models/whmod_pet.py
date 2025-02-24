@@ -40,10 +40,10 @@ _______
 >>> degreedayfactor(4.5)
 >>> availablefieldcapacity(200.0)
 >>> groundwaterdepth(1.0)
->>> rootingdepth(gras=0.5, laubwald=1.5, mais=0.5, nadelwald=1.9, sommerweizen=0.6,
-...                winterweizen=0.6)
->>> minhasr(gras=4.0, laubwald=6.0, mais=3.0, nadelwald=6.0, sommerweizen=6.0,
-...         winterweizen=6.0)
+>>> rootingdepth(gras=0.5, decidious=1.5, corn=0.5, conifer=1.9, springwheat=0.6,
+...                winterwheat=0.6)
+>>> minhasr(gras=4.0, decidious=6.0, corn=3.0, conifer=6.0, springwheat=6.0,
+...         winterwheat=6.0)
 >>> capillarythreshold(sand=0.8)
 >>> capillarylimit(sand=0.4)
 >>> baseflowindex(0.8)
@@ -144,11 +144,11 @@ _______
 water
 _____
 
->>> landtype(WASSER)
->>> maxinterz.wasser = 0.0
->>> fln.wasser_feb = 1.217
->>> fln.wasser_mar = 1.256
->>> fln.wasser_apr = 1.283
+>>> landtype(WATER)
+>>> maxinterz.water = 0.0
+>>> fln.water_feb = 1.217
+>>> fln.water_mar = 1.256
+>>> fln.water_apr = 1.283
 
 .. integration-test::
 
@@ -223,9 +223,9 @@ _____
 sealed
 ______
 
->>> landtype(VERSIEGELT)
->>> maxinterz.versiegelt = 2.0
->>> fln.versiegelt_feb = nan
+>>> landtype(SEALED)
+>>> maxinterz.sealed = 2.0
+>>> fln.sealed_feb = nan
 
 .. integration-test::
 
@@ -302,10 +302,10 @@ ________
 
 >>> name2value = {par.name: par.value for par in control}
 >>> nmbzones(4)
->>> landtype(GRAS, NADELWALD, WASSER, VERSIEGELT)
+>>> landtype(GRAS, CONIFER, WATER, SEALED)
 >>> zonearea(2.5)
->>> maxinterz.nadelwald = 2.0
->>> fln.nadelwald = 1.335
+>>> maxinterz.conifer = 2.0
+>>> fln.conifer = 1.335
 >>> for name, value in name2value.items():
 ...     if name not in ("nmbzones", "landtype", "zonearea", "maxinterz", "fln"):
 ...         control[name].value = value

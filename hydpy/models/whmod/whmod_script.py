@@ -225,11 +225,11 @@ def _collect_hrus(
       'id': np.int64(2),
       'init_boden': np.float64(30.0),
       'init_gwn': np.float64(0.0),
-      'landtype': 'NADELWALD',
+      'landtype': 'CONIFER',
       'nfk_faktor': np.float64(1.0),
       'nfk_offset': np.float64(0.0),
       'row': np.int64(1),
-      'soiltype': 'LEHM',
+      'soiltype': 'LOAM',
       'verzoegerung': 'flurab_probst',
       'x': np.float64(3455723.97),
       'y': np.float64(5567807.03),
@@ -245,11 +245,11 @@ def _collect_hrus(
       'id': np.int64(0),
       'init_boden': np.float64(50.0),
       'init_gwn': np.float64(0.0),
-      'landtype': 'NADELWALD',
+      'landtype': 'CONIFER',
       'nfk_faktor': np.float64(1.0),
       'nfk_offset': np.float64(0.0),
       'row': np.int64(1),
-      'soiltype': 'TON',
+      'soiltype': 'CLAY',
       'verzoegerung': np.float64(5.0),
       'x': np.float64(3455523.97),
       'y': np.float64(5567807.03),
@@ -263,11 +263,11 @@ def _collect_hrus(
       'id': np.int64(0),
       'init_boden': np.float64(50.0),
       'init_gwn': np.float64(0.0),
-      'landtype': 'LAUBWALD',
+      'landtype': 'DECIDIOUS',
       'nfk_faktor': np.float64(1.0),
       'nfk_offset': np.float64(0.0),
       'row': np.int64(1),
-      'soiltype': 'TON',
+      'soiltype': 'CLAY',
       'verzoegerung': np.float64(5.0),
       'x': np.float64(3455523.97),
       'y': np.float64(5567807.03),
@@ -1077,7 +1077,7 @@ occurred: Integer column has NA values in column 1
 
     Empty string cell:
 
-    >>> check("TON", "")  # doctest: +ELLIPSIS
+    >>> check("CLAY", "")  # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
     ValueError: While trying to read the file `...Node_Data.csv`, the following error \
@@ -1246,23 +1246,23 @@ def read_root_depth(root_depth_option: str, basedir: str) -> dict[str, float]:
     >>> basedir = TestIO.copy_dir_from_data_to_iotesting("WHMod")
     >>> from pprint import pprint
     >>> pprint(read_root_depth(root_depth_option="WABOA", basedir=basedir))
-    {'gras': np.float64(0.6),
-     'laubwald': np.float64(1.5),
-     'mais': np.float64(1.0),
-     'nadelwald': np.float64(1.9),
-     'sommerweizen': np.float64(1.0),
-     'winterweizen': np.float64(1.0),
-     'zuckerrueben': np.float64(1.0)}
+    {'conifer': np.float64(1.9),
+     'corn': np.float64(1.0),
+     'decidious': np.float64(1.5),
+     'gras': np.float64(0.6),
+     'springwheat': np.float64(1.0),
+     'sugarbeets': np.float64(1.0),
+     'winterwheat': np.float64(1.0)}
 
 
     >>> pprint(read_root_depth(root_depth_option="max_root_depth.txt", basedir=basedir))
-    {'gras': np.float64(0.6),
-     'laubwald': np.float64(1.5),
-     'mais': np.float64(1.0),
-     'nadelwald': np.float64(1.5),
-     'sommerweizen': np.float64(1.0),
-     'winterweizen': np.float64(1.0),
-     'zuckerrueben': np.float64(0.8)}
+    {'conifer': np.float64(1.5),
+     'corn': np.float64(1.0),
+     'decidious': np.float64(1.5),
+     'gras': np.float64(0.6),
+     'springwheat': np.float64(1.0),
+     'sugarbeets': np.float64(0.8),
+     'winterwheat': np.float64(1.0)}
 
     >>> read_root_depth(root_depth_option="max_root_depth_wrong1.txt", basedir=basedir)
     Traceback (most recent call last):
@@ -1274,9 +1274,9 @@ def read_root_depth(root_depth_option: str, basedir: str) -> dict[str, float]:
     Traceback (most recent call last):
     ...
     ValueError:
-    In der Datei zur Wurzeltiefe wurde ein Wert für 'mischwald' definiert, der nicht \
-zu den Basislandnutzungsklassen gehört
-    In der Datei zur Wurzeltiefe wurde kein Wert für 'mais' definiert
+    In der Datei zur Wurzeltiefe wurde ein Wert für 'mixed' definiert, der nicht zu \
+den Basislandnutzungsklassen gehört
+    In der Datei zur Wurzeltiefe wurde kein Wert für 'corn' definiert
 
     >>> read_root_depth(root_depth_option="test.txt", basedir=basedir)
     Traceback (most recent call last):
@@ -1288,12 +1288,12 @@ enthalten.
     predefined_root_depth = pandas.DataFrame(
         index=[
             "gras",
-            "laubwald",
-            "nadelwald",
-            "mais",
-            "sommerweizen",
-            "winterweizen",
-            "zuckerrueben",
+            "decidious",
+            "conifer",
+            "corn",
+            "springwheat",
+            "winterwheat",
+            "sugarbeets",
         ],
         columns=["BK", "WABOA", "TGU", "DARMSTADT"],
         data=[
@@ -1525,14 +1525,14 @@ def _initialize_whmod_models(
         # fmt: off
         con.maxinterz(
             gras=[0.4, 0.4, 0.6, 0.8, 1.0, 1.0, 1.0, 1.0, 1.0, 0.6, 0.5, 0.4],
-            laubwald=[0.1, 0.1, 0.3, 0.8, 1.4, 2.2, 2.4, 2.4, 2.2, 1.6, 0.3, 0.1],
-            mais=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04, 0.92, 0.62, 0.26, 0.04, 0.0, 0.0],
-            nadelwald=[2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2],
-            sommerweizen=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04, 0.92, 0.62, 0.26, 0.04, 0.0, 0.0],  # pylint: disable=line-too-long
-            winterweizen=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04, 0.92, 0.62, 0.26, 0.04, 0.0, 0.0],  # pylint: disable=line-too-long
-            zuckerrueben=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04, 0.92, 0.62, 0.26, 0.04, 0.0, 0.0],  # pylint: disable=line-too-long
-            versiegelt=[2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0],
-            wasser=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            decidious=[0.1, 0.1, 0.3, 0.8, 1.4, 2.2, 2.4, 2.4, 2.2, 1.6, 0.3, 0.1],
+            corn=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04, 0.92, 0.62, 0.26, 0.04, 0.0, 0.0],
+            conifer=[2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.2],
+            springwheat=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04, 0.92, 0.62, 0.26, 0.04, 0.0, 0.0],  # pylint: disable=line-too-long
+            winterwheat=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04, 0.92, 0.62, 0.26, 0.04, 0.0, 0.0],  # pylint: disable=line-too-long
+            sugarbeets=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04, 0.92, 0.62, 0.26, 0.04, 0.0, 0.0],  # pylint: disable=line-too-long
+            sealed=[2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0],
+            water=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
         )
         # fmt: on
 
@@ -1548,20 +1548,22 @@ def _initialize_whmod_models(
         ackerland = [0.733, 0.733, 0.774, 0.947, 1.188, 1.181, 1.185, 1.151, 0.974, 0.853, 0.775, 0.733]  # pylint: disable=line-too-long
         con.fln(
             gras=1.0,  # DWA-M 504
-            laubwald=[1.003, 1.003, 1.053, 1.179, 1.114, 1.227, 1.241, 1.241, 1.241, 1.139, 1.082, 1.003],  # DWA-M 504  # pylint: disable=line-too-long
-            mais=ackerland,
-            nadelwald=1.335,  # DWA-M 504
-            sommerweizen=ackerland,
-            winterweizen=ackerland,
-            zuckerrueben=ackerland,
-            versiegelt=0.0,
-            wasser=[1.165, 1.217, 1.256, 1.283, 1.283, 1.296, 1.283, 1.283, 1.270, 1.230, 1.165, 1.139],  # pylint: disable=line-too-long
+            decidious=[1.003, 1.003, 1.053, 1.179, 1.114, 1.227, 1.241, 1.241, 1.241, 1.139, 1.082, 1.003],  # DWA-M 504  # pylint: disable=line-too-long
+            corn=ackerland,
+            conifer=1.335,  # DWA-M 504
+            springwheat=ackerland,
+            winterwheat=ackerland,
+            sugarbeets=ackerland,
+            sealed=0.0,
+            water=[1.165, 1.217, 1.256, 1.283, 1.283, 1.296, 1.283, 1.283, 1.270, 1.230, 1.165, 1.139],  # pylint: disable=line-too-long
         )  # DWA-M 504
         # fmt: on
 
         con.zonearea(_query_vector_from_hrus(hrus, "zonearea"))
         con.degreedayfactor(float(day_degree_factor))
-        availablefieldcapacity = numpy.asarray(_query_vector_from_hrus(hrus, "availablefieldcapacity"))
+        availablefieldcapacity = numpy.asarray(
+            _query_vector_from_hrus(hrus, "availablefieldcapacity")
+        )
         nfk_faktor = numpy.asarray(_query_vector_from_hrus(hrus, "nfk_faktor"))
         nfk_offset = numpy.asarray(_query_vector_from_hrus(hrus, "nfk_offset"))
         con.availablefieldcapacity((availablefieldcapacity * nfk_faktor) + nfk_offset)
@@ -1570,18 +1572,18 @@ def _initialize_whmod_models(
         con.rootingdepth(**root_depth)
         con.minhasr(
             gras=4.0,
-            laubwald=6.0,
-            mais=3.0,
-            nadelwald=6.0,
-            sommerweizen=6.0,
-            winterweizen=6.0,
-            zuckerrueben=6.0,
+            decidious=6.0,
+            corn=3.0,
+            conifer=6.0,
+            springwheat=6.0,
+            winterwheat=6.0,
+            sugarbeets=6.0,
         )
         con.capillarythreshold(
-            sand=0.8, sand_bindig=1.4, lehm=1.4, ton=1.35, schluff=1.75, torf=0.85
+            sand=0.8, sand_cohesive=1.4, loam=1.4, clay=1.35, silt=1.75, peat=0.85
         )
         con.capillarylimit(
-            sand=0.4, sand_bindig=0.85, lehm=0.45, ton=0.25, schluff=0.75, torf=0.55
+            sand=0.4, sand_cohesive=0.85, loam=0.45, clay=0.25, silt=0.75, peat=0.55
         )
         con.baseflowindex(_query_vector_from_hrus(hrus, "baseflowindex"))
 

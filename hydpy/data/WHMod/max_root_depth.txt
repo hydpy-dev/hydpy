@@ -2,9 +2,9 @@
 # Nadelwald, Mais, Sommerweizen, Winterweizen und Zuckerrüben. Für Wasser und
 # versiegelte Flächen wird keine Durchwurzelungstiefe berücksichtigt.
 GRAS=0.6
-LAUBWALD=1.5
-NADELWALD=1.5
-MAIS=1.0
-SOMMERWEIZEN=1.0
-WINTERWEIZEN=1.0
-ZUCKERRUEBEN=0.8
+DECIDIOUS=1.5
+CONIFER=1.5
+CORN=1.0
+SPRINGWHEAT=1.0
+WINTERWHEAT=1.0
+SUGARBEETS=0.8

@@ -2,34 +2,34 @@ from hydpy.core import parametertools
 
 GRAS = parametertools.IntConstant(1)
 """WHMod: 0"""
-LAUBWALD = parametertools.IntConstant(2)
+DECIDIOUS = parametertools.IntConstant(2)
 """WHMod: 1"""
-MAIS = parametertools.IntConstant(3)
+CORN = parametertools.IntConstant(3)
 """WHMod: 2"""
-NADELWALD = parametertools.IntConstant(4)
+CONIFER = parametertools.IntConstant(4)
 """WHMod: 3"""
-SOMMERWEIZEN = parametertools.IntConstant(5)
+SPRINGWHEAT = parametertools.IntConstant(5)
 """WHMod: 4"""
-WINTERWEIZEN = parametertools.IntConstant(6)
+WINTERWHEAT = parametertools.IntConstant(6)
 """WHMod: 5"""
-ZUCKERRUEBEN = parametertools.IntConstant(7)
+SUGARBEETS = parametertools.IntConstant(7)
 """WHMod: 6"""
-VERSIEGELT = parametertools.IntConstant(8)
+SEALED = parametertools.IntConstant(8)
 """WHMod: 7"""
-WASSER = parametertools.IntConstant(9)
+WATER = parametertools.IntConstant(9)
 """WHMod: 8"""
 
 SAND = parametertools.IntConstant(10)
-SAND_BINDIG = parametertools.IntConstant(11)
-LEHM = parametertools.IntConstant(12)
-TON = parametertools.IntConstant(13)
-SCHLUFF = parametertools.IntConstant(14)
-TORF = parametertools.IntConstant(15)
+SAND_COHESIVE = parametertools.IntConstant(11)
+LOAM = parametertools.IntConstant(12)
+CLAY = parametertools.IntConstant(13)
+SILT = parametertools.IntConstant(14)
+PEAT = parametertools.IntConstant(15)
 
 
 CONSTANTS: parametertools.Constants = parametertools.Constants()
 LANDUSE_CONSTANTS: parametertools.Constants = parametertools.Constants(
-    **{key: value for key, value in CONSTANTS.items() if value <= WASSER}
+    **{key: value for key, value in CONSTANTS.items() if value <= WATER}
 )
 SOIL_CONSTANTS: parametertools.Constants = parametertools.Constants(
     **{key: value for key, value in CONSTANTS.items() if value >= SAND}
@@ -38,18 +38,18 @@ SOIL_CONSTANTS: parametertools.Constants = parametertools.Constants(
 # Make only the constants available on wildcard-imports.
 __all__ = [
     "GRAS",
-    "LAUBWALD",
-    "MAIS",
-    "NADELWALD",
-    "SOMMERWEIZEN",
-    "WINTERWEIZEN",
-    "ZUCKERRUEBEN",
-    "VERSIEGELT",
-    "WASSER",
+    "DECIDIOUS",
+    "CORN",
+    "CONIFER",
+    "SPRINGWHEAT",
+    "WINTERWHEAT",
+    "SUGARBEETS",
+    "SEALED",
+    "WATER",
     "SAND",
-    "SAND_BINDIG",
-    "LEHM",
-    "TON",
-    "SCHLUFF",
-    "TORF",
+    "SAND_COHESIVE",
+    "LOAM",
+    "CLAY",
+    "SILT",
+    "PEAT",
 ]

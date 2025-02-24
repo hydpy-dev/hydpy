@@ -18,7 +18,7 @@ class Factor1DSequence(sequencetools.FactorSequence):
     >>> from hydpy.models.whmod import *
     >>> parameterstep("1d")
     >>> nmbzones(5)
-    >>> landtype(GRAS, WASSER, SOMMERWEIZEN, LAUBWALD, VERSIEGELT)
+    >>> landtype(GRAS, WATER, SPRINGWHEAT, DECIDIOUS, SEALED)
     >>> zonearea(10.0, 20.0, 30.0, 35.0, 5.0)
     >>> area(100.0)
     >>> derived.zoneratio.update()
@@ -46,7 +46,7 @@ class Flux1DSequence(sequencetools.FluxSequence):
     >>> from hydpy.models.whmod import *
     >>> parameterstep("1d")
     >>> nmbzones(5)
-    >>> landtype(GRAS, WASSER, SOMMERWEIZEN, LAUBWALD, VERSIEGELT)
+    >>> landtype(GRAS, WATER, SPRINGWHEAT, DECIDIOUS, SEALED)
     >>> zonearea(10.0, 20.0, 30.0, 35.0, 5.0)
     >>> area(100.0)
     >>> derived.zoneratio.update()
@@ -74,7 +74,7 @@ class State1DSequence(sequencetools.StateSequence):
     >>> from hydpy.models.whmod import *
     >>> parameterstep("1d")
     >>> nmbzones(5)
-    >>> landtype(GRAS, WASSER, SOMMERWEIZEN, LAUBWALD, VERSIEGELT)
+    >>> landtype(GRAS, WATER, SPRINGWHEAT, DECIDIOUS, SEALED)
     >>> zonearea(10.0, 20.0, 30.0, 35.0, 5.0)
     >>> area(100.0)
     >>> derived.zoneratio.update()

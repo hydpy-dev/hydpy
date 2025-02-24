@@ -98,7 +98,7 @@ class Calc_Seeniederschlag_V1(modeltools.Method):
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(3)
-    >>> landtype(GRAS, VERSIEGELT, WASSER)
+    >>> landtype(GRAS, SEALED, WATER)
     >>> fluxes.niederschlagrichter = 2.0
     >>> model.calc_seeniederschlag_v1()
     >>> fluxes.seeniederschlag
@@ -114,7 +114,7 @@ class Calc_Seeniederschlag_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            if con.landtype[k] == WASSER:
+            if con.landtype[k] == WATER:
                 flu.seeniederschlag[k] = flu.niederschlagrichter
             else:
                 flu.seeniederschlag[k] = 0.0
@@ -126,24 +126,24 @@ class Calc_Interzeptionsspeicher_V1(modeltools.Method):
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(6)
-    >>> landtype(LAUBWALD)
+    >>> landtype(DECIDIOUS)
     >>> maxinterz(gras=[0.4, 0.4, 0.6, 0.8, 1.0, 1.0,
     ...                 1.0, 1.0, 1.0, 0.6, 0.5, 0.4],
-    ...           laubwald=[0.1, 0.1, 0.3, 0.8, 1.4, 2.2,
+    ...           decidious=[0.1, 0.1, 0.3, 0.8, 1.4, 2.2,
     ...                     2.4, 2.4, 2.2, 1.6, 0.3, 0.1],
-    ...           mais=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
+    ...           corn=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
     ...                 0.92, 0.62, 0.26, 0.04, 0.0, 0.0],
-    ...           nadelwald=[2.2, 2.2, 2.2, 2.2, 2.2, 2.2,
+    ...           conifer=[2.2, 2.2, 2.2, 2.2, 2.2, 2.2,
     ...                      2.2, 2.2, 2.2, 2.2, 2.2, 2.2],
-    ...           sommerweizen=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
+    ...           springwheat=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
     ...                         0.92, 0.62, 0.26, 0.04, 0.0, 0.0],
-    ...           winterweizen=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
+    ...           winterwheat=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
     ...                         0.92, 0.62, 0.26, 0.04, 0.0, 0.0],
-    ...           zuckerrueben=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
+    ...           sugarbeets=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
     ...                         0.92, 0.62, 0.26, 0.04, 0.0, 0.0],
-    ...           versiegelt=[2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+    ...           sealed=[2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
     ...                       2.0, 2.0, 2.0, 2.0, 2.0, 2.0],
-    ...           wasser=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    ...           water=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
     ...                   0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
     >>> from hydpy import pub
@@ -194,7 +194,7 @@ class Calc_Interzeptionsspeicher_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         month = der.moy[model.idx_sim]
         for k in range(con.nmbzones):
-            if con.landtype[k] == WASSER:
+            if con.landtype[k] == WATER:
                 sta.interzeptionsspeicher[k] = 0.0
                 flu.niednachinterz[k] = flu.niederschlagrichter
                 flu.interzeptionsverdunstung[k] = 0.0
@@ -217,7 +217,7 @@ class Calc_Oberflaechenabfluss_V1(modeltools.Method):
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(3)
-    >>> landtype(VERSIEGELT, WASSER, GRAS)
+    >>> landtype(SEALED, WATER, GRAS)
     >>> fluxes.niednachinterz = 3.0
     >>> model.calc_oberflaechenabfluss_v1()
     >>> fluxes.oberflaechenabfluss
@@ -233,7 +233,7 @@ class Calc_Oberflaechenabfluss_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            if con.landtype[k] == VERSIEGELT:
+            if con.landtype[k] == SEALED:
                 flu.oberflaechenabfluss[k] = flu.niednachinterz[k]
             else:
                 flu.oberflaechenabfluss[k] = 0.0
@@ -269,7 +269,7 @@ class Calc_ZuflussBoden_V1(modeltools.Method):
     |   5 |     3.0 | 0.0             0.0 | 3.0          13.0 |
     |   6 |     4.0 | 0.0             0.0 | 3.0          13.0 |
 
-    >>> landtype(VERSIEGELT, WASSER)
+    >>> landtype(SEALED, WATER)
     >>> states.schneespeicher = 5.0
     >>> fluxes.niednachinterz = 2.0
     >>> model.calc_zuflussboden_v1()
@@ -295,7 +295,7 @@ class Calc_ZuflussBoden_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
-            if con.landtype[k] in (VERSIEGELT, WASSER):
+            if con.landtype[k] in (SEALED, WATER):
                 sta.schneespeicher[k] = 0.0
                 flu.zuflussboden[k] = 0.0
             elif inp.temp_tm > 0.0:
@@ -314,8 +314,8 @@ class Calc_RelBodenfeuchte_V1(modeltools.Method):
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(9)
-    >>> landtype(GRAS, LAUBWALD, MAIS, NADELWALD, SOMMERWEIZEN, WINTERWEIZEN,
-    ...         ZUCKERRUEBEN, VERSIEGELT, WASSER)
+    >>> landtype(GRAS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT,
+    ...         SUGARBEETS, SEALED, WATER)
     >>> derived.maxsoilwater(200.0)
     >>> states.aktbodenwassergehalt(100.0)
     >>> model.calc_relbodenfeuchte_v1()
@@ -336,10 +336,12 @@ class Calc_RelBodenfeuchte_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
-            if (con.landtype[k] in (WASSER, VERSIEGELT)) or (der.maxsoilwater[k] <= 0.0):
+            if (con.landtype[k] in (WATER, SEALED)) or (der.maxsoilwater[k] <= 0.0):
                 fac.relbodenfeuchte[k] = 0.0
             else:
-                fac.relbodenfeuchte[k] = sta.aktbodenwassergehalt[k] / der.maxsoilwater[k]
+                fac.relbodenfeuchte[k] = (
+                    sta.aktbodenwassergehalt[k] / der.maxsoilwater[k]
+                )
 
 
 class Calc_Sickerwasser_V1(modeltools.Method):
@@ -348,8 +350,8 @@ class Calc_Sickerwasser_V1(modeltools.Method):
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(9)
-    >>> landtype(GRAS, LAUBWALD, MAIS, NADELWALD, SOMMERWEIZEN, WINTERWEIZEN,
-    ...         ZUCKERRUEBEN, VERSIEGELT, WASSER)
+    >>> landtype(GRAS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT,
+    ...         SUGARBEETS, SEALED, WATER)
     >>> derived.beta(2.0)
     >>> fluxes.zuflussboden(10.0)
     >>> factors.relbodenfeuchte(0.5)
@@ -370,7 +372,7 @@ class Calc_Sickerwasser_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            if con.landtype[k] in (VERSIEGELT, WASSER):
+            if con.landtype[k] in (SEALED, WATER):
                 flu.sickerwasser[k] = 0.0
             else:
                 flu.sickerwasser[k] = (
@@ -387,23 +389,23 @@ class Calc_MaxVerdunstung_V1(modeltools.Method):
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(5)
-    >>> landtype(LAUBWALD, NADELWALD, GRAS, WASSER, VERSIEGELT)
+    >>> landtype(DECIDIOUS, CONIFER, GRAS, WATER, SEALED)
     >>> fln(gras=[0.804, 0.927, 1.014, 1.041, 1.059, 1.056,
     ...           1.038, 0.999, 0.977, 0.965, 0.989, 0.927],
-    ...     laubwald=[1.003, 1.003, 1.053, 1.179, 1.114, 1.227,
+    ...     decidious=[1.003, 1.003, 1.053, 1.179, 1.114, 1.227,
     ...               1.241, 1.241, 1.241, 1.139, 1.082, 1.003],
-    ...     mais=[0.733, 0.733, 0.774, 0.947, 1.188, 1.181,
+    ...     corn=[0.733, 0.733, 0.774, 0.947, 1.188, 1.181,
     ...           1.185, 1.151, 0.974, 0.853, 0.775, 0.733],
-    ...     nadelwald=[1.335, 1.335, 1.335, 1.335, 1.307, 1.321,
+    ...     conifer=[1.335, 1.335, 1.335, 1.335, 1.307, 1.321,
     ...                1.335, 1.335, 1.335, 1.335, 1.335, 1.335],
-    ...     sommerweizen=[0.733, 0.733, 0.774, 0.947, 1.188, 1.181,
+    ...     springwheat=[0.733, 0.733, 0.774, 0.947, 1.188, 1.181,
     ...                   1.185, 1.151, 0.974, 0.853, 0.775, 0.733],
-    ...     winterweizen=[0.733, 0.733, 0.774, 0.947, 1.188, 1.181,
+    ...     winterwheat=[0.733, 0.733, 0.774, 0.947, 1.188, 1.181,
     ...                   1.185, 1.151, 0.974, 0.853, 0.775, 0.733],
-    ...     zuckerrueben=[0.733, 0.733, 0.774, 0.947, 1.188, 1.181,
+    ...     sugarbeets=[0.733, 0.733, 0.774, 0.947, 1.188, 1.181,
     ...                   1.185, 1.151, 0.974, 0.853, 0.775, 0.733],
-    ...     versiegelt=0.0,
-    ...     wasser=[1.165, 1.217, 1.256, 1.283, 1.283, 1.296,
+    ...     sealed=0.0,
+    ...     water=[1.165, 1.217, 1.256, 1.283, 1.283, 1.296,
     ...             1.283, 1.283, 1.270, 1.230, 1.165, 1.139])
 
     >>> from hydpy import pub
@@ -449,7 +451,7 @@ class Calc_Bodenverdunstung_V1(modeltools.Method):
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(7)
-    >>> landtype(GRAS, GRAS, GRAS, GRAS, GRAS, VERSIEGELT, WASSER)
+    >>> landtype(GRAS, GRAS, GRAS, GRAS, GRAS, SEALED, WATER)
     >>> minhasr(3.0)
     >>> fluxes.maxverdunstung = 2.0
     >>> factors.relbodenfeuchte = 0.0, 0.25, 0.5, 0.75, 1.0, 0.5, 0.5
@@ -477,7 +479,7 @@ class Calc_Bodenverdunstung_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            if con.landtype[k] in (VERSIEGELT, WASSER):
+            if con.landtype[k] in (SEALED, WATER):
                 flu.bodenverdunstung[k] = 0.0
             else:
                 d_temp = modelutils.exp(-con.minhasr[k] * fac.relbodenfeuchte[k])
@@ -494,7 +496,7 @@ class Corr_Bodenverdunstung_V1(modeltools.Method):
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(7)
-    >>> landtype(GRAS, GRAS, GRAS, GRAS, GRAS, WASSER, VERSIEGELT)
+    >>> landtype(GRAS, GRAS, GRAS, GRAS, GRAS, WATER, SEALED)
     >>> fluxes.maxverdunstung = 2.0
     >>> fluxes.interzeptionsverdunstung = 0.0, 0.5, 1.0, 1.5, 2.0, 2.0, 2.0
     >>> fluxes.bodenverdunstung = 1.0
@@ -526,7 +528,7 @@ class Corr_Bodenverdunstung_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            if con.landtype[k] in (VERSIEGELT, WASSER):
+            if con.landtype[k] in (SEALED, WATER):
                 flu.bodenverdunstung[k] = 0.0
             elif flu.maxverdunstung[k] <= flu.interzeptionsverdunstung[k]:
                 flu.bodenverdunstung[k] = 0.0
@@ -542,7 +544,7 @@ class Calc_Seeverdunstung_V1(modeltools.Method):
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(3)
-    >>> landtype(GRAS, VERSIEGELT, WASSER)
+    >>> landtype(GRAS, SEALED, WATER)
     >>> fluxes.maxverdunstung = 2.0
     >>> model.calc_seeverdunstung_v1()
     >>> fluxes.seeverdunstung
@@ -558,7 +560,7 @@ class Calc_Seeverdunstung_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            if con.landtype[k] == WASSER:
+            if con.landtype[k] == WATER:
                 flu.seeverdunstung[k] = flu.maxverdunstung[k]
             else:
                 flu.seeverdunstung[k] = 0.0
@@ -607,12 +609,12 @@ class Calc_PotKapilAufstieg_V1(modeltools.Method):
     >>> nmbzones(6)
     >>> landtype(GRAS)
     >>> capillaryrise(True)
-    >>> soiltype(SAND, SAND_BINDIG, LEHM, TON, SCHLUFF, TORF)
+    >>> soiltype(SAND, SAND_COHESIVE, LOAM, CLAY, SILT, PEAT)
     >>> groundwaterdepth(0.0)   # ToDo: shouldn't be necessary
-    >>> capillarythreshold(sand=0.8, sand_bindig=1.4, lehm=1.4,
-    ...                  ton=1.35, schluff=1.75, torf=0.85)
-    >>> capillarylimit(sand=0.4, sand_bindig=0.85, lehm=0.45,
-    ...                ton=0.25, schluff=0.75, torf=0.55)
+    >>> capillarythreshold(sand=0.8, sand_cohesive=1.4, loam=1.4,
+    ...                  clay=1.35, silt=1.75, peat=0.85)
+    >>> capillarylimit(sand=0.4, sand_cohesive=0.85, loam=0.45,
+    ...                clay=0.25, silt=0.75, peat=0.55)
     >>> derived.soildepth(0.0)
 
     >>> from hydpy import UnitTest
@@ -694,13 +696,13 @@ class Calc_PotKapilAufstieg_V1(modeltools.Method):
     |  30 | 2.9  2.9  2.9  2.9  2.9               2.9 |  0.0       0.0       0.0       0.0   0.0               0.0 |
     |  31 | 3.0  3.0  3.0  3.0  3.0               3.0 |  0.0       0.0       0.0       0.0   0.0               0.0 |
 
-    >>> landtype(VERSIEGELT)
+    >>> landtype(SEALED)
     >>> test(last_example=1)
     | ex. |                          groundwaterdepth |                          potkapilaufstieg |
     -----------------------------------------------------------------------------------------------
     |   1 | 0.0  0.0  0.0  0.0  0.0               0.0 | 0.0  0.0  0.0  0.0  0.0               0.0 |
 
-    >>> landtype(WASSER)
+    >>> landtype(WATER)
     >>> test(last_example=1)
     | ex. |                          groundwaterdepth |                          potkapilaufstieg |
     -----------------------------------------------------------------------------------------------
@@ -731,9 +733,7 @@ class Calc_PotKapilAufstieg_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            if con.capillaryrise and (
-                con.landtype[k] not in (VERSIEGELT, WASSER)
-            ):
+            if con.capillaryrise and (con.landtype[k] not in (SEALED, WATER)):
                 d_schwell = con.capillarythreshold[k]
                 d_grenz = con.capillarylimit[k]
                 if con.groundwaterdepth[k] > (der.soildepth[k] + d_schwell):
@@ -756,7 +756,7 @@ class Calc_KapilAufstieg_V1(modeltools.Method):
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(7)
-    >>> landtype(GRAS, GRAS, GRAS, GRAS, GRAS, VERSIEGELT, WASSER)
+    >>> landtype(GRAS, GRAS, GRAS, GRAS, GRAS, SEALED, WATER)
     >>> capillaryrise(True)
     >>> factors.relbodenfeuchte(0.0, 0.25, 0.5, 0.75, 1.0, 0.0, 0.0)
     >>> fluxes.potkapilaufstieg(2.0)
@@ -784,9 +784,7 @@ class Calc_KapilAufstieg_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            if con.capillaryrise and (
-                con.landtype[k] not in (VERSIEGELT, WASSER)
-            ):
+            if con.capillaryrise and (con.landtype[k] not in (SEALED, WATER)):
                 flu.kapilaufstieg[k] = (
                     flu.potkapilaufstieg[k] * (1.0 - fac.relbodenfeuchte[k]) ** 3
                 )
@@ -815,7 +813,7 @@ class Calc_AktBodenwassergehalt_V1(modeltools.Method):
     >>> fluxes.kapilaufstieg
     kapilaufstieg(3.0, 3.0, 3.0, 4.0, 2.0)
 
-    >>> landtype(WASSER, WASSER, WASSER, VERSIEGELT, VERSIEGELT)
+    >>> landtype(WATER, WATER, WATER, SEALED, SEALED)
     >>> fluxes.bodenverdunstung(0.0, 5.0, 10.0, 5.0, 5.0)
     >>> model.calc_aktbodenwassergehalt_v1()
     >>> states.aktbodenwassergehalt
@@ -843,7 +841,7 @@ class Calc_AktBodenwassergehalt_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
-            if con.landtype[k] in (VERSIEGELT, WASSER):
+            if con.landtype[k] in (SEALED, WATER):
                 sta.aktbodenwassergehalt[k] = 0.0
             else:
                 sta.aktbodenwassergehalt[k] += (
@@ -856,7 +854,9 @@ class Calc_AktBodenwassergehalt_V1(modeltools.Method):
                     flu.sickerwasser[k] += sta.aktbodenwassergehalt[k]
                     sta.aktbodenwassergehalt[k] = 0.0
                 elif sta.aktbodenwassergehalt[k] > der.maxsoilwater[k]:
-                    flu.kapilaufstieg[k] += der.maxsoilwater[k] - sta.aktbodenwassergehalt[k]
+                    flu.kapilaufstieg[k] += (
+                        der.maxsoilwater[k] - sta.aktbodenwassergehalt[k]
+                    )
                     sta.aktbodenwassergehalt[k] = der.maxsoilwater[k]
 
 
@@ -866,7 +866,7 @@ class Calc_PotGrundwasserneubildung_V1(modeltools.Method):
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(3)
-    >>> landtype(GRAS, VERSIEGELT, WASSER)
+    >>> landtype(GRAS, SEALED, WATER)
     >>> fluxes.sickerwasser(2.0)
     >>> fluxes.kapilaufstieg(1.0)
     >>> fluxes.seeniederschlag(7.0)
@@ -890,11 +890,11 @@ class Calc_PotGrundwasserneubildung_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            if con.landtype[k] == WASSER:
+            if con.landtype[k] == WATER:
                 flu.potgrundwasserneubildung[k] = (
                     flu.seeniederschlag[k] - flu.seeverdunstung[k]
                 )
-            elif con.landtype[k] == VERSIEGELT:
+            elif con.landtype[k] == SEALED:
                 flu.potgrundwasserneubildung[k] = 0.0
             else:
                 flu.potgrundwasserneubildung[k] = (
@@ -928,7 +928,7 @@ class Calc_Basisabfluss_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            if con.landtype[k] == VERSIEGELT:
+            if con.landtype[k] == SEALED:
                 flu.basisabfluss[k] = 0.0
             else:
                 flu.basisabfluss[k] = max(
@@ -1112,7 +1112,7 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         >>> parameterstep()
         >>> nmbzones(5)
         >>> area(10.0)
-        >>> landtype(GRAS, LAUBWALD, NADELWALD, WASSER, VERSIEGELT)
+        >>> landtype(GRAS, DECIDIOUS, CONIFER, WATER, SEALED)
         >>> zonearea(4.0, 1.0, 1.0, 1.0, 3.0)
         >>> derived.maxsoilwater(200.0)
         >>> with model.add_aetmodel_v1("evap_aet_minhas"):
@@ -1121,17 +1121,17 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         ...     water
         ...     interception
         ...     soil
-        ...     dissefactor(gras=1.0, laubwald=2.0, default=3.0)
+        ...     dissefactor(gras=1.0, decidious=2.0, default=3.0)
         ...     for method, arguments in model.preparemethod2arguments.items():
         ...         print(method, arguments[0][0], sep=": ")
         nmbhru(5)
         area(10.0)
-        water(gras=False, laubwald=False, nadelwald=False, versiegelt=False,
-              wasser=True)
-        interception(gras=True, laubwald=True, nadelwald=True,
-                     versiegelt=False, wasser=False)
-        soil(gras=True, laubwald=True, nadelwald=True, versiegelt=False,
-             wasser=False)
+        water(conifer=False, decidious=False, gras=False, sealed=False,
+              water=True)
+        interception(conifer=True, decidious=True, gras=True, sealed=False,
+                     water=False)
+        soil(conifer=True, decidious=True, gras=True, sealed=False,
+             water=False)
         prepare_nmbzones: 5
         prepare_zonetypes: [1 2 4 9 8]
         prepare_subareas: [4. 1. 1. 1. 3.]
@@ -1145,10 +1145,10 @@ class Main_AETModel_V1(modeltools.AdHocModel):
 
         >>> df = model.aetmodel.parameters.control.dissefactor
         >>> df
-        dissefactor(gras=1.0, laubwald=2.0, nadelwald=3.0)
-        >>> landtype(LAUBWALD, GRAS, NADELWALD, WASSER, VERSIEGELT)
+        dissefactor(conifer=3.0, decidious=2.0, gras=1.0)
+        >>> landtype(DECIDIOUS, GRAS, CONIFER, WATER, SEALED)
         >>> df
-        dissefactor(gras=2.0, laubwald=1.0, nadelwald=3.0)
+        dissefactor(conifer=3.0, decidious=1.0, gras=2.0)
         >>> from hydpy import round_
         >>> round_(df.average_values())
         1.5
@@ -1163,17 +1163,17 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         aetmodel.prepare_zonetypes(landtype)
         aetmodel.prepare_subareas(control.zonearea.value)
         sel = numpy.full(hydrotopes, False, dtype=config.NP_BOOL)
-        sel[landtype == WASSER] = True
+        sel[landtype == WATER] = True
         aetmodel.prepare_water(sel)
         sel = ~sel
-        sel[landtype == VERSIEGELT] = False
+        sel[landtype == SEALED] = False
         aetmodel.prepare_interception(sel)
         aetmodel.prepare_soil(sel)
         aetmodel.prepare_plant(sel)
         sel[:] = False
-        sel[landtype == NADELWALD] = True
+        sel[landtype == CONIFER] = True
         aetmodel.prepare_conifer(sel)
-        sel[landtype == LAUBWALD] = True
+        sel[landtype == DECIDIOUS] = True
         aetmodel.prepare_tree(sel)
 
         aetmodel.prepare_maxsoilwater(derived.maxsoilwater.values)

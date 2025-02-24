@@ -23,14 +23,14 @@ class NutzComplete(NutzBase):
 
     relevant: tuple[parametertools.IntConstant, ...] = (
         GRAS,
-        LAUBWALD,
-        MAIS,
-        NADELWALD,
-        SOMMERWEIZEN,
-        WINTERWEIZEN,
-        ZUCKERRUEBEN,
-        VERSIEGELT,
-        WASSER,
+        DECIDIOUS,
+        CORN,
+        CONIFER,
+        SPRINGWHEAT,
+        WINTERWHEAT,
+        SUGARBEETS,
+        SEALED,
+        WATER,
     )
 
 
@@ -39,13 +39,13 @@ class NutzLand(NutzBase):
 
     relevant: tuple[parametertools.IntConstant, ...] = (
         GRAS,
-        LAUBWALD,
-        MAIS,
-        NADELWALD,
-        SOMMERWEIZEN,
-        WINTERWEIZEN,
-        ZUCKERRUEBEN,
-        VERSIEGELT,
+        DECIDIOUS,
+        CORN,
+        CONIFER,
+        SPRINGWHEAT,
+        WINTERWHEAT,
+        SUGARBEETS,
+        SEALED,
     )
 
 
@@ -54,12 +54,12 @@ class NutzBoden(NutzBase):
 
     relevant: tuple[parametertools.IntConstant, ...] = (
         GRAS,
-        LAUBWALD,
-        MAIS,
-        NADELWALD,
-        SOMMERWEIZEN,
-        WINTERWEIZEN,
-        ZUCKERRUEBEN,
+        DECIDIOUS,
+        CORN,
+        CONIFER,
+        SPRINGWHEAT,
+        WINTERWHEAT,
+        SUGARBEETS,
     )
 
 
@@ -72,55 +72,55 @@ class NutzGras(NutzBase):
 class NutzLaubwald(NutzBase):
     """Laubwald Nutzungsklasse"""
 
-    relevant = (LAUBWALD,)
+    relevant = (DECIDIOUS,)
 
 
 class NutzMais(NutzBase):
     """Mais Nutzungsklasse"""
 
-    relevant = (MAIS,)
+    relevant = (CORN,)
 
 
 class NutzNadelwald(NutzBase):
     """Nadelwald Nutzungsklasse"""
 
-    relevant = (NADELWALD,)
+    relevant = (CONIFER,)
 
 
 class NutzSommerweizen(NutzBase):
     """Sommerweizen Nutzungsklasse"""
 
-    relevant = (SOMMERWEIZEN,)
+    relevant = (SPRINGWHEAT,)
 
 
 class NutzWinterweizen(NutzBase):
     """Winterweizen Nutzungsklasse"""
 
-    relevant = (WINTERWEIZEN,)
+    relevant = (WINTERWHEAT,)
 
 
 class NutzZuckerrueben(NutzBase):
     """Zuckerrüben Nutzungsklasse"""
 
-    relevant = (ZUCKERRUEBEN,)
+    relevant = (SUGARBEETS,)
 
 
 class NutzVersiegelt(NutzBase):
     """Versiegelt Nutzungsklasse"""
 
-    relevant = (VERSIEGELT,)
+    relevant = (SEALED,)
 
 
 class NutzWasser(NutzBase):
     """Wasser Nutzungsklasse"""
 
-    relevant = (WASSER,)
+    relevant = (WATER,)
 
 
 class BodenComplete(masktools.IndexMask):
     """Bodenklassen"""
 
-    relevant = (SAND, SAND_BINDIG, LEHM, TON, SCHLUFF, TORF)
+    relevant = (SAND, SAND_COHESIVE, LOAM, CLAY, SILT, PEAT)
 
     @staticmethod
     def get_refindices(variable):

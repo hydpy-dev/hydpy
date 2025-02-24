@@ -143,36 +143,36 @@ for idx in range(len(table_knoteneigenschaften)):
          for key in hrus.keys()])
     con.maxinterz(gras=[0.4, 0.4, 0.6, 0.8, 1.0, 1.0,
                         1.0, 1.0, 1.0, 0.6, 0.5, 0.4],
-                  laubwald=[0.1, 0.1, 0.3, 0.8, 1.4, 2.2,
+                  decidious=[0.1, 0.1, 0.3, 0.8, 1.4, 2.2,
                             2.4, 2.4, 2.2, 1.6, 0.3, 0.1],
-                  mais=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
+                  corn=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
                         0.92, 0.62, 0.26, 0.04, 0.0, 0.0],
-                  nadelwald=[2.2, 2.2, 2.2, 2.2, 2.2, 2.2,
+                  conifer=[2.2, 2.2, 2.2, 2.2, 2.2, 2.2,
                              2.2, 2.2, 2.2, 2.2, 2.2, 2.2],
-                  sommerweizen=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
+                  springwheat=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
                                 0.92, 0.62, 0.26, 0.04, 0.0, 0.0],
-                  winterweizen=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
+                  winterwheat=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
                                 0.92, 0.62, 0.26, 0.04, 0.0, 0.0],
-                  zuckerrueben=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
+                  sugarbeets=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
                                 0.92, 0.62, 0.26, 0.04, 0.0, 0.0],
-                  versiegelt=[2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+                  sealed=[2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
                               2.0, 2.0, 2.0, 2.0, 2.0, 2.0],
                   wasser=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                           0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-    con.bodentyp(whmod_pet.SAND_BINDIG)
+    con.bodentyp(whmod_pet.SAND_COHESIVE)
     ackerland = [0.733, 0.733, 0.774, 0.947, 1.188, 1.181,
                  # DWA-M 504: Ackerland
                  1.185, 1.151, 0.974, 0.853, 0.775, 0.733]
     con.fln(
         gras=1.0,  # DWA-M 504
-        laubwald=[1.003, 1.003, 1.053, 1.179, 1.114, 1.227,
+        decidious=[1.003, 1.003, 1.053, 1.179, 1.114, 1.227,
                   1.241, 1.241, 1.241, 1.139, 1.082, 1.003],  # DWA-M 504
-        mais=ackerland,
-        nadelwald=1.335,  # DWA-M 504
-        sommerweizen=ackerland,
-        winterweizen=ackerland,
-        zuckerrueben=ackerland,
-        versiegelt=0.0,
+        corn=ackerland,
+        conifer=1.335,  # DWA-M 504
+        springwheat=ackerland,
+        winterwheat=ackerland,
+        sugarbeets=ackerland,
+        sealed=0.0,
         wasser=[1.165, 1.217, 1.256, 1.283, 1.283, 1.296,
                 1.283, 1.283, 1.270, 1.230, 1.165, 1.139])  # DWA-M 504
     con.f_area(list(hrus.values()))
@@ -181,16 +181,16 @@ for idx in range(len(table_knoteneigenschaften)):
         [float(key.split('_')[3].split(':')[1]) for key in hrus.keys()])
     con.flurab([float(key.split('_')[1].split(':')[1]) for key in hrus.keys()])
     con.rootingdepth(
-        gras=0.6, laubwald=1.5, nadelwald=1.5, mais=1.0, sommerweizen=1.0,
-        winterweizen=1.0, zuckerrueben=0.8, versiegelt=0.0, wasser=0.0)
+        gras=0.6, decidious=1.5, conifer=1.5, corn=1.0, springwheat=1.0,
+        winterwheat=1.0, sugarbeets=0.8, sealed=0.0, wasser=0.0)
     con.minhasr(
-        gras=4.0, laubwald=6.0, mais=3.0, nadelwald=6.0, sommerweizen=6.0,
-        winterweizen=6.0, zuckerrueben=6.0, versiegelt=1.0, wasser=1.0)
+        gras=4.0, decidious=6.0, corn=3.0, conifer=6.0, springwheat=6.0,
+        winterwheat=6.0, sugarbeets=6.0, sealed=1.0, wasser=1.0)
     con.kapilschwellwert(
-        sand=0.8, sand_bindig=1.4, lehm=1.4, ton=1.35, schluff=1.75, torf=0.85)
+        sand=0.8, sand_cohesive=1.4, loam=1.4, ton=1.35, silt=1.75, peat=0.85)
     con.kapilgrenzwert(
-        sand=0.4, sand_bindig=0.85, lehm=0.45, ton=0.25, schluff=0.75,
-        torf=0.55)
+        sand=0.4, sand_cohesive=0.85, loam=0.45, ton=0.25, silt=0.75,
+        peat=0.55)
     con.bfi(bfiraster[row-1, col-1])
 
     whmod.sequences.states.interzeptionsspeicher(0.0)

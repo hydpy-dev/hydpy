@@ -32,12 +32,12 @@ class ZoneRatio(whmod_parameters.NutzCompleteParameter):
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
         >>> nmbzones(3)
-        >>> landtype(GRAS, WASSER, VERSIEGELT)
+        >>> landtype(GRAS, WATER, SEALED)
         >>> area(100.0)
         >>> zonearea(20.0, 30.0, 50.0)
         >>> derived.zoneratio.update()
         >>> derived.zoneratio
-        zoneratio(gras=0.2, versiegelt=0.5, wasser=0.3)
+        zoneratio(gras=0.2, sealed=0.5, water=0.3)
         """
         control = self.subpars.pars.control
         self(control.zonearea / control.area)
@@ -56,12 +56,12 @@ class SoilDepth(whmod_parameters.NutzBodenParameter):
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
         >>> nmbzones(5)
-        >>> landtype(GRAS, LAUBWALD, NADELWALD, WASSER, VERSIEGELT)
+        >>> landtype(GRAS, DECIDIOUS, CONIFER, WATER, SEALED)
         >>> groundwaterdepth(1.0)
         >>> rootingdepth(0.5, 1.0, 1.5, 2.0, 2.0)
         >>> derived.soildepth.update()
         >>> derived.soildepth
-        soildepth(gras=0.5, laubwald=1.0, nadelwald=1.0)
+        soildepth(gras=0.5, decidious=1.0, conifer=1.0)
         """
         control = self.subpars.pars.control
         self(numpy.clip(control.rootingdepth, None, control.groundwaterdepth.values))
@@ -81,13 +81,13 @@ class MaxSoilWater(whmod_parameters.NutzBodenParameter):
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
         >>> nmbzones(7)
-        >>> landtype(GRAS, MAIS, LAUBWALD, NADELWALD, SOMMERWEIZEN, WASSER, VERSIEGELT)
+        >>> landtype(GRAS, CORN, DECIDIOUS, CONIFER, SPRINGWHEAT, WATER, SEALED)
         >>> availablefieldcapacity(200.0)
         >>> derived.soildepth(0.0, 0.2, 0.3, 0.4, 1.0, 1.0, 1.0)
         >>> derived.maxsoilwater.update()
         >>> derived.maxsoilwater
-        maxsoilwater(gras=60.0, laubwald=60.0, mais=60.0, nadelwald=80.0,
-              sommerweizen=200.0)
+        maxsoilwater(gras=60.0, decidious=60.0, corn=60.0, conifer=80.0,
+              springwheat=200.0)
         """
         availablefieldcapacity = self.subpars.pars.control.availablefieldcapacity
         soildepth = self.subpars.soildepth
@@ -140,7 +140,7 @@ class Beta(whmod_parameters.NutzBodenParameter):
         250.0, 6.954142
 
         >>> nmbzones(2)
-        >>> landtype(WASSER, VERSIEGELT)
+        >>> landtype(WATER, SEALED)
         >>> derived.maxsoilwater(100.0)
         >>> derived.beta.update()
         >>> derived.beta
@@ -149,7 +149,7 @@ class Beta(whmod_parameters.NutzBodenParameter):
         landtype = self.subpars.pars.control.landtype
         maxsoilwater = self.subpars.maxsoilwater
         self(0.0)
-        idxs1 = (landtype.values != WASSER) * (landtype.values != VERSIEGELT)
+        idxs1 = (landtype.values != WATER) * (landtype.values != SEALED)
         idxs2 = maxsoilwater.values <= 0.0
         idxs3 = idxs1 * idxs2
         self.values[idxs3] = 1.0

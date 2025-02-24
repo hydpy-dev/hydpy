@@ -65,7 +65,7 @@ class BodenCompleteParameter(parametertools.ZipParameter):
 
     # defined at the bottom of the file:
     CONTROLPARAMETERS: ClassVar[
-        tuple[type[whmod_control.SoilType], type[whmod_control.NmbZones]]
+        tuple[type[whmod_control.NmbZones], type[whmod_control.SoilType]]
     ]
 
     constants = whmod_constants.SOIL_CONSTANTS
@@ -96,7 +96,7 @@ class ForestMonthParameter(parametertools.KeywordParameter2D):
         "nov",
         "dec",
     )
-    rownames = ("laubwald", "nadelwald")
+    rownames = ("decidious", "conifer")
 
 
 class LanduseMonthParameter(parametertools.KeywordParameter2D):
@@ -117,12 +117,12 @@ class LanduseMonthParameter(parametertools.KeywordParameter2D):
     )
     rownames = (
         "gras",
-        "laubwald",
-        "mais",
-        "nadelwald",
-        "sommerweizen",
-        "winterweizen",
-        "zuckerrueben",
-        "versiegelt",
-        "wasser",
+        "decidious",
+        "corn",
+        "conifer",
+        "springwheat",
+        "winterwheat",
+        "sugarbeets",
+        "sealed",
+        "water",
     )

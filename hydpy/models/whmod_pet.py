@@ -44,9 +44,9 @@ _______
 ...                winterweizen=0.6)
 >>> minhasr(gras=4.0, laubwald=6.0, mais=3.0, nadelwald=6.0, sommerweizen=6.0,
 ...         winterweizen=6.0)
->>> kapilschwellwert(sand=0.8)
->>> kapilgrenzwert(sand=0.4)
->>> bfi(0.8)
+>>> capillarythreshold(sand=0.8)
+>>> capillarylimit(sand=0.4)
+>>> baseflowindex(0.8)
 >>> schwerpunktlaufzeit(5.0)
 
 >>> test.inits = ((states.interzeptionsspeicher, 0.0),

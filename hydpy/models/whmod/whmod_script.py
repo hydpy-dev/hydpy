@@ -193,7 +193,7 @@ def _collect_hrus(
     >>> pprint(_collect_hrus(table=df_knoteneigenschaften, idx=2, landuse=landuse))
     [{'area': np.float64(10000.0),
       'availablefieldcapacity': np.float64(90.6),
-      'bfi': np.float64(0.2759066),
+      'baseflowindex': np.float64(0.2759066),
       'col': np.int64(3),
       'f_id': np.int64(2),
       'groundwaterdepth': np.float64(2.9),
@@ -213,7 +213,7 @@ def _collect_hrus(
     >>> pprint(_collect_hrus(table=df_knoteneigenschaften, idx=0, landuse=landuse))
     [{'area': np.float64(10000.0),
       'availablefieldcapacity': np.float64(90.6),
-      'bfi': np.float64(0.2839615),
+      'baseflowindex': np.float64(0.2839615),
       'col': np.int64(1),
       'f_id': np.int64(0),
       'groundwaterdepth': np.float64(2.9),
@@ -231,7 +231,7 @@ def _collect_hrus(
       'zonearea': np.float64(5000.0)},
      {'area': np.float64(10000.0),
       'availablefieldcapacity': np.float64(90.6),
-      'bfi': np.float64(0.2839615),
+      'baseflowindex': np.float64(0.2839615),
       'col': np.int64(1),
       'f_id': np.int64(0),
       'groundwaterdepth': np.float64(2.9),
@@ -1010,7 +1010,7 @@ def read_nodeproperties(basedir: str, filename: str) -> pandas.DataFrame:
     >>> basedir = TestIO.copy_dir_from_data_to_iotesting("WHMod")
     >>> from hydpy.models.whmod.whmod_script import read_nodeproperties
     >>> np = read_nodeproperties(basedir=basedir, filename="Node_Data.csv")
-    >>> print_vector(np["bfi"][:3])
+    >>> print_vector(np["baseflowindex"][:3])
     0.283961, 0.283069, 0.275907
 
     Prepare manipulating the file to check if the most relevant errors are properly
@@ -1028,11 +1028,11 @@ def read_nodeproperties(basedir: str, filename: str) -> pandas.DataFrame:
 
     Wrong column name:
 
-    >>> check("bfi", "Bfi")  # doctest: +ELLIPSIS
+    >>> check("baseflowindex", "BaseflowIndex")  # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
     ValueError: While trying to read the file `...Node_Data.csv`, the following error \
-occurred: Usecols do not match columns, columns expected but not found: ['bfi']
+occurred: Usecols do not match columns, columns expected but not found: ['baseflowindex']
 
     Empty float cell:
 
@@ -1040,7 +1040,7 @@ occurred: Usecols do not match columns, columns expected but not found: ['bfi']
     Traceback (most recent call last):
     ...
     ValueError: While trying to read the file `...Node_Data.csv`, the following error \
-occurred: `1` missing value(s) in column `bfi`
+occurred: `1` missing value(s) in column `baseflowindex`
 
     Empty integer cell:
 
@@ -1074,7 +1074,7 @@ occurred: `7` missing value(s) in column `soiltype`
         "nfk_faktor": numpy.float64,
         "nfk_offset": numpy.float64,
         "groundwaterdepth": numpy.float64,
-        "bfi": numpy.float64,
+        "baseflowindex": numpy.float64,
         "verzoegerung": str,
         "init_boden": numpy.float64,
         "init_gwn": numpy.float64,
@@ -1552,13 +1552,13 @@ def _initialize_whmod_models(
             winterweizen=6.0,
             zuckerrueben=6.0,
         )
-        con.kapilschwellwert(
+        con.capillarythreshold(
             sand=0.8, sand_bindig=1.4, lehm=1.4, ton=1.35, schluff=1.75, torf=0.85
         )
-        con.kapilgrenzwert(
+        con.capillarylimit(
             sand=0.4, sand_bindig=0.85, lehm=0.45, ton=0.25, schluff=0.75, torf=0.55
         )
-        con.bfi(_query_vector_from_hrus(hrus, "bfi"))
+        con.baseflowindex(_query_vector_from_hrus(hrus, "baseflowindex"))
 
         verzoegerung = _query_scalar_from_hrus(hrus, "verzoegerung")
         if verzoegerung == "flurab_probst":

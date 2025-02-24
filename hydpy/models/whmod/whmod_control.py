@@ -43,6 +43,7 @@ class ZoneArea(whmod_parameters.NutzCompleteParameter):
 
     SPAN = (0.0, None)
 
+
 class LandType(parametertools.NameParameter):
     """[-]"""
 
@@ -53,7 +54,6 @@ class SoilType(parametertools.NameParameter):
     """[-]"""
 
     constants = whmod_constants.SOIL_CONSTANTS
-
 
 
 class DegreeFactor(whmod_parameters.NutzBodenParameter):
@@ -82,25 +82,6 @@ class RootingDepth(whmod_parameters.NutzBodenParameter):
 
     SPAN = (0.0, None)
 
-class CapillaryRise(parametertools.Parameter):
-    """[-]"""
-
-    NDIM, TYPE, TIME = 0, bool, None
-
-
-
-class MaxInterz(whmod_parameters.LanduseMonthParameter):  # ToDo
-    """[mm]"""
-
-
-class FLN(whmod_parameters.LanduseMonthParameter):  # ToDo
-    """[-]"""
-
-
-
-whmod_parameters.BodenCompleteParameter.CONTROLPARAMETERS = (NmbZones, SoilType)  # ToDo
-
-
 
 class GroundwaterDepth(whmod_parameters.NutzBodenParameter):
     """[m]"""
@@ -108,32 +89,31 @@ class GroundwaterDepth(whmod_parameters.NutzBodenParameter):
     SPAN = (0.0, None)
 
 
-
-class MinhasR(whmod_parameters.NutzBodenParameter):
+class CapillaryRise(parametertools.Parameter):
     """[-]"""
 
-    SPAN = (0.1, None)
+    NDIM, TYPE, TIME = 0, bool, None
 
 
-class KapilSchwellwert(whmod_parameters.BodenCompleteParameter):
-    """[-]"""
-
-    SPAN = (0.0, None)
-
-
-class KapilGrenzwert(whmod_parameters.BodenCompleteParameter):
+class CapillaryThreshold(whmod_parameters.BodenCompleteParameter):
     """[-]"""
 
     SPAN = (0.0, None)
 
 
-class BFI(whmod_parameters.NutzLandParameter):
-    """Base Flow Index [-]."""
+class CapillaryLimit(whmod_parameters.BodenCompleteParameter):
+    """[-]"""
 
     SPAN = (0.0, None)
 
 
-class Schwerpunktlaufzeit(parametertools.Parameter):
+class BaseflowIndex(whmod_parameters.NutzLandParameter):
+    """Baseflow index [-]."""
+
+    SPAN = (0.0, None)
+
+
+class SeepageTime(parametertools.Parameter):
     """Schwerpunktlaufzeit [T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
@@ -187,3 +167,19 @@ class Schwerpunktlaufzeit(parametertools.Parameter):
                 self.value = max(k_t, 0.0)
             else:
                 raise NotImplementedError('"flurab_probst" oder Zahl.')
+
+class MaxInterz(whmod_parameters.LanduseMonthParameter):  # ToDo
+    """[mm]"""
+
+
+class FLN(whmod_parameters.LanduseMonthParameter):  # ToDo
+    """[-]"""
+
+
+class MinhasR(whmod_parameters.NutzBodenParameter):  # ToDo
+    """[-]"""
+
+    SPAN = (0.1, None)
+
+
+whmod_parameters.BodenCompleteParameter.CONTROLPARAMETERS = (NmbZones, SoilType)  # ToDo

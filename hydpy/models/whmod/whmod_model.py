@@ -609,9 +609,9 @@ class Calc_PotKapilAufstieg_V1(modeltools.Method):
     >>> capillaryrise(True)
     >>> soiltype(SAND, SAND_BINDIG, LEHM, TON, SCHLUFF, TORF)
     >>> groundwaterdepth(0.0)   # ToDo: shouldn't be necessary
-    >>> kapilschwellwert(sand=0.8, sand_bindig=1.4, lehm=1.4,
+    >>> capillarythreshold(sand=0.8, sand_bindig=1.4, lehm=1.4,
     ...                  ton=1.35, schluff=1.75, torf=0.85)
-    >>> kapilgrenzwert(sand=0.4, sand_bindig=0.85, lehm=0.45,
+    >>> capillarylimit(sand=0.4, sand_bindig=0.85, lehm=0.45,
     ...                ton=0.25, schluff=0.75, torf=0.55)
     >>> derived.wurzeltiefe(0.0)
 
@@ -718,8 +718,8 @@ class Calc_PotKapilAufstieg_V1(modeltools.Method):
         whmod_control.NmbZones,
         whmod_control.LandType,
         whmod_control.CapillaryRise,
-        whmod_control.KapilSchwellwert,
-        whmod_control.KapilGrenzwert,
+        whmod_control.CapillaryThreshold,
+        whmod_control.CapillaryLimit,
         whmod_control.GroundwaterDepth,
     )
     DERIVEDPARAMETERS = (whmod_derived.Wurzeltiefe,)
@@ -734,8 +734,8 @@ class Calc_PotKapilAufstieg_V1(modeltools.Method):
             if con.capillaryrise and (
                 con.landtype[k] not in (VERSIEGELT, WASSER)
             ):
-                d_schwell = con.kapilschwellwert[k]
-                d_grenz = con.kapilgrenzwert[k]
+                d_schwell = con.capillarythreshold[k]
+                d_grenz = con.capillarylimit[k]
                 if con.groundwaterdepth[k] > (der.wurzeltiefe[k] + d_schwell):
                     flu.potkapilaufstieg[k] = 0.0
                 elif con.groundwaterdepth[k] < (der.wurzeltiefe[k] + d_grenz):
@@ -908,7 +908,7 @@ class Calc_Basisabfluss_V1(modeltools.Method):
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(4)
-    >>> bfi(1.0, 0.8, 1.0, 0.8)
+    >>> baseflowindex(1.0, 0.8, 1.0, 0.8)
     >>> fluxes.potgrundwasserneubildung(1.0, 1.0, -1.0, -1.0)
     >>> model.calc_basisabfluss_v1()
     >>> fluxes.basisabfluss
@@ -918,7 +918,7 @@ class Calc_Basisabfluss_V1(modeltools.Method):
     CONTROLPARAMETERS = (
         whmod_control.NmbZones,
         whmod_control.LandType,
-        whmod_control.BFI,
+        whmod_control.BaseflowIndex,
     )
     REQUIREDSEQUENCES = (whmod_fluxes.PotGrundwasserneubildung,)
     RESULTSEQUENCES = (whmod_fluxes.Basisabfluss,)
@@ -932,7 +932,7 @@ class Calc_Basisabfluss_V1(modeltools.Method):
                 flu.basisabfluss[k] = 0.0
             else:
                 flu.basisabfluss[k] = max(
-                    (1.0 - con.bfi[k]) * flu.potgrundwasserneubildung[k], 0.0
+                    (1.0 - con.baseflowindex[k]) * flu.potgrundwasserneubildung[k], 0.0
                 )
 
 
@@ -1004,7 +1004,7 @@ class Calc_VerzGrundwasserneubildung_Zwischenspeicher_V1(modeltools.Method):
     5.0, 0.543808, 2.456192
     """
 
-    CONTROLPARAMETERS = (whmod_control.Schwerpunktlaufzeit,)
+    CONTROLPARAMETERS = (whmod_control.SeepageTime,)
     REQUIREDSEQUENCES = (whmod_fluxes.AktGrundwasserneubildung,)
     UPDATEDSEQUENCES = (whmod_states.Zwischenspeicher,)
     RESULTSEQUENCES = (whmod_fluxes.VerzGrundwasserneubildung,)

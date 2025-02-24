@@ -178,6 +178,31 @@ class _XY(NamedTuple):
     hoch: float
 
 
+def calculate_recharge_delay(*, groundwater_depth: float) -> float:
+    """Berechne den Zeitversatz zwischen der Perkolation aus der betrachteten
+    Bodensäule bis bis zum Erreichen des Grundwasserspiegels nach dem Polynom-Ansatz
+    von Probst.
+
+    Vergleiche Abbildung 7 in WHM_TipsTricks_5.
+
+    Der berechnete Wert bezieht sich auf die aktuelle Parameter-Zeitschrittweite:
+
+    >>> from hydpy import pub, round_
+    >>> from hydpy.models.whmod.whmod_script import calculate_recharge_delay
+
+    >>> with pub.options.parameterstep("1d"):
+    ...     round_(calculate_recharge_delay(groundwater_depth=2.0))
+    25.62078
+
+    >>> with pub.options.parameterstep("1h"):
+    ...     round_(calculate_recharge_delay(groundwater_depth=2.0))
+    614.89872
+    """
+    x = groundwater_depth
+    days = 0.6 * (((5.8039 * x - 21.899) * x + 41.933) * x + 0.0001)
+    return days / hydpy.pub.options.parameterstep.days
+
+
 def _collect_hrus(
     table: pandas.DataFrame, idx: int, landuse: dict[str, dict[str, int]]
 ) -> list[dict[str, object]]:
@@ -1565,7 +1590,7 @@ def _initialize_whmod_models(
             if numpy.isnan(gwd := con.groundwaterdepth.average_values()):
                 con.rechargedelay(0.0)
             else:
-                con.rechargedelay(flurab_probst=gwd)
+                con.rechargedelay(calculate_recharge_delay(groundwater_depth=gwd))
         else:
             con.rechargedelay(verzoegerung)
 

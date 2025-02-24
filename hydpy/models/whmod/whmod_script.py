@@ -1535,7 +1535,7 @@ def _initialize_whmod_models(
         # fmt: on
 
         con.zonearea(_query_vector_from_hrus(hrus, "zonearea"))
-        con.degreefactor(float(day_degree_factor))
+        con.degreedayfactor(float(day_degree_factor))
         availablefieldcapacity = numpy.asarray(_query_vector_from_hrus(hrus, "availablefieldcapacity"))
         nfk_faktor = numpy.asarray(_query_vector_from_hrus(hrus, "nfk_faktor"))
         nfk_offset = numpy.asarray(_query_vector_from_hrus(hrus, "nfk_offset"))
@@ -1563,11 +1563,11 @@ def _initialize_whmod_models(
         verzoegerung = _query_scalar_from_hrus(hrus, "verzoegerung")
         if verzoegerung == "flurab_probst":
             if numpy.isnan(gwd := con.groundwaterdepth.average_values()):
-                con.schwerpunktlaufzeit(0.0)
+                con.rechargedelay(0.0)
             else:
-                con.schwerpunktlaufzeit(flurab_probst=gwd)
+                con.rechargedelay(flurab_probst=gwd)
         else:
-            con.schwerpunktlaufzeit(verzoegerung)
+            con.rechargedelay(verzoegerung)
 
         whmod.sequences.states.interzeptionsspeicher(0.0)
         whmod.sequences.states.schneespeicher(0.0)
@@ -1578,7 +1578,7 @@ def _initialize_whmod_models(
         assert isinstance(init_gwn, float)
         whmod.sequences.states.zwischenspeicher(
             _init_gwn_to_zwischenspeicher(
-                init_gwn=init_gwn, time_of_concentration=con.schwerpunktlaufzeit.value
+                init_gwn=init_gwn, time_of_concentration=con.rechargedelay.value
             )
         )
 

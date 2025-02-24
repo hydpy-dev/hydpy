@@ -56,7 +56,7 @@ class SoilType(parametertools.NameParameter):
     constants = whmod_constants.SOIL_CONSTANTS
 
 
-class DegreeFactor(whmod_parameters.NutzBodenParameter):
+class DegreeDayFactor(whmod_parameters.NutzBodenParameter):
     """[mm/T/K]"""
 
     SPAN = (0.0, None)
@@ -113,7 +113,7 @@ class BaseflowIndex(whmod_parameters.NutzLandParameter):
     SPAN = (0.0, None)
 
 
-class SeepageTime(parametertools.Parameter):
+class RechargeDelay(parametertools.Parameter):
     """Schwerpunktlaufzeit [T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
@@ -127,8 +127,8 @@ class SeepageTime(parametertools.Parameter):
         >>> from hydpy.models.whmod import *
         >>> parameterstep("1d")
         >>> for h in range(-1, 11):
-        ...     schwerpunktlaufzeit(flurab_probst=h)
-        ...     print_vector([h, schwerpunktlaufzeit.value])
+        ...     rechargedelay(flurab_probst=h)
+        ...     print_vector([h, rechargedelay.value])
         -1, 0.0
         0, 0.00006
         1, 15.5028
@@ -142,20 +142,20 @@ class SeepageTime(parametertools.Parameter):
         9, 1700.77272
         10, 2419.99806
 
-        >>> schwerpunktlaufzeit
-        schwerpunktlaufzeit(2419.99806)
+        >>> rechargedelay
+        rechargedelay(2419.99806)
 
         >>> parameterstep("1h")
-        >>> schwerpunktlaufzeit
-        schwerpunktlaufzeit(58079.95344)
+        >>> rechargedelay
+        rechargedelay(58079.95344)
 
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "1h"
-        >>> schwerpunktlaufzeit(flurab_probst=10.0)
-        >>> schwerpunktlaufzeit
-        schwerpunktlaufzeit(58079.95344)
+        >>> rechargedelay(flurab_probst=10.0)
+        >>> rechargedelay
+        rechargedelay(58079.95344)
         >>> parameterstep("1d")
-        >>> schwerpunktlaufzeit
-        schwerpunktlaufzeit(2419.99806)
+        >>> rechargedelay
+        rechargedelay(2419.99806)
         """
         try:
             super().__call__(*args, **kwargs)

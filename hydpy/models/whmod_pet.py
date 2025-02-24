@@ -37,7 +37,7 @@ _______
 >>> maxinterz.gras_mar = 0.6
 >>> maxinterz.gras_apr = 0.8
 >>> fln.gras = 1.0
->>> degreefactor(4.5)
+>>> degreedayfactor(4.5)
 >>> availablefieldcapacity(200.0)
 >>> groundwaterdepth(1.0)
 >>> rootingdepth(gras=0.5, laubwald=1.5, mais=0.5, nadelwald=1.9, sommerweizen=0.6,
@@ -47,7 +47,7 @@ _______
 >>> capillarythreshold(sand=0.8)
 >>> capillarylimit(sand=0.4)
 >>> baseflowindex(0.8)
->>> schwerpunktlaufzeit(5.0)
+>>> rechargedelay(5.0)
 
 >>> test.inits = ((states.interzeptionsspeicher, 0.0),
 ...               (states.schneespeicher, 0.0),

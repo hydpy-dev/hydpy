@@ -247,7 +247,7 @@ class Calc_ZuflussBoden_V1(modeltools.Method):
     >>> simulationstep("1d")
     >>> nmbzones(2)
     >>> landtype(GRAS, GRAS)
-    >>> degreefactor(4.5)
+    >>> degreedayfactor(4.5)
     >>> fluxes.niednachinterz = 3.0
 
     >>> from hydpy import UnitTest
@@ -282,7 +282,7 @@ class Calc_ZuflussBoden_V1(modeltools.Method):
     CONTROLPARAMETERS = (
         whmod_control.NmbZones,
         whmod_control.LandType,
-        whmod_control.DegreeFactor,
+        whmod_control.DegreeDayFactor,
     )
     REQUIREDSEQUENCES = (whmod_inputs.Temp_TM, whmod_fluxes.NiedNachInterz)
     UPDATEDSEQUENCES = (whmod_states.Schneespeicher,)
@@ -299,7 +299,7 @@ class Calc_ZuflussBoden_V1(modeltools.Method):
                 sta.schneespeicher[k] = 0.0
                 flu.zuflussboden[k] = 0.0
             elif inp.temp_tm > 0.0:
-                d_maxschneeschmelze = con.degreefactor[k] * inp.temp_tm
+                d_maxschneeschmelze = con.degreedayfactor[k] * inp.temp_tm
                 d_schneeschmelze = min(sta.schneespeicher[k], d_maxschneeschmelze)
                 sta.schneespeicher[k] -= d_schneeschmelze
                 flu.zuflussboden[k] = flu.niednachinterz[k] + d_schneeschmelze
@@ -983,7 +983,7 @@ class Calc_VerzGrundwasserneubildung_Zwischenspeicher_V1(modeltools.Method):
     >>> from numpy import arange
     >>> from hydpy import print_vector
     >>> for k in numpy.arange(0., 5.5, .5):
-    ...     schwerpunktlaufzeit.value = k
+    ...     rechargedelay.value = k
     ...     states.zwischenspeicher = 2.0
     ...     fluxes.aktgrundwasserneubildung = 1.0
     ...     model.calc_verzgrundwasserneubildung_zwischenspeicher_v1()
@@ -1004,7 +1004,7 @@ class Calc_VerzGrundwasserneubildung_Zwischenspeicher_V1(modeltools.Method):
     5.0, 0.543808, 2.456192
     """
 
-    CONTROLPARAMETERS = (whmod_control.SeepageTime,)
+    CONTROLPARAMETERS = (whmod_control.RechargeDelay,)
     REQUIREDSEQUENCES = (whmod_fluxes.AktGrundwasserneubildung,)
     UPDATEDSEQUENCES = (whmod_states.Zwischenspeicher,)
     RESULTSEQUENCES = (whmod_fluxes.VerzGrundwasserneubildung,)
@@ -1014,10 +1014,10 @@ class Calc_VerzGrundwasserneubildung_Zwischenspeicher_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        if con.schwerpunktlaufzeit > 0:
+        if con.rechargedelay > 0:
             d_sp = (
                 sta.zwischenspeicher + flu.aktgrundwasserneubildung
-            ) * modelutils.exp(-1.0 / con.schwerpunktlaufzeit)
+            ) * modelutils.exp(-1.0 / con.rechargedelay)
             flu.verzgrundwasserneubildung = (
                 flu.aktgrundwasserneubildung + sta.zwischenspeicher - d_sp
             )

@@ -24,7 +24,7 @@ class RelArea(whmod_parameters.NutzCompleteParameter):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
 
-    CONTROLPARAMETERS = (whmod_control.F_AREA, whmod_control.Area)
+    CONTROLPARAMETERS = (whmod_control.ZoneArea, whmod_control.Area)
 
     def update(self):
         """
@@ -35,16 +35,16 @@ class RelArea(whmod_parameters.NutzCompleteParameter):
 
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
-        >>> nmb_cells(3)
-        >>> nutz_nr(GRAS, WASSER, VERSIEGELT)
+        >>> nmbzones(3)
+        >>> landtype(GRAS, WASSER, VERSIEGELT)
         >>> area(100.0)
-        >>> f_area(20.0, 30.0, 50.0)
+        >>> zonearea(20.0, 30.0, 50.0)
         >>> derived.relarea.update()
         >>> derived.relarea
         relarea(gras=0.2, versiegelt=0.5, wasser=0.3)
         """
         control = self.subpars.pars.control
-        self(control.f_area / control.area)
+        self(control.zonearea / control.area)
 
 
 class Wurzeltiefe(whmod_parameters.NutzBodenParameter):
@@ -59,8 +59,8 @@ class Wurzeltiefe(whmod_parameters.NutzBodenParameter):
 
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
-        >>> nmb_cells(5)
-        >>> nutz_nr(GRAS, LAUBWALD, NADELWALD, WASSER, VERSIEGELT)
+        >>> nmbzones(5)
+        >>> landtype(GRAS, LAUBWALD, NADELWALD, WASSER, VERSIEGELT)
         >>> flurab(1.0)
         >>> maxwurzeltiefe(0.5, 1.0, 1.5, 2.0, 2.0)
         >>> derived.wurzeltiefe.update()
@@ -84,8 +84,8 @@ class nFKwe(whmod_parameters.NutzBodenParameter):
 
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
-        >>> nmb_cells(7)
-        >>> nutz_nr(GRAS, MAIS, LAUBWALD, NADELWALD, SOMMERWEIZEN, WASSER, VERSIEGELT)
+        >>> nmbzones(7)
+        >>> landtype(GRAS, MAIS, LAUBWALD, NADELWALD, SOMMERWEIZEN, WASSER, VERSIEGELT)
         >>> nfk100_mittel(200.0)
         >>> derived.wurzeltiefe(0.0, 0.2, 0.3, 0.4, 1.0, 1.0, 1.0)
         >>> derived.nfkwe.update()
@@ -101,7 +101,7 @@ class nFKwe(whmod_parameters.NutzBodenParameter):
 class Beta(whmod_parameters.NutzBodenParameter):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
-    CONTROLPARAMETERS = (whmod_control.Nutz_Nr,)
+    CONTROLPARAMETERS = (whmod_control.LandType,)
     DERIVEDPARAMETERS = (nFKwe,)
 
     def update(self):
@@ -109,8 +109,8 @@ class Beta(whmod_parameters.NutzBodenParameter):
 
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
-        >>> nmb_cells(26)
-        >>> nutz_nr(GRAS)
+        >>> nmbzones(26)
+        >>> landtype(GRAS)
         >>> derived.nfkwe(range(0, 260, 10))
         >>> derived.beta.update()
         >>> from hydpy import print_vector
@@ -143,17 +143,17 @@ class Beta(whmod_parameters.NutzBodenParameter):
         240.0, 6.940345
         250.0, 6.954142
 
-        >>> nmb_cells(2)
-        >>> nutz_nr(WASSER, VERSIEGELT)
+        >>> nmbzones(2)
+        >>> landtype(WASSER, VERSIEGELT)
         >>> derived.nfkwe(100.0)
         >>> derived.beta.update()
         >>> derived.beta
         beta(nan)
         """
-        nutz_nr = self.subpars.pars.control.nutz_nr
+        landtype = self.subpars.pars.control.landtype
         nfkwe = self.subpars.nfkwe
         self(0.0)
-        idxs1 = (nutz_nr.values != WASSER) * (nutz_nr.values != VERSIEGELT)
+        idxs1 = (landtype.values != WASSER) * (landtype.values != VERSIEGELT)
         idxs2 = nfkwe.values <= 0.0
         idxs3 = idxs1 * idxs2
         self.values[idxs3] = 1.0
@@ -165,8 +165,8 @@ class Beta(whmod_parameters.NutzBodenParameter):
 
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
-        >>> nmb_cells(26)
-        >>> nutz_nr(GRAS)
+        >>> nmbzones(26)
+        >>> landtype(GRAS)
         >>> derived.nfkwe(range(0, 260, 10))
         >>> derived.beta.update_old()
         >>> from hydpy import print_vector
@@ -199,17 +199,17 @@ class Beta(whmod_parameters.NutzBodenParameter):
         240.0, 7.0
         250.0, 7.0
 
-        >>> nmb_cells(2)
-        >>> nutz_nr(WASSER, VERSIEGELT)
+        >>> nmbzones(2)
+        >>> landtype(WASSER, VERSIEGELT)
         >>> derived.nfkwe(100.0)
         >>> derived.beta.update_old()
         >>> derived.beta
         beta(nan)
         """
-        nutz_nr = self.subpars.pars.control.nutz_nr
+        landtype = self.subpars.pars.control.landtype
         nfkwe = self.subpars.nfkwe
         self(0.0)
-        idxs1 = (nutz_nr.values != WASSER) * (nutz_nr.values != VERSIEGELT)
+        idxs1 = (landtype.values != WASSER) * (landtype.values != VERSIEGELT)
         idxs2 = idxs1 * (nfkwe.values > 200.0)
         self.values[idxs2] = 7.0
         idxs3 = idxs1 * (nfkwe.values <= 200.0)

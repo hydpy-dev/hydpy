@@ -17,11 +17,11 @@ class NutzBaseParameter(parametertools.ZipParameter):
 
     @property
     def shapeparameter(self):
-        return self.subpars.pars.control.nmb_cells
+        return self.subpars.pars.control.nmbzones
 
     @property
     def refweights(self):
-        return self.subpars.pars.control.f_area
+        return self.subpars.pars.control.zonearea
 
 
 class NutzCompleteParameter(NutzBaseParameter):
@@ -65,7 +65,7 @@ class BodenCompleteParameter(parametertools.ZipParameter):
 
     # defined at the bottom of the file:
     CONTROLPARAMETERS: ClassVar[
-        tuple[type[whmod_control.BodenTyp], type[whmod_control.Nmb_Cells]]
+        tuple[type[whmod_control.SoilType], type[whmod_control.NmbZones]]
     ]
 
     constants = whmod_constants.SOIL_CONSTANTS
@@ -73,11 +73,11 @@ class BodenCompleteParameter(parametertools.ZipParameter):
 
     @property
     def shapeparameter(self):
-        return self.subpars.pars.control.nmb_cells
+        return self.subpars.pars.control.nmbzones
 
     @property
     def refweights(self):
-        return self.subpars.pars.control.f_area
+        return self.subpars.pars.control.zonearea
 
 
 class ForestMonthParameter(parametertools.KeywordParameter2D):

@@ -24,7 +24,7 @@ class Area(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (1e-10, None)
 
 
-class Nmb_Cells(parametertools.Parameter):
+class NmbZones(parametertools.Parameter):
     """[-]"""
 
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
@@ -38,56 +38,47 @@ class Nmb_Cells(parametertools.Parameter):
                     var.shape = self.value
 
 
-class KorrNiedNachRichter(parametertools.Parameter):
-    """[-]"""
+class ZoneArea(whmod_parameters.NutzCompleteParameter):
+    """[m²]"""
 
-    NDIM, TYPE, TIME = 0, bool, None
+    SPAN = (0.0, None)
 
-    def __call__(self, *args, **kwargs):
-        if args[0]:
-            raise NotImplementedError("Richterkorrektur fehlt noch")
-        super().__call__(*args, **kwargs)
-
-
-class MitFunktion_KapillarerAufstieg(parametertools.Parameter):
-    """[-]"""
-
-    NDIM, TYPE, TIME = 0, bool, None
-
-
-class Nutz_Nr(parametertools.NameParameter):
+class LandType(parametertools.NameParameter):
     """[-]"""
 
     constants = whmod_constants.LANDUSE_CONSTANTS
 
 
-class BodenTyp(parametertools.NameParameter):
+class SoilType(parametertools.NameParameter):
     """[-]"""
 
     constants = whmod_constants.SOIL_CONSTANTS
 
 
-whmod_parameters.BodenCompleteParameter.CONTROLPARAMETERS = (BodenTyp, Nmb_Cells)
 
-
-class F_AREA(whmod_parameters.NutzCompleteParameter):
-    """[m²]"""
-
-    SPAN = (0.0, None)
-
-
-class MaxInterz(whmod_parameters.LanduseMonthParameter):
-    """[mm]"""
-
-
-class FLN(whmod_parameters.LanduseMonthParameter):
-    """[-]"""
-
-
-class Gradfaktor(whmod_parameters.NutzBodenParameter):
+class DegreeFactor(whmod_parameters.NutzBodenParameter):
     """[mm/T/K]"""
 
     SPAN = (0.0, None)
+
+
+class CapillaryRise(parametertools.Parameter):
+    """[-]"""
+
+    NDIM, TYPE, TIME = 0, bool, None
+
+
+
+class MaxInterz(whmod_parameters.LanduseMonthParameter):  # ToDo
+    """[mm]"""
+
+
+class FLN(whmod_parameters.LanduseMonthParameter):  # ToDo
+    """[-]"""
+
+
+
+whmod_parameters.BodenCompleteParameter.CONTROLPARAMETERS = (NmbZones, SoilType)  # ToDo
 
 
 class NFK100_Mittel(whmod_parameters.NutzBodenParameter):
@@ -107,8 +98,8 @@ class MaxWurzeltiefe(whmod_parameters.NutzBodenParameter):
 
     >>> from hydpy.models.whmod import *
     >>> parameterstep("1d")
-    >>> nmb_cells(1)
-    >>> nutz_nr(1)
+    >>> nmbzones(1)
+    >>> landtype(1)
     >>> maxwurzeltiefe(gras=5.)
     >>> maxwurzeltiefe
     maxwurzeltiefe(5.0)

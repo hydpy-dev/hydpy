@@ -62,13 +62,13 @@ def get_nutznr2subnutz(filepath: str) -> Dict[int, List[Tuple[str, float]]]:
 
 def collect_hrus(table, idx_):
     result = collections.defaultdict(lambda: 0.)
-    nutz_nr = getattr(table, 'Nutz_NR')[idx_]
-    for subnutz, fraction in nutznr2subnutz[nutz_nr]:
+    landuse = getattr(table, 'Nutz_NR')[idx_]
+    for subnutz, fraction in nutznr2subnutz[landuse]:
         subkeys = [f'SubNutz:{subnutz}']
         for name in ('Flurab', 'nfk100_mittel', 'Bodentyp'):
             subkeys.append(f'{name}:{getattr(table, name)[idx_]}')
         key = '_'.join(subkeys)
-        result[key] += fraction * table.F_AREA[idx_]
+        result[key] += fraction * table.ZoneArea[idx_]
     return result
 
 
@@ -136,9 +136,9 @@ for idx in range(len(table_knoteneigenschaften)):
     con = whmod.parameters.control
     hrus = collect_hrus(table_knoteneigenschaften, idx)
     con.area(sum(value for value in hrus.values()))
-    con.nmb_cells(len(hrus))
-    con.mitfunktion_kapillareraufstieg(True)
-    con.nutz_nr(
+    con.nmbzones(len(hrus))
+    con.capillaryrise(True)
+    con.landuse(
         [whmod_pet.CONSTANTS[key.split('_')[0].split(':')[1].upper()]
          for key in hrus.keys()])
     con.maxinterz(gras=[0.4, 0.4, 0.6, 0.8, 1.0, 1.0,

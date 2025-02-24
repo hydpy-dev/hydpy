@@ -28,16 +28,16 @@ pasture
 _______
 
 >>> area(10.0)
->>> nmb_cells(1)
->>> mitfunktion_kapillareraufstieg(True)
->>> nutz_nr(GRAS)
->>> bodentyp(SAND)
->>> f_area(10.0)
+>>> nmbzones(1)
+>>> capillaryrise(True)
+>>> landtype(GRAS)
+>>> soiltype(SAND)
+>>> zonearea(10.0)
 >>> maxinterz.gras_feb = 0.4
 >>> maxinterz.gras_mar = 0.6
 >>> maxinterz.gras_apr = 0.8
 >>> fln.gras = 1.0
->>> gradfaktor(4.5)
+>>> degreefactor(4.5)
 >>> nfk100_mittel(200.0)
 >>> flurab(1.0)
 >>> maxwurzeltiefe(gras=0.5, laubwald=1.5, mais=0.5, nadelwald=1.9, sommerweizen=0.6,
@@ -144,7 +144,7 @@ _______
 water
 _____
 
->>> nutz_nr(WASSER)
+>>> landtype(WASSER)
 >>> maxinterz.wasser = 0.0
 >>> fln.wasser_feb = 1.217
 >>> fln.wasser_mar = 1.256
@@ -223,7 +223,7 @@ _____
 sealed
 ______
 
->>> nutz_nr(VERSIEGELT)
+>>> landtype(VERSIEGELT)
 >>> maxinterz.versiegelt = 2.0
 >>> fln.versiegelt_feb = nan
 
@@ -301,13 +301,13 @@ subcells
 ________
 
 >>> name2value = {par.name: par.value for par in control}
->>> nmb_cells(4)
->>> nutz_nr(GRAS, NADELWALD, WASSER, VERSIEGELT)
->>> f_area(2.5)
+>>> nmbzones(4)
+>>> landtype(GRAS, NADELWALD, WASSER, VERSIEGELT)
+>>> zonearea(2.5)
 >>> maxinterz.nadelwald = 2.0
 >>> fln.nadelwald = 1.335
 >>> for name, value in name2value.items():
-...     if name not in ("nmb_cells", "nutz_nr", "f_area", "maxinterz", "fln"):
+...     if name not in ("nmbzones", "landtype", "zonearea", "maxinterz", "fln"):
 ...         control[name].value = value
 
 .. integration-test::

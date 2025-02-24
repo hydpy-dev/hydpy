@@ -17,9 +17,9 @@ class Factor1DSequence(sequencetools.FactorSequence):
 
     >>> from hydpy.models.whmod import *
     >>> parameterstep("1d")
-    >>> nmb_cells(5)
-    >>> nutz_nr(GRAS, WASSER, SOMMERWEIZEN, LAUBWALD, VERSIEGELT)
-    >>> f_area(10.0, 20.0, 30.0, 35.0, 5.0)
+    >>> nmbzones(5)
+    >>> landtype(GRAS, WASSER, SOMMERWEIZEN, LAUBWALD, VERSIEGELT)
+    >>> zonearea(10.0, 20.0, 30.0, 35.0, 5.0)
     >>> area(100.0)
     >>> derived.relarea.update()
     >>> factors.relbodenfeuchte(0.5, 0.2, 0.4, 0.1, 0.6)
@@ -45,9 +45,9 @@ class Flux1DSequence(sequencetools.FluxSequence):
 
     >>> from hydpy.models.whmod import *
     >>> parameterstep("1d")
-    >>> nmb_cells(5)
-    >>> nutz_nr(GRAS, WASSER, SOMMERWEIZEN, LAUBWALD, VERSIEGELT)
-    >>> f_area(10.0, 20.0, 30.0, 35.0, 5.0)
+    >>> nmbzones(5)
+    >>> landtype(GRAS, WASSER, SOMMERWEIZEN, LAUBWALD, VERSIEGELT)
+    >>> zonearea(10.0, 20.0, 30.0, 35.0, 5.0)
     >>> area(100.0)
     >>> derived.relarea.update()
     >>> fluxes.zuflussboden(5.0, 2.0, 4.0, 1.0, 6.0)
@@ -73,9 +73,9 @@ class State1DSequence(sequencetools.StateSequence):
 
     >>> from hydpy.models.whmod import *
     >>> parameterstep("1d")
-    >>> nmb_cells(5)
-    >>> nutz_nr(GRAS, WASSER, SOMMERWEIZEN, LAUBWALD, VERSIEGELT)
-    >>> f_area(10.0, 20.0, 30.0, 35.0, 5.0)
+    >>> nmbzones(5)
+    >>> landtype(GRAS, WASSER, SOMMERWEIZEN, LAUBWALD, VERSIEGELT)
+    >>> zonearea(10.0, 20.0, 30.0, 35.0, 5.0)
     >>> area(100.0)
     >>> derived.relarea.update()
     >>> states.interzeptionsspeicher(5.0, 2.0, 4.0, 1.0, 6.0)

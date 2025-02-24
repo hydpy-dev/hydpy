@@ -193,60 +193,60 @@ def _collect_hrus(
     >>> pprint(_collect_hrus(table=df_knoteneigenschaften, idx=2, landuse=landuse))
     [{'area': np.float64(10000.0),
       'bfi': np.float64(0.2759066),
-      'bodentyp': 'LEHM',
       'col': np.int64(3),
-      'f_area': np.float64(10000.0),
       'f_id': np.int64(2),
       'flurab': np.float64(2.9),
       'id': np.int64(2),
       'init_boden': np.float64(30.0),
       'init_gwn': np.float64(0.0),
+      'landtype': 'NADELWALD',
       'nfk100_mittel': np.float64(90.6),
       'nfk_faktor': np.float64(1.0),
       'nfk_offset': np.float64(0.0),
-      'nutz_nr': 'NADELWALD',
       'row': np.int64(1),
+      'soiltype': 'LEHM',
       'verzoegerung': 'flurab_probst',
       'x': np.float64(3455723.97),
-      'y': np.float64(5567807.03)}]
+      'y': np.float64(5567807.03),
+      'zonearea': np.float64(10000.0)}]
 
     >>> pprint(_collect_hrus(table=df_knoteneigenschaften, idx=0, landuse=landuse))
     [{'area': np.float64(10000.0),
       'bfi': np.float64(0.2839615),
-      'bodentyp': 'TON',
       'col': np.int64(1),
-      'f_area': np.float64(5000.0),
       'f_id': np.int64(0),
       'flurab': np.float64(2.9),
       'id': np.int64(0),
       'init_boden': np.float64(50.0),
       'init_gwn': np.float64(0.0),
+      'landtype': 'NADELWALD',
       'nfk100_mittel': np.float64(90.6),
       'nfk_faktor': np.float64(1.0),
       'nfk_offset': np.float64(0.0),
-      'nutz_nr': 'NADELWALD',
       'row': np.int64(1),
+      'soiltype': 'TON',
       'verzoegerung': np.float64(5.0),
       'x': np.float64(3455523.97),
-      'y': np.float64(5567807.03)},
+      'y': np.float64(5567807.03),
+      'zonearea': np.float64(5000.0)},
      {'area': np.float64(10000.0),
       'bfi': np.float64(0.2839615),
-      'bodentyp': 'TON',
       'col': np.int64(1),
-      'f_area': np.float64(5000.0),
       'f_id': np.int64(0),
       'flurab': np.float64(2.9),
       'id': np.int64(0),
       'init_boden': np.float64(50.0),
       'init_gwn': np.float64(0.0),
+      'landtype': 'LAUBWALD',
       'nfk100_mittel': np.float64(90.6),
       'nfk_faktor': np.float64(1.0),
       'nfk_offset': np.float64(0.0),
-      'nutz_nr': 'LAUBWALD',
       'row': np.int64(1),
+      'soiltype': 'TON',
       'verzoegerung': np.float64(5.0),
       'x': np.float64(3455523.97),
-      'y': np.float64(5567807.03)}]
+      'y': np.float64(5567807.03),
+      'zonearea': np.float64(5000.0)}]
 
     >>> df_knoteneigenschaften = read_nodeproperties(basedir, "Node_Data_wrong1.csv")
     >>> _collect_hrus(table=df_knoteneigenschaften, idx=4, landuse=landuse)
@@ -266,17 +266,17 @@ id `4` angesetzt wird ist nicht definiert.
     hrus = table[table["id"] == idx]
     for i, hru in hrus.iterrows():
         try:
-            landuse_ = landuse[hru["nutz_nr"]]
+            landuse_ = landuse[hru["landtype"]]
         except KeyError as exc:
             raise ValueError(
-                f"Die Landnutzungsklasse '{hru['nutz_nr']}', die für die Rasterzelle "
+                f"Die Landnutzungsklasse '{hru['landtype']}', die für die Rasterzelle "
                 f"mit der id `{idx}` angesetzt wird ist nicht definiert."
             ) from None
         for luse, area_perc in landuse_.items():
             sub = {key: hrus.loc[i, key] for key in table.columns}
             result.append(sub)
-            sub["nutz_nr"] = luse.upper()
-            sub["f_area"] *= area_perc / 100.0
+            sub["landtype"] = luse.upper()
+            sub["zonearea"] *= area_perc / 100.0
             if (v := sub["verzoegerung"]) != "flurab_probst":
                 try:
                     sub["verzoegerung"] = numpy.float64(v)
@@ -1056,7 +1056,7 @@ occurred: Integer column has NA values in column 1
     Traceback (most recent call last):
     ...
     ValueError: While trying to read the file `...Node_Data.csv`, the following error \
-occurred: `7` missing value(s) in column `bodentyp`
+occurred: `7` missing value(s) in column `soiltype`
     """
 
     name2dtype = {
@@ -1067,9 +1067,9 @@ occurred: `7` missing value(s) in column `bodentyp`
         "x": numpy.float64,
         "y": numpy.float64,
         "area": numpy.float64,
-        "f_area": numpy.float64,
-        "nutz_nr": str,
-        "bodentyp": str,
+        "zonearea": numpy.float64,
+        "landtype": str,
+        "soiltype": str,
         "nfk100_mittel": numpy.float64,
         "nfk_faktor": numpy.float64,
         "nfk_offset": numpy.float64,
@@ -1486,16 +1486,16 @@ def _initialize_whmod_models(
         # add Parameters to model (control)
         con = whmod.parameters.control
 
-        con.area(sum(_query_vector_from_hrus(hrus, "f_area")))
-        con.nmb_cells(len(hrus))
-        con.mitfunktion_kapillareraufstieg(with_capillary_rise)
+        con.area(sum(_query_vector_from_hrus(hrus, "zonearea")))
+        con.nmbzones(len(hrus))
+        con.capillaryrise(with_capillary_rise)
 
         # iterate over all hrus and create a list with the land use
         temp_list = []
-        for i, nutz_nr in enumerate(_query_vector_from_hrus(hrus, "nutz_nr")):
-            assert isinstance(nutz_nr, str)
-            temp_list.append(whmod_constants.LANDUSE_CONSTANTS[nutz_nr])
-        con.nutz_nr(temp_list)
+        for i, landuse in enumerate(_query_vector_from_hrus(hrus, "landtype")):
+            assert isinstance(landuse, str)
+            temp_list.append(whmod_constants.LANDUSE_CONSTANTS[landuse])
+        con.landtype(temp_list)
 
         # fmt: off
         con.maxinterz(
@@ -1513,10 +1513,10 @@ def _initialize_whmod_models(
 
         # iterate over all hrus and create a list with the soil type
         temp_list = []
-        for i, bodentyp in enumerate(_query_vector_from_hrus(hrus, "bodentyp")):
-            assert isinstance(bodentyp, str)
-            temp_list.append(whmod_constants.SOIL_CONSTANTS[bodentyp.upper()])
-        con.bodentyp(temp_list)
+        for i, soiltype in enumerate(_query_vector_from_hrus(hrus, "soiltype")):
+            assert isinstance(soiltype, str)
+            temp_list.append(whmod_constants.SOIL_CONSTANTS[soiltype.upper()])
+        con.soiltype(temp_list)
 
         # fmt: off
         # DWA-M 504:
@@ -1534,8 +1534,8 @@ def _initialize_whmod_models(
         )  # DWA-M 504
         # fmt: on
 
-        con.f_area(_query_vector_from_hrus(hrus, "f_area"))
-        con.gradfaktor(float(day_degree_factor))
+        con.zonearea(_query_vector_from_hrus(hrus, "zonearea"))
+        con.degreefactor(float(day_degree_factor))
         nfk100_mittel = numpy.asarray(_query_vector_from_hrus(hrus, "nfk100_mittel"))
         nfk_faktor = numpy.asarray(_query_vector_from_hrus(hrus, "nfk_faktor"))
         nfk_offset = numpy.asarray(_query_vector_from_hrus(hrus, "nfk_offset"))
@@ -2888,7 +2888,7 @@ def check_raster(
     np.float64(100.0)
     >>> df_knoteneigenschaften = df_knoteneigenschaften_orig.copy()
     >>> df_knoteneigenschaften.loc[df_knoteneigenschaften["f_id"] == 13,
-    ...     "f_area"] = 7050
+    ...     "zonearea"] = 7050
     >>> check_raster(
     ...     df_knoteneigenschaften=df_knoteneigenschaften, check_regular_grid=True
     ... )
@@ -2968,7 +2968,7 @@ kann nicht geschrieben werden
                 f"haben unterschiedliche ID: row= {row}, col={col}"
             )
         if ncols > 1:
-            if any(abs(cell["area"] - cell["f_area"].sum()) > area_precision):
+            if any(abs(cell["area"] - cell["zonearea"].sum()) > area_precision):
                 raise ValueError(
                     f"Summe der HRU-Flächen entspricht nicht der "
                     f"Gesamtfläche (Zeile={row} Spalte={col})"

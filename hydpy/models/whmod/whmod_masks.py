@@ -15,7 +15,7 @@ class NutzBase(masktools.IndexMask):
 
     @staticmethod
     def get_refindices(variable):
-        return variable.subvars.vars.model.parameters.control.nutz_nr
+        return variable.subvars.vars.model.parameters.control.landtype
 
 
 class NutzComplete(NutzBase):
@@ -124,7 +124,7 @@ class BodenComplete(masktools.IndexMask):
 
     @staticmethod
     def get_refindices(variable):
-        return variable.subvars.vars.model.parameters.control.bodentyp
+        return variable.subvars.vars.model.parameters.control.soiltype
 
 
 class Masks(masktools.Masks):

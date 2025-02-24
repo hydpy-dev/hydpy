@@ -316,7 +316,7 @@ class Calc_RelBodenfeuchte_V1(modeltools.Method):
     >>> nmbzones(9)
     >>> landtype(GRAS, LAUBWALD, MAIS, NADELWALD, SOMMERWEIZEN, WINTERWEIZEN,
     ...         ZUCKERRUEBEN, VERSIEGELT, WASSER)
-    >>> derived.nfkwe(200.0)
+    >>> derived.maxsoilwater(200.0)
     >>> states.aktbodenwassergehalt(100.0)
     >>> model.calc_relbodenfeuchte_v1()
     >>> factors.relbodenfeuchte
@@ -324,7 +324,7 @@ class Calc_RelBodenfeuchte_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
-    DERIVEDPARAMETERS = (whmod_derived.nFKwe,)
+    DERIVEDPARAMETERS = (whmod_derived.MaxSoilWater,)
     REQUIREDSEQUENCES = (whmod_states.AktBodenwassergehalt,)
     RESULTSEQUENCES = (whmod_factors.RelBodenfeuchte,)
 
@@ -336,10 +336,10 @@ class Calc_RelBodenfeuchte_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
-            if (con.landtype[k] in (WASSER, VERSIEGELT)) or (der.nfkwe[k] <= 0.0):
+            if (con.landtype[k] in (WASSER, VERSIEGELT)) or (der.maxsoilwater[k] <= 0.0):
                 fac.relbodenfeuchte[k] = 0.0
             else:
-                fac.relbodenfeuchte[k] = sta.aktbodenwassergehalt[k] / der.nfkwe[k]
+                fac.relbodenfeuchte[k] = sta.aktbodenwassergehalt[k] / der.maxsoilwater[k]
 
 
 class Calc_Sickerwasser_V1(modeltools.Method):
@@ -613,7 +613,7 @@ class Calc_PotKapilAufstieg_V1(modeltools.Method):
     ...                  ton=1.35, schluff=1.75, torf=0.85)
     >>> capillarylimit(sand=0.4, sand_bindig=0.85, lehm=0.45,
     ...                ton=0.25, schluff=0.75, torf=0.55)
-    >>> derived.wurzeltiefe(0.0)
+    >>> derived.soildepth(0.0)
 
     >>> from hydpy import UnitTest
     >>> test = UnitTest(
@@ -658,7 +658,7 @@ class Calc_PotKapilAufstieg_V1(modeltools.Method):
     |  30 | 2.9  2.9  2.9  2.9  2.9               2.9 |  0.0       0.0       0.0       0.0   0.0               0.0 |
     |  31 | 3.0  3.0  3.0  3.0  3.0               3.0 |  0.0       0.0       0.0       0.0   0.0               0.0 |
 
-    >>> derived.wurzeltiefe(1.0)
+    >>> derived.soildepth(1.0)
     >>> test()
     | ex. |                          groundwaterdepth |                                           potkapilaufstieg |
     ----------------------------------------------------------------------------------------------------------------
@@ -722,7 +722,7 @@ class Calc_PotKapilAufstieg_V1(modeltools.Method):
         whmod_control.CapillaryLimit,
         whmod_control.GroundwaterDepth,
     )
-    DERIVEDPARAMETERS = (whmod_derived.Wurzeltiefe,)
+    DERIVEDPARAMETERS = (whmod_derived.SoilDepth,)
     RESULTSEQUENCES = (whmod_fluxes.PotKapilAufstieg,)
 
     @staticmethod
@@ -736,14 +736,14 @@ class Calc_PotKapilAufstieg_V1(modeltools.Method):
             ):
                 d_schwell = con.capillarythreshold[k]
                 d_grenz = con.capillarylimit[k]
-                if con.groundwaterdepth[k] > (der.wurzeltiefe[k] + d_schwell):
+                if con.groundwaterdepth[k] > (der.soildepth[k] + d_schwell):
                     flu.potkapilaufstieg[k] = 0.0
-                elif con.groundwaterdepth[k] < (der.wurzeltiefe[k] + d_grenz):
+                elif con.groundwaterdepth[k] < (der.soildepth[k] + d_grenz):
                     flu.potkapilaufstieg[k] = 5.0
                 else:
                     flu.potkapilaufstieg[k] = (
                         5.0
-                        * (der.wurzeltiefe[k] + d_schwell - con.groundwaterdepth[k])
+                        * (der.soildepth[k] + d_schwell - con.groundwaterdepth[k])
                         / (d_schwell - d_grenz)
                     )
             else:
@@ -801,7 +801,7 @@ class Calc_AktBodenwassergehalt_V1(modeltools.Method):
     >>> parameterstep()
     >>> nmbzones(5)
     >>> landtype(GRAS)
-    >>> derived.nfkwe(100.0)
+    >>> derived.maxsoilwater(100.0)
     >>> fluxes.zuflussboden(2.0)
     >>> fluxes.bodenverdunstung(1.0)
     >>> states.aktbodenwassergehalt(0.0, 1.0, 50.0, 98.0, 100.0)
@@ -827,7 +827,7 @@ class Calc_AktBodenwassergehalt_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
-    DERIVEDPARAMETERS = (whmod_derived.nFKwe,)
+    DERIVEDPARAMETERS = (whmod_derived.MaxSoilWater,)
     REQUIREDSEQUENCES = (
         whmod_fluxes.ZuflussBoden,
         whmod_fluxes.Bodenverdunstung,
@@ -855,9 +855,9 @@ class Calc_AktBodenwassergehalt_V1(modeltools.Method):
                 if sta.aktbodenwassergehalt[k] < 0.0:
                     flu.sickerwasser[k] += sta.aktbodenwassergehalt[k]
                     sta.aktbodenwassergehalt[k] = 0.0
-                elif sta.aktbodenwassergehalt[k] > der.nfkwe[k]:
-                    flu.kapilaufstieg[k] += der.nfkwe[k] - sta.aktbodenwassergehalt[k]
-                    sta.aktbodenwassergehalt[k] = der.nfkwe[k]
+                elif sta.aktbodenwassergehalt[k] > der.maxsoilwater[k]:
+                    flu.kapilaufstieg[k] += der.maxsoilwater[k] - sta.aktbodenwassergehalt[k]
+                    sta.aktbodenwassergehalt[k] = der.maxsoilwater[k]
 
 
 class Calc_PotGrundwasserneubildung_V1(modeltools.Method):
@@ -944,7 +944,7 @@ class Calc_AktGrundwasserneubildung_V1(modeltools.Method):
     >>> nmbzones(4)
     >>> area(14.0)
     >>> zonearea(2.0, 3.0, 5.0, 4.0)
-    >>> derived.relarea.update()
+    >>> derived.zoneratio.update()
     >>> fluxes.potgrundwasserneubildung = 2.0, 10.0, -2.0, -0.5
     >>> fluxes.basisabfluss = 0.0, 5.0, 0.0, 0.0
     >>> model.calc_aktgrundwasserneubildung_v1()
@@ -953,7 +953,7 @@ class Calc_AktGrundwasserneubildung_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (whmod_control.NmbZones,)
-    DERIVEDPARAMETERS = (whmod_derived.RelArea,)
+    DERIVEDPARAMETERS = (whmod_derived.ZoneRatio,)
     REQUIREDSEQUENCES = (
         whmod_fluxes.PotGrundwasserneubildung,
         whmod_fluxes.Basisabfluss,
@@ -967,7 +967,7 @@ class Calc_AktGrundwasserneubildung_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         flu.aktgrundwasserneubildung = 0.0
         for k in range(con.nmbzones):
-            flu.aktgrundwasserneubildung += der.relarea[k] * (
+            flu.aktgrundwasserneubildung += der.zoneratio[k] * (
                 flu.potgrundwasserneubildung[k] - flu.basisabfluss[k]
             )
 
@@ -1114,7 +1114,7 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         >>> area(10.0)
         >>> landtype(GRAS, LAUBWALD, NADELWALD, WASSER, VERSIEGELT)
         >>> zonearea(4.0, 1.0, 1.0, 1.0, 3.0)
-        >>> derived.nfkwe(200.0)
+        >>> derived.maxsoilwater(200.0)
         >>> with model.add_aetmodel_v1("evap_aet_minhas"):
         ...     nmbhru
         ...     area
@@ -1176,4 +1176,4 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         sel[landtype == LAUBWALD] = True
         aetmodel.prepare_tree(sel)
 
-        aetmodel.prepare_maxsoilwater(derived.nfkwe.values)
+        aetmodel.prepare_maxsoilwater(derived.maxsoilwater.values)

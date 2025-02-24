@@ -2056,7 +2056,7 @@ def write_mean_timeseries(
     """
     Writes spatially aggregated timeseries
     """
-    weights = data.relarea
+    weights = data.zoneratio
     weights.name = "weights"
     data_weighted = data.weighted(weights)
     spatial_sum = data_weighted.mean(dim=("row", "col")).to_dataframe()
@@ -2278,7 +2278,7 @@ def aggregate_whmod_series(
             col=numpy.arange(pb.colmin, pb.colmax + 1)
         )
         xarr_series = xarr_series.assign_coords(cellid=(["row", "col"], rasterids))
-        xarr_series = xarr_series.assign_coords(relarea=(["row", "col"], rasterareas))
+        xarr_series = xarr_series.assign_coords(zoneratio=(["row", "col"], rasterareas))
 
         hydpy.pub.options.printprogress = False
         with hydpy.pub.sequencemanager.netcdfreading():

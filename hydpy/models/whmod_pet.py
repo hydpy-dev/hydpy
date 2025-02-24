@@ -524,7 +524,7 @@ class Model(whmod_model.Main_AETModel_V1):
         fluxes = self.sequences.fluxes
         last = self.sequences.states
         first = initial_conditions["model"]["states"]
-        ra = derived.relarea
+        ra = derived.zoneratio
         return (
             sum(fluxes.niederschlagrichter.series)
             - numpy.sum(ra * fluxes.aktverdunstung.series)

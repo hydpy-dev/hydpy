@@ -21,7 +21,7 @@ class Factor1DSequence(sequencetools.FactorSequence):
     >>> landtype(GRAS, WASSER, SOMMERWEIZEN, LAUBWALD, VERSIEGELT)
     >>> zonearea(10.0, 20.0, 30.0, 35.0, 5.0)
     >>> area(100.0)
-    >>> derived.relarea.update()
+    >>> derived.zoneratio.update()
     >>> factors.relbodenfeuchte(0.5, 0.2, 0.4, 0.1, 0.6)
     >>> from hydpy import round_
     >>> round_(factors.relbodenfeuchte.average_values())
@@ -32,7 +32,7 @@ class Factor1DSequence(sequencetools.FactorSequence):
 
     @property
     def refweights(self):
-        return self.subseqs.seqs.model.parameters.derived.relarea
+        return self.subseqs.seqs.model.parameters.derived.zoneratio
 
 
 class Flux1DSequence(sequencetools.FluxSequence):
@@ -49,7 +49,7 @@ class Flux1DSequence(sequencetools.FluxSequence):
     >>> landtype(GRAS, WASSER, SOMMERWEIZEN, LAUBWALD, VERSIEGELT)
     >>> zonearea(10.0, 20.0, 30.0, 35.0, 5.0)
     >>> area(100.0)
-    >>> derived.relarea.update()
+    >>> derived.zoneratio.update()
     >>> fluxes.zuflussboden(5.0, 2.0, 4.0, 1.0, 6.0)
     >>> from hydpy import round_
     >>> round_(fluxes.zuflussboden.average_values())
@@ -60,7 +60,7 @@ class Flux1DSequence(sequencetools.FluxSequence):
 
     @property
     def refweights(self):
-        return self.subseqs.seqs.model.parameters.derived.relarea
+        return self.subseqs.seqs.model.parameters.derived.zoneratio
 
 
 class State1DSequence(sequencetools.StateSequence):
@@ -77,7 +77,7 @@ class State1DSequence(sequencetools.StateSequence):
     >>> landtype(GRAS, WASSER, SOMMERWEIZEN, LAUBWALD, VERSIEGELT)
     >>> zonearea(10.0, 20.0, 30.0, 35.0, 5.0)
     >>> area(100.0)
-    >>> derived.relarea.update()
+    >>> derived.zoneratio.update()
     >>> states.interzeptionsspeicher(5.0, 2.0, 4.0, 1.0, 6.0)
     >>> from hydpy import round_
     >>> round_(states.interzeptionsspeicher.average_values())
@@ -88,4 +88,4 @@ class State1DSequence(sequencetools.StateSequence):
 
     @property
     def refweights(self):
-        return self.subseqs.seqs.model.parameters.derived.relarea
+        return self.subseqs.seqs.model.parameters.derived.zoneratio

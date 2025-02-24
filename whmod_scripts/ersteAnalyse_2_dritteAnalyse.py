@@ -180,7 +180,7 @@ for idx in range(len(table_knoteneigenschaften)):
     con.nfk100_mittel(
         [float(key.split('_')[3].split(':')[1]) for key in hrus.keys()])
     con.flurab([float(key.split('_')[1].split(':')[1]) for key in hrus.keys()])
-    con.maxwurzeltiefe(
+    con.rootingdepth(
         gras=0.6, laubwald=1.5, nadelwald=1.5, mais=1.0, sommerweizen=1.0,
         winterweizen=1.0, zuckerrueben=0.8, versiegelt=0.0, wasser=0.0)
     con.minhasr(

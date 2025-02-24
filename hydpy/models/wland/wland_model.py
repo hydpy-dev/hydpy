@@ -3467,8 +3467,13 @@ class Main_PETModel_V1(modeltools.ELSModel):
         ...     nmbhru
         ...     hruarea
         ...     evapotranspirationfactor(field=1.0, trees=2.0, water=1.5)
+        ...     for method, arguments in model.preparemethod2arguments.items():
+        ...         print(method, arguments[0][0], sep=": ")
         nmbhru(3)
         hruarea(5.0, 3.0, 2.0)
+        prepare_nmbzones: 3
+        prepare_zonetypes: [13 19 23]
+        prepare_subareas: [5. 3. 2.]
 
         >>> etf = model.petmodel.parameters.control.evapotranspirationfactor
         >>> etf
@@ -3546,6 +3551,8 @@ class Main_PETModel_V2(modeltools.ELSModel):
         ...     groundalbedo(conifer=0.05, decidious=0.1, field=0.15, mixed=0.2,
         ...                  orchard=0.25, pasture=0.3, sealed=0.35, soil=0.4,
         ...                  trees=0.45, water=0.5, wetland=0.55, wine=0.6)
+        ...     for method, arguments in model.preparemethod2arguments.items():
+        ...         print(method, arguments[0][0], sep=": ")  # doctest: +ELLIPSIS
         nmbhru(12)
         hrutype(SEALED, FIELD, WINE, ORCHARD, SOIL, PASTURE, WETLAND, TREES,
                 CONIFER, DECIDIOUS, MIXED, WATER)
@@ -3565,6 +3572,21 @@ class Main_PETModel_V2(modeltools.ELSModel):
         ((12,), {})
         ((array([0.06, 0.2 , 0.34, 0.48, 0.62, 0.76, 0.9 , 1.04, 1.18, 1.32, 1.46,
                1.64]),), {})
+        prepare_nmbzones: 12
+        prepare_zonetypes: [12 13 14 15 16 17 18 19 20 21 22 23]
+        prepare_subareas: [0.06 0.2  0.34 0.48 0.62 0.76 0.9  1.04 1.18 1.32 1.46 1.64]
+        prepare_leafareaindex: [[1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.]
+        ...
+        prepare_water: [False False False False False False False False False False \
+False  True]
+        prepare_interception: [ True  True  True  True  True  True  True  True  True  \
+True  True False]
+        prepare_soil: [False  True  True  True  True  True  True  True  True  True  \
+True False]
+        prepare_plant: [False  True  True  True False  True  True  True  True  True  \
+True False]
+        prepare_tree: [False False False False False False False False  True  True  \
+True False]
 
         >>> assert model is model.petmodel.tempmodel
         >>> assert model is model.petmodel.precipmodel

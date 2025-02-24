@@ -7532,11 +7532,11 @@ glets=1.1)
         prepare_leafareaindex: [[1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.]
         ...
         prepare_maxsoilwater: [50. 50. 50. 50. 50. 50. 50. 50. 50.]
-        prepare_water: [False False False  True  True  True  True  True  True]
+        prepare_water: [False False False False  True  True  True False False]
         prepare_interception: [ True  True  True  True False False False  True  True]
         prepare_soil: [ True  True  True False False False False  True  True]
         prepare_plant: [ True  True  True False False False False False False]
-        prepare_conifer: [False  True  True False False False False False False]
+        prepare_conifer: [False False  True False False False False False False]
         prepare_tree: [False  True  True False False False False False False]
 
         >>> model.aetmodel.parameters.control.leafareaindex.acker_jan

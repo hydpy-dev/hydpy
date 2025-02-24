@@ -4567,7 +4567,7 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         prepare_elevations: [300. 300. 300. 300. 300.]
         prepare_maxsoilwater: [200. 200. 200. 200. 200.]
         prepare_water: [False False  True False False]
-        prepare_interception: [ True  True False False False]
+        prepare_interception: [ True  True False False  True]
         prepare_plant: [ True  True False False False]
         prepare_soil: [ True  True False False False]
 
@@ -4596,8 +4596,8 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         sel = ~sel
         sel[zonetype == GLACIER] = False
         aetmodel.prepare_interception(sel)
-        aetmodel.prepare_plant(sel)
         sel[zonetype == SEALED] = False
+        aetmodel.prepare_plant(sel)
         aetmodel.prepare_soil(sel)
 
 

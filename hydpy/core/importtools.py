@@ -1064,17 +1064,19 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
 
     def __call__(self, *args: P.args, **kwargs: P.kwargs) -> None:
         assert (model := self._model) is not None
+        args = copy.deepcopy(args)
+        kwargs = copy.deepcopy(kwargs)
         model.preparemethod2arguments[self._wrapped.__name__] = args, kwargs
         control = model.parameters.control
         if self.testmode:
             if (name := self.targetparameter.name) in control.names:
                 par = control[name]
-                self.values_test[model] = copy.deepcopy(((args, kwargs), par.value))
+                self.values_test[model] = ((args, kwargs), copy.deepcopy(par.value))
         else:
             if (name := self.targetparameter.name) in control.names:
                 self._wrapped(model, *args, **kwargs)
                 par = control[name]
-                self.values_orig[model] = copy.deepcopy(((args, kwargs), par.value))
+                self.values_orig[model] = ((args, kwargs), copy.deepcopy(par.value))
 
 
 def simulationstep(timestep: timetools.PeriodConstrArg) -> None:

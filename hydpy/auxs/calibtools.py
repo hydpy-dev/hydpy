@@ -1183,11 +1183,11 @@ class CalibrationInterface(Generic[TypeRule1]):
         selections=("complete",),
     )
 
-    >>> ci.FC
+    >>> ci.FC  # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
     AttributeError: The actual calibration interface does neither handle a normal \
-attribute nor a rule object named `FC`.
+attribute nor a rule object named `FC`...
 
     >>> ci["damp"]
     Replace(

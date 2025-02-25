@@ -38,6 +38,7 @@ pypi_wheels =
 	Pillow==[auto]
 	plotly==[auto]
 	tenacity==[auto]
+	narwhals==[auto]
 	networkx==[auto]
 	platformdirs==[auto]
 	click==[auto]

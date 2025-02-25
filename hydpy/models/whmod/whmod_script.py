@@ -65,7 +65,9 @@ from hydpy.models import (
     meteo_temp_io,
     whmod_pet,
 )
-from hydpy.models.whmod import whmod_constants
+from hydpy.models.whmod import (
+    whmod_constants, whmod_factors, whmod_fluxes, whmod_inputs, whmod_states
+)
 from hydpy.core.typingtools import *
 
 # from hydpy import inputs  # actual imports below
@@ -353,12 +355,9 @@ def _get_sequence(
 
 
 def _get_sequenceunit(sequencestring: str) -> str:
-    if hasattr(hydpy.models.whmod.whmod_fluxes, sequencestring):
-        return str(getattr(hydpy.models.whmod.whmod_fluxes, sequencestring).unit)
-    if hasattr(hydpy.models.whmod.whmod_factors, sequencestring):
-        return str(getattr(hydpy.models.whmod.whmod_factors, sequencestring).unit)
-    if hasattr(hydpy.models.whmod.whmod_states, sequencestring):
-        return str(getattr(hydpy.models.whmod.whmod_states, sequencestring).unit)
+    for module in (whmod_inputs, whmod_factors, whmod_fluxes, whmod_states):
+        if (sequence := getattr(module, sequencestring, None)) is not None:
+            return sequence.unit
     raise KeyError(f"{sequencestring} not in whmod model")
 
 
@@ -390,10 +389,10 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     >>> run_whmod(basedir=projectpath, write_output=False)
     Mean AktGrundwasserneubildung [mm/a]: 53.124526
     Mean VerzGrundwasserneubildung [mm/a]: 50.302012
-    Mean NiederschlagRichter [mm/a]: 687.007002
+    Mean Precipitation [mm/a]: 687.007002
     Mean InterzeptionsVerdunstung [mm/a]: 127.664044
-    Mean RelBodenfeuchte [-/a]: 192.381
-    Mean InterceptedWater [mm/a]: 85.631619
+    Mean RelBodenfeuchte [-]: 192.381
+    Mean InterceptedWater [mm]: 85.631619
 
     >>> run_whmod(basedir=projectpath, write_output=True) # doctest: +ELLIPSIS
     Start WHMOD calculations (...).
@@ -404,10 +403,10 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     Write Output in ...Results (...).
     Mean AktGrundwasserneubildung [mm/a]: 53.124526
     Mean VerzGrundwasserneubildung [mm/a]: 50.302012
-    Mean NiederschlagRichter [mm/a]: 687.007002
+    Mean Precipitation [mm/a]: 687.007002
     Mean InterzeptionsVerdunstung [mm/a]: 127.664044
-    Mean RelBodenfeuchte [-/a]: 192.381
-    Mean InterceptedWater [mm/a]: 85.631619
+    Mean RelBodenfeuchte [-]: 192.381
+    Mean InterceptedWater [mm]: 85.631619
 
 
     You can also run the script from the command prompt with hyd.py:
@@ -415,10 +414,10 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     >>> _ = run_subprocess(f"hyd.py run_whmod {projectpath} False")  # doctest: +ELLIPSIS
     Mean AktGrundwasserneubildung [mm/a]: 53.124525...
     Mean VerzGrundwasserneubildung [mm/a]: 50.302011...
-    Mean NiederschlagRichter [mm/a]: 687.007002...
+    Mean Precipitation [mm/a]: 687.007002...
     Mean InterzeptionsVerdunstung [mm/a]: 127.664043...
-    Mean RelBodenfeuchte [-/a]: 192.381000...
-    Mean InterceptedWater [mm/a]: 85.631618...
+    Mean RelBodenfeuchte [-]: 192.381000...
+    Mean InterceptedWater [mm]: 85.631618...
 
     >>> with open(os.path.join(projectpath, "Results",
     ... "monthly_timeseries_AktGrundwasserneubildung.txt"), 'r') as file:
@@ -707,10 +706,10 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     Write Output in ...Results (...).
     Mean AktGrundwasserneubildung [mm/a]: 48.044942
     Mean VerzGrundwasserneubildung [mm/a]: 45.514301
-    Mean NiederschlagRichter [mm/a]: 637.554895
+    Mean Precipitation [mm/a]: 637.554895
     Mean InterzeptionsVerdunstung [mm/a]: 105.309222
-    Mean RelBodenfeuchte [-/a]: 190.404469
-    Mean InterceptedWater [mm/a]: 93.341173
+    Mean RelBodenfeuchte [-]: 190.404469
+    Mean InterceptedWater [mm]: 93.341173
 
     ...testsetup::
 
@@ -1360,19 +1359,18 @@ def read_outputconfig(
     >>> hydpy.pub.timegrids = "1990-01-01", "1992-01-01", "1d"
     >>> read_outputconfig(outputconfigfile="Tageswerte.txt", basedir=basedir)
     {'sequence': ['AktGrundwasserneubildung', 'VerzGrundwasserneubildung', \
-'NiederschlagRichter', 'InterzeptionsVerdunstung', 'RelBodenfeuchte', \
-'InterceptedWater'], 'steps': ['daily'], 'eval_start': ['1990-01-01'], \
-'eval_end': ['1990-02-01'], 'rch_files': ['daily_rch'], 'grid_files': ['daily_mean'], \
-'mean_timeseries_files': ['daily_timeseries'], 'cell_series_files cells=[3, 4]': \
-['daily_timeseries_ID-*']}
+'Precipitation', 'InterzeptionsVerdunstung', 'RelBodenfeuchte', 'InterceptedWater'], \
+'steps': ['daily'], 'eval_start': ['1990-01-01'], 'eval_end': ['1990-02-01'], \
+'rch_files': ['daily_rch'], 'grid_files': ['daily_mean'], 'mean_timeseries_files': \
+['daily_timeseries'], 'cell_series_files cells=[3, 4]': ['daily_timeseries_ID-*']}
 
 
 
     >>> read_outputconfig(outputconfigfile="Variablewerte.txt", basedir=basedir)
     {'sequence': ['AktGrundwasserneubildung', 'VerzGrundwasserneubildung', \
-'NiederschlagRichter'], 'steps': [DatetimeIndex(['1990-01-01', '1990-02-01', \
-'1991-01-01', '1992-01-01'], dtype='datetime64[ns]', freq=None)], 'rch_files': \
-['user_rch'], 'mean_timeseries_files': ['user_timeseries']}
+'Precipitation'], 'steps': [DatetimeIndex(['1990-01-01', '1990-02-01', '1991-01-01', \
+'1992-01-01'], dtype='datetime64[ns]', freq=None)], 'rch_files': ['user_rch'], \
+'mean_timeseries_files': ['user_timeseries']}
 
     >>> read_outputconfig(outputconfigfile="Variablewerte_wrong1.txt", basedir=basedir)
     Traceback (most recent call last):
@@ -1469,11 +1467,11 @@ def _initialize_whmod_models(
         name = f"{str(row).zfill(3)}_{str(col).zfill(3)}"
 
         # Initialize Precipitation Nodes
-        precnode = hydpy.Node(f"P_{name}", variable=aliases.whmod_inputs_Niederschlag)
+        precnode = hydpy.Node(f"P_{name}", variable=aliases.whmod_inputs_Precipitation)
         prec_selection_raster.nodes.add_device(precnode)
 
         # Initialize Temperature Nodes
-        tempnode = hydpy.Node(f"T_{name}", variable=aliases.whmod_inputs_Temp_TM)
+        tempnode = hydpy.Node(f"T_{name}", variable=aliases.whmod_inputs_Temperature)
         temp_selection_raster.nodes.add_device(tempnode)
 
         # Initialize Evap Nodes
@@ -1991,7 +1989,7 @@ def write_rch_file(
     with open(filepath, "w", encoding="utf-8") as rchfile:
         rchfile.write(
             f"# {person_in_charge}, {datetime.datetime.now()}\n"
-            f"# {step} WHMod-{name} in {unit}\n"
+            f"# {step} WHMod-{name} in {unit.replace('/T', '')}\n"
             f"# {step} values from "
             f"{numpy.datetime_as_string(data.time[0].values)[:13]} to "
             f"{numpy.datetime_as_string(data.time[-1].values)[:13]}\n"
@@ -2069,7 +2067,7 @@ def write_mean_timeseries(
     with open(filepath, "w", encoding="utf-8", newline="\n") as seriesfile:
         seriesfile.write(
             f"# {person_in_charge}, {datetime.datetime.now()}\n"
-            f"# {step} WHMod-{name} in {unit}\n"
+            f"# {step} WHMod-{name} in {unit.replace('/T', '')}\n"
             f"# {step} values from "
             f"{numpy.datetime_as_string(data.time[0].values)[:13]} to "
             f"{numpy.datetime_as_string(data.time[-1].values)[:13]}\n"
@@ -2088,7 +2086,7 @@ def write_timeseries(
     with open(filepath, "w", encoding="utf-8", newline="\n") as seriesfile:
         seriesfile.write(
             f"# {person_in_charge}, {datetime.datetime.now()}\n"
-            f"# {step} WHMod-{name} in {unit}\n"
+            f"# {step} WHMod-{name} in {unit.replace('/T', '')}\n"
             f"# {step} values from "
             f"{numpy.datetime_as_string(data.time[0].values)[:13]} to "
             f"{numpy.datetime_as_string(data.time[-1].values)[:13]}\n"
@@ -2150,7 +2148,7 @@ def save_results(
             if "mean_timeseries_files" in logger.keys():
                 for filename in logger["mean_timeseries_files"]:
                     filepath = os.path.join(outputdir, filename + "_" + seq + ".txt")
-                    if str(grid["mean"].name).split("_")[1] == "mm":
+                    if str(grid["mean"].name).split("_")[1] == "mm/T":
                         data = grid["sum"]
                     else:
                         data = grid["mean"]
@@ -2338,7 +2336,7 @@ def aggregate_whmod_series(
             aggregated_series[name]["sum"] = agg_ser_sum
             if seq not in all_series:
                 print(
-                    f"Mean {seq} [{unit}/a]: "
+                    f"Mean {seq} [{unit.replace('T', 'a')}]: "
                     f"{objecttools.repr_(float(xarr_series.mean().values) * 365.24)}"
                 )
                 all_series.append(seq)

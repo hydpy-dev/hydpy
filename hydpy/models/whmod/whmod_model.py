@@ -29,26 +29,6 @@ from hydpy.models.whmod import whmod_fluxes
 from hydpy.models.whmod import whmod_states
 
 
-class Calc_NiederschlagRichter_V1(modeltools.Method):
-    """Niederschlagskorrektur nach Richter.
-
-    >>> from hydpy.models.whmod import *
-    >>> parameterstep()
-    >>> inputs.niederschlag = 5.0
-    >>> model.calc_niederschlagrichter_v1()
-    >>> fluxes.niederschlagrichter
-    niederschlagrichter(5.0)
-    """
-
-    REQUIREDSEQUENCES = (whmod_inputs.Niederschlag,)
-    RESULTSEQUENCES = (whmod_fluxes.NiederschlagRichter,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        inp = model.sequences.inputs.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        flu.niederschlagrichter = inp.niederschlag
-
 
 class Calc_NiedNachInterz_V1(modeltools.Method):
     """Berechnung Bestandsniederschlag.
@@ -62,34 +42,35 @@ class Calc_NiedNachInterz_V1(modeltools.Method):
     >>> test = UnitTest(
     ...     model, model.calc_niednachinterz_v1,
     ...     last_example=11,
-    ...     parseqs=(fluxes.niederschlagrichter, fluxes.niednachinterz))
-    >>> test.nexts.niederschlagrichter = range(0, 11, 1)
+    ...     parseqs=(inputs.precipitation, fluxes.niednachinterz))
+    >>> test.nexts.precipitation = range(0, 11, 1)
     >>> test()
-    | ex. | niederschlagrichter |       niednachinterz |
-    ----------------------------------------------------
-    |   1 |                 0.0 |  0.0             0.0 |
-    |   2 |                 1.0 |  1.0             1.0 |
-    |   3 |                 2.0 |  2.0             2.0 |
-    |   4 |                 3.0 |  3.0             3.0 |
-    |   5 |                 4.0 |  4.0             4.0 |
-    |   6 |                 5.0 |  5.0             5.0 |
-    |   7 |                 6.0 |  6.0             6.0 |
-    |   8 |                 7.0 |  7.0             7.0 |
-    |   9 |                 8.0 |  8.0             8.0 |
-    |  10 |                 9.0 |  9.0             9.0 |
-    |  11 |                10.0 | 10.0            10.0 |
+    | ex. | precipitation |       niednachinterz |
+    ----------------------------------------------
+    |   1 |           0.0 |  0.0             0.0 |
+    |   2 |           1.0 |  1.0             1.0 |
+    |   3 |           2.0 |  2.0             2.0 |
+    |   4 |           3.0 |  3.0             3.0 |
+    |   5 |           4.0 |  4.0             4.0 |
+    |   6 |           5.0 |  5.0             5.0 |
+    |   7 |           6.0 |  6.0             6.0 |
+    |   8 |           7.0 |  7.0             7.0 |
+    |   9 |           8.0 |  8.0             8.0 |
+    |  10 |           9.0 |  9.0             9.0 |
+    |  11 |          10.0 | 10.0            10.0 |
     """
 
     CONTROLPARAMETERS = (whmod_control.NmbZones,)
-    REQUIREDSEQUENCES = (whmod_fluxes.NiederschlagRichter,)
+    REQUIREDSEQUENCES = (whmod_inputs.Precipitation,)
     RESULTSEQUENCES = (whmod_fluxes.NiedNachInterz,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            flu.niednachinterz[k] = flu.niederschlagrichter
+            flu.niednachinterz[k] = inp.precipitation
 
 
 class Calc_Seeniederschlag_V1(modeltools.Method):
@@ -99,23 +80,24 @@ class Calc_Seeniederschlag_V1(modeltools.Method):
     >>> parameterstep()
     >>> nmbzones(3)
     >>> landtype(GRAS, SEALED, WATER)
-    >>> fluxes.niederschlagrichter = 2.0
+    >>> inputs.precipitation = 2.0
     >>> model.calc_seeniederschlag_v1()
     >>> fluxes.seeniederschlag
     seeniederschlag(0.0, 0.0, 2.0)
     """
 
     CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
-    REQUIREDSEQUENCES = (whmod_fluxes.NiederschlagRichter,)
+    REQUIREDSEQUENCES = (whmod_inputs.Precipitation,)
     RESULTSEQUENCES = (whmod_fluxes.Seeniederschlag,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
             if con.landtype[k] == WATER:
-                flu.seeniederschlag[k] = flu.niederschlagrichter
+                flu.seeniederschlag[k] = inp.precipitation
             else:
                 flu.seeniederschlag[k] = 0.0
 
@@ -150,7 +132,7 @@ class Calc_InterceptedWater_V1(modeltools.Method):
     >>> pub.timegrids = "2001-06-29", "2001-07-03", "1d"
     >>> derived.moy.update()
 
-    >>> fluxes.niederschlagrichter = 1.0
+    >>> inputs.precipitation = 1.0
     >>> fluxes.maxverdunstung = 0.0, 0.0, 0.0, 1.0, 2.0, 3.0
     >>> states.interceptedwater = 0.0, 1.0, 2.0, 2.0, 2.0, 2.0
     >>> model.idx_sim = 1
@@ -179,7 +161,7 @@ class Calc_InterceptedWater_V1(modeltools.Method):
         whmod_control.MaxInterz,
     )
     DERIVEDPARAMETERS = (whmod_derived.MOY,)
-    REQUIREDSEQUENCES = (whmod_fluxes.NiederschlagRichter, whmod_fluxes.MaxVerdunstung)
+    REQUIREDSEQUENCES = (whmod_inputs.Precipitation, whmod_fluxes.MaxVerdunstung)
     UPDATEDSEQUENCES = (whmod_states.InterceptedWater,)
     RESULTSEQUENCES = (
         whmod_fluxes.NiedNachInterz,
@@ -190,17 +172,18 @@ class Calc_InterceptedWater_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
+        inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         month = der.moy[model.idx_sim]
         for k in range(con.nmbzones):
             if con.landtype[k] == WATER:
                 sta.interceptedwater[k] = 0.0
-                flu.niednachinterz[k] = flu.niederschlagrichter
+                flu.niednachinterz[k] = inp.precipitation
                 flu.interzeptionsverdunstung[k] = 0.0
             else:
                 d_maxinterz = con.maxinterz[con.landtype[k] - 1, month]
-                sta.interceptedwater[k] += flu.niederschlagrichter
+                sta.interceptedwater[k] += inp.precipitation
                 flu.niednachinterz[k] = max(
                     sta.interceptedwater[k] - d_maxinterz, 0.0
                 )
@@ -254,20 +237,20 @@ class Calc_ZuflussBoden_V1(modeltools.Method):
     >>> test = UnitTest(
     ...     model, model.calc_zuflussboden_v1,
     ...     last_example=6,
-    ...     parseqs=(inputs.temp_tm,
+    ...     parseqs=(inputs.temperature,
     ...              states.snowpack,
     ...              fluxes.zuflussboden))
-    >>> test.nexts.temp_tm = range(-1, 6)
+    >>> test.nexts.temperature = range(-1, 6)
     >>> test.inits.snowpack = (0.0, 10.0)
     >>> test()
-    | ex. | temp_tm |      snowpack |      zuflussboden |
-    -----------------------------------------------------------
-    |   1 |    -1.0 | 3.0            13.0 | 0.0           0.0 |
-    |   2 |     0.0 | 3.0            13.0 | 0.0           0.0 |
-    |   3 |     1.0 | 0.0             5.5 | 3.0           7.5 |
-    |   4 |     2.0 | 0.0             1.0 | 3.0          12.0 |
-    |   5 |     3.0 | 0.0             0.0 | 3.0          13.0 |
-    |   6 |     4.0 | 0.0             0.0 | 3.0          13.0 |
+    | ex. | temperature |      snowpack |      zuflussboden |
+    ---------------------------------------------------------
+    |   1 |        -1.0 | 3.0      13.0 | 0.0           0.0 |
+    |   2 |         0.0 | 3.0      13.0 | 0.0           0.0 |
+    |   3 |         1.0 | 0.0       5.5 | 3.0           7.5 |
+    |   4 |         2.0 | 0.0       1.0 | 3.0          12.0 |
+    |   5 |         3.0 | 0.0       0.0 | 3.0          13.0 |
+    |   6 |         4.0 | 0.0       0.0 | 3.0          13.0 |
 
     >>> landtype(SEALED, WATER)
     >>> states.snowpack = 5.0
@@ -284,7 +267,7 @@ class Calc_ZuflussBoden_V1(modeltools.Method):
         whmod_control.LandType,
         whmod_control.DegreeDayFactor,
     )
-    REQUIREDSEQUENCES = (whmod_inputs.Temp_TM, whmod_fluxes.NiedNachInterz)
+    REQUIREDSEQUENCES = (whmod_inputs.Temperature, whmod_fluxes.NiedNachInterz)
     UPDATEDSEQUENCES = (whmod_states.Snowpack,)
     RESULTSEQUENCES = (whmod_fluxes.ZuflussBoden,)
 
@@ -298,8 +281,8 @@ class Calc_ZuflussBoden_V1(modeltools.Method):
             if con.landtype[k] in (SEALED, WATER):
                 sta.snowpack[k] = 0.0
                 flu.zuflussboden[k] = 0.0
-            elif inp.temp_tm > 0.0:
-                d_maxschneeschmelze = con.degreedayfactor[k] * inp.temp_tm
+            elif inp.temperature > 0.0:
+                d_maxschneeschmelze = con.degreedayfactor[k] * inp.temperature
                 d_schneeschmelze = min(sta.snowpack[k], d_maxschneeschmelze)
                 sta.snowpack[k] -= d_schneeschmelze
                 flu.zuflussboden[k] = flu.niednachinterz[k] + d_schneeschmelze
@@ -1042,7 +1025,6 @@ class Model(modeltools.AdHocModel):
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
-        Calc_NiederschlagRichter_V1,
         Calc_MaxVerdunstung_V1,
         Calc_NiedNachInterz_V1,
         Calc_InterceptedWater_V1,

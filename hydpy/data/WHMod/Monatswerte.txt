@@ -1,7 +1,7 @@
 # Das ist ein Kommentar
 sequence:               AktGrundwasserneubildung
                         VerzGrundwasserneubildung
-                        NiederschlagRichter
+                        Precipitation
 steps:                  monthly
 rch_files:              monthly_rch
 grid_files:             monthly_mean

@@ -115,9 +115,9 @@ for idx in range(len(table_knoteneigenschaften)):
     row = getattr(table_knoteneigenschaften, '/row')[idx]
     col = getattr(table_knoteneigenschaften, 'column')[idx]
     name = f'{str(row).zfill(3)}_{str(col).zfill(3)}'
-    precnode = hydpy.Node(f'P_{name}', variable=whmod_inputs.Niederschlag)
+    precnode = hydpy.Node(f'P_{name}', variable=whmod_inputs.Precipitation)
     precselection_raster.nodes.add_device(precnode)
-    tempnode = hydpy.Node(f'T_{name}', variable=whmod_inputs.Temp_TM)
+    tempnode = hydpy.Node(f'T_{name}', variable=whmod_inputs.Temperature)
     tempselection_raster.nodes.add_device(tempnode)
     evapnode = hydpy.Node(f'E_{name}', variable=whmod_inputs.ET0)
     petselection_raster.nodes.add_device(evapnode)

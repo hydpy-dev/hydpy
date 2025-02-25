@@ -8,74 +8,74 @@ from hydpy.models.whmod import whmod_sequences
 
 
 class NiederschlagRichter(sequencetools.FluxSequence):
-    """[mm]"""
+    """[mm/T]"""
 
     NDIM, NUMERIC = 0, False
 
 
 class InterzeptionsVerdunstung(whmod_sequences.Flux1DSequence):
-    """[mm]"""
+    """[mm/T]"""
 
 
 class NiedNachInterz(whmod_sequences.Flux1DSequence):
-    """[mm]"""
+    """[mm/T]"""
 
 
 class Seeniederschlag(whmod_sequences.Flux1DSequence):
-    """[mm]"""
+    """[mm/T]"""
 
 
 class ZuflussBoden(whmod_sequences.Flux1DSequence):
-    """[mm]"""
+    """[mm/T]"""
 
 
 class Oberflaechenabfluss(whmod_sequences.Flux1DSequence):
-    """[mm]"""
+    """[mm/T]"""
 
 
 class Sickerwasser(whmod_sequences.Flux1DSequence):
-    """[mm]"""
+    """[mm/T]"""
 
 
 class MaxVerdunstung(whmod_sequences.Flux1DSequence):
-    """[mm]"""
+    """[mm/T]"""
 
 
 class Bodenverdunstung(whmod_sequences.Flux1DSequence):
-    """[mm]"""
+    """[mm/T]"""
 
 
 class Seeverdunstung(whmod_sequences.Flux1DSequence):
-    """[mm]"""
+    """[mm/T]"""
 
 
 class AktVerdunstung(whmod_sequences.Flux1DSequence):
-    """[mm]"""
+    """[mm/T]"""
 
 
 class PotKapilAufstieg(whmod_sequences.Flux1DSequence):
-    """[mm]"""
+    """[mm/T]"""
 
 
 class KapilAufstieg(whmod_sequences.Flux1DSequence):
-    """[mm]"""
+    """[mm/T]"""
 
 
 class PotGrundwasserneubildung(whmod_sequences.Flux1DSequence):
-    """[mm]"""
+    """[mm/T]"""
 
 
 class Basisabfluss(whmod_sequences.Flux1DSequence):
-    """[mm]"""
+    """[mm/T]"""
 
 
 class AktGrundwasserneubildung(sequencetools.FluxSequence):
-    """[mm]"""
+    """[mm/T]"""
 
     NDIM, NUMERIC = 0, False
 
 
 class VerzGrundwasserneubildung(sequencetools.FluxSequence):
-    """[mm]"""
+    """[mm/T]"""
 
     NDIM, NUMERIC = 0, False

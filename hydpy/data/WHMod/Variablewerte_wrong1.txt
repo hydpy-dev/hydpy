@@ -1,7 +1,7 @@
 # Das ist ein Kommentar
 sequence:               AktGrundwasserneubildung
                         VerzGrundwasserneubildung
-                        NiederschlagRichter
+                        Precipitation
 steps:                  1990-01-01
                         1990-02-01
                         daily

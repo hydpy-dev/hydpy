@@ -120,7 +120,7 @@ class Calc_Seeniederschlag_V1(modeltools.Method):
                 flu.seeniederschlag[k] = 0.0
 
 
-class Calc_Interzeptionsspeicher_V1(modeltools.Method):
+class Calc_InterceptedWater_V1(modeltools.Method):
     """
 
     >>> from hydpy.models.whmod import *
@@ -152,21 +152,21 @@ class Calc_Interzeptionsspeicher_V1(modeltools.Method):
 
     >>> fluxes.niederschlagrichter = 1.0
     >>> fluxes.maxverdunstung = 0.0, 0.0, 0.0, 1.0, 2.0, 3.0
-    >>> states.interzeptionsspeicher = 0.0, 1.0, 2.0, 2.0, 2.0, 2.0
+    >>> states.interceptedwater = 0.0, 1.0, 2.0, 2.0, 2.0, 2.0
     >>> model.idx_sim = 1
-    >>> model.calc_interzeptionsspeicher_v1()
-    >>> states.interzeptionsspeicher
-    interzeptionsspeicher(1.0, 2.0, 2.2, 1.2, 0.2, 0.0)
+    >>> model.calc_interceptedwater_v1()
+    >>> states.interceptedwater
+    interceptedwater(1.0, 2.0, 2.2, 1.2, 0.2, 0.0)
     >>> fluxes.niednachinterz
     niednachinterz(0.0, 0.0, 0.8, 0.8, 0.8, 0.8)
     >>> fluxes.interzeptionsverdunstung
     interzeptionsverdunstung(0.0, 0.0, 0.0, 1.0, 2.0, 2.2)
 
-    >>> states.interzeptionsspeicher = 0.0, 1.0, 2.0, 2.0, 2.0, 2.0
+    >>> states.interceptedwater = 0.0, 1.0, 2.0, 2.0, 2.0, 2.0
     >>> model.idx_sim = 2
-    >>> model.calc_interzeptionsspeicher_v1()
-    >>> states.interzeptionsspeicher
-    interzeptionsspeicher(1.0, 2.0, 2.4, 1.4, 0.4, 0.0)
+    >>> model.calc_interceptedwater_v1()
+    >>> states.interceptedwater
+    interceptedwater(1.0, 2.0, 2.4, 1.4, 0.4, 0.0)
     >>> fluxes.niednachinterz
     niednachinterz(0.0, 0.0, 0.6, 0.6, 0.6, 0.6)
     >>> fluxes.interzeptionsverdunstung
@@ -180,7 +180,7 @@ class Calc_Interzeptionsspeicher_V1(modeltools.Method):
     )
     DERIVEDPARAMETERS = (whmod_derived.MOY,)
     REQUIREDSEQUENCES = (whmod_fluxes.NiederschlagRichter, whmod_fluxes.MaxVerdunstung)
-    UPDATEDSEQUENCES = (whmod_states.Interzeptionsspeicher,)
+    UPDATEDSEQUENCES = (whmod_states.InterceptedWater,)
     RESULTSEQUENCES = (
         whmod_fluxes.NiedNachInterz,
         whmod_fluxes.InterzeptionsVerdunstung,
@@ -195,20 +195,20 @@ class Calc_Interzeptionsspeicher_V1(modeltools.Method):
         month = der.moy[model.idx_sim]
         for k in range(con.nmbzones):
             if con.landtype[k] == WATER:
-                sta.interzeptionsspeicher[k] = 0.0
+                sta.interceptedwater[k] = 0.0
                 flu.niednachinterz[k] = flu.niederschlagrichter
                 flu.interzeptionsverdunstung[k] = 0.0
             else:
                 d_maxinterz = con.maxinterz[con.landtype[k] - 1, month]
-                sta.interzeptionsspeicher[k] += flu.niederschlagrichter
+                sta.interceptedwater[k] += flu.niederschlagrichter
                 flu.niednachinterz[k] = max(
-                    sta.interzeptionsspeicher[k] - d_maxinterz, 0.0
+                    sta.interceptedwater[k] - d_maxinterz, 0.0
                 )
-                sta.interzeptionsspeicher[k] -= flu.niednachinterz[k]
+                sta.interceptedwater[k] -= flu.niednachinterz[k]
                 flu.interzeptionsverdunstung[k] = min(
-                    sta.interzeptionsspeicher[k], flu.maxverdunstung[k]
+                    sta.interceptedwater[k], flu.maxverdunstung[k]
                 )
-                sta.interzeptionsspeicher[k] -= flu.interzeptionsverdunstung[k]
+                sta.interceptedwater[k] -= flu.interzeptionsverdunstung[k]
 
 
 class Calc_Oberflaechenabfluss_V1(modeltools.Method):
@@ -255,12 +255,12 @@ class Calc_ZuflussBoden_V1(modeltools.Method):
     ...     model, model.calc_zuflussboden_v1,
     ...     last_example=6,
     ...     parseqs=(inputs.temp_tm,
-    ...              states.schneespeicher,
+    ...              states.snowpack,
     ...              fluxes.zuflussboden))
     >>> test.nexts.temp_tm = range(-1, 6)
-    >>> test.inits.schneespeicher = (0.0, 10.0)
+    >>> test.inits.snowpack = (0.0, 10.0)
     >>> test()
-    | ex. | temp_tm |      schneespeicher |      zuflussboden |
+    | ex. | temp_tm |      snowpack |      zuflussboden |
     -----------------------------------------------------------
     |   1 |    -1.0 | 3.0            13.0 | 0.0           0.0 |
     |   2 |     0.0 | 3.0            13.0 | 0.0           0.0 |
@@ -270,11 +270,11 @@ class Calc_ZuflussBoden_V1(modeltools.Method):
     |   6 |     4.0 | 0.0             0.0 | 3.0          13.0 |
 
     >>> landtype(SEALED, WATER)
-    >>> states.schneespeicher = 5.0
+    >>> states.snowpack = 5.0
     >>> fluxes.niednachinterz = 2.0
     >>> model.calc_zuflussboden_v1()
-    >>> states.schneespeicher
-    schneespeicher(0.0, 0.0)
+    >>> states.snowpack
+    snowpack(0.0, 0.0)
     >>> fluxes.zuflussboden
     zuflussboden(0.0, 0.0)
     """
@@ -285,7 +285,7 @@ class Calc_ZuflussBoden_V1(modeltools.Method):
         whmod_control.DegreeDayFactor,
     )
     REQUIREDSEQUENCES = (whmod_inputs.Temp_TM, whmod_fluxes.NiedNachInterz)
-    UPDATEDSEQUENCES = (whmod_states.Schneespeicher,)
+    UPDATEDSEQUENCES = (whmod_states.Snowpack,)
     RESULTSEQUENCES = (whmod_fluxes.ZuflussBoden,)
 
     @staticmethod
@@ -296,15 +296,15 @@ class Calc_ZuflussBoden_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
             if con.landtype[k] in (SEALED, WATER):
-                sta.schneespeicher[k] = 0.0
+                sta.snowpack[k] = 0.0
                 flu.zuflussboden[k] = 0.0
             elif inp.temp_tm > 0.0:
                 d_maxschneeschmelze = con.degreedayfactor[k] * inp.temp_tm
-                d_schneeschmelze = min(sta.schneespeicher[k], d_maxschneeschmelze)
-                sta.schneespeicher[k] -= d_schneeschmelze
+                d_schneeschmelze = min(sta.snowpack[k], d_maxschneeschmelze)
+                sta.snowpack[k] -= d_schneeschmelze
                 flu.zuflussboden[k] = flu.niednachinterz[k] + d_schneeschmelze
             else:
-                sta.schneespeicher[k] += flu.niednachinterz[k]
+                sta.snowpack[k] += flu.niednachinterz[k]
                 flu.zuflussboden[k] = 0.0
 
 
@@ -317,7 +317,7 @@ class Calc_RelBodenfeuchte_V1(modeltools.Method):
     >>> landtype(GRAS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT,
     ...         SUGARBEETS, SEALED, WATER)
     >>> derived.maxsoilwater(200.0)
-    >>> states.aktbodenwassergehalt(100.0)
+    >>> states.soilmoisture(100.0)
     >>> model.calc_relbodenfeuchte_v1()
     >>> factors.relbodenfeuchte
     relbodenfeuchte(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.0, 0.0)
@@ -325,7 +325,7 @@ class Calc_RelBodenfeuchte_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
     DERIVEDPARAMETERS = (whmod_derived.MaxSoilWater,)
-    REQUIREDSEQUENCES = (whmod_states.AktBodenwassergehalt,)
+    REQUIREDSEQUENCES = (whmod_states.SoilMoisture,)
     RESULTSEQUENCES = (whmod_factors.RelBodenfeuchte,)
 
     @staticmethod
@@ -340,7 +340,7 @@ class Calc_RelBodenfeuchte_V1(modeltools.Method):
                 fac.relbodenfeuchte[k] = 0.0
             else:
                 fac.relbodenfeuchte[k] = (
-                    sta.aktbodenwassergehalt[k] / der.maxsoilwater[k]
+                    sta.soilmoisture[k] / der.maxsoilwater[k]
                 )
 
 
@@ -792,7 +792,7 @@ class Calc_KapilAufstieg_V1(modeltools.Method):
                 flu.kapilaufstieg[k] = 0.0
 
 
-class Calc_AktBodenwassergehalt_V1(modeltools.Method):
+class Calc_SoilMoisture_V1(modeltools.Method):
     """
 
     >>> from hydpy.models.whmod import *
@@ -802,12 +802,12 @@ class Calc_AktBodenwassergehalt_V1(modeltools.Method):
     >>> derived.maxsoilwater(100.0)
     >>> fluxes.zuflussboden(2.0)
     >>> fluxes.bodenverdunstung(1.0)
-    >>> states.aktbodenwassergehalt(0.0, 1.0, 50.0, 98.0, 100.0)
+    >>> states.soilmoisture(0.0, 1.0, 50.0, 98.0, 100.0)
     >>> fluxes.kapilaufstieg(3.0, 3.0, 3.0, 5.0, 5.0)
     >>> fluxes.sickerwasser(5.0, 5.0, 5.0, 3.0, 3.0)
-    >>> model.calc_aktbodenwassergehalt_v1()
-    >>> states.aktbodenwassergehalt
-    aktbodenwassergehalt(0.0, 0.0, 49.0, 100.0, 100.0)
+    >>> model.calc_soilmoisture_v1()
+    >>> states.soilmoisture
+    soilmoisture(0.0, 0.0, 49.0, 100.0, 100.0)
     >>> fluxes.sickerwasser
     sickerwasser(4.0, 5.0, 5.0, 3.0, 3.0)
     >>> fluxes.kapilaufstieg
@@ -815,9 +815,9 @@ class Calc_AktBodenwassergehalt_V1(modeltools.Method):
 
     >>> landtype(WATER, WATER, WATER, SEALED, SEALED)
     >>> fluxes.bodenverdunstung(0.0, 5.0, 10.0, 5.0, 5.0)
-    >>> model.calc_aktbodenwassergehalt_v1()
-    >>> states.aktbodenwassergehalt
-    aktbodenwassergehalt(0.0, 0.0, 0.0, 0.0, 0.0)
+    >>> model.calc_soilmoisture_v1()
+    >>> states.soilmoisture
+    soilmoisture(0.0, 0.0, 0.0, 0.0, 0.0)
     >>> fluxes.sickerwasser
     sickerwasser(4.0, 5.0, 5.0, 3.0, 3.0)
     >>> fluxes.kapilaufstieg
@@ -832,7 +832,7 @@ class Calc_AktBodenwassergehalt_V1(modeltools.Method):
         whmod_fluxes.Sickerwasser,
         whmod_fluxes.KapilAufstieg,
     )
-    UPDATEDSEQUENCES = (whmod_states.AktBodenwassergehalt,)
+    UPDATEDSEQUENCES = (whmod_states.SoilMoisture,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -842,22 +842,22 @@ class Calc_AktBodenwassergehalt_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
             if con.landtype[k] in (SEALED, WATER):
-                sta.aktbodenwassergehalt[k] = 0.0
+                sta.soilmoisture[k] = 0.0
             else:
-                sta.aktbodenwassergehalt[k] += (
+                sta.soilmoisture[k] += (
                     flu.zuflussboden[k]
                     - flu.bodenverdunstung[k]
                     - flu.sickerwasser[k]
                     + flu.kapilaufstieg[k]
                 )
-                if sta.aktbodenwassergehalt[k] < 0.0:
-                    flu.sickerwasser[k] += sta.aktbodenwassergehalt[k]
-                    sta.aktbodenwassergehalt[k] = 0.0
-                elif sta.aktbodenwassergehalt[k] > der.maxsoilwater[k]:
+                if sta.soilmoisture[k] < 0.0:
+                    flu.sickerwasser[k] += sta.soilmoisture[k]
+                    sta.soilmoisture[k] = 0.0
+                elif sta.soilmoisture[k] > der.maxsoilwater[k]:
                     flu.kapilaufstieg[k] += (
-                        der.maxsoilwater[k] - sta.aktbodenwassergehalt[k]
+                        der.maxsoilwater[k] - sta.soilmoisture[k]
                     )
-                    sta.aktbodenwassergehalt[k] = der.maxsoilwater[k]
+                    sta.soilmoisture[k] = der.maxsoilwater[k]
 
 
 class Calc_PotGrundwasserneubildung_V1(modeltools.Method):
@@ -972,7 +972,7 @@ class Calc_AktGrundwasserneubildung_V1(modeltools.Method):
             )
 
 
-class Calc_VerzGrundwasserneubildung_Zwischenspeicher_V1(modeltools.Method):
+class Calc_VerzGrundwasserneubildung_DeepWater_V1(modeltools.Method):
     """
 
     Nur eine Näherungslösung. Bei kleinen Flurabständen etwas zu geringe
@@ -984,13 +984,13 @@ class Calc_VerzGrundwasserneubildung_Zwischenspeicher_V1(modeltools.Method):
     >>> from hydpy import print_vector
     >>> for k in numpy.arange(0., 5.5, .5):
     ...     rechargedelay.value = k
-    ...     states.zwischenspeicher = 2.0
+    ...     states.deepwater = 2.0
     ...     fluxes.aktgrundwasserneubildung = 1.0
-    ...     model.calc_verzgrundwasserneubildung_zwischenspeicher_v1()
+    ...     model.calc_verzgrundwasserneubildung_deepwater_v1()
     ...     print_vector(
     ...         [k,
     ...          fluxes.verzgrundwasserneubildung.value,
-    ...          states.zwischenspeicher.value])
+    ...          states.deepwater.value])
     0.0, 3.0, 0.0
     0.5, 2.593994, 0.406006
     1.0, 1.896362, 1.103638
@@ -1006,7 +1006,7 @@ class Calc_VerzGrundwasserneubildung_Zwischenspeicher_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (whmod_control.RechargeDelay,)
     REQUIREDSEQUENCES = (whmod_fluxes.AktGrundwasserneubildung,)
-    UPDATEDSEQUENCES = (whmod_states.Zwischenspeicher,)
+    UPDATEDSEQUENCES = (whmod_states.DeepWater,)
     RESULTSEQUENCES = (whmod_fluxes.VerzGrundwasserneubildung,)
 
     @staticmethod
@@ -1016,17 +1016,17 @@ class Calc_VerzGrundwasserneubildung_Zwischenspeicher_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         if con.rechargedelay > 0:
             d_sp = (
-                sta.zwischenspeicher + flu.aktgrundwasserneubildung
+                sta.deepwater + flu.aktgrundwasserneubildung
             ) * modelutils.exp(-1.0 / con.rechargedelay)
             flu.verzgrundwasserneubildung = (
-                flu.aktgrundwasserneubildung + sta.zwischenspeicher - d_sp
+                flu.aktgrundwasserneubildung + sta.deepwater - d_sp
             )
-            sta.zwischenspeicher = d_sp
+            sta.deepwater = d_sp
         else:
             flu.verzgrundwasserneubildung = (
-                sta.zwischenspeicher + flu.aktgrundwasserneubildung
+                sta.deepwater + flu.aktgrundwasserneubildung
             )
-            sta.zwischenspeicher = 0.0
+            sta.deepwater = 0.0
 
 
 class Model(modeltools.AdHocModel):
@@ -1045,7 +1045,7 @@ class Model(modeltools.AdHocModel):
         Calc_NiederschlagRichter_V1,
         Calc_MaxVerdunstung_V1,
         Calc_NiedNachInterz_V1,
-        Calc_Interzeptionsspeicher_V1,
+        Calc_InterceptedWater_V1,
         Calc_Seeniederschlag_V1,
         Calc_Oberflaechenabfluss_V1,
         Calc_ZuflussBoden_V1,
@@ -1057,11 +1057,11 @@ class Model(modeltools.AdHocModel):
         Calc_AktVerdunstung_V1,
         Calc_PotKapilAufstieg_V1,
         Calc_KapilAufstieg_V1,
-        Calc_AktBodenwassergehalt_V1,
+        Calc_SoilMoisture_V1,
         Calc_PotGrundwasserneubildung_V1,
         Calc_Basisabfluss_V1,
         Calc_AktGrundwasserneubildung_V1,
-        Calc_VerzGrundwasserneubildung_Zwischenspeicher_V1,
+        Calc_VerzGrundwasserneubildung_DeepWater_V1,
     )
     ADD_METHODS = ()
     OUTLET_METHODS = ()

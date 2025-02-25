@@ -78,9 +78,9 @@ class State1DSequence(sequencetools.StateSequence):
     >>> zonearea(10.0, 20.0, 30.0, 35.0, 5.0)
     >>> area(100.0)
     >>> derived.zoneratio.update()
-    >>> states.interzeptionsspeicher(5.0, 2.0, 4.0, 1.0, 6.0)
+    >>> states.interceptedwater(5.0, 2.0, 4.0, 1.0, 6.0)
     >>> from hydpy import round_
-    >>> round_(states.interzeptionsspeicher.average_values())
+    >>> round_(states.interceptedwater.average_values())
     2.75
     """
 

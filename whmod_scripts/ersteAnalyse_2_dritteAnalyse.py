@@ -193,9 +193,9 @@ for idx in range(len(table_knoteneigenschaften)):
         peat=0.55)
     con.bfi(bfiraster[row-1, col-1])
 
-    whmod.sequences.states.interzeptionsspeicher(0.0)
-    whmod.sequences.states.schneespeicher(0.0)
-    whmod.sequences.states.aktbodenwassergehalt(
+    whmod.sequences.states.interceptedwater(0.0)
+    whmod.sequences.states.snowpack(0.0)
+    whmod.sequences.states.soilmoisture(
         0.5*whmod.parameters.control.nfk100_mittel.values)
 
 

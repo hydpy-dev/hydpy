@@ -4,7 +4,7 @@ sequence:                       AktGrundwasserneubildung
                                 NiederschlagRichter
                                 InterzeptionsVerdunstung
                                 RelBodenfeuchte
-                                Interzeptionsspeicher
+                                InterceptedWater
 steps:                          daily
 eval_start:                     1990-01-01
 eval_end:                       1990-02-01

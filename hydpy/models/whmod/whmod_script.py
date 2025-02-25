@@ -385,13 +385,15 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     >>> from hydpy import run_subprocess, TestIO
     >>> TestIO.clear()
     >>> projectpath = TestIO.copy_dir_from_data_to_iotesting("WHMod")
+
+    # ToDo: so viel Interzeptionsspeicherung?
     >>> run_whmod(basedir=projectpath, write_output=False)
     Mean AktGrundwasserneubildung [mm/a]: 53.124526
     Mean VerzGrundwasserneubildung [mm/a]: 50.302012
     Mean NiederschlagRichter [mm/a]: 687.007002
     Mean InterzeptionsVerdunstung [mm/a]: 127.664044
     Mean RelBodenfeuchte [-/a]: 192.381
-    Mean Interzeptionsspeicher [mm/a]: 85.631619
+    Mean InterceptedWater [mm/a]: 85.631619
 
     >>> run_whmod(basedir=projectpath, write_output=True) # doctest: +ELLIPSIS
     Start WHMOD calculations (...).
@@ -405,7 +407,7 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     Mean NiederschlagRichter [mm/a]: 687.007002
     Mean InterzeptionsVerdunstung [mm/a]: 127.664044
     Mean RelBodenfeuchte [-/a]: 192.381
-    Mean Interzeptionsspeicher [mm/a]: 85.631619
+    Mean InterceptedWater [mm/a]: 85.631619
 
 
     You can also run the script from the command prompt with hyd.py:
@@ -416,7 +418,7 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     Mean NiederschlagRichter [mm/a]: 687.007002...
     Mean InterzeptionsVerdunstung [mm/a]: 127.664043...
     Mean RelBodenfeuchte [-/a]: 192.381000...
-    Mean Interzeptionsspeicher [mm/a]: 85.631618...
+    Mean InterceptedWater [mm/a]: 85.631618...
 
     >>> with open(os.path.join(projectpath, "Results",
     ... "monthly_timeseries_AktGrundwasserneubildung.txt"), 'r') as file:
@@ -708,7 +710,7 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     Mean NiederschlagRichter [mm/a]: 637.554895
     Mean InterzeptionsVerdunstung [mm/a]: 105.309222
     Mean RelBodenfeuchte [-/a]: 190.404469
-    Mean Interzeptionsspeicher [mm/a]: 93.341173
+    Mean InterceptedWater [mm/a]: 93.341173
 
     ...testsetup::
 
@@ -1359,7 +1361,7 @@ def read_outputconfig(
     >>> read_outputconfig(outputconfigfile="Tageswerte.txt", basedir=basedir)
     {'sequence': ['AktGrundwasserneubildung', 'VerzGrundwasserneubildung', \
 'NiederschlagRichter', 'InterzeptionsVerdunstung', 'RelBodenfeuchte', \
-'Interzeptionsspeicher'], 'steps': ['daily'], 'eval_start': ['1990-01-01'], \
+'InterceptedWater'], 'steps': ['daily'], 'eval_start': ['1990-01-01'], \
 'eval_end': ['1990-02-01'], 'rch_files': ['daily_rch'], 'grid_files': ['daily_mean'], \
 'mean_timeseries_files': ['daily_timeseries'], 'cell_series_files cells=[3, 4]': \
 ['daily_timeseries_ID-*']}
@@ -1596,14 +1598,14 @@ def _initialize_whmod_models(
         else:
             con.rechargedelay(verzoegerung)
 
-        whmod.sequences.states.interzeptionsspeicher(0.0)
-        whmod.sequences.states.schneespeicher(0.0)
-        whmod.sequences.states.aktbodenwassergehalt(
+        whmod.sequences.states.interceptedwater(0.0)
+        whmod.sequences.states.snowpack(0.0)
+        whmod.sequences.states.soilmoisture(
             _query_vector_from_hrus(hrus, "init_boden")
         )
         init_gwn = _query_scalar_from_hrus(hrus, "init_gwn")
         assert isinstance(init_gwn, float)
-        whmod.sequences.states.zwischenspeicher(
+        whmod.sequences.states.deepwater(
             _init_gwn_to_zwischenspeicher(
                 init_gwn=init_gwn, time_of_concentration=con.rechargedelay.value
             )

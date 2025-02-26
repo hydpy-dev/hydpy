@@ -22,9 +22,9 @@ class Factor1DSequence(sequencetools.FactorSequence):
     >>> zonearea(10.0, 20.0, 30.0, 35.0, 5.0)
     >>> area(100.0)
     >>> derived.zoneratio.update()
-    >>> factors.relbodenfeuchte(0.5, 0.2, 0.4, 0.1, 0.6)
+    >>> factors.relativesoilmoisture(0.5, 0.2, 0.4, 0.1, 0.6)
     >>> from hydpy import round_
-    >>> round_(factors.relbodenfeuchte.average_values())
+    >>> round_(factors.relativesoilmoisture.average_values())
     0.275
     """
 

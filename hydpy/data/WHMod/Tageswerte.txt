@@ -2,8 +2,8 @@
 sequence:                       AktGrundwasserneubildung
                                 VerzGrundwasserneubildung
                                 Precipitation
-                                InterzeptionsVerdunstung
-                                RelBodenfeuchte
+                                InterceptionEvaporation
+                                RelativeSoilMoisture
                                 InterceptedWater
 steps:                          daily
 eval_start:                     1990-01-01

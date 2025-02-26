@@ -390,8 +390,8 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     Mean AktGrundwasserneubildung [mm/a]: 53.124526
     Mean VerzGrundwasserneubildung [mm/a]: 50.302012
     Mean Precipitation [mm/a]: 687.007002
-    Mean InterzeptionsVerdunstung [mm/a]: 127.664044
-    Mean RelBodenfeuchte [-]: 192.381
+    Mean InterceptionEvaporation [mm/a]: 127.664044
+    Mean RelativeSoilMoisture [-]: 192.381
     Mean InterceptedWater [mm]: 85.631619
 
     >>> run_whmod(basedir=projectpath, write_output=True) # doctest: +ELLIPSIS
@@ -404,8 +404,8 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     Mean AktGrundwasserneubildung [mm/a]: 53.124526
     Mean VerzGrundwasserneubildung [mm/a]: 50.302012
     Mean Precipitation [mm/a]: 687.007002
-    Mean InterzeptionsVerdunstung [mm/a]: 127.664044
-    Mean RelBodenfeuchte [-]: 192.381
+    Mean InterceptionEvaporation [mm/a]: 127.664044
+    Mean RelativeSoilMoisture [-]: 192.381
     Mean InterceptedWater [mm]: 85.631619
 
 
@@ -415,8 +415,8 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     Mean AktGrundwasserneubildung [mm/a]: 53.124525...
     Mean VerzGrundwasserneubildung [mm/a]: 50.302011...
     Mean Precipitation [mm/a]: 687.007002...
-    Mean InterzeptionsVerdunstung [mm/a]: 127.664043...
-    Mean RelBodenfeuchte [-]: 192.381000...
+    Mean InterceptionEvaporation [mm/a]: 127.664043...
+    Mean RelativeSoilMoisture [-]: 192.381000...
     Mean InterceptedWater [mm]: 85.631618...
 
     >>> with open(os.path.join(projectpath, "Results",
@@ -707,8 +707,8 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     Mean AktGrundwasserneubildung [mm/a]: 48.044942
     Mean VerzGrundwasserneubildung [mm/a]: 45.514301
     Mean Precipitation [mm/a]: 637.554895
-    Mean InterzeptionsVerdunstung [mm/a]: 105.309222
-    Mean RelBodenfeuchte [-]: 190.404469
+    Mean InterceptionEvaporation [mm/a]: 105.309222
+    Mean RelativeSoilMoisture [-]: 190.404469
     Mean InterceptedWater [mm]: 93.341173
 
     ...testsetup::
@@ -1359,7 +1359,7 @@ def read_outputconfig(
     >>> hydpy.pub.timegrids = "1990-01-01", "1992-01-01", "1d"
     >>> read_outputconfig(outputconfigfile="Tageswerte.txt", basedir=basedir)
     {'sequence': ['AktGrundwasserneubildung', 'VerzGrundwasserneubildung', \
-'Precipitation', 'InterzeptionsVerdunstung', 'RelBodenfeuchte', 'InterceptedWater'], \
+'Precipitation', 'InterceptionEvaporation', 'RelativeSoilMoisture', 'InterceptedWater'], \
 'steps': ['daily'], 'eval_start': ['1990-01-01'], 'eval_end': ['1990-02-01'], \
 'rch_files': ['daily_rch'], 'grid_files': ['daily_mean'], 'mean_timeseries_files': \
 ['daily_timeseries'], 'cell_series_files cells=[3, 4]': ['daily_timeseries_ID-*']}

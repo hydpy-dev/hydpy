@@ -7,21 +7,11 @@ from hydpy.core import sequencetools
 from hydpy.models.whmod import whmod_sequences
 
 
-class NiederschlagRichter(sequencetools.FluxSequence):
-    """[mm/T]"""
-
-    NDIM, NUMERIC = 0, False
-
-
-class InterzeptionsVerdunstung(whmod_sequences.Flux1DSequence):
+class InterceptionEvaporation(whmod_sequences.Flux1DSequence):
     """[mm/T]"""
 
 
-class NiedNachInterz(whmod_sequences.Flux1DSequence):
-    """[mm/T]"""
-
-
-class Seeniederschlag(whmod_sequences.Flux1DSequence):
+class Throughfall(whmod_sequences.Flux1DSequence):
     """[mm/T]"""
 
 

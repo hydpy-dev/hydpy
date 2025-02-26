@@ -8,5 +8,5 @@ from hydpy.core import sequencetools
 from hydpy.models.whmod import whmod_sequences
 
 
-class RelBodenfeuchte(whmod_sequences.Factor1DSequence):
+class RelativeSoilMoisture(whmod_sequences.Factor1DSequence):
     """[-]"""

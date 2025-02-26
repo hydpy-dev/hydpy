@@ -61,7 +61,7 @@ class SoilDepth(whmod_parameters.NutzBodenParameter):
         >>> rootingdepth(0.5, 1.0, 1.5, 2.0, 2.0)
         >>> derived.soildepth.update()
         >>> derived.soildepth
-        soildepth(gras=0.5, decidious=1.0, conifer=1.0)
+        soildepth(conifer=1.0, decidious=1.0, gras=0.5)
         """
         control = self.subpars.pars.control
         self(numpy.clip(control.rootingdepth, None, control.groundwaterdepth.values))
@@ -86,8 +86,8 @@ class MaxSoilWater(whmod_parameters.NutzBodenParameter):
         >>> derived.soildepth(0.0, 0.2, 0.3, 0.4, 1.0, 1.0, 1.0)
         >>> derived.maxsoilwater.update()
         >>> derived.maxsoilwater
-        maxsoilwater(gras=60.0, decidious=60.0, corn=60.0, conifer=80.0,
-              springwheat=200.0)
+        maxsoilwater(conifer=80.0, corn=60.0, decidious=60.0, gras=60.0,
+                     springwheat=200.0)
         """
         availablefieldcapacity = self.subpars.pars.control.availablefieldcapacity
         soildepth = self.subpars.soildepth

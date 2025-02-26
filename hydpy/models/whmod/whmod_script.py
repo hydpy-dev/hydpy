@@ -66,7 +66,11 @@ from hydpy.models import (
     whmod_pet,
 )
 from hydpy.models.whmod import (
-    whmod_constants, whmod_factors, whmod_fluxes, whmod_inputs, whmod_states
+    whmod_constants,
+    whmod_factors,
+    whmod_fluxes,
+    whmod_inputs,
+    whmod_states,
 )
 from hydpy.core.typingtools import *
 
@@ -1598,9 +1602,7 @@ def _initialize_whmod_models(
 
         whmod.sequences.states.interceptedwater(0.0)
         whmod.sequences.states.snowpack(0.0)
-        whmod.sequences.states.soilmoisture(
-            _query_vector_from_hrus(hrus, "init_boden")
-        )
+        whmod.sequences.states.soilmoisture(_query_vector_from_hrus(hrus, "init_boden"))
         init_gwn = _query_scalar_from_hrus(hrus, "init_gwn")
         assert isinstance(init_gwn, float)
         whmod.sequences.states.deepwater(

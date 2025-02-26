@@ -16,9 +16,9 @@ Integration tests
 >>> parameterstep("1d")
 >>> element.model = model
 >>> from hydpy import IntegrationTest
->>> IntegrationTest.plotting_options.axis1 = (inputs.precipitation,
-...                                           fluxes.actualrecharge,
-...                                           fluxes.delayedrecharge)
+>>> IntegrationTest.plotting_options.axis1 = (
+...     inputs.precipitation, fluxes.actualrecharge, fluxes.delayedrecharge
+... )
 >>> test = IntegrationTest(element)
 >>> test.dateformat = "%Y-%m-%d"
 
@@ -33,21 +33,29 @@ _______
 >>> landtype(GRAS)
 >>> soiltype(SAND)
 >>> zonearea(10.0)
->>> maxinterz.gras_feb = 0.4
->>> maxinterz.gras_mar = 0.6
->>> maxinterz.gras_apr = 0.8
->>> fln.gras = 1.0
+>>> interceptioncapacity.gras_feb = 0.4
+>>> interceptioncapacity.gras_mar = 0.6
+>>> interceptioncapacity.gras_apr = 0.8
 >>> degreedayfactor(4.5)
 >>> availablefieldcapacity(200.0)
 >>> groundwaterdepth(1.0)
->>> rootingdepth(gras=0.5, decidious=1.5, corn=0.5, conifer=1.9, springwheat=0.6,
-...                winterwheat=0.6)
->>> minhasr(gras=4.0, decidious=6.0, corn=3.0, conifer=6.0, springwheat=6.0,
-...         winterwheat=6.0)
+>>> rootingdepth(
+...     gras=0.5, decidious=1.5, corn=0.5, conifer=1.9, springwheat=0.6, winterwheat=0.6
+... )
 >>> capillarythreshold(sand=0.8)
 >>> capillarylimit(sand=0.4)
 >>> baseflowindex(0.8)
 >>> rechargedelay(5.0)
+
+>>> model.update_parameters()
+>>> with model.add_aetmodel_v1("evap_aet_minhas"):
+...     dissefactor(gras=4.0, decidious=6.0, corn=3.0, conifer=6.0, springwheat=6.0,
+...                 winterwheat=6.0)
+...     with model.add_petmodel_v1("evap_pet_mlc"):
+...         landmonthfactor.gras = 1.0
+...         dampingfactor(1.0)
+...         with model.add_retmodel_v1("evap_ret_io"):
+...             evapotranspirationfactor(1.0)
 
 >>> test.inits = ((states.interceptedwater, 0.0),
 ...               (states.snowpack, 0.0),
@@ -64,7 +72,7 @@ _______
 ...     8.3, 5.3, 0.7, 2.7, 1.6, 2.5, 0.6, 0.2, 1.7, 0.3, 0.0, 1.8, 8.9, 0.0, 0.0,
 ...     0.0, 0.9, 0.1, 0.0, 0.0, 3.9, 8.7, 26.4, 11.5, 0.9, 0.0, 0.0, 0.0, 0.0, 0.0,
 ...     0.0, 0.0, 1.5, 0.3, 0.2, 4.5, 0.0, 0.0, 0.0, 0.4, 0.0, 0.0, 0.0, 0.0)
->>> inputs.et0.series = (
+>>> model.aetmodel.petmodel.retmodel.sequences.inputs.evaporation.series = (
 ...     0.6, 0.8, 0.7, 0.4, 0.4, 0.4, 0.4, 0.3, 0.3, 0.4, 0.3, 0.6, 0.8, 0.5, 0.8,
 ...     0.5, 0.4, 1.3, 0.9, 0.7, 0.7, 1.1, 1.0, 0.8, 0.6, 0.7, 0.7, 0.5, 0.8, 1.0,
 ...     1.2, 0.9, 0.9, 1.2, 1.4, 1.1, 1.1, 0.5, 0.6, 1.5, 2.0, 1.6, 1.6, 1.2, 1.3,
@@ -468,7 +476,14 @@ from hydpy.models.whmod import whmod_model
 from hydpy.models.whmod.whmod_constants import *
 
 
-class Model(whmod_model.Main_AETModel_V1):
+class Model(
+    whmod_model.Main_AETModel_V1,
+    whmod_model.Sub_TempModel_V1,
+    whmod_model.Sub_PrecipModel_V1,
+    whmod_model.Sub_IntercModel_V1,
+    whmod_model.Sub_SoilWaterModel_V1,
+    whmod_model.Sub_SnowCoverModel_V1,
+):
     """|whmod_pet.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(
@@ -478,6 +493,18 @@ class Model(whmod_model.Main_AETModel_V1):
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
+    ADD_METHODS = (
+        whmod_model.Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_AETModel_V1,
+        whmod_model.Calc_SoilEvapotranspiration_AETModel_V1,
+    )
+    INTERFACE_METHODS = (
+        whmod_model.Get_Temperature_V1,
+        whmod_model.Get_MeanTemperature_V1,
+        whmod_model.Get_Precipitation_V1,
+        whmod_model.Get_InterceptedWater_V1,
+        whmod_model.Get_SoilWater_V1,
+        whmod_model.Get_SnowCover_V1,
+    )
     RUN_METHODS = (
         whmod_model.Calc_MaxVerdunstung_V1,
         whmod_model.Calc_Throughfall_InterceptedWater_V1,
@@ -487,8 +514,6 @@ class Model(whmod_model.Main_AETModel_V1):
         whmod_model.Calc_RelativeSoilMoisture_V1,
         whmod_model.Calc_Percolation_V1,
         whmod_model.Calc_SoilEvapotranspiration_V1,
-        whmod_model.Corr_SoilEvapotranspiration_V1,
-        whmod_model.Calc_LakeEvaporation_V1,
         whmod_model.Calc_TotalEvapotranspiration_V1,
         whmod_model.Calc_PotentialCapillaryRise_V1,
         whmod_model.Calc_CapillaryRise_V1,
@@ -497,9 +522,6 @@ class Model(whmod_model.Main_AETModel_V1):
         whmod_model.Calc_Baseflow_V1,
         whmod_model.Calc_ActualRecharge_V1,
         whmod_model.Calc_DelayedRecharge_DeepWater_V1,
-    )
-    ADD_METHODS = (
-        whmod_model.Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_AETModel_V1,
     )
     OUTLET_METHODS = ()
     SENDER_METHODS = ()

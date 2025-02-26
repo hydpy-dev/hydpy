@@ -16,6 +16,9 @@ from hydpy import config
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.interfaces import aetinterfaces
+from hydpy.interfaces import precipinterfaces
+from hydpy.interfaces import stateinterfaces
+from hydpy.interfaces import tempinterfaces
 from hydpy.cythons import modelutils
 
 # ...from whmod
@@ -113,9 +116,9 @@ class Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_AETModel_V1(
         >>> landtype(GRAS, DECIDIOUS, CORN, SEALED, WATER)
         >>> zonearea(0.05, 0.1, 0.2, 0.3, 0.35)
         >>> interceptioncapacity.jun = 3.0
-        >>> availablefieldcapacity(50.0)
         >>> derived.moy.shape = 1
         >>> derived.moy(5)
+        >>> derived.maxsoilwater(50.0)
         >>> with model.add_aetmodel_v1("evap_aet_minhas"):
         ...     with model.add_petmodel_v1("evap_ret_io"):
         ...         evapotranspirationfactor(0.6, 0.8, 1.0, 1.2, 1.4)
@@ -550,32 +553,69 @@ class Corr_SoilEvapotranspiration_V1(modeltools.Method):
                 ) / flu.maxverdunstung[k]
 
 
-class Calc_LakeEvaporation_V1(modeltools.Method):
-    """
+class Calc_SoilEvapotranspiration_AETModel_V1(modeltools.Method):
+    """Let a submodel that follows the |AETModel_V1| submodel interface calculate
+    soil evapotranspiration.
 
-    >>> from hydpy.models.whmod import *
-    >>> parameterstep()
-    >>> nmbzones(3)
-    >>> landtype(GRAS, SEALED, WATER)
-    >>> fluxes.maxverdunstung = 2.0
-    >>> model.calc_lakeevaporation_v1()
-    >>> fluxes.lakeevaporation
-    lakeevaporation(0.0, 0.0, 2.0)
+    Examples:
+
+        We build an example based on |evap_aet_minhas|:
+
+        >>> from hydpy.models.whmod_pet import *
+        >>> parameterstep("1h")
+        >>> area(1.0)
+        >>> nmbzones(5)
+        >>> landtype(SEALED, GRAS, DECIDIOUS, CORN, WATER)
+        >>> zonearea(0.05, 0.1, 0.2, 0.3, 0.35)
+        >>> derived.maxsoilwater(100.0)
+        >>> with model.add_aetmodel_v1("evap_aet_minhas"):
+        ...     dissefactor(5.0)
+
+        |Calc_SoilEvapotranspiration_AETModel_V1| stores the flux returned by the
+        submodel without any modifications:
+
+        >>> states.soilmoisture = 0.0, 0.0, 50.0, 100.0, 0.0
+        >>> model.aetmodel.sequences.fluxes.potentialinterceptionevaporation = 5.0
+        >>> model.aetmodel.sequences.fluxes.potentialsoilevapotranspiration = 5.0
+        >>> model.aetmodel.sequences.fluxes.interceptionevaporation = 3.0
+        >>> model.calc_soilevapotranspiration_v1()
+        >>> fluxes.soilevapotranspiration
+        soilevapotranspiration(0.0, 0.0, 1.717962, 2.0, 0.0)
     """
 
     CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
-    REQUIREDSEQUENCES = (whmod_fluxes.MaxVerdunstung,)
-    RESULTSEQUENCES = (whmod_fluxes.LakeEvaporation,)
+    RESULTSEQUENCES = (whmod_fluxes.SoilEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, submodel: aetinterfaces.AETModel_V1) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        submodel.determine_soilevapotranspiration()
+        for k in range(con.nmbzones):
+            if con.landtype[k] in (SEALED, WATER):
+                flu.soilevapotranspiration[k] = 0.0
+            else:
+                flu.soilevapotranspiration[k] = submodel.get_soilevapotranspiration(k)
+
+
+class Calc_SoilEvapotranspiration_V1(modeltools.Method):
+    """Let a submodel that follows the |AETModel_V1| submodel interface calculate soil
+    evapotranspiration."""
+
+    SUBMODELINTERFACES = (aetinterfaces.AETModel_V1,)
+    SUBMETHODS = (Calc_SoilEvapotranspiration_AETModel_V1,)
+    CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
+    RESULTSEQUENCES = (whmod_fluxes.SoilEvapotranspiration,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        for k in range(con.nmbzones):
-            if con.landtype[k] == WATER:
-                flu.lakeevaporation[k] = flu.maxverdunstung[k]
-            else:
-                flu.lakeevaporation[k] = 0.0
+        if model.aetmodel_typeid == 1:
+            model.calc_soilevapotranspiration_aetmodel_v1(
+                cast(aetinterfaces.AETModel_V1, model.aetmodel)
+            )
+        # ToDo:
+        #     else:
+        #         assert_never(model.petmodel)
 
 
 class Calc_TotalEvapotranspiration_V1(modeltools.Method):
@@ -1033,6 +1073,156 @@ class Calc_DelayedRecharge_DeepWater_V1(modeltools.Method):
             sta.deepwater = 0.0
 
 
+
+class Get_Temperature_V1(modeltools.Method):
+    """Get basin's current temperature.
+
+    Example:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> inputs.temperature = 2.0
+        >>> from hydpy import round_
+        >>> round_(model.get_temperature_v1(0))
+        2.0
+        >>> round_(model.get_temperature_v1(1))
+        2.0
+    """
+
+    REQUIREDSEQUENCES = (whmod_inputs.Temperature,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int) -> float:
+        inp = model.sequences.inputs.fastaccess
+
+        return inp.temperature
+
+
+class Get_MeanTemperature_V1(modeltools.Method):
+    """Get the basin's current temperature.
+
+    Example:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> inputs.temperature = 2.0
+        >>> from hydpy import round_
+        >>> round_(model.get_meantemperature_v1())
+        2.0
+    """
+
+    REQUIREDSEQUENCES = (whmod_inputs.Temperature,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> float:
+        inp = model.sequences.inputs.fastaccess
+
+        return inp.temperature
+
+
+class Get_Precipitation_V1(modeltools.Method):
+    """Get the basin's current precipitation.
+
+    Example:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> inputs.precipitation = 2.0
+        >>> from hydpy import round_
+        >>> round_(model.get_precipitation_v1(0))
+        2.0
+        >>> round_(model.get_precipitation_v1(1))
+        2.0
+    """
+
+    REQUIREDSEQUENCES = (whmod_inputs.Precipitation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int) -> float:
+        inp = model.sequences.inputs.fastaccess
+
+        return inp.precipitation
+
+
+class Get_InterceptedWater_V1(modeltools.Method):
+    """Get the selected zone's current amount of intercepted water.
+
+    Example:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmbzones(2)
+        >>> states.interceptedwater = 2.0, 4.0
+        >>> from hydpy import round_
+        >>> round_(model.get_interceptedwater_v1(0))
+        2.0
+        >>> round_(model.get_interceptedwater_v1(1))
+        4.0
+    """
+
+    REQUIREDSEQUENCES = (whmod_states.InterceptedWater,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, k: int) -> float:
+        sta = model.sequences.states.fastaccess
+
+        return sta.interceptedwater[k]
+
+
+class Get_SoilWater_V1(modeltools.Method):
+    """Get the selected zone's current soil water content.
+
+    Example:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmbzones(2)
+        >>> states.soilmoisture = 2.0, 4.0
+        >>> from hydpy import round_
+        >>> round_(model.get_soilwater_v1(0))
+        2.0
+        >>> round_(model.get_soilwater_v1(1))
+        4.0
+    """
+
+    REQUIREDSEQUENCES = (whmod_states.SoilMoisture,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, k: int) -> float:
+        sta = model.sequences.states.fastaccess
+
+        return sta.soilmoisture[k]
+
+
+class Get_SnowCover_V1(modeltools.Method):
+    """Get the selected zones's current snow cover degree.
+
+    Example:
+
+        Each response unit with a non-zero amount of snow counts as completely covered:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmbzones(2)
+        >>> states.snowpack = 0.0, 2.0
+        >>> model.get_snowcover_v1(0)
+        0.0
+        >>> model.get_snowcover_v1(1)
+        1.0
+    """
+
+    REQUIREDSEQUENCES = (whmod_states.Snowpack,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, k: int) -> float:
+        sta = model.sequences.states.fastaccess
+
+        if sta.snowpack[k] > 0.0:
+            return 1.0
+        return 0.0
+
+
+
 class Model(modeltools.AdHocModel):
     """|whmod.DOCNAME.complete|."""
 
@@ -1045,6 +1235,18 @@ class Model(modeltools.AdHocModel):
 
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
+    ADD_METHODS = (
+        Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_AETModel_V1,
+        Calc_SoilEvapotranspiration_AETModel_V1,
+    )
+    INTERFACE_METHODS = (
+        Get_Temperature_V1,
+        Get_MeanTemperature_V1,
+        Get_Precipitation_V1,
+        Get_InterceptedWater_V1,
+        Get_SoilWater_V1,
+        Get_SnowCover_V1,
+    )
     RUN_METHODS = (
         Calc_MaxVerdunstung_V1,
         Calc_Throughfall_InterceptedWater_V1,
@@ -1053,9 +1255,7 @@ class Model(modeltools.AdHocModel):
         Calc_Ponding_V1,
         Calc_RelativeSoilMoisture_V1,
         Calc_Percolation_V1,
-        Calc_SoilEvapotranspiration_V1,
         Corr_SoilEvapotranspiration_V1,
-        Calc_LakeEvaporation_V1,
         Calc_TotalEvapotranspiration_V1,
         Calc_PotentialCapillaryRise_V1,
         Calc_CapillaryRise_V1,
@@ -1064,9 +1264,6 @@ class Model(modeltools.AdHocModel):
         Calc_Baseflow_V1,
         Calc_ActualRecharge_V1,
         Calc_DelayedRecharge_DeepWater_V1,
-    )
-    ADD_METHODS = (
-        Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_AETModel_V1,
     )
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
@@ -1118,7 +1315,7 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         >>> area(10.0)
         >>> landtype(GRAS, DECIDIOUS, CONIFER, WATER, SEALED)
         >>> zonearea(4.0, 1.0, 1.0, 1.0, 3.0)
-        >>> derived.availablefieldcapacity○(200.0)
+        >>> derived.maxsoilwater(200.0)
         >>> with model.add_aetmodel_v1("evap_aet_minhas"):
         ...     nmbhru
         ...     area
@@ -1179,4 +1376,30 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         sel[landtype == DECIDIOUS] = True
         aetmodel.prepare_tree(sel)
 
-        aetmodel.prepare_maxsoilwater(control.availablefieldcapacity.values)
+        aetmodel.prepare_maxsoilwater(self.parameters.derived.maxsoilwater.values)
+
+
+class Sub_TempModel_V1(modeltools.AdHocModel, tempinterfaces.TempModel_V1):
+    """Base class for |whmod.DOCNAME.long| models that comply with the |TempModel_V1|
+    submodel interface."""
+
+
+class Sub_PrecipModel_V1(modeltools.AdHocModel, precipinterfaces.PrecipModel_V1):
+    """Base class for |whmod.DOCNAME.long| models that comply with the |PrecipModel_V1|
+    submodel interface."""
+
+
+class Sub_IntercModel_V1(modeltools.AdHocModel, stateinterfaces.IntercModel_V1):
+    """Base class for |whmod.DOCNAME.long| models that comply with the |IntercModel_V1|
+    submodel interface."""
+
+
+class Sub_SoilWaterModel_V1(modeltools.AdHocModel, stateinterfaces.SoilWaterModel_V1):
+    """Base class for |whmod.DOCNAME.long| models that comply with the
+    |SoilWaterModel_V1| submodel interface."""
+
+
+class Sub_SnowCoverModel_V1(modeltools.AdHocModel, stateinterfaces.SnowCoverModel_V1):
+    """Base class for |whmod.DOCNAME.long| models that comply with the
+    |SnowCoverModel_V1| submodel interface."""
+

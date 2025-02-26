@@ -15,57 +15,57 @@ class Throughfall(whmod_sequences.Flux1DSequence):
     """[mm/T]"""
 
 
-class ZuflussBoden(whmod_sequences.Flux1DSequence):
+class Ponding(whmod_sequences.Flux1DSequence):
     """[mm/T]"""
 
 
-class Oberflaechenabfluss(whmod_sequences.Flux1DSequence):
+class SurfaceRunoff(whmod_sequences.Flux1DSequence):
     """[mm/T]"""
 
 
-class Sickerwasser(whmod_sequences.Flux1DSequence):
+class Percolation(whmod_sequences.Flux1DSequence):
     """[mm/T]"""
 
 
-class MaxVerdunstung(whmod_sequences.Flux1DSequence):
+class MaxVerdunstung(whmod_sequences.Flux1DSequence):  # ToDo
     """[mm/T]"""
 
 
-class Bodenverdunstung(whmod_sequences.Flux1DSequence):
+class SoilEvapotranspiration(whmod_sequences.Flux1DSequence):
     """[mm/T]"""
 
 
-class Seeverdunstung(whmod_sequences.Flux1DSequence):
+class LakeEvaporation(whmod_sequences.Flux1DSequence):
     """[mm/T]"""
 
 
-class AktVerdunstung(whmod_sequences.Flux1DSequence):
+class TotalEvapotranspiration(whmod_sequences.Flux1DSequence):
     """[mm/T]"""
 
 
-class PotKapilAufstieg(whmod_sequences.Flux1DSequence):
+class PotentialCapillaryRise(whmod_sequences.Flux1DSequence):
     """[mm/T]"""
 
 
-class KapilAufstieg(whmod_sequences.Flux1DSequence):
+class CapillaryRise(whmod_sequences.Flux1DSequence):
     """[mm/T]"""
 
 
-class PotGrundwasserneubildung(whmod_sequences.Flux1DSequence):
+class PotentialRecharge(whmod_sequences.Flux1DSequence):
     """[mm/T]"""
 
 
-class Basisabfluss(whmod_sequences.Flux1DSequence):
+class Baseflow(whmod_sequences.Flux1DSequence):
     """[mm/T]"""
 
 
-class AktGrundwasserneubildung(sequencetools.FluxSequence):
+class ActualRecharge(sequencetools.FluxSequence):
     """[mm/T]"""
 
     NDIM, NUMERIC = 0, False
 
 
-class VerzGrundwasserneubildung(sequencetools.FluxSequence):
+class DelayedRecharge(sequencetools.FluxSequence):
     """[mm/T]"""
 
     NDIM, NUMERIC = 0, False

@@ -387,8 +387,8 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
 
     # ToDo: so viel Interzeptionsspeicherung?
     >>> run_whmod(basedir=projectpath, write_output=False)
-    Mean AktGrundwasserneubildung [mm/a]: 53.124526
-    Mean VerzGrundwasserneubildung [mm/a]: 50.302012
+    Mean ActualRecharge [mm/a]: 53.124526
+    Mean DelayedRecharge [mm/a]: 50.302012
     Mean Precipitation [mm/a]: 687.007002
     Mean InterceptionEvaporation [mm/a]: 127.664044
     Mean RelativeSoilMoisture [-]: 192.381
@@ -401,8 +401,8 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     Interpolate Temperature data to precipitation station (Richter correction) (...).
     method HydPy.simulate started at ...
     Write Output in ...Results (...).
-    Mean AktGrundwasserneubildung [mm/a]: 53.124526
-    Mean VerzGrundwasserneubildung [mm/a]: 50.302012
+    Mean ActualRecharge [mm/a]: 53.124526
+    Mean DelayedRecharge [mm/a]: 50.302012
     Mean Precipitation [mm/a]: 687.007002
     Mean InterceptionEvaporation [mm/a]: 127.664044
     Mean RelativeSoilMoisture [-]: 192.381
@@ -412,18 +412,18 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     You can also run the script from the command prompt with hyd.py:
 
     >>> _ = run_subprocess(f"hyd.py run_whmod {projectpath} False")  # doctest: +ELLIPSIS
-    Mean AktGrundwasserneubildung [mm/a]: 53.124525...
-    Mean VerzGrundwasserneubildung [mm/a]: 50.302011...
+    Mean ActualRecharge [mm/a]: 53.124525...
+    Mean DelayedRecharge [mm/a]: 50.302011...
     Mean Precipitation [mm/a]: 687.007002...
     Mean InterceptionEvaporation [mm/a]: 127.664043...
     Mean RelativeSoilMoisture [-]: 192.381000...
     Mean InterceptedWater [mm]: 85.631618...
 
     >>> with open(os.path.join(projectpath, "Results",
-    ... "monthly_timeseries_AktGrundwasserneubildung.txt"), 'r') as file:
+    ... "monthly_timeseries_ActualRecharge.txt"), 'r') as file:
     ...     print(file.read())  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     # Max Mustermann, ...
-    # monthly WHMod-AktGrundwasserneubildung in mm
+    # monthly WHMod-ActualRecharge in mm
     # monthly values from 1990-01-01T00 to 1991-12-01T00
     ##########################################################
     1990-01-01 0.702846...
@@ -452,10 +452,10 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     1991-12-01 14.254365...
 
     >>> with open(os.path.join(projectpath, "Results",
-    ... "monthly_timeseries_VerzGrundwasserneubildung.txt"), 'r') as file:
+    ... "monthly_timeseries_DelayedRecharge.txt"), 'r') as file:
     ...     print(file.read())  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     # Max Mustermann, ...
-    # monthly WHMod-VerzGrundwasserneubildung in mm
+    # monthly WHMod-DelayedRecharge in mm
     # monthly values from 1990-01-01T00 to 1991-12-01T00
     ##########################################################
     1990-01-01 0.735406...
@@ -486,10 +486,10 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     It is also possible to define an evaluation start and an evalutation end date
 
     >>> with open(os.path.join(projectpath, "Results",
-    ... "daily_timeseries_VerzGrundwasserneubildung.txt"), 'r') as file:
+    ... "daily_timeseries_DelayedRecharge.txt"), 'r') as file:
     ...     print(file.read())  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     # Max Mustermann, ...
-    # daily WHMod-VerzGrundwasserneubildung in mm
+    # daily WHMod-DelayedRecharge in mm
     # daily values from 1990-01-01T00 to 1990-01-31T00
     ##########################################################
     1990-01-01 0.057432...
@@ -525,7 +525,7 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     1990-01-31 0.068793...
 
     >>> with open(os.path.join(projectpath, "Results",
-    ... "monthly_mean_AktGrundwasserneubildung.txt"), 'r') as file:
+    ... "monthly_mean_ActualRecharge.txt"), 'r') as file:
     ...     print(file.read())  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     ncols         3
     nrows         4
@@ -538,10 +538,10 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     1.113233...e-01 7.928489...e-02 2.312553...e-01
     2.938661...e-01 2.508163...e-01 1.635861...e-01
     >>> with open(os.path.join(projectpath, "Results",
-    ... "monthly_rch_AktGrundwasserneubildung.rch"), 'r') as file:
+    ... "monthly_rch_ActualRecharge.rch"), 'r') as file:
     ...     print(file.read())  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     # Max Mustermann, ...
-    # monthly WHMod-AktGrundwasserneubildung in m/s
+    # monthly WHMod-ActualRecharge in m/s
     # monthly values from 1990-01-01T00 to 1991-12-01T00
     ##########################################################
              1        51         1         1
@@ -704,8 +704,8 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
     Start WHMOD simulation (...).
     method HydPy.simulate started at ...
     Write Output in ...Results (...).
-    Mean AktGrundwasserneubildung [mm/a]: 48.044942
-    Mean VerzGrundwasserneubildung [mm/a]: 45.514301
+    Mean ActualRecharge [mm/a]: 48.044942
+    Mean DelayedRecharge [mm/a]: 45.514301
     Mean Precipitation [mm/a]: 637.554895
     Mean InterceptionEvaporation [mm/a]: 105.309222
     Mean RelativeSoilMoisture [-]: 190.404469
@@ -1358,7 +1358,7 @@ def read_outputconfig(
     >>> basedir = TestIO.copy_dir_from_data_to_iotesting("WHMod")
     >>> hydpy.pub.timegrids = "1990-01-01", "1992-01-01", "1d"
     >>> read_outputconfig(outputconfigfile="Tageswerte.txt", basedir=basedir)
-    {'sequence': ['AktGrundwasserneubildung', 'VerzGrundwasserneubildung', \
+    {'sequence': ['ActualRecharge', 'DelayedRecharge', \
 'Precipitation', 'InterceptionEvaporation', 'RelativeSoilMoisture', 'InterceptedWater'], \
 'steps': ['daily'], 'eval_start': ['1990-01-01'], 'eval_end': ['1990-02-01'], \
 'rch_files': ['daily_rch'], 'grid_files': ['daily_mean'], 'mean_timeseries_files': \
@@ -1367,7 +1367,7 @@ def read_outputconfig(
 
 
     >>> read_outputconfig(outputconfigfile="Variablewerte.txt", basedir=basedir)
-    {'sequence': ['AktGrundwasserneubildung', 'VerzGrundwasserneubildung', \
+    {'sequence': ['ActualRecharge', 'DelayedRecharge', \
 'Precipitation'], 'steps': [DatetimeIndex(['1990-01-01', '1990-02-01', '1991-01-01', \
 '1992-01-01'], dtype='datetime64[ns]', freq=None)], 'rch_files': ['user_rch'], \
 'mean_timeseries_files': ['user_timeseries']}
@@ -2217,7 +2217,7 @@ def prepare_rch(
     """
     Konvertiere Einheiten entsprechend Anforderungen.
     """
-    if seq in ("AktGrundwasserneubildung", "VerzGrundwasserneubildung"):
+    if seq in ("ActualRecharge", "DelayedRecharge"):
         # factor to convert from mm to m/s
         data = grid["mean"].copy()
         assert "_mm" in str(data.name)

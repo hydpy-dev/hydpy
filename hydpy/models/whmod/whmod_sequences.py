@@ -41,7 +41,7 @@ class Flux1DSequence(sequencetools.FluxSequence):
 
     All |Flux1DSequence| subclasses must implement fitting mask objects individually.
 
-    The following example shows how the subclass |ZuflussBoden| works:
+    The following example shows how the subclass |Ponding| works:
 
     >>> from hydpy.models.whmod import *
     >>> parameterstep("1d")
@@ -50,9 +50,9 @@ class Flux1DSequence(sequencetools.FluxSequence):
     >>> zonearea(10.0, 20.0, 30.0, 35.0, 5.0)
     >>> area(100.0)
     >>> derived.zoneratio.update()
-    >>> fluxes.zuflussboden(5.0, 2.0, 4.0, 1.0, 6.0)
+    >>> fluxes.ponding(5.0, 2.0, 4.0, 1.0, 6.0)
     >>> from hydpy import round_
-    >>> round_(fluxes.zuflussboden.average_values())
+    >>> round_(fluxes.ponding.average_values())
     2.75
     """
 
@@ -69,7 +69,7 @@ class State1DSequence(sequencetools.StateSequence):
 
     All |State1DSequence| subclasses must implement fitting mask objects individually.
 
-    The following example shows how the subclass |ZuflussBoden| works:
+    The following example shows how the subclass |InterceptedWater| works:
 
     >>> from hydpy.models.whmod import *
     >>> parameterstep("1d")

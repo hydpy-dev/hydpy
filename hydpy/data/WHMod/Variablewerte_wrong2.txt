@@ -1,6 +1,6 @@
 # Das ist ein Kommentar
-sequence:               AktGrundwasserneubildung
-                        VerzGrundwasserneubildung
+sequence:               ActualRecharge
+                        DelayedRecharge
                         Precipitation
 steps:                  1990-01-01
                         1991-01-01

@@ -165,22 +165,22 @@ class Calc_InterceptedWater_V1(modeltools.Method):
                 sta.interceptedwater[k] -= flu.interceptionevaporation[k]
 
 
-class Calc_Oberflaechenabfluss_V1(modeltools.Method):
-    """Berechnung Oberflaechenabfluss.
+class Calc_SurfaceRunoff_V1(modeltools.Method):
+    """Berechnung SurfaceRunoff.
 
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(3)
     >>> landtype(SEALED, WATER, GRAS)
     >>> fluxes.throughfall = 3.0
-    >>> model.calc_oberflaechenabfluss_v1()
-    >>> fluxes.oberflaechenabfluss
-    oberflaechenabfluss(3.0, 0.0, 0.0)
+    >>> model.calc_surfacerunoff_v1()
+    >>> fluxes.surfacerunoff
+    surfacerunoff(3.0, 0.0, 0.0)
     """
 
     CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
     REQUIREDSEQUENCES = (whmod_fluxes.Throughfall,)
-    RESULTSEQUENCES = (whmod_fluxes.Oberflaechenabfluss,)
+    RESULTSEQUENCES = (whmod_fluxes.SurfaceRunoff,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -188,12 +188,12 @@ class Calc_Oberflaechenabfluss_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
             if con.landtype[k] == SEALED:
-                flu.oberflaechenabfluss[k] = flu.throughfall[k]
+                flu.surfacerunoff[k] = flu.throughfall[k]
             else:
-                flu.oberflaechenabfluss[k] = 0.0
+                flu.surfacerunoff[k] = 0.0
 
 
-class Calc_ZuflussBoden_V1(modeltools.Method):
+class Calc_Ponding_V1(modeltools.Method):
     """Berechnung Bestandsniederschlag.
 
     >>> from hydpy.models.whmod import *
@@ -206,31 +206,31 @@ class Calc_ZuflussBoden_V1(modeltools.Method):
 
     >>> from hydpy import UnitTest
     >>> test = UnitTest(
-    ...     model, model.calc_zuflussboden_v1,
+    ...     model, model.calc_ponding_v1,
     ...     last_example=6,
     ...     parseqs=(inputs.temperature,
     ...              states.snowpack,
-    ...              fluxes.zuflussboden))
+    ...              fluxes.ponding))
     >>> test.nexts.temperature = range(-1, 6)
     >>> test.inits.snowpack = (0.0, 10.0)
     >>> test()
-    | ex. | temperature |      snowpack |      zuflussboden |
-    ---------------------------------------------------------
-    |   1 |        -1.0 | 3.0      13.0 | 0.0           0.0 |
-    |   2 |         0.0 | 3.0      13.0 | 0.0           0.0 |
-    |   3 |         1.0 | 0.0       5.5 | 3.0           7.5 |
-    |   4 |         2.0 | 0.0       1.0 | 3.0          12.0 |
-    |   5 |         3.0 | 0.0       0.0 | 3.0          13.0 |
-    |   6 |         4.0 | 0.0       0.0 | 3.0          13.0 |
+    | ex. | temperature |      snowpack |      ponding |
+    ----------------------------------------------------
+    |   1 |        -1.0 | 3.0      13.0 | 0.0      0.0 |
+    |   2 |         0.0 | 3.0      13.0 | 0.0      0.0 |
+    |   3 |         1.0 | 0.0       5.5 | 3.0      7.5 |
+    |   4 |         2.0 | 0.0       1.0 | 3.0     12.0 |
+    |   5 |         3.0 | 0.0       0.0 | 3.0     13.0 |
+    |   6 |         4.0 | 0.0       0.0 | 3.0     13.0 |
 
     >>> landtype(SEALED, WATER)
     >>> states.snowpack = 5.0
     >>> fluxes.throughfall = 2.0
-    >>> model.calc_zuflussboden_v1()
+    >>> model.calc_ponding_v1()
     >>> states.snowpack
     snowpack(0.0, 0.0)
-    >>> fluxes.zuflussboden
-    zuflussboden(0.0, 0.0)
+    >>> fluxes.ponding
+    ponding(0.0, 0.0)
     """
 
     CONTROLPARAMETERS = (
@@ -240,7 +240,7 @@ class Calc_ZuflussBoden_V1(modeltools.Method):
     )
     REQUIREDSEQUENCES = (whmod_inputs.Temperature, whmod_fluxes.Throughfall)
     UPDATEDSEQUENCES = (whmod_states.Snowpack,)
-    RESULTSEQUENCES = (whmod_fluxes.ZuflussBoden,)
+    RESULTSEQUENCES = (whmod_fluxes.Ponding,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -251,15 +251,15 @@ class Calc_ZuflussBoden_V1(modeltools.Method):
         for k in range(con.nmbzones):
             if con.landtype[k] in (SEALED, WATER):
                 sta.snowpack[k] = 0.0
-                flu.zuflussboden[k] = 0.0
+                flu.ponding[k] = 0.0
             elif inp.temperature > 0.0:
                 d_maxschneeschmelze = con.degreedayfactor[k] * inp.temperature
                 d_schneeschmelze = min(sta.snowpack[k], d_maxschneeschmelze)
                 sta.snowpack[k] -= d_schneeschmelze
-                flu.zuflussboden[k] = flu.throughfall[k] + d_schneeschmelze
+                flu.ponding[k] = flu.throughfall[k] + d_schneeschmelze
             else:
                 sta.snowpack[k] += flu.throughfall[k]
-                flu.zuflussboden[k] = 0.0
+                flu.ponding[k] = 0.0
 
 
 class Calc_RelativeSoilMoisture_V1(modeltools.Method):
@@ -298,7 +298,7 @@ class Calc_RelativeSoilMoisture_V1(modeltools.Method):
                 )
 
 
-class Calc_Sickerwasser_V1(modeltools.Method):
+class Calc_Percolation_V1(modeltools.Method):
     """
 
     >>> from hydpy.models.whmod import *
@@ -307,17 +307,17 @@ class Calc_Sickerwasser_V1(modeltools.Method):
     >>> landtype(GRAS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT,
     ...         SUGARBEETS, SEALED, WATER)
     >>> derived.beta(2.0)
-    >>> fluxes.zuflussboden(10.0)
+    >>> fluxes.ponding(10.0)
     >>> factors.relativesoilmoisture(0.5)
-    >>> model.calc_sickerwasser_v1()
-    >>> fluxes.sickerwasser
-    sickerwasser(2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 0.0, 0.0)
+    >>> model.calc_percolation_v1()
+    >>> fluxes.percolation
+    percolation(2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 0.0, 0.0)
     """
 
     CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
     DERIVEDPARAMETERS = (whmod_derived.Beta,)
-    REQUIREDSEQUENCES = (whmod_fluxes.ZuflussBoden, whmod_factors.RelativeSoilMoisture)
-    RESULTSEQUENCES = (whmod_fluxes.Sickerwasser,)
+    REQUIREDSEQUENCES = (whmod_fluxes.Ponding, whmod_factors.RelativeSoilMoisture)
+    RESULTSEQUENCES = (whmod_fluxes.Percolation,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -327,10 +327,10 @@ class Calc_Sickerwasser_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
             if con.landtype[k] in (SEALED, WATER):
-                flu.sickerwasser[k] = 0.0
+                flu.percolation[k] = 0.0
             else:
-                flu.sickerwasser[k] = (
-                    flu.zuflussboden[k] * fac.relativesoilmoisture[k] ** der.beta[k]
+                flu.percolation[k] = (
+                    flu.ponding[k] * fac.relativesoilmoisture[k] ** der.beta[k]
                 )
 
 
@@ -399,7 +399,7 @@ class Calc_MaxVerdunstung_V1(modeltools.Method):
             flu.maxverdunstung[k] = con.fln[con.landtype[k] - 1, month] * inp.et0
 
 
-class Calc_Bodenverdunstung_V1(modeltools.Method):
+class Calc_SoilEvapotranspiration_V1(modeltools.Method):
     """
 
     >>> from hydpy.models.whmod import *
@@ -409,14 +409,14 @@ class Calc_Bodenverdunstung_V1(modeltools.Method):
     >>> minhasr(3.0)
     >>> fluxes.maxverdunstung = 2.0
     >>> factors.relativesoilmoisture = 0.0, 0.25, 0.5, 0.75, 1.0, 0.5, 0.5
-    >>> model.calc_bodenverdunstung_v1()
-    >>> fluxes.bodenverdunstung
-    bodenverdunstung(0.0, 0.768701, 1.382877, 1.77884, 2.0, 0.0, 0.0)
+    >>> model.calc_soilevapotranspiration_v1()
+    >>> fluxes.soilevapotranspiration
+    soilevapotranspiration(0.0, 0.768701, 1.382877, 1.77884, 2.0, 0.0, 0.0)
 
     >>> minhasr(6.0)
-    >>> model.calc_bodenverdunstung_v1()
-    >>> fluxes.bodenverdunstung
-    bodenverdunstung(0.0, 1.275468, 1.818886, 1.96569, 2.0, 0.0, 0.0)
+    >>> model.calc_soilevapotranspiration_v1()
+    >>> fluxes.soilevapotranspiration
+    soilevapotranspiration(0.0, 1.275468, 1.818886, 1.96569, 2.0, 0.0, 0.0)
     """
 
     CONTROLPARAMETERS = (
@@ -425,7 +425,7 @@ class Calc_Bodenverdunstung_V1(modeltools.Method):
         whmod_control.MinhasR,
     )
     REQUIREDSEQUENCES = (whmod_factors.RelativeSoilMoisture, whmod_fluxes.MaxVerdunstung)
-    RESULTSEQUENCES = (whmod_fluxes.Bodenverdunstung,)
+    RESULTSEQUENCES = (whmod_fluxes.SoilEvapotranspiration,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -434,17 +434,17 @@ class Calc_Bodenverdunstung_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
             if con.landtype[k] in (SEALED, WATER):
-                flu.bodenverdunstung[k] = 0.0
+                flu.soilevapotranspiration[k] = 0.0
             else:
                 d_temp = modelutils.exp(-con.minhasr[k] * fac.relativesoilmoisture[k])
-                flu.bodenverdunstung[k] = (
+                flu.soilevapotranspiration[k] = (
                     flu.maxverdunstung[k]
                     * (1.0 - d_temp)
                     / (1.0 - 2.0 * modelutils.exp(-con.minhasr[k]) + d_temp)
                 )
 
 
-class Corr_Bodenverdunstung_V1(modeltools.Method):
+class Corr_SoilEvapotranspiration_V1(modeltools.Method):
     """
 
     >>> from hydpy.models.whmod import *
@@ -453,20 +453,20 @@ class Corr_Bodenverdunstung_V1(modeltools.Method):
     >>> landtype(GRAS, GRAS, GRAS, GRAS, GRAS, WATER, SEALED)
     >>> fluxes.maxverdunstung = 2.0
     >>> fluxes.interceptionevaporation = 0.0, 0.5, 1.0, 1.5, 2.0, 2.0, 2.0
-    >>> fluxes.bodenverdunstung = 1.0
-    >>> model.corr_bodenverdunstung_v1()
-    >>> fluxes.bodenverdunstung
-    bodenverdunstung(1.0, 0.75, 0.5, 0.25, 0.0, 0.0, 0.0)
+    >>> fluxes.soilevapotranspiration = 1.0
+    >>> model.corr_soilevapotranspiration_v1()
+    >>> fluxes.soilevapotranspiration
+    soilevapotranspiration(1.0, 0.75, 0.5, 0.25, 0.0, 0.0, 0.0)
     >>> from hydpy import print_vector
-    >>> print_vector(fluxes.interceptionevaporation[:5] + fluxes.bodenverdunstung[:5])
+    >>> print_vector(fluxes.interceptionevaporation[:5] + fluxes.soilevapotranspiration[:5])
     1.0, 1.25, 1.5, 1.75, 2.0
 
     >>> fluxes.interceptionevaporation = 1.0
-    >>> fluxes.bodenverdunstung = 0.0, 0.5, 1.0, 1.5, 2.0, 2.0, 2.0
-    >>> model.corr_bodenverdunstung_v1()
-    >>> fluxes.bodenverdunstung
-    bodenverdunstung(0.0, 0.25, 0.5, 0.75, 1.0, 0.0, 0.0)
-    >>> print_vector(fluxes.interceptionevaporation[:5] + fluxes.bodenverdunstung[:5])
+    >>> fluxes.soilevapotranspiration = 0.0, 0.5, 1.0, 1.5, 2.0, 2.0, 2.0
+    >>> model.corr_soilevapotranspiration_v1()
+    >>> fluxes.soilevapotranspiration
+    soilevapotranspiration(0.0, 0.25, 0.5, 0.75, 1.0, 0.0, 0.0)
+    >>> print_vector(fluxes.interceptionevaporation[:5] + fluxes.soilevapotranspiration[:5])
     1.0, 1.25, 1.5, 1.75, 2.0
     """
 
@@ -475,7 +475,7 @@ class Corr_Bodenverdunstung_V1(modeltools.Method):
         whmod_fluxes.MaxVerdunstung,
         whmod_fluxes.InterceptionEvaporation,
     )
-    UPDATEDSEQUENCES = (whmod_fluxes.Bodenverdunstung,)
+    UPDATEDSEQUENCES = (whmod_fluxes.SoilEvapotranspiration,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -483,16 +483,16 @@ class Corr_Bodenverdunstung_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
             if con.landtype[k] in (SEALED, WATER):
-                flu.bodenverdunstung[k] = 0.0
+                flu.soilevapotranspiration[k] = 0.0
             elif flu.maxverdunstung[k] <= flu.interceptionevaporation[k]:
-                flu.bodenverdunstung[k] = 0.0
+                flu.soilevapotranspiration[k] = 0.0
             else:
-                flu.bodenverdunstung[k] *= (
+                flu.soilevapotranspiration[k] *= (
                     flu.maxverdunstung[k] - flu.interceptionevaporation[k]
                 ) / flu.maxverdunstung[k]
 
 
-class Calc_Seeverdunstung_V1(modeltools.Method):
+class Calc_LakeEvaporation_V1(modeltools.Method):
     """
 
     >>> from hydpy.models.whmod import *
@@ -500,14 +500,14 @@ class Calc_Seeverdunstung_V1(modeltools.Method):
     >>> nmbzones(3)
     >>> landtype(GRAS, SEALED, WATER)
     >>> fluxes.maxverdunstung = 2.0
-    >>> model.calc_seeverdunstung_v1()
-    >>> fluxes.seeverdunstung
-    seeverdunstung(0.0, 0.0, 2.0)
+    >>> model.calc_lakeevaporation_v1()
+    >>> fluxes.lakeevaporation
+    lakeevaporation(0.0, 0.0, 2.0)
     """
 
     CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
     REQUIREDSEQUENCES = (whmod_fluxes.MaxVerdunstung,)
-    RESULTSEQUENCES = (whmod_fluxes.Seeverdunstung,)
+    RESULTSEQUENCES = (whmod_fluxes.LakeEvaporation,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -515,46 +515,46 @@ class Calc_Seeverdunstung_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
             if con.landtype[k] == WATER:
-                flu.seeverdunstung[k] = flu.maxverdunstung[k]
+                flu.lakeevaporation[k] = flu.maxverdunstung[k]
             else:
-                flu.seeverdunstung[k] = 0.0
+                flu.lakeevaporation[k] = 0.0
 
 
-class Calc_AktVerdunstung_V1(modeltools.Method):
+class Calc_TotalEvapotranspiration_V1(modeltools.Method):
     """
 
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(2)
     >>> fluxes.interceptionevaporation = 1.0, 0.0
-    >>> fluxes.bodenverdunstung = 2.0, 0.0
-    >>> fluxes.seeverdunstung = 0.0, 4.0
-    >>> model.calc_aktverdunstung_v1()
-    >>> fluxes.aktverdunstung
-    aktverdunstung(3.0, 4.0)
+    >>> fluxes.soilevapotranspiration = 2.0, 0.0
+    >>> fluxes.lakeevaporation = 0.0, 4.0
+    >>> model.calc_totalevapotranspiration_v1()
+    >>> fluxes.totalevapotranspiration
+    totalevapotranspiration(3.0, 4.0)
     """
 
     CONTROLPARAMETERS = (whmod_control.NmbZones,)
     REQUIREDSEQUENCES = (
         whmod_fluxes.InterceptionEvaporation,
-        whmod_fluxes.Bodenverdunstung,
-        whmod_fluxes.Seeverdunstung,
+        whmod_fluxes.SoilEvapotranspiration,
+        whmod_fluxes.LakeEvaporation,
     )
-    RESULTSEQUENCES = (whmod_fluxes.AktVerdunstung,)
+    RESULTSEQUENCES = (whmod_fluxes.TotalEvapotranspiration,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            flu.aktverdunstung[k] = (
+            flu.totalevapotranspiration[k] = (
                 flu.interceptionevaporation[k]
-                + flu.bodenverdunstung[k]
-                + flu.seeverdunstung[k]
+                + flu.soilevapotranspiration[k]
+                + flu.lakeevaporation[k]
             )
 
 
-class Calc_PotKapilAufstieg_V1(modeltools.Method):
+class Calc_PotentialCapillaryRise_V1(modeltools.Method):
     # pylint: disable=line-too-long
     """
 
@@ -573,101 +573,101 @@ class Calc_PotKapilAufstieg_V1(modeltools.Method):
 
     >>> from hydpy import UnitTest
     >>> test = UnitTest(
-    ...     model, model.calc_potkapilaufstieg_v1,
+    ...     model, model.calc_potentialcapillaryrise_v1,
     ...     last_example=31,
     ...     parseqs=(control.groundwaterdepth,
-    ...              fluxes.potkapilaufstieg))
+    ...              fluxes.potentialcapillaryrise))
     >>> import numpy
     >>> test.nexts.groundwaterdepth = numpy.arange(0.0, 3.1, 0.1)
     >>> test()
-    | ex. |                          groundwaterdepth |                                           potkapilaufstieg |
-    ----------------------------------------------------------------------------------------------------------------
-    |   1 | 0.0  0.0  0.0  0.0  0.0               0.0 |  5.0       5.0       5.0       5.0   5.0               5.0 |
-    |   2 | 0.1  0.1  0.1  0.1  0.1               0.1 |  5.0       5.0       5.0       5.0   5.0               5.0 |
-    |   3 | 0.2  0.2  0.2  0.2  0.2               0.2 |  5.0       5.0       5.0       5.0   5.0               5.0 |
-    |   4 | 0.3  0.3  0.3  0.3  0.3               0.3 |  5.0       5.0       5.0  4.772727   5.0               5.0 |
-    |   5 | 0.4  0.4  0.4  0.4  0.4               0.4 |  5.0       5.0       5.0  4.318182   5.0               5.0 |
-    |   6 | 0.5  0.5  0.5  0.5  0.5               0.5 | 3.75       5.0  4.736842  3.863636   5.0               5.0 |
-    |   7 | 0.6  0.6  0.6  0.6  0.6               0.6 |  2.5       5.0  4.210526  3.409091   5.0          4.166667 |
-    |   8 | 0.7  0.7  0.7  0.7  0.7               0.7 | 1.25       5.0  3.684211  2.954545   5.0               2.5 |
-    |   9 | 0.8  0.8  0.8  0.8  0.8               0.8 |  0.0       5.0  3.157895       2.5  4.75          0.833333 |
-    |  10 | 0.9  0.9  0.9  0.9  0.9               0.9 |  0.0  4.545455  2.631579  2.045455  4.25               0.0 |
-    |  11 | 1.0  1.0  1.0  1.0  1.0               1.0 |  0.0  3.636364  2.105263  1.590909  3.75               0.0 |
-    |  12 | 1.1  1.1  1.1  1.1  1.1               1.1 |  0.0  2.727273  1.578947  1.136364  3.25               0.0 |
-    |  13 | 1.2  1.2  1.2  1.2  1.2               1.2 |  0.0  1.818182  1.052632  0.681818  2.75               0.0 |
-    |  14 | 1.3  1.3  1.3  1.3  1.3               1.3 |  0.0  0.909091  0.526316  0.227273  2.25               0.0 |
-    |  15 | 1.4  1.4  1.4  1.4  1.4               1.4 |  0.0       0.0       0.0       0.0  1.75               0.0 |
-    |  16 | 1.5  1.5  1.5  1.5  1.5               1.5 |  0.0       0.0       0.0       0.0  1.25               0.0 |
-    |  17 | 1.6  1.6  1.6  1.6  1.6               1.6 |  0.0       0.0       0.0       0.0  0.75               0.0 |
-    |  18 | 1.7  1.7  1.7  1.7  1.7               1.7 |  0.0       0.0       0.0       0.0  0.25               0.0 |
-    |  19 | 1.8  1.8  1.8  1.8  1.8               1.8 |  0.0       0.0       0.0       0.0   0.0               0.0 |
-    |  20 | 1.9  1.9  1.9  1.9  1.9               1.9 |  0.0       0.0       0.0       0.0   0.0               0.0 |
-    |  21 | 2.0  2.0  2.0  2.0  2.0               2.0 |  0.0       0.0       0.0       0.0   0.0               0.0 |
-    |  22 | 2.1  2.1  2.1  2.1  2.1               2.1 |  0.0       0.0       0.0       0.0   0.0               0.0 |
-    |  23 | 2.2  2.2  2.2  2.2  2.2               2.2 |  0.0       0.0       0.0       0.0   0.0               0.0 |
-    |  24 | 2.3  2.3  2.3  2.3  2.3               2.3 |  0.0       0.0       0.0       0.0   0.0               0.0 |
-    |  25 | 2.4  2.4  2.4  2.4  2.4               2.4 |  0.0       0.0       0.0       0.0   0.0               0.0 |
-    |  26 | 2.5  2.5  2.5  2.5  2.5               2.5 |  0.0       0.0       0.0       0.0   0.0               0.0 |
-    |  27 | 2.6  2.6  2.6  2.6  2.6               2.6 |  0.0       0.0       0.0       0.0   0.0               0.0 |
-    |  28 | 2.7  2.7  2.7  2.7  2.7               2.7 |  0.0       0.0       0.0       0.0   0.0               0.0 |
-    |  29 | 2.8  2.8  2.8  2.8  2.8               2.8 |  0.0       0.0       0.0       0.0   0.0               0.0 |
-    |  30 | 2.9  2.9  2.9  2.9  2.9               2.9 |  0.0       0.0       0.0       0.0   0.0               0.0 |
-    |  31 | 3.0  3.0  3.0  3.0  3.0               3.0 |  0.0       0.0       0.0       0.0   0.0               0.0 |
+    | ex. |                          groundwaterdepth |                                           potentialcapillaryrise |
+    ----------------------------------------------------------------------------------------------------------------------
+    |   1 | 0.0  0.0  0.0  0.0  0.0               0.0 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
+    |   2 | 0.1  0.1  0.1  0.1  0.1               0.1 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
+    |   3 | 0.2  0.2  0.2  0.2  0.2               0.2 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
+    |   4 | 0.3  0.3  0.3  0.3  0.3               0.3 |  5.0       5.0       5.0  4.772727   5.0                     5.0 |
+    |   5 | 0.4  0.4  0.4  0.4  0.4               0.4 |  5.0       5.0       5.0  4.318182   5.0                     5.0 |
+    |   6 | 0.5  0.5  0.5  0.5  0.5               0.5 | 3.75       5.0  4.736842  3.863636   5.0                     5.0 |
+    |   7 | 0.6  0.6  0.6  0.6  0.6               0.6 |  2.5       5.0  4.210526  3.409091   5.0                4.166667 |
+    |   8 | 0.7  0.7  0.7  0.7  0.7               0.7 | 1.25       5.0  3.684211  2.954545   5.0                     2.5 |
+    |   9 | 0.8  0.8  0.8  0.8  0.8               0.8 |  0.0       5.0  3.157895       2.5  4.75                0.833333 |
+    |  10 | 0.9  0.9  0.9  0.9  0.9               0.9 |  0.0  4.545455  2.631579  2.045455  4.25                     0.0 |
+    |  11 | 1.0  1.0  1.0  1.0  1.0               1.0 |  0.0  3.636364  2.105263  1.590909  3.75                     0.0 |
+    |  12 | 1.1  1.1  1.1  1.1  1.1               1.1 |  0.0  2.727273  1.578947  1.136364  3.25                     0.0 |
+    |  13 | 1.2  1.2  1.2  1.2  1.2               1.2 |  0.0  1.818182  1.052632  0.681818  2.75                     0.0 |
+    |  14 | 1.3  1.3  1.3  1.3  1.3               1.3 |  0.0  0.909091  0.526316  0.227273  2.25                     0.0 |
+    |  15 | 1.4  1.4  1.4  1.4  1.4               1.4 |  0.0       0.0       0.0       0.0  1.75                     0.0 |
+    |  16 | 1.5  1.5  1.5  1.5  1.5               1.5 |  0.0       0.0       0.0       0.0  1.25                     0.0 |
+    |  17 | 1.6  1.6  1.6  1.6  1.6               1.6 |  0.0       0.0       0.0       0.0  0.75                     0.0 |
+    |  18 | 1.7  1.7  1.7  1.7  1.7               1.7 |  0.0       0.0       0.0       0.0  0.25                     0.0 |
+    |  19 | 1.8  1.8  1.8  1.8  1.8               1.8 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
+    |  20 | 1.9  1.9  1.9  1.9  1.9               1.9 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
+    |  21 | 2.0  2.0  2.0  2.0  2.0               2.0 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
+    |  22 | 2.1  2.1  2.1  2.1  2.1               2.1 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
+    |  23 | 2.2  2.2  2.2  2.2  2.2               2.2 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
+    |  24 | 2.3  2.3  2.3  2.3  2.3               2.3 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
+    |  25 | 2.4  2.4  2.4  2.4  2.4               2.4 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
+    |  26 | 2.5  2.5  2.5  2.5  2.5               2.5 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
+    |  27 | 2.6  2.6  2.6  2.6  2.6               2.6 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
+    |  28 | 2.7  2.7  2.7  2.7  2.7               2.7 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
+    |  29 | 2.8  2.8  2.8  2.8  2.8               2.8 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
+    |  30 | 2.9  2.9  2.9  2.9  2.9               2.9 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
+    |  31 | 3.0  3.0  3.0  3.0  3.0               3.0 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
 
     >>> derived.soildepth(1.0)
     >>> test()
-    | ex. |                          groundwaterdepth |                                           potkapilaufstieg |
-    ----------------------------------------------------------------------------------------------------------------
-    |   1 | 0.0  0.0  0.0  0.0  0.0               0.0 |  5.0       5.0       5.0       5.0   5.0               5.0 |
-    |   2 | 0.1  0.1  0.1  0.1  0.1               0.1 |  5.0       5.0       5.0       5.0   5.0               5.0 |
-    |   3 | 0.2  0.2  0.2  0.2  0.2               0.2 |  5.0       5.0       5.0       5.0   5.0               5.0 |
-    |   4 | 0.3  0.3  0.3  0.3  0.3               0.3 |  5.0       5.0       5.0       5.0   5.0               5.0 |
-    |   5 | 0.4  0.4  0.4  0.4  0.4               0.4 |  5.0       5.0       5.0       5.0   5.0               5.0 |
-    |   6 | 0.5  0.5  0.5  0.5  0.5               0.5 |  5.0       5.0       5.0       5.0   5.0               5.0 |
-    |   7 | 0.6  0.6  0.6  0.6  0.6               0.6 |  5.0       5.0       5.0       5.0   5.0               5.0 |
-    |   8 | 0.7  0.7  0.7  0.7  0.7               0.7 |  5.0       5.0       5.0       5.0   5.0               5.0 |
-    |   9 | 0.8  0.8  0.8  0.8  0.8               0.8 |  5.0       5.0       5.0       5.0   5.0               5.0 |
-    |  10 | 0.9  0.9  0.9  0.9  0.9               0.9 |  5.0       5.0       5.0       5.0   5.0               5.0 |
-    |  11 | 1.0  1.0  1.0  1.0  1.0               1.0 |  5.0       5.0       5.0       5.0   5.0               5.0 |
-    |  12 | 1.1  1.1  1.1  1.1  1.1               1.1 |  5.0       5.0       5.0       5.0   5.0               5.0 |
-    |  13 | 1.2  1.2  1.2  1.2  1.2               1.2 |  5.0       5.0       5.0       5.0   5.0               5.0 |
-    |  14 | 1.3  1.3  1.3  1.3  1.3               1.3 |  5.0       5.0       5.0  4.772727   5.0               5.0 |
-    |  15 | 1.4  1.4  1.4  1.4  1.4               1.4 |  5.0       5.0       5.0  4.318182   5.0               5.0 |
-    |  16 | 1.5  1.5  1.5  1.5  1.5               1.5 | 3.75       5.0  4.736842  3.863636   5.0               5.0 |
-    |  17 | 1.6  1.6  1.6  1.6  1.6               1.6 |  2.5       5.0  4.210526  3.409091   5.0          4.166667 |
-    |  18 | 1.7  1.7  1.7  1.7  1.7               1.7 | 1.25       5.0  3.684211  2.954545   5.0               2.5 |
-    |  19 | 1.8  1.8  1.8  1.8  1.8               1.8 |  0.0       5.0  3.157895       2.5  4.75          0.833333 |
-    |  20 | 1.9  1.9  1.9  1.9  1.9               1.9 |  0.0  4.545455  2.631579  2.045455  4.25               0.0 |
-    |  21 | 2.0  2.0  2.0  2.0  2.0               2.0 |  0.0  3.636364  2.105263  1.590909  3.75               0.0 |
-    |  22 | 2.1  2.1  2.1  2.1  2.1               2.1 |  0.0  2.727273  1.578947  1.136364  3.25               0.0 |
-    |  23 | 2.2  2.2  2.2  2.2  2.2               2.2 |  0.0  1.818182  1.052632  0.681818  2.75               0.0 |
-    |  24 | 2.3  2.3  2.3  2.3  2.3               2.3 |  0.0  0.909091  0.526316  0.227273  2.25               0.0 |
-    |  25 | 2.4  2.4  2.4  2.4  2.4               2.4 |  0.0       0.0       0.0       0.0  1.75               0.0 |
-    |  26 | 2.5  2.5  2.5  2.5  2.5               2.5 |  0.0       0.0       0.0       0.0  1.25               0.0 |
-    |  27 | 2.6  2.6  2.6  2.6  2.6               2.6 |  0.0       0.0       0.0       0.0  0.75               0.0 |
-    |  28 | 2.7  2.7  2.7  2.7  2.7               2.7 |  0.0       0.0       0.0       0.0  0.25               0.0 |
-    |  29 | 2.8  2.8  2.8  2.8  2.8               2.8 |  0.0       0.0       0.0       0.0   0.0               0.0 |
-    |  30 | 2.9  2.9  2.9  2.9  2.9               2.9 |  0.0       0.0       0.0       0.0   0.0               0.0 |
-    |  31 | 3.0  3.0  3.0  3.0  3.0               3.0 |  0.0       0.0       0.0       0.0   0.0               0.0 |
+    | ex. |                          groundwaterdepth |                                           potentialcapillaryrise |
+    ----------------------------------------------------------------------------------------------------------------------
+    |   1 | 0.0  0.0  0.0  0.0  0.0               0.0 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
+    |   2 | 0.1  0.1  0.1  0.1  0.1               0.1 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
+    |   3 | 0.2  0.2  0.2  0.2  0.2               0.2 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
+    |   4 | 0.3  0.3  0.3  0.3  0.3               0.3 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
+    |   5 | 0.4  0.4  0.4  0.4  0.4               0.4 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
+    |   6 | 0.5  0.5  0.5  0.5  0.5               0.5 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
+    |   7 | 0.6  0.6  0.6  0.6  0.6               0.6 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
+    |   8 | 0.7  0.7  0.7  0.7  0.7               0.7 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
+    |   9 | 0.8  0.8  0.8  0.8  0.8               0.8 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
+    |  10 | 0.9  0.9  0.9  0.9  0.9               0.9 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
+    |  11 | 1.0  1.0  1.0  1.0  1.0               1.0 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
+    |  12 | 1.1  1.1  1.1  1.1  1.1               1.1 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
+    |  13 | 1.2  1.2  1.2  1.2  1.2               1.2 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
+    |  14 | 1.3  1.3  1.3  1.3  1.3               1.3 |  5.0       5.0       5.0  4.772727   5.0                     5.0 |
+    |  15 | 1.4  1.4  1.4  1.4  1.4               1.4 |  5.0       5.0       5.0  4.318182   5.0                     5.0 |
+    |  16 | 1.5  1.5  1.5  1.5  1.5               1.5 | 3.75       5.0  4.736842  3.863636   5.0                     5.0 |
+    |  17 | 1.6  1.6  1.6  1.6  1.6               1.6 |  2.5       5.0  4.210526  3.409091   5.0                4.166667 |
+    |  18 | 1.7  1.7  1.7  1.7  1.7               1.7 | 1.25       5.0  3.684211  2.954545   5.0                     2.5 |
+    |  19 | 1.8  1.8  1.8  1.8  1.8               1.8 |  0.0       5.0  3.157895       2.5  4.75                0.833333 |
+    |  20 | 1.9  1.9  1.9  1.9  1.9               1.9 |  0.0  4.545455  2.631579  2.045455  4.25                     0.0 |
+    |  21 | 2.0  2.0  2.0  2.0  2.0               2.0 |  0.0  3.636364  2.105263  1.590909  3.75                     0.0 |
+    |  22 | 2.1  2.1  2.1  2.1  2.1               2.1 |  0.0  2.727273  1.578947  1.136364  3.25                     0.0 |
+    |  23 | 2.2  2.2  2.2  2.2  2.2               2.2 |  0.0  1.818182  1.052632  0.681818  2.75                     0.0 |
+    |  24 | 2.3  2.3  2.3  2.3  2.3               2.3 |  0.0  0.909091  0.526316  0.227273  2.25                     0.0 |
+    |  25 | 2.4  2.4  2.4  2.4  2.4               2.4 |  0.0       0.0       0.0       0.0  1.75                     0.0 |
+    |  26 | 2.5  2.5  2.5  2.5  2.5               2.5 |  0.0       0.0       0.0       0.0  1.25                     0.0 |
+    |  27 | 2.6  2.6  2.6  2.6  2.6               2.6 |  0.0       0.0       0.0       0.0  0.75                     0.0 |
+    |  28 | 2.7  2.7  2.7  2.7  2.7               2.7 |  0.0       0.0       0.0       0.0  0.25                     0.0 |
+    |  29 | 2.8  2.8  2.8  2.8  2.8               2.8 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
+    |  30 | 2.9  2.9  2.9  2.9  2.9               2.9 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
+    |  31 | 3.0  3.0  3.0  3.0  3.0               3.0 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
 
     >>> landtype(SEALED)
     >>> test(last_example=1)
-    | ex. |                          groundwaterdepth |                          potkapilaufstieg |
-    -----------------------------------------------------------------------------------------------
-    |   1 | 0.0  0.0  0.0  0.0  0.0               0.0 | 0.0  0.0  0.0  0.0  0.0               0.0 |
+    | ex. |                          groundwaterdepth |                          potentialcapillaryrise |
+    -----------------------------------------------------------------------------------------------------
+    |   1 | 0.0  0.0  0.0  0.0  0.0               0.0 | 0.0  0.0  0.0  0.0  0.0                     0.0 |
 
     >>> landtype(WATER)
     >>> test(last_example=1)
-    | ex. |                          groundwaterdepth |                          potkapilaufstieg |
-    -----------------------------------------------------------------------------------------------
-    |   1 | 0.0  0.0  0.0  0.0  0.0               0.0 | 0.0  0.0  0.0  0.0  0.0               0.0 |
+    | ex. |                          groundwaterdepth |                          potentialcapillaryrise |
+    -----------------------------------------------------------------------------------------------------
+    |   1 | 0.0  0.0  0.0  0.0  0.0               0.0 | 0.0  0.0  0.0  0.0  0.0                     0.0 |
 
     >>> landtype(GRAS)
     >>> capillaryrise(False)
     >>> test(last_example=1)
-    | ex. |                          groundwaterdepth |                          potkapilaufstieg |
-    -----------------------------------------------------------------------------------------------
-    |   1 | 0.0  0.0  0.0  0.0  0.0               0.0 | 0.0  0.0  0.0  0.0  0.0               0.0 |
+    | ex. |                          groundwaterdepth |                          potentialcapillaryrise |
+    -----------------------------------------------------------------------------------------------------
+    |   1 | 0.0  0.0  0.0  0.0  0.0               0.0 | 0.0  0.0  0.0  0.0  0.0                     0.0 |
     """
 
     CONTROLPARAMETERS = (
@@ -679,7 +679,7 @@ class Calc_PotKapilAufstieg_V1(modeltools.Method):
         whmod_control.GroundwaterDepth,
     )
     DERIVEDPARAMETERS = (whmod_derived.SoilDepth,)
-    RESULTSEQUENCES = (whmod_fluxes.PotKapilAufstieg,)
+    RESULTSEQUENCES = (whmod_fluxes.PotentialCapillaryRise,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -691,20 +691,20 @@ class Calc_PotKapilAufstieg_V1(modeltools.Method):
                 d_schwell = con.capillarythreshold[k]
                 d_grenz = con.capillarylimit[k]
                 if con.groundwaterdepth[k] > (der.soildepth[k] + d_schwell):
-                    flu.potkapilaufstieg[k] = 0.0
+                    flu.potentialcapillaryrise[k] = 0.0
                 elif con.groundwaterdepth[k] < (der.soildepth[k] + d_grenz):
-                    flu.potkapilaufstieg[k] = 5.0
+                    flu.potentialcapillaryrise[k] = 5.0
                 else:
-                    flu.potkapilaufstieg[k] = (
+                    flu.potentialcapillaryrise[k] = (
                         5.0
                         * (der.soildepth[k] + d_schwell - con.groundwaterdepth[k])
                         / (d_schwell - d_grenz)
                     )
             else:
-                flu.potkapilaufstieg[k] = 0.0
+                flu.potentialcapillaryrise[k] = 0.0
 
 
-class Calc_KapilAufstieg_V1(modeltools.Method):
+class Calc_CapillaryRise_V1(modeltools.Method):
     """
 
     >>> from hydpy.models.whmod import *
@@ -713,15 +713,15 @@ class Calc_KapilAufstieg_V1(modeltools.Method):
     >>> landtype(GRAS, GRAS, GRAS, GRAS, GRAS, SEALED, WATER)
     >>> capillaryrise(True)
     >>> factors.relativesoilmoisture(0.0, 0.25, 0.5, 0.75, 1.0, 0.0, 0.0)
-    >>> fluxes.potkapilaufstieg(2.0)
-    >>> model.calc_kapilaufstieg_v1()
-    >>> fluxes.kapilaufstieg
-    kapilaufstieg(2.0, 0.84375, 0.25, 0.03125, 0.0, 0.0, 0.0)
+    >>> fluxes.potentialcapillaryrise(2.0)
+    >>> model.calc_capillaryrise_v1()
+    >>> fluxes.capillaryrise
+    capillaryrise(2.0, 0.84375, 0.25, 0.03125, 0.0, 0.0, 0.0)
 
     >>> capillaryrise(False)
-    >>> model.calc_kapilaufstieg_v1()
-    >>> fluxes.kapilaufstieg
-    kapilaufstieg(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    >>> model.calc_capillaryrise_v1()
+    >>> fluxes.capillaryrise
+    capillaryrise(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     """
 
     CONTROLPARAMETERS = (
@@ -729,8 +729,8 @@ class Calc_KapilAufstieg_V1(modeltools.Method):
         whmod_control.LandType,
         whmod_control.CapillaryRise,
     )
-    REQUIREDSEQUENCES = (whmod_fluxes.PotKapilAufstieg, whmod_factors.RelativeSoilMoisture)
-    RESULTSEQUENCES = (whmod_fluxes.KapilAufstieg,)
+    REQUIREDSEQUENCES = (whmod_fluxes.PotentialCapillaryRise, whmod_factors.RelativeSoilMoisture)
+    RESULTSEQUENCES = (whmod_fluxes.CapillaryRise,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -739,11 +739,11 @@ class Calc_KapilAufstieg_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
             if con.capillaryrise and (con.landtype[k] not in (SEALED, WATER)):
-                flu.kapilaufstieg[k] = (
-                    flu.potkapilaufstieg[k] * (1.0 - fac.relativesoilmoisture[k]) ** 3
+                flu.capillaryrise[k] = (
+                    flu.potentialcapillaryrise[k] * (1.0 - fac.relativesoilmoisture[k]) ** 3
                 )
             else:
-                flu.kapilaufstieg[k] = 0.0
+                flu.capillaryrise[k] = 0.0
 
 
 class Calc_SoilMoisture_V1(modeltools.Method):
@@ -754,37 +754,37 @@ class Calc_SoilMoisture_V1(modeltools.Method):
     >>> nmbzones(5)
     >>> landtype(GRAS)
     >>> derived.maxsoilwater(100.0)
-    >>> fluxes.zuflussboden(2.0)
-    >>> fluxes.bodenverdunstung(1.0)
+    >>> fluxes.ponding(2.0)
+    >>> fluxes.soilevapotranspiration(1.0)
     >>> states.soilmoisture(0.0, 1.0, 50.0, 98.0, 100.0)
-    >>> fluxes.kapilaufstieg(3.0, 3.0, 3.0, 5.0, 5.0)
-    >>> fluxes.sickerwasser(5.0, 5.0, 5.0, 3.0, 3.0)
+    >>> fluxes.capillaryrise(3.0, 3.0, 3.0, 5.0, 5.0)
+    >>> fluxes.percolation(5.0, 5.0, 5.0, 3.0, 3.0)
     >>> model.calc_soilmoisture_v1()
     >>> states.soilmoisture
     soilmoisture(0.0, 0.0, 49.0, 100.0, 100.0)
-    >>> fluxes.sickerwasser
-    sickerwasser(4.0, 5.0, 5.0, 3.0, 3.0)
-    >>> fluxes.kapilaufstieg
-    kapilaufstieg(3.0, 3.0, 3.0, 4.0, 2.0)
+    >>> fluxes.percolation
+    percolation(4.0, 5.0, 5.0, 3.0, 3.0)
+    >>> fluxes.capillaryrise
+    capillaryrise(3.0, 3.0, 3.0, 4.0, 2.0)
 
     >>> landtype(WATER, WATER, WATER, SEALED, SEALED)
-    >>> fluxes.bodenverdunstung(0.0, 5.0, 10.0, 5.0, 5.0)
+    >>> fluxes.soilevapotranspiration(0.0, 5.0, 10.0, 5.0, 5.0)
     >>> model.calc_soilmoisture_v1()
     >>> states.soilmoisture
     soilmoisture(0.0, 0.0, 0.0, 0.0, 0.0)
-    >>> fluxes.sickerwasser
-    sickerwasser(4.0, 5.0, 5.0, 3.0, 3.0)
-    >>> fluxes.kapilaufstieg
-    kapilaufstieg(3.0, 3.0, 3.0, 4.0, 2.0)
+    >>> fluxes.percolation
+    percolation(4.0, 5.0, 5.0, 3.0, 3.0)
+    >>> fluxes.capillaryrise
+    capillaryrise(3.0, 3.0, 3.0, 4.0, 2.0)
     """
 
     CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
     DERIVEDPARAMETERS = (whmod_derived.MaxSoilWater,)
     REQUIREDSEQUENCES = (
-        whmod_fluxes.ZuflussBoden,
-        whmod_fluxes.Bodenverdunstung,
-        whmod_fluxes.Sickerwasser,
-        whmod_fluxes.KapilAufstieg,
+        whmod_fluxes.Ponding,
+        whmod_fluxes.SoilEvapotranspiration,
+        whmod_fluxes.Percolation,
+        whmod_fluxes.CapillaryRise,
     )
     UPDATEDSEQUENCES = (whmod_states.SoilMoisture,)
 
@@ -799,22 +799,22 @@ class Calc_SoilMoisture_V1(modeltools.Method):
                 sta.soilmoisture[k] = 0.0
             else:
                 sta.soilmoisture[k] += (
-                    flu.zuflussboden[k]
-                    - flu.bodenverdunstung[k]
-                    - flu.sickerwasser[k]
-                    + flu.kapilaufstieg[k]
+                    flu.ponding[k]
+                    - flu.soilevapotranspiration[k]
+                    - flu.percolation[k]
+                    + flu.capillaryrise[k]
                 )
                 if sta.soilmoisture[k] < 0.0:
-                    flu.sickerwasser[k] += sta.soilmoisture[k]
+                    flu.percolation[k] += sta.soilmoisture[k]
                     sta.soilmoisture[k] = 0.0
                 elif sta.soilmoisture[k] > der.maxsoilwater[k]:
-                    flu.kapilaufstieg[k] += (
+                    flu.capillaryrise[k] += (
                         der.maxsoilwater[k] - sta.soilmoisture[k]
                     )
                     sta.soilmoisture[k] = der.maxsoilwater[k]
 
 
-class Calc_PotGrundwasserneubildung_V1(modeltools.Method):
+class Calc_PotentialRecharge_V1(modeltools.Method):
     """
 
     >>> from hydpy.models.whmod import *
@@ -822,22 +822,22 @@ class Calc_PotGrundwasserneubildung_V1(modeltools.Method):
     >>> nmbzones(3)
     >>> landtype(GRAS, SEALED, WATER)
     >>> inputs.precipitation(7.0)
-    >>> fluxes.sickerwasser(2.0)
-    >>> fluxes.kapilaufstieg(1.0)
-    >>> fluxes.seeverdunstung(4.0)
-    >>> model.calc_potgrundwasserneubildung_v1()
-    >>> fluxes.potgrundwasserneubildung
-    potgrundwasserneubildung(1.0, 0.0, 3.0)
+    >>> fluxes.percolation(2.0)
+    >>> fluxes.capillaryrise(1.0)
+    >>> fluxes.lakeevaporation(4.0)
+    >>> model.calc_potentialrecharge_v1()
+    >>> fluxes.potentialrecharge
+    potentialrecharge(1.0, 0.0, 3.0)
     """
 
     CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
     REQUIREDSEQUENCES = (
         whmod_inputs.Precipitation,
-        whmod_fluxes.Seeverdunstung,
-        whmod_fluxes.Sickerwasser,
-        whmod_fluxes.KapilAufstieg,
+        whmod_fluxes.LakeEvaporation,
+        whmod_fluxes.Percolation,
+        whmod_fluxes.CapillaryRise,
     )
-    RESULTSEQUENCES = (whmod_fluxes.PotGrundwasserneubildung,)
+    RESULTSEQUENCES = (whmod_fluxes.PotentialRecharge,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -846,28 +846,28 @@ class Calc_PotGrundwasserneubildung_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
             if con.landtype[k] == WATER:
-                flu.potgrundwasserneubildung[k] = (
-                    inp.precipitation - flu.seeverdunstung[k]
+                flu.potentialrecharge[k] = (
+                    inp.precipitation - flu.lakeevaporation[k]
                 )
             elif con.landtype[k] == SEALED:
-                flu.potgrundwasserneubildung[k] = 0.0
+                flu.potentialrecharge[k] = 0.0
             else:
-                flu.potgrundwasserneubildung[k] = (
-                    flu.sickerwasser[k] - flu.kapilaufstieg[k]
+                flu.potentialrecharge[k] = (
+                    flu.percolation[k] - flu.capillaryrise[k]
                 )
 
 
-class Calc_Basisabfluss_V1(modeltools.Method):
+class Calc_Baseflow_V1(modeltools.Method):
     """
 
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(4)
     >>> baseflowindex(1.0, 0.8, 1.0, 0.8)
-    >>> fluxes.potgrundwasserneubildung(1.0, 1.0, -1.0, -1.0)
-    >>> model.calc_basisabfluss_v1()
-    >>> fluxes.basisabfluss
-    basisabfluss(0.0, 0.2, 0.0, 0.0)
+    >>> fluxes.potentialrecharge(1.0, 1.0, -1.0, -1.0)
+    >>> model.calc_baseflow_v1()
+    >>> fluxes.baseflow
+    baseflow(0.0, 0.2, 0.0, 0.0)
     """
 
     CONTROLPARAMETERS = (
@@ -875,8 +875,8 @@ class Calc_Basisabfluss_V1(modeltools.Method):
         whmod_control.LandType,
         whmod_control.BaseflowIndex,
     )
-    REQUIREDSEQUENCES = (whmod_fluxes.PotGrundwasserneubildung,)
-    RESULTSEQUENCES = (whmod_fluxes.Basisabfluss,)
+    REQUIREDSEQUENCES = (whmod_fluxes.PotentialRecharge,)
+    RESULTSEQUENCES = (whmod_fluxes.Baseflow,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -884,14 +884,14 @@ class Calc_Basisabfluss_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
             if con.landtype[k] == SEALED:
-                flu.basisabfluss[k] = 0.0
+                flu.baseflow[k] = 0.0
             else:
-                flu.basisabfluss[k] = max(
-                    (1.0 - con.baseflowindex[k]) * flu.potgrundwasserneubildung[k], 0.0
+                flu.baseflow[k] = max(
+                    (1.0 - con.baseflowindex[k]) * flu.potentialrecharge[k], 0.0
                 )
 
 
-class Calc_AktGrundwasserneubildung_V1(modeltools.Method):
+class Calc_ActualRecharge_V1(modeltools.Method):
     """
 
     >>> from hydpy.models.whmod import *
@@ -900,34 +900,34 @@ class Calc_AktGrundwasserneubildung_V1(modeltools.Method):
     >>> area(14.0)
     >>> zonearea(2.0, 3.0, 5.0, 4.0)
     >>> derived.zoneratio.update()
-    >>> fluxes.potgrundwasserneubildung = 2.0, 10.0, -2.0, -0.5
-    >>> fluxes.basisabfluss = 0.0, 5.0, 0.0, 0.0
-    >>> model.calc_aktgrundwasserneubildung_v1()
-    >>> fluxes.aktgrundwasserneubildung
-    aktgrundwasserneubildung(0.5)
+    >>> fluxes.potentialrecharge = 2.0, 10.0, -2.0, -0.5
+    >>> fluxes.baseflow = 0.0, 5.0, 0.0, 0.0
+    >>> model.calc_actualrecharge_v1()
+    >>> fluxes.actualrecharge
+    actualrecharge(0.5)
     """
 
     CONTROLPARAMETERS = (whmod_control.NmbZones,)
     DERIVEDPARAMETERS = (whmod_derived.ZoneRatio,)
     REQUIREDSEQUENCES = (
-        whmod_fluxes.PotGrundwasserneubildung,
-        whmod_fluxes.Basisabfluss,
+        whmod_fluxes.PotentialRecharge,
+        whmod_fluxes.Baseflow,
     )
-    RESULTSEQUENCES = (whmod_fluxes.AktGrundwasserneubildung,)
+    RESULTSEQUENCES = (whmod_fluxes.ActualRecharge,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.aktgrundwasserneubildung = 0.0
+        flu.actualrecharge = 0.0
         for k in range(con.nmbzones):
-            flu.aktgrundwasserneubildung += der.zoneratio[k] * (
-                flu.potgrundwasserneubildung[k] - flu.basisabfluss[k]
+            flu.actualrecharge += der.zoneratio[k] * (
+                flu.potentialrecharge[k] - flu.baseflow[k]
             )
 
 
-class Calc_VerzGrundwasserneubildung_DeepWater_V1(modeltools.Method):
+class Calc_DelayedRecharge_DeepWater_V1(modeltools.Method):
     """
 
     Nur eine Näherungslösung. Bei kleinen Flurabständen etwas zu geringe
@@ -940,11 +940,11 @@ class Calc_VerzGrundwasserneubildung_DeepWater_V1(modeltools.Method):
     >>> for k in numpy.arange(0., 5.5, .5):
     ...     rechargedelay.value = k
     ...     states.deepwater = 2.0
-    ...     fluxes.aktgrundwasserneubildung = 1.0
-    ...     model.calc_verzgrundwasserneubildung_deepwater_v1()
+    ...     fluxes.actualrecharge = 1.0
+    ...     model.calc_delayedrecharge_deepwater_v1()
     ...     print_vector(
     ...         [k,
-    ...          fluxes.verzgrundwasserneubildung.value,
+    ...          fluxes.delayedrecharge.value,
     ...          states.deepwater.value])
     0.0, 3.0, 0.0
     0.5, 2.593994, 0.406006
@@ -960,9 +960,9 @@ class Calc_VerzGrundwasserneubildung_DeepWater_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (whmod_control.RechargeDelay,)
-    REQUIREDSEQUENCES = (whmod_fluxes.AktGrundwasserneubildung,)
+    REQUIREDSEQUENCES = (whmod_fluxes.ActualRecharge,)
     UPDATEDSEQUENCES = (whmod_states.DeepWater,)
-    RESULTSEQUENCES = (whmod_fluxes.VerzGrundwasserneubildung,)
+    RESULTSEQUENCES = (whmod_fluxes.DelayedRecharge,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -971,15 +971,15 @@ class Calc_VerzGrundwasserneubildung_DeepWater_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         if con.rechargedelay > 0:
             d_sp = (
-                sta.deepwater + flu.aktgrundwasserneubildung
+                sta.deepwater + flu.actualrecharge
             ) * modelutils.exp(-1.0 / con.rechargedelay)
-            flu.verzgrundwasserneubildung = (
-                flu.aktgrundwasserneubildung + sta.deepwater - d_sp
+            flu.delayedrecharge = (
+                flu.actualrecharge + sta.deepwater - d_sp
             )
             sta.deepwater = d_sp
         else:
-            flu.verzgrundwasserneubildung = (
-                sta.deepwater + flu.aktgrundwasserneubildung
+            flu.delayedrecharge = (
+                sta.deepwater + flu.actualrecharge
             )
             sta.deepwater = 0.0
 
@@ -1000,21 +1000,21 @@ class Model(modeltools.AdHocModel):
         Calc_MaxVerdunstung_V1,
         Calc_Throughfall_V1,
         Calc_InterceptedWater_V1,
-        Calc_Oberflaechenabfluss_V1,
-        Calc_ZuflussBoden_V1,
+        Calc_SurfaceRunoff_V1,
+        Calc_Ponding_V1,
         Calc_RelativeSoilMoisture_V1,
-        Calc_Sickerwasser_V1,
-        Calc_Bodenverdunstung_V1,
-        Corr_Bodenverdunstung_V1,
-        Calc_Seeverdunstung_V1,
-        Calc_AktVerdunstung_V1,
-        Calc_PotKapilAufstieg_V1,
-        Calc_KapilAufstieg_V1,
+        Calc_Percolation_V1,
+        Calc_SoilEvapotranspiration_V1,
+        Corr_SoilEvapotranspiration_V1,
+        Calc_LakeEvaporation_V1,
+        Calc_TotalEvapotranspiration_V1,
+        Calc_PotentialCapillaryRise_V1,
+        Calc_CapillaryRise_V1,
         Calc_SoilMoisture_V1,
-        Calc_PotGrundwasserneubildung_V1,
-        Calc_Basisabfluss_V1,
-        Calc_AktGrundwasserneubildung_V1,
-        Calc_VerzGrundwasserneubildung_DeepWater_V1,
+        Calc_PotentialRecharge_V1,
+        Calc_Baseflow_V1,
+        Calc_ActualRecharge_V1,
+        Calc_DelayedRecharge_DeepWater_V1,
     )
     ADD_METHODS = ()
     OUTLET_METHODS = ()

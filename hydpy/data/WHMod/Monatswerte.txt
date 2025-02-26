@@ -1,6 +1,6 @@
 # Das ist ein Kommentar
-sequence:               AktGrundwasserneubildung
-                        VerzGrundwasserneubildung
+sequence:               ActualRecharge
+                        DelayedRecharge
                         Precipitation
 steps:                  monthly
 rch_files:              monthly_rch

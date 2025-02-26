@@ -1523,7 +1523,7 @@ def _initialize_whmod_models(
         con.landtype(temp_list)
 
         # fmt: off
-        con.maxinterz(
+        con.interceptioncapacity(
             gras=[0.4, 0.4, 0.6, 0.8, 1.0, 1.0, 1.0, 1.0, 1.0, 0.6, 0.5, 0.4],
             decidious=[0.1, 0.1, 0.3, 0.8, 1.4, 2.2, 2.4, 2.4, 2.2, 1.6, 0.3, 0.1],
             corn=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04, 0.92, 0.62, 0.26, 0.04, 0.0, 0.0],

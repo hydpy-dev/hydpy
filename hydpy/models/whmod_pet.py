@@ -480,7 +480,8 @@ class Model(whmod_model.Main_AETModel_V1):
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         whmod_model.Calc_MaxVerdunstung_V1,
-        whmod_model.Calc_InterceptedWater_V1,
+        whmod_model.Calc_Throughfall_InterceptedWater_V1,
+        whmod_model.Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_V1,
         whmod_model.Calc_Ponding_V1,
         whmod_model.Calc_SurfaceRunoff_V1,
         whmod_model.Calc_RelativeSoilMoisture_V1,
@@ -497,7 +498,9 @@ class Model(whmod_model.Main_AETModel_V1):
         whmod_model.Calc_ActualRecharge_V1,
         whmod_model.Calc_DelayedRecharge_DeepWater_V1,
     )
-    ADD_METHODS = ()
+    ADD_METHODS = (
+        whmod_model.Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_AETModel_V1,
+    )
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()

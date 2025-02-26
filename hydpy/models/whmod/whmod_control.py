@@ -56,6 +56,10 @@ class SoilType(parametertools.NameParameter):
     constants = whmod_constants.SOIL_CONSTANTS
 
 
+class InterceptionCapacity(whmod_parameters.LanduseMonthParameter):
+    """[mm]"""
+
+
 class DegreeDayFactor(whmod_parameters.NutzBodenParameter):
     """[mm/T/K]"""
 
@@ -117,10 +121,6 @@ class RechargeDelay(parametertools.Parameter):
     """Schwerpunktlaufzeit [T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
-
-
-class MaxInterz(whmod_parameters.LanduseMonthParameter):  # ToDo
-    """[mm]"""
 
 
 class FLN(whmod_parameters.LanduseMonthParameter):  # ToDo

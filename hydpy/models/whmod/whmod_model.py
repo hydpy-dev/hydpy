@@ -29,115 +29,47 @@ from hydpy.models.whmod import whmod_fluxes
 from hydpy.models.whmod import whmod_states
 
 
-
-class Calc_Throughfall_V1(modeltools.Method):
-    """Berechnung Bestandsniederschlag.
-
-    Erst mal keine Interzeptionsverdunstung!!!
-
-    >>> from hydpy.models.whmod import *
-    >>> parameterstep()
-    >>> nmbzones(2)
-    >>> from hydpy import UnitTest
-    >>> test = UnitTest(
-    ...     model, model.calc_throughfall_v1,
-    ...     last_example=11,
-    ...     parseqs=(inputs.precipitation, fluxes.throughfall))
-    >>> test.nexts.precipitation = range(0, 11, 1)
-    >>> test()
-    | ex. | precipitation |       throughfall |
-    -------------------------------------------
-    |   1 |           0.0 |  0.0          0.0 |
-    |   2 |           1.0 |  1.0          1.0 |
-    |   3 |           2.0 |  2.0          2.0 |
-    |   4 |           3.0 |  3.0          3.0 |
-    |   5 |           4.0 |  4.0          4.0 |
-    |   6 |           5.0 |  5.0          5.0 |
-    |   7 |           6.0 |  6.0          6.0 |
-    |   8 |           7.0 |  7.0          7.0 |
-    |   9 |           8.0 |  8.0          8.0 |
-    |  10 |           9.0 |  9.0          9.0 |
-    |  11 |          10.0 | 10.0         10.0 |
-    """
-
-    CONTROLPARAMETERS = (whmod_control.NmbZones,)
-    REQUIREDSEQUENCES = (whmod_inputs.Precipitation,)
-    RESULTSEQUENCES = (whmod_fluxes.Throughfall,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        inp = model.sequences.inputs.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        for k in range(con.nmbzones):
-            flu.throughfall[k] = inp.precipitation
-
-
-class Calc_InterceptedWater_V1(modeltools.Method):
+class Calc_Throughfall_InterceptedWater_V1(modeltools.Method):
     """
 
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
-    >>> nmbzones(6)
+    >>> nmbzones(4)
     >>> landtype(DECIDIOUS)
-    >>> maxinterz(gras=[0.4, 0.4, 0.6, 0.8, 1.0, 1.0,
-    ...                 1.0, 1.0, 1.0, 0.6, 0.5, 0.4],
-    ...           decidious=[0.1, 0.1, 0.3, 0.8, 1.4, 2.2,
-    ...                     2.4, 2.4, 2.2, 1.6, 0.3, 0.1],
-    ...           corn=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
-    ...                 0.92, 0.62, 0.26, 0.04, 0.0, 0.0],
-    ...           conifer=[2.2, 2.2, 2.2, 2.2, 2.2, 2.2,
-    ...                      2.2, 2.2, 2.2, 2.2, 2.2, 2.2],
-    ...           springwheat=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
-    ...                         0.92, 0.62, 0.26, 0.04, 0.0, 0.0],
-    ...           winterwheat=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
-    ...                         0.92, 0.62, 0.26, 0.04, 0.0, 0.0],
-    ...           sugarbeets=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
-    ...                         0.92, 0.62, 0.26, 0.04, 0.0, 0.0],
-    ...           sealed=[2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
-    ...                       2.0, 2.0, 2.0, 2.0, 2.0, 2.0],
-    ...           water=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-    ...                   0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    >>> interceptioncapacity.decidious_jun = 2.2
+    >>> interceptioncapacity.decidious_jul = 2.4
 
     >>> from hydpy import pub
     >>> pub.timegrids = "2001-06-29", "2001-07-03", "1d"
     >>> derived.moy.update()
 
     >>> inputs.precipitation = 1.0
-    >>> fluxes.maxverdunstung = 0.0, 0.0, 0.0, 1.0, 2.0, 3.0
-    >>> states.interceptedwater = 0.0, 1.0, 2.0, 2.0, 2.0, 2.0
+    >>> states.interceptedwater = 0.0, 1.0, 2.0, 2.2
     >>> model.idx_sim = 1
-    >>> model.calc_interceptedwater_v1()
+    >>> model.calc_throughfall_interceptedwater_v1()
     >>> states.interceptedwater
-    interceptedwater(1.0, 2.0, 2.2, 1.2, 0.2, 0.0)
+    interceptedwater(1.0, 2.0, 2.2, 2.2)
     >>> fluxes.throughfall
-    throughfall(0.0, 0.0, 0.8, 0.8, 0.8, 0.8)
-    >>> fluxes.interceptionevaporation
-    interceptionevaporation(0.0, 0.0, 0.0, 1.0, 2.0, 2.2)
+    throughfall(0.0, 0.0, 0.8, 1.0)
 
-    >>> states.interceptedwater = 0.0, 1.0, 2.0, 2.0, 2.0, 2.0
+    >>> states.interceptedwater = 0.0, 1.0, 2.0, 2.4
     >>> model.idx_sim = 2
-    >>> model.calc_interceptedwater_v1()
+    >>> model.calc_throughfall_interceptedwater_v1()
     >>> states.interceptedwater
-    interceptedwater(1.0, 2.0, 2.4, 1.4, 0.4, 0.0)
+    interceptedwater(1.0, 2.0, 2.4, 2.4)
     >>> fluxes.throughfall
-    throughfall(0.0, 0.0, 0.6, 0.6, 0.6, 0.6)
-    >>> fluxes.interceptionevaporation
-    interceptionevaporation(0.0, 0.0, 0.0, 1.0, 2.0, 2.4)
+    throughfall(0.0, 0.0, 0.6, 1.0)
     """
 
     CONTROLPARAMETERS = (
         whmod_control.NmbZones,
         whmod_control.LandType,
-        whmod_control.MaxInterz,
+        whmod_control.InterceptionCapacity,
     )
     DERIVEDPARAMETERS = (whmod_derived.MOY,)
-    REQUIREDSEQUENCES = (whmod_inputs.Precipitation, whmod_fluxes.MaxVerdunstung)
+    REQUIREDSEQUENCES = (whmod_inputs.Precipitation,)
     UPDATEDSEQUENCES = (whmod_states.InterceptedWater,)
-    RESULTSEQUENCES = (
-        whmod_fluxes.Throughfall,
-        whmod_fluxes.InterceptionEvaporation,
-    )
+    RESULTSEQUENCES = (whmod_fluxes.Throughfall,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -148,21 +80,144 @@ class Calc_InterceptedWater_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         month = der.moy[model.idx_sim]
         for k in range(con.nmbzones):
-            if con.landtype[k] == WATER:
+            if con.landtype[k] in (SEALED, WATER):
                 sta.interceptedwater[k] = 0.0
-                flu.throughfall[k] = inp.precipitation
-                flu.interceptionevaporation[k] = 0.0
+                flu.throughfall[k] = inp.precipitation  # ToDo
             else:
-                d_maxinterz = con.maxinterz[con.landtype[k] - 1, month]
-                sta.interceptedwater[k] += inp.precipitation
+                ic: float = con.interceptioncapacity[con.landtype[k] - 1, month]
                 flu.throughfall[k] = max(
-                    sta.interceptedwater[k] - d_maxinterz, 0.0
+                    inp.precipitation + sta.interceptedwater[k] - ic, 0.0
                 )
-                sta.interceptedwater[k] -= flu.throughfall[k]
+                sta.interceptedwater[k] += inp.precipitation - flu.throughfall[k]
+
+
+class Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_AETModel_V1(
+    modeltools.Method
+):
+    r"""Let a submodel that follows the |AETModel_V1| submodel interface calculate
+    interception evaporation and adjust the amount of intercepted water.
+
+    Basic equation:
+      :math:`\frac{dIc_i}{dt} = -EI_i`  ToDo
+
+    Examples:
+
+        We build an example based on |evap_aet_minhas| for calculating interception
+        evaporation, which uses |evap_ret_io| for querying potential
+        evapotranspiration:
+
+        >>> from hydpy.models.whmod_pet import *
+        >>> parameterstep("1h")
+        >>> area(1.0)
+        >>> nmbzones(5)
+        >>> landtype(GRAS, DECIDIOUS, CORN, SEALED, WATER)
+        >>> zonearea(0.05, 0.1, 0.2, 0.3, 0.35)
+        >>> interceptioncapacity.jun = 3.0
+        >>> availablefieldcapacity(50.0)
+        >>> derived.moy.shape = 1
+        >>> derived.moy(5)
+        >>> with model.add_aetmodel_v1("evap_aet_minhas"):
+        ...     with model.add_petmodel_v1("evap_ret_io"):
+        ...         evapotranspirationfactor(0.6, 0.8, 1.0, 1.2, 1.4)
+        ...         inputs.referenceevapotranspiration = 1.0
+
+
+        |Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_AETModel_V1|
+        uses the flux returned by the submodel to adjust |InterceptedWater|:
+
+        >>> states.interceptedwater = 2.0
+        >>> model.calc_interceptionevaporation_interceptedwater_lakeevaporation_v1()
+        >>> fluxes.interceptionevaporation
+        interceptionevaporation(0.6, 0.8, 1.0, 0.0, 0.0)
+        >>> states.interceptedwater
+        interceptedwater(1.4, 1.2, 1.0, 0.0, 0.0)
+        >>> fluxes.lakeevaporation
+        lakeevaporation(0.0, 0.0, 0.0, 0.0, 1.4)
+
+        |Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_AETModel_V1|
+        eventually reduces |InterceptionEvaporation| so that |InterceptedWater| does
+        not become negative:
+
+        >>> model.aetmodel.petmodel.sequences.inputs.referenceevapotranspiration = 5.0
+        >>> states.interceptedwater = 2.0
+        >>> model.calc_interceptionevaporation_interceptedwater_lakeevaporation_v1()
+        >>> fluxes.interceptionevaporation
+        interceptionevaporation(2.0, 2.0, 2.0, 0.0, 0.0)
+        >>> states.interceptedwater
+        interceptedwater(0.0, 0.0, 0.0, 0.0, 0.0)
+        >>> fluxes.lakeevaporation
+        lakeevaporation(0.0, 0.0, 0.0, 0.0, 7.0)
+
+        In contrast,
+        |Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_AETModel_V1|
+        does not reduce negative |InterceptionEvaporation| values (condensation) that
+        cause an overshoot of the interception storage capacity:
+
+        >>> model.aetmodel.petmodel.sequences.inputs.referenceevapotranspiration = -3.0
+        >>> states.interceptedwater = 2.0
+        >>> model.calc_interceptionevaporation_interceptedwater_lakeevaporation_v1()
+        >>> fluxes.interceptionevaporation
+        interceptionevaporation(-1.8, -2.4, -3.0, 0.0, 0.0)
+        >>> states.interceptedwater
+        interceptedwater(3.8, 4.4, 5.0, 0.0, 0.0)
+        >>> fluxes.lakeevaporation
+        lakeevaporation(0.0, 0.0, 0.0, 0.0, -4.2)
+    """
+
+    CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
+    UPDATEDSEQUENCES = (whmod_states.InterceptedWater,)
+    RESULTSEQUENCES = (
+        whmod_fluxes.InterceptionEvaporation,
+        whmod_fluxes.LakeEvaporation,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model, submodel: aetinterfaces.AETModel_V1) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        submodel.determine_interceptionevaporation()
+        submodel.determine_waterevaporation()
+        for k in range(con.nmbzones):
+            if con.landtype[k] == SEALED:
+                flu.interceptionevaporation[k] = 0.0
+                sta.interceptedwater[k] = 0.0
+                flu.lakeevaporation[k] = 0.0
+            elif con.landtype[k] == WATER:
+                flu.interceptionevaporation[k] = 0.0
+                sta.interceptedwater[k] = 0.0
+                flu.lakeevaporation[k] = submodel.get_waterevaporation(k)
+            else:
                 flu.interceptionevaporation[k] = min(
-                    sta.interceptedwater[k], flu.maxverdunstung[k]
+                    submodel.get_interceptionevaporation(k), sta.interceptedwater[k]
                 )
                 sta.interceptedwater[k] -= flu.interceptionevaporation[k]
+                flu.lakeevaporation[k] = 0.0
+
+
+class Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_V1(
+    modeltools.Method
+):
+    """Let a submodel that follows the |AETModel_V1| submodel interface calculate
+    interception evaporation and adjust the amount of intercepted water."""
+
+    SUBMODELINTERFACES = (aetinterfaces.AETModel_V1,)
+    SUBMETHODS = (
+        Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_AETModel_V1,
+    )
+    CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
+    UPDATEDSEQUENCES = (whmod_states.InterceptedWater,)
+    RESULTSEQUENCES = (
+        whmod_fluxes.InterceptionEvaporation,
+        whmod_fluxes.LakeEvaporation,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        if model.aetmodel_typeid == 1:
+            model.calc_interceptionevaporation_interceptedwater_lakeevaporation_aetmodel_v1(
+                cast(aetinterfaces.AETModel_V1, model.aetmodel)
+            )
 
 
 class Calc_SurfaceRunoff_V1(modeltools.Method):
@@ -253,10 +308,10 @@ class Calc_Ponding_V1(modeltools.Method):
                 sta.snowpack[k] = 0.0
                 flu.ponding[k] = 0.0
             elif inp.temperature > 0.0:
-                d_maxschneeschmelze = con.degreedayfactor[k] * inp.temperature
-                d_schneeschmelze = min(sta.snowpack[k], d_maxschneeschmelze)
-                sta.snowpack[k] -= d_schneeschmelze
-                flu.ponding[k] = flu.throughfall[k] + d_schneeschmelze
+                maxschneeschmelze: float = con.degreedayfactor[k] * inp.temperature
+                schneeschmelze: float = min(sta.snowpack[k], maxschneeschmelze)
+                sta.snowpack[k] -= schneeschmelze
+                flu.ponding[k] = flu.throughfall[k] + schneeschmelze
             else:
                 sta.snowpack[k] += flu.throughfall[k]
                 flu.ponding[k] = 0.0
@@ -293,9 +348,7 @@ class Calc_RelativeSoilMoisture_V1(modeltools.Method):
             if (con.landtype[k] in (WATER, SEALED)) or (der.maxsoilwater[k] <= 0.0):
                 fac.relativesoilmoisture[k] = 0.0
             else:
-                fac.relativesoilmoisture[k] = (
-                    sta.soilmoisture[k] / der.maxsoilwater[k]
-                )
+                fac.relativesoilmoisture[k] = sta.soilmoisture[k] / der.maxsoilwater[k]
 
 
 class Calc_Percolation_V1(modeltools.Method):
@@ -424,7 +477,10 @@ class Calc_SoilEvapotranspiration_V1(modeltools.Method):
         whmod_control.LandType,
         whmod_control.MinhasR,
     )
-    REQUIREDSEQUENCES = (whmod_factors.RelativeSoilMoisture, whmod_fluxes.MaxVerdunstung)
+    REQUIREDSEQUENCES = (
+        whmod_factors.RelativeSoilMoisture,
+        whmod_fluxes.MaxVerdunstung,
+    )
     RESULTSEQUENCES = (whmod_fluxes.SoilEvapotranspiration,)
 
     @staticmethod
@@ -436,11 +492,13 @@ class Calc_SoilEvapotranspiration_V1(modeltools.Method):
             if con.landtype[k] in (SEALED, WATER):
                 flu.soilevapotranspiration[k] = 0.0
             else:
-                d_temp = modelutils.exp(-con.minhasr[k] * fac.relativesoilmoisture[k])
+                temp: float = modelutils.exp(
+                    -con.minhasr[k] * fac.relativesoilmoisture[k]
+                )
                 flu.soilevapotranspiration[k] = (
                     flu.maxverdunstung[k]
-                    * (1.0 - d_temp)
-                    / (1.0 - 2.0 * modelutils.exp(-con.minhasr[k]) + d_temp)
+                    * (1.0 - temp)
+                    / (1.0 - 2.0 * modelutils.exp(-con.minhasr[k]) + temp)
                 )
 
 
@@ -688,17 +746,17 @@ class Calc_PotentialCapillaryRise_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
             if con.capillaryrise and (con.landtype[k] not in (SEALED, WATER)):
-                d_schwell = con.capillarythreshold[k]
-                d_grenz = con.capillarylimit[k]
-                if con.groundwaterdepth[k] > (der.soildepth[k] + d_schwell):
+                schwell: float = con.capillarythreshold[k]
+                grenz: float = con.capillarylimit[k]
+                if con.groundwaterdepth[k] > (der.soildepth[k] + schwell):
                     flu.potentialcapillaryrise[k] = 0.0
-                elif con.groundwaterdepth[k] < (der.soildepth[k] + d_grenz):
+                elif con.groundwaterdepth[k] < (der.soildepth[k] + grenz):
                     flu.potentialcapillaryrise[k] = 5.0
                 else:
                     flu.potentialcapillaryrise[k] = (
                         5.0
-                        * (der.soildepth[k] + d_schwell - con.groundwaterdepth[k])
-                        / (d_schwell - d_grenz)
+                        * (der.soildepth[k] + schwell - con.groundwaterdepth[k])
+                        / (schwell - grenz)
                     )
             else:
                 flu.potentialcapillaryrise[k] = 0.0
@@ -729,7 +787,10 @@ class Calc_CapillaryRise_V1(modeltools.Method):
         whmod_control.LandType,
         whmod_control.CapillaryRise,
     )
-    REQUIREDSEQUENCES = (whmod_fluxes.PotentialCapillaryRise, whmod_factors.RelativeSoilMoisture)
+    REQUIREDSEQUENCES = (
+        whmod_fluxes.PotentialCapillaryRise,
+        whmod_factors.RelativeSoilMoisture,
+    )
     RESULTSEQUENCES = (whmod_fluxes.CapillaryRise,)
 
     @staticmethod
@@ -740,7 +801,8 @@ class Calc_CapillaryRise_V1(modeltools.Method):
         for k in range(con.nmbzones):
             if con.capillaryrise and (con.landtype[k] not in (SEALED, WATER)):
                 flu.capillaryrise[k] = (
-                    flu.potentialcapillaryrise[k] * (1.0 - fac.relativesoilmoisture[k]) ** 3
+                    flu.potentialcapillaryrise[k]
+                    * (1.0 - fac.relativesoilmoisture[k]) ** 3
                 )
             else:
                 flu.capillaryrise[k] = 0.0
@@ -808,9 +870,7 @@ class Calc_SoilMoisture_V1(modeltools.Method):
                     flu.percolation[k] += sta.soilmoisture[k]
                     sta.soilmoisture[k] = 0.0
                 elif sta.soilmoisture[k] > der.maxsoilwater[k]:
-                    flu.capillaryrise[k] += (
-                        der.maxsoilwater[k] - sta.soilmoisture[k]
-                    )
+                    flu.capillaryrise[k] += der.maxsoilwater[k] - sta.soilmoisture[k]
                     sta.soilmoisture[k] = der.maxsoilwater[k]
 
 
@@ -846,15 +906,11 @@ class Calc_PotentialRecharge_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
             if con.landtype[k] == WATER:
-                flu.potentialrecharge[k] = (
-                    inp.precipitation - flu.lakeevaporation[k]
-                )
+                flu.potentialrecharge[k] = inp.precipitation - flu.lakeevaporation[k]
             elif con.landtype[k] == SEALED:
                 flu.potentialrecharge[k] = 0.0
             else:
-                flu.potentialrecharge[k] = (
-                    flu.percolation[k] - flu.capillaryrise[k]
-                )
+                flu.potentialrecharge[k] = flu.percolation[k] - flu.capillaryrise[k]
 
 
 class Calc_Baseflow_V1(modeltools.Method):
@@ -909,10 +965,7 @@ class Calc_ActualRecharge_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (whmod_control.NmbZones,)
     DERIVEDPARAMETERS = (whmod_derived.ZoneRatio,)
-    REQUIREDSEQUENCES = (
-        whmod_fluxes.PotentialRecharge,
-        whmod_fluxes.Baseflow,
-    )
+    REQUIREDSEQUENCES = (whmod_fluxes.PotentialRecharge, whmod_fluxes.Baseflow)
     RESULTSEQUENCES = (whmod_fluxes.ActualRecharge,)
 
     @staticmethod
@@ -970,17 +1023,13 @@ class Calc_DelayedRecharge_DeepWater_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         if con.rechargedelay > 0:
-            d_sp = (
-                sta.deepwater + flu.actualrecharge
-            ) * modelutils.exp(-1.0 / con.rechargedelay)
-            flu.delayedrecharge = (
-                flu.actualrecharge + sta.deepwater - d_sp
+            sp: float = (sta.deepwater + flu.actualrecharge) * modelutils.exp(
+                -1.0 / con.rechargedelay
             )
-            sta.deepwater = d_sp
+            flu.delayedrecharge = flu.actualrecharge + sta.deepwater - sp
+            sta.deepwater = sp
         else:
-            flu.delayedrecharge = (
-                sta.deepwater + flu.actualrecharge
-            )
+            flu.delayedrecharge = sta.deepwater + flu.actualrecharge
             sta.deepwater = 0.0
 
 
@@ -998,8 +1047,8 @@ class Model(modeltools.AdHocModel):
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         Calc_MaxVerdunstung_V1,
-        Calc_Throughfall_V1,
-        Calc_InterceptedWater_V1,
+        Calc_Throughfall_InterceptedWater_V1,
+        Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_V1,
         Calc_SurfaceRunoff_V1,
         Calc_Ponding_V1,
         Calc_RelativeSoilMoisture_V1,
@@ -1016,7 +1065,9 @@ class Model(modeltools.AdHocModel):
         Calc_ActualRecharge_V1,
         Calc_DelayedRecharge_DeepWater_V1,
     )
-    ADD_METHODS = ()
+    ADD_METHODS = (
+        Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_AETModel_V1,
+    )
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (aetinterfaces.AETModel_V1,)
@@ -1067,7 +1118,7 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         >>> area(10.0)
         >>> landtype(GRAS, DECIDIOUS, CONIFER, WATER, SEALED)
         >>> zonearea(4.0, 1.0, 1.0, 1.0, 3.0)
-        >>> derived.maxsoilwater(200.0)
+        >>> derived.availablefieldcapacity○(200.0)
         >>> with model.add_aetmodel_v1("evap_aet_minhas"):
         ...     nmbhru
         ...     area
@@ -1107,7 +1158,6 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         1.5
         """
         control = self.parameters.control
-        derived = self.parameters.derived
 
         hydrotopes = control.nmbzones.value
         landtype = control.landtype.values
@@ -1129,4 +1179,4 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         sel[landtype == DECIDIOUS] = True
         aetmodel.prepare_tree(sel)
 
-        aetmodel.prepare_maxsoilwater(derived.maxsoilwater.values)
+        aetmodel.prepare_maxsoilwater(control.availablefieldcapacity.values)

@@ -1,0 +1,31 @@
+.. |ChannelModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.ChannelModel_V1`
+.. |CrossSectionModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.CrossSectionModel_V1`
+.. |CrossSectionModel_V2| replace:: :class:`~hydpy.interfaces.routinginterfaces.CrossSectionModel_V2`
+.. |RoutingModelBase.determine_discharge| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.determine_discharge`
+.. |RoutingModelBase.determine_maxtimestep| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.determine_maxtimestep`
+.. |RoutingModelBase.get_discharge| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.get_discharge`
+.. |RoutingModelBase.perform_postprocessing| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.perform_postprocessing`
+.. |RoutingModelBase.perform_preprocessing| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.perform_preprocessing`
+.. |RoutingModelBase.set_timestep| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.set_timestep`
+.. |RoutingModel_V1.get_partialdischargeupstream| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModel_V1.get_partialdischargeupstream`
+.. |RoutingModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.RoutingModel_V1`
+.. |RoutingModel_V2.get_partialdischargedownstream| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModel_V2.get_partialdischargedownstream`
+.. |RoutingModel_V2| replace:: :class:`~hydpy.interfaces.routinginterfaces.RoutingModel_V2`
+.. |RoutingModel_V3.get_partialdischargedownstream| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModel_V3.get_partialdischargedownstream`
+.. |RoutingModel_V3| replace:: :class:`~hydpy.interfaces.routinginterfaces.RoutingModel_V3`
+.. |StorageModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.StorageModel_V1`
+.. |sw1d_channel| replace:: :mod:`~hydpy.models.sw1d_channel`
+.. |sw1d_lias| replace:: :mod:`~hydpy.models.sw1d_lias`
+.. |sw1d_network| replace:: :mod:`~hydpy.models.sw1d_network`
+.. |sw1d_q_in| replace:: :mod:`~hydpy.models.sw1d_q_in`
+.. |sw1d_weir_out| replace:: :mod:`~hydpy.models.sw1d_weir_out`
+
+.. _routinginterfaces:
+
+routinginterfaces
+=================
+
+.. automodule:: hydpy.interfaces.routinginterfaces
+    :members:
+    :show-inheritance:
+    :exclude-members: deprecated, TypeAlias, Set, FULL_ODE_METHODS, DefaultDict, NotRequired, INTERFACE_METHODS, SENDER_METHODS, Final, SupportsComplex, Optional, INLET_METHODS, AbstractSet, Container, Buffer, SupportsFloat, Literal, CONTROLPARAMETERS, clear_overloads, cast, SupportsRound, Hashable, get_original_bases, Annotated, pars, Sized, IO, TypeAliasType, is_typeddict, NoReturn, TYPE_CHECKING, overload, runtime, KeysView, AsyncIterator, no_type_check, Reversible, ParamSpecArgs, NamedTuple, BinaryIO, RUN_METHODS, AnyStr, MutableMapping, fastaccess_old, ParamSpecKwargs, get_args, Sequence, ItemsView, assert_type, ForwardRef, AsyncContextManager, ReadOnly, Iterator, OrderedDict, AsyncIterable, Collection, REQUIREDSEQUENCES, final, fastaccess, Tuple, no_type_check_decorator, Any, SUBMODELS, TypeVar, is_protocol, TypeVarTuple, Dict, IntVar, RESULTSEQUENCES, seqs, FIXEDPARAMETERS, override, Required, runtime_checkable, ContextManager, get_protocol_members, ClassVar, Callable, Union, assert_never, NoDefault, SupportsAbs, SOLVERSEQUENCES, subpars, OUTLET_METHODS, dataclass_transform, fastaccess_new, Type, Text, Pattern, Self, Generic, NewType, Protocol, SupportsBytes, Mapping, SupportsInt, FrozenSet, ParamSpec, Awaitable, RECEIVER_METHODS, ADD_METHODS, MutableSet, Deque, List, Unpack, get_type_hints, UPDATEDSEQUENCES, Iterable, ChainMap, AsyncGenerator, get_origin, subvars, SupportsIndex, DERIVEDPARAMETERS, SUBMODELINTERFACES, PART_ODE_METHODS, Match, TextIO, CLASSES, MutableSequence, reveal_type, CapsuleType, MappingView, LiteralString, ValuesView, TypeGuard, Concatenate, SUBMETHODS, Generator, Counter, ByteString, Coroutine, Doc, SOLVERPARAMETERS, TypeIs, Never, get_overloads, subseqs, TypedDict

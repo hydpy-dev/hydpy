@@ -1,0 +1,39 @@
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |Indexer.timeofyear| replace:: :const:`~hydpy.core.indextools.Indexer.timeofyear`
+.. |Indexer| replace:: :class:`~hydpy.core.indextools.Indexer`
+.. |Inflow| replace:: :class:`~hydpy.models.dam.dam_fluxes.Inflow`
+.. |IntegrationTest| replace:: :class:`~hydpy.core.testtools.IntegrationTest`
+.. |LoggedOuterWaterLevel| replace:: :class:`~hydpy.models.dam.dam_logs.LoggedOuterWaterLevel`
+.. |LoggedRemoteWaterLevel| replace:: :class:`~hydpy.models.dam.dam_logs.LoggedRemoteWaterLevel`
+.. |MaxForcedDischarge| replace:: :class:`~hydpy.models.dam.dam_fluxes.MaxForcedDischarge`
+.. |Model.check_waterbalance| replace:: :func:`~hydpy.models.dam_pump.Model.check_waterbalance`
+.. |PETModel_V1| replace:: :class:`~hydpy.interfaces.petinterfaces.PETModel_V1`
+.. |PrecipModel_V2| replace:: :class:`~hydpy.interfaces.precipinterfaces.PrecipModel_V2`
+.. |RemoteWaterLevelMaximumThreshold| replace:: :class:`~hydpy.models.dam.dam_control.RemoteWaterLevelMaximumThreshold`
+.. |RemoteWaterLevelMaximumTolerance| replace:: :class:`~hydpy.models.dam.dam_control.RemoteWaterLevelMaximumTolerance`
+.. |Sequences.conditions| replace:: :const:`~hydpy.core.sequencetools.Sequences.conditions`
+.. |ToleranceEvaporation| replace:: :class:`~hydpy.models.dam.dam_control.ToleranceEvaporation`
+.. |WaterLevelDifference2MaxForcedDischarge| replace:: :class:`~hydpy.models.dam.dam_control.WaterLevelDifference2MaxForcedDischarge`
+.. |WaterLevelMaximumThreshold| replace:: :class:`~hydpy.models.dam.dam_control.WaterLevelMaximumThreshold`
+.. |WaterLevelMaximumTolerance| replace:: :class:`~hydpy.models.dam.dam_control.WaterLevelMaximumTolerance`
+.. |dam_pump.DOCNAME.complete| replace:: HydPy-Dam-Pump (pumping station model)
+.. |dam_pump| replace:: :mod:`~hydpy.models.dam_pump`
+.. |dam_v001| replace:: :mod:`~hydpy.models.dam_v001`
+.. |dam| replace:: :mod:`~hydpy.models.dam`
+.. |evap_ret_io| replace:: :mod:`~hydpy.models.evap_ret_io`
+.. |meteo_precip_io| replace:: :mod:`~hydpy.models.meteo_precip_io`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |smooth_logistic1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic1`
+.. |dam_outlets.Q| replace:: :class:`~hydpy.models.dam.dam_outlets.Q`
+.. |dam_receivers.OWL| replace:: :class:`~hydpy.models.dam.dam_receivers.OWL`
+.. |dam_receivers.RWL| replace:: :class:`~hydpy.models.dam.dam_receivers.RWL`
+
+.. _dam_pump:
+
+dam_pump
+========
+
+.. automodule:: hydpy.models.dam_pump
+    :members:
+    :show-inheritance:
+    :exclude-members: deprecated, TypeAlias, Set, FULL_ODE_METHODS, DefaultDict, NotRequired, INTERFACE_METHODS, SENDER_METHODS, Final, SupportsComplex, Optional, INLET_METHODS, AbstractSet, Container, Buffer, SupportsFloat, Literal, CONTROLPARAMETERS, clear_overloads, cast, SupportsRound, Hashable, get_original_bases, Annotated, pars, Sized, AideSequences, IO, TypeAliasType, is_typeddict, NoReturn, TYPE_CHECKING, overload, runtime, KeysView, AsyncIterator, no_type_check, Reversible, ParamSpecArgs, NamedTuple, BinaryIO, RUN_METHODS, AnyStr, MutableMapping, fastaccess_old, ParamSpecKwargs, get_args, Sequence, ItemsView, assert_type, ForwardRef, AsyncContextManager, ReadOnly, Iterator, OrderedDict, AsyncIterable, Collection, REQUIREDSEQUENCES, final, fastaccess, Tuple, no_type_check_decorator, Any, SUBMODELS, TypeVar, is_protocol, TypeVarTuple, Dict, IntVar, RESULTSEQUENCES, seqs, FIXEDPARAMETERS, override, Required, runtime_checkable, ContextManager, get_protocol_members, ClassVar, Callable, Union, assert_never, NoDefault, SupportsAbs, SOLVERSEQUENCES, subpars, OUTLET_METHODS, dataclass_transform, fastaccess_new, Type, Text, Pattern, Self, Generic, NewType, Protocol, SupportsBytes, Mapping, SupportsInt, FrozenSet, ParamSpec, Awaitable, RECEIVER_METHODS, ADD_METHODS, MutableSet, Deque, List, Unpack, get_type_hints, UPDATEDSEQUENCES, Iterable, ChainMap, AsyncGenerator, get_origin, subvars, SupportsIndex, DERIVEDPARAMETERS, SUBMODELINTERFACES, PART_ODE_METHODS, Match, TextIO, CLASSES, MutableSequence, reveal_type, CapsuleType, MappingView, LiteralString, ValuesView, TypeGuard, Concatenate, SUBMETHODS, Generator, Counter, ByteString, Coroutine, Doc, SOLVERPARAMETERS, TypeIs, Never, get_overloads, subseqs, TypedDict, SenderSequences, InputSequences

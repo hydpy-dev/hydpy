@@ -1,0 +1,21 @@
+.. |Date| replace:: :class:`~hydpy.core.timetools.Date`
+.. |DefaultProperty| replace:: :class:`~hydpy.core.propertytools.DefaultProperty`
+.. |Period| replace:: :class:`~hydpy.core.timetools.Period`
+.. |Pub| replace:: :class:`~hydpy.core.pubtools.Pub`
+.. |Timegrids.eval_| replace:: :attr:`~hydpy.core.timetools.Timegrids.eval_`
+.. |Timegrids.init| replace:: :attr:`~hydpy.core.timetools.Timegrids.init`
+.. |Timegrids.sim| replace:: :attr:`~hydpy.core.timetools.Timegrids.sim`
+.. |TimegridsProperty| replace:: :class:`~hydpy.core.pubtools.TimegridsProperty`
+.. |Timegrids| replace:: :class:`~hydpy.core.timetools.Timegrids`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |str| replace:: :class:`str`
+
+.. _pubtools:
+
+pubtools
+========
+
+.. automodule:: hydpy.core.pubtools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs

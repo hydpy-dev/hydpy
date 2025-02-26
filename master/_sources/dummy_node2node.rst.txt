@@ -1,0 +1,13 @@
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |dummy_node2node.DOCNAME.complete| replace:: HydPy-Dummy-Node2Node (dummy model passing data from inlet to outlet nodes)
+.. |dummy_node2node| replace:: :mod:`~hydpy.models.dummy_node2node`
+
+.. _dummy_node2node:
+
+dummy_node2node
+===============
+
+.. automodule:: hydpy.models.dummy_node2node
+    :members:
+    :show-inheritance:
+    :exclude-members: Union, FULL_ODE_METHODS, SOLVERPARAMETERS, Coroutine, get_original_bases, deprecated, ValuesView, NamedTuple, MappingView, AsyncContextManager, ByteString, RUN_METHODS, Collection, TypeVar, SupportsInt, assert_never, Type, BinaryIO, overload, TypeIs, SupportsRound, CapsuleType, ContextManager, cast, subvars, Container, LiteralString, fastaccess, get_origin, Never, Callable, SOLVERSEQUENCES, RECEIVER_METHODS, clear_overloads, Text, AbstractSet, AsyncGenerator, SupportsComplex, no_type_check_decorator, NotRequired, Pattern, SupportsBytes, Mapping, TypeVarTuple, List, Match, AsyncIterator, REQUIREDSEQUENCES, TextIO, INLET_METHODS, ReceiverSequences, runtime, fastaccess_old, Self, Generic, FIXEDPARAMETERS, KeysView, FactorSequences, SUBMETHODS, AsyncIterable, ChainMap, Sized, Doc, SUBMODELS, SENDER_METHODS, NoDefault, SUBMODELINTERFACES, Hashable, no_type_check, dataclass_transform, SenderSequences, Required, PART_ODE_METHODS, ADD_METHODS, Any, Final, Concatenate, SupportsAbs, INTERFACE_METHODS, TypedDict, Generator, assert_type, ReadOnly, CONTROLPARAMETERS, get_protocol_members, get_args, Literal, Sequence, MutableSequence, final, get_type_hints, OUTLET_METHODS, MutableSet, seqs, Counter, StateSequences, TypeAliasType, UPDATEDSEQUENCES, NoReturn, is_protocol, is_typeddict, ForwardRef, subseqs, Awaitable, AnyStr, override, Annotated, runtime_checkable, Iterable, SupportsFloat, IO, DefaultDict, ItemsView, DERIVEDPARAMETERS, Unpack, OrderedDict, Deque, Iterator, TypeAlias, IntVar, Set, Optional, subpars, Buffer, ParamSpecArgs, InputSequences, ParamSpec, RESULTSEQUENCES, Dict, Protocol, TypeGuard, Tuple, CLASSES, NewType, reveal_type, fastaccess_new, FrozenSet, pars, SupportsIndex, LogSequences, AideSequences, Reversible, ClassVar, ParamSpecKwargs, MutableMapping, TYPE_CHECKING, get_overloads

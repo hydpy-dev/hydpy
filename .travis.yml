@@ -2,7 +2,7 @@ language: python
 
 os: linux
 
-dist: jammy
+dist: bionic
 
 matrix:
   include:

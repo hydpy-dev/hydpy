@@ -1,0 +1,36 @@
+.. |Calc_Coefficient1_Coefficient2_Coefficient3_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_Coefficient1_Coefficient2_Coefficient3_V1`
+.. |Calc_CorrectingFactor_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_CorrectingFactor_V1`
+.. |Calc_CourantNumber_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_CourantNumber_V1`
+.. |Calc_Discharge_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_Discharge_V1`
+.. |Calc_Discharge_V2| replace:: :class:`~hydpy.models.musk.musk_model.Calc_Discharge_V2`
+.. |Calc_ReferenceDischarge_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_ReferenceDischarge_V1`
+.. |Calc_ReferenceWaterDepth_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_ReferenceWaterDepth_V1`
+.. |Calc_ReynoldsNumber_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_ReynoldsNumber_V1`
+.. |Coefficients| replace:: :class:`~hydpy.models.musk.musk_control.Coefficients`
+.. |CrossSectionModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.CrossSectionModel_V1`
+.. |Discharge.refweights| replace:: :const:`~hydpy.models.musk.musk_states.Discharge.refweights`
+.. |Discharge| replace:: :class:`~hydpy.models.musk.musk_states.Discharge`
+.. |Idx_Run| replace:: :class:`~hydpy.core.modeltools.Idx_Run`
+.. |NmbRuns| replace:: :class:`~hydpy.models.musk.musk_solver.NmbRuns`
+.. |NmbSegments| replace:: :class:`~hydpy.models.musk.musk_control.NmbSegments`
+.. |Pegasus| replace:: :class:`~hydpy.auxs.roottools.Pegasus`
+.. |Return_ReferenceDischargeError_V1| replace:: :class:`~hydpy.models.musk.musk_model.Return_ReferenceDischargeError_V1`
+.. |RunModel.RUN_METHODS| replace:: :attr:`~hydpy.core.modeltools.RunModel.RUN_METHODS`
+.. |ToleranceDischarge.modify_init| replace:: :func:`~hydpy.models.musk.musk_solver.ToleranceDischarge.modify_init`
+.. |ToleranceDischarge| replace:: :class:`~hydpy.models.musk.musk_solver.ToleranceDischarge`
+.. |ToleranceWaterDepth| replace:: :class:`~hydpy.models.musk.musk_solver.ToleranceWaterDepth`
+.. |Variable.average_values| replace:: :func:`~hydpy.core.variabletools.Variable.average_values`
+.. |musk.DOCNAME.complete| replace:: HydPy-Musk (base model)
+.. |musk.DOCNAME.long| replace:: HydPy-Musk
+.. |musk| replace:: :mod:`~hydpy.models.musk`
+.. |wq_trapeze_strickler| replace:: :mod:`~hydpy.models.wq_trapeze_strickler`
+
+.. _musk:
+
+musk
+====
+
+.. automodule:: hydpy.models.musk
+    :members:
+    :show-inheritance:
+    :exclude-members: Union, FULL_ODE_METHODS, SOLVERPARAMETERS, Coroutine, get_original_bases, deprecated, ValuesView, NamedTuple, MappingView, AsyncContextManager, ByteString, RUN_METHODS, Collection, TypeVar, SupportsInt, assert_never, Type, BinaryIO, overload, TypeIs, SupportsRound, CapsuleType, ContextManager, cast, subvars, Container, LiteralString, fastaccess, get_origin, Never, Callable, SOLVERSEQUENCES, RECEIVER_METHODS, clear_overloads, Text, AbstractSet, AsyncGenerator, SupportsComplex, no_type_check_decorator, NotRequired, Pattern, SupportsBytes, Mapping, TypeVarTuple, List, Match, AsyncIterator, REQUIREDSEQUENCES, TextIO, INLET_METHODS, ReceiverSequences, runtime, fastaccess_old, Self, Generic, FIXEDPARAMETERS, KeysView, SUBMETHODS, AsyncIterable, ChainMap, Sized, Doc, SUBMODELS, SENDER_METHODS, NoDefault, SUBMODELINTERFACES, Hashable, no_type_check, dataclass_transform, SenderSequences, Required, PART_ODE_METHODS, ADD_METHODS, Any, Final, Concatenate, SupportsAbs, INTERFACE_METHODS, TypedDict, Generator, assert_type, ReadOnly, CONTROLPARAMETERS, get_protocol_members, get_args, Literal, Sequence, MutableSequence, final, get_type_hints, OUTLET_METHODS, MutableSet, seqs, Counter, TypeAliasType, UPDATEDSEQUENCES, NoReturn, is_protocol, is_typeddict, ForwardRef, subseqs, Awaitable, AnyStr, override, Annotated, runtime_checkable, Iterable, SupportsFloat, IO, DefaultDict, ItemsView, DERIVEDPARAMETERS, Unpack, OrderedDict, Deque, Iterator, TypeAlias, IntVar, Set, Optional, subpars, Buffer, ParamSpecArgs, InputSequences, ParamSpec, RESULTSEQUENCES, Dict, Protocol, TypeGuard, Tuple, CLASSES, NewType, reveal_type, fastaccess_new, FrozenSet, pars, SupportsIndex, LogSequences, AideSequences, Reversible, ClassVar, ParamSpecKwargs, MutableMapping, TYPE_CHECKING, get_overloads

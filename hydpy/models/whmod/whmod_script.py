@@ -224,7 +224,9 @@ def _collect_hrus(
     >>> landuse = read_landuse(filepath_landuse=os.path.join(basedir, "nutzung.txt"))
     >>> from pprint import pprint
     >>> pprint(_collect_hrus(table=df_knoteneigenschaften, idx=2, landuse=landuse))
-    [{'area': np.float64(10000.0),
+    [{'afc_factor': np.float64(1.0),
+      'afc_offset': np.float64(0.0),
+      'area': np.float64(10000.0),
       'availablefieldcapacity': np.float64(0.0906),
       'baseflowindex': np.float64(0.2759066),
       'col': np.int64(3),
@@ -234,8 +236,6 @@ def _collect_hrus(
       'init_boden': np.float64(30.0),
       'init_gwn': np.float64(0.0),
       'landtype': 'CONIFER',
-      'nfk_faktor': np.float64(1.0),
-      'nfk_offset': np.float64(0.0),
       'rechargedelay': 'flurab_probst',
       'row': np.int64(1),
       'soiltype': 'LOAM',
@@ -244,7 +244,9 @@ def _collect_hrus(
       'zonearea': np.float64(10000.0)}]
 
     >>> pprint(_collect_hrus(table=df_knoteneigenschaften, idx=0, landuse=landuse))
-    [{'area': np.float64(10000.0),
+    [{'afc_factor': np.float64(1.0),
+      'afc_offset': np.float64(0.0),
+      'area': np.float64(10000.0),
       'availablefieldcapacity': np.float64(0.0906),
       'baseflowindex': np.float64(0.2839615),
       'col': np.int64(1),
@@ -254,15 +256,15 @@ def _collect_hrus(
       'init_boden': np.float64(50.0),
       'init_gwn': np.float64(0.0),
       'landtype': 'CONIFER',
-      'nfk_faktor': np.float64(1.0),
-      'nfk_offset': np.float64(0.0),
       'rechargedelay': np.float64(5.0),
       'row': np.int64(1),
       'soiltype': 'CLAY',
       'x': np.float64(3455523.97),
       'y': np.float64(5567807.03),
       'zonearea': np.float64(5000.0)},
-     {'area': np.float64(10000.0),
+     {'afc_factor': np.float64(1.0),
+      'afc_offset': np.float64(0.0),
+      'area': np.float64(10000.0),
       'availablefieldcapacity': np.float64(0.0906),
       'baseflowindex': np.float64(0.2839615),
       'col': np.int64(1),
@@ -272,8 +274,6 @@ def _collect_hrus(
       'init_boden': np.float64(50.0),
       'init_gwn': np.float64(0.0),
       'landtype': 'DECIDIOUS',
-      'nfk_faktor': np.float64(1.0),
-      'nfk_offset': np.float64(0.0),
       'rechargedelay': np.float64(5.0),
       'row': np.int64(1),
       'soiltype': 'CLAY',
@@ -1104,8 +1104,8 @@ occurred: `7` missing value(s) in column `soiltype`
         "landtype": str,
         "soiltype": str,
         "availablefieldcapacity": numpy.float64,
-        "nfk_faktor": numpy.float64,
-        "nfk_offset": numpy.float64,
+        "afc_factor": numpy.float64,
+        "afc_offset": numpy.float64,
         "groundwaterdepth": numpy.float64,
         "baseflowindex": numpy.float64,
         "rechargedelay": str,
@@ -1554,9 +1554,9 @@ def _initialize_whmod_models(
         con.degreedayfactor(float(day_degree_factor))
 
         afc = numpy.asarray(_query_vector_from_hrus(hrus, "availablefieldcapacity"))
-        nfk_faktor = numpy.asarray(_query_vector_from_hrus(hrus, "nfk_faktor"))
-        nfk_offset = numpy.asarray(_query_vector_from_hrus(hrus, "nfk_offset"))
-        con.availablefieldcapacity((afc * nfk_faktor) + nfk_offset)
+        afc_factor = numpy.asarray(_query_vector_from_hrus(hrus, "afc_factor"))
+        afc_offset = numpy.asarray(_query_vector_from_hrus(hrus, "afc_offset"))
+        con.availablefieldcapacity((afc * afc_factor) + afc_offset)
 
         con.rootingdepth(**root_depth)
 

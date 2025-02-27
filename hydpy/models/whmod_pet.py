@@ -504,7 +504,8 @@ class Model(
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     ADD_METHODS = (
-        whmod_model.Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_AETModel_V1,
+        whmod_model.Calc_InterceptionEvaporation_InterceptedWater_AETModel_V1,
+        whmod_model.Calc_LakeEvaporation_AETModel_V1,
         whmod_model.Calc_SoilEvapotranspiration_AETModel_V1,
     )
     INTERFACE_METHODS = (
@@ -517,7 +518,8 @@ class Model(
     )
     RUN_METHODS = (
         whmod_model.Calc_Throughfall_InterceptedWater_V1,
-        whmod_model.Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_V1,
+        whmod_model.Calc_InterceptionEvaporation_InterceptedWater_V1,
+        whmod_model.Calc_LakeEvaporation_V1,
         whmod_model.Calc_Ponding_V1,
         whmod_model.Calc_SurfaceRunoff_V1,
         whmod_model.Calc_RelativeSoilMoisture_V1,
@@ -534,7 +536,7 @@ class Model(
     )
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
-    SUBMODELINTERFACES = ()
+    SUBMODELINTERFACES = (aetinterfaces.AETModel_V1,)
     SUBMODELS = ()
 
     aetmodel = modeltools.SubmodelProperty(aetinterfaces.AETModel_V1)

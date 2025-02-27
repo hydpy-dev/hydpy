@@ -94,9 +94,7 @@ class Calc_Throughfall_InterceptedWater_V1(modeltools.Method):
                 sta.interceptedwater[k] += inp.precipitation - flu.throughfall[k]
 
 
-class Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_AETModel_V1(
-    modeltools.Method
-):
+class Calc_InterceptionEvaporation_InterceptedWater_AETModel_V1(modeltools.Method):
     r"""Let a submodel that follows the |AETModel_V1| submodel interface calculate
     interception evaporation and adjust the amount of intercepted water.
 
@@ -127,54 +125,43 @@ class Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_AETModel_V1(
         ...         inputs.referenceevapotranspiration = 1.0
 
 
-        |Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_AETModel_V1|
-        uses the flux returned by the submodel to adjust |InterceptedWater|:
+        |Calc_InterceptionEvaporation_InterceptedWater_AETModel_V1| uses the flux
+        returned by the submodel to adjust |InterceptedWater|:
 
         >>> states.interceptedwater = 2.0
-        >>> model.calc_interceptionevaporation_interceptedwater_lakeevaporation_v1()
+        >>> model.calc_interceptionevaporation_interceptedwater_v1()
         >>> fluxes.interceptionevaporation
         interceptionevaporation(0.6, 0.8, 1.0, 1.2, 0.0)
         >>> states.interceptedwater
         interceptedwater(1.4, 1.2, 1.0, 0.8, 0.0)
-        >>> fluxes.lakeevaporation
-        lakeevaporation(0.0, 0.0, 0.0, 0.0, 1.4)
 
-        |Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_AETModel_V1|
-        eventually reduces |InterceptionEvaporation| so that |InterceptedWater| does
-        not become negative:
+        |Calc_InterceptionEvaporation_InterceptedWater_AETModel_V1| eventually reduces
+        |InterceptionEvaporation| so that |InterceptedWater| does not become negative:
 
         >>> model.aetmodel.petmodel.sequences.inputs.referenceevapotranspiration = 5.0
         >>> states.interceptedwater = 2.0
-        >>> model.calc_interceptionevaporation_interceptedwater_lakeevaporation_v1()
+        >>> model.calc_interceptionevaporation_interceptedwater_v1()
         >>> fluxes.interceptionevaporation
         interceptionevaporation(2.0, 2.0, 2.0, 2.0, 0.0)
         >>> states.interceptedwater
         interceptedwater(0.0, 0.0, 0.0, 0.0, 0.0)
-        >>> fluxes.lakeevaporation
-        lakeevaporation(0.0, 0.0, 0.0, 0.0, 7.0)
 
-        In contrast,
-        |Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_AETModel_V1|
-        does not reduce negative |InterceptionEvaporation| values (condensation) that
-        cause an overshoot of the interception storage capacity:
+        In contrast, |Calc_InterceptionEvaporation_InterceptedWater_AETModel_V1| does
+        not reduce negative |InterceptionEvaporation| values (condensation) that cause
+        an overshoot of the interception storage capacity:
 
         >>> model.aetmodel.petmodel.sequences.inputs.referenceevapotranspiration = -3.0
         >>> states.interceptedwater = 2.0
-        >>> model.calc_interceptionevaporation_interceptedwater_lakeevaporation_v1()
+        >>> model.calc_interceptionevaporation_interceptedwater_v1()
         >>> fluxes.interceptionevaporation
         interceptionevaporation(-1.8, -2.4, -3.0, -3.6, 0.0)
         >>> states.interceptedwater
         interceptedwater(3.8, 4.4, 5.0, 5.6, 0.0)
-        >>> fluxes.lakeevaporation
-        lakeevaporation(0.0, 0.0, 0.0, 0.0, -4.2)
     """
 
     CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
     UPDATEDSEQUENCES = (whmod_states.InterceptedWater,)
-    RESULTSEQUENCES = (
-        whmod_fluxes.InterceptionEvaporation,
-        whmod_fluxes.LakeEvaporation,
-    )
+    RESULTSEQUENCES = (whmod_fluxes.InterceptionEvaporation,)
 
     @staticmethod
     def __call__(model: modeltools.Model, submodel: aetinterfaces.AETModel_V1) -> None:
@@ -182,41 +169,98 @@ class Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_AETModel_V1(
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         submodel.determine_interceptionevaporation()
-        submodel.determine_waterevaporation()
         for k in range(con.nmbzones):
             if con.landtype[k] == WATER:
                 flu.interceptionevaporation[k] = 0.0
                 sta.interceptedwater[k] = 0.0
-                flu.lakeevaporation[k] = submodel.get_waterevaporation(k)
             else:
                 flu.interceptionevaporation[k] = min(
                     submodel.get_interceptionevaporation(k), sta.interceptedwater[k]
                 )
                 sta.interceptedwater[k] -= flu.interceptionevaporation[k]
-                flu.lakeevaporation[k] = 0.0
 
 
-class Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_V1(
-    modeltools.Method
-):
+class Calc_InterceptionEvaporation_InterceptedWater_V1(modeltools.Method):
     """Let a submodel that follows the |AETModel_V1| submodel interface calculate
     interception evaporation and adjust the amount of intercepted water."""
 
     SUBMODELINTERFACES = (aetinterfaces.AETModel_V1,)
-    SUBMETHODS = (
-        Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_AETModel_V1,
-    )
+    SUBMETHODS = (Calc_InterceptionEvaporation_InterceptedWater_AETModel_V1,)
     CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
     UPDATEDSEQUENCES = (whmod_states.InterceptedWater,)
-    RESULTSEQUENCES = (
-        whmod_fluxes.InterceptionEvaporation,
-        whmod_fluxes.LakeEvaporation,
-    )
+    RESULTSEQUENCES = (whmod_fluxes.InterceptionEvaporation,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         if model.aetmodel_typeid == 1:
-            model.calc_interceptionevaporation_interceptedwater_lakeevaporation_aetmodel_v1(
+            model.calc_interceptionevaporation_interceptedwater_aetmodel_v1(
+                cast(aetinterfaces.AETModel_V1, model.aetmodel)
+            )
+
+
+class Calc_LakeEvaporation_AETModel_V1(modeltools.Method):
+    r"""Let a submodel that follows the |AETModel_V1| submodel interface calculate
+    lake evaporation.
+
+    Basic equation:
+      :math:`\frac{dIc_i}{dt} = -EI_i`  ToDo
+
+    Examples:
+
+        We build an example based on |evap_aet_minhas| for calculating interception
+        evaporation, which uses |evap_ret_io| for querying potential
+        evapotranspiration:
+
+        >>> from hydpy.models.whmod_pet import *
+        >>> parameterstep("1h")
+        >>> area(1.0)
+        >>> nmbzones(5)
+        >>> landtype(GRAS, DECIDIOUS, CORN, SEALED, WATER)
+        >>> zonearea(0.05, 0.1, 0.2, 0.3, 0.35)
+        >>> interceptioncapacity.jun = 3.0
+        >>> derived.moy.shape = 1
+        >>> derived.moy(5)
+        >>> availablefieldcapacity(0.1)
+        >>> rootingdepth(0.1)
+        >>> groundwaterdepth(0.1)
+        >>> with model.add_aetmodel_v1("evap_aet_minhas"):
+        ...     with model.add_petmodel_v1("evap_ret_io"):
+        ...         evapotranspirationfactor(0.6, 0.8, 1.0, 1.2, 1.4)
+        ...         inputs.referenceevapotranspiration = 1.0
+        >>> model.aetmodel.determine_interceptionevaporation()
+        >>> model.calc_lakeevaporation_v1()
+        >>> fluxes.lakeevaporation
+        lakeevaporation(0.0, 0.0, 0.0, 0.0, 1.4)
+    """
+
+    CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
+    RESULTSEQUENCES = (whmod_fluxes.LakeEvaporation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, submodel: aetinterfaces.AETModel_V1) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        submodel.determine_waterevaporation()
+        for k in range(con.nmbzones):
+            if con.landtype[k] == WATER:
+                flu.lakeevaporation[k] = submodel.get_waterevaporation(k)
+            else:
+                flu.lakeevaporation[k] = 0.0
+
+
+class Calc_LakeEvaporation_V1(modeltools.Method):
+    """Let a submodel that follows the |AETModel_V1| submodel interface calculate
+    interception evaporation and adjust the amount of intercepted water."""
+
+    SUBMODELINTERFACES = (aetinterfaces.AETModel_V1,)
+    SUBMETHODS = (Calc_LakeEvaporation_AETModel_V1,)
+    CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
+    RESULTSEQUENCES = (whmod_fluxes.LakeEvaporation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        if model.aetmodel_typeid == 1:
+            model.calc_lakeevaporation_aetmodel_v1(
                 cast(aetinterfaces.AETModel_V1, model.aetmodel)
             )
 
@@ -1071,7 +1115,8 @@ class Model(modeltools.AdHocModel):
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     ADD_METHODS = (
-        Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_AETModel_V1,
+        Calc_InterceptionEvaporation_InterceptedWater_AETModel_V1,
+        Calc_LakeEvaporation_AETModel_V1,
         Calc_SoilEvapotranspiration_AETModel_V1,
     )
     INTERFACE_METHODS = (
@@ -1084,7 +1129,8 @@ class Model(modeltools.AdHocModel):
     )
     RUN_METHODS = (
         Calc_Throughfall_InterceptedWater_V1,
-        Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_V1,
+        Calc_InterceptionEvaporation_InterceptedWater_V1,
+        Calc_LakeEvaporation_V1,
         Calc_SurfaceRunoff_V1,
         Calc_Ponding_V1,
         Calc_RelativeSoilMoisture_V1,

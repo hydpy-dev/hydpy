@@ -27,10 +27,6 @@ class Percolation(whmod_sequences.Flux1DSequence):
     """[mm/T]"""
 
 
-class MaxVerdunstung(whmod_sequences.Flux1DSequence):  # ToDo
-    """[mm/T]"""
-
-
 class SoilEvapotranspiration(whmod_sequences.Flux1DSequence):
     """[mm/T]"""
 

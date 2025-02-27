@@ -123,14 +123,5 @@ class RechargeDelay(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
 
-class FLN(whmod_parameters.LanduseMonthParameter):  # ToDo
-    """[-]"""
-
-
-class MinhasR(whmod_parameters.NutzBodenParameter):  # ToDo
-    """[-]"""
-
-    SPAN = (0.1, None)
-
 
 whmod_parameters.BodenCompleteParameter.CONTROLPARAMETERS = (NmbZones, SoilType)  # ToDo

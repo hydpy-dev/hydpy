@@ -236,9 +236,9 @@ def _collect_hrus(
       'landtype': 'CONIFER',
       'nfk_faktor': np.float64(1.0),
       'nfk_offset': np.float64(0.0),
+      'rechargedelay': 'flurab_probst',
       'row': np.int64(1),
       'soiltype': 'LOAM',
-      'verzoegerung': 'flurab_probst',
       'x': np.float64(3455723.97),
       'y': np.float64(5567807.03),
       'zonearea': np.float64(10000.0)}]
@@ -256,9 +256,9 @@ def _collect_hrus(
       'landtype': 'CONIFER',
       'nfk_faktor': np.float64(1.0),
       'nfk_offset': np.float64(0.0),
+      'rechargedelay': np.float64(5.0),
       'row': np.int64(1),
       'soiltype': 'CLAY',
-      'verzoegerung': np.float64(5.0),
       'x': np.float64(3455523.97),
       'y': np.float64(5567807.03),
       'zonearea': np.float64(5000.0)},
@@ -274,9 +274,9 @@ def _collect_hrus(
       'landtype': 'DECIDIOUS',
       'nfk_faktor': np.float64(1.0),
       'nfk_offset': np.float64(0.0),
+      'rechargedelay': np.float64(5.0),
       'row': np.int64(1),
       'soiltype': 'CLAY',
-      'verzoegerung': np.float64(5.0),
       'x': np.float64(3455523.97),
       'y': np.float64(5567807.03),
       'zonearea': np.float64(5000.0)}]
@@ -292,7 +292,7 @@ id `4` angesetzt wird ist nicht definiert.
     >>> _collect_hrus(table=df_knoteneigenschaften, idx=2, landuse=landuse)
     Traceback (most recent call last):
     ...
-    ValueError: `verzoegerung` muss den Datentyp float enthalten oder die Option \
+    ValueError: `rechargedelay` muss den Datentyp float enthalten oder die Option \
 `flurab_probst`.
     """
     result: list[dict[str, object]] = []
@@ -310,12 +310,12 @@ id `4` angesetzt wird ist nicht definiert.
             result.append(sub)
             sub["landtype"] = luse.upper()
             sub["zonearea"] *= area_perc / 100.0
-            if (v := sub["verzoegerung"]) != "flurab_probst":
+            if (v := sub["rechargedelay"]) != "flurab_probst":
                 try:
-                    sub["verzoegerung"] = numpy.float64(v)
+                    sub["rechargedelay"] = numpy.float64(v)
                 except ValueError:
                     raise ValueError(
-                        "`verzoegerung` muss den Datentyp float enthalten oder die "
+                        "`rechargedelay` muss den Datentyp float enthalten oder die "
                         "Option `flurab_probst`."
                     ) from None
     return result
@@ -1108,7 +1108,7 @@ occurred: `7` missing value(s) in column `soiltype`
         "nfk_offset": numpy.float64,
         "groundwaterdepth": numpy.float64,
         "baseflowindex": numpy.float64,
-        "verzoegerung": str,
+        "rechargedelay": str,
         "init_boden": numpy.float64,
         "init_gwn": numpy.float64,
     }
@@ -1572,7 +1572,7 @@ def _initialize_whmod_models(
         )
         con.baseflowindex(_query_vector_from_hrus(hrus, "baseflowindex"))
 
-        rd = _query_scalar_from_hrus(hrus, "verzoegerung")  # ToDo
+        rd = _query_scalar_from_hrus(hrus, "rechargedelay")
         if rd == "flurab_probst":
             if numpy.isnan(gwd := con.groundwaterdepth.average_values()):
                 con.rechargedelay(0.0)

@@ -1,4 +1,4 @@
-﻿id;f_id;row;col;x;y;area;zonearea;landtype;soiltype;availablefieldcapacity;nfk_faktor;nfk_offset;groundwaterdepth;baseflowindex;verzoegerung;init_boden;init_gwn
+﻿id;f_id;row;col;x;y;area;zonearea;landtype;soiltype;availablefieldcapacity;nfk_faktor;nfk_offset;groundwaterdepth;baseflowindex;rechargedelay;init_boden;init_gwn
 [-];[-];[-];[-];[m];[m];[m²];[m²];[-];[-];[-];[-];[-];[m];[-];[d];[%];[mm/a]
 0;0;1;1;3455523.97;5567807.03;10000;10000;MISCHWALD;CLAY;0.0906;1;0;2.9;0.2839615;5;50;0
 1;1;1;2;3455623.97;5567807.03;10000;10000;GRAS;CLAY;0.0906;1;0;2.9;0.2830686;10;50;0

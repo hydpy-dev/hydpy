@@ -16,9 +16,3 @@ class Temperature(sequencetools.InputSequence):
     """[°C]"""
 
     NDIM, NUMERIC = 0, False
-
-
-class ET0(sequencetools.InputSequence):  # ToDo
-    """[mm]"""
-
-    NDIM, NUMERIC = 0, False

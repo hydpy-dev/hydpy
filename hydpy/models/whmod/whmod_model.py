@@ -910,7 +910,6 @@ class Calc_DelayedRecharge_DeepWater_V1(modeltools.Method):
             sta.deepwater = 0.0
 
 
-
 class Get_Temperature_V1(modeltools.Method):
     """Get basin's current temperature.
 
@@ -1057,7 +1056,6 @@ class Get_SnowCover_V1(modeltools.Method):
         if sta.snowpack[k] > 0.0:
             return 1.0
         return 0.0
-
 
 
 class Model(modeltools.AdHocModel):
@@ -1243,4 +1241,3 @@ class Sub_SoilWaterModel_V1(modeltools.AdHocModel, stateinterfaces.SoilWaterMode
 class Sub_SnowCoverModel_V1(modeltools.AdHocModel, stateinterfaces.SnowCoverModel_V1):
     """Base class for |whmod.DOCNAME.long| models that comply with the
     |SnowCoverModel_V1| submodel interface."""
-

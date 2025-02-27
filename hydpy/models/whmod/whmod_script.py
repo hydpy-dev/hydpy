@@ -54,7 +54,6 @@ import pandas
 import xarray
 
 import hydpy
-from hydpy.core import devicetools
 from hydpy.core import objecttools
 from hydpy.exe import commandtools
 from hydpy.models import (
@@ -301,7 +300,7 @@ id `4` angesetzt wird ist nicht definiert.
     for i, hru in hrus.iterrows():
         try:
             landuse_ = landuse[hru["landtype"]]
-        except KeyError as exc:
+        except KeyError:
             raise ValueError(
                 f"Die Landnutzungsklasse '{hru['landtype']}', die für die Rasterzelle "
                 f"mit der id `{idx}` angesetzt wird ist nicht definiert."
@@ -418,7 +417,7 @@ def run_whmod(basedir: str, write_output: Union[str, bool]) -> None:
 
     You can also run the script from the command prompt with hyd.py:
 
-    >>> _ = run_subprocess(f"hyd.py run_whmod {projectpath} False")  # doctest: +ELLIPSIS
+    >>> _ = run_subprocess(f"hyd.py run_whmod {projectpath} False") # doctest: +ELLIPSIS
     Mean ActualRecharge [mm/a]: 53.124525...
     Mean DelayedRecharge [mm/a]: 50.302011...
     Mean Precipitation [mm/a]: 687.007002...
@@ -1065,7 +1064,8 @@ def read_nodeproperties(basedir: str, filename: str) -> pandas.DataFrame:
     Traceback (most recent call last):
     ...
     ValueError: While trying to read the file `...Node_Data.csv`, the following error \
-occurred: Usecols do not match columns, columns expected but not found: ['baseflowindex']
+occurred: Usecols do not match columns, columns expected but not found: \
+['baseflowindex']
 
     Empty float cell:
 
@@ -1365,10 +1365,10 @@ def read_outputconfig(
     >>> basedir = TestIO.copy_dir_from_data_to_iotesting("WHMod")
     >>> hydpy.pub.timegrids = "1990-01-01", "1992-01-01", "1d"
     >>> read_outputconfig(outputconfigfile="Tageswerte.txt", basedir=basedir)
-    {'sequence': ['ActualRecharge', 'DelayedRecharge', \
-'Precipitation', 'InterceptionEvaporation', 'RelativeSoilMoisture', 'InterceptedWater'], \
-'steps': ['daily'], 'eval_start': ['1990-01-01'], 'eval_end': ['1990-02-01'], \
-'rch_files': ['daily_rch'], 'grid_files': ['daily_mean'], 'mean_timeseries_files': \
+    {'sequence': ['ActualRecharge', 'DelayedRecharge', 'Precipitation', \
+'InterceptionEvaporation', 'RelativeSoilMoisture', 'InterceptedWater'], 'steps': \
+['daily'], 'eval_start': ['1990-01-01'], 'eval_end': ['1990-02-01'], 'rch_files': \
+['daily_rch'], 'grid_files': ['daily_mean'], 'mean_timeseries_files': \
 ['daily_timeseries'], 'cell_series_files cells=[3, 4]': ['daily_timeseries_ID-*']}
 
 
@@ -1589,7 +1589,7 @@ def _initialize_whmod_models(
                 conifer=6.0,
                 springwheat=6.0,
                 winterwheat=6.0,
-                sugarbeets = 6.0,
+                sugarbeets=6.0,
             )
             with aetmodel.add_petmodel_v1(evap_pet_mlc) as petmodel:
                 # fmt: off
@@ -1624,6 +1624,7 @@ def _initialize_whmod_models(
         petmodel.sequences.logs.loggedpotentialevapotranspiration = 0.0
 
         raster.model = whmod
+
 
 def _initialize_weather_stations(
     df_stammdaten: pandas.DataFrame,
@@ -1701,7 +1702,7 @@ def _initialize_weather_stations(
         node2xy[evap_node] = xy
 
         # Evap-Element
-        evap_element = hydpy.Element(f"Evap_{stat}", outputs=(evap_node))
+        evap_element = hydpy.Element(f"Evap_{stat}", outputs=evap_node)
         evap = hydpy.prepare_model(evap_ret_fao56)
 
         # Control Evap-Element
@@ -2428,7 +2429,9 @@ following error occurred: wrong() got an unexpected keyword argument 'axis'
 
     When passing a string, |aggregate_equaldist_series| queries it from |numpy|:
 
-    >>> aggregate_equaldist_series(series=xarr_series, aggregator="sum")   # doctest: +ELLIPSIS
+    >>> aggregate_equaldist_series(
+    ...     series=xarr_series, aggregator="sum"
+    ... )   # doctest: +ELLIPSIS
     <xarray.DataArray 'test' (row: 1, col: 2, time: 6)> ...
     array([[[ 465, 1426, 2387, 2982, 4216, 4995],
             [ 930, 2852, 4774, 5964, 8432, 9990]]])
@@ -2457,7 +2460,9 @@ following error occurred: wrong() got an unexpected keyword argument 'axis'
     ...      dims=["row", "col", "time"],
     ...      coords={"time": xarr_index},
     ... )
-    >>> aggregate_equaldist_series(series=xarr_series, aggregator="sum")   # doctest: +ELLIPSIS
+    >>> aggregate_equaldist_series(
+    ...     series=xarr_series, aggregator="sum"
+    ... )   # doctest: +ELLIPSIS
     <xarray.DataArray 'test' (row: 1, col: 2, time: 4)> ...
     array([[[1426, 2387, 2982, 4216],
             [2852, 4774, 5964, 8432]]])
@@ -2503,11 +2508,13 @@ following error occurred: wrong() got an unexpected keyword argument 'axis'
     ...      coords={"time": xarr_index},
     ... )
 
-    By default, function |aggregate_equaldist_series| aggregates daily from 0 o'clock to
-    0 o'clock, resulting in a loss of the first two and the last 22 values of the
+    By default, function |aggregate_equaldist_series| aggregates daily from 0 o'clock
+    to 0 o'clock, resulting in a loss of the first two and the last 22 values of the
     entire period:
 
-    >>> aggregate_equaldist_series(series=xarr_series, stepsize="daily")   # doctest: +ELLIPSIS
+    >>> aggregate_equaldist_series(
+    ...     series=xarr_series, stepsize="daily"
+    ... )  # doctest: +ELLIPSIS
     <xarray.DataArray 'test' (row: 1, col: 2, time: 3)> ...
     array([[[ 14.5,  38.5,  62.5],
             [ 29. ,  77. , 125. ]]])
@@ -2550,7 +2557,9 @@ step size only.
     ...      dims=["row", "col", "time"],
     ...      coords={"time": xarr_index},
     ... )
-    >>> aggregate_equaldist_series(series=xarr_series, stepsize="daily")   # doctest: +ELLIPSIS
+    >>> aggregate_equaldist_series(
+    ...     series=xarr_series, stepsize="daily"
+    ... )   # doctest: +ELLIPSIS
     <xarray.DataArray 'test' (row: 1, col: 2, time: 4)> ...
     array([[[1, 2, 3, 4],
             [2, 4, 6, 8]]])
@@ -2616,7 +2625,9 @@ are supported: `monthly` (default), `daily` and `yearly`.
     Coordinates:
       * time     (time) datetime64[ns] ... 2000-01-01 2001-01-01 ... 2005-01-01
     Dimensions without coordinates: row, col
-    >>> aggregate_equaldist_series(series=xarr_series, stepsize="y")    # doctest: +ELLIPSIS
+    >>> aggregate_equaldist_series(
+    ...     series=xarr_series, stepsize="y"
+    ... )  # doctest: +ELLIPSIS
     <xarray.DataArray 'test' (row: 1, col: 2, time: 6)> ...
     array([[[ 1.,  2.,  3.,  4.,  5.,  6.],
             [ 2.,  4.,  6.,  8., 10., 12.]]])
@@ -2641,7 +2652,9 @@ are supported: `monthly` (default), `daily` and `yearly`.
     Coordinates:
       * time     (time) datetime64[ns] ... 2000-01-01 2000-02-01 ... 2000-05-01
     Dimensions without coordinates: row, col
-    >>> aggregate_equaldist_series(series=xarr_series, stepsize="m")   # doctest: +ELLIPSIS
+    >>> aggregate_equaldist_series(
+    ...     series=xarr_series, stepsize="m"
+    ... )   # doctest: +ELLIPSIS
     <xarray.DataArray 'test' (row: 1, col: 2, time: 5)> ...
     array([[[ 1.,  2.,  3.,  4.,  5.],
             [ 2.,  4.,  6.,  8., 10.]]])
@@ -2739,7 +2752,9 @@ def aggregate_flexible_series(
     ... )
     >>> agg_timegrid = pandas.DatetimeIndex(["2011-01-01", "2011-01-02",
     ...                                      "2011-01-08", "2011-01-09"])
-    >>> aggregate_flexible_series(series=xarr_series, aggregation_timegrid=agg_timegrid)   # doctest: +ELLIPSIS
+    >>> aggregate_flexible_series(
+    ...     series=xarr_series, aggregation_timegrid=agg_timegrid
+    ... )   # doctest: +ELLIPSIS
     <xarray.DataArray 'test' (row: 1, col: 2, time: 3)> ...
     array([[[ 1. ,  4.5,  8. ],
             [ 2. ,  9. , 16. ]]])
@@ -3063,15 +3078,14 @@ kann nicht geschrieben werden
             if numpy.isnan(delta_y):
                 return numpy.nan
             return delta_y
-        else:
-            if numpy.isnan(delta_y):
-                return numpy.nan
-            if abs(delta_x) != abs(delta_y):
-                raise ValueError(
-                    "Zellgröße in x-Richtung ungleich Zellgröße in "
-                    "y-Richtung, ASCII-Datei kann nicht geschrieben werden"
-                )
-            return delta_x
+        if numpy.isnan(delta_y):
+            return numpy.nan
+        if abs(delta_x) != abs(delta_y):
+            raise ValueError(
+                "Zellgröße in x-Richtung ungleich Zellgröße in "
+                "y-Richtung, ASCII-Datei kann nicht geschrieben werden"
+            )
+        return delta_x
     else:
         return numpy.nan
 

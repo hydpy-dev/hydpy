@@ -67,7 +67,7 @@ class DegreeDayFactor(whmod_parameters.NutzBodenParameter):
 
 
 class AvailableFieldCapacity(whmod_parameters.NutzBodenParameter):
-    """[mm/m]"""
+    """[-]"""
 
     SPAN = (0.0, None)
 

@@ -82,7 +82,7 @@ class MaxSoilWater(whmod_parameters.NutzBodenParameter):
         >>> parameterstep()
         >>> nmbzones(7)
         >>> landtype(GRAS, CORN, DECIDIOUS, CONIFER, SPRINGWHEAT, WATER, SEALED)
-        >>> availablefieldcapacity(200.0)
+        >>> availablefieldcapacity(0.2)
         >>> derived.soildepth(0.0, 0.2, 0.3, 0.4, 1.0, 1.0, 1.0)
         >>> derived.maxsoilwater.update()
         >>> derived.maxsoilwater
@@ -91,7 +91,7 @@ class MaxSoilWater(whmod_parameters.NutzBodenParameter):
         """
         availablefieldcapacity = self.subpars.pars.control.availablefieldcapacity
         soildepth = self.subpars.soildepth
-        self(availablefieldcapacity * numpy.clip(soildepth, 0.3, None))
+        self(1000.0 * availablefieldcapacity * numpy.clip(soildepth, 0.3, None))
 
 
 class Beta(whmod_parameters.NutzBodenParameter):

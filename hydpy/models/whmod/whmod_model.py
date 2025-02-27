@@ -118,7 +118,9 @@ class Calc_InterceptionEvaporation_InterceptedWater_LakeEvaporation_AETModel_V1(
         >>> interceptioncapacity.jun = 3.0
         >>> derived.moy.shape = 1
         >>> derived.moy(5)
-        >>> derived.maxsoilwater(50.0)
+        >>> availablefieldcapacity(0.1)
+        >>> rootingdepth(0.1)
+        >>> groundwaterdepth(0.1)
         >>> with model.add_aetmodel_v1("evap_aet_minhas"):
         ...     with model.add_petmodel_v1("evap_ret_io"):
         ...         evapotranspirationfactor(0.6, 0.8, 1.0, 1.2, 1.4)
@@ -400,7 +402,9 @@ class Calc_SoilEvapotranspiration_AETModel_V1(modeltools.Method):
         >>> nmbzones(5)
         >>> landtype(SEALED, GRAS, DECIDIOUS, CORN, WATER)
         >>> zonearea(0.05, 0.1, 0.2, 0.3, 0.35)
-        >>> derived.maxsoilwater(100.0)
+        >>> availablefieldcapacity(0.1)
+        >>> rootingdepth(1.0)
+        >>> groundwaterdepth(1.0)
         >>> with model.add_aetmodel_v1("evap_aet_minhas"):
         ...     dissefactor(5.0)
 
@@ -1147,7 +1151,9 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         >>> area(10.0)
         >>> landtype(GRAS, DECIDIOUS, CONIFER, WATER, SEALED)
         >>> zonearea(4.0, 1.0, 1.0, 1.0, 3.0)
-        >>> derived.maxsoilwater(200.0)
+        >>> availablefieldcapacity(0.2)
+        >>> rootingdepth(1.0)
+        >>> groundwaterdepth(1.0)
         >>> with model.add_aetmodel_v1("evap_aet_minhas"):
         ...     nmbhru
         ...     area
@@ -1187,6 +1193,7 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         1.5
         """
         control = self.parameters.control
+        derived = self.parameters.derived
 
         hydrotopes = control.nmbzones.value
         landtype = control.landtype.values
@@ -1208,7 +1215,9 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         sel[landtype == DECIDIOUS] = True
         aetmodel.prepare_tree(sel)
 
-        aetmodel.prepare_maxsoilwater(self.parameters.derived.maxsoilwater.values)
+        derived.soildepth.update()
+        derived.maxsoilwater.update()
+        aetmodel.prepare_maxsoilwater(derived.maxsoilwater.values)
 
 
 class Sub_TempModel_V1(modeltools.AdHocModel, tempinterfaces.TempModel_V1):

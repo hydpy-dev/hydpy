@@ -31,7 +31,7 @@ _______
 >>> interceptioncapacity.gras_mar = 0.6
 >>> interceptioncapacity.gras_apr = 0.8
 >>> degreedayfactor(4.5)
->>> availablefieldcapacity(200.0)
+>>> availablefieldcapacity(0.2)
 >>> groundwaterdepth(1.0)
 >>> rootingdepth(
 ...     gras=0.5, decidious=1.5, corn=0.5, conifer=1.9, springwheat=0.6, winterwheat=0.6
@@ -41,7 +41,6 @@ _______
 >>> baseflowindex(0.8)
 >>> rechargedelay(5.0)
 
->>> model.update_parameters()
 >>> with model.add_aetmodel_v1("evap_aet_minhas"):
 ...     dissefactor(gras=4.0, decidious=6.0, corn=3.0, conifer=6.0, springwheat=6.0,
 ...                 winterwheat=6.0)

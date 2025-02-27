@@ -60,7 +60,10 @@ from hydpy.exe import commandtools
 from hydpy.models import (
     conv_nn,
     conv_idw,
+    evap_aet_minhas,
+    evap_pet_mlc,
     evap_ret_fao56,
+    evap_ret_io,
     meteo_glob_fao56,
     meteo_temp_io,
     whmod_pet,
@@ -223,7 +226,7 @@ def _collect_hrus(
     >>> from pprint import pprint
     >>> pprint(_collect_hrus(table=df_knoteneigenschaften, idx=2, landuse=landuse))
     [{'area': np.float64(10000.0),
-      'availablefieldcapacity': np.float64(90.6),
+      'availablefieldcapacity': np.float64(0.0906),
       'baseflowindex': np.float64(0.2759066),
       'col': np.int64(3),
       'f_id': np.int64(2),
@@ -243,7 +246,7 @@ def _collect_hrus(
 
     >>> pprint(_collect_hrus(table=df_knoteneigenschaften, idx=0, landuse=landuse))
     [{'area': np.float64(10000.0),
-      'availablefieldcapacity': np.float64(90.6),
+      'availablefieldcapacity': np.float64(0.0906),
       'baseflowindex': np.float64(0.2839615),
       'col': np.int64(1),
       'f_id': np.int64(0),
@@ -261,7 +264,7 @@ def _collect_hrus(
       'y': np.float64(5567807.03),
       'zonearea': np.float64(5000.0)},
      {'area': np.float64(10000.0),
-      'availablefieldcapacity': np.float64(90.6),
+      'availablefieldcapacity': np.float64(0.0906),
       'baseflowindex': np.float64(0.2839615),
       'col': np.int64(1),
       'f_id': np.int64(0),
@@ -1479,7 +1482,9 @@ def _initialize_whmod_models(
         temp_selection_raster.nodes.add_device(tempnode)
 
         # Initialize Evap Nodes
-        evapnode = hydpy.Node(f"E_{name}", variable=aliases.whmod_inputs_ET0)
+        evapnode = hydpy.Node(
+            f"E_{name}", variable=aliases.evap_inputs_ReferenceEvapotranspiration
+        )
         evap_selection_raster.nodes.add_device(evapnode)
 
         # Initialize WHMod-Elements
@@ -1510,21 +1515,27 @@ def _initialize_whmod_models(
 
         # temporary WHMod-Model
         whmod = hydpy.prepare_model(whmod_pet)
-        raster.model = whmod
 
         # add Parameters to model (control)
         con = whmod.parameters.control
 
         con.area(sum(_query_vector_from_hrus(hrus, "zonearea")))
-        con.nmbzones(len(hrus))
-        con.capillaryrise(with_capillary_rise)
 
-        # iterate over all hrus and create a list with the land use
-        temp_list = []
-        for i, landuse in enumerate(_query_vector_from_hrus(hrus, "landtype")):
+        con.nmbzones(len(hrus))
+
+        con.zonearea(_query_vector_from_hrus(hrus, "zonearea"))
+
+        lu = []
+        for landuse in _query_vector_from_hrus(hrus, "landtype"):
             assert isinstance(landuse, str)
-            temp_list.append(whmod_constants.LANDUSE_CONSTANTS[landuse])
-        con.landtype(temp_list)
+            lu.append(whmod_constants.LANDUSE_CONSTANTS[landuse])
+        con.landtype(lu)
+
+        st = []
+        for soiltype in _query_vector_from_hrus(hrus, "soiltype"):
+            assert isinstance(soiltype, str)
+            st.append(whmod_constants.SOIL_CONSTANTS[soiltype.upper()])
+        con.soiltype(st)
 
         # fmt: off
         con.interceptioncapacity(
@@ -1540,49 +1551,19 @@ def _initialize_whmod_models(
         )
         # fmt: on
 
-        # iterate over all hrus and create a list with the soil type
-        temp_list = []
-        for i, soiltype in enumerate(_query_vector_from_hrus(hrus, "soiltype")):
-            assert isinstance(soiltype, str)
-            temp_list.append(whmod_constants.SOIL_CONSTANTS[soiltype.upper()])
-        con.soiltype(temp_list)
-
-        # fmt: off
-        # DWA-M 504:
-        ackerland = [0.733, 0.733, 0.774, 0.947, 1.188, 1.181, 1.185, 1.151, 0.974, 0.853, 0.775, 0.733]  # pylint: disable=line-too-long
-        con.fln(
-            gras=1.0,  # DWA-M 504
-            decidious=[1.003, 1.003, 1.053, 1.179, 1.114, 1.227, 1.241, 1.241, 1.241, 1.139, 1.082, 1.003],  # DWA-M 504  # pylint: disable=line-too-long
-            corn=ackerland,
-            conifer=1.335,  # DWA-M 504
-            springwheat=ackerland,
-            winterwheat=ackerland,
-            sugarbeets=ackerland,
-            sealed=0.0,
-            water=[1.165, 1.217, 1.256, 1.283, 1.283, 1.296, 1.283, 1.283, 1.270, 1.230, 1.165, 1.139],  # pylint: disable=line-too-long
-        )  # DWA-M 504
-        # fmt: on
-
-        con.zonearea(_query_vector_from_hrus(hrus, "zonearea"))
         con.degreedayfactor(float(day_degree_factor))
-        availablefieldcapacity = numpy.asarray(
-            _query_vector_from_hrus(hrus, "availablefieldcapacity")
-        )
+
+        afc = numpy.asarray(_query_vector_from_hrus(hrus, "availablefieldcapacity"))
         nfk_faktor = numpy.asarray(_query_vector_from_hrus(hrus, "nfk_faktor"))
         nfk_offset = numpy.asarray(_query_vector_from_hrus(hrus, "nfk_offset"))
-        con.availablefieldcapacity((availablefieldcapacity * nfk_faktor) + nfk_offset)
+        con.availablefieldcapacity((afc * nfk_faktor) + nfk_offset)
+
+        con.rootingdepth(**root_depth)
 
         con.groundwaterdepth(_query_vector_from_hrus(hrus, "groundwaterdepth"))
-        con.rootingdepth(**root_depth)
-        con.minhasr(
-            gras=4.0,
-            decidious=6.0,
-            corn=3.0,
-            conifer=6.0,
-            springwheat=6.0,
-            winterwheat=6.0,
-            sugarbeets=6.0,
-        )
+
+        con.capillaryrise(with_capillary_rise)
+
         con.capillarythreshold(
             sand=0.8, sand_cohesive=1.4, loam=1.4, clay=1.35, silt=1.75, peat=0.85
         )
@@ -1591,14 +1572,44 @@ def _initialize_whmod_models(
         )
         con.baseflowindex(_query_vector_from_hrus(hrus, "baseflowindex"))
 
-        verzoegerung = _query_scalar_from_hrus(hrus, "verzoegerung")
-        if verzoegerung == "flurab_probst":
+        rd = _query_scalar_from_hrus(hrus, "verzoegerung")  # ToDo
+        if rd == "flurab_probst":
             if numpy.isnan(gwd := con.groundwaterdepth.average_values()):
                 con.rechargedelay(0.0)
             else:
                 con.rechargedelay(calculate_recharge_delay(groundwater_depth=gwd))
         else:
-            con.rechargedelay(verzoegerung)
+            con.rechargedelay(rd)
+
+        with whmod.add_aetmodel_v1(evap_aet_minhas) as aetmodel:
+            aetmodel.parameters.control.dissefactor(
+                gras=4.0,
+                decidious=6.0,
+                corn=3.0,
+                conifer=6.0,
+                springwheat=6.0,
+                winterwheat=6.0,
+                sugarbeets = 6.0,
+            )
+            with aetmodel.add_petmodel_v1(evap_pet_mlc) as petmodel:
+                # fmt: off
+                # DWA-M 504:
+                ackerland = [0.733, 0.733, 0.774, 0.947, 1.188, 1.181, 1.185, 1.151, 0.974, 0.853, 0.775, 0.733]  # pylint: disable=line-too-long
+                petmodel.parameters.control.landmonthfactor(
+                    gras=1.0,  # DWA-M 504
+                    decidious=[1.003, 1.003, 1.053, 1.179, 1.114, 1.227, 1.241, 1.241, 1.241, 1.139, 1.082, 1.003],  # DWA-M 504  # pylint: disable=line-too-long
+                    corn=ackerland,
+                    conifer=1.335,  # DWA-M 504
+                    springwheat=ackerland,
+                    winterwheat=ackerland,
+                    sugarbeets=ackerland,
+                    sealed=0.0,
+                    water=[1.165, 1.217, 1.256, 1.283, 1.283, 1.296, 1.283, 1.283, 1.270, 1.230, 1.165, 1.139],  # pylint: disable=line-too-long
+                )  # DWA-M 504
+                # fmt: on
+                petmodel.parameters.control.dampingfactor(1.0)
+                with petmodel.add_retmodel_v1(evap_ret_io) as retmodel:
+                    retmodel.parameters.control.evapotranspirationfactor(1.0)
 
         whmod.sequences.states.interceptedwater(0.0)
         whmod.sequences.states.snowpack(0.0)
@@ -1610,7 +1621,9 @@ def _initialize_whmod_models(
                 init_gwn=init_gwn, time_of_concentration=con.rechargedelay.value
             )
         )
+        petmodel.sequences.logs.loggedpotentialevapotranspiration = 0.0
 
+        raster.model = whmod
 
 def _initialize_weather_stations(
     df_stammdaten: pandas.DataFrame,

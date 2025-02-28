@@ -57,7 +57,6 @@ general and HydPy-specific type hint features available).
    importtools
    indextools
    itemtools
-   logtools
    masktools
    modeltools
    netcdftools

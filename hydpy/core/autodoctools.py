@@ -1269,10 +1269,7 @@ def autodoc_tuple2doc(module: types.ModuleType) -> None:
                             f" {objecttools.description(cls)}"
                         )
                     doc = getattr(member, "__doc__")
-                    if doc is None:
-                        member.__doc__ = "\n".join(l for l in lst)
-                    else:
-                        member.__doc__ = doc + "\n".join(l for l in lst)
+                    member.__doc__ = doc + "\n".join(l for l in lst)
 
 
 def _make_cssstyle(

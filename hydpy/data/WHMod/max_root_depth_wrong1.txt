@@ -1,8 +1,0 @@
-# Das ist ein Beispiel für falsche Durchwurzelungstiefen
-GRAS=0.4
-DECIDIOUS=1.6
-CONIFER=1.4
-CORN=0.7
-SPRINGWHEAT=0.8
-WINTERWHEAT=0.6
-SUGARBEETS=WABOA

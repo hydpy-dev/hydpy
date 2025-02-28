@@ -115,7 +115,6 @@ from hydpy.exe.commandtools import (
 from hydpy.exe.replacetools import xml_replace
 from hydpy.exe.servertools import await_server, start_server
 from hydpy.exe.xmltools import XMLInterface, run_simulation, xml_validate
-from hydpy.models.whmod.whmod_script import run_whmod
 
 
 __version__ = "6.2dev0"
@@ -129,7 +128,6 @@ pub.scriptfunctions["exec_commands"] = exec_commands
 pub.scriptfunctions["exec_script"] = exec_script
 pub.scriptfunctions["run_doctests"] = run_doctests
 pub.scriptfunctions["run_simulation"] = run_simulation
-pub.scriptfunctions["run_whmod"] = run_whmod
 pub.scriptfunctions["start_shell"] = start_shell
 pub.scriptfunctions["start_server"] = start_server
 pub.scriptfunctions["xml_replace"] = xml_replace

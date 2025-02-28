@@ -30,7 +30,6 @@ from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
     from hydpy.core import auxfiletools
-    from hydpy.models.whmod import whmod_model
 
 
 class HydPy:

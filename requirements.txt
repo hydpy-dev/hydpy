@@ -24,5 +24,4 @@ sphinxcontrib-bibtex
 sphinxcontrib-fulltoc
 wheel
 wrapt
-xarray
 xmlschema

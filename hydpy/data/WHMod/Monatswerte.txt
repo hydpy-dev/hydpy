@@ -1,9 +1,0 @@
-# Das ist ein Kommentar
-sequence:               ActualRecharge
-                        DelayedRecharge
-                        Precipitation
-steps:                  monthly
-rch_files:              monthly_rch
-grid_files:             monthly_mean
-mean_timeseries_files:  monthly_timeseries
-cell_series_files cells=*: monthly_timeseries_ID-*

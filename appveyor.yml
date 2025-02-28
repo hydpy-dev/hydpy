@@ -7,7 +7,22 @@ environment:
   TokenPyPI:
     secure: kkjz662y19aSdDHa+tqlBJ8fu3Rvamt13Mhvhm/If3qW7QzNkmrvz4RjJ9mbk5OewxMY5VhGmD51ykbqAGlMPeCZpMx3kpeOoWGE1H4buEAZKg7eyQBafaFF2EfvI5PJLUyDDyeRXNlzoh2yqTMs73s619Yl2/oDUV0IXPgqAPvmW6TGc6bgWoy2R3leSJDH2fjhTiphQ6M0JlItmq9dsJIIgoJcNt/82i/WbzAcuB6HJIrLUSSZQpNUpZZHjlFeu3UDxwvOHl9IDRljqzm/Ag==
   matrix:
+    - PYTHON: "C:\\Python310-x64"
+      make_exe: false
+      python_mode: false
+      cython_mode: true
+      numpy_version: 2
+    - PYTHON: "C:\\Python311-x64"
+      make_exe: false
+      python_mode: true
+      cython_mode: false
+      numpy_version: 2
     - PYTHON: "C:\\Python312-x64"
+      make_exe: false
+      python_mode: false
+      cython_mode: true
+      numpy_version: 1
+    - PYTHON: "C:\\Python313-x64"
       make_exe: true
       python_mode: false
       cython_mode: false

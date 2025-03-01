@@ -12,11 +12,11 @@ Integration tests
 >>> from hydpy import Element, pub, Timegrid
 >>> pub.timegrids = "2017-02-10", "2017-04-10", "1d"
 >>> element = Element("element")
->>> from hydpy.models.whmod_pet import *
+>>> from hydpy.models.whmod_rural import *
 >>> parameterstep("1d")
 >>> element.model = model
 
-.. _whmod_pet_pasture:
+.. _whmod_rural_pasture:
 
 pasture
 _______
@@ -83,7 +83,7 @@ _______
 
 .. integration-test::
 
-    >>> conditions = test("whmod_pet_pasture", get_conditions="2017-02-10")
+    >>> conditions = test("whmod_rural_pasture", get_conditions="2017-02-10")
     |       date | precipitation | temperature | relativesoilmoisture | interceptionevaporation | throughfall | ponding | surfacerunoff | percolation | soilevapotranspiration | lakeevaporation | totalevapotranspiration | potentialcapillaryrise | capillaryrise | potentialrecharge | baseflow | actualrecharge | delayedrecharge | interceptedwater | snowpack | soilmoisture | deepwater |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2017-02-10 |           0.0 |        -2.8 |                  0.0 |                     0.0 |         0.0 |     0.0 |           0.0 |         0.0 |                    0.0 |             0.0 |                     0.0 |                   3.75 |          3.75 |             -3.75 |      0.0 |          -3.75 |        -0.67976 |              0.0 |      0.0 |         3.75 |  -3.07024 |
@@ -150,7 +150,7 @@ _______
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _whmod_pet_water:
+.. _whmod_rural_water:
 
 water
 _____
@@ -164,7 +164,7 @@ _____
 
 .. integration-test::
 
-    >>> conditions = test("whmod_pet_water", get_conditions="2017-02-10")
+    >>> conditions = test("whmod_rural_water", get_conditions="2017-02-10")
     |       date | precipitation | temperature | relativesoilmoisture | interceptionevaporation | throughfall | ponding | surfacerunoff | percolation | soilevapotranspiration | lakeevaporation | totalevapotranspiration | potentialcapillaryrise | capillaryrise | potentialrecharge | baseflow | actualrecharge | delayedrecharge | interceptedwater | snowpack | soilmoisture | deepwater |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2017-02-10 |           0.0 |        -2.8 |                  0.0 |                     0.0 |         0.0 |     0.0 |           0.0 |         0.0 |                    0.0 |          0.7302 |                  0.7302 |                    0.0 |           0.0 |           -0.7302 |      0.0 |        -0.7302 |       -0.132363 |              0.0 |      0.0 |          0.0 | -0.597837 |
@@ -230,7 +230,7 @@ _____
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _whmod_pet_sealed:
+.. _whmod_rural_sealed:
 
 sealed
 ______
@@ -241,7 +241,7 @@ ______
 
 .. integration-test::
 
-    >>> conditions = test("whmod_pet_sealed", get_conditions="2017-02-10")
+    >>> conditions = test("whmod_rural_sealed", get_conditions="2017-02-10")
     |       date | precipitation | temperature | relativesoilmoisture | interceptionevaporation | throughfall | ponding | surfacerunoff | percolation | soilevapotranspiration | lakeevaporation | totalevapotranspiration | potentialcapillaryrise | capillaryrise | potentialrecharge | baseflow | actualrecharge | delayedrecharge | interceptedwater | snowpack | soilmoisture | deepwater |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2017-02-10 |           0.0 |        -2.8 |                  0.0 |                     0.0 |         0.0 |     0.0 |           0.0 |         0.0 |                    0.0 |             0.0 |                     0.0 |                    0.0 |           0.0 |               0.0 |      0.0 |            0.0 |             0.0 |              0.0 |      0.0 |          0.0 |       0.0 |
@@ -307,7 +307,7 @@ ______
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _whmod_pet_subcells:
+.. _whmod_rural_subcells:
 
 subcells
 ________
@@ -329,7 +329,7 @@ ________
 
 .. integration-test::
 
-    >>> conditions = test("whmod_pet_subcells", get_conditions="2017-02-10")
+    >>> conditions = test("whmod_rural_subcells", get_conditions="2017-02-10")
     |       date | precipitation | temperature |                          relativesoilmoisture |                   interceptionevaporation |                      throughfall |                     ponding |                surfacerunoff |                            percolation |                          soilevapotranspiration |                   lakeevaporation |                             totalevapotranspiration |                  potentialcapillaryrise |                          capillaryrise |                                potentialrecharge |                              baseflow | actualrecharge | delayedrecharge |                   interceptedwater |                snowpack |                            soilmoisture | deepwater |
     -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2017-02-10 |           0.0 |        -2.8 |      0.0       0.0  0.0                   0.0 | 0.0     0.0  0.0                      0.0 |  0.0      0.0   0.0          0.0 |  0.0      0.0  0.0      0.0 | 0.0  0.0  0.0            0.0 |       0.0        0.0  0.0          0.0 |      0.0       0.0  0.0                     0.0 | 0.0  0.0  0.7302              0.0 |      0.0       0.0  0.7302                      0.0 | 3.75  3.75  0.0                     0.0 |     3.75      3.75  0.0            0.0 |     -3.75      -3.75  -0.7302                0.0 |      0.0       0.0      0.0       0.0 |       -2.05755 |       -0.372971 | 0.0     0.0  0.0               0.0 | 0.0  0.0  0.0       0.0 |      3.75       3.75  0.0           0.0 | -1.684579 |
@@ -395,7 +395,7 @@ ________
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _whmod_pet_snow:
+.. _whmod_rural_snow:
 
 snow
 ____
@@ -404,7 +404,7 @@ ____
 
 .. integration-test::
 
-    >>> conditions = test("whmod_pet_snow", get_conditions="2017-02-10")
+    >>> conditions = test("whmod_rural_snow", get_conditions="2017-02-10")
     |       date | precipitation | temperature |                          relativesoilmoisture |                   interceptionevaporation |                      throughfall |                      ponding |                surfacerunoff |                            percolation |                          soilevapotranspiration |                   lakeevaporation |                             totalevapotranspiration |                  potentialcapillaryrise |                          capillaryrise |                                potentialrecharge |                              baseflow | actualrecharge | delayedrecharge |                   interceptedwater |                       snowpack |                            soilmoisture | deepwater |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2017-02-10 |           0.0 |       -10.8 |      0.0       0.0  0.0                   0.0 | 0.0     0.0  0.0                      0.0 |  0.0      0.0   0.0          0.0 |   0.0      0.0  0.0      0.0 | 0.0  0.0  0.0            0.0 |       0.0        0.0  0.0          0.0 |      0.0       0.0  0.0                     0.0 | 0.0  0.0  0.7302              0.0 |      0.0       0.0  0.7302                      0.0 | 3.75  3.75  0.0                     0.0 |     3.75      3.75  0.0            0.0 |     -3.75      -3.75  -0.7302                0.0 |      0.0       0.0      0.0       0.0 |       -2.05755 |       -0.372971 | 0.0     0.0  0.0               0.0 |    0.0      0.0  0.0       0.0 |      3.75       3.75  0.0           0.0 | -1.684579 |
@@ -494,7 +494,7 @@ class Model(
     whmod_model.Sub_SoilWaterModel_V1,
     whmod_model.Sub_SnowCoverModel_V1,
 ):
-    """|whmod_pet.DOCNAME.complete|."""
+    """|whmod_rural.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(
         short="WHMod-PET", description="externel potential evapotranspiration"
@@ -553,7 +553,7 @@ class Model(
 
         Pick the required initial conditions before starting the simulation run
         via property |Sequences.conditions|.  See the integration tests of the
-        application model |whmod_pet| for some examples.
+        application model |whmod_rural| for some examples.
         """
         derived = self.parameters.derived
         inputs = self.sequences.inputs

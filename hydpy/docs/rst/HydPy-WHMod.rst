@@ -18,4 +18,4 @@ Application model:
 .. toctree::
 
    whmod_haude
-   whmod_pet
+   whmod_rural

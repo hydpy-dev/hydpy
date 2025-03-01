@@ -107,7 +107,7 @@ class Calc_InterceptionEvaporation_InterceptedWater_AETModel_V1(modeltools.Metho
         evaporation, which uses |evap_ret_io| for querying potential
         evapotranspiration:
 
-        >>> from hydpy.models.whmod_pet import *
+        >>> from hydpy.models.whmod_rural import *
         >>> parameterstep("1h")
         >>> area(1.0)
         >>> nmbzones(5)
@@ -211,7 +211,7 @@ class Calc_LakeEvaporation_AETModel_V1(modeltools.Method):
         evaporation, which uses |evap_ret_io| for querying potential
         evapotranspiration:
 
-        >>> from hydpy.models.whmod_pet import *
+        >>> from hydpy.models.whmod_rural import *
         >>> parameterstep("1h")
         >>> area(1.0)
         >>> nmbzones(5)
@@ -440,7 +440,7 @@ class Calc_SoilEvapotranspiration_AETModel_V1(modeltools.Method):
 
         We build an example based on |evap_aet_minhas|:
 
-        >>> from hydpy.models.whmod_pet import *
+        >>> from hydpy.models.whmod_rural import *
         >>> parameterstep("1h")
         >>> area(1.0)
         >>> nmbzones(5)
@@ -1189,7 +1189,7 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         is responsible for calculating the different kinds of actual
         evapotranspiration.
 
-        >>> from hydpy.models.whmod_pet import *
+        >>> from hydpy.models.whmod_rural import *
         >>> parameterstep()
         >>> nmbzones(5)
         >>> area(10.0)

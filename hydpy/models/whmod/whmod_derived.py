@@ -155,3 +155,49 @@ class Beta(whmod_parameters.NutzBodenParameter):
         self.values[idxs3] = 1.0
         idxs4 = idxs1 * ~idxs2
         self.values[idxs4] = 1.0 + 6.0 / (1 + (maxsoilwater[idxs4] / 118.25) ** -6.5)
+
+
+class PotentialCapillaryRise(whmod_parameters.NutzBodenParameter):
+    """Potential capillary rise [mm/T]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, None)
+
+    CONTROLPARAMETERS = (
+        whmod_control.LandType,
+        whmod_control.SoilType,
+        whmod_control.CapillaryThreshold,
+        whmod_control.CapillaryLimit,
+        whmod_control.GroundwaterDepth,
+    )
+    DERIVEDPARAMETERS = (SoilDepth,)
+
+    def update(self):
+        """
+
+        >>> from hydpy.models.whmod import *
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
+        >>> nmbzones(7)
+        >>> landtype(GRAS, GRAS, GRAS, GRAS, GRAS, WATER, SEALED)
+        >>> soiltype(SAND, SAND, SAND, SAND, SAND, INT_NAN, INT_NAN)
+        >>> capillarythreshold(sand=0.8)
+        >>> capillarylimit(sand=0.4)
+        >>> derived.soildepth(sand=1.0)
+        >>> groundwaterdepth(1.2, 1.4, 1.6, 1.8, 2.0, nan, nan)
+        >>> derived.potentialcapillaryrise.update()
+        >>> derived.potentialcapillaryrise
+        """
+        con = model.parameters.control
+        idxs = (con.landtype == SEALED) * (con.landtype == WATER)
+        flu.potentialcapillaryrise[idxs] = 0.0
+        idxs = ~idxs
+        flu.potentialcapillaryrise[idxs] = 5.0 * numpy.clip(
+            (
+                model.parameters.derived.soildepth[idxs]
+                + con.capillarythreshold[idxs]
+                - con.groundwaterdepth[idxs]
+            )
+            / (con.capillarythreshold[idxs] - con.capillarylimit[idxs]),
+            0.0,
+            1.0,
+        )

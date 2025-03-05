@@ -39,10 +39,6 @@ class TotalEvapotranspiration(whmod_sequences.Flux1DSequence):
     """[mm/T]"""
 
 
-class PotentialCapillaryRise(whmod_sequences.Flux1DSequence):
-    """[mm/T]"""
-
-
 class CapillaryRise(whmod_sequences.Flux1DSequence):
     """[mm/T]"""
 

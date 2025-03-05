@@ -526,7 +526,6 @@ class Model(
         whmod_model.Calc_Percolation_V1,
         whmod_model.Calc_SoilEvapotranspiration_V1,
         whmod_model.Calc_TotalEvapotranspiration_V1,
-        whmod_model.Calc_PotentialCapillaryRise_V1,
         whmod_model.Calc_CapillaryRise_V1,
         whmod_model.Calc_SoilMoisture_V1,
         whmod_model.Calc_PotentialRecharge_V1,

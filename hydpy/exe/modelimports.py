@@ -27,12 +27,14 @@ from hydpy.core.importtools import parameterstep
 from hydpy.core.importtools import simulationstep
 from hydpy.core.importtools import controlcheck
 from hydpy.core.testtools import Tester
+from hydpy.core.variabletools import INT_NAN
 from hydpy.cythons.modelutils import Cythonizer
 
 __all__ = [
     "numpy",
     "nan",
     "inf",
+    "INT_NAN",
     "parameterstep",
     "simulationstep",
     "controlcheck",

@@ -13,7 +13,7 @@ from hydpy.models.whmod import whmod_masks
 
 
 class NutzBaseParameter(parametertools.ZipParameter):
-    NDIM, TYPE, TIME = 1, float, None
+    NDIM, TYPE = 1, float
 
     @property
     def shapeparameter(self):

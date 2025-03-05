@@ -533,171 +533,22 @@ class Calc_TotalEvapotranspiration_V1(modeltools.Method):
             )
 
 
-class Calc_PotentialCapillaryRise_V1(modeltools.Method):
-    # pylint: disable=line-too-long
-    """
-
-    >>> from hydpy.models.whmod import *
-    >>> parameterstep()
-    >>> nmbzones(6)
-    >>> landtype(GRAS)
-    >>> capillaryrise(True)
-    >>> soiltype(SAND, SAND_COHESIVE, LOAM, CLAY, SILT, PEAT)
-    >>> groundwaterdepth(0.0)   # ToDo: shouldn't be necessary
-    >>> capillarythreshold(sand=0.8, sand_cohesive=1.4, loam=1.4,
-    ...                  clay=1.35, silt=1.75, peat=0.85)
-    >>> capillarylimit(sand=0.4, sand_cohesive=0.85, loam=0.45,
-    ...                clay=0.25, silt=0.75, peat=0.55)
-    >>> derived.soildepth(0.0)
-
-    >>> from hydpy import UnitTest
-    >>> test = UnitTest(
-    ...     model, model.calc_potentialcapillaryrise_v1,
-    ...     last_example=31,
-    ...     parseqs=(control.groundwaterdepth,
-    ...              fluxes.potentialcapillaryrise))
-    >>> import numpy
-    >>> test.nexts.groundwaterdepth = numpy.arange(0.0, 3.1, 0.1)
-    >>> test()
-    | ex. |                          groundwaterdepth |                                           potentialcapillaryrise |
-    ----------------------------------------------------------------------------------------------------------------------
-    |   1 | 0.0  0.0  0.0  0.0  0.0               0.0 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
-    |   2 | 0.1  0.1  0.1  0.1  0.1               0.1 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
-    |   3 | 0.2  0.2  0.2  0.2  0.2               0.2 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
-    |   4 | 0.3  0.3  0.3  0.3  0.3               0.3 |  5.0       5.0       5.0  4.772727   5.0                     5.0 |
-    |   5 | 0.4  0.4  0.4  0.4  0.4               0.4 |  5.0       5.0       5.0  4.318182   5.0                     5.0 |
-    |   6 | 0.5  0.5  0.5  0.5  0.5               0.5 | 3.75       5.0  4.736842  3.863636   5.0                     5.0 |
-    |   7 | 0.6  0.6  0.6  0.6  0.6               0.6 |  2.5       5.0  4.210526  3.409091   5.0                4.166667 |
-    |   8 | 0.7  0.7  0.7  0.7  0.7               0.7 | 1.25       5.0  3.684211  2.954545   5.0                     2.5 |
-    |   9 | 0.8  0.8  0.8  0.8  0.8               0.8 |  0.0       5.0  3.157895       2.5  4.75                0.833333 |
-    |  10 | 0.9  0.9  0.9  0.9  0.9               0.9 |  0.0  4.545455  2.631579  2.045455  4.25                     0.0 |
-    |  11 | 1.0  1.0  1.0  1.0  1.0               1.0 |  0.0  3.636364  2.105263  1.590909  3.75                     0.0 |
-    |  12 | 1.1  1.1  1.1  1.1  1.1               1.1 |  0.0  2.727273  1.578947  1.136364  3.25                     0.0 |
-    |  13 | 1.2  1.2  1.2  1.2  1.2               1.2 |  0.0  1.818182  1.052632  0.681818  2.75                     0.0 |
-    |  14 | 1.3  1.3  1.3  1.3  1.3               1.3 |  0.0  0.909091  0.526316  0.227273  2.25                     0.0 |
-    |  15 | 1.4  1.4  1.4  1.4  1.4               1.4 |  0.0       0.0       0.0       0.0  1.75                     0.0 |
-    |  16 | 1.5  1.5  1.5  1.5  1.5               1.5 |  0.0       0.0       0.0       0.0  1.25                     0.0 |
-    |  17 | 1.6  1.6  1.6  1.6  1.6               1.6 |  0.0       0.0       0.0       0.0  0.75                     0.0 |
-    |  18 | 1.7  1.7  1.7  1.7  1.7               1.7 |  0.0       0.0       0.0       0.0  0.25                     0.0 |
-    |  19 | 1.8  1.8  1.8  1.8  1.8               1.8 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
-    |  20 | 1.9  1.9  1.9  1.9  1.9               1.9 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
-    |  21 | 2.0  2.0  2.0  2.0  2.0               2.0 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
-    |  22 | 2.1  2.1  2.1  2.1  2.1               2.1 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
-    |  23 | 2.2  2.2  2.2  2.2  2.2               2.2 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
-    |  24 | 2.3  2.3  2.3  2.3  2.3               2.3 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
-    |  25 | 2.4  2.4  2.4  2.4  2.4               2.4 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
-    |  26 | 2.5  2.5  2.5  2.5  2.5               2.5 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
-    |  27 | 2.6  2.6  2.6  2.6  2.6               2.6 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
-    |  28 | 2.7  2.7  2.7  2.7  2.7               2.7 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
-    |  29 | 2.8  2.8  2.8  2.8  2.8               2.8 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
-    |  30 | 2.9  2.9  2.9  2.9  2.9               2.9 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
-    |  31 | 3.0  3.0  3.0  3.0  3.0               3.0 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
-
-    >>> derived.soildepth(1.0)
-    >>> test()
-    | ex. |                          groundwaterdepth |                                           potentialcapillaryrise |
-    ----------------------------------------------------------------------------------------------------------------------
-    |   1 | 0.0  0.0  0.0  0.0  0.0               0.0 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
-    |   2 | 0.1  0.1  0.1  0.1  0.1               0.1 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
-    |   3 | 0.2  0.2  0.2  0.2  0.2               0.2 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
-    |   4 | 0.3  0.3  0.3  0.3  0.3               0.3 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
-    |   5 | 0.4  0.4  0.4  0.4  0.4               0.4 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
-    |   6 | 0.5  0.5  0.5  0.5  0.5               0.5 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
-    |   7 | 0.6  0.6  0.6  0.6  0.6               0.6 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
-    |   8 | 0.7  0.7  0.7  0.7  0.7               0.7 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
-    |   9 | 0.8  0.8  0.8  0.8  0.8               0.8 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
-    |  10 | 0.9  0.9  0.9  0.9  0.9               0.9 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
-    |  11 | 1.0  1.0  1.0  1.0  1.0               1.0 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
-    |  12 | 1.1  1.1  1.1  1.1  1.1               1.1 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
-    |  13 | 1.2  1.2  1.2  1.2  1.2               1.2 |  5.0       5.0       5.0       5.0   5.0                     5.0 |
-    |  14 | 1.3  1.3  1.3  1.3  1.3               1.3 |  5.0       5.0       5.0  4.772727   5.0                     5.0 |
-    |  15 | 1.4  1.4  1.4  1.4  1.4               1.4 |  5.0       5.0       5.0  4.318182   5.0                     5.0 |
-    |  16 | 1.5  1.5  1.5  1.5  1.5               1.5 | 3.75       5.0  4.736842  3.863636   5.0                     5.0 |
-    |  17 | 1.6  1.6  1.6  1.6  1.6               1.6 |  2.5       5.0  4.210526  3.409091   5.0                4.166667 |
-    |  18 | 1.7  1.7  1.7  1.7  1.7               1.7 | 1.25       5.0  3.684211  2.954545   5.0                     2.5 |
-    |  19 | 1.8  1.8  1.8  1.8  1.8               1.8 |  0.0       5.0  3.157895       2.5  4.75                0.833333 |
-    |  20 | 1.9  1.9  1.9  1.9  1.9               1.9 |  0.0  4.545455  2.631579  2.045455  4.25                     0.0 |
-    |  21 | 2.0  2.0  2.0  2.0  2.0               2.0 |  0.0  3.636364  2.105263  1.590909  3.75                     0.0 |
-    |  22 | 2.1  2.1  2.1  2.1  2.1               2.1 |  0.0  2.727273  1.578947  1.136364  3.25                     0.0 |
-    |  23 | 2.2  2.2  2.2  2.2  2.2               2.2 |  0.0  1.818182  1.052632  0.681818  2.75                     0.0 |
-    |  24 | 2.3  2.3  2.3  2.3  2.3               2.3 |  0.0  0.909091  0.526316  0.227273  2.25                     0.0 |
-    |  25 | 2.4  2.4  2.4  2.4  2.4               2.4 |  0.0       0.0       0.0       0.0  1.75                     0.0 |
-    |  26 | 2.5  2.5  2.5  2.5  2.5               2.5 |  0.0       0.0       0.0       0.0  1.25                     0.0 |
-    |  27 | 2.6  2.6  2.6  2.6  2.6               2.6 |  0.0       0.0       0.0       0.0  0.75                     0.0 |
-    |  28 | 2.7  2.7  2.7  2.7  2.7               2.7 |  0.0       0.0       0.0       0.0  0.25                     0.0 |
-    |  29 | 2.8  2.8  2.8  2.8  2.8               2.8 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
-    |  30 | 2.9  2.9  2.9  2.9  2.9               2.9 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
-    |  31 | 3.0  3.0  3.0  3.0  3.0               3.0 |  0.0       0.0       0.0       0.0   0.0                     0.0 |
-
-    >>> landtype(SEALED)
-    >>> test(last_example=1)
-    | ex. |                          groundwaterdepth |                          potentialcapillaryrise |
-    -----------------------------------------------------------------------------------------------------
-    |   1 | 0.0  0.0  0.0  0.0  0.0               0.0 | 0.0  0.0  0.0  0.0  0.0                     0.0 |
-
-    >>> landtype(WATER)
-    >>> test(last_example=1)
-    | ex. |                          groundwaterdepth |                          potentialcapillaryrise |
-    -----------------------------------------------------------------------------------------------------
-    |   1 | 0.0  0.0  0.0  0.0  0.0               0.0 | 0.0  0.0  0.0  0.0  0.0                     0.0 |
-
-    >>> landtype(GRAS)
-    >>> capillaryrise(False)
-    >>> test(last_example=1)
-    | ex. |                          groundwaterdepth |                          potentialcapillaryrise |
-    -----------------------------------------------------------------------------------------------------
-    |   1 | 0.0  0.0  0.0  0.0  0.0               0.0 | 0.0  0.0  0.0  0.0  0.0                     0.0 |
-    """
-
-    CONTROLPARAMETERS = (
-        whmod_control.NmbZones,
-        whmod_control.LandType,
-        whmod_control.CapillaryRise,
-        whmod_control.CapillaryThreshold,
-        whmod_control.CapillaryLimit,
-        whmod_control.GroundwaterDepth,
-    )
-    DERIVEDPARAMETERS = (whmod_derived.SoilDepth,)
-    RESULTSEQUENCES = (whmod_fluxes.PotentialCapillaryRise,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        for k in range(con.nmbzones):
-            if con.capillaryrise and (con.landtype[k] not in (SEALED, WATER)):
-                schwell: float = con.capillarythreshold[k]
-                grenz: float = con.capillarylimit[k]
-                if con.groundwaterdepth[k] > (der.soildepth[k] + schwell):
-                    flu.potentialcapillaryrise[k] = 0.0
-                elif con.groundwaterdepth[k] < (der.soildepth[k] + grenz):
-                    flu.potentialcapillaryrise[k] = 5.0
-                else:
-                    flu.potentialcapillaryrise[k] = (
-                        5.0
-                        * (der.soildepth[k] + schwell - con.groundwaterdepth[k])
-                        / (schwell - grenz)
-                    )
-            else:
-                flu.potentialcapillaryrise[k] = 0.0
-
-
 class Calc_CapillaryRise_V1(modeltools.Method):
     """
 
     >>> from hydpy.models.whmod import *
-    >>> parameterstep()
+    >>> simulationstep("1d")
+    >>> parameterstep("1d")
     >>> nmbzones(7)
     >>> landtype(GRAS, GRAS, GRAS, GRAS, GRAS, SEALED, WATER)
-    >>> capillaryrise(True)
+    >>> withcapillaryrise(True)
+    >>> derived.potentialcapillaryrise(2.0)
     >>> factors.relativesoilmoisture(0.0, 0.25, 0.5, 0.75, 1.0, 0.0, 0.0)
-    >>> fluxes.potentialcapillaryrise(2.0)
     >>> model.calc_capillaryrise_v1()
     >>> fluxes.capillaryrise
     capillaryrise(2.0, 0.84375, 0.25, 0.03125, 0.0, 0.0, 0.0)
 
-    >>> capillaryrise(False)
+    >>> withcapillaryrise(False)
     >>> model.calc_capillaryrise_v1()
     >>> fluxes.capillaryrise
     capillaryrise(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
@@ -706,10 +557,10 @@ class Calc_CapillaryRise_V1(modeltools.Method):
     CONTROLPARAMETERS = (
         whmod_control.NmbZones,
         whmod_control.LandType,
-        whmod_control.CapillaryRise,
+        whmod_control.WithCapillaryRise,
     )
+    DERIVEDPARAMETERS = (whmod_derived.PotentialCapillaryRise,)
     REQUIREDSEQUENCES = (
-        whmod_fluxes.PotentialCapillaryRise,
         whmod_factors.RelativeSoilMoisture,
     )
     RESULTSEQUENCES = (whmod_fluxes.CapillaryRise,)
@@ -717,12 +568,13 @@ class Calc_CapillaryRise_V1(modeltools.Method):
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            if con.capillaryrise and (con.landtype[k] not in (SEALED, WATER)):
+            if con.withcapillaryrise and (con.landtype[k] not in (SEALED, WATER)):
                 flu.capillaryrise[k] = (
-                    flu.potentialcapillaryrise[k]
+                    der.potentialcapillaryrise[k]
                     * (1.0 - fac.relativesoilmoisture[k]) ** 3
                 )
             else:
@@ -1137,7 +989,6 @@ class Model(modeltools.AdHocModel):
         Calc_Percolation_V1,
         Calc_SoilEvapotranspiration_V1,
         Calc_TotalEvapotranspiration_V1,
-        Calc_PotentialCapillaryRise_V1,
         Calc_CapillaryRise_V1,
         Calc_SoilMoisture_V1,
         Calc_PotentialRecharge_V1,

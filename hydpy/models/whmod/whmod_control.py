@@ -12,6 +12,7 @@ import numpy
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import exceptiontools
+from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.models.whmod.whmod_constants import *
 from hydpy.models.whmod import whmod_constants
@@ -72,48 +73,107 @@ class NmbZones(parametertools.Parameter):
                         var.shape = new
 
 
-class ZoneArea(whmod_parameters.NutzCompleteParameter):
+class ZoneArea(whmod_parameters.LandTypeCompleteParameter):
     """Zone area [m²]."""
 
-    SPAN = (0.0, None)
+    TIME, SPAN = None, (0.0, None)
 
 
 class LandType(parametertools.NameParameter):
     """Land cover type [-]."""
 
-    constants = whmod_constants.LANDUSE_CONSTANTS
+    constants = whmod_constants.LANDTYPE_CONSTANTS
 
 
 class SoilType(parametertools.NameParameter):
-    """Soil type [-]."""
+    """Soil type [-].
 
-    constants = whmod_constants.SOIL_CONSTANTS
-    mask = whmod_masks.NutzBoden()
+    >>> from hydpy.models.whmod import *
+    >>> parameterstep()
+    >>> nmbzones(9)
+    >>> landtype(GRAS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
+    ...          SEALED, WATER)
+    >>> soiltype(SAND, SAND_COHESIVE, LOAM, CLAY, SILT, PEAT, SAND, NONE, NONE)
+    >>> soiltype
+    soiltype(SAND, SAND_COHESIVE, LOAM, CLAY, SILT, PEAT, SAND, NONE, NONE)
+    >>> soiltype(SAND, SAND_COHESIVE, LOAM, CLAY, SILT, PEAT, NONE, NONE, NONE)
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to set the values of parameter `soiltype` of element `?`, \
+the following error occurred: The soil type of land type(s) SUGARBEETS must not be NONE.
+
+    >>> soiltype
+    soiltype(?)
+
+
+    >>> soiltype(SAND, SAND_COHESIVE, LOAM, CLAY, SILT, PEAT, SAND, SAND, SAND)
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to set the values of parameter `soiltype` of element `?`, \
+the following error occurred: The soil type of land type(s) SEALED and WATER must be \
+NONE.
+
+    >>> soiltype
+    soiltype(?)
+
+
+
+    """
+
+    constants = whmod_constants.SOILTYPE_CONSTANTS
+    mask = whmod_masks.LandTypeSoil()
+
+    def __call__(self, *args, **kwargs) -> None:
+
+        def _make_names() -> str:
+            value2name = whmod_constants.LANDTYPE_CONSTANTS.value2name
+            return objecttools.enumeration([value2name[l] for l in landtype[jdxs]])
+
+        try:
+            super().__call__(*args, **kwargs)
+            landtype = self.subpars.landtype.values
+            should_be_soil = (landtype != SEALED) * (landtype != WATER)
+            is_soil = self.values != NONE
+            if numpy.any(jdxs := should_be_soil * ~is_soil):
+                self._valueready = False
+                raise ValueError(
+                    f"The soil type of land type(s) {_make_names()} must not be NONE."
+                )
+            if numpy.any(jdxs := ~should_be_soil * is_soil):
+                self._valueready = False
+                raise ValueError(
+                    f"The soil type of land type(s) {_make_names()} must be NONE."
+                )
+        except BaseException:
+            objecttools.augment_excmessage(
+                "While trying to set the values of parameter "
+                f"{objecttools.elementphrase(self)}"
+            )
 
 
 class InterceptionCapacity(whmod_parameters.LanduseMonthParameter):
     """Maximum interception storage [mm]."""
 
 
-class DegreeDayFactor(whmod_parameters.NutzBodenParameter):
+class DegreeDayFactor(whmod_parameters.LandTypeNonWaterParameter):
     """Degree day factor for snow melting [mm/T/K]."""
-
-    TIME , SPAN= True, (0.0, None)
-
-
-class AvailableFieldCapacity(whmod_parameters.NutzBodenParameter):
-    """Maximum relative soil moisture content [-]."""
 
     TIME, SPAN = True, (0.0, None)
 
 
-class RootingDepth(whmod_parameters.NutzBodenParameter):
+class AvailableFieldCapacity(whmod_parameters.SoilTypeParameter):
+    """Maximum relative soil moisture content [-]."""
+
+    TIME, SPAN = None, (0.0, None)
+
+
+class RootingDepth(whmod_parameters.LandTypeSoilParameter):
     """Maximum rooting depth [m]."""
 
     TIME, SPAN = None, (0.0, None)
 
 
-class GroundwaterDepth(whmod_parameters.NutzBodenParameter):
+class GroundwaterDepth(whmod_parameters.SoilTypeParameter):
     """Average groundwater depth [m]."""
 
     TIME, SPAN = None, (0.0, None)
@@ -125,22 +185,22 @@ class WithCapillaryRise(parametertools.Parameter):
     NDIM, TYPE, TIME = 0, bool, None
 
 
-class CapillaryThreshold(whmod_parameters.BodenCompleteParameter):
+class CapillaryThreshold(whmod_parameters.SoilTypeParameter):
     """[-]"""
 
-    SPAN = (0.0, None)
+    TIME, SPAN = None, (0.0, None)
 
 
-class CapillaryLimit(whmod_parameters.BodenCompleteParameter):
+class CapillaryLimit(whmod_parameters.SoilTypeParameter):
     """[-]"""
 
-    SPAN = (0.0, None)
+    TIME, SPAN = None, (0.0, None)
 
 
-class BaseflowIndex(whmod_parameters.NutzLandParameter):
+class BaseflowIndex(whmod_parameters.LandTypeGroundwaterParameter):
     """Baseflow index [-]."""
 
-    SPAN = (0.0, None)
+    TIME, SPAN = None, (0.0, 1.0)
 
 
 class RechargeDelay(parametertools.Parameter):
@@ -149,4 +209,4 @@ class RechargeDelay(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
 
-whmod_parameters.BodenCompleteParameter.CONTROLPARAMETERS = (NmbZones, SoilType)  # ToDo
+whmod_parameters.SoilTypeParameter.CONTROLPARAMETERS = (NmbZones, SoilType)

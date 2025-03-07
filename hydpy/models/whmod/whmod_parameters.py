@@ -12,8 +12,10 @@ from hydpy.models.whmod import whmod_control
 from hydpy.models.whmod import whmod_masks
 
 
-class NutzBaseParameter(parametertools.ZipParameter):
-    NDIM, TYPE = 1, float
+class LandTypeBaseParameter(parametertools.ZipParameter):
+    TYPE = float
+
+    constants = whmod_constants.LANDTYPE_CONSTANTS
 
     @property
     def shapeparameter(self):
@@ -24,52 +26,126 @@ class NutzBaseParameter(parametertools.ZipParameter):
         return self.subpars.pars.control.zonearea
 
 
-class NutzCompleteParameter(NutzBaseParameter):
+class LandTypeCompleteParameter(LandTypeBaseParameter):
+    """
 
-    constants = parametertools.Constants(
-        **{
-            key: value
-            for key, value in whmod_constants.LANDUSE_CONSTANTS.items()
-            if value in whmod_masks.NutzComplete.relevant
-        }
-    )
-    mask = whmod_masks.NutzComplete()
+    >>> from hydpy.models.whmod import *
+    >>> parameterstep()
+    >>> nmbzones(9)
+    >>> landtype(GRAS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
+    ...          SEALED, WATER)
+    >>> zonearea(gras=1.0, decidious=2.0, corn=3.0, conifer=4.0, springwheat=5.0,
+    ...          winterwheat=6.0, sugarbeets=7.0, sealed=8.0, water=9.0)
+    >>> zonearea
+    zonearea(conifer=4.0, corn=3.0, decidious=2.0, gras=1.0, sealed=8.0,
+             springwheat=5.0, sugarbeets=7.0, water=9.0, winterwheat=6.0)
+    >>> from hydpy import round_
+    >>> round_(zonearea.average_values())
+    6.333333
+    """
 
-
-class NutzLandParameter(NutzBaseParameter):
-
-    constants = parametertools.Constants(
-        **{
-            key: value
-            for key, value in whmod_constants.LANDUSE_CONSTANTS.items()
-            if value in whmod_masks.NutzLand.relevant
-        }
-    )
-    mask = whmod_masks.NutzLand()
+    mask = whmod_masks.LandTypeComplete()
 
 
-class NutzBodenParameter(NutzBaseParameter):
+class LandTypeNonWaterParameter(LandTypeBaseParameter):
+    """
 
-    constants = parametertools.Constants(
-        **{
-            key: value
-            for key, value in whmod_constants.LANDUSE_CONSTANTS.items()
-            if value in whmod_masks.NutzBoden.relevant
-        }
-    )
-    mask = whmod_masks.NutzBoden()
+    >>> from hydpy.models.whmod import *
+    >>> simulationstep("1d")
+    >>> parameterstep("1d")
+    >>> nmbzones(9)
+    >>> landtype(GRAS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
+    ...          SEALED, WATER)
+    >>> degreedayfactor(gras=1.0, decidious=2.0, corn=3.0, conifer=4.0, springwheat=5.0,
+    ...                 winterwheat=6.0, sugarbeets=7.0, sealed=8.0)
+    >>> degreedayfactor
+    degreedayfactor(conifer=4.0, corn=3.0, decidious=2.0, gras=1.0,
+                    sealed=8.0, springwheat=5.0, sugarbeets=7.0,
+                    winterwheat=6.0)
+    >>> zonearea(0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.9)
+    >>> from hydpy import round_
+    >>> round_(degreedayfactor.average_values())
+    3.333333
+    """
+
+    mask = whmod_masks.LandTypeNonWater()
 
 
-class BodenCompleteParameter(parametertools.ZipParameter):
-    NDIM, TYPE, TIME = 1, float, None
+class LandTypeGroundwaterParameter(LandTypeBaseParameter):
+    """
+
+    >>> from hydpy.models.whmod import *
+    >>> parameterstep()
+    >>> nmbzones(9)
+    >>> landtype(GRAS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
+    ...          WATER, SEALED)
+    >>> baseflowindex(gras=0.1, decidious=0.2, corn=0.3, conifer=0.4, springwheat=0.5,
+    ...               winterwheat=0.6, sugarbeets=0.7, water=0.8)
+    >>> baseflowindex
+    baseflowindex(conifer=0.4, corn=0.3, decidious=0.2, gras=0.1,
+                  springwheat=0.5, sugarbeets=0.7, water=0.8,
+                  winterwheat=0.6)
+    >>> zonearea(8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 9.0)
+    >>> from hydpy import round_
+    >>> round_(baseflowindex.average_values())
+    0.333333
+    """
+
+    mask = whmod_masks.LandTypeGroundwater()
+
+
+class LandTypeSoilParameter(LandTypeBaseParameter):
+    """
+
+    >>> from hydpy.models.whmod import *
+    >>> parameterstep()
+    >>> nmbzones(9)
+    >>> landtype(GRAS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
+    ...          WATER, SEALED)
+    >>> rootingdepth(gras=0.1, decidious=0.2, corn=0.3, conifer=0.4, springwheat=0.5,
+    ...              winterwheat=0.6, sugarbeets=0.7)
+    >>> rootingdepth
+    rootingdepth(conifer=0.4, corn=0.3, decidious=0.2, gras=0.1,
+                 springwheat=0.5, sugarbeets=0.7, winterwheat=0.6)
+    >>> zonearea(7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 8.0, 9.0)
+    >>> from hydpy import round_
+    >>> round_(rootingdepth.average_values())
+    0.3
+    """
+
+    mask = whmod_masks.LandTypeSoil()
+
+
+class SoilTypeParameter(parametertools.ZipParameter):
+    """
+
+    >>> from hydpy.models.whmod import *
+    >>> parameterstep()
+    >>> nmbzones(7)
+    >>> landtype(GRAS, GRAS, GRAS, GRAS, GRAS, GRAS, SEALED)
+    >>> soiltype(SAND, SAND_COHESIVE, LOAM, CLAY, SILT, PEAT, NONE)
+    >>> availablefieldcapacity(
+    ...     sand=0.1, sand_cohesive=0.2, loam=0.3, clay=0.4, silt=0.5, peat=0.6
+    ... )
+    >>> availablefieldcapacity
+    availablefieldcapacity(clay=0.4, loam=0.3, peat=0.6, sand=0.1,
+                           sand_cohesive=0.2, silt=0.5)
+    >>> area(30.0)
+    >>> zonearea(6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 9.0)
+    >>> from hydpy import round_
+    >>> round_(availablefieldcapacity.average_values())
+    0.266667
+    """
+
+    TYPE = float
 
     # defined at the bottom of the file:
     CONTROLPARAMETERS: ClassVar[
         tuple[type[whmod_control.NmbZones], type[whmod_control.SoilType]]
     ]
 
-    constants = whmod_constants.SOIL_CONSTANTS
-    mask = whmod_masks.BodenComplete()
+    constants = whmod_constants.SOILTYPE_CONSTANTS
+    mask = whmod_masks.SoilTypeComplete()
 
     @property
     def shapeparameter(self):
@@ -80,33 +156,15 @@ class BodenCompleteParameter(parametertools.ZipParameter):
         return self.subpars.pars.control.zonearea
 
 
-class ForestMonthParameter(parametertools.KeywordParameter2D):
-    TYPE, TIME, SPAN = float, None, (0.0, None)
-    columnnames = (
-        "jan",
-        "feb",
-        "mar",
-        "apr",
-        "mai",
-        "jun",
-        "jul",
-        "aug",
-        "sep",
-        "oct",
-        "nov",
-        "dec",
-    )
-    rownames = ("decidious", "conifer")
-
-
 class LanduseMonthParameter(parametertools.KeywordParameter2D):
+
     TYPE, TIME, SPAN = float, None, (0.0, None)
     columnnames = (
         "jan",
         "feb",
         "mar",
         "apr",
-        "mai",
+        "may",
         "jun",
         "jul",
         "aug",

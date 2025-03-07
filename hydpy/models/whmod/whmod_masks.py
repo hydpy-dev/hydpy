@@ -7,10 +7,19 @@ from hydpy.core import masktools
 from hydpy.core import parametertools
 
 # ...from hland
+from hydpy.models.whmod import whmod_constants
 from hydpy.models.whmod.whmod_constants import *
 
 
-class NutzBase(masktools.IndexMask):
+def _exclude(*args):
+    return tuple(
+        value
+        for (key, value) in whmod_constants.LANDTYPE_CONSTANTS.items()
+        if value not in args
+    )
+
+
+class LandTypeBase(masktools.IndexMask):
     """Nutzungsbasisklasse"""
 
     @staticmethod
@@ -18,128 +27,153 @@ class NutzBase(masktools.IndexMask):
         return variable.subvars.vars.model.parameters.control.landtype
 
 
-class NutzComplete(NutzBase):
+class LandTypeComplete(LandTypeBase):
     """Alle Nutzungsklassen"""
 
-    relevant: tuple[parametertools.IntConstant, ...] = (
-        GRAS,
-        DECIDIOUS,
-        CORN,
-        CONIFER,
-        SPRINGWHEAT,
-        WINTERWHEAT,
-        SUGARBEETS,
-        SEALED,
-        WATER,
-    )
+    relevant: _exclude()
 
 
-class NutzLand(NutzBase):
+class LandTypeNonWater(LandTypeBase):
     """Land Nutzungsklassen"""
 
-    relevant: tuple[parametertools.IntConstant, ...] = (
-        GRAS,
-        DECIDIOUS,
-        CORN,
-        CONIFER,
-        SPRINGWHEAT,
-        WINTERWHEAT,
-        SUGARBEETS,
-        SEALED,
-    )
+    relevant: _exclude(WATER)
 
 
-class NutzBoden(NutzBase):
+class LandTypeGroundwater(LandTypeBase):
+    """Land Nutzungsklassen"""
+
+    relevant: _exclude(SEALED)
+
+
+class LandTypeSoil(LandTypeBase):
     """Boden Nutzungsklassen"""
 
-    relevant: tuple[parametertools.IntConstant, ...] = (
-        GRAS,
-        DECIDIOUS,
-        CORN,
-        CONIFER,
-        SPRINGWHEAT,
-        WINTERWHEAT,
-        SUGARBEETS,
-    )
+    relevant: _exclude(SEALED, WATER)
 
 
-class NutzGras(NutzBase):
+class LandTypeGras(LandTypeBase):
     """Gras Nutzungsklasse"""
 
     relevant = (GRAS,)
 
 
-class NutzLaubwald(NutzBase):
+class LandTypeDecidious(LandTypeBase):
     """Laubwald Nutzungsklasse"""
 
     relevant = (DECIDIOUS,)
 
 
-class NutzMais(NutzBase):
+class LandTypeCorn(LandTypeBase):
     """Mais Nutzungsklasse"""
 
     relevant = (CORN,)
 
 
-class NutzNadelwald(NutzBase):
+class LandTypeConifer(LandTypeBase):
     """Nadelwald Nutzungsklasse"""
 
     relevant = (CONIFER,)
 
 
-class NutzSommerweizen(NutzBase):
+class LandTypeSpringWheat(LandTypeBase):
     """Sommerweizen Nutzungsklasse"""
 
     relevant = (SPRINGWHEAT,)
 
 
-class NutzWinterweizen(NutzBase):
+class LandTypeWinterWheat(LandTypeBase):
     """Winterweizen Nutzungsklasse"""
 
     relevant = (WINTERWHEAT,)
 
 
-class NutzZuckerrueben(NutzBase):
+class LandTypeSugarbeets(LandTypeBase):
     """Zuckerrüben Nutzungsklasse"""
 
     relevant = (SUGARBEETS,)
 
 
-class NutzVersiegelt(NutzBase):
+class LandTypeSealed(LandTypeBase):
     """Versiegelt Nutzungsklasse"""
 
     relevant = (SEALED,)
 
 
-class NutzWasser(NutzBase):
+class LandTypeWater(LandTypeBase):
     """Wasser Nutzungsklasse"""
 
     relevant = (WATER,)
 
 
-class BodenComplete(masktools.IndexMask):
+class SoilTypeBase(masktools.IndexMask):
     """Bodenklassen"""
-
-    relevant = (SAND, SAND_COHESIVE, LOAM, CLAY, SILT, PEAT)
 
     @staticmethod
     def get_refindices(variable):
         return variable.subvars.vars.model.parameters.control.soiltype
 
 
+class SoilTypeComplete(SoilTypeBase):
+    """Bodenklassen"""
+
+    relevant = (SAND, SAND_COHESIVE, LOAM, CLAY, SILT, PEAT)
+
+
+class SoilTypeSand(SoilTypeBase):
+    """Bodenklassen"""
+
+    relevant = (SAND,)
+
+
+class SoilTypeSandCohesive(SoilTypeBase):
+    """Bodenklassen"""
+
+    relevant = (SAND_COHESIVE,)
+
+
+class SoilTypeLoam(SoilTypeBase):
+    """Bodenklassen"""
+
+    relevant = (LOAM,)
+
+
+class SoilTypeClay(SoilTypeBase):
+    """Bodenklassen"""
+
+    relevant = (CLAY,)
+
+
+class SoilTypeSilt(SoilTypeBase):
+    """Bodenklassen"""
+
+    relevant = (SILT,)
+
+
+class SoilTypePeat(SoilTypeBase):
+    """Bodenklassen"""
+
+    relevant = (PEAT,)
+
+
 class Masks(masktools.Masks):
     CLASSES = (
-        NutzComplete,
-        NutzLand,
-        NutzBoden,
-        NutzGras,
-        NutzLaubwald,
-        NutzMais,
-        NutzNadelwald,
-        NutzSommerweizen,
-        NutzWinterweizen,
-        NutzZuckerrueben,
-        NutzVersiegelt,
-        NutzWasser,
-        BodenComplete,
+        LandTypeComplete,
+        LandTypeNonWater,
+        LandTypeSoil,
+        LandTypeGras,
+        LandTypeDecidious,
+        LandTypeCorn,
+        LandTypeConifer,
+        LandTypeSpringWheat,
+        LandTypeWinterWheat,
+        LandTypeSugarbeets,
+        LandTypeSealed,
+        LandTypeWater,
+        SoilTypeComplete,
+        SoilTypeSand,
+        SoilTypeSandCohesive,
+        SoilTypeLoam,
+        SoilTypeClay,
+        SoilTypeSilt,
+        SoilTypePeat,
     )

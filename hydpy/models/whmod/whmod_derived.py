@@ -19,10 +19,10 @@ class MOY(parametertools.MOYParameter):
     """References the "global" month of the year index array [-]."""
 
 
-class ZoneRatio(whmod_parameters.NutzCompleteParameter):
+class ZoneRatio(whmod_parameters.LandTypeCompleteParameter):
     """[-]"""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    TIME, SPAN = None, (0.0, 1.0)
 
     CONTROLPARAMETERS = (whmod_control.Area, whmod_control.ZoneArea)
 
@@ -43,10 +43,10 @@ class ZoneRatio(whmod_parameters.NutzCompleteParameter):
         self(control.zonearea / control.area)
 
 
-class SoilDepth(whmod_parameters.NutzBodenParameter):
+class SoilDepth(whmod_parameters.SoilTypeParameter):
     """[m]"""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    TIME, SPAN = None, (0.0, None)
 
     CONTROLPARAMETERS = (whmod_control.RootingDepth, whmod_control.GroundwaterDepth)
 
@@ -67,12 +67,15 @@ class SoilDepth(whmod_parameters.NutzBodenParameter):
         self(numpy.clip(control.rootingdepth, None, control.groundwaterdepth.values))
 
 
-class MaxSoilWater(whmod_parameters.NutzBodenParameter):
+class MaxSoilWater(whmod_parameters.SoilTypeParameter):
     """[mm]"""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    TIME, SPAN = None, (0.0, None)
 
-    CONTROLPARAMETERS = (whmod_control.AvailableFieldCapacity,)
+    CONTROLPARAMETERS = (
+        whmod_control.AvailableFieldCapacity,
+        whmod_control.RootingDepth,
+    )
     DERIVEDPARAMETERS = (SoilDepth,)
 
     def update(self):
@@ -94,8 +97,8 @@ class MaxSoilWater(whmod_parameters.NutzBodenParameter):
         self(1000.0 * availablefieldcapacity * numpy.clip(soildepth, 0.3, None))
 
 
-class Beta(whmod_parameters.NutzBodenParameter):
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+class Beta(whmod_parameters.SoilTypeParameter):
+    TIME, SPAN = None, (0.0, None)
 
     CONTROLPARAMETERS = (whmod_control.LandType,)
     DERIVEDPARAMETERS = (MaxSoilWater,)
@@ -157,16 +160,17 @@ class Beta(whmod_parameters.NutzBodenParameter):
         self.values[idxs4] = 1.0 + 6.0 / (1 + (maxsoilwater[idxs4] / 118.25) ** -6.5)
 
 
-class PotentialCapillaryRise(whmod_parameters.NutzBodenParameter):
+class PotentialCapillaryRise(whmod_parameters.SoilTypeParameter):
     """Potential capillary rise [mm/T]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, None)
+    TIME, SPAN = True, (0.0, None)
 
     CONTROLPARAMETERS = (
         whmod_control.LandType,
         whmod_control.SoilType,
         whmod_control.CapillaryThreshold,
         whmod_control.CapillaryLimit,
+        whmod_control.RootingDepth,
         whmod_control.GroundwaterDepth,
     )
     DERIVEDPARAMETERS = (SoilDepth,)
@@ -179,25 +183,25 @@ class PotentialCapillaryRise(whmod_parameters.NutzBodenParameter):
         >>> parameterstep("1d")
         >>> nmbzones(7)
         >>> landtype(GRAS, GRAS, GRAS, GRAS, GRAS, WATER, SEALED)
-        >>> soiltype(SAND, SAND, SAND, SAND, SAND, INT_NAN, INT_NAN)
+        >>> soiltype(SAND, SAND, SAND, SAND, SAND, NONE, NONE)
         >>> capillarythreshold(sand=0.8)
         >>> capillarylimit(sand=0.4)
         >>> derived.soildepth(sand=1.0)
         >>> groundwaterdepth(1.2, 1.4, 1.6, 1.8, 2.0, nan, nan)
         >>> derived.potentialcapillaryrise.update()
         >>> derived.potentialcapillaryrise
+        potentialcapillaryrise(5.0, 5.0, 2.5, 0.0, 0.0, nan, nan)
         """
-        con = model.parameters.control
-        idxs = (con.landtype == SEALED) * (con.landtype == WATER)
-        flu.potentialcapillaryrise[idxs] = 0.0
-        idxs = ~idxs
-        flu.potentialcapillaryrise[idxs] = 5.0 * numpy.clip(
+        control = self.subpars.pars.control
+        self.values = numpy.nan
+        idxs = control.soiltype.values != NONE
+        self.values[idxs] = 5.0 * numpy.clip(
             (
-                model.parameters.derived.soildepth[idxs]
-                + con.capillarythreshold[idxs]
-                - con.groundwaterdepth[idxs]
+                self.subpars.soildepth[idxs]
+                + control.capillarythreshold[idxs]
+                - control.groundwaterdepth[idxs]
             )
-            / (con.capillarythreshold[idxs] - con.capillarylimit[idxs]),
+            / (control.capillarythreshold[idxs] - control.capillarylimit[idxs]),
             0.0,
             1.0,
         )

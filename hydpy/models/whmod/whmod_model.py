@@ -560,9 +560,7 @@ class Calc_CapillaryRise_V1(modeltools.Method):
         whmod_control.WithCapillaryRise,
     )
     DERIVEDPARAMETERS = (whmod_derived.PotentialCapillaryRise,)
-    REQUIREDSEQUENCES = (
-        whmod_factors.RelativeSoilMoisture,
-    )
+    REQUIREDSEQUENCES = (whmod_factors.RelativeSoilMoisture,)
     RESULTSEQUENCES = (whmod_fluxes.CapillaryRise,)
 
     @staticmethod
@@ -1023,9 +1021,9 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         aetinterfaces.AETModel_V1.prepare_tree,
         aetinterfaces.AETModel_V1.prepare_conifer,
         aetinterfaces.AETModel_V1.prepare_maxsoilwater,
-        landtype_constants=whmod_constants.LANDUSE_CONSTANTS,
+        landtype_constants=whmod_constants.LANDTYPE_CONSTANTS,
         landtype_refindices=whmod_control.LandType,
-        soiltype_constants=whmod_constants.SOIL_CONSTANTS,
+        soiltype_constants=whmod_constants.SOILTYPE_CONSTANTS,
         soiltype_refindices=whmod_control.SoilType,
         refweights=whmod_control.ZoneArea,
     )

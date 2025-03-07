@@ -25,13 +25,14 @@ LOAM = parametertools.IntConstant(12)
 CLAY = parametertools.IntConstant(13)
 SILT = parametertools.IntConstant(14)
 PEAT = parametertools.IntConstant(15)
+NONE = parametertools.IntConstant(16)
 
 
 CONSTANTS: parametertools.Constants = parametertools.Constants()
-LANDUSE_CONSTANTS: parametertools.Constants = parametertools.Constants(
+LANDTYPE_CONSTANTS: parametertools.Constants = parametertools.Constants(
     **{key: value for key, value in CONSTANTS.items() if value <= WATER}
 )
-SOIL_CONSTANTS: parametertools.Constants = parametertools.Constants(
+SOILTYPE_CONSTANTS: parametertools.Constants = parametertools.Constants(
     **{key: value for key, value in CONSTANTS.items() if value >= SAND}
 )
 
@@ -52,4 +53,5 @@ __all__ = [
     "CLAY",
     "SILT",
     "PEAT",
+    "NONE",
 ]

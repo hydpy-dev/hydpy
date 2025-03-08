@@ -180,19 +180,19 @@ class GroundwaterDepth(whmod_parameters.SoilTypeParameter):
 
 
 class WithCapillaryRise(parametertools.Parameter):
-    """Flag to enable/disable capillary rise [-]."""
+    """Flag to turn on/off capillary rise [-]."""
 
     NDIM, TYPE, TIME = 0, bool, None
 
 
 class CapillaryThreshold(whmod_parameters.SoilTypeParameter):
-    """[-]"""
+    """Relative soil moisture where the capillary rise starts [-]."""
 
     TIME, SPAN = None, (0.0, None)
 
 
 class CapillaryLimit(whmod_parameters.SoilTypeParameter):
-    """[-]"""
+    """Relative soil moisture where the capillary rise reaches its maximum [-]."""
 
     TIME, SPAN = None, (0.0, None)
 
@@ -204,7 +204,7 @@ class BaseflowIndex(whmod_parameters.LandTypeGroundwaterParameter):
 
 
 class RechargeDelay(parametertools.Parameter):
-    """Schwerpunktlaufzeit [T]."""
+    """Delay between soil percolation and groundwater recharge [T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 

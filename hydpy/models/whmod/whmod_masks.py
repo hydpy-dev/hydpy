@@ -30,25 +30,25 @@ class LandTypeBase(masktools.IndexMask):
 class LandTypeComplete(LandTypeBase):
     """Alle Nutzungsklassen"""
 
-    relevant: _exclude()
+    relevant = _exclude()
 
 
 class LandTypeNonWater(LandTypeBase):
     """Land Nutzungsklassen"""
 
-    relevant: _exclude(WATER)
+    relevant = _exclude(WATER)
 
 
 class LandTypeGroundwater(LandTypeBase):
     """Land Nutzungsklassen"""
 
-    relevant: _exclude(SEALED)
+    relevant = _exclude(SEALED)
 
 
 class LandTypeSoil(LandTypeBase):
     """Boden Nutzungsklassen"""
 
-    relevant: _exclude(SEALED, WATER)
+    relevant = _exclude(SEALED, WATER)
 
 
 class LandTypeGras(LandTypeBase):

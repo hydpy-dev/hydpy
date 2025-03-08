@@ -272,14 +272,14 @@ class Calc_SurfaceRunoff_V1(modeltools.Method):
     >>> parameterstep()
     >>> nmbzones(3)
     >>> landtype(SEALED, WATER, GRAS)
-    >>> fluxes.throughfall = 3.0
+    >>> fluxes.ponding = 3.0
     >>> model.calc_surfacerunoff_v1()
     >>> fluxes.surfacerunoff
     surfacerunoff(3.0, 0.0, 0.0)
     """
 
     CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
-    REQUIREDSEQUENCES = (whmod_fluxes.Throughfall,)
+    REQUIREDSEQUENCES = (whmod_fluxes.Ponding,)
     RESULTSEQUENCES = (whmod_fluxes.SurfaceRunoff,)
 
     @staticmethod
@@ -288,7 +288,7 @@ class Calc_SurfaceRunoff_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
             if con.landtype[k] == SEALED:
-                flu.surfacerunoff[k] = flu.throughfall[k]
+                flu.surfacerunoff[k] = flu.ponding[k]
             else:
                 flu.surfacerunoff[k] = 0.0
 
@@ -308,11 +308,10 @@ class Calc_Ponding_V1(modeltools.Method):
     >>> test = UnitTest(
     ...     model, model.calc_ponding_v1,
     ...     last_example=6,
-    ...     parseqs=(inputs.temperature,
-    ...              states.snowpack,
-    ...              fluxes.ponding))
+    ...     parseqs=(inputs.temperature, states.snowpack, fluxes.ponding)
+    ... )
     >>> test.nexts.temperature = range(-1, 6)
-    >>> test.inits.snowpack = (0.0, 10.0)
+    >>> test.inits.snowpack = 0.0, 10.0
     >>> test()
     | ex. | temperature |      snowpack |      ponding |
     ----------------------------------------------------
@@ -330,7 +329,7 @@ class Calc_Ponding_V1(modeltools.Method):
     >>> states.snowpack
     snowpack(0.0, 0.0)
     >>> fluxes.ponding
-    ponding(0.0, 0.0)
+    ponding(7.0, 0.0)
     """
 
     CONTROLPARAMETERS = (
@@ -349,14 +348,14 @@ class Calc_Ponding_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
-            if con.landtype[k] in (SEALED, WATER):
+            if con.landtype[k] in (WATER,):
                 sta.snowpack[k] = 0.0
                 flu.ponding[k] = 0.0
             elif inp.temperature > 0.0:
-                maxschneeschmelze: float = con.degreedayfactor[k] * inp.temperature
-                schneeschmelze: float = min(sta.snowpack[k], maxschneeschmelze)
-                sta.snowpack[k] -= schneeschmelze
-                flu.ponding[k] = flu.throughfall[k] + schneeschmelze
+                potmelt: float = con.degreedayfactor[k] * inp.temperature  # ToDo
+                melt: float = min(sta.snowpack[k], potmelt)  # ToDo
+                sta.snowpack[k] -= melt
+                flu.ponding[k] = flu.throughfall[k] + melt
             else:
                 sta.snowpack[k] += flu.throughfall[k]
                 flu.ponding[k] = 0.0

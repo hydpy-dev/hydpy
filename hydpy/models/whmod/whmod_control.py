@@ -207,5 +207,3 @@ class RechargeDelay(parametertools.Parameter):
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
 
-
-whmod_parameters.SoilTypeParameter.CONTROLPARAMETERS = (NmbZones, SoilType)

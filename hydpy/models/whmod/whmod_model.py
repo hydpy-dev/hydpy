@@ -293,7 +293,6 @@ class Calc_SurfaceRunoff_V1(modeltools.Method):
                 flu.surfacerunoff[k] = 0.0
 
 
-
 class Calc_PotentialSnowmelt_V1(modeltools.Method):
     """
 
@@ -342,7 +341,6 @@ class Calc_PotentialSnowmelt_V1(modeltools.Method):
                 flu.potentialsnowmelt[k] = con.degreedayfactor[k] * inp.temperature
 
 
-
 class Calc_Snowmelt_Snowpack_V1(modeltools.Method):
     """
 
@@ -371,10 +369,7 @@ class Calc_Snowmelt_Snowpack_V1(modeltools.Method):
     snowpack(0.0, 1.0, nan)
     """
 
-    CONTROLPARAMETERS = (
-        whmod_control.NmbZones,
-        whmod_control.LandType,
-    )
+    CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
     REQUIREDSEQUENCES = (whmod_inputs.Temperature, whmod_fluxes.Throughfall)
     UPDATEDSEQUENCES = (whmod_states.Snowpack,)
     RESULTSEQUENCES = (whmod_fluxes.Snowmelt,)
@@ -422,11 +417,12 @@ class Calc_Ponding_V1(modeltools.Method):
     ponding(5.0, 5.0, nan)
     """
 
-    CONTROLPARAMETERS = (
-        whmod_control.NmbZones,
-        whmod_control.LandType,
+    CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
+    REQUIREDSEQUENCES = (
+        whmod_inputs.Temperature,
+        whmod_fluxes.Throughfall,
+        whmod_fluxes.Snowmelt,
     )
-    REQUIREDSEQUENCES = (whmod_inputs.Temperature, whmod_fluxes.Throughfall, whmod_fluxes.Snowmelt)
     RESULTSEQUENCES = (whmod_fluxes.Ponding,)
 
     @staticmethod

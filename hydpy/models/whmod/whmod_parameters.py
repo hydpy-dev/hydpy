@@ -13,21 +13,22 @@ from hydpy.models.whmod import whmod_masks
 
 
 class LandTypeBaseParameter(parametertools.ZipParameter):
+    """Base class for 1-dimensional land type-specific parameters."""
     TYPE = float
 
     constants = whmod_constants.LANDTYPE_CONSTANTS
 
     @property
-    def shapeparameter(self):
-        return self.subpars.pars.control.nmbzones
-
-    @property
     def refweights(self):
+        """Reference to the associated instance of |ZoneArea| for calculating areal
+        mean values."""
         return self.subpars.pars.control.zonearea
 
 
 class LandTypeCompleteParameter(LandTypeBaseParameter):
-    """
+    """Base class for 1-dimensional land type-specific parameters without restrictions.
+
+    We take parameter |ZoneArea| as an example:
 
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
@@ -48,7 +49,10 @@ class LandTypeCompleteParameter(LandTypeBaseParameter):
 
 
 class LandTypeNonWaterParameter(LandTypeBaseParameter):
-    """
+    """Base class for 1-dimensional land type-specific parameters that do not affect
+    water areas.
+
+    We take parameter |DegreeDayFactor| as an example:
 
     >>> from hydpy.models.whmod import *
     >>> simulationstep("1d")
@@ -72,7 +76,10 @@ class LandTypeNonWaterParameter(LandTypeBaseParameter):
 
 
 class LandTypeGroundwaterParameter(LandTypeBaseParameter):
-    """
+    """Base class for 1-dimensional land type-specific parameters that affect
+    groundwater recharge.
+
+    We take parameter |BaseflowIndex| as an example:
 
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
@@ -95,7 +102,10 @@ class LandTypeGroundwaterParameter(LandTypeBaseParameter):
 
 
 class LandTypeSoilParameter(LandTypeBaseParameter):
-    """
+    """Base class for 1-dimensional land type-specific parameters that affect soil
+    processes.
+
+    We take parameter |RootingDepth| as an example:
 
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
@@ -117,7 +127,9 @@ class LandTypeSoilParameter(LandTypeBaseParameter):
 
 
 class SoilTypeParameter(parametertools.ZipParameter):
-    """
+    """Base class for 1-dimensional soil type-specific parameters.
+
+    We take parameter |AvailableFieldCapacity| as an example:
 
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
@@ -139,48 +151,19 @@ class SoilTypeParameter(parametertools.ZipParameter):
 
     TYPE = float
 
-    # defined at the bottom of the file:
-    CONTROLPARAMETERS: ClassVar[
-        tuple[type[whmod_control.NmbZones], type[whmod_control.SoilType]]
-    ]
-
     constants = whmod_constants.SOILTYPE_CONSTANTS
     mask = whmod_masks.SoilTypeComplete()
 
     @property
-    def shapeparameter(self):
-        return self.subpars.pars.control.nmbzones
-
-    @property
     def refweights(self):
+        """Reference to the associated instance of |ZoneArea| for calculating areal
+        mean values."""
         return self.subpars.pars.control.zonearea
 
 
 class LanduseMonthParameter(parametertools.KeywordParameter2D):
+    """Base class for month- and land type-specific parameters."""
 
     TYPE, TIME, SPAN = float, None, (0.0, None)
-    columnnames = (
-        "jan",
-        "feb",
-        "mar",
-        "apr",
-        "may",
-        "jun",
-        "jul",
-        "aug",
-        "sep",
-        "oct",
-        "nov",
-        "dec",
-    )
-    rownames = (
-        "gras",
-        "decidious",
-        "corn",
-        "conifer",
-        "springwheat",
-        "winterwheat",
-        "sugarbeets",
-        "sealed",
-        "water",
-    )
+    columnnames = parametertools.MonthParameter.entrynames
+    rownames = whmod_constants.LANDTYPE_CONSTANTS.sortednames

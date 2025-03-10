@@ -27,9 +27,9 @@ _______
 >>> landtype(GRASS)
 >>> soiltype(SAND)
 >>> zonearea(10.0)
->>> interceptioncapacity.gras_feb = 0.4
->>> interceptioncapacity.gras_mar = 0.6
->>> interceptioncapacity.gras_apr = 0.8
+>>> interceptioncapacity.grass_feb = 0.4
+>>> interceptioncapacity.grass_mar = 0.6
+>>> interceptioncapacity.grass_apr = 0.8
 >>> degreedayfactor(4.5)
 >>> availablefieldcapacity(0.2)
 >>> groundwaterdepth(1.0)
@@ -45,7 +45,7 @@ _______
 ...     dissefactor(grass=4.0, decidious=6.0, corn=3.0, conifer=6.0, springwheat=6.0,
 ...                 winterwheat=6.0)
 ...     with model.add_petmodel_v1("evap_pet_mlc"):
-...         landmonthfactor.gras = 1.0
+...         landmonthfactor.grass = 1.0
 ...         dampingfactor(1.0)
 ...         with model.add_retmodel_v1("evap_ret_io"):
 ...             evapotranspirationfactor(1.0)

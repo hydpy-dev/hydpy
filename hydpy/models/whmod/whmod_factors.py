@@ -9,4 +9,4 @@ from hydpy.models.whmod import whmod_sequences
 
 
 class RelativeSoilMoisture(whmod_sequences.Factor1DSequence):
-    """[-]"""
+    """Crop-available relative soil water content [-]."""

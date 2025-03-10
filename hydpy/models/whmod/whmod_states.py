@@ -8,18 +8,18 @@ from hydpy.models.whmod import whmod_sequences
 
 
 class InterceptedWater(whmod_sequences.State1DSequence):
-    """[mm]"""
+    """Interception storage water content [mm]."""
 
 
 class Snowpack(whmod_sequences.State1DSequence):
-    """[mm]"""
+    """Snow layer's total water content [mm]."""
 
 
 class SoilMoisture(whmod_sequences.State1DSequence):
-    """[mm]"""
+    """Crop-available soil water content [mm]."""
 
 
 class DeepWater(sequencetools.StateSequence):
-    """[mm]"""
+    """Amount of water that is (still) percolating through the vadose zone [mm]."""
 
     NDIM, NUMERIC, SPAN = 0, False, (None, None)

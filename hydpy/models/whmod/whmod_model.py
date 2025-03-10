@@ -293,43 +293,31 @@ class Calc_SurfaceRunoff_V1(modeltools.Method):
                 flu.surfacerunoff[k] = 0.0
 
 
-class Calc_Ponding_V1(modeltools.Method):
-    """Berechnung Bestandsniederschlag.
+
+class Calc_PotentialSnowmelt_V1(modeltools.Method):
+    """
 
     >>> from hydpy.models.whmod import *
     >>> parameterstep("1d")
     >>> simulationstep("1d")
-    >>> nmbzones(2)
-    >>> landtype(GRAS, GRAS)
-    >>> degreedayfactor(4.5)
-    >>> fluxes.throughfall = 3.0
+    >>> nmbzones(3)
+    >>> landtype(GRAS, SEALED, WATER)
+    >>> degreedayfactor(gras=3.0, sealed=4.0)
 
-    >>> from hydpy import UnitTest
-    >>> test = UnitTest(
-    ...     model, model.calc_ponding_v1,
-    ...     last_example=6,
-    ...     parseqs=(inputs.temperature, states.snowpack, fluxes.ponding)
-    ... )
-    >>> test.nexts.temperature = range(-1, 6)
-    >>> test.inits.snowpack = 0.0, 10.0
-    >>> test()
-    | ex. | temperature |      snowpack |      ponding |
-    ----------------------------------------------------
-    |   1 |        -1.0 | 3.0      13.0 | 0.0      0.0 |
-    |   2 |         0.0 | 3.0      13.0 | 0.0      0.0 |
-    |   3 |         1.0 | 0.0       5.5 | 3.0      7.5 |
-    |   4 |         2.0 | 0.0       1.0 | 3.0     12.0 |
-    |   5 |         3.0 | 0.0       0.0 | 3.0     13.0 |
-    |   6 |         4.0 | 0.0       0.0 | 3.0     13.0 |
+    >>> inputs.temperature = -2.0
+    >>> model.calc_potentialsnowmelt_v1()
+    >>> fluxes.potentialsnowmelt
+    potentialsnowmelt(0.0, 0.0, nan)
 
-    >>> landtype(SEALED, WATER)
-    >>> states.snowpack = 5.0
-    >>> fluxes.throughfall = 2.0
-    >>> model.calc_ponding_v1()
-    >>> states.snowpack
-    snowpack(0.0, 0.0)
-    >>> fluxes.ponding
-    ponding(7.0, 0.0)
+    >>> inputs.temperature = 0.0
+    >>> model.calc_potentialsnowmelt_v1()
+    >>> fluxes.potentialsnowmelt
+    potentialsnowmelt(0.0, 0.0, nan)
+
+    >>> inputs.temperature = 2.0
+    >>> model.calc_potentialsnowmelt_v1()
+    >>> fluxes.potentialsnowmelt
+    potentialsnowmelt(6.0, 8.0, nan)
     """
 
     CONTROLPARAMETERS = (
@@ -337,9 +325,59 @@ class Calc_Ponding_V1(modeltools.Method):
         whmod_control.LandType,
         whmod_control.DegreeDayFactor,
     )
+    REQUIREDSEQUENCES = (whmod_inputs.Temperature,)
+    RESULTSEQUENCES = (whmod_fluxes.PotentialSnowmelt,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbzones):
+            if con.landtype[k] == WATER:
+                flu.potentialsnowmelt[k] = numpy.nan
+            elif inp.temperature <= 0.0:
+                flu.potentialsnowmelt[k] = 0.0
+            else:
+                flu.potentialsnowmelt[k] = con.degreedayfactor[k] * inp.temperature
+
+
+
+class Calc_Snowmelt_Snowpack_V1(modeltools.Method):
+    """
+
+    >>> from hydpy.models.whmod import *
+    >>> parameterstep("1d")
+    >>> simulationstep("1d")
+    >>> nmbzones(3)
+    >>> landtype(GRAS, SEALED, WATER)
+    >>> fluxes.throughfall = 1.0
+
+    >>> inputs.temperature = 0.0
+    >>> states.snowpack = 0.0, 2.0, 0.0
+    >>> model.calc_snowmelt_snowpack_v1()
+    >>> fluxes.snowmelt
+    snowmelt(0.0, 0.0, nan)
+    >>> states.snowpack
+    snowpack(1.0, 3.0, nan)
+
+    >>> inputs.temperature = 1.0
+    >>> states.snowpack = 0.0, 3.0, 0.0
+    >>> fluxes.potentialsnowmelt = 2.0
+    >>> model.calc_snowmelt_snowpack_v1()
+    >>> fluxes.snowmelt
+    snowmelt(0.0, 2.0, nan)
+    >>> states.snowpack
+    snowpack(0.0, 1.0, nan)
+    """
+
+    CONTROLPARAMETERS = (
+        whmod_control.NmbZones,
+        whmod_control.LandType,
+    )
     REQUIREDSEQUENCES = (whmod_inputs.Temperature, whmod_fluxes.Throughfall)
     UPDATEDSEQUENCES = (whmod_states.Snowpack,)
-    RESULTSEQUENCES = (whmod_fluxes.Ponding,)
+    RESULTSEQUENCES = (whmod_fluxes.Snowmelt,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -348,16 +386,60 @@ class Calc_Ponding_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
-            if con.landtype[k] in (WATER,):
-                sta.snowpack[k] = 0.0
-                flu.ponding[k] = 0.0
-            elif inp.temperature > 0.0:
-                potmelt: float = con.degreedayfactor[k] * inp.temperature  # ToDo
-                melt: float = min(sta.snowpack[k], potmelt)  # ToDo
-                sta.snowpack[k] -= melt
-                flu.ponding[k] = flu.throughfall[k] + melt
-            else:
+            if con.landtype[k] == WATER:
+                flu.snowmelt[k] = numpy.nan
+                sta.snowpack[k] = numpy.nan
+            elif inp.temperature <= 0.0:
+                flu.snowmelt[k] = 0.0
                 sta.snowpack[k] += flu.throughfall[k]
+            elif flu.potentialsnowmelt[k] < sta.snowpack[k]:
+                flu.snowmelt[k] = flu.potentialsnowmelt[k]
+                sta.snowpack[k] -= flu.snowmelt[k]
+            else:
+                flu.snowmelt[k] = sta.snowpack[k]
+                sta.snowpack[k] = 0.0
+
+
+class Calc_Ponding_V1(modeltools.Method):
+    """Berechnung Bestandsniederschlag.
+
+    >>> from hydpy.models.whmod import *
+    >>> parameterstep("1d")
+    >>> simulationstep("1d")
+    >>> nmbzones(3)
+    >>> landtype(GRAS, SEALED, WATER)
+
+    >>> inputs.temperature = 0.0
+    >>> model.calc_ponding_v1()
+    >>> fluxes.ponding
+    ponding(0.0, 0.0, nan)
+
+    >>> inputs.temperature = 1.0
+    >>> fluxes.throughfall = 2.0
+    >>> fluxes.snowmelt = 3.0
+    >>> model.calc_ponding_v1()
+    >>> fluxes.ponding
+    ponding(5.0, 5.0, nan)
+    """
+
+    CONTROLPARAMETERS = (
+        whmod_control.NmbZones,
+        whmod_control.LandType,
+    )
+    REQUIREDSEQUENCES = (whmod_inputs.Temperature, whmod_fluxes.Throughfall, whmod_fluxes.Snowmelt)
+    RESULTSEQUENCES = (whmod_fluxes.Ponding,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbzones):
+            if con.landtype[k] == WATER:
+                flu.ponding[k] = numpy.nan
+            elif inp.temperature > 0.0:
+                flu.ponding[k] = flu.throughfall[k] + flu.snowmelt[k]
+            else:
                 flu.ponding[k] = 0.0
 
 
@@ -980,6 +1062,8 @@ class Model(modeltools.AdHocModel):
         Calc_Throughfall_InterceptedWater_V1,
         Calc_InterceptionEvaporation_InterceptedWater_V1,
         Calc_LakeEvaporation_V1,
+        Calc_PotentialSnowmelt_V1,
+        Calc_Snowmelt_Snowpack_V1,
         Calc_SurfaceRunoff_V1,
         Calc_Ponding_V1,
         Calc_RelativeSoilMoisture_V1,

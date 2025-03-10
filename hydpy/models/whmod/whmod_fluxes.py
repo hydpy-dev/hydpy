@@ -8,11 +8,19 @@ from hydpy.models.whmod import whmod_sequences
 
 
 class InterceptionEvaporation(whmod_sequences.Flux1DSequence):
-    """[mm/T]"""
+    """Evaporation from the interception storage [mm/T]."""
 
 
 class Throughfall(whmod_sequences.Flux1DSequence):
-    """[mm/T]"""
+    """Precipitation, passing the interception storage [mm/T]."""
+
+
+class PotentialSnowmelt(whmod_sequences.Flux1DSequence):
+    """Potential snowmelt [mm/T]."""
+
+
+class Snowmelt(whmod_sequences.Flux1DSequence):
+    """Actual snowmelt [mm/T]."""
 
 
 class Ponding(whmod_sequences.Flux1DSequence):

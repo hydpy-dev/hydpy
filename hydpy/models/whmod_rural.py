@@ -33,16 +33,15 @@ _______
 >>> degreedayfactor(4.5)
 >>> availablefieldcapacity(0.2)
 >>> groundwaterdepth(1.0)
->>> rootingdepth(
-...     grass=0.5, decidious=1.5, corn=0.5, conifer=1.9, springwheat=0.6, winterwheat=0.6
-... )
+>>> rootingdepth(grass=0.5, deciduous=1.5, corn=0.5, conifer=1.9, springwheat=0.6,
+...              winterwheat=0.6)
 >>> capillarythreshold(sand=0.8)
 >>> capillarylimit(sand=0.4)
 >>> baseflowindex(0.8)
 >>> rechargedelay(5.0)
 
 >>> with model.add_aetmodel_v1("evap_aet_minhas"):
-...     dissefactor(grass=4.0, decidious=6.0, corn=3.0, conifer=6.0, springwheat=6.0,
+...     dissefactor(grass=4.0, deciduous=6.0, corn=3.0, conifer=6.0, springwheat=6.0,
 ...                 winterwheat=6.0)
 ...     with model.add_petmodel_v1("evap_pet_mlc"):
 ...         landmonthfactor.grass = 1.0

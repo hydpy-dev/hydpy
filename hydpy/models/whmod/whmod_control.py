@@ -90,7 +90,7 @@ class SoilType(parametertools.NameParameter):
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(9)
-    >>> landtype(GRASS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
+    >>> landtype(GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
     ...          SEALED, WATER)
     >>> soiltype(SAND, SAND_COHESIVE, LOAM, CLAY, SILT, PEAT, SAND, NONE, NONE)
     >>> soiltype

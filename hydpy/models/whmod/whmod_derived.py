@@ -57,7 +57,7 @@ class SoilDepth(whmod_parameters.SoilTypeParameter):
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
         >>> nmbzones(4)
-        >>> landtype(GRASS, DECIDIOUS, CONIFER, WATER)
+        >>> landtype(GRASS, DECIDUOUS, CONIFER, WATER)
         >>> soiltype(SAND, SILT, CLAY, NONE)
         >>> groundwaterdepth(1.0)
         >>> rootingdepth(0.5, 1.0, 1.5, 2.0)

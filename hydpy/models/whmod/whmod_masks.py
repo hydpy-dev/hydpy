@@ -60,7 +60,7 @@ class LandTypeGras(LandTypeBase):
 class LandTypeDecidious(LandTypeBase):
     """Laubwald Nutzungsklasse"""
 
-    relevant = (DECIDIOUS,)
+    relevant = (DECIDUOUS,)
 
 
 class LandTypeCorn(LandTypeBase):

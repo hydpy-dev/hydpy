@@ -39,9 +39,9 @@ class Calc_Throughfall_InterceptedWater_V1(modeltools.Method):
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(4)
-    >>> landtype(DECIDIOUS)
-    >>> interceptioncapacity.decidious_jun = 2.2
-    >>> interceptioncapacity.decidious_jul = 2.4
+    >>> landtype(DECIDUOUS)
+    >>> interceptioncapacity.deciduous_jun = 2.2
+    >>> interceptioncapacity.deciduous_jul = 2.4
 
     >>> from hydpy import pub
     >>> pub.timegrids = "2001-06-29", "2001-07-03", "1d"
@@ -112,7 +112,7 @@ class Calc_InterceptionEvaporation_InterceptedWater_AETModel_V1(modeltools.Metho
         >>> parameterstep("1h")
         >>> area(1.0)
         >>> nmbzones(5)
-        >>> landtype(GRASS, DECIDIOUS, CORN, SEALED, WATER)
+        >>> landtype(GRASS, DECIDUOUS, CORN, SEALED, WATER)
         >>> zonearea(0.05, 0.1, 0.2, 0.3, 0.35)
         >>> interceptioncapacity.jun = 3.0
         >>> derived.moy.shape = 1
@@ -216,7 +216,7 @@ class Calc_LakeEvaporation_AETModel_V1(modeltools.Method):
         >>> parameterstep("1h")
         >>> area(1.0)
         >>> nmbzones(5)
-        >>> landtype(GRASS, DECIDIOUS, CORN, SEALED, WATER)
+        >>> landtype(GRASS, DECIDUOUS, CORN, SEALED, WATER)
         >>> zonearea(0.05, 0.1, 0.2, 0.3, 0.35)
         >>> interceptioncapacity.jun = 3.0
         >>> derived.moy.shape = 1
@@ -446,7 +446,7 @@ class Calc_RelativeSoilMoisture_V1(modeltools.Method):
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(9)
-    >>> landtype(GRASS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT,
+    >>> landtype(GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT,
     ...         SUGARBEETS, SEALED, WATER)
     >>> derived.maxsoilwater(200.0)
     >>> states.soilmoisture(100.0)
@@ -480,7 +480,7 @@ class Calc_Percolation_V1(modeltools.Method):
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(9)
-    >>> landtype(GRASS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT,
+    >>> landtype(GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT,
     ...         SUGARBEETS, SEALED, WATER)
     >>> derived.beta(2.0)
     >>> fluxes.ponding(10.0)
@@ -522,7 +522,7 @@ class Calc_SoilEvapotranspiration_AETModel_V1(modeltools.Method):
         >>> parameterstep("1h")
         >>> area(1.0)
         >>> nmbzones(5)
-        >>> landtype(SEALED, GRASS, DECIDIOUS, CORN, WATER)
+        >>> landtype(SEALED, GRASS, DECIDUOUS, CORN, WATER)
         >>> zonearea(0.05, 0.1, 0.2, 0.3, 0.35)
         >>> availablefieldcapacity(0.1)
         >>> rootingdepth(1.0)
@@ -1122,7 +1122,7 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         >>> parameterstep()
         >>> nmbzones(5)
         >>> area(10.0)
-        >>> landtype(GRASS, DECIDIOUS, CONIFER, WATER, SEALED)
+        >>> landtype(GRASS, DECIDUOUS, CONIFER, WATER, SEALED)
         >>> zonearea(4.0, 1.0, 1.0, 1.0, 3.0)
         >>> availablefieldcapacity(0.2)
         >>> rootingdepth(1.0)
@@ -1133,16 +1133,16 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         ...     water
         ...     interception
         ...     soil
-        ...     dissefactor(grass=1.0, decidious=2.0, default=3.0)
+        ...     dissefactor(grass=1.0, deciduous=2.0, default=3.0)
         ...     for method, arguments in model.preparemethod2arguments.items():
         ...         print(method, arguments[0][0], sep=": ")
         nmbhru(5)
         area(10.0)
-        water(conifer=False, decidious=False, grass=False, sealed=False,
+        water(conifer=False, deciduous=False, grass=False, sealed=False,
               water=True)
-        interception(conifer=True, decidious=True, grass=True, sealed=True,
+        interception(conifer=True, deciduous=True, grass=True, sealed=True,
                      water=False)
-        soil(conifer=True, decidious=True, grass=True, sealed=False,
+        soil(conifer=True, deciduous=True, grass=True, sealed=False,
              water=False)
         prepare_nmbzones: 5
         prepare_zonetypes: [1 2 4 9 8]
@@ -1157,10 +1157,10 @@ class Main_AETModel_V1(modeltools.AdHocModel):
 
         >>> df = model.aetmodel.parameters.control.dissefactor
         >>> df
-        dissefactor(conifer=3.0, decidious=2.0, grass=1.0)
-        >>> landtype(DECIDIOUS, GRASS, CONIFER, WATER, SEALED)
+        dissefactor(conifer=3.0, deciduous=2.0, grass=1.0)
+        >>> landtype(DECIDUOUS, GRASS, CONIFER, WATER, SEALED)
         >>> df
-        dissefactor(conifer=3.0, decidious=1.0, grass=2.0)
+        dissefactor(conifer=3.0, deciduous=1.0, grass=2.0)
         >>> from hydpy import round_
         >>> round_(df.average_values())
         1.5
@@ -1185,7 +1185,7 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         sel[:] = False
         sel[landtype == CONIFER] = True
         aetmodel.prepare_conifer(sel)
-        sel[landtype == DECIDIOUS] = True
+        sel[landtype == DECIDUOUS] = True
         aetmodel.prepare_tree(sel)
 
         derived.soildepth.update()

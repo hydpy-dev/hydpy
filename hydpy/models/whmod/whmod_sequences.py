@@ -27,7 +27,7 @@ class Factor1DSoilSequence(Mixin1DSequence, sequencetools.FactorSequence):
     >>> from hydpy.models.whmod import *
     >>> parameterstep("1d")
     >>> nmbzones(9)
-    >>> landtype(GRASS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
+    >>> landtype(GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
     ...          SEALED, WATER)
     >>> zonearea(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
     >>> area(sum(zonearea))
@@ -49,7 +49,7 @@ class Flux1DCompleteSequence(Mixin1DSequence, sequencetools.FluxSequence):
     >>> from hydpy.models.whmod import *
     >>> parameterstep("1d")
     >>> nmbzones(9)
-    >>> landtype(GRASS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
+    >>> landtype(GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
     ...          SEALED, WATER)
     >>> zonearea(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
     >>> area(sum(zonearea))
@@ -71,7 +71,7 @@ class FluxSequence1DWaterSequence(Mixin1DSequence, sequencetools.FluxSequence):
     >>> from hydpy.models.whmod import *
     >>> parameterstep("1d")
     >>> nmbzones(10)
-    >>> landtype(GRASS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
+    >>> landtype(GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
     ...          SEALED, WATER, WATER)
     >>> zonearea(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 27.0)
     >>> area(sum(zonearea))
@@ -93,7 +93,7 @@ class Flux1DNonWaterSequence(Mixin1DSequence, sequencetools.FluxSequence):
     >>> from hydpy.models.whmod import *
     >>> parameterstep("1d")
     >>> nmbzones(9)
-    >>> landtype(GRASS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
+    >>> landtype(GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
     ...          SEALED, WATER)
     >>> zonearea(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
     >>> area(sum(zonearea))
@@ -115,7 +115,7 @@ class Flux1DSoilSequence(Mixin1DSequence, sequencetools.FluxSequence):
     >>> from hydpy.models.whmod import *
     >>> parameterstep("1d")
     >>> nmbzones(9)
-    >>> landtype(GRASS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
+    >>> landtype(GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
     ...          SEALED, WATER)
     >>> zonearea(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
     >>> area(sum(zonearea))
@@ -137,7 +137,7 @@ class Flux1DGroundwaterSequence(Mixin1DSequence, sequencetools.FluxSequence):
     >>> from hydpy.models.whmod import *
     >>> parameterstep("1d")
     >>> nmbzones(9)
-    >>> landtype(GRASS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
+    >>> landtype(GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
     ...          SEALED, WATER)
     >>> zonearea(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
     >>> area(sum(zonearea))
@@ -160,7 +160,7 @@ class State1DNonWaterSequence(Mixin1DSequence, sequencetools.StateSequence):
     >>> from hydpy.models.whmod import *
     >>> parameterstep("1d")
     >>> nmbzones(9)
-    >>> landtype(GRASS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
+    >>> landtype(GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
     ...          SEALED, WATER)
     >>> zonearea(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
     >>> area(sum(zonearea))
@@ -182,7 +182,7 @@ class State1DSoilSequence(Mixin1DSequence, sequencetools.StateSequence):
     >>> from hydpy.models.whmod import *
     >>> parameterstep("1d")
     >>> nmbzones(9)
-    >>> landtype(GRASS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
+    >>> landtype(GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
     ...          SEALED, WATER)
     >>> zonearea(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
     >>> area(sum(zonearea))

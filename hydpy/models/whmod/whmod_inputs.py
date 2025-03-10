@@ -7,12 +7,12 @@ from hydpy.core import sequencetools
 
 
 class Precipitation(sequencetools.InputSequence):
-    """[mm/T]"""
+    """Precipitation [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class Temperature(sequencetools.InputSequence):
-    """[°C]"""
+    """Air temperature [°C]."""
 
     NDIM, NUMERIC = 0, False

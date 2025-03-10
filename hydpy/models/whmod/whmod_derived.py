@@ -6,7 +6,7 @@
 import numpy
 
 # ...from HydPy
-from hydpy import pub
+import hydpy
 from hydpy.core import parametertools
 
 # ...from whmod
@@ -20,14 +20,15 @@ class MOY(parametertools.MOYParameter):
 
 
 class ZoneRatio(whmod_parameters.LandTypeCompleteParameter):
-    """[-]"""
+    """Relative zone area [-]."""
 
     TIME, SPAN = None, (0.0, 1.0)
 
     CONTROLPARAMETERS = (whmod_control.Area, whmod_control.ZoneArea)
 
     def update(self):
-        """
+        """Calculate the relative zone areas based on
+        :math:`ZoneRation = ZoneArea / Area`.
 
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
@@ -40,35 +41,38 @@ class ZoneRatio(whmod_parameters.LandTypeCompleteParameter):
         zoneratio(gras=0.2, sealed=0.5, water=0.3)
         """
         control = self.subpars.pars.control
-        self(control.zonearea / control.area)
+        self.values = control.zonearea / control.area
 
 
 class SoilDepth(whmod_parameters.SoilTypeParameter):
-    """[m]"""
+    """Effective soil depth [m]."""
 
     TIME, SPAN = None, (0.0, None)
 
     CONTROLPARAMETERS = (whmod_control.RootingDepth, whmod_control.GroundwaterDepth)
 
     def update(self):
-        """
+        """Calculate the effective soil depth
 
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
-        >>> nmbzones(5)
-        >>> landtype(GRAS, DECIDIOUS, CONIFER, WATER, SEALED)
+        >>> nmbzones(4)
+        >>> landtype(GRAS, DECIDIOUS, CONIFER, WATER)
+        >>> soiltype(SAND, SILT, CLAY, NONE)
         >>> groundwaterdepth(1.0)
-        >>> rootingdepth(0.5, 1.0, 1.5, 2.0, 2.0)
+        >>> rootingdepth(0.5, 1.0, 1.5, 2.0)
         >>> derived.soildepth.update()
         >>> derived.soildepth
-        soildepth(conifer=1.0, decidious=1.0, gras=0.5)
+        soildepth(clay=1.0, sand=0.5, silt=1.0)
         """
         control = self.subpars.pars.control
-        self(numpy.clip(control.rootingdepth, None, control.groundwaterdepth.values))
+        self.values = numpy.minimum(
+            control.rootingdepth.values, control.groundwaterdepth.values
+        )
 
 
 class MaxSoilWater(whmod_parameters.SoilTypeParameter):
-    """[mm]"""
+    """Maximum water content of the considered soil column [mm]."""
 
     TIME, SPAN = None, (0.0, None)
 
@@ -79,80 +83,66 @@ class MaxSoilWater(whmod_parameters.SoilTypeParameter):
     DERIVEDPARAMETERS = (SoilDepth,)
 
     def update(self):
-        """
+        r"""Calculate the maximum soil water content based on
+        :math:`1000 \cdot AvailableFieldCapacity \cdot max(SoilDepth, \, 0.3)`
 
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
         >>> nmbzones(7)
-        >>> landtype(GRAS, CORN, DECIDIOUS, CONIFER, SPRINGWHEAT, WATER, SEALED)
+        >>> landtype(GRAS, GRAS, GRAS, GRAS, GRAS, GRAS, SEALED)
+        >>> soiltype(SAND, SAND_COHESIVE, LOAM, CLAY, SILT, PEAT, NONE)
         >>> availablefieldcapacity(0.2)
-        >>> derived.soildepth(0.0, 0.2, 0.3, 0.4, 1.0, 1.0, 1.0)
+        >>> derived.soildepth(
+        ...     sand=0.0, sand_cohesive=0.2, loam=0.3, clay=0.4, silt=1.0, peat=1.0
+        ... )
         >>> derived.maxsoilwater.update()
         >>> derived.maxsoilwater
-        maxsoilwater(conifer=80.0, corn=60.0, decidious=60.0, gras=60.0,
-                     springwheat=200.0)
+        maxsoilwater(clay=80.0, loam=60.0, peat=200.0, sand=60.0,
+                     sand_cohesive=60.0, silt=200.0)
         """
         availablefieldcapacity = self.subpars.pars.control.availablefieldcapacity
         soildepth = self.subpars.soildepth
-        self(1000.0 * availablefieldcapacity * numpy.clip(soildepth, 0.3, None))
+        self(1000.0 * availablefieldcapacity * numpy.maximum(soildepth, 0.3))
 
 
 class Beta(whmod_parameters.SoilTypeParameter):
+    """Nonlinearity parameter for calculating percolation [-]."""
+
     TIME, SPAN = None, (0.0, None)
 
-    CONTROLPARAMETERS = (whmod_control.LandType,)
+    CONTROLPARAMETERS = (whmod_control.SoilType,)
     DERIVEDPARAMETERS = (MaxSoilWater,)
 
     def update(self):
-        """
+        r"""Calculate |Beta| based on
+        :math:`1 + \frac{6}{1 + (MaxSoilWater / 118.25)^{-6.5}}`
+        :cite:p:`Armbruster2002`.
 
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
-        >>> nmbzones(26)
-        >>> landtype(GRAS)
-        >>> derived.maxsoilwater(range(0, 260, 10))
+        >>> nmbzones(7)
+        >>> landtype(GRAS, GRAS, GRAS, GRAS, GRAS, GRAS, SEALED)
+        >>> soiltype(SAND, SAND_COHESIVE, LOAM, CLAY, SILT, PEAT, NONE)
+        >>> derived.maxsoilwater(
+        ...     sand=0.0, sand_cohesive=50.0, loam=100.0, clay=150.0, silt=200.0,
+        ...     peat=250.0
+        ... )
         >>> derived.beta.update()
-        >>> from hydpy import print_vector
-        >>> for values in zip(derived.maxsoilwater, derived.beta):
-        ...     print_vector(values)
-        0.0, 1.0
-        10.0, 1.000001
-        20.0, 1.000058
-        30.0, 1.000806
-        40.0, 1.005223
-        50.0, 1.022215
-        60.0, 1.072058
-        70.0, 1.192281
-        80.0, 1.438593
-        90.0, 1.869943
-        100.0, 2.510161
-        110.0, 3.307578
-        120.0, 4.143126
-        130.0, 4.895532
-        140.0, 5.498714
-        150.0, 5.945944
-        160.0, 6.262712
-        170.0, 6.48211
-        180.0, 6.632992
-        190.0, 6.736978
-        200.0, 6.809179
-        210.0, 6.859826
-        220.0, 6.895768
-        230.0, 6.921582
-        240.0, 6.940345
-        250.0, 6.954142
+        >>> derived.beta
+        beta(clay=5.945944, loam=2.510161, peat=6.954142, sand=1.0,
+             sand_cohesive=1.022215, silt=6.809179)
 
         >>> nmbzones(2)
         >>> landtype(WATER, SEALED)
+        >>> soiltype(NONE)
         >>> derived.maxsoilwater(100.0)
         >>> derived.beta.update()
         >>> derived.beta
         beta(nan)
         """
-        landtype = self.subpars.pars.control.landtype
         maxsoilwater = self.subpars.maxsoilwater
-        self(0.0)
-        idxs1 = (landtype.values != WATER) * (landtype.values != SEALED)
+        self.values = numpy.nan
+        idxs1 = self.subpars.pars.control.soiltype.values != NONE
         idxs2 = maxsoilwater.values <= 0.0
         idxs3 = idxs1 * idxs2
         self.values[idxs3] = 1.0
@@ -166,7 +156,6 @@ class PotentialCapillaryRise(whmod_parameters.SoilTypeParameter):
     TIME, SPAN = True, (0.0, None)
 
     CONTROLPARAMETERS = (
-        whmod_control.LandType,
         whmod_control.SoilType,
         whmod_control.CapillaryThreshold,
         whmod_control.CapillaryLimit,
@@ -176,14 +165,17 @@ class PotentialCapillaryRise(whmod_parameters.SoilTypeParameter):
     DERIVEDPARAMETERS = (SoilDepth,)
 
     def update(self):
-        """
+        r"""Calculate the potential capillary rise based on
+        :math:`5 \cdot Days \cdot
+        \frac{(GroundwaterDepth - SoilDepth) - CapillaryThreshold}
+        {CapillaryLimit - CapillaryThreshold}`.
 
         >>> from hydpy.models.whmod import *
-        >>> simulationstep("1d")
+        >>> simulationstep("1h")
         >>> parameterstep("1d")
         >>> nmbzones(7)
-        >>> landtype(GRAS, GRAS, GRAS, GRAS, GRAS, WATER, SEALED)
-        >>> soiltype(SAND, SAND, SAND, SAND, SAND, NONE, NONE)
+        >>> landtype(GRAS, GRAS, GRAS, GRAS, GRAS, GRAS, SEALED)
+        >>> soiltype(SAND, SAND, SAND, SAND, SAND, SAND, NONE)
         >>> capillarythreshold(sand=0.8)
         >>> capillarylimit(sand=0.4)
         >>> derived.soildepth(sand=1.0)
@@ -191,17 +183,33 @@ class PotentialCapillaryRise(whmod_parameters.SoilTypeParameter):
         >>> derived.potentialcapillaryrise.update()
         >>> derived.potentialcapillaryrise
         potentialcapillaryrise(5.0, 5.0, 2.5, 0.0, 0.0, nan, nan)
+        >>> from hydpy import print_vector
+        >>> print_vector(derived.potentialcapillaryrise.values)
+        0.208333, 0.208333, 0.104167, 0.0, 0.0, nan, nan
+
+        >>> capillarythreshold(sand=0.6)
+        >>> capillarylimit(sand=0.6)
+        >>> derived.potentialcapillaryrise.update()
+        >>> derived.potentialcapillaryrise
+        potentialcapillaryrise(5.0, 5.0, 0.0, 0.0, 0.0, nan, nan)
         """
-        control = self.subpars.pars.control
+
         self.values = numpy.nan
-        idxs = control.soiltype.values != NONE
-        self.values[idxs] = 5.0 * numpy.clip(
-            (
-                self.subpars.soildepth[idxs]
-                + control.capillarythreshold[idxs]
-                - control.groundwaterdepth[idxs]
+        values = self.values
+        maxrise = 5.0 * hydpy.pub.options.simulationstep.days
+        control = self.subpars.pars.control
+        for i, (soiltype, threshold, limit, delta) in enumerate(
+            zip(
+                control.soiltype.values,
+                control.capillarythreshold.values,
+                control.capillarylimit.values,
+                control.groundwaterdepth.values - self.subpars.soildepth.values,
             )
-            / (control.capillarythreshold[idxs] - control.capillarylimit[idxs]),
-            0.0,
-            1.0,
-        )
+        ):
+            if soiltype != None:
+                if delta >= threshold:
+                    values[i] = 0.0
+                elif delta <= limit:
+                    values[i] = maxrise
+                else:
+                    values[i] = maxrise * ((delta - threshold) / (limit - threshold))

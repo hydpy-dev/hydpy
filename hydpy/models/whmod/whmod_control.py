@@ -10,7 +10,6 @@ import itertools
 import numpy
 
 # ...from HydPy
-from hydpy import pub
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools

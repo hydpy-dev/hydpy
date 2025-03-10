@@ -24,48 +24,48 @@ class Snowmelt(whmod_sequences.Flux1DSequence):
 
 
 class Ponding(whmod_sequences.Flux1DSequence):
-    """[mm/T]"""
+    """Ponding on land surfaces [mm/T]."""
 
 
 class SurfaceRunoff(whmod_sequences.Flux1DSequence):
-    """[mm/T]"""
+    """Surface runoff [mm/T]."""
 
 
 class Percolation(whmod_sequences.Flux1DSequence):
-    """[mm/T]"""
+    """Percolation out of the soil storage [mm/T]."""
 
 
 class SoilEvapotranspiration(whmod_sequences.Flux1DSequence):
-    """[mm/T]"""
+    """Evapotranspiration from the soil storage [mm/T]."""
 
 
 class LakeEvaporation(whmod_sequences.Flux1DSequence):
-    """[mm/T]"""
+    """Evaporation from water areas [mm/T]."""
 
 
 class TotalEvapotranspiration(whmod_sequences.Flux1DSequence):
-    """[mm/T]"""
+    """Total evapotranspiration [mm/T]."""
 
 
 class CapillaryRise(whmod_sequences.Flux1DSequence):
-    """[mm/T]"""
+    """Capillary rise [mm/T]."""
 
 
 class PotentialRecharge(whmod_sequences.Flux1DSequence):
-    """[mm/T]"""
+    """Potential recharge [mm/T]."""
 
 
 class Baseflow(whmod_sequences.Flux1DSequence):
-    """[mm/T]"""
+    """Baseflow [mm/T]."""
 
 
 class ActualRecharge(sequencetools.FluxSequence):
-    """[mm/T]"""
+    """Actual recharge [mm/T]."""
 
     NDIM, NUMERIC = 0, False
 
 
 class DelayedRecharge(sequencetools.FluxSequence):
-    """[mm/T]"""
+    """Delayed recharge [mm/T]."""
 
     NDIM, NUMERIC = 0, False

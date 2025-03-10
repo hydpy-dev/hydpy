@@ -54,7 +54,7 @@ class LandTypeSoil(LandTypeBase):
 class LandTypeGras(LandTypeBase):
     """Gras Nutzungsklasse"""
 
-    relevant = (GRAS,)
+    relevant = (GRASS,)
 
 
 class LandTypeDecidious(LandTypeBase):

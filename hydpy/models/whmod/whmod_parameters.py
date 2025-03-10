@@ -33,12 +33,12 @@ class LandTypeCompleteParameter(LandTypeBaseParameter):
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(9)
-    >>> landtype(GRAS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
+    >>> landtype(GRASS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
     ...          SEALED, WATER)
-    >>> zonearea(gras=1.0, decidious=2.0, corn=3.0, conifer=4.0, springwheat=5.0,
+    >>> zonearea(grass=1.0, decidious=2.0, corn=3.0, conifer=4.0, springwheat=5.0,
     ...          winterwheat=6.0, sugarbeets=7.0, sealed=8.0, water=9.0)
     >>> zonearea
-    zonearea(conifer=4.0, corn=3.0, decidious=2.0, gras=1.0, sealed=8.0,
+    zonearea(conifer=4.0, corn=3.0, decidious=2.0, grass=1.0, sealed=8.0,
              springwheat=5.0, sugarbeets=7.0, water=9.0, winterwheat=6.0)
     >>> from hydpy import round_
     >>> round_(zonearea.average_values())
@@ -58,12 +58,12 @@ class LandTypeNonWaterParameter(LandTypeBaseParameter):
     >>> simulationstep("1d")
     >>> parameterstep("1d")
     >>> nmbzones(9)
-    >>> landtype(GRAS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
+    >>> landtype(GRASS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
     ...          SEALED, WATER)
-    >>> degreedayfactor(gras=1.0, decidious=2.0, corn=3.0, conifer=4.0, springwheat=5.0,
+    >>> degreedayfactor(grass=1.0, decidious=2.0, corn=3.0, conifer=4.0, springwheat=5.0,
     ...                 winterwheat=6.0, sugarbeets=7.0, sealed=8.0)
     >>> degreedayfactor
-    degreedayfactor(conifer=4.0, corn=3.0, decidious=2.0, gras=1.0,
+    degreedayfactor(conifer=4.0, corn=3.0, decidious=2.0, grass=1.0,
                     sealed=8.0, springwheat=5.0, sugarbeets=7.0,
                     winterwheat=6.0)
     >>> zonearea(0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.9)
@@ -84,12 +84,12 @@ class LandTypeGroundwaterParameter(LandTypeBaseParameter):
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(9)
-    >>> landtype(GRAS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
+    >>> landtype(GRASS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
     ...          WATER, SEALED)
-    >>> baseflowindex(gras=0.1, decidious=0.2, corn=0.3, conifer=0.4, springwheat=0.5,
+    >>> baseflowindex(grass=0.1, decidious=0.2, corn=0.3, conifer=0.4, springwheat=0.5,
     ...               winterwheat=0.6, sugarbeets=0.7, water=0.8)
     >>> baseflowindex
-    baseflowindex(conifer=0.4, corn=0.3, decidious=0.2, gras=0.1,
+    baseflowindex(conifer=0.4, corn=0.3, decidious=0.2, grass=0.1,
                   springwheat=0.5, sugarbeets=0.7, water=0.8,
                   winterwheat=0.6)
     >>> zonearea(8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 9.0)
@@ -110,12 +110,12 @@ class LandTypeSoilParameter(LandTypeBaseParameter):
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(9)
-    >>> landtype(GRAS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
+    >>> landtype(GRASS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
     ...          WATER, SEALED)
-    >>> rootingdepth(gras=0.1, decidious=0.2, corn=0.3, conifer=0.4, springwheat=0.5,
+    >>> rootingdepth(grass=0.1, decidious=0.2, corn=0.3, conifer=0.4, springwheat=0.5,
     ...              winterwheat=0.6, sugarbeets=0.7)
     >>> rootingdepth
-    rootingdepth(conifer=0.4, corn=0.3, decidious=0.2, gras=0.1,
+    rootingdepth(conifer=0.4, corn=0.3, decidious=0.2, grass=0.1,
                  springwheat=0.5, sugarbeets=0.7, winterwheat=0.6)
     >>> zonearea(7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 8.0, 9.0)
     >>> from hydpy import round_
@@ -134,7 +134,7 @@ class SoilTypeParameter(parametertools.ZipParameter):
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(7)
-    >>> landtype(GRAS, GRAS, GRAS, GRAS, GRAS, GRAS, SEALED)
+    >>> landtype(GRASS, GRASS, GRASS, GRASS, GRASS, GRASS, SEALED)
     >>> soiltype(SAND, SAND_COHESIVE, LOAM, CLAY, SILT, PEAT, NONE)
     >>> availablefieldcapacity(
     ...     sand=0.1, sand_cohesive=0.2, loam=0.3, clay=0.4, silt=0.5, peat=0.6

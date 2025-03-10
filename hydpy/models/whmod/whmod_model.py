@@ -33,7 +33,8 @@ from hydpy.models.whmod import whmod_states
 
 
 class Calc_Throughfall_InterceptedWater_V1(modeltools.Method):
-    """
+    """Calculate the interception storage's troughfall and the change in water content
+    based on the incoming precipitation.
 
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
@@ -111,7 +112,7 @@ class Calc_InterceptionEvaporation_InterceptedWater_AETModel_V1(modeltools.Metho
         >>> parameterstep("1h")
         >>> area(1.0)
         >>> nmbzones(5)
-        >>> landtype(GRAS, DECIDIOUS, CORN, SEALED, WATER)
+        >>> landtype(GRASS, DECIDIOUS, CORN, SEALED, WATER)
         >>> zonearea(0.05, 0.1, 0.2, 0.3, 0.35)
         >>> interceptioncapacity.jun = 3.0
         >>> derived.moy.shape = 1
@@ -215,7 +216,7 @@ class Calc_LakeEvaporation_AETModel_V1(modeltools.Method):
         >>> parameterstep("1h")
         >>> area(1.0)
         >>> nmbzones(5)
-        >>> landtype(GRAS, DECIDIOUS, CORN, SEALED, WATER)
+        >>> landtype(GRASS, DECIDIOUS, CORN, SEALED, WATER)
         >>> zonearea(0.05, 0.1, 0.2, 0.3, 0.35)
         >>> interceptioncapacity.jun = 3.0
         >>> derived.moy.shape = 1
@@ -271,7 +272,7 @@ class Calc_SurfaceRunoff_V1(modeltools.Method):
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(3)
-    >>> landtype(SEALED, WATER, GRAS)
+    >>> landtype(SEALED, WATER, GRASS)
     >>> fluxes.ponding = 3.0
     >>> model.calc_surfacerunoff_v1()
     >>> fluxes.surfacerunoff
@@ -300,8 +301,8 @@ class Calc_PotentialSnowmelt_V1(modeltools.Method):
     >>> parameterstep("1d")
     >>> simulationstep("1d")
     >>> nmbzones(3)
-    >>> landtype(GRAS, SEALED, WATER)
-    >>> degreedayfactor(gras=3.0, sealed=4.0)
+    >>> landtype(GRASS, SEALED, WATER)
+    >>> degreedayfactor(grass=3.0, sealed=4.0)
 
     >>> inputs.temperature = -2.0
     >>> model.calc_potentialsnowmelt_v1()
@@ -348,7 +349,7 @@ class Calc_Snowmelt_Snowpack_V1(modeltools.Method):
     >>> parameterstep("1d")
     >>> simulationstep("1d")
     >>> nmbzones(3)
-    >>> landtype(GRAS, SEALED, WATER)
+    >>> landtype(GRASS, SEALED, WATER)
     >>> fluxes.throughfall = 1.0
 
     >>> inputs.temperature = 0.0
@@ -402,7 +403,7 @@ class Calc_Ponding_V1(modeltools.Method):
     >>> parameterstep("1d")
     >>> simulationstep("1d")
     >>> nmbzones(3)
-    >>> landtype(GRAS, SEALED, WATER)
+    >>> landtype(GRASS, SEALED, WATER)
 
     >>> inputs.temperature = 0.0
     >>> model.calc_ponding_v1()
@@ -445,7 +446,7 @@ class Calc_RelativeSoilMoisture_V1(modeltools.Method):
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(9)
-    >>> landtype(GRAS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT,
+    >>> landtype(GRASS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT,
     ...         SUGARBEETS, SEALED, WATER)
     >>> derived.maxsoilwater(200.0)
     >>> states.soilmoisture(100.0)
@@ -479,7 +480,7 @@ class Calc_Percolation_V1(modeltools.Method):
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(9)
-    >>> landtype(GRAS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT,
+    >>> landtype(GRASS, DECIDIOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT,
     ...         SUGARBEETS, SEALED, WATER)
     >>> derived.beta(2.0)
     >>> fluxes.ponding(10.0)
@@ -521,7 +522,7 @@ class Calc_SoilEvapotranspiration_AETModel_V1(modeltools.Method):
         >>> parameterstep("1h")
         >>> area(1.0)
         >>> nmbzones(5)
-        >>> landtype(SEALED, GRAS, DECIDIOUS, CORN, WATER)
+        >>> landtype(SEALED, GRASS, DECIDIOUS, CORN, WATER)
         >>> zonearea(0.05, 0.1, 0.2, 0.3, 0.35)
         >>> availablefieldcapacity(0.1)
         >>> rootingdepth(1.0)
@@ -617,7 +618,7 @@ class Calc_CapillaryRise_V1(modeltools.Method):
     >>> simulationstep("1d")
     >>> parameterstep("1d")
     >>> nmbzones(7)
-    >>> landtype(GRAS, GRAS, GRAS, GRAS, GRAS, SEALED, WATER)
+    >>> landtype(GRASS, GRASS, GRASS, GRASS, GRASS, SEALED, WATER)
     >>> withcapillaryrise(True)
     >>> derived.potentialcapillaryrise(2.0)
     >>> factors.relativesoilmoisture(0.0, 0.25, 0.5, 0.75, 1.0, 0.0, 0.0)
@@ -662,7 +663,7 @@ class Calc_SoilMoisture_V1(modeltools.Method):
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(5)
-    >>> landtype(GRAS)
+    >>> landtype(GRASS)
     >>> derived.maxsoilwater(100.0)
     >>> fluxes.ponding(2.0)
     >>> fluxes.soilevapotranspiration(1.0)
@@ -728,7 +729,7 @@ class Calc_PotentialRecharge_V1(modeltools.Method):
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmbzones(3)
-    >>> landtype(GRAS, SEALED, WATER)
+    >>> landtype(GRASS, SEALED, WATER)
     >>> inputs.precipitation(7.0)
     >>> fluxes.percolation(2.0)
     >>> fluxes.capillaryrise(1.0)
@@ -1121,7 +1122,7 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         >>> parameterstep()
         >>> nmbzones(5)
         >>> area(10.0)
-        >>> landtype(GRAS, DECIDIOUS, CONIFER, WATER, SEALED)
+        >>> landtype(GRASS, DECIDIOUS, CONIFER, WATER, SEALED)
         >>> zonearea(4.0, 1.0, 1.0, 1.0, 3.0)
         >>> availablefieldcapacity(0.2)
         >>> rootingdepth(1.0)
@@ -1132,16 +1133,16 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         ...     water
         ...     interception
         ...     soil
-        ...     dissefactor(gras=1.0, decidious=2.0, default=3.0)
+        ...     dissefactor(grass=1.0, decidious=2.0, default=3.0)
         ...     for method, arguments in model.preparemethod2arguments.items():
         ...         print(method, arguments[0][0], sep=": ")
         nmbhru(5)
         area(10.0)
-        water(conifer=False, decidious=False, gras=False, sealed=False,
+        water(conifer=False, decidious=False, grass=False, sealed=False,
               water=True)
-        interception(conifer=True, decidious=True, gras=True, sealed=True,
+        interception(conifer=True, decidious=True, grass=True, sealed=True,
                      water=False)
-        soil(conifer=True, decidious=True, gras=True, sealed=False,
+        soil(conifer=True, decidious=True, grass=True, sealed=False,
              water=False)
         prepare_nmbzones: 5
         prepare_zonetypes: [1 2 4 9 8]
@@ -1156,10 +1157,10 @@ class Main_AETModel_V1(modeltools.AdHocModel):
 
         >>> df = model.aetmodel.parameters.control.dissefactor
         >>> df
-        dissefactor(conifer=3.0, decidious=2.0, gras=1.0)
-        >>> landtype(DECIDIOUS, GRAS, CONIFER, WATER, SEALED)
+        dissefactor(conifer=3.0, decidious=2.0, grass=1.0)
+        >>> landtype(DECIDIOUS, GRASS, CONIFER, WATER, SEALED)
         >>> df
-        dissefactor(conifer=3.0, decidious=1.0, gras=2.0)
+        dissefactor(conifer=3.0, decidious=1.0, grass=2.0)
         >>> from hydpy import round_
         >>> round_(df.average_values())
         1.5

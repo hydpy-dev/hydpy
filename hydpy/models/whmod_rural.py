@@ -24,7 +24,7 @@ _______
 >>> area(10.0)
 >>> nmbzones(1)
 >>> withcapillaryrise(True)
->>> landtype(GRAS)
+>>> landtype(GRASS)
 >>> soiltype(SAND)
 >>> zonearea(10.0)
 >>> interceptioncapacity.gras_feb = 0.4
@@ -34,7 +34,7 @@ _______
 >>> availablefieldcapacity(0.2)
 >>> groundwaterdepth(1.0)
 >>> rootingdepth(
-...     gras=0.5, decidious=1.5, corn=0.5, conifer=1.9, springwheat=0.6, winterwheat=0.6
+...     grass=0.5, decidious=1.5, corn=0.5, conifer=1.9, springwheat=0.6, winterwheat=0.6
 ... )
 >>> capillarythreshold(sand=0.8)
 >>> capillarylimit(sand=0.4)
@@ -42,7 +42,7 @@ _______
 >>> rechargedelay(5.0)
 
 >>> with model.add_aetmodel_v1("evap_aet_minhas"):
-...     dissefactor(gras=4.0, decidious=6.0, corn=3.0, conifer=6.0, springwheat=6.0,
+...     dissefactor(grass=4.0, decidious=6.0, corn=3.0, conifer=6.0, springwheat=6.0,
 ...                 winterwheat=6.0)
 ...     with model.add_petmodel_v1("evap_pet_mlc"):
 ...         landmonthfactor.gras = 1.0
@@ -314,7 +314,7 @@ ________
 
 >>> name2value = {par.name: par.value for par in control}
 >>> nmbzones(4)
->>> landtype(GRAS, CONIFER, WATER, SEALED)
+>>> landtype(GRASS, CONIFER, WATER, SEALED)
 >>> zonearea(2.5)
 >>> interceptioncapacity.conifer = 2.0
 >>> landmonthfactor.conifer = 1.335

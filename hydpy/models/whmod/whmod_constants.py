@@ -1,7 +1,7 @@
 from hydpy.core import parametertools
 
-GRAS = parametertools.IntConstant(1)
 """WHMod: 0"""
+GRASS = parametertools.IntConstant(1)
 DECIDIOUS = parametertools.IntConstant(2)
 """WHMod: 1"""
 CORN = parametertools.IntConstant(3)
@@ -38,7 +38,7 @@ SOILTYPE_CONSTANTS: parametertools.Constants = parametertools.Constants(
 
 # Make only the constants available on wildcard-imports.
 __all__ = [
-    "GRAS",
+    "GRASS",
     "DECIDIOUS",
     "CORN",
     "CONIFER",

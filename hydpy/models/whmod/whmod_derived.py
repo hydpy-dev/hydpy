@@ -33,12 +33,12 @@ class ZoneRatio(whmod_parameters.LandTypeCompleteParameter):
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
         >>> nmbzones(3)
-        >>> landtype(GRAS, WATER, SEALED)
+        >>> landtype(GRASS, WATER, SEALED)
         >>> area(100.0)
         >>> zonearea(20.0, 30.0, 50.0)
         >>> derived.zoneratio.update()
         >>> derived.zoneratio
-        zoneratio(gras=0.2, sealed=0.5, water=0.3)
+        zoneratio(grass=0.2, sealed=0.5, water=0.3)
         """
         control = self.subpars.pars.control
         self.values = control.zonearea / control.area
@@ -57,7 +57,7 @@ class SoilDepth(whmod_parameters.SoilTypeParameter):
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
         >>> nmbzones(4)
-        >>> landtype(GRAS, DECIDIOUS, CONIFER, WATER)
+        >>> landtype(GRASS, DECIDIOUS, CONIFER, WATER)
         >>> soiltype(SAND, SILT, CLAY, NONE)
         >>> groundwaterdepth(1.0)
         >>> rootingdepth(0.5, 1.0, 1.5, 2.0)
@@ -89,7 +89,7 @@ class MaxSoilWater(whmod_parameters.SoilTypeParameter):
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
         >>> nmbzones(7)
-        >>> landtype(GRAS, GRAS, GRAS, GRAS, GRAS, GRAS, SEALED)
+        >>> landtype(GRASS, GRASS, GRASS, GRASS, GRASS, GRASS, SEALED)
         >>> soiltype(SAND, SAND_COHESIVE, LOAM, CLAY, SILT, PEAT, NONE)
         >>> availablefieldcapacity(0.2)
         >>> derived.soildepth(
@@ -121,7 +121,7 @@ class Beta(whmod_parameters.SoilTypeParameter):
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
         >>> nmbzones(7)
-        >>> landtype(GRAS, GRAS, GRAS, GRAS, GRAS, GRAS, SEALED)
+        >>> landtype(GRASS, GRASS, GRASS, GRASS, GRASS, GRASS, SEALED)
         >>> soiltype(SAND, SAND_COHESIVE, LOAM, CLAY, SILT, PEAT, NONE)
         >>> derived.maxsoilwater(
         ...     sand=0.0, sand_cohesive=50.0, loam=100.0, clay=150.0, silt=200.0,
@@ -174,7 +174,7 @@ class PotentialCapillaryRise(whmod_parameters.SoilTypeParameter):
         >>> simulationstep("1h")
         >>> parameterstep("1d")
         >>> nmbzones(7)
-        >>> landtype(GRAS, GRAS, GRAS, GRAS, GRAS, GRAS, SEALED)
+        >>> landtype(GRASS, GRASS, GRASS, GRASS, GRASS, GRASS, SEALED)
         >>> soiltype(SAND, SAND, SAND, SAND, SAND, SAND, NONE)
         >>> capillarythreshold(sand=0.8)
         >>> capillarylimit(sand=0.4)

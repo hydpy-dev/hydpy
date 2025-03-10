@@ -7,15 +7,15 @@ from hydpy.core import sequencetools
 from hydpy.models.whmod import whmod_sequences
 
 
-class InterceptedWater(whmod_sequences.State1DSequence):
+class InterceptedWater(whmod_sequences.State1DNonWaterSequence):
     """Interception storage water content [mm]."""
 
 
-class Snowpack(whmod_sequences.State1DSequence):
+class Snowpack(whmod_sequences.State1DNonWaterSequence):
     """Snow layer's total water content [mm]."""
 
 
-class SoilMoisture(whmod_sequences.State1DSequence):
+class SoilMoisture(whmod_sequences.State1DSoilSequence):
     """Crop-available soil water content [mm]."""
 
 

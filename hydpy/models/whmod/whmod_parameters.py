@@ -20,7 +20,7 @@ class LandTypeBaseParameter(parametertools.ZipParameter):
 
     @property
     def refweights(self):
-        """Reference to the associated instance of |ZoneArea| for calculating areal
+        """Reference to the associated instance of |ZoneRatio| for calculating areal
         mean values."""
         return self.subpars.pars.control.zonearea
 
@@ -156,7 +156,7 @@ class SoilTypeParameter(parametertools.ZipParameter):
 
     @property
     def refweights(self):
-        """Reference to the associated instance of |ZoneArea| for calculating areal
+        """Reference to the associated instance of |ZoneRatio| for calculating areal
         mean values."""
         return self.subpars.pars.control.zonearea
 

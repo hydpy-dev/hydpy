@@ -33,36 +33,53 @@ from hydpy.models.whmod import whmod_states
 
 
 class Calc_Throughfall_InterceptedWater_V1(modeltools.Method):
-    """Calculate the interception storage's troughfall and the change in water content
-    based on the incoming precipitation.
+    r"""Calculate the interception storage's throughfall and change in water content due
+    to precipitation.
 
-    >>> from hydpy.models.whmod import *
-    >>> parameterstep()
-    >>> nmbzones(4)
-    >>> landtype(DECIDUOUS)
-    >>> interceptioncapacity.deciduous_jun = 2.2
-    >>> interceptioncapacity.deciduous_jul = 2.4
+    Basic equation:
+      .. math::
+        T = \begin{cases}
+        P &|\ I = C \\
+        0 &|\ I \leq C
+        \end{cases}
+        \\
+        I_{new} = I_{old} + P - I
+        \\ \\
+        T = Throughfall \\
+        P = Precipitation \\
+        I = InterceptedWater \\
+        C = InterceptionCapacity
 
-    >>> from hydpy import pub
-    >>> pub.timegrids = "2001-06-29", "2001-07-03", "1d"
-    >>> derived.moy.update()
+    Examples:
 
-    >>> inputs.precipitation = 1.0
-    >>> states.interceptedwater = 0.0, 1.0, 2.0, 2.2
-    >>> model.idx_sim = 1
-    >>> model.calc_throughfall_interceptedwater_v1()
-    >>> states.interceptedwater
-    interceptedwater(1.0, 2.0, 2.2, 2.2)
-    >>> fluxes.throughfall
-    throughfall(0.0, 0.0, 0.8, 1.0)
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmbzones(5)
+        >>> landtype(CORN, CORN, CORN, CORN, WATER)
+        >>> interceptioncapacity.corn_jun = 2.0
+        >>> interceptioncapacity.corn_jul = 2.5
 
-    >>> states.interceptedwater = 0.0, 1.0, 2.0, 2.4
-    >>> model.idx_sim = 2
-    >>> model.calc_throughfall_interceptedwater_v1()
-    >>> states.interceptedwater
-    interceptedwater(1.0, 2.0, 2.4, 2.4)
-    >>> fluxes.throughfall
-    throughfall(0.0, 0.0, 0.6, 1.0)
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2001-06-29", "2001-07-03", "1d"
+        >>> derived.moy.update()
+
+        >>> inputs.precipitation = 1.0
+        >>> states.interceptedwater = 0.0, 1.0, 2.0, 3.0, nan
+        >>> model.idx_sim = 1
+        >>> model.calc_throughfall_interceptedwater_v1()
+        >>> states.interceptedwater
+        interceptedwater(1.0, 2.0, 2.0, 2.0, 0.0)
+        >>> fluxes.throughfall
+        throughfall(0.0, 0.0, 1.0, 2.0, 0.0)
+
+        >>> inputs.precipitation = 0.0
+        >>> states.interceptedwater = 0.0, 1.0, 2.0, 3.0, nan
+        >>> model.idx_sim = 2
+        >>> model.calc_throughfall_interceptedwater_v1()
+        >>> states.interceptedwater
+        interceptedwater(0.0, 1.0, 2.0, 2.5, 0.0)
+        >>> fluxes.throughfall
+        throughfall(0.0, 0.0, 0.0, 0.5, 0.0)
     """
 
     CONTROLPARAMETERS = (
@@ -86,7 +103,7 @@ class Calc_Throughfall_InterceptedWater_V1(modeltools.Method):
         for k in range(con.nmbzones):
             if con.landtype[k] == WATER:
                 sta.interceptedwater[k] = 0.0
-                flu.throughfall[k] = inp.precipitation  # ToDo
+                flu.throughfall[k] = 0.0
             else:
                 ic: float = con.interceptioncapacity[con.landtype[k] - 1, month]
                 flu.throughfall[k] = max(
@@ -99,8 +116,14 @@ class Calc_InterceptionEvaporation_InterceptedWater_AETModel_V1(modeltools.Metho
     r"""Let a submodel that follows the |AETModel_V1| submodel interface calculate
     interception evaporation and adjust the amount of intercepted water.
 
-    Basic equation:
-      :math:`\frac{dIc_i}{dt} = -EI_i`  ToDo
+    Basic equations:
+      .. math::
+        E = get\_interceptionevaporation()
+        \\
+        I_{new} = I_{old} - E
+        \\ \\
+        I = InterceptedWater \\
+        E = InterceptionEvaporation
 
     Examples:
 
@@ -124,7 +147,6 @@ class Calc_InterceptionEvaporation_InterceptedWater_AETModel_V1(modeltools.Metho
         ...     with model.add_petmodel_v1("evap_ret_io"):
         ...         evapotranspirationfactor(0.6, 0.8, 1.0, 1.2, 1.4)
         ...         inputs.referenceevapotranspiration = 1.0
-
 
         |Calc_InterceptionEvaporation_InterceptedWater_AETModel_V1| uses the flux
         returned by the submodel to adjust |InterceptedWater|:
@@ -204,11 +226,12 @@ class Calc_LakeEvaporation_AETModel_V1(modeltools.Method):
     lake evaporation.
 
     Basic equation:
-      :math:`\frac{dIc_i}{dt} = -EI_i`  ToDo
+      .. math::
+        LakeEvaporation = get\_waterevaporation()
 
-    Examples:
+    Example:
 
-        We build an example based on |evap_aet_minhas| for calculating interception
+        We build an example based on |evap_aet_minhas| for calculating water
         evaporation, which uses |evap_ret_io| for querying potential
         evapotranspiration:
 
@@ -228,6 +251,10 @@ class Calc_LakeEvaporation_AETModel_V1(modeltools.Method):
         ...     with model.add_petmodel_v1("evap_ret_io"):
         ...         evapotranspirationfactor(0.6, 0.8, 1.0, 1.2, 1.4)
         ...         inputs.referenceevapotranspiration = 1.0
+
+        |Calc_LakeEvaporation_AETModel_V1| stores the flux returned by the submodel
+        without any modifications:
+
         >>> model.aetmodel.determine_interceptionevaporation()
         >>> model.calc_lakeevaporation_v1()
         >>> fluxes.lakeevaporation
@@ -251,7 +278,7 @@ class Calc_LakeEvaporation_AETModel_V1(modeltools.Method):
 
 class Calc_LakeEvaporation_V1(modeltools.Method):
     """Let a submodel that follows the |AETModel_V1| submodel interface calculate
-    interception evaporation and adjust the amount of intercepted water."""
+    lake evaporation."""
 
     SUBMODELINTERFACES = (aetinterfaces.AETModel_V1,)
     SUBMETHODS = (Calc_LakeEvaporation_AETModel_V1,)
@@ -266,17 +293,212 @@ class Calc_LakeEvaporation_V1(modeltools.Method):
             )
 
 
-class Calc_SurfaceRunoff_V1(modeltools.Method):
-    """Berechnung SurfaceRunoff.
+class Calc_PotentialSnowmelt_V1(modeltools.Method):
+    r"""Calculcate the potential snowmelt with the degree day method.
 
-    >>> from hydpy.models.whmod import *
-    >>> parameterstep()
-    >>> nmbzones(3)
-    >>> landtype(SEALED, WATER, GRASS)
-    >>> fluxes.ponding = 3.0
-    >>> model.calc_surfacerunoff_v1()
-    >>> fluxes.surfacerunoff
-    surfacerunoff(3.0, 0.0, 0.0)
+    Basic equation:
+      .. math::
+        P = \begin{cases}
+        0 &|\ T \leq 0 \\
+        D \cdot T &|\ T > 0
+        \end{cases}
+        \\ \\
+        P = PotentialSnowmelt \\
+        D = DegreeDayFactor \\
+        T = Temperature
+
+    Examples:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep("1d")
+        >>> simulationstep("1d")
+        >>> nmbzones(3)
+        >>> landtype(GRASS, SEALED, WATER)
+        >>> degreedayfactor(grass=3.0, sealed=4.0)
+
+        >>> inputs.temperature = -2.0
+        >>> model.calc_potentialsnowmelt_v1()
+        >>> fluxes.potentialsnowmelt
+        potentialsnowmelt(0.0, 0.0, 0.0)
+
+        >>> inputs.temperature = 0.0
+        >>> model.calc_potentialsnowmelt_v1()
+        >>> fluxes.potentialsnowmelt
+        potentialsnowmelt(0.0, 0.0, 0.0)
+
+        >>> inputs.temperature = 2.0
+        >>> model.calc_potentialsnowmelt_v1()
+        >>> fluxes.potentialsnowmelt
+        potentialsnowmelt(6.0, 8.0, 0.0)
+    """
+
+    CONTROLPARAMETERS = (
+        whmod_control.NmbZones,
+        whmod_control.LandType,
+        whmod_control.DegreeDayFactor,
+    )
+    REQUIREDSEQUENCES = (whmod_inputs.Temperature,)
+    RESULTSEQUENCES = (whmod_fluxes.PotentialSnowmelt,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbzones):
+            if (con.landtype[k] == WATER) or (inp.temperature <= 0.0):
+                flu.potentialsnowmelt[k] = 0.0
+            else:
+                flu.potentialsnowmelt[k] = con.degreedayfactor[k] * inp.temperature
+
+
+class Calc_Snowmelt_Snowpack_V1(modeltools.Method):
+    r"""Calculatethe actual snowmelt and update the snow's water content.
+
+    Basic equations:
+      .. math::
+        M = \begin{cases}
+        0 &|\ T \leq 0 \\
+        min(P, \, S_{old}) &|\ T > 0
+        \end{cases}
+        \\
+        S_{new} = \begin{cases}
+        S_{old} + F &|\ T \leq 0
+        \\
+        S_{old} - M &|\ T > 0
+        \end{cases}
+        \\ \\
+        M = Snowmelt \\
+        P = PotentialSnowmelt \\
+        S = SnowPack \\
+        T = Temperature \\
+        F = Throughfall
+
+    Examples:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep("1d")
+        >>> simulationstep("1d")
+        >>> nmbzones(3)
+        >>> landtype(GRASS, SEALED, WATER)
+        >>> fluxes.throughfall = 1.0
+
+        >>> inputs.temperature = 0.0
+        >>> states.snowpack = 0.0, 2.0, 0.0
+        >>> model.calc_snowmelt_snowpack_v1()
+        >>> fluxes.snowmelt
+        snowmelt(0.0, 0.0, 0.0)
+        >>> states.snowpack
+        snowpack(1.0, 3.0, 0.0)
+
+        >>> inputs.temperature = 1.0
+        >>> states.snowpack = 0.0, 3.0, 0.0
+        >>> fluxes.potentialsnowmelt = 2.0
+        >>> model.calc_snowmelt_snowpack_v1()
+        >>> fluxes.snowmelt
+        snowmelt(0.0, 2.0, 0.0)
+        >>> states.snowpack
+        snowpack(0.0, 1.0, 0.0)
+    """
+
+    CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
+    REQUIREDSEQUENCES = (whmod_inputs.Temperature, whmod_fluxes.Throughfall)
+    UPDATEDSEQUENCES = (whmod_states.Snowpack,)
+    RESULTSEQUENCES = (whmod_fluxes.Snowmelt,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nmbzones):
+            if con.landtype[k] == WATER:
+                flu.snowmelt[k] = 0.0
+                sta.snowpack[k] = 0.0
+            elif inp.temperature <= 0.0:
+                flu.snowmelt[k] = 0.0
+                sta.snowpack[k] += flu.throughfall[k]
+            elif flu.potentialsnowmelt[k] < sta.snowpack[k]:
+                flu.snowmelt[k] = flu.potentialsnowmelt[k]
+                sta.snowpack[k] -= flu.snowmelt[k]
+            else:
+                flu.snowmelt[k] = sta.snowpack[k]
+                sta.snowpack[k] = 0.0
+
+
+class Calc_Ponding_V1(modeltools.Method):
+    r"""Calculate the (potential) ponding of throughfall and snowmelt of land surfaces.
+
+    Basic equation:
+      .. math::
+        P = \begin{cases}
+        0 &|\ T \leq 0 \\
+        F + M &|\ T > 0
+        \end{cases}
+        \\ \\
+        P = Ponding \\
+        F = Throughfall \\
+        M = Snowmelt \\
+        T = Temperature
+
+    Examples:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmbzones(3)
+        >>> landtype(GRASS, SEALED, WATER)
+
+        >>> inputs.temperature = 0.0
+        >>> model.calc_ponding_v1()
+        >>> fluxes.ponding
+        ponding(0.0, 0.0, 0.0)
+
+        >>> inputs.temperature = 1.0
+        >>> fluxes.throughfall = 2.0
+        >>> fluxes.snowmelt = 3.0
+        >>> model.calc_ponding_v1()
+        >>> fluxes.ponding
+        ponding(5.0, 5.0, 0.0)
+    """
+
+    CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
+    REQUIREDSEQUENCES = (
+        whmod_inputs.Temperature,
+        whmod_fluxes.Throughfall,
+        whmod_fluxes.Snowmelt,
+    )
+    RESULTSEQUENCES = (whmod_fluxes.Ponding,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbzones):
+            if (con.landtype[k] == WATER) or (inp.temperature <= 0.0):
+                flu.ponding[k] = 0.0
+            else:
+                flu.ponding[k] = flu.throughfall[k] + flu.snowmelt[k]
+
+
+class Calc_SurfaceRunoff_V1(modeltools.Method):
+    """Calculate the surface runoff from sealed areas.
+
+    Basic equation:
+      .. math::
+        SurfaceRunoff = Ponding
+
+    Example:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmbzones(3)
+        >>> landtype(SEALED, WATER, GRASS)
+        >>> fluxes.ponding = 3.0
+        >>> model.calc_surfacerunoff_v1()
+        >>> fluxes.surfacerunoff
+        surfacerunoff(3.0, 0.0, 0.0)
     """
 
     CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
@@ -294,168 +516,32 @@ class Calc_SurfaceRunoff_V1(modeltools.Method):
                 flu.surfacerunoff[k] = 0.0
 
 
-class Calc_PotentialSnowmelt_V1(modeltools.Method):
-    """
-
-    >>> from hydpy.models.whmod import *
-    >>> parameterstep("1d")
-    >>> simulationstep("1d")
-    >>> nmbzones(3)
-    >>> landtype(GRASS, SEALED, WATER)
-    >>> degreedayfactor(grass=3.0, sealed=4.0)
-
-    >>> inputs.temperature = -2.0
-    >>> model.calc_potentialsnowmelt_v1()
-    >>> fluxes.potentialsnowmelt
-    potentialsnowmelt(0.0, 0.0, nan)
-
-    >>> inputs.temperature = 0.0
-    >>> model.calc_potentialsnowmelt_v1()
-    >>> fluxes.potentialsnowmelt
-    potentialsnowmelt(0.0, 0.0, nan)
-
-    >>> inputs.temperature = 2.0
-    >>> model.calc_potentialsnowmelt_v1()
-    >>> fluxes.potentialsnowmelt
-    potentialsnowmelt(6.0, 8.0, nan)
-    """
-
-    CONTROLPARAMETERS = (
-        whmod_control.NmbZones,
-        whmod_control.LandType,
-        whmod_control.DegreeDayFactor,
-    )
-    REQUIREDSEQUENCES = (whmod_inputs.Temperature,)
-    RESULTSEQUENCES = (whmod_fluxes.PotentialSnowmelt,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        inp = model.sequences.inputs.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        for k in range(con.nmbzones):
-            if con.landtype[k] == WATER:
-                flu.potentialsnowmelt[k] = numpy.nan
-            elif inp.temperature <= 0.0:
-                flu.potentialsnowmelt[k] = 0.0
-            else:
-                flu.potentialsnowmelt[k] = con.degreedayfactor[k] * inp.temperature
-
-
-class Calc_Snowmelt_Snowpack_V1(modeltools.Method):
-    """
-
-    >>> from hydpy.models.whmod import *
-    >>> parameterstep("1d")
-    >>> simulationstep("1d")
-    >>> nmbzones(3)
-    >>> landtype(GRASS, SEALED, WATER)
-    >>> fluxes.throughfall = 1.0
-
-    >>> inputs.temperature = 0.0
-    >>> states.snowpack = 0.0, 2.0, 0.0
-    >>> model.calc_snowmelt_snowpack_v1()
-    >>> fluxes.snowmelt
-    snowmelt(0.0, 0.0, nan)
-    >>> states.snowpack
-    snowpack(1.0, 3.0, nan)
-
-    >>> inputs.temperature = 1.0
-    >>> states.snowpack = 0.0, 3.0, 0.0
-    >>> fluxes.potentialsnowmelt = 2.0
-    >>> model.calc_snowmelt_snowpack_v1()
-    >>> fluxes.snowmelt
-    snowmelt(0.0, 2.0, nan)
-    >>> states.snowpack
-    snowpack(0.0, 1.0, nan)
-    """
-
-    CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
-    REQUIREDSEQUENCES = (whmod_inputs.Temperature, whmod_fluxes.Throughfall)
-    UPDATEDSEQUENCES = (whmod_states.Snowpack,)
-    RESULTSEQUENCES = (whmod_fluxes.Snowmelt,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        inp = model.sequences.inputs.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        sta = model.sequences.states.fastaccess
-        for k in range(con.nmbzones):
-            if con.landtype[k] == WATER:
-                flu.snowmelt[k] = numpy.nan
-                sta.snowpack[k] = numpy.nan
-            elif inp.temperature <= 0.0:
-                flu.snowmelt[k] = 0.0
-                sta.snowpack[k] += flu.throughfall[k]
-            elif flu.potentialsnowmelt[k] < sta.snowpack[k]:
-                flu.snowmelt[k] = flu.potentialsnowmelt[k]
-                sta.snowpack[k] -= flu.snowmelt[k]
-            else:
-                flu.snowmelt[k] = sta.snowpack[k]
-                sta.snowpack[k] = 0.0
-
-
-class Calc_Ponding_V1(modeltools.Method):
-    """Berechnung Bestandsniederschlag.
-
-    >>> from hydpy.models.whmod import *
-    >>> parameterstep("1d")
-    >>> simulationstep("1d")
-    >>> nmbzones(3)
-    >>> landtype(GRASS, SEALED, WATER)
-
-    >>> inputs.temperature = 0.0
-    >>> model.calc_ponding_v1()
-    >>> fluxes.ponding
-    ponding(0.0, 0.0, nan)
-
-    >>> inputs.temperature = 1.0
-    >>> fluxes.throughfall = 2.0
-    >>> fluxes.snowmelt = 3.0
-    >>> model.calc_ponding_v1()
-    >>> fluxes.ponding
-    ponding(5.0, 5.0, nan)
-    """
-
-    CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
-    REQUIREDSEQUENCES = (
-        whmod_inputs.Temperature,
-        whmod_fluxes.Throughfall,
-        whmod_fluxes.Snowmelt,
-    )
-    RESULTSEQUENCES = (whmod_fluxes.Ponding,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        inp = model.sequences.inputs.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        for k in range(con.nmbzones):
-            if con.landtype[k] == WATER:
-                flu.ponding[k] = numpy.nan
-            elif inp.temperature > 0.0:
-                flu.ponding[k] = flu.throughfall[k] + flu.snowmelt[k]
-            else:
-                flu.ponding[k] = 0.0
-
-
 class Calc_RelativeSoilMoisture_V1(modeltools.Method):
-    """
+    r"""Calculate the relative soil water content.
 
-    >>> from hydpy.models.whmod import *
-    >>> parameterstep()
-    >>> nmbzones(9)
-    >>> landtype(GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT,
-    ...         SUGARBEETS, SEALED, WATER)
-    >>> derived.maxsoilwater(200.0)
-    >>> states.soilmoisture(100.0)
-    >>> model.calc_relativesoilmoisture_v1()
-    >>> factors.relativesoilmoisture
-    relativesoilmoisture(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.0, 0.0)
-    """
+    Basic equation:
+      .. math::
+        R = S / M
+        \\ \\
+        R = RelativeSoilMoisture \\
+        S = SoilMoisture \\
+        M = MaxSoilWater
 
-    CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
+    Example:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmbzones(7)
+        >>> landtype(GRASS, GRASS, GRASS, GRASS, GRASS, GRASS, SEALED)
+        >>> soiltype(SAND, SAND_COHESIVE, LOAM, CLAY, SILT, PEAT, NONE)
+        >>> derived.maxsoilwater(200.0, 200.0, 200.0, 200.0, 200.0, 0.0, nan)
+        >>> states.soilmoisture = 0.0, 50.0, 100.0, 150.0, 200.0, 0.0, nan
+        >>> model.calc_relativesoilmoisture_v1()
+        >>> factors.relativesoilmoisture
+        relativesoilmoisture(0.0, 0.25, 0.5, 0.75, 1.0, 0.0, 0.0)
+        """
+
+    CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.SoilType)
     DERIVEDPARAMETERS = (whmod_derived.MaxSoilWater,)
     REQUIREDSEQUENCES = (whmod_states.SoilMoisture,)
     RESULTSEQUENCES = (whmod_factors.RelativeSoilMoisture,)
@@ -468,29 +554,39 @@ class Calc_RelativeSoilMoisture_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
-            if (con.landtype[k] in (WATER, SEALED)) or (der.maxsoilwater[k] <= 0.0):
+            if (con.soiltype[k] == NONE) or (der.maxsoilwater[k] <= 0.0):
                 fac.relativesoilmoisture[k] = 0.0
             else:
                 fac.relativesoilmoisture[k] = sta.soilmoisture[k] / der.maxsoilwater[k]
 
 
 class Calc_Percolation_V1(modeltools.Method):
+    r"""Calculate the percolation out of the soil storage.
+
+    Basic equation:
+      .. math::
+        Percolation = P \cdot R ^ {\beta}
+        \\ \\
+        P = Ponding \\
+        R = RelativeSoilMoisture \\
+        \beta = BETA
+
+    Example:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmbzones(7)
+        >>> landtype(GRASS, GRASS, GRASS, GRASS, GRASS, GRASS, SEALED)
+        >>> soiltype(SAND, SAND_COHESIVE, LOAM, CLAY, SILT, PEAT, NONE)
+        >>> derived.beta(2.0)
+        >>> fluxes.ponding(10.0)
+        >>> factors.relativesoilmoisture = 0.0, 0.2, 0.4, 0.6, 0.8, 1.0, nan
+        >>> model.calc_percolation_v1()
+        >>> fluxes.percolation
+        percolation(0.0, 0.4, 1.6, 3.6, 6.4, 10.0, 0.0)
     """
 
-    >>> from hydpy.models.whmod import *
-    >>> parameterstep()
-    >>> nmbzones(9)
-    >>> landtype(GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT,
-    ...         SUGARBEETS, SEALED, WATER)
-    >>> derived.beta(2.0)
-    >>> fluxes.ponding(10.0)
-    >>> factors.relativesoilmoisture(0.5)
-    >>> model.calc_percolation_v1()
-    >>> fluxes.percolation
-    percolation(2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 0.0, 0.0)
-    """
-
-    CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
+    CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.SoilType)
     DERIVEDPARAMETERS = (whmod_derived.Beta,)
     REQUIREDSEQUENCES = (whmod_fluxes.Ponding, whmod_factors.RelativeSoilMoisture)
     RESULTSEQUENCES = (whmod_fluxes.Percolation,)
@@ -502,7 +598,7 @@ class Calc_Percolation_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            if con.landtype[k] in (SEALED, WATER):
+            if con.soiltype[k] == NONE:
                 flu.percolation[k] = 0.0
             else:
                 flu.percolation[k] = (
@@ -514,7 +610,11 @@ class Calc_SoilEvapotranspiration_AETModel_V1(modeltools.Method):
     """Let a submodel that follows the |AETModel_V1| submodel interface calculate
     soil evapotranspiration.
 
-    Examples:
+    Basic equation:
+      .. math::
+        SoilEvapotranspiration = get\_soilevapotranspiration()
+
+    Example:
 
         We build an example based on |evap_aet_minhas|:
 
@@ -522,7 +622,8 @@ class Calc_SoilEvapotranspiration_AETModel_V1(modeltools.Method):
         >>> parameterstep("1h")
         >>> area(1.0)
         >>> nmbzones(5)
-        >>> landtype(SEALED, GRASS, DECIDUOUS, CORN, WATER)
+        >>> landtype(GRASS, GRASS, GRASS, GRASS, WATER)
+        >>> soiltype(SAND, SAND, SAND, SAND, NONE)
         >>> zonearea(0.05, 0.1, 0.2, 0.3, 0.35)
         >>> availablefieldcapacity(0.1)
         >>> rootingdepth(1.0)
@@ -551,7 +652,7 @@ class Calc_SoilEvapotranspiration_AETModel_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         submodel.determine_soilevapotranspiration()
         for k in range(con.nmbzones):
-            if con.landtype[k] in (SEALED, WATER):
+            if con.soiltype[k] == NONE:
                 flu.soilevapotranspiration[k] = 0.0
             else:
                 flu.soilevapotranspiration[k] = submodel.get_soilevapotranspiration(k)
@@ -572,26 +673,41 @@ class Calc_SoilEvapotranspiration_V1(modeltools.Method):
             model.calc_soilevapotranspiration_aetmodel_v1(
                 cast(aetinterfaces.AETModel_V1, model.aetmodel)
             )
-        # ToDo:
-        #     else:
-        #         assert_never(model.petmodel)
 
 
 class Calc_TotalEvapotranspiration_V1(modeltools.Method):
+    r"""Calculate the sum of interception evaporation, lake evaporation, and soil
+    evapotranspiration.
+
+    Basic equation:
+      .. math::
+        T = I + S + L
+        \\ \\
+        T = TotalEvapotranspiration \\
+        I = InterceptionEvaporation \\
+        S = SoilEvapotranspiration \\
+        L = LakeEvaporation
+
+    Example:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmbzones(3)
+        >>> landtype(GRASS, SEALED, WATER)
+        >>> soiltype(SAND, NONE, NONE)
+        >>> fluxes.interceptionevaporation = 1.0, 2.0, nan
+        >>> fluxes.soilevapotranspiration = 3.0, nan, nan
+        >>> fluxes.lakeevaporation = nan, nan, 5.0
+        >>> model.calc_totalevapotranspiration_v1()
+        >>> fluxes.totalevapotranspiration
+        totalevapotranspiration(4.0, 2.0, 5.0)
     """
 
-    >>> from hydpy.models.whmod import *
-    >>> parameterstep()
-    >>> nmbzones(2)
-    >>> fluxes.interceptionevaporation = 1.0, 0.0
-    >>> fluxes.soilevapotranspiration = 2.0, 0.0
-    >>> fluxes.lakeevaporation = 0.0, 4.0
-    >>> model.calc_totalevapotranspiration_v1()
-    >>> fluxes.totalevapotranspiration
-    totalevapotranspiration(3.0, 4.0)
-    """
-
-    CONTROLPARAMETERS = (whmod_control.NmbZones,)
+    CONTROLPARAMETERS = (
+        whmod_control.NmbZones,
+        whmod_control.LandType,
+        whmod_control.SoilType,
+    )
     REQUIREDSEQUENCES = (
         whmod_fluxes.InterceptionEvaporation,
         whmod_fluxes.SoilEvapotranspiration,
@@ -604,37 +720,50 @@ class Calc_TotalEvapotranspiration_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            flu.totalevapotranspiration[k] = (
-                flu.interceptionevaporation[k]
-                + flu.soilevapotranspiration[k]
-                + flu.lakeevaporation[k]
-            )
+            if con.landtype[k] == WATER:
+                flu.totalevapotranspiration[k] = flu.lakeevaporation[k]
+            else:
+                flu.totalevapotranspiration[k] = flu.interceptionevaporation[k]
+            if con.soiltype[k] != NONE:
+                flu.totalevapotranspiration[k] += flu.soilevapotranspiration[k]
 
 
 class Calc_CapillaryRise_V1(modeltools.Method):
-    """
+    r"""Calculate the actual capillary rise if requested.
 
-    >>> from hydpy.models.whmod import *
-    >>> simulationstep("1d")
-    >>> parameterstep("1d")
-    >>> nmbzones(7)
-    >>> landtype(GRASS, GRASS, GRASS, GRASS, GRASS, SEALED, WATER)
-    >>> withcapillaryrise(True)
-    >>> derived.potentialcapillaryrise(2.0)
-    >>> factors.relativesoilmoisture(0.0, 0.25, 0.5, 0.75, 1.0, 0.0, 0.0)
-    >>> model.calc_capillaryrise_v1()
-    >>> fluxes.capillaryrise
-    capillaryrise(2.0, 0.84375, 0.25, 0.03125, 0.0, 0.0, 0.0)
+    Basic equation:
+      .. math::
+        C = P \cdot (1 - R) ^ 3
+        \\ \\
+        C = CapillaryRise \\
+        P = PotentialCapillaryRise \\
+        R = RelativeSoilMoisture
 
-    >>> withcapillaryrise(False)
-    >>> model.calc_capillaryrise_v1()
-    >>> fluxes.capillaryrise
-    capillaryrise(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    Examples:
+
+        >>> from hydpy.models.whmod import *
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
+        >>> nmbzones(7)
+        >>> landtype(GRASS, GRASS, GRASS, GRASS, GRASS, SEALED, WATER)
+        >>> soiltype(SAND, SAND, SAND, SAND, SAND, NONE, NONE)
+        >>> derived.potentialcapillaryrise(2.0)
+        >>> factors.relativesoilmoisture = 0.0, 0.25, 0.5, 0.75, 1.0, nan, nan
+
+        >>> withcapillaryrise(True)
+        >>> model.calc_capillaryrise_v1()
+        >>> fluxes.capillaryrise
+        capillaryrise(2.0, 0.84375, 0.25, 0.03125, 0.0, 0.0, 0.0)
+
+        >>> withcapillaryrise(False)
+        >>> model.calc_capillaryrise_v1()
+        >>> fluxes.capillaryrise
+        capillaryrise(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     """
 
     CONTROLPARAMETERS = (
         whmod_control.NmbZones,
-        whmod_control.LandType,
+        whmod_control.SoilType,
         whmod_control.WithCapillaryRise,
     )
     DERIVEDPARAMETERS = (whmod_derived.PotentialCapillaryRise,)
@@ -648,7 +777,9 @@ class Calc_CapillaryRise_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            if con.withcapillaryrise and (con.landtype[k] not in (SEALED, WATER)):
+            if con.soiltype[k] == NONE:
+                flu.capillaryrise[k] = 0.0
+            elif con.withcapillaryrise:
                 flu.capillaryrise[k] = (
                     der.potentialcapillaryrise[k]
                     * (1.0 - fac.relativesoilmoisture[k]) ** 3
@@ -658,35 +789,44 @@ class Calc_CapillaryRise_V1(modeltools.Method):
 
 
 class Calc_SoilMoisture_V1(modeltools.Method):
-    """
+    r"""Update the actual soil storage's water content.
 
-    >>> from hydpy.models.whmod import *
-    >>> parameterstep()
-    >>> nmbzones(5)
-    >>> landtype(GRASS)
-    >>> derived.maxsoilwater(100.0)
-    >>> fluxes.ponding(2.0)
-    >>> fluxes.soilevapotranspiration(1.0)
-    >>> states.soilmoisture(0.0, 1.0, 50.0, 98.0, 100.0)
-    >>> fluxes.capillaryrise(3.0, 3.0, 3.0, 5.0, 5.0)
-    >>> fluxes.percolation(5.0, 5.0, 5.0, 3.0, 3.0)
-    >>> model.calc_soilmoisture_v1()
-    >>> states.soilmoisture
-    soilmoisture(0.0, 0.0, 49.0, 100.0, 100.0)
-    >>> fluxes.percolation
-    percolation(4.0, 5.0, 5.0, 3.0, 3.0)
-    >>> fluxes.capillaryrise
-    capillaryrise(3.0, 3.0, 3.0, 4.0, 2.0)
+    Basic equation:
+      .. math::
+        M = I - E - P + C
+        \\ \\
+        M = SoilMoisture \\
+        I = Ponding \\
+        E = SoilEvapotranspiration \\
+        P = Percolation \\
+        C = CapillaryRise
 
-    >>> landtype(WATER, WATER, WATER, SEALED, SEALED)
-    >>> fluxes.soilevapotranspiration(0.0, 5.0, 10.0, 5.0, 5.0)
-    >>> model.calc_soilmoisture_v1()
-    >>> states.soilmoisture
-    soilmoisture(0.0, 0.0, 0.0, 0.0, 0.0)
-    >>> fluxes.percolation
-    percolation(4.0, 5.0, 5.0, 3.0, 3.0)
-    >>> fluxes.capillaryrise
-    capillaryrise(3.0, 3.0, 3.0, 4.0, 2.0)
+    Example:
+
+        The results for the second zone show that potential negative soil moisture
+        values are circumvented by decreasing percolation.  Similarly, soil moistures
+        that are too high are prevented by decreasing capillary rise, as demonstrated
+        by the third zone.  In extreme cases, percolation and capillary rise become
+        negative, which is the case for zones four and five.
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmbzones(6)
+        >>> landtype(GRASS, GRASS, GRASS, GRASS, GRASS, SEALED)
+        >>> soiltype(SAND, SAND, SAND, SAND, SAND, NONE)
+        >>> derived.maxsoilwater(10.0)
+        >>> states.soilmoisture = 5.0
+        >>> fluxes.ponding = 2.0
+        >>> fluxes.soilevapotranspiration = 1.0, 6.0, -6.0, 11.0, -9.0, nan
+        >>> fluxes.percolation = 5.0
+        >>> fluxes.capillaryrise = 3.0
+        >>> model.calc_soilmoisture_v1()
+        >>> states.soilmoisture
+        soilmoisture(4.0, 0.0, 10.0, 0.0, 10.0, 0.0)
+        >>> fluxes.percolation
+        percolation(5.0, 4.0, 5.0, -1.0, 5.0, 0.0)
+        >>> fluxes.capillaryrise
+        capillaryrise(3.0, 3.0, 2.0, 3.0, -1.0, 0.0)
     """
 
     CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
@@ -706,8 +846,10 @@ class Calc_SoilMoisture_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
-            if con.landtype[k] in (SEALED, WATER):
+            if con.soiltype[k] == NONE:
                 sta.soilmoisture[k] = 0.0
+                flu.percolation[k] = 0.0
+                flu.capillaryrise[k] = 0.0
             else:
                 sta.soilmoisture[k] += (
                     flu.ponding[k]
@@ -724,19 +866,35 @@ class Calc_SoilMoisture_V1(modeltools.Method):
 
 
 class Calc_PotentialRecharge_V1(modeltools.Method):
-    """
+    r"""Calculate the potential recharge.
 
-    >>> from hydpy.models.whmod import *
-    >>> parameterstep()
-    >>> nmbzones(3)
-    >>> landtype(GRASS, SEALED, WATER)
-    >>> inputs.precipitation(7.0)
-    >>> fluxes.percolation(2.0)
-    >>> fluxes.capillaryrise(1.0)
-    >>> fluxes.lakeevaporation(4.0)
-    >>> model.calc_potentialrecharge_v1()
-    >>> fluxes.potentialrecharge
-    potentialrecharge(1.0, 0.0, 3.0)
+    Basic equation for water areas:
+      .. math::
+        PotentialRecharge = P - E
+        \\ \\
+        P = Precipitation \\
+        E = LakeEvaporation
+
+    Basic equation for non-sealed land areas:
+      .. math::
+        PotentialRecharge = P - C
+        \\ \\
+        P = Percolation \\
+        C = CapillaryRise
+
+    Example:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmbzones(3)
+        >>> landtype(GRASS, SEALED, WATER)
+        >>> inputs.precipitation = 7.0
+        >>> fluxes.lakeevaporation = 4.0
+        >>> fluxes.percolation = 3.0
+        >>> fluxes.capillaryrise = 1.0
+        >>> model.calc_potentialrecharge_v1()
+        >>> fluxes.potentialrecharge
+        potentialrecharge(2.0, 0.0, 3.0)
     """
 
     CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
@@ -754,25 +912,36 @@ class Calc_PotentialRecharge_V1(modeltools.Method):
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            if con.landtype[k] == WATER:
-                flu.potentialrecharge[k] = inp.precipitation - flu.lakeevaporation[k]
-            elif con.landtype[k] == SEALED:
+            if con.landtype[k] == SEALED:
                 flu.potentialrecharge[k] = 0.0
+            elif con.landtype[k] == WATER:
+                flu.potentialrecharge[k] = inp.precipitation - flu.lakeevaporation[k]
             else:
                 flu.potentialrecharge[k] = flu.percolation[k] - flu.capillaryrise[k]
 
 
 class Calc_Baseflow_V1(modeltools.Method):
-    """
+    r"""Calculate the base flow.
 
-    >>> from hydpy.models.whmod import *
-    >>> parameterstep()
-    >>> nmbzones(4)
-    >>> baseflowindex(1.0, 0.8, 1.0, 0.8)
-    >>> fluxes.potentialrecharge(1.0, 1.0, -1.0, -1.0)
-    >>> model.calc_baseflow_v1()
-    >>> fluxes.baseflow
-    baseflow(0.0, 0.2, 0.0, 0.0)
+    Basic equation:
+      .. math::
+        B = (1 - I) \cdot max(P, \, 0)
+        \\ \\
+        B = Baseflow \\
+        I = BaseflowIndex \\
+        P = PotentialRecharge
+
+    Example:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmbzones(5)
+        >>> landtype(GRASS, GRASS, GRASS, GRASS, SEALED)
+        >>> baseflowindex(1.0, 0.5, 0.0, 0.0, nan)
+        >>> fluxes.potentialrecharge = 2.0, 2.0, 2.0, -2.0, nan
+        >>> model.calc_baseflow_v1()
+        >>> fluxes.baseflow
+        baseflow(0.0, 1.0, 2.0, 0.0, 0.0)
     """
 
     CONTROLPARAMETERS = (
@@ -791,28 +960,40 @@ class Calc_Baseflow_V1(modeltools.Method):
             if con.landtype[k] == SEALED:
                 flu.baseflow[k] = 0.0
             else:
-                flu.baseflow[k] = max(
-                    (1.0 - con.baseflowindex[k]) * flu.potentialrecharge[k], 0.0
+                flu.baseflow[k] = (1.0 - con.baseflowindex[k]) * max(
+                    flu.potentialrecharge[k], 0.0
                 )
 
 
 class Calc_ActualRecharge_V1(modeltools.Method):
+    r"""Calculate the actual recharge.
+
+    Basic equation:
+      .. math::
+        A = \sum_{i=1}^N P_i - B_i
+        \\ \\
+        N = NmbZones \\
+        A = ActualRecharge \\
+        P = PotentialRecharge \\
+        B = Baseflow
+
+    Example:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmbzones(5)
+        >>> landtype(GRASS, GRASS, GRASS, GRASS, SEALED)
+        >>> area(14.0)
+        >>> zonearea(1.0, 1.5, 2.5, 2.0, 7.0)
+        >>> derived.zoneratio.update()
+        >>> fluxes.potentialrecharge = 2.0, 10.0, -2.0, -0.5, nan
+        >>> fluxes.baseflow = 0.0, 5.0, 0.0, 0.0, nan
+        >>> model.calc_actualrecharge_v1()
+        >>> fluxes.actualrecharge
+        actualrecharge(0.25)
     """
 
-    >>> from hydpy.models.whmod import *
-    >>> parameterstep()
-    >>> nmbzones(4)
-    >>> area(14.0)
-    >>> zonearea(2.0, 3.0, 5.0, 4.0)
-    >>> derived.zoneratio.update()
-    >>> fluxes.potentialrecharge = 2.0, 10.0, -2.0, -0.5
-    >>> fluxes.baseflow = 0.0, 5.0, 0.0, 0.0
-    >>> model.calc_actualrecharge_v1()
-    >>> fluxes.actualrecharge
-    actualrecharge(0.5)
-    """
-
-    CONTROLPARAMETERS = (whmod_control.NmbZones,)
+    CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
     DERIVEDPARAMETERS = (whmod_derived.ZoneRatio,)
     REQUIREDSEQUENCES = (whmod_fluxes.PotentialRecharge, whmod_fluxes.Baseflow)
     RESULTSEQUENCES = (whmod_fluxes.ActualRecharge,)
@@ -824,41 +1005,52 @@ class Calc_ActualRecharge_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         flu.actualrecharge = 0.0
         for k in range(con.nmbzones):
-            flu.actualrecharge += der.zoneratio[k] * (
-                flu.potentialrecharge[k] - flu.baseflow[k]
-            )
+            if con.landtype[k] != SEALED:
+                flu.actualrecharge += der.zoneratio[k] * (
+                    flu.potentialrecharge[k] - flu.baseflow[k]
+                )
 
 
 class Calc_DelayedRecharge_DeepWater_V1(modeltools.Method):
-    """
+    """Calculate the delayed recharge and update the amount of water that is (still)
+    percolating through the vadose zone.
 
-    Nur eine Näherungslösung. Bei kleinen Flurabständen etwas zu geringe
-    Verzögerung möglich, dafür immer bilanztreu.
+    Basic equations:
+      .. math::
+        W_{new} = (A + W_{old}) \cdot exp(-1 / R)
+        \\
+        D = A + W_{old} - W_{new}
+        \\ \\
+        D = DelayedRecharge \\
+        A = ActualRecharge \\
+        W = DeepWater \\
+        R = RechargeDelay
 
-    >>> from hydpy.models.whmod import *
-    >>> parameterstep()
-    >>> from numpy import arange
-    >>> from hydpy import print_vector
-    >>> for k in numpy.arange(0., 5.5, .5):
-    ...     rechargedelay.value = k
-    ...     states.deepwater = 2.0
-    ...     fluxes.actualrecharge = 1.0
-    ...     model.calc_delayedrecharge_deepwater_v1()
-    ...     print_vector(
-    ...         [k,
-    ...          fluxes.delayedrecharge.value,
-    ...          states.deepwater.value])
-    0.0, 3.0, 0.0
-    0.5, 2.593994, 0.406006
-    1.0, 1.896362, 1.103638
-    1.5, 1.459749, 1.540251
-    2.0, 1.180408, 1.819592
-    2.5, 0.98904, 2.01096
-    3.0, 0.850406, 2.149594
-    3.5, 0.745568, 2.254432
-    4.0, 0.663598, 2.336402
-    4.5, 0.597788, 2.402212
-    5.0, 0.543808, 2.456192
+    (The given equations are the analytical solution of the linear storage equation
+    under the assumption of a stepwise constant inflow.)
+
+    Examples:
+
+        >>> from hydpy.models.whmod import *
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
+        >>> fluxes.actualrecharge = 1.0
+
+        >>> rechargedelay(1.0)
+        >>> states.deepwater(2.0)
+        >>> model.calc_delayedrecharge_deepwater_v1()
+        >>> fluxes.delayedrecharge
+        delayedrecharge(1.896362)
+        >>> states.deepwater
+        deepwater(1.103638)
+
+        >>> rechargedelay(0.0)
+        >>> states.deepwater(2.0)
+        >>> model.calc_delayedrecharge_deepwater_v1()
+        >>> fluxes.delayedrecharge
+        delayedrecharge(3.0)
+        >>> states.deepwater
+        deepwater(0.0)
     """
 
     CONTROLPARAMETERS = (whmod_control.RechargeDelay,)
@@ -870,22 +1062,22 @@ class Calc_DelayedRecharge_DeepWater_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        sta = model.sequences.states.fastaccess
-        if con.rechargedelay > 0:
-            sp: float = (sta.deepwater + flu.actualrecharge) * modelutils.exp(
+        new = model.sequences.states.fastaccess_new
+        old = model.sequences.states.fastaccess_old
+        if con.rechargedelay > 0.0:
+            new.deepwater = (flu.actualrecharge + old.deepwater) * modelutils.exp(
                 -1.0 / con.rechargedelay
             )
-            flu.delayedrecharge = flu.actualrecharge + sta.deepwater - sp
-            sta.deepwater = sp
+            flu.delayedrecharge = flu.actualrecharge + old.deepwater - new.deepwater
         else:
-            flu.delayedrecharge = sta.deepwater + flu.actualrecharge
-            sta.deepwater = 0.0
+            flu.delayedrecharge = old.deepwater + flu.actualrecharge
+            new.deepwater = 0.0
 
 
 class Get_Temperature_V1(modeltools.Method):
-    """Get basin's current temperature.
+    """Get the basin's current air temperature.
 
-    Example:
+    Examples:
 
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
@@ -907,7 +1099,7 @@ class Get_Temperature_V1(modeltools.Method):
 
 
 class Get_MeanTemperature_V1(modeltools.Method):
-    """Get the basin's current temperature.
+    """Get the basin's current air temperature.
 
     Example:
 
@@ -931,7 +1123,7 @@ class Get_MeanTemperature_V1(modeltools.Method):
 class Get_Precipitation_V1(modeltools.Method):
     """Get the basin's current precipitation.
 
-    Example:
+    Examples:
 
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
@@ -955,7 +1147,7 @@ class Get_Precipitation_V1(modeltools.Method):
 class Get_InterceptedWater_V1(modeltools.Method):
     """Get the selected zone's current amount of intercepted water.
 
-    Example:
+    Examples:
 
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
@@ -980,7 +1172,7 @@ class Get_InterceptedWater_V1(modeltools.Method):
 class Get_SoilWater_V1(modeltools.Method):
     """Get the selected zone's current soil water content.
 
-    Example:
+    Examples:
 
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
@@ -1005,9 +1197,9 @@ class Get_SoilWater_V1(modeltools.Method):
 class Get_SnowCover_V1(modeltools.Method):
     """Get the selected zones's current snow cover degree.
 
-    Example:
+    Examples:
 
-        Each response unit with a non-zero amount of snow counts as completely covered:
+        Each response unit with a non-zero amount of snow counts as wholly covered:
 
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
@@ -1061,8 +1253,8 @@ class Model(modeltools.AdHocModel):
         Calc_LakeEvaporation_V1,
         Calc_PotentialSnowmelt_V1,
         Calc_Snowmelt_Snowpack_V1,
-        Calc_SurfaceRunoff_V1,
         Calc_Ponding_V1,
+        Calc_SurfaceRunoff_V1,
         Calc_RelativeSoilMoisture_V1,
         Calc_Percolation_V1,
         Calc_SoilEvapotranspiration_V1,

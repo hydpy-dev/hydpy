@@ -10,6 +10,7 @@ from hydpy.models.whmod import whmod_masks
 
 class Mixin1DSequence(sequencetools.Sequence_):
     """Mixin class for all 1-dimensional sequences."""
+
     NDIM, NUMERIC = 1, False
 
     @property
@@ -149,7 +150,6 @@ class Flux1DGroundwaterSequence(Mixin1DSequence, sequencetools.FluxSequence):
     """
 
     mask = whmod_masks.LandTypeGroundwater()
-
 
 
 class State1DNonWaterSequence(Mixin1DSequence, sequencetools.StateSequence):

@@ -206,4 +206,3 @@ class RechargeDelay(parametertools.Parameter):
     """Delay between soil percolation and groundwater recharge [T]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
-

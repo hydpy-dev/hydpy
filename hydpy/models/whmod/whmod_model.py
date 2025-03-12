@@ -801,32 +801,68 @@ class Calc_SoilMoisture_V1(modeltools.Method):
         P = Percolation \\
         C = CapillaryRise
 
-    Example:
-
-        The results for the second zone show that potential negative soil moisture
-        values are circumvented by decreasing percolation.  Similarly, soil moistures
-        that are too high are prevented by decreasing capillary rise, as demonstrated
-        by the third zone.  In extreme cases, percolation and capillary rise become
-        negative, which is the case for zones four and five.
+    Examples:
 
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
-        >>> nmbzones(6)
-        >>> landtype(GRASS, GRASS, GRASS, GRASS, GRASS, SEALED)
-        >>> soiltype(SAND, SAND, SAND, SAND, SAND, NONE)
+        >>> nmbzones(5)
+        >>> landtype(GRASS, GRASS, GRASS, GRASS, SEALED)
+        >>> soiltype(SAND, SAND, SAND, SAND, NONE)
         >>> derived.maxsoilwater(10.0)
-        >>> states.soilmoisture = 5.0
+
+        Cases where the given basic equation does not need further adjustment:
+
+        >>> states.soilmoisture(5.0)
         >>> fluxes.ponding = 2.0
-        >>> fluxes.soilevapotranspiration = 1.0, 6.0, -6.0, 11.0, -9.0, nan
+        >>> fluxes.soilevapotranspiration = 2.5, -2.5, 5.0, -5.0, nan
         >>> fluxes.percolation = 5.0
         >>> fluxes.capillaryrise = 3.0
         >>> model.calc_soilmoisture_v1()
         >>> states.soilmoisture
-        soilmoisture(4.0, 0.0, 10.0, 0.0, 10.0, 0.0)
+        soilmoisture(2.5, 7.5, 0.0, 10.0, 0.0)
+        >>> fluxes.soilevapotranspiration
+        soilevapotranspiration(2.5, -2.5, 5.0, -5.0, 0.0)
         >>> fluxes.percolation
-        percolation(5.0, 4.0, 5.0, -1.0, 5.0, 0.0)
+        percolation(5.0, 5.0, 5.0, 5.0, 0.0)
         >>> fluxes.capillaryrise
-        capillaryrise(3.0, 3.0, 2.0, 3.0, -1.0, 0.0)
+        capillaryrise(3.0, 3.0, 3.0, 3.0, 0.0)
+
+        Cases where the soil moisture would become negative (we prevent this by
+        reducing percolation and, if positive, evapotranspiration by the same factor):
+
+        >>> states.soilmoisture(2.0)
+        >>> fluxes.ponding = 1.0
+        >>> fluxes.soilevapotranspiration = 5.0, 0.0, -1.0, 7.0, nan
+        >>> fluxes.percolation = 0.0, 5.0, 6.0, 1.0, nan
+        >>> fluxes.capillaryrise = 1.0
+        >>> model.calc_soilmoisture_v1()
+        >>> states.soilmoisture
+        soilmoisture(0.0, 0.0, 0.0, 0.0, 0.0)
+        >>> fluxes.soilevapotranspiration
+        soilevapotranspiration(4.0, 0.0, -1.0, 3.5, 0.0)
+        >>> fluxes.percolation
+        percolation(0.0, 4.0, 5.0, 0.5, 0.0)
+        >>> fluxes.capillaryrise
+        capillaryrise(1.0, 1.0, 1.0, 1.0, 0.0)
+
+        Cases where the soil moisture would exceed the available storage volume (we
+        prevent this by first reducing capillary rise and, if necessary, also
+        increasing percolation):
+
+        >>> states.soilmoisture(8.0)
+        >>> fluxes.ponding = 1.0
+        >>> fluxes.soilevapotranspiration = 1.0, -1.0, -3.0, -4.0, nan
+        >>> fluxes.percolation = 1.0
+        >>> fluxes.capillaryrise = 5.0, 2.0, 1.0, 0.0, nan
+        >>> model.calc_soilmoisture_v1()
+        >>> states.soilmoisture
+        soilmoisture(10.0, 10.0, 10.0, 10.0, 0.0)
+        >>> fluxes.soilevapotranspiration
+        soilevapotranspiration(1.0, -1.0, -3.0, -4.0, 0.0)
+        >>> fluxes.percolation
+        percolation(1.0, 1.0, 2.0, 3.0, 0.0)
+        >>> fluxes.capillaryrise
+        capillaryrise(3.0, 1.0, 0.0, 0.0, 0.0)
     """
 
     CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
@@ -844,25 +880,38 @@ class Calc_SoilMoisture_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        sta = model.sequences.states.fastaccess
+        old = model.sequences.states.fastaccess_old
+        new = model.sequences.states.fastaccess_new
         for k in range(con.nmbzones):
             if con.soiltype[k] == NONE:
-                sta.soilmoisture[k] = 0.0
+                new.soilmoisture[k] = 0.0
                 flu.percolation[k] = 0.0
                 flu.capillaryrise[k] = 0.0
+                flu.soilevapotranspiration[k] = 0.0
             else:
-                sta.soilmoisture[k] += (
-                    flu.ponding[k]
-                    - flu.soilevapotranspiration[k]
-                    - flu.percolation[k]
-                    + flu.capillaryrise[k]
-                )
-                if sta.soilmoisture[k] < 0.0:
-                    flu.percolation[k] += sta.soilmoisture[k]
-                    sta.soilmoisture[k] = 0.0
-                elif sta.soilmoisture[k] > der.maxsoilwater[k]:
-                    flu.capillaryrise[k] += der.maxsoilwater[k] - sta.soilmoisture[k]
-                    sta.soilmoisture[k] = der.maxsoilwater[k]
+                increase: float = flu.ponding[k] + flu.capillaryrise[k]
+                decrease: float = flu.percolation[k]
+                if flu.soilevapotranspiration[k] < 0.0:
+                    increase -= flu.soilevapotranspiration[k]
+                else:
+                    decrease += flu.soilevapotranspiration[k]
+                new.soilmoisture[k] = old.soilmoisture[k] + increase - decrease
+                if new.soilmoisture[k] < 0.0:
+                    factor: float = (old.soilmoisture[k] + increase) / decrease
+                    flu.percolation[k] *= factor
+                    if flu.soilevapotranspiration[k] >= 0.0:
+                        flu.soilevapotranspiration[k] *= factor
+                    new.soilmoisture[k] = 0.0
+                elif new.soilmoisture[k] > der.maxsoilwater[k]:
+                    delta: float = new.soilmoisture[k] - der.maxsoilwater[k]
+                    if flu.capillaryrise[k] >= delta:
+                        flu.capillaryrise[k] -= delta
+                        new.soilmoisture[k] = der.maxsoilwater[k]
+                    else:
+                        new.soilmoisture[k] -= flu.capillaryrise[k]
+                        flu.capillaryrise[k] = 0.0
+                        flu.percolation[k] += new.soilmoisture[k] - der.maxsoilwater[k]
+                        new.soilmoisture[k] = der.maxsoilwater[k]
 
 
 class Calc_PotentialRecharge_V1(modeltools.Method):

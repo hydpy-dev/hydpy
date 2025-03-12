@@ -33,7 +33,7 @@ class Factor1DSoilSequence(Mixin1DSequence, sequencetools.FactorSequence):
     >>> zonearea(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
     >>> area(sum(zonearea))
     >>> derived.zoneratio.update()
-    >>> factors.relativesoilmoisture(1.0, 3.0, 1.5, 3.5, 2.0, 2.5, 0.5, nan, nan)
+    >>> factors.relativesoilmoisture = 1.0, 3.0, 1.5, 3.5, 2.0, 2.5, 0.5, nan, nan
     >>> from hydpy import round_
     >>> round_(factors.relativesoilmoisture.average_values())
     1.928571
@@ -55,7 +55,7 @@ class Flux1DCompleteSequence(Mixin1DSequence, sequencetools.FluxSequence):
     >>> zonearea(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
     >>> area(sum(zonearea))
     >>> derived.zoneratio.update()
-    >>> fluxes.totalevapotranspiration(1.0, 3.0, 1.5, 3.5, 2.0, 2.5, 0.5, 0.0, 5.0)
+    >>> fluxes.totalevapotranspiration = 1.0, 3.0, 1.5, 3.5, 2.0, 2.5, 0.5, 0.0, 5.0
     >>> from hydpy import round_
     >>> round_(fluxes.totalevapotranspiration.average_values())
     2.2
@@ -77,7 +77,7 @@ class FluxSequence1DWaterSequence(Mixin1DSequence, sequencetools.FluxSequence):
     >>> zonearea(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 27.0)
     >>> area(sum(zonearea))
     >>> derived.zoneratio.update()
-    >>> fluxes.lakeevaporation(nan, nan, nan, nan, nan, nan, nan, nan, 2.0, 4.0)
+    >>> fluxes.lakeevaporation = nan, nan, nan, nan, nan, nan, nan, nan, 2.0, 4.0
     >>> from hydpy import round_
     >>> round_(fluxes.lakeevaporation.average_values())
     3.5
@@ -99,7 +99,7 @@ class Flux1DNonWaterSequence(Mixin1DSequence, sequencetools.FluxSequence):
     >>> zonearea(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
     >>> area(sum(zonearea))
     >>> derived.zoneratio.update()
-    >>> fluxes.throughfall(1.0, 3.0, 1.5, 3.5, 2.0, 2.5, 0.5, 0.0, nan)
+    >>> fluxes.throughfall = 1.0, 3.0, 1.5, 3.5, 2.0, 2.5, 0.5, 0.0, nan
     >>> from hydpy import round_
     >>> round_(fluxes.throughfall.average_values())
     1.5
@@ -121,7 +121,7 @@ class Flux1DSoilSequence(Mixin1DSequence, sequencetools.FluxSequence):
     >>> zonearea(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
     >>> area(sum(zonearea))
     >>> derived.zoneratio.update()
-    >>> fluxes.percolation(1.0, 3.0, 1.5, 3.5, 2.0, 2.5, 0.5, nan, nan)
+    >>> fluxes.percolation = 1.0, 3.0, 1.5, 3.5, 2.0, 2.5, 0.5, nan, nan
     >>> from hydpy import round_
     >>> round_(fluxes.percolation.average_values())
     1.928571
@@ -143,7 +143,7 @@ class Flux1DGroundwaterSequence(Mixin1DSequence, sequencetools.FluxSequence):
     >>> zonearea(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
     >>> area(sum(zonearea))
     >>> derived.zoneratio.update()
-    >>> fluxes.baseflow(1.0, 3.0, 1.5, 3.5, 2.0, 2.5, 0.5, nan, 5.0)
+    >>> fluxes.baseflow = 1.0, 3.0, 1.5, 3.5, 2.0, 2.5, 0.5, nan, 5.0
     >>> from hydpy import round_
     >>> round_(fluxes.baseflow.average_values())
     2.675676
@@ -165,7 +165,7 @@ class State1DNonWaterSequence(Mixin1DSequence, sequencetools.StateSequence):
     >>> zonearea(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
     >>> area(sum(zonearea))
     >>> derived.zoneratio.update()
-    >>> states.interceptedwater(1.0, 3.0, 1.5, 3.5, 2.0, 2.5, 0.5, 0.0, nan)
+    >>> states.interceptedwater = 1.0, 3.0, 1.5, 3.5, 2.0, 2.5, 0.5, 0.0, nan
     >>> from hydpy import round_
     >>> round_(states.interceptedwater.average_values())
     1.5
@@ -187,7 +187,7 @@ class State1DSoilSequence(Mixin1DSequence, sequencetools.StateSequence):
     >>> zonearea(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
     >>> area(sum(zonearea))
     >>> derived.zoneratio.update()
-    >>> states.soilmoisture(1.0, 3.0, 1.5, 3.5, 2.0, 2.5, 0.5, nan, nan)
+    >>> states.soilmoisture = 1.0, 3.0, 1.5, 3.5, 2.0, 2.5, 0.5, nan, nan
     >>> from hydpy import round_
     >>> round_(states.soilmoisture.average_values())
     1.928571

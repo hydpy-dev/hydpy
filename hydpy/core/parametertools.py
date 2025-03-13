@@ -3776,6 +3776,7 @@ attribute nor a row or column related attribute named `wrong`.
                         f"as a keyword, but the following keywords are not: "
                         f"`{objecttools.enumeration(miss)}`."
                     ) from None
+            self.trim()
 
     def __getattr__(self, key: str):
         if key in self.rownames:

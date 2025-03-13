@@ -159,15 +159,23 @@ class Constants(dict[str, int]):
                 if value:
                     value.__doc__ = doc
 
-    @property
-    def sortednames(self) -> tuple[str, ...]:
-        """The lowercase constants' names, sorted by the constants' values.
+    def get_sortednames(
+        self, *, relevant: Sequence[int] | None = None
+    ) -> tuple[str, ...]:
+        """Get the lowercase constants' names, sorted by the constants' values.
 
         >>> from hydpy.core.parametertools import Constants
-        >>> Constants(GRASS=2, TREES=0, WATER=1).sortednames
+        >>> Constants(GRASS=2, TREES=0, WATER=1).get_sortednames()
         ('trees', 'water', 'grass')
+
+        You can pass the values of relevant constants to exclude the names of the
+        remaining constants:
+
+        >>> Constants(GRASS=2, TREES=0, WATER=1).get_sortednames(relevant=[0, 2])
+        ('trees', 'grass')
         """
-        return tuple(key.lower() for value, key in sorted(self.value2name.items()))
+        rel = set(self.values()) if relevant is None else set(relevant)
+        return tuple(n.lower() for v, n in sorted(self.value2name.items()) if v in rel)
 
 
 class Parameters:
@@ -3294,7 +3302,7 @@ for axis 0 with size 1
             old_names = get("entrynames")
             old_min = get("entrymin")
             try:
-                cls.entrynames = constants.sortednames
+                cls.entrynames = constants.get_sortednames()
                 cls.entrymin = min(constants.values())
                 yield
             finally:
@@ -3701,7 +3709,7 @@ attribute nor a row or column related attribute named `wrong`.
             old_names = get("rownames")
             old_min = get("rowmin")
             try:
-                cls.rownames = constants.sortednames
+                cls.rownames = constants.get_sortednames()
                 cls.rowmin = min(constants.values())
                 yield
             finally:
@@ -3723,7 +3731,7 @@ attribute nor a row or column related attribute named `wrong`.
             old_names = get("columnnames")
             old_min = get("columnmin")
             try:
-                cls.columnnames = constants.sortednames
+                cls.columnnames = constants.get_sortednames()
                 cls.columnmin = min(constants.values())
                 yield
             finally:
@@ -3768,6 +3776,7 @@ attribute nor a row or column related attribute named `wrong`.
                         f"as a keyword, but the following keywords are not: "
                         f"`{objecttools.enumeration(miss)}`."
                     ) from None
+            self.trim()
 
     def __getattr__(self, key: str):
         if key in self.rownames:

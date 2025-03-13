@@ -402,7 +402,11 @@ class Calc_Snowmelt_Snowpack_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
-    REQUIREDSEQUENCES = (whmod_inputs.Temperature, whmod_fluxes.Throughfall)
+    REQUIREDSEQUENCES = (
+        whmod_inputs.Temperature,
+        whmod_fluxes.Throughfall,
+        whmod_fluxes.PotentialSnowmelt,
+    )
     UPDATEDSEQUENCES = (whmod_states.Snowpack,)
     RESULTSEQUENCES = (whmod_fluxes.Snowmelt,)
 
@@ -643,7 +647,7 @@ class Calc_SoilEvapotranspiration_AETModel_V1(modeltools.Method):
         soilevapotranspiration(0.0, 0.0, 1.717962, 2.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
+    CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.SoilType)
     RESULTSEQUENCES = (whmod_fluxes.SoilEvapotranspiration,)
 
     @staticmethod
@@ -664,7 +668,7 @@ class Calc_SoilEvapotranspiration_V1(modeltools.Method):
 
     SUBMODELINTERFACES = (aetinterfaces.AETModel_V1,)
     SUBMETHODS = (Calc_SoilEvapotranspiration_AETModel_V1,)
-    CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
+    CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.SoilType)
     RESULTSEQUENCES = (whmod_fluxes.SoilEvapotranspiration,)
 
     @staticmethod
@@ -865,7 +869,7 @@ class Calc_SoilMoisture_V1(modeltools.Method):
         capillaryrise(3.0, 1.0, 0.0, 0.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
+    CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.SoilType)
     DERIVEDPARAMETERS = (whmod_derived.MaxSoilWater,)
     REQUIREDSEQUENCES = (
         whmod_fluxes.Ponding,
@@ -963,6 +967,7 @@ class Calc_RequiredIrrigation_V1(modeltools.Method):
     CONTROLPARAMETERS = (
         whmod_control.NmbZones,
         whmod_control.LandType,
+        whmod_control.SoilType,
         whmod_control.IrrigationTrigger,
         whmod_control.IrrigationTarget,
     )
@@ -980,7 +985,7 @@ class Calc_RequiredIrrigation_V1(modeltools.Method):
         m = der.moy[model.idx_sim]
         for k in range(con.nmbzones):
             l = con.landtype[k] - 1
-            sm = fac.relativesoilmoisture[k]
+            sm: float = fac.relativesoilmoisture[k]
             if (con.soiltype[k] == NONE) or (sm >= con.irrigationtrigger[l, m]):
                 flu.requiredirrigation[k] = 0.0
             else:
@@ -1033,7 +1038,7 @@ class Calc_ExternalIrrigation_SoilMoisture_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (
         whmod_control.NmbZones,
-        whmod_control.LandType,
+        whmod_control.SoilType,
         whmod_control.WithExternalIrrigation,
     )
     REQUIREDSEQUENCES = (whmod_fluxes.RequiredIrrigation,)

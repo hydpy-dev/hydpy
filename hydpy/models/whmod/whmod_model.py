@@ -914,6 +914,149 @@ class Calc_SoilMoisture_V1(modeltools.Method):
                         new.soilmoisture[k] = der.maxsoilwater[k]
 
 
+class Calc_RequiredIrrigation_V1(modeltools.Method):
+    r"""Calculate the irrigation demand.
+
+    Basic equation:
+      .. math::
+        I = \begin{cases}
+        (T_1 - R) \cdot M &|\ R < T_0 \\
+        0 &|\ R \geq T_0
+        \end{cases}
+        \\ \\
+        I = RequiredIrrigation \\
+        T_0 = IrrigationTrigger \\
+        T_1 = IrrigationTarget \\
+        R = RelativeSoilMoisture \\
+        M = MaxSoilWater
+
+    Examples:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmbzones(8)
+        >>> landtype(GRASS, GRASS, CORN, CORN, CORN, CORN, CORN, SEALED)
+        >>> soiltype(SAND, SAND, SAND, SAND, SAND, SAND, SAND, NONE)
+        >>> trigger = irrigationtrigger
+        >>> target = irrigationtarget
+        >>> trigger.grass, target.grass = 0.0, 0.0
+        >>> trigger.corn_jun, target.corn_jun = 0.7, 0.7
+        >>> trigger.corn_jul, target.corn_jul = 0.6, 0.8
+        >>> derived.maxsoilwater(100.0)
+        >>> factors.relativesoilmoisture = 0.0, 0.1, 0.5, 0.6, 0.7, 0.8, 0.9, nan
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2001-06-29", "2001-07-03", "1d"
+        >>> derived.moy.update()
+
+        >>> model.idx_sim = 1
+        >>> model.calc_requiredirrigation_v1()
+        >>> fluxes.requiredirrigation
+        requiredirrigation(0.0, 0.0, 20.0, 10.0, 0.0, 0.0, 0.0, 0.0)
+
+        >>> model.idx_sim = 2
+        >>> model.calc_requiredirrigation_v1()
+        >>> fluxes.requiredirrigation
+        requiredirrigation(0.0, 0.0, 30.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    """
+
+    CONTROLPARAMETERS = (
+        whmod_control.NmbZones,
+        whmod_control.LandType,
+        whmod_control.IrrigationTrigger,
+        whmod_control.IrrigationTarget,
+    )
+    DERIVEDPARAMETERS = (whmod_derived.MOY, whmod_derived.MaxSoilWater)
+    REQUIREDSEQUENCES = (whmod_factors.RelativeSoilMoisture,)
+    RESULTSEQUENCES = (whmod_fluxes.RequiredIrrigation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        m = der.moy[model.idx_sim]
+        for k in range(con.nmbzones):
+            l = con.landtype[k] - 1
+            sm = fac.relativesoilmoisture[k]
+            if (con.soiltype[k] == NONE) or (sm >= con.irrigationtrigger[l, m]):
+                flu.requiredirrigation[k] = 0.0
+            else:
+                flu.requiredirrigation[k] = der.maxsoilwater[k] * (
+                    con.irrigationtarget[l, m] - sm
+                )
+
+
+class Calc_ExternalIrrigation_SoilMoisture_V1(modeltools.Method):
+    """Irrigate from external sources, if required and requested.
+
+    Basic equations:
+      .. math::
+        E = \begin{cases}
+        R &|\ W \\
+        0 &|\ \overline{W}
+        \end{cases}
+        \\
+        S_{new} = S_{old} + E
+        \\ \\
+        E = ExternalIrrigation \\
+        R = RequiredIrrigation \\
+        W = WithExternalIrrigation \\
+        S = SoilMoisture
+
+    Examples:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmbzones(2)
+        >>> landtype(CORN, SEALED)
+        >>> soiltype(SAND, NONE)
+        >>> fluxes.requiredirrigation(2.0, nan)
+        >>> states.soilmoisture = 50.0, nan
+
+        >>> withexternalirrigation(False)
+        >>> model.calc_externalirrigation_soilmoisture_v1()
+        >>> fluxes.externalirrigation
+        externalirrigation(0.0, 0.0)
+        >>> states.soilmoisture
+        soilmoisture(50.0, 0.0)
+
+        >>> withexternalirrigation(True)
+        >>> model.calc_externalirrigation_soilmoisture_v1()
+        >>> fluxes.externalirrigation
+        externalirrigation(2.0, 0.0)
+        >>> states.soilmoisture
+        soilmoisture(52.0, 0.0)
+    """
+
+    CONTROLPARAMETERS = (
+        whmod_control.NmbZones,
+        whmod_control.LandType,
+        whmod_control.WithExternalIrrigation,
+    )
+    REQUIREDSEQUENCES = (whmod_fluxes.RequiredIrrigation,)
+    RESULTSEQUENCES = (whmod_fluxes.ExternalIrrigation,)
+    UPDATEDSEQUENCES = (whmod_states.SoilMoisture,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+
+        for k in range(con.nmbzones):
+            if con.soiltype[k] == NONE:
+                sta.soilmoisture[k] = 0.0
+                flu.externalirrigation[k] = 0.0
+            elif con.withexternalirrigation:
+                flu.externalirrigation[k] = flu.requiredirrigation[k]
+                sta.soilmoisture[k] += flu.externalirrigation[k]
+            else:
+                flu.externalirrigation[k] = 0.0
+
+
 class Calc_PotentialRecharge_V1(modeltools.Method):
     r"""Calculate the potential recharge.
 
@@ -1310,6 +1453,10 @@ class Model(modeltools.AdHocModel):
         Calc_TotalEvapotranspiration_V1,
         Calc_CapillaryRise_V1,
         Calc_SoilMoisture_V1,
+        Calc_RelativeSoilMoisture_V1,
+        Calc_RequiredIrrigation_V1,
+        Calc_ExternalIrrigation_SoilMoisture_V1,
+        Calc_RelativeSoilMoisture_V1,
         Calc_PotentialRecharge_V1,
         Calc_Baseflow_V1,
         Calc_ActualRecharge_V1,

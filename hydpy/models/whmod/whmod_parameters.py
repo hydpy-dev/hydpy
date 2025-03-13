@@ -160,11 +160,3 @@ class SoilTypeParameter(parametertools.ZipParameter):
         """Reference to the associated instance of |ZoneRatio| for calculating areal
         mean values."""
         return self.subpars.pars.control.zonearea
-
-
-class LanduseMonthParameter(parametertools.KeywordParameter2D):
-    """Base class for month- and land type-specific parameters."""
-
-    TYPE, TIME, SPAN = float, None, (0.0, None)
-    columnnames = parametertools.MonthParameter.entrynames
-    rownames = whmod_constants.LANDTYPE_CONSTANTS.sortednames

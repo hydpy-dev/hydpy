@@ -150,8 +150,15 @@ NONE.
             )
 
 
-class InterceptionCapacity(whmod_parameters.LanduseMonthParameter):
+class InterceptionCapacity(parametertools.KeywordParameter2D):
     """Maximum interception storage [mm]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, 1.0)
+
+    columnnames = parametertools.MonthParameter.entrynames
+    rownames = whmod_constants.LANDTYPE_CONSTANTS.get_sortednames(
+        relevant=whmod_masks.LandTypeNonWater.relevant
+    )
 
 
 class DegreeDayFactor(whmod_parameters.LandTypeNonWaterParameter):
@@ -194,6 +201,116 @@ class CapillaryLimit(whmod_parameters.SoilTypeParameter):
     """Relative soil moisture where the capillary rise reaches its maximum [-]."""
 
     TIME, SPAN = None, (0.0, None)
+
+
+class IrrigationTrigger(parametertools.KeywordParameter2D):
+    """Relative soil moisture below which irrigation starts [-]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, 1.0)
+
+    columnnames = parametertools.MonthParameter.entrynames
+    rownames = whmod_constants.LANDTYPE_CONSTANTS.get_sortednames(
+        relevant=whmod_masks.LandTypeSoil.relevant
+    )
+
+    def trim(self, lower=None, upper=None) -> bool:
+        r"""Trim |IrrigationTrigger| following
+        :math:`0 \leq IrrigationTrigger \leq IrrigationTarget \leq 1`.
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> trigger = irrigationtrigger
+
+        >>> trigger(
+        ...     grass=0.0,
+        ...     deciduous=0.0,
+        ...     corn=[0.0, 0.0, 0.0, 0.0, 0.0, 0.7, 1.0, 1.3, 0.0, 0.0, 0.0, 0.0],
+        ...     conifer=0.0,
+        ...     springwheat=0.0,
+        ...     winterwheat=0.0,
+        ...     sugarbeets=0.0,
+        ... )
+        >>> trigger.corn_jun, trigger.corn_jul, trigger.corn_aug
+        (0.7, 1.0, 1.0)
+
+        >>> irrigationtarget.corn_jun = 0.7
+        >>> irrigationtarget.corn_jul = 0.7
+        >>> trigger(
+        ...     grass=0.0,
+        ...     deciduous=0.0,
+        ...     corn=[0.0, 0.0, 0.0, 0.0, 0.0, 0.7, 1.0, 1.3, 0.0, 0.0, 0.0, 0.0],
+        ...     conifer=0.0,
+        ...     springwheat=0.0,
+        ...     winterwheat=0.0,
+        ...     sugarbeets=0.0,
+        ... )
+        >>> trigger = irrigationtrigger
+        >>> trigger.corn_jun, trigger.corn_jul, trigger.corn_aug
+        (0.7, 0.7, 1.0)
+        """
+
+        if upper is None:
+            upper = self.subpars.irrigationtarget.values.copy()
+            upper[numpy.isnan(upper)] = 1.0
+        return super().trim(lower, upper)
+
+
+class IrrigationTarget(parametertools.KeywordParameter2D):
+    """Relative soil moisture content at which irrigation ends [-]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, 1.0)
+
+    columnnames = parametertools.MonthParameter.entrynames
+    rownames = whmod_constants.LANDTYPE_CONSTANTS.get_sortednames(
+        relevant=whmod_masks.LandTypeSoil.relevant
+    )
+
+    def trim(self, lower=None, upper=None) -> bool:
+        r"""Trim |IrrigationTarget| following
+        :math:`0 \leq IrrigationTrigger \leq IrrigationTarget \leq 1`.
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> target = irrigationtarget
+
+        >>> target(
+        ...     grass=0.0,
+        ...     deciduous=0.0,
+        ...     corn=[0.0, 0.0, 0.0, 0.0, 0.0, 0.7, 0.3, -0.1, 0.0, 0.0, 0.0, 0.0],
+        ...     conifer=0.0,
+        ...     springwheat=0.0,
+        ...     winterwheat=0.0,
+        ...     sugarbeets=0.0,
+        ... )
+        >>> target.corn_jun, target.corn_jul, target.corn_aug
+        (0.7, 0.3, 0.0)
+
+        >>> irrigationtrigger.corn_jun = 0.7
+        >>> irrigationtrigger.corn_jul = 0.7
+        >>> target(
+        ...     grass=0.0,
+        ...     deciduous=0.0,
+        ...     corn=[0.0, 0.0, 0.0, 0.0, 0.0, 0.7, 0.3, -0.1, 0.0, 0.0, 0.0, 0.0],
+        ...     conifer=0.0,
+        ...     springwheat=0.0,
+        ...     winterwheat=0.0,
+        ...     sugarbeets=0.0,
+        ... )
+        >>> target = irrigationtarget
+        >>> target.corn_jun, target.corn_jul, target.corn_aug
+        (0.7, 0.7, 0.0)
+        """
+
+        if lower is None:
+            lower = self.subpars.irrigationtrigger.values.copy()
+            lower[numpy.isnan(lower)] = 0.0
+        return super().trim(lower, upper)
+
+
+class WithExternalIrrigation(parametertools.Parameter):
+    """Flag to turn on/off external irrigation [-]."""
+
+    NDIM, TYPE, TIME = 0, bool, None
 
 
 class BaseflowIndex(whmod_parameters.LandTypeGroundwaterParameter):

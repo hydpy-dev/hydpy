@@ -51,6 +51,14 @@ class CapillaryRise(whmod_sequences.Flux1DSoilSequence):
     """Capillary rise [mm/T]."""
 
 
+class RequiredIrrigation(whmod_sequences.Flux1DSoilSequence):
+    """Required irrigation [mm/T]."""
+
+
+class ExternalIrrigation(whmod_sequences.Flux1DSoilSequence):
+    """Actual irrigation from external sources [mm/T]."""
+
+
 class PotentialRecharge(whmod_sequences.Flux1DGroundwaterSequence):
     """Potential recharge [mm/T]."""
 

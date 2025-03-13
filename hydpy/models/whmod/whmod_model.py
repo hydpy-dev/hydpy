@@ -1,17 +1,9 @@
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
+# pylint: disable=missing-module-docstring
 
-# imports...
-# ...from standard library
-import abc
 from typing import *
-from typing import TextIO
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
-import hydpy
 from hydpy import config
 from hydpy.core import importtools
 from hydpy.core import modeltools
@@ -21,7 +13,6 @@ from hydpy.interfaces import stateinterfaces
 from hydpy.interfaces import tempinterfaces
 from hydpy.cythons import modelutils
 
-# ...from whmod
 from hydpy.models.whmod.whmod_constants import *
 from hydpy.models.whmod import whmod_constants
 from hydpy.models.whmod import whmod_control
@@ -555,7 +546,6 @@ class Calc_RelativeSoilMoisture_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
-        flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
             if (con.soiltype[k] == NONE) or (der.maxsoilwater[k] <= 0.0):
@@ -611,7 +601,7 @@ class Calc_Percolation_V1(modeltools.Method):
 
 
 class Calc_SoilEvapotranspiration_AETModel_V1(modeltools.Method):
-    """Let a submodel that follows the |AETModel_V1| submodel interface calculate
+    r"""Let a submodel that follows the |AETModel_V1| submodel interface calculate
     soil evapotranspiration.
 
     Basic equation:
@@ -995,7 +985,7 @@ class Calc_RequiredIrrigation_V1(modeltools.Method):
 
 
 class Calc_ExternalIrrigation_SoilMoisture_V1(modeltools.Method):
-    """Irrigate from external sources, if required and requested.
+    r"""Irrigate from external sources, if required and requested.
 
     Basic equations:
       .. math::
@@ -1209,7 +1199,7 @@ class Calc_ActualRecharge_V1(modeltools.Method):
 
 
 class Calc_DelayedRecharge_DeepWater_V1(modeltools.Method):
-    """Calculate the delayed recharge and update the amount of water that is (still)
+    r"""Calculate the delayed recharge and update the amount of water that is (still)
     percolating through the vadose zone.
 
     Basic equations:

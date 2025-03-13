@@ -1,12 +1,8 @@
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
+# pylint: disable=missing-module-docstring
 
-# import...
-from __future__ import annotations
-
-# ...from HydPy
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
+
 from hydpy.models.whmod import whmod_constants
 from hydpy.models.whmod import whmod_control
 from hydpy.models.whmod import whmod_masks

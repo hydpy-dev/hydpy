@@ -1,18 +1,13 @@
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
+# pylint: disable=missing-module-docstring
 
-
-# import...
-# ...from standard library
 import itertools
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+
 from hydpy.models.whmod.whmod_constants import *
 from hydpy.models.whmod import whmod_constants
 from hydpy.models.whmod import whmod_masks

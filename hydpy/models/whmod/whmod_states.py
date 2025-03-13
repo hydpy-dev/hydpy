@@ -1,9 +1,7 @@
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
+# pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import sequencetools
+
 from hydpy.models.whmod import whmod_sequences
 from hydpy.models.whmod import whmod_derived
 

@@ -1,15 +1,10 @@
-# pylint: disable=missing-docstring
-# pylint: enable=missing-docstring
+# pylint: disable=missing-module-docstring
 
-# import...
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy.core import parametertools
 
-# ...from whmod
 from hydpy.models.whmod.whmod_constants import *
 from hydpy.models.whmod import whmod_parameters
 from hydpy.models.whmod import whmod_control
@@ -116,7 +111,7 @@ class Beta(whmod_parameters.SoilTypeParameter):
     def update(self):
         r"""Calculate |Beta| based on
         :math:`1 + \frac{6}{1 + (MaxSoilWater / 118.25)^{-6.5}}`
-        :cite:p:`Armbruster2002`.
+        :cite:p:`refArmbruster2002`.
 
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
@@ -206,7 +201,7 @@ class PotentialCapillaryRise(whmod_parameters.SoilTypeParameter):
                 control.groundwaterdepth.values - self.subpars.soildepth.values,
             )
         ):
-            if soiltype != None:
+            if soiltype != NONE:
                 if delta >= threshold:
                     values[i] = 0.0
                 elif delta <= limit:

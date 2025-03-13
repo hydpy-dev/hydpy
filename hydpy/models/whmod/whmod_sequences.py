@@ -1,10 +1,7 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from site-packages
-
-# ...from HydPy
 from hydpy.core import sequencetools
+
 from hydpy.models.whmod import whmod_masks
 
 

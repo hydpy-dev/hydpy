@@ -1,56 +1,115 @@
 # pylint: disable=line-too-long, unused-wildcard-import
 """
-External (FAO) reference evaporation version of WHMod.
+|whmod_rural| is the official version of the water balance model WHMod (German
+abbreviation for "Wasserhaushaltsmodell").  It is an SVAT-like model frequently used
+in Germany to estimate groundwater recharge and related properties.  It was initially
+developed by :cite:t:`ref-Probst2002`.
 
-This is the new "official" WHMOD version.
+The following list summarises the main components of |whmod_rural|:
+
+ * Simulate interception via simple "bucket" storages.
+ * Reflect snow processes with the degree day method.
+ * Calculate evapotranspiration via selectable submodels that may follow, for example,
+   the FAO56 guidelines on determining grass reference evapotranspiration
+   :cite:p:`ref-Allen1998`.
+ * Estimate percolation based on :cite:t:`refArmbruster2002`.
+ * Optionally include capillary rise.
+ * Optionally include irrigation.
+ * Use the baseflow index approach to adjust the actual groundwater recharge.
+ * Consider the travelling time of water percolating through the vadose zone.
 
 Integration tests
 =================
 
 .. how_to_understand_integration_tests::
 
+We perform all simulation runs over the same period of two months with a daily
+simulation step size:
+
 >>> from hydpy import Element, pub, Timegrid
 >>> pub.timegrids = "2017-02-10", "2017-04-10", "1d"
+
+As a 1-dimensional SVAT model, |whmod_rural| requires no connections to adjacent
+model instances, so a simple |Element| object without any |Node| connections suffices
+for holding a |whmod_rural| instance:
+
 >>> element = Element("element")
 >>> from hydpy.models.whmod_rural import *
 >>> parameterstep("1d")
 >>> element.model = model
 
-.. _whmod_rural_pasture:
-
-pasture
-_______
+Our test site has a size of 10 m²:
 
 >>> area(10.0)
+
+Initially, do not differentiate it into multiple zones:
+
 >>> nmbzones(1)
->>> withcapillaryrise(True)
+>>> zonearea(10.0)
+
+The single zone is of sandy soil grown with grass:
+
 >>> landtype(GRASS)
 >>> soiltype(SAND)
->>> zonearea(10.0)
+
+Land type- and month-specific interception capacities can be defined to reflect
+different vegetation types and states:
+
 >>> interceptioncapacity.grass_feb = 0.4
 >>> interceptioncapacity.grass_mar = 0.6
 >>> interceptioncapacity.grass_apr = 0.8
->>> degreedayfactor(4.5)
->>> availablefieldcapacity(0.2)
+
+The values of some parameters can be set zone- or land type-specific:
+
+>>> degreedayfactor(grass=4.5)
+
+The values of others can be set zone- or soil type-specific:
+
+>>> availablefieldcapacity(sand=0.2)
+
+The rooting and groundwater depths complement the previously set relative available
+field capacity to allow for determining the maximum soil water available for plants:
+
+>>> rootingdepth(0.5)
 >>> groundwaterdepth(1.0)
->>> rootingdepth(grass=0.5, deciduous=1.5, corn=0.5, conifer=1.9, springwheat=0.6,
-...              winterwheat=0.6)
->>> capillarythreshold(sand=0.8)
->>> capillarylimit(sand=0.4)
+
+The groundwater depth also controls the capillary rise, which can be turned on or off
+by a flag and further configured by a threshold and a limit parameter:
+
+>>> withcapillaryrise(True)
+>>> capillarythreshold(0.8)
+>>> capillarylimit(0.4)
+
+Another optional feature is the land type- and month-specific irrigation of too-dry
+soils:
+
+>>> withexternalirrigation(False)
 >>> irrigationtrigger(0.6)
 >>> irrigationtarget(0.7)
->>> withexternalirrigation(False)
+
+The following two parameters allow for the modification of the amount of and time when
+percolating water actually reaches the groundwater table:
+
 >>> baseflowindex(0.8)
 >>> rechargedelay(5.0)
 
->>> with model.add_aetmodel_v1("evap_aet_minhas"):
+|whmod_rural| requires a submodel for calculating actual evapotranspiration.  Here, we
+combine |evap_ret_io| to provide externally available reference evapotranspiration
+estimates, |evap_pet_mlc| to adjust these to the respective land type, and
+|evap_aet_minhas| to convert potential to actual evapotranspiration in agreement with
+the current moisture conditions:
+
+>>> with model.add_aetmodel_v1("evap_aet_minhas") as aetmodel:
 ...     dissefactor(grass=4.0, deciduous=6.0, corn=3.0, conifer=6.0, springwheat=6.0,
 ...                 winterwheat=6.0)
-...     with model.add_petmodel_v1("evap_pet_mlc"):
+...     with model.add_petmodel_v1("evap_pet_mlc") as petmodel:
 ...         landmonthfactor.grass = 1.0
 ...         dampingfactor(1.0)
-...         with model.add_retmodel_v1("evap_ret_io"):
+...         with model.add_retmodel_v1("evap_ret_io") as retmodel:
 ...             evapotranspirationfactor(1.0)
+
+We initialise a test function object, which prepares and runs the tests and prints
+their results for the given sequences:
 
 >>> from hydpy import IntegrationTest
 >>> IntegrationTest.plotting_options.axis1 = (
@@ -59,13 +118,20 @@ _______
 >>> test = IntegrationTest(element)
 >>> test.dateformat = "%Y-%m-%d"
 
+We set all initial conditions to zero, meaning all simulation runs start with empty
+storages:
+
 >>> test.inits = (
 ...     (states.interceptedwater, 0.0),
 ...     (states.snowpack, 0.0),
 ...     (states.soilmoisture, 0.0),
 ...     (states.deepwater, 0.0),
-...     (model.aetmodel.petmodel.sequences.logs.loggedpotentialevapotranspiration, 0.0),
+...     (petmodel.sequences.logs.loggedpotentialevapotranspiration, 0.0),
 ... )
+
+The following meteorological data shows a shift from winter to spring in the form of a
+rise in temperature and potential evapotranspiration and includes two heavy rainfall
+events:
 
 >>> inputs.temperature.series = (
 ...     -2.8, -1.5, -0.9, -1.6, -1.3, 1.7, 4.4, 4.5, 3.4, 4.8, 6.7, 5.8, 6.5, 5.0, 3.0,
@@ -77,15 +143,25 @@ _______
 ...     8.3, 5.3, 0.7, 2.7, 1.6, 2.5, 0.6, 0.2, 1.7, 0.3, 0.0, 1.8, 8.9, 0.0, 0.0,
 ...     0.0, 0.9, 0.1, 0.0, 0.0, 3.9, 8.7, 26.4, 11.5, 0.9, 0.0, 0.0, 0.0, 0.0, 0.0,
 ...     0.0, 0.0, 1.5, 0.3, 0.2, 4.5, 0.0, 0.0, 0.0, 0.4, 0.0, 0.0, 0.0, 0.0)
->>> model.aetmodel.petmodel.retmodel.sequences.inputs.referenceevapotranspiration.series = (
+>>> retmodel.sequences.inputs.referenceevapotranspiration.series = (
 ...     0.6, 0.8, 0.7, 0.4, 0.4, 0.4, 0.4, 0.3, 0.3, 0.4, 0.3, 0.6, 0.8, 0.5, 0.8,
 ...     0.5, 0.4, 1.3, 0.9, 0.7, 0.7, 1.1, 1.0, 0.8, 0.6, 0.7, 0.7, 0.5, 0.8, 1.0,
 ...     1.2, 0.9, 0.9, 1.2, 1.4, 1.1, 1.1, 0.5, 0.6, 1.5, 2.0, 1.6, 1.6, 1.2, 1.3,
 ...     1.6, 1.9, 0.8, 1.5, 2.7, 1.5, 1.6, 2.0, 2.1, 1.7, 1.7, 0.8, 1.3, 2.5)
 
+.. _whmod_rural_grassland:
+
+grassland
+_________
+
+Due to the dry starting conditions, initially substantial capillary rise, and the two
+heavy precipitation events, soil moisture increases during the simulation.  So,
+percolation and subsequent groundwater recharge are more pronounced  for the second
+event:
+
 .. integration-test::
 
-    >>> conditions = test("whmod_rural_pasture", get_conditions="2017-02-10")
+    >>> conditions = test("whmod_rural_grassland", get_conditions="2017-02-10")
     |       date | precipitation | temperature | relativesoilmoisture | interceptionevaporation | throughfall | potentialsnowmelt | snowmelt | ponding | surfacerunoff | percolation | soilevapotranspiration | lakeevaporation | totalevapotranspiration | capillaryrise | requiredirrigation | externalirrigation | potentialrecharge | baseflow | actualrecharge | delayedrecharge | interceptedwater | snowpack | soilmoisture | deepwater |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2017-02-10 |           0.0 |        -2.8 |               0.0375 |                     0.0 |         0.0 |               0.0 |      0.0 |     0.0 |           0.0 |         0.0 |                    0.0 |             0.0 |                     0.0 |          3.75 |              66.25 |                0.0 |             -3.75 |      0.0 |          -3.75 |        -0.67976 |              0.0 |      0.0 |         3.75 |  -3.07024 |
@@ -152,6 +228,15 @@ _______
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
+.. _whmod_rural_irrigation:
+
+irrigation
+__________
+
+With irrigation enabled, |whmod_rural| increases the soil moisture to the target value
+of 70 % at the end of the first simulated day, which increases percolation and
+reduces capillary rise.  After the last simulated day, soil moisture remains slightly
+below the target value because the related trigger, set to 60 %, is still not reached:
 
 .. integration-test::
 
@@ -223,20 +308,25 @@ _______
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
+>>> withexternalirrigation(False)
 
 .. _whmod_rural_water:
 
 water
 _____
 
+|whmod_rural| supports simulating water areas.  To do so, we must change the land type
+to |WATER| and the soil type to |NONE|:
+
 >>> landtype(WATER)
 >>> soiltype(NONE)
->>> interceptioncapacity.water = 0.0
->>> landmonthfactor = model.aetmodel.petmodel.parameters.control.landmonthfactor
+>>> landmonthfactor = petmodel.parameters.control.landmonthfactor
 >>> landmonthfactor.water_feb = 1.217
 >>> landmonthfactor.water_mar = 1.256
 >>> landmonthfactor.water_apr = 1.283
->>> withexternalirrigation(False)
+
+Water areas possess no storage volume.  Hence, precipitation and evaporation translate
+directly into percolation and capillary rise:
 
 .. integration-test::
 
@@ -311,12 +401,15 @@ _____
 sealed
 ______
 
->>> landtype(SEALED)
->>> interceptioncapacity.sealed = 2.0
->>> landmonthfactor.sealed = 1.0
+Sealed areas have no soil storage.  All rainfall or meltwater reaching the sealed
+surface turns directly into surface runoff.  The only other loss is interception
+evaporation:
 
 .. integration-test::
 
+    >>> landtype(SEALED)
+    >>> interceptioncapacity.sealed = 2.0
+    >>> landmonthfactor.sealed = 1.0
     >>> conditions = test("whmod_rural_sealed", get_conditions="2017-02-10")
     |       date | precipitation | temperature | relativesoilmoisture | interceptionevaporation | throughfall | potentialsnowmelt | snowmelt | ponding | surfacerunoff | percolation | soilevapotranspiration | lakeevaporation | totalevapotranspiration | capillaryrise | requiredirrigation | externalirrigation | potentialrecharge | baseflow | actualrecharge | delayedrecharge | interceptedwater | snowpack | soilmoisture | deepwater |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -383,10 +476,15 @@ ______
 >>> round_(model.check_waterbalance(conditions))
 0.0
 
-.. _whmod_rural_subcells:
+.. _whmod_rural_multiple_zones:
 
-subcells
-________
+multiple zones
+______________
+
+For the following example, we divide the considered site into four zones of different
+land types.  The new land type |CONIFER| relies, like all other land types except
+|WATER| and |SEALED|, on the same equations as |GRASS| (while parametrisation is
+usually different, of course):
 
 >>> name2value = {par.name: par.value for par in control}
 >>> nmbzones(4)
@@ -395,18 +493,25 @@ ________
 >>> zonearea(2.5)
 >>> interceptioncapacity.conifer = 2.0
 >>> landmonthfactor.conifer = 1.335
+
+The `name2value` dictionary helps us to restore all other settings of the previous
+examples with little effort:
+
 >>> for name, value in name2value.items():
 ...     if name not in ("nmbzones", "landtype", "soiltype", "zonearea", "interceptioncapacity"):
 ...         control[name].value = value
 >>> model.update_parameters()
+>>> aetmodel.parameters.control.dissefactor(4.0)
+>>> petmodel.parameters.control.dampingfactor(1.0)
+>>> retmodel.parameters.control.evapotranspirationfactor(1.0)
 
->>> model.aetmodel.parameters.control.dissefactor(4.0)
->>> model.aetmodel.petmodel.parameters.control.dampingfactor(1.0)
->>> model.aetmodel.petmodel.retmodel.parameters.control.evapotranspirationfactor(1.0)
+The simulation results for the individual zones are very similar to those of the
+corresponding previous results because |whmod_rural| does not consider lateral
+exchanges:
 
 .. integration-test::
 
-    >>> conditions = test("whmod_rural_subcells", get_conditions="2017-02-10")
+    >>> conditions = test("whmod_rural_multiple_zones", get_conditions="2017-02-10")
     |       date | precipitation | temperature |                          relativesoilmoisture |                   interceptionevaporation |                     throughfall |                    potentialsnowmelt |                snowmelt |                     ponding |                surfacerunoff |                            percolation |                          soilevapotranspiration |                   lakeevaporation |                             totalevapotranspiration |                          capillaryrise |                            requiredirrigation |                externalirrigation |                                potentialrecharge |                              baseflow | actualrecharge | delayedrecharge |                   interceptedwater |                snowpack |                            soilmoisture | deepwater |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 2017-02-10 |           0.0 |        -2.8 |   0.0375    0.0375  0.0                   0.0 | 0.0     0.0  0.0                      0.0 |  0.0      0.0  0.0          0.0 |   0.0    0.0  0.0                0.0 | 0.0  0.0  0.0       0.0 |  0.0      0.0  0.0      0.0 | 0.0  0.0  0.0            0.0 |       0.0        0.0  0.0          0.0 |      0.0       0.0  0.0                     0.0 | 0.0  0.0  0.7302              0.0 |      0.0       0.0  0.7302                      0.0 |     3.75      3.75  0.0            0.0 |     66.25      66.25  0.0                 0.0 | 0.0  0.0  0.0                 0.0 |     -3.75      -3.75  -0.7302                0.0 |      0.0       0.0      0.0       0.0 |       -2.05755 |       -0.372971 | 0.0     0.0  0.0               0.0 | 0.0  0.0  0.0       0.0 |      3.75       3.75  0.0           0.0 | -1.684579 |
@@ -477,7 +582,15 @@ ________
 snow
 ____
 
+We reduce the complete air temperature time series by 8 °C to demonstrate the
+functioning of the snow routine:
+
 >>> inputs.temperature.series -= 8.0
+
+As the emergence of iced layers is not considered, no snowpack builds up on the water
+zone.  For all other zones, snow accumulation and melting follow a simple degree day
+method that does not differentiate between liquid and frozen water stored in the snow
+layer:
 
 .. integration-test::
 
@@ -548,17 +661,13 @@ ____
 0.0
 """
 
-# import...
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import aetinterfaces
 
-# ...from arma
 from hydpy.models.whmod import whmod_model
 from hydpy.models.whmod.whmod_constants import *
 
@@ -574,7 +683,7 @@ class Model(
     """|whmod_rural.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(
-        short="WHMod-PET", description="externel potential evapotranspiration"
+        short="WHMod-Rural", description="WHMod version for rural regions"
     )
     __HYDPY_ROOTMODEL__ = True
 
@@ -628,39 +737,55 @@ class Model(
 
         Method |Model.check_waterbalance| calculates the balance error as follows:
 
-        ToDo
+          .. math::
+            Error = \Sigma In - \Sigma Out - \Delta Vol
+            \\ \\
+            \Sigma In = \sum_{t=t_0}^{t_1} \left(
+            P_t + \sum_{k=1}^{N} Z^k \cdot E_t^k \right)
+            \\
+            \Sigma Out = \sum_{t=t_0}^{t_1} \left(
+            T_t + \sum_{k=1}^{N} Z^k \cdot \Big( S_t^k + B_t^k + R_t^k \Big) \right)
+            \\
+            \Delta Vol = f_{\Delta}\big(D\big) + \sum_{k=1}^{N} Z^k \cdot \Big(
+            f_{\Delta} \big( I^k \big) + f_{\Delta} \big( P^k \big) +
+            f_{\Delta} \big( M^k \big) \Big)
+            \\ \\
+            f_{\Delta}(x) = x_{t1} - x_{t0}
+            \\ \\
+            P = Precipitation \\
+            N = NmbZones \\
+            Z = ZoneRation \\
+            T = TotalEvapotranspiration \\
+            S = SurfaceRunoff \\
+            B = Baseflow \\
+            R = DelayedRecharge \\
+            I = InterceptedWater \\
+            P = Snowpack \\
+            M = SoilMoisture \\
+            D = DeepWater
 
-        The returned error should always be in scale with numerical precision so
-        that it does not affect the simulation results in any relevant manner.
+        The returned error should always be in scale with numerical precision so that
+        it does not affect the simulation results in any relevant manner.
 
-        Pick the required initial conditions before starting the simulation run
-        via property |Sequences.conditions|.  See the integration tests of the
-        application model |whmod_rural| for some examples.
+        Pick the required initial conditions before starting the simulation run via
+        property |Sequences.conditions|.  See the integration tests of the application
+        model |whmod_rural| for some examples.
         """
 
         fluxes = self.sequences.fluxes
         last = self.sequences.states
         first = initial_conditions["model"]["states"]
-
         r = self.parameters.derived.zoneratio.values
-        landtype = self.parameters.control.landtype.values
-        soiltype = self.parameters.control.soiltype.values
-
-        land = landtype != WATER
-        sealed = landtype == SEALED
-        groundwater = ~sealed
-        soil = soiltype != NONE
-
         return (
             sum(self.sequences.inputs.precipitation.series)
             - numpy.sum(r * fluxes.totalevapotranspiration.series)
-            - numpy.sum((r * fluxes.surfacerunoff.series)[:, sealed])
-            + numpy.sum((r * fluxes.externalirrigation.series)[:, soil])
-            - numpy.sum((r * fluxes.baseflow.series)[:, groundwater])
+            - numpy.sum(r * fluxes.surfacerunoff.series)
+            + numpy.sum(r * fluxes.externalirrigation.series)
+            - numpy.sum(r * fluxes.baseflow.series)
             - sum(fluxes.delayedrecharge.series)
-            - sum((r * (last.interceptedwater - first["interceptedwater"]))[land])
-            - sum((r * (last.snowpack - first["snowpack"]))[land])
-            - sum((r * (last.soilmoisture - first["soilmoisture"]))[soil])
+            - sum(r * (last.interceptedwater - first["interceptedwater"]))
+            - sum(r * (last.snowpack - first["snowpack"]))
+            - sum(r * (last.soilmoisture - first["soilmoisture"]))
             - (last.deepwater - first["deepwater"])
         )
 

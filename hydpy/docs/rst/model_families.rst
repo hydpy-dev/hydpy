@@ -75,4 +75,5 @@ the :ref:`model_overview` section, which clarifies this distinction more clearly
    HydPy-SW1D
    HydPy-Test
    HydPy-W
+   HydPy-WHMod
    HydPy-WQ

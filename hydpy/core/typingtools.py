@@ -163,7 +163,7 @@ DeployMode = Literal[
     "obs_oldsim_bi",
 ]
 LineStyle = Literal["-", "--", "-.", ":", "solid", "dashed", "dashdot", "dotted"]
-StepSize = Literal["daily", "d", "monthly", "m"]
+StepSize = Literal["daily", "d", "monthly", "m", "yearly", "y"]
 
 
 class CyParametersProtocol(Protocol):

@@ -2468,7 +2468,7 @@ group name `test`.
 of node `lahn_marb` for the period `1996-10-01 00:00:00` to `1996-11-01 00:00:00`, the \
 following error occurred: While trying to aggregate the given series, the following \
 error occurred: Argument `stepsize` received value `quaterly`, but only the following \
-ones are supported: `monthly` (default) and `daily`.
+ones are supported: `monthly` (default), `daily`, and `yearly`.
 
         >>> from hydpy import pub
         >>> del pub.timegrids
@@ -2571,7 +2571,7 @@ Attribute timegrids of module `pub` is not defined at the moment.
                     )
                     period = "15d" if stepsize.startswith("m") else "12h"
                     ps.index += timetools.Period(period).timedelta
-                    ps = ps.rename(columns={"series": label_})
+                    ps.name = label_
                 kwargs = {"label": label_, "ax": pyplot.gca()}
                 if color is not None:
                     kwargs["color"] = color

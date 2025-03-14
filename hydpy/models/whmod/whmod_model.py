@@ -557,9 +557,9 @@ class Calc_RelativeSoilMoisture_V1(modeltools.Method):
 class Calc_CisternInflow_V1(modeltools.Method):
     r"""Calculate the inflow into the cistern.
 
-    Basic equation for sealed areas:
+    Basic equation:
       .. math::
-        I = \sum_{k=1}^N \frac{A}{1000} \cdot \begin{cases}
+        I = \sum_{k=1}^N \frac{A_k}{1000} \cdot \begin{cases}
         S_k &|\ L_k = SEALED \, \land \, C_k \\
         P_k &|\ L_k \neq SEALED \, \land \, C_k
         \end{cases}
@@ -619,14 +619,14 @@ class Calc_CisternOverflow_CollectedWater_V1(modeltools.Method):
     Basic equation:
       .. math::
         O(t) = \begin{cases}
-        0 &|\ W \leq C \\
-        I &|\ W = C
+        0 &|\ W(t) \leq C \\
+        I(t) &|\ W(t) = C
         \end{cases}
         \\
-        \frac{d W(t)}{d t} = I - O(t)
+        \frac{d W(t)}{d t} = I(t) - O(t)
         \\ \\
-        O = OverflowCistern \\
-        I = InflowCistern \\
+        O = CisternOverflow \\
+        I = CisternInflow \\
         W = CollectedWater \\
         C = CisternCapacity
 
@@ -1031,7 +1031,7 @@ class Calc_SoilMoisture_V1(modeltools.Method):
 
 
 class Calc_RequiredIrrigation_V1(modeltools.Method):
-    r"""Calculate the irrigation demand.
+    r"""Calculate the individual zones' irrigation demand.
 
     Basic equation:
       .. math::
@@ -1104,6 +1104,113 @@ class Calc_RequiredIrrigation_V1(modeltools.Method):
                 flu.requiredirrigation[k] = der.maxsoilwater[k] * (
                     con.irrigationtarget[l, m] - sm
                 )
+
+
+class Calc_CisternDemand_V1(modeltools.Method):
+    r"""Calculate the total irrigation water demand from the cistern.
+
+    Basic equation:
+      .. math::
+        D = \sum_{k=1}^N \frac{A_k}{1000} \cdot R_k
+        \\ \\
+        D = CisternDemand \\
+        N = NmbZones \\
+        A = ZoneArea \\
+        R = RequiredIrrigation
+
+    Example:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmbzones(5)
+        >>> landtype(GRASS, GRASS, GRASS, GRASS, SEALED)
+        >>> soiltype(SAND, SAND, SAND, SAND, NONE)
+        >>> area(15.0)
+        >>> zonearea(1.0, 2.0, 3.0, 4.0, 5.0)
+        >>> fluxes.requiredirrigation = 0.0, 6.0, 0.0, 7.0, nan
+        >>> model.calc_cisterndemand_v1()
+        >>> fluxes.cisterndemand
+        cisterndemand(0.04)
+    """
+
+    CONTROLPARAMETERS = (
+        whmod_control.NmbZones,
+        whmod_control.ZoneArea,
+        whmod_control.SoilType,
+    )
+    REQUIREDSEQUENCES = (whmod_fluxes.RequiredIrrigation,)
+    RESULTSEQUENCES = (whmod_fluxes.CisternDemand,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        flu.cisterndemand = 0.0
+        for k in range(con.nmbzones):
+            if con.soiltype[k] != NONE:
+                flu.cisterndemand += con.zonearea[k] * flu.requiredirrigation[k]
+        flu.cisterndemand /= 1000.0
+
+
+class Calc_CisternExtraction_CollectedWater_V1(modeltools.Method):
+    r"""Calculate the actual irrigation extraction from the cistern and update the
+    amount of still available water.
+
+    Basic equations:
+      .. math::
+        E(t) = \begin{cases}
+        D(t) &|\ W(t) > 0 \\
+        0 &|\ W(t) = 0
+        \end{cases}
+        \\
+        \frac{d W(t)}{d t} = E(t)
+        \\ \\
+        E = CisternExtraction \\
+        D = CisternDemand \\
+        W = CollectedWater
+
+    Examples:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> states.collectedwater = 5.0
+        >>> fluxes.cisterndemand = 3.0
+
+        >>> model.calc_cisternextraction_collectedwater_v1()
+        >>> states.collectedwater
+        collectedwater(2.0)
+        >>> fluxes.cisternextraction
+        cisternextraction(3.0)
+
+        >>> model.calc_cisternextraction_collectedwater_v1()
+        >>> states.collectedwater
+        collectedwater(0.0)
+        >>> fluxes.cisternextraction
+        cisternextraction(2.0)
+
+        >>> model.calc_cisternextraction_collectedwater_v1()
+        >>> states.collectedwater
+        collectedwater(0.0)
+        >>> fluxes.cisternextraction
+        cisternextraction(0.0)
+    """
+
+    REQUIREDSEQUENCES = (whmod_fluxes.CisternDemand,)
+    RESULTSEQUENCES = (whmod_fluxes.CisternExtraction,)
+    UPDATEDSEQUENCES = (whmod_states.CollectedWater,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+
+        if sta.collectedwater > flu.cisterndemand:
+            flu.cisternextraction = flu.cisterndemand
+            sta.collectedwater -= flu.cisternextraction
+        else:
+            flu.cisternextraction = sta.collectedwater
+            sta.collectedwater = 0.0
 
 
 class Calc_ExternalIrrigation_SoilMoisture_V1(modeltools.Method):
@@ -1574,6 +1681,8 @@ class Model(modeltools.AdHocModel):
         Calc_SoilMoisture_V1,
         Calc_RelativeSoilMoisture_V1,
         Calc_RequiredIrrigation_V1,
+        Calc_CisternDemand_V1,
+        Calc_CisternExtraction_CollectedWater_V1,
         Calc_ExternalIrrigation_SoilMoisture_V1,
         Calc_RelativeSoilMoisture_V1,
         Calc_PotentialRecharge_V1,

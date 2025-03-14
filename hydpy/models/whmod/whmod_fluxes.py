@@ -65,8 +65,14 @@ class CisternOverflow(sequencetools.FluxSequence):
     NDIM, TYPE, NUMERIC = 0, float, False
 
 
+class CisternDemand(sequencetools.FluxSequence):
+    """Irrigation water damanded from the cistern [m³/T]."""
+
+    NDIM, TYPE, NUMERIC = 0, float, False
+
+
 class CisternExtraction(sequencetools.FluxSequence):
-    """Extraction from the cistern for irrigation [m³/T]."""
+    """Actual irrigation extraction from the cistern [m³/T]."""
 
     NDIM, TYPE, NUMERIC = 0, float, False
 

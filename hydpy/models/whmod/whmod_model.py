@@ -1213,6 +1213,66 @@ class Calc_CisternExtraction_CollectedWater_V1(modeltools.Method):
             sta.collectedwater = 0.0
 
 
+class Calc_InternalIrrigation_SoilMoisture_V1(modeltools.Method):
+    r"""Internal irrigation with water taken from the cistern.
+
+    Basic equations:
+      .. math::
+        I = R \cdot E / D
+        \\ \\
+        I = InternalIrrigation \\
+        R = RequiredIrrigation \\
+        E = CisternExtraction \\
+        D = CisternDemand
+
+    Example:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmbzones(5)
+        >>> landtype(GRASS, GRASS, GRASS, GRASS, SEALED)
+        >>> soiltype(SAND, SAND, SAND, SAND, NONE)
+        >>> area(15.0)
+        >>> zonearea(1.0, 2.0, 3.0, 4.0, 5.0)
+        >>> states.soilmoisture = 100.0
+        >>> fluxes.requiredirrigation = 0.0, 6.0, 0.0, 7.0, nan
+        >>> fluxes.cisterndemand = 0.04
+        >>> fluxes.cisternextraction = 0.03
+        >>> model.calc_internalirrigation_soilmoisture_v1()
+        >>> fluxes.internalirrigation
+        internalirrigation(0.0, 4.5, 0.0, 5.25, 0.0)
+        >>> states.soilmoisture
+        soilmoisture(100.0, 104.5, 100.0, 105.25, 0.0)
+    """
+
+    CONTROLPARAMETERS = (
+        whmod_control.NmbZones,
+        whmod_control.SoilType,
+    )
+    REQUIREDSEQUENCES = (
+        whmod_fluxes.RequiredIrrigation,
+        whmod_fluxes.CisternDemand,
+        whmod_fluxes.CisternExtraction,
+    )
+    RESULTSEQUENCES = (whmod_fluxes.InternalIrrigation,)
+    UPDATEDSEQUENCES = (whmod_states.SoilMoisture,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+
+        factor: float = flu.cisternextraction / flu.cisterndemand
+        for k in range(con.nmbzones):
+            if con.soiltype[k] == NONE:
+                sta.soilmoisture[k] = 0.0
+                flu.internalirrigation[k] = 0.0
+            else:
+                flu.internalirrigation[k] = factor * flu.requiredirrigation[k]
+                sta.soilmoisture[k] += flu.internalirrigation[k]
+
+
 class Calc_ExternalIrrigation_SoilMoisture_V1(modeltools.Method):
     r"""Irrigate from external sources, if required and requested.
 
@@ -1683,6 +1743,7 @@ class Model(modeltools.AdHocModel):
         Calc_RequiredIrrigation_V1,
         Calc_CisternDemand_V1,
         Calc_CisternExtraction_CollectedWater_V1,
+        Calc_InternalIrrigation_SoilMoisture_V1,
         Calc_ExternalIrrigation_SoilMoisture_V1,
         Calc_RelativeSoilMoisture_V1,
         Calc_PotentialRecharge_V1,

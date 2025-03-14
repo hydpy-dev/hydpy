@@ -554,7 +554,65 @@ class Calc_RelativeSoilMoisture_V1(modeltools.Method):
                 fac.relativesoilmoisture[k] = sta.soilmoisture[k] / der.maxsoilwater[k]
 
 
-class Calc_OverflowCistern_CollectedWater_V1(modeltools.Method):
+class Calc_CisternInflow_V1(modeltools.Method):
+    r"""Calculate the inflow into the cistern.
+
+    Basic equation for sealed areas:
+      .. math::
+        I = \sum_{k=1}^N \frac{A}{1000} \cdot \begin{cases}
+        S_k &|\ L_k = SEALED \, \land \, C_k \\
+        P_k &|\ L_k \neq SEALED \, \land \, C_k
+        \end{cases}
+        \\ \\
+        I = CisternInflow\\
+        N = NmbZones \\
+        T = LandType \\
+        C = Collector \\
+        A = ZoneArea \\
+        S = SurfaceRunoff \\
+        P = Percolation
+
+    Example:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmbzones(5)
+        >>> landtype(GRASS, GRASS, SEALED, SEALED, WATER)
+        >>> collector(False, True, False, True, False)
+        >>> area(15.0)
+        >>> zonearea(1.0, 2.0, 3.0, 4.0, 5.0)
+        >>> fluxes.percolation = nan, 6.0, nan, nan, nan
+        >>> fluxes.surfacerunoff = nan, nan, nan, 7.0, nan
+        >>> model.calc_cisterninflow_v1()
+        >>> fluxes.cisterninflow
+        cisterninflow(0.04)
+    """
+
+    CONTROLPARAMETERS = (
+        whmod_control.NmbZones,
+        whmod_control.ZoneArea,
+        whmod_control.LandType,
+        whmod_control.Collector,
+    )
+    REQUIREDSEQUENCES = (whmod_fluxes.SurfaceRunoff, whmod_fluxes.Percolation)
+    RESULTSEQUENCES = (whmod_fluxes.CisternInflow,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        flu.cisterninflow = 0.0
+        for k in range(con.nmbzones):
+            if con.collector[k]:
+                if con.landtype[k] == SEALED:
+                    flu.cisterninflow += con.zonearea[k] * flu.surfacerunoff[k]
+                elif con.landtype[k] != WATER:
+                    flu.cisterninflow += con.zonearea[k] * flu.percolation[k]
+        flu.cisterninflow /= 1000.0
+
+
+class Calc_CisternOverflow_CollectedWater_V1(modeltools.Method):
     r"""Take the inflow into the cistern to update its content and calculate eventual
     overflow.
 
@@ -616,7 +674,6 @@ class Calc_OverflowCistern_CollectedWater_V1(modeltools.Method):
         else:
             flu.cisternoverflow = sta.collectedwater - con.cisterncapacity
             sta.collectedwater = con.cisterncapacity
-
 
 
 class Calc_Percolation_V1(modeltools.Method):
@@ -1509,6 +1566,7 @@ class Model(modeltools.AdHocModel):
         Calc_SurfaceRunoff_V1,
         Calc_RelativeSoilMoisture_V1,
         Calc_Percolation_V1,
+        Calc_CisternInflow_V1,
         Calc_CisternOverflow_CollectedWater_V1,
         Calc_SoilEvapotranspiration_V1,
         Calc_TotalEvapotranspiration_V1,

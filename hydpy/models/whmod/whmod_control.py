@@ -70,7 +70,7 @@ class NmbZones(parametertools.Parameter):
 class ZoneArea(whmod_parameters.LandTypeCompleteParameter):
     """Zone area [m²]."""
 
-    TIME, SPAN = None, (0.0, None)
+    TYPE, TIME, SPAN = float, None, (0.0, None)
 
 
 class LandType(parametertools.NameParameter):
@@ -145,6 +145,13 @@ NONE.
             )
 
 
+class Collector(whmod_parameters.LandTypeNonWaterParameter):
+    """A flag that indicates whether a zone's excess water (surface runoff or
+    percolation) is collected in a cistern [-]."""
+
+    TYPE, TIME, SPAN = bool, None, (False, True)
+
+
 class InterceptionCapacity(parametertools.KeywordParameter2D):
     """Maximum interception storage [mm]."""
 
@@ -159,25 +166,25 @@ class InterceptionCapacity(parametertools.KeywordParameter2D):
 class DegreeDayFactor(whmod_parameters.LandTypeNonWaterParameter):
     """Degree day factor for snow melting [mm/T/K]."""
 
-    TIME, SPAN = True, (0.0, None)
+    TYPE, TIME, SPAN = float, True, (0.0, None)
 
 
 class AvailableFieldCapacity(whmod_parameters.SoilTypeParameter):
     """Maximum relative soil moisture content [-]."""
 
-    TIME, SPAN = None, (0.0, None)
+    TYPE, TIME, SPAN = float, None, (0.0, None)
 
 
 class RootingDepth(whmod_parameters.LandTypeSoilParameter):
     """Maximum rooting depth [m]."""
 
-    TIME, SPAN = None, (0.0, None)
+    TYPE, TIME, SPAN = float, None, (0.0, None)
 
 
 class GroundwaterDepth(whmod_parameters.SoilTypeParameter):
     """Average groundwater depth [m]."""
 
-    TIME, SPAN = None, (0.0, None)
+    TYPE, TIME, SPAN = float, None, (0.0, None)
 
 
 class WithCapillaryRise(parametertools.Parameter):
@@ -189,13 +196,13 @@ class WithCapillaryRise(parametertools.Parameter):
 class CapillaryThreshold(whmod_parameters.SoilTypeParameter):
     """Relative soil moisture where the capillary rise starts [-]."""
 
-    TIME, SPAN = None, (0.0, None)
+    TYPE, TIME, SPAN = float, None, (0.0, None)
 
 
 class CapillaryLimit(whmod_parameters.SoilTypeParameter):
     """Relative soil moisture where the capillary rise reaches its maximum [-]."""
 
-    TIME, SPAN = None, (0.0, None)
+    TYPE, TIME, SPAN = float, None, (0.0, None)
 
 
 class IrrigationTrigger(parametertools.KeywordParameter2D):
@@ -311,7 +318,7 @@ class WithExternalIrrigation(parametertools.Parameter):
 class BaseflowIndex(whmod_parameters.LandTypeGroundwaterParameter):
     """Baseflow index [-]."""
 
-    TIME, SPAN = None, (0.0, 1.0)
+    TYPE, TIME, SPAN = float, None, (0.0, 1.0)
 
 
 class RechargeDelay(parametertools.Parameter):

@@ -10,8 +10,6 @@ from hydpy.models.whmod import whmod_masks
 class LandTypeBaseParameter(parametertools.ZipParameter):
     """Base class for 1-dimensional land type-specific parameters."""
 
-    TYPE = float
-
     constants = whmod_constants.LANDTYPE_CONSTANTS
 
     @property

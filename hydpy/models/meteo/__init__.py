@@ -1,4 +1,5 @@
-"""The |meteo.DOCNAME.long| family supplies methods for calculating different
+"""
+The |meteo.DOCNAME.long| family supplies methods for calculating different
 meteorological factors as input to other (hydrological) models.
 """
 

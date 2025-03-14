@@ -1,5 +1,7 @@
-"""|arma.DOCNAME.complete| provides features to implement flood routing models based on
-autoregressive (AR) and moving-average (MA) methods."""
+"""
+|arma.DOCNAME.complete| provides features to implement flood routing models based on
+autoregressive (AR) and moving-average (MA) methods.
+"""
 
 # import...
 # ...from HydPy

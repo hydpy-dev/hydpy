@@ -578,31 +578,31 @@ class Calc_OverflowCistern_CollectedWater_V1(modeltools.Method):
         >>> parameterstep()
         >>> cisterncapacity(5.0)
         >>> states.collectedwater = 1.0
-        >>> fluxes.inflowcistern = 3.0
+        >>> fluxes.cisterninflow = 3.0
 
-        >>> model.calc_overflowcistern_collectedwater_v1()
+        >>> model.calc_cisternoverflow_collectedwater_v1()
         >>> states.collectedwater
         collectedwater(4.0)
-        >>> fluxes.overflowcistern
-        overflowcistern(0.0)
+        >>> fluxes.cisternoverflow
+        cisternoverflow(0.0)
 
-        >>> model.calc_overflowcistern_collectedwater_v1()
+        >>> model.calc_cisternoverflow_collectedwater_v1()
         >>> states.collectedwater
         collectedwater(5.0)
-        >>> fluxes.overflowcistern
-        overflowcistern(2.0)
+        >>> fluxes.cisternoverflow
+        cisternoverflow(2.0)
 
-        >>> model.calc_overflowcistern_collectedwater_v1()
+        >>> model.calc_cisternoverflow_collectedwater_v1()
         >>> states.collectedwater
         collectedwater(5.0)
-        >>> fluxes.overflowcistern
-        overflowcistern(3.0)
+        >>> fluxes.cisternoverflow
+        cisternoverflow(3.0)
     """
 
     CONTROLPARAMETERS = (whmod_control.CisternCapacity,)
-    REQUIREDSEQUENCES = (whmod_fluxes.InflowCistern,)
+    REQUIREDSEQUENCES = (whmod_fluxes.CisternInflow,)
     UPDATEDSEQUENCES = (whmod_states.CollectedWater,)
-    RESULTSEQUENCES = (whmod_fluxes.OverflowCistern,)
+    RESULTSEQUENCES = (whmod_fluxes.CisternOverflow,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -610,11 +610,11 @@ class Calc_OverflowCistern_CollectedWater_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
 
-        sta.collectedwater += flu.inflowcistern
+        sta.collectedwater += flu.cisterninflow
         if sta.collectedwater <= con.cisterncapacity:
-            flu.overflowcistern = 0.0
+            flu.cisternoverflow = 0.0
         else:
-            flu.overflowcistern = sta.collectedwater - con.cisterncapacity
+            flu.cisternoverflow = sta.collectedwater - con.cisterncapacity
             sta.collectedwater = con.cisterncapacity
 
 
@@ -1509,7 +1509,7 @@ class Model(modeltools.AdHocModel):
         Calc_SurfaceRunoff_V1,
         Calc_RelativeSoilMoisture_V1,
         Calc_Percolation_V1,
-        Calc_OverflowCistern_CollectedWater_V1,
+        Calc_CisternOverflow_CollectedWater_V1,
         Calc_SoilEvapotranspiration_V1,
         Calc_TotalEvapotranspiration_V1,
         Calc_CapillaryRise_V1,

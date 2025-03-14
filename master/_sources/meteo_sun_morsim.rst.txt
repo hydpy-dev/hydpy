@@ -1,0 +1,30 @@
+.. |AngstromAlternative| replace:: :class:`~hydpy.models.meteo.meteo_control.AngstromAlternative`
+.. |Calc_DailyGlobalRadiation_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_DailyGlobalRadiation_V1`
+.. |Calc_GlobalRadiation_V2| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_GlobalRadiation_V2`
+.. |Calc_SunshineDuration_V2| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_SunshineDuration_V2`
+.. |Calc_UnadjustedGlobalRadiation_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_UnadjustedGlobalRadiation_V1`
+.. |LoggedGlobalRadiation| replace:: :class:`~hydpy.models.meteo.meteo_logs.LoggedGlobalRadiation`
+.. |LoggedSunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_logs.LoggedSunshineDuration`
+.. |LoggedUnadjustedSunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_logs.LoggedUnadjustedSunshineDuration`
+.. |RadiationModel_V1| replace:: :class:`~hydpy.interfaces.radiationinterfaces.RadiationModel_V1`
+.. |Return_DailyGlobalRadiation_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Return_DailyGlobalRadiation_V1`
+.. |meteo_glob_fao56| replace:: :mod:`~hydpy.models.meteo_glob_fao56`
+.. |meteo_glob_morsim| replace:: :mod:`~hydpy.models.meteo_glob_morsim`
+.. |meteo_sun_fao56| replace:: :mod:`~hydpy.models.meteo_sun_fao56`
+.. |meteo_sun_morsim.DOCNAME.complete| replace:: HydPy-Meteo-Sun-MORSIM (sunshine duration estimation adopted from MORECS/LARSIM)
+.. |meteo_sun_morsim| replace:: :mod:`~hydpy.models.meteo_sun_morsim`
+.. |meteo_factors.PossibleSunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_factors.PossibleSunshineDuration`
+.. |meteo_factors.SunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_factors.SunshineDuration`
+.. |meteo_fluxes.GlobalRadiation| replace:: :class:`~hydpy.models.meteo.meteo_fluxes.GlobalRadiation`
+.. |meteo_inputs.GlobalRadiation| replace:: :class:`~hydpy.models.meteo.meteo_inputs.GlobalRadiation`
+.. |meteo_inputs.SunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_inputs.SunshineDuration`
+
+.. _meteo_sun_morsim:
+
+meteo_sun_morsim
+================
+
+.. automodule:: hydpy.models.meteo_sun_morsim
+    :members:
+    :show-inheritance:
+    :exclude-members: fastaccess_new, TypedDict, TypeAliasType, SupportsRound, OutletSequences, AsyncGenerator, Mapping, Counter, ItemsView, get_origin, StateSequences, DefaultDict, TypeAlias, SupportsComplex, ClassVar, is_protocol, Container, Any, subseqs, Literal, fastaccess_old, no_type_check_decorator, get_original_bases, Sized, SenderSequences, is_typeddict, Required, Final, TypeIs, Type, PART_ODE_METHODS, Iterable, Optional, AideSequences, RESULTSEQUENCES, Union, ByteString, FrozenSet, FULL_ODE_METHODS, Annotated, Awaitable, deprecated, SupportsAbs, Generic, Tuple, ContextManager, IO, IntVar, InletSequences, Iterator, override, assert_never, TypeVar, LiteralString, NamedTuple, TextIO, Reversible, ParamSpec, ReceiverSequences, NotRequired, cast, runtime, MutableMapping, DERIVEDPARAMETERS, dataclass_transform, TYPE_CHECKING, Doc, subpars, Buffer, CLASSES, Match, SUBMODELINTERFACES, REQUIREDSEQUENCES, assert_type, MutableSequence, ParamSpecKwargs, SupportsFloat, AbstractSet, AnyStr, final, NoReturn, NoDefault, MutableSet, ValuesView, FIXEDPARAMETERS, Deque, AsyncIterable, Coroutine, Generator, ChainMap, reveal_type, AsyncContextManager, fastaccess, MappingView, INLET_METHODS, SupportsIndex, AsyncIterator, Set, SOLVERPARAMETERS, SUBMETHODS, TypeGuard, Unpack, Self, Sequence, List, Hashable, SOLVERSEQUENCES, CONTROLPARAMETERS, subvars, UPDATEDSEQUENCES, get_args, OUTLET_METHODS, clear_overloads, overload, ADD_METHODS, Callable, SupportsBytes, TypeVarTuple, RECEIVER_METHODS, BinaryIO, INTERFACE_METHODS, OrderedDict, get_type_hints, Text, ParamSpecArgs, Never, RUN_METHODS, Concatenate, get_protocol_members, NewType, ReadOnly, Protocol, Pattern, SUBMODELS, no_type_check, Collection, pars, seqs, runtime_checkable, get_overloads, Dict, ForwardRef, CapsuleType, SENDER_METHODS, KeysView, SupportsInt

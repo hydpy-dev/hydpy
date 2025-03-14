@@ -1,0 +1,36 @@
+.. |Calc_Coefficient1_Coefficient2_Coefficient3_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_Coefficient1_Coefficient2_Coefficient3_V1`
+.. |Calc_CorrectingFactor_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_CorrectingFactor_V1`
+.. |Calc_CourantNumber_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_CourantNumber_V1`
+.. |Calc_Discharge_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_Discharge_V1`
+.. |Calc_Discharge_V2| replace:: :class:`~hydpy.models.musk.musk_model.Calc_Discharge_V2`
+.. |Calc_ReferenceDischarge_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_ReferenceDischarge_V1`
+.. |Calc_ReferenceWaterDepth_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_ReferenceWaterDepth_V1`
+.. |Calc_ReynoldsNumber_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_ReynoldsNumber_V1`
+.. |Coefficients| replace:: :class:`~hydpy.models.musk.musk_control.Coefficients`
+.. |CrossSectionModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.CrossSectionModel_V1`
+.. |Discharge.refweights| replace:: :const:`~hydpy.models.musk.musk_states.Discharge.refweights`
+.. |Discharge| replace:: :class:`~hydpy.models.musk.musk_states.Discharge`
+.. |Idx_Run| replace:: :class:`~hydpy.core.modeltools.Idx_Run`
+.. |NmbRuns| replace:: :class:`~hydpy.models.musk.musk_solver.NmbRuns`
+.. |NmbSegments| replace:: :class:`~hydpy.models.musk.musk_control.NmbSegments`
+.. |Pegasus| replace:: :class:`~hydpy.auxs.roottools.Pegasus`
+.. |Return_ReferenceDischargeError_V1| replace:: :class:`~hydpy.models.musk.musk_model.Return_ReferenceDischargeError_V1`
+.. |RunModel.RUN_METHODS| replace:: :attr:`~hydpy.core.modeltools.RunModel.RUN_METHODS`
+.. |ToleranceDischarge.modify_init| replace:: :func:`~hydpy.models.musk.musk_solver.ToleranceDischarge.modify_init`
+.. |ToleranceDischarge| replace:: :class:`~hydpy.models.musk.musk_solver.ToleranceDischarge`
+.. |ToleranceWaterDepth| replace:: :class:`~hydpy.models.musk.musk_solver.ToleranceWaterDepth`
+.. |Variable.average_values| replace:: :func:`~hydpy.core.variabletools.Variable.average_values`
+.. |musk.DOCNAME.complete| replace:: HydPy-Musk (base model)
+.. |musk.DOCNAME.long| replace:: HydPy-Musk
+.. |musk| replace:: :mod:`~hydpy.models.musk`
+.. |wq_trapeze_strickler| replace:: :mod:`~hydpy.models.wq_trapeze_strickler`
+
+.. _musk:
+
+musk
+====
+
+.. automodule:: hydpy.models.musk
+    :members:
+    :show-inheritance:
+    :exclude-members: fastaccess_new, TypedDict, TypeAliasType, SupportsRound, AsyncGenerator, Mapping, Counter, ItemsView, get_origin, DefaultDict, TypeAlias, SupportsComplex, ClassVar, is_protocol, Container, Any, subseqs, Literal, fastaccess_old, no_type_check_decorator, get_original_bases, Sized, SenderSequences, is_typeddict, Required, Final, TypeIs, Type, PART_ODE_METHODS, Iterable, Optional, AideSequences, RESULTSEQUENCES, Union, ByteString, FrozenSet, FULL_ODE_METHODS, Annotated, Awaitable, deprecated, SupportsAbs, Generic, LogSequences, Tuple, ContextManager, IO, IntVar, Iterator, override, assert_never, TypeVar, LiteralString, NamedTuple, TextIO, Reversible, ParamSpec, ReceiverSequences, NotRequired, cast, runtime, MutableMapping, DERIVEDPARAMETERS, dataclass_transform, TYPE_CHECKING, Doc, subpars, Buffer, CLASSES, Match, SUBMODELINTERFACES, REQUIREDSEQUENCES, assert_type, MutableSequence, ParamSpecKwargs, SupportsFloat, AbstractSet, AnyStr, final, NoReturn, NoDefault, MutableSet, ValuesView, FIXEDPARAMETERS, Deque, AsyncIterable, Coroutine, Generator, ChainMap, reveal_type, AsyncContextManager, fastaccess, MappingView, INLET_METHODS, SupportsIndex, AsyncIterator, Set, SOLVERPARAMETERS, SUBMETHODS, TypeGuard, Unpack, Self, Sequence, List, Hashable, SOLVERSEQUENCES, CONTROLPARAMETERS, subvars, UPDATEDSEQUENCES, get_args, OUTLET_METHODS, clear_overloads, overload, ADD_METHODS, Callable, SupportsBytes, TypeVarTuple, RECEIVER_METHODS, BinaryIO, INTERFACE_METHODS, OrderedDict, get_type_hints, Text, ParamSpecArgs, Never, RUN_METHODS, Concatenate, InputSequences, get_protocol_members, NewType, ReadOnly, Protocol, Pattern, SUBMODELS, no_type_check, Collection, pars, seqs, runtime_checkable, get_overloads, Dict, ForwardRef, CapsuleType, SENDER_METHODS, KeysView, SupportsInt

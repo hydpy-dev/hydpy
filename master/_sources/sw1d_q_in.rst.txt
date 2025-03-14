@@ -1,0 +1,17 @@
+.. |CrossSectionModel_V2| replace:: :class:`~hydpy.interfaces.routinginterfaces.CrossSectionModel_V2`
+.. |StorageModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.StorageModel_V1`
+.. |sw1d.DOCNAME.long| replace:: HydPy-SW1D
+.. |sw1d_channel| replace:: :mod:`~hydpy.models.sw1d_channel`
+.. |sw1d_network| replace:: :mod:`~hydpy.models.sw1d_network`
+.. |sw1d_q_in.DOCNAME.complete| replace:: HydPy-SW1D-Q-In (submodel for adding pre-determined discharge to a channel inlet)
+.. |sw1d_q_in| replace:: :mod:`~hydpy.models.sw1d_q_in`
+
+.. _sw1d_q_in:
+
+sw1d_q_in
+=========
+
+.. automodule:: hydpy.models.sw1d_q_in
+    :members:
+    :show-inheritance:
+    :exclude-members: fastaccess_new, TypedDict, TypeAliasType, SupportsRound, OutletSequences, AsyncGenerator, Mapping, Counter, ItemsView, get_origin, DefaultDict, TypeAlias, SupportsComplex, ClassVar, is_protocol, Container, Any, subseqs, Literal, fastaccess_old, no_type_check_decorator, get_original_bases, Sized, SenderSequences, is_typeddict, Required, Final, TypeIs, Type, PART_ODE_METHODS, Iterable, Optional, AideSequences, RESULTSEQUENCES, Union, ByteString, FrozenSet, FULL_ODE_METHODS, Annotated, Awaitable, deprecated, SupportsAbs, Generic, LogSequences, Tuple, ContextManager, IO, IntVar, Iterator, override, assert_never, TypeVar, LiteralString, NamedTuple, TextIO, Reversible, ParamSpec, ReceiverSequences, NotRequired, cast, runtime, MutableMapping, DERIVEDPARAMETERS, dataclass_transform, TYPE_CHECKING, Doc, subpars, Buffer, CLASSES, Match, SUBMODELINTERFACES, REQUIREDSEQUENCES, assert_type, MutableSequence, ParamSpecKwargs, SupportsFloat, AbstractSet, AnyStr, final, NoReturn, NoDefault, MutableSet, ValuesView, FIXEDPARAMETERS, Deque, AsyncIterable, Coroutine, Generator, ChainMap, reveal_type, AsyncContextManager, fastaccess, MappingView, INLET_METHODS, SupportsIndex, AsyncIterator, Set, SOLVERPARAMETERS, SUBMETHODS, TypeGuard, Unpack, Self, Sequence, List, Hashable, SOLVERSEQUENCES, CONTROLPARAMETERS, subvars, UPDATEDSEQUENCES, get_args, OUTLET_METHODS, clear_overloads, overload, ADD_METHODS, Callable, SupportsBytes, TypeVarTuple, RECEIVER_METHODS, BinaryIO, INTERFACE_METHODS, OrderedDict, get_type_hints, Text, ParamSpecArgs, Never, RUN_METHODS, Concatenate, InputSequences, get_protocol_members, NewType, ReadOnly, Protocol, Pattern, SUBMODELS, no_type_check, Collection, pars, seqs, runtime_checkable, get_overloads, Dict, ForwardRef, CapsuleType, SENDER_METHODS, KeysView, SupportsInt

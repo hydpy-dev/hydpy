@@ -1,0 +1,14 @@
+.. |musk_mct| replace:: :mod:`~hydpy.models.musk_mct`
+.. |wq_trapeze_strickler.DOCNAME.complete| replace:: HydPy-WQ-Trapeze-Strickler (multi-trapeze river profile submodel including Strickler-based calculations)
+.. |wq_trapeze_strickler| replace:: :mod:`~hydpy.models.wq_trapeze_strickler`
+.. |wq_trapeze| replace:: :mod:`~hydpy.models.wq_trapeze`
+
+.. _wq_trapeze_strickler:
+
+wq_trapeze_strickler
+====================
+
+.. automodule:: hydpy.models.wq_trapeze_strickler
+    :members:
+    :show-inheritance:
+    :exclude-members: fastaccess_new, TypedDict, TypeAliasType, SupportsRound, OutletSequences, AsyncGenerator, Mapping, Counter, ItemsView, get_origin, StateSequences, DefaultDict, TypeAlias, SupportsComplex, ClassVar, is_protocol, Container, Any, subseqs, Literal, fastaccess_old, no_type_check_decorator, get_original_bases, Sized, SenderSequences, is_typeddict, Required, Final, TypeIs, Type, PART_ODE_METHODS, Iterable, Optional, AideSequences, RESULTSEQUENCES, Union, ByteString, FrozenSet, FULL_ODE_METHODS, Annotated, Awaitable, deprecated, SupportsAbs, Generic, LogSequences, Tuple, ContextManager, IO, IntVar, InletSequences, Iterator, override, assert_never, TypeVar, LiteralString, NamedTuple, TextIO, Reversible, ParamSpec, ReceiverSequences, NotRequired, cast, runtime, MutableMapping, DERIVEDPARAMETERS, dataclass_transform, TYPE_CHECKING, Doc, subpars, Buffer, CLASSES, Match, SUBMODELINTERFACES, REQUIREDSEQUENCES, assert_type, MutableSequence, ParamSpecKwargs, SupportsFloat, AbstractSet, AnyStr, final, NoReturn, NoDefault, MutableSet, ValuesView, FIXEDPARAMETERS, Deque, AsyncIterable, Coroutine, Generator, ChainMap, reveal_type, AsyncContextManager, fastaccess, MappingView, INLET_METHODS, SupportsIndex, AsyncIterator, Set, SOLVERPARAMETERS, SUBMETHODS, TypeGuard, Unpack, Self, Sequence, List, Hashable, SOLVERSEQUENCES, CONTROLPARAMETERS, subvars, UPDATEDSEQUENCES, get_args, OUTLET_METHODS, clear_overloads, overload, ADD_METHODS, Callable, SupportsBytes, TypeVarTuple, RECEIVER_METHODS, BinaryIO, INTERFACE_METHODS, OrderedDict, get_type_hints, Text, ParamSpecArgs, Never, RUN_METHODS, Concatenate, InputSequences, get_protocol_members, NewType, ReadOnly, Protocol, Pattern, SUBMODELS, no_type_check, Collection, pars, seqs, runtime_checkable, get_overloads, Dict, ForwardRef, CapsuleType, SENDER_METHODS, KeysView, SupportsInt

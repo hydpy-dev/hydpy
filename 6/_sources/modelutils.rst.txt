@@ -1,0 +1,58 @@
+.. |AutoMethod| replace:: :class:`~hydpy.core.modeltools.AutoMethod`
+.. |Cythonizer.cymodule| replace:: :const:`~hydpy.cythons.modelutils.Cythonizer.cymodule`
+.. |Cythonizer.cyname| replace:: :const:`~hydpy.cythons.modelutils.Cythonizer.cyname`
+.. |Cythonizer| replace:: :class:`~hydpy.cythons.modelutils.Cythonizer`
+.. |ELSModel.addup_fluxes| replace:: :func:`~hydpy.core.modeltools.ELSModel.addup_fluxes`
+.. |ELSModel.calculate_error| replace:: :func:`~hydpy.core.modeltools.ELSModel.calculate_error`
+.. |ELSModel.get_point_states| replace:: :func:`~hydpy.core.modeltools.ELSModel.get_point_states`
+.. |ELSModel.integrate_fluxes| replace:: :func:`~hydpy.core.modeltools.ELSModel.integrate_fluxes`
+.. |ELSModel.reset_sum_fluxes| replace:: :func:`~hydpy.core.modeltools.ELSModel.reset_sum_fluxes`
+.. |ELSModel| replace:: :class:`~hydpy.core.modeltools.ELSModel`
+.. |FluxSequence| replace:: :class:`~hydpy.core.sequencetools.FluxSequence`
+.. |FuncConverter.pyxlines| replace:: :const:`~hydpy.cythons.modelutils.FuncConverter.pyxlines`
+.. |IOSequence| replace:: :class:`~hydpy.core.sequencetools.IOSequence`
+.. |Lines.add| replace:: :func:`~hydpy.cythons.modelutils.Lines.add`
+.. |Lines| replace:: :class:`~hydpy.cythons.modelutils.Lines`
+.. |Method| replace:: :class:`~hydpy.core.modeltools.Method`
+.. |PyxWriter.iofunctions| replace:: :func:`~hydpy.cythons.modelutils.PyxWriter.iofunctions`
+.. |PyxWriter.write_stubfile| replace:: :func:`~hydpy.cythons.modelutils.PyxWriter.write_stubfile`
+.. |PyxWriter| replace:: :class:`~hydpy.cythons.modelutils.PyxWriter`
+.. |ReusableMethod| replace:: :class:`~hydpy.core.modeltools.ReusableMethod`
+.. |SetAutoMethod| replace:: :class:`~hydpy.core.modeltools.SetAutoMethod`
+.. |TYPE2STR| replace:: :const:`~hydpy.cythons.modelutils.TYPE2STR`
+.. |compile_| replace:: :func:`~hydpy.cythons.modelutils.compile_`
+.. |float| replace:: :class:`float`
+.. |get_dllextension| replace:: :func:`~hydpy.cythons.modelutils.get_dllextension`
+.. |hland_96| replace:: :mod:`~hydpy.models.hland_96`
+.. |hland| replace:: :mod:`~hydpy.models.hland`
+.. |int| replace:: :class:`int`
+.. |isinstance| replace:: :func:`isinstance`
+.. |math| replace:: :mod:`~math`
+.. |modelutils| replace:: :mod:`~hydpy.cythons.modelutils`
+.. |move_dll| replace:: :func:`~hydpy.cythons.modelutils.move_dll`
+.. |numpy| replace:: :mod:`~numpy`
+.. |platform| replace:: :mod:`~platform`
+.. |test| replace:: :mod:`~hydpy.models.test`
+.. |math.exp| replace:: :func:`~math.exp`
+.. |numpy.arccos| replace:: :func:`~numpy.arccos`
+.. |numpy.arcsin| replace:: :func:`~numpy.arcsin`
+.. |numpy.arctan| replace:: :func:`~numpy.arctan`
+.. |numpy.cos| replace:: :func:`~numpy.cos`
+.. |numpy.exp| replace:: :func:`~numpy.exp`
+.. |numpy.isinf| replace:: :func:`~numpy.isinf`
+.. |numpy.isnan| replace:: :func:`~numpy.isnan`
+.. |numpy.log| replace:: :func:`~numpy.log`
+.. |numpy.sin| replace:: :func:`~numpy.sin`
+.. |numpy.tan| replace:: :func:`~numpy.tan`
+.. |platform.system| replace:: :func:`~platform.system`
+.. |test_states.S| replace:: :class:`~hydpy.models.test.test_states.S`
+
+.. _modelutils:
+
+modelutils
+==========
+
+.. automodule:: hydpy.cythons.modelutils
+    :members:
+    :show-inheritance:
+    :exclude-members: deprecated, TypeAlias, Set, FULL_ODE_METHODS, DefaultDict, NotRequired, INTERFACE_METHODS, SENDER_METHODS, Final, SupportsComplex, Optional, INLET_METHODS, AbstractSet, Container, Buffer, SupportsFloat, Literal, CONTROLPARAMETERS, clear_overloads, cast, SupportsRound, Hashable, get_original_bases, Annotated, pars, Sized, IO, TypeAliasType, is_typeddict, NoReturn, TYPE_CHECKING, overload, runtime, KeysView, AsyncIterator, no_type_check, Reversible, ParamSpecArgs, NamedTuple, BinaryIO, RUN_METHODS, AnyStr, MutableMapping, fastaccess_old, ParamSpecKwargs, get_args, Sequence, ItemsView, assert_type, ForwardRef, AsyncContextManager, ReadOnly, Iterator, OrderedDict, AsyncIterable, Collection, REQUIREDSEQUENCES, final, fastaccess, Tuple, no_type_check_decorator, Any, SUBMODELS, TypeVar, is_protocol, TypeVarTuple, Dict, IntVar, RESULTSEQUENCES, seqs, FIXEDPARAMETERS, override, Required, runtime_checkable, ContextManager, get_protocol_members, ClassVar, Callable, Union, assert_never, NoDefault, SupportsAbs, SOLVERSEQUENCES, subpars, OUTLET_METHODS, dataclass_transform, fastaccess_new, Type, Text, Pattern, Self, Generic, NewType, Protocol, SupportsBytes, Mapping, SupportsInt, FrozenSet, ParamSpec, Awaitable, RECEIVER_METHODS, ADD_METHODS, MutableSet, Deque, List, Unpack, get_type_hints, UPDATEDSEQUENCES, Iterable, ChainMap, AsyncGenerator, get_origin, subvars, SupportsIndex, DERIVEDPARAMETERS, SUBMODELINTERFACES, PART_ODE_METHODS, Match, TextIO, CLASSES, MutableSequence, reveal_type, CapsuleType, MappingView, LiteralString, ValuesView, TypeGuard, Concatenate, SUBMETHODS, Generator, Counter, ByteString, Coroutine, Doc, SOLVERPARAMETERS, TypeIs, Never, get_overloads, subseqs, TypedDict

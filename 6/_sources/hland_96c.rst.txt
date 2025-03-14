@@ -1,0 +1,42 @@
+.. |AETModel_V1| replace:: :class:`~hydpy.interfaces.aetinterfaces.AETModel_V1`
+.. |BW1| replace:: :class:`~hydpy.models.hland.hland_states.BW1`
+.. |BW2| replace:: :class:`~hydpy.models.hland.hland_states.BW2`
+.. |CFMax| replace:: :class:`~hydpy.models.hland.hland_control.CFMax`
+.. |FIELD| replace:: :const:`~hydpy.models.hland.hland_constants.FIELD`
+.. |FOREST| replace:: :const:`~hydpy.models.hland.hland_constants.FOREST`
+.. |GLACIER| replace:: :const:`~hydpy.models.hland.hland_constants.GLACIER`
+.. |GMelt| replace:: :class:`~hydpy.models.hland.hland_control.GMelt`
+.. |H1| replace:: :class:`~hydpy.models.hland.hland_control.H1`
+.. |ILAKE| replace:: :const:`~hydpy.models.hland.hland_constants.ILAKE`
+.. |Indexer.dayofyear| replace:: :const:`~hydpy.core.indextools.Indexer.dayofyear`
+.. |Indexer| replace:: :class:`~hydpy.core.indextools.Indexer`
+.. |LZ| replace:: :class:`~hydpy.models.hland.hland_states.LZ`
+.. |Model.check_waterbalance| replace:: :func:`~hydpy.models.hland_96c.Model.check_waterbalance`
+.. |QAb1| replace:: :class:`~hydpy.models.hland.hland_fluxes.QAb1`
+.. |QAb2| replace:: :class:`~hydpy.models.hland.hland_fluxes.QAb2`
+.. |RConcModel_V1| replace:: :class:`~hydpy.interfaces.rconcinterfaces.RConcModel_V1`
+.. |SEALED| replace:: :const:`~hydpy.models.hland.hland_constants.SEALED`
+.. |Sequences.conditions| replace:: :const:`~hydpy.core.sequencetools.Sequences.conditions`
+.. |TAb1| replace:: :class:`~hydpy.models.hland.hland_control.TAb1`
+.. |TTM| replace:: :class:`~hydpy.models.hland.hland_derived.TTM`
+.. |TT| replace:: :class:`~hydpy.models.hland.hland_control.TT`
+.. |TVs1| replace:: :class:`~hydpy.models.hland.hland_control.TVs1`
+.. |UZ| replace:: :class:`~hydpy.models.hland.hland_states.UZ`
+.. |hland_96c.DOCNAME.complete| replace:: HydPy-H-HBV96-COSERO (fusion of SMHI-IHMS-HBV96 and COSERO)
+.. |hland_96c| replace:: :mod:`~hydpy.models.hland_96c`
+.. |hland_96p| replace:: :mod:`~hydpy.models.hland_96p`
+.. |hland_96| replace:: :mod:`~hydpy.models.hland_96`
+.. |hland| replace:: :mod:`~hydpy.models.hland`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |rconc_nash| replace:: :mod:`~hydpy.models.rconc_nash`
+.. |hland_fluxes.Q0| replace:: :class:`~hydpy.models.hland.hland_fluxes.Q0`
+
+.. _hland_96c:
+
+hland_96c
+=========
+
+.. automodule:: hydpy.models.hland_96c
+    :members:
+    :show-inheritance:
+    :exclude-members: deprecated, TypeAlias, Set, FULL_ODE_METHODS, DefaultDict, NotRequired, INTERFACE_METHODS, SENDER_METHODS, Final, SupportsComplex, Optional, INLET_METHODS, AbstractSet, Container, Buffer, SupportsFloat, Literal, CONTROLPARAMETERS, clear_overloads, cast, SupportsRound, Hashable, get_original_bases, Annotated, pars, Sized, IO, TypeAliasType, is_typeddict, NoReturn, TYPE_CHECKING, overload, runtime, KeysView, AsyncIterator, no_type_check, Reversible, ParamSpecArgs, NamedTuple, BinaryIO, RUN_METHODS, AnyStr, MutableMapping, fastaccess_old, InletSequences, ParamSpecKwargs, get_args, Sequence, ItemsView, assert_type, ForwardRef, AsyncContextManager, ReadOnly, Iterator, OrderedDict, AsyncIterable, Collection, REQUIREDSEQUENCES, final, fastaccess, Tuple, no_type_check_decorator, Any, SUBMODELS, TypeVar, is_protocol, TypeVarTuple, Dict, IntVar, RESULTSEQUENCES, seqs, FIXEDPARAMETERS, override, Required, runtime_checkable, ContextManager, get_protocol_members, ClassVar, Callable, Union, assert_never, NoDefault, SupportsAbs, SOLVERSEQUENCES, subpars, OUTLET_METHODS, dataclass_transform, fastaccess_new, Type, Text, Pattern, Self, Generic, NewType, Protocol, SupportsBytes, Mapping, SupportsInt, FrozenSet, ParamSpec, Awaitable, RECEIVER_METHODS, ADD_METHODS, MutableSet, Deque, List, Unpack, get_type_hints, UPDATEDSEQUENCES, Iterable, ChainMap, AsyncGenerator, get_origin, subvars, SupportsIndex, DERIVEDPARAMETERS, SUBMODELINTERFACES, PART_ODE_METHODS, Match, TextIO, CLASSES, MutableSequence, reveal_type, CapsuleType, MappingView, LiteralString, ValuesView, TypeGuard, Concatenate, SUBMETHODS, Generator, Counter, ByteString, Coroutine, Doc, SOLVERPARAMETERS, LogSequences, TypeIs, Never, get_overloads, ReceiverSequences, subseqs, TypedDict, SenderSequences

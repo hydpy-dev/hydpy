@@ -1,0 +1,29 @@
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |IntegrationTest| replace:: :class:`~hydpy.core.testtools.IntegrationTest`
+.. |PrecipModel_V1| replace:: :class:`~hydpy.interfaces.precipinterfaces.PrecipModel_V1`
+.. |PrecipModel_V2| replace:: :class:`~hydpy.interfaces.precipinterfaces.PrecipModel_V2`
+.. |RadiationModel_V1| replace:: :class:`~hydpy.interfaces.radiationinterfaces.RadiationModel_V1`
+.. |RadiationModel_V2| replace:: :class:`~hydpy.interfaces.radiationinterfaces.RadiationModel_V2`
+.. |RadiationModel_V3| replace:: :class:`~hydpy.interfaces.radiationinterfaces.RadiationModel_V3`
+.. |RadiationModel_V4| replace:: :class:`~hydpy.interfaces.radiationinterfaces.RadiationModel_V4`
+.. |SnowCoverModel_V1| replace:: :class:`~hydpy.interfaces.stateinterfaces.SnowCoverModel_V1`
+.. |TempModel_V1| replace:: :class:`~hydpy.interfaces.tempinterfaces.TempModel_V1`
+.. |TempModel_V2| replace:: :class:`~hydpy.interfaces.tempinterfaces.TempModel_V2`
+.. |dummy_snowcover| replace:: :mod:`~hydpy.models.dummy_snowcover`
+.. |evap_aet_morsim| replace:: :mod:`~hydpy.models.evap_aet_morsim`
+.. |evap_pet_ambav1.DOCNAME.complete| replace:: HydPy-Evap-PET-AMBAV-1.0 (potential evapotranspiration based on AMBAV 1.0)
+.. |evap_pet_ambav1| replace:: :mod:`~hydpy.models.evap_pet_ambav1`
+.. |meteo_glob_morsim| replace:: :mod:`~hydpy.models.meteo_glob_morsim`
+.. |meteo_precip_io| replace:: :mod:`~hydpy.models.meteo_precip_io`
+.. |meteo_psun_sun_glob_io| replace:: :mod:`~hydpy.models.meteo_psun_sun_glob_io`
+.. |meteo_temp_io| replace:: :mod:`~hydpy.models.meteo_temp_io`
+
+.. _evap_pet_ambav1:
+
+evap_pet_ambav1
+===============
+
+.. automodule:: hydpy.models.evap_pet_ambav1
+    :members:
+    :show-inheritance:
+    :exclude-members: fastaccess_new, TypedDict, TypeAliasType, SupportsRound, OutletSequences, AsyncGenerator, Mapping, Counter, ItemsView, get_origin, DefaultDict, TypeAlias, SupportsComplex, ClassVar, is_protocol, Container, Any, subseqs, Literal, fastaccess_old, no_type_check_decorator, get_original_bases, Sized, SenderSequences, is_typeddict, Required, Final, TypeIs, Type, PART_ODE_METHODS, Iterable, Optional, AideSequences, RESULTSEQUENCES, Union, ByteString, FrozenSet, FULL_ODE_METHODS, Annotated, Awaitable, deprecated, SupportsAbs, Generic, Tuple, ContextManager, IO, IntVar, InletSequences, Iterator, override, assert_never, TypeVar, LiteralString, NamedTuple, TextIO, Reversible, ParamSpec, ReceiverSequences, NotRequired, cast, runtime, MutableMapping, DERIVEDPARAMETERS, dataclass_transform, TYPE_CHECKING, Doc, subpars, Buffer, CLASSES, Match, SUBMODELINTERFACES, REQUIREDSEQUENCES, assert_type, MutableSequence, ParamSpecKwargs, SupportsFloat, AbstractSet, AnyStr, final, NoReturn, NoDefault, MutableSet, ValuesView, FIXEDPARAMETERS, Deque, AsyncIterable, Coroutine, Generator, ChainMap, reveal_type, AsyncContextManager, fastaccess, MappingView, INLET_METHODS, SupportsIndex, AsyncIterator, Set, SOLVERPARAMETERS, SUBMETHODS, TypeGuard, Unpack, Self, Sequence, List, Hashable, SOLVERSEQUENCES, CONTROLPARAMETERS, subvars, UPDATEDSEQUENCES, get_args, OUTLET_METHODS, clear_overloads, overload, ADD_METHODS, Callable, SupportsBytes, TypeVarTuple, RECEIVER_METHODS, BinaryIO, INTERFACE_METHODS, OrderedDict, get_type_hints, Text, ParamSpecArgs, Never, RUN_METHODS, Concatenate, get_protocol_members, NewType, ReadOnly, Protocol, Pattern, SUBMODELS, no_type_check, Collection, pars, seqs, runtime_checkable, get_overloads, Dict, ForwardRef, CapsuleType, SENDER_METHODS, KeysView, SupportsInt

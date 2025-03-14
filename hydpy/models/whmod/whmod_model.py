@@ -893,15 +893,72 @@ class Calc_CapillaryRise_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            if con.soiltype[k] == NONE:
+            if (con.soiltype[k] == NONE) or not con.withcapillaryrise:
                 flu.capillaryrise[k] = 0.0
-            elif con.withcapillaryrise:
+            else:
                 flu.capillaryrise[k] = (
                     der.potentialcapillaryrise[k]
                     * (1.0 - fac.relativesoilmoisture[k]) ** 3
                 )
-            else:
+
+
+class Calc_CapillaryRise_V2(modeltools.Method):
+    """Calculate the actual capillary rise if requested.
+
+    Method |Calc_CapillaryRise_V2| works like method |Calc_CapillaryRise_V1| except
+    that it does not calculate any capillary rise for zones connected to the cistern.
+
+    Examples:
+
+        >>> from hydpy.models.whmod import *
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
+        >>> nmbzones(7)
+        >>> landtype(GRASS, GRASS, GRASS, GRASS, GRASS, SEALED, WATER)
+        >>> soiltype(SAND, SAND, SAND, SAND, SAND, NONE, NONE)
+        >>> collector(False, True, True, False, False, False, False)
+        >>> derived.potentialcapillaryrise(2.0)
+        >>> factors.relativesoilmoisture = 0.0, 0.25, 0.5, 0.75, 1.0, nan, nan
+
+        >>> withcapillaryrise(True)
+        >>> model.calc_capillaryrise_v2()
+        >>> fluxes.capillaryrise
+        capillaryrise(2.0, 0.0, 0.0, 0.03125, 0.0, 0.0, 0.0)
+
+        >>> withcapillaryrise(False)
+        >>> model.calc_capillaryrise_v2()
+        >>> fluxes.capillaryrise
+        capillaryrise(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    """
+
+    CONTROLPARAMETERS = (
+        whmod_control.NmbZones,
+        whmod_control.SoilType,
+        whmod_control.Collector,
+        whmod_control.WithCapillaryRise,
+    )
+    DERIVEDPARAMETERS = (whmod_derived.PotentialCapillaryRise,)
+    REQUIREDSEQUENCES = (whmod_factors.RelativeSoilMoisture,)
+    RESULTSEQUENCES = (whmod_fluxes.CapillaryRise,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbzones):
+            if (
+                (con.soiltype[k] == NONE)
+                or con.collector[k]
+                or not con.withcapillaryrise
+            ):
                 flu.capillaryrise[k] = 0.0
+            else:
+                flu.capillaryrise[k] = (
+                    der.potentialcapillaryrise[k]
+                    * (1.0 - fac.relativesoilmoisture[k]) ** 3
+                )
 
 
 class Calc_SoilMoisture_V1(modeltools.Method):
@@ -1396,6 +1453,56 @@ class Calc_PotentialRecharge_V1(modeltools.Method):
                 flu.potentialrecharge[k] = flu.percolation[k] - flu.capillaryrise[k]
 
 
+class Calc_PotentialRecharge_V2(modeltools.Method):
+    """Calculate the potential recharge.
+
+    Method |Calc_PotentialRecharge_V2| works like method |Calc_PotentialRecharge_V1|
+    except that it does not calculate any potential recharge for zones connected to the
+    cistern.
+
+    Example:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmbzones(5)
+        >>> landtype(GRASS, GRASS, SEALED, SEALED, WATER)
+        >>> collector(False, True, False, True, False)
+        >>> inputs.precipitation = 7.0
+        >>> fluxes.lakeevaporation = 4.0
+        >>> fluxes.percolation = 3.0
+        >>> fluxes.capillaryrise = 1.0
+        >>> model.calc_potentialrecharge_v2()
+        >>> fluxes.potentialrecharge
+        potentialrecharge(2.0, 0.0, 0.0, 0.0, 3.0)
+    """
+
+    CONTROLPARAMETERS = (
+        whmod_control.NmbZones,
+        whmod_control.LandType,
+        whmod_control.Collector,
+    )
+    REQUIREDSEQUENCES = (
+        whmod_inputs.Precipitation,
+        whmod_fluxes.LakeEvaporation,
+        whmod_fluxes.Percolation,
+        whmod_fluxes.CapillaryRise,
+    )
+    RESULTSEQUENCES = (whmod_fluxes.PotentialRecharge,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbzones):
+            if (con.landtype[k] == SEALED) or con.collector[k]:
+                flu.potentialrecharge[k] = 0.0
+            elif con.landtype[k] == WATER:
+                flu.potentialrecharge[k] = inp.precipitation - flu.lakeevaporation[k]
+            else:
+                flu.potentialrecharge[k] = flu.percolation[k] - flu.capillaryrise[k]
+
+
 class Calc_Baseflow_V1(modeltools.Method):
     r"""Calculate the base flow.
 
@@ -1738,6 +1845,7 @@ class Model(modeltools.AdHocModel):
         Calc_SoilEvapotranspiration_V1,
         Calc_TotalEvapotranspiration_V1,
         Calc_CapillaryRise_V1,
+        Calc_CapillaryRise_V2,
         Calc_SoilMoisture_V1,
         Calc_RelativeSoilMoisture_V1,
         Calc_RequiredIrrigation_V1,
@@ -1747,6 +1855,7 @@ class Model(modeltools.AdHocModel):
         Calc_ExternalIrrigation_SoilMoisture_V1,
         Calc_RelativeSoilMoisture_V1,
         Calc_PotentialRecharge_V1,
+        Calc_PotentialRecharge_V2,
         Calc_Baseflow_V1,
         Calc_ActualRecharge_V1,
         Calc_DelayedRecharge_DeepWater_V1,

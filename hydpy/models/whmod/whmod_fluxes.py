@@ -53,6 +53,34 @@ class RequiredIrrigation(whmod_sequences.Flux1DSoilSequence):
     """Required irrigation [mm/T]."""
 
 
+class CisternInflow(sequencetools.FluxSequence):
+    """Inflow into the cistern [m³/T]."""
+
+    NDIM, TYPE, NUMERIC = 0, float, False
+
+
+class CisternOverflow(sequencetools.FluxSequence):
+    """Overflow of the cistern due to limited storage capacity [m³/T]."""
+
+    NDIM, TYPE, NUMERIC = 0, float, False
+
+
+class CisternDemand(sequencetools.FluxSequence):
+    """Irrigation water damanded from the cistern [m³/T]."""
+
+    NDIM, TYPE, NUMERIC = 0, float, False
+
+
+class CisternExtraction(sequencetools.FluxSequence):
+    """Actual irrigation extraction from the cistern [m³/T]."""
+
+    NDIM, TYPE, NUMERIC = 0, float, False
+
+
+class InternalIrrigation(whmod_sequences.Flux1DSoilSequence):
+    """Actual internal irrigation from the cistern [mm/T]."""
+
+
 class ExternalIrrigation(whmod_sequences.Flux1DSoilSequence):
     """Actual irrigation from external sources [mm/T]."""
 

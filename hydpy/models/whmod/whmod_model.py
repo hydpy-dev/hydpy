@@ -554,6 +554,128 @@ class Calc_RelativeSoilMoisture_V1(modeltools.Method):
                 fac.relativesoilmoisture[k] = sta.soilmoisture[k] / der.maxsoilwater[k]
 
 
+class Calc_CisternInflow_V1(modeltools.Method):
+    r"""Calculate the inflow into the cistern.
+
+    Basic equation:
+      .. math::
+        I = \sum_{k=1}^N \frac{A_k}{1000} \cdot \begin{cases}
+        S_k &|\ L_k = SEALED \, \land \, C_k \\
+        P_k &|\ L_k \neq SEALED \, \land \, C_k
+        \end{cases}
+        \\ \\
+        I = CisternInflow\\
+        N = NmbZones \\
+        T = LandType \\
+        C = CisternSource \\
+        A = ZoneArea \\
+        S = SurfaceRunoff \\
+        P = Percolation
+
+    Example:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmbzones(5)
+        >>> landtype(GRASS, GRASS, SEALED, SEALED, WATER)
+        >>> cisternsource(False, True, False, True, False)
+        >>> area(15.0)
+        >>> zonearea(1.0, 2.0, 3.0, 4.0, 5.0)
+        >>> fluxes.percolation = nan, 6.0, nan, nan, nan
+        >>> fluxes.surfacerunoff = nan, nan, nan, 7.0, nan
+        >>> model.calc_cisterninflow_v1()
+        >>> fluxes.cisterninflow
+        cisterninflow(0.04)
+    """
+
+    CONTROLPARAMETERS = (
+        whmod_control.NmbZones,
+        whmod_control.ZoneArea,
+        whmod_control.LandType,
+        whmod_control.CisternSource,
+    )
+    REQUIREDSEQUENCES = (whmod_fluxes.SurfaceRunoff, whmod_fluxes.Percolation)
+    RESULTSEQUENCES = (whmod_fluxes.CisternInflow,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        flu.cisterninflow = 0.0
+        for k in range(con.nmbzones):
+            if con.cisternsource[k]:
+                if con.landtype[k] == SEALED:
+                    flu.cisterninflow += con.zonearea[k] * flu.surfacerunoff[k]
+                elif con.landtype[k] != WATER:
+                    flu.cisterninflow += con.zonearea[k] * flu.percolation[k]
+        flu.cisterninflow /= 1000.0
+
+
+class Calc_CisternOverflow_CisternWater_V1(modeltools.Method):
+    r"""Take the inflow into the cistern to update its content and calculate eventual
+    overflow.
+
+    Basic equation:
+      .. math::
+        O(t) = \begin{cases}
+        0 &|\ W(t) \leq C \\
+        I(t) &|\ W(t) = C
+        \end{cases}
+        \\
+        \frac{d W(t)}{d t} = I(t) - O(t)
+        \\ \\
+        O = CisternOverflow \\
+        I = CisternInflow \\
+        W = CisternWater \\
+        C = CisternCapacity
+
+    Examples:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> cisterncapacity(5.0)
+        >>> states.cisternwater = 1.0
+        >>> fluxes.cisterninflow = 3.0
+
+        >>> model.calc_cisternoverflow_cisternwater_v1()
+        >>> states.cisternwater
+        cisternwater(4.0)
+        >>> fluxes.cisternoverflow
+        cisternoverflow(0.0)
+
+        >>> model.calc_cisternoverflow_cisternwater_v1()
+        >>> states.cisternwater
+        cisternwater(5.0)
+        >>> fluxes.cisternoverflow
+        cisternoverflow(2.0)
+
+        >>> model.calc_cisternoverflow_cisternwater_v1()
+        >>> states.cisternwater
+        cisternwater(5.0)
+        >>> fluxes.cisternoverflow
+        cisternoverflow(3.0)
+    """
+
+    CONTROLPARAMETERS = (whmod_control.CisternCapacity,)
+    REQUIREDSEQUENCES = (whmod_fluxes.CisternInflow,)
+    UPDATEDSEQUENCES = (whmod_states.CisternWater,)
+    RESULTSEQUENCES = (whmod_fluxes.CisternOverflow,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+
+        sta.cisternwater += flu.cisterninflow
+        if sta.cisternwater <= con.cisterncapacity:
+            flu.cisternoverflow = 0.0
+        else:
+            flu.cisternoverflow = sta.cisternwater - con.cisterncapacity
+            sta.cisternwater = con.cisterncapacity
+
+
 class Calc_Percolation_V1(modeltools.Method):
     r"""Calculate the percolation out of the soil storage.
 
@@ -771,15 +893,72 @@ class Calc_CapillaryRise_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            if con.soiltype[k] == NONE:
+            if (con.soiltype[k] == NONE) or not con.withcapillaryrise:
                 flu.capillaryrise[k] = 0.0
-            elif con.withcapillaryrise:
+            else:
                 flu.capillaryrise[k] = (
                     der.potentialcapillaryrise[k]
                     * (1.0 - fac.relativesoilmoisture[k]) ** 3
                 )
-            else:
+
+
+class Calc_CapillaryRise_V2(modeltools.Method):
+    """Calculate the actual capillary rise if requested.
+
+    Method |Calc_CapillaryRise_V2| works like method |Calc_CapillaryRise_V1| except
+    that it does not calculate any capillary rise for zones connected to the cistern.
+
+    Examples:
+
+        >>> from hydpy.models.whmod import *
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
+        >>> nmbzones(7)
+        >>> landtype(GRASS, GRASS, GRASS, GRASS, GRASS, SEALED, WATER)
+        >>> soiltype(SAND, SAND, SAND, SAND, SAND, NONE, NONE)
+        >>> cisternsource(False, True, True, False, False, False, False)
+        >>> derived.potentialcapillaryrise(2.0)
+        >>> factors.relativesoilmoisture = 0.0, 0.25, 0.5, 0.75, 1.0, nan, nan
+
+        >>> withcapillaryrise(True)
+        >>> model.calc_capillaryrise_v2()
+        >>> fluxes.capillaryrise
+        capillaryrise(2.0, 0.0, 0.0, 0.03125, 0.0, 0.0, 0.0)
+
+        >>> withcapillaryrise(False)
+        >>> model.calc_capillaryrise_v2()
+        >>> fluxes.capillaryrise
+        capillaryrise(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    """
+
+    CONTROLPARAMETERS = (
+        whmod_control.NmbZones,
+        whmod_control.SoilType,
+        whmod_control.CisternSource,
+        whmod_control.WithCapillaryRise,
+    )
+    DERIVEDPARAMETERS = (whmod_derived.PotentialCapillaryRise,)
+    REQUIREDSEQUENCES = (whmod_factors.RelativeSoilMoisture,)
+    RESULTSEQUENCES = (whmod_fluxes.CapillaryRise,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbzones):
+            if (
+                (con.soiltype[k] == NONE)
+                or con.cisternsource[k]
+                or not con.withcapillaryrise
+            ):
                 flu.capillaryrise[k] = 0.0
+            else:
+                flu.capillaryrise[k] = (
+                    der.potentialcapillaryrise[k]
+                    * (1.0 - fac.relativesoilmoisture[k]) ** 3
+                )
 
 
 class Calc_SoilMoisture_V1(modeltools.Method):
@@ -909,7 +1088,7 @@ class Calc_SoilMoisture_V1(modeltools.Method):
 
 
 class Calc_RequiredIrrigation_V1(modeltools.Method):
-    r"""Calculate the irrigation demand.
+    r"""Calculate the individual zones' irrigation demand.
 
     Basic equation:
       .. math::
@@ -984,6 +1163,183 @@ class Calc_RequiredIrrigation_V1(modeltools.Method):
                 )
 
 
+class Calc_CisternDemand_V1(modeltools.Method):
+    r"""Calculate the total irrigation water demand from the cistern.
+
+    Basic equation:
+      .. math::
+        D = \sum_{k=1}^N \frac{A_k}{1000} \cdot R_k
+        \\ \\
+        D = CisternDemand \\
+        N = NmbZones \\
+        A = ZoneArea \\
+        R = RequiredIrrigation
+
+    Example:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmbzones(5)
+        >>> landtype(GRASS, GRASS, GRASS, GRASS, SEALED)
+        >>> soiltype(SAND, SAND, SAND, SAND, NONE)
+        >>> area(15.0)
+        >>> zonearea(1.0, 2.0, 3.0, 4.0, 5.0)
+        >>> fluxes.requiredirrigation = 0.0, 6.0, 0.0, 7.0, nan
+        >>> model.calc_cisterndemand_v1()
+        >>> fluxes.cisterndemand
+        cisterndemand(0.04)
+    """
+
+    CONTROLPARAMETERS = (
+        whmod_control.NmbZones,
+        whmod_control.ZoneArea,
+        whmod_control.SoilType,
+    )
+    REQUIREDSEQUENCES = (whmod_fluxes.RequiredIrrigation,)
+    RESULTSEQUENCES = (whmod_fluxes.CisternDemand,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        flu.cisterndemand = 0.0
+        for k in range(con.nmbzones):
+            if con.soiltype[k] != NONE:
+                flu.cisterndemand += con.zonearea[k] * flu.requiredirrigation[k]
+        flu.cisterndemand /= 1000.0
+
+
+class Calc_CisternExtraction_CisternWater_V1(modeltools.Method):
+    r"""Calculate the actual irrigation extraction from the cistern and update the
+    amount of still available water.
+
+    Basic equations:
+      .. math::
+        E(t) = \begin{cases}
+        D(t) &|\ W(t) > 0 \\
+        0 &|\ W(t) = 0
+        \end{cases}
+        \\
+        \frac{d W(t)}{d t} = E(t)
+        \\ \\
+        E = CisternExtraction \\
+        D = CisternDemand \\
+        W = CisternWater
+
+    Examples:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> states.cisternwater = 5.0
+        >>> fluxes.cisterndemand = 3.0
+
+        >>> model.calc_cisternextraction_cisternwater_v1()
+        >>> states.cisternwater
+        cisternwater(2.0)
+        >>> fluxes.cisternextraction
+        cisternextraction(3.0)
+
+        >>> model.calc_cisternextraction_cisternwater_v1()
+        >>> states.cisternwater
+        cisternwater(0.0)
+        >>> fluxes.cisternextraction
+        cisternextraction(2.0)
+
+        >>> model.calc_cisternextraction_cisternwater_v1()
+        >>> states.cisternwater
+        cisternwater(0.0)
+        >>> fluxes.cisternextraction
+        cisternextraction(0.0)
+    """
+
+    REQUIREDSEQUENCES = (whmod_fluxes.CisternDemand,)
+    RESULTSEQUENCES = (whmod_fluxes.CisternExtraction,)
+    UPDATEDSEQUENCES = (whmod_states.CisternWater,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+
+        if sta.cisternwater > flu.cisterndemand:
+            flu.cisternextraction = flu.cisterndemand
+            sta.cisternwater -= flu.cisternextraction
+        else:
+            flu.cisternextraction = sta.cisternwater
+            sta.cisternwater = 0.0
+
+
+class Calc_InternalIrrigation_SoilMoisture_V1(modeltools.Method):
+    r"""Internal irrigation with water taken from the cistern.
+
+    Basic equations:
+      .. math::
+        I = R \cdot E / D
+        \\ \\
+        I = InternalIrrigation \\
+        R = RequiredIrrigation \\
+        E = CisternExtraction \\
+        D = CisternDemand
+
+    Examples:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmbzones(5)
+        >>> landtype(GRASS, GRASS, GRASS, GRASS, SEALED)
+        >>> soiltype(SAND, SAND, SAND, SAND, NONE)
+        >>> area(15.0)
+        >>> zonearea(1.0, 2.0, 3.0, 4.0, 5.0)
+        >>> states.soilmoisture = 100.0
+
+        >>> fluxes.requiredirrigation = 0.0, 6.0, 0.0, 7.0, nan
+        >>> fluxes.cisterndemand = 0.04
+        >>> fluxes.cisternextraction = 0.03
+        >>> model.calc_internalirrigation_soilmoisture_v1()
+        >>> fluxes.internalirrigation
+        internalirrigation(0.0, 4.5, 0.0, 5.25, 0.0)
+        >>> states.soilmoisture
+        soilmoisture(100.0, 104.5, 100.0, 105.25, 0.0)
+
+        >>> fluxes.requiredirrigation = 0.0, 0.0, 0.0, 0.0, nan
+        >>> fluxes.cisterndemand = 0.0
+        >>> fluxes.cisternextraction = 0.0
+        >>> model.calc_internalirrigation_soilmoisture_v1()
+        >>> fluxes.internalirrigation
+        internalirrigation(0.0, 0.0, 0.0, 0.0, 0.0)
+        >>> states.soilmoisture
+        soilmoisture(100.0, 104.5, 100.0, 105.25, 0.0)
+    """
+
+    CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.SoilType)
+    REQUIREDSEQUENCES = (
+        whmod_fluxes.RequiredIrrigation,
+        whmod_fluxes.CisternDemand,
+        whmod_fluxes.CisternExtraction,
+    )
+    RESULTSEQUENCES = (whmod_fluxes.InternalIrrigation,)
+    UPDATEDSEQUENCES = (whmod_states.SoilMoisture,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+
+        if flu.cisterndemand > 0.0:
+            factor: float = flu.cisternextraction / flu.cisterndemand
+        else:
+            factor = 0.0
+        for k in range(con.nmbzones):
+            if con.soiltype[k] == NONE:
+                sta.soilmoisture[k] = 0.0
+                flu.internalirrigation[k] = 0.0
+            else:
+                flu.internalirrigation[k] = factor * flu.requiredirrigation[k]
+                sta.soilmoisture[k] += flu.internalirrigation[k]
+
+
 class Calc_ExternalIrrigation_SoilMoisture_V1(modeltools.Method):
     r"""Irrigate from external sources, if required and requested.
 
@@ -1052,6 +1408,82 @@ class Calc_ExternalIrrigation_SoilMoisture_V1(modeltools.Method):
                 flu.externalirrigation[k] = 0.0
 
 
+class Calc_ExternalIrrigation_SoilMoisture_V2(modeltools.Method):
+    r"""Irrigate from external sources, if still required after internal irrigation and
+    requested.
+
+    Basic equations:
+      .. math::
+        E = \begin{cases}
+        R - I &|\ W \\
+        0 &|\ \overline{W}
+        \end{cases}
+        \\
+        S_{new} = S_{old} + E
+        \\ \\
+        E = ExternalIrrigation \\
+        R = RequiredIrrigation \\
+        I = InternalIrrigation \\
+        W = WithExternalIrrigation \\
+        S = SoilMoisture
+
+    Examples:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmbzones(2)
+        >>> landtype(CORN, SEALED)
+        >>> soiltype(SAND, NONE)
+        >>> fluxes.requiredirrigation(5.0, nan)
+        >>> fluxes.internalirrigation(3.0, nan)
+        >>> states.soilmoisture = 50.0, nan
+
+        >>> withexternalirrigation(False)
+        >>> model.calc_externalirrigation_soilmoisture_v2()
+        >>> fluxes.externalirrigation
+        externalirrigation(0.0, 0.0)
+        >>> states.soilmoisture
+        soilmoisture(50.0, 0.0)
+
+        >>> withexternalirrigation(True)
+        >>> model.calc_externalirrigation_soilmoisture_v2()
+        >>> fluxes.externalirrigation
+        externalirrigation(2.0, 0.0)
+        >>> states.soilmoisture
+        soilmoisture(52.0, 0.0)
+    """
+
+    CONTROLPARAMETERS = (
+        whmod_control.NmbZones,
+        whmod_control.SoilType,
+        whmod_control.WithExternalIrrigation,
+    )
+    REQUIREDSEQUENCES = (
+        whmod_fluxes.RequiredIrrigation,
+        whmod_fluxes.InternalIrrigation,
+    )
+    RESULTSEQUENCES = (whmod_fluxes.ExternalIrrigation,)
+    UPDATEDSEQUENCES = (whmod_states.SoilMoisture,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+
+        for k in range(con.nmbzones):
+            if con.soiltype[k] == NONE:
+                sta.soilmoisture[k] = 0.0
+                flu.externalirrigation[k] = 0.0
+            elif con.withexternalirrigation:
+                flu.externalirrigation[k] = (
+                    flu.requiredirrigation[k] - flu.internalirrigation[k]
+                )
+                sta.soilmoisture[k] += flu.externalirrigation[k]
+            else:
+                flu.externalirrigation[k] = 0.0
+
+
 class Calc_PotentialRecharge_V1(modeltools.Method):
     r"""Calculate the potential recharge.
 
@@ -1103,6 +1535,56 @@ class Calc_PotentialRecharge_V1(modeltools.Method):
                 flu.potentialrecharge[k] = 0.0
             elif con.landtype[k] == WATER:
                 flu.potentialrecharge[k] = inp.precipitation - flu.lakeevaporation[k]
+            else:
+                flu.potentialrecharge[k] = flu.percolation[k] - flu.capillaryrise[k]
+
+
+class Calc_PotentialRecharge_V2(modeltools.Method):
+    """Calculate the potential recharge.
+
+    Method |Calc_PotentialRecharge_V2| works like method |Calc_PotentialRecharge_V1|
+    except that it does not calculate any potential recharge for zones connected to the
+    cistern.
+
+    Example:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmbzones(5)
+        >>> landtype(GRASS, GRASS, SEALED, SEALED, WATER)
+        >>> cisternsource(False, True, False, True, False)
+        >>> inputs.precipitation = 7.0
+        >>> fluxes.lakeevaporation = 4.0
+        >>> fluxes.percolation = 3.0
+        >>> fluxes.capillaryrise = 1.0
+        >>> model.calc_potentialrecharge_v2()
+        >>> fluxes.potentialrecharge
+        potentialrecharge(2.0, 0.0, 0.0, 0.0, 3.0)
+    """
+
+    CONTROLPARAMETERS = (
+        whmod_control.NmbZones,
+        whmod_control.LandType,
+        whmod_control.CisternSource,
+    )
+    REQUIREDSEQUENCES = (
+        whmod_inputs.Precipitation,
+        whmod_fluxes.LakeEvaporation,
+        whmod_fluxes.Percolation,
+        whmod_fluxes.CapillaryRise,
+    )
+    RESULTSEQUENCES = (whmod_fluxes.PotentialRecharge,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbzones):
+            if con.landtype[k] == WATER:
+                flu.potentialrecharge[k] = inp.precipitation - flu.lakeevaporation[k]
+            elif (con.landtype[k] == SEALED) or con.cisternsource[k]:
+                flu.potentialrecharge[k] = 0.0
             else:
                 flu.potentialrecharge[k] = flu.percolation[k] - flu.capillaryrise[k]
 
@@ -1444,15 +1926,23 @@ class Model(modeltools.AdHocModel):
         Calc_SurfaceRunoff_V1,
         Calc_RelativeSoilMoisture_V1,
         Calc_Percolation_V1,
+        Calc_CisternInflow_V1,
+        Calc_CisternOverflow_CisternWater_V1,
         Calc_SoilEvapotranspiration_V1,
         Calc_TotalEvapotranspiration_V1,
         Calc_CapillaryRise_V1,
+        Calc_CapillaryRise_V2,
         Calc_SoilMoisture_V1,
         Calc_RelativeSoilMoisture_V1,
         Calc_RequiredIrrigation_V1,
+        Calc_CisternDemand_V1,
+        Calc_CisternExtraction_CisternWater_V1,
+        Calc_InternalIrrigation_SoilMoisture_V1,
         Calc_ExternalIrrigation_SoilMoisture_V1,
+        Calc_ExternalIrrigation_SoilMoisture_V2,
         Calc_RelativeSoilMoisture_V1,
         Calc_PotentialRecharge_V1,
+        Calc_PotentialRecharge_V2,
         Calc_Baseflow_V1,
         Calc_ActualRecharge_V1,
         Calc_DelayedRecharge_DeepWater_V1,

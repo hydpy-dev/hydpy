@@ -683,7 +683,7 @@ class Model(
     """|whmod_rural.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(
-        short="WHMod-Rural", description="WHMod version for rural regions"
+        short="WHMod-Rural", description="WHMod for rural regions"
     )
     __HYDPY_ROOTMODEL__ = True
 
@@ -752,9 +752,9 @@ class Model(
             \\ \\
             f_{\Delta}(x) = x_{t1} - x_{t0}
             \\ \\
-            P = Precipitation \\
             N = NmbZones \\
-            Z = ZoneRation \\
+            Z = ZoneRatio \\
+            P = Precipitation \\
             T = TotalEvapotranspiration \\
             S = SurfaceRunoff \\
             B = Baseflow \\

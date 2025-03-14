@@ -70,8 +70,9 @@ model series, of which GR4J is likely the most prominent.  Our application model
 :ref:`HydPy-WHMod` is the primary implementation of the SVAT model WHMod
 :cite:p:`ref-Probst2002`.  It stands out from the other model families by focusing more
 on water balance and groundwater recharge aspects of individual sites than on
-simulating the discharge of entire river basins.  The first available application
-model, |whmod_rural|, is designed to perform water balance analyses for rural areas.
+simulating the discharge of entire river basins.  The application model |whmod_rural|
+is designed to perform water balance analyses for rural areas, while |whmod_urban| also
+considers water management measures relevant to urban areas.
 
 .. _stream_models:
 

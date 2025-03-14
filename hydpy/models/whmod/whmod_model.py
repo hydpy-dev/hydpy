@@ -1282,7 +1282,7 @@ class Calc_InternalIrrigation_SoilMoisture_V1(modeltools.Method):
         E = CisternExtraction \\
         D = CisternDemand
 
-    Example:
+    Examples:
 
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
@@ -1292,6 +1292,7 @@ class Calc_InternalIrrigation_SoilMoisture_V1(modeltools.Method):
         >>> area(15.0)
         >>> zonearea(1.0, 2.0, 3.0, 4.0, 5.0)
         >>> states.soilmoisture = 100.0
+
         >>> fluxes.requiredirrigation = 0.0, 6.0, 0.0, 7.0, nan
         >>> fluxes.cisterndemand = 0.04
         >>> fluxes.cisternextraction = 0.03
@@ -1300,12 +1301,18 @@ class Calc_InternalIrrigation_SoilMoisture_V1(modeltools.Method):
         internalirrigation(0.0, 4.5, 0.0, 5.25, 0.0)
         >>> states.soilmoisture
         soilmoisture(100.0, 104.5, 100.0, 105.25, 0.0)
+
+        >>> fluxes.requiredirrigation = 0.0, 0.0, 0.0, 0.0, nan
+        >>> fluxes.cisterndemand = 0.0
+        >>> fluxes.cisternextraction = 0.0
+        >>> model.calc_internalirrigation_soilmoisture_v1()
+        >>> fluxes.internalirrigation
+        internalirrigation(0.0, 0.0, 0.0, 0.0, 0.0)
+        >>> states.soilmoisture
+        soilmoisture(100.0, 104.5, 100.0, 105.25, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        whmod_control.NmbZones,
-        whmod_control.SoilType,
-    )
+    CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.SoilType)
     REQUIREDSEQUENCES = (
         whmod_fluxes.RequiredIrrigation,
         whmod_fluxes.CisternDemand,
@@ -1320,7 +1327,10 @@ class Calc_InternalIrrigation_SoilMoisture_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
 
-        factor: float = flu.cisternextraction / flu.cisterndemand
+        if flu.cisterndemand > 0.0:
+            factor: float = flu.cisternextraction / flu.cisterndemand
+        else:
+            factor = 0.0
         for k in range(con.nmbzones):
             if con.soiltype[k] == NONE:
                 sta.soilmoisture[k] = 0.0

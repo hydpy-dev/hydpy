@@ -554,6 +554,71 @@ class Calc_RelativeSoilMoisture_V1(modeltools.Method):
                 fac.relativesoilmoisture[k] = sta.soilmoisture[k] / der.maxsoilwater[k]
 
 
+class Calc_OverflowCistern_CollectedWater_V1(modeltools.Method):
+    r"""Take the inflow into the cistern to update its content and calculate eventual
+    overflow.
+
+    Basic equation:
+      .. math::
+        O(t) = \begin{cases}
+        0 &|\ W \leq C \\
+        I &|\ W = C
+        \end{cases}
+        \\
+        \frac{d W(t)}{d t} = I - O(t)
+        \\ \\
+        O = OverflowCistern \\
+        I = InflowCistern \\
+        W = CollectedWater \\
+        C = CisternCapacity
+
+    Examples:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> cisterncapacity(5.0)
+        >>> states.collectedwater = 1.0
+        >>> fluxes.inflowcistern = 3.0
+
+        >>> model.calc_overflowcistern_collectedwater_v1()
+        >>> states.collectedwater
+        collectedwater(4.0)
+        >>> fluxes.overflowcistern
+        overflowcistern(0.0)
+
+        >>> model.calc_overflowcistern_collectedwater_v1()
+        >>> states.collectedwater
+        collectedwater(5.0)
+        >>> fluxes.overflowcistern
+        overflowcistern(2.0)
+
+        >>> model.calc_overflowcistern_collectedwater_v1()
+        >>> states.collectedwater
+        collectedwater(5.0)
+        >>> fluxes.overflowcistern
+        overflowcistern(3.0)
+    """
+
+    CONTROLPARAMETERS = (whmod_control.CisternCapacity,)
+    REQUIREDSEQUENCES = (whmod_fluxes.InflowCistern,)
+    UPDATEDSEQUENCES = (whmod_states.CollectedWater,)
+    RESULTSEQUENCES = (whmod_fluxes.OverflowCistern,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+
+        sta.collectedwater += flu.inflowcistern
+        if sta.collectedwater <= con.cisterncapacity:
+            flu.overflowcistern = 0.0
+        else:
+            flu.overflowcistern = sta.collectedwater - con.cisterncapacity
+            sta.collectedwater = con.cisterncapacity
+
+
+
 class Calc_Percolation_V1(modeltools.Method):
     r"""Calculate the percolation out of the soil storage.
 
@@ -1444,6 +1509,7 @@ class Model(modeltools.AdHocModel):
         Calc_SurfaceRunoff_V1,
         Calc_RelativeSoilMoisture_V1,
         Calc_Percolation_V1,
+        Calc_OverflowCistern_CollectedWater_V1,
         Calc_SoilEvapotranspiration_V1,
         Calc_TotalEvapotranspiration_V1,
         Calc_CapillaryRise_V1,

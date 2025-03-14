@@ -1,0 +1,17 @@
+.. |SoilModel_V1.execute_infiltration| replace:: :func:`~hydpy.interfaces.soilinterfaces.SoilModel_V1.execute_infiltration`
+.. |SoilModel_V1.get_soilwatercontent| replace:: :func:`~hydpy.interfaces.soilinterfaces.SoilModel_V1.get_soilwatercontent`
+.. |SoilModel_V1.set_actualsurfacewater| replace:: :func:`~hydpy.interfaces.soilinterfaces.SoilModel_V1.set_actualsurfacewater`
+.. |SoilModel_V1.set_initialsurfacewater| replace:: :func:`~hydpy.interfaces.soilinterfaces.SoilModel_V1.set_initialsurfacewater`
+.. |SoilModel_V1| replace:: :class:`~hydpy.interfaces.soilinterfaces.SoilModel_V1`
+.. |ga_garto| replace:: :mod:`~hydpy.models.ga_garto`
+.. |lland| replace:: :mod:`~hydpy.models.lland`
+
+.. _soilinterfaces:
+
+soilinterfaces
+==============
+
+.. automodule:: hydpy.interfaces.soilinterfaces
+    :members:
+    :show-inheritance:
+    :exclude-members: fastaccess_new, TypedDict, TypeAliasType, SupportsRound, AsyncGenerator, Mapping, Counter, ItemsView, get_origin, DefaultDict, TypeAlias, SupportsComplex, ClassVar, is_protocol, Container, Any, subseqs, Literal, fastaccess_old, no_type_check_decorator, get_original_bases, Sized, is_typeddict, Required, Final, TypeIs, Type, PART_ODE_METHODS, Iterable, Optional, RESULTSEQUENCES, Union, ByteString, FrozenSet, FULL_ODE_METHODS, Annotated, Awaitable, deprecated, SupportsAbs, Generic, Tuple, ContextManager, IO, IntVar, Iterator, override, assert_never, TypeVar, LiteralString, NamedTuple, TextIO, Reversible, ParamSpec, NotRequired, cast, runtime, MutableMapping, DERIVEDPARAMETERS, dataclass_transform, TYPE_CHECKING, Doc, subpars, Buffer, CLASSES, Match, SUBMODELINTERFACES, REQUIREDSEQUENCES, assert_type, MutableSequence, ParamSpecKwargs, SupportsFloat, AbstractSet, AnyStr, final, NoReturn, NoDefault, MutableSet, ValuesView, FIXEDPARAMETERS, Deque, AsyncIterable, Coroutine, Generator, ChainMap, reveal_type, AsyncContextManager, fastaccess, MappingView, INLET_METHODS, SupportsIndex, AsyncIterator, Set, SOLVERPARAMETERS, SUBMETHODS, TypeGuard, Unpack, Self, Sequence, List, Hashable, SOLVERSEQUENCES, CONTROLPARAMETERS, subvars, UPDATEDSEQUENCES, get_args, OUTLET_METHODS, clear_overloads, overload, ADD_METHODS, Callable, SupportsBytes, TypeVarTuple, RECEIVER_METHODS, BinaryIO, INTERFACE_METHODS, OrderedDict, get_type_hints, Text, ParamSpecArgs, Never, RUN_METHODS, Concatenate, get_protocol_members, NewType, ReadOnly, Protocol, Pattern, SUBMODELS, no_type_check, Collection, pars, seqs, runtime_checkable, get_overloads, Dict, ForwardRef, CapsuleType, SENDER_METHODS, KeysView, SupportsInt

@@ -1,0 +1,182 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Cython Tools &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="annutils" href="annutils.html" />
+    <link rel="prev" title="servertools" href="servertools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="annutils.html" title="annutils"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="servertools.html" title="servertools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" accesskey="U">Framework Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Cython Tools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="core.html">Core Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Cython Tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="annutils.html">annutils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configutils.html">configutils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="interputils.html">interputils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modelutils.html">modelutils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pointerutils.html">pointerutils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ppolyutils.html">ppolyutils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quadutils.html">quadutils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rootutils.html">rootutils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequenceutils.html">sequenceutils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="smoothutils.html">smoothutils</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="servertools.html"
+                          title="previous chapter">servertools</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="annutils.html"
+                          title="next chapter">annutils</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/cythons.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/cythons.html">6</a></li>
+<li><a href="../5.0/cythons.html">5.0</a></li>
+<li><a href="../4.0/cythons.html">4.0</a></li>
+<li><a href="../master/cythons.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="cython-tools">
+<span id="cythons"></span><h1>Cython Tools<a class="headerlink" href="#cython-tools" title="Link to this heading">¶</a></h1>
+<p>The modules of subpackage <cite>cythons</cite> should be of interest for framework
+developers (and eventually some model developers) only.</p>
+<p>The most important module (and so far the only one which is actually a
+Python module) is <a class="reference internal" href="modelutils.html#module-hydpy.cythons.modelutils" title="hydpy.cythons.modelutils"><code class="xref py py-mod docutils literal notranslate"><span class="pre">modelutils</span></code></a>, which implements the routines to translate
+Python code into Cython code, to translate Cython code into C code, to
+compile C code, and to embed the compilation into a “Python dll”
+(a “pyd” file on Windows and a “so” file on Linux systems).</p>
+<p>The other modules are Cython extension files.  Often they are named
+similar to the Python modules of other packages (see for example <a class="reference internal" href="anntools.html#module-hydpy.auxs.anntools" title="hydpy.auxs.anntools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">anntools</span></code></a>
+and <a class="reference internal" href="annutils.html#annutils"><span class="std std-ref">annutils</span></a>).  The respective Cython extension file then implements
+the performance critical part of the the required functionality.</p>
+<p>The required dll files are automatically generated when <em>HydPy</em>
+is installed and stored in the <cite>cythons</cite> subpackage <cite>autogen</cite>.  The
+dll files of the different hydrological models are also stored in
+<cite>autogen</cite>.  But they are automatically updated each time class
+<a class="reference internal" href="modelutils.html#hydpy.cythons.modelutils.Cythonizer" title="hydpy.cythons.modelutils.Cythonizer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cythonizer</span></code></a> of module <a class="reference internal" href="modelutils.html#module-hydpy.cythons.modelutils" title="hydpy.cythons.modelutils"><code class="xref py py-mod docutils literal notranslate"><span class="pre">modelutils</span></code></a> detects a change in the code base
+of the model or of <em>HydPy</em> that could affect the models functionality.</p>
+<p>Note that it is always harder to maintain Cython code than it is to
+maintain Python code.  So please refrain from writing Cython code
+when the expected computational time gain is small or when Python
+offers other strategies to decrease computation times.</p>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="annutils.html" title="annutils"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="servertools.html" title="servertools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Cython Tools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

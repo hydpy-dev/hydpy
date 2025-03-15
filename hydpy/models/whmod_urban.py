@@ -1,9 +1,15 @@
 # pylint: disable=line-too-long, unused-wildcard-import
 """
-|whmod_urban| ...
+|whmod_urban| is an extension of |whmod_rural| that considers water management measures
+relevant to urban areas.  Its key additional feature is its ability to collect excess
+water from selected sealed (surface runoff) and not sealed areas (percolation) in
+cisterns and to use it for irrigation.   We designed |whmod_urban| originally to
+develop and analyse Sponge City concepts for Munich, Germany.
 
 Integration tests
 =================
+
+The following test settings are identical to those of |whmod_rural|:
 
 .. how_to_understand_integration_tests::
 
@@ -16,32 +22,23 @@ Integration tests
 >>> element.model = model
 
 >>> area(10.0)
-
 >>> nmbzones(1)
 >>> zonearea(10.0)
-
 >>> landtype(GRASS)
 >>> soiltype(SAND)
-
 >>> interceptioncapacity.grass_feb = 0.4
 >>> interceptioncapacity.grass_mar = 0.6
 >>> interceptioncapacity.grass_apr = 0.8
-
 >>> degreedayfactor(grass=4.5)
-
 >>> availablefieldcapacity(sand=0.2)
-
 >>> rootingdepth(0.5)
 >>> groundwaterdepth(1.0)
-
 >>> withcapillaryrise(True)
 >>> capillarythreshold(0.8)
 >>> capillarylimit(0.4)
-
 >>> withexternalirrigation(False)
 >>> irrigationtrigger(0.6)
 >>> irrigationtarget(0.7)
-
 >>> baseflowindex(0.8)
 >>> rechargedelay(5.0)
 
@@ -68,14 +65,10 @@ Integration tests
 >>> test = IntegrationTest(element)
 >>> test.dateformat = "%Y-%m-%d"
 
->>> cisternsource(False)
->>> cisterncapacity(0.1)
-
 >>> test.inits = (
 ...     (states.interceptedwater, 0.0),
 ...     (states.snowpack, 0.0),
 ...     (states.soilmoisture, 0.0),
-...     (states.cisternwater, 0.0),
 ...     (states.deepwater, 0.0),
 ...     (petmodel.sequences.logs.loggedpotentialevapotranspiration, 0.0),
 ... )
@@ -96,10 +89,29 @@ Integration tests
 ...     1.2, 0.9, 0.9, 1.2, 1.4, 1.1, 1.1, 0.5, 0.6, 1.5, 2.0, 1.6, 1.6, 1.2, 1.3,
 ...     1.6, 1.9, 0.8, 1.5, 2.7, 1.5, 1.6, 2.0, 2.1, 1.7, 1.7, 0.8, 1.3, 2.5)
 
+
 .. _whmod_urban_grassland:
 
 grassland
 _________
+
+    We first repeat the :ref:`whmod_rural_grassland` example of |whmod_rural|.
+
+    The cistern has a capacity of 0.1 m³:
+
+    >>> cisterncapacity(0.1)
+
+    We set the boolean |CisternSource| parameter for the single considered zone to
+    |False| so that the cistern cannot receive any inflow:
+
+    >>> cisternsource(False)
+
+    We also set the cistern's initial water content to zero:
+
+    >>> test.inits.cisternwater = 0.0
+
+    Due to the effectively "turned off" cistern, the following results are identical
+    to the :ref:`whmod_rural_grassland` example of |whmod_rural|:
 
 .. integration-test::
 

@@ -683,7 +683,7 @@ class Model(
     """|whmod_rural.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(
-        short="WHMod-Rural", description="WHMod version for rural regions"
+        short="WHMod-Rural", description="WHMod for rural regions"
     )
     __HYDPY_ROOTMODEL__ = True
 

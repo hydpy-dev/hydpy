@@ -1408,6 +1408,82 @@ class Calc_ExternalIrrigation_SoilMoisture_V1(modeltools.Method):
                 flu.externalirrigation[k] = 0.0
 
 
+class Calc_ExternalIrrigation_SoilMoisture_V2(modeltools.Method):
+    r"""Irrigate from external sources, if still required after internal irrigation and
+    requested.
+
+    Basic equations:
+      .. math::
+        E = \begin{cases}
+        R - I &|\ W \\
+        0 &|\ \overline{W}
+        \end{cases}
+        \\
+        S_{new} = S_{old} + E
+        \\ \\
+        E = ExternalIrrigation \\
+        R = RequiredIrrigation \\
+        I = InternalIrrigation \\
+        W = WithExternalIrrigation \\
+        S = SoilMoisture
+
+    Examples:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmbzones(2)
+        >>> landtype(CORN, SEALED)
+        >>> soiltype(SAND, NONE)
+        >>> fluxes.requiredirrigation(5.0, nan)
+        >>> fluxes.internalirrigation(3.0, nan)
+        >>> states.soilmoisture = 50.0, nan
+
+        >>> withexternalirrigation(False)
+        >>> model.calc_externalirrigation_soilmoisture_v2()
+        >>> fluxes.externalirrigation
+        externalirrigation(0.0, 0.0)
+        >>> states.soilmoisture
+        soilmoisture(50.0, 0.0)
+
+        >>> withexternalirrigation(True)
+        >>> model.calc_externalirrigation_soilmoisture_v2()
+        >>> fluxes.externalirrigation
+        externalirrigation(2.0, 0.0)
+        >>> states.soilmoisture
+        soilmoisture(52.0, 0.0)
+    """
+
+    CONTROLPARAMETERS = (
+        whmod_control.NmbZones,
+        whmod_control.SoilType,
+        whmod_control.WithExternalIrrigation,
+    )
+    REQUIREDSEQUENCES = (
+        whmod_fluxes.RequiredIrrigation,
+        whmod_fluxes.InternalIrrigation,
+    )
+    RESULTSEQUENCES = (whmod_fluxes.ExternalIrrigation,)
+    UPDATEDSEQUENCES = (whmod_states.SoilMoisture,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+
+        for k in range(con.nmbzones):
+            if con.soiltype[k] == NONE:
+                sta.soilmoisture[k] = 0.0
+                flu.externalirrigation[k] = 0.0
+            elif con.withexternalirrigation:
+                flu.externalirrigation[k] = (
+                    flu.requiredirrigation[k] - flu.internalirrigation[k]
+                )
+                sta.soilmoisture[k] += flu.externalirrigation[k]
+            else:
+                flu.externalirrigation[k] = 0.0
+
+
 class Calc_PotentialRecharge_V1(modeltools.Method):
     r"""Calculate the potential recharge.
 
@@ -1863,6 +1939,7 @@ class Model(modeltools.AdHocModel):
         Calc_CisternExtraction_CisternWater_V1,
         Calc_InternalIrrigation_SoilMoisture_V1,
         Calc_ExternalIrrigation_SoilMoisture_V1,
+        Calc_ExternalIrrigation_SoilMoisture_V2,
         Calc_RelativeSoilMoisture_V1,
         Calc_PotentialRecharge_V1,
         Calc_PotentialRecharge_V2,

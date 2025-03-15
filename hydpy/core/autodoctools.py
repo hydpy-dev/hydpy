@@ -1607,7 +1607,7 @@ class SubmodelGraph:
         arma_rimorido
         conv_idw
         ...
-        whmod_rural
+        whmod_urban
         wland_gd
         wland_wag
 

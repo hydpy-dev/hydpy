@@ -40,27 +40,27 @@ class SoilMoisture(whmod_sequences.State1DSoilSequence):
         return super().trim(lower, upper)
 
 
-class CollectedWater(sequencetools.StateSequence):
+class CisternWater(sequencetools.StateSequence):
     """Amount of water that is collected in the cistern [m³]."""
 
     NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
 
     def trim(self, lower=None, upper=None) -> bool:
-        r"""Trim |CollectedWater| following
-        :math:`0 \leq CollectedWater \leq CisternCapacity`.
+        r"""Trim |CisternWater| following
+        :math:`0 \leq CisternWater \leq CisternCapacity`.
 
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
         >>> control.cisterncapacity(5.0)
-        >>> states.collectedwater(3.0)
-        >>> states.collectedwater
-        collectedwater(3.0)
-        >>> states.collectedwater(5.0)
-        >>> states.collectedwater
-        collectedwater(5.0)
-        >>> states.collectedwater(7.0)
-        >>> states.collectedwater
-        collectedwater(5.0)
+        >>> states.cisternwater(3.0)
+        >>> states.cisternwater
+        cisternwater(3.0)
+        >>> states.cisternwater(5.0)
+        >>> states.cisternwater
+        cisternwater(5.0)
+        >>> states.cisternwater(7.0)
+        >>> states.cisternwater
+        cisternwater(5.0)
         """
         if upper is None:
             upper = self.subseqs.seqs.model.parameters.control.cisterncapacity.value

@@ -612,7 +612,7 @@ class Calc_CisternInflow_V1(modeltools.Method):
         flu.cisterninflow /= 1000.0
 
 
-class Calc_CisternOverflow_CollectedWater_V1(modeltools.Method):
+class Calc_CisternOverflow_CisternWater_V1(modeltools.Method):
     r"""Take the inflow into the cistern to update its content and calculate eventual
     overflow.
 
@@ -627,7 +627,7 @@ class Calc_CisternOverflow_CollectedWater_V1(modeltools.Method):
         \\ \\
         O = CisternOverflow \\
         I = CisternInflow \\
-        W = CollectedWater \\
+        W = CisternWater \\
         C = CisternCapacity
 
     Examples:
@@ -635,31 +635,31 @@ class Calc_CisternOverflow_CollectedWater_V1(modeltools.Method):
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
         >>> cisterncapacity(5.0)
-        >>> states.collectedwater = 1.0
+        >>> states.cisternwater = 1.0
         >>> fluxes.cisterninflow = 3.0
 
-        >>> model.calc_cisternoverflow_collectedwater_v1()
-        >>> states.collectedwater
-        collectedwater(4.0)
+        >>> model.calc_cisternoverflow_cisternwater_v1()
+        >>> states.cisternwater
+        cisternwater(4.0)
         >>> fluxes.cisternoverflow
         cisternoverflow(0.0)
 
-        >>> model.calc_cisternoverflow_collectedwater_v1()
-        >>> states.collectedwater
-        collectedwater(5.0)
+        >>> model.calc_cisternoverflow_cisternwater_v1()
+        >>> states.cisternwater
+        cisternwater(5.0)
         >>> fluxes.cisternoverflow
         cisternoverflow(2.0)
 
-        >>> model.calc_cisternoverflow_collectedwater_v1()
-        >>> states.collectedwater
-        collectedwater(5.0)
+        >>> model.calc_cisternoverflow_cisternwater_v1()
+        >>> states.cisternwater
+        cisternwater(5.0)
         >>> fluxes.cisternoverflow
         cisternoverflow(3.0)
     """
 
     CONTROLPARAMETERS = (whmod_control.CisternCapacity,)
     REQUIREDSEQUENCES = (whmod_fluxes.CisternInflow,)
-    UPDATEDSEQUENCES = (whmod_states.CollectedWater,)
+    UPDATEDSEQUENCES = (whmod_states.CisternWater,)
     RESULTSEQUENCES = (whmod_fluxes.CisternOverflow,)
 
     @staticmethod
@@ -668,12 +668,12 @@ class Calc_CisternOverflow_CollectedWater_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
 
-        sta.collectedwater += flu.cisterninflow
-        if sta.collectedwater <= con.cisterncapacity:
+        sta.cisternwater += flu.cisterninflow
+        if sta.cisternwater <= con.cisterncapacity:
             flu.cisternoverflow = 0.0
         else:
-            flu.cisternoverflow = sta.collectedwater - con.cisterncapacity
-            sta.collectedwater = con.cisterncapacity
+            flu.cisternoverflow = sta.cisternwater - con.cisterncapacity
+            sta.cisternwater = con.cisterncapacity
 
 
 class Calc_Percolation_V1(modeltools.Method):
@@ -1210,7 +1210,7 @@ class Calc_CisternDemand_V1(modeltools.Method):
         flu.cisterndemand /= 1000.0
 
 
-class Calc_CisternExtraction_CollectedWater_V1(modeltools.Method):
+class Calc_CisternExtraction_CisternWater_V1(modeltools.Method):
     r"""Calculate the actual irrigation extraction from the cistern and update the
     amount of still available water.
 
@@ -1225,30 +1225,30 @@ class Calc_CisternExtraction_CollectedWater_V1(modeltools.Method):
         \\ \\
         E = CisternExtraction \\
         D = CisternDemand \\
-        W = CollectedWater
+        W = CisternWater
 
     Examples:
 
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
-        >>> states.collectedwater = 5.0
+        >>> states.cisternwater = 5.0
         >>> fluxes.cisterndemand = 3.0
 
-        >>> model.calc_cisternextraction_collectedwater_v1()
-        >>> states.collectedwater
-        collectedwater(2.0)
+        >>> model.calc_cisternextraction_cisternwater_v1()
+        >>> states.cisternwater
+        cisternwater(2.0)
         >>> fluxes.cisternextraction
         cisternextraction(3.0)
 
-        >>> model.calc_cisternextraction_collectedwater_v1()
-        >>> states.collectedwater
-        collectedwater(0.0)
+        >>> model.calc_cisternextraction_cisternwater_v1()
+        >>> states.cisternwater
+        cisternwater(0.0)
         >>> fluxes.cisternextraction
         cisternextraction(2.0)
 
-        >>> model.calc_cisternextraction_collectedwater_v1()
-        >>> states.collectedwater
-        collectedwater(0.0)
+        >>> model.calc_cisternextraction_cisternwater_v1()
+        >>> states.cisternwater
+        cisternwater(0.0)
         >>> fluxes.cisternextraction
         cisternextraction(0.0)
     """
@@ -1262,12 +1262,12 @@ class Calc_CisternExtraction_CollectedWater_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
 
-        if sta.collectedwater > flu.cisterndemand:
+        if sta.cisternwater > flu.cisterndemand:
             flu.cisternextraction = flu.cisterndemand
-            sta.collectedwater -= flu.cisternextraction
+            sta.cisternwater -= flu.cisternextraction
         else:
-            flu.cisternextraction = sta.collectedwater
-            sta.collectedwater = 0.0
+            flu.cisternextraction = sta.cisternwater
+            sta.cisternwater = 0.0
 
 
 class Calc_InternalIrrigation_SoilMoisture_V1(modeltools.Method):
@@ -1851,7 +1851,7 @@ class Model(modeltools.AdHocModel):
         Calc_RelativeSoilMoisture_V1,
         Calc_Percolation_V1,
         Calc_CisternInflow_V1,
-        Calc_CisternOverflow_CollectedWater_V1,
+        Calc_CisternOverflow_CisternWater_V1,
         Calc_SoilEvapotranspiration_V1,
         Calc_TotalEvapotranspiration_V1,
         Calc_CapillaryRise_V1,
@@ -1860,7 +1860,7 @@ class Model(modeltools.AdHocModel):
         Calc_RelativeSoilMoisture_V1,
         Calc_RequiredIrrigation_V1,
         Calc_CisternDemand_V1,
-        Calc_CisternExtraction_CollectedWater_V1,
+        Calc_CisternExtraction_CisternWater_V1,
         Calc_InternalIrrigation_SoilMoisture_V1,
         Calc_ExternalIrrigation_SoilMoisture_V1,
         Calc_RelativeSoilMoisture_V1,

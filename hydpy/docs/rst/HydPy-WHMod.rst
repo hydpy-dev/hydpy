@@ -16,3 +16,4 @@ Base model:
 
    whmod
    whmod_rural
+   whmod_urban

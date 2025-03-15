@@ -567,7 +567,7 @@ class Calc_CisternInflow_V1(modeltools.Method):
         I = CisternInflow\\
         N = NmbZones \\
         T = LandType \\
-        C = Collector \\
+        C = CisternSource \\
         A = ZoneArea \\
         S = SurfaceRunoff \\
         P = Percolation
@@ -578,7 +578,7 @@ class Calc_CisternInflow_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbzones(5)
         >>> landtype(GRASS, GRASS, SEALED, SEALED, WATER)
-        >>> collector(False, True, False, True, False)
+        >>> cisternsource(False, True, False, True, False)
         >>> area(15.0)
         >>> zonearea(1.0, 2.0, 3.0, 4.0, 5.0)
         >>> fluxes.percolation = nan, 6.0, nan, nan, nan
@@ -592,7 +592,7 @@ class Calc_CisternInflow_V1(modeltools.Method):
         whmod_control.NmbZones,
         whmod_control.ZoneArea,
         whmod_control.LandType,
-        whmod_control.Collector,
+        whmod_control.CisternSource,
     )
     REQUIREDSEQUENCES = (whmod_fluxes.SurfaceRunoff, whmod_fluxes.Percolation)
     RESULTSEQUENCES = (whmod_fluxes.CisternInflow,)
@@ -604,7 +604,7 @@ class Calc_CisternInflow_V1(modeltools.Method):
 
         flu.cisterninflow = 0.0
         for k in range(con.nmbzones):
-            if con.collector[k]:
+            if con.cisternsource[k]:
                 if con.landtype[k] == SEALED:
                     flu.cisterninflow += con.zonearea[k] * flu.surfacerunoff[k]
                 elif con.landtype[k] != WATER:
@@ -916,7 +916,7 @@ class Calc_CapillaryRise_V2(modeltools.Method):
         >>> nmbzones(7)
         >>> landtype(GRASS, GRASS, GRASS, GRASS, GRASS, SEALED, WATER)
         >>> soiltype(SAND, SAND, SAND, SAND, SAND, NONE, NONE)
-        >>> collector(False, True, True, False, False, False, False)
+        >>> cisternsource(False, True, True, False, False, False, False)
         >>> derived.potentialcapillaryrise(2.0)
         >>> factors.relativesoilmoisture = 0.0, 0.25, 0.5, 0.75, 1.0, nan, nan
 
@@ -934,7 +934,7 @@ class Calc_CapillaryRise_V2(modeltools.Method):
     CONTROLPARAMETERS = (
         whmod_control.NmbZones,
         whmod_control.SoilType,
-        whmod_control.Collector,
+        whmod_control.CisternSource,
         whmod_control.WithCapillaryRise,
     )
     DERIVEDPARAMETERS = (whmod_derived.PotentialCapillaryRise,)
@@ -950,7 +950,7 @@ class Calc_CapillaryRise_V2(modeltools.Method):
         for k in range(con.nmbzones):
             if (
                 (con.soiltype[k] == NONE)
-                or con.collector[k]
+                or con.cisternsource[k]
                 or not con.withcapillaryrise
             ):
                 flu.capillaryrise[k] = 0.0
@@ -1255,7 +1255,7 @@ class Calc_CisternExtraction_CollectedWater_V1(modeltools.Method):
 
     REQUIREDSEQUENCES = (whmod_fluxes.CisternDemand,)
     RESULTSEQUENCES = (whmod_fluxes.CisternExtraction,)
-    UPDATEDSEQUENCES = (whmod_states.CollectedWater,)
+    UPDATEDSEQUENCES = (whmod_states.CisternWater,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1476,7 +1476,7 @@ class Calc_PotentialRecharge_V2(modeltools.Method):
         >>> parameterstep()
         >>> nmbzones(5)
         >>> landtype(GRASS, GRASS, SEALED, SEALED, WATER)
-        >>> collector(False, True, False, True, False)
+        >>> cisternsource(False, True, False, True, False)
         >>> inputs.precipitation = 7.0
         >>> fluxes.lakeevaporation = 4.0
         >>> fluxes.percolation = 3.0
@@ -1489,7 +1489,7 @@ class Calc_PotentialRecharge_V2(modeltools.Method):
     CONTROLPARAMETERS = (
         whmod_control.NmbZones,
         whmod_control.LandType,
-        whmod_control.Collector,
+        whmod_control.CisternSource,
     )
     REQUIREDSEQUENCES = (
         whmod_inputs.Precipitation,
@@ -1505,7 +1505,7 @@ class Calc_PotentialRecharge_V2(modeltools.Method):
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
-            if (con.landtype[k] == SEALED) or con.collector[k]:
+            if (con.landtype[k] == SEALED) or con.cisternsource[k]:
                 flu.potentialrecharge[k] = 0.0
             elif con.landtype[k] == WATER:
                 flu.potentialrecharge[k] = inp.precipitation - flu.lakeevaporation[k]

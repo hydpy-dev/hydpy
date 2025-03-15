@@ -145,19 +145,17 @@ NONE.
             )
 
 
-class Collector(whmod_parameters.LandTypeNonWaterParameter):
+class CisternSource(whmod_parameters.LandTypeNonWaterParameter):
     """A flag that indicates whether a zone's excess water (surface runoff or
-    percolation) is collected in the cistern [-]."""
+    percolation) is channelled into the cistern [-].."""
 
     TYPE, TIME, SPAN = bool, None, (False, True)
-
 
 
 class CisternCapacity(parametertools.Parameter):
     """Maximum water amount that can be collected in the cistern [m³]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-
 
 
 class InterceptionCapacity(parametertools.KeywordParameter2D):

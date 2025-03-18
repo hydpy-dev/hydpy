@@ -161,7 +161,7 @@ class CisternCapacity(parametertools.Parameter):
 class InterceptionCapacity(parametertools.KeywordParameter2D):
     """Maximum interception storage [mm]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, 1.0)
+    TYPE, TIME, SPAN = float, None, (0.0, None)
 
     columnnames = parametertools.MonthParameter.entrynames
     rownames = whmod_constants.LANDTYPE_CONSTANTS.get_sortednames(

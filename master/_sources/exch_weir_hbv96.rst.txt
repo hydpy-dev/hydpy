@@ -1,0 +1,28 @@
+.. |AllowedExchange| replace:: :class:`~hydpy.models.exch.exch_control.AllowedExchange`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |FusedVariable| replace:: :class:`~hydpy.core.devicetools.FusedVariable`
+.. |IntegrationTest| replace:: :class:`~hydpy.core.testtools.IntegrationTest`
+.. |LoggedWaterLevels| replace:: :class:`~hydpy.models.exch.exch_logs.LoggedWaterLevels`
+.. |Node.variable| replace:: :const:`~hydpy.core.devicetools.Node.variable`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |dam_llake| replace:: :mod:`~hydpy.models.dam_llake`
+.. |exch_weir_hbv96.DOCNAME.complete| replace:: HydPy-Exch-Weir-HBV96 (weir model adopted from IHMS-HBV96)
+.. |exch_weir_hbv96| replace:: :mod:`~hydpy.models.exch_weir_hbv96`
+.. |dam_factors.WaterLevel| replace:: :class:`~hydpy.models.dam.dam_factors.WaterLevel`
+.. |dam_inlets.E| replace:: :class:`~hydpy.models.dam.dam_inlets.E`
+.. |dam_inlets.Q| replace:: :class:`~hydpy.models.dam.dam_inlets.Q`
+.. |dam_outlets.Q| replace:: :class:`~hydpy.models.dam.dam_outlets.Q`
+.. |exch_factors.WaterLevels| replace:: :class:`~hydpy.models.exch.exch_factors.WaterLevels`
+.. |exch_outlets.Exchange| replace:: :class:`~hydpy.models.exch.exch_outlets.Exchange`
+.. |exch_receivers.WaterLevels| replace:: :class:`~hydpy.models.exch.exch_receivers.WaterLevels`
+.. |exch_weir_hbv96.Model| replace:: :class:`~hydpy.models.exch_weir_hbv96.Model`
+
+.. _exch_weir_hbv96:
+
+exch_weir_hbv96
+===============
+
+.. automodule:: hydpy.models.exch_weir_hbv96
+    :members:
+    :show-inheritance:
+    :exclude-members: TypeVarTuple, seqs, AideSequences, NewType, get_original_bases, Type, Counter, CLASSES, IntVar, no_type_check, reveal_type, AsyncIterator, SENDER_METHODS, Never, RESULTSEQUENCES, TextIO, SupportsComplex, Optional, get_type_hints, SupportsAbs, OUTLET_METHODS, AsyncIterable, List, Coroutine, get_protocol_members, Union, Text, AsyncContextManager, SupportsInt, assert_never, RUN_METHODS, Protocol, Container, SOLVERPARAMETERS, subvars, Deque, cast, override, ParamSpec, Mapping, NoReturn, DefaultDict, Iterable, dataclass_transform, is_protocol, Tuple, TypeVar, Set, final, AbstractSet, UPDATEDSEQUENCES, FULL_ODE_METHODS, overload, Match, REQUIREDSEQUENCES, is_typeddict, ForwardRef, TypeIs, Doc, SUBMODELINTERFACES, IO, subpars, fastaccess, Callable, SupportsBytes, Literal, Dict, fastaccess_new, ParamSpecArgs, ADD_METHODS, SupportsRound, Final, Awaitable, CapsuleType, LiteralString, get_args, SupportsFloat, get_origin, NoDefault, subseqs, MutableMapping, NotRequired, Unpack, ContextManager, Required, INLET_METHODS, MappingView, Self, Buffer, Generator, ChainMap, TypeGuard, Reversible, TypedDict, no_type_check_decorator, TypeAlias, SupportsIndex, pars, ItemsView, Annotated, Sequence, get_overloads, Generic, AnyStr, DERIVEDPARAMETERS, ClassVar, Concatenate, OrderedDict, RECEIVER_METHODS, SUBMODELS, assert_type, ParamSpecKwargs, CONTROLPARAMETERS, ReadOnly, MutableSequence, MutableSet, InletSequences, Iterator, fastaccess_old, Any, ByteString, Sized, Collection, AsyncGenerator, StateSequences, FIXEDPARAMETERS, SOLVERSEQUENCES, INTERFACE_METHODS, SUBMETHODS, ValuesView, PART_ODE_METHODS, Hashable, clear_overloads, FrozenSet, Pattern, runtime_checkable, NamedTuple, SenderSequences, KeysView, InputSequences, TYPE_CHECKING, deprecated, BinaryIO, TypeAliasType, runtime

@@ -1,0 +1,59 @@
+.. |AETModel_V1| replace:: :class:`~hydpy.interfaces.aetinterfaces.AETModel_V1`
+.. |CFMax| replace:: :class:`~hydpy.models.hland.hland_control.CFMax`
+.. |Calc_SPG_WCG_SP_WC_V1| replace:: :class:`~hydpy.models.hland.hland_model.Calc_SPG_WCG_SP_WC_V1`
+.. |EL| replace:: :class:`~hydpy.models.hland.hland_fluxes.EL`
+.. |FIELD| replace:: :const:`~hydpy.models.hland.hland_constants.FIELD`
+.. |FOREST| replace:: :const:`~hydpy.models.hland.hland_constants.FOREST`
+.. |GLACIER| replace:: :const:`~hydpy.models.hland.hland_constants.GLACIER`
+.. |GMelt| replace:: :class:`~hydpy.models.hland.hland_control.GMelt`
+.. |ILAKE| replace:: :const:`~hydpy.models.hland.hland_constants.ILAKE`
+.. |Indexer.dayofyear| replace:: :const:`~hydpy.core.indextools.Indexer.dayofyear`
+.. |Indexer| replace:: :class:`~hydpy.core.indextools.Indexer`
+.. |LZ| replace:: :class:`~hydpy.models.hland.hland_states.LZ`
+.. |Model.check_waterbalance| replace:: :func:`~hydpy.models.hland_96.Model.check_waterbalance`
+.. |PC| replace:: :class:`~hydpy.models.hland.hland_fluxes.PC`
+.. |Perc| replace:: :class:`~hydpy.models.hland.hland_fluxes.Perc`
+.. |P| replace:: :const:`~hydpy.core.typingtools.P`
+.. |Q0| replace:: :class:`~hydpy.models.hland.hland_fluxes.Q0`
+.. |Q1| replace:: :class:`~hydpy.models.hland.hland_fluxes.Q1`
+.. |RConcModel_V1| replace:: :class:`~hydpy.interfaces.rconcinterfaces.RConcModel_V1`
+.. |RecStep| replace:: :class:`~hydpy.models.hland.hland_control.RecStep`
+.. |RespArea| replace:: :class:`~hydpy.models.hland.hland_control.RespArea`
+.. |R| replace:: :class:`~hydpy.models.hland.hland_fluxes.R`
+.. |SEALED| replace:: :const:`~hydpy.models.hland.hland_constants.SEALED`
+.. |SFDist| replace:: :class:`~hydpy.models.hland.hland_control.SFDist`
+.. |SMax| replace:: :class:`~hydpy.models.hland.hland_control.SMax`
+.. |SM| replace:: :class:`~hydpy.models.hland.hland_states.SM`
+.. |SPG| replace:: :class:`~hydpy.models.hland.hland_fluxes.SPG`
+.. |SPL| replace:: :class:`~hydpy.models.hland.hland_fluxes.SPL`
+.. |SP| replace:: :class:`~hydpy.models.hland.hland_states.SP`
+.. |SRed| replace:: :class:`~hydpy.models.hland.hland_control.SRed`
+.. |Sequences.conditions| replace:: :const:`~hydpy.core.sequencetools.Sequences.conditions`
+.. |TTM| replace:: :class:`~hydpy.models.hland.hland_derived.TTM`
+.. |TT| replace:: :class:`~hydpy.models.hland.hland_control.TT`
+.. |T| replace:: :const:`~hydpy.core.typingtools.T`
+.. |UZ| replace:: :class:`~hydpy.models.hland.hland_states.UZ`
+.. |evap_aet_hbv96| replace:: :mod:`~hydpy.models.evap_aet_hbv96`
+.. |evap_pet_hbv96| replace:: :mod:`~hydpy.models.evap_pet_hbv96`
+.. |evap_ret_tw2002| replace:: :mod:`~hydpy.models.evap_ret_tw2002`
+.. |hland_96.DOCNAME.complete| replace:: HydPy-H-HBV96 (adoption of SMHI-IHMS-HBV96)
+.. |hland_96| replace:: :mod:`~hydpy.models.hland_96`
+.. |lland_dd| replace:: :mod:`~hydpy.models.lland_dd`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |rconc_uh| replace:: :mod:`~hydpy.models.rconc_uh`
+.. |evap_control.EvapotranspirationFactor| replace:: :class:`~hydpy.models.evap.evap_control.EvapotranspirationFactor`
+.. |evap_control.TemperatureThresholdIce| replace:: :class:`~hydpy.models.evap.evap_control.TemperatureThresholdIce`
+.. |evap_fluxes.ReferenceEvapotranspiration| replace:: :class:`~hydpy.models.evap.evap_fluxes.ReferenceEvapotranspiration`
+.. |evap_inputs.NormalAirTemperature| replace:: :class:`~hydpy.models.evap.evap_inputs.NormalAirTemperature`
+.. |evap_inputs.NormalEvapotranspiration| replace:: :class:`~hydpy.models.evap.evap_inputs.NormalEvapotranspiration`
+.. |hland_inputs.T| replace:: :class:`~hydpy.models.hland.hland_inputs.T`
+
+.. _hland_96:
+
+hland_96
+========
+
+.. automodule:: hydpy.models.hland_96
+    :members:
+    :show-inheritance:
+    :exclude-members: TypeVarTuple, seqs, NewType, get_original_bases, Type, Counter, CLASSES, IntVar, no_type_check, reveal_type, AsyncIterator, SENDER_METHODS, Never, RESULTSEQUENCES, TextIO, SupportsComplex, Optional, get_type_hints, SupportsAbs, OUTLET_METHODS, AsyncIterable, List, Coroutine, get_protocol_members, Union, Text, AsyncContextManager, SupportsInt, LogSequences, assert_never, RUN_METHODS, Protocol, Container, SOLVERPARAMETERS, subvars, Deque, cast, override, ParamSpec, Mapping, NoReturn, DefaultDict, Iterable, dataclass_transform, is_protocol, Tuple, TypeVar, Set, final, AbstractSet, UPDATEDSEQUENCES, FULL_ODE_METHODS, overload, Match, REQUIREDSEQUENCES, is_typeddict, ForwardRef, TypeIs, Doc, SUBMODELINTERFACES, IO, subpars, fastaccess, Callable, SupportsBytes, Literal, Dict, fastaccess_new, ParamSpecArgs, ADD_METHODS, SupportsRound, Final, Awaitable, CapsuleType, LiteralString, get_args, SupportsFloat, get_origin, NoDefault, subseqs, MutableMapping, ReceiverSequences, NotRequired, Unpack, ContextManager, Required, INLET_METHODS, MappingView, Self, Buffer, Generator, ChainMap, TypeGuard, Reversible, TypedDict, no_type_check_decorator, TypeAlias, SupportsIndex, pars, ItemsView, Annotated, Sequence, get_overloads, Generic, AnyStr, DERIVEDPARAMETERS, ClassVar, Concatenate, OrderedDict, RECEIVER_METHODS, SUBMODELS, assert_type, ParamSpecKwargs, CONTROLPARAMETERS, ReadOnly, MutableSequence, MutableSet, InletSequences, Iterator, fastaccess_old, Any, ByteString, Sized, Collection, AsyncGenerator, FIXEDPARAMETERS, SOLVERSEQUENCES, INTERFACE_METHODS, SUBMETHODS, ValuesView, PART_ODE_METHODS, Hashable, clear_overloads, FrozenSet, Pattern, runtime_checkable, NamedTuple, SenderSequences, KeysView, TYPE_CHECKING, deprecated, BinaryIO, TypeAliasType, runtime

@@ -1,0 +1,30 @@
+.. |AttributeNotReady| replace:: :class:`~hydpy.core.exceptiontools.AttributeNotReady`
+.. |BaseProperty.call_fdel| replace:: :func:`~hydpy.core.propertytools.BaseProperty.call_fdel`
+.. |BaseProperty.call_fget| replace:: :func:`~hydpy.core.propertytools.BaseProperty.call_fget`
+.. |BaseProperty.call_fset| replace:: :func:`~hydpy.core.propertytools.BaseProperty.call_fset`
+.. |BaseProperty| replace:: :class:`~hydpy.core.propertytools.BaseProperty`
+.. |DefaultProperty| replace:: :class:`~hydpy.core.propertytools.DefaultProperty`
+.. |DependentProperty| replace:: :class:`~hydpy.core.propertytools.DependentProperty`
+.. |False| replace:: :const:`False`
+.. |Property| replace:: :class:`~hydpy.core.propertytools.Property`
+.. |ProtectedProperties.allready| replace:: :func:`~hydpy.core.propertytools.ProtectedProperties.allready`
+.. |ProtectedProperties| replace:: :class:`~hydpy.core.propertytools.ProtectedProperties`
+.. |ProtectedProperty.isready| replace:: :func:`~hydpy.core.propertytools.ProtectedProperty.isready`
+.. |ProtectedProperty| replace:: :class:`~hydpy.core.propertytools.ProtectedProperty`
+.. |RuntimeError| replace:: :class:`RuntimeError`
+.. |SeriesAggregationType| replace:: :const:`~hydpy.core.typingtools.SeriesAggregationType`
+.. |SeriesFileType| replace:: :const:`~hydpy.core.typingtools.SeriesFileType`
+.. |True| replace:: :const:`True`
+.. |bool| replace:: :class:`bool`
+.. |property| replace:: :class:`property`
+.. |str| replace:: :class:`str`
+
+.. _propertytools:
+
+propertytools
+=============
+
+.. automodule:: hydpy.core.propertytools
+    :members:
+    :show-inheritance:
+    :exclude-members: deprecated, TypeAlias, Set, FULL_ODE_METHODS, DefaultDict, NotRequired, INTERFACE_METHODS, SENDER_METHODS, Final, SupportsComplex, Optional, INLET_METHODS, AbstractSet, Container, Buffer, SupportsFloat, Literal, CONTROLPARAMETERS, clear_overloads, cast, SupportsRound, Hashable, get_original_bases, Annotated, pars, Sized, IO, TypeAliasType, is_typeddict, NoReturn, TYPE_CHECKING, overload, runtime, KeysView, AsyncIterator, no_type_check, Reversible, ParamSpecArgs, NamedTuple, BinaryIO, RUN_METHODS, AnyStr, MutableMapping, fastaccess_old, ParamSpecKwargs, get_args, Sequence, ItemsView, assert_type, ForwardRef, AsyncContextManager, ReadOnly, Iterator, OrderedDict, AsyncIterable, Collection, REQUIREDSEQUENCES, final, fastaccess, Tuple, no_type_check_decorator, Any, SUBMODELS, TypeVar, is_protocol, TypeVarTuple, Dict, IntVar, RESULTSEQUENCES, seqs, FIXEDPARAMETERS, override, Required, runtime_checkable, ContextManager, get_protocol_members, ClassVar, Callable, Union, assert_never, NoDefault, SupportsAbs, SOLVERSEQUENCES, subpars, OUTLET_METHODS, dataclass_transform, fastaccess_new, Type, Text, Pattern, Self, Generic, NewType, Protocol, SupportsBytes, Mapping, SupportsInt, FrozenSet, ParamSpec, Awaitable, RECEIVER_METHODS, ADD_METHODS, MutableSet, Deque, List, Unpack, get_type_hints, UPDATEDSEQUENCES, Iterable, ChainMap, AsyncGenerator, get_origin, subvars, SupportsIndex, DERIVEDPARAMETERS, SUBMODELINTERFACES, PART_ODE_METHODS, Match, TextIO, CLASSES, MutableSequence, reveal_type, CapsuleType, MappingView, LiteralString, ValuesView, TypeGuard, Concatenate, SUBMETHODS, Generator, Counter, ByteString, Coroutine, Doc, SOLVERPARAMETERS, TypeIs, Never, get_overloads, subseqs, TypedDict

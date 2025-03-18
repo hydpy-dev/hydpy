@@ -1,0 +1,23 @@
+.. |DoubleBase| replace:: :class:`~hydpy.cythons.autogen.pointerutils.DoubleBase`
+.. |Double| replace:: :class:`~hydpy.cythons.autogen.pointerutils.Double`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |LinkSequence| replace:: :class:`~hydpy.core.sequencetools.LinkSequence`
+.. |Model| replace:: :class:`~hydpy.core.modeltools.Model`
+.. |NodeSequence| replace:: :class:`~hydpy.core.sequencetools.NodeSequence`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |PDouble| replace:: :class:`~hydpy.cythons.autogen.pointerutils.PDouble`
+.. |PPDouble| replace:: :class:`~hydpy.cythons.autogen.pointerutils.PPDouble`
+.. |float| replace:: :class:`float`
+.. |numpy| replace:: :mod:`~numpy`
+.. |pointerutils| replace:: :mod:`~hydpy.cythons.autogen.pointerutils`
+.. |numpy.ndarray| replace:: :class:`~numpy.ndarray`
+
+.. _pointerutils:
+
+pointerutils
+============
+
+.. automodule:: hydpy.cythons.pointerutils
+    :members:
+    :show-inheritance:
+    :exclude-members: TypeVarTuple, seqs, NewType, get_original_bases, Type, Counter, CLASSES, IntVar, no_type_check, reveal_type, AsyncIterator, SENDER_METHODS, Never, RESULTSEQUENCES, TextIO, SupportsComplex, Optional, get_type_hints, SupportsAbs, OUTLET_METHODS, AsyncIterable, List, Coroutine, get_protocol_members, Union, Text, AsyncContextManager, SupportsInt, assert_never, RUN_METHODS, Protocol, Container, SOLVERPARAMETERS, subvars, Deque, cast, override, ParamSpec, Mapping, NoReturn, DefaultDict, Iterable, dataclass_transform, is_protocol, Tuple, TypeVar, Set, final, AbstractSet, UPDATEDSEQUENCES, FULL_ODE_METHODS, overload, Match, REQUIREDSEQUENCES, is_typeddict, ForwardRef, TypeIs, Doc, SUBMODELINTERFACES, IO, subpars, fastaccess, Callable, SupportsBytes, Literal, Dict, fastaccess_new, ParamSpecArgs, ADD_METHODS, SupportsRound, Final, Awaitable, CapsuleType, LiteralString, get_args, SupportsFloat, get_origin, NoDefault, subseqs, MutableMapping, NotRequired, Unpack, ContextManager, Required, INLET_METHODS, MappingView, Self, Buffer, Generator, ChainMap, TypeGuard, Reversible, TypedDict, no_type_check_decorator, TypeAlias, SupportsIndex, pars, ItemsView, Annotated, Sequence, get_overloads, Generic, AnyStr, DERIVEDPARAMETERS, ClassVar, Concatenate, OrderedDict, RECEIVER_METHODS, SUBMODELS, assert_type, ParamSpecKwargs, CONTROLPARAMETERS, ReadOnly, MutableSequence, MutableSet, Iterator, fastaccess_old, Any, ByteString, Sized, Collection, AsyncGenerator, FIXEDPARAMETERS, SOLVERSEQUENCES, INTERFACE_METHODS, SUBMETHODS, ValuesView, PART_ODE_METHODS, Hashable, clear_overloads, FrozenSet, Pattern, runtime_checkable, NamedTuple, KeysView, TYPE_CHECKING, deprecated, BinaryIO, TypeAliasType, runtime

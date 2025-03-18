@@ -1,0 +1,26 @@
+.. |BottomWidths| replace:: :class:`~hydpy.models.wq.wq_control.BottomWidths`
+.. |Calc_DischargeDerivatives_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_DischargeDerivatives_V1`
+.. |Calc_Discharges_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_Discharges_V1`
+.. |Calc_SurfaceWidths_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_SurfaceWidths_V1`
+.. |Calc_WaterDepth_V2| replace:: :class:`~hydpy.models.wq.wq_model.Calc_WaterDepth_V2`
+.. |Calc_WettedArea_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_WettedArea_V1`
+.. |Calc_WettedAreas_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_WettedAreas_V1`
+.. |Calc_WettedPerimeterDerivatives_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_WettedPerimeterDerivatives_V1`
+.. |Calc_WettedPerimeters_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_WettedPerimeters_V1`
+.. |CrestHeight| replace:: :class:`~hydpy.models.wq.wq_control.CrestHeight`
+.. |DischargeModel_V2| replace:: :class:`~hydpy.interfaces.dischargeinterfaces.DischargeModel_V2`
+.. |NumericalDifferentiator| replace:: :class:`~hydpy.core.testtools.NumericalDifferentiator`
+.. |smoothtools| replace:: :mod:`~hydpy.auxs.smoothtools`
+.. |wq.DOCNAME.complete| replace:: HydPy-WQ (base model)
+.. |wq.DOCNAME.long| replace:: HydPy-WQ
+.. |wq_trapeze| replace:: :mod:`~hydpy.models.wq_trapeze`
+
+.. _wq:
+
+wq
+==
+
+.. automodule:: hydpy.models.wq
+    :members:
+    :show-inheritance:
+    :exclude-members: TypeVarTuple, seqs, AideSequences, NewType, get_original_bases, Type, Counter, CLASSES, IntVar, no_type_check, reveal_type, AsyncIterator, SENDER_METHODS, Never, RESULTSEQUENCES, TextIO, SupportsComplex, Optional, get_type_hints, SupportsAbs, OUTLET_METHODS, AsyncIterable, List, Coroutine, get_protocol_members, Union, Text, AsyncContextManager, SupportsInt, LogSequences, assert_never, RUN_METHODS, Protocol, Container, SOLVERPARAMETERS, subvars, Deque, cast, override, ParamSpec, Mapping, NoReturn, DefaultDict, Iterable, dataclass_transform, is_protocol, Tuple, TypeVar, Set, final, AbstractSet, UPDATEDSEQUENCES, FULL_ODE_METHODS, overload, Match, REQUIREDSEQUENCES, is_typeddict, OutletSequences, ForwardRef, TypeIs, Doc, SUBMODELINTERFACES, IO, subpars, fastaccess, Callable, SupportsBytes, Literal, Dict, fastaccess_new, ParamSpecArgs, ADD_METHODS, SupportsRound, Final, Awaitable, CapsuleType, LiteralString, get_args, SupportsFloat, get_origin, NoDefault, subseqs, MutableMapping, ReceiverSequences, NotRequired, Unpack, ContextManager, Required, INLET_METHODS, MappingView, Self, Buffer, Generator, ChainMap, TypeGuard, Reversible, TypedDict, no_type_check_decorator, TypeAlias, SupportsIndex, pars, ItemsView, Annotated, Sequence, get_overloads, Generic, AnyStr, DERIVEDPARAMETERS, ClassVar, Concatenate, OrderedDict, RECEIVER_METHODS, SUBMODELS, assert_type, ParamSpecKwargs, CONTROLPARAMETERS, ReadOnly, MutableSequence, MutableSet, InletSequences, Iterator, fastaccess_old, Any, ByteString, Sized, Collection, AsyncGenerator, StateSequences, FIXEDPARAMETERS, SOLVERSEQUENCES, INTERFACE_METHODS, SUBMETHODS, ValuesView, PART_ODE_METHODS, Hashable, clear_overloads, FrozenSet, Pattern, runtime_checkable, NamedTuple, SenderSequences, KeysView, InputSequences, TYPE_CHECKING, deprecated, BinaryIO, TypeAliasType, runtime

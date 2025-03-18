@@ -861,11 +861,13 @@ All snow processes are modelled exactly as by |whmod_rural| and described in the
 
 import numpy
 
+from hydpy.core import masktools
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import aetinterfaces
 
+from hydpy.models.whmod import whmod_masks
 from hydpy.models.whmod import whmod_model
 from hydpy.models.whmod.whmod_constants import *
 
@@ -1005,6 +1007,12 @@ class Model(
             - (last.cisternwater - first["cisternwater"]) / a * 1000.0
             - (last.deepwater - first["deepwater"])
         )
+
+
+class Masks(masktools.Masks):
+    """Masks applicable to |whmod_urban|."""
+
+    CLASSES = whmod_masks.Masks.CLASSES
 
 
 tester = Tester()

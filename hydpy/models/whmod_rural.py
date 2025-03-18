@@ -663,11 +663,13 @@ layer:
 
 import numpy
 
+from hydpy.core import masktools
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import aetinterfaces
 
+from hydpy.models.whmod import whmod_masks
 from hydpy.models.whmod import whmod_model
 from hydpy.models.whmod.whmod_constants import *
 
@@ -788,6 +790,12 @@ class Model(
             - sum(r * (last.soilmoisture - first["soilmoisture"]))
             - (last.deepwater - first["deepwater"])
         )
+
+
+class Masks(masktools.Masks):
+    """Masks applicable to |whmod_rural|."""
+
+    CLASSES = whmod_masks.Masks.CLASSES
 
 
 tester = Tester()

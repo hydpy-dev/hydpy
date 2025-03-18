@@ -1,0 +1,27 @@
+.. |IMax| replace:: :class:`~hydpy.models.gland.gland_control.IMax`
+.. |Model.check_waterbalance| replace:: :func:`~hydpy.models.gland_gr4.Model.check_waterbalance`
+.. |PETModel_V1| replace:: :class:`~hydpy.interfaces.petinterfaces.PETModel_V1`
+.. |PN| replace:: :class:`~hydpy.models.gland.gland_fluxes.PN`
+.. |PR1| replace:: :class:`~hydpy.models.gland.gland_fluxes.PR1`
+.. |PR9| replace:: :class:`~hydpy.models.gland.gland_fluxes.PR9`
+.. |PR| replace:: :class:`~hydpy.models.gland.gland_fluxes.PR`
+.. |Q1| replace:: :class:`~hydpy.models.gland.gland_fluxes.Q1`
+.. |Q9| replace:: :class:`~hydpy.models.gland.gland_fluxes.Q9`
+.. |RConcModel_V1| replace:: :class:`~hydpy.interfaces.rconcinterfaces.RConcModel_V1`
+.. |X1| replace:: :class:`~hydpy.models.gland.gland_control.X1`
+.. |X2| replace:: :class:`~hydpy.models.gland.gland_control.X2`
+.. |X3| replace:: :class:`~hydpy.models.gland.gland_control.X3`
+.. |evap_ret_io| replace:: :mod:`~hydpy.models.evap_ret_io`
+.. |gland_gr4.DOCNAME.complete| replace:: HydPy-G-GR4 (Génie Rural model with 4 parameters)
+.. |gland_gr4| replace:: :mod:`~hydpy.models.gland_gr4`
+.. |rconc_uh| replace:: :mod:`~hydpy.models.rconc_uh`
+
+.. _gland_gr4:
+
+gland_gr4
+=========
+
+.. automodule:: hydpy.models.gland_gr4
+    :members:
+    :show-inheritance:
+    :exclude-members: TypeVarTuple, seqs, AideSequences, NewType, get_original_bases, Type, Counter, CLASSES, IntVar, no_type_check, reveal_type, AsyncIterator, SENDER_METHODS, Never, RESULTSEQUENCES, TextIO, SupportsComplex, Optional, get_type_hints, SupportsAbs, OUTLET_METHODS, AsyncIterable, List, Coroutine, get_protocol_members, Union, Text, AsyncContextManager, SupportsInt, LogSequences, assert_never, RUN_METHODS, Protocol, Container, SOLVERPARAMETERS, subvars, Deque, cast, override, ParamSpec, Mapping, NoReturn, DefaultDict, Iterable, dataclass_transform, is_protocol, Tuple, TypeVar, Set, final, AbstractSet, UPDATEDSEQUENCES, FULL_ODE_METHODS, overload, Match, REQUIREDSEQUENCES, is_typeddict, ForwardRef, TypeIs, Doc, SUBMODELINTERFACES, IO, subpars, fastaccess, Callable, SupportsBytes, Literal, Dict, fastaccess_new, ParamSpecArgs, ADD_METHODS, SupportsRound, Final, Awaitable, CapsuleType, LiteralString, get_args, SupportsFloat, get_origin, NoDefault, subseqs, MutableMapping, ReceiverSequences, NotRequired, Unpack, ContextManager, Required, INLET_METHODS, MappingView, Self, Buffer, Generator, ChainMap, TypeGuard, Reversible, TypedDict, no_type_check_decorator, TypeAlias, SupportsIndex, pars, ItemsView, Annotated, Sequence, get_overloads, Generic, AnyStr, FactorSequences, DERIVEDPARAMETERS, ClassVar, Concatenate, OrderedDict, RECEIVER_METHODS, SUBMODELS, assert_type, ParamSpecKwargs, CONTROLPARAMETERS, ReadOnly, MutableSequence, MutableSet, InletSequences, Iterator, fastaccess_old, Any, ByteString, Sized, Collection, AsyncGenerator, FIXEDPARAMETERS, SOLVERSEQUENCES, INTERFACE_METHODS, SUBMETHODS, ValuesView, PART_ODE_METHODS, Hashable, clear_overloads, FrozenSet, Pattern, runtime_checkable, NamedTuple, SenderSequences, KeysView, TYPE_CHECKING, deprecated, BinaryIO, TypeAliasType, runtime

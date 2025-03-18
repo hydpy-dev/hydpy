@@ -1,0 +1,60 @@
+.. |ACKER| replace:: :const:`~hydpy.models.lland.lland_constants.ACKER`
+.. |AngstromConstant| replace:: :class:`~hydpy.models.lland.lland_control.AngstromConstant`
+.. |BAUMB| replace:: :const:`~hydpy.models.lland.lland_constants.BAUMB`
+.. |BODEN| replace:: :const:`~hydpy.models.lland.lland_constants.BODEN`
+.. |BoWa| replace:: :class:`~hydpy.models.lland.lland_states.BoWa`
+.. |Calc_LanduseSurfaceResistance_V1| replace:: :class:`~hydpy.models.lland.lland_model.Calc_LanduseSurfaceResistance_V1`
+.. |DailyNetRadiation| replace:: :class:`~hydpy.models.lland.lland_fluxes.DailyNetRadiation`
+.. |ESnow| replace:: :class:`~hydpy.models.lland.lland_states.ESnow`
+.. |EvB| replace:: :class:`~hydpy.models.lland.lland_fluxes.EvB`
+.. |EvI| replace:: :class:`~hydpy.models.lland.lland_fluxes.EvI`
+.. |EvPo| replace:: :class:`~hydpy.models.lland.lland_fluxes.EvPo`
+.. |EvS| replace:: :class:`~hydpy.models.lland.lland_fluxes.EvS`
+.. |FEUCHT| replace:: :const:`~hydpy.models.lland.lland_constants.FEUCHT`
+.. |FLUSS| replace:: :const:`~hydpy.models.lland.lland_constants.FLUSS`
+.. |False| replace:: :const:`False`
+.. |FixedParameter.restore| replace:: :func:`~hydpy.core.parametertools.FixedParameter.restore`
+.. |GLETS| replace:: :const:`~hydpy.models.lland.lland_constants.GLETS`
+.. |GRUE_E| replace:: :const:`~hydpy.models.lland.lland_constants.GRUE_E`
+.. |GRUE_I| replace:: :const:`~hydpy.models.lland.lland_constants.GRUE_I`
+.. |Inzp| replace:: :class:`~hydpy.models.lland.lland_states.Inzp`
+.. |KTSchnee| replace:: :class:`~hydpy.models.lland.lland_control.KTSchnee`
+.. |LAUBW| replace:: :const:`~hydpy.models.lland.lland_constants.LAUBW`
+.. |MISCHW| replace:: :const:`~hydpy.models.lland.lland_constants.MISCHW`
+.. |NADELW| replace:: :const:`~hydpy.models.lland.lland_constants.NADELW`
+.. |NBes| replace:: :class:`~hydpy.models.lland.lland_fluxes.NBes`
+.. |NetLongwaveRadiationSnow| replace:: :class:`~hydpy.models.lland.lland_fluxes.NetLongwaveRadiationSnow`
+.. |NetShortwaveRadiationSnow| replace:: :class:`~hydpy.models.lland.lland_fluxes.NetShortwaveRadiationSnow`
+.. |OBSTB| replace:: :const:`~hydpy.models.lland.lland_constants.OBSTB`
+.. |RefreezeFlag| replace:: :class:`~hydpy.models.lland.lland_control.RefreezeFlag`
+.. |Return_PenmanMonteith_V1| replace:: :class:`~hydpy.models.lland.lland_model.Return_PenmanMonteith_V1`
+.. |Return_Penman_V1| replace:: :class:`~hydpy.models.lland.lland_model.Return_Penman_V1`
+.. |Return_TempSSurface_V1| replace:: :class:`~hydpy.models.lland.lland_model.Return_TempSSurface_V1`
+.. |SEE| replace:: :const:`~hydpy.models.lland.lland_constants.SEE`
+.. |SIED_D| replace:: :const:`~hydpy.models.lland.lland_constants.SIED_D`
+.. |SIED_L| replace:: :const:`~hydpy.models.lland.lland_constants.SIED_L`
+.. |VERS| replace:: :const:`~hydpy.models.lland.lland_constants.VERS`
+.. |VolBMax| replace:: :class:`~hydpy.models.lland.lland_control.VolBMax`
+.. |WASSER| replace:: :const:`~hydpy.models.lland.lland_constants.WASSER`
+.. |WATS| replace:: :class:`~hydpy.models.lland.lland_states.WATS`
+.. |WAeS| replace:: :class:`~hydpy.models.lland.lland_states.WAeS`
+.. |WEINB| replace:: :const:`~hydpy.models.lland.lland_constants.WEINB`
+.. |WG2Z| replace:: :class:`~hydpy.models.lland.lland_control.WG2Z`
+.. |WG| replace:: :class:`~hydpy.models.lland.lland_fluxes.WG`
+.. |WLatSnow| replace:: :class:`~hydpy.models.lland.lland_fluxes.WLatSnow`
+.. |WMax| replace:: :class:`~hydpy.models.lland.lland_control.WMax`
+.. |WSensSnow| replace:: :class:`~hydpy.models.lland.lland_fluxes.WSensSnow`
+.. |WSurf| replace:: :class:`~hydpy.models.lland.lland_fluxes.WSurf`
+.. |lland_v1| replace:: :mod:`~hydpy.models.lland_v1`
+.. |lland_v3| replace:: :mod:`~hydpy.models.lland_v3`
+.. |numpy.inf| replace:: :const:`~numpy.inf`
+
+.. _lland_v3:
+
+lland_v3
+========
+
+.. automodule:: hydpy.models.lland_v3
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs, ReceiverSequences, SenderSequences

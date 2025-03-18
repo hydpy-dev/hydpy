@@ -1,0 +1,14 @@
+.. |dummy_soilwater.DOCNAME.complete| replace:: HydPy-Dummy-SoilWater (dummy model supplying main models with soil water states)
+.. |dummy_soilwater| replace:: :mod:`~hydpy.models.dummy_soilwater`
+.. |evap_aet_hbv96| replace:: :mod:`~hydpy.models.evap_aet_hbv96`
+.. |hland_96| replace:: :mod:`~hydpy.models.hland_96`
+
+.. _dummy_soilwater:
+
+dummy_soilwater
+===============
+
+.. automodule:: hydpy.models.dummy_soilwater
+    :members:
+    :show-inheritance:
+    :exclude-members: deprecated, TypeAlias, Set, FULL_ODE_METHODS, DefaultDict, NotRequired, INTERFACE_METHODS, SENDER_METHODS, Final, SupportsComplex, Optional, INLET_METHODS, AbstractSet, Container, Buffer, SupportsFloat, Literal, CONTROLPARAMETERS, clear_overloads, cast, SupportsRound, StateSequences, Hashable, get_original_bases, Annotated, pars, Sized, AideSequences, IO, TypeAliasType, is_typeddict, NoReturn, TYPE_CHECKING, overload, runtime, KeysView, AsyncIterator, no_type_check, Reversible, ParamSpecArgs, NamedTuple, OutletSequences, BinaryIO, RUN_METHODS, AnyStr, MutableMapping, fastaccess_old, InletSequences, ParamSpecKwargs, get_args, Sequence, ItemsView, assert_type, ForwardRef, AsyncContextManager, ReadOnly, Iterator, OrderedDict, AsyncIterable, Collection, REQUIREDSEQUENCES, final, fastaccess, Tuple, FactorSequences, no_type_check_decorator, Any, SUBMODELS, TypeVar, is_protocol, TypeVarTuple, Dict, IntVar, RESULTSEQUENCES, seqs, FIXEDPARAMETERS, override, Required, runtime_checkable, ContextManager, get_protocol_members, ClassVar, Callable, Union, assert_never, NoDefault, SupportsAbs, SOLVERSEQUENCES, subpars, OUTLET_METHODS, dataclass_transform, fastaccess_new, Type, Text, FluxSequences, Pattern, Self, Generic, NewType, Protocol, SupportsBytes, Mapping, SupportsInt, FrozenSet, ParamSpec, Awaitable, RECEIVER_METHODS, ADD_METHODS, MutableSet, Deque, List, Unpack, get_type_hints, UPDATEDSEQUENCES, Iterable, ChainMap, AsyncGenerator, get_origin, subvars, SupportsIndex, DERIVEDPARAMETERS, SUBMODELINTERFACES, PART_ODE_METHODS, Match, TextIO, CLASSES, MutableSequence, reveal_type, CapsuleType, MappingView, LiteralString, ValuesView, TypeGuard, Concatenate, SUBMETHODS, Generator, Counter, ByteString, Coroutine, Doc, SOLVERPARAMETERS, LogSequences, TypeIs, Never, get_overloads, ReceiverSequences, subseqs, TypedDict, SenderSequences

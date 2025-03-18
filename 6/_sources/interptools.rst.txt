@@ -1,0 +1,33 @@
+.. |ANN| replace:: :class:`~hydpy.auxs.anntools.ANN`
+.. |BaseInterpolator| replace:: :class:`~hydpy.auxs.interptools.BaseInterpolator`
+.. |InterpAlgorithm.plot| replace:: :func:`~hydpy.auxs.interptools.InterpAlgorithm.plot`
+.. |InterpAlgorithm.print_table| replace:: :func:`~hydpy.auxs.interptools.InterpAlgorithm.print_table`
+.. |InterpAlgorithm| replace:: :class:`~hydpy.auxs.interptools.InterpAlgorithm`
+.. |PPoly| replace:: :class:`~hydpy.auxs.ppolytools.PPoly`
+.. |RuntimeError| replace:: :class:`RuntimeError`
+.. |SeasonalInterpolator.plot| replace:: :func:`~hydpy.auxs.interptools.SeasonalInterpolator.plot`
+.. |SeasonalInterpolator.ratios| replace:: :const:`~hydpy.auxs.interptools.SeasonalInterpolator.ratios`
+.. |SeasonalInterpolator.refresh| replace:: :func:`~hydpy.auxs.interptools.SeasonalInterpolator.refresh`
+.. |SeasonalInterpolator.shape| replace:: :const:`~hydpy.auxs.interptools.SeasonalInterpolator.shape`
+.. |SeasonalInterpolator.verify| replace:: :func:`~hydpy.auxs.interptools.SeasonalInterpolator.verify`
+.. |SeasonalInterpolator| replace:: :class:`~hydpy.auxs.interptools.SeasonalInterpolator`
+.. |SeasonalParameter| replace:: :class:`~hydpy.core.parametertools.SeasonalParameter`
+.. |SimpleInterpolator| replace:: :class:`~hydpy.auxs.interptools.SimpleInterpolator`
+.. |SubParameters| replace:: :class:`~hydpy.core.parametertools.SubParameters`
+.. |TOY| replace:: :class:`~hydpy.core.timetools.TOY`
+.. |anntools| replace:: :mod:`~hydpy.auxs.anntools`
+.. |interptools| replace:: :mod:`~hydpy.auxs.interptools`
+.. |interputils| replace:: :mod:`~hydpy.cythons.autogen.interputils`
+.. |matplotlib| replace:: :mod:`~matplotlib`
+.. |ppolytools| replace:: :mod:`~hydpy.auxs.ppolytools`
+.. |tuple| replace:: :class:`tuple`
+
+.. _interptools:
+
+interptools
+===========
+
+.. automodule:: hydpy.auxs.interptools
+    :members:
+    :show-inheritance:
+    :exclude-members: deprecated, TypeAlias, Set, FULL_ODE_METHODS, DefaultDict, NotRequired, INTERFACE_METHODS, SENDER_METHODS, Final, SupportsComplex, Optional, INLET_METHODS, AbstractSet, Container, Buffer, SupportsFloat, Literal, CONTROLPARAMETERS, clear_overloads, cast, SupportsRound, Hashable, get_original_bases, Annotated, pars, Sized, IO, TypeAliasType, is_typeddict, NoReturn, TYPE_CHECKING, overload, runtime, KeysView, AsyncIterator, no_type_check, Reversible, ParamSpecArgs, NamedTuple, BinaryIO, RUN_METHODS, AnyStr, MutableMapping, fastaccess_old, ParamSpecKwargs, get_args, Sequence, ItemsView, assert_type, ForwardRef, AsyncContextManager, ReadOnly, Iterator, OrderedDict, AsyncIterable, Collection, REQUIREDSEQUENCES, final, fastaccess, Tuple, no_type_check_decorator, Any, SUBMODELS, TypeVar, is_protocol, TypeVarTuple, Dict, IntVar, RESULTSEQUENCES, seqs, FIXEDPARAMETERS, override, Required, runtime_checkable, ContextManager, get_protocol_members, ClassVar, Callable, Union, assert_never, NoDefault, SupportsAbs, SOLVERSEQUENCES, subpars, OUTLET_METHODS, dataclass_transform, fastaccess_new, Type, Text, Pattern, Self, Generic, NewType, Protocol, SupportsBytes, Mapping, SupportsInt, FrozenSet, ParamSpec, Awaitable, RECEIVER_METHODS, ADD_METHODS, MutableSet, Deque, List, Unpack, get_type_hints, UPDATEDSEQUENCES, Iterable, ChainMap, AsyncGenerator, get_origin, subvars, SupportsIndex, DERIVEDPARAMETERS, SUBMODELINTERFACES, PART_ODE_METHODS, Match, TextIO, CLASSES, MutableSequence, reveal_type, CapsuleType, MappingView, LiteralString, ValuesView, TypeGuard, Concatenate, SUBMETHODS, Generator, Counter, ByteString, Coroutine, Doc, SOLVERPARAMETERS, TypeIs, Never, get_overloads, subseqs, TypedDict

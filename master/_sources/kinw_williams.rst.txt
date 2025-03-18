@@ -1,0 +1,31 @@
+.. |AbsErrorMax| replace:: :class:`~hydpy.models.kinw.kinw_solver.AbsErrorMax`
+.. |Characteristics| replace:: :class:`~hydpy.models.kinw_williams.Characteristics`
+.. |ELSModel| replace:: :class:`~hydpy.core.modeltools.ELSModel`
+.. |GTS| replace:: :class:`~hydpy.models.kinw.kinw_control.GTS`
+.. |HM| replace:: :class:`~hydpy.models.kinw.kinw_control.HM`
+.. |HR| replace:: :class:`~hydpy.models.kinw.kinw_control.HR`
+.. |H| replace:: :class:`~hydpy.models.kinw.kinw_states.H`
+.. |LinearStorageCascade| replace:: :class:`~hydpy.auxs.iuhtools.LinearStorageCascade`
+.. |Model.calculate_characteristiclength| replace:: :func:`~hydpy.models.kinw_williams.Model.calculate_characteristiclength`
+.. |QG| replace:: :class:`~hydpy.models.kinw.kinw_fluxes.QG`
+.. |RHLVR| replace:: :class:`~hydpy.models.kinw.kinw_aides.RHLVR`
+.. |RHM| replace:: :class:`~hydpy.models.kinw.kinw_aides.RHM`
+.. |RHRVR| replace:: :class:`~hydpy.models.kinw.kinw_aides.RHRVR`
+.. |RHV| replace:: :class:`~hydpy.models.kinw.kinw_aides.RHV`
+.. |RelErrorMax| replace:: :class:`~hydpy.models.kinw.kinw_solver.RelErrorMax`
+.. |WBMin| replace:: :class:`~hydpy.models.kinw.kinw_fixed.WBMin`
+.. |arma_rimorido| replace:: :mod:`~hydpy.models.arma_rimorido`
+.. |kinw_williams.DOCNAME.complete| replace:: HydPy-KinW-Williams (Williams routing based on a triple trapeze profile and the Strickler equation)
+.. |kinw_williams| replace:: :mod:`~hydpy.models.kinw_williams`
+.. |smooth_logistic2| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic2`
+.. |kinw_model.Return_H_V1| replace:: :class:`~hydpy.models.kinw.kinw_model.Return_H_V1`
+
+.. _kinw_williams:
+
+kinw_williams
+=============
+
+.. automodule:: hydpy.models.kinw_williams
+    :members:
+    :show-inheritance:
+    :exclude-members: TypeVarTuple, seqs, NewType, get_original_bases, Type, Counter, CLASSES, IntVar, no_type_check, reveal_type, AsyncIterator, SENDER_METHODS, Never, RESULTSEQUENCES, TextIO, SupportsComplex, Optional, get_type_hints, SupportsAbs, OUTLET_METHODS, AsyncIterable, List, Coroutine, get_protocol_members, Union, Text, AsyncContextManager, SupportsInt, LogSequences, assert_never, RUN_METHODS, Protocol, Container, SOLVERPARAMETERS, subvars, Deque, cast, override, ParamSpec, Mapping, NoReturn, DefaultDict, Iterable, dataclass_transform, is_protocol, Tuple, TypeVar, Set, final, AbstractSet, UPDATEDSEQUENCES, FULL_ODE_METHODS, overload, Match, REQUIREDSEQUENCES, is_typeddict, ForwardRef, TypeIs, Doc, SUBMODELINTERFACES, IO, subpars, fastaccess, Callable, SupportsBytes, Literal, Dict, fastaccess_new, ParamSpecArgs, ADD_METHODS, SupportsRound, Final, Awaitable, CapsuleType, LiteralString, get_args, SupportsFloat, get_origin, NoDefault, subseqs, MutableMapping, ReceiverSequences, NotRequired, Unpack, ContextManager, Required, INLET_METHODS, MappingView, Self, Buffer, Generator, ChainMap, TypeGuard, Reversible, TypedDict, no_type_check_decorator, TypeAlias, SupportsIndex, pars, ItemsView, Annotated, Sequence, get_overloads, Generic, AnyStr, FactorSequences, DERIVEDPARAMETERS, ClassVar, Concatenate, OrderedDict, RECEIVER_METHODS, SUBMODELS, assert_type, ParamSpecKwargs, CONTROLPARAMETERS, ReadOnly, MutableSequence, MutableSet, Iterator, fastaccess_old, Any, ByteString, Sized, Collection, AsyncGenerator, FIXEDPARAMETERS, SOLVERSEQUENCES, INTERFACE_METHODS, SUBMETHODS, ValuesView, PART_ODE_METHODS, Hashable, clear_overloads, FrozenSet, Pattern, runtime_checkable, NamedTuple, SenderSequences, KeysView, InputSequences, TYPE_CHECKING, deprecated, BinaryIO, TypeAliasType, runtime

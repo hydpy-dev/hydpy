@@ -22,7 +22,7 @@ extension_modules = [
 
 setuptools.setup(
     name="HydPy",
-    version="6.2dev2",
+    version="6.2dev3",
     description="A framework for the development and application of hydrological "
     "models.",
     long_description=long_description,

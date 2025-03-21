@@ -186,7 +186,7 @@ float: 'xy'
     Traceback (most recent call last):
     ...
     RuntimeError: The number of branches of the exch model should not be changed \
-during run time.  If you really need to do this, first initialise a new "branched" \
+during runtime.  If you really need to do this, first initialise a new "branched" \
 sequence and connect it to the respective outlet nodes properly.
     """
 
@@ -207,10 +207,10 @@ sequence and connect it to the respective outlet nodes properly.
                 f"documentation."
             )
         branched = self.subpars.pars.model.sequences.outlets.branched
-        if (branched.shape[0] != 0) and (branched.shape[0] != shape[0]):
+        if exceptiontools.getattr_(branched, "shape", shape)[0] != shape[0]:
             raise RuntimeError(
                 "The number of branches of the exch model should not be changed "
-                "during run time.  If you really need to do this, first initialise a "
+                "during runtime.  If you really need to do this, first initialise a "
                 'new "branched" sequence and connect it to the respective outlet '
                 "nodes properly."
             )
@@ -238,7 +238,7 @@ sequence and connect it to the respective outlet nodes properly.
                     f"While trying to set the values for branch `{key}` of parameter "
                     f"{objecttools.elementphrase(self)}"
                 )
-        if branched.shape == (0,):
+        if not exceptiontools.attrready(branched, "shape"):
             branched.shape = shape[0]
         self.subpars.pars.model.sequences.fluxes.outputs.shape = shape[0]
         self.subpars.pars.model.nodenames.clear()

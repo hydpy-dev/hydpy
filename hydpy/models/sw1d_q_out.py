@@ -12,9 +12,11 @@ demonstrate and discuss |sw1d_q_out| in more detail (see the
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
+from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 from hydpy.interfaces import routinginterfaces
 
-# ...from musk
+# ...from sw1d
 from hydpy.models.sw1d import sw1d_model
 
 
@@ -75,6 +77,20 @@ class Model(sw1d_model.Main_CrossSectionModel_V2, routinginterfaces.RoutingModel
         routinginterfaces.RoutingModel_V2,
         sidemodels=True,
     )
+
+    def _get_relevant_linksequences(self, group: str, /) -> Sequence[sequencetools.LinkSequence]:
+        if group == "inlets":
+            return (self.sequences.outlets.longq,)
+        if group == "outlets":
+            return ()
+        return super()._get_relevant_linksequences(group)
+
+    def collect_linksequences(
+            self, group: str, sequences: list[sequencetools.LinkSequence]
+    ) -> None:
+        if group == "outlets":
+            sequences.append(sequences.inlets.longq)
+
 
 
 tester = Tester()

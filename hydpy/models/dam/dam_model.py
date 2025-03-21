@@ -316,10 +316,20 @@ class Calc_ActualEvaporation_V1(modeltools.Method):
 
 
 class Pic_Inflow_V1(modeltools.Method):
-    """Update the inlet sequence |Inflow|.
+    r"""Update the inlet sequence |Inflow|.
 
     Basic equation:
-      :math:`Inflow = \\sum Q`
+      :math:`Inflow = \sum Q`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> inlets.q.shape = 2
+        >>> inlets.q = 2.0, 4.0
+        >>> model.pic_inflow_v1()
+        >>> fluxes.inflow
+        inflow(6.0)
     """
 
     REQUIREDSEQUENCES = (dam_inlets.Q,)
@@ -331,14 +341,26 @@ class Pic_Inflow_V1(modeltools.Method):
         inl = model.sequences.inlets.fastaccess
         flu.inflow = 0.0
         for idx in range(inl.len_q):
-            flu.inflow += inl.q[idx][0]
+            flu.inflow += inl.q[idx]
 
 
 class Pic_Inflow_V2(modeltools.Method):
-    """Update the inlet sequence |Inflow|.
+    r"""Update the inlet sequence |Inflow|.
 
     Basic equation:
-      :math:`Inflow = S + R + \\sum Q`
+      :math:`Inflow = S + R + \sum Q`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> inlets.s = 0.5
+        >>> inlets.r = 1.0
+        >>> inlets.q.shape = 2
+        >>> inlets.q = 2.0, 4.0
+        >>> model.pic_inflow_v2()
+        >>> fluxes.inflow
+        inflow(7.5)
     """
 
     REQUIREDSEQUENCES = (dam_inlets.Q, dam_inlets.S, dam_inlets.R)
@@ -348,9 +370,9 @@ class Pic_Inflow_V2(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         inl = model.sequences.inlets.fastaccess
-        flu.inflow = inl.s[0] + inl.r[0]
+        flu.inflow = inl.s + inl.r
         for idx in range(inl.len_q):
-            flu.inflow += inl.q[idx][0]
+            flu.inflow += inl.q[idx]
 
 
 class Pic_TotalRemoteDischarge_V1(modeltools.Method):
@@ -358,6 +380,15 @@ class Pic_TotalRemoteDischarge_V1(modeltools.Method):
 
     Basic equation:
       :math:`TotalRemoteDischarge = Q`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> receivers.q = 2.0
+        >>> model.pic_totalremotedischarge_v1()
+        >>> fluxes.totalremotedischarge
+        totalremotedischarge(2.0)
     """
 
     REQUIREDSEQUENCES = (dam_receivers.Q,)
@@ -367,7 +398,7 @@ class Pic_TotalRemoteDischarge_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         rec = model.sequences.receivers.fastaccess
-        flu.totalremotedischarge = rec.q[0]
+        flu.totalremotedischarge = rec.q
 
 
 class Pick_LoggedOuterWaterLevel_V1(modeltools.Method):
@@ -375,6 +406,15 @@ class Pick_LoggedOuterWaterLevel_V1(modeltools.Method):
 
     Basic equation:
       :math:`LoggedOuterWaterLevel = OWL`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> receivers.owl = 2.0
+        >>> model.pick_loggedouterwaterlevel_v1()
+        >>> logs.loggedouterwaterlevel
+        loggedouterwaterlevel(2.0)
     """
 
     REQUIREDSEQUENCES = (dam_receivers.OWL,)
@@ -384,7 +424,7 @@ class Pick_LoggedOuterWaterLevel_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         log = model.sequences.logs.fastaccess
         rec = model.sequences.receivers.fastaccess
-        log.loggedouterwaterlevel[0] = rec.owl[0]
+        log.loggedouterwaterlevel[0] = rec.owl
 
 
 class Pick_LoggedRemoteWaterLevel_V1(modeltools.Method):
@@ -392,6 +432,15 @@ class Pick_LoggedRemoteWaterLevel_V1(modeltools.Method):
 
     Basic equation:
       :math:`LoggedRemoteWaterLevel = RWL`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> receivers.rwl = 2.0
+        >>> model.pick_loggedremotewaterlevel_v1()
+        >>> logs.loggedremotewaterlevel
+        loggedremotewaterlevel(2.0)
     """
 
     REQUIREDSEQUENCES = (dam_receivers.RWL,)
@@ -401,7 +450,7 @@ class Pick_LoggedRemoteWaterLevel_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         log = model.sequences.logs.fastaccess
         rec = model.sequences.receivers.fastaccess
-        log.loggedremotewaterlevel[0] = rec.rwl[0]
+        log.loggedremotewaterlevel[0] = rec.rwl
 
 
 class Pic_LoggedRequiredRemoteRelease_V1(modeltools.Method):
@@ -409,6 +458,15 @@ class Pic_LoggedRequiredRemoteRelease_V1(modeltools.Method):
 
     Basic equation:
       :math:`LoggedRequiredRemoteRelease = D`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> receivers.d = 2.0
+        >>> model.pic_loggedrequiredremoterelease_v1()
+        >>> logs.loggedrequiredremoterelease
+        loggedrequiredremoterelease(2.0)
     """
 
     REQUIREDSEQUENCES = (dam_receivers.D,)
@@ -418,7 +476,7 @@ class Pic_LoggedRequiredRemoteRelease_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         log = model.sequences.logs.fastaccess
         rec = model.sequences.receivers.fastaccess
-        log.loggedrequiredremoterelease[0] = rec.d[0]
+        log.loggedrequiredremoterelease[0] = rec.d
 
 
 class Pic_LoggedRequiredRemoteRelease_V2(modeltools.Method):
@@ -426,6 +484,15 @@ class Pic_LoggedRequiredRemoteRelease_V2(modeltools.Method):
 
     Basic equation:
       :math:`LoggedRequiredRemoteRelease = S`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> receivers.s = 2.0
+        >>> model.pic_loggedrequiredremoterelease_v2()
+        >>> logs.loggedrequiredremoterelease
+        loggedrequiredremoterelease(2.0)
     """
 
     REQUIREDSEQUENCES = (dam_receivers.S,)
@@ -435,7 +502,7 @@ class Pic_LoggedRequiredRemoteRelease_V2(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         log = model.sequences.logs.fastaccess
         rec = model.sequences.receivers.fastaccess
-        log.loggedrequiredremoterelease[0] = rec.s[0]
+        log.loggedrequiredremoterelease[0] = rec.s
 
 
 class Pic_Exchange_V1(modeltools.Method):
@@ -443,6 +510,16 @@ class Pic_Exchange_V1(modeltools.Method):
 
     Basic equation:
       :math:`Exchange = \sum E_{inlets}`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> inlets.e.shape = 2
+        >>> inlets.e = 2.0, 4.0
+        >>> model.pic_exchange_v1()
+        >>> fluxes.exchange
+        exchange(6.0)
     """
 
     REQUIREDSEQUENCES = (dam_inlets.E,)
@@ -454,7 +531,7 @@ class Pic_Exchange_V1(modeltools.Method):
         inl = model.sequences.inlets.fastaccess
         flu.exchange = 0.0
         for idx in range(inl.len_e):
-            flu.exchange += inl.e[idx][0]
+            flu.exchange += inl.e[idx]
 
 
 class Pic_LoggedAllowedRemoteRelief_V1(modeltools.Method):
@@ -462,6 +539,15 @@ class Pic_LoggedAllowedRemoteRelief_V1(modeltools.Method):
 
     Basic equation:
       :math:`LoggedAllowedRemoteRelief = R`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> receivers.r = 2.0
+        >>> model.pic_loggedallowedremoterelief_v1()
+        >>> logs.loggedallowedremoterelief
+        loggedallowedremoterelief(2.0)
     """
 
     REQUIREDSEQUENCES = (dam_receivers.R,)
@@ -471,7 +557,7 @@ class Pic_LoggedAllowedRemoteRelief_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         log = model.sequences.logs.fastaccess
         rec = model.sequences.receivers.fastaccess
-        log.loggedallowedremoterelief[0] = rec.r[0]
+        log.loggedallowedremoterelief[0] = rec.r
 
 
 class Update_LoggedTotalRemoteDischarge_V1(modeltools.Method):
@@ -4683,6 +4769,15 @@ class Pass_Outflow_V1(modeltools.Method):
 
     Basic equation:
       :math:`Q = Outflow`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> fluxes.outflow = 2.0
+        >>> model.pass_outflow_v1()
+        >>> outlets.q
+        q(2.0)
     """
 
     REQUIREDSEQUENCES = (dam_fluxes.Outflow,)
@@ -4692,7 +4787,7 @@ class Pass_Outflow_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
-        out.q[0] += flu.outflow
+        out.q = flu.outflow
 
 
 class Pass_ActualRemoteRelease_V1(modeltools.Method):
@@ -4700,6 +4795,15 @@ class Pass_ActualRemoteRelease_V1(modeltools.Method):
 
     Basic equation:
       :math:`S = ActualRemoteRelease`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> fluxes.actualremoterelease = 2.0
+        >>> model.pass_actualremoterelease_v1()
+        >>> outlets.s
+        s(2.0)
     """
 
     REQUIREDSEQUENCES = (dam_fluxes.ActualRemoteRelease,)
@@ -4709,7 +4813,7 @@ class Pass_ActualRemoteRelease_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
-        out.s[0] += flu.actualremoterelease
+        out.s = flu.actualremoterelease
 
 
 class Pass_ActualRemoteRelief_V1(modeltools.Method):
@@ -4717,6 +4821,15 @@ class Pass_ActualRemoteRelief_V1(modeltools.Method):
 
     Basic equation:
       :math:`R = ActualRemoteRelief`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> fluxes.actualremoterelief = 2.0
+        >>> model.pass_actualremoterelief_v1()
+        >>> outlets.r
+        r(2.0)
     """
 
     REQUIREDSEQUENCES = (dam_fluxes.ActualRemoteRelief,)
@@ -4726,7 +4839,7 @@ class Pass_ActualRemoteRelief_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
-        out.r[0] += flu.actualremoterelief
+        out.r = flu.actualremoterelief
 
 
 class Pass_MissingRemoteRelease_V1(modeltools.Method):
@@ -4734,6 +4847,15 @@ class Pass_MissingRemoteRelease_V1(modeltools.Method):
 
     Basic equation:
       :math:`D = MissingRemoteRelease`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> fluxes.missingremoterelease = 2.0
+        >>> model.pass_missingremoterelease_v1()
+        >>> senders.d
+        d(2.0)
     """
 
     REQUIREDSEQUENCES = (dam_fluxes.MissingRemoteRelease,)
@@ -4743,7 +4865,7 @@ class Pass_MissingRemoteRelease_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         sen = model.sequences.senders.fastaccess
-        sen.d[0] += flu.missingremoterelease
+        sen.d = flu.missingremoterelease
 
 
 class Pass_AllowedRemoteRelief_V1(modeltools.Method):
@@ -4751,6 +4873,15 @@ class Pass_AllowedRemoteRelief_V1(modeltools.Method):
 
     Basic equation:
       :math:`R = AllowedRemoteRelief`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> fluxes.allowedremoterelief = 2.0
+        >>> model.pass_allowedremoterelief_v1()
+        >>> senders.r
+        r(2.0)
     """
 
     REQUIREDSEQUENCES = (dam_fluxes.AllowedRemoteRelief,)
@@ -4760,7 +4891,7 @@ class Pass_AllowedRemoteRelief_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         sen = model.sequences.senders.fastaccess
-        sen.r[0] += flu.allowedremoterelief
+        sen.r = flu.allowedremoterelief
 
 
 class Pass_RequiredRemoteSupply_V1(modeltools.Method):
@@ -4768,6 +4899,15 @@ class Pass_RequiredRemoteSupply_V1(modeltools.Method):
 
     Basic equation:
       :math:`S = RequiredRemoteSupply`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> fluxes.requiredremotesupply = 2.0
+        >>> model.pass_requiredremotesupply_v1()
+        >>> senders.s
+        s(2.0)
     """
 
     REQUIREDSEQUENCES = (dam_fluxes.RequiredRemoteSupply,)
@@ -4777,7 +4917,7 @@ class Pass_RequiredRemoteSupply_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         sen = model.sequences.senders.fastaccess
-        sen.s[0] += flu.requiredremotesupply
+        sen.s = flu.requiredremotesupply
 
 
 class Update_LoggedOutflow_V1(modeltools.Method):
@@ -4860,6 +5000,7 @@ class Model(modeltools.ELSModel):
         Pick_LoggedRemoteWaterLevel_V1,
         Pic_LoggedRequiredRemoteRelease_V1,
         Pic_LoggedRequiredRemoteRelease_V2,
+        Pic_Exchange_V1,
         Calc_RequiredRemoteRelease_V2,
         Pic_LoggedAllowedRemoteRelief_V1,
         Calc_AllowedRemoteRelief_V1,

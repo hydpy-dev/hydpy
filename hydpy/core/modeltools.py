@@ -1267,24 +1267,19 @@ following error occurred: Model `musk_classic` is not connected to an `Element` 
 
         >>> element1 = Element("element1", inlets=(in1, in2), outlets=out1)
         >>> element1.model = prepare_model("musk_classic")
+        >>> element1.model.parameters.control.nmbsegments(0)
 
         Now all connections work as expected:
 
         >>> in1.sequences.sim = 1.0
         >>> in2.sequences.sim = 2.0
         >>> out1.sequences.sim = 3.0
+        >>> element1.model.update_inlets()
         >>> element1.model.sequences.inlets.q
         q(1.0, 2.0)
+        >>> element1.model.update_outlets()
         >>> element1.model.sequences.outlets.q
         q(3.0)
-        >>> element1.model.sequences.inlets.q *= 2.0
-        >>> element1.model.sequences.outlets.q *= 2.0
-        >>> in1.sequences.sim
-        sim(2.0)
-        >>> in2.sequences.sim
-        sim(4.0)
-        >>> out1.sequences.sim
-        sim(6.0)
 
         To show some possible errors and related error messages, we define three
         additional nodes, two handling variables different from discharge (`Q`):
@@ -1511,6 +1506,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         >>> dam2.model.update_outputs()
         >>> dam3.model.sequences.factors.waterlevel = 3.0
         >>> dam3.model.update_outputs()
+        >>> dam1.model.update_receivers(0)
         >>> dam1.model.sequences.receivers.owl
         owl(2.0)
         >>> dam1.model.sequences.receivers.rwl
@@ -1607,51 +1603,59 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
     def _connect_senders(self, report_noconnect: bool = True) -> None:
         self._connect_subgroup("senders", report_noconnect, 0)
 
+    def _get_relevant_linksequences(self, group: str, /) -> Sequence[sequencetools.LinkSequence]:
+        return self.sequences[group]
+
+    def collect_linksequences(
+            self, group: str, sequences: list[sequencetools.LinkSequence]
+    ) -> None:
+        sequences.extend(self.sequences[group])
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            submodel.collect_linksequences(group, sequences)
+
     def _connect_subgroup(
         self, group: str, report_noconnect: bool, position: Literal[0, -1] | None = None
     ) -> None:
         st = sequencetools
         available_nodes = getattr(self.element, group)
         applied_nodes = []
-        for submodel in self.find_submodels(
-            include_mainmodel=True, position=position
-        ).values():
-            sequences = submodel.sequences[group]
-            for sequence in sequences:
-                selected_nodes = []
-                for node in available_nodes:
-                    if isinstance(var := node.variable, devicetools.FusedVariable):
-                        if sequence in var:
-                            selected_nodes.append(node)
-                    else:
-                        name = var.lower() if isinstance(var, str) else var.name
-                        if name == sequence.name:
-                            selected_nodes.append(node)
-                if sequence.NDIM == 0:
-                    if not selected_nodes:
-                        if (group == "inputs") or not report_noconnect:
-                            # see https://github.com/nedbat/coveragepy/issues/198:
-                            continue  # pragma: no cover
-                        raise RuntimeError(
-                            f"Sequence {objecttools.elementphrase(sequence)} cannot "
-                            f"be connected due to no available node handling variable "
-                            f"`{sequence.name.upper()}`."
-                        )
-                    if len(selected_nodes) > 1:
-                        raise RuntimeError(
-                            f"Sequence `{sequence.name}` cannot be connected as it is "
-                            f"0-dimensional but multiple nodes are available which "
-                            f"are handling variable `{type(sequence).__name__}`."
-                        )
-                    applied_nodes.append(selected_nodes[0])
-                    assert isinstance(sequence, (st.InputSequence, st.LinkSequence))
-                    sequence.set_pointer(selected_nodes[0].get_double(group))
-                elif sequence.NDIM == 1:
-                    sequence.shape = len(selected_nodes)
-                    for idx, node in enumerate(selected_nodes):
-                        applied_nodes.append(node)
-                        assert isinstance(sequence, st.LinkSequence)
-                        sequence.set_pointer(node.get_double(group), idx)
+        sequences = []
+        self.collect_linksequences(group, sequences)
+        for sequence in sequences:
+            selected_nodes = []
+            for node in available_nodes:
+                if isinstance(var := node.variable, devicetools.FusedVariable):
+                    if sequence in var:
+                        selected_nodes.append(node)
+                else:
+                    name = var.lower() if isinstance(var, str) else var.name
+                    if name == sequence.name:
+                        selected_nodes.append(node)
+            if sequence.NDIM == 0:
+                if not selected_nodes:
+                    if (group == "inputs") or not report_noconnect:
+                        # see https://github.com/nedbat/coveragepy/issues/198:
+                        continue  # pragma: no cover
+                    raise RuntimeError(
+                        f"Sequence {objecttools.elementphrase(sequence)} cannot "
+                        f"be connected due to no available node handling variable "
+                        f"`{sequence.name.upper()}`."
+                    )
+                if len(selected_nodes) > 1:
+                    raise RuntimeError(
+                        f"Sequence `{sequence.name}` cannot be connected as it is "
+                        f"0-dimensional but multiple nodes are available which "
+                        f"are handling variable `{type(sequence).__name__}`."
+                    )
+                applied_nodes.append(selected_nodes[0])
+                assert isinstance(sequence, (st.InputSequence, st.LinkSequence))
+                sequence.set_pointer(selected_nodes[0].get_double(group))
+            elif sequence.NDIM == 1:
+                sequence.shape = len(selected_nodes)
+                for idx, node in enumerate(selected_nodes):
+                    applied_nodes.append(node)
+                    assert isinstance(sequence, st.LinkSequence)
+                    sequence.set_pointer(node.get_double(group), idx)
         if report_noconnect and (len(applied_nodes) < len(available_nodes)):
             remaining_nodes = [
                 node.name for node in available_nodes if node not in applied_nodes
@@ -2503,6 +2507,39 @@ the available directories (calib_1 and calib_2).
         for submodel in self.find_submodels(include_subsubmodels=False).values():
             submodel.save_data(idx)
 
+    @staticmethod
+    def _update_pointers_in(
+            subseqs: sequencetools.InletSequences | sequencetools.ReceiverSequences
+    ) -> None:
+        for seq in subseqs:
+            pointer = seq._get_fastaccessattribute("pointer")
+            if seq.NDIM == 0:
+                setattr(seq.fastaccess, seq.name, pointer[0])
+            else:
+                try:
+                    values = getattr(seq.fastaccess, seq.name)
+                    for i in range(getattr(seq.fastaccess, f"len_{seq.name}")):
+                        values[i] = pointer[i]
+                except:
+                    x = 1
+
+    @staticmethod
+    def _update_pointers_out(
+        subseqs: sequencetools.OutletSequences | sequencetools.SenderSequences
+    ) -> None:
+        for seq in subseqs:
+            pointer = seq._get_fastaccessattribute("pointer")
+            if seq.NDIM == 0:
+                pointer = seq._get_fastaccessattribute("pointer")
+                pointer += getattr(seq.fastaccess, seq.name)
+            else:
+                try:
+                    values = getattr(seq.fastaccess, seq.name)
+                    for i in range(getattr(seq.fastaccess, f"len_{seq.name}")):
+                        pointer[i] += values[i]
+                except:
+                    x = 1
+
     def update_inlets(self) -> None:
         """Call all methods defined as "INLET_METHODS" in the defined order.
 
@@ -2524,6 +2561,8 @@ the available directories (calib_1 and calib_2).
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
+        for model in self.find_submodels(include_mainmodel=True).values():
+            model._update_pointers_in(model.sequences.inlets)
         for method in self.INLET_METHODS:
             method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
@@ -2550,6 +2589,8 @@ the available directories (calib_1 and calib_2).
         """
         for method in self.OUTLET_METHODS:
             method.__call__(self)  # pylint: disable=unnecessary-dunder-call
+        for name, model in self.find_submodels(include_mainmodel=True).items():
+            model._update_pointers_out(model.sequences.outlets)
 
     def update_receivers(self, idx: int) -> None:
         """Call all methods defined as "RECEIVER_METHODS" in the defined order.
@@ -2558,11 +2599,11 @@ the available directories (calib_1 and calib_2).
         >>> class print_1(Method):
         ...     @staticmethod
         ...     def __call__(self):
-        ...        print(test.idx_sim+1)
+        ...        print(test.idx_sim + 1)
         >>> class print_2(Method):
         ...     @staticmethod
         ...     def __call__(self):
-        ...         print(test.idx_sim+2)
+        ...         print(test.idx_sim + 2)
         >>> class Test(AdHocModel):
         ...     RECEIVER_METHODS = print_1, print_2
         >>> test = Test()
@@ -2573,6 +2614,8 @@ the available directories (calib_1 and calib_2).
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
+        for model in self.find_submodels(include_mainmodel=True).values():
+            model._update_pointers_in(model.sequences.receivers)
         self.idx_sim = idx
         for method in self.RECEIVER_METHODS:
             method.__call__(self)  # pylint: disable=unnecessary-dunder-call
@@ -2584,11 +2627,11 @@ the available directories (calib_1 and calib_2).
         >>> class print_1(Method):
         ...     @staticmethod
         ...     def __call__(self):
-        ...        print(test.idx_sim+1)
+        ...        print(test.idx_sim + 1)
         >>> class print_2(Method):
         ...     @staticmethod
         ...     def __call__(self):
-        ...         print(test.idx_sim+2)
+        ...         print(test.idx_sim + 2)
         >>> class Test(AdHocModel):
         ...     SENDER_METHODS = print_1, print_2
         >>> test = Test()
@@ -2602,6 +2645,8 @@ the available directories (calib_1 and calib_2).
         self.idx_sim = idx
         for method in self.SENDER_METHODS:
             method.__call__(self)  # pylint: disable=unnecessary-dunder-call
+        for model in self.find_submodels(include_mainmodel=True).values():
+            model._update_pointers_out(model.sequences.senders)
 
     def new2old(self) -> None:
         """Call method |StateSequences.new2old| of subattribute `sequences.states`.

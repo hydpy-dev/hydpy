@@ -758,7 +758,7 @@ class Options:
     """
 
     checkprojectstructure = OptionPropertyBool(
-        True,
+        False,
         """A bool-like flag for raising a warning when creating a |HydPy| instance for
         a project without the basic project structure on disk.
 
@@ -786,7 +786,7 @@ class Options:
         """,
     )
     ellipsis = _OptionPropertyEllipsis(
-        -999,
+        0,
         """The maximum number of collection members shown in string representations 
         before and behind ellipsis points.
         
@@ -816,7 +816,7 @@ class Options:
         """,
     )
     printprogress = OptionPropertyBool(
-        True,
+        False,
         """A bool-like flag for printing information about the progress of some 
         processes to the standard output.
         
@@ -829,7 +829,7 @@ class Options:
         """,
     )
     reprdigits = OptionPropertyInt(
-        -1,
+        6,
         """The maximum number of decimal places for floating point numbers that are 
         part of HydPy's string representations (see function |repr_|).
         
@@ -912,7 +912,7 @@ class Options:
         """,
     )
     usecython = OptionPropertyBool(
-        True,
+        False,
         """A bool-like flag for applying cythonized models, which are much faster than 
         pure Python models.
         
@@ -1005,7 +1005,7 @@ class Options:
         """,
     )
     warnsimulationstep = OptionPropertyBool(
-        True,
+        False,
         """A bool-like flag for raising a warning when function |simulationstep| is
         called for the first time directly by the user.
 
@@ -1018,7 +1018,7 @@ class Options:
         """,
     )
     warntrim = OptionPropertyBool(
-        True,
+        False,
         """A bool-like flag for raising a warning when a |Variable| object trims its
         value(s) not to violate certain boundaries.  
         

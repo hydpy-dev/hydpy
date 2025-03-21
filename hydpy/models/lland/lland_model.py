@@ -49,6 +49,16 @@ class Pick_QZ_V1(modeltools.Method):
 
     Basic equation:
       :math:`QZ = \sum Q_{inlets}`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> inlets.q.shape = 2
+        >>> inlets.q = 2.0, 4.0
+        >>> model.pick_qz_v1()
+        >>> fluxes.qz
+        qz(6.0)
     """
 
     REQUIREDSEQUENCES = (lland_inlets.Q,)
@@ -60,7 +70,7 @@ class Pick_QZ_V1(modeltools.Method):
         inl = model.sequences.inlets.fastaccess
         flu.qz = 0.0
         for idx in range(inl.len_q):
-            flu.qz += inl.q[idx][0]
+            flu.qz += inl.q[idx]
 
 
 class Calc_QZH_V1(modeltools.Method):
@@ -6967,6 +6977,15 @@ class Pass_QA_V1(modeltools.Method):
 
     Basic equation:
        :math:`Q_{outlets} = QA`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> fluxes.qa = 2.0
+        >>> model.pass_qa_v1()
+        >>> outlets.q
+        q(2.0)
     """
 
     REQUIREDSEQUENCES = (lland_fluxes.QA,)
@@ -6976,7 +6995,7 @@ class Pass_QA_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
-        out.q[0] += flu.qa
+        out.q = flu.qa
 
 
 class Get_Temperature_V1(modeltools.Method):

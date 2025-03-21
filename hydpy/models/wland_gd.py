@@ -526,6 +526,8 @@ _________________
 ...     234.668462, 205.397587]
 >>> waterlevel.sequences.sim.series /= 1000.0
 
+>>> model.asdf = "asdf"
+
 .. integration-test::
 
     >>> test("wland_gd_backwater_effects",

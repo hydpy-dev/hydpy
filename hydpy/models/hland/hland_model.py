@@ -4260,7 +4260,7 @@ class Pass_Q_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
-        out.q[0] += flu.qt
+        out.q = flu.qt
 
 
 class Get_Temperature_V1(modeltools.Method):

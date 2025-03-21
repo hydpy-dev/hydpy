@@ -18,6 +18,17 @@ class Pic_LoggedWaterLevels_V1(modeltools.Method):
 
     Basic equation:
       :math:`LoggedWaterLevels = WaterLevels`
+
+    Example:
+
+        >>> from hydpy.models.exch import *
+        >>> parameterstep()
+        >>> receivers.waterlevels.shape = 2
+        >>> receivers.waterlevels = 2.0, 4.0
+        >>> model.pic_loggedwaterlevels_v1()
+        >>> logs.loggedwaterlevels
+        loggedwaterlevels(2.0, 4.0)
+
     """
 
     REQUIREDSEQUENCES = (exch_receivers.WaterLevels,)
@@ -28,7 +39,7 @@ class Pic_LoggedWaterLevels_V1(modeltools.Method):
         log = model.sequences.logs.fastaccess
         rec = model.sequences.receivers.fastaccess
         for idx in range(2):
-            log.loggedwaterlevels[idx] = rec.waterlevels[idx][0]
+            log.loggedwaterlevels[idx] = rec.waterlevels[idx]
 
 
 class Update_WaterLevels_V1(modeltools.Method):
@@ -223,6 +234,16 @@ class Pass_ActualExchange_V1(modeltools.Method):
 
     Basic equation:
       :math:`Exchange = ActualExchange`
+
+    Example:
+
+        >>> from hydpy.models.exch import *
+        >>> parameterstep()
+        >>> fluxes.actualexchange = 2.0
+        >>> outlets.exchange.shape = 2
+        >>> model.pass_actualexchange_v1()
+        >>> outlets.exchange
+        exchange(-2.0, 2.0)
     """
 
     REQUIREDSEQUENCES = (exch_fluxes.ActualExchange,)
@@ -232,8 +253,8 @@ class Pass_ActualExchange_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
-        out.exchange[0][0] -= flu.actualexchange
-        out.exchange[1][0] += flu.actualexchange
+        out.exchange[0] = -flu.actualexchange
+        out.exchange[1] = flu.actualexchange
 
 
 class Pick_OriginalInput_V1(modeltools.Method):
@@ -241,6 +262,16 @@ class Pick_OriginalInput_V1(modeltools.Method):
 
     Basic equation:
       :math:`OriginalInput = \sum Total`
+
+    Example:
+
+        >>> from hydpy.models.exch import *
+        >>> parameterstep()
+        >>> inlets.total.shape = 2
+        >>> inlets.total = 2.0, 4.0
+        >>> model.pick_originalinput_v1()
+        >>> fluxes.originalinput
+        originalinput(6.0)
     """
 
     REQUIREDSEQUENCES = (exch_inlets.Total,)
@@ -252,7 +283,7 @@ class Pick_OriginalInput_V1(modeltools.Method):
         inl = model.sequences.inlets.fastaccess
         flu.originalinput = 0.0
         for idx in range(inl.len_total):
-            flu.originalinput += inl.total[idx][0]
+            flu.originalinput += inl.total[idx]
 
 
 class Calc_AdjustedInput_V1(modeltools.Method):
@@ -401,6 +432,18 @@ class Pass_Outputs_V1(modeltools.Method):
 
     Basic equation:
       :math:`Branched_i = Outputs_i`
+
+    Example:
+
+        >>> from hydpy.models.exch import *
+        >>> parameterstep()
+        >>> derived.nmbbranches(2)
+        >>> fluxes.outputs.shape = 2
+        >>> fluxes.outputs = 2.0, 4.0
+        >>> outlets.branched.shape = 2
+        >>> model.pass_outputs_v1()
+        >>> outlets.branched
+        branched(2.0, 4.0)
     """
 
     DERIVEDPARAMETERS = (exch_derived.NmbBranches,)
@@ -413,18 +456,27 @@ class Pass_Outputs_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
         for bdx in range(der.nmbbranches):
-            out.branched[bdx][0] += flu.outputs[bdx]
+            out.branched[bdx] = flu.outputs[bdx]
 
 
 class Get_WaterLevel_V1(modeltools.Method):
-    """Pick the water level from a receiver node and return it in m."""
+    """Pick the water level from a receiver node and return it in m.
+
+    Example:
+
+        >>> from hydpy.models.exch import *
+        >>> parameterstep()
+        >>> receivers.waterlevel = 2.0
+        >>> model.get_waterlevel_v1()
+        2.0
+    """
 
     REQUIREDSEQUENCES = (exch_receivers.WaterLevel,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> float:
         rec = model.sequences.receivers.fastaccess
-        return rec.waterlevel[0]
+        return rec.waterlevel
 
 
 class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):

@@ -1988,7 +1988,6 @@ as rm2:
                 r.storagemodelupstream_typeid = 1
                 su.routingmodelsdownstream.append_submodel(submodel=r)
 
-
     def _collect_linksequences(
         self, group: str, sequences: list[sequencetools.LinkSequence]
     ) -> None:

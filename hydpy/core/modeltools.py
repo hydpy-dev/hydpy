@@ -1596,62 +1596,65 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         return var.__name__.lower()
 
     def _connect_inlets(self, report_noconnect: bool = True) -> None:
-        self._connect_subgroup("inlets", report_noconnect, 0)
+        self._connect_subgroup("inlets", report_noconnect)
 
     def _connect_receivers(self, report_noconnect: bool = True) -> None:
-        self._connect_subgroup("receivers", report_noconnect, -1)
+        self._connect_subgroup("receivers", report_noconnect)
 
     def _connect_outlets(self, report_noconnect: bool = True) -> None:
-        self._connect_subgroup("outlets", report_noconnect, -1)
+        self._connect_subgroup("outlets", report_noconnect)
 
     def _connect_senders(self, report_noconnect: bool = True) -> None:
-        self._connect_subgroup("senders", report_noconnect, 0)
+        self._connect_subgroup("senders", report_noconnect)
 
-    def _connect_subgroup(
-        self, group: str, report_noconnect: bool, position: Literal[0, -1] | None = None
+    def collect_linksequences(
+        self, group: str, sequences: list[sequencetools.LinkSequence]
     ) -> None:
+        sequences.extend(self.sequences[group])
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            submodel.collect_linksequences(group, sequences)
+
+    def _connect_subgroup(self, group: str, report_noconnect: bool) -> None:
         st = sequencetools
         available_nodes = getattr(self.element, group)
         applied_nodes = []
-        for submodel in self.find_submodels(
-            include_mainmodel=True, position=position
-        ).values():
-            sequences = submodel.sequences[group]
-            for sequence in sequences:
-                selected_nodes = []
-                for node in available_nodes:
-                    if isinstance(var := node.variable, devicetools.FusedVariable):
-                        if sequence in var:
-                            selected_nodes.append(node)
-                    else:
-                        name = var.lower() if isinstance(var, str) else var.name
-                        if name == sequence.name:
-                            selected_nodes.append(node)
-                if sequence.NDIM == 0:
-                    if not selected_nodes:
-                        if (group == "inputs") or not report_noconnect:
-                            # see https://github.com/nedbat/coveragepy/issues/198:
-                            continue  # pragma: no cover
-                        raise RuntimeError(
-                            f"Sequence {objecttools.elementphrase(sequence)} cannot "
-                            f"be connected due to no available node handling variable "
-                            f"`{sequence.name.upper()}`."
-                        )
-                    if len(selected_nodes) > 1:
-                        raise RuntimeError(
-                            f"Sequence `{sequence.name}` cannot be connected as it is "
-                            f"0-dimensional but multiple nodes are available which "
-                            f"are handling variable `{type(sequence).__name__}`."
-                        )
-                    applied_nodes.append(selected_nodes[0])
-                    assert isinstance(sequence, (st.InputSequence, st.LinkSequence))
-                    sequence.set_pointer(selected_nodes[0].get_double(group))
-                elif sequence.NDIM == 1:
-                    sequence.shape = len(selected_nodes)
-                    for idx, node in enumerate(selected_nodes):
-                        applied_nodes.append(node)
-                        assert isinstance(sequence, st.LinkSequence)
-                        sequence.set_pointer(node.get_double(group), idx)
+        sequences: sequencetools.LinkSequence = []
+        self.collect_linksequences(group, sequences)
+        for sequence in sequences:
+            selected_nodes = []
+            for node in available_nodes:
+                if isinstance(var := node.variable, devicetools.FusedVariable):
+                    if sequence in var:
+                        selected_nodes.append(node)
+                else:
+                    name = var.lower() if isinstance(var, str) else var.name
+                    if name == sequence.name:
+                        selected_nodes.append(node)
+            if sequence.NDIM == 0:
+                if not selected_nodes:
+                    if (group == "inputs") or not report_noconnect:
+                        # see https://github.com/nedbat/coveragepy/issues/198:
+                        continue  # pragma: no cover
+                    raise RuntimeError(
+                        f"Sequence {objecttools.elementphrase(sequence)} cannot "
+                        f"be connected due to no available node handling variable "
+                        f"`{sequence.name.upper()}`."
+                    )
+                if len(selected_nodes) > 1:
+                    raise RuntimeError(
+                        f"Sequence `{sequence.name}` cannot be connected as it is "
+                        f"0-dimensional but multiple nodes are available which "
+                        f"are handling variable `{type(sequence).__name__}`."
+                    )
+                applied_nodes.append(selected_nodes[0])
+                assert isinstance(sequence, (st.InputSequence, st.LinkSequence))
+                sequence.set_pointer(selected_nodes[0].get_double(group))
+            elif sequence.NDIM == 1:
+                sequence.shape = len(selected_nodes)
+                for idx, node in enumerate(selected_nodes):
+                    applied_nodes.append(node)
+                    assert isinstance(sequence, st.LinkSequence)
+                    sequence.set_pointer(node.get_double(group), idx)
         if report_noconnect and (len(applied_nodes) < len(available_nodes)):
             remaining_nodes = [
                 node.name for node in available_nodes if node not in applied_nodes

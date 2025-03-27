@@ -36,7 +36,18 @@ RoutingModels_V2_V3: TypeAlias = Union[
 
 
 class Pick_Inflow_V1(modeltools.Method):
-    """Pick the longitudinal inflow from an arbitrary number of inlet sequences."""
+    """Pick the longitudinal inflow from an arbitrary number of inlet sequences.
+
+    Example:
+
+        >>> from hydpy.models.sw1d import *
+        >>> parameterstep()
+        >>> inlets.longq.shape = 2
+        >>> inlets.longq = 2.0, 4.0
+        >>> model.pick_inflow_v1()
+        >>> fluxes.inflow
+        inflow(6.0)
+    """
 
     REQUIREDSEQUENCES = (sw1d_inlets.LongQ,)
     RESULTSEQUENCES = (sw1d_fluxes.Inflow,)
@@ -47,26 +58,48 @@ class Pick_Inflow_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         flu.inflow = 0.0
         for i in range(inl.len_longq):
-            flu.inflow += inl.longq[i][0]
+            flu.inflow += inl.longq[i]
 
 
 class Pick_Outflow_V1(modeltools.Method):
-    """Pick the longitudinal outflow from an arbitrary number of outlet sequences."""
+    """Pick the longitudinal outflow from an arbitrary number of outlet sequences.
 
-    REQUIREDSEQUENCES = (sw1d_outlets.LongQ,)
+    Example:
+
+        >>> from hydpy.models.sw1d import *
+        >>> parameterstep()
+        >>> inlets.longq.shape = 2
+        >>> inlets.longq = 2.0, 4.0
+        >>> model.pick_outflow_v1()
+        >>> fluxes.outflow
+        outflow(6.0)
+    """
+
+    REQUIREDSEQUENCES = (sw1d_inlets.LongQ,)
     RESULTSEQUENCES = (sw1d_fluxes.Outflow,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        out = model.sequences.outlets.fastaccess
+        inl = model.sequences.inlets.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.outflow = 0.0
-        for i in range(out.len_longq):
-            flu.outflow += out.longq[i][0]
+        for i in range(inl.len_longq):
+            flu.outflow += inl.longq[i]
 
 
 class Pick_LateralFlow_V1(modeltools.Method):
-    """Pick the lateral inflow from an arbitrary number of inlet sequences."""
+    """Pick the lateral inflow from an arbitrary number of inlet sequences.
+
+    Example:
+
+        >>> from hydpy.models.sw1d import *
+        >>> parameterstep()
+        >>> inlets.latq.shape = 2
+        >>> inlets.latq = 2.0, 4.0
+        >>> model.pick_lateralflow_v1()
+        >>> fluxes.lateralflow
+        lateralflow(6.0)
+    """
 
     REQUIREDSEQUENCES = (sw1d_inlets.LatQ,)
     RESULTSEQUENCES = (sw1d_fluxes.LateralFlow,)
@@ -77,11 +110,21 @@ class Pick_LateralFlow_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         flu.lateralflow = 0.0
         for i in range(inl.len_latq):
-            flu.lateralflow += inl.latq[i][0]
+            flu.lateralflow += inl.latq[i]
 
 
 class Pick_WaterLevelDownstream_V1(modeltools.Method):
-    """Pick the water level downstream from a receiver sequence."""
+    """Pick the water level downstream from a receiver sequence.
+
+    Example:
+
+        >>> from hydpy.models.sw1d import *
+        >>> parameterstep()
+        >>> receivers.waterlevel = 2.0
+        >>> model.pick_waterleveldownstream_v1()
+        >>> factors.waterleveldownstream
+        waterleveldownstream(2.0)
+    """
 
     REQUIREDSEQUENCES = (sw1d_receivers.WaterLevel,)
     RESULTSEQUENCES = (sw1d_factors.WaterLevelDownstream,)
@@ -90,76 +133,55 @@ class Pick_WaterLevelDownstream_V1(modeltools.Method):
     def __call__(model: modeltools.SegmentModel) -> None:
         fac = model.sequences.factors.fastaccess
         rec = model.sequences.receivers.fastaccess
-        fac.waterleveldownstream = rec.waterlevel[0]
+        fac.waterleveldownstream = rec.waterlevel
 
 
 class Pass_Discharge_V1(modeltools.Method):
     """Pass the calculated average discharge of the current simulation step to an
-    arbitrary number of inlet or outlet sequences.
+    arbitrary number of outlet sequences.
 
     Basic equation:
       :math:`QLong = DischargeVolume / Seconds`
 
-    In contrast to typical methods for passing data to nodes, |Pass_Discharge_V1| not
-    only passes data to outlet sequences but also to inlet sequences.  This
-    functionality addresses the rare but allowed setting of a discharge calculating
-    routing model lying at the inlet position of a subchannel, which is necessary for
-    modelling branches.
+    Example:
 
-    Examples:
-
-        Without any node connection, |Pass_Discharge_V1| does nothing:
-
-        >>> from hydpy import Element, Nodes, prepare_model
-        >>> e1 = Element("e1")
-        >>> e1.model = prepare_model("sw1d_lias")
-        >>> e1.model.pass_discharge_v1()
-
-        If any connections exist, |Pass_Discharge_V1| updates all corresponding
-        sequences with the same average discharge value:
-
-        >>> ni, no1, no2 = Nodes("ni", "no1", "no2", defaultvariable="LongQ")
-        >>> ni.sequences.sim = 1.0
-        >>> no1.sequences.sim = 2.0
-        >>> no2.sequences.sim = 3.0
-        >>> e2 = Element("e2", inlets=ni, outlets=(no1, no2))
-        >>> e2.model = prepare_model("sw1d_lias")
-        >>> e2.model.parameters.derived.seconds(60.0)
-        >>> e2.model.sequences.fluxes.dischargevolume = 120.0
-        >>> e2.model.pass_discharge_v1()
-        >>> ni.sequences.sim
-        sim(3.0)
-        >>> no1.sequences.sim
-        sim(4.0)
-        >>> no2.sequences.sim
-        sim(5.0)
-
-        .. testsetup::
-
-            >>> from hydpy import Node
-            >>> Node.clear_all()
-            >>> Element.clear_all()
+        >>> from hydpy.models.sw1d import *
+        >>> parameterstep()
+        >>> derived.seconds(60.0)
+        >>> fluxes.dischargevolume = 120.0
+        >>> outlets.longq.shape = 2
+        >>> model.pass_discharge_v1()
+        >>> outlets.longq
+        longq(2.0, 2.0)
     """
 
     DERIVEDPARAMETERS = (sw1d_derived.Seconds,)
     REQUIREDSEQUENCES = (sw1d_fluxes.DischargeVolume,)
-    RESULTSEQUENCES = (sw1d_inlets.LongQ, sw1d_outlets.LongQ)
+    RESULTSEQUENCES = (sw1d_outlets.LongQ,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
-        inl = model.sequences.inlets.fastaccess
         out = model.sequences.outlets.fastaccess
         flu = model.sequences.fluxes.fastaccess
         discharge: float = flu.dischargevolume / der.seconds
-        for i in range(inl.len_longq):
-            inl.longq[i][0] += discharge
         for i in range(out.len_longq):
-            out.longq[i][0] += discharge
+            out.longq[i] = discharge
 
 
 class Pass_WaterLevel_V1(modeltools.Method):
-    """Pass the calculated water level to an arbitrary number of sender sequences."""
+    """Pass the calculated water level to an arbitrary number of sender sequences.
+
+    Example:
+
+        >>> from hydpy.models.sw1d import *
+        >>> parameterstep()
+        >>> factors.waterlevel = 2.0
+        >>> senders.waterlevel.shape = 3
+        >>> model.pass_waterlevel_v1()
+        >>> senders.waterlevel
+        waterlevel(2.0, 2.0, 2.0)
+    """
 
     REQUIREDSEQUENCES = (sw1d_factors.WaterLevel,)
     RESULTSEQUENCES = (sw1d_senders.WaterLevel,)
@@ -169,7 +191,7 @@ class Pass_WaterLevel_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         sen = model.sequences.senders.fastaccess
         for i in range(sen.len_waterlevel):
-            sen.waterlevel[i][0] = fac.waterlevel
+            sen.waterlevel[i] = fac.waterlevel
 
 
 # calculation methods
@@ -2607,7 +2629,7 @@ class Perform_Preprocessing_V4(modeltools.AutoMethod):
     each external simulation step."""
 
     SUBMETHODS = (Pick_Outflow_V1,)
-    REQUIREDSEQUENCES = (sw1d_outlets.LongQ,)
+    REQUIREDSEQUENCES = (sw1d_inlets.LongQ,)
     RESULTSEQUENCES = (sw1d_fluxes.Outflow,)
 
 

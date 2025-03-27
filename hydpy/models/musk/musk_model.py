@@ -184,6 +184,17 @@ class Calc_ReferenceDischarge_V1(modeltools.Method):
         >>> model.calc_referencedischarge_v1()
         >>> fluxes.referencedischarge
         referencedischarge(4.5)
+
+        The given basic equation can result in negative reference discharge estimates
+        during severe low-flow conditions.  |Calc_ReferenceDischarge_V1| resets those
+        to zero:
+
+        >>> model.idx_run = 0
+        >>> states.discharge.old = 0.6, 0.1
+        >>> states.discharge.new = 0.2, nan
+        >>> model.calc_referencedischarge_v1()
+        >>> fluxes.referencedischarge
+        referencedischarge(0.0)
     """
 
     REQUIREDSEQUENCES = (musk_states.Discharge,)
@@ -199,7 +210,7 @@ class Calc_ReferenceDischarge_V1(modeltools.Method):
             est: float = old.discharge[i + 1] + new.discharge[i] - old.discharge[i]
         else:
             est = new.discharge[i + 1]
-        flu.referencedischarge[i] = (new.discharge[i] + est) / 2.0
+        flu.referencedischarge[i] = max((new.discharge[i] + est) / 2.0, 0.0)
 
 
 class Return_Discharge_CrossSectionModel_V1(modeltools.Method):

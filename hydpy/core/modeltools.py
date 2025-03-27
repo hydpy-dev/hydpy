@@ -1267,24 +1267,19 @@ following error occurred: Model `musk_classic` is not connected to an `Element` 
 
         >>> element1 = Element("element1", inlets=(in1, in2), outlets=out1)
         >>> element1.model = prepare_model("musk_classic")
+        >>> element1.model.parameters.control.nmbsegments(0)
 
         Now all connections work as expected:
 
         >>> in1.sequences.sim = 1.0
         >>> in2.sequences.sim = 2.0
         >>> out1.sequences.sim = 3.0
+        >>> element1.model.update_inlets()
         >>> element1.model.sequences.inlets.q
         q(1.0, 2.0)
+        >>> element1.model.update_outlets()
         >>> element1.model.sequences.outlets.q
         q(3.0)
-        >>> element1.model.sequences.inlets.q *= 2.0
-        >>> element1.model.sequences.outlets.q *= 2.0
-        >>> in1.sequences.sim
-        sim(2.0)
-        >>> in2.sequences.sim
-        sim(4.0)
-        >>> out1.sequences.sim
-        sim(6.0)
 
         To show some possible errors and related error messages, we define three
         additional nodes, two handling variables different from discharge (`Q`):
@@ -1511,6 +1506,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         >>> dam2.model.update_outputs()
         >>> dam3.model.sequences.factors.waterlevel = 3.0
         >>> dam3.model.update_outputs()
+        >>> dam1.model.update_receivers(0)
         >>> dam1.model.sequences.receivers.owl
         owl(2.0)
         >>> dam1.model.sequences.receivers.rwl
@@ -1596,62 +1592,58 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         return var.__name__.lower()
 
     def _connect_inlets(self, report_noconnect: bool = True) -> None:
-        self._connect_subgroup("inlets", report_noconnect, 0)
+        self._connect_subgroup("inlets", report_noconnect)
 
     def _connect_receivers(self, report_noconnect: bool = True) -> None:
-        self._connect_subgroup("receivers", report_noconnect, -1)
+        self._connect_subgroup("receivers", report_noconnect)
 
     def _connect_outlets(self, report_noconnect: bool = True) -> None:
-        self._connect_subgroup("outlets", report_noconnect, -1)
+        self._connect_subgroup("outlets", report_noconnect)
 
     def _connect_senders(self, report_noconnect: bool = True) -> None:
-        self._connect_subgroup("senders", report_noconnect, 0)
+        self._connect_subgroup("senders", report_noconnect)
 
-    def _connect_subgroup(
-        self, group: str, report_noconnect: bool, position: Literal[0, -1] | None = None
-    ) -> None:
+    def _connect_subgroup(self, group: str, report_noconnect: bool) -> None:
         st = sequencetools
         available_nodes = getattr(self.element, group)
         applied_nodes = []
-        for submodel in self.find_submodels(
-            include_mainmodel=True, position=position
-        ).values():
-            sequences = submodel.sequences[group]
-            for sequence in sequences:
-                selected_nodes = []
-                for node in available_nodes:
-                    if isinstance(var := node.variable, devicetools.FusedVariable):
-                        if sequence in var:
-                            selected_nodes.append(node)
-                    else:
-                        name = var.lower() if isinstance(var, str) else var.name
-                        if name == sequence.name:
-                            selected_nodes.append(node)
-                if sequence.NDIM == 0:
-                    if not selected_nodes:
-                        if (group == "inputs") or not report_noconnect:
-                            # see https://github.com/nedbat/coveragepy/issues/198:
-                            continue  # pragma: no cover
-                        raise RuntimeError(
-                            f"Sequence {objecttools.elementphrase(sequence)} cannot "
-                            f"be connected due to no available node handling variable "
-                            f"`{sequence.name.upper()}`."
-                        )
-                    if len(selected_nodes) > 1:
-                        raise RuntimeError(
-                            f"Sequence `{sequence.name}` cannot be connected as it is "
-                            f"0-dimensional but multiple nodes are available which "
-                            f"are handling variable `{type(sequence).__name__}`."
-                        )
-                    applied_nodes.append(selected_nodes[0])
-                    assert isinstance(sequence, (st.InputSequence, st.LinkSequence))
-                    sequence.set_pointer(selected_nodes[0].get_double(group))
-                elif sequence.NDIM == 1:
-                    sequence.shape = len(selected_nodes)
-                    for idx, node in enumerate(selected_nodes):
-                        applied_nodes.append(node)
-                        assert isinstance(sequence, st.LinkSequence)
-                        sequence.set_pointer(node.get_double(group), idx)
+        sequences: list[sequencetools.LinkSequence] = []
+        self.__hydpy__collect_linksequences__(group, sequences)
+        for sequence in sequences:
+            selected_nodes = []
+            for node in available_nodes:
+                if isinstance(var := node.variable, devicetools.FusedVariable):
+                    if sequence in var:
+                        selected_nodes.append(node)
+                else:
+                    name = var.lower() if isinstance(var, str) else var.name
+                    if name == sequence.name:
+                        selected_nodes.append(node)
+            if sequence.NDIM == 0:
+                if not selected_nodes:
+                    if (group == "inputs") or not report_noconnect:
+                        # see https://github.com/nedbat/coveragepy/issues/198:
+                        continue  # pragma: no cover
+                    raise RuntimeError(
+                        f"Sequence {objecttools.elementphrase(sequence)} cannot "
+                        f"be connected due to no available node handling variable "
+                        f"`{sequence.name.upper()}`."
+                    )
+                if len(selected_nodes) > 1:
+                    raise RuntimeError(
+                        f"Sequence `{sequence.name}` cannot be connected as it is "
+                        f"0-dimensional but multiple nodes are available which "
+                        f"are handling variable `{type(sequence).__name__}`."
+                    )
+                applied_nodes.append(selected_nodes[0])
+                assert isinstance(sequence, (st.InputSequence, st.LinkSequence))
+                sequence.set_pointer(selected_nodes[0].get_double(group))
+            elif sequence.NDIM == 1:
+                sequence.shape = len(selected_nodes)
+                for idx, node in enumerate(selected_nodes):
+                    applied_nodes.append(node)
+                    assert isinstance(sequence, st.LinkSequence)
+                    sequence.set_pointer(node.get_double(group), idx)
         if report_noconnect and (len(applied_nodes) < len(available_nodes)):
             remaining_nodes = [
                 node.name for node in available_nodes if node not in applied_nodes
@@ -1660,6 +1652,13 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                 f"The following nodes have not been connected to any sequences: "
                 f"{objecttools.enumeration(remaining_nodes)}."
             )
+
+    def __hydpy__collect_linksequences__(
+        self, group: str, sequences: list[sequencetools.LinkSequence]
+    ) -> None:
+        sequences.extend(self.sequences[group])  # type: ignore[arg-type]
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            submodel.__hydpy__collect_linksequences__(group, sequences)
 
     @property
     def name(self) -> str:
@@ -2503,105 +2502,87 @@ the available directories (calib_1 and calib_2).
         for submodel in self.find_submodels(include_subsubmodels=False).values():
             submodel.save_data(idx)
 
-    def update_inlets(self) -> None:
-        """Call all methods defined as "INLET_METHODS" in the defined order.
+    @staticmethod
+    def _update_pointers_in(
+        subseqs: sequencetools.InletSequences | sequencetools.ReceiverSequences,
+    ) -> None:
+        for seq in subseqs:
+            pointer = seq.__hydpy__get_fastaccessattribute__("pointer")
+            if (pointer is not None) and (seq.NDIM == 0):
+                setattr(seq.fastaccess, seq.name, pointer[0])
+            else:
+                values = getattr(seq.fastaccess, seq.name, None)
+                if values is not None:
+                    for i in range(getattr(seq.fastaccess, f"len_{seq.name}")):
+                        values[i] = pointer[i]
 
-        >>> from hydpy.core.modeltools import AdHocModel, Method
-        >>> class print_1(Method):
-        ...     @staticmethod
-        ...     def __call__(self):
-        ...         print(1)
-        >>> class print_2(Method):
-        ...     @staticmethod
-        ...     def __call__(self):
-        ...         print(2)
-        >>> class Test(AdHocModel):
-        ...     INLET_METHODS = print_1, print_2
-        >>> Test().update_inlets()
-        1
-        2
+    @staticmethod
+    def _update_pointers_out(
+        subseqs: sequencetools.OutletSequences | sequencetools.SenderSequences,
+    ) -> None:
+        for seq in subseqs:
+            pointer = seq.__hydpy__get_fastaccessattribute__("pointer")
+            if (pointer is not None) and (seq.NDIM == 0):
+                pointer[0] += getattr(seq.fastaccess, seq.name)
+            else:
+                values = getattr(seq.fastaccess, seq.name, None)
+                if values is not None:
+                    for i in range(getattr(seq.fastaccess, f"len_{seq.name}")):
+                        pointer[i][0] += values[i]
+
+    def update_inlets(self) -> None:
+        """Update all link sequences and then call all methods defined as
+        "INLET_METHODS" in the defined order.
 
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            submodel.update_inlets()
+        self._update_pointers_in(self.sequences.inlets)
         for method in self.INLET_METHODS:
             method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
     def update_outlets(self) -> None:
-        """Call all methods defined as "OUTLET_METHODS" in the defined order.
-
-        >>> from hydpy.core.modeltools import AdHocModel, Method
-        >>> class print_1(Method):
-        ...     @staticmethod
-        ...     def __call__(self):
-        ...         print(1)
-        >>> class print_2(Method):
-        ...     @staticmethod
-        ...     def __call__(self):
-        ...         print(2)
-        >>> class Test(AdHocModel):
-        ...     OUTLET_METHODS = print_1, print_2
-        >>> Test().update_outlets()
-        1
-        2
+        """Call all methods defined as "OUTLET_METHODS" in the defined order and then
+        update all outlet nodes.
 
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            submodel.update_outlets()
         for method in self.OUTLET_METHODS:
             method.__call__(self)  # pylint: disable=unnecessary-dunder-call
+        self._update_pointers_out(self.sequences.outlets)
 
     def update_receivers(self, idx: int) -> None:
-        """Call all methods defined as "RECEIVER_METHODS" in the defined order.
-
-        >>> from hydpy.core.modeltools import AdHocModel, Method
-        >>> class print_1(Method):
-        ...     @staticmethod
-        ...     def __call__(self):
-        ...        print(test.idx_sim+1)
-        >>> class print_2(Method):
-        ...     @staticmethod
-        ...     def __call__(self):
-        ...         print(test.idx_sim+2)
-        >>> class Test(AdHocModel):
-        ...     RECEIVER_METHODS = print_1, print_2
-        >>> test = Test()
-        >>> test.update_receivers(1)
-        2
-        3
+        """Update all link sequences and then call all methods defined as
+        "RECEIVER_METHODS" in the defined order.
 
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
         self.idx_sim = idx
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            submodel.update_receivers(idx)
+        self._update_pointers_in(self.sequences.receivers)
         for method in self.RECEIVER_METHODS:
             method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
     def update_senders(self, idx: int) -> None:
-        """Call all methods defined as "SENDER_METHODS" in the defined order.
-
-        >>> from hydpy.core.modeltools import AdHocModel, Method
-        >>> class print_1(Method):
-        ...     @staticmethod
-        ...     def __call__(self):
-        ...        print(test.idx_sim+1)
-        >>> class print_2(Method):
-        ...     @staticmethod
-        ...     def __call__(self):
-        ...         print(test.idx_sim+2)
-        >>> class Test(AdHocModel):
-        ...     SENDER_METHODS = print_1, print_2
-        >>> test = Test()
-        >>> test.update_senders(1)
-        2
-        3
+        """Call all methods defined as "SENDER_METHODS" in the defined order and then
+        update all sender nodes.
 
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
         self.idx_sim = idx
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            submodel.update_senders(idx)
         for method in self.SENDER_METHODS:
             method.__call__(self)  # pylint: disable=unnecessary-dunder-call
+        self._update_pointers_out(self.sequences.senders)
 
     def new2old(self) -> None:
         """Call method |StateSequences.new2old| of subattribute `sequences.states`.
@@ -2688,7 +2669,6 @@ the available directories (calib_1 and calib_2).
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
-        position: Literal[0, -1] | None = None,
     ) -> dict[str, Model]: ...
 
     @overload
@@ -2702,7 +2682,6 @@ the available directories (calib_1 and calib_2).
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
-        position: Literal[0, -1] | None = None,
     ) -> dict[str, Model | None]: ...
 
     @overload
@@ -2742,7 +2721,6 @@ the available directories (calib_1 and calib_2).
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
-        position: Literal[0, -1] | None = None,
     ) -> dict[str, Model]: ...
 
     @overload
@@ -2756,7 +2734,6 @@ the available directories (calib_1 and calib_2).
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
-        position: Literal[0, -1] | None = None,
     ) -> dict[str, Model | None]: ...
 
     @overload
@@ -2795,7 +2772,6 @@ the available directories (calib_1 and calib_2).
         include_feedbacks: bool = False,
         aggregate_vectors: bool = False,
         repeat_sharedmodels: bool = False,
-        position: Literal[0, -1] | None = None,
     ) -> dict[str, Model] | dict[str, Model | None]:
         """Find the (sub)submodel instances of the current main model instance.
 
@@ -2971,30 +2947,11 @@ the available directories (calib_1 and calib_2).
          'model.routingmodelsupstream_0': sw1d_q_in,
          'model.storagemodeldownstream': sw1d_storage,
          'model.storagemodelupstream': sw1d_storage}
-
-        When dealing with submodel arrays handled by |SubmodelsProperty| instances, one
-        might be interested in only querying the first or the last model, which is
-        supported by the `position` parameter:
-
-        >>> pprint(channel.find_submodels(position=0))
-        {'model.routingmodels_0': sw1d_q_in, 'model.storagemodels_0': sw1d_storage}
-        >>> pprint(channel.find_submodels(position=-1))
-        {'model.routingmodels_2': sw1d_weir_out, 'model.storagemodels_1': sw1d_storage}
-        >>> pprint(channel.find_submodels(position=1))
-        Traceback (most recent call last):
-        ...
-        ValueError: The `position` argument requires the integer value `0´ or `-1`, \
-but the value `1` of type `int` is given.
         """
 
         if include_subsubmodels and include_sidemodels:
             raise ValueError(
                 "Including sub-submodels and side-models leads to ambiguous results."
-            )
-        if position not in (None, 0, -1):
-            raise ValueError(
-                "The `position` argument requires the integer value `0´ or `-1`, but "
-                f"the {objecttools.value_of_type(position)} is given."
             )
 
         def _find_submodels(name: str, model: Model) -> None:
@@ -3020,15 +2977,11 @@ but the value `1` of type `int` is given.
                     if aggregate_vectors:
                         name2submodel_new[f"{submodelsname}_*"] = None
                     elif submodels := subsprop.__hydpy_mainmodel2submodels__[model]:
-                        i_last = len(submodels) - 1
-                        if position is not None:
-                            submodels = [submodels[position]]
                         for i, submodel in enumerate(submodels):
                             # implement when required:
                             assert not isinstance(submodel, SharableSubmodelInterface)
                             if include_optional or (submodel is not None):
-                                j = i_last if position == -1 else i
-                                name2submodel_new[f"{submodelsname}_{j}"] = submodel
+                                name2submodel_new[f"{submodelsname}_{i}"] = submodel
 
             name2submodel.update(name2submodel_new)
             if include_subsubmodels:

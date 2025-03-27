@@ -410,7 +410,18 @@ class Calc_QOut_V1(modeltools.Method):
 
 
 class Pick_Q_V1(modeltools.Method):
-    """Update inflow."""
+    """Update inflow.
+
+    Example:
+
+        >>> from hydpy.models.arma import *
+        >>> parameterstep()
+        >>> inlets.q.shape = 2
+        >>> inlets.q = 2.0, 4.0
+        >>> model.pick_q_v1()
+        >>> fluxes.qin
+        qin(6.0)
+    """
 
     REQUIREDSEQUENCES = (arma_inlets.Q,)
     RESULTSEQUENCES = (arma_fluxes.QIn,)
@@ -421,11 +432,21 @@ class Pick_Q_V1(modeltools.Method):
         inl = model.sequences.inlets.fastaccess
         flu.qin = 0.0
         for idx in range(inl.len_q):
-            flu.qin += inl.q[idx][0]
+            flu.qin += inl.q[idx]
 
 
 class Pass_Q_V1(modeltools.Method):
-    """Update outflow."""
+    """Update outflow.
+
+    Example:
+
+        >>> from hydpy.models.arma import *
+        >>> parameterstep()
+        >>> fluxes.qout = 2.0
+        >>> model.pass_q_v1()
+        >>> outlets.q
+        q(2.0)
+    """
 
     REQUIREDSEQUENCES = (arma_fluxes.QOut,)
     RESULTSEQUENCES = (arma_outlets.Q,)
@@ -434,7 +455,7 @@ class Pass_Q_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
-        out.q[0] += flu.qout
+        out.q = flu.qout
 
 
 class Model(modeltools.AdHocModel):

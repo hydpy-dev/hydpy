@@ -30,7 +30,7 @@ class Pick_Inflow_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         flu.inflow = 0.0
         for idx in range(inl.len_q):
-            flu.inflow += inl.q[idx][0]
+            flu.inflow += inl.q[idx]
 
 
 class Adjust_Inflow_V1(modeltools.Method):
@@ -844,7 +844,7 @@ class Pass_Outflow_V1(modeltools.Method):
     def __call__(model: modeltools.SegmentModel) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
-        out.q[0] += flu.outflow
+        out.q = flu.outflow
 
 
 class PegasusReferenceWaterDepth(roottools.Pegasus):

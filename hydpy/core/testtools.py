@@ -1549,7 +1549,7 @@ def update_integrationtests(
     correct under all possible conditions, you should inspect and replace each
     integration test result manually.
 
-    In the following example, we disable method |conv_model.Pass_Outputs_V1|
+    In the following example, we disable method |modeltools.Model.update_outlets|
     temporarily.  Accordingly, application model |conv_nn| does not pass any output to
     its outlet nodes, which is why the last four columns of both integration test
     tables now contain zero value only (we can perform this mocking-based test in
@@ -1557,7 +1557,7 @@ def update_integrationtests(
 
     >>> from hydpy import pub, TestIO, update_integrationtests
     >>> from unittest import mock
-    >>> pass_output = "hydpy.models.conv.conv_model.Pass_Outputs_V1.__call__"
+    >>> pass_output = "hydpy.core.modeltools.Model.update_outlets"
     >>> with TestIO(), pub.options.usecython(False), mock.patch(pass_output):
     ...     update_integrationtests("conv_nn", "temp.txt")
     ...     with open("temp.txt") as resultfile:

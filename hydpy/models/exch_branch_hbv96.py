@@ -81,6 +81,7 @@ output values:
 """
 # import...
 # ...from HydPy
+from hydpy.core import exceptiontools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.exe.modelimports import *
@@ -164,7 +165,7 @@ element `mybranch`.
         """
         nodes = self.element.inlets
         total = self.sequences.inlets.total
-        if total.shape != (len(nodes),):
+        if exceptiontools.getattr_(total, "shape", None) != (len(nodes),):
             total.shape = len(nodes)
         for idx, node in enumerate(nodes):
             double = node.get_double("inlets")

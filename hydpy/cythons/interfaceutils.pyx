@@ -21,6 +21,18 @@ cdef class BaseInterface:
     cdef void save_data(self, int idx) noexcept nogil:
         pass
 
+    cdef void update_inlets(self) noexcept nogil:
+        pass
+
+    cdef void update_receivers(self, int idx) noexcept nogil:
+        pass
+
+    cdef void update_outlets(self) noexcept nogil:
+        pass
+
+    cdef void update_senders(self, int idx) noexcept nogil:
+        pass
+
 
 cdef class SubmodelsProperty:
 

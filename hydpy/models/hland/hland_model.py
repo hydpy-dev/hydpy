@@ -4251,7 +4251,17 @@ class Calc_QT_V1(modeltools.Method):
 
 
 class Pass_Q_V1(modeltools.Method):
-    r"""Update the outlet link sequence."""
+    """Update the outlet link sequence.
+
+    Example:
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep()
+        >>> fluxes.qt = 2.0
+        >>> model.pass_q_v1()
+        >>> outlets.q
+        q(2.0)
+    """
 
     REQUIREDSEQUENCES = (hland_fluxes.QT,)
     RESULTSEQUENCES = (hland_outlets.Q,)
@@ -4260,7 +4270,7 @@ class Pass_Q_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
-        out.q[0] += flu.qt
+        out.q = flu.qt
 
 
 class Get_Temperature_V1(modeltools.Method):

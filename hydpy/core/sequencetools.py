@@ -213,23 +213,23 @@ class FastAccessOutputSequence(FastAccessIOSequence):
                 self._get_attribute(name, "outputpointer")[0] = getattr(self, name)
 
 
-class FastAccessLinkSequence(variabletools.FastAccess):
+class FastAccessLinkSequence(FastAccessIOSequence):
     """|FastAccessIOSequence| subclass specialised for link sequences."""
 
-    def alloc(self, name: str, length: int) -> None:
+    def alloc_pointer(self, name: str, length: int) -> None:
         """Allocate enough memory for the given vector length of the |LinkSequence|
-        object with the given name.
+        object's pointer with the given name.
 
-        Cython extension classes need to define |FastAccessLinkSequence.alloc| if the
+        Cython extension classes must define |FastAccessLinkSequence.alloc| if the
         model handles at least one 1-dimensional |LinkSequence| subclass.
         """
-        getattr(self, name).shape = length
+        getattr(self, f"_{name}_pointer").shape = length
 
-    def dealloc(self, name: str) -> None:
-        """Free the previously allocated memory of the |LinkSequence| object with the
-        given name.
+    def dealloc_pointer(self, name: str) -> None:
+        """Free the previously allocated memory of the |LinkSequence| object's pointer
+        with the given name.
 
-        Cython extension classes need to define |FastAccessLinkSequence.dealloc| if the
+        Cython extension classes must define |FastAccessLinkSequence.dealloc| if the
         model handles at least one 1-dimensional |LinkSequence| subclass.
         """
 
@@ -237,10 +237,10 @@ class FastAccessLinkSequence(variabletools.FastAccess):
         """Define a pointer referencing the given |Double| object for the 0-dimensional
         |LinkSequence| object with the given name.
 
-        Cython extension classes need to define |FastAccessLinkSequence.set_pointer0d|
-        if the model handles at least one 0-dimensional |LinkSequence| subclasses.
+        Cython extension classes must define |FastAccessLinkSequence.set_pointer0d| if
+        the model handles at least one 0-dimensional |LinkSequence| subclasses.
         """
-        setattr(self, name, pointerutils.PDouble(value))
+        setattr(self, f"_{name}_pointer", pointerutils.PDouble(value))
 
     def set_pointer1d(self, name: str, value: pointerutils.Double, idx: int) -> None:
         """Define a pointer referencing the given |Double| object for the 1-dimensional
@@ -248,16 +248,16 @@ class FastAccessLinkSequence(variabletools.FastAccess):
 
         The given index defines the vector position of the defined pointer.
 
-        Cython extension classes need to define |FastAccessLinkSequence.set_pointer1d|
-        if the model handles at least one 1-dimensional |LinkSequence| subclasses.
+        Cython extension classes must define |FastAccessLinkSequence.set_pointer1d| if
+        the model handles at least one 1-dimensional |LinkSequence| subclasses.
         """
-        ppdouble: pointerutils.PPDouble = getattr(self, name)
+        ppdouble: pointerutils.PPDouble = getattr(self, f"_{name}_pointer")
         ppdouble.set_pointer(value, idx)
 
     def get_value(self, name: str) -> float | NDArrayFloat:
         """Return the actual value(s) referenced by the pointer(s) of the
         |LinkSequence| object with the given name."""
-        value = getattr(self, name)[:]
+        value = getattr(self, f"_{name}_pointer")[:]
         if self._get_attribute(name, "ndim"):
             return numpy.asarray(value, dtype=config.NP_FLOAT)
         return float(value)
@@ -265,7 +265,7 @@ class FastAccessLinkSequence(variabletools.FastAccess):
     def set_value(self, name: str, value: Mayberable1[float]) -> None:
         """Set the actual value(s) referenced by the pointer(s) of the
         |LinkSequence| object with the given name."""
-        getattr(self, name)[:] = value
+        getattr(self, f"_{name}_pointer")[:] = value
 
 
 class FastAccessNodeSequence(FastAccessIOSequence):
@@ -1095,7 +1095,7 @@ class AideSequences(ModelSequences["AideSequence", variabletools.FastAccess]):
     _CLS_FASTACCESS_PYTHON = variabletools.FastAccess
 
 
-class LinkSequences(ModelSequences[TypeLinkSequence_co, FastAccessLinkSequence]):
+class LinkSequences(ModelIOSequences[TypeLinkSequence_co, FastAccessLinkSequence]):
     """Base class for handling |LinkSequence| objects."""
 
     _CLS_FASTACCESS_PYTHON = FastAccessLinkSequence
@@ -3596,10 +3596,10 @@ class AideSequence(ModelSequence):
     _CLS_FASTACCESS_PYTHON = variabletools.FastAccess
 
 
-class LinkSequence(ModelSequence):
+class LinkSequence(ModelIOSequence):
     """Base class for link sequences of |Model| objects.
 
-    |LinkSequence| objects do not handle values themselves.  Instead, they point to the
+    |LinkSequence| objects do not only handle values themselves but also point to the
     values handled by |NodeSequence| objects, using the functionalities provided by the
     Cython module |pointerutils|.  Multiple |LinkSequence| objects of different
     application models can query and modify the same |NodeSequence| values, allowing
@@ -3608,20 +3608,74 @@ class LinkSequence(ModelSequence):
     A note for developers: |LinkSequence| subclasses must be either 0-dimensional or
     1-dimensional.
 
-    Users might encounter the following exception that is a safety measure to prevent
-    segmentation faults, as the error message suggests:
+    We demonstrate the pointer functionalities by using the `HydPy-H-Lahn` example
+    project by invoking function |prepare_full_example_2|:
 
-    >>> from hydpy.core.sequencetools import LinkSequence
-    >>> seq = LinkSequence(None)
-    >>> seq
-    linksequence(?)
-    >>> seq.value
-    Traceback (most recent call last):
-    ...
-    hydpy.core.exceptiontools.AttributeNotReady: While trying to query the value(s) \
-of link sequence `linksequence` of element `?`, the following error occurred: Proper \
-connections are missing (which could result in segmentation faults when using it, so \
-please be careful).
+    >>> from hydpy.core.testtools import prepare_full_example_2
+    >>> hp, pub, TestIO = prepare_full_example_2()
+
+    We focus on the |musk_classic| application model `stream_lahn_marb_lahn_leun`
+    routing inflow from node `lahn_marb` to node `lahn_leun`:
+
+    >>> model = hp.elements.stream_lahn_marb_lahn_leun.model
+
+    The first example shows that the 0-dimensional outlet sequence |musk_outlets.Q|
+    points to the |Sim| sequence of node `lahn_leun`:
+
+    >>> hp.nodes.lahn_leun.sequences.sim
+    sim(0.0)
+    >>> model.sequences.states.discharge
+    discharge(10.0, 10.0)
+    >>> model.update_outlets()
+    >>> hp.nodes.lahn_leun.sequences.sim
+    sim(10.0)
+
+    The second example shows that the 1-dimensional inlet sequence |musk_inlets.Q|
+    points to the |Sim| sequence of node `lahn_marb`:
+
+    >>> model.sequences.inlets.q
+    q(nan)
+    >>> hp.nodes.lahn_marb.sequences.sim = 1.0
+    >>> model.update_inlets()
+    >>> model.sequences.inlets.q
+    q(1.0)
+
+    In the example above, the 1-dimensional inlet sequence |musk_inlets.Q| only points
+    to a single |NodeSequence| value.  We now prepare a |exch_branch_hbv96| application
+    model instance to show what happens when connecting a 1-dimensional |LinkSequence|
+    object (|exch_outlets.Branched|) with three |NodeSequence| objects (see the
+    documentation of application model |exch_branch_hbv96| for more details):
+
+    >>> from hydpy import Element, Nodes, prepare_model
+    >>> model = prepare_model("exch_branch_hbv96")
+    >>> nodes = Nodes("input1", "input2", "output1", "output2", "output3")
+    >>> branch = Element("branch",
+    ...                  inlets=["input1", "input2"],
+    ...                  outlets=["output1", "output2", "output3"])
+    >>> model.parameters.control.xpoints(0.0, 2.0, 4.0, 6.0)
+    >>> model.parameters.control.ypoints(
+    ...     output1=[0.0, 1.0, 2.0, 3.0],
+    ...     output2=[0.0, 1.0, 0.0, 0.0],
+    ...     output3=[0.0, 0.0, 2.0, 6.0])
+    >>> branch.model = model
+
+    Each field of the values of a 1-dimensional |LinkSequence| objects points to
+    another |NodeSequence| object:
+
+    >>> model.sequences.outlets.branched = 1.0, 2.0, 3.0
+    >>> model.update_outlets()
+    >>> nodes.output1.sequences.sim
+    sim(1.0)
+    >>> nodes.output2.sequences.sim
+    sim(2.0)
+    >>> nodes.output3.sequences.sim
+    sim(3.0)
+
+    .. testsetup::
+
+        >>> from hydpy import Node, Element
+        >>> Node.clear_all()
+        >>> Element.clear_all()
     """
 
     subvars: LinkSequences[LinkSequence]
@@ -3633,7 +3687,7 @@ please be careful).
 
     _CLS_FASTACCESS_PYTHON = FastAccessLinkSequence
 
-    __isready: bool = False
+    _isready: bool = False
 
     def set_pointer(self, double: pointerutils.Double, idx: int = 0) -> None:
         """Prepare a pointer referencing the given |Double| object.
@@ -3648,155 +3702,21 @@ please be careful).
             self.fastaccess.set_pointer0d(self.name, double)
         elif self.NDIM == 1:
             self.fastaccess.set_pointer1d(self.name, double, idx)
-        self.__isready = True
+        self._isready = True
 
     def _finalise_connections(self) -> None:
+        super()._finalise_connections()
         value = pointerutils.PPDouble() if self.NDIM else None
         try:
-            setattr(self.fastaccess, self.name, value)
+            self._set_fastaccessattribute("pointer", value)
             setattr(self.fastaccess, f"len_{self.name}", 0)
         except AttributeError:
             pass
 
-    def _get_value(self):
-        """The actual value(s) the |LinkSequence| object is pointing at.
-
-        Changing a |LinkSequence.value| of a |LinkSequence| object seems very much like
-        changing a |LinkSequence.value| of any other |Variable| object.  However, be
-        aware that you are changing a value handled by a |NodeSequence| object.  We
-        demonstrate this by using the `HydPy-H-Lahn` example project through invoking
-        function |prepare_full_example_2|:
-
-        >>> from hydpy.core.testtools import prepare_full_example_2
-        >>> hp, pub, TestIO = prepare_full_example_2()
-
-        We focus on the |musk_classic| application model `stream_lahn_marb_lahn_leun`
-        routing inflow from node `lahn_marb` to node `lahn_leun`:
-
-        >>> model = hp.elements.stream_lahn_marb_lahn_leun.model
-
-        The first example shows that the 0-dimensional outlet sequence |musk_outlets.Q|
-        points to the |Sim| sequence of node `lahn_leun`:
-
-        >>> model.sequences.outlets.q
-        q(0.0)
-        >>> hp.nodes.lahn_leun.sequences.sim = 1.0
-        >>> model.sequences.outlets.q
-        q(1.0)
-        >>> model.sequences.outlets.q(2.0)
-        >>> hp.nodes.lahn_leun.sequences.sim
-        sim(2.0)
-
-        The second example shows that the 1-dimensional inlet sequence |musk_inlets.Q|
-        points to the |Sim| sequence of node `lahn_marb`:
-
-        >>> model.sequences.inlets.q
-        q(0.0)
-        >>> hp.nodes.lahn_marb.sequences.sim = 1.0
-        >>> model.sequences.inlets.q
-        q(1.0)
-        >>> model.sequences.inlets.q(2.0)
-        >>> hp.nodes.lahn_marb.sequences.sim
-        sim(2.0)
-
-        Direct querying the values of both link sequences shows that the value of the
-        0-dimensional outlet sequence is scalar, of course, and that the value of the
-        1-dimensional inlet sequence is one entry of a vector:
-
-        >>> from hydpy import print_vector, round_
-        >>> round_(model.sequences.outlets.q.value)
-        2.0
-        >>> print_vector(model.sequences.inlets.q.values)
-        2.0
-
-        Assigning incorrect data leads to the usual error messages:
-
-        >>> model.sequences.outlets.q.value = 1.0, 2.0
-        Traceback (most recent call last):
-        ...
-        ValueError: While trying to assign the value(s) (1.0, 2.0) to link sequence \
-`q` of element `stream_lahn_marb_lahn_leun`, the following error occurred: 2 values \
-are assigned to the scalar variable `q` of element `stream_lahn_marb_lahn_leun`.
-        >>> model.sequences.inlets.q.values = 1.0, 2.0
-        Traceback (most recent call last):
-        ...
-        ValueError: While trying to assign the value(s) (1.0, 2.0) to link sequence \
-`q` of element `stream_lahn_marb_lahn_leun`, the following error occurred: While \
-trying to convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and \
-type `float`, the following error occurred: could not broadcast input array from \
-shape (2,) into shape (1,)
-
-        In the example above, the 1-dimensional inlet sequence |musk_inlets.Q| only
-        points a single |NodeSequence| value.  We now prepare a |exch_branch_hbv96|
-        application model instance to show what happens when connecting a 1-dimensional
-        |LinkSequence| object (|exch_outlets.Branched|) with three |NodeSequence|
-        objects (see the documentation of application model |exch_branch_hbv96| for
-        more details):
-
-        >>> from hydpy import Element, Nodes, prepare_model
-        >>> model = prepare_model("exch_branch_hbv96")
-        >>> nodes = Nodes("input1", "input2", "output1", "output2", "output3")
-        >>> branch = Element("branch",
-        ...                  inlets=["input1", "input2"],
-        ...                  outlets=["output1", "output2", "output3"])
-        >>> model.parameters.control.xpoints(
-        ...     0.0, 2.0, 4.0, 6.0)
-        >>> model.parameters.control.ypoints(
-        ...     output1=[0.0, 1.0, 2.0, 3.0],
-        ...     output2=[0.0, 1.0, 0.0, 0.0],
-        ...     output3=[0.0, 0.0, 2.0, 6.0])
-        >>> branch.model = model
-
-        Our third example demonstrates that each field of the values of a 1-dimensional
-        |LinkSequence| objects points to another |NodeSequence| object:
-
-        >>> nodes.output1.sequences.sim = 1.0
-        >>> nodes.output2.sequences.sim = 2.0
-        >>> nodes.output3.sequences.sim = 3.0
-        >>> model.sequences.outlets.branched
-        branched(1.0, 2.0, 3.0)
-        >>> model.sequences.outlets.branched = 4.0, 5.0, 6.0
-        >>> nodes.output1.sequences.sim
-        sim(4.0)
-        >>> nodes.output2.sequences.sim
-        sim(5.0)
-        >>> nodes.output3.sequences.sim
-        sim(6.0)
-
-        .. testsetup::
-
-            >>> from hydpy import Node, Element
-            >>> Node.clear_all()
-            >>> Element.clear_all()
-        """
-        try:
-            if not self.__isready:
-                raise exceptiontools.AttributeNotReady(
-                    "Proper connections are missing (which could result in "
-                    "segmentation faults when using it, so please be careful)."
-                )
-            return self.fastaccess.get_value(self.name)
-        except BaseException:
-            objecttools.augment_excmessage(
-                f"While trying to query the value(s) of link sequence "
-                f"{objecttools.elementphrase(self)}"
-            )
-
-    def _set_value(self, value):
-        try:
-            self.fastaccess.set_value(self.name, self._prepare_setvalue(value))
-        except BaseException:
-            objecttools.augment_excmessage(
-                f"While trying to assign the value(s) {value} to link sequence "
-                f"{objecttools.elementphrase(self)}"
-            )
-
-    value = property(fget=_get_value, fset=_set_value)
-
     def _get_shape(self) -> tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
-        Property |LinkSequence.shape| of class |LinkSequence| works similarly as the
+        Property |LinkSequence.shape| of class |LinkSequence| works similarly to the
         general |Variable.shape| property of class |Variable|. Still, you need to be
         extra careful due to the pointer mechanism underlying class |LinkSequence|.
         Change the shape of a link sequence for good reasons only.  Please read the
@@ -3809,8 +3729,8 @@ shape (2,) into shape (1,)
         >>> model = hp.elements.stream_lahn_marb_lahn_leun.model
 
         The default mechanisms of *HydPy* prepare both 0-dimensional and 1-dimensional
-        link sequences with a proper shape (which, for inlet sequence |
-        musk_inlets.Q|, depends on the number of connected |Node| objects):
+        link sequences with a proper shape (which, for inlet sequence |musk_inlets.Q|,
+        depends on the number of connected |Node| objects):
 
         >>> model.sequences.outlets.q.shape
         ()
@@ -3831,42 +3751,19 @@ be `()`, but `(1,)` is given.
 
         Changing the shape of 1-dimensional link sequences is supported but destroys
         the connection to the |NodeSequence| values of the respective nodes.
-        Therefore, he following exception prevents segmentation faults until proper
+        Therefore, the following exception prevents segmentation faults until proper
         connections are available:
 
-        >>> model.sequences.inlets.q.shape = (2,)
-        >>> model.sequences.inlets.q.shape
-        (2,)
-        >>> model.sequences.inlets.q.shape = 1
+        >>> model.sequences.inlets.q.shape = (1,)
+        >>> model.update_inlets()
         >>> model.sequences.inlets.q.shape
         (1,)
-        >>> model.sequences.inlets.q
+        >>> model.sequences.inlets.q.shape = 2
+        >>> model.update_inlets()
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to query the value(s) of link sequence `q` of \
-element `stream_lahn_marb_lahn_leun`, the following error occurred: The pointer of \
-the actual `PPDouble` instance at index `0` requested, but not prepared yet via \
-`set_pointer`.
-
-        >>> model.sequences.inlets.q(1.0)
-        Traceback (most recent call last):
-        ...
-        RuntimeError: While trying to assign the value(s) 1.0 to link sequence `q` of \
-element `stream_lahn_marb_lahn_leun`, the following error occurred: The pointer of \
-the actual `PPDouble` instance at index `0` requested, but not prepared yet via \
-`set_pointer`.
-
-        Querying the shape of a link sequence should rarely result in errors.  However,
-        if we enforce it by deleting the `fastaccess` attribute, we get an error
-        message:
-
-        >>> del model.sequences.inlets.q.fastaccess
-        >>> model.sequences.inlets.q.shape
-        Traceback (most recent call last):
-        ...
-        AttributeError: While trying to query the shape of link sequence`q` of \
-element `stream_lahn_marb_lahn_leun`, the following error occurred: 'Q' object has no \
-attribute 'fastaccess'
+        RuntimeError: The pointer of the actual `PPDouble` instance at index `0` \
+requested, but not prepared yet via `set_pointer`.
 
         .. testsetup::
 
@@ -3874,29 +3771,21 @@ attribute 'fastaccess'
             >>> Node.clear_all()
             >>> Element.clear_all()
         """
-        try:
-            if self.NDIM == 0:
-                return ()
-            try:
-                return getattr(self.fastaccess, self.name).shape
-            except AttributeError:
-                return (self._get_fastaccessattribute("length_0"),)
-        except BaseException:
-            objecttools.augment_excmessage(
-                f"While trying to query the shape of link sequence"
-                f"{objecttools.elementphrase(self)}"
-            )
+        return super()._get_shape()
 
     def _set_shape(self, shape: int | tuple[int, ...]):
         try:
-            if (self.NDIM == 0) and shape:
-                self._raise_wrongshape(shape)
-            elif self.NDIM == 1:
-                if isinstance(shape, Iterable):
-                    shape = list(shape)[0]
-                self.fastaccess.dealloc(self.name)
-                self.fastaccess.alloc(self.name, shape)
-                setattr(self.fastaccess, "len_" + self.name, self.shape[0])
+            old_shape = exceptiontools.getattr_(self, "shape", None)
+            super()._set_shape(shape)
+            if shape != old_shape:
+                if (self.NDIM == 0) and shape:
+                    self._raise_wrongshape(shape)
+                elif self.NDIM == 1:
+                    if isinstance(shape, Iterable):
+                        shape = list(shape)[0]
+                    self.fastaccess.dealloc_pointer(self.name)
+                    self.fastaccess.alloc_pointer(self.name, shape)
+                    setattr(self.fastaccess, "len_" + self.name, shape)
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to set the shape of link sequence"
@@ -3904,11 +3793,6 @@ attribute 'fastaccess'
             )
 
     shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
-
-    def __repr__(self):
-        if self.__isready:
-            return super().__repr__()
-        return f"{self.name}(?)"
 
 
 class InletSequence(LinkSequence):

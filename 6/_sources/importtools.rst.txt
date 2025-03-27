@@ -1,0 +1,47 @@
+.. |ControlManager| replace:: :class:`~hydpy.core.filetools.ControlManager`
+.. |False| replace:: :const:`False`
+.. |Indexer| replace:: :class:`~hydpy.core.indextools.Indexer`
+.. |Parameters| replace:: :class:`~hydpy.core.parametertools.Parameters`
+.. |Sequences| replace:: :class:`~hydpy.core.sequencetools.Sequences`
+.. |SharableSubmodelInterface| replace:: :class:`~hydpy.core.modeltools.SharableSubmodelInterface`
+.. |SubmodelAdder.update| replace:: :func:`~hydpy.core.importtools.SubmodelAdder.update`
+.. |SubmodelAdder| replace:: :class:`~hydpy.core.importtools.SubmodelAdder`
+.. |SubmodelInterface.add_mainmodel_as_subsubmodel| replace:: :func:`~hydpy.core.modeltools.SubmodelInterface.add_mainmodel_as_subsubmodel`
+.. |TargetParameterUpdater.testmode| replace:: :attr:`~hydpy.core.importtools.TargetParameterUpdater.testmode`
+.. |TargetParameterUpdater.values_orig| replace:: :attr:`~hydpy.core.importtools.TargetParameterUpdater.values_orig`
+.. |TargetParameterUpdater.values_test| replace:: :attr:`~hydpy.core.importtools.TargetParameterUpdater.values_test`
+.. |TargetParameterUpdater| replace:: :class:`~hydpy.core.importtools.TargetParameterUpdater`
+.. |True| replace:: :const:`True`
+.. |controlcheck| replace:: :func:`~hydpy.core.importtools.controlcheck`
+.. |dam_v001| replace:: :mod:`~hydpy.models.dam_v001`
+.. |evap_aet_morsim| replace:: :mod:`~hydpy.models.evap_aet_morsim`
+.. |evap_pet_hbv96| replace:: :mod:`~hydpy.models.evap_pet_hbv96`
+.. |hland_96| replace:: :mod:`~hydpy.models.hland_96`
+.. |inspect| replace:: :mod:`~inspect`
+.. |lland_dd| replace:: :mod:`~hydpy.models.lland_dd`
+.. |lland_knauf| replace:: :mod:`~hydpy.models.lland_knauf`
+.. |meteo_glob_morsim| replace:: :mod:`~hydpy.models.meteo_glob_morsim`
+.. |parameterstep| replace:: :func:`~hydpy.core.importtools.parameterstep`
+.. |prepare_model| replace:: :func:`~hydpy.core.importtools.prepare_model`
+.. |prepare_submodel| replace:: :func:`~hydpy.core.importtools.prepare_submodel`
+.. |reverse_model_wildcard_import| replace:: :func:`~hydpy.core.importtools.reverse_model_wildcard_import`
+.. |simulationstep| replace:: :func:`~hydpy.core.importtools.simulationstep`
+.. |trim| replace:: :func:`~hydpy.core.variabletools.trim`
+.. |hland_control.NmbZones| replace:: :class:`~hydpy.models.hland.hland_control.NmbZones`
+.. |hland_states.Ic| replace:: :class:`~hydpy.models.hland.hland_states.Ic`
+.. |hland_states.SM| replace:: :class:`~hydpy.models.hland.hland_states.SM`
+.. |lland_constants.ACKER| replace:: :const:`~hydpy.models.lland.lland_constants.ACKER`
+.. |lland_control.LAI| replace:: :class:`~hydpy.models.lland.lland_control.LAI`
+.. |lland_control.NHRU| replace:: :class:`~hydpy.models.lland.lland_control.NHRU`
+.. |lland_derived.KInz| replace:: :class:`~hydpy.models.lland.lland_derived.KInz`
+.. |lland_states.Inzp| replace:: :class:`~hydpy.models.lland.lland_states.Inzp`
+
+.. _importtools:
+
+importtools
+===========
+
+.. automodule:: hydpy.core.importtools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, no_type_check_decorator, runtime_checkable, SENDER_METHODS, Generic, subpars, Pattern, NamedTuple, Awaitable, Collection, ParamSpec, INTERFACE_METHODS, TypeIs, Union, OUTLET_METHODS, is_typeddict, SupportsInt, Never, SupportsBytes, Text, Sized, deprecated, Doc, get_args, List, INLET_METHODS, LiteralString, SupportsRound, no_type_check, ValuesView, BinaryIO, subseqs, pars, TypedDict, NoDefault, Container, Reversible, RECEIVER_METHODS, SupportsComplex, Required, AnyStr, KeysView, TypeGuard, runtime, Annotated, Iterator, TypeForm, MutableSequence, FIXEDPARAMETERS, AsyncGenerator, Match, final, Optional, IntVar, RUN_METHODS, cast, UPDATEDSEQUENCES, fastaccess_new, REQUIREDSEQUENCES, ContextManager, OrderedDict, seqs, ADD_METHODS, TypeAliasType, TYPE_CHECKING, clear_overloads, Counter, fastaccess_old, TypeVarTuple, Generator, Literal, NoExtraItems, get_type_hints, Dict, Buffer, is_protocol, PART_ODE_METHODS, evaluate_forward_ref, SOLVERPARAMETERS, SupportsFloat, get_annotations, get_original_bases, AsyncContextManager, get_protocol_members, ChainMap, Iterable, AsyncIterator, SupportsAbs, override, DERIVEDPARAMETERS, ParamSpecKwargs, TypeAlias, Protocol, fastaccess, ForwardRef, reveal_type, CONTROLPARAMETERS, Coroutine, IO, MappingView, NotRequired, CapsuleType, subvars, Final, assert_never, MutableMapping, Tuple, FrozenSet, TextIO, NewType, ByteString, ReadOnly, SOLVERSEQUENCES, AsyncIterable, Unpack, Sequence, SupportsIndex, SUBMODELS, overload, RESULTSEQUENCES, TypeVar, NoReturn, AbstractSet, Self, Hashable, ItemsView, Set, MutableSet, Format, get_origin, dataclass_transform, ClassVar, Concatenate, Any, Callable, get_overloads, FULL_ODE_METHODS, Type, DefaultDict, SUBMETHODS, Mapping, assert_type, SUBMODELINTERFACES, ParamSpecArgs, Deque

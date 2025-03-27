@@ -1,0 +1,36 @@
+.. |Calc_Coefficient1_Coefficient2_Coefficient3_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_Coefficient1_Coefficient2_Coefficient3_V1`
+.. |Calc_CorrectingFactor_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_CorrectingFactor_V1`
+.. |Calc_CourantNumber_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_CourantNumber_V1`
+.. |Calc_Discharge_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_Discharge_V1`
+.. |Calc_Discharge_V2| replace:: :class:`~hydpy.models.musk.musk_model.Calc_Discharge_V2`
+.. |Calc_ReferenceDischarge_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_ReferenceDischarge_V1`
+.. |Calc_ReferenceWaterDepth_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_ReferenceWaterDepth_V1`
+.. |Calc_ReynoldsNumber_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_ReynoldsNumber_V1`
+.. |Coefficients| replace:: :class:`~hydpy.models.musk.musk_control.Coefficients`
+.. |CrossSectionModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.CrossSectionModel_V1`
+.. |Discharge.refweights| replace:: :const:`~hydpy.models.musk.musk_states.Discharge.refweights`
+.. |Discharge| replace:: :class:`~hydpy.models.musk.musk_states.Discharge`
+.. |Idx_Run| replace:: :class:`~hydpy.core.modeltools.Idx_Run`
+.. |NmbRuns| replace:: :class:`~hydpy.models.musk.musk_solver.NmbRuns`
+.. |NmbSegments| replace:: :class:`~hydpy.models.musk.musk_control.NmbSegments`
+.. |Pegasus| replace:: :class:`~hydpy.auxs.roottools.Pegasus`
+.. |Return_ReferenceDischargeError_V1| replace:: :class:`~hydpy.models.musk.musk_model.Return_ReferenceDischargeError_V1`
+.. |RunModel.RUN_METHODS| replace:: :attr:`~hydpy.core.modeltools.RunModel.RUN_METHODS`
+.. |ToleranceDischarge.modify_init| replace:: :func:`~hydpy.models.musk.musk_solver.ToleranceDischarge.modify_init`
+.. |ToleranceDischarge| replace:: :class:`~hydpy.models.musk.musk_solver.ToleranceDischarge`
+.. |ToleranceWaterDepth| replace:: :class:`~hydpy.models.musk.musk_solver.ToleranceWaterDepth`
+.. |Variable.average_values| replace:: :func:`~hydpy.core.variabletools.Variable.average_values`
+.. |musk.DOCNAME.complete| replace:: HydPy-Musk (base model)
+.. |musk.DOCNAME.long| replace:: HydPy-Musk
+.. |musk| replace:: :mod:`~hydpy.models.musk`
+.. |wq_trapeze_strickler| replace:: :mod:`~hydpy.models.wq_trapeze_strickler`
+
+.. _musk:
+
+musk
+====
+
+.. automodule:: hydpy.models.musk
+    :members:
+    :show-inheritance:
+    :exclude-members: Union, AsyncIterable, CONTROLPARAMETERS, TypeAliasType, NotRequired, ADD_METHODS, RESULTSEQUENCES, Protocol, reveal_type, MutableSet, SenderSequences, Concatenate, REQUIREDSEQUENCES, SupportsFloat, MutableSequence, SOLVERSEQUENCES, assert_never, NamedTuple, Text, Coroutine, ValuesView, FrozenSet, evaluate_forward_ref, SUBMODELINTERFACES, get_args, get_origin, ForwardRef, INTERFACE_METHODS, Annotated, Mapping, TypeForm, is_protocol, ChainMap, LogSequences, Iterator, TypeGuard, SUBMETHODS, runtime, ParamSpecArgs, ReceiverSequences, SUBMODELS, TypedDict, KeysView, OUTLET_METHODS, Collection, Sequence, CapsuleType, Generator, NoReturn, ParamSpec, TextIO, AsyncContextManager, ContextManager, ParamSpecKwargs, AideSequences, assert_type, UPDATEDSEQUENCES, SupportsIndex, get_annotations, dataclass_transform, no_type_check_decorator, ClassVar, AsyncGenerator, Buffer, TypeIs, SupportsAbs, Match, FULL_ODE_METHODS, Sized, Never, is_typeddict, get_original_bases, TypeVarTuple, no_type_check, FIXEDPARAMETERS, DefaultDict, get_type_hints, NewType, fastaccess_old, Literal, TypeVar, runtime_checkable, ByteString, Format, Deque, Final, deprecated, final, Callable, SENDER_METHODS, Generic, AsyncIterator, Any, RECEIVER_METHODS, fastaccess_new, cast, MappingView, DERIVEDPARAMETERS, Counter, subseqs, List, SupportsComplex, OrderedDict, CLASSES, Unpack, Awaitable, MutableMapping, INLET_METHODS, IntVar, Set, RUN_METHODS, subpars, overload, Doc, Optional, Iterable, AbstractSet, NoExtraItems, TypeAlias, get_protocol_members, ReadOnly, clear_overloads, Type, BinaryIO, Pattern, fastaccess, InputSequences, Container, Hashable, NoDefault, PART_ODE_METHODS, LiteralString, SupportsInt, Self, SupportsBytes, SupportsRound, Dict, SOLVERPARAMETERS, Reversible, pars, Required, Tuple, ItemsView, override, get_overloads, IO, subvars, TYPE_CHECKING, seqs, AnyStr

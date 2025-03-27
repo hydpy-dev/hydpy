@@ -1,0 +1,29 @@
+.. |ARMA.ar_coefs| replace:: :const:`~hydpy.auxs.armatools.ARMA.ar_coefs`
+.. |ARMA.dev_moments| replace:: :const:`~hydpy.auxs.armatools.ARMA.dev_moments`
+.. |ARMA.effective_max_ar_order| replace:: :const:`~hydpy.auxs.armatools.ARMA.effective_max_ar_order`
+.. |ARMA.ma_coefs| replace:: :const:`~hydpy.auxs.armatools.ARMA.ma_coefs`
+.. |ARMA.max_ar_order| replace:: :attr:`~hydpy.auxs.armatools.ARMA.max_ar_order`
+.. |ARMA.max_dev_coefs| replace:: :attr:`~hydpy.auxs.armatools.ARMA.max_dev_coefs`
+.. |ARMA.max_rel_rmse| replace:: :attr:`~hydpy.auxs.armatools.ARMA.max_rel_rmse`
+.. |ARMA.rel_rmse| replace:: :const:`~hydpy.auxs.armatools.ARMA.rel_rmse`
+.. |ARMA.sum_coefs| replace:: :const:`~hydpy.auxs.armatools.ARMA.sum_coefs`
+.. |ARMA.update_ar_coefs| replace:: :func:`~hydpy.auxs.armatools.ARMA.update_ar_coefs`
+.. |ARMA.update_coefs| replace:: :func:`~hydpy.auxs.armatools.ARMA.update_coefs`
+.. |ARMA.update_ma_coefs| replace:: :func:`~hydpy.auxs.armatools.ARMA.update_ma_coefs`
+.. |IUH| replace:: :class:`~hydpy.auxs.iuhtools.IUH`
+.. |MA.smallest_coeff| replace:: :attr:`~hydpy.auxs.armatools.MA.smallest_coeff`
+.. |MA.update_coefs| replace:: :func:`~hydpy.auxs.armatools.MA.update_coefs`
+.. |MA| replace:: :class:`~hydpy.auxs.armatools.MA`
+.. |iuhtools| replace:: :mod:`~hydpy.auxs.iuhtools`
+.. |property| replace:: :class:`property`
+.. |numpy.ndarray| replace:: :class:`~numpy.ndarray`
+
+.. _armatools:
+
+armatools
+=========
+
+.. automodule:: hydpy.auxs.armatools
+    :members:
+    :show-inheritance:
+    :exclude-members: Union, AsyncIterable, CONTROLPARAMETERS, TypeAliasType, NotRequired, ADD_METHODS, RESULTSEQUENCES, Protocol, reveal_type, MutableSet, Concatenate, REQUIREDSEQUENCES, SupportsFloat, MutableSequence, SOLVERSEQUENCES, assert_never, NamedTuple, Text, Coroutine, ValuesView, FrozenSet, evaluate_forward_ref, SUBMODELINTERFACES, get_args, get_origin, ForwardRef, INTERFACE_METHODS, Annotated, Mapping, TypeForm, is_protocol, ChainMap, Iterator, TypeGuard, SUBMETHODS, runtime, ParamSpecArgs, SUBMODELS, TypedDict, KeysView, OUTLET_METHODS, Collection, Sequence, CapsuleType, Generator, NoReturn, ParamSpec, TextIO, AsyncContextManager, ContextManager, ParamSpecKwargs, assert_type, UPDATEDSEQUENCES, SupportsIndex, get_annotations, dataclass_transform, no_type_check_decorator, ClassVar, AsyncGenerator, Buffer, TypeIs, SupportsAbs, Match, FULL_ODE_METHODS, Sized, Never, is_typeddict, get_original_bases, TypeVarTuple, no_type_check, FIXEDPARAMETERS, DefaultDict, get_type_hints, NewType, fastaccess_old, Literal, TypeVar, runtime_checkable, ByteString, Format, Deque, Final, deprecated, final, Callable, SENDER_METHODS, Generic, AsyncIterator, Any, RECEIVER_METHODS, fastaccess_new, cast, MappingView, DERIVEDPARAMETERS, Counter, subseqs, List, SupportsComplex, OrderedDict, CLASSES, Unpack, Awaitable, MutableMapping, INLET_METHODS, IntVar, Set, RUN_METHODS, subpars, overload, Doc, Optional, Iterable, AbstractSet, NoExtraItems, TypeAlias, get_protocol_members, ReadOnly, clear_overloads, Type, BinaryIO, Pattern, fastaccess, Container, Hashable, NoDefault, PART_ODE_METHODS, LiteralString, SupportsInt, Self, SupportsBytes, SupportsRound, Dict, SOLVERPARAMETERS, Reversible, pars, Required, Tuple, ItemsView, override, get_overloads, IO, subvars, TYPE_CHECKING, seqs, AnyStr

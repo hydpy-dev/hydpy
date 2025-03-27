@@ -1,0 +1,13 @@
+.. |Calculate_Discharge_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calculate_Discharge_V1`
+.. |wq_walrus.DOCNAME.complete| replace:: HydPy-WQ-WALRUS (WALRUS default function for calculating catchment outflow)
+.. |wq_walrus| replace:: :mod:`~hydpy.models.wq_walrus`
+
+.. _wq_walrus:
+
+wq_walrus
+=========
+
+.. automodule:: hydpy.models.wq_walrus
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, no_type_check_decorator, runtime_checkable, SENDER_METHODS, FluxSequences, Generic, subpars, Pattern, NamedTuple, Awaitable, Collection, ParamSpec, INTERFACE_METHODS, TypeIs, Union, OUTLET_METHODS, is_typeddict, SupportsInt, Never, SupportsBytes, Text, Sized, deprecated, Doc, get_args, List, INLET_METHODS, LiteralString, SupportsRound, no_type_check, ValuesView, BinaryIO, subseqs, pars, TypedDict, AideSequences, NoDefault, Container, Reversible, OutletSequences, RECEIVER_METHODS, SupportsComplex, Required, AnyStr, KeysView, TypeGuard, runtime, Annotated, Iterator, InputSequences, TypeForm, MutableSequence, FIXEDPARAMETERS, AsyncGenerator, Match, final, Optional, IntVar, RUN_METHODS, cast, UPDATEDSEQUENCES, fastaccess_new, REQUIREDSEQUENCES, ContextManager, OrderedDict, seqs, ADD_METHODS, TypeAliasType, TYPE_CHECKING, clear_overloads, Counter, fastaccess_old, TypeVarTuple, Generator, Literal, NoExtraItems, get_type_hints, Dict, Buffer, is_protocol, PART_ODE_METHODS, evaluate_forward_ref, SOLVERPARAMETERS, SupportsFloat, get_annotations, get_original_bases, AsyncContextManager, get_protocol_members, ChainMap, LogSequences, Iterable, AsyncIterator, SupportsAbs, override, DERIVEDPARAMETERS, ParamSpecKwargs, TypeAlias, InletSequences, Protocol, fastaccess, ForwardRef, reveal_type, CONTROLPARAMETERS, Coroutine, IO, MappingView, NotRequired, CapsuleType, subvars, Final, assert_never, SenderSequences, MutableMapping, Tuple, FrozenSet, TextIO, NewType, ByteString, ReadOnly, SOLVERSEQUENCES, AsyncIterable, Unpack, Sequence, SupportsIndex, SUBMODELS, ReceiverSequences, overload, RESULTSEQUENCES, TypeVar, NoReturn, AbstractSet, Self, Hashable, ItemsView, Set, MutableSet, Format, get_origin, dataclass_transform, ClassVar, Concatenate, Any, Callable, get_overloads, FactorSequences, FULL_ODE_METHODS, Type, DefaultDict, SUBMETHODS, Mapping, assert_type, SUBMODELINTERFACES, ParamSpecArgs, StateSequences, Deque

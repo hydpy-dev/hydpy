@@ -1,0 +1,35 @@
+.. |Calc_FreeDischarge_V1| replace:: :class:`~hydpy.models.dam.dam_model.Calc_FreeDischarge_V1`
+.. |CrestLevelTolerance| replace:: :class:`~hydpy.models.dam.dam_control.CrestLevelTolerance`
+.. |DischargeTolerance| replace:: :class:`~hydpy.models.dam.dam_control.DischargeTolerance`
+.. |Indexer.timeofyear| replace:: :const:`~hydpy.core.indextools.Indexer.timeofyear`
+.. |Indexer| replace:: :class:`~hydpy.core.indextools.Indexer`
+.. |Inflow| replace:: :class:`~hydpy.models.dam.dam_fluxes.Inflow`
+.. |LoggedOuterWaterLevel| replace:: :class:`~hydpy.models.dam.dam_logs.LoggedOuterWaterLevel`
+.. |LoggedRemoteWaterLevel| replace:: :class:`~hydpy.models.dam.dam_logs.LoggedRemoteWaterLevel`
+.. |Model.check_waterbalance| replace:: :func:`~hydpy.models.dam_sluice.Model.check_waterbalance`
+.. |PETModel_V1| replace:: :class:`~hydpy.interfaces.petinterfaces.PETModel_V1`
+.. |PrecipModel_V2| replace:: :class:`~hydpy.interfaces.precipinterfaces.PrecipModel_V2`
+.. |RemoteWaterLevelMaximumTolerance| replace:: :class:`~hydpy.models.dam.dam_control.RemoteWaterLevelMaximumTolerance`
+.. |Sequences.conditions| replace:: :const:`~hydpy.core.sequencetools.Sequences.conditions`
+.. |ToleranceEvaporation| replace:: :class:`~hydpy.models.dam.dam_control.ToleranceEvaporation`
+.. |WaterLevelDifference2MaxFreeDischarge| replace:: :class:`~hydpy.models.dam.dam_control.WaterLevelDifference2MaxFreeDischarge`
+.. |dam_lreservoir| replace:: :mod:`~hydpy.models.dam_lreservoir`
+.. |dam_pump| replace:: :mod:`~hydpy.models.dam_pump`
+.. |dam_sluice.DOCNAME.complete| replace:: HydPy-Dam-Sluice (sluice model)
+.. |dam_sluice| replace:: :mod:`~hydpy.models.dam_sluice`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |smooth_logistic1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic1`
+.. |smooth_logistic2| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic2`
+.. |smooth_max1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_max1`
+.. |smooth_min1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_min1`
+.. |dam_outlets.Q| replace:: :class:`~hydpy.models.dam.dam_outlets.Q`
+
+.. _dam_sluice:
+
+dam_sluice
+==========
+
+.. automodule:: hydpy.models.dam_sluice
+    :members:
+    :show-inheritance:
+    :exclude-members: Union, AsyncIterable, CONTROLPARAMETERS, TypeAliasType, NotRequired, ADD_METHODS, RESULTSEQUENCES, Protocol, reveal_type, MutableSet, SenderSequences, Concatenate, REQUIREDSEQUENCES, SupportsFloat, MutableSequence, SOLVERSEQUENCES, assert_never, NamedTuple, Text, Coroutine, ValuesView, FrozenSet, evaluate_forward_ref, SUBMODELINTERFACES, get_args, get_origin, ForwardRef, INTERFACE_METHODS, Annotated, Mapping, TypeForm, is_protocol, ChainMap, Iterator, TypeGuard, SUBMETHODS, runtime, ParamSpecArgs, SUBMODELS, TypedDict, KeysView, OUTLET_METHODS, Collection, Sequence, CapsuleType, Generator, NoReturn, ParamSpec, TextIO, AsyncContextManager, ContextManager, ParamSpecKwargs, AideSequences, assert_type, UPDATEDSEQUENCES, SupportsIndex, get_annotations, dataclass_transform, no_type_check_decorator, ClassVar, AsyncGenerator, Buffer, TypeIs, SupportsAbs, Match, FULL_ODE_METHODS, Sized, Never, is_typeddict, get_original_bases, TypeVarTuple, no_type_check, FIXEDPARAMETERS, DefaultDict, get_type_hints, NewType, fastaccess_old, Literal, TypeVar, runtime_checkable, ByteString, Format, Deque, Final, deprecated, final, Callable, SENDER_METHODS, Generic, AsyncIterator, Any, RECEIVER_METHODS, fastaccess_new, cast, MappingView, DERIVEDPARAMETERS, Counter, subseqs, List, SupportsComplex, OrderedDict, CLASSES, Unpack, Awaitable, MutableMapping, INLET_METHODS, IntVar, Set, RUN_METHODS, subpars, overload, Doc, Optional, Iterable, AbstractSet, NoExtraItems, TypeAlias, get_protocol_members, ReadOnly, clear_overloads, Type, BinaryIO, Pattern, fastaccess, InputSequences, Container, Hashable, NoDefault, PART_ODE_METHODS, LiteralString, SupportsInt, Self, SupportsBytes, SupportsRound, Dict, SOLVERPARAMETERS, Reversible, pars, Required, Tuple, ItemsView, override, get_overloads, IO, subvars, TYPE_CHECKING, seqs, AnyStr

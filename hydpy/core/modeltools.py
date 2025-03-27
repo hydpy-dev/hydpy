@@ -1267,24 +1267,19 @@ following error occurred: Model `musk_classic` is not connected to an `Element` 
 
         >>> element1 = Element("element1", inlets=(in1, in2), outlets=out1)
         >>> element1.model = prepare_model("musk_classic")
+        >>> element1.model.parameters.control.nmbsegments(0)
 
         Now all connections work as expected:
 
         >>> in1.sequences.sim = 1.0
         >>> in2.sequences.sim = 2.0
         >>> out1.sequences.sim = 3.0
+        >>> element1.model.update_inlets()
         >>> element1.model.sequences.inlets.q
         q(1.0, 2.0)
+        >>> element1.model.update_outlets()
         >>> element1.model.sequences.outlets.q
         q(3.0)
-        >>> element1.model.sequences.inlets.q *= 2.0
-        >>> element1.model.sequences.outlets.q *= 2.0
-        >>> in1.sequences.sim
-        sim(2.0)
-        >>> in2.sequences.sim
-        sim(4.0)
-        >>> out1.sequences.sim
-        sim(6.0)
 
         To show some possible errors and related error messages, we define three
         additional nodes, two handling variables different from discharge (`Q`):
@@ -1511,6 +1506,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         >>> dam2.model.update_outputs()
         >>> dam3.model.sequences.factors.waterlevel = 3.0
         >>> dam3.model.update_outputs()
+        >>> dam1.model.update_receivers(0)
         >>> dam1.model.sequences.receivers.owl
         owl(2.0)
         >>> dam1.model.sequences.receivers.rwl
@@ -1660,9 +1656,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
     def _collect_linksequences(
         self, group: str, sequences: list[sequencetools.LinkSequence]
     ) -> None:
-        seqs = self.sequences[group]
-        assert isinstance(seqs, sequencetools.LinkSequences)
-        sequences.extend(seqs)
+        sequences.extend(self.sequences[group])  # type: ignore[arg-type]
         for submodel in self.find_submodels(include_subsubmodels=False).values():
             submodel._collect_linksequences(group, sequences)
 
@@ -2508,98 +2502,75 @@ the available directories (calib_1 and calib_2).
         for submodel in self.find_submodels(include_subsubmodels=False).values():
             submodel.save_data(idx)
 
-    def update_inlets(self) -> None:
-        """Call all methods defined as "INLET_METHODS" in the defined order.
+    @staticmethod
+    def _update_pointers_in(
+        subseqs: sequencetools.InletSequences | sequencetools.ReceiverSequences,
+    ) -> None:
+        for seq in subseqs:
+            pointer = seq._get_fastaccessattribute("pointer")
+            if (pointer is not None) and (seq.NDIM == 0):
+                setattr(seq.fastaccess, seq.name, pointer[0])
+            else:
+                values = getattr(seq.fastaccess, seq.name, None)
+                if values is not None:
+                    for i in range(getattr(seq.fastaccess, f"len_{seq.name}")):
+                        values[i] = pointer[i]
 
-        >>> from hydpy.core.modeltools import AdHocModel, Method
-        >>> class print_1(Method):
-        ...     @staticmethod
-        ...     def __call__(self):
-        ...         print(1)
-        >>> class print_2(Method):
-        ...     @staticmethod
-        ...     def __call__(self):
-        ...         print(2)
-        >>> class Test(AdHocModel):
-        ...     INLET_METHODS = print_1, print_2
-        >>> Test().update_inlets()
-        1
-        2
+    @staticmethod
+    def _update_pointers_out(
+        subseqs: sequencetools.OutletSequences | sequencetools.SenderSequences,
+    ) -> None:
+        for seq in subseqs:
+            pointer = seq._get_fastaccessattribute("pointer")
+            if (pointer is not None) and (seq.NDIM == 0):
+                pointer = seq._get_fastaccessattribute("pointer")
+                pointer[0] += getattr(seq.fastaccess, seq.name)
+            else:
+                values = getattr(seq.fastaccess, seq.name, None)
+                if values is not None:
+                    for i in range(getattr(seq.fastaccess, f"len_{seq.name}")):
+                        pointer[i][0] += values[i]
+
+    def update_inlets(self) -> None:
+        """Update all link sequences and then call all methods defined as
+        "INLET_METHODS" in the defined order.
 
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
+        for model in self.find_submodels(include_mainmodel=True).values():
+            model._update_pointers_in(model.sequences.inlets)
         for method in self.INLET_METHODS:
             method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
     def update_outlets(self) -> None:
-        """Call all methods defined as "OUTLET_METHODS" in the defined order.
-
-        >>> from hydpy.core.modeltools import AdHocModel, Method
-        >>> class print_1(Method):
-        ...     @staticmethod
-        ...     def __call__(self):
-        ...         print(1)
-        >>> class print_2(Method):
-        ...     @staticmethod
-        ...     def __call__(self):
-        ...         print(2)
-        >>> class Test(AdHocModel):
-        ...     OUTLET_METHODS = print_1, print_2
-        >>> Test().update_outlets()
-        1
-        2
+        """Call all methods defined as "OUTLET_METHODS" in the defined order and then
+        update all outlet nodes.
 
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
         for method in self.OUTLET_METHODS:
             method.__call__(self)  # pylint: disable=unnecessary-dunder-call
+        for name, model in self.find_submodels(include_mainmodel=True).items():
+            model._update_pointers_out(model.sequences.outlets)
 
     def update_receivers(self, idx: int) -> None:
-        """Call all methods defined as "RECEIVER_METHODS" in the defined order.
-
-        >>> from hydpy.core.modeltools import AdHocModel, Method
-        >>> class print_1(Method):
-        ...     @staticmethod
-        ...     def __call__(self):
-        ...        print(test.idx_sim + 1)
-        >>> class print_2(Method):
-        ...     @staticmethod
-        ...     def __call__(self):
-        ...         print(test.idx_sim + 2)
-        >>> class Test(AdHocModel):
-        ...     RECEIVER_METHODS = print_1, print_2
-        >>> test = Test()
-        >>> test.update_receivers(1)
-        2
-        3
+        """Update all link sequences and then call all methods defined as
+        "RECEIVER_METHODS" in the defined order.
 
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
+        for model in self.find_submodels(include_mainmodel=True).values():
+            model._update_pointers_in(model.sequences.receivers)
         self.idx_sim = idx
         for method in self.RECEIVER_METHODS:
             method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
     def update_senders(self, idx: int) -> None:
-        """Call all methods defined as "SENDER_METHODS" in the defined order.
-
-        >>> from hydpy.core.modeltools import AdHocModel, Method
-        >>> class print_1(Method):
-        ...     @staticmethod
-        ...     def __call__(self):
-        ...        print(test.idx_sim + 1)
-        >>> class print_2(Method):
-        ...     @staticmethod
-        ...     def __call__(self):
-        ...         print(test.idx_sim + 2)
-        >>> class Test(AdHocModel):
-        ...     SENDER_METHODS = print_1, print_2
-        >>> test = Test()
-        >>> test.update_senders(1)
-        2
-        3
+        """Call all methods defined as "SENDER_METHODS" in the defined order and then
+        update all sender nodes.
 
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
@@ -2607,6 +2578,8 @@ the available directories (calib_1 and calib_2).
         self.idx_sim = idx
         for method in self.SENDER_METHODS:
             method.__call__(self)  # pylint: disable=unnecessary-dunder-call
+        for model in self.find_submodels(include_mainmodel=True).values():
+            model._update_pointers_out(model.sequences.senders)
 
     def new2old(self) -> None:
         """Call method |StateSequences.new2old| of subattribute `sequences.states`.

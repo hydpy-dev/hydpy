@@ -694,11 +694,14 @@ class Model(modeltools.SubstepModel):
     SUBMODELS = ()
 
     channelmodels = modeltools.SubmodelsProperty(routinginterfaces.ChannelModel_V1)
-    storagemodels = modeltools.SubmodelsProperty(routinginterfaces.StorageModel_V1)
+    storagemodels = modeltools.SubmodelsProperty(
+        routinginterfaces.StorageModel_V1, sidemodels=True
+    )
     routingmodels = modeltools.SubmodelsProperty(
         routinginterfaces.RoutingModel_V1,
         routinginterfaces.RoutingModel_V2,
         routinginterfaces.RoutingModel_V3,
+        sidemodels=True,
     )
 
     def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:

@@ -1607,19 +1607,12 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
     def _connect_senders(self, report_noconnect: bool = True) -> None:
         self._connect_subgroup("senders", report_noconnect)
 
-    def collect_linksequences(
-        self, group: str, sequences: list[sequencetools.LinkSequence]
-    ) -> None:
-        sequences.extend(self.sequences[group])
-        for submodel in self.find_submodels(include_subsubmodels=False).values():
-            submodel.collect_linksequences(group, sequences)
-
     def _connect_subgroup(self, group: str, report_noconnect: bool) -> None:
         st = sequencetools
         available_nodes = getattr(self.element, group)
         applied_nodes = []
-        sequences: sequencetools.LinkSequence = []
-        self.collect_linksequences(group, sequences)
+        sequences: list[sequencetools.LinkSequence] = []
+        self._collect_linksequences(group, sequences)
         for sequence in sequences:
             selected_nodes = []
             for node in available_nodes:
@@ -1663,6 +1656,15 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                 f"The following nodes have not been connected to any sequences: "
                 f"{objecttools.enumeration(remaining_nodes)}."
             )
+
+    def _collect_linksequences(
+        self, group: str, sequences: list[sequencetools.LinkSequence]
+    ) -> None:
+        seqs = self.sequences[group]
+        assert isinstance(seqs, sequencetools.LinkSequences)
+        sequences.extend(seqs)
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            submodel._collect_linksequences(group, sequences)
 
     @property
     def name(self) -> str:

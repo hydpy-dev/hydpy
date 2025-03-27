@@ -1565,11 +1565,12 @@ from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import
 from hydpy.auxs.ppolytools import Poly, PPoly  # pylint: disable=unused-import
 from hydpy.core import importtools
 from hydpy.core import modeltools
+from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import routinginterfaces
 
-# ...from musk
+# ...from sw1d
 from hydpy.models.sw1d import sw1d_control
 from hydpy.models.sw1d import sw1d_derived
 from hydpy.models.sw1d import sw1d_model
@@ -1986,6 +1987,22 @@ as rm2:
                 r.storagemodelupstream = su
                 r.storagemodelupstream_typeid = 1
                 su.routingmodelsdownstream.append_submodel(submodel=r)
+
+
+    def _collect_linksequences(
+        self, group: str, sequences: list[sequencetools.LinkSequence]
+    ) -> None:
+        if group == "inlets":
+            if (routingmodel := self.routingmodels[0]) is not None:
+                routingmodel._collect_linksequences("inlets", sequences)
+            if (storagemodel := self.storagemodels[0]) is not None:
+                storagemodel._collect_linksequences("inlets", sequences)
+        elif group == "outlets":
+            if (routingmodel := self.routingmodels[-1]) is not None:
+                routingmodel._collect_linksequences("outlets", sequences)
+        elif group == "senders":
+            if (storagemodel := self.storagemodels[0]) is not None:
+                storagemodel._collect_linksequences("senders", sequences)
 
     def _connect_inlets(self, report_noconnect: bool = False) -> None:
         super()._connect_inlets(report_noconnect)

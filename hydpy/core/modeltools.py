@@ -2561,11 +2561,11 @@ the available directories (calib_1 and calib_2).
         >>> class print_1(Method):
         ...     @staticmethod
         ...     def __call__(self):
-        ...        print(test.idx_sim+1)
+        ...        print(test.idx_sim + 1)
         >>> class print_2(Method):
         ...     @staticmethod
         ...     def __call__(self):
-        ...         print(test.idx_sim+2)
+        ...         print(test.idx_sim + 2)
         >>> class Test(AdHocModel):
         ...     RECEIVER_METHODS = print_1, print_2
         >>> test = Test()
@@ -2587,11 +2587,11 @@ the available directories (calib_1 and calib_2).
         >>> class print_1(Method):
         ...     @staticmethod
         ...     def __call__(self):
-        ...        print(test.idx_sim+1)
+        ...        print(test.idx_sim + 1)
         >>> class print_2(Method):
         ...     @staticmethod
         ...     def __call__(self):
-        ...         print(test.idx_sim+2)
+        ...         print(test.idx_sim + 2)
         >>> class Test(AdHocModel):
         ...     SENDER_METHODS = print_1, print_2
         >>> test = Test()

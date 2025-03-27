@@ -1211,6 +1211,15 @@ class Pass_Q_V1(modeltools.Method):
     Basic equation:
 
       :math:`Q = QV`
+
+    Example:
+
+        >>> from hydpy.models.gland import *
+        >>> parameterstep()
+        >>> fluxes.qv = 2.0
+        >>> model.pass_q_v1()
+        >>> outlets.q
+        q(2.0)
     """
 
     REQUIREDSEQUENCES = (gland_fluxes.QV,)
@@ -1220,7 +1229,7 @@ class Pass_Q_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
-        out.q[0] += flu.qv
+        out.q = flu.qv
 
 
 class Model(modeltools.AdHocModel):

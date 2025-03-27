@@ -28,10 +28,20 @@ else:
 
 
 class Pick_Q_V1(modeltools.Method):
-    """Query the current inflow from all inlet nodes.
+    r"""Query the current inflow from all inlet nodes.
 
     Basic equation:
-      :math:`QZ = \\sum Q`
+      :math:`QZ = \sum Q`
+
+    Example:
+
+        >>> from hydpy.models.kinw import *
+        >>> parameterstep()
+        >>> inlets.q.shape = 2
+        >>> inlets.q = 2.0, 4.0
+        >>> model.pick_q_v1()
+        >>> fluxes.qz
+        qz(6.0)
     """
 
     REQUIREDSEQUENCES = (kinw_inlets.Q,)
@@ -43,7 +53,7 @@ class Pick_Q_V1(modeltools.Method):
         inl = model.sequences.inlets.fastaccess
         flu.qz = 0.0
         for idx in range(inl.len_q):
-            flu.qz += inl.q[idx][0]
+            flu.qz += inl.q[idx]
 
 
 class Calc_QZA_V1(modeltools.Method):
@@ -2337,7 +2347,17 @@ class Calc_QA_V1(modeltools.Method):
 
 
 class Pass_Q_V1(modeltools.Method):
-    """Pass the outflow to the outlet node."""
+    """Pass the outflow to the outlet node.
+
+    Example:
+
+        >>> from hydpy.models.kinw import *
+        >>> parameterstep()
+        >>> fluxes.qa = 2.0
+        >>> model.pass_q_v1()
+        >>> outlets.q
+        q(2.0)
+    """
 
     REQUIREDSEQUENCES = (kinw_fluxes.QA,)
     RESULTSEQUENCES = (kinw_outlets.Q,)
@@ -2346,7 +2366,7 @@ class Pass_Q_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
-        out.q[0] += flu.qa
+        out.q = flu.qa
 
 
 class Return_QF_V1(modeltools.Method):

@@ -2688,7 +2688,6 @@ the available directories (calib_1 and calib_2).
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
-        position: Literal[0, -1] | None = None,
     ) -> dict[str, Model]: ...
 
     @overload
@@ -2702,7 +2701,6 @@ the available directories (calib_1 and calib_2).
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
-        position: Literal[0, -1] | None = None,
     ) -> dict[str, Model | None]: ...
 
     @overload
@@ -2742,7 +2740,6 @@ the available directories (calib_1 and calib_2).
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
-        position: Literal[0, -1] | None = None,
     ) -> dict[str, Model]: ...
 
     @overload
@@ -2756,7 +2753,6 @@ the available directories (calib_1 and calib_2).
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
-        position: Literal[0, -1] | None = None,
     ) -> dict[str, Model | None]: ...
 
     @overload
@@ -2795,7 +2791,6 @@ the available directories (calib_1 and calib_2).
         include_feedbacks: bool = False,
         aggregate_vectors: bool = False,
         repeat_sharedmodels: bool = False,
-        position: Literal[0, -1] | None = None,
     ) -> dict[str, Model] | dict[str, Model | None]:
         """Find the (sub)submodel instances of the current main model instance.
 
@@ -2971,30 +2966,11 @@ the available directories (calib_1 and calib_2).
          'model.routingmodelsupstream_0': sw1d_q_in,
          'model.storagemodeldownstream': sw1d_storage,
          'model.storagemodelupstream': sw1d_storage}
-
-        When dealing with submodel arrays handled by |SubmodelsProperty| instances, one
-        might be interested in only querying the first or the last model, which is
-        supported by the `position` parameter:
-
-        >>> pprint(channel.find_submodels(position=0))
-        {'model.routingmodels_0': sw1d_q_in, 'model.storagemodels_0': sw1d_storage}
-        >>> pprint(channel.find_submodels(position=-1))
-        {'model.routingmodels_2': sw1d_weir_out, 'model.storagemodels_1': sw1d_storage}
-        >>> pprint(channel.find_submodels(position=1))
-        Traceback (most recent call last):
-        ...
-        ValueError: The `position` argument requires the integer value `0´ or `-1`, \
-but the value `1` of type `int` is given.
         """
 
         if include_subsubmodels and include_sidemodels:
             raise ValueError(
                 "Including sub-submodels and side-models leads to ambiguous results."
-            )
-        if position not in (None, 0, -1):
-            raise ValueError(
-                "The `position` argument requires the integer value `0´ or `-1`, but "
-                f"the {objecttools.value_of_type(position)} is given."
             )
 
         def _find_submodels(name: str, model: Model) -> None:
@@ -3021,14 +2997,11 @@ but the value `1` of type `int` is given.
                         name2submodel_new[f"{submodelsname}_*"] = None
                     elif submodels := subsprop.__hydpy_mainmodel2submodels__[model]:
                         i_last = len(submodels) - 1
-                        if position is not None:
-                            submodels = [submodels[position]]
                         for i, submodel in enumerate(submodels):
                             # implement when required:
                             assert not isinstance(submodel, SharableSubmodelInterface)
                             if include_optional or (submodel is not None):
-                                j = i_last if position == -1 else i
-                                name2submodel_new[f"{submodelsname}_{j}"] = submodel
+                                name2submodel_new[f"{submodelsname}_{i}"] = submodel
 
             name2submodel.update(name2submodel_new)
             if include_subsubmodels:

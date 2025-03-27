@@ -60,8 +60,8 @@ except adding a |sw1d_gate_out| submodel at the channel outlet:
 
 We need to connect two nodes with the |sw1d_gate_out| submodel.  One node for querying
 the outflow, which must be connectible to the outlet sequence |sw1d_outlets.LongQ|.
-And another node that supplies the downstream water levels, which must be connectible
-to the receiver sequence |sw1d_receivers.WaterLevel|:
+And another (receiver!) node that supplies the downstream water levels, which must be
+connectible to the (inlet!) sequence |sw1d_inlets.WaterLevel|:
 
 >>> from hydpy import Element, Node
 >>> outflow = Node("outflow", variable="LongQ")
@@ -532,6 +532,7 @@ There is no indication of an error in the water balance:
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
+from hydpy.core import sequencetools
 from hydpy.interfaces import routinginterfaces
 
 # ...from musk
@@ -549,11 +550,13 @@ class Model(modeltools.AdHocModel, routinginterfaces.RoutingModel_V3):
     )
     __HYDPY_ROOTMODEL__ = False
 
-    INLET_METHODS = ()
+    INLET_METHODS = (
+        sw1d_model.Pick_WaterLevelDownstream_V1,
+        sw1d_model.Reset_DischargeVolume_V1,
+    )
     RECEIVER_METHODS = ()
     RUN_METHODS = ()
     INTERFACE_METHODS = (
-        sw1d_model.Perform_Preprocessing_V5,
         sw1d_model.Determine_MaxTimeStep_V5,
         sw1d_model.Determine_Discharge_V6,
         sw1d_model.Get_MaxTimeStep_V1,
@@ -561,19 +564,15 @@ class Model(modeltools.AdHocModel, routinginterfaces.RoutingModel_V3):
         sw1d_model.Get_PartialDischargeDownstream_V1,
         sw1d_model.Get_DischargeVolume_V1,
         sw1d_model.Set_TimeStep_V1,
-        sw1d_model.Perform_Postprocessing_V2,
     )
     ADD_METHODS = (
-        sw1d_model.Pick_WaterLevelDownstream_V1,
-        sw1d_model.Reset_DischargeVolume_V1,
         sw1d_model.Calc_WaterLevelUpstream_V1,
         sw1d_model.Calc_WaterLevel_V4,
         sw1d_model.Calc_MaxTimeStep_V5,
         sw1d_model.Calc_Discharge_V3,
         sw1d_model.Update_DischargeVolume_V1,
-        sw1d_model.Pass_Discharge_V1,
     )
-    OUTLET_METHODS = ()
+    OUTLET_METHODS = (sw1d_model.Pass_Discharge_V1,)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (
         routinginterfaces.RoutingModel_V1,
@@ -593,6 +592,14 @@ class Model(modeltools.AdHocModel, routinginterfaces.RoutingModel_V3):
         routinginterfaces.RoutingModel_V2,
         sidemodels=True,
     )
+
+    def __hydpy__collect_linksequences__(
+        self, group: str, sequences: list[sequencetools.LinkSequence]
+    ) -> None:
+        if group == "outlets":
+            sequences.append(self.sequences.outlets.longq)
+        elif group == "receivers":
+            sequences.append(self.sequences.inlets.waterlevel)
 
 
 tester = Tester()

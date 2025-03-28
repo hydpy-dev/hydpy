@@ -2538,8 +2538,9 @@ the available directories (calib_1 and calib_2).
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
-        for model in self.find_submodels(include_mainmodel=True).values():
-            model._update_pointers_in(model.sequences.inlets)
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            submodel.update_inlets()
+        self._update_pointers_in(self.sequences.inlets)
         for method in self.INLET_METHODS:
             method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
@@ -2550,10 +2551,11 @@ the available directories (calib_1 and calib_2).
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            submodel.update_outlets()
         for method in self.OUTLET_METHODS:
             method.__call__(self)  # pylint: disable=unnecessary-dunder-call
-        for name, model in self.find_submodels(include_mainmodel=True).items():
-            model._update_pointers_out(model.sequences.outlets)
+        self._update_pointers_out(self.sequences.outlets)
 
     def update_receivers(self, idx: int) -> None:
         """Update all link sequences and then call all methods defined as
@@ -2562,9 +2564,10 @@ the available directories (calib_1 and calib_2).
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
-        for model in self.find_submodels(include_mainmodel=True).values():
-            model._update_pointers_in(model.sequences.receivers)
         self.idx_sim = idx
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            submodel.update_receivers(idx)
+        self._update_pointers_in(self.sequences.receivers)
         for method in self.RECEIVER_METHODS:
             method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
@@ -2576,10 +2579,11 @@ the available directories (calib_1 and calib_2).
         Python version with a model-specific Cython version.
         """
         self.idx_sim = idx
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            submodel.update_senders(idx)
         for method in self.SENDER_METHODS:
             method.__call__(self)  # pylint: disable=unnecessary-dunder-call
-        for model in self.find_submodels(include_mainmodel=True).values():
-            model._update_pointers_out(model.sequences.senders)
+        self._update_pointers_out(self.sequences.senders)
 
     def new2old(self) -> None:
         """Call method |StateSequences.new2old| of subattribute `sequences.states`.

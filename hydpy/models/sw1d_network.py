@@ -671,7 +671,7 @@ class Model(modeltools.SubstepModel):
     """|sw1d_network| is a composite model.  (One usually only works with it 
     indirectly.)"""
 
-    INLET_METHODS = (sw1d_model.Trigger_Preprocessing_V1,)
+    INLET_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         sw1d_model.Calc_MaxTimeSteps_V1,
@@ -682,7 +682,7 @@ class Model(modeltools.SubstepModel):
     )
     INTERFACE_METHODS = ()
     ADD_METHODS = ()
-    OUTLET_METHODS = (sw1d_model.Trigger_Postprocessing_V1,)
+    OUTLET_METHODS = ()
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (
         routinginterfaces.RoutingModel_V1,

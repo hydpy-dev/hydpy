@@ -30,14 +30,12 @@ class Model(sw1d_model.Main_CrossSectionModel_V2, routinginterfaces.RoutingModel
     )
     __HYDPY_ROOTMODEL__ = False
 
-    INLET_METHODS = ()
+    INLET_METHODS = (sw1d_model.Pick_Outflow_V1,)
     RECEIVER_METHODS = ()
     RUN_METHODS = ()
     INTERFACE_METHODS = (
-        sw1d_model.Perform_Preprocessing_V4,
         sw1d_model.Determine_MaxTimeStep_V4,
         sw1d_model.Determine_Discharge_V4,
-        sw1d_model.Perform_Postprocessing_V4,
         sw1d_model.Get_MaxTimeStep_V1,
         sw1d_model.Get_Discharge_V1,
         sw1d_model.Get_PartialDischargeDownstream_V1,
@@ -45,15 +43,13 @@ class Model(sw1d_model.Main_CrossSectionModel_V2, routinginterfaces.RoutingModel
         sw1d_model.Set_TimeStep_V1,
     )
     ADD_METHODS = (
-        sw1d_model.Pick_Outflow_V1,
         sw1d_model.Calc_WaterLevelUpstream_V1,
         sw1d_model.Calc_WaterLevel_V3,
         sw1d_model.Calc_WaterDepth_WettedArea_CrossSectionModel_V2,
         sw1d_model.Calc_WaterDepth_WettedArea_V1,
         sw1d_model.Calc_MaxTimeStep_V4,
-        sw1d_model.Calc_DischargeVolume_V2,
     )
-    OUTLET_METHODS = ()
+    OUTLET_METHODS = (sw1d_model.Calc_DischargeVolume_V2,)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (
         routinginterfaces.CrossSectionModel_V2,

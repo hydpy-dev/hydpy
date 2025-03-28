@@ -28,27 +28,25 @@ class Model(sw1d_model.Main_CrossSectionModel_V2, routinginterfaces.StorageModel
     )
     __HYDPY_ROOTMODEL__ = False
 
-    INLET_METHODS = ()
+    INLET_METHODS = (
+        sw1d_model.Pick_LateralFlow_V1,
+        sw1d_model.Calc_WaterDepth_WaterLevel_V1,
+    )
     RECEIVER_METHODS = ()
     RUN_METHODS = ()
     INTERFACE_METHODS = (
-        sw1d_model.Perform_Preprocessing_V3,
         sw1d_model.Update_Storage_V1,
-        sw1d_model.Perform_Postprocessing_V3,
         sw1d_model.Get_WaterVolume_V1,
         sw1d_model.Get_WaterLevel_V1,
         sw1d_model.Set_TimeStep_V1,
     )
     ADD_METHODS = (
-        sw1d_model.Pick_LateralFlow_V1,
         sw1d_model.Calc_NetInflow_V1,
         sw1d_model.Update_WaterVolume_V1,
-        sw1d_model.Calc_WaterDepth_WaterLevel_V1,
         sw1d_model.Calc_WaterDepth_WaterLevel_CrossSectionModel_V2,
-        sw1d_model.Pass_WaterLevel_V1,
     )
     OUTLET_METHODS = ()
-    SENDER_METHODS = ()
+    SENDER_METHODS = (sw1d_model.Pass_WaterLevel_V1,)
     SUBMODELINTERFACES = (
         routinginterfaces.CrossSectionModel_V2,
         routinginterfaces.RoutingModel_V1,

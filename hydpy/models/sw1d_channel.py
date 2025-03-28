@@ -1594,7 +1594,7 @@ class Model(modeltools.SubstepModel, routinginterfaces.ChannelModel_V1):
     )
     __HYDPY_ROOTMODEL__ = True
 
-    INLET_METHODS = (sw1d_model.Trigger_Preprocessing_V1,)
+    INLET_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         sw1d_model.Calc_MaxTimeSteps_V1,
@@ -1606,10 +1606,7 @@ class Model(modeltools.SubstepModel, routinginterfaces.ChannelModel_V1):
     )
     INTERFACE_METHODS = ()
     ADD_METHODS = ()
-    OUTLET_METHODS = (
-        sw1d_model.Trigger_Postprocessing_V1,
-        sw1d_model.Calc_Discharges_V2,
-    )
+    OUTLET_METHODS = (sw1d_model.Calc_Discharges_V2,)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (
         routinginterfaces.RoutingModel_V1,

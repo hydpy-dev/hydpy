@@ -1000,15 +1000,7 @@ class PyxWriter:
                 pyx(1, "pass")
             for seq in subseqs:
                 ctype = f"double{NDIM2STR[seq.NDIM]}"
-                if isinstance(subseqs, sqt.LinkSequences):
-                    if seq.NDIM == 0:
-                        pxd(1, f"cdef double *{seq.name}")
-                    elif seq.NDIM == 1:
-                        pxd(1, f"cdef double **{seq.name}")
-                        pxd(1, f"cdef public {INT} len_{seq.name}")
-                        pxd(1, f"cdef public {TYPE2STR[int]}[:] _{seq.name}_ready")
-                else:
-                    pxd(1, f"cdef public {ctype} {seq.name}")
+                pxd(1, f"cdef public {ctype} {seq.name}")
                 pxd(1, f"cdef public {INT} _{seq.name}_ndim")
                 pxd(1, f"cdef public {INT} _{seq.name}_length")
                 for idx in range(seq.NDIM):
@@ -1022,13 +1014,20 @@ class PyxWriter:
                         pxd(1, f"cdef public {ctype} _{seq.name}_sum")
                 if isinstance(seq, sqt.IOSequence):
                     self.iosequence(lines, seq)
+                if isinstance(subseqs, sqt.LinkSequences):
+                    if seq.NDIM == 0:
+                        pxd(1, f"cdef double *_{seq.name}_pointer")
+                    elif seq.NDIM == 1:
+                        pxd(1, f"cdef double **_{seq.name}_pointer")
+                        pxd(1, f"cdef public {INT} len_{seq.name}")
+                        pxd(1, f"cdef public {TYPE2STR[int]}[:] _{seq.name}_ready")
             if isinstance(subseqs, sqt.IOSequences):
                 self.load_data(lines, subseqs)
                 self.save_data(lines, subseqs)
             if isinstance(subseqs, sqt.LinkSequences):
                 self.set_pointer(lines, subseqs)
-                self.get_value(lines, subseqs)
-                self.set_value(lines, subseqs)
+                self.get_pointervalue(lines, subseqs)
+                self.set_pointervalue(lines, subseqs)
             if isinstance(subseqs, (sqt.InputSequences, sqt.OutputSequences)):
                 self.set_pointer(lines, subseqs)
             if isinstance(subseqs, sqt.OutputSequences):
@@ -1186,8 +1185,8 @@ class PyxWriter:
             if any(seq.NDIM == 0 for seq in subseqs):
                 self.set_pointer0d(lines, subseqs)
             if any(seq.NDIM == 1 for seq in subseqs):
-                self.alloc(lines, subseqs)
-                self.dealloc(lines, subseqs)
+                self.alloc_pointers(lines, subseqs)
+                self.dealloc_pointers(lines, subseqs)
                 self.set_pointer1d(lines, subseqs)
 
     @staticmethod
@@ -1203,44 +1202,44 @@ class PyxWriter:
         pyx(2, "cdef pointerutils.PDouble pointer = pointerutils.PDouble(value)")
         for seq in (seq for seq in subseqs if seq.NDIM == 0):
             pyx(2, f'if name == "{seq.name}":')
-            pyx(3, f"self.{seq.name} = pointer.p_value")
+            pyx(3, f"self._{seq.name}_pointer = pointer.p_value")
 
     @staticmethod
-    def get_value(
+    def get_pointervalue(
         lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]
     ) -> None:
-        """Get value statements for link sequences."""
+        """Get pointer value statements for link sequences."""
         print("            . get_value")
         pyx, both = lines.pyx.add, lines.add
-        both(1, "cpdef get_value(self, str name):")
+        both(1, "cpdef get_pointervalue(self, str name):")
         pyx(2, f"cdef {INT} idx")
         for seq in subseqs:
             pyx(2, f'if name == "{seq.name}":')
             if seq.NDIM == 0:
-                pyx(3, f"return self.{seq.name}[0]")
+                pyx(3, f"return self._{seq.name}_pointer[0]")
             elif seq.NDIM == 1:
                 pyx(3, f"values = numpy.empty(self.len_{seq.name})")
                 pyx(3, f"for idx in range(self.len_{seq.name}):")
                 PyxWriter._check_pointer(lines, seq)
-                pyx(4, f"values[idx] = self.{seq.name}[idx][0]")
+                pyx(4, f"values[idx] = self._{seq.name}_pointer[idx][0]")
                 pyx(3, "return values")
 
     @staticmethod
-    def set_value(
+    def set_pointervalue(
         lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]
     ) -> None:
-        """Set value statements for link sequences."""
-        print("            . set_value")
+        """Set pointer value statements for link sequences."""
+        print("            . set_pointervalue")
         pyx, both = lines.pyx.add, lines.add
         both(1, "cpdef set_value(self, str name, value):")
         for seq in subseqs:
             pyx(2, f'if name == "{seq.name}":')
             if seq.NDIM == 0:
-                pyx(3, f"self.{seq.name}[0] = value")
+                pyx(3, f"self._{seq.name}_pointer[0] = value")
             elif seq.NDIM == 1:
                 pyx(3, f"for idx in range(self.len_{seq.name}):")
                 PyxWriter._check_pointer(lines, seq)
-                pyx(4, f"self.{seq.name}[idx][0] = value[idx]")
+                pyx(4, f"self._{seq.name}_pointer[idx][0] = value[idx]")
 
     @staticmethod
     def _check_pointer(lines: PyxPxdLines, seq: sequencetools.LinkSequence) -> None:
@@ -1251,11 +1250,13 @@ class PyxWriter:
         pyx(5, f"pointerutils.check2(self._{seq.name}_ready, idx)")
 
     @staticmethod
-    def alloc(lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]) -> None:
+    def alloc_pointers(
+        lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]
+    ) -> None:
         """Allocate memory statements for 1-dimensional link sequences."""
         print("            . setlength")
         pyx, both = lines.pyx.add, lines.add
-        both(1, f"cpdef inline alloc(self, name, {TYPE2STR[int]} length):")
+        both(1, f"cpdef inline alloc_pointer(self, name, {TYPE2STR[int]} length):")
         for seq in (seq for seq in subseqs if seq.NDIM == 1):
             pyx(2, f'if name == "{seq.name}":')
             pyx(3, f"self._{seq.name}_length_0 = length")
@@ -1266,19 +1267,21 @@ class PyxWriter:
             )
             pyx(
                 3,
-                f"self.{seq.name} = "
+                f"self._{seq.name}_pointer = "
                 f"<double**> PyMem_Malloc(length * sizeof(double*))",
             )
 
     @staticmethod
-    def dealloc(lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]) -> None:
+    def dealloc_pointers(
+        lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]
+    ) -> None:
         """Deallocate memory statements for 1-dimensional link sequences."""
         print("            . dealloc")
         pyx, both = lines.pyx.add, lines.add
-        both(1, "cpdef inline dealloc(self, name):")
+        both(1, "cpdef inline dealloc_pointer(self, name):")
         for seq in (seq for seq in subseqs if seq.NDIM == 1):
             pyx(2, f'if name == "{seq.name}":')
-            pyx(3, f"PyMem_Free(self.{seq.name})")
+            pyx(3, f"PyMem_Free(self._{seq.name}_pointer)")
 
     @staticmethod
     def set_pointer1d(
@@ -1295,7 +1298,7 @@ class PyxWriter:
         pyx(2, "cdef pointerutils.PDouble pointer = pointerutils.PDouble(value)")
         for seq in (seq for seq in subseqs if seq.NDIM == 1):
             pyx(2, f'if name == "{seq.name}":')
-            pyx(3, f"self.{seq.name}[idx] = pointer.p_value")
+            pyx(3, f"self._{seq.name}_pointer[idx] = pointer.p_value")
             pyx(3, f"self._{seq.name}_ready[idx] = 1")
 
     @classmethod
@@ -1507,6 +1510,17 @@ class PyxWriter:
             self.calculate_error(lines)
             self.extrapolate_error(lines)
 
+    @property
+    def has_submodels(self) -> bool:
+        """Can the model handle any submodels?"""
+        return bool(
+            self.model.find_submodels(
+                include_optional=True,
+                include_subsubmodels=False,
+                aggregate_vectors=True,
+            )
+        )
+
     def simulate(self, lines: PyxPxdLines) -> None:
         """Simulation statements."""
         print("                . simulate")
@@ -1520,7 +1534,7 @@ class PyxWriter:
         seqs = self.model.sequences
         if seqs.inputs or self.model.SUBMODELINTERFACES:
             pyx(2, "self.load_data(idx)")
-        if self.model.INLET_METHODS:
+        if self.model.INLET_METHODS or self.has_submodels:
             pyx(2, "self.update_inlets()")
         if isinstance(self.model, modeltools.SolverModel):
             pyx(2, "self.solve()")
@@ -1528,7 +1542,7 @@ class PyxWriter:
             pyx(2, "self.run()")
             if seqs.states:
                 pyx(2, "self.new2old()")
-        if self.model.OUTLET_METHODS:
+        if self.model.OUTLET_METHODS or self.has_submodels:
             pyx(2, "self.update_outlets()")
         if seqs.factors or seqs.fluxes or seqs.states:
             pyx(2, "self.update_outputs()")
@@ -1719,13 +1733,51 @@ class PyxWriter:
             for method in methods:
                 pyx(4, f"self.{method.__name__.lower()}()")
 
-    def update_receivers(self, lines: PyxPxdLines) -> None:
-        """Lines of the model method with the same name."""
-        self._call_methods(lines, "update_receivers", self.model.RECEIVER_METHODS, True)
-
     def update_inlets(self, lines: PyxPxdLines) -> None:
         """Lines of the model method with the same name."""
-        self._call_methods(lines, "update_inlets", self.model.INLET_METHODS)
+        self._update_inlets_receivers(lines=lines, group="inlets", idx_as_arg=False)
+
+    def update_receivers(self, lines: PyxPxdLines) -> None:
+        """Lines of the model method with the same name."""
+        self._update_inlets_receivers(lines=lines, group="receivers", idx_as_arg=True)
+
+    def _update_inlets_receivers(
+        self, lines: PyxPxdLines, group: str, idx_as_arg: bool
+    ) -> None:
+
+        new_lines = PyxPxdLines()
+
+        methods = getattr(self.model, f"{group[:-1].upper()}_METHODS")
+        self._call_methods(
+            lines=new_lines,
+            name=f"update_{group}",
+            methods=methods,
+            idx_as_arg=idx_as_arg,
+        )
+
+        lines.pxd.append(new_lines.pxd[0])
+        lines.pyx.extend(new_lines.pyx[: 1 + idx_as_arg])
+        if new_lines.pyx[-1].endswith(" pass") and self.has_submodels:
+            del new_lines.pyx[-1]
+
+        methodcall = f"update_{group}({'idx' if idx_as_arg else ''})"
+        self._call_submodel_method(lines=new_lines, methodcall=methodcall)
+
+        pyx = lines.pyx.add
+        pyx(2, f"cdef {INT} i")
+        for seq in self.model.sequences[group]:
+            group_ = f"self.sequences.{group}"
+            pointer = f"{group_}._{seq.name}_pointer"
+            value = f"{group_}.{seq.name}"
+            if seq.NDIM == 0:
+                pyx(2, f"{value} = {pointer}[0]")
+            elif seq.NDIM == 1:
+                pyx(2, f"for i in range({group_}._{seq.name}_length_0):")
+                pyx(3, f"{value}[i] = {pointer}[i][0]")
+            else:
+                assert False
+
+        lines.pyx.extend(new_lines.pyx[1 + idx_as_arg :])
 
     def run(self, lines: PyxPxdLines, model: modeltools.RunModel) -> None:
         """Return the lines of the model method with the same name."""
@@ -1749,11 +1801,49 @@ class PyxWriter:
 
     def update_outlets(self, lines: PyxPxdLines) -> None:
         """Lines of the model method with the same name."""
-        self._call_methods(lines, "update_outlets", self.model.OUTLET_METHODS)
+        self._update_outlets_senders(lines=lines, group="outlets", idx_as_arg=False)
 
     def update_senders(self, lines: PyxPxdLines) -> None:
         """Lines of the model method with the same name."""
-        self._call_methods(lines, "update_senders", self.model.SENDER_METHODS, True)
+        self._update_outlets_senders(lines=lines, group="senders", idx_as_arg=True)
+
+    def _update_outlets_senders(
+        self, lines: PyxPxdLines, group: str, idx_as_arg: bool
+    ) -> None:
+
+        new_lines = PyxPxdLines()
+
+        methods = getattr(self.model, f"{group[:-1].upper()}_METHODS")
+        self._call_methods(
+            lines=new_lines,
+            name=f"update_{group}",
+            methods=methods,
+            idx_as_arg=idx_as_arg,
+        )
+
+        lines.pxd.append(new_lines.pxd[0])
+        lines.pyx.extend(new_lines.pyx[: 1 + idx_as_arg])
+        if new_lines.pyx[-1].endswith(" pass") and self.has_submodels:
+            del new_lines.pyx[-1]
+
+        methodcall = f"update_{group}({'idx' if idx_as_arg else ''})"
+        self._call_submodel_method(lines=lines, methodcall=methodcall)
+
+        lines.pyx.extend(new_lines.pyx[1 + idx_as_arg :])
+
+        pyx = lines.pyx.add
+        pyx(2, f"cdef {INT} i")
+        for seq in self.model.sequences[group]:
+            group_ = f"self.sequences.{group}"
+            pointer = f"{group_}._{seq.name}_pointer"
+            value = f"{group_}.{seq.name}"
+            if seq.NDIM == 0:
+                pyx(2, f"{pointer}[0] = {pointer}[0] + {value}")
+            elif seq.NDIM == 1:
+                pyx(2, f"for i in range({group_}._{seq.name}_length_0):")
+                pyx(3, f"{pointer}[i][0] = {pointer}[i][0] + {value}[i]")
+            else:
+                assert False
 
     def update_outputs_model(self, lines: PyxPxdLines) -> None:
         """Lines of the model method with the same name (except the `_model` suffix)."""

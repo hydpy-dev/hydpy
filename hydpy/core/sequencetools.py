@@ -254,7 +254,7 @@ class FastAccessLinkSequence(FastAccessIOSequence):
         ppdouble: pointerutils.PPDouble = getattr(self, f"_{name}_pointer")
         ppdouble.set_pointer(value, idx)
 
-    def get_value(self, name: str) -> float | NDArrayFloat:
+    def get_pointervalue(self, name: str) -> float | NDArrayFloat:
         """Return the actual value(s) referenced by the pointer(s) of the
         |LinkSequence| object with the given name."""
         value = getattr(self, f"_{name}_pointer")[:]
@@ -262,7 +262,7 @@ class FastAccessLinkSequence(FastAccessIOSequence):
             return numpy.asarray(value, dtype=config.NP_FLOAT)
         return float(value)
 
-    def set_value(self, name: str, value: Mayberable1[float]) -> None:
+    def set_pointervalue(self, name: str, value: Mayberable1[float]) -> None:
         """Set the actual value(s) referenced by the pointer(s) of the
         |LinkSequence| object with the given name."""
         getattr(self, f"_{name}_pointer")[:] = value

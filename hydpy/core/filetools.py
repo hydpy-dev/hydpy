@@ -1664,8 +1664,8 @@ not allowed to overwrite the existing file `...`.
                 filepath = sequence.filepath
                 if not sequence.overwrite and os.path.exists(filepath):
                     raise OSError(
-                        f"Sequence {objecttools.devicephrase(sequence)} is not allowed "
-                        f"to overwrite the existing file `{filepath}`."
+                        f"Sequence {objecttools.devicephrase(sequence)} is not "
+                        f"allowed to overwrite the existing file `{filepath}`."
                     )
                 if sequence.filetype == "npy":
                     self._save_npy(array, filepath)

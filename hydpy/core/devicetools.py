@@ -1726,6 +1726,14 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
             element.prepare_stateseries(allocate_ram=allocate_ram, write_jit=write_jit)
 
     @printtools.print_progress
+    def prepare_linkseries(
+        self, allocate_ram: bool = True, write_jit: bool = False
+    ) -> None:
+        """Call method |Element.prepare_linkseries| of all handled |Element| objects."""
+        for element in printtools.progressbar(self):
+            element.prepare_linkseries(allocate_ram=allocate_ram, write_jit=write_jit)
+
+    @printtools.print_progress
     @netcdftools.add_netcdfreading
     def load_allseries(self) -> None:
         """Call method |Element.load_inputseries| of all handled |Element| objects."""
@@ -1761,6 +1769,13 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
             element.load_stateseries()
 
     @printtools.print_progress
+    @netcdftools.add_netcdfreading
+    def load_linkseries(self) -> None:
+        """Call method |Element.load_linkseries| of all handled |Element| objects."""
+        for element in printtools.progressbar(self):
+            element.load_linkseries()
+
+    @printtools.print_progress
     @netcdftools.add_netcdfwriting
     def save_allseries(self) -> None:
         """Call method |Element.save_allseries| of all handled |Element| objects."""
@@ -1794,6 +1809,13 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
         """Call method |Element.save_stateseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
             element.save_stateseries()
+
+    @printtools.print_progress
+    @netcdftools.add_netcdfwriting
+    def save_linkseries(self) -> None:
+        """Call method |Element.save_linkseries| of all handled |Element| objects."""
+        for element in printtools.progressbar(self):
+            element.save_linkseries()
 
 
 class Device:
@@ -3316,6 +3338,14 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         for model in self.model.find_submodels(include_mainmodel=True).values():
             model.prepare_stateseries(allocate_ram=allocate_ram, write_jit=write_jit)
 
+    def prepare_linkseries(
+        self, allocate_ram: bool = True, write_jit: bool = False
+    ) -> None:
+        """Call method |Model.prepare_linkseries| of the currently handled |Model|
+        instance and its submodels."""
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.prepare_linkseries(allocate_ram=allocate_ram, write_jit=write_jit)
+
     def load_allseries(self) -> None:
         """Call method |Model.load_allseries| of the currently handled |Model|
         instance and its submodels."""
@@ -3346,6 +3376,12 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         for model in self.model.find_submodels(include_mainmodel=True).values():
             model.load_stateseries()
 
+    def load_linkseries(self) -> None:
+        """Call method |Model.load_linkseries| of the currently handled |Model|
+        instance and its submodels."""
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.load_linkseries()
+
     def save_allseries(self) -> None:
         """Call method |Model.save_allseries| of the currently handled |Model|
         instance and its submodels."""
@@ -3375,6 +3411,12 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         instance and its submodels."""
         for model in self.model.find_submodels(include_mainmodel=True).values():
             model.save_stateseries()
+
+    def save_linkseries(self) -> None:
+        """Call method |Model.save_linkseries| of the currently handled |Model|
+        instance and its submodels."""
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.save_linkseries()
 
     def _plot_series(
         self,

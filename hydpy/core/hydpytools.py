@@ -340,6 +340,9 @@ required to prepare the model properly.
     >>> model.sequences.fluxes.qt.series
     InfoArray([nan, nan, nan, nan])
 
+    >>> model.sequences.outlets.q.series
+    InfoArray([nan, nan, nan, nan])
+
     >>> hp.nodes.dill_assl.sequences.sim.series
     InfoArray([nan, nan, nan, nan])
 
@@ -376,6 +379,9 @@ required to prepare the model properly.
     >>> round_(model.sequences.fluxes.qt.series)
     11.757526, 8.865079, 7.101815, 5.994195
 
+    >>> round_(model.sequences.fluxes.qt.series)
+    11.757526, 8.865079, 7.101815, 5.994195
+
     >>> round_(hp.nodes.dill_assl.sequences.sim.series)
     11.757526, 8.865079, 7.101815, 5.994195
 
@@ -393,6 +399,9 @@ required to prepare the model properly.
 
     >>> model.sequences.fluxes.qt
     qt(5.994195)
+
+    >>> model.sequences.outlets.q
+    q(5.994195)
 
     >>> hp.nodes.dill_assl.sequences.sim
     sim(5.994195)
@@ -417,13 +426,14 @@ required to prepare the model properly.
     ...     hp.save_factorseries()
     ...     hp.save_fluxseries()
     ...     hp.save_stateseries()
+    ...     hp.save_linkseries()
     ...     hp.save_simseries()
     ...     hp.save_obsseries()
 
     Alternatively, apply |HydPy.save_modelseries| to write the series of all the
-    |InputSequence|, |FactorSequence|, |FluxSequence|, and |StateSequence| objects and
-    |HydPy.save_nodeseries| to write the series of all |Sim| and |Obs| objects in one
-    step:
+    |InputSequence|, |FactorSequence|, |FluxSequence|, |StateSequence|, and
+    |LinkSequence| objects and |HydPy.save_nodeseries| to write the series of all |Sim|
+    and |Obs| objects in one step:
 
     >>> with TestIO():
     ...     hp.save_modelseries()
@@ -439,7 +449,8 @@ required to prepare the model properly.
 
     >>> model.sequences.inputs.t.series = 0.0
     >>> model.sequences.states.sm.series = 0.0
-    >>> model.sequences.inputs.t.series = 0.0
+    >>> model.sequences.fluxes.qt.series = 0.0
+    >>> model.sequences.outlets.q.series = 0.0
     >>> hp.nodes.dill_assl.sequences.sim.series = 0.0
 
     Now, we can reload the time series of all relevant sequences.  However, doing so
@@ -455,6 +466,7 @@ required to prepare the model properly.
     ...     hp.load_factorseries()
     ...     hp.load_fluxseries()
     ...     hp.load_stateseries()
+    ...     hp.load_linkseries()
     ...     hp.load_simseries()
     ...     hp.load_obsseries()
 
@@ -477,6 +489,9 @@ required to prepare the model properly.
     184.958475, 184.763638, 184.610776, 184.553224
 
     >>> round_(model.sequences.fluxes.qt.series)
+    11.757526, 8.865079, 7.101815, 5.994195
+
+    >>> round_(model.sequences.outlets.q.series)
     11.757526, 8.865079, 7.101815, 5.994195
 
     >>> round_(hp.nodes.dill_assl.sequences.sim.series)
@@ -529,6 +544,7 @@ required to prepare the model properly.
     >>> hp.prepare_factorseries(allocate_ram=False, write_jit=True)
     >>> hp.prepare_fluxseries(allocate_ram=False, write_jit=True)
     >>> hp.prepare_stateseries(allocate_ram=False, write_jit=True)
+    >>> hp.prepare_linkseries(allocate_ram=False, write_jit=True)
     >>> hp.prepare_simseries(allocate_ram=False, write_jit=True)
     >>> hp.prepare_obsseries(allocate_ram=False, read_jit=True)
 
@@ -546,6 +562,9 @@ required to prepare the model properly.
     False
 
     >>> attrready(model.sequences.fluxes.qt, "series")
+    False
+
+    >>> attrready(model.sequences.outlets.q, "series")
     False
 
     >>> attrready(hp.nodes.dill_assl.sequences.sim, "series")
@@ -596,6 +615,9 @@ required to prepare the model properly.
     >>> round_(model.sequences.fluxes.qt.series)
     11.757526, 8.865079, 7.101815, 5.994195
 
+    >>> round_(model.sequences.outlets.q.series)
+    11.757526, 8.865079, 7.101815, 5.994195
+
     >>> round_(hp.nodes.dill_assl.sequences.sim.series)
     11.757526, 8.865079, 7.101815, 5.994195
 
@@ -615,6 +637,9 @@ required to prepare the model properly.
     False
 
     >>> attrready(model.sequences.fluxes.qt, "series")
+    False
+
+    >>> attrready(model.sequences.outlets.q, "series")
     False
 
     >>> attrready(hp.nodes.dill_assl.sequences.sim, "series")
@@ -650,6 +675,9 @@ required to prepare the model properly.
     >>> round_(model.sequences.fluxes.qt.series)
     11.757526, 8.865079, 7.101815, 5.994195
 
+    >>> round_(model.sequences.outlets.q.series)
+    11.757526, 8.865079, 7.101815, 5.994195
+
     >>> round_(hp.nodes.dill_assl.sequences.sim.series)
     11.757526, 8.865079, 7.101815, 5.994195
 
@@ -672,6 +700,9 @@ required to prepare the model properly.
     184.958475, 184.763638, 184.610776, 184.553224
 
     >>> round_(model.sequences.fluxes.qt.series)
+    11.757526, 8.865079, 7.101815, 5.994195
+
+    >>> round_(model.sequences.outlets.q.series)
     11.757526, 8.865079, 7.101815, 5.994195
 
     >>> round_(hp.nodes.dill_assl.sequences.sim.series)
@@ -2952,6 +2983,13 @@ method `simulate` instead.
             allocate_ram=allocate_ram, write_jit=write_jit
         )
 
+    def prepare_linkseries(
+        self, allocate_ram: bool = True, write_jit: bool = False
+    ) -> None:
+        """An alternative method for |HydPy.prepare_allseries| specialised for model
+        link sequences."""
+        self.elements.prepare_linkseries(allocate_ram=allocate_ram, write_jit=write_jit)
+
     def prepare_nodeseries(self, allocate_ram: bool = True, jit: bool = False) -> None:
         """An alternative method for |HydPy.prepare_allseries| specialised for node
         sequences."""
@@ -3009,6 +3047,11 @@ method `simulate` instead.
         state sequences."""
         self.elements.save_stateseries()
 
+    def save_linkseries(self) -> None:
+        """An alternative method for |HydPy.save_modelseries| specialised for model
+        link sequences."""
+        self.elements.save_linkseries()
+
     def save_nodeseries(self) -> None:
         """An alternative method for |HydPy.save_modelseries| specialised for node
         sequences."""
@@ -3057,6 +3100,11 @@ method `simulate` instead.
         """An alternative method for |HydPy.load_modelseries| specialised for model
         state sequences."""
         self.elements.load_stateseries()
+
+    def load_linkseries(self) -> None:
+        """An alternative method for |HydPy.load_modelseries| specialised for model
+        link sequences."""
+        self.elements.load_linkseries()
 
     def load_nodeseries(self) -> None:
         """An alternative method for |HydPy.load_modelseries| specialised for node

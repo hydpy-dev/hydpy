@@ -80,7 +80,17 @@ ModelSequencesSubypes: TypeAlias = Union[
     "SenderSequences",
 ]
 ModelIOSequencesSubtypes: TypeAlias = Union[
-    "InputSequences", "FactorSequences", "FluxSequences", "StateSequences"
+    "InputSequences",
+    "FactorSequences",
+    "FluxSequences",
+    "StateSequences",
+    "InletSequences",
+    "OutletSequences",
+    "ReceiverSequences",
+    "SenderSequences",
+]
+LinkSequencesSubtypes: TypeAlias = Union[
+    "InletSequences", "OutletSequences", "ReceiverSequences", "SenderSequences"
 ]
 
 InOutSequence: TypeAlias = Union[
@@ -542,33 +552,41 @@ class Sequences:
 
     After applying |Sequences.prepare_series|, you can use the methods
     |Sequences.load_series| and |Sequences.save_series| to read or write the time
-    series of the relevant |InputSequence|, |FactorSequence|, |FluxSequence|, and
-    |StateSequence| object, as the following technical test suggests.  The
-    documentation on class |IOSequence| explains the underlying functionalities of in
-    more detail.
+    series of the relevant |InputSequence|, |FactorSequence|, |FluxSequence|,
+    |StateSequence|, and |LinkSequence| objects, as the following technical test
+    suggests.  The documentation on class |IOSequence| explains the underlying
+    functionalities of in more detail.
 
     >>> from unittest.mock import patch
     >>> template = "hydpy.core.sequencetools.%s.load_series"
-    >>> with patch(template % "InputSequences") as inputs, \
-patch(template % "FactorSequences") as factors, \
-patch(template % "FluxSequences") as fluxes, \
-patch(template % "StateSequences") as states:
+    >>> with (
+    ...     patch(template % "InputSequences") as inputs,
+    ...     patch(template % "FactorSequences") as factors,
+    ...     patch(template % "FluxSequences") as fluxes,
+    ...     patch(template % "StateSequences") as states,
+    ...     patch(template % "OutletSequences") as outlets,
+    ... ):
     ...     sequences.load_series()
     ...     inputs.assert_called_with()
     ...     factors.assert_called_with()
     ...     fluxes.assert_called_with()
     ...     states.assert_called_with()
+    ...     outlets.assert_called_with()
 
     >>> template = "hydpy.core.sequencetools.%s.save_series"
-    >>> with patch(template % "InputSequences") as inputs, \
-patch(template % "FactorSequences") as factors, \
-patch(template % "FluxSequences") as fluxes, \
-patch(template % "StateSequences") as states:
+    >>> with (
+    ...     patch(template % "InputSequences") as inputs,
+    ...     patch(template % "FactorSequences") as factors,
+    ...     patch(template % "FluxSequences") as fluxes,
+    ...     patch(template % "StateSequences") as states,
+    ...     patch(template % "OutletSequences") as outlets,
+    ... ):
     ...     sequences.save_series()
     ...     inputs.assert_called_with()
     ...     factors.assert_called_with()
     ...     fluxes.assert_called_with()
     ...     states.assert_called_with()
+    ...     outlets.assert_called_with()
 
     .. testsetup::
 
@@ -658,8 +676,8 @@ patch(template % "StateSequences") as states:
         """Yield all relevant |IOSequences| objects handled by the current |Sequences|
         object.
 
-        The currently available IO-subgroups are `inputs`, `factors`, `fluxes`, and
-        `states`.
+        For |hland_96|, the available IO-subgroups are `inputs`, `factors`, `fluxes`,
+        `states`, and `outlets`:
 
         >>> from hydpy import prepare_model
         >>> model = prepare_model("hland_96")
@@ -669,16 +687,11 @@ patch(template % "StateSequences") as states:
         factors
         fluxes
         states
+        outlets
 
-        However, not all models implement sequences for all these subgroups.  Therefore,
-        the |Sequences.iosubsequences| property only yields those subgroups which are
-        non-empty:
-
-        >>> model = prepare_model("musk_classic")
-        >>> for subseqs in model.sequences.iosubsequences:
-        ...     print(subseqs.name)
-        fluxes
-        states
+        Not all models implement sequences for all possible subgroups.  The
+        |Sequences.iosubsequences| property only yields those subgroups which are
+        non-empty.
         """
         if self.inputs:
             yield self.inputs
@@ -688,6 +701,35 @@ patch(template % "StateSequences") as states:
             yield self.fluxes
         if self.states:
             yield self.states
+        yield from self.linksubsequences
+
+    @property
+    def linksubsequences(self) -> Iterator[LinkSequencesSubtypes]:
+        """Yield all relevant |LinkSequences| objects handled by the current
+        |Sequences| object.
+
+        For |musk_classic|, the available link sequence subgroups are `inlets` and
+        `outlets`:
+
+        >>> from hydpy import prepare_model
+        >>> model = prepare_model("musk_classic")
+        >>> for subseqs in model.sequences.linksubsequences:
+        ...     print(subseqs.name)
+        inlets
+        outlets
+
+        Not all models implement sequences for all possible subgroups.  Therefore, the
+        |Sequences.linksubsequences| property only yields those subgroups which are
+        non-empty.
+        """
+        if self.inlets:
+            yield self.inlets
+        if self.outlets:
+            yield self.outlets
+        if self.receivers:
+            yield self.receivers
+        if self.senders:
+            yield self.senders
 
     def prepare_series(self, allocate_ram: bool = True, jit: bool = False) -> None:
         """Call method |IOSequences.prepare_series| of attribute |Sequences.inputs|
@@ -712,17 +754,17 @@ patch(template % "StateSequences") as states:
 
     def load_data(self, idx: int) -> None:
         """Call method |ModelIOSequences.load_data| of the handled
-        |sequencetools.InputSequences| object."""
+        |sequencetools.InputSequences|, |sequencetools.InletSequences|, and
+        |sequencetools.ReceiverSequences| object."""
         self.inputs.load_data(idx)
+        self.inlets.load_data(idx)
+        self.receivers.load_data(idx)
 
     def save_data(self, idx: int) -> None:
-        """Call method |ModelIOSequences.save_data| of the handled
-        |sequencetools.InputSequences|, |sequencetools.FactorSequences|,
-        |sequencetools.FluxSequences|, and |sequencetools.StateSequences| objects."""
-        self.inputs.save_data(idx)
-        self.factors.save_data(idx)
-        self.fluxes.save_data(idx)
-        self.states.save_data(idx)
+        """Call method |ModelIOSequences.save_data| of all handled
+        |sequencetools.ModelIOSequences| objects."""
+        for subseqs in self.iosubsequences:
+            subseqs.save_data(idx)
 
     def update_outputs(self) -> None:
         """Call the method |OutputSequences.update_outputs| of the subattributes

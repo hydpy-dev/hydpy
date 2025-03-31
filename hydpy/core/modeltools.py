@@ -1692,6 +1692,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         self.prepare_factorseries(allocate_ram=allocate_ram, write_jit=jit)
         self.prepare_fluxseries(allocate_ram=allocate_ram, write_jit=jit)
         self.prepare_stateseries(allocate_ram=allocate_ram, write_jit=jit)
+        self.prepare_linkseries(allocate_ram=allocate_ram, write_jit=jit)
 
     def prepare_inputseries(
         self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
@@ -1715,7 +1716,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
     ) -> None:
         """Call method |IOSequence.prepare_series| of all directly handled
-        |FluxSequence|."""
+        |FluxSequence| objects."""
         self.sequences.fluxes.prepare_series(
             allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
         )
@@ -1724,18 +1725,30 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
     ) -> None:
         """Call method |IOSequence.prepare_series| of all directly handled
-        |StateSequence| objects and."""
+        |StateSequence| objects."""
         self.sequences.states.prepare_series(
             allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
         )
 
+    def prepare_linkseries(
+        self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
+    ) -> None:
+        """Call method |IOSequence.prepare_series| of all directly handled
+        |LinkSequence| objects."""
+        for subseqs in self.sequences.linksubsequences:
+            subseqs.prepare_series(
+                allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
+            )
+
     def load_allseries(self) -> None:
         """Call method |Model.load_inputseries|, |Model.load_factorseries|,
-        |Model.load_fluxseries|, and |Model.load_stateseries|."""
+        |Model.load_fluxseries|, |Model.load_stateseries|, and
+        |Model.load_linkseries|."""
         self.load_inputseries()
         self.load_factorseries()
         self.load_fluxseries()
         self.load_stateseries()
+        self.load_linkseries()
 
     def load_inputseries(self) -> None:
         """Call method |IOSequence.load_series| of all directly handled |InputSequence|
@@ -1757,13 +1770,21 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         objects."""
         self.sequences.states.load_series()
 
+    def load_linkseries(self) -> None:
+        """Call method |IOSequence.load_series| of all directly handled |LinkSequence|
+        objects."""
+        for subseqs in self.sequences.linksubsequences:
+            subseqs.load_series()
+
     def save_allseries(self) -> None:
         """Call method |Model.save_inputseries|, |Model.save_factorseries|,
-        |Model.save_fluxseries|, and |Model.save_stateseries|."""
+        |Model.save_fluxseries|, |Model.save_stateseries|, and
+        |Model.save_linkseries|."""
         self.save_inputseries()
         self.save_factorseries()
         self.save_fluxseries()
         self.save_stateseries()
+        self.save_linkseries()
 
     def save_inputseries(self) -> None:
         """Call method |IOSequence.save_series| of all directly handled |InputSequence|
@@ -1784,6 +1805,12 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         """Call method |IOSequence.save_series| of all directly handled |StateSequence|
         objects."""
         self.sequences.states.save_series()
+
+    def save_linkseries(self) -> None:
+        """Call method |IOSequence.save_series| of all directly handled |LinkSequence|
+        objects."""
+        for subseqs in self.sequences.linksubsequences:
+            subseqs.save_series()
 
     def get_controlfileheader(
         self,

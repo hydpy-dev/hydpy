@@ -1532,7 +1532,12 @@ class PyxWriter:
         ):
             pyx(2, "self.reset_reuseflags()")
         seqs = self.model.sequences
-        if seqs.inputs or self.model.SUBMODELINTERFACES:
+        if (
+            seqs.inputs
+            or seqs.inlets
+            or seqs.receivers
+            or self.model.SUBMODELINTERFACES
+        ):
             pyx(2, "self.load_data(idx)")
         if self.model.INLET_METHODS or self.has_submodels:
             pyx(2, "self.update_inlets()")
@@ -1593,6 +1598,7 @@ class PyxWriter:
             cpdef void load_data(self, ...int... idx) noexcept nogil:
                 self.idx_sim = idx
                 self.sequences.inputs.load_data(idx)
+                self.sequences.outlets.load_data(idx)
                 if (self.aetmodel is not None) and not self.aetmodel_is_mainmodel:
                     self.aetmodel.load_data(idx)
                 if (self.rconcmodel is not None) and not self.rconcmodel_is_mainmodel:
@@ -1603,6 +1609,7 @@ class PyxWriter:
                 self.sequences.factors.save_data(idx)
                 self.sequences.fluxes.save_data(idx)
                 self.sequences.states.save_data(idx)
+                self.sequences.outlets.save_data(idx)
                 if (self.aetmodel is not None) and not self.aetmodel_is_mainmodel:
                     self.aetmodel.save_data(idx)
                 if (self.rconcmodel is not None) and not self.rconcmodel_is_mainmodel:
@@ -1620,6 +1627,7 @@ class PyxWriter:
             cpdef void load_data(self, ...int... idx) noexcept nogil:
                 self.idx_sim = idx
                 self.sequences.inputs.load_data(idx)
+                self.sequences.outlets.load_data(idx)
                 if (self.aetmodel is not None) and not self.aetmodel_is_mainmodel:
                     self.aetmodel.load_data(idx)
                 if (self.rconcmodel is not None) and not self.rconcmodel_is_mainmodel:
@@ -1627,6 +1635,7 @@ class PyxWriter:
             cpdef void save_data(self, ...int... idx) noexcept nogil:
                 self.idx_sim = idx
                 self.sequences.inputs.save_data(idx)
+                self.sequences.outlets.save_data(idx)
                 if (self.aetmodel is not None) and not self.aetmodel_is_mainmodel:
                     self.aetmodel.save_data(idx)
                 if (self.rconcmodel is not None) and not self.rconcmodel_is_mainmodel:
@@ -1634,6 +1643,10 @@ class PyxWriter:
         <BLANKLINE>
 
         >>> pyxwriter.model.sequences.inputs = None
+        >>> pyxwriter.model.sequences.inlets = None
+        >>> pyxwriter.model.sequences.outlets = None
+        >>> pyxwriter.model.sequences.receivers = None
+        >>> pyxwriter.model.sequences.senders = None
         >>> lines.pyx.clear()
         >>> pyxwriter.iofunctions(lines)
         >>> lines.pyx  # doctest: +ELLIPSIS
@@ -1641,12 +1654,24 @@ class PyxWriter:
         <BLANKLINE>
         """
         seqs = self.model.sequences
-        if not (seqs.inputs or seqs.factors or seqs.fluxes or seqs.states):
+        if not (
+            seqs.inputs
+            or seqs.factors
+            or seqs.fluxes
+            or seqs.states
+            or seqs.inlets
+            or seqs.outlets
+            or seqs.receivers
+            or seqs.senders
+        ):
             return
         pyx, both = lines.pyx.add, lines.add
         for func in ("load_data", "save_data"):
             if (func == "load_data") and not (
-                seqs.inputs or self.model.SUBMODELINTERFACES
+                seqs.inputs
+                or seqs.inlets
+                or seqs.receivers
+                or self.model.SUBMODELINTERFACES
             ):
                 continue
             print(f"            . {func}")
@@ -1655,9 +1680,18 @@ class PyxWriter:
             pyx(2, "self.idx_sim = idx")
             for subseqs in seqs:
                 if func == "load_data":
-                    applyfuncs: tuple[str, ...] = ("inputs",)
+                    applyfuncs: tuple[str, ...] = ("inputs", "inlets", "receivers")
                 else:
-                    applyfuncs = ("inputs", "factors", "fluxes", "states")
+                    applyfuncs = (
+                        "inputs",
+                        "factors",
+                        "fluxes",
+                        "states",
+                        "inlets",
+                        "outlets",
+                        "receivers",
+                        "senders",
+                    )
                 if subseqs.name in applyfuncs:
                     pyx(2, f"self.sequences.{subseqs.name}." f"{func}(idx)")
             self._call_submodel_method(lines, f"{func}(idx)")

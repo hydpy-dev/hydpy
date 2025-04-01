@@ -102,6 +102,7 @@ def parameterstep(timestep: timetools.PeriodConstrArg | None = None) -> None:
                 if hasattr(model, name) and not (
                     name.startswith("_")
                     or name.endswith("model_is_mainmodel")
+                    or (name == "threading")
                     or isinstance(
                         getattr(model, name),
                         (modeltools.SubmodelProperty, modeltools.SubmodelsProperty),
@@ -321,6 +322,7 @@ def prepare_model(module: types.ModuleType | str) -> modeltools.Model:
             if hasattr(model, name) and not (
                 name.startswith("_")
                 or name.endswith("model_is_mainmodel")
+                or (name == "threading")
                 or isinstance(
                     getattr(model, name),
                     (modeltools.SubmodelProperty, modeltools.SubmodelsProperty),

@@ -933,92 +933,86 @@ class SubmodelTypeIDProperty:
             setattr(cymodel, self._name, value)
 
 
-class IndexProperty:
-    """Base class for index descriptors like |Idx_Sim|."""
+class SharedProperty(Generic[T]):
+    """Base class for descriptors that handle model properties which need
+    synchronisation between the Python and the Cython world and eventually between
+    main models and their submodels."""
 
     name: str
+    SYNCHRONISE_SUBMODELS: bool
 
     def __set_name__(self, owner: Model, name: str) -> None:
         self.name = name.lower()
 
     @overload
-    def __get__(self, obj: Model, objtype: type[Model]) -> int: ...
+    def __get__(self, obj: Model, objtype: type[Model]) -> T: ...
 
     @overload
     def __get__(self, obj: None, objtype: type[Model]) -> Self: ...
 
-    def __get__(self, obj: Model | None, objtype: type[Model]) -> Self | int:
+    def __get__(self, obj: Model | None, objtype: type[Model]) -> Self | T:
         if obj is None:
             return self
         if obj.cymodel:
             return getattr(obj.cymodel, self.name)
         return vars(obj).get(self.name, 0)
 
-    def __set__(self, obj: Model, value: int) -> None:
+    def __set__(self, obj: Model, value: T) -> None:
         if obj.cymodel:
             setattr(obj.cymodel, self.name, value)
         else:
             vars(obj)[self.name] = value
+        if self.SYNCHRONISE_SUBMODELS:
+            for submodel in obj.find_submodels(include_subsubmodels=False).values():
+                setattr(submodel, self.name, value)
 
 
-class Idx_Sim(IndexProperty):
-    """The simulation step index.
+class Idx_Sim(SharedProperty[int]):
+    """The simulation step index."""
 
-    Some model methods require knowing the index of the current simulation step (with
-    respect to the initialisation period), which one usually updates by passing it to
-    |Model.simulate|.  However, you can change it manually via the |modeltools.Idx_Sim|
-    descriptor, which is often beneficial during testing:
-
-    >>> from hydpy.models.hland_96 import *
-    >>> parameterstep("1d")
-    >>> model.idx_sim
-    0
-    >>> model.idx_sim = 1
-    >>> model.idx_sim
-    1
-
-    Like other objects of |IndexProperty| subclasses, |Idx_Sim| objects are aware of
-    their name:
-
-    >>> Model.idx_sim.name
-    'idx_sim'
-    """
+    SYNCHRONISE_SUBMODELS = False
 
     def __init__(self) -> None:
         self.__doc__ = "The simulation step index."
 
 
-class Idx_HRU(IndexProperty):
-    """The hydrological response unit index.
+class Idx_HRU(SharedProperty[int]):
+    """The hydrological response unit index."""
 
-    The documentation on class |Idx_Sim| explains the general purpose and handling of
-    |IndexProperty| instances.
-    """
+    SYNCHRONISE_SUBMODELS = False
 
     def __init__(self) -> None:
         self.__doc__ = "The hydrological response unit index."
 
 
-class Idx_Segment(IndexProperty):
-    """The segment index.
+class Idx_Segment(SharedProperty[int]):
+    """The segment index."""
 
-    The documentation on class |Idx_Sim| explains the general purpose and handling of
-    |IndexProperty| instances.
-    """
+    SYNCHRONISE_SUBMODELS = False
 
     def __init__(self) -> None:
         self.__doc__ = "The segment index."
 
 
-class Idx_Run(IndexProperty):
-    """The run index.
+class Idx_Run(SharedProperty[int]):
+    """The run index."""
 
-    The documentation on class |Idx_Sim| explains the general purpose and handling of
-    |IndexProperty| instances.
-    """
+    SYNCHRONISE_SUBMODELS = False
 
     def __init__(self) -> None:
         self.__doc__ = "The run index."
+
+
+class Threading(SharedProperty[bool]):
+    """Is multi-threading for this model currently enabled?
+
+    Change this flag only for testing purposes.
+    """
+
+    SYNCHRONISE_SUBMODELS = True
+
+    def __init__(self) -> None:
+        self.__doc__ = "Is multi-threading for this model currently enabled?"
 
 
 class DocName(NamedTuple):
@@ -1115,6 +1109,7 @@ class Model:
     sequences: sequencetools.Sequences
     masks: masktools.Masks
     idx_sim = Idx_Sim()
+    threading = Threading()
 
     __hydpy_element__: devicetools.Element | None
     __HYDPY_NAME__: ClassVar[str]

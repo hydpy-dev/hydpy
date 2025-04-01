@@ -10,6 +10,7 @@
         <usecython>true</usecython>
         <usedefaultvalues>false</usedefaultvalues>
         <utcoffset>60</utcoffset>
+        <threads>0</threads>
         <timestampleft>true</timestampleft>
         <warnmissingobsfile>true</warnmissingobsfile>
         <warnmissingsimfile>true</warnmissingsimfile>

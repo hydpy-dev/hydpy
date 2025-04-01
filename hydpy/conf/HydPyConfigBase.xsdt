@@ -44,6 +44,14 @@
                         </restriction>
                     </simpleType>
                 </element>
+                <element name="threads"
+                         minOccurs="0">
+                    <simpleType>
+                        <restriction base="integer">
+                            <minInclusive value="0"/>
+                        </restriction>
+                    </simpleType>
+                </element>
                 <element name="usecython"
                          type="boolean"
                          minOccurs="0"/>

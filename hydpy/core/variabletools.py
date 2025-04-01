@@ -520,7 +520,7 @@ class FastAccess:
     def __iter__(self):
         """Iterate over all sequence names."""
         for key in vars(self).keys():
-            if not key.startswith("_"):
+            if not (key.startswith("_") or key.startswith("len_")):
                 yield key
 
     # ToDo: Replace this hack with a Mypy plugin?

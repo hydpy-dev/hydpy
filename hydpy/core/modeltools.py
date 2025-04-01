@@ -2524,33 +2524,33 @@ the available directories (calib_1 and calib_2).
         for submodel in self.find_submodels(include_subsubmodels=False).values():
             submodel.save_data(idx)
 
-    @staticmethod
     def _update_pointers_in(
-        subseqs: sequencetools.InletSequences | sequencetools.ReceiverSequences,
+        self, subseqs: sequencetools.InletSequences | sequencetools.ReceiverSequences
     ) -> None:
-        for seq in subseqs:
-            pointer = seq.__hydpy__get_fastaccessattribute__("pointer")
-            if (pointer is not None) and (seq.NDIM == 0):
-                setattr(seq.fastaccess, seq.name, pointer[0])
-            else:
-                values = getattr(seq.fastaccess, seq.name, None)
-                if values is not None:
-                    for i in range(getattr(seq.fastaccess, f"len_{seq.name}")):
-                        values[i] = pointer[i]
+        if not self.threading:
+            for seq in subseqs:
+                pointer = seq.__hydpy__get_fastaccessattribute__("pointer")
+                if (pointer is not None) and (seq.NDIM == 0):
+                    setattr(seq.fastaccess, seq.name, pointer[0])
+                else:
+                    values = getattr(seq.fastaccess, seq.name, None)
+                    if values is not None:
+                        for i in range(getattr(seq.fastaccess, f"len_{seq.name}")):
+                            values[i] = pointer[i]
 
-    @staticmethod
     def _update_pointers_out(
-        subseqs: sequencetools.OutletSequences | sequencetools.SenderSequences,
+        self, subseqs: sequencetools.OutletSequences | sequencetools.SenderSequences
     ) -> None:
-        for seq in subseqs:
-            pointer = seq.__hydpy__get_fastaccessattribute__("pointer")
-            if (pointer is not None) and (seq.NDIM == 0):
-                pointer[0] += getattr(seq.fastaccess, seq.name)
-            else:
-                values = getattr(seq.fastaccess, seq.name, None)
-                if values is not None:
-                    for i in range(getattr(seq.fastaccess, f"len_{seq.name}")):
-                        pointer[i][0] += values[i]
+        if not self.threading:
+            for seq in subseqs:
+                pointer = seq.__hydpy__get_fastaccessattribute__("pointer")
+                if (pointer is not None) and (seq.NDIM == 0):
+                    pointer[0] += getattr(seq.fastaccess, seq.name)
+                else:
+                    values = getattr(seq.fastaccess, seq.name, None)
+                    if values is not None:
+                        for i in range(getattr(seq.fastaccess, f"len_{seq.name}")):
+                            pointer[i][0] += values[i]
 
     def update_inlets(self) -> None:
         """Update all link sequences and then call all methods defined as
@@ -2624,7 +2624,8 @@ the available directories (calib_1 and calib_2).
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
-        self.sequences.update_outputs()
+        if not self.threading:
+            self.sequences.update_outputs()
 
     @classmethod
     def get_methods(cls, skip: tuple[MethodGroup, ...] = ()) -> Iterator[type[Method]]:

@@ -1434,8 +1434,10 @@ class PyxWriter:
             both(0, "cdef class Model:")
         for cls in inspect.getmro(type(self.model)):
             for name, member in vars(cls).items():
-                if isinstance(member, modeltools.IndexProperty):
-                    if (name != "idx_sim") or not follows_interface:
+                if isinstance(member, modeltools.SharedProperty):
+                    if name == "threading":
+                        pxd(1, f"cdef public {TYPE2STR[bool]} {name}")
+                    elif (name != "idx_sim") or not follows_interface:
                         pxd(1, f"cdef public {INT} {name}")
         if isinstance(self.model, modeltools.SubstepModel):
             pxd(1, f"cdef public {TYPE2STR[float]} timeleft")
@@ -1804,17 +1806,18 @@ class PyxWriter:
         pyx = lines.pyx.add
         pyx(2, f"cdef {INT} i")
         for seq in self.model.sequences[group]:
+            pyx(2, f"if not self.threading:")
             group_ = f"self.sequences.{group}"
             pointer = f"{group_}._{seq.name}_pointer"
             value = f"{group_}.{seq.name}"
             if seq.NDIM == 0:
-                pyx(2, f"{value} = {pointer}[0]")
+                pyx(3, f"{value} = {pointer}[0]")
             elif seq.NDIM == 1:
-                pyx(2, f"for i in range({group_}._{seq.name}_length_0):")
-                pyx(3, f"if {group_}._{seq.name}_ready[i]:")
-                pyx(4, f"{value}[i] = {pointer}[i][0]")
-                pyx(3, "else:")
-                pyx(4, f"{value}[i] = nan")
+                pyx(3, f"for i in range({group_}._{seq.name}_length_0):")
+                pyx(4, f"if {group_}._{seq.name}_ready[i]:")
+                pyx(5, f"{value}[i] = {pointer}[i][0]")
+                pyx(4, "else:")
+                pyx(5, f"{value}[i] = nan")
             else:
                 assert False
 
@@ -1876,15 +1879,16 @@ class PyxWriter:
         pyx = lines.pyx.add
         pyx(2, f"cdef {INT} i")
         for seq in self.model.sequences[group]:
+            pyx(2, f"if not self.threading:")
             group_ = f"self.sequences.{group}"
             pointer = f"{group_}._{seq.name}_pointer"
             value = f"{group_}.{seq.name}"
             if seq.NDIM == 0:
-                pyx(2, f"{pointer}[0] = {pointer}[0] + {value}")
+                pyx(3, f"{pointer}[0] = {pointer}[0] + {value}")
             elif seq.NDIM == 1:
-                pyx(2, f"for i in range({group_}._{seq.name}_length_0):")
-                pyx(3, f"if {group_}._{seq.name}_ready[i]:")
-                pyx(4, f"{pointer}[i][0] = {pointer}[i][0] + {value}[i]")
+                pyx(3, f"for i in range({group_}._{seq.name}_length_0):")
+                pyx(4, f"if {group_}._{seq.name}_ready[i]:")
+                pyx(5, f"{pointer}[i][0] = {pointer}[i][0] + {value}[i]")
             else:
                 assert False
 
@@ -1895,13 +1899,15 @@ class PyxWriter:
         factors = self._filter_outputsequences(self.model.sequences.factors)
         fluxes = self._filter_outputsequences(self.model.sequences.fluxes)
         states = self._filter_outputsequences(self.model.sequences.states)
-        if factors:
-            pyx(2, "self.sequences.factors.update_outputs()")
-        if fluxes:
-            pyx(2, "self.sequences.fluxes.update_outputs()")
-        if states:
-            pyx(2, "self.sequences.states.update_outputs()")
-        if not (factors or fluxes or states):
+        if factors or fluxes or states:
+            pyx(2, "if not self.threading:")
+            if factors:
+                pyx(3, "self.sequences.factors.update_outputs()")
+            if fluxes:
+                pyx(3, "self.sequences.fluxes.update_outputs()")
+            if states:
+                pyx(3, "self.sequences.states.update_outputs()")
+        else:
             pyx(2, "pass")
 
     def update_outputs(

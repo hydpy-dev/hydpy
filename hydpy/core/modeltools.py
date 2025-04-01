@@ -2486,6 +2486,48 @@ the available directories (calib_1 and calib_2).
     def simulate(self, idx: int) -> None:
         """Perform a simulation run over a single simulation time step."""
 
+    def simulate_period(self, i0: int, i1: int) -> None:
+        """Perform a simulation run over a complete simulation period.
+
+        The required arguments correspond to the first and last simulation step index.
+
+        Method |Model.simulate_period| calls method |Model.simulate| repeatedly for the
+        whole considered simulation period and is thought for the multi-threading mode.
+        Hence, we repeat the example of method |Model.simulate| but set the
+        |Model.threading| flag to |True|:
+
+        >>> from hydpy.core.testtools import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
+        >>> model = hp.elements.land_dill_assl.model
+        >>> model.threading = True
+
+        Method |Model.simulate_period| also calls method |Model.save_data| so that the
+        simulated outflow is readily available via the link sequence |hland_outlets.Q|:
+
+        >>> model.simulate_period(0, 4)
+        >>> from hydpy import print_vector
+        >>> print_vector(model.sequences.outlets.q.series[:4])
+        11.757526, 8.865079, 7.101815, 5.994195
+
+        Be aware that models never exchange data with their connected nodes when in
+        multi-threading mode:
+
+        >>> hp.nodes.dill_assl.sequences.sim
+        sim(0.0)
+
+        .. testsetup::
+
+            >>> from hydpy import Element, Node, pub
+            >>> del pub.timegrids
+            >>> Node.clear_all()
+            >>> Element.clear_all()
+        """
+        for i in range(i0, i1):
+            self.simulate(i)
+            self.update_senders(i)
+            self.update_receivers(i)
+            self.save_data(i)
+
     def reset_reuseflags(self) -> None:
         """Reset all |ReusableMethod.REUSEMARKER| attributes of the current model
         instance and its submodels (usually at the beginning of a simulation step).
@@ -3305,15 +3347,14 @@ class RunModel(Model):
     def simulate(self, idx: int) -> None:
         """Perform a simulation run over a single simulation time step.
 
-        The required argument `idx` corresponds to property `idx_sim`
-        (see the main documentation on class |Model|).
+        The required argument `idx` corresponds to property `idx_sim` (see the main
+        documentation on class |Model|).
 
-        You can integrate method |Model.simulate| into your workflows for
-        tailor-made simulation runs.  Method |Model.simulate| is complete
-        enough to allow for consecutive calls.  However, note that it
-        does neither call |Model.save_data|, |Model.update_receivers|,
-        nor |Model.update_senders|.  Also, one would have to reset the
-        related node sequences, as done in the following example:
+        You can integrate method |Model.simulate| into your workflows for tailor-made
+        simulation runs.  Method |Model.simulate| is complete enough to allow for
+        consecutive calls.  However, note that it does neither call |Model.save_data|,
+        |Model.update_receivers|, nor |Model.update_senders|.  Also, as done in the
+        following example, one would have to reset the related node sequences:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -3329,11 +3370,10 @@ class RunModel(Model):
         >>> hp.nodes.dill_assl.sequences.sim.series
         InfoArray([nan, nan, nan, nan])
 
-        The results above are identical to those of method |HydPy.simulate|
-        of class |HydPy|, which is the standard method to perform simulation
-        runs (except that method |HydPy.simulate| of class |HydPy| also
-        performs the steps neglected by method |Model.simulate| of class
-        |Model| mentioned above):
+        The results above are identical to those of method |HydPy.simulate| of class
+        |HydPy|, which is the standard method to perform simulation runs (except that
+        method |HydPy.simulate| of class |HydPy| also performs the steps neglected by
+        method |Model.simulate| of class |Model| mentioned above):
 
         >>> from hydpy import round_
         >>> hp.reset_conditions()
@@ -3341,12 +3381,13 @@ class RunModel(Model):
         >>> round_(hp.nodes.dill_assl.sequences.sim.series)
         11.757526, 8.865079, 7.101815, 5.994195
 
-        When working in Cython mode, the standard model import overrides
-        this generic Python version with a model-specific Cython version.
+        When working in Cython mode, the standard model import overrides this generic
+        Python version with a model-specific Cython version.
 
         .. testsetup::
 
-            >>> from hydpy import Node, Element
+            >>> from hydpy import Element, Node, pub
+            >>> del pub.timegrids
             >>> Node.clear_all()
             >>> Element.clear_all()
         """

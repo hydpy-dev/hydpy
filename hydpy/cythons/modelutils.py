@@ -1483,6 +1483,7 @@ class PyxWriter:
     def modelstandardfunctions(self, lines: PyxPxdLines) -> None:
         """The standard functions of the model class."""
         self.simulate(lines)
+        self.simulate_period(lines)
         self.reset_reuseflags(lines)
         self.iofunctions(lines)
         self.new2old(lines)
@@ -1554,6 +1555,18 @@ class PyxWriter:
         if seqs.factors or seqs.fluxes or seqs.states:
             pyx(2, "self.update_outputs()")
 
+    def simulate_period(self, lines: PyxPxdLines) -> None:
+        """Simulate period statements."""
+        pyx, both = lines.pyx.add, lines.add
+        both(1, f"cpdef void simulate_period(self, {INT} i0, {INT} i1) {_nogil}:")
+        pyx(2, f"cdef {INT} i")
+        pyx(2, "with nogil:")
+        pyx(3, "for i in range(i0, i1):")
+        pyx(4, "self.simulate(i)")
+        pyx(4, "self.update_senders(i)")
+        pyx(4, "self.update_receivers(i)")
+        pyx(4, "self.save_data(i)")
+
     def _call_submodel_method(self, lines: PyxPxdLines, methodcall: str) -> None:
         name2submodel = self.model.find_submodels(
             include_subsubmodels=False,
@@ -1600,7 +1613,6 @@ class PyxWriter:
             cpdef void load_data(self, ...int... idx) noexcept nogil:
                 self.idx_sim = idx
                 self.sequences.inputs.load_data(idx)
-                self.sequences.outlets.load_data(idx)
                 if (self.aetmodel is not None) and not self.aetmodel_is_mainmodel:
                     self.aetmodel.load_data(idx)
                 if (self.rconcmodel is not None) and not self.rconcmodel_is_mainmodel:
@@ -1629,7 +1641,6 @@ class PyxWriter:
             cpdef void load_data(self, ...int... idx) noexcept nogil:
                 self.idx_sim = idx
                 self.sequences.inputs.load_data(idx)
-                self.sequences.outlets.load_data(idx)
                 if (self.aetmodel is not None) and not self.aetmodel_is_mainmodel:
                     self.aetmodel.load_data(idx)
                 if (self.rconcmodel is not None) and not self.rconcmodel_is_mainmodel:

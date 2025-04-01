@@ -603,6 +603,7 @@ correctly refer to one of the available XML schema files \
         )
         >>> pub.options.checkprojectstructure = False
         >>> pub.options.printprogress = False
+        >>> pub.options.threads = 0
         >>> pub.options.reprdigits = 6
         """
         options = hydpy.pub.options

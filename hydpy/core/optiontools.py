@@ -879,6 +879,18 @@ class Options:
         Period()
         """,
     )
+    threads = OptionPropertyInt(
+        0,
+        """The number of additional threads opened during a simulation run.
+
+        Defaults to zero (no multi-threading):
+
+        >>> from hydpy import pub
+        >>> assert pub.options.threads == 0
+        >>> del pub.options.threads
+        >>> assert pub.options.threads == 0
+        """,
+    )
     timestampleft = OptionPropertyBool(
         True,
         """A bool-like flag telling if assigning interval data (like hourly 

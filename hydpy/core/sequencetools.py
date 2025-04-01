@@ -2880,6 +2880,16 @@ class ModelIOSequence(ModelSequence, IOSequence):
     """The subgroup to which the model IO sequence belongs."""
     subseqs: ModelIOSequences[ModelIOSequence, FastAccessIOSequence]
     """Alias for |ModelIOSequence.subvars|."""
+    node2idx: dict[devicetools.Node, int | None]
+    """The connected |Node| instances and, for 1-dimensional link sequences, the 
+    corresponding column's indices."""
+
+    def __init__(
+        self,
+        subvars: ModelIOSequences[ModelIOSequence, variabletools.FastAccessIOSequence],
+    ) -> None:
+        super().__init__(subvars)
+        self.node2idx = {}
 
 
 class InputSequence(ModelIOSequence):
@@ -3710,7 +3720,7 @@ class LinkSequence(ModelIOSequence):
     ...     output3=[0.0, 0.0, 2.0, 6.0])
     >>> branch.model = model
 
-    Each field of the values of a 1-dimensional |LinkSequence| objects points to
+    Each field of the values of a 1-dimensional |LinkSequence| object points to
     another |NodeSequence| object:
 
     >>> model.sequences.outlets.branched = 1.0, 2.0, 3.0

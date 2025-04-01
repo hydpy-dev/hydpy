@@ -1558,6 +1558,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                     ):
                         if sequence in node.variable:
                             _set_pointer(sequence, node)
+                            sequence.node2idx[node] = None
                             connected = True
                             break
                 if not connected:
@@ -1580,6 +1581,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                         f"named `{name}`."
                     )
                 _set_pointer(sequence_, node)
+                sequence_.node2idx[node] = None
 
     def _determine_name(self, var: str | sequencetools.InOutSequenceTypes) -> str:
         if isinstance(var, str):
@@ -1605,6 +1607,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         sequences: list[sequencetools.LinkSequence] = []
         self.__hydpy__collect_linksequences__(group, sequences)
         for sequence in sequences:
+            sequence.node2idx.clear()
             selected_nodes = []
             for node in available_nodes:
                 if isinstance(var := node.variable, devicetools.FusedVariable):
@@ -1630,15 +1633,18 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                         f"0-dimensional but multiple nodes are available which "
                         f"are handling variable `{type(sequence).__name__}`."
                     )
-                applied_nodes.append(selected_nodes[0])
+                node = selected_nodes[0]
+                applied_nodes.append(node)
                 assert isinstance(sequence, (st.InputSequence, st.LinkSequence))
-                sequence.set_pointer(selected_nodes[0].get_double(group))
+                sequence.set_pointer(node.get_double(group))
+                sequence.node2idx[node] = None
             elif sequence.NDIM == 1:
                 sequence.shape = len(selected_nodes)
                 for idx, node in enumerate(selected_nodes):
                     applied_nodes.append(node)
                     assert isinstance(sequence, st.LinkSequence)
                     sequence.set_pointer(node.get_double(group), idx)
+                    sequence.node2idx[node] = idx
         if report_noconnect and (len(applied_nodes) < len(available_nodes)):
             remaining_nodes = [
                 node.name for node in available_nodes if node not in applied_nodes

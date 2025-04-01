@@ -1552,7 +1552,7 @@ def update_integrationtests(
     correct under all possible conditions, you should inspect and replace each
     integration test result manually.
 
-    In the following example, we disable method |modeltools.Model.update_outlets|
+    In the following example, we disable method |hydpytools.HydPy.simulate|
     temporarily.  Accordingly, application model |conv_nn| does not pass any output to
     its outlet nodes, which is why the last four columns of both integration test
     tables now contain zero value only (we can perform this mocking-based test in
@@ -1560,7 +1560,7 @@ def update_integrationtests(
 
     >>> from hydpy import pub, TestIO, update_integrationtests
     >>> from unittest import mock
-    >>> pass_output = "hydpy.core.modeltools.Model.update_outlets"
+    >>> pass_output = "hydpy.core.hydpytools.HydPy.simulate"
     >>> with TestIO(), pub.options.usecython(False), mock.patch(pass_output):
     ...     update_integrationtests("conv_nn", "temp.txt")
     ...     with open("temp.txt") as resultfile:
@@ -1568,28 +1568,28 @@ def update_integrationtests(
     Number of replacements: 2
     <BLANKLINE>
     ... test()
-    |       date |      inputs |                outputs | in1 | in2 | out1 \
-| out2 | out3 | out4 |
-    -----------------------------------------------------------------------\
-----------------------
-    | 2000-01-01 | 1.0     4.0 | 1.0  4.0  1.0      1.0 | 1.0 | 4.0 |  0.0 \
-|  0.0 |  0.0 |  0.0 |
-    | 2000-01-02 | 2.0     nan | 2.0  nan  2.0      2.0 | 2.0 | nan |  0.0 \
-|  0.0 |  0.0 |  0.0 |
-    | 2000-01-03 | nan     nan | nan  nan  nan      nan | nan | nan |  0.0 \
-|  0.0 |  0.0 |  0.0 |
+    |       date |      inputs |                outputs | in1 | in2 | out1 | out2 \
+| out3 | out4 |
+    ------------------------------------------------------------------------------\
+---------------
+    | 2000-01-01 | nan     nan | nan  nan  nan      nan | 1.0 | 4.0 |  nan |  nan \
+|  nan |  nan |
+    | 2000-01-02 | nan     nan | nan  nan  nan      nan | 2.0 | nan |  nan |  nan \
+|  nan |  nan |
+    | 2000-01-03 | nan     nan | nan  nan  nan      nan | nan | nan |  nan |  nan \
+|  nan |  nan |
     <BLANKLINE>
     ... test()
-    |       date |      inputs |                outputs | in1 | in2 | out1 \
-| out2 | out3 | out4 |
-    -----------------------------------------------------------------------\
-----------------------
-    | 2000-01-01 | 1.0     4.0 | 1.0  4.0  1.0      1.0 | 1.0 | 4.0 |  0.0 \
-|  0.0 |  0.0 |  0.0 |
-    | 2000-01-02 | 2.0     nan | 2.0  2.0  2.0      2.0 | 2.0 | nan |  0.0 \
-|  0.0 |  0.0 |  0.0 |
-    | 2000-01-03 | nan     nan | nan  nan  nan      nan | nan | nan |  0.0 \
-|  0.0 |  0.0 |  0.0 |
+    |       date |      inputs |                outputs | in1 | in2 | out1 | out2 \
+| out3 | out4 |
+    ------------------------------------------------------------------------------\
+---------------
+    | 2000-01-01 | nan     nan | nan  nan  nan      nan | 1.0 | 4.0 |  nan |  nan \
+|  nan |  nan |
+    | 2000-01-02 | nan     nan | nan  nan  nan      nan | 2.0 | nan |  nan |  nan \
+|  nan |  nan |
+    | 2000-01-03 | nan     nan | nan  nan  nan      nan | nan | nan |  nan |  nan \
+|  nan |  nan |
     <BLANKLINE>
     """
     module = importtools.load_modelmodule(applicationmodel)

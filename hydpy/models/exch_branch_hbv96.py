@@ -163,13 +163,19 @@ class Model(modeltools.AdHocModel):
 connect to an outlet node named `outflow1`, which is not an available outlet node of \
 element `mybranch`.
         """
-        nodes = self.element.inlets
+
+        inlets = self.element.inlets
         total = self.sequences.inlets.total
-        if exceptiontools.getattr_(total, "shape", None) != (len(nodes),):
-            total.shape = len(nodes)
-        for idx, node in enumerate(nodes):
+        if exceptiontools.getattr_(total, "shape", None) != (len(inlets),):
+            total.node2idx = {}
+        total.shape = len(inlets)
+        for idx, node in enumerate(inlets):
             double = node.get_double("inlets")
             total.set_pointer(double, idx)
+            total.node2idx[node] = idx
+
+        branched = self.sequences.outlets.branched
+        branched.node2idx = {}
         for idx, name in enumerate(self.nodenames):
             try:
                 outlet = getattr(self.element.outlets, name)
@@ -180,7 +186,8 @@ element `mybranch`.
                     f"node of element `{self.element.name}`."
                 ) from None
             double = outlet.get_double("outlets")
-            self.sequences.outlets.branched.set_pointer(double, idx)
+            branched.set_pointer(double, idx)
+            branched.node2idx[outlet] = idx
 
 
 tester = Tester()

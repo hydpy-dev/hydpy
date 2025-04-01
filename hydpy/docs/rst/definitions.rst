@@ -240,7 +240,7 @@ complete "land model" but can assign an |evap_ret_fao56| instance directly to an
 collective
 __________
 
-In some cases, individual :ref:`main models <main_model|` (e.g. of type |sw1d_channel|)
+In some cases, individual :ref:`main models <main_model>` (e.g. of type |sw1d_channel|)
 are defined by the user but are automatically converted to a combined model instance
 (e.g. of type |sw1d_network|) during simulation for numerical reasons. All models
 handled by :ref:`elements <element>` that belong to the same :ref:`collective` (defined

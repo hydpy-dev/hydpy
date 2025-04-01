@@ -966,6 +966,22 @@ def _timereference_currenttime(sequence: sequencetools.IOSequence) -> bool:
     return isinstance(sequence, sequencetools.StateSequence)
 
 
+def yield_disksequences(
+    devices: Iterable[devicetools.Node | devicetools.Element], /
+) -> Iterator[sequencetools.IOSequence]:
+    """Iterate through all sequences of the given devices that could read time series
+    data from or write time series data to NetCDF files "just-in-time" during
+    simulation runs."""
+
+    for device in devices:
+        if isinstance(device, devicetools.Node):
+            yield from device.sequences
+        else:
+            for model in device.model.find_submodels(include_mainmodel=True).values():
+                for subseqs in model.sequences.iosubsequences:
+                    yield from subseqs
+
+
 class JITAccessInfo(NamedTuple):
     """Helper class for structuring reading from or writing to a NetCDF file "just in
     time" during a simulation run for a specific |NetCDFVariableFlat| object."""
@@ -2094,20 +2110,6 @@ named `lland_dd` nor does it define a member named `lland_dd`.
         stem = sequence.filename.rsplit(".")[0]
         return file2var, stem
 
-    @staticmethod
-    def _yield_disksequences(
-        deviceorder: Iterable[devicetools.Node | devicetools.Element],
-    ) -> Iterator[sequencetools.IOSequence]:
-        for device in deviceorder:
-            if isinstance(device, devicetools.Node):
-                yield from device.sequences
-            else:
-                for model in device.model.find_submodels(
-                    include_mainmodel=True
-                ).values():
-                    for subseqs in model.sequences.iosubsequences:
-                        yield from subseqs
-
     @property
     def foldernames(self) -> tuple[str, ...]:
         """The names of all folders the sequences shall be read from or written to."""
@@ -2279,7 +2281,7 @@ class NetCDFInterfaceJIT(NetCDFInterfaceBase[FlatUnion]):
         >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, print_vector, pub, TestIO
-        >>> with TestIO():
+        >>> with TestIO(), pub.options.threads(0):
         ...     hp = HydPy("HydPy-H-Lahn")
         ...     pub.timegrids = "1996-01-01", "1996-01-05", "1d"
         ...     hp.prepare_network()
@@ -2303,7 +2305,7 @@ but for file `...hland_96_input_p.nc` both is requested.
         Clearly, each NetCDF file we want to read data from needs to span the current
         simulation period:
 
-        >>> with TestIO():
+        >>> with TestIO(), pub.options.threads(0):
         ...     pub.timegrids.init.firstdate = "1987-01-01"
         ...     pub.timegrids.sim.firstdate = "1988-01-01"
         ...     hp.prepare_inputseries(allocate_ram=False, read_jit=True)
@@ -2324,7 +2326,7 @@ The data of the NetCDF `...hland_96_input_p.nc` (Timegrid("1989-11-01 00:00:00",
         temporally or spatially.  The following example shows the insertion of the
         output data of two subsequent simulation runs into the same NetCDF files:
 
-        >>> with TestIO():
+        >>> with TestIO(), pub.options.threads(0):
         ...     pub.timegrids = "1996-01-01", "1996-01-05", "1d"
         ...     hp.prepare_inputseries(allocate_ram=False, read_jit=True)
         ...     hp.prepare_factorseries(allocate_ram=True, write_jit=True)
@@ -2352,7 +2354,7 @@ The data of the NetCDF `...hland_96_input_p.nc` (Timegrid("1989-11-01 00:00:00",
         variables with this additional dimension.  As expected, the results are the
         same as in the previous example:
 
-        >>> with TestIO():
+        >>> with TestIO(), pub.options.threads(0):
         ...     for name in ("hland_96_input_t", "hland_96_factor_contriarea"):
         ...         filepath = f"HydPy-H-Lahn/series/default/{name}.nc"
         ...         with netcdf4.Dataset(filepath, "r+") as ncfile:
@@ -2374,7 +2376,7 @@ The data of the NetCDF `...hland_96_input_p.nc` (Timegrid("1989-11-01 00:00:00",
         initial initialisation period into the same files,
         |NetCDFInterfaceJIT.provide_jitaccess| raises an equal error as above:
 
-        >>> with TestIO():
+        >>> with TestIO(), pub.options.threads(0):
         ...     pub.timegrids = "1996-01-05", "1996-01-10", "1d"
         ...     hp.prepare_inputseries(allocate_ram=True, read_jit=False)
         ...     hp.prepare_factorseries(allocate_ram=True, write_jit=True)
@@ -2395,7 +2397,7 @@ The data of the NetCDF `...hland_96_factor_tc.nc` (Timegrid("1996-01-01 00:00:00
         the automatic file generation of |NetCDFInterfaceJIT.provide_jitaccess| fails
         in the following example:
 
-        >>> with TestIO():
+        >>> with TestIO(), pub.options.threads(0):
         ...     pub.timegrids = "1996-01-01", "1996-01-05", "1d"
         ...     hp.prepare_inputseries(allocate_ram=False, read_jit=True)
         ...     headwaters.prepare_fluxseries(allocate_ram=True, write_jit=True)
@@ -2412,7 +2414,7 @@ file `...hland_96_flux_pc.nc`.
         Of course, one way to prepare complete HydPy-compatible NetCDF files is to let
         HydPy do it:
 
-        >>> with TestIO(), pub.sequencemanager.filetype("nc"):
+        >>> with TestIO(), pub.options.threads(0), pub.sequencemanager.filetype("nc"):
         ...     hp.prepare_fluxseries(allocate_ram=False, write_jit=False)
         ...     hp.prepare_fluxseries(allocate_ram=True, write_jit=False)
         ...     hp.save_fluxseries()
@@ -2433,12 +2435,12 @@ file `...hland_96_flux_pc.nc`.
         0.0, 0.0, 0.0, 0.0
         0.0, 0.0, 0.0, 0.0
         9.64767, 8.513649, 7.777628, 7.343314
-        >>> with TestIO():
+        >>> with TestIO(), pub.options.threads(0):
         ...     headwaters.prepare_fluxseries(allocate_ram=True, write_jit=False)
         ...     nonheadwaters.prepare_fluxseries(allocate_ram=True, write_jit=True)
         ...     hp.load_conditions()
         ...     hp.simulate()
-        >>> with TestIO(), netcdf4.Dataset(filepath_qt, "r") as ncfile:  #
+        >>> with TestIO(), netcdf4.Dataset(filepath_qt, "r") as ncfile:
         ...         for jdx in range(4):
         ...             print_vector(ncfile["hland_96_flux_qt"][:, jdx])
         11.757526, 8.865079, 7.101815, 5.994195
@@ -2454,7 +2456,7 @@ file `...hland_96_flux_pc.nc`.
         corresponding |Obs| sequences afterwards, and then start another simulation to
         (again) write both the simulated and the observed values to NetCDF files:
 
-        >>> with TestIO():
+        >>> with TestIO(), pub.options.threads(0):
         ...     hp.prepare_simseries(allocate_ram=True, write_jit=True)
         ...     hp.prepare_obsseries(allocate_ram=True, write_jit=True)
         ...     hp.load_conditions()
@@ -2502,7 +2504,7 @@ file `...hland_96_flux_pc.nc`.
         missing inflow from their inlet headwater sub-catchments.  The non-headwater
         nodes only receive inflow from the two non-headwater sub-catchments:
 
-        >>> with TestIO():
+        >>> with TestIO(), pub.options.threads(0):
         ...     hp.prepare_simseries(allocate_ram=True, write_jit=False)
         ...     hp.prepare_obsseries(allocate_ram=True, write_jit=False)
         ...     hp.update_devices(nodes=hp.nodes, elements=hp.elements - headwaters)
@@ -2520,7 +2522,7 @@ file `...hland_96_flux_pc.nc`.
         written time series "just in time".  As expected, the values of the two
         non-headwater nodes are identical to those of our initial example:
 
-        >>> with TestIO():
+        >>> with TestIO(), pub.options.threads(0):
         ...     hp.nodes["dill_assl"].prepare_simseries(allocate_ram=True,
         ...                                             read_jit=True)
         ...     hp.nodes["dill_assl"].deploymode = "oldsim"
@@ -2554,7 +2556,7 @@ file `...hland_96_flux_pc.nc`.
 
                 # collect the relevant sequences:
                 log = self.log
-                for sequence in self._yield_disksequences(deviceorder):
+                for sequence in yield_disksequences(deviceorder):
                     if sequence.diskflag:
                         variable = log(sequence)
                         readmode = sequence.diskflag_reading

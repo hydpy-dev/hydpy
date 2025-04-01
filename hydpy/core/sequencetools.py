@@ -1419,7 +1419,7 @@ class IOSequence(Sequence_):
     directory to the `iotesting` directory temporarily (by using class |TestIO|)
     because the relevant NetCDF files are now read and written on the fly:
 
-    >>> with TestIO():
+    >>> with TestIO(), pub.options.threads(0):
     ...     hp.simulate()
 
     After the simulation run, the read (|hland_inputs.T|) and calculated
@@ -2880,6 +2880,15 @@ class ModelIOSequence(ModelSequence, IOSequence):
     """The subgroup to which the model IO sequence belongs."""
     subseqs: ModelIOSequences[ModelIOSequence, FastAccessIOSequence]
     """Alias for |ModelIOSequence.subvars|."""
+    node2idx: dict[devicetools.Node, int | None]
+    """The connected |Node| instances and, for 1-dimensional link sequences, the 
+    corresponding column's indices."""
+
+    def __init__(
+        self, subvars: ModelIOSequences[ModelIOSequence, FastAccessIOSequence]
+    ) -> None:
+        super().__init__(subvars)
+        self.node2idx = {}
 
 
 class InputSequence(ModelIOSequence):
@@ -3090,7 +3099,7 @@ class OutputSequence(ModelIOSequence):
     >>> model.sequences.states.lz.outputflag
     False
 
-    >>> hp.update_devices(nodes=[node_q0, node_q1, node_perc, node_uz],
+    >>> hp.update_devices(nodes=[node_q, node_q0, node_q1, node_perc, node_uz],
     ...                   elements=land_dill_assl)
     >>> with TestIO():
     ...     hp.load_conditions()
@@ -3710,7 +3719,7 @@ class LinkSequence(ModelIOSequence):
     ...     output3=[0.0, 0.0, 2.0, 6.0])
     >>> branch.model = model
 
-    Each field of the values of a 1-dimensional |LinkSequence| objects points to
+    Each field of the values of a 1-dimensional |LinkSequence| object points to
     another |NodeSequence| object:
 
     >>> model.sequences.outlets.branched = 1.0, 2.0, 3.0

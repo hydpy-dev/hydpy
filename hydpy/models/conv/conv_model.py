@@ -691,11 +691,13 @@ out2, and out3).
                 ),
             ):
                 if nodes == devicetools.Nodes(coordinates.nodes):
+                    sequence.node2idx = {}
                     sequence.shape = len(coordinates)
                     for idx, node in enumerate(coordinates.nodes):
                         sequence.set_pointer(
                             node.get_double(sequence.subseqs.name), idx
                         )
+                        sequence.node2idx[node] = idx
                 else:
                     parameternodes = objecttools.enumeration(coordinates.nodes)
                     elementnodes = objecttools.enumeration(nodes)

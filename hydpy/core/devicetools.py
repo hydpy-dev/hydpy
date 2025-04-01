@@ -2035,6 +2035,10 @@ following error occurred: Adding devices to immutable Elements objects is not al
     _variable: NodeVariableType
     _deploymode: DeployMode
 
+    __hydpy__deploymode_modified__: ClassVar[bool] = False
+    """Class variable that keeps track if the deploy mode of any node and so eventually
+    the parallelisability of a whole network has been changed recently. """
+
     def __init__(
         self,
         value: NodeConstrArg,
@@ -2139,7 +2143,7 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         """Defines the kind of information a node offers its exit elements, eventually,
         its entry elements.
 
-        *HydPy* supports the following modes:
+        *HydPy* supports the following user-relevant modes:
 
           * newsim: Deploy the simulated values calculated just recently.  `newsim` is
             the default mode, used, for example, when a node receives a discharge value
@@ -2173,6 +2177,12 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         within the current simulation are not available (e.g. for parameter calibration)
         after the simulation finishes.
 
+        There are also the "update" modes `newsim_update` and `obs_newsim_update`.
+        HydPy sets these modes temporarily when a `newsim` or a `obs_newsim` node
+        represents a transition between a network's parallelisable and
+        non-parallelisable parts.  Users should activate these two modes only for
+        testing purposes.
+
         Please refer to the documentation on method |HydPy.simulate| of class |HydPy|,
         which provides some application examples.
 
@@ -2201,6 +2211,12 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         >>> node.deploymode = "obs_oldsim_bi"
         >>> node.deploymode
         'obs_oldsim_bi'
+        >>> node.deploymode = "newsim_update"
+        >>> node.deploymode
+        'newsim_update'
+        >>> node.deploymode = "obs_newsim_update"
+        >>> node.deploymode
+        'obs_newsim_update'
         >>> node.deploymode = "newsim"
         >>> node.deploymode
         'newsim'
@@ -2209,7 +2225,8 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         ...
         ValueError: When trying to set the routing mode of node `test`, the value \
 `oldobs` was given, but only the following values are allowed: `newsim`, `oldsim`, \
-`obs`, `obs_newsim`, `obs_oldsim`, `obs_bi.`, `oldsim_bi`, and `obs_oldsim_bi`.
+`obs`, `obs_newsim`, `obs_oldsim`, `oldsim_bi`, `obs_bi`, `obs_oldsim_bi`, \
+`newsim_update`, and `obs_newsim_update`.
         """
         return self._deploymode
 
@@ -2220,11 +2237,15 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
                 f"When trying to set the routing mode of node `{self.name}`, the "
                 f"value `{value}` was given, but only the following values are "
                 f"allowed: `newsim`, `oldsim`, `obs`, `obs_newsim`, `obs_oldsim`, "
-                f"`obs_bi.`, `oldsim_bi`, and `obs_oldsim_bi`."
+                f"`oldsim_bi`, `obs_bi`, `obs_oldsim_bi`, `newsim_update`, and "
+                f"`obs_newsim_update`."
             )
 
         # due to https://github.com/python/mypy/issues/9718:
         # pylint: disable=consider-using-in,too-many-boolean-expressions
+
+        if value == self._deploymode:
+            return
 
         if (
             value == "newsim"
@@ -2233,6 +2254,8 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
             or value == "obs_bi"
             or value == "oldsim_bi"
             or value == "obs_oldsim_bi"
+            or value == "newsim_update"
+            or value == "obs_newsim_update"
         ):
             pass
         elif value == "oldsim" or value == "obs_oldsim":
@@ -2240,6 +2263,8 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         else:
             _assert_never(value)
         self._deploymode = value
+        type(self).__hydpy__deploymode_modified__ = True
+
         for element in itertools.chain(self.entries, self.exits):
             model: modeltools.Model | None
             model = exceptiontools.getattr_(element, "model", None)
@@ -2343,11 +2368,17 @@ group name `test`.
         dm = self.deploymode
 
         if group in ("inlets", "receivers", "inputs"):
-            if dm == "newsim" or dm == "oldsim" or dm == "oldsim_bi":
+            if (
+                dm == "newsim"
+                or dm == "newsim_update"
+                or dm == "oldsim"
+                or dm == "oldsim_bi"
+            ):
                 return self.sequences.fastaccess.sim
             if (
-                dm == "obs"
+                dm == "obs"  # pylint: disable=too-many-boolean-expressions
                 or dm == "obs_newsim"
+                or dm == "obs_newsim_update"
                 or dm == "obs_oldsim"
                 or dm == "obs_bi"
                 or dm == "obs_oldsim_bi"
@@ -2356,7 +2387,14 @@ group name `test`.
             assert_never(dm)
 
         if group in ("outlets", "senders", "outputs"):
-            if dm == "newsim" or dm == "obs" or dm == "obs_newsim" or dm == "oldsim_bi":
+            if (
+                dm == "newsim"  # pylint: disable=too-many-boolean-expressions
+                or dm == "newsim_update"
+                or dm == "obs"
+                or dm == "obs_newsim"
+                or dm == "obs_newsim_update"
+                or dm == "oldsim_bi"
+            ):
                 return self.sequences.fastaccess.sim
             if dm == "obs_bi" or dm == "obs_oldsim_bi":
                 return self.sequences.fastaccess.obs

@@ -933,8 +933,9 @@ class SubmodelTypeIDProperty:
             setattr(cymodel, self._name, value)
 
 
-class IndexProperty:
-    """Base class for index descriptors like |Idx_Sim|."""
+class SharedProperty(Generic[T]):
+    """Base class for descriptors that handle model properties which need
+    synchronisation between the Python and the Cython world."""
 
     name: str
 
@@ -942,83 +943,71 @@ class IndexProperty:
         self.name = name.lower()
 
     @overload
-    def __get__(self, obj: Model, objtype: type[Model]) -> int: ...
+    def __get__(self, obj: Model, objtype: type[Model]) -> T: ...
 
     @overload
     def __get__(self, obj: None, objtype: type[Model]) -> Self: ...
 
-    def __get__(self, obj: Model | None, objtype: type[Model]) -> Self | int:
+    def __get__(self, obj: Model | None, objtype: type[Model]) -> Self | T:
         if obj is None:
             return self
         if obj.cymodel:
             return getattr(obj.cymodel, self.name)
         return vars(obj).get(self.name, 0)
 
-    def __set__(self, obj: Model, value: int) -> None:
+    def __set__(self, obj: Model, value: T) -> None:
         if obj.cymodel:
             setattr(obj.cymodel, self.name, value)
         else:
             vars(obj)[self.name] = value
 
 
-class Idx_Sim(IndexProperty):
-    """The simulation step index.
-
-    Some model methods require knowing the index of the current simulation step (with
-    respect to the initialisation period), which one usually updates by passing it to
-    |Model.simulate|.  However, you can change it manually via the |modeltools.Idx_Sim|
-    descriptor, which is often beneficial during testing:
-
-    >>> from hydpy.models.hland_96 import *
-    >>> parameterstep("1d")
-    >>> model.idx_sim
-    0
-    >>> model.idx_sim = 1
-    >>> model.idx_sim
-    1
-
-    Like other objects of |IndexProperty| subclasses, |Idx_Sim| objects are aware of
-    their name:
-
-    >>> Model.idx_sim.name
-    'idx_sim'
-    """
+class Idx_Sim(SharedProperty[int]):
+    """The simulation step index."""
 
     def __init__(self) -> None:
         self.__doc__ = "The simulation step index."
 
 
-class Idx_HRU(IndexProperty):
-    """The hydrological response unit index.
-
-    The documentation on class |Idx_Sim| explains the general purpose and handling of
-    |IndexProperty| instances.
-    """
+class Idx_HRU(SharedProperty[int]):
+    """The hydrological response unit index."""
 
     def __init__(self) -> None:
         self.__doc__ = "The hydrological response unit index."
 
 
-class Idx_Segment(IndexProperty):
-    """The segment index.
-
-    The documentation on class |Idx_Sim| explains the general purpose and handling of
-    |IndexProperty| instances.
-    """
+class Idx_Segment(SharedProperty[int]):
+    """The segment index."""
 
     def __init__(self) -> None:
         self.__doc__ = "The segment index."
 
 
-class Idx_Run(IndexProperty):
-    """The run index.
-
-    The documentation on class |Idx_Sim| explains the general purpose and handling of
-    |IndexProperty| instances.
-    """
+class Idx_Run(SharedProperty[int]):
+    """The run index."""
 
     def __init__(self) -> None:
         self.__doc__ = "The run index."
+
+
+class Threading(SharedProperty[bool]):
+    """Is multi-threading for this model (and its submodels) currently enabled?
+
+    Change this flag only for testing purposes.
+    """
+
+    def __init__(self) -> None:
+        self.__doc__ = "Is multi-threading for this model currently enabled?"
+
+    def __set__(self, obj: Model, value: bool) -> None:
+        super().__set__(obj, value)
+        for input_ in obj.sequences.inputs:
+            if input_.NDIM == 0:
+                input_.__hydpy__set_fastaccessattribute__(
+                    "inputflag", input_.node2idx and not value
+                )
+        for submodel in obj.find_submodels(include_subsubmodels=False).values():
+            setattr(submodel, self.name, value)
 
 
 class DocName(NamedTuple):
@@ -1115,6 +1104,7 @@ class Model:
     sequences: sequencetools.Sequences
     masks: masktools.Masks
     idx_sim = Idx_Sim()
+    threading = Threading()
 
     __hydpy_element__: devicetools.Element | None
     __HYDPY_NAME__: ClassVar[str]
@@ -1563,6 +1553,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                     ):
                         if sequence in node.variable:
                             _set_pointer(sequence, node)
+                            sequence.node2idx[node] = None
                             connected = True
                             break
                 if not connected:
@@ -1585,6 +1576,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                         f"named `{name}`."
                     )
                 _set_pointer(sequence_, node)
+                sequence_.node2idx[node] = None
 
     def _determine_name(self, var: str | sequencetools.InOutSequenceTypes) -> str:
         if isinstance(var, str):
@@ -1610,6 +1602,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         sequences: list[sequencetools.LinkSequence] = []
         self.__hydpy__collect_linksequences__(group, sequences)
         for sequence in sequences:
+            sequence.node2idx.clear()
             selected_nodes = []
             for node in available_nodes:
                 if isinstance(var := node.variable, devicetools.FusedVariable):
@@ -1635,15 +1628,18 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                         f"0-dimensional but multiple nodes are available which "
                         f"are handling variable `{type(sequence).__name__}`."
                     )
-                applied_nodes.append(selected_nodes[0])
+                node = selected_nodes[0]
+                applied_nodes.append(node)
                 assert isinstance(sequence, (st.InputSequence, st.LinkSequence))
-                sequence.set_pointer(selected_nodes[0].get_double(group))
+                sequence.set_pointer(node.get_double(group))
+                sequence.node2idx[node] = None
             elif sequence.NDIM == 1:
                 sequence.shape = len(selected_nodes)
                 for idx, node in enumerate(selected_nodes):
                     applied_nodes.append(node)
                     assert isinstance(sequence, st.LinkSequence)
                     sequence.set_pointer(node.get_double(group), idx)
+                    sequence.node2idx[node] = idx
         if report_noconnect and (len(applied_nodes) < len(available_nodes)):
             remaining_nodes = [
                 node.name for node in available_nodes if node not in applied_nodes
@@ -2491,6 +2487,48 @@ the available directories (calib_1 and calib_2).
     def simulate(self, idx: int) -> None:
         """Perform a simulation run over a single simulation time step."""
 
+    def simulate_period(self, i0: int, i1: int) -> None:
+        """Perform a simulation run over a complete simulation period.
+
+        The required arguments correspond to the first and last simulation step index.
+
+        Method |Model.simulate_period| calls method |Model.simulate| repeatedly for the
+        whole considered simulation period and is thought for the multi-threading mode.
+        Hence, we repeat the example of method |Model.simulate| but set the
+        |Model.threading| flag to |True|:
+
+        >>> from hydpy.core.testtools import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
+        >>> model = hp.elements.land_dill_assl.model
+        >>> model.threading = True
+
+        Method |Model.simulate_period| also calls method |Model.save_data| so that the
+        simulated outflow is readily available via the link sequence |hland_outlets.Q|:
+
+        >>> model.simulate_period(0, 4)
+        >>> from hydpy import print_vector
+        >>> print_vector(model.sequences.outlets.q.series[:4])
+        11.757526, 8.865079, 7.101815, 5.994195
+
+        Be aware that models never exchange data with their connected nodes when in
+        multi-threading mode:
+
+        >>> hp.nodes.dill_assl.sequences.sim
+        sim(0.0)
+
+        .. testsetup::
+
+            >>> from hydpy import Element, Node, pub
+            >>> del pub.timegrids
+            >>> Node.clear_all()
+            >>> Element.clear_all()
+        """
+        for i in range(i0, i1):
+            self.simulate(i)
+            self.update_senders(i)
+            self.update_receivers(i)
+            self.save_data(i)
+
     def reset_reuseflags(self) -> None:
         """Reset all |ReusableMethod.REUSEMARKER| attributes of the current model
         instance and its submodels (usually at the beginning of a simulation step).
@@ -2529,33 +2567,33 @@ the available directories (calib_1 and calib_2).
         for submodel in self.find_submodels(include_subsubmodels=False).values():
             submodel.save_data(idx)
 
-    @staticmethod
     def _update_pointers_in(
-        subseqs: sequencetools.InletSequences | sequencetools.ReceiverSequences,
+        self, subseqs: sequencetools.InletSequences | sequencetools.ReceiverSequences
     ) -> None:
-        for seq in subseqs:
-            pointer = seq.__hydpy__get_fastaccessattribute__("pointer")
-            if (pointer is not None) and (seq.NDIM == 0):
-                setattr(seq.fastaccess, seq.name, pointer[0])
-            else:
-                values = getattr(seq.fastaccess, seq.name, None)
-                if values is not None:
-                    for i in range(getattr(seq.fastaccess, f"len_{seq.name}")):
-                        values[i] = pointer[i]
+        if not self.threading:
+            for seq in subseqs:
+                pointer = seq.__hydpy__get_fastaccessattribute__("pointer")
+                if (pointer is not None) and (seq.NDIM == 0):
+                    setattr(seq.fastaccess, seq.name, pointer[0])
+                else:
+                    values = getattr(seq.fastaccess, seq.name, None)
+                    if values is not None:
+                        for i in range(getattr(seq.fastaccess, f"len_{seq.name}")):
+                            values[i] = pointer[i]
 
-    @staticmethod
     def _update_pointers_out(
-        subseqs: sequencetools.OutletSequences | sequencetools.SenderSequences,
+        self, subseqs: sequencetools.OutletSequences | sequencetools.SenderSequences
     ) -> None:
-        for seq in subseqs:
-            pointer = seq.__hydpy__get_fastaccessattribute__("pointer")
-            if (pointer is not None) and (seq.NDIM == 0):
-                pointer[0] += getattr(seq.fastaccess, seq.name)
-            else:
-                values = getattr(seq.fastaccess, seq.name, None)
-                if values is not None:
-                    for i in range(getattr(seq.fastaccess, f"len_{seq.name}")):
-                        pointer[i][0] += values[i]
+        if not self.threading:
+            for seq in subseqs:
+                pointer = seq.__hydpy__get_fastaccessattribute__("pointer")
+                if (pointer is not None) and (seq.NDIM == 0):
+                    pointer[0] += getattr(seq.fastaccess, seq.name)
+                else:
+                    values = getattr(seq.fastaccess, seq.name, None)
+                    if values is not None:
+                        for i in range(getattr(seq.fastaccess, f"len_{seq.name}")):
+                            pointer[i][0] += values[i]
 
     def update_inlets(self) -> None:
         """Update all link sequences and then call all methods defined as
@@ -2629,7 +2667,8 @@ the available directories (calib_1 and calib_2).
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
-        self.sequences.update_outputs()
+        if not self.threading:
+            self.sequences.update_outputs()
 
     @classmethod
     def get_methods(cls, skip: tuple[MethodGroup, ...] = ()) -> Iterator[type[Method]]:
@@ -3309,15 +3348,14 @@ class RunModel(Model):
     def simulate(self, idx: int) -> None:
         """Perform a simulation run over a single simulation time step.
 
-        The required argument `idx` corresponds to property `idx_sim`
-        (see the main documentation on class |Model|).
+        The required argument `idx` corresponds to property `idx_sim` (see the main
+        documentation on class |Model|).
 
-        You can integrate method |Model.simulate| into your workflows for
-        tailor-made simulation runs.  Method |Model.simulate| is complete
-        enough to allow for consecutive calls.  However, note that it
-        does neither call |Model.save_data|, |Model.update_receivers|,
-        nor |Model.update_senders|.  Also, one would have to reset the
-        related node sequences, as done in the following example:
+        You can integrate method |Model.simulate| into your workflows for tailor-made
+        simulation runs.  Method |Model.simulate| is complete enough to allow for
+        consecutive calls.  However, note that it does neither call |Model.save_data|,
+        |Model.update_receivers|, nor |Model.update_senders|.  Also, as done in the
+        following example, one would have to reset the related node sequences:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -3333,11 +3371,10 @@ class RunModel(Model):
         >>> hp.nodes.dill_assl.sequences.sim.series
         InfoArray([nan, nan, nan, nan])
 
-        The results above are identical to those of method |HydPy.simulate|
-        of class |HydPy|, which is the standard method to perform simulation
-        runs (except that method |HydPy.simulate| of class |HydPy| also
-        performs the steps neglected by method |Model.simulate| of class
-        |Model| mentioned above):
+        The results above are identical to those of method |HydPy.simulate| of class
+        |HydPy|, which is the standard method to perform simulation runs (except that
+        method |HydPy.simulate| of class |HydPy| also performs the steps neglected by
+        method |Model.simulate| of class |Model| mentioned above):
 
         >>> from hydpy import round_
         >>> hp.reset_conditions()
@@ -3345,12 +3382,13 @@ class RunModel(Model):
         >>> round_(hp.nodes.dill_assl.sequences.sim.series)
         11.757526, 8.865079, 7.101815, 5.994195
 
-        When working in Cython mode, the standard model import overrides
-        this generic Python version with a model-specific Cython version.
+        When working in Cython mode, the standard model import overrides this generic
+        Python version with a model-specific Cython version.
 
         .. testsetup::
 
-            >>> from hydpy import Node, Element
+            >>> from hydpy import Element, Node, pub
+            >>> del pub.timegrids
             >>> Node.clear_all()
             >>> Element.clear_all()
         """

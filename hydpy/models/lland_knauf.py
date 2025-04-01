@@ -1178,6 +1178,7 @@ As |meteo_psun_sun_glob_io|, |meteo_glob_morsim| complies with
 
 >>> model.aetmodel.add_radiationmodel_v1(submodel_meteo_glob_morsim)
 
+>>> land.prepare_allseries(False)
 >>> test = IntegrationTest(land)
 
 .. _lland_knauf_acker_summer_hourly:

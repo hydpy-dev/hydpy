@@ -979,6 +979,7 @@ _________________
 
 >>> model.aetmodel.add_radiationmodel_v1(submodel_meteo_glob_morsim)
 
+>>> land.prepare_allseries(False)
 >>> test = IntegrationTest(land)
 
 .. _lland_knauf_ic_acker_summer_hourly:

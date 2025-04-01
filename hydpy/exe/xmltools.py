@@ -567,6 +567,8 @@ correctly refer to one of the available XML schema files \
             >>> from hydpy import pub
             >>> del pub.timegrids
             >>> del pub.options.simulationstep
+            >>> threads = pub.options.threads
+            >>> usecython = pub.options.usecython
 
         >>> from hydpy.exe.xmltools import XMLInterface
         >>> from hydpy import pub
@@ -577,6 +579,7 @@ correctly refer to one of the available XML schema files \
         >>> pub.options.printprogress = True
         >>> pub.options.reprdigits = -1
         >>> pub.options.utcoffset = -60
+        >>> pub.options.threads = 4
         >>> pub.options.timestampleft = False
         >>> pub.options.warnsimulationstep = 0
         >>> interface.update_options()
@@ -589,6 +592,7 @@ correctly refer to one of the available XML schema files \
             printprogress -> FALSE
             reprdigits -> 6
             simulationstep -> Period()
+            threads -> 0
             timestampleft -> TRUE
             trimvariables -> TRUE
             usecython -> TRUE
@@ -601,9 +605,16 @@ correctly refer to one of the available XML schema files \
             warnsimulationstep -> FALSE
             warntrim -> TRUE
         )
+
         >>> pub.options.checkprojectstructure = False
         >>> pub.options.printprogress = False
+        >>> pub.options.threads = 0
         >>> pub.options.reprdigits = 6
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+            >>> pub.options.prepare_testing(usecython=usecython, threads=threads)
         """
         options = hydpy.pub.options
         for option in self.find("options", optional=False):

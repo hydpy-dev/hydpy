@@ -878,6 +878,18 @@ class Options:
         Period()
         """,
     )
+    threads = OptionPropertyInt(
+        0,
+        """The number of additional threads opened during a simulation run.
+
+        Defaults to zero (no multi-threading), but note that all tests work with an 
+        arbitrary number of additional threads.
+
+        >>> from hydpy import pub
+        >>> del pub.options.threads
+        >>> assert pub.options.threads == 0
+        """,
+    )
     timestampleft = OptionPropertyBool(
         True,
         """A bool-like flag telling if assigning interval data (like hourly 
@@ -1039,6 +1051,7 @@ class Options:
         .. testsetup::
 
             >>> from hydpy import pub
+            >>> threads = pub.options.threads
             >>> usecython = pub.options.usecython
 
         >>> from hydpy import pub
@@ -1049,32 +1062,35 @@ class Options:
 
         .. testsetup::
 
-            >>> pub.options.prepare_testing(usecython=usecython)
+            >>> pub.options.prepare_testing(usecython=usecython, threads=threads)
         """
         for name, member in vars(type(self)).items():
             if isinstance(member, OptionPropertyBase):
                 delattr(self, name)
 
-    def prepare_testing(self, *, usecython: bool) -> None:
+    def prepare_testing(self, *, usecython: bool, threads: int) -> None:
         """Set all options to the values usually used during testing.
 
         .. testsetup::
 
             >>> from hydpy import pub
+            >>> threads = pub.options.threads
             >>> usecython = pub.options.usecython
 
         >>> from hydpy import pub
         >>> pub.options.checkseries = False
         >>> pub.options.reprdigits = 2
+        >>> pub.options.threads = 0
         >>> pub.options.usecython = True
-        >>> pub.options.prepare_testing(usecython=False)
+        >>> pub.options.prepare_testing(usecython=False, threads=4)
         >>> assert pub.options.checkseries
         >>> assert pub.options.reprdigits == 6
+        >>> assert pub.options.threads == 4
         >>> assert not pub.options.usecython
 
         .. testsetup::
 
-            >>> pub.options.prepare_testing(usecython=usecython)
+            >>> pub.options.prepare_testing(usecython=usecython, threads=threads)
 
         """
         self.reset_defaults()
@@ -1082,6 +1098,7 @@ class Options:
         self.ellipsis = 0
         self.printprogress = False
         self.reprdigits = 6
+        self.threads = threads
         self.usecython = usecython
         self.warnsimulationstep = False
         self.warntrim = False

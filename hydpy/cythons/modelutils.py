@@ -1434,8 +1434,10 @@ class PyxWriter:
             both(0, "cdef class Model:")
         for cls in inspect.getmro(type(self.model)):
             for name, member in vars(cls).items():
-                if isinstance(member, modeltools.IndexProperty):
-                    if (name != "idx_sim") or not follows_interface:
+                if isinstance(member, modeltools.SharedProperty):
+                    if name == "threading":
+                        pxd(1, f"cdef public {TYPE2STR[bool]} {name}")
+                    elif (name != "idx_sim") or not follows_interface:
                         pxd(1, f"cdef public {INT} {name}")
         if isinstance(self.model, modeltools.SubstepModel):
             pxd(1, f"cdef public {TYPE2STR[float]} timeleft")
@@ -1481,6 +1483,7 @@ class PyxWriter:
     def modelstandardfunctions(self, lines: PyxPxdLines) -> None:
         """The standard functions of the model class."""
         self.simulate(lines)
+        self.simulate_period(lines)
         self.reset_reuseflags(lines)
         self.iofunctions(lines)
         self.new2old(lines)
@@ -1552,6 +1555,18 @@ class PyxWriter:
         if seqs.factors or seqs.fluxes or seqs.states:
             pyx(2, "self.update_outputs()")
 
+    def simulate_period(self, lines: PyxPxdLines) -> None:
+        """Simulate period statements."""
+        pyx, both = lines.pyx.add, lines.add
+        both(1, f"cpdef void simulate_period(self, {INT} i0, {INT} i1) {_nogil}:")
+        pyx(2, f"cdef {INT} i")
+        pyx(2, "with nogil:")
+        pyx(3, "for i in range(i0, i1):")
+        pyx(4, "self.simulate(i)")
+        pyx(4, "self.update_senders(i)")
+        pyx(4, "self.update_receivers(i)")
+        pyx(4, "self.save_data(i)")
+
     def _call_submodel_method(self, lines: PyxPxdLines, methodcall: str) -> None:
         name2submodel = self.model.find_submodels(
             include_subsubmodels=False,
@@ -1598,7 +1613,6 @@ class PyxWriter:
             cpdef void load_data(self, ...int... idx) noexcept nogil:
                 self.idx_sim = idx
                 self.sequences.inputs.load_data(idx)
-                self.sequences.outlets.load_data(idx)
                 if (self.aetmodel is not None) and not self.aetmodel_is_mainmodel:
                     self.aetmodel.load_data(idx)
                 if (self.rconcmodel is not None) and not self.rconcmodel_is_mainmodel:
@@ -1627,7 +1641,6 @@ class PyxWriter:
             cpdef void load_data(self, ...int... idx) noexcept nogil:
                 self.idx_sim = idx
                 self.sequences.inputs.load_data(idx)
-                self.sequences.outlets.load_data(idx)
                 if (self.aetmodel is not None) and not self.aetmodel_is_mainmodel:
                     self.aetmodel.load_data(idx)
                 if (self.rconcmodel is not None) and not self.rconcmodel_is_mainmodel:
@@ -1736,6 +1749,7 @@ class PyxWriter:
 
     def _call_methods(
         self,
+        *,
         lines: PyxPxdLines,
         name: str,
         methods: tuple[type[modeltools.Method], ...],
@@ -1804,17 +1818,18 @@ class PyxWriter:
         pyx = lines.pyx.add
         pyx(2, f"cdef {INT} i")
         for seq in self.model.sequences[group]:
+            pyx(2, "if not self.threading:")
             group_ = f"self.sequences.{group}"
             pointer = f"{group_}._{seq.name}_pointer"
             value = f"{group_}.{seq.name}"
             if seq.NDIM == 0:
-                pyx(2, f"{value} = {pointer}[0]")
+                pyx(3, f"{value} = {pointer}[0]")
             elif seq.NDIM == 1:
-                pyx(2, f"for i in range({group_}._{seq.name}_length_0):")
-                pyx(3, f"if {group_}._{seq.name}_ready[i]:")
-                pyx(4, f"{value}[i] = {pointer}[i][0]")
-                pyx(3, "else:")
-                pyx(4, f"{value}[i] = nan")
+                pyx(3, f"for i in range({group_}._{seq.name}_length_0):")
+                pyx(4, f"if {group_}._{seq.name}_ready[i]:")
+                pyx(5, f"{value}[i] = {pointer}[i][0]")
+                pyx(4, "else:")
+                pyx(5, f"{value}[i] = nan")
             else:
                 assert False
 
@@ -1826,7 +1841,7 @@ class PyxWriter:
             self._call_runmethods_segmentwise(lines, model.RUN_METHODS)
         else:
             nmb = len(lines.pyx)
-            self._call_methods(lines, "run", model.RUN_METHODS)
+            self._call_methods(lines=lines, name="run", methods=model.RUN_METHODS)
             if isinstance(model, modeltools.SubstepModel):
                 pyx = Lines()
                 pyx.extend(lines.pyx[: nmb + 1])
@@ -1876,15 +1891,16 @@ class PyxWriter:
         pyx = lines.pyx.add
         pyx(2, f"cdef {INT} i")
         for seq in self.model.sequences[group]:
+            pyx(2, "if not self.threading:")
             group_ = f"self.sequences.{group}"
             pointer = f"{group_}._{seq.name}_pointer"
             value = f"{group_}.{seq.name}"
             if seq.NDIM == 0:
-                pyx(2, f"{pointer}[0] = {pointer}[0] + {value}")
+                pyx(3, f"{pointer}[0] = {pointer}[0] + {value}")
             elif seq.NDIM == 1:
-                pyx(2, f"for i in range({group_}._{seq.name}_length_0):")
-                pyx(3, f"if {group_}._{seq.name}_ready[i]:")
-                pyx(4, f"{pointer}[i][0] = {pointer}[i][0] + {value}[i]")
+                pyx(3, f"for i in range({group_}._{seq.name}_length_0):")
+                pyx(4, f"if {group_}._{seq.name}_ready[i]:")
+                pyx(5, f"{pointer}[i][0] = {pointer}[i][0] + {value}[i]")
             else:
                 assert False
 
@@ -1895,13 +1911,15 @@ class PyxWriter:
         factors = self._filter_outputsequences(self.model.sequences.factors)
         fluxes = self._filter_outputsequences(self.model.sequences.fluxes)
         states = self._filter_outputsequences(self.model.sequences.states)
-        if factors:
-            pyx(2, "self.sequences.factors.update_outputs()")
-        if fluxes:
-            pyx(2, "self.sequences.fluxes.update_outputs()")
-        if states:
-            pyx(2, "self.sequences.states.update_outputs()")
-        if not (factors or fluxes or states):
+        if factors or fluxes or states:
+            pyx(2, "if not self.threading:")
+            if factors:
+                pyx(3, "self.sequences.factors.update_outputs()")
+            if fluxes:
+                pyx(3, "self.sequences.fluxes.update_outputs()")
+            if states:
+                pyx(3, "self.sequences.states.update_outputs()")
+        else:
             pyx(2, "pass")
 
     def update_outputs(
@@ -1924,7 +1942,9 @@ class PyxWriter:
     ) -> None:
         """Return the lines of the model method with the same name."""
         nmb = len(lines.pyx)
-        self._call_methods(lines, "calculate_single_terms", model.PART_ODE_METHODS)
+        self._call_methods(
+            lines=lines, name="calculate_single_terms", methods=model.PART_ODE_METHODS
+        )
         if len(lines.pyx) > nmb:
             lines.pyx.insert(
                 nmb + 1, ("        self.numvars.nmb_calls = self.numvars.nmb_calls + 1")
@@ -1934,7 +1954,9 @@ class PyxWriter:
         self, lines: PyxPxdLines, model: modeltools.SolverModel
     ) -> None:
         """Return the lines of the model method with the same name."""
-        self._call_methods(lines, "calculate_full_terms", model.FULL_ODE_METHODS)
+        self._call_methods(
+            lines=lines, name="calculate_full_terms", methods=model.FULL_ODE_METHODS
+        )
 
     @property
     def name2function_method(self) -> dict[str, types.MethodType]:

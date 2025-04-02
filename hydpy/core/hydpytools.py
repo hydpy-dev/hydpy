@@ -25,6 +25,7 @@ from hydpy.core import printtools
 from hydpy.core import propertytools
 from hydpy.core import selectiontools
 from hydpy.core import sequencetools
+from hydpy.core import threadingtools
 from hydpy.core import timetools
 from hydpy.core.typingtools import *
 
@@ -2896,6 +2897,12 @@ actual HydPy instance does not handle any elements at the moment.
         >>> round_(hp.nodes.lahn_kalk.sequences.sim.series)
         54.019337, 37.257561, 31.865308, 28.359542
         """
+        if hydpy.pub.options.threads == 0:
+            self._simulate_singlethread()
+        else:
+            self._simulate_multithreading()
+
+    def _simulate_singlethread(self) -> None:
         idx_start, idx_end = hydpy.pub.timegrids.simindices
         methodorder = self.methodorder
         cm: AbstractContextManager[None] = contextlib.nullcontext()
@@ -2905,6 +2912,16 @@ actual HydPy instance does not handle any elements at the moment.
             for idx in printtools.progressbar(range(idx_start, idx_end)):
                 for func in methodorder:
                     func(idx)
+
+    def _simulate_multithreading(self) -> None:
+        queue_ = threadingtools.Queue(nodes=self.nodes, elements=self.elements)
+        try:
+            for i, _ in enumerate(range(hydpy.pub.options.threads)):
+                threadingtools.Worker(queue_=queue_).start()
+            queue_.register()
+            queue_.join()
+        finally:
+            queue_.shutdown()
 
     def doit(self) -> None:
         """Deprecated! Use method |HydPy.simulate| instead.

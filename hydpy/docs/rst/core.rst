@@ -70,6 +70,7 @@ general and HydPy-specific type hint features available).
    sequencetools
    seriestools
    testtools
+   threadingtools
    timetools
    typingtools
    variabletools

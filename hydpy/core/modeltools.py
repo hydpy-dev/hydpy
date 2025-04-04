@@ -935,11 +935,9 @@ class SubmodelTypeIDProperty:
 
 class SharedProperty(Generic[T]):
     """Base class for descriptors that handle model properties which need
-    synchronisation between the Python and the Cython world and eventually between
-    main models and their submodels."""
+    synchronisation between the Python and the Cython world."""
 
     name: str
-    SYNCHRONISE_SUBMODELS: bool
 
     def __set_name__(self, owner: Model, name: str) -> None:
         self.name = name.lower()
@@ -962,15 +960,10 @@ class SharedProperty(Generic[T]):
             setattr(obj.cymodel, self.name, value)
         else:
             vars(obj)[self.name] = value
-        if self.SYNCHRONISE_SUBMODELS:
-            for submodel in obj.find_submodels(include_subsubmodels=False).values():
-                setattr(submodel, self.name, value)
 
 
 class Idx_Sim(SharedProperty[int]):
     """The simulation step index."""
-
-    SYNCHRONISE_SUBMODELS = False
 
     def __init__(self) -> None:
         self.__doc__ = "The simulation step index."
@@ -979,16 +972,12 @@ class Idx_Sim(SharedProperty[int]):
 class Idx_HRU(SharedProperty[int]):
     """The hydrological response unit index."""
 
-    SYNCHRONISE_SUBMODELS = False
-
     def __init__(self) -> None:
         self.__doc__ = "The hydrological response unit index."
 
 
 class Idx_Segment(SharedProperty[int]):
     """The segment index."""
-
-    SYNCHRONISE_SUBMODELS = False
 
     def __init__(self) -> None:
         self.__doc__ = "The segment index."
@@ -997,22 +986,30 @@ class Idx_Segment(SharedProperty[int]):
 class Idx_Run(SharedProperty[int]):
     """The run index."""
 
-    SYNCHRONISE_SUBMODELS = False
-
     def __init__(self) -> None:
         self.__doc__ = "The run index."
 
 
 class Threading(SharedProperty[bool]):
-    """Is multi-threading for this model currently enabled?
+    """Is multi-threading for this model (and its submodels) currently enabled?
 
     Change this flag only for testing purposes.
     """
 
-    SYNCHRONISE_SUBMODELS = True
-
     def __init__(self) -> None:
         self.__doc__ = "Is multi-threading for this model currently enabled?"
+
+    def __set__(self, obj: Model, value: bool) -> None:
+        super().__set__(obj, value)
+        try:
+            for input_ in obj.sequences.inputs:
+                input_.__hydpy__set_fastaccessattribute__(
+                    "inputflag", input_.node2idx and not value
+                )
+        except:
+            pass
+        for submodel in obj.find_submodels(include_subsubmodels=False).values():
+            setattr(submodel, self.name, value)
 
 
 class DocName(NamedTuple):

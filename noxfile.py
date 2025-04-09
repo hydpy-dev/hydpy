@@ -65,28 +65,34 @@ def doctest(session: nox.Session, numpy: Literal["1", "2"]) -> None:
 
     You can define arguments specific to the doctest session.  The `doctest` session
     passes them to the `run_doctests.py` script.  For example, to restrict testing to
-    module `armatools.py` in Cython mode, write:
+    module `hland_96.py` in Cython mode and to perform the simulations in the
+    multi-threading mode with four additional threads, write:
 
-    nox -s doctest -- --file_doctests=armatools.py --python-mode=false
+    nox -s doctest -- --file_doctests=hland_96.py --python-mode=false --threads 4
 
     Or shorter:
 
-    nox -s doctest -- -f armatools.py -p f
+    nox -s doctest -- -f hland_96.py -p f -t 4
 
-    The `doctest` session only measures code coverage when no session-specific
-    arguments are given, due to the mentioned restrictions inevitably resulting in
-    incomplete code coverage measurements.
+    The "doctest" session only measures code coverage when no session-specific
+    arguments are given.  Otherwise, the mentioned restrictions would inevitably result
+    in incomplete code coverage measurements.
 
     By default, the `doctest` session runs subsequentially with the NumPy versions 1.x
     and 2.x.  Use the following command to select only one version:
 
     nox -s "doctest(numpy='2')"
     """
+
+    multithreading = ("-t" in session.posargs) or ("--threads" in session.posargs)
+    analyse_coverage = (len(session.posargs) - (2 * multithreading)) == 0
+
     _install_hydpy(session)
-    session.install("coverage")
+    if analyse_coverage:
+        session.install("coverage")
     session.chdir(_get_sitepackagepath(session))
     session.run("python", "hydpy/docs/enable_autodoc.py")
-    if not session.posargs:
+    if analyse_coverage:
         shutil.copy("hydpy/tests/hydpydoctestcustomize.py", "hydpydoctestcustomize.py")
         shutil.copy(
             "hydpy/tests/hydpydoctestcustomize.pth", "hydpydoctestcustomize.pth"
@@ -99,7 +105,7 @@ def doctest(session: nox.Session, numpy: Literal["1", "2"]) -> None:
         assert_never(numpy)
     with _clean_environment(session):
         session.run("python", "hydpy/tests/run_doctests.py", *session.posargs)
-    if not session.posargs:
+    if analyse_coverage:
         session.run("coverage", "combine")
         session.run("coverage", "report", "-m", "--skip-covered", "--fail-under=100")
 

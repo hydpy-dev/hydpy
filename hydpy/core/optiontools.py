@@ -3,7 +3,6 @@
 # import...
 # ...from standard library
 from __future__ import annotations
-import itertools
 import types
 
 # ...from HydPy
@@ -1034,12 +1033,63 @@ class Options:
         """,
     )
 
+    def reset_defaults(self) -> None:
+        """Reset all options to their default values.
+
+        .. testsetup::
+
+            >>> from hydpy import pub
+            >>> usecython = pub.options.usecython
+
+        >>> from hydpy import pub
+        >>> pub.options.reprdigits = 2
+        >>> assert pub.options.reprdigits == 2
+        >>> pub.options.reset_defaults()
+        >>> assert pub.options.reprdigits == -1
+
+        .. testsetup::
+
+            >>> pub.options.prepare_testing(usecython=usecython)
+        """
+        for name, member in vars(type(self)).items():
+            if isinstance(member, OptionPropertyBase):
+                delattr(self, name)
+
+    def prepare_testing(self, *, usecython: bool) -> None:
+        """Set all options to the values usually used during testing.
+
+        .. testsetup::
+
+            >>> from hydpy import pub
+            >>> usecython = pub.options.usecython
+
+        >>> from hydpy import pub
+        >>> pub.options.checkseries = False
+        >>> pub.options.reprdigits = 2
+        >>> pub.options.usecython = True
+        >>> pub.options.prepare_testing(usecython=False)
+        >>> assert pub.options.checkseries
+        >>> assert pub.options.reprdigits == 6
+        >>> assert not pub.options.usecython
+
+        .. testsetup::
+
+            >>> pub.options.prepare_testing(usecython=usecython)
+
+        """
+        self.reset_defaults()
+        self.checkprojectstructure = False
+        self.ellipsis = 0
+        self.printprogress = False
+        self.reprdigits = 6
+        self.usecython = usecython
+        self.warnsimulationstep = False
+        self.warntrim = False
+
     def __repr__(self) -> str:
-        type_ = type(self)
         lines = ["Options("]
-        for option in itertools.chain(vars(type_).keys(), vars(self).keys()):
-            if not option.startswith("_"):
-                value = getattr(self, option)
-                lines.append(f"    {option} -> {repr(value)}")
+        for name, member in vars(type(self)).items():
+            if isinstance(member, OptionPropertyBase):
+                lines.append(f"    {name} -> {repr(getattr(self, name))}")
         lines.append(")")
         return "\n".join(lines)

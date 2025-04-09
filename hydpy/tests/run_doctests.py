@@ -148,25 +148,7 @@ def main(  # pylint: disable=too-many-branches
                 else:
                     del pub.projectname
                     del pub.timegrids
-                    options = pub.options
-                    options.checkprojectstructure = False
-                    del options.checkseries
-                    options.ellipsis = 0
-                    del pub.options.parameterstep
-                    options.printprogress = False
-                    options.reprdigits = 6
-                    del pub.options.simulationstep
-                    del options.timestampleft
-                    del options.trimvariables
-                    options.usecython = mode == "Cython"
-                    del options.usedefaultvalues
-                    del options.utclongitude
-                    del options.utcoffset
-                    del options.warnmissingcontrolfile
-                    del options.warnmissingobsfile
-                    del options.warnmissingsimfile
-                    options.warnsimulationstep = False
-                    options.warntrim = False
+                    pub.options.prepare_testing(usecython=mode == "Cython")
                     testtools.IntegrationTest.plotting_options = (
                         testtools.PlottingOptions()
                     )

@@ -2885,8 +2885,7 @@ class ModelIOSequence(ModelSequence, IOSequence):
     corresponding column's indices."""
 
     def __init__(
-        self,
-        subvars: ModelIOSequences[ModelIOSequence, variabletools.FastAccessIOSequence],
+        self, subvars: ModelIOSequences[ModelIOSequence, FastAccessIOSequence]
     ) -> None:
         super().__init__(subvars)
         self.node2idx = {}
@@ -3100,7 +3099,7 @@ class OutputSequence(ModelIOSequence):
     >>> model.sequences.states.lz.outputflag
     False
 
-    >>> hp.update_devices(nodes=[node_q0, node_q1, node_perc, node_uz],
+    >>> hp.update_devices(nodes=[node_q, node_q0, node_q1, node_perc, node_uz],
     ...                   elements=land_dill_assl)
     >>> with TestIO():
     ...     hp.load_conditions()

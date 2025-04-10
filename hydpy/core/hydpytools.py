@@ -574,7 +574,7 @@ required to prepare the model properly.
     Reloading the initial conditions and starting a new simulation run leads to the
     same results as the simulation run above:
 
-    >>> with TestIO(), pub.options.checkseries(False):
+    >>> with TestIO(), pub.options.checkseries(False), pub.options.threads(0):
     ...     hp.load_conditions()
     ...     hp.simulate()
 
@@ -660,7 +660,7 @@ required to prepare the model properly.
     After another simulation run, all input data (read during simulation) and output
     data (calculated during simulation) are directly available:
 
-    >>> with TestIO(), pub.options.checkseries(False):
+    >>> with TestIO(), pub.options.checkseries(False), pub.options.threads(0):
     ...     hp.load_conditions()
     ...     hp.simulate()
 
@@ -810,7 +810,7 @@ directory: '...land_dill_assl_hland_96p_input_p.asc'
     available to both sequences (and leads to the same simulation results):
 
     >>> hland.sequences.inputs.t.series = -777.0
-    >>> with TestIO():
+    >>> with TestIO(), pub.options.threads(0):
     ...     hp.prepare_fluxseries()
     ...     hp.simulate()
     >>> round_(hland.sequences.inputs.t.series)
@@ -2827,7 +2827,6 @@ actual HydPy instance does not handle any elements at the moment.
         receiving the observed instead of the simulated values from upstream:
 
         >>> hp.reset_conditions()
-        >>> hp.nodes.lahn_kalk.sequences.sim.series = 0.0
         >>> hp.simulate()
         >>> round_(hp.nodes.lahn_leun.sequences.obs.series)
         0.0, 0.0, 0.0, 0.0
@@ -2847,7 +2846,6 @@ actual HydPy instance does not handle any elements at the moment.
         >>> with pub.options.checkseries(False):
         ...     hp.nodes.lahn_leun.sequences.obs.series= 0.0, nan, 0.0, nan
         >>> hp.reset_conditions()
-        >>> hp.nodes.lahn_kalk.sequences.sim.series = 0.0
         >>> hp.simulate()
         >>> round_(hp.nodes.lahn_leun.sequences.obs.series)
         0.0, nan, 0.0, nan

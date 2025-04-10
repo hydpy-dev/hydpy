@@ -1419,7 +1419,7 @@ class IOSequence(Sequence_):
     directory to the `iotesting` directory temporarily (by using class |TestIO|)
     because the relevant NetCDF files are now read and written on the fly:
 
-    >>> with TestIO():
+    >>> with TestIO(), pub.options.threads(0):
     ...     hp.simulate()
 
     After the simulation run, the read (|hland_inputs.T|) and calculated

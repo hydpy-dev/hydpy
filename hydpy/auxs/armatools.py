@@ -117,6 +117,8 @@ class MA:
 
         >>> from matplotlib import pyplot
         >>> pyplot.close()
+        >>> import gc
+        >>> _ = gc.collect()
 
     The turning point detection also works for functions which include both a rising
     and a falling limb.  This can be shown shifting the normal distribution to the
@@ -476,6 +478,13 @@ determined ARMA model is negative (`-0.000336`).
     required in the above example:
 
     >>> arma.plot(threshold=0.9)
+
+    .. testsetup::
+
+        >>> from matplotlib import pyplot
+        >>> pyplot.close()
+        >>> import gc
+        >>> _ = gc.collect()
 
     Violations of the tolerance values are reported as warnings:
 

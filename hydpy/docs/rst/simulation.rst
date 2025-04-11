@@ -470,7 +470,7 @@ parts `<!--` and `-->` define a usual XML comment. As such comments count as not
 |xml_validate| reports the following error when checking `single_run.xmlt`:
 
 >>> subprocess = run_subprocess("hyd.py xml_validate HydPy-H-Lahn/single_run.xmlt")  # doctest: +ELLIPSIS
-failed validating '' with XsdAtomicBuiltin(name='xs:dateTime'):
+failed decoding '' with XsdAtomicBuiltin(name='xs:dateTime'):
 <BLANKLINE>
 Reason: Invalid datetime string '' for <class 'elementpath.datatypes.datetime.DateTime10'>
 ...
@@ -498,7 +498,7 @@ Although technically successful, the replacement was flawed because, as |xml_val
 can tell us, `wrong` is not a boolean value, as would be required:
 
 >>> subprocess = run_subprocess("hyd.py xml_validate HydPy-H-Lahn/single_run.xml")  # doctest: +ELLIPSIS
-failed validating 'wrong' with XsdAtomicBuiltin(name='xs:boolean'):
+failed decoding 'wrong' with XsdAtomicBuiltin(name='xs:boolean'):
 <BLANKLINE>
 Reason: 'wrong' is not a boolean value
 ...

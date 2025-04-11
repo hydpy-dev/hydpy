@@ -971,7 +971,7 @@ required as the "inlet device", but the given `device` value is of type `int`.
                   elements="lower")
         >>> test.search_downstream(nodes.inlet1, inclusive=False)
         Selection("downstream",
-                  nodes=("inlet1", "outlet", "output"),
+                  nodes=("inlet1", "outlet", "output", "sender"),
                   elements="lower")
         """
         try:

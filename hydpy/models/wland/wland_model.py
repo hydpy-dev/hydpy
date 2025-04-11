@@ -67,13 +67,8 @@ class Pick_HS_V1(modeltools.Method):
 
         >>> bl(3.0)
         >>> with model.add_waterlevelmodel_v1("exch_waterlevel") as exch:
-        ...     pass
-        >>> from hydpy import Element, Node
-        >>> wl = Node("wl", variable="WaterLevel")
-        >>> wl.sequences.sim = 5.0
-        >>> e = Element("e", receivers=wl, outlets="q")
-        >>> e.model = model
-        >>> model.update_receivers(0)
+        ...     exch.sequences.logs.loggedwaterlevel(5.0)
+        >>> model.pick_hs_v1()
         >>> states.hs
         hs(2000.0)
         >>> factors.dhs

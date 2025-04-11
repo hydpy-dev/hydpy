@@ -811,8 +811,8 @@ Next, we must add a submodel that complies with the |WaterLevelModel_V1| interfa
 We apply |exch_waterlevel|, which makes the downstream water level available via a
 remote node:
 
->>> with model.add_waterlevelmodel_v1("exch_waterlevel"):
-...     pass
+>>> with model.add_waterlevelmodel_v1("exch_waterlevel") as exchmodel:
+...     exchmodel.sequences.logs.loggedwaterlevel(-0.002)
 
 We create such a node and build the required connections:
 

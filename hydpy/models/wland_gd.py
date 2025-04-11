@@ -504,8 +504,8 @@ backwater effects
 _________________
 
 >>> del model.dischargemodel
->>> with model.add_waterlevelmodel_v1("exch_waterlevel"):
-...     pass
+>>> with model.add_waterlevelmodel_v1("exch_waterlevel") as exchmodel:
+...     exchmodel.sequences.logs.loggedwaterlevel(-0.002)
 >>> from hydpy import Node
 >>> waterlevel = Node("waterlevel", variable="WaterLevel")
 >>> land = Element("land", outlets="outlet", receivers=waterlevel)

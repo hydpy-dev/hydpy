@@ -13,6 +13,33 @@ from hydpy.models.exch import exch_receivers
 from hydpy.models.exch import exch_outlets
 
 
+class Pick_LoggedWaterLevel_V1(modeltools.Method):
+    """Pick the logged water level from a single receiver node.
+
+    Basic equation:
+      :math:`LoggedWaterLevel = WaterLevel`
+
+    Example:
+
+        >>> from hydpy.models.exch import *
+        >>> parameterstep()
+        >>> receivers.waterlevel = 2.0
+        >>> model.pick_loggedwaterlevel_v1()
+        >>> logs.loggedwaterlevel
+        loggedwaterlevel(2.0)
+
+    """
+
+    REQUIREDSEQUENCES = (exch_receivers.WaterLevel,)
+    RESULTSEQUENCES = (exch_logs.LoggedWaterLevel,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        log = model.sequences.logs.fastaccess
+        rec = model.sequences.receivers.fastaccess
+        log.loggedwaterlevel[0] = rec.waterlevel
+
+
 class Pic_LoggedWaterLevels_V1(modeltools.Method):
     """Pic the logged water levels from two receiver nodes.
 
@@ -460,23 +487,24 @@ class Pass_Outputs_V1(modeltools.Method):
 
 
 class Get_WaterLevel_V1(modeltools.Method):
-    """Pick the water level from a receiver node and return it in m.
+    """Return the water level in m.
 
     Example:
 
         >>> from hydpy.models.exch import *
         >>> parameterstep()
-        >>> receivers.waterlevel = 2.0
-        >>> model.get_waterlevel_v1()
+        >>> logs.loggedwaterlevel = 2.0
+        >>> from hydpy import round_
+        >>> round_(model.get_waterlevel_v1())
         2.0
     """
 
-    REQUIREDSEQUENCES = (exch_receivers.WaterLevel,)
+    REQUIREDSEQUENCES = (exch_logs.LoggedWaterLevel,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> float:
-        rec = model.sequences.receivers.fastaccess
-        return rec.waterlevel
+        log = model.sequences.logs.fastaccess
+        return log.loggedwaterlevel[0]
 
 
 class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
@@ -486,7 +514,7 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
     __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = (Pick_OriginalInput_V1,)
-    RECEIVER_METHODS = (Pic_LoggedWaterLevels_V1,)
+    RECEIVER_METHODS = (Pick_LoggedWaterLevel_V1, Pic_LoggedWaterLevels_V1)
     RUN_METHODS = (
         Update_WaterLevels_V1,
         Calc_DeltaWaterLevel_V1,

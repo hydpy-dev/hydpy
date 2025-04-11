@@ -3132,6 +3132,6 @@ def create_directedgraph(
     for element in elements:
         for node in itertools.chain(element.inlets, element.inputs):
             digraph.add_edge(node, element)
-        for node in itertools.chain(element.outlets, element.outputs):
+        for node in itertools.chain(element.outlets, element.outputs, element.senders):
             digraph.add_edge(element, node)
     return digraph

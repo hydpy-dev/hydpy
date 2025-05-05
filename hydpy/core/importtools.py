@@ -849,7 +849,7 @@ following error occurred: The given `lland_knauf` instance is not considered sha
                 else:
                     try:
                         del self._namespace[name]
-                    except ValueError:  # pragma: no cover
+                    except (KeyError, ValueError):  # pragma: no cover
                         # Maybe the best we can do for optimised scopes because we
                         # "cannot remove local variables from FrameLocalsProxy"
                         self._namespace[name] = None

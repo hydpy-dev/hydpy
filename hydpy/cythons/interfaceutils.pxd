@@ -17,6 +17,7 @@ cdef class BaseInterface:
     cdef void update_receivers(self, int idx) noexcept nogil
     cdef void update_outlets(self) noexcept nogil
     cdef void update_senders(self, int idx) noexcept nogil
+    cdef void update_outputs(self) noexcept nogil
 
 
 cdef class SubmodelsProperty:

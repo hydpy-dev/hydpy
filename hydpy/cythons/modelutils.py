@@ -1907,7 +1907,10 @@ class PyxWriter:
     def update_outputs_model(self, lines: PyxPxdLines) -> None:
         """Lines of the model method with the same name (except the `_model` suffix)."""
         pyx, both = lines.pyx.add, lines.add
-        both(1, get_methodheader("update_outputs", nogil=True, idxarg=False))
+        both(
+            1,
+            get_methodheader("update_outputs", nogil=True, idxarg=False, inline=False),
+        )
         factors = self._filter_outputsequences(self.model.sequences.factors)
         fluxes = self._filter_outputsequences(self.model.sequences.fluxes)
         states = self._filter_outputsequences(self.model.sequences.states)
@@ -1919,6 +1922,7 @@ class PyxWriter:
                 pyx(3, "self.sequences.fluxes.update_outputs()")
             if states:
                 pyx(3, "self.sequences.states.update_outputs()")
+            self._call_submodel_method(lines=lines, methodcall="update_outputs()")
         else:
             pyx(2, "pass")
 

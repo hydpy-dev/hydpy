@@ -2669,6 +2669,8 @@ the available directories (calib_1 and calib_2).
         """
         if not self.threading:
             self.sequences.update_outputs()
+            for submodel in self.find_submodels(include_subsubmodels=False).values():
+                submodel.update_outputs()
 
     @classmethod
     def get_methods(cls, skip: tuple[MethodGroup, ...] = ()) -> Iterator[type[Method]]:

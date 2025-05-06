@@ -2034,6 +2034,7 @@ following error occurred: Adding devices to immutable Elements objects is not al
     _exits: Elements
     _variable: NodeVariableType
     _deploymode: DeployMode
+    __hydpy__deploymode_modified__: ClassVar[bool] = False
 
     def __init__(
         self,
@@ -2226,6 +2227,9 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         # due to https://github.com/python/mypy/issues/9718:
         # pylint: disable=consider-using-in,too-many-boolean-expressions
 
+        if value == self._deploymode:
+            return
+
         if (
             value == "newsim"
             or value == "obs"
@@ -2233,6 +2237,10 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
             or value == "obs_bi"
             or value == "oldsim_bi"
             or value == "obs_oldsim_bi"
+            or value == "newsim_update"
+            or value == "obs_update"
+            or value == "obs_newsim_update"
+            or value == "obs_bi_update"
         ):
             pass
         elif value == "oldsim" or value == "obs_oldsim":
@@ -2240,6 +2248,8 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         else:
             _assert_never(value)
         self._deploymode = value
+        type(self).__hydpy__deploymode_modified__ = True
+
         for element in itertools.chain(self.entries, self.exits):
             model: modeltools.Model | None
             model = exceptiontools.getattr_(element, "model", None)
@@ -2343,11 +2353,17 @@ group name `test`.
         dm = self.deploymode
 
         if group in ("inlets", "receivers", "inputs"):
-            if dm == "newsim" or dm == "oldsim" or dm == "oldsim_bi":
+            if (
+                dm == "newsim"
+                or dm == "newsim_update"
+                or dm == "oldsim"
+                or dm == "oldsim_bi"
+            ):
                 return self.sequences.fastaccess.sim
             if (
                 dm == "obs"
                 or dm == "obs_newsim"
+                or dm == "obs_newsim_update"
                 or dm == "obs_oldsim"
                 or dm == "obs_bi"
                 or dm == "obs_oldsim_bi"
@@ -2356,7 +2372,14 @@ group name `test`.
             assert_never(dm)
 
         if group in ("outlets", "senders", "outputs"):
-            if dm == "newsim" or dm == "obs" or dm == "obs_newsim" or dm == "oldsim_bi":
+            if (
+                dm == "newsim"
+                or dm == "newsim_update"
+                or dm == "obs"
+                or dm == "obs_newsim"
+                or dm == "obs_newsim_update"
+                or dm == "oldsim_bi"
+            ):
                 return self.sequences.fastaccess.sim
             if dm == "obs_bi" or dm == "obs_oldsim_bi":
                 return self.sequences.fastaccess.obs

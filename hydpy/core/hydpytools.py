@@ -822,6 +822,7 @@ directory: '...land_dill_assl_hland_96p_input_p.asc'
     """
 
     _deviceorder: tuple[devicetools.Node | devicetools.Element, ...] | None
+    _parallelisability: threadingtools.Parallelisability | None
 
     _nodes: devicetools.Nodes | None
     _elements: devicetools.Elements | None
@@ -2613,6 +2614,7 @@ prepared so far.
         except exceptiontools.AttributeNotReady as exc:
             self._collectives = None
             self._deviceorder = None
+            self._parallelisability = None
             if not silent:
                 raise exc
         else:
@@ -2621,6 +2623,10 @@ prepared so far.
             names = set(self.nodes.names)
             names.update(self._collectives.names)
             self._deviceorder = tuple(d for d in devices if d.name in names)
+            self._parallelisability = threadingtools.Parallelisability(
+                nodes=self.nodes, elements=self.collectives
+            )
+            devicetools.Node.__hydpy__deploymode_modified__ = False
 
     @property
     def deviceorder(self) -> tuple[devicetools.Node | devicetools.Element, ...]:
@@ -2651,6 +2657,18 @@ actual HydPy instance does not handle any elements at the moment.
             )
 
     @property
+    def parallelisability(self) -> threadingtools.Parallelisability:
+        try:
+            if self._parallelisability is None:
+                self._update_collectives_and_deviceorder(silent=False)
+            assert (parallelisability := self._parallelisability) is not None
+            return parallelisability
+        except BaseException:
+            objecttools.augment_excmessage(
+                "While trying to determine the parallelisability of the current network"
+            )
+
+    @property
     def methodorder(self) -> list[Callable[[int], None]]:
         """All methods of the currently relevant |Node| and |Element| objects, which
         are to be processed by method |HydPy.simulate| during a simulation time step,
@@ -2670,6 +2688,8 @@ actual HydPy instance does not handle any elements at the moment.
                 or dm == "obs_oldsim"
                 or dm == "oldsim_bi"
                 or dm == "obs_oldsim_bi"
+                or dm == "newsim_update"
+                or dm == "obs_newsim_update"
             ):
                 funcs.append(node.sequences.fastaccess.load_simdata)
             elif dm == "newsim" or dm == "obs" or dm == "obs_newsim" or dm == "obs_bi":
@@ -2684,6 +2704,7 @@ actual HydPy instance does not handle any elements at the moment.
                 (dm := device.deploymode) == "obs_newsim"
                 or dm == "obs_oldsim"
                 or dm == "obs_oldsim_bi"
+                or dm == "obs_newsim_update"
             ):
                 funcs.append(device.sequences.fastaccess.fill_obsdata)
             elif not (
@@ -2692,6 +2713,7 @@ actual HydPy instance does not handle any elements at the moment.
                 or dm == "obs"
                 or dm == "oldsim_bi"
                 or dm == "obs_bi"
+                or dm == "newsim_update"
             ):
                 assert_never(dm)
         elements = self.collectives
@@ -2706,6 +2728,7 @@ actual HydPy instance does not handle any elements at the moment.
                 (dm := node.deploymode) == "obs_newsim"
                 or dm == "obs_oldsim"
                 or dm == "obs_oldsim_bi"
+                or dm == "obs_newsim_update"
             ):
                 funcs.append(node.sequences.fastaccess.reset_obsdata)
             elif not (
@@ -2714,6 +2737,7 @@ actual HydPy instance does not handle any elements at the moment.
                 or dm == "obs"
                 or dm == "oldsim_bi"
                 or dm == "obs_bi"
+                or dm == "newsim_update"
             ):
                 assert_never(dm)
             funcs.append(node.sequences.fastaccess.save_simdata)
@@ -2912,14 +2936,77 @@ actual HydPy instance does not handle any elements at the moment.
                     func(idx)
 
     def _simulate_multithreading(self) -> None:
-        queue_ = threadingtools.Queue(nodes=self.nodes, elements=self.elements)
+
+        if self._deviceorder is None:
+            self._update_collectives_and_deviceorder(silent=True)
+        if devicetools.Node.__hydpy__deploymode_modified__:
+            self._parallelisability = threadingtools.Parallelisability(
+                nodes=self.nodes, elements=self.collectives
+            )
+            devicetools.Node.__hydpy__deploymode_modified__ = False
+        parallelisability = self.parallelisability
+
+        for element in parallelisability.parallel_elements:
+            for model in element.model.find_submodels(include_mainmodel=True).values():
+                seqs = model.sequences
+                for sequence in itertools.chain(
+                    seqs.inputs,
+                    seqs.inlets,
+                    seqs.receivers,
+                    seqs.outlets,
+                    seqs.senders,
+                    seqs.factors,
+                    seqs.fluxes,
+                    seqs.states,
+                ):
+                    if sequence.node2idx:
+                        sequence.prepare_series()
+        for node in parallelisability.parallel_nodes:
+            node.prepare_simseries()
+
+        queue_ = threadingtools.Queue(
+            nodes=parallelisability.parallel_nodes,
+            elements=parallelisability.parallel_elements,
+        )
+
         try:
             for i, _ in enumerate(range(hydpy.pub.options.threads)):
-                threadingtools.Worker(queue_=queue_).start()
+                threadingtools.Worker(
+                    queue_=queue_, elements=parallelisability.parallel_elements
+                ).start()
             queue_.register()
             queue_.join()
         finally:
             queue_.shutdown()
+        idx = hydpy.pub.timegrids.simindices[1] - 1
+        for node in parallelisability.parallel_nodes:
+            sim = node.sequences.sim
+            sim.value = sim.series[idx]
+            if (obs := node.sequences.obs).ramflag:
+                obs.value = obs.series[idx]
+
+        if parallelisability.sequential_elements:
+            nodes, elements = self.nodes, self.elements
+            node2deploymode: dict[devicetools.Node, Literal["newsim", "obs_newsim"]] = (
+                {}
+            )
+            try:
+                for node in parallelisability.transition_nodes:
+                    if node.deploymode == "newsim":
+                        node2deploymode[node] = "newsim"
+                        node.deploymode = "newsim_update"
+                    elif node.deploymode == "obs_newsim":
+                        node2deploymode[node] = "obs_newsim"
+                        node.deploymode = "obs_newsim_update"
+                self.update_devices(
+                    nodes=parallelisability.sequential_nodes,
+                    elements=parallelisability.sequential_elements,
+                )
+                self._simulate_singlethread()
+            finally:
+                for node, deploymode in node2deploymode.items():
+                    node.deploymode = deploymode
+                self.update_devices(nodes=nodes, elements=elements)
 
     def doit(self) -> None:
         """Deprecated! Use method |HydPy.simulate| instead.

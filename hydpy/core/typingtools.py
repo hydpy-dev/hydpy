@@ -161,6 +161,10 @@ DeployMode = Literal[
     "oldsim_bi",
     "obs_bi",
     "obs_oldsim_bi",
+    "newsim_update",
+    "obs_update",
+    "obs_newsim_update",
+    "obs_bi_update",
 ]
 LineStyle = Literal["-", "--", "-.", ":", "solid", "dashed", "dashdot", "dotted"]
 StepSize = Literal["daily", "d", "monthly", "m", "yearly", "y"]

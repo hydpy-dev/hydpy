@@ -34,6 +34,49 @@ class Pick_Inflow_V1(modeltools.Method):
             flu.inflow += inl.q[idx][0]
 
 
+class Adjust_Inflow_V1(modeltools.Method):
+    """Protect against negative inflow.
+
+    Examples:
+
+        Models like |musk_mct| cannot handle negative inflow.  Hence,
+        |Adjust_Inflow_V1| sets all such values to zero:
+
+        >>> from hydpy.models.musk import *
+        >>> parameterstep()
+        >>> fluxes.inflow = -0.1
+        >>> model.adjust_inflow_v1()
+        >>> fluxes.inflow
+        inflow(0.0)
+
+        This behaviour serves well in situations where numerical issues like rounding
+        errors cause slightly negative inflow values but bears the risk of severely
+        violating the water balance in case the upstream models produce strong negative
+        inflow values on purpose.  You can modify the solver parameter
+        |ToleranceNegativeInflow|, below which negative inflows are set to |numpy.nan|
+        instead of zero, to ensure such problems get noticed:
+
+        >>> fluxes.inflow = -0.1
+        >>> solver.tolerancenegativeinflow(-0.01)
+        >>> model.adjust_inflow_v1()
+        >>> fluxes.inflow
+        inflow(nan)
+    """
+
+    SOLVERPARAMETERS = (musk_solver.ToleranceNegativeInflow,)
+    UPDATEDSEQUENCES = (musk_fluxes.Inflow,)
+
+    @staticmethod
+    def __call__(model: modeltools.SegmentModel) -> None:
+        sol = model.parameters.solver.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        if flu.inflow < 0.0:
+            if flu.inflow < sol.tolerancenegativeinflow:
+                flu.inflow = modelutils.nan
+            else:
+                flu.inflow = 0.0
+
+
 class Update_Discharge_V1(modeltools.Method):
     r"""Assign the inflow to the start point of the first channel segment.
 
@@ -821,8 +864,9 @@ class Model(modeltools.SegmentModel):
         musk_solver.NmbRuns,
         musk_solver.ToleranceWaterDepth,
         musk_solver.ToleranceDischarge,
+        musk_solver.ToleranceNegativeInflow,
     )
-    INLET_METHODS = (Pick_Inflow_V1, Update_Discharge_V1)
+    INLET_METHODS = (Pick_Inflow_V1, Adjust_Inflow_V1, Update_Discharge_V1)
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         Calc_Discharge_V1,

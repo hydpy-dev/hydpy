@@ -554,6 +554,15 @@ class Calc_MaxTimeStep_V5(modeltools.Method):
         >>> factors.maxtimestep
         maxtimestep(inf)
 
+        The case of identical water levels:
+
+        >>> gateheight(8.0)
+        >>> factors.waterlevelupstream = 6.0
+        >>> factors.waterleveldownstream = 6.0
+        >>> model.calc_maxtimestep_v5()
+        >>> factors.maxtimestep
+        maxtimestep(inf)
+
         The case of a controlled gate opening:
 
         >>> def sluice(model) -> None:
@@ -604,7 +613,10 @@ class Calc_MaxTimeStep_V5(modeltools.Method):
             lu: float = fac.waterlevelupstream
             ld: float = fac.waterleveldownstream
             cel: float = c * h * (2.0 * g * modelutils.fabs(lu - ld)) ** 0.5
-            fac.maxtimestep = con.timestepfactor * 1000.0 * con.lengthupstream / cel
+            if cel == 0.0:
+                fac.maxtimestep = modelutils.inf
+            else:
+                fac.maxtimestep = con.timestepfactor * 1000.0 * con.lengthupstream / cel
         else:
             fac.maxtimestep = modelutils.inf
 

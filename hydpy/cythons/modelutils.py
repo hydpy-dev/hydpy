@@ -1918,6 +1918,7 @@ class PyxWriter:
                 pyx(3, "self.sequences.fluxes.update_outputs()")
             if states:
                 pyx(3, "self.sequences.states.update_outputs()")
+            self._call_submodel_method(lines=lines, methodcall="update_outputs()")
         else:
             pyx(2, "pass")
 

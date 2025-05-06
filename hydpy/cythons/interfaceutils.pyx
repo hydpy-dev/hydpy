@@ -33,6 +33,9 @@ cdef class BaseInterface:
     cdef void update_senders(self, int idx) noexcept nogil:
         pass
 
+    cdef void update_outputs(self) noexcept nogil:
+        pass
+
 
 cdef class SubmodelsProperty:
 

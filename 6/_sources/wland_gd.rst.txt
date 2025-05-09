@@ -1,0 +1,24 @@
+.. |ALR| replace:: :class:`~hydpy.models.wland.wland_derived.ALR`
+.. |ASR| replace:: :class:`~hydpy.models.wland.wland_derived.ASR`
+.. |AT| replace:: :class:`~hydpy.models.wland.wland_control.AT`
+.. |Calc_GF_V1| replace:: :class:`~hydpy.models.wland.wland_model.Calc_GF_V1`
+.. |DischargeModel_V2| replace:: :class:`~hydpy.interfaces.dischargeinterfaces.DischargeModel_V2`
+.. |PETModel_V1| replace:: :class:`~hydpy.interfaces.petinterfaces.PETModel_V1`
+.. |PETModel_V2| replace:: :class:`~hydpy.interfaces.petinterfaces.PETModel_V2`
+.. |ThetaR| replace:: :class:`~hydpy.models.wland.wland_control.ThetaR`
+.. |WaterLevelModel_V1| replace:: :class:`~hydpy.interfaces.stateinterfaces.WaterLevelModel_V1`
+.. |smooth_logistic1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic1`
+.. |smooth_logistic2| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic2`
+.. |wland_gd.DOCNAME.complete| replace:: HydPy-W-GD (extended version of the WALRUS model with modified groundwater dynamics)
+.. |wland_gd| replace:: :mod:`~hydpy.models.wland_gd`
+.. |wland_wag| replace:: :mod:`~hydpy.models.wland_wag`
+
+.. _wland_gd:
+
+wland_gd
+========
+
+.. automodule:: hydpy.models.wland_gd
+    :members:
+    :show-inheritance:
+    :exclude-members: ParamSpecArgs, Iterable, AsyncIterator, ContextManager, ADD_METHODS, NotRequired, KeysView, MappingView, SupportsFloat, Match, Required, FIXEDPARAMETERS, SupportsAbs, AsyncIterable, AbstractSet, deprecated, Mapping, Optional, ClassVar, fastaccess_new, dataclass_transform, SENDER_METHODS, Deque, get_args, Self, Sized, SOLVERPARAMETERS, ParamSpec, override, TypedDict, TypeGuard, SUBMODELINTERFACES, get_protocol_members, INTERFACE_METHODS, Reversible, TypeIs, Dict, REQUIREDSEQUENCES, subpars, subseqs, get_overloads, SenderSequences, Container, NoReturn, overload, ParamSpecKwargs, TypeAliasType, DefaultDict, CONTROLPARAMETERS, is_typeddict, final, get_type_hints, get_annotations, MutableMapping, ReceiverSequences, Pattern, Generator, TextIO, ByteString, TypeAlias, Type, RECEIVER_METHODS, List, Format, SupportsComplex, Generic, pars, fastaccess, cast, TypeForm, AsyncGenerator, ValuesView, clear_overloads, runtime, AnyStr, NewType, IO, Doc, Sequence, UPDATEDSEQUENCES, Buffer, no_type_check, Concatenate, Callable, SupportsBytes, Awaitable, fastaccess_old, RESULTSEQUENCES, AsyncContextManager, SOLVERSEQUENCES, assert_never, FULL_ODE_METHODS, SUBMODELS, CLASSES, runtime_checkable, SUBMETHODS, Coroutine, Text, seqs, IntVar, get_original_bases, InletSequences, Iterator, SupportsRound, NamedTuple, reveal_type, ChainMap, Unpack, DERIVEDPARAMETERS, TypeVarTuple, MutableSequence, Set, ReadOnly, Final, SupportsInt, Any, LiteralString, TYPE_CHECKING, no_type_check_decorator, is_protocol, MutableSet, OrderedDict, Tuple, get_origin, CapsuleType, Protocol, ItemsView, OUTLET_METHODS, assert_type, RUN_METHODS, Counter, NoDefault, PART_ODE_METHODS, Literal, TypeVar, Annotated, Never, SupportsIndex, Collection, LogSequences, evaluate_forward_ref, BinaryIO, FrozenSet, Hashable, Union, INLET_METHODS, ForwardRef, subvars, NoExtraItems

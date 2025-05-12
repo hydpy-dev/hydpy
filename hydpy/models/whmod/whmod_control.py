@@ -176,7 +176,7 @@ class DegreeDayFactor(whmod_parameters.LandTypeNonWaterParameter):
 
 
 class AvailableFieldCapacity(whmod_parameters.SoilTypeParameter):
-    """Maximum relative soil moisture content [-]."""
+    """Maximum relative soil moisture content [mm/m]."""
 
     TYPE, TIME, SPAN = float, None, (0.0, None)
 

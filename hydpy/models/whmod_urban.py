@@ -30,7 +30,7 @@ The following test settings are identical to those of |whmod_rural|:
 >>> interceptioncapacity.grass_mar = 0.6
 >>> interceptioncapacity.grass_apr = 0.8
 >>> degreedayfactor(grass=4.5)
->>> availablefieldcapacity(sand=0.2)
+>>> availablefieldcapacity(sand=200.0)
 >>> rootingdepth(0.5)
 >>> groundwaterdepth(1.0)
 >>> withcapillaryrise(True)

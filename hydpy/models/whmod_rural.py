@@ -65,7 +65,7 @@ The values of some parameters can be set zone- or land type-specific:
 
 The values of others can be set zone- or soil type-specific:
 
->>> availablefieldcapacity(sand=0.2)
+>>> availablefieldcapacity(sand=200.0)
 
 The rooting and groundwater depths complement the previously set relative available
 field capacity to allow for determining the maximum soil water available for plants:

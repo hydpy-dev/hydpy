@@ -131,7 +131,7 @@ class Calc_InterceptionEvaporation_InterceptedWater_AETModel_V1(modeltools.Metho
         >>> interceptioncapacity.jun = 3.0
         >>> derived.moy.shape = 1
         >>> derived.moy(5)
-        >>> availablefieldcapacity(0.1)
+        >>> availablefieldcapacity(100.0)
         >>> rootingdepth(0.1)
         >>> groundwaterdepth(0.1)
         >>> with model.add_aetmodel_v1("evap_aet_minhas"):
@@ -235,7 +235,7 @@ class Calc_LakeEvaporation_AETModel_V1(modeltools.Method):
         >>> interceptioncapacity.jun = 3.0
         >>> derived.moy.shape = 1
         >>> derived.moy(5)
-        >>> availablefieldcapacity(0.1)
+        >>> availablefieldcapacity(100.0)
         >>> rootingdepth(0.1)
         >>> groundwaterdepth(0.1)
         >>> with model.add_aetmodel_v1("evap_aet_minhas"):
@@ -741,7 +741,7 @@ class Calc_SoilEvapotranspiration_AETModel_V1(modeltools.Method):
         >>> landtype(GRASS, GRASS, GRASS, GRASS, WATER)
         >>> soiltype(SAND, SAND, SAND, SAND, NONE)
         >>> zonearea(0.05, 0.1, 0.2, 0.3, 0.35)
-        >>> availablefieldcapacity(0.1)
+        >>> availablefieldcapacity(100.0)
         >>> rootingdepth(1.0)
         >>> groundwaterdepth(1.0)
         >>> with model.add_aetmodel_v1("evap_aet_minhas"):
@@ -1997,7 +1997,7 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         >>> area(10.0)
         >>> landtype(GRASS, DECIDUOUS, CONIFER, WATER, SEALED)
         >>> zonearea(4.0, 1.0, 1.0, 1.0, 3.0)
-        >>> availablefieldcapacity(0.2)
+        >>> availablefieldcapacity(200.0)
         >>> rootingdepth(1.0)
         >>> groundwaterdepth(1.0)
         >>> with model.add_aetmodel_v1("evap_aet_minhas"):

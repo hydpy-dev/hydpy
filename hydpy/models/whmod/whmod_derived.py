@@ -79,14 +79,14 @@ class MaxSoilWater(whmod_parameters.SoilTypeParameter):
 
     def update(self):
         r"""Calculate the maximum soil water content based on
-        :math:`1000 \cdot AvailableFieldCapacity \cdot max(SoilDepth, \, 0.3)`
+        :math:`AvailableFieldCapacity \cdot max(SoilDepth, \, 0.3)`
 
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
         >>> nmbzones(7)
         >>> landtype(GRASS, GRASS, GRASS, GRASS, GRASS, GRASS, SEALED)
         >>> soiltype(SAND, SAND_COHESIVE, LOAM, CLAY, SILT, PEAT, NONE)
-        >>> availablefieldcapacity(0.2)
+        >>> availablefieldcapacity(200.0)
         >>> derived.soildepth(
         ...     sand=0.0, sand_cohesive=0.2, loam=0.3, clay=0.4, silt=1.0, peat=1.0
         ... )
@@ -97,7 +97,7 @@ class MaxSoilWater(whmod_parameters.SoilTypeParameter):
         """
         availablefieldcapacity = self.subpars.pars.control.availablefieldcapacity
         soildepth = self.subpars.soildepth
-        self(1000.0 * availablefieldcapacity * numpy.maximum(soildepth, 0.3))
+        self(availablefieldcapacity * numpy.maximum(soildepth, 0.3))
 
 
 class Beta(whmod_parameters.SoilTypeParameter):

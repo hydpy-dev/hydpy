@@ -1,0 +1,41 @@
+.. |Area| replace:: :class:`~hydpy.models.gland.gland_control.Area`
+.. |Beta| replace:: :class:`~hydpy.models.gland.gland_derived.Beta`
+.. |Calc_Q10_V1| replace:: :class:`~hydpy.models.gland.gland_model.Calc_Q10_V1`
+.. |Calc_Q1_V1| replace:: :class:`~hydpy.models.gland.gland_model.Calc_Q1_V1`
+.. |Calc_Q9_V1| replace:: :class:`~hydpy.models.gland.gland_model.Calc_Q9_V1`
+.. |I| replace:: :class:`~hydpy.models.gland.gland_states.I`
+.. |PETModel_V1| replace:: :class:`~hydpy.interfaces.petinterfaces.PETModel_V1`
+.. |PN| replace:: :class:`~hydpy.models.gland.gland_fluxes.PN`
+.. |PR1| replace:: :class:`~hydpy.models.gland.gland_fluxes.PR1`
+.. |PR9| replace:: :class:`~hydpy.models.gland.gland_fluxes.PR9`
+.. |PR| replace:: :class:`~hydpy.models.gland.gland_fluxes.PR`
+.. |Parameter.get_timefactor| replace:: :func:`~hydpy.core.parametertools.Parameter.get_timefactor`
+.. |Parameter| replace:: :class:`~hydpy.core.parametertools.Parameter`
+.. |Q10| replace:: :class:`~hydpy.models.gland.gland_fluxes.Q10`
+.. |Q1| replace:: :class:`~hydpy.models.gland.gland_fluxes.Q1`
+.. |Q9| replace:: :class:`~hydpy.models.gland.gland_fluxes.Q9`
+.. |QFactor| replace:: :class:`~hydpy.models.gland.gland_derived.QFactor`
+.. |RConcModel_V1| replace:: :class:`~hydpy.interfaces.rconcinterfaces.RConcModel_V1`
+.. |R| replace:: :class:`~hydpy.models.gland.gland_states.R`
+.. |S| replace:: :class:`~hydpy.models.gland.gland_states.S`
+.. |X2.get_timefactor| replace:: :func:`~hydpy.models.gland.gland_control.X2.get_timefactor`
+.. |X2| replace:: :class:`~hydpy.models.gland.gland_control.X2`
+.. |X3.get_timefactor| replace:: :func:`~hydpy.models.gland.gland_control.X3.get_timefactor`
+.. |X3| replace:: :class:`~hydpy.models.gland.gland_control.X3`
+.. |evap_ret_tw2002| replace:: :mod:`~hydpy.models.evap_ret_tw2002`
+.. |gland.DOCNAME.complete| replace:: HydPy-G (base model)
+.. |gland.DOCNAME.long| replace:: HydPy-G
+.. |gland| replace:: :mod:`~hydpy.models.gland`
+.. |parameterstep| replace:: :func:`~hydpy.core.importtools.parameterstep`
+.. |rconc_uh| replace:: :mod:`~hydpy.models.rconc_uh`
+.. |simulationstep| replace:: :func:`~hydpy.core.importtools.simulationstep`
+
+.. _gland:
+
+gland
+=====
+
+.. automodule:: hydpy.models.gland
+    :members:
+    :show-inheritance:
+    :exclude-members: TypeGuard, is_protocol, runtime_checkable, List, SupportsInt, MutableSet, Deque, FIXEDPARAMETERS, pars, ReadOnly, Generator, AsyncIterable, Counter, DERIVEDPARAMETERS, AsyncContextManager, InletSequences, Hashable, clear_overloads, subvars, ADD_METHODS, runtime, TypeVar, OrderedDict, fastaccess_old, Container, TypedDict, Optional, SOLVERSEQUENCES, UPDATEDSEQUENCES, LogSequences, ChainMap, INLET_METHODS, BinaryIO, is_typeddict, SupportsComplex, CapsuleType, fastaccess, reveal_type, MutableMapping, cast, override, PART_ODE_METHODS, INTERFACE_METHODS, get_original_bases, SupportsAbs, no_type_check_decorator, SOLVERPARAMETERS, get_annotations, Annotated, Awaitable, Final, get_protocol_members, Any, FactorSequences, AideSequences, SupportsRound, SUBMODELS, Required, SenderSequences, Never, TypeVarTuple, ClassVar, Doc, NamedTuple, IO, Match, SupportsFloat, SupportsBytes, TextIO, Concatenate, final, AbstractSet, IntVar, KeysView, RECEIVER_METHODS, ParamSpec, get_args, Buffer, Pattern, SUBMODELINTERFACES, FrozenSet, TypeAliasType, Coroutine, Dict, dataclass_transform, RUN_METHODS, SupportsIndex, deprecated, evaluate_forward_ref, OUTLET_METHODS, SENDER_METHODS, NotRequired, ReceiverSequences, ItemsView, Format, TypeForm, get_type_hints, TYPE_CHECKING, CONTROLPARAMETERS, Mapping, Collection, Text, TypeAlias, ByteString, assert_never, AsyncGenerator, Callable, Tuple, NoReturn, seqs, REQUIREDSEQUENCES, ParamSpecArgs, Unpack, FULL_ODE_METHODS, fastaccess_new, subpars, DefaultDict, Sequence, assert_type, MutableSequence, overload, Self, CLASSES, ForwardRef, TypeIs, NewType, ContextManager, NoDefault, LiteralString, ValuesView, RESULTSEQUENCES, AsyncIterator, SUBMETHODS, get_origin, AnyStr, ParamSpecKwargs, Literal, Protocol, NoExtraItems, subseqs, MappingView, Iterable, Reversible, Union, Set, no_type_check, get_overloads, Generic, Iterator, Type, Sized

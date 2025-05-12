@@ -1,0 +1,18 @@
+.. |calc_smoothpar_logistic1| replace:: :func:`~hydpy.auxs.smoothtools.calc_smoothpar_logistic1`
+.. |calc_smoothpar_logistic2| replace:: :func:`~hydpy.auxs.smoothtools.calc_smoothpar_logistic2`
+.. |smooth_logistic1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic1`
+.. |smooth_logistic2| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic2`
+.. |smooth_logistic3| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic3`
+.. |smooth_max1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_max1`
+.. |smooth_min1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_min1`
+.. |smoothutils| replace:: :mod:`~hydpy.cythons.autogen.smoothutils`
+
+.. _smoothtools:
+
+smoothtools
+===========
+
+.. automodule:: hydpy.auxs.smoothtools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs

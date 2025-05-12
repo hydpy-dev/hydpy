@@ -1,0 +1,991 @@
+﻿
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>test &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"displayAlign": "left"})</script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="test_v1" href="test_v1.html" />
+    <link rel="prev" title="HydPy-T (TESTING)" href="HydPy-T.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="test_v1.html" title="test_v1"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="HydPy-T.html" title="HydPy-T (TESTING)"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modelcollection.html" >Model Collection</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="HydPy-T.html" accesskey="U">HydPy-T (TESTING)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">test</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="test">
+<span id="id1"></span><h1>test<a class="headerlink" href="#test" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-hydpy.models.test"></span><p>The base model <a class="reference internal" href="#module-hydpy.models.test" title="hydpy.models.test"><code class="xref py py-mod docutils literal notranslate"><span class="pre">test</span></code></a> is intended for implementing small application model
+that allow for testing or demonstrating specific features of the HydPy
+framework.</p>
+<div class="section" id="method-features">
+<h2>Method Features<a class="headerlink" href="#method-features" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="hydpy.models.test.test_model.Model">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.test.test_model.</span></code><code class="sig-name descname"><span class="pre">Model</span></code><a class="reference internal" href="_modules/hydpy/models/test/test_model.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.test.test_model.Model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.ELSModel" title="hydpy.core.modeltools.ELSModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.modeltools.ELSModel</span></code></a></p>
+<p>Test model.</p>
+<dl class="simple">
+<dt>The following methods define the relevant components of a system of ODE equations (e.g. direct runoff):</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.test.test_model.Calc_Q_V1" title="hydpy.models.test.test_model.Calc_Q_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Q_V1</span></code></a> Calculate the actual storage loss.</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.test.test_model.Calc_Q_V2" title="hydpy.models.test.test_model.Calc_Q_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Q_V2</span></code></a> Calculate the actual storage loss.</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.test.test_model.Calc_QV_V1" title="hydpy.models.test.test_model.Calc_QV_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_QV_V1</span></code></a> Calculate the actual storage losses.</p></li>
+</ul>
+</dd>
+<dt>The following methods define the complete equations of an ODE system (e.g. change in storage of <cite>fast water</cite> due to effective precipitation and direct runoff):</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.test.test_model.Calc_S_V1" title="hydpy.models.test.test_model.Calc_S_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_S_V1</span></code></a> Calculate the actual storage content.</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.test.test_model.Calc_SV_V1" title="hydpy.models.test.test_model.Calc_SV_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_SV_V1</span></code></a> Calculate the actual storage contenst.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_model.Model.numconsts">
+<code class="sig-name descname"><span class="pre">numconsts</span></code><em class="property"><span class="pre">:</span> <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.NumConstsELS" title="hydpy.core.modeltools.NumConstsELS"><span class="pre">hydpy.core.modeltools.NumConstsELS</span></a></em><a class="headerlink" href="#hydpy.models.test.test_model.Model.numconsts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_model.Model.numvars">
+<code class="sig-name descname"><span class="pre">numvars</span></code><em class="property"><span class="pre">:</span> <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.NumVarsELS" title="hydpy.core.modeltools.NumVarsELS"><span class="pre">hydpy.core.modeltools.NumVarsELS</span></a></em><a class="headerlink" href="#hydpy.models.test.test_model.Model.numvars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_model.Model.element">
+<code class="sig-name descname"><span class="pre">element</span></code><em class="property"><span class="pre">:</span> <span class="pre">Optional[‘devicetools.Element’]</span></em><a class="headerlink" href="#hydpy.models.test.test_model.Model.element" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_model.Model.cymodel">
+<code class="sig-name descname"><span class="pre">cymodel</span></code><em class="property"><span class="pre">:</span> <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">typingtools.CyModelProtocol</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#hydpy.models.test.test_model.Model.cymodel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_model.Model.parameters">
+<code class="sig-name descname"><span class="pre">parameters</span></code><em class="property"><span class="pre">:</span> <span class="pre">parametertools.Parameters</span></em><a class="headerlink" href="#hydpy.models.test.test_model.Model.parameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_model.Model.sequences">
+<code class="sig-name descname"><span class="pre">sequences</span></code><em class="property"><span class="pre">:</span> <span class="pre">sequencetools.Sequences</span></em><a class="headerlink" href="#hydpy.models.test.test_model.Model.sequences" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_model.Model.masks">
+<code class="sig-name descname"><span class="pre">masks</span></code><em class="property"><span class="pre">:</span> <span class="pre">masktools.Masks</span></em><a class="headerlink" href="#hydpy.models.test.test_model.Model.masks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-hydpy.models.test.test_model"></span><dl class="py class">
+<dt id="hydpy.models.test.test_model.Calc_Q_V1">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.test.test_model.</span></code><code class="sig-name descname"><span class="pre">Calc_Q_V1</span></code><a class="reference internal" href="_modules/hydpy/models/test/test_model.html#Calc_Q_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.test.test_model.Calc_Q_V1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Method" title="hydpy.core.modeltools.Method"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.modeltools.Method</span></code></a></p>
+<p>Calculate the actual storage loss.</p>
+<dl class="simple">
+<dt>Requires the control parameter:</dt><dd><p><a class="reference internal" href="#hydpy.models.test.test_control.K" title="hydpy.models.test.test_control.K"><code class="xref py py-class docutils literal notranslate"><span class="pre">K</span></code></a></p>
+</dd>
+<dt>Requires the state sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.test.test_states.S" title="hydpy.models.test.test_states.S"><code class="xref py py-class docutils literal notranslate"><span class="pre">S</span></code></a></p>
+</dd>
+<dt>Calculates the flux sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.test.test_fluxes.Q" title="hydpy.models.test.test_fluxes.Q"><code class="xref py py-class docutils literal notranslate"><span class="pre">Q</span></code></a></p>
+</dd>
+</dl>
+<p>This simple equation is continuous but potentially stiff.</p>
+<dl class="simple">
+<dt>Basic equation:</dt><dd><p><span class="math notranslate nohighlight">\(Q = K \cdot S\)</span></p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.test</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">k</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">states</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">calc_q_v1</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">q</span>
+<span class="go">q(1.0)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.test.test_model.Calc_Q_V2">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.test.test_model.</span></code><code class="sig-name descname"><span class="pre">Calc_Q_V2</span></code><a class="reference internal" href="_modules/hydpy/models/test/test_model.html#Calc_Q_V2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.test.test_model.Calc_Q_V2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Method" title="hydpy.core.modeltools.Method"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.modeltools.Method</span></code></a></p>
+<p>Calculate the actual storage loss.</p>
+<dl class="simple">
+<dt>Requires the control parameter:</dt><dd><p><a class="reference internal" href="#hydpy.models.test.test_control.K" title="hydpy.models.test.test_control.K"><code class="xref py py-class docutils literal notranslate"><span class="pre">K</span></code></a></p>
+</dd>
+<dt>Requires the state sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.test.test_states.S" title="hydpy.models.test.test_states.S"><code class="xref py py-class docutils literal notranslate"><span class="pre">S</span></code></a></p>
+</dd>
+<dt>Calculates the flux sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.test.test_fluxes.Q" title="hydpy.models.test.test_fluxes.Q"><code class="xref py py-class docutils literal notranslate"><span class="pre">Q</span></code></a></p>
+</dd>
+</dl>
+<p>This simple equation is discontinuous.</p>
+<dl class="simple">
+<dt>Basic equation:</dt><dd><p><span class="math notranslate nohighlight">\(Q = \Bigl \lbrace
+{
+{K \ | \ S &gt; 0}
+\atop
+{0 \ | \ S \leq 0}
+}\)</span></p>
+</dd>
+</dl>
+<p>Examples:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.test</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">k</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">states</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">calc_q_v2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">q</span>
+<span class="go">q(0.5)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">states</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">calc_q_v2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">q</span>
+<span class="go">q(0.0)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.test.test_model.Calc_QV_V1">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.test.test_model.</span></code><code class="sig-name descname"><span class="pre">Calc_QV_V1</span></code><a class="reference internal" href="_modules/hydpy/models/test/test_model.html#Calc_QV_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.test.test_model.Calc_QV_V1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Method" title="hydpy.core.modeltools.Method"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.modeltools.Method</span></code></a></p>
+<p>Calculate the actual storage losses.</p>
+<dl class="simple">
+<dt>Requires the control parameters:</dt><dd><p><a class="reference internal" href="#hydpy.models.test.test_control.N" title="hydpy.models.test.test_control.N"><code class="xref py py-class docutils literal notranslate"><span class="pre">N</span></code></a>
+<a class="reference internal" href="#hydpy.models.test.test_control.K" title="hydpy.models.test.test_control.K"><code class="xref py py-class docutils literal notranslate"><span class="pre">K</span></code></a></p>
+</dd>
+<dt>Requires the state sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.test.test_states.SV" title="hydpy.models.test.test_states.SV"><code class="xref py py-class docutils literal notranslate"><span class="pre">SV</span></code></a></p>
+</dd>
+<dt>Calculates the flux sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.test.test_fluxes.QV" title="hydpy.models.test.test_fluxes.QV"><code class="xref py py-class docutils literal notranslate"><span class="pre">QV</span></code></a></p>
+</dd>
+</dl>
+<p>Identical with <a class="reference internal" href="#hydpy.models.test.test_model.Calc_Q_V1" title="hydpy.models.test.test_model.Calc_Q_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Q_V1</span></code></a>, but working on a vector of states.</p>
+<dl class="simple">
+<dt>Basic equation:</dt><dd><p><span class="math notranslate nohighlight">\(Q = K \cdot S\)</span></p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.test</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">n</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">k</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">states</span><span class="o">.</span><span class="n">sv</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">calc_qv_v1</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">qv</span>
+<span class="go">qv(1.0, 1.5)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.test.test_model.Calc_S_V1">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.test.test_model.</span></code><code class="sig-name descname"><span class="pre">Calc_S_V1</span></code><a class="reference internal" href="_modules/hydpy/models/test/test_model.html#Calc_S_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.test.test_model.Calc_S_V1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Method" title="hydpy.core.modeltools.Method"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.modeltools.Method</span></code></a></p>
+<p>Calculate the actual storage content.</p>
+<dl class="simple">
+<dt>Requires the flux sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.test.test_fluxes.Q" title="hydpy.models.test.test_fluxes.Q"><code class="xref py py-class docutils literal notranslate"><span class="pre">Q</span></code></a></p>
+</dd>
+<dt>Updates the state sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.test.test_states.S" title="hydpy.models.test.test_states.S"><code class="xref py py-class docutils literal notranslate"><span class="pre">S</span></code></a></p>
+</dd>
+<dt>Basic equation:</dt><dd><p><span class="math notranslate nohighlight">\(\frac{dS}{dt} = Q\)</span></p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.test</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">states</span><span class="o">.</span><span class="n">s</span><span class="o">.</span><span class="n">old</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="mf">0.8</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">calc_s_v1</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">states</span><span class="o">.</span><span class="n">s</span>
+<span class="go">s(0.2)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.test.test_model.Calc_SV_V1">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.test.test_model.</span></code><code class="sig-name descname"><span class="pre">Calc_SV_V1</span></code><a class="reference internal" href="_modules/hydpy/models/test/test_model.html#Calc_SV_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.test.test_model.Calc_SV_V1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Method" title="hydpy.core.modeltools.Method"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.modeltools.Method</span></code></a></p>
+<p>Calculate the actual storage contenst.</p>
+<dl class="simple">
+<dt>Requires the control parameter:</dt><dd><p><a class="reference internal" href="#hydpy.models.test.test_control.N" title="hydpy.models.test.test_control.N"><code class="xref py py-class docutils literal notranslate"><span class="pre">N</span></code></a></p>
+</dd>
+<dt>Requires the flux sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.test.test_fluxes.QV" title="hydpy.models.test.test_fluxes.QV"><code class="xref py py-class docutils literal notranslate"><span class="pre">QV</span></code></a></p>
+</dd>
+<dt>Updates the state sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.test.test_states.SV" title="hydpy.models.test.test_states.SV"><code class="xref py py-class docutils literal notranslate"><span class="pre">SV</span></code></a></p>
+</dd>
+</dl>
+<p>Identical with <a class="reference internal" href="#hydpy.models.test.test_model.Calc_S_V1" title="hydpy.models.test.test_model.Calc_S_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_S_V1</span></code></a>, but working on a vector of fluxes.</p>
+<dl class="simple">
+<dt>Basic equation:</dt><dd><p><span class="math notranslate nohighlight">\(\frac{dS}{dt} = Q\)</span></p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.test</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">n</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">states</span><span class="o">.</span><span class="n">sv</span><span class="o">.</span><span class="n">old</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">qv</span> <span class="o">=</span> <span class="mf">0.8</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">calc_sv_v1</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">states</span><span class="o">.</span><span class="n">sv</span>
+<span class="go">sv(0.2, 1.2)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="parameter-features">
+<h2>Parameter Features<a class="headerlink" href="#parameter-features" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="control-parameters">
+<h3>Control parameters<a class="headerlink" href="#control-parameters" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.test.</span></code><code class="sig-name descname"><span class="pre">ControlParameters</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">hydpy.core.parametertools.Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">hydpy.core.parametertools.FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">hydpy.core.typingtools.CyModelProtocol</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.SubVariables" title="hydpy.core.variabletools.SubVariables"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.variabletools.SubVariables</span></code></a>[<a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.Parameters</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code>, <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.FastAccessParameter</span></code></a>]</p>
+<p>Control parameters of model test.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.test.test_control.K" title="hydpy.models.test.test_control.K"><code class="xref py py-func docutils literal notranslate"><span class="pre">K()</span></code></a> Storage coefficient [1/T].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.test.test_control.N" title="hydpy.models.test.test_control.N"><code class="xref py py-func docutils literal notranslate"><span class="pre">N()</span></code></a> Number of storages [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-hydpy.models.test.test_control"></span><dl class="py class">
+<dt id="hydpy.models.test.test_control.K">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.test.test_control.</span></code><code class="sig-name descname"><span class="pre">K</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">SubVariablesType</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/test/test_control.html#K"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.test.test_control.K" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.variabletools.Variable</span></code></a>[<a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.SubParameters</span></code></a>, <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.FastAccessParameter</span></code></a>]</p>
+<p>Storage coefficient [1/T].</p>
+<dl class="simple">
+<dt>Required by the methods:</dt><dd><p><a class="reference internal" href="#hydpy.models.test.test_model.Calc_QV_V1" title="hydpy.models.test.test_model.Calc_QV_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_QV_V1</span></code></a>
+<a class="reference internal" href="#hydpy.models.test.test_model.Calc_Q_V1" title="hydpy.models.test.test_model.Calc_Q_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Q_V1</span></code></a>
+<a class="reference internal" href="#hydpy.models.test.test_model.Calc_Q_V2" title="hydpy.models.test.test_model.Calc_Q_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Q_V2</span></code></a></p>
+</dd>
+</dl>
+<p>For educational purposes, the actual value of parameter <a class="reference internal" href="#hydpy.models.test.test_control.K" title="hydpy.models.test.test_control.K"><code class="xref py py-class docutils literal notranslate"><span class="pre">K</span></code></a> does
+not depend on the difference between the actual simulation time step and
+the actual parameter time step.</p>
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_control.K.NDIM">
+<code class="sig-name descname"><span class="pre">NDIM</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#hydpy.models.test.test_control.K.NDIM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_control.K.TYPE">
+<code class="sig-name descname"><span class="pre">TYPE</span></code><a class="headerlink" href="#hydpy.models.test.test_control.K.TYPE" title="Permalink to this definition">¶</a></dt>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_control.K.TIME">
+<code class="sig-name descname"><span class="pre">TIME</span></code><em class="property"><span class="pre">:</span> <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#hydpy.models.test.test_control.K.TIME" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_control.K.SPAN">
+<code class="sig-name descname"><span class="pre">SPAN</span></code><em class="property"><span class="pre">:</span> <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">(0.0,</span> <span class="pre">None)</span></em><a class="headerlink" href="#hydpy.models.test.test_control.K.SPAN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_control.K.name">
+<code class="sig-name descname"><span class="pre">name</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'k'</span></em><a class="headerlink" href="#hydpy.models.test.test_control.K.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_control.K.unit">
+<code class="sig-name descname"><span class="pre">unit</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'1/T'</span></em><a class="headerlink" href="#hydpy.models.test.test_control.K.unit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_control.K.subvars">
+<code class="sig-name descname"><span class="pre">subvars</span></code><em class="property"><span class="pre">:</span> <span class="pre">SubVariablesType</span></em><a class="headerlink" href="#hydpy.models.test.test_control.K.subvars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.test.test_control.N">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.test.test_control.</span></code><code class="sig-name descname"><span class="pre">N</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">SubVariablesType</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/test/test_control.html#N"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.test.test_control.N" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.variabletools.Variable</span></code></a>[<a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.SubParameters</span></code></a>, <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.FastAccessParameter</span></code></a>]</p>
+<p>Number of storages [-].</p>
+<dl class="simple">
+<dt>Required by the methods:</dt><dd><p><a class="reference internal" href="#hydpy.models.test.test_model.Calc_QV_V1" title="hydpy.models.test.test_model.Calc_QV_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_QV_V1</span></code></a>
+<a class="reference internal" href="#hydpy.models.test.test_model.Calc_SV_V1" title="hydpy.models.test.test_model.Calc_SV_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_SV_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_control.N.NDIM">
+<code class="sig-name descname"><span class="pre">NDIM</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#hydpy.models.test.test_control.N.NDIM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_control.N.TYPE">
+<code class="sig-name descname"><span class="pre">TYPE</span></code><a class="headerlink" href="#hydpy.models.test.test_control.N.TYPE" title="Permalink to this definition">¶</a></dt>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_control.N.TIME">
+<code class="sig-name descname"><span class="pre">TIME</span></code><em class="property"><span class="pre">:</span> <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#hydpy.models.test.test_control.N.TIME" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_control.N.SPAN">
+<code class="sig-name descname"><span class="pre">SPAN</span></code><em class="property"><span class="pre">:</span> <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">(1,</span> <span class="pre">None)</span></em><a class="headerlink" href="#hydpy.models.test.test_control.N.SPAN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_control.N.name">
+<code class="sig-name descname"><span class="pre">name</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'n'</span></em><a class="headerlink" href="#hydpy.models.test.test_control.N.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_control.N.unit">
+<code class="sig-name descname"><span class="pre">unit</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'-'</span></em><a class="headerlink" href="#hydpy.models.test.test_control.N.unit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_control.N.subvars">
+<code class="sig-name descname"><span class="pre">subvars</span></code><em class="property"><span class="pre">:</span> <span class="pre">SubVariablesType</span></em><a class="headerlink" href="#hydpy.models.test.test_control.N.subvars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="solver-parameters">
+<h3>Solver parameters<a class="headerlink" href="#solver-parameters" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.test.</span></code><code class="sig-name descname"><span class="pre">SolverParameters</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">hydpy.core.parametertools.Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">hydpy.core.parametertools.FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">hydpy.core.typingtools.CyModelProtocol</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.SubVariables" title="hydpy.core.variabletools.SubVariables"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.variabletools.SubVariables</span></code></a>[<a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.Parameters</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code>, <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.FastAccessParameter</span></code></a>]</p>
+<p>Solver parameters of model test.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.test.test_solver.AbsErrorMax" title="hydpy.models.test.test_solver.AbsErrorMax"><code class="xref py py-func docutils literal notranslate"><span class="pre">AbsErrorMax()</span></code></a> Absolute numerical error tolerance [mm/T].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.test.test_solver.RelErrorMax" title="hydpy.models.test.test_solver.RelErrorMax"><code class="xref py py-func docutils literal notranslate"><span class="pre">RelErrorMax()</span></code></a> Relative numerical error tolerance [1/T].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.test.test_solver.RelDTMin" title="hydpy.models.test.test_solver.RelDTMin"><code class="xref py py-func docutils literal notranslate"><span class="pre">RelDTMin()</span></code></a> Smallest relative integration time step size allowed [-].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.test.test_solver.RelDTMax" title="hydpy.models.test.test_solver.RelDTMax"><code class="xref py py-func docutils literal notranslate"><span class="pre">RelDTMax()</span></code></a> Largest relative integration time step size allowed [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-hydpy.models.test.test_solver"></span><dl class="py class">
+<dt id="hydpy.models.test.test_solver.AbsErrorMax">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.test.test_solver.</span></code><code class="sig-name descname"><span class="pre">AbsErrorMax</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/test/test_solver.html#AbsErrorMax"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.test.test_solver.AbsErrorMax" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.variabletools.Variable</span></code></a>[<a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.SubParameters</span></code></a>, <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.FastAccessParameter</span></code></a>]</p>
+<p>Absolute numerical error tolerance [mm/T].</p>
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.AbsErrorMax.NDIM">
+<code class="sig-name descname"><span class="pre">NDIM</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.AbsErrorMax.NDIM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.AbsErrorMax.TYPE">
+<code class="sig-name descname"><span class="pre">TYPE</span></code><a class="headerlink" href="#hydpy.models.test.test_solver.AbsErrorMax.TYPE" title="Permalink to this definition">¶</a></dt>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.AbsErrorMax.TIME">
+<code class="sig-name descname"><span class="pre">TIME</span></code><em class="property"><span class="pre">:</span> <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.AbsErrorMax.TIME" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.AbsErrorMax.SPAN">
+<code class="sig-name descname"><span class="pre">SPAN</span></code><em class="property"><span class="pre">:</span> <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">(0.0,</span> <span class="pre">None)</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.AbsErrorMax.SPAN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.AbsErrorMax.INIT">
+<code class="sig-name descname"><span class="pre">INIT</span></code><em class="property"><span class="pre">:</span> <span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">0.01</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.AbsErrorMax.INIT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.AbsErrorMax.name">
+<code class="sig-name descname"><span class="pre">name</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'abserrormax'</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.AbsErrorMax.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.AbsErrorMax.unit">
+<code class="sig-name descname"><span class="pre">unit</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'mm/T'</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.AbsErrorMax.unit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.AbsErrorMax.subvars">
+<code class="sig-name descname"><span class="pre">subvars</span></code><em class="property"><span class="pre">:</span> <span class="pre">SubVariablesType</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.AbsErrorMax.subvars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.test.test_solver.RelErrorMax">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.test.test_solver.</span></code><code class="sig-name descname"><span class="pre">RelErrorMax</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/test/test_solver.html#RelErrorMax"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.test.test_solver.RelErrorMax" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.variabletools.Variable</span></code></a>[<a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.SubParameters</span></code></a>, <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.FastAccessParameter</span></code></a>]</p>
+<p>Relative numerical error tolerance [1/T].</p>
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.RelErrorMax.NDIM">
+<code class="sig-name descname"><span class="pre">NDIM</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.RelErrorMax.NDIM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.RelErrorMax.TYPE">
+<code class="sig-name descname"><span class="pre">TYPE</span></code><a class="headerlink" href="#hydpy.models.test.test_solver.RelErrorMax.TYPE" title="Permalink to this definition">¶</a></dt>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.RelErrorMax.TIME">
+<code class="sig-name descname"><span class="pre">TIME</span></code><em class="property"><span class="pre">:</span> <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.RelErrorMax.TIME" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.RelErrorMax.SPAN">
+<code class="sig-name descname"><span class="pre">SPAN</span></code><em class="property"><span class="pre">:</span> <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">(0.0,</span> <span class="pre">None)</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.RelErrorMax.SPAN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.RelErrorMax.INIT">
+<code class="sig-name descname"><span class="pre">INIT</span></code><em class="property"><span class="pre">:</span> <span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">nan</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.RelErrorMax.INIT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.RelErrorMax.name">
+<code class="sig-name descname"><span class="pre">name</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'relerrormax'</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.RelErrorMax.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.RelErrorMax.unit">
+<code class="sig-name descname"><span class="pre">unit</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'1/T'</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.RelErrorMax.unit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.RelErrorMax.subvars">
+<code class="sig-name descname"><span class="pre">subvars</span></code><em class="property"><span class="pre">:</span> <span class="pre">SubVariablesType</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.RelErrorMax.subvars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.test.test_solver.RelDTMin">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.test.test_solver.</span></code><code class="sig-name descname"><span class="pre">RelDTMin</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/test/test_solver.html#RelDTMin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.test.test_solver.RelDTMin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.variabletools.Variable</span></code></a>[<a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.SubParameters</span></code></a>, <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.FastAccessParameter</span></code></a>]</p>
+<p>Smallest relative integration time step size allowed [-].</p>
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.RelDTMin.NDIM">
+<code class="sig-name descname"><span class="pre">NDIM</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.RelDTMin.NDIM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.RelDTMin.TYPE">
+<code class="sig-name descname"><span class="pre">TYPE</span></code><a class="headerlink" href="#hydpy.models.test.test_solver.RelDTMin.TYPE" title="Permalink to this definition">¶</a></dt>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.RelDTMin.TIME">
+<code class="sig-name descname"><span class="pre">TIME</span></code><em class="property"><span class="pre">:</span> <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.RelDTMin.TIME" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.RelDTMin.SPAN">
+<code class="sig-name descname"><span class="pre">SPAN</span></code><em class="property"><span class="pre">:</span> <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">(0.0,</span> <span class="pre">1.0)</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.RelDTMin.SPAN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.RelDTMin.INIT">
+<code class="sig-name descname"><span class="pre">INIT</span></code><em class="property"><span class="pre">:</span> <span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">0.001</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.RelDTMin.INIT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.RelDTMin.name">
+<code class="sig-name descname"><span class="pre">name</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'reldtmin'</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.RelDTMin.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.RelDTMin.unit">
+<code class="sig-name descname"><span class="pre">unit</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'-'</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.RelDTMin.unit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.RelDTMin.subvars">
+<code class="sig-name descname"><span class="pre">subvars</span></code><em class="property"><span class="pre">:</span> <span class="pre">SubVariablesType</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.RelDTMin.subvars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.test.test_solver.RelDTMax">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.test.test_solver.</span></code><code class="sig-name descname"><span class="pre">RelDTMax</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/test/test_solver.html#RelDTMax"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.test.test_solver.RelDTMax" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.variabletools.Variable</span></code></a>[<a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.SubParameters</span></code></a>, <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.FastAccessParameter</span></code></a>]</p>
+<p>Largest relative integration time step size allowed [-].</p>
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.RelDTMax.NDIM">
+<code class="sig-name descname"><span class="pre">NDIM</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.RelDTMax.NDIM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.RelDTMax.TYPE">
+<code class="sig-name descname"><span class="pre">TYPE</span></code><a class="headerlink" href="#hydpy.models.test.test_solver.RelDTMax.TYPE" title="Permalink to this definition">¶</a></dt>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.RelDTMax.TIME">
+<code class="sig-name descname"><span class="pre">TIME</span></code><em class="property"><span class="pre">:</span> <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.RelDTMax.TIME" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.RelDTMax.SPAN">
+<code class="sig-name descname"><span class="pre">SPAN</span></code><em class="property"><span class="pre">:</span> <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">(0.0,</span> <span class="pre">1.0)</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.RelDTMax.SPAN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.RelDTMax.INIT">
+<code class="sig-name descname"><span class="pre">INIT</span></code><em class="property"><span class="pre">:</span> <span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">1.0</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.RelDTMax.INIT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.RelDTMax.name">
+<code class="sig-name descname"><span class="pre">name</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'reldtmax'</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.RelDTMax.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.RelDTMax.unit">
+<code class="sig-name descname"><span class="pre">unit</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'-'</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.RelDTMax.unit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_solver.RelDTMax.subvars">
+<code class="sig-name descname"><span class="pre">subvars</span></code><em class="property"><span class="pre">:</span> <span class="pre">SubVariablesType</span></em><a class="headerlink" href="#hydpy.models.test.test_solver.RelDTMax.subvars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="sequence-features">
+<h2>Sequence Features<a class="headerlink" href="#sequence-features" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="flux-sequences">
+<h3>Flux sequences<a class="headerlink" href="#flux-sequences" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.test.</span></code><code class="sig-name descname"><span class="pre">FluxSequences</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">hydpy.core.sequencetools.Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">FastAccessType</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">hydpy.core.typingtools.CyModelProtocol</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutputSequences" title="hydpy.core.sequencetools.OutputSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.OutputSequences</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequence</span></code>]</p>
+<p>Flux sequences of model test.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.test.test_fluxes.Q" title="hydpy.models.test.test_fluxes.Q"><code class="xref py py-func docutils literal notranslate"><span class="pre">Q()</span></code></a> Storage loss [mm/T]</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.test.test_fluxes.QV" title="hydpy.models.test.test_fluxes.QV"><code class="xref py py-func docutils literal notranslate"><span class="pre">QV()</span></code></a> Storage loss vector [mm/T]</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt>
+<code class="sig-name descname"><span class="pre">vars</span></code><em class="property"><span class="pre">:</span> <span class="pre">GroupType</span></em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-hydpy.models.test.test_fluxes"></span><dl class="py class">
+<dt id="hydpy.models.test.test_fluxes.Q">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.test.test_fluxes.</span></code><code class="sig-name descname"><span class="pre">Q</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">SubVariablesType</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/test/test_fluxes.html#Q"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.test.test_fluxes.Q" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutputSequence" title="hydpy.core.sequencetools.OutputSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.OutputSequence</span></code></a>[<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequences" title="hydpy.core.sequencetools.FluxSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.FluxSequences</span></code></a>]</p>
+<p>Storage loss [mm/T]</p>
+<dl class="simple">
+<dt>Calculated by the methods:</dt><dd><p><a class="reference internal" href="#hydpy.models.test.test_model.Calc_Q_V1" title="hydpy.models.test.test_model.Calc_Q_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Q_V1</span></code></a>
+<a class="reference internal" href="#hydpy.models.test.test_model.Calc_Q_V2" title="hydpy.models.test.test_model.Calc_Q_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Q_V2</span></code></a></p>
+</dd>
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.test.test_model.Calc_S_V1" title="hydpy.models.test.test_model.Calc_S_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_S_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_fluxes.Q.NDIM">
+<code class="sig-name descname"><span class="pre">NDIM</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#hydpy.models.test.test_fluxes.Q.NDIM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_fluxes.Q.NUMERIC">
+<code class="sig-name descname"><span class="pre">NUMERIC</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">True</span></em><a class="headerlink" href="#hydpy.models.test.test_fluxes.Q.NUMERIC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_fluxes.Q.SPAN">
+<code class="sig-name descname"><span class="pre">SPAN</span></code><em class="property"><span class="pre">:</span> <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">(0.0,</span> <span class="pre">None)</span></em><a class="headerlink" href="#hydpy.models.test.test_fluxes.Q.SPAN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_fluxes.Q.name">
+<code class="sig-name descname"><span class="pre">name</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'q'</span></em><a class="headerlink" href="#hydpy.models.test.test_fluxes.Q.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_fluxes.Q.unit">
+<code class="sig-name descname"><span class="pre">unit</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'mm/T'</span></em><a class="headerlink" href="#hydpy.models.test.test_fluxes.Q.unit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_fluxes.Q.subvars">
+<code class="sig-name descname"><span class="pre">subvars</span></code><em class="property"><span class="pre">:</span> <span class="pre">SubVariablesType</span></em><a class="headerlink" href="#hydpy.models.test.test_fluxes.Q.subvars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.test.test_fluxes.QV">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.test.test_fluxes.</span></code><code class="sig-name descname"><span class="pre">QV</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">SubVariablesType</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/test/test_fluxes.html#QV"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.test.test_fluxes.QV" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutputSequence" title="hydpy.core.sequencetools.OutputSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.OutputSequence</span></code></a>[<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequences" title="hydpy.core.sequencetools.FluxSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.FluxSequences</span></code></a>]</p>
+<p>Storage loss vector [mm/T]</p>
+<dl class="simple">
+<dt>Calculated by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.test.test_model.Calc_QV_V1" title="hydpy.models.test.test_model.Calc_QV_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_QV_V1</span></code></a></p>
+</dd>
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.test.test_model.Calc_SV_V1" title="hydpy.models.test.test_model.Calc_SV_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_SV_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_fluxes.QV.NDIM">
+<code class="sig-name descname"><span class="pre">NDIM</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#hydpy.models.test.test_fluxes.QV.NDIM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_fluxes.QV.NUMERIC">
+<code class="sig-name descname"><span class="pre">NUMERIC</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">True</span></em><a class="headerlink" href="#hydpy.models.test.test_fluxes.QV.NUMERIC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_fluxes.QV.SPAN">
+<code class="sig-name descname"><span class="pre">SPAN</span></code><em class="property"><span class="pre">:</span> <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">(0.0,</span> <span class="pre">None)</span></em><a class="headerlink" href="#hydpy.models.test.test_fluxes.QV.SPAN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_fluxes.QV.name">
+<code class="sig-name descname"><span class="pre">name</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'qv'</span></em><a class="headerlink" href="#hydpy.models.test.test_fluxes.QV.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_fluxes.QV.unit">
+<code class="sig-name descname"><span class="pre">unit</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'mm/T'</span></em><a class="headerlink" href="#hydpy.models.test.test_fluxes.QV.unit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_fluxes.QV.subvars">
+<code class="sig-name descname"><span class="pre">subvars</span></code><em class="property"><span class="pre">:</span> <span class="pre">SubVariablesType</span></em><a class="headerlink" href="#hydpy.models.test.test_fluxes.QV.subvars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="state-sequences">
+<h3>State sequences<a class="headerlink" href="#state-sequences" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.test.</span></code><code class="sig-name descname"><span class="pre">StateSequences</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">hydpy.core.sequencetools.Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">FastAccessType</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">hydpy.core.typingtools.CyModelProtocol</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutputSequences" title="hydpy.core.sequencetools.OutputSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.OutputSequences</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">StateSequence</span></code>]</p>
+<p>State sequences of model test.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.test.test_states.S" title="hydpy.models.test.test_states.S"><code class="xref py py-func docutils literal notranslate"><span class="pre">S()</span></code></a> Storage content [mm].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.test.test_states.SV" title="hydpy.models.test.test_states.SV"><code class="xref py py-func docutils literal notranslate"><span class="pre">SV()</span></code></a> Storage content vector[mm].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-hydpy.models.test.test_states"></span><dl class="py class">
+<dt id="hydpy.models.test.test_states.S">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.test.test_states.</span></code><code class="sig-name descname"><span class="pre">S</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">SubVariablesType</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/test/test_states.html#S"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.test.test_states.S" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutputSequence" title="hydpy.core.sequencetools.OutputSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.OutputSequence</span></code></a>[<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.StateSequences" title="hydpy.core.sequencetools.StateSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.StateSequences</span></code></a>], <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ConditionSequence" title="hydpy.core.sequencetools.ConditionSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.ConditionSequence</span></code></a>[<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.StateSequences" title="hydpy.core.sequencetools.StateSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.StateSequences</span></code></a>, <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FastAccessOutputSequence" title="hydpy.core.sequencetools.FastAccessOutputSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.FastAccessOutputSequence</span></code></a>]</p>
+<p>Storage content [mm].</p>
+<dl class="simple">
+<dt>Updated by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.test.test_model.Calc_S_V1" title="hydpy.models.test.test_model.Calc_S_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_S_V1</span></code></a></p>
+</dd>
+<dt>Required by the methods:</dt><dd><p><a class="reference internal" href="#hydpy.models.test.test_model.Calc_Q_V1" title="hydpy.models.test.test_model.Calc_Q_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Q_V1</span></code></a>
+<a class="reference internal" href="#hydpy.models.test.test_model.Calc_Q_V2" title="hydpy.models.test.test_model.Calc_Q_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Q_V2</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_states.S.NDIM">
+<code class="sig-name descname"><span class="pre">NDIM</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#hydpy.models.test.test_states.S.NDIM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_states.S.NUMERIC">
+<code class="sig-name descname"><span class="pre">NUMERIC</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">True</span></em><a class="headerlink" href="#hydpy.models.test.test_states.S.NUMERIC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_states.S.SPAN">
+<code class="sig-name descname"><span class="pre">SPAN</span></code><em class="property"><span class="pre">:</span> <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">(0.0,</span> <span class="pre">None)</span></em><a class="headerlink" href="#hydpy.models.test.test_states.S.SPAN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_states.S.name">
+<code class="sig-name descname"><span class="pre">name</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'s'</span></em><a class="headerlink" href="#hydpy.models.test.test_states.S.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_states.S.unit">
+<code class="sig-name descname"><span class="pre">unit</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'mm'</span></em><a class="headerlink" href="#hydpy.models.test.test_states.S.unit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_states.S.subvars">
+<code class="sig-name descname"><span class="pre">subvars</span></code><em class="property"><span class="pre">:</span> <span class="pre">SubVariablesType</span></em><a class="headerlink" href="#hydpy.models.test.test_states.S.subvars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.test.test_states.SV">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.test.test_states.</span></code><code class="sig-name descname"><span class="pre">SV</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">SubVariablesType</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/test/test_states.html#SV"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.test.test_states.SV" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutputSequence" title="hydpy.core.sequencetools.OutputSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.OutputSequence</span></code></a>[<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.StateSequences" title="hydpy.core.sequencetools.StateSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.StateSequences</span></code></a>], <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ConditionSequence" title="hydpy.core.sequencetools.ConditionSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.ConditionSequence</span></code></a>[<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.StateSequences" title="hydpy.core.sequencetools.StateSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.StateSequences</span></code></a>, <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FastAccessOutputSequence" title="hydpy.core.sequencetools.FastAccessOutputSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.FastAccessOutputSequence</span></code></a>]</p>
+<p>Storage content vector[mm].</p>
+<dl class="simple">
+<dt>Updated by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.test.test_model.Calc_SV_V1" title="hydpy.models.test.test_model.Calc_SV_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_SV_V1</span></code></a></p>
+</dd>
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.test.test_model.Calc_QV_V1" title="hydpy.models.test.test_model.Calc_QV_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_QV_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_states.SV.NDIM">
+<code class="sig-name descname"><span class="pre">NDIM</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#hydpy.models.test.test_states.SV.NDIM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_states.SV.NUMERIC">
+<code class="sig-name descname"><span class="pre">NUMERIC</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">True</span></em><a class="headerlink" href="#hydpy.models.test.test_states.SV.NUMERIC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_states.SV.SPAN">
+<code class="sig-name descname"><span class="pre">SPAN</span></code><em class="property"><span class="pre">:</span> <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">(0.0,</span> <span class="pre">None)</span></em><a class="headerlink" href="#hydpy.models.test.test_states.SV.SPAN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_states.SV.name">
+<code class="sig-name descname"><span class="pre">name</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'sv'</span></em><a class="headerlink" href="#hydpy.models.test.test_states.SV.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_states.SV.unit">
+<code class="sig-name descname"><span class="pre">unit</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'mm'</span></em><a class="headerlink" href="#hydpy.models.test.test_states.SV.unit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.test.test_states.SV.subvars">
+<code class="sig-name descname"><span class="pre">subvars</span></code><em class="property"><span class="pre">:</span> <span class="pre">SubVariablesType</span></em><a class="headerlink" href="#hydpy.models.test.test_states.SV.subvars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.test.ControlParameters">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.test.</span></code><code class="sig-name descname"><span class="pre">ControlParameters</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">hydpy.core.parametertools.Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">hydpy.core.parametertools.FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">hydpy.core.typingtools.CyModelProtocol</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.test.ControlParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.SubVariables" title="hydpy.core.variabletools.SubVariables"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.variabletools.SubVariables</span></code></a>[<a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.Parameters</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code>, <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.FastAccessParameter</span></code></a>]</p>
+<p>Control parameters of model test.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.test.test_control.K" title="hydpy.models.test.test_control.K"><code class="xref py py-func docutils literal notranslate"><span class="pre">K()</span></code></a> Storage coefficient [1/T].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.test.test_control.N" title="hydpy.models.test.test_control.N"><code class="xref py py-func docutils literal notranslate"><span class="pre">N()</span></code></a> Number of storages [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.test.FluxSequences">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.test.</span></code><code class="sig-name descname"><span class="pre">FluxSequences</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">hydpy.core.sequencetools.Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">FastAccessType</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">hydpy.core.typingtools.CyModelProtocol</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.test.FluxSequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutputSequences" title="hydpy.core.sequencetools.OutputSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.OutputSequences</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequence</span></code>]</p>
+<p>Flux sequences of model test.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.test.test_fluxes.Q" title="hydpy.models.test.test_fluxes.Q"><code class="xref py py-func docutils literal notranslate"><span class="pre">Q()</span></code></a> Storage loss [mm/T]</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.test.test_fluxes.QV" title="hydpy.models.test.test_fluxes.QV"><code class="xref py py-func docutils literal notranslate"><span class="pre">QV()</span></code></a> Storage loss vector [mm/T]</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="hydpy.models.test.FluxSequences.vars">
+<code class="sig-name descname"><span class="pre">vars</span></code><em class="property"><span class="pre">:</span> <span class="pre">GroupType</span></em><a class="headerlink" href="#hydpy.models.test.FluxSequences.vars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.test.SolverParameters">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.test.</span></code><code class="sig-name descname"><span class="pre">SolverParameters</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">hydpy.core.parametertools.Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">hydpy.core.parametertools.FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">hydpy.core.typingtools.CyModelProtocol</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.test.SolverParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.SubVariables" title="hydpy.core.variabletools.SubVariables"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.variabletools.SubVariables</span></code></a>[<a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.Parameters</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code>, <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.FastAccessParameter</span></code></a>]</p>
+<p>Solver parameters of model test.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.test.test_solver.AbsErrorMax" title="hydpy.models.test.test_solver.AbsErrorMax"><code class="xref py py-func docutils literal notranslate"><span class="pre">AbsErrorMax()</span></code></a> Absolute numerical error tolerance [mm/T].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.test.test_solver.RelErrorMax" title="hydpy.models.test.test_solver.RelErrorMax"><code class="xref py py-func docutils literal notranslate"><span class="pre">RelErrorMax()</span></code></a> Relative numerical error tolerance [1/T].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.test.test_solver.RelDTMin" title="hydpy.models.test.test_solver.RelDTMin"><code class="xref py py-func docutils literal notranslate"><span class="pre">RelDTMin()</span></code></a> Smallest relative integration time step size allowed [-].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.test.test_solver.RelDTMax" title="hydpy.models.test.test_solver.RelDTMax"><code class="xref py py-func docutils literal notranslate"><span class="pre">RelDTMax()</span></code></a> Largest relative integration time step size allowed [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.test.StateSequences">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.test.</span></code><code class="sig-name descname"><span class="pre">StateSequences</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">hydpy.core.sequencetools.Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">FastAccessType</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">hydpy.core.typingtools.CyModelProtocol</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.test.StateSequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutputSequences" title="hydpy.core.sequencetools.OutputSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.OutputSequences</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">StateSequence</span></code>]</p>
+<p>State sequences of model test.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.test.test_states.S" title="hydpy.models.test.test_states.S"><code class="xref py py-func docutils literal notranslate"><span class="pre">S()</span></code></a> Storage content [mm].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.test.test_states.SV" title="hydpy.models.test.test_states.SV"><code class="xref py py-func docutils literal notranslate"><span class="pre">SV()</span></code></a> Storage content vector[mm].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="framework.html">Framework Tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modelcollection.html">Model Collection</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="HydPy-A.html">HydPy-A (RIMO/RIDO)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-C.html">HydPy-C (Conv)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-E.html">HydPy-E (Evap)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-D.html">HydPy-D (DAM)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-Dummy.html">HydPy-Dummy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-L.html">HydPy-L (LARSIM)</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="HydPy-T.html">HydPy-T (TESTING)</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">test</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#method-features">Method Features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parameter-features">Parameter Features</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#control-parameters">Control parameters</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#solver-parameters">Solver parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#sequence-features">Sequence Features</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#flux-sequences">Flux sequences</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#state-sequences">State sequences</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="test_v1.html">test_v1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="test_v2.html">test_v2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="test_v3.html">test_v3</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-W.html">HydPy-W (WALRUS)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="HydPy-T.html"
+                        title="previous chapter">HydPy-T (TESTING)</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="test_v1.html"
+                        title="next chapter">test_v1</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/test.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/test.html">6</a></li>
+<li><a href="../5.0/test.html">5.0</a></li>
+<li><a href="../4.0/test.html">4.0</a></li>
+<li><a href="../master/test.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="test_v1.html" title="test_v1"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="HydPy-T.html" title="HydPy-T (TESTING)"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modelcollection.html" >Model Collection</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="HydPy-T.html" >HydPy-T (TESTING)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">test</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,12 @@
+.. |Q| replace:: :class:`~hydpy.models.test.test_fluxes.Q`
+.. |S| replace:: :class:`~hydpy.models.test.test_states.S`
+
+.. _test_v1:
+
+test_v1
+=======
+
+.. automodule:: hydpy.models.test_v1
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs, InletSequences, ReceiverSequences, InputSequences, LogSequences, AideSequences, OutletSequences, SenderSequences

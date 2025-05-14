@@ -235,6 +235,17 @@ reference evapotranspiration for a subbasin.  In that case, do not need to set u
 complete "land model" but can assign an |evap_ret_fao56| instance directly to an
 :ref:`element` (or even use it without any "network overhead").
 
+.. _collective:
+
+collective
+__________
+
+In some cases, individual :ref:`main models <main_model|` (e.g. of type |sw1d_channel|)
+are defined by the user but are automatically converted to a combined model instance
+(e.g. of type |sw1d_network|) during simulation for numerical reasons. All models
+handled by :ref:`elements <element>` that belong to the same :ref:`collective` (defined
+by property |Element.collective|) are combined into one new model instance.
+
 .. _method:
 
 method

@@ -24,6 +24,8 @@ import numpy
 
 # ...from HydPy
 import hydpy
+
+# from hydpy import aliases  actual import below
 from hydpy import config
 from hydpy import data
 from hydpy import docs
@@ -41,6 +43,7 @@ from hydpy.core import timetools
 from hydpy.core import typingtools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
+from hydpy.auxs import ppolytools
 from hydpy.tests import iotesting
 
 # from hydpy.models import hland  actual import below
@@ -2481,3 +2484,624 @@ def prepare_full_example_2(
         hydpy.pub.timegrids = "1996-01-01", lastdate, "1d"
         hp.prepare_everything()
     return hp, hydpy.pub, TestIO
+
+
+def prepare_interpolation_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
+    """Prepare an example project that combines a |conv_nn| model and the
+    input/output node mechanism to interpolate precipitation.
+
+    >>> from hydpy.core.testtools import prepare_interpolation_example
+    >>> hp, pub = prepare_interpolation_example()
+    >>> hp.print_networkproperties()
+    Number of nodes: 7
+    Number of elements: 4
+    Number of end nodes: 1
+    Number of distinct networks: 1
+    Applied node variables: P (4) and Q (3)
+    Applied model types: conv_nn (1), dummy_node2node (1), and gland_gr4 (2)
+
+    The example project consists of two nodes that receive the original precipitation
+    series (`in1` and `in2`), an interpolation element (`conv`) that handles the
+    |conv_nn| model instance, and two nodes (`out1` and `out2`) that pass the
+    interpolated precipitation to two elements (`gr4_1` and `gr4_2`) that handle
+    |gland_gr4| model instances.
+
+    >>> hp.elements.conv
+    Element("conv",
+            inlets=["in1", "in2"],
+            outlets=["out1", "out2"])
+
+    The |gland_gr4| models pass their outflows to the nodes `q1` and `q2`, which are
+    then combined by an application model of type |dummy_node2node| handled by element
+    `dummy`:
+
+    >>> hp.elements.gr4_1
+    Element("gr4_1",
+            outlets="q1",
+            inputs="out1")
+    >>> hp.elements.gr4_2
+    Element("gr4_2",
+            outlets="q2",
+            inputs="out2")
+    >>> hp.elements.dummy
+    Element("dummy",
+            inlets=["q1", "q2"],
+            outlets="q12")
+
+    `in1` and `in2` work with different deploy modes:
+
+    >>> hp.nodes.in1.deploymode
+    'obs'
+    >>> hp.nodes.in2.deploymode
+    'oldsim'
+
+    The simulation spans only three days:
+
+    >>> pub.timegrids
+    Timegrids("2000-01-01 00:00:00",
+              "2000-01-04 00:00:00",
+              "1d")
+
+    The simulation results:
+
+    >>> hp.simulate()
+    >>> from hydpy import print_vector
+    >>> print_vector(hp.nodes.in1.sequences.obs.series)
+    10.0, 20.0, 30.0
+    >>> print_vector(hp.nodes.in2.sequences.sim.series)
+    40.0, 50.0, 60.0
+    >>> print_vector(hp.nodes.out1.sequences.sim.series)
+    10.0, 20.0, 30.0
+    >>> print_vector(hp.nodes.out2.sequences.sim.series)
+    40.0, 50.0, 60.0
+    >>> print_vector(hp.nodes.q1.sequences.sim.series)
+    0.287977, 0.267212, 0.336692
+    >>> print_vector(hp.nodes.q2.sequences.sim.series)
+    0.565738, 0.597421, 0.700953
+    >>> print_vector(hp.nodes.q12.sequences.sim.series)
+    0.853716, 0.864633, 1.037645
+    """
+
+    devicetools.Node.clear_all()
+    devicetools.Element.clear_all()
+
+    with hydpy.pub.options.checkprojectstructure(False):
+        hp = hydpytools.HydPy("InterpolationExample")
+    hydpy.pub.timegrids = "2000-01-01", "2000-01-04", "1d"
+
+    n_in1, n_in2 = devicetools.Nodes("in1", "in2", defaultvariable="P")
+    n_out1, n_out2 = devicetools.Nodes("out1", "out2", defaultvariable="P")
+    n_q1, n_q12, n_q2 = devicetools.Nodes("q1", "q12", "q2")
+    element_conv = devicetools.Element(
+        "conv", inlets=(n_in1, n_in2), outlets=(n_out1, n_out2)
+    )
+    e_gr4_1 = devicetools.Element("gr4_1", inputs=n_out1, outlets=n_q1)
+    e_gr4_2 = devicetools.Element("gr4_2", inputs=n_out2, outlets=n_q2)
+    e_dummy = devicetools.Element("dummy", inlets=(n_q1, n_q2), outlets=n_q12)
+
+    convmodel = importtools.prepare_model("conv_nn")
+    control = convmodel.parameters.control
+    control.inputcoordinates(in1=(1.0, 3.0), in2=(5.0, 7.0))
+    control.outputcoordinates(out1=(2.0, 2.0), out2=(6.0, 6.0))
+    control.maxnmbinputs(1)
+
+    gr4models = []
+    for _ in range(2):
+        gr4model = importtools.prepare_model("gland_gr4")
+        control = gr4model.parameters.control
+        with hydpy.pub.options.parameterstep("1d"):
+            control.area(1.0)
+            control.imax(0.0)
+            control.x1(100.0)
+            control.x2(1.0)
+            control.x3(100.0)
+        states = gr4model.sequences.states
+        states.i(control.imax)
+        states.s(control.x1)
+        states.r(control.x3)
+        with gr4model.add_petmodel_v1("evap_ret_io") as evapmodel:
+            evapmodel.parameters.control.evapotranspirationfactor(1.0)
+        gr4models.append(gr4model)
+
+    dummymodel = importtools.prepare_model("dummy_node2node")
+
+    element_conv.model = convmodel
+    e_gr4_1.model = gr4models[0]
+    e_gr4_2.model = gr4models[1]
+    e_dummy.model = dummymodel
+
+    hp.update_devices(
+        nodes=(n_in1, n_in2, n_out1, n_out2, n_q1, n_q2, n_q12),
+        elements=(element_conv, e_gr4_1, e_gr4_2, e_dummy),
+    )
+    hp.update_parameters()
+
+    hp.prepare_allseries()
+    n_in1.deploymode = "obs"
+    n_in1.sequences.obs.series = 10.0, 20.0, 30.0
+    n_in2.deploymode = "oldsim"
+    n_in2.sequences.sim.series = 40.0, 50.0, 60.0
+    e_gr4_1.model.petmodel.sequences.inputs.referenceevapotranspiration.series = 0.0
+    e_gr4_2.model.petmodel.sequences.inputs.referenceevapotranspiration.series = 0.0
+
+    return hp, hydpy.pub
+
+
+def prepare_receiver_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
+    """Prepare an example project that combines a |dam_v001| model and the receiver
+    node mechanism to simulate the interaction between the controlled water release of
+    a dam and the discharge at a remote downstream gauge.
+
+    >>> from hydpy.core.testtools import prepare_receiver_example
+    >>> hp, pub = prepare_receiver_example()
+    >>> hp.print_networkproperties()
+    Number of nodes: 5
+    Number of elements: 7
+    Number of end nodes: 1
+    Number of distinct networks: 1
+    Applied node variables: Q (5)
+    Applied model types: dam_v001 (1), dummy_node2node (3), and gland_gr4 (3)
+
+    The runoff generation is left to three |gland_gr4| model instances, handled by the
+    elements `l1`, `l2`, and `l3`:
+
+    >>> hp.elements.l1
+    Element("l1",
+            outlets="n1a")
+    >>> hp.elements.l2
+    Element("l2",
+            outlets="n2")
+    >>> hp.elements.l3
+    Element("l3",
+            outlets="n3")
+
+    The runoff generated by `l1` flows into a dam, represented by a |dam_v001| model
+    instance handled by element `d`:
+
+    >>> hp.elements.d
+    Element("d",
+            inlets="n1a",
+            outlets="n1b",
+            receivers="n2")
+
+    The uncontrolled outflow of `l2` and `l2` and the controlled water release of `d`
+    reach a channel consisting of three segments, represented by individual
+    |dummy_node2node| model instances handled by elements `s12`, `s23`, and `s34`:
+
+    >>> hp.elements.s12
+    Element("s12",
+            inlets="n1b",
+            outlets="n2")
+    >>> hp.elements.s23
+    Element("s23",
+            inlets="n2",
+            outlets="n3")
+    >>> hp.elements.s34
+    Element("s34",
+            inlets="n3",
+            outlets="n4")
+
+    Node `n2` is responsible for routing water further downstream and informing the dam
+    about the current discharge via the receiver mechanism, so that it can adjust its
+    release to prevent severe low-flow situations.
+
+    The simulation results:
+
+    >>> hp.simulate()
+    >>> from hydpy import print_vector
+    >>> print_vector(hp.nodes.n1a.sequences.sim.series)
+    2.324939, 2.0521, 1.834626, 1.657529, 1.510731, 1.387219
+    >>> print_vector(hp.nodes.n1b.sequences.sim.series)
+    0.0, 0.0, 0.0, 0.165374, 0.342471, 0.489269
+    >>> print_vector(hp.nodes.n2.sequences.sim.series)
+    2.324939, 2.0521, 1.834626, 1.822902, 1.853202, 1.876488
+    >>> print_vector(hp.nodes.n3.sequences.sim.series)
+    4.649878, 4.1042, 3.669253, 3.480431, 3.363932, 3.263707
+    >>> print_vector(hp.nodes.n4.sequences.sim.series)
+    4.649878, 4.1042, 3.669253, 3.480431, 3.363932, 3.263707
+    """
+
+    devicetools.Node.clear_all()
+    devicetools.Element.clear_all()
+
+    with hydpy.pub.options.checkprojectstructure(False):
+        hp = hydpytools.HydPy("ReceiverExample")
+    hydpy.pub.timegrids = "2000-01-01", "2000-01-07", "1d"
+
+    n1a, n1b, n2, n3, n4 = devicetools.Nodes("n1a", "n1b", "n2", "n3", "n4")
+    l1_ = devicetools.Element("l1", outlets="n1a")
+    l2 = devicetools.Element("l2", outlets="n2")
+    l3 = devicetools.Element("l3", outlets="n3")
+    d = devicetools.Element("d", inlets="n1a", outlets="n1b", receivers="n2")
+    s12 = devicetools.Element("s12", inlets="n1b", outlets="n2")
+    s23 = devicetools.Element("s23", inlets="n2", outlets="n3")
+    s34 = devicetools.Element("s34", inlets="n3", outlets="n4")
+
+    lmodels = []
+    for _ in range(3):
+        lmodel = importtools.prepare_model("gland_gr4")
+        control = lmodel.parameters.control
+        with hydpy.pub.options.parameterstep("1d"):
+            control.area(100.0)
+            control.imax(0.0)
+            control.x1(100.0)
+            control.x2(1.0)
+            control.x3(100.0)
+        states = lmodel.sequences.states
+        states.i(control.imax)
+        states.s(0.6 * control.x1)
+        states.r(0.6 * control.x3)
+        with lmodel.add_petmodel_v1("evap_ret_io") as evapmodel:
+            evapmodel.parameters.control.evapotranspirationfactor(1.0)
+        lmodels.append(lmodel)
+
+    dmodel = importtools.prepare_model("dam_v001")
+    with hydpy.pub.options.parameterstep("1d"):
+        control = dmodel.parameters.control
+        from_data = ppolytools.PPoly.from_data
+        control.watervolume2waterlevel(from_data(xs=[0.0, 1.0], ys=[0.0, 0.25]))
+        control.waterlevel2flooddischarge(from_data(xs=[0.0], ys=[0.0]))
+        control.catchmentarea(100.0)
+        control.surfacearea(1.0)
+        control.correctionprecipitation(1.0)
+        control.correctionevaporation(1.0)
+        control.weightevaporation(1.0)
+        control.thresholdevaporation(0.0)
+        control.toleranceevaporation(0.001)
+        control.nmblogentries(1)
+        control.remotedischargeminimum(2.0)
+        control.remotedischargesafety(0.0)
+        control.neardischargeminimumthreshold(0.0)
+        control.neardischargeminimumtolerance(0.0)
+        control.waterlevelminimumthreshold(0.0)
+        control.waterlevelminimumtolerance(0.0)
+        control.restricttargetedrelease(True)
+        states = dmodel.sequences.states
+        states.watervolume(1.0)
+        logs = dmodel.sequences.logs
+        logs.loggedadjustedevaporation(0.0)
+        logs.loggedtotalremotedischarge(2.0)
+        logs.loggedoutflow(0.0)
+
+    l1_.model = lmodels[0]
+    l2.model = lmodels[1]
+    l3.model = lmodels[2]
+    d.model = dmodel
+    s12.model = importtools.prepare_model("dummy_node2node")
+    s23.model = importtools.prepare_model("dummy_node2node")
+    s34.model = importtools.prepare_model("dummy_node2node")
+
+    hp.update_devices(
+        nodes=(n1a, n1b, n2, n3, n4), elements=(l1_, l2, l3, d, s12, s23, s34)
+    )
+    hp.update_parameters()
+
+    hp.prepare_allseries()
+    for lmodel in lmodels:
+        lmodel.sequences.inputs.p.series = 0.0
+        lmodel.petmodel.sequences.inputs.referenceevapotranspiration.series = 0.0
+
+    return hp, hydpy.pub
+
+
+def prepare_collective_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
+    """Prepare a complex example project that consists of multiple |sw1d_channel|
+    models that are combined into a |sw1d_network| model during simulation via the
+    :ref:`collective` approach and involves feedback effects over short and long
+    distances via the receiver mechanism.
+
+    >>> from hydpy.core.testtools import prepare_collective_example
+    >>> hp, pub = prepare_collective_example()
+    >>> hp.print_networkproperties()
+    Number of nodes: 16
+    Number of elements: 11
+    Number of end nodes: 6
+    Number of distinct networks: 0
+    Applied node variables: Q (3), latq (3), longq (5), owl (3), and rwl (2)
+    Applied model types: dam_sluice (3), gland_gr4 (5), and sw1d_channel (3)
+
+    The "SW1D" collective consists of three channel segments.  The elements `c1` and
+    `c2` rely on "normal" routing models of type |sw1d_lias|.  Both are directly
+    connected to the outlet reach `c3`, which relies on a |sw1d_gate_out| model
+    instance to use the water levels provided by node `out_c3_s1` as a lower boundary
+    condition for solving the shallow water equations:
+
+    >>> hp.elements.c1
+    Element("c1",
+            collective="SW1D",
+            inlets=["g12_c1", "s1_c1"],
+            outlets="c1_c3",
+            senders="c1_s1")
+    >>> hp.elements.c2
+    Element("c2",
+            collective="SW1D",
+            inlets=["g22_c2", "s2_c2"],
+            outlets="c2_c3",
+            senders="c2_s2")
+    >>> hp.elements.c3
+    Element("c3",
+            collective="SW1D",
+            inlets=["c1_c3", "c2_c3", "s3_c3"],
+            outlets="c3_out",
+            receivers="out_c3_s1",
+            senders="c3_s3")
+
+    `c1` and `c2` receive uncontrolled "longitudinal" inflow generated by |gland_gr4|
+    models handled by the elements `g12` and `g22`:
+
+    >>> hp.elements.g12
+    Element("g12",
+            outlets="g12_c1")
+    >>> hp.elements.g22
+    Element("g22",
+            outlets="g22_c2")
+
+    Besides this, all channel segments receive the water released by "laterally"
+    connected |dam_sluice| model instances handled by the elements `p1`, `p2`, and
+    `p3`.  Each sluice model requires the water level of its connected channel model to
+    determine the current water level gradient and so its current water release, which
+    is made available via the nodes `c1_s1`, `c2_s2`, and `c3_s3`, respectively.
+    Additionally, the sluice model of element `s1` receives the lower boundary
+    water level provided by node `out_c3_s1`, which allows to stop the release of water
+    as soon as a critical outer water level is exceeded:
+
+    >>> hp.elements.s1
+    Element("s1",
+            inlets="g11_s1",
+            outlets="s1_c1",
+            receivers=["c1_s1", "out_c3_s1"])
+    >>> hp.elements.s2
+    Element("s2",
+            inlets="g21_s2",
+            outlets="s2_c2",
+            receivers=["c2_s2", "no_s1"])
+    >>> hp.elements.s3
+    Element("s3",
+            inlets="g31_s3",
+            outlets="s3_c3",
+            receivers=["c3_s3", "no_s1"])
+
+    The inflow of `s1`, `s2`, and `s3` stems also from the |gland_gr4| models, which
+    are handled by the elements `g11`, `g21`, and `g31`:
+
+    >>> hp.elements.g11
+    Element("g11",
+            outlets="g11_s1")
+    >>> hp.elements.g21
+    Element("g21",
+            outlets="g21_s2")
+    >>> hp.elements.g31
+    Element("g31",
+            outlets="g31_s3")
+
+    The simulation results:
+
+    >>> hp.simulate()
+    >>> from hydpy import print_vector
+    >>> print_vector(hp.nodes.g11_s1.sequences.sim.series)
+    0.232494, 0.20521, 0.183463, 0.165753, 0.151073, 0.138722
+    >>> print_vector(hp.nodes.g21_s2.sequences.sim.series)
+    0.232494, 0.20521, 0.183463, 0.165753, 0.151073, 0.138722
+    >>> print_vector(hp.nodes.g31_s3.sequences.sim.series)
+    0.232494, 0.20521, 0.183463, 0.165753, 0.151073, 0.138722
+    >>> print_vector(hp.nodes.g12_c1.sequences.sim.series)
+    0.232494, 0.20521, 0.183463, 0.165753, 0.151073, 0.138722
+    >>> print_vector(hp.nodes.g22_c2.sequences.sim.series)
+    0.232494, 0.20521, 0.183463, 0.165753, 0.151073, 0.138722
+
+    >>> print_vector(hp.nodes.s1_c1.sequences.sim.series)
+    0.20014, 0.081896, 0.075122, 0.068673, 0.0, 0.0
+    >>> print_vector(hp.nodes.s2_c2.sequences.sim.series)
+    0.20014, 0.081896, 0.075122, 0.068673, 0.062057, 0.05637
+    >>> print_vector(hp.nodes.s3_c3.sequences.sim.series)
+    0.20014, 0.08195, 0.07516, 0.0687, 0.062074, 0.056383
+
+    >>> print_vector(hp.nodes.c1_c3.sequences.sim.series)
+    0.213689, 0.197114, 0.173684, 0.148542, 0.07705, 0.03247
+    >>> print_vector(hp.nodes.c2_c3.sequences.sim.series)
+    0.213689, 0.197114, 0.173684, 0.148542, 0.138743, 0.088823
+    >>> print_vector(hp.nodes.c3_out.sequences.sim.series)
+    0.409196, 0.386017, 0.337494, 0.279784, 0.203433, 0.071322
+
+    >>> print_vector(hp.nodes.c1_s1.sequences.sim.series)
+    2.189168, 2.266922, 2.340276, 2.41448, 2.478436, 2.570237
+    >>> print_vector(hp.nodes.c2_s2.sequences.sim.series)
+    2.189168, 2.266922, 2.340276, 2.41448, 2.47875, 2.570566
+    >>> print_vector(hp.nodes.c3_s3.sequences.sim.series)
+    2.188631, 2.266529, 2.339998, 2.414303, 2.478613, 2.570503
+
+    >>> print_vector(hp.nodes.no_s1.sequences.sim.series)
+    0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+    >>> print_vector(hp.nodes.out_c3_s1.sequences.sim.series)
+    1.5, 1.7, 1.9, 2.1, 2.3, 2.5
+    """
+
+    # pylint: disable=too-many-statements
+
+    from hydpy import aliases  # pylint: disable=import-outside-toplevel
+
+    devicetools.Node.clear_all()
+    devicetools.Element.clear_all()
+
+    with hydpy.pub.options.checkprojectstructure(False):
+        hp = hydpytools.HydPy("CollectiveExample")
+    hydpy.pub.timegrids = "2000-01-01", "2000-01-07", "1d"
+
+    longq = devicetools.FusedVariable(
+        "longq",
+        aliases.gland_outlets_Q,
+        aliases.sw1d_inlets_LongQ,
+        aliases.sw1d_outlets_LongQ,
+    )
+    latq = devicetools.FusedVariable(
+        "latq", aliases.dam_outlets_Q, aliases.sw1d_inlets_LatQ
+    )
+    owl = devicetools.FusedVariable(
+        "owl", aliases.sw1d_senders_WaterLevel, aliases.dam_receivers_OWL
+    )
+    rwl = devicetools.FusedVariable(
+        "rwl", aliases.sw1d_inlets_WaterLevel, aliases.dam_receivers_RWL
+    )
+
+    g11_s1, g21_s2, g31_s3 = devicetools.Nodes("g11_s1", "g21_s2", "g31_s3")
+    g12_c1, g22_c2 = devicetools.Nodes("g12_c1", "g22_c2", defaultvariable=longq)
+    s1_c1, s2_c2, s3_c3 = devicetools.Nodes(
+        "s1_c1", "s2_c2", "s3_c3", defaultvariable=latq
+    )
+    c1_c3, c2_c3, c3_out = devicetools.Nodes(
+        "c1_c3", "c2_c3", "c3_out", defaultvariable=longq
+    )
+    c1_s1, c2_s2, c3_s3 = devicetools.Nodes(
+        "c1_s1", "c2_s2", "c3_s3", defaultvariable=owl
+    )
+    no_s1, out_c3_s1 = devicetools.Nodes("no_s1", "out_c3_s1", defaultvariable=rwl)
+
+    g11 = devicetools.Element("g11", outlets=g11_s1)
+    g12 = devicetools.Element("g12", outlets=g12_c1)
+    g21 = devicetools.Element("g21", outlets=g21_s2)
+    g22 = devicetools.Element("g22", outlets=g22_c2)
+    g31 = devicetools.Element("g31", outlets=g31_s3)
+    s1 = devicetools.Element(
+        "s1", inlets=g11_s1, outlets=s1_c1, receivers=(c1_s1, out_c3_s1)
+    )
+    s2 = devicetools.Element(
+        "s2", inlets=g21_s2, outlets=s2_c2, receivers=(c2_s2, no_s1)
+    )
+    s3 = devicetools.Element(
+        "s3", inlets=g31_s3, outlets=s3_c3, receivers=(c3_s3, no_s1)
+    )
+    c1 = devicetools.Element(
+        "c1", inlets=(g12_c1, s1_c1), outlets=c1_c3, senders=c1_s1, collective="SW1D"
+    )
+    c2 = devicetools.Element(
+        "c2", inlets=(g22_c2, s2_c2), outlets=c2_c3, senders=c2_s2, collective="SW1D"
+    )
+    c3 = devicetools.Element(
+        "c3",
+        inlets=(s3_c3, c1_c3, c2_c3),
+        outlets=c3_out,
+        receivers=out_c3_s1,
+        senders=c3_s3,
+        collective="SW1D",
+    )
+
+    gr_models = []
+    for _ in range(5):
+        gr_model = importtools.prepare_model("gland_gr4")
+        control = gr_model.parameters.control
+        with hydpy.pub.options.parameterstep("1d"):
+            control.area(10.0)
+            control.imax(0.0)
+            control.x1(100.0)
+            control.x2(1.0)
+            control.x3(100.0)
+        states = gr_model.sequences.states
+        states.i(control.imax)
+        states.s(0.6 * control.x1)
+        states.r(0.6 * control.x3)
+        with gr_model.add_petmodel_v1("evap_ret_io") as evap_model:
+            evap_model.parameters.control.evapotranspirationfactor(1.0)
+        gr_models.append(gr_model)
+
+    sluice_models = []
+    for _ in range(3):
+        sluice_model = importtools.prepare_model("dam_sluice")
+        control = sluice_model.parameters.control
+        with hydpy.pub.options.parameterstep("1d"):
+            control.surfacearea(1.44)
+            control.catchmentarea(86.4)
+            control.watervolume2waterlevel(
+                ppolytools.PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0])
+            )
+            control.remotewaterlevelmaximumthreshold(2.0)
+            control.remotewaterlevelmaximumtolerance(0.0)
+            control.correctionprecipitation(1.0)
+            control.correctionevaporation(1.0)
+            control.weightevaporation(0.8)
+            control.thresholdevaporation(0.0)
+            control.toleranceevaporation(0.001)
+            control.crestlevel(1.0)
+            control.waterleveldifference2maxfreedischarge(
+                ppolytools.PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 0.1])
+            )
+            control.crestleveltolerance(0.1)
+            control.dischargetolerance(0.0)
+        sluice_model.sequences.states.watervolume(3.0)
+        logs = sluice_model.sequences.logs
+        logs.loggedadjustedevaporation(0.0)
+        logs.loggedouterwaterlevel(0.0)
+        logs.loggedremotewaterlevel(0.0)
+        sluice_models.append(sluice_model)
+
+    channel_models = []
+    for _ in range(3):
+        channel_model = importtools.prepare_model("sw1d_channel")
+        channel_model.parameters.control.nmbsegments(1)
+        with channel_model.add_storagemodel_v1(
+            "sw1d_storage", position=0
+        ) as storage_model:
+            storage_model.parameters.control.length(10.0)
+            storage_model.sequences.states.watervolume(200.0)
+        channel_models.append(channel_model)
+    for i in range(2):
+        channel_model = channel_models[i]
+        with channel_model.add_routingmodel_v1("sw1d_q_in", position=0) as q_model:
+            control = q_model.parameters.control
+            control.lengthdownstream(10.0)
+            control.timestepfactor(0.7)
+        with channel_model.add_routingmodel_v2("sw1d_lias", position=1) as lias_model:
+            control = lias_model.parameters.control
+            control.lengthupstream(10.0)
+            control.lengthdownstream(10.0)
+            control.stricklercoefficient(1.0 / 0.03)
+            control.timestepfactor(0.7)
+            control.diffusionfactor(0.2)
+            lias_model.sequences.states.discharge(0.0)
+    channel_model = channel_models[2]
+    with channel_model.add_routingmodel_v3("sw1d_gate_out", position=1) as gate_model:
+        control = gate_model.parameters.control
+        control.lengthupstream(10.0)
+        control.bottomlevel(0.0)
+        control.gateheight(0.1)
+        control.gatewidth(2.0)
+        control.flowcoefficient(0.6)
+        control.timestepfactor(0.7)
+        control.dampingradius(0.0)
+    for channel_model in channel_models:
+        for submodel in (
+            channel_model.storagemodels[0],
+            channel_model.routingmodels[0],
+            channel_model.routingmodels[1],
+        ):
+            if hasattr(submodel, "add_crosssection_v2"):
+                with submodel.add_crosssection_v2("wq_trapeze") as trapeze_model:
+                    control = trapeze_model.parameters.control
+                    control.nmbtrapezes(1)
+                    control.bottomlevels(0.0)
+                    control.bottomwidths(10.0)
+                    control.sideslopes(0.0)
+
+    # pylint: disable=unbalanced-tuple-unpacking
+    g11.model, g12.model, g21.model, g22.model, g31.model = gr_models
+    s1.model, s2.model, s3.model = sluice_models
+    c1.model, c2.model, c3.model = channel_models
+
+    hp.update_devices(
+        # fmt: off
+        nodes=(
+            g11_s1, g21_s2, g12_c1, g22_c2, g31_s3, s1_c1, s2_c2, s3_c3,
+            c1_c3, c2_c3, c3_out, c1_s1, c2_s2, c3_s3, no_s1, out_c3_s1,
+        ),
+        # fmt: on
+        elements=(g11, g12, g21, g22, g31, s1, s2, s3, c1, c2, c3)
+    )
+    hp.update_parameters()
+
+    hp.prepare_allseries()
+    for gr_model in gr_models:
+        gr_model.sequences.inputs.p.series = 0.0
+        gr_model.petmodel.sequences.inputs.referenceevapotranspiration.series = 0.0
+    out_c3_s1.deploymode = "oldsim"
+    out_c3_s1.sequences.sim.series = numpy.linspace(1.5, 2.5, 6)
+
+    return hp, hydpy.pub

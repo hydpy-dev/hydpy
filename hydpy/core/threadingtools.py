@@ -441,8 +441,8 @@ def check_threading(
     sequence: sequencetools.IOSequence,
     pause: timetools.Date | None = None,
 ) -> None:
-    """Execute on "sequential", then two "parallel", and finally another "sequential"
-    simulation run, and check if time the series calculated for all nodes are identical
+    """Execute one "sequential", then two "parallel", and finally another "sequential"
+    simulation run, and check if the time series calculated for all nodes are identical
     in all cases.
 
     >>> from hydpy.core.threadingtools import check_threading

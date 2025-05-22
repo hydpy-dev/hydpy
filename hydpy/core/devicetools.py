@@ -1645,15 +1645,17 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
     def load_conditions(self) -> None:
         """Load the initial conditions of the |Model| object handled by each |Element|
         object."""
-        for element in printtools.progressbar(self):
-            element.model.load_conditions()
+        with hydpy.pub.conditionmanager.filter_duplicates():
+            for element in printtools.progressbar(self):
+                element.model.load_conditions()
 
     @printtools.print_progress
     def save_conditions(self) -> None:
         """Save the calculated conditions of the |Model| object handled by each
         |Element| object."""
-        for element in printtools.progressbar(self):
-            element.model.save_conditions()
+        with hydpy.pub.conditionmanager.filter_duplicates():
+            for element in printtools.progressbar(self):
+                element.model.save_conditions()
 
     def trim_conditions(self) -> None:
         """Call method |Model.trim_conditions| of the |Model| object handled by each

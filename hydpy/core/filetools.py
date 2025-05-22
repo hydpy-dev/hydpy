@@ -1157,13 +1157,81 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
         """,
     )
 
+    _already_reported: set[str] | None
+
+    @contextlib.contextmanager
+    def filter_duplicates(self) -> Generator[None, None, None]:
+        """Prevent temporarily that the notes about assumed input and output paths
+        emitted by the properties |ConditionManager.inputpath| and
+        |ConditionManager.outputpath| are printed repeatedly.
+
+        The context manager |ConditionManager.filter_duplicates| serves primarily for
+        HydPy-internal purposes:
+
+        >>> from hydpy.core.testtools import prepare_full_example_1
+        >>> prepare_full_example_1()
+        >>> from hydpy import HydPy, pub, TestIO
+        >>> with TestIO():
+        ...     hp = HydPy("HydPy-H-Lahn")
+        ...     hp.prepare_network()
+        ...     pub.timegrids = "1996-01-01", "1997-01-01", "1d"
+        ...     hp.prepare_models()
+        ...     with pub.options.printprogress(True):
+        ...         hp.load_conditions()  # doctest: +ELLIPSIS
+        method Elements.load_conditions started at ...
+            |-----|
+            *******
+        The condition manager's current working directory is not defined explicitly.  \
+Hence, the condition manager reads its data from a directory named \
+`init_1996_01_01_00_00_00`.
+            seconds elapsed: ...
+
+        However, you can also use it directly when writing custom functions that
+        repeatedly interact with the mentioned properties:
+
+        >>> with TestIO(), pub.options.printprogress(True):
+        ...     hp.save_conditions()  # doctest: +ELLIPSIS
+        method Elements.save_conditions started at ...
+            |-----|
+            *******
+        The condition manager's current working directory is not defined explicitly.  \
+Hence, the condition manager writes its data to a directory named \
+`init_1997_01_01_00_00_00`.
+        Directory ...init_1997_01_01_00_00_00 has been created.
+            seconds elapsed: ...
+
+        >>> with (
+        ...     TestIO(),
+        ...     pub.options.printprogress(True),
+        ...     pub.conditionmanager.filter_duplicates(),
+        ... ):
+        ...     _ = pub.conditionmanager.inputpath
+        ...     _ = pub.conditionmanager.outputpath
+        ...     _ = pub.conditionmanager.inputpath
+        ...     _ = pub.conditionmanager.outputpath  # doctest: +ELLIPSIS
+        The condition manager's current working directory is not defined explicitly.  \
+Hence, the condition manager reads its data from a directory named \
+`init_1996_01_01_00_00_00`.
+        The condition manager's current working directory is not defined explicitly.  \
+Hence, the condition manager writes its data to a directory named \
+`init_1997_01_01_00_00_00`.
+        """
+        self._already_reported = set()
+        yield
+        self._already_reported = None
+
     def _print_info(self, dirname, task) -> None:
         if hydpy.pub.options.printprogress:
-            print(
+            already_reported = self._already_reported
+            message = (
                 f"The {self._docname}'s current working directory is not defined "
                 f"explicitly.  Hence, the {self._docname} {task} a directory named "
                 f"`{dirname}`."
             )
+            if (already_reported is None) or (message not in already_reported):
+                print(message)
+                if already_reported is not None:
+                    already_reported.add(message)
 
     @property
     def inputpath(self) -> str:

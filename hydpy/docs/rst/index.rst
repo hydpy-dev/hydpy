@@ -1,3 +1,4 @@
+.. _`online documentation`: https://hydpy-dev.github.io/hydpy/
 .. _Python: http://www.python.org/
 .. _Cython: http://www.cython.org/
 .. _`Ruhr-University Bochum`: http://www.hydrology.ruhr-uni-bochum.de/index.html.en

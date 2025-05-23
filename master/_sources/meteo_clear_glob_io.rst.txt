@@ -1,0 +1,14 @@
+.. |evap_ret_fao56| replace:: :mod:`~hydpy.models.evap_ret_fao56`
+.. |meteo_clear_glob_io.DOCNAME.complete| replace:: HydPy-Meteo-Clear-Glob-IO (external clear sky and global radiation data)
+.. |meteo_clear_glob_io| replace:: :mod:`~hydpy.models.meteo_clear_glob_io`
+.. |meteo_glob_io| replace:: :mod:`~hydpy.models.meteo_glob_io`
+
+.. _meteo_clear_glob_io:
+
+meteo_clear_glob_io
+===================
+
+.. automodule:: hydpy.models.meteo_clear_glob_io
+    :members:
+    :show-inheritance:
+    :exclude-members: Optional, deprecated, Match, NoExtraItems, fastaccess_new, Sized, BinaryIO, ReadOnly, NoDefault, ReceiverSequences, UPDATEDSEQUENCES, Collection, TypeAlias, assert_never, Iterator, FrozenSet, get_overloads, TypeGuard, subpars, dataclass_transform, AsyncIterator, AbstractSet, Coroutine, ParamSpecArgs, SUBMODELS, TypeVarTuple, Annotated, Concatenate, LogSequences, MutableSet, INLET_METHODS, TypeIs, IO, RECEIVER_METHODS, clear_overloads, Awaitable, ItemsView, Final, ChainMap, subvars, ForwardRef, seqs, INTERFACE_METHODS, Sequence, TypedDict, no_type_check_decorator, ClassVar, AsyncIterable, InletSequences, NoReturn, Never, FactorSequences, RUN_METHODS, NamedTuple, NotRequired, List, CONTROLPARAMETERS, Protocol, IntVar, Callable, fastaccess_old, Required, get_protocol_members, overload, Iterable, Mapping, SOLVERPARAMETERS, Unpack, ParamSpecKwargs, Deque, Dict, no_type_check, SupportsBytes, TextIO, Union, SenderSequences, SupportsFloat, Container, Self, pars, REQUIREDSEQUENCES, Doc, AsyncGenerator, TypeForm, get_annotations, TypeAliasType, Tuple, Format, AideSequences, FIXEDPARAMETERS, fastaccess, CapsuleType, Generator, final, Reversible, LiteralString, Literal, RESULTSEQUENCES, OUTLET_METHODS, evaluate_forward_ref, Buffer, SOLVERSEQUENCES, ContextManager, SupportsInt, FluxSequences, is_typeddict, OrderedDict, PART_ODE_METHODS, Generic, SupportsComplex, KeysView, cast, TYPE_CHECKING, runtime, get_origin, MappingView, OutletSequences, ADD_METHODS, NewType, StateSequences, ValuesView, runtime_checkable, ByteString, FULL_ODE_METHODS, DefaultDict, MutableMapping, SupportsRound, reveal_type, SUBMETHODS, SUBMODELINTERFACES, ParamSpec, MutableSequence, override, Type, SupportsIndex, DERIVEDPARAMETERS, TypeVar, assert_type, Set, get_type_hints, Hashable, subseqs, get_args, SENDER_METHODS, Any, get_original_bases, Counter, is_protocol, AsyncContextManager, CLASSES, SupportsAbs, AnyStr, Pattern, Text

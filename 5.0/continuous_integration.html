@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Continuous Integration &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tests &amp; documentation" href="tests_and_documentation.html" />
+    <link rel="prev" title="Dependencies" href="hydpydependencies.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="tests_and_documentation.html" title="Tests &amp; documentation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="hydpydependencies.html" title="Dependencies"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="development.html" accesskey="U">Development</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Continuous Integration</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="development.html">Development</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="required_tools.html">Required tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_control.html">Version control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hydpydependencies.html">Dependencies</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Continuous Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tests_and_documentation.html">Tests &amp; documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="programming_style.html">Programming style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="additional_repositories.html">Additional repositories</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="hydpydependencies.html"
+                          title="previous chapter">Dependencies</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="tests_and_documentation.html"
+                          title="next chapter">Tests &amp; documentation</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/continuous_integration.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="continuous-integration">
+<span id="id1"></span><h1>Continuous Integration<a class="headerlink" href="#continuous-integration" title="Link to this heading">¶</a></h1>
+<p>To contribute to the code base of <em>HydPy</em>, you need a copy of its sources
+(a separate fork, see section <a class="reference internal" href="version_control.html#version-control"><span class="std std-ref">Version control</span></a>).  The existence
+of multiple copies of the same code bears the danger of integration problems
+due to incompatible changes.  An obvious problem is when two developers
+introduce different changes to the same code lines. However, even untuned
+changes in separate code sections can break functionalities.  As a means to
+reduce such risks, different working copies should be synchronised
+“continuously”.  Taking the code changes of colleagues into account as often
+as possible decreases the likelihood of simultaneous changes to the same code
+sections and keeps the complexity of possible conflicts to a minimum.</p>
+<p>The online development of <em>HydPy</em> relies, besides <a class="reference external" href="https://github.com">GitHub</a>, on <a class="reference external" href="https://travis-ci.com/">Travis CI</a>
+and <a class="reference external" href="https://www.appveyor.com/">AppVeyor</a>.  Both are a hosted, distributed continuous integration
+services.  They are configured to check and eventually release new <em>HydPy</em>
+versions in different ways.  Each time someone suggests changes to the
+<a class="reference external" href="https://github.com/hydpy-dev/hydpy">hydpy repository</a>, either via a direct commit or a pull request (see
+section <a class="reference internal" href="version_control.html#version-control"><span class="std std-ref">Version control</span></a>), <a class="reference external" href="https://github.com">GitHub</a> sends a message to the servers of
+<a class="reference external" href="https://travis-ci.com/">Travis CI</a> and <a class="reference external" href="https://www.appveyor.com/">AppVeyor</a>.  They then download the new source code,
+examine it, and log their results to the <a class="reference external" href="https://travis-ci.com/hydpy-dev/hydpy">Travis log-page</a> and the
+<a class="reference external" href="https://ci.appveyor.com/project/tyralla/hydpy/history">AppVeyor log-page</a>, respectively.</p>
+<p><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/master/.travis.yml">travis.yml</a> defines the following <a class="reference external" href="https://travis-ci.com/">Travis CI</a> workflow:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Download and install all <em>HydPy</em> dependencies on the Debian based
+Linux operating system Ubuntu separately for each currently
+supported CPython version.</p></li>
+<li><p>Call <a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/master/setup.py">setup.py</a> to copy <em>HydPy</em> to the site-packages folder and
+build some additional files (e.g. Dynamic Link Library files).
+For reasons of measuring code coverage, <a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/master/setup.py">setup.py</a> also triggers
+all “conventional” unit tests and doctests.</p></li>
+<li><p>Prepare a test coverage report (see section <a class="reference internal" href="tests_and_documentation.html#tests-and-documentation"><span class="std std-ref">Tests &amp; documentation</span></a>).</p></li>
+<li><p>Generate the online documentation (for the latest stable Python version).</p></li>
+<li><p>Publish the online documentation on <a class="reference external" href="https://pages.github.com/">GitHub pages</a> in case the
+build process succeeded, all tests passed, and no formatting errors
+or wrong links corrupted the documentation. Additionally, the evaluated
+branch must be the master branch.</p></li>
+</ul>
+</div></blockquote>
+<p>The workflow defined by <cite>appveyour.yml</cite> is as follows:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>As on <a class="reference external" href="https://travis-ci.com/">Travis CI</a>, download and install all <em>HydPy</em> dependencies for
+each supported CPython version, but on Windows Server instead of Linux.</p></li>
+<li><p>As on <a class="reference external" href="https://travis-ci.com/">Travis CI</a>, call <a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/master/setup.py">setup.py</a> to install <em>HydPy</em>, but do not
+measure code coverage.</p></li>
+<li><p>Create binary distributions for the respective Python versions based
+on the extension files generated in the last step.</p></li>
+<li><p>Remove the already installed files, reinstall <em>HydPy</em> based on the
+new binary distributions, and apply all tests.</p></li>
+<li><p>Make all artefacts available (currently, besides the binary distributions,
+the automatically generated XML schema files).</p></li>
+<li><p>Upload the binary distributions to the <a class="reference external" href="https://pypi.org/project/HydPy/">Python Package Index</a>  for
+tagged commits in case all tests passed.</p></li>
+</ul>
+</div></blockquote>
+<p>Together, both continuous integration services capture a wide range
+of possible problems, not only addressing the implemented hydrological
+models, but also the release and documentation cycles.  If applied
+regularly, chances are good to trace unexpected errors to specific code
+changes.  Additionally, <a class="reference external" href="https://travis-ci.com/">Travis CI</a> and <a class="reference external" href="https://www.appveyor.com/">AppVeyor</a> help you to decide
+if contributions by colleagues are mature enough to be merged in your code.</p>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="tests_and_documentation.html" title="Tests &amp; documentation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="hydpydependencies.html" title="Dependencies"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="development.html" >Development</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Continuous Integration</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>
